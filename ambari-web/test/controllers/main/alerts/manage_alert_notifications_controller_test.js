@@ -30,11 +30,6 @@ describe('App.ManageAlertNotificationsController', function () {
 
   beforeEach(function () {
     controller = getController();
-    sinon.stub($, 'ajax', Em.K);
-  });
-
-  afterEach(function () {
-    $.ajax.restore();
   });
 
   describe('#alertNotifications', function () {
@@ -795,8 +790,8 @@ describe('App.ManageAlertNotificationsController', function () {
     it("should send ajax request", function () {
 
       controller.createAlertNotification();
-      expect($.ajax.calledOnce).to.be.true;
-      expect($.ajax.args[0][0].url.contains('overwrite_existing=true')).to.be.false;
+      var args = helpers.findAjaxRequest('name', 'alerts.create_alert_notification');
+      expect(args[0]).to.exists;
     });
 
   });
@@ -831,7 +826,8 @@ describe('App.ManageAlertNotificationsController', function () {
     it("should send ajax request", function () {
 
       controller.updateAlertNotification();
-      expect($.ajax.calledOnce).to.be.true;
+      var args = helpers.findAjaxRequest('name', 'alerts.update_alert_notification');
+      expect(args[0]).to.exists;
     });
 
   });
@@ -877,7 +873,8 @@ describe('App.ManageAlertNotificationsController', function () {
 
       expect(App.showConfirmationPopup.calledOnce).to.be.true;
       popup.onPrimary();
-      expect($.ajax.calledOnce).to.be.true;
+      var args = helpers.findAjaxRequest('name', 'alerts.delete_alert_notification');
+      expect(args[0]).to.exists;
     });
 
   });

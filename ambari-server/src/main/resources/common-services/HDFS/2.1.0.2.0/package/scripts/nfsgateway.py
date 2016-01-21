@@ -39,7 +39,7 @@ class NFSGateway(Script):
 
     env.set_params(params)
 
-    self.install_packages(env, params.exclude_packages)
+    self.install_packages(env)
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params

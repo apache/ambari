@@ -38,7 +38,7 @@ import java.util.Map;
  * is used to check that the MR2 History server has state preserving mode enabled.
  */
 @Singleton
-@UpgradeCheck(group = UpgradeCheckGroup.CONFIGURATION_WARNING, order = 1.0f)
+@UpgradeCheck(group = UpgradeCheckGroup.CONFIGURATION_WARNING, order = 17.0f)
 public class MapReduce2JobHistoryStatePreservingCheck extends AbstractCheckDescriptor {
 
   final static String MAPREDUCE2_JOBHISTORY_RECOVERY_ENABLE_KEY =

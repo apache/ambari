@@ -20,6 +20,7 @@ var App = require('app');
 
 require('controllers/main/alert_definitions_controller');
 require('models/alerts/alert_definition');
+var testHelpers = require('test/helpers');
 
 var controller;
 describe('App.MainAlertDefinitionsController', function() {
@@ -33,7 +34,6 @@ describe('App.MainAlertDefinitionsController', function() {
   describe('#toggleDefinitionState', function() {
 
     beforeEach(function() {
-      sinon.stub(App.ajax, 'send', Em.K);
       controller.reopen({
         content: [
           App.AlertDefinition.createRecord({id: 1, enabled: true})
@@ -41,14 +41,11 @@ describe('App.MainAlertDefinitionsController', function() {
       });
     });
 
-    afterEach(function() {
-      App.ajax.send.restore();
-    });
-
     it('should do ajax-request', function() {
       var alertDefinition = controller.get('content')[0];
       controller.toggleDefinitionState(alertDefinition);
-      expect(App.ajax.send.calledOnce).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'alerts.update_alert_definition');
+      expect(args).to.exists;
     });
 
   });

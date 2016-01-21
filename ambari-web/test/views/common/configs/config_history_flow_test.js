@@ -18,7 +18,7 @@
 
 var App = require('app');
 require('views/common/configs/config_history_flow');
-
+var testHelpers = require('test/helpers');
 
 describe.skip('App.ConfigHistoryFlowView', function () {
 
@@ -299,7 +299,7 @@ describe.skip('App.ConfigHistoryFlowView', function () {
       App.tooltip.restore();
     });
 
-    it('App.tooltip is called onñe', function () {
+    it('App.tooltip is called onï¿½e', function () {
       expect(App.tooltip.calledOnce).to.be.true;
     });
   });
@@ -624,16 +624,12 @@ describe.skip('App.ConfigHistoryFlowView', function () {
   describe('#sendRevertCall()', function () {
 
     beforeEach(function () {
-      sinon.stub(App.ajax, 'send', Em.K);
       view.sendRevertCall(Em.Object.create());
     });
 
-    afterEach(function () {
-      App.ajax.send.restore();
-    });
-
     it('request is sent', function () {
-      expect(App.ajax.send.calledOnce).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'service.serviceConfigVersion.revert');
+      expect(args).exists;
     });
   });
 

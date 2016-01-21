@@ -18,6 +18,7 @@
 
 var App = require('app');
 require('mixins/common/table_server_view_mixin');
+require('utils/load_timer');
 
 describe('App.MainConfigHistoryView', function() {
   var view = Em.View.create(App.TableServerViewMixin, {

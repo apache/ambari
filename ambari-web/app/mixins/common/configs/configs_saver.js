@@ -619,6 +619,10 @@ App.ConfigsSaverMixin = Em.Mixin.create({
       App.QuickViewLinks.proto().set('content', currentService);
       App.QuickViewLinks.proto().loadTags();
     }
+
+    //  update configs for service actions
+    App.router.get('mainServiceItemController').loadConfigs();
+
     this.showSaveConfigsPopup(header, flag, message, messageClass, value, status, urlParams);
     this.clearAllRecommendations();
   },

@@ -38,7 +38,7 @@ import com.google.inject.Singleton;
  * present in HDP 2.2.4.2+.
  */
 @Singleton
-@UpgradeCheck(group = UpgradeCheckGroup.DEFAULT, order = 1.0f)
+@UpgradeCheck(group = UpgradeCheckGroup.DEFAULT, order = 17.3f)
 public class YarnTimelineServerStatePreservingCheck extends AbstractCheckDescriptor {
 
   private final static String YARN_TIMELINE_STATE_RECOVERY_ENABLED_KEY = "yarn.timeline-service.recovery.enabled";

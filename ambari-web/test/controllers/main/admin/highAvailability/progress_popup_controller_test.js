@@ -19,6 +19,7 @@
 var App = require('app');
 
 require('controllers/main/admin/highAvailability/progress_popup_controller');
+var testHelpers = require('test/helpers');
 
 describe('App.HighAvailabilityProgressPopupController', function () {
 
@@ -33,16 +34,6 @@ describe('App.HighAvailabilityProgressPopupController', function () {
   });
 
   describe('#startTaskPolling', function () {
-
-    beforeEach(function () {
-      sinon.stub(App.updater, 'run', Em.K);
-      sinon.stub(App.updater, 'immediateRun', Em.K);
-    });
-
-    afterEach(function () {
-      App.updater.run.restore();
-      App.updater.immediateRun.restore();
-    });
 
     describe('should start task polling', function () {
 
@@ -85,17 +76,10 @@ describe('App.HighAvailabilityProgressPopupController', function () {
 
   describe('#updateTask', function () {
 
-    beforeEach(function () {
-      sinon.stub(App.ajax, 'send', Em.K);
-    });
-
-    afterEach(function () {
-      App.ajax.send.restore();
-    });
-
     it('should send polling request', function () {
       controller.updateTask();
-      expect(App.ajax.send.calledOnce).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'background_operations.get_by_task');
+      expect(args).to.exists;
     });
 
   });
@@ -200,14 +184,6 @@ describe('App.HighAvailabilityProgressPopupController', function () {
       }
     ];
 
-    beforeEach(function () {
-      sinon.stub(App.ajax, 'send', Em.K);
-    });
-
-    afterEach(function () {
-      App.ajax.send.restore();
-    });
-
     cases.forEach(function (item) {
       describe(item.title, function () {
 
@@ -217,26 +193,29 @@ describe('App.HighAvailabilityProgressPopupController', function () {
             stageId: item.stageId
           });
           controller.getHosts();
+          this.bgArgs = testHelpers.filterAjaxRequests('name', 'background_operations.get_by_request');
+          this.pollingArgs = testHelpers.filterAjaxRequests('name', 'common.request.polling');
+          this.args = item.name === 'background_operations.get_by_request' ? this.bgArgs : this.pollingArgs;
         });
 
         it('two requests are sent', function () {
-          expect(App.ajax.send.calledTwice).to.be.true;
+          expect(this.args.length).to.be.equal(2);
         });
 
         it('1st call name is valid', function () {
-          expect(App.ajax.send.firstCall.args[0].name).to.equal(item.name);
+          expect(this.args[0][0].name).to.equal(item.name);
         });
 
         it('2nd call name is valid', function () {
-          expect(App.ajax.send.secondCall.args[0].name).to.equal(item.name);
+          expect(this.args[1][0].name).to.equal(item.name);
         });
 
         it('1st stageId is valid', function () {
-          expect(App.ajax.send.firstCall.args[0].data.stageId).to.eql(item.stageIdPassed);
+          expect(this.args[0][0].data.stageId).to.eql(item.stageIdPassed);
         });
 
         it('2nd stageId is valid', function () {
-          expect(App.ajax.send.secondCall.args[0].data.stageId).to.eql(item.stageIdPassed);
+          expect(this.args[1][0].data.stageId).to.eql(item.stageIdPassed);
         });
 
       });

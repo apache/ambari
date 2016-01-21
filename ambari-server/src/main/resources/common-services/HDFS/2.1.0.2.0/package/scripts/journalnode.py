@@ -36,8 +36,8 @@ from ambari_commons import OSConst
 class JournalNode(Script):
   def install(self, env):
     import params
-    self.install_packages(env, params.exclude_packages)
     env.set_params(params)
+    self.install_packages(env)  
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class JournalNodeDefault(JournalNode):
@@ -164,7 +164,7 @@ class JournalNodeDefault(JournalNode):
 class JournalNodeWindows(JournalNode):
   def install(self, env):
     import install_params
-    self.install_packages(env, install_params.exclude_packages)
+    self.install_packages(env)
 
   def start(self, env):
     import params

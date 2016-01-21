@@ -45,6 +45,20 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   },
 
   /**
+   * Map of service names and lists of sites they need to load
+   */
+  serviceConfigsMap: {
+    'OOZIE': ['oozie-env']
+  },
+
+  /**
+   * Configs loaded to use for service actions menu
+   *
+   * format: {config-type: {property-name1: property-value1, property-name2: property-value2, ...}}
+   */
+  configs: {},
+
+  /**
    * @type {boolean}
    * @default true
    */
@@ -56,42 +70,11 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
    */
   isServicesInfoLoaded: false,
 
-  initHosts: function() {
-    if (App.get('components.masters').length !== 0) {
-      ['HBASE_MASTER', 'HIVE_METASTORE', 'ZOOKEEPER_SERVER', 'FLUME_HANDLER', 'HIVE_SERVER', 'RANGER_KMS_SERVER', 'NIMBUS'].forEach(function(componentName) {
-        this.loadHostsWithoutComponent(componentName);
-      }, this);
-    }
-  }.observes('App.components.masters', 'content.hostComponents.length'),
-
-  loadHostsWithoutComponent: function (componentName) {
-    var self = this;
-    var hostsWithComponent = App.HostComponent.find().filterProperty('componentName', componentName).mapProperty('hostName');
-
-    var hostsWithoutComponent = App.get('allHostNames').filter(function(hostName) {
-      return !hostsWithComponent.contains(hostName);
-    });
-
-    self.set('add' + componentName, function() {
-      App.get('router.mainAdminKerberosController').getKDCSessionState(function() {
-        self.addComponent(componentName);
-      });
-    });
-
-    Em.defineProperty(self, 'addDisabledTooltip-' + componentName, Em.computed('isAddDisabled-' + componentName, 'addDisabledMsg-' + componentName, function() {
-      if (self.get('isAddDisabled-' + componentName)) {
-        return self.get('addDisabledMsg-' + componentName);
-      }
-    }));
-
-    Em.defineProperty(self, 'isAddDisabled-' + componentName, Em.computed('hostsWithoutComponent-' + componentName, function() {
-      return self.get('hostsWithoutComponent-' + componentName).length === 0 ? 'disabled' : '';
-    }));
-
-    var disabledMsg = Em.I18n.t('services.summary.allHostsAlreadyRunComponent').format(componentName);
-    self.set('hostsWithoutComponent-' + componentName, hostsWithoutComponent);
-    self.set('addDisabledMsg-' + componentName, disabledMsg);
-  },
+  /**
+   * Define whether configs for service actions menu were loaded
+   * @type {Boolean}
+   */
+  isServiceConfigsLoaded: false,
 
   /**
    * flag to control router switch between service summary and configs
@@ -121,6 +104,48 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     });
     return clientNames;
   }.property('content.serviceName'),
+
+  /**
+   * Load all config tags for loading configs
+   */
+  loadConfigs: function(){
+    if (this.get('serviceConfigsMap')[this.get('content.serviceName')]) {
+      this.set('isServiceConfigsLoaded', false);
+      App.ajax.send({
+        name: 'config.tags',
+        sender: this,
+        success: 'onLoadConfigsTags',
+        error: 'onTaskError'
+      });
+    } else {
+      this.set('isServiceConfigsLoaded', true);
+    }
+  },
+
+  /**
+   * Load all configs for sites from <code>serviceConfigsMap</code> for current service
+   * @param data
+   */
+  onLoadConfigsTags: function (data) {
+    var self = this;
+    var sitesToLoad = this.get('serviceConfigsMap')[this.get('content.serviceName')];
+    var loadedSites = data.Clusters.desired_configs;
+    var siteTagsToLoad = [];
+    for (var site in loadedSites) {
+      if (sitesToLoad.contains(site)) {
+        siteTagsToLoad.push({
+          siteName: site,
+          tagName: loadedSites[site].tag
+        });
+      }
+    }
+    App.router.get('configurationController').getConfigsByTags(siteTagsToLoad).done(function (configs) {
+      configs.forEach(function (site) {
+        self.get('configs')[site.type] = site.properties;
+      });
+      self.set('isServiceConfigsLoaded', true);
+    });
+  },
 
   /**
    * Common method for ajax (start/stop service) responses
@@ -779,60 +804,59 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     var component = App.StackServiceComponent.find().findProperty('componentName', componentName);
     var componentDisplayName = component.get('displayName');
 
-    self.loadHostsWithoutComponent(componentName);
+    App.get('router.mainAdminKerberosController').getKDCSessionState(function () {
+      return App.ModalPopup.show({
+        primary: Em.computed.ifThenElse('anyHostsWithoutComponent', Em.I18n.t('hosts.host.addComponent.popup.confirm'), undefined),
 
-    return App.ModalPopup.show({
-      primary: Em.computed.ifThenElse('anyHostsWithoutComponent', Em.I18n.t('hosts.host.addComponent.popup.confirm'), undefined),
+        header: Em.I18n.t('popup.confirmation.commonHeader'),
 
-      header: Em.I18n.t('popup.confirmation.commonHeader'),
+        addComponentMsg: Em.I18n.t('hosts.host.addComponent.msg').format(componentDisplayName),
 
-      addComponentMsg: Em.I18n.t('hosts.host.addComponent.msg').format(componentDisplayName),
+        selectHostMsg: Em.computed.i18nFormat('services.summary.selectHostForComponent', 'componentDisplayName'),
 
-      selectHostMsg: Em.computed.i18nFormat('services.summary.selectHostForComponent', 'componentDisplayName'),
+        thereIsNoHostsMsg: Em.computed.i18nFormat('services.summary.allHostsAlreadyRunComponent', 'componentDisplayName'),
 
-      thereIsNoHostsMsg: Em.computed.i18nFormat('services.summary.allHostsAlreadyRunComponent', 'componentDisplayName'),
+        hostsWithoutComponent: function () {
+          var hostsWithComponent = App.HostComponent.find().filterProperty('componentName', componentName).mapProperty('hostName');
+          var result = App.get('allHostNames');
 
-      hostsWithoutComponent: function() {
-        return self.get("hostsWithoutComponent-" + this.get('componentName'));
-      }.property('componentName', 'self.hostsWithoutComponent-' + this.get('componentName')),
+          hostsWithComponent.forEach(function (host) {
+            result = result.without(host);
+          });
 
-      anyHostsWithoutComponent: Em.computed.gt('hostsWithoutComponent.length', 0),
+          return result;
+        }.property(),
 
-      selectedHost: null,
+        anyHostsWithoutComponent: Em.computed.gt('hostsWithoutComponent.length', 0),
 
-      componentName: componentName,
+        selectedHost: null,
 
-      componentDisplayName: componentDisplayName,
+        componentName: componentName,
 
-      bodyClass: Em.View.extend({
-        templateName: require('templates/main/service/add_host_popup')
-      }),
+        componentDisplayName: componentDisplayName,
 
-      onPrimary: function () {
-        var selectedHost = this.get('selectedHost');
+        bodyClass: Em.View.extend({
+          templateName: require('templates/main/service/add_host_popup')
+        }),
 
-        // Install
-        if(['HIVE_METASTORE', 'RANGER_KMS_SERVER', 'NIMBUS'].contains(component.get('componentName')) && !!selectedHost){
-          App.router.get('mainHostDetailsController').addComponentWithCheck(
-            {
-              context: component,
-              selectedHost: selectedHost
-            }
-          );
-        } else {
-          self.installHostComponentCall(selectedHost, component);
+        onPrimary: function () {
+          var selectedHost = this.get('selectedHost');
+
+          // Install
+          if (['HIVE_METASTORE', 'RANGER_KMS_SERVER', 'NIMBUS'].contains(component.get('componentName')) && !!selectedHost) {
+            App.router.get('mainHostDetailsController').addComponentWithCheck(
+                {
+                  context: component,
+                  selectedHost: selectedHost
+                }
+            );
+          } else {
+            self.installHostComponentCall(selectedHost, component);
+          }
+
+          this.hide();
         }
-
-        // Remove host from 'without' collection to immediate recalculate add menu item state
-        var hostsWithoutComponent = this.get('hostsWithoutComponent');
-        var index = hostsWithoutComponent.indexOf(this.get('selectedHost'));
-        if (index > -1) {
-          hostsWithoutComponent.splice(index, 1);
-        }
-
-        self.set('hostsWithoutComponent-' + this.get('componentName'), hostsWithoutComponent);
-        this.hide();
-      }
+      });
     });
   },
 

@@ -20,73 +20,12 @@ var App = require('app');
 require('controllers/wizard');
 require('controllers/main/service/add_controller');
 var addServiceController = null;
+var testHelpers = require('test/helpers');
 
 describe('App.AddServiceController', function() {
 
   beforeEach(function () {
     addServiceController = App.AddServiceController.create({});
-  });
-
-  describe('#installAdditionalClients', function() {
-
-    var t = {
-      additionalClients: {
-        componentName: "TEZ_CLIENT",
-        hostNames: ["hostName1", "hostName2"]
-      },
-      additionalClientsWithoutHosts: {
-        componentName: "TEZ_CLIENT",
-        hostNames: []
-      },
-      RequestInfo: {
-        "context": Em.I18n.t('requestInfo.installHostComponent') + ' ' + App.format.role("TEZ_CLIENT"),
-        "query": "HostRoles/component_name=TEZ_CLIENT&HostRoles/host_name.in(hostName1,hostName2)"
-      },
-      Body: {
-        HostRoles: {
-          state: 'INSTALLED'
-        }
-      }
-    };
-
-    beforeEach(function () {
-      sinon.spy($, 'ajax');
-      sinon.stub(App, 'get', function(k) {
-        if ('clusterName' === k) return 'tdk';
-        return Em.get(App, k);
-      });
-      addServiceController.set('installClietsQueue', App.ajaxQueue.create())
-    });
-
-    afterEach(function () {
-      $.ajax.restore();
-      App.get.restore();
-    });
-
-    describe('send request to install client', function () {
-
-      beforeEach(function () {
-        addServiceController.set("content.additionalClients", [t.additionalClients]);
-        addServiceController.installAdditionalClients();
-      });
-
-      it('1 request is sent', function () {
-        expect($.ajax.calledOnce).to.equal(true);
-      });
-      it('data.Body is valid', function () {
-        expect(JSON.parse($.ajax.args[0][0].data).Body).to.deep.eql(t.Body);
-      });
-      it('data.RequestInfo is valid', function () {
-        expect(JSON.parse($.ajax.args[0][0].data).RequestInfo).to.eql(t.RequestInfo);
-      });
-
-    });
-
-    it('should not send request to install client', function () {
-      addServiceController.set("content.additionalClients", [t.additionalClientsWithoutHosts]);
-      expect($.ajax.called).to.be.false;
-    });
-
   });
 
   describe('#generateDataForInstallServices', function() {
@@ -204,17 +143,8 @@ describe('App.AddServiceController', function() {
       }
     ];
 
-    beforeEach(function () {
-      sinon.stub(App.ajax, 'send', function () {
-        return {
-          promise: Em.K
-        };
-      });
-    });
-
     afterEach(function () {
       addServiceController.getDBProperty.restore();
-      App.ajax.send.restore();
     });
 
     cases.forEach(function (item) {
@@ -223,10 +153,11 @@ describe('App.AddServiceController', function() {
         beforeEach(function () {
           sinon.stub(addServiceController, 'getDBProperty').withArgs('hosts').returns(item.hosts);
           addServiceController.loadHosts();
+          this.args = testHelpers.findAjaxRequest('name', 'hosts.confirmed');
         });
 
         it('request is ' + (item.isAjaxRequestSent ? '' : 'not') + ' sent', function () {
-          expect(App.ajax.send.calledOnce).to.equal(item.isAjaxRequestSent);
+          expect(Em.isNone(this.args)).to.be.equal(!item.isAjaxRequestSent);
         });
       });
     });

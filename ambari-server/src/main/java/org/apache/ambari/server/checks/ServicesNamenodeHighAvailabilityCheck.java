@@ -35,7 +35,7 @@ import com.google.inject.Singleton;
  * Checks that namenode high availability is enabled.
  */
 @Singleton
-@UpgradeCheck(group = UpgradeCheckGroup.NAMENODE_HA, order = 1.0f)
+@UpgradeCheck(group = UpgradeCheckGroup.NAMENODE_HA, order = 16.1f)
 public class ServicesNamenodeHighAvailabilityCheck extends AbstractCheckDescriptor {
 
   /**

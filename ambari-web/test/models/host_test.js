@@ -53,10 +53,6 @@ describe('App.Host', function () {
     }
   ];
 
-  before(function() {
-    App.set('testMode', false);
-  });
-
   App.Host.reopen({
     hostComponents: []
   });

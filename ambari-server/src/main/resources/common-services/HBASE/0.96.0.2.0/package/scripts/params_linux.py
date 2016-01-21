@@ -113,11 +113,6 @@ phoenix_hosts = default('/clusterHostInfo/phoenix_query_server_hosts', [])
 phoenix_enabled = default('/configurations/hbase-env/phoenix_sql_enabled', False)
 has_phoenix = len(phoenix_hosts) > 0
 
-if not has_phoenix and not phoenix_enabled:
-  exclude_packages = ['phoenix*']
-else:
-  exclude_packages = []
-
 underscored_version = stack_version_unformatted.replace('.', '_')
 dashed_version = stack_version_unformatted.replace('.', '-')
 if OSCheck.is_redhat_family() or OSCheck.is_suse_family():

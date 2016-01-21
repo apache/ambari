@@ -18,7 +18,7 @@
 
 var App = require('app');
 require('controllers/main/service/info/summary');
-
+var testHelpers = require('test/helpers');
 function getController() {
   return App.MainServiceInfoSummaryController.create();
 }
@@ -134,102 +134,6 @@ App.TestAliases.testAsComputedOr(getController(), 'showTimeRangeControl', ['!isS
 
   });
 
-  describe('#getRangerPluginsStatus', function () {
-
-    var data = {
-        'Clusters': {
-          'desired_configs': {
-            'ranger-hdfs-plugin-properties': {
-              'tag': 'version1'
-            },
-            'hive-env': {
-              'tag': 'version2'
-            },
-            'ranger-hbase-plugin-properties': {
-              'tag': 'version3'
-            }
-          }
-        }
-      },
-      cases = [
-        {
-          isPreviousRangerConfigsCallFailed: false,
-          ajaxRequestSent: true,
-          title: 'initial case'
-        },
-        {
-          isPreviousRangerConfigsCallFailed: true,
-          hdfsTag: 'version1',
-          hiveTag: 'version2',
-          hbaseTag: 'version3',
-          ajaxRequestSent: true,
-          title: 'previous call failed'
-        },
-        {
-          isPreviousRangerConfigsCallFailed: false,
-          hdfsTag: 'version2',
-          hiveTag: 'version2',
-          hbaseTag: 'version3',
-          ajaxRequestSent: true,
-          title: 'configs changed'
-        },
-        {
-          isPreviousRangerConfigsCallFailed: false,
-          hdfsTag: 'version1',
-          hiveTag: 'version2',
-          hbaseTag: 'version3',
-          ajaxRequestSent: false,
-          title: 'configs unchanged'
-        }
-      ];
-
-    beforeEach(function () {
-      sinon.stub(App.ajax, 'send', Em.K);
-      sinon.stub(App.Service, 'find').returns([
-        Em.Object.create({
-          serviceName: 'HDFS'
-        }),
-        Em.Object.create({
-          serviceName: 'HIVE'
-        }),
-        Em.Object.create({
-          serviceName: 'HBASE'
-        }),
-        Em.Object.create({
-          serviceName: 'YARN'
-        })
-      ]);
-    });
-
-    afterEach(function () {
-      App.ajax.send.restore();
-      App.Service.find.restore();
-    });
-
-    cases.forEach(function (item) {
-      describe(item.title, function () {
-
-        beforeEach(function () {
-          controller.set('isPreviousRangerConfigsCallFailed', item.isPreviousRangerConfigsCallFailed);
-          controller.get('rangerPlugins').findProperty('serviceName', 'HDFS').tag = item.hdfsTag;
-          controller.get('rangerPlugins').findProperty('serviceName', 'HBASE').tag = item.hbaseTag;
-          controller.getRangerPluginsStatus(data);
-        });
-
-        it('1 request is ' + item.ajaxRequestSent + ' sent', function () {
-          expect(App.ajax.send.calledOnce).to.equal(item.ajaxRequestSent);
-        });
-
-        if (item.ajaxRequestSent) {
-          it('request does not contains `ranger-yarn-plugin-properties`', function () {
-            expect(App.ajax.send.getCall(0).args[0].data.urlParams.contains('ranger-yarn-plugin-properties')).to.be.false;
-          });
-        }
-      });
-    });
-
-  });
-
   describe('#getRangerPluginsStatusSuccess', function () {
 
     beforeEach(function () {
@@ -281,19 +185,14 @@ App.TestAliases.testAsComputedOr(getController(), 'showTimeRangeControl', ['!isS
   });
 
   describe("#getActiveWidgetLayout() for Enhanced Dashboard", function () {
-    before(function () {
-      sinon.stub(App.ajax, 'send');
-    });
-    after(function () {
-      App.ajax.send.restore();
-    });
+
     it("make GET call", function () {
       var _controller = App.MainServiceInfoSummaryController.create({
         isServiceWithEnhancedWidgets: true,
         content: Em.Object.create({serviceName: 'HDFS'})
       });
       _controller.getActiveWidgetLayout();
-      expect(App.ajax.send.getCall(0).args[0].name).to.equal('widgets.layouts.active.get');
+      expect(testHelpers.findAjaxRequest('name', 'widgets.layouts.active.get')).to.exists;
     });
   });
 

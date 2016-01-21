@@ -612,11 +612,9 @@ describe('App.WizardController', function () {
       sinon.stub(wizardController,'showLaunchBootstrapPopup').returns({
         name: 'popup'
       });
-      sinon.stub(App.ajax,'send', Em.K);
     });
     afterEach(function(){
       wizardController.showLaunchBootstrapPopup.restore();
-      App.ajax.send.restore();
     });
     it('should return popup', function () {
       expect(wizardController.launchBootstrap()).to.be.eql({
@@ -680,13 +678,9 @@ describe('App.WizardController', function () {
       sinon.stub(wizardController,'saveClusterStatus', function(data){
         res = JSON.parse(JSON.stringify(data));
       });
-      sinon.stub(App.ajax,'send').returns({
-        then: function() {}
-      });
     });
     afterEach(function(){
       wizardController.saveClusterStatus.restore();
-      App.ajax.send.restore();
     });
     it('should call callbeck with data', function () {
       wizardController.set('content', Em.Object.create({
@@ -1491,7 +1485,7 @@ describe('App.WizardController', function () {
   describe('#loadConfigThemes', function() {
     beforeEach(function () {
       sinon.stub(wizardController, 'loadConfigThemeForServices').returns({
-        always: function(callback) {callback();}
+        always: Em.clb
       });
       sinon.stub(App.themesMapper, 'generateAdvancedTabs').returns(true);
       sinon.stub(App.config, 'loadConfigsFromStack').returns({

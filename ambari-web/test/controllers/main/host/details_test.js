@@ -24,6 +24,7 @@ require('models/host_component');
 require('models/host_stack_version');
 var batchUtils = require('utils/batch_scheduled_requests');
 var hostsManagement = require('utils/hosts');
+var testHelpers = require('test/helpers');
 var controller;
 
 function getController() {
@@ -36,15 +37,7 @@ function getController() {
 describe('App.MainHostDetailsController', function () {
 
   beforeEach(function () {
-    sinon.stub(App.ajax, 'send').returns({
-      then: Em.K,
-      complete: Em.K
-    });
     controller = getController();
-  });
-
-  afterEach(function () {
-    App.ajax.send.restore();
   });
 
   App.TestAliases.testAsComputedFilterBy(getController(), 'serviceNonClientActiveComponents', 'serviceActiveComponents', 'isClient', false);
@@ -140,14 +133,12 @@ describe('App.MainHostDetailsController', function () {
   describe("#pullNnCheckPointTime()", function() {
     it("valid request is sent", function() {
       controller.pullNnCheckPointTime('host1');
-      expect(App.ajax.send.calledWith({
-        name: 'common.host_component.getNnCheckPointTime',
-        sender: controller,
-        data: {
-          host: 'host1'
-        },
-        success: 'parseNnCheckPointTime'
-      })).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'common.host_component.getNnCheckPointTime');
+      expect(args[0]).to.exists;
+      expect(args[0].sender).to.be.eql(controller);
+      expect(args[0].data).to.be.eql({
+        host: 'host1'
+      });
     });
   });
 
@@ -166,11 +157,14 @@ describe('App.MainHostDetailsController', function () {
       });
 
       it('1st call endpoint is valid', function () {
-        expect(App.ajax.send.getCall(0).args[0].name).to.be.equal('common.host.host_component.update');
+        var args = testHelpers.findAjaxRequest('name', 'common.host.host_component.update');
+        expect(args).to.exists;
       });
 
       it('1st call data is valid', function () {
-        expect(App.ajax.send.getCall(0).args[0].data).to.be.eql({
+        var args = testHelpers.findAjaxRequest('name', 'common.host.host_component.update');
+        expect(args[0]).to.exists;
+        expect(args[0].data).to.be.eql({
           "hostName": "host1",
           "context": {},
           "component": component,
@@ -201,11 +195,14 @@ describe('App.MainHostDetailsController', function () {
       });
 
       it('1st call endpoint is valid', function () {
-        expect(App.ajax.send.getCall(0).args[0].name).to.be.equal('common.host.host_components.update');
+        var args = testHelpers.findAjaxRequest('name', 'common.host.host_components.update');
+        expect(args).exists;
       });
 
       it('1st call data is valid', function () {
-        expect(App.ajax.send.getCall(0).args[0].data).to.be.eql({
+        var args = testHelpers.findAjaxRequest('name', 'common.host.host_components.update');
+        expect(args[0]).exists;
+        expect(args[0].data).to.be.eql({
           "hostName": "host1",
           "context": {},
           "component": component,
@@ -231,14 +228,12 @@ describe('App.MainHostDetailsController', function () {
     beforeEach(function () {
       sinon.stub(controller, 'mimicWorkStatusChange', Em.K);
       sinon.stub(controller, 'showBackgroundOperationsPopup', Em.K);
-      sinon.stub(App, 'get').withArgs('testMode').returns(false);
       controller.sendComponentCommandSuccessCallback({}, {}, params);
     });
 
     afterEach(function () {
       controller.showBackgroundOperationsPopup.restore();
       controller.mimicWorkStatusChange.restore();
-      App.get.restore();
     });
 
     it('mimicWorkStatusChange is not called', function () {
@@ -466,7 +461,8 @@ describe('App.MainHostDetailsController', function () {
       var popup = controller.upgradeComponent({context: Em.Object.create()});
       expect(App.showConfirmationPopup.calledOnce).to.be.true;
       popup.onPrimary();
-      expect(App.ajax.send.calledOnce).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'host.host_component.upgrade');
+      expect(args).exists;
     });
   });
 
@@ -475,9 +471,7 @@ describe('App.MainHostDetailsController', function () {
     beforeEach(function () {
       sinon.spy(App, "showConfirmationPopup");
       sinon.stub(batchUtils, "restartHostComponents", Em.K);
-      sinon.stub(controller, 'checkNnLastCheckpointTime', function(callback) {
-        callback();
-      });
+      sinon.stub(controller, 'checkNnLastCheckpointTime', Em.clb);
     });
     afterEach(function () {
       App.showConfirmationPopup.restore();
@@ -636,15 +630,12 @@ describe('App.MainHostDetailsController', function () {
           }
         }
       }});
-      expect(App.ajax.send.calledWith({
-        name: 'admin.get.all_configurations',
-        sender: controller,
-        data: {
-          urlParams: '(type=oozie-env&tag=tag)'
-        },
-        success: 'onLoadOozieConfigs',
-        error: 'onLoadConfigsErrorCallback'
-      })).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'admin.get.all_configurations');
+      expect(args[0]).exists;
+      expect(args[0].sender).to.be.eql(controller);
+      expect(args[0].data).to.be.eql({
+        urlParams: '(type=oozie-env&tag=tag)'
+      });
     });
   });
 
@@ -657,14 +648,12 @@ describe('App.MainHostDetailsController', function () {
           }
         }
       }});
-      expect(App.ajax.send.calledWith({
-        name: 'admin.get.all_configurations',
-        sender: controller,
-        data: {
-          urlParams: '(type=storm-site&tag=tag)'
-        },
-        success: 'onLoadStormConfigs'
-      })).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'admin.get.all_configurations');
+      expect(args[0]).exists;
+      expect(args[0].sender).to.be.eql(controller);
+      expect(args[0].data).to.be.eql({
+        urlParams: '(type=storm-site&tag=tag)'
+      });
     });
   });
 
@@ -730,14 +719,12 @@ describe('App.MainHostDetailsController', function () {
           }
         }
       }});
-      expect(App.ajax.send.calledWith({
-        name: 'admin.get.all_configurations',
-        sender: controller,
-        data: {
-          urlParams: '(type=hive-site&tag=tag)|(type=webhcat-site&tag=tag)|(type=hive-env&tag=tag)|(type=core-site&tag=tag)'
-        },
-        success: 'onLoadHiveConfigs'
-      })).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'admin.get.all_configurations');
+      expect(args[0]).exists;
+      expect(args[0].sender).to.be.eql(controller);
+      expect(args[0].data).to.be.eql({
+        urlParams: '(type=hive-site&tag=tag)|(type=webhcat-site&tag=tag)|(type=hive-env&tag=tag)|(type=core-site&tag=tag)'
+      });
     });
   });
 
@@ -756,14 +743,12 @@ describe('App.MainHostDetailsController', function () {
           }
         }
       }});
-      expect(App.ajax.send.calledWith({
-        name: 'admin.get.all_configurations',
-        sender: controller,
-        data: {
-          urlParams: '(type=core-site&tag=tag)|(type=hdfs-site&tag=tag)|(type=kms-env&tag=tag)'
-        },
-        success: 'onLoadRangerConfigs'
-      })).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'admin.get.all_configurations');
+      expect(args[0]).exists;
+      expect(args[0].sender).to.be.eql(controller);
+      expect(args[0].data).to.be.eql({
+        urlParams: '(type=core-site&tag=tag)|(type=hdfs-site&tag=tag)|(type=kms-env&tag=tag)'
+      });
     });
   });
 
@@ -902,14 +887,16 @@ describe('App.MainHostDetailsController', function () {
         host: {}
       });
       controller.sendRefreshComponentConfigsCommand(component, {});
-      expect(App.ajax.send.calledOnce).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'host.host_component.refresh_configs');
+      expect(args[0]).exists;
     });
   });
 
   describe('#loadConfigs()', function () {
     it('Query should be sent', function () {
       controller.loadConfigs();
-      expect(App.ajax.send.calledOnce).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'config.tags');
+      expect(args).exists;
     });
   });
 
@@ -1031,12 +1018,13 @@ describe('App.MainHostDetailsController', function () {
 
     it('url params is empty', function () {
       expect(controller.loadConfigsSuccessCallback()).to.be.false;
-      expect(App.ajax.send.called).to.be.false;
+      var args = testHelpers.findAjaxRequest('name', 'reassign.load_configs');
+      expect(args).not.exists;
     });
     it('url params are correct', function () {
       mockUrlParams = ['param1'];
-      expect(controller.loadConfigsSuccessCallback()).to.be.true;
-      expect(App.ajax.send.calledOnce).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'reassign.load_configs');
+      expect(args).exists;
     });
   });
 
@@ -1263,15 +1251,18 @@ describe('App.MainHostDetailsController', function () {
   describe("#saveConfigsBatch()", function () {
     it("no groups", function () {
       controller.saveConfigsBatch([]);
-      expect(App.ajax.send.called).to.be.false;
+      var args = testHelpers.filterAjaxRequests('name', 'common.service.configurations');
+      expect(args).to.be.empty;
     });
     it("configs is empty", function () {
       controller.saveConfigsBatch([{}]);
-      expect(App.ajax.send.called).to.be.false;
+      var args = testHelpers.filterAjaxRequests('name', 'common.service.configurations');
+      expect(args).to.be.empty;
     });
     it("configs is correct", function () {
       controller.saveConfigsBatch([{'properties': {'site': {}}, 'properties_attributes': {'site': {}}}]);
-      expect(App.ajax.send.calledOnce).to.be.true;
+      var args = testHelpers.filterAjaxRequests('name', 'common.service.configurations');
+      expect(args).to.have.property('length').equal(1);
     });
   });
 
@@ -1582,7 +1573,8 @@ describe('App.MainHostDetailsController', function () {
       var popup = controller.installComponent(event);
       expect(App.ModalPopup.show.calledOnce).to.be.true;
       popup.onPrimary();
-      expect(App.ajax.send.called).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'common.host.host_component.update');
+      expect(args).exists;
     });
   });
 
@@ -1695,14 +1687,16 @@ describe('App.MainHostDetailsController', function () {
   describe('#doDecommission()', function () {
     it('Query should be sent', function () {
       controller.doDecommission('', '', '', '');
-      expect(App.ajax.send.calledOnce).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'host.host_component.decommission_slave');
+      expect(args).exists;
     });
   });
 
   describe('#doDecommissionRegionServer()', function () {
     it('Query should be sent', function () {
       controller.doDecommissionRegionServer('', '', '', '');
-      expect(App.ajax.send.calledOnce).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'host.host_component.recommission_and_restart');
+      expect(args).exists;
     });
   });
 
@@ -1743,7 +1737,9 @@ describe('App.MainHostDetailsController', function () {
       expect(result).to.be.an('object');
     });
     it('request is sent with correct data', function () {
-      expect(App.ajax.send.getCall(0).args[0].data.hostNames).to.equal('host1');
+      var args = testHelpers.findAjaxRequest('name', 'host.region_servers.in_inservice');
+      expect(args[0]).exists;
+      expect(args[0].data.hostNames).to.be.equal('host1');
     });
   });
 
@@ -1834,7 +1830,8 @@ describe('App.MainHostDetailsController', function () {
   describe('#doRecommissionAndStart()', function () {
     it('Query should be sent', function () {
       controller.doRecommissionAndStart('', '', '', '');
-      expect(App.ajax.send.calledOnce).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'host.host_component.recommission_and_restart');
+      expect(args).exists;
     });
   });
 
@@ -1991,7 +1988,8 @@ describe('App.MainHostDetailsController', function () {
   describe('#hostPassiveModeRequest()', function () {
     it('Query should be sent', function () {
       controller.hostPassiveModeRequest('', '');
-      expect(App.ajax.send.calledOnce).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'bulk_request.hosts.passive_state');
+      expect(args).exists;
     });
   });
 
@@ -2618,7 +2616,8 @@ describe('App.MainHostDetailsController', function () {
       var popup = controller.executeCustomCommand({context: Em.Object.create()});
       expect(App.showConfirmationPopup.calledOnce).to.be.true;
       popup.onPrimary();
-      expect(App.ajax.send.calledOnce).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'service.item.executeCustomCommand');
+      expect(args).exists;
     });
   });
 
@@ -2627,8 +2626,9 @@ describe('App.MainHostDetailsController', function () {
       controller.set('content.hostName', 'host1');
       var component = Em.Object.create({componentName: 'COMP'});
       controller._doDeleteHostComponent(component);
-      expect(App.ajax.send.getCall(0).args[0].name).to.be.equal('common.delete.host_component');
-      expect(App.ajax.send.getCall(0).args[0].data).to.be.eql({
+      var args = testHelpers.findAjaxRequest('name', 'common.delete.host_component');
+      expect(args[0]).exists;
+      expect(args[0].data).to.be.eql({
         componentName: 'COMP',
         hostName: 'host1'
       });
@@ -2636,8 +2636,9 @@ describe('App.MainHostDetailsController', function () {
     it('all components', function () {
       controller.set('content.hostName', 'host1');
       controller._doDeleteHostComponent(null);
-      expect(App.ajax.send.getCall(0).args[0].name).to.be.equal('common.delete.host');
-      expect(App.ajax.send.getCall(0).args[0].data).to.be.eql({
+      var args = testHelpers.findAjaxRequest('name', 'common.delete.host');
+      expect(args[0]).exists;
+      expect(args[0].data).to.be.eql({
         componentName: '',
         hostName: 'host1'
       });
@@ -2723,16 +2724,7 @@ describe('App.MainHostDetailsController', function () {
       controller.mimicWorkStatusChange.restore();
       controller.showBackgroundOperationsPopup.restore();
     });
-    it('testMode is true', function () {
-      App.set('testMode', true);
-
-      controller.upgradeComponentSuccessCallback({}, {}, {component: "COMP"});
-      expect(controller.mimicWorkStatusChange.calledWith("COMP", App.HostComponentStatus.starting, App.HostComponentStatus.started)).to.be.true;
-      expect(controller.showBackgroundOperationsPopup.calledOnce).to.be.true;
-    });
     it('testMode is false', function () {
-      App.set('testMode', false);
-
       controller.upgradeComponentSuccessCallback({}, {}, {component: "COMP"});
       expect(controller.mimicWorkStatusChange.called).to.be.false;
       expect(controller.showBackgroundOperationsPopup.calledOnce).to.be.true;
@@ -2822,12 +2814,10 @@ describe('App.MainHostDetailsController', function () {
     beforeEach(function () {
       sinon.stub(controller, 'showBackgroundOperationsPopup', Em.K);
       sinon.stub(controller, 'mimicWorkStatusChange', Em.K);
-      sinon.stub(App, 'get').withArgs('testMode').returns(false);
     });
     afterEach(function () {
       controller.mimicWorkStatusChange.restore();
       controller.showBackgroundOperationsPopup.restore();
-      App.get.restore();
     });
 
     it('testMode is false', function () {
@@ -2877,7 +2867,9 @@ describe('App.MainHostDetailsController', function () {
         componentName: 'COMP1'
       });
       controller.updateComponentPassiveState(component, 'state', 'message');
-      expect(App.ajax.send.getCall(0).args[0].data).to.be.eql({
+      var args = testHelpers.findAjaxRequest('name', 'common.host.host_component.passive');
+      expect(args[0]).exists;
+      expect(args[0].data).to.be.eql({
         "hostName": "host1",
         "componentName": "COMP1",
         "component": component,
@@ -3174,16 +3166,17 @@ describe('App.MainHostDetailsController', function () {
       beforeEach(function () {
         controller.set('content.hostComponents', Em.A([]));
         controller.doDeleteHost(Em.K);
+        this.args = testHelpers.findAjaxRequest('name', 'common.delete.host');
       });
 
       it('fromDeleteHost is true', function () {
         expect(controller.get('fromDeleteHost')).to.be.true;
       });
       it('1st request is to delete host', function () {
-        expect(App.ajax.send.getCall(0).args[0].name).to.be.equal('common.delete.host');
+        expect(this.args[0]).exists;
       });
       it('1st request is done with valid hostName', function () {
-        expect(App.ajax.send.getCall(0).args[0].data.hostName).to.be.equal('host1');
+        expect(this.args[0].data.hostName).to.be.equal('host1');
       });
     });
 
@@ -3205,10 +3198,12 @@ describe('App.MainHostDetailsController', function () {
         expect(controller.get('fromDeleteHost')).to.be.true;
       });
       it('1st request is to delete host', function () {
-        expect(App.ajax.send.getCall(0).args[0].name).to.be.equal('common.delete.host');
+        var args = testHelpers.findAjaxRequest('name', 'common.delete.host');
+        expect(args[0]).exists;
       });
       it('1st request is done with valid hostName', function () {
-        expect(App.ajax.send.getCall(0).args[0].data.hostName).to.be.equal('host1');
+        var args = testHelpers.findAjaxRequest('name', 'common.delete.host');
+        expect(args[0].data.hostName).to.be.equal('host1');
       });
 
     });
@@ -3311,14 +3306,12 @@ describe('App.MainHostDetailsController', function () {
     it("call App.ajax.send", function () {
       controller.set('content.hostName', 'host1');
       controller.installVersion({context: {}});
-      expect(App.ajax.send.getCall(0).args[0]).to.eql({
-        name: 'host.stack_versions.install',
-        sender: controller,
-        data: {
-          hostName: 'host1',
-          version: {}
-        },
-        success: 'installVersionSuccessCallback'
+      var args = testHelpers.findAjaxRequest('name', 'host.stack_versions.install');
+      expect(args[0]).exists;
+      expect(args[0].sender).to.be.eql(controller);
+      expect(args[0].data).to.be.eql({
+        hostName: 'host1',
+        version: {}
       });
     });
   });

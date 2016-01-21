@@ -16,8 +16,8 @@
  * limitations under the License.
  */
 
-
 var App = require('app');
+var testHelpers = require('test/helpers');
 
 describe('App.MainController', function () {
   var mainController = App.MainController.create();
@@ -132,26 +132,13 @@ describe('App.MainController', function () {
   });
 
   describe('#getServerVersion', function() {
-    var res;
-    beforeEach(function () {
-      sinon.stub(App.ajax, 'send', function(data) {
-        res = JSON.parse(JSON.stringify(data));
-      });
-    });
-    afterEach(function () {
-      App.ajax.send.restore();
-    });
+
     it ('Should send data', function() {
       mainController.getServerVersion();
-      expect(res).to.be.eql({
-        "name": "ambari.service",
-        "sender": {},
-        "data": {
-          "fields": "?fields=RootServiceComponents/component_version,RootServiceComponents/properties/server.os_family&minimal_response=true"
-        },
-        "success": "getServerVersionSuccessCallback",
-        "error": "getServerVersionErrorCallback"
-      });
+      var args = testHelpers.findAjaxRequest('name', 'ambari.service');
+      expect(args[0]).to.exists;
+      expect(args[0].sender).to.be.eql(mainController);
+      expect(args[0].data.fields).to.be.eql('?fields=RootServiceComponents/component_version,RootServiceComponents/properties/server.os_family&minimal_response=true');
     });
   });
 

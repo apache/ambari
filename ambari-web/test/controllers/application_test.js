@@ -19,6 +19,7 @@
 
 var App = require('app');
 require('models/cluster');
+var testHelpers = require('test/helpers');
 
 function getController() {
   return App.ApplicationController.create();
@@ -90,30 +91,15 @@ describe('App.ApplicationController', function () {
   });
 
   describe('#getStack', function() {
-    var res;
-    beforeEach(function () {
-      sinon.stub(App.ajax, 'send', function(data) {
-        res = data;
-      });
-    });
-    afterEach(function () {
-      App.ajax.send.restore();
-    });
+
     it ('Should return send value', function() {
       var callback = {
         'callback': true
       };
       applicationController.getStack(callback);
-      res = JSON.parse(JSON.stringify(res));
-      expect(res).to.be.eql({
-        "name": "router.login.clusters",
-        "sender": {
-          "isPollerRunning": true
-        },
-        "callback": {
-          "callback": true
-        }
-      });
+      var args = testHelpers.findAjaxRequest('name', 'router.login.clusters');
+      expect(args[0]).to.exists;
+      expect(args[0].callback.callback).to.be.true;
     });
   });
 

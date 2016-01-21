@@ -22,18 +22,13 @@ require('utils/ajax/ajax');
 describe('App.ajax', function() {
 
   beforeEach(function() {
+    App.ajax.send.restore();
+    sinon.spy(App.ajax, 'send'); // no sense to test stubbed function, so going to spy on it
     App.set('apiPrefix', '/api/v1');
     App.set('clusterName', 'tdk');
   });
 
   describe('#send', function() {
-    beforeEach(function() {
-      sinon.spy($, 'ajax');
-    });
-
-    afterEach(function() {
-      $.ajax.restore();
-    });
     it('Without sender', function() {
       expect(App.ajax.send({})).to.equal(null);
       expect($.ajax.called).to.equal(false);
@@ -109,14 +104,6 @@ describe('App.ajax', function() {
   });
 
   describe('#formatRequest', function() {
-
-    beforeEach(function () {
-      sinon.stub(App, 'get').withArgs('testMode').returns(false);
-    });
-
-    afterEach(function () {
-      App.get.restore();
-    });
 
     var tests = [
       {

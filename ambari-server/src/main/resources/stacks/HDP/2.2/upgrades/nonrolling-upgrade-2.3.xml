@@ -406,6 +406,12 @@
         <task xsi:type="configure" id="hdp_2_3_0_0_hbase_master_delete_old_ranger_properties"/>
       </execute-stage>
 
+      <!-- HBASE -->
+      <!-- These HBASE configs changed in HDP 2.3.4.0, but Ambari can't distinguish HDP 2.3.2.0 vs HDP 2.3.4.0, so easier to always do them. -->
+      <execute-stage service="HBASE" component="HBASE_MASTER" title="Apply config changes for HBASE Master">
+        <task xsi:type="configure" id="hdp_2_3_4_0_hbase_remove_local_indexing"/>
+      </execute-stage>
+
       <!--TEZ-->
       <execute-stage service="TEZ" component="TEZ_CLIENT" title="Apply config changes for Tez">
         <task xsi:type="configure" id="hdp_2_3_0_0_tez_client_adjust_properties"/>

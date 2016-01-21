@@ -65,6 +65,7 @@ describe('App.TimeRangeMixin', function () {
           index: 1,
           customStartTime: null,
           customEndTime: null,
+          customDurationFormatted: null,
           title: 'time range is preset',
           testTitle: 'should reset time range boundaries'
         },
@@ -72,6 +73,7 @@ describe('App.TimeRangeMixin', function () {
           index: 8,
           customStartTime: 1,
           customEndTime: 1,
+          customDurationFormatted: '1 hour',
           title: 'time range is custom',
           testTitle: 'should not reset time range boundaries'
         }
@@ -116,7 +118,8 @@ describe('App.TimeRangeMixin', function () {
         beforeEach(function () {
           obj.setProperties({
             customStartTime: 1,
-            customEndTime: 1
+            customEndTime: 1,
+            customDurationFormatted: '1 hour'
           });
           obj.setTimeRange({
             context: {
@@ -126,9 +129,10 @@ describe('App.TimeRangeMixin', function () {
         });
 
         it(item.testTitle, function () {
-          expect(obj.getProperties(['customStartTime', 'customEndTime'])).to.eql({
+          expect(obj.getProperties(['customStartTime', 'customEndTime', 'customDurationFormatted'])).to.eql({
             customStartTime: item.customStartTime,
-            customEndTime: item.customEndTime
+            customEndTime: item.customEndTime,
+            customDurationFormatted: item.customDurationFormatted
           });
         });
 

@@ -46,8 +46,8 @@ class DataNode(Script):
 
   def install(self, env):
     import params
-    self.install_packages(env, params.exclude_packages)
     env.set_params(params)
+    self.install_packages(env)
 
   def configure(self, env):
     import params
@@ -161,7 +161,7 @@ class DataNodeDefault(DataNode):
 class DataNodeWindows(DataNode):
   def install(self, env):
     import install_params
-    self.install_packages(env, install_params.exclude_packages)
+    self.install_packages(env)
 
 if __name__ == "__main__":
   DataNode().execute()

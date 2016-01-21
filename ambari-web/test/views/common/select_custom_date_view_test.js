@@ -257,4 +257,53 @@ describe('App.JobsCustomDatesSelectView', function () {
 
   });
 
+  describe('#durationSelect', function () {
+
+    var select;
+
+    beforeEach(function () {
+      select = view.get('durationSelect').create();
+    });
+
+    describe('#willInsertElement', function () {
+
+      var cases = [
+        {
+          duration: 1800000,
+          selection: {
+            value: 1800000,
+            label: Em.I18n.t('jobs.customDateFilter.duration.30min')
+          },
+          title: 'should detect preset option by value'
+        },
+        {
+          duration: Em.I18n.t('jobs.customDateFilter.duration.2hr'),
+          selection: {
+            value: 7200000,
+            label: Em.I18n.t('jobs.customDateFilter.duration.2hr')
+          },
+          title: 'should detect preset option by label'
+        },
+        {
+          duration: '40 minutes',
+          selection: {
+            value: 0,
+            label: Em.I18n.t('common.custom')
+          },
+          title: 'should set "Custom" option if preset one can\'t be detected'
+        }
+      ];
+
+      cases.forEach(function (item) {
+        it(item.title, function () {
+          select.set('selection', item.duration);
+          select.willInsertElement();
+          expect(select.get('selection')).to.eql(item.selection);
+        });
+      });
+
+    });
+
+  });
+
 });

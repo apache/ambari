@@ -75,15 +75,6 @@ describe('App.WizardStep6Controller', function () {
 
   beforeEach(function () {
     controller = getController();
-    sinon.stub(App.ajax, 'send', function () {
-      return {
-        then: Em.K
-      };
-    });
-  });
-
-  afterEach(function () {
-    App.ajax.send.restore();
   });
 
   App.TestAliases.testAsComputedEqual(getController(), 'isAddHostWizard', 'content.controllerName', 'addHostController');

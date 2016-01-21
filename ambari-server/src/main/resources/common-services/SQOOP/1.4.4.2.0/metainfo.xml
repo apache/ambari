@@ -72,6 +72,7 @@
             <package>
               <name>mysql-connector-java</name>
               <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_mysl_connector</condition>
             </package>
           </packages>
         </osSpecific>

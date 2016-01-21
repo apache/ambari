@@ -143,7 +143,6 @@ App.ajaxQueue = Em.Object.extend({
    * @method runNextRequest
    */
   runNextRequest: function() {
-    var self = this;
     var queue = this.get('queue');
     if (queue.length === 0) {
       this.finishedCallback();
@@ -152,19 +151,21 @@ App.ajaxQueue = Em.Object.extend({
     var r = App.ajax.send(queue.shift());
     this.propertyDidChange('queue');
     if (r) {
-      r.complete(function(xhr) {
-        if(xhr.status>=200 && xhr.status <= 299) {
-          self.runNextRequest();
-        }
-        else {
-          if (self.get('abortOnError')) {
-            self.clear();
-          }
-          else {
-            self.runNextRequest();
-          }
-        }
-      });
+      r.complete(this._complete.bind(this));
+    }
+    else {
+      if (this.get('abortOnError')) {
+        this.clear();
+      }
+      else {
+        this.runNextRequest();
+      }
+    }
+  },
+
+  _complete: function(xhr) {
+    if(xhr.status>=200 && xhr.status <= 299) {
+      this.runNextRequest();
     }
     else {
       if (this.get('abortOnError')) {

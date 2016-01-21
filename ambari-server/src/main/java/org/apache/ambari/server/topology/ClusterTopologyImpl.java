@@ -173,7 +173,12 @@ public class ClusterTopologyImpl implements ClusterTopology {
     Collection<String> hosts = new ArrayList<String>();
     Collection<String> hostGroups = getHostGroupsForComponent(component);
     for (String group : hostGroups) {
-      hosts.addAll(getHostGroupInfo().get(group).getHostNames());
+      HostGroupInfo hostGroupInfo = getHostGroupInfo().get(group);
+      if (hostGroupInfo != null) {
+        hosts.addAll(hostGroupInfo.getHostNames());
+      } else {
+        LOG.warn("HostGroup {} not found, when checking for hosts for component {}", group, component);
+      }
     }
     return hosts;
   }

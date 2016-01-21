@@ -19,6 +19,7 @@
 var App = require('app');
 require('controllers/main/service');
 
+var testHelpers = require('test/helpers');
 var mainServiceController;
 
 function getController() {
@@ -80,6 +81,10 @@ describe('App.MainServiceController', function () {
   ]);
   beforeEach(function() {
     mainServiceController = getController();
+  });
+
+  afterEach(function () {
+    mainServiceController.destroy();
   });
 
   App.TestAliases.testAsComputedNotEqual(getController(), 'isStartStopAllClicked', 'App.router.backgroundOperationsController.allOperationsCount', 0);
@@ -277,27 +282,22 @@ describe('App.MainServiceController', function () {
       query = 'some query';
 
     beforeEach(function() {
-      sinon.stub($, 'ajax', Em.K);
       sinon.stub(App, 'get', function(k) {
-        if ('testMode' === k) return false;
         if ('clusterName' === k) return 'tdk';
         return Em.get(App, k);
       });
       mainServiceController.allServicesCall(state, query);
-      this.params = $.ajax.args[0][0];
+      var args = testHelpers.findAjaxRequest('name', 'common.services.update');
+      this.params = App.ajax.fakeGetUrl('common.services.update').format(args[0].data);
       this.data = JSON.parse(this.params.data);
     });
 
     afterEach(function() {
-      $.ajax.restore();
       App.get.restore();
     });
 
     it('PUT request is sent', function() {
       expect(this.params.type).to.equal('PUT');
-    });
-    it('request is sent to `/services`', function() {
-      expect(this.params.url.contains('/clusters/tdk/services?')).to.be.true;
     });
     it('Body.ServiceInfo.state is ' + state, function() {
       expect(this.data.Body.ServiceInfo.state).to.equal(state);
@@ -404,23 +404,6 @@ describe('App.MainServiceController', function () {
         isRestartAllRequiredDisabled: true
       });
       expect(mainServiceController.restartAllRequired()).to.be.null;
-    });
-
-  });
-
-  describe('#restartHostComponents', function () {
-
-    beforeEach(function () {
-      sinon.stub(App.ajax, 'send', Em.K);
-    });
-
-    afterEach(function () {
-      App.ajax.send.restore();
-    });
-
-    it('should send ajax request', function () {
-      mainServiceController.restartHostComponents();
-      expect(App.ajax.send.calledOnce).to.be.true;
     });
 
   });

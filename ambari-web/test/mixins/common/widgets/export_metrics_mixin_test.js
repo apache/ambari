@@ -20,6 +20,7 @@ var App = require('app');
 
 require('mixins/common/widgets/export_metrics_mixin');
 var fileUtils = require('utils/file_utils');
+var testHelpers = require('test/helpers');
 
 describe('App.ExportMetricsMixin', function () {
 
@@ -72,7 +73,6 @@ describe('App.ExportMetricsMixin', function () {
     ];
 
     beforeEach(function () {
-      sinon.stub(App.ajax, 'send', Em.K);
       obj.reopen({
         targetView: {
           ajaxIndex: 'index',
@@ -85,30 +85,23 @@ describe('App.ExportMetricsMixin', function () {
       });
     });
 
-    afterEach(function () {
-      App.ajax.send.restore();
-    });
-
     cases.forEach(function (item) {
       describe(item.title, function () {
 
         beforeEach(function () {
           obj.set('isExportMenuHidden', item.isExportMenuHidden);
           obj.exportGraphData(item.event);
-          this.ajaxParams = App.ajax.send.firstCall.args[0];
+          this.ajaxParams = testHelpers.findAjaxRequest('name', 'index');
         });
 
         it('isExportMenuHidden is true', function () {
           expect(obj.get('isExportMenuHidden')).to.be.true;
         });
         it('one request was done', function () {
-          expect(App.ajax.send.calledOnce).to.be.true;
-        });
-        it('request to the valid end-point', function () {
-          expect(this.ajaxParams.name).to.equal('index');
+          expect(this.ajaxParams[0]).exists;
         });
         it('ajax-request with correct data', function () {
-          expect(this.ajaxParams.data).to.eql({
+          expect(this.ajaxParams[0].data).to.eql({
             p: 'v',
             isCSV: item.isCSV
           });

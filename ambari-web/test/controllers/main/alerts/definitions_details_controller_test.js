@@ -81,27 +81,6 @@ describe('App.MainAlertDefinitionDetailsController', function () {
 
   });
 
-  describe('#toggleDefinitionState()', function () {
-    beforeEach(function() {
-      sinon.stub(App.ajax, 'send', Em.K);
-      controller.reopen({
-        content: [
-          App.AlertDefinition.createRecord({id: 1, enabled: true})
-        ]
-      });
-    });
-
-    afterEach(function() {
-      App.ajax.send.restore();
-    });
-
-    it('should call App.ajax.send function', function () {
-      var alertDefinition = controller.get('content')[0];
-      controller.toggleDefinitionState(alertDefinition);
-      expect(App.ajax.send.calledOnce).to.be.true;
-    });
-  });
-
   describe("#deleteAlertDefinition()", function () {
     beforeEach(function () {
       sinon.stub(App.get('router'), 'transitionTo', Em.K);
@@ -116,24 +95,12 @@ describe('App.MainAlertDefinitionDetailsController', function () {
   });
 
   describe("#loadAlertInstancesHistory()", function () {
-
-    beforeEach(function () {
-      sinon.stub(App.ajax, 'send', Em.K);
-    });
-
-    afterEach(function () {
-      App.ajax.send.restore();
-    });
-
-    it("should load alert instances history", function () {
-
+    it("should set lastDayAlertsCount = null", function () {
       controller.set('lastDayAlertsCount', 'test');
-
       controller.loadAlertInstancesHistory();
-
-      expect(App.ajax.send.calledOnce).to.be.true;
       expect(controller.get('lastDayAlertsCount')).to.equal(null);
     });
+
   });
 
   describe("#loadAlertInstancesHistorySuccess()", function () {

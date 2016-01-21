@@ -61,8 +61,6 @@ hive_metastore_db_type = config['configurations']['hive-env']['hive_database_typ
 hive_metastore_user_name = config['configurations']['hive-site']['javax.jdo.option.ConnectionUserName']
 hive_metastore_user_passwd = config['configurations']['hive-site']['javax.jdo.option.ConnectionPassword']
 
-hive_exclude_packages = []
-
 hive_execution_engine = config["configurations"]["hive-site"]["hive.execution.engine"]
 
 ######## Metastore Schema

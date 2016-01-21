@@ -517,6 +517,11 @@
 
     <service name="HBASE">
       <component name="HBASE_MASTER">
+        <pre-upgrade>
+          <!-- These HBASE configs changed in HDP 2.3.4.0, but Ambari can't distinguish HDP 2.3.2.0 vs HDP 2.3.4.0, so easier to always do them. -->
+          <task xsi:type="configure" id="hdp_2_4_0_0_hbase_remove_local_indexing"/>
+        </pre-upgrade>
+
         <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
 
         <upgrade>

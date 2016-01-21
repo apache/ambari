@@ -20,20 +20,17 @@ App = require('app');
 
 require('controllers/main/service/reassign/step7_controller');
 var controller;
+var testHelpers = require('test/helpers');
 
 describe('App.ReassignMasterWizardStep7Controller', function () {
 
   beforeEach(function () {
-    sinon.stub(App.ajax, 'send', Em.K);
     controller = App.ReassignMasterWizardStep7Controller.create({
       content: Em.Object.create({
         reassign: Em.Object.create(),
         reassignHosts: Em.Object.create()
       })
     });
-  });
-  afterEach(function () {
-    App.ajax.send.restore();
   });
 
   describe('#initializeTasks()', function () {
@@ -49,30 +46,29 @@ describe('App.ReassignMasterWizardStep7Controller', function () {
     it("no host-components", function() {
       controller.set('hostComponents', []);
       controller.putHostComponentsInMaintenanceMode();
-      expect(App.ajax.send.called).to.be.false;
+      var args = testHelpers.findAjaxRequest('name', 'common.host.host_component.passive');
+      expect(args).not.exists;
       expect(controller.get('multiTaskCounter')).to.equal(0);
     });
     it("one host-component", function() {
       controller.set('hostComponents', ['C1']);
       controller.set('content.reassignHosts.target', 'host1');
       controller.putHostComponentsInMaintenanceMode();
-      expect(App.ajax.send.calledWith({
-        name: 'common.host.host_component.passive',
-        sender: controller,
-        data: {
-          hostName: 'host1',
-          passive_state: "ON",
-          componentName: 'C1'
-        },
-        success: 'onComponentsTasksSuccess',
-        error: 'onTaskError'
-      })).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'common.host.host_component.passive');
+      expect(args[0]).exists;
+      expect(args[0].sender).to.be.eql(controller);
+      expect(args[0].data).to.be.eql({
+        hostName: 'host1',
+        passive_state: "ON",
+        componentName: 'C1'
+      });
       expect(controller.get('multiTaskCounter')).to.equal(0);
     });
     it("two host-components", function() {
       controller.set('hostComponents', ['C1', 'C2']);
       controller.putHostComponentsInMaintenanceMode();
-      expect(App.ajax.send.calledTwice).to.be.true;
+      var args = testHelpers.filterAjaxRequests('name', 'common.host.host_component.passive');
+      expect(args).to.have.property('length').equal(2);
       expect(controller.get('multiTaskCounter')).to.equal(0);
     });
   });
@@ -81,29 +77,28 @@ describe('App.ReassignMasterWizardStep7Controller', function () {
     it("no host-components", function() {
       controller.set('hostComponents', []);
       controller.deleteHostComponents();
-      expect(App.ajax.send.called).to.be.false;
+      var args = testHelpers.findAjaxRequest('name', 'common.delete.host_component');
+      expect(args).not.exists;
       expect(controller.get('multiTaskCounter')).to.equal(0);
     });
     it("one host-component", function() {
       controller.set('hostComponents', ['C1']);
       controller.set('content.reassignHosts.target', 'host1');
       controller.deleteHostComponents();
-      expect(App.ajax.send.calledWith({
-        name: 'common.delete.host_component',
-        sender: controller,
-        data: {
-          hostName: 'host1',
-          componentName: 'C1'
-        },
-        success: 'onComponentsTasksSuccess',
-        error: 'onDeleteHostComponentsError'
-      })).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'common.delete.host_component');
+      expect(args[0]).exists;
+      expect(args[0].sender).to.be.eql(controller);
+      expect(args[0].data).to.be.eql({
+        hostName: 'host1',
+        componentName: 'C1'
+      });
       expect(controller.get('multiTaskCounter')).to.equal(0);
     });
     it("two host-components", function() {
       controller.set('hostComponents', ['C1', 'C2']);
       controller.deleteHostComponents();
-      expect(App.ajax.send.calledTwice).to.be.true;
+      var args = testHelpers.filterAjaxRequests('name', 'common.delete.host_component');
+      expect(args).to.have.property('length').equal(2);
       expect(controller.get('multiTaskCounter')).to.equal(0);
     });
   });

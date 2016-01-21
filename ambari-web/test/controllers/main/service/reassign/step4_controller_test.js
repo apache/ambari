@@ -19,6 +19,7 @@
 var App = require('app');
 
 require('controllers/main/service/reassign/step4_controller');
+var testHelpers = require('test/helpers');
 
 describe('App.ReassignMasterWizardStep4Controller', function () {
 
@@ -27,13 +28,6 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       reassign: Em.Object.create(),
       reassignHosts: Em.Object.create()
     })
-  });
-
-  beforeEach(function () {
-    sinon.stub(App.ajax, 'send', Em.K);
-  });
-  afterEach(function () {
-    App.ajax.send.restore();
   });
 
   describe('#setAdditionalConfigs()', function () {
@@ -149,8 +143,8 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
 
     it('tests prepareDBCheckAction', function() {
       controller.prepareDBCheckAction();
-
-      expect(App.ajax.send.calledOnce).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'cluster.custom_action.create');
+      expect(args).exists;
     });
 
   });
@@ -427,7 +421,8 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
   describe('#stopServices()', function () {
     it('request is sent', function () {
       controller.stopServices();
-      expect(App.ajax.send.calledOnce).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'common.services.update');
+      expect(args).exists;
     });
   });
 
@@ -486,13 +481,15 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
     it('No host-components', function () {
       controller.set('hostComponents', []);
       controller.putHostComponentsInMaintenanceMode();
-      expect(App.ajax.send.called).to.be.false;
+      var args = testHelpers.findAjaxRequest('name', 'common.host.host_component.passive');
+      expect(args).not.exists;
       expect(controller.get('multiTaskCounter')).to.equal(0);
     });
     it('One host-components', function () {
       controller.set('hostComponents', [{}]);
       controller.putHostComponentsInMaintenanceMode();
-      expect(App.ajax.send.calledOnce).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'common.host.host_component.passive');
+      expect(args).exists;
       expect(controller.get('multiTaskCounter')).to.equal(0);
     });
   });
@@ -544,7 +541,8 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
   describe('#loadConfigsTags()', function () {
     it('request is sent', function () {
       controller.loadConfigsTags();
-      expect(App.ajax.send.calledOnce).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'config.tags');
+      expect(args).exists;
     });
   });
 
@@ -700,6 +698,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       });
       controller.set('content.reassign.component_name', 'COMP1');
       controller.onLoadConfigsTags({});
+      this.args = testHelpers.findAjaxRequest('name', 'reassign.load_configs');
     });
 
     afterEach(function () {
@@ -707,7 +706,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
     });
 
     it('request is sent', function () {
-      expect(App.ajax.send.calledOnce).to.be.true;
+      expect(this.args).exists;
     });
 
     it('getConfigUrlParams is called with correct data', function () {
@@ -770,6 +769,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
     beforeEach(function () {
       sinon.stub(controller, 'getServiceConfigData', Em.K);
       controller.saveConfigsToServer([1]);
+      this.args = testHelpers.findAjaxRequest('name', 'common.across.services.configurations');
     });
     afterEach(function () {
       controller.getServiceConfigData.restore();
@@ -778,7 +778,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       expect(controller.getServiceConfigData.calledWith([1])).to.be.true;
     });
     it('request is sent', function () {
-      expect(App.ajax.send.calledOnce).to.be.true;
+      expect(this.args).exists;
     });
   });
 
@@ -966,12 +966,13 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
     beforeEach(function () {
       sinon.stub(App.router, 'get').returns({"skip.service.checks": "false"});
       controller.startServices();
+      this.args = testHelpers.findAjaxRequest('name', 'common.services.update');
     });
     afterEach(function () {
       App.router.get.restore();
     });
     it('request is sent', function () {
-      expect(App.ajax.send.calledOnce).to.be.true;
+      expect(this.args).exists;
     });
   });
 
@@ -981,17 +982,20 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       controller.set('hostComponents', []);
       controller.set('content.reassignHosts.source', 'host1');
       controller.deleteHostComponents();
-      expect(App.ajax.send.called).to.be.false;
+      var args = testHelpers.findAjaxRequest('name', 'common.delete.host_component');
+      expect(args).not.exists;
     });
     it('delete two components', function () {
       controller.set('hostComponents', [1, 2]);
       controller.set('content.reassignHosts.source', 'host1');
       controller.deleteHostComponents();
-      expect(App.ajax.send.getCall(0).args[0].data).to.eql({
+      var args = testHelpers.filterAjaxRequests('name', 'common.delete.host_component');
+      expect(args).to.have.property('length').equal(2);
+      expect(args[0][0].data).to.eql({
         "hostName": "host1",
         "componentName": 1
       });
-      expect(App.ajax.send.getCall(1).args[0].data).to.eql({
+      expect(args[1][0].data).to.eql({
         "hostName": "host1",
         "componentName": 2
       });
@@ -1138,30 +1142,24 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
     it('component_name is C1', function () {
       controller.set('content.reassign.component_name', 'C1');
       controller.cleanMySqlServer();
-      expect(App.ajax.send.calledWith({
-        name: 'service.mysql.clean',
-        sender: controller,
-        data: {
-          host: 'host1'
-        },
-        success: 'startPolling',
-        error: 'onTaskError'
-      })).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'service.mysql.clean');
+      expect(args[0]).exists;
+      expect(args[0].sender).to.be.eql(controller);
+      expect(args[0].data).to.be.eql({
+        host: 'host1'
+      });
     });
 
     it('component_name is MYSQL_SERVER', function () {
       controller.set('content.reassign.component_name', 'MYSQL_SERVER');
       controller.set('content.reassignHosts.target', 'host2');
       controller.cleanMySqlServer();
-      expect(App.ajax.send.calledWith({
-        name: 'service.mysql.clean',
-        sender: controller,
-        data: {
-          host: 'host2'
-        },
-        success: 'startPolling',
-        error: 'onTaskError'
-      })).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'service.mysql.clean');
+      expect(args[0]).exists;
+      expect(args[0].sender).to.be.eql(controller);
+      expect(args[0].data).to.be.eql({
+        host: 'host2'
+      });
     });
   });
 
@@ -1183,30 +1181,24 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
     it('component_name is C1', function () {
       controller.set('content.reassign.component_name', 'C1');
       controller.configureMySqlServer();
-      expect(App.ajax.send.calledWith({
-        name: 'service.mysql.configure',
-        sender: controller,
-        data: {
-          host: 'host1'
-        },
-        success: 'startPolling',
-        error: 'onTaskError'
-      })).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'service.mysql.configure');
+      expect(args[0]).exists;
+      expect(args[0].sender).to.be.eql(controller);
+      expect(args[0].data).to.be.eql({
+        host: 'host1'
+      });
     });
 
     it('component_name is MYSQL_SERVER', function () {
       controller.set('content.reassign.component_name', 'MYSQL_SERVER');
       controller.set('content.reassignHosts.target', 'host2');
       controller.configureMySqlServer();
-      expect(App.ajax.send.calledWith({
-        name: 'service.mysql.configure',
-        sender: controller,
-        data: {
-          host: 'host2'
-        },
-        success: 'startPolling',
-        error: 'onTaskError'
-      })).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'service.mysql.configure');
+      expect(args[0]).exists;
+      expect(args[0].sender).to.be.eql(controller);
+      expect(args[0].data).to.be.eql({
+        host: 'host2'
+      });
     });
   });
 
@@ -1243,21 +1235,18 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
     });
     it("valid request is sent", function() {
       controller.startMySqlServer();
-      expect(App.ajax.send.calledWith({
-        name: 'common.host.host_component.update',
-        sender: controller,
-        data: {
-          context: "Start MySQL Server",
-          hostName: 'host1',
-          serviceName: "HIVE",
-          componentName: "MYSQL_SERVER",
-          HostRoles: {
-            state: "STARTED"
-          }
-        },
-        success: 'startPolling',
-        error: 'onTaskError'
-      })).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'common.host.host_component.update');
+      expect(args[0]).exists;
+      expect(args[0].sender).to.be.eql(controller);
+      expect(args[0].data).to.be.eql({
+        context: "Start MySQL Server",
+        hostName: 'host1',
+        serviceName: "HIVE",
+        componentName: "MYSQL_SERVER",
+        HostRoles: {
+          state: "STARTED"
+        }
+      });
     });
   });
 
@@ -1280,26 +1269,23 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
         })
       }));
       controller.restartMySqlServer();
-      expect(App.ajax.send.calledWith({
-        name: 'restart.hostComponents',
-        sender: controller,
-        data: {
-          context: 'Restart MySql Server',
-          resource_filters: [{
-            component_name: "MYSQL_SERVER",
-            hosts: 'host1',
-            service_name: "HIVE"
-          }],
-          operation_level: {
-            level: "HOST_COMPONENT",
-            cluster_name: 'cl1',
-            service_name: "HIVE",
-            hostcomponent_name: "MYSQL_SERVER"
-          }
-        },
-        success: 'startPolling',
-        error: 'onTaskError'
-      })).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'restart.hostComponents');
+      expect(args[0]).exists;
+      expect(args[0].sender).to.be.eql(controller);
+      expect(args[0].data).to.be.eql({
+        context: 'Restart MySql Server',
+        resource_filters: [{
+          component_name: "MYSQL_SERVER",
+          hosts: 'host1',
+          service_name: "HIVE"
+        }],
+        operation_level: {
+          level: "HOST_COMPONENT",
+          cluster_name: 'cl1',
+          service_name: "HIVE",
+          hostcomponent_name: "MYSQL_SERVER"
+        }
+      });
     });
   });
 
@@ -1312,24 +1298,21 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
         })
       }));
       controller.startNewMySqlServer();
+      this.args = testHelpers.findAjaxRequest('name', 'common.host.host_component.update');
     });
 
     it('valid request is sent', function() {
-      expect(App.ajax.send.calledWith({
-        name: 'common.host.host_component.update',
-        sender: controller,
-        data: {
-          context: "Start MySQL Server",
-          hostName: 'host1',
-          serviceName: "HIVE",
-          componentName: "MYSQL_SERVER",
-          HostRoles: {
-            state: "STARTED"
-          }
-        },
-        success: 'startPolling',
-        error: 'onTaskError'
-      })).to.be.true;
+      expect(this.args[0]).exists;
+      expect(this.args[0].sender).to.be.eql(controller);
+      expect(this.args[0].data).to.be.eql({
+        context: "Start MySQL Server",
+        hostName: 'host1',
+        serviceName: "HIVE",
+        componentName: "MYSQL_SERVER",
+        HostRoles: {
+          state: "STARTED"
+        }
+      });
     });
   });
 
@@ -1598,17 +1581,15 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
         preparedDBProperties: {}
       });
       controller.prepareDBCheckAction();
+      this.args = testHelpers.findAjaxRequest('name', 'cluster.custom_action.create');
     });
     afterEach(function () {
       App.router.get.restore();
       controller.getConnectionProperty.restore();
     });
     it('valid request is sent', function () {
-      var callArgs = App.ajax.send.getCall(0).args[0];
-      expect(callArgs.name).to.equal('cluster.custom_action.create');
-      expect(callArgs.success).to.equal('onCreateActionSuccess');
-      expect(callArgs.error).to.equal('onTaskError');
-      expect(callArgs.data).to.eql({
+      expect(this.args[0]).exists;
+      expect(this.args[0].data).to.eql({
         requestInfo: {
           "context": "Check host",
           "action": "check_host",

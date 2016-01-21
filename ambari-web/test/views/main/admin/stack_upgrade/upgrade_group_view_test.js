@@ -21,9 +21,19 @@ var App = require('app');
 require('views/main/admin/stack_upgrade/upgrade_group_view');
 
 describe('App.upgradeGroupView', function () {
-  var view = App.upgradeGroupView.create({
-    content: Em.Object.create({}),
-    failedStatuses: ['FAILED']
+  var view;
+
+  beforeEach(function () {
+    view = App.upgradeGroupView.create({
+      content: Em.Object.create({}),
+      failedStatuses: ['FAILED']
+    });
+  });
+
+  afterEach(function () {
+    clearTimeout(view.get('timer'));
+    clearTimeout(view.get('upgradeItemTimer'));
+    view.destroy();
   });
 
   describe("#toggleExpanded()", function () {

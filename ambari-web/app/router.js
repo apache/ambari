@@ -687,6 +687,9 @@ App.Router = Em.Router.extend({
        *  If the user is already logged in, redirect to where the user was previously
        */
       enter: function (router, context) {
+        if ($.mocho) {
+          return;
+        }
         var location = router.location.location.hash;
         router.getAuthenticated().done(function (loggedIn) {
           if (loggedIn) {

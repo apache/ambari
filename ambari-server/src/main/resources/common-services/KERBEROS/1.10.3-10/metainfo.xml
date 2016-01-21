@@ -78,10 +78,12 @@
             <package>
               <name>krb5-server</name>
               <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_kerberos_server</condition>
             </package>
             <package>
               <name>krb5-libs</name>
               <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_kerberos_server</condition>
             </package>
             <package>
               <name>krb5-workstation</name>
@@ -96,10 +98,12 @@
             <package>
               <name>krb5-kdc</name>
               <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_kerberos_server</condition>
             </package>
             <package>
               <name>krb5-admin-server</name>
               <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_kerberos_server</condition>
             </package>
             <package>
               <name>krb5-user</name>
@@ -118,6 +122,7 @@
             <package>
               <name>krb5</name>
               <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_kerberos_server</condition>
             </package>
             <package>
               <name>krb5-client</name>
@@ -126,6 +131,7 @@
             <package>
               <name>krb5-server</name>
               <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_kerberos_server</condition>
             </package>
           </packages>
         </osSpecific>

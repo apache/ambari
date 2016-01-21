@@ -24,6 +24,7 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -101,6 +102,11 @@ public class ClusterTopologyImplTest {
     Set<Component> group1Components = new HashSet<Component>();
     group1Components.add(new Component("component1"));
     group1Components.add(new Component("component2"));
+
+    Set<String> group1ComponentNames = new HashSet<String>();
+    group1ComponentNames.add("component1");
+    group1ComponentNames.add("component2");
+
     Set<Component> group2Components = new HashSet<Component>();
     group2Components.add(new Component("component3"));
     Set<Component> group3Components = new HashSet<Component>();
@@ -123,6 +129,11 @@ public class ClusterTopologyImplTest {
     expect(group2.getComponents()).andReturn(group2Components).anyTimes();
     expect(group3.getComponents()).andReturn(group3Components).anyTimes();
     expect(group4.getComponents()).andReturn(group4Components).anyTimes();
+
+    expect(group1.getComponentNames()).andReturn(group1ComponentNames).anyTimes();
+    expect(group2.getComponentNames()).andReturn(Collections.singletonList("component3")).anyTimes();
+    expect(group3.getComponentNames()).andReturn(Collections.singletonList("component4")).anyTimes();
+    expect(group4.getComponentNames()).andReturn(Collections.singletonList("component5")).anyTimes();
   }
 
   @After
@@ -156,7 +167,7 @@ public class ClusterTopologyImplTest {
   }
 
   @Test
-  public void testCreate_validatorSuccess() throws Exception {
+     public void testCreate_validatorSuccess() throws Exception {
     TestTopologyRequest request = new TestTopologyRequest(TopologyRequest.Type.PROVISION);
 
     TopologyValidator validator = createStrictMock(TopologyValidator.class);
@@ -180,6 +191,21 @@ public class ClusterTopologyImplTest {
     replayAll();
     // should throw exception due to duplicate host
     new ClusterTopologyImpl(null, request);
+  }
+
+  @Test
+  public void test_GetHostAssigmentForComponents() throws Exception {
+    TestTopologyRequest request = new TestTopologyRequest(TopologyRequest.Type.PROVISION);
+
+    TopologyValidator validator = createStrictMock(TopologyValidator.class);
+    topologyValidators.add(validator);
+
+    validator.validate((ClusterTopology) notNull());
+
+    replayAll();
+    replay(validator);
+
+    new ClusterTopologyImpl(null, request).getHostAssignmentsForComponent("component1");
   }
 
   private class TestTopologyRequest implements TopologyRequest {

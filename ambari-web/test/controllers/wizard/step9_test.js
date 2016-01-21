@@ -24,6 +24,7 @@ require('controllers/installer');
 require('controllers/wizard/step9_controller');
 require('utils/helper');
 require('utils/ajax/ajax');
+var testHelpers = require('test/helpers');
 
 var modelSetup = require('test/init_model_test');
 var c, obj;
@@ -54,6 +55,7 @@ describe('App.InstallerStep9Controller', function () {
     modelSetup.setupStackServiceComponent();
     c = getController();
     obj = App.InstallerController.create();
+    App.ajax.send.restore();
     sinon.stub(App.ajax, 'send', function() {
       return {
         then: function() { 
@@ -72,7 +74,6 @@ describe('App.InstallerStep9Controller', function () {
 
   afterEach(function () {
     modelSetup.cleanStackServiceComponent();
-    App.ajax.send.restore();
   });
 
   App.TestAliases.testAsComputedEqual(getController(), 'showRetry', 'content.cluster.status', 'INSTALL FAILED');
@@ -1340,17 +1341,6 @@ describe('App.InstallerStep9Controller', function () {
 
   describe('#launchStartServicesErrorCallback', function () {
 
-    beforeEach(function() {
-      sinon.stub(App, 'get', function(k) {
-        if ('testMode' === k) return true;
-        return Em.get(App, k);
-      });
-    });
-
-    afterEach(function() {
-      App.get.restore();
-    });
-
     it('Main progress bar on the screen should be finished (100%) with red color', function () {
       var hosts = Em.A([Em.Object.create({name: 'host1', progress: '33', status: 'info'}), Em.Object.create({name: 'host2', progress: '33', status: 'info'})]);
       c.reopen({hosts: hosts, content: {controllerName: 'installerController', cluster: {status: 'PENDING', name: 'c1'}}});
@@ -1492,7 +1482,8 @@ describe('App.InstallerStep9Controller', function () {
     it('shouldn\'t call App.ajax.send if no currentOpenTaskId', function () {
       c.set('currentOpenTaskId', null);
       c.loadCurrentTaskLog();
-      expect(App.ajax.send.called).to.equal(false);
+      var args = testHelpers.findAjaxRequest('name', 'background_operations.get_by_task');
+      expect(args).not.exists;
     });
 
     it('should call App.ajax.send with provided data', function () {
@@ -1500,7 +1491,9 @@ describe('App.InstallerStep9Controller', function () {
       c.set('currentOpenTaskRequestId', 2);
       c.set('content', {cluster: {name: 3}});
       c.loadCurrentTaskLog();
-      expect(App.ajax.send.args[0][0].data).to.eql({taskId: 1, requestId: 2, clusterName: 3});
+      var args = testHelpers.findAjaxRequest('name', 'background_operations.get_by_task');
+      expect(args[0]).exists;
+      expect(args[0].data).to.be.eql({taskId: 1, requestId: 2, clusterName: 3});
     });
   });
 
@@ -1597,14 +1590,6 @@ describe('App.InstallerStep9Controller', function () {
       c.togglePreviousSteps.restore();
     });
 
-    it('should increment numPolls if testMode', function () {
-      App.set('testMode', true);
-      c.set('numPolls', 0);
-      c.doPolling();
-      expect(c.get('numPolls')).to.equal(1);
-      App.set('testMode', false);
-    });
-
     it('should call getLogsByRequest', function () {
       c.set('content', {cluster: {requestId: 1}});
       c.doPolling();
@@ -1635,7 +1620,6 @@ describe('App.InstallerStep9Controller', function () {
       sinon.stub(c, 'loadStep', Em.K);
       sinon.stub(c, 'loadLogData', Em.K);
       sinon.stub(c, 'startPolling', Em.K);
-      sinon.stub(App, 'get', function(k) {if('testMode' === k) return false; return Em.get(App, k);});
     });
 
     afterEach(function () {
@@ -1643,7 +1627,6 @@ describe('App.InstallerStep9Controller', function () {
       c.loadStep.restore();
       c.loadLogData.restore();
       c.startPolling.restore();
-      App.get.restore();
     });
 
     it('isCompleted = true, requestId = 1', function () {

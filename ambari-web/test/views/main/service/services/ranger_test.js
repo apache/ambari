@@ -31,16 +31,6 @@ describe('App.MainDashboardServiceRangerView', function () {
 
   describe('#didInsertElement', function () {
 
-    beforeEach(function () {
-      sinon.stub(App.updater, 'run', Em.K);
-      sinon.stub(App.updater, 'immediateRun', Em.K);
-    });
-
-    afterEach(function () {
-      App.updater.run.restore();
-      App.updater.immediateRun.restore();
-    });
-
     it('should run updater', function () {
       view.didInsertElement();
       expect(App.updater.run.calledOnce).to.be.true;

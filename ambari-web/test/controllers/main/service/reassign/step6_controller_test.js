@@ -20,6 +20,7 @@ App = require('app');
 
 require('controllers/main/service/reassign/step6_controller');
 var controller;
+var testHelpers = require('test/helpers');
 
 describe('App.ReassignMasterWizardStep6Controller', function () {
 
@@ -31,12 +32,7 @@ describe('App.ReassignMasterWizardStep6Controller', function () {
       }),
       startServices: Em.K
     });
-    sinon.stub(App.ajax, 'send', Em.K);
   });
-  afterEach(function () {
-    App.ajax.send.restore();
-  });
-
 
   describe('#initializeTasks()', function () {
     it('No commands', function () {
@@ -155,17 +151,20 @@ describe('App.ReassignMasterWizardStep6Controller', function () {
       controller.set('hostComponents', []);
       controller.set('content.reassignHosts.source', 'host1');
       controller.deleteHostComponents();
-      expect(App.ajax.send.called).to.be.false;
+      var args = testHelpers.findAjaxRequest('name', 'common.delete.host_component');
+      expect(args).not.exists;
     });
     it('delete two components', function () {
       controller.set('hostComponents', [1, 2]);
       controller.set('content.reassignHosts.source', 'host1');
       controller.deleteHostComponents();
-      expect(App.ajax.send.getCall(0).args[0].data).to.eql({
+      var args = testHelpers.filterAjaxRequests('name', 'common.delete.host_component');
+      expect(args).to.have.property('length').equal(2);
+      expect(args[0][0].data).to.eql({
         "hostName": "host1",
         "componentName": 1
       });
-      expect(App.ajax.send.getCall(1).args[0].data).to.eql({
+      expect(args[1][0].data).to.eql({
         "hostName": "host1",
         "componentName": 2
       });
@@ -201,7 +200,8 @@ describe('App.ReassignMasterWizardStep6Controller', function () {
   describe('#stopMysqlService()', function () {
     it('stopMysqlService', function () {
       controller.stopMysqlService();
-      expect(App.ajax.send.calledOnce).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'common.host.host_component.update');
+      expect(args[0]).exists;
     });
   });
 
@@ -216,13 +216,15 @@ describe('App.ReassignMasterWizardStep6Controller', function () {
     it('No host-components', function () {
       controller.set('hostComponents', []);
       controller.putHostComponentsInMaintenanceMode();
-      expect(App.ajax.send.called).to.be.false;
+      var args = testHelpers.findAjaxRequest('name', 'common.host.host_component.passive');
+      expect(args).not.exists;
       expect(controller.get('multiTaskCounter')).to.equal(0);
     });
     it('One host-components', function () {
       controller.set('hostComponents', [{}]);
       controller.putHostComponentsInMaintenanceMode();
-      expect(App.ajax.send.calledOnce).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'common.host.host_component.passive');
+      expect(args).exists;
       expect(controller.get('multiTaskCounter')).to.equal(0);
     });
   });

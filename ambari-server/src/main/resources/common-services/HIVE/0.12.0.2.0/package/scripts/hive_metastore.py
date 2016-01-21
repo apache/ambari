@@ -47,7 +47,7 @@ LEGACY_HIVE_SERVER_CONF = "/etc/hive/conf.server"
 class HiveMetastore(Script):
   def install(self, env):
     import params
-    self.install_packages(env, exclude_packages = params.hive_exclude_packages)
+    self.install_packages(env)
 
 
   def start(self, env, upgrade_type=None):

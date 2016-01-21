@@ -72,7 +72,6 @@ describe('App.clusterStatus', function () {
   describe('#setClusterStatus', function () {
 
     beforeEach(function() {
-      sinon.stub(App, 'get').withArgs('testMode').returns(false);
       sinon.stub(status, 'postUserPref', function() {
         return $.ajax();
       });
@@ -80,7 +79,6 @@ describe('App.clusterStatus', function () {
 
     afterEach(function () {
       status.postUserPref.restore();
-      App.get.restore();
     });
 
     it('should set cluster status in non-test mode', function () {

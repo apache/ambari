@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var testHelpers = require('test/helpers');
 
 describe('App.wizardProgressPageControllerMixin', function() {
   var mixedObject = Em.Object.extend(App.wizardProgressPageControllerMixin, {});
@@ -25,15 +26,8 @@ describe('App.wizardProgressPageControllerMixin', function() {
     var mixedObjectInstance;
     beforeEach(function() {
       mixedObjectInstance = mixedObject.create({});
-      sinon.stub(App.ajax, 'send', function(params) {
-        return $.extend(params,{complete: function(callback){
-          callback();
-        }});
-      });
       sinon.stub(mixedObjectInstance, "updateAndCreateServiceComponent").returns({
-        done: function(callback) {
-          return callback();
-        }
+        done: Em.clb
       });
       sinon.spy(mixedObjectInstance, 'onCreateComponent');
       sinon.spy(mixedObjectInstance, 'updateComponent');
@@ -68,7 +62,6 @@ describe('App.wizardProgressPageControllerMixin', function() {
     });
     
     afterEach(function() {
-      App.ajax.send.restore();
       App.StackServiceComponent.find.restore();
       mixedObjectInstance.updateAndCreateServiceComponent.restore();
       mixedObjectInstance.onCreateComponent.restore();
@@ -89,7 +82,7 @@ describe('App.wizardProgressPageControllerMixin', function() {
     describe('no ZooKeeper Servers installed. install on host1, host2. ajax request should be called with appropriate params', function() {
       beforeEach(function () {
         mixedObjectInstance.createComponent('ZOOKEEPER_SERVER', ['host1', 'host2'], 'ZOOKEEPER');
-        this.args = App.ajax.send.args[0][0];
+        this.args = testHelpers.findAjaxRequest('name', 'wizard.step8.register_host_to_component')[0];
         this.queryObject = JSON.parse(this.args.data.data);
       });
       it('hostName is valid array', function () {
@@ -114,7 +107,7 @@ describe('App.wizardProgressPageControllerMixin', function() {
     describe('ZooKeeper Client installed on host1. install on host1, host2. ajax request should be called with appropriate params', function() {
       beforeEach(function () {
         mixedObjectInstance.createComponent('ZOOKEEPER_CLIENT', ['host1', 'host2'], 'ZOOKEEPER');
-        this.args = App.ajax.send.args[0][0];
+        this.args = testHelpers.findAjaxRequest('name', 'wizard.step8.register_host_to_component')[0];
         this.queryObject = JSON.parse(this.args.data.data);
       });
       it('hostName is valid array', function () {
@@ -160,19 +153,14 @@ describe('App.wizardProgressPageControllerMixin', function() {
     
     testsAjax.forEach(function(test) {
       describe('called with params: ' + JSON.stringify(test.callParams), function() {
-        before(function() {
-          sinon.stub(App.ajax, 'send', Em.K);
+        beforeEach(function() {
           var mixedObjectInstance = mixedObject.create({});
           mixedObjectInstance.updateComponent.apply(mixedObjectInstance, test.callParams);
         });
 
-        after(function() {
-          App.ajax.send.restore();
-        });
-        
         test.e.forEach(function(eKey) {
           it('key: {0} should have value: {1}'.format(eKey.key, eKey.value), function() {
-            var args = App.ajax.send.args[0][0];
+            var args = testHelpers.findAjaxRequest('name', 'common.host_components.update')[0];
             expect(args).to.have.deep.property(eKey.key, eKey.value);
           });
         });

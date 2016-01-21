@@ -19,6 +19,7 @@
 var App = require('app');
 require('views/common/controls_view');
 var validator = require('utils/validator');
+var testHelpers = require('test/helpers');
 
 describe('App.ServiceConfigRadioButtons', function () {
 
@@ -793,23 +794,23 @@ describe('App.CheckDBConnectionView', function () {
         getConnectionProperty: Em.K,
         masterHostName: 'host1'
       });
-      sinon.stub(App.ajax, 'send');
       this.mock = sinon.stub(App.Service, 'find');
     });
     afterEach(function () {
-      App.ajax.send.restore();
       this.mock.restore();
     });
 
     it("service not installed", function() {
       this.mock.returns(Em.Object.create({isLoaded: false}));
       view.createCustomAction();
-      expect(App.ajax.send.getCall(0).args[0].name).to.equal('custom_action.create');
+      var args = testHelpers.findAjaxRequest('name', 'custom_action.create');
+      expect(args[0]).exists;
     });
     it("service is installed", function() {
       this.mock.returns(Em.Object.create({isLoaded: true}));
       view.createCustomAction();
-      expect(App.ajax.send.getCall(0).args[0].name).to.equal('cluster.custom_action.create');
+      var args = testHelpers.findAjaxRequest('name', 'cluster.custom_action.create');
+      expect(args[0]).exists;
     });
   });
 });

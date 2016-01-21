@@ -39,7 +39,7 @@ class ZkfcSlave(Script):
   def install(self, env):
     import params
     env.set_params(params)
-    self.install_packages(env, params.exclude_packages)
+    self.install_packages(env)
 
   def configure(self, env):
     import params
