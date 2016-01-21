@@ -143,7 +143,6 @@ App.ajaxQueue = Em.Object.extend({
    * @method runNextRequest
    */
   runNextRequest: function() {
-    var self = this;
     var queue = this.get('queue');
     if (queue.length === 0) {
       this.finishedCallback();
@@ -152,7 +151,7 @@ App.ajaxQueue = Em.Object.extend({
     var r = App.ajax.send(queue.shift());
     this.propertyDidChange('queue');
     if (r) {
-      r.complete(this._complete);
+      r.complete(this._complete.bind(this));
     }
     else {
       if (this.get('abortOnError')) {
