@@ -149,6 +149,11 @@ if security_enabled:
 # thrift server support - available on HDP 2.3 or higher
 spark_thrift_sparkconf = None
 spark_thrift_cmd_opts_properties = ''
+spark_thrift_fairscheduler_content = None
+spark_thrift_master = "yarn-client"
+if 'nm_hosts' in config['clusterHostInfo'] and len(config['clusterHostInfo']['nm_hosts']) == 1:
+  # use local mode when there's only one nodemanager
+  spark_thrift_master = "local[4]"
 
 spark_thrift_fairscheduler_content = None
 if has_spark_thriftserver and 'spark-thrift-sparkconf' in config['configurations']:
