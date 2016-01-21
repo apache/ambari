@@ -138,7 +138,7 @@ describe('App.MainController', function () {
       var args = testHelpers.findAjaxRequest('name', 'ambari.service');
       expect(args[0]).to.exists;
       expect(args[0].sender).to.be.eql(mainController);
-      expect(args[0].data.fields).to.be.eql('?fields=RootServiceComponents/component_version,RootServiceComponents/properties/server.os_family&minimal_response=true');
+      expect(args[0].data.fields).to.be.equal('?fields=RootServiceComponents/component_version,RootServiceComponents/properties/server.os_family&minimal_response=true');
     });
   });
 

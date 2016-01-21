@@ -104,7 +104,7 @@ App.UserSettingsController = Em.Controller.extend(App.UserPref, {
    */
   getUserPrefErrorCallback: function (request) {
     // this user is first time login
-    if (404 == request.status) {
+    if (404 === request.status) {
       this.updateUserPrefWithDefaultValues();
     }
   },
@@ -145,12 +145,12 @@ App.UserSettingsController = Em.Controller.extend(App.UserPref, {
    * @method updateUserPrefWithDefaultValues
    */
   updateUserPrefWithDefaultValues: function (response, getAllRequest) {
-    response = response || {};
+    var r = response || {};
     var keys = this.get('userSettingsKeys');
     var self = this;
     if (getAllRequest) {
       Object.keys(keys).forEach(function (key) {
-        if (Em.isNone(response[keys[key].name])) {
+        if (Em.isNone(r[keys[key].name])) {
           self.postUserPref(key, keys[key].defaultValue);
         }
       });
@@ -207,6 +207,7 @@ App.UserSettingsController = Em.Controller.extend(App.UserPref, {
   },
 
   loadPrivilegesSuccessCallback: function(data) {
+    var key;
     var privileges = {
       clusters: {},
       views: {}
@@ -227,7 +228,7 @@ App.UserSettingsController = Em.Controller.extend(App.UserPref, {
     // restructure data for view
     var clusters = [];
     var views = [];
-    for (key in privileges.clusters){
+    for (key in privileges.clusters) {
       clusters.push({
         name: key,
         privileges: privileges.clusters[key]
@@ -303,12 +304,16 @@ App.UserSettingsController = Em.Controller.extend(App.UserPref, {
         if (Em.isNone(curValue)) {
           curValue = initValue;
         }
+        var tz = this.get('selectedTimezone.value');
+        var popup = this;
         if (!App.get('testMode')) {
-          self.postUserPref('show_bg', curValue);
-          self.postUserPref('timezone', this.get('selectedTimezone.value'));
-        }
-        if (this.needsPageRefresh()) {
-          location.reload();
+          self.postUserPref('show_bg', curValue).always(function () {
+            self.postUserPref('timezone', tz).always(function () {
+              if (popup.needsPageRefresh()) {
+                location.reload();
+              }
+            });
+          });
         }
         this._super();
       },
