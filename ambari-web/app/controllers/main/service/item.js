@@ -973,13 +973,28 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   },
 
   /**
+   * find dependent services
+   * @param {string} serviceName
+   * @returns {Array}
+   */
+  findDependentServices: function(serviceName) {
+    var dependentServices = [];
+
+    App.StackService.find().forEach(function(stackService) {
+      if (App.Service.find(stackService.get('serviceName')).get('isLoaded')
+          && stackService.get('requiredServices').contains(serviceName)) {
+        dependentServices.push(stackService.get('serviceName'));
+      }
+    }, this);
+    return dependentServices;
+  },
+
+  /**
    * delete service action
    * @param {string} serviceName
    */
   deleteService: function(serviceName) {
-    var dependentServices = App.StackService.find(serviceName).get('requiredServices').filter(function(_serviceName) {
-          return App.Service.find(_serviceName).get('isLoaded');
-        }),
+    var dependentServices = this.findDependentServices(serviceName),
         self = this,
         displayName = App.format.role(serviceName),
         popupHeader = Em.I18n.t('services.service.delete.popup.header');
@@ -1016,7 +1031,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   /**
    * warning that show dependent services which must be deleted prior to chosen service deletion
    * @param {string} origin
-   * @param {string} dependent
+   * @param {Array.<string>} dependent
    * @returns {App.ModalPopup}
    */
   dependentServicesWarning: function(origin, dependent) {
