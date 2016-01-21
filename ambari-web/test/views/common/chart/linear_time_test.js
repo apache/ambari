@@ -253,7 +253,8 @@ describe('App.ChartLinearTimeView', function () {
         chartLinearTimeView.setProperties({
           currentTimeIndex: item.currentTimeIndex,
           customStartTime: item.customStartTime,
-          customEndTime: item.customEndTime
+          customEndTime: item.customEndTime,
+          timeUnitSeconds: 3600
         });
         var requestData = Em.Object.create(chartLinearTimeView.getDataForAjaxRequest());
         expect(requestData.getProperties(['fromSeconds', 'toSeconds'])).to.eql({
@@ -380,6 +381,73 @@ describe('App.ChartLinearTimeView', function () {
         methodNames.forEach(function (name) {
           expect(App.ChartLinearTimeView[name].callCount).to.equal(Number(name == item.formatter));
         });
+      });
+    });
+
+  });
+
+  describe('#localeTimeUnit', function () {
+
+    var cases = [
+      {
+        timeUnitSeconds: 240,
+        localeTimeUnit: '1 minute'
+      },
+      {
+        timeUnitSeconds: 172788,
+        localeTimeUnit: '719.95 minute'
+      },
+      {
+        timeUnitSeconds: 172800,
+        localeTimeUnit: 'day'
+      },
+      {
+        timeUnitSeconds: 1209599,
+        localeTimeUnit: 'day'
+      },
+      {
+        timeUnitSeconds: 1209600,
+        localeTimeUnit: 'week'
+      },
+      {
+        timeUnitSeconds: 5183999,
+        localeTimeUnit: 'week'
+      },
+      {
+        timeUnitSeconds: 5184000,
+        localeTimeUnit: 'month'
+      },
+      {
+        timeUnitSeconds: 62207999,
+        localeTimeUnit: 'month'
+      },
+      {
+        timeUnitSeconds: 622080000,
+        localeTimeUnit: 'year'
+      },
+      {
+        timeUnitSeconds: 700000000,
+        localeTimeUnit: 'year'
+      }
+    ];
+
+    beforeEach(function () {
+      sinon.stub(Rickshaw.Fixtures, 'Time').returns({
+        unit: function (name) {
+          return {
+            name: name
+          };
+        }
+      });
+    });
+
+    afterEach(function () {
+      Rickshaw.Fixtures.Time.restore();
+    });
+
+    cases.forEach(function (item) {
+      it(item.timeUnitSeconds + 's', function () {
+        expect(chartLinearTimeView.localeTimeUnit(item.timeUnitSeconds).name).to.equal(item.localeTimeUnit);
       });
     });
 

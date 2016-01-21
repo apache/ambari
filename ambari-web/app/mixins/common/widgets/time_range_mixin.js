@@ -127,7 +127,7 @@ App.TimeRangeMixin = Em.Mixin.create({
         defaultEndTime.setMinutes(minutes);
         defaultStartTime = defaultEndTime.getTime() - duration;
       }
-      timeRangePopup.showCustomDatePopup(primary.bind(this), secondary.bind(this), {
+      timeRangePopup.showCustomDatePopup(primary.bind(this), secondary, {
         startDate: App.formatDateTimeWithTimeZone(defaultStartTime, 'MM/DD/YYYY'),
         hoursForStart: App.formatDateTimeWithTimeZone(defaultStartTime, 'hh'),
         minutesForStart: App.formatDateTimeWithTimeZone(defaultStartTime, 'mm'),
