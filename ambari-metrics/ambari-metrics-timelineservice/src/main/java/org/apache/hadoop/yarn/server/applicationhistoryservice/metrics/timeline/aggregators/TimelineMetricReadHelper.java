@@ -40,8 +40,8 @@ public class TimelineMetricReadHelper {
   public TimelineMetric getTimelineMetricFromResultSet(ResultSet rs)
       throws SQLException, IOException {
     TimelineMetric metric = getTimelineMetricCommonsFromResultSet(rs);
-    TreeMap<Long, Double> sortedByTimeMetrics = new TreeMap<Long, Double>(
-        PhoenixHBaseAccessor.readMetricFromJSON(rs.getString("METRICS")));
+    TreeMap<Long, Double> sortedByTimeMetrics =
+      PhoenixHBaseAccessor.readMetricFromJSON(rs.getString("METRICS"));
     metric.setMetricValues(sortedByTimeMetrics);
     return metric;
   }

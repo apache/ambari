@@ -207,7 +207,7 @@ public class PhoenixHBaseAccessor {
 
   @SuppressWarnings("unchecked")
   public static TreeMap<Long, Double>  readMetricFromJSON(String json) throws IOException {
-    return (TreeMap<Long, Double>) mapper.readValue(json, metricValuesTypeRef);
+    return mapper.readValue(json, metricValuesTypeRef);
   }
 
   private Connection getConnectionRetryingOnException()
