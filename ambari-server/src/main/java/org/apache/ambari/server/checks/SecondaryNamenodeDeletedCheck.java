@@ -41,7 +41,7 @@ import com.google.inject.Singleton;
  * Checks that the Secondary NameNode is not present on any of the hosts.
  */
 @Singleton
-@UpgradeCheck(group = UpgradeCheckGroup.NAMENODE_HA, order = 2.0f)
+@UpgradeCheck(group = UpgradeCheckGroup.NAMENODE_HA, order = 16.0f)
 public class SecondaryNamenodeDeletedCheck extends AbstractCheckDescriptor {
   @Inject
   HostComponentStateDAO hostComponentStateDao;

@@ -50,7 +50,7 @@ import com.google.inject.Singleton;
  * user had changed the password using the Ranger UI.
  */
 @Singleton
-@UpgradeCheck(group = UpgradeCheckGroup.CONFIGURATION_WARNING, order = 1.1f, required=true)
+@UpgradeCheck(group = UpgradeCheckGroup.CONFIGURATION_WARNING, order = 23.0f, required=true)
 public class RangerPasswordCheck extends AbstractCheckDescriptor {
 
   private static final Logger LOG = LoggerFactory.getLogger(RangerPasswordCheck.class);

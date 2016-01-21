@@ -39,7 +39,7 @@ import com.google.inject.Singleton;
  * Checks that MR jobs reference hadoop libraries from the distributed cache.
  */
 @Singleton
-@UpgradeCheck(group = UpgradeCheckGroup.NAMENODE_HA, order = 3.0f)
+@UpgradeCheck(group = UpgradeCheckGroup.NAMENODE_HA, order = 17.1f)
 public class ServicesMapReduceDistributedCacheCheck extends AbstractCheckDescriptor {
 
   static final String KEY_APP_CLASSPATH = "app_classpath";

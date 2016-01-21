@@ -208,6 +208,15 @@ public class HostRoleCommandDAO {
     return daoUtils.selectList(query, role, status);
   }
 
+  @RequiresSession
+  public List<HostRoleCommandEntity> findSortedCommandsByRequestIdAndCustomCommandName(Long requestId, String customCommandName) {
+    TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createQuery("SELECT hostRoleCommand " +
+        "FROM HostRoleCommandEntity hostRoleCommand " +
+        "WHERE hostRoleCommand.requestId=?1 AND hostRoleCommand.customCommandName=?2 " +
+        "ORDER BY hostRoleCommand.taskId", HostRoleCommandEntity.class);
+    return daoUtils.selectList(query, requestId, customCommandName);
+  }
+
 
   @RequiresSession
   public List<HostRoleCommandEntity> findSortedCommandsByStageAndHost(StageEntity stageEntity, HostEntity hostEntity) {

@@ -39,7 +39,7 @@ import com.google.inject.Singleton;
  * @see HostsHeartbeatCheck
  */
 @Singleton
-@UpgradeCheck(group = UpgradeCheckGroup.MAINTENANCE_MODE, order = 3.0f, required = true)
+@UpgradeCheck(group = UpgradeCheckGroup.MAINTENANCE_MODE, order = 7.0f, required = true)
 public class HostMaintenanceModeCheck extends AbstractCheckDescriptor {
 
   /**
