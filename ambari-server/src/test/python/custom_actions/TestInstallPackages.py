@@ -104,6 +104,9 @@ class TestInstallPackages(RMFTestCase):
                               mirror_list=None,
                               append_to_file=True,
     )
+    self.assertResourceCalled('Execute', '/usr/bin/yum -q clean metadata',
+                              logoutput = False,
+                              )
     self.assertResourceCalled('Package', 'fuse')
     self.assertResourceCalled('Package', 'fuse-libs')
     self.assertResourceCalled('Package', 'hadoop_2_2_*', use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'], skip_repos=['HDP-*'])
@@ -163,6 +166,9 @@ class TestInstallPackages(RMFTestCase):
                               repo_file_name=u'HDP-2.2.0.1-885',
                               mirror_list=None,
                               append_to_file=True,
+                              )
+    self.assertResourceCalled('Execute', '/usr/bin/zypper -q -n clean',
+                              logoutput = False,
                               )
     self.assertResourceCalled('Package', 'fuse')
     self.assertResourceCalled('Package', 'libfuse2')
@@ -227,6 +233,9 @@ class TestInstallPackages(RMFTestCase):
                               mirror_list=None,
                               append_to_file=True,
     )
+    self.assertResourceCalled('Execute', '/usr/bin/yum -q clean metadata',
+                              logoutput = False,
+                              )
     self.assertResourceCalled('Package', 'fuse')
     self.assertResourceCalled('Package', 'fuse-libs')
     self.assertResourceCalled('Package', 'hadoop_2_2_*', use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'], skip_repos=['HDP-*'])
@@ -305,6 +314,9 @@ class TestInstallPackages(RMFTestCase):
                               mirror_list=None,
                               append_to_file=True,
                               )
+    self.assertResourceCalled('Execute', '/usr/bin/yum -q clean metadata',
+                              logoutput = False,
+                              )
     self.assertNoMoreResources()
 
     TestInstallPackages._install_failed = False
@@ -317,7 +329,7 @@ class TestInstallPackages(RMFTestCase):
   @patch("resource_management.libraries.functions.hdp_select.get_hdp_versions")
   @patch("resource_management.libraries.functions.repo_version_history.read_actual_version_from_history_file")
   @patch("resource_management.libraries.functions.repo_version_history.write_actual_version_to_history_file")
-  def test_format_package_name(self,                                                                                    write_actual_version_to_history_file_mock,
+  def test_format_package_name(self, write_actual_version_to_history_file_mock,
                                read_actual_version_from_history_file_mock,
                                hdp_versions_mock,
                                allInstalledPackages_mock, put_structured_out_mock,
@@ -360,6 +372,9 @@ class TestInstallPackages(RMFTestCase):
                               repo_file_name=u'HDP-2.2.0.1-885',
                               mirror_list=None,
                               append_to_file=True,
+                              )
+    self.assertResourceCalled('Execute', '/usr/bin/zypper -q -n clean',
+                              logoutput = False,
                               )
     self.assertResourceCalled('Package', 'fuse')
     self.assertResourceCalled('Package', 'libfuse2')

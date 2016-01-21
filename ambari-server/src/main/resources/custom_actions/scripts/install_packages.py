@@ -36,6 +36,7 @@ from resource_management.libraries.functions.hdp_select import get_hdp_versions
 from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
 from resource_management.libraries.functions.repo_version_history \
   import read_actual_version_from_history_file, write_actual_version_to_history_file, REPO_VERSION_HISTORY_FILE
+from resource_management.core.resources.system import Execute
 
 from resource_management.core.logger import Logger
 
@@ -51,7 +52,7 @@ class InstallPackages(Script):
   UBUNTU_REPO_COMPONENTS_POSTFIX = ["main"]
   REPO_FILE_NAME_PREFIX = 'HDP-'
   STACK_TO_ROOT_FOLDER = {"HDP": "/usr/hdp"}
-  
+
   def actionexecute(self, env):
     num_errors = 0
 
@@ -165,6 +166,20 @@ class InstallPackages(Script):
     if is_package_install_successful and 'actual_version' in self.structured_output:
       self._create_config_links_if_necessary(stack_id, self.structured_output['actual_version'])
 
+  def _clear_package_manager_cache(self):
+    package_manager_cmd = ""
+
+    if OSCheck.is_redhat_family():
+      package_manager_cmd = "/usr/bin/yum -q clean metadata"
+
+    if OSCheck.is_suse_family():
+      package_manager_cmd = "/usr/bin/zypper -q -n clean"
+
+    if OSCheck.is_ubuntu_family():
+      return
+
+    Logger.debug("Clearing repo manager metadata")
+    Execute(package_manager_cmd, logoutput=False)
 
   def _create_config_links_if_necessary(self, stack_id, stack_version):
     """
@@ -340,11 +355,15 @@ class InstallPackages(Script):
     :return: Returns 0 if no errors were found, and 1 otherwise.
     """
     ret_code = 0
+
+    # Clear cache of package manager right before installation of the packages
+    self._clear_package_manager_cache()
+
     # Install packages
     packages_were_checked = False
     try:
       Package(self.get_base_packages_to_install())
-      
+
       packages_installed_before = []
       allInstalledPackages(packages_installed_before)
       packages_installed_before = [package[0] for package in packages_installed_before]
@@ -433,26 +452,26 @@ class InstallPackages(Script):
   def abort_handler(self, signum, frame):
     Logger.error("Caught signal {0}, will handle it gracefully. Compute the actual version if possible before exiting.".format(signum))
     self.check_partial_install()
-    
+
   def get_base_packages_to_install(self):
     """
     HACK: list packages which should be installed without disabling any repos. (This is planned to fix in Ambari-2.2)
     """
     base_packages_to_install = ['fuse']
-    
+
     if OSCheck.is_suse_family() or OSCheck.is_ubuntu_family():
       base_packages_to_install.append('libfuse2')
     else:
       base_packages_to_install.append('fuse-libs')
-      
+
     return base_packages_to_install
 
-    
+
   def filter_package_list(self, package_list):
     """
     Note: that we have skipUpgrade option in metainfo.xml to filter packages,
     so use this method only if, for some reason the metainfo option cannot be used.
-    
+
     Here we filter packages that are managed with custom logic in package
     scripts. Usually this packages come from system repositories, and either
      are not available when we restrict repository list, or should not be
@@ -463,7 +482,7 @@ class InstallPackages(Script):
     filtered_package_list = []
     for package in package_list:
       skip_package = False
-      
+
       # skip upgrade for hadooplzo* versioned package, only if lzo is disabled 
       io_compression_codecs = default("/configurations/core-site/io.compression.codecs", None)
       if not io_compression_codecs or "com.hadoop.compression.lzo" not in io_compression_codecs:
