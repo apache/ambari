@@ -36,6 +36,7 @@
           <requiredServices>
             <service>HDFS</service>
             <service>YARN</service>
+            <service>HIVE</service>
           </requiredServices>
           <osSpecifics>
             <osSpecific>
