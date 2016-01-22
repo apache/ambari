@@ -163,19 +163,22 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
 
   setComponentsContent: function() {
     Em.run.next(function() {
-      var masters = this.get('service.hostComponents').filterProperty('isMaster');
+      if (Em.isNone(this.get('service'))) {
+        return;
+      }
+      var masters = this.get('service.masterComponents').toArray();
       var slaves = this.get('service.slaveComponents').toArray();
       var clients = this.get('service.clientComponents').toArray();
 
-      if (this.get('mastersLength') != masters.length) {
+      if (this.get('mastersLength') !== masters.length) {
         this.updateComponentList(this.get('mastersObj'), masters);
         this.set('mastersLength', masters.length);
       }
-      if (this.get('slavesLength') != slaves.length) {
+      if (this.get('slavesLength') !== slaves.length) {
         this.updateComponentList(this.get('slavesObj'), slaves);
         this.set('slavesLength', slaves.length);
       }
-      if (this.get('clientsLength') != clients.length) {
+      if (this.get('clientsLength') !== clients.length) {
         this.updateComponentList(this.get('clientObj'), clients);
         this.set('clientsLength', clients.length);
       }

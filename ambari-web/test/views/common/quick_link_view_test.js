@@ -853,7 +853,7 @@ describe('App.QuickViewLinks', function () {
             {
               'type': 'yarn-site',
               'properties': {'yarn.timeline-service.webapp.https.address': 'c6401.ambari.apache.org:8090'}
-            },
+            }
           ],
         'result': '8090'
       })
@@ -869,6 +869,98 @@ describe('App.QuickViewLinks', function () {
         expect(quickViewLinks.setPort(item.port, item.protocol, item.configProperties)).to.equal(item.result);
       })
     }, this);
+  });
+
+  describe("#getHosts()", function() {
+
+    beforeEach(function() {
+      sinon.stub(quickViewLinks, 'processOozieHosts').returns(['oozieHost']);
+      sinon.stub(quickViewLinks, 'processHdfsHosts').returns(['hdfsHost']);
+      sinon.stub(quickViewLinks, 'processHbaseHosts').returns(['hbaseHost']);
+      sinon.stub(quickViewLinks, 'processYarnHosts').returns(['yarnHost']);
+      sinon.stub(quickViewLinks, 'findHosts').returns(['host1']);
+      App.set('singleNodeInstall', false);
+      quickViewLinks.set('content', Em.Object.create({
+        hostComponents: []
+      }));
+    });
+    afterEach(function() {
+      quickViewLinks.processOozieHosts.restore();
+      quickViewLinks.processHdfsHosts.restore();
+      quickViewLinks.processHbaseHosts.restore();
+      quickViewLinks.findHosts.restore();
+      quickViewLinks.processYarnHosts.restore();
+    });
+
+    it("singleNodeInstall is true", function() {
+      App.set('singleNodeInstall', true);
+      App.set('singleNodeAlias', 'host1');
+      expect(quickViewLinks.getHosts({}, 'S1')).to.eql([{
+        hostName: 'host1',
+        publicHostName: 'host1'
+      }])
+    });
+
+    it("content is null", function() {
+      quickViewLinks.set('content', null);
+      expect(quickViewLinks.getHosts({}, 'S1')).to.be.empty;
+    });
+
+    it("OOZIE service", function() {
+      expect(quickViewLinks.getHosts({}, 'OOZIE')).to.eql(['oozieHost']);
+      expect(quickViewLinks.findHosts.calledWith('OOZIE_SERVER', {})).to.be.true;
+      expect(quickViewLinks.processOozieHosts.calledOnce).to.be.true;
+    });
+
+    it("HDFS service", function() {
+      expect(quickViewLinks.getHosts({}, 'HDFS')).to.eql(['hdfsHost']);
+      expect(quickViewLinks.findHosts.calledWith('NAMENODE', {})).to.be.true;
+      expect(quickViewLinks.processHdfsHosts.calledOnce).to.be.true;
+    });
+
+    it("HBASE service", function() {
+      expect(quickViewLinks.getHosts({}, 'HBASE')).to.eql(['hbaseHost']);
+      expect(quickViewLinks.findHosts.calledWith('HBASE_MASTER', {})).to.be.true;
+      expect(quickViewLinks.processHbaseHosts.calledOnce).to.be.true;
+    });
+
+    it("YARN service", function() {
+      expect(quickViewLinks.getHosts({}, 'YARN')).to.eql(['yarnHost']);
+      expect(quickViewLinks.findHosts.calledWith('RESOURCEMANAGER', {})).to.be.true;
+      expect(quickViewLinks.processYarnHosts.calledOnce).to.be.true;
+    });
+
+    it("STORM service", function() {
+      expect(quickViewLinks.getHosts({}, 'STORM')).to.eql(['host1']);
+      expect(quickViewLinks.findHosts.calledWith('STORM_UI_SERVER', {})).to.be.true;
+    });
+
+    it("ACCUMULO service", function() {
+      expect(quickViewLinks.getHosts({}, 'ACCUMULO')).to.eql(['host1']);
+      expect(quickViewLinks.findHosts.calledWith('ACCUMULO_MONITOR', {})).to.be.true;
+    });
+
+    it("ATLAS service", function() {
+      expect(quickViewLinks.getHosts({}, 'ATLAS')).to.eql(['host1']);
+      expect(quickViewLinks.findHosts.calledWith('ATLAS_SERVER', {})).to.be.true;
+    });
+
+    it("custom service without master", function() {
+      expect(quickViewLinks.getHosts({}, 'S1')).to.be.empty;
+    });
+
+    it("custom service with master", function() {
+      quickViewLinks.set('content', Em.Object.create({
+        hostComponents: [
+          Em.Object.create({
+            isMaster: true,
+            componentName: 'C1'
+          })
+        ]
+      }));
+      expect(quickViewLinks.getHosts({}, 'S1')).to.eql(['host1']);
+      expect(quickViewLinks.findHosts.calledWith('C1', {})).to.be.true;
+    });
   });
 
 });

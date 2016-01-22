@@ -91,6 +91,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
     var groupName = this.get('controller.selectedConfigGroup.isDefault') ? 'default'
         : this.get('controller.selectedConfigGroup.name');
     var groupId = this.get('controller.selectedConfigGroup.configGroupId');
+    var self = this;
 
     this.get('allServiceVersions').forEach(function (version) {
       version.set('isDisabled', !(version.get('groupName') === groupName));
@@ -99,6 +100,13 @@ App.ConfigHistoryFlowView = Em.View.extend({
     var serviceVersions = this.get('allServiceVersions').filter(function(s) {
       return (s.get('groupId') === groupId) || s.get('groupName') == 'default';
     });
+
+    if (!serviceVersions.findProperty('isDisplayed')) {
+      //recompute serviceVersions if displayed version absent
+      Em.run.next(function() {
+        self.propertyDidChange('controller.selectedConfigGroup.name');
+      });
+    }
 
     return serviceVersions.sort(function (a, b) {
       return Em.get(b, 'createTime') - Em.get(a, 'createTime');

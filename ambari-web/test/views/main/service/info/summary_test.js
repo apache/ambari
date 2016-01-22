@@ -524,4 +524,60 @@ describe('App.MainServiceInfoSummaryView', function() {
 
   });
 
+  describe("#setComponentsContent()", function() {
+
+    beforeEach(function() {
+      sinon.stub(Em.run, 'next', Em.clb);
+      sinon.stub(view, 'updateComponentList');
+      view.set('service', Em.Object.create({
+        masterComponents: [],
+        slaveComponents: [],
+        clientComponents: []
+      }));
+      view.setProperties({
+        mastersLength: 0,
+        slavesLength: 0,
+        clientsLength: 0,
+        mastersObj: ['master'],
+        slavesObj: ['slave'],
+        clientObj: ['client']
+      });
+    });
+    afterEach(function() {
+      Em.run.next.restore();
+      view.updateComponentList.restore();
+    });
+
+    it("service is null", function() {
+      view.set('service', null);
+      view.setComponentsContent();
+      expect(Em.run.next.calledOnce).to.be.true;
+      expect(view.updateComponentList.called).to.be.false
+    });
+
+    it("update master length", function() {
+      view.set('mastersLength', 1);
+      view.setComponentsContent();
+      expect(Em.run.next.calledOnce).to.be.true;
+      expect(view.updateComponentList.calledWith(['master'], [])).to.be.true;
+      expect(view.get('mastersLength')).to.be.equal(0);
+    });
+
+    it("update slave length", function() {
+      view.set('slavesLength', 1);
+      view.setComponentsContent();
+      expect(Em.run.next.calledOnce).to.be.true;
+      expect(view.updateComponentList.calledWith(['slave'], [])).to.be.true;
+      expect(view.get('slavesLength')).to.be.equal(0);
+    });
+
+    it("update client length", function() {
+      view.set('clientsLength', 1);
+      view.setComponentsContent();
+      expect(Em.run.next.calledOnce).to.be.true;
+      expect(view.updateComponentList.calledWith(['client'], [])).to.be.true;
+      expect(view.get('clientsLength')).be.equal(0);
+    });
+  });
+
 });
