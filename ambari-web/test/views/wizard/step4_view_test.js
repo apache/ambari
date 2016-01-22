@@ -36,7 +36,7 @@ describe('App.WizardStep4View', function () {
     });
     it('router.transitionInProgress is set to false', function () {
       view.didInsertElement();
-      expect(App.get('router').set.calledWith('transitionInProgress', false)).to.be.false;
+      expect(App.get('router').set.calledWith('transitionInProgress', false)).to.be.true;
     });
   });
 });

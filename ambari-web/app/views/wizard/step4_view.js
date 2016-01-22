@@ -24,6 +24,7 @@ App.WizardStep4View = Em.View.extend({
   templateName: require('templates/wizard/step4'),
 
   didInsertElement: function () {
+    App.get('router').set('transitionInProgress', false);
   }
 
 });

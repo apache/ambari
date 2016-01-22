@@ -1648,16 +1648,12 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
 
   /**
    * Submit-click handler
-   * Disable 'Next' button while it is already under process. (using Router's property 'nextBtnClickInProgress')
    * @return {App.ModalPopup|null}
    * @method submit
    */
   submit: function () {
     var self = this;
-    if(App.router.nextBtnClickInProgress){
-      return;
-    }
-    App.router.nextBtnClickInProgress = true;
+
     if (this.get('isHostHaveWarnings')) {
       return App.showConfirmationPopup(
         function () {

@@ -1069,20 +1069,16 @@ App.AssignMasterComponents = Em.Mixin.create({
 
   /**
    * Submit button click handler
-   * Disable 'Next' button while it is already under process. (using Router's property 'nextBtnClickInProgress')
    * @method submit
    */
   submit: function () {
     var self = this;
-    if (!this.get('submitButtonClicked') && !App.router.get('nextBtnClickInProgress')) {
+    if (!this.get('submitButtonClicked')) {
       this.set('submitButtonClicked', true);
-      App.router.set('nextBtnClickInProgress', true);
 
       var goNextStepIfValid = function () {
         if (!self.get('submitDisabled')) {
           App.router.send('next');
-        }else{
-          App.router.set('nextBtnClickInProgress', false);
         }
         self.set('submitButtonClicked', false);
       };
