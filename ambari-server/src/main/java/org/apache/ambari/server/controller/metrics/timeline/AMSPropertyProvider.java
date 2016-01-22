@@ -532,8 +532,6 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
 
     String collectorHostName = null;
     String collectorPort = null;
-    Map<String, Boolean> clusterCollectorComponentLiveMap = new HashMap<>();
-    Map<String, Boolean> clusterCollectorHostLiveMap = new HashMap<>();
 
     for (Resource resource : resources) {
       String clusterName = (String) resource.getPropertyValue(clusterNamePropertyId);
@@ -544,14 +542,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
       }
 
       // Check liveliness of host
-      boolean clusterCollectorHostLive;
-      if (clusterCollectorHostLiveMap.containsKey(clusterName)) {
-        clusterCollectorHostLive = clusterCollectorHostLiveMap.get(clusterName);
-      } else {
-        clusterCollectorHostLive = hostProvider.isCollectorComponentLive(clusterName, TIMELINE_METRICS);
-        clusterCollectorHostLiveMap.put(clusterName, clusterCollectorHostLive);
-      }
-      if (!clusterCollectorHostLive) {
+      if (!hostProvider.isCollectorHostLive(clusterName, TIMELINE_METRICS)) {
         if (printSkipPopulateMsgHostCounter.getAndIncrement() == 0) {
           LOG.info("METRICS_COLLECTOR host is not live. Skip populating " +
             "resources with metrics, next message will be logged after 1000 " +
@@ -565,14 +556,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
       printSkipPopulateMsgHostCounter.set(0);
 
       // Check liveliness of Collector
-      boolean clusterCollectorComponentLive;
-      if (clusterCollectorComponentLiveMap.containsKey(clusterName)) {
-        clusterCollectorComponentLive = clusterCollectorComponentLiveMap.get(clusterName);
-      } else {
-        clusterCollectorComponentLive = hostProvider.isCollectorComponentLive(clusterName, TIMELINE_METRICS);
-        clusterCollectorComponentLiveMap.put(clusterName, clusterCollectorComponentLive);
-      }
-      if (!clusterCollectorComponentLive) {
+      if (!hostProvider.isCollectorComponentLive(clusterName, TIMELINE_METRICS)) {
         if (printSkipPopulateMsgHostCompCounter.getAndIncrement() == 0) {
           LOG.info("METRICS_COLLECTOR is not live. Skip populating resources " +
             "with metrics., next message will be logged after 1000 " +
