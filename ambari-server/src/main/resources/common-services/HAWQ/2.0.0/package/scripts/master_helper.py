@@ -54,15 +54,6 @@ def __setup_passwordless_ssh():
   File(hawq_constants.hawq_hosts_file, action='delete')
 
 
-def __setup_hawq_user_profile():
-  """
-  Sets up the ENV variables for hawq_user as a convenience for the command line users
-  """
-  hawq_profile_file = os.path.join(os.path.expanduser("~{0}".format(hawq_constants.hawq_user)), ".hawq-profile.sh")
-  File(hawq_profile_file, content=Template("hawq-profile.sh.j2"), owner=hawq_constants.hawq_user, group=hawq_constants.hawq_group)
-  common.update_bashrc(hawq_profile_file, hawq_constants.hawq_user_bashrc_file)
-
-
 def configure_master():
   """
   Configures the master node after rpm install
@@ -70,7 +61,6 @@ def configure_master():
   common.setup_user()
   common.setup_common_configurations()
   __setup_master_specific_conf_files()
-  __setup_hawq_user_profile()
   __create_local_dirs()
 
 

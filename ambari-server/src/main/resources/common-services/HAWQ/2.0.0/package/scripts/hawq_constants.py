@@ -45,7 +45,6 @@ sysctl_conf_dir = "/etc/sysctl.d"
 
 # Files
 hawq_slaves_file = os.path.join(hawq_config_dir, "slaves")
-hawq_user_bashrc_file = os.path.join(hawq_user_home_dir, ".bashrc")
 hawq_greenplum_path_file = os.path.join(hawq_home_dir, "greenplum_path.sh")
 hawq_hosts_file = "/tmp/hawq_hosts"
 hawq_check_file = os.path.join(hawq_config_dir, "gpcheck.cnf")
