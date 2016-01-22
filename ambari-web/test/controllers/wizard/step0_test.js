@@ -27,11 +27,13 @@ describe('App.WizardStep0Controller', function () {
     wizardStep0Controller = App.WizardStep0Controller.create({content: {cluster: {}}});
     sinon.stub(App.clusterStatus, 'set', Em.K);
     sinon.stub(App.router, 'send', Em.K);
+    App.router.nextBtnClickInProgress = false;
   });
 
   afterEach(function() {
     App.clusterStatus.set.restore();
     App.router.send.restore();
+    App.router.nextBtnClickInProgress = false;
   });
 
   describe('#invalidClusterName', function () {
@@ -75,6 +77,15 @@ describe('App.WizardStep0Controller', function () {
       wizardStep0Controller.submit();
       expect(App.router.send.called).to.equal(false);
       expect(App.clusterStatus.set.called).to.equal(false);
+    });
+    it('if Next button is clicked multiple times before the next step renders, it must not be processed', function() {
+      wizardStep0Controller.set('content.cluster.name', 'tdk');
+      wizardStep0Controller.submit();
+      expect(App.router.send.calledWith('next')).to.equal(true);
+
+      App.router.send.reset();
+      wizardStep0Controller.submit();
+      expect(App.router.send.called).to.equal(false);
     });
   });
 

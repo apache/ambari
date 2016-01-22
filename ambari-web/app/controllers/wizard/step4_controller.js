@@ -133,13 +133,18 @@ App.WizardStep4Controller = Em.ArrayController.extend({
 
   /**
    * Onclick handler for <code>Next</code> button.
+   * Disable 'Next' button while it is already under process. (using Router's property 'nextBtnClickInProgress')
    * @method submit
    */
   submit: function () {
+    if(App.router.nextBtnClickInProgress){
+      return;
+    }
     if (!this.get('isSubmitDisabled')) {
       this.unSelectServices();
       this.setGroupedServices();
       if (this.validate()) {
+        App.router.nextBtnClickInProgress = true;
         this.set('errorStack', []);
         App.router.send('next');
       }
