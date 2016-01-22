@@ -241,7 +241,10 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
     #Initialize default 'dfs.datanode.data.dir' if needed
     if (not hdfsSiteProperties) or ('dfs.datanode.data.dir' not in hdfsSiteProperties):
-      putHDFSSiteProperty('dfs.datanode.data.dir', '/hadoop/hdfs/data')
+      dataDirs = '/hadoop/hdfs/data'
+      putHDFSSiteProperty('dfs.datanode.data.dir', dataDirs)
+    else:
+      dataDirs = hdfsSiteProperties['dfs.datanode.data.dir'].split(",")
     #dfs.datanode.du.reserved should be set to 10-15% of volume size
     mountPoints = []
     mountPointDiskAvailableSpace = [] #kBytes
@@ -250,7 +253,6 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         mountPoints.append(diskInfo["mountpoint"])
         mountPointDiskAvailableSpace.append(long(diskInfo["size"]))
     maxFreeVolumeSize = 0l #kBytes
-    dataDirs = hdfsSiteProperties['dfs.datanode.data.dir'].split(",")
     for dataDir in dataDirs:
       mp = getMountPointForDir(dataDir, mountPoints)
       for i in range(len(mountPoints)):
