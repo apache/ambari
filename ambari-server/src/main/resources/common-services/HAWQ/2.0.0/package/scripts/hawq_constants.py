@@ -58,8 +58,9 @@ postmaster_opts_filename = "postmaster.opts"
 postmaster_pid_filename = "postmaster.pid"
 hawq_keytab_file = "/etc/security/keytabs/hawq.service.keytab"
 
-# Smoke check table
-smoke_check_table_name = "ambari_hawq_smoke_test"
+# HAWQ-PXF check params
+PXF_PORT = "51200"
+pxf_hdfs_test_dir = "/user/{0}/hawq_pxf_hdfs_service_check".format(hawq_user)
 
 # Timeouts
 default_exec_timeout = 600
