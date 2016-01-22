@@ -1530,7 +1530,8 @@ class TestHDP23StackAdvisor(TestCase):
       },
       'ranger-admin-site': {
         'properties': {
-          "ranger.audit.solr.zookeepers": "NONE"
+          "ranger.audit.solr.zookeepers": "NONE",
+          "ranger.audit.source.type": "solr"
         }
       },
       'ranger-env': {
