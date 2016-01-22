@@ -134,6 +134,7 @@ require('views/main/host/metrics/network');
 require('views/main/host/metrics/processes');
 require('views/main/host/addHost/step4_view');
 require('views/main/admin');
+require('views/main/admin/service_auto_start');
 require('views/main/admin/highAvailability/nameNode/wizard_view');
 require('views/main/admin/highAvailability/progress_view');
 require('views/main/admin/highAvailability/nameNode/rollback_view');

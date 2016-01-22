@@ -31,6 +31,7 @@ require('controllers/main');
 require('controllers/main/dashboard');
 require('controllers/main/dashboard/config_history_controller');
 require('controllers/main/admin');
+require('controllers/main/admin/service_auto_start');
 require('controllers/main/admin/highAvailability_controller');
 require('controllers/main/admin/highAvailability/nameNode/wizard_controller');
 require('controllers/main/admin/highAvailability/progress_controller');

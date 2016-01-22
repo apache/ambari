@@ -509,6 +509,14 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       }
     }),
 
+    adminServiceAutoStart: Em.Route.extend({
+      route: '/serviceAutoStart',
+      connectOutlets: function (router) {
+        router.set('mainAdminController.category', "serviceAutoStart");
+        router.get('mainAdminController').connectOutlet('mainAdminServiceAutoStart');
+      }
+    }),
+
     adminAudit: Em.Route.extend({
       route: '/audit',
       connectOutlets: function (router) {
