@@ -8347,7 +8347,7 @@ public class AmbariManagementControllerTest {
     try {
       controller.updateRepositories(requests);
     } catch (Exception e) {
-      assertTrue(e.getMessage().contains(MalformedURLException.class.getName()));
+      assertTrue(e.getMessage().contains("Could not access base url"));
     }
 
     requests.clear();
@@ -8359,8 +8359,7 @@ public class AmbariManagementControllerTest {
       controller.updateRepositories(requests);
     } catch (Exception e) {
       String exceptionMsg = e.getMessage();
-      assertTrue(exceptionMsg.contains(UnknownHostException.class.getName())
-        || exceptionMsg.contains(ConnectException.class.getName()));
+      assertTrue(exceptionMsg.contains("Could not access base url"));
     }
 
     // reset repo
