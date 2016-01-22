@@ -114,6 +114,8 @@ public class DefaultProviderModule extends AbstractProviderModule {
         return new OperatingSystemResourceProvider(managementController);
       case Repository:
         return new RepositoryResourceProvider(managementController);
+      case AdminSetting:
+        return new AdminSettingResourceProvider();
       case Artifact:
         return new ArtifactResourceProvider(managementController);
 
