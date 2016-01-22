@@ -164,6 +164,16 @@
     <name>ranger.audit.source.type</name>
     <value>solr</value>
     <description>db or solr, based on the audit destination used</description>
+    <depends-on>
+      <property>
+        <type>ranger-env</type>
+        <name>xasecure.audit.destination.solr</name>
+      </property>
+      <property>
+        <type>ranger-env</type>
+        <name>xasecure.audit.destination.db</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
