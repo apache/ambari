@@ -151,4 +151,104 @@ angular.module('ambariAdminConsole')
     $location.path('/stackVersions');
   };
 
+  // two options to upload version definition file
+  $scope.option1 = {
+    index: 1,
+    displayName: 'Upload Version Definition File',
+    url: 'files://',
+    selected: true,
+    hasError: true
+  };
+  $scope.option2 = {
+    index: 2,
+    displayName: 'Version Definition File URL',
+    url: 'https://',
+    selected: false,
+    hasError: false
+  };
+  $scope.selectedOption = 1;
+
+  /**
+   * User can select ONLY one option to upload version definition file
+   */
+  $scope.toggleOptionSelect = function () {
+    $scope.option1.selected = $scope.selectedOption == $scope.option1.index;
+    $scope.option2.selected = $scope.selectedOption == $scope.option2.index;
+    $scope.option1.hasError = false;
+    $scope.option2.hasError = false;
+  };
+  $scope.clearOptionsError = function () {
+    $scope.option1.hasError = false;
+    $scope.option2.hasError = false;
+  };
+  $scope.readInfoButtonDisabled = function () {
+    return $scope.option1.selected ? !$scope.option1.url : !$scope.option2.url;
+  };
+
+  $scope.onFileSelect = function(){
+    return {
+      link: function($scope,el){
+        el.bind("change", function(e){
+          $scope.file = (e.srcElement || e.target).files[0];
+          $scope.getFile();
+        })
+      }
+    }
+  };
+
+//  $scope.uploadFile = function(){
+//    var file = $scope.myFile;
+//    console.log('file is ' );
+//    console.dir(file);
+//    var uploadUrl = "/fileUpload";
+//    fileUpload.uploadFileToUrl(file, uploadUrl);
+//  };
+
+  /**
+   * Load selected file to current page content
+   */
+  $scope.readVersionInfo = function(){
+    if ($scope.option2.selected) {
+      var url = $scope.option2.url;
+    }
+    /// POST url first then get the version definition info
+    return Stack.getLatestRepo('HDP').then(function (response) {
+      $scope.id = response.id;
+      $scope.isPatch = response.type == 'PATCH';
+      $scope.stackNameVersion = response.stackNameVersion;
+      $scope.displayName = response.displayName;
+      $scope.version = response.version;
+      $scope.actualVersion = response.actualVersion;
+      $scope.services = response.services;
+      //save default values of repos to check if they were changed
+      $scope.defaulfOSRepos = {};
+      response.updateObj.operating_systems.forEach(function(os) {
+        $scope.defaulfOSRepos[os.OperatingSystems.os_type] = {
+          defaultBaseUrl: os.repositories[0].Repositories.base_url,
+          defaultUtilsUrl: os.repositories[1].Repositories.base_url
+        };
+      });
+      $scope.repoVersionFullName = response.repoVersionFullName;
+      angular.forEach(response.osList, function (os) {
+        os.selected = true;
+      });
+      $scope.selectedOS = response.osList.length;
+      $scope.osList = response.osList;
+      // if user reach here from UI click, repo status should be cached
+      // otherwise re-fetch repo status from cluster end point.
+      $scope.repoStatus = Cluster.repoStatusCache[$scope.id];
+      if (!$scope.repoStatus) {
+        $scope.fetchClusters()
+          .then(function () {
+            return $scope.fetchRepoClusterStatus();
+          })
+          .then(function () {
+            $scope.deleteEnabled = $scope.isDeletable();
+          });
+      } else {
+        $scope.deleteEnabled = $scope.isDeletable();
+      }
+      $scope.addMissingOSList();
+    });
+  };
 }]);

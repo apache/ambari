@@ -14,7 +14,43 @@
             "id" : 15,
             "repository_version" : "2.2.0.1-901",
             "stack_name" : "HDP",
-            "stack_version" : "2.2"
+            "stack_version" : "2.2",
+            "release": {
+              "type": "PATCH",
+              "stack_id": "HDP-2.2",
+              "version": "2.2.0.1",
+              "build": "901",
+              "compatible_with": "2.2.0.1-[1-9]",
+              "release_notes": "http://someurl"
+            },
+            "services": [
+              {
+                "name": "HDFS",
+                "versions": [
+                  {
+                    "version": "2.1.1",
+                    "version_id": "10",
+                    "components": [ "NAMENODE"]
+                  }
+                ]
+              },
+              {
+                "name": "HIVE",
+                "versions": [
+                  {
+                    "version": "1.2.1"
+                  }
+                ]
+              },
+              {
+                "name": "ZOOKEEPER",
+                "versions": [
+                  {
+                    "version": "3.4.5"
+                  }
+                ]
+              }
+            ]
           },
           "operating_systems" : [
             {

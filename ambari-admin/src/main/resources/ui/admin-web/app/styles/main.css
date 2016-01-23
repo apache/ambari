@@ -1384,3 +1384,17 @@ thead.view-permission-header > tr > th {
 .test-ldap-icon.ng-hide-add-active, .test-ldap-icon.ng-hide-remove {
   display: inline-block!important;
 }
+
+.register-version-options .read-info-button {
+  margin-bottom: 10px;
+}
+
+.register-version-options .option-radio-button {
+  padding-top: 5px;
+}
+
+.register-version-options .choose-file-input {
+  padding-top: 6px;
+  padding-bottom: 20px;
+}
+

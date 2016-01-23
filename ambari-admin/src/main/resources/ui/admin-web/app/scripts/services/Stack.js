@@ -173,6 +173,44 @@ angular.module('ambariAdminConsole')
       return deferred.promise;
     },
 
+    getLatestRepo: function (stack_name) {
+      var url = Settings.baseUrl + '/stacks/' + stack_name + '/versions?' +
+        'fields=repository_versions/operating_systems/repositories/*' +
+        ',repository_versions/RepositoryVersions/*';
+      var deferred = $q.defer();
+      $http.get(url, {mock: 'version/version.json'})
+        .success(function (data) {
+          data = data.items[0];
+          var response = {
+            id : data.repository_versions[0].RepositoryVersions.id,
+            stackVersion : data.Versions.stack_version,
+            stackName: data.Versions.stack_name,
+            type: data.repository_versions[0].RepositoryVersions.release.type,
+            stackNameVersion: data.Versions.stack_name + '-' + data.Versions.stack_version, /// HDP-2.3
+            actualVersion: data.repository_versions[0].RepositoryVersions.repository_version, /// 2.3.4.0-3846
+            version: data.repository_versions[0].RepositoryVersions.release.version, /// 2.3.4.0
+            displayName: data.Versions.stack_name + '-' + data.repository_versions[0].RepositoryVersions.release.version, //HDP-2.3.4.0
+            repoVersionFullName : data.Versions.stack_name + '-' + data.repository_versions[0].RepositoryVersions.repository_version,
+            osList: data.repository_versions[0].operating_systems,
+            updateObj: data.repository_versions[0]
+          };
+          var services = [];
+          angular.forEach(data.repository_versions[0].RepositoryVersions.services, function (service) {
+            services.push({
+              name: service.name,
+              version: service.versions[0].version,
+              components: service.versions[0].components
+            });
+          });
+          response.services = services;
+          deferred.resolve(response);
+        })
+        .error(function (data) {
+          deferred.reject(data);
+        });
+      return deferred.promise;
+    },
+
     updateRepo: function (stackName, stackVersion, id, payload) {
       var url = Settings.baseUrl + '/stacks/' + stackName + '/versions/' + stackVersion + '/repository_versions/' + id;
       var deferred = $q.defer();

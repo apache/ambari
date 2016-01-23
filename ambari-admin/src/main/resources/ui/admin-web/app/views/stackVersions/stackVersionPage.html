@@ -29,6 +29,37 @@
   </div>
 </div>
 <hr>
+
+
+
+<div class="clearfix register-version-options">
+  <div class="col-sm-5 option-radio-button">
+    <label class="option-label">
+      <input type="radio" ng-model="selectedOption" value="{{option1.index}}" ng-change="toggleOptionSelect()"> {{'versions.uploadFile' | translate}}
+    </label>
+  </div>
+  <div class="col-sm-7">
+    <input type="file" class="choose-file-input" ng-file-select="onFileSelect($files)"/>
+  </div>
+</div>
+<div class="clearfix register-version-options border-bottom bottom-margin">
+  <div class="col-sm-5 option-radio-button">
+    <label class="option-label">
+      <input type="radio" ng-model="selectedOption" value="{{option2.index}}" ng-change="toggleOptionSelect()"> {{'versions.enterURL' | translate}}
+    </label>
+  </div>
+    <div class="col-sm-7">
+      <div class="form-group {{option2.name}}" ng-class="{'has-error': option2.url.hasError }">
+        <div class=""><input type="text" class="form-control" ng-model="option2.url" ng-change="clearOptionsError()" ng-disabled="!option2.selected"></div>
+      </div>
+    </div>
+    <div class="col-sm-12 read-info-button">
+    <button class="btn btn-primary pull-right" ng-click="readVersionInfo()"
+        ng-disabled="readInfoButtonDisabled()">{{'versions.readInfo' | translate}}</button>
+    </div>
+</div>
+
+
 <form class="form-horizontal register-version-form" role="form" name="repoRegForm" novalidate>
   <div class="panel panel-default" ng-if="createController">
     <div class="panel-heading">
