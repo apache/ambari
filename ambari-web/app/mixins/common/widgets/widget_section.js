@@ -178,7 +178,7 @@ App.WidgetSectionMixin = Ember.Mixin.create({
     if (data) {
       App.widgetMapper.map(data.items[0].WidgetLayoutInfo);
       App.widgetLayoutMapper.map(data);
-      this.set('activeWidgetLayout', App.WidgetLayout.find().findProperty('id', data.items[0].WidgetLayoutInfo.id));
+      this.set('activeWidgetLayout', App.WidgetLayout.find(data.items[0].WidgetLayoutInfo.id));
       this.set('isWidgetsLoaded', true);
     }
   },
