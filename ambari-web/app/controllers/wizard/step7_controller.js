@@ -1648,9 +1648,10 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    * @method submit
    */
   submit: function () {
-    if (this.get('isSubmitDisabled')) {
+    if (this.get('isSubmitDisabled') || App.router.nextBtnClickInProgress) {
       return false;
     }
+    App.router.nextBtnClickInProgress = true;
     var preInstallChecksController = App.router.get('preInstallChecksController');
     if (this.get('supportsPreInstallChecks')) {
       if (preInstallChecksController.get('preInstallChecksWhereRun')) {
@@ -1670,6 +1671,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       .fail(function (value) {
         if ("invalid_configs" == value) {
           self.set('submitButtonClicked', false);
+          App.router.nextBtnClickInProgress = false;
         } else {
           // Failed due to validation mechanism failure.
           // Should proceed with other checks

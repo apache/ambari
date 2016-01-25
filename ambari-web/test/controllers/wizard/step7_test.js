@@ -111,9 +111,11 @@ describe('App.InstallerStep7Controller', function () {
   beforeEach(function () {
     sinon.stub(App.config, 'setPreDefinedServiceConfigs', Em.K);
     installerStep7Controller = getController();
+    App.router.nextBtnClickInProgress = false;
   });
 
   afterEach(function() {
+    App.router.nextBtnClickInProgress = false;
     App.config.setPreDefinedServiceConfigs.restore();
     installerStep7Controller.destroy();
   });
@@ -331,6 +333,14 @@ describe('App.InstallerStep7Controller', function () {
       installerStep7Controller.set('isSubmitDisabled',false);
       installerStep7Controller.submit();
       expect(installerStep7Controller.get('submitButtonClicked')).to.be.false;
+    });
+    it('if Next button is clicked multiple times before the next step renders, it must not be processed',function(){
+      installerStep7Controller.submit();
+      expect(App.router.send.calledWith('next')).to.equal(true);
+
+      App.router.send.reset();
+      installerStep7Controller.submit();
+      expect(App.router.send.calledWith('next')).to.equal(false);
     });
   });
 
