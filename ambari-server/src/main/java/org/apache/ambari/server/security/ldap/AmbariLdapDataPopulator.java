@@ -556,6 +556,7 @@ public class AmbariLdapDataPopulator {
     final LdapTemplate ldapTemplate = loadLdapTemplate();
     PagedResultsDirContextProcessor processor = createPagingProcessor();
     SearchControls searchControls = new SearchControls();
+    searchControls.setReturningObjFlag(true);
     searchControls.setSearchScope(SearchControls.SUBTREE_SCOPE);
     LdapUserContextMapper ldapUserContextMapper = new LdapUserContextMapper(ldapServerProperties);
     String encodedFilter = filter.encode();
