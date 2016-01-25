@@ -19,10 +19,9 @@
 package org.apache.ambari.view.pig;
 
 import org.apache.ambari.view.ViewInstanceDefinition;
+import org.apache.ambari.view.utils.ambari.ValidatorUtils;
 import org.apache.ambari.view.validation.ValidationResult;
 import org.apache.ambari.view.validation.Validator;
-import org.apache.commons.validator.routines.RegexValidator;
-import org.apache.commons.validator.routines.UrlValidator;
 
 public class PropertyValidator implements Validator {
 
@@ -48,7 +47,7 @@ public class PropertyValidator implements Validator {
     // 3. Cluster associated properties
     if (property.equals(WEBHDFS_URL)) {
       String webhdfsUrl = viewInstanceDefinition.getPropertyMap().get(WEBHDFS_URL);
-      if (!validateHdfsURL(webhdfsUrl)) {
+      if (!ValidatorUtils.validateHdfsURL(webhdfsUrl)) {
         return new InvalidPropertyValidationResult(false, "Must be valid URL");
       }
     }
@@ -68,27 +67,6 @@ public class PropertyValidator implements Validator {
     }
 
     return ValidationResult.SUCCESS;
-  }
-
-  /**
-   * Validates filesystem URL
-   * @param webhdfsUrl url
-   * @return is url valid
-   */
-  private boolean validateHdfsURL(String webhdfsUrl) {
-    String[] schemes = {"webhdfs", "hdfs", "s3", "file"};
-    return validateURL(webhdfsUrl, schemes);
-  }
-
-  private boolean validateHttpURL(String webhdfsUrl) {
-    String[] schemes = {"http", "https"};
-    return validateURL(webhdfsUrl, schemes);
-  }
-
-  private boolean validateURL(String webhdfsUrl, String[] schemes) {
-    RegexValidator authority = new RegexValidator(".*");
-    UrlValidator urlValidator = new UrlValidator(schemes, authority, UrlValidator.ALLOW_LOCAL_URLS);
-    return urlValidator.isValid(webhdfsUrl);
   }
 
   public static class InvalidPropertyValidationResult implements ValidationResult {
