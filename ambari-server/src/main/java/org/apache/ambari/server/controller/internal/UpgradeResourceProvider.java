@@ -36,6 +36,8 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
@@ -162,9 +164,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   private static final String REQUEST_PROGRESS_PERCENT_ID = "Upgrade/progress_percent";
   private static final String REQUEST_STATUS_PROPERTY_ID = "Upgrade/request_status";
 
-  private static final Set<String> PK_PROPERTY_IDS = new HashSet<String>(
+  private static final Set<String> PK_PROPERTY_IDS = new HashSet<>(
       Arrays.asList(UPGRADE_REQUEST_ID, UPGRADE_CLUSTER_NAME));
-  private static final Set<String> PROPERTY_IDS = new HashSet<String>();
+  private static final Set<String> PROPERTY_IDS = new HashSet<>();
 
   private static final String COMMAND_PARAM_VERSION = VERSION;
   private static final String COMMAND_PARAM_CLUSTER_NAME = "clusterName";
@@ -193,7 +195,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
   private static final String DEFAULT_REASON_TEMPLATE = "Aborting upgrade %s";
 
-  private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = new HashMap<Resource.Type, String>();
+  private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = new HashMap<>();
 
   @Inject
   private static UpgradeDAO s_upgradeDAO = null;
@@ -273,7 +275,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    * @param controller
    *          the controller
    */
-  public UpgradeResourceProvider(AmbariManagementController controller) {
+  @Inject
+  public UpgradeResourceProvider(@Assisted AmbariManagementController controller) {
     super(PROPERTY_IDS, KEY_PROPERTY_IDS, controller);
   }
 
@@ -295,13 +298,28 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       @Override
       public UpgradeEntity invoke() throws AmbariException, AuthorizationException {
         String forceDowngrade = requestInfoProps.get(UpgradeResourceDefinition.DOWNGRADE_DIRECTIVE);
+        String clusterName = (String) requestMap.get(UPGRADE_CLUSTER_NAME);
 
+          if (null == clusterName) {
+              throw new AmbariException(String.format("%s is required", UPGRADE_CLUSTER_NAME));
+           }
+
+        Cluster cluster = getManagementController().getClusters().getCluster(clusterName);
         Direction direction = Boolean.parseBoolean(forceDowngrade) ? Direction.DOWNGRADE
             : Direction.UPGRADE;
 
         UpgradePack up = validateRequest(direction, requestMap);
 
-        return createUpgrade(direction, up, requestMap);
+        try {
+              return createUpgrade(cluster, direction, up, requestMap);
+            } catch (Exception e){
+              LOG.error("Error appears during upgrade task submitting", e);
+
+                // Any error caused in the createUpgrade will initiate transaction rollback
+                  // As we operate inside with cluster data, any cache which belongs to cluster need to be flushed
+                    cluster.invalidateData();
+              throw e;
+            }
       }
     });
 
@@ -653,14 +671,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     }
   }
 
-  private UpgradeEntity createUpgrade(Direction direction, UpgradePack pack,
-      Map<String, Object> requestMap) throws AmbariException, AuthorizationException {
-
-    String clusterName = (String) requestMap.get(UPGRADE_CLUSTER_NAME);
-
-    if (null == clusterName) {
-      throw new AmbariException(String.format("%s is required", UPGRADE_CLUSTER_NAME));
-    }
+  @Transactional
+  protected UpgradeEntity createUpgrade(Cluster cluster, Direction direction, UpgradePack pack,
+    Map<String, Object> requestMap) throws AmbariException, AuthorizationException  {
 
     // Default to ROLLING upgrade, but attempt to read from properties.
     UpgradeType upgradeType = UpgradeType.ROLLING;
@@ -672,7 +685,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       }
     }
 
-    Cluster cluster = getManagementController().getClusters().getCluster(clusterName);
     ConfigHelper configHelper = getManagementController().getConfigHelper();
     String userName = getManagementController().getAuthName();
 
@@ -747,7 +759,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       throw new AmbariException("There are no groupings available");
     }
 
-    List<UpgradeGroupEntity> groupEntities = new ArrayList<UpgradeGroupEntity>();
+    List<UpgradeGroupEntity> groupEntities = new ArrayList<>();
     RequestStageContainer req = createRequest(direction, version);
 
     /**
@@ -791,7 +803,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       boolean supportsAutoSkipOnFailure = group.supportsAutoSkipOnFailure;
       boolean allowRetry = group.allowRetry;
 
-      List<UpgradeItemEntity> itemEntities = new ArrayList<UpgradeItemEntity>();
+      List<UpgradeItemEntity> itemEntities = new ArrayList<>();
       for (StageWrapper wrapper : group.items) {
         if (wrapper.getType() == StageWrapper.Type.SERVER_SIDE_ACTION) {
           // !!! each stage is guaranteed to be of one type. but because there
