@@ -47,9 +47,10 @@
 # If the Java System property 'oozie.log.dir' is not defined at Oozie start up time
 # XLogService sets its value to '${oozie.home}/logs'
 
-log4j.appender.oozie=org.apache.log4j.DailyRollingFileAppender
-log4j.appender.oozie.DatePattern='.'yyyy-MM-dd-HH
+log4j.appender.oozie=org.apache.log4j.RollingFileAppender
 log4j.appender.oozie.File=${oozie.log.dir}/oozie.log
+log4j.appender.oozie.MaxFileSize=200MB
+log4j.appender.oozie.MaxBackupIndex=10
 log4j.appender.oozie.Append=true
 log4j.appender.oozie.layout=org.apache.log4j.PatternLayout
 log4j.appender.oozie.layout.ConversionPattern=%d{ISO8601} %5p %c{1}:%L - SERVER[${oozie.instance.id}] %m%n
