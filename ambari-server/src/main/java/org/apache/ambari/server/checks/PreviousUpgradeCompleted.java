@@ -102,7 +102,7 @@ public class PreviousUpgradeCompleted extends AbstractCheckDescriptor {
         for (UpgradeEntity downgrade : upgrades) {
           // Surprisingly, a Downgrade's from and to version are identical.
           if (downgrade.getClusterId() == cluster.getClusterId() && downgrade.getDirection() == Direction.DOWNGRADE &&
-              downgrade.getFromVersion().equals(mostRecentUpgrade.getToVersion())) {
+              downgrade.getFromVersion().equals(mostRecentUpgrade.getFromVersion())) {
             correspondingDowngrade = downgrade;
             break;
           }
