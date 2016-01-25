@@ -58,14 +58,16 @@ def setup_spark(env, type, upgrade_type = None, action = None):
   File(os.path.join(params.spark_conf, 'spark-env.sh'),
        owner=params.spark_user,
        group=params.spark_group,
-       content=InlineTemplate(params.spark_env_sh)
+       content=InlineTemplate(params.spark_env_sh),
+       mode=0644,
   )
 
   #create log4j.properties in etc/conf dir
   File(os.path.join(params.spark_conf, 'log4j.properties'),
        owner=params.spark_user,
        group=params.spark_group,
-       content=params.spark_log4j_properties
+       content=params.spark_log4j_properties,
+       mode=0644,
   )
 
   #create metrics.properties in etc/conf dir
@@ -73,6 +75,12 @@ def setup_spark(env, type, upgrade_type = None, action = None):
        owner=params.spark_user,
        group=params.spark_group,
        content=InlineTemplate(params.spark_metrics_properties)
+  )
+  
+  Directory(params.spark_logs_dir,
+       owner=params.spark_user,
+       group=params.spark_group,
+       mode=0755,   
   )
 
   if params.is_hive_installed:
