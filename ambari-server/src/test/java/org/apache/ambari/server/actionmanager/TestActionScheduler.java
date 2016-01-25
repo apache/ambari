@@ -317,7 +317,7 @@ public class TestActionScheduler {
     stages.get(0).setHostRoleStatus(hostname, "SECONDARY_NAMENODE", HostRoleStatus.IN_PROGRESS);
     scheduler.doWork();
     assertEquals(1, stages.get(0).getAttemptCount(hostname, "NAMENODE"));
-    assertEquals(1, stages.get(0).getAttemptCount(hostname, "SECONDARY_NAMENODE"));
+    assertEquals(2, stages.get(0).getAttemptCount(hostname, "SECONDARY_NAMENODE"));
 
     while (!stages.get(0).getHostRoleStatus(hostname, "SECONDARY_NAMENODE")
         .equals(HostRoleStatus.TIMEDOUT) && cycleCount++ <= MAX_CYCLE_ITERATIONS) {
