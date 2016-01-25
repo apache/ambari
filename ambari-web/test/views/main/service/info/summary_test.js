@@ -530,7 +530,7 @@ describe('App.MainServiceInfoSummaryView', function() {
       sinon.stub(Em.run, 'next', Em.clb);
       sinon.stub(view, 'updateComponentList');
       view.set('service', Em.Object.create({
-        masterComponents: [],
+        hostComponents: [],
         slaveComponents: [],
         clientComponents: []
       }));

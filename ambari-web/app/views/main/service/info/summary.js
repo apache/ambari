@@ -166,7 +166,7 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
       if (Em.isNone(this.get('service'))) {
         return;
       }
-      var masters = this.get('service.masterComponents').toArray();
+      var masters = this.get('service.hostComponents').filterProperty('isMaster');
       var slaves = this.get('service.slaveComponents').toArray();
       var clients = this.get('service.clientComponents').toArray();
 
