@@ -85,13 +85,11 @@ class Rangeradmin:
         return None
     except urllib2.URLError, e:
       if isinstance(e, urllib2.HTTPError):
-        Logger.error("Error getting {0} repository for component {1}. Http status code - {2}. \n {3}".format(name, component, e.code, e.read()))
+        raise Fail("Error getting {0} repository for component {1}. Http status code - {2}. \n {3}".format(name, component, e.code, e.read()))
       else:
-        Logger.error("Error getting {0} repository for component {1}. Reason - {2}.".format(name, component, e.reason))
-      return None
+        raise Fail("Error getting {0} repository for component {1}. Reason - {2}.".format(name, component, e.reason))
     except httplib.BadStatusLine:
-      Logger.error("Ranger Admin service is not reachable, please restart the service and then try again")
-      return None
+      raise Fail("Ranger Admin service is not reachable, please restart the service and then try again")
     except TimeoutError:
       raise Fail("Connection to Ranger Admin failed. Reason - timeout")
     
@@ -197,17 +195,15 @@ class Rangeradmin:
         return None
     except urllib2.URLError, e:
       if isinstance(e, urllib2.HTTPError):
-        Logger.error("Error creating repository. Http status code - {0}. \n {1}".format(e.code, e.read()))
+        raise Fail("Error creating repository. Http status code - {0}. \n {1}".format(e.code, e.read()))
       else:
-        Logger.error("Error creating repository. Reason - {0}.".format(e.reason))
-      return None
+        raise Fail("Error creating repository. Reason - {0}.".format(e.reason))
     except httplib.BadStatusLine:
-      Logger.error("Ranger Admin service is not reachable, please restart the service and then try again")
-      return None
+      raise Fail("Ranger Admin service is not reachable, please restart the service and then try again")
     except TimeoutError:
       raise Fail("Connection to Ranger Admin failed. Reason - timeout")
 
-  @safe_retry(times=15, sleep_time=8, backoff_factor=1.5, err_class=Fail, return_on_fail=None)
+  @safe_retry(times=75, sleep_time=8, backoff_factor=1, err_class=Fail, return_on_fail=None)
   def check_ranger_login_urllib2(self, url):
     """
     :param url: ranger admin host url
@@ -390,13 +386,10 @@ class Rangeradmin:
         return None
     except urllib2.URLError, e:
       if isinstance(e, urllib2.HTTPError):
-        Logger.error("Error creating ambari admin user. Http status code - {0}. \n {1}".format(e.code, e.read()))
-        return None
+        raise Fail("Error creating ambari admin user. Http status code - {0}. \n {1}".format(e.code, e.read()))
       else:
-        Logger.error("Error creating ambari admin user. Reason - {0}.".format(e.reason))
-        return None
+        raise Fail("Error creating ambari admin user. Reason - {0}.".format(e.reason))
     except httplib.BadStatusLine:
-      Logger.error("Ranger Admin service is not reachable, please restart the service and then try again")
-      return None
+      raise Fail("Ranger Admin service is not reachable, please restart the service and then try again")
     except TimeoutError:
       raise Fail("Connection to Ranger Admin failed. Reason - timeout")
