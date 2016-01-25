@@ -374,21 +374,15 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     },
     next: function (router) {
       console.time('step7 next');
-      if(!router.transitionInProgress) {
+      if (!router.transitionInProgress) {
         router.set('transitionInProgress', true);
         var controller = router.get('installerController');
         var wizardStep7Controller = router.get('wizardStep7Controller');
         controller.saveServiceConfigProperties(wizardStep7Controller);
         controller.saveServiceConfigGroups(wizardStep7Controller);
         controller.setDBProperty('recommendationsConfigs', wizardStep7Controller.get('recommendationsConfigs'));
-        App.clusterStatus.setClusterStatus({
-          localdb: App.db.data
-        }, {
-          alwaysCallback: function() {
-            router.transitionTo('step8');
-            console.timeEnd('step7 next');
-          }
-        });
+        router.transitionTo('step8');
+        console.timeEnd('step7 next');
       }
     }
   }),
