@@ -864,7 +864,7 @@ class ActionScheduler implements Runnable {
             && !status.equals(HostRoleStatus.IN_PROGRESS)) {
       return false;
     }
-    if (currentTime > stage.getLastAttemptTime(hostName, role)
+    if (currentTime >= stage.getLastAttemptTime(hostName, role)
         + taskTimeout) {
       return true;
     }
