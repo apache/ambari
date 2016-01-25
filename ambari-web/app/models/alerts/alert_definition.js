@@ -33,6 +33,7 @@ App.AlertDefinition = DS.Model.extend({
   type: DS.attr('string'),
   groups: DS.hasMany('App.AlertGroup'),
   reporting: DS.hasMany('App.AlertReportDefinition'),
+  parameters: DS.hasMany('App.AlertDefinitionParameter'),
   lastTriggered: DS.attr('number'),
   lastTriggeredRaw: DS.attr('number'),
 
@@ -157,7 +158,7 @@ App.AlertDefinition = DS.Model.extend({
         '<span class="alert-state-single-host label alert-state-PENDING"><span class="icon-medkit"></span> ' + shortState + ' (' + summary[state].maintenanceCount + ')</span>' : '';
         return result;
       }).without('').join(' ');
-    } else if (hostCnt == 1) {
+    } else if (hostCnt === 1) {
       // single host, single status
       return order.map(function (state) {
         var shortState = self.get('shortState')[state];
@@ -168,7 +169,7 @@ App.AlertDefinition = DS.Model.extend({
         '<span class="alert-state-single-host label alert-state-PENDING"><span class="icon-medkit"></span> ' + shortState + '</span>' : '';
         return result;
       }).without('').join(' ');
-    } else if (hostCnt == 0) {
+    } else if (!hostCnt) {
       // none
       return '<span class="alert-state-single-host label alert-state-PENDING">NONE</span>';
     }
@@ -304,14 +305,14 @@ App.AlertDefinition.reopenClass({
    */
   getSortDefinitionsByStatus: function (order) {
     return function (a, b) {
-      var a_summary = a.get('summary'),
-        b_summary = b.get('summary'),
-        st_order = a.get('severityOrder'),
+      var aSummary = a.get('summary'),
+        bSummary = b.get('summary'),
+        stOrder = a.get('severityOrder'),
         ret = 0;
-      for (var i = 0; i < st_order.length; i++) {
-        var a_v = Em.isNone(a_summary[st_order[i]]) ? 0 : a_summary[st_order[i]].count + a_summary[st_order[i]].maintenanceCount,
-          b_v = Em.isNone(b_summary[st_order[i]]) ? 0 : b_summary[st_order[i]].count + b_summary[st_order[i]].maintenanceCount;
-        ret = b_v - a_v;
+      for (var i = 0; i < stOrder.length; i++) {
+        var aV = Em.isNone(aSummary[stOrder[i]]) ? 0 : aSummary[stOrder[i]].count + aSummary[stOrder[i]].maintenanceCount,
+          bV = Em.isNone(bSummary[stOrder[i]]) ? 0 : bSummary[stOrder[i]].count + bSummary[stOrder[i]].maintenanceCount;
+        ret = bV - aV;
         if (ret !== 0) {
           break;
         }
@@ -320,6 +321,16 @@ App.AlertDefinition.reopenClass({
     };
   }
 
+});
+
+App.AlertDefinitionParameter = DS.Model.extend({
+  name: DS.attr('string'),
+  displayName: DS.attr('string'),
+  unit: DS.attr('string'),
+  value: DS.attr('number'),
+  description: DS.attr('string'),
+  type: DS.attr('string'),
+  threshold: DS.attr('string')
 });
 
 App.AlertReportDefinition = DS.Model.extend({
@@ -337,7 +348,8 @@ App.AlertMetricsUriDefinition = DS.Model.extend({
   http: DS.attr('string'),
   https: DS.attr('string'),
   httpsProperty: DS.attr('string'),
-  httpsPropertyValue: DS.attr('string')
+  httpsPropertyValue: DS.attr('string'),
+  connectionTimeout: DS.attr('number')
 });
 
 App.AlertDefinition.FIXTURES = [];

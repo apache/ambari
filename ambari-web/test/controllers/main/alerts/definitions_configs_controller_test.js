@@ -225,12 +225,12 @@ describe('App.MainAlertDefinitionConfigsController', function () {
       controller.set('isWizard', true);
       var result = controller.renderWebConfigs();
 
-      expect(result.length).to.equal(11);
+      expect(result.length).to.equal(12);
 
       controller.set('isWizard', false);
       result = controller.renderWebConfigs();
 
-      expect(result.length).to.equal(5);
+      expect(result.length).to.equal(6);
     });
 
   });
