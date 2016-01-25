@@ -598,6 +598,7 @@
           </task>
 
           <task xsi:type="configure" id="hdp_2_4_0_0_hive_server_set_transport_mode"/>
+          <task xsi:type="configure" id="hdp_2_4_0_0_hive_server_configure_authentication"/>
         </pre-upgrade>
 
         <pre-downgrade>

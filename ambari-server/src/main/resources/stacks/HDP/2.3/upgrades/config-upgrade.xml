@@ -570,7 +570,7 @@
             <replace key="hive.security.authorization.manager" find="com.xasecure.authorization.hive.authorizer.XaSecureHiveAuthorizerFactory" replace-with="org.apache.ranger.authorization.hive.authorizer.RangerHiveAuthorizerFactory" />
           </definition>
 
-          <definition xsi:type="configure" id="hdp_2_3_0_0_hive_server_configure_authentication" summary="Configuring hive authentication">
+          <definition xsi:type="configure" id="hdp_2_3_0_0_hive_server_configure_authentication" summary="Removing unused properties for current hive authentication type">
             <type>hive-site</type>
             <transfer operation="delete" delete-key="hive.server2.authentication.ldap.url" if-key="hive.server2.authentication" if-type="hive-site" if-value="NONE"/>
             <transfer operation="delete" delete-key="hive.server2.authentication.ldap.baseDN" if-key="hive.server2.authentication" if-type="hive-site" if-value="NONE"/>
