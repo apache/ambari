@@ -520,6 +520,470 @@
             }
           ]
         }
+      },
+      {
+        "name": "increase_nn_heap_usage_hourly",
+        "label": "Hourly increase in NN heap usage",
+        "description": "This service-level alert is triggered if the NN heap usage deviation has grown beyond the specified threshold within a given time interval.",
+        "interval": 5,
+        "scope": "ANY",
+        "enabled": false,
+        "source": {
+          "type": "SCRIPT",
+          "path": "HDFS/2.1.0.2.0/package/alerts/alert_metrics_deviation.py",
+          "parameters": [
+            {
+              "name": "mergeHaMetrics",
+              "display_name": "Whether active and stanby NameNodes metrics should be merged",
+              "value": "false",
+              "type": "STRING",
+              "description": "Whether active and stanby NameNodes metrics should be merged."
+            },
+            {
+              "name": "interval",
+              "display_name": "Time interval in minutes",
+              "value": 60,
+              "type": "NUMERIC",
+              "description": "Time interval in minutes."
+            },
+            {
+              "name": "appId",
+              "display_name": "AMS application id",
+              "value": "NAMENODE",
+              "type": "STRING",
+              "description": "The application id used to retrieve the metric."
+            },
+            {
+              "name": "metricName",
+              "display_name": "Metric Name",
+              "value": "jvm.JvmMetrics.MemHeapUsedM",
+              "type": "STRING",
+              "description": "The metric to monitor."
+            },
+            {
+              "name": "metric.deviation.warning.threshold",
+              "display_name": "The standard deviation threshold above which a warning is produced.",
+              "type": "PERCENT",
+              "units": "%",
+              "value": 100,
+              "threshold": "WARNING"
+            },
+            {
+              "name": "metric.deviation.critical.threshold",
+              "display_name": "The standard deviation threshold above which a critical alert is produced.",
+              "type": "PERCENT",
+              "units": "%",
+              "value": 200,
+              "threshold": "CRITICAL"
+            }
+          ]
+        }
+      },
+      {
+        "name": "namenode_service_rpc_latency_hourly",
+        "label": "Hourly Service-RPC latency",
+        "description": "This service-level alert is triggered if the Service-RPC latency deviation has grown beyond the specified threshold within a given time interval.",
+        "interval": 5,
+        "scope": "ANY",
+        "enabled": false,
+        "source": {
+          "type": "SCRIPT",
+          "path": "HDFS/2.1.0.2.0/package/alerts/alert_metrics_deviation.py",
+          "parameters": [
+            {
+              "name": "mergeHaMetrics",
+              "display_name": "Whether active and stanby NameNodes metrics should be merged",
+              "value": "false",
+              "type": "STRING",
+              "description": "Whether active and stanby NameNodes metrics should be merged."
+            },
+            {
+              "name": "interval",
+              "display_name": "Time interval in minutes",
+              "value": 60,
+              "type": "NUMERIC",
+              "description": "Time interval in minutes."
+            },
+            {
+              "name": "appId",
+              "display_name": "AMS application id",
+              "value": "NAMENODE",
+              "type": "STRING",
+              "description": "The application id used to retrieve the metric."
+            },
+            {
+              "name": "metricName",
+              "display_name": "Metric Name",
+              "value": "rpc.rpc.RpcProcessingTimeAvgTime",
+              "type": "STRING",
+              "description": "The metric to monitor."
+            },
+            {
+              "name": "metric.deviation.warning.threshold",
+              "display_name": "The standard deviation threshold above which a warning is produced.",
+              "type": "PERCENT",
+              "units": "%",
+              "value": 100,
+              "threshold": "WARNING"
+            },
+            {
+              "name": "metric.deviation.critical.threshold",
+              "display_name": "The standard deviation threshold above which a critical alert is produced.",
+              "type": "PERCENT",
+              "units": "%",
+              "value": 200,
+              "threshold": "CRITICAL"
+            }
+          ]
+        }
+      },
+      {
+        "name": "namenode_increase_in_storage_capacity_usage_hourly",
+        "label": "Hourly increase in storage capacity usage",
+        "description": "This service-level alert is triggered if the increase in storage capacity usage deviation has grown beyond the specified threshold within a given time interval.",
+        "interval": 5,
+        "scope": "ANY",
+        "enabled": false,
+        "source": {
+          "type": "SCRIPT",
+          "path": "HDFS/2.1.0.2.0/package/alerts/alert_metrics_deviation.py",
+          "parameters": [
+            {
+              "name": "mergeHaMetrics",
+              "display_name": "Whether active and stanby NameNodes metrics should be merged",
+              "value": "true",
+              "type": "STRING",
+              "description": "Whether active and stanby NameNodes metrics should be merged."
+            },
+            {
+              "name": "interval",
+              "display_name": "Time interval in minutes",
+              "value": 60,
+              "type": "NUMERIC",
+              "description": "Time interval in minutes."
+            },
+            {
+              "name": "appId",
+              "display_name": "AMS application id",
+              "value": "NAMENODE",
+              "type": "STRING",
+              "description": "The application id used to retrieve the metric."
+            },
+            {
+              "name": "metricName",
+              "display_name": "Metric Name",
+              "value": "dfs.FSNamesystem.CapacityUsed",
+              "type": "STRING",
+              "description": "The metric to monitor."
+            },
+            {
+              "name": "metric.deviation.warning.threshold",
+              "display_name": "The standard deviation threshold above which a warning is produced.",
+              "type": "PERCENT",
+              "units": "%",
+              "value": 100,
+              "threshold": "WARNING"
+            },
+            {
+              "name": "metric.deviation.critical.threshold",
+              "display_name": "The standard deviation threshold above which a critical alert is produced.",
+              "type": "PERCENT",
+              "units": "%",
+              "value": 200,
+              "threshold": "CRITICAL"
+            }
+          ]
+        }
+      },
+      {
+        "name": "increase_nn_heap_usage_daily",
+        "label": "Daily increase in NN heap usage",
+        "description": "This service-level alert is triggered if the NN heap usage deviation has grown beyond the specified threshold within a given time interval.",
+        "interval": 480,
+        "scope": "ANY",
+        "enabled": false,
+        "source": {
+          "type": "SCRIPT",
+          "path": "HDFS/2.1.0.2.0/package/alerts/alert_metrics_deviation.py",
+          "parameters": [
+            {
+              "name": "mergeHaMetrics",
+              "display_name": "Whether active and stanby NameNodes metrics should be merged",
+              "value": "false",
+              "type": "STRING",
+              "description": "Whether active and stanby NameNodes metrics should be merged."
+            },
+            {
+              "name": "interval",
+              "display_name": "Time interval in minutes",
+              "value": 1440,
+              "type": "NUMERIC",
+              "description": "Time interval in minutes."
+            },
+            {
+              "name": "appId",
+              "display_name": "AMS application id",
+              "value": "NAMENODE",
+              "type": "STRING",
+              "description": "The application id used to retrieve the metric."
+            },
+            {
+              "name": "metricName",
+              "display_name": "Metric Name",
+              "value": "jvm.JvmMetrics.MemHeapUsedM",
+              "type": "STRING",
+              "description": "The metric to monitor."
+            },
+            {
+              "name": "metric.deviation.warning.threshold",
+              "display_name": "The standard deviation threshold above which a warning is produced.",
+              "type": "PERCENT",
+              "units": "%",
+              "value": 100,
+              "threshold": "WARNING"
+            },
+            {
+              "name": "metric.deviation.critical.threshold",
+              "display_name": "The standard deviation threshold above which a critical alert is produced.",
+              "type": "PERCENT",
+              "units": "%",
+              "value": 200,
+              "threshold": "CRITICAL"
+            }
+          ]
+        }
+      },
+      {
+        "name": "namenode_service_rpc_latency_daily",
+        "label": "Daily Service-RPC latency",
+        "description": "This service-level alert is triggered if the Service-RPC latency deviation has grown beyond the specified threshold within a given time interval.",
+        "interval": 480,
+        "scope": "ANY",
+        "enabled": false,
+        "source": {
+          "type": "SCRIPT",
+          "path": "HDFS/2.1.0.2.0/package/alerts/alert_metrics_deviation.py",
+          "parameters": [
+            {
+              "name": "mergeHaMetrics",
+              "display_name": "Whether active and stanby NameNodes metrics should be merged",
+              "value": "false",
+              "type": "STRING",
+              "description": "Whether active and stanby NameNodes metrics should be merged."
+            },
+            {
+              "name": "interval",
+              "display_name": "Time interval in minutes",
+              "value": 1440,
+              "type": "NUMERIC",
+              "description": "Time interval in minutes."
+            },
+            {
+              "name": "appId",
+              "display_name": "AMS application id",
+              "value": "NAMENODE",
+              "type": "STRING",
+              "description": "The application id used to retrieve the metric."
+            },
+            {
+              "name": "metricName",
+              "display_name": "Metric Name",
+              "value": "rpc.rpc.RpcProcessingTimeAvgTime",
+              "type": "STRING",
+              "description": "The metric to monitor."
+            },
+            {
+              "name": "metric.deviation.warning.threshold",
+              "display_name": "The standard deviation threshold above which a warning is produced.",
+              "type": "PERCENT",
+              "units": "%",
+              "value": 100,
+              "threshold": "WARNING"
+            },
+            {
+              "name": "metric.deviation.critical.threshold",
+              "display_name": "The standard deviation threshold above which a critical alert is produced.",
+              "type": "PERCENT",
+              "units": "%",
+              "value": 200,
+              "threshold": "CRITICAL"
+            }
+          ]
+        }
+      },
+      {
+        "name": "namenode_increase_in_storage_capacity_usage_daily",
+        "label": "Daily increase in storage capacity usage",
+        "description": "This service-level alert is triggered if the increase in storage capacity usage deviation has grown beyond the specified threshold within a given time interval.",
+        "interval": 480,
+        "scope": "ANY",
+        "enabled": false,
+        "source": {
+          "type": "SCRIPT",
+          "path": "HDFS/2.1.0.2.0/package/alerts/alert_metrics_deviation.py",
+          "parameters": [
+            {
+              "name": "mergeHaMetrics",
+              "display_name": "Whether active and stanby NameNodes metrics should be merged",
+              "value": "true",
+              "type": "STRING",
+              "description": "Whether active and stanby NameNodes metrics should be merged."
+            },
+            {
+              "name": "interval",
+              "display_name": "Time interval in minutes",
+              "value": 1440,
+              "type": "NUMERIC",
+              "description": "Time interval in minutes."
+            },
+            {
+              "name": "appId",
+              "display_name": "AMS application id",
+              "value": "NAMENODE",
+              "type": "STRING",
+              "description": "The application id used to retrieve the metric."
+            },
+            {
+              "name": "metricName",
+              "display_name": "Metric Name",
+              "value": "dfs.FSNamesystem.CapacityUsed",
+              "type": "STRING",
+              "description": "The metric to monitor."
+            },
+            {
+              "name": "metric.deviation.warning.threshold",
+              "display_name": "The standard deviation threshold above which a warning is produced.",
+              "type": "PERCENT",
+              "units": "%",
+              "value": 100,
+              "threshold": "WARNING"
+            },
+            {
+              "name": "metric.deviation.critical.threshold",
+              "display_name": "The standard deviation threshold above which a critical alert is produced.",
+              "type": "PERCENT",
+              "units": "%",
+              "value": 200,
+              "threshold": "CRITICAL"
+            }
+          ]
+        }
+      },
+      {
+        "name": "increase_nn_heap_usage_weekly",
+        "label": "Weekly increase in NN heap usage",
+        "description": "This service-level alert is triggered if the NN heap usage deviation has grown beyond the specified threshold within a given time interval.",
+        "interval": 1440,
+        "scope": "ANY",
+        "enabled": false,
+        "source": {
+          "type": "SCRIPT",
+          "path": "HDFS/2.1.0.2.0/package/alerts/alert_metrics_deviation.py",
+          "parameters": [
+            {
+              "name": "mergeHaMetrics",
+              "display_name": "Whether active and stanby NameNodes metrics should be merged",
+              "value": "false",
+              "type": "STRING",
+              "description": "Whether active and stanby NameNodes metrics should be merged."
+            },
+            {
+              "name": "interval",
+              "display_name": "Time interval in minutes",
+              "value": 10080,
+              "type": "NUMERIC",
+              "description": "Time interval in minutes."
+            },
+            {
+              "name": "appId",
+              "display_name": "AMS application id",
+              "value": "NAMENODE",
+              "type": "STRING",
+              "description": "The application id used to retrieve the metric."
+            },
+            {
+              "name": "metricName",
+              "display_name": "Metric Name",
+              "value": "jvm.JvmMetrics.MemHeapUsedM",
+              "type": "STRING",
+              "description": "The metric to monitor."
+            },
+            {
+              "name": "metric.deviation.warning.threshold",
+              "display_name": "The standard deviation threshold above which a warning is produced.",
+              "type": "PERCENT",
+              "units": "%",
+              "value": 100,
+              "threshold": "WARNING"
+            },
+            {
+              "name": "metric.deviation.critical.threshold",
+              "display_name": "The standard deviation threshold above which a critical alert is produced.",
+              "type": "PERCENT",
+              "units": "%",
+              "value": 200,
+              "threshold": "CRITICAL"
+            }
+          ]
+        }
+      },
+      {
+        "name": "namenode_increase_in_storage_capacity_usage_weekly",
+        "label": "Weekly increase in storage capacity usage",
+        "description": "This service-level alert is triggered if the increase in storage capacity usage deviation has grown beyond the specified threshold within a given time interval.",
+        "interval": 1440,
+        "scope": "ANY",
+        "enabled": false,
+        "source": {
+          "type": "SCRIPT",
+          "path": "HDFS/2.1.0.2.0/package/alerts/alert_metrics_deviation.py",
+          "parameters": [
+            {
+              "name": "mergeHaMetrics",
+              "display_name": "Whether active and stanby NameNodes metrics should be merged",
+              "value": "true",
+              "type": "STRING",
+              "description": "Whether active and stanby NameNodes metrics should be merged."
+            },
+            {
+              "name": "interval",
+              "display_name": "Time interval in minutes",
+              "value": 10080,
+              "type": "NUMERIC",
+              "description": "Time interval in minutes."
+            },
+            {
+              "name": "appId",
+              "display_name": "AMS application id",
+              "value": "NAMENODE",
+              "type": "STRING",
+              "description": "The application id used to retrieve the metric."
+            },
+            {
+              "name": "metricName",
+              "display_name": "Metric Name",
+              "value": "dfs.FSNamesystem.CapacityUsed",
+              "type": "STRING",
+              "description": "The metric to monitor."
+            },
+            {
+              "name": "metric.deviation.warning.threshold",
+              "display_name": "The standard deviation threshold above which a warning is produced.",
+              "type": "PERCENT",
+              "units": "%",
+              "value": 100,
+              "threshold": "WARNING"
+            },
+            {
+              "name": "metric.deviation.critical.threshold",
+              "display_name": "The standard deviation threshold above which a critical alert is produced.",
+              "type": "PERCENT",
+              "units": "%",
+              "value": 200,
+              "threshold": "CRITICAL"
+            }
+          ]
+        }
       }
     ],
     "SECONDARY_NAMENODE": [
