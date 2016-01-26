@@ -524,19 +524,8 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
   }.property('serviceConfig.serviceName', 'serviceConfig.value'),
 
   onOptionsChange: function () {
-    if (this.get('hostNameProperty') && !this.get('nonDBRadioButtons').contains(this.get('serviceConfig.name'))) {
+    if (!this.get('nonDBRadioButtons').contains(this.get('serviceConfig.name'))) {
       /** if new db is selected host name must be same as master of selected service (and can't be changed)**/
-      if (this.get('isNewDb')) {
-        var initProperty = this.get('hostNameProperty.recommendedValue') || this.get('hostNameProperty.savedValue');
-        this.get('hostNameProperty').set('value', initProperty.toString());
-        this.get('hostNameProperty').set('isEditable', false);
-      } else {
-        this.get('hostNameProperty').set('isEditable', true);
-      }
-      this.setRequiredProperties(['driver', 'db_type']);
-      if (this.getPropertyByType('connection_url')) {
-        this.setConnectionUrl(this.get('hostNameProperty.value'), this.get('databaseProperty.value'));
-      }
       this.handleSpecialUserPassProperties();
     }
   }.observes('databaseProperty.value', 'hostNameProperty.value', 'serviceConfig.value'),
@@ -619,43 +608,6 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
       return this.get('controller.selectedService.configs').findProperty('name', dbInfo.dpPropertiesByServiceMap[this.get('serviceConfig.serviceName')][propertyType]);
     }
     return null;
-  },
-
-  /**
-   * This method update <code>connection_url<code> property, using template described in <code>dpPropertiesMap<code>
-   * and sets hostName as dbName in appropriate position of <code>connection_url<code> string
-   * @param {String} hostName
-   * @param {String} dbName
-   * @method setConnectionUrl
-   */
-  setConnectionUrl: function(hostName, dbName) {
-    var connectionUrlProperty = this.getPropertyByType('connection_url');
-    var connectionUrlTemplate = this.getDefaultPropertyValue('connection_url');
-    try {
-      var connectionUrlValue = connectionUrlTemplate.format(hostName, dbName);
-      connectionUrlProperty.set('value', connectionUrlValue);
-      connectionUrlProperty.set('recommendedValue', connectionUrlValue);
-    } catch(e) {
-      console.error('connection url property or connection url template is missing');
-    }
-    return connectionUrlProperty;
-  },
-
-  /**
-   * This method sets recommended values for properties <code>propertiesToUpdate<code> when radio button is changed
-   * @param {String[]} propertiesToUpdate - contains type of properties that should be updated;
-   * @method setRequiredProperties
-   * @returns App.ServiceConfigProperty[]
-   */
-  setRequiredProperties: function (propertiesToUpdate) {
-    propertiesToUpdate.forEach(function(pType) {
-      var property = this.getPropertyByType(pType);
-      var value = this.getDefaultPropertyValue(pType);
-      if (property && value) {
-        property.set('value', value);
-        property.set('recommendedValue', value);
-      }
-    }, this);
   },
 
   /**
@@ -782,8 +734,8 @@ App.ServiceConfigRadioButton = Ember.Checkbox.extend(App.SupportsDependentConfig
     // causes JS error due to re-rendering.  For example, this occurs when switching the Config Group
     // in Service Config page
     if (this.get('clicked')) {
-      this.sendRequestRorDependentConfigs(this.get('parentView.serviceConfig'));
       Em.run.next(this, function() {
+        this.sendRequestRorDependentConfigs(this.get('parentView.serviceConfig'));
         this.set('parentView.serviceConfig.value', this.get('value'));
         this.set('clicked', false);
         this.updateForeignKeys();

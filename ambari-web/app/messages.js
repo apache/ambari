@@ -133,6 +133,8 @@ Em.I18n.translations = {
   'common.cores': 'Cores',
   'common.cores.cpu': 'Cores (CPU)',
   'common.ram':'RAM',
+  'common.disabled':'Disabled',
+  'common.enabled':'Enabled',
   'common.disk':'Disk',
   'common.diskUsage':'Disk Usage',
   'common.loadAvg':'Load Avg',
@@ -1451,6 +1453,11 @@ Em.I18n.translations = {
   'admin.misc.header': 'Service Users and Groups',
   'admin.misc.nothingToShow': 'No user accounts to display',
 
+  'admin.serviceAutoStart.title': "Service Auto Start",
+  'admin.serviceAutoStart.header': "Service Auto Start Configuration",
+  'admin.serviceAutoStart.header.text': "Ambari services can be configured to start automatically on system boot. Each service can be configured to start all components, masters and workers, or selectively.",
+  'admin.serviceAutoStart.button.text': "Ambari services can be configured to start automatically on system boot. Each service can be configured to start all components, masters and workers, or selectively.",
+
   'admin.stackVersions.filter.notInstalled': "Not Installed ({0})",
   'admin.stackVersions.filter.all': "All ({0})",
   'admin.stackVersions.filter.upgradeReady': "Upgrade Ready ({0})",
@@ -1674,7 +1681,6 @@ Em.I18n.translations = {
   'services.service.actions.run.immediateStopHawqCluster.context':'Stop HAWQ Cluster (Immediate Mode)',
   'services.service.actions.run.immediateStopHawqSegment.label':'Stop (Immediate Mode)',
   'services.service.actions.run.immediateStopHawqSegment.context':'Stop HAWQ Segment (Immediate Mode)',
-  'services.service.actions.run.immediateStopHawqCluster.error': 'Error during remote command: ',
   'services.service.actions.manage_configuration_groups.short':'Manage Config Groups',
   'services.service.actions.serviceActions':'Service Actions',
 
@@ -2241,6 +2247,7 @@ Em.I18n.translations = {
   'hosts.table.menu.l1.allHosts':'All Hosts',
   'hosts.table.menu.l2.allComponents':'All Components',
   'hosts.table.menu.l2.restartAllComponents':'Restart All Components',
+  'hosts.table.menu.l2.reinstallFailedComponents':'Reinstall Failed Components',
 
   'hosts.bulkOperation.confirmation.header':'Confirm Bulk Operation',
   'hosts.bulkOperation.confirmation.hosts':'Are you sure you want to <strong>{0}</strong> on the following {1} hosts?',
@@ -2388,6 +2395,7 @@ Em.I18n.translations = {
   'hosts.host.maintainance.allComponents.context': 'All Host Components',
   'hosts.host.maintainance.stopAllComponents.context': 'Stop All Host Components',
   'hosts.host.maintainance.startAllComponents.context': 'Start All Host Components',
+  'hosts.host.maintainance.reinstallFailedComponents.context': 'Reinstall Failed Components',
   'hosts.host.alerts.st':'&nbsp;!&nbsp;',
   'hosts.decommission.popup.body':'Are you sure?',
   'hosts.decommission.popup.header':'Confirmation',
@@ -2858,5 +2866,35 @@ Em.I18n.translations = {
 
   'wizard.inProgress': '{0} in Progress',
 
-  'alerts.instance.fullLogPopup.header': 'Instance Response'
+  'alerts.instance.fullLogPopup.header': 'Instance Response',
+  'admin.addHawqStandby.button.enable': 'Add HAWQ Standby Master',
+  'admin.addHawqStandby.closePopup':'Add HAWQ Standby Master Wizard is in progress. You must allow the wizard to' +
+      ' complete for Ambari to be in usable state. If you choose to quit, you must follow documented manual' +
+  ' instructions to complete or reverting adding HAWQ Standby Master. Are you sure you want to exit the wizard?',
+  'admin.addHawqStandby.wizard.header': 'Add HAWQ Standby Master Wizard',
+  'admin.addHawqStandby.wizard.step1.header': 'Get Started',
+  'admin.addHawqStandby.wizard.step1.body':'This wizard will walk you through adding a HAWQ Standby Master to your cluster.<br/>' +
+      'Once added, you will be running a HAWQ Standby Master in addition to the current HAWQ Master.<br/>' +
+      'This allows for Active-Standby HAWQ configuration that can be used to perform a manual failover.<br/><br/>' +
+      '<b>You should plan a cluster maintenance window and prepare for cluster downtime when adding HAWQ Standby' +
+      ' Master. HAWQ cluster will be stopped and started during the process. </b><br/><br/>',
+  'admin.addHawqStandby.wizard.step2.header': 'Select Host',
+  'admin.addHawqStandby.wizard.step2.body': 'Select a host that will be running the HAWQ Standby Master',
+  'admin.addHawqStandby.wizard.step3.header': 'Review',
+  'admin.addHawqStandby.wizard.step3.configs_changes': 'Review Configuration Changes.',
+  'admin.addHawqStandby.wizard.step3.confirm.host.body':'<b>Confirm your host selections.</b>',
+  'admin.addHawqStandby.wizard.step3.confirm.config.body':'<div class="alert alert-info">' +
+      '<b>Review Configuration Changes.</b></br>' +
+      'The following lists the configuration changes that will be made by the Wizard to add HAWQ Standby Master. This information is for <b> review only </b> and is not editable.' +
+      '</div>',
+  'admin.addHawqStandby.wizard.step3.hawqMaster': 'Current HAWQ Master',
+  'admin.addHawqStandby.wizard.step3.newHawqStandby': 'New HAWQ Standby Master',
+  'admin.addHawqStandby.step4.save.configuration.note': 'This configuration is created by Add HAWQ Standby wizard',
+  'admin.addHawqStandby.wizard.step4.header': 'Configure Components',
+  'admin.addHawqStandby.wizard.step4.task0.title': 'Stop HAWQ Service',
+  'admin.addHawqStandby.wizard.step4.task1.title': 'Install HAWQ Standby Master',
+  'admin.addHawqStandby.wizard.step4.task2.title': 'Reconfigure HAWQ',
+  'admin.addHawqStandby.wizard.step4.task3.title': 'Start HAWQ Service',
+  'admin.addHawqStandby.wizard.step4.notice.inProgress':'Please wait while HAWQ Standby Master is being deployed.',
+  'admin.addHawqStandby.wizard.step4.notice.completed':'HAWQ Standby Master has been enabled successfully.'
 };

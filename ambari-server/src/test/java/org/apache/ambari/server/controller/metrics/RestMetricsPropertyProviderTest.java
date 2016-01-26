@@ -20,12 +20,15 @@ package org.apache.ambari.server.controller.metrics;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.internal.StackDefinedPropertyProvider;
+import org.apache.ambari.server.controller.jmx.JMXPropertyProvider;
 import org.apache.ambari.server.controller.jmx.TestStreamProvider;
 import org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService;
 import org.apache.ambari.server.controller.spi.Request;
@@ -102,6 +105,7 @@ public class RestMetricsPropertyProviderTest {
     clusters = injector.getInstance(Clusters.class);
     clusters.addCluster("c1", new StackId("HDP-2.1.1"));
     c1 = clusters.getCluster("c1");
+    JMXPropertyProvider.init(injector.getInstance(Configuration.class));
 
     // Setting up Mocks for Controller, Clusters etc, queried as part of user's Role context
     // while fetching Metrics.

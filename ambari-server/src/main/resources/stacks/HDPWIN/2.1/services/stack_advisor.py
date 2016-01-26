@@ -702,6 +702,20 @@ class HDPWIN21StackAdvisor(DefaultStackAdvisor):
 
     return None
 
+  def checkSiteProperties(self, siteProperties, *propertyNames):
+    """
+    Check if properties defined in site properties.
+    :param siteProperties: config properties dict
+    :param *propertyNames: property names to validate
+    :returns: True if all properties defined, in other cases returns False
+    """
+    if siteProperties is None:
+      return False
+    for name in propertyNames:
+      if not (name in siteProperties):
+        return False
+    return True
+
 # Validation helper methods
 def getSiteProperties(configurations, siteName):
   siteConfig = configurations.get(siteName)

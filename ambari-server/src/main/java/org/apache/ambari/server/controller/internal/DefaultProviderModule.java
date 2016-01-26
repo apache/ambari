@@ -96,8 +96,6 @@ public class DefaultProviderModule extends AbstractProviderModule {
         return new AlertGroupResourceProvider(managementController);
       case AlertNotice:
         return new AlertNoticeResourceProvider(managementController);
-      case Upgrade:
-        return new UpgradeResourceProvider(managementController);
       case UpgradeGroup:
         return new UpgradeGroupResourceProvider(managementController);
       case UpgradeItem:
@@ -114,6 +112,8 @@ public class DefaultProviderModule extends AbstractProviderModule {
         return new OperatingSystemResourceProvider(managementController);
       case Repository:
         return new RepositoryResourceProvider(managementController);
+      case AdminSetting:
+        return new AdminSettingResourceProvider();
       case Artifact:
         return new ArtifactResourceProvider(managementController);
 

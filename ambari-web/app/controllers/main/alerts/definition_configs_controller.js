@@ -288,6 +288,9 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
         showInputForValue: false,
         text: isWizard ? '' : this.getThresholdsProperty('critical', 'text'),
         value: isWizard ? '' : this.getThresholdsProperty('critical', 'value')
+      }),
+      App.AlertConfigProperties.ConnectionTimeout.create({
+        value: alertDefinition.get('uri.connectionTimeout')
       })
     ]);
 
@@ -541,13 +544,14 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
    * @type {Boolean}
    */
   hasThresholdsError: function () {
+    var smallValue, smallValid, largeValue, largeValid;
     if (this.get('configs').findProperty('name', 'warning_threshold')) {
-      var smallValue = Em.get(this.get('configs').findProperty('name', 'warning_threshold'), 'value');
-      var smallValid = Em.get(this.get('configs').findProperty('name', 'warning_threshold'), 'isValid');
+      smallValue = Em.get(this.get('configs').findProperty('name', 'warning_threshold'), 'value');
+      smallValid = Em.get(this.get('configs').findProperty('name', 'warning_threshold'), 'isValid');
     }
     if (this.get('configs').findProperty('name', 'critical_threshold')) {
-      var largeValue = Em.get(this.get('configs').findProperty('name', 'critical_threshold'), 'value');
-      var largeValid = Em.get(this.get('configs').findProperty('name', 'critical_threshold'), 'isValid');
+      largeValue = Em.get(this.get('configs').findProperty('name', 'critical_threshold'), 'value');
+      largeValid = Em.get(this.get('configs').findProperty('name', 'critical_threshold'), 'isValid');
     }
     return smallValid && largeValid ? Number(smallValue) > Number(largeValue) : false;
   }.property('configs.@each.value'),

@@ -22,6 +22,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
@@ -435,6 +436,11 @@ public class Configuration {
   private static final int VIEW_EXTRACTION_THREADPOOL_CORE_SIZE_DEFAULT = 10;
   private static final String VIEW_EXTRACTION_THREADPOOL_TIMEOUT_KEY = "view.extraction.threadpool.timeout";
   private static final long VIEW_EXTRACTION_THREADPOOL_TIMEOUT_DEFAULT = 100000L;
+
+  public static final String PROPERTY_PROVIDER_THREADPOOL_MAX_SIZE_KEY = "server.property-provider.threadpool.size.max";
+  public static final int PROPERTY_PROVIDER_THREADPOOL_MAX_SIZE_DEFAULT = 4 * Runtime.getRuntime().availableProcessors();
+  public static final String PROPERTY_PROVIDER_THREADPOOL_CORE_SIZE_KEY = "server.property-provider.threadpool.size.core";
+  public static final int PROPERTY_PROVIDER_THREADPOOL_CORE_SIZE_DEFAULT = 2 * Runtime.getRuntime().availableProcessors();
 
   private static final String SERVER_HTTP_SESSION_INACTIVE_TIMEOUT = "server.http.session.inactive_timeout";
 
@@ -1917,6 +1923,26 @@ public class Configuration {
   public int getViewExtractionThreadPoolCoreSize() {
     return Integer.parseInt(properties.getProperty(
         VIEW_EXTRACTION_THREADPOOL_CORE_SIZE_KEY, String.valueOf(VIEW_EXTRACTION_THREADPOOL_CORE_SIZE_DEFAULT)));
+  }
+
+  /**
+   * Get property-providers' thread pool core size.
+   * 
+   * @return the property-providers' thread pool core size
+   */
+  public int getPropertyProvidersThreadPoolCoreSize() {
+    return Integer.parseInt(properties.getProperty(PROPERTY_PROVIDER_THREADPOOL_CORE_SIZE_KEY,
+        String.valueOf(PROPERTY_PROVIDER_THREADPOOL_CORE_SIZE_DEFAULT)));
+  }
+
+  /**
+   * Get property-providers' thread pool max size.
+   * 
+   * @return the property-providers' thread pool max size
+   */
+  public int getPropertyProvidersThreadPoolMaxSize() {
+    return Integer.parseInt(properties.getProperty(PROPERTY_PROVIDER_THREADPOOL_MAX_SIZE_KEY,
+        String.valueOf(PROPERTY_PROVIDER_THREADPOOL_MAX_SIZE_DEFAULT)));
   }
 
   /**

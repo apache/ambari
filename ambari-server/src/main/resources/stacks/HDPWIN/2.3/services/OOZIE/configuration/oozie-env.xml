@@ -26,17 +26,6 @@
     <deleted>true</deleted>
   </property>
   <property>
-    <name>oozie_hostname</name>
-    <value></value>
-    <display-name>Database Host</display-name>
-    <description>
-      Specify the host on which the OOZIE database is hosted.
-    </description>
-    <value-attributes>
-      <overridable>false</overridable>
-    </value-attributes>
-  </property>
-  <property>
     <name>oozie_database</name>
     <value>Existing MSSQL Server database with SQL authentication</value>
     <display-name>Oozie Database</display-name>

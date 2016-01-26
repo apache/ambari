@@ -425,17 +425,9 @@ App.ServiceConfigProperty = Em.Object.extend({
         case 'supportTextConnection':
         case 'host':
           var connectionProperties = ['kdc_host'];
-          var hiveOozieHostNames = ['hive_hostname','oozie_hostname'];
-          if(hiveOozieHostNames.contains(this.get('name'))) {
-            if (validator.hasSpaces(value)) {
-              this.set('errorMessage', Em.I18n.t('host.spacesValidation'));
-              isError = true;
-            }
-          } else {
-            if ((validator.isNotTrimmed(value) && connectionProperties.contains(this.get('name')) || validator.isNotTrimmed(value))) {
-              this.set('errorMessage', Em.I18n.t('host.trimspacesValidation'));
-              isError = true;
-            }
+          if ((validator.isNotTrimmed(value) && connectionProperties.contains(this.get('name')) || validator.isNotTrimmed(value))) {
+            this.set('errorMessage', Em.I18n.t('host.trimspacesValidation'));
+            isError = true;
           }
           break;
         case 'password':

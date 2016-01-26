@@ -71,7 +71,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
    * Define state for submit button
    * @type {bool}
    */
-  submitDisabled: false,
+  submitDisabled: Em.computed.alias('validationInProgress'),
 
   /**
    * timer for validation request
@@ -562,13 +562,13 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
   callValidation: function (successCallback) {
     var self = this;
     clearTimeout(this.get('timer'));
-    this.set('timer', setTimeout(function() {
-      if (self.get('validationInProgress')) {
+    if (this.get('validationInProgress')) {
+      this.set('timer', setTimeout(function () {
         self.callValidation(successCallback);
-      } else {
-        self.callServerSideValidation(successCallback);
-      }
-    }, 700));
+      }, 700));
+    } else {
+      this.callServerSideValidation(successCallback);
+    }
   },
 
   /**

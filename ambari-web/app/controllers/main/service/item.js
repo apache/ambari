@@ -531,36 +531,19 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     var controller = this;
     return App.showConfirmationPopup(function() {
       App.ajax.send({
-        name: 'service.item.immediateStopHawqCluster',
+        name: 'service.item.executeCustomCommand',
         sender: controller,
         data: {
           command: context.command,
           context: Em.I18n.t('services.service.actions.run.immediateStopHawqCluster.context'),
           hosts: App.Service.find(context.service).get('hostComponents').findProperty('componentName', 'HAWQMASTER').get('hostName'),
           serviceName: context.service,
-          componentName: context.component,
+          componentName: context.component
         },
-        success : 'executeImmediateStopHawqClusterCmdSuccessCallback',
-        error : 'executeImmediateStopHawqClusterCmdErrorCallback'
+        success : 'executeCustomCommandSuccessCallback',
+        error : 'executeCustomCommandErrorCallback'
       });
     });
-  },
-
-  executeImmediateStopHawqClusterCmdSuccessCallback  : function(data, ajaxOptions, params) {
-    if (data.Requests.id) {
-      App.router.get('backgroundOperationsController').showPopup();
-    }
-  },
-
-  executeImmediateStopHawqClusterCmdErrorCallback : function(data) {
-    var error = Em.I18n.t('services.service.actions.run.immediateStopHawqCluster.error');
-    if(data && data.responseText){
-      try {
-        var json = $.parseJSON(data.responseText);
-        error += json.message;
-      } catch (err) {}
-    }
-    App.showAlertPopup(Em.I18n.t('services.service.actions.run.immediateStopHawqCluster.error'), error);
   },
 
   /**
@@ -903,23 +886,28 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   }.property('content.serviceName'),
 
   enableHighAvailability: function() {
-    var ability_controller = App.router.get('mainAdminHighAvailabilityController');
-    ability_controller.enableHighAvailability();
+    var highAvailabilityController = App.router.get('mainAdminHighAvailabilityController');
+    highAvailabilityController.enableHighAvailability();
   },
 
   disableHighAvailability: function() {
-    var ability_controller = App.router.get('mainAdminHighAvailabilityController');
-    ability_controller.disableHighAvailability();
+    var highAvailabilityController = App.router.get('mainAdminHighAvailabilityController');
+    highAvailabilityController.disableHighAvailability();
   },
 
   enableRMHighAvailability: function() {
-    var ability_controller = App.router.get('mainAdminHighAvailabilityController');
-    ability_controller.enableRMHighAvailability();
+    var highAvailabilityController = App.router.get('mainAdminHighAvailabilityController');
+    highAvailabilityController.enableRMHighAvailability();
+  },
+
+  addHawqStandby: function() {
+    var highAvailabilityController = App.router.get('mainAdminHighAvailabilityController');
+    highAvailabilityController.addHawqStandby();
   },
 
   enableRAHighAvailability: function() {
-    var ability_controller = App.router.get('mainAdminHighAvailabilityController');
-    ability_controller.enableRAHighAvailability();
+    var highAvailabilityController = App.router.get('mainAdminHighAvailabilityController');
+    highAvailabilityController.enableRAHighAvailability();
   },
 
   downloadClientConfigs: function (event) {
@@ -973,13 +961,28 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   },
 
   /**
+   * find dependent services
+   * @param {string} serviceName
+   * @returns {Array}
+   */
+  findDependentServices: function(serviceName) {
+    var dependentServices = [];
+
+    App.StackService.find().forEach(function(stackService) {
+      if (App.Service.find(stackService.get('serviceName')).get('isLoaded')
+          && stackService.get('requiredServices').contains(serviceName)) {
+        dependentServices.push(stackService.get('serviceName'));
+      }
+    }, this);
+    return dependentServices;
+  },
+
+  /**
    * delete service action
    * @param {string} serviceName
    */
   deleteService: function(serviceName) {
-    var dependentServices = App.StackService.find(serviceName).get('requiredServices').filter(function(_serviceName) {
-          return App.Service.find(_serviceName).get('isLoaded');
-        }),
+    var dependentServices = this.findDependentServices(serviceName),
         self = this,
         displayName = App.format.role(serviceName),
         popupHeader = Em.I18n.t('services.service.delete.popup.header');
@@ -1016,7 +1019,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   /**
    * warning that show dependent services which must be deleted prior to chosen service deletion
    * @param {string} origin
-   * @param {string} dependent
+   * @param {Array.<string>} dependent
    * @returns {App.ModalPopup}
    */
   dependentServicesWarning: function(origin, dependent) {

@@ -105,17 +105,11 @@ class Pxf(Script):
 
     File('{0}/pxf-profiles.xml'.format(params.pxf_conf_dir),
          content = params.config['configurations']['pxf-profiles']['content'].lstrip())
-
-    if params.security_enabled:
-      pxf_site_dict = dict(params.config['configurations']['pxf-site'])
-      pxf_site_dict['pxf.service.kerberos.principal'] = "{0}/_HOST@{1}".format(params.pxf_user, params.realm_name)
-      pxf_site = ConfigDictionary(pxf_site_dict)
-    else:
-      pxf_site = params.config['configurations']['pxf-site']
-
+         
+    # Default_value of principal => pxf/_HOST@{realm}
     XmlConfig("pxf-site.xml",
               conf_dir=params.pxf_conf_dir,
-              configurations=pxf_site,
+              configurations=params.config['configurations']['pxf-site'],
               configuration_attributes=params.config['configuration_attributes']['pxf-site'])
 
 

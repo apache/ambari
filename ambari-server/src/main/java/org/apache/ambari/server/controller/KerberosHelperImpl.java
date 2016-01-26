@@ -126,7 +126,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Singleton
 public class KerberosHelperImpl implements KerberosHelper {
@@ -134,17 +133,6 @@ public class KerberosHelperImpl implements KerberosHelper {
   private static final String BASE_LOG_DIR = "/tmp/ambari";
 
   private static final Logger LOG = LoggerFactory.getLogger(KerberosHelperImpl.class);
-
-  /**
-   * Regular expression pattern used to parse auth_to_local property specifications into the following
-   * parts:
-   * <ul>
-   * <li>configuration type (optional, if _global_)</li>
-   * <li>property name</li>
-   * <li>concatenation type (optional, if using the default behavior)</li>
-   * </ul>
-   */
-  private static final Pattern AUTH_TO_LOCAL_PROPERTY_SPECIFICATION_PATTERN = Pattern.compile("^(?:(.+?)/)?(.+?)(?:\\|(.+?))?$");
 
   @Inject
   private AmbariCustomCommandExecutionHelper customCommandExecutionHelper;
@@ -759,7 +747,7 @@ public class KerberosHelperImpl implements KerberosHelper {
 
       if (!authToLocalPropertiesToSet.isEmpty()) {
         for (String authToLocalProperty : authToLocalPropertiesToSet) {
-          Matcher m = AUTH_TO_LOCAL_PROPERTY_SPECIFICATION_PATTERN.matcher(authToLocalProperty);
+          Matcher m = KerberosDescriptor.AUTH_TO_LOCAL_PROPERTY_SPECIFICATION_PATTERN.matcher(authToLocalProperty);
 
           if (m.matches()) {
             AuthToLocalBuilder builder = authToLocalBuilder.copy();

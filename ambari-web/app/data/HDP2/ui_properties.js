@@ -18,26 +18,6 @@
 
 module.exports = [
   {
-    "name": "oozie_hostname",
-    "displayName": "Database Host",
-    "displayType": "host",
-    "serviceName": "OOZIE",
-    "filename": "oozie-env.xml",
-    "category": "OOZIE_SERVER",
-    "index": 3
-  },
-  {
-    "name": "hive_hostname",
-    "displayName": "Database Host",
-    "description": "Specify the host on which the database is hosted",
-    "displayType": "host",
-    "isRequiredByAgent": false,
-    "serviceName": "HIVE",
-    "filename": "hive-env.xml",
-    "category": "HIVE_METASTORE",
-    "index": 3
-  },
-  {
     "name": "admin_principal",
     "displayName": "Admin principal",
     "description": "Admin principal used to create principals and export key tabs (e.g. admin/admin@EXAMPLE.COM).",

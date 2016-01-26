@@ -19,13 +19,9 @@
 package org.apache.ambari.view.filebrowser;
 
 import org.apache.ambari.view.ViewInstanceDefinition;
+import org.apache.ambari.view.utils.ambari.ValidatorUtils;
 import org.apache.ambari.view.validation.ValidationResult;
 import org.apache.ambari.view.validation.Validator;
-
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 
 public class PropertyValidator implements Validator {
 
@@ -41,9 +37,7 @@ public class PropertyValidator implements Validator {
     if (property.equals(WEBHDFS_URL)) {
       String webhdfsUrl = viewInstanceDefinition.getPropertyMap().get(WEBHDFS_URL);
       if (webhdfsUrl != null) {
-        try {
-          new URI(webhdfsUrl);
-        } catch (URISyntaxException e) {
+        if (!ValidatorUtils.validateHdfsURL(webhdfsUrl)) {
           return new InvalidPropertyValidationResult(false, "Must be valid URL");
         }
       }

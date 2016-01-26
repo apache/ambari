@@ -46,11 +46,6 @@
     </value-attributes>
   </property>
   <property>
-    <name>oozie_derby_database</name>
-    <value>Derby</value>
-    <description>Oozie Derby Database</description>
-  </property>
-  <property>
     <name>oozie_data_dir</name>
     <value>/hadoop/oozie/data</value>
     <display-name>Oozie Data Dir</display-name>

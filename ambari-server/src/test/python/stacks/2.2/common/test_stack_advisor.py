@@ -977,7 +977,7 @@ class TestHDP22StackAdvisor(TestCase):
     expected["yarn-site"]["property_attributes"]["yarn.scheduler.maximum-allocation-vcores"]["maximum"] = '5'
     self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
-    
+
     # Test - with no 'changed-configurations', we should get updated 'maximum's.
     services.pop("changed-configurations", None)
     services.pop("configurations", None)
@@ -1069,10 +1069,10 @@ class TestHDP22StackAdvisor(TestCase):
         },
        'property_attributes': {
          'hive.auto.convert.join.noconditionaltask.size': {'maximum': '805306368'},
-         'hive.server2.authentication.pam.services': {'delete': 'true'}, 
-         'hive.server2.custom.authentication.class': {'delete': 'true'}, 
+         'hive.server2.authentication.pam.services': {'delete': 'true'},
+         'hive.server2.custom.authentication.class': {'delete': 'true'},
          'hive.server2.authentication.kerberos.principal': {'delete': 'true'},
-         'hive.server2.authentication.kerberos.keytab': {'delete': 'true'}, 
+         'hive.server2.authentication.kerberos.keytab': {'delete': 'true'},
          'hive.server2.authentication.ldap.url': {'delete': 'true'},
          'hive.server2.tez.default.queues': {
            'entries': [{'value': 'default', 'label': 'default queue'}]
@@ -3016,7 +3016,7 @@ class TestHDP22StackAdvisor(TestCase):
 
     # Test 4 - KMS empty test from previous call
     self.assertTrue("dfs.encryption.key.provider.uri" not in configurations["hdfs-site"]["properties"])
-    
+
     # Test 5 - Calculated from hosts install location
     services["services"].append(
                     {"StackServices":

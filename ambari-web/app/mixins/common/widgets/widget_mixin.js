@@ -377,6 +377,12 @@ App.WidgetMixin = Ember.Mixin.create({
     }
   }.observes('isLoaded'),
 
+  willDestroyElement: function() {
+    this.$(".corner-icon > .icon-copy").tooltip('destroy');
+    this.$(".corner-icon > .icon-edit").tooltip('destroy');
+    this.$(".corner-icon > .icon-save").tooltip('destroy');
+  },
+
   /**
    * calculate series datasets for graph widgets
    */
@@ -665,6 +671,9 @@ App.WidgetLoadAggregator = Em.Object.create({
     this.get('requests').push(request);
     if (Em.isNone(this.get('timeoutId'))) {
       this.set('timeoutId', window.setTimeout(function () {
+        //clear requests that are belongs to destroyed views
+        self.set('requests', self.get('requests').filterProperty('context.state', 'inDOM'));
+
         self.runRequests(self.get('requests'));
         self.get('requests').clear();
         clearTimeout(self.get('timeoutId'));
@@ -718,8 +727,6 @@ App.WidgetLoadAggregator = Em.Object.create({
     var self = this;
     for (var id in bulks) {
       (function (_request) {
-        if (_request.context.get('state') !== 'inDOM') return;
-
         _request.data.metric_paths = self.arrayUtils.uniqObjectsbyId(_request.data.metric_paths, "id");
         _request.context[_request.startCallName].call(_request.context, _request.data).done(function (response) {
           _request.subRequests.forEach(function (subRequest) {

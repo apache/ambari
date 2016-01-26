@@ -134,7 +134,7 @@ public class KdcServerConnectionVerificationTest  {
     assertEquals(11111, kdcConfig.getKdcPort());
     assertEquals(10 * 1000, kdcConfig.getTimeout());
 
-    verify(connection, exception, error);
+    verify(connection, exception);
   }
 
   @Test
@@ -229,7 +229,7 @@ public class KdcServerConnectionVerificationTest  {
     assertEquals(11111, kdcConfig.getKdcPort());
     assertEquals(10 * 1000, kdcConfig.getTimeout());
 
-    verify(connection, exception, error);
+    verify(connection, exception);
   }
 
   @Test
@@ -280,7 +280,7 @@ public class KdcServerConnectionVerificationTest  {
     assertEquals(11111, kdcConfig.getKdcPort());
     assertEquals(10 * 1000, kdcConfig.getTimeout());
 
-    verify(connection, exception, error);
+    verify(connection, exception);
   }
 
   @Test
@@ -375,7 +375,7 @@ public class KdcServerConnectionVerificationTest  {
     assertEquals(11111, kdcConfig.getKdcPort());
     assertEquals(10 * 1000, kdcConfig.getTimeout());
 
-    verify(connection, exception, error);
+    verify(connection, exception);
   }
 
   @Test

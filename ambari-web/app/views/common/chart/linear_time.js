@@ -619,28 +619,27 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
    * @return Rickshaw.Fixtures.Time
    */
   localeTimeUnit: function (timeUnitSeconds) {
-    var timeUnit = new Rickshaw.Fixtures.Time();
-    switch (timeUnitSeconds) {
-      case 604800:
-        timeUnit = timeUnit.unit('day');
-        break;
-      case 2592000:
-        timeUnit = timeUnit.unit('week');
-        break;
-      case 31104000:
-        timeUnit = timeUnit.unit('month');
-        break;
-      default:
-        timeUnit = {
-          name: timeUnitSeconds / 240 + ' minute',
-          seconds: timeUnitSeconds / 4,
-          formatter: function (d) {
-            // format locale specific time
-            var minutes = dateUtils.dateFormatZeroFirst(d.getMinutes());
-            var hours = dateUtils.dateFormatZeroFirst(d.getHours());
-            return hours + ":" + minutes;
-          }
-        };
+    var timeUnit = new Rickshaw.Fixtures.Time(),
+      unitName;
+    if (timeUnitSeconds < 172800) {
+      timeUnit = {
+        name: timeUnitSeconds / 240 + ' minute',
+        seconds: timeUnitSeconds / 4,
+        formatter: function (d) {
+          // format locale specific time
+          var minutes = dateUtils.dateFormatZeroFirst(d.getMinutes());
+          var hours = dateUtils.dateFormatZeroFirst(d.getHours());
+          return hours + ":" + minutes;
+        }
+      };
+    } else if (timeUnitSeconds < 1209600) {
+      timeUnit = timeUnit.unit('day');
+    } else if (timeUnitSeconds < 5184000) {
+      timeUnit = timeUnit.unit('week');
+    } else if (timeUnitSeconds < 62208000) {
+      timeUnit = timeUnit.unit('month');
+    } else {
+      timeUnit = timeUnit.unit('year');
     }
     return timeUnit;
   },
@@ -1111,11 +1110,11 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
       // Preset time range is specified by user
       var seconds = this.get('timeStates').objectAt(this.get('currentTimeIndex')).seconds;
       this.set('timeUnitSeconds', seconds);
-    } else {
+    } else if (!Em.isNone(this.get('customStartTime')) && !Em.isNone(this.get('customEndTime'))) {
       // Custom start and end time is specified by user
-      this.propertyDidChange('timeUnitSeconds');
+      this.set('timeUnitSeconds', (this.get('customEndTime') - this.get('customStartTime')) / 1000);
     }
-  }.observes('currentTimeIndex', 'parentView.childViews.lastObject.customStartTime', 'parentView.childViews.lastObject.customEndTime')
+  }.observes('currentTimeIndex', 'customStartTime', 'customEndTime')
 
 });
 

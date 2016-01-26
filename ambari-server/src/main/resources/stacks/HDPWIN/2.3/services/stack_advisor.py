@@ -23,6 +23,7 @@ class HDPWIN23StackAdvisor(HDPWIN22StackAdvisor):
     parentRecommendConfDict = super(HDPWIN23StackAdvisor, self).getServiceConfigurationRecommenderDict()
     childRecommendConfDict = {
       "TEZ": self.recommendTezConfigurations,
+      "OOZIE": self.recommendOozieConfigurations
     }
     parentRecommendConfDict.update(childRecommendConfDict)
     return parentRecommendConfDict
@@ -41,3 +42,19 @@ class HDPWIN23StackAdvisor(HDPWIN22StackAdvisor):
       if services["configurations"]["tez-site"]["properties"]["tez.runtime.sorter.class"] == "LEGACY":
         putTezAttribute = self.putPropertyAttribute(configurations, "tez-site")
         putTezAttribute("tez.runtime.io.sort.mb", "maximum", 2047)
+
+  def recommendOozieConfigurations(self, configurations, clusterData, services, hosts):
+    super(HDPWIN23StackAdvisor, self).recommendOozieConfigurations(configurations, clusterData, services, hosts)
+
+    oozieSiteProperties = getSiteProperties(services['configurations'], 'oozie-site')
+    oozieEnvProperties = getSiteProperties(services['configurations'], 'oozie-env')
+    putOozieProperty = self.putProperty(configurations, "oozie-site", services)
+    putOozieEnvProperty = self.putProperty(configurations, "oozie-env", services)
+
+    if oozieEnvProperties and oozieSiteProperties and self.checkSiteProperties(oozieSiteProperties, 'oozie.service.JPAService.jdbc.driver') and self.checkSiteProperties(oozieEnvProperties, 'oozie_database'):
+      putOozieProperty('oozie.service.JPAService.jdbc.driver', self.getDBDriver(oozieEnvProperties['oozie_database']))
+    if oozieSiteProperties and oozieEnvProperties and self.checkSiteProperties(oozieSiteProperties, 'oozie.db.schema.name', 'oozie.service.JPAService.jdbc.url') and self.checkSiteProperties(oozieEnvProperties, 'oozie_database'):
+      oozieServerHost = self.getHostWithComponent('OOZIE', 'OOZIE_SERVER', services, hosts)
+      if oozieServerHost is not None:
+        dbConnection = self.getDBConnectionString(oozieEnvProperties['oozie_database']).format(oozieServerHost['Hosts']['host_name'], oozieSiteProperties['oozie.db.schema.name'])
+        putOozieProperty('oozie.service.JPAService.jdbc.url', dbConnection)

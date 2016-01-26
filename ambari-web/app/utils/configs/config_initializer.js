@@ -77,8 +77,6 @@ App.ConfigInitializer = App.ConfigInitializerClass.create(App.MountPointsBasedIn
       'mapred.job.tracker': this.getSimpleComponentConfig('JOBTRACKER'),
       'mapred.job.tracker.http.address': this.getSimpleComponentConfig('JOBTRACKER'),
       'mapreduce.history.server.http.address': this.getSimpleComponentConfig('HISTORYSERVER'),
-      'hive_hostname': this.getSimpleComponentConfig('HIVE_SERVER', false),
-      'oozie_hostname': this.getSimpleComponentConfig('OOZIE_SERVER', false),
       'oozie.base.url': this.getComponentConfigWithAffixes('OOZIE_SERVER', '://'),
       'hawq_dfs_url': this.getSimpleComponentConfig('NAMENODE'),
       'hawq_rm_yarn_address': this.getSimpleComponentConfig('RESOURCEMANAGER'),

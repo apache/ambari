@@ -1072,6 +1072,7 @@ INSERT INTO roleauthorization(authorization_id, authorization_name)
   SELECT 'AMBARI.ADD_DELETE_CLUSTERS', 'Create new clusters' FROM dual UNION ALL
   SELECT 'AMBARI.SET_SERVICE_USERS_GROUPS', 'Set service users and groups' FROM dual UNION ALL
   SELECT 'AMBARI.RENAME_CLUSTER', 'Rename clusters' FROM dual UNION ALL
+  SELECT 'AMBARI.MANAGE_ADMIN_SETTINGS', 'Manage administrative settings' FROM dual UNION ALL
   SELECT 'AMBARI.MANAGE_USERS', 'Manage users' FROM dual UNION ALL
   SELECT 'AMBARI.MANAGE_GROUPS', 'Manage groups' FROM dual UNION ALL
   SELECT 'AMBARI.MANAGE_VIEWS', 'Manage Ambari Views' FROM dual UNION ALL
@@ -1258,6 +1259,7 @@ INSERT INTO permission_roleauthorization(permission_id, authorization_id)
   SELECT permission_id, 'AMBARI.ADD_DELETE_CLUSTERS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'AMBARI.SET_SERVICE_USERS_GROUPS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'AMBARI.RENAME_CLUSTER' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'AMBARI.MANAGE_ADMIN_SETTINGS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'AMBARI.MANAGE_USERS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'AMBARI.MANAGE_GROUPS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'AMBARI.MANAGE_VIEWS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL

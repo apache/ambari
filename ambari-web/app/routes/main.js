@@ -193,6 +193,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       connectOutlets: function (router, context) {
         App.loadTimer.start('Hosts Page');
         router.get('mainController').connectOutlet('mainHost');
+        router.get('mainHostController').connectOutlet('mainHostComboSearchBox');
       }
     }),
 
@@ -508,6 +509,14 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       }
     }),
 
+    adminServiceAutoStart: Em.Route.extend({
+      route: '/serviceAutoStart',
+      connectOutlets: function (router) {
+        router.set('mainAdminController.category', "serviceAutoStart");
+        router.get('mainAdminController').connectOutlet('mainAdminServiceAutoStart');
+      }
+    }),
+
     adminAudit: Em.Route.extend({
       route: '/audit',
       connectOutlets: function (router) {
@@ -707,6 +716,8 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     enableRMHighAvailability: require('routes/rm_high_availability_routes'),
 
     enableRAHighAvailability: require('routes/ra_high_availability_routes'),
+
+    addHawqStandby: require('routes/add_hawq_standby_routes'),
 
     rollbackHighAvailability: require('routes/rollbackHA_routes')
   }),

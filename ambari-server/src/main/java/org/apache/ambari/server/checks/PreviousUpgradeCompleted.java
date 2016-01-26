@@ -102,31 +102,31 @@ public class PreviousUpgradeCompleted extends AbstractCheckDescriptor {
         for (UpgradeEntity downgrade : upgrades) {
           // Surprisingly, a Downgrade's from and to version are identical.
           if (downgrade.getClusterId() == cluster.getClusterId() && downgrade.getDirection() == Direction.DOWNGRADE &&
-              downgrade.getFromVersion().equals(mostRecentUpgrade.getToVersion())) {
+              downgrade.getFromVersion().equals(mostRecentUpgrade.getFromVersion())) {
             correspondingDowngrade = downgrade;
             break;
           }
         }
-      }
 
-      // If it has no downgrade, then the "Save Cluster State" step should have COMPLETED.
-      if (correspondingDowngrade == null) {
-        // Should have only 1 element.
-        List<HostRoleCommandEntity> finalizeCommandList = hostRoleCommandDaoProvider.get().
-            findSortedCommandsByRequestIdAndCustomCommandName(mostRecentUpgrade.getRequestId(), FINALIZE_ACTION_CLASS_NAME);
-
-        // If the action is not COMPLETED, then something went wrong.
-        if (finalizeCommandList != null) {
-          for (HostRoleCommandEntity command : finalizeCommandList) {
-            if (command.getStatus() != HostRoleStatus.COMPLETED) {
-              errorMessage = MessageFormat.format("Upgrade attempt (id: {0}, request id: {1}, from version: {2}, " +
-                  "to version: {3}) did not complete task with id {4} since its state is {5} instead of COMPLETED.",
-                  mostRecentUpgrade.getId(), mostRecentUpgrade.getRequestId(), mostRecentUpgrade.getFromVersion(),
-                  mostRecentUpgrade.getToVersion(), command.getTaskId(), command.getStatus());
-              errorMessage += " Please ensure that you called:\n" + SET_CURRENT_COMMAND;
-              errorMessage += MessageFormat.format("\nFurther, change the status of host_role_command with " +
-                  "id {0} to COMPLETED", mostRecentUpgrade.getId());
-              break;
+        // If it has no downgrade, then the "Save Cluster State" step should have COMPLETED.
+        if (correspondingDowngrade == null) {
+          // Should have only 1 element.
+          List<HostRoleCommandEntity> finalizeCommandList = hostRoleCommandDaoProvider.get().
+              findSortedCommandsByRequestIdAndCustomCommandName(mostRecentUpgrade.getRequestId(), FINALIZE_ACTION_CLASS_NAME);
+  
+          // If the action is not COMPLETED, then something went wrong.
+          if (finalizeCommandList != null) {
+            for (HostRoleCommandEntity command : finalizeCommandList) {
+              if (command.getStatus() != HostRoleStatus.COMPLETED) {
+                errorMessage = MessageFormat.format("Upgrade attempt (id: {0}, request id: {1}, from version: {2}, " +
+                    "to version: {3}) did not complete task with id {4} since its state is {5} instead of COMPLETED.",
+                    mostRecentUpgrade.getId(), mostRecentUpgrade.getRequestId(), mostRecentUpgrade.getFromVersion(),
+                    mostRecentUpgrade.getToVersion(), command.getTaskId(), command.getStatus());
+                errorMessage += " Please ensure that you called:\n" + SET_CURRENT_COMMAND;
+                errorMessage += MessageFormat.format("\nFurther, change the status of host_role_command with " +
+                    "id {0} to COMPLETED", mostRecentUpgrade.getId());
+                break;
+              }
             }
           }
         }

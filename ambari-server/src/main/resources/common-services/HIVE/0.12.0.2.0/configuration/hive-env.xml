@@ -58,6 +58,12 @@
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-env</type>
+        <name>hive_database</name>
+      </property>
+    </depends-on>
   </property>
   <property>
     <name>hive_database</name>
@@ -225,5 +231,5 @@ export METASTORE_PORT={{hive_metastore_port}}
       <type>content</type>
     </value-attributes>
   </property>
-  
+
 </configuration>

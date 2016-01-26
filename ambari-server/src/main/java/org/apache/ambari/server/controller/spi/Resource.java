@@ -32,7 +32,7 @@ public interface Resource {
    *
    * @return the resource type
    */
-  public Type getType();
+  Type getType();
 
   /**
    * Obtain the properties contained by this group in a map structure.
@@ -42,7 +42,7 @@ public interface Resource {
    *
    * @return resource properties map
    */
-  public Map<String, Map<String, Object>> getPropertiesMap();
+  Map<String, Map<String, Object>> getPropertiesMap();
 
   /**
    * Set a property value for the given property id on this resource.
@@ -50,14 +50,14 @@ public interface Resource {
    * @param id    the property id
    * @param value the value
    */
-  public void setProperty(String id, Object value);
+  void setProperty(String id, Object value);
 
   /**
    * Add an empty category to this resource.
    *
    * @param id the category id
    */
-  public void addCategory(String id);
+  void addCategory(String id);
 
   /**
    * Get a property value for the given property id from this resource.
@@ -65,7 +65,7 @@ public interface Resource {
    * @param id the property id
    * @return the property value
    */
-  public Object getPropertyValue(String id);
+  Object getPropertyValue(String id);
 
 
   // ----- Enum : InternalType -----------------------------------------------
@@ -73,9 +73,10 @@ public interface Resource {
   /**
    * Enum of internal types.
    */
-  public enum InternalType {
+  enum InternalType {
     Cluster,
     Service,
+    AdminSetting,
     Host,
     Component,
     HostComponent,
@@ -169,7 +170,7 @@ public interface Resource {
   /**
    * Resource types.  Allows for the addition of external types.
    */
-  public final class Type implements Comparable<Type>{
+  final class Type implements Comparable<Type>{
 
     /**
      * Map of all registered types.
@@ -186,6 +187,7 @@ public interface Resource {
      */
     public static final Type Cluster = InternalType.Cluster.getType();
     public static final Type Service = InternalType.Service.getType();
+    public static final Type AdminSetting = InternalType.AdminSetting.getType();
     public static final Type Host = InternalType.Host.getType();
     public static final Type Component = InternalType.Component.getType();
     public static final Type HostComponent = InternalType.HostComponent.getType();

@@ -219,7 +219,8 @@ describe('App.MainAlertDefinitionConfigsController', function () {
           "https": "{{mapred-site/mapreduce.jobhistory.webapp.https.address}}",
           "https_property": "{{mapred-site/mapreduce.jobhistory.http.policy}}",
           "https_property_value": "HTTPS_ONLY",
-          "default_port": 0.0
+          "default_port": 0.0,
+          "connection_timeout": 123
         }
       }));
     });
@@ -227,13 +228,13 @@ describe('App.MainAlertDefinitionConfigsController', function () {
     it('isWizard = true', function () {
       controller.set('isWizard', true);
       var result = controller.renderWebConfigs();
-      expect(result.length).to.equal(11);
+      expect(result.length).to.equal(12);
     });
 
     it('isWizard = false', function () {
       controller.set('isWizard', false);
       var result = controller.renderWebConfigs();
-      expect(result.length).to.equal(5);
+      expect(result.length).to.equal(6);
     });
 
   });

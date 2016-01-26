@@ -181,7 +181,7 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
         id: id,
         data: [],
         isInvalid: false,
-        isEmpty: Em.computed.empty('data')
+        isEmpty: Em.computed.equal('data.length', 0)
       })
     }));
     return id;
@@ -210,7 +210,7 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
       data: [],
       alias: '{{' + this.get('EXPRESSION_PREFIX') + id + '}}',
       isInvalid: false,
-      isEmpty: Em.computed.empty('data')
+      isEmpty: Em.computed.equal('data.length', 0)
     }));
     return id;
   },

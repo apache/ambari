@@ -43,6 +43,7 @@ var InitialData = {
   },
   'HighAvailabilityWizard': {},
   'RMHighAvailabilityWizard': {},
+  'AddHawqStandbyWizard': {},
   'RAHighAvailabilityWizard': {},
   'RollbackHighAvailabilityWizard': {},
   'MainAdminStackAndUpgrade': {},

@@ -260,6 +260,8 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
   def recommendHIVEConfigurations(self, configurations, clusterData, services, hosts):
     super(HDPWIN22StackAdvisor, self).recommendHiveConfigurations(configurations, clusterData, services, hosts)
 
+    hiveSiteProperties = getSiteProperties(services['configurations'], 'hive-site')
+    hiveEnvProperties = getSiteProperties(services['configurations'], 'hive-env')
     putHiveServerProperty = self.putProperty(configurations, "hiveserver2-site", services)
     putHiveEnvProperty = self.putProperty(configurations, "hive-env", services)
     putHiveSiteProperty = self.putProperty(configurations, "hive-site", services)
@@ -469,6 +471,17 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
     python_binary = os.environ['PYTHON_EXE'] if 'PYTHON_EXE' in os.environ else sys.executable
     putWebhcatSiteProperty("templeton.python", python_binary)
 
+    # javax.jdo.option.ConnectionURL recommendations
+    if hiveEnvProperties and self.checkSiteProperties(hiveEnvProperties, 'hive_database', 'hive_database_type'):
+      putHiveEnvProperty('hive_database_type', self.getDBTypeAlias(hiveEnvProperties['hive_database']))
+    if hiveEnvProperties and hiveSiteProperties and self.checkSiteProperties(hiveSiteProperties, 'javax.jdo.option.ConnectionDriverName') and self.checkSiteProperties(hiveEnvProperties, 'hive_database'):
+      putHiveSiteProperty('javax.jdo.option.ConnectionDriverName', self.getDBDriver(hiveEnvProperties['hive_database']))
+    if hiveSiteProperties and hiveEnvProperties and self.checkSiteProperties(hiveSiteProperties, 'ambari.hive.db.schema.name', 'javax.jdo.option.ConnectionURL') and self.checkSiteProperties(hiveEnvProperties, 'hive_database'):
+      hiveMSHost = self.getHostWithComponent('HIVE', 'HIVE_METASTORE', services, hosts)
+      if hiveMSHost is not None:
+        dbConnection = self.getDBConnectionString(hiveEnvProperties['hive_database']).format(hiveMSHost['Hosts']['host_name'], hiveSiteProperties['ambari.hive.db.schema.name'])
+        putHiveSiteProperty('javax.jdo.option.ConnectionURL', dbConnection)
+
 
   def recommendHBASEConfigurations(self, configurations, clusterData, services, hosts):
     super(HDPWIN22StackAdvisor, self).recommendHbaseEnvConfigurations(configurations, clusterData, services, hosts)
@@ -677,7 +690,7 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
                         {"config-name": 'namenode_opt_newsize', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'namenode_opt_newsize')},
                         {"config-name": 'namenode_opt_maxnewsize', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'namenode_opt_maxnewsize')}]
     return self.toConfigurationValidationProblems(validationItems, "hadoop-env")
-  
+
   def validateHDFSConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     # We can not access property hadoop.security.authentication from the
     # other config (core-site). That's why we are using another heuristics here
@@ -719,7 +732,7 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
           validationItems.append({"config-name" : address_property, "item" :
             self.getErrorItem(address_property + " does not contain a valid host:port authority: " + value)})
 
-    #Adding Ranger Plugin logic here 
+    #Adding Ranger Plugin logic here
     ranger_plugin_properties = getSiteProperties(configurations, "ranger-hdfs-plugin-properties")
     ranger_plugin_enabled = ranger_plugin_properties['ranger-hdfs-plugin-enabled'] if ranger_plugin_properties else 'no'
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
@@ -818,8 +831,8 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
   def validateHiveServer2Configurations(self, properties, recommendedDefaults, configurations, services, hosts):
     super(HDPWIN22StackAdvisor, self).validateHiveConfigurations(properties, recommendedDefaults, configurations, services, hosts)
     hive_server2 = properties
-    validationItems = [] 
-    #Adding Ranger Plugin logic here 
+    validationItems = []
+    #Adding Ranger Plugin logic here
     ranger_plugin_properties = getSiteProperties(configurations, "ranger-hive-plugin-properties")
     ranger_plugin_enabled = ranger_plugin_properties['ranger-hdfs-plugin-enabled'] if ranger_plugin_properties else 'no'
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
@@ -933,7 +946,7 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
                               "item": self.getWarnItem(
                               "{0} and {1} sum should not exceed {2}".format(prop_name1, prop_name2, props_max_sum))})
 
-    #Adding Ranger Plugin logic here 
+    #Adding Ranger Plugin logic here
     ranger_plugin_properties = getSiteProperties(configurations, "ranger-hbase-plugin-properties")
     ranger_plugin_enabled = ranger_plugin_properties['ranger-hdfs-plugin-enabled'] if ranger_plugin_properties else 'no'
     prop_name = 'hbase.security.authorization'
@@ -987,7 +1000,7 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
                               "item": self.getWarnItem(
                                 "If bucketcache ioengine is enabled, {0} should be set".format(prop_name3))})
 
-    # Validate hbase.security.authentication. 
+    # Validate hbase.security.authentication.
     # Kerberos works only when security enabled.
     if "hbase.security.authentication" in properties:
       hbase_security_kerberos = properties["hbase.security.authentication"].lower() == "kerberos"
@@ -1029,6 +1042,27 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
                               "item": self.getWarnItem("CPU Isolation should only be enabled if security is enabled")})
     return self.toConfigurationValidationProblems(validationItems, "yarn-env")
 
+  def getDBDriver(self, databaseType):
+    driverDict = {
+      'EXISTING MSSQL SERVER DATABASE WITH SQL AUTHENTICATION': 'com.microsoft.sqlserver.jdbc.SQLServerDriver',
+      'EXISTING MSSQL SERVER DATABASE WITH INTEGRATED AUTHENTICATION': 'com.microsoft.sqlserver.jdbc.SQLServerDriver',
+    }
+    return driverDict.get(databaseType.upper())
+
+  def getDBConnectionString(self, databaseType):
+    driverDict = {
+      'EXISTING MSSQL SERVER DATABASE WITH SQL AUTHENTICATION': 'jdbc:sqlserver://{0};databaseName={1}',
+      'EXISTING MSSQL SERVER DATABASE WITH INTEGRATED AUTHENTICATION': 'jdbc:sqlserver://{0};databaseName={1};integratedSecurity=true',
+    }
+    return driverDict.get(databaseType.upper())
+
+  def getDBTypeAlias(self, databaseType):
+    driverDict = {
+      'EXISTING MSSQL SERVER DATABASE WITH SQL AUTHENTICATION': 'mssql',
+      'EXISTING MSSQL SERVER DATABASE WITH INTEGRATED AUTHENTICATION': 'mssql2',
+    }
+    return driverDict.get(databaseType.upper())
+
   def getMastersWithMultipleInstances(self):
     result = super(HDPWIN22StackAdvisor, self).getMastersWithMultipleInstances()
     result.extend(['METRICS_COLLECTOR'])
@@ -1052,7 +1086,7 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
   def getAffectedConfigs(self, services):
     affectedConfigs = super(HDPWIN22StackAdvisor, self).getAffectedConfigs(services)
 
-    # There are configs that are not defined in the stack but added/removed by 
+    # There are configs that are not defined in the stack but added/removed by
     # stack-advisor. Here we add such configs in order to clear the config
     # filtering down in base class
     configsList = [affectedConfig["type"] + "/" + affectedConfig["name"] for affectedConfig in affectedConfigs]

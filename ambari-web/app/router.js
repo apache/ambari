@@ -55,6 +55,7 @@ App.Router = Em.Router.extend({
   isFwdNavigation: true,
   backBtnForHigherStep: false,
   transitionInProgress: false,
+  nextBtnClickInProgress: false,
 
   /**
    * Path for local login page. This page will be always accessible without

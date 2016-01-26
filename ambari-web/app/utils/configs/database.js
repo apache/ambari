@@ -41,14 +41,12 @@ module.exports = {
     HIVE: {
       dbType: 'hive_database',
       databaseName: 'ambari.hive.db.schema.name',
-      connectionUrl: 'javax.jdo.option.ConnectionURL',
-      fallbackHostName: 'hive_hostname'
+      connectionUrl: 'javax.jdo.option.ConnectionURL'
     },
     OOZIE: {
       dbType: 'oozie_database',
       connectionUrl: 'oozie.service.JPAService.jdbc.url',
-      databaseName: 'oozie.db.schema.name',
-      fallbackHostName: 'oozie_hostname'
+      databaseName: 'oozie.db.schema.name'
     },
     RANGER: {
       dbType: 'DB_FLAVOR',

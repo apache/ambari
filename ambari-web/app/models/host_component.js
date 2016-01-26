@@ -263,6 +263,7 @@ App.HostComponentActionMap = {
     var NN = ctx.get('controller.content.hostComponents').findProperty('componentName', 'NAMENODE');
     var RM = ctx.get('controller.content.hostComponents').findProperty('componentName', 'RESOURCEMANAGER');
     var RA = ctx.get('controller.content.hostComponents').findProperty('componentName', 'RANGER_ADMIN');
+    var HS = ctx.get('controller.content.hostComponents').findProperty('componentName', 'HAWQSTANDBY');
     return {
       RESTART_ALL: {
         action: 'restartAllHostComponents',
@@ -390,6 +391,13 @@ App.HostComponentActionMap = {
         context: ctx.get('serviceName'),
         label: Em.I18n.t('common.delete'),
         cssClass: 'icon-remove'
+      },
+      TOGGLE_ADD_HAWQ_STANDBY: {
+        action: 'addHawqStandby',
+        label: Em.I18n.t('admin.addHawqStandby.button.enable'),
+        cssClass: 'icon-plus',
+        isHidden: App.get('isSingleNode') || HS,
+        disabled: false
       }
     };
   }

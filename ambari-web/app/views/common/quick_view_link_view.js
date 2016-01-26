@@ -512,6 +512,9 @@ App.QuickViewLinks = Em.View.extend({
         publicHostName: App.get('singleNodeAlias')
       }];
     }
+    if (Em.isNone(this.get('content.hostComponents'))) {
+      return [];
+    }
     var hosts = [];
     switch (serviceName) {
       case 'OOZIE':

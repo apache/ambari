@@ -530,7 +530,7 @@ describe('App.WidgetLoadAggregator', function () {
       aggregator.runRequests(requests);
       expect(mock.f1.calledWith(requests.r1.data)).to.be.true;
     });
-    it("view destroyed", function () {
+    it.skip("view destroyed", function () {
       var requests = {
         'r1': {
           data: {

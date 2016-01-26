@@ -169,6 +169,9 @@ App.MainServiceItemView = Em.View.extend({
           case 'RANGER':
             options.push(actionMap.TOGGLE_RA_HA);
             break;
+          case 'HAWQ':
+            options.push(actionMap.TOGGLE_ADD_HAWQ_STANDBY);
+            break;
         }
       }
       if (serviceCheckSupported) {

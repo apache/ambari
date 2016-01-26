@@ -288,6 +288,10 @@
         <task xsi:type="configure" id="hdp_2_4_0_0_webhcat_server_update_configuration_paths"/>
       </execute-stage>
 
+      <execute-stage service="HIVE" component="HIVE_SERVER" title="Apply config changes for Hive Server">
+        <task xsi:type="configure" id="hdp_2_4_0_0_hive_server_configure_authentication"/>
+      </execute-stage>
+
       <!-- OOZIE -->
       <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Apply config changes for Oozie Server">
         <task xsi:type="configure" id="hdp_2_4_0_0_oozie_remove_service_classes" />
@@ -298,6 +302,7 @@
       <execute-stage service="KAFKA" component="KAFKA_BROKER" title="Apply config changes for Kafka">
         <task xsi:type="configure" id ="hdp_2_4_0_0_kafka_broker_listeners"/>
       </execute-stage>
+
 
     </group>
 

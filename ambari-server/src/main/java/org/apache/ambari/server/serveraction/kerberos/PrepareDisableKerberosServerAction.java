@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
+import java.util.regex.Matcher;
 
 /**
  * PrepareEnableKerberosServerAction is a ServerAction implementation that prepares metadata needed
@@ -113,6 +114,29 @@ public class PrepareDisableKerberosServerAction extends AbstractPrepareKerberosS
     }
 
     processServiceComponentHosts(cluster, kerberosDescriptor, schToProcess, identityFilter, dataDirectory, kerberosConfigurations, false);
+
+    // Add auth-to-local configurations to the set of changes
+    Set<String> authToLocalProperties = kerberosDescriptor.getAllAuthToLocalProperties();
+    if(authToLocalProperties != null) {
+      for (String authToLocalProperty : authToLocalProperties) {
+        Matcher m = KerberosDescriptor.AUTH_TO_LOCAL_PROPERTY_SPECIFICATION_PATTERN.matcher(authToLocalProperty);
+
+        if (m.matches()) {
+          String configType = m.group(1);
+          String propertyName = m.group(2);
+
+          if (configType == null) {
+            configType = "";
+          }
+
+          // Add existing auth_to_local configuration, if set
+          Map<String, String> configuration = kerberosConfigurations.get(configType);
+          if (configuration != null) {
+            configuration.put(propertyName, "DEFAULT");
+          }
+        }
+      }
+    }
 
     actionLog.writeStdOut("Determining configuration changes");
     // Ensure the cluster-env/security_enabled flag is set properly

@@ -19,6 +19,7 @@
 package org.apache.ambari.server.controller.metrics;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
@@ -30,6 +31,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.Cluster;
@@ -37,8 +39,12 @@ import org.apache.ambari.server.state.Clusters;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.security.core.context.SecurityContextHolder;
+
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 
 import java.lang.reflect.Field;
 import java.util.Collections;
@@ -63,6 +69,12 @@ public class JMXPropertyProviderTest {
   protected static final String HOST_COMPONENT_STATE_PROPERTY_ID = PropertyHelper.getPropertyId("HostRoles", "state");
 
   public static final int NUMBER_OF_RESOURCES = 400;
+
+  @BeforeClass
+  public static void setupClass() {
+    Injector injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    JMXPropertyProvider.init(injector.getInstance(Configuration.class));
+  }
 
   @Before
   public void setUpCommonMocks() throws AmbariException, NoSuchFieldException, IllegalAccessException {

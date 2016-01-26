@@ -111,9 +111,11 @@ describe('App.InstallerStep7Controller', function () {
   beforeEach(function () {
     sinon.stub(App.config, 'setPreDefinedServiceConfigs', Em.K);
     installerStep7Controller = getController();
+    App.router.nextBtnClickInProgress = false;
   });
 
   afterEach(function() {
+    App.router.nextBtnClickInProgress = false;
     App.config.setPreDefinedServiceConfigs.restore();
     installerStep7Controller.destroy();
   });
@@ -331,6 +333,14 @@ describe('App.InstallerStep7Controller', function () {
       installerStep7Controller.set('isSubmitDisabled',false);
       installerStep7Controller.submit();
       expect(installerStep7Controller.get('submitButtonClicked')).to.be.false;
+    });
+    it('if Next button is clicked multiple times before the next step renders, it must not be processed',function(){
+      installerStep7Controller.submit();
+      expect(App.router.send.calledWith('next')).to.equal(true);
+
+      App.router.send.reset();
+      installerStep7Controller.submit();
+      expect(App.router.send.calledWith('next')).to.equal(false);
     });
   });
 
@@ -1419,8 +1429,9 @@ describe('App.InstallerStep7Controller', function () {
             serviceName: 'HIVE',
             configs: [
               {
-                name: 'hive_hostname',
-                value: 'h0'
+                name: 'javax.jdo.option.ConnectionURL',
+                value: 'jdbc:mysql://h0/db_name?createDatabaseIfNotExist=true',
+                filename: 'hive-site.xml'
               }
             ]
           }
@@ -1439,8 +1450,25 @@ describe('App.InstallerStep7Controller', function () {
             hostComponents: [
               {
                 RootServiceHostComponents: {
+                  host_name: 'h0',
                   properties: {
-                    'server.jdbc.url': 'jdbc:mysql://h0/db0?createDatabaseIfNotExist=true'
+                    'server.jdbc.database': 'postgres'
+                  }
+                }
+              }
+            ]
+          },
+          mySQLServerConflict: false,
+          title: 'Ambari MySQL Server and Hive Server are on the same host but different database types'
+        },
+        {
+          data: {
+            hostComponents: [
+              {
+                RootServiceHostComponents: {
+                  host_name: 'h0',
+                  properties: {
+                    'server.jdbc.database': 'mysql'
                   }
                 }
               }
@@ -1454,8 +1482,9 @@ describe('App.InstallerStep7Controller', function () {
             hostComponents: [
               {
                 RootServiceHostComponents: {
+                  host_name: 'h1',
                   properties: {
-                    'server.jdbc.url': 'jdbc:mysql://h1/db1?createDatabaseIfNotExist=true'
+                    'server.jdbc.database': 'mysql'
                   }
                 }
               }

@@ -241,7 +241,10 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
     #Initialize default 'dfs.datanode.data.dir' if needed
     if (not hdfsSiteProperties) or ('dfs.datanode.data.dir' not in hdfsSiteProperties):
-      putHDFSSiteProperty('dfs.datanode.data.dir', '/hadoop/hdfs/data')
+      dataDirs = '/hadoop/hdfs/data'
+      putHDFSSiteProperty('dfs.datanode.data.dir', dataDirs)
+    else:
+      dataDirs = hdfsSiteProperties['dfs.datanode.data.dir'].split(",")
     #dfs.datanode.du.reserved should be set to 10-15% of volume size
     mountPoints = []
     mountPointDiskAvailableSpace = [] #kBytes
@@ -250,16 +253,15 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         mountPoints.append(diskInfo["mountpoint"])
         mountPointDiskAvailableSpace.append(long(diskInfo["size"]))
     maxFreeVolumeSize = 0l #kBytes
-    dataDirs = hdfsSiteProperties['dfs.datanode.data.dir'].split(",")
     for dataDir in dataDirs:
       mp = getMountPointForDir(dataDir, mountPoints)
       for i in range(len(mountPoints)):
         if mp == mountPoints[i]:
           if mountPointDiskAvailableSpace[i] > maxFreeVolumeSize:
             maxFreeVolumeSize = mountPointDiskAvailableSpace[i]
-      
+
     putHDFSSiteProperty('dfs.datanode.du.reserved', maxFreeVolumeSize * 1024 / 8) #Bytes
-    
+
     # recommendations for "hadoop.proxyuser.*.hosts", "hadoop.proxyuser.*.groups" properties in core-site
     self.recommendHadoopProxyUsers(configurations, services, hosts)
 
@@ -1420,6 +1422,20 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       if service not in parentValidators:
         parentValidators[service] = {}
       parentValidators[service].update(configsDict)
+
+  def checkSiteProperties(self, siteProperties, *propertyNames):
+    """
+    Check if properties defined in site properties.
+    :param siteProperties: config properties dict
+    :param *propertyNames: property names to validate
+    :returns: True if all properties defined, in other cases returns False
+    """
+    if siteProperties is None:
+      return False
+    for name in propertyNames:
+      if not (name in siteProperties):
+        return False
+    return True
 
 def getOldValue(self, services, configType, propertyName):
   if services:

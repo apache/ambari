@@ -82,12 +82,13 @@ module.exports = App.WizardRoute.extend({
                   break;
                 case 'ADD_SERVICES_INSTALLING_3' :
                 case 'SERVICE_STARTING_3' :
-                  addServiceController.setCurrentStep('6');
-                  break;
                 case 'ADD_SERVICES_INSTALLED_4' :
                   addServiceController.setCurrentStep('7');
                   break;
                 default:
+                  if(App.db.data.AddService.currentStep != undefined) {
+                    addServiceController.setCurrentStep(App.db.data.AddService.currentStep);
+                  }
                   break;
               }
             }
