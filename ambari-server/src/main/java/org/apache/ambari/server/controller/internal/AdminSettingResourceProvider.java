@@ -32,9 +32,12 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.AdminSettingDAO;
 import org.apache.ambari.server.orm.entities.AdminSettingEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -48,6 +51,7 @@ import java.util.Set;
  */
 @StaticallyInject
 public class AdminSettingResourceProvider extends AbstractAuthorizedResourceProvider {
+
   protected static final String ID = "id";
   protected static final String ADMINSETTING = "AdminSetting";
   protected static final String ADMINSETTING_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("AdminSettings", "name");
@@ -89,6 +93,10 @@ public class AdminSettingResourceProvider extends AbstractAuthorizedResourceProv
 
   protected AdminSettingResourceProvider() {
     super(propertyIds, keyPropertyIds);
+    EnumSet<RoleAuthorization> requiredAuthorizations = EnumSet.of(RoleAuthorization.AMBARI_MANAGE_ADMIN_SETTINGS);
+    setRequiredCreateAuthorizations(requiredAuthorizations);
+    setRequiredDeleteAuthorizations(requiredAuthorizations);
+    setRequiredUpdateAuthorizations(requiredAuthorizations);
   }
 
   @Override
@@ -96,9 +104,8 @@ public class AdminSettingResourceProvider extends AbstractAuthorizedResourceProv
     return new HashSet<>(keyPropertyIds.values());
   }
 
-  //TODO : add RBAC as part of https://issues.apache.org/jira/browse/AMBARI-14728.
   @Override
-  public RequestStatus createResources(Request request)
+  public RequestStatus createResourcesAuthorized(Request request)
           throws NoSuchParentResourceException, ResourceAlreadyExistsException, SystemException {
     Set<Resource> associatedResources = new HashSet<>();
 
@@ -113,7 +120,7 @@ public class AdminSettingResourceProvider extends AbstractAuthorizedResourceProv
   }
 
   @Override
-  public Set<Resource> getResources(Request request, Predicate predicate) throws NoSuchResourceException {
+  public Set<Resource> getResourcesAuthorized(Request request, Predicate predicate) throws NoSuchResourceException {
     List<AdminSettingEntity> entities = new LinkedList<>();
     final Set<Map<String, Object>> propertyMaps = getPropertyMaps(predicate);
     if (propertyMaps.isEmpty()) {
@@ -141,14 +148,14 @@ public class AdminSettingResourceProvider extends AbstractAuthorizedResourceProv
   }
 
   @Override
-  public RequestStatus updateResources(Request request, Predicate predicate)
+  public RequestStatus updateResourcesAuthorized(Request request, Predicate predicate)
           throws NoSuchResourceException, NoSuchParentResourceException, SystemException {
     modifyResources(newUpdateCommand(request));
     return getRequestStatus(null);
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate) {
+  public RequestStatus deleteResourcesAuthorized(Predicate predicate) {
     final Set<Map<String, Object>> propertyMaps = getPropertyMaps(predicate);
     for (Map<String, Object> propertyMap : propertyMaps) {
       if (propertyMap.containsKey(ADMINSETTING_NAME_PROPERTY_ID)) {
@@ -206,10 +213,7 @@ public class AdminSettingResourceProvider extends AbstractAuthorizedResourceProv
       entity.setSettingType(propertyMap.get(ADMINSETTING_SETTING_TYPE_PROPERTY_ID).toString());
     }
 
-    if (StringUtils.isNotBlank(ObjectUtils.toString(propertyMap.get(ADMINSETTING_UPDATED_BY_PROPERTY_ID)))) {
-      entity.setUpdatedBy(propertyMap.get(ADMINSETTING_UPDATED_BY_PROPERTY_ID).toString());
-    }
-
+    entity.setUpdatedBy(AuthorizationHelper.getAuthenticatedName());
     entity.setUpdateTimestamp(System.currentTimeMillis());
   }
 
@@ -234,7 +238,7 @@ public class AdminSettingResourceProvider extends AbstractAuthorizedResourceProv
     entity.setName(properties.get(ADMINSETTING_NAME_PROPERTY_ID).toString());
     entity.setSettingType(properties.get(ADMINSETTING_SETTING_TYPE_PROPERTY_ID).toString());
     entity.setContent(properties.get(ADMINSETTING_CONTENT_PROPERTY_ID).toString());
-    entity.setUpdatedBy(properties.get(ADMINSETTING_UPDATED_BY_PROPERTY_ID).toString());
+    entity.setUpdatedBy(AuthorizationHelper.getAuthenticatedName());
     entity.setUpdateTimestamp(System.currentTimeMillis());
     return entity;
   }

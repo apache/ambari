@@ -26,12 +26,16 @@ import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.AdminSettingDAO;
 import org.apache.ambari.server.orm.entities.AdminSettingEntity;
+import org.apache.ambari.server.security.TestAuthenticationFactory;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.commons.lang.RandomStringUtils;
 import org.easymock.Capture;
 import org.easymock.IMocksControl;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.lang.reflect.Field;
 import java.util.Collections;
@@ -53,14 +57,13 @@ import static org.junit.Assert.assertEquals;
 
 public class AdminSettingResourceProviderTest {
   IMocksControl mockControl;
-  Request request;
   AdminSettingDAO dao;
   AdminSettingResourceProvider resourceProvider;
+
 
   @Before
   public void setUp() throws Exception {
     mockControl = createControl();
-    request = mockControl.createMock(Request.class);
     dao = mockControl.createMock(AdminSettingDAO.class);
     resourceProvider = new AdminSettingResourceProvider();
     setPrivateField(resourceProvider, "dao", dao);
@@ -69,33 +72,53 @@ public class AdminSettingResourceProviderTest {
   @After
   public void tearDown() {
     mockControl.verify();
+    SecurityContextHolder.getContext().setAuthentication(null);
     mockControl.reset();
   }
 
+  @Test(expected = AuthorizationException.class)
+  public void testGetResources_instance_noAuth() throws Exception {
+    getResources_instance(newEntity("motd"), readRequest());
+  }
+
   @Test
-  public void testGetResources_instance() throws Exception {
+  public void testGetResources_instance_clusterUser() throws Exception {
+    setupAuthenticationForClusterUser();
     String name = "motd";
     AdminSettingEntity entity = newEntity(name);
-    Request request = PropertyHelper.getReadRequest(
-            ADMINSETTING_NAME_PROPERTY_ID,
-            ADMINSETTING_CONTENT_PROPERTY_ID,
-            ADMINSETTING_SETTING_TYPE_PROPERTY_ID,
-            ADMINSETTING_UPDATED_BY_PROPERTY_ID,
-            ADMINSETTING_UPDATE_TIMESTAMP_PROPERTY_ID);
 
-    PredicateBuilder pb = new PredicateBuilder();
-    Predicate predicate = pb.begin().property(ADMINSETTING_NAME_PROPERTY_ID).equals(name).end().toPredicate();
-
-    expect(dao.findByName(name)).andReturn(entity).anyTimes();
-    mockControl.replay();
-    Set<Resource> response = resourceProvider.getResources(request, predicate);
+    Set<Resource> response = getResources_instance(entity, readRequest());
     assertEquals(1, response.size());
     Resource resource = response.iterator().next();
     assertEqualsEntityAndResource(entity, resource);
   }
 
   @Test
-  public void testGetResources_collection() throws Exception {
+  public void testGetResources_instance_admin() throws Exception {
+    setupAuthenticationForAdmin();
+    AdminSettingEntity entity = newEntity("motd");
+    Set<Resource> response = getResources_instance(entity, readRequest());
+    assertEquals(1, response.size());
+    Resource resource = response.iterator().next();
+    assertEqualsEntityAndResource(entity, resource);
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testGetResources_collection_noAuth() throws Exception {
+    mockControl.replay();
+    Request request = PropertyHelper.getReadRequest(
+            ADMINSETTING_NAME_PROPERTY_ID,
+            ADMINSETTING_CONTENT_PROPERTY_ID,
+            ADMINSETTING_SETTING_TYPE_PROPERTY_ID,
+            ADMINSETTING_UPDATED_BY_PROPERTY_ID,
+            ADMINSETTING_UPDATE_TIMESTAMP_PROPERTY_ID);
+    resourceProvider.getResources(request, null);
+  }
+
+  @Test
+  public void testGetResources_collection_clusterUser() throws Exception {
+    setupAuthenticationForClusterUser();
+
     AdminSettingEntity entity1 = newEntity("motd");
     AdminSettingEntity entity2 = newEntity("ldap");
     Request request = PropertyHelper.getReadRequest(
@@ -107,57 +130,105 @@ public class AdminSettingResourceProviderTest {
 
     expect(dao.findAll()).andReturn(Lists.newArrayList(entity1, entity2));
     mockControl.replay();
+
     Set<Resource> response = resourceProvider.getResources(request, null);
     assertEquals(2, response.size());
-
     Map<Object, Resource> resourceMap = new HashMap<>();
     Iterator<Resource> resourceIterator = response.iterator();
     Resource nextResource = resourceIterator.next();
     resourceMap.put(nextResource.getPropertyValue(ADMINSETTING_NAME_PROPERTY_ID), nextResource);
     nextResource = resourceIterator.next();
     resourceMap.put(nextResource.getPropertyValue(ADMINSETTING_NAME_PROPERTY_ID), nextResource);
-
     assertEqualsEntityAndResource(entity1, resourceMap.get(entity1.getName()));
     assertEqualsEntityAndResource(entity2, resourceMap.get(entity2.getName()));
   }
 
   @Test
-  public void testCreateResource() throws Exception {
+  public void testGetResources_collection_admin() throws Exception {
+    setupAuthenticationForAdmin();
+
+    AdminSettingEntity entity1 = newEntity("motd");
+    AdminSettingEntity entity2 = newEntity("ldap");
+    Request request = PropertyHelper.getReadRequest(
+            ADMINSETTING_NAME_PROPERTY_ID,
+            ADMINSETTING_CONTENT_PROPERTY_ID,
+            ADMINSETTING_SETTING_TYPE_PROPERTY_ID,
+            ADMINSETTING_UPDATED_BY_PROPERTY_ID,
+            ADMINSETTING_UPDATE_TIMESTAMP_PROPERTY_ID);
+    expect(dao.findAll()).andReturn(Lists.newArrayList(entity1, entity2));
+    mockControl.replay();
+
+    Set<Resource> response = resourceProvider.getResources(request, null);
+    assertEquals(2, response.size());
+    Map<Object, Resource> resourceMap = new HashMap<>();
+    Iterator<Resource> resourceIterator = response.iterator();
+    Resource nextResource = resourceIterator.next();
+    resourceMap.put(nextResource.getPropertyValue(ADMINSETTING_NAME_PROPERTY_ID), nextResource);
+    nextResource = resourceIterator.next();
+    resourceMap.put(nextResource.getPropertyValue(ADMINSETTING_NAME_PROPERTY_ID), nextResource);
+    assertEqualsEntityAndResource(entity1, resourceMap.get(entity1.getName()));
+    assertEqualsEntityAndResource(entity2, resourceMap.get(entity2.getName()));
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResource_noAuth() throws Exception {
+    mockControl.replay();
+    resourceProvider.createResources(createRequest(newEntity("moted")));
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResource_clusterUser() throws Exception {
+    setupAuthenticationForClusterUser();
+    mockControl.replay();
+    resourceProvider.createResources(createRequest(newEntity("motd")));
+  }
+
+  @Test
+  public void testCreateResource_admin() throws Exception {
+    setupAuthenticationForAdmin();
     AdminSettingEntity entity = newEntity("motd");
-    Map<String, Object> properties = new HashMap<>();
-    properties.put(ADMINSETTING_NAME_PROPERTY_ID, entity.getName());
-    properties.put(ADMINSETTING_CONTENT_PROPERTY_ID, entity.getContent());
-    properties.put(ADMINSETTING_UPDATED_BY_PROPERTY_ID, entity.getUpdatedBy());
-    properties.put(ADMINSETTING_SETTING_TYPE_PROPERTY_ID, entity.getSettingType());
     Capture<AdminSettingEntity> entityCapture = Capture.newInstance();
-    Request request = PropertyHelper.getCreateRequest(Collections.singleton(properties), null);
+    Request request = createRequest(entity);
 
     dao.create(capture(entityCapture));
     mockControl.replay();
 
     RequestStatus response = resourceProvider.createResources(request);
-    AdminSettingEntity capturedEntity = entityCapture.getValue();
     assertEquals(RequestStatus.Status.Complete, response.getStatus());
     Set<Resource> associatedResources = response.getAssociatedResources();
     assertEquals(1, associatedResources.size());
+    AdminSettingEntity capturedEntity = entityCapture.getValue();
     assertEquals(entity.getName(), capturedEntity.getName());
     assertEquals(entity.getContent(), capturedEntity.getContent());
     assertEquals(entity.getSettingType(), capturedEntity.getSettingType());
-    assertEquals(entity.getUpdatedBy(), capturedEntity.getUpdatedBy());
+    assertEquals(AuthorizationHelper.getAuthenticatedName(), capturedEntity.getUpdatedBy());
   }
 
+
+  @Test(expected = AuthorizationException.class)
+  public void testUpdateResources_noAuth() throws Exception {
+    mockControl.replay();
+    resourceProvider.updateResources(updateRequest(newEntity("motd")), null);
+  }
+
+
+  @Test(expected = AuthorizationException.class)
+  public void testUpdateResources_clusterUser() throws Exception {
+    setupAuthenticationForClusterUser();
+    mockControl.replay();
+    resourceProvider.updateResources(updateRequest(newEntity("motd")), null);
+  }
+
+
   @Test
-  public void testUpdateResources() throws Exception {
+  public void testUpdateResources_admin() throws Exception {
+    setupAuthenticationForAdmin();
     String name = "motd";
     AdminSettingEntity oldEntity = newEntity(name);
     AdminSettingEntity updatedEntity = oldEntity.clone();
     updatedEntity.setContent("{text}");
     updatedEntity.setSettingType("new-type");
-    Map<String, Object> properties = new HashMap<>();
-    properties.put(ADMINSETTING_NAME_PROPERTY_ID, name);
-    properties.put(ADMINSETTING_CONTENT_PROPERTY_ID, updatedEntity.getContent());
-    properties.put(ADMINSETTING_SETTING_TYPE_PROPERTY_ID, updatedEntity.getSettingType());
-    Request request = PropertyHelper.getUpdateRequest(properties, null);
+
     PredicateBuilder pb = new PredicateBuilder();
     Predicate predicate = pb.begin().property(ADMINSETTING_NAME_PROPERTY_ID).equals(name).end().toPredicate();
     Capture<AdminSettingEntity> capture = Capture.newInstance();
@@ -166,24 +237,85 @@ public class AdminSettingResourceProviderTest {
     expect(dao.merge(capture(capture))).andReturn(updatedEntity);
     mockControl.replay();
 
-    RequestStatus response = resourceProvider.updateResources(request, predicate);
+    RequestStatus response = resourceProvider.updateResources(updateRequest(updatedEntity), predicate);
     AdminSettingEntity capturedEntity = capture.getValue();
     assertEquals(RequestStatus.Status.Complete, response.getStatus());
     assertEquals(updatedEntity.getId(), capturedEntity.getId());
     assertEquals(updatedEntity.getName(), capturedEntity.getName());
     assertEquals(updatedEntity.getSettingType(), capturedEntity.getSettingType());
     assertEquals(updatedEntity.getContent(), capturedEntity.getContent());
-    assertEquals(updatedEntity.getUpdatedBy(), capturedEntity.getUpdatedBy());
+    assertEquals(AuthorizationHelper.getAuthenticatedName(), capturedEntity.getUpdatedBy());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testDeleteResources_noAuth() throws Exception {
+    mockControl.replay();
+    resourceProvider.deleteResources(null);
+  }
+
+
+  @Test(expected = AuthorizationException.class)
+  public void testDeleteResources_clusterUser() throws Exception {
+    setupAuthenticationForClusterUser();
+    mockControl.replay();
+    resourceProvider.deleteResources(null);
   }
 
   @Test
   public void testDeleteResources() throws Exception {
+    setupAuthenticationForAdmin();
+
     String name = "motd";
     PredicateBuilder pb = new PredicateBuilder();
     Predicate predicate = pb.begin().property(ADMINSETTING_NAME_PROPERTY_ID).equals(name).end().toPredicate();
     dao.removeByName(name);
     mockControl.replay();
     resourceProvider.deleteResources(predicate);
+  }
+
+  private Set<Resource> getResources_instance(AdminSettingEntity entity, Request request) throws Exception {
+    String name = entity.getName();
+    PredicateBuilder pb = new PredicateBuilder();
+    Predicate predicate = pb.begin().property(ADMINSETTING_NAME_PROPERTY_ID).equals(name).end().toPredicate();
+
+    expect(dao.findByName(name)).andReturn(entity).anyTimes();
+    mockControl.replay();
+    return resourceProvider.getResources(request, predicate);
+  }
+
+
+  private Request readRequest() {
+    return PropertyHelper.getReadRequest(
+            ADMINSETTING_NAME_PROPERTY_ID,
+            ADMINSETTING_CONTENT_PROPERTY_ID,
+            ADMINSETTING_SETTING_TYPE_PROPERTY_ID,
+            ADMINSETTING_UPDATED_BY_PROPERTY_ID,
+            ADMINSETTING_UPDATE_TIMESTAMP_PROPERTY_ID);
+  }
+
+  private Request createRequest(AdminSettingEntity entity) {
+    Map<String, Object> properties = new HashMap<>();
+    properties.put(ADMINSETTING_NAME_PROPERTY_ID, entity.getName());
+    properties.put(ADMINSETTING_CONTENT_PROPERTY_ID, entity.getContent());
+    properties.put(ADMINSETTING_UPDATED_BY_PROPERTY_ID, entity.getUpdatedBy());
+    properties.put(ADMINSETTING_SETTING_TYPE_PROPERTY_ID, entity.getSettingType());
+    return PropertyHelper.getCreateRequest(Collections.singleton(properties), null);
+  }
+
+  private Request updateRequest(AdminSettingEntity entity) {
+    Map<String, Object> properties = new HashMap<>();
+    properties.put(ADMINSETTING_NAME_PROPERTY_ID, entity.getName());
+    properties.put(ADMINSETTING_CONTENT_PROPERTY_ID, entity.getContent());
+    properties.put(ADMINSETTING_SETTING_TYPE_PROPERTY_ID, entity.getSettingType());
+    return PropertyHelper.getUpdateRequest(properties, null);
+  }
+
+  private void setupAuthenticationForClusterUser() {
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createClusterUser());
+  }
+
+  private void setupAuthenticationForAdmin() {
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
   }
 
   private AdminSettingEntity newEntity(String name) {
