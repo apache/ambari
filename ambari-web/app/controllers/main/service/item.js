@@ -903,23 +903,28 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   }.property('content.serviceName'),
 
   enableHighAvailability: function() {
-    var ability_controller = App.router.get('mainAdminHighAvailabilityController');
-    ability_controller.enableHighAvailability();
+    var highAvailabilityController = App.router.get('mainAdminHighAvailabilityController');
+    highAvailabilityController.enableHighAvailability();
   },
 
   disableHighAvailability: function() {
-    var ability_controller = App.router.get('mainAdminHighAvailabilityController');
-    ability_controller.disableHighAvailability();
+    var highAvailabilityController = App.router.get('mainAdminHighAvailabilityController');
+    highAvailabilityController.disableHighAvailability();
   },
 
   enableRMHighAvailability: function() {
-    var ability_controller = App.router.get('mainAdminHighAvailabilityController');
-    ability_controller.enableRMHighAvailability();
+    var highAvailabilityController = App.router.get('mainAdminHighAvailabilityController');
+    highAvailabilityController.enableRMHighAvailability();
+  },
+
+  addHawqStandby: function() {
+    var highAvailabilityController = App.router.get('mainAdminHighAvailabilityController');
+    highAvailabilityController.addHawqStandby();
   },
 
   enableRAHighAvailability: function() {
-    var ability_controller = App.router.get('mainAdminHighAvailabilityController');
-    ability_controller.enableRAHighAvailability();
+    var highAvailabilityController = App.router.get('mainAdminHighAvailabilityController');
+    highAvailabilityController.enableRAHighAvailability();
   },
 
   downloadClientConfigs: function (event) {

@@ -307,7 +307,7 @@ App.AssignMasterComponents = Em.Mixin.create({
 
   /**
    * Update submit button status
-   * @metohd updateIsSubmitDisabled
+   * @method updateIsSubmitDisabled
    */
   updateIsSubmitDisabled: function () {
 
