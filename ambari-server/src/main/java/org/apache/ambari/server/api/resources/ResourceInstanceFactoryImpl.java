@@ -412,6 +412,10 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new SimpleResourceDefinition(Resource.Type.AdminSetting, "admin-setting", "admin-settings");
         break;
 
+      case VersionDefinition:
+        resourceDefinition = new VersionDefinitionResourceDefinition();
+        break;
+
       default:
         throw new IllegalArgumentException("Unsupported resource type: " + type);
     }

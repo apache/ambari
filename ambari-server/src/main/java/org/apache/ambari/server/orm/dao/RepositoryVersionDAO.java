@@ -144,7 +144,7 @@ public class RepositoryVersionDAO extends CrudDAO<RepositoryVersionEntity, Long>
    * @throws AmbariException
    */
   public RepositoryVersionEntity create(StackEntity stackEntity,
-      String version, String displayName, 
+      String version, String displayName,
       String operatingSystems) throws AmbariException {
       return create(stackEntity, version, displayName, operatingSystems,
           RepositoryType.STANDARD);
@@ -163,7 +163,7 @@ public class RepositoryVersionDAO extends CrudDAO<RepositoryVersionEntity, Long>
    */
   @Transactional
   public RepositoryVersionEntity create(StackEntity stackEntity,
-      String version, String displayName, 
+      String version, String displayName,
       String operatingSystems, RepositoryType type) throws AmbariException {
 
     if (stackEntity == null || version == null || version.isEmpty()
@@ -195,5 +195,17 @@ public class RepositoryVersionDAO extends CrudDAO<RepositoryVersionEntity, Long>
     newEntity.setType(type);
     this.create(newEntity);
     return newEntity;
+  }
+
+  /**
+   * Retrieves repository version when they are loaded by a version definition file
+   *
+   * @return a list of entities, or an empty list when there are none
+   */
+  @RequiresSession
+  public List<RepositoryVersionEntity> findAllDefinitions() {
+    final TypedQuery<RepositoryVersionEntity> query = entityManagerProvider.get().createNamedQuery(
+        "repositoryVersionsFromDefinition", RepositoryVersionEntity.class);
+    return daoUtils.selectList(query);
   }
 }

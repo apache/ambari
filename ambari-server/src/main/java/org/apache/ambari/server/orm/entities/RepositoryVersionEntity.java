@@ -44,6 +44,7 @@ import javax.persistence.UniqueConstraint;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.repository.Release;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.commons.lang.StringUtils;
@@ -68,7 +69,8 @@ import com.google.inject.Provider;
 @NamedQueries({
     @NamedQuery(name = "repositoryVersionByDisplayName", query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.displayName=:displayname"),
     @NamedQuery(name = "repositoryVersionByStack", query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.stack.stackName=:stackName AND repoversion.stack.stackVersion=:stackVersion"),
-        @NamedQuery(name = "repositoryVersionByStackNameAndVersion", query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.stack.stackName=:stackName AND repoversion.version=:version")
+    @NamedQuery(name = "repositoryVersionByStackNameAndVersion", query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.stack.stackName=:stackName AND repoversion.version=:version"),
+    @NamedQuery(name = "repositoryVersionsFromDefinition", query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.versionXsd IS NOT NULL")
 })
 @StaticallyInject
 public class RepositoryVersionEntity {
@@ -194,6 +196,19 @@ public class RepositoryVersionEntity {
   public void setDisplayName(String displayName) {
     this.displayName = displayName;
   }
+
+  /**
+   * @param stackId the stack id for the version
+   * @param release the XML release instance
+   */
+  public void setDisplayName(StackId stackId, Release release) {
+    if (StringUtils.isNotBlank(release.display)) {
+      displayName = release.display;
+    } else {
+      displayName = stackId.getStackName() + "-" + release.getFullVersion();
+    }
+  }
+
 
   public String getOperatingSystemsJson() {
     return operatingSystems;

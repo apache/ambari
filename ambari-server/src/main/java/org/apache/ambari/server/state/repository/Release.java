@@ -23,6 +23,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.apache.ambari.server.state.RepositoryType;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * Release information for a repository.
@@ -66,5 +67,24 @@ public class Release {
    */
   @XmlElement(name="release-notes")
   public String releaseNotes;
+
+  /**
+   * The optional display name
+   */
+  @XmlElement(name="display")
+  public String display;
+
+  /**
+   * @return the full version
+   */
+  public String getFullVersion() {
+    StringBuilder sb = new StringBuilder(version);
+
+    if (StringUtils.isNotBlank(build)) {
+      sb.append('-').append(StringUtils.trim(build));
+    }
+
+    return sb.toString();
+  }
 
 }

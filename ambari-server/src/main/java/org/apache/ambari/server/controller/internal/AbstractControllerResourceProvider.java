@@ -219,7 +219,8 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
         return new RoleAuthorizationResourceProvider(managementController);
       case UserAuthorization:
         return new UserAuthorizationResourceProvider(managementController);
-
+      case VersionDefinition:
+        return new VersionDefinitionResourceProvider();
       default:
         throw new IllegalArgumentException("Unknown type " + type);
     }

@@ -33,6 +33,7 @@ import org.apache.ambari.server.controller.ResourceProviderFactory;
 import org.apache.ambari.server.controller.predicate.AndPredicate;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
@@ -283,12 +284,12 @@ public class RepositoryVersionResourceProviderTest {
 
     File file = new File("src/test/resources/version_definition_resource_provider.xml");
 
+    final ResourceProvider versionProvider = new VersionDefinitionResourceProvider();
     final ResourceProvider provider = injector.getInstance(ResourceProviderFactory.class).getRepositoryVersionResourceProvider();
 
     final Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
     final Map<String, Object> properties = new LinkedHashMap<String, Object>();
-    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID, "name");
-    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_DEFINITION_URL, file.toURI().toURL().toString());
+    properties.put(VersionDefinitionResourceProvider.VERSION_DEF_DEFINITION_URL, file.toURI().toURL().toString());
     propertySet.add(properties);
 
     final Predicate predicateStackName = new PredicateBuilder().property(RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID).equals("HDP").toPredicate();
@@ -297,9 +298,14 @@ public class RepositoryVersionResourceProviderTest {
     Assert.assertEquals(0, provider.getResources(getRequest, new AndPredicate(predicateStackName, predicateStackVersion)).size());
 
     final Request createRequest = PropertyHelper.getCreateRequest(propertySet, null);
-    provider.createResources(createRequest);
+    RequestStatus status = versionProvider.createResources(createRequest);
+    Assert.assertEquals(1, status.getAssociatedResources().size());
 
-    Set<Resource> results = provider.getResources(getRequest, new AndPredicate(predicateStackName, predicateStackVersion));
+    getRequest = PropertyHelper.getReadRequest("VersionDefinition");
+    Set<Resource> results = versionProvider.getResources(getRequest, null);
+    Assert.assertEquals(1, results.size());
+
+    results = provider.getResources(getRequest, new AndPredicate(predicateStackName, predicateStackVersion));
     Assert.assertEquals(1, results.size());
 
     getRequest = PropertyHelper.getReadRequest(
@@ -374,36 +380,37 @@ public class RepositoryVersionResourceProviderTest {
     StackEntity stackEntity = stackDAO.find("HDP", "1.1");
     Assert.assertNotNull(stackEntity);
 
-    final RepositoryVersionResourceProvider provider = (RepositoryVersionResourceProvider) injector.getInstance(ResourceProviderFactory.class).getRepositoryVersionResourceProvider();
-
     final RepositoryVersionEntity entity = new RepositoryVersionEntity();
     entity.setDisplayName("name");
     entity.setStack(stackEntity);
     entity.setVersion("1.1");
     entity.setOperatingSystems("[{\"OperatingSystems/os_type\":\"redhat6\",\"repositories\":[{\"Repositories/repo_id\":\"1\",\"Repositories/repo_name\":\"1\",\"Repositories/base_url\":\"http://example.com/repo1\"}]}]");
 
+    final RepositoryVersionDAO repositoryVersionDAO = injector.getInstance(RepositoryVersionDAO.class);
+    AmbariMetaInfo info = injector.getInstance(AmbariMetaInfo.class);
+
     // test valid usecases
-    provider.validateRepositoryVersion(entity);
+    RepositoryVersionResourceProvider.validateRepositoryVersion(repositoryVersionDAO, info, entity);
     entity.setVersion("1.1-17");
-    provider.validateRepositoryVersion(entity);
+    RepositoryVersionResourceProvider.validateRepositoryVersion(repositoryVersionDAO, info, entity);
     entity.setVersion("1.1.1.1");
-    provider.validateRepositoryVersion(entity);
+    RepositoryVersionResourceProvider.validateRepositoryVersion(repositoryVersionDAO, info, entity);
     entity.setVersion("1.1.343432.2");
-    provider.validateRepositoryVersion(entity);
+    RepositoryVersionResourceProvider.validateRepositoryVersion(repositoryVersionDAO, info, entity);
     entity.setVersion("1.1.343432.2-234234324");
-    provider.validateRepositoryVersion(entity);
+    RepositoryVersionResourceProvider.validateRepositoryVersion(repositoryVersionDAO, info, entity);
 
     // test invalid usecases
     entity.setOperatingSystems(jsonStringRedhat7);
     try {
-      provider.validateRepositoryVersion(entity);
+      RepositoryVersionResourceProvider.validateRepositoryVersion(repositoryVersionDAO, info, entity);
       Assert.fail("Should throw exception");
     } catch (Exception ex) {
     }
 
     entity.setOperatingSystems("");
     try {
-      provider.validateRepositoryVersion(entity);
+      RepositoryVersionResourceProvider.validateRepositoryVersion(repositoryVersionDAO, info, entity);
       Assert.fail("Should throw exception");
     } catch (Exception ex) {
     }
@@ -412,12 +419,12 @@ public class RepositoryVersionResourceProviderTest {
     stackEntity.setStackName("BIGTOP");
     entity.setStack(bigtop);
     try {
-      provider.validateRepositoryVersion(entity);
+      RepositoryVersionResourceProvider.validateRepositoryVersion(repositoryVersionDAO, info, entity);
       Assert.fail("Should throw exception");
     } catch (Exception ex) {
     }
 
-    final RepositoryVersionDAO repositoryVersionDAO = injector.getInstance(RepositoryVersionDAO.class);
+
     entity.setDisplayName("name");
     entity.setStack(stackEntity);
     entity.setVersion("1.1");
@@ -432,7 +439,7 @@ public class RepositoryVersionResourceProviderTest {
     entity2.setOperatingSystems("[{\"OperatingSystems/os_type\":\"redhat6\",\"repositories\":[{\"Repositories/repo_id\":\"1\",\"Repositories/repo_name\":\"1\",\"Repositories/base_url\":\"http://example.com/repo1\"}]}]");
 
     try {
-      provider.validateRepositoryVersion(entity2);
+      RepositoryVersionResourceProvider.validateRepositoryVersion(repositoryVersionDAO, info, entity2);
       Assert.fail("Should throw exception: Base url http://example.com/repo1 is already defined for another repository version");
     } catch (Exception ex) {
     }

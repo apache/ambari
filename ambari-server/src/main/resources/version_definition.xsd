@@ -33,6 +33,7 @@
      <xs:element name="build" type="xs:string" />
      <xs:element name="compatible-with" type="xs:string" minOccurs="0" maxOccurs="1" />
      <xs:element name="release-notes" type="xs:string" maxOccurs="1" />
+     <xs:element name="display" type="xs:string" minOccurs="0" />
     </xs:all>
   </xs:complexType>
   

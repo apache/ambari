@@ -150,7 +150,8 @@ public interface Resource {
     Credential,
     KerberosDescriptor,
     RoleAuthorization,
-    UserAuthorization;
+    UserAuthorization,
+    VersionDefinition;
 
     /**
      * Get the {@link Type} that corresponds to this InternalType.
@@ -262,6 +263,7 @@ public interface Resource {
     public static final Type KerberosDescriptor = InternalType.KerberosDescriptor.getType();
     public static final Type RoleAuthorization = InternalType.RoleAuthorization.getType();
     public static final Type UserAuthorization = InternalType.UserAuthorization.getType();
+    public static final Type VersionDefinition = InternalType.VersionDefinition.getType();
 
     /**
      * The type name.
