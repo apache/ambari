@@ -199,15 +199,16 @@ App.MainServiceItemView = Em.View.extend({
         var hawqMasterCustomCommands = hawqMasterComponent.get('customCommands');
         customCommandToStopCluster = 'IMMEDIATE_STOP_CLUSTER';
         if (hawqMasterCustomCommands && hawqMasterCustomCommands.contains(customCommandToStopCluster)) {
-        options.push(self.createOption(actionMap.IMMEDIATE_STOP_CLUSTER, {
-          label: Em.I18n.t('services.service.actions.run.immediateStopHawqCluster.context'),
-          context: {
+          options.push(self.createOption(actionMap.IMMEDIATE_STOP_CLUSTER, {
             label: Em.I18n.t('services.service.actions.run.immediateStopHawqCluster.context'),
-            service: hawqMasterComponent.get('serviceName'),
-            component: hawqMasterComponent.get('componentName'),
-            command: customCommandToStopCluster
-          }
-        })) };
+            context: {
+              label: Em.I18n.t('services.service.actions.run.immediateStopHawqCluster.context'),
+              service: hawqMasterComponent.get('serviceName'),
+              component: hawqMasterComponent.get('componentName'),
+              command: customCommandToStopCluster
+            }
+          }));
+        }
       }
 
       self.addActionMap().filterProperty('service', serviceName).forEach(function(item) {
