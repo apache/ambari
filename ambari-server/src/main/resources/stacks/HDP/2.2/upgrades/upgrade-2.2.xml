@@ -112,8 +112,8 @@
     <group name="CORE_MASTER" title="Core Masters">
       <service-check>false</service-check>
       <service name="HDFS">
-        <component>JOURNALNODE</component>
         <component>NAMENODE</component>
+        <component>JOURNALNODE</component>
         <component>ZKFC</component>
       </service>
 
