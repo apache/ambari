@@ -2307,9 +2307,10 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   },
 
   toggleMaintenanceMode: function (event) {
-    var self = this;
-    var state = event.context.get('passiveState') === "ON" ? "OFF" : "ON";
-    var message = Em.I18n.t('passiveState.turn' + state.toCapital() + 'For').format(event.context.get('displayName'));
+    var state, message, self = this;
+    if (event.context.get('isImpliedState')) return null;
+    state = event.context.get('passiveState') === "ON" ? "OFF" : "ON";
+    message = Em.I18n.t('passiveState.turn' + state.toCapital() + 'For').format(event.context.get('displayName'));
     return App.showConfirmationPopup(function () {
       self.updateComponentPassiveState(event.context, state, message);
     });

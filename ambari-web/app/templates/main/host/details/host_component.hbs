@@ -105,7 +105,8 @@
             {{/isAuthorized}}
           {{/if}}
           {{#isAuthorized "HOST.TOGGLE_MAINTENANCE"}}
-            <li {{bindAttr class="view.noActionAvailable"}}>
+            <li {{bindAttr class="view.noActionAvailable view.content.isImpliedState:disabled :allow-tooltip"}}
+              {{bindAttr data-original-title="view.maintenanceTooltip"}} rel="passiveTooltip" >
             <a href="javascript:void(null)"
                data-toggle="modal" {{action "toggleMaintenanceMode" view.content target="controller"}}>
               {{#if view.isActive}}

@@ -601,7 +601,7 @@ computed.ltProperties = function (dependentKey1, dependentKey2) {
  * <pre>
  * var o = Em.Object.create({
  *  p1: 'abc',
- *  p2: Em.computed.lteProperties('p1', /^a/)
+ *  p2: Em.computed.match('p1', /^a/)
  * });
  * console.log(o.get('p2')); // true
  * o.set('p1', 'bc');

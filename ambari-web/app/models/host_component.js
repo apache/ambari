@@ -113,6 +113,12 @@ App.HostComponent = DS.Model.extend({
    */
   isActive: Em.computed.equal('passiveState', 'OFF'),
 
+  /**
+   * Determine if passiveState is implied from host or/and service
+   * @returns {Boolean}
+   */
+  isImpliedState: Em.computed.existsIn('passiveState', ['IMPLIED_FROM_SERVICE_AND_HOST', 'IMPLIED_FROM_HOST', 'IMPLIED_FROM_SERVICE']),
+
   passiveTooltip: Em.computed.ifThenElse('isActive', '', Em.I18n.t('hosts.component.passive.mode')),
   /**
    * Determine if component is a HDP component

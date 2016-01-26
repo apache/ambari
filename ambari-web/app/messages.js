@@ -314,6 +314,8 @@ Em.I18n.translations = {
   'passiveState.turnOff':'Turn Off Maintenance Mode',
   'passiveState.turnOnFor':'Turn On Maintenance Mode for {0}',
   'passiveState.turnOffFor':'Turn Off Maintenance Mode for {0}',
+  'passiveState.disabled.impliedFromHighLevel':'{0} is already in Maintenance Mode because {1} is in Maintenance Mode.',
+  'passiveState.disabled.impliedFromServiceAndHost':'{0} is already in Maintenance Mode because {1} and {2} are in Maintenance Mode.',
 
   'requestInfo.installComponents':'Install Components',
   'requestInfo.installKerbeorosComponents':'Install Kerberos Components',
