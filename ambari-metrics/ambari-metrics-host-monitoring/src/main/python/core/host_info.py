@@ -90,8 +90,12 @@ class HostInfo():
     proc_total = 0
     for proc in proc_stats:
       proc_total += 1
-      if STATUS_RUNNING == proc.status():
-        proc_run += 1
+      try:
+        if STATUS_RUNNING == proc.status():
+          proc_run += 1
+      except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
+        #NOP
+        pass
     pass
 
     return {
