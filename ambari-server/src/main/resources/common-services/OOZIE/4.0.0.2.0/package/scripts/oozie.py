@@ -114,6 +114,20 @@ def oozie(is_server=False):
     group=params.user_group,
   )
 
+  # On some OS this folder could be not exists, so we will create it before pushing there files
+  Directory(params.limits_conf_dir,
+            recursive=True,
+            owner='root',
+            group='root'
+  )
+
+  File(os.path.join(params.limits_conf_dir, 'oozie.conf'),
+       owner='root',
+       group='root',
+       mode=0644,
+       content=Template("oozie.conf.j2")
+  )
+
   if (params.log4j_props != None):
     File(format("{params.conf_dir}/oozie-log4j.properties"),
       mode=0644,
