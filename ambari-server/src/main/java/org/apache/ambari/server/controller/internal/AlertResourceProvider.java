@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -41,6 +42,7 @@ import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
+import org.apache.commons.lang.StringUtils;
 
 import com.google.inject.Inject;
 
@@ -144,7 +146,8 @@ public class AlertResourceProvider extends ReadOnlyResourceProvider implements
 
     Set<String> requestPropertyIds = getRequestPropertyIds(request, predicate);
 
-    Set<Resource> results = new HashSet<Resource>();
+    // use a collection which preserves order since JPA sorts the results
+    Set<Resource> results = new LinkedHashSet<Resource>();
 
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
 

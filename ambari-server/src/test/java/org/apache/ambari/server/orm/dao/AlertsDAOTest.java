@@ -412,6 +412,44 @@ public class AlertsDAOTest {
   }
 
   /**
+   * Tests that the Ambari sort is correctly applied to JPA quuery.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testAlertCurrentSorting() throws Exception {
+    AlertCurrentRequest request = new AlertCurrentRequest();
+
+    Predicate clusterPredicate = new PredicateBuilder().property(
+        AlertResourceProvider.ALERT_CLUSTER_NAME).equals(m_cluster.getClusterName()).toPredicate();
+
+    request.Predicate = clusterPredicate;
+
+    SortRequestProperty sortRequestProperty = new SortRequestProperty(AlertResourceProvider.ALERT_ID, Order.ASC);
+    request.Sort = new SortRequestImpl(Collections.singletonList(sortRequestProperty));
+
+    List<AlertCurrentEntity> currentAlerts = m_dao.findAll(request);
+    assertTrue(currentAlerts.size() >= 5);
+    long lastId = Long.MIN_VALUE;
+    for (AlertCurrentEntity alert : currentAlerts) {
+      assertTrue(lastId < alert.getAlertId());
+      lastId = alert.getAlertId();
+    }
+
+    // change the sort to DESC
+    sortRequestProperty = new SortRequestProperty(AlertResourceProvider.ALERT_ID, Order.DESC);
+    request.Sort = new SortRequestImpl(Collections.singletonList(sortRequestProperty));
+
+    currentAlerts = m_dao.findAll(request);
+    assertTrue(currentAlerts.size() >= 5);
+    lastId = Long.MAX_VALUE;
+    for (AlertCurrentEntity alert : currentAlerts) {
+      assertTrue(lastId > alert.getAlertId());
+      lastId = alert.getAlertId();
+    }
+  }
+
+  /**
    * Tests that the {@link AlertCurrentEntity} fields are updated properly when
    * a new {@link AlertHistoryEntity} is associated.
    *

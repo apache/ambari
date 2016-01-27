@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -222,7 +223,8 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
 
     Set<String> requestPropertyIds = getRequestPropertyIds(request, predicate);
 
-    Set<Resource> results = new HashSet<Resource>();
+    // use a collection which preserves order since JPA sorts the results
+    Set<Resource> results = new LinkedHashSet<Resource>();
 
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
       String clusterName = (String) propertyMap.get(ALERT_DEF_CLUSTER_NAME);
