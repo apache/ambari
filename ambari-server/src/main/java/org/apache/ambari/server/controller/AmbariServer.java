@@ -68,6 +68,7 @@ import org.apache.ambari.server.controller.internal.StackDependencyResourceProvi
 import org.apache.ambari.server.controller.internal.UserPrivilegeResourceProvider;
 import org.apache.ambari.server.controller.internal.ViewPermissionResourceProvider;
 import org.apache.ambari.server.controller.utilities.DatabaseChecker;
+import org.apache.ambari.server.controller.utilities.KerberosChecker;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
@@ -813,6 +814,7 @@ public class AmbariServer {
       server = injector.getInstance(AmbariServer.class);
       CertificateManager certMan = injector.getInstance(CertificateManager.class);
       certMan.initRootCert();
+      KerberosChecker.checkJaasConfiguration();
       ViewRegistry.initInstance(server.viewRegistry);
       ComponentSSLConfiguration.instance().init(server.configs);
       server.run();

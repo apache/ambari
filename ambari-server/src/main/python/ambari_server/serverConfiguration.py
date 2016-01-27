@@ -155,6 +155,9 @@ SSL_API = 'api.ssl'
 SSL_API_PORT = 'client.api.ssl.port'
 DEFAULT_SSL_API_PORT = 8443
 
+# Kerberos
+CHECK_AMBARI_KRB_JAAS_CONFIGURATION_PROPERTY = "kerberos.check.jaas.configuration"
+
 # JDK
 JDK_RELEASES="java.releases"
 

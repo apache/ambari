@@ -301,6 +301,8 @@ public class Configuration {
   public static final String KDC_CONNECTION_CHECK_TIMEOUT_DEFAULT = "10000";
   public static final String KERBEROS_KEYTAB_CACHE_DIR_KEY = "kerberos.keytab.cache.dir";
   public static final String KERBEROS_KEYTAB_CACHE_DIR_DEFAULT = "/var/lib/ambari-server/data/cache";
+  public static final String KERBEROS_CHECK_JAAS_CONFIGURATION_KEY = "kerberos.check.jaas.configuration";
+  public static final String KERBEROS_CHECK_JAAS_CONFIGURATION_DEFAULT = "false";
 
   /**
    * Recovery related configuration
@@ -2033,6 +2035,17 @@ public class Configuration {
   public File getKerberosKeytabCacheDir() {
     String fileName = properties.getProperty(KERBEROS_KEYTAB_CACHE_DIR_KEY, KERBEROS_KEYTAB_CACHE_DIR_DEFAULT);
     return new File(fileName);
+  }
+
+  /**
+   * Determine whether or not ambari server credentials validation is enabled.
+   *
+   * @return true if ambari server credentials check is enabled
+   */
+  public boolean isKerberosJaasConfigurationCheckEnabled() {
+    return Boolean.parseBoolean(properties.getProperty(
+      KERBEROS_CHECK_JAAS_CONFIGURATION_KEY,
+      KERBEROS_CHECK_JAAS_CONFIGURATION_DEFAULT));
   }
 
   /**
