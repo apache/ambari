@@ -20,6 +20,7 @@ import unittest
 import multiprocessing
 import os
 import sys
+import traceback
 from Queue import Empty
 from random import shuffle
 import fnmatch
@@ -114,8 +115,17 @@ def stack_test_executor(base_folder, service, stack, custom_tests, executor_resu
   #TODO Add an option to randomize the tests' execution
   #shuffle(tests)
   modules = [os.path.basename(s)[:-3] for s in tests]
-  suites = [unittest.defaultTestLoader.loadTestsFromName(name) for name in
-    modules]
+  try:
+    suites = [unittest.defaultTestLoader.loadTestsFromName(name) for name in
+      modules]
+  except:
+    executor_result.put({'exit_code': 1,
+                         'tests_run': 0,
+                         'errors': [("Failed to load test files {0}".format(str(modules)), traceback.format_exc(), "ERROR")],
+                         'failures': []})
+    executor_result.put(1)
+    return
+
   testSuite = unittest.TestSuite(suites)
   textRunner = unittest.TextTestRunner(verbosity=2).run(testSuite)
 
