@@ -78,6 +78,15 @@ App.MainAdminHighAvailabilityController = Em.Controller.extend({
   },
 
   /**
+   * add Hawq Standby
+   * @return {Boolean}
+   */
+  addHawqStandby: function () {
+    App.router.transitionTo('main.services.addHawqStandby');
+    return true;
+  },
+
+  /**
    * enable Ranger Admin High Availability
    * @return {Boolean}
    */

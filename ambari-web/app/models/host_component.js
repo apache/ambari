@@ -263,6 +263,7 @@ App.HostComponentStatus = {
 
 App.HostComponentActionMap = {
   getMap: function(ctx) {
+    var HS = ctx.get('controller.content.hostComponents').findProperty('componentName', 'HAWQSTANDBY');
     return {
       RESTART_ALL: {
         action: 'restartAllHostComponents',
@@ -383,6 +384,13 @@ App.HostComponentActionMap = {
         action: 'executeCustomCommand',
         cssClass: 'icon-play-circle',
         isHidden: false,
+        disabled: false
+      },
+      TOGGLE_ADD_HAWQ_STANDBY: {
+        action: 'addHawqStandby',
+        label: Em.I18n.t('admin.addHawqStandby.button.enable'),
+        cssClass: 'icon-plus',
+        isHidden: App.get('isSingleNode') || HS,
         disabled: false
       }
     }

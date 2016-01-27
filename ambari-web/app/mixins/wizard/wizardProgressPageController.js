@@ -407,21 +407,30 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
   },
 
   /**
-   * make server call to stop all services, except <code>excludedServices</code>
-   * @param excludedServices
+   * make server call to stop services
+   * if stopListedServicesFlag == false; stop all services excluding the services passed as parameters
+   * if stopListedServicesFlag == true; stop only services passed as parameters
+   * if no parameters are passed; stop all services
+   * @param services, stopListedServicesFlag
    * @returns {$.ajax}
    */
-  stopServices: function (excludedServices) {
+  stopServices: function (services, stopListedServicesFlag) {
+    var stopListedServicesFlag = stopListedServicesFlag || false;
     var data = {
       'ServiceInfo': {
         'state': 'INSTALLED'
       }
     };
 
-    if (excludedServices && excludedServices.length) {
-      var servicesList =  App.Service.find().mapProperty("serviceName").filter(function (s) {
-        return !excludedServices.contains(s)
-      }).join(',');
+    if (services && services.length) {
+      var servicesList;
+      if (stopListedServicesFlag) {
+        servicesList = services.join(',');
+        } else {
+        servicesList =  App.Service.find().mapProperty("serviceName").filter(function (s) {
+          return !services.contains(s)
+        }).join(',');
+      }
       data.context = "Stop required services";
       data.urlParams = "ServiceInfo/service_name.in(" + servicesList + ")";
     } else {
@@ -437,14 +446,18 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
     });
   },
 
-  /**
-   * make server call to start all services, except <code>excludedServices</code>
-   * and run smoke tests if <code>runSmokeTest</code> is true
+  /** make server call to start services
+   * if startListedServicesFlag == false; start all services excluding the services passed as parameters
+   * if startListedServicesFlag == true; start only services passed as parameters
+   * if no parameters are passed; start all services
+   * and run smoke tests if runSmokeTest is true
    * @param runSmokeTest
-   * @param excludedServices
+   * @param services
+   * @param startListedServicesFlag
    * @returns {$.ajax}
    */
-  startServices: function (runSmokeTest, excludedServices) {
+  startServices: function (runSmokeTest, services, startListedServicesFlag) {
+    var startListedServicesFlag = startListedServicesFlag || false;
     var skipServiceCheck = App.router.get('clusterController.ambariProperties')['skip.service.checks'] === "true";
     var data = {
       'ServiceInfo': {
@@ -452,10 +465,15 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
       }
     };
 
-    if (excludedServices && excludedServices.length) {
-      var servicesList = App.Service.find().mapProperty("serviceName").filter(function (s) {
-        return !excludedServices.contains(s)
-      }).join(',');
+    var servicesList;
+    if (services && services.length) {
+      if (startListedServicesFlag) {
+        servicesList = services.join(',');
+      } else {
+        servicesList =  App.Service.find().mapProperty("serviceName").filter(function (s) {
+          return !services.contains(s)
+        }).join(',');
+      }
       data.context = "Start required services";
       data.urlParams = "ServiceInfo/service_name.in(" + servicesList + ")";
     } else {
