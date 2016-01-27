@@ -33,17 +33,6 @@ import utils
 import hawq_constants
 
 
-def update_bashrc(source_file, target_file):
-  """
-  Updates the hawq_user's .bashrc file with HAWQ env variables like
-  MASTER_DATA_DIRECTORY, PGHOST, PGPORT and PGUSER. 
-  And sources the greenplum_path file.
-  """
-  append_src_cmd = "echo 'source {0}' >> {1}".format(source_file, target_file)
-  src_cmd_exists = "grep 'source {0}' {1}".format(source_file, target_file)
-  Execute(append_src_cmd, user=hawq_constants.hawq_user, timeout=hawq_constants.default_exec_timeout, not_if=src_cmd_exists)
-
-
 def setup_user():
   """
   Creates HAWQ user home directory and sets up the correct ownership.

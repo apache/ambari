@@ -42,7 +42,6 @@ class HawqSegment(Script):
     env.set_params(hawq_constants)
     common.setup_user()
     common.setup_common_configurations()
-    common.update_bashrc(hawq_constants.hawq_greenplum_path_file, hawq_constants.hawq_user_bashrc_file)
 
 
   def __start_segment(self):
