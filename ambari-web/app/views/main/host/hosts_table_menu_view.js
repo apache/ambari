@@ -262,6 +262,13 @@ App.HostTableMenuView = Em.View.extend({
           })
         }),
         Em.Object.create({
+          label: Em.I18n.t('hosts.table.menu.l2.reinstallFailedComponents'),
+          operationData: Em.Object.create({
+            action: 'REINSTALL',
+            message: Em.I18n.t('hosts.table.menu.l2.reinstallFailedComponents')
+          })
+        }),
+        Em.Object.create({
           label: Em.I18n.t('passiveState.turnOn'),
           operationData: Em.Object.create({
             state: 'ON',

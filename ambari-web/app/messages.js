@@ -2238,6 +2238,7 @@ Em.I18n.translations = {
   'hosts.table.menu.l1.allHosts':'All Hosts',
   'hosts.table.menu.l2.allComponents':'All Components',
   'hosts.table.menu.l2.restartAllComponents':'Restart All Components',
+  'hosts.table.menu.l2.reinstallFailedComponents':'Reinstall Failed Components',
 
   'hosts.bulkOperation.confirmation.header':'Confirm Bulk Operation',
   'hosts.bulkOperation.confirmation.hosts':'Are you sure you want to <strong>{0}</strong> on the following {1} hosts?',
@@ -2385,6 +2386,7 @@ Em.I18n.translations = {
   'hosts.host.maintainance.allComponents.context': 'All Host Components',
   'hosts.host.maintainance.stopAllComponents.context': 'Stop All Host Components',
   'hosts.host.maintainance.startAllComponents.context': 'Start All Host Components',
+  'hosts.host.maintainance.reinstallFailedComponents.context': 'Reinstall Failed Components',
   'hosts.host.alerts.st':'&nbsp;!&nbsp;',
   'hosts.decommission.popup.body':'Are you sure?',
   'hosts.decommission.popup.header':'Confirmation',

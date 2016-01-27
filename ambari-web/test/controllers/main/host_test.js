@@ -34,6 +34,7 @@ describe('MainHostController', function () {
       sinon.stub(hostController, 'bulkOperationForHostsRestart', Em.K);
       sinon.stub(hostController, 'bulkOperationForHosts', Em.K);
       sinon.stub(hostController, 'bulkOperationForHostComponentsRestart', Em.K);
+      sinon.stub(hostController, 'bulkOperationForHostsReinstall', Em.K);
       sinon.stub(hostController, 'bulkOperationForHostComponentsDecommission', Em.K);
       sinon.stub(hostController, 'bulkOperationForHostComponents', Em.K);
       sinon.stub(hostController, 'bulkOperationForHostsPassiveState', Em.K);
@@ -42,6 +43,7 @@ describe('MainHostController', function () {
     afterEach(function() {
       hostController.bulkOperationForHosts.restore();
       hostController.bulkOperationForHostsRestart.restore();
+      hostController.bulkOperationForHostsReinstall.restore();
       hostController.bulkOperationForHostComponentsRestart.restore();
       hostController.bulkOperationForHostComponentsDecommission.restore();
       hostController.bulkOperationForHostComponents.restore();
@@ -71,6 +73,14 @@ describe('MainHostController', function () {
       };
       hostController.bulkOperation(operationData, []);
       expect(hostController.bulkOperationForHosts.calledOnce).to.equal(true);
+    });
+
+    it('REINSTALL for hosts', function() {
+      var operationData = {
+        action: 'REINSTALL'
+      };
+      hostController.bulkOperation(operationData, []);
+      expect(hostController.bulkOperationForHostsReinstall.calledOnce).to.equal(true);
     });
 
     it('PASSIVE_STATE for hosts', function() {
