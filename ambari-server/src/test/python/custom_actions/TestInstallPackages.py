@@ -104,9 +104,10 @@ class TestInstallPackages(RMFTestCase):
                               mirror_list=None,
                               append_to_file=True,
     )
-    self.assertResourceCalled('Execute', '/usr/bin/yum -q clean metadata',
-                              logoutput = False,
-                              )
+    self.assertResourceCalled('Execute', ('/usr/bin/yum', 'clean', 'metadata'),
+        logoutput = False,
+        sudo = True,
+    )
     self.assertResourceCalled('Package', 'fuse')
     self.assertResourceCalled('Package', 'fuse-libs')
     self.assertResourceCalled('Package', 'hadoop_2_2_*', use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'], skip_repos=['HDP-*'])
@@ -167,9 +168,10 @@ class TestInstallPackages(RMFTestCase):
                               mirror_list=None,
                               append_to_file=True,
                               )
-    self.assertResourceCalled('Execute', '/usr/bin/zypper -q -n clean',
-                              logoutput = False,
-                              )
+    self.assertResourceCalled('Execute', ('/usr/bin/zypper', '-q', '-n', 'clean'),
+        logoutput = False,
+        sudo = True,
+    )
     self.assertResourceCalled('Package', 'fuse')
     self.assertResourceCalled('Package', 'libfuse2')
     self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885*', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'], skip_repos=[])
@@ -233,9 +235,10 @@ class TestInstallPackages(RMFTestCase):
                               mirror_list=None,
                               append_to_file=True,
     )
-    self.assertResourceCalled('Execute', '/usr/bin/yum -q clean metadata',
-                              logoutput = False,
-                              )
+    self.assertResourceCalled('Execute', ('/usr/bin/yum', 'clean', 'metadata'),
+        logoutput = False,
+        sudo = True,
+    )
     self.assertResourceCalled('Package', 'fuse')
     self.assertResourceCalled('Package', 'fuse-libs')
     self.assertResourceCalled('Package', 'hadoop_2_2_*', use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'], skip_repos=['HDP-*'])
@@ -314,9 +317,10 @@ class TestInstallPackages(RMFTestCase):
                               mirror_list=None,
                               append_to_file=True,
                               )
-    self.assertResourceCalled('Execute', '/usr/bin/yum -q clean metadata',
-                              logoutput = False,
-                              )
+    self.assertResourceCalled('Execute', ('/usr/bin/yum', 'clean', 'metadata'),
+        logoutput = False,
+        sudo = True,
+    )
     self.assertNoMoreResources()
 
     TestInstallPackages._install_failed = False
@@ -373,9 +377,10 @@ class TestInstallPackages(RMFTestCase):
                               mirror_list=None,
                               append_to_file=True,
                               )
-    self.assertResourceCalled('Execute', '/usr/bin/zypper -q -n clean',
-                              logoutput = False,
-                              )
+    self.assertResourceCalled('Execute', ('/usr/bin/zypper', '-q', '-n', 'clean'),
+        logoutput = False,
+        sudo = True,
+    )
     self.assertResourceCalled('Package', 'fuse')
     self.assertResourceCalled('Package', 'libfuse2')
     self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885*', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'], skip_repos=[])

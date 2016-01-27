@@ -170,16 +170,16 @@ class InstallPackages(Script):
     package_manager_cmd = ""
 
     if OSCheck.is_redhat_family():
-      package_manager_cmd = "/usr/bin/yum -q clean metadata"
+      package_manager_cmd = ("/usr/bin/yum", "clean", "metadata")
 
     if OSCheck.is_suse_family():
-      package_manager_cmd = "/usr/bin/zypper -q -n clean"
+      package_manager_cmd = ("/usr/bin/zypper", "-q", "-n", "clean")
 
     if OSCheck.is_ubuntu_family():
       return
 
     Logger.debug("Clearing repo manager metadata")
-    Execute(package_manager_cmd, logoutput=False)
+    Execute(package_manager_cmd, logoutput=False, sudo=True)
 
   def _create_config_links_if_necessary(self, stack_id, stack_version):
     """
