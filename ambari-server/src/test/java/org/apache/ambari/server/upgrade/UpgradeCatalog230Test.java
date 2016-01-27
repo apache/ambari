@@ -263,7 +263,7 @@ public class UpgradeCatalog230Test extends EasyMockSupport {
   @Test
   public void testGetSourceVersion() {
     UpgradeCatalog upgradeCatalog = injector.getInstance(UpgradeCatalog230.class);
-    Assert.assertEquals("2.2.0", upgradeCatalog.getSourceVersion());
+    Assert.assertEquals("2.2.1", upgradeCatalog.getSourceVersion());
   }
 
 }
