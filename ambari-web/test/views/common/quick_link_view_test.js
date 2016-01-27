@@ -945,6 +945,11 @@ describe('App.QuickViewLinks', function () {
       expect(quickViewLinks.findHosts.calledWith('ATLAS_SERVER', {})).to.be.true;
     });
 
+    it("MAPREDUCE2 service", function() {
+      expect(quickViewLinks.getHosts({}, 'MAPREDUCE2')).to.eql(['host1']);
+      expect(quickViewLinks.findHosts.calledWith('HISTORYSERVER', {})).to.be.true;
+    });
+
     it("custom service without master", function() {
       expect(quickViewLinks.getHosts({}, 'S1')).to.be.empty;
     });
