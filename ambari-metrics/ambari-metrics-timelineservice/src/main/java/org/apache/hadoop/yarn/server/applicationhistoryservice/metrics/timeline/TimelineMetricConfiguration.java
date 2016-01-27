@@ -202,6 +202,15 @@ public class TimelineMetricConfiguration {
   public static final String AGGREGATORS_SKIP_BLOCK_CACHE =
     "timeline.metrics.aggregators.skip.blockcache.enabled";
 
+  public static final String DISABLE_METRIC_METADATA_MGMT =
+    "timeline.metrics.service.metadata.management.disabled";
+
+  public static final String METRICS_METADATA_SYNC_INIT_DELAY =
+    "timeline.metrics.service.metadata.sync.init.delay";
+
+  public static final String METRICS_METADATA_SYNC_SCHEDULE_DELAY =
+    "timeline.metrics.service.metadata.sync.delay";
+
   public static final String HOST_APP_ID = "HOST";
 
   private Configuration hbaseConf;

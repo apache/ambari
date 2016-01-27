@@ -19,13 +19,17 @@ package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline
 
 import org.apache.hadoop.metrics2.sink.timeline.Precision;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
+import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.hadoop.yarn.api.records.timeline.TimelinePutResponse;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 public class TestTimelineMetricStore implements TimelineMetricStore {
@@ -79,5 +83,15 @@ public class TestTimelineMetricStore implements TimelineMetricStore {
       throws SQLException, IOException {
 
     return new TimelinePutResponse();
+  }
+
+  @Override
+  public Map<String, List<TimelineMetricMetadata>> getTimelineMetricMetadata() throws SQLException, IOException {
+    return null;
+  }
+
+  @Override
+  public Map<String, Set<String>> getHostAppsMetadata() throws SQLException, IOException {
+    return Collections.emptyMap();
   }
 }
