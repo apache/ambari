@@ -38,7 +38,7 @@ from ambari_commons.os_utils import is_root, set_file_permissions, \
   run_os_command, search_file, is_valid_filepath, change_owner, get_ambari_repo_file_full_name, get_file_owner
 from ambari_server.serverConfiguration import configDefaults, \
   encrypt_password, find_jdk, find_properties_file, get_alias_string, get_ambari_properties, get_conf_dir, \
-  get_credential_store_location, get_is_persisted, get_is_secure, get_master_key_location, \
+  get_credential_store_location, get_is_persisted, get_is_secure, get_master_key_location, write_property, \
   get_original_master_key, get_value_from_properties, get_java_exe_path, is_alias_string, read_ambari_user, \
   read_passwd_for_alias, remove_password_file, save_passwd_for_alias, store_password_file, update_properties_2, \
   BLIND_PASSWORD, BOOTSTRAP_DIR_PROPERTY, IS_LDAP_CONFIGURED, JDBC_PASSWORD_FILENAME, JDBC_PASSWORD_PROPERTY, \
@@ -48,7 +48,7 @@ from ambari_server.serverConfiguration import configDefaults, \
   SECURITY_PROVIDER_KEY_CMD, SECURITY_MASTER_KEY_FILENAME, SSL_TRUSTSTORE_PASSWORD_ALIAS, \
   SSL_TRUSTSTORE_PASSWORD_PROPERTY, SSL_TRUSTSTORE_PATH_PROPERTY, SSL_TRUSTSTORE_TYPE_PROPERTY, \
   SSL_API, SSL_API_PORT, DEFAULT_SSL_API_PORT, CLIENT_API_PORT, JDK_NAME_PROPERTY, JCE_NAME_PROPERTY, JAVA_HOME_PROPERTY, \
-  get_resources_location, SECURITY_MASTER_KEY_LOCATION, SETUP_OR_UPGRADE_MSG
+  get_resources_location, SECURITY_MASTER_KEY_LOCATION, SETUP_OR_UPGRADE_MSG, CHECK_AMBARI_KRB_JAAS_CONFIGURATION_PROPERTY
 from ambari_server.serverUtils import is_server_runing, get_ambari_server_api_base
 from ambari_server.setupActions import SETUP_ACTION, LDAP_SETUP_ACTION
 from ambari_server.userInput import get_validated_string_input, get_prompt_default, read_password, get_YN_input
@@ -545,6 +545,7 @@ def setup_ambari_krb5_jaas():
       line = re.sub('principal=.*$', 'principal="' + principal + '"', line)
       print line,
 
+    write_property(CHECK_AMBARI_KRB_JAAS_CONFIGURATION_PROPERTY, "true")
   else:
     raise NonFatalException('No jaas config file found at location: ' +
                             jaas_conf_file)
