@@ -27,11 +27,13 @@ import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineClusterMetric;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineMetricAggregator;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineMetricAggregatorFactory;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataManager;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.DefaultCondition;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -41,6 +43,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.MetricTestHelper.createEmptyTimelineClusterMetric;
@@ -204,7 +207,8 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
   public void testGetClusterMetricRecordsSeconds() throws Exception {
     // GIVEN
     TimelineMetricAggregator agg =
-      TimelineMetricAggregatorFactory.createTimelineClusterAggregatorSecond(hdb, new Configuration());
+      TimelineMetricAggregatorFactory.createTimelineClusterAggregatorSecond(
+        hdb, new Configuration(), new TimelineMetricMetadataManager(hdb, new Configuration()));
 
     long startTime = System.currentTimeMillis();
     long ctime = startTime + 1;
@@ -243,7 +247,8 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
   public void testGetClusterMetricRecordLatestWithFunction() throws Exception {
     // GIVEN
     TimelineMetricAggregator agg =
-      TimelineMetricAggregatorFactory.createTimelineClusterAggregatorSecond(hdb, new Configuration());
+      TimelineMetricAggregatorFactory.createTimelineClusterAggregatorSecond
+        (hdb, new Configuration(), new TimelineMetricMetadataManager(hdb, new Configuration()));
 
     long startTime = System.currentTimeMillis();
     long ctime = startTime + 1;

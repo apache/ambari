@@ -99,10 +99,16 @@ public abstract class AbstractMiniHBaseClusterTest extends BaseTest {
       stmt = conn.createStatement();
 
       stmt.execute("delete from METRIC_AGGREGATE");
+      stmt.execute("delete from METRIC_AGGREGATE_MINUTE");
       stmt.execute("delete from METRIC_AGGREGATE_HOURLY");
+      stmt.execute("delete from METRIC_AGGREGATE_DAILY");
       stmt.execute("delete from METRIC_RECORD");
-      stmt.execute("delete from METRIC_RECORD_HOURLY");
       stmt.execute("delete from METRIC_RECORD_MINUTE");
+      stmt.execute("delete from METRIC_RECORD_HOURLY");
+      stmt.execute("delete from METRIC_RECORD_DAILY");
+      stmt.execute("delete from METRICS_METADATA");
+      stmt.execute("delete from HOSTED_APPS_METADATA");
+
       conn.commit();
     } finally {
       if (stmt != null) {
