@@ -704,6 +704,14 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
         validationItems.append({"config-name": 'dfs.namenode.inode.attributes.provider.class',
                                     "item": self.getWarnItem(
                                       "dfs.namenode.inode.attributes.provider.class needs to be set to 'org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer' if Ranger HDFS Plugin is enabled.")})
+
+    # Check if dfs.allow.truncate is true
+    if "HAWQ" in servicesList and \
+        not ("dfs.allow.truncate" in services["configurations"]["hdfs-site"]["properties"] and \
+        services["configurations"]["hdfs-site"]["properties"]["dfs.allow.truncate"].lower() == 'true'):
+        validationItems.append({"config-name": "dfs.allow.truncate",
+                                "item": self.getWarnItem("HAWQ requires dfs.allow.truncate in hdfs-site.xml set to True.")})
+
     return self.toConfigurationValidationProblems(validationItems, "hdfs-site")
 
 
