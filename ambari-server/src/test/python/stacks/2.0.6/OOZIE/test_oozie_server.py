@@ -105,6 +105,17 @@ class TestOozieServer(RMFTestCase):
                               owner = 'oozie',
                               group = 'hadoop',
                               )
+    self.assertResourceCalled('Directory', '/etc/security/limits.d',
+                              owner = 'root',
+                              group = 'root',
+                              recursive=True,
+                              )
+    self.assertResourceCalled('File', '/etc/security/limits.d/oozie.conf',
+                              owner = 'root',
+                              group = 'root',
+                              mode=0644,
+                              content=Template("oozie.conf.j2"),
+                              )
     self.assertResourceCalled('File', '/etc/oozie/conf/oozie-log4j.properties',
                               content = 'log4jproperties\nline2',
                               owner = 'oozie',
@@ -312,6 +323,17 @@ class TestOozieServer(RMFTestCase):
                               content = InlineTemplate(self.getConfig()['configurations']['oozie-env']['content']),
                               owner = 'oozie',
                               group = 'hadoop',
+                              )
+    self.assertResourceCalled('Directory', '/etc/security/limits.d',
+                              owner = 'root',
+                              group = 'root',
+                              recursive=True,
+                              )
+    self.assertResourceCalled('File', '/etc/security/limits.d/oozie.conf',
+                              owner = 'root',
+                              group = 'root',
+                              mode=0644,
+                              content=Template("oozie.conf.j2"),
                               )
     self.assertResourceCalled('File', '/etc/oozie/conf/oozie-log4j.properties',
                               content = 'log4jproperties\nline2',
@@ -673,6 +695,17 @@ class TestOozieServer(RMFTestCase):
                               content = InlineTemplate(self.getConfig()['configurations']['oozie-env']['content']),
                               group = 'hadoop',
                               )
+    self.assertResourceCalled('Directory', '/etc/security/limits.d',
+                              owner = 'root',
+                              group = 'root',
+                              recursive=True,
+                              )
+    self.assertResourceCalled('File', '/etc/security/limits.d/oozie.conf',
+                              owner = 'root',
+                              group = 'root',
+                              mode=0644,
+                              content=Template("oozie.conf.j2"),
+                              )
     self.assertResourceCalled('File', '/etc/oozie/conf/oozie-log4j.properties',
                               owner = 'oozie',
                               group = 'hadoop',
@@ -851,6 +884,17 @@ class TestOozieServer(RMFTestCase):
                               owner = 'oozie',
                               content = InlineTemplate(self.getConfig()['configurations']['oozie-env']['content']),
                               group = 'hadoop',
+                              )
+    self.assertResourceCalled('Directory', '/etc/security/limits.d',
+                              owner = 'root',
+                              group = 'root',
+                              recursive=True,
+                              )
+    self.assertResourceCalled('File', '/etc/security/limits.d/oozie.conf',
+                              owner = 'root',
+                              group = 'root',
+                              mode=0644,
+                              content=Template("oozie.conf.j2"),
                               )
     self.assertResourceCalled('File', '/etc/oozie/conf/oozie-log4j.properties',
                               owner = 'oozie',

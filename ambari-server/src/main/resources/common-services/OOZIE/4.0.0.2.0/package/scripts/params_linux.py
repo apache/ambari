@@ -124,6 +124,11 @@ security_enabled = config['configurations']['cluster-env']['security_enabled']
 oozie_heapsize = config['configurations']['oozie-env']['oozie_heapsize']
 oozie_permsize = config['configurations']['oozie-env']['oozie_permsize']
 
+limits_conf_dir = "/etc/security/limits.d"
+
+oozie_user_nofile_limit = config['configurations']['oozie-env']['oozie_user_nofile_limit']
+oozie_user_nproc_limit = config['configurations']['oozie-env']['oozie_user_nproc_limit']
+
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 oozie_service_keytab = config['configurations']['oozie-site']['oozie.service.HadoopAccessorService.keytab.file']
 oozie_principal = config['configurations']['oozie-site']['oozie.service.HadoopAccessorService.kerberos.principal']

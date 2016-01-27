@@ -98,6 +98,16 @@
     <value>256</value>
     <description>Oozie permanent generation size.</description>
   </property>
+  <property>
+    <name>oozie_user_nofile_limit</name>
+    <value>32000</value>
+    <description>Max open files limit setting for OOZIE user.</description>
+  </property>
+  <property>
+    <name>oozie_user_nproc_limit</name>
+    <value>16000</value>
+    <description>Max number of processes limit setting for OOZIE user.</description>
+  </property>
 
   <!-- oozie-env.sh -->
   <property>

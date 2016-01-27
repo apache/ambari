@@ -89,43 +89,6 @@
             "value": "{0} * 100"
           }
         }
-      },
-      {
-        "name": "regionservers_health_summary",
-        "label": "RegionServers Health Summary",
-        "description": "This service-level alert is triggered if there are unhealthy RegionServers",
-        "interval": 1,
-        "scope": "SERVICE",
-        "enabled": true,
-        "source": {
-          "type": "METRIC",
-          "uri": {
-            "http": "{{hbase-site/hbase.master.info.port}}",
-            "default_port": 60010,
-            "connection_timeout": 5.0
-          },
-          "reporting": {
-            "ok": {
-              "text": "All {1} RegionServer(s) are alive"
-            },
-            "warning": {
-              "text": "Dead RegionServer(s): {0} out of {1}",
-              "value": 1
-            },
-            "critical": {
-              "text": "Dead RegionServer(s): {0} out of {1}",
-              "value": 1
-            },
-            "units" : "RegionServer(s)"
-          },
-          "jmx": {
-            "property_list": [
-              "Hadoop:service=HBase,name=Master,sub=Server/numDeadRegionServers",
-              "Hadoop:service=HBase,name=Master,sub=Server/numRegionServers"
-            ],
-            "value": "{0}"
-          }
-        }
       }
     ],
     "HBASE_REGIONSERVER": [

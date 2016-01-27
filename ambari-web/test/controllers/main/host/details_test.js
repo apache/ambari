@@ -2936,6 +2936,16 @@ describe('App.MainHostDetailsController', function () {
         passiveState: 'OFF'
       }), 'ON')).to.be.true;
     });
+    it('isImpliedState is true', function () {
+      var event = {
+        context: Em.Object.create({
+          isImpliedState: true
+        })
+      };
+      var result = controller.toggleMaintenanceMode(event);
+      expect(App.showConfirmationPopup.calledOnce).to.be.false;
+      expect(result).to.be.null;
+    });
   });
 
   describe('#installClients()', function () {

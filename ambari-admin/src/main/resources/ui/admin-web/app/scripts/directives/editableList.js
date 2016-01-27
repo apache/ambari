@@ -111,6 +111,13 @@ angular.module('ambariAdminConsole')
             break;
         }
       });
+
+      $elem.find('.editable-list-container').on('reset', function(event) {
+        $scope.editMode = false;
+        $scope.items = angular.copy($scope.itemsSource);
+        $scope.input = '';
+        event.stopPropagation();
+      });
     },
     controller: ['$scope', '$injector', '$modal', function($scope, $injector, $modal) {
       var $resource = $injector.get($scope.resourceType);
@@ -175,6 +182,8 @@ angular.module('ambariAdminConsole')
 
       $scope.enableEditMode = function(event) {
         if( $scope.editable && !$scope.editMode){
+          //only one editable-list could be in edit mode at once
+          $('.cluster-manage-access-pane div.edit-mode').trigger('reset');
           $scope.editMode = true;
           $scope.focusOnInput();
         }

@@ -139,21 +139,21 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
               clusterID, "flume_agent_status");
 
       Map<AlertDefinitionEntity, List<String>> alertDefinitionParams = new HashMap<>();
-      alertDefinitionParams.put(namenodeLastCheckpointAlertDefinitionEntity,
+      checkedPutToMap(alertDefinitionParams, namenodeLastCheckpointAlertDefinitionEntity,
               new ArrayList<String>(Arrays.asList("connection.timeout", "checkpoint.time.warning.threshold", "checkpoint.time.critical.threshold")));
-      alertDefinitionParams.put(namenodeHAHealthAlertDefinitionEntity,
+      checkedPutToMap(alertDefinitionParams, namenodeHAHealthAlertDefinitionEntity,
               new ArrayList<String>(Arrays.asList("connection.timeout")));
-      alertDefinitionParams.put(nodemanagerHealthAlertDefinitionEntity,
+      checkedPutToMap(alertDefinitionParams, nodemanagerHealthAlertDefinitionEntity,
               new ArrayList<String>(Arrays.asList("connection.timeout")));
-      alertDefinitionParams.put(nodemanagerHealthSummaryAlertDefinitionEntity,
+      checkedPutToMap(alertDefinitionParams, nodemanagerHealthSummaryAlertDefinitionEntity,
               new ArrayList<String>(Arrays.asList("connection.timeout")));
-      alertDefinitionParams.put(hiveMetastoreProcessAlertDefinitionEntity,
+      checkedPutToMap(alertDefinitionParams, hiveMetastoreProcessAlertDefinitionEntity,
               new ArrayList<String>(Arrays.asList("default.smoke.user", "default.smoke.principal", "default.smoke.keytab")));
-      alertDefinitionParams.put(hiveServerProcessAlertDefinitionEntity,
+      checkedPutToMap(alertDefinitionParams, hiveServerProcessAlertDefinitionEntity,
               new ArrayList<String>(Arrays.asList("default.smoke.user", "default.smoke.principal", "default.smoke.keytab")));
-      alertDefinitionParams.put(hiveWebhcatServerStatusAlertDefinitionEntity,
+      checkedPutToMap(alertDefinitionParams, hiveWebhcatServerStatusAlertDefinitionEntity,
               new ArrayList<String>(Arrays.asList("default.smoke.user", "connection.timeout")));
-      alertDefinitionParams.put(flumeAgentStatusAlertDefinitionEntity,
+      checkedPutToMap(alertDefinitionParams, flumeAgentStatusAlertDefinitionEntity,
               new ArrayList<String>(Arrays.asList("run.directory")));
 
       for(Map.Entry<AlertDefinitionEntity, List<String>> entry : alertDefinitionParams.entrySet()){
@@ -166,6 +166,16 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
         alertDefinitionDAO.merge(alertDefinition);
       }
 
+    }
+  }
+
+  /*
+  * Simple put method with check for key is not null
+  * */
+  private void checkedPutToMap(Map<AlertDefinitionEntity, List<String>> alertDefinitionParams, AlertDefinitionEntity alertDefinitionEntity,
+                               List<String> params) {
+    if (alertDefinitionEntity != null) {
+      alertDefinitionParams.put(alertDefinitionEntity, params);
     }
   }
 

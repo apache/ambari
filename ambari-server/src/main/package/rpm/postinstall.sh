@@ -13,12 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-if [ -e "/etc/init.d/ambari-server" ]; then # Check is needed for upgrade
+if [ -e "/usr/sbin/ambari-server" ]; then # Check is needed for upgrade
     # Remove link created by previous package version
-    rm /etc/init.d/ambari-server
+    rm -f /usr/sbin/ambari-server
 fi
 
-ln -s /usr/sbin/ambari-server /etc/init.d/ambari-server
+ln -s /etc/init.d/ambari-server /usr/sbin/ambari-server
 
 case "$1" in
   1) # Action install
