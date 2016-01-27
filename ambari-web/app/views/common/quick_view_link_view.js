@@ -228,6 +228,9 @@ App.QuickViewLinks = Em.View.extend({
             }
             if (item.get('service_id')==='OOZIE') {
               newItem.url = item.get('template').fmt(protocol, host.publicHostName, port, App.router.get('loginName'));
+            } else if (item.get('service_id')==='MAPREDUCE2') {
+              var hostPortConfigValue = "%@:%@".fmt(host.publicHostName, port);
+              newItem.url = item.get('template').fmt(protocol, hostPortConfigValue);
             } else {
               newItem.url = item.get('template').fmt(protocol, host.publicHostName, port);
             }
@@ -259,10 +262,11 @@ App.QuickViewLinks = Em.View.extend({
       return [App.get('singleNodeAlias')];
     }
     var hosts = [];
+    var components;
     switch (serviceName) {
       case 'OOZIE':
         // active OOZIE components
-        var components = this.get('content.hostComponents').filterProperty('componentName','OOZIE_SERVER').filterProperty('workStatus', 'STARTED');
+        components = this.get('content.hostComponents').filterProperty('componentName','OOZIE_SERVER').filterProperty('workStatus', 'STARTED');
         if (components && components.length > 1) {
           components.forEach(function (component) {
             hosts.push({
@@ -360,6 +364,18 @@ App.QuickViewLinks = Em.View.extend({
         break;
       case "ATLAS":
         hosts[0] = this.findComponentHost(response.items, "ATLAS_SERVER");
+        break;
+      case "MAPREDUCE2":
+        components = this.get('content.hostComponents').filterProperty('componentName', 'HISTORYSERVER');
+        if (components && components.length > 1) {
+          components.forEach(function (component) {
+            hosts.push({
+              'publicHostName': response.items.findProperty('Hosts.host_name', component.get('hostName')).Hosts.public_host_name
+            });
+          });
+        } else if (components && components.length === 1) {
+          hosts[0] = this.findComponentHost(response.items, 'HISTORYSERVER');
+        }
         break;
       default:
         var service = App.StackService.find().findProperty('serviceName', serviceName);
