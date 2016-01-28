@@ -24,7 +24,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
@@ -47,7 +46,6 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.kerberos.AbstractKerberosDescriptorContainer;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
@@ -1648,7 +1646,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
               newStormProps.put("nimbus.supervisors.users", "['{{storm_user}}']");
             }
             if (!cluster.getDesiredConfigByType("storm-site").getProperties().containsKey("storm.zookeeper.superACL")) {
-              newStormProps.put("storm.zookeeper.superACL", "sasl:{{storm_base_jaas_principal}}");
+              newStormProps.put("storm.zookeeper.superACL", "sasl:{{storm_bare_jaas_principal}}");
             }
             if (!cluster.getDesiredConfigByType("storm-site").getProperties().containsKey("ui.filter.params")) {
               newStormProps.put("ui.filter.params", "{'type': 'kerberos', 'kerberos.principal': '{{storm_ui_jaas_principal}}', 'kerberos.keytab': '{{storm_ui_keytab_path}}', 'kerberos.name.rules': 'DEFAULT'}");

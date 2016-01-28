@@ -78,19 +78,21 @@ public class UpgradeCatalog222Test {
   public void testExecuteDMLUpdates() throws Exception {
     Method addNewConfigurationsFromXml = AbstractUpgradeCatalog.class.getDeclaredMethod("addNewConfigurationsFromXml");
     Method updateAlerts = UpgradeCatalog222.class.getDeclaredMethod("updateAlerts");
-
+    Method updateStormConfigs = UpgradeCatalog222.class.getDeclaredMethod("updateStormConfigs");
 
 
     UpgradeCatalog222 upgradeCatalog222 = createMockBuilder(UpgradeCatalog222.class)
             .addMockedMethod(addNewConfigurationsFromXml)
             .addMockedMethod(updateAlerts)
+            .addMockedMethod(updateStormConfigs)
             .createMock();
 
     upgradeCatalog222.addNewConfigurationsFromXml();
     expectLastCall().once();
     upgradeCatalog222.updateAlerts();
     expectLastCall().once();
-
+    upgradeCatalog222.updateStormConfigs();
+    expectLastCall().once();
 
     replay(upgradeCatalog222);
 
