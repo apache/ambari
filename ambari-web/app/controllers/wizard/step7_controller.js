@@ -1638,6 +1638,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    * Proceed to the next step
    **/
   moveNext: function () {
+    App.router.nextBtnClickInProgress = true;
     App.router.send('next');
     this.set('submitButtonClicked', false);
   },
@@ -1651,7 +1652,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     if (this.get('isSubmitDisabled') || App.router.nextBtnClickInProgress) {
       return false;
     }
-    App.router.nextBtnClickInProgress = true;
     var preInstallChecksController = App.router.get('preInstallChecksController');
     if (this.get('supportsPreInstallChecks')) {
       if (preInstallChecksController.get('preInstallChecksWhereRun')) {
