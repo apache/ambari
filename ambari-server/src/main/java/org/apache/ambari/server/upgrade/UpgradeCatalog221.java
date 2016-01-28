@@ -163,6 +163,7 @@ public class UpgradeCatalog221 extends AbstractUpgradeCatalog {
     updateOozieConfigs();
     updateTezConfigs();
     updateRangerKmsDbksConfigs();
+    updateAMSConfigs();
   }
 
   protected void updateAlerts() {
