@@ -18,6 +18,7 @@ limitations under the License.
 
 import os
 import functools
+from hawq_constants import PXF_PORT, pxf_hdfs_test_dir
 from resource_management import Script
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
@@ -72,6 +73,7 @@ hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_nam
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 hadoop_bin_dir = hadoop_select.get_hadoop_dir("bin")
 execute_path = os.environ['PATH'] + os.pathsep + hadoop_bin_dir
+dfs_nameservice = default('/configurations/hdfs-site/dfs.nameservices', None)
 
 # HDFSResource partial function
 HdfsResource = functools.partial(HdfsResource,
@@ -93,6 +95,32 @@ ExecuteHadoop = functools.partial(ExecuteHadoop,
                                   keytab=hdfs_user_keytab,
                                   principal=hdfs_principal_name,
                                   bin_dir=execute_path)
+
+
+# For service Check
+is_pxf_installed = __get_component_host("pxf_hosts") is not None
+namenode_path =  "{0}:{1}".format(__get_component_host("namenode_host"), PXF_PORT) if dfs_nameservice is None else dfs_nameservice
+table_definition = {
+  "HAWQ": {
+    "name": "ambari_hawq_test",
+    "create_type": "",
+    "drop_type": "",
+    "description": "(col1 int) DISTRIBUTED RANDOMLY"
+  },
+  "EXTERNAL_HDFS_READABLE": {
+    "name": "ambari_hawq_pxf_hdfs_readable_test",
+    "create_type": "READABLE EXTERNAL",
+    "drop_type": "EXTERNAL",
+    "description": "(col1 int) LOCATION ('pxf://{0}{1}?PROFILE=HdfsTextSimple') FORMAT 'TEXT'".format(namenode_path, pxf_hdfs_test_dir)
+  },
+  "EXTERNAL_HDFS_WRITABLE": {
+    "name": "ambari_hawq_pxf_hdfs_writable_test",
+    "create_type": "WRITABLE EXTERNAL",
+    "drop_type": "EXTERNAL",
+    "description": "(col1 int) LOCATION ('pxf://{0}{1}?PROFILE=HdfsTextSimple') FORMAT 'TEXT'".format(namenode_path, pxf_hdfs_test_dir)
+  }
+}
+
 
 # YARN
 # Note: YARN is not mandatory for HAWQ. It is required only when the users set HAWQ to use YARN as resource manager
