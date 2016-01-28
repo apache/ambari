@@ -208,6 +208,18 @@ App.MainConfigHistoryView = App.TableView.extend(App.TableServerViewMixin, {
   },
 
   /**
+   * Clear all filter values, update filter conditions in the localStorage and update table data with API-request
+   *
+   * @method clearFilters
+   * @override
+   */
+  clearFilters: function () {
+    this._super();
+    this.saveAllFilterConditions();
+    this.refresh();
+  },
+
+  /**
    * callback executed after refresh call done
    * @method refreshDone
    */

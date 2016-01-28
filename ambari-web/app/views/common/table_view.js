@@ -359,9 +359,23 @@ App.TableView = Em.View.extend(App.UserPref, {
       };
       this.get('filterConditions').push(filterCondition);
     }
+
+    this.saveAllFilterConditions();
+  },
+
+  /**
+   * Save not empty <code>filterConditions</code> to the localStorage
+   *
+   * @method saveAllFilterConditions
+   */
+  saveAllFilterConditions: function () {
+    var filterConditions = this.get('filterConditions');
     // remove empty entries
-    this.set('filterConditions', this.get('filterConditions').filter(function(item){ return !Em.isEmpty(item.value); }));
-    App.db.setFilterConditions(this.get('controller.name'), this.get('filterConditions'));
+    filterConditions = filterConditions.filter(function(item) {
+      return !Em.isEmpty(item.value);
+    });
+    this.set('filterConditions', filterConditions);
+    App.db.setFilterConditions(this.get('controller.name'), filterConditions);
   },
 
   saveDisplayLength: function() {
