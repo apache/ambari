@@ -31,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -97,7 +98,21 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
   protected void executeDMLUpdates() throws AmbariException, SQLException {
     addNewConfigurationsFromXml();
     updateAlerts();
+    updateStormConfigs();
+  }
 
+  protected void updateStormConfigs() throws  AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Map<String, Cluster> clusterMap = getCheckedClusterMap(ambariManagementController.getClusters());
+
+    for (final Cluster cluster : clusterMap.values()) {
+      if (cluster.getDesiredConfigByType("storm-site") != null && cluster.getDesiredConfigByType("storm-site").getProperties().containsKey("storm.zookeeper.superACL")
+              && cluster.getDesiredConfigByType("storm-site").getProperties().get("storm.zookeeper.superACL").equals("sasl:{{storm_base_jaas_principal}}")) {
+        Map<String, String> newStormProps = new HashMap<String, String>();
+        newStormProps.put("storm.zookeeper.superACL", "sasl:{{storm_bare_jaas_principal}}");
+        updateConfigurationPropertiesForCluster(cluster, "storm-site", newStormProps, true, false);
+      }
+    }
   }
 
   protected void updateAlerts() {
