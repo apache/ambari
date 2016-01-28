@@ -1561,6 +1561,7 @@ var urls = {
     'Upgrade/progress_percent,Upgrade/request_context,Upgrade/request_status,Upgrade/direction,Upgrade/downgrade_allowed,' +
     'upgrade_groups/UpgradeGroup,' +
     'upgrade_groups/upgrade_items/UpgradeItem/status,' +
+    'upgrade_groups/upgrade_items/UpgradeItem/display_status,' +
     'upgrade_groups/upgrade_items/UpgradeItem/context,' +
     'upgrade_groups/upgrade_items/UpgradeItem/group_id,' +
     'upgrade_groups/upgrade_items/UpgradeItem/progress_percent,' +
