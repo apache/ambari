@@ -215,7 +215,9 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
     } catch (JAXBException e) {
       metaInfoXml = new ServiceMetainfoXml();
       metaInfoXml.setValid(false);
-      metaInfoXml.setErrors(String.format("Unable to parse service metainfo.xml file '%s' ", f.getAbsolutePath()));
+      String msg = String.format("Unable to parse service metainfo.xml file '%s' ", f.getAbsolutePath());
+      metaInfoXml.setErrors(msg);
+      LOG.warn(msg);
       metaInfoXml.setSchemaVersion(getAbsolutePath().replace(f.getParentFile().getParentFile().getParent()+File.separator, ""));
     }
   }

@@ -437,6 +437,23 @@ public class RepositoryVersionResourceProviderTest {
     }
   }
 
+  @Test
+  public void testVersionInStack(){
+    StackId sid = new StackId("HDP-2.3");
+    StackId sid2 = new StackId("HDP-2.3.NEW");
+    Assert.assertEquals(true, RepositoryVersionEntity.isVersionInStack(sid, "2.3"));
+    Assert.assertEquals(true, RepositoryVersionEntity.isVersionInStack(sid2, "2.3"));
+
+    Assert.assertEquals(true, RepositoryVersionEntity.isVersionInStack(sid, "2.3.1"));
+    Assert.assertEquals(true, RepositoryVersionEntity.isVersionInStack(sid2, "2.3.1"));
+
+    Assert.assertEquals(true, RepositoryVersionEntity.isVersionInStack(sid, "2.3.2.0-2300"));
+    Assert.assertEquals(true, RepositoryVersionEntity.isVersionInStack(sid2, "2.3.2.1-3562"));
+
+    Assert.assertEquals(false, RepositoryVersionEntity.isVersionInStack(sid, "2.4.2.0-2300"));
+    Assert.assertEquals(false, RepositoryVersionEntity.isVersionInStack(sid2, "2.1"));
+  }
+
   @After
   public void after() {
     injector.getInstance(PersistService.class).stop();

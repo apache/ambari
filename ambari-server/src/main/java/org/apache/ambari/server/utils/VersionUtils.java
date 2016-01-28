@@ -20,6 +20,9 @@ package org.apache.ambari.server.utils;
 import org.apache.ambari.server.bootstrap.BootStrapImpl;
 import org.apache.commons.lang.StringUtils;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Provides various utility functions to be used for version handling.
  * The compatibility matrix between server, agent, store can also be maintained
@@ -28,6 +31,7 @@ import org.apache.commons.lang.StringUtils;
 public class VersionUtils {
   /**
    * Compares two versions strings of the form N.N.N.N or even N.N.N.N-### (which should ignore everything after the dash).
+   * If the user has a custom stack, e.g., 2.3.MYNAME or MYNAME.2.3, then any segment that contains letters should be ignored.
    *
    * @param version1
    * @param version2
@@ -72,11 +76,33 @@ public class VersionUtils {
 
     int length = Math.max(version1Parts.length, version2Parts.length);
     length = maxLengthToCompare == 0 || maxLengthToCompare > length ? length : maxLengthToCompare;
+
+    List<Integer> stack1Parts = new ArrayList<Integer>();
+    List<Integer> stack2Parts = new ArrayList<Integer>();
+
     for (int i = 0; i < length; i++) {
-      int stack1Part = i < version1Parts.length ?
-          Integer.parseInt(version1Parts[i]) : 0;
-      int stack2Part = i < version2Parts.length ?
-          Integer.parseInt(version2Parts[i]) : 0;
+      // Robust enough to handle strings in the version
+      try {
+        int stack1Part = i < version1Parts.length ?
+            Integer.parseInt(version1Parts[i]) : 0;
+        stack1Parts.add(stack1Part);
+      } catch (NumberFormatException e) {
+        stack1Parts.add(0);
+      }
+      try {
+        int stack2Part = i < version2Parts.length ?
+            Integer.parseInt(version2Parts[i]) : 0;
+        stack2Parts.add(stack2Part);
+      } catch (NumberFormatException e) {
+        stack2Parts.add(0);
+      }
+    }
+
+    length = Math.max(stack1Parts.size(), stack2Parts.size());
+    for (int i = 0; i < length; i++) {
+      Integer stack1Part = stack1Parts.get(i);
+      Integer stack2Part = stack2Parts.get(i);
+
       if (stack1Part < stack2Part) {
         return -1;
       }

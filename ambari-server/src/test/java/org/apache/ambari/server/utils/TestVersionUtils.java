@@ -45,6 +45,9 @@ public class TestVersionUtils {
     Assert.assertEquals(-1, VersionUtils.compareVersions("2.2.0.0-200", "2.2.0.1-100"));
     Assert.assertEquals(-1, VersionUtils.compareVersions("2.2.0.0-101", "2.2.0.10-20"));
     Assert.assertEquals(-1, VersionUtils.compareVersions("2.2.2.0.20-996", "2.2.2.145-846"));
+    Assert.assertEquals(0, VersionUtils.compareVersions("2.2", "2.2.VER"));
+    Assert.assertEquals(0, VersionUtils.compareVersions("2.2.VAR", "2.2.VER"));
+    Assert.assertEquals(0, VersionUtils.compareVersions("2.2.3", "2.2.3.VER1.V"));
   }
 
   @Test

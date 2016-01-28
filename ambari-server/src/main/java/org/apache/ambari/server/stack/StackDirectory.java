@@ -337,8 +337,10 @@ public class StackDirectory extends StackDefinitionDirectory {
         } catch (JAXBException e) {
           repoFile = new RepositoryXml();
           repoFile.setValid(false);
-          repoFile.setErrors("Unable to parse repo file at location: " +
-              repositoryFile.getAbsolutePath());
+          String msg = "Unable to parse repo file at location: " +
+                       repositoryFile.getAbsolutePath();
+          repoFile.setErrors(msg);
+          LOG.warn(msg);
         }
       }
     }
@@ -371,8 +373,10 @@ public class StackDirectory extends StackDefinitionDirectory {
       } catch (JAXBException e) {
         metaInfoXml = new StackMetainfoXml();
         metaInfoXml.setValid(false);
-        metaInfoXml.setErrors("Unable to parse stack metainfo.xml file at location: " +
-            stackMetaInfoFile.getAbsolutePath());
+        String msg = "Unable to parse stack metainfo.xml file at location: " +
+                     stackMetaInfoFile.getAbsolutePath();
+        metaInfoXml.setErrors(msg);
+        LOG.warn(msg);
       }
     }
   }

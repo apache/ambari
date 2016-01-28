@@ -269,7 +269,7 @@ public class RepositoryVersionEntity {
 
         String leading = stackId.getStackVersion();  // E.g, 2.3
         // In some cases during unit tests, the leading can contain 3 digits, so only the major number (first two parts) are needed.
-        String[] leadingParts = leading.split(".");
+        String[] leadingParts = leading.split("\\.");
         if (null != leadingParts && leadingParts.length > 2) {
           leading = leadingParts[0] + "." + leadingParts[1];
         }
