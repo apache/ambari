@@ -144,6 +144,7 @@ public class UpgradeCatalog221Test {
     Method updateOozieConfigs = UpgradeCatalog221.class.getDeclaredMethod("updateOozieConfigs");
     Method updateTezConfigs = UpgradeCatalog221.class.getDeclaredMethod("updateTezConfigs");
     Method updateRangerKmsDbksConfigs = UpgradeCatalog221.class.getDeclaredMethod("updateRangerKmsDbksConfigs");
+    Method updateAMSConfigs = UpgradeCatalog221.class.getDeclaredMethod("updateAMSConfigs");
 
     UpgradeCatalog221 upgradeCatalog221 = createMockBuilder(UpgradeCatalog221.class)
       .addMockedMethod(addNewConfigurationsFromXml)
@@ -151,6 +152,7 @@ public class UpgradeCatalog221Test {
       .addMockedMethod(updateOozieConfigs)
       .addMockedMethod(updateTezConfigs)
       .addMockedMethod(updateRangerKmsDbksConfigs)
+      .addMockedMethod(updateAMSConfigs)
       .createMock();
 
     upgradeCatalog221.addNewConfigurationsFromXml();
@@ -162,6 +164,8 @@ public class UpgradeCatalog221Test {
     upgradeCatalog221.updateTezConfigs();
     expectLastCall().once();
     upgradeCatalog221.updateRangerKmsDbksConfigs();
+    expectLastCall().once();
+    upgradeCatalog221.updateAMSConfigs();
     expectLastCall().once();
 
 
