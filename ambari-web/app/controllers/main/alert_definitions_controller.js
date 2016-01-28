@@ -28,11 +28,52 @@ App.MainAlertDefinitionsController = Em.ArrayController.extend({
    */
   showFilterConditionsFirstLoad: false,
 
+  contentUpdater: null,
+
   /**
    * List of all <code>App.AlertDefinition</code>
    * @type {App.AlertDefinition[]}
    */
   content: App.AlertDefinition.find(),
+
+  /**
+   * Generates key for alert summary that represents current state
+   */
+  getSummaryCache: function () {
+    var res = '';
+    this.get('content').forEach(function(o) {
+      var summary = o.get('summary');
+      o.get('order').forEach(function (state) {
+        res += summary[state] ? summary[state].count + summary[state].maintenanceCount : 0;
+      });
+    });
+
+    return res;
+   },
+
+  generateCacheByKey: function(key) {
+    if (key === 'summary') {
+      return this.getSummaryCache();
+    }
+
+    return this.get('content').mapProperty(key).join('');
+  },
+
+  contentWasChanged: function(key) {
+    var updatedCache = this.generateCacheByKey(key);
+    if (this.get('cache.' + key) !== updatedCache) {
+      this.set('cache.' + key, updatedCache);
+      this.propertyDidChange('contentUpdater');
+    }
+  },
+
+  cache: {
+    'label': '',
+    'summary': '',
+    'serviceName': '',
+    'lastTriggered': '',
+    'enabled': ''
+  },
 
   /**
    * Enable/disable alertDefinition confirmation popup

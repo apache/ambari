@@ -52,6 +52,7 @@ App.MainAlertDefinitionsView = App.TableView.extend({
   },
 
   willDestroyElement: function () {
+    $(".timeago").tooltip('destroy');
     this.removeObserver('pageContent.length', this, 'tooltipsUpdater');
   },
 
@@ -77,26 +78,6 @@ App.MainAlertDefinitionsView = App.TableView.extend({
   totalCount: Em.computed.alias('content.length'),
 
   colPropAssoc: ['', 'label', 'summary', 'serviceName', 'type', 'lastTriggered', 'enabled', 'groups'],
-
-  /**
-   * @type {string}
-   */
-  enabledTooltip: Em.I18n.t('alerts.table.state.enabled.tooltip'),
-
-  /**
-   * @type {string}
-   */
-  disabledTooltip: Em.I18n.t('alerts.table.state.disabled.tooltip'),
-
-  /**
-   * @type {string}
-   */
-  enabledDisplay: Em.I18n.t('alerts.table.state.enabled'),
-
-  /**
-   * @type {string}
-   */
-  disabledDisplay: Em.I18n.t('alerts.table.state.disabled'),
 
   sortView: sort.wrapperView.extend({
     didInsertElement: function () {
@@ -500,7 +481,7 @@ App.MainAlertDefinitionsView = App.TableView.extend({
    */
   tooltipsUpdater: function () {
     Em.run.next(this, function () {
-      App.tooltip($(".enable-disable-button, .timeago"));
+      App.tooltip($(".timeago"));
     });
   },
 

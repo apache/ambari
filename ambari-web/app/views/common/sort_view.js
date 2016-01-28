@@ -119,7 +119,7 @@ var wrapperView = Em.View.extend({
         }
       }, this);
     }
-  }.observes('content.length'),
+  }.observes('controller.contentUpdater'),
 
   /**
    * reset all sorts fields
@@ -186,11 +186,24 @@ var wrapperView = Em.View.extend({
   },
 
   /**
+   * method that runs <code>contentWasChanged<code>
+   *
+   * @method onContentChangeOnce
+   */
+  onContentChangeOnce: function() {
+    var keys = arguments[1].match(/[a-zA-Z]+$/),
+      key = keys.length ? keys[0] : null;
+    if (key) {
+      Em.run.once(this.get('controller'), 'contentWasChanged', key);
+    }
+  },
+
+  /**
    * Add observer for key to call  <code>onContentChange</code>
    * @param key
    */
   addSortingObserver: function (key) {
-    this.addObserver('content.@each.' + key, this, 'onContentChange');
+    this.addObserver('controller.content.@each.' + key, this, 'onContentChangeOnce');
   },
 
   /**
@@ -198,7 +211,7 @@ var wrapperView = Em.View.extend({
    * @param key
    */
   removeSortingObserver: function (key) {
-    this.removeObserver('content.@each.' + key, this, 'onContentChange');
+    this.removeObserver('controller.content.@each.' + key, this, 'onContentChangeOnce');
   },
 
   willDestroyElement: function () {

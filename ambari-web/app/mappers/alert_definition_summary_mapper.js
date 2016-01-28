@@ -56,6 +56,9 @@ App.alertDefinitionSummaryMapper = App.QuickDataMapper.create({
 
     alertDefinitions.forEach(function (d) {
       var id = d.get('id');
+      if ((alertDefinitionsMap[id].get('stateManager.currentState.name') !== 'saved')) {
+        alertDefinitionsMap[id].get('stateManager').transitionTo('saved');
+      }
       alertDefinitionsMap[id].setProperties(summaryMap[id]);
       if (!alertDefinitionsMap[id].get('enabled')) {
         // clear summary for disabled alert definitions
@@ -89,7 +92,10 @@ App.alertDefinitionSummaryMapper = App.QuickDataMapper.create({
         });
       }
     });
-
+    if (!$.mocho) {
+      //for some reasons this causing error in unit test
+      App.store.commit();
+    }
     console.timeEnd('App.alertDefinitionSummaryMapper execution time');
 
   }
