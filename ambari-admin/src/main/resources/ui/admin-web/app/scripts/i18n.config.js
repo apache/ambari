@@ -83,7 +83,10 @@ angular.module('ambariAdminConsole')
       'loginActivities': {
         'loginActivities':'Login Activities',
         'loginMessage': 'Login Message',
-        'homeDirectory': 'Home Directory'
+        'loginMessage.placeholder': 'Please enter login message',
+        'homeDirectory': 'Home Directory',
+        'onlySimpleChars': 'Must contain only simple characters.',
+        'saveError': 'Save error'
       },
 
       'controls': {
