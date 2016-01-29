@@ -19,6 +19,7 @@ package org.apache.ambari.server.controller.internal;
 
 import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
@@ -171,6 +172,10 @@ public class AdminSettingResourceProvider extends AbstractAuthorizedResourceProv
       @Override
       public AdminSettingEntity invoke() throws AmbariException, AuthorizationException {
         AdminSettingEntity entity = toEntity(properties);
+        if (dao.findByName(entity.getName()) != null) {
+          throw new DuplicateResourceException(
+                  String.format("Setting already exists. setting name :%s ", entity.getName()));
+        }
         dao.create(entity);
         notifyCreate(Resource.Type.AdminSetting, request);
         return entity;
