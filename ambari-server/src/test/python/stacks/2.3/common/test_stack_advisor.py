@@ -1316,6 +1316,40 @@ class TestHDP23StackAdvisor(TestCase):
     self.stackAdvisor.recommendTezConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
 
+  def test_recommendHAWQConfigurations(self):
+
+    # original cluster data with 3 segments
+    services = self.load_json("services-normal-hawq-3-hosts.json")
+    componentsListList = [service["components"] for service in services["services"]]
+    componentsList = [item for sublist in componentsListList for item in sublist]
+    hawqSegmentComponent = [component["StackServiceComponents"] for component in componentsList if component["StackServiceComponents"]["component_name"] == "HAWQSEGMENT"][0]
+    services["configurations"]["hawq-site"] = {"properties": {"default_segment_num": "24"}}
+
+    configurations = {}
+    clusterData = {}
+
+    # Test 1 - with 3 segments
+    self.assertEquals(len(hawqSegmentComponent["hostnames"]), 3)
+    self.stackAdvisor.recommendHAWQConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations["hawq-site"]["properties"]["default_segment_num"], str(3 * 6))
+
+    # Test 2 - with 49 segments
+    hawqSegmentComponent["hostnames"] = ["host" + str(i) for i in range(49)]
+    self.stackAdvisor.recommendHAWQConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations["hawq-site"]["properties"]["default_segment_num"], str(49 * 6))
+
+    # Test 3 - with 50 segments (threshold for new factor)
+    hawqSegmentComponent["hostnames"] = ["host" + str(i) for i in range(50)]
+    self.stackAdvisor.recommendHAWQConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations["hawq-site"]["properties"]["default_segment_num"], str(50 * 4))
+
+    # Test 4 - with no segments
+    configurations = {}
+    hawqSegmentComponent["hostnames"] = []
+    self.stackAdvisor.recommendHAWQConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations, {'hawq-site': {'properties': {}}})
+
+
   def test_validateHiveConfigurations(self):
     properties = {"hive_security_authorization": "None",
                   "hive.exec.orc.default.stripe.size": "8388608",

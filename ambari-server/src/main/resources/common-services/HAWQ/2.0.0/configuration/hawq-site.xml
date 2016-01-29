@@ -205,4 +205,18 @@
     </description>
   </property>
 
+  <property>
+    <name>default_segment_num</name>
+    <display-name>Default Number of Virtual Segments</display-name>
+    <value>24</value>
+    <description>
+      The default number of virtual segments to use when executing a query statement. When the query is actually executed,
+      the number of virtual segments may differ from this number depending on the query's needs.
+      When expanding the cluster, you should adjust this number to reflect the number of nodes in the new cluster times the number of virtual segments per node.
+    </description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
+  </property>
+
 </configuration>
