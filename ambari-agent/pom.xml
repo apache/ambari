@@ -409,6 +409,17 @@
               <groupname>root</groupname>
             </mapping>
             <mapping>
+              <directory>/etc/init</directory>
+              <filemode>755</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
+              <sources>
+                <source>
+                  <location>etc/init/ambari-agent.conf</location>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
               <directory>${init.d.dir}</directory>
               <filemode>755</filemode>
               <username>root</username>
@@ -614,6 +625,17 @@
               <mapper>
                 <type>perm</type>
                 <prefix>/etc/init.d</prefix>
+                <user>root</user>
+                <group>root</group>
+                <filemode>755</filemode>
+              </mapper>
+            </data>
+            <data>
+              <src>etc/init/ambari-agent.conf</src>
+              <type>file</type>
+              <mapper>
+                <type>perm</type>
+                <prefix>/etc/init</prefix>
                 <user>root</user>
                 <group>root</group>
                 <filemode>755</filemode>
