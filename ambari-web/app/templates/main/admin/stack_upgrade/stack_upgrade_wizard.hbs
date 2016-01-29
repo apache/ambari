@@ -81,7 +81,7 @@
                     <button class="btn btn-danger" {{bindAttr disabled="controller.requestInProgress"}} {{action confirmDowngrade view.failedItem target="controller"}}>{{t common.downgrade}}</button>
                   {{/if}}
                   {{#if isDowngrade}}
-                    <button class="btn" {{action closeWizard target="view.parentView"}}>{{t admin.stackUpgrade.pauseDowngrade}}</button>
+                    <button class="btn" {{action pauseUpgrade target="view"}}>{{t admin.stackUpgrade.pauseDowngrade}}</button>
                   {{else}}
                     <button class="btn" {{action pauseUpgrade target="view"}}>{{t admin.stackUpgrade.pauseUpgrade}}</button>
                   {{/if}}
@@ -108,7 +108,7 @@
                 <button class="btn btn-danger" {{bindAttr disabled="controller.requestInProgress"}} {{action confirmDowngrade view.manualItem target="controller"}}>{{t common.downgrade}}</button>
               {{/if}}
               {{#if isDowngrade}}
-                <button class="btn" {{action closeWizard target="view.parentView"}}>{{t admin.stackUpgrade.pauseDowngrade}}</button>
+                <button class="btn" {{action pauseUpgrade target="view"}}>{{t admin.stackUpgrade.pauseDowngrade}}</button>
               {{else}}
                 <button class="btn" {{action pauseUpgrade target="view"}}>{{t admin.stackUpgrade.pauseUpgrade}}</button>
               {{/if}}
@@ -189,7 +189,7 @@
                 <button class="btn btn-danger" {{bindAttr disabled="controller.requestInProgress"}} {{action confirmDowngrade view.manualItem target="controller"}}>{{t common.downgrade}}</button>
               {{/if}}
               {{#if isDowngrade}}
-                <button class="btn" {{action closeWizard target="view.parentView"}}>{{t admin.stackUpgrade.pauseDowngrade}}</button>
+                <button class="btn" {{action pauseUpgrade target="view"}}>{{t admin.stackUpgrade.pauseDowngrade}}</button>
               {{else}}
                 <button class="btn" {{action pauseUpgrade target="view"}}>{{t admin.stackUpgrade.pauseUpgrade}}</button>
               {{/if}}
@@ -252,7 +252,7 @@
                   <button class="btn btn-danger" {{bindAttr disabled="controller.requestInProgress"}} {{action confirmDowngrade view.manualItem target="controller"}}>{{t common.downgrade}}</button>
               {{/if}}
               {{#if isDowngrade}}
-                  <button class="btn" {{action closeWizard target="view.parentView"}}>{{t admin.stackUpgrade.pauseDowngrade}}</button>
+                  <button class="btn" {{action pauseUpgrade target="view"}}>{{t admin.stackUpgrade.pauseDowngrade}}</button>
               {{else}}
                   <button class="btn" {{action pauseUpgrade target="view"}}>{{t admin.stackUpgrade.pauseUpgrade}}</button>
               {{/if}}
