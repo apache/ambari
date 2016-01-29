@@ -672,7 +672,14 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     if self.isHawqMasterComponentOnAmbariServer(services):
       if "hawq-site" in services["configurations"] and "hawq_master_address_port" in services["configurations"]["hawq-site"]["properties"]:
         putHawqSiteProperty('hawq_master_address_port', '')
-          
+    # calculate optimal number of virtual segments
+    componentsListList = [service["components"] for service in services["services"]]
+    componentsList = [item["StackServiceComponents"] for sublist in componentsListList for item in sublist]
+    numSegments = len(self.__getHosts(componentsList, "HAWQSEGMENT"))
+    # update default if segments are deployed
+    if numSegments and "hawq-site" in services["configurations"] and "default_segment_num" in services["configurations"]["hawq-site"]["properties"]:
+      factor = 6 if numSegments < 50 else 4
+      putHawqSiteProperty('default_segment_num', numSegments * factor)
           
   def getServiceConfigurationValidators(self):
     parentValidators = super(HDP23StackAdvisor, self).getServiceConfigurationValidators()
