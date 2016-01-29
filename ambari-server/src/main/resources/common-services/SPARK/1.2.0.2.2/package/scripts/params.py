@@ -79,7 +79,7 @@ hive_user = status_params.hive_user
 spark_group = status_params.spark_group
 user_group = status_params.user_group
 spark_hdfs_user_dir = format("/user/{spark_user}")
-spark_history_dir = 'hdfs:///spark-history'
+spark_history_dir = default('/configurations/spark-defaults/spark.history.fs.logDirectory', "hdfs:///spark-history")
 
 spark_history_server_pid_file = status_params.spark_history_server_pid_file
 spark_thrift_server_pid_file = status_params.spark_thrift_server_pid_file

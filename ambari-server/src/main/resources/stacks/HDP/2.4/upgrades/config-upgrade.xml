@@ -172,9 +172,6 @@
             <type>spark-defaults</type>
             <transfer operation="delete" delete-key="spark.yarn.services" />
             <set key="spark.history.provider" value="org.apache.spark.deploy.history.FsHistoryProvider"/>
-            <set key="spark.history.fs.logDirectory" value="{{spark_history_dir}}"/>
-            <set key="spark.eventLog.enabled" value="true"/>
-            <set key="spark.eventLog.dir" value="{{spark_history_dir}}"/>
           </definition>
         </changes>
       </component>
@@ -190,18 +187,6 @@
             <transfer operation="delete" delete-key="spark.yarn.submit.file.replication" />
             <transfer operation="delete" delete-key="spark.yarn.preserve.staging.files" />
             <transfer operation="delete" delete-key="spark.yarn.max.executor.failures" />
-            <set key="spark.history.provider" value="org.apache.spark.deploy.history.FsHistoryProvider"/>
-            <set key="spark.history.fs.logDirectory" value="{{spark_history_dir}}"/>
-            <set key="spark.eventLog.enabled" value="true"/>
-            <set key="spark.eventLog.dir" value="{{spark_history_dir}}"/>
-            <set key="spark.master" value="{{spark_thrift_master}}"/>
-            <set key="spark.scheduler.allocation.file" value="{{spark_conf}}/spark-thrift-fairscheduler.xml"/>
-            <set key="spark.scheduler.mode" value="FAIR"/>
-            <set key="spark.shuffle.service.enabled" value="true"/>
-            <set key="spark.dynamicAllocation.enabled" value="true"/>
-            <set key="spark.executor.instances" value="2"/>
-            <set key="spark.yarn.am.memory" value="512m"/>
-            <set key="spark.executor.memory" value="1g"/>
           </definition>
         </changes>
       </component>
