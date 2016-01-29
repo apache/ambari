@@ -74,6 +74,7 @@ angular.module('ambariAdminConsole')
       'jwt': 'JWT',
       'warning': 'Warning',
       'filterInfo': '{{showed}} of {{total}} {{term}} showing',
+      'usersGroups': 'Users/Groups',
 
       'clusterNameChangeConfirmation': {
         'title': 'Confirm Cluster Name Change',
