@@ -75,17 +75,14 @@
   <property>
     <name>spark.history.fs.logDirectory</name>
     <value>{{spark_history_dir}}</value>
-    <final>true</final>
     <description>
-      Base directory for history spark application log. It is the same value
-      as in spark-defaults.xml.
+      Base directory for history spark application log.
     </description>
   </property>
 
   <property>
     <name>spark.eventLog.enabled</name>
     <value>true</value>
-    <final>true</final>
     <description>
       Whether to log Spark events, useful for reconstructing the Web UI after the application has finished.
     </description>
@@ -94,10 +91,8 @@
   <property>
     <name>spark.eventLog.dir</name>
     <value>{{spark_history_dir}}</value>
-    <final>true</final>
     <description>
-      Base directory in which Spark events are logged, if spark.eventLog.enabled is true. It is the same value
-      as in spark-defaults.xml.
+      Base directory in which Spark events are logged, if spark.eventLog.enabled is true.
     </description>
   </property>
 
@@ -143,26 +138,10 @@
   </property>
 
   <property>
-    <name>spark.dynamicAllocation.initialExecutors</name>
-    <value>0</value>
+    <name>spark.executor.instances</name>
+    <value>2</value>
     <description>
-      Initial number of executors to run if dynamic allocation is enabled.
-    </description>
-  </property>
-
-  <property>
-    <name>spark.dynamicAllocation.maxExecutors</name>
-    <value>10</value>
-    <description>
-      Upper bound for the number of executors if dynamic allocation is enabled.
-    </description>
-  </property>
-
-  <property>
-    <name>spark.dynamicAllocation.minExecutors</name>
-    <value>0</value>
-    <description>
-      Lower bound for the number of executors if dynamic allocation is enabled.
+      The number of executor.
     </description>
   </property>
 
