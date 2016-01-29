@@ -29,6 +29,7 @@ App.MainHostComboSearchBoxView = Em.View.extend({
       container: $('#combo_search_box'),
       query: '',
       showFacets: true,
+      delay: 1000,
       unquotable: [
         'text'
       ],

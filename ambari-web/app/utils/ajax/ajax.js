@@ -2358,6 +2358,21 @@ var urls = {
     'real': '/clusters/{clusterName}/hosts?fields=Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem,Hosts/os_type,Hosts/os_arch,Hosts/ip,host_components/HostRoles/state&minimal_response=true',
     'mock': '/data/hosts/HDP2/hosts.json'
   },
+  'hosts.with_searchTerm': {
+    'real': '/clusters/{clusterName}/hosts?fields=Hosts/{facet}&minimal_response=true&page_size={page_size}',
+    'mock': '',
+    format: function (data) {
+      return {
+        headers: {
+          'X-Http-Method-Override': 'GET'
+        },
+        type: 'POST',
+        data: JSON.stringify({
+          "RequestInfo": {"query": (data.searchTerm ? "Hosts/"+ data.facet +".matches(.*" + data.searchTerm + ".*)" : "")}
+        })
+      };
+    }
+  },
   'host_components.all': {
     'real': '/clusters/{clusterName}/host_components?fields=HostRoles/host_name&minimal_response=true',
     'mock': ''
