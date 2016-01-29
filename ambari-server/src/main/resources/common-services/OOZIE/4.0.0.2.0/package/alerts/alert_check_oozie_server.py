@@ -17,17 +17,18 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import os
+import re
+
+from resource_management.core import global_lock
 from resource_management.core.environment import Environment
 from resource_management.core.resources import Execute
-from resource_management.core.shell import call
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions import get_klist_path
 from ambari_commons.os_check import OSConst, OSCheck
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from urlparse import urlparse
-import os
-import re
 
 RESULT_CODE_OK = 'OK'
 RESULT_CODE_CRITICAL = 'CRITICAL'
@@ -143,7 +144,13 @@ def get_check_command(oozie_url, host_name, configurations, parameters, only_kin
     else:
       kinit_command = "{0} -s {1} || ".format(klist_path_local, ccache_file) + kinit_part_command
 
-    Execute(kinit_command, environment=kerberos_env, user=user)
+    # prevent concurrent kinit
+    kinit_lock = global_lock.get_lock(global_lock.LOCK_TYPE_KERBEROS)
+    kinit_lock.acquire()
+    try:
+      Execute(kinit_command, environment=kerberos_env, user=user)
+    finally:
+      kinit_lock.release()
 
   # oozie configuration directory uses a symlink when > HDP 2.2
   oozie_config_directory = OOZIE_CONF_DIR_LEGACY

@@ -24,13 +24,15 @@ __all__ = ["curl_krb_request"]
 import logging
 import os
 import time
-import subprocess
+import threading
 
+from resource_management.core import global_lock
 from resource_management.core import shell
 from resource_management.core.exceptions import Fail
 from get_kinit_path import get_kinit_path
 from get_klist_path import get_klist_path
 from resource_management.libraries.functions.get_user_call_output import get_user_call_output
+
 # hashlib is supplied as of Python 2.5 as the replacement interface for md5
 # and other secure hashes.  In 2.6, md5 is deprecated.  Import hashlib if
 # available, avoiding a deprecation warning under 2.6.  Import md5 otherwise,
@@ -47,7 +49,6 @@ MAX_TIMEOUT_DEFAULT = CONNECTION_TIMEOUT_DEFAULT + 2
 
 logger = logging.getLogger()
 
-
 def curl_krb_request(tmp_dir, keytab, principal, url, cache_file_prefix,
     krb_exec_search_paths, return_only_http_code, alert_name, user,
     connection_timeout = CONNECTION_TIMEOUT_DEFAULT):
@@ -62,25 +63,33 @@ def curl_krb_request(tmp_dir, keytab, principal, url, cache_file_prefix,
   ccache_file_path = "{0}{1}{2}_{3}_cc_{4}".format(tmp_dir, os.sep, cache_file_prefix, user, ccache_file_name)
   kerberos_env = {'KRB5CCNAME': ccache_file_path}
 
-  # If there are no tickets in the cache or they are expired, perform a kinit, else use what
-  # is in the cache
-  if krb_exec_search_paths:
-    klist_path_local = get_klist_path(krb_exec_search_paths)
-  else:
-    klist_path_local = get_klist_path()
-
-  if shell.call("{0} -s {1}".format(klist_path_local, ccache_file_path), user=user)[0] != 0:
+  # concurrent kinit's can cause the following error:
+  # Internal credentials cache error while storing credentials while getting initial credentials
+  kinit_lock = global_lock.get_lock(global_lock.LOCK_TYPE_KERBEROS)
+  kinit_lock.acquire()
+  try:
+    # If there are no tickets in the cache or they are expired, perform a kinit, else use what
+    # is in the cache
     if krb_exec_search_paths:
-      kinit_path_local = get_kinit_path(krb_exec_search_paths)
+      klist_path_local = get_klist_path(krb_exec_search_paths)
     else:
-      kinit_path_local = get_kinit_path()
-    logger.debug("[Alert][{0}] Enabling Kerberos authentication via GSSAPI using ccache at {1}.".format(
-      alert_name, ccache_file_path))
+      klist_path_local = get_klist_path()
 
-    shell.checked_call("{0} -l 5m -c {1} -kt {2} {3} > /dev/null".format(kinit_path_local, ccache_file_path, keytab, principal), user=user)
-  else:
-    logger.debug("[Alert][{0}] Kerberos authentication via GSSAPI already enabled using ccache at {1}.".format(
-      alert_name, ccache_file_path))
+    if shell.call("{0} -s {1}".format(klist_path_local, ccache_file_path), user=user)[0] != 0:
+      if krb_exec_search_paths:
+        kinit_path_local = get_kinit_path(krb_exec_search_paths)
+      else:
+        kinit_path_local = get_kinit_path()
+
+      logger.debug("[Alert][{0}] Enabling Kerberos authentication via GSSAPI using ccache at {1}.".format(
+        alert_name, ccache_file_path))
+
+      shell.checked_call("{0} -l 5m -c {1} -kt {2} {3} > /dev/null".format(kinit_path_local, ccache_file_path, keytab, principal), user=user)
+    else:
+      logger.debug("[Alert][{0}] Kerberos authentication via GSSAPI already enabled using ccache at {1}.".format(
+        alert_name, ccache_file_path))
+  finally:
+    kinit_lock.release()
 
   # check if cookies dir exists, if not then create it
   cookies_dir = os.path.join(tmp_dir, "cookies")
