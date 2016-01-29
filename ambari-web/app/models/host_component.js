@@ -269,6 +269,7 @@ App.HostComponentActionMap = {
     var NN = ctx.get('controller.content.hostComponents').findProperty('componentName', 'NAMENODE');
     var RM = ctx.get('controller.content.hostComponents').findProperty('componentName', 'RESOURCEMANAGER');
     var RA = ctx.get('controller.content.hostComponents').findProperty('componentName', 'RANGER_ADMIN');
+    var HM = ctx.get('controller.content.hostComponents').findProperty('componentName', 'HAWQMASTER');
     var HS = ctx.get('controller.content.hostComponents').findProperty('componentName', 'HAWQSTANDBY');
     return {
       RESTART_ALL: {
@@ -378,7 +379,7 @@ App.HostComponentActionMap = {
         context: Em.I18n.t('services.service.actions.run.immediateStopHawqCluster.context'),
         label: Em.I18n.t('services.service.actions.run.immediateStopHawqCluster.context'),
         cssClass: 'icon-stop',
-        disabled: false
+        disabled: !HM || HM.get('workStatus') != App.HostComponentStatus.started
       },
       IMMEDIATE_STOP: {
         customCommand: 'IMMEDIATE_STOP',
