@@ -198,6 +198,13 @@ public class UpgradeCatalog221 extends AbstractUpgradeCatalog {
         alertDefinitionDAO.merge(alertDefinition);
       }
 
+      final AlertDefinitionEntity amsZookeeperProcessAlertDefinitionEntity = alertDefinitionDAO.findByName(
+        clusterID, "ams_metrics_collector_zookeeper_server_process");
+
+      if (amsZookeeperProcessAlertDefinitionEntity != null) {
+        LOG.info("Removing alert : ams_metrics_collector_zookeeper_server_process");
+        alertDefinitionDAO.remove(amsZookeeperProcessAlertDefinitionEntity);
+      }
     }
   }
 
