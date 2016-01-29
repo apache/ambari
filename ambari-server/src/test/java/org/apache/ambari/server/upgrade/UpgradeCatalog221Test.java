@@ -41,7 +41,9 @@ import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
+import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -571,5 +573,46 @@ public class UpgradeCatalog221Test {
 
     String result = (String) updateAmsEnvContent.invoke(upgradeCatalog221, oldContent);
     Assert.assertEquals(expectedContent, result);
+  }
+
+  @Test
+  public void testUpdateAlertDefinitions() {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    long clusterId = 1;
+
+    final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final AlertDefinitionDAO mockAlertDefinitionDAO = easyMockSupport.createNiceMock(AlertDefinitionDAO.class);
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+    final AlertDefinitionEntity mockAmsZookeeperProcessAlertDefinitionEntity = easyMockSupport.createNiceMock(AlertDefinitionEntity.class);
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(EntityManager.class).toInstance(entityManager);
+        bind(AlertDefinitionDAO.class).toInstance(mockAlertDefinitionDAO);
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    });
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockClusterExpected);
+    }}).atLeastOnce();
+
+    expect(mockClusterExpected.getClusterId()).andReturn(clusterId).anyTimes();
+
+    expect(mockAlertDefinitionDAO.findByName(eq(clusterId), eq("ams_metrics_collector_zookeeper_server_process")))
+      .andReturn(mockAmsZookeeperProcessAlertDefinitionEntity).atLeastOnce();
+
+    mockAlertDefinitionDAO.remove(mockAmsZookeeperProcessAlertDefinitionEntity);
+    expectLastCall().once();
+
+    easyMockSupport.replayAll();
+    mockInjector.getInstance(UpgradeCatalog221.class).updateAlerts();
+    easyMockSupport.verifyAll();
   }
 }
