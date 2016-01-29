@@ -31,7 +31,7 @@
     </property>
     <property>
         <name>spark.history.fs.logDirectory</name>
-        <value>{{spark_history_dir}}</value>
+        <value>hdfs:///spark-history</value>
         <description>
             Base directory for history spark application log.
         </description>
@@ -45,7 +45,7 @@
     </property>
     <property>
         <name>spark.eventLog.dir</name>
-        <value>{{spark_history_dir}}</value>
+        <value>hdfs:///spark-history</value>
         <description>
             Base directory in which Spark events are logged, if spark.eventLog.enabled is true.
         </description>
