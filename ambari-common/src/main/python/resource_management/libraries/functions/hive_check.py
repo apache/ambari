@@ -18,9 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import socket
-
-from resource_management.core.exceptions import Fail
+from resource_management.core import global_lock
 from resource_management.core.resources import Execute
 from resource_management.libraries.functions import format
 
@@ -55,15 +53,22 @@ def check_thrift_port_sasl(address, port, hive_auth="NOSASL", key=None, kinitcmd
   if ssl and ssl_keystore is not None and ssl_password is not None:
     beeline_url.extend(['ssl={ssl_str}', 'sslTrustStore={ssl_keystore}', 'trustStorePassword={ssl_password!p}'])
 
-  # append url according to kerberos setting
+  # append url according to principal and execute kinit
   if kinitcmd:
     beeline_url.append('principal={key}')
-    Execute(kinitcmd, user=smokeuser)
+
+    # prevent concurrent kinit
+    kinit_lock = global_lock.get_lock(global_lock.LOCK_TYPE_KERBEROS)
+    kinit_lock.acquire()
+    try:
+      Execute(kinitcmd, user=smokeuser)
+    finally:
+      kinit_lock.release()
 
   cmd = "! beeline -u '%s' -e '' 2>&1| awk '{print}'|grep -i -e 'Connection refused' -e 'Invalid URL'" % \
         format(";".join(beeline_url))
+
   Execute(cmd,
-          user=smokeuser,
-          path=["/bin/", "/usr/bin/", "/usr/lib/hive/bin/", "/usr/sbin/"],
-          timeout=check_command_timeout
-  )
+    user=smokeuser,
+    path=["/bin/", "/usr/bin/", "/usr/lib/hive/bin/", "/usr/sbin/"],
+    timeout=check_command_timeout)

@@ -26,13 +26,7 @@ import traceback
 import logging
 
 from resource_management.core.environment import Environment
-from resource_management.core.resources import Execute
-from resource_management.core import shell
-from resource_management.libraries.functions import format
-from resource_management.libraries.functions import get_kinit_path
-from resource_management.libraries.functions import get_klist_path
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request
-from os import getpid, sep
 
 RESULT_CODE_OK = "OK"
 RESULT_CODE_CRITICAL = "CRITICAL"
