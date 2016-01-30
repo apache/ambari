@@ -1649,6 +1649,9 @@ var urls = {
     'format': function (data) {
       return {
         data: JSON.stringify({
+          "RequestInfo": {
+            "downgrade": data.isDowngrade
+          },
           "Upgrade": {
             "request_status": "ABORTED"
           }

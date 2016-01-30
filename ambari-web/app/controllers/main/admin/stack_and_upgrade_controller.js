@@ -560,13 +560,15 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * abort upgrade (in order to start Downgrade)
    */
   abortUpgrade: function () {
+    var errorCallback = this.get('isDowngrade') ? 'abortDowngradeErrorCallback' : 'abortUpgradeErrorCallback';
     return App.ajax.send({
       name: 'admin.upgrade.abort',
       sender: this,
       data: {
-        upgradeId: this.get('upgradeId')
+        upgradeId: this.get('upgradeId'),
+        isDowngrade: this.get('isDowngrade')
       },
-      error: 'abortUpgradeErrorCallback'
+      error: 'errorCallback'
     });
   },
 
@@ -577,6 +579,22 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   abortUpgradeErrorCallback: function (data) {
     var header = Em.I18n.t('admin.stackUpgrade.state.paused.fail.header');
     var body = Em.I18n.t('admin.stackUpgrade.state.paused.fail.body');
+    if(data && data.responseText){
+      try {
+        var json = $.parseJSON(data.responseText);
+        body = body + ' ' + json.message;
+      } catch (err) {}
+    }
+    App.showAlertPopup(header, body);
+  },
+
+  /**
+   * error callback of <code>abortDowngrade()</code>
+   * @param {object} data
+  */
+  abortDowngradeErrorCallback: function (data) {
+    var header = Em.I18n.t('admin.stackDowngrade.state.paused.fail.header');
+    var body = Em.I18n.t('admin.stackDowngrade.state.paused.fail.body');
     if(data && data.responseText){
       try {
         var json = $.parseJSON(data.responseText);
