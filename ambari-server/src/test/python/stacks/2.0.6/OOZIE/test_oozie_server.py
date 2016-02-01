@@ -108,7 +108,7 @@ class TestOozieServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
                               owner = 'root',
                               group = 'root',
-                              recursive=True,
+                              create_parents=True,
                               )
     self.assertResourceCalled('File', '/etc/security/limits.d/oozie.conf',
                               owner = 'root',
@@ -227,9 +227,11 @@ class TestOozieServer(RMFTestCase):
         not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1'",
         sudo = True,
     )
-    self.assertResourceCalled('Execute', ('chown', '-RL', 'oozie:hadoop', '/var/lib/oozie/oozie-server/conf'),
-        not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1'",
-        sudo = True,
+    self.assertResourceCalled('Directory', '/var/lib/oozie/oozie-server/conf',
+                              owner = 'oozie',
+                              group = 'hadoop',
+                              recursion_follow_links = True,
+                              recursive_ownership = True,
     )
     self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
         content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-jdbc-driver.jar'),
@@ -263,8 +265,10 @@ class TestOozieServer(RMFTestCase):
         content = 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-setup.sh prepare-war ',
         mode = 0644,
     )
-    self.assertResourceCalled('Execute', ('chown', '-R', 'oozie:hadoop', '/var/lib/oozie/oozie-server'),
-        sudo = True,
+    self.assertResourceCalled('Directory', '/var/lib/oozie/oozie-server',
+                              owner = 'oozie',
+                              group = 'hadoop',
+                              recursive_ownership = True,
     )
 
 
@@ -327,7 +331,7 @@ class TestOozieServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
                               owner = 'root',
                               group = 'root',
-                              recursive=True,
+                              create_parents=True,
                               )
     self.assertResourceCalled('File', '/etc/security/limits.d/oozie.conf',
                               owner = 'root',
@@ -443,9 +447,11 @@ class TestOozieServer(RMFTestCase):
                               not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1'",
                               sudo = True,
                               )
-    self.assertResourceCalled('Execute', ('chown', '-RL', u'oozie:hadoop', '/var/lib/oozie/oozie-server/conf'),
-                              not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1'",
-                              sudo = True,
+    self.assertResourceCalled('Directory', '/var/lib/oozie/oozie-server/conf',
+                              owner = 'oozie',
+                              group = 'hadoop',
+                              recursion_follow_links = True,
+                              recursive_ownership = True,
                               )
     self.assertResourceCalled('File', '/tmp/sqla-client-jdbc.tar.gz',
                               content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//sqlanywhere-jdbc-driver.tar.gz'),
@@ -481,9 +487,11 @@ class TestOozieServer(RMFTestCase):
                               content = 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-setup.sh prepare-war ',
                               mode = 0644,
                               )
-    self.assertResourceCalled('Execute', ('chown', '-R', u'oozie:hadoop', '/var/lib/oozie/oozie-server'),
-                              sudo = True,
-                              )
+    self.assertResourceCalled('Directory', '/var/lib/oozie/oozie-server',
+                              owner = 'oozie',
+                              group = 'hadoop',
+                              recursive_ownership = True,
+    )
     self.assertNoMoreResources()
 
 
@@ -698,7 +706,7 @@ class TestOozieServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
                               owner = 'root',
                               group = 'root',
-                              recursive=True,
+                              create_parents=True,
                               )
     self.assertResourceCalled('File', '/etc/security/limits.d/oozie.conf',
                               owner = 'root',
@@ -814,9 +822,11 @@ class TestOozieServer(RMFTestCase):
         not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1'",
         sudo = True,
     )
-    self.assertResourceCalled('Execute', ('chown', '-RL', 'oozie:hadoop', '/var/lib/oozie/oozie-server/conf'),
-        not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1'",
-        sudo = True,
+    self.assertResourceCalled('Directory', '/var/lib/oozie/oozie-server/conf',
+                              owner = 'oozie',
+                              group = 'hadoop',
+                              recursion_follow_links = True,
+                              recursive_ownership = True,
     )
     self.assertResourceCalled('Execute', 'ambari-sudo.sh cp /usr/lib/falcon/oozie/ext/falcon-oozie-el-extension-*.jar /usr/lib/oozie/libext',
         not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1'",
@@ -836,8 +846,10 @@ class TestOozieServer(RMFTestCase):
         content = 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-setup.sh prepare-war ',
         mode = 0644,
     )
-    self.assertResourceCalled('Execute', ('chown', '-R', 'oozie:hadoop', '/var/lib/oozie/oozie-server'),
-        sudo = True,
+    self.assertResourceCalled('Directory', '/var/lib/oozie/oozie-server',
+                              owner = 'oozie',
+                              group = 'hadoop',
+                              recursive_ownership = True,
     )
 
 
@@ -888,7 +900,7 @@ class TestOozieServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
                               owner = 'root',
                               group = 'root',
-                              recursive=True,
+                              create_parents=True,
                               )
     self.assertResourceCalled('File', '/etc/security/limits.d/oozie.conf',
                               owner = 'root',
@@ -1004,9 +1016,11 @@ class TestOozieServer(RMFTestCase):
         not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1'",
         sudo = True,
     )
-    self.assertResourceCalled('Execute', ('chown', '-RL', 'oozie:hadoop', '/var/lib/oozie/oozie-server/conf'),
-        not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1'",
-        sudo = True,
+    self.assertResourceCalled('Directory', '/var/lib/oozie/oozie-server/conf',
+                              owner = 'oozie',
+                              group = 'hadoop',
+                              recursion_follow_links = True,
+                              recursive_ownership = True,
     )
     self.assertResourceCalled('Execute', 'ambari-sudo.sh cp /usr/lib/falcon/oozie/ext/falcon-oozie-el-extension-*.jar /usr/lib/oozie/libext',
         not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1'",
@@ -1026,8 +1040,10 @@ class TestOozieServer(RMFTestCase):
         content = 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-setup.sh prepare-war -secure',
         mode = 0644,
     )
-    self.assertResourceCalled('Execute', ('chown', '-R', 'oozie:hadoop', '/var/lib/oozie/oozie-server'),
-        sudo = True,
+    self.assertResourceCalled('Directory', '/var/lib/oozie/oozie-server',
+                              owner = 'oozie',
+                              group = 'hadoop',
+                              recursive_ownership = True,
     )
 
     def test_configure_default_hdp22(self):
@@ -1221,15 +1237,19 @@ class TestOozieServer(RMFTestCase):
 
     self.assertResourceCalled('Execute',
       ('tar', '-zcvhf', '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar', '/usr/hdp/current/oozie-server/conf/'),
-      sudo = True)
-
+      sudo = True,
+      tries = 3,
+      try_sleep = 1
+    )
     self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'oozie-server', u'2.2.1.0-2135'),
       sudo = True )
 
     self.assertResourceCalled('Execute',
       ('tar', '-xvf', '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar', '-C', '/usr/hdp/current/oozie-server/conf//'),
-        sudo = True)
-
+      sudo = True,
+      tries = 3,
+      try_sleep = 1
+    )
     self.assertResourceCalled('Directory', '/tmp/oozie-upgrade-backup', action = ['delete'])
     self.assertResourceCalled('Directory', '/usr/hdp/current/oozie-server/libext', mode = 0777)
     self.assertResourceCalled('Execute', ('cp', '/usr/share/HDP-oozie/ext-2.2.zip', '/usr/hdp/current/oozie-server/libext'), sudo=True)
@@ -1289,13 +1309,21 @@ class TestOozieServer(RMFTestCase):
 
     self.assertResourceCalled('Execute',
       ('tar', '-zcvhf', '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar', '/usr/hdp/current/oozie-server/conf/'),
-      sudo = True)
-
+      sudo = True,
+      tries = 3,
+      try_sleep = 1
+    )
+    self.assertResourceCalled('Link', '/etc/oozie/conf',
+                              to = '/usr/hdp/current/oozie-client/conf',
+    )
     self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'oozie-server', '2.3.0.0-1234'), sudo = True)
 
     self.assertResourceCalled('Execute',
       ('tar', '-xvf', '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar', '-C', '/usr/hdp/current/oozie-server/conf//'),
-      sudo = True)
+      sudo = True,
+      tries = 3,
+      try_sleep = 1
+    )
 
     self.assertResourceCalled('Directory', '/tmp/oozie-upgrade-backup', action = ['delete'])
     self.assertResourceCalled('Directory', '/usr/hdp/current/oozie-server/libext', mode = 0777)
@@ -1347,13 +1375,18 @@ class TestOozieServer(RMFTestCase):
 
     self.assertResourceCalled('Execute',
       ('tar', '-zcvhf', '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar', '/usr/hdp/current/oozie-server/conf/'),
-      sudo = True)
-
+      sudo = True,
+      tries = 3,
+      try_sleep = 1
+    )
     self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'oozie-server', u'2.2.0.0-0000'), sudo = True)
 
     self.assertResourceCalled('Execute',
       ('tar', '-xvf', '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar', '-C', '/usr/hdp/current/oozie-server/conf//'),
-      sudo = True)
+      sudo = True,
+      tries = 3,
+      try_sleep = 1
+    )
 
     self.assertResourceCalled('Directory', '/tmp/oozie-upgrade-backup', action = ['delete'])
     self.assertResourceCalled('Directory', '/usr/hdp/current/oozie-server/libext',mode = 0777)
@@ -1547,13 +1580,21 @@ class TestOozieServer(RMFTestCase):
 
     self.assertResourceCalled('Execute',
       ('tar', '-zcvhf', '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar', '/usr/hdp/current/oozie-server/conf/'),
-      sudo = True)
-
+      sudo = True,
+      tries = 3,
+      try_sleep = 1
+    )
+    self.assertResourceCalled('Link', '/etc/oozie/conf',
+                              to = '/usr/hdp/current/oozie-client/conf',
+    )
     self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'oozie-server', '2.3.0.0-1234'), sudo = True)
 
     self.assertResourceCalled('Execute',
       ('tar', '-xvf', '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar', '-C', '/usr/hdp/current/oozie-server/conf//'),
-      sudo = True)
+      sudo = True,
+      tries = 3,
+      try_sleep = 1
+    )
 
     self.assertResourceCalled('Directory', '/tmp/oozie-upgrade-backup', action = ['delete'])
     self.assertResourceCalled('Directory', '/usr/hdp/current/oozie-server/libext', mode = 0777)

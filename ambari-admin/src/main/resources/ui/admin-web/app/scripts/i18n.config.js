@@ -74,6 +74,7 @@ angular.module('ambariAdminConsole')
       'jwt': 'JWT',
       'warning': 'Warning',
       'filterInfo': '{{showed}} of {{total}} {{term}} showing',
+      'usersGroups': 'Users/Groups',
 
       'clusterNameChangeConfirmation': {
         'title': 'Confirm Cluster Name Change',
@@ -83,7 +84,10 @@ angular.module('ambariAdminConsole')
       'loginActivities': {
         'loginActivities':'Login Activities',
         'loginMessage': 'Login Message',
-        'homeDirectory': 'Home Directory'
+        'loginMessage.placeholder': 'Please enter login message',
+        'homeDirectory': 'Home Directory',
+        'onlySimpleChars': 'Must contain only simple characters.',
+        'saveError': 'Save error'
       },
 
       'controls': {

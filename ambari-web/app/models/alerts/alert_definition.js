@@ -345,3 +345,4 @@ App.AlertDefinition.FIXTURES = [];
 App.AlertReportDefinition.FIXTURES = [];
 App.AlertMetricsSourceDefinition.FIXTURES = [];
 App.AlertMetricsUriDefinition.FIXTURES = [];
+App.AlertDefinitionParameter.FIXTURES = [];

@@ -1250,21 +1250,28 @@ describe('App.MainServiceItemController', function () {
 
     it("service has installed dependent services", function() {
       this.mockDependentServices.returns(['S2']);
-      this.mockService.returns(Em.Object.create({workStatus: 'INSTALLED'}));
+      this.mockService.returns(Em.Object.create({workStatus: App.Service.statesMap.stopped}));
       mainServiceItemController.deleteService('S1');
       expect(mainServiceItemController.dependentServicesWarning.calledWith('S1', ['S2'])).to.be.true;
     });
 
     it("service has not dependent services, and stopped", function() {
       this.mockDependentServices.returns([]);
-      this.mockService.returns(Em.Object.create({workStatus: 'INSTALLED'}));
+      this.mockService.returns(Em.Object.create({workStatus: App.Service.statesMap.stopped}));
+      mainServiceItemController.deleteService('S1');
+      expect(App.showConfirmationPopup.calledOnce).to.be.true;
+    });
+
+    it("service has not dependent services, and install failed", function() {
+      this.mockDependentServices.returns([]);
+      this.mockService.returns(Em.Object.create({workStatus: App.Service.statesMap.install_failed}));
       mainServiceItemController.deleteService('S1');
       expect(App.showConfirmationPopup.calledOnce).to.be.true;
     });
 
     it("service has not dependent services, and not stopped", function() {
       this.mockDependentServices.returns([]);
-      this.mockService.returns(Em.Object.create({workStatus: 'STARTED'}));
+      this.mockService.returns(Em.Object.create({workStatus: App.Service.statesMap.started}));
       mainServiceItemController.deleteService('S1');
       expect(App.ModalPopup.show.calledWith({
         secondary: null,

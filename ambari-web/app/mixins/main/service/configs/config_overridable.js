@@ -139,7 +139,8 @@ App.ConfigOverridable = Em.Mixin.create({
             service_id: serviceId,
             service_name: serviceId,
             hosts: [],
-            desired_configs: []
+            desired_configs: [],
+            properties: []
           };
           App.store.load(App.ServiceConfigGroup, newConfigGroup);
           App.store.commit();

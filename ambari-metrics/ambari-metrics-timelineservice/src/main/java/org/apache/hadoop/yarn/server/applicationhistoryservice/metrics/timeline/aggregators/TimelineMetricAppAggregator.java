@@ -21,12 +21,17 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataManager;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.CLUSTER_AGGREGATOR_APP_IDS;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.HOST_APP_ID;
 
@@ -40,13 +45,13 @@ public class TimelineMetricAppAggregator {
   private static final Log LOG = LogFactory.getLog(TimelineMetricAppAggregator.class);
   // Lookup to check candidacy of an app
   private final List<String> appIdsToAggregate;
-  // Map to lookup apps on a host
-  private Map<String, List<String>> hostedAppsMap = new HashMap<String, List<String>>();
-
+  private final Map<String, Set<String>> hostedAppsMap;
   Map<TimelineClusterMetric, MetricClusterAggregate> aggregateClusterMetrics;
 
-  public TimelineMetricAppAggregator(Configuration metricsConf) {
+  public TimelineMetricAppAggregator(TimelineMetricMetadataManager metadataManager,
+                                     Configuration metricsConf) {
     appIdsToAggregate = getAppIdsForHostAggregation(metricsConf);
+    hostedAppsMap = metadataManager.getHostedAppsCache();
     LOG.info("AppIds configured for aggregation: " + appIdsToAggregate);
   }
 
@@ -64,15 +69,6 @@ public class TimelineMetricAppAggregator {
   public void cleanup() {
     LOG.debug("Cleanup aggregated data.");
     aggregateClusterMetrics = null;
-  }
-
-  /**
-   * Useful for resetting apps that no-longer need aggregation without restart.
-   */
-  public void destroy() {
-    LOG.debug("Cleanup aggregated data as well as in-memory state.");
-    aggregateClusterMetrics = null;
-    hostedAppsMap = new HashMap<String, List<String>>();
   }
 
   /**
@@ -101,9 +97,9 @@ public class TimelineMetricAppAggregator {
       // Build the hostedapps map if not a host metric
       // Check app candidacy for host aggregation
       if (appIdsToAggregate.contains(appId)) {
-        List<String> appIds = hostedAppsMap.get(hostname);
+        Set<String> appIds = hostedAppsMap.get(hostname);
         if (appIds == null) {
-          appIds = new ArrayList<String>();
+          appIds = new HashSet<>();
           hostedAppsMap.put(hostname, appIds);
         }
         if (!appIds.contains(appId)) {
@@ -126,7 +122,7 @@ public class TimelineMetricAppAggregator {
       return;
     }
 
-    List<String> apps = hostedAppsMap.get(hostname);
+    Set<String> apps = hostedAppsMap.get(hostname);
     for (String appId : apps) {
       // Add a new cluster aggregate metric if none exists
       TimelineClusterMetric appTimelineClusterMetric =

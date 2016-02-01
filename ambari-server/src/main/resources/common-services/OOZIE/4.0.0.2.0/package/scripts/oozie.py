@@ -116,7 +116,7 @@ def oozie(is_server=False):
 
   # On some OS this folder could be not exists, so we will create it before pushing there files
   Directory(params.limits_conf_dir,
-            recursive=True,
+            create_parents=True,
             owner='root',
             group='root'
   )

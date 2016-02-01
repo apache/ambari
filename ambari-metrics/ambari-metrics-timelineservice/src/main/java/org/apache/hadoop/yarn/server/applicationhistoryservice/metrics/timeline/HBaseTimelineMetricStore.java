@@ -23,12 +23,15 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.metrics2.sink.timeline.Precision;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
+import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.hadoop.service.AbstractService;
 import org.apache.hadoop.yarn.api.records.timeline.TimelinePutResponse;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.Function;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineMetricAggregator;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineMetricAggregatorFactory;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataKey;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataManager;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.DefaultCondition;
 
@@ -39,15 +42,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
-import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.USE_GROUPBY_AGGREGATOR_QUERIES;
@@ -58,8 +56,8 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
   private final TimelineMetricConfiguration configuration;
   private PhoenixHBaseAccessor hBaseAccessor;
   private static volatile boolean isInitialized = false;
-  private final ScheduledExecutorService executorService =
-    Executors.newSingleThreadScheduledExecutor();
+  private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+  private TimelineMetricMetadataManager metricMetadataManager;
 
   /**
    * Construct the service.
@@ -81,6 +79,9 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
     if (!isInitialized) {
       hBaseAccessor = new PhoenixHBaseAccessor(hbaseConf, metricsConf);
       hBaseAccessor.initMetricSchema();
+      // Initialize metadata from store
+      metricMetadataManager = new TimelineMetricMetadataManager(hBaseAccessor, metricsConf);
+      metricMetadataManager.initializeMetadata();
 
       if (Boolean.parseBoolean(metricsConf.get(USE_GROUPBY_AGGREGATOR_QUERIES, "true"))) {
         LOG.info("Using group by aggregators for aggregating host and cluster metrics.");
@@ -88,7 +89,7 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
 
       // Start the cluster aggregator second
       TimelineMetricAggregator secondClusterAggregator =
-        TimelineMetricAggregatorFactory.createTimelineClusterAggregatorSecond(hBaseAccessor, metricsConf);
+        TimelineMetricAggregatorFactory.createTimelineClusterAggregatorSecond(hBaseAccessor, metricsConf, metricMetadataManager);
       if (!secondClusterAggregator.isDisabled()) {
         Thread aggregatorThread = new Thread(secondClusterAggregator);
         aggregatorThread.start();
@@ -188,8 +189,7 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
     TimelineMetrics metrics;
 
     if (hostnames == null || hostnames.isEmpty()) {
-      metrics = hBaseAccessor.getAggregateMetricRecords(condition,
-          metricFunctions);
+      metrics = hBaseAccessor.getAggregateMetricRecords(condition, metricFunctions);
     } else {
       metrics = hBaseAccessor.getMetricRecords(condition, metricFunctions);
     }
@@ -199,7 +199,7 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
   private TimelineMetrics postProcessMetrics(TimelineMetrics metrics) {
     List<TimelineMetric> metricsList = metrics.getMetrics();
 
-    for (TimelineMetric metric: metricsList){
+    for (TimelineMetric metric : metricsList){
       String name = metric.getMetricName();
       if (name.contains("._rate")){
         updateValueAsRate(metric.getMetricValues());
@@ -250,20 +250,15 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
         // fallback to VALUE, and fullMetricName
       }
 
-      addFunctionToMetricName(metricsFunctions, cleanMetricName, function);
+      List<Function> functionsList = metricsFunctions.get(cleanMetricName);
+      if (functionsList == null) {
+        functionsList = new ArrayList<Function>(1);
+      }
+      functionsList.add(function);
+      metricsFunctions.put(cleanMetricName, functionsList);
     }
 
     return metricsFunctions;
-  }
-
-  private static void addFunctionToMetricName(
-    HashMap<String, List<Function>> metricsFunctions, String cleanMetricName,
-    Function function) {
-
-    List<Function> functionsList = metricsFunctions.get(cleanMetricName);
-    if (functionsList==null) functionsList = new ArrayList<Function>(1);
-    functionsList.add(function);
-    metricsFunctions.put(cleanMetricName, functionsList);
   }
 
   @Override
@@ -314,16 +309,38 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
     return metric;
   }
 
-
   @Override
-  public TimelinePutResponse putMetrics(TimelineMetrics metrics)
-    throws SQLException, IOException {
-
+  public TimelinePutResponse putMetrics(TimelineMetrics metrics) throws SQLException, IOException {
     // Error indicated by the Sql exception
     TimelinePutResponse response = new TimelinePutResponse();
 
-    hBaseAccessor.insertMetricRecords(metrics);
+    hBaseAccessor.insertMetricRecordsWithMetadata(metricMetadataManager, metrics);
 
     return response;
+  }
+
+  @Override
+  public Map<String, List<TimelineMetricMetadata>> getTimelineMetricMetadata() throws SQLException, IOException {
+    Map<TimelineMetricMetadataKey, TimelineMetricMetadata> metadata =
+      metricMetadataManager.getMetadataCache();
+
+    // Group Metadata by AppId
+    Map<String, List<TimelineMetricMetadata>> metadataByAppId = new HashMap<>();
+    for (TimelineMetricMetadata metricMetadata : metadata.values()) {
+      List<TimelineMetricMetadata> metadataList = metadataByAppId.get(metricMetadata.getAppId());
+      if (metadataList == null) {
+        metadataList = new ArrayList<>();
+        metadataByAppId.put(metricMetadata.getAppId(), metadataList);
+      }
+
+      metadataList.add(metricMetadata);
+    }
+
+    return metadataByAppId;
+  }
+
+  @Override
+  public Map<String, Set<String>> getHostAppsMetadata() throws SQLException, IOException {
+    return metricMetadataManager.getHostedAppsCache();
   }
 }

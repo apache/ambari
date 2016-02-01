@@ -16,4 +16,52 @@
 * limitations under the License.
 -->
 
-Login Message
+<br/>
+<div class="login-message-pane" ng-controller="LoginMessageMainCtrl">
+
+  <form class="form-horizontal" novalidate name="form" autocomplete="off">
+    <div class="well">
+      <div class="form-group" ng-class="{'has-error' : (form.login_text.$error.pattern) && form.submitted}">
+        <i class="fa fa-toggle-on active"
+           ng-if="status == true"
+           ng-click="changeStatus();">
+        </i>
+        <i class="fa fa-toggle-on fa-rotate-180 inactive"
+           ng-if="status == false"
+           ng-click="changeStatus();">
+        </i>
+        <div class="col-sm-11">
+          <input type="text"
+                 ng-disabled="!status"
+                 class="form-control"
+                 name="login_text"
+                 placeholder="{{'common.loginActivities.loginMessage.placeholder' | translate}}"
+                 ng-model="text"
+                 ng-change="inputChangeEvent()"
+                 ng-pattern="/^([a-zA-Z0-9._\s]+)$/"
+                 autocomplete="off">
+
+          <div class="alert alert-danger top-margin" ng-show="form.login_text.$error.pattern && form.submitted">
+            {{'common.loginActivities.onlySimpleChars' | translate}}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-sm-offset-2 col-sm-10">
+        <button
+          class="btn btn-primary groupcreate-btn pull-right left-margin"
+          ng-disabled="submitDisabled"
+          ng-click="saveLoginMsg(form)">
+          {{'common.controls.save' | translate}}
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+
+
+
+
+
+

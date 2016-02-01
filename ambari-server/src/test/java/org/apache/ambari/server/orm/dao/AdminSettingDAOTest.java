@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNull;
 
 public class AdminSettingDAOTest {
   private  Injector injector;
@@ -62,6 +63,9 @@ public class AdminSettingDAOTest {
     //Retrieve
     retrieveAndValidateSame(entities);
     assertEquals(entities.size(), dao.findAll().size());
+
+    //Should return null if doesn't exist.
+    assertNull(dao.findByName("does-not-exist"));
 
 
     //Update

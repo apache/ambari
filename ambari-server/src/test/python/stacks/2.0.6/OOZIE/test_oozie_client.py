@@ -55,7 +55,7 @@ class TestOozieClient(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
                               owner = 'root',
                               group = 'root',
-                              recursive=True,
+                              create_parents=True,
                               )
     self.assertResourceCalled('File', '/etc/security/limits.d/oozie.conf',
                               owner = 'root',
@@ -121,7 +121,7 @@ class TestOozieClient(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
                               owner = 'root',
                               group = 'root',
-                              recursive=True,
+                              create_parents=True,
                               )
     self.assertResourceCalled('File', '/etc/security/limits.d/oozie.conf',
                               owner = 'root',
@@ -193,7 +193,7 @@ class TestOozieClient(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
                               owner = 'root',
                               group = 'root',
-                              recursive=True,
+                              create_parents=True,
                               )
     self.assertResourceCalled('File', '/etc/security/limits.d/oozie.conf',
                               owner = 'root',

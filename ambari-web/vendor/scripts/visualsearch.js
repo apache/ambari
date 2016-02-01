@@ -612,7 +612,7 @@
             this.box.autocomplete({
                 source    : _.bind(this.autocompleteValues, this),
                 minLength : 0,
-                delay     : 0,
+                delay     : this.app.options.delay,
                 autoFocus : true,
                 position  : {offset : "0 5"},
                 create    : _.bind(function(e, ui) {

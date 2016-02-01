@@ -538,6 +538,9 @@ App.QuickViewLinks = Em.View.extend({
       case "ATLAS":
         hosts = this.findHosts('ATLAS_SERVER', response);
         break;
+      case "MAPREDUCE2":
+        hosts = this.findHosts('HISTORYSERVER', response);
+        break;
       default:
         if (this.getWithDefault('content.hostComponents', []).someProperty('isMaster')) {
           hosts = this.findHosts(this.get('content.hostComponents').findProperty('isMaster').get('componentName'), response);

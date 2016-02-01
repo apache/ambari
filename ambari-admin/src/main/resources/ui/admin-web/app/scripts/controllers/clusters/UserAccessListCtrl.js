@@ -22,7 +22,7 @@ angular.module('ambariAdminConsole')
 function($scope, $location, Cluster, $modal, $rootScope, $routeParams, PermissionSaver, Alert, $translate) {
   var $t = $translate.instant;
   $scope.constants = {
-    users: $t('common.users').toLowerCase()
+    usersGroups: $t('common.usersGroups').toLowerCase()
   };
   $scope.users = [];
   $scope.usersPerPage = 10;

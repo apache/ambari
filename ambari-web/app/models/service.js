@@ -158,6 +158,49 @@ App.Service = DS.Model.extend({
 
 });
 
+/**
+ * Map of all service states
+ *
+ * @type {Object}
+ */
+App.Service.statesMap = {
+  init: 'INIT',
+  installing: 'INSTALLING',
+  install_failed: 'INSTALL_FAILED',
+  stopped: 'INSTALLED',
+  starting: 'STARTING',
+  started: 'STARTED',
+  stopping: 'STOPPING',
+  uninstalling: 'UNINSTALLING',
+  uninstalled: 'UNINSTALLED',
+  wiping_out: 'WIPING_OUT',
+  upgrading: 'UPGRADING',
+  maintenance: 'MAINTENANCE',
+  unknown: 'UNKNOWN'
+};
+
+/**
+ * @type {String[]}
+ */
+App.Service.inProgressStates = [
+  App.Service.statesMap.installing,
+  App.Service.statesMap.starting,
+  App.Service.statesMap.stopping,
+  App.Service.statesMap.uninstalling,
+  App.Service.statesMap.upgrading,
+  App.Service.statesMap.wiping_out
+];
+
+/**
+ * @type {String[]}
+ */
+App.Service.allowUninstallStates = [
+  App.Service.statesMap.init,
+  App.Service.statesMap.install_failed,
+  App.Service.statesMap.stopped,
+  App.Service.statesMap.unknown
+];
+
 App.Service.Health = {
   live: "LIVE",
   dead: "DEAD-RED",

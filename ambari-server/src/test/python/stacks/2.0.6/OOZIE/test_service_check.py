@@ -91,7 +91,6 @@ class TestServiceCheck(RMFTestCase):
         dfs_type = '',
         action = ['delete_on_execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
         hadoop_conf_dir = '/etc/hadoop/conf',
-        dfs_type = '',
         type = 'directory',
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa/examples',
@@ -106,7 +105,6 @@ class TestServiceCheck(RMFTestCase):
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
         owner = 'ambari-qa',
-        dfs_type = '',
         group = 'hadoop'
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa/input-data',
@@ -118,7 +116,6 @@ class TestServiceCheck(RMFTestCase):
         dfs_type = '',
         action = ['delete_on_execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
         hadoop_conf_dir = '/etc/hadoop/conf',
-        dfs_type = '',
         type = 'directory',
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa/input-data',
@@ -133,7 +130,6 @@ class TestServiceCheck(RMFTestCase):
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
         owner = 'ambari-qa',
-        dfs_type = '',
         group = 'hadoop'
     )
     self.assertResourceCalled('HdfsResource', None,

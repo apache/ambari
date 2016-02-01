@@ -44,6 +44,8 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.Statement;
 
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics
@@ -156,15 +158,22 @@ public class TestApplicationHistoryServer {
 
     Connection connection = createNiceMock(Connection.class);
     Statement stmt = createNiceMock(Statement.class);
+    PreparedStatement preparedStatement = createNiceMock(PreparedStatement.class);
+    ResultSet rs = createNiceMock(ResultSet.class);
     mockStatic(DriverManager.class);
     expect(DriverManager.getConnection("jdbc:phoenix:localhost:2181:/ams-hbase-unsecure"))
       .andReturn(connection).anyTimes();
     expect(connection.createStatement()).andReturn(stmt).anyTimes();
+    expect(connection.prepareStatement(anyString())).andReturn(preparedStatement).anyTimes();
     suppress(method(Statement.class, "executeUpdate", String.class));
+    expect(preparedStatement.executeQuery()).andReturn(rs).anyTimes();
+    expect(rs.next()).andReturn(false).anyTimes();
+    preparedStatement.close();
+    expectLastCall().anyTimes();
     connection.close();
     expectLastCall();
 
-    EasyMock.replay(connection, stmt);
+    EasyMock.replay(connection, stmt, preparedStatement, rs);
     replayAll();
 
     historyServer = new ApplicationHistoryServer();

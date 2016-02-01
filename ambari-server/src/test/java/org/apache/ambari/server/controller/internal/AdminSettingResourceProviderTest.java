@@ -18,10 +18,12 @@
 package org.apache.ambari.server.controller.internal;
 
 import com.google.common.collect.Lists;
+import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.AdminSettingDAO;
@@ -190,6 +192,7 @@ public class AdminSettingResourceProviderTest {
     Capture<AdminSettingEntity> entityCapture = Capture.newInstance();
     Request request = createRequest(entity);
 
+    expect(dao.findByName(entity.getName())).andReturn(null);
     dao.create(capture(entityCapture));
     mockControl.replay();
 
@@ -204,6 +207,16 @@ public class AdminSettingResourceProviderTest {
     assertEquals(AuthorizationHelper.getAuthenticatedName(), capturedEntity.getUpdatedBy());
   }
 
+  @Test(expected = ResourceAlreadyExistsException.class)
+  public void testCreateDuplicateResource() throws Exception {
+    setupAuthenticationForAdmin();
+    AdminSettingEntity entity = newEntity("motd");
+    Request request = createRequest(entity);
+
+    expect(dao.findByName(entity.getName())).andReturn(entity);
+    mockControl.replay();
+    resourceProvider.createResources(request);
+  }
 
   @Test(expected = AuthorizationException.class)
   public void testUpdateResources_noAuth() throws Exception {
@@ -211,14 +224,12 @@ public class AdminSettingResourceProviderTest {
     resourceProvider.updateResources(updateRequest(newEntity("motd")), null);
   }
 
-
   @Test(expected = AuthorizationException.class)
   public void testUpdateResources_clusterUser() throws Exception {
     setupAuthenticationForClusterUser();
     mockControl.replay();
     resourceProvider.updateResources(updateRequest(newEntity("motd")), null);
   }
-
 
   @Test
   public void testUpdateResources_admin() throws Exception {

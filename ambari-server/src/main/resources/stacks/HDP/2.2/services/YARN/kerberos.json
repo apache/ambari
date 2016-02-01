@@ -37,8 +37,8 @@
         },
         {
           "core-site": {
-            "hadoop.proxyuser.yarn.groups": "*",
-            "hadoop.proxyuser.yarn.hosts": "${yarn-site/yarn.resourcemanager.hostname}"
+            "hadoop.proxyuser.${yarn-env/yarn_user}.groups": "*",
+            "hadoop.proxyuser.${yarn-env/yarn_user}.hosts": "${clusterHostInfo/rm_host}"
           }
         }
       ],

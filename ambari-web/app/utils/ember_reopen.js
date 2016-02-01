@@ -224,6 +224,20 @@ Em.View.reopen({
   }
 });
 
+Ember._HandlebarsBoundView.reopen({
+  /**
+   * overwritten set method of Ember._HandlebarsBoundView to avoid uncaught errors
+   * when trying to set property of destroyed view
+   */
+  render: function(buffer){
+    if(!this.get('isDestroyed') && !this.get('isDestroying')){
+      this._super(buffer);
+    } else {
+      console.debug('Calling set on destroyed view');
+    }
+  }
+});
+
 Ember.TextArea.reopen({
   attributeBindings: ['readonly']
 });

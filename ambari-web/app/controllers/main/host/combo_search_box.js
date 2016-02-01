@@ -21,6 +21,7 @@ var App = require('app');
 App.MainHostComboSearchBoxController = Em.Controller.extend({
   name: 'mainHostComboSearchBoxController',
   currentSuggestion: [],
+  page_size: 10,
 
   VSCallbacks : {
     search: function (query, searchCollection) {
@@ -42,12 +43,12 @@ App.MainHostComboSearchBoxController = Em.Controller.extend({
     },
 
     facetMatches: function (callback) {
-      console.log('called');
       callback([
-        {label: 'name', category: 'Host'},
+        {label: 'host_name', category: 'Host'},
         {label: 'ip', category: 'Host'},
         {label: 'version', category: 'Host'},
         {label: 'health', category: 'Host'},
+        {label: 'rack', category: 'Host'},
         {label: 'service', category: 'Service'},
         {label: 'component', category: 'Service'},
         {label: 'state', category: 'Service'}
@@ -57,13 +58,11 @@ App.MainHostComboSearchBoxController = Em.Controller.extend({
     valueMatches: function (facet, searchTerm, callback) {
       var controller = App.router.get('mainHostComboSearchBoxController');
       switch (facet) {
-        case 'name':
-          controller.getHostPropertySuggestions('name', searchTerm).done(function() {
-            callback(controller.get('currentSuggestion'));
-          });
-          break;
+        case 'host_name':
         case 'ip':
-          callback(App.Host.find().toArray().mapProperty('ip'));
+          controller.getPropertySuggestions(facet, searchTerm).done(function() {
+            callback(controller.get('currentSuggestion'), {preserveMatches: true});
+          });
           break;
         case 'rack':
           callback(App.Host.find().toArray().mapProperty('rack').uniq());
@@ -104,18 +103,23 @@ App.MainHostComboSearchBoxController = Em.Controller.extend({
     }
   },
 
-  getHostPropertySuggestions: function(facet, searchTerm) {
+  getPropertySuggestions: function(facet, searchTerm) {
     return App.ajax.send({
-      name: 'hosts.all.install',
+      name: 'hosts.with_searchTerm',
       sender: this,
-      success: 'updateHostNameSuggestion',
+      data: {
+        facet: facet,
+        searchTerm: searchTerm,
+        page_size: this.get('page_size')
+      },
+      success: 'getPropertySuggestionsSuccess',
       error: 'commonSuggestionErrorCallback'
     });
   },
 
-  updateHostNameSuggestion: function(data) {
+  getPropertySuggestionsSuccess: function(data, opt, params) {
     this.updateSuggestion(data.items.map(function(item) {
-      return item.Hosts.host_name;
+      return item.Hosts[params.facet];
     }));
   },
 

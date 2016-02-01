@@ -682,6 +682,12 @@ table.no-border tr td{
   min-height: 63px;
 }
 
+.login-message-pane .active, .inactive {font-size:30px;cursor:pointer;float: left;margin-left: 17px;}
+.login-message-pane i.active {color: #5cb85c;margin-top: 3px;}
+.login-message-pane i.inactive {color: #d9534f;margin-top: 2px;}
+.login-message-pane .well {height: 74px;}
+.login-message-pane input {margin-left: 3px;}
+
 .views-permissions-panel .panel-body{
   padding-bottom: 0;
 }
