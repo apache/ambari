@@ -122,7 +122,8 @@ public class AmbariAuthorizationFilter implements Filter {
       }
     }
 
-    if (authentication == null || !authentication.isAuthenticated()) {
+    if (authentication == null || authentication instanceof AnonymousAuthenticationToken ||
+        !authentication.isAuthenticated()) {
       String token = httpRequest.getHeader(INTERNAL_TOKEN_HEADER);
       if (token != null) {
         context.setAuthentication(new InternalAuthenticationToken(token));
