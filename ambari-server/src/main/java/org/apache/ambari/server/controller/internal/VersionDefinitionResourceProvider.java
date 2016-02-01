@@ -17,7 +17,9 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import java.net.URL;
+import java.io.InputStream;
+import java.net.URI;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -29,6 +31,8 @@ import java.util.Set;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -44,11 +48,13 @@ import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
+import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
@@ -67,6 +73,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
   public static final String VERSION_DEF_STACK_NAME                  = "VersionDefinition/stack_name";
   public static final String VERSION_DEF_STACK_VERSION               = "VersionDefinition/stack_version";
 
+
   protected static final String VERSION_DEF_TYPE_PROPERTY_ID         = "VersionDefinition/type";
   protected static final String VERSION_DEF_DEFINITION_URL           = "VersionDefinition/version_url";
   protected static final String VERSION_DEF_FULL_VERSION             = "VersionDefinition/repository_version";
@@ -74,7 +81,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
   protected static final String VERSION_DEF_RELEASE_BUILD            = "VersionDefinition/release/build";
   protected static final String VERSION_DEF_RELEASE_NOTES            = "VersionDefinition/release/notes";
   protected static final String VERSION_DEF_RELEASE_COMPATIBLE_WITH  = "VersionDefinition/release/compatible_with";
-    protected static final String VERSION_DEF_AVAILABLE_SERVICES     = "VersionDefinition/services";
+  protected static final String VERSION_DEF_AVAILABLE_SERVICES       = "VersionDefinition/services";
 
   @Inject
   private static RepositoryVersionDAO s_repoVersionDAO;
@@ -87,6 +94,9 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
 
   @Inject
   private static StackDAO s_stackDAO;
+
+  @Inject
+  private static Configuration s_configuration;
 
   /**
    * Key property ids
@@ -141,12 +151,13 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
     Set<Map<String, Object>> requestProperties = request.getProperties();
 
     if (requestProperties.size() > 1) {
-      throw new SystemException("Cannot process more than one file per request");
+      throw new IllegalArgumentException("Cannot process more than one file per request");
     }
 
     final Map<String, Object> properties = requestProperties.iterator().next();
+
     if (!properties.containsKey(VERSION_DEF_DEFINITION_URL)) {
-      throw new SystemException(String.format("%s is required", VERSION_DEF_DEFINITION_URL));
+      throw new IllegalArgumentException(String.format("%s is required", VERSION_DEF_DEFINITION_URL));
     }
 
     RepositoryVersionEntity entity = createResources(new Command<RepositoryVersionEntity>() {
@@ -155,10 +166,14 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
 
         String definitionUrl = (String) properties.get(VERSION_DEF_DEFINITION_URL);
 
-        RepositoryVersionEntity entity = toRepositoryVersionEntity(definitionUrl);
+        XmlHolder holder = loadXml(definitionUrl);
+
+        RepositoryVersionEntity entity = toRepositoryVersionEntity(holder);
 
         RepositoryVersionResourceProvider.validateRepositoryVersion(s_repoVersionDAO,
             s_metaInfo.get(), entity);
+
+        checkForParent(holder, entity);
 
         s_repoVersionDAO.create(entity);
 
@@ -220,6 +235,62 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
     throw new SystemException("Cannot delete Version Definitions");
   }
 
+  /**
+   * In the case of a patch, check if there is a parent repo.
+   * @param entity the entity to check
+   */
+  private void checkForParent(XmlHolder holder, RepositoryVersionEntity entity) throws AmbariException {
+    if (entity.getType() != RepositoryType.PATCH) {
+      return;
+    }
+
+    List<RepositoryVersionEntity> entities = s_repoVersionDAO.findByStack(entity.getStackId());
+    if (entities.isEmpty()) {
+      throw new AmbariException(String.format("Patch %s was uploaded, but there are no repositories for %s",
+          entity.getVersion(), entity.getStackId().toString()));
+    }
+
+    List<RepositoryVersionEntity> matching = new ArrayList<>();
+
+    boolean emptyCompatible = StringUtils.isBlank(holder.xml.release.compatibleWith);
+
+    for (RepositoryVersionEntity candidate : entities) {
+      String baseVersion = candidate.getVersion();
+      if (baseVersion.lastIndexOf('-') > -1) {
+        baseVersion = baseVersion.substring(0,  baseVersion.lastIndexOf('-'));
+      }
+
+      if (emptyCompatible) {
+        if (baseVersion.equals(holder.xml.release.version)) {
+          matching.add(candidate);
+        }
+      } else {
+        if (baseVersion.matches(holder.xml.release.compatibleWith)) {
+          matching.add(candidate);
+        }
+      }
+    }
+
+    if (matching.isEmpty()) {
+      String format = "No versions matched pattern %s";
+
+      throw new AmbariException(String.format(format,
+          emptyCompatible ? holder.xml.release.version : holder.xml.release.compatibleWith));
+    } else if (matching.size() > 1) {
+      Set<String> versions= new HashSet<>();
+      for (RepositoryVersionEntity match : matching) {
+        versions.add(match.getVersion());
+      }
+
+      throw new AmbariException(String.format("More than one repository matches patch %s: %s",
+          entity.getVersion(), StringUtils.join(versions, ", ")));
+    }
+
+    RepositoryVersionEntity parent = matching.get(0);
+
+    entity.setParent(parent);
+  }
+
   @Override
   protected Set<String> getPKPropertyIds() {
     return PK_PROPERTY_IDS;
@@ -230,6 +301,37 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
     return ResourceType.AMBARI;
   }
 
+  private XmlHolder loadXml(String definitionUrl) throws AmbariException {
+    XmlHolder holder = new XmlHolder();
+    holder.url = definitionUrl;
+
+    int connectTimeout = s_configuration.getVersionDefinitionConnectTimeout();
+    int readTimeout = s_configuration.getVersionDefinitionReadTimeout();
+
+    try {
+      URI uri = new URI(definitionUrl);
+      InputStream stream = null;
+
+      if (uri.getScheme().equalsIgnoreCase("file")) {
+        stream = uri.toURL().openStream();
+      } else {
+        URLStreamProvider provider = new URLStreamProvider(connectTimeout, readTimeout,
+            ComponentSSLConfiguration.instance());
+
+        stream = provider.readFrom(definitionUrl);
+      }
+
+      holder.xmlString = IOUtils.toString(stream, "UTF-8");
+      holder.xml = VersionDefinitionXml.load(holder.xmlString);
+    } catch (Exception e) {
+      String err = String.format("Could not load url from %s.  %s",
+          definitionUrl, e.getMessage());
+      throw new AmbariException(err, e);
+    }
+
+    return holder;
+  }
+
   /**
    * Transforms a XML version defintion to an entity
    *
@@ -237,38 +339,25 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
    * @return constructed entity
    * @throws AmbariException if some properties are missing or json has incorrect structure
    */
-  protected RepositoryVersionEntity toRepositoryVersionEntity(String definitionUrl) throws AmbariException {
-    final VersionDefinitionXml xml;
-    final String xmlString;
-    try {
-      URL url = new URL(definitionUrl);
-
-      xmlString = IOUtils.toString(url.openStream(), "UTF-8");
-
-      xml = VersionDefinitionXml.load(xmlString);
-    } catch (Exception e) {
-      String err = String.format("Could not load url from %s.  %s",
-          definitionUrl, e.getMessage());
-      throw new AmbariException(err, e);
-    }
+  protected RepositoryVersionEntity toRepositoryVersionEntity(XmlHolder holder) throws AmbariException {
 
     // !!! TODO validate parsed object graph
 
     RepositoryVersionEntity entity = new RepositoryVersionEntity();
 
-    StackId stackId = new StackId(xml.release.stackId);
+    StackId stackId = new StackId(holder.xml.release.stackId);
 
     StackEntity stackEntity = s_stackDAO.find(stackId.getStackName(), stackId.getStackVersion());
 
     entity.setStack(stackEntity);
     entity.setOperatingSystems(s_repoVersionHelper.get().serializeOperatingSystems(
-        xml.repositoryInfo.getRepositories()));
-    entity.setVersion(xml.release.getFullVersion());
-    entity.setDisplayName(stackId, xml.release);
-    entity.setType(xml.release.repositoryType);
-    entity.setVersionUrl(definitionUrl);
-    entity.setVersionXml(xmlString);
-    entity.setVersionXsd(xml.xsdLocation);
+        holder.xml.repositoryInfo.getRepositories()));
+    entity.setVersion(holder.xml.release.getFullVersion());
+    entity.setDisplayName(stackId, holder.xml.release);
+    entity.setType(holder.xml.release.repositoryType);
+    entity.setVersionUrl(holder.url);
+    entity.setVersionXml(holder.xmlString);
+    entity.setVersionXsd(holder.xml.xsdLocation);
 
     return entity;
   }
@@ -327,5 +416,13 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
     return resource;
   }
 
+  /**
+   * Convenience class to hold the xml String representation, the url, and the parsed object.
+   */
+  private static class XmlHolder {
+    String url = null;
+    String xmlString = null;
+    VersionDefinitionXml xml = null;
+  }
 
 }

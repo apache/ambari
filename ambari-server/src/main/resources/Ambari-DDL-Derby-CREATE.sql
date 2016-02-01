@@ -554,6 +554,7 @@ CREATE TABLE repo_version (
   version_url VARCHAR(1024),
   version_xml CLOB,
   version_xsd VARCHAR(512),
+  parent_id BIGINT,
   PRIMARY KEY(repo_version_id)
 );
 

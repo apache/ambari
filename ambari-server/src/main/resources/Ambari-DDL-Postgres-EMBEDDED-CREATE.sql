@@ -624,6 +624,7 @@ CREATE TABLE ambari.repo_version (
   version_url VARCHAR(1024),
   version_xml TEXT,
   version_xsd VARCHAR(512),
+  parent_id BIGINT,
   PRIMARY KEY(repo_version_id)
 );
 GRANT ALL PRIVILEGES ON TABLE ambari.repo_version TO :username;

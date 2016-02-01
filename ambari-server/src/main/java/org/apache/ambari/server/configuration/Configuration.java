@@ -17,11 +17,20 @@
  */
 package org.apache.ambari.server.configuration;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.cert.CertificateException;
+import java.security.interfaces.RSAPublicKey;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Properties;
 
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
@@ -34,32 +43,23 @@ import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.security.ClientSecurityType;
 import org.apache.ambari.server.security.authorization.LdapServerProperties;
 import org.apache.ambari.server.security.authorization.jwt.JwtAuthenticationProperties;
+import org.apache.ambari.server.security.encryption.CertificateUtils;
 import org.apache.ambari.server.security.encryption.CredentialProvider;
 import org.apache.ambari.server.state.stack.OsFamily;
-import org.apache.ambari.server.security.encryption.CertificateUtils;
 import org.apache.ambari.server.utils.Parallel;
 import org.apache.ambari.server.utils.ShellCommandUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Properties;
-
-import java.security.cert.CertificateException;
-import java.security.interfaces.RSAPublicKey;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 
 /**
@@ -544,6 +544,26 @@ public class Configuration {
   public static final String VIEWS_HTTP_X_FRAME_OPTIONS_HEADER_VALUE_DEFAULT = "SAMEORIGIN";
   public static final String VIEWS_HTTP_X_XSS_PROTECTION_HEADER_VALUE_KEY = "views.http.x-xss-protection";
   public static final String VIEWS_HTTP_X_XSS_PROTECTION_HEADER_VALUE_DEFAULT = "1; mode=block";
+
+  /*
+   * Version Definition URL
+   */
+  /**
+   * The connection timeout for reading version definitions.
+   */
+  private static final String VERSION_DEFINITION_CONNECT_TIMEOUT = "server.version_definition.connect.timeout.millis";
+  /**
+   * Default connect timeout for reading version definitions.
+   */
+  private static final int VERSION_DEFINITION_CONNECT_TIMEOUT_DEFAULT = 5000;
+  /**
+   * The read timeout for reading version definitions.
+   */
+  private static final String VERSION_DEFINITION_READ_TIMEOUT = "server.version_definition.read.timeout.millis";
+  /**
+   * Default read timeout for reading version definitions.
+   */
+  private static final int VERSION_DEFINITION_READ_TIMEOUT_DEFAULT = 5000;
 
   private static final Logger LOG = LoggerFactory.getLogger(
       Configuration.class);
@@ -1929,7 +1949,7 @@ public class Configuration {
 
   /**
    * Get property-providers' thread pool core size.
-   * 
+   *
    * @return the property-providers' thread pool core size
    */
   public int getPropertyProvidersThreadPoolCoreSize() {
@@ -1939,7 +1959,7 @@ public class Configuration {
 
   /**
    * Get property-providers' thread pool max size.
-   * 
+   *
    * @return the property-providers' thread pool max size
    */
   public int getPropertyProvidersThreadPoolMaxSize() {
@@ -2471,5 +2491,22 @@ public class Configuration {
       LOG.info("Operations retry enabled. Number of retry attempts: {}", attempts);
     }
     return attempts;
+  }
+
+  /**
+   * @return the connect timeout used when loading a version definition URL.
+   */
+  public int getVersionDefinitionConnectTimeout() {
+    return NumberUtils.toInt(
+        properties.getProperty(VERSION_DEFINITION_CONNECT_TIMEOUT),
+            VERSION_DEFINITION_CONNECT_TIMEOUT_DEFAULT);
+  }
+  /**
+   * @return the read timeout used when loading a version definition URL
+   */
+  public int getVersionDefinitionReadTimeout() {
+    return NumberUtils.toInt(
+        properties.getProperty(VERSION_DEFINITION_READ_TIMEOUT),
+            VERSION_DEFINITION_READ_TIMEOUT_DEFAULT);
   }
 }

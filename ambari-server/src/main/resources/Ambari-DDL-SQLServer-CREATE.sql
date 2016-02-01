@@ -656,6 +656,7 @@ CREATE TABLE repo_version (
   version_url VARCHAR(1024),
   version_xml VARCHAR(MAX),
   version_xsd VARCHAR(512),
+  parent_id BIGINT,
   PRIMARY KEY CLUSTERED (repo_version_id)
   );
 

@@ -21,9 +21,9 @@
   
   <release>
     <type>PATCH</type>
-    <stack-id>HDP-1.1</stack-id>
-    <version>1.1.7.1</version>
-    <build>1234</build>
+    <stack-id>HDP-2.2.0</stack-id>
+    <version>2.2.0.8</version>
+    <build>5678</build>
     <compatible-with>2.3.4.[1-9]</compatible-with>
     <release-notes>http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.3.4/</release-notes>
   </release>
@@ -54,16 +54,11 @@
         <reponame>HDP-UTILS</reponame>
       </repo>
     </os>
-    <os family="redhat7">
+    <os family="suse11">
       <repo>
         <baseurl>http://public-repo-1.hortonworks.com/HDP/centos7/2.x/updates/2.3.0.0</baseurl>
         <repoid>HDP-2.3</repoid>
         <reponame>HDP</reponame>
-      </repo>
-      <repo>
-        <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos7</baseurl>
-        <repoid>HDP-UTILS-1.1.0.20</repoid>
-        <reponame>HDP-UTILS</reponame>
       </repo>
     </os>
 

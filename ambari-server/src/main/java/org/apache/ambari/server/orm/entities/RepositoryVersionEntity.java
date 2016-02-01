@@ -33,6 +33,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
+import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
@@ -123,6 +124,13 @@ public class RepositoryVersionEntity {
 
   @Column(name="version_xsd", insertable = true, updatable = true)
   private String versionXsd;
+
+  @ManyToOne
+  @JoinColumn(name = "parent_id")
+  private RepositoryVersionEntity parent;
+
+  @OneToMany(mappedBy = "parent")
+  private List<RepositoryVersionEntity> children;
 
   // ----- RepositoryVersionEntity -------------------------------------------------------
 
@@ -387,6 +395,28 @@ public class RepositoryVersionEntity {
       return true;
     }
     return false;
+  }
+
+  /**
+   * @param parent
+   */
+  public void setParent(RepositoryVersionEntity entity) {
+    parent = entity;
+    parent.children.add(this);
+  }
+
+  /**
+   * @return the repositories that are denoted children
+   */
+  public List<RepositoryVersionEntity> getChildren() {
+    return children;
+  }
+
+  /**
+   * @return the parentId, or {@code null} if the entity is already a parent
+   */
+  public Long getParentId() {
+    return null == parent ? null : parent.getId();
   }
 
 }

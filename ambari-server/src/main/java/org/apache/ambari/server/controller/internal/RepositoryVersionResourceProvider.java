@@ -96,6 +96,9 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
   public static final String REPOSITORY_VERSION_RELEASE_COMPATIBLE_WITH        = "RepositoryVersions/release/compatible_with";
   public static final String REPOSITORY_VERSION_AVAILABLE_SERVICES             = "RepositoryVersions/services";
 
+  public static final String REPOSITORY_VERSION_PARENT_ID                      = "RepositoryVersions/parent_id";
+  public static final String REPOSITORY_VERSION_HAS_CHILDREN                   = "RepositoryVersions/has_children";
+
   @SuppressWarnings("serial")
   private static Set<String> pkPropertyIds = new HashSet<String>() {
     {
@@ -116,6 +119,8 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
       REPOSITORY_VERSION_RELEASE_COMPATIBLE_WITH,
       REPOSITORY_VERSION_RELEASE_NOTES,
       REPOSITORY_VERSION_RELEASE_VERSION,
+      REPOSITORY_VERSION_PARENT_ID,
+      REPOSITORY_VERSION_HAS_CHILDREN,
       REPOSITORY_VERSION_AVAILABLE_SERVICES);
 
   @SuppressWarnings("serial")
@@ -157,6 +162,7 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
    */
   public RepositoryVersionResourceProvider() {
     super(propertyIds, keyPropertyIds);
+
     setRequiredCreateAuthorizations(EnumSet.of(RoleAuthorization.AMBARI_MANAGE_STACK_VERSIONS));
     setRequiredDeleteAuthorizations(EnumSet.of(RoleAuthorization.AMBARI_MANAGE_STACK_VERSIONS));
     setRequiredUpdateAuthorizations(EnumSet.of(RoleAuthorization.AMBARI_MANAGE_STACK_VERSIONS, RoleAuthorization.AMBARI_EDIT_STACK_REPOS));
@@ -226,6 +232,7 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
     final Set<String> requestedIds = getRequestPropertyIds(request, predicate);
     final Set<Map<String, Object>> propertyMaps = getPropertyMaps(predicate);
 
+
     List<RepositoryVersionEntity> requestedEntities = new ArrayList<RepositoryVersionEntity>();
     for (Map<String, Object> propertyMap: propertyMaps) {
       final StackId stackId = getStackInformationFromUrl(propertyMap);
@@ -240,6 +247,7 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
           throw new SystemException("Repository version should have numerical id");
         }
         final RepositoryVersionEntity entity = repositoryVersionDAO.findByPK(id);
+
         if (entity == null) {
           throw new NoSuchResourceException("There is no repository version with id " + id);
         } else {
@@ -257,6 +265,12 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
       setResourceProperty(resource, REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID, entity.getDisplayName(), requestedIds);
       setResourceProperty(resource, REPOSITORY_VERSION_REPOSITORY_VERSION_PROPERTY_ID, entity.getVersion(), requestedIds);
       setResourceProperty(resource, REPOSITORY_VERSION_TYPE_PROPERTY_ID, entity.getType(), requestedIds);
+
+      setResourceProperty(resource, REPOSITORY_VERSION_PARENT_ID, entity.getParentId(), requestedIds);
+
+      List<RepositoryVersionEntity> children = entity.getChildren();
+      setResourceProperty(resource, REPOSITORY_VERSION_HAS_CHILDREN,
+          null != children && !children.isEmpty(), requestedIds);
 
       final VersionDefinitionXml xml;
 
