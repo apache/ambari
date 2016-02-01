@@ -319,6 +319,21 @@ public class ConfigurationTest {
 
 
   @Test
+  public void testGetDefaultServerTaskTimeout() {
+    Properties ambariProperties = new Properties();
+    Configuration conf = new Configuration(ambariProperties);
+
+    Assert.assertEquals(Integer.valueOf(1200), conf.getDefaultServerTaskTimeout());
+
+    ambariProperties = new Properties();
+    ambariProperties.setProperty(Configuration.SERVER_TASK_TIMEOUT_KEY, "3600");
+
+    conf = new Configuration(ambariProperties);
+
+    Assert.assertEquals(Integer.valueOf(3600), conf.getDefaultServerTaskTimeout());
+  }
+
+  @Test
   public void testGetLdapServerProperties_WrongManagerPassword() throws Exception {
     final Properties ambariProperties = new Properties();
     ambariProperties.setProperty(Configuration.LDAP_MANAGER_PASSWORD_KEY, "somePassword");
