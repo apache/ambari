@@ -42,12 +42,13 @@ public interface JMXHostProvider {
    *
    * @param clusterName    the cluster name
    * @param componentName  the component name
+   * @param hostName       the component hostName
    *
    * @return the port for the specified cluster name and component
    *
    * @throws SystemException if unable to get the JMX port
    */
-  public String getPort(String clusterName, String componentName)
+  public String getPort(String clusterName, String componentName, String hostName)
       throws SystemException;
 
   /**
@@ -55,13 +56,14 @@ public interface JMXHostProvider {
    *
    * @param clusterName    the cluster name
    * @param componentName  the component name
-   * @param componentName httpsEnabled https enabled
+   * @param hostName       the component hostName
+   * @param httpsEnabled   https enabled
    *
    * @return the port for the specified cluster name and component
    *
    * @throws SystemException if unable to get the JMX port
    */
-  public String getPort(String clusterName, String componentName, boolean httpsEnabled)
+  public String getPort(String clusterName, String componentName, String hostName,  boolean httpsEnabled)
       throws SystemException;
   
   /**
