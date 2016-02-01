@@ -305,6 +305,75 @@ public class JMXHostProviderTest {
       ("hdfs-site").getProperties().get(NAMENODE_PORT_V1));
   }
 
+  private void createConfigsNameNodeHa() throws AmbariException {
+    String clusterName = "nnha";
+    ClusterRequest r = new ClusterRequest(null, clusterName, "HDP-2.0.6", null);
+    controller.createCluster(r);
+    Cluster cluster = clusters.getCluster(clusterName);
+    cluster.setDesiredStackVersion(new StackId("HDP-2.0.6"));
+    String serviceName = "HDFS";
+    createService(clusterName, serviceName, null);
+    String componentName1 = "NAMENODE";
+    String componentName2 = "DATANODE";
+    String componentName3 = "HDFS_CLIENT";
+
+    createServiceComponent(clusterName, serviceName, componentName1,
+        State.INIT);
+    createServiceComponent(clusterName, serviceName, componentName2,
+        State.INIT);
+    createServiceComponent(clusterName, serviceName, componentName3,
+        State.INIT);
+
+    String host1 = "h1";
+    clusters.addHost(host1);
+    Map<String, String> hostAttributes = new HashMap<String, String>();
+    hostAttributes.put("os_family", "redhat");
+    hostAttributes.put("os_release_version", "5.9");
+    clusters.getHost("h1").setHostAttributes(hostAttributes);
+    clusters.getHost("h1").persist();
+    String host2 = "h2";
+    clusters.addHost(host2);
+    hostAttributes = new HashMap<String, String>();
+    hostAttributes.put("os_family", "redhat");
+    hostAttributes.put("os_release_version", "6.3");
+    clusters.getHost("h2").setHostAttributes(hostAttributes);
+    clusters.getHost("h2").persist();
+    clusters.mapHostToCluster(host1, clusterName);
+    clusters.mapHostToCluster(host2, clusterName);
+
+    createServiceComponentHost(clusterName, serviceName, componentName1,
+        host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName1,
+        host2, null);
+    createServiceComponentHost(clusterName, serviceName, componentName2,
+        host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName2,
+        host2, null);
+    createServiceComponentHost(clusterName, serviceName, componentName3,
+        host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName3,
+        host2, null);
+
+    // Create configs
+    Map<String, String> configs = new HashMap<String, String>();
+    configs.put("dfs.nameservices", "ns");
+    configs.put("dfs.namenode.http-address", "h1:50070");
+    configs.put("dfs.namenode.http-address.ns.nn1", "h1:50071");
+    configs.put("dfs.namenode.http-address.ns.nn2", "h2:50072");
+    configs.put("dfs.namenode.https-address", "h1:50470");
+    configs.put("dfs.namenode.https-address.ns.nn1", "h1:50473");
+    configs.put("dfs.namenode.https-address.ns.nn2", "h2:50474");
+    configs.put("dfs.ha.namenodes.ns", "nn1,nn2");
+
+
+    ConfigurationRequest cr1 = new ConfigurationRequest(clusterName,
+        "hdfs-site", "version1", configs, null);
+
+    ClusterRequest crReq = new ClusterRequest(cluster.getClusterId(), clusterName, null, null);
+    crReq.setDesiredConfig(Collections.singletonList(cr1));
+    controller.updateClusters(Collections.singleton(crReq), null);
+  }
+
 
   @Test
   public void testJMXPortMapInitAtServiceLevelVersion1() throws
@@ -318,12 +387,12 @@ public class JMXHostProviderTest {
     providerModule.registerResourceProvider(Resource.Type.Service);
     providerModule.registerResourceProvider(Resource.Type.Configuration);
     // Non default port addresses
-    Assert.assertEquals("70070", providerModule.getPort("c1", "NAMENODE"));
-    Assert.assertEquals("70075", providerModule.getPort("c1", "DATANODE"));
+    Assert.assertEquals("70070", providerModule.getPort("c1", "NAMENODE", "localhost"));
+    Assert.assertEquals("70075", providerModule.getPort("c1", "DATANODE", "localhost"));
     // Default port addresses
-    Assert.assertEquals(null, providerModule.getPort("c1", "JOBTRACKER"));
-    Assert.assertEquals(null, providerModule.getPort("c1", "TASKTRACKER"));
-    Assert.assertEquals(null, providerModule.getPort("c1", "HBASE_MASTER"));
+    Assert.assertEquals(null, providerModule.getPort("c1", "JOBTRACKER", "localhost"));
+    Assert.assertEquals(null, providerModule.getPort("c1", "TASKTRACKER", "localhost"));
+    Assert.assertEquals(null, providerModule.getPort("c1", "HBASE_MASTER", "localhost"));
   }
 
   @Test
@@ -338,12 +407,29 @@ public class JMXHostProviderTest {
     providerModule.registerResourceProvider(Resource.Type.Service);
     providerModule.registerResourceProvider(Resource.Type.Configuration);
     // Non default port addresses
-    Assert.assertEquals("70071", providerModule.getPort("c1", "NAMENODE"));
-    Assert.assertEquals("70075", providerModule.getPort("c1", "DATANODE"));
+    Assert.assertEquals("70071", providerModule.getPort("c1", "NAMENODE", "localhost"));
+    Assert.assertEquals("70075", providerModule.getPort("c1", "DATANODE", "localhost"));
     // Default port addresses
-    Assert.assertEquals(null, providerModule.getPort("c1", "JOBTRACKER"));
-    Assert.assertEquals(null, providerModule.getPort("c1", "TASKTRACKER"));
-    Assert.assertEquals(null, providerModule.getPort("c1", "HBASE_MASTER"));
+    Assert.assertEquals(null, providerModule.getPort("c1", "JOBTRACKER", "localhost"));
+    Assert.assertEquals(null, providerModule.getPort("c1", "TASKTRACKER", "localhost"));
+    Assert.assertEquals(null, providerModule.getPort("c1", "HBASE_MASTER", "localhost"));
+  }
+
+  @Test
+  public void testJMXPortMapNameNodeHa() throws
+      NoSuchParentResourceException,
+      ResourceAlreadyExistsException, UnsupportedPropertyException,
+      SystemException, AmbariException, NoSuchResourceException {
+
+    createConfigsNameNodeHa();
+
+    JMXHostProviderModule providerModule = new JMXHostProviderModule();
+    providerModule.registerResourceProvider(Resource.Type.Service);
+    providerModule.registerResourceProvider(Resource.Type.Configuration);
+
+
+    Assert.assertEquals("50071", providerModule.getPort("nnha", "NAMENODE", "h1"));
+    Assert.assertEquals("50072", providerModule.getPort("nnha", "NAMENODE", "h2"));
   }
 
   @Test
@@ -358,12 +444,12 @@ public class JMXHostProviderTest {
     providerModule.registerResourceProvider(Resource.Type.Cluster);
     providerModule.registerResourceProvider(Resource.Type.Configuration);
     // Non default port addresses
-    Assert.assertEquals("70070", providerModule.getPort("c1", "NAMENODE"));
-    Assert.assertEquals("70075", providerModule.getPort("c1", "DATANODE"));
+    Assert.assertEquals("70070", providerModule.getPort("c1", "NAMENODE", "localhost"));
+    Assert.assertEquals("70075", providerModule.getPort("c1", "DATANODE", "localhost"));
     // Default port addresses
-    Assert.assertEquals(null, providerModule.getPort("c1", "JOBTRACKER"));
-    Assert.assertEquals(null, providerModule.getPort("c1", "TASKTRACKER"));
-    Assert.assertEquals(null, providerModule.getPort("c1", "HBASE_MASTER"));
+    Assert.assertEquals(null, providerModule.getPort("c1", "JOBTRACKER", "localhost"));
+    Assert.assertEquals(null, providerModule.getPort("c1", "TASKTRACKER", "localhost"));
+    Assert.assertEquals(null, providerModule.getPort("c1", "HBASE_MASTER", "localhost"));
   }
 
   @Test
@@ -405,7 +491,7 @@ public class JMXHostProviderTest {
     providerModule.registerResourceProvider(Resource.Type.Cluster);
     providerModule.registerResourceProvider(Resource.Type.Configuration);
     Assert.assertEquals("https", providerModule.getJMXProtocol("c1", "RESOURCEMANAGER"));
-    Assert.assertEquals("8090", providerModule.getPort("c1", "RESOURCEMANAGER", true));
+    Assert.assertEquals("8090", providerModule.getPort("c1", "RESOURCEMANAGER", "localhost", true));
 
   }
 
@@ -419,7 +505,7 @@ public class JMXHostProviderTest {
     providerModule.registerResourceProvider(Resource.Type.Cluster);
     providerModule.registerResourceProvider(Resource.Type.Configuration);
     Assert.assertEquals("https", providerModule.getJMXProtocol("c1", "JOURNALNODE"));
-    Assert.assertEquals("8481", providerModule.getPort("c1", "JOURNALNODE", true));
+    Assert.assertEquals("8481", providerModule.getPort("c1", "JOURNALNODE", "localhost", true));
   }
 
   @Test
@@ -434,7 +520,7 @@ public class JMXHostProviderTest {
     providerModule.registerResourceProvider(Resource.Type.Cluster);
     providerModule.registerResourceProvider(Resource.Type.Configuration);
     // Non default port addresses
-    Assert.assertEquals("8088", providerModule.getPort("c1", "RESOURCEMANAGER"));
+    Assert.assertEquals("8088", providerModule.getPort("c1", "RESOURCEMANAGER", "localhost"));
 
     Map<String, String> yarnConfigs = new HashMap<String, String>();
     yarnConfigs.put(RESOURCEMANAGER_PORT, "localhost:50030");
@@ -445,12 +531,12 @@ public class JMXHostProviderTest {
     ClusterRequest crReq = new ClusterRequest(1L, "c1", null, null);
     crReq.setDesiredConfig(Collections.singletonList(cr2));
     controller.updateClusters(Collections.singleton(crReq), null);
-    Assert.assertEquals("50030", providerModule.getPort("c1", "RESOURCEMANAGER"));
-    Assert.assertEquals("11111", providerModule.getPort("c1", "NODEMANAGER"));
+    Assert.assertEquals("50030", providerModule.getPort("c1", "RESOURCEMANAGER", "localhost"));
+    Assert.assertEquals("11111", providerModule.getPort("c1", "NODEMANAGER", "localhost"));
 
     //Unrelated ports
-    Assert.assertEquals("70070", providerModule.getPort("c1", "NAMENODE"));
-    Assert.assertEquals(null, providerModule.getPort("c1", "JOBTRACKER"));
+    Assert.assertEquals("70070", providerModule.getPort("c1", "NAMENODE", "localhost"));
+    Assert.assertEquals(null, providerModule.getPort("c1", "JOBTRACKER", "localhost"));
   }
 
   private static class JMXHostProviderModule extends AbstractProviderModule {

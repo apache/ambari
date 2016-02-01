@@ -125,8 +125,10 @@ public abstract class AbstractProviderModule implements ProviderModule,
 
     Map<String, String[]> initPropMap = new HashMap<String, String[]>();
     initPropMap.put("NAMENODE", new String[]{"dfs.http.address", "dfs.namenode.http-address"});
-    initPropMap.put("DATANODE", new String[]{"dfs.datanode.http.address"});
     initPropMap.put("NAMENODE-HTTPS", new String[]{"dfs.namenode.https-address", "dfs.https.port"});
+    initPropMap.put("NAMENODE-HA", new String[]{"dfs.namenode.http-address.%s.%s"});
+    initPropMap.put("NAMENODE-HTTPS-HA", new String[]{"dfs.namenode.https-address.%s.%s"});
+    initPropMap.put("DATANODE", new String[]{"dfs.datanode.http.address"});
     initPropMap.put("JOURNALNODE-HTTPS", new String[]{"dfs.journalnode.https-address"});
     initPropMap.put("JOURNALNODE", new String[]{"dfs.journalnode.http-address"});
     serviceDesiredProperties.put(Service.Type.HDFS, initPropMap);
@@ -197,8 +199,8 @@ public abstract class AbstractProviderModule implements ProviderModule,
   /**
    * JMX ports read from the configs
    */
-  private final Map<String, Map<String, String>> jmxPortMap =
-      new HashMap<String, Map<String, String>>();
+  private final Map<String, Map<String, Map<String, String>> >jmxPortMap =
+      new HashMap<String, Map<String, Map<String, String>>>();
 
   private volatile boolean initialized = false;
 
@@ -481,19 +483,19 @@ public abstract class AbstractProviderModule implements ProviderModule,
   // ----- JMXHostProvider ---------------------------------------------------
 
   @Override
-  public String getPort(String clusterName, String componentName) throws SystemException {
-    return getPort(clusterName, componentName, false);
+  public String getPort(String clusterName, String componentName, String hostName) throws SystemException {
+    return getPort(clusterName, componentName, hostName, false);
   }
 
   @Override
-  public String getPort(String clusterName, String componentName, boolean httpsEnabled) throws SystemException {
+  public String getPort(String clusterName, String componentName, String hostName, boolean httpsEnabled) throws SystemException {
     // Parent map need not be synchronized
-    Map<String, String> clusterJmxPorts = jmxPortMap.get(clusterName);
+    Map<String, Map<String, String>> clusterJmxPorts = jmxPortMap.get(clusterName);
     if (clusterJmxPorts == null) {
       synchronized (jmxPortMap) {
         clusterJmxPorts = jmxPortMap.get(clusterName);
         if (clusterJmxPorts == null) {
-          clusterJmxPorts = new ConcurrentHashMap<String, String>();
+          clusterJmxPorts = new ConcurrentHashMap<String, Map<String, String>>();
           jmxPortMap.put(clusterName, clusterJmxPorts);
         }
       }
@@ -511,30 +513,40 @@ public abstract class AbstractProviderModule implements ProviderModule,
         // performance with a ConcurrentHashMap and maybe get default/existing
         // ports for a few calls.
         if (!currVersion.equals(oldVersion) ||
-            !clusterJmxPorts.containsKey(componentName)) {
+            !(clusterJmxPorts.containsKey(hostName) && clusterJmxPorts.get(hostName).containsKey(componentName))) {
 
           serviceConfigVersions.put(configType, currVersion);
 
-          Map<String, String[]> componentPorts = new HashMap<String, String[]>();
-          String[] componentsHttpsPorts;
+          Map<String, Object> configProperties = getConfigProperties(
+              clusterName,
+              currVersion,
+              serviceConfigTypes.get(service)
+          );
 
-          if (httpsEnabled) {
-            componentsHttpsPorts = serviceDesiredProperties.get(service).get(componentName + "-HTTPS");
-          } else {
-            componentsHttpsPorts = serviceDesiredProperties.get(service).get(componentName);
-          }
-          componentPorts.put(componentName, componentsHttpsPorts);
+          Map<String, String[]> componentPortsProperties = new HashMap<String, String[]>();
+          componentPortsProperties.put(
+              componentName,
+              getPortProperties(service,
+                  componentName,
+                  hostName,
+                  configProperties,
+                  httpsEnabled
+              )
+          );
 
           Map<String, String> portMap = getDesiredConfigMap(clusterName,
               currVersion, serviceConfigTypes.get(service),
-              componentPorts);
+              componentPortsProperties, configProperties);
 
           for (Entry<String, String> entry : portMap.entrySet()) {
             // portString will be null if the property defined for the component doesn't exist
             // this will trigger using the default port for the component
             String portString = getPortString(entry.getValue());
             if (null != portString) {
-              clusterJmxPorts.put(entry.getKey(), portString);
+              if(!clusterJmxPorts.containsKey(hostName)) {
+                clusterJmxPorts.put(hostName, new ConcurrentHashMap<String, String>());
+              }
+              clusterJmxPorts.get(hostName).put(entry.getKey(), portString);
             }
           }
         }
@@ -544,7 +556,46 @@ public abstract class AbstractProviderModule implements ProviderModule,
     }
 
     LOG.debug("jmxPortMap -> " + jmxPortMap);
-    return clusterJmxPorts.get(componentName);
+    return clusterJmxPorts.get(hostName).get(componentName);
+  }
+
+  /**
+   * Computes properties that contains proper port for {@code componentName} on {@code hostName}. Must contain custom logic
+   * for different configurations(like NAMENODE HA).
+   * @param service service type
+   * @param componentName component name
+   * @param hostName host which contain requested component
+   * @param properties properties which used for special cases(like NAMENODE HA)
+   * @param httpsEnabled indicates if https enabled for component
+   * @return property name that contain port for {@code componentName} on {@code hostName}
+   */
+  String[] getPortProperties(Service.Type service, String componentName, String hostName, Map<String, Object> properties, boolean httpsEnabled) {
+    componentName = httpsEnabled ? componentName + "-HTTPS" : componentName;
+
+    if(componentName.equals("NAMENODE")) {
+      // iterate over nameservices and namenodes, to find out namenode http(s) property for concrete host
+      if(properties.containsKey("dfs.nameservices")) {
+        for(String nameserviceId : ((String)properties.get("dfs.nameservices")).split(",")) {
+          String haComponentName = componentName + "-HA";
+          if(properties.containsKey("dfs.ha.namenodes."+nameserviceId)) {
+            for (String namenodeId : ((String)properties.get("dfs.ha.namenodes." + nameserviceId)).split(",")) {
+              String propertyName = String.format(
+                  serviceDesiredProperties.get(service).get(haComponentName)[0],
+                  nameserviceId,
+                  namenodeId
+              );
+              if (properties.containsKey(propertyName)) {
+                String propertyValue = (String)properties.get(propertyName);
+                if (propertyValue.split(":")[0].equals(hostName)) {
+                  return new String[]{propertyName};
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    return serviceDesiredProperties.get(service).get(componentName);
   }
 
   /**
@@ -882,9 +933,9 @@ public abstract class AbstractProviderModule implements ProviderModule,
     }
     return versionTag;
   }
-  // TODO get configs using ConfigHelper
-  private Map<String, String> getDesiredConfigMap(String clusterName, String versionTag,
-      String configType, Map<String, String[]> keys) throws NoSuchParentResourceException,
+
+  private Map<String, Object> getConfigProperties(String clusterName, String versionTag, String configType)
+      throws NoSuchParentResourceException,
       UnsupportedPropertyException, SystemException {
     // Get desired configs based on the tag
     ResourceProvider configResourceProvider = getResourceProvider(Resource.Type.Configuration);
@@ -902,53 +953,67 @@ public abstract class AbstractProviderModule implements ProviderModule,
       LOG.info("Resource for the desired config not found. " + e);
       return Collections.emptyMap();
     }
+    for (Resource res : configResources) {
+      return res.getPropertiesMap().get(PROPERTIES_CATEGORY);
+    }
+    return Collections.emptyMap();
+  }
 
+  private Map<String, String> getDesiredConfigMap(String clusterName, String versionTag,
+                                                  String configType, Map<String, String[]> keys) throws NoSuchParentResourceException,
+      UnsupportedPropertyException, SystemException {
+    return getDesiredConfigMap(clusterName, versionTag, configType, keys, null);
+  }
+
+  // TODO get configs using ConfigHelper
+  private Map<String, String> getDesiredConfigMap(String clusterName, String versionTag,
+                                                  String configType, Map<String, String[]> keys, Map<String, Object> configProperties) throws NoSuchParentResourceException,
+      UnsupportedPropertyException, SystemException {
+    if(configProperties == null) {
+      configProperties = getConfigProperties(clusterName, versionTag, configType);
+    }
     Map<String, String> mConfigs = new HashMap<String, String>();
-    if (configResources != null) {
-      for (Resource res : configResources) {
-        Map<String, String> evaluatedProperties = null;
-        for (Entry<String, String[]> entry : keys.entrySet()) {
-          String propName = null;
-          String value = null;
+    if (!configProperties.isEmpty()) {
+      Map<String, String> evaluatedProperties = null;
+      for (Entry<String, String[]> entry : keys.entrySet()) {
+        String propName = null;
+        String value = null;
 
-          for (String pname : entry.getValue()) {
-            propName = pname;
-            // For NN HA the property key contains nameservice id
-            Map<String, Object> properties = res.getPropertiesMap().get(PROPERTIES_CATEGORY);
-            if (properties != null) {
-              for (Map.Entry<String, Object> propertyEntry : properties.entrySet()) {
-                if (propertyEntry.getKey().startsWith(pname)) {
-                  value = (String) propertyEntry.getValue();
-                  break;
-                }
-              }
-            }
-            if (null != value) {
+        for (String pname : entry.getValue()) {
+          propName = pname;
+          // For NN HA the property key contains nameservice id
+          for (Map.Entry<String, Object> propertyEntry : configProperties.entrySet()) {
+            if (propertyEntry.getKey().startsWith(pname)) {
+              value = (String) propertyEntry.getValue();
               break;
             }
           }
 
-          if (value != null && value.contains("${")) {
-            if (evaluatedProperties == null) {
-              evaluatedProperties = new HashMap<String, String>();
-              Map<String, Object> properties = res.getPropertiesMap().get(PROPERTIES_CATEGORY);
-              for (Map.Entry<String, Object> subentry : properties.entrySet()) {
-                String keyString = subentry.getKey();
-                Object object = subentry.getValue();
-                String valueString;
-                if (object != null && object instanceof String) {
-                  valueString = (String) object;
-                  evaluatedProperties.put(keyString, valueString);
-                  postProcessPropertyValue(keyString, valueString, evaluatedProperties, null);
-                }
+          if (null != value) {
+            break;
+          }
+        }
+
+        if (value != null && value.contains("${")) {
+          if (evaluatedProperties == null) {
+            evaluatedProperties = new HashMap<String, String>();
+            for (Map.Entry<String, Object> subentry : configProperties.entrySet()) {
+              String keyString = subentry.getKey();
+              Object object = subentry.getValue();
+              String valueString;
+              if (object != null && object instanceof String) {
+                valueString = (String) object;
+                evaluatedProperties.put(keyString, valueString);
+                postProcessPropertyValue(keyString, valueString, evaluatedProperties, null);
               }
             }
           }
-          value = postProcessPropertyValue(propName, value, evaluatedProperties, null);
-          LOG.debug("PROPERTY -> key: " + propName + ", " + "value: " + value);
-
-          mConfigs.put(entry.getKey(), value);
         }
+        value = postProcessPropertyValue(propName, value, evaluatedProperties, null);
+        LOG.debug("PROPERTY -> key: " + propName + ", " + "value: " + value);
+
+        mConfigs.put(entry.getKey(), value);
+
       }
     }
     return mConfigs;
