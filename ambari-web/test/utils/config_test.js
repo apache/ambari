@@ -673,10 +673,10 @@ describe('App.config', function () {
 
     var group = Em.Object.create({name: "group1"});
 
-    it('creates override with save properties as original config', function() {
-      var override = App.config.createOverride(configProperty, {}, group);
-      Object.keys(template).forEach(function (key) {
-        expect(override.get(key)).to.eql(template[key]);
+    Object.keys(template).forEach(function (key) {
+      it(key, function () {
+        var override = App.config.createOverride(configProperty, {}, group);
+        expect(override.get(key)).to.equal(template[key]);
       });
     });
 
@@ -699,19 +699,19 @@ describe('App.config', function () {
       });
     });
 
-    it('overrides some specific values', function() {
-      var overridenTemplate = {
-        value: "v2",
-        recommendedValue: "rv2",
-        savedValue: "sv2",
-        isFinal: true,
-        recommendedIsFinal: false,
-        savedIsFinal: true
-      };
+    var overriddenTemplate = {
+      value: "v2",
+      recommendedValue: "rv2",
+      savedValue: "sv2",
+      isFinal: true,
+      recommendedIsFinal: false,
+      savedIsFinal: true
+    };
 
-      var override = App.config.createOverride(configProperty, overridenTemplate, group);
-      Object.keys(overridenTemplate).forEach(function (key) {
-        expect(override.get(key)).to.eql(overridenTemplate[key]);
+    Object.keys(overriddenTemplate).forEach(function (key) {
+      it('overrides some specific values `' + key + '`', function () {
+        var override = App.config.createOverride(configProperty, overriddenTemplate, group);
+        expect(override.get(key)).to.equal(overriddenTemplate[key]);
       });
     });
 

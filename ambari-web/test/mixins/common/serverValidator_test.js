@@ -121,11 +121,17 @@ describe('App.ServerValidatorMixin', function() {
     });
     
     tests.forEach(function(test) {
-      it(test.message, function() {
-        instanceObject.set('stepConfigs', test.stepConfigs);
-        instanceObject.validationSuccess({resources: test.resources});
+      describe(test.message, function() {
+
+        beforeEach(function () {
+          instanceObject.set('stepConfigs', test.stepConfigs);
+          instanceObject.validationSuccess({resources: test.resources});
+        });
+
         test.expected.forEach(function(e) {
-          expect(instanceObject).to.have.deep.property(e.prop, e.value);
+          it(e.prop + ': ' + e.value, function () {
+            expect(instanceObject).to.have.deep.property(e.prop, e.value);
+          });
         });
       });
     });

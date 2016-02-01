@@ -26,8 +26,7 @@ describe('App.serviceMetricsMapper', function () {
 
   describe('#hbaseMapper', function() {
 
-    it ('Round Average Load', function() {
-      var tests = [
+    var tests = [
         {
           components: [
             {
@@ -152,8 +151,9 @@ describe('App.serviceMetricsMapper', function () {
           ],
           e: '1.20'
         }
-      ];
-      tests.forEach(function(test) {
+    ];
+    tests.forEach(function(test) {
+      it('Round Average Load (' + test.e + ')', function () {
         var result = App.serviceMetricsMapper.hbaseMapper(test);
         expect(result.average_load).to.equal(test.e);
       });

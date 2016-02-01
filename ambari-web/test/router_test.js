@@ -94,49 +94,49 @@ describe('App.Router', function () {
       window.location.replace.restore();
     });
 
-    it('should redirect to the latest version of admin view', function() {
-      var tests = [{
-        mockData: {
-          components: [{
-            'RootServiceComponents': {
-              'component_version': '1.9.0'
-            }
-          }, {
-            'RootServiceComponents': {
-              'component_version': '2.0.0'
-            }
-          }]
-        },
-        expected: '/views/ADMIN_VIEW/2.0.0/INSTANCE/#/'
-      }, {
-        mockData: {
-          components: [{
-            'RootServiceComponents': {
-              'component_version': '1.9.0'
-            }
-          }, {
-            'RootServiceComponents': {
-              'component_version': '2.1.0'
-            }
-          }, {
-            'RootServiceComponents': {
-              'component_version': '2.0.0'
-            }
-          }]
-        },
-        expected: '/views/ADMIN_VIEW/2.1.0/INSTANCE/#/'
-      }, {
-        mockData: {
-          versions: [{
-            'RootServiceComponents': {
-              version: '2.1.0'
-            }
-          }]
-        },
-        expected: '/views/ADMIN_VIEW/2.1.0/INSTANCE/#/'
-      }];
+    var tests = [{
+      mockData: {
+        components: [{
+          'RootServiceComponents': {
+            'component_version': '1.9.0'
+          }
+        }, {
+          'RootServiceComponents': {
+            'component_version': '2.0.0'
+          }
+        }]
+      },
+      expected: '/views/ADMIN_VIEW/2.0.0/INSTANCE/#/'
+    }, {
+      mockData: {
+        components: [{
+          'RootServiceComponents': {
+            'component_version': '1.9.0'
+          }
+        }, {
+          'RootServiceComponents': {
+            'component_version': '2.1.0'
+          }
+        }, {
+          'RootServiceComponents': {
+            'component_version': '2.0.0'
+          }
+        }]
+      },
+      expected: '/views/ADMIN_VIEW/2.1.0/INSTANCE/#/'
+    }, {
+      mockData: {
+        components: [{
+          'RootServiceComponents': {
+            component_version: '2.1.0'
+          }
+        }]
+      },
+      expected: '/views/ADMIN_VIEW/2.1.0/INSTANCE/#/'
+    }];
 
-      tests.forEach(function(data) {
+    tests.forEach(function(data, index) {
+      it('should redirect to the latest version of admin view ("' + data.expected + '") #' + (index + 1), function () {
         router.adminViewInfoSuccessCallback(data.mockData);
         expect(window.location.replace.calledWith(data.expected)).to.be.true;
       });

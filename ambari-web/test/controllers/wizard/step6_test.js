@@ -1588,9 +1588,9 @@ describe('App.WizardStep6Controller', function () {
           expect(controller.get('content.recommendationsHostGroups.blueprint_cluster_binding.host_groups.length')).to.equal(expectedHostGroups.length);
         });
 
-        it('components are valid for each group', function () {
-          controller.get('content.recommendationsHostGroups.blueprint.host_groups').forEach(function (group, index) {
-            expect(group.components.mapProperty('name').sort()).to.eql(item.expected[index]);
+        item.expected.forEach(function (e, index) {
+          it('components are valid for group# ' + (index + 1), function () {
+            expect(controller.get('content.recommendationsHostGroups.blueprint.host_groups')[index].components.mapProperty('name').sort()).to.be.eql(e);
           });
         });
 

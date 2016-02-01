@@ -52,18 +52,25 @@ describe('App.KDCCredentialsControllerMixin', function() {
         message: 'Only temporary store available, config should be disabled, and appropriate hint shown'
       }
     ].forEach(function(test) {
-      it(test.message, function() {
-        var configs = [],
-            config;
-        mixedObject.reopen({
-          isStorePersisted: function() {
-            return test.isStorePersisted;
-          }.property()
+      describe(test.message, function() {
+
+        var config;
+
+        beforeEach(function () {
+          var configs = [];
+          mixedObject.reopen({
+            isStorePersisted: function() {
+              return test.isStorePersisted;
+            }.property()
+          });
+          mixedObject.initilizeKDCStoreProperties(configs);
+          config = configs.findProperty('name', 'persist_credentials');
         });
-        mixedObject.initilizeKDCStoreProperties(configs);
-        config = configs.findProperty('name', 'persist_credentials');
-        Em.keys(test.e).forEach(function(key) {
-          assert.equal(Em.get(config, key), test.e[key], 'validate attribute: ' + key);
+
+        Object.keys(test.e).forEach(function(key) {
+          it(key, function () {
+            assert.equal(Em.get(config, key), test.e[key], 'validate attribute: ' + key);
+          });
         });
       });
     });

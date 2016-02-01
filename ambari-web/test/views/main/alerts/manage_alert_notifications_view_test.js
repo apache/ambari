@@ -102,15 +102,18 @@ describe('App.ManageAlertNotificationsView', function () {
         }
       }
     ]).forEach(function (test) {
-      it(test.m, function () {
-        Em.keys(test.p).forEach(function (k) {
-          view.set(k, test.p[k]);
+      describe(test.m, function () {
+        beforeEach(function () {
+          view.setProperties(test.p);
+          view.set('controller.selectedAlertNotification', test.selectedAlertNotification);
+          App.isOperator = test.isOperator;
+          view.buttonObserver();
         });
-        view.set('controller.selectedAlertNotification', test.selectedAlertNotification);
-        App.isOperator = test.isOperator;
-        view.buttonObserver();
+
         Em.keys(test.e).forEach(function (k) {
-          expect(view.get(k)).to.equal(test.e[k]);
+          it(k, function () {
+            expect(view.get(k)).to.equal(test.e[k]);
+          });
         });
       });
     });

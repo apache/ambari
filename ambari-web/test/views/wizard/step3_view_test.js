@@ -20,9 +20,8 @@ var App = require('app');
 require('messages');
 require('views/wizard/step3_view');
 var v;
-describe('App.WizardStep3View', function () {
-
-  var view = App.WizardStep3View.create({
+function getView() {
+  return App.WizardStep3View.create({
     monitorStatuses: function () {
     },
     content: [
@@ -46,6 +45,11 @@ describe('App.WizardStep3View', function () {
       return this.get('content');
     }.property('content')
   });
+}
+
+describe('App.WizardStep3View', function () {
+
+  var view = getView();
 
   describe('#watchSelection', function () {
     it('2 of 3 hosts selected', function () {
@@ -240,13 +244,22 @@ describe('App.WizardStep3View', function () {
   ]);
 
   describe('#countCategoryHosts', function () {
+    var _view;
     testCases.forEach(function (test) {
-      it(test.title, function () {
-        view.set('content', test.content);
-        view.countCategoryHosts();
-        view.get('categories').forEach(function (category) {
-          expect(category.get('hostsCount')).to.equal(test.result[category.get('hostsBootStatus')])
-        })
+      describe(test.title, function () {
+
+        beforeEach(function () {
+          _view = getView();
+          _view.set('content', test.content);
+          _view.countCategoryHosts();
+        });
+
+        Object.keys(test.result).forEach(function (categoryName) {
+          it('`' + categoryName + '`', function () {
+            expect(_view.get('categories').findProperty('hostsBootStatus', categoryName).get('hostsCount')).to.be.equal(test.result[categoryName])
+          });
+        });
+
       });
     }, this);
   });

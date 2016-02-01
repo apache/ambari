@@ -1171,13 +1171,22 @@ describe('App.WizardStep8Controller', function () {
 
   describe('#deleteClusters', function() {
 
-    it('should call App.ajax.send for each provided clusterName', function() {
+    describe('should call App.ajax.send for each provided clusterName', function() {
       var clusterNames = ['h1', 'h2', 'h3'];
-      installerStep8Controller.deleteClusters(clusterNames);
-      var args = testHelpers.filterAjaxRequests('name', 'common.delete.cluster');
-      expect(args).to.have.property('length').equal(clusterNames.length);
+      var args;
+      beforeEach(function () {
+        installerStep8Controller.deleteClusters(clusterNames);
+        args = testHelpers.filterAjaxRequests('name', 'common.delete.cluster');
+      });
+
+      it('args', function () {
+        expect(args).to.have.property('length').equal(clusterNames.length);
+      });
+
       clusterNames.forEach(function(n, i) {
-        expect(args[i][0].data).to.eql({name: n, isLast: i === clusterNames.length - 1});
+        it(n, function () {
+          expect(args[i][0].data).to.eql({name: n, isLast: i === clusterNames.length - 1});
+        });
       });
     });
 
