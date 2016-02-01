@@ -357,6 +357,12 @@ public class Configuration {
   public static final String AGENT_TASK_TIMEOUT_DEFAULT = "900";
   public static final String AGENT_PACKAGE_INSTALL_TASK_TIMEOUT_DEFAULT = "1800";
 
+  /**
+   * Server side task (default) timeout value
+   */
+  public static final String SERVER_TASK_TIMEOUT_KEY = "server.task.timeout";
+  public static final String SERVER_TASK_TIMEOUT_DEFAULT = "1200";
+
   public static final String CUSTOM_ACTION_DEFINITION_KEY = "custom.action.definitions";
   public static final String SHARED_RESOURCES_DIR_KEY = "shared.resources.dir";
   private static final String CUSTOM_ACTION_DEFINITION_DEF_VALUE = "/var/lib/ambari-server/resources/custom_action_definitions";
@@ -1876,6 +1882,20 @@ public class Configuration {
           "falling back to default value (%s)",
           key, value, defaultValue));
       return defaultValue;
+    }
+  }
+
+  /**
+   * @return default server-side task timeout in seconds.
+   */
+  public Integer getDefaultServerTaskTimeout() {
+    String value = properties.getProperty(SERVER_TASK_TIMEOUT_KEY, SERVER_TASK_TIMEOUT_DEFAULT);
+    if (StringUtils.isNumeric(value)) {
+      return Integer.parseInt(value);
+    } else {
+      LOG.warn("Value of {} ({}) should be a number, falling back to default value ({})",
+          SERVER_TASK_TIMEOUT_KEY, value, SERVER_TASK_TIMEOUT_DEFAULT);
+      return Integer.parseInt(SERVER_TASK_TIMEOUT_DEFAULT);
     }
   }
 

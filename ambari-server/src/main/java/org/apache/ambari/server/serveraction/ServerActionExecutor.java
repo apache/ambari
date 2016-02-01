@@ -35,6 +35,7 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Request;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.CalculatedStatus;
 import org.apache.ambari.server.security.authorization.internal.InternalAuthenticationToken;
 import org.apache.ambari.server.utils.StageUtils;
@@ -57,7 +58,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 public class ServerActionExecutor {
 
   private final static Logger LOG = LoggerFactory.getLogger(ServerActionExecutor.class);
-  private final static Long EXECUTION_TIMEOUT_MS = 1000L * 60 * 5;
+  private final static Long DEFAULT_EXECUTION_TIMEOUT_MS = 1000L * 60 * 5;
   private final static Long POLLING_TIMEOUT_MS = 1000L * 5;
 
   /**
@@ -65,6 +66,13 @@ public class ServerActionExecutor {
    */
   @Inject
   private static Injector injector;
+
+  /**
+   * The Ambari configuration used to obtain configured details such as the default server-side action
+   * timeout.
+   */
+  @Inject
+  private static Configuration configuration;
 
   /**
    * Maps request IDs to "blackboards" of shared data.
@@ -354,13 +362,24 @@ public class ServerActionExecutor {
     try {
       timeout = (paramsTimeout == null)
           ? null
-          : (Long.parseLong(paramsTimeout) * 1000); // Convert seconds to milliseconds
+          : (Long.parseLong(paramsTimeout) * 1000L); // Convert seconds to milliseconds
     } catch (NumberFormatException e) {
       timeout = null;
     }
 
+    // If a configured timeout value is not set for the command, attempt to get the configured
+    // default
+    if (timeout == null) {
+      Integer defaultTimeoutSeconds = configuration.getDefaultServerTaskTimeout();
+      if (defaultTimeoutSeconds != null) {
+        timeout = defaultTimeoutSeconds * 1000L; // convert seconds to milliseconds
+      }
+    }
+
+    // If a timeout value was not determined, return the hard-coded timeout value, else return the
+    // determined timeout value.
     return (timeout == null)
-        ? EXECUTION_TIMEOUT_MS
+        ? DEFAULT_EXECUTION_TIMEOUT_MS
         : ((timeout < 0) ? 0 : timeout);
   }
 

@@ -1513,7 +1513,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         getManagementController().getAuthName(), Role.AMBARI_SERVER_ACTION, RoleCommand.EXECUTE,
         cluster.getClusterName(),
         new ServiceComponentHostServerActionEvent(null, System.currentTimeMillis()), commandParams,
-        itemDetail, null, Integer.valueOf(1200), allowRetry,
+        itemDetail, null, s_configuration.getDefaultServerTaskTimeout(), allowRetry,
         context.isComponentFailureAutoSkipped());
 
     request.addStages(Collections.singletonList(stage));
