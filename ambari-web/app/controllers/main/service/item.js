@@ -997,7 +997,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
       });
     } else if (dependentServices.length > 0) {
       this.dependentServicesWarning(serviceName, dependentServices);
-    } else if (App.Service.find(serviceName).get('workStatus') === 'INSTALLED') {
+    } else if (App.Service.allowUninstallStates.contains(App.Service.find(serviceName).get('workStatus'))) {
       App.showConfirmationPopup(
         function() {self.confirmDeleteService(serviceName)},
         Em.I18n.t('services.service.delete.popup.warning').format(displayName),
