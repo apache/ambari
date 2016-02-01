@@ -20,6 +20,7 @@ package org.apache.ambari.server.api.services;
 
 import java.util.Collections;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -27,17 +28,22 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.controller.internal.VersionDefinitionResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.commons.codec.binary.Base64;
+
+import com.google.gson.JsonObject;
 
 @Path("/version_definitions/")
 public class VersionDefinitionService extends BaseService {
 
   @GET
-  @Produces("text/plain")
+  @Produces(MediaType.TEXT_PLAIN)
   public Response getServices(@Context HttpHeaders headers, @Context UriInfo ui) {
 
     return handleRequest(headers, null, ui, Request.Type.GET,
@@ -46,7 +52,7 @@ public class VersionDefinitionService extends BaseService {
 
   @GET
   @Path("{versionId}")
-  @Produces("text/plain")
+  @Produces(MediaType.TEXT_PLAIN)
   public Response getService(@Context HttpHeaders headers, @Context UriInfo ui,
       @PathParam("versionId") Long versionId) {
 
@@ -55,9 +61,34 @@ public class VersionDefinitionService extends BaseService {
   }
 
   @POST
-  @Produces("text/plain")
+  @Produces(MediaType.TEXT_PLAIN)
   public Response createVersion(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, body, ui, Request.Type.POST,
+        createResource(null));
+  }
+
+  /**
+   * Creates a version by directly POSTing the XML body.  Unfortunately the request processor
+   * uses JSON, so an appropriate JSON structure must be made to get to the ResourceProvider.
+   * @param body     the XML
+   * @param headers  the headers
+   * @param ui       the URI info
+   */
+  @POST
+  @Consumes({MediaType.TEXT_XML})
+  @Produces(MediaType.TEXT_PLAIN)
+  public Response createVersionByXml(String body, @Context HttpHeaders headers,
+      @Context UriInfo ui) throws Exception {
+
+    String encoded = Base64.encodeBase64String(body.getBytes("UTF-8"));
+
+    JsonObject obj = new JsonObject();
+    obj.addProperty(VersionDefinitionResourceProvider.VERSION_DEF_BASE64_PROPERTY, encoded);
+
+    JsonObject payload = new JsonObject();
+    payload.add(VersionDefinitionResourceProvider.VERSION_DEF, obj);
+
+    return handleRequest(headers, payload.toString(), ui, Request.Type.POST,
         createResource(null));
   }
 

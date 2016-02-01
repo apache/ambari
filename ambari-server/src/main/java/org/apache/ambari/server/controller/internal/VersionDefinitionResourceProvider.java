@@ -18,6 +18,7 @@
 package org.apache.ambari.server.controller.internal;
 
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -42,6 +43,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
@@ -53,6 +55,7 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -68,14 +71,15 @@ import com.google.inject.Provider;
 public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourceProvider {
 
   public static final String VERSION_DEF                             = "VersionDefinition";
-  protected static final String VERSION_DEF_ID                       = "VersionDefinition/id";
-
+  public static final String VERSION_DEF_BASE64_PROPERTY             = "version_base64";
   public static final String VERSION_DEF_STACK_NAME                  = "VersionDefinition/stack_name";
   public static final String VERSION_DEF_STACK_VERSION               = "VersionDefinition/stack_version";
 
-
+  protected static final String VERSION_DEF_ID                       = "VersionDefinition/id";
   protected static final String VERSION_DEF_TYPE_PROPERTY_ID         = "VersionDefinition/type";
   protected static final String VERSION_DEF_DEFINITION_URL           = "VersionDefinition/version_url";
+
+  protected static final String VERSION_DEF_DEFINITION_BASE64        = PropertyHelper.getPropertyId(VERSION_DEF, VERSION_DEF_BASE64_PROPERTY);
   protected static final String VERSION_DEF_FULL_VERSION             = "VersionDefinition/repository_version";
   protected static final String VERSION_DEF_RELEASE_VERSION          = "VersionDefinition/release/version";
   protected static final String VERSION_DEF_RELEASE_BUILD            = "VersionDefinition/release/build";
@@ -114,6 +118,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
       VERSION_DEF_ID,
       VERSION_DEF_TYPE_PROPERTY_ID,
       VERSION_DEF_DEFINITION_URL,
+      VERSION_DEF_DEFINITION_BASE64,
       VERSION_DEF_FULL_VERSION,
       VERSION_DEF_RELEASE_NOTES,
       VERSION_DEF_RELEASE_COMPATIBLE_WITH,
@@ -156,8 +161,13 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
 
     final Map<String, Object> properties = requestProperties.iterator().next();
 
-    if (!properties.containsKey(VERSION_DEF_DEFINITION_URL)) {
-      throw new IllegalArgumentException(String.format("%s is required", VERSION_DEF_DEFINITION_URL));
+    if (!properties.containsKey(VERSION_DEF_DEFINITION_URL) && !properties.containsKey(VERSION_DEF_DEFINITION_BASE64)) {
+      throw new IllegalArgumentException(String.format("%s is required or upload the file directly", VERSION_DEF_DEFINITION_URL));
+    }
+
+    if (properties.containsKey(VERSION_DEF_DEFINITION_URL) && properties.containsKey(VERSION_DEF_DEFINITION_BASE64)) {
+      throw new IllegalArgumentException(String.format("Specify ONLY the url with %s or upload the file directly",
+          VERSION_DEF_DEFINITION_URL));
     }
 
     RepositoryVersionEntity entity = createResources(new Command<RepositoryVersionEntity>() {
@@ -165,8 +175,14 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
       public RepositoryVersionEntity invoke() throws AmbariException {
 
         String definitionUrl = (String) properties.get(VERSION_DEF_DEFINITION_URL);
+        String definitionBase64 = (String) properties.get(VERSION_DEF_DEFINITION_BASE64);
 
-        XmlHolder holder = loadXml(definitionUrl);
+        XmlHolder holder = null;
+        if (null != definitionUrl) {
+          holder = loadXml(definitionUrl);
+        } else {
+          holder = loadXml(Base64.decodeBase64(definitionBase64));
+        }
 
         RepositoryVersionEntity entity = toRepositoryVersionEntity(holder);
 
@@ -301,6 +317,36 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
     return ResourceType.AMBARI;
   }
 
+  /**
+   * Load the xml data from a posted Base64 stream
+   * @param decoded the decoded Base64 data
+   * @return the XmlHolder instance
+   * @throws AmbariException
+   */
+  private XmlHolder loadXml(byte[] decoded) {
+    XmlHolder holder = new XmlHolder();
+
+    try {
+      holder.xmlString = new String(decoded, "UTF-8");
+    } catch (UnsupportedEncodingException e) {
+      holder.xmlString = new String(decoded);
+    }
+
+    try {
+      holder.xml = VersionDefinitionXml.load(holder.xmlString);
+    } catch (Exception e) {
+      throw new IllegalArgumentException(e);
+    }
+
+    return holder;
+  }
+
+  /**
+   * Load the xml data from a url
+   * @param definitionUrl
+   * @return the XmlHolder instance
+   * @throws AmbariException
+   */
   private XmlHolder loadXml(String definitionUrl) throws AmbariException {
     XmlHolder holder = new XmlHolder();
     holder.url = definitionUrl;
@@ -424,5 +470,6 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
     String xmlString = null;
     VersionDefinitionXml xml = null;
   }
+
 
 }

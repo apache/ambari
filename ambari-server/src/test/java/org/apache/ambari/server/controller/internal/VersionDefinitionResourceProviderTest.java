@@ -18,6 +18,7 @@
 package org.apache.ambari.server.controller.internal;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -40,6 +41,8 @@ import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -81,6 +84,83 @@ public class VersionDefinitionResourceProviderTest {
   @After
   public void after() throws Exception {
     injector.getInstance(PersistService.class).stop();
+  }
+
+  @Test
+  public void testWithParentFromBase64() throws Exception {
+    Authentication authentication = TestAuthenticationFactory.createAdministrator();
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+
+    File file = new File("src/test/resources/version_definition_resource_provider.xml");
+
+    byte[] bytes = IOUtils.toByteArray(new FileInputStream(file));
+    String base64Str = Base64.encodeBase64String(bytes);
+
+    final ResourceProvider versionProvider = new VersionDefinitionResourceProvider();
+    final ResourceProvider provider = injector.getInstance(ResourceProviderFactory.class)
+        .getRepositoryVersionResourceProvider();
+
+    final Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+    final Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    properties.put(VersionDefinitionResourceProvider.VERSION_DEF_DEFINITION_BASE64, base64Str);
+    propertySet.add(properties);
+
+
+    final Request createRequest = PropertyHelper.getCreateRequest(propertySet, null);
+    RequestStatus status = versionProvider.createResources(createRequest);
+    Assert.assertEquals(1, status.getAssociatedResources().size());
+
+    Request getRequest = PropertyHelper.getReadRequest("VersionDefinition");
+    Set<Resource> results = versionProvider.getResources(getRequest, null);
+    Assert.assertEquals(1, results.size());
+
+    final Predicate predicateStackName = new PredicateBuilder().property(RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID).equals("HDP").toPredicate();
+    final Predicate predicateStackVersion = new PredicateBuilder().property(RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID).equals("2.2.0").toPredicate();
+
+    results = provider.getResources(getRequest,
+        new AndPredicate(predicateStackName, predicateStackVersion));
+    Assert.assertEquals(1, results.size());
+
+    getRequest = PropertyHelper.getReadRequest(
+        RepositoryVersionResourceProvider.REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID,
+        RepositoryVersionResourceProvider.REPOSITORY_VERSION_ID_PROPERTY_ID,
+        RepositoryVersionResourceProvider.REPOSITORY_VERSION_REPOSITORY_VERSION_PROPERTY_ID,
+        RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID,
+        RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID,
+        RepositoryVersionResourceProvider.SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID,
+        RepositoryVersionResourceProvider.SUBRESOURCE_REPOSITORIES_PROPERTY_ID,
+        "RepositoryVersions/release", "RepositoryVersions/services",
+        "RepositoryVersions/has_children", "RepositoryVersions/parent_id");
+
+    results = provider.getResources(getRequest,
+        new AndPredicate(predicateStackName, predicateStackVersion));
+    Assert.assertEquals(2, results.size());
+
+    Resource r = null;
+    for (Resource result : results) {
+      if (result.getPropertyValue("RepositoryVersions/repository_version").equals("2.2.0.8-5678")) {
+        r = result;
+        break;
+      }
+    }
+
+    Assert.assertNotNull(r);
+    Map<String, Map<String, Object>> map = r.getPropertiesMap();
+    Assert.assertTrue(map.containsKey("RepositoryVersions"));
+
+    Map<String, Object> vals = map.get("RepositoryVersions");
+
+    Assert.assertEquals("2.2.0.8-5678", vals.get("repository_version"));
+    Assert.assertNotNull(vals.get("parent_id"));
+    Assert.assertEquals(Boolean.FALSE, vals.get("has_children"));
+
+
+    Assert.assertTrue(map.containsKey("RepositoryVersions/release"));
+    vals = map.get("RepositoryVersions/release");
+    Assert.assertEquals("5678", vals.get("build"));
+    Assert.assertEquals("2.3.4.[1-9]", vals.get("compatible_with"));
+    Assert.assertEquals("http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.3.4/",
+        vals.get("notes"));
   }
 
   @Test
