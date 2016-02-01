@@ -989,7 +989,44 @@ public class HeartBeatHandler {
     if(response.getAgentConfig() != null) {
       LOG.debug("Agent configuration map set to " + response.getAgentConfig());
     }
-    response.setRecoveryConfig(RecoveryConfig.getRecoveryConfig(config));
+
+    //
+    // Filter the enabled components by maintenance mode
+    //
+
+    // Build a map of component name => Service component host
+    // for easy look up of maintenance state by component name.
+    // As of now, a host can belong to only one cluster.
+    // Clusters::getClustersForHost(hostname) returns one item.
+    Map<String, ServiceComponentHost> schFromComponentName = new HashMap<>();
+
+    for (Cluster cl : clusterFsm.getClustersForHost(hostname)) {
+      List<ServiceComponentHost> scHosts = cl.getServiceComponentHosts(hostname);
+      for (ServiceComponentHost sch : scHosts) {
+        schFromComponentName.put(sch.getServiceComponentName(), sch);
+      }
+    }
+
+    // Keep only the components that have maintenance state set to OFF
+    List<String> enabledComponents = new ArrayList<>();
+    String[] confEnabledComponents = config.getEnabledComponents().split(",");
+
+    for (String componentName : confEnabledComponents) {
+      ServiceComponentHost sch = schFromComponentName.get(componentName);
+
+      // Append the component name only if it is
+      // in the host and  not in maintenance mode.
+      if (sch != null && sch.getMaintenanceState() == MaintenanceState.OFF) {
+        enabledComponents.add(componentName);
+      }
+    }
+
+    // Overwrite the pre-constructed RecoveryConfig's list of
+    // enabled components with the filtered list
+    RecoveryConfig rc = RecoveryConfig.getRecoveryConfig(config);
+    rc.setEnabledComponents(StringUtils.join(enabledComponents, ','));
+    response.setRecoveryConfig(rc);
+
     if(response.getRecoveryConfig() != null) {
       LOG.info("Recovery configuration set to " + response.getRecoveryConfig().toString());
     }
