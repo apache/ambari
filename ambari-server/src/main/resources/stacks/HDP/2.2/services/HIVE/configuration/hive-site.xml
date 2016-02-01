@@ -1781,7 +1781,6 @@ limitations under the License.
   </property>
   <property>
     <name>hive.server2.authentication.pam.services</name>
-    <value></value>
     <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <depends-on>
       <property>
@@ -1792,7 +1791,6 @@ limitations under the License.
   </property>
   <property>
     <name>hive.server2.custom.authentication.class</name>
-    <value></value>
     <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <depends-on>
       <property>
