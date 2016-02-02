@@ -91,11 +91,11 @@ def exec_ssh_cmd(hostname, cmd):
   return process.returncode, stdout, stderr
 
 
-def exec_psql_cmd(command, host, db="template1", tuples_only=True):
+def exec_psql_cmd(command, host, port, db="template1", tuples_only=True):
   """
   Sets up execution environment and runs the HAWQ queries
   """
-  src_cmd = "source {0}".format(hawq_constants.hawq_greenplum_path_file)
+  src_cmd = "export PGPORT={0} && source {1}".format(port, hawq_constants.hawq_greenplum_path_file)
   if tuples_only:
     cmd = src_cmd + " && psql -d {0} -c \\\\\\\"{1};\\\\\\\"".format(db, command)
   else:
