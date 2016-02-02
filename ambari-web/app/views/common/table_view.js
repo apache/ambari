@@ -75,12 +75,18 @@ App.TableView = Em.View.extend(App.UserPref, {
   willInsertElement: function () {
     var self = this;
     var name = this.get('controller.name');
-    if (!this.get('displayLength') && this.get('state') !== "inBuffer") {
-      if (App.db.getDisplayLength(name)) {
-        self.set('displayLength', App.db.getDisplayLength(name));
-        Em.run.next(function () {
+    if (!this.get('displayLength')) {
+      var displayLength = App.db.getDisplayLength(name);
+      if (displayLength) {
+        if (this.get('state') !== "inBuffer") {
+          self.set('displayLength', displayLength);
           self.initFilters();
-        });
+        } else {
+          Em.run.next(function () {
+            self.set('displayLength', displayLength);
+            self.initFilters();
+          });
+        }
       } else {
         if (!$.mocho) {
           this.getUserPref(this.displayLengthKey()).complete(function () {
