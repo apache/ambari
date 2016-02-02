@@ -257,15 +257,19 @@ describe('App.showClusterCheckPopup', function () {
         popup.onPrimary();
       });
 
-      it('result', function () {
+      describe('result', function () {
         Em.keys(item.result).forEach(function (key) {
-          expect(popup[key]).to.equal(item.result[key]);
+          it(key, function () {
+            expect(popup[key]).to.equal(item.result[key]);
+          });
         });
       });
 
-      it('bodyResult', function () {
+      describe('bodyResult', function () {
         Em.keys(item.bodyResult).forEach(function (key) {
-          expect(popupBody[key]).to.eql(item.bodyResult[key]);
+          it(key, function () {
+            expect(popupBody[key]).to.eql(item.bodyResult[key]);
+          });
         });
       });
 

@@ -196,6 +196,11 @@ def setup_ranger_db(upgrade_type=None):
     owner = params.unix_user,
   )
 
+  ModifyPropertiesFile(format("{ranger_home}/install.properties"),
+    properties = {'audit_store': params.ranger_audit_source_type},
+    owner = params.unix_user,
+  )
+
   if params.db_flavor.lower() == 'sqla':
     ModifyPropertiesFile(format("{ranger_home}/install.properties"),
       properties = {'SQL_CONNECTOR_JAR': format('{ranger_home}/ews/lib/{jdbc_jar_name}')},

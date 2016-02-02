@@ -20,7 +20,7 @@ package org.apache.ambari.server.api.services.stackadvisor;
 
 import com.google.common.collect.Maps;
 import org.apache.ambari.server.controller.internal.ConfigurationTopologyException;
-import org.apache.ambari.server.topology.Component;
+import org.apache.ambari.server.topology.ConfigRecommendationStrategy;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.HostGroup;
 import static org.easymock.EasyMock.anyObject;
@@ -29,6 +29,7 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
@@ -77,21 +78,93 @@ public class StackAdvisorBlueprintProcessorTest {
     expect(clusterTopology.getAdvisedConfigurations()).andReturn(advisedConfigurations).anyTimes();
     expect(clusterTopology.getConfiguration()).andReturn(configuration).anyTimes();
     expect(clusterTopology.isClusterKerberosEnabled()).andReturn(false).anyTimes();
+    expect(clusterTopology.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.ALWAYS_APPLY);
     expect(blueprint.getStack()).andReturn(stack).anyTimes();
     expect(stack.getVersion()).andReturn("2.3").anyTimes();
     expect(stack.getName()).andReturn("HDP").anyTimes();
+    expect(stack.getConfiguration(Arrays.asList("HDFS", "YARN", "HIVE"))).andReturn(createStackDefaults()).anyTimes();
     expect(blueprint.getServices()).andReturn(Arrays.asList("HDFS", "YARN", "HIVE")).anyTimes();
     expect(blueprint.getHostGroups()).andReturn(createHostGroupMap()).anyTimes();
     expect(hostGroup.getComponentNames()).andReturn(Arrays.asList("comp1", "comp2")).anyTimes();
     expect(stackAdvisorHelper.recommend(anyObject(StackAdvisorRequest.class))).andReturn(createRecommendationResponse());
-    expect(configuration.getFullProperties()).andReturn(createProps());
+    expect(configuration.getFullProperties()).andReturn(createProps()).anyTimes();
 
     replay(clusterTopology, blueprint, stack, hostGroup, configuration, stackAdvisorHelper);
     // WHEN
     underTest.adviseConfiguration(clusterTopology);
     // THEN
     assertTrue(advisedConfigurations.get("core-site").getProperties().containsKey("dummyKey1"));
+    assertTrue(advisedConfigurations.get("core-site").getProperties().containsKey("dummyKey3"));
     assertTrue(advisedConfigurations.get("core-site").getPropertyValueAttributes().containsKey("dummyKey2"));
+    assertTrue(advisedConfigurations.get("core-site").getPropertyValueAttributes().containsKey("dummyKey3"));
+    assertEquals("dummyValue", advisedConfigurations.get("core-site").getProperties().get("dummyKey1"));
+    assertEquals(Boolean.toString(true), advisedConfigurations.get("core-site")
+      .getPropertyValueAttributes().get("dummyKey2").getDelete());
+  }
+
+  @Test
+  public void testAdviseConfigurationWithOnlyStackDefaultsApply() throws StackAdvisorException, ConfigurationTopologyException {
+    // GIVEN
+    Map<String, AdvisedConfiguration> advisedConfigurations = new HashMap<String, AdvisedConfiguration>();
+    expect(clusterTopology.getBlueprint()).andReturn(blueprint).anyTimes();
+    expect(clusterTopology.getHostGroupInfo()).andReturn(createHostGroupInfo()).anyTimes();
+    expect(clusterTopology.getAdvisedConfigurations()).andReturn(advisedConfigurations).anyTimes();
+    expect(clusterTopology.getConfiguration()).andReturn(configuration).anyTimes();
+    expect(clusterTopology.isClusterKerberosEnabled()).andReturn(false).anyTimes();
+    expect(clusterTopology.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.ONLY_STACK_DEFAULTS_APPLY);
+    expect(blueprint.getStack()).andReturn(stack).anyTimes();
+    expect(stack.getVersion()).andReturn("2.3").anyTimes();
+    expect(stack.getName()).andReturn("HDP").anyTimes();
+    expect(stack.getConfiguration(Arrays.asList("HDFS", "YARN", "HIVE"))).andReturn(createStackDefaults()).anyTimes();
+    expect(blueprint.getServices()).andReturn(Arrays.asList("HDFS", "YARN", "HIVE")).anyTimes();
+    expect(blueprint.getHostGroups()).andReturn(createHostGroupMap()).anyTimes();
+    expect(hostGroup.getComponentNames()).andReturn(Arrays.asList("comp1", "comp2")).anyTimes();
+    expect(stackAdvisorHelper.recommend(anyObject(StackAdvisorRequest.class))).andReturn(createRecommendationResponse());
+    expect(configuration.getFullProperties()).andReturn(createProps()).anyTimes();
+
+    replay(clusterTopology, blueprint, stack, hostGroup, configuration, stackAdvisorHelper);
+    // WHEN
+    underTest.adviseConfiguration(clusterTopology);
+    // THEN
+    assertTrue(advisedConfigurations.get("core-site").getProperties().containsKey("dummyKey1"));
+    assertFalse(advisedConfigurations.get("core-site").getProperties().containsKey("dummyKey3"));
+    assertTrue(advisedConfigurations.get("core-site").getPropertyValueAttributes().containsKey("dummyKey2"));
+    assertFalse(advisedConfigurations.get("core-site").getPropertyValueAttributes().containsKey("dummyKey3"));
+    assertEquals("dummyValue", advisedConfigurations.get("core-site").getProperties().get("dummyKey1"));
+    assertEquals(Boolean.toString(true), advisedConfigurations.get("core-site")
+      .getPropertyValueAttributes().get("dummyKey2").getDelete());
+  }
+
+  @Test
+  public void testAdviseConfigurationWithOnlyStackDefaultsApplyWhenNoUserInputForDefault() throws StackAdvisorException, ConfigurationTopologyException {
+    // GIVEN
+    Map<String, Map<String, String>> props = createProps();
+    props.get("core-site").put("dummyKey3", "stackDefaultValue");
+    Map<String, AdvisedConfiguration> advisedConfigurations = new HashMap<String, AdvisedConfiguration>();
+    expect(clusterTopology.getBlueprint()).andReturn(blueprint).anyTimes();
+    expect(clusterTopology.getHostGroupInfo()).andReturn(createHostGroupInfo()).anyTimes();
+    expect(clusterTopology.getAdvisedConfigurations()).andReturn(advisedConfigurations).anyTimes();
+    expect(clusterTopology.getConfiguration()).andReturn(configuration).anyTimes();
+    expect(clusterTopology.isClusterKerberosEnabled()).andReturn(false).anyTimes();
+    expect(clusterTopology.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.ONLY_STACK_DEFAULTS_APPLY);
+    expect(blueprint.getStack()).andReturn(stack).anyTimes();
+    expect(stack.getVersion()).andReturn("2.3").anyTimes();
+    expect(stack.getName()).andReturn("HDP").anyTimes();
+    expect(stack.getConfiguration(Arrays.asList("HDFS", "YARN", "HIVE"))).andReturn(createStackDefaults()).anyTimes();
+    expect(blueprint.getServices()).andReturn(Arrays.asList("HDFS", "YARN", "HIVE")).anyTimes();
+    expect(blueprint.getHostGroups()).andReturn(createHostGroupMap()).anyTimes();
+    expect(hostGroup.getComponentNames()).andReturn(Arrays.asList("comp1", "comp2")).anyTimes();
+    expect(stackAdvisorHelper.recommend(anyObject(StackAdvisorRequest.class))).andReturn(createRecommendationResponse());
+    expect(configuration.getFullProperties()).andReturn(props).anyTimes();
+
+    replay(clusterTopology, blueprint, stack, hostGroup, configuration, stackAdvisorHelper);
+    // WHEN
+    underTest.adviseConfiguration(clusterTopology);
+    // THEN
+    assertTrue(advisedConfigurations.get("core-site").getProperties().containsKey("dummyKey1"));
+    assertTrue(advisedConfigurations.get("core-site").getProperties().containsKey("dummyKey3"));
+    assertTrue(advisedConfigurations.get("core-site").getPropertyValueAttributes().containsKey("dummyKey2"));
+    assertTrue(advisedConfigurations.get("core-site").getPropertyValueAttributes().containsKey("dummyKey3"));
     assertEquals("dummyValue", advisedConfigurations.get("core-site").getProperties().get("dummyKey1"));
     assertEquals(Boolean.toString(true), advisedConfigurations.get("core-site")
       .getPropertyValueAttributes().get("dummyKey2").getDelete());
@@ -157,6 +230,7 @@ public class StackAdvisorBlueprintProcessorTest {
     Map<String, Map<String, String>> props = Maps.newHashMap();
     Map<String, String> siteProps = Maps.newHashMap();
     siteProps.put("myprop", "myvalue");
+    siteProps.put("dummyKey3", "userinput");
     props.put("core-site", siteProps);
     return props;
   }
@@ -178,6 +252,18 @@ public class StackAdvisorBlueprintProcessorTest {
     return hostGroupInfoMap;
   }
 
+  private Configuration createStackDefaults() {
+    Map<String, Map<String, String>> stackDefaultProps =
+      new HashMap<String, Map<String, String>>();
+    Map<String, String> coreSiteDefault = new HashMap<String, String>();
+    coreSiteDefault.put("dummyKey3", "stackDefaultValue");
+    stackDefaultProps.put("core-site", coreSiteDefault);
+
+    Map<String, Map<String, Map<String, String>>> stackDefaultAttributes =
+      new HashMap<String, Map<String, Map<String, String>>>();
+    return new Configuration(stackDefaultProps, stackDefaultAttributes);
+  }
+
   private RecommendationResponse createRecommendationResponse() {
     RecommendationResponse response = new RecommendationResponse();
     RecommendationResponse.Recommendation recommendations = new RecommendationResponse.Recommendation();
@@ -188,11 +274,15 @@ public class StackAdvisorBlueprintProcessorTest {
       new RecommendationResponse.BlueprintConfigurations();
     Map<String, String> properties = new HashMap<String, String>();
     properties.put("dummyKey1", "dummyValue");
+    properties.put("dummyKey3", "dummyValue-override");
     blueprintConfig.setProperties(properties);
     Map<String, ValueAttributesInfo> propAttributes = new HashMap<String, ValueAttributesInfo>();
-    ValueAttributesInfo valueAttributesInfo = new ValueAttributesInfo();
-    valueAttributesInfo.setDelete("true");
-    propAttributes.put("dummyKey2", valueAttributesInfo);
+    ValueAttributesInfo valueAttributesInfo1 = new ValueAttributesInfo();
+    ValueAttributesInfo valueAttributesInfo2 = new ValueAttributesInfo();
+    valueAttributesInfo1.setDelete("true");
+    valueAttributesInfo2.setDelete("true");
+    propAttributes.put("dummyKey2", valueAttributesInfo1);
+    propAttributes.put("dummyKey3", valueAttributesInfo2);
     blueprintConfig.setPropertyAttributes(propAttributes);
     blueprintConfigurationsMap.put("core-site", blueprintConfig);
     blueprint.setConfigurations(blueprintConfigurationsMap);

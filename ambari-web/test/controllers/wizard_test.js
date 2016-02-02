@@ -1187,9 +1187,7 @@ describe('App.WizardController', function () {
     it('should not save admin_principal or admin_password to the localStorage', function () {
       c.saveServiceConfigProperties(kerberosStepController);
       var saved = c.get('content.serviceConfigProperties');
-      saved.forEach(function(config) {
-        expect(config.value).to.equal('');
-      });
+      expect(saved.everyProperty('value', '')).to.be.true;
     });
   });
 
@@ -1475,8 +1473,8 @@ describe('App.WizardController', function () {
       }
     ];
 
-    it('should convert objects and arrays to pure JS objects and arrays', function () {
-      testCases.forEach(function (testCase) {
+    testCases.forEach(function (testCase, index) {
+      it('should convert objects and arrays to pure JS objects and arrays (' + (index + 1) + ')', function () {
         expect(c.toJSInstance(testCase.o)).to.eql(testCase.e);
       });
     });

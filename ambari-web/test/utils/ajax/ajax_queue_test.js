@@ -91,7 +91,7 @@ describe('App.ajaxQueue', function () {
     it('for empty queue App.ajax.send shouldn\'t be called', function() {
       ajaxQueue.clear();
       ajaxQueue.runNextRequest();
-      expect(App.ajax.send.called).to.equal(false);
+      expect(App.ajax.send.called).to.equal(false); // eslint-disable-line mocha-cleanup/disallowed-usage
     });
     it('when queue is empty finishedCallback should be called', function() {
       ajaxQueue.clear();

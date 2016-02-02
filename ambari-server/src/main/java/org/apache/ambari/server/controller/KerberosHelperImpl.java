@@ -2418,7 +2418,7 @@ public class KerberosHelperImpl implements KerberosHelper {
           event,
           commandParameters,
           "Preparing Operations",
-          1200);
+          configuration.getDefaultServerTaskTimeout());
 
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
@@ -2441,7 +2441,7 @@ public class KerberosHelperImpl implements KerberosHelper {
           event,
           commandParameters,
           "Preparing Operations",
-          1200);
+          configuration.getDefaultServerTaskTimeout());
 
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
@@ -2464,7 +2464,7 @@ public class KerberosHelperImpl implements KerberosHelper {
           event,
           commandParameters,
           "Preparing Operations",
-          1200);
+          configuration.getDefaultServerTaskTimeout());
 
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
@@ -2487,7 +2487,7 @@ public class KerberosHelperImpl implements KerberosHelper {
           event,
           commandParameters,
           "Create Principals",
-          1200);
+          configuration.getDefaultServerTaskTimeout());
 
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
@@ -2510,7 +2510,7 @@ public class KerberosHelperImpl implements KerberosHelper {
           event,
           commandParameters,
           "Destroy Principals",
-          1200);
+          configuration.getDefaultServerTaskTimeout());
 
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
@@ -2533,7 +2533,7 @@ public class KerberosHelperImpl implements KerberosHelper {
           event,
           commandParameters,
           "Create Keytabs",
-          1200);
+          configuration.getDefaultServerTaskTimeout());
 
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
@@ -2665,7 +2665,7 @@ public class KerberosHelperImpl implements KerberosHelper {
           event,
           commandParameters,
           "Update Service Configurations",
-          1200);
+          configuration.getDefaultServerTaskTimeout());
 
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
@@ -2718,7 +2718,7 @@ public class KerberosHelperImpl implements KerberosHelper {
           event,
           commandParameters,
           "Kerberization Clean Up",
-          1200);
+          configuration.getDefaultServerTaskTimeout());
 
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);

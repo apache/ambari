@@ -379,12 +379,18 @@ describe('App.ChartLinearTimeView', function () {
     });
 
     cases.forEach(function (item) {
-      it(item.title || item.displayUnit, function () {
-        view.set('displayUnit', item.displayUnit);
-        view.setYAxisFormatter();
-        view.yAxisFormatter();
+      describe(item.title || item.displayUnit, function () {
+
+        beforeEach(function () {
+          view.set('displayUnit', item.displayUnit);
+          view.setYAxisFormatter();
+          view.yAxisFormatter();
+        });
+
         methodNames.forEach(function (name) {
-          expect(App.ChartLinearTimeView[name].callCount).to.equal(Number(name === item.formatter));
+          it(name, function () {
+            expect(App.ChartLinearTimeView[name].callCount).to.equal(Number(name === item.formatter));
+          });
         });
       });
     });

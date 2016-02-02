@@ -22,14 +22,7 @@ from hawq_constants import PXF_PORT, pxf_hdfs_test_dir
 from resource_management import Script
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
-from resource_management.libraries.resources.execute_hadoop import ExecuteHadoop
 from resource_management.libraries.functions import get_kinit_path
-from resource_management.libraries.functions import conf_select
-try:
-    from resource_management.libraries.functions import hdp_select as hadoop_select
-except ImportError:
-    from resource_management.libraries.functions import phd_select as hadoop_select
-
 
 config = Script.get_config()
 
@@ -70,9 +63,6 @@ security_enabled = config['configurations']['cluster-env']['security_enabled']
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
-hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
-hadoop_bin_dir = hadoop_select.get_hadoop_dir("bin")
-execute_path = os.environ['PATH'] + os.pathsep + hadoop_bin_dir
 dfs_nameservice = default('/configurations/hdfs-site/dfs.nameservices', None)
 
 # HDFSResource partial function
@@ -84,17 +74,6 @@ HdfsResource = functools.partial(HdfsResource,
                                  principal_name=hdfs_principal_name,
                                  hdfs_site=hdfs_site,
                                  default_fs=default_fs)
-
-# ExecuteHadoop partial function
-ExecuteHadoop = functools.partial(ExecuteHadoop,
-                                  user=hdfs_superuser,
-                                  logoutput=True,
-                                  conf_dir=hadoop_conf_dir,
-                                  security_enabled=security_enabled,
-                                  kinit_path_local=kinit_path_local,
-                                  keytab=hdfs_user_keytab,
-                                  principal=hdfs_principal_name,
-                                  bin_dir=execute_path)
 
 
 # For service Check

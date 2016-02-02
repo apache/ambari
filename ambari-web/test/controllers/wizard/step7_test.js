@@ -1770,12 +1770,15 @@ describe('App.InstallerStep7Controller', function () {
       expect(configs.length - oldConfigs.length).to.be.equal(6);
     });
 
-    it('find the same property in hdfs-client for HAWQ and see if attribute value matches with the corresponding property\'s attribute value in hdfs-site', function () {
+    describe('find the same property in hdfs-client for HAWQ and see if attribute value matches with the corresponding property\'s attribute value in hdfs-site', function () {
       oldConfigs.forEach(function(property) {
-        expect(configs.findProperty('id', property.name + '__hdfs-client').description).to.be.eql(property.description);
-        expect(configs.findProperty('id', property.name + '__hdfs-client').displayName).to.be.eql(property.displayName);
-        expect(configs.findProperty('id', property.name + '__hdfs-client').value).to.be.eql(property.value);
-        expect(configs.findProperty('id', property.name + '__hdfs-client').recommendedValue).to.be.eql(property.recommendedValue);
+        var id = property.name + '__hdfs-client';
+        it(id, function () {
+          expect(configs.findProperty('id', id).description).to.be.equal(property.description);
+          expect(configs.findProperty('id', id).displayName).to.be.equal(property.displayName);
+          expect(configs.findProperty('id', id).value).to.be.equal(property.value);
+          expect(configs.findProperty('id', id).recommendedValue).to.be.equal(property.recommendedValue);
+        });
       });
     });
   });

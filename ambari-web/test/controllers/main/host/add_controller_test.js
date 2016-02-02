@@ -1172,6 +1172,7 @@ describe('App.AddHostController', function () {
     });
   });
 
+  /*eslint-disable mocha-cleanup/no-assertions-in-loop*/
   describe("#loadAllPriorSteps()", function () {
     var stepsSet = {
       '1': [
@@ -1313,6 +1314,7 @@ describe('App.AddHostController', function () {
       });
     }, this);
   });
+  /*eslint-enable mocha-cleanup/no-assertions-in-loop*/
 
   describe("#clearAllSteps()", function () {
     beforeEach(function () {

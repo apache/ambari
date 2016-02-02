@@ -20,20 +20,23 @@ var App = require('app');
 require('views/wizard/step9_view');
 
 var v;
+function getView() {
+  return App.WizardStep9View.create({
+    onStatus: function () {},
+    content: [],
+    pageContent: function () {
+      return this.get('content');
+    }.property('content')
+  });
+}
+
 describe('App.WizardStep9View', function () {
   beforeEach(function () {
     v = App.WizardStep9View.create({
       controller: App.WizardStep9Controller.create()
     });
   });
-  var view = App.WizardStep9View.create({
-    onStatus: function () {
-    },
-    content: [],
-    pageContent: function () {
-      return this.get('content');
-    }.property('content')
-  });
+  var view = getView();
   var testCases = [
     {
       title: 'none hosts',
@@ -194,12 +197,20 @@ describe('App.WizardStep9View', function () {
 
   describe('#countCategoryHosts', function () {
     testCases.forEach(function (test) {
-      it(test.title, function () {
-        view.set('content', test.content);
-        view.countCategoryHosts();
-        view.get('categories').forEach(function (category) {
-          expect(category.get('hostsCount')).to.equal(test.result[category.get('hostStatus')])
-        })
+      describe(test.title, function () {
+        var _v;
+        beforeEach(function () {
+          _v = getView();
+          _v.set('content', test.content);
+          _v.countCategoryHosts();
+        });
+
+        Object.keys(test.result).forEach(function (categoryName) {
+          it('`' + categoryName + '`', function () {
+            expect(_v.get('categories').findProperty('hostStatus', categoryName).get('hostsCount')).to.equal(test.result[categoryName])
+          });
+        });
+
       });
     }, this);
   });
@@ -375,11 +386,17 @@ describe('App.WizardStep9View', function () {
           }
         }
       ]).forEach(function (test) {
-        it(test.status, function () {
-          v.set('controller.status', test.status);
-          v.onStatus();
-          Em.keys(test.e).forEach(function (k) {
-            expect(v.get(k)).to.equal(test.e[k]);
+        describe(test.status, function () {
+
+          beforeEach(function () {
+            v.set('controller.status', test.status);
+            v.onStatus();
+          });
+
+          Object.keys(test.e).forEach(function (k) {
+            it(k, function () {
+              expect(v.get(k)).to.equal(test.e[k]);
+            });
           });
         });
       });
@@ -636,11 +653,17 @@ describe('App.HostStatusView', function () {
           }
         }
       ]).forEach(function (test) {
-        it(JSON.stringify(test.obj), function () {
-          hv.set('obj', test.obj);
-          hv.onStatus();
-          Em.keys(test.e).forEach(function (k) {
-            expect(hv.get(k)).to.equal(test.e[k]);
+        describe(JSON.stringify(test.obj), function () {
+
+          beforeEach(function () {
+            hv.set('obj', test.obj);
+            hv.onStatus();
+          });
+
+          Object.keys(test.e).forEach(function (k) {
+            it(k, function () {
+              expect(hv.get(k)).to.equal(test.e[k]);
+            });
           });
         });
       });

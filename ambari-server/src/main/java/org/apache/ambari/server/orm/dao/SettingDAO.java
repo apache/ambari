@@ -22,7 +22,7 @@ import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.orm.RequiresSession;
-import org.apache.ambari.server.orm.entities.AdminSettingEntity;
+import org.apache.ambari.server.orm.entities.SettingEntity;
 import org.apache.commons.lang.StringUtils;
 
 import javax.persistence.EntityManager;
@@ -30,7 +30,7 @@ import javax.persistence.TypedQuery;
 import java.util.List;
 
 @Singleton
-public class AdminSettingDAO {
+public class SettingDAO {
 
   @Inject
   Provider<EntityManager> entityManagerProvider;
@@ -38,61 +38,61 @@ public class AdminSettingDAO {
   DaoUtils daoUtils;
 
   /**
-   * Find an admin setting with the given name.
+   * Find a setting with the given name.
    *
-   * @param name - name of admin setting.
-   * @return  a matching admin setting or null
+   * @param name - name of setting.
+   * @return  a matching setting or null
    */
   @RequiresSession
-  public AdminSettingEntity findByName(String name) {
+  public SettingEntity findByName(String name) {
     if (StringUtils.isBlank(name)) {
       return null;
     }
-    TypedQuery<AdminSettingEntity> query = entityManagerProvider.get()
-            .createNamedQuery("adminSettingByName", AdminSettingEntity.class);
+    TypedQuery<SettingEntity> query = entityManagerProvider.get()
+            .createNamedQuery("settingByName", SettingEntity.class);
     query.setParameter("name", name);
     return daoUtils.selectOne(query);
   }
 
   /**
-   * Find all admin settings.
+   * Find all settings.
    *
-   * @return all admin setting instances.
+   * @return all setting instances.
    */
   @RequiresSession
-  public List<AdminSettingEntity> findAll() {
-    return daoUtils.selectAll(entityManagerProvider.get(), AdminSettingEntity.class);
+  public List<SettingEntity> findAll() {
+    return daoUtils.selectAll(entityManagerProvider.get(), SettingEntity.class);
   }
 
   /**
-   * Create a new admin setting entity.
+   * Create a new setting entity.
    *
    * @param entity - entity to be created
    */
   @Transactional
-  public void create(AdminSettingEntity entity) {
+  public void create(SettingEntity entity) {
     entityManagerProvider.get().persist(entity);
   }
 
   /**
-   * Update admin setting instance.
+   * Update setting instance.
    *
    * @param entity - entity to be updated.
-   * @return - updated admin entity.
+   * @return - updated entity.
    */
   @Transactional
-  public AdminSettingEntity merge(AdminSettingEntity entity) {
+  public SettingEntity merge(SettingEntity entity) {
     return entityManagerProvider.get().merge(entity);
   }
 
   /**
-   * Delete admin setting with given name.
+   * Delete setting with given name.
    *
-   * @param name - name of admin setting to be deleted.
+   * @param name - name of setting to be deleted.
    */
   @Transactional
   public void removeByName(String name) {
-    AdminSettingEntity entity = findByName(name);
+    SettingEntity entity = findByName(name);
     if (entity!= null) {
       entityManagerProvider.get().remove(entity);
     }

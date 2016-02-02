@@ -102,45 +102,48 @@ describe('App.ManageAlertNotificationsController', function () {
 
   describe('#addAlertNotification()', function () {
 
+    var inputFields = Em.Object.create({
+      a: {
+        value: '',
+        defaultValue: 'a'
+      },
+      b: {
+        value: '',
+        defaultValue: 'b'
+      },
+      c: {
+        value: '',
+        defaultValue: 'c'
+      },
+      severityFilter: {
+        value: [],
+        defaultValue: ['OK', 'WARNING', 'CRITICAL', 'UNKNOWN']
+      },
+      global: {
+        value: false
+      },
+      allGroups: Em.Object.create({
+        value: 'custom'
+      })
+    });
+
     beforeEach(function () {
       sinon.stub(controller, 'showCreateEditPopup');
+      controller.set('inputFields', inputFields);
+      controller.addAlertNotification();
     });
 
     afterEach(function () {
       controller.showCreateEditPopup.restore();
     });
 
-    it("should set value for inputFields and call showCreateEditPopup", function () {
-
-      controller.set('inputFields', Em.Object.create({
-        a: {
-          value: '',
-          defaultValue: 'a'
-        },
-        b: {
-          value: '',
-          defaultValue: 'b'
-        },
-        c: {
-          value: '',
-          defaultValue: 'c'
-        },
-        severityFilter: {
-          value: [],
-          defaultValue: ['OK', 'WARNING', 'CRITICAL', 'UNKNOWN']
-        },
-        global: {
-          value: false
-        },
-        allGroups: Em.Object.create({
-          value: 'custom'
-        })
-      }));
-      controller.addAlertNotification();
-
-      Em.keys(controller.get('inputFields')).forEach(function (key) {
-        expect(controller.get('inputFields.' + key + '.value')).to.eql(controller.get('inputFields.' + key + '.defaultValue'));
+    Object.keys(inputFields).forEach(function (key) {
+      it(key, function () {
+        expect(controller.get('inputFields.' + key + '.value')).to.be.eql(controller.get('inputFields.' + key + '.defaultValue'));
       });
+    });
+
+    it("should call showCreateEditPopup", function () {
       expect(controller.showCreateEditPopup.calledOnce).to.be.true;
     });
 
@@ -664,16 +667,26 @@ describe('App.ManageAlertNotificationsController', function () {
         });
 
         cases.forEach(function (item) {
-          it(item.method, function () {
-            item.errors.forEach(function (errorName) {
-              view.set(errorName, true);
+          describe(item.method, function () {
+
+            beforeEach(function () {
+              item.errors.forEach(function (errorName) {
+                view.set(errorName, true);
+              });
+              view.set('controller.inputFields.method.value', item.method);
             });
-            view.set('controller.inputFields.method.value', item.method);
+
             item.errors.forEach(function (errorName) {
-              expect(view.get(errorName)).to.be.false;
+              it(errorName + ' is false', function () {
+                expect(view.get(errorName)).to.be.false;
+              });
+
             });
             validators.forEach(function (validatorName) {
-              expect(view.get(validatorName).calledOnce).to.equal(item.validators.contains(validatorName));
+              var called = item.validators.contains(validatorName);
+              it(validatorName + ' ' + (called ? '' : 'not') + ' called', function () {
+                expect(view.get(validatorName).calledOnce).to.equal(called);
+              });
             });
           });
         });

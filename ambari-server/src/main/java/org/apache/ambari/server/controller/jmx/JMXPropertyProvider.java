@@ -198,12 +198,6 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
       httpsEnabled = true;
     }
 
-    String port = getPort(clusterName, componentName, httpsEnabled);
-    if (port == null) {
-      LOG.warn("Unable to get JMX metrics.  No port value for " + componentName);
-      return resource;
-    }
-
     Set<String> hostNames = getHosts(resource, clusterName, componentName);
     if (hostNames == null || hostNames.isEmpty()) {
       LOG.warn("Unable to get JMX metrics.  No host name for " + componentName);
@@ -216,6 +210,11 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
       try {
         for (String hostName : hostNames) {
           try {
+            String port = getPort(clusterName, componentName, hostName, httpsEnabled);
+            if (port == null) {
+              LOG.warn("Unable to get JMX metrics.  No port value for " + componentName);
+              return resource;
+            }
             if (LOG.isDebugEnabled()) {
               LOG.debug("Spec: " + getSpec(protocol, hostName, port, "/jmx"));
             }
@@ -357,11 +356,11 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
     }
   }
 
-  private String getPort(String clusterName, String componentName, boolean httpsEnabled) throws SystemException {
+  private String getPort(String clusterName, String componentName, String hostName, boolean httpsEnabled) throws SystemException {
     String portMapKey = String.format("%s-%s-%s", clusterName, componentName, httpsEnabled);
     String port = clusterComponentPortsMap.get(portMapKey);
     if (port==null) {
-      port = jmxHostProvider.getPort(clusterName, componentName, httpsEnabled);
+      port = jmxHostProvider.getPort(clusterName, componentName, hostName, httpsEnabled);
       port = port == null ? DEFAULT_JMX_PORTS.get(componentName) : port;
       clusterComponentPortsMap.put(portMapKey, port);
     }

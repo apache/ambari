@@ -22,7 +22,7 @@ import com.google.inject.Injector;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
-import org.apache.ambari.server.orm.entities.AdminSettingEntity;
+import org.apache.ambari.server.orm.entities.SettingEntity;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -33,24 +33,24 @@ import java.util.Objects;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNull;
 
-public class AdminSettingDAOTest {
+public class SettingDAOTest {
   private  Injector injector;
-  private  AdminSettingDAO dao;
+  private SettingDAO dao;
 
   @Before
   public void setUp() {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
-    dao = injector.getInstance(AdminSettingDAO.class);
+    dao = injector.getInstance(SettingDAO.class);
     injector.getInstance(GuiceJpaInitializer.class);
     injector.getInstance(OrmTestHelper.class).createCluster();
   }
 
   @Test
   public void testCRUD() {
-    Map<String, AdminSettingEntity> entities = new HashMap<>();
+    Map<String, SettingEntity> entities = new HashMap<>();
     //Create
     for (int i=0; i < 3; i++) {
-      AdminSettingEntity entity = new AdminSettingEntity();
+      SettingEntity entity = new SettingEntity();
       entity.setName("motd" + i);
       entity.setContent("test content" + i);
       entity.setUpdatedBy("ambari");
@@ -69,7 +69,7 @@ public class AdminSettingDAOTest {
 
 
     //Update
-    for(Map.Entry<String, AdminSettingEntity> entry : entities.entrySet()) {
+    for(Map.Entry<String, SettingEntity> entry : entities.entrySet()) {
       entry.getValue().setContent(Objects.toString(Math.random()));
       dao.merge(entry.getValue());
     }
@@ -78,14 +78,14 @@ public class AdminSettingDAOTest {
     assertEquals(entities.size(), dao.findAll().size());
 
     //Delete
-    for(Map.Entry<String, AdminSettingEntity> entry : entities.entrySet()) {
+    for(Map.Entry<String, SettingEntity> entry : entities.entrySet()) {
       dao.removeByName(entry.getKey());
     }
     assertEquals(0, dao.findAll().size());
   }
 
-  private void retrieveAndValidateSame(Map<String, AdminSettingEntity> entities) {
-    for(Map.Entry<String, AdminSettingEntity> entry : entities.entrySet()) {
+  private void retrieveAndValidateSame(Map<String, SettingEntity> entities) {
+    for(Map.Entry<String, SettingEntity> entry : entities.entrySet()) {
       String name = entry.getKey();
       assertEquals(entry.getValue(), dao.findByName(name));
     }

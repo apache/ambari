@@ -132,8 +132,8 @@ describe('App.HighAvailabilityProgressPageController', function () {
       Date.prototype.getTime.restore();
     });
 
-    it("reconfigures configs after HA", function() {
-      tests.forEach(function(t) {
+    tests.forEach(function(t, index) {
+      it("reconfigures configs after HA #" + (index + 1), function() {
         controller.set('content', t.content);
         expect(controller.reconfigureSites(t.siteNames, t.data, t.note)).to.eql(t.result);
       });

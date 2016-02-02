@@ -49,9 +49,10 @@ describe('App.KerberosWizardStep4Controller', function() {
   describe('#createServiceConfig', function() {
     var controller = App.KerberosWizardStep4Controller.create({});
     it('should create instance of App.ServiceConfig', function() {
-      controller.createServiceConfig([], []).forEach(function(item){
-        expect(item).be.instanceof(App.ServiceConfig);
-      });
+      var configs = controller.createServiceConfig([], []);
+      expect(configs).to.have.property('length').equal(2);
+      expect(configs[0]).to.be.instanceof(App.ServiceConfig);
+      expect(configs[1]).to.be.instanceof(App.ServiceConfig);
     });
   });
 

@@ -289,17 +289,13 @@ describe('App.ServiceConfigProperty', function () {
   describe('#isPropertyOverridable', function () {
     overridableFalseData.forEach(function (item) {
       it('should be false', function () {
-        Em.keys(item).forEach(function (prop) {
-          serviceConfigProperty.set(prop, item[prop]);
-        });
+        serviceConfigProperty.setProperties(item);
         expect(serviceConfigProperty.get('isPropertyOverridable')).to.be.false;
       });
     });
     overridableTrueData.forEach(function (item) {
       it('should be true', function () {
-        Em.keys(item).forEach(function (prop) {
-          serviceConfigProperty.set(prop, item[prop]);
-        });
+        serviceConfigProperty.setProperties(item);
         expect(serviceConfigProperty.get('isPropertyOverridable')).to.be.true;
       });
     });
@@ -308,17 +304,13 @@ describe('App.ServiceConfigProperty', function () {
   describe('#isOverridden', function () {
     overriddenFalseData.forEach(function (item) {
       it('should be false', function () {
-        Em.keys(item).forEach(function (prop) {
-          serviceConfigProperty.set(prop, item[prop]);
-        });
+        serviceConfigProperty.setProperties(item);
         expect(serviceConfigProperty.get('isOverridden')).to.be.false;
       });
     });
     overriddenTrueData.forEach(function (item) {
       it('should be true', function () {
-        Em.keys(item).forEach(function (prop) {
-          serviceConfigProperty.set(prop, item[prop]);
-        });
+        serviceConfigProperty.setProperties(item);
         expect(serviceConfigProperty.get('isOverridden')).to.be.true;
       });
     });
@@ -327,17 +319,13 @@ describe('App.ServiceConfigProperty', function () {
   describe('#isRemovable', function () {
     removableFalseData.forEach(function (item) {
       it('should be false', function () {
-        Em.keys(item).forEach(function (prop) {
-          serviceConfigProperty.set(prop, item[prop]);
-        });
+        serviceConfigProperty.setProperties(item);
         expect(serviceConfigProperty.get('isRemovable')).to.be.false;
       });
     });
     removableTrueData.forEach(function (item) {
       it('should be true', function () {
-        Em.keys(item).forEach(function (prop) {
-          serviceConfigProperty.set(prop, item[prop]);
-        });
+        serviceConfigProperty.setProperties(item);
         expect(serviceConfigProperty.get('isRemovable')).to.be.true;
       });
     });
@@ -345,10 +333,14 @@ describe('App.ServiceConfigProperty', function () {
 
   describe('#init', function () {
     initPropertyData.forEach(function (item) {
-      it('should set initial data', function () {
-        serviceConfigPropertyInit = App.ServiceConfigProperty.create(item.initial);
+      describe('should set initial data for ' + JSON.stringify(item), function () {
+        beforeEach(function () {
+          serviceConfigPropertyInit = App.ServiceConfigProperty.create(item.initial);
+        });
         Em.keys(item.result).forEach(function (prop) {
-          expect(serviceConfigPropertyInit.get(prop)).to.equal(item.result[prop]);
+          it(prop, function () {
+            expect(serviceConfigPropertyInit.get(prop)).to.equal(item.result[prop]);
+          });
         });
       });
     });
@@ -357,9 +349,7 @@ describe('App.ServiceConfigProperty', function () {
   describe('#isNotDefaultValue', function () {
     notDefaultFalseData.forEach(function (item) {
       it('should be false', function () {
-        Em.keys(item).forEach(function (prop) {
-          serviceConfigProperty.set(prop, item[prop]);
-        });
+        serviceConfigProperty.setProperties(item);
         expect(serviceConfigProperty.get('isNotDefaultValue')).to.be.false;
       });
     });

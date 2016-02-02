@@ -1630,21 +1630,24 @@ describe('App.WizardStep3Controller', function () {
               c.parseHostCheckWarnings({tasks: test.tasks});
             });
 
-            it('warnings', function () {
-              c.get('warnings').forEach(function (w, i) {
-                Em.keys(test.e.warnings[i]).forEach(function (k) {
-                  expect(w[k]).to.eql(test.e.warnings[i][k]);
+            it('warnings count is valid', function () {
+              expect(c.get('warnings.length')).to.be.equal(test.e.warnings.length);
+            });
+
+            test.e.warnings.forEach(function (warning, index) {
+              Object.keys(warning).forEach(function (warningKey) {
+                it('warning #' + (index + 1) + ' key: ' + warningKey, function () {
+                  expect(c.get('warnings')[index][warningKey]).to.be.eql(warning[warningKey]);
                 });
               });
             });
 
-            it('warningsByHost', function () {
-              for (var i in test.e.warningsByHost) {
-                if (test.e.warningsByHost.hasOwnProperty(i)) {
-                  expect(c.get('warningsByHost')[i].warnings.length).to.equal(test.e.warningsByHost[i]);
-                }
-              }
+            Object.keys(test.e.warningsByHost).forEach(function (warningByHostKey, index) {
+              it ('warningsByHost #' + (index + 1), function () {
+                expect(c.get('warningsByHost')[index].warnings.length).to.equal(test.e.warningsByHost[warningByHostKey]);
+              });
             });
+
           });
         });
       });
@@ -2095,21 +2098,21 @@ describe('App.WizardStep3Controller', function () {
               beforeEach(function () {
                 c.parseWarnings({items: test.items});
               });
-              it('warnings', function () {
-                c.get('warnings').forEach(function (w, i) {
-                  Em.keys(test.e.warnings[i]).forEach(function (k) {
-                    expect(w[k]).to.eql(test.e.warnings[i][k]);
+
+              test.e.warnings.forEach(function (warning, index) {
+                Object.keys(warning).forEach(function (warningKey) {
+                  it('warning #' + (index + 1) + ' key: ' + warningKey, function () {
+                    expect(c.get('warnings')[index][warningKey]).to.be.eql(warning[warningKey]);
                   });
                 });
               });
 
-              it('warningsByHost', function () {
-                for (var i in test.e.warningsByHost) {
-                  if (test.e.warningsByHost.hasOwnProperty(i)) {
-                    expect(c.get('warningsByHost')[i].warnings.length).to.equal(test.e.warningsByHost[i]);
-                  }
-                }
+              Object.keys(test.e.warningsByHost).forEach(function (warningByHostKey, index) {
+                it ('warningsByHost #' + (index + 1), function () {
+                  expect(c.get('warningsByHost')[index].warnings.length).to.equal(test.e.warningsByHost[warningByHostKey]);
+                });
               });
+
             });
           });
         });

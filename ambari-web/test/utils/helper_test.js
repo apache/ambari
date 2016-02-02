@@ -180,11 +180,7 @@ describe('utils/helper', function() {
         expect(testable.length).to.eql(result.length);
       });
       it('should sort array', function() {
-        result.forEach(function(resultObj, index, resultArr) {
-          if (index > resultArr.length - 1) {
-            expect(resultObj.a < resultArr[index + 1].a).to.be.equal(false);
-          }
-        });
+        expect(result.mapProperty('a')).to.be.eql([1, 2, 3, 3, 6, 64]);
       });
       it('should try to sort without throwing exception', function(){
         expect(testable.sortPropertyLight(['a'])).to.ok;

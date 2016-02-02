@@ -190,8 +190,8 @@ describe('App.clusterController', function () {
     controller.set('clusterName', 'tdk');
     var tests = ['test1', 'test2', 'test3'];
 
-    it('testMode = false', function () {
-      tests.forEach(function (test) {
+    tests.forEach(function (test) {
+      it(test, function () {
         expect(controller.getUrl(test, test)).to.equal(App.apiPrefix + '/clusters/' + controller.get('clusterName') + test);
       });
     });

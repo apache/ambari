@@ -18,7 +18,6 @@
 package org.apache.ambari.server.controller.internal;
 
 import com.google.common.collect.Lists;
-import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.RequestStatus;
@@ -26,8 +25,8 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.orm.dao.AdminSettingDAO;
-import org.apache.ambari.server.orm.entities.AdminSettingEntity;
+import org.apache.ambari.server.orm.dao.SettingDAO;
+import org.apache.ambari.server.orm.entities.SettingEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
@@ -46,28 +45,28 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import static org.apache.ambari.server.controller.internal.AdminSettingResourceProvider.ADMINSETTING_NAME_PROPERTY_ID;
-import static org.apache.ambari.server.controller.internal.AdminSettingResourceProvider.ADMINSETTING_SETTING_TYPE_PROPERTY_ID;
-import static org.apache.ambari.server.controller.internal.AdminSettingResourceProvider.ADMINSETTING_CONTENT_PROPERTY_ID;
-import static org.apache.ambari.server.controller.internal.AdminSettingResourceProvider.ADMINSETTING_UPDATED_BY_PROPERTY_ID;
-import static org.apache.ambari.server.controller.internal.AdminSettingResourceProvider.ADMINSETTING_UPDATE_TIMESTAMP_PROPERTY_ID;
+import static org.apache.ambari.server.controller.internal.SettingResourceProvider.SETTING_NAME_PROPERTY_ID;
+import static org.apache.ambari.server.controller.internal.SettingResourceProvider.SETTING_SETTING_TYPE_PROPERTY_ID;
+import static org.apache.ambari.server.controller.internal.SettingResourceProvider.SETTING_CONTENT_PROPERTY_ID;
+import static org.apache.ambari.server.controller.internal.SettingResourceProvider.SETTING_UPDATED_BY_PROPERTY_ID;
+import static org.apache.ambari.server.controller.internal.SettingResourceProvider.SETTING_UPDATE_TIMESTAMP_PROPERTY_ID;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.createControl;
 
 import static org.junit.Assert.assertEquals;
 
-public class AdminSettingResourceProviderTest {
+public class SettingResourceProviderTest {
   IMocksControl mockControl;
-  AdminSettingDAO dao;
-  AdminSettingResourceProvider resourceProvider;
+  SettingDAO dao;
+  SettingResourceProvider resourceProvider;
 
 
   @Before
   public void setUp() throws Exception {
     mockControl = createControl();
-    dao = mockControl.createMock(AdminSettingDAO.class);
-    resourceProvider = new AdminSettingResourceProvider();
+    dao = mockControl.createMock(SettingDAO.class);
+    resourceProvider = new SettingResourceProvider();
     setPrivateField(resourceProvider, "dao", dao);
   }
 
@@ -87,7 +86,7 @@ public class AdminSettingResourceProviderTest {
   public void testGetResources_instance_clusterUser() throws Exception {
     setupAuthenticationForClusterUser();
     String name = "motd";
-    AdminSettingEntity entity = newEntity(name);
+    SettingEntity entity = newEntity(name);
 
     Set<Resource> response = getResources_instance(entity, readRequest());
     assertEquals(1, response.size());
@@ -98,7 +97,7 @@ public class AdminSettingResourceProviderTest {
   @Test
   public void testGetResources_instance_admin() throws Exception {
     setupAuthenticationForAdmin();
-    AdminSettingEntity entity = newEntity("motd");
+    SettingEntity entity = newEntity("motd");
     Set<Resource> response = getResources_instance(entity, readRequest());
     assertEquals(1, response.size());
     Resource resource = response.iterator().next();
@@ -109,11 +108,11 @@ public class AdminSettingResourceProviderTest {
   public void testGetResources_collection_noAuth() throws Exception {
     mockControl.replay();
     Request request = PropertyHelper.getReadRequest(
-            ADMINSETTING_NAME_PROPERTY_ID,
-            ADMINSETTING_CONTENT_PROPERTY_ID,
-            ADMINSETTING_SETTING_TYPE_PROPERTY_ID,
-            ADMINSETTING_UPDATED_BY_PROPERTY_ID,
-            ADMINSETTING_UPDATE_TIMESTAMP_PROPERTY_ID);
+            SETTING_NAME_PROPERTY_ID,
+            SETTING_CONTENT_PROPERTY_ID,
+            SETTING_SETTING_TYPE_PROPERTY_ID,
+            SETTING_UPDATED_BY_PROPERTY_ID,
+            SETTING_UPDATE_TIMESTAMP_PROPERTY_ID);
     resourceProvider.getResources(request, null);
   }
 
@@ -121,14 +120,14 @@ public class AdminSettingResourceProviderTest {
   public void testGetResources_collection_clusterUser() throws Exception {
     setupAuthenticationForClusterUser();
 
-    AdminSettingEntity entity1 = newEntity("motd");
-    AdminSettingEntity entity2 = newEntity("ldap");
+    SettingEntity entity1 = newEntity("motd");
+    SettingEntity entity2 = newEntity("ldap");
     Request request = PropertyHelper.getReadRequest(
-            ADMINSETTING_NAME_PROPERTY_ID,
-            ADMINSETTING_CONTENT_PROPERTY_ID,
-            ADMINSETTING_SETTING_TYPE_PROPERTY_ID,
-            ADMINSETTING_UPDATED_BY_PROPERTY_ID,
-            ADMINSETTING_UPDATE_TIMESTAMP_PROPERTY_ID);
+            SETTING_NAME_PROPERTY_ID,
+            SETTING_CONTENT_PROPERTY_ID,
+            SETTING_SETTING_TYPE_PROPERTY_ID,
+            SETTING_UPDATED_BY_PROPERTY_ID,
+            SETTING_UPDATE_TIMESTAMP_PROPERTY_ID);
 
     expect(dao.findAll()).andReturn(Lists.newArrayList(entity1, entity2));
     mockControl.replay();
@@ -138,9 +137,9 @@ public class AdminSettingResourceProviderTest {
     Map<Object, Resource> resourceMap = new HashMap<>();
     Iterator<Resource> resourceIterator = response.iterator();
     Resource nextResource = resourceIterator.next();
-    resourceMap.put(nextResource.getPropertyValue(ADMINSETTING_NAME_PROPERTY_ID), nextResource);
+    resourceMap.put(nextResource.getPropertyValue(SETTING_NAME_PROPERTY_ID), nextResource);
     nextResource = resourceIterator.next();
-    resourceMap.put(nextResource.getPropertyValue(ADMINSETTING_NAME_PROPERTY_ID), nextResource);
+    resourceMap.put(nextResource.getPropertyValue(SETTING_NAME_PROPERTY_ID), nextResource);
     assertEqualsEntityAndResource(entity1, resourceMap.get(entity1.getName()));
     assertEqualsEntityAndResource(entity2, resourceMap.get(entity2.getName()));
   }
@@ -149,14 +148,14 @@ public class AdminSettingResourceProviderTest {
   public void testGetResources_collection_admin() throws Exception {
     setupAuthenticationForAdmin();
 
-    AdminSettingEntity entity1 = newEntity("motd");
-    AdminSettingEntity entity2 = newEntity("ldap");
+    SettingEntity entity1 = newEntity("motd");
+    SettingEntity entity2 = newEntity("ldap");
     Request request = PropertyHelper.getReadRequest(
-            ADMINSETTING_NAME_PROPERTY_ID,
-            ADMINSETTING_CONTENT_PROPERTY_ID,
-            ADMINSETTING_SETTING_TYPE_PROPERTY_ID,
-            ADMINSETTING_UPDATED_BY_PROPERTY_ID,
-            ADMINSETTING_UPDATE_TIMESTAMP_PROPERTY_ID);
+            SETTING_NAME_PROPERTY_ID,
+            SETTING_CONTENT_PROPERTY_ID,
+            SETTING_SETTING_TYPE_PROPERTY_ID,
+            SETTING_UPDATED_BY_PROPERTY_ID,
+            SETTING_UPDATE_TIMESTAMP_PROPERTY_ID);
     expect(dao.findAll()).andReturn(Lists.newArrayList(entity1, entity2));
     mockControl.replay();
 
@@ -165,9 +164,9 @@ public class AdminSettingResourceProviderTest {
     Map<Object, Resource> resourceMap = new HashMap<>();
     Iterator<Resource> resourceIterator = response.iterator();
     Resource nextResource = resourceIterator.next();
-    resourceMap.put(nextResource.getPropertyValue(ADMINSETTING_NAME_PROPERTY_ID), nextResource);
+    resourceMap.put(nextResource.getPropertyValue(SETTING_NAME_PROPERTY_ID), nextResource);
     nextResource = resourceIterator.next();
-    resourceMap.put(nextResource.getPropertyValue(ADMINSETTING_NAME_PROPERTY_ID), nextResource);
+    resourceMap.put(nextResource.getPropertyValue(SETTING_NAME_PROPERTY_ID), nextResource);
     assertEqualsEntityAndResource(entity1, resourceMap.get(entity1.getName()));
     assertEqualsEntityAndResource(entity2, resourceMap.get(entity2.getName()));
   }
@@ -188,8 +187,8 @@ public class AdminSettingResourceProviderTest {
   @Test
   public void testCreateResource_admin() throws Exception {
     setupAuthenticationForAdmin();
-    AdminSettingEntity entity = newEntity("motd");
-    Capture<AdminSettingEntity> entityCapture = Capture.newInstance();
+    SettingEntity entity = newEntity("motd");
+    Capture<SettingEntity> entityCapture = Capture.newInstance();
     Request request = createRequest(entity);
 
     expect(dao.findByName(entity.getName())).andReturn(null);
@@ -200,7 +199,7 @@ public class AdminSettingResourceProviderTest {
     assertEquals(RequestStatus.Status.Complete, response.getStatus());
     Set<Resource> associatedResources = response.getAssociatedResources();
     assertEquals(1, associatedResources.size());
-    AdminSettingEntity capturedEntity = entityCapture.getValue();
+    SettingEntity capturedEntity = entityCapture.getValue();
     assertEquals(entity.getName(), capturedEntity.getName());
     assertEquals(entity.getContent(), capturedEntity.getContent());
     assertEquals(entity.getSettingType(), capturedEntity.getSettingType());
@@ -210,7 +209,7 @@ public class AdminSettingResourceProviderTest {
   @Test(expected = ResourceAlreadyExistsException.class)
   public void testCreateDuplicateResource() throws Exception {
     setupAuthenticationForAdmin();
-    AdminSettingEntity entity = newEntity("motd");
+    SettingEntity entity = newEntity("motd");
     Request request = createRequest(entity);
 
     expect(dao.findByName(entity.getName())).andReturn(entity);
@@ -235,21 +234,21 @@ public class AdminSettingResourceProviderTest {
   public void testUpdateResources_admin() throws Exception {
     setupAuthenticationForAdmin();
     String name = "motd";
-    AdminSettingEntity oldEntity = newEntity(name);
-    AdminSettingEntity updatedEntity = oldEntity.clone();
+    SettingEntity oldEntity = newEntity(name);
+    SettingEntity updatedEntity = oldEntity.clone();
     updatedEntity.setContent("{text}");
     updatedEntity.setSettingType("new-type");
 
     PredicateBuilder pb = new PredicateBuilder();
-    Predicate predicate = pb.begin().property(ADMINSETTING_NAME_PROPERTY_ID).equals(name).end().toPredicate();
-    Capture<AdminSettingEntity> capture = Capture.newInstance();
+    Predicate predicate = pb.begin().property(SETTING_NAME_PROPERTY_ID).equals(name).end().toPredicate();
+    Capture<SettingEntity> capture = Capture.newInstance();
 
     expect(dao.findByName(name)).andReturn(oldEntity);
     expect(dao.merge(capture(capture))).andReturn(updatedEntity);
     mockControl.replay();
 
     RequestStatus response = resourceProvider.updateResources(updateRequest(updatedEntity), predicate);
-    AdminSettingEntity capturedEntity = capture.getValue();
+    SettingEntity capturedEntity = capture.getValue();
     assertEquals(RequestStatus.Status.Complete, response.getStatus());
     assertEquals(updatedEntity.getId(), capturedEntity.getId());
     assertEquals(updatedEntity.getName(), capturedEntity.getName());
@@ -278,16 +277,16 @@ public class AdminSettingResourceProviderTest {
 
     String name = "motd";
     PredicateBuilder pb = new PredicateBuilder();
-    Predicate predicate = pb.begin().property(ADMINSETTING_NAME_PROPERTY_ID).equals(name).end().toPredicate();
+    Predicate predicate = pb.begin().property(SETTING_NAME_PROPERTY_ID).equals(name).end().toPredicate();
     dao.removeByName(name);
     mockControl.replay();
     resourceProvider.deleteResources(predicate);
   }
 
-  private Set<Resource> getResources_instance(AdminSettingEntity entity, Request request) throws Exception {
+  private Set<Resource> getResources_instance(SettingEntity entity, Request request) throws Exception {
     String name = entity.getName();
     PredicateBuilder pb = new PredicateBuilder();
-    Predicate predicate = pb.begin().property(ADMINSETTING_NAME_PROPERTY_ID).equals(name).end().toPredicate();
+    Predicate predicate = pb.begin().property(SETTING_NAME_PROPERTY_ID).equals(name).end().toPredicate();
 
     expect(dao.findByName(name)).andReturn(entity).anyTimes();
     mockControl.replay();
@@ -297,27 +296,27 @@ public class AdminSettingResourceProviderTest {
 
   private Request readRequest() {
     return PropertyHelper.getReadRequest(
-            ADMINSETTING_NAME_PROPERTY_ID,
-            ADMINSETTING_CONTENT_PROPERTY_ID,
-            ADMINSETTING_SETTING_TYPE_PROPERTY_ID,
-            ADMINSETTING_UPDATED_BY_PROPERTY_ID,
-            ADMINSETTING_UPDATE_TIMESTAMP_PROPERTY_ID);
+            SETTING_NAME_PROPERTY_ID,
+            SETTING_CONTENT_PROPERTY_ID,
+            SETTING_SETTING_TYPE_PROPERTY_ID,
+            SETTING_UPDATED_BY_PROPERTY_ID,
+            SETTING_UPDATE_TIMESTAMP_PROPERTY_ID);
   }
 
-  private Request createRequest(AdminSettingEntity entity) {
+  private Request createRequest(SettingEntity entity) {
     Map<String, Object> properties = new HashMap<>();
-    properties.put(ADMINSETTING_NAME_PROPERTY_ID, entity.getName());
-    properties.put(ADMINSETTING_CONTENT_PROPERTY_ID, entity.getContent());
-    properties.put(ADMINSETTING_UPDATED_BY_PROPERTY_ID, entity.getUpdatedBy());
-    properties.put(ADMINSETTING_SETTING_TYPE_PROPERTY_ID, entity.getSettingType());
+    properties.put(SETTING_NAME_PROPERTY_ID, entity.getName());
+    properties.put(SETTING_CONTENT_PROPERTY_ID, entity.getContent());
+    properties.put(SETTING_UPDATED_BY_PROPERTY_ID, entity.getUpdatedBy());
+    properties.put(SETTING_SETTING_TYPE_PROPERTY_ID, entity.getSettingType());
     return PropertyHelper.getCreateRequest(Collections.singleton(properties), null);
   }
 
-  private Request updateRequest(AdminSettingEntity entity) {
+  private Request updateRequest(SettingEntity entity) {
     Map<String, Object> properties = new HashMap<>();
-    properties.put(ADMINSETTING_NAME_PROPERTY_ID, entity.getName());
-    properties.put(ADMINSETTING_CONTENT_PROPERTY_ID, entity.getContent());
-    properties.put(ADMINSETTING_SETTING_TYPE_PROPERTY_ID, entity.getSettingType());
+    properties.put(SETTING_NAME_PROPERTY_ID, entity.getName());
+    properties.put(SETTING_CONTENT_PROPERTY_ID, entity.getContent());
+    properties.put(SETTING_SETTING_TYPE_PROPERTY_ID, entity.getSettingType());
     return PropertyHelper.getUpdateRequest(properties, null);
   }
 
@@ -329,8 +328,8 @@ public class AdminSettingResourceProviderTest {
     SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
   }
 
-  private AdminSettingEntity newEntity(String name) {
-    AdminSettingEntity entity = new AdminSettingEntity();
+  private SettingEntity newEntity(String name) {
+    SettingEntity entity = new SettingEntity();
     entity.setName(name);
     entity.setContent(RandomStringUtils.randomAlphabetic(10));
     entity.setSettingType(RandomStringUtils.randomAlphabetic(5));
@@ -339,12 +338,12 @@ public class AdminSettingResourceProviderTest {
     return entity;
   }
 
-  private void assertEqualsEntityAndResource(AdminSettingEntity entity, Resource resource) {
-    assertEquals(entity.getName(), resource.getPropertyValue(ADMINSETTING_NAME_PROPERTY_ID));
-    assertEquals(entity.getSettingType(), resource.getPropertyValue(ADMINSETTING_SETTING_TYPE_PROPERTY_ID));
-    assertEquals(entity.getContent(), resource.getPropertyValue(ADMINSETTING_CONTENT_PROPERTY_ID));
-    assertEquals(entity.getUpdatedBy(), resource.getPropertyValue(ADMINSETTING_UPDATED_BY_PROPERTY_ID));
-    assertEquals(entity.getUpdateTimestamp(), resource.getPropertyValue(ADMINSETTING_UPDATE_TIMESTAMP_PROPERTY_ID));
+  private void assertEqualsEntityAndResource(SettingEntity entity, Resource resource) {
+    assertEquals(entity.getName(), resource.getPropertyValue(SETTING_NAME_PROPERTY_ID));
+    assertEquals(entity.getSettingType(), resource.getPropertyValue(SETTING_SETTING_TYPE_PROPERTY_ID));
+    assertEquals(entity.getContent(), resource.getPropertyValue(SETTING_CONTENT_PROPERTY_ID));
+    assertEquals(entity.getUpdatedBy(), resource.getPropertyValue(SETTING_UPDATED_BY_PROPERTY_ID));
+    assertEquals(entity.getUpdateTimestamp(), resource.getPropertyValue(SETTING_UPDATE_TIMESTAMP_PROPERTY_ID));
   }
 
   private void setPrivateField(Object o, String field, Object value) throws Exception{

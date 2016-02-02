@@ -225,11 +225,22 @@ describe('App.WizardStep4Controller', function () {
     tests.forEach(function(test) {
       var message = 'Erorrs {0} thrown. errorStack property should contains ids: {1}'
         .format(test.errorObjects.mapProperty('id').join(', '), test.expectedIds.join(', '));
-      it(message, function() {
-        test.errorObjects.forEach(function(errorObject) {
-          expect(controller.addValidationError(errorObject)).to.equal(errorObject.shouldBeAdded);
+      describe(message, function() {
+
+        beforeEach(function () {
+          this.added = [];
+          test.errorObjects.forEach(function(errorObject) {
+            this.added.push(controller.addValidationError(errorObject));
+          }, this);
         });
-        expect(controller.get('errorStack').mapProperty('id')).to.eql(test.expectedIds);
+
+        it('shouldBeAdded', function() {
+          expect(this.added).to.be.eql(test.errorObjects.mapProperty('shouldBeAdded'));
+        });
+
+        it('expectedIds', function() {
+          expect(controller.get('errorStack').mapProperty('id')).to.eql(test.expectedIds);
+        });
       });
     })
   });

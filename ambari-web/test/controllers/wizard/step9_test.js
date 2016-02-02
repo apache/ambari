@@ -188,17 +188,24 @@ describe('App.InstallerStep9Controller', function () {
   });
 
   describe('#resetHostsForRetry', function () {
-    it('All should have status "pending" and message "Waiting"', function () {
-      var hosts = {'host1': Em.Object.create({status: 'failed', message: 'Failed'}), 'host2': Em.Object.create({status: 'success', message: 'Success'})};
+    var hosts = {'host1': Em.Object.create({status: 'failed', message: 'Failed'}), 'host2': Em.Object.create({status: 'success', message: 'Success'})};
+
+    beforeEach(function () {
       c.reopen({content: {hosts: hosts}});
       c.resetHostsForRetry();
-      for (var name in hosts) {
-        if (hosts.hasOwnProperty(name)) {
+    });
+
+    Object.keys(hosts).forEach(function (name) {
+      if (hosts.hasOwnProperty(name)) {
+        it(name + '.status', function () {
           expect(c.get('content.hosts')[name].get('status', 'pending')).to.equal('pending');
+        });
+        it(name + '.message', function () {
           expect(c.get('content.hosts')[name].get('message', 'Waiting')).to.equal('Waiting');
-        }
+        });
       }
     });
+
   });
 
   describe('#setParseHostInfo', function () {
@@ -1353,10 +1360,8 @@ describe('App.InstallerStep9Controller', function () {
       var hosts = Em.A([Em.Object.create({name: 'host1', progress: '33', status: 'info'}), Em.Object.create({name: 'host2', progress: '33', status: 'info'})]);
       c.reopen({hosts: hosts, content: {controllerName: 'installerController', cluster: {status: 'PENDING', name: 'c1'}}});
       c.launchStartServicesErrorCallback({status: 500, statusTesxt: 'Server Error'}, {}, '', {});
-      c.get('hosts').forEach(function (host) {
-        expect(host.get('progress')).to.equal('100');
-        expect(host.get('status')).to.equal('info');
-      });
+      expect(c.get('hosts').everyProperty('progress', '100')).to.be.true;
+      expect(c.get('hosts').everyProperty('status', 'info')).to.be.true;
     });
 
     it('Next button should be disabled', function () {

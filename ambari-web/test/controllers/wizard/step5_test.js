@@ -709,11 +709,8 @@ describe('App.WizardStep5Controller', function () {
           });
 
           it('all needed hosts have valid data', function () {
-            result.forEach(function (r, i) {
-              expect(r.get('host_name')).to.equal(test.e[i].host_name);
-              expect(r.get('masterServices.length')).to.equal(test.e[i].masterServices.length);
-              expect(r.get('hostInfo')).to.be.an.object;
-            });
+            expect(result.mapProperty('host_name')).to.be.eql(test.e.mapProperty('host_name'));
+            expect(result.mapProperty('masterServices.length')).to.be.eql(test.e.mapProperty('masterServices.length'));
           });
         });
       });
