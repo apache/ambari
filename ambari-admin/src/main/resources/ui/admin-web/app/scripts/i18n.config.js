@@ -85,9 +85,13 @@ angular.module('ambariAdminConsole')
         'loginActivities':'Login Activities',
         'loginMessage': 'Login Message',
         'loginMessage.placeholder': 'Please enter login message',
+        'buttonText.placeholder': 'Please enter text for the "ok" button',
         'homeDirectory': 'Home Directory',
         'onlySimpleChars': 'Must contain only simple characters.',
-        'saveError': 'Save error'
+        'saveError': 'Save error',
+        'message': 'Message',
+        'buttonText': 'Button text',
+        'switch': 'On/Off'
       },
 
       'controls': {

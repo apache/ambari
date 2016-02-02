@@ -424,6 +424,7 @@ Em.I18n.translations = {
   'popup.jdkValidation.body': 'The {0} Stack requires JDK {1} but Ambari is configured for JDK {2}. This could result in error or problems with running your cluster.',
 
   'login.header':'Sign in',
+  'login.message.title':'Login Message',
   'login.username':'Username',
   'login.loginButton':'Sign in',
   'login.error.bad.credentials':'Unable to sign in. Invalid username/password combination.',
