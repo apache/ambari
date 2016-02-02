@@ -30,19 +30,19 @@ import javax.persistence.TableGenerator;
 import java.util.Objects;
 
 /**
- * Entity representing AdminSetting.
+ * Entity representing Setting.
  */
-@Table(name = "adminsetting")
-@TableGenerator(name = "admin_setting_id_generator",
+@Table(name = "setting")
+@TableGenerator(name = "setting_id_generator",
     table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value",
-        pkColumnValue = "admin_setting_id_seq", initialValue = 0)
+        pkColumnValue = "setting_id_seq", initialValue = 0)
 
-@NamedQuery(name = "adminSettingByName", query = "SELECT adminSetting FROM AdminSettingEntity adminsetting WHERE adminSetting.name=:name")
+@NamedQuery(name = "settingByName", query = "SELECT setting FROM SettingEntity setting WHERE setting.name=:name")
 @Entity
-public class AdminSettingEntity {
+public class SettingEntity {
   @Id
   @Column(name = "id", nullable = false, insertable = true, updatable = false)
-  @GeneratedValue(strategy = GenerationType.TABLE, generator = "admin_setting_id_generator")
+  @GeneratedValue(strategy = GenerationType.TABLE, generator = "setting_id_generator")
   private long id;
 
   @Column(name = "name", nullable = false, insertable = true, updatable = false, unique = true)
@@ -66,7 +66,7 @@ public class AdminSettingEntity {
   @Basic
   private long updateTimestamp;
 
-  public AdminSettingEntity() {
+  public SettingEntity() {
   }
 
   public long getId() {
@@ -117,8 +117,8 @@ public class AdminSettingEntity {
     this.updateTimestamp = updateTimestamp;
   }
 
-  public AdminSettingEntity clone() {
-    AdminSettingEntity cloned = new AdminSettingEntity();
+  public SettingEntity clone() {
+    SettingEntity cloned = new SettingEntity();
     cloned.setId(id);
     cloned.setName(name);
     cloned.setContent(content);
@@ -133,7 +133,7 @@ public class AdminSettingEntity {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
 
-    AdminSettingEntity entity = (AdminSettingEntity) o;
+    SettingEntity entity = (SettingEntity) o;
     return id == entity.id &&
             Objects.equals(name, entity.name) &&
             Objects.equals(settingType, entity.settingType) &&

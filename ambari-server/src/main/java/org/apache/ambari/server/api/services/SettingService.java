@@ -36,15 +36,15 @@ import javax.ws.rs.core.UriInfo;
 import java.util.Collections;
 
 /**
- * Service responsible for admin setting resource requests.
+ * Service responsible for setting resource requests.
  */
-@Path("/admin-settings/")
-public class AdminSettingService extends BaseService {
+@Path("/settings/")
+public class SettingService extends BaseService {
 
   /**
-   * Construct a AdminSettingService.
+   * Construct a SettingService.
    */
-  public AdminSettingService() {
+  public SettingService() {
 
   }
 
@@ -55,7 +55,7 @@ public class AdminSettingService extends BaseService {
    * @param headers  http headers
    * @param ui       uri info
    *
-   * @return admin setting collection resource representation
+   * @return setting collection resource representation
    */
   @GET
   @Produces("text/plain")
@@ -64,14 +64,14 @@ public class AdminSettingService extends BaseService {
   }
 
   /**
-   * Handles: GET /admin-settings/{settingName}
-   * Get a specific admin setting.
+   * Handles: GET /settings/{settingName}
+   * Get a specific setting.
    *
    * @param headers      http headers
    * @param ui           uri info
    * @param settingName  settingName
    *
-   * @return admin setting instance representation
+   * @return setting instance representation
    */
   @GET
   @Path("{settingName}")
@@ -82,8 +82,8 @@ public class AdminSettingService extends BaseService {
   }
 
   /**
-   * Handles: POST /admin-settings/{settingName}
-   * Create a specific admin setting.
+   * Handles: POST /settings/{settingName}
+   * Create a specific setting.
    *
    * @param headers      http headers
    * @param ui           uri info
@@ -97,8 +97,8 @@ public class AdminSettingService extends BaseService {
   }
 
   /**
-   * Handles: PUT /admin-settings/{settingName}
-   * Update a specific admin setting.
+   * Handles: PUT /settings/{settingName}
+   * Update a specific setting.
    *
    * @param headers      http headers
    * @param ui           uri info
@@ -115,8 +115,8 @@ public class AdminSettingService extends BaseService {
   }
 
   /**
-   * Handles: DELETE /admin-settings/{settingName}
-   * Delete a specific admin setting.
+   * Handles: DELETE /settings/{settingName}
+   * Delete a specific setting.
    *
    * @param headers      http headers
    * @param ui           uri info
@@ -135,14 +135,14 @@ public class AdminSettingService extends BaseService {
   // ----- helper methods ----------------------------------------------------
 
   /**
-   * Create an admin setting resource instance.
+   * Create a setting resource instance.
    *
    * @param settingName setting name
    *
-   * @return an admin setting resource instance
+   * @return a setting resource instance
    */
   ResourceInstance createSettingResource(String settingName) {
-    return createResource(Resource.Type.AdminSetting,
-        Collections.singletonMap(Resource.Type.AdminSetting, settingName));
+    return createResource(Resource.Type.Setting,
+        Collections.singletonMap(Resource.Type.Setting, settingName));
   }
 }

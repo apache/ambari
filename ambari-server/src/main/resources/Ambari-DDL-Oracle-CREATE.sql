@@ -651,7 +651,7 @@ CREATE TABLE topology_logical_task (
   PRIMARY KEY (id)
 );
 
-CREATE TABLE adminsetting (
+CREATE TABLE setting (
   id NUMBER(19) NOT NULL,
   name VARCHAR(255) NOT NULL UNIQUE,
   setting_type VARCHAR(255) NOT NULL,
@@ -987,7 +987,7 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_lo
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_logical_task_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_request_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_host_group_id_seq', 0);
-INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('admin_setting_id_seq', 0);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('setting_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('hostcomponentstate_id_seq', 0);
 
 INSERT INTO metainfo("metainfo_key", "metainfo_value") values ('version', '${ambariVersion}');
@@ -1068,7 +1068,7 @@ INSERT INTO roleauthorization(authorization_id, authorization_name)
   SELECT 'AMBARI.ADD_DELETE_CLUSTERS', 'Create new clusters' FROM dual UNION ALL
   SELECT 'AMBARI.SET_SERVICE_USERS_GROUPS', 'Set service users and groups' FROM dual UNION ALL
   SELECT 'AMBARI.RENAME_CLUSTER', 'Rename clusters' FROM dual UNION ALL
-  SELECT 'AMBARI.MANAGE_ADMIN_SETTINGS', 'Manage administrative settings' FROM dual UNION ALL
+  SELECT 'AMBARI.MANAGE_SETTINGS', 'Manage settings' FROM dual UNION ALL
   SELECT 'AMBARI.MANAGE_USERS', 'Manage users' FROM dual UNION ALL
   SELECT 'AMBARI.MANAGE_GROUPS', 'Manage groups' FROM dual UNION ALL
   SELECT 'AMBARI.MANAGE_VIEWS', 'Manage Ambari Views' FROM dual UNION ALL
@@ -1255,7 +1255,7 @@ INSERT INTO permission_roleauthorization(permission_id, authorization_id)
   SELECT permission_id, 'AMBARI.ADD_DELETE_CLUSTERS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'AMBARI.SET_SERVICE_USERS_GROUPS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'AMBARI.RENAME_CLUSTER' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
-  SELECT permission_id, 'AMBARI.MANAGE_ADMIN_SETTINGS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'AMBARI.MANAGE_SETTINGS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'AMBARI.MANAGE_USERS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'AMBARI.MANAGE_GROUPS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'AMBARI.MANAGE_VIEWS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL

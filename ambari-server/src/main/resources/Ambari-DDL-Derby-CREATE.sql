@@ -655,7 +655,7 @@ CREATE TABLE topology_logical_task (
   PRIMARY KEY (id)
 );
 
-CREATE TABLE adminsetting (
+CREATE TABLE setting (
   id BIGINT NOT NULL,
   name VARCHAR(255) NOT NULL UNIQUE,
   setting_type VARCHAR(255) NOT NULL,
@@ -1033,7 +1033,7 @@ INSERT INTO ambari_sequences (sequence_name, sequence_value)
   union all
   select 'topology_host_group_id_seq', 0 FROM SYSIBM.SYSDUMMY1
   union all
-  select 'admin_setting_id_seq', 0 FROM SYSIBM.SYSDUMMY1
+  select 'setting_id_seq', 0 FROM SYSIBM.SYSDUMMY1
   union all
   select 'hostcomponentstate_id_seq', 0  FROM SYSIBM.SYSDUMMY1;
 
@@ -1111,7 +1111,7 @@ INSERT INTO roleauthorization(authorization_id, authorization_name)
   SELECT 'AMBARI.ADD_DELETE_CLUSTERS', 'Create new clusters' FROM SYSIBM.SYSDUMMY1 UNION ALL
   SELECT 'AMBARI.SET_SERVICE_USERS_GROUPS', 'Set service users and groups' FROM SYSIBM.SYSDUMMY1 UNION ALL
   SELECT 'AMBARI.RENAME_CLUSTER', 'Rename clusters' FROM SYSIBM.SYSDUMMY1 UNION ALL
-  SELECT 'AMBARI.MANAGE_ADMIN_SETTINGS', 'Manage administrative settings' FROM SYSIBM.SYSDUMMY1 UNION ALL
+  SELECT 'AMBARI.MANAGE_SETTINGS', 'Manage settings' FROM SYSIBM.SYSDUMMY1 UNION ALL
   SELECT 'AMBARI.MANAGE_USERS', 'Manage users' FROM SYSIBM.SYSDUMMY1 UNION ALL
   SELECT 'AMBARI.MANAGE_GROUPS', 'Manage groups' FROM SYSIBM.SYSDUMMY1 UNION ALL
   SELECT 'AMBARI.MANAGE_VIEWS', 'Manage Ambari Views' FROM SYSIBM.SYSDUMMY1 UNION ALL
@@ -1292,7 +1292,7 @@ INSERT INTO permission_roleauthorization(permission_id, authorization_id)
   SELECT permission_id, 'AMBARI.ADD_DELETE_CLUSTERS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR'  UNION ALL
   SELECT permission_id, 'AMBARI.SET_SERVICE_USERS_GROUPS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR'  UNION ALL
   SELECT permission_id, 'AMBARI.RENAME_CLUSTER' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR'  UNION ALL
-  SELECT permission_id, 'AMBARI.MANAGE_ADMIN_SETTINGS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR'  UNION ALL
+  SELECT permission_id, 'AMBARI.MANAGE_SETTINGS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR'  UNION ALL
   SELECT permission_id, 'AMBARI.MANAGE_USERS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR'  UNION ALL
   SELECT permission_id, 'AMBARI.MANAGE_GROUPS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR'  UNION ALL
   SELECT permission_id, 'AMBARI.MANAGE_VIEWS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR'  UNION ALL

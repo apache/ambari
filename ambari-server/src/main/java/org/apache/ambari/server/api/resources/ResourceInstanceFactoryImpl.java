@@ -408,8 +408,8 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new SimpleResourceDefinition(Resource.Type.UserAuthorization, "authorization", "authorizations");
         break;
 
-      case AdminSetting:
-        resourceDefinition = new SimpleResourceDefinition(Resource.Type.AdminSetting, "admin-setting", "admin-settings");
+      case Setting:
+        resourceDefinition = new SimpleResourceDefinition(Resource.Type.Setting, "setting", "settings");
         break;
 
       default:

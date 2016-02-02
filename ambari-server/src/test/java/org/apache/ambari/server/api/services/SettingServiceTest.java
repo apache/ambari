@@ -30,56 +30,56 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Unit test for {@link AdminSettingService}
+ * Unit test for {@link SettingService}
  */
-public class AdminSettingServiceTest extends BaseServiceTest {
+public class SettingServiceTest extends BaseServiceTest {
   @Override
   public List<ServiceTestInvocation> getTestInvocations() throws Exception {
     List<ServiceTestInvocation> listInvocations = new ArrayList<>();
 
     //getSetting
-    AdminSettingService adminSettingService = new TestAdminSettingService("settingName");
-    Method m = adminSettingService.getClass().getMethod("getSetting", String.class, HttpHeaders.class, UriInfo.class, String.class);
+    SettingService settingService = new TestSettingService("settingName");
+    Method m = settingService.getClass().getMethod("getSetting", String.class, HttpHeaders.class, UriInfo.class, String.class);
     Object[] args = new Object[] {null, getHttpHeaders(), getUriInfo(), "settingName"};
-    listInvocations.add(new ServiceTestInvocation(Request.Type.GET, adminSettingService, m, args, null));
+    listInvocations.add(new ServiceTestInvocation(Request.Type.GET, settingService, m, args, null));
 
     //getSettings
-    adminSettingService = new TestAdminSettingService(null);
-    m = adminSettingService.getClass().getMethod("getSettings", String.class, HttpHeaders.class, UriInfo.class);
+    settingService = new TestSettingService(null);
+    m = settingService.getClass().getMethod("getSettings", String.class, HttpHeaders.class, UriInfo.class);
     args = new Object[] {null, getHttpHeaders(), getUriInfo()};
-    listInvocations.add(new ServiceTestInvocation(Request.Type.GET, adminSettingService, m, args, null));
+    listInvocations.add(new ServiceTestInvocation(Request.Type.GET, settingService, m, args, null));
 
     //createSetting
-    adminSettingService = new TestAdminSettingService(null);
-    m = adminSettingService.getClass().getMethod("createSetting", String.class, HttpHeaders.class, UriInfo.class);
+    settingService = new TestSettingService(null);
+    m = settingService.getClass().getMethod("createSetting", String.class, HttpHeaders.class, UriInfo.class);
     args = new Object[] {"body", getHttpHeaders(), getUriInfo()};
-    listInvocations.add(new ServiceTestInvocation(Request.Type.POST, adminSettingService, m, args, "body"));
+    listInvocations.add(new ServiceTestInvocation(Request.Type.POST, settingService, m, args, "body"));
 
     //updateSetting
-    adminSettingService = new TestAdminSettingService("settingName");
-    m = adminSettingService.getClass().getMethod("updateSetting", String.class, HttpHeaders.class, UriInfo.class, String.class);
+    settingService = new TestSettingService("settingName");
+    m = settingService.getClass().getMethod("updateSetting", String.class, HttpHeaders.class, UriInfo.class, String.class);
     args = new Object[] {"body", getHttpHeaders(), getUriInfo(), "settingName"};
-    listInvocations.add(new ServiceTestInvocation(Request.Type.PUT, adminSettingService, m, args, "body"));
+    listInvocations.add(new ServiceTestInvocation(Request.Type.PUT, settingService, m, args, "body"));
 
     //deleteSetting
-    adminSettingService = new TestAdminSettingService("settingName");
-    m = adminSettingService.getClass().getMethod("deleteSetting", HttpHeaders.class, UriInfo.class, String.class);
+    settingService = new TestSettingService("settingName");
+    m = settingService.getClass().getMethod("deleteSetting", HttpHeaders.class, UriInfo.class, String.class);
     args = new Object[] {getHttpHeaders(), getUriInfo(), "settingName"};
-    listInvocations.add(new ServiceTestInvocation(Request.Type.DELETE, adminSettingService, m, args, null));
+    listInvocations.add(new ServiceTestInvocation(Request.Type.DELETE, settingService, m, args, null));
 
     return listInvocations;
   }
 
-  private class TestAdminSettingService extends AdminSettingService {
-    private String adminSettingName;
+  private class TestSettingService extends SettingService {
+    private String settingName;
 
-    private TestAdminSettingService(String settingName) {
-      this.adminSettingName = settingName;
+    private TestSettingService(String settingName) {
+      this.settingName = settingName;
     }
 
     @Override
     ResourceInstance createSettingResource(String settingName) {
-      assertEquals(this.adminSettingName, settingName);
+      assertEquals(this.settingName, settingName);
       return getTestResource();
     }
 

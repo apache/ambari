@@ -17,20 +17,19 @@
  */
 package org.apache.ambari.server.orm.entities;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import static junit.framework.Assert.assertEquals;
 
 /**
- * AdminSettingEntity unit tests.
+ * SettingEntity unit tests.
  */
-public class AdminSettingEntityTest {
+public class SettingEntityTest {
 
   @Test
   public void testSetGetId() {
     long id = 1000;
-    AdminSettingEntity entity = new AdminSettingEntity();
+    SettingEntity entity = new SettingEntity();
     entity.setId(id);
     assertEquals(id, entity.getId());
   }
@@ -38,7 +37,7 @@ public class AdminSettingEntityTest {
   @Test
   public void testSetGetName() {
     String name = "motd";
-    AdminSettingEntity entity = new AdminSettingEntity();
+    SettingEntity entity = new SettingEntity();
     entity.setName(name);
     assertEquals(name, entity.getName());
   }
@@ -46,7 +45,7 @@ public class AdminSettingEntityTest {
   @Test
   public void testSetGetSettingType() {
     String settingType = "ambari-server";
-    AdminSettingEntity entity = new AdminSettingEntity();
+    SettingEntity entity = new SettingEntity();
     entity.setSettingType(settingType);
     assertEquals(settingType, entity.getSettingType());
   }
@@ -54,7 +53,7 @@ public class AdminSettingEntityTest {
   @Test
   public void testSetGetContent() {
     String content = "{tag:random-tag, text:random-text}";
-    AdminSettingEntity entity = new AdminSettingEntity();
+    SettingEntity entity = new SettingEntity();
     entity.setContent(content);
     assertEquals(content, entity.getContent());
   }
@@ -62,7 +61,7 @@ public class AdminSettingEntityTest {
   @Test
   public void testSetGetUpdatedBy() {
     String updatedBy = "ambari";
-    AdminSettingEntity entity = new AdminSettingEntity();
+    SettingEntity entity = new SettingEntity();
     entity.setUpdatedBy(updatedBy);
     assertEquals(updatedBy, entity.getUpdatedBy());
   }
@@ -70,21 +69,21 @@ public class AdminSettingEntityTest {
   @Test
   public void testSetGetUpdatedTimeStamp() {
     long updateTimeStamp = 1234567890;
-    AdminSettingEntity entity = new AdminSettingEntity();
+    SettingEntity entity = new SettingEntity();
     entity.setUpdateTimestamp(updateTimeStamp);
     assertEquals(updateTimeStamp, entity.getUpdateTimestamp());
   }
 
   @Test
   public void testEquals() {
-    AdminSettingEntity entity = new AdminSettingEntity();
+    SettingEntity entity = new SettingEntity();
     entity.setId(1);
     entity.setName("motd");
     entity.setContent("{tag:random-tag, text:random-text}");
     entity.setSettingType("ambari-server");
     entity.setUpdatedBy("ambari");
     entity.setUpdateTimestamp(1234567890);
-    AdminSettingEntity newEntity = entity.clone();
+    SettingEntity newEntity = entity.clone();
     assertEquals(entity, newEntity);
   }
 
