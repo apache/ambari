@@ -992,7 +992,7 @@ Em.I18n.translations = {
   'alerts.definition.details.serviceHost': 'Service / Host',
   'alerts.definition.details.24-hour': '24-Hour',
   'alerts.definition.details.notification': 'Notification',
-  'alerts.definition.details.noAlerts': 'No alert instances to show',
+  'alerts.definition.details.noAlerts': 'No alert instances to display',
   'alerts.definition.details.configs.thresholdsErrorMsg': 'Critical threshold should be larger than warning threshold',
 
   'alerts.notifications.error.email': 'Must be a valid email address',
@@ -2682,6 +2682,7 @@ Em.I18n.translations = {
   'tableView.filters.clearAllFilters': 'clear filters',
   'tableView.filters.showAll': 'Show All',
   'tableView.filters.filteredConfigVersionInfo': '{0} of {1} versions showing',
+  'tableView.filters.filteredAlertInstancesInfo': '{0} of {1} instances showing',
 
   'rollingrestart.dialog.title': 'Restart {0}s',
   'rollingrestart.dialog.primary': 'Trigger Rolling Restart',

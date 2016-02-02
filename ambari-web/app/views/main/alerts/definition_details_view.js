@@ -42,6 +42,14 @@ App.MainAlertDefinitionDetailsView = App.TableView.extend({
 
   colPropAssoc: ['serviceName', 'hostName', 'state'],
 
+  /**
+   * return filtered number of all content number information displayed on the page footer bar
+   * @returns {String}
+   */
+  filteredContentInfo: function () {
+    return Em.I18n.t('tableView.filters.filteredAlertInstancesInfo').format(this.get('filteredCount'), this.get('totalCount'));
+  }.property('filteredCount', 'totalCount'),
+
   content: function () {
     return this.get('controller.alerts');
   }.property('controller.alerts.@each'),
