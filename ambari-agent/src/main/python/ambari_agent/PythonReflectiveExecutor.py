@@ -42,12 +42,13 @@ class PythonReflectiveExecutor(PythonExecutor):
     
   def run_file(self, script, script_params, tmpoutfile, tmperrfile,
                timeout, tmpstructedoutfile, callback, task_id,
-               override_output_files = True, handle = None, log_info_on_failure=True):   
+               override_output_files = True, backup_log_files = True,
+               handle = None, log_info_on_failure=True):
     pythonCommand = self.python_command(script, script_params)
     logger.debug("Running command reflectively " + pprint.pformat(pythonCommand))
     
     script_dir = os.path.dirname(script)
-    self.open_subprocess_files(tmpoutfile, tmperrfile, override_output_files)
+    self.open_subprocess_files(tmpoutfile, tmperrfile, override_output_files, backup_log_files)
     returncode = 1
 
     try:

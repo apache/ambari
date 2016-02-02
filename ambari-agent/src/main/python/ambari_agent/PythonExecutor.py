@@ -53,11 +53,12 @@ class PythonExecutor(object):
     pass
 
 
-  def open_subprocess_files(self, tmpoutfile, tmperrfile, override_output_files):
-    if override_output_files: # Recreate files, existing files are backed up
-      self.back_up_log_file_if_exists(tmpoutfile)
+  def open_subprocess_files(self, tmpoutfile, tmperrfile, override_output_files, backup_log_files = True):
+    if override_output_files: # Recreate files, existing files are backed up if backup_log_files is True
+      if backup_log_files:
+        self.back_up_log_file_if_exists(tmpoutfile)
+        self.back_up_log_file_if_exists(tmperrfile)
       tmpout =  open(tmpoutfile, 'w')
-      self.back_up_log_file_if_exists(tmperrfile)
       tmperr =  open(tmperrfile, 'w')
     else: # Append to files
       tmpout =  open(tmpoutfile, 'a')
@@ -78,7 +79,8 @@ class PythonExecutor(object):
 
   def run_file(self, script, script_params, tmpoutfile, tmperrfile,
                timeout, tmpstructedoutfile, callback, task_id,
-               override_output_files = True, handle = None, log_info_on_failure=True):
+               override_output_files = True, backup_log_files = True, handle = None,
+               log_info_on_failure = True):
     """
     Executes the specified python file in a separate subprocess.
     Method returns only when the subprocess is finished.
@@ -94,7 +96,7 @@ class PythonExecutor(object):
     logger.debug("Running command " + pprint.pformat(pythonCommand))
     
     if handle is None:
-      tmpout, tmperr = self.open_subprocess_files(tmpoutfile, tmperrfile, override_output_files)
+      tmpout, tmperr = self.open_subprocess_files(tmpoutfile, tmperrfile, override_output_files, backup_log_files)
 
       process = self.launch_python_subprocess(pythonCommand, tmpout, tmperr)
       # map task_id to pid
