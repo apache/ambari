@@ -398,6 +398,8 @@ atlas_plugin_package = "atlas-metadata*-hive-plugin"
 atlas_ubuntu_plugin_package = "atlas-metadata.*-hive-plugin"
 
 if has_atlas:
+  atlas_home_dir = os.environ['METADATA_HOME_DIR'] if 'METADATA_HOME_DIR' in os.environ else '/usr/hdp/current/atlas-server'
+  atlas_conf_dir = os.environ['METADATA_CONF'] if 'METADATA_CONF' in os.environ else '/etc/atlas/conf'
   # client.properties
   atlas_client_props = {}
   auth_enabled = config['configurations']['application-properties'].get(

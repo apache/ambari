@@ -92,6 +92,10 @@
         <timeout>300</timeout>
       </commandScript>
 
+      <requiredServices>
+        <service>KAFKA</service>
+      </requiredServices>
+
       <configuration-dependencies>
         <config-type>application-properties</config-type>
         <config-type>atlas-env</config-type>
