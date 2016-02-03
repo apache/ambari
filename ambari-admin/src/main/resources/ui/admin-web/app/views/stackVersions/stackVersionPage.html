@@ -31,58 +31,69 @@
 <hr>
 
 
-
-<div class="clearfix register-version-options">
-  <div class="col-sm-5 option-radio-button">
-    <label class="option-label">
-      <input type="radio" ng-model="selectedOption" value="{{option1.index}}" ng-change="toggleOptionSelect()"> {{'versions.uploadFile' | translate}}
-    </label>
+<div id="upload-definition-file-panel" ng-if="createController">
+  <div class="clearfix register-version-options">
+    <div class="col-sm-5 option-radio-button">
+      <label class="option-label">
+        <input type="radio" ng-model="selectedOption" value="{{option1.index}}" ng-change="toggleOptionSelect()"> {{'versions.uploadFile' | translate}}
+      </label>
+    </div>
+    <div class="col-sm-7">
+      <input type="file" class="choose-file-input" ng-file-select="onFileSelect($files)"/>
+    </div>
   </div>
-  <div class="col-sm-7">
-    <input type="file" class="choose-file-input" ng-file-select="onFileSelect($files)"/>
-  </div>
-</div>
-<div class="clearfix register-version-options border-bottom bottom-margin">
-  <div class="col-sm-5 option-radio-button">
-    <label class="option-label">
-      <input type="radio" ng-model="selectedOption" value="{{option2.index}}" ng-change="toggleOptionSelect()"> {{'versions.enterURL' | translate}}
-    </label>
-  </div>
+  <div class="clearfix register-version-options border-bottom bottom-margin">
+    <div class="col-sm-5 option-radio-button">
+      <label class="option-label">
+        <input type="radio" ng-model="selectedOption" value="{{option2.index}}" ng-change="toggleOptionSelect()"> {{'versions.enterURL' | translate}}
+      </label>
+    </div>
     <div class="col-sm-7">
       <div class="form-group {{option2.name}}" ng-class="{'has-error': option2.url.hasError }">
-        <div class=""><input type="text" class="form-control" ng-model="option2.url" ng-change="clearOptionsError()" ng-disabled="!option2.selected"></div>
+        <div class=""><input type="text" class="form-control" ng-model="option2.url" ng-change="clearOptionsError()" ng-disabled="!(selectedOption==2)"></div>
       </div>
     </div>
     <div class="col-sm-12 read-info-button">
-    <button class="btn btn-primary pull-right" ng-click="readVersionInfo()"
-        ng-disabled="readInfoButtonDisabled()">{{'versions.readInfo' | translate}}</button>
+      <button class="btn btn-primary pull-right" ng-click="readVersionInfo()"
+            ng-disabled="readInfoButtonDisabled()">{{'versions.readInfo' | translate}}</button>
     </div>
+  </div>
 </div>
 
-
 <form class="form-horizontal register-version-form" role="form" name="repoRegForm" novalidate>
-  <div class="panel panel-default" ng-if="createController">
+  <div class="panel panel-default">
     <div class="panel-heading">
       <h3 class="panel-title">{{'common.details' | translate}}</h3>
     </div>
     <div class="panel-body">
-      <div class="form-inline repo-version-inline">
-        <label class="control-label col-sm-2 repo-version-label">{{'common.name' | translate}}</label>
-        <div class="col-sm-10">
-          <select class="form-control repo-version-select"
-                  ng-model="$parent.upgradeStack.selected"
-                  ng-options="o as o.displayName for o in upgradeStack.options"
-                  ng-change="afterStackVersionChange()">
-          </select>
-          <span class="bold-dot">.</span>
-          <div class="form-group" ng-class="{'has-error' : repoRegForm.version.$error.pattern}">
-            <input class="form-control" name="version" type="text" ng-model="$parent.repoSubversion" ng-pattern="subversionPattern"
-                   placeholder="{{'versions.placeholder' | translate}}" ng-change="updateCurrentVersionInput()" required/>
-            <span class="text-danger" ng-show="repoRegForm.version.$error.pattern">
-              &nbsp{{'common.alerts.isInvalid' | translate: '{term: currentVersionInput}'}}
-            </span>
-          </div>
-        </div>
+      <div class="clearfix">
+        <label class="control-label col-sm-3">{{'versions.details.stackName' | translate}}</label>
+        <div class="version-info col-sm-7">{{stackNameVersion}}</div>
+        <div class="col-sm-2 patch-icon" ng-if="isPatch"><span class="glyphicon glyphicon-tree-deciduous">Patch</span></div>
+      </div>
+      <div class="clearfix">
+        <label class="control-label col-sm-3">{{'versions.details.displayName' | translate}}</label>
+        <div class="version-info col-sm-9">{{displayName}}</div>
+      </div>
+      <div class="clearfix">
+        <label class="control-label col-sm-3">{{'versions.details.version' | translate}}</label>
+        <div class="version-info col-sm-9">{{version}}</div>
+      </div>
+      <div class="clearfix">
+        <label class="control-label col-sm-3">{{'versions.details.actualVersion' | translate}}</label>
+        <div class="version-info col-sm-9">{{actualVersion}}</div>
+      </div>
+    </div>
+  </div>
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title">{{'versions.contents.title' | translate}}</h3>
+    </div>
+    <div class="panel-body version-contents-body">
+      <div class="alert alert-info hide-soft" ng-class="{'visible' : !services || !services.length}" role="alert">{{'versions.contents.empty' | translate}}</div>
+      <div class="clearfix" ng-repeat="service in services">
+        <label class="control-label col-sm-3">{{service.name}}</label>
+        <div class="version-info col-sm-9">{{service.version}}</div>
       </div>
     </div>
   </div>

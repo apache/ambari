@@ -156,14 +156,14 @@ angular.module('ambariAdminConsole')
     index: 1,
     displayName: 'Upload Version Definition File',
     url: 'files://',
-    selected: true,
-    hasError: true
+    //selected: true,
+    hasError: false
   };
   $scope.option2 = {
     index: 2,
     displayName: 'Version Definition File URL',
     url: 'https://',
-    selected: false,
+    //selected: false,
     hasError: false
   };
   $scope.selectedOption = 1;
@@ -172,8 +172,8 @@ angular.module('ambariAdminConsole')
    * User can select ONLY one option to upload version definition file
    */
   $scope.toggleOptionSelect = function () {
-    $scope.option1.selected = $scope.selectedOption == $scope.option1.index;
-    $scope.option2.selected = $scope.selectedOption == $scope.option2.index;
+    //$scope.option1.selected = $scope.selectedOption == $scope.option1.index;
+    //$scope.option2.selected = $scope.selectedOption == $scope.option2.index;
     $scope.option1.hasError = false;
     $scope.option2.hasError = false;
   };
@@ -215,11 +215,11 @@ angular.module('ambariAdminConsole')
     return Stack.getLatestRepo('HDP').then(function (response) {
       $scope.id = response.id;
       $scope.isPatch = response.type == 'PATCH';
-      $scope.stackNameVersion = response.stackNameVersion;
-      $scope.displayName = response.displayName;
-      $scope.version = response.version;
-      $scope.actualVersion = response.actualVersion;
-      $scope.services = response.services;
+      $scope.stackNameVersion = response.stackNameVersion || 'n/a';
+      $scope.displayName = response.displayName || 'n/a';
+      $scope.version = response.version || 'n/a';
+      $scope.actualVersion = response.actualVersion || 'n/a';
+      $scope.services = response.services || [];
       //save default values of repos to check if they were changed
       $scope.defaulfOSRepos = {};
       response.updateObj.operating_systems.forEach(function(os) {
@@ -236,19 +236,19 @@ angular.module('ambariAdminConsole')
       $scope.osList = response.osList;
       // if user reach here from UI click, repo status should be cached
       // otherwise re-fetch repo status from cluster end point.
-      $scope.repoStatus = Cluster.repoStatusCache[$scope.id];
-      if (!$scope.repoStatus) {
-        $scope.fetchClusters()
-          .then(function () {
-            return $scope.fetchRepoClusterStatus();
-          })
-          .then(function () {
-            $scope.deleteEnabled = $scope.isDeletable();
-          });
-      } else {
-        $scope.deleteEnabled = $scope.isDeletable();
-      }
-      $scope.addMissingOSList();
+//      $scope.repoStatus = Cluster.repoStatusCache[$scope.id];
+//      if (!$scope.repoStatus) {
+//        $scope.fetchClusters()
+//          .then(function () {
+//            return $scope.fetchRepoClusterStatus();
+//          })
+//          .then(function () {
+//            $scope.deleteEnabled = $scope.isDeletable();
+//          });
+//      } else {
+//        $scope.deleteEnabled = $scope.isDeletable();
+//      }
+      //$scope.addMissingOSList();
     });
   };
 }]);

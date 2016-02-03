@@ -176,11 +176,176 @@ angular.module('ambariAdminConsole')
     getLatestRepo: function (stack_name) {
       var url = Settings.baseUrl + '/stacks/' + stack_name + '/versions?' +
         'fields=repository_versions/operating_systems/repositories/*' +
-        ',repository_versions/RepositoryVersions/*';
+        ',repository_versions/RepositoryVersions/*';  // tbd
       var deferred = $q.defer();
       $http.get(url, {mock: 'version/version.json'})
         .success(function (data) {
-          data = data.items[0];
+          //data = data.items[0];
+          data = {
+            "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.2",
+            "Versions" : {
+              "stack_name" : "HDP",
+              "stack_version" : "2.2"
+            },
+            "repository_versions" : [
+              {
+                "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.2/repository_versions/15",
+                "RepositoryVersions" : {
+                  "id" : 15,
+                  "repository_version" : "2.2.0.1-901",
+                  "stack_name" : "HDP",
+                  "stack_version" : "2.2",
+                  "release": {
+                    "type": "PATCH",
+                    "stack_id": "HDP-2.2",
+                    "version": "2.2.0.1",
+                    "build": "901",
+                    "compatible_with": "2.2.0.1-[1-9]",
+                    "release_notes": "http://someurl"
+                  },
+                  "services": [
+                    {
+                      "name": "HDFS",
+                      "display_name": "HDFS",
+                      "versions": [
+                        {
+                          "version": "2.1.1",
+                          "version_id": "10",
+                          "components": [ "NAMENODE"]
+                        }
+                      ]
+                    },
+                    {
+                      "name": "HIVE",
+                      "display_name": "Hive",
+                      "versions": [
+                        {
+                          "version": "1.2.1"
+                        }
+                      ]
+                    },
+                    {
+                      "name": "ZOOKEEPER",
+                      "display_name": "ZooKeeper",
+                      "versions": [
+                        {
+                          "version": "3.4.5"
+                        }
+                      ]
+                    },
+                    {
+                      "name": "YARN",
+                      "versions": [
+                        {
+                          "version": "2.7.1"
+                        }
+                      ]
+                    },
+                    {
+                      "name": "SPARK",
+                      "versions": [
+                        {
+                          "version": "1.4.1"
+                        }
+                      ]
+                    },
+                    {
+                      "name": "SPARK",
+                      "versions": [
+                        {
+                          "version": "1.5.2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "operating_systems" : [
+                  {
+                    "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.2/repository_versions/15/operating_systems/redhat5",
+                    "OperatingSystems" : {
+                      "os_type" : "redhat5",
+                      "repository_version_id" : 15,
+                      "stack_name" : "HDP",
+                      "stack_version" : "2.2"
+                    },
+                    "repositories" : [
+                      {
+                        "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.2/repository_versions/15/operating_systems/redhat5/repositories/HDP-2.2.0.1-901",
+                        "Repositories" : {
+                          "base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0",
+                          "default_base_url" : "",
+                          "latest_base_url" : "",
+                          "mirrors_list" : "",
+                          "os_type" : "redhat5",
+                          "repo_id" : "HDP-2.2.0.1-901",
+                          "repo_name" : "HDP",
+                          "repository_version_id" : 15,
+                          "stack_name" : "HDP",
+                          "stack_version" : "2.2"
+                        }
+                      },
+                      {
+                        "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.2/repository_versions/15/operating_systems/redhat5/repositories/HDP-UTILS-2.2.0.1-901",
+                        "Repositories" : {
+                          "base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0",
+                          "default_base_url" : "",
+                          "latest_base_url" : "",
+                          "mirrors_list" : "",
+                          "os_type" : "redhat5",
+                          "repo_id" : "HDP-UTILS-2.2.0.1-901",
+                          "repo_name" : "HDP-UTILS",
+                          "repository_version_id" : 15,
+                          "stack_name" : "HDP",
+                          "stack_version" : "2.2"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.2/repository_versions/15/operating_systems/redhat6",
+                    "OperatingSystems" : {
+                      "os_type" : "redhat6",
+                      "repository_version_id" : 15,
+                      "stack_name" : "HDP",
+                      "stack_version" : "2.2"
+                    },
+                    "repositories" : [
+                      {
+                        "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.2/repository_versions/15/operating_systems/redhat6/repositories/HDP-2.2.0.1-901",
+                        "Repositories" : {
+                          "base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0",
+                          "default_base_url" : "",
+                          "latest_base_url" : "",
+                          "mirrors_list" : "",
+                          "os_type" : "redhat6",
+                          "repo_id" : "HDP-2.2.0.1-901",
+                          "repo_name" : "HDP",
+                          "repository_version_id" : 15,
+                          "stack_name" : "HDP",
+                          "stack_version" : "2.2"
+                        }
+                      },
+                      {
+                        "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.2/repository_versions/15/operating_systems/redhat6/repositories/HDP-UTILS-2.2.0.1-901",
+                        "Repositories" : {
+                          "base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0",
+                          "default_base_url" : "",
+                          "latest_base_url" : "",
+                          "mirrors_list" : "",
+                          "os_type" : "redhat6",
+                          "repo_id" : "HDP-UTILS-2.2.0.1-901",
+                          "repo_name" : "HDP-UTILS",
+                          "repository_version_id" : 15,
+                          "stack_name" : "HDP",
+                          "stack_version" : "2.2"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          };
           var response = {
             id : data.repository_versions[0].RepositoryVersions.id,
             stackVersion : data.Versions.stack_version,
@@ -189,6 +354,7 @@ angular.module('ambariAdminConsole')
             stackNameVersion: data.Versions.stack_name + '-' + data.Versions.stack_version, /// HDP-2.3
             actualVersion: data.repository_versions[0].RepositoryVersions.repository_version, /// 2.3.4.0-3846
             version: data.repository_versions[0].RepositoryVersions.release.version, /// 2.3.4.0
+            releaseNotes: data.repository_versions[0].RepositoryVersions.release.release_notes,
             displayName: data.Versions.stack_name + '-' + data.repository_versions[0].RepositoryVersions.release.version, //HDP-2.3.4.0
             repoVersionFullName : data.Versions.stack_name + '-' + data.repository_versions[0].RepositoryVersions.repository_version,
             osList: data.repository_versions[0].operating_systems,

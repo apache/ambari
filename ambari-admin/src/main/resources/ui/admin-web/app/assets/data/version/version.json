@@ -26,6 +26,7 @@
             "services": [
               {
                 "name": "HDFS",
+                "display_name": "HDFS",
                 "versions": [
                   {
                     "version": "2.1.1",
@@ -36,6 +37,7 @@
               },
               {
                 "name": "HIVE",
+                "display_name": "Hive",
                 "versions": [
                   {
                     "version": "1.2.1"
@@ -44,6 +46,7 @@
               },
               {
                 "name": "ZOOKEEPER",
+                "display_name": "ZooKeeper",
                 "versions": [
                   {
                     "version": "3.4.5"

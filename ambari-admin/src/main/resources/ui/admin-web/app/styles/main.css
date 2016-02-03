@@ -1398,3 +1398,18 @@ thead.view-permission-header > tr > th {
   padding-bottom: 20px;
 }
 
+.register-version-form .patch-icon {
+  color: #ff4500;
+}
+
+.register-version-form .version-info {
+  padding-top: 7px;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.version-contents-body {
+  max-height: 150px;
+  overflow: scroll;
+}
+

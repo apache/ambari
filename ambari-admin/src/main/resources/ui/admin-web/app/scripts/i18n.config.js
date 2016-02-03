@@ -306,7 +306,17 @@ angular.module('ambariAdminConsole')
       'os': 'OS',
       'baseURL': 'Base URL',
       'skipValidation': 'Skip Repository Base URL validation (Advanced)',
-
+      'contents': {
+        'title': 'Contents',
+        'empty': 'No contents to display'
+      },
+      'details': {
+        'stackName': 'Stack Name',
+        'displayName': 'Display Name',
+        'version': 'Version',
+        'actualVersion': 'Actual Version',
+        'releaseNotes': 'Release Notes'
+      },
       'changeBaseURLConfirmation': {
         'title': 'Confirm Base URL Change',
         'message': 'You are about to change repository Base URLs that are already in use. Please confirm that you intend to make this change and that the new Base URLs point to the same exact Stack version and build'
