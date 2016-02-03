@@ -16,7 +16,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import os
 import functools
 
 from resource_management import Script
@@ -35,6 +34,7 @@ pxf_group = pxf_user
 hdfs_superuser = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_superuser_group = config["configurations"]["hdfs-site"]["dfs.permissions.superusergroup"]
 user_group = config["configurations"]["cluster-env"]["user_group"]
+hive_user = default('configurations/hive-env/hive_user', None)
 tomcat_group = "tomcat"
 
 # Directories
@@ -54,11 +54,13 @@ realm_name = config['configurations']['kerberos-env']['realm']
 #HBase
 is_hbase_installed = default("/clusterHostInfo/hbase_master_hosts", None) is not None
 
+#Hive
+is_hive_installed = default("/clusterHostInfo/hive_server_host", None) is not None
+
 # HDFS
 hdfs_site = config['configurations']['hdfs-site']
 default_fs = config['configurations']['core-site']['fs.defaultFS']
 
-security_enabled = config['configurations']['cluster-env']['security_enabled']
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
