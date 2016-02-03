@@ -42,6 +42,7 @@ public class TimelineMetric implements Comparable<TimelineMetric> {
   private long timestamp;
   private long startTime;
   private String type;
+  private String units;
   private TreeMap<Long, Double> metricValues = new TreeMap<Long, Double>();
 
   // default
@@ -53,6 +54,7 @@ public class TimelineMetric implements Comparable<TimelineMetric> {
   public TimelineMetric(TimelineMetric metric) {
     setMetricName(metric.getMetricName());
     setType(metric.getType());
+    setUnits(metric.getUnits());
     setTimestamp(metric.getTimestamp());
     setAppId(metric.getAppId());
     setInstanceId(metric.getInstanceId());
@@ -115,13 +117,22 @@ public class TimelineMetric implements Comparable<TimelineMetric> {
     this.startTime = startTime;
   }
 
-  @XmlElement(name = "type")
+  @XmlElement(name = "type", defaultValue = "UNDEFINED")
   public String getType() {
     return type;
   }
 
   public void setType(String type) {
     this.type = type;
+  }
+
+  @XmlElement(name = "units")
+  public String getUnits() {
+    return units;
+  }
+
+  public void setUnits(String units) {
+    this.units = units;
   }
 
   @XmlElement(name = "metrics")

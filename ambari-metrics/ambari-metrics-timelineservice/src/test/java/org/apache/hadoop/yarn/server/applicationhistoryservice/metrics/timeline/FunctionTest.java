@@ -18,6 +18,7 @@
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
 
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.Function;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.Function.fromMetricName;
@@ -32,17 +33,20 @@ public class FunctionTest {
     Function f = fromMetricName("Metric._avg");
     assertThat(f).isEqualTo(new Function(AVG, null));
 
-
     f = fromMetricName("Metric._rate._avg");
     assertThat(f).isEqualTo(new Function(AVG, RATE));
 
     f = fromMetricName("bytes_in");
     assertThat(f).isEqualTo(Function.DEFAULT_VALUE_FUNCTION);
+
+    // Rate support without aggregates
+    f = fromMetricName("Metric._rate");
+    assertThat(f).isEqualTo(new Function(null, RATE));
   }
 
-
+  @Ignore // If unknown function: behavior is best effort query without function
   @Test(expected = Function.FunctionFormatException.class)
   public void testNotAFunction() throws Exception {
-    Function f = fromMetricName("bytes._not._afunction");
+    fromMetricName("bytes._not._afunction");
   }
 }

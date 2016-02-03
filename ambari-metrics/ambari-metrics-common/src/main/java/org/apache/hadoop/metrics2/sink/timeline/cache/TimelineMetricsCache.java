@@ -38,11 +38,18 @@ public class TimelineMetricsCache {
   public static final int MAX_EVICTION_TIME_MILLIS = 59000; // ~ 1 min
   private final int maxRecsPerName;
   private final int maxEvictionTimeInMillis;
+  private boolean skipCounterTransform = true;
   private final Map<String, Double> counterMetricLastValue = new HashMap<String, Double>();
 
   public TimelineMetricsCache(int maxRecsPerName, int maxEvictionTimeInMillis) {
+    this(maxRecsPerName, maxEvictionTimeInMillis, false);
+  }
+
+  public TimelineMetricsCache(int maxRecsPerName, int maxEvictionTimeInMillis,
+                              boolean skipCounterTransform) {
     this.maxRecsPerName = maxRecsPerName;
     this.maxEvictionTimeInMillis = maxEvictionTimeInMillis;
+    this.skipCounterTransform = skipCounterTransform;
   }
 
   class TimelineMetricWrapper {
@@ -171,7 +178,7 @@ public class TimelineMetricsCache {
   }
 
   public void putTimelineMetric(TimelineMetric timelineMetric, boolean isCounter) {
-    if (isCounter) {
+    if (isCounter && !skipCounterTransform) {
       transformMetricValuesToDerivative(timelineMetric);
     }
     putTimelineMetric(timelineMetric);

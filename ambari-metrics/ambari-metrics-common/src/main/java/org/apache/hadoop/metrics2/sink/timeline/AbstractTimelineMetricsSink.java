@@ -37,6 +37,7 @@ public abstract class AbstractTimelineMetricsSink {
   public static final String COLLECTOR_HOST_PROPERTY = "collector";
   public static final String COLLECTOR_PORT_PROPERTY = "port";
   public static final int DEFAULT_POST_TIMEOUT_SECONDS = 10;
+  public static final String SKIP_COUNTER_TRANSFROMATION = "skipCounterDerivative";
 
   protected final Log LOG;
 
@@ -60,8 +61,7 @@ public abstract class AbstractTimelineMetricsSink {
     try {
       String jsonData = mapper.writeValueAsString(metrics);
 
-      HttpURLConnection connection =
-        (HttpURLConnection) new URL(connectUrl).openConnection();
+      HttpURLConnection connection = (HttpURLConnection) new URL(connectUrl).openConnection();
 
       connection.setRequestMethod("POST");
       connection.setRequestProperty("Content-Type", "application/json");

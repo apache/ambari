@@ -33,16 +33,17 @@ public class TimelineMetricMetadata {
   private String metricName;
   private String appId;
   private String units;
-  private MetricType type = MetricType.UNDEFINED;
+  private String type = "UNDEFINED";
   private Long seriesStartTime;
   boolean supportsAggregates = true;
   // Serialization ignored helper flag
   boolean isPersisted = false;
 
+  // Placeholder to add more type later
   public enum MetricType {
-    GAUGE, // Can vary in both directions
-    COUNTER, // Single dimension
-    UNDEFINED // Default
+    GAUGE,
+    COUNTER,
+    UNDEFINED
   }
 
   // Default constructor
@@ -50,7 +51,7 @@ public class TimelineMetricMetadata {
   }
 
   public TimelineMetricMetadata(String metricName, String appId, String units,
-                                MetricType type, Long seriesStartTime,
+                                String type, Long seriesStartTime,
                                 boolean supportsAggregates) {
     this.metricName = metricName;
     this.appId = appId;
@@ -89,11 +90,11 @@ public class TimelineMetricMetadata {
   }
 
   @XmlElement(name = "type")
-  public MetricType getType() {
+  public String getType() {
     return type;
   }
 
-  public void setType(MetricType type) {
+  public void setType(String type) {
     this.type = type;
   }
 
