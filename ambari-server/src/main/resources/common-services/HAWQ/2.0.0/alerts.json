@@ -1,0 +1,19 @@
+{
+  "HAWQ": {
+    "HAWQMASTER": [
+      {
+        "name": "hawqstandby_sync_status",
+        "label": "HAWQ Standby Sync Status",
+        "description": "This alert will trigger if HAWQ Standby is not synchronized with HAWQ Master",
+        "interval": 1,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "SCRIPT",
+          "path": "HAWQ/2.0.0/package/alerts/alert_sync_status.py",
+          "parameters": []
+        }
+      }
+    ]
+  }
+}
