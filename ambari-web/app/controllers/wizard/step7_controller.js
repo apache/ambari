@@ -699,7 +699,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       if (App.get('isHaEnabled')) this.addHawqConfigsOnNnHa(configs);
       if (App.get('isRMHaEnabled')) this.addHawqConfigsOnRMHa(configs);
     }
-    if (App.get('isSingleNode')) this.removeHawqStandbyHostAddressConfig(configs);
+    if (Object.keys(this.get('content.hosts')).length === 1) this.removeHawqStandbyHostAddressConfig(configs);
     return configs
   },
 
