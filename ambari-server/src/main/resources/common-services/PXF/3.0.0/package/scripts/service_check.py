@@ -24,8 +24,6 @@ from resource_management.core.resources.system import Execute
 from pxf_utils import makeHTTPCall, runLocalCmd
 import pxf_constants
 
-import sys
-
 class PXFServiceCheck(Script):
   """
   Runs a set of simple PXF tests to verify if the service has been setup correctly
@@ -51,10 +49,11 @@ class PXFServiceCheck(Script):
     import params
     self.pxf_version = self.__get_pxf_protocol_version()
     try:
-      self.cleanup_test_data()
       self.run_hdfs_tests()
       if params.is_hbase_installed:
         self.run_hbase_tests()
+      if params.is_hive_installed:
+        self.run_hive_tests()
     except:
       msg = "PXF service check failed"
       Logger.error(msg)
@@ -75,6 +74,8 @@ class PXFServiceCheck(Script):
     self.__cleanup_hdfs_data()
     if params.is_hbase_installed:
       self.__cleanup_hbase_data()
+    if params.is_hive_installed:
+      self.__cleanup_hive_data()
 
 
   def __get_pxf_protocol_version(self):
@@ -98,16 +99,32 @@ class PXFServiceCheck(Script):
     raise Fail(msg)
 
 
+  def __check_pxf_read(self, headers):
+    """
+    Performs a generic PXF read
+    """
+    url = self.base_url + self.pxf_version + "/Fragmenter/getFragments?path="
+    try:
+      response = makeHTTPCall(url, headers)
+      if not "PXFFragments" in response:
+        Logger.error("Unable to find PXFFragments in the response")
+        raise
+    except:
+      msg = "PXF data read failed"
+      raise Fail(msg)
+
+
+  # HDFS Routines
   def run_hdfs_tests(self):
     """
     Runs a set of PXF HDFS checks
     """
     Logger.info("Running PXF HDFS checks")
-    self.__check_if_client_exists("HDFS")
+    self.__check_if_client_exists("Hadoop-HDFS")
+    self.__cleanup_hdfs_data()
     self.__write_hdfs_data()
     self.__check_pxf_hdfs_read()
     self.__check_pxf_hdfs_write()
-
 
   def __write_hdfs_data(self):
     """
@@ -127,22 +144,6 @@ class PXFServiceCheck(Script):
         action="create_on_execute"
         )
 
- 
-  def __check_pxf_read(self, headers):
-    """
-    Performs a generic PXF read 
-    """
-    url = self.base_url + self.pxf_version + "/Fragmenter/getFragments?path="
-    try:
-      response = makeHTTPCall(url, headers)
-      if not "PXFFragments" in response:
-        Logger.error("Unable to find PXFFragments in the response")
-        raise 
-    except:
-      msg = "PXF data read failed"
-      raise Fail(msg)
-
-
   def __check_pxf_hdfs_read(self):
     """
     Reads the test HDFS data through PXF
@@ -154,7 +155,6 @@ class PXFServiceCheck(Script):
         }
     headers.update(self.commonPXFHeaders)
     self.__check_pxf_read(headers)
-
 
   def __check_pxf_hdfs_write(self):
     """
@@ -184,7 +184,6 @@ class PXFServiceCheck(Script):
       msg = "PXF HDFS data write test failed"
       raise Fail(msg)
 
-
   def __cleanup_hdfs_data(self):
     """
     Cleans up the test HDFS data
@@ -201,15 +200,16 @@ class PXFServiceCheck(Script):
         )
 
 
+  # HBase Routines
   def run_hbase_tests(self):
     """
     Runs a set of PXF HBase checks
     """
     Logger.info("Running PXF HBase checks")
+    self.__cleanup_hbase_data()
     self.__check_if_client_exists("HBase")
     self.__write_hbase_data()
     self.__check_pxf_hbase_read()
-
 
   def __write_hbase_data(self):
     """
@@ -218,7 +218,6 @@ class PXFServiceCheck(Script):
     Logger.info("Creating temporary HBase test data")
     Execute("echo \"create '" + pxf_constants.pxf_hbase_test_table + "', 'cf'\"|hbase shell", logoutput = True)
     Execute("echo \"put '" + pxf_constants.pxf_hbase_test_table + "', 'row1', 'cf:a', 'value1'; put '" + pxf_constants.pxf_hbase_test_table + "', 'row1', 'cf:b', 'value2'\" | hbase shell", logoutput = True)
-
 
   def __check_pxf_hbase_read(self):
     """
@@ -233,7 +232,6 @@ class PXFServiceCheck(Script):
 
     self.__check_pxf_read(headers)
 
-
   def __cleanup_hbase_data(self):
     """
     Cleans up the test HBase data
@@ -243,6 +241,49 @@ class PXFServiceCheck(Script):
     Execute("echo \"drop '" + pxf_constants.pxf_hbase_test_table + "'\"|hbase shell > /dev/null 2>&1", logoutput = True)
 
 
+  # Hive Routines
+  def run_hive_tests(self):
+    """
+    Runs a set of PXF Hive checks
+    """
+    Logger.info("Running PXF Hive checks")
+    self.__check_if_client_exists("Hive")
+    self.__cleanup_hive_data()
+    self.__write_hive_data()
+    self.__check_pxf_hive_read()
+
+  def __write_hive_data(self):
+    """
+    Creates a temporary Hive table for the service checks
+    """
+    import params
+    Logger.info("Creating temporary Hive test data")
+    cmd = "hive -e 'CREATE TABLE IF NOT EXISTS {0} (id INT); INSERT INTO {0} VALUES (1);'".format(pxf_constants.pxf_hive_test_table)
+    Execute(cmd, logoutput = True, user = params.hive_user)
+
+  def __check_pxf_hive_read(self):
+    """
+    Checks reading Hive data through PXF
+    """
+    Logger.info("Testing PXF Hive data read")
+    headers = {
+        "X-GP-DATA-DIR": pxf_constants.pxf_hive_test_table,
+        "X-GP-profile": "Hive",
+        }
+    headers.update(self.commonPXFHeaders)
+    self.__check_pxf_read(headers)
+
+  def __cleanup_hive_data(self):
+    """
+    Cleans up the test Hive data
+    """
+    import params
+    Logger.info("Cleaning up Hive test data")
+    cmd = "hive -e 'DROP TABLE IF EXISTS {0};'".format(pxf_constants.pxf_hive_test_table)
+    Execute(cmd, logoutput = True, user = params.hive_user)
+
+
+  # Package Routines
   def __package_exists(self, pkg):
     """
     Low level function to check if a rpm is installed
@@ -250,15 +291,15 @@ class PXFServiceCheck(Script):
     if System.get_instance().os_family == "suse":
       return not runLocalCmd("zypper search " + pkg)
     else:
-      return not runLocalCmd("yum list installed | grep -i " + pkg)
+      return not runLocalCmd("yum list installed | egrep -i ^" + pkg)
 
 
   def __check_if_client_exists(self, serviceName):
     Logger.info("Checking if " + serviceName + " client libraries exist")
     if not self.__package_exists(serviceName):
-      error_msg = serviceName + "client libraries do not exist on the PXF node"
-      Logger.error(msg)
-      raise Fail(msg)
+      error_msg = serviceName + " client libraries do not exist on the PXF node"
+      Logger.error(error_msg)
+      raise Fail(error_msg)
 
 
 if __name__ == "__main__":
