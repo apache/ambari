@@ -635,6 +635,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
               UpgradeGroup: {
                 group_id: 1,
                 status: 'COMPLETED',
+                display_status: 'COMPLETED',
                 progress_percent: 100,
                 completed_task_count: 3
               },
@@ -643,6 +644,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
                   UpgradeItem: {
                     stage_id: 1,
                     status: 'COMPLETED',
+                    display_status: 'COMPLETED',
                     progress_percent: 100
                   }
                 }
@@ -652,6 +654,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
               UpgradeGroup: {
                 group_id: 2,
                 status: 'ABORTED',
+                display_status: 'ABORTED',
                 progress_percent: 50,
                 completed_task_count: 1
               },
@@ -660,6 +663,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
                   UpgradeItem: {
                     stage_id: 2,
                     status: 'ABORTED',
+                    display_status: 'ABORTED',
                     progress_percent: 99
                   }
                 },
@@ -667,6 +671,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
                   UpgradeItem: {
                     stage_id: 3,
                     status: 'PENDING',
+                    display_status: 'PENDING',
                     progress_percent: 0
                   }
                 }
@@ -683,6 +688,9 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         it('status is COMPLETED', function () {
           expect(groups[0].get('status')).to.equal('COMPLETED');
         });
+        it('display_status is COMPLETED', function () {
+          expect(groups[0].get('display_status')).to.equal('COMPLETED');
+        });
         it('progress_percent is 100', function () {
           expect(groups[0].get('progress_percent')).to.equal(100);
         });
@@ -691,6 +699,9 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         });
         it('upgradeItems.0.status is COMPLETED', function () {
           expect(groups[0].get('upgradeItems')[0].get('status')).to.equal('COMPLETED');
+        });
+        it('upgradeItems.0.display_status is COMPLETED', function () {
+          expect(groups[0].get('upgradeItems')[0].get('display_status')).to.equal('COMPLETED');
         });
         it('upgradeItems.0.progress_percent is 100', function () {
           expect(groups[0].get('upgradeItems')[0].get('progress_percent')).to.equal(100);
@@ -704,6 +715,9 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         it('status is ABORTED', function () {
           expect(groups[1].get('status')).to.equal('ABORTED');
         });
+        it('display_status is ABORTED', function () {
+          expect(groups[1].get('display_status')).to.equal('ABORTED');
+        });
         it('progress_percent is 50', function () {
           expect(groups[1].get('progress_percent')).to.equal(50);
         });
@@ -712,6 +726,9 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         });
         it('upgradeItems.[].status = ["ABORTED", "PENDING"]', function () {
           expect(groups[1].get('upgradeItems').mapProperty('status')).to.eql(['ABORTED', 'PENDING']);
+        });
+        it('upgradeItems.[].display_status = ["ABORTED", "PENDING"]', function () {
+          expect(groups[1].get('upgradeItems').mapProperty('display_status')).to.eql(['ABORTED', 'PENDING']);
         });
         it('upgradeItems.[].progress_percent = [99, 0]', function () {
           expect(groups[1].get('upgradeItems').mapProperty('progress_percent')).to.eql([99, 0]);
