@@ -93,5 +93,5 @@ App.upgradeEntity = Em.Object.extend({
     if (this.get('type') === 'GROUP') {
       return !this.get('isActive') && this.get('hasExpandableItems') ? 'SUBITEM_FAILED' : this.get('display_status') || this.get('status');
     }
-  }.property('isExpandableGroup')
+  }.property('isExpandableGroup', 'display_status', 'status')
 });

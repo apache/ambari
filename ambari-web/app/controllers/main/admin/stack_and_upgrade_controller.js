@@ -384,10 +384,12 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       //update existed entities with new data
       oldData.upgradeGroups.forEach(function (oldGroup) {
         oldGroup.set('status', groupsMap[oldGroup.get('group_id')].status);
+        oldGroup.set('display_status', groupsMap[oldGroup.get('group_id')].display_status);
         oldGroup.set('progress_percent', groupsMap[oldGroup.get('group_id')].progress_percent);
         oldGroup.set('completed_task_count', groupsMap[oldGroup.get('group_id')].completed_task_count);
         oldGroup.upgradeItems.forEach(function (item) {
           item.set('status', itemsMap[item.get('stage_id')].status);
+          item.set('display_status', itemsMap[item.get('stage_id')].display_status);
           item.set('progress_percent', itemsMap[item.get('stage_id')].progress_percent);
         });
         var hasExpandableItems = oldGroup.upgradeItems.some(function (item) {
