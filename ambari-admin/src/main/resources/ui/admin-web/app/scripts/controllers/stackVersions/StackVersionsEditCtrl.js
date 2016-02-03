@@ -63,7 +63,9 @@ angular.module('ambariAdminConsole')
       } else {
         $scope.deleteEnabled = $scope.isDeletable();
       }
-      $scope.addMissingOSList();
+      $scope.addMissingOSList().then(function(){
+        $scope.disableUnusedOS();
+      });
     });
   };
 
@@ -72,7 +74,7 @@ angular.module('ambariAdminConsole')
   };
 
   $scope.addMissingOSList = function() {
-    Stack.getSupportedOSList($scope.stackName, $scope.stackVersion)
+    return Stack.getSupportedOSList($scope.stackName, $scope.stackVersion)
     .then(function (data) {
       var existingOSHash = {};
       angular.forEach($scope.osList, function (os) {
@@ -106,6 +108,16 @@ angular.module('ambariAdminConsole')
     })
     .catch(function (data) {
       Alert.error($t('versions.alerts.osListError'), data.message);
+    });
+  };
+
+  $scope.disableUnusedOS = function() {
+    Cluster.getClusterOS().then(function(usedOS){
+      angular.forEach($scope.osList, function (os) {
+        if (os.OperatingSystems.os_type !== usedOS) {
+          os.disabled = true;
+        }
+      });
     });
   };
 

@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('StackVersionsCreateCtrl', ['$scope', 'Stack', '$routeParams', '$location', 'Alert', '$translate', function($scope, Stack, $routeParams, $location, Alert, $translate) {
+.controller('StackVersionsCreateCtrl', ['$scope', 'Stack', '$routeParams', '$location', 'Alert', '$translate', 'Cluster', function($scope, Stack, $routeParams, $location, Alert, $translate, Cluster) {
   var $t = $translate.instant;
   $scope.createController = true;
   $scope.osList = [];
@@ -43,7 +43,9 @@ angular.module('ambariAdminConsole')
       });
       $scope.upgradeStack.options = versions;
       $scope.upgradeStack.selected = versions[versions.length - 1];
-      $scope.afterStackVersionChange();
+      $scope.afterStackVersionChange().then(function(){
+        $scope.disableUnusedOS();
+      });
     })
     .catch(function (data) {
       Alert.error($t('versions.alerts.filterListError'), data.message);
@@ -71,7 +73,7 @@ angular.module('ambariAdminConsole')
   };
 
   $scope.afterStackVersionChange = function () {
-    Stack.getSupportedOSList($scope.upgradeStack.selected.stack_name, $scope.upgradeStack.selected.stack_version)
+    return Stack.getSupportedOSList($scope.upgradeStack.selected.stack_name, $scope.upgradeStack.selected.stack_version)
     .then(function (data) {
       var operatingSystems = data.operating_systems;
         $scope.osList = operatingSystems.map(function (os) {
@@ -84,6 +86,16 @@ angular.module('ambariAdminConsole')
     })
     .catch(function (data) {
       Alert.error($t('versions.alerts.osListError'), data.message);
+    });
+  };
+
+  $scope.disableUnusedOS = function() {
+    Cluster.getClusterOS().then(function(usedOS){
+      angular.forEach($scope.osList, function (os) {
+        if (os.OperatingSystems.os_type !== usedOS) {
+          os.disabled = true;
+        }
+      });
     });
   };
 

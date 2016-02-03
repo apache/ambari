@@ -60,9 +60,22 @@ angular.module('ambariAdminConsole')
 
       return deferred.promise;
     },
+    getClusterOS: function() {
+      var deferred = $q.defer();
+
+      $http.get(Settings.baseUrl + '/services/AMBARI/components/AMBARI_SERVER?fields=RootServiceComponents/properties/server.os_family&minimal_response=true', {mock: 'redhat6'})
+      .then(function(data) {
+        deferred.resolve(data.data.RootServiceComponents.properties['server.os_family']);
+      })
+      .catch(function(data) {
+        deferred.reject(data);
+      });
+
+      return deferred.promise;
+    },
     getAmbariTimeout: function() {
       var deferred = $q.defer();
-      var url = '/services/AMBARI/components/AMBARI_SERVER?fields=RootServiceComponents/properties/user.inactivity.timeout.default'
+      var url = '/services/AMBARI/components/AMBARI_SERVER?fields=RootServiceComponents/properties/user.inactivity.timeout.default';
       $http.get(Settings.baseUrl + url)
       .then(function(data) {
         var properties = data.data.RootServiceComponents.properties;
