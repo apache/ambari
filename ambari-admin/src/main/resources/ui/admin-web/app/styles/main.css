@@ -394,7 +394,7 @@ a.gotoinstance{
   font-size: 16px;
 }
 
-.user-edit-panel .ats-switch span.switch-right , .create-user-form .ats-switch span.switch-right{
+.user-edit-panel .ats-switch span.switch-right , .create-user-form .ats-switch span.switch-right, .enable-ldap .ats-switch span.switch-right {
   background-color: #da4f49;
   color: white;
 }
@@ -1147,14 +1147,14 @@ button.btn.btn-xs{
 .ambariAlert.error {
   border-left: 3px solid #ef2427;
 }
-.ambariAlert.error .icon-box {
+.ambariAlert.error .icon-box, .test-ldap-icon.fa-times-circle {
   color: #ef2427;
 }
 
 .ambariAlert.success {
   border-left: 3px solid #82c534;
 }
-.ambariAlert.success .icon-box {
+.ambariAlert.success .icon-box, .test-ldap-icon.fa-check-circle {
   color: #82c534;
 }
 
@@ -1373,6 +1373,14 @@ accordion .panel-group .panel{
 }
 
 thead.view-permission-header > tr > th {
-  border-top: 0px;
+  border-top: 0;
   padding-top: 40px;
+}
+
+.enable-ldap input[type="checkbox"] {
+  margin-top: 10px;
+}
+
+.test-ldap-icon.ng-hide-add-active, .test-ldap-icon.ng-hide-remove {
+  display: inline-block!important;
 }
