@@ -333,7 +333,7 @@
             <exclude>contrib/views/slider/src/main/resources/ui/app/assets/javascripts/**</exclude>
             <exclude>contrib/views/slider/src/main/resources/ui/bower_components/**</exclude>
             <exclude>contrib/views/slider/src/main/resources/ui/runner.js</exclude>
-	    <exclude>contrib/views/storm/src/main/resources/libs/**</exclude>
+	          <exclude>contrib/views/storm/src/main/resources/libs/**</exclude>
             <exclude>contrib/views/storm/src/main/resources/styles/default.css</exclude>
             <exclude>contrib/views/storm/src/main/resources/templates/**</exclude>
             <exclude>contrib/addons/package/deb/nagios_addon_deb_control</exclude>
@@ -353,6 +353,8 @@
             <exclude>**/velocity.log*</exclude>
 
             <!-- Metrics module -->
+            <!-- grafana -->
+            <exclude>ambari-metrics/ambari-metrics-grafana/conf/unix/ams-grafana.ini</exclude>
             <!-- psutil : external lib, Apache 2.0 license included as a source file -->
             <exclude>ambari-metrics/target/**</exclude>
             <exclude>ambari-metrics/ambari-metrics-host-monitoring/src/main/python/psutil/**</exclude>
