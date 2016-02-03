@@ -1476,6 +1476,7 @@ describe('App.InstallerStep7Controller', function () {
           }
         }
       });
+     installerStep7Controller.set('content.hosts', Em.A([{hostName: 'h1'}, {hostName: 'h2'}]));
     });
     afterEach(function () {
       App.config.fileConfigsIntoTextarea.restore();
