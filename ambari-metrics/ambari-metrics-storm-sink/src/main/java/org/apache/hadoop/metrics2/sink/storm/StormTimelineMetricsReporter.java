@@ -153,8 +153,6 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
     timelineMetric.setHostName(hostname);
     timelineMetric.setAppId(component);
     timelineMetric.setStartTime(currentTimeMillis);
-    timelineMetric.setType(ClassUtils.getShortCanonicalName(
-      attributeValue, "Number"));
     timelineMetric.getMetricValues().put(currentTimeMillis, Double.parseDouble(attributeValue));
     return timelineMetric;
   }
