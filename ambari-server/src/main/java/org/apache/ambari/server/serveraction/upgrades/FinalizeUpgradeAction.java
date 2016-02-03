@@ -39,6 +39,7 @@ import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.serveraction.AbstractServerAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -64,6 +65,8 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
   public static final String CLUSTER_NAME_KEY = "cluster_name";
   public static final String UPGRADE_DIRECTION_KEY = "upgrade_direction";
   public static final String VERSION_KEY = "version";
+  public static final String PREVIOUS_UPGRADE_NOT_COMPLETED_MSG = "It is possible that a previous upgrade was not finalized. " +
+      "For this reason, Ambari will not remove any configs. Please ensure that all database records are correct.";
 
   /**
    * The original "current" stack of the cluster before the upgrade started.
@@ -308,9 +311,25 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
       Cluster cluster = clusters.getCluster(clusterName);
       StackId currentClusterStackId = cluster.getCurrentStackVersion();
 
-      // this was a cross-stack upgrade, meaning that configurations were
-      // created that now need to be removed
+      // Safety check that the cluster's stack (from clusterstate's current_stack_id) is equivalent to the
+      // cluster's CURRENT repo version's stack. This is to avoid deleting configs from the target stack if the customer
+      // ended up modifying their database manually after a stack upgrade and forgot to call "Save DB State".
+      ClusterVersionEntity currentClusterVersion = cluster.getCurrentClusterVersion();
+      RepositoryVersionEntity currentRepoVersion = currentClusterVersion.getRepositoryVersion();
+      StackId currentRepoStackId = currentRepoVersion.getStackId();
+      if (!currentRepoStackId.equals(originalStackId)) {
+        String msg = String.format("The stack of Cluster %s's CURRENT repo version is %s, yet the original stack id from " +
+            "the Stack Upgrade has a different value of %s. %s",
+            clusterName, currentRepoStackId.getStackId(), originalStackId.getStackId(), PREVIOUS_UPGRADE_NOT_COMPLETED_MSG);
+        out.append(msg);
+        err.append(msg);
+        throw new AmbariException("The source target stack doesn't match the cluster's CURRENT repo version's stack.");
+      }
+
+      // This was a cross-stack upgrade, meaning that configurations were created that now need to be removed.
       if (!originalStackId.equals(targetStackId)) {
+        out.append(String.format("Will remove configs since the original stack %s differs from the target stack %s " +
+            "that Ambari just downgraded from.", originalStackId.getStackId(), targetStackId.getStackId()));
         cluster.removeConfigurations(targetStackId);
       }
 
