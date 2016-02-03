@@ -200,7 +200,7 @@
     </file>
     <file>
       <fileMode>755</fileMode>
-      <source>sbin/ambari-server</source>
+      <source>${basedir}/target/ambari-server</source>
       <outputDirectory>/etc/init.d</outputDirectory>
     </file>
     <file>

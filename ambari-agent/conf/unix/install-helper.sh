@@ -33,6 +33,11 @@ PYTHON_WRAPER_TARGET="/usr/bin/ambari-python-wrap"
 PYTHON_WRAPER_SOURCE="/var/lib/ambari-agent/ambari-python-wrap"
 
 do_install(){
+  if [ -d "/etc/ambari-agent/conf.save" ]; then
+    cp -f /etc/ambari-agent/conf.save/* /etc/ambari-agent/conf
+    mv /etc/ambari-agent/conf.save /etc/ambari-agent/conf_$(date '+%d_%m_%y_%H_%M').save
+  fi
+    
   # setting ambari_commons shared resource
   rm -rf "$OLD_COMMON_DIR"
   if [ ! -d "$COMMON_DIR" ]; then
@@ -61,10 +66,34 @@ do_install(){
   
   chmod 777 /var/lib/ambari-agent/tmp
   chmod 700 /var/lib/ambari-agent/data
+
+  which chkconfig > /dev/null 2>&1
+  if [ "$?" -eq 0 ] ; then
+    chkconfig --add ambari-agent
+  fi
+  which update-rc.d > /dev/null 2>&1
+  if [ "$?" -eq 0 ] ; then
+    update-rc.d ambari-agent defaults
+  fi
+
+  BAK=/etc/ambari-agent/conf/ambari-agent.ini.old
+  ORIG=/etc/ambari-agent/conf/ambari-agent.ini
+
+  if [ -f $BAK ]; then
+    if [ -f "/var/lib/ambari-agent/upgrade_agent_configs.py" ]; then
+      /var/lib/ambari-agent/upgrade_agent_configs.py
+    fi
+    mv $BAK ${BAK}_$(date '+%d_%m_%y_%H_%M').save
+  fi
 }
 
 do_remove(){
-
+  /usr/sbin/ambari-agent stop > /dev/null 2>&1
+  if [ -d "/etc/ambari-agent/conf.save" ]; then
+    mv /etc/ambari-agent/conf.save /etc/ambari-agent/conf_$(date '+%d_%m_%y_%H_%M').save
+  fi
+  mv /etc/ambari-agent/conf /etc/ambari-agent/conf.save
+    
   if [ -f "$PYTHON_WRAPER_TARGET" ]; then
     rm -f "$PYTHON_WRAPER_TARGET"
   fi
@@ -92,6 +121,15 @@ do_remove(){
   # if server package exists, restore their settings
   if [ -f "$INSTALL_HELPER_SERVER" ]; then  #  call server shared files installer
     $INSTALL_HELPER_SERVER install
+  fi
+
+  which chkconfig > /dev/null 2>&1
+  if [ "$?" -eq 0 ] ; then
+    chkconfig --list | grep ambari-server && chkconfig --del ambari-agent
+  fi
+  which update-rc.d > /dev/null 2>&1
+  if [ "$?" -eq 0 ] ; then
+    update-rc.d -f ambari-agent remove
   fi
 }
 

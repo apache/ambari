@@ -33,6 +33,9 @@ PYTHON_WRAPER_TARGET="/usr/bin/ambari-python-wrap"
 PYTHON_WRAPER_SOURCE="/var/lib/ambari-server/ambari-python-wrap"
 
 do_install(){
+  rm -f /usr/sbin/ambari-server
+  ln -s /etc/init.d/ambari-server /usr/sbin/ambari-server
+ 
   # setting ambari_commons shared resource
   rm -rf "$OLD_COMMON_DIR"
   if [ ! -d "$COMMON_DIR" ]; then
@@ -54,10 +57,27 @@ do_install(){
   if [ ! -f "$PYTHON_WRAPER_TARGET" ]; then
     ln -s "$PYTHON_WRAPER_SOURCE" "$PYTHON_WRAPER_TARGET"
   fi
+
+  which chkconfig > /dev/null 2>&1
+  if [ "$?" -eq 0 ] ; then
+    chkconfig --add ambari-server
+  fi
+  which update-rc.d > /dev/null 2>&1
+  if [ "$?" -eq 0 ] ; then
+    update-rc.d ambari-server defaults
+  fi
 }
 
 do_remove(){
+  /usr/sbin/ambari-server stop > /dev/null 2>&1
+  if [ -d "/etc/ambari-server/conf.save" ]; then
+      mv /etc/ambari-server/conf.save /etc/ambari-server/conf_$(date '+%d_%m_%y_%H_%M').save
+  fi
+  # Remove link created during install
+  rm -f /usr/sbin/ambari-server
 
+  mv /etc/ambari-server/conf /etc/ambari-server/conf.save
+    
   if [ -f "$PYTHON_WRAPER_TARGET" ]; then
     rm -f "$PYTHON_WRAPER_TARGET"
   fi
@@ -90,20 +110,30 @@ do_remove(){
   if [ -f "$INSTALL_HELPER_AGENT" ]; then  #  call agent shared files installer
     $INSTALL_HELPER_AGENT install
   fi
+
+  which chkconfig > /dev/null 2>&1
+  if [ "$?" -eq 0 ] ; then
+    chkconfig --list | grep ambari-server && chkconfig --del ambari-server
+  fi
+  which update-rc.d > /dev/null 2>&1
+  if [ "$?" -eq 0 ] ; then
+    update-rc.d -f ambari-server remove
+  fi
 }
 
 do_upgrade(){
+  # this function only gets called for rpm. Deb packages always call do_install directly.
   do_install
 }
 
 case "$1" in
-install)
-  do_install
-  ;;
-remove)
-  do_remove
-  ;;
-upgrade)
-  do_upgrade
-  ;;
+	install)
+	  do_install
+	  ;;
+	remove)
+	  do_remove
+	  ;;
+	upgrade)
+	  do_upgrade
+	  ;;
 esac
