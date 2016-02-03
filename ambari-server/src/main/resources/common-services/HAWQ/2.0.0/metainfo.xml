@@ -76,6 +76,16 @@
               <scriptType>PYTHON</scriptType>
               <timeout>600</timeout>
           </commandScript>
+          <customCommands>
+            <customCommand>
+              <name>ACTIVATE_STANDBY</name>
+              <commandScript>
+                <script>scripts/hawqstandby.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>1200</timeout>
+              </commandScript>
+            </customCommand>
+          </customCommands>
           <dependencies>
             <dependency>
                 <name>HDFS/HDFS_CLIENT</name>

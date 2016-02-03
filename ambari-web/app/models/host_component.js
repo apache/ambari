@@ -393,6 +393,13 @@ App.HostComponentActionMap = {
         cssClass: 'icon-plus',
         isHidden: App.get('isSingleNode') || HS,
         disabled: false
+      },
+      TOGGLE_ACTIVATE_HAWQ_STANDBY: {
+        action: 'activateHawqStandby',
+        label: Em.I18n.t('admin.activateHawqStandby.button.enable'),
+        cssClass: 'icon-arrow-up',
+        isHidden: App.get('isSingleNode') || !HS,
+	disabled: false
       }
     }
   }

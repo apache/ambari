@@ -579,6 +579,34 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
     }
   },
 
+ /**
+  * Delete component on single host.
+  *
+  * @method deleteComponent
+  * @param {string} componentName - name of the component
+  * @param {string} hostName - host from where components should be deleted
+  */
+  deleteComponent: function (componentName, hostName) {
+    App.ajax.send({
+      name: 'common.delete.host_component',
+      sender: this,
+      data: {
+        componentName: componentName,
+        hostName: hostName
+      },
+      success: 'onTaskCompleted',
+      error: 'onDeleteHostComponentsError'
+    });
+  },
+
+  onDeleteHostComponentsError: function (error) {
+    if (error.responseText.indexOf('org.apache.ambari.server.controller.spi.NoSuchResourceException') !== -1) {
+      this.onTaskCompleted();
+    } else {
+      this.onTaskError();
+    }
+  },
+
   /**
    * Update component status on selected hosts.
    *
