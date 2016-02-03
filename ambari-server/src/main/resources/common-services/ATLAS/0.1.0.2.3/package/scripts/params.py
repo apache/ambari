@@ -28,6 +28,8 @@ import status_params
 # server configurations
 config = Script.get_config()
 
+cluster_name = config['clusterName']
+
 # security enabled
 security_enabled = status_params.security_enabled
 
@@ -112,3 +114,12 @@ if security_enabled:
     smoke_cmd = format('curl --negotiate -u : -b ~/cookiejar.txt -c ~/cookiejar.txt -s -o /dev/null -w "%{{http_code}}" http://{metadata_host}:{metadata_port}/')
 else:
     smoke_cmd = format('curl -s -o /dev/null -w "%{{http_code}}" http://{metadata_host}:{metadata_port}/')
+
+# kafka
+kafka_bootstrap_servers = ""
+kafka_broker_hosts = config['clusterHostInfo']['kafka_broker_hosts']
+if not len(kafka_broker_hosts) == 0:
+  kafka_broker_port = default("/configurations/kafka-broker/port", 6667)
+  kafka_bootstrap_servers = kafka_broker_hosts[0] + ":" + str(kafka_broker_port)
+
+kafka_zookeeper_connect = default("/configurations/kafka-broker/zookeeper.connect", None)

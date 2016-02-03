@@ -161,7 +161,7 @@
     </file>
     <file>
       <fileMode>755</fileMode>
-      <source>conf/unix/ambari-agent</source>
+      <source>${basedir}/target/src/ambari-agent</source>
       <outputDirectory>/usr/sbin</outputDirectory>
     </file>
     <file>
@@ -187,7 +187,7 @@
     <file>
       <fileMode>755</fileMode>
       <source>etc/init.d/ambari-agent</source>
-      <outputDirectory>/etc/init.d/ambari-agent</outputDirectory>
+      <outputDirectory>/etc/init.d</outputDirectory>
     </file>
     <file>
       <fileMode>644</fileMode>

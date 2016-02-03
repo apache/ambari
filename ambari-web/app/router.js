@@ -317,6 +317,13 @@ App.Router = Em.Router.extend({
       loginData: data
     };
     App.router.get('clusterController').loadAuthorizations().complete(function() {
+      App.ajax.send({
+        name: 'router.login.message',
+        sender: self,
+        success: 'showLoginMessage'
+
+    });
+
       // no need to load cluster data if it's already loaded
       if (self.get('clusterData')) {
         self.loginGetClustersSuccessCallback(self.get('clusterData'), {}, requestData);
@@ -350,6 +357,40 @@ App.Router = Em.Router.extend({
     }
 
   },
+
+  /**
+   * success callback of router.login.message
+   * @param {object} data
+   */
+  showLoginMessage: function (data){
+    var response = JSON.parse(data.Settings.content),
+      text = response.text ? response.text : "",
+      buttonText = response.button ? response.button : Em.I18n.t('ok'),
+      status = response.status && response.status == "true" ? true : false;
+
+    if(text && status){
+      return App.ModalPopup.show({
+        classNames: ['sixty-percent-width-modal'],
+        header: Em.I18n.t('login.message.title'),
+        bodyClass: Ember.View.extend({
+          template: Ember.Handlebars.compile(text)
+        }),
+        primary: buttonText,
+        secondary: null,
+
+        onPrimary: function () {
+          this.hide();
+        },
+        onClose: function () {
+          this.hide();
+        },
+        didInsertElement: function () {
+          this.fitHeight();
+        }
+      });
+    }
+  },
+
 
   /**
    * success callback of login request

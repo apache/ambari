@@ -30,17 +30,16 @@ class HAWQServiceCheck(Script):
   Runs a set of HAWQ tests to verify if the service has been setup correctly
   """
 
-  def __init__(self):
-    self.active_master_host = common.get_local_hawq_site_property("hawq_master_address_host")
-    self.checks_failed = 0
-    self.total_checks = 3
-
-
   def service_check(self, env):
     """
     Runs service check for HAWQ.
     """
     import params
+
+    self.active_master_host = params.hawqmaster_host
+    self.active_master_port = params.hawq_master_address_port
+    self.checks_failed = 0
+    self.total_checks = 2
 
     # Checks HAWQ cluster state
     self.check_state()
@@ -50,6 +49,7 @@ class HAWQServiceCheck(Script):
 
     # Runs check for writing and reading external tables on HDFS using PXF, if PXF is installed
     if params.is_pxf_installed:
+      self.total_checks += 1
       self.check_hawq_pxf_hdfs()
     else:
       Logger.info("PXF not installed. Skipping HAWQ-PXF checks...")
@@ -128,32 +128,32 @@ class HAWQServiceCheck(Script):
   def drop_table(self, table):
     Logger.info("Dropping {0} table if exists".format(table['name']))
     sql_cmd = "DROP {0} TABLE IF EXISTS {1}".format(table['drop_type'], table['name'])
-    exec_psql_cmd(sql_cmd, self.active_master_host)
+    exec_psql_cmd(sql_cmd, self.active_master_host, self.active_master_port)
 
 
   def create_table(self, table):
     Logger.info("Creating table {0}".format(table['name']))
     sql_cmd = "CREATE {0} TABLE {1} {2}".format(table['create_type'], table['name'], table['description'])
-    exec_psql_cmd(sql_cmd, self.active_master_host)
+    exec_psql_cmd(sql_cmd, self.active_master_host, self.active_master_port)
 
 
   def insert_data(self, table):
     Logger.info("Inserting data to table {0}".format(table['name']))
     sql_cmd = "INSERT INTO  {0} SELECT * FROM generate_series(1,10)".format(table['name'])
-    exec_psql_cmd(sql_cmd, self.active_master_host)
+    exec_psql_cmd(sql_cmd, self.active_master_host, self.active_master_port)
 
 
   def query_data(self, table):
     Logger.info("Querying data from table {0}".format(table['name']))
     sql_cmd = "SELECT * FROM {0}".format(table['name'])
-    exec_psql_cmd(sql_cmd, self.active_master_host)
+    exec_psql_cmd(sql_cmd, self.active_master_host, self.active_master_port)
 
 
   def validate_data(self, table):
     expected_data = "55"
     Logger.info("Validating data inserted, finding sum of all the inserted entries. Expected output: {0}".format(expected_data))
     sql_cmd = "SELECT sum(col1) FROM {0}".format(table['name'])
-    _, stdout, _ = exec_psql_cmd(sql_cmd, self.active_master_host, tuples_only=False)
+    _, stdout, _ = exec_psql_cmd(sql_cmd, self.active_master_host, self.active_master_port, tuples_only=False)
     if expected_data != stdout.strip():
       Logger.error("Incorrect data returned. Expected Data: {0} Actual Data: {1}".format(expected_data, stdout))
       raise Fail("Incorrect data returned.")

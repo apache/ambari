@@ -202,16 +202,18 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
     for (TimelineMetric metric : metricsList){
       String name = metric.getMetricName();
       if (name.contains("._rate")){
-        updateValueAsRate(metric.getMetricValues());
+        updateValuesAsRate(metric.getMetricValues());
       }
     }
 
     return metrics;
   }
 
-  private Map<Long, Double> updateValueAsRate(Map<Long, Double> metricValues) {
+  static Map<Long, Double> updateValuesAsRate(Map<Long, Double> metricValues) {
     Long prevTime = null;
+    Double prevVal = null;
     long step;
+    Double diff;
 
     for (Map.Entry<Long, Double> timeValueEntry : metricValues.entrySet()) {
       Long currTime = timeValueEntry.getKey();
@@ -219,21 +221,22 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
 
       if (prevTime != null) {
         step = currTime - prevTime;
-        Double rate = currVal / TimeUnit.MILLISECONDS.toSeconds(step);
+        diff = currVal - prevVal;
+        Double rate = diff / TimeUnit.MILLISECONDS.toSeconds(step);
         timeValueEntry.setValue(rate);
       } else {
         timeValueEntry.setValue(0.0);
       }
 
       prevTime = currTime;
+      prevVal = currVal;
     }
 
     return metricValues;
   }
 
-  public static HashMap<String, List<Function>> parseMetricNamesToAggregationFunctions(List<String> metricNames) {
-    HashMap<String, List<Function>> metricsFunctions = new HashMap<String,
-      List<Function>>();
+  static HashMap<String, List<Function>> parseMetricNamesToAggregationFunctions(List<String> metricNames) {
+    HashMap<String, List<Function>> metricsFunctions = new HashMap<>();
 
     for (String metricName : metricNames){
       Function function = Function.DEFAULT_VALUE_FUNCTION;
@@ -242,7 +245,7 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
       try {
         function = Function.fromMetricName(metricName);
         int functionStartIndex = metricName.indexOf("._");
-        if(functionStartIndex > 0 ) {
+        if (functionStartIndex > 0) {
           cleanMetricName = metricName.substring(0, functionStartIndex);
         }
       } catch (Function.FunctionFormatException ffe){
@@ -252,7 +255,7 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
 
       List<Function> functionsList = metricsFunctions.get(cleanMetricName);
       if (functionsList == null) {
-        functionsList = new ArrayList<Function>(1);
+        functionsList = new ArrayList<>(1);
       }
       functionsList.add(function);
       metricsFunctions.put(cleanMetricName, functionsList);

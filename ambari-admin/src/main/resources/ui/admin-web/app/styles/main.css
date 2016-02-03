@@ -394,7 +394,7 @@ a.gotoinstance{
   font-size: 16px;
 }
 
-.user-edit-panel .ats-switch span.switch-right , .create-user-form .ats-switch span.switch-right{
+.user-edit-panel .ats-switch span.switch-right , .create-user-form .ats-switch span.switch-right, .enable-ldap .ats-switch span.switch-right {
   background-color: #da4f49;
   color: white;
 }
@@ -682,11 +682,13 @@ table.no-border tr td{
   min-height: 63px;
 }
 
-.login-message-pane .active, .inactive {font-size:30px;cursor:pointer;float: left;margin-left: 17px;}
+.login-message-pane .active, .inactive {font-size:30px;cursor:pointer;float: left;}
 .login-message-pane i.active {color: #5cb85c;margin-top: 3px;}
 .login-message-pane i.inactive {color: #d9534f;margin-top: 2px;}
-.login-message-pane .well {height: 74px;}
-.login-message-pane input {margin-left: 3px;}
+.login-message-pane .on-off-switch-wrap {height:32px;}
+
+/*.login-message-pane .well {height: 74px;}
+.login-message-pane input {margin-left: 3px;}*/
 
 .views-permissions-panel .panel-body{
   padding-bottom: 0;
@@ -1050,6 +1052,22 @@ button.btn.btn-xs{
   line-height: 1.5;
   border-radius: 3px;
 }
+
+.clusterDisplayName {
+  display:inline-block;
+  width:90%;
+  word-wrap:break-word;
+}
+
+.renameCluster {
+  display:inline-block;
+  width:10%;
+}
+
+.default-body {
+  word-wrap:break-word;
+}
+
 .alert-info {
   background-color: #E6F1F6;
   border-color: #D2D9DD;
@@ -1093,7 +1111,7 @@ button.btn.btn-xs{
   box-sizing: border-box;
 }
 .ambariAlert .content {
-  display: inline-block;
+  word-wrap: break-word;
   padding-right: 10px;
 }
 .ambariAlert .icon-box {
@@ -1129,14 +1147,14 @@ button.btn.btn-xs{
 .ambariAlert.error {
   border-left: 3px solid #ef2427;
 }
-.ambariAlert.error .icon-box {
+.ambariAlert.error .icon-box, .test-ldap-icon.fa-times-circle {
   color: #ef2427;
 }
 
 .ambariAlert.success {
   border-left: 3px solid #82c534;
 }
-.ambariAlert.success .icon-box {
+.ambariAlert.success .icon-box, .test-ldap-icon.fa-check-circle {
   color: #82c534;
 }
 
@@ -1355,6 +1373,14 @@ accordion .panel-group .panel{
 }
 
 thead.view-permission-header > tr > th {
-  border-top: 0px;
+  border-top: 0;
   padding-top: 40px;
+}
+
+.enable-ldap input[type="checkbox"] {
+  margin-top: 10px;
+}
+
+.test-ldap-icon.ng-hide-add-active, .test-ldap-icon.ng-hide-remove {
+  display: inline-block!important;
 }

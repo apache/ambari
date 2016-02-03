@@ -18,6 +18,7 @@
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators;
 
 
+import org.apache.hadoop.metrics2.sink.timeline.SingleValuedTimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor;
 
@@ -43,6 +44,43 @@ public class TimelineMetricReadHelper {
     TreeMap<Long, Double> sortedByTimeMetrics =
       PhoenixHBaseAccessor.readMetricFromJSON(rs.getString("METRICS"));
     metric.setMetricValues(sortedByTimeMetrics);
+    return metric;
+  }
+
+  public SingleValuedTimelineMetric getAggregatedTimelineMetricFromResultSet(ResultSet rs,
+      Function f) throws SQLException, IOException {
+
+    SingleValuedTimelineMetric metric = new SingleValuedTimelineMetric(
+      rs.getString("METRIC_NAME") + f.getSuffix(),
+      rs.getString("APP_ID"),
+      rs.getString("INSTANCE_ID"),
+      rs.getString("HOSTNAME"),
+      rs.getLong("SERVER_TIME"),
+      rs.getLong("SERVER_TIME"),
+      rs.getString("UNITS")
+    );
+
+    double value;
+    switch(f.getReadFunction()){
+      case AVG:
+        value = rs.getDouble("METRIC_SUM") / rs.getInt("METRIC_COUNT");
+        break;
+      case MIN:
+        value = rs.getDouble("METRIC_MIN");
+        break;
+      case MAX:
+        value = rs.getDouble("METRIC_MAX");
+        break;
+      case SUM:
+        value = rs.getDouble("METRIC_SUM");
+        break;
+      default:
+        value = rs.getDouble("METRIC_SUM") / rs.getInt("METRIC_COUNT");
+        break;
+    }
+
+    metric.setSingleTimeseriesValue(rs.getLong("SERVER_TIME"), value);
+
     return metric;
   }
 

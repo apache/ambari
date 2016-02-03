@@ -85,9 +85,13 @@ angular.module('ambariAdminConsole')
         'loginActivities':'Login Activities',
         'loginMessage': 'Login Message',
         'loginMessage.placeholder': 'Please enter login message',
+        'buttonText.placeholder': 'Please enter text for the "ok" button',
         'homeDirectory': 'Home Directory',
         'onlySimpleChars': 'Must contain only simple characters.',
-        'saveError': 'Save error'
+        'saveError': 'Save error',
+        'message': 'Message',
+        'buttonText': 'Button text',
+        'switch': 'On/Off'
       },
 
       'controls': {
@@ -315,6 +319,82 @@ angular.module('ambariAdminConsole')
         'versionEdited': 'Edited version <a href="#/stackVersions/{{stackName}}/{{versionName}}/edit">{{displayName}}</a>',
         'versionUpdateError': 'Version update error',
         'versionDeleteError': 'Version delete error'
+      }
+    },
+
+    'authentication': {
+      'description': 'Ambari supports authenticating against local Ambari users created and stored in the Ambari Database, or authenticating against a LDAP server:',
+      'ldap': 'LDAP Authentication',
+      'on': 'On',
+      'off': 'Off',
+
+      'connectivity': {
+        'title': 'LDAP Connectivity Configuration',
+        'host': 'LDAP Server Host',
+        'port': 'LDAP Server Port',
+        'ssl': 'Use SSL?',
+        'trustStore': {
+          'label': 'Trust Store',
+          'options': {
+            'default': 'JDK Default',
+            'custom': 'Custom'
+          }
+        },
+        'trustStorePath': 'Trust Store Path',
+        'trustStoreType': {
+          'label': 'Trust Store Type',
+          'options': {
+            'jks': 'JKS',
+            'jceks': 'JCEKS',
+            'pkcs12': 'PKCS12'
+          }
+        },
+        'trustStorePassword': 'Trust Store Password',
+        'dn': 'Bind DN',
+        'bindPassword': 'Bind Password',
+
+        'controls': {
+          'testConnection': 'Test Connection'
+        }
+      },
+
+      'attributes': {
+        'title': 'LDAP Attribute Configuration',
+        'detection': {
+          'label': 'Identifying the proper attributes to be used when authenticating and looking up users and groups can be specified manually, or automatically detected. Please choose:',
+          'options': {
+            'manual': 'Define Attributes Manually',
+            'auto': 'Auto-Detect Attributes'
+          }
+        },
+        'userSearch': 'User Search Base',
+        'groupSearch': 'Group Search Base',
+        'detected': 'The following attributes were detected, please review and Test Attributes to ensure their accuracy.',
+        'userObjClass': 'User Object Class',
+        'userNameAttr': 'User Name Attribute',
+        'groupObjClass': 'Group Object Class',
+        'groupNameAttr': 'Group Name Attribute',
+        'groupMemberAttr': 'Group Member Attribute',
+        'distinguishedNameAttr': 'Distinguished Name Attribute',
+        'test': {
+          'description': 'To quickly test the chosen attributes click the button below. During this process you can specify a test user name and password and Ambari will attempt to authenticate and retrieve group membership information',
+          'username': 'Test Username',
+          'password': 'Test Password'
+        },
+        'groupsList': 'List of Groups',
+
+        'controls': {
+          'autoDetect': 'Perform Auto-Detection',
+          'testAttrs': 'Test Attributes'
+        },
+
+        'alerts': {
+          'successfulAuth': 'Successful Authentication'
+        }
+      },
+
+      'controls': {
+        'test': 'Test'
       }
     }
   });

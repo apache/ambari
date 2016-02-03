@@ -42,7 +42,6 @@ import org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCache;
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -51,7 +50,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-
+import static org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata.MetricType;
 import static org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCache.MAX_EVICTION_TIME_MILLIS;
 import static org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCache.MAX_RECS_PER_NAME_DEFAULT;
 
@@ -280,7 +279,7 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
 
       String[] metricNames = cacheKafkaMetered(currentTimeMillis, sanitizedName, meter);
 
-      populateMetricsList(context, metricNames);
+      populateMetricsList(context, MetricType.GAUGE, metricNames);
     }
 
     @Override
@@ -291,7 +290,7 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
       final String metricCountName = cacheSanitizedTimelineMetric(currentTimeMillis, sanitizedName,
           COUNT_SUFIX, counter.count());
 
-      populateMetricsList(context, metricCountName);
+      populateMetricsList(context, MetricType.COUNTER, metricCountName);
     }
 
     @Override
@@ -305,7 +304,7 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
 
       String[] metricNames = (String[]) ArrayUtils.addAll(metricHNames, metricSNames);
 
-      populateMetricsList(context, metricNames);
+      populateMetricsList(context, MetricType.GAUGE, metricNames);
     }
 
     @Override
@@ -321,7 +320,7 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
       String[] metricNames = (String[]) ArrayUtils.addAll(metricMNames, metricTNames);
       metricNames = (String[]) ArrayUtils.addAll(metricNames, metricSNames);
 
-      populateMetricsList(context, metricNames);
+      populateMetricsList(context, MetricType.GAUGE, metricNames);
     }
 
     @Override
@@ -331,7 +330,7 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
 
       cacheSanitizedTimelineMetric(currentTimeMillis, sanitizedName, "", Double.parseDouble(String.valueOf(gauge.value())));
 
-      populateMetricsList(context, sanitizedName);
+      populateMetricsList(context, MetricType.GAUGE, sanitizedName);
     }
 
     private String[] cacheKafkaMetered(long currentTimeMillis, String sanitizedName, Metered meter) {
@@ -393,10 +392,11 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
       return meterName;
     }
 
-    private void populateMetricsList(Context context, String... metricNames) {
+    private void populateMetricsList(Context context, MetricType type, String... metricNames) {
       for (String metricName : metricNames) {
         TimelineMetric cachedMetric = metricsCache.getTimelineMetric(metricName);
         if (cachedMetric != null) {
+          cachedMetric.setType(type.name());
           context.getTimelineMetricList().add(cachedMetric);
         }
       }

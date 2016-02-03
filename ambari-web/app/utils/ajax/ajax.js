@@ -2088,6 +2088,10 @@ var urls = {
     'real': '/clusters?fields=Clusters/provisioning_state',
     'mock': '/data/clusters/info.json'
   },
+  'router.login.message': {
+    'real': '/settings/motd',
+    'mock': '/data/settings/motd.json'
+  },
   'router.logoff': {
     'real': '/logout',
     'mock': '',

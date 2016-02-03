@@ -21,10 +21,10 @@
     <div class="panel-body">
       <div class="cluster-section" ng-show="cluster">
         <div id="cluster-name"  ng-switch on="editCluster.editingName">
-          <h5 ng-switch-when="false">{{cluster.Clusters.cluster_name}}
+          <h5 ng-switch-when="false"><div title={{cluster.Clusters.cluster_name}} class="clusterDisplayName">{{clusterDisplayName()}}</div>
             <i ng-show="cluster.Clusters.provisioning_state == 'INSTALLED'" 
                ng-click="toggleEditName()" 
-               class="glyphicon glyphicon-edit pull-right edit-cluster-name" tooltip="{{'common.renameCluster' | translate}}">
+               class="glyphicon glyphicon-edit pull-right edit-cluster-name renameCluster" tooltip="{{'common.renameCluster' | translate}}">
             </i>
           </h5>
 

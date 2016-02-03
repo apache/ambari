@@ -40,6 +40,7 @@ import java.util.List;
 
 import org.apache.commons.configuration.SubsetConfiguration;
 import org.apache.hadoop.metrics2.AbstractMetric;
+import org.apache.hadoop.metrics2.MetricType;
 import org.apache.hadoop.metrics2.MetricsRecord;
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
@@ -90,6 +91,7 @@ public class HadoopTimelineMetricsSinkTest {
     AbstractMetric metric = createNiceMock(AbstractMetric.class);
     expect(metric.name()).andReturn("metricName").anyTimes();
     expect(metric.value()).andReturn(9.5687).anyTimes();
+    expect(metric.type()).andReturn(MetricType.COUNTER).anyTimes();
     //TODO currently only numeric metrics are supported
 
     MetricsRecord record = createNiceMock(MetricsRecord.class);
@@ -103,7 +105,6 @@ public class HadoopTimelineMetricsSinkTest {
     }).anyTimes();
 
     expect(record.metrics()).andReturn(Arrays.asList(metric)).anyTimes();
-
 
     replay(conf, record, metric);
 
@@ -239,4 +240,6 @@ public class HadoopTimelineMetricsSinkTest {
     Assert.assertEquals(new Double(5.0), values.next());
     Assert.assertEquals(new Double(6.0), values.next());
   }
+
+
 }

@@ -36,7 +36,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata.MetricType.UNDEFINED;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.DISABLE_METRIC_METADATA_MGMT;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.METRICS_METADATA_SYNC_INIT_DELAY;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.METRICS_METADATA_SYNC_SCHEDULE_DELAY;
@@ -166,8 +165,8 @@ public class TimelineMetricMetadataManager {
     return new TimelineMetricMetadata(
       timelineMetric.getMetricName(),
       timelineMetric.getAppId(),
-      timelineMetric.getType(), // Present type and unit are synonyms
-      UNDEFINED, // TODO: Add support for types in the application
+      timelineMetric.getUnits(),
+      timelineMetric.getType(),
       timelineMetric.getStartTime(),
       true
     );

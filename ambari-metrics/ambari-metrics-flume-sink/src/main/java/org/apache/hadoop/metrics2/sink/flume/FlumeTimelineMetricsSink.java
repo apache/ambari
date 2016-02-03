@@ -135,12 +135,11 @@ public class FlumeTimelineMetricsSink extends AbstractTimelineMetricsSink implem
     public void run() {
       LOG.debug("Collecting Metrics for Flume");
       try {
-        Map<String, Map<String, String>> metricsMap =
-            JMXPollUtil.getAllMBeans();
+        Map<String, Map<String, String>> metricsMap = JMXPollUtil.getAllMBeans();
         long currentTimeMillis = System.currentTimeMillis();
         for (String component : metricsMap.keySet()) {
           Map<String, String> attributeMap = metricsMap.get(component);
-          LOG.info("Attributes for component " + component);
+          LOG.debug("Attributes for component " + component);
           processComponentAttributes(currentTimeMillis, component, attributeMap);
         }
       } catch (UnableToConnectException uce) {
@@ -188,8 +187,6 @@ public class FlumeTimelineMetricsSink extends AbstractTimelineMetricsSink implem
       timelineMetric.setInstanceId(component);
       timelineMetric.setAppId("FLUME_HANDLER");
       timelineMetric.setStartTime(currentTimeMillis);
-      timelineMetric.setType(ClassUtils.getShortCanonicalName(
-          attributeValue, "Number"));
       timelineMetric.getMetricValues().put(currentTimeMillis, Double.parseDouble(attributeValue));
       return timelineMetric;
     }

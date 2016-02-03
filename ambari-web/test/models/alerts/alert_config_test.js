@@ -24,6 +24,106 @@ var model;
 
 describe('App.AlertConfigProperties', function () {
 
+  describe('Parameter', function () {
+
+    function getModel() {
+      return App.AlertConfigProperties.Parameter.create();
+    }
+
+    App.TestAliases.testAsComputedAlias(getModel(), 'badge', 'threshold');
+
+  });
+
+  describe('App.AlertConfigProperties.Parameters', function () {
+
+    describe('StringMixin', function () {
+
+      var obj;
+
+      beforeEach(function () {
+        obj = App.AlertConfigProperties.Parameter.create(App.AlertConfigProperties.Parameters.StringMixin, {});
+      });
+
+      describe('#isValid', function () {
+        Em.A([
+          {value: '', expected: false},
+          {value: '\t', expected: false},
+          {value: '    ', expected: false},
+          {value: '\n', expected: false},
+          {value: '\r', expected: false},
+          {value: 'some not empty string', expected: true}
+        ]).forEach(function (test) {
+          it('value: ' + JSON.stringify(test.value) + ' ;result - ' + test.expected, function () {
+            obj.set('value', test.value);
+            expect(obj.get('isValid')).to.be.equal(test.expected);
+          });
+        });
+      });
+
+    });
+
+    describe('NumericMixin', function () {
+
+      var obj;
+
+      beforeEach(function () {
+        obj = App.AlertConfigProperties.Parameter.create(App.AlertConfigProperties.Parameters.NumericMixin, {});
+      });
+
+      describe('#isValid', function () {
+        Em.A([
+          {value: '', expected: false},
+          {value: 'abc', expected: false},
+          {value: 'g1', expected: false},
+          {value: '1g', expected: false},
+          {value: '123', expected: true},
+          {value: '123.8', expected: true},
+          {value: 123, expected: true},
+          {value: 123.8, expected: true},
+        ]).forEach(function (test) {
+          it('value: ' + JSON.stringify(test.value) + ' ;result - ' + test.expected, function () {
+            obj.set('value', test.value);
+            expect(obj.get('isValid')).to.be.equal(test.expected);
+          });
+        });
+      });
+
+    });
+
+    describe('PercentageMixin', function () {
+
+      var obj;
+
+      beforeEach(function () {
+        obj = App.AlertConfigProperties.Parameter.create(App.AlertConfigProperties.Parameters.PercentageMixin, {});
+      });
+
+      describe('#isValid', function () {
+        Em.A([
+          {value: '', expected: false},
+          {value: 'abc', expected: false},
+          {value: 'g1', expected: false},
+          {value: '1g', expected: false},
+          {value: '123', expected: false},
+          {value: '23', expected: true},
+          {value: '123.8', expected: false},
+          {value: '5.8', expected: true},
+          {value: 123, expected: false},
+          {value: 23, expected: true},
+          {value: 123.8, expected: false},
+          {value: 5.8, expected: true}
+        ]).forEach(function (test) {
+          it('value: ' + JSON.stringify(test.value) + ' ;result - ' + test.expected, function () {
+            obj.set('value', test.value);
+            expect(obj.get('isValid')).to.be.equal(test.expected);
+          });
+        });
+      });
+
+    });
+
+  });
+
   describe('Threshold', function () {
 
     beforeEach(function () {

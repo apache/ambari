@@ -56,6 +56,15 @@ angular.module('ambariAdminConsole')
     $scope.editCluster.editingName  = !$scope.editCluster.editingName;
   };
 
+  $scope.clusterDisplayName = function () {
+    var name="";
+    if($scope.cluster && $scope.cluster.Clusters)
+    {
+       name = $scope.cluster.Clusters.cluster_name;
+    }
+    return name.length > 13 ? name.substr(0, 13) + "..." : name;
+  };
+
   $scope.confirmClusterNameChange = function() {
     ConfirmationModal.show(
       $t('common.clusterNameChangeConfirmation.title'),
