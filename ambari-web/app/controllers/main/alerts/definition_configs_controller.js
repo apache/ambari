@@ -320,6 +320,23 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
       })
     ]);
 
+    var mixins = {
+      STRING: App.AlertConfigProperties.Parameters.StringMixin,
+      NUMERIC: App.AlertConfigProperties.Parameters.NumericMixin,
+      PERCENT: App.AlertConfigProperties.Parameters.PercentageMixin
+    };
+    alertDefinition.get('parameters').forEach(function (parameter) {
+      var mixin = mixins[parameter.get('type')] || {}; // validation depends on parameter-type
+      result.push(App.AlertConfigProperties.Parameter.create(mixin, {
+        value: isWizard ? '' : parameter.get('value'),
+        apiProperty: parameter.get('name'),
+        label: isWizard ? '' : parameter.get('displayName'),
+        threshold: isWizard ? '' : parameter.get('threshold'),
+        units: isWizard ? '' : parameter.get('units'),
+        type: isWizard ? '' : parameter.get('type'),
+      }));
+    });
+
     return result;
   },
 
@@ -478,6 +495,9 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
   getPropertiesToUpdate: function (onlyChanged) {
     var propertiesToUpdate = {};
     var configs = onlyChanged ? this.get('configs').filterProperty('wasChanged') : this.get('configs');
+    configs = configs.filter(function (c) {
+      return c.get('name') !== 'parameter';
+    });
     configs.forEach(function (property) {
       var apiProperties = property.get('apiProperty');
       var apiFormattedValues = property.get('apiFormattedValue');
@@ -520,6 +540,15 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
         }
       }, this);
     }, this);
+
+    // `source.parameters` is an array and should be updated separately from other configs
+    if (this.get('content.parameters.length')) {
+      propertiesToUpdate['AlertDefinition/source/parameters'] = this.get('content.rawSourceData.parameters');
+      var parameterConfigs = this.get('configs').filterProperty('name', 'parameter');
+      parameterConfigs.forEach(function (parameter) {
+        propertiesToUpdate['AlertDefinition/source/parameters'].findProperty('name', parameter.get('apiProperty')).value = parameter.get('apiFormattedValue');
+      });
+    }
 
     return propertiesToUpdate;
   },

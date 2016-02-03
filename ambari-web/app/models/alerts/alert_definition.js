@@ -315,8 +315,8 @@ App.AlertDefinition.reopenClass({
 App.AlertDefinitionParameter = DS.Model.extend({
   name: DS.attr('string'),
   displayName: DS.attr('string'),
-  unit: DS.attr('string'),
-  value: DS.attr('number'),
+  units: DS.attr('string'),
+  value: DS.attr('string'),
   description: DS.attr('string'),
   type: DS.attr('string'),
   threshold: DS.attr('string')

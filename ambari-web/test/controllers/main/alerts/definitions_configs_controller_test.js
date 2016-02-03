@@ -249,6 +249,10 @@ describe('App.MainAlertDefinitionConfigsController', function () {
         scope: 'HOST',
         description: 'alertDefinitionDescription',
         interval: 60,
+        parameters: [
+          Em.Object.create({}),
+          Em.Object.create({}),
+        ],
         reporting: [
           Em.Object.create({
             type: 'warning',
@@ -270,13 +274,13 @@ describe('App.MainAlertDefinitionConfigsController', function () {
     it('isWizard = true', function () {
       controller.set('isWizard', true);
       var result = controller.renderScriptConfigs();
-      expect(result.length).to.equal(8);
+      expect(result.length).to.equal(10);
     });
 
     it('isWizard = false', function () {
       controller.set('isWizard', false);
       var result = controller.renderScriptConfigs();
-      expect(result.length).to.equal(2);
+      expect(result.length).to.equal(4);
     });
 
   });
@@ -477,6 +481,42 @@ describe('App.MainAlertDefinitionConfigsController', function () {
         expect(result).to.eql(testCase.result);
       });
     });
+
+    describe('`source/parameters` for SCRIPT configs', function () {
+
+      beforeEach(function () {
+        controller.set('content', Em.Object.create({
+          parameters: [
+            Em.Object.create({name: 'p1', value: 'v1'}),
+            Em.Object.create({name: 'p2', value: 'v2'}),
+            Em.Object.create({name: 'p3', value: 'v3'}),
+            Em.Object.create({name: 'p4', value: 'v4'})
+          ],
+          rawSourceData: {
+            parameters: [
+              {name: 'p1', value: 'v1'},
+              {name: 'p2', value: 'v2'},
+              {name: 'p3', value: 'v3'},
+              {name: 'p4', value: 'v4'}
+            ]
+          }
+        }));
+        controller.set('configs', [
+          Em.Object.create({apiProperty:'p1', apiFormattedValue: 'v11', wasChanged: true, name: 'parameter'}),
+          Em.Object.create({apiProperty:'p2', apiFormattedValue: 'v21', wasChanged: true, name: 'parameter'}),
+          Em.Object.create({apiProperty:'p3', apiFormattedValue: 'v31', wasChanged: true, name: 'parameter'}),
+          Em.Object.create({apiProperty:'p4', apiFormattedValue: 'v41', wasChanged: true, name: 'parameter'})
+        ]);
+        this.result = controller.getPropertiesToUpdate();
+      });
+
+      it('should update parameters', function () {
+        expect(this.result['AlertDefinition/source/parameters']).to.have.property('length').equal(4);
+        expect(this.result['AlertDefinition/source/parameters'].mapProperty('value')).to.be.eql(['v11', 'v21', 'v31', 'v41']);
+      });
+
+    });
+
   });
 
   describe('#changeType()', function () {

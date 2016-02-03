@@ -17,8 +17,6 @@
 
 var App = require('app');
 
-var stringUtils = require('utils/string_utils');
-
 App.alertDefinitionsMapper = App.QuickDataMapper.create({
 
   model: App.AlertDefinition,
@@ -44,7 +42,7 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
     reporting: {
       item: 'id'
     },
-    parameters_key: 'reporting',
+    parameters_key: 'parameters',
     parameters_type: 'array',
     parameters: {
       item: 'id'
@@ -76,21 +74,11 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
     connection_timeout: 'AlertDefinition.source.uri.connection_timeout'
   },
 
-  parameterConfig: {
-    id: 'AlertDefinition.source.parameters.id',
-    name: 'AlertDefinition.source.parameters.name',
-    display_name: 'AlertDefinition.source.parameters.display_name',
-    units: 'AlertDefinition.source.parameters.units',
-    value: 'AlertDefinition.source.parameters.value',
-    description: 'AlertDefinition.source.parameters.description',
-    type: 'AlertDefinition.source.parameters.type',
-    threshold: 'AlertDefinition.source.parameters.threshold'
-  },
-
   map: function (json) {
     console.time('App.alertDefinitionsMapper execution time');
     if (json && json.items) {
       var self = this,
+          parameters = [],
           alertDefinitions = [],
           alertReportDefinitions = [],
           alertMetricsSourceDefinitions = [],
@@ -123,8 +111,27 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
           }
         }
 
+        var convertedParameters = [];
+        var sourceParameters = item.AlertDefinition.source.parameters;
+        if (Array.isArray(sourceParameters)) {
+          sourceParameters.forEach(function (parameter) {
+            convertedParameters.push({
+              id: item.AlertDefinition.id + parameter.name,
+              name: parameter.name,
+              display_name: parameter.display_name,
+              units: parameter.units,
+              value: parameter.value,
+              description: parameter.description,
+              type: parameter.type,
+              threshold: parameter.threshold
+            });
+          });
+        }
+
         alertReportDefinitions = alertReportDefinitions.concat(convertedReportDefinitions);
+        parameters = parameters.concat(convertedParameters);
         item.reporting = convertedReportDefinitions;
+        item.parameters = convertedParameters;
 
         rawSourceData[item.AlertDefinition.id] = item.AlertDefinition.source;
         item.AlertDefinition.description = item.AlertDefinition.description || '';
@@ -207,6 +214,7 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
 
       // load all mapped data to model
       App.store.loadMany(this.get('reportModel'), alertReportDefinitions);
+      App.store.loadMany(this.get('parameterModel'), parameters);
       App.store.loadMany(this.get('metricsSourceModel'), alertMetricsSourceDefinitions);
       this.setMetricsSourcePropertyLists(this.get('metricsSourceModel'), alertMetricsSourceDefinitions);
       App.store.loadMany(this.get('metricsUriModel'), alertMetricsUriDefinitions);
