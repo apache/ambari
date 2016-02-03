@@ -412,7 +412,7 @@ def convert_conf_directories_to_symlinks(package, version, dirs, skip_existing_l
       # check if conf is a link already
       old_conf = dir_def['conf_dir']
       if os.path.islink(old_conf):
-        Logger.info("{0} is already link to {1}".format(old_conf, os.path.realpath(old_conf)))
+        Logger.info("{0} is already linked to {1}".format(old_conf, os.path.realpath(old_conf)))
         bad_dirs.append(old_conf)
 
   if len(bad_dirs) > 0:
