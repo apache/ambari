@@ -25,11 +25,11 @@ angular.module('ambariAdminConsole')
     $scope.status = false;
     $scope.motdExists = false;
     $scope.text = "";
-    $scope.buttonText = "Ok";
+    $scope.buttonText = "OK";
     $scope.submitDisabled = true;
 
-    $http.get('/api/v1/admin-settings/motd').then(function (res) {
-      var response = JSON.parse(res.data.AdminSettings.content);
+    $http.get('/api/v1/settings/motd').then(function (res) {
+      var response = JSON.parse(res.data.Settings.content);
       $scope.text = response.text ? response.text : "";
       $scope.buttonText = response.button ? response.button : "";
       $scope.status = response.status && response.status == "true" ? true : false;
@@ -53,7 +53,7 @@ angular.module('ambariAdminConsole')
     $scope.saveLoginMsg = function(targetUrl) {
       var method = $scope.motdExists ? 'PUT' : 'POST';
       var data = {
-        'AdminSettings' : {
+        'Settings' : {
           'content' : '{"text":"' + $scope.text + '", "button":"' + $scope.buttonText + '", "status":"' + $scope.status + '"}',
           'name' : 'motd',
           'setting_type' : 'ambari-server'
@@ -64,7 +64,7 @@ angular.module('ambariAdminConsole')
         $scope.submitDisabled = true;
         return $http({
           method: method,
-          url: '/api/v1/admin-settings/' + ($scope.motdExists ? 'motd' : ''),
+          url: '/api/v1/settings/' + ($scope.motdExists ? 'motd' : ''),
           data: data
         }).then(function successCallback() {
           $scope.motdExists = true;

@@ -2089,7 +2089,7 @@ var urls = {
     'mock': '/data/clusters/info.json'
   },
   'router.login.message': {
-    'real': '/admin-settings/motd',
+    'real': '/settings/motd',
     'mock': '/data/settings/motd.json'
   },
   'router.logoff': {

@@ -1,6 +1,6 @@
 {
-  "href" : "/api/v1/admin-settings/motd",
-  "AdminSettings" : {
+  "href" : "/api/v1/settings/motd",
+  "Settings" : {
     "content" : "{\"text\":\"You are using test mode\", \"button\":\"\", \"status\":\"true\"}",
     "name" : "motd",
     "setting_type" : "ambari-server",
