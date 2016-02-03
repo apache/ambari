@@ -36,6 +36,7 @@ App.MainServiceItemView = Em.View.extend({
     'HBASE_MASTER': ['DECOMMISSION'],
     'KNOX_GATEWAY': ['STARTDEMOLDAP','STOPDEMOLDAP'],
     'HAWQMASTER': ['IMMEDIATE_STOP_CLUSTER'],
+    'HAWQSTANDBY': ['ACTIVATE_STANDBY'],
     'HAWQSEGMENT': ['IMMEDIATE_STOP']
   },
 
@@ -171,6 +172,7 @@ App.MainServiceItemView = Em.View.extend({
             break;
           case 'HAWQ':
             options.push(actionMap.TOGGLE_ADD_HAWQ_STANDBY);
+            options.push(actionMap.TOGGLE_ACTIVATE_HAWQ_STANDBY);
             break;
         }
       }

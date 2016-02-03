@@ -16,37 +16,21 @@
  * limitations under the License.
  */
 
+
 var App = require('app');
-require('utils/configs/config_initializer_class');
-require('utils/configs/hosts_based_initializer_mixin');
 
-/**
- * Initializer for configs that are updated when Hawq Standby is added
- *
- * @class {HawqHaConfigInitializer}
- */
-App.HawqHaConfigInitializer = App.HaConfigInitializerClass.create(App.HostsBasedInitializerMixin, {
+App.ActivateHawqStandbyWizardStep3View = App.HighAvailabilityProgressPageView.extend({
 
-  initializers: function () {
-    return {
-      'hawq_standby_address_host': this.getHostWithPortConfig('HAWQSTANDBY', false, '', '', '')
-    };
-  }.property(),
+  templateName: require('templates/main/admin/highAvailability/hawq/activateStandby/step3'),
 
-  /**
-   * @override
-   * @param {object} settings
-   */
-  setup: function (settings) {
-    this._updateInitializers(settings);
-  },
+  headerTitle: Em.I18n.t('admin.activateHawqStandby.wizard.step3.header'),
 
-  /**
-   * @override
-   */
-  cleanup: function () {
-    this._restoreInitializers();
-  }
+  noticeInProgress: Em.I18n.t('admin.activateHawqStandby.wizard.step3.notice.inProgress'),
 
+  noticeCompleted: Em.I18n.t('admin.activateHawqStandby.wizard.step3.notice.completed'),
+
+  submitButtonText: Em.I18n.t('common.complete'),
+
+  labelWidth: 'span5'
 
 });

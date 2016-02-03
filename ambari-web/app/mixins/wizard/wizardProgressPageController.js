@@ -695,6 +695,36 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
       this.removeObserver('tasks.@each.status', this, 'onTaskStatusChange');
       App.router.send('back');
     }
+  },
+
+  /**
+   * Delete component on single hosts.
+   *
+   * @method deleteComponent
+   * @param {string} componentName - name of the component
+   * @param {string} hostName - host from where components should be deleted
+   */
+  deleteComponent: function (componentName, hostName) {
+    App.ajax.send({
+      name: 'common.delete.host_component',
+      sender: this,
+      data: {
+        componentName: componentName,
+        hostName: hostName
+      },
+      success: 'onTaskCompleted',
+      error: 'onDeleteHostComponentsError'
+    });
+  },
+
+  onDeleteHostComponentsError: function (error) {
+    // If the component does not exist on the host, NoSuchResourceException is thrown.
+    // If NoSuchResourceException is thrown, there is no action required and operation should continue.
+    if (error.responseText.indexOf('org.apache.ambari.server.controller.spi.NoSuchResourceException') !== -1) {
+      this.onTaskCompleted();
+    } else {
+      this.onTaskError();
+    }
   }
 
 });

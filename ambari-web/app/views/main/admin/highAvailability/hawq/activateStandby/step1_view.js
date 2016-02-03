@@ -16,37 +16,11 @@
  * limitations under the License.
  */
 
+
 var App = require('app');
-require('utils/configs/config_initializer_class');
-require('utils/configs/hosts_based_initializer_mixin');
 
-/**
- * Initializer for configs that are updated when Hawq Standby is added
- *
- * @class {HawqHaConfigInitializer}
- */
-App.HawqHaConfigInitializer = App.HaConfigInitializerClass.create(App.HostsBasedInitializerMixin, {
+App.ActivateHawqStandbyWizardStep1View = Em.View.extend({
 
-  initializers: function () {
-    return {
-      'hawq_standby_address_host': this.getHostWithPortConfig('HAWQSTANDBY', false, '', '', '')
-    };
-  }.property(),
-
-  /**
-   * @override
-   * @param {object} settings
-   */
-  setup: function (settings) {
-    this._updateInitializers(settings);
-  },
-
-  /**
-   * @override
-   */
-  cleanup: function () {
-    this._restoreInitializers();
-  }
-
+  templateName: require('templates/main/admin/highAvailability/hawq/activateStandby/step1')
 
 });

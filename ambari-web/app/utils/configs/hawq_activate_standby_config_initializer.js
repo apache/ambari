@@ -23,15 +23,16 @@ require('utils/configs/hosts_based_initializer_mixin');
 /**
  * Initializer for configs that are updated when Hawq Standby is added
  *
- * @class {HawqHaConfigInitializer}
+ * @class {HawqActivateStandbyConfigInitializer}
  */
-App.HawqHaConfigInitializer = App.HaConfigInitializerClass.create(App.HostsBasedInitializerMixin, {
+App.HawqActivateStandbyConfigInitializer = App.HaConfigInitializerClass.create(App.HostsBasedInitializerMixin, {
 
   initializers: function () {
     return {
-      'hawq_standby_address_host': this.getHostWithPortConfig('HAWQSTANDBY', false, '', '', '')
+      'hawq_master_address_host': this.getHostWithPortConfig('HAWQSTANDBY', true, '', '', '')
     };
   }.property(),
+
 
   /**
    * @override

@@ -2902,5 +2902,40 @@ Em.I18n.translations = {
   'admin.addHawqStandby.wizard.step4.task2.title': 'Reconfigure HAWQ',
   'admin.addHawqStandby.wizard.step4.task3.title': 'Start HAWQ Service',
   'admin.addHawqStandby.wizard.step4.notice.inProgress':'Please wait while HAWQ Standby Master is being deployed.',
-  'admin.addHawqStandby.wizard.step4.notice.completed':'HAWQ Standby Master has been enabled successfully.'
+  'admin.addHawqStandby.wizard.step4.notice.completed':'HAWQ Standby Master has been added successfully.',
+  'admin.activateHawqStandby.button.enable': 'Activate HAWQ Standby',
+  'admin.activateHawqStandby.wizard.header': 'Activate HAWQ Standby Wizard',
+  'admin.activateHawqStandby.wizard.step1.header': 'Get Started',
+  'admin.activateHawqStandby.wizard.step1.body':'This wizard will walk you through activating HAWQ Standby.' +
+      '<br/>Once activated, HAWQ Standby will become HAWQ Master, and the previous HAWQ master will be removed. ' +
+      'Users will be able to connect to HAWQ database using the new HAWQ Master.' +
+      '<br/><br/><b>You should plan a cluster maintenance window and prepare for cluster downtime when ' +
+      'activating HAWQ Standby. During this operation, HAWQ service will be stopped and started.</b>' +
+      '<br/><br/>Note: In order to add standby for HAWQ service, you can use the "Add HAWQ Standby"</b> wizard.',
+  'admin.activateHawqStandby.wizard.step2.header': 'Review',
+  'admin.highAvailability.wizard.step2.toBeDeleted': 'TO BE DELETED',
+  'admin.activateHawqStandby.wizard.step2.hawqMaster': '<b>Current HAWQ Master:</b>',
+  'admin.activateHawqStandby.wizard.step2.hawqStandby': '<b>New HAWQ Master:</b>',
+  'admin.activateHawqStandby.wizard.step2.toBeActivated': 'STANDBY TO BE ACTIVATED',
+  'admin.activateHawqStandby.wizard.step2.confirm.config.body':'<div class="alert alert-info">' +
+      '<b>Review Configuration Changes.</b></br>The following lists the configuration changes that will be ' +
+      'made by the Wizard to activate HAWQ Standby Master. This information is for <b> review only </b> and is not' +
+      ' editable.<br/><br/><b>Note:</b> hawq_standby_address_host property will be removed from hawq-site.xml as ' +
+      'HAWQ Standby will be activated to HAWQ Master.</div>',
+  'admin.activateHawqStandby.wizard.step2.confirm.host.body':'<b>Review HAWQ Master & Standby role changes.</b>',
+  'admin.activateHawqStandby.wizard.step2.confirmPopup.body': 'Do you wish to continue with activating HAWQ Standy? Please confirm, before proceeding as you will not be able to rollback from Ambari.',
+  'admin.activateHawqStandby.wizard.step3.header': 'Finalize Setup',
+  'admin.activateHawqStandby.wizard.step3.task0.title': 'Activate HAWQ Standby',
+  'admin.activateHawqStandby.wizard.step3.task1.title': 'Stop HAWQ Service',
+  'admin.activateHawqStandby.wizard.step3.task2.title': 'Reconfigure HAWQ',
+  'admin.activateHawqStandby.wizard.step3.task3.title': 'Install Role: New HAWQ Master',
+  'admin.activateHawqStandby.wizard.step3.task4.title': 'Delete Role: Old HAWQ Master',
+  'admin.activateHawqStandby.wizard.step3.task5.title': 'Delete Role: Old HAWQ Standby',
+  'admin.activateHawqStandby.wizard.step3.task6.title': 'Start HAWQ Service',
+  'admin.activateHawqStandby.closePopup':'Activate HAWQ Standby Wizard is in progress. You must allow the wizard to' +
+      ' complete for Ambari to be in usable state. If you choose to quit, you must follow manual instructions to' +
+      ' get back to a stable state. Are you sure you want to exit the wizard?',
+  'admin.activateHawqStandby.wizard.step3.notice.inProgress':'Please wait while HAWQ Standby is being activated',
+  'admin.activateHawqStandby.wizard.step3.notice.completed':'HAWQ Standby has been activated successfully.',
+  'admin.activateHawqStandby.wizard.step3.activateHawqStandbyCommand.context': "Execute HAWQ Standby activate command"
 };
