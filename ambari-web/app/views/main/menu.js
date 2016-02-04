@@ -132,11 +132,13 @@ App.MainMenuView = Em.CollectionView.extend({
           });
         }
         if (App.isAuthorized('SERVICE.START_STOP')) {
-          categories.push({
-            name: 'serviceAutoStart',
-            url: 'serviceAutoStart',
-            label: Em.I18n.t('admin.serviceAutoStart.title')
-          });
+          if (App.supports.serviceAutoStart) {
+            categories.push({
+              name: 'serviceAutoStart',
+              url: 'serviceAutoStart',
+              label: Em.I18n.t('admin.serviceAutoStart.title')
+            });
+          }
         }
       }
       return categories;

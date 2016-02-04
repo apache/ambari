@@ -54,6 +54,7 @@ module.exports = function(config) {
       'vendor/scripts/ember-i18n-1.4.1.js',
       'vendor/scripts/bootstrap.js',
       'vendor/scripts/bootstrap-combobox.js',
+      'vendor/scripts/bootstrap-switch.min.js',
       'vendor/scripts/d3.v2.js',
       'vendor/scripts/cubism.v1.js',
       'vendor/scripts/jquery.ui.core.js',

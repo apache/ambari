@@ -45,11 +45,13 @@ App.MainAdminView = Em.View.extend({
       });
     }
     if (App.isAuthorized('SERVICE.START_STOP')) {
-      items.push({
-        name: 'serviceAutoStart',
-        url: 'adminServiceAutoStart',
-        label: Em.I18n.t('admin.serviceAutoStart.title')
-      });
+      if (App.supports.serviceAutoStart) {
+        items.push({
+          name: 'serviceAutoStart',
+          url: 'adminServiceAutoStart',
+          label: Em.I18n.t('admin.serviceAutoStart.title')
+        });
+      }
     }
     return items;
   }.property(''),

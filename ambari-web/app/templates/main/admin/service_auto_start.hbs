@@ -24,9 +24,14 @@
     {{t admin.serviceAutoStart.header.text}}
   </div>
   <br/>
-  <div>
-    <p>{{t admin.serviceAutoStart.title}}
-        <button class="btn btn-padding btn-success" {{bindAttr class="controller.overallEnabled:btn-success::btn-warning"}} {{action toggleOverallEnabled target="controller"}}>{{view.buttonText}}</button>
+  <div class="cluster-switcher">
+    <p>{{t admin.serviceAutoStart.body.text}}
+        {{view Ember.Checkbox checkedBinding="view.switcherValue"}}
     </p>
   </div>
+    {{#if view.switcherValue}}
+        <div>
+            <hr>
+        </div>
+    {{/if}}
 </div>

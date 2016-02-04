@@ -768,6 +768,10 @@ var urls = {
     'real': '/clusters/{clusterName}?fields=Clusters/desired_configs',
     'mock': '/data/clusters/cluster.json'
   },
+  'config.tags.site': {
+    'real': '/clusters/{clusterName}?fields=Clusters/desired_configs/{site}',
+    'mock': ''
+  },
   'config.tags_and_groups': {
     'real': '/clusters/{clusterName}?fields=Clusters/desired_configs,config_groups/*{urlParams}',
     'mock': '/data/clusters/tags_and_groups.json'
@@ -1390,7 +1394,7 @@ var urls = {
     'real': '/clusters/{clusterName}/configurations?(type=core-site&tag={coreSiteTag})|(type=hdfs-site&tag={hdfsSiteTag})',
     'mock': ''
   },
-  'admin.high_availability.save_configs': {
+  'admin.save_configs': {
     'real': '/clusters/{clusterName}',
     'mock': '',
     'type': 'PUT',

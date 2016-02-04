@@ -42,6 +42,7 @@ exports.config =
           'vendor/scripts/bootstrap-combobox.js',
           'vendor/scripts/bootstrap-checkbox.js',
           'vendor/scripts/bootstrap-slider.min.js',
+          'vendor/scripts/bootstrap-switch.min.js',
           'vendor/scripts/d3.v2.js',
           'vendor/scripts/cubism.v1.js',
           'vendor/scripts/jquery.ui.core.js',
@@ -86,6 +87,7 @@ exports.config =
           'vendor/styles/bootstrap-combobox.css',
           'vendor/styles/bootstrap-checkbox.css',
           'vendor/styles/bootstrap-slider.min.css',
+          'vendor/styles/bootstrap-switch.min.css',
           'vendor/styles/visualsearch-datauri.css'
         ],
         after: ['app/styles/custom-ui.css']

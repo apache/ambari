@@ -351,7 +351,7 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
   onLoadHbaseConfigs: function (data) {
     var hbaseSiteProperties = data.items.findProperty('type', 'hbase-site').properties;
     App.ajax.send({
-      name: 'admin.high_availability.save_configs',
+      name: 'admin.save_configs',
       sender: this,
       data: {
         siteName: 'hbase-site',
@@ -364,7 +364,7 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
   onLoadAccumuloConfigs: function (data) {
     var accumuloSiteProperties = data.items.findProperty('type', 'accumulo-site').properties;
     App.ajax.send({
-      name: 'admin.high_availability.save_configs',
+      name: 'admin.save_configs',
       sender: this,
       data: {
         siteName: 'accumulo-site',
@@ -378,7 +378,7 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
   onLoadHawqConfigs: function (data) {
     var hawqSiteProperties = data.items.findProperty('type', 'hawq-site').properties;
     App.ajax.send({
-      name: 'admin.high_availability.save_configs',
+      name: 'admin.save_configs',
       sender: this,
       data: {
         siteName: 'hawq-site',
@@ -415,7 +415,7 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
   onLoadConfigs: function (data) {
     this.set('configsSaved', false);
     App.ajax.send({
-      name: 'admin.high_availability.save_configs',
+      name: 'admin.save_configs',
       sender: this,
       data: {
         siteName: 'hdfs-site',
@@ -425,7 +425,7 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
       error: 'onTaskError'
     });
     App.ajax.send({
-      name: 'admin.high_availability.save_configs',
+      name: 'admin.save_configs',
       sender: this,
       data: {
         siteName: 'core-site',
