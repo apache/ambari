@@ -1378,11 +1378,57 @@ thead.view-permission-header > tr > th {
 }
 
 .enable-ldap input[type="checkbox"] {
-  margin-top: 10px;
+    margin-top: 10px;
 }
 
 .test-ldap-icon.ng-hide-add-active, .test-ldap-icon.ng-hide-remove {
-  display: inline-block!important;
+    display: inline-block!important;
+}
+
+.left-menu-all-repos {
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+.left-menu-all-repos .glyphicon.glyphicon-chevron-right{
+  -webkit-transition: all 0.3s;
+  -o-transition: all 0.3s;
+  transition: all 0.3s;
+}
+.left-menu-all-repos .glyphicon.glyphicon-chevron-right.opened{
+  -webkit-transform: rotateZ(90deg);
+  -ms-transform: rotateZ(90deg);
+  -o-transform: rotateZ(90deg);
+  transform: rotateZ(90deg);
+}
+
+.left-menu-all-repos .stack-version-title {
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: none;
+  padding-left: 10px;
+}
+
+.left-menu-all-repos .repos-table {
+  margin-bottom: 0px;
+}
+
+.left-menu-all-repos .panel-body {
+  padding: 15px 0px;
+}
+
+.left-menu-all-repos .repos-table .repos-td{
+  border-top: none;
+  padding: 5px 10px;
+}
+.left-menu-all-repos .repos-table .repos-td > a {
+  text-decoration: none;
+}
+.left-menu-all-repos .repos-table .repos-td.active{
+  background-color: #666;;
+}
+.left-menu-all-repos .repos-table .repos-td.active > a {
+  color: white;
 }
 
 .register-version-options .read-info-button {
@@ -1398,11 +1444,24 @@ thead.view-permission-header > tr > th {
   padding-bottom: 20px;
 }
 
-.register-version-form .patch-icon {
+.register-version-form .details-panel .patch-icon {
   color: #ff4500;
 }
+.register-version-form .deregister-button {
+    margin-top: -23px;
+}
+.register-version-form .version-info {
+    padding-top: 7px;
+    margin-top: 0;
+    margin-bottom: 0;
+}
 
-.register-version-form .remove-icon {
+.register-version-form .contents-panel .version-contents-body {
+    max-height: 150px;
+    overflow: scroll;
+}
+
+.register-version-form .repos-panel .remove-icon {
   color: red;
   margin: 20px 0px;
   padding: 0px;
@@ -1410,14 +1469,13 @@ thead.view-permission-header > tr > th {
   cursor: pointer;
 }
 
-.register-version-form .version-info {
-  padding-top: 7px;
-  margin-top: 0;
-  margin-bottom: 0;
+.register-version-form .repos-panel .os-type-label {
+  margin-top: 27px;;
 }
 
-.version-contents-body {
-  max-height: 150px;
-  overflow: scroll;
+#stack-versions .no-version-alert {
+  text-align: center;
 }
+
+
 

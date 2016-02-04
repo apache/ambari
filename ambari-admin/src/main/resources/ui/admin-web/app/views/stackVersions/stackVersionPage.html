@@ -23,13 +23,14 @@
     <li class="active" ng-if="createController">{{'versions.register' | translate}}</li>
   </ol>
 
-  <div class="pull-right top-margin-4" ng-switch="deleteEnabled"  ng-if="editController">
-    <button ng-switch-when="false" class="btn disabled btn-default" tooltip="Cannot delete version already installed.">{{'versions.deregister' | translate}}</button>
-    <button ng-switch-when="true" class="btn btn-danger" ng-click="delete()">{{'versions.deregister' | translate}}</button>
+  <div class="pull-right top-margin-4">
+    <a href="#/stackVersions/create" class="btn btn-primary">
+      <span class="glyphicon glyphicon-plus"></span>
+        {{'versions.register' | translate}}
+    </a>
   </div>
 </div>
 <hr>
-
 
 <div id="upload-definition-file-panel" ng-if="createController">
   <div class="clearfix register-version-options">
@@ -60,10 +61,37 @@
   </div>
 </div>
 
-<form class="form-horizontal register-version-form" role="form" name="repoRegForm" novalidate>
-  <div class="panel panel-default">
+<accordion close-others="false" class="col-sm-2 left-menu-all-repos" ng-if="editController">
+  <accordion-group ng-repeat="stackVersion in stackVersions" is-open="stackVersion.isOpened">
+    <accordion-heading>
+      <div class="row stack-version-title">
+        <i class="glyphicon glyphicon-chevron-right" ng-class="{'opened': stackVersion.isOpened}"></i>
+          {{stackVersion.name}}
+      </div>
+    </accordion-heading>
+    <table class="table repos-table">
+      <tbody>
+      <tr ng-repeat="repo in stackVersion.repos">
+        <td class="repos-td" ng-class="{'active': repo.isActive}">
+            <a href="#/stackVersions/{{repo.stack_name}}/{{repo.repository_version}}/edit">{{repo.repository_version}}</a>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </accordion-group>
+  <div class="alert alert-info" ng-show="stackVersions && !stackVersions.length">
+    {{'versions.contents.empty' | translate}}
+  </div>
+</accordion>
+
+<form ng-class="{'col-sm-10': editController}" class="form-horizontal register-version-form" role="form" name="repoRegForm" novalidate>
+  <div class="panel panel-default details-panel">
     <div class="panel-heading">
       <h3 class="panel-title">{{'common.details' | translate}}</h3>
+        <div class="pull-right deregister-button" ng-switch="deleteEnabled"  ng-if="editController">
+            <button ng-switch-when="false" class="btn disabled btn-default" tooltip="Cannot delete version already installed.">{{'versions.deregister' | translate}}</button>
+            <button ng-switch-when="true" class="btn btn-danger" ng-click="delete()">{{'versions.deregister' | translate}}</button>
+        </div>
     </div>
     <div class="panel-body">
       <div class="clearfix">
@@ -85,7 +113,7 @@
       </div>
     </div>
   </div>
-  <div class="panel panel-default">
+  <div class="panel panel-default contents-panel">
     <div class="panel-heading">
       <h3 class="panel-title">{{'versions.contents.title' | translate}}</h3>
     </div>
@@ -97,7 +125,7 @@
       </div>
     </div>
   </div>
-  <div class="panel panel-default">
+  <div class="panel panel-default repos-panel">
     <div class="panel-heading">
       <h3 class="panel-title">{{'versions.repos' | translate}}</h3>
     </div>
@@ -114,10 +142,8 @@
         <div ng-if="os.selected==true">
           <div class="clearfix border-bottom bottom-margin">
             <!-- show selected os in list table-->
-            <div class="col-sm-2">
-              <div class="">
-                <label>{{os.OperatingSystems.os_type}}</label>
-              </div>
+            <div class="col-sm-2 os-type-label">
+              <label>{{os.OperatingSystems.os_type}}</label>
             </div>
             <div class="col-sm-9">
               <div class="form-group {{repository.Repositories.repo_name}}" ng-class="{'has-error': repository.hasError }" ng-repeat="repository in os.repositories">

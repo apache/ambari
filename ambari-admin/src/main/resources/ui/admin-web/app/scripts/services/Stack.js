@@ -157,14 +157,27 @@ angular.module('ambariAdminConsole')
         var response = {
           id : data.repository_versions[0].RepositoryVersions.id,
           stackVersion : data.Versions.stack_version,
-          stack: data.Versions.stack_name + '-' + data.Versions.stack_version,
           stackName: data.Versions.stack_name,
-          versionName: data.repository_versions[0].RepositoryVersions.repository_version,
-          displayName : data.repository_versions[0].RepositoryVersions.display_name,
+          type: data.repository_versions[0].RepositoryVersions.release? data.repository_versions[0].RepositoryVersions.release.type: null,
+          stackNameVersion: data.Versions.stack_name + '-' + data.Versions.stack_version, /// HDP-2.3
+          actualVersion: data.repository_versions[0].RepositoryVersions.repository_version, /// 2.3.4.0-3846
+          version: data.repository_versions[0].RepositoryVersions.release ? data.repository_versions[0].RepositoryVersions.release.version: null, /// 2.3.4.0
+          releaseNotes: data.repository_versions[0].RepositoryVersions.release ? data.repository_versions[0].RepositoryVersions.release.release_notes: null,
+          displayName: data.repository_versions[0].RepositoryVersions.release ? data.Versions.stack_name + '-' + data.repository_versions[0].RepositoryVersions.release.version :
+            data.Versions.stack_name + '-' + data.repository_versions[0].RepositoryVersions.repository_version.split('-')[0], //HDP-2.3.4.0
           repoVersionFullName : data.Versions.stack_name + '-' + data.repository_versions[0].RepositoryVersions.repository_version,
           osList: data.repository_versions[0].operating_systems,
           updateObj: data.repository_versions[0]
         };
+        var services = [];
+        angular.forEach(data.repository_versions[0].RepositoryVersions.services, function (service) {
+          services.push({
+            name: service.name,
+            version: service.versions[0].version,
+            components: service.versions[0].components
+          });
+        });
+        response.services = services;
         deferred.resolve(response);
       })
       .error(function (data) {
@@ -286,12 +299,13 @@ angular.module('ambariAdminConsole')
             id : data.repository_versions[0].RepositoryVersions.id,
             stackVersion : data.Versions.stack_version,
             stackName: data.Versions.stack_name,
-            type: data.repository_versions[0].RepositoryVersions.release.type,
+            type: data.repository_versions[0].RepositoryVersions.type,
             stackNameVersion: data.Versions.stack_name + '-' + data.Versions.stack_version, /// HDP-2.3
             actualVersion: data.repository_versions[0].RepositoryVersions.repository_version, /// 2.3.4.0-3846
-            version: data.repository_versions[0].RepositoryVersions.release.version, /// 2.3.4.0
-            releaseNotes: data.repository_versions[0].RepositoryVersions.release.release_notes,
-            displayName: data.Versions.stack_name + '-' + data.repository_versions[0].RepositoryVersions.release.version, //HDP-2.3.4.0
+            version: data.repository_versions[0].RepositoryVersions.release ? data.repository_versions[0].RepositoryVersions.release.version: null, /// 2.3.4.0
+            releaseNotes: data.repository_versions[0].RepositoryVersions.release ? data.repository_versions[0].RepositoryVersions.release.release_notes: null,
+            displayName: data.repository_versions[0].RepositoryVersions.release ? data.Versions.stack_name + '-' + data.repository_versions[0].RepositoryVersions.release.version :
+              data.Versions.stack_name + '-' + data.repository_versions[0].RepositoryVersions.repository_version.split('-')[0], //HDP-2.3.4.0
             repoVersionFullName : data.Versions.stack_name + '-' + data.repository_versions[0].RepositoryVersions.repository_version,
             osList: data.repository_versions[0].operating_systems,
             updateObj: data.repository_versions[0]
@@ -299,7 +313,7 @@ angular.module('ambariAdminConsole')
           var services = [];
           angular.forEach(data.repository_versions[0].RepositoryVersions.services, function (service) {
             services.push({
-              name: service.name,
+              name: service.display_name,
               version: service.versions[0].version,
               components: service.versions[0].components
             });

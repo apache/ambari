@@ -23,7 +23,6 @@ angular.module('ambariAdminConsole')
   $scope.createController = true;
   $scope.osList = [];
   $scope.skipValidation = false;
-  $scope.repoSubversion = "";
 
   $scope.clusterName = $routeParams.clusterName;
   $scope.subversionPattern = /^\d+\.\d+(-\d+)?$/;
@@ -111,10 +110,8 @@ angular.module('ambariAdminConsole')
         };
       });
       $scope.repoVersionFullName = response.repoVersionFullName;
-      $scope.selectedOS = [];
       angular.forEach(response.osList, function (os) {
         os.selected = true;
-        $scope.selectedOS.push(os.OperatingSystems.os_type);
       });
       $scope.osList = response.osList;
       // load supported os type base on stack version
@@ -130,8 +127,12 @@ angular.module('ambariAdminConsole')
       .then(function (data) {
         var operatingSystems = data.operating_systems;
         operatingSystems.map(function (os) {
-          // os not in the list, mark as un-selected, add this to the osList
-          if ($scope.selectedOS.indexOf(os.OperatingSystems.os_type) < 0) {
+          var existingOSHash = {};
+          angular.forEach($scope.osList, function (os) {
+            existingOSHash[os.OperatingSystems.os_type] = os;
+          });
+          // if os not in the list, mark as un-selected, add this to the osList
+          if (!existingOSHash[os.OperatingSystems.os_type]) {
             os.selected = false;
             os.repositories.forEach(function(repo) {
               repo.Repositories.base_url = '';
@@ -183,9 +184,10 @@ angular.module('ambariAdminConsole')
       if (invalidUrls.length === 0) {
         Stack.addRepo($scope.upgradeStack, $scope.actualVersion, $scope.osList)
           .success(function () {
-            var versionName = $scope.actualVersion + '';
-            var stackName = $scope.upgradeStack.stack_name;
-            Alert.success($t('versions.alerts.versionCreated'), {stackName: stackName, versionName: versionName});
+            Alert.success($t('versions.alerts.versionCreated', {
+              stackName: $scope.upgradeStack.stack_name,
+              versionName: $scope.actualVersion
+            }));
             $location.path('/stackVersions');
           })
           .error(function (data) {
@@ -196,19 +198,12 @@ angular.module('ambariAdminConsole')
       }
     });
   };
-  /**
-   * TODO create parent controller for StackVersionsEditCtrl and StackVersionsCreateCtrl and
-   * move this method to it
-   */
+
   $scope.cancel = function () {
     $scope.editVersionDisabled = true;
     $location.path('/stackVersions');
   };
 
-  /**
-   * TODO create parent controller for StackVersionsEditCtrl and StackVersionsCreateCtrl and
-   * move this method to it
-   */
   $scope.clearErrors = function() {
     if ($scope.osList) {
       $scope.osList.forEach(function(os) {
@@ -221,18 +216,10 @@ angular.module('ambariAdminConsole')
     }
   };
 
-  /**
-   * TODO create parent controller for StackVersionsEditCtrl and StackVersionsCreateCtrl and
-   * move this method to it
-   */
   $scope.clearError = function() {
     this.repository.hasError = false;
   };
 
-  /**
-   * TODO create parent controller for StackVersionsEditCtrl and StackVersionsCreateCtrl and
-   * move this method to it
-   */
   $scope.hasValidationErrors = function() {
     var hasErrors = false;
     if ($scope.osList) {

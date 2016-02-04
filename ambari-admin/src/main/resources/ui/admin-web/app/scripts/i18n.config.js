@@ -306,6 +306,7 @@ angular.module('ambariAdminConsole')
       'os': 'OS',
       'baseURL': 'Base URL',
       'skipValidation': 'Skip Repository Base URL validation (Advanced)',
+      'noVersions': 'Select version to display details.',
       'contents': {
         'title': 'Contents',
         'empty': 'No contents to display'
