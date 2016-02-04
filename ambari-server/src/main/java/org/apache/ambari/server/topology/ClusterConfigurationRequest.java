@@ -148,9 +148,8 @@ public class ClusterConfigurationRequest {
         Map<String, String> clusterConfigProperties = existingConfigurations.get(configType);
         Map<String, String> stackDefaultConfigProperties = stackDefaultProps.get(configType);
         for (String property : propertyMap.keySet()) {
-          if (clusterConfigProperties == null || !clusterConfigProperties.containsKey(property)
-                 || (clusterConfigProperties.get(property) == null && stackDefaultConfigProperties.get(property) == null)
-                 || (clusterConfigProperties.get(property) != null && clusterConfigProperties.get(property).equals(stackDefaultConfigProperties.get(property)))) {
+          // update value only if property value configured in Blueprint /ClusterTemplate is not a custom one
+          if (!propertyHasCustomValue(clusterConfigProperties, stackDefaultConfigProperties, property)) {
             LOG.debug("Update Kerberos related config property: {} {} {}", configType, property, propertyMap.get
               (property));
             clusterConfiguration.setProperty(configType, property, propertyMap.get(property));
@@ -164,6 +163,36 @@ public class ClusterConfigurationRequest {
     }
 
     return updatedConfigTypes;
+  }
+
+  /**
+   * Returns true if the property exists in clusterConfigProperties and has a custom user defined value. Property has
+   * custom value in case we there's no stack default value for it or it's not equal to stack default value.
+   * @param clusterConfigProperties
+   * @param stackDefaultConfigProperties
+   * @param property
+   * @return
+   */
+  private boolean propertyHasCustomValue(Map<String, String> clusterConfigProperties, Map<String, String>
+    stackDefaultConfigProperties, String property) {
+
+    boolean propertyHasCustomValue = false;
+    if (clusterConfigProperties != null) {
+      String propertyValue = clusterConfigProperties.get(property);
+      if (propertyValue != null) {
+        if (stackDefaultConfigProperties != null) {
+          String stackDefaultValue = stackDefaultConfigProperties.get(property);
+          if (stackDefaultValue != null) {
+            propertyHasCustomValue = !propertyValue.equals(stackDefaultValue);
+          } else {
+            propertyHasCustomValue = true;
+          }
+        } else {
+          propertyHasCustomValue = true;
+        }
+      }
+    }
+    return propertyHasCustomValue;
   }
 
   private Map<String, String> createComponentHostMap(Blueprint blueprint) {
