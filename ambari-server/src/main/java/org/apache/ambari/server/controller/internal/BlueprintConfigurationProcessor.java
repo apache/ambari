@@ -125,6 +125,11 @@ public class BlueprintConfigurationProcessor {
   private static Pattern HOSTGROUP_PORT_REGEX = Pattern.compile("%HOSTGROUP::(\\S+?)%:?(\\d+)?");
 
   /**
+   * Compiled regex for hostgroup token with port information.
+   */
+  private static Pattern LOCALHOST_PORT_REGEX = Pattern.compile("localhost:?(\\d+)?");
+
+  /**
    * Statically-defined set of properties that can support HA using a nameservice name
    *   in the configuration, rather than just a host name.
    *   This set also contains other HA properties that will be exported if the
@@ -1578,7 +1583,9 @@ public class BlueprintConfigurationProcessor {
      */
     private final boolean usePrefixForEachHost;
 
-    private final Set<String> setOfKnownURLSchemes = Collections.singleton("thrift://");
+    private final boolean useSuffixForEachHost;
+
+    private final boolean usePortForEachHost;
 
     /**
      * Constructor.
@@ -1586,7 +1593,7 @@ public class BlueprintConfigurationProcessor {
      * @param component  component name associated with the property
      */
     public MultipleHostTopologyUpdater(String component) {
-      this(component, DEFAULT_SEPARATOR, false);
+      this(component, DEFAULT_SEPARATOR, false, false, true);
     }
 
     /**
@@ -1596,10 +1603,12 @@ public class BlueprintConfigurationProcessor {
      * @param separator the separator character to use when multiple hosts
      *                  are specified in a property or URL
      */
-    public MultipleHostTopologyUpdater(String component, Character separator, boolean userPrefixForEachHost) {
+    public MultipleHostTopologyUpdater(String component, Character separator, boolean usePrefixForEachHost, boolean useSuffixForEachHost, boolean usePortForEachHost) {
       this.component = component;
       this.separator = separator;
-      this.usePrefixForEachHost = userPrefixForEachHost;
+      this.usePrefixForEachHost = usePrefixForEachHost;
+      this.useSuffixForEachHost = useSuffixForEachHost;
+      this.usePortForEachHost = usePortForEachHost;
     }
 
     /**
@@ -1620,36 +1629,101 @@ public class BlueprintConfigurationProcessor {
 
       StringBuilder sb = new StringBuilder();
 
-      if (!origValue.contains("%HOSTGROUP") &&
-          (!origValue.contains("localhost"))) {
+      if (!origValue.contains("%HOSTGROUP") && (!origValue.contains("localhost"))) {
         // this property must contain FQDNs specified directly by the user
         // of the Blueprint, so the processor should not attempt to update them
         return origValue;
       }
 
-      if (origValue.contains("localhost") && topology.getHostGroupsForComponent(component).size() == 1) {
-        return origValue.replace("localhost", topology.getHostAssignmentsForComponent(component).iterator().next());
+      Collection<String> hostStrings = getHostStrings(origValue, topology);
+      hostStrings.addAll(getHostStringsFromLocalhost(origValue, topology));
+
+      return resolveHostGroupPlaceholder(origValue, hostStrings);
+    }
+
+    /**
+     * Gets the prefix for hosts
+     * @param value property value
+     * @return prefix
+     */
+    private String getPrefix(String value) {
+      Matcher localhostMatcher = LOCALHOST_PORT_REGEX.matcher(value);
+      Matcher hostGroupMatcher = HOSTGROUP_PORT_REGEX.matcher(value);
+      String prefixCandidate = null;
+
+      if(localhostMatcher.find()) {
+        prefixCandidate = value.substring(0,localhostMatcher.start());
+      } else if(hostGroupMatcher.find()) {
+        prefixCandidate = value.substring(0,hostGroupMatcher.start());
+      } else {
+        return prefixCandidate;
       }
 
-      String prefix = null;
-      Collection<String> hostStrings = getHostStrings(origValue, topology);
-      if (hostStrings.isEmpty()) {
-        //default non-exported original value
-        String port;
-        for (String urlScheme : setOfKnownURLSchemes) {
-          if (origValue.startsWith(urlScheme)) {
-            prefix = urlScheme;
-          }
-        }
+      // remove YAML array notation
+      if(prefixCandidate.startsWith("[")) {
+        prefixCandidate = prefixCandidate.substring(1);
+      }
+      // remove YAML string notation
+      if(prefixCandidate.startsWith("'")) {
+        prefixCandidate = prefixCandidate.substring(1);
+      }
 
-        if (prefix != null) {
-          String valueWithoutPrefix = origValue.substring(prefix.length());
-          port = calculatePort(valueWithoutPrefix);
-          sb.append(prefix);
-        } else {
-          port = calculatePort(origValue);
-        }
+      return prefixCandidate;
+    }
 
+    /**
+     * Gets the suffix for hosts
+     * @param value property value
+     * @return suffix
+     */
+    private String getSuffix(String value) {
+      Matcher localhostMatcher = LOCALHOST_PORT_REGEX.matcher(value);
+      Matcher hostGroupMatcher = HOSTGROUP_PORT_REGEX.matcher(value);
+
+
+      Matcher activeMatcher = null;
+
+      if(localhostMatcher.find()) {
+        activeMatcher = localhostMatcher;
+      } else if(hostGroupMatcher.find()) {
+        activeMatcher = hostGroupMatcher;
+      } else {
+        return null;
+      }
+
+      String suffixCandidate = null;
+      int indexOfEnd;
+      do {
+        indexOfEnd = activeMatcher.end();
+      } while (activeMatcher.find());
+      suffixCandidate = value.substring(indexOfEnd);
+
+      // remove YAML array notation
+      if(suffixCandidate.endsWith("]")) {
+        suffixCandidate = suffixCandidate.substring(0, suffixCandidate.length()-1);
+      }
+      // remove YAML string notation
+      if(suffixCandidate.endsWith("'")) {
+        suffixCandidate = suffixCandidate.substring(0, suffixCandidate.length()-1);
+      }
+
+      return suffixCandidate;
+    }
+
+    /**
+     * Resolves localhost value to "host:port" elements (port is optional)
+     * @param origValue property value
+     * @param topology cluster topology
+     * @return list of hosts that have the given components
+     */
+    private Collection<String> getHostStringsFromLocalhost(String origValue, ClusterTopology topology) {
+      Set<String> hostStrings = new HashSet<String>();
+      if(origValue.contains("localhost")) {
+        Matcher localhostMatcher = LOCALHOST_PORT_REGEX.matcher(origValue);
+        String port = null;
+        if(localhostMatcher.find()) {
+          port = calculatePort(localhostMatcher.group());
+        }
         for (String host : topology.getHostAssignmentsForComponent(component)) {
           if (port != null) {
             host += ":" + port;
@@ -1657,62 +1731,52 @@ public class BlueprintConfigurationProcessor {
           hostStrings.add(host);
         }
       }
-
-      return sb.append(resolveHostGroupPlaceholder(origValue, prefix, hostStrings)).toString();
+      return hostStrings;
     }
 
     /**
      * Resolves the host group place holders in the passed in original value.
      * @param originalValue The original value containing the place holders to be resolved.
-     * @param prefix The prefix to be added to the returned value.
      * @param hostStrings The collection of host names that are mapped to the host groups to be resolved
      * @return The new value with place holders resolved.
      */
-    protected String resolveHostGroupPlaceholder(String originalValue, String prefix, Collection<String> hostStrings) {
-      String suffix = null;
-      StringBuilder sb = new StringBuilder();
+    protected String resolveHostGroupPlaceholder(String originalValue, Collection<String> hostStrings) {
+      String prefix = getPrefix(originalValue);
+      String suffix = getSuffix(originalValue);
+      String port = removePorts(hostStrings);
 
-      // parse out prefix if one exists
-      Matcher matcher = HOSTGROUP_PORT_REGEX.matcher(originalValue);
-      if (matcher.find()) {
-        int indexOfStart = matcher.start();
-        // handle the case of a YAML config property
-        if ((indexOfStart > 0) && (!originalValue.substring(0, indexOfStart).equals("['")) && (!originalValue.substring(0, indexOfStart).equals("[")) ) {
-          // append prefix before adding host names
-          prefix = originalValue.substring(0, indexOfStart);
-          sb.append(prefix);
-        }
+      String sep = (useSuffixForEachHost ? suffix : "") + separator + (usePrefixForEachHost ? prefix : "");
+      String combinedHosts = (usePrefixForEachHost ? prefix : "") + StringUtils.join(hostStrings, sep);
 
-        // parse out suffix if one exists
-        int indexOfEnd;
+      return (usePrefixForEachHost ? "" : prefix) + combinedHosts + (usePortForEachHost || port == null ? "" : ":" + port) + suffix;
+    }
+
+    /**
+     * Removes "port" part of the hosts and returns it
+     * @param hostStrings list of "host:port" strings (port is optional)
+     * @return the port
+     */
+    private String removePorts(Collection<String> hostStrings) {
+      String port = null;
+      if(!usePortForEachHost && !hostStrings.isEmpty()) {
+        Set<String> temp = new HashSet<String>();
+
+        // extract port
+        Iterator<String> i = hostStrings.iterator();
         do {
-          indexOfEnd = matcher.end();
-        } while (matcher.find());
+          port = calculatePort(i.next());
+        } while (i.hasNext() && port == null);
 
-        if (indexOfEnd < (originalValue.length())) {
-          suffix = originalValue.substring(indexOfEnd);
-        }
-      }
-
-      // add hosts to property, using the specified separator
-      boolean firstHost = true;
-      for (String host : hostStrings) {
-        if (!firstHost) {
-          sb.append(separator);
-          // support config properties that use a list of full URIs
-          if (usePrefixForEachHost && (prefix != null)) {
-            sb.append(prefix);
+        // update hosts
+        if(port != null) {
+          for(String host : hostStrings) {
+            temp.add(host.replace(":"+port,""));
           }
-        } else {
-          firstHost = false;
         }
-        sb.append(host);
+        hostStrings.clear();
+        hostStrings.addAll(temp);
       }
-
-      if ((suffix != null) && (!suffix.equals("']")) && (!suffix.equals("]")) ) {
-        sb.append(suffix);
-      }
-      return sb.toString();
+      return port;
     }
 
     private static String calculatePort(String origValue) {
@@ -1983,7 +2047,7 @@ public class BlueprintConfigurationProcessor {
     TempletonHivePropertyUpdater() {
       // the only known property that requires hostname substitution is hive.metastore.uris,
       // but this updater should be flexible enough for other properties in the future.
-      mapOfKeysToUpdaters.put("hive.metastore.uris", new MultipleHostTopologyUpdater("HIVE_METASTORE", ',', true));
+      mapOfKeysToUpdaters.put("hive.metastore.uris", new MultipleHostTopologyUpdater("HIVE_METASTORE", ',', true, false, true));
     }
 
     @Override
@@ -2172,8 +2236,8 @@ public class BlueprintConfigurationProcessor {
     hbaseSiteMap.put("hbase.rootdir", new SingleHostTopologyUpdater("NAMENODE"));
     accumuloSiteMap.put("instance.volumes", new SingleHostTopologyUpdater("NAMENODE"));
     // HDFS shared.edits JournalNode Quorum URL uses semi-colons as separators
-    multiHdfsSiteMap.put("dfs.namenode.shared.edits.dir", new MultipleHostTopologyUpdater("JOURNALNODE", ';', false));
-    multiHdfsSiteMap.put("dfs.encryption.key.provider.uri", new MultipleHostTopologyUpdater("RANGER_KMS_SERVER", ';', false));
+    multiHdfsSiteMap.put("dfs.namenode.shared.edits.dir", new MultipleHostTopologyUpdater("JOURNALNODE", ';', false, false, true));
+    multiHdfsSiteMap.put("dfs.encryption.key.provider.uri", new MultipleHostTopologyUpdater("RANGER_KMS_SERVER", ';', false, false, false));
 
     // SECONDARY_NAMENODE
     hdfsSiteMap.put("dfs.secondary.http.address", new SingleHostTopologyUpdater("SECONDARY_NAMENODE"));
@@ -2206,14 +2270,14 @@ public class BlueprintConfigurationProcessor {
 
 
     // HIVE_SERVER
-    multiHiveSiteMap.put("hive.metastore.uris", new MultipleHostTopologyUpdater("HIVE_METASTORE", ',', true));
+    multiHiveSiteMap.put("hive.metastore.uris", new MultipleHostTopologyUpdater("HIVE_METASTORE", ',', true, true, true));
     dbHiveSiteMap.put("javax.jdo.option.ConnectionURL",
         new DBTopologyUpdater("MYSQL_SERVER", "hive-env", "hive_database"));
     multiCoreSiteMap.put("hadoop.proxyuser.hive.hosts", new MultipleHostTopologyUpdater("HIVE_SERVER"));
     multiCoreSiteMap.put("hadoop.proxyuser.HTTP.hosts", new MultipleHostTopologyUpdater("WEBHCAT_SERVER"));
     multiCoreSiteMap.put("hadoop.proxyuser.hcat.hosts", new MultipleHostTopologyUpdater("WEBHCAT_SERVER"));
     multiCoreSiteMap.put("hadoop.proxyuser.yarn.hosts", new MultipleHostTopologyUpdater("RESOURCEMANAGER"));
-    multiCoreSiteMap.put("hadoop.security.key.provider.path", new MultipleHostTopologyUpdater("RANGER_KMS_SERVER", ';', false));
+    multiCoreSiteMap.put("hadoop.security.key.provider.path", new MultipleHostTopologyUpdater("RANGER_KMS_SERVER", ';', false, false, true));
     multiWebhcatSiteMap.put("templeton.hive.properties", new TempletonHivePropertyUpdater());
     multiWebhcatSiteMap.put("templeton.kerberos.principal", new MultipleHostTopologyUpdater("WEBHCAT_SERVER"));
     hiveEnvMap.put("hive_hostname", new SingleHostTopologyUpdater("HIVE_SERVER"));

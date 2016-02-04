@@ -41,6 +41,7 @@ import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.InvalidTopologyException;
 import org.apache.ambari.server.utils.CollectionPresentationUtils;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -2351,6 +2352,116 @@ public class BlueprintConfigurationProcessorTest {
       assertTrue(expectedHosts.contains(host));
       expectedHosts.remove(host);
     }
+  }
+
+  @Test
+  public void testMultipleHostTopologyUpdater__localhost__singleHost() throws Exception {
+
+    final String typeName = "hbase-site";
+    final String propertyName = "hbase.zookeeper.quorum";
+    final String originalValue = "localhost";
+    final String component1 = "ZOOKEEPER_SERVER";
+    final String component2 = "ZOOKEEPER_CLIENT";
+
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> typeProps = new HashMap<String, String>();
+    typeProps.put(propertyName, originalValue);
+    properties.put(typeName, typeProps);
+
+    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+
+    Collection<String> hgComponents = new HashSet<String>();
+    hgComponents.add(component1);
+    Set<String> hosts1 = new HashSet<String>();
+    hosts1.add("testhost1a");
+    TestHostGroup group1 = new TestHostGroup("group1", hgComponents, hosts1);
+
+    Collection<String> hgComponents2 = new HashSet<String>();
+    hgComponents2.add(component2);
+    Set<String> hosts2 = new HashSet<String>();
+    hosts2.add("testhost2");
+    TestHostGroup group2 = new TestHostGroup("group2", hgComponents2, hosts2);
+
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group1);
+    hostGroups.add(group2);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+
+    BlueprintConfigurationProcessor.MultipleHostTopologyUpdater mhtu = new BlueprintConfigurationProcessor.MultipleHostTopologyUpdater(component1);
+    String newValue = mhtu.updateForClusterCreate(propertyName, originalValue, properties, topology);
+
+    assertEquals("testhost1a", newValue);
+  }
+
+  @Test
+  public void testMultipleHostTopologyUpdater__localhost__singleHostGroup() throws Exception {
+
+    final String typeName = "hbase-site";
+    final String propertyName = "hbase.zookeeper.quorum";
+    final String originalValue = "localhost";
+    final String component1 = "ZOOKEEPER_SERVER";
+
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> typeProps = new HashMap<String, String>();
+    typeProps.put(propertyName, originalValue);
+    properties.put(typeName, typeProps);
+
+    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+
+    Collection<String> hgComponents = new HashSet<String>();
+    hgComponents.add(component1);
+    Set<String> hosts1 = new HashSet<String>();
+    hosts1.add("testhost1a");
+    hosts1.add("testhost1b");
+    hosts1.add("testhost1c");
+    TestHostGroup group1 = new TestHostGroup("group1", hgComponents, hosts1);
+
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group1);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+
+    BlueprintConfigurationProcessor.MultipleHostTopologyUpdater mhtu = new BlueprintConfigurationProcessor.MultipleHostTopologyUpdater(component1);
+    String newValue = mhtu.updateForClusterCreate(propertyName, originalValue, properties, topology);
+
+    List<String> hostArray = Arrays.asList(newValue.split(","));
+    Assert.assertTrue(hostArray.containsAll(hosts1) && hosts1.containsAll(hostArray));
+  }
+
+  @Test
+  public void testMultipleHostTopologyUpdater__hostgroup__singleHostGroup() throws Exception {
+
+    final String typeName = "hbase-site";
+    final String propertyName = "hbase.zookeeper.quorum";
+    final String originalValue = "%HOSTGROUP::group1%";
+    final String component1 = "ZOOKEEPER_SERVER";
+
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> typeProps = new HashMap<String, String>();
+    typeProps.put(propertyName, originalValue);
+    properties.put(typeName, typeProps);
+
+    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+
+    Collection<String> hgComponents = new HashSet<String>();
+    hgComponents.add(component1);
+    Set<String> hosts1 = new HashSet<String>();
+    hosts1.add("testhost1a");
+    hosts1.add("testhost1b");
+    hosts1.add("testhost1c");
+    TestHostGroup group1 = new TestHostGroup("group1", hgComponents, hosts1);
+
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group1);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+
+    BlueprintConfigurationProcessor.MultipleHostTopologyUpdater mhtu = new BlueprintConfigurationProcessor.MultipleHostTopologyUpdater(component1);
+    String newValue = mhtu.updateForClusterCreate(propertyName, originalValue, properties, topology);
+
+    List<String> hostArray = Arrays.asList(newValue.split(","));
+    Assert.assertTrue(hostArray.containsAll(hosts1) && hosts1.containsAll(hostArray));
   }
 
   @Test
@@ -5799,8 +5910,16 @@ public class BlueprintConfigurationProcessorTest {
     // When
     configProcessor.doUpdateForClusterCreate();
 
+    String updatedVal = clusterConfig.getPropertyValue(configType, "dfs.encryption.key.provider.uri");
+    Assert.assertTrue(updatedVal.startsWith("kms://http@"));
+    Assert.assertTrue(updatedVal.endsWith(":9292/kms"));
+    String hostsString = updatedVal.substring(11,updatedVal.length()-9);
+
+    List<String> hostArray = Arrays.asList(hostsString.split(";"));
+    List<String> expected = Arrays.asList("host1","host2");
+
     // Then
-    assertEquals("kms://http@host1;host2:9292/kms", clusterConfig.getPropertyValue(configType, "dfs.encryption.key.provider.uri"));
+    Assert.assertTrue(hostArray.containsAll(expected) && expected.containsAll(hostArray));
   }
 
 
@@ -5892,6 +6011,114 @@ public class BlueprintConfigurationProcessorTest {
 
     // Then
     assertEquals("kms://http@host1:9292/kms", clusterConfig.getPropertyValue(configType, "dfs.encryption.key.provider.uri"));
+  }
+
+  @Test
+  public void testHdfsWithRangerKmsServer__multiple_hosts__localhost() throws Exception {
+    // Given
+    final String configType = "hdfs-site";
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> configProperties = new HashMap<String, String>();
+
+    properties.put(configType, configProperties);
+    configProperties.put("dfs.encryption.key.provider.uri", "kms://http@localhost:9292/kms");
+
+
+    Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
+    Configuration parentClusterConfig = new Configuration(parentProperties,
+      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties,
+      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+
+
+    Collection<String> kmsServerComponents = new HashSet<String>();
+    kmsServerComponents.add("RANGER_KMS_SERVER");
+
+    Collection<String> hdfsComponents = new HashSet<String>();
+    hdfsComponents.add("NAMENODE");
+    hdfsComponents.add("DATANODE");
+
+    Collection<String> hosts = new HashSet<String>();
+    hosts.add("host1");
+    hosts.add("host2");
+
+    TestHostGroup group1 = new TestHostGroup("group1", kmsServerComponents, hosts);
+    group1.components.add("DATANODE");
+
+    TestHostGroup group2 = new TestHostGroup("group2", hdfsComponents, Collections.singleton("host3"));
+
+    Collection<TestHostGroup> hostGroups = Lists.newArrayList(group1, group2);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+
+    // When
+    configProcessor.doUpdateForClusterCreate();
+
+    String updatedVal = clusterConfig.getPropertyValue(configType, "dfs.encryption.key.provider.uri");
+    Assert.assertTrue(updatedVal.startsWith("kms://http@"));
+    Assert.assertTrue(updatedVal.endsWith(":9292/kms"));
+    String hostsString = updatedVal.substring(11,updatedVal.length()-9);
+
+    List<String> hostArray = Arrays.asList(hostsString.split(";"));
+    List<String> expected = Arrays.asList("host1","host2");
+
+    // Then
+    Assert.assertTrue(hostArray.containsAll(expected) && expected.containsAll(hostArray));
+  }
+
+  @Test
+  public void testHdfsWithRangerKmsServer__multiple_hosts__hostgroup() throws Exception {
+    // Given
+    final String configType = "hdfs-site";
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> configProperties = new HashMap<String, String>();
+
+    properties.put(configType, configProperties);
+    configProperties.put("dfs.encryption.key.provider.uri", "kms://http@%HOSTGROUP::group1%:9292/kms");
+
+
+    Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
+    Configuration parentClusterConfig = new Configuration(parentProperties,
+      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties,
+      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+
+
+    Collection<String> kmsServerComponents = new HashSet<String>();
+    kmsServerComponents.add("RANGER_KMS_SERVER");
+
+    Collection<String> hdfsComponents = new HashSet<String>();
+    hdfsComponents.add("NAMENODE");
+    hdfsComponents.add("DATANODE");
+
+    Collection<String> hosts = new HashSet<String>();
+    hosts.add("host1");
+    hosts.add("host2");
+
+    TestHostGroup group1 = new TestHostGroup("group1", kmsServerComponents, hosts);
+    group1.components.add("DATANODE");
+
+    TestHostGroup group2 = new TestHostGroup("group2", hdfsComponents, Collections.singleton("host3"));
+
+    Collection<TestHostGroup> hostGroups = Lists.newArrayList(group1, group2);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+
+    // When
+    configProcessor.doUpdateForClusterCreate();
+
+    String updatedVal = clusterConfig.getPropertyValue(configType, "dfs.encryption.key.provider.uri");
+    Assert.assertTrue(updatedVal.startsWith("kms://http@"));
+    Assert.assertTrue(updatedVal.endsWith(":9292/kms"));
+    String hostsString = updatedVal.substring(11,updatedVal.length()-9);
+
+    List<String> hostArray = Arrays.asList(hostsString.split(";"));
+    List<String> expected = Arrays.asList("host1","host2");
+
+    // Then
+    Assert.assertTrue(hostArray.containsAll(expected) && expected.containsAll(hostArray));
   }
 
 
@@ -6160,8 +6387,8 @@ public class BlueprintConfigurationProcessorTest {
     String propertyOriginalValue2 = "[%HOSTGROUP::group_1%]";
 
     // When
-    String updatedValue1 = mhtu.resolveHostGroupPlaceholder(propertyOriginalValue1, null, ImmutableList.<String>of("host1:100"));
-    String updatedValue2 = mhtu.resolveHostGroupPlaceholder(propertyOriginalValue2, null, ImmutableList.<String>of("host1:100"));
+    String updatedValue1 = mhtu.resolveHostGroupPlaceholder(propertyOriginalValue1, ImmutableList.<String>of("host1:100"));
+    String updatedValue2 = mhtu.resolveHostGroupPlaceholder(propertyOriginalValue2, ImmutableList.<String>of("host1:100"));
 
     // Then
     assertEquals("host1:100", updatedValue1);
@@ -6181,8 +6408,8 @@ public class BlueprintConfigurationProcessorTest {
     String propertyOriginalValue2 = "[%HOSTGROUP::group_1%, %HOSTGROUP::group_2%]";
 
     // When
-    String updatedValue1 = mhtu.resolveHostGroupPlaceholder(propertyOriginalValue1, null, ImmutableList.<String>of("host1:100", "host2:200"));
-    String updatedValue2 = mhtu.resolveHostGroupPlaceholder(propertyOriginalValue2, null, ImmutableList.<String>of("host1:100", "host2:200"));
+    String updatedValue1 = mhtu.resolveHostGroupPlaceholder(propertyOriginalValue1, ImmutableList.<String>of("host1:100", "host2:200"));
+    String updatedValue2 = mhtu.resolveHostGroupPlaceholder(propertyOriginalValue2, ImmutableList.<String>of("host1:100", "host2:200"));
 
     // Then
     assertEquals("host1:100,host2:200", updatedValue1);
@@ -6200,7 +6427,7 @@ public class BlueprintConfigurationProcessorTest {
     String propertyOriginalValue = "http://%HOSTGROUP::group_1%#";
 
     // When
-    String updatedValue = mhtu.resolveHostGroupPlaceholder(propertyOriginalValue, null, ImmutableList.<String>of("host1:100"));
+    String updatedValue = mhtu.resolveHostGroupPlaceholder(propertyOriginalValue, ImmutableList.<String>of("host1:100"));
 
     // Then
     assertEquals("http://host1:100#", updatedValue);
@@ -6215,7 +6442,7 @@ public class BlueprintConfigurationProcessorTest {
     String propertyOriginalValue = "http://%HOSTGROUP::group_1,HOSTGROUP::group_2%/resource";
 
     // When
-    String updatedValue = mhtu.resolveHostGroupPlaceholder(propertyOriginalValue, null, ImmutableList.<String>of("host1:100", "host2:200"));
+    String updatedValue = mhtu.resolveHostGroupPlaceholder(propertyOriginalValue, ImmutableList.<String>of("host1:100", "host2:200"));
 
     // Then
     assertEquals("http://host1:100,host2:200/resource", updatedValue);
@@ -6230,7 +6457,7 @@ public class BlueprintConfigurationProcessorTest {
     String propertyOriginalValue = "%HOSTGROUP::group_1%:11,%HOSTGROUP::group_2%:11";
 
     // When
-    String updatedValue = mhtu.resolveHostGroupPlaceholder(propertyOriginalValue, null, ImmutableList.<String>of("host1:100", "host2:200"));
+    String updatedValue = mhtu.resolveHostGroupPlaceholder(propertyOriginalValue, ImmutableList.<String>of("host1:100", "host2:200"));
 
     // Then
     assertEquals("host1:100,host2:200", updatedValue);
