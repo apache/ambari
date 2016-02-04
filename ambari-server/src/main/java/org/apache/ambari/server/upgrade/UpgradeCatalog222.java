@@ -27,6 +27,7 @@ import org.apache.ambari.server.orm.dao.DaoUtils;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,6 +47,11 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
    * Logger.
    */
   private static final Logger LOG = LoggerFactory.getLogger(UpgradeCatalog222.class);
+  private static final String AMS_SITE = "ams-site";
+  private static final String HOST_AGGREGATOR_DAILY_CHECKPOINTCUTOFFMULTIPIER =
+    "timeline.metrics.host.aggregator.daily.checkpointCutOffMultiplier";
+  private static final String CLUSTER_AGGREGATOR_DAILY_CHECKPOINTCUTOFFMULTIPIER =
+    "timeline.metrics.cluster.aggregator.daily.checkpointCutOffMultiplier";
 
 
 
@@ -99,6 +105,7 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
     addNewConfigurationsFromXml();
     updateAlerts();
     updateStormConfigs();
+    updateAMSConfigs();
   }
 
   protected void updateStormConfigs() throws  AmbariException {
@@ -135,6 +142,45 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
     }
 
 
+  }
+
+  protected void updateAMSConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        for (final Cluster cluster : clusterMap.values()) {
+
+          Config amsSite = cluster.getDesiredConfigByType(AMS_SITE);
+          if (amsSite != null) {
+            Map<String, String> amsSiteProperties = amsSite.getProperties();
+            Map<String, String> newProperties = new HashMap<>();
+
+            if (amsSiteProperties.containsKey(HOST_AGGREGATOR_DAILY_CHECKPOINTCUTOFFMULTIPIER) &&
+              amsSiteProperties.get(HOST_AGGREGATOR_DAILY_CHECKPOINTCUTOFFMULTIPIER).equals("1")) {
+
+              LOG.info("Setting value of " + HOST_AGGREGATOR_DAILY_CHECKPOINTCUTOFFMULTIPIER + " : 2");
+              newProperties.put(HOST_AGGREGATOR_DAILY_CHECKPOINTCUTOFFMULTIPIER, String.valueOf(2));
+
+            }
+
+            if (amsSiteProperties.containsKey(CLUSTER_AGGREGATOR_DAILY_CHECKPOINTCUTOFFMULTIPIER) &&
+              amsSiteProperties.get(CLUSTER_AGGREGATOR_DAILY_CHECKPOINTCUTOFFMULTIPIER).equals("1")) {
+
+              LOG.info("Setting value of " + CLUSTER_AGGREGATOR_DAILY_CHECKPOINTCUTOFFMULTIPIER + " : 2");
+              newProperties.put(CLUSTER_AGGREGATOR_DAILY_CHECKPOINTCUTOFFMULTIPIER, String.valueOf(2));
+
+            }
+
+            updateConfigurationPropertiesForCluster(cluster, AMS_SITE, newProperties, true, true);
+          }
+
+        }
+      }
+    }
   }
 
 }
