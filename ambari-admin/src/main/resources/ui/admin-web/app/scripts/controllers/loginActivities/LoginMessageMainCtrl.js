@@ -29,18 +29,17 @@ angular.module('ambariAdminConsole')
     $scope.submitDisabled = true;
 
     $http.get('/api/v1/settings/motd').then(function (res) {
-      var response = JSON.parse(res.data.Settings.content);
+      $scope.motdExists = true;
+      var response = JSON.parse(res.data.Settings.content.replace(/\n/g, "\\n"));
       $scope.text = response.text ? response.text : "";
       $scope.buttonText = response.button ? response.button : "";
       $scope.status = response.status && response.status == "true" ? true : false;
-      $scope.motdExists = true;
     });
 
     $scope.inputChangeEvent = function(){
       $scope.submitDisabled = false;
     };
     $scope.changeStatus = function(){
-      $scope.status = !$scope.status;
       $scope.submitDisabled = false;
     };
 

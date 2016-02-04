@@ -90,8 +90,10 @@ angular.module('ambariAdminConsole')
         'onlySimpleChars': 'Must contain only simple characters.',
         'saveError': 'Save error',
         'message': 'Message',
-        'buttonText': 'Button text',
-        'switch': 'On/Off'
+        'buttonText': 'Button',
+        'status': 'Status',
+        'status.enabled': 'Enabled',
+        'status.disabled': 'Disabled'
       },
 
       'controls': {
