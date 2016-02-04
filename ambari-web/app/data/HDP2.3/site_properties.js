@@ -333,6 +333,13 @@ hdp23properties.push({
     "index": 8
   },
   {
+    "name": "default_segment_num",
+    "filename": "hawq-site.xml",
+    "category": "General",
+    "serviceName": "HAWQ",
+    "index": 9
+  },
+  {
     "name": "content",
     "serviceName": "HAWQ",
     "filename": "gpcheck-env.xml",
