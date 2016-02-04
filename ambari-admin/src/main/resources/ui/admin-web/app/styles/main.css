@@ -1402,6 +1402,14 @@ thead.view-permission-header > tr > th {
   color: #ff4500;
 }
 
+.register-version-form .remove-icon {
+  color: red;
+  margin: 20px 0px;
+  padding: 0px;
+  text-align: center;
+  cursor: pointer;
+}
+
 .register-version-form .version-info {
   padding-top: 7px;
   margin-top: 0;

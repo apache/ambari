@@ -69,7 +69,7 @@
       <div class="clearfix">
         <label class="control-label col-sm-3">{{'versions.details.stackName' | translate}}</label>
         <div class="version-info col-sm-7">{{stackNameVersion}}</div>
-        <div class="col-sm-2 patch-icon" ng-if="isPatch"><span class="glyphicon glyphicon-tree-deciduous">Patch</span></div>
+        <div class="col-sm-2 patch-icon" ng-if="isPatch"><span class="glyphicon glyphicon-tree-deciduous"></span>Patch</div>
       </div>
       <div class="clearfix">
         <label class="control-label col-sm-3">{{'versions.details.displayName' | translate}}</label>
@@ -109,22 +109,34 @@
         <div class="name-label-adjust col-sm-2"><h5><label>{{'common.name' | translate}}</label></h5></div>
         <div class="col-sm-7"><h5><label >{{'versions.baseURL' | translate}}</label></h5></div>
       </div>
-      <div class="clearfix border-bottom bottom-margin" ng-repeat="os in osList">
-        <div class="col-sm-2 os-checkbox">
-          <div class="checkbox">
-            <label>
-              <input type="checkbox" ng-model="os.selected" ng-change="toggleOSSelect()"> {{os.OperatingSystems.os_type}}
-            </label>
-          </div>
-        </div>
-        <div class="col-sm-10">
-          <div class="form-group {{repository.Repositories.repo_name}}" ng-class="{'has-error': repository.hasError }" ng-repeat="repository in os.repositories">
-            <div class="col-sm-3"><label class="control-label">{{repository.Repositories.repo_name}}</label></div>
-            <div class="col-sm-9"><input type="text" class="form-control" ng-model="repository.Repositories.base_url"
+      <div class="alert alert-info hide-soft" ng-class="{'visible' : !osList || !osList.length}" role="alert">{{'versions.contents.empty' | translate}}</div>
+      <div class="" ng-repeat="os in osList">
+        <div ng-if="os.selected==true">
+          <div class="clearfix border-bottom bottom-margin">
+            <!-- show selected os in list table-->
+            <div class="col-sm-2">
+              <div class="">
+                <label>{{os.OperatingSystems.os_type}}</label>
+              </div>
+            </div>
+            <div class="col-sm-9">
+              <div class="form-group {{repository.Repositories.repo_name}}" ng-class="{'has-error': repository.hasError }" ng-repeat="repository in os.repositories">
+                <div class="col-sm-3"><label class="control-label">{{repository.Repositories.repo_name}}</label></div>
+                <div class="col-sm-9"><input type="text" class="form-control" ng-model="repository.Repositories.base_url"
                                          ng-change="clearError()" ng-disabled="!os.selected"></div>
+              </div>
+            </div>
+            <div class="col-sm-1 remove-icon" ng-click="removeOS()"><span class="glyphicon glyphicon-minus"></span>Remove</div>
           </div>
         </div>
       </div>
+        <div class="btn-group pull-right" dropdown>
+          <button class="btn dropdown-toggle">
+            <span class="glyphicon glyphicon-plus"></span> Add OS &nbsp;<span class="caret"></span></button>
+          <ul class="dropdown-menu">
+            <li ng-repeat="os in osList"><a ng-if="os.selected==false" ng-click="addOS()">{{os.OperatingSystems.os_type}}</a></li>
+          </ul>
+        </div>
       <div class="clearfix">
         <div class="col-sm-12" id="skip-validation">
           <div class="checkbox">
@@ -139,7 +151,7 @@
   </div>
   <div class="col-sm-12">
     <button class="btn btn-primary pull-right left-margin" ng-click="save()"
-            ng-disabled="(createController && repoRegForm.version.$invalid) || selectedOS === 0">{{'common.controls.save' | translate}}</button>
+            ng-disabled="isSaveButtonDisabled()">{{'common.controls.save' | translate}}</button>
     <button class="btn btn-default pull-right" ng-click="cancel()">{{'common.controls.cancel' | translate}}</button>
   </div>
 </form>

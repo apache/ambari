@@ -323,7 +323,7 @@ angular.module('ambariAdminConsole')
       },
 
       'alerts': {
-        'baseURLs': 'Provide Base URLs for the Operating Systems you are configuring. Uncheck all other Operating Systems.',
+        'baseURLs': 'Provide Base URLs for the Operating Systems you are configuring.',
         'validationFailed': 'Some of the repositories failed validation. Make changes to the base url or skip validation if you are sure that urls are correct',
         'skipValidationWarning': '<b>Warning:</b> This is for advanced users only. Use this option if you want to skip validation for Repository Base URLs.',
         'filterListError': 'Fetch stack version filter list error',
