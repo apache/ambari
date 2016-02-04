@@ -334,6 +334,48 @@
               </resources>
             </configuration>
           </execution>
+          <execution>
+            <id>copy-repo-resources</id>
+            <phase>package</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${basedir}/target/repo</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${project.basedir}/../ambari-common/src/main/repo</directory>
+                </resource>
+                <resource>
+                  <directory>${project.build.directory}</directory>
+                  <includes>
+                    <include>${project.artifactId}-${project.version}.tar.gz</include>
+                  </includes>
+                </resource>
+                <resource>
+                  <directory>${basedir}/src/main/package/deb/control</directory>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>com.coderplus.maven.plugins</groupId>
+        <artifactId>copy-rename-maven-plugin</artifactId>
+        <version>1.0.1</version>
+        <executions>
+          <execution>
+            <id>rename-file</id>
+            <phase>package</phase>
+            <goals>
+              <goal>rename</goal>
+            </goals>
+            <configuration>
+              <sourceFile>${basedir}/target/repo/${project.artifactId}-${project.version}.tar.gz</sourceFile>
+              <destinationFile>${basedir}/target/repo/${project.artifactId}.tar.gz</destinationFile>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
       <plugin>
@@ -449,7 +491,7 @@
             <executions>
               <execution>
                 <id>build-windows-zip</id>
-                <phase>prepare-package</phase>
+                <phase>package</phase>
                 <goals>
                   <goal>single</goal>
                 </goals>

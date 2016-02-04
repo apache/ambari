@@ -17,24 +17,33 @@
 #                      SERVER INSTALL HELPER                     #
 ##################################################################
 
-COMMON_DIR="/usr/lib/python2.6/site-packages/ambari_commons"
-RESOURCE_MANAGEMENT_DIR="/usr/lib/python2.6/site-packages/resource_management"
-JINJA_DIR="/usr/lib/python2.6/site-packages/ambari_jinja2"
-SIMPLEJSON_DIR="/usr/lib/python2.6/site-packages/ambari_simplejson"
-OLD_COMMON_DIR="/usr/lib/python2.6/site-packages/common_functions"
-AMBARI_SERVER="/usr/lib/python2.6/site-packages/ambari_server"
-INSTALL_HELPER_AGENT="/var/lib/ambari-agent/install-helper.sh"
-COMMON_DIR_SERVER="/usr/lib/ambari-server/lib/ambari_commons"
-RESOURCE_MANAGEMENT_DIR_SERVER="/usr/lib/ambari-server/lib/resource_management"
-JINJA_SERVER_DIR="/usr/lib/ambari-server/lib/ambari_jinja2"
-SIMPLEJSON_SERVER_DIR="/usr/lib/ambari-server/lib/ambari_simplejson"
+ROOT="${AMBARI_ROOT_FOLDER}"
 
-PYTHON_WRAPER_TARGET="/usr/bin/ambari-python-wrap"
-PYTHON_WRAPER_SOURCE="/var/lib/ambari-server/ambari-python-wrap"
+COMMON_DIR="${ROOT}/usr/lib/python2.6/site-packages/ambari_commons"
+RESOURCE_MANAGEMENT_DIR="${ROOT}/usr/lib/python2.6/site-packages/resource_management"
+JINJA_DIR="${ROOT}/usr/lib/python2.6/site-packages/ambari_jinja2"
+SIMPLEJSON_DIR="${ROOT}/usr/lib/python2.6/site-packages/ambari_simplejson"
+OLD_COMMON_DIR="${ROOT}/usr/lib/python2.6/site-packages/common_functions"
+AMBARI_SERVER="${ROOT}/usr/lib/python2.6/site-packages/ambari_server"
+INSTALL_HELPER_AGENT="${ROOT}/var/lib/ambari-agent/install-helper.sh"
+COMMON_DIR_SERVER="${ROOT}/usr/lib/ambari-server/lib/ambari_commons"
+RESOURCE_MANAGEMENT_DIR_SERVER="${ROOT}/usr/lib/ambari-server/lib/resource_management"
+JINJA_SERVER_DIR="${ROOT}/usr/lib/ambari-server/lib/ambari_jinja2"
+SIMPLEJSON_SERVER_DIR="${ROOT}/usr/lib/ambari-server/lib/ambari_simplejson"
+
+PYTHON_WRAPER_TARGET="${ROOT}/usr/bin/ambari-python-wrap"
+PYTHON_WRAPER_SOURCE="${ROOT}/var/lib/ambari-server/ambari-python-wrap"
+
+AMBARI_SERVER_EXECUTABLE_LINK="${ROOT}/usr/sbin/ambari-server"
+AMBARI_SERVER_EXECUTABLE="${ROOT}/etc/init.d/ambari-server"
+
+AMBARI_CONFIGS_DIR="${ROOT}/etc/ambari-server/conf"
+AMBARI_CONFIGS_DIR_SAVE="${ROOT}/etc/ambari-server/conf.save"
+AMBARI_CONFIGS_DIR_SAVE_BACKUP="${ROOT}/etc/ambari-server/conf_$(date '+%d_%m_%y_%H_%M').save"
 
 do_install(){
-  rm -f /usr/sbin/ambari-server
-  ln -s /etc/init.d/ambari-server /usr/sbin/ambari-server
+  rm -f "$AMBARI_SERVER_EXECUTABLE_LINK"
+  ln -s "$AMBARI_SERVER_EXECUTABLE" "$AMBARI_SERVER_EXECUTABLE_LINK"
  
   # setting ambari_commons shared resource
   rm -rf "$OLD_COMMON_DIR"
@@ -69,14 +78,13 @@ do_install(){
 }
 
 do_remove(){
-  /usr/sbin/ambari-server stop > /dev/null 2>&1
-  if [ -d "/etc/ambari-server/conf.save" ]; then
-      mv /etc/ambari-server/conf.save /etc/ambari-server/conf_$(date '+%d_%m_%y_%H_%M').save
+  $AMBARI_SERVER_EXECUTABLE stop > /dev/null 2>&1
+  if [ -d "$AMBARI_CONFIGS_DIR_SAVE" ]; then
+    mv "$AMBARI_CONFIGS_DIR_SAVE" "$AMBARI_CONFIGS_DIR_SAVE_BACKUP"
   fi
   # Remove link created during install
-  rm -f /usr/sbin/ambari-server
-
-  mv /etc/ambari-server/conf /etc/ambari-server/conf.save
+  rm -f "$AMBARI_SERVER_EXECUTABLE_LINK"
+  mv "$AMBARI_CONFIGS_DIR" "$AMBARI_CONFIGS_DIR_SAVE"
     
   if [ -f "$PYTHON_WRAPER_TARGET" ]; then
     rm -f "$PYTHON_WRAPER_TARGET"
