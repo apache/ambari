@@ -276,6 +276,7 @@
             <exclude>pass.txt</exclude>
             <exclude>derby.log</exclude>
             <exclude>**/*.nuspec</exclude>
+            <exclude>**/*.json</exclude>
           </excludes>
         </configuration>
         <executions>
