@@ -2073,6 +2073,11 @@ public class KerberosHelperImpl implements KerberosHelper {
   }
 
   @Override
+  public boolean getForceToggleKerberosDirective(Map<String, String> requestProperties) {
+    return (requestProperties != null) && "true".equalsIgnoreCase(requestProperties.get(DIRECTIVE_FORCE_TOGGLE_KERBEROS));
+  }
+
+  @Override
   public Map<String, Map<String, String>> getIdentityConfigurations(List<KerberosIdentityDescriptor> identityDescriptors) {
     Map<String, Map<String, String>> map = new HashMap<String, Map<String, String>>();
 

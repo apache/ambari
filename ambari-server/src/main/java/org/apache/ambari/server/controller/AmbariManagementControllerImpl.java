@@ -1597,25 +1597,30 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         } catch (KerberosOperationException e) {
           throw new IllegalArgumentException(e.getMessage(), e);
         }
-      } else if (cluster.getSecurityType() != securityType) {
-        LOG.info("Received cluster security type change request from {} to {}",
-            cluster.getSecurityType().name(), securityType.name());
+      } else {
+        // If force_toggle_kerberos is not specified, null will be returned. Therefore, perform an
+        // equals check to yield true if the result is Boolean.TRUE, otherwise false.
+        boolean forceToggleKerberos = kerberosHelper.getForceToggleKerberosDirective(requestProperties);
 
-        if ((securityType == SecurityType.KERBEROS) || (securityType == SecurityType.NONE)) {
-          // Since the security state of the cluster has changed, invoke toggleKerberos to handle
-          // adding or removing Kerberos from the cluster. This may generate multiple stages
-          // or not depending the current state of the cluster.
-          try {
-            requestStageContainer = kerberosHelper.toggleKerberos(cluster, securityType, requestStageContainer,
-                kerberosHelper.getManageIdentitiesDirective(requestProperties));
-          } catch (KerberosOperationException e) {
-            throw new IllegalArgumentException(e.getMessage(), e);
+        if (forceToggleKerberos || (cluster.getSecurityType() != securityType)) {
+          LOG.info("Received cluster security type change request from {} to {} (forced: {})",
+              cluster.getSecurityType().name(), securityType.name(), forceToggleKerberos);
+          if ((securityType == SecurityType.KERBEROS) || (securityType == SecurityType.NONE)) {
+            // Since the security state of the cluster has changed, invoke toggleKerberos to handle
+            // adding or removing Kerberos from the cluster. This may generate multiple stages
+            // or not depending the current state of the cluster.
+            try {
+              requestStageContainer = kerberosHelper.toggleKerberos(cluster, securityType, requestStageContainer,
+                  kerberosHelper.getManageIdentitiesDirective(requestProperties));
+            } catch (KerberosOperationException e) {
+              throw new IllegalArgumentException(e.getMessage(), e);
+            }
+          } else {
+            throw new IllegalArgumentException(String.format("Unexpected security type encountered: %s", securityType.name()));
           }
-        } else {
-          throw new IllegalArgumentException(String.format("Unexpected security type encountered: %s", securityType.name()));
-        }
 
-        cluster.setSecurityType(securityType);
+          cluster.setSecurityType(securityType);
+        }
       }
     }
 
