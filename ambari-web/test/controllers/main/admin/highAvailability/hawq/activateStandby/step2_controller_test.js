@@ -18,7 +18,6 @@
 
 var App = require('app');
 require('controllers/main/admin/highAvailability/hawq/activateStandby/step2_controller');
-var testHelpers = require('test/helpers');
 
 describe('App.ActivateHawqStandbyWizardStep2Controller', function () {
 
