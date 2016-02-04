@@ -105,6 +105,15 @@ public class AmbariServerTest {
   }
 
   @Test
+  public void testSystemProperties() throws Exception {
+    Configuration configuration = EasyMock.createNiceMock(Configuration.class);
+    expect(configuration.getServerTempDir()).andReturn("/ambari/server/temp/dir").anyTimes();
+    replay(configuration);
+    AmbariServer.setSystemProperties(configuration);
+    Assert.assertEquals(System.getProperty("java.io.tmpdir"), "/ambari/server/temp/dir");
+  }
+
+  @Test
   public void testProxyUser() throws Exception {
 
     PasswordAuthentication pa = Authenticator.requestPasswordAuthentication(
