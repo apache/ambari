@@ -470,6 +470,33 @@ describe('App.MainAlertDefinitionConfigsController', function () {
         expect(result).to.eql(testCase.result);
       });
     });
+
+    describe('Some fields should be removed', function () {
+
+      beforeEach(function () {
+        controller.set('content', Em.Object.create({
+          rawSourceData: {
+            uri: {
+              id: 123
+            }
+          }
+        }));
+        controller.set('configs', [
+          Em.Object.create({
+            apiProperty: 'source.uri.connection_timeout',
+            apiFormattedValue: 123,
+            wasChanged: true
+          })
+        ]);
+        this.result = controller.getPropertiesToUpdate();
+      });
+
+      it('`AlertDefinition/source.uri.id`', function () {
+        expect(this.result).to.not.have.deep.property('AlertDefinition/source.uri.id');
+      });
+
+    });
+
   });
 
   describe('#changeType()', function () {

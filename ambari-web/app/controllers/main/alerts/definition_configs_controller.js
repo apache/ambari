@@ -480,12 +480,8 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
     var propertiesToUpdate = {};
     var configs = onlyChanged ? this.get('configs').filterProperty('wasChanged') : this.get('configs');
     configs.forEach(function (property) {
-      var apiProperties = property.get('apiProperty');
-      var apiFormattedValues = property.get('apiFormattedValue');
-      if (!Em.isArray(property.get('apiProperty'))) {
-        apiProperties = [property.get('apiProperty')];
-        apiFormattedValues = [property.get('apiFormattedValue')];
-      }
+      var apiProperties = Em.makeArray(property.get('apiProperty'));
+      var apiFormattedValues = Em.makeArray(property.get('apiFormattedValue'));
       apiProperties.forEach(function (apiProperty, i) {
         if (apiProperty.contains('source.')) {
           if (!propertiesToUpdate['AlertDefinition/source']) {
@@ -512,7 +508,6 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
             }
             Ember.setFullPath(propertiesToUpdate['AlertDefinition/source'], apiProperty.replace('source.', ''), apiFormattedValues[i]);
           }
-
         }
         else {
           if (apiProperty) {
@@ -521,6 +516,10 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
         }
       }, this);
     }, this);
+
+    if (Em.get(propertiesToUpdate, 'AlertDefinition/source.uri.id')) {
+      delete propertiesToUpdate['AlertDefinition/source'].uri.id;
+    }
 
     return propertiesToUpdate;
   },

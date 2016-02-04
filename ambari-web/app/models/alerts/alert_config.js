@@ -443,6 +443,7 @@ App.AlertConfigProperties = {
     displayType: 'textField',
     classNames: 'alert-connection-timeout',
     apiProperty: 'source.uri.connection_timeout',
+    unit: 'Seconds',
     isValid: function () {
       var value = this.get('value');
       return numericUtils.isPositiveNumber(value);
