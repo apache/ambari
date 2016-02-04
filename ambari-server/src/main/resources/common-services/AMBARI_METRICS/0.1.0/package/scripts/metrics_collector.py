@@ -31,7 +31,7 @@ from ambari_commons.os_family_impl import OsFamilyImpl
 
 class AmsCollector(Script):
   def install(self, env):
-    self.install_packages(env)
+    self.install_packages(env, exclude_packages = ['ambari-metrics-grafana'])
 
   def configure(self, env, action = None):
     import params
