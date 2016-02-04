@@ -45,6 +45,15 @@ public interface KerberosHelper {
    */
   String DIRECTIVE_MANAGE_KERBEROS_IDENTITIES = "manage_kerberos_identities";
   /**
+   * directive used to indicate that the enable Kerberos operation is only to regenerate keytab files
+   */
+  String DIRECTIVE_REGENERATE_KEYTABS = "regenerate_keytabs";
+  /**
+   * directive used to indicate that the enable Kerberos operation should proceed even if the
+   * cluster's security type is not changing
+   */
+  String DIRECTIVE_FORCE_TOGGLE_KERBEROS = "force_toggle_kerberos";
+  /**
    * config type which contains the property used to determine if Kerberos is enabled
    */
   String SECURITY_ENABLED_CONFIG_TYPE = "cluster-env";
@@ -472,11 +481,26 @@ public interface KerberosHelper {
    * If manage_kerberos_identities does exists in the map of request properties, a Boolean value
    * is returned indicating whether its value is "false" (Boolean.FALSE) or not (Boolean.TRUE).
    *
-   * @param requestProperties a map of the requst property name/value pairs
+   * @param requestProperties a map of the request property name/value pairs
    * @return Boolean.TRUE or Boolean.FALSE if the manage_kerberos_identities property exists in the map;
    * otherwise false
    */
   Boolean getManageIdentitiesDirective(Map<String, String> requestProperties);
+
+  /**
+   * Retrieves the value of the force_toggle_kerberos directive from the request properties,
+   * if it exists.
+   * <p/>
+   * If force_toggle_kerberos does not exist in the map of request properties, <code>false</code> is
+   * returned.
+   * <p/>
+   * If force_toggle_kerberos does exists in the map of request properties and is equal to "true",
+   * then <code>true</code> is returned; otherwise <code>false</code> is returned.
+   *
+   * @param requestProperties a map of the request property name/value pairs
+   * @return true if force_toggle_kerberos is "true"; otherwise false
+   */
+  boolean getForceToggleKerberosDirective(Map<String, String> requestProperties);
 
   /**
    * Given a list of KerberosIdentityDescriptors, returns a Map fo configuration types to property

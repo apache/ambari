@@ -728,6 +728,9 @@ public class AmbariManagementControllerImplTest {
     expect(kerberosHelper.shouldExecuteCustomOperations(SecurityType.KERBEROS, null))
         .andReturn(false)
         .once();
+    expect(kerberosHelper.getForceToggleKerberosDirective(anyObject(Map.class)))
+        .andReturn(false)
+        .once();
     // Note: kerberosHelper.toggleKerberos is not called
 
     // replay mocks
@@ -773,6 +776,9 @@ public class AmbariManagementControllerImplTest {
     expectLastCall().once();
 
     expect(kerberosHelper.shouldExecuteCustomOperations(SecurityType.KERBEROS, null))
+        .andReturn(false)
+        .once();
+    expect(kerberosHelper.getForceToggleKerberosDirective(null))
         .andReturn(false)
         .once();
     expect(kerberosHelper.getManageIdentitiesDirective(null))
@@ -856,6 +862,9 @@ public class AmbariManagementControllerImplTest {
     expect(kerberosHelper.shouldExecuteCustomOperations(SecurityType.NONE, null))
         .andReturn(false)
         .once();
+    expect(kerberosHelper.getForceToggleKerberosDirective(anyObject(Map.class)))
+        .andReturn(false)
+        .once();
     expect(kerberosHelper.getManageIdentitiesDirective(anyObject(Map.class)))
         .andReturn(manageIdentities)
         .once();
@@ -918,6 +927,9 @@ public class AmbariManagementControllerImplTest {
     expectLastCall().once();
 
     expect(kerberosHelper.shouldExecuteCustomOperations(SecurityType.NONE, null))
+        .andReturn(false)
+        .once();
+    expect(kerberosHelper.getForceToggleKerberosDirective(anyObject(Map.class)))
         .andReturn(false)
         .once();
     expect(kerberosHelper.getManageIdentitiesDirective(anyObject(Map.class)))
