@@ -67,6 +67,7 @@
         <configuration>
           <excludes>
             <exclude>conf/unix/ams-grafana.ini</exclude>
+            <exclude>**/*.json</exclude>
           </excludes>
         </configuration>
         <executions>
