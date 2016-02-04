@@ -262,7 +262,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
 
     List<RepositoryVersionEntity> entities = s_repoVersionDAO.findByStack(entity.getStackId());
     if (entities.isEmpty()) {
-      throw new AmbariException(String.format("Patch %s was uploaded, but there are no repositories for %s",
+      throw new IllegalArgumentException(String.format("Patch %s was uploaded, but there are no repositories for %s",
           entity.getVersion(), entity.getStackId().toString()));
     }
 
@@ -290,7 +290,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
     if (matching.isEmpty()) {
       String format = "No versions matched pattern %s";
 
-      throw new AmbariException(String.format(format,
+      throw new IllegalArgumentException(String.format(format,
           emptyCompatible ? holder.xml.release.version : holder.xml.release.compatibleWith));
     } else if (matching.size() > 1) {
       Set<String> versions= new HashSet<>();
@@ -298,7 +298,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
         versions.add(match.getVersion());
       }
 
-      throw new AmbariException(String.format("More than one repository matches patch %s: %s",
+      throw new IllegalArgumentException(String.format("More than one repository matches patch %s: %s",
           entity.getVersion(), StringUtils.join(versions, ", ")));
     }
 

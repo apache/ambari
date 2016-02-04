@@ -317,6 +317,10 @@ public class UpgradeHelper {
       // !!! cluster and service checks are empty here
       for (UpgradePack.OrderService service : services) {
 
+        if (!context.isServiceSupported(service.serviceName)) {
+          continue;
+        }
+
         if (upgradePack.getType() == UpgradeType.ROLLING && !allTasks.containsKey(service.serviceName)) {
           continue;
         }

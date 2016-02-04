@@ -19,8 +19,10 @@ package org.apache.ambari.server.state;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.stack.MasterHostResolver;
@@ -83,6 +85,8 @@ public class UpgradeContext {
    * {@code true} if manual verification tasks should be automatically skipped.
    */
   private boolean m_autoSkipManualVerification = false;
+
+  private Set<String> m_supported = new HashSet<>();
 
   /**
    * Constructor.
@@ -349,5 +353,29 @@ public class UpgradeContext {
    */
   public void setAutoSkipManualVerification(boolean autoSkipManualVerification) {
     m_autoSkipManualVerification = autoSkipManualVerification;
+  }
+
+  /**
+   * Sets the service names that are supported by an upgrade.  This is used for
+   * {@link RepositoryType#PATCH} and {@link RepositoryType#SERVICE}.
+   *
+   * @param services  the set of specific services
+   */
+  public void setSupportedServices(Set<String> services) {
+    m_supported = services;
+  }
+
+  /**
+   * Gets if a service is supported.  If there are no services marked for the context,
+   * then ALL services are supported
+   * @param serviceName the service name to check.
+   * @return {@code true} when the service is supported
+   */
+  public boolean isServiceSupported(String serviceName) {
+    if (m_supported.isEmpty() || m_supported.contains(serviceName)) {
+      return true;
+    }
+
+    return false;
   }
 }

@@ -349,7 +349,7 @@ public class RepositoryVersionEntity {
   /**
    * Parse the version XML into its object representation.  This causes the XML to be lazy-loaded
    * from storage.
-   * @return {@code null} if the XSD is not available.
+   * @return {@code null} if the XSD (from the XML) is not available.
    * @throws Exception
    */
   public VersionDefinitionXml getRepositoryXml() throws Exception {

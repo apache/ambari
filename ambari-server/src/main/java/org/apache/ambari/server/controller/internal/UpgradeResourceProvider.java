@@ -24,6 +24,7 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.VERSION;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -36,8 +37,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.google.inject.assistedinject.Assisted;
-import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
@@ -86,12 +85,15 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.UpgradeHelper;
 import org.apache.ambari.server.state.UpgradeHelper.UpgradeGroupHolder;
+import org.apache.ambari.server.state.repository.AvailableService;
+import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.ConfigUpgradePack;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.UpgradePack;
@@ -115,6 +117,8 @@ import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.persist.Transactional;
 
 /**
  * Manages the ability to start and get status of upgrades.
@@ -701,12 +705,37 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     StackId sourceStackId = null;
     StackId targetStackId = null;
 
+    Set<String> supportedServices = new HashSet<>();
+
     switch (direction) {
       case UPGRADE:
         sourceStackId = cluster.getCurrentStackVersion();
 
         RepositoryVersionEntity targetRepositoryVersion = s_repoVersionDAO.findByStackNameAndVersion(
             sourceStackId.getStackName(), version);
+
+        EnumSet<RepositoryType> serviceAware = EnumSet.of(RepositoryType.PATCH, RepositoryType.SERVICE);
+        if (serviceAware.contains(targetRepositoryVersion.getType())) {
+
+          VersionDefinitionXml xml = null;
+          StackInfo stackInfo = s_metaProvider.get().getStack(sourceStackId.getStackName(),
+              sourceStackId.getStackVersion());
+
+          try {
+            xml = targetRepositoryVersion.getRepositoryXml();
+          } catch (Exception e) {
+            throw new AmbariException(String.format("Could not load repository definition for version %s", version));
+          }
+
+          if (null != xml) {
+            Collection<AvailableService> services = xml.getAvailableServices(stackInfo);
+
+            for (AvailableService available : services) {
+              supportedServices.add(available.getName());
+            }
+          }
+        }
+
         targetStackId = targetRepositoryVersion.getStackId();
         break;
       case DOWNGRADE:
@@ -717,6 +746,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     UpgradeContext ctx = new UpgradeContext(resolver, sourceStackId, targetStackId, version,
         direction, pack.getType());
+    ctx.setSupportedServices(supportedServices);
+
 
     if (direction.isDowngrade()) {
       if (requestMap.containsKey(UPGRADE_FROM_VERSION)) {
