@@ -21,6 +21,7 @@ App.repoVersionMapper = App.QuickDataMapper.create({
   modelRepoVersions: App.RepositoryVersion,
   modelOperatingSystems: App.OS,
   modelRepositories: App.Repository,
+  modelServices: App.ServiceSimple,
 
   modelRepoVersion: function (isCurrentStackOnly) {
     var repoVersionsKey = isCurrentStackOnly ? 'RepositoryVersions' : 'CompatibleRepositoryVersions';
@@ -28,10 +29,16 @@ App.repoVersionMapper = App.QuickDataMapper.create({
       id: repoVersionsKey + '.id',
       stack_version_id: repoVersionsKey + '.stackVersionId',
       display_name: repoVersionsKey + '.display_name',
+      type: repoVersionsKey + '.type',
       repository_version: repoVersionsKey + '.repository_version',
       upgrade_pack: repoVersionsKey + '.upgrade_pack',
       stack_version_type: repoVersionsKey + '.stack_name',
       stack_version_number: repoVersionsKey + '.stack_version',
+      services_key: 'services',
+      services_type: 'array',
+      services: {
+        item: 'id'
+      },
       operating_systems_key: 'operating_systems',
       operating_systems_type: 'array',
       operating_systems: {
@@ -53,6 +60,13 @@ App.repoVersionMapper = App.QuickDataMapper.create({
     }
   },
 
+  modelService: {
+    id: 'id',
+    name: 'name',
+    display_name: 'display_name',
+    latest_version: 'latest_version'
+  },
+
   modelRepository: {
     id: 'id',
     operating_system_id: 'Repositories.operating_system_id',
@@ -71,18 +85,81 @@ App.repoVersionMapper = App.QuickDataMapper.create({
     var modelRepoVersions = this.get('modelRepoVersions');
     var modelOperatingSystems = this.get('modelOperatingSystems');
     var modelRepositories = this.get('modelRepositories');
+    var modelServices = this.get('modelServices');
 
     var resultRepoVersion = [];
     var resultOS = [];
     var resultRepo = [];
+    var resultService = [];
 
     var repoVersionsKey = isCurrentStackOnly ? 'RepositoryVersions' : 'CompatibleRepositoryVersions';
 
     if (json && json.items) {
       json.items.forEach(function (item) {
+        ////////////// to test//////////////
+        item[repoVersionsKey].type = "PATCH";
+        item[repoVersionsKey].release = {
+          "stack_id": "HDP-2.2",
+          "version": "2.2.4.1",
+          "build": "885",
+          "compatible_with": "", /* regex */
+          "release_notes": "http://someurl"
+        };
+        item[repoVersionsKey].services = [
+          {
+            "name": "HDFS",
+            "display_name": "HDFS",
+            "versions": [
+              {
+                "version": "2.1.1",
+                "version_id": "10",
+                "components": [ "NAMENODE"]
+              }
+            ]
+          },
+          {
+            "name": "YARN",
+            "display_name": "YARN",
+            "versions": [
+              {
+                "version": "2.7.1.2.3"
+              }
+            ]
+          },
+          {
+            "name": "ZOOKEEPER",
+            "display_name": "ZooKeeper",
+            "versions": [
+              {
+                "version": "3.4.6.2.3"
+              }
+            ]
+          },
+          {
+            "name": "wrong",
+            "display_name": "MapReduce2",
+            "versions": [
+              {
+                "version": "2.7.1.2.3"
+              }
+            ]
+          },
+          {
+            "name": "AMBARI_METRICS",
+            "display_name": "Ambari Metrics",
+            "versions": [
+              {
+                "version": "0.1.0"
+              }
+            ]
+          }
+        ];
+        //////////////////////////////
+
         if (loadAll || (item[repoVersionsKey] && !App.StackVersion.find().someProperty('repositoryVersion.id', item[repoVersionsKey].id))) {
           var repo = item;
           var osArray = [];
+          var serviceArray = [];
           if (item.operating_systems) {
             item.operating_systems.forEach(function (os) {
               os.id = item[repoVersionsKey].repository_version + os.OperatingSystems.os_type;
@@ -101,7 +178,20 @@ App.repoVersionMapper = App.QuickDataMapper.create({
               resultOS.push(this.parseIt(os, this.get('modelOS')));
             }, this);
           }
+          if (item[repoVersionsKey].services) {
+            item[repoVersionsKey].services.forEach(function (service) {
+              var serviceObj = {
+                id: service.name,
+                name: service.name,
+                display_name: service.display_name,
+                latest_version: service.versions[0] ? service.versions[0].version : ''
+              };
+              serviceArray.pushObject(serviceObj);
+              resultService.push(this.parseIt(serviceObj, this.get('modelService')));
+            }, this);
+          }
           repo.operating_systems = osArray;
+          repo.services = serviceArray;
           resultRepoVersion.push(this.parseIt(repo, this.modelRepoVersion(isCurrentStackOnly)));
         }
       }, this);
@@ -109,6 +199,7 @@ App.repoVersionMapper = App.QuickDataMapper.create({
     App.store.commit();
     App.store.loadMany(modelRepositories, resultRepo);
     App.store.loadMany(modelOperatingSystems, resultOS);
+    App.store.loadMany(modelServices, resultService);
     App.store.loadMany(modelRepoVersions, resultRepoVersion);
   }
 });

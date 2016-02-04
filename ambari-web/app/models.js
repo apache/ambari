@@ -28,6 +28,7 @@ require('models/stack');
 require('models/stack_version/version');
 require('models/stack_version/repository_version');
 require('models/stack_version/os');
+require('models/stack_version/service_simple');
 require('models/stack_version/repository');
 require('models/operating_system');
 require('models/repository');

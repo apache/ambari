@@ -482,8 +482,8 @@ App.HostPopup = Em.Object.create({
       barColor: status[2],
       isInProgress: status[3],
       barWidth: "width:" + service.progress + "%;",
-      sourceRequestScheduleId: service.get('sourceRequestScheduleId'),
-      contextCommand: service.get('contextCommand')
+      sourceRequestScheduleId: service.sourceRequestScheduleId,
+      contextCommand: service.contextCommand
     });
   },
 

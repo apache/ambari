@@ -181,6 +181,7 @@ require('views/main/admin/highAvailability/rangerAdmin/step4_view');
 require('views/main/admin/serviceAccounts_view');
 require('views/main/admin/stack_upgrade/upgrade_wizard_view');
 require('views/main/admin/stack_upgrade/upgrade_version_box_view');
+require('views/main/admin/stack_upgrade/upgrade_version_column_view');
 require('views/main/admin/stack_upgrade/upgrade_group_view');
 require('views/main/admin/stack_upgrade/upgrade_task_view');
 require('views/main/admin/stack_upgrade/services_view');

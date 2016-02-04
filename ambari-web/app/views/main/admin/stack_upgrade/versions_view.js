@@ -31,6 +31,11 @@ App.MainAdminStackVersionsView = Em.View.extend({
   updateTimer: null,
 
   /**
+   * @type {Array}
+   */
+  services: App.Service.find(),
+
+  /**
    * Not Installed = the version is not installed or out of sync
    * Upgrade Ready = the version is installed and ready for upgrade
    * Current = the version currently being used

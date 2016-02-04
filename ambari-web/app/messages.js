@@ -207,7 +207,9 @@ Em.I18n.translations = {
   'common.stacks': 'Stacks',
   'common.stack': 'Stack',
   'common.reset': 'Reset',
+  'common.resume': 'Resume',
   'common.path': 'Path',
+  'common.patch': 'Patch',
   'common.package': 'Package',
   'common.proceed': 'Proceed',
   'common.proceedAnyway': 'Proceed Anyway',
@@ -1521,6 +1523,9 @@ Em.I18n.translations = {
   'admin.stackVersions.version.upgrade.upgradeOptions.notAllowed':'Not allowed by the current version',
   'admin.stackVersions.version.upgrade.upgradeOptions.EU.confirm.msg': 'You are about to perform an <b>Express Upgrade</b> from <b>{0}</b> to <b>{1}</b>. This will incur cluster downtime. Are you sure you want to proceed?',
   'admin.stackVersions.version.upgrade.upgradeOptions.RU.confirm.msg': 'You are about to perform a <b>Rolling Upgrade</b> from <b>{0}</b> to <b>{1}</b>. Are you sure you want to proceed?',
+
+  'admin.stackVersions.version.column.showDetails': "Show Details",
+  'admin.stackVersions.version.column.showDetails.title': "Version Details",
 
   'admin.stackVersions.hosts.popup.header.current': "Current",
   'admin.stackVersions.hosts.popup.header.installed': "Installed",

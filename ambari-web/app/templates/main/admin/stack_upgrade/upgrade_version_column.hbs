@@ -20,17 +20,13 @@
   <i class="icon-exclamation-sign out-of-sync-badge"></i>
 {{/if}}
 
-<p {{bindAttr class=":version view.isRepoUrlsEditDisabled:not-active-link"}}>
-  <span>{{view.content.displayName}}</span>
-  <a class="pull-right not-active link-tooltip" {{action editRepositories target="view"}}>
-    <i class="icon-edit"></i>
-  </a>
+<p class="version-column-display-name">
+  <span>{{view.content.displayNameSimple}}</span>
 </p>
-<p class="repository-name">({{view.content.repositoryVersion}})</p>
-{{#if view.isPatch}}
-  <p class="patch-icon"></p>
-{{/if}}
 
+<p class="version-column-show-details">
+  <a {{action openVersionBoxPopup target="view"}}>{{t admin.stackVersions.version.column.showDetails}}</a>
+</p>
 <div {{bindAttr class="view.stateElement.isInstalling:installing :align-center :state"}}>
   {{#if view.stateElement.isButton}}
     <button class="btn btn-primary"
@@ -38,7 +34,7 @@
       {{bindAttr disabled="view.stateElement.isDisabled"}}>
       {{view.stateElement.text}}
     </button>
-  {{/if}}
+ {{/if}}
   {{#if view.stateElement.isButtonGroup}}
     <div class="btn-group">
       <button class="btn btn-primary"
@@ -61,18 +57,18 @@
     </div>
   {{/if}}
   {{#if view.stateElement.isLabel}}
-    <span {{bindAttr class="view.stateElement.class"}}>{{view.stateElement.text}}</span>
+      <span {{bindAttr class="view.stateElement.class"}}>{{view.stateElement.text}}</span>
   {{/if}}
   {{#if view.stateElement.isLink}}
     {{#if view.stateElement.iconClass}}
-      <i {{bindAttr class="view.stateElement.iconClass"}}></i>
+        <i {{bindAttr class="view.stateElement.iconClass"}}></i>
     {{/if}}
-    <a href="#" {{action runAction target="view"}}>{{view.stateElement.text}}</a>
+      <a href="#" {{action runAction target="view"}}>{{view.stateElement.text}}</a>
     {{#if view.stateElement.isInstalling}}
       {{view App.ProgressBarView
-        progressBinding="view.installProgress"
-        statusBinding="view.PROGRESS_STATUS"
-      }}
+          progressBinding="view.installProgress"
+          statusBinding="view.PROGRESS_STATUS"
+          }}
     {{/if}}
   {{/if}}
   {{#if view.stateElement.isSpinner}}
@@ -80,26 +76,11 @@
   {{/if}}
 </div>
 
-<div class="hosts-section">
-  <div class="hosts-bar">{{t common.hosts}}</div>
-  <div class="row-fluid host-link">
-    <div class="span4 align-center not-installed-hosts">
-      <div><a href="#" class="hosts-tooltip not-active" {{bindAttr data-original-title="view.content.noInitHostsTooltip" }}
-        {{action showHosts view.versionStateMap.not_installed target="view"}}>
-        {{view.notInstalledHosts.length}}</a></div>
-      <div>{{t admin.stackVersions.version.notInstalled}}</div>
-    </div>
-    <div class="span4 align-center installed-hosts">
-      <div><a href="#" class="hosts-tooltip not-active" {{bindAttr data-original-title="view.content.noInstalledHostsTooltip" }}
-        {{action showHosts view.versionStateMap.installed target="view"}}>
-        {{view.installedHosts.length}}</a></div>
-      <div>{{t common.installed}}</div>
-    </div>
-    <div class="span4 align-center current-hosts">
-      <div><a href="#" class="hosts-tooltip not-active" {{bindAttr data-original-title="view.content.noCurrentHostsTooltip" }}
-        {{action showHosts view.versionStateMap.current target="view"}}>
-        {{view.currentHosts.length}}</a></div>
-      <div>{{t common.current}}</div>
-    </div>
-  </div>
+<div class="services-section">
+  {{#each service in view.services}}
+    <p class="service-version-info">
+       <span {{bindAttr class="service.isVersionInvisible:invisible :label"}}>{{service.latestVersion}}</span>
+    </p>
+    <div class="line-separator"></div>
+  {{/each}}
 </div>

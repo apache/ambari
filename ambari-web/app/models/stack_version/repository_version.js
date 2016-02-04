@@ -20,13 +20,18 @@ var App = require('app');
 
 App.RepositoryVersion = DS.Model.extend({
   displayName: DS.attr('string'),
+  type: DS.attr('string'), // "PATCH" /* STANDARD, (future: SERVICE) */
   repositoryVersion: DS.attr('string'),
   upgradePack: DS.attr('string'),
   stackVersionType: DS.attr('string'),
   stackVersionNumber: DS.attr('string'),
   operatingSystems: DS.hasMany('App.OS'),
+  services: DS.hasMany('App.ServiceSimple'),
   stackVersion: DS.belongsTo('App.StackVersion'),
   stack: Em.computed.concat(' ', 'stackVersionType', 'stackVersionNumber'),
+  displayNameSimple: function() {
+    return this.get('stackVersionType') + '-' + this.get('repositoryVersion').split('-')[0];
+  }.property('stackVersionType', 'repositoryVersion'),
 
   /**
    * status used until corresponding stack version get created
@@ -105,4 +110,3 @@ App.RepositoryVersion = DS.Model.extend({
 });
 
 App.RepositoryVersion.FIXTURES = [];
-
