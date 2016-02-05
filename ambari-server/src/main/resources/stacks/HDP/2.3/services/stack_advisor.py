@@ -678,19 +678,32 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
 
 
   def recommendHAWQConfigurations(self, configurations, clusterData, services, hosts):
+    if "hawq-site" not in services["configurations"]:
+      return
+    hawq_site = services["configurations"]["hawq-site"]["properties"]
     putHawqSiteProperty = self.putProperty(configurations, "hawq-site", services)
-    if self.isHawqMasterComponentOnAmbariServer(services):
-      if "hawq-site" in services["configurations"] and "hawq_master_address_port" in services["configurations"]["hawq-site"]["properties"]:
-        putHawqSiteProperty('hawq_master_address_port', '')
-    # calculate optimal number of virtual segments
     componentsListList = [service["components"] for service in services["services"]]
     componentsList = [item["StackServiceComponents"] for sublist in componentsListList for item in sublist]
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+
+    # remove master port when master is colocated with Ambari server
+    if self.isHawqMasterComponentOnAmbariServer(services) and "hawq_master_address_port" in hawq_site:
+        putHawqSiteProperty('hawq_master_address_port', '')
+
+    # calculate optimal number of virtual segments
     numSegments = len(self.__getHosts(componentsList, "HAWQSEGMENT"))
     # update default if segments are deployed
-    if numSegments and "hawq-site" in services["configurations"] and "default_segment_num" in services["configurations"]["hawq-site"]["properties"]:
+    if numSegments and "default_segment_num" in hawq_site:
       factor = 6 if numSegments < 50 else 4
       putHawqSiteProperty('default_segment_num', numSegments * factor)
-          
+
+    # update YARN RM urls with the values from yarn-site if YARN is installed
+    if "YARN" in servicesList and "yarn-site" in services["configurations"]:
+      yarn_site = services["configurations"]["yarn-site"]["properties"]
+      for hs_prop, ys_prop in self.getHAWQYARNPropertyMapping().items():
+        if hs_prop in hawq_site and ys_prop in yarn_site:
+          putHawqSiteProperty(hs_prop, yarn_site[ys_prop])
+
   def getServiceConfigurationValidators(self):
     parentValidators = super(HDP23StackAdvisor, self).getServiceConfigurationValidators()
     childValidators = {
@@ -946,8 +959,20 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     display_name = 'HAWQ Segment temp directory'
     self.validateIfRootDir (properties, validationItems, prop_name, display_name)
 
+    # 3. Check YARN RM address properties
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    if "YARN" in servicesList and "yarn-site" in configurations:
+      yarn_site = getSiteProperties(configurations, "yarn-site")
+      for hs_prop, ys_prop in self.getHAWQYARNPropertyMapping().items():
+        if hs_prop in hawq_site and ys_prop in yarn_site and hawq_site[hs_prop] != yarn_site[ys_prop]:
+          message = "Expected value: {0} (this property should have the same value as the property {1} in yarn-site)".format(yarn_site[ys_prop], ys_prop)
+          validationItems.append({"config-name": hs_prop, "item": self.getWarnItem(message)})
+
     return self.toConfigurationValidationProblems(validationItems, "hawq-site")
   
   
   def isComponentUsingCardinalityForLayout(self, componentName):
     return componentName in ['NFS_GATEWAY', 'PHOENIX_QUERY_SERVER', 'SPARK_THRIFTSERVER']
+
+  def getHAWQYARNPropertyMapping(self):
+    return { "hawq_rm_yarn_address": "yarn.resourcemanager.address", "hawq_rm_yarn_scheduler_address": "yarn.resourcemanager.scheduler.address" }
