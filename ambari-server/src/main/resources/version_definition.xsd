@@ -19,7 +19,7 @@
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:annotation>
     <xs:documentation>
-    This XSD is used to validate a repo definition file.  You can verify the XML is valid
+    This XSD is used to validate a version definition file.  You can verify the XML is valid
     by running (on Linux):
     xmllint --noout --load-trace --schema [path-to-this-file] [path-to-xml]
     </xs:documentation>
@@ -31,9 +31,10 @@
      <xs:element name="stack-id" type="xs:string" />
      <xs:element name="version" type="xs:string" />
      <xs:element name="build" type="xs:string" />
-     <xs:element name="compatible-with" type="xs:string" minOccurs="0" maxOccurs="1" />
+     <xs:element name="compatible-with" type="xs:string" minOccurs="0"/>
      <xs:element name="release-notes" type="xs:string" maxOccurs="1" />
      <xs:element name="display" type="xs:string" minOccurs="0" />
+     <xs:element name="package-version" type="xs:string" minOccurs="0" />
     </xs:all>
   </xs:complexType>
   
