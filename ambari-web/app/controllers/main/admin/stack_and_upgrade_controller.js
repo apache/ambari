@@ -1252,6 +1252,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       sender: this,
       data: data,
       success: 'installRepoVersionSuccess',
+      error: 'installRepoVersionError',
       callback: function() {
         this.sender.set('requestInProgress', false);
         this.sender.set('requestInProgressRepoId', null);
@@ -1407,6 +1408,24 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     if (version.get('stackVersion')) {
       version.set('stackVersion.state', 'INSTALLING');
     }
+  },
+
+  /**
+   * error callback for <code>installRepoVersion()<code>
+   * show the error message
+   * @param data
+   * @method installStackVersionSuccess
+   */
+  installRepoVersionError: function (data) {
+    var header = Em.I18n.t('admin.stackVersions.upgrade.installPackage.fail.title');
+    var body = "";
+    if(data && data.responseText){
+      try {
+        var json = $.parseJSON(data.responseText);
+        body = json.message;
+      } catch (err) {}
+    }
+    App.showAlertPopup(header, body);
   },
 
   /**
