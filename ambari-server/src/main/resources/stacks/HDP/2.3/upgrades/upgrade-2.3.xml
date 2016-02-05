@@ -525,6 +525,10 @@
       </component>
 
       <component name="MAPREDUCE2_CLIENT">
+        <pre-upgrade>
+          <task xsi:type="server_action" summary="Verifying LZO codec path for mapreduce" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath"/>
+        </pre-upgrade>
+
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
@@ -592,6 +596,8 @@
       <component name="TEZ_CLIENT">
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_3_0_0_tez_client_adjust_tez_lib_uris_property"/>
+
+          <task xsi:type="server_action" summary="Verifying LZO codec path for Tez" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath"/>
         </pre-upgrade>
         <upgrade>
           <task xsi:type="restart-task"/>
@@ -698,6 +704,8 @@
             <script>scripts/oozie_server.py</script>
             <function>stop</function>
           </task>
+
+          <task xsi:type="server_action" summary="Adjusting Oozie properties" class="org.apache.ambari.server.serveraction.upgrades.OozieConfigCalculation"/>
 
           <task xsi:type="execute" hosts="any" sequential="true" summary="Upgrading the Oozie database and creating a new sharelib">
             <script>scripts/oozie_server_upgrade.py</script>

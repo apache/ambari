@@ -252,6 +252,10 @@
         <task xsi:type="configure" id="hdp_2_3_0_0_mapreduce2_adjust_history_server"/>
       </execute-stage>
 
+      <execute-stage service="MAPREDUCE2" component="MAPREDUCE2_CLIENT" title="Apply config changes for Mapreduce2 client">
+        <task xsi:type="server_action" summary="Verifying LZO codec path for mapreduce" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath"/>
+      </execute-stage>
+
       <execute-stage service="YARN" component="APP_TIMELINE_SERVER" title="Apply config changes for AppTimelineServer">
         <task xsi:type="configure" id="hdp_2_3_0_0_yarn_ats_enable_recovery"/>
       </execute-stage>
@@ -306,6 +310,10 @@
         <task xsi:type="configure" id="hdp_2_3_0_0_tez_keep_ats_v1"/>
       </execute-stage>
 
+      <execute-stage service="TEZ" component="TEZ_CLIENT" title="Verify LZO codec path for Tez">
+        <task xsi:type="server_action" summary="Verifying LZO codec path for Tez" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath"/>
+      </execute-stage>
+
       <!--HIVE-->
       <execute-stage service="HIVE" component="HIVE_SERVER" title="Apply config changes for Hive Server">
         <task xsi:type="server_action" summary="Calculating ZooKeeper Quorum Properties for Hive" class="org.apache.ambari.server.serveraction.upgrades.HiveZKQuorumConfigAction" />
@@ -338,6 +346,10 @@
       <!--OOZIE-->
       <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Apply config changes for Oozie Server">
         <task xsi:type="configure" id="hdp_2_3_0_0_oozie_remove_redundant_configurations"/>
+      </execute-stage>
+
+      <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Apply config changes for Oozie Server">
+        <task xsi:type="server_action" summary="Adjusting Oozie properties" class="org.apache.ambari.server.serveraction.upgrades.OozieConfigCalculation"/>
       </execute-stage>
 
       <!--FALCON-->

@@ -236,8 +236,20 @@
       <direction>UPGRADE</direction>   <!--  prevent config changes on downgrade -->
       <skippable>true</skippable>  <!-- May fix configuration problems manually -->
 
+      <execute-stage service="MAPREDUCE2" component="MAPREDUCE2_CLIENT" title="Apply config changes for Mapreduce2 client">
+        <task xsi:type="server_action" summary="Verifying LZO codec path for mapreduce" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath"/>
+      </execute-stage>
+
       <execute-stage service="TEZ" component="TEZ_CLIENT" title="Apply config changes for Tez">
         <task xsi:type="configure" id="hdp_2_2_0_0_tez_client_adjust_tez_lib_uris_property"/>
+      </execute-stage>
+
+      <execute-stage service="TEZ" component="TEZ_CLIENT" title="Verify LZO codec path for Tez">
+        <task xsi:type="server_action" summary="Verifying LZO codec path for Tez" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath"/>
+      </execute-stage>
+
+      <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Apply config changes for Oozie Server">
+        <task xsi:type="server_action" summary="Adjusting Oozie properties" class="org.apache.ambari.server.serveraction.upgrades.OozieConfigCalculation"/>
       </execute-stage>
     </group>
 

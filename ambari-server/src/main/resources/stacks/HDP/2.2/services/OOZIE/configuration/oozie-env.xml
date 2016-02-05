@@ -101,6 +101,9 @@ export CATALINA_OPTS="${CATALINA_OPTS} -Xmx2048m -XX:MaxPermSize=256m "
 export CATALINA_OPTS="${CATALINA_OPTS} -Xmx2048m"
 {% endif %}
 
+# Set Hadoop-related properties
+export HADOOP_OPTS="-Dhdp.version=${HDP_VERSION} ${HADOOP_OPTS}"
+
     </value>
     <value-attributes>
       <type>content</type>

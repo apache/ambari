@@ -258,40 +258,37 @@ public class HeartbeatMonitor implements Runnable {
         continue;
       }
 
-      if (clusterConfig != null) {
-        // cluster config for 'global'
-        Map<String, String> props = new HashMap<String, String>(clusterConfig.getProperties());
+      // cluster config for 'global'
+      Map<String, String> props = new HashMap<>(clusterConfig.getProperties());
 
-        Map<String, Map<String, String>> configTags = new HashMap<String,
-                Map<String, String>>();
+      Map<String, Map<String, String>> configTags = new HashMap<>();
 
-        for (Map.Entry<String, Map<String, String>> entry : allConfigTags.entrySet()) {
-          if (entry.getKey().equals(clusterConfig.getType())) {
-            configTags.put(clusterConfig.getType(), entry.getValue());
-          }
+      for (Map.Entry<String, Map<String, String>> entry : allConfigTags.entrySet()) {
+        if (entry.getKey().equals(clusterConfig.getType())) {
+          configTags.put(clusterConfig.getType(), entry.getValue());
         }
-
-        Map<String, Map<String, String>> properties = configHelper
-                .getEffectiveConfigProperties(cluster, configTags);
-
-        if (!properties.isEmpty()) {
-          for (Map<String, String> propertyMap : properties.values()) {
-            props.putAll(propertyMap);
-          }
-        }
-
-        configurations.put(clusterConfig.getType(), props);
-
-        Map<String, Map<String, String>> attrs = new TreeMap<String, Map<String, String>>();
-        configHelper.cloneAttributesMap(clusterConfig.getPropertiesAttributes(), attrs);
-
-        Map<String, Map<String, Map<String, String>>> attributes = configHelper
-            .getEffectiveConfigAttributes(cluster, configTags);
-        for (Map<String, Map<String, String>> attributesMap : attributes.values()) {
-          configHelper.cloneAttributesMap(attributesMap, attrs);
-        }
-        configurationAttributes.put(clusterConfig.getType(), attrs);
       }
+
+      Map<String, Map<String, String>> properties = configHelper
+              .getEffectiveConfigProperties(cluster, configTags);
+
+      if (!properties.isEmpty()) {
+        for (Map<String, String> propertyMap : properties.values()) {
+          props.putAll(propertyMap);
+        }
+      }
+
+      configurations.put(clusterConfig.getType(), props);
+
+      Map<String, Map<String, String>> attrs = new TreeMap<>();
+      configHelper.cloneAttributesMap(clusterConfig.getPropertiesAttributes(), attrs);
+
+      Map<String, Map<String, Map<String, String>>> attributes = configHelper
+          .getEffectiveConfigAttributes(cluster, configTags);
+      for (Map<String, Map<String, String>> attributesMap : attributes.values()) {
+        configHelper.cloneAttributesMap(attributesMap, attrs);
+      }
+      configurationAttributes.put(clusterConfig.getType(), attrs);
     }
 
     StatusCommand statusCmd = new StatusCommand();

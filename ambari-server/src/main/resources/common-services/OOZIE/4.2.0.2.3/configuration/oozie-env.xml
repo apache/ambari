@@ -99,6 +99,9 @@ export OOZIE_CLIENT_OPTS="${OOZIE_CLIENT_OPTS} -Doozie.connection.retry.count=5 
 export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:{{jdbc_libs_dir}}"
 export JAVA_LIBRARY_PATH="$JAVA_LIBRARY_PATH:{{jdbc_libs_dir}}"
 {% endif %}
+
+# Set Hadoop-related properties
+export HADOOP_OPTS="-Dhdp.version=${HDP_VERSION} ${HADOOP_OPTS}"
     </value>
     <value-attributes>
       <type>content</type>
