@@ -181,7 +181,7 @@ public class PhoenixHBaseAccessorTest {
     PowerMock.replayAll();
     EasyMock.replay(preparedStatementMock, rsMock, pioe1, pioe2, dnrioe);
     try {
-      TimelineMetrics tml = accessor.getMetricRecords(condition, metricFunctions);
+      accessor.getMetricRecords(condition, metricFunctions);
       fail();
     } catch (Exception e) {
       //NOP

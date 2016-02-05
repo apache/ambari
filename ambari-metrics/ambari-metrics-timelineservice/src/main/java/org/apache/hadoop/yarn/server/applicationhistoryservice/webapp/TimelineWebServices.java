@@ -20,7 +20,6 @@ package org.apache.hadoop.yarn.server.applicationhistoryservice.webapp;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience.Public;
@@ -386,11 +385,9 @@ public class TimelineWebServices {
       throw new PrecisionLimitExceededException(iae.getMessage());
     } catch (IllegalArgumentException iae) {
       throw new BadRequestException(iae.getMessage());
-    } catch (SQLException sql) {
-      throw new WebApplicationException(sql,
+    } catch (SQLException | IOException e) {
+      throw new WebApplicationException(e,
         Response.Status.INTERNAL_SERVER_ERROR);
-    } catch (IOException io) {
-      throw new WebApplicationException(io, Response.Status.INTERNAL_SERVER_ERROR);
     }
   }
 
