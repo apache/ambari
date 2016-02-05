@@ -43,10 +43,7 @@
     <jinja.install.dir>/usr/lib/ambari-agent/lib/ambari_jinja2</jinja.install.dir>
     <simplejson.install.dir>/usr/lib/ambari-agent/lib/ambari_simplejson</simplejson.install.dir>
     <lib.dir>/usr/lib/ambari-agent/lib</lib.dir>
-    <python.ver>python &gt;= 2.6</python.ver>
-    <deb.python.ver>python (&gt;= 2.6)</deb.python.ver>
     <deb.architecture>amd64</deb.architecture>
-    <deb.dependency.list>openssl, zlibc, ${deb.python.ver}</deb.dependency.list>
     <ambari.server.module>../ambari-server</ambari.server.module>
     <target.cache.dir>${project.build.directory}/cache/</target.cache.dir>
     <resource.keeper.script>${ambari.server.module}/src/main/python/ambari_server/resourceFilesKeeper.py</resource.keeper.script>
@@ -140,6 +137,23 @@
       </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
+        <artifactId>properties-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>read-project-properties</goal>
+            </goals>
+            <configuration>
+              <files>
+                <file>${basedir}/src/main/package/dependencies.properties</file>
+              </files>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
         <artifactId>rpm-maven-plugin</artifactId>
         <version>2.1.4</version>
         <executions>
@@ -156,10 +170,7 @@
           <group>Development</group>
           <description>Maven Recipe: RPM Package.</description>
           <requires>
-            <require>openssl</require>
-            <require>rpm-python</require>
-            <require>zlib</require>
-            <require>${python.ver}</require>
+            <require>${rpm.dependency.list}</require>
           </requires>
           <postinstallScriptlet>
             <scriptFile>src/main/package/rpm/postinstall.sh</scriptFile>
@@ -354,6 +365,19 @@
                 </resource>
                 <resource>
                   <directory>${basedir}/src/main/package/deb/control</directory>
+                </resource>
+                <resource>
+                  <directory>${basedir}/src/main/package</directory>
+                  <includes>
+                    <include>dependencies.properties</include>
+                  </includes>
+                </resource>
+                <resource>
+                  <directory>${project.basedir}/../ambari-common/src/main/python/ambari_commons</directory>
+                  <includes>
+                    <include>os_check.py</include>
+                    <include>resources/os_family.json</include>
+                  </includes>
                 </resource>
               </resources>
             </configuration>
