@@ -894,6 +894,126 @@ public class AlertTargetResourceProviderTest {
     verify(m_amc, m_dao);
   }
 
+  @Test
+  public void testUpdateAlertTargetsWithCustomGroups() throws Exception{
+    Capture<AlertTargetEntity> entityCapture = new Capture<AlertTargetEntity>();
+    m_dao.create(capture(entityCapture));
+    expectLastCall().times(1);
+
+    AlertTargetEntity target = new AlertTargetEntity();
+    expect(m_dao.findTargetById(ALERT_TARGET_ID)).andReturn(target).once();
+
+    Capture<AlertGroupEntity> groupEntityCapture = new Capture<AlertGroupEntity>();
+
+    //All Groups in the Database with CLuster ID = 1L
+    List<AlertGroupEntity> groups = getMockGroupEntities();
+
+    //List of group ids to be selected in Custom option
+    List<Long> groupIds = Arrays.asList(1L, 2L, 3L);
+
+    expect(m_dao.findGroupsById(EasyMock.eq(groupIds))).andReturn(groups).anyTimes();
+    expect(m_dao.findAllGroups()).andReturn(groups).anyTimes();
+    for(AlertGroupEntity group: groups){
+      expect(m_dao.merge(capture(groupEntityCapture))).andReturn(group).anyTimes();
+    }
+    expect(m_dao.merge(capture(entityCapture))).andReturn(target).anyTimes();
+
+    //start execution with the above Expectation setters
+    replay(m_amc, m_dao);
+
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+
+    AlertTargetResourceProvider provider = createProvider(m_amc);
+    Map<String, Object> requestProps = getCreationProperties();
+    Request request = PropertyHelper.getCreateRequest(
+      Collections.singleton(requestProps), null);
+    provider.createResources(request);
+
+    requestProps = new HashMap<String, Object>();
+    requestProps.put(AlertTargetResourceProvider.ALERT_TARGET_ID, ALERT_TARGET_ID.toString());
+
+    //selecting CUSTOM option for Groups, 2 group ids selected from the available options
+    requestProps.put(AlertTargetResourceProvider.ALERT_TARGET_GLOBAL, "false");
+    requestProps.put(AlertTargetResourceProvider.ALERT_TARGET_GROUPS, groupIds);
+
+    Predicate predicate = new PredicateBuilder().property(
+      AlertTargetResourceProvider.ALERT_TARGET_ID).equals(
+      ALERT_TARGET_ID.toString()).toPredicate();
+
+    request = PropertyHelper.getUpdateRequest(requestProps, null);
+    provider.updateResources(request, predicate);
+
+    assertTrue(entityCapture.hasCaptured());
+    AlertTargetEntity entity = entityCapture.getValue();
+
+    //verify that only the selected 2 groups were mapped with the target
+    assertEquals(3, entity.getAlertGroups().size());
+
+    //target must not be global for CUSTOM option
+    assertEquals(false,entity.isGlobal());
+
+    verify(m_amc, m_dao);
+  }
+
+  @Test
+  public void testUpdateAlertTargetsWithAllGroups() throws Exception{
+    Capture<AlertTargetEntity> entityCapture = new Capture<AlertTargetEntity>();
+    m_dao.create(capture(entityCapture));
+    expectLastCall().times(1);
+
+    AlertTargetEntity target = new AlertTargetEntity();
+    expect(m_dao.findTargetById(ALERT_TARGET_ID)).andReturn(target).once();
+
+    Capture<AlertGroupEntity> groupEntityCapture = new Capture<AlertGroupEntity>();
+
+    //All Groups in the Database with CLuster ID = 1L
+    List<AlertGroupEntity> groups = getMockGroupEntities();
+
+    //Groups to be selected for ALL option
+    List<Long> groupIds = Arrays.asList(1L, 2L, 3L);
+
+    expect(m_dao.findGroupsById(EasyMock.eq(groupIds))).andReturn(groups).anyTimes();
+    expect(m_dao.findAllGroups()).andReturn(groups).once();
+    for(AlertGroupEntity group: groups){
+      expect(m_dao.merge(capture(groupEntityCapture))).andReturn(group).once();
+    }
+    expect(m_dao.merge(capture(entityCapture))).andReturn(target).anyTimes();
+
+    //start execution with these Expectation setters
+    replay(m_amc, m_dao);
+
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+
+    AlertTargetResourceProvider provider = createProvider(m_amc);
+    Map<String, Object> requestProps = getCreationProperties();
+    Request request = PropertyHelper.getCreateRequest(
+      Collections.singleton(requestProps), null);
+    provider.createResources(request);
+
+    requestProps = new HashMap<String, Object>();
+    requestProps.put(AlertTargetResourceProvider.ALERT_TARGET_ID, ALERT_TARGET_ID.toString());
+
+    //selecting ALL option for Groups
+    requestProps.put(AlertTargetResourceProvider.ALERT_TARGET_GLOBAL, "true");
+
+    Predicate predicate = new PredicateBuilder().property(
+      AlertTargetResourceProvider.ALERT_TARGET_ID).equals(
+      ALERT_TARGET_ID.toString()).toPredicate();
+
+    request = PropertyHelper.getUpdateRequest(requestProps, null);
+    provider.updateResources(request, predicate);
+
+    assertTrue(entityCapture.hasCaptured());
+    AlertTargetEntity entity = entityCapture.getValue();
+
+    //verify that all the groups got mapped with target
+    assertEquals(3, entity.getAlertGroups().size());
+
+    //Target must be global for ALL option
+    assertEquals(true,entity.isGlobal());
+
+    verify(m_amc, m_dao);
+  }
 
   /**
    * @param amc
@@ -932,20 +1052,20 @@ public class AlertTargetResourceProviderTest {
   private Map<String, Object> getCreationProperties() throws Exception {
     Map<String, Object> requestProps = new HashMap<String, Object>();
     requestProps.put(AlertTargetResourceProvider.ALERT_TARGET_NAME,
-        ALERT_TARGET_NAME);
+            ALERT_TARGET_NAME);
 
     requestProps.put(AlertTargetResourceProvider.ALERT_TARGET_DESCRIPTION,
-        ALERT_TARGET_DESC);
+            ALERT_TARGET_DESC);
 
     requestProps.put(
-        AlertTargetResourceProvider.ALERT_TARGET_NOTIFICATION_TYPE,
-        ALERT_TARGET_TYPE);
+            AlertTargetResourceProvider.ALERT_TARGET_NOTIFICATION_TYPE,
+            ALERT_TARGET_TYPE);
 
     requestProps.put(AlertTargetResourceProvider.ALERT_TARGET_PROPERTIES
-        + "/foo", "bar");
+            + "/foo", "bar");
 
     requestProps.put(AlertTargetResourceProvider.ALERT_TARGET_PROPERTIES
-        + "/foobar", "baz");
+            + "/foobar", "baz");
 
     return requestProps;
   }
@@ -973,6 +1093,24 @@ public class AlertTargetResourceProviderTest {
         + "/ambari.dispatch.recipients", "[\"ambari@ambari.apache.org\"]");
 
     return requestProps;
+  }
+
+  /**
+   * @return
+   */
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  private List<AlertGroupEntity> getMockGroupEntities() throws Exception {
+    AlertGroupEntity group1 = new AlertGroupEntity();
+    AlertGroupEntity group2 = new AlertGroupEntity();
+    AlertGroupEntity group3 = new AlertGroupEntity();
+    group1.setGroupId(1L);
+    group1.setClusterId(1L);
+    group2.setGroupId(2L);
+    group2.setClusterId(1L);
+    group3.setGroupId(3L);
+    group3.setClusterId(1L);
+
+    return Arrays.asList(group1, group2, group3);
   }
 
   /**
