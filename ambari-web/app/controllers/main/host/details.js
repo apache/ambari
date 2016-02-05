@@ -1411,23 +1411,28 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         templateName: require('templates/main/host/details/installComponentPopup')
       }),
       onPrimary: function () {
-        this.hide();
+        var _this = this;
+        App.get('router.mainAdminKerberosController').getSecurityType(function () {
+          App.get('router.mainAdminKerberosController').getKDCSessionState(function () {
+            _this.hide();
 
-        App.ajax.send({
-          name: 'common.host.host_component.update',
-          sender: self,
-          data: {
-            hostName: self.get('content.hostName'),
-            serviceName: component.get('service.serviceName'),
-            componentName: componentName,
-            component: component,
-            context: Em.I18n.t('requestInfo.installHostComponent') + " " + displayName,
-            HostRoles: {
-              state: 'INSTALLED'
-            }
-          },
-          success: 'installComponentSuccessCallback',
-          error: 'ajaxErrorCallback'
+            App.ajax.send({
+              name: 'common.host.host_component.update',
+              sender: self,
+              data: {
+                hostName: self.get('content.hostName'),
+                serviceName: component.get('service.serviceName'),
+                componentName: componentName,
+                component: component,
+                context: Em.I18n.t('requestInfo.installHostComponent') + " " + displayName,
+                HostRoles: {
+                  state: 'INSTALLED'
+                }
+              },
+              success: 'installComponentSuccessCallback',
+              error: 'ajaxErrorCallback'
+            });
+          })
         });
       }
     });

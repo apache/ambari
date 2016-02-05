@@ -42,7 +42,7 @@ App.StackService = DS.Model.extend({
   stack: DS.belongsTo('App.Stack'),
   serviceComponents: DS.hasMany('App.StackServiceComponent'),
   configs: DS.attr('array'),
-  requiredServices: DS.attr('array'),
+  requiredServices: DS.attr('array', {defaultValue: []}),
 
   /**
    * @type {String[]}

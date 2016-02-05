@@ -253,6 +253,14 @@ public class AmbariServer {
 
   private static AmbariManagementController clusterController = null;
 
+  /**
+   * Alters system variables on base of Ambari configuration
+   */
+  static void setSystemProperties(Configuration configs) {
+    // modify location of temporary dir to avoid using default /tmp dir
+    System.setProperty("java.io.tmpdir", configs.getServerTempDir());
+  }
+
   public static AmbariManagementController getController() {
     return clusterController;
   }
@@ -264,6 +272,8 @@ public class AmbariServer {
     server = new Server();
     server.setSessionIdManager(sessionIdManager);
     Server serverForAgent = new Server();
+
+    setSystemProperties(configs);
 
     if (System.getProperty("skipDatabaseConsistencyValidation") == null) {
       DatabaseChecker.checkDBVersion();
@@ -784,10 +794,14 @@ public class AmbariServer {
   }
 
   public void stop() throws Exception {
-    try {
-      server.stop();
-    } catch (Exception e) {
-      LOG.error("Error stopping the server", e);
+    if (server == null) {
+      throw new AmbariException("Error stopping the server");
+    } else {
+      try {
+        server.stop();
+      } catch (Exception e) {
+        LOG.error("Error stopping the server", e);
+      }
     }
   }
 

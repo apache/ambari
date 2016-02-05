@@ -135,7 +135,7 @@
   </property>
   <property>
     <name>timeline.metrics.host.aggregator.daily.checkpointCutOffMultiplier</name>
-    <value>1</value>
+    <value>2</value>
     <description>
       Multiplier value * interval = Max allowed checkpoint lag. Effectively
       if aggregator checkpoint is greater than max allowed checkpoint delay,
@@ -209,7 +209,7 @@
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.daily.checkpointCutOffMultiplier</name>
-    <value>1</value>
+    <value>2</value>
     <description>
       Multiplier value * interval = Max allowed checkpoint lag. Effectively
       if aggregator checkpoint is greater than max allowed checkpoint delay,

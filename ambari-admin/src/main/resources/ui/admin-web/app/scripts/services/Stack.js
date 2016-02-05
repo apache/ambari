@@ -376,7 +376,7 @@ angular.module('ambariAdminConsole')
         deferred.resolve(invalidUrls);
       } else {
         osList.forEach(function (os) {
-          if (os.selected) {
+          if (os.selected && !os.disabled) {
             os.repositories.forEach(function (repo) {
               totalCalls++;
               $http.post(url + '/operating_systems/' + os.OperatingSystems.os_type + '/repositories/' + repo.Repositories.repo_id + '?validate_only=true',

@@ -380,7 +380,10 @@ public class AlertTargetResourceProvider extends
     String notificationType = (String) requestMap.get(ALERT_TARGET_NOTIFICATION_TYPE);
     Collection<String> alertStates = (Collection<String>) requestMap.get(ALERT_TARGET_STATES);
     Collection<Long> groupIds = (Collection<Long>) requestMap.get(ALERT_TARGET_GROUPS);
-
+    String isGlobal = (String) requestMap.get(ALERT_TARGET_GLOBAL);
+    if(null != isGlobal){
+      entity.setGlobal(Boolean.parseBoolean(isGlobal));
+    }
     if (!StringUtils.isBlank(name)) {
       entity.setTargetName(name);
     }
@@ -424,6 +427,13 @@ public class AlertTargetResourceProvider extends
         groups.addAll(s_dao.findGroupsById(ids));
       }
 
+      entity.setAlertGroups(groups);
+    } else if (entity.isGlobal()){
+      Set<AlertGroupEntity> groups = new HashSet<AlertGroupEntity>(s_dao.findAllGroups());
+      for (AlertGroupEntity group : groups) {
+        group.addAlertTarget(entity);
+        s_dao.merge(group);
+      }
       entity.setAlertGroups(groups);
     }
 

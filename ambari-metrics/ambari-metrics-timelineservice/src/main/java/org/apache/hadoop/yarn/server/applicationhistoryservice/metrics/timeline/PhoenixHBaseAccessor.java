@@ -550,39 +550,48 @@ public class PhoenixHBaseAccessor {
     List<Function> functions = metricFunctions.get(metricName);
 
     // Apply aggregation function if present
-    if (functions != null && !functions.isEmpty()) {
+    if ((functions != null && !functions.isEmpty())) {
       if (functions.size() > 1) {
         throw new IllegalArgumentException("Multiple aggregate functions not supported.");
       }
       for (Function f : functions) {
-        SingleValuedTimelineMetric metric =
-          TIMELINE_METRIC_READ_HELPER.getAggregatedTimelineMetricFromResultSet(rs, f);
-
-        if (condition.isGrouped()) {
-          metrics.addOrMergeTimelineMetric(metric);
+        if (f.getReadFunction() == Function.ReadFunction.VALUE) {
+          getTimelineMetricsFromResultSet(metrics, condition, rs);
         } else {
-          metrics.getMetrics().add(metric.getTimelineMetric());
+          SingleValuedTimelineMetric metric =
+            TIMELINE_METRIC_READ_HELPER.getAggregatedTimelineMetricFromResultSet(rs, f);
+
+          if (condition.isGrouped()) {
+            metrics.addOrMergeTimelineMetric(metric);
+          } else {
+            metrics.getMetrics().add(metric.getTimelineMetric());
+          }
         }
       }
     } else {
       // No aggregation requested
-      if (condition.getPrecision().equals(Precision.SECONDS)) {
-        TimelineMetric metric = TIMELINE_METRIC_READ_HELPER.getTimelineMetricFromResultSet(rs);
-        if (condition.isGrouped()) {
-          metrics.addOrMergeTimelineMetric(metric);
-        } else {
-          metrics.getMetrics().add(metric);
-        }
+      // Execution never goes here, function always contain at least 1 element
+      getTimelineMetricsFromResultSet(metrics, condition, rs);
+    }
+  }
 
+  private void getTimelineMetricsFromResultSet(TimelineMetrics metrics, Condition condition, ResultSet rs) throws SQLException, IOException {
+    if (condition.getPrecision().equals(Precision.SECONDS)) {
+      TimelineMetric metric = TIMELINE_METRIC_READ_HELPER.getTimelineMetricFromResultSet(rs);
+      if (condition.isGrouped()) {
+        metrics.addOrMergeTimelineMetric(metric);
       } else {
-        SingleValuedTimelineMetric metric =
-          TIMELINE_METRIC_READ_HELPER.getAggregatedTimelineMetricFromResultSet(rs,
-            Function.DEFAULT_VALUE_FUNCTION);
-        if (condition.isGrouped()) {
-          metrics.addOrMergeTimelineMetric(metric);
-        } else {
-          metrics.getMetrics().add(metric.getTimelineMetric());
-        }
+        metrics.getMetrics().add(metric);
+      }
+
+    } else {
+      SingleValuedTimelineMetric metric =
+        TIMELINE_METRIC_READ_HELPER.getAggregatedTimelineMetricFromResultSet(rs,
+          Function.DEFAULT_VALUE_FUNCTION);
+      if (condition.isGrouped()) {
+        metrics.addOrMergeTimelineMetric(metric);
+      } else {
+        metrics.getMetrics().add(metric.getTimelineMetric());
       }
     }
   }

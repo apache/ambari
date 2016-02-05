@@ -25,10 +25,10 @@
   <hr>
   <ul class="nav nav-tabs">
     <li ng-class="{active: tab == 'loginMessage'}">
-      <a ng-click="tab = 'loginMessage'">{{'common.loginActivities.loginMessage' | translate}}</a>
+      <link-to route="loginActivities.loginMessage">{{'common.loginActivities.loginMessage' | translate}}</link-to>
     </li>
     <li ng-class="{active: tab == 'homeDirectory'}">
-      <a ng-click="tab = 'homeDirectory'">{{'common.loginActivities.homeDirectory' | translate}}</a>
+      <link-to route="loginActivities.homeDirectory">{{'common.loginActivities.homeDirectory' | translate}}</link-to>
     </li>
   </ul>
 

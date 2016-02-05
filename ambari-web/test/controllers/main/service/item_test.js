@@ -28,6 +28,28 @@ require('controllers/main/service/reassign_controller');
 require('controllers/main/service/item');
 var batchUtils = require('utils/batch_scheduled_requests');
 var testHelpers = require('test/helpers');
+var stackSerivceModel = {
+  'HDFS': Em.Object.create({
+    serviceName: 'HDFS',
+    requiredServices: ['ZOOKEEPER']
+  }),
+  'YARN': Em.Object.create({
+    serviceName: 'YARN',
+    requiredServices: ['MAPREDUCE2', 'HDFS']
+  }),
+  'MAPREDUCE2': Em.Object.create({
+    serviceName: 'MAPREDUCE2',
+    requiredServices: ['YARN']
+  }),
+  'TEZ': Em.Object.create({
+    serviceName: 'TEZ',
+    requiredServices: ['YARN']
+  }),
+  'HIVE': Em.Object.create({
+    serviceName: 'HIVE',
+    requiredServices: ['YARN', 'TEZ']
+  })
+};
 
 describe('App.MainServiceItemController', function () {
 
@@ -1182,35 +1204,50 @@ describe('App.MainServiceItemController', function () {
 
     beforeEach(function() {
       mainServiceItemController = App.MainServiceItemController.create({});
-      this.mockStackService = sinon.stub(App.StackService, 'find');
+      sinon.stub(App.StackService, 'find', function (serviceName) {
+        return stackSerivceModel[serviceName];
+      });
       this.mockService = sinon.stub(App.Service, 'find');
     });
     afterEach(function() {
-      this.mockStackService.restore();
+      App.StackService.find.restore();
       this.mockService.restore();
     });
 
-    it("no stack services", function() {
-      this.mockStackService.returns([]);
-      expect(mainServiceItemController.findDependentServices('S1')).to.be.empty;
-    });
-
-    it("dependent service not installed", function() {
-      this.mockStackService.returns([Em.Object.create({serviceName: 'S2'})]);
-      this.mockService.withArgs('S2').returns(Em.Object.create({isLoaded: false}));
-      expect(mainServiceItemController.findDependentServices('S1')).to.be.empty;
-    });
-
-    it("service has no dependencies", function() {
-      this.mockStackService.returns([Em.Object.create({serviceName: 'S2', requiredServices: []})]);
-      this.mockService.withArgs('S2').returns(Em.Object.create({isLoaded: true}));
-      expect(mainServiceItemController.findDependentServices('S1')).to.be.empty;
+    it("no services", function() {
+      this.mockService.returns([]);
+      expect(mainServiceItemController.findDependentServices(['S1'])).to.be.empty;
     });
 
     it("service has dependencies", function() {
-      this.mockStackService.returns([Em.Object.create({serviceName: 'S2', requiredServices: ['S1']})]);
-      this.mockService.withArgs('S2').returns(Em.Object.create({isLoaded: true}));
-      expect(mainServiceItemController.findDependentServices('S1')).to.eql(['S2']);
+      this.mockService.returns([
+        Em.Object.create({ serviceName: 'HDFS' }),
+        Em.Object.create({ serviceName: 'YARN' }),
+        Em.Object.create({ serviceName: 'MAPREDUCE2' }),
+        Em.Object.create({ serviceName: 'TEZ' }),
+        Em.Object.create({ serviceName: 'HIVE' })
+      ]);
+      expect(mainServiceItemController.findDependentServices(['YARN', 'MAPREDUCE2'])).to.eql(['TEZ', 'HIVE']);
+    });
+
+    it("service has no dependencies", function() {
+       this.mockService.returns([
+         Em.Object.create({ serviceName: 'HDFS' }),
+         Em.Object.create({ serviceName: 'YARN' }),
+         Em.Object.create({ serviceName: 'MAPREDUCE2' }),
+         Em.Object.create({ serviceName: 'TEZ' }),
+         Em.Object.create({ serviceName: 'HIVE' })
+      ]);
+      expect(mainServiceItemController.findDependentServices(['HIVE'])).to.be.empty;
+    });
+
+    it("service has no dependencies (except interdependent)", function() {
+      this.mockService.returns([
+        Em.Object.create({ serviceName: 'HDFS' }),
+        Em.Object.create({ serviceName: 'YARN' }),
+        Em.Object.create({ serviceName: 'MAPREDUCE2' })
+      ]);
+      expect(mainServiceItemController.findDependentServices(['YARN', 'MAPREDUCE2'])).to.be.empty;
     });
 
   });
@@ -1222,12 +1259,20 @@ describe('App.MainServiceItemController', function () {
       mainServiceItemController = App.MainServiceItemController.create({});
       this.mockDependentServices = sinon.stub(mainServiceItemController, 'findDependentServices');
       sinon.stub(mainServiceItemController, 'dependentServicesWarning');
+      sinon.stub(mainServiceItemController, 'servicesDisplayNames', function(servicesDisplayNames) {
+        return servicesDisplayNames;
+      });
+      sinon.stub(mainServiceItemController, 'interDependentServices').returns([]);
+      this.allowUninstallServices = sinon.stub(mainServiceItemController, 'allowUninstallServices');
       this.mockService = sinon.stub(App.Service, 'find');
       sinon.stub(App, 'showConfirmationPopup');
       sinon.stub(App.ModalPopup, 'show');
       sinon.stub(App.format, 'role', function(name) {return name});
     });
     afterEach(function() {
+      mainServiceItemController.allowUninstallServices.restore();
+      mainServiceItemController.interDependentServices.restore();
+      mainServiceItemController.servicesDisplayNames.restore();
       this.mockDependentServices.restore();
       this.mockService.restore();
       mainServiceItemController.dependentServicesWarning.restore();
@@ -1250,21 +1295,23 @@ describe('App.MainServiceItemController', function () {
 
     it("service has installed dependent services", function() {
       this.mockDependentServices.returns(['S2']);
-      this.mockService.returns(Em.Object.create({workStatus: App.Service.statesMap.stopped}));
+      this.mockService.returns([Em.Object.create({workStatus: App.Service.statesMap.stopped}), Em.Object.create({workStatus: App.Service.statesMap.stopped})]);
       mainServiceItemController.deleteService('S1');
       expect(mainServiceItemController.dependentServicesWarning.calledWith('S1', ['S2'])).to.be.true;
     });
 
     it("service has not dependent services, and stopped", function() {
       this.mockDependentServices.returns([]);
-      this.mockService.returns(Em.Object.create({workStatus: App.Service.statesMap.stopped}));
+      this.allowUninstallServices.returns(true);
+      this.mockService.returns([Em.Object.create({workStatus: App.Service.statesMap.stopped}), Em.Object.create({workStatus: App.Service.statesMap.stopped})]);
       mainServiceItemController.deleteService('S1');
       expect(App.showConfirmationPopup.calledOnce).to.be.true;
     });
 
     it("service has not dependent services, and install failed", function() {
       this.mockDependentServices.returns([]);
-      this.mockService.returns(Em.Object.create({workStatus: App.Service.statesMap.install_failed}));
+      this.allowUninstallServices.returns(true);
+      this.mockService.returns([Em.Object.create({workStatus: App.Service.statesMap.install_failed}), Em.Object.create({workStatus: App.Service.statesMap.install_failed})]);
       mainServiceItemController.deleteService('S1');
       expect(App.showConfirmationPopup.calledOnce).to.be.true;
     });
@@ -1318,6 +1365,26 @@ describe('App.MainServiceItemController', function () {
     });
   });
 
+  describe('#interDependentServices', function() {
+    var mainServiceItemController;
+
+    beforeEach(function() {
+      sinon.stub(App.StackService, 'find', function (serviceName) {
+        return stackSerivceModel[serviceName];
+      });
+      mainServiceItemController = App.MainServiceItemController.create({});
+    });
+
+    afterEach(function() {
+      App.StackService.find.restore();
+    });
+
+    it('get interdependent services', function() {
+      expect(mainServiceItemController.interDependentServices('YARN')).to.eql(['MAPREDUCE2']);
+      expect(mainServiceItemController.interDependentServices('MAPREDUCE2')).to.eql(['YARN']);
+    });
+  });
+
   describe("#deleteServiceCall()", function() {
     var mainServiceItemController;
 
@@ -1326,12 +1393,13 @@ describe('App.MainServiceItemController', function () {
     });
 
     it("App.ajax.send should be called", function() {
-      mainServiceItemController.deleteServiceCall('S1');
-      var args = testHelpers.findAjaxRequest('name', 'service.item.delete');
+      mainServiceItemController.deleteServiceCall(['S1', 'S2']);
+      var args = testHelpers.findAjaxRequest('name', 'common.delete.service');
       expect(args[0]).exists;
       expect(args[0].sender).to.be.eql(mainServiceItemController);
       expect(args[0].data).to.be.eql({
-        serviceName : 'S1'
+        serviceName : 'S1',
+        servicesToDeleteNext: ['S2']
       });
     });
   });
@@ -1342,14 +1410,22 @@ describe('App.MainServiceItemController', function () {
     beforeEach(function() {
       mainServiceItemController = App.MainServiceItemController.create({});
       sinon.stub(window.location, 'reload');
+      sinon.spy(mainServiceItemController, 'deleteServiceCall');
     });
     afterEach(function() {
       window.location.reload.restore();
     });
 
     it("window.location.reload should be called", function() {
-      mainServiceItemController.deleteServiceCallSuccessCallback();
+      mainServiceItemController.deleteServiceCallSuccessCallback([], null, {});
+      expect(mainServiceItemController.deleteServiceCall.called).to.be.false;
       expect(window.location.reload.calledOnce).to.be.true;
+    });
+
+    it("deleteServiceCall should be called", function() {
+      mainServiceItemController.deleteServiceCallSuccessCallback([], null, {servicesToDeleteNext: true});
+      expect(mainServiceItemController.deleteServiceCall.calledOnce).to.be.true;
+      expect(window.location.reload.called).to.be.false;
     });
   });
 

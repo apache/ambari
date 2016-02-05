@@ -2439,6 +2439,14 @@ public class Configuration {
   }
 
   /**
+   * Ambari server temp dir
+   * @return server temp dir
+   */
+  public String getServerTempDir() {
+    return properties.getProperty(SERVER_TMP_DIR_KEY, SERVER_TMP_DIR_DEFAULT);
+  }
+
+  /**
    * Gets whether to use experiemental concurrent processing to convert
    * {@link StageEntity} instances into {@link Stage} instances. The default is
    * {@code false}.

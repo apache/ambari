@@ -30,6 +30,7 @@ hbase_pid_dir = config['configurations']['ams-hbase-env']['hbase_pid_dir']
 hbase_user = ams_user
 ams_collector_pid_dir = config['configurations']['ams-env']['metrics_collector_pid_dir']
 ams_monitor_pid_dir = config['configurations']['ams-env']['metrics_monitor_pid_dir']
+ams_grafana_pid_dir = config['configurations']['ams-grafana-env']['metrics_grafana_pid_dir']
 
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 ams_hbase_conf_dir = format("{hbase_conf_dir}")

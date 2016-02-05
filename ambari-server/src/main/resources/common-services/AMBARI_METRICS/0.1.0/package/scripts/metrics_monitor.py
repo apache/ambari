@@ -27,7 +27,7 @@ class AmsMonitor(Script):
   def install(self, env):
     import params
     env.set_params(params)
-    self.install_packages(env)
+    self.install_packages(env, exclude_packages = ['ambari-metrics-collector', 'ambari-metrics-grafana'])
     self.configure(env) # for security
 
   def configure(self, env):

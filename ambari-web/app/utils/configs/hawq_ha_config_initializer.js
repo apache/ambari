@@ -21,7 +21,7 @@ require('utils/configs/config_initializer_class');
 require('utils/configs/hosts_based_initializer_mixin');
 
 /**
- * Initializer for configs that are updated when Hawq Standby is activated
+ * Initializer for configs that are updated when Hawq Standby is added
  *
  * @class {HawqHaConfigInitializer}
  */

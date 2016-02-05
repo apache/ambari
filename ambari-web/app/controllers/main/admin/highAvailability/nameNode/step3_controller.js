@@ -100,6 +100,9 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
       var hawqSiteTag = data.Clusters.desired_configs['hawq-site'].tag;
       urlParams.push('(type=hawq-site&tag=' + hawqSiteTag + ')');
       this.set("hawqSiteTag", {name : "hawqSiteTag", value : hawqSiteTag});
+      var hdfsClientTag = data.Clusters.desired_configs['hdfs-client'].tag;
+      urlParams.push('(type=hdfs-client&tag=' + hdfsClientTag + ')');
+      this.set("hdfsClientTag", {name : "hdfsClientTag", value : hdfsClientTag});
     }
     App.ajax.send({
       name: 'admin.get.all_configurations',

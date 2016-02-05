@@ -20,9 +20,67 @@ var App = require('app');
 
 App.MainAdminServiceAutoStartView = Em.View.extend({
   templateName: require('templates/main/admin/service_auto_start'),
+  /**
+   * Value used in the checkbox.
+   *
+   * @property switcherValue
+   * @type {boolean}
+   */
+  switcherValue: false,
 
-  buttonText: function () {
-    return this.get('controller.overallEnabled') ? Em.I18n.t('common.enabled') : Em.I18n.t('common.disabled');
-  }.property('controller.overallEnabled')
+  clusterConfigs: null,
+
+  didInsertElement: function () {
+    var self = this;
+    this.get('controller').loadClusterConfig().done(function (data) {
+      var tag = [
+        {
+          siteName: 'cluster-env',
+          tagName: data.Clusters.desired_configs['cluster-env'].tag,
+          newTagName: null
+        }
+      ];
+      App.router.get('configurationController').getConfigsByTags(tag).done(function (data) {
+        self.set('clusterConfigs', data[0].properties);
+        self.set('switcherValue', self.get('clusterConfigs.recovery_enabled') === 'true');
+        // plugin should be initiated after applying binding for switcherValue
+        Em.run.later('sync', function() {
+          self.initSwitcher();
+        }.bind(self), 10);
+      });
+    });
+  },
+
+  /**
+   * Init switcher plugin.
+   *
+   * @method initSwitcher
+   */
+  updateClusterConfigs: function (state){
+    this.set('switcherValue', state);
+    this.set('clusterConfigs.recovery_enabled', '' + state);
+    this.get('controller').saveClusterConfigs(this.get('clusterConfigs'));
+  },
+
+  /**
+   * Init switcher plugin.
+   *
+   * @method initSwitcher
+   */
+  initSwitcher: function () {
+    var self = this;
+    if (this.$()) {
+      var switcher = this.$("input:eq(0)").bootstrapSwitch({
+        onText: Em.I18n.t('common.enabled'),
+        offText: Em.I18n.t('common.disabled'),
+        offColor: 'default',
+        onColor: 'success',
+        handleWidth: Math.max(Em.I18n.t('common.enabled').length, Em.I18n.t('common.disabled').length) * 8,
+        onSwitchChange: function (event, state) {
+          self.updateClusterConfigs(state);
+        }
+      });
+    }
+  }
 });
 

@@ -378,5 +378,35 @@ def ams(name=None):
 
     # TODO
     pass
+  elif name == 'grafana':
+
+    ams_grafana_directories = [
+                              params.ams_grafana_conf_dir,
+                              params.ams_grafana_log_dir,
+                              params.ams_grafana_data_dir,
+                              params.ams_grafana_pid_dir
+                              ]
+
+    for ams_grafana_directory in ams_grafana_directories:
+      Directory(ams_grafana_directory,
+                owner=params.ams_user,
+                group=params.user_group,
+                mode=0755,
+                recursive_ownership = True
+                )
+
+    File(format("{ams_grafana_conf_dir}/ams-grafana-env.sh"),
+         owner=params.ams_user,
+         group=params.user_group,
+         content=InlineTemplate(params.ams_grafana_env_sh_template)
+         )
+
+    File(format("{ams_grafana_conf_dir}/ams-grafana.ini"),
+         owner=params.ams_user,
+         group=params.user_group,
+         content=InlineTemplate(params.ams_grafana_ini_template)
+         )
+
+    pass
 
   pass

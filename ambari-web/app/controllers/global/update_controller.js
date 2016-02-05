@@ -223,7 +223,7 @@ App.UpdateController = Em.Controller.extend({
     }
     else {
       if (App.router.get('currentState.parentState.name') == 'hostDetails') {
-        hostDetailsFilter = App.router.get('location.lastSetURL').match(/\/hosts\/(.*)\/(summary|configs|alerts|stackVersions)/)[1];
+        hostDetailsFilter = App.router.get('location.lastSetURL').match(/\/hosts\/(.*)\/(summary|configs|alerts|stackVersions|logs)/)[1];
         App.updater.updateInterval('updateHost', App.get('componentsUpdateInterval'));
         //if host details page opened then request info only of one displayed host
         this.get('queryParams').set('Hosts', [
@@ -579,7 +579,7 @@ App.UpdateController = Em.Controller.extend({
       complete: callback
     });
   },
-  
+
   updateUpgradeState: function (callback) {
     var currentStateName = App.get('router.currentState.name'),
       parentStateName = App.get('router.currentState.parentState.name'),

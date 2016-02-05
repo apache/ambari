@@ -53,6 +53,15 @@ App.MainHostMenuView = Em.CollectionView.extend({
           return !App.get('supports.stackUpgrade') || !App.get('stackVersionsAvailable')
         }.property('App.supports.stackUpgrade'),
         id: 'host-details-summary-version'
+      }),
+      Em.Object.create({
+        name: 'logs',
+        label: Em.I18n.t('hosts.host.menu.logs'),
+        routing: 'logs',
+        hidden: function () {
+          return !App.get('supports.logSearch');
+        }.property('App.supports.logSearch'),
+        id: 'host-details-summary-logs'
       })
     ];
   }.property('App.stackVersionsAvailable'),

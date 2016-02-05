@@ -237,42 +237,79 @@ describe('App.HighAvailabilityWizardStep3Controller', function() {
     Em.A([
       {
         config: {
-          name: 'dfs.namenode.rpc-address.${dfs.nameservices}.nn1'
+          name: 'dfs.namenode.rpc-address.${dfs.nameservices}.nn1',
+          filename: 'hdfs-site'
         },
         value: 'h1:1111',
         name: 'dfs.namenode.rpc-address.' + nameServiceId + '.nn1'
       },
       {
         config: {
-          name: 'dfs.namenode.rpc-address.${dfs.nameservices}.nn2'
+          name: 'dfs.namenode.rpc-address.${dfs.nameservices}.nn2',
+          filename: 'hdfs-site'
         },
         value: 'h2:8020',
         name: 'dfs.namenode.rpc-address.' + nameServiceId + '.nn2'
       },
       {
         config: {
-          name: 'dfs.namenode.http-address.${dfs.nameservices}.nn1'
+          name: 'dfs.namenode.http-address.${dfs.nameservices}.nn1',
+          filename: 'hdfs-site'
         },
         value: 'h1:1234',
         name: 'dfs.namenode.http-address.' + nameServiceId + '.nn1'
       },
       {
         config: {
-          name: 'dfs.namenode.http-address.${dfs.nameservices}.nn2'
+          name: 'dfs.namenode.http-address.${dfs.nameservices}.nn2',
+          filename: 'hdfs-site'
+        },
+        value: 'h2:50070',
+        name: 'dfs.namenode.http-address.' + nameServiceId + '.nn2'
+      },{
+        config: {
+          name: 'dfs.namenode.rpc-address.${dfs.nameservices}.nn1',
+          filename: 'hdfs-client'
+        },
+        value: 'h1:1111',
+        name: 'dfs.namenode.rpc-address.' + nameServiceId + '.nn1'
+      },
+      {
+        config: {
+          name: 'dfs.namenode.rpc-address.${dfs.nameservices}.nn2',
+          filename: 'hdfs-client'
+        },
+        value: 'h2:8020',
+        name: 'dfs.namenode.rpc-address.' + nameServiceId + '.nn2'
+      },
+      {
+        config: {
+          name: 'dfs.namenode.http-address.${dfs.nameservices}.nn1',
+          filename: 'hdfs-client'
+        },
+        value: 'h1:1234',
+        name: 'dfs.namenode.http-address.' + nameServiceId + '.nn1'
+      },
+      {
+        config: {
+          name: 'dfs.namenode.http-address.${dfs.nameservices}.nn2',
+          filename: 'hdfs-client'
         },
         value: 'h2:50070',
         name: 'dfs.namenode.http-address.' + nameServiceId + '.nn2'
       },
       {
         config: {
-          name: 'dfs.namenode.https-address.${dfs.nameservices}.nn1'
+          name: 'dfs.namenode.https-address.${dfs.nameservices}.nn1',
+          filename: 'hdfs-site'
         },
         value: 'h1:4321',
         name: 'dfs.namenode.https-address.' + nameServiceId + '.nn1'
       },
       {
         config: {
-          name: 'dfs.namenode.https-address.${dfs.nameservices}.nn2'
+          name: 'dfs.namenode.https-address.${dfs.nameservices}.nn2',
+          filename: 'hdfs-site'
         },
         value: 'h2:50470',
         name: 'dfs.namenode.https-address.' + nameServiceId + '.nn2'

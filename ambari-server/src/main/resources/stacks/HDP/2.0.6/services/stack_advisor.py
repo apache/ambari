@@ -173,11 +173,14 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       oozie_user = None
       if "oozie-env" in services["configurations"] and "oozie_user" in services["configurations"]["oozie-env"]["properties"]:
         oozie_user = services["configurations"]["oozie-env"]["properties"]["oozie_user"]
-        oozieServerrHost = self.getHostWithComponent("OOZIE", "OOZIE_SERVER", services, hosts)
-        if oozieServerrHost is not None:
-          oozieServerHostName = oozieServerrHost["Hosts"]["public_host_name"]
+        oozieServerrHosts = self.getHostsWithComponent("OOZIE", "OOZIE_SERVER", services, hosts)
+        if oozieServerrHosts is not None:
+          oozieServerHostsNameList = []
+          for oozieServerHost in oozieServerrHosts:
+            oozieServerHostsNameList.append(oozieServerHost["Hosts"]["public_host_name"])
+          oozieServerHostsNames = ",".join(oozieServerHostsNameList)
           if not oozie_user in users and oozie_user is not None:
-            users[oozie_user] = {"propertyHosts" : oozieServerHostName,"propertyGroups" : "*", "config" : "oozie-env", "propertyName" : "oozie_user"}
+            users[oozie_user] = {"propertyHosts" : oozieServerHostsNames,"propertyGroups" : "*", "config" : "oozie-env", "propertyName" : "oozie_user"}
 
     if "HIVE" in servicesList:
       hive_user = None
@@ -186,13 +189,24 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
               and "webhcat_user" in services["configurations"]["hive-env"]["properties"]:
         hive_user = services["configurations"]["hive-env"]["properties"]["hive_user"]
         webhcat_user = services["configurations"]["hive-env"]["properties"]["webhcat_user"]
-        hiveServerrHost = self.getHostWithComponent("HIVE", "HIVE_SERVER", services, hosts)
-        if hiveServerrHost is not None:
-          hiveServerHostName = hiveServerrHost["Hosts"]["public_host_name"]
+        hiveServerHosts = self.getHostsWithComponent("HIVE", "HIVE_SERVER", services, hosts)
+        webHcatServerHosts = self.getHostsWithComponent("HIVE", "WEBHCAT_SERVER", services, hosts)
+
+        if hiveServerHosts is not None:
+          hiveServerHostsNameList = []
+          for hiveServerHost in hiveServerHosts:
+            hiveServerHostsNameList.append(hiveServerHost["Hosts"]["public_host_name"])
+          hiveServerHostsNames = ",".join(hiveServerHostsNameList)
           if not hive_user in users and hive_user is not None:
-            users[hive_user] = {"propertyHosts" : hiveServerHostName,"propertyGroups" : "*", "config" : "hive-env", "propertyName" : "hive_user"}
+            users[hive_user] = {"propertyHosts" : hiveServerHostsNames,"propertyGroups" : "*", "config" : "hive-env", "propertyName" : "hive_user"}
+
+        if webHcatServerHosts is not None:
+          webHcatServerHostsNameList = []
+          for webHcatServerHost in webHcatServerHosts:
+            webHcatServerHostsNameList.append(webHcatServerHost["Hosts"]["public_host_name"])
+          webHcatServerHostsNames = ",".join(webHcatServerHostsNameList)
           if not webhcat_user in users and webhcat_user is not None:
-            users[webhcat_user] = {"propertyHosts" : hiveServerHostName,"propertyGroups" : "*", "config" : "hive-env", "propertyName" : "webhcat_user"}
+            users[webhcat_user] = {"propertyHosts" : webHcatServerHostsNames,"propertyGroups" : "*", "config" : "hive-env", "propertyName" : "webhcat_user"}
 
     if "FALCON" in servicesList:
       falconUser = None

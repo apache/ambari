@@ -967,7 +967,25 @@ class TestHDP206StackAdvisor(TestCase):
               "mountpoint": "/"
             }]
           }
-        }]}
+        },
+        {
+          "href": "/api/v1/hosts/host2",
+          "Hosts": {
+            "cpu_count": 1,
+            "host_name": "c6402.ambari.apache.org",
+            "os_arch": "x86_64",
+            "os_type": "centos6",
+            "ph_cpu_count": 1,
+            "public_host_name": "c6402.ambari.apache.org",
+            "rack_info": "/default-rack",
+            "total_mem": 1048576,
+            "disk_info": [{
+              "size": '8',
+              "mountpoint": "/"
+            }]
+          }
+        },
+      ]}
 
     services = {
       "services": [
@@ -998,8 +1016,24 @@ class TestHDP206StackAdvisor(TestCase):
             "service_name": "HIVE",
             "stack_name": "HDP",
             "stack_version": "2.0.6",
-            "hostnames": ["c6401.ambari.apache.org"]
-          }, }]
+            "hostnames": ["c6401.ambari.apache.org","c6402.ambari.apache.org"]
+          }},
+          {
+          "href": "/api/v1/stacks/HDP/versions/2.0.6/services/HIVE/components/WEBHCAT_SERVER",
+          "StackServiceComponents": {
+            "advertise_version": "true",
+            "cardinality": "1",
+            "component_category": "MASTER",
+            "component_name": "WEBHCAT_SERVER",
+            "custom_commands": [],
+            "display_name": "WebHCat Server",
+            "is_client": "false",
+            "is_master": "true",
+            "service_name": "HIVE",
+            "stack_name": "HDP",
+            "stack_version": "2.0.6",
+            "hostnames": ["c6401.ambari.apache.org", "c6402.ambari.apache.org"]
+          }}]
         },
         {
           "StackServices": {
@@ -1018,7 +1052,7 @@ class TestHDP206StackAdvisor(TestCase):
             "service_name": "HIVE",
             "stack_name": "HDP",
             "stack_version": "2.0.6",
-            "hostnames": ["c6401.ambari.apache.org"]
+            "hostnames": ["c6401.ambari.apache.org", "c6402.ambari.apache.org"]
           }, }]
         }],
       "configurations": configurations
@@ -1034,13 +1068,13 @@ class TestHDP206StackAdvisor(TestCase):
                   {'properties':
                      {'hadoop.proxyuser.oozie.groups': '*',
                       'hadoop.proxyuser.hive.groups': '*',
-                      'hadoop.proxyuser.webhcat.hosts': 'c6401.ambari.apache.org',
+                      'hadoop.proxyuser.webhcat.hosts': 'c6401.ambari.apache.org,c6402.ambari.apache.org',
                       'hadoop.proxyuser.falcon.hosts': '*',
                       'hadoop.proxyuser.webhcat.groups': '*',
                       'hadoop.proxyuser.hdfs.groups': '*',
                       'hadoop.proxyuser.hdfs.hosts': '*',
-                      'hadoop.proxyuser.hive.hosts': 'c6401.ambari.apache.org',
-                      'hadoop.proxyuser.oozie.hosts': 'c6401.ambari.apache.org',
+                      'hadoop.proxyuser.hive.hosts': 'c6401.ambari.apache.org,c6402.ambari.apache.org',
+                      'hadoop.proxyuser.oozie.hosts': 'c6401.ambari.apache.org,c6402.ambari.apache.org',
                       'hadoop.proxyuser.falcon.groups': '*'}},
                 'falcon-env':
                   {'properties':
@@ -1081,13 +1115,13 @@ class TestHDP206StackAdvisor(TestCase):
                                  'hadoop.proxyuser.hive.groups': '*',
                                  'hadoop.proxyuser.hdfs1.groups': '*',
                                  'hadoop.proxyuser.hdfs1.hosts': '*',
-                                 'hadoop.proxyuser.webhcat.hosts': 'c6401.ambari.apache.org',
+                                 'hadoop.proxyuser.webhcat.hosts': 'c6401.ambari.apache.org,c6402.ambari.apache.org',
                                  'hadoop.proxyuser.falcon.hosts': '*',
                                  'hadoop.proxyuser.webhcat.groups': '*',
                                  'hadoop.proxyuser.hdfs.groups': '*',
                                  'hadoop.proxyuser.hdfs.hosts': '*',
-                                 'hadoop.proxyuser.hive.hosts': 'c6401.ambari.apache.org',
-                                 'hadoop.proxyuser.oozie.hosts': 'c6401.ambari.apache.org',
+                                 'hadoop.proxyuser.hive.hosts': 'c6401.ambari.apache.org,c6402.ambari.apache.org',
+                                 'hadoop.proxyuser.oozie.hosts': 'c6401.ambari.apache.org,c6402.ambari.apache.org',
                                  'hadoop.proxyuser.falcon.groups': '*'},
                               'property_attributes':
                                 {'hadoop.proxyuser.hdfs.groups': {'delete': 'true'},

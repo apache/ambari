@@ -18,6 +18,6 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-  .controller('LoginActivitiesMainCtrl',['$scope', function($scope) {
-    $scope.tab = 'loginMessage';
+  .controller('LoginActivitiesMainCtrl',['$scope', '$location', function($scope, $location) {
+    $scope.tab = $location.path().substr(1) == "loginActivities" ? "loginMessage" : $location.path().substr(1);
   }]);

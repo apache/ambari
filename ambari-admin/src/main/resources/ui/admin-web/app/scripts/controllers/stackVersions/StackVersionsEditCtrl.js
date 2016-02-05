@@ -111,6 +111,16 @@ angular.module('ambariAdminConsole')
     return !($scope.repoStatus == 'current' || $scope.repoStatus == 'installed');
   };
 
+  $scope.disableUnusedOS = function() {
+    Cluster.getClusterOS().then(function(usedOS){
+      angular.forEach($scope.osList, function (os) {
+        if (os.OperatingSystems.os_type !== usedOS) {
+          os.disabled = true;
+        }
+      });
+    });
+  };
+
   $scope.defaulfOSRepos = {};
 
   $scope.save = function () {

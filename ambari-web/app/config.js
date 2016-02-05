@@ -79,7 +79,9 @@ App.supports = {
   skipComponentStartAfterInstall: false,
   storeKDCCredentials: true,
   preInstallChecks: false,
-  hostComboSearchBox: false
+  hostComboSearchBox: false,
+  serviceAutoStart: false,
+  logSearch: false
 };
 
 if (App.enableExperimental) {

@@ -905,6 +905,11 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     highAvailabilityController.addHawqStandby();
   },
 
+  activateHawqStandby: function() {
+    var highAvailabilityController = App.router.get('mainAdminHighAvailabilityController');
+    highAvailabilityController.activateHawqStandby();
+  },
+
   enableRAHighAvailability: function() {
     var highAvailabilityController = App.router.get('mainAdminHighAvailabilityController');
     highAvailabilityController.enableRAHighAvailability();
@@ -961,20 +966,62 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   },
 
   /**
+   * Returns interdependent services
+   *
+   * @param serviceName
+   * @returns {string[]}
+   */
+  interDependentServices: function(serviceName) {
+    var interDependentServices = [];
+    App.StackService.find(serviceName).get('requiredServices').forEach(function(requiredService) {
+      if (App.StackService.find(requiredService).get('requiredServices').contains(serviceName)) {
+        interDependentServices.push(requiredService);
+      }
+    });
+    return interDependentServices;
+  },
+
+  /**
    * find dependent services
-   * @param {string} serviceName
+   * @param {string[]} serviceNamesToDelete
    * @returns {Array}
    */
-  findDependentServices: function(serviceName) {
+  findDependentServices: function (serviceNamesToDelete) {
     var dependentServices = [];
 
-    App.StackService.find().forEach(function(stackService) {
-      if (App.Service.find(stackService.get('serviceName')).get('isLoaded')
-          && stackService.get('requiredServices').contains(serviceName)) {
-        dependentServices.push(stackService.get('serviceName'));
+    App.Service.find().forEach(function (service) {
+      if (!serviceNamesToDelete.contains(service.get('serviceName'))) {
+        var requiredServices = App.StackService.find(service.get('serviceName')).get('requiredServices');
+        serviceNamesToDelete.forEach(function (dependsOnService) {
+          if (requiredServices.contains(dependsOnService)) {
+            dependentServices.push(service.get('serviceName'));
+          }
+        });
       }
     }, this);
     return dependentServices;
+  },
+
+  /**
+   * @param serviceNames
+   * @returns {string}
+   */
+  servicesDisplayNames: function(serviceNames) {
+    return serviceNames.map(function(serviceName) {
+      return App.format.role(serviceName);
+    }).join(',');
+  },
+
+  /**
+   * Is services can be removed based on work status
+   * @param serviceNames
+   */
+  allowUninstallServices: function(serviceNames) {
+    return !App.Service.find().filter(function (service) {
+      return serviceNames.contains(service.get('serviceName'));
+    }).mapProperty('workStatus').some(function (workStatus) {
+      return !App.Service.allowUninstallStates.contains(workStatus);
+    });
   },
 
   /**
@@ -982,10 +1029,13 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
    * @param {string} serviceName
    */
   deleteService: function(serviceName) {
-    var dependentServices = this.findDependentServices(serviceName),
-        self = this,
-        displayName = App.format.role(serviceName),
-        popupHeader = Em.I18n.t('services.service.delete.popup.header');
+    var self = this,
+      interDependentServices = this.interDependentServices(serviceName),
+      serviceNamesToDelete = interDependentServices.concat(serviceName),
+      dependentServices = this.findDependentServices(serviceNamesToDelete),
+      displayName = App.format.role(serviceName),
+      popupHeader = Em.I18n.t('services.service.delete.popup.header'),
+      dependentServicesToDeleteFmt = this.servicesDisplayNames(interDependentServices);
 
     if (App.Service.find().get('length') === 1) {
       //at least one service should be installed
@@ -997,21 +1047,26 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
       });
     } else if (dependentServices.length > 0) {
       this.dependentServicesWarning(serviceName, dependentServices);
-    } else if (App.Service.allowUninstallStates.contains(App.Service.find(serviceName).get('workStatus'))) {
+    } else if (this.allowUninstallServices(serviceNamesToDelete)) {
       App.showConfirmationPopup(
-        function() {self.confirmDeleteService(serviceName)},
-        Em.I18n.t('services.service.delete.popup.warning').format(displayName),
+        function() {self.confirmDeleteService(serviceName, interDependentServices, dependentServicesToDeleteFmt)},
+        Em.I18n.t('services.service.delete.popup.warning').format(displayName) +
+        (interDependentServices.length ? Em.I18n.t('services.service.delete.popup.warning.dependent').format(dependentServicesToDeleteFmt) : ''),
         null,
         popupHeader,
         Em.I18n.t('common.delete'),
         true
       );
     } else {
+      var body = Em.I18n.t('services.service.delete.popup.mustBeStopped').format(displayName);
+      if (interDependentServices.length) {
+        body += Em.I18n.t('services.service.delete.popup.mustBeStopped.dependent').format(dependentServicesToDeleteFmt)
+      }
       App.ModalPopup.show({
         secondary: null,
         header: popupHeader,
         encodeBody: false,
-        body: Em.I18n.t('services.service.delete.popup.mustBeStopped').format(displayName)
+        body: body
       });
     }
   },
@@ -1043,9 +1098,13 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   /**
    * Confirmation popup of service deletion
    * @param {string} serviceName
+   * @param {string[]} [dependentServiceNames]
+   * @param {string} [servicesToDeleteFmt]
    */
-  confirmDeleteService: function (serviceName) {
-    var message = Em.I18n.t('services.service.confirmDelete.popup.body').format(App.format.role(serviceName)),
+  confirmDeleteService: function (serviceName, dependentServiceNames, servicesToDeleteFmt) {
+    var message = dependentServiceNames && dependentServiceNames.length
+        ? Em.I18n.t('services.service.confirmDelete.popup.body.dependent').format(App.format.role(serviceName), servicesToDeleteFmt)
+        : Em.I18n.t('services.service.confirmDelete.popup.body').format(App.format.role(serviceName)),
         confirmKey = 'yes',
         self = this;
 
@@ -1055,7 +1114,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
        * @function onPrimary
        */
       onPrimary: function() {
-        self.deleteServiceCall(serviceName);
+        self.deleteServiceCall([serviceName].concat(dependentServiceNames));
         this._super();
       },
 
@@ -1100,22 +1159,31 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
 
   /**
    * Ajax call to delete service
-   * @param {string} serviceName
+   * @param {string[]} serviceNames
    * @returns {$.ajax}
    */
-  deleteServiceCall: function(serviceName) {
+  deleteServiceCall: function(serviceNames) {
+    var serviceToDeleteNow = serviceNames[0];
+    if (serviceNames.length > 1) {
+      var servicesToDeleteNext = serviceNames.slice(1);
+    }
     return App.ajax.send({
-      name : 'service.item.delete',
+      name : 'common.delete.service',
       sender: this,
       data : {
-        serviceName : serviceName
+        serviceName : serviceToDeleteNow,
+        servicesToDeleteNext: servicesToDeleteNext
       },
       success : 'deleteServiceCallSuccessCallback'
     });
   },
 
   deleteServiceCallSuccessCallback: function(data, ajaxOptions, params) {
-    window.location.reload();
+    if (params.servicesToDeleteNext) {
+      this.deleteServiceCall(params.servicesToDeleteNext);
+    } else {
+      window.location.reload();
+    }
   }
 
 });

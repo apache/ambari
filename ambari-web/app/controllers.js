@@ -60,6 +60,10 @@ require('controllers/main/admin/highAvailability/hawq/addStandby/step1_controlle
 require('controllers/main/admin/highAvailability/hawq/addStandby/step2_controller');
 require('controllers/main/admin/highAvailability/hawq/addStandby/step3_controller');
 require('controllers/main/admin/highAvailability/hawq/addStandby/step4_controller');
+require('controllers/main/admin/highAvailability/hawq/activateStandby/wizard_controller');
+require('controllers/main/admin/highAvailability/hawq/activateStandby/step1_controller');
+require('controllers/main/admin/highAvailability/hawq/activateStandby/step2_controller');
+require('controllers/main/admin/highAvailability/hawq/activateStandby/step3_controller');
 require('controllers/main/admin/highAvailability/rangerAdmin/wizard_controller');
 require('controllers/main/admin/highAvailability/rangerAdmin/step1_controller');
 require('controllers/main/admin/highAvailability/rangerAdmin/step2_controller');

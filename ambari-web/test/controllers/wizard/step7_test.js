@@ -1180,8 +1180,10 @@ describe('App.InstallerStep7Controller', function () {
 
   });
 
-  describe('#updateHawqConfigs', function() {
-    var isSingleNode = false;
+  describe('#removeHawqStandbyHostAddressConfig', function() {
+    installerStep7Controller = App.WizardStep7Controller.create({
+      content: Em.Object.create({}),
+    });
     var testHawqSiteConfigs = [
       {
         name: 'hawq_standby_address_host',
@@ -1194,19 +1196,9 @@ describe('App.InstallerStep7Controller', function () {
     ];
     var oldHawqSiteLength = testHawqSiteConfigs.length;
 
-    beforeEach(function () {
-      sinon.stub(App, 'get', function () {
-        return isSingleNode;
-      });
-    });
-
-    afterEach(function () {
-      App.get.restore()
-    });
-
     it('hawq_standby_address_host should be removed on single node cluster', function() {
-      isSingleNode = true;
       var hawqSiteConfigs = testHawqSiteConfigs.slice();
+      installerStep7Controller.set('content.hosts', {'hostname': 'h1'});
       var updatedHawqSiteConfigs = installerStep7Controller.updateHawqConfigs(hawqSiteConfigs);
       expect(updatedHawqSiteConfigs.length).to.be.equal(oldHawqSiteLength-1);
       expect(updatedHawqSiteConfigs.findProperty('name', 'hawq_standby_address_host')).to.not.exist;
@@ -1214,8 +1206,8 @@ describe('App.InstallerStep7Controller', function () {
     });
 
     it('hawq_standby_address_host should not be removed on multi node clusters', function() {
-      isSingleNode = false;
       var hawqSiteConfigs = testHawqSiteConfigs.slice();
+      installerStep7Controller.set('content.hosts', Em.A([{'hostname': 'h1'}, {'hostname': 'h2'}]));
       var updatedHawqSiteConfigs = installerStep7Controller.updateHawqConfigs(hawqSiteConfigs);
       expect(updatedHawqSiteConfigs.length).to.be.equal(oldHawqSiteLength);
       expect(updatedHawqSiteConfigs.findProperty('name', 'hawq_standby_address_host').value).to.be.equal('h2');

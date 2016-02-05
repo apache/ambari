@@ -32,9 +32,16 @@ angular.module('ambariAdminConsole')
     }
   },
   loginActivities: {
-      url: '/loginActivities',
+    loginMessage:{
+      url: '/loginMessage',
       templateUrl: 'views/loginActivities/main.html',
       controller: 'LoginActivitiesMainCtrl'
+    },
+    homeDirectory: {
+      url: '/homeDirectory',
+      templateUrl: 'views/loginActivities/main.html',
+      controller: 'LoginActivitiesMainCtrl'
+    }
   },
   users: {
     list: {

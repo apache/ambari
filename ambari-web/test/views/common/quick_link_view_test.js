@@ -334,8 +334,7 @@ describe('App.QuickViewLinks', function () {
     it("empty links are set", function () {
       quickViewLinks.setEmptyLinks();
       expect(quickViewLinks.get('quickLinks')).to.eql([{
-        label: quickViewLinks.t('quick.links.error.label'),
-        url: 'javascript:alert("' + quickViewLinks.t('contact.administrator') + '");return false;' // eslint-disable-line no-script-url
+        label: quickViewLinks.get('quickLinksErrorMessage'),
       }]);
       expect(quickViewLinks.get('isLoaded')).to.be.true;
     });
@@ -351,6 +350,16 @@ describe('App.QuickViewLinks', function () {
       var host = {hostName: 'host1'};
       quickViewLinks.processOozieHosts([host]);
       expect(host.status).to.equal(Em.I18n.t('quick.links.label.active'));
+    });
+    it("host status is invalid", function () {
+      quickViewLinks.set('content.hostComponents', [Em.Object.create({
+        componentName: 'OOZIE_SERVER',
+        workStatus: 'INSTALLED',
+        hostName: 'host1'
+      })]);
+      var host = {hostName: 'host1'};
+      quickViewLinks.processOozieHosts([host]);
+      expect(quickViewLinks.get('quickLinksErrorMessage')).to.equal(Em.I18n.t('quick.links.error.oozie.label'));
     });
   });
 

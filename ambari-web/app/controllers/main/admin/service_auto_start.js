@@ -21,10 +21,25 @@ var App = require('app');
 App.MainAdminServiceAutoStartController = Em.Controller.extend({
   name: 'mainAdminServiceAutoStartController',
 
-  overallEnabled: true,
+  loadClusterConfig: function () {
+    return App.ajax.send({
+      name: 'config.tags.site',
+      sender: this,
+      data: {
+        site: 'cluster-env'
+      }
+    });
+  },
 
-  toggleOverallEnabled : function () {
-    this.toggleProperty('overallEnabled');
+  saveClusterConfigs: function (clusterConfigs) {
+    return App.ajax.send({
+      name: 'admin.save_configs',
+      sender: this,
+      data: {
+        siteName: 'cluster-env',
+        properties: clusterConfigs
+      }
+    });
   }
 
 });

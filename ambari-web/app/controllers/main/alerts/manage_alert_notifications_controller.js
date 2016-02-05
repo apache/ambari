@@ -702,6 +702,13 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
    * @method updateAlertNotification
    */
   updateAlertNotification: function (apiObject) {
+    if(apiObject!=null){
+      if(apiObject.AlertTarget.global == false){
+        this.get('selectedAlertNotification').set('global',false);
+      } else {
+        this.get('selectedAlertNotification').set('global',true);
+      }
+    }
     return App.ajax.send({
       name: 'alerts.update_alert_notification',
       sender: this,

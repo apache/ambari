@@ -305,6 +305,14 @@ Em.I18n.translations = {
   'common.openNewWindow': 'Open in New Window',
   'common.fullLogPopup.clickToCopy': 'Click to Copy',
   'common.nothingToDelete': 'Nothing to delete',
+  'common.exclude': 'Exclude',
+  'common.include': 'Include',
+  'common.exclude.short': 'Excl',
+  'common.include.short': 'Incl',
+  'common.filters': 'Filters',
+  'common.keywords': 'Keywods',
+  'common.levels': 'Levels',
+  'common.extension': 'Extension',
 
   'models.alert_instance.tiggered.verbose': "Occurred on {0} <br> Checked on {1}",
   'models.alert_definition.triggered.verbose': "Occurred on {0}",
@@ -1459,7 +1467,7 @@ Em.I18n.translations = {
   'admin.serviceAutoStart.title': "Service Auto Start",
   'admin.serviceAutoStart.header': "Service Auto Start Configuration",
   'admin.serviceAutoStart.header.text': "Ambari services can be configured to start automatically on system boot. Each service can be configured to start all components, masters and workers, or selectively.",
-  'admin.serviceAutoStart.button.text': "Ambari services can be configured to start automatically on system boot. Each service can be configured to start all components, masters and workers, or selectively.",
+  'admin.serviceAutoStart.body.text': "Auto-Start Services Enabled",
 
   'admin.stackVersions.filter.notInstalled': "Not Installed ({0})",
   'admin.stackVersions.filter.all': "All ({0})",
@@ -1555,7 +1563,7 @@ Em.I18n.translations = {
   'admin.stackUpgrade.failedHosts.details': "Open Details",
   'admin.stackUpgrade.doThisLater': "Do This Later",
   'admin.stackUpgrade.pauseUpgrade': "Pause Upgrade",
-  'admin.stackUpgrade.pauseDowngrade': "Pause Downgrade",  
+  'admin.stackUpgrade.pauseDowngrade': "Pause Downgrade",
   'admin.stackUpgrade.downgrade.proceed': "Proceed with Downgrade",
   'admin.stackUpgrade.downgrade.body': "Are you sure you wish to abort the upgrade process and downgrade to <b>{0}</b>?",
   'admin.stackUpgrade.downgrade.retry.body': "Are you sure you wish to retry downgrade to <b>{0}</b>?",
@@ -1693,12 +1701,16 @@ Em.I18n.translations = {
   'services.service.delete.lastService.popup.body': 'The <b>{0}</b> service can\'t be deleted, at least one service must be installed.',
   'services.service.delete.popup.dependentServices': 'Prior to deleting <b>{0}</b>, you must delete the following dependent services:',
   'services.service.delete.popup.mustBeStopped': 'Prior to deleting <b>{0}</b>, you must stop the service.',
+  'services.service.delete.popup.mustBeStopped.dependent': ' Along with dependent service <b>{0}</b>.',
   'services.service.delete.popup.warning': 'The <b>{0} service will be removed from Ambari and all configurations' +
   ' and configuration history will be lost.</b>',
+  'services.service.delete.popup.warning.dependent': '<b>Note! {0} will be deleted too.</b>',
   'services.service.confirmDelete.popup.header': 'Confirm Delete',
   'services.service.confirmDelete.popup.body': 'You must confirm delete of <b>{0}</b> by typing "yes"' +
   ' in the confirmation box. <b>This operation is not reversible and all configuration history will be lost.</b>',
 
+  'services.service.confirmDelete.popup.body.dependent': 'You must confirm delete of <b>{0}</b> and <b>{1}</b> by typing "yes"' +
+  ' in the confirmation box. <b>This operation is not reversible and all configuration history will be lost.</b>',
   'services.service.summary.unknown':'unknown',
   'services.service.summary.notRunning':'Not Running',
   'services.service.summary.notAvailable':'n/a',
@@ -2269,6 +2281,8 @@ Em.I18n.translations = {
 
   'hosts.host.serviceNotAvailable': 'Service not available on this host',
 
+  'hosts.host.menu.logs': 'Logs',
+
   'hosts.host.menu.stackVersions': 'Versions',
   'hosts.host.stackVersions.table.allVersions': 'All Versions',
   'hosts.host.stackVersions.table.allNames': 'All Names',
@@ -2836,8 +2850,9 @@ Em.I18n.translations = {
   'common.combobox.dropdown.issues': 'Show property issues',
   'common.combobox.dropdown.warnings': 'Show property warnings',
 
-  'quick.links.error.label': 'Hostname is undefined',
-  'quick.links.error.label2': 'Quick Links are not available',
+  'quick.links.error.quicklinks.unavailable.label': 'Quick Links are not available',
+  'quick.links.error.nohosts.label': 'Failed to obtain host information for {0}',
+  'quick.links.error.oozie.label': 'Quick Links are not available. Make sure Oozie server is running.',
   'quick.links.publicHostName': '{0} ({1})',
   'quick.links.label.active': 'Active',
   'quick.links.label.standby': 'Standby',
@@ -2902,5 +2917,40 @@ Em.I18n.translations = {
   'admin.addHawqStandby.wizard.step4.task2.title': 'Reconfigure HAWQ',
   'admin.addHawqStandby.wizard.step4.task3.title': 'Start HAWQ Service',
   'admin.addHawqStandby.wizard.step4.notice.inProgress':'Please wait while HAWQ Standby Master is being deployed.',
-  'admin.addHawqStandby.wizard.step4.notice.completed':'HAWQ Standby Master has been enabled successfully.'
+  'admin.addHawqStandby.wizard.step4.notice.completed':'HAWQ Standby Master has been added successfully.',
+  'admin.activateHawqStandby.button.enable': 'Activate HAWQ Standby',
+  'admin.activateHawqStandby.wizard.header': 'Activate HAWQ Standby Wizard',
+  'admin.activateHawqStandby.wizard.step1.header': 'Get Started',
+  'admin.activateHawqStandby.wizard.step1.body':'This wizard will walk you through activating HAWQ Standby.' +
+      '<br/>Once activated, HAWQ Standby will become HAWQ Master, and the previous HAWQ master will be removed. ' +
+      'Users will be able to connect to HAWQ database using the new HAWQ Master.' +
+      '<br/><br/><b>You should plan a cluster maintenance window and prepare for cluster downtime when ' +
+      'activating HAWQ Standby. During this operation, HAWQ service will be stopped and started.</b>' +
+      '<br/><br/>Note: In order to add standby for HAWQ service, you can use the "Add HAWQ Standby"</b> wizard.',
+  'admin.activateHawqStandby.wizard.step2.header': 'Review',
+  'admin.highAvailability.wizard.step2.toBeDeleted': 'TO BE DELETED',
+  'admin.activateHawqStandby.wizard.step2.hawqMaster': '<b>Current HAWQ Master:</b>',
+  'admin.activateHawqStandby.wizard.step2.hawqStandby': '<b>New HAWQ Master:</b>',
+  'admin.activateHawqStandby.wizard.step2.toBeActivated': 'STANDBY TO BE ACTIVATED',
+  'admin.activateHawqStandby.wizard.step2.confirm.config.body':'<div class="alert alert-info">' +
+      '<b>Review Configuration Changes.</b></br>The following lists the configuration changes that will be ' +
+      'made by the Wizard to activate HAWQ Standby Master. This information is for <b> review only </b> and is not' +
+      ' editable.<br/><br/><b>Note:</b> hawq_standby_address_host property will be removed from hawq-site.xml as ' +
+      'HAWQ Standby will be activated to HAWQ Master.</div>',
+  'admin.activateHawqStandby.wizard.step2.confirm.host.body':'<b>Review HAWQ Master & Standby role changes.</b>',
+  'admin.activateHawqStandby.wizard.step2.confirmPopup.body': 'Do you wish to continue with activating HAWQ Standy? Please confirm, before proceeding as you will not be able to rollback from Ambari.',
+  'admin.activateHawqStandby.wizard.step3.header': 'Finalize Setup',
+  'admin.activateHawqStandby.wizard.step3.task0.title': 'Activate HAWQ Standby',
+  'admin.activateHawqStandby.wizard.step3.task1.title': 'Stop HAWQ Service',
+  'admin.activateHawqStandby.wizard.step3.task2.title': 'Reconfigure HAWQ',
+  'admin.activateHawqStandby.wizard.step3.task3.title': 'Install Role: New HAWQ Master',
+  'admin.activateHawqStandby.wizard.step3.task4.title': 'Delete Role: Old HAWQ Master',
+  'admin.activateHawqStandby.wizard.step3.task5.title': 'Delete Role: Old HAWQ Standby',
+  'admin.activateHawqStandby.wizard.step3.task6.title': 'Start HAWQ Service',
+  'admin.activateHawqStandby.closePopup':'Activate HAWQ Standby Wizard is in progress. You must allow the wizard to' +
+      ' complete for Ambari to be in usable state. If you choose to quit, you must follow manual instructions to' +
+      ' get back to a stable state. Are you sure you want to exit the wizard?',
+  'admin.activateHawqStandby.wizard.step3.notice.inProgress':'Please wait while HAWQ Standby is being activated',
+  'admin.activateHawqStandby.wizard.step3.notice.completed':'HAWQ Standby has been activated successfully.',
+  'admin.activateHawqStandby.wizard.step3.activateHawqStandbyCommand.context': "Execute HAWQ Standby activate command"
 };

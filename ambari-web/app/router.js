@@ -363,7 +363,7 @@ App.Router = Em.Router.extend({
    * @param {object} data
    */
   showLoginMessage: function (data){
-    var response = JSON.parse(data.Settings.content),
+    var response = JSON.parse(data.Settings.content.replace(/\n/g, "\\n")),
       text = response.text ? response.text : "",
       buttonText = response.button ? response.button : Em.I18n.t('ok'),
       status = response.status && response.status == "true" ? true : false;
