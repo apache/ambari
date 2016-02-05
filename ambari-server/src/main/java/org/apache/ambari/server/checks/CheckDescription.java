@@ -216,6 +216,14 @@ public enum CheckDescription {
           "The following config types will have values overwritten: %s");
       }}),
 
+  HARDCODED_STACK_VERSION_PROPERTIES_CHECK(PrereqCheckType.CLUSTER,
+    "Found hardcoded hdp stack version in property value.",
+    new HashMap<String, String>() {{
+      put(AbstractCheckDescriptor.DEFAULT,
+        "Some properties seem to contain hardcoded hdp version string \"%s\"." +
+          " That is a potential problem when doing stack update.");
+      }}),
+
   SERVICES_RANGER_PASSWORD_VERIFY(PrereqCheckType.SERVICE,
       "Verify Ambari and Ranger Password Synchronization",
       new HashMap<String, String>() {{

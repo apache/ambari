@@ -535,6 +535,10 @@
       </component>
 
       <component name="MAPREDUCE2_CLIENT">
+        <pre-upgrade>
+          <task xsi:type="server_action" summary="Verifying LZO codec path for mapreduce" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath"/>
+        </pre-upgrade>
+
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
@@ -637,6 +641,7 @@
           <task xsi:type="configure" id="hdp_2_2_0_0_tez_client_adjust_tez_counters_properties"/>
           <task xsi:type="configure" id="hdp_2_3_0_0_tez_client_adjust_tez_lib_uris_property"/>
           <task xsi:type="configure" id="hdp_2_3_0_0_tez_keep_ats_v1"/>
+          <task xsi:type="server_action" summary="Verifying LZO codec path for Tez" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath"/>
         </pre-upgrade>
         <upgrade>
           <task xsi:type="restart-task" />
@@ -748,6 +753,8 @@
       <component name="OOZIE_SERVER">
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_3_0_0_oozie_remove_redundant_configurations"/>
+
+          <task xsi:type="server_action" summary="Adjusting Oozie properties" class="org.apache.ambari.server.serveraction.upgrades.OozieConfigCalculation"/>
 
           <task xsi:type="execute" hosts="all" sequential="true" summary="Shut down all Oozie servers">
             <script>scripts/oozie_server.py</script>

@@ -273,14 +273,25 @@
         <task xsi:type="configure" id="hdp_2_4_0_0_namenode_ha_adjustments"/>
       </execute-stage>
 
+      <!-- YARN -->
       <execute-stage service="YARN" component="RESOURCEMANAGER" title="Calculating Yarn Properties for Spark">
         <task xsi:type="server_action" summary="Calculating Yarn Properties for Spark Shuffle" class="org.apache.ambari.server.serveraction.upgrades.SparkShufflePropertyConfig" />
       </execute-stage>
 
+      <execute-stage service="MAPREDUCE2" component="MAPREDUCE2_CLIENT" title="Apply config changes for Mapreduce2 client">
+        <task xsi:type="server_action" summary="Verifying LZO codec path for mapreduce" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath"/>
+      </execute-stage>
+
+      <!-- TEZ -->
       <execute-stage service="TEZ" component="TEZ_CLIENT" title="Apply config changes for Tez">
         <task xsi:type="configure" id="hdp_2_4_0_0_tez_client_adjust_tez_lib_uris_property"/>
       </execute-stage>
 
+      <execute-stage service="TEZ" component="TEZ_CLIENT" title="Verify LZO codec path for Tez">
+        <task xsi:type="server_action" summary="Verifying LZO codec path for Tez" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath"/>
+      </execute-stage>
+
+      <!-- HIVE -->
       <execute-stage service="HIVE" component="WEBHCAT_SERVER" title="Apply config changes for WebHCat Server">
         <task xsi:type="configure" id="hdp_2_4_0_0_webhcat_server_update_configuration_paths"/>
       </execute-stage>
@@ -289,7 +300,11 @@
         <task xsi:type="configure" id="hdp_2_4_0_0_hive_server_configure_authentication"/>
       </execute-stage>
 
-      <!-- OOZIE -->
+      <!--OOZIE-->
+      <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Apply config changes for Oozie Server">
+        <task xsi:type="server_action" summary="Adjusting Oozie properties" class="org.apache.ambari.server.serveraction.upgrades.OozieConfigCalculation"/>
+      </execute-stage>
+
       <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Apply config changes for Oozie Server">
         <task xsi:type="configure" id="hdp_2_4_0_0_oozie_remove_service_classes" />
       </execute-stage>
@@ -299,7 +314,6 @@
       <execute-stage service="KAFKA" component="KAFKA_BROKER" title="Apply config changes for Kafka">
         <task xsi:type="configure" id ="hdp_2_4_0_0_kafka_broker_listeners"/>
       </execute-stage>
-
 
     </group>
 
