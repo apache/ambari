@@ -80,7 +80,8 @@ App.supports = {
   storeKDCCredentials: true,
   preInstallChecks: false,
   hostComboSearchBox: false,
-  serviceAutoStart: false
+  serviceAutoStart: false,
+  logSearch: false
 };
 
 if (App.enableExperimental) {

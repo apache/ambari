@@ -20,6 +20,7 @@
 // load all views here
 
 require('views/application');
+require('views/common/log_file_search_view');
 require('views/common/global/spinner');
 require('views/common/ajax_default_error_popup_body');
 require('views/common/chart');
@@ -37,6 +38,7 @@ require('views/common/modal_popups/invalid_KDC_popup');
 require('views/common/modal_popups/dependent_configs_list_popup');
 require('views/common/modal_popups/select_groups_popup');
 require('views/common/modal_popups/logs_popup');
+require('views/common/modal_popups/log_file_search_popup');
 require('views/common/editable_list');
 require('views/common/host_progress_popup_body_view');
 require('views/common/rolling_restart_view');
@@ -45,6 +47,7 @@ require('views/common/metric');
 require('views/common/time_range');
 require('views/common/time_range_list');
 require('views/common/form/field');
+require('views/common/form/datepicker_view');
 require('views/common/form/spinner_input_view');
 require('views/common/form/manage_credentials_form_view');
 require('views/common/quick_view_link_view');
