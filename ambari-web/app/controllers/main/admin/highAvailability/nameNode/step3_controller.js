@@ -88,6 +88,9 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
       var hawqSiteTag = data.Clusters.desired_configs['hawq-site'].tag;
       urlParams.push('(type=hawq-site&tag=' + hawqSiteTag + ')');
       this.set("hawqSiteTag", {name : "hawqSiteTag", value : hawqSiteTag});
+      var hdfsClientTag = data.Clusters.desired_configs['hdfs-client'].tag;
+      urlParams.push('(type=hdfs-client&tag=' + hdfsClientTag + ')');
+      this.set("hdfsClientTag", {name : "hdfsClientTag", value : hdfsClientTag});
     }
     App.ajax.send({
       name: 'admin.get.all_configurations',
@@ -111,8 +114,13 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
 
   tweakServiceConfigs: function(configs) {
     var nameServiceId = this.get('content.nameServiceId');
-    var nameServiceConfig = configs.findProperty('name','dfs.nameservices');
-    this.setConfigInitialValue(nameServiceConfig,nameServiceId);
+    var filesToChange = ['hdfs-site'];
+    // If HAWQ is on the cluster, update dfs.nameservices in hdfs-client.xml for HAWQ to work with NN HA
+    if (App.Service.find().someProperty('serviceName', 'HAWQ')) filesToChange.push('hdfs-client');
+    filesToChange.forEach(function (filename) {
+      var nameServiceConfig = configs.filterProperty('filename', filename).findProperty('name','dfs.nameservices');
+      this.setConfigInitialValue(nameServiceConfig,nameServiceId);
+    }, this);
     var defaultFsConfig = configs.findProperty('name','fs.defaultFS');
     this.setConfigInitialValue(defaultFsConfig, "hdfs://" + nameServiceId);
     this.tweakServiceConfigNames(configs,nameServiceId);
@@ -151,15 +159,21 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
     if (this.get('serverConfigData').items.findProperty('type','zoo.cfg').properties['clientPort'])
       zkClientPort = this.get('serverConfigData').items.findProperty('type','zoo.cfg').properties['clientPort'];
 
-    var config = configs.findProperty('name','dfs.namenode.rpc-address.' + nameServiceId + '.nn1');
-    this.setConfigInitialValue(config,currentNameNodeHost + ':' + nnRpcPort);
-    config = configs.findProperty('name','dfs.namenode.rpc-address.' + nameServiceId + '.nn2');
-    this.setConfigInitialValue(config,newNameNodeHost + ':8020');
-    config = configs.findProperty('name','dfs.namenode.http-address.' + nameServiceId + '.nn1');
-    this.setConfigInitialValue(config,currentNameNodeHost + ':' + nnHttpPort);
-    config = configs.findProperty('name','dfs.namenode.http-address.' + nameServiceId + '.nn2');
-    this.setConfigInitialValue(config,newNameNodeHost + ':50070');
-    config = configs.findProperty('name','dfs.namenode.https-address.' + nameServiceId + '.nn1');
+    var filesToChange = ['hdfs-site'];
+    // If HAWQ is on the cluster, update parameters in hdfs-client.xml for HAWQ to work with NN HA
+    if (App.Service.find().someProperty('serviceName', 'HAWQ')) filesToChange.push('hdfs-client');
+    filesToChange.forEach(function (filename) {
+      var config = configs.filterProperty('filename', filename).findProperty('name','dfs.namenode.rpc-address.' + nameServiceId + '.nn1');
+      this.setConfigInitialValue(config,currentNameNodeHost + ':' + nnRpcPort);
+      config = configs.filterProperty('filename', filename).findProperty('name','dfs.namenode.rpc-address.' + nameServiceId + '.nn2');
+      this.setConfigInitialValue(config,newNameNodeHost + ':8020');
+      config = configs.filterProperty('filename', filename).findProperty('name','dfs.namenode.http-address.' + nameServiceId + '.nn1');
+      this.setConfigInitialValue(config,currentNameNodeHost + ':' + nnHttpPort);
+      config = configs.filterProperty('filename', filename).findProperty('name','dfs.namenode.http-address.' + nameServiceId + '.nn2');
+      this.setConfigInitialValue(config,newNameNodeHost + ':50070');
+    }, this);
+    
+    var config = configs.findProperty('name','dfs.namenode.https-address.' + nameServiceId + '.nn1');
     this.setConfigInitialValue(config,currentNameNodeHost + ':' + nnHttpsPort);
     config = configs.findProperty('name','dfs.namenode.https-address.' + nameServiceId + '.nn2');
     this.setConfigInitialValue(config,newNameNodeHost + ':50470');
