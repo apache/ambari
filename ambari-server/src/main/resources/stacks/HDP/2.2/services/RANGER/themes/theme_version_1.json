@@ -525,7 +525,25 @@
         },
         {
           "config": "admin-properties/audit_db_password",
-          "subsection-name": "subsection-ranger-audit-db-row2-col2"
+          "subsection-name": "subsection-ranger-audit-db-row2-col2",
+          "depends-on": [
+            {
+              "configs":[
+                "ranger-env/xasecure.audit.destination.db"
+              ],
+              "if": "${ranger-env/xasecure.audit.destination.db}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
         }
       ]
     },
