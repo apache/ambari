@@ -69,6 +69,24 @@ describe('App.MainHostMenuView', function () {
         });
       });
 
+    Em.A([
+      {
+        logSearch: false,
+        m: '`logs` tab is invisible',
+        e: true
+      },
+      {
+        logSearch: true,
+        m: '`logs` tab is visible',
+        e: false
+      }
+    ]).forEach(function(test) {
+      it(test.m, function() {
+          this.mock.withArgs('supports.logSearch').returns(test.logSearch);
+          view.propertyDidChange('content');
+          expect(view.get('content').findProperty('name', 'logs').get('hidden')).to.equal(test.e);
+      });
+    });
   });
 
 });

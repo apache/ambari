@@ -312,6 +312,7 @@ Em.I18n.translations = {
   'common.filters': 'Filters',
   'common.keywords': 'Keywods',
   'common.levels': 'Levels',
+  'common.extension': 'Extension',
 
   'models.alert_instance.tiggered.verbose': "Occurred on {0} <br> Checked on {1}",
   'models.alert_definition.triggered.verbose': "Occurred on {0}",
@@ -2279,6 +2280,8 @@ Em.I18n.translations = {
   'hosts.selectHostsDialog.message.warning': 'At least one host needs to be selected.',
 
   'hosts.host.serviceNotAvailable': 'Service not available on this host',
+
+  'hosts.host.menu.logs': 'Logs',
 
   'hosts.host.menu.stackVersions': 'Versions',
   'hosts.host.stackVersions.table.allVersions': 'All Versions',

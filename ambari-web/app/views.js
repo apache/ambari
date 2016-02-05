@@ -122,6 +122,7 @@ require('views/main/host/details/host_component_views/datanode_view');
 require('views/main/host/details/host_component_views/nodemanager_view');
 require('views/main/host/details/host_component_views/regionserver_view');
 require('views/main/host/details/host_component_views/tasktracker_view');
+require('views/main/host/logs_view');
 require('views/main/host/menu');
 require('views/main/host/summary');
 require('views/main/host/configs');
