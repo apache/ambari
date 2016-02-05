@@ -25,6 +25,8 @@ App.QuickViewLinks = Em.View.extend({
 
   hasQuickLinksConfiged: false,
 
+  quickLinksErrorMessage: '',
+
   /**
    * service which has blank target of link
    * @type {Array}
@@ -317,9 +319,9 @@ App.QuickViewLinks = Em.View.extend({
    * set empty links
    */
   setEmptyLinks: function () {
+    //display an error message
     var quickLinks = [{
-      label: this.t('quick.links.error.label'),
-      url: 'javascript:alert("' + this.t('contact.administrator') + '");return false;'
+      label: this.get('quickLinksErrorMessage')
     }];
     this.set('quickLinks', quickLinks);
     this.set('isLoaded', true);
@@ -432,10 +434,14 @@ App.QuickViewLinks = Em.View.extend({
       .filterProperty('workStatus', 'STARTED')
       .mapProperty('hostName');
 
-    return hosts.filter(function (host) {
+    var oozieHostsArray = hosts.filter(function (host) {
       host.status = Em.I18n.t('quick.links.label.active');
       return activeOozieServers.contains(host.hostName);
     }, this);
+
+    if (oozieHostsArray.length == 0)
+      this.set('quickLinksErrorMessage', Em.I18n.t('quick.links.error.oozie.label'));
+    return oozieHostsArray;
   },
 
   /**
@@ -506,6 +512,8 @@ App.QuickViewLinks = Em.View.extend({
    * @method getHosts
    */
   getHosts: function (response, serviceName) {
+    //The default error message when we cannot obtain the host information for the given service
+    this.set('quickLinksErrorMessage', Em.I18n.t('quick.links.error.nohosts.label').format(serviceName));
     if (App.get('singleNodeInstall')) {
       return [{
         hostName: App.get('singleNodeAlias'),

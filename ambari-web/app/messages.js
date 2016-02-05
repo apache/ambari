@@ -2850,8 +2850,9 @@ Em.I18n.translations = {
   'common.combobox.dropdown.issues': 'Show property issues',
   'common.combobox.dropdown.warnings': 'Show property warnings',
 
-  'quick.links.error.label': 'Hostname is undefined',
-  'quick.links.error.label2': 'Quick Links are not available',
+  'quick.links.error.quicklinks.unavailable.label': 'Quick Links are not available',
+  'quick.links.error.nohosts.label': 'Failed to obtain host information for {0}',
+  'quick.links.error.oozie.label': 'Quick Links are not available. Make sure Oozie server is running.',
   'quick.links.publicHostName': '{0} ({1})',
   'quick.links.label.active': 'Active',
   'quick.links.label.standby': 'Standby',
