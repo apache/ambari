@@ -344,4 +344,19 @@ public class Configuration {
   public void setParentConfiguration(Configuration parent) {
     parentConfiguration = parent;
   }
+
+  /**
+   * Remove all occurrences of a config type
+   */
+  public void removeConfigType(String configType) {
+    if (properties != null && properties.containsKey(configType)) {
+      properties.remove(configType);
+    }
+    if (attributes != null && attributes.containsKey(configType)) {
+      attributes.remove(configType);
+    }
+    if (parentConfiguration != null) {
+      parentConfiguration.removeConfigType(configType);
+    }
+  }
 }
