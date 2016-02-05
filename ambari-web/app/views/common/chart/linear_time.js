@@ -265,26 +265,6 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
   },
 
   /**
-   * Maps server data for Kafka Broker Topic and Controller Status metrics
-   * into series format ready for export to graph and JSON formats
-   * @param jsonData
-   * @returns {Array}
-   */
-  getKafkaData: function (jsonData) {
-    var dataArray = [],
-      template = this.get('seriesTemplate'),
-      data = Em.get(jsonData, template.path);
-    for (var name in data) {
-      var displayName = template.displayName(name);
-      dataArray.push({
-        name: displayName,
-        data: Em.get(data, name + '.1MinuteRate')
-      });
-    }
-    return dataArray;
-  },
-
-  /**
    * Function to map data into graph series
    * @param jsonData
    * @returns {Array}
