@@ -2910,6 +2910,8 @@ Em.I18n.translations = {
       '</div>',
   'admin.addHawqStandby.wizard.step3.hawqMaster': 'Current HAWQ Master',
   'admin.addHawqStandby.wizard.step3.newHawqStandby': 'New HAWQ Standby Master',
+  'admin.addHawqStandby.wizard.step3.confirm.dataDir.title': 'HAWQ Standby Master Directory Confirmation',
+  'admin.addHawqStandby.wizard.step3.confirm.dataDir.body': 'Please confirm that the HAWQ data directory <b>{0}</b> on the Standby Master <b>{1}</b> does not exist or is empty.</br>If there is pre-existing data then HAWQ Standby will get initialized with stale data.',
   'admin.addHawqStandby.step4.save.configuration.note': 'This configuration is created by Add HAWQ Standby wizard',
   'admin.addHawqStandby.wizard.step4.header': 'Configure Components',
   'admin.addHawqStandby.wizard.step4.task0.title': 'Stop HAWQ Service',
