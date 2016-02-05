@@ -100,12 +100,14 @@ public class UpgradeCatalog222Test {
     Method addNewConfigurationsFromXml = AbstractUpgradeCatalog.class.getDeclaredMethod("addNewConfigurationsFromXml");
     Method updateAlerts = UpgradeCatalog222.class.getDeclaredMethod("updateAlerts");
     Method updateStormConfigs = UpgradeCatalog222.class.getDeclaredMethod("updateStormConfigs");
+    Method updateAMSConfigs = UpgradeCatalog222.class.getDeclaredMethod("updateAMSConfigs");
 
 
     UpgradeCatalog222 upgradeCatalog222 = createMockBuilder(UpgradeCatalog222.class)
             .addMockedMethod(addNewConfigurationsFromXml)
             .addMockedMethod(updateAlerts)
             .addMockedMethod(updateStormConfigs)
+            .addMockedMethod(updateAMSConfigs)
             .createMock();
 
     upgradeCatalog222.addNewConfigurationsFromXml();
