@@ -18,44 +18,48 @@ limitations under the License.
 
 """
 
-from resource_management import *
-from ams import ams
-from ams_service import ams_service
+from resource_management import Script, Execute
+from resource_management.libraries.functions import format
 from status import check_service_status
+from ams import ams
 
-class AmsMonitor(Script):
+class AmsGrafana(Script):
   def install(self, env):
-    import params
-    env.set_params(params)
-    self.install_packages(env, exclude_packages = ['ambari-metrics-collector', 'ambari-metrics-grafana'])
-    self.configure(env) # for security
+    self.install_packages(env, exclude_packages = ['ambari-metrics-collector'])
 
-  def configure(self, env):
+  def configure(self, env, action = None):
     import params
     env.set_params(params)
-    ams(name='monitor')
+    ams(name='grafana')
 
   def start(self, env):
-    self.configure(env) # for security
+    import params
+    env.set_params(params)
+    self.configure(env, action = 'start')
 
-    ams_service( 'monitor',
-                 action = 'start'
-    )
+    stop_cmd = format("{ams_grafana_script} stop")
+    Execute(stop_cmd,
+            user=params.ams_user
+            )
+
+    start_cmd = format("{ams_grafana_script} start")
+    Execute(start_cmd,
+            user=params.ams_user
+            )
 
   def stop(self, env):
     import params
     env.set_params(params)
-
-    ams_service( 'monitor',
-                 action = 'stop'
-    )
+    self.configure(env, action = 'stop')
+    stop_cmd = format("{ams_grafana_script} stop")
+    Execute(stop_cmd,
+            user=params.ams_user
+            )
 
   def status(self, env):
     import status_params
     env.set_params(status_params)
-    check_service_status(name='monitor')
-
+    check_service_status(name='grafana')
 
 if __name__ == "__main__":
-  AmsMonitor().execute()
-
+  AmsGrafana().execute()

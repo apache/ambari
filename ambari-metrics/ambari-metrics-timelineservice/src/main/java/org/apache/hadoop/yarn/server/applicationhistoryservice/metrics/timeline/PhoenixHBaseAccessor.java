@@ -550,7 +550,7 @@ public class PhoenixHBaseAccessor {
     List<Function> functions = metricFunctions.get(metricName);
 
     // Apply aggregation function if present
-    if (functions != null && !functions.isEmpty()) {
+    if ((functions != null && !functions.isEmpty())) {
       if (functions.size() > 1) {
         throw new IllegalArgumentException("Multiple aggregate functions not supported.");
       }

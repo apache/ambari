@@ -853,6 +853,15 @@
             "timeline.metrics.daily.aggregator.minute.interval": "86400",
             "timeline.metrics.cluster.aggregator.minute.interval": "120",
             "timeline.metrics.host.aggregator.hourly.interval": "3600"
+        },
+        "ams-grafana-env": {
+            "metrics_grafana_log_dir": "/var/log/ambari-metrics-grafana",
+            "metrics_grafana_pid_dir": "/var/run/ambari-metrics-grafana",
+            "metrics_grafana_data_dir": "/var/lib/ambari-metrics-grafana",
+            "content": "\n"
+        },
+        "ams-grafana-ini": {
+            "content": "\n"
         }
     },
     "configuration_attributes": {

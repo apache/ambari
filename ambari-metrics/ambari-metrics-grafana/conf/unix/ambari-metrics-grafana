@@ -18,7 +18,7 @@
 # description: Grafana web server & backend
 # processname: grafana
 # config: /etc/grafana/ams-grafana.ini
-# pidfile: /var/run/grafana.pid
+# pidfile: /var/run/ambari-metrics-grafana.pid
 
 ### BEGIN INIT INFO
 # Provides:          grafana
@@ -35,16 +35,18 @@
 
 PATH=/bin:/usr/bin:/sbin:/usr/sbin
 NAME=grafana-server
-DESC="Grafana Server"
+DESC="Ambari Metrics Grafana"
+CONF_DIR=/etc/ambari-metrics-grafana/conf
 
-if [ -f "/etc/ambari-metrics-grafana/conf/ams-grafana-env.sh" ]; then
-  . "/etc/ambari-metrics-grafana/conf/ams-grafana-env.sh"
+# execute ams-grafana-env.sh
+if [[ -f "${CONF_DIR}/ams-grafana-env.sh" ]]; then
+. "${CONF_DIR}/ams-grafana-env.sh"
+else
+echo "ERROR: Cannot execute ${CONF_DIR}/ams-grafana-env.sh." 2>&1
+exit 1
 fi
 
-GRAFANA_USER=${AMS_USER}
-GRAFANA_GROUP=${AMS_USER_GROUP}
 GRAFANA_HOME=${AMS_GRAFANA_HOME_DIR}
-CONF_DIR=${AMS_GRAFANA_CONF_DIR}
 WORK_DIR=$GRAFANA_HOME
 DATA_DIR=${AMS_GRAFANA_DATA_DIR}
 LOG_DIR=${AMS_GRAFANA_LOG_DIR}
@@ -52,11 +54,13 @@ CONF_FILE=$CONF_DIR/ams-grafana.ini
 MAX_OPEN_FILES=10000
 PID_FILE=${AMS_GRAFANA_PID_DIR}/$NAME.pid
 DAEMON=$GRAFANA_HOME/bin/$NAME
+OUT_FILE=${AMS_GRAFANA_LOG_DIR}/grafana.out
+STOP_TIMEOUT=5
 
-if [ `id -u` -ne 0 ]; then
-  echo "You need root privileges to run this script"
-  exit 4
-fi
+#if [ `id -u` -ne 0 ]; then
+#  echo "You need root privileges to run this script"
+#  exit 4
+#fi
 
 if [ ! -x $DAEMON ]; then
   echo "Program not installed or not executable"
@@ -66,20 +70,20 @@ fi
 #
 # init.d / servicectl compatibility (openSUSE)
 #
-if [ -f /etc/rc.status ]; then
-    . /etc/rc.status
-    rc_reset
-fi
+# if [ -f /etc/rc.status ]; then
+#    . /etc/rc.status
+#    rc_reset
+# fi
 
 #
 # Source function library.
 #
-if [ -f /etc/rc.d/init.d/functions ]; then
-    . /etc/rc.d/init.d/functions
-fi
+# if [ -f /etc/rc.d/init.d/functions ]; then
+#    . /etc/rc.d/init.d/functions
+# fi
 
 # overwrite settings from default file
-[ -e /etc/sysconfig/$NAME ] && . /etc/sysconfig/$NAME
+# [ -e /etc/sysconfig/$NAME ] && . /etc/sysconfig/$NAME
 
 DAEMON_OPTS="--pidfile=${PID_FILE} --config=${CONF_FILE} cfg:default.paths.data=${DATA_DIR} cfg:default.paths.logs=${LOG_DIR}"
 
@@ -98,16 +102,16 @@ case "$1" in
     fi
 
     # Prepare environment
-    mkdir -p "$LOG_DIR" "$DATA_DIR" && chown "$GRAFANA_USER":"$GRAFANA_GROUP" "$LOG_DIR" "$DATA_DIR"
-    touch "$PID_FILE" && chown "$GRAFANA_USER":"$GRAFANA_GROUP" "$PID_FILE"
+    # mkdir -p "$LOG_DIR" "$DATA_DIR" && chown "$GRAFANA_USER":"$GRAFANA_GROUP" "$LOG_DIR" "$DATA_DIR"
+    # touch "$PID_FILE" && chown "$GRAFANA_USER":"$GRAFANA_GROUP" "$PID_FILE"
 
-    if [ -n "$MAX_OPEN_FILES" ]; then
-      ulimit -n $MAX_OPEN_FILES
-    fi
+    # if [ -n "$MAX_OPEN_FILES" ]; then
+    #   ulimit -n $MAX_OPEN_FILES
+    # fi
 
     # Start Daemon
     cd $GRAFANA_HOME
-    su -s /bin/sh -c "nohup ${DAEMON} ${DAEMON_OPTS} >> /dev/null 3>&1 &" $GRAFANA_USER 2> /dev/null
+    nohup ${DAEMON} ${DAEMON_OPTS} > $OUT_FILE 2>&1 &
     return=$?
     if [ $return -eq 0 ]
     then
@@ -138,17 +142,22 @@ case "$1" in
     echo -n "Stopping $DESC ..."
 
     if [ -f "$PID_FILE" ]; then
-      killproc -p $PID_FILE -d 20 $NAME
-      if [ $? -eq 1 ]; then
-        echo -n "$DESC is not running but pid file exists, cleaning up"
-      elif [ $? -eq 3 ]; then
-        PID="`cat $PID_FILE`"
-        echo -n "Failed to stop $DESC (pid $PID)"
-        exit 1
+      pid=$(cat "$PID_FILE")
+
+      kill "${pid}" >/dev/null 2>&1
+      sleep "${STOP_TIMEOUT}"
+
+      if kill -0 "${pid}" > /dev/null 2>&1; then
+        echo "WARNING: $DESC did not stop gracefully after ${STOP_TIMEOUT} seconds: Trying to kill with kill -9"
+        kill -9 "${pid}" >/dev/null 2>&1
       fi
-      rm -f "$PID_FILE"
+
+      if ps -p "${pid}" > /dev/null 2>&1; then
+        echo "ERROR: Unable to kill ${pid}"
+      else
+        rm -f "${pidfile}" >/dev/null 2>&1
+      fi
       echo "OK"
-      exit 0
     else
       echo -n "(not running)"
     fi

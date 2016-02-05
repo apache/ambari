@@ -72,6 +72,13 @@ ams_monitor_dir = "/usr/lib/python2.6/site-packages/resource_monitoring"
 ams_monitor_pid_dir = status_params.ams_monitor_pid_dir
 ams_monitor_script = "/usr/sbin/ambari-metrics-monitor"
 
+ams_grafana_script = "/usr/sbin/ambari-metrics-grafana"
+ams_grafana_home_dir = '/usr/lib/ambari-metrics-grafana'
+ams_grafana_log_dir = default("/configurations/ams-grafana-env/metrics_grafana_log_dir", '/var/log/ambari-metrics-grafana')
+ams_grafana_pid_dir = status_params.ams_grafana_pid_dir
+ams_grafana_conf_dir = '/etc/ambari-metrics-grafana/conf'
+ams_grafana_data_dir = default("/configurations/ams-grafana-env/metrics_grafana_data_dir", '/var/lib/ambari-metrics-grafana')
+
 ams_hbase_home_dir = "/usr/lib/ams-hbase/"
 
 ams_hbase_normalizer_enabled = default("/configurations/ams-hbase-site/hbase.normalizer.enabled", None)
@@ -220,6 +227,8 @@ else:
 
 hbase_env_sh_template = config['configurations']['ams-hbase-env']['content']
 ams_env_sh_template = config['configurations']['ams-env']['content']
+ams_grafana_env_sh_template = config['configurations']['ams-grafana-env']['content']
+ams_grafana_ini_template = config['configurations']['ams-grafana-ini']['content']
 
 hbase_staging_dir = default("/configurations/ams-hbase-site/hbase.bulkload.staging.dir", "/amshbase/staging")
 

@@ -16,17 +16,8 @@
 
 # Set environment variables here.
 
-# AMS user
-export AMS_USER=ams
-
-# AMS user group
-export AMS_USER_GROUP=hadoop
-
 # AMS Grafana Home Dir
 export AMS_GRAFANA_HOME_DIR=/usr/lib/ambari-metrics-grafana
-
-# AMS Grafana Conf Dir
-export AMS_GRAFANA_CONF_DIR=/etc/ambari-metrics-grafana/conf
 
 # AMS Grafana Data Dir
 export AMS_GRAFANA_DATA_DIR=/var/lib/ambari-metrics-grafana
