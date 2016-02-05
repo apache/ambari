@@ -498,11 +498,6 @@ var urls = {
       };
     }
   },
-  'service.item.delete': {
-    'real': '/clusters/{clusterName}/services/{serviceName}',
-    'mock': '',
-    'type': 'DELETE'
-  },
   'service.item.smoke': {
     'real': '/clusters/{clusterName}/requests',
     'mock': '/data/wizard/deploy/poll_1.json',
