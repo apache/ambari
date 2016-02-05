@@ -442,6 +442,9 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
         var conditionalConfig = serviceConfigs.filterProperty('filename',conditionalConfigFileName).findProperty('name', conditionalConfigName);
         if (conditionalConfig) {
           conditionalConfig.set(valueAttribute, valueAttributes[key]);
+          if (valueAttribute === 'isVisible') {
+            conditionalConfig.set('hiddenBySection', !valueAttributes[key]);
+          }
         }
       }
     }
