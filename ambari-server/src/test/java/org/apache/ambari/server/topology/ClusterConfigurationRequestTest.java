@@ -28,6 +28,17 @@ import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.serveraction.kerberos.KerberosInvalidConfigurationException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import com.google.common.collect.Maps;
+import org.easymock.EasyMock;
 import org.easymock.Capture;
 import org.easymock.CaptureType;
 import org.easymock.EasyMockRule;
@@ -40,14 +51,6 @@ import org.powermock.api.easymock.PowerMock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import static org.easymock.EasyMock.anyBoolean;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
@@ -55,6 +58,8 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.newCapture;
 import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.easymock.EasyMock.capture;
 import static org.junit.Assert.assertEquals;
 
@@ -183,6 +188,7 @@ public class ClusterConfigurationRequestTest {
     expect(clusters.getCluster("testCluster")).andReturn(cluster).anyTimes();
 
     expect(blueprint.getStack()).andReturn(stack).anyTimes();
+    expect(stack.getServiceForConfigType(anyString())).andReturn("KERBEROS").anyTimes();
     expect(stack.getAllConfigurationTypes(anyString())).andReturn(Collections.<String>singletonList("testConfigType")
     ).anyTimes();
     expect(stack.getExcludedConfigurationTypes(anyString())).andReturn(Collections.<String>emptySet()).anyTimes();
@@ -307,4 +313,57 @@ public class ClusterConfigurationRequestTest {
 
   }
 
+  @Test
+  public void testProcessClusterConfigRequestRemoveUnusedConfigTypes() {
+    // GIVEN
+    Configuration configuration = createConfigurations();
+    Set<String> services = new HashSet<String>();
+    services.add("HDFS");
+    services.add("RANGER");
+    Map<String, HostGroupInfo> hostGroupInfoMap = Maps.newHashMap();
+    HostGroupInfo hg1 = new HostGroupInfo("hg1");
+    hg1.setConfiguration(createConfigurations());
+    hostGroupInfoMap.put("hg1", hg1);
+
+    expect(topology.getConfiguration()).andReturn(configuration).anyTimes();
+    expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
+    expect(topology.getHostGroupInfo()).andReturn(hostGroupInfoMap);
+    expect(blueprint.getStack()).andReturn(stack).anyTimes();
+    expect(blueprint.getServices()).andReturn(services).anyTimes();
+    expect(stack.getServiceForConfigType("hdfs-site")).andReturn("HDFS").anyTimes();
+    expect(stack.getServiceForConfigType("admin-properties")).andReturn("RANGER").anyTimes();
+    expect(stack.getServiceForConfigType("yarn-site")).andReturn("YARN").anyTimes();
+
+    EasyMock.replay(stack, blueprint, topology);
+    // WHEN
+    new ClusterConfigurationRequest(ambariContext, topology, false, stackAdvisorBlueprintProcessor);
+    // THEN
+    assertFalse(configuration.getFullProperties().containsKey("yarn-site"));
+    assertFalse(configuration.getFullAttributes().containsKey("yarn-site"));
+    assertTrue(configuration.getFullAttributes().containsKey("hdfs-site"));
+    assertTrue(configuration.getFullProperties().containsKey("cluster-env"));
+    assertTrue(configuration.getFullProperties().containsKey("global"));
+    assertFalse(hg1.getConfiguration().getFullAttributes().containsKey("yarn-site"));
+    verify(stack, blueprint, topology);
+  }
+
+  private Configuration createConfigurations() {
+    Map<String, Map<String, String>> firstLevelConfig = Maps.newHashMap();
+    firstLevelConfig.put("hdfs-site", new HashMap<String, String>());
+    firstLevelConfig.put("yarn-site", new HashMap<String, String>());
+    firstLevelConfig.put("cluster-env", new HashMap<String, String>());
+    firstLevelConfig.put("global", new HashMap<String, String>());
+
+    Map<String, Map<String, Map<String, String>>> firstLevelAttributes = Maps.newHashMap();
+    firstLevelAttributes.put("hdfs-site", new HashMap<String, Map<String, String>>());
+
+    Map<String, Map<String, String>> secondLevelConfig = Maps.newHashMap();
+    secondLevelConfig.put("admin-properties", new HashMap<String, String>());
+    Map<String, Map<String, Map<String, String>>> secondLevelAttributes = Maps.newHashMap();
+    secondLevelAttributes.put("admin-properties", new HashMap<String, Map<String, String>>());
+    secondLevelAttributes.put("yarn-site", new HashMap<String, Map<String, String>>());
+
+    Configuration secondLevelConf = new Configuration(secondLevelConfig, secondLevelAttributes);
+    return new Configuration(firstLevelConfig, firstLevelAttributes, secondLevelConf);
+  }
 }

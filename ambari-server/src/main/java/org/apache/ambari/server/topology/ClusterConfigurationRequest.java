@@ -30,6 +30,7 @@ import org.apache.ambari.server.serveraction.kerberos.KerberosInvalidConfigurati
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.utils.StageUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,8 +75,35 @@ public class ClusterConfigurationRequest {
     // set initial configuration (not topology resolved)
     this.configurationProcessor = new BlueprintConfigurationProcessor(clusterTopology);
     this.stackAdvisorBlueprintProcessor = stackAdvisorBlueprintProcessor;
+    removeOrphanConfigTypes(clusterTopology);
     if (setInitial) {
       setConfigurationsOnCluster(clusterTopology, TopologyManager.INITIAL_CONFIG_TAG, Collections.<String>emptySet());
+    }
+  }
+
+  /**
+   * Remove config-types, if there is no any services related to them (except cluster-env and global).
+   */
+  private void removeOrphanConfigTypes(ClusterTopology clusterTopology) {
+    Configuration configuration = clusterTopology.getConfiguration();
+    Collection<String> configTypes = configuration.getAllConfigTypes();
+    for (String configType : configTypes) {
+      if (!configType.equals("cluster-env") && !configType.equals("global")) {
+        String service = clusterTopology.getBlueprint().getStack().getServiceForConfigType(configType);
+        if (!clusterTopology.getBlueprint().getServices().contains(service)) {
+          configuration.removeConfigType(configType);
+          LOG.info("Not found any service for config type '{}'. It will be removed from configuration.", configType);
+          Map<String, HostGroupInfo> hostGroupInfoMap = clusterTopology.getHostGroupInfo();
+          if (MapUtils.isNotEmpty(hostGroupInfoMap)) {
+            for (Map.Entry<String, HostGroupInfo> hostGroupInfo : hostGroupInfoMap.entrySet()) {
+              if (hostGroupInfo.getValue().getConfiguration() != null) {
+                hostGroupInfo.getValue().getConfiguration().removeConfigType(configType);
+                LOG.info("Not found any service for config type '{}'. It will be removed from host group scoped configuration.", configType);
+              }
+            }
+          }
+        }
+      }
     }
   }
 

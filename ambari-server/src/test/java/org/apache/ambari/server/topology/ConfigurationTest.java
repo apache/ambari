@@ -346,6 +346,20 @@ public class ConfigurationTest {
     assertNull(configuration.getPropertyValue("type1", "XXXXX"));
   }
 
+  @Test
+  public void testRemoveConfigTypes() {
+    Configuration configuration = createConfigurationWithParents_PropsOnly();
+    configuration.removeConfigType("type1");
+    assertNull(configuration.getProperties().get("type1"));
+  }
+
+  @Test
+  public void testRemoveConfigTypesForAttributes() {
+    Configuration configuration = createConfigurationWithParents_PropsOnly();
+    configuration.removeConfigType("type1");
+    assertNull(configuration.getAttributes().get("type1"));
+  }
+
   private Configuration createConfigurationWithParents_PropsOnly() {
     // parents parent config properties
     Map<String, Map<String, String>> parentParentProperties = new HashMap<String, Map<String, String>>();
