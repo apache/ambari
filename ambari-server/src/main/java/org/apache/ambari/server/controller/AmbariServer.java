@@ -794,10 +794,14 @@ public class AmbariServer {
   }
 
   public void stop() throws Exception {
-    try {
-      server.stop();
-    } catch (Exception e) {
-      LOG.error("Error stopping the server", e);
+    if (server == null) {
+      throw new AmbariException("Error stopping the server");
+    } else {
+      try {
+        server.stop();
+      } catch (Exception e) {
+        LOG.error("Error stopping the server", e);
+      }
     }
   }
 
