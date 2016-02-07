@@ -16,27 +16,17 @@
 
 What's New with Ambari?
 
-  * The latest release of Ambari is Ambari 2.2.0
+  * The latest release of Ambari is Ambari 2.2.1
 
-  * Ambari 2.2.0 added the following features:
+  * Ambari 2.2.1 added the following features:
 
-    * Express Upgrade
+    * The ability to set rack_info within a Blueprint
 
-    * Rolling Upgrade resiliency
+    * Updates to the Spark stack definition to support Spark 1.6
 
-    * Guided Configs for Apache Ranger
+    * Service check for Spark service
 
-    * Ability to retain KDC Admin credentials
-
-    * Blueprint support for Kerberos
-
-    * Blueprint support for Apache Ranger service (including HA)
-
-    * Blueprint integration with stack advisor
-
-    * Encryption of password properties of stack components exposed via Ambari API
-
-    * Ability to set/change timezone for the graphs on the UI
+    * The ability to set time ranges for graphs in dashboard widgets
 
 Getting Ambari Source
 
@@ -51,7 +41,7 @@ JIRA
 
 User Guide
 
-  Take a look at {{{https://cwiki.apache.org/confluence/display/AMBARI/Installation+Guide+for+Ambari+2.2.0} how to install a Hadoop cluster using Ambari 2.2.0}}.
+  Take a look at {{{https://cwiki.apache.org/confluence/display/AMBARI/Installation+Guide+for+Ambari+2.2.1} how to install a Hadoop cluster using Ambari 2.2.1}}.
 
 Stay Tuned
 
