@@ -13,7 +13,6 @@
         "label": "Spark History Server UI",
         "requires_user_name": "false",
         "url": "%@://%@:%@",
-        "template": "%@://%@:%@",
         "port":{
           "http_property": "spark.history.ui.port",
           "http_default_port": "18080",

@@ -13,7 +13,6 @@
         "label": "Falcon Web UI",
         "requires_user_name": "true",
         "url":"%@://%@:%@/index.html?user.name=%@",
-        "template":"%@://%@:%@/index.html?user.name=%@",
         "port":{
           "http_property": "falcon_port",
           "http_default_port": "15000",

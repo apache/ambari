@@ -278,8 +278,8 @@ App.QuickViewLinks = Em.View.extend({
 
   toAddLink: function(link){
     var linkRemoved = Em.get(link, 'removed');
-    var template = Em.get(link, 'template');
-    return (template && !linkRemoved);
+    var url = Em.get(link, 'url');
+    return (url && !linkRemoved);
   },
 
   getHostLink: function(link, host, protocol, configProperties, response){
@@ -302,7 +302,7 @@ App.QuickViewLinks = Em.View.extend({
     if (this.toAddLink(link)) {
       var newItem = {};
       var requiresUserName = Em.get(link, 'requires_user_name');
-      var template = Em.get(link, 'template');
+      var template = Em.get(link, 'url');
         if('true' === requiresUserName){
           newItem.url = template.fmt(protocol, host, linkPort, App.router.get('loginName'));
         } else {
@@ -377,8 +377,8 @@ App.QuickViewLinks = Em.View.extend({
       var links = Em.get(quickLinksConfig, 'links');
       links.forEach(function(link){
         var linkRemoved = Em.get(link, 'removed');
-        var template = Em.get(link, 'template');
-        if (template && !linkRemoved) {
+        var url = Em.get(link, 'url');
+        if (url && !linkRemoved) {
           var port;
           var hostNameRegExp = new RegExp('([\\w\\W]*):\\d+');
           if (serviceName === 'HDFS') {

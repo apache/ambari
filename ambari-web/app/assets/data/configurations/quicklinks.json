@@ -29,7 +29,6 @@
                   "name" : "resourcemanager_ui",
                   "label" : "ResourceManager UI",
                   "url" : "%@://%@:%@",
-                  "template" : "%@://%@:%@",
                   "port" : {
                     "regex" : "\\w*:(\\d+)",
                     "site" : "yarn-site",
@@ -46,7 +45,6 @@
                   "name" : "resourcemanager_logs",
                   "label" : "ResourceManager logs",
                   "url" : "%@://%@:%@/logs",
-                  "template" : "%@://%@:%@/logs",
                   "port" : {
                     "regex" : "\\w*:(\\d+)",
                     "site" : "yarn-site",
@@ -63,7 +61,6 @@
                   "name" : "resourcemanager_jmx",
                   "label" : "ResourceManager JMX",
                   "url" : "%@://%@:%@/jmx",
-                  "template" : "%@://%@:%@/jmx",
                   "port" : {
                     "regex" : "\\w*:(\\d+)",
                     "site" : "yarn-site",
@@ -80,7 +77,6 @@
                   "name" : "thread_stacks",
                   "label" : "Thread Stacks",
                   "url" : "%@://%@:%@/stacks",
-                  "template" : "%@://%@:%@/stacks",
                   "port" : {
                     "regex" : "\\w*:(\\d+)",
                     "site" : "yarn-site",
