@@ -143,7 +143,10 @@ function scheduleChangeHandler(arguments) {
 }
 
 function setConfigs() {
-  var host = window.location.origin,
+  var host = window.location.protocol +
+      "//" +
+      window.location.hostname +
+      (window.location.port ? ':' + window.location.port: ''),
       urlParts = location.pathname.split('/'),
       resourcesPrefix = 'api/v1/views/%@/versions/%@/instances/%@/resources/'.fmt(
         urlParts[2],
