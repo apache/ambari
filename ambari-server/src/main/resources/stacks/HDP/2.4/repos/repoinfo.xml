@@ -43,8 +43,8 @@
   </os>
   <os family="amazon2015">
     <repo>
-      <baseurl>http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.3.0.0</baseurl>
-      <repoid>HDP-2.3</repoid>
+      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/updates/2.4.0.0</baseurl>
+      <repoid>HDP-2.4</repoid>
       <reponame>HDP</reponame>
     </repo>
     <repo>
