@@ -1174,7 +1174,8 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
         serviceName : serviceToDeleteNow,
         servicesToDeleteNext: servicesToDeleteNext
       },
-      success : 'deleteServiceCallSuccessCallback'
+      success : 'deleteServiceCallSuccessCallback',
+      error: 'deleteServiceCallErrorCallback'
     });
   },
 
@@ -1184,6 +1185,10 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     } else {
       window.location.reload();
     }
+  },
+
+  deleteServiceCallErrorCallback: function (jqXHR, ajaxOptions, error, opt) {
+    App.ajax.defaultErrorHandler(jqXHR, opt.url, opt.method, jqXHR.status);
   }
 
 });
