@@ -320,22 +320,10 @@ App.Router = Em.Router.extend({
       App.ajax.send({
         name: 'router.login.message',
         sender: self,
-        success: 'showLoginMessage'
-
-    });
-
-      // no need to load cluster data if it's already loaded
-      if (self.get('clusterData')) {
-        self.loginGetClustersSuccessCallback(self.get('clusterData'), {}, requestData);
-      }
-      else {
-        App.ajax.send({
-          name: 'router.login.clusters',
-          sender: self,
-          data: requestData,
-          success: 'loginGetClustersSuccessCallback'
-        });
-      }
+        data: requestData,
+        success: 'showLoginMessage',
+        error: 'showLoginMessage'
+      });
     });
   },
 
@@ -362,11 +350,12 @@ App.Router = Em.Router.extend({
    * success callback of router.login.message
    * @param {object} data
    */
-  showLoginMessage: function (data){
+  showLoginMessage: function (data, opt, params){
     var response = JSON.parse(data.Settings.content.replace(/\n/g, "\\n")),
       text = response.text ? response.text : "",
       buttonText = response.button ? response.button : Em.I18n.t('ok'),
-      status = response.status && response.status == "true" ? true : false;
+      status = response.status && response.status == "true" ? true : false,
+      self = this;
 
     if(text && status){
       return App.ModalPopup.show({
@@ -379,14 +368,37 @@ App.Router = Em.Router.extend({
         secondary: null,
 
         onPrimary: function () {
+          self.setClusterData(data, opt, params);
           this.hide();
         },
         onClose: function () {
+          self.setClusterData(data, opt, params);
           this.hide();
         },
         didInsertElement: function () {
           this.fitHeight();
         }
+      });
+    }
+  },
+
+  setClusterData: function (data, opt, params) {
+    var
+      self = this,
+      requestData = {
+        loginName: params.loginName,
+        loginData: data
+      };
+    // no need to load cluster data if it's already loaded
+    if (this.get('clusterData')) {
+      this.loginGetClustersSuccessCallback(self.get('clusterData'), {}, requestData);
+    }
+    else {
+      App.ajax.send({
+        name: 'router.login.clusters',
+        sender: self,
+        data: requestData,
+        success: 'loginGetClustersSuccessCallback'
       });
     }
   },
