@@ -424,7 +424,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       this.loadConfigs('loadHiveConfigs');
     } else if (data.componentName == 'WEBHCAT_SERVER') {
       this.set('deleteWebHCatServer', true);
-      this.loadConfigs('loadHiveConfigs');
+      this.loadConfigs('loadWebHCatConfigs');
     } else if (data.componentName == 'HIVE_SERVER') {
       this.set('deleteHiveServer', true);
       this.loadConfigs('loadHiveConfigs');
@@ -597,7 +597,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       case 'WEBHCAT_SERVER':
         returnFunc = App.showConfirmationPopup(function () {
           self.set('webhcatServerHost', hostName);
-          self.loadConfigs("loadHiveConfigs");
+          self.loadConfigs("loadWebHCatConfigs");
         }, Em.I18n.t('hosts.host.addComponent.' + componentName) + manualKerberosWarning);
         break;
       case 'NIMBUS':
@@ -830,6 +830,28 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @param {object} data
    * @method loadHiveConfigs
    */
+  loadWebHCatConfigs: function (data) {
+    return App.ajax.send({
+      name: 'admin.get.all_configurations',
+      sender: this,
+      data: {
+        webHCat: true,
+        urlParams: [
+          '(type=hive-site&tag=' + data.Clusters.desired_configs['hive-site'].tag + ')',
+          '(type=webhcat-site&tag=' + data.Clusters.desired_configs['webhcat-site'].tag + ')',
+          '(type=hive-env&tag=' + data.Clusters.desired_configs['hive-env'].tag + ')',
+          '(type=core-site&tag=' + data.Clusters.desired_configs['core-site'].tag + ')'
+        ].join('|')
+      },
+      success: 'onLoadHiveConfigs'
+    });
+  },
+
+  /**
+   * Success callback for load configs request
+   * @param {object} data
+   * @method loadHiveConfigs
+   */
   loadHiveConfigs: function (data) {
     return App.ajax.send({
       name: 'admin.get.all_configurations',
@@ -849,9 +871,11 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   /**
    * update and save Hive related configs to server
    * @param {object} data
+   * @param {object} opt
+   * @param {object} params
    * @method onLoadHiveConfigs
    */
-  onLoadHiveConfigs: function (data) {
+  onLoadHiveConfigs: function (data, opt, params) {
     var
       hiveMetastoreHost = this.get('hiveMetastoreHost'),
       webhcatServerHost = this.get('webhcatServerHost'),
@@ -879,8 +903,12 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     }
     configs['hive-site']['hive.metastore.uris'] = hiveMSHosts.join(',');
     configs['webhcat-site']['templeton.hive.properties'] = configs['webhcat-site']['templeton.hive.properties'].replace(/thrift.+[0-9]{2,},/i, hiveMSHosts.join('\\,') + ",");
-    configs['core-site']['hadoop.proxyuser.' + hiveUser + '.hosts'] = hiveMasterHosts;
-    configs['core-site']['hadoop.proxyuser.' + webhcatUser + '.hosts'] = hiveMasterHosts;
+    if (params.webHCat) {
+        configs['core-site']['hadoop.proxyuser.' + webhcatUser + '.hosts'] = hiveMasterHosts;
+    } else {
+        configs['core-site']['hadoop.proxyuser.' + hiveUser + '.hosts'] = hiveMasterHosts;
+    }
+    
     var groups = [
       {
         properties: {
