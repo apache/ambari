@@ -32,9 +32,14 @@ from resource_management.libraries.script.script import Script
 from resource_management.core.resources.packaging import Package
 from resource_management.core.shell import as_user
 from resource_management.core.shell import as_sudo
+from resource_management.core import shell
+from resource_management.core.exceptions import Fail
+from resource_management.core.logger import Logger
+
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
 from ambari_commons.inet_utils import download_file
+
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def oozie(is_server=False):
@@ -191,7 +196,59 @@ def oozie_ownership():
     owner = params.oozie_user,
     group = params.user_group
   )
-  
+
+
+def prepare_war():
+  """
+  Attempt to call prepare-war command if the marker file doesn't exist or its content doesn't equal the expected command.
+  The marker file is stored in /usr/hdp/current/oozie-server/.prepare_war_cmd
+  """
+  import params
+
+  prepare_war_cmd_file = format("{oozie_home}/.prepare_war_cmd")
+
+  # DON'T CHANGE THE VALUE SINCE IT'S USED TO DETERMINE WHETHER TO RUN THE COMMAND OR NOT BY READING THE MARKER FILE.
+  # Oozie tmp dir should be /var/tmp/oozie and is already created by a function above.
+  command = format("cd {oozie_tmp_dir} && {oozie_setup_sh} prepare-war {oozie_secure}")
+  command = command.strip()
+
+  run_prepare_war = False
+  if os.path.exists(prepare_war_cmd_file):
+    cmd = ""
+    with open(prepare_war_cmd_file, "r") as f:
+      cmd = f.readline().strip()
+
+    if command != cmd:
+      run_prepare_war = True
+      Logger.info(format("Will run prepare war cmd since marker file {prepare_war_cmd_file} has contents which differ.\n" \
+      "Expected: {command}.\nActual: {cmd}."))
+  else:
+    run_prepare_war = True
+    Logger.info(format("Will run prepare war cmd since marker file {prepare_war_cmd_file} is missing."))
+
+  if run_prepare_war:
+    # Time-consuming to run
+    Execute(command,
+            user=params.oozie_user
+    )
+
+    return_code, output = shell.call(command, user=params.oozie_user, logoutput=False, quiet=False)
+    if output is None:
+      output = ""
+
+    if return_code != 0 or "New Oozie WAR file with added".lower() not in output.lower():
+      message = "Unexpected Oozie WAR preparation output {0}".format(output)
+      Logger.error(message)
+      raise Fail(message)
+
+    # Generate marker file
+    File(prepare_war_cmd_file,
+         content=command,
+         mode=0644,
+    )
+  else:
+    Logger.info(format("No need to run prepare-war since marker file {prepare_war_cmd_file} already exists."))
+
 def oozie_server_specific():
   import params
   
@@ -253,20 +310,10 @@ def oozie_server_specific():
       not_if  = no_op_test,
     )
 
-  prepare_war_cmd_file = format("{oozie_home}/.prepare_war_cmd")
-  prepare_war_cmd = format("cd {oozie_tmp_dir} && {oozie_setup_sh} prepare-war {oozie_secure}")
-  skip_prepare_war_cmd = format("test -f {prepare_war_cmd_file} && [[ `cat {prepare_war_cmd_file}` == '{prepare_war_cmd}' ]]")
+  prepare_war()
 
-  Execute(prepare_war_cmd,    # time-expensive
-    user = params.oozie_user,
-    not_if  = format("{no_op_test} || {skip_recreate_sharelib} && {skip_prepare_war_cmd}")
-  )
   File(hashcode_file,
        content = hashcode,
-       mode = 0644,
-  )
-  File(prepare_war_cmd_file,
-       content = prepare_war_cmd,
        mode = 0644,
   )
 

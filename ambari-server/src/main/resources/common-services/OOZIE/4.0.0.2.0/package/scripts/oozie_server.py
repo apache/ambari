@@ -39,7 +39,8 @@ from oozie_service import oozie_service
 from oozie_server_upgrade import OozieUpgrade
 
 from check_oozie_server_status import check_oozie_server_status
-         
+
+
 class OozieServer(Script):
 
   def get_stack_to_component(self):
