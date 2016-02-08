@@ -204,11 +204,6 @@
       <outputDirectory>/etc/init.d</outputDirectory>
     </file>
     <file>
-      <fileMode>755</fileMode>
-      <source>../ambari-common/src/main/unix/ambari-python-wrap</source>
-      <outputDirectory>/var/lib/ambari-server/</outputDirectory>
-    </file>
-    <file>
       <source>${ambariProperties}</source>
       <outputDirectory>/etc/ambari-server/conf</outputDirectory>
     </file>

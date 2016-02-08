@@ -18,6 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+import re
 import os
 import sys
 import platform
@@ -81,6 +82,21 @@ def _is_oracle_linux():
 def _is_redhat_linux():
   return _IS_REDHAT_LINUX
 
+def advanced_check(distribution):
+  distribution = list(distribution)
+  if os.path.exists("/etc/issue"):
+    with open("/etc/issue", "rb") as fp:
+      issue_content = fp.read()
+  
+    if "Amazon" in issue_content:
+      distribution[0] = "amazon"
+      search_groups = re.search('(\d+)\.(\d+)', issue_content)
+      
+      if search_groups:
+        distribution[1] = search_groups.group(1) # if version is 2015.09 only get 2015.
+      
+  return tuple(distribution)
+    
 
 class OS_CONST_TYPE(type):
 
@@ -167,10 +183,15 @@ class OSCheck:
         distribution = platform.dist()
       else:
         distribution = platform.linux_distribution()
+        
+    
 
-    if distribution[0] == '' and platform.system().lower() == 'darwin':
-      # mac - used for unit tests
-      distribution = ("Darwin", "TestOnly", "1.1.1", "1.1.1", "1.1")
+    if distribution[0] == '':
+      distribution = advanced_check(distribution)
+    
+      if platform.system().lower() == 'darwin':
+        # mac - used for unit tests
+        distribution = ("Darwin", "TestOnly", "1.1.1", "1.1.1", "1.1")
     
     return distribution
 

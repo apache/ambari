@@ -141,11 +141,6 @@
   <files>
     <file>
       <fileMode>755</fileMode>
-      <source>../ambari-common/src/main/unix/ambari-python-wrap</source>
-      <outputDirectory>/var/lib/ambari-agent/</outputDirectory>
-    </file>
-    <file>
-      <fileMode>755</fileMode>
       <source>conf/unix/ambari-sudo.sh</source>
       <outputDirectory>/var/lib/ambari-agent/</outputDirectory>
     </file>

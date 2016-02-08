@@ -121,7 +121,7 @@
         </osSpecific>
         
        <osSpecific>
-          <osFamily>redhat6,suse11</osFamily>
+          <osFamily>amazon2015,redhat6,suse11</osFamily>
           <packages>
             <package>
               <name>extjs-2.2-1</name>
