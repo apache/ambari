@@ -44,12 +44,14 @@ import org.apache.ambari.server.api.MethodOverrideFilter;
 import org.apache.ambari.server.api.UserNameOverrideFilter;
 import org.apache.ambari.server.api.rest.BootStrapResource;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.api.services.BaseService;
 import org.apache.ambari.server.api.services.KeyService;
 import org.apache.ambari.server.api.services.PersistKeyValueImpl;
 import org.apache.ambari.server.api.services.PersistKeyValueService;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorBlueprintProcessor;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorHelper;
 import org.apache.ambari.server.audit.AuditLogger;
+import org.apache.ambari.server.audit.request.RequestAuditLogger;
 import org.apache.ambari.server.security.authentication.AmbariAuthenticationFilter;
 import org.apache.ambari.server.bootstrap.BootStrapImpl;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
@@ -877,6 +879,8 @@ public class AmbariServer {
     ActionManager.setTopologyManager(injector.getInstance(TopologyManager.class));
     StackAdvisorBlueprintProcessor.init(injector.getInstance(StackAdvisorHelper.class));
     ThreadPoolEnabledPropertyProvider.init(injector.getInstance(Configuration.class));
+
+    BaseService.init(injector.getInstance(RequestAuditLogger.class));
 
     RetryHelper.init(configs.getOperationsRetryAttempts());
   }

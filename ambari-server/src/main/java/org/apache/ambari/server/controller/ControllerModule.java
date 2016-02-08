@@ -25,6 +25,7 @@ import com.google.gson.GsonBuilder;
 import com.google.inject.AbstractModule;
 import com.google.inject.Scopes;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
+import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Names;
 import com.google.inject.persist.PersistModule;
 import com.google.inject.persist.jpa.AmbariJpaPersistModule;
@@ -42,6 +43,10 @@ import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.actionmanager.StageFactoryImpl;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.audit.AuditLoggerDefaultImpl;
+import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
+import org.apache.ambari.server.audit.request.RequestAuditLogger;
+import org.apache.ambari.server.audit.request.RequestAuditLoggerImpl;
+import org.apache.ambari.server.audit.request.eventcreator.DefaultEventCreator;
 import org.apache.ambari.server.checks.AbstractCheckDescriptor;
 import org.apache.ambari.server.checks.UpgradeCheckRegistry;
 import org.apache.ambari.server.configuration.Configuration;
@@ -370,7 +375,7 @@ public class ControllerModule extends AbstractModule {
 
     bind(AuthenticationEntryPoint.class).to(AmbariEntryPoint.class).in(Scopes.SINGLETON);
 
-    bind(AuditLogger.class).to(AuditLoggerDefaultImpl.class);
+    bindAuditLog();
 
     requestStaticInjection(ExecutionCommandWrapper.class);
     requestStaticInjection(DatabaseChecker.class);
@@ -379,6 +384,17 @@ public class ControllerModule extends AbstractModule {
     bindByAnnotation(null);
     bindNotificationDispatchers();
     registerUpgradeChecks();
+  }
+
+  /**
+   * Binds AuditLog related classes
+   */
+  private void bindAuditLog() {
+    Multibinder<RequestAuditEventCreator> auditLogEventCreatorBinder = Multibinder.newSetBinder(binder(), RequestAuditEventCreator.class);
+    auditLogEventCreatorBinder.addBinding().to(DefaultEventCreator.class);
+
+    bind(AuditLogger.class).to(AuditLoggerDefaultImpl.class);
+    bind(RequestAuditLogger.class).to(RequestAuditLoggerImpl.class);
   }
 
 
