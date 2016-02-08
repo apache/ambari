@@ -86,13 +86,23 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    */
   ambariMetricsValidation: function (callback) {
     var ambariMetricsService = this.findProperty('serviceName', 'AMBARI_METRICS');
-    if (ambariMetricsService && !ambariMetricsService.get('isSelected')) {
-      this.addValidationError({
-        id: 'ambariMetricsCheck',
-        type: 'WARNING',
-        callback: this.ambariMetricsCheckPopup,
-        callbackParams: [callback]
-      });
+    if (ambariMetricsService) {
+      if(!ambariMetricsService.get('isSelected')) {
+        this.addValidationError({
+          id: 'ambariMetricsCheck',
+          type: 'WARNING',
+          callback: this.ambariMetricsCheckPopup,
+          callbackParams: [callback]
+        });
+      }
+      else {
+        //metrics is selected, remove the metrics error from errorObject array
+        var metricsError = this.get('errorStack').filterProperty('id',"ambariMetricsCheck");
+        if(metricsError)
+        {
+           this.get('errorStack').removeObject(metricsError[0]);
+        }
+      }
     }
   },
 
@@ -103,13 +113,23 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    */
   rangerValidation: function (callback) {
     var rangerService = this.findProperty('serviceName', 'RANGER');
-    if (rangerService && rangerService.get('isSelected') && !rangerService.get('isInstalled')) {
-      this.addValidationError({
-        id: 'rangerRequirements',
-        type: 'WARNING',
-        callback: this.rangerRequirementsPopup,
-        callbackParams: [callback]
-      });
+    if (rangerService && !rangerService.get('isInstalled')) {
+      if(rangerService.get('isSelected')) {
+        this.addValidationError({
+          id: 'rangerRequirements',
+          type: 'WARNING',
+          callback: this.rangerRequirementsPopup,
+          callbackParams: [callback]
+        });
+      }
+      else {
+        //Ranger is selected, remove the Ranger error from errorObject array
+        var rangerError = this.get('errorStack').filterProperty('id',"rangerRequirements");
+        if(rangerError)
+        {
+           this.get('errorStack').removeObject(rangerError[0]);
+        }
+      }
     }
   },
 
@@ -120,14 +140,24 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    */
   sparkValidation: function (callback) {
     var sparkService = this.findProperty('serviceName', 'SPARK');
-    if (sparkService && sparkService.get('isSelected') && !sparkService.get('isInstalled') &&
+    if (sparkService && !sparkService.get('isInstalled') &&
       App.get('currentStackName') == 'HDP' && App.get('currentStackVersionNumber') == '2.2') {
-      this.addValidationError({
-        id: 'sparkWarning',
-        type: 'WARNING',
-        callback: this.sparkWarningPopup,
-        callbackParams: [callback]
-      });
+      if(sparkService.get('isSelected')) {
+        this.addValidationError({
+          id: 'sparkWarning',
+          type: 'WARNING',
+          callback: this.sparkWarningPopup,
+          callbackParams: [callback]
+        });
+      }
+      else {
+        //Spark is selected, remove the Spark error from errorObject array
+        var sparkError = this.get('errorStack').filterProperty('id',"sparkWarning");
+        if(sparkError)
+        {
+           this.get('errorStack').removeObject(sparkError[0]);
+        }
+      }
     }
   },
 
@@ -317,6 +347,15 @@ App.WizardStep4Controller = Em.ArrayController.extend({
             callbackParams: [services, 'multipleDFS', primaryDfsDisplayName, callback]
           });
         }
+        else
+        {
+          //if multiple DFS are not selected, remove the related error from the error array 
+          var fsError = this.get('errorStack').filterProperty('id',"multipleDFS");
+          if(fsError)
+          {
+             this.get('errorStack').removeObject(fsError[0]);
+          }
+        }
       }
     }
   },
@@ -335,16 +374,34 @@ App.WizardStep4Controller = Em.ArrayController.extend({
       if (!!requiredServices && requiredServices.length) {
         requiredServices.forEach(function(_requiredService){
           var requiredService = this.findProperty('serviceName', _requiredService);
-          if (requiredService && requiredService.get('isSelected') === false) {
-            if(missingDependencies.indexOf(_requiredService) == -1 ) {
-              missingDependencies.push(_requiredService);
-              missingDependenciesDisplayName.push(requiredService.get('displayNameOnSelectServicePage'));
+          if (requiredService) {
+            if(requiredService.get('isSelected') === false)
+            {
+               if(missingDependencies.indexOf(_requiredService) == -1 ) {
+                 missingDependencies.push(_requiredService);
+                 missingDependenciesDisplayName.push(requiredService.get('displayNameOnSelectServicePage'));
+               }
             }
+            else
+            { 
+               //required service is selected, remove the service error from errorObject array 
+               var serviceName = requiredService.get('serviceName');
+               var serviceError = this.get('errorStack').filterProperty('id',"serviceCheck_"+serviceName);
+               if(serviceError)
+               {
+                  this.get('errorStack').removeObject(serviceError[0]);
+               }
+            } 
           }
         },this);
       }
     },this);
 
+    //create a copy of the errorStack, reset it
+    //and add the dependencies in the correct order
+    var errorStackCopy = this.get('errorStack');
+    this.set('errorStack', []);    
+      
     if (missingDependencies.length > 0) {
       for(var i = 0; i < missingDependencies.length; i++) {
         this.addValidationError({
@@ -352,7 +409,22 @@ App.WizardStep4Controller = Em.ArrayController.extend({
           callback: this.needToAddServicePopup,
           callbackParams: [{serviceName: missingDependencies[i], selected: true}, 'serviceCheck', missingDependenciesDisplayName[i], callback]
         });
+      }      
+    }
+    
+    //iterate through the errorStackCopy array and add to errorStack array, the error objects that have no matching entry in the errorStack 
+    //and that are not related to serviceChecks since serviceCheck errors have already been added when iterating through the missing dependencies list
+    //Only add Ranger, Ambari Metrics, Spark and file system service validation errors if they exist in the errorStackCopy array
+    var ctr = 0;
+    while(ctr < errorStackCopy.length) {
+      //no matching entry in errorStack array
+      if (!this.get('errorStack').someProperty('id', errorStackCopy[ctr].id)) {
+        //not serviceCheck error
+        if(!errorStackCopy[ctr].id.startsWith('serviceCheck_')) {
+          this.get('errorStack').push(this.createError(errorStackCopy[ctr]));
+        }        
       }
+      ctr++;
     }
   },
 
