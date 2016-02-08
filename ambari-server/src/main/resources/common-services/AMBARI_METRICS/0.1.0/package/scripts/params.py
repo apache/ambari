@@ -79,6 +79,11 @@ ams_grafana_pid_dir = status_params.ams_grafana_pid_dir
 ams_grafana_conf_dir = '/etc/ambari-metrics-grafana/conf'
 ams_grafana_data_dir = default("/configurations/ams-grafana-env/metrics_grafana_data_dir", '/var/lib/ambari-metrics-grafana')
 
+ams_grafana_port = default("/configurations/ams-grafana-ini/port", 3000)
+ams_grafana_protocol = default("/configurations/ams-grafana-ini/protocol", 'http')
+ams_grafana_cert_file = default("/configurations/ams-grafana-ini/cert_file", '/etc/ambari-metrics/conf/ams-grafana.crt')
+ams_grafana_cert_key = default("/configurations/ams-grafana-ini/cert_key", '/etc/ambari-metrics/conf/ams-grafana.key')
+
 ams_hbase_home_dir = "/usr/lib/ams-hbase/"
 
 ams_hbase_normalizer_enabled = default("/configurations/ams-hbase-site/hbase.normalizer.enabled", None)

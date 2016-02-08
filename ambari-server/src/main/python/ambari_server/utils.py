@@ -216,7 +216,7 @@ def get_postgre_hba_dir(OS_FAMILY):
     # Like: /etc/postgresql/9.1/main/
     return os.path.join(get_pg_hba_init_files(), get_ubuntu_pg_version(),
                         "main")
-  elif OSCheck.is_redhat_family() and int(OSCheck.get_os_major_version()) >= 7:
+  elif not glob.glob(get_pg_hba_init_files() + '*'): # this happens when the service file is of new format (/usr/lib/systemd/system/postgresql.service)
     return PG_HBA_ROOT_DEFAULT
   else:
     if not os.path.isfile(get_pg_hba_init_files()):
@@ -224,8 +224,9 @@ def get_postgre_hba_dir(OS_FAMILY):
       os.symlink(glob.glob(get_pg_hba_init_files() + '*')[0],
                  get_pg_hba_init_files())
 
+    pg_hba_init_basename = os.path.basename(get_pg_hba_init_files())
     # Get postgres_data location (default: /var/lib/pgsql/data)
-    cmd = "alias exit=return; source " + get_pg_hba_init_files() + " status &>/dev/null; echo $PGDATA"
+    cmd = "alias basename='echo {0}; true' ; alias exit=return; source {1} status &>/dev/null; echo $PGDATA".format(pg_hba_init_basename, get_pg_hba_init_files())
     p = subprocess.Popen(cmd,
                          stdout=subprocess.PIPE,
                          stdin=subprocess.PIPE,

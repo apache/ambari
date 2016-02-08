@@ -153,6 +153,12 @@
     <description>
       The address of YARN resource manager server.
     </description>
+    <depends-on>
+      <property>
+        <type>yarn-site</type>
+        <name>yarn.resourcemanager.address</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
@@ -161,6 +167,12 @@
     <description>
       The address of YARN scheduler server.
     </description>
+    <depends-on>
+      <property>
+        <type>yarn-site</type>
+        <name>yarn.resourcemanager.scheduler.address</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>

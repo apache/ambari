@@ -60,7 +60,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>redhat5,redhat6,suse11</osFamily>
+          <osFamily>redhat5,amazon2015,redhat6,suse11</osFamily>
           <packages>
             <package>
               <name>libganglia-3.5.0-99</name>
@@ -114,7 +114,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>redhat5,redhat6</osFamily>
+          <osFamily>redhat5,amazon2015,redhat6</osFamily>
           <packages>
             <package>
               <name>httpd</name>

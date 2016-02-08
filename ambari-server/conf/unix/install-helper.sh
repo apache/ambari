@@ -32,7 +32,6 @@ JINJA_SERVER_DIR="${ROOT}/usr/lib/ambari-server/lib/ambari_jinja2"
 SIMPLEJSON_SERVER_DIR="${ROOT}/usr/lib/ambari-server/lib/ambari_simplejson"
 
 PYTHON_WRAPER_TARGET="${ROOT}/usr/bin/ambari-python-wrap"
-PYTHON_WRAPER_SOURCE="${ROOT}/var/lib/ambari-server/ambari-python-wrap"
 
 AMBARI_SERVER_EXECUTABLE_LINK="${ROOT}/usr/sbin/ambari-server"
 AMBARI_SERVER_EXECUTABLE="${ROOT}/etc/init.d/ambari-server"
@@ -62,9 +61,26 @@ do_install(){
   if [ ! -d "$SIMPLEJSON_DIR" ]; then
     ln -s "$SIMPLEJSON_SERVER_DIR" "$SIMPLEJSON_DIR"
   fi
-  # setting python-wrapper script
-  if [ ! -f "$PYTHON_WRAPER_TARGET" ]; then
-    ln -s "$PYTHON_WRAPER_SOURCE" "$PYTHON_WRAPER_TARGET"
+
+  # remove old python wrapper
+  rm -f "$PYTHON_WRAPER_TARGET"
+
+  AMBARI_PYTHON=""
+  python_binaries=( "/usr/bin/python" "/usr/bin/python2" "/usr/bin/python2.7", "/usr/bin/python2.6" )
+  for python_binary in "${python_binaries[@]}"
+  do
+    $python_binary -c "import sys ; ver = sys.version_info ; sys.exit(not (ver >= (2,6) and ver<(3,0)))" 1>/dev/null 2>/dev/null
+
+    if [ $? -eq 0 ] ; then
+      AMBARI_PYTHON="$python_binary"
+      break;
+    fi
+  done
+
+  if [ -z "$AMBARI_PYTHON" ] ; then
+    >&2 echo "Cannot detect python for ambari to use. Please manually set $PYTHON_WRAPER link to point to correct python binary"
+  else
+    ln -s "$AMBARI_PYTHON" "$PYTHON_WRAPER_TARGET"
   fi
 
   which chkconfig > /dev/null 2>&1

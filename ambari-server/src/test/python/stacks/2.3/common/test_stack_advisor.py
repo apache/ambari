@@ -1323,8 +1323,14 @@ class TestHDP23StackAdvisor(TestCase):
     componentsListList = [service["components"] for service in services["services"]]
     componentsList = [item for sublist in componentsListList for item in sublist]
     hawqSegmentComponent = [component["StackServiceComponents"] for component in componentsList if component["StackServiceComponents"]["component_name"] == "HAWQSEGMENT"][0]
-    services["configurations"]["hawq-site"] = {"properties": {"default_segment_num": "24"}}
 
+    # setup default configuration values
+    services["configurations"]["hawq-site"] = {"properties": {"default_segment_num": "24",
+                                                              "hawq_rm_yarn_address": "localhost:8032",
+                                                              "hawq_rm_yarn_scheduler_address": "localhost:8030"}}
+    services["configurations"]["yarn-site"] = {"properties": {"yarn.resourcemanager.address": "host1:8050",
+                                                              "yarn.resourcemanager.scheduler.address": "host1:8030"}}
+    services["services"].append({"StackServices" : {"service_name" : "YARN"}, "components":[]})
     configurations = {}
     clusterData = {}
 
@@ -1332,6 +1338,10 @@ class TestHDP23StackAdvisor(TestCase):
     self.assertEquals(len(hawqSegmentComponent["hostnames"]), 3)
     self.stackAdvisor.recommendHAWQConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations["hawq-site"]["properties"]["default_segment_num"], str(3 * 6))
+
+    # check derived properties
+    self.assertEquals(configurations["hawq-site"]["properties"]["hawq_rm_yarn_address"], "host1:8050")
+    self.assertEquals(configurations["hawq-site"]["properties"]["hawq_rm_yarn_scheduler_address"], "host1:8030")
 
     # Test 2 - with 49 segments
     hawqSegmentComponent["hostnames"] = ["host" + str(i) for i in range(49)]
@@ -1345,6 +1355,7 @@ class TestHDP23StackAdvisor(TestCase):
 
     # Test 4 - with no segments
     configurations = {}
+    services["configurations"]["hawq-site"] = {"properties":{'hawq-site': {'properties': {}}}}
     hawqSegmentComponent["hostnames"] = []
     self.stackAdvisor.recommendHAWQConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations, {'hawq-site': {'properties': {}}})
@@ -1616,3 +1627,41 @@ class TestHDP23StackAdvisor(TestCase):
     services["configurations"]["hdfs-site"]["properties"]["dfs.allow.truncate"] = "false"
     problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, hosts)
     self.assertEqual(len(problems), 0)
+
+  def test_validateHAWQConfigurations(self):
+    services = self.load_json("services-hawq-3-hosts.json")
+    # setup default configuration values
+    configurations = services["configurations"]
+    configurations["hawq-site"] = {"properties": {"hawq_rm_yarn_address": "localhost:8032",
+                                                  "hawq_rm_yarn_scheduler_address": "localhost:8030"}}
+    configurations["yarn-site"] = {"properties": {"yarn.resourcemanager.address": "host1:8050",
+                                                  "yarn.resourcemanager.scheduler.address": "host1:8030"}}
+    services["services"].append({"StackServices" : {"service_name" : "YARN"}, "components":[]})
+    properties = configurations["hawq-site"]["properties"]
+    defaults = {}
+    hosts = {}
+
+    expected_warnings = {
+      'hawq_rm_yarn_address': {
+        'config-type': 'hawq-site',
+        'message': 'Expected value: host1:8050 (this property should have the same value as the property yarn.resourcemanager.address in yarn-site)',
+        'type': 'configuration',
+        'config-name': 'hawq_rm_yarn_address',
+        'level': 'WARN'
+      },
+      'hawq_rm_yarn_scheduler_address': {
+        'config-type': 'hawq-site',
+        'message': 'Expected value: host1:8030 (this property should have the same value as the property yarn.resourcemanager.scheduler.address in yarn-site)',
+        'type': 'configuration',
+        'config-name': 'hawq_rm_yarn_scheduler_address',
+        'level': 'WARN'
+      }
+    }
+
+    problems = self.stackAdvisor.validateHAWQConfigurations(properties, defaults, configurations, services, hosts)
+    problems_dict = {}
+    for problem in problems:
+      problems_dict[problem['config-name']] = problem
+    self.assertEqual(len(problems), 2)
+    self.assertEqual(problems_dict, expected_warnings)
+

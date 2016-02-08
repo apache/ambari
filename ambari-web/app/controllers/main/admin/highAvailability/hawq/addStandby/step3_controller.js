@@ -33,6 +33,8 @@ App.AddHawqStandbyWizardStep3Controller = Em.Controller.extend({
 
   selectedService: null,
 
+  hawqProps: null,
+
   hideDependenciesInfoBar: true,
 
   versionLoaded: true,
@@ -107,7 +109,8 @@ App.AddHawqStandbyWizardStep3Controller = Em.Controller.extend({
     this.setDynamicConfigValues(params, data);
     this.setProperties({
       selectedService: params,
-      isLoaded: true
+      isLoaded: true,
+      hawqProps: data
     });
   },
 
@@ -134,11 +137,23 @@ App.AddHawqStandbyWizardStep3Controller = Em.Controller.extend({
     }, this);
   },
 
+
   submit: function () {
     if (!this.get('isSubmitDisabled')) {
-      App.get('router.mainAdminKerberosController').getKDCSessionState(function() {
-        App.router.send("next");
-      });
+      dataDir = this.get('hawqProps').items[0].properties['hawq_master_directory'];
+      hawqStandby = this.get('hawqProps').items[0].properties['hawq_standby_address_host']
+      App.showConfirmationPopup(
+        function() {
+          App.get('router.mainAdminKerberosController').getKDCSessionState(function() {
+            App.router.send("next");
+          });
+        },
+        Em.I18n.t('admin.addHawqStandby.wizard.step3.confirm.dataDir.body').format(dataDir, hawqStandby),
+        null,
+        Em.I18n.t('admin.addHawqStandby.wizard.step3.confirm.dataDir.title'),
+        "Confirm",
+        false
+      );
     }
   },
 
