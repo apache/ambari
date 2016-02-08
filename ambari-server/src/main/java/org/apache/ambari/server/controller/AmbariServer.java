@@ -49,6 +49,8 @@ import org.apache.ambari.server.api.services.PersistKeyValueImpl;
 import org.apache.ambari.server.api.services.PersistKeyValueService;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorBlueprintProcessor;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorHelper;
+import org.apache.ambari.server.audit.AuditLogger;
+import org.apache.ambari.server.security.authentication.AmbariAuthenticationFilter;
 import org.apache.ambari.server.bootstrap.BootStrapImpl;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.configuration.Configuration;
@@ -294,19 +296,23 @@ public class AmbariServer {
 
       factory.registerSingleton("guiceInjector", injector);
       factory.registerSingleton("passwordEncoder",
-          injector.getInstance(PasswordEncoder.class));
+        injector.getInstance(PasswordEncoder.class));
+      factory.registerSingleton("auditLogger",
+        injector.getInstance(AuditLogger.class));
       factory.registerSingleton("ambariLocalUserService",
-          injector.getInstance(AmbariLocalUserDetailsService.class));
+        injector.getInstance(AmbariLocalUserDetailsService.class));
       factory.registerSingleton("ambariLdapAuthenticationProvider",
-          injector.getInstance(AmbariLdapAuthenticationProvider.class));
+        injector.getInstance(AmbariLdapAuthenticationProvider.class));
       factory.registerSingleton("ambariLdapDataPopulator",
-          injector.getInstance(AmbariLdapDataPopulator.class));
+        injector.getInstance(AmbariLdapDataPopulator.class));
       factory.registerSingleton("ambariAuthorizationFilter",
-          injector.getInstance(AmbariAuthorizationFilter.class));
+        injector.getInstance(AmbariAuthorizationFilter.class));
       factory.registerSingleton("ambariInternalAuthenticationProvider",
-          injector.getInstance(AmbariInternalAuthenticationProvider.class));
+        injector.getInstance(AmbariInternalAuthenticationProvider.class));
       factory.registerSingleton("ambariJwtAuthenticationFilter",
-          injector.getInstance(JwtAuthenticationFilter.class));
+        injector.getInstance(JwtAuthenticationFilter.class));
+      factory.registerSingleton("ambariAuthenticationFilter",
+        injector.getInstance(AmbariAuthenticationFilter.class));
 
       // Spring Security xml config depends on this Bean
       String[] contextLocations = {SPRING_CONTEXT_LOCATION};
@@ -698,9 +704,9 @@ public class AmbariServer {
     }
 
     LOG.info(
-        "Jetty is configuring {} with {} reserved acceptors/selectors and a total pool size of {} for {} processors.",
-        threadPoolName, acceptorThreads * 2, configuredThreadPoolSize,
-        Runtime.getRuntime().availableProcessors());
+      "Jetty is configuring {} with {} reserved acceptors/selectors and a total pool size of {} for {} processors.",
+      threadPoolName, acceptorThreads * 2, configuredThreadPoolSize,
+      Runtime.getRuntime().availableProcessors());
 
     final QueuedThreadPool qtp = server.getBean(QueuedThreadPool.class);
     qtp.setName(threadPoolName);

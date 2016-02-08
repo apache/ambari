@@ -19,12 +19,18 @@
 package org.apache.ambari.server.security.authorization;
 
 import com.google.inject.Inject;
+import org.apache.ambari.server.audit.AccessAuthorizedAuditEvent;
+import org.apache.ambari.server.audit.AccessUnauthorizedAuditEvent;
+import org.apache.ambari.server.audit.AuditEvent;
+import org.apache.ambari.server.audit.AuditLogger;
+import org.apache.ambari.server.audit.LoginSucceededAuditEvent;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.security.authorization.internal.InternalAuthenticationToken;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.apache.commons.lang.StringUtils;
+import org.joda.time.DateTime;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -90,6 +96,9 @@ public class AmbariAuthorizationFilter implements Filter {
   @Inject
   private Users users;
 
+  @Inject
+  private AuditLogger auditLogger;
+
   /**
    * The realm to use for the basic http auth
    */
@@ -111,6 +120,10 @@ public class AmbariAuthorizationFilter implements Filter {
 
     Authentication authentication = context.getAuthentication();
 
+    AuditEvent auditEvent = null;
+
+    List<String> previliges = Lists.newArrayList();
+
     //  If no explicit authenticated user is set, set it to the default user (if one is specified)
     if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
       Authentication defaultAuthentication = getDefaultAuthentication();
@@ -123,19 +136,25 @@ public class AmbariAuthorizationFilter implements Filter {
         !authentication.isAuthenticated()) {
       String token = httpRequest.getHeader(INTERNAL_TOKEN_HEADER);
       if (token != null) {
-        context.setAuthentication(new InternalAuthenticationToken(token));
+        InternalAuthenticationToken internalAuthenticationToken = new InternalAuthenticationToken(token);
+        context.setAuthentication(internalAuthenticationToken);
+        LoginSucceededAuditEvent loginSucceededAuditEvent = LoginSucceededAuditEvent.builder()
+          .withUserName(internalAuthenticationToken.getName())
+          .withRemoteIp(request.getRemoteAddr())
+          .withTimestamp(new DateTime(new Date())).build();
+        auditLogger.log(loginSucceededAuditEvent);
       } else {
         // for view access, we should redirect to the Ambari login
         if (requestURI.matches(VIEWS_CONTEXT_ALL_PATTERN)) {
           String queryString = httpRequest.getQueryString();
           String requestedURL = queryString == null ? requestURI : (requestURI + '?' + queryString);
           String redirectURL = httpResponse.encodeRedirectURL(LOGIN_REDIRECT_BASE + requestedURL);
-
           httpResponse.sendRedirect(redirectURL);
-          return;
         } else {
           httpResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "Authentication required");
+          httpResponse.flushBuffer();
         }
+        return;
       }
     } else if (!authorizationPerformedInternally(requestURI)) {
       boolean authorized = false;
@@ -148,6 +167,7 @@ public class AmbariAuthorizationFilter implements Filter {
           PrivilegeEntity privilegeEntity = ambariGrantedAuthority.getPrivilegeEntity();
           Integer permissionId = privilegeEntity.getPermission().getId();
 
+          previliges.add(privilegeEntity.getPermission().getPermissionLabel());
           // admin has full access
           if (permissionId.equals(PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION)) {
             authorized = true;
@@ -188,6 +208,14 @@ public class AmbariAuthorizationFilter implements Filter {
       if (!authorized &&
           (!httpRequest.getMethod().equals("GET")
               || requestURI.matches(API_LDAP_SYNC_EVENTS_ALL_PATTERN))) {
+        auditEvent = AccessUnauthorizedAuditEvent.builder()
+          .withHttpMethodName(httpRequest.getMethod())
+          .withRemoteIp(httpRequest.getRemoteAddr())
+          .withResourcePath(httpRequest.getRequestURI())
+          .withUserName(AuthorizationHelper.getAuthenticatedName())
+          .withTimestamp(new DateTime(new Date()))
+          .build();
+        auditLogger.log(auditEvent);
 
         httpResponse.setHeader("WWW-Authenticate", "Basic realm=\"" + realm + "\"");
         httpResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "You do not have permissions to access this resource.");
@@ -197,6 +225,25 @@ public class AmbariAuthorizationFilter implements Filter {
     }
     if (AuthorizationHelper.getAuthenticatedName() != null) {
       httpResponse.setHeader("User", AuthorizationHelper.getAuthenticatedName());
+      if (httpResponse.getStatus() != HttpServletResponse.SC_FORBIDDEN) {
+        auditEvent = AccessAuthorizedAuditEvent.builder()
+          .withHttpMethodName(httpRequest.getMethod())
+          .withRemoteIp(httpRequest.getRemoteAddr())
+          .withResourcePath(httpRequest.getRequestURI())
+          .withUserName(AuthorizationHelper.getAuthenticatedName())
+          .withPrivileges(previliges)
+          .withTimestamp(new DateTime(new Date()))
+          .build();
+      } else {
+        auditEvent = AccessUnauthorizedAuditEvent.builder()
+          .withHttpMethodName(httpRequest.getMethod())
+          .withRemoteIp(httpRequest.getRemoteAddr())
+          .withResourcePath(httpRequest.getRequestURI())
+          .withUserName(AuthorizationHelper.getAuthenticatedName())
+          .withTimestamp(new DateTime(new Date()))
+          .build();
+      }
+      auditLogger.log(auditEvent);
     }
     chain.doFilter(request, response);
   }

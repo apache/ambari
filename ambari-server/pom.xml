@@ -1058,6 +1058,10 @@
       <artifactId>log4j</artifactId>
     </dependency>
     <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>apache-log4j-extras</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.eclipse.persistence</groupId>
       <artifactId>eclipselink</artifactId>
     </dependency>
@@ -1277,7 +1281,7 @@
           <groupId>c3p0</groupId>
           <artifactId>c3p0</artifactId>
         </exclusion>
-      </exclusions>      
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.quartz-scheduler</groupId>
@@ -1356,6 +1360,11 @@
       <artifactId>c3p0</artifactId>
       <version>[0.9.5.2]</version>
       <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>joda-time</groupId>
+      <artifactId>joda-time</artifactId>
+      <version>2.7</version>
     </dependency>
   </dependencies>
 
