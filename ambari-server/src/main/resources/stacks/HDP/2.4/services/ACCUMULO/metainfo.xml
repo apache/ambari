@@ -33,7 +33,7 @@
           </osSpecific>
         </osSpecifics>
         <osSpecific>
-          <osFamily>redhat7,redhat6,suse11</osFamily>
+          <osFamily>redhat7,amazon2015,redhat6,suse11</osFamily>
           <packages>
             <package>
               <name>accumulo_2_4_*</name>

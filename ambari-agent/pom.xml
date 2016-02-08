@@ -237,18 +237,6 @@
               <directoryIncluded>false</directoryIncluded>
               <sources>
                 <source>
-                  <location>../ambari-common/src/main/unix/ambari-python-wrap</location>
-                </source>
-              </sources>
-            </mapping>
-            <mapping>
-              <directory>/var/lib/ambari-agent/</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
-              <directoryIncluded>false</directoryIncluded>
-              <sources>
-                <source>
                   <location>conf/unix/ambari-sudo.sh</location>
                 </source>
               </sources>
@@ -625,17 +613,6 @@
               <mapper>
                 <type>perm</type>
                 <prefix>/var/lib/${project.artifactId}/data</prefix>
-                <user>root</user>
-                <group>root</group>
-                <filemode>755</filemode>
-              </mapper>
-            </data>
-            <data>
-              <src>../ambari-common/src/main/unix/ambari-python-wrap</src>
-              <type>file</type>
-              <mapper>
-                <type>perm</type>
-                <prefix>/var/lib/ambari-agent</prefix>
                 <user>root</user>
                 <group>root</group>
                 <filemode>755</filemode>

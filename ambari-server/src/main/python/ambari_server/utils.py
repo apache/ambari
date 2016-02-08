@@ -224,8 +224,9 @@ def get_postgre_hba_dir(OS_FAMILY):
       os.symlink(glob.glob(get_pg_hba_init_files() + '*')[0],
                  get_pg_hba_init_files())
 
+    pg_hba_init_basename = os.path.basename(get_pg_hba_init_files())
     # Get postgres_data location (default: /var/lib/pgsql/data)
-    cmd = "alias exit=return; source " + get_pg_hba_init_files() + " status &>/dev/null; echo $PGDATA"
+    cmd = "alias basename='echo {0}; true' ; alias exit=return; source {1} status &>/dev/null; echo $PGDATA".format(pg_hba_init_basename, get_pg_hba_init_files())
     p = subprocess.Popen(cmd,
                          stdout=subprocess.PIPE,
                          stdin=subprocess.PIPE,

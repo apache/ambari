@@ -407,18 +407,6 @@
               </sources>
             </mapping>
             <mapping>
-              <directory>/var/lib/ambari-server/</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
-              <directoryIncluded>false</directoryIncluded>
-              <sources>
-                <source>
-                  <location>../ambari-common/src/main/unix/ambari-python-wrap</location>
-                </source>
-              </sources>
-            </mapping>
-            <mapping>
               <directory>/etc/ambari-server/conf</directory>
               <configuration>true</configuration>
               <sources>

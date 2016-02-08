@@ -40,7 +40,7 @@ export AMBARI_CONF_DIR=/etc/ambari-server/conf:$PATH
 export PYTHONPATH=/usr/lib/python2.6/site-packages:$PYTHONPATH
 
 AMBARI_AGENT=ambari-agent
-PYTHON_WRAP=/var/lib/ambari-agent/ambari-python-wrap
+PYTHON_WRAP=/usr/bin/ambari-python-wrap
 PIDDIR=/var/run/ambari-agent
 PIDFILE=$PIDDIR/$AMBARI_AGENT.pid
 OUTFILE=/var/log/ambari-agent/ambari-agent.out
@@ -81,10 +81,10 @@ change_files_permissions() {
 	ambari-sudo.sh chown 	$current_user "/usr/lib/ambari-agent/"
 }
 
-# fills $PYTHON
-. $PYTHON_WRAP -V 2>/dev/null
 
-export PYTHON=$PYTHON
+if [ -z "$PYTHON" ] ; then
+  export PYTHON=`readlink $PYTHON_WRAP`
+fi
 
 # Trying to read the passphrase from an environment
 if [ ! -z $AMBARI_PASSPHRASE ]; then

@@ -24,7 +24,7 @@
       <version>0.10.0.2.4</version>
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat7,redhat6,suse11</osFamily>
+          <osFamily>redhat7,amazon2015,redhat6,suse11</osFamily>
           <packages>
             <package>
               <name>storm_2_4_*</name>

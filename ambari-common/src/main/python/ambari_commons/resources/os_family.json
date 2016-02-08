@@ -6,7 +6,6 @@
       "centos",
       "oraclelinux",
       "ascendos",
-      "amazon",
       "xenserver",
       "oel",
       "ovs",
@@ -19,6 +18,15 @@
     "versions": [
       6,
       7
+    ]
+  },
+  "amazon": {
+    "extends" : "redhat",
+    "distro": [
+      "amazon"
+    ],
+    "versions": [
+      2015
     ]
   },
   "debian": {

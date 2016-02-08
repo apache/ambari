@@ -37,10 +37,11 @@ esac
 
 export PATH=/usr/lib/ambari-server/*:$PATH:/sbin/:/usr/sbin
 export AMBARI_CONF_DIR=/etc/ambari-server/conf
-PYTHON_WRAP=/var/lib/ambari-server/ambari-python-wrap
+PYTHON_WRAP=/usr/bin/ambari-python-wrap
 
-# fills $PYTHON
-. $PYTHON_WRAP -V 2>/dev/null
+if [ -z "$PYTHON" ] ; then
+  export PYTHON=`readlink $PYTHON_WRAP`
+fi
 
 if [ -a /var/lib/ambari-server/ambari-env.sh ]; then
   . /var/lib/ambari-server/ambari-env.sh

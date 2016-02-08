@@ -57,7 +57,7 @@
         </osSpecific>
 
         <osSpecific>
-          <osFamily>redhat7,redhat6,suse11</osFamily>
+          <osFamily>redhat7,amazon2015,redhat6,suse11</osFamily>
           <packages>
             <package>
               <name>hadoop_2_3_*</name>
