@@ -199,23 +199,7 @@ class OozieUpgrade(Script):
       command = format("{kinit_path_local} -kt {oozie_keytab} {oozie_principal_with_host}")
       Execute(command, user=params.oozie_user, logoutput=True)
 
-    # setup environment
-    environment = { "CATALINA_BASE" : "/usr/hdp/current/oozie-server/oozie-server",
-      "OOZIE_HOME" : "/usr/hdp/current/oozie-server" }
-
-    # prepare the oozie WAR
-    command = format("{oozie_setup_sh} prepare-war {oozie_secure} -d {oozie_libext_dir}")
-    return_code, oozie_output = shell.call(command, user=params.oozie_user,
-      logoutput=False, quiet=False, env=environment)
-
-    # set it to "" in to prevent a possible iteration issue
-    if oozie_output is None:
-      oozie_output = ""
-
-    if return_code != 0 or "New Oozie WAR file with added".lower() not in oozie_output.lower():
-      message = "Unexpected Oozie WAR preparation output {0}".format(oozie_output)
-      Logger.error(message)
-      raise Fail(message)
+    oozie.prepare_war()
 
 
   def upgrade_oozie_database_and_sharelib(self, env):
