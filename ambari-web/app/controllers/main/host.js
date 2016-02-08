@@ -735,18 +735,21 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
    * @param {Ember.Enumerable} hosts - list of affected hosts
   */
   bulkOperationForHostsReinstall: function (operationData, hosts) {
-    return App.ajax.send({
-      name: 'common.host_components.update',
-      sender: this,
-      data: {
-        HostRoles: {
-          state: 'INSTALLED'
+    var self = this;
+    App.get('router.mainAdminKerberosController').getKDCSessionState(function () {
+      return App.ajax.send({
+        name: 'common.host_components.update',
+        sender: self,
+        data: {
+          HostRoles: {
+            state: 'INSTALLED'
+          },
+          query: 'HostRoles/host_name.in(' + hosts.mapProperty('hostName').join(',') + ')&HostRoles/state=INSTALL_FAILED',
+          context: operationData.message,
+          noOpsMessage: Em.I18n.t('hosts.host.maintainance.reinstallFailedComponents.context')
         },
-        query: 'HostRoles/host_name.in(' + hosts.mapProperty('hostName').join(',') + ')&HostRoles/state=INSTALL_FAILED',
-        context: operationData.message,
-        noOpsMessage: Em.I18n.t('hosts.host.maintainance.reinstallFailedComponents.context')
-      },
-      success: 'bulkOperationForHostComponentsSuccessCallback'
+        success: 'bulkOperationForHostComponentsSuccessCallback'
+      });
     });
   },
 
