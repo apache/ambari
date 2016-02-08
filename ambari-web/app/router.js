@@ -349,9 +349,18 @@ App.Router = Em.Router.extend({
   /**
    * success callback of router.login.message
    * @param {object} data
+   * @param {object} opt
+   * @param {object} params
    */
   showLoginMessage: function (data, opt, params){
-    var response = JSON.parse(data.Settings.content.replace(/\n/g, "\\n")),
+    try {
+      var response = JSON.parse(data.Settings.content.replace(/\n/g, "\\n"))
+    } catch (e) {
+      this.setClusterData(data, opt, params);
+      return false;
+    }
+
+    var
       text = response.text ? response.text : "",
       buttonText = response.button ? response.button : Em.I18n.t('ok'),
       status = response.status && response.status == "true" ? true : false,
