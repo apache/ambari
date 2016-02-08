@@ -3872,15 +3872,13 @@ describe('App.MainHostDetailsController', function () {
               ['hive.metastore.uris', 'thrift://host1:9090']
             ]),
             makeFileNameProps('hive-env', [
-              ['hive_user', 'hive_user_val'],
-              ['webhcat_user', 'webhcat_user_val']
+              ['hive_user', 'hive_user_val']
             ]),
             makeFileNameProps('webhcat-site', [
               ['templeton.hive.properties', 'hive.metastore.local=false,hive.metastore.uris=thrift://host1:9083,hive.metastore.sasl.enabled=false']
             ]),
             makeFileNameProps('core-site', [
-              ['hadoop.proxyuser.hive_user_val.hosts', 'host1'],
-              ['hadoop.proxyuser.webhcat_user_val.hosts', 'host1']
+              ['hadoop.proxyuser.hive_user_val.hosts', 'host1']
             ])
           ]
         },
@@ -3896,8 +3894,7 @@ describe('App.MainHostDetailsController', function () {
                   ['templeton.hive.properties', 'hive.metastore.local=false,hive.metastore.uris=thrift://host1:9090,hive.metastore.sasl.enabled=false']
                 ]).properties,
                 "hive-env": makeFileNameProps('hive-env', [
-                  ['hive_user', 'hive_user_val'],
-                  ['webhcat_user', 'webhcat_user_val']
+                  ['hive_user', 'hive_user_val']
                 ]).properties
               },
               "properties_attributes": makeEmptyPropAttrs("hive-site", "webhcat-site", "hive-env")
@@ -3905,8 +3902,7 @@ describe('App.MainHostDetailsController', function () {
             {
               "properties": {
                 "core-site": makeFileNameProps('core-site', [
-                  ['hadoop.proxyuser.hive_user_val.hosts', 'host1,host2'],
-                  ['hadoop.proxyuser.webhcat_user_val.hosts', 'host1,host2']
+                  ['hadoop.proxyuser.hive_user_val.hosts', 'host1,host2']
                 ]).properties
               },
               "properties_attributes": makeEmptyPropAttrs("core-site")
@@ -3925,15 +3921,13 @@ describe('App.MainHostDetailsController', function () {
               ['hive.metastore.uris', 'thrift://host1']
             ]),
             makeFileNameProps('hive-env', [
-              ['hive_user', 'hive_user_val'],
-              ['webhcat_user', 'webhcat_user_val']
+              ['hive_user', 'hive_user_val']
             ]),
             makeFileNameProps('webhcat-site', [
               ['templeton.hive.properties', 'hive.metastore.local=false,hive.metastore.uris=thrift://host1:9083,hive.metastore.sasl.enabled=false']
             ]),
             makeFileNameProps('core-site', [
-              ['hadoop.proxyuser.hive_user_val.hosts', 'host1'],
-              ['hadoop.proxyuser.webhcat_user_val.hosts', 'host1']
+              ['hadoop.proxyuser.hive_user_val.hosts', 'host1']
             ])
           ]
         },
@@ -3949,8 +3943,7 @@ describe('App.MainHostDetailsController', function () {
                   ['templeton.hive.properties', 'hive.metastore.local=false,hive.metastore.uris=thrift://host1:9083\\,thrift://host2:9083\\,thrift://host3:9083,hive.metastore.sasl.enabled=false']
                 ]).properties,
                 "hive-env": makeFileNameProps('hive-env', [
-                  ['hive_user', 'hive_user_val'],
-                  ['webhcat_user', 'webhcat_user_val']
+                  ['hive_user', 'hive_user_val']
                 ]).properties
               },
               "properties_attributes": makeEmptyPropAttrs("hive-site", "webhcat-site", "hive-env")
@@ -3958,8 +3951,7 @@ describe('App.MainHostDetailsController', function () {
             {
               "properties": {
                 "core-site": makeFileNameProps('core-site', [
-                  ['hadoop.proxyuser.hive_user_val.hosts', 'host1,host2,host3'],
-                  ['hadoop.proxyuser.webhcat_user_val.hosts', 'host1,host2,host3']
+                  ['hadoop.proxyuser.hive_user_val.hosts', 'host1,host2,host3']
                 ]).properties
               },
               "properties_attributes": makeEmptyPropAttrs("core-site")
@@ -3979,15 +3971,13 @@ describe('App.MainHostDetailsController', function () {
               ['hive.metastore.uris', 'thrift://host1:1111']
             ]),
             makeFileNameProps('hive-env', [
-              ['hive_user', 'hive_user_val'],
-              ['webhcat_user', 'webhcat_user_val']
+              ['hive_user', 'hive_user_val']
             ]),
             makeFileNameProps('webhcat-site', [
               ['templeton.hive.properties', 'hive.metastore.local=false,hive.metastore.uris=thrift://host1:9083,hive.metastore.sasl.enabled=false']
             ]),
             makeFileNameProps('core-site', [
-              ['hadoop.proxyuser.hive_user_val.hosts', 'host1'],
-              ['hadoop.proxyuser.webhcat_user_val.hosts', 'host1']
+              ['hadoop.proxyuser.hive_user_val.hosts', 'host1']
             ])
           ]
         },
@@ -4003,7 +3993,59 @@ describe('App.MainHostDetailsController', function () {
                   ['templeton.hive.properties', 'hive.metastore.local=false,hive.metastore.uris=thrift://host1:1111\\,thrift://host2:1111\\,thrift://host3:1111,hive.metastore.sasl.enabled=false']
                 ]).properties,
                 "hive-env": makeFileNameProps('hive-env', [
-                  ['hive_user', 'hive_user_val'],
+                  ['hive_user', 'hive_user_val']
+                ]).properties
+              },
+              "properties_attributes": makeEmptyPropAttrs("hive-site", "webhcat-site", "hive-env")
+            },
+            {
+              "properties": {
+                "core-site": makeFileNameProps('core-site', [
+                  ['hadoop.proxyuser.hive_user_val.hosts', 'host1,host2,host3']
+                ]).properties
+              },
+              "properties_attributes": makeEmptyPropAttrs("core-site")
+            },
+          ]
+        }
+      },
+      {
+        hostComponentModel: makeHostComponentModel(['HIVE_SERVER', 'HIVE_METASTORE', 'WEBHCAT_SERVER'], [['host1', 'host2'], ['host1','host2'], ['host1', 'host3']]),
+        ctrlStubs: {
+          fromDeleteHost: true,
+          'content.hostName': 'host2',
+          webhcatServerHost: '',
+          hiveMetastoreHost: ''
+        },
+        webHCat: true,
+        configs: {
+          items: [
+            makeFileNameProps('hive-site', [
+              ['hive.metastore.uris', 'thrift://host1:1111']
+            ]),
+            makeFileNameProps('hive-env', [
+              ['webhcat_user', 'webhcat_user_val']
+            ]),
+            makeFileNameProps('webhcat-site', [
+              ['templeton.hive.properties', 'hive.metastore.local=false,hive.metastore.uris=thrift://host1:9083,hive.metastore.sasl.enabled=false']
+            ]),
+            makeFileNameProps('core-site', [
+              ['hadoop.proxyuser.webhcat_user_val.hosts', 'host1']
+            ])
+          ]
+        },
+        m: 'Change WebHCat proxyuser',
+        e: {
+          configs: [
+            {
+              "properties": {
+                "hive-site": makeFileNameProps('hive-site', [
+                  ['hive.metastore.uris', 'thrift://host1:1111,thrift://host3:1111']
+                ]).properties,
+                "webhcat-site": makeFileNameProps('webhcat-site', [
+                  ['templeton.hive.properties', 'hive.metastore.local=false,hive.metastore.uris=thrift://host1:1111\\,thrift://host3:1111,hive.metastore.sasl.enabled=false']
+                ]).properties,
+                "hive-env": makeFileNameProps('hive-env', [
                   ['webhcat_user', 'webhcat_user_val']
                 ]).properties
               },
@@ -4012,8 +4054,7 @@ describe('App.MainHostDetailsController', function () {
             {
               "properties": {
                 "core-site": makeFileNameProps('core-site', [
-                  ['hadoop.proxyuser.hive_user_val.hosts', 'host1,host2,host3'],
-                  ['hadoop.proxyuser.webhcat_user_val.hosts', 'host1,host2,host3']
+                  ['hadoop.proxyuser.webhcat_user_val.hosts', 'host1,host3']
                 ]).properties
               },
               "properties_attributes": makeEmptyPropAttrs("core-site")
@@ -4035,15 +4076,13 @@ describe('App.MainHostDetailsController', function () {
               ['hive.metastore.uris', 'thrift://host1:1111']
             ]),
             makeFileNameProps('hive-env', [
-              ['hive_user', 'hive_user_val'],
-              ['webhcat_user', 'webhcat_user_val']
+              ['hive_user', 'hive_user_val']
             ]),
             makeFileNameProps('webhcat-site', [
               ['templeton.hive.properties', 'hive.metastore.local=false,hive.metastore.uris=thrift://host1:9083,hive.metastore.sasl.enabled=false']
             ]),
             makeFileNameProps('core-site', [
-              ['hadoop.proxyuser.hive_user_val.hosts', 'host1'],
-              ['hadoop.proxyuser.webhcat_user_val.hosts', 'host1']
+              ['hadoop.proxyuser.hive_user_val.hosts', 'host1']
             ])
           ]
         },
@@ -4059,8 +4098,7 @@ describe('App.MainHostDetailsController', function () {
                   ['templeton.hive.properties', 'hive.metastore.local=false,hive.metastore.uris=thrift://host1:1111\\,thrift://host3:1111,hive.metastore.sasl.enabled=false']
                 ]).properties,
                 "hive-env": makeFileNameProps('hive-env', [
-                  ['hive_user', 'hive_user_val'],
-                  ['webhcat_user', 'webhcat_user_val']
+                  ['hive_user', 'hive_user_val']
                 ]).properties
               },
               "properties_attributes": makeEmptyPropAttrs("hive-site", "webhcat-site", "hive-env")
@@ -4068,12 +4106,11 @@ describe('App.MainHostDetailsController', function () {
             {
               "properties": {
                 "core-site": makeFileNameProps('core-site', [
-                  ['hadoop.proxyuser.hive_user_val.hosts', 'host1,host3'],
-                  ['hadoop.proxyuser.webhcat_user_val.hosts', 'host1,host3']
+                  ['hadoop.proxyuser.hive_user_val.hosts', 'host1,host3']
                 ]).properties
               },
               "properties_attributes": makeEmptyPropAttrs("core-site")
-            },
+            }
           ]
         }
       }
@@ -4108,7 +4145,7 @@ describe('App.MainHostDetailsController', function () {
         });
 
         it('saveConfigsBatch is called with correct configs', function () {
-          controller.onLoadHiveConfigs(test.configs);
+          controller.onLoadHiveConfigs(test.configs, null, {webHCat: test.webHCat});
           var configs = controller.saveConfigsBatch.args[0];
           var properties = configs[0];
           expect(properties).to.be.eql(test.e.configs);

@@ -298,7 +298,18 @@ App.AddHiveComponentsInitializer = App.AddComponentConfigInitializer.create({
   initializeForProperties: [
     'hive.metastore.uris',
     'templeton.hive.properties',
-    'hadoop.proxyuser.{{webhcatUser}}.hosts',
     'hadoop.proxyuser.{{hiveUser}}.hosts'
+  ]
+});
+
+/**
+ * WebHCat service add/remove components initializer.
+ * @instance App.AddComponentConfigInitializer
+ */
+App.AddWebHCatComponentsInitializer = App.AddComponentConfigInitializer.create({
+  initializeForProperties: [
+    'hive.metastore.uris',
+    'templeton.hive.properties',
+    'hadoop.proxyuser.{{webhcatUser}}.hosts'
   ]
 });
