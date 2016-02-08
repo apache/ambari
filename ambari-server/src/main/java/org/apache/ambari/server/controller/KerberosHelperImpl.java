@@ -662,7 +662,7 @@ public class KerberosHelperImpl implements KerberosHelper {
       String additionalRealms = kerberosDescriptor.getProperty("additional_realms");
 
       // Determine which properties need to be set
-      AuthToLocalBuilder authToLocalBuilder = new AuthToLocalBuilder(caseInsensitiveUser, additionalRealms);
+      AuthToLocalBuilder authToLocalBuilder = new AuthToLocalBuilder(realm, additionalRealms, caseInsensitiveUser);
       addIdentities(authToLocalBuilder, kerberosDescriptor.getIdentities(), null, existingConfigurations);
 
       authToLocalProperties = kerberosDescriptor.getAuthToLocalProperties();
@@ -748,7 +748,14 @@ public class KerberosHelperImpl implements KerberosHelper {
           Matcher m = KerberosDescriptor.AUTH_TO_LOCAL_PROPERTY_SPECIFICATION_PATTERN.matcher(authToLocalProperty);
 
           if (m.matches()) {
-            AuthToLocalBuilder builder = authToLocalBuilder.copy();
+            AuthToLocalBuilder builder;
+            try {
+              builder = (AuthToLocalBuilder) authToLocalBuilder.clone();
+            } catch (CloneNotSupportedException e) {
+              LOG.error("Failed to clone the AuthToLocalBuilder: " + e.getLocalizedMessage(), e);
+              throw new AmbariException("Failed to clone the AuthToLocalBuilder: " + e.getLocalizedMessage(), e);
+            }
+
             String configType = m.group(1);
             String propertyName = m.group(2);
 
@@ -771,8 +778,8 @@ public class KerberosHelperImpl implements KerberosHelper {
               kerberosConfigurations.put(configType, kerberosConfiguration);
             }
 
-            kerberosConfiguration.put(propertyName, builder.generate(realm,
-                AuthToLocalBuilder.ConcatenationType.translate(m.group(3))));
+            kerberosConfiguration.put(propertyName,
+                builder.generate(AuthToLocalBuilder.ConcatenationType.translate(m.group(3))));
           }
         }
       }
