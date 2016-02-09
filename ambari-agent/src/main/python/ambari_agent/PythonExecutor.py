@@ -150,6 +150,9 @@ class PythonExecutor(object):
       else:
         structured_out = {}
     return out, error, structured_out
+  
+  def preexec_fn(self):
+    os.setpgid(0, 0)
 
   def launch_python_subprocess(self, command, tmpout, tmperr):
     """
@@ -165,7 +168,7 @@ class PythonExecutor(object):
 
     return subprocess.Popen(command,
       stdout=tmpout,
-      stderr=tmperr, close_fds=close_fds, env=command_env)
+      stderr=tmperr, close_fds=close_fds, env=command_env, preexec_fn=self.preexec_fn)
 
   def isSuccessfull(self, returncode):
     return not self.python_process_has_been_killed and returncode == 0
