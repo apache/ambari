@@ -511,6 +511,11 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, Ap
         self.postUserPref(self.get('persistKey'), self.get('initPrefObject'));
         self.setDBProperty(self.get('persistKey'), self.get('initPrefObject'));
       }
+      self.setProperties({
+        currentTimeRangeIndex: 0,
+        customStartTime: null,
+        customEndTime: null
+      });
       self.translateToReal(self.get('initPrefObject'));
     });
   },

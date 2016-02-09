@@ -442,15 +442,71 @@ describe('App.MainDashboardWidgetsView', function () {
   });
 
   describe("#resetAllWidgets()", function () {
-    before(function () {
-      sinon.stub(App, 'showConfirmationPopup', Em.K);
-    });
-    after(function () {
-      App.showConfirmationPopup.restore();
-    });
-    it("", function () {
-      view.resetAllWidgets();
-      expect(App.showConfirmationPopup.calledOnce).to.be.true;
+
+    var cases = [
+      {
+        testMode: true,
+        postUserPrefCallCount: 0,
+        setDBPropertyCallCount: 0,
+        title: 'test mode'
+      },
+      {
+        testMode: false,
+        postUserPrefCallCount: 1,
+        setDBPropertyCallCount: 1,
+        title: 'real cluster'
+      }
+    ];
+
+    cases.forEach(function (item) {
+
+      describe(item.title, function () {
+
+        beforeEach(function () {
+          sinon.stub(App, 'showConfirmationPopup', function (callback) {
+            callback();
+          });
+          sinon.stub(App, 'get').withArgs('testMode').returns(item.testMode);
+          sinon.stub(view, 'postUserPref', Em.K);
+          sinon.stub(view, 'setDBProperty', Em.K);
+          sinon.stub(view, 'translateToReal', Em.K);
+          view.setProperties({
+            currentTimeRangeIndex: 1,
+            customStartTime: 1000,
+            customEndTime: 2000
+          });
+          view.resetAllWidgets();
+        });
+
+        afterEach(function () {
+          App.get.restore();
+          App.showConfirmationPopup.restore();
+          view.postUserPref.restore();
+          view.setDBProperty.restore();
+          view.translateToReal.restore();
+        });
+
+        it('persist reset', function () {
+          expect(view.postUserPref.callCount).to.equal(item.postUserPrefCallCount);
+        });
+        it('local storage reset', function () {
+          expect(view.setDBProperty.callCount).to.equal(item.setDBPropertyCallCount);
+        });
+        it('time range reset', function () {
+          expect(view.get('currentTimeRangeIndex')).to.equal(0);
+        });
+        it('custom start time reset', function () {
+          expect(view.get('customStartTime')).to.be.null;
+        });
+        it('custom end time reset', function () {
+          expect(view.get('customEndTime')).to.be.null;
+        });
+        it('default settings application', function () {
+          expect(view.translateToReal.callCount).to.equal(1);
+        });
+
+      });
+
     });
   });
 
