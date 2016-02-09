@@ -50,6 +50,20 @@
   </property>
 
   <property>
+    <name>manage_auth_to_local</name>
+    <description>
+      Indicates whether the hadoop auth_to_local rules should be managed by Ambari or managed manually.
+    </description>
+    <value>true</value>
+    <display-name>Manage Hadoop auth_to_local rules</display-name>
+    <value-attributes>
+      <visible>true</visible>
+      <overridable>false</overridable>
+      <type>boolean</type>
+    </value-attributes>
+  </property>
+
+  <property>
     <name>install_packages</name>
     <display-name>Install OS-specific Kerberos client package(s)</display-name>
     <description>

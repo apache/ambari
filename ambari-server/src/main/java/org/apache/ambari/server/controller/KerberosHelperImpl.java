@@ -649,7 +649,13 @@ public class KerberosHelperImpl implements KerberosHelper {
                                   Map<String, Map<String, String>> kerberosConfigurations)
       throws AmbariException {
 
-    if (kerberosDescriptor != null) {
+    boolean processAuthToLocalRules = true;
+    Map<String, String> kerberosEnvProperties = existingConfigurations.get("kerberos-env");
+    if(kerberosEnvProperties.containsKey("manage_auth_to_local")) {
+      processAuthToLocalRules = Boolean.valueOf(kerberosEnvProperties.get("manage_auth_to_local"));
+    }
+
+    if (kerberosDescriptor != null && processAuthToLocalRules) {
 
       Set<String> authToLocalProperties;
       Set<String> authToLocalPropertiesToSet = new HashSet<String>();
