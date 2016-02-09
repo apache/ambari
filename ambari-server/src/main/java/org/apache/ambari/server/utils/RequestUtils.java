@@ -17,28 +17,24 @@
  */
 package org.apache.ambari.server.utils;
 
-import com.google.common.collect.Queues;
+import com.google.common.collect.ImmutableSet;
 import java.util.Arrays;
-import java.util.Queue;
+import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 
 public class RequestUtils {
 
   public static String getRemoteAddress(HttpServletRequest request) {
-    Queue<String> headersToCheck = Queues.newLinkedBlockingQueue(Arrays.asList(
+    Set<String> headersToCheck = ImmutableSet.copyOf(Arrays.asList(
       "X-Forwarded-For", "Proxy-Client-IP", "WL-Proxy-Client-IP", "HTTP_CLIENT_IP", "HTTP_X_FORWARDED_FOR"));
-
-    return getRemoteAddressFromHeader(request, headersToCheck);
-  }
-
-  private static String getRemoteAddressFromHeader(HttpServletRequest request, Queue<String> headersToCheck) {
-    String ip;
-    if (!headersToCheck.isEmpty()) {
-      ip = request.getHeader(headersToCheck.poll());
-      if (isRemoteAddressUnknown(ip)) {
-        ip = getRemoteAddressFromHeader(request, headersToCheck);
+    String ip = null;
+    for (String header : headersToCheck) {
+      ip = request.getHeader(header);
+      if (!isRemoteAddressUnknown(ip)) {
+        break;
       }
-    } else {
+    }
+    if (isRemoteAddressUnknown(ip)) {
       ip = request.getRemoteAddr();
     }
     return ip;
