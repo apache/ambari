@@ -18,12 +18,28 @@
 
 package org.apache.ambari.server.upgrade;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.regex.Matcher;
+
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaDelete;
+import javax.persistence.criteria.Root;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
@@ -39,7 +55,6 @@ import org.apache.ambari.server.orm.entities.ArtifactEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -58,26 +73,12 @@ import org.eclipse.persistence.internal.databaseaccess.FieldTypeDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaDelete;
-import javax.persistence.criteria.Root;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.regex.Matcher;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 
 
 /**
@@ -1078,11 +1079,9 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
             @Override
             public void run() {
             ServiceComponentDesiredStateDAO dao = injector.getInstance(ServiceComponentDesiredStateDAO.class);
-            ServiceComponentDesiredStateEntityPK entityPK = new ServiceComponentDesiredStateEntityPK();
-            entityPK.setClusterId(cluster.getClusterId());
-            entityPK.setServiceName("STORM");
-            entityPK.setComponentName("STORM_REST_API");
-            ServiceComponentDesiredStateEntity entity = dao.findByPK(entityPK);
+              ServiceComponentDesiredStateEntity entity = dao.findByName(cluster.getClusterId(),
+                  "STORM", "STORM_REST_API");
+
             if (entity != null) {
               EntityManager em = getEntityManagerProvider().get();
               CriteriaBuilder cb = em.getCriteriaBuilder();
@@ -1227,7 +1226,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
             JsonObject reporting = rootJson.getAsJsonObject("reporting");
             JsonObject ok = reporting.getAsJsonObject("ok");
             JsonObject warning = reporting.getAsJsonObject("warning");
-            JsonObject critical = reporting.getAsJsonObject("critical");            
+            JsonObject critical = reporting.getAsJsonObject("critical");
 
             rootJson.remove("type");
             rootJson.remove("default_port");
@@ -1533,8 +1532,8 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
               hiveSiteAddProps.put("hive.server2.authentication.kerberos.keytab", "");
               hiveSiteAddProps.put("hive.server2.authentication.kerberos.principal", "");
             }
-            
-            
+
+
             updateConfigurationPropertiesForCluster(cluster, "hive-site", hiveSiteAddProps, hiveSiteRemoveProps, false, true);
           }
         }

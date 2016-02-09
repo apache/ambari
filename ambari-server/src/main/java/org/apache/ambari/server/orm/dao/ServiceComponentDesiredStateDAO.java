@@ -26,7 +26,6 @@ import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityPK;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -38,9 +37,22 @@ public class ServiceComponentDesiredStateDAO {
   @Inject
   Provider<EntityManager> entityManagerProvider;
 
+  /**
+   * DAO utilities for dealing mostly with {@link TypedQuery} results.
+   */
+  @Inject
+  private DaoUtils daoUtils;
+
+  /**
+   * Gets a {@link ServiceComponentDesiredStateEntity} by its PK ID.
+   *
+   * @param id
+   *          the ID.
+   * @return the entity or {@code null} if it does not exist.
+   */
   @RequiresSession
-  public ServiceComponentDesiredStateEntity findByPK(ServiceComponentDesiredStateEntityPK primaryKey) {
-    return entityManagerProvider.get().find(ServiceComponentDesiredStateEntity.class, primaryKey);
+  public ServiceComponentDesiredStateEntity findById(long id) {
+    return entityManagerProvider.get().find(ServiceComponentDesiredStateEntity.class, id);
   }
 
   @RequiresSession
@@ -53,6 +65,37 @@ public class ServiceComponentDesiredStateDAO {
     } catch (NoResultException ignored) {
     }
     return null;
+  }
+
+  /**
+   * Finds a {@link ServiceComponentDesiredStateEntity} by a combination of
+   * cluster, service, and component.
+   *
+   * @param clusterId
+   *          the cluster ID
+   * @param serviceName
+   *          the service name (not {@code null})
+   * @param componentName
+   *          the component name (not {@code null})
+   */
+  @RequiresSession
+  public ServiceComponentDesiredStateEntity findByName(long clusterId, String serviceName,
+      String componentName) {
+    EntityManager entityManager = entityManagerProvider.get();
+    TypedQuery<ServiceComponentDesiredStateEntity> query = entityManager.createNamedQuery(
+        "ServiceComponentDesiredStateEntity.findByName", ServiceComponentDesiredStateEntity.class);
+
+    query.setParameter("clusterId", clusterId);
+    query.setParameter("serviceName", serviceName);
+    query.setParameter("componentName", componentName);
+
+    ServiceComponentDesiredStateEntity entity = null;
+    List<ServiceComponentDesiredStateEntity> entities = daoUtils.selectList(query);
+    if (null != entities && !entities.isEmpty()) {
+      entity = entities.get(0);
+    }
+
+    return entity;
   }
 
   @Transactional
@@ -76,8 +119,10 @@ public class ServiceComponentDesiredStateDAO {
   }
 
   @Transactional
-  public void removeByPK(ServiceComponentDesiredStateEntityPK primaryKey) {
-    ServiceComponentDesiredStateEntity entity = findByPK(primaryKey);
-    entityManagerProvider.get().remove(entity);
+  public void removeByName(long clusterId, String serviceName, String componentName) {
+    ServiceComponentDesiredStateEntity entity = findByName(clusterId, serviceName, componentName);
+    if (null != entity) {
+      entityManagerProvider.get().remove(entity);
+    }
   }
 }

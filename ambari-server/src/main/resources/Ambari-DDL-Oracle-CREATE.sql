@@ -162,13 +162,17 @@ CREATE TABLE host_version (
   PRIMARY KEY (id));
 
 CREATE TABLE servicecomponentdesiredstate (
+  id NUMBER(19) NOT NULL,
   component_name VARCHAR2(255) NOT NULL,
   cluster_id NUMBER(19) NOT NULL,
   desired_stack_id NUMBER(19) NOT NULL,
   desired_state VARCHAR2(255) NOT NULL,
   service_name VARCHAR2(255) NOT NULL,
-  PRIMARY KEY (component_name, cluster_id, service_name)
+  CONSTRAINT pk_servicecomponentdesiredstate PRIMARY KEY (alert_id),
+  CONSTRAINT unq_scdesiredstate_name UNIQUE(component_name,service_name,cluster_id)
 );
+
+CREATE INDEX idx_sc_desired_state ON servicecomponentdesiredstate(component_name, service_name, cluster_id);
 
 CREATE TABLE servicedesiredstate (
   cluster_id NUMBER(19) NOT NULL,
@@ -994,6 +998,7 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_re
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_host_group_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('setting_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('hostcomponentstate_id_seq', 0);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('servicecomponentdesiredstate_id_seq', 0);
 
 INSERT INTO metainfo("metainfo_key", "metainfo_value") values ('version', '${ambariVersion}');
 

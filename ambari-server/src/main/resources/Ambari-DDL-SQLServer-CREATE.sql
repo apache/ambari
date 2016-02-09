@@ -181,13 +181,18 @@ CREATE TABLE hoststate (
   PRIMARY KEY CLUSTERED (host_id));
 
 CREATE TABLE servicecomponentdesiredstate (
+  id BIGINT NOT NULL,
   component_name VARCHAR(255) NOT NULL,
   cluster_id BIGINT NOT NULL,
   desired_stack_id BIGINT NOT NULL,
   desired_state VARCHAR(255) NOT NULL,
   service_name VARCHAR(255) NOT NULL,
-  PRIMARY KEY CLUSTERED (component_name, cluster_id, service_name)
-  );
+  PRIMARY KEY CLUSTERED (id),
+  CONSTRAINT pk_servicecomponentdesiredstate PRIMARY KEY (id),
+  CONSTRAINT unq_scdesiredstate_name UNIQUE(component_name,service_name,cluster_id)
+);
+
+CREATE NONCLUSTERED INDEX idx_sc_desired_state ON servicecomponentdesiredstate(component_name, service_name, cluster_id);
 
 CREATE TABLE servicedesiredstate (
   cluster_id BIGINT NOT NULL,
@@ -1106,7 +1111,8 @@ BEGIN TRANSACTION
     ('topology_request_id_seq', 0),
     ('topology_host_group_id_seq', 0),
     ('setting_id_seq', 0),
-    ('hostcomponentstate_id_seq', 0);
+    ('hostcomponentstate_id_seq', 0),
+    ('servicecomponentdesiredstate_id_seq', 0);
 
   insert into adminresourcetype (resource_type_id, resource_type_name)
   values

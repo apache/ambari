@@ -20,7 +20,6 @@ package org.apache.ambari.server.orm.entities;
 import static org.apache.commons.lang.StringUtils.defaultString;
 
 import javax.persistence.Basic;
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -95,6 +94,7 @@ public class HostComponentDesiredStateEntity {
   @Column(name = "admin_state", nullable = true, insertable = true, updatable = true)
   private HostComponentAdminState adminState;
 
+  @ManyToOne
   @JoinColumns({
       @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false),
       @JoinColumn(name = "service_name", referencedColumnName = "service_name", nullable = false),

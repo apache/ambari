@@ -39,7 +39,6 @@ import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityPK;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -148,14 +147,8 @@ public class ServiceComponentTest {
     ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO =
         injector.getInstance(ServiceComponentDesiredStateDAO.class);
 
-    ServiceComponentDesiredStateEntityPK primaryKey =
-        new ServiceComponentDesiredStateEntityPK();
-    primaryKey.setClusterId(cluster.getClusterId());
-    primaryKey.setComponentName(componentName);
-    primaryKey.setServiceName(serviceName);
-
-    ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity =
-        serviceComponentDesiredStateDAO.findByPK(primaryKey);
+    ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
+        cluster.getClusterId(), serviceName, componentName);
 
     ServiceComponent sc1 = serviceComponentFactory.createExisting(service,
         serviceComponentDesiredStateEntity);

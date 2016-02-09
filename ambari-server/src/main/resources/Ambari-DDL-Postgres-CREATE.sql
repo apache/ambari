@@ -171,13 +171,18 @@ CREATE TABLE host_version (
   PRIMARY KEY (id));
 
 CREATE TABLE servicecomponentdesiredstate (
+  id BIGINT NOT NULL,
   component_name VARCHAR(255) NOT NULL,
   cluster_id BIGINT NOT NULL,
   desired_stack_id BIGINT NOT NULL,
   desired_state VARCHAR(255) NOT NULL,
   service_name VARCHAR(255) NOT NULL,
-  PRIMARY KEY (component_name, cluster_id, service_name)
+  CONSTRAINT pk_servicecomponentdesiredstate PRIMARY KEY (id),
+  CONSTRAINT unq_scdesiredstate_name UNIQUE(component_name,service_name,cluster_id)
 );
+
+CREATE INDEX idx_sc_desired_state ON servicecomponentdesiredstate(component_name, service_name, cluster_id);
+
 
 CREATE TABLE servicedesiredstate (
   cluster_id BIGINT NOT NULL,
@@ -1040,7 +1045,9 @@ INSERT INTO ambari_sequences (sequence_name, sequence_value)
   union all
   select 'setting_id_seq', 0
   union all
-  select 'hostcomponentstate_id_seq', 0;
+  select 'hostcomponentstate_id_seq', 0
+  union all
+  select 'servicecomponentdesiredstate_id_seq', 0;
 
 INSERT INTO adminresourcetype (resource_type_id, resource_type_name)
   SELECT 1, 'AMBARI'

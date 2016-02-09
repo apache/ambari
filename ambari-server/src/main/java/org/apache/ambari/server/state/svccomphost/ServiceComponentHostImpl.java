@@ -51,7 +51,6 @@ import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -1453,25 +1452,25 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @Transactional
   protected void persistEntities() {
+    ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
+        serviceComponent.getClusterId(), serviceComponent.getServiceName(),
+        serviceComponent.getName());
+
     HostEntity hostEntity = hostDAO.findByName(getHostName());
     hostEntity.addHostComponentStateEntity(stateEntity);
     hostEntity.addHostComponentDesiredStateEntity(desiredStateEntity);
 
-    ServiceComponentDesiredStateEntityPK dpk = new ServiceComponentDesiredStateEntityPK();
-    dpk.setClusterId(serviceComponent.getClusterId());
-    dpk.setServiceName(serviceComponent.getServiceName());
-    dpk.setComponentName(serviceComponent.getName());
-
-    ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByPK(dpk);
-    serviceComponentDesiredStateEntity.getHostComponentDesiredStateEntities().add(desiredStateEntity);
-
     desiredStateEntity.setServiceComponentDesiredStateEntity(serviceComponentDesiredStateEntity);
     desiredStateEntity.setHostEntity(hostEntity);
+
     stateEntity.setServiceComponentDesiredStateEntity(serviceComponentDesiredStateEntity);
     stateEntity.setHostEntity(hostEntity);
 
     hostComponentStateDAO.create(stateEntity);
     hostComponentDesiredStateDAO.create(desiredStateEntity);
+
+    serviceComponentDesiredStateEntity.getHostComponentDesiredStateEntities().add(
+        desiredStateEntity);
 
     HostComponentStateEntity stateEntity = hostComponentStateDAO.findByIndex(serviceComponent.getClusterId(),
       serviceComponent.getServiceName(), serviceComponent.getName(), hostEntity.getHostId());

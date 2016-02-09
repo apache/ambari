@@ -45,7 +45,6 @@ import org.apache.ambari.server.orm.entities.ClusterServiceEntityPK;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -516,11 +515,8 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
           }
 
           // remove component state
-          ServiceComponentDesiredStateEntityPK primaryKey = new ServiceComponentDesiredStateEntityPK();
-          primaryKey.setClusterId(nagios.getClusterId());
-          primaryKey.setComponentName(componentDesiredState.getComponentName());
-          primaryKey.setServiceName(componentDesiredState.getServiceName());
-          componentDesiredStateDao.removeByPK(primaryKey);
+          componentDesiredStateDao.removeByName(nagios.getClusterId(),
+              componentDesiredState.getServiceName(), componentDesiredState.getComponentName());
         }
 
         // remove service state

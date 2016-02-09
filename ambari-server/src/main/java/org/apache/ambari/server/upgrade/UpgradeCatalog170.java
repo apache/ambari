@@ -86,7 +86,6 @@ import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.StackEntity;
@@ -769,11 +768,8 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
 
     List<ClusterEntity> clusterEntities = clusterDAO.findAll();
     for (final ClusterEntity clusterEntity : clusterEntities) {
-      ServiceComponentDesiredStateEntityPK pkHCATInHcatalog = new ServiceComponentDesiredStateEntityPK();
-      pkHCATInHcatalog.setComponentName(componentName);
-      pkHCATInHcatalog.setClusterId(clusterEntity.getClusterId());
-      pkHCATInHcatalog.setServiceName(serviceNameToBeDeleted);
-      ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntityToDelete = serviceComponentDesiredStateDAO.findByPK(pkHCATInHcatalog);
+      ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntityToDelete = serviceComponentDesiredStateDAO.findByName(
+          clusterEntity.getClusterId(), serviceNameToBeDeleted, componentName);
 
       if (serviceComponentDesiredStateEntityToDelete == null) {
         continue;
@@ -803,6 +799,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
       serviceComponentDesiredStateEntity.setDesiredStack(serviceComponentDesiredStateEntityToDelete.getDesiredStack());
       serviceComponentDesiredStateEntity.setDesiredState(serviceComponentDesiredStateEntityToDelete.getDesiredState());
       serviceComponentDesiredStateEntity.setClusterServiceEntity(clusterServiceEntity);
+      serviceComponentDesiredStateDAO.create(serviceComponentDesiredStateEntity);
 
       Iterator<HostComponentDesiredStateEntity> hostComponentDesiredStateIterator = serviceComponentDesiredStateEntityToDelete.getHostComponentDesiredStateEntities().iterator();
       Iterator<HostComponentStateEntity> hostComponentStateIterator = serviceComponentDesiredStateEntityToDelete.getHostComponentStateEntities().iterator();
