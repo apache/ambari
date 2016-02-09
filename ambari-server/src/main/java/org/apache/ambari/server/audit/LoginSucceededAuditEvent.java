@@ -44,13 +44,13 @@ public class LoginSucceededAuditEvent extends AbstractLoginAuditEvent {
     @Override
     protected void buildAuditMessage(StringBuilder builder) {
       super.buildAuditMessage(builder);
-
+      String lineSeparator = System.lineSeparator();
       builder
         .append(", Roles(")
         .append(StringUtils.join(roles, ","))
-        .append("), Privileges(")
-        .append(StringUtils.join(privileges, ","))
-        .append("), Status(Login succeeded !)");
+        .append(String.format("),%-26s Privileges(%-28s    ", lineSeparator, lineSeparator))
+        .append(StringUtils.join(privileges, String.format("%-28s    ", lineSeparator)))
+        .append(String.format("%-26s), Status(Login succeeded !)", lineSeparator));
     }
 
     /**
