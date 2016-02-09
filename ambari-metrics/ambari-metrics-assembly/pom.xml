@@ -89,7 +89,7 @@
         <executions>
           <execution>
             <id>collector</id>
-            <phase>package</phase>
+            <phase>prepare-package</phase>
             <goals>
               <goal>single</goal>
             </goals>
@@ -105,7 +105,7 @@
           </execution>
           <execution>
             <id>monitor</id>
-            <phase>package</phase>
+            <phase>prepare-package</phase>
             <goals>
               <goal>single</goal>
             </goals>
@@ -121,7 +121,7 @@
           </execution>
           <execution>
             <id>grafana</id>
-            <phase>package</phase>
+            <phase>prepare-package</phase>
             <goals>
               <goal>single</goal>
             </goals>
@@ -137,7 +137,7 @@
           </execution>
           <execution>
             <id>hadoop-sink</id>
-            <phase>package</phase>
+            <phase>prepare-package</phase>
             <goals>
               <goal>single</goal>
             </goals>
@@ -175,7 +175,7 @@
             <executions>
               <execution>
                 <id>copy-resources</id>
-                <phase>prepare-package</phase>
+                <phase>package</phase>
                 <goals>
                   <goal>copy-resources</goal>
                 </goals>
@@ -611,7 +611,7 @@
             <executions>
               <execution>
                 <id>copy-resources</id>
-                <phase>prepare-package</phase>
+                <phase>package</phase>
                 <goals>
                   <goal>copy-resources</goal>
                 </goals>
