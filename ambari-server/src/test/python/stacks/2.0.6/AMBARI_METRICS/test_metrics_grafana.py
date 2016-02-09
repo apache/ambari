@@ -18,17 +18,27 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-from mock.mock import MagicMock, patch
+from mock.mock import MagicMock, patch, call
 from stacks.utils.RMFTestCase import *
+import os, sys
 
 @patch("os.path.exists", new = MagicMock(return_value=True))
 @patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
 class TestMetricsGrafana(RMFTestCase):
-  COMMON_SERVICES_PACKAGE_DIR = "AMBARI_METRICS/0.1.0/package"
+  COMMON_SERVICES_PACKAGE_DIR = "AMBARI_METRICS/0.1.0/package/scripts"
   STACK_VERSION = "2.0.6"
 
-  def test_start(self):
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/metrics_grafana.py",
+  file_path = os.path.dirname(os.path.abspath(__file__))
+  file_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(file_path)))))
+  file_path = os.path.join(file_path, "main", "resources", "common-services", COMMON_SERVICES_PACKAGE_DIR)
+
+  sys.path.append(file_path)
+  global metrics_grafana_util
+  import  metrics_grafana_util
+
+  @patch("metrics_grafana_util.create_ams_datasource")
+  def test_start(self, create_ams_datasource_mock):
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/metrics_grafana.py",
                        classname = "AmsGrafana",
                        command = "start",
                        config_file="default.json",
@@ -43,6 +53,7 @@ class TestMetricsGrafana(RMFTestCase):
     self.assertResourceCalled('Execute', '/usr/sbin/ambari-metrics-grafana start',
                               user = 'ams'
                               )
+    create_ams_datasource_mock.assertCalled()
     self.assertNoMoreResources()
 
   def assert_configure(self):
