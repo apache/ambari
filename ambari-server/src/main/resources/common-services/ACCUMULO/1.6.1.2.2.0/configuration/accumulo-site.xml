@@ -24,6 +24,7 @@
   <property>
     <name>instance.volumes</name>
     <value>hdfs://localhost:8020/apps/accumulo/data</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>Location of Accumulo data files in HDFS.</description>
     <value-attributes>
       <overridable>false</overridable>
@@ -33,6 +34,7 @@
   <property>
     <name>instance.zookeeper.host</name>
     <value>localhost:2181</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>Comma-separated list of ZooKeeper server:port
       pairs.</description>
     <value-attributes>

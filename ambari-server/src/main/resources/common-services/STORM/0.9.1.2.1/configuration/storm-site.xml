@@ -42,6 +42,7 @@
   <property>
     <name>storm.zookeeper.servers</name>
     <value>['localhost']</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>A list of hosts of ZooKeeper servers used to manage the cluster.</description>
     <value-attributes>
       <type>multiLine</type>

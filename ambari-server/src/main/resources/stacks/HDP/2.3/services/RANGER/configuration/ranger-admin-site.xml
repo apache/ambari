@@ -108,6 +108,7 @@
   <property>
     <name>ranger.jpa.jdbc.url</name>
     <value>jdbc:mysql://localhost</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>JDBC connect string - auto populated based on other values</description>
     <display-name>JDBC connect string</display-name>
     <value-attributes>
