@@ -23,9 +23,9 @@ import org.apache.ambari.server.api.services.ResultStatus;
 /**
  * Base class for start operation audit events.
  */
-public class RequestAuditEvent extends AbstractAuditEvent {
+public class RequestAuditEvent extends AbstractUserAuditEvent {
 
-  public static class RequestAuditEventBuilder extends AbstractAuditEventBuilder<RequestAuditEvent, RequestAuditEventBuilder> {
+  public static class RequestAuditEventBuilder extends AbstractUserAuditEventBuilder<RequestAuditEvent, RequestAuditEventBuilder> {
 
     private Request.Type requestType;
 
@@ -44,8 +44,9 @@ public class RequestAuditEvent extends AbstractAuditEvent {
      */
     @Override
     protected void buildAuditMessage(StringBuilder builder) {
+      super.buildAuditMessage(builder);
       builder
-        .append("RequestType(")
+        .append(", RequestType(")
         .append(requestType)
         .append("), ")
         .append("url(")

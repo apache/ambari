@@ -20,6 +20,8 @@ package org.apache.ambari.server.audit.request;
 
 import junit.framework.Assert;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 
 import org.apache.ambari.server.api.query.QueryImpl;
@@ -35,12 +37,68 @@ import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.audit.request.eventcreator.DefaultEventCreator;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 
 public class DefaultEventCreatorTest {
 
   private DefaultEventCreator defaultEventCreator;
   private RequestFactory requestFactory = new RequestFactory();
+
+  @BeforeClass
+  public static void beforeClass() {
+    SecurityContextHolder.setContext(new SecurityContext() {
+      @Override
+      public Authentication getAuthentication() {
+        return new Authentication() {
+          @Override
+          public Collection<? extends GrantedAuthority> getAuthorities() {
+            return null;
+          }
+
+          @Override
+          public Object getCredentials() {
+            return null;
+          }
+
+          @Override
+          public Object getDetails() {
+            return null;
+          }
+
+          @Override
+          public Object getPrincipal() {
+            return new User("testuser", "password", Collections.EMPTY_LIST);
+          }
+
+          @Override
+          public boolean isAuthenticated() {
+            return true;
+          }
+
+          @Override
+          public void setAuthenticated(boolean b) throws IllegalArgumentException {
+
+          }
+
+          @Override
+          public String getName() {
+            return null;
+          }
+        };
+      }
+
+      @Override
+      public void setAuthentication(Authentication authentication) {
+
+      }
+    });
+  }
 
   @Before
   public void before() {
@@ -54,7 +112,7 @@ public class DefaultEventCreatorTest {
     Result result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.OK, "message"));
 
     String actual = defaultEventCreator.createAuditEvent(request, result).getAuditMessage();
-    String expected = "RequestType(POST), url(http://apache.org), ResultStatus(200 OK)";
+    String expected = "User(testuser), RemoteIp(1.2.3.4), RequestType(POST), url(http://apache.org), ResultStatus(200 OK)";
     Assert.assertEquals(expected, actual);
   }
 
@@ -65,7 +123,7 @@ public class DefaultEventCreatorTest {
     Result result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST, "message"));
 
     String actual = defaultEventCreator.createAuditEvent(request, result).getAuditMessage();
-    String expected = "RequestType(POST), url(http://apache.org), ResultStatus(400 Bad Request), Reason(message)";
+    String expected = "User(testuser), RemoteIp(1.2.3.4), RequestType(POST), url(http://apache.org), ResultStatus(400 Bad Request), Reason(message)";
     Assert.assertEquals(expected, actual);
   }
 
@@ -76,7 +134,7 @@ public class DefaultEventCreatorTest {
     Result result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.OK));
 
     String actual = defaultEventCreator.createAuditEvent(request, result).getAuditMessage();
-    String expected = "RequestType(POST), url(http://apache.org), ResultStatus(200 OK)";
+    String expected = "User(testuser), RemoteIp(1.2.3.4), RequestType(POST), url(http://apache.org), ResultStatus(200 OK)";
     Assert.assertEquals(expected, actual);
   }
 }

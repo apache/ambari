@@ -29,6 +29,8 @@ import org.apache.ambari.server.audit.RequestAuditEvent;
 import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.joda.time.DateTime;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 
 import com.google.inject.Singleton;
 
@@ -69,12 +71,17 @@ public class DefaultEventCreator implements RequestAuditEventCreator {
    */
   @Override
   public AuditEvent createAuditEvent(final Request request, final Result result) {
-      return RequestAuditEvent.builder()
-        .withTimestamp(new DateTime())
-        .withRequestType(request.getRequestType())
-        .withUrl(request.getURI())
-        .withResultStatus(result.getStatus())
-        .build();
+
+    String username = ((User)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
+
+    return RequestAuditEvent.builder()
+      .withTimestamp(new DateTime())
+      .withUserName(username)
+      .withRemoteIp("1.2.3.4") // todo: utility to get ip from request
+      .withRequestType(request.getRequestType())
+      .withUrl(request.getURI())
+      .withResultStatus(result.getStatus())
+      .build();
   }
 
 }
