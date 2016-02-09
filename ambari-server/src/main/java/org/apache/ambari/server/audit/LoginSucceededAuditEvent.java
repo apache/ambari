@@ -18,7 +18,9 @@
 
 package org.apache.ambari.server.audit;
 
+import java.util.List;
 import javax.annotation.concurrent.Immutable;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * Successful login audit event.
@@ -31,6 +33,11 @@ public class LoginSucceededAuditEvent extends AbstractLoginAuditEvent {
 
     private LoginSucceededAuditEventBuilder() { }
 
+    private List<String> roles;
+
+    private List<String> privileges;
+
+
     /**
      * {@inheritDoc}
      */
@@ -38,9 +45,35 @@ public class LoginSucceededAuditEvent extends AbstractLoginAuditEvent {
     protected void buildAuditMessage(StringBuilder builder) {
       super.buildAuditMessage(builder);
 
-      builder.append(", Status(Login succeeded !)");
+      builder
+        .append(", Roles(")
+        .append(StringUtils.join(roles, ","))
+        .append(", Privileges(")
+        .append(StringUtils.join(privileges, ","))
+        .append(", Status(Login succeeded !)");
     }
 
+    /**
+     * Sets the list of roles possessed by the principal requesting access to a resource.
+     * @param roles
+     * @return this builder
+     */
+    public LoginSucceededAuditEventBuilder withRoles(List<String> roles) {
+      this.roles = roles;
+
+      return this;
+    }
+
+    /**
+     * Sets the list of privileges possessed by the principal requesting access to a resource.
+     * @param privileges
+     * @return this builder
+     */
+    public LoginSucceededAuditEventBuilder withPrivileges(List<String> privileges) {
+      this.privileges = privileges;
+
+      return this;
+    }
     /**
      * {@inheritDoc}
      */

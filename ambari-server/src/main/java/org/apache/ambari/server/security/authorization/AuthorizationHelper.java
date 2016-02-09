@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.security.authorization;
 
+import com.google.common.collect.Lists;
 import com.google.inject.Singleton;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
@@ -283,4 +284,45 @@ public class AuthorizationHelper {
 
     return loginAlias;
   }
+
+  /**
+   * Retrieve permission labels based on the details of the authenticated user
+   * @param authentication the authenticated user and associated access privileges
+   * @return human-readable permissions
+   */
+  public static List<String> getPermissionLabels(Authentication authentication) {
+    List<String> permissionLabels = Lists.newArrayList();
+    if (authentication.getAuthorities() != null) {
+      for (GrantedAuthority grantedAuthority : authentication.getAuthorities()) {
+        AmbariGrantedAuthority ambariGrantedAuthority = (AmbariGrantedAuthority) grantedAuthority;
+
+        PrivilegeEntity privilegeEntity = ambariGrantedAuthority.getPrivilegeEntity();
+        permissionLabels.add(privilegeEntity.getPermission().getPermissionLabel());
+      }
+    }
+    return permissionLabels;
+  }
+
+  /**
+   * Retrieve authorization names based on the details of the authenticated user
+   * @param authentication the authenticated user and associated access privileges
+   * @return human readable role authorizations
+   */
+  public static List<String> getAuthorizationNames(Authentication authentication) {
+    List<String> authorizationNames = Lists.newArrayList();
+    if (authentication.getAuthorities() != null) {
+      for (GrantedAuthority grantedAuthority : authentication.getAuthorities()) {
+        AmbariGrantedAuthority ambariGrantedAuthority = (AmbariGrantedAuthority) grantedAuthority;
+
+        PrivilegeEntity privilegeEntity = ambariGrantedAuthority.getPrivilegeEntity();
+        Collection<RoleAuthorizationEntity> roleAuthorizationEntities =
+          privilegeEntity.getPermission().getAuthorizations();
+        for (RoleAuthorizationEntity entity : roleAuthorizationEntities) {
+          authorizationNames.add(entity.getAuthorizationName());
+        }
+      }
+    }
+    return authorizationNames;
+  }
+
 }

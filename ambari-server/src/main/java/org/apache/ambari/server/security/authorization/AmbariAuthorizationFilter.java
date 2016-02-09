@@ -19,7 +19,6 @@
 package org.apache.ambari.server.security.authorization;
 
 import com.google.inject.Inject;
-import org.apache.ambari.server.audit.AccessAuthorizedAuditEvent;
 import org.apache.ambari.server.audit.AccessUnauthorizedAuditEvent;
 import org.apache.ambari.server.audit.AuditEvent;
 import org.apache.ambari.server.audit.AuditLogger;
@@ -142,6 +141,8 @@ public class AmbariAuthorizationFilter implements Filter {
         LoginSucceededAuditEvent loginSucceededAuditEvent = LoginSucceededAuditEvent.builder()
           .withUserName(internalAuthenticationToken.getName())
           .withRemoteIp(RequestUtils.getRemoteAddress(httpRequest))
+          .withRoles(AuthorizationHelper.getPermissionLabels(authentication))
+          .withPrivileges(AuthorizationHelper.getAuthorizationNames(authentication))
           .withTimestamp(new DateTime(new Date())).build();
         auditLogger.log(loginSucceededAuditEvent);
       } else {
@@ -226,16 +227,7 @@ public class AmbariAuthorizationFilter implements Filter {
     }
     if (AuthorizationHelper.getAuthenticatedName() != null) {
       httpResponse.setHeader("User", AuthorizationHelper.getAuthenticatedName());
-      if (httpResponse.getStatus() != HttpServletResponse.SC_FORBIDDEN) {
-        auditEvent = AccessAuthorizedAuditEvent.builder()
-          .withHttpMethodName(httpRequest.getMethod())
-          .withRemoteIp(RequestUtils.getRemoteAddress(httpRequest))
-          .withResourcePath(httpRequest.getRequestURI())
-          .withUserName(AuthorizationHelper.getAuthenticatedName())
-          .withPrivileges(previliges)
-          .withTimestamp(new DateTime(new Date()))
-          .build();
-      } else {
+      if (httpResponse.getStatus() == HttpServletResponse.SC_FORBIDDEN) {
         auditEvent = AccessUnauthorizedAuditEvent.builder()
           .withHttpMethodName(httpRequest.getMethod())
           .withRemoteIp(RequestUtils.getRemoteAddress(httpRequest))
