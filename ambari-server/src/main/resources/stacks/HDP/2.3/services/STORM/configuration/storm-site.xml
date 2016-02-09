@@ -22,6 +22,7 @@
   <property>
     <name>nimbus.seeds</name>
     <value>localhost</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>Comma-delimited list of the hosts running nimbus server.</description>
     <value-attributes>
       <type>componentHosts</type>
@@ -52,6 +53,7 @@
    <property>
     <name>nimbus.host</name>
     <value>localhost</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>Deprecated config in favor of nimbus.seeds used during non HA mode.</description>
     <deleted>true</deleted>
   </property>

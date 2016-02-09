@@ -46,6 +46,7 @@ limitations under the License.
   <property>
     <name>javax.jdo.option.ConnectionURL</name>
     <value>jdbc:mysql://localhost/hive?createDatabaseIfNotExist=true</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <display-name>Database URL</display-name>
     <description>JDBC connect string for a JDBC metastore</description>
     <value-attributes>
@@ -124,6 +125,7 @@ limitations under the License.
   <property>
     <name>hive.metastore.uris</name>
     <value>thrift://localhost:9083</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>URI for client to contact metastore server</description>
   </property>
 
@@ -444,6 +446,7 @@ limitations under the License.
   <property>
     <name>atlas.rest.address</name>
     <value>http://localhost:21000</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <depends-on>
       <property>
         <type>application-properties</type>

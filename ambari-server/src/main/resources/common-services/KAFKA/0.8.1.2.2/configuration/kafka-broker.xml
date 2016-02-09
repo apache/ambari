@@ -45,6 +45,7 @@
   <property>
     <name>zookeeper.connect</name>
     <value>localhost:2181</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>
       Zookeeper also allows you to add a "chroot" path which will make all kafka data for this cluster appear under a particular path.
       This is a way to setup multiple Kafka clusters or other applications on the same zookeeper cluster. To do this give a connection
@@ -295,6 +296,7 @@
   <property>
     <name>kafka.ganglia.metrics.host</name>
     <value>localhost</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description> Ganglia host </description>
   </property>
   <property>

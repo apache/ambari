@@ -102,6 +102,7 @@
   <property>
     <name>atlas.server.bind.address</name>
     <value>localhost</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description></description>
   </property>
   <property>
