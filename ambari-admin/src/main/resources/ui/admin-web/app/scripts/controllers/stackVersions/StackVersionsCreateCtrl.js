@@ -60,7 +60,7 @@ angular.module('ambariAdminConsole')
           .success(function () {
             var versionName = $scope.upgradeStack.selected.stack_version + '.' + $scope.repoSubversion;
             var stackName = $scope.upgradeStack.selected.stack_name;
-            Alert.success($t('versions.alerts.versionCreated'), {stackName: stackName, versionName: versionName});
+            Alert.success($t('versions.alerts.versionCreated', {stackName: stackName, versionName: versionName}));
             $location.path('/stackVersions');
           })
           .error(function (data) {
