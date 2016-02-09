@@ -18,12 +18,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+import sys
+sys.path.append("/usr/lib/python2.6/site-packages/") # this file can be run with python2.7 that why we need this
+
 # On Linux, the bootstrap process is supposed to run on hosts that may have installed Python 2.4 and above (CentOS 5).
 # Hence, the whole bootstrap code needs to comply with Python 2.4 instead of Python 2.6. Most notably, @-decorators and
 # {}-format() are to be avoided.
 
 import time
-import sys
 import logging
 import pprint
 import os
