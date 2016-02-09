@@ -122,8 +122,6 @@ public class AmbariAuthorizationFilter implements Filter {
 
     AuditEvent auditEvent = null;
 
-    List<String> previliges = Lists.newArrayList();
-
     //  If no explicit authenticated user is set, set it to the default user (if one is specified)
     if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
       Authentication defaultAuthentication = getDefaultAuthentication();
@@ -169,7 +167,6 @@ public class AmbariAuthorizationFilter implements Filter {
           PrivilegeEntity privilegeEntity = ambariGrantedAuthority.getPrivilegeEntity();
           Integer permissionId = privilegeEntity.getPermission().getId();
 
-          previliges.add(privilegeEntity.getPermission().getPermissionLabel());
           // admin has full access
           if (permissionId.equals(PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION)) {
             authorized = true;
@@ -235,8 +232,8 @@ public class AmbariAuthorizationFilter implements Filter {
           .withUserName(AuthorizationHelper.getAuthenticatedName())
           .withTimestamp(new DateTime(new Date()))
           .build();
+        auditLogger.log(auditEvent);
       }
-      auditLogger.log(auditEvent);
     }
     chain.doFilter(request, response);
   }

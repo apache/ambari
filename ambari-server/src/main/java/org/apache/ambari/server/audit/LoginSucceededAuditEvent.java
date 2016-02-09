@@ -48,9 +48,9 @@ public class LoginSucceededAuditEvent extends AbstractLoginAuditEvent {
       builder
         .append(", Roles(")
         .append(StringUtils.join(roles, ","))
-        .append(", Privileges(")
+        .append("), Privileges(")
         .append(StringUtils.join(privileges, ","))
-        .append(", Status(Login succeeded !)");
+        .append("), Status(Login succeeded !)");
     }
 
     /**
