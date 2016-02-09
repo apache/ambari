@@ -42,7 +42,7 @@ import static org.easymock.EasyMock.verify;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertThat;
 
-public class BufferAuditLoggerTest {
+public class BufferedAuditLoggerTest {
 
   @Rule
   public EasyMockRule mocks = new EasyMockRule(this);

@@ -49,6 +49,7 @@ public class BufferedAuditLogger implements AuditLogger {
   private final ExecutorService pool;
 
   public final static String InnerLogger = "BufferedAuditLogger";
+  public final static String Capacity = "BufferedAuditLogger.capacity";
 
 
   /**
@@ -88,7 +89,7 @@ public class BufferedAuditLogger implements AuditLogger {
    * @param auditLogger the audit logger to extend
    */
   @Inject
-  public BufferedAuditLogger(@Named(InnerLogger) AuditLogger auditLogger, int bufferCapacity) {
+  public BufferedAuditLogger(@Named(InnerLogger) AuditLogger auditLogger, @Named(Capacity) int bufferCapacity) {
     this.bufferCapacity = bufferCapacity;
     this.capacityWaterMark = 0.2; // 20 percent of full capacity
 
