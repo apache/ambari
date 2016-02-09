@@ -75,7 +75,29 @@ App.QuickViewLinks = Em.View.extend({
   /**
    * list of files that contains properties for enabling/disabling ssl
    */
-  requiredSiteNames: ['hadoop-env','yarn-env','hbase-env','oozie-env','mapred-env','storm-env', 'falcon-env', 'core-site', 'hdfs-site', 'hbase-site', 'oozie-site', 'yarn-site', 'mapred-site', 'storm-site', 'spark-defaults', 'accumulo-site', 'application-properties', 'ranger-admin-site', 'ranger-site', 'admin-properties'],
+  requiredSiteNames: [
+    'ams-grafana-ini',
+    'hadoop-env',
+    'yarn-env',
+    'hbase-env',
+    'oozie-env',
+    'mapred-env',
+    'storm-env',
+    'falcon-env',
+    'core-site',
+    'hdfs-site',
+    'hbase-site',
+    'oozie-site',
+    'yarn-site',
+    'mapred-site',
+    'storm-site',
+    'spark-defaults',
+    'accumulo-site',
+    'application-properties',
+    'ranger-admin-site',
+    'ranger-site',
+    'admin-properties'
+  ],
   /**
    * Get public host name by its host name.
    *
@@ -365,6 +387,9 @@ App.QuickViewLinks = Em.View.extend({
       case "ATLAS":
         hosts[0] = this.findComponentHost(response.items, "ATLAS_SERVER");
         break;
+      case "AMBARI_METRICS":
+        hosts[0] = this.findComponentHost(response.items, "METRICS_GRAFANA");
+        break;
       case "MAPREDUCE2":
         components = this.get('content.hostComponents').filterProperty('componentName', 'HISTORYSERVER');
         if (components && components.length > 1) {
@@ -412,7 +437,9 @@ App.QuickViewLinks = Em.View.extend({
     switch (service_id) {
       case "GANGLIA":
         return (ambariProperties && ambariProperties['ganglia.https'] == "true") ? "https" : "http";
-        break;
+      case "AMBARI_METRICS":
+        var grafanaProperties = configProperties && configProperties.findProperty('type', 'ams-grafana-ini');
+        return grafanaProperties.properties['protocol'] ? grafanaProperties.properties['protocol'] : 'http';
       case "YARN":
         var yarnProperties = configProperties && configProperties.findProperty('type', 'yarn-site');
         if (yarnProperties && yarnProperties.properties) {
@@ -423,7 +450,6 @@ App.QuickViewLinks = Em.View.extend({
           }
         }
         return hadoopSslEnabled ? "https" : "http";
-        break;
       case "MAPREDUCE2":
         var mapred2Properties = configProperties && configProperties.findProperty('type', 'mapred-site');
         if (mapred2Properties && mapred2Properties.properties) {
@@ -434,7 +460,6 @@ App.QuickViewLinks = Em.View.extend({
           }
         }
         return hadoopSslEnabled ? "https" : "http";
-        break;
       case "ACCUMULO":
         var accumuloProperties = configProperties && configProperties.findProperty('type', 'accumulo-site');
         if (accumuloProperties && accumuloProperties.properties) {
@@ -445,7 +470,6 @@ App.QuickViewLinks = Em.View.extend({
           }
         }
         return "http";
-        break;
       case "ATLAS":
         var atlasProperties = configProperties && configProperties.findProperty('type', 'application-properties');
         if (atlasProperties && atlasProperties.properties) {
@@ -456,7 +480,6 @@ App.QuickViewLinks = Em.View.extend({
           }
         }
         return "http";
-        break;
       case "OOZIE":
         var site = configProperties.findProperty('type', 'oozie-site');
         var properties = site && site.properties;
@@ -472,7 +495,6 @@ App.QuickViewLinks = Em.View.extend({
           protocol = 'https';
         }
         return protocol;
-        break;
       case "RANGER":
         var rangerProperties = configProperties && configProperties.findProperty('type', 'ranger-admin-site');
         var rangerSiteProperties = configProperties && configProperties.findProperty('type', 'ranger-site');
@@ -492,7 +514,6 @@ App.QuickViewLinks = Em.View.extend({
         } else {
           return "http";
         }
-        break;
       default:
         return this.get('servicesSupportsHttps').contains(service_id) && hadoopSslEnabled ? "https" : "http";
     }
