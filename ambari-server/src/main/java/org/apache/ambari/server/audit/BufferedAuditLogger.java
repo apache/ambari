@@ -18,41 +18,88 @@
 package org.apache.ambari.server.audit;
 
 
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 
 /**
  * This is a decorator that adds buffering and running on separate thread (instead of the tread of the caller)
  * to an existing audit logger implementation.
  * It uses a bounded queue for holding audit events before they are logged.
  */
+@Singleton
 public class BufferedAuditLogger implements AuditLogger {
 
   private static final Logger LOG = LoggerFactory.getLogger(BufferedAuditLogger.class);
 
-  private final ThreadPoolExecutor executor;
+  private final int bufferCapacity;
+
+  private final double capacityWaterMark;
 
   private final AuditLogger auditLogger;
 
+  private final ExecutorService pool;
+
+  public final static String InnerLogger = "BufferedAuditLogger";
+
+
+  /**
+   * The queue that holds the audit events to be logged in case there are
+   * peeks when the producers logs audit events at a higher pace than
+   * this audit logger can consume.
+   */
+  protected final BlockingQueue<AuditEvent> auditEventWorkQueue;
+
+  private class Consumer implements Runnable {
+    @Override
+    public void run() {
+      while (true) {
+        try {
+          AuditEvent auditEvent = auditEventWorkQueue.take();
+          auditLogger.log(auditEvent);
+        } catch (InterruptedException ex) {
+          LOG.error("Logging of audit events interrupted ! There are {} audit events left unlogged !", auditEventWorkQueue.size());
+
+          pool.shutdownNow();
+          Thread.currentThread().interrupt();
+
+        } catch (Exception ex) {
+          LOG.error("Error caught during logging audit events: " + ex);
+        }
+
+      }
+    }
+  }
+
+
+
+
   /**
    * Constructor.
+   *
    * @param auditLogger the audit logger to extend
    */
   @Inject
-  public BufferedAuditLogger(AuditLogger auditLogger) {
+  public BufferedAuditLogger(@Named(InnerLogger) AuditLogger auditLogger, int bufferCapacity) {
+    this.bufferCapacity = bufferCapacity;
+    this.capacityWaterMark = 0.2; // 20 percent of full capacity
 
-    this.executor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS
-    , new ArrayBlockingQueue<Runnable>(10000)
-    , new ThreadPoolExecutor.CallerRunsPolicy());
-
+    this.auditEventWorkQueue = new LinkedBlockingQueue<>(bufferCapacity);
     this.auditLogger = auditLogger;
+
+    this.pool = Executors.newSingleThreadExecutor();
+    pool.execute(new Consumer());
+
   }
+
 
   /**
    * Logs audit log events
@@ -61,19 +108,20 @@ public class BufferedAuditLogger implements AuditLogger {
    */
   @Override
   public void log(final AuditEvent event) {
-    this.executor.execute(
-      new Runnable() {
-        @Override
-        public void run() {
-          try {
-            auditLogger.log(event);
-          }
-          catch (Exception e) {
-            LOG.error(e.getMessage());
-          }
-        }
-      }
 
-    );
+    try {
+
+      this.auditEventWorkQueue.put(event);
+
+      int remainingCapacity = this.auditEventWorkQueue.remainingCapacity();
+
+      LOG.debug("Work queue load:  [{}/{}]", bufferCapacity - remainingCapacity, bufferCapacity);
+
+      if (remainingCapacity < bufferCapacity * capacityWaterMark)
+        LOG.warn("Work queue remaining capacity: {} is below {}%", remainingCapacity, capacityWaterMark * 100);
+
+    } catch (InterruptedException ex) {
+      LOG.error("Interrupted while waiting to queue audit event: " + event.getAuditMessage());
+    }
   }
 }

@@ -392,8 +392,7 @@ public class ControllerModule extends AbstractModule {
   private void bindAuditLog() {
     Multibinder<RequestAuditEventCreator> auditLogEventCreatorBinder = Multibinder.newSetBinder(binder(), RequestAuditEventCreator.class);
     auditLogEventCreatorBinder.addBinding().to(DefaultEventCreator.class);
-
-    bind(AuditLogger.class).to(AuditLoggerDefaultImpl.class);
+    
     bind(RequestAuditLogger.class).to(RequestAuditLoggerImpl.class);
   }
 

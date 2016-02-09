@@ -52,6 +52,7 @@ import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorBlueprintP
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorHelper;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.audit.request.RequestAuditLogger;
+import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.security.authentication.AmbariAuthenticationFilter;
 import org.apache.ambari.server.bootstrap.BootStrapImpl;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
@@ -919,7 +920,7 @@ public class AmbariServer {
   }
 
   public static void main(String[] args) throws Exception {
-    Injector injector = Guice.createInjector(new ControllerModule());
+    Injector injector = Guice.createInjector(new ControllerModule(), new AuditLoggerModule());
 
     AmbariServer server = null;
     try {

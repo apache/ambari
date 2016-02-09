@@ -18,28 +18,142 @@
 
 package org.apache.ambari.server.audit;
 
+import java.util.Collections;
+import java.util.List;
+
+import org.easymock.Capture;
+import org.easymock.EasyMockRule;
+import org.easymock.Mock;
+import org.easymock.MockType;
+import org.joda.time.DateTime;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
-import static org.easymock.EasyMock.createNiceMock;
+import com.google.common.collect.ImmutableList;
+
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.newCapture;
 import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
+import static org.hamcrest.core.IsEqual.equalTo;
+import static org.junit.Assert.assertThat;
 
 public class BufferAuditLoggerTest {
 
-  @Test
+  @Rule
+  public EasyMockRule mocks = new EasyMockRule(this);
+
+  @Mock(type = MockType.NICE)
+  private AuditEvent auditEvent;
+
+  @Mock(type = MockType.STRICT)
+  private AuditLogger auditLogger;
+
+
+  @Before
+  public void setUp() throws Exception {
+    reset(auditEvent, auditLogger);
+
+  }
+
+  @Test(timeout = 300)
   public void testLog() throws Exception {
     // Given
-    AuditEvent auditEvent = createNiceMock(AuditEvent.class);
-    AuditLogger auditLogger = createNiceMock(AuditLogger.class);
-    BufferedAuditLogger bufferedAuditLogger = new BufferedAuditLogger(auditLogger);
+    Capture<AuditEvent> capturedArgument = newCapture();
+    auditLogger.log(capture(capturedArgument));
 
+    BufferedAuditLogger bufferedAuditLogger = new BufferedAuditLogger(auditLogger, 50);
 
+    replay(auditLogger, auditEvent);
 
-    replay(auditLogger);
 
     // When
-
     bufferedAuditLogger.log(auditEvent);
 
+    Thread.sleep(100);
     // Then
+    verify(auditLogger);
+
+
+    assertThat(capturedArgument.getValue(), equalTo(auditEvent));
+  }
+
+  @Test(timeout = 300)
+  public void testConsumeAuditEventsFromInternalBuffer() throws Exception {
+    // Given
+    BufferedAuditLogger bufferedAuditLogger = new BufferedAuditLogger(auditLogger, 5);
+
+    List<AuditEvent> auditEvents = Collections.nCopies(50, auditEvent);
+
+    auditLogger.log((AuditEvent)anyObject(AuditEvent.class));
+    expectLastCall().times(50);
+
+    replay(auditLogger, auditEvent);
+
+    // When
+    for (AuditEvent event : auditEvents) {
+      bufferedAuditLogger.log(event);
+    }
+
+    // Then
+    while (!bufferedAuditLogger.auditEventWorkQueue.isEmpty()) {
+      Thread.sleep(100);
+    }
+
+    verify(auditLogger, auditEvent);
+  }
+
+  @Test(timeout = 3000)
+  public void testMultipleProducersLogging() throws Exception {
+    // Given
+    int nProducers = 100;
+
+
+    final BufferedAuditLogger bufferedAuditLogger = new BufferedAuditLogger(new AuditLoggerDefaultImpl(), 10000);
+
+    ImmutableList.Builder<Thread> producersBuilder = ImmutableList.builder();
+
+    for (int i = 0; i < nProducers; i++) {
+      final Integer reqId = i * 10000;
+      final AuditEvent event =
+        OperationStatusAuditEvent.builder()
+          .withStatus("IN PROGRESS")
+          .withTimestamp(DateTime.now())
+          .withRequestId(reqId.toString())
+          .build();
+
+      producersBuilder.add(new Thread(new Runnable() {
+        final int nAuditEventsPerProducer = 100;
+
+        @Override
+        public void run() {
+          for (int j = 0; j < nAuditEventsPerProducer; j++) {
+            bufferedAuditLogger.log(event);
+          }
+
+        }
+      }
+
+      ));
+    }
+
+    List<Thread> producers = producersBuilder.build();
+
+
+
+    // When
+    for (Thread producer : producers) {
+      producer.start(); // nProducers threads creating nAuditEventsPerProducer events each in parallel
+    }
+
+    // Then
+    while (!bufferedAuditLogger.auditEventWorkQueue.isEmpty()) {
+      Thread.sleep(100);
+    }
+
   }
 }
