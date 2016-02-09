@@ -1491,6 +1491,13 @@ var hdp2properties = [
     "index" : 13
   },
   {
+    "name": "manage_auth_to_local",
+    "serviceName": "KERBEROS",
+    "filename": "kerberos-env.xml",
+    "category": "Advanced kerberos-env",
+    "index" : 14
+  },
+  {
     "name": "admin_server_host",
     "serviceName": "KERBEROS",
     "filename": "kerberos-env.xml",
