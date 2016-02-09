@@ -48,24 +48,35 @@ public class DefaultEventCreatorTest {
   }
 
   @Test
-  public void defaultEventCreatorTest() {
+  public void defaultEventCreatorTest__okWithMessage() {
     ResourceInstance resource = new QueryImpl(new HashMap<Resource.Type, String>(), new HostComponentResourceDefinition(), null);
     Request request =  requestFactory.createRequest(null, new RequestBody(), new LocalUriInfo("http://apache.org"), Request.Type.POST, resource);
     Result result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.OK, "message"));
 
     String actual = defaultEventCreator.createAuditEvent(request, result).getAuditMessage();
-    String expected = "POST http://apache.org, 200 OK (message)";
+    String expected = "RequestType(POST), url(http://apache.org), ResultStatus(200 OK)";
     Assert.assertEquals(expected, actual);
   }
 
   @Test
-  public void defaultEventCreatorTest__noStatusMessage() {
+  public void defaultEventCreatorTest__errorWithMessage() {
+    ResourceInstance resource = new QueryImpl(new HashMap<Resource.Type, String>(), new HostComponentResourceDefinition(), null);
+    Request request =  requestFactory.createRequest(null, new RequestBody(), new LocalUriInfo("http://apache.org"), Request.Type.POST, resource);
+    Result result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST, "message"));
+
+    String actual = defaultEventCreator.createAuditEvent(request, result).getAuditMessage();
+    String expected = "RequestType(POST), url(http://apache.org), ResultStatus(400 Bad Request), Reason(message)";
+    Assert.assertEquals(expected, actual);
+  }
+
+  @Test
+  public void defaultEventCreatorTest__okWithoutMessage() {
     ResourceInstance resource = new QueryImpl(new HashMap<Resource.Type, String>(), new HostComponentResourceDefinition(), null);
     Request request =  requestFactory.createRequest(null, new RequestBody(), new LocalUriInfo("http://apache.org"), Request.Type.POST, resource);
     Result result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.OK));
 
     String actual = defaultEventCreator.createAuditEvent(request, result).getAuditMessage();
-    String expected = "POST http://apache.org, 200 OK ()";
+    String expected = "RequestType(POST), url(http://apache.org), ResultStatus(200 OK)";
     Assert.assertEquals(expected, actual);
   }
 }

@@ -559,8 +559,8 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
       }
       command.setExitcode(report.getExitCode());
 
-      auditLog(command.getRequestId());
     }
+    auditLog(requestId);
 
     // no need to merge if there's nothing to merge
     if (!commands.isEmpty()) {
@@ -793,19 +793,21 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
    * @param requestId
    */
   private void auditLog(Long requestId) {
-    List<Stage> stages = getAllStages(requestId);
-    CalculatedStatus cs = CalculatedStatus.statusFromStages(stages);
-    if(!temporaryStatusCache.containsKey(requestId) || temporaryStatusCache.get(requestId) != cs.getStatus()) {
+    if(requestId != null) {
+      List<Stage> stages = getAllStages(requestId);
+      CalculatedStatus cs = CalculatedStatus.statusFromStages(stages);
+      if (!temporaryStatusCache.containsKey(requestId) || temporaryStatusCache.get(requestId) != cs.getStatus()) {
 
-      AuditEvent auditEvent = OperationStatusAuditEvent.builder()
-      .withRequestId(String.valueOf(requestId))
-      .withStatus(String.valueOf(cs.getStatus()))
-      .withRequestContext(stages.get(0).getRequestContext())
-      .withTimestamp(new DateTime())
-      .build();
-      auditLogger.log(auditEvent);
+        AuditEvent auditEvent = OperationStatusAuditEvent.builder()
+          .withRequestId(String.valueOf(requestId))
+          .withStatus(String.valueOf(cs.getStatus()))
+          .withRequestContext(stages.get(0).getRequestContext())
+          .withTimestamp(new DateTime())
+          .build();
+        auditLogger.log(auditEvent);
 
-      updateStatusCache(requestId, cs);
+        updateStatusCache(requestId, cs);
+      }
     }
   }
 

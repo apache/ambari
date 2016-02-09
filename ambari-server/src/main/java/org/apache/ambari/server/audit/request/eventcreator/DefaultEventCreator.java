@@ -25,6 +25,7 @@ import java.util.Set;
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.audit.AuditEvent;
+import org.apache.ambari.server.audit.RequestAuditEvent;
 import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.joda.time.DateTime;
@@ -44,6 +45,7 @@ public class DefaultEventCreator implements RequestAuditEventCreator {
 
   {
     requestTypes.addAll(Arrays.asList(Request.Type.values()));
+    requestTypes.remove(Request.Type.GET); // get is not handled by default
   }
 
   /** {@inheritDoc} */
@@ -67,22 +69,12 @@ public class DefaultEventCreator implements RequestAuditEventCreator {
    */
   @Override
   public AuditEvent createAuditEvent(final Request request, final Result result) {
-    return new AuditEvent() {
-      @Override
-      public DateTime getTimestamp() {
-        return new DateTime();
-      }
-
-      @Override
-      public String getAuditMessage() {
-        return String.format("%s %s, %s %s (%s)",
-          request.getRequestType().name(),
-          request.getURI(),
-          result.getStatus().getStatusCode(),
-          result.getStatus().getStatus(),
-          result.getStatus().getMessage() == null ? "" : result.getStatus().getMessage());
-      }
-    };
+      return RequestAuditEvent.builder()
+        .withTimestamp(new DateTime())
+        .withRequestType(request.getRequestType())
+        .withUrl(request.getURI())
+        .withResultStatus(result.getStatus())
+        .build();
   }
 
 }
