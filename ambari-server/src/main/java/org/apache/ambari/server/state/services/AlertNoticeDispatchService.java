@@ -712,7 +712,7 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
      *
      * @param history
      */
-    protected AlertInfo(AlertHistoryEntity history) {
+    public AlertInfo(AlertHistoryEntity history) {
       m_history = history;
     }
 
