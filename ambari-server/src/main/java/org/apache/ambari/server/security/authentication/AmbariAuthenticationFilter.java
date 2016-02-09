@@ -30,6 +30,7 @@ import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.audit.LoginFailedAuditEvent;
 import org.apache.ambari.server.audit.LoginSucceededAuditEvent;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
+import org.apache.ambari.server.utils.RequestUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,7 +61,7 @@ public class AmbariAuthenticationFilter extends BasicAuthenticationFilter {
     String header = request.getHeader("Authorization");
     if (AuthorizationHelper.getAuthenticatedName() == null && (header == null || !header.startsWith("Basic "))) {
       AuditEvent loginFailedAuditEvent = LoginFailedAuditEvent.builder()
-        .withRemoteIp(request.getRemoteAddr())
+        .withRemoteIp(RequestUtils.getRemoteAddress(request))
         .withTimestamp(new DateTime(new Date()))
         .withReason("Authentication required")
         .withUserName(null)
@@ -73,7 +74,7 @@ public class AmbariAuthenticationFilter extends BasicAuthenticationFilter {
   @Override
   protected void onSuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, Authentication authResult) throws IOException {
     AuditEvent loginSucceededAuditEvent = LoginSucceededAuditEvent.builder()
-      .withRemoteIp(request.getRemoteAddr())
+      .withRemoteIp(RequestUtils.getRemoteAddress(request))
       .withUserName(authResult.getName())
       .withTimestamp(new DateTime(new Date()))
       .build();
@@ -91,7 +92,7 @@ public class AmbariAuthenticationFilter extends BasicAuthenticationFilter {
       LOG.warn("Error occurred during decoding authorization header.",e);
     }
     AuditEvent loginFailedAuditEvent = LoginFailedAuditEvent.builder()
-      .withRemoteIp(request.getRemoteAddr())
+      .withRemoteIp(RequestUtils.getRemoteAddress(request))
       .withTimestamp(new DateTime(new Date()))
       .withReason("Invalid username/password combination")
       .withUserName(username)

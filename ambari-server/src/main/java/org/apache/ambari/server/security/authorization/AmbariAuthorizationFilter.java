@@ -28,6 +28,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.security.authorization.internal.InternalAuthenticationToken;
+import org.apache.ambari.server.utils.RequestUtils;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
@@ -140,7 +141,7 @@ public class AmbariAuthorizationFilter implements Filter {
         context.setAuthentication(internalAuthenticationToken);
         LoginSucceededAuditEvent loginSucceededAuditEvent = LoginSucceededAuditEvent.builder()
           .withUserName(internalAuthenticationToken.getName())
-          .withRemoteIp(request.getRemoteAddr())
+          .withRemoteIp(RequestUtils.getRemoteAddress(httpRequest))
           .withTimestamp(new DateTime(new Date())).build();
         auditLogger.log(loginSucceededAuditEvent);
       } else {
@@ -210,7 +211,7 @@ public class AmbariAuthorizationFilter implements Filter {
               || requestURI.matches(API_LDAP_SYNC_EVENTS_ALL_PATTERN))) {
         auditEvent = AccessUnauthorizedAuditEvent.builder()
           .withHttpMethodName(httpRequest.getMethod())
-          .withRemoteIp(httpRequest.getRemoteAddr())
+          .withRemoteIp(RequestUtils.getRemoteAddress(httpRequest))
           .withResourcePath(httpRequest.getRequestURI())
           .withUserName(AuthorizationHelper.getAuthenticatedName())
           .withTimestamp(new DateTime(new Date()))
@@ -228,7 +229,7 @@ public class AmbariAuthorizationFilter implements Filter {
       if (httpResponse.getStatus() != HttpServletResponse.SC_FORBIDDEN) {
         auditEvent = AccessAuthorizedAuditEvent.builder()
           .withHttpMethodName(httpRequest.getMethod())
-          .withRemoteIp(httpRequest.getRemoteAddr())
+          .withRemoteIp(RequestUtils.getRemoteAddress(httpRequest))
           .withResourcePath(httpRequest.getRequestURI())
           .withUserName(AuthorizationHelper.getAuthenticatedName())
           .withPrivileges(previliges)
@@ -237,7 +238,7 @@ public class AmbariAuthorizationFilter implements Filter {
       } else {
         auditEvent = AccessUnauthorizedAuditEvent.builder()
           .withHttpMethodName(httpRequest.getMethod())
-          .withRemoteIp(httpRequest.getRemoteAddr())
+          .withRemoteIp(RequestUtils.getRemoteAddress(httpRequest))
           .withResourcePath(httpRequest.getRequestURI())
           .withUserName(AuthorizationHelper.getAuthenticatedName())
           .withTimestamp(new DateTime(new Date()))
