@@ -20,6 +20,7 @@ package org.apache.ambari.server.notifications.dispatchers;
 import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Executor;
 
@@ -28,8 +29,12 @@ import org.apache.ambari.server.notifications.DispatchCallback;
 import org.apache.ambari.server.notifications.DispatchFactory;
 import org.apache.ambari.server.notifications.Notification;
 import org.apache.ambari.server.notifications.NotificationDispatcher;
+import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
+import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
+import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.alert.AlertNotification;
 import org.apache.ambari.server.state.alert.TargetType;
+import org.apache.ambari.server.state.services.AlertNoticeDispatchService.AlertInfo;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.EasyMock;
 import org.junit.Before;
@@ -43,6 +48,8 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+
+import junit.framework.Assert;
 
 /**
  * Tests {@link AlertScriptDispatcher}.
@@ -214,6 +221,60 @@ public class AlertScriptDispatcherTest {
 
     EasyMock.verify(callback, dispatcher);
     PowerMock.verifyAll();
+  }
+
+  /**
+   * Tests that arguments given to the {@link ProcessBuilder} are properly
+   * escaped.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testArgumentEscaping() throws Exception {
+    final String ALERT_DEFINITION_NAME = "mock_alert_with_quotes";
+    final String ALERT_DEFINITION_LABEL = "Mock alert with Quotes";
+    final String ALERT_LABEL = "Alert Label";
+    final String ALERT_SERVICE_NAME = "FOO_SERVICE";
+    final String ALERT_TEXT = "Did you know, \"Quotes are hard!!!\"";
+    final String ALERT_TEXT_ESCAPED = "Did you know, \\\"Quotes are hard\\!\\!\\!\\\"";
+
+    DispatchCallback callback = EasyMock.createNiceMock(DispatchCallback.class);
+    AlertNotification notification = new AlertNotification();
+    notification.Callback = callback;
+    notification.CallbackIds = Collections.singletonList(UUID.randomUUID().toString());
+
+    AlertDefinitionEntity definition = new AlertDefinitionEntity();
+    definition.setDefinitionName(ALERT_DEFINITION_NAME);
+    definition.setLabel(ALERT_DEFINITION_LABEL);
+
+    AlertHistoryEntity history = new AlertHistoryEntity();
+    history.setAlertDefinition(definition);
+    history.setAlertLabel(ALERT_LABEL);
+    history.setAlertText(ALERT_TEXT);
+    history.setAlertState(AlertState.OK);
+    history.setServiceName(ALERT_SERVICE_NAME);
+
+    AlertInfo alertInfo = new AlertInfo(history);
+    notification.setAlertInfo(alertInfo);
+
+    AlertScriptDispatcher dispatcher = new AlertScriptDispatcher();
+    m_injector.injectMembers(dispatcher);
+
+    ProcessBuilder processBuilder = dispatcher.getProcessBuilder(SCRIPT_CONFIG_VALUE, notification);
+    List<String> commands = processBuilder.command();
+    Assert.assertEquals(3, commands.size());
+    Assert.assertEquals("sh", commands.get(0));
+    Assert.assertEquals("-c", commands.get(1));
+
+    StringBuilder buffer = new StringBuilder();
+    buffer.append(SCRIPT_CONFIG_VALUE).append(" ");
+    buffer.append(ALERT_DEFINITION_NAME).append(" ");
+    buffer.append("\"").append(ALERT_DEFINITION_LABEL).append("\"").append(" ");
+    buffer.append(ALERT_SERVICE_NAME).append(" ");
+    buffer.append(AlertState.OK).append(" ");
+    buffer.append("\"").append(ALERT_TEXT_ESCAPED).append("\"");
+
+    Assert.assertEquals(buffer.toString(), commands.get(2));
   }
 
   /**
