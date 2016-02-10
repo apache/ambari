@@ -2013,7 +2013,8 @@ class TestHDP22StackAdvisor(TestCase):
         "properties": {
           "timeline.metrics.cluster.aggregate.splitpoints": " ",
           "timeline.metrics.host.aggregate.splitpoints": " ",
-          "timeline.metrics.host.aggregator.ttl": "86400"
+          "timeline.metrics.host.aggregator.ttl": "1",
+          'timeline.metrics.service.watcher.disabled': 'false'
         }
       }
     }
@@ -2191,6 +2192,8 @@ class TestHDP22StackAdvisor(TestCase):
     expected['ams-hbase-env']['properties']['hbase_regionserver_heapsize'] = '512'
     expected["ams-hbase-env"]['properties']['hbase_master_xmn_size'] = '102'
     expected['ams-hbase-env']['properties']['regionserver_xmn_size'] = '384'
+    expected['ams-site']['properties']['timeline.metrics.host.aggregator.ttl'] = '7'
+    expected['ams-site']['properties']['timeline.metrics.service.watcher.disabled'] = 'true'
     self.stackAdvisor.recommendAmsConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
 

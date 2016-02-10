@@ -131,12 +131,31 @@ public class UpgradeCatalog222Test {
       {
         put("timeline.metrics.host.aggregator.daily.checkpointCutOffMultiplier", String.valueOf(1));
         put("timeline.metrics.cluster.aggregator.daily.checkpointCutOffMultiplier", String.valueOf(1));
+        put("timeline.metrics.service.operation.mode", "distributed");
+        put("timeline.metrics.host.aggregator.ttl", String.valueOf(86400));
+        put("timeline.metrics.host.aggregator.minute.ttl", String.valueOf(604800));
+        put("timeline.metrics.host.aggregator.hourly.ttl", String.valueOf(2592000));
+        put("timeline.metrics.host.aggregator.daily.ttl", String.valueOf(31536000));
+        put("timeline.metrics.cluster.aggregator.second.ttl", String.valueOf(21600)); //Less than 1 day
+        put("timeline.metrics.cluster.aggregator.minute.ttl", String.valueOf(7776000));
+        put("timeline.metrics.cluster.aggregator.hourly.ttl", String.valueOf(31536000));
+        put("timeline.metrics.cluster.aggregator.daily.ttl", String.valueOf(63072000));
       }
     };
     Map<String, String> newPropertiesAmsSite = new HashMap<String, String>() {
       {
         put("timeline.metrics.host.aggregator.daily.checkpointCutOffMultiplier", String.valueOf(2));
         put("timeline.metrics.cluster.aggregator.daily.checkpointCutOffMultiplier", String.valueOf(2));
+        put("timeline.metrics.service.watcher.disabled", String.valueOf(false));
+        put("timeline.metrics.host.aggregator.ttl", String.valueOf(7.0));
+        put("timeline.metrics.host.aggregator.minute.ttl", String.valueOf(7.0));
+        put("timeline.metrics.host.aggregator.hourly.ttl", String.valueOf(30.0));
+        put("timeline.metrics.host.aggregator.daily.ttl", String.valueOf(365.0));
+        put("timeline.metrics.cluster.aggregator.second.ttl", String.valueOf(0.25));
+        put("timeline.metrics.cluster.aggregator.minute.ttl", String.valueOf(30.0));
+        put("timeline.metrics.cluster.aggregator.hourly.ttl", String.valueOf(365.0));
+        put("timeline.metrics.cluster.aggregator.daily.ttl", String.valueOf(730.0));
+        put("timeline.metrics.service.operation.mode", "distributed");
       }
     };
     EasyMockSupport easyMockSupport = new EasyMockSupport();
@@ -149,7 +168,7 @@ public class UpgradeCatalog222Test {
       put("normal", cluster);
     }}).once();
     expect(cluster.getDesiredConfigByType("ams-site")).andReturn(mockAmsSite).atLeastOnce();
-    expect(mockAmsSite.getProperties()).andReturn(oldPropertiesAmsSite).times(2);
+    expect(mockAmsSite.getProperties()).andReturn(oldPropertiesAmsSite).anyTimes();
 
     Injector injector = easyMockSupport.createNiceMock(Injector.class);
     expect(injector.getInstance(Gson.class)).andReturn(null).anyTimes();
@@ -170,7 +189,8 @@ public class UpgradeCatalog222Test {
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    expect(controller.createConfiguration(capture(configurationRequestCapture))).andReturn(configurationResponseMock).once();
+    expect(controller.createConfiguration(capture(configurationRequestCapture))).andReturn(configurationResponseMock)
+      .anyTimes();
 
     replay(controller, injector2, configurationResponseMock);
     new UpgradeCatalog222(injector2).updateAMSConfigs();
