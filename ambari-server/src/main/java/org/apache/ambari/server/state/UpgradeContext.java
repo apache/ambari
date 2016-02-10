@@ -27,6 +27,7 @@ import java.util.Set;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeScope;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 
 /**
@@ -87,6 +88,8 @@ public class UpgradeContext {
   private boolean m_autoSkipManualVerification = false;
 
   private Set<String> m_supported = new HashSet<>();
+
+  private UpgradeScope m_scope = UpgradeScope.ANY;
 
   /**
    * Constructor.
@@ -377,5 +380,13 @@ public class UpgradeContext {
     }
 
     return false;
+  }
+
+  public void setScope(UpgradeScope scope) {
+    m_scope = scope;
+  }
+
+  public boolean isScoped(UpgradeScope scope) {
+    return m_scope.isScoped(scope);
   }
 }

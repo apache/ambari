@@ -36,9 +36,6 @@ import static org.junit.Assert.fail;
 
 import java.io.StringReader;
 import java.lang.reflect.Type;
-import java.net.ConnectException;
-import java.net.MalformedURLException;
-import java.net.UnknownHostException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -107,7 +104,6 @@ import org.apache.ambari.server.orm.entities.WidgetLayoutUserWidgetEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.Users;
-import org.apache.ambari.server.security.authorization.internal.InternalAuthenticationToken;
 import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -156,6 +152,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -165,7 +162,6 @@ import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
 
 import junit.framework.Assert;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 public class AmbariManagementControllerTest {
 
@@ -7183,7 +7179,7 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(1, responsesWithParams.size());
     StackVersionResponse resp = responsesWithParams.iterator().next();
     assertNotNull(resp.getUpgradePacks());
-    assertEquals(8, resp.getUpgradePacks().size());
+    assertEquals(9, resp.getUpgradePacks().size());
     assertTrue(resp.getUpgradePacks().contains("upgrade_test"));
   }
 

@@ -60,6 +60,7 @@ import org.apache.ambari.server.state.stack.upgrade.ManualTask;
 import org.apache.ambari.server.state.stack.upgrade.StageWrapper;
 import org.apache.ambari.server.state.stack.upgrade.Task;
 import org.apache.ambari.server.state.stack.upgrade.TaskWrapper;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeScope;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.easymock.EasyMock;
@@ -132,26 +133,6 @@ public class UpgradeHelperTest {
     m_upgradeHelper = injector.getInstance(UpgradeHelper.class);
     m_masterHostResolver = EasyMock.createMock(MasterHostResolver.class);
     m_managementController = injector.getInstance(AmbariManagementController.class);
-
-//    StackDAO stackDAO = injector.getInstance(StackDAO.class);
-//    StackEntity stackEntity = new StackEntity();
-//    stackEntity.setStackName("HDP");
-//    stackEntity.setStackVersion("2.1");
-//    stackDAO.create(stackEntity);
-//
-//    StackEntity stackEntityTo = new StackEntity();
-//    stackEntityTo.setStackName("HDP");
-//    stackEntityTo.setStackVersion("2.2");
-//    stackDAO.create(stackEntityTo);
-//
-//    Clusters clusters = injector.getInstance(Clusters.class);
-//    clusters.addCluster("c1", new StackId("HDP", "2.1"));
-//
-//    RepositoryVersionDAO repositoryVersionDAO = injector.getInstance(RepositoryVersionDAO.class);
-//    repositoryVersionDAO.create(stackEntity, "2.1.1", "2.1.1", "");
-//    repositoryVersionDAO.create(stackEntityTo, "2.2.0", "2.2.0", "");
-//
-//    replay(m_configHelper);
 
     // Set the authenticated user
     // TODO: remove this or replace the authenticated user to test authorization rules
@@ -260,7 +241,7 @@ public class UpgradeHelperTest {
   }
 
   @Test
-  public void testSupportedServiceUpgradeOrchestration() throws Exception {
+  public void testPartialUpgradeOrchestration() throws Exception {
     Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("foo", "bar");
     assertTrue(upgrades.isEmpty());
 
@@ -271,8 +252,8 @@ public class UpgradeHelperTest {
     ComponentInfo ci = si.getComponentByName("ZOOKEEPER_SERVER");
     ci.setDisplayName("ZooKeeper1 Server2");
 
-    assertTrue(upgrades.containsKey("upgrade_test"));
-    UpgradePack upgrade = upgrades.get("upgrade_test");
+    assertTrue(upgrades.containsKey("upgrade_test_partial"));
+    UpgradePack upgrade = upgrades.get("upgrade_test_partial");
     assertNotNull(upgrade);
 
     makeCluster();
@@ -280,7 +261,11 @@ public class UpgradeHelperTest {
     UpgradeContext context = new UpgradeContext(m_masterHostResolver, HDP_21,
         HDP_21, UPGRADE_VERSION, Direction.UPGRADE, UpgradeType.ROLLING);
     context.setSupportedServices(Collections.singleton("ZOOKEEPER"));
+    context.setScope(UpgradeScope.PARTIAL);
 
+    List<Grouping> groupings = upgrade.getGroups(Direction.UPGRADE);
+    assertEquals(8, groupings.size());
+    assertEquals(UpgradeScope.COMPLETE, groupings.get(6).scope);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
@@ -290,26 +275,77 @@ public class UpgradeHelperTest {
     assertEquals("ZOOKEEPER", groups.get(1).name);
     assertEquals("POST_CLUSTER", groups.get(2).name);
 
-
     UpgradeGroupHolder group = groups.get(1);
     // check that the display name is being used
     assertTrue(group.items.get(1).getText().contains("ZooKeeper1 Server2"));
-    assertEquals(group.items.get(5).getText(), "Service Check Zk");
+    assertEquals("Service Check Zk", group.items.get(6).getText());
 
     UpgradeGroupHolder postGroup = groups.get(2);
     assertEquals("POST_CLUSTER", postGroup.name);
     assertEquals("Finalize Upgrade", postGroup.title);
-    assertEquals(3, postGroup.items.size());
+    assertEquals(2, postGroup.items.size());
     assertEquals("Confirm Finalize", postGroup.items.get(0).getText());
-    assertEquals("Execute HDFS Finalize", postGroup.items.get(1).getText());
-    assertEquals("Save Cluster State", postGroup.items.get(2).getText());
-    assertEquals(StageWrapper.Type.SERVER_SIDE_ACTION, postGroup.items.get(2).getType());
+    assertEquals("Save Cluster State", postGroup.items.get(1).getText());
+    assertEquals(StageWrapper.Type.SERVER_SIDE_ACTION, postGroup.items.get(1).getType());
 
-    assertEquals(4, groups.get(0).items.size());
-    assertEquals(6, groups.get(1).items.size());
-    assertEquals(3, groups.get(2).items.size());
+    assertEquals(3, groups.get(0).items.size());
+    assertEquals(7, groups.get(1).items.size());
+    assertEquals(2, groups.get(2).items.size());
   }
 
+  @Test
+  public void testCompleteUpgradeOrchestration() throws Exception {
+    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("foo", "bar");
+    assertTrue(upgrades.isEmpty());
+
+    upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
+
+    ServiceInfo si = ambariMetaInfo.getService("HDP", "2.1.1", "ZOOKEEPER");
+    si.setDisplayName("Zk");
+    ComponentInfo ci = si.getComponentByName("ZOOKEEPER_SERVER");
+    ci.setDisplayName("ZooKeeper1 Server2");
+
+    assertTrue(upgrades.containsKey("upgrade_test_partial"));
+    UpgradePack upgrade = upgrades.get("upgrade_test_partial");
+    assertNotNull(upgrade);
+
+    makeCluster();
+
+    UpgradeContext context = new UpgradeContext(m_masterHostResolver, HDP_21,
+        HDP_21, UPGRADE_VERSION, Direction.UPGRADE, UpgradeType.ROLLING);
+    context.setSupportedServices(Collections.singleton("ZOOKEEPER"));
+    context.setScope(UpgradeScope.COMPLETE);
+
+    List<Grouping> groupings = upgrade.getGroups(Direction.UPGRADE);
+    assertEquals(8, groupings.size());
+    assertEquals(UpgradeScope.COMPLETE, groupings.get(6).scope);
+
+    List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
+
+    assertEquals(4, groups.size());
+
+    assertEquals("PRE_CLUSTER", groups.get(0).name);
+    assertEquals("ZOOKEEPER", groups.get(1).name);
+    assertEquals("ALL_HOSTS", groups.get(2).name);
+    assertEquals("POST_CLUSTER", groups.get(3).name);
+
+    UpgradeGroupHolder group = groups.get(1);
+    // check that the display name is being used
+    assertTrue(group.items.get(1).getText().contains("ZooKeeper1 Server2"));
+    assertEquals("Service Check Zk", group.items.get(5).getText());
+
+    UpgradeGroupHolder postGroup = groups.get(3);
+    assertEquals("POST_CLUSTER", postGroup.name);
+    assertEquals("Finalize Upgrade", postGroup.title);
+    assertEquals(2, postGroup.items.size());
+    assertEquals("Confirm Finalize", postGroup.items.get(0).getText());
+    assertEquals("Save Cluster State", postGroup.items.get(1).getText());
+    assertEquals(StageWrapper.Type.SERVER_SIDE_ACTION, postGroup.items.get(1).getType());
+
+    assertEquals(3, groups.get(0).items.size());
+    assertEquals(6, groups.get(1).items.size());
+    assertEquals(1, groups.get(2).items.size());
+  }
 
   @Test
   public void testUpgradeServerActionOrchestration() throws Exception {

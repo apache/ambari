@@ -39,6 +39,7 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
+import org.apache.commons.lang.StringUtils;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -96,6 +97,10 @@ public class ClusterGrouping extends Grouping {
 
     @XmlElement(name="task")
     public Task task;
+
+    @XmlElement(name="scope")
+    public UpgradeScope scope = UpgradeScope.ANY;
+
   }
 
   public class ClusterBuilder extends StageWrapperBuilder {
@@ -215,8 +220,18 @@ public class ClusterGrouping extends Grouping {
     String component = execution.component;
     ExecuteTask et = (ExecuteTask) execution.task;
 
-    if (null != service && !service.isEmpty() &&
-        null != component && !component.isEmpty()) {
+    if (StringUtils.isNotBlank(service) && StringUtils.isNotBlank(component)) {
+
+      // !!! if the context is not scoped for the execute-stage, bail
+      if (!ctx.isScoped(execution.scope)) {
+        return null;
+      }
+
+      // !!! if the context is targeted and does not include the service, bail
+      if (!ctx.isServiceSupported(service)) {
+        return null;
+      }
+
 
       HostsType hosts = ctx.getResolver().getMasterAndHosts(service, component);
 

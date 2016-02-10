@@ -106,6 +106,7 @@ import org.apache.ambari.server.state.stack.upgrade.StageWrapper;
 import org.apache.ambari.server.state.stack.upgrade.Task;
 import org.apache.ambari.server.state.stack.upgrade.TaskWrapper;
 import org.apache.ambari.server.state.stack.upgrade.UpdateStackGrouping;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeScope;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostServerActionEvent;
 import org.apache.commons.collections.CollectionUtils;
@@ -304,9 +305,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         String forceDowngrade = requestInfoProps.get(UpgradeResourceDefinition.DOWNGRADE_DIRECTIVE);
         String clusterName = (String) requestMap.get(UPGRADE_CLUSTER_NAME);
 
-          if (null == clusterName) {
-              throw new AmbariException(String.format("%s is required", UPGRADE_CLUSTER_NAME));
-           }
+        if (null == clusterName) {
+          throw new AmbariException(String.format("%s is required", UPGRADE_CLUSTER_NAME));
+        }
 
         Cluster cluster = getManagementController().getClusters().getCluster(clusterName);
         Direction direction = Boolean.parseBoolean(forceDowngrade) ? Direction.DOWNGRADE
@@ -315,15 +316,17 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         UpgradePack up = validateRequest(direction, requestMap);
 
         try {
-              return createUpgrade(cluster, direction, up, requestMap);
-            } catch (Exception e){
-              LOG.error("Error appears during upgrade task submitting", e);
+          return createUpgrade(cluster, direction, up, requestMap);
+        } catch (Exception e) {
+          LOG.error("Error appears during upgrade task submitting", e);
 
-                // Any error caused in the createUpgrade will initiate transaction rollback
-                  // As we operate inside with cluster data, any cache which belongs to cluster need to be flushed
-                    cluster.invalidateData();
-              throw e;
-            }
+          // Any error caused in the createUpgrade will initiate transaction
+          // rollback
+          // As we operate inside with cluster data, any cache which belongs to
+          // cluster need to be flushed
+          cluster.invalidateData();
+          throw e;
+        }
       }
     });
 
@@ -706,6 +709,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     StackId targetStackId = null;
 
     Set<String> supportedServices = new HashSet<>();
+    UpgradeScope scope = UpgradeScope.COMPLETE;
 
     switch (direction) {
       case UPGRADE:
@@ -733,6 +737,10 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
             for (AvailableService available : services) {
               supportedServices.add(available.getName());
             }
+
+            if (!services.isEmpty()) {
+              scope = UpgradeScope.PARTIAL;
+            }
           }
         }
 
@@ -747,7 +755,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     UpgradeContext ctx = new UpgradeContext(resolver, sourceStackId, targetStackId, version,
         direction, pack.getType());
     ctx.setSupportedServices(supportedServices);
-
+    ctx.setScope(scope);
 
     if (direction.isDowngrade()) {
       if (requestMap.containsKey(UPGRADE_FROM_VERSION)) {

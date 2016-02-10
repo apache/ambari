@@ -80,10 +80,8 @@ public class ColocatedGrouping extends Grouping {
     }
 
     @Override
-    public void add(UpgradeContext ctx, HostsType hostsType, String service,
+    public void add(UpgradeContext context, HostsType hostsType, String service,
         boolean clientOnly, ProcessingComponent pc, Map<String, String> params) {
-
-      boolean forUpgrade = ctx.getDirection().isUpgrade();
 
       int count = Double.valueOf(Math.ceil(
           (double) m_batch.percent / 100 * hostsType.hosts.size())).intValue();
@@ -103,13 +101,13 @@ public class ColocatedGrouping extends Grouping {
 
         TaskProxy proxy = null;
 
-        List<Task> tasks = resolveTasks(forUpgrade, true, pc);
+        List<Task> tasks = resolveTasks(context, true, pc);
 
         if (null != tasks && tasks.size() > 0) {
           proxy = new TaskProxy();
           proxy.clientOnly = clientOnly;
           proxy.message = getStageText("Preparing",
-              ctx.getComponentDisplay(service, pc.name), Collections.singleton(host));
+              context.getComponentDisplay(service, pc.name), Collections.singleton(host));
           proxy.tasks.addAll(TaskWrapperBuilder.getTaskList(service, pc.name, singleHostsType, tasks, params));
           proxy.service = service;
           proxy.component = pc.name;
@@ -117,22 +115,20 @@ public class ColocatedGrouping extends Grouping {
         }
 
         // !!! FIXME upgrade definition have only one step, and it better be a restart
-        if (null != pc.tasks && 1 == pc.tasks.size()) {
-          Task t = pc.tasks.get(0);
-          if (RestartTask.class.isInstance(t)) {
-            proxy = new TaskProxy();
-            proxy.clientOnly = clientOnly;
-            proxy.tasks.add(new TaskWrapper(service, pc.name, Collections.singleton(host), params, t));
-            proxy.restart = true;
-            proxy.service = service;
-            proxy.component = pc.name;
-            proxy.message = getStageText("Restarting",
-                ctx.getComponentDisplay(service, pc.name), Collections.singleton(host));
-            targetList.add(proxy);
-          }
+        Task t = resolveTask(context, pc);
+        if (null != t && RestartTask.class.isInstance(t)) {
+          proxy = new TaskProxy();
+          proxy.clientOnly = clientOnly;
+          proxy.tasks.add(new TaskWrapper(service, pc.name, Collections.singleton(host), params, t));
+          proxy.restart = true;
+          proxy.service = service;
+          proxy.component = pc.name;
+          proxy.message = getStageText("Restarting",
+              context.getComponentDisplay(service, pc.name), Collections.singleton(host));
+          targetList.add(proxy);
         }
 
-        tasks = resolveTasks(forUpgrade, false, pc);
+        tasks = resolveTasks(context, false, pc);
 
         if (null != tasks && tasks.size() > 0) {
           proxy = new TaskProxy();
@@ -141,7 +137,7 @@ public class ColocatedGrouping extends Grouping {
           proxy.service = service;
           proxy.tasks.addAll(TaskWrapperBuilder.getTaskList(service, pc.name, singleHostsType, tasks, params));
           proxy.message = getStageText("Completing",
-              ctx.getComponentDisplay(service, pc.name), Collections.singleton(host));
+              context.getComponentDisplay(service, pc.name), Collections.singleton(host));
           targetList.add(proxy);
         }
       }

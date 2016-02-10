@@ -270,6 +270,11 @@ public class UpgradeHelper {
 
     for (Grouping group : upgradePack.getGroups(context.getDirection())) {
 
+      // !!! grouping is not scoped to context
+      if (!context.isScoped(group.scope)) {
+        continue;
+      }
+
       UpgradeGroupHolder groupHolder = new UpgradeGroupHolder();
       groupHolder.name = group.name;
       groupHolder.title = group.title;

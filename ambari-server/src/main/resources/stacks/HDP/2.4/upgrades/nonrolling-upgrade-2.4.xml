@@ -600,6 +600,7 @@
     that are installed on the hosts but not known by Ambari.
     -->
     <group xsi:type="cluster" name="ALL_HOST_OPS" title="Set Version On All Hosts">
+      <scope>COMPLETE</scope>
       <skippable>true</skippable>
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
 
