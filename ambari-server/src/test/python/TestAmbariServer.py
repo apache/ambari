@@ -94,6 +94,7 @@ with patch("platform.linux_distribution", return_value = os_distro_value):
         from ambari_server_main import get_ulimit_open_files, ULIMIT_OPEN_FILES_KEY, ULIMIT_OPEN_FILES_DEFAULT
         from ambari_server.serverClassPath import ServerClassPath
         from ambari_server.hostUpdate import update_host_names
+        from ambari_server.checkDatabase import check_database
 
 CURR_AMBARI_VERSION = "2.0.0"
 
@@ -6813,6 +6814,42 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertEquals(runOSCommandMock.call_args[0][0], '/path/to/java -cp test:path12 '
                           'org.apache.ambari.server.update.HostUpdateHelper /testFileWithChanges > '
                           '/var/log/ambari-server/ambari-server.out 2>&1')
+
+    pass
+
+  @patch.object(ServerClassPath, "get_full_ambari_classpath_escaped_for_shell", new = MagicMock(return_value = 'test' + os.pathsep + 'path12'))
+  @patch("ambari_server.serverUtils.is_server_runing")
+  @patch("ambari_commons.os_utils.run_os_command")
+  @patch("ambari_server.setupSecurity.generate_env")
+  @patch("ambari_server.setupSecurity.ensure_can_start_under_current_user")
+  @patch("ambari_server.serverConfiguration.read_ambari_user")
+  @patch("ambari_server.dbConfiguration.ensure_jdbc_driver_is_installed")
+  @patch("ambari_server.serverConfiguration.parse_properties_file")
+  @patch("ambari_server.serverConfiguration.get_ambari_properties")
+  @patch("ambari_server.serverConfiguration.get_java_exe_path")
+  def test_check_database(self, getJavaExePathMock,
+                             getAmbariPropertiesMock, parsePropertiesFileMock, ensureDriverInstalledMock, readAmbariUserMock,
+                             ensureCanStartUnderCurrentUserMock, generateEnvMock, runOSCommandMock, isServerRunningMock):
+    properties = Properties()
+    properties.process_pair("server.jdbc.database", "embedded")
+
+    getJavaExePathMock.return_value = "/path/to/java"
+    getAmbariPropertiesMock.return_value = properties
+    readAmbariUserMock.return_value = "test_user"
+    ensureCanStartUnderCurrentUserMock.return_value = "test_user"
+    generateEnvMock.return_value = {}
+    runOSCommandMock.return_value = (0, "", "")
+    isServerRunningMock.return_value = (False, 1)
+
+    check_database(properties)
+
+    self.assertTrue(getJavaExePathMock.called)
+    self.assertTrue(readAmbariUserMock.called)
+    self.assertTrue(ensureCanStartUnderCurrentUserMock.called)
+    self.assertTrue(generateEnvMock.called)
+
+    self.assertEquals(runOSCommandMock.call_args[0][0], '/path/to/java -cp test:path12 org.apache.ambari.server.checks.CheckDatabaseHelper'
+                                                        ' > /var/log/ambari-server/ambari-server.log 2>&1')
 
     pass
 
