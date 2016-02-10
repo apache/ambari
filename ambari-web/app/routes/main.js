@@ -265,13 +265,16 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       }),
 
       logs: Em.Route.extend({
-        route: '/logs',
+        route: '/logs:query',
         connectOutlets: function (router, context) {
           if (App.get('supports.logSearch')) {
             router.get('mainHostDetailsController').connectOutlet('mainHostLogs')
           } else {
             router.transitionTo('summary');
           }
+        },
+        serialize: function(router, params) {
+          return this.serializeQueryParams(router, params, 'mainHostDetailsController');
         }
       }),
 

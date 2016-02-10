@@ -128,6 +128,7 @@ require('views/main/host/summary');
 require('views/main/host/configs');
 require('views/main/host/configs_service');
 require('views/main/host/configs_service_menu');
+require('views/main/host/log_metrics');
 require('views/main/host/metrics');
 require('views/main/host/stack_versions_view');
 require('views/main/host/add_view');
