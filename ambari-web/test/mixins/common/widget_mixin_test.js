@@ -384,6 +384,129 @@ describe('App.WidgetMixin', function () {
       });
     });
   });
+
+  describe('#getMetricsErrorCallback()', function () {
+
+    var obj,
+      view = Em.Object.create({
+        _showMessage: Em.K
+      }),
+      cases = [
+        {
+          graphView: null,
+          metricsLength: 1,
+          showMessageCallCount: 0,
+          isExportButtonHidden: false,
+          title: 'no graph view'
+        },
+        {
+          graphView: {},
+          metricsLength: 1,
+          showMessageCallCount: 0,
+          isExportButtonHidden: false,
+          title: 'no childViews property'
+        },
+        {
+          graphView: {},
+          childViews: [],
+          metricsLength: 1,
+          showMessageCallCount: 0,
+          isExportButtonHidden: false,
+          title: 'no child views'
+        },
+        {
+          graphView: {},
+          childViews: [Em.Object.create({})],
+          metricsLength: 1,
+          showMessageCallCount: 0,
+          isExportButtonHidden: false,
+          title: 'no view with _showMessage method'
+        },
+        {
+          graphView: {},
+          childViews: [Em.Object.create({}), view],
+          metricsLength: 0,
+          showMessageCallCount: 1,
+          isExportButtonHidden: true,
+          title: 'graph view is available'
+        }
+      ],
+      messageCases = [
+        {
+          readyState: 2,
+          status: 0,
+          textStatus: 'error',
+          title: 'incomplete request'
+        },
+        {
+          readyState: 4,
+          status: 0,
+          textStatus: 'error',
+          title: 'no status code'
+        },
+        {
+          readyState: 4,
+          status: 404,
+          textStatus: '404 error',
+          title: 'status code available'
+        }
+      ];
+
+    beforeEach(function () {
+      sinon.spy(view, '_showMessage');
+    });
+
+    afterEach(function () {
+      view._showMessage.restore();
+    });
+
+    cases.forEach(function (item) {
+
+      describe(item.title, function () {
+
+        beforeEach(function () {
+          obj = Em.Object.create(App.WidgetMixin, {
+            metrics: [{}],
+            isExportButtonHidden: false,
+            graphView: item.graphView,
+            childViews: item.childViews
+          });
+          obj.getMetricsErrorCallback({});
+        });
+
+        it('metrics array', function () {
+          expect(obj.get('metrics')).to.have.length(item.metricsLength);
+        });
+
+        it('error message', function () {
+          expect(view._showMessage.callCount).to.equal(item.showMessageCallCount);
+        });
+
+        it('export button display', function () {
+          expect(obj.get('isExportButtonHidden')).to.equal(item.isExportButtonHidden);
+        });
+
+      });
+
+    });
+
+    messageCases.forEach(function (item) {
+
+      it(item.title, function () {
+        obj = Em.Object.create(App.WidgetMixin, {
+          graphView: Em.Object.create({}),
+          childViews: [view]
+        });
+        obj.getMetricsErrorCallback({
+          readyState: item.readyState,
+          status: item.status
+        }, 'error', 'Not Found');
+        expect(view._showMessage.firstCall.args).to.eql(['warn', Em.I18n.t('graphs.error.title'), Em.I18n.t('graphs.error.message').format(item.textStatus, 'Not Found')]);
+      });
+
+    });
+
+  });
 });
 
 
@@ -484,6 +607,7 @@ describe('App.WidgetLoadAggregator', function () {
       f1: function () {
         return {
           done: Em.K,
+          fail: Em.K,
           complete: Em.K
         }
       }

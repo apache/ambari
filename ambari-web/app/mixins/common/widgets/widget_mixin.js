@@ -121,6 +121,7 @@ App.WidgetMixin = Ember.Mixin.create({
           context: this,
           startCallName: 'getHostComponentMetrics',
           successCallback: this.getHostComponentMetricsSuccessCallback,
+          errorCallback: this.getMetricsErrorCallback,
           completeCallback: function () {
             requestCounter--;
             if (requestCounter === 0) this.onMetricsLoaded();
@@ -132,6 +133,7 @@ App.WidgetMixin = Ember.Mixin.create({
           context: this,
           startCallName: 'getServiceComponentMetrics',
           successCallback: this.getMetricsSuccessCallback,
+          errorCallback: this.getMetricsErrorCallback,
           completeCallback: function () {
             requestCounter--;
             if (requestCounter === 0) this.onMetricsLoaded();
@@ -273,8 +275,37 @@ App.WidgetMixin = Ember.Mixin.create({
         if (!Em.isNone(metric_data)) {
           _metric.data = metric_data;
           this.get('metrics').pushObject(_metric);
+        } else if (this.get('graphView')) {
+          var graph = this.get('childViews') && this.get('childViews').findProperty('_showMessage');
+          if (graph) {
+            graph.set('hasData', false);
+            this.set('isExportButtonHidden', true);
+            graph._showMessage('info', this.t('graphs.noData.title'), this.t('graphs.noDataAtTime.message'));
+            this.get('metrics').clear();
+          }
         }
       }, this);
+    }
+  },
+
+  /**
+   * error callback on getting aggregated metrics and host component metrics
+   * @param {object} xhr
+   * @param {string} textStatus
+   * @param {string} errorThrown
+   */
+  getMetricsErrorCallback: function (xhr, textStatus, errorThrown) {
+    if (this.get('graphView')) {
+      var graph = this.get('childViews') && this.get('childViews').findProperty('_showMessage');
+      if (graph) {
+        if (xhr.readyState == 4 && xhr.status) {
+          textStatus = xhr.status + " " + textStatus;
+        }
+        graph.set('hasData', false);
+        this.set('isExportButtonHidden', true);
+        graph._showMessage('warn', this.t('graphs.error.title'), this.t('graphs.error.message').format(textStatus, errorThrown));
+        this.get('metrics').clear();
+      }
     }
   },
 
@@ -708,6 +739,7 @@ App.WidgetLoadAggregator = Em.Object.create({
         bulks[id].subRequests = [{
           context: request.context,
           successCallback: request.successCallback,
+          errorCallback: request.errorCallback,
           completeCallback: request.completeCallback
         }];
       } else {
@@ -715,6 +747,7 @@ App.WidgetLoadAggregator = Em.Object.create({
         bulks[id].subRequests.push({
           context: request.context,
           successCallback: request.successCallback,
+          errorCallback: request.errorCallback,
           completeCallback: request.completeCallback
         });
       }
@@ -736,11 +769,17 @@ App.WidgetLoadAggregator = Em.Object.create({
           _request.subRequests.forEach(function (subRequest) {
             subRequest.successCallback.call(subRequest.context, response);
           }, this);
-        }).complete(function () {
-          _request.subRequests.forEach(function (subRequest) {
-            subRequest.completeCallback.call(subRequest.context);
-          }, this);
-        });
+        }).fail(function (xhr, textStatus, errorThrown) {
+            _request.subRequests.forEach(function (subRequest) {
+              if (subRequest.errorCallback) {
+                subRequest.errorCallback.call(subRequest.context, xhr, textStatus, errorThrown);
+              }
+            }, this);
+          }).complete(function () {
+              _request.subRequests.forEach(function (subRequest) {
+                subRequest.completeCallback.call(subRequest.context);
+              }, this);
+            });
       })(bulks[id]);
     }
   }
