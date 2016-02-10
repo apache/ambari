@@ -77,7 +77,7 @@ public class DefaultEventCreator implements RequestAuditEventCreator {
     return RequestAuditEvent.builder()
       .withTimestamp(new DateTime())
       .withUserName(username)
-      .withRemoteIp(RequestUtils.getRemoteAddress(request))
+      .withRemoteIp(request.getRemoteAddress())
       .withRequestType(request.getRequestType())
       .withUrl(request.getURI())
       .withResultStatus(result.getStatus())

@@ -37,7 +37,7 @@ public interface Request {
   /**
    * Enum of request types.
    */
-  public enum Type {
+  enum Type {
     GET,
     POST,
     PUT,
@@ -50,7 +50,7 @@ public interface Request {
    *
    * @return the result
    */
-  public Result process();
+  Result process();
 
   /**
    * Obtain the resource definition which corresponds to the resource being operated on by the request.
@@ -58,28 +58,28 @@ public interface Request {
    *
    * @return the associated {@link ResourceDefinition}
    */
-  public ResourceInstance getResource();
+  ResourceInstance getResource();
 
   /**
    * Obtain the URI of this request.
    *
    * @return the request uri
    */
-  public String getURI();
+  String getURI();
 
   /**
    * Obtain the http request type.  Type is one of {@link Type}.
    *
    * @return the http request type
    */
-  public Type getRequestType();
+  Type getRequestType();
 
   /**
    * Obtain the api version of the request.  The api version is specified in the request URI.
    *
    * @return the api version of the request
    */
-  public int getAPIVersion();
+  int getAPIVersion();
 
   /**
    * Obtain the query predicate that was built from the user provided predicate fields in the query string.
@@ -88,7 +88,7 @@ public interface Request {
    *
    * @return the user defined predicate
    */
-  public Predicate getQueryPredicate();
+  Predicate getQueryPredicate();
 
   /**
    * Obtain the partial response fields and associated temporal information which were provided
@@ -96,39 +96,45 @@ public interface Request {
    *
    * @return map of partial response propertyId to temporal information
    */
-  public Map<String, TemporalInfo> getFields();
+  Map<String, TemporalInfo> getFields();
 
   /**
    * Obtain the request body data.
    */
-  public RequestBody getBody();
+  RequestBody getBody();
 
   /**
    * Obtain the http headers associated with the request.
    *
    * @return the http headers
    */
-  public Map<String, List<String>> getHttpHeaders();
+  Map<String, List<String>> getHttpHeaders();
 
   /**
    * Obtain the pagination request information.
    *
    * @return the page request
    */
-  public PageRequest getPageRequest();
+  PageRequest getPageRequest();
 
   /**
    * Obtain information to order the results by.
    *
    * @return the order request
    */
-  public SortRequest getSortRequest();
+  SortRequest getSortRequest();
 
   /**
    * Obtain the renderer for the request.
    *
    * @return renderer instance
    */
-  public Renderer getRenderer();
+  Renderer getRenderer();
+
+  /**
+   * Returns the remote address for the request
+   * @return the remote address for the request
+   */
+  String getRemoteAddress();
 
 }

@@ -69,7 +69,7 @@ public class OperationEventCreator implements RequestAuditEventCreator{
       return StartOperationFailedAuditEvent.builder()
         .withRequestDetails(request.getBody().getBody())
         .withUserName(username)
-        .withRemoteIp(RequestUtils.getRemoteAddress(request))
+        .withRemoteIp(request.getRemoteAddress())
         .withTimestamp(new DateTime())
         .withReason(result.getStatus().getMessage())
         .build();
@@ -81,7 +81,7 @@ public class OperationEventCreator implements RequestAuditEventCreator{
       return StartOperationSucceededAuditEvent.builder()
         .withRequestDetails(request.getBody().getBody())
         .withUserName(username)
-        .withRemoteIp(RequestUtils.getRemoteAddress(request))
+        .withRemoteIp(request.getRemoteAddress())
         .withTimestamp(new DateTime())
         .withRequestId(String.valueOf(requestId))
         .build();
