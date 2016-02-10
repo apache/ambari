@@ -449,16 +449,46 @@ describe('App.MainDashboardWidgetsView', function () {
   });
 
   describe("#resetAllWidgets()", function () {
-    before(function () {
-      sinon.stub(App, 'showConfirmationPopup', Em.K);
-    });
-    after(function () {
-      App.showConfirmationPopup.restore();
-    });
-    it("showConfirmationPopup is called once", function () {
+
+    beforeEach(function () {
+      sinon.stub(App, 'showConfirmationPopup', Em.clb);
+      sinon.stub(view, 'postUserPref', Em.K);
+      sinon.stub(view, 'setDBProperty', Em.K);
+      sinon.stub(view, 'translateToReal', Em.K);
+      view.setProperties({
+        currentTimeRangeIndex: 1,
+        customStartTime: 1000,
+        customEndTime: 2000
+      });
       view.resetAllWidgets();
-      expect(App.showConfirmationPopup.calledOnce).to.be.true;
     });
+
+    afterEach(function () {
+      App.showConfirmationPopup.restore();
+      view.postUserPref.restore();
+      view.setDBProperty.restore();
+      view.translateToReal.restore();
+    });
+
+    it('persist reset', function () {
+      expect(view.postUserPref.calledOnce).to.be.true;
+    });
+    it('local storage reset', function () {
+      expect(view.setDBProperty.calledOnce).to.be.true;
+    });
+    it('time range reset', function () {
+      expect(view.get('currentTimeRangeIndex')).to.equal(0);
+    });
+    it('custom start time reset', function () {
+      expect(view.get('customStartTime')).to.be.null;
+    });
+    it('custom end time reset', function () {
+      expect(view.get('customEndTime')).to.be.null;
+    });
+    it('default settings application', function () {
+      expect(view.translateToReal.calledOnce).to.be.true;
+    });
+
   });
 
   describe('#checkServicesChange', function () {

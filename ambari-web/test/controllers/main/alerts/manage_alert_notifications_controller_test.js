@@ -699,56 +699,77 @@ describe('App.ManageAlertNotificationsController', function () {
 
   describe("#formatNotificationAPIObject()", function () {
 
-    var inputFields = Em.Object.create({
-      name: {
-        value: 'test_name'
-      },
-      groups: {
-        value: [{id: 1}, {id: 2}, {id: 3}]
-      },
-      allGroups: {
-        value: 'custom'
-      },
-      global: {
-        value: false
-      },
-      method: {
-        value: 'EMAIL'
-      },
-      email: {
-        value: 'test1@test.test, test2@test.test,test3@test.test , test4@test.test'
-      },
-      severityFilter: {
-        value: ['OK', 'CRITICAL']
-      },
-      SMTPServer: {
-        value: 's1'
-      },
-      SMTPPort: {
-        value: '25'
-      },
-      SMTPUseAuthentication: {
-        value: "true"
-      },
-      SMTPUsername: {
-        value: 'user'
-      },
-      SMTPPassword: {
-        value: 'pass'
-      },
-      SMTPSTARTTLS: {
-        value: "true"
-      },
-      emailFrom: {
-        value: 'from'
-      },
-      description: {
-        value: 'test_description'
-      },
-      customProperties: [
-        {name: 'n1', value: 'v1'},
-        {name: 'n2', value: 'v2'}
-      ]
+    var inputFields;
+
+    beforeEach(function () {
+      inputFields = Em.Object.create({
+        name: {
+          value: 'test_name'
+        },
+        groups: {
+          value: [{id: 1}, {id: 2}, {id: 3}]
+        },
+        allGroups: {
+          value: 'custom'
+        },
+        global: {
+          value: false
+        },
+        method: {
+          value: 'EMAIL'
+        },
+        email: {
+          value: 'test1@test.test, test2@test.test,test3@test.test , test4@test.test'
+        },
+        severityFilter: {
+          value: ['OK', 'CRITICAL']
+        },
+        SMTPServer: {
+          value: 's1'
+        },
+        SMTPPort: {
+          value: '25'
+        },
+        SMTPUseAuthentication: {
+          value: "true"
+        },
+        SMTPUsername: {
+          value: 'user'
+        },
+        SMTPPassword: {
+          value: 'pass'
+        },
+        SMTPSTARTTLS: {
+          value: "true"
+        },
+        emailFrom: {
+          value: 'from'
+        },
+        description: {
+          value: 'test_description'
+        },
+        host: {
+          value: ''
+        },
+        customProperties: [
+          {name: 'n1', value: 'v1'},
+          {name: 'n2', value: 'v2'}
+        ]
+      });
+    });
+
+    it('should set property `ambari.dispatch-property.script` for SNMP type', function () {
+      Em.set(inputFields, 'method.value', 'SNMP');
+      controller.set('inputFields', inputFields);
+      var result = controller.formatNotificationAPIObject();
+      expect(result.AlertTarget.properties['ambari.dispatch-property.script']).to.be.equal('org.apache.ambari.contrib.snmp.script');
+    });
+
+    it('should not set property `ambari.dispatch-property.script` for EMAIL type', function () {
+      Em.set(inputFields, 'method.value', 'EMAIL');
+      controller.set('inputFields', inputFields);
+      var result = controller.formatNotificationAPIObject();
+      expect(result.AlertTarget.properties).to.not.have.property('ambari.dispatch-property.script');
     });
 
     it("should create object with properties from inputFields values", function () {

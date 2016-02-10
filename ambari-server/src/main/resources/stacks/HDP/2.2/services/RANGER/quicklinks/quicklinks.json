@@ -20,7 +20,6 @@
         "label": "Ranger Admin UI",
         "requires_user_name": "false",
         "url": "%@://%@:%@",
-        "template": "%@://%@:%@",
         "port":{
           "http_property": "http.service.port",
           "http_default_port": "6080",

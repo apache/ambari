@@ -37,9 +37,6 @@ public class Link{
   @JsonProperty("url")
   private String url;
 
-  @JsonProperty("template")
-  private String template;
-
   @JsonProperty("port")
   private Port port;
 
@@ -67,14 +64,6 @@ public class Link{
     this.url = url;
   }
 
-  public String getTemplate() {
-    return template;
-  }
-
-  public void setTemplate(String template) {
-    this.template = template;
-  }
-
   public String getRequiresUserName() {
     return requiresUserName;
   }
@@ -93,7 +82,7 @@ public class Link{
 
   public boolean isRemoved(){
     //treat a link as removed if the section only contains a name
-    return (null == port && null == url && null == template && null == label && null == requiresUserName);
+    return (null == port && null == url && null == label && null == requiresUserName);
   }
 
   public void mergeWithParent(Link parentLink) {
@@ -103,17 +92,11 @@ public class Link{
     /* merge happens when a child link has some infor but not all of them.
      * If a child link has nothing but a name, it's treated as being removed from the link list
      */
-    if(null == template && null != parentLink.getTemplate())
-      template = parentLink.getTemplate();
-
     if(null == label && null != parentLink.getLabel())
       label = parentLink.getLabel();
 
     if(null == url && null != parentLink.getUrl())
       url = parentLink.getUrl();
-
-    if(null == template && null != parentLink.getTemplate())
-      template = parentLink.getTemplate();
 
     if(null == requiresUserName && null != parentLink.getRequiresUserName())
       requiresUserName = parentLink.getRequiresUserName();

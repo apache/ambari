@@ -30,7 +30,6 @@
         "label": "Oozie Web UI",
         "requires_user_name": "true",
         "url":"%@://%@:%@/oozie?user.name=%@",
-        "template":"%@://%@:%@/oozie?user.name=%@",
         "port":{
           "http_property": "oozie.base.url",
           "http_default_port": "11000",

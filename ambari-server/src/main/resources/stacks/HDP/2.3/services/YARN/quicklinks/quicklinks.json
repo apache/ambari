@@ -20,7 +20,6 @@
         "label": "ResourceManager UI",
         "requires_user_name": "false",
         "url": "%@://%@:%@",
-        "template": "%@://%@:%@",
         "port":{
           "http_property": "yarn.timeline-service.webapp.address",
           "http_default_port": "8088",
@@ -35,7 +34,6 @@
         "label": "ResourceManager logs",
         "requires_user_name": "false",
         "url": "%@://%@:%@/logs",
-        "template": "%@://%@:%@/logs",
         "port":{
           "http_property": "yarn.timeline-service.webapp.address",
           "http_default_port": "8088",
@@ -50,7 +48,6 @@
         "label":"ResourceManager JMX",
         "requires_user_name": "false",
         "url":"%@://%@:%@/jmx",
-        "template":"%@://%@:%@/jmx",
         "port":{
           "http_property": "yarn.timeline-service.webapp.address",
           "http_default_port": "8088",
@@ -65,7 +62,6 @@
         "label":"Thread Stacks",
         "requires_user_name": "false",
         "url":"%@://%@:%@/stacks",
-        "template":"%@://%@:%@/stacks",
         "port":{
           "http_property": "yarn.timeline-service.webapp.address",
           "http_default_port": "8088",

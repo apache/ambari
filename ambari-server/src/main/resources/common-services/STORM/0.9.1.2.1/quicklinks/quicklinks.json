@@ -13,7 +13,6 @@
         "label": "Storm UI",
         "requires_user_name": "false",
         "url":"%@://%@:%@/",
-        "template":"%@://%@:%@/",
         "port":{
           "http_property": "ui.port",
           "http_default_port": "8744",

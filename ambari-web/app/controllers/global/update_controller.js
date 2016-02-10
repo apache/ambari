@@ -118,6 +118,8 @@ App.UpdateController = Em.Controller.extend({
     var params = '';
 
     queryParams.forEach(function (param) {
+      var customKey = param.key;
+
       switch (param.type) {
         case 'EQUAL':
           params += param.key + '=' + param.value;
@@ -138,10 +140,10 @@ App.UpdateController = Em.Controller.extend({
           params += 'sortBy=' + param.key + '.' + param.value;
           break;
         case 'CUSTOM':
-          param.value.forEach(function(item, index){
-            param.key = param.key.replace('{' + index + '}', item);
+          param.value.forEach(function (item, index) {
+            customKey = customKey.replace('{' + index + '}', item);
           }, this);
-          params += param.key;
+          params += customKey;
           break;
       }
       params += '&';

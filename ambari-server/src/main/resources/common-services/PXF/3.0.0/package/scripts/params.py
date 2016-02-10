@@ -22,6 +22,7 @@ from resource_management import Script
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
+from resource_management.libraries.functions.namenode_ha_utils import get_active_namenode
 
 config = Script.get_config()
 
@@ -31,9 +32,10 @@ stack_name = str(config["hostLevelParams"]["stack_name"])
 # Users and Groups
 pxf_user = "pxf"
 pxf_group = pxf_user
-hdfs_superuser = config['configurations']['hadoop-env']['hdfs_user']
+hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_superuser_group = config["configurations"]["hdfs-site"]["dfs.permissions.superusergroup"]
 user_group = config["configurations"]["cluster-env"]["user_group"]
+hbase_user = default('configurations/hbase-env/hbase_user', None)
 hive_user = default('configurations/hive-env/hive_user', None)
 tomcat_group = "tomcat"
 
@@ -60,14 +62,21 @@ is_hive_installed = default("/clusterHostInfo/hive_server_host", None) is not No
 # HDFS
 hdfs_site = config['configurations']['hdfs-site']
 default_fs = config['configurations']['core-site']['fs.defaultFS']
+namenode_path =  default('/configurations/hdfs-site/dfs.namenode.http-address', None)
+dfs_nameservice = default('/configurations/hdfs-site/dfs.nameservices', None)
+if dfs_nameservice:
+  namenode_path =  get_active_namenode(hdfs_site, security_enabled, hdfs_user)[1]
 
-hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
+# keytabs and principals
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
-hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
+hdfs_user_keytab = default('configurations/hadoop-env/hdfs_user_keytab', None)
+hdfs_principal_name = default('configurations/hadoop-env/hdfs_principal_name', None)
+hbase_user_keytab = default('configurations/hbase-env/hbase_user_keytab', None)
+hbase_principal_name = default('configurations/hbase-env/hbase_principal_name', None)
 
 # HDFSResource partial function
 HdfsResource = functools.partial(HdfsResource,
-    user=hdfs_superuser,
+    user=hdfs_user,
     security_enabled=security_enabled,
     keytab=hdfs_user_keytab,
     kinit_path_local=kinit_path_local,

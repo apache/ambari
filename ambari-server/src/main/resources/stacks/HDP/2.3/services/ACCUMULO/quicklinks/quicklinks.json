@@ -25,7 +25,6 @@
         "label": "Accumulo Monitor UI",
         "requires_user_name": "false",
         "url": "%@://%@:%@/",
-        "template": "%@://%@:%@/",
         "port":{
           "http_property": "monitor.port.client",
           "http_default_port": "50095",

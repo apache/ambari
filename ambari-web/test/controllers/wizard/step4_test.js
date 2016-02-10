@@ -25,7 +25,7 @@ describe('App.WizardStep4Controller', function () {
 
   var services = [
     'HDFS', 'GANGLIA', 'OOZIE', 'HIVE', 'HBASE', 'PIG', 'SCOOP', 'ZOOKEEPER',
-    'YARN', 'MAPREDUCE2', 'FALCON', 'TEZ', 'STORM', 'AMBARI_METRICS', 'RANGER', 'SPARK'
+    'YARN', 'MAPREDUCE2', 'FALCON', 'TEZ', 'STORM', 'AMBARI_METRICS', 'RANGER', 'SPARK', 'SLIDER'
   ];
 
   var controller = App.WizardStep4Controller.create();
@@ -623,6 +623,44 @@ describe('App.WizardStep4Controller', function () {
         expect(dependentServicesTest).to.be.eql(test.dependencies);
       });
     })
+  });
+
+  describe('#serviceDependencyValidation', function () {
+
+    var cases = [
+      {
+        services: ['HBASE'],
+        dependentServices: ['HDFS', 'ZOOKEEPER'],
+        title: 'HBASE selected and HDFS not selected initially'
+      },
+      {
+        services: ['TEZ', 'HDFS'],
+        dependentServices: ['ZOOKEEPER', 'YARN'],
+        title: 'TEZ selected and ZOOKEEPER not selected initially'
+      }
+    ];
+
+    beforeEach(function() {
+      controller.clear();
+      controller.set('errorStack', []);
+    });
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        controller.set('content', generateSelectedServicesContent(item.services));        
+        controller.serviceDependencyValidation();   
+        expect(controller.get('errorStack').mapProperty('id').contains("serviceCheck_"+item.dependentServices[0])).to.equal(true);        
+        expect(controller.get('errorStack').mapProperty('id').contains("serviceCheck_"+item.dependentServices[1])).to.equal(true);
+        controller.findProperty('serviceName', item.dependentServices[0]).set('isSelected', true);
+        
+        //simulate situation where user clicks cancel on error for first dependent service and then selects it in which case
+        //serviceDependencyValidation() will be called again
+        controller.serviceDependencyValidation();   
+        //error for first dependent service must be removed from errorStack array
+        expect(controller.get('errorStack').mapProperty('id').contains("serviceCheck_"+item.dependentServices[0])).to.equal(false);        
+        expect(controller.get('errorStack').mapProperty('id').contains("serviceCheck_"+item.dependentServices[1])).to.equal(true);
+      });
+    });
   });
 
   describe('#ambariMetricsValidation', function () {

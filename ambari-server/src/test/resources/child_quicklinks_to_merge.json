@@ -20,7 +20,6 @@
         "label": "JobHistory UI",
         "requires_user_name": "false",
         "url": "%@://%@:%@",
-        "template": "%@://%@:%@",
         "port":{
           "http_property": "mapreduce.jobhistory.webapp.address",
           "http_default_port": "19888",
@@ -35,7 +34,6 @@
         "label": "JobHistory logs",
         "requires_user_name": "false",
         "url": "%@://%@:%@/logs",
-        "template": "%@://%@:%@/logs",
         "port":{
           "http_property": "mapreduce.jobhistory.webapp.address",
           "http_default_port": "19888",
@@ -50,7 +48,6 @@
         "label":"JobHistory JMX",
         "requires_user_name":"false",
         "url":"%@://%@:%@/jmx",
-        "template":"%@://%@/jmx",
         "port":{
           "http_property": "mapreduce.jobhistory.webapp.address",
           "http_default_port": "19888",

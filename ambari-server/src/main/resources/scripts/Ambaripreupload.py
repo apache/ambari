@@ -85,8 +85,10 @@ with Environment() as env:
   parser = OptionParser()
   parser.add_option("-v", "--hdp-version", dest="hdp_version", default="",
                     help="hdp-version used in path of tarballs")
-  
+  parser.add_option("-u", "--upgrade", dest="upgrade", action="store_true",
+                    help="flag to indicate script is being run for upgrade", default=False)  
   (options, args) = parser.parse_args()
+
   
   # See if hdfs path prefix is provided on the command line. If yes, use that value, if no
   # use empty string as default.
@@ -273,19 +275,22 @@ with Environment() as env:
   oozie_hdfs_user_dir = format("{hdfs_path_prefix}/user/{oozie_user}")
   kinit_if_needed = ''
 
-  params.HdfsResource(format("{oozie_hdfs_user_dir}/share/"),
-    action="delete_on_execute",
-    type = 'directory'
-  )
+  if options.upgrade:
+    Logger.info("Skipping uploading oozie shared lib during upgrade")
+  else:
+    params.HdfsResource(format("{oozie_hdfs_user_dir}/share/"),
+      action="delete_on_execute",
+      type = 'directory'
+    )
     
-  params.HdfsResource(format("{oozie_hdfs_user_dir}/share"),
-    action="create_on_execute",
-    type = 'directory',
-    mode=0755,
-    recursive_chmod = True,
-    owner=oozie_user,
-    source = oozie_shared_lib,
-  )
+    params.HdfsResource(format("{oozie_hdfs_user_dir}/share"),
+      action="create_on_execute",
+      type = 'directory',
+      mode=0755,
+      recursive_chmod = True,
+      owner=oozie_user,
+      source = oozie_shared_lib,
+    )
 
   print "Copying tarballs..."
   copy_tarballs_to_hdfs(format("/usr/hdp/{hdp_version}/hadoop/mapreduce.tar.gz"), hdfs_path_prefix+"/hdp/apps/{{ hdp_stack_version }}/mapreduce/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
