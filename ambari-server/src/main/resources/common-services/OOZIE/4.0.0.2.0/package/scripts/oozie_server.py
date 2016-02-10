@@ -24,6 +24,8 @@ from resource_management.libraries.functions import compare_versions
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import hdp_select
 from resource_management.libraries.functions import format_hdp_stack_version
+from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions import default
 from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.functions.security_commons import build_expectations
 from resource_management.libraries.functions.security_commons import cached_kinit_executor
@@ -33,6 +35,7 @@ from resource_management.libraries.functions.security_commons import FILE_TYPE_X
 
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
+from ambari_commons.constants import UPGRADE_TYPE_NON_ROLLING, UPGRADE_TYPE_ROLLING
 
 from oozie import oozie
 from oozie_service import oozie_service
@@ -52,19 +55,30 @@ class OozieServer(Script):
   def configure(self, env, upgrade_type=None):
     import params
 
-    if upgrade_type == "nonrolling" and params.upgrade_direction == Direction.UPGRADE and \
-            params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
-      conf_select.select(params.stack_name, "oozie", params.version)
-      # In order for the "/usr/hdp/current/oozie-<client/server>" point to the new version of
-      # oozie, we need to create the symlinks both for server and client.
-      # This is required as both need to be pointing to new installed oozie version.
+    # The configure command doesn't actually receive the upgrade_type from Script.py, so get it from the config dictionary
+    if upgrade_type is None:
+      restart_type = default("/commandParams/restart_type", "")
+      if restart_type.lower() == "rolling_upgrade":
+        upgrade_type = UPGRADE_TYPE_ROLLING
+      elif restart_type.lower() == "nonrolling_upgrade":
+        upgrade_type = UPGRADE_TYPE_NON_ROLLING
 
-      # Sets the symlink : eg: /usr/hdp/current/oozie-client -> /usr/hdp/2.3.x.y-<version>/oozie
-      hdp_select.select("oozie-client", params.version)
-      # Sets the symlink : eg: /usr/hdp/current/oozie-server -> /usr/hdp/2.3.x.y-<version>/oozie
-      hdp_select.select("oozie-server", params.version)
+    if upgrade_type is not None and params.upgrade_direction == Direction.UPGRADE and params.version is not None:
+      Logger.info(format("Configuring Oozie during upgrade type: {upgrade_type}, direction: {params.upgrade_direction}, and version {params.version}"))
+      if compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
+        # In order for the "/usr/hdp/current/oozie-<client/server>" point to the new version of
+        # oozie, we need to create the symlinks both for server and client.
+        # This is required as both need to be pointing to new installed oozie version.
+
+        # Sets the symlink : eg: /usr/hdp/current/oozie-client -> /usr/hdp/2.3.x.y-<version>/oozie
+        hdp_select.select("oozie-client", params.version)
+        # Sets the symlink : eg: /usr/hdp/current/oozie-server -> /usr/hdp/2.3.x.y-<version>/oozie
+        hdp_select.select("oozie-server", params.version)
+
+      if compare_versions(format_hdp_stack_version(params.version), '2.3.0.0') >= 0:
+        conf_select.select(params.stack_name, "oozie", params.version)
+
     env.set_params(params)
-
     oozie(is_server=True)
 
   def start(self, env, upgrade_type=None):

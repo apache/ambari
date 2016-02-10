@@ -232,6 +232,13 @@ public class ClusterGrouping extends Grouping {
           realHosts = Collections.singleton(hosts.hosts.iterator().next());
         }
 
+        // Pick the first host sorted alphabetically (case insensitive)
+        if (ExecuteHostType.FIRST == et.hosts && !hosts.hosts.isEmpty()) {
+          List<String> sortedHosts = new ArrayList<>(hosts.hosts);
+          Collections.sort(sortedHosts, String.CASE_INSENSITIVE_ORDER);
+          realHosts = Collections.singleton(sortedHosts.get(0));
+        }
+
         // !!! cannot execute against empty hosts (safety net)
         if (realHosts.isEmpty()) {
           return null;

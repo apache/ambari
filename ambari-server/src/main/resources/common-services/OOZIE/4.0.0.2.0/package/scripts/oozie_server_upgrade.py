@@ -218,6 +218,8 @@ class OozieUpgrade(Script):
     import params
     env.set_params(params)
 
+    Logger.info("Will upgrade the Oozie database")
+
     # get the kerberos token if necessary to execute commands as oozie
     if params.security_enabled:
       oozie_principal_with_host = params.oozie_principal.replace("_HOST", params.hostname)
@@ -231,7 +233,7 @@ class OozieUpgrade(Script):
     stack_version = upgrade_stack[1]
 
     # upgrade oozie DB
-    Logger.info('Upgrading the Oozie database...')
+    Logger.info(format('Upgrading the Oozie database, using version {stack_version}'))
 
     # the database upgrade requires the db driver JAR, but since we have
     # not yet run hdp-select to upgrade the current points, we have to use
