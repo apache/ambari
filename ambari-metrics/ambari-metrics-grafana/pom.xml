@@ -103,16 +103,12 @@
                   dest="${project.build.directory}/grafana"
                   compression="gzip"
                   />
-                <get
-                  src="${ambari-grafana.tar}"
-                  dest="${project.build.directory}/grafana/ambari-grafana.tgz"
-                  usetimestamp="true"
-                  />
-                <untar
-                  src="${project.build.directory}/grafana/ambari-grafana.tgz"
-                  dest="${project.build.directory}/grafana/${grafana.folder}/public/app/plugins/datasource"
-                  compression="gzip"
-                  />
+                <copy
+                  todir="${project.build.directory}/grafana/${grafana.folder}/public/app/plugins/datasource">
+                  <fileset dir="${project.build.directory}/../">
+                    <include name="ambari-metrics/"/>
+                  </fileset>
+                </copy>
               </target>
             </configuration>
           </execution>
