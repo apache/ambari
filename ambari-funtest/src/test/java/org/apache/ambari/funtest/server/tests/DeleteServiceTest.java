@@ -39,7 +39,6 @@ import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntityPK;
-import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityPK;
 import org.apache.ambari.server.state.State;
 
 import org.apache.commons.httpclient.HttpStatus;
@@ -52,6 +51,7 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+
 
 
 /**
@@ -181,8 +181,7 @@ public class DeleteServiceTest extends ServerTestBase {
         /**
          * ServiceComponentDesiredStateDAO
          */
-        ServiceComponentDesiredStateEntityPK serviceComponentDesiredStateEntityPK = injector.getInstance(ServiceComponentDesiredStateEntityPK.class);
-        ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByPK(serviceComponentDesiredStateEntityPK);
+        ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findById(0L);
         assertTrue(serviceComponentDesiredStateEntity == null);
 
         /**
