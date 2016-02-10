@@ -171,8 +171,6 @@ public class Configuration {
   public static final String OJDBC_JAR_NAME_DEFAULT = "ojdbc6.jar";
   public static final String MYSQL_JAR_NAME_KEY = "db.mysql.jdbc.name";
   public static final String MYSQL_JAR_NAME_DEFAULT = "mysql-connector-java.jar";
-  public static final String AUDIT_ENABLED = "audit.enabled";
-  public static final String AUDIT_ENABLED_DEFAULT = "true";
   public static final String IS_LDAP_CONFIGURED = "ambari.ldap.isConfigured";
   public static final String LDAP_USE_SSL_KEY = "authentication.ldap.useSSL";
   public static final String LDAP_PRIMARY_URL_KEY = "authentication.ldap.primaryUrl";
@@ -2085,13 +2083,6 @@ public class Configuration {
       properties.getProperty(SERVER_STALE_CONFIG_CACHE_ENABLED_KEY,
         SERVER_STALE_CONFIG_CACHE_ENABLED_DEFAULT);
     return "true".equalsIgnoreCase(stringValue);
-  }
-
-  /**
-   * Process audit events if enabled
-   */
-  public boolean isAuditEnabled() {
-    return "true".equalsIgnoreCase(properties.getProperty(AUDIT_ENABLED, AUDIT_ENABLED_DEFAULT));
   }
 
   /**
