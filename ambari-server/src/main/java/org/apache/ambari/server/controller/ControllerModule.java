@@ -47,6 +47,7 @@ import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
 import org.apache.ambari.server.audit.request.RequestAuditLogger;
 import org.apache.ambari.server.audit.request.RequestAuditLoggerImpl;
 import org.apache.ambari.server.audit.request.eventcreator.DefaultEventCreator;
+import org.apache.ambari.server.audit.request.eventcreator.OperationEventCreator;
 import org.apache.ambari.server.checks.AbstractCheckDescriptor;
 import org.apache.ambari.server.checks.UpgradeCheckRegistry;
 import org.apache.ambari.server.configuration.Configuration;
@@ -392,7 +393,8 @@ public class ControllerModule extends AbstractModule {
   private void bindAuditLog() {
     Multibinder<RequestAuditEventCreator> auditLogEventCreatorBinder = Multibinder.newSetBinder(binder(), RequestAuditEventCreator.class);
     auditLogEventCreatorBinder.addBinding().to(DefaultEventCreator.class);
-    
+    auditLogEventCreatorBinder.addBinding().to(OperationEventCreator.class);
+
     bind(RequestAuditLogger.class).to(RequestAuditLoggerImpl.class);
   }
 

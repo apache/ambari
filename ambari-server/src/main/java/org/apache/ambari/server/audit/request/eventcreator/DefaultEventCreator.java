@@ -28,6 +28,7 @@ import org.apache.ambari.server.audit.AuditEvent;
 import org.apache.ambari.server.audit.RequestAuditEvent;
 import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.utils.RequestUtils;
 import org.joda.time.DateTime;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
@@ -71,13 +72,12 @@ public class DefaultEventCreator implements RequestAuditEventCreator {
    */
   @Override
   public AuditEvent createAuditEvent(final Request request, final Result result) {
-
     String username = ((User)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
 
     return RequestAuditEvent.builder()
       .withTimestamp(new DateTime())
       .withUserName(username)
-      .withRemoteIp("1.2.3.4") // todo: utility to get ip from request
+      .withRemoteIp(RequestUtils.getRemoteAddress(request))
       .withRequestType(request.getRequestType())
       .withUrl(request.getURI())
       .withResultStatus(result.getStatus())

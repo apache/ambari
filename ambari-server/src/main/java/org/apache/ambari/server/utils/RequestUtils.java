@@ -22,11 +22,14 @@ import java.util.Arrays;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.ambari.server.api.services.Request;
+
 public class RequestUtils {
 
+  private static Set<String> headersToCheck= ImmutableSet.copyOf(Arrays.asList(
+    "X-Forwarded-For", "Proxy-Client-IP", "WL-Proxy-Client-IP", "HTTP_CLIENT_IP", "HTTP_X_FORWARDED_FOR"));;
+
   public static String getRemoteAddress(HttpServletRequest request) {
-    Set<String> headersToCheck = ImmutableSet.copyOf(Arrays.asList(
-      "X-Forwarded-For", "Proxy-Client-IP", "WL-Proxy-Client-IP", "HTTP_CLIENT_IP", "HTTP_X_FORWARDED_FOR"));
     String ip = null;
     for (String header : headersToCheck) {
       ip = request.getHeader(header);
@@ -38,6 +41,18 @@ public class RequestUtils {
       ip = request.getRemoteAddr();
     }
     return ip;
+  }
+
+  public static String getRemoteAddress(Request request) {
+    for (String header : headersToCheck) {
+      if(request.getHttpHeaders().containsKey(header)) {
+        for (String ip : request.getHttpHeaders().get(header))
+          if (!isRemoteAddressUnknown(ip)) {
+            return ip;
+          }
+      }
+    }
+    return null;
   }
 
   private static boolean isRemoteAddressUnknown(String ip) {

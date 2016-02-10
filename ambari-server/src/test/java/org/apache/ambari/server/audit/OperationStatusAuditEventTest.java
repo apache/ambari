@@ -45,7 +45,7 @@ public class OperationStatusAuditEventTest {
     String actualAuditMessage = evnt.getAuditMessage();
 
     // Then
-    String expectedAuditMessage = String.format("Operation: Start Service, Status(%s), RequestId(%s)", testStatus, testRequestId);
+    String expectedAuditMessage = String.format("Operation(Start Service), Status(%s), RequestId(%s)", testStatus, testRequestId);
 
     assertThat(actualAuditMessage, equalTo(expectedAuditMessage));
   }

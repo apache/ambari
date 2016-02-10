@@ -29,7 +29,7 @@ public class RequestAuditEvent extends AbstractUserAuditEvent {
 
     private Request.Type requestType;
 
-    protected ResultStatus resultStatus;
+    private ResultStatus resultStatus;
 
     private String url;
 

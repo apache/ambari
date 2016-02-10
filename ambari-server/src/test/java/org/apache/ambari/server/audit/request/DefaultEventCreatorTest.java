@@ -23,6 +23,14 @@ import junit.framework.Assert;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import javax.ws.rs.core.Cookie;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 
 import org.apache.ambari.server.api.query.QueryImpl;
 import org.apache.ambari.server.api.resources.HostComponentResourceDefinition;
@@ -44,6 +52,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
+
+import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 public class DefaultEventCreatorTest {
 
@@ -108,7 +118,7 @@ public class DefaultEventCreatorTest {
   @Test
   public void defaultEventCreatorTest__okWithMessage() {
     ResourceInstance resource = new QueryImpl(new HashMap<Resource.Type, String>(), new HostComponentResourceDefinition(), null);
-    Request request =  requestFactory.createRequest(null, new RequestBody(), new LocalUriInfo("http://apache.org"), Request.Type.POST, resource);
+    Request request =  requestFactory.createRequest(createHttpHeaders(), new RequestBody(), new LocalUriInfo("http://apache.org"), Request.Type.POST, resource);
     Result result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.OK, "message"));
 
     String actual = defaultEventCreator.createAuditEvent(request, result).getAuditMessage();
@@ -119,7 +129,7 @@ public class DefaultEventCreatorTest {
   @Test
   public void defaultEventCreatorTest__errorWithMessage() {
     ResourceInstance resource = new QueryImpl(new HashMap<Resource.Type, String>(), new HostComponentResourceDefinition(), null);
-    Request request =  requestFactory.createRequest(null, new RequestBody(), new LocalUriInfo("http://apache.org"), Request.Type.POST, resource);
+    Request request =  requestFactory.createRequest(createHttpHeaders(), new RequestBody(), new LocalUriInfo("http://apache.org"), Request.Type.POST, resource);
     Result result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST, "message"));
 
     String actual = defaultEventCreator.createAuditEvent(request, result).getAuditMessage();
@@ -130,11 +140,53 @@ public class DefaultEventCreatorTest {
   @Test
   public void defaultEventCreatorTest__okWithoutMessage() {
     ResourceInstance resource = new QueryImpl(new HashMap<Resource.Type, String>(), new HostComponentResourceDefinition(), null);
-    Request request =  requestFactory.createRequest(null, new RequestBody(), new LocalUriInfo("http://apache.org"), Request.Type.POST, resource);
+    Request request =  requestFactory.createRequest(createHttpHeaders(), new RequestBody(), new LocalUriInfo("http://apache.org"), Request.Type.POST, resource);
     Result result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.OK));
 
     String actual = defaultEventCreator.createAuditEvent(request, result).getAuditMessage();
     String expected = "User(testuser), RemoteIp(1.2.3.4), RequestType(POST), url(http://apache.org), ResultStatus(200 OK)";
     Assert.assertEquals(expected, actual);
   }
+
+  private HttpHeaders createHttpHeaders() {
+    return new HttpHeaders() {
+      @Override
+      public List<String> getRequestHeader(String s) {
+        return null;
+      }
+
+      @Override
+      public MultivaluedMap<String, String> getRequestHeaders() {
+        MultivaluedMap<String, String> headers = new MultivaluedMapImpl();
+        headers.add("X-Forwarded-For","1.2.3.4");
+        return headers;
+      }
+
+      @Override
+      public List<MediaType> getAcceptableMediaTypes() {
+        return null;
+      }
+
+      @Override
+      public List<Locale> getAcceptableLanguages() {
+        return null;
+      }
+
+      @Override
+      public MediaType getMediaType() {
+        return null;
+      }
+
+      @Override
+      public Locale getLanguage() {
+        return null;
+      }
+
+      @Override
+      public Map<String, Cookie> getCookies() {
+        return null;
+      }
+    };
+  }
+
 }

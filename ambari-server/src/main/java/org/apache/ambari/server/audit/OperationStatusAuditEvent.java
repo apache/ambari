@@ -56,9 +56,9 @@ public class OperationStatusAuditEvent extends AbstractAuditEvent {
     @Override
     protected void buildAuditMessage(StringBuilder builder) {
       builder
-        .append("Operation: ")
+        .append("Operation(")
         .append(this.operation)
-        .append(", Status(")
+        .append("), Status(")
         .append(this.status)
         .append("), RequestId(")
         .append(this.requestId)
