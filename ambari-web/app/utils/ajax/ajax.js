@@ -2340,6 +2340,27 @@ var urls = {
     'real': '/clusters/{clusterName}/components?fields=host_components/HostRoles/host_name,ServiceComponentInfo/component_name,ServiceComponentInfo/started_count{urlParams}&minimal_response=true',
     'mock': ''
   },
+  'components.get_category': {
+    'real': '/clusters/{clusterName}/components?fields=ServiceComponentInfo/component_name,ServiceComponentInfo/service_name,ServiceComponentInfo/category,ServiceComponentInfo/recovery_enabled&minimal_response=true',
+    'mock': ''
+  },
+  'components.update': {
+    'real': '/clusters/{clusterName}/components?{urlParams}',
+    'mock': '',
+    'type': 'PUT',
+    'format': function (data) {
+      return {
+        data: JSON.stringify({
+          RequestInfo: {
+            query: data.query
+          },
+          Body: {
+            ServiceComponentInfo: data.ServiceComponentInfo
+          }
+        })
+      }
+    }
+  },
   'hosts.all.install': {
     'real': '/hosts?minimal_response=true',
     'mock': ''

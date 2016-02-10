@@ -525,6 +525,14 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       connectOutlets: function (router) {
         router.set('mainAdminController.category', "serviceAutoStart");
         router.get('mainAdminController').connectOutlet('mainAdminServiceAutoStart');
+      },
+      exitRoute: function (router, context, callback) {
+        var controller = router.get('mainAdminServiceAutoStartController');
+        if (!controller.get('isSaveDisabled')) {
+          controller.showSavePopup(callback);
+        } else {
+          callback();
+        }
       }
     }),
 

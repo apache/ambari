@@ -24,14 +24,48 @@
     {{t admin.serviceAutoStart.header.text}}
   </div>
   <br/>
-  <div class="cluster-switcher">
-    <p>{{t admin.serviceAutoStart.body.text}}
-        {{view Ember.Checkbox checkedBinding="view.switcherValue"}}
-    </p>
+  <div class="cluster-switcher row-fluid">
+      <div class="span4">
+        {{t admin.serviceAutoStart.body.text}}
+      </div>
+      <div class="span4">
+          {{view Ember.Checkbox checkedBinding="view.switcherValue"}}
+      </div>
+      <div class="pull-right operations-button pull-right">
+          <button class="btn" {{action doReload target="controller"}} {{bindAttr disabled="controller.isSaveDisabled"}}>{{t common.discard}}</button>
+          <button class="btn btn-success" {{action showSavePopup target="controller"}} {{bindAttr disabled="controller.isSaveDisabled"}}>{{t common.save}}</button>
+      </div>
   </div>
     {{#if view.switcherValue}}
-        <div>
+        <div class="tabs-left">
             <hr>
+            <ul class="nav nav-tabs">
+                {{#each tab in controller.tabs}}
+                    <li {{bindAttr class="tab.isActive:active"}}>
+                        <a href="#" data-toggle="tab" {{bindAttr data-target="tab.headingClass"}}>
+                            {{tab.display_name}}
+                            <i {{bindAttr class=":pull-right tab.indicator"}}>
+                            </i>
+                        </a>
+                    </li>
+                {{/each}}
+            </ul>
+            <div class="tab-content">
+                {{#each tab in controller.tabs}}
+                    <div {{bindAttr class=":tab-pane tab.isActive:active tab.service_name :row-fluid"}}>
+                        {{#each component in tab.componentRecovery}}
+                            <div class="row-fluid">
+                                <div class="span4">
+                                    {{component.display_name}}
+                                </div>
+                                <div class="span8">
+                                    {{view App.MainAdminServiceAutoStartComponentView recoveryEnabledBinding="component.recovery_enabled" componentBinding="component" tabBinding="tab"}}
+                                </div>
+                            </div>
+                        {{/each}}
+                    </div>
+                {{/each}}
+            </div>
         </div>
     {{/if}}
 </div>
