@@ -58,8 +58,9 @@ def create_ams_datasource():
         Logger.info("Ambari Metrics Grafana datasource already present. Checking Metrics Collector URL")
         datasource_url = datasources_json[i]["url"]
 
-        if datasource_url == (params.metric_collector_host + ":" + params.metric_collector_port
-                                 + "/ws/v1/timeline/metrics") :
+        if datasource_url == (params.ams_grafana_protocol + "://"
+                                + params.metric_collector_host + ":"
+                                + params.metric_collector_port):
           Logger.info("Metrics Collector URL validation succeeded. Skipping datasource creation")
           GRAFANA_CONNECT_TRIES = 0 # No need to create datasource again
 
@@ -84,6 +85,7 @@ def create_ams_datasource():
     try:
       ams_datasource_json = Template('metrics_grafana_datasource.json.j2',
                              ams_datasource_name=METRICS_GRAFANA_DATASOURCE_NAME,
+                             ams_grafana_protocol=params.ams_grafana_protocol,
                              ams_collector_host=params.metric_collector_host,
                              ams_collector_port=params.metric_collector_port).get_content()
 
