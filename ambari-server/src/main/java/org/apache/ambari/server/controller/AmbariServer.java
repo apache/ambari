@@ -46,6 +46,7 @@ import org.apache.ambari.server.api.rest.BootStrapResource;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.BaseService;
 import org.apache.ambari.server.api.services.KeyService;
+import org.apache.ambari.server.api.services.LogoutService;
 import org.apache.ambari.server.api.services.PersistKeyValueImpl;
 import org.apache.ambari.server.api.services.PersistKeyValueService;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorBlueprintProcessor;
@@ -852,7 +853,7 @@ public class AmbariServer {
     StageUtils.setGson(injector.getInstance(Gson.class));
     StageUtils.setTopologyManager(injector.getInstance(TopologyManager.class));
     WorkflowJsonService.setDBProperties(
-        injector.getInstance(Configuration.class));
+      injector.getInstance(Configuration.class));
     SecurityFilter.init(injector.getInstance(Configuration.class));
     StackDefinedPropertyProvider.init(injector);
     AbstractControllerResourceProvider.init(injector.getInstance(ResourceProviderFactory.class));
@@ -882,6 +883,7 @@ public class AmbariServer {
     ThreadPoolEnabledPropertyProvider.init(injector.getInstance(Configuration.class));
 
     BaseService.init(injector.getInstance(RequestAuditLogger.class));
+    LogoutService.init(injector.getInstance(AuditLogger.class));
 
     RetryHelper.init(configs.getOperationsRetryAttempts());
   }

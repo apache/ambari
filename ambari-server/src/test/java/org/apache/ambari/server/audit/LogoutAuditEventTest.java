@@ -15,49 +15,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.ambari.server.audit;
 
-
-import java.util.Arrays;
-import java.util.List;
-import org.apache.commons.lang.StringUtils;
+import nl.jqno.equalsverifier.EqualsVerifier;
 import org.joda.time.DateTime;
 import org.junit.Test;
-
-import nl.jqno.equalsverifier.EqualsVerifier;
 
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertThat;
 
-public class LoginSucceededAuditEventTest {
+public class LogoutAuditEventTest {
 
   @Test
   public void testAuditMessage() throws Exception {
     // Given
-    String lineSeparator = System.lineSeparator();
     String testUserName = "USER1";
     String testRemoteIp = "127.0.0.1";
-    String testRole = "Administrator";
-    List<String> testPrivileges = Arrays.asList("role1", "role2");
-    String privilegePrefix = String.format("%-26s Privileges(%-28s    ", lineSeparator, lineSeparator);
 
-    String expectedPrivileges = StringUtils.join(testPrivileges, String.format("%-28s    ", lineSeparator));
-
-    LoginSucceededAuditEvent evnt = LoginSucceededAuditEvent.builder()
+    LogoutAuditEvent evnt = LogoutAuditEvent.builder()
       .withTimestamp(DateTime.now())
       .withRemoteIp(testRemoteIp)
       .withUserName(testUserName)
-      .withRoles(Arrays.asList(testRole))
-      .withPrivileges(testPrivileges)
       .build();
 
     // When
     String actualAuditMessage = evnt.getAuditMessage();
 
     // Then
-    String expectedAuditMessage = String.format("User(%s), RemoteIp(%s), Roles(%s),%s%s%-26s), Status(Login succeeded !)",
-      testUserName, testRemoteIp, testRole, privilegePrefix, expectedPrivileges, lineSeparator);
+    String expectedAuditMessage = String.format("User(%s), RemoteIp(%s), Status(Logout succeeded !)",
+      testUserName, testRemoteIp);
 
     assertThat(actualAuditMessage, equalTo(expectedAuditMessage));
 
@@ -67,7 +53,7 @@ public class LoginSucceededAuditEventTest {
   public void testTimestamp() throws Exception {
     // Given
     DateTime testTimestamp = DateTime.now();
-    LoginSucceededAuditEvent evnt = LoginSucceededAuditEvent.builder()
+    LogoutAuditEvent evnt = LogoutAuditEvent.builder()
       .withTimestamp(testTimestamp)
       .build();
 
@@ -81,7 +67,7 @@ public class LoginSucceededAuditEventTest {
 
   @Test
   public void testEquals() throws Exception {
-    EqualsVerifier.forClass(LoginSucceededAuditEvent.class)
+    EqualsVerifier.forClass(LogoutAuditEvent.class)
       .verify();
   }
 }

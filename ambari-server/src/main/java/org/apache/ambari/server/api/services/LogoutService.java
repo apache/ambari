@@ -17,8 +17,7 @@
  */
 package org.apache.ambari.server.api.services;
 
-import org.springframework.security.core.context.SecurityContextHolder;
-
+import java.util.Date;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -26,18 +25,43 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
+import org.apache.ambari.server.audit.AuditLogger;
+import org.apache.ambari.server.audit.LogoutAuditEvent;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
+import org.apache.ambari.server.utils.RequestUtils;
+
+import com.google.inject.Inject;
+import org.joda.time.DateTime;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 /**
  * Service performing logout of current user
  */
 @Path("/logout")
 public class LogoutService {
 
+  private static AuditLogger auditLogger;
+
+  @Inject
+  public static void init(AuditLogger logger) {
+    auditLogger = logger;
+  }
+
   @GET
   @Produces("text/plain")
   public Response performLogout(@Context HttpServletRequest servletRequest) {
+    auditLog(servletRequest);
     SecurityContextHolder.clearContext();
     servletRequest.getSession().invalidate();
     return Response.status(Response.Status.OK).build();
   }
 
+  private void auditLog(HttpServletRequest servletRequest) {
+    LogoutAuditEvent logoutEvent = LogoutAuditEvent.builder()
+      .withTimestamp(new DateTime(new Date()))
+      .withRemoteIp(RequestUtils.getRemoteAddress(servletRequest))
+      .withUserName(AuthorizationHelper.getAuthenticatedName())
+      .build();
+    auditLogger.log(logoutEvent);
+  }
 }
