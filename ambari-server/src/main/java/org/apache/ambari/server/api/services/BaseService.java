@@ -101,8 +101,12 @@ public abstract class BaseService {
                                    UriInfo uriInfo, Request.Type requestType,
                                    MediaType mediaType, ResourceInstance resource) {
 
+    // original request and initial result
+    RequestBody rb = new RequestBody();
+    rb.setBody(body);
+    Request request = getRequestFactory().createRequest(headers, rb, uriInfo, requestType, resource);
     Result result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.OK));
-    Request request = null;
+
     try {
       Set<RequestBody> requestBodySet = getBodyParser().parse(body);
 
