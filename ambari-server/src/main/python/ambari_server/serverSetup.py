@@ -432,23 +432,6 @@ class JDKSetup(object):
     else:
       progress_func = download_progress
 
-    if get_silent():
-      if not java_home_var:
-        #No java_home_var set, detect if java is already installed
-        if os.environ.has_key(JAVA_HOME):
-          args.java_home = os.environ[JAVA_HOME]
-
-          properties.process_pair(JAVA_HOME_PROPERTY, args.java_home)
-          properties.removeOldProp(JDK_NAME_PROPERTY)
-          properties.removeOldProp(JCE_NAME_PROPERTY)
-
-          self._ensure_java_home_env_var_is_set(args.java_home)
-          self.jdk_index = self.custom_jdk_number
-          return
-        else:
-          # For now, changing the existing JDK to make sure we use a supported one
-          pass
-
     if java_home_var:
       change_jdk = get_YN_input("Do you want to change Oracle JDK [y/n] (n)? ", False)
       if not change_jdk:
