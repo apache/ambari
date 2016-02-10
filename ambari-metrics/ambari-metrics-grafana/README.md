@@ -240,4 +240,24 @@ http://GRAFANA_HOST:3000
 
 ---
 
+<a name="templating"></a>
+### Templating
 
+**Templating allows you to dynamically change graphs by selecting your host from dropdown. To created a templated dashboard, you can follow these steps.**
+
+> 1. Click on the "cog" on the top, select "Templating"
+> 2. Click on "+ New"
+> 3. Enter a name for your variable. Ex: "hosts".
+> 4. Type: query
+> 5. Datasource: This should be set to the name you had chosen for your Datasource. Default is "AMBARI_METRICS"
+> 6. Query: This needs to be "hosts". It is case sensitive as well.
+> 7. Once you've entered the query and you focus your cursor anywhere else, you should see the "Preview of values" updated with the hostnames in your cluster.
+> 8. You can close the Templating Variables section.
+> 9. You should now have a dropdown on your dashboard with hosts from your cluster.
+> 10. When you now add a graph, and select your component and metric, the plotted graph will show you metrics for the selected hostname from the dropdown.
+> 11. The legend on the graph will also now update with the selected host.
+
+**Templalted dashboards do support multiple metrics in a single graph.** 
+
+
+![Templating](screenshots/20-templating.png)
