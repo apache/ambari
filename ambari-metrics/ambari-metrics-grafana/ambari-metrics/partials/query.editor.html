@@ -82,10 +82,10 @@
         </li>
 
 
-        <li class="tight-form-item" style="width: 86px">
-            Hosts <a bs-tooltip="'if host is selected, aggregator is ignored.'" data-placement="bottom"><i class="fa fa-info-circle"></i></a>
+        <li class="tight-form-item" style="width: 86px" ng-hide="dashboard.templating.list.length > 0">
+            Hosts
         </li>
-        <li>
+        <li ng-hide="dashboard.templating.list.length > 0">
             <input type="text" class="input-large tight-form-input" ng-model="target.hosts"
                    spellcheck='false' bs-typeahead="suggestHosts" placeholder="host name" data-min-length=0 data-items=100
                    ng-blur="targetBlur()">

@@ -27,7 +27,7 @@ define([
 
       var module = angular.module('grafana.services');
 
-      module.factory('AmbariMetricsDatasource', function ($q, backendSrv) {
+      module.factory('AmbariMetricsDatasource', function ($q, backendSrv, templateSrv) {
         /**
          * AMS Datasource Constructor
          */
@@ -43,7 +43,9 @@ define([
             .then(function (items) {
               allMetrics = [];
               appIds = [];
-              var fake = "timeline_metric_store_watcher"; delete items[fake];
+              //We remove a couple of components from the list that do not contain any
+              //pertinent metrics.
+              delete items.timeline_metric_store_watcher; delete items.amssmoketestfake;
               for (var key in items) {
                 if (items.hasOwnProperty(key)) {
                   items[key].forEach(function (_item) {
@@ -97,10 +99,11 @@ define([
               }
               var series = [];
               var metricData = res.metrics[0].metrics;
+              var hostLegend = res.metrics[0].hostname ? ' on ' + res.metrics[0].hostname : '';
               var timeSeries = {};
               if (target.hosts === undefined || target.hosts.trim() === "") {
                 timeSeries = {
-                  target: target.metric,
+                  target: target.metric + hostLegend,
                   datapoints: []
                 };
               } else {
@@ -119,81 +122,42 @@ define([
             };
 
           };
-          var precisionSetting = '';
+
           var getHostAppIdData = function(target) {
-            if (target.shouldAddPrecision) {
-              precisionSetting = '&precision=' + target.precision;
-            } else {
-              precisionSetting = '';
-            }
-            if (target.shouldAddPrecision && target.shouldComputeRate) {
-              return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.metric + "._rate._"
-                + target.aggregator + "&hostname=" + target.hosts + '&appId=' + target.app + '&startTime=' + from
-                + '&endTime=' + to + precisionSetting).then(
-                  getMetricsData(target)
-                );
-            } else if (target.shouldComputeRate) {
-              return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.metric + "._rate._"
-                + target.aggregator + "&hostname=" + target.hosts + '&appId=' + target.app + '&startTime=' + from
-                + '&endTime=' + to).then(
-                  getMetricsData(target)
-                );
-            } else if (target.shouldAddPrecision){
-              return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.metric + "._"
-                + target.aggregator + "&hostname=" + target.hosts + '&appId=' + target.app + '&startTime=' + from
-                + '&endTime=' + to + precisionSetting).then(
-                  getMetricsData(target)
-                );
-            } else {
-              return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.metric + "._"
-                + target.aggregator + "&hostname=" + target.hosts + '&appId=' + target.app + '&startTime=' + from
-                + '&endTime=' + to).then(
+            var precision = target.shouldAddPrecision ? '&precision=' + target.precision : '';
+            var rate = target.shouldComputeRate ? '._rate._' : '._';
+            return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.metric + rate +
+                target.aggregator + "&hostname=" + target.hosts + '&appId=' + target.app + '&startTime=' + from +
+                '&endTime=' + to + precision).then(
                 getMetricsData(target)
-              );
-            }
+            );
           };
 
           var getServiceAppIdData = function(target) {
-            if (target.shouldAddPrecision) { precisionSetting = '&precision=' + target.precision;
-            } else { precisionSetting = ''; }
-            if (target.shouldAddPrecision && target.shouldComputeRate) {
-              return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.metric + "._rate._"
-                + target.aggregator + '&appId=' + target.app + '&startTime=' + from + '&endTime=' + to + precisionSetting)
-              .then(
-                getMetricsData(target)
-              );
-            } else if (target.shouldAddPrecision) {
-              return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.metric + "._"
-                + target.aggregator + '&appId=' + target.app + '&startTime=' + from + '&endTime=' + to + precisionSetting)
-              .then(
-                getMetricsData(target)
-              );
-            } else if (target.shouldComputeRate) {
-              return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.metric + "._rate._"
-                + target.aggregator + '&appId=' + target.app + '&startTime=' + from + '&endTime=' + to).then(
-                getMetricsData(target)
-              );
-            } else {
-              return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.metric + "._"
-                + target.aggregator + '&appId=' + target.app + '&startTime=' + from + '&endTime=' + to).then(
-                getMetricsData(target)
-              );
-            }
+            var templatedHost = (_.isEmpty(templateSrv.variables)) ? "" : templateSrv.variables[0].options.filter(function(host)
+              { return host.selected; }).map(function(hostName) { return hostName.value; });
+            var precision = target.shouldAddPrecision ? '&precision=' + target.precision : '';
+            var rate = target.shouldComputeRate ? '._rate._' : '._';
+            return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.metric + rate
+              + target.aggregator + '&hostname=' + templatedHost + '&appId=' + target.app + '&startTime=' + from +
+              '&endTime=' + to + precision).then(
+              getMetricsData(target)
+            );
           };
 
           // Time Ranges
           var from = Math.floor(options.range.from.valueOf() / 1000);
           var to = Math.floor(options.range.to.valueOf() / 1000);
-
           var metricsPromises = _.map(options.targets, function(target) {
-            console.debug('target app=' + target.app + ',' +
-              'target metric=' + target.metric + ' on host=' + target.hosts);
-            if (!!target.hosts) {
-              return getHostAppIdData(target);
-            } else {
-              return getServiceAppIdData(target);
-            }
-          });
+              console.debug('target app=' + target.app + ',' +
+                'target metric=' + target.metric + ' on host=' + target.hosts);
+              if (!!target.hosts) {
+                return getHostAppIdData(target);
+              } else {
+                return getServiceAppIdData(target);
+              }
+            });
+
           return $q.all(metricsPromises).then(function(metricsDataArray) {
             var data = _.map(metricsDataArray, function(metricsData) {
               return metricsData.data;
@@ -212,6 +176,32 @@ define([
             query = '/' + query + '/';
           }
           return $q.when([]);
+        };
+
+        /**
+         * AMS Datasource Templating Variables.
+         */
+        AmbariMetricsDatasource.prototype.metricFindQuery = function (query) {
+          var interpolated;
+          try {
+            interpolated = templateSrv.replace(query);
+          } catch (err) {
+            return $q.reject(err);
+          }
+          return this.doAmbariRequest({
+                method: 'GET',
+                url: '/ws/v1/timeline/metrics/' + interpolated
+              })
+              .then(function (results) {
+                //Remove fakehostname from the list of hosts on the cluster.
+                var fake = "fakehostname"; delete results.data[fake];
+                return _.map(_.keys(results.data), function (hostName) {
+                  return {
+                        text: hostName,
+                        expandable: hostName.expandable ? true : false
+                      };
+                });
+              });
         };
 
         /**
@@ -277,6 +267,7 @@ define([
           console.log(query);
           return this.doAmbariRequest({method: 'GET', url: '/ws/v1/timeline/metrics/hosts'})
             .then(function (results) {
+              //Remove fakehostname from the list of hosts on the cluster.
               var fake = "fakehostname"; delete results.data[fake];
               return _.map(Object.keys(results.data), function (hostName) {
                 return {text: hostName};
