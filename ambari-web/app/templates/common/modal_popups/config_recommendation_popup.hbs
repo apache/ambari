@@ -31,30 +31,28 @@
       {{#each service in view.serviceConfigs}}
         {{#each property in service.configs}}
           {{#if property.isVisible}}
-            {{#unless property.hiddenBySection}}
-              {{#if property.warn}}
-                <tr>
-                  <td>{{property.serviceName}}</td>
-                  <td>{{property.name}}</td>
-                  <td>{{property.value}}</td>
-                  <td>
-                    <div class="property-message">{{property.warnMessage}}</div>
-                    <div class="property-description">{{property.description}}</div>
-                  </td>
-                </tr>
-              {{/if}}
-              {{#if property.error}}
-                <tr>
-                  <td>{{property.serviceName}}</td>
-                  <td>{{property.name}}</td>
-                  <td>{{property.value}}</td>
-                  <td>
-                    <div class="property-message">{{property.errorMessage}}</div>
-                    <div class="property-description">{{property.description}}</div>
-                  </td>
-                </tr>
-              {{/if}}
-            {{/unless}}
+            {{#if property.warn}}
+              <tr>
+                <td>{{property.serviceName}}</td>
+                <td>{{property.name}}</td>
+                <td>{{property.value}}</td>
+                <td>
+                  <div class="property-message">{{property.warnMessage}}</div>
+                  <div class="property-description">{{property.description}}</div>
+                </td>
+              </tr>
+            {{/if}}
+            {{#if property.error}}
+              <tr>
+                <td>{{property.serviceName}}</td>
+                <td>{{property.name}}</td>
+                <td>{{property.value}}</td>
+                <td>
+                  <div class="property-message">{{property.errorMessage}}</div>
+                  <div class="property-description">{{property.description}}</div>
+                </td>
+              </tr>
+            {{/if}}
           {{/if}}
         {{/each}}
       {{/each}}

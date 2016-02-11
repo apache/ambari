@@ -301,7 +301,7 @@ App.ServerValidatorMixin = Em.Mixin.create({
         : self.get('stepConfigs');
       var configsWithErrors = stepConfigs.some(function (step) {
         return step.get('configs').some(function(c) {
-          return c.get('isVisible') && !c.get('hiddenBySection') && (c.get('warn') || c.get('error'));
+          return c.get('isVisible') && (c.get('warn') || c.get('error'));
         })
       });
       if (configsWithErrors) {

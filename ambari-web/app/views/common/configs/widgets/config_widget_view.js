@@ -434,9 +434,6 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
         var conditionalConfig = serviceConfigs.filterProperty('filename',conditionalConfigFileName).findProperty('name', conditionalConfigName);
         if (conditionalConfig) {
           conditionalConfig.set(valueAttribute, valueAttributes[key]);
-          if (valueAttribute === 'isVisible') {
-            conditionalConfig.set('hiddenBySection', !valueAttributes[key]);
-          }
         }
       }
     }
@@ -460,7 +457,7 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
           themeResource = App.SubSectionTab.find().findProperty('name', subsectionConditionName);
         }
         themeResource.set('isHiddenByConfig', !valueAttributes['visible']);
-        themeResource.get('configs').setEach('hiddenBySection', !valueAttributes['visible']);
+        themeResource.get('configs').setEach('isVisible', valueAttributes['visible']);
       }
     }
   },
