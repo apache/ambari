@@ -329,14 +329,15 @@ App.HostComponentView = Em.View.extend({
         return;
       }
 
-      var isContextPresent = command in App.HostComponentActionMap.getMap(self) && App.HostComponentActionMap.getMap(self)[command].context;
+      var commandMap = App.HostComponentActionMap.getMap(self)[command];
       customCommands.push({
         label: self.getCustomCommandLabel(command),
         service: component.get('serviceName'),
         hosts: hostComponent.get('hostName'),
-        context: isContextPresent ? App.HostComponentActionMap.getMap(self)[command].context : null,
+        context: (!!commandMap && !!commandMap.context) ? commandMap.context : null,
         component: component.get('componentName'),
-        command: command
+        command: command,
+        disabled: !!commandMap ? !!commandMap.disabled : false
       });
     });
 
