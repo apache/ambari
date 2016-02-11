@@ -2861,11 +2861,11 @@ Em.I18n.translations = {
   'admin.addHawqStandby.wizard.step4.task3.title': 'Start HAWQ Service',
   'admin.addHawqStandby.wizard.step4.notice.inProgress':'Please wait while HAWQ Standby Master is being deployed.',
   'admin.addHawqStandby.wizard.step4.notice.completed':'HAWQ Standby Master has been enabled successfully.',
-    'admin.activateHawqStandby.button.enable': 'Activate HAWQ Standby',
+  'admin.activateHawqStandby.button.enable': 'Activate HAWQ Standby',
   'admin.activateHawqStandby.wizard.header': 'Activate HAWQ Standby Wizard',
   'admin.activateHawqStandby.wizard.step1.header': 'Get Started',
   'admin.activateHawqStandby.wizard.step1.body':'This wizard will walk you through activating HAWQ Standby.' +
-      '<br/>Once activated, the HAWQ Standby will become the HAWQ Master and the old HAWQ master will be removed. ' +
+      '<br/>Once activated, HAWQ Standby will become HAWQ Master, and the previous HAWQ master will be removed. ' +
       'Users will be able to connect to HAWQ database using the new HAWQ Master.' +
       '<br/><br/><b>You should plan a cluster maintenance window and prepare for cluster downtime when ' +
       'activating HAWQ Standby. During this operation, HAWQ service will be stopped and started.</b>' +
@@ -2882,7 +2882,7 @@ Em.I18n.translations = {
       'HAWQ Standby will be activated to HAWQ Master.</div>',
   'admin.activateHawqStandby.wizard.step2.confirm.host.body':'<b>Review HAWQ Master & Standby role changes.</b>',
   'admin.activateHawqStandby.wizard.step2.confirmPopup.body': 'Do you wish to continue with activating HAWQ Standy? Please confirm, before proceeding as you will not be able to rollback from Ambari.',
-  'admin.activateHawqStandby.wizard.step3.header': 'Configure Components',
+  'admin.activateHawqStandby.wizard.step3.header': 'Finalize Setup',
   'admin.activateHawqStandby.wizard.step3.task0.title': 'Activate HAWQ Standby',
   'admin.activateHawqStandby.wizard.step3.task1.title': 'Stop HAWQ Service',
   'admin.activateHawqStandby.wizard.step3.task2.title': 'Reconfigure HAWQ',
@@ -2895,5 +2895,5 @@ Em.I18n.translations = {
       ' get back to a stable state. Are you sure you want to exit the wizard?',
   'admin.activateHawqStandby.wizard.step3.notice.inProgress':'Please wait while HAWQ Standby is being activated',
   'admin.activateHawqStandby.wizard.step3.notice.completed':'HAWQ Standby has been activated successfully.',
-  'admin.activateHawqStandby.wizard.step3.activateHawqStandbyCommand.context': "Execute HAWQ standby activate command"
+  'admin.activateHawqStandby.wizard.step3.activateHawqStandbyCommand.context': "Execute HAWQ Standby activate command"
 };
