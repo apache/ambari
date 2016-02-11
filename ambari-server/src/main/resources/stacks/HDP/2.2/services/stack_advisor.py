@@ -347,14 +347,11 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     putHiveSiteProperty("hive.exec.reducers.bytes.per.reducer", "67108864")
 
     # CBO
-    putHiveEnvProperty("cost_based_optimizer", "On")
-    if str(configurations["hive-env"]["properties"]["cost_based_optimizer"]).lower() == "on":
-      putHiveSiteProperty("hive.cbo.enable", "true")
-    else:
-      putHiveSiteProperty("hive.cbo.enable", "false")
-    hive_cbo_enable = configurations["hive-site"]["properties"]["hive.cbo.enable"]
-    putHiveSiteProperty("hive.stats.fetch.partition.stats", hive_cbo_enable)
-    putHiveSiteProperty("hive.stats.fetch.column.stats", hive_cbo_enable)
+    if "hive-site" in services["configurations"] and "hive.cbo.enable" in services["configurations"]["hive-site"]["properties"]:
+      hive_cbo_enable = services["configurations"]["hive-site"]["properties"]["hive.cbo.enable"]
+      putHiveSiteProperty("hive.stats.fetch.partition.stats", hive_cbo_enable)
+      putHiveSiteProperty("hive.stats.fetch.column.stats", hive_cbo_enable)
+
     putHiveSiteProperty("hive.compute.query.using.stats", "true")
 
     # Interactive Query

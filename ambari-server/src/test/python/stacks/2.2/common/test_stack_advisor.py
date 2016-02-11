@@ -983,7 +983,6 @@ class TestHDP22StackAdvisor(TestCase):
       },
       'hive-env': {
         'properties': {
-          'cost_based_optimizer': 'On',
           'hive_exec_orc_storage_strategy': 'SPEED',
           'hive_security_authorization': 'None',
           'hive_timeline_logging_enabled': 'true',
@@ -997,7 +996,6 @@ class TestHDP22StackAdvisor(TestCase):
           'hive.server2.tez.initialize.default.sessions': 'false',
           'hive.server2.tez.sessions.per.default.queue': '1',
           'hive.auto.convert.join.noconditionaltask.size': '268435456',
-          'hive.cbo.enable': 'true',
           'hive.compactor.initiator.on': 'false',
           'hive.compactor.worker.threads': '0',
           'hive.compute.query.using.stats': 'true',
@@ -1140,7 +1138,8 @@ class TestHDP22StackAdvisor(TestCase):
             "hive.server2.authentication.kerberos.keytab": "",
             "hive.server2.authentication.kerberos.principal": "",
             "hive.server2.authentication.pam.services": "",
-            "hive.server2.custom.authentication.class": ""
+            "hive.server2.custom.authentication.class": "",
+            "hive.cbo.enable": "true"
           }
         },
         "hiveserver2-site": {
@@ -1215,7 +1214,8 @@ class TestHDP22StackAdvisor(TestCase):
             "hive.server2.authentication.kerberos.keytab": "",
             "hive.server2.authentication.kerberos.principal": "",
             "hive.server2.authentication.pam.services": "",
-            "hive.server2.custom.authentication.class": ""
+            "hive.server2.custom.authentication.class": "",
+            "hive.cbo.enable": "true"
           }
         },
         "hiveserver2-site": {
@@ -1279,10 +1279,8 @@ class TestHDP22StackAdvisor(TestCase):
     #test recommendations
     services["configurations"]["hive-site"]["properties"]["hive.cbo.enable"] = "false"
     services["configurations"]["hive-env"]["properties"]["hive_security_authorization"] = "sqlstdauth"
-    services["changed-configurations"] = [{"type": "hive-site", "name": "hive.cbo.enable"},
-                                          {"type": "hive-env", "name": "hive_security_authorization"}]
+    services["changed-configurations"] = [{"type": "hive-env", "name": "hive_security_authorization"}]
     expected["hive-env"]["properties"]["hive_security_authorization"] = "sqlstdauth"
-    expected["hive-site"]["properties"]["hive.cbo.enable"] = "false"
     expected["hive-site"]["properties"]["hive.stats.fetch.partition.stats"]="false"
     expected["hive-site"]["properties"]["hive.stats.fetch.column.stats"]="false"
     expected["hive-site"]["properties"]["hive.security.authorization.enabled"]="true"
