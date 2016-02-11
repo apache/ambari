@@ -21,6 +21,12 @@ var batchUtils = require('utils/batch_scheduled_requests');
 var date = require('utils/date/date');
 
 /**
+ * @typedef {object} TaskRelationObject
+ * @property {string} type relation type 'service', 'component'
+ * @property {string} [value] optional value of relation e.g. name of component or service
+ */
+
+/**
  * Option for "filter by state" dropdown
  * @typedef {object} progressPopupCategoryObject
  * @property {string} value "all|pending|in progress|failed|completed|aborted|timedout"
@@ -573,6 +579,73 @@ App.HostProgressPopupBodyView = App.TableView.extend({
     this.set('sourceRequestScheduleId', event.context.get("sourceRequestScheduleId"));
     this.set('sourceRequestScheduleCommand', event.context.get('contextCommand'));
     this.refreshRequestScheduleInfo();
+  },
+
+  /**
+   * Navigate to host details logs tab with preset filter.
+   */
+  navigateToHostLogs: function() {
+    var relationType = this._determineRoleRelation(this.get('openedTask')),
+        hostModel = App.Host.find().findProperty('id', this.get('currentHost.name')),
+        queryParams = [],
+        model;
+
+    if (relationType.type === 'component') {
+      model = App.StackServiceComponent.find().findProperty('componentName', relationType.value);
+      queryParams.push('service_name=' + model.get('serviceName'));
+      queryParams.push('component_name=' + relationType.value);
+    }
+    if (relationType.type === 'service') {
+      queryParams.push('service_name=' + relationType.value);
+    }
+    App.router.transitionTo('main.hosts.hostDetails.logs', hostModel, { query: '?' + queryParams.join('&') });
+    if (this.get('parentView') && typeof this.get('parentView').onClose === 'function') this.get('parentView').onClose();
+  },
+
+  /**
+  /**
+  * Determines if opened task related to service or component.
+  *
+  * @return {boolean} <code>true</code> when relates to service or component
+  */
+  isLogsLinkVisible: function() {
+    if (!this.get('openedTask') || !this.get('openedTask.id')) return false;
+    return !!this._determineRoleRelation(this.get('openedTask'));
+  }.property('openedTask'),
+
+  /**
+   * @param  {wrappedTask} taskInfo
+   * @return {boolean|TaskRelationObject}
+   */
+  _determineRoleRelation: function(taskInfo) {
+    var foundComponentName,
+        foundServiceName,
+        componentNames = App.StackServiceComponent.find().mapProperty('componentName'),
+        serviceNames = App.StackService.find().mapProperty('serviceName'),
+        taskLog = this.get('currentHost.logTasks').findProperty('Tasks.id', Em.get(taskInfo, 'id')) || {},
+        role = Em.getWithDefault(taskLog, 'Tasks.role', false),
+        eqlFn = function(compare) {
+          return function(item) {
+            return item === compare;
+          };
+        };
+
+    if (!role) {
+      return false;
+    }
+    // component service check
+    if (role.endsWith('_SERVICE_CHECK')) {
+      role = role.replace('_SERVICE_CHECK', '');
+    }
+    foundComponentName = componentNames.filter(eqlFn(role))[0];
+    foundServiceName = serviceNames.filter(eqlFn(role))[0];
+    if (foundComponentName || foundServiceName) {
+      return {
+        type: foundComponentName ? 'component' : 'service',
+        value: foundComponentName || foundServiceName
+      }
+    }
+    return false;
   },
 
   /**

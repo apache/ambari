@@ -1861,13 +1861,13 @@ a:focus {
       float: right;
       a {
         cursor: pointer;
-      }
-      .task-detail-copy {
-        margin-right: 12px;
         float: left;
-      }
-      .task-detail-open-dialog {
-        float: right;
+        margin-right: 12px;
+
+        &:last-child {
+          margin-right: 0;
+          float: right;
+        }
       }
     }
   }
