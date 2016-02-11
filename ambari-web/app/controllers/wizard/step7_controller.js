@@ -685,10 +685,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
               themeResource.get('configProperties').forEach(function (_config) {
                 configs.forEach(function (item) {
                   if (item.name === _config.get('name') && item.filename === _config.get('fileName')) {
-                    // if config has already been hidden by condition with "subsection" or "subsectionTab" type
-                    // then ignore condition of "config" type
-                    if (configCondition.get('type') === 'config' && item.hiddenBySection) return false;
-                    item.hiddenBySection = !valueAttributes['visible'];
+                    item.isVisible = valueAttributes['visible'];
                   }
                 });
               }, this);

@@ -187,12 +187,6 @@ App.ServiceConfigProperty = Em.Object.extend({
   showAsTextBox: false,
 
   /**
-   * config is invisible since wrapper section is hidden
-   * @type {boolean}
-   */
-  hiddenBySection: false,
-
-  /**
    * @type {boolean}
    */
   recommendedValueExists: function () {
