@@ -51,8 +51,10 @@ class HawqStandby(Script):
     from hawqstatus import get_pid_file
     check_process_status(get_pid_file())
 
-  def activatestandby(self, env):
-    pass
+  def activate_standby(self, env):
+    import utils
+    utils.exec_hawq_operation(hawq_constants.ACTIVATE, "{0} -a -M {1} -v".format(hawq_constants.STANDBY, hawq_constants.FAST))
+
 
 if __name__ == "__main__":
     HawqStandby().execute()
