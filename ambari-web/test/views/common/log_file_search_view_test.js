@@ -32,8 +32,7 @@ describe('App.LogFileSearchView', function() {
         isIncluded: !!isIncluded
       });
     };
-
-    [
+    var cases = [
       {
         viewContent: {
           keywordsFilterValue: 'some_keyword'
