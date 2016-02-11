@@ -134,7 +134,7 @@
         <executions>
           <execution>
             <id>build-tarball</id>
-            <phase>${assemblyPhase}</phase>
+            <phase>package</phase>
             <goals>
               <goal>single</goal>
             </goals>
@@ -173,7 +173,7 @@
           </execution>
           <execution>
             <id>copy-repo-resources</id>
-            <phase>${assemblyPhase}</phase>
+            <phase>package</phase>
             <goals>
               <goal>copy-resources</goal>
             </goals>
@@ -217,7 +217,7 @@
         <executions>
           <execution>
             <id>rename-file</id>
-            <phase>${assemblyPhase}</phase>
+            <phase>package</phase>
             <goals>
               <goal>rename</goal>
             </goals>
