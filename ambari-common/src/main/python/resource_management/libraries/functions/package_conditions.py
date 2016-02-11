@@ -19,7 +19,8 @@ limitations under the License.
 Ambari Agent
 
 """
-__all__ = ["is_lzo_enabled", "should_install_phoenix", "should_install_ams_collector", "should_install_mysql", "should_install_mysl_connector"]
+__all__ = ["is_lzo_enabled", "should_install_phoenix", "should_install_ams_collector", "should_install_ams_grafana",
+           "should_install_mysql", "should_install_mysl_connector"]
 
 import os
 from resource_management.libraries.script import Script
@@ -40,6 +41,10 @@ def should_install_phoenix():
 def should_install_ams_collector():
   config = Script.get_config()
   return 'role' in config and config['role'] == "METRICS_COLLECTOR"
+
+def should_install_ams_grafana():
+  config = Script.get_config()
+  return 'role' in config and config['role'] == "METRICS_GRAFANA"
 
 def should_install_mysql():
   config = Script.get_config()

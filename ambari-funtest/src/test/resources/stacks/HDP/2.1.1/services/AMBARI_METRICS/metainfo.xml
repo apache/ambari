@@ -69,7 +69,7 @@
           <packages>
             <package>
               <name>ambari-metrics-collector</name>
-              <condition>package_chooser.should_install_ams_collector()</condition>
+              <condition>should_install_ams_collector</condition>
             </package>
             <package>
               <name>ambari-metrics-monitor</name>
