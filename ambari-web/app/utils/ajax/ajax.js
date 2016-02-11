@@ -1461,6 +1461,21 @@ var urls = {
     }
   },
 
+  'admin.kerberize.cluster.force': {
+    'type': 'PUT',
+    'real': '/clusters/{clusterName}?force_toggle_kerberos=true',
+    'mock': '/data/wizard/kerberos/kerberize_cluster.json',
+    'format': function (data) {
+      return {
+        data: JSON.stringify({
+          Clusters: {
+            security_type: "KERBEROS"
+          }
+        })
+      }
+    }
+  },
+
   'admin.unkerberize.cluster.skip': {
     'type': 'PUT',
     'real': '/clusters/{clusterName}?manage_kerberos_identities=false',
