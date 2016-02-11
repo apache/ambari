@@ -77,26 +77,6 @@
   </property>
 
   <property>
-    <name>cost_based_optimizer</name>
-    <display-name>Cost Based Optimizer</display-name>
-    <value>Off</value>
-    <value-attributes>
-      <type>value-list</type>
-      <entries>
-        <entry>
-          <value>On</value>
-          <label>On</label>
-        </entry>
-        <entry>
-          <value>Off</value>
-          <label>Off</label>
-        </entry>
-      </entries>
-      <selection-cardinality>1</selection-cardinality>
-    </value-attributes>
-  </property>
-
-  <property>
     <name>hive_security_authorization</name>
     <display-name>Choose Authorization</display-name>
     <value>None</value>
