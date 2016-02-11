@@ -301,7 +301,7 @@
     </file>
     <file>
       <fileMode>755</fileMode>
-      <source>target/classes/stacks/stack_advisor.py</source>
+      <source>src/main/resources/stacks/stack_advisor.py</source>
       <outputDirectory>/var/lib/ambari-server/resources/stacks</outputDirectory>
     </file>
     <file>
