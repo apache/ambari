@@ -2605,7 +2605,7 @@ public class BlueprintConfigurationProcessor {
    */
   private static class PasswordPropertyFilter implements PropertyFilter {
 
-    private static final Pattern PASSWORD_NAME_REGEX = Pattern.compile("\\S+PASSWORD", Pattern.CASE_INSENSITIVE);
+    private static final Pattern PASSWORD_NAME_REGEX = Pattern.compile("\\S+(PASSWORD|SECRET)", Pattern.CASE_INSENSITIVE);
 
     /**
      * Query to determine if a given property should be included in a collection of
