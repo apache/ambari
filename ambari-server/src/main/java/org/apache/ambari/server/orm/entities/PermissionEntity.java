@@ -57,8 +57,11 @@ public class PermissionEntity {
    * Admin permission name constants.
    */
   public static final String AMBARI_ADMINISTRATOR_PERMISSION_NAME = "AMBARI.ADMINISTRATOR";
-  public static final String CLUSTER_USER_PERMISSION_NAME = "CLUSTER.USER";
   public static final String CLUSTER_ADMINISTRATOR_PERMISSION_NAME = "CLUSTER.ADMINISTRATOR";
+  public static final String CLUSTER_OPERATOR_PERMISSION_NAME = "CLUSTER.OPERATOR";
+  public static final String SERVICE_ADMINISTRATOR_PERMISSION_NAME = "SERVICE.ADMINISTRATOR";
+  public static final String SERVICE_OPERATOR_PERMISSION_NAME = "SERVICE.OPERATOR";
+  public static final String CLUSTER_USER_PERMISSION_NAME = "CLUSTER.USER";
   public static final String VIEW_USER_PERMISSION_NAME = "VIEW.USER";
 
   /**
@@ -102,6 +105,11 @@ public class PermissionEntity {
   )
   private Collection<RoleAuthorizationEntity> authorizations;
 
+  /**
+   * The permission's explicit sort order
+   */
+  @Column(name = "sort_order", nullable = false)
+  private Integer sortOrder = 1;
 
   // ----- PermissionEntity ---------------------------------------------------
 
@@ -195,7 +203,28 @@ public class PermissionEntity {
     this.authorizations = authorizations;
   }
 
-// ----- Object overrides --------------------------------------------------
+  /**
+   * Gets the explicit sort order value for this PermissionEntity
+   * <p/>
+   * This value is used to help explicitly order permission entities. For example, order from most
+   * permissive to least permissive.
+   *
+   * @return the explict sorting order value
+   */
+  public Integer getSortOrder() {
+    return sortOrder;
+  }
+
+  /**
+   * Sets the explicit sort order value for this PermissionEntity
+   *
+   * @param sortOrder a sorting order value
+   */
+  public void setSortOrder(Integer sortOrder) {
+    this.sortOrder = sortOrder;
+  }
+
+  // ----- Object overrides --------------------------------------------------
 
   @Override
   public boolean equals(Object o) {
@@ -208,6 +237,7 @@ public class PermissionEntity {
         !(permissionName != null ? !permissionName.equals(that.permissionName) : that.permissionName != null) &&
         !(permissionLabel != null ? !permissionLabel.equals(that.permissionLabel) : that.permissionLabel != null) &&
         !(resourceType != null ? !resourceType.equals(that.resourceType) : that.resourceType != null) &&
+        !(sortOrder != null ? !sortOrder.equals(that.sortOrder) : that.sortOrder != null) &&
         !(authorizations != null ? !authorizations.equals(that.authorizations) : that.authorizations != null);
   }
 
@@ -217,6 +247,7 @@ public class PermissionEntity {
     result = 31 * result + (permissionName != null ? permissionName.hashCode() : 0);
     result = 31 * result + (permissionLabel != null ? permissionLabel.hashCode() : 0);
     result = 31 * result + (resourceType != null ? resourceType.hashCode() : 0);
+    result = 31 * result + (sortOrder != null ? sortOrder.hashCode() : 0);
     result = 31 * result + (authorizations != null ? authorizations.hashCode() : 0);
     return result;
   }

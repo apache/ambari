@@ -522,6 +522,7 @@ CREATE TABLE adminpermission (
   permission_name VARCHAR(255) NOT NULL,
   resource_type_id NUMBER(10) NOT NULL,
   permission_label VARCHAR(255),
+  sort_order SMALLINT DEFAULT 1 NOT NULL,
   PRIMARY KEY(permission_id));
 
 CREATE TABLE roleauthorization (
@@ -656,7 +657,7 @@ CREATE TABLE setting (
   name VARCHAR(255) NOT NULL UNIQUE,
   setting_type VARCHAR(255) NOT NULL,
   content CLOB NOT NULL,
-  updated_by VARCHAR(255) NOT NULL DEFAULT '_db',
+  updated_by VARCHAR(255) DEFAULT '_db' NOT NULL,
   update_timestamp NUMBER(19) NOT NULL,
   PRIMARY KEY (id)
 );
@@ -1013,20 +1014,20 @@ insert into adminprincipal (principal_id, principal_type_id)
 insert into users(user_id, principal_id, user_name, user_password)
 select 1,1,'admin','538916f8943ec225d97a9a86a2c6ec0818c1cd400e09e03b660fdaaec4af29ddbb6f2b1033b81b00' from dual;
 
-insert into adminpermission(permission_id, permission_name, resource_type_id, permission_label)
-  select 1, 'AMBARI.ADMINISTRATOR', 1, 'Administrator' from dual
+insert into adminpermission(permission_id, permission_name, resource_type_id, permission_label, sort_order)
+  select 1, 'AMBARI.ADMINISTRATOR', 1, 'Administrator', 1 from dual
   union all
-  select 2, 'CLUSTER.USER', 2, 'Cluster User' from dual
+  select 2, 'CLUSTER.USER', 2, 'Cluster User', 6 from dual
   union all
-  select 3, 'CLUSTER.ADMINISTRATOR', 2, 'Cluster Administrator' from dual
+  select 3, 'CLUSTER.ADMINISTRATOR', 2, 'Cluster Administrator', 2 from dual
   union all
-  select 4, 'VIEW.USER', 3, 'View User' from dual
+  select 4, 'VIEW.USER', 3, 'View User', 7 from dual
   union all
-  select 5, 'CLUSTER.OPERATOR', 2, 'Cluster Operator' from dual
+  select 5, 'CLUSTER.OPERATOR', 2, 'Cluster Operator', 3 from dual
   union all
-  select 6, 'SERVICE.ADMINISTRATOR', 2, 'Service Administrator' from dual
+  select 6, 'SERVICE.ADMINISTRATOR', 2, 'Service Administrator', 4 from dual
   union all
-  select 7, 'SERVICE.OPERATOR', 2, 'Service Operator' from dual;
+  select 7, 'SERVICE.OPERATOR', 2, 'Service Operator', 5 from dual;
 
 INSERT INTO roleauthorization(authorization_id, authorization_name)
   SELECT 'VIEW.USE', 'Use View' FROM dual UNION ALL
