@@ -125,12 +125,12 @@
   </property>
   <property>
     <name>SYNC_LDAP_USERNAME_CASE_CONVERSION</name>
-    <value>lower</value>
+    <value>none</value>
     <description>possible values:  none, lower, upper</description>
   </property>
   <property>
     <name>SYNC_LDAP_GROUPNAME_CASE_CONVERSION</name>
-    <value>lower</value>
+    <value>none</value>
     <description>possible values:  none, lower, upper</description>
   </property>
   <property>

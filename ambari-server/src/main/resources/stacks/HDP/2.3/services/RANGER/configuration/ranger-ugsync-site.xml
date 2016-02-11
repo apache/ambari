@@ -296,13 +296,13 @@
 
   <property>
     <name>ranger.usersync.ldap.username.caseconversion</name>
-    <value>lower</value>
+    <value>none</value>
     <description>User name case conversion</description>
   </property>
 
   <property>
     <name>ranger.usersync.ldap.groupname.caseconversion</name>
-    <value>lower</value>
+    <value>none</value>
     <description>Group name case conversion</description>
   </property>
 

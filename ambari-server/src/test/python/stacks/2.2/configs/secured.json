@@ -109,10 +109,10 @@
         }, 
         "usersync-properties": {
             "SYNC_INTERVAL": "1", 
-            "SYNC_LDAP_USERNAME_CASE_CONVERSION": "lower", 
+            "SYNC_LDAP_USERNAME_CASE_CONVERSION": "none",
             "SYNC_LDAP_USER_SEARCH_FILTER": "-", 
             "SYNC_LDAP_URL": "ldap://localhost:389", 
-            "SYNC_LDAP_GROUPNAME_CASE_CONVERSION": "lower", 
+            "SYNC_LDAP_GROUPNAME_CASE_CONVERSION": "none",
             "SYNC_LDAP_USER_SEARCH_SCOPE": "sub", 
             "SYNC_LDAP_BIND_PASSWORD": "admin321", 
             "SYNC_LDAP_USER_NAME_ATTRIBUTE": "cn", 
