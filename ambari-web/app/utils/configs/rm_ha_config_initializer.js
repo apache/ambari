@@ -89,7 +89,7 @@ App.RmHaConfigInitializer = App.HaConfigInitializerClass.create(App.HostsBasedIn
    */
   _initRmHaHostsWithPort: function (configProperty, localDB, dependencies, initializer) {
     var rmHosts = localDB.masterComponentHosts.filterProperty('component', 'RESOURCEMANAGER').getEach('hostName');
-    for (rmHost in rmHosts) {
+    for (var rmHost in rmHosts) {
       rmHosts[rmHost] = rmHosts[rmHost] + ":" + initializer.port;
     }
     var value = rmHosts.join(',');

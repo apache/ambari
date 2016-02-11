@@ -23,6 +23,9 @@ App.AddHostView = Em.View.extend(App.WizardMenuMixin, {
 
   templateName: require('templates/main/host/add'),
 
+  /**
+   * @type {boolean}
+   */
   isLoaded: false,
 
   willInsertElement: function () {

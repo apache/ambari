@@ -54,9 +54,7 @@ App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
   /**
    * Host metrics panel not displayed when Metrics service (ex:Ganglia) is not in stack definition.
    */
-  isNoHostMetricsService: function() {
-    return !App.get('services.hostMetrics').length;
-  }.property('App.services.hostMetrics'),
+  isNoHostMetricsService: Em.computed.equal('App.services.hostMetrics.length', 0),
 
   /**
    * Message for "restart" block
@@ -242,11 +240,10 @@ App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
     var clientComponents = App.StackServiceComponent.find().filterProperty('isClient');
     var installedServices = this.get('installedServices');
     var installedClients = this.get('clients').mapProperty('componentName');
-    var installableClients = clientComponents.filter(function(component) {
+    return clientComponents.filter(function(component) {
       // service for current client is installed but client isn't installed on current host
       return installedServices.contains(component.get('serviceName')) && !installedClients.contains(component.get('componentName'));
     });
-    return installableClients;
   }.property('content.hostComponents.length', 'installedServices.length'),
 
   notInstalledClientComponents: function () {
@@ -280,7 +277,7 @@ App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
       });
     }
     return components;
-  }.property('content.hostComponents.length', 'installableClientComponents', 'App.components.addableToHost.@each'),
+  }.property('content.hostComponents.length', 'App.components.addableToHost.@each'),
 
   /**
    * Formatted with <code>$.timeago</code> value of host's last heartbeat

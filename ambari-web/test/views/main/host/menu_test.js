@@ -89,4 +89,45 @@ describe('App.MainHostMenuView', function () {
     });
   });
 
+  describe("#updateAlertCounter()", function() {
+
+    it("CRITICAL alerts", function() {
+      view.setProperties({
+        host: Em.Object.create({
+          criticalWarningAlertsCount: 1,
+          alertsSummary: Em.Object.create({
+            CRITICAL: 1,
+            WARNING: 0
+          })
+        })
+      });
+      view.updateAlertCounter();
+      expect(view.get('content').findProperty('name', 'alerts').get('badgeText')).to.equal('1');
+      expect(view.get('content').findProperty('name', 'alerts').get('badgeClasses')).to.equal('label alerts-crit-count');
+    });
+
+    it("WARNING alerts", function() {
+      view.setProperties({
+        host: Em.Object.create({
+          criticalWarningAlertsCount: 1,
+          alertsSummary: Em.Object.create({
+            CRITICAL: 0,
+            WARNING: 1
+          })
+        })
+      });
+      view.updateAlertCounter();
+      expect(view.get('content').findProperty('name', 'alerts').get('badgeText')).to.equal('1');
+      expect(view.get('content').findProperty('name', 'alerts').get('badgeClasses')).to.equal('label alerts-warn-count');
+    });
+  });
+
+  describe("#deactivateChildViews()", function() {
+    it("active attr should be empty", function() {
+      view.set('_childViews', [Em.Object.create({active: 'active'})]);
+      view.deactivateChildViews();
+      expect(view.get('_childViews').mapProperty('active')).to.eql(['']);
+    });
+  });
+
 });

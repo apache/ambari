@@ -867,8 +867,8 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    * @returns {Object[]} existing configs + additional config parameters in yarn-client.xml
    */
   addHawqConfigsOnRMHa: function(configs) {
-    rmHost1 = configs.findProperty('id', 'yarn.resourcemanager.hostname.rm1__yarn-site').value ;
-    rmHost2 = configs.findProperty('id', 'yarn.resourcemanager.hostname.rm2__yarn-site').value ;
+    var rmHost1 = configs.findProperty('id', 'yarn.resourcemanager.hostname.rm1__yarn-site').value ;
+    var rmHost2 = configs.findProperty('id', 'yarn.resourcemanager.hostname.rm2__yarn-site').value ;
     var yarnConfigToBeAdded = [
       {
         name: 'yarn.resourcemanager.ha',
