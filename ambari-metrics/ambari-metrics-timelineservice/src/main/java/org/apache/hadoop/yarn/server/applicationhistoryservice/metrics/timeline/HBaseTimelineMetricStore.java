@@ -143,14 +143,16 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
         aggregatorDailyThread.start();
       }
 
-      int initDelay = configuration.getTimelineMetricsServiceWatcherInitDelay();
-      int delay = configuration.getTimelineMetricsServiceWatcherDelay();
-      // Start the watchdog
-      executorService.scheduleWithFixedDelay(
-        new TimelineMetricStoreWatcher(this, configuration), initDelay, delay,
-        TimeUnit.SECONDS);
-      LOG.info("Started watchdog for timeline metrics store with initial " +
-        "delay = " + initDelay + ", delay = " + delay);
+      if (!configuration.isTimelineMetricsServiceWatcherDisabled()) {
+        int initDelay = configuration.getTimelineMetricsServiceWatcherInitDelay();
+        int delay = configuration.getTimelineMetricsServiceWatcherDelay();
+        // Start the watchdog
+        executorService.scheduleWithFixedDelay(
+          new TimelineMetricStoreWatcher(this, configuration), initDelay, delay,
+          TimeUnit.SECONDS);
+        LOG.info("Started watchdog for timeline metrics store with initial " +
+          "delay = " + initDelay + ", delay = " + delay);
+      }
 
       isInitialized = true;
     }

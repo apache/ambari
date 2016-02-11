@@ -58,6 +58,7 @@
     <display-name>JDBC connect string for root user</display-name>
     <description>JDBC connect string - auto populated based on other values. This is to be used by root user</description>
     <value>jdbc:mysql://localhost</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
@@ -187,6 +188,7 @@
   <property>
     <name>xasecure.audit.destination.hdfs.dir</name>
     <value>hdfs://localhost:8020</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <display-name>Destination HDFS Directory</display-name>
     <description>HDFS folder to write audit to, make sure all service user has required permissions. This property is overridable at service level</description>
     <depends-on>

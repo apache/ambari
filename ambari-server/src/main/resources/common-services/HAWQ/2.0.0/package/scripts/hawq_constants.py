@@ -27,6 +27,7 @@ YARN = "yarn"
 CLUSTER = "cluster"
 IMMEDIATE = "immediate"
 FAST = "fast"
+ACTIVATE = "activate"
 
 # Users
 root_user = "root"

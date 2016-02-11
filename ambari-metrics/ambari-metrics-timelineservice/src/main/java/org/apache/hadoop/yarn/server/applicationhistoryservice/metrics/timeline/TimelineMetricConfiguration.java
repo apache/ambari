@@ -181,6 +181,9 @@ public class TimelineMetricConfiguration {
   public static final String HANDLER_THREAD_COUNT =
     "timeline.metrics.service.handler.thread.count";
 
+  public static final String WATCHER_DISABLED =
+    "timeline.metrics.service.watcher.disabled";
+
   public static final String WATCHER_INITIAL_DELAY =
     "timeline.metrics.service.watcher.initial.delay";
 
@@ -271,6 +274,13 @@ public class TimelineMetricConfiguration {
       return Integer.parseInt(metricsConf.get(HANDLER_THREAD_COUNT, "20"));
     }
     return 20;
+  }
+
+  public boolean isTimelineMetricsServiceWatcherDisabled() {
+    if (metricsConf != null) {
+      return Boolean.parseBoolean(metricsConf.get(WATCHER_DISABLED, "false"));
+    }
+    return false;
   }
 
   public int getTimelineMetricsServiceWatcherInitDelay() {

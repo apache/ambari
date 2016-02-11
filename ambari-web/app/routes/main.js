@@ -265,13 +265,16 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       }),
 
       logs: Em.Route.extend({
-        route: '/logs',
+        route: '/logs:query',
         connectOutlets: function (router, context) {
           if (App.get('supports.logSearch')) {
             router.get('mainHostDetailsController').connectOutlet('mainHostLogs')
           } else {
             router.transitionTo('summary');
           }
+        },
+        serialize: function(router, params) {
+          return this.serializeQueryParams(router, params, 'mainHostDetailsController');
         }
       }),
 
@@ -525,6 +528,14 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       connectOutlets: function (router) {
         router.set('mainAdminController.category', "serviceAutoStart");
         router.get('mainAdminController').connectOutlet('mainAdminServiceAutoStart');
+      },
+      exitRoute: function (router, context, callback) {
+        var controller = router.get('mainAdminServiceAutoStartController');
+        if (!controller.get('isSaveDisabled')) {
+          controller.showSavePopup(callback);
+        } else {
+          callback();
+        }
       }
     }),
 

@@ -88,7 +88,6 @@ class RecoveryManager:
     self.allowed_desired_states = [self.STARTED, self.INSTALLED]
     self.allowed_current_states = [self.INIT, self.INSTALLED]
     self.enabled_components = []
-    self.disabled_components = []
     self.statuses = {}
     self.__status_lock = threading.RLock()
     self.__command_lock = threading.RLock()
@@ -107,7 +106,7 @@ class RecoveryManager:
 
     self.actions = {}
 
-    self.update_config(6, 60, 5, 12, recovery_enabled, auto_start_only, "", "")
+    self.update_config(6, 60, 5, 12, recovery_enabled, auto_start_only, "")
 
     pass
 
@@ -213,19 +212,12 @@ class RecoveryManager:
     pass
 
   """
-  Whether specific components are enabled/disabled for recovery. Being enabled takes
-  precedence over being disabled. When specific components are enabled then only
-  those components are enabled. When specific components are disabled then all of
-  the other components are enabled.
+  Whether specific components are enabled for recovery.
   """
   def configured_for_recovery(self, component):
-    if len(self.disabled_components) == 0 and len(self.enabled_components) == 0:
-      return True
-    if len(self.disabled_components) > 0 and component not in self.disabled_components \
-        and len(self.enabled_components) == 0:
-      return True
     if len(self.enabled_components) > 0 and component in self.enabled_components:
       return True
+
     return False
 
   def requires_recovery(self, component):
@@ -547,8 +539,8 @@ class RecoveryManager:
       "maxCount" : 10,
       "windowInMinutes" : 60,
       "retryGap" : 0,
-      "disabledComponents" : "a,b",
-      "enabledComponents" : "c,d"}
+      "components" : "a,b"
+      }
     """
 
     recovery_enabled = False
@@ -558,7 +550,6 @@ class RecoveryManager:
     retry_gap = 5
     max_lifetime_count = 12
     enabled_components = ""
-    disabled_components = ""
 
 
     if reg_resp and "recoveryConfig" in reg_resp:
@@ -578,17 +569,16 @@ class RecoveryManager:
       if 'maxLifetimeCount' in config:
         max_lifetime_count = self._read_int_(config['maxLifetimeCount'], max_lifetime_count)
 
-      if 'enabledComponents' in config:
-        enabled_components = config['enabledComponents']
-      if 'disabledComponents' in config:
-        disabled_components = config['disabledComponents']
+      if 'components' in config:
+        enabled_components = config['components']
+
     self.update_config(max_count, window_in_min, retry_gap, max_lifetime_count, recovery_enabled, auto_start_only,
-                       enabled_components, disabled_components)
+                       enabled_components)
     pass
 
 
   def update_config(self, max_count, window_in_min, retry_gap, max_lifetime_count, recovery_enabled,
-                    auto_start_only, enabled_components, disabled_components):
+                    auto_start_only, enabled_components):
     """
     Update recovery configuration, recovery is disabled if configuration values
     are not correct
@@ -619,7 +609,6 @@ class RecoveryManager:
     self.retry_gap_in_sec = retry_gap * 60
     self.auto_start_only = auto_start_only
     self.max_lifetime_count = max_lifetime_count
-    self.disabled_components = []
     self.enabled_components = []
 
     self.allowed_desired_states = [self.STARTED, self.INSTALLED]
@@ -635,19 +624,13 @@ class RecoveryManager:
         if len(component.strip()) > 0:
           self.enabled_components.append(component.strip())
 
-    if disabled_components is not None and len(disabled_components) > 0:
-      components = disabled_components.split(",")
-      for component in components:
-        if len(component.strip()) > 0:
-          self.disabled_components.append(component.strip())
-
     self.recovery_enabled = recovery_enabled
     if self.recovery_enabled:
       logger.info(
         "==> Auto recovery is enabled with maximum %s in %s minutes with gap of %s minutes between and"
-        " lifetime max being %s. Enabled components - %s and Disabled components - %s",
+        " lifetime max being %s. Enabled components - %s",
         self.max_count, self.window_in_min, self.retry_gap, self.max_lifetime_count,
-        ', '.join(self.enabled_components), ', '.join(self.disabled_components))
+        ', '.join(self.enabled_components))
     pass
 
 

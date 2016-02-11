@@ -311,7 +311,9 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, App.ExportMetricsMixin, {
         self.set('parentView.isExportMenuHidden', true);
       });
       this.setYAxisFormatter();
-      this.loadData();
+      if (!arguments.length || this.get('parentView.data.length')) {
+        this.loadData();
+      }
       var self = this;
       Em.run.next(function () {
         if (self.get('isPreview')) {

@@ -168,19 +168,31 @@
             </div>
         </div>
     </div>
-  {{!metrics}}
-  {{#unless view.isNoHostMetricsService}}
-      <div class="span6">
+    <div class="span6">
+      {{!metrics}}
+      {{#unless view.isNoHostMetricsService}}
         <div class="box">
           <div class="box-header">
             <h4>{{t hosts.host.summary.hostMetrics}}</h4>
             {{view view.timeRangeListView}}
           </div>
           <div>
-           {{view App.MainHostMetricsView contentBinding="view.content"}}
+            {{view App.MainHostMetricsView contentBinding="view.content"}}
           </div>
         </div>
-      </div>
+      {{/unless}}
+
+      {{!logs metrics}}
+      {{#if App.supports.logSearch}}
+        <div class="box">
+          <div class="box-header">
+            <h4>{{t hosts.host.summary.hostLogMetrics}}</h4>
+          </div>
+          <div>
+            {{view App.MainHostLogMetrics contentBinding="view.content"}}
+          </div>
+        </div>
+      {{/if}}
     </div>
-  {{/unless}}
+  </div>
 </div>

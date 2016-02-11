@@ -221,14 +221,14 @@ public class PhoenixHBaseAccessor {
 
     String encoding = metricsConf.get(HBASE_ENCODING_SCHEME, DEFAULT_ENCODING);
     String compression = metricsConf.get(HBASE_COMPRESSION_SCHEME, DEFAULT_TABLE_COMPRESSION);
-    String precisionTtl = metricsConf.get(PRECISION_TABLE_TTL, "86400");           //1 day
-    String hostMinTtl = metricsConf.get(HOST_MINUTE_TABLE_TTL, "604800");          //7 days
-    String hostHourTtl = metricsConf.get(HOST_HOUR_TABLE_TTL, "2592000");          //30 days
-    String hostDailyTtl = metricsConf.get(HOST_DAILY_TABLE_TTL, "31536000");       //1 year
-    String clusterSecTtl = metricsConf.get(CLUSTER_SECOND_TABLE_TTL, "2592000");     //7 days
-    String clusterMinTtl = metricsConf.get(CLUSTER_MINUTE_TABLE_TTL, "7776000");   //30 days
-    String clusterHourTtl = metricsConf.get(CLUSTER_HOUR_TABLE_TTL, "31536000");   //1 year
-    String clusterDailyTtl = metricsConf.get(CLUSTER_DAILY_TABLE_TTL, "63072000"); //2 years
+    String precisionTtl = getDaysInSeconds(metricsConf.get(PRECISION_TABLE_TTL, "1"));           //1 day
+    String hostMinTtl = getDaysInSeconds(metricsConf.get(HOST_MINUTE_TABLE_TTL, "7"));           //7 days
+    String hostHourTtl = getDaysInSeconds(metricsConf.get(HOST_HOUR_TABLE_TTL, "30"));           //30 days
+    String hostDailyTtl = getDaysInSeconds(metricsConf.get(HOST_DAILY_TABLE_TTL, "365"));        //1 year
+    String clusterSecTtl = getDaysInSeconds(metricsConf.get(CLUSTER_SECOND_TABLE_TTL, "7"));     //7 days
+    String clusterMinTtl = getDaysInSeconds(metricsConf.get(CLUSTER_MINUTE_TABLE_TTL, "30"));    //30 days
+    String clusterHourTtl = getDaysInSeconds(metricsConf.get(CLUSTER_HOUR_TABLE_TTL, "365"));    //1 year
+    String clusterDailyTtl = getDaysInSeconds(metricsConf.get(CLUSTER_DAILY_TABLE_TTL, "730"));  //2 years
 
     try {
       LOG.info("Initializing metrics schema...");
@@ -1254,5 +1254,10 @@ public class PhoenixHBaseAccessor {
     }
 
     return metadataMap;
+  }
+
+  private String getDaysInSeconds(String daysString) {
+    double days = Double.valueOf(daysString.trim());
+    return String.valueOf((int)(days*86400));
   }
 }

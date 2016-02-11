@@ -43,6 +43,7 @@ limitations under the License.
   <property>
     <name>hive.zookeeper.quorum</name>
     <value>localhost:2181</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>List of ZooKeeper servers to talk to. This is needed for: 1.
       Read/write locks - when hive.lock.manager is set to
       org.apache.hadoop.hive.ql.lockmgr.zookeeper.ZooKeeperHiveLockManager,
@@ -114,6 +115,7 @@ limitations under the License.
   <property>
     <name>hive.cluster.delegation.token.store.zookeeper.connectString</name>
     <value>localhost:2181</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>The ZooKeeper token store connect string.</description>
   </property>
 
@@ -345,6 +347,7 @@ limitations under the License.
   <property>
     <name>hive.metastore.uris</name>
     <value>thrift://localhost:9083</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>Thrift URI for the remote metastore. Used by metastore client to connect to remote metastore.</description>
   </property>
 
@@ -363,6 +366,7 @@ limitations under the License.
   <property>
     <name>javax.jdo.option.ConnectionURL</name>
     <value>jdbc:mysql://localhost/hive?createDatabaseIfNotExist=true</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <display-name>Database URL</display-name>
     <description>JDBC connect string for a JDBC metastore</description>
     <value-attributes>
@@ -467,12 +471,6 @@ limitations under the License.
     <name>hive.cbo.enable</name>
     <value>true</value>
     <description>Flag to control enabling Cost Based Optimizations using Calcite framework.</description>
-    <depends-on>
-      <property>
-        <type>hive-env</type>
-        <name>cost_based_optimizer</name>
-      </property>
-    </depends-on>
   </property>
 
   <property>
@@ -816,10 +814,6 @@ limitations under the License.
     </value-attributes>
     <depends-on>
       <property>
-        <type>hive-env</type>
-        <name>cost_based_optimizer</name>
-      </property>
-      <property>
         <type>hive-site</type>
         <name>hive.cbo.enable</name>
       </property>
@@ -850,10 +844,6 @@ limitations under the License.
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
     <depends-on>
-      <property>
-        <type>hive-env</type>
-        <name>cost_based_optimizer</name>
-      </property>
       <property>
         <type>hive-site</type>
         <name>hive.cbo.enable</name>

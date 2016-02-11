@@ -48,20 +48,8 @@ public class RecoveryConfig {
   @SerializedName("maxLifetimeCount")
   private String maxLifetimeCount;
 
-  @SerializedName("enabledComponents")
+  @SerializedName("components")
   private String enabledComponents;
-
-  @SerializedName("disabledComponents")
-  private String disabledComponents;
-
-
-  public String getDisabledComponents() {
-    return disabledComponents;
-  }
-
-  public void setDisabledComponents(String disabledComponents) {
-    this.disabledComponents = disabledComponents;
-  }
 
   public String getEnabledComponents() {
     return enabledComponents;
@@ -118,7 +106,6 @@ public class RecoveryConfig {
     rc.setRetryGap(conf.getNodeRecoveryRetryGap());
     rc.setType(conf.getNodeRecoveryType());
     rc.setWindowInMinutes(conf.getNodeRecoveryWindowInMin());
-    rc.setDisabledComponents(conf.getDisabledComponents());
     rc.setEnabledComponents(conf.getEnabledComponents());
     return rc;
   }
@@ -131,8 +118,7 @@ public class RecoveryConfig {
     buffer.append(", windowInMinutes=").append(windowInMinutes);
     buffer.append(", retryGap=").append(retryGap);
     buffer.append(", maxLifetimeCount=").append(maxLifetimeCount);
-    buffer.append(", disabledComponents=").append(disabledComponents);
-    buffer.append(", enabledComponents=").append(enabledComponents);
+    buffer.append(", components=").append(enabledComponents);
     buffer.append('}');
     return buffer.toString();
   }

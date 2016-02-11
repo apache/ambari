@@ -28,7 +28,7 @@ App.MainAdminServiceAutoStartView = Em.View.extend({
    */
   switcherValue: false,
 
-  clusterConfigs: null,
+  savedRecoveryEnabled: false,
 
   didInsertElement: function () {
     var self = this;
@@ -41,12 +41,14 @@ App.MainAdminServiceAutoStartView = Em.View.extend({
         }
       ];
       App.router.get('configurationController').getConfigsByTags(tag).done(function (data) {
-        self.set('clusterConfigs', data[0].properties);
-        self.set('switcherValue', self.get('clusterConfigs.recovery_enabled') === 'true');
+        self.set('controller.clusterConfigs', data[0].properties);
+        self.set('switcherValue', data[0].properties.recovery_enabled === 'true');
+        self.set('savedRecoveryEnabled', self.get('switcherValue'));
         // plugin should be initiated after applying binding for switcherValue
         Em.run.later('sync', function() {
           self.initSwitcher();
         }.bind(self), 10);
+        self.get('controller').loadComponentsConfigs();
       });
     });
   },
@@ -58,8 +60,8 @@ App.MainAdminServiceAutoStartView = Em.View.extend({
    */
   updateClusterConfigs: function (state){
     this.set('switcherValue', state);
-    this.set('clusterConfigs.recovery_enabled', '' + state);
-    this.get('controller').saveClusterConfigs(this.get('clusterConfigs'));
+    this.set('controller.clusterConfigs.recovery_enabled', '' + state);
+    this.set('controller.valueChanged', this.get('savedRecoveryEnabled') !== state);
   },
 
   /**
@@ -70,7 +72,7 @@ App.MainAdminServiceAutoStartView = Em.View.extend({
   initSwitcher: function () {
     var self = this;
     if (this.$()) {
-      var switcher = this.$("input:eq(0)").bootstrapSwitch({
+      this.$("input:eq(0)").bootstrapSwitch({
         onText: Em.I18n.t('common.enabled'),
         offText: Em.I18n.t('common.disabled'),
         offColor: 'default',

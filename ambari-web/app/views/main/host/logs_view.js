@@ -67,6 +67,10 @@ App.MainHostLogsView = App.TableView.extend({
   serviceNameFilterView: filters.createSelectView({
     column: 1,
     fieldType: 'filter-input-width',
+    didInsertElement: function() {
+      this.setValue(Em.getWithDefault(this, 'controller.serializedQuery.service_name', ''));
+      this._super();
+    },
     content: function() {
       return [{
         value: '',
@@ -86,6 +90,10 @@ App.MainHostLogsView = App.TableView.extend({
   componentNameFilterView: filters.createSelectView({
     column: 2,
     fieldType: 'filter-input-width',
+    didInsertElement: function() {
+      this.setValue(Em.getWithDefault(this, 'controller.serializedQuery.component_name', ''));
+      this._super();
+    },
     content: function() {
       var hostName = this.get('parentView').get('host.hostName'),
         hostComponents = App.HostComponent.find().filterProperty('hostName', hostName),
@@ -108,6 +116,10 @@ App.MainHostLogsView = App.TableView.extend({
   fileExtensionsFilter: filters.createSelectView({
     column: 3,
     fieldType: 'filter-input-width',
+    didInsertElement: function() {
+      this.setValue(Em.getWithDefault(this, 'controller.serializedQuery.file_extension', ''));
+      this._super();
+    },
     content: function() {
       return [{
         value: '',

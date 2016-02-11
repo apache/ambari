@@ -242,6 +242,23 @@ Ember.TextArea.reopen({
   attributeBindings: ['readonly']
 });
 
+/**
+ * Simply converts query string to object.
+ *
+ * @param  {string} queryString query string e.g. '?param1=value1&param2=value2'
+ * @return {object} converted object
+ */
+function parseQueryParams(queryString) {
+  if (!queryString) {
+    return {};
+  }
+  return queryString.replace(/^\?/, '').split('&').map(decodeURIComponent)
+    .reduce(function(p, c) {
+      var keyVal = c.split('=');
+      p[keyVal[0]] = keyVal[1];
+      return p;
+    }, {});
+};
 
 Ember.Route.reopen({
   /**
@@ -257,6 +274,35 @@ Ember.Route.reopen({
    */
   exitRoute: function (router, context, callback) {
     callback();
+  },
+
+  /**
+   * Query Params serializer. This method should be used inside <code>serialize</code> method.
+   * You need to specify `:query` dynamic sygment in your route's <code>route</code> attribute
+   * e.g. Em.Route.extend({ route: '/login:query'}) and return result of this method.
+   * This method will set <code>serializedQuery</code> property to specified controller by name.
+   * For concrete example see `app/routes/main.js`.
+   *
+   * @example
+   *  queryParams: Em.Route.extend({
+   *   route: '/queryDemo:query',
+   *   serialize: function(route, params) {
+   *     return this.serializeQueryParams(route, params, 'controllerNameToSetQueryObject');
+   *   }
+   *  });
+   *  // now when navigated to http://example.com/#/queryDemo?param1=value1&param2=value2
+   *  // App.router.get('controllerNameToSetQueryObject').get('serializedQuery')
+   *  // will return { param1: 'value1', param2: 'value2' }
+   *
+   * @param  {Em.Router} router router instance passed to <code>serialize</code> method
+   * @param  {object} params dynamic segment passed to <code>seriazlie</code>
+   * @param  {string} controllerName name of the controller to set `serializedQuery` as result
+   * @return {object}
+   */
+  serializeQueryParams: function(router, params, controllerName) {
+    var controller = router.get(controllerName);
+    controller.set('serializedQuery', parseQueryParams(params ? params.query : ''));
+    return params || { query: ''};
   }
 });
 

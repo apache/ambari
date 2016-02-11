@@ -183,9 +183,11 @@ public class TestHeartbeatHandler {
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
 
+  private InMemoryDefaultTestModule module;
+
   @Before
   public void setup() throws Exception {
-    InMemoryDefaultTestModule module = new InMemoryDefaultTestModule(){
+    module = new InMemoryDefaultTestModule(){
 
       @Override
       protected void configure() {
@@ -856,10 +858,22 @@ public class TestHeartbeatHandler {
     Clusters fsm = clusters;
     HeartBeatHandler handler = new HeartBeatHandler(fsm, new ActionQueue(), am,
                                                     injector);
-    clusters.addHost(DummyHostname1);
+    Cluster cluster = getDummyCluster();
+    Service hdfs = cluster.addService(HDFS);
+    hdfs.persist();
+    hdfs.addServiceComponent(DATANODE).persist();
+    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1).persist();
+    hdfs.addServiceComponent(NAMENODE).persist();
+    hdfs.getServiceComponent(NAMENODE).addServiceComponentHost(DummyHostname1).persist();
+    hdfs.addServiceComponent(HDFS_CLIENT).persist();
+    hdfs.getServiceComponent(HDFS_CLIENT).addServiceComponentHost(DummyHostname1).persist();
+
     Host hostObject = clusters.getHost(DummyHostname1);
     hostObject.setIPv4("ipv4");
     hostObject.setIPv6("ipv6");
+
+    // add recovery.enabled_components to ambari configuration
+    module.getProperties().put("recovery.enabled_components", "NAMENODE,DATANODE");
 
     Register reg = new Register();
     HostInfo hi = new HostInfo();
@@ -877,6 +891,7 @@ public class TestHeartbeatHandler {
     assertEquals(rc.getMaxLifetimeCount(), "10");
     assertEquals(rc.getRetryGap(), "2");
     assertEquals(rc.getWindowInMinutes(), "23");
+    assertEquals(rc.getEnabledComponents(), "NAMENODE,DATANODE");
 
     rc = RecoveryConfig.getRecoveryConfig(new Configuration());
     assertEquals(rc.getMaxCount(), "6");
@@ -884,6 +899,65 @@ public class TestHeartbeatHandler {
     assertEquals(rc.getMaxLifetimeCount(), "12");
     assertEquals(rc.getRetryGap(), "5");
     assertEquals(rc.getWindowInMinutes(), "60");
+    assertEquals(rc.getEnabledComponents(), "");
+
+    // clean up
+    module.getProperties().remove("recovery.enabled_components");
+  }
+
+  //
+  // Same as testRegistrationRecoveryConfig but will test
+  // maintenance mode set to ON for a service component host
+  //
+  @Test
+  public void testRegistrationRecoveryConfigMaintenanceMode()
+          throws AmbariException, InvalidStateTransitionException {
+    ActionManager am = getMockActionManager();
+    replay(am);
+    Clusters fsm = clusters;
+    HeartBeatHandler handler = new HeartBeatHandler(fsm, new ActionQueue(), am,
+            injector);
+    Cluster cluster = getDummyCluster();
+    Service hdfs = cluster.addService(HDFS);
+    hdfs.persist();
+    hdfs.addServiceComponent(DATANODE).persist();
+    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1).persist();
+    hdfs.addServiceComponent(NAMENODE).persist();
+    hdfs.getServiceComponent(NAMENODE).addServiceComponentHost(DummyHostname1).persist();
+    hdfs.addServiceComponent(HDFS_CLIENT).persist();
+    hdfs.getServiceComponent(HDFS_CLIENT).addServiceComponentHost(DummyHostname1).persist();
+
+    Host hostObject = clusters.getHost(DummyHostname1);
+    hostObject.setIPv4("ipv4");
+    hostObject.setIPv6("ipv6");
+
+    // add recovery.enabled_components to ambari configuration
+    module.getProperties().put("recovery.enabled_components", "NAMENODE,DATANODE,HDFS_CLIENT");
+
+    // set maintenance mode on HDFS_CLIENT on host1 to true
+    ServiceComponentHost schHdfsClient = hdfs.getServiceComponent(HDFS_CLIENT).getServiceComponentHost(DummyHostname1);
+    schHdfsClient.setMaintenanceState(MaintenanceState.ON);
+
+    Register reg = new Register();
+    HostInfo hi = new HostInfo();
+    hi.setHostName(DummyHostname1);
+    hi.setOS(DummyOsType);
+    reg.setHostname(DummyHostname1);
+    reg.setCurrentPingPort(DummyCurrentPingPort);
+    reg.setHardwareProfile(hi);
+    reg.setAgentVersion(metaInfo.getServerVersion());
+    reg.setPrefix(Configuration.PREFIX_DIR);
+    RegistrationResponse rr = handler.handleRegistration(reg);
+    RecoveryConfig rc = rr.getRecoveryConfig();
+    assertEquals(rc.getMaxCount(), "4");
+    assertEquals(rc.getType(), "FULL");
+    assertEquals(rc.getMaxLifetimeCount(), "10");
+    assertEquals(rc.getRetryGap(), "2");
+    assertEquals(rc.getWindowInMinutes(), "23");
+    assertEquals(rc.getEnabledComponents(), "NAMENODE,DATANODE"); // HDFS_CLIENT is in maintenance mode
+
+    // clean up
+    module.getProperties().remove("recovery.enabled_components");
   }
 
   @Test
