@@ -18,7 +18,6 @@
 package org.apache.ambari.server.security.authentication;
 
 import java.io.IOException;
-import java.util.Date;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
@@ -62,7 +61,7 @@ public class AmbariAuthenticationFilter extends BasicAuthenticationFilter {
     if (AuthorizationHelper.getAuthenticatedName() == null && (header == null || !header.startsWith("Basic "))) {
       AuditEvent loginFailedAuditEvent = LoginFailedAuditEvent.builder()
         .withRemoteIp(RequestUtils.getRemoteAddress(request))
-        .withTimestamp(new DateTime(new Date()))
+        .withTimestamp(DateTime.now())
         .withReason("Authentication required")
         .withUserName(null)
         .build();
@@ -76,7 +75,7 @@ public class AmbariAuthenticationFilter extends BasicAuthenticationFilter {
     AuditEvent loginSucceededAuditEvent = LoginSucceededAuditEvent.builder()
       .withRemoteIp(RequestUtils.getRemoteAddress(request))
       .withUserName(authResult.getName())
-      .withTimestamp(new DateTime(new Date()))
+      .withTimestamp(DateTime.now())
       .withRoles(AuthorizationHelper.getPermissionLabels(authResult))
       .withPrivileges(AuthorizationHelper.getAuthorizationNames(authResult))
       .build();
@@ -95,7 +94,7 @@ public class AmbariAuthenticationFilter extends BasicAuthenticationFilter {
     }
     AuditEvent loginFailedAuditEvent = LoginFailedAuditEvent.builder()
       .withRemoteIp(RequestUtils.getRemoteAddress(request))
-      .withTimestamp(new DateTime(new Date()))
+      .withTimestamp(DateTime.now())
       .withReason("Invalid username/password combination")
       .withUserName(username)
       .build();

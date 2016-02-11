@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.api.services;
 
-import java.util.Date;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -58,7 +57,7 @@ public class LogoutService {
 
   private void auditLog(HttpServletRequest servletRequest) {
     LogoutAuditEvent logoutEvent = LogoutAuditEvent.builder()
-      .withTimestamp(new DateTime(new Date()))
+      .withTimestamp(DateTime.now())
       .withRemoteIp(RequestUtils.getRemoteAddress(servletRequest))
       .withUserName(AuthorizationHelper.getAuthenticatedName())
       .build();

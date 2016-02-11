@@ -141,7 +141,7 @@ public class AmbariAuthorizationFilter implements Filter {
           .withRemoteIp(RequestUtils.getRemoteAddress(httpRequest))
           .withRoles(AuthorizationHelper.getPermissionLabels(authentication))
           .withPrivileges(AuthorizationHelper.getAuthorizationNames(authentication))
-          .withTimestamp(new DateTime(new Date())).build();
+          .withTimestamp(DateTime.now()).build();
         auditLogger.log(loginSucceededAuditEvent);
       } else {
         // for view access, we should redirect to the Ambari login
@@ -212,7 +212,7 @@ public class AmbariAuthorizationFilter implements Filter {
           .withRemoteIp(RequestUtils.getRemoteAddress(httpRequest))
           .withResourcePath(httpRequest.getRequestURI())
           .withUserName(AuthorizationHelper.getAuthenticatedName())
-          .withTimestamp(new DateTime(new Date()))
+          .withTimestamp(DateTime.now())
           .build();
         auditLogger.log(auditEvent);
 
@@ -230,7 +230,7 @@ public class AmbariAuthorizationFilter implements Filter {
           .withRemoteIp(RequestUtils.getRemoteAddress(httpRequest))
           .withResourcePath(httpRequest.getRequestURI())
           .withUserName(AuthorizationHelper.getAuthenticatedName())
-          .withTimestamp(new DateTime(new Date()))
+          .withTimestamp(DateTime.now())
           .build();
         auditLogger.log(auditEvent);
       }
