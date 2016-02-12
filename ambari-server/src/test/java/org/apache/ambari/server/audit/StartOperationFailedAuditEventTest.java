@@ -48,7 +48,7 @@ public class StartOperationFailedAuditEventTest {
     String actualAuditMessage = evnt.getAuditMessage();
 
     // Then
-    String expectedAuditMessage = String.format("User(%s), RemoteIp(%s), RequestDetails(%s), Status(Request failed to be processed !), Reason(%s)", testUserName, testRemoteIp, testRequestDetails, testReason);
+    String expectedAuditMessage = String.format("User(%s), RemoteIp(%s), Operation(%s), Status(Request failed to be processed !), Reason(%s)", testUserName, testRemoteIp, testRequestDetails, testReason);
 
     assertThat(actualAuditMessage, equalTo(expectedAuditMessage));
   }

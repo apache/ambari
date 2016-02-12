@@ -18,12 +18,14 @@
 
 package org.apache.ambari.server.audit.request.eventcreator;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.Result;
+import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.audit.AuditEvent;
 import org.apache.ambari.server.audit.StartOperationFailedAuditEvent;
 import org.apache.ambari.server.audit.StartOperationSucceededAuditEvent;
@@ -53,14 +55,24 @@ public class OperationEventCreator implements RequestAuditEventCreator {
     requestTypes.add(Request.Type.DELETE);
   }
 
+  /** {@inheritDoc} */
   @Override
   public Set<Request.Type> getRequestTypes() {
     return requestTypes;
   }
 
+  /** {@inheritDoc} */
   @Override
-  public Resource.Type getResourceType() {
-    return Resource.Type.HostComponent;
+  public Set<Resource.Type> getResourceTypes() {
+    // null makes this default
+    return Collections.singleton(Resource.Type.HostComponent);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public Set<ResultStatus> getResultStatuses() {
+    // null makes this default
+    return null;
   }
 
   @Override

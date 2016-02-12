@@ -24,11 +24,11 @@ import java.util.Set;
 
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.Result;
+import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.audit.AuditEvent;
 import org.apache.ambari.server.audit.RequestAuditEvent;
 import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.utils.RequestUtils;
 import org.joda.time.DateTime;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
@@ -59,8 +59,15 @@ public class DefaultEventCreator implements RequestAuditEventCreator {
 
   /** {@inheritDoc} */
   @Override
-  public Resource.Type getResourceType() {
-    // null makes this creator as default
+  public Set<Resource.Type> getResourceTypes() {
+    // null makes this default
+    return null;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public Set<ResultStatus> getResultStatuses() {
+    // null makes this default
     return null;
   }
 

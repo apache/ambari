@@ -73,7 +73,7 @@ public class RequestAuditLoggerTest {
 
   @Test
   public void defaultEventCreatorPostTest() {
-    testCreator(AllPostAndPutCreator.class, Request.Type.POST, new HostComponentResourceDefinition(), ResultStatus.STATUS.OK, null);
+    testCreator(AllPostAndPutCreator.class, Request.Type.POST, new BlueprintResourceDefinition(), ResultStatus.STATUS.OK, null);
   }
 
   @Test

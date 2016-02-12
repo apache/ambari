@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.ambari.server.api.services.Request;
+import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.controller.spi.Resource;
 
 public class AllPostAndPutCreator extends AbstractBaseCreator {
@@ -33,7 +34,12 @@ public class AllPostAndPutCreator extends AbstractBaseCreator {
   }
 
   @Override
-  public Resource.Type getResourceType() {
-    return null; // default for getRequestTypes
+  public Set<Resource.Type> getResourceTypes() {
+    return null;
+  }
+
+  @Override
+  public Set<ResultStatus> getResultStatuses() {
+    return null;
   }
 }

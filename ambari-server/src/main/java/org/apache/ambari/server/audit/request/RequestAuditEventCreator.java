@@ -22,6 +22,7 @@ import java.util.Set;
 
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.Result;
+import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.audit.AuditEvent;
 import org.apache.ambari.server.controller.spi.Resource;
 
@@ -38,9 +39,14 @@ public interface RequestAuditEventCreator {
   Set<Request.Type> getRequestTypes();
 
   /**
-   * @return the {@link org.apache.ambari.server.controller.spi.Resource.Type} that is handled by this creator
+   * @return the {@link org.apache.ambari.server.controller.spi.Resource.Type}s that is handled by this creator
    */
-  Resource.Type getResourceType();
+  Set<Resource.Type> getResourceTypes();
+
+  /**
+   * @return the {@link ResultStatus}es that is handled by this creator
+   */
+  Set<ResultStatus> getResultStatuses();
 
   /**
    * Creates and {@link AuditEvent}

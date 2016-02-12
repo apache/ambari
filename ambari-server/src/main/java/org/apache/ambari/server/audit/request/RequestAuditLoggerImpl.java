@@ -19,12 +19,11 @@
 package org.apache.ambari.server.audit.request;
 
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.Result;
+import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.audit.AuditEvent;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -39,10 +38,16 @@ import com.google.inject.Singleton;
 public class RequestAuditLoggerImpl implements RequestAuditLogger {
 
   /**
-   * Container for the plugins grouped by {@link org.apache.ambari.server.api.services.Request.Type} and {@link org.apache.ambari.server.controller.spi.Resource.Type}
-   * Note that a single plugin can belong to multiple {@link org.apache.ambari.server.api.services.Request.Type}
+   * Priorities for searching the proper creator
    */
-  private Map<Request.Type, Map<Resource.Type, RequestAuditEventCreator>> creators = new HashMap<Request.Type, Map<Resource.Type, RequestAuditEventCreator>>();
+  private static final int REQUEST_TYPE_PRIORITY = 1;
+  private static final int RESULT_STATUS_PRIORITY = 2;
+  private static final int RESOURCE_TYPE_PRIORITY = 4;
+
+  /**
+   * Container for the {@link RequestAuditEventCreator}
+   */
+  private Set<RequestAuditEventCreator> creators;
 
   /**
    * Audit logger that receives {@link AuditEvent}s and does the actual logging
@@ -57,30 +62,7 @@ public class RequestAuditLoggerImpl implements RequestAuditLogger {
   @Inject
   public RequestAuditLoggerImpl(AuditLogger auditLogger, Set<RequestAuditEventCreator> creatorSet) {
     this.auditLogger = auditLogger;
-    fillCreators(creatorSet);
-  }
-
-  /**
-   * Fills up {@link RequestAuditLoggerImpl#creators}
-   * @param creatorSet
-   */
-  private void fillCreators(Set<RequestAuditEventCreator> creatorSet) {
-    for(RequestAuditEventCreator creator: creatorSet) {
-      for(Request.Type rt: creator.getRequestTypes()) {
-        createMapEntryIfNeeded(rt);
-        creators.get(rt).put(creator.getResourceType(), creator);
-      }
-    }
-  }
-
-  /**
-   * Creates a map entry for a {@link Request.Type} in {@link RequestAuditLoggerImpl#creators} if missing
-   * @param rt
-   */
-  private void createMapEntryIfNeeded(Request.Type rt) {
-    if(!creators.containsKey(rt)) {
-      creators.put(rt, new HashMap<Resource.Type, RequestAuditEventCreator>());
-    }
+    this.creators = creatorSet;
   }
 
   /**
@@ -92,29 +74,72 @@ public class RequestAuditLoggerImpl implements RequestAuditLogger {
   public void log(Request request, Result result) {
     Resource.Type resourceType = request.getResource().getResourceDefinition().getType();
     Request.Type requestType = request.getRequestType();
+    ResultStatus resultStatus = result.getStatus();
 
-    RequestAuditEventCreator creator = selectCreator(resourceType, requestType);
-    if(creator != null) {
+    RequestAuditEventCreator creator = selectCreator(resourceType, resultStatus, requestType);
+    if (creator != null) {
       AuditEvent ae = creator.createAuditEvent(request, result);
       auditLogger.log(ae);
     }
   }
 
   /**
-   * Select the proper creator.
-   * If there is a match, the found creator is returned.
-   * If no match, the default creator is returned.
-   * If there is no default creator, then null is returned.
+   * Select the proper creator. Priority order: resourceType > resultStatus > requestType
+   * The most matching creator is returned
+   * If there is no creator found, then null is returned.
    * @param resourceType
+   * @param requestType
+   * @param resultStatus
+   * @return
+   */
+  private RequestAuditEventCreator selectCreator(Resource.Type resourceType, ResultStatus resultStatus, Request.Type requestType) {
+
+    RequestAuditEventCreator selected = null;
+    Integer priority = -1;
+
+    for (RequestAuditEventCreator creator : creators) {
+      Integer creatorPriority = getPriority(creator, resourceType, resultStatus, requestType);
+      if (creatorPriority != null && priority < creatorPriority) {
+        priority = creatorPriority;
+        selected = creator;
+      }
+    }
+    return selected;
+  }
+
+  /**
+   * Calculates the creator priority for the actual resouce type, result status and request type
+   * @param creator
+   * @param resourceType
+   * @param resultStatus
    * @param requestType
    * @return
    */
-  private RequestAuditEventCreator selectCreator(Resource.Type resourceType, Request.Type requestType) {
-    if(creators.containsKey(requestType) && creators.get(requestType).containsKey(resourceType)) {
-      return creators.get(requestType).get(resourceType);
+  private Integer getPriority(RequestAuditEventCreator creator, Resource.Type resourceType, ResultStatus resultStatus, Request.Type requestType) {
+    Integer priority = 0;
+
+    if(isIncompatible(creator, resourceType, resultStatus, requestType))
+    {
+      return null;
     }
 
-    // default creator if no match is found, or null when there is no default creator
-    return creators.containsKey(requestType) ? creators.get(requestType).get(null) : null;
+    priority += creator.getRequestTypes() != null && creator.getRequestTypes().contains(requestType) ? REQUEST_TYPE_PRIORITY : 0;
+    priority += creator.getResultStatuses() != null && creator.getResultStatuses().contains(resultStatus) ? RESULT_STATUS_PRIORITY : 0;
+    priority += creator.getResourceTypes() != null && creator.getResourceTypes().contains(resourceType) ? RESOURCE_TYPE_PRIORITY : 0;
+    return priority;
+  }
+
+  /**
+   * Checks if the creator is a possible candidate for creating audit log event for the request
+   * @param creator
+   * @param resourceType
+   * @param resultStatus
+   * @param requestType
+   * @return
+   */
+  private boolean isIncompatible(RequestAuditEventCreator creator, Resource.Type resourceType, ResultStatus resultStatus, Request.Type requestType) {
+    return creator.getRequestTypes() != null && !creator.getRequestTypes().contains(requestType) ||
+      creator.getResultStatuses() != null && !creator.getResultStatuses().contains(resultStatus) ||
+      creator.getResourceTypes() != null && !creator.getResourceTypes().contains(resourceType);
   }
 }

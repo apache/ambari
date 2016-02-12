@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.Set;
 
 import org.apache.ambari.server.api.services.Request;
+import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.controller.spi.Resource;
 
 public class PutHostComponentCreator extends AbstractBaseCreator {
@@ -32,7 +33,12 @@ public class PutHostComponentCreator extends AbstractBaseCreator {
   }
 
   @Override
-  public Resource.Type getResourceType() {
-    return Resource.Type.HostComponent;
+  public Set<Resource.Type> getResourceTypes() {
+    return Collections.singleton(Resource.Type.HostComponent);
+  }
+
+  @Override
+  public Set<ResultStatus> getResultStatuses() {
+    return null;
   }
 }
