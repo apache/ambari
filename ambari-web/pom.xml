@@ -32,6 +32,7 @@
   <properties>
     <ambari.dir>${project.parent.parent.basedir}</ambari.dir>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <nodemodules.dir>node_modules</nodemodules.dir> <!-- specify -Dnodemodules.dir option to reduce ambari-web build time by not re-downloading npm modules -->
   </properties>
   <build>
     <plugins>
@@ -100,7 +101,7 @@
             <configuration>
               <executable>${executable.rmdir}</executable>
               <workingDirectory>${basedir}</workingDirectory>
-              <commandlineArgs>${args.rm.clean} public node_modules</commandlineArgs>
+              <commandlineArgs>${args.rm.clean} public ${nodemodules.dir}</commandlineArgs>
               <successCodes>
                 <successCode>0</successCode>
                 <successCode>1</successCode>
