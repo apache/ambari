@@ -41,7 +41,7 @@
   </property>
   <property>
     <name>hbase_regionserver_heapsize</name>
-    <value>512</value>
+    <value>756</value>
     <description>
         HBase RegionServer Heap Size. In embedded mode, total heap size is
         sum of master and regionserver heap sizes.
@@ -63,7 +63,7 @@
   </property>
   <property>
     <name>regionserver_xmn_size</name>
-    <value>256</value>
+    <value>128</value>
     <description>HBase RegionServer maximum value for young generation heap size.</description>
     <value-attributes>
       <type>int</type>
@@ -78,7 +78,7 @@
   </property>
   <property>
     <name>hbase_master_xmn_size</name>
-    <value>256</value>
+    <value>102</value>
     <description>
       HBase Master maximum value for young generation heap size.
     </description>

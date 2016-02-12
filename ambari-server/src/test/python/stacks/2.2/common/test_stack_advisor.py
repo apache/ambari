@@ -1986,7 +1986,8 @@ class TestHDP22StackAdvisor(TestCase):
       "ams-hbase-env": {
         "properties": {
           "hbase_master_xmn_size": "128",
-          "hbase_master_heapsize": "512"
+          "hbase_master_heapsize": "512",
+          "hbase_regionserver_heapsize": "512"
         }
       },
       "ams-env": {
