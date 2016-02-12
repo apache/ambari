@@ -348,6 +348,10 @@ public class AmbariLdapDataPopulatorTest {
     assertTrue(result.getMembershipToRemove().isEmpty());
     assertTrue(result.getUsersToBecomeLdap().isEmpty());
     assertTrue(result.getUsersToBeRemoved().isEmpty());
+    assertTrue(result.getGroupsProcessedInternal().contains("group1"));
+    assertTrue(result.getGroupsProcessedInternal().contains("group2"));
+    assertTrue(!result.getGroupsProcessedInternal().contains("xgroup1"));
+    assertTrue(!result.getGroupsProcessedInternal().contains("xgroup2"));
     verify(populator.loadLdapTemplate(), populator);
   }
 

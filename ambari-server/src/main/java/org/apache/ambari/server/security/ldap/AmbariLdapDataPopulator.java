@@ -485,8 +485,11 @@ public class AmbariLdapDataPopulator {
         batchInfo.getGroupsToBecomeLdap().add(groupName);
       }
       internalGroupsMap.remove(groupName);
+      batchInfo.getGroupsProcessedInternal().add(groupName);
     } else {
-      batchInfo.getGroupsToBeCreated().add(groupName);
+      if (!batchInfo.getGroupsProcessedInternal().contains(groupName)) {
+        batchInfo.getGroupsToBeCreated().add(groupName);
+      }
     }
   }
 

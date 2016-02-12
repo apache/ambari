@@ -27,6 +27,7 @@ public class LdapBatchDto {
   private final Set<String> groupsToBecomeLdap = new HashSet<String>();
   private final Set<String> groupsToBeCreated = new HashSet<String>();
   private final Set<String> groupsToBeRemoved = new HashSet<String>();
+  private final Set<String> groupsProcessedInternal = new HashSet<>();
   private final Set<String> usersToBecomeLdap = new HashSet<String>();
   private final Set<String> usersToBeCreated = new HashSet<String>();
   private final Set<String> usersToBeRemoved = new HashSet<String>();
@@ -63,5 +64,9 @@ public class LdapBatchDto {
 
   public Set<String> getUsersToBeRemoved() {
     return usersToBeRemoved;
+  }
+
+  public Set<String> getGroupsProcessedInternal() {
+    return groupsProcessedInternal;
   }
 }
