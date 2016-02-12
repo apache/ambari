@@ -1004,7 +1004,6 @@ describe('App.WizardController', function () {
             isRequiredByAgent: true,
             hasInitialValue: true,
             isRequired: true,
-            group: {name: 'group'},
             showLabel: true,
             category: 'some_category'
           })
@@ -1038,10 +1037,10 @@ describe('App.WizardController', function () {
       })
     ]});
 
-    it('should save configs to content.serviceConfigProperties', function () {
+    it('should save configs from default config group to content.serviceConfigProperties', function () {
       c.saveServiceConfigProperties(stepController);
       var saved = c.get('content.serviceConfigProperties');
-      expect(saved.length).to.equal(2);
+      expect(saved.length).to.equal(1);
       expect(saved[0].category).to.equal('some_category');
     });
 

@@ -858,19 +858,20 @@ App.config = Em.Object.create({
 
   loadServiceConfigGroupOverridesSuccess: function (data, opt, params) {
     data.items.forEach(function (config) {
+      var hostOverrideValue, hostOverrideIsFinal;
       var group = params.typeTagToGroupMap[config.type + "///" + config.tag];
       var properties = config.properties;
       for (var prop in properties) {
         var fileName = this.getOriginalFileName(config.type);
         var serviceConfig = !!params.configKeyToConfigMap[fileName] ? params.configKeyToConfigMap[fileName][prop] : false;
-        var hostOverrideValue = this.formatPropertyValue(serviceConfig, properties[prop]);
-        var hostOverrideIsFinal = !!(config.properties_attributes && config.properties_attributes.final && config.properties_attributes.final[prop]);
         if (serviceConfig) {
           // Value of this property is different for this host.
+          hostOverrideValue = this.formatPropertyValue(serviceConfig, properties[prop]);
+          hostOverrideIsFinal = !!(config.properties_attributes && config.properties_attributes.final && config.properties_attributes.final[prop]);
           if (!Em.get(serviceConfig, 'overrides')) Em.set(serviceConfig, 'overrides', []);
           serviceConfig.overrides.pushObject({value: hostOverrideValue, group: group, isFinal: hostOverrideIsFinal});
         } else {
-          params.serviceConfigs.push(this.createCustomGroupConfig(prop, config, group));
+          params.serviceConfigs.push(this.createCustomGroupConfig(prop, config.type, config.properties[prop], group));
         }
       }
     }, this);
@@ -882,15 +883,16 @@ App.config = Em.Object.create({
    * can be created and assigned to non-default config group.
    *
    * @param {String} propertyName - name of the property
-   * @param {Object} config - config info
+   * @param {String} filename - config filename
+   * @param {String} value - property value
    * @param {Em.Object} group - config group to set
    * @param {Boolean} isEditable
    * @return {Object}
    **/
-  createCustomGroupConfig: function (propertyName, config, group, isEditable) {
-    var propertyObject = this.createDefaultConfig(propertyName, group.get('service.serviceName'), this.getOriginalFileName(config.type), false, {
-      savedValue: config.properties[propertyName],
-      value: config.properties[propertyName],
+  createCustomGroupConfig: function (propertyName, filename, value, group, isEditable) {
+    var propertyObject = this.createDefaultConfig(propertyName, group.get('service.serviceName'), this.getOriginalFileName(filename), false, {
+      savedValue: value,
+      value: value,
       group: group,
       isEditable: isEditable !== false,
       isOverridable: false

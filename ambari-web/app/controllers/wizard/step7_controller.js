@@ -531,6 +531,9 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       if (Em.isNone(serviceConfigProperty.get('isOverridable'))) {
         serviceConfigProperty.set('isOverridable', true);
       }
+      if (!Em.isNone(serviceConfigProperty.get('group'))) {
+        serviceConfigProperty.get('group.properties').pushObject(serviceConfigProperty);
+      }
       this._updateOverridesForConfig(serviceConfigProperty, component);
       this._updateIsEditableFlagForConfig(serviceConfigProperty, defaultGroupSelected);
 
@@ -1266,23 +1269,28 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
           var readyGroup = App.ConfigGroup.create(configGroup);
           var wrappedProperties = [];
           readyGroup.get('properties').forEach(function (propertyData) {
-            var parentSCP = service.configs.filterProperty('filename', propertyData.filename).findProperty('name', propertyData.name);
-            var overriddenSCP = App.ServiceConfigProperty.create(parentSCP);
+            var overriddenSCP, parentSCP = service.configs.filterProperty('filename', propertyData.filename).findProperty('name', propertyData.name);
+            if (parentSCP) {
+              overriddenSCP = App.ServiceConfigProperty.create(parentSCP);
+              overriddenSCP.set('parentSCP', parentSCP);
+            } else {
+              overriddenSCP = App.config.createCustomGroupConfig(propertyData.name, propertyData.filename, propertyData.value, readyGroup, true, false);
+              this.get('stepConfigs').findProperty('serviceName', service.serviceName).get('configs').pushObject(overriddenSCP);
+            }
             overriddenSCP.set('isOriginalSCP', false);
-            overriddenSCP.set('parentSCP', parentSCP);
             overriddenSCP.set('group', readyGroup);
             overriddenSCP.setProperties(propertyData);
             wrappedProperties.pushObject(App.ServiceConfigProperty.create(overriddenSCP));
-          });
+          }, this);
           wrappedProperties.setEach('group', readyGroup);
           readyGroup.set('properties', wrappedProperties);
           readyGroup.set('parentConfigGroup', defaultGroup);
           serviceGroups.pushObject(readyGroup);
-        });
+        }, this);
         defaultGroup.set('childConfigGroups', serviceGroups);
         serviceGroups.pushObject(defaultGroup);
       }
-    });
+    }, this);
   },
 
   /**
@@ -1363,6 +1371,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    * @method _setOverrides
    */
   _setOverrides: function (config, overrides) {
+    if (config.get('group')) return config;
     var selectedGroup = this.get('selectedConfigGroup'),
       overrideToAdd = this.get('overrideToAdd'),
       configOverrides = overrides.filterProperty('name', config.get('name'));

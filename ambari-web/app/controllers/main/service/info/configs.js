@@ -485,7 +485,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
               }
             } else {
               var isEditable = self.get('canEdit') && configGroup.get('name') == self.get('selectedConfigGroup.name');
-              allConfigs.push(App.config.createCustomGroupConfig(prop, config, configGroup, isEditable));
+              allConfigs.push(App.config.createCustomGroupConfig(prop, config.type, config.properties[prop], configGroup, isEditable));
             }
           }
         });

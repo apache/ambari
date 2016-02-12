@@ -870,11 +870,13 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
       installedServiceNamesMap[name] = true;
     });
     stepController.get('stepConfigs').forEach(function (_content) {
-
       if (_content.serviceName === 'YARN') {
         _content.set('configs', App.config.textareaIntoFileConfigs(_content.get('configs'), 'capacity-scheduler.xml'));
       }
       _content.get('configs').forEach(function (_configProperties) {
+        if (!Em.isNone(_configProperties.get('group'))) {
+          return false;
+        }
         var configProperty = App.config.createDefaultConfig(
           _configProperties.get('name'),
           _configProperties.get('serviceName'),
