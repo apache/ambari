@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
+ * <p/>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p/>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -33,6 +33,8 @@ public class RequestAuditEvent extends AbstractUserAuditEvent {
 
     private String url;
 
+    private String operation;
+
     @Override
     protected RequestAuditEvent newAuditEvent() {
       return new RequestAuditEvent(this);
@@ -45,6 +47,12 @@ public class RequestAuditEvent extends AbstractUserAuditEvent {
     @Override
     protected void buildAuditMessage(StringBuilder builder) {
       super.buildAuditMessage(builder);
+      if (operation != null) {
+        builder
+          .append(", Operation(")
+          .append(operation)
+          .append(")");
+      }
       builder
         .append(", RequestType(")
         .append(requestType)
@@ -57,7 +65,7 @@ public class RequestAuditEvent extends AbstractUserAuditEvent {
         .append(resultStatus.getStatus())
         .append(")");
 
-      if(resultStatus.isErrorState()) {
+      if (resultStatus.isErrorState()) {
         builder.append(", Reason(")
           .append(resultStatus.getMessage())
           .append(")");
@@ -96,9 +104,21 @@ public class RequestAuditEvent extends AbstractUserAuditEvent {
 
       return this;
     }
+
+    /**
+     * Sets the operation to be added to the audit event.
+     * @param operation operation to be added to the audit event.
+     * @return this builder
+     */
+    public RequestAuditEventBuilder withOperation(String operation) {
+      this.operation = operation;
+
+      return this;
+    }
   }
 
-  protected RequestAuditEvent() {}
+  protected RequestAuditEvent() {
+  }
 
   /**
    * {@inheritDoc}
