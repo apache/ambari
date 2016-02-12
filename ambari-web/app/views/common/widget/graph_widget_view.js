@@ -211,13 +211,17 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, App.ExportMetricsMixin, {
       step = this.get('timeStep'),
       timeRange = this.get('timeRange'),
       result = [],
-      targetView = this.get('exportTargetView.isPopup') ? this.get('exportTargetView') : this.get('parentView'),
-      customStartTime = targetView.get('customStartTime'),
-      customEndTime = targetView.get('customEndTime');
-    if (timeRange === 0 && !Em.isNone(customStartTime) && !Em.isNone(customEndTime)) {
-      // Custom start and end time is specified by user
-      toSeconds = customEndTime / 1000;
-      fromSeconds = customStartTime / 1000;
+      targetView = this.get('exportTargetView.isPopup') ? this.get('exportTargetView') : this.get('parentView');
+
+    //if view destroyed then no metrics should be asked
+    if (Em.isNone(targetView)) return result;
+
+    if (timeRange === 0 &&
+      !Em.isNone(targetView.get('customStartTime')) &&
+      !Em.isNone(targetView.get('customEndTime'))) {
+      // Custom start/end time is specified by user
+      toSeconds = targetView.get('customEndTime') / 1000;
+      fromSeconds = targetView.get('customStartTime') / 1000;
     } else {
       // Preset time range is specified by user
       toSeconds = Math.round(App.dateTime() / 1000);

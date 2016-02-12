@@ -626,7 +626,7 @@ describe('App.WidgetLoadAggregator', function () {
         return {
           done: Em.K,
           fail: Em.K,
-          complete: Em.K
+          always: Em.K
         }
       },
       state: 'inDOM'
