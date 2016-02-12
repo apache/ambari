@@ -595,6 +595,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
     # Distributed mode heap size
     if operatingMode == "distributed":
+      hbase_heapsize = max(hbase_heapsize, 756)
       putHbaseEnvProperty("hbase_master_heapsize", "512")
       putHbaseEnvProperty("hbase_master_xmn_size", "102") #20% of 512 heap size
       putHbaseEnvProperty("hbase_regionserver_heapsize", hbase_heapsize)
@@ -602,6 +603,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     else:
       # Embedded mode heap size : master + regionserver
       hbase_rs_heapsize = 512
+      putHbaseEnvProperty("hbase_regionserver_heapsize", hbase_rs_heapsize)
       putHbaseEnvProperty("hbase_master_heapsize", hbase_heapsize)
       putHbaseEnvProperty("hbase_master_xmn_size", round_to_n(0.15*(hbase_heapsize+hbase_rs_heapsize),64))
 
