@@ -152,19 +152,23 @@ public class CheckDatabaseHelper {
   * than one selected version it's a bug and we are showing error message for user.
   * */
   protected void checkForConfigsSelectedMoreThanOnce() {
-    String GET_CONFIGS_SELECTED_MORE_THAN_ONCE_QUERY = "select type_name from clusterconfigmapping group by type_name having sum(selected) > 1";
-    Set<String> configsSelectedMoreThanOnce = new HashSet<>();
+    String GET_CONFIGS_SELECTED_MORE_THAN_ONCE_QUERY = "select c.cluster_name,type_name from clusterconfigmapping ccm " +
+            "join clusters c on ccm.cluster_id=c.cluster_id " +
+            "group by c.cluster_name,type_name " +
+            "having sum(selected) > 1";
+    Multimap<String, String> configsSelectedMoreThanOnce = HashMultimap.create();
     ResultSet rs = null;
     try {
       Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
       rs = statement.executeQuery(GET_CONFIGS_SELECTED_MORE_THAN_ONCE_QUERY);
       if (rs != null) {
         while (rs.next()) {
-          configsSelectedMoreThanOnce.add(rs.getString("type_name"));
+          configsSelectedMoreThanOnce.put(rs.getString("cluster_name"), rs.getString("type_name"));
         }
       }
-      if (!configsSelectedMoreThanOnce.isEmpty()) {
-        LOG.error("You have config(s) that is(are) selected more than once in clusterconfigmapping: " + StringUtils.join(configsSelectedMoreThanOnce, ","));
+      for (String clusterName : configsSelectedMoreThanOnce.keySet()) {
+        LOG.error(String.format("You have config(s), in cluster %s, that is(are) selected more than once in clusterconfigmapping: %s",
+                clusterName ,StringUtils.join(configsSelectedMoreThanOnce.get(clusterName), ",")));
       }
     } catch (SQLException e) {
       LOG.error("Exception occurred during check for config selected more than ones procedure: ", e);
@@ -193,10 +197,6 @@ public class CheckDatabaseHelper {
       rs = statement.executeQuery(GET_HOSTS_WITHOUT_STATUS_QUERY);
       if (rs != null) {
         while (rs.next()) {
-          LOG.error(rs.getString("host_name"));
-          LOG.error(rs.getString("HOST_NAME"));
-          System.out.println("ERROR" + rs.getString("HOST_NAME"));
-          System.out.println("ERROR" + rs.getString("host_name"));
           hostsWithoutStatus.add(rs.getString("host_name"));
         }
       }
