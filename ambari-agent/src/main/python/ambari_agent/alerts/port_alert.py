@@ -102,7 +102,7 @@ class PortAlert(BaseAlert):
 
 
     host = BaseAlert.get_host_from_url(uri_value)
-    if host is None:
+    if host is None or host == "localhost" or host == "0.0.0.0":
       host = self.host_name
 
     try:
