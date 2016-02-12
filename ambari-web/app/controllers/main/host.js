@@ -108,7 +108,7 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
     },
     {
       name: 'criticalWarningAlertsCount',
-      key: 'alerts_summary/CRITICAL{0}|alerts_summary/WARNING{1}',
+      key: '(alerts_summary/CRITICAL{0}|alerts_summary/WARNING{1})',
       type: 'CUSTOM'
     },
     {
