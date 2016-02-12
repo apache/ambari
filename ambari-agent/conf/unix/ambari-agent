@@ -153,7 +153,14 @@ case "$1" in
         change_files_permissions
         
         echo "Starting ambari-agent"
+        
+        if [ "$AMBARI_AGENT_RUN_IN_FOREGROUND" == true ] ; then
+          $PYTHON $AMBARI_AGENT_PY_SCRIPT "$@" > $OUTFILE 2>&1 
+          exit $?
+        fi
+        
         nohup $PYTHON $AMBARI_AGENT_PY_SCRIPT "$@" > $OUTFILE 2>&1 &
+        
         sleep 2
         PID=$!
         echo "Verifying $AMBARI_AGENT process status..."
@@ -215,6 +222,12 @@ case "$1" in
             echo "Stopping $AMBARI_AGENT"
             change_files_permissions
             $PYTHON $AGENT_SCRIPT stop
+            
+            status ambari-agent 2>/dev/null | grep start 1>/dev/null
+            if [ "$?" -eq 0 ] ; then
+              echo "Stopping $AMBARI_AGENT upstart job"
+              stop ambari-agent > /dev/null
+            fi
           fi
           echo "Removing PID file at $PIDFILE"
           ambari-sudo.sh rm -f $PIDFILE
