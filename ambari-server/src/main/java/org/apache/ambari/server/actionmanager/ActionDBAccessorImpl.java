@@ -38,6 +38,7 @@ import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.audit.AuditEvent;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.audit.OperationStatusAuditEvent;
+import org.apache.ambari.server.audit.TaskStatusAuditEvent;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.CalculatedStatus;
 import org.apache.ambari.server.events.HostRemovedEvent;
@@ -126,6 +127,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   AuditLogger auditLogger;
 
   private Map<Long, HostRoleStatus> temporaryStatusCache = new HashMap<Long, HostRoleStatus>();
+  private Map<Long, HostRoleStatus> temporaryTaskStatusCache = new HashMap<Long, HostRoleStatus>();
 
   private Cache<Long, HostRoleCommand> hostRoleCommandCache;
   private long cacheLimit; //may be exceeded to store tasks from one request
@@ -209,7 +211,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
             + " taskId " + command.getTaskId()
             + " stageId " + command.getStageId());
 
-        auditLog(requestId);
+        auditLog(command, requestId);
       }
     }
 
@@ -232,7 +234,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
       command.setStatus(command.isRetryAllowed() ? HostRoleStatus.HOLDING_TIMEDOUT : HostRoleStatus.TIMEDOUT);
       command.setEndTime(now);
 
-      auditLog(requestId);
+      auditLog(command, requestId);
     }
 
     // no need to merge if there's nothing to merge
@@ -481,6 +483,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
           }
 
           commandEntity.setStatus(status);
+          auditLog(commandEntity, requestId);
           break;
       }
 
@@ -502,7 +505,6 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
         }
       }
 
-      auditLog(requestId);
     }
 
     // no need to merge if there's nothing to merge
@@ -559,8 +561,8 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
       }
       command.setExitcode(report.getExitCode());
 
+      auditLog(command, requestId);
     }
-    auditLog(requestId);
 
     // no need to merge if there's nothing to merge
     if (!commands.isEmpty()) {
@@ -626,7 +628,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
       entity.setStatus(hostRoleCommand.getStatus());
       entity.setAttemptCount(hostRoleCommand.getAttemptCount());
 
-      auditLog(s.getRequestId());
+      auditLog(entity, s.getRequestId());
 
       hostRoleCommandDAO.merge(entity);
     } else {
@@ -767,7 +769,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
       task.setStartTime(-1L);
       task.setEndTime(-1L);
 
-      auditLog(task.getRequestId());
+      auditLog(task, task.getRequestId());
     }
 
     // no need to merge if there's nothing to merge
@@ -792,7 +794,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
    * AuditLog operation status change
    * @param requestId
    */
-  private void auditLog(Long requestId) {
+  private void auditLog(HostRoleCommandEntity commandEntity, Long requestId) {
     if(requestId != null) {
       List<Stage> stages = getAllStages(requestId);
       CalculatedStatus cs = CalculatedStatus.statusFromStages(stages);
@@ -802,41 +804,34 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
           .withRequestId(String.valueOf(requestId))
           .withStatus(String.valueOf(cs.getStatus()))
           .withRequestContext(stages.get(0).getRequestContext())
-          .withTimestamp(new DateTime())
+          .withTimestamp(DateTime.now())
           .build();
         auditLogger.log(auditEvent);
 
-        updateStatusCache(requestId, cs);
+        temporaryStatusCache.put(requestId, cs.getStatus());
       }
     }
+    logTask(commandEntity, requestId);
   }
 
   /**
-   * Updates status cache for the given request ID and calculated status
+   * Logs task status change
+   * @param commandEntity
    * @param requestId
-   * @param cs
    */
-  private void updateStatusCache(Long requestId, CalculatedStatus cs) {
-    if(isAllTerminated(requestId)) {
-      temporaryStatusCache.remove(requestId);
-    } else {
-      temporaryStatusCache.put(requestId, cs.getStatus());
-    }
-  }
+  private void logTask(HostRoleCommandEntity commandEntity, Long requestId) {
+    if(!temporaryTaskStatusCache.containsKey(commandEntity.getTaskId()) || temporaryTaskStatusCache.get(commandEntity.getTaskId()) != commandEntity.getStatus() ) {
+      AuditEvent taskEvent = TaskStatusAuditEvent.builder()
+        .withTaskId(String.valueOf(commandEntity.getTaskId()))
+        .withHostName(commandEntity.getHostName())
+        .withOperation(commandEntity.getRoleCommand().toString() + " " + commandEntity.getRole().toString())
+        .withStatus(commandEntity.getStatus().toString())
+        .withRequestId(String.valueOf(requestId))
+        .withTimestamp(DateTime.now())
+        .build();
 
-  /**
-   * Returns if all the tasks have already been terminated for a request
-   * @param requestId
-   * @return
-   */
-  private boolean isAllTerminated(Long requestId) {
-    List<HostRoleCommand> tasks = getRequestTasks(requestId);
-    boolean allTerminated = true;
-    for(HostRoleCommand task : tasks) {
-      if(!HostRoleStatus.getCompletedStates().contains(task.getStatus())) {
-        allTerminated = false;
-      }
+      auditLogger.log(taskEvent);
+      temporaryTaskStatusCache.put(commandEntity.getTaskId(), commandEntity.getStatus());
     }
-    return allTerminated;
   }
 }

@@ -39,7 +39,7 @@ public class StartOperationSucceededAuditEventTest {
       .withTimestamp(DateTime.now())
       .withRemoteIp(testRemoteIp)
       .withUserName(testUserName)
-      .withRequestDetails(testRequestDetails)
+      .withOperation(testRequestDetails)
       .withRequestId(testRequestId.toString())
       .build();
 

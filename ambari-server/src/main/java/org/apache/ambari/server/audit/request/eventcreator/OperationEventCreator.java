@@ -19,6 +19,7 @@
 package org.apache.ambari.server.audit.request.eventcreator;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.api.services.Request;
@@ -27,8 +28,9 @@ import org.apache.ambari.server.audit.AuditEvent;
 import org.apache.ambari.server.audit.StartOperationFailedAuditEvent;
 import org.apache.ambari.server.audit.StartOperationSucceededAuditEvent;
 import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
+import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.utils.RequestUtils;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.joda.time.DateTime;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
@@ -38,7 +40,7 @@ import org.springframework.security.core.userdetails.User;
  * For resource type {@link org.apache.ambari.server.controller.spi.Resource.Type#HostComponent}
  * and request types {@link org.apache.ambari.server.api.services.Request.Type#POST}, {@link org.apache.ambari.server.api.services.Request.Type#PUT} and {@link org.apache.ambari.server.api.services.Request.Type#DELETE}
  */
-public class OperationEventCreator implements RequestAuditEventCreator{
+public class OperationEventCreator implements RequestAuditEventCreator {
 
   /**
    * Set of {@link org.apache.ambari.server.api.services.Request.Type}s that are handled by this plugin
@@ -65,27 +67,79 @@ public class OperationEventCreator implements RequestAuditEventCreator{
   public AuditEvent createAuditEvent(Request request, Result result) {
     String username = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
 
-    if(result.getStatus().isErrorState()) {
+    String operation = getOperation(request);
+
+    if (result.getStatus().isErrorState()) {
       return StartOperationFailedAuditEvent.builder()
-        .withRequestDetails(request.getBody().getBody())
+        .withOperation(operation)
         .withUserName(username)
         .withRemoteIp(request.getRemoteAddress())
-        .withTimestamp(new DateTime())
+        .withTimestamp(DateTime.now())
         .withReason(result.getStatus().getMessage())
         .build();
     } else {
       Long requestId = null;
-      if(containsRequestId(result)) {
+      if (containsRequestId(result)) {
         requestId = getRequestId(result);
       }
       return StartOperationSucceededAuditEvent.builder()
-        .withRequestDetails(request.getBody().getBody())
+        .withOperation(operation)
         .withUserName(username)
         .withRemoteIp(request.getRemoteAddress())
-        .withTimestamp(new DateTime())
+        .withTimestamp(DateTime.now())
         .withRequestId(String.valueOf(requestId))
         .build();
     }
+  }
+
+  private String getOperation(Request request) {
+
+    if (request.getBody().getRequestInfoProperties().containsKey("context")) {
+      return request.getBody().getRequestInfoProperties().get("context");
+    }
+
+    if (request.getBody().getRequestInfoProperties().containsKey(RequestOperationLevel.OPERATION_LEVEL_ID)) {
+      String operation = "";
+      switch (request.getBody().getRequestInfoProperties().get(RequestOperationLevel.OPERATION_LEVEL_ID)) {
+        case "CLUSTER":
+          for (Map<String, Object> map : request.getBody().getPropertySets()) {
+            if (map.containsKey(PropertyHelper.getPropertyId("HostRoles", "cluster_name"))) {
+              operation = "All services"
+                + " are about to be in state " + String.valueOf(map.get(PropertyHelper.getPropertyId("HostRoles", "state")))
+                + " on all hosts"
+                + " (" + request.getBody().getRequestInfoProperties().get(RequestOperationLevel.OPERATION_CLUSTER_ID) + ")";
+              break;
+            }
+          }
+          break;
+        case "HOST":
+          for (Map<String, Object> map : request.getBody().getPropertySets()) {
+            if (map.containsKey(PropertyHelper.getPropertyId("HostRoles", "cluster_name"))) {
+              String query = request.getBody().getRequestInfoProperties().get("query");
+              operation = query.substring(query.indexOf("(")+1, query.length()-1)
+                + " are about to be in state " + String.valueOf(map.get(PropertyHelper.getPropertyId("HostRoles", "state")))
+                + " on " + request.getBody().getRequestInfoProperties().get("operation_level/host_names")
+                + " (" + request.getBody().getRequestInfoProperties().get(RequestOperationLevel.OPERATION_CLUSTER_ID) + ")";
+              break;
+            }
+          }
+          break;
+        case "HOST_COMPONENT":
+          for (Map<String, Object> map : request.getBody().getPropertySets()) {
+            if (map.containsKey(PropertyHelper.getPropertyId("HostRoles", "component_name"))) {
+              operation = String.valueOf(map.get(PropertyHelper.getPropertyId("HostRoles", "component_name")))
+                + "/" + request.getBody().getRequestInfoProperties().get(RequestOperationLevel.OPERATION_SERVICE_ID)
+                + " is about to be in state " + String.valueOf(map.get(PropertyHelper.getPropertyId("HostRoles", "state")))
+                + " on " + request.getBody().getRequestInfoProperties().get("operation_level/host_names")
+                + " (" + request.getBody().getRequestInfoProperties().get(RequestOperationLevel.OPERATION_CLUSTER_ID) + ")";
+              break;
+            }
+          }
+          break;
+      }
+      return operation;
+    }
+    return null;
   }
 
   private Long getRequestId(Result result) {

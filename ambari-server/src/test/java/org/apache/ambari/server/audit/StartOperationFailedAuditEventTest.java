@@ -40,7 +40,7 @@ public class StartOperationFailedAuditEventTest {
       .withTimestamp(DateTime.now())
       .withRemoteIp(testRemoteIp)
       .withUserName(testUserName)
-      .withRequestDetails(testRequestDetails)
+      .withOperation(testRequestDetails)
       .withReason(testReason)
       .build();
 

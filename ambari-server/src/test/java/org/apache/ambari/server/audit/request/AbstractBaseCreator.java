@@ -34,7 +34,7 @@ public abstract class AbstractBaseCreator implements RequestAuditEventCreator {
     return new AuditEvent() {
       @Override
       public DateTime getTimestamp() {
-        return new DateTime();
+        return DateTime.now();
       }
 
       @Override

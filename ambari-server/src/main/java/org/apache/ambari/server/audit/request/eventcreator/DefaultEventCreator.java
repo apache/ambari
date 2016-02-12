@@ -75,7 +75,7 @@ public class DefaultEventCreator implements RequestAuditEventCreator {
     String username = ((User)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
 
     return RequestAuditEvent.builder()
-      .withTimestamp(new DateTime())
+      .withTimestamp(DateTime.now())
       .withUserName(username)
       .withRemoteIp(request.getRemoteAddress())
       .withRequestType(request.getRequestType())

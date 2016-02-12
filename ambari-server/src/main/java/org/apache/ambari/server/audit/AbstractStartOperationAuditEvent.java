@@ -24,7 +24,7 @@ public class AbstractStartOperationAuditEvent extends AbstractUserAuditEvent {
   static abstract class AbstractStartOperationAuditEventBuilder<T extends AbstractStartOperationAuditEvent, TBuilder extends AbstractStartOperationAuditEventBuilder<T, TBuilder>>
     extends AbstractUserAuditEventBuilder<T, TBuilder> {
 
-    private String requestDetails;
+    private String operation;
 
     /**
      * Appends to the event the details of the incoming request.
@@ -35,18 +35,18 @@ public class AbstractStartOperationAuditEvent extends AbstractUserAuditEvent {
       super.buildAuditMessage(builder);
 
       builder
-        .append(", RequestDetails(")
-        .append(this.requestDetails)
+        .append(", Operation(")
+        .append(this.operation)
         .append(")");
     }
 
     /**
-     * Sets the request details to be added to the audit event.
-     * @param requestDetails request details to be added to the audit event.
+     * Sets the operation to be added to the audit event.
+     * @param operation operation to be added to the audit event.
      * @return this builder
      */
-    public TBuilder withRequestDetails(String requestDetails) {
-      this.requestDetails = requestDetails;
+    public TBuilder withOperation(String operation) {
+      this.operation = operation;
 
       return (TBuilder)this;
     }
