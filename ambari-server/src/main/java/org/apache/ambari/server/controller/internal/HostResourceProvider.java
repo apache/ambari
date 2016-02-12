@@ -145,6 +145,11 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   public static final String HOST_PREDICATE_PROPERTY_ID =
       PropertyHelper.getPropertyId(null, "host_predicate");
 
+  //todo use the same json structure for cluster host addition (cluster template and upscale)
+  public static final String HOST_RACK_INFO_NO_CATEGORY_PROPERTY_ID =
+      PropertyHelper.getPropertyId(null, "rack_info");
+
+
   private static Set<String> pkPropertyIds =
       new HashSet<String>(Arrays.asList(new String[]{
           HOST_NAME_PROPERTY_ID}));
@@ -354,6 +359,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     //todo: constants
     baseUnsupported.remove(HOST_COUNT_PROPERTY_ID);
     baseUnsupported.remove(HOST_PREDICATE_PROPERTY_ID);
+    baseUnsupported.remove(HOST_RACK_INFO_NO_CATEGORY_PROPERTY_ID);
 
     return checkConfigPropertyIds(baseUnsupported, "Hosts");
   }
@@ -406,7 +412,11 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
         (String) properties.get(HOST_CLUSTER_NAME_PROPERTY_ID),
         null);
     hostRequest.setPublicHostName((String) properties.get(HOST_PUBLIC_NAME_PROPERTY_ID));
-    hostRequest.setRackInfo((String) properties.get(HOST_RACK_INFO_PROPERTY_ID));
+
+    String rackInfo = (String) ((null != properties.get(HOST_RACK_INFO_PROPERTY_ID))? properties.get(HOST_RACK_INFO_PROPERTY_ID):
+            properties.get(HOST_RACK_INFO_NO_CATEGORY_PROPERTY_ID));
+
+    hostRequest.setRackInfo(rackInfo);
     hostRequest.setBlueprintName((String) properties.get(BLUEPRINT_PROPERTY_ID));
     hostRequest.setHostGroupName((String) properties.get(HOSTGROUP_PROPERTY_ID));
     
