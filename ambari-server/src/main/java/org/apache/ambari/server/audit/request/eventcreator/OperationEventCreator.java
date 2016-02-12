@@ -93,19 +93,13 @@ public class OperationEventCreator implements RequestAuditEventCreator {
   }
 
   private String getOperation(Request request) {
-
-    if (request.getBody().getRequestInfoProperties().containsKey("context")) {
-      return request.getBody().getRequestInfoProperties().get("context");
-    }
-
     if (request.getBody().getRequestInfoProperties().containsKey(RequestOperationLevel.OPERATION_LEVEL_ID)) {
       String operation = "";
       switch (request.getBody().getRequestInfoProperties().get(RequestOperationLevel.OPERATION_LEVEL_ID)) {
         case "CLUSTER":
           for (Map<String, Object> map : request.getBody().getPropertySets()) {
             if (map.containsKey(PropertyHelper.getPropertyId("HostRoles", "cluster_name"))) {
-              operation = "All services"
-                + " are about to be in state " + String.valueOf(map.get(PropertyHelper.getPropertyId("HostRoles", "state")))
+              operation = String.valueOf(map.get(PropertyHelper.getPropertyId("HostRoles", "state"))) + ": all services"
                 + " on all hosts"
                 + " (" + request.getBody().getRequestInfoProperties().get(RequestOperationLevel.OPERATION_CLUSTER_ID) + ")";
               break;
@@ -116,8 +110,7 @@ public class OperationEventCreator implements RequestAuditEventCreator {
           for (Map<String, Object> map : request.getBody().getPropertySets()) {
             if (map.containsKey(PropertyHelper.getPropertyId("HostRoles", "cluster_name"))) {
               String query = request.getBody().getRequestInfoProperties().get("query");
-              operation = query.substring(query.indexOf("(")+1, query.length()-1)
-                + " are about to be in state " + String.valueOf(map.get(PropertyHelper.getPropertyId("HostRoles", "state")))
+              operation = String.valueOf(map.get(PropertyHelper.getPropertyId("HostRoles", "state"))) + ": " + query.substring(query.indexOf("(")+1, query.length()-1)
                 + " on " + request.getBody().getRequestInfoProperties().get("operation_level/host_names")
                 + " (" + request.getBody().getRequestInfoProperties().get(RequestOperationLevel.OPERATION_CLUSTER_ID) + ")";
               break;
@@ -127,9 +120,8 @@ public class OperationEventCreator implements RequestAuditEventCreator {
         case "HOST_COMPONENT":
           for (Map<String, Object> map : request.getBody().getPropertySets()) {
             if (map.containsKey(PropertyHelper.getPropertyId("HostRoles", "component_name"))) {
-              operation = String.valueOf(map.get(PropertyHelper.getPropertyId("HostRoles", "component_name")))
+              operation = String.valueOf(map.get(PropertyHelper.getPropertyId("HostRoles", "state"))) + ": " + String.valueOf(map.get(PropertyHelper.getPropertyId("HostRoles", "component_name")))
                 + "/" + request.getBody().getRequestInfoProperties().get(RequestOperationLevel.OPERATION_SERVICE_ID)
-                + " is about to be in state " + String.valueOf(map.get(PropertyHelper.getPropertyId("HostRoles", "state")))
                 + " on " + request.getBody().getRequestInfoProperties().get("operation_level/host_names")
                 + " (" + request.getBody().getRequestInfoProperties().get(RequestOperationLevel.OPERATION_CLUSTER_ID) + ")";
               break;
