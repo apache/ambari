@@ -111,7 +111,10 @@ public class CheckDatabaseHelperTest {
 
     expect(mockDBDbAccessor.getConnection()).andReturn(mockConnection);
     expect(mockConnection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)).andReturn(mockStatement);
-    expect(mockStatement.executeQuery("select type_name from clusterconfigmapping group by type_name having sum(selected) > 1")).andReturn(mockResultSet);
+    expect(mockStatement.executeQuery("select c.cluster_name,type_name from clusterconfigmapping ccm " +
+            "join clusters c on ccm.cluster_id=c.cluster_id " +
+            "group by c.cluster_name,type_name " +
+            "having sum(selected) > 1")).andReturn(mockResultSet);
 
     CheckDatabaseHelper checkDatabaseHelper = new CheckDatabaseHelper(mockDBDbAccessor, mockInjector, null);
 
