@@ -6123,6 +6123,54 @@ public class BlueprintConfigurationProcessorTest {
 
 
   @Test
+  public void testResolutionOfDRPCServerAndNN() throws Exception {
+    // Given
+    final String stormConfigType = "storm-site";
+    final String mrConfigType = "mapred-site";
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> stormConfigProperties = new HashMap<String, String>();
+    Map<String, String> mrConfigProperties = new HashMap<String, String>();
+
+    properties.put(stormConfigType, stormConfigProperties);
+    properties.put(mrConfigType, mrConfigProperties);
+    stormConfigProperties.put("drpc.servers", "['%HOSTGROUP::group1%']");
+    mrConfigProperties.put("mapreduce.job.hdfs-servers", "['%HOSTGROUP::group2%']");
+
+
+    Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
+    Configuration parentClusterConfig = new Configuration(parentProperties,
+                                                          Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties,
+                                                    Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+
+
+    Collection<String> stormComponents = new HashSet<String>();
+    stormComponents.add("NIMBUS");
+    stormComponents.add("DRPC_SERVER");
+
+    Collection<String> hdfsComponents = new HashSet<String>();
+    hdfsComponents.add("NAMENODE");
+
+
+    TestHostGroup group1 = new TestHostGroup("group1", stormComponents, Collections.singleton("host1"));
+    group1.components.add("DATANODE");
+
+    TestHostGroup group2 = new TestHostGroup("group2", hdfsComponents, Collections.singleton("host2"));
+
+    Collection<TestHostGroup> hostGroups = Lists.newArrayList(group1, group2);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+
+    // When
+    configProcessor.doUpdateForClusterCreate();
+
+    // Then
+    assertEquals("['host1']", clusterConfig.getPropertyValue(stormConfigType, "drpc.servers"));
+    assertEquals("['host2']", clusterConfig.getPropertyValue(mrConfigType, "mapreduce.job.hdfs-servers"));
+  }
+
+  @Test
   public void testHadoopWithRangerKmsServer() throws Exception {
     // Given
     final String configType = "core-site";
