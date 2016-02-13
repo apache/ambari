@@ -55,7 +55,11 @@ App.SubSectionTab = DS.Model.extend({
    */
   isActive: DS.attr('boolean', {defaultValue: false}),
 
-  visibleProperties: Em.computed.filterBy('configs', 'isVisible', true),
+  visibleProperties: function() {
+    return this.get('configs').filter(function(c) {
+      return c.get('isVisible') && !c.get('hiddenBySection');
+    });
+  }.property('configs.@each.isVisible', 'configs.@each.hiddenBySection'),
 
   /**
    * Number of the errors in all configs

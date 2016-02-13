@@ -94,7 +94,11 @@ App.SubSection = DS.Model.extend({
 
   showTabs: Em.computed.and('hasTabs', 'someSubSectionTabIsVisible'),
 
-  visibleProperties: Em.computed.filterBy('configs', 'isVisible', true),
+  visibleProperties: function() {
+    return this.get('configs').filter(function(c) {
+      return c.get('isVisible') && !c.get('hiddenBySection');
+    });
+  }.property('configs.@each.isVisible', 'configs.@each.hiddenBySection'),
 
   visibleTabs: Em.computed.filterBy('subSectionTabs', 'isVisible', true),
 
@@ -174,9 +178,11 @@ App.SubSection = DS.Model.extend({
    * @type {boolean}
    */
   isHiddenByFilter: function () {
-    var configs = this.get('visibleProperties');
+    var configs = this.get('configs').filter(function(c) {
+      return !c.get('hiddenBySection') && c.get('isVisible');
+    });
     return configs.length ? configs.everyProperty('isHiddenByFilter', true) : false;
-  }.property('visibleProperties.@each.isHiddenByFilter'),
+  }.property('configs.@each.isHiddenByFilter'),
 
   /**
    * @type {boolean}

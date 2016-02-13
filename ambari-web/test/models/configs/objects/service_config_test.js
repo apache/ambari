@@ -25,30 +25,35 @@ var serviceConfig,
       Em.Object.create({
         'name': 'p1',
         'isVisible': true,
+        'hiddenBySection': false,
         'isValid': true,
         'isValidOverride': true
       }),
       Em.Object.create({
         'name': 'p2',
         'isVisible': false,
+        'hiddenBySection': false,
         'isValid': true,
         'isValidOverride': true
       }),
       Em.Object.create({
         'name': 'p3',
         'isVisible': true,
+        'hiddenBySection': true,
         'isValid': true,
         'isValidOverride': true
       }),
       Em.Object.create({
         'name': 'p4',
         'isVisible': true,
+        'hiddenBySection': false,
         'isValid': false,
         'isValidOverride': true
       }),
       Em.Object.create({
         'name': 'p5',
         'isVisible': true,
+        'hiddenBySection': false,
         'isValid': true,
         'isValidOverride': false
       })
@@ -64,7 +69,7 @@ describe('App.ServiceConfig', function () {
 
   describe('#visibleProperties', function() {
     it('returns collection of properties that should be shown', function() {
-      expect(serviceConfig.get('visibleProperties').mapProperty('name')).to.be.eql(['p1','p3', 'p4','p5']);
+      expect(serviceConfig.get('visibleProperties').mapProperty('name')).to.be.eql(['p1','p4','p5']);
     });
   });
 

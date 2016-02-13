@@ -38,7 +38,11 @@ App.ServiceConfig = Ember.Object.extend({
 
   errorCount: Em.computed.alias('configsWithErrors.length'),
 
-  visibleProperties: Em.computed.filterBy('configs', 'isVisible', true),
+  visibleProperties: function() {
+    return this.get('configs').filter(function(c) {
+      return c.get('isVisible') && !c.get('hiddenBySection');
+    });
+  }.property('configs.@each.isVisible', 'configs.@each.hiddenBySection'),
 
   configsWithErrors: function() {
     return this.get('visibleProperties').filter(function(c) {
