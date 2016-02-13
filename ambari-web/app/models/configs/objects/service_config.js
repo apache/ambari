@@ -61,7 +61,7 @@ App.ServiceConfig = Ember.Object.extend({
         category.incrementProperty('nonSlaveErrorCount');
         masterErrors++;
       }
-      if (!item.get('isValid') && item.get('widgetType') && item.get('isVisible')) {
+      if (!item.get('isValid') && item.get('widgetType') && item.get('isVisible') && !item.get('hiddenBySection')) {
         enhancedConfigsErrors++;
       }
       if (item.get('overrides')) {
@@ -76,7 +76,7 @@ App.ServiceConfig = Ember.Object.extend({
       }
     });
     return masterErrors + slaveErrors + overrideErrors + enhancedConfigsErrors;
-  }.property('configs.@each.isValid', 'configs.@each.isVisible', 'configCategories.@each.slaveErrorCount', 'configs.@each.overrideErrorTrigger'),
+  }.property('configs.@each.isValid', 'configs.@each.isVisible', 'configs.@each.hiddenBySection', 'configCategories.@each.slaveErrorCount', 'configs.@each.overrideErrorTrigger'),
 
   /**
    * checks if for example for kdc_type, the value isn't just the pretty version of the saved value, for example mit-kdc
