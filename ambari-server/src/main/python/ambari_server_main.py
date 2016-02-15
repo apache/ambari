@@ -54,6 +54,9 @@ if ambari_provider_module is not None:
 
 jvm_args = os.getenv('AMBARI_JVM_ARGS', '-Xms512m -Xmx2048m')
 
+ENV_FOREGROUND_KEY = "AMBARI_SERVER_RUN_IN_FOREGROUND"
+IS_FOREGROUND = ENV_FOREGROUND_KEY in os.environ and os.environ[ENV_FOREGROUND_KEY].lower() == "true"
+
 SERVER_START_CMD = "{0} " \
     "-server -XX:NewRatio=3 " \
     "-XX:+UseConcMarkSweepGC " + \
@@ -62,7 +65,7 @@ SERVER_START_CMD = "{0} " \
     "{1} {2} " \
     "-cp {3} "\
     "org.apache.ambari.server.controller.AmbariServer " \
-    "> {4} 2>&1 || echo $? > {5} &"
+    "> {4} 2>&1 || echo $? > {5}"
 SERVER_START_CMD_DEBUG = "{0} " \
     "-server -XX:NewRatio=2 " \
     "-XX:+UseConcMarkSweepGC " + \
@@ -71,7 +74,11 @@ SERVER_START_CMD_DEBUG = "{0} " \
     "server=y,suspend={6} " \
     "-cp {3} " + \
     "org.apache.ambari.server.controller.AmbariServer " \
-    "> {4} 2>&1 || echo $? > {5} &"
+    "> {4} 2>&1 || echo $? > {5}"
+    
+if not IS_FOREGROUND:
+  SERVER_START_CMD += " &"
+  SERVER_START_CMD_DEBUG += " &"
 
 SERVER_START_CMD_WINDOWS = "{0} " \
     "-server -XX:NewRatio=3 " \
@@ -198,7 +205,7 @@ def wait_for_server_start(pidFile, scmStatus):
   else:
     save_main_pid_ex(pids, pidFile, [locate_file('sh', '/bin'),
                                      locate_file('bash', '/bin'),
-                                     locate_file('dash', '/bin')], True)
+                                     locate_file('dash', '/bin')], True, IS_FOREGROUND)
 
 
 def server_process_main(options, scmStatus=None):
@@ -271,6 +278,9 @@ def server_process_main(options, scmStatus=None):
   # The launched shell process and sub-processes should have a group id that
   # is different from the parent.
   def make_process_independent():
+    if IS_FOREGROUND: # upstart script is not able to track process from different pgid.
+      return
+    
     processId = os.getpid()
     if processId > 0:
       try:
@@ -304,5 +314,8 @@ def server_process_main(options, scmStatus=None):
 
   if scmStatus is not None:
     scmStatus.reportStarted()
+    
+  if IS_FOREGROUND:
+    procJava.communicate()
 
   return procJava
