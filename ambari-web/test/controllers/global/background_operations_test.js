@@ -311,6 +311,22 @@ describe('App.BackgroundOperationsController', function () {
         result: [
           {id: 2}
         ]
+      },
+      {
+        title: 'two old request and two current',
+        content: {
+          currentRequestIds: [3, 4],
+          services: [
+            {id: 1},
+            {id: 2},
+            {id: 3},
+            {id: 4}
+          ]
+        },
+        result: [
+          {id: 3},
+          {id: 4}
+        ]
       }
     ];
 

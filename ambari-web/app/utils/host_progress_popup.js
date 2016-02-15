@@ -430,11 +430,13 @@ App.HostPopup = Em.Object.create({
    * @param currentServicesIds
    */
   removeOldServices: function (services, currentServicesIds) {
-    services.forEach(function (service, index, services) {
-      if (!currentServicesIds.contains(service.id)) {
-        services.removeAt(index, 1);
+    for (var i = 0, l = services.length; i < l; i++) {
+      if (!currentServicesIds.contains(services[i].id)) {
+        services.splice(i, 1);
+        i--;
+        l--;
       }
-    });
+    }
   },
 
   /**
