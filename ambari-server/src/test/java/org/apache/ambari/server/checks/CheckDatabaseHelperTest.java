@@ -260,22 +260,27 @@ public class CheckDatabaseHelperTest {
     expect(stackResultSet.getString("stack_version")).andReturn("2.2");
     expect(mockDBDbAccessor.getConnection()).andReturn(mockConnection);
     expect(mockConnection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)).andReturn(mockStatement);
-    expect(mockStatement.executeQuery("select service_name from clusterservices where service_name not in (select service_name from serviceconfig where group_id is null)")).andReturn(mockResultSet);
+    expect(mockStatement.executeQuery("select c.cluster_name, service_name from clusterservices cs " +
+            "join clusters c on cs.cluster_id=c.cluster_id " +
+            "where service_name not in (select service_name from serviceconfig sc where sc.cluster_id=cs.cluster_id and sc.service_name=cs.service_name and sc.group_id is null)")).andReturn(mockResultSet);
     expect(mockStatement.executeQuery("select service_name from serviceconfig where service_config_id not in (select service_config_id from serviceconfigmapping) and group_id is null")).andReturn(mockResultSet);
-    expect(mockStatement.executeQuery("select s.stack_name, s.stack_version from clusters c join stack s on c.desired_stack_id = s.stack_id")).andReturn(stackResultSet);
-    expect(mockStatement.executeQuery("select cs.service_name, type_name, sc.version from clusterservices cs " +
-            "join serviceconfig sc on cs.service_name=sc.service_name " +
+    expect(mockStatement.executeQuery("select c.cluster_name, s.stack_name, s.stack_version from clusters c " +
+            "join stack s on c.desired_stack_id = s.stack_id")).andReturn(stackResultSet);
+    expect(mockStatement.executeQuery("select c.cluster_name, cs.service_name, type_name, sc.version from clusterservices cs " +
+            "join serviceconfig sc on cs.service_name=sc.service_name and cs.cluster_id=sc.cluster_id " +
             "join serviceconfigmapping scm on sc.service_config_id=scm.service_config_id " +
-            "join clusterconfig cc on scm.config_id=cc.config_id " +
+            "join clusterconfig cc on scm.config_id=cc.config_id and sc.cluster_id=cc.cluster_id " +
+            "join clusters c on cc.cluster_id=c.cluster_id " +
             "where sc.group_id is null " +
-            "group by cs.service_name, type_name, sc.version")).andReturn(serviceConfigResultSet);
-    expect(mockStatement.executeQuery("select cs.service_name,cc.type_name from clusterservices cs " +
-            "join serviceconfig sc on cs.service_name=sc.service_name " +
+            "group by c.cluster_name, cs.service_name, type_name, sc.version")).andReturn(serviceConfigResultSet);
+    expect(mockStatement.executeQuery("select c.cluster_name, cs.service_name,cc.type_name from clusterservices cs " +
+            "join serviceconfig sc on cs.service_name=sc.service_name and cs.cluster_id=sc.cluster_id " +
             "join serviceconfigmapping scm on sc.service_config_id=scm.service_config_id " +
-            "join clusterconfig cc on scm.config_id=cc.config_id " +
-            "join clusterconfigmapping ccm on cc.type_name=ccm.type_name and cc.version_tag=ccm.version_tag " +
-            "where sc.group_id is null and sc.service_config_id = (select max(service_config_id) from serviceconfig sc2 where sc2.service_name=sc.service_name) " +
-            "group by cs.service_name,cc.type_name " +
+            "join clusterconfig cc on scm.config_id=cc.config_id and cc.cluster_id=sc.cluster_id " +
+            "join clusterconfigmapping ccm on cc.type_name=ccm.type_name and cc.version_tag=ccm.version_tag and cc.cluster_id=ccm.cluster_id " +
+            "join clusters c on ccm.cluster_id=c.cluster_id " +
+            "where sc.group_id is null and sc.service_config_id = (select max(service_config_id) from serviceconfig sc2 where sc2.service_name=sc.service_name and sc2.cluster_id=sc.cluster_id) " +
+            "group by c.cluster_name,cs.service_name,cc.type_name " +
             "having sum(ccm.selected) < 1")).andReturn(mockResultSet);
 
     CheckDatabaseHelper checkDatabaseHelper = new CheckDatabaseHelper(mockDBDbAccessor, mockInjector, null);

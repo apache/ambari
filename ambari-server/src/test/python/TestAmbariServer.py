@@ -6901,8 +6901,7 @@ class TestAmbariServer(TestCase):
     self.assertTrue(ensureCanStartUnderCurrentUserMock.called)
     self.assertTrue(generateEnvMock.called)
 
-    self.assertEquals(runOSCommandMock.call_args[0][0], '/path/to/java -cp test:path12 org.apache.ambari.server.checks.CheckDatabaseHelper'
-                                                        ' > /var/log/ambari-server/ambari-server.log 2>&1')
+    self.assertEquals(runOSCommandMock.call_args[0][0], '/path/to/java -cp test:path12 org.apache.ambari.server.checks.CheckDatabaseHelper')
 
     pass
 
