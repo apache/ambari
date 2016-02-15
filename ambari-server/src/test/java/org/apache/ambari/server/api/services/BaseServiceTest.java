@@ -135,6 +135,7 @@ public abstract class BaseServiceTest {
   }
 
   protected void assertCreateRequest(ServiceTestInvocation testMethod) {
+    addExpectForInitialRequest(testMethod);
     expect(requestFactory.createRequest(httpHeaders, requestBody, uriInfo,
         testMethod.getRequestType(), resourceInstance)).andReturn(request);
   }
@@ -142,6 +143,8 @@ public abstract class BaseServiceTest {
 
 
   private void testMethod_bodyParseException(ServiceTestInvocation testMethod) throws Exception {
+    addExpectForInitialRequest(testMethod);
+
     Capture<Result> resultCapture = new Capture<Result>();
     BodyParseException e = new BodyParseException("TEST MSG");
     expect(bodyParser.parse(testMethod.getBody())).andThrow(e);
@@ -185,6 +188,13 @@ public abstract class BaseServiceTest {
   private void verifyAndResetMocks() {
     verify(resourceInstance, requestFactory, request, result, requestBody, bodyParser, status, serializer);
     reset(resourceInstance, requestFactory, request, result, requestBody, bodyParser, status, serializer);
+  }
+
+  private void addExpectForInitialRequest(ServiceTestInvocation testMethod) {
+    RequestBody rb = new RequestBody();
+    rb.setBody("body");
+    expect(requestFactory.createRequest(EasyMock.eq(httpHeaders), EasyMock.anyObject(RequestBody.class), EasyMock.eq(uriInfo),
+      EasyMock.eq(testMethod.getRequestType()), EasyMock.eq(resourceInstance))).andReturn(request);
   }
 
   public static class ServiceTestInvocation {

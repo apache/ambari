@@ -24,8 +24,11 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.apache.ambari.server.audit.AuditLogger;
+import org.apache.ambari.server.audit.AuditLoggerDefaultImpl;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ControllerModule;
+import org.easymock.EasyMock;
 import org.springframework.beans.factory.config.BeanDefinition;
 
 import com.google.inject.AbstractModule;
@@ -77,6 +80,7 @@ public class InMemoryDefaultTestModule extends AbstractModule {
 
     try {
       install(new BeanDefinitionsCachingTestControllerModule(properties));
+      bind(AuditLogger.class).toInstance(EasyMock.createStrictMock(AuditLoggerDefaultImpl.class));
     } catch (Exception e) {
       throw new RuntimeException(e);
     }

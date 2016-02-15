@@ -20,6 +20,8 @@ package org.apache.ambari.server.security.authorization;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+
+import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.UserDAO;
@@ -47,7 +49,7 @@ public class AmbariLocalUserDetailsServiceTest {
 
   @BeforeClass
   public static void prepareData() {
-    injector = Guice.createInjector(new AuthorizationTestModule());
+    injector = Guice.createInjector(new AuditLoggerModule(), new AuthorizationTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
     injector.getInstance(OrmTestHelper.class).createTestUsers();
   }

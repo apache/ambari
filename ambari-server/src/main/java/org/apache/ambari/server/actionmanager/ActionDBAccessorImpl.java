@@ -803,7 +803,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
         AuditEvent auditEvent = OperationStatusAuditEvent.builder()
           .withRequestId(String.valueOf(requestId))
           .withStatus(String.valueOf(cs.getStatus()))
-          .withRequestContext(stages.get(0).getRequestContext())
+          .withRequestContext(stages.isEmpty() ? "" : stages.get(0).getRequestContext())
           .withTimestamp(DateTime.now())
           .build();
         auditLogger.log(auditEvent);

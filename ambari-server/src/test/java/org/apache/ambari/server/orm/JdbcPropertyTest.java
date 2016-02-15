@@ -20,6 +20,8 @@ package org.apache.ambari.server.orm;
 import java.util.Properties;
 
 import com.google.inject.persist.PersistService;
+
+import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ControllerModule;
 import org.apache.ambari.server.state.Clusters;
@@ -52,7 +54,7 @@ public class JdbcPropertyTest {
 
   @Test
   public void testNormal() throws Exception {
-    injector = Guice.createInjector(new ControllerModule(properties));
+    injector = Guice.createInjector(new AuditLoggerModule(), new ControllerModule(properties));
     injector.getInstance(GuiceJpaInitializer.class);
 
     injector.getInstance(Clusters.class);
@@ -61,7 +63,7 @@ public class JdbcPropertyTest {
   @Test
   public void testJdbcProperty() throws Exception {
     properties.setProperty(Configuration.SERVER_JDBC_PROPERTIES_PREFIX + "shutdown", "true");
-    injector = Guice.createInjector(new ControllerModule(properties));
+    injector = Guice.createInjector(new AuditLoggerModule(), new ControllerModule(properties));
     injector.getInstance(GuiceJpaInitializer.class);
     try {
       injector.getInstance(Clusters.class);
