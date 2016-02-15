@@ -124,7 +124,7 @@ public class RequestAuditLoggerImpl implements RequestAuditLogger {
     }
 
     priority += creator.getRequestTypes() != null && creator.getRequestTypes().contains(requestType) ? REQUEST_TYPE_PRIORITY : 0;
-    priority += creator.getResultStatuses() != null && creator.getResultStatuses().contains(resultStatus) ? RESULT_STATUS_PRIORITY : 0;
+    priority += creator.getResultStatuses() != null && creator.getResultStatuses().contains(resultStatus.getStatus()) ? RESULT_STATUS_PRIORITY : 0;
     priority += creator.getResourceTypes() != null && creator.getResourceTypes().contains(resourceType) ? RESOURCE_TYPE_PRIORITY : 0;
     return priority;
   }
@@ -139,7 +139,7 @@ public class RequestAuditLoggerImpl implements RequestAuditLogger {
    */
   private boolean isIncompatible(RequestAuditEventCreator creator, Resource.Type resourceType, ResultStatus resultStatus, Request.Type requestType) {
     return creator.getRequestTypes() != null && !creator.getRequestTypes().contains(requestType) ||
-      creator.getResultStatuses() != null && !creator.getResultStatuses().contains(resultStatus) ||
+      creator.getResultStatuses() != null && !creator.getResultStatuses().contains(resultStatus.getStatus()) ||
       creator.getResourceTypes() != null && !creator.getResourceTypes().contains(resourceType);
   }
 }

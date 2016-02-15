@@ -41,14 +41,14 @@ import org.apache.ambari.server.actionmanager.HostRoleCommandFactoryImpl;
 import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.actionmanager.StageFactoryImpl;
-import org.apache.ambari.server.audit.AuditLogger;
-import org.apache.ambari.server.audit.AuditLoggerDefaultImpl;
 import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
 import org.apache.ambari.server.audit.request.RequestAuditLogger;
 import org.apache.ambari.server.audit.request.RequestAuditLoggerImpl;
+import org.apache.ambari.server.audit.request.eventcreator.UnauthorizedEventCreator;
 import org.apache.ambari.server.audit.request.eventcreator.ConfigurationChangeEventCreator;
 import org.apache.ambari.server.audit.request.eventcreator.DefaultEventCreator;
-import org.apache.ambari.server.audit.request.eventcreator.OperationEventCreator;
+import org.apache.ambari.server.audit.request.eventcreator.ComponentEventCreator;
+import org.apache.ambari.server.audit.request.eventcreator.ServiceEventCreator;
 import org.apache.ambari.server.checks.AbstractCheckDescriptor;
 import org.apache.ambari.server.checks.UpgradeCheckRegistry;
 import org.apache.ambari.server.configuration.Configuration;
@@ -394,7 +394,9 @@ public class ControllerModule extends AbstractModule {
   private void bindAuditLog() {
     Multibinder<RequestAuditEventCreator> auditLogEventCreatorBinder = Multibinder.newSetBinder(binder(), RequestAuditEventCreator.class);
     auditLogEventCreatorBinder.addBinding().to(DefaultEventCreator.class);
-    auditLogEventCreatorBinder.addBinding().to(OperationEventCreator.class);
+    auditLogEventCreatorBinder.addBinding().to(ComponentEventCreator.class);
+    auditLogEventCreatorBinder.addBinding().to(ServiceEventCreator.class);
+    auditLogEventCreatorBinder.addBinding().to(UnauthorizedEventCreator.class);
     auditLogEventCreatorBinder.addBinding().to(ConfigurationChangeEventCreator.class);
 
     bind(RequestAuditLogger.class).to(RequestAuditLoggerImpl.class);

@@ -20,7 +20,6 @@ package org.apache.ambari.server.audit.request.eventcreator;
 
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.api.services.Request;
@@ -28,12 +27,8 @@ import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.audit.AuditEvent;
 import org.apache.ambari.server.audit.RequestAuditEvent;
-import org.apache.ambari.server.audit.StartOperationFailedAuditEvent;
-import org.apache.ambari.server.audit.StartOperationSucceededAuditEvent;
 import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
-import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.joda.time.DateTime;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
@@ -70,7 +65,7 @@ public class ConfigurationChangeEventCreator implements RequestAuditEventCreator
 
   /** {@inheritDoc} */
   @Override
-  public Set<ResultStatus> getResultStatuses() {
+  public Set<ResultStatus.STATUS> getResultStatuses() {
     return null;
   }
 
@@ -79,7 +74,10 @@ public class ConfigurationChangeEventCreator implements RequestAuditEventCreator
     String username = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
 
     return RequestAuditEvent.builder()
-      .withOperation("Configuration changed")
+      .withRequestType(request.getRequestType())
+      .withResultStatus(result.getStatus())
+      .withUrl(request.getURI())
+      .withOperation("Configuration change")
       .withUserName(username)
       .withRemoteIp(request.getRemoteAddress())
       .withTimestamp(DateTime.now())

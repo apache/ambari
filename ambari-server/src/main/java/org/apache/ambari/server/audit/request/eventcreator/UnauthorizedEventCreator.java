@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,77 +18,48 @@
 
 package org.apache.ambari.server.audit.request.eventcreator;
 
-import java.util.Arrays;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.Set;
 
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultStatus;
+import org.apache.ambari.server.audit.AccessUnauthorizedAuditEvent;
 import org.apache.ambari.server.audit.AuditEvent;
-import org.apache.ambari.server.audit.RequestAuditEvent;
 import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.joda.time.DateTime;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 
-import com.google.inject.Singleton;
+public class UnauthorizedEventCreator implements RequestAuditEventCreator{
 
-/**
- * Default creator for {@link org.apache.ambari.server.audit.request.RequestAuditLogger}
- */
-@Singleton
-public class DefaultEventCreator implements RequestAuditEventCreator {
-
-  /**
-   * Set of {@link org.apache.ambari.server.api.services.Request.Type}s that are handled by this plugin
-   */
-  private Set<Request.Type> requestTypes = new HashSet<Request.Type>();
-
-  {
-    requestTypes.addAll(Arrays.asList(Request.Type.values()));
-    requestTypes.remove(Request.Type.GET); // get is not handled by default
-  }
-
-  /** {@inheritDoc} */
   @Override
   public Set<Request.Type> getRequestTypes() {
-    return requestTypes;
+    return null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public Set<Resource.Type> getResourceTypes() {
-    // null makes this default
     return null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public Set<ResultStatus.STATUS> getResultStatuses() {
-    // null makes this default
-    return null;
+    return Collections.singleton(ResultStatus.STATUS.UNAUTHORIZED);
   }
 
-  /**
-   * Creates a simple {@link AuditEvent} with the details of request and response
-   * @param request HTTP request object
-   * @param result HTTP result object
-   * @return
-   */
   @Override
-  public AuditEvent createAuditEvent(final Request request, final Result result) {
-    String username = ((User)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
+  public AuditEvent createAuditEvent(Request request, Result result) {
 
-    return RequestAuditEvent.builder()
+    String username = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
+    AccessUnauthorizedAuditEvent ae = AccessUnauthorizedAuditEvent.builder()
+      .withRemoteIp(request.getRemoteAddress())
+      .withResourcePath(request.getURI())
       .withTimestamp(DateTime.now())
       .withUserName(username)
-      .withRemoteIp(request.getRemoteAddress())
-      .withRequestType(request.getRequestType())
-      .withUrl(request.getURI())
-      .withResultStatus(result.getStatus())
       .build();
-  }
 
+    return ae;
+  }
 }

@@ -42,7 +42,7 @@ import org.springframework.security.core.userdetails.User;
  * For resource type {@link org.apache.ambari.server.controller.spi.Resource.Type#HostComponent}
  * and request types {@link org.apache.ambari.server.api.services.Request.Type#POST}, {@link org.apache.ambari.server.api.services.Request.Type#PUT} and {@link org.apache.ambari.server.api.services.Request.Type#DELETE}
  */
-public class OperationEventCreator implements RequestAuditEventCreator {
+public class ComponentEventCreator implements RequestAuditEventCreator {
 
   /**
    * Set of {@link org.apache.ambari.server.api.services.Request.Type}s that are handled by this plugin
@@ -55,6 +55,11 @@ public class OperationEventCreator implements RequestAuditEventCreator {
     requestTypes.add(Request.Type.DELETE);
   }
 
+  private Set<Resource.Type> resourceTypes = new HashSet<Resource.Type>();
+  {
+    resourceTypes.add(Resource.Type.HostComponent);
+  }
+
   /** {@inheritDoc} */
   @Override
   public Set<Request.Type> getRequestTypes() {
@@ -64,13 +69,12 @@ public class OperationEventCreator implements RequestAuditEventCreator {
   /** {@inheritDoc} */
   @Override
   public Set<Resource.Type> getResourceTypes() {
-    // null makes this default
-    return Collections.singleton(Resource.Type.HostComponent);
+    return resourceTypes;
   }
 
   /** {@inheritDoc} */
   @Override
-  public Set<ResultStatus> getResultStatuses() {
+  public Set<ResultStatus.STATUS> getResultStatuses() {
     // null makes this default
     return null;
   }

@@ -38,7 +38,7 @@ public class AllGetCreator extends AbstractBaseCreator {
   }
 
   @Override
-  public Set<ResultStatus> getResultStatuses() {
+  public Set<ResultStatus.STATUS> getResultStatuses() {
     return null;
   }
 }

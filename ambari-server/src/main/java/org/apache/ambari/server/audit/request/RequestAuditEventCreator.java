@@ -46,7 +46,7 @@ public interface RequestAuditEventCreator {
   /**
    * @return the {@link ResultStatus}es that is handled by this creator
    */
-  Set<ResultStatus> getResultStatuses();
+  Set<ResultStatus.STATUS> getResultStatuses();
 
   /**
    * Creates and {@link AuditEvent}
