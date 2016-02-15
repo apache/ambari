@@ -304,6 +304,8 @@ angular.module('ambariAdminConsole')
       'os': 'OS',
       'baseURL': 'Base URL',
       'skipValidation': 'Skip Repository Base URL validation (Advanced)',
+      'useRedhatSatellite': 'Use RedHat Satellite/Spacewalk',
+
 
       'changeBaseURLConfirmation': {
         'title': 'Confirm Base URL Change',
@@ -314,6 +316,7 @@ angular.module('ambariAdminConsole')
         'baseURLs': 'Provide Base URLs for the Operating Systems you are configuring. Uncheck all other Operating Systems.',
         'validationFailed': 'Some of the repositories failed validation. Make changes to the base url or skip validation if you are sure that urls are correct',
         'skipValidationWarning': '<b>Warning:</b> This is for advanced users only. Use this option if you want to skip validation for Repository Base URLs.',
+        'useRedhatSatelliteWarning': 'Disable distributed repositories and use RedHat Satellite/Spacewalk channels instead',
         'filterListError': 'Fetch stack version filter list error',
         'versionCreated': 'Created version <a href="#/stackVersions/{{stackName}}/{{versionName}}/edit">{{stackName}}-{{versionName}}</a>',
         'versionCreationError': 'Version creation error',

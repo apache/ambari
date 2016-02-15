@@ -307,6 +307,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
     return this.get('isRepoUrlsEditDisabled') ? null : App.ModalPopup.show({
       classNames: ['repository-list', 'sixty-percent-width-modal'],
       skipValidation: false,
+      useRedhatSatellite: false,
       autoHeight: false,
       /**
        * @type {boolean}
@@ -333,14 +334,17 @@ App.UpgradeVersionBoxView = Em.View.extend({
 
           this.get('content.operatingSystems').forEach(function (os) {
             os.get('repositories').forEach(function (repo) {
-              disablePrimary = (!disablePrimary) ? repo.get('hasError') : disablePrimary;
+              disablePrimary = !disablePrimary ? repo.get('hasError') : disablePrimary;
             }, this);
           }, this);
           this.set('parentView.disablePrimary', disablePrimary);
         },
         templateName: require('templates/main/admin/stack_upgrade/edit_repositories'),
         didInsertElement: function () {
-          App.tooltip($("[rel=skip-validation-tooltip]"), {placement: 'right'});
+          App.tooltip($("[rel=skip-validation-tooltip], [rel=use-redhat-tooltip]"), {placement: 'right'});
+        },
+        willDestroyElement: function () {
+          $("[rel=skip-validation-tooltip], [rel=use-redhat-tooltip]").tooltip('destroy');
         }
       }),
       header: Em.I18n.t('common.repositories'),

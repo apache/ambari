@@ -27,6 +27,8 @@ App.WizardStep1Controller = Em.Controller.extend({
    */
   skipValidationChecked: false,
 
+  useRedhatSatellite: false,
+
   selectedStack: function() {
     return App.Stack.find().findProperty('isSelected');
   }.property('content.stacks.@each.isSelected')

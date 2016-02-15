@@ -81,7 +81,8 @@ App.supports = {
   preInstallChecks: false,
   hostComboSearchBox: false,
   serviceAutoStart: false,
-  logSearch: false
+  logSearch: false,
+  redhatSatellite: false
 };
 
 if (App.enableExperimental) {
