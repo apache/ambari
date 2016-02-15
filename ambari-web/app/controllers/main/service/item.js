@@ -1149,11 +1149,16 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
       bodyClass: Em.View.extend({
         confirmKey: confirmKey,
         template: Em.Handlebars.compile(message +
-        '<form class="form-inline align-center"></br>' +
+        '<div class="form-inline align-center"></br>' +
         '<label><b>{{t common.enter}}&nbsp;{{view.confirmKey}}</b></label>&nbsp;' +
         '{{view Ember.TextField valueBinding="view.parentView.confirmInput" class="input-small"}}</br>' +
-        '</form>')
-      })
+        '</div>')
+      }),
+
+      enterKeyPressed: function(e) {
+        if (this.get('disablePrimary')) return;
+        this.onPrimary();
+      }
     });
   },
 
