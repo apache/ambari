@@ -96,7 +96,7 @@ def save_pid(pid, pidfile):
       pass
 
 
-def save_main_pid_ex(pids, pidfile, exclude_list=[], kill_exclude_list=False):
+def save_main_pid_ex(pids, pidfile, exclude_list=[], kill_exclude_list=False, skip_daemonize=False):
   """
     Save pid which is not included to exclude_list to pidfile.
     If kill_exclude_list is set to true,  all processes in that
@@ -109,7 +109,7 @@ def save_main_pid_ex(pids, pidfile, exclude_list=[], kill_exclude_list=False):
     for item in pids:
       if pid_exists(item["pid"]) and (item["exe"] not in exclude_list):
         pfile.write("%s\n" % item["pid"])
-      if pid_exists(item["pid"]) and (item["exe"] in exclude_list):
+      if pid_exists(item["pid"]) and (item["exe"] in exclude_list) and not skip_daemonize:
         try:
           os.kill(int(item["pid"]), signal.SIGKILL)
         except:
