@@ -337,6 +337,7 @@ App.HostComponentActionMap = {
       MOVE_COMPONENT: {
         action: 'reassignMaster',
         context: '',
+        isHidden: !App.isAuthorized('SERVICE.MOVE'),
         label: Em.I18n.t('services.service.actions.reassign.master'),
         cssClass: 'icon-share-alt'
       },
