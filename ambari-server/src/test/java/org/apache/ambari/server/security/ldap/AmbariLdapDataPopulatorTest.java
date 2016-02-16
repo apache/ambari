@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.security.ldap;
 
+import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -271,6 +272,58 @@ public class AmbariLdapDataPopulatorTest {
     assertTrue(result.getUsersToBecomeLdap().isEmpty());
     assertTrue(result.getUsersToBeRemoved().isEmpty());
     verify(populator.loadLdapTemplate(), populator);
+  }
+
+  @Test
+  public void testSynchronizeExistingLdapGroups_removeDuringIteration() throws Exception {
+    // GIVEN
+    Group group1 = createNiceMock(Group.class);
+    expect(group1.getGroupId()).andReturn(1).anyTimes();
+    expect(group1.getGroupName()).andReturn("group1").anyTimes();
+    expect(group1.isLdapGroup()).andReturn(true).anyTimes();
+
+    Group group2 = createNiceMock(Group.class);
+    expect(group2.getGroupId()).andReturn(2).anyTimes();
+    expect(group2.getGroupName()).andReturn("group2").anyTimes();
+    expect(group2.isLdapGroup()).andReturn(true).anyTimes();
+
+    Configuration configuration = createNiceMock(Configuration.class);
+    Users users = createNiceMock(Users.class);
+    expect(users.getAllGroups()).andReturn(Arrays.asList(group1, group2));
+    expect(users.getAllUsers()).andReturn(Collections.EMPTY_LIST);
+    expect(configuration.getLdapServerProperties()).andReturn(new LdapServerProperties()).anyTimes();
+
+    Set<LdapGroupDto> groupDtos = Sets.newHashSet();
+    LdapGroupDto group1Dto = new LdapGroupDto();
+    group1Dto.setGroupName("group1");
+    group1Dto.setMemberAttributes(Sets.newHashSet("group2"));
+
+    LdapGroupDto group2Dto = new LdapGroupDto();
+    group2Dto.setGroupName("group2");
+    group2Dto.setMemberAttributes(Collections.EMPTY_SET);
+    groupDtos.add(group1Dto);
+    groupDtos.add(group2Dto);
+
+    LdapBatchDto batchInfo = new LdapBatchDto();
+    replay(configuration, users, group1, group2);
+    AmbariLdapDataPopulator dataPopulator = createMockBuilder(AmbariLdapDataPopulatorTestInstance.class)
+      .withConstructor(configuration, users)
+      .addMockedMethod("getLdapGroups")
+      .addMockedMethod("getLdapUserByMemberAttr")
+      .addMockedMethod("getLdapGroupByMemberAttr")
+      .createNiceMock();
+
+    expect(dataPopulator.getLdapUserByMemberAttr(anyString())).andReturn(null).anyTimes();
+    expect(dataPopulator.getLdapGroupByMemberAttr("group2")).andReturn(group2Dto);
+    expect(dataPopulator.getLdapGroups("group1")).andReturn(groupDtos).anyTimes();
+    expect(dataPopulator.getLdapGroups("group2")).andReturn(groupDtos).anyTimes();
+
+    replay(dataPopulator);
+    // WHEN
+    dataPopulator.synchronizeExistingLdapGroups(batchInfo);
+    // THEN
+    verify(dataPopulator, group1, group2);
+
   }
 
   @Test
