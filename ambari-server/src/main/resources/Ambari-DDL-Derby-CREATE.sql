@@ -177,11 +177,9 @@ CREATE TABLE servicecomponentdesiredstate (
   desired_stack_id BIGINT NOT NULL,
   desired_state VARCHAR(255) NOT NULL,
   service_name VARCHAR(255) NOT NULL,
-  CONSTRAINT pk_servicecomponentdesiredstate PRIMARY KEY (id),
-  CONSTRAINT unq_scdesiredstate_name UNIQUE(component_name,service_name,cluster_id)
+  CONSTRAINT pk_sc_desiredstate PRIMARY KEY (id),
+  CONSTRAINT unq_scdesiredstate_name UNIQUE(component_name, service_name, cluster_id)
 );
-
-CREATE INDEX idx_sc_desired_state ON servicecomponentdesiredstate(component_name, service_name, cluster_id);
 
 CREATE TABLE servicedesiredstate (
   cluster_id BIGINT NOT NULL,
@@ -263,7 +261,7 @@ CREATE TABLE stage (
   request_id BIGINT NOT NULL,
   cluster_id BIGINT NOT NULL,
   skippable SMALLINT DEFAULT 0 NOT NULL,
-  supports_auto_skip_failure SMALLINT DEFAULT 0 NOT NULL,  
+  supports_auto_skip_failure SMALLINT DEFAULT 0 NOT NULL,
   log_info VARCHAR(255) NOT NULL,
   request_context VARCHAR(255),
   cluster_host_info BLOB NOT NULL,
@@ -703,8 +701,8 @@ ALTER TABLE clusterstate ADD CONSTRAINT FK_clusterstate_cluster_id FOREIGN KEY (
 ALTER TABLE cluster_version ADD CONSTRAINT FK_cluster_version_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id);
 ALTER TABLE cluster_version ADD CONSTRAINT FK_cluster_version_repovers_id FOREIGN KEY (repo_version_id) REFERENCES repo_version (repo_version_id);
 ALTER TABLE hostcomponentdesiredstate ADD CONSTRAINT FK_hcdesiredstate_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id);
-ALTER TABLE hostcomponentdesiredstate ADD CONSTRAINT hstcmpnntdesiredstatecmpnntnme FOREIGN KEY (component_name, cluster_id, service_name) REFERENCES servicecomponentdesiredstate (component_name, cluster_id, service_name);
-ALTER TABLE hostcomponentstate ADD CONSTRAINT hstcomponentstatecomponentname FOREIGN KEY (component_name, cluster_id, service_name) REFERENCES servicecomponentdesiredstate (component_name, cluster_id, service_name);
+ALTER TABLE hostcomponentdesiredstate ADD CONSTRAINT hstcmpnntdesiredstatecmpnntnme FOREIGN KEY (component_name, service_name, cluster_id) REFERENCES servicecomponentdesiredstate (component_name, service_name, cluster_id);
+ALTER TABLE hostcomponentstate ADD CONSTRAINT hstcomponentstatecomponentname FOREIGN KEY (component_name, service_name, cluster_id) REFERENCES servicecomponentdesiredstate (component_name, service_name, cluster_id);
 ALTER TABLE hostcomponentstate ADD CONSTRAINT FK_hostcomponentstate_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id);
 ALTER TABLE hoststate ADD CONSTRAINT FK_hoststate_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id);
 ALTER TABLE host_version ADD CONSTRAINT FK_host_version_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id);
@@ -954,13 +952,26 @@ CREATE TABLE upgrade_item (
   FOREIGN KEY (upgrade_group_id) REFERENCES upgrade_group(upgrade_group_id)
 );
 
+CREATE TABLE servicecomponent_history(
+  id BIGINT NOT NULL,
+  component_id BIGINT NOT NULL,
+  upgrade_id BIGINT NOT NULL,
+  from_stack_id BIGINT NOT NULL,
+  to_stack_id BIGINT NOT NULL,
+  CONSTRAINT PK_sc_history PRIMARY KEY (id),
+  CONSTRAINT FK_sc_history_component_id FOREIGN KEY (component_id) REFERENCES servicecomponentdesiredstate (id),
+  CONSTRAINT FK_sc_history_upgrade_id FOREIGN KEY (upgrade_id) REFERENCES upgrade (upgrade_id),
+  CONSTRAINT FK_sc_history_from_stack_id FOREIGN KEY (from_stack_id) REFERENCES stack (stack_id),
+  CONSTRAINT FK_sc_history_to_stack_id FOREIGN KEY (to_stack_id) REFERENCES stack (stack_id)
+);
+
 ---------inserting some data-----------
 -- In order for the first ID to be 1, must initialize the ambari_sequences table with a sequence_value of 0.
 -- BEGIN;
 INSERT INTO ambari_sequences (sequence_name, sequence_value)
   SELECT 'cluster_id_seq', 1 FROM SYSIBM.SYSDUMMY1
   UNION ALL
-  SELECT 'host_id_seq', 0 FROM SYSIBM.SYSDUMMY1	
+  SELECT 'host_id_seq', 0 FROM SYSIBM.SYSDUMMY1
   UNION ALL
   SELECT 'user_id_seq', 2 FROM SYSIBM.SYSDUMMY1
   UNION ALL
@@ -1044,9 +1055,12 @@ INSERT INTO ambari_sequences (sequence_name, sequence_value)
   union all
   select 'setting_id_seq', 0 FROM SYSIBM.SYSDUMMY1
   union all
-  select 'hostcomponentstate_id_seq', 0  FROM SYSIBM.SYSDUMMY1
+  select 'hostcomponentstate_id_seq', 0 FROM SYSIBM.SYSDUMMY1
   union all
-  select 'servicecomponentdesiredstate_id_seq', 0  FROM SYSIBM.SYSDUMMY1;
+  select 'servicecomponentdesiredstate_id_seq', 0 FROM SYSIBM.SYSDUMMY1
+  union all
+  select 'servicecomponent_history_id_seq', 0 FROM SYSIBM.SYSDUMMY1;
+
 
 INSERT INTO adminresourcetype (resource_type_id, resource_type_name)
   SELECT 1, 'AMBARI' FROM SYSIBM.SYSDUMMY1

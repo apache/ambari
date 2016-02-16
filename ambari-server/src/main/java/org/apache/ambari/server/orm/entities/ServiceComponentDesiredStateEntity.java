@@ -18,8 +18,10 @@
 
 package org.apache.ambari.server.orm.entities;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -96,6 +98,15 @@ public class ServiceComponentDesiredStateEntity {
   @OneToMany(mappedBy = "serviceComponentDesiredStateEntity")
   private Collection<HostComponentDesiredStateEntity> hostComponentDesiredStateEntities;
 
+  /**
+   * All of the upgrades and downgrades which have occurred for this component.
+   * Can be {@code null} for none.
+   */
+  @OneToMany(
+      mappedBy = "m_serviceComponentDesiredStateEntity",
+      cascade = { CascadeType.MERGE, CascadeType.REFRESH, CascadeType.REMOVE })
+  private Collection<ServiceComponentHistoryEntity> serviceComponentHistory;
+
   public Long getId() {
     return id;
   }
@@ -138,6 +149,35 @@ public class ServiceComponentDesiredStateEntity {
 
   public void setDesiredStack(StackEntity desiredStack) {
     this.desiredStack = desiredStack;
+  }
+
+  /**
+   * Adds a historical entry for the version of this service component. New
+   * entries are automatically created when this entities is merged via a
+   * {@link CascadeType#MERGE}.
+   *
+   * @param historicalEntry
+   *          the entry to add.
+   */
+  public void addHistory(ServiceComponentHistoryEntity historicalEntry) {
+    if (null == serviceComponentHistory) {
+      serviceComponentHistory = new ArrayList<>();
+    }
+
+    serviceComponentHistory.add(historicalEntry);
+
+    if (!equals(historicalEntry.getServiceComponentDesiredState())) {
+      historicalEntry.setServiceComponentDesiredState(this);
+    }
+  }
+
+  /**
+   * Gets the history of this component's upgrades and downgrades.
+   *
+   * @return the component history, or {@code null} if none.
+   */
+  public Collection<ServiceComponentHistoryEntity> getHistory() {
+    return serviceComponentHistory;
   }
 
   @Override
