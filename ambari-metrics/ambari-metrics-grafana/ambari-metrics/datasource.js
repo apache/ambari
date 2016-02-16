@@ -38,6 +38,7 @@ define([
         }
         var allMetrics = [];
         var appIds = [];
+        //We get a list of components and their associated metrics.
         AmbariMetricsDatasource.prototype.initMetricAppidMapping = function () {
           backendSrv.get(this.url + '/ws/v1/timeline/metrics/metadata')
             .then(function (items) {
@@ -73,7 +74,7 @@ define([
           }
 
           options.url = this.url + options.url;
-          options.inspect = {type: 'discovery'};
+          options.inspect = {type: 'ambarimetrics'};
 
           return backendSrv.datasourceRequest(options);
         };
@@ -82,6 +83,7 @@ define([
          * AMS Datasource  Query
          */
         AmbariMetricsDatasource.prototype.query = function (options) {
+
           var emptyData = function (metric) {
             return {
               data: {
@@ -99,6 +101,7 @@ define([
               }
               var series = [];
               var metricData = res.metrics[0].metrics;
+              // Added hostname to legend for templated dashboards.
               var hostLegend = res.metrics[0].hostname ? ' on ' + res.metrics[0].hostname : '';
               var timeSeries = {};
               if (target.hosts === undefined || target.hosts.trim() === "") {
@@ -122,7 +125,6 @@ define([
             };
 
           };
-
           var getHostAppIdData = function(target) {
             var precision = target.shouldAddPrecision ? '&precision=' + target.precision : '';
             var rate = target.shouldComputeRate ? '._rate._' : '._';
@@ -132,14 +134,16 @@ define([
                 getMetricsData(target)
             );
           };
+          //Check if it's a templated dashboard.
+          var templatedHost = (_.isEmpty(templateSrv.variables)) ? "" : templateSrv.variables[0].options.filter(function(host)
+              { return host.selected; }).map(function(hostName) { return hostName.value; });
 
           var getServiceAppIdData = function(target) {
-            var templatedHost = (_.isEmpty(templateSrv.variables)) ? "" : templateSrv.variables[0].options.filter(function(host)
-              { return host.selected; }).map(function(hostName) { return hostName.value; });
+            var tHost = (_.isEmpty(templateSrv.variables)) ? templatedHost : target.templatedHost;
             var precision = target.shouldAddPrecision ? '&precision=' + target.precision : '';
             var rate = target.shouldComputeRate ? '._rate._' : '._';
             return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.metric + rate
-              + target.aggregator + '&hostname=' + templatedHost + '&appId=' + target.app + '&startTime=' + from +
+              + target.aggregator + '&hostname=' + tHost + '&appId=' + target.app + '&startTime=' + from +
               '&endTime=' + to + precision).then(
               getMetricsData(target)
             );
@@ -148,15 +152,43 @@ define([
           // Time Ranges
           var from = Math.floor(options.range.from.valueOf() / 1000);
           var to = Math.floor(options.range.to.valueOf() / 1000);
-          var metricsPromises = _.map(options.targets, function(target) {
+
+          var metricsPromises = [];
+          if (!_.isEmpty(templateSrv.variables)) {
+            if (!_.isEmpty(_.find(templatedHost, function (o) { return o === "*"; }))) {
+              var allHost = templateSrv.variables[0].options.filter(function(all) {
+                return all.text !== "All"; }).map(function(hostName) { return hostName.value; });
+              _.forEach(allHost, function(processHost) {
+              metricsPromises.push(_.map(options.targets, function(target) {
+                target.templatedHost = processHost;
+                console.debug('target app=' + target.app + ',' +
+                  'target metric=' + target.metric + ' on host=' + target.templatedHost);
+                return getServiceAppIdData(target);
+              }));
+            });
+            } else {
+              _.forEach(templatedHost, function(processHost) {
+              metricsPromises.push(_.map(options.targets, function(target) {
+                target.templatedHost = processHost;
+                console.debug('target app=' + target.app + ',' +
+                  'target metric=' + target.metric + ' on host=' + target.templatedHost);
+                return getServiceAppIdData(target);
+              }));
+            });
+            }
+
+            metricsPromises = _.flatten(metricsPromises);
+          } else {
+            metricsPromises = _.map(options.targets, function(target) {
               console.debug('target app=' + target.app + ',' +
-                'target metric=' + target.metric + ' on host=' + target.hosts);
+                'target metric=' + target.metric + ' on host=' + target.tempHost);
               if (!!target.hosts) {
                 return getHostAppIdData(target);
               } else {
                 return getServiceAppIdData(target);
               }
             });
+          }
 
           return $q.all(metricsPromises).then(function(metricsDataArray) {
             var data = _.map(metricsDataArray, function(metricsData) {
@@ -288,7 +320,6 @@ define([
           ]);
           return aggregatorsPromise;
         };
-
         return AmbariMetricsDatasource;
       });
     }
