@@ -26,7 +26,6 @@ sys.path.append("/usr/lib/python2.6/site-packages")
 import glob
 from logging import thread
 import re
-import hashlib
 import tempfile
 import time
 import functools
@@ -143,6 +142,7 @@ with Environment() as env:
     hdfs_site = ConfigDictionary({'dfs.webhdfs.enabled':False, 
     })
     fs_default = get_fs_root()
+    oozie_secure = ''
     oozie_env_sh_template = \
   '''
   #!/bin/bash
@@ -232,14 +232,13 @@ with Environment() as env:
     source_and_dest_pairs = [(component_tar_source_file, destination_file), ]
     return _copy_files(source_and_dest_pairs, file_owner, group_owner, kinit_if_needed)
 
-
-
   env.set_params(params)
   hadoop_conf_dir = params.hadoop_conf_dir
    
   oozie_libext_dir = format("/usr/hdp/{hdp_version}/oozie/libext")
   oozie_home=format("/usr/hdp/{hdp_version}/oozie")
   oozie_setup_sh=format("/usr/hdp/{hdp_version}/oozie/bin/oozie-setup.sh")
+  oozie_setup_sh_current="/usr/hdp/current/oozie-server/bin/oozie-setup.sh"
   oozie_tmp_dir = "/var/tmp/oozie"
   configure_cmds = []
   configure_cmds.append(('tar','-xvf', oozie_home + '/oozie-sharelib.tar.gz','-C', oozie_home))
@@ -254,22 +253,62 @@ with Environment() as env:
   )
 
   hashcode_file = format("{oozie_home}/.hashcode")
-  hashcode = hashlib.md5(format('{oozie_home}/oozie-sharelib.tar.gz')).hexdigest()
-  skip_recreate_sharelib = format("test -f {hashcode_file} && test -d {oozie_home}/share && [[ `cat {hashcode_file}` == '{hashcode}' ]]")
+  skip_recreate_sharelib = format("test -f {hashcode_file} && test -d {oozie_home}/share")
 
   Execute( configure_cmds,
            not_if  = format("{no_op_test} || {skip_recreate_sharelib}"), 
            sudo = True,
            )
-  Execute(format("cd {oozie_tmp_dir} && {oozie_setup_sh} prepare-war"),
-    user = params.oozie_user,
-    not_if  = format("{no_op_test} || {skip_recreate_sharelib}")
-  )
+  
   File(hashcode_file,
-       content = hashcode,
        mode = 0644,
   )
+  
+  ###############################################
+  # PREPARE-WAR [BEGIN]
+  ###############################################
+  prepare_war_cmd_file = format("{oozie_home}/.prepare_war_cmd")
 
+  # DON'T CHANGE THE VALUE SINCE IT'S USED TO DETERMINE WHETHER TO RUN THE COMMAND OR NOT BY READING THE MARKER FILE.
+  # Oozie tmp dir should be /var/tmp/oozie and is already created by a function above.
+  command = format("cd {oozie_tmp_dir} && {oozie_setup_sh} prepare-war {oozie_secure} ")
+  command_to_file = format("cd {oozie_tmp_dir} && {oozie_setup_sh_current} prepare-war {oozie_secure} ")
+
+  run_prepare_war = False
+  if os.path.exists(prepare_war_cmd_file):
+    cmd = ""
+    with open(prepare_war_cmd_file, "r") as f:
+      cmd = f.readline().strip()
+
+    if command_to_file != cmd:
+      run_prepare_war = True
+      Logger.info(format("Will run prepare war cmd since marker file {prepare_war_cmd_file} has contents which differ.\n" \
+      "Expected: {command_to_file}.\nActual: {cmd}."))
+  else:
+    run_prepare_war = True
+    Logger.info(format("Will run prepare war cmd since marker file {prepare_war_cmd_file} is missing."))
+
+  if run_prepare_war:
+    # Time-consuming to run
+    return_code, output = shell.call(command, user=params.oozie_user)
+    if output is None:
+      output = ""
+
+    if return_code != 0 or "New Oozie WAR file with added".lower() not in output.lower():
+      message = "Unexpected Oozie WAR preparation output {0}".format(output)
+      Logger.error(message)
+      raise Fail(message)
+
+    # Generate marker file
+    File(prepare_war_cmd_file,
+         content=command_to_file,
+         mode=0644,
+    )
+  else:
+    Logger.info(format("No need to run prepare-war since marker file {prepare_war_cmd_file} already exists."))
+  ###############################################
+  # PREPARE-WAR END [BEGIN]
+  ###############################################
   oozie_shared_lib = format("/usr/hdp/{hdp_version}/oozie/share")
   oozie_user = 'oozie'
   oozie_hdfs_user_dir = format("{hdfs_path_prefix}/user/{oozie_user}")

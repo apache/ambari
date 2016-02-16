@@ -17,7 +17,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-import hashlib
 import os
 
 from resource_management.core.resources.service import ServiceConfig
@@ -228,11 +227,7 @@ def prepare_war():
 
   if run_prepare_war:
     # Time-consuming to run
-    Execute(command,
-            user=params.oozie_user
-    )
-
-    return_code, output = shell.call(command, user=params.oozie_user, logoutput=False, quiet=False)
+    return_code, output = shell.call(command, user=params.oozie_user)
     if output is None:
       output = ""
 
@@ -273,8 +268,7 @@ def oozie_server_specific():
   )
   
   hashcode_file = format("{oozie_home}/.hashcode")
-  hashcode = hashlib.md5(format('{oozie_home}/oozie-sharelib.tar.gz')).hexdigest()
-  skip_recreate_sharelib = format("test -f {hashcode_file} && test -d {oozie_home}/share && [[ `cat {hashcode_file}` == '{hashcode}' ]]")
+  skip_recreate_sharelib = format("test -f {hashcode_file} && test -d {oozie_home}/share")
 
   untar_sharelib = ('tar','-xvf',format('{oozie_home}/oozie-sharelib.tar.gz'),'-C',params.oozie_home)
 
@@ -313,7 +307,6 @@ def oozie_server_specific():
   prepare_war()
 
   File(hashcode_file,
-       content = hashcode,
        mode = 0644,
   )
 
