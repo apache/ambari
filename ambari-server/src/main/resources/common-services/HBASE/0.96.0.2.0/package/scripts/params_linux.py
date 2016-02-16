@@ -151,7 +151,7 @@ if has_metric_collector:
       metric_collector_port = '6188'
   pass
 metrics_report_interval = default("/configurations/ams-site/timeline.metrics.sink.report.interval", 60)
-metrics_collection_period = default("/configurations/ams-site/timeline.metrics.sink.collection.period", 60)
+metrics_collection_period = default("/configurations/ams-site/timeline.metrics.sink.collection.period", 10)
 
 # if hbase is selected the hbase_rs_hosts, should not be empty, but still default just in case
 if 'slave_hosts' in config['clusterHostInfo']:
