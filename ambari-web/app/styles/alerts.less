@@ -70,7 +70,7 @@
 
   .filter-row {
     th {
-      padding: 0px;
+      padding: 0;
       padding-left: 4px;
     }
   }
@@ -253,16 +253,16 @@
   .definition-name {
     .name-text-field{
       margin-left: 2px;
-      margin-bottom: 0px;
+      margin-bottom: 0;
       input {
         width: 99%;
-        margin-bottom: 0px;
+        margin-bottom: 0;
         margin-top: -4px;
         margin-left: -5px;
       }
     }
     .edit-buttons {
-      margin-bottom: 0px;
+      margin-bottom: 0;
       margin-top: -4px;
       float: left;
       margin-left: 7px;
@@ -407,7 +407,7 @@
 
 #manage-alert-notification-content {
   .notification-info .global-info .global-checkbox {
-    margin: 0px;
+    margin: 0;
   }
   .input-label {
     font-weight: bold;
@@ -465,7 +465,7 @@
 
 .create-edit-alert-notification-popup {
   .modal {
-    margin-top: 0px;
+    margin-top: 0;
     top: 5%;
     width: 600px;
   }
@@ -512,10 +512,10 @@
     height: 250px;
   }
   .btn-toolbar {
-    margin-top: 0px;
+    margin-top: 0;
   }
   .manage-configuration-group-content {
-    margin-bottom: 0px;
+    margin-bottom: 0;
   }
   .notification-editable-list {
     .title {
@@ -576,12 +576,17 @@
 }
 
 .alerts-popup-wrap {
+  .trim_hostname{
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
   .top-wrap {
     width: 100%;
     border-bottom: 1px solid #CCC;
     text-align: center;
     font-size: 15px;
-    padding: 0px 0px 20px 0px;
+    padding: 0 0 20px 0;
     height: 20px;
     .name-top {
       width: 32%;
@@ -639,7 +644,7 @@
       cursor: pointer;
       border-top: 1px solid #CCC;
       text-align: center;
-      padding: 10px 10px 10px 0px;
+      padding: 10px 10px 10px 0;
       font-size: 16px;
     }
   }
