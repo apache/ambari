@@ -136,6 +136,14 @@ class TestMetricsCollector(RMFTestCase):
                               configurations = self.getConfig()['configurations']['ams-site'],
                               configuration_attributes = self.getConfig()['configuration_attributes']['ams-hbase-site']
     )
+
+    self.assertResourceCalled('XmlConfig', 'ssl-server.xml',
+                              owner = 'ams',
+                              group = 'hadoop',
+                              conf_dir = '/etc/ambari-metrics-collector/conf',
+                              configurations = self.getConfig()['configurations']['ams-ssl-server'],
+                              configuration_attributes = self.getConfig()['configuration_attributes']['ams-ssl-server']
+    )
     merged_ams_hbase_site = {}
     merged_ams_hbase_site.update(self.getConfig()['configurations']['ams-hbase-site'])
     merged_ams_hbase_site['phoenix.query.maxGlobalMemoryPercentage'] = '25'

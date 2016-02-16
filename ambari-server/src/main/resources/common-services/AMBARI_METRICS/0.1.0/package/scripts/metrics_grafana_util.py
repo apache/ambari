@@ -40,7 +40,7 @@ def create_ams_datasource():
   Logger.info("Connecting (GET) to %s:%s%s" % (params.hostname,
                                                params.ams_grafana_port,
                                                GRAFANA_URL))
-
+# TODO add https support
   conn = httplib.HTTPConnection(params.hostname,
                                 int(params.ams_grafana_port))
 

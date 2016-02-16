@@ -31,19 +31,19 @@ hbase.extendedperiod = 3600
 # Configuration of the "hbase" context for timeline metrics service
 hbase.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
 hbase.period=10
-hbase.collector={{timeline_server_hosts}}:8188
+hbase.collector={{timeline_server_hosts}}:6188
 
 # Configuration of the "jvm" context for timeline metrics service
 jvm.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
 jvm.period=10
-jvm.collector={{timeline_server_hosts}}:8188
+jvm.collector={{timeline_server_hosts}}:6188
 
 # Configuration of the "rpc" context for timeline metrics service
 rpc.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
 rpc.period=10
-rpc.collector={{timeline_server_hosts}}:8188
+rpc.collector={{timeline_server_hosts}}:6188
 
 # Following hadoop example
 hbase.sink.timeline.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
 hbase.sink.timeline.period=10
-hbase.sink.timeline.collector={{timeline_server_hosts}}:8188
+hbase.sink.timeline.collector=http://{{timeline_server_hosts}}:6188

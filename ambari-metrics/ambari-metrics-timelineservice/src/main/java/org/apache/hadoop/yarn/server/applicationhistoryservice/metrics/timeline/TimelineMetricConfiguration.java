@@ -17,7 +17,6 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience;
@@ -202,6 +201,9 @@ public class TimelineMetricConfiguration {
   public static final String AGGREGATE_TABLE_SPLIT_POINTS =
     "timeline.metrics.cluster.aggregate.splitpoints";
 
+  public static final String TIMELINE_SERVICE_HTTP_POLICY =
+    "timeline.metrics.service.http.policy";
+
   public static final String DISABLE_METRIC_METADATA_MGMT =
     "timeline.metrics.service.metadata.management.disabled";
 
@@ -259,7 +261,7 @@ public class TimelineMetricConfiguration {
   }
 
   public String getWebappAddress() {
-    String defaultHttpAddress = "0.0.0.0:8188";
+    String defaultHttpAddress = "0.0.0.0:6188";
     if (metricsConf != null) {
       return metricsConf.get(WEBAPP_HTTP_ADDRESS, defaultHttpAddress);
     }

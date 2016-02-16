@@ -210,6 +210,14 @@ def ams(name=None):
               group=params.user_group
     )
 
+    XmlConfig("ssl-server.xml",
+              conf_dir=params.ams_collector_conf_dir,
+              configurations=params.config['configurations']['ams-ssl-server'],
+              configuration_attributes=params.config['configuration_attributes']['ams-ssl-server'],
+              owner=params.ams_user,
+              group=params.user_group
+    )
+
     merged_ams_hbase_site = {}
     merged_ams_hbase_site.update(params.config['configurations']['ams-hbase-site'])
     if params.security_enabled:

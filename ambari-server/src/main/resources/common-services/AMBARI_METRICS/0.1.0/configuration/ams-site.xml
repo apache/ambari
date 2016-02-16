@@ -481,7 +481,6 @@
       </property>
     </depends-on>
   </property>
-
   <property>
     <name>timeline.metrics.sink.report.interval</name>
     <value>60</value>
@@ -540,6 +539,17 @@
     <value>true</value>
     <description>
       Enable Compaction policy for lower for Precision and Minute aggregate tables.
+    </description>
+  </property>
+  <property>
+    <name>timeline.metrics.service.http.policy</name>
+    <value>HTTP_ONLY</value>
+    <description>
+      This configures the HTTP endpoint for Yarn Application History Server for
+      Ambari Metrics System.
+      The following values are supported:
+      - HTTP_ONLY : Service is provided only on http
+      - HTTPS_ONLY : Service is provided only on https
     </description>
   </property>
 

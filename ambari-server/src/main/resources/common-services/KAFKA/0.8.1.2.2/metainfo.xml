@@ -64,6 +64,7 @@
         <config-type>ranger-kafka-security</config-type>
         <config-type>zookeeper-env</config-type>
         <config-type>zoo.cfg</config-type>
+        <config-type>ams-ssl-client</config-type>
       </configuration-dependencies>
       <restartRequiredAfterChange>true</restartRequiredAfterChange>
     </service>

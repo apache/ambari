@@ -29,7 +29,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.configuration.SubsetConfiguration;
-import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
@@ -79,13 +78,19 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
     LOG.info("Identified hostname = " + hostName + ", serviceName = " + serviceName);
 
     // Load collector configs
-    metricsServers = Servers.parse(conf.getString(COLLECTOR_HOST_PROPERTY), 6188);
+    metricsServers = Servers.parse(conf.getString(COLLECTOR_PROPERTY), 6188);
 
     if (metricsServers == null || metricsServers.isEmpty()) {
       LOG.error("No Metric collector configured.");
     } else {
-      collectorUri = "http://" + conf.getString(COLLECTOR_HOST_PROPERTY).trim()
-          + "/ws/v1/timeline/metrics";
+      collectorUri = conf.getString(COLLECTOR_PROPERTY).trim()
+          + WS_V1_TIMELINE_METRICS;
+      if (collectorUri.toLowerCase().startsWith("https://")) {
+        String trustStorePath = conf.getString(SSL_KEYSTORE_PATH_PROPERTY).trim();
+        String trustStoreType = conf.getString(SSL_KEYSTORE_TYPE_PROPERTY).trim();
+        String trustStorePwd = conf.getString(SSL_KEYSTORE_PASSWORD_PROPERTY).trim();
+        loadTruststore(trustStorePath, trustStoreType, trustStorePwd);
+      }
     }
 
     LOG.info("Collector Uri: " + collectorUri);

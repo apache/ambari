@@ -106,6 +106,10 @@ else:
 
 metric_collector_host = ""
 metric_collector_port = ""
+metric_collector_protocol = ""
+metric_truststore_path= default("/configurations/ams-ssl-client/ssl.client.truststore.location", "")
+metric_truststore_type= default("/configurations/ams-ssl-client/ssl.client.truststore.type", "")
+metric_truststore_password= default("/configurations/ams-ssl-client/ssl.client.truststore.password", "")
 
 ams_collector_hosts = default("/clusterHostInfo/metrics_collector_hosts", [])
 has_metric_collector = not len(ams_collector_hosts) == 0
@@ -125,6 +129,10 @@ if has_metric_collector:
       metric_collector_port = metric_collector_web_address.split(':')[1]
     else:
       metric_collector_port = '6188'
+  if default("/configurations/ams-site/timeline.metrics.service.http.policy", "HTTP_ONLY") == "HTTPS_ONLY":
+    metric_collector_protocol = 'https'
+  else:
+    metric_collector_protocol = 'http'
   pass
 # Security-related params
 security_enabled = config['configurations']['cluster-env']['security_enabled']
