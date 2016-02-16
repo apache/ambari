@@ -265,6 +265,7 @@ App.HostComponentActionMap = {
   getMap: function(ctx) {
     var HM = ctx.get('controller.content.hostComponents').findProperty('componentName', 'HAWQMASTER');
     var HS = ctx.get('controller.content.hostComponents').findProperty('componentName', 'HAWQSTANDBY');
+    var HMComponent = App.MasterComponent.find('HAWQMASTER');
     return {
       RESTART_ALL: {
         action: 'restartAllHostComponents',
@@ -367,19 +368,29 @@ App.HostComponentActionMap = {
         hasSubmenu: ctx.get('controller.isSeveralClients'),
         submenuOptions: ctx.get('controller.clientComponents')
       },
-      IMMEDIATE_STOP_CLUSTER: {
-        action: 'immediateStopHawqCluster',
-        customCommand: 'IMMEDIATE_STOP_CLUSTER',
-        context: Em.I18n.t('services.service.actions.run.immediateStopHawqCluster.context'),
-        label: Em.I18n.t('services.service.actions.run.immediateStopHawqCluster.context'),
+      IMMEDIATE_STOP_HAWQ_SERVICE: {
+        action: 'executeHawqCustomCommand',
+        customCommand: 'IMMEDIATE_STOP_HAWQ_SERVICE',
+        context: Em.I18n.t('services.service.actions.run.immediateStopHawqService.context'),
+        label: Em.I18n.t('services.service.actions.run.immediateStopHawqService.label'),
         cssClass: 'icon-stop',
         disabled: !HM || HM.get('workStatus') != App.HostComponentStatus.started
+
       },
-      IMMEDIATE_STOP: {
-        customCommand: 'IMMEDIATE_STOP',
+      IMMEDIATE_STOP_HAWQ_SEGMENT: {
+        customCommand: 'IMMEDIATE_STOP_HAWQ_SEGMENT',
         context: Em.I18n.t('services.service.actions.run.immediateStopHawqSegment.context'),
         label: Em.I18n.t('services.service.actions.run.immediateStopHawqSegment.label'),
         cssClass: 'icon-stop'
+      },
+      RESYNC_HAWQ_STANDBY: {
+        action: 'executeHawqCustomCommand',
+        customCommand: 'RESYNC_HAWQ_STANDBY',
+        context: Em.I18n.t('services.service.actions.run.resyncHawqStandby.context'),
+        label: Em.I18n.t('services.service.actions.run.resyncHawqStandby.label'),
+        cssClass: 'icon-refresh',
+        isHidden : App.get('isSingleNode') || !HS ,
+        disabled: !((!!HMComponent && HMComponent.get('startedCount') === 1) && (!!HS && HS.get('workStatus') === App.HostComponentStatus.started))
       },
       MASTER_CUSTOM_COMMAND: {
         action: 'executeCustomCommand',
@@ -394,8 +405,9 @@ App.HostComponentActionMap = {
         isHidden: App.get('isSingleNode') || HS,
         disabled: false
       },
-      TOGGLE_ACTIVATE_HAWQ_STANDBY: {
+      ACTIVATE_HAWQ_STANDBY: {
         action: 'activateHawqStandby',
+        context: Em.I18n.t('admin.activateHawqStandby.button.enable'),
         label: Em.I18n.t('admin.activateHawqStandby.button.enable'),
         cssClass: 'icon-arrow-up',
         isHidden: App.get('isSingleNode') || !HS,

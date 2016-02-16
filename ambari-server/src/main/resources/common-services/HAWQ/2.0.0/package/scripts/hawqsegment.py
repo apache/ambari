@@ -73,7 +73,7 @@ class HawqSegment(Script):
     from hawqstatus import get_pid_file
     check_process_status(get_pid_file())
 
-  def immediate_stop(self, env):
+  def immediate_stop_hawq_segment(self, env):
     self.stop(env, mode=hawq_constants.IMMEDIATE)
 
 

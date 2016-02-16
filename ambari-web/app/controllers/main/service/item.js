@@ -501,29 +501,6 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   },
 
   /**
-   * On click handler for hawq stop cluster command from items menu
-   */
-
-  immediateStopHawqCluster: function(context) {
-    var controller = this;
-    return App.showConfirmationPopup(function() {
-      App.ajax.send({
-        name: 'service.item.executeCustomCommand',
-        sender: controller,
-        data: {
-          command: context.command,
-          context: Em.I18n.t('services.service.actions.run.immediateStopHawqCluster.context'),
-          hosts: App.Service.find(context.service).get('hostComponents').findProperty('componentName', 'HAWQMASTER').get('hostName'),
-          serviceName: context.service,
-          componentName: context.component
-        },
-        success : 'executeCustomCommandSuccessCallback',
-        error : 'executeCustomCommandErrorCallback'
-      });
-    });
-  },
-
-  /**
    * On click handler for rebalance Hdfs command from items menu
    */
   rebalanceHdfsNodes: function () {
@@ -924,6 +901,29 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
       serviceName: this.get('content.serviceName'),
       componentName: (event && event.name) || component.get('componentName'),
       displayName: (event && event.label) || component.get('displayName')
+    });
+  },
+  
+  /**
+   * On click handler for custom hawq command from items menu
+   * @param context
+   */
+  executeHawqCustomCommand: function(context) {
+    var controller = this;
+    return App.showConfirmationPopup(function() {
+      App.ajax.send({
+        name : 'service.item.executeCustomCommand',
+        sender: controller,
+        data : {
+          command : context.command,
+          context : context.label,
+          hosts : App.Service.find(context.service).get('hostComponents').findProperty('componentName', context.component).get('hostName'),
+          serviceName : context.service,
+          componentName : context.component
+        },
+        success : 'executeCustomCommandSuccessCallback',
+        error : 'executeCustomCommandErrorCallback'
+      });
     });
   },
 
