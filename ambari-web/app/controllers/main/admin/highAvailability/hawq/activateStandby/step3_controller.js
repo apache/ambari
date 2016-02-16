@@ -25,7 +25,7 @@ App.ActivateHawqStandbyWizardStep3Controller = App.HighAvailabilityProgressPageC
 
   clusterDeployState: 'ACTIVATE_HAWQ_STANDBY',
 
-  hawqActivateStandbyCustomCommand: "ACTIVATE_STANDBY",
+  hawqActivateStandbyCustomCommand: "ACTIVATE_HAWQ_STANDBY",
 
   hawqServiceName: "HAWQ",
 

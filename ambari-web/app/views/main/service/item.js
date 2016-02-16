@@ -35,9 +35,9 @@ App.MainServiceItemView = Em.View.extend({
     'RESOURCEMANAGER': ['DECOMMISSION', 'REFRESHQUEUES'],
     'HBASE_MASTER': ['DECOMMISSION'],
     'KNOX_GATEWAY': ['STARTDEMOLDAP','STOPDEMOLDAP'],
-    'HAWQMASTER': ['IMMEDIATE_STOP_CLUSTER'],
-    'HAWQSTANDBY': ['ACTIVATE_STANDBY'],
-    'HAWQSEGMENT': ['IMMEDIATE_STOP']
+    'HAWQMASTER': ['IMMEDIATE_STOP_HAWQ_SERVICE'],
+    'HAWQSEGMENT': ['IMMEDIATE_STOP_HAWQ_SEGMENT'],
+    'HAWQSTANDBY' : ['RESYNC_HAWQ_STANDBY','ACTIVATE_HAWQ_STANDBY']
   },
 
    addActionMap: function() {
@@ -172,7 +172,6 @@ App.MainServiceItemView = Em.View.extend({
             break;
           case 'HAWQ':
             options.push(actionMap.TOGGLE_ADD_HAWQ_STANDBY);
-            options.push(actionMap.TOGGLE_ACTIVATE_HAWQ_STANDBY);
             break;
         }
       }
@@ -198,21 +197,25 @@ App.MainServiceItemView = Em.View.extend({
         });
       }
 
-      var hawqMasterComponent = App.StackServiceComponent.find().findProperty('componentName','HAWQMASTER');
-      if (serviceName === 'HAWQ' && hawqMasterComponent) {
-        var hawqMasterCustomCommands = hawqMasterComponent.get('customCommands');
-        customCommandToStopCluster = 'IMMEDIATE_STOP_CLUSTER';
-        if (hawqMasterCustomCommands && hawqMasterCustomCommands.contains(customCommandToStopCluster)) {
-          options.push(self.createOption(actionMap.IMMEDIATE_STOP_CLUSTER, {
-            label: Em.I18n.t('services.service.actions.run.immediateStopHawqCluster.context'),
-            context: {
-              label: Em.I18n.t('services.service.actions.run.immediateStopHawqCluster.context'),
-              service: hawqMasterComponent.get('serviceName'),
-              component: hawqMasterComponent.get('componentName'),
-              command: customCommandToStopCluster
-            }
-          }));
-        }
+      /**
+       * Display all custom commands of Master and StandBy on Service page.
+       **/
+      if(serviceName === 'HAWQ') {
+        var hawqMasterComponent = App.StackServiceComponent.find().findProperty('componentName','HAWQMASTER');
+        var hawqStandByComponent = App.StackServiceComponent.find().findProperty('componentName','HAWQSTANDBY');
+        components = [hawqMasterComponent,hawqStandByComponent]
+        components.forEach(function(component){
+          component.get('customCommands').forEach(function(command){
+            options.push(self.createOption(actionMap[command], {
+              context: {
+                label: actionMap[command].context,
+                service: component.get('serviceName'),
+                component: component.get('componentName'),
+                command: command
+              }
+            }));
+          });
+        });
       }
 
       self.addActionMap().filterProperty('service', serviceName).forEach(function(item) {

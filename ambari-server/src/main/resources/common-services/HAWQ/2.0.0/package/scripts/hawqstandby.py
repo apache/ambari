@@ -18,6 +18,7 @@ limitations under the License.
 """
 from resource_management import Script
 from resource_management.libraries.functions.check_process_status import check_process_status
+from resource_management.core.logger import Logger
 
 import master_helper
 import common
@@ -51,10 +52,15 @@ class HawqStandby(Script):
     from hawqstatus import get_pid_file
     check_process_status(get_pid_file())
 
-  def activate_standby(self, env):
+  def activate_hawq_standby(self, env):
     import utils
     utils.exec_hawq_operation(hawq_constants.ACTIVATE, "{0} -a -M {1} -v".format(hawq_constants.STANDBY, hawq_constants.FAST))
-
+  def resync_hawq_standby(self,env):
+    import params
+    import utils
+    Logger.info("Re-synchronizing HAWQ Standby..")
+    utils.exec_hawq_operation(hawq_constants.INIT, "{0} -n -a -v -M {1}".format(hawq_constants.STANDBY, hawq_constants.FAST))
+    Logger.info("HAWQ Standby host {0} Re-Sync successful".format(params.hostname))
 
 if __name__ == "__main__":
     HawqStandby().execute()
