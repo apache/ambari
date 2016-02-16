@@ -75,6 +75,8 @@ angular.module('ambariAdminConsole')
       'warning': 'Warning',
       'filterInfo': '{{showed}} of {{total}} {{term}} showing',
       'usersGroups': 'Users/Groups',
+      'enabled': 'Enabled',
+      'disabled': 'Disabled',
 
       'clusterNameChangeConfirmation': {
         'title': 'Confirm Cluster Name Change',
@@ -92,8 +94,13 @@ angular.module('ambariAdminConsole')
         'message': 'Message',
         'buttonText': 'Button',
         'status': 'Status',
-        'status.enabled': 'Enabled',
-        'status.disabled': 'Disabled'
+        'status.disabled': 'Disabled',
+        'homeDirectory.alert': 'Many Ambari Views store user preferences in the logged in user\'s / user directory in HDFS. Optionally, Ambari can auto-create these directories for users on login.',
+        'homeDirectory.autoCreate': 'Auto-Create HDFS user directories',
+        'homeDirectory.header': 'User Directory Creation Options',
+        'homeDirectory.template': 'User Directory creation template',
+        'homeDirectory.group': 'Default Group',
+        'homeDirectory.permissions': 'Permissions'
       },
 
       'controls': {
