@@ -542,10 +542,10 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
 
     // `source.parameters` is an array and should be updated separately from other configs
     if (this.get('content.parameters.length')) {
-      propertiesToUpdate['AlertDefinition/source/parameters'] = this.get('content.rawSourceData.parameters');
+      propertiesToUpdate['AlertDefinition/source'] = this.get('content.rawSourceData');
       var parameterConfigs = this.get('configs').filterProperty('name', 'parameter');
       parameterConfigs.forEach(function (parameter) {
-        propertiesToUpdate['AlertDefinition/source/parameters'].findProperty('name', parameter.get('apiProperty')).value = parameter.get('apiFormattedValue');
+        propertiesToUpdate['AlertDefinition/source'].parameters.findProperty('name', parameter.get('apiProperty')).value = parameter.get('apiFormattedValue');
       });
     }
 
