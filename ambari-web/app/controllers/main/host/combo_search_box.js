@@ -82,13 +82,10 @@ App.MainHostComboSearchBoxController = Em.Controller.extend({
           ]);
           break;
         case 'service':
-          callback(App.Service.find().toArray().mapProperty('serviceName'));
+          callback(App.Service.find().toArray().mapProperty('serviceName'), {preserveOrder: true});
           break;
         case 'component':
-          callback(App.MasterComponent.find().toArray().mapProperty('componentName')
-              .concat(App.SlaveComponent.find().toArray().mapProperty('componentName'))
-              .concat(App.ClientComponent.find().toArray().mapProperty('componentName'))
-            ,{preserveOrder: true});
+          callback(App.HostComponent.find().toArray().mapProperty('componentName').uniq(), {preserveOrder: true});
           break;
         case 'state':
           callback([
