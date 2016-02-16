@@ -20,12 +20,14 @@ package org.apache.ambari.server.audit.request.eventcreator;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.audit.AuditEvent;
+import org.apache.ambari.server.audit.ConfigurationChangeRequestAuditEvent;
 import org.apache.ambari.server.audit.RequestAuditEvent;
 import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -51,19 +53,25 @@ public class ConfigurationChangeEventCreator implements RequestAuditEventCreator
     requestTypes.add(Request.Type.DELETE);
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public Set<Request.Type> getRequestTypes() {
     return requestTypes;
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public Set<Resource.Type> getResourceTypes() {
     return Collections.singleton(Resource.Type.Cluster);
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public Set<ResultStatus.STATUS> getResultStatuses() {
     return null;
@@ -73,14 +81,33 @@ public class ConfigurationChangeEventCreator implements RequestAuditEventCreator
   public AuditEvent createAuditEvent(Request request, Result result) {
     String username = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
 
-    return RequestAuditEvent.builder()
+    return ConfigurationChangeRequestAuditEvent.builder()
+      .withTimestamp(DateTime.now())
       .withRequestType(request.getRequestType())
       .withResultStatus(result.getStatus())
       .withUrl(request.getURI())
-      .withOperation("Configuration change")
-      .withUserName(username)
       .withRemoteIp(request.getRemoteAddress())
-      .withTimestamp(DateTime.now())
+      .withUserName(username)
+      .withVersionNote(getServiceConfigVersionNote(result))
+      .withVersionNumber(getServiceConfigVersion(result))
       .build();
   }
+
+  private String getServiceConfigVersion(Result result) {
+    return String.valueOf(getServiceConfigMap(result).get("service_config_version"));
+  }
+
+  private String getServiceConfigVersionNote(Result result) {
+    return String.valueOf(getServiceConfigMap(result).get("service_config_version_note"));
+  }
+
+  private Map<String, Object> getServiceConfigMap(Result result) {
+    if (result.getResultTree().getChild("resources") != null &&
+      !result.getResultTree().getChild("resources").getChildren().isEmpty() &&
+      result.getResultTree().getChild("resources").getChildren().iterator().next().getObject() != null) {
+      return result.getResultTree().getChild("resources").getChildren().iterator().next().getObject().getPropertiesMap().get("");
+    }
+    return null;
+  }
+
 }

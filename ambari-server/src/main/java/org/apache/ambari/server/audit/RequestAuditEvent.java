@@ -25,7 +25,7 @@ import org.apache.ambari.server.api.services.ResultStatus;
  */
 public class RequestAuditEvent extends AbstractUserAuditEvent {
 
-  public static class RequestAuditEventBuilder extends AbstractUserAuditEventBuilder<RequestAuditEvent, RequestAuditEventBuilder> {
+  public static class RequestAuditEventBuilder<T extends RequestAuditEvent, TBuilder extends  RequestAuditEventBuilder<T, TBuilder>> extends AbstractUserAuditEventBuilder<T, TBuilder> {
 
     private Request.Type requestType;
 
@@ -36,8 +36,8 @@ public class RequestAuditEvent extends AbstractUserAuditEvent {
     private String operation;
 
     @Override
-    protected RequestAuditEvent newAuditEvent() {
-      return new RequestAuditEvent(this);
+    protected T newAuditEvent() {
+      return (T)new RequestAuditEvent(this);
     }
 
     /**
@@ -77,10 +77,10 @@ public class RequestAuditEvent extends AbstractUserAuditEvent {
      * @param requestType request type to be added to the audit event.
      * @return this builder
      */
-    public RequestAuditEventBuilder withRequestType(Request.Type requestType) {
+    public TBuilder withRequestType(Request.Type requestType) {
       this.requestType = requestType;
 
-      return this;
+      return (TBuilder)this;
     }
 
     /**
@@ -88,10 +88,10 @@ public class RequestAuditEvent extends AbstractUserAuditEvent {
      * @param url url to be added to the audit event.
      * @return this builder
      */
-    public RequestAuditEventBuilder withUrl(String url) {
+    public TBuilder withUrl(String url) {
       this.url = url;
 
-      return this;
+      return (TBuilder)this;
     }
 
     /**
@@ -99,10 +99,10 @@ public class RequestAuditEvent extends AbstractUserAuditEvent {
      * @param resultStatus result status to be added to the audit event.
      * @return this builder
      */
-    public RequestAuditEventBuilder withResultStatus(ResultStatus resultStatus) {
+    public TBuilder withResultStatus(ResultStatus resultStatus) {
       this.resultStatus = resultStatus;
 
-      return this;
+      return (TBuilder)this;
     }
 
     /**
@@ -110,10 +110,10 @@ public class RequestAuditEvent extends AbstractUserAuditEvent {
      * @param operation operation to be added to the audit event.
      * @return this builder
      */
-    public RequestAuditEventBuilder withOperation(String operation) {
+    public TBuilder withOperation(String operation) {
       this.operation = operation;
 
-      return this;
+      return (TBuilder)this;
     }
   }
 
@@ -123,7 +123,7 @@ public class RequestAuditEvent extends AbstractUserAuditEvent {
   /**
    * {@inheritDoc}
    */
-  protected RequestAuditEvent(RequestAuditEventBuilder builder) {
+  protected RequestAuditEvent(RequestAuditEventBuilder<?,?> builder) {
     super(builder);
   }
 
@@ -131,7 +131,7 @@ public class RequestAuditEvent extends AbstractUserAuditEvent {
    * Returns an builder for {@link RequestAuditEvent}
    * @return a builder instance
    */
-  public static RequestAuditEventBuilder builder() {
+  public static RequestAuditEventBuilder<?,?> builder() {
     return new RequestAuditEventBuilder();
   }
 
