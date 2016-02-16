@@ -40,6 +40,7 @@ import java.util.Map;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
@@ -59,6 +60,7 @@ import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.stack.StackRoleCommandOrder;
 import org.apache.commons.lang.StringUtils;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -639,6 +641,7 @@ public class StackManagerTest {
         stack.getKerberosDescriptorFileLocation());
   }
 
+  @Ignore
   @Test
   public void testMetricsLoaded() throws Exception {
 
@@ -679,6 +682,7 @@ public class StackManagerTest {
     }
   }
 
+  @Ignore
   @Test
   public void testServicesWithRangerPluginRoleCommandOrder() throws AmbariException {
     // Given
