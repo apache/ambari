@@ -689,14 +689,21 @@ public class BlueprintConfigurationProcessorTest {
     typeProps.put("test.ssl.password", "test-password-five");
     typeProps.put("test.password.should.be.included", "test-another-pwd");
 
+    //Checking functionality for fields marked as SECRET
+    Map<String, String> secretProps = new HashMap<String, String>();
+    secretProps.put("knox_master_secret", "test-secret-one");
+    secretProps.put("test.secret.should.be.included", "test-another-secret");
     // create a custom config type, to verify that the filters can
     // be applied across all config types
     Map<String, String> customProps = new HashMap<String, String>();
     customProps.put("my_test_PASSWORD", "should be excluded");
     customProps.put("PASSWORD_mytest", "should be included");
 
+    customProps.put("my_test_SECRET", "should be excluded");
+    customProps.put("SECRET_mytest", "should be included");
     properties.put("ranger-yarn-plugin-properties", typeProps);
     properties.put("custom-test-properties", customProps);
+    properties.put("secret-test-properties", secretProps);
 
     Configuration clusterConfig = new Configuration(properties,
       Collections.<String, Map<String, Map<String, String>>>emptyMap());
@@ -721,10 +728,12 @@ public class BlueprintConfigurationProcessorTest {
     configProcessor.doUpdateForBlueprintExport();
 
 
-    assertEquals("Exported properties map was not of the expected size", 1,
+    assertEquals("Exported properties map was not of the expected size", 2,
       properties.get("custom-test-properties").size());
     assertEquals("ranger-yarn-plugin-properties config type was not properly exported", 1,
       properties.get("ranger-yarn-plugin-properties").size());
+    assertEquals("Exported secret properties map was not of the expected size", 1,
+      properties.get("secret-test-properties").size());
 
     // verify that the following password properties matching the "*_PASSWORD" rule have been excluded
     assertFalse("Password property should have been excluded",
@@ -743,9 +752,15 @@ public class BlueprintConfigurationProcessorTest {
     assertTrue("Expected password property not found",
       properties.get("ranger-yarn-plugin-properties").containsKey("test.password.should.be.included"));
 
+    // verify that the following password properties matching the "*_SECRET" rule have been excluded
+    assertFalse("Secret property should have been excluded",
+	      properties.get("secret-test-properties").containsKey("knox_master_secret"));
+    // verify that the property that does not match the "*_SECRET" rule is still included
+    assertTrue("Expected secret property not found",
+	      properties.get("secret-test-properties").containsKey("test.secret.should.be.included"));
     // verify the custom properties map has been modified by the filters
     assertEquals("custom-test-properties type was not properly exported",
-      1, properties.get("custom-test-properties").size());
+      2, properties.get("custom-test-properties").size());
 
     // verify that the following password properties matching the "*_PASSWORD" rule have been excluded
     assertFalse("Password property should have been excluded",
@@ -6209,6 +6224,54 @@ public class BlueprintConfigurationProcessorTest {
     Assert.assertTrue(hostArray.containsAll(expected) && expected.containsAll(hostArray));
   }
 
+
+  @Test
+  public void testResolutionOfDRPCServerAndNN() throws Exception {
+    // Given
+    final String stormConfigType = "storm-site";
+    final String mrConfigType = "mapred-site";
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> stormConfigProperties = new HashMap<String, String>();
+    Map<String, String> mrConfigProperties = new HashMap<String, String>();
+
+    properties.put(stormConfigType, stormConfigProperties);
+    properties.put(mrConfigType, mrConfigProperties);
+    stormConfigProperties.put("drpc.servers", "['%HOSTGROUP::group1%']");
+    mrConfigProperties.put("mapreduce.job.hdfs-servers", "['%HOSTGROUP::group2%']");
+
+
+    Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
+    Configuration parentClusterConfig = new Configuration(parentProperties,
+                                                          Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties,
+                                                    Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+
+
+    Collection<String> stormComponents = new HashSet<String>();
+    stormComponents.add("NIMBUS");
+    stormComponents.add("DRPC_SERVER");
+
+    Collection<String> hdfsComponents = new HashSet<String>();
+    hdfsComponents.add("NAMENODE");
+
+
+    TestHostGroup group1 = new TestHostGroup("group1", stormComponents, Collections.singleton("host1"));
+    group1.components.add("DATANODE");
+
+    TestHostGroup group2 = new TestHostGroup("group2", hdfsComponents, Collections.singleton("host2"));
+
+    Collection<TestHostGroup> hostGroups = Lists.newArrayList(group1, group2);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+
+    // When
+    configProcessor.doUpdateForClusterCreate();
+
+    // Then
+    assertEquals("['host1']", clusterConfig.getPropertyValue(stormConfigType, "drpc.servers"));
+    assertEquals("['host2']", clusterConfig.getPropertyValue(mrConfigType, "mapreduce.job.hdfs-servers"));
+  }
 
   @Test
   public void testHadoopWithRangerKmsServer() throws Exception {

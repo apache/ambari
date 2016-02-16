@@ -523,7 +523,7 @@
       },
       {
         "name": "increase_nn_heap_usage_hourly",
-        "label": "Hourly increase in NN heap usage",
+        "label": "NameNode Heap Usage (Hourly)",
         "description": "This service-level alert is triggered if the NN heap usage deviation has grown beyond the specified threshold within a given time interval.",
         "interval": 5,
         "scope": "ANY",
@@ -581,7 +581,7 @@
       },
       {
         "name": "namenode_service_rpc_latency_hourly",
-        "label": "Hourly Service-RPC latency",
+        "label": "NameNode RPC Latency (Hourly)",
         "description": "This service-level alert is triggered if the Service-RPC latency deviation has grown beyond the specified threshold within a given time interval.",
         "interval": 5,
         "scope": "ANY",
@@ -639,7 +639,7 @@
       },
       {
         "name": "namenode_increase_in_storage_capacity_usage_hourly",
-        "label": "Hourly increase in storage capacity usage",
+        "label": "HDFS Storage Capacity Usage (Hourly)",
         "description": "This service-level alert is triggered if the increase in storage capacity usage deviation has grown beyond the specified threshold within a given time interval.",
         "interval": 5,
         "scope": "ANY",
@@ -697,7 +697,7 @@
       },
       {
         "name": "increase_nn_heap_usage_daily",
-        "label": "Daily increase in NN heap usage",
+        "label": "NameNode Heap Usage (Daily)",
         "description": "This service-level alert is triggered if the NN heap usage deviation has grown beyond the specified threshold within a given time interval.",
         "interval": 480,
         "scope": "ANY",
@@ -755,7 +755,7 @@
       },
       {
         "name": "namenode_service_rpc_latency_daily",
-        "label": "Daily Service-RPC latency",
+        "label": "NameNode RPC Latency (Daily)",
         "description": "This service-level alert is triggered if the Service-RPC latency deviation has grown beyond the specified threshold within a given time interval.",
         "interval": 480,
         "scope": "ANY",
@@ -813,7 +813,7 @@
       },
       {
         "name": "namenode_increase_in_storage_capacity_usage_daily",
-        "label": "Daily increase in storage capacity usage",
+        "label": "HDFS Storage Capacity Usage (Daily)",
         "description": "This service-level alert is triggered if the increase in storage capacity usage deviation has grown beyond the specified threshold within a given time interval.",
         "interval": 480,
         "scope": "ANY",
@@ -871,7 +871,7 @@
       },
       {
         "name": "increase_nn_heap_usage_weekly",
-        "label": "Weekly increase in NN heap usage",
+        "label": "NameNode Heap Usage (Weekly)",
         "description": "This service-level alert is triggered if the NN heap usage deviation has grown beyond the specified threshold within a given time interval.",
         "interval": 1440,
         "scope": "ANY",
@@ -929,7 +929,7 @@
       },
       {
         "name": "namenode_increase_in_storage_capacity_usage_weekly",
-        "label": "Weekly increase in storage capacity usage",
+        "label": "HDFS Storage Capacity Usage (Weekly)",
         "description": "This service-level alert is triggered if the increase in storage capacity usage deviation has grown beyond the specified threshold within a given time interval.",
         "interval": 1440,
         "scope": "ANY",

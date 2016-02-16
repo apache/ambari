@@ -479,14 +479,15 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
 
   loadServiceConfigGroupOverridesSuccess: function (data, opt, params) {
     data.items.forEach(function (config) {
+      var hostOverrideValue, hostOverrideIsFinal;
       var group = params.typeTagToGroupMap[config.type + "///" + config.tag];
       var properties = config.properties;
       for (var prop in properties) {
         var fileName = App.config.getOriginalFileName(config.type);
         var serviceConfig = !!params.configKeyToConfigMap[fileName] ? params.configKeyToConfigMap[fileName][prop] : false;
-        var hostOverrideValue = App.config.formatPropertyValue(serviceConfig, properties[prop]);
-        var hostOverrideIsFinal = !!(config.properties_attributes && config.properties_attributes.final && config.properties_attributes.final[prop]);
         if (serviceConfig) {
+          hostOverrideValue = App.config.formatPropertyValue(serviceConfig, properties[prop]);
+          hostOverrideIsFinal = !!(config.properties_attributes && config.properties_attributes.final && config.properties_attributes.final[prop]);
           // Value of this property is different for this host.
           if (!Em.get(serviceConfig, 'overrides')) Em.set(serviceConfig, 'overrides', []);
           serviceConfig.overrides.pushObject({value: hostOverrideValue, group: group, isFinal: hostOverrideIsFinal});
@@ -594,6 +595,9 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
 
       if (Em.isNone(serviceConfigProperty.get('isOverridable'))) {
         serviceConfigProperty.set('isOverridable', true);
+      }
+      if (!Em.isNone(serviceConfigProperty.get('group'))) {
+        serviceConfigProperty.get('group.properties').pushObject(serviceConfigProperty);
       }
       this._updateOverridesForConfig(serviceConfigProperty, component);
       this._updateIsEditableFlagForConfig(serviceConfigProperty, defaultGroupSelected);
@@ -870,8 +874,8 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    * @returns {Object[]} existing configs + additional config parameters in yarn-client.xml
    */
   addHawqConfigsOnRMHa: function(configs) {
-    rmHost1 = configs.findProperty('id', 'yarn.resourcemanager.hostname.rm1__yarn-site').value ;
-    rmHost2 = configs.findProperty('id', 'yarn.resourcemanager.hostname.rm2__yarn-site').value ;
+    var rmHost1 = configs.findProperty('id', 'yarn.resourcemanager.hostname.rm1__yarn-site').value ;
+    var rmHost2 = configs.findProperty('id', 'yarn.resourcemanager.hostname.rm2__yarn-site').value ;
     var yarnConfigToBeAdded = [
       {
         name: 'yarn.resourcemanager.ha',
@@ -1221,6 +1225,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         service.set('configGroups', [App.ServiceConfigGroup.find(id)]);
       }
       else {
+        App.store.commit();
         App.store.loadMany(App.ServiceConfigGroup, serviceRawGroups);
         App.store.commit();
         serviceRawGroups.forEach(function(item){
@@ -1228,19 +1233,24 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
           var wrappedProperties = [];
 
           item.properties.forEach(function (propertyData) {
-            var parentSCP = service.configs.filterProperty('filename', propertyData.filename).findProperty('name', propertyData.name);
-            var overriddenSCP = App.ServiceConfigProperty.create(parentSCP);
-            overriddenSCP.set('isOriginalSCP', false);
-            overriddenSCP.set('parentSCP', parentSCP);
-            overriddenSCP.set('group', modelGroup);
-            overriddenSCP.setProperties(propertyData);
+            var overriddenSCP, parentSCP = service.configs.filterProperty('filename', propertyData.filename).findProperty('name', propertyData.name);
+            if (parentSCP) {
+              overriddenSCP = App.ServiceConfigProperty.create(parentSCP);
+              overriddenSCP.set('parentSCP', parentSCP);
+            } else {
+              overriddenSCP = App.config.createCustomGroupConfig(propertyData.name, propertyData.filename, propertyData.value, modelGroup, true, false);
+              this.get('stepConfigs').findProperty('serviceName', service.serviceName).get('configs').pushObject(overriddenSCP);
+            }
+              overriddenSCP.set('isOriginalSCP', false);
+              overriddenSCP.set('group', modelGroup);
+              overriddenSCP.setProperties(propertyData);
             wrappedProperties.pushObject(App.ServiceConfigProperty.create(overriddenSCP));
-          });
+          }, this);
           modelGroup.set('properties', wrappedProperties);
         }, this);
         service.set('configGroups', App.ServiceConfigGroup.find().filterProperty('serviceName', service.get('serviceName')));
       }
-    });
+    }, this);
   },
 
   /**
@@ -1321,6 +1331,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    * @method _setOverrides
    */
   _setOverrides: function (config, overrides) {
+    if (config.get('group')) return config;
     var selectedGroup = this.get('selectedConfigGroup'),
       overrideToAdd = this.get('overrideToAdd'),
       configOverrides = overrides.filterProperty('name', config.get('name'));

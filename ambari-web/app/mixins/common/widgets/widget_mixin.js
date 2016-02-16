@@ -204,7 +204,9 @@ App.WidgetMixin = Ember.Mixin.create({
   },
 
   /**
-   *  aggregate all metric names in the query. Add time range and step to temporal queries
+   * aggregate all metric names in the query. Add time range and step to temporal queries
+   * @param {Array} metricPaths
+   * @returns {string}
    */
   prepareMetricPaths: function(metricPaths) {
     var temporalMetrics = metricPaths.filterProperty('metric_type', 'TEMPORAL');
@@ -225,15 +227,20 @@ App.WidgetMixin = Ember.Mixin.create({
    * @returns {$.ajax}
    */
   getHostComponentMetrics: function (request) {
-    return App.ajax.send({
-      name: 'widgets.hostComponent.metrics.get',
-      sender: this,
-      data: {
-        componentName: request.component_name,
-        metricPaths: this.prepareMetricPaths(request.metric_paths),
-        hostComponentCriteria: this.computeHostComponentCriteria(request)
-      }
-    });
+    var metricPaths = this.prepareMetricPaths(request.metric_paths);
+
+    if (metricPaths.length) {
+      return App.ajax.send({
+        name: 'widgets.hostComponent.metrics.get',
+        sender: this,
+        data: {
+          componentName: request.component_name,
+          metricPaths: this.prepareMetricPaths(request.metric_paths),
+          hostComponentCriteria: this.computeHostComponentCriteria(request)
+        }
+      });
+    }
+    return jQuery.Deferred().reject().promise();
   },
 
   getHostComponentMetricsSuccessCallback: function (data) {
@@ -771,7 +778,7 @@ App.WidgetLoadAggregator = Em.Object.create({
                 subRequest.errorCallback.call(subRequest.context, xhr, textStatus, errorThrown);
               }
             }, this);
-          }).complete(function () {
+          }).always(function () {
               _request.subRequests.forEach(function (subRequest) {
                 subRequest.completeCallback.call(subRequest.context);
               }, this);

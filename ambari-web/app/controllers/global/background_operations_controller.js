@@ -261,19 +261,26 @@ App.BackgroundOperationsController = Em.Controller.extend({
     this.set('isShowMoreAvailable', countGot >= countIssued);
     this.set('serviceTimestamp', App.dateTimeWithTimeZone());
   },
+
   isShowMoreAvailable: null,
+
   /**
    * remove old requests
    * as API returns 10, or  20 , or 30 ...etc latest request, the requests that absent in response should be removed
    * @param currentRequestIds
    */
   removeOldRequests: function (currentRequestIds) {
-    this.get('services').forEach(function (service, index, services) {
-      if (!currentRequestIds.contains(service.id)) {
-        services.splice(index, 1);
+    var services = this.get('services');
+
+    for (var i = 0, l = services.length; i < l; i++) {
+      if (!currentRequestIds.contains(services[i].id)) {
+        services.splice(i, 1);
+        i--;
+        l--;
       }
-    });
+    }
   },
+
   /**
    * identify whether request is running by task counters
    * @param request

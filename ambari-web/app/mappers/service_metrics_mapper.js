@@ -387,7 +387,8 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
       RANGER: [33],
       SPARK: [34],
       ACCUMULO: [35],
-      ATLAS: [36]
+      ATLAS: [36],
+      AMBARI_METRICS: [37]
     };
     if (quickLinks[item.ServiceInfo.service_name])
       finalJson.quick_links = quickLinks[item.ServiceInfo.service_name];

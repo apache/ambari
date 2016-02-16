@@ -99,9 +99,7 @@ App.MainHostMenuView = Em.CollectionView.extend({
   },
 
   deactivateChildViews: function () {
-    $.each(this._childViews, function () {
-      this.set('active', "");
-    });
+    this.get('_childViews').setEach('active', '');
   },
 
   itemViewClass: Em.View.extend({

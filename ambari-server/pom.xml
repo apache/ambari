@@ -40,8 +40,8 @@
     <resourceManagementSrcLocation>${project.basedir}/../ambari-common/src/main/python/resource_management</resourceManagementSrcLocation>
     <customActionsRoot>src/main/resources/custom_actions</customActionsRoot>
     <ambariProperties>conf/unix/ambari.properties</ambariProperties>
-    <commonServicesSrcLocation>target/classes/common-services</commonServicesSrcLocation>
-    <stacksSrcLocation>target/classes/stacks/${stack.distribution}</stacksSrcLocation>
+    <commonServicesSrcLocation>src/main/resources/common-services</commonServicesSrcLocation>
+    <stacksSrcLocation>src/main/resources/stacks/${stack.distribution}</stacksSrcLocation>
     <tarballResourcesFolder>src/main/resources</tarballResourcesFolder>
     <skipPythonTests>false</skipPythonTests>
     <hadoop.version>2.7.1</hadoop.version>
@@ -561,14 +561,6 @@
           <exclude>stacks/**</exclude>
           <exclude>common-services/**</exclude>
         </excludes>
-      </resource>
-      <resource>
-        <directory>src/main/resources</directory>
-        <filtering>false</filtering>
-        <includes>
-          <include>stacks/**</include>
-          <include>common-services/**</include>
-        </includes>
       </resource>
     </resources>
   </build>

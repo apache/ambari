@@ -20,13 +20,12 @@ limitations under the License.
 
 import logging
 import threading
-import time
 import urllib2
 
 logger = logging.getLogger()
 
 class Emitter(threading.Thread):
-  COLLECTOR_URL = "http://{0}/ws/v1/timeline/metrics"
+  COLLECTOR_URL = "{0}://{1}/ws/v1/timeline/metrics"
   RETRY_SLEEP_INTERVAL = 5
   MAX_RETRY_COUNT = 3
   """
@@ -36,10 +35,12 @@ class Emitter(threading.Thread):
     threading.Thread.__init__(self)
     logger.debug('Initializing Emitter thread.')
     self.lock = threading.Lock()
-    self.collector_address = config.get_server_address()
     self.send_interval = config.get_send_interval()
     self._stop_handler = stop_handler
     self.application_metric_map = application_metric_map
+    # TODO verify certificate
+    protocol = 'https' if config.get_server_https_enabled() else 'http'
+    self.collector_url = self.COLLECTOR_URL.format(protocol, config.get_server_address())
 
   def run(self):
     logger.info('Running Emitter thread: %s' % threading.currentThread().getName())
@@ -54,7 +55,7 @@ class Emitter(threading.Thread):
         logger.info('Shutting down Emitter thread')
         return
     pass
-  
+
   def submit_metrics(self):
     retry_count = 0
     # This call will acquire lock on the map and clear contents before returning
@@ -73,7 +74,7 @@ class Emitter(threading.Thread):
       except Exception, e:
         logger.warn('Error sending metrics to server. %s' % str(e))
       pass
-  
+
       if response and response.getcode() == 200:
         retry_count = self.MAX_RETRY_COUNT
       else:
@@ -84,13 +85,12 @@ class Emitter(threading.Thread):
           return
       pass
     pass
-  
+    # TODO verify certificate
   def push_metrics(self, data):
     headers = {"Content-Type" : "application/json", "Accept" : "*/*"}
-    server = self.COLLECTOR_URL.format(self.collector_address.strip())
-    logger.info("server: %s" % server)
+    logger.info("server: %s" % self.collector_url)
     logger.debug("message to sent: %s" % data)
-    req = urllib2.Request(server, data, headers)
+    req = urllib2.Request(self.collector_url, data, headers)
     response = urllib2.urlopen(req, timeout=int(self.send_interval - 10))
     if response:
       logger.debug("POST response from server: retcode = {0}".format(response.getcode()))

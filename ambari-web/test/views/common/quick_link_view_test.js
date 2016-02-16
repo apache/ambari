@@ -959,6 +959,11 @@ describe('App.QuickViewLinks', function () {
       expect(quickViewLinks.findHosts.calledWith('HISTORYSERVER', {})).to.be.true;
     });
 
+    it("AMBARI_METRICS service", function() {
+      expect(quickViewLinks.getHosts({}, 'AMBARI_METRICS')).to.eql(['host1']);
+      expect(quickViewLinks.findHosts.calledWith('METRICS_GRAFANA', {})).to.be.true;
+    });
+
     it("custom service without master", function() {
       expect(quickViewLinks.getHosts({}, 'S1')).to.be.empty;
     });

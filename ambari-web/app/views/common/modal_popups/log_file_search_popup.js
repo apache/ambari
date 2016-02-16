@@ -21,6 +21,16 @@ var App = require('app');
 App.LogFileSearchPopup = function(header) {
   return App.ModalPopup.show({
     classNames: ['modal-full-width', 'sixty-percent-width-modal', 'log-file-search-popup'],
-    bodyClass: App.LogFileSearchView.extend({})
+    header: header,
+    bodyView: null,
+    bodyClass: App.LogFileSearchView.extend({
+      didInsertElement: function() {
+        this.set('parentView.bodyView', this);
+        this._super();
+      }
+    }),
+    enterKeyPressed: function() {
+      this.get('bodyView').fetchContent();
+    }
   });
 };

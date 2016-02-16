@@ -55,4 +55,56 @@ describe('App.HostProgressPopupBodyView', function () {
 
   });
 
+  describe('_determineRoleRelation', function() {
+    var cases;
+
+    beforeEach(function() {
+      sinon.stub(App.StackServiceComponent, 'find').returns([{componentName: 'DATANODE'}])
+      sinon.stub(App.StackService, 'find').returns([{serviceName: 'HDFS'}])
+    });
+
+    afterEach(function() {
+      App.StackServiceComponent.find.restore();
+      App.StackService.find.restore();
+    });
+
+    cases = [
+      {
+        task: { role: 'HDFS_SERVICE_CHECK'},
+        m: 'Role is HDFS_SERVICE_CHECK',
+        e: {
+          type: 'service',
+          value: 'HDFS'
+        }
+      },
+      {
+        task: { role: 'DATANODE'},
+        m: 'Role is DATANODE',
+        e: {
+          type: 'component',
+          value: 'DATANODE'
+        }
+      },
+      {
+        task: { role: 'UNDEFINED'},
+        m: 'Role is UNDEFINED',
+        e: false
+      }
+    ];
+
+    cases.forEach(function(test) {
+      it(test.m, function() {
+        view.reopen({
+          currentHost: Em.Object.create({
+            logTasks: [
+              { Tasks: { id: 1, role: test.task.role }}
+            ]
+          })
+        });
+
+        var ret = view._determineRoleRelation(Em.Object.create({ id: 1 }));
+        expect(ret).to.be.eql(test.e);
+      });
+    });
+  });
 });

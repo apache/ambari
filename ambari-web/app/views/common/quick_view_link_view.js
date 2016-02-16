@@ -549,6 +549,9 @@ App.QuickViewLinks = Em.View.extend({
       case "MAPREDUCE2":
         hosts = this.findHosts('HISTORYSERVER', response);
         break;
+      case "AMBARI_METRICS":
+        hosts = this.findHosts('METRICS_GRAFANA', response);
+        break;
       default:
         if (this.getWithDefault('content.hostComponents', []).someProperty('isMaster')) {
           hosts = this.findHosts(this.get('content.hostComponents').findProperty('isMaster').get('componentName'), response);

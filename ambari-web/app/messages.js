@@ -315,6 +315,7 @@ Em.I18n.translations = {
   'common.keywords': 'Keywods',
   'common.levels': 'Levels',
   'common.extension': 'Extension',
+  'common.logs': 'Logs',
 
   'models.alert_instance.tiggered.verbose': "Occurred on {0} <br> Checked on {1}",
   'models.alert_definition.triggered.verbose': "Occurred on {0}",
@@ -543,7 +544,9 @@ Em.I18n.translations = {
   'installer.step1.advancedRepo.localRepo.label.baseUrl':'Repository Base URL',
   'installer.step1.advancedRepo.localRepo.label.stack':'Stack',
   'installer.step1.advancedRepo.skipValidation.tooltip':'<b>Warning:</b> This is for advanced users only. Use this option if you want to skip validation for Repository Base URLs.',
+  'installer.step1.advancedRepo.useRedhatSatellite.tooltip':'Disable distributed repositories and use RedHat Satellite/Spacewalk channels instead',
   'installer.step1.advancedRepo.skipValidation.message':'Skip Repository Base URL validation (Advanced)',
+  'installer.step1.advancedRepo.useRedhatSatellite.message': 'Use RedHat Satellite/Spacewalk',
   'installer.step1.attentionNeeded':'<b>Attention:</b> Repository URLs are REQUIRED before you can proceed.',
   'installer.step1.invalidURLAttention': '<b>Attention:</b> Please make sure all repository URLs are valid before proceeding.',
   'installer.step1.checkAtLeastOneAttention': '<b>Attention:</b> Please check at least one repository.',

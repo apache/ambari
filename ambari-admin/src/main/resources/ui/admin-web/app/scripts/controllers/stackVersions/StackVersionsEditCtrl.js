@@ -23,6 +23,7 @@ angular.module('ambariAdminConsole')
   $scope.editController = true;
   $scope.osList = [];
   $scope.skipValidation = false;
+  $scope.useRedhatSatellite = false;
   $scope.selectedOS = 0;
   $scope.upgradeStack = {
     stack_name: '',

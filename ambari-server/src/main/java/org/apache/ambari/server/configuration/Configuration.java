@@ -242,7 +242,6 @@ public class Configuration {
   public static final String JAVAX_SSL_TRUSTSTORE = "javax.net.ssl.trustStore";
   public static final String JAVAX_SSL_TRUSTSTORE_PASSWORD = "javax.net.ssl.trustStorePassword";
   public static final String JAVAX_SSL_TRUSTSTORE_TYPE = "javax.net.ssl.trustStoreType";
-  public static final String GANGLIA_HTTPS_KEY = "ganglia.https";
   public static final String SRVR_TWO_WAY_SSL_PORT_DEFAULT = "8441";
   public static final String SRVR_ONE_WAY_SSL_PORT_DEFAULT = "8440";
   public static final String SRVR_CRT_NAME_DEFAULT = "ca.crt";
@@ -482,6 +481,9 @@ public class Configuration {
   private static final String TIMELINE_METRICS_CACHE_HEAP_PERCENT = "server.timeline.metrics.cache.heap.percent";
   private static final String DEFAULT_TIMELINE_METRICS_CACHE_HEAP_PERCENT = "15%";
   private static final String TIMELINE_METRICS_CACHE_USE_CUSTOM_SIZING_ENGINE = "server.timeline.metrics.cache.use.custom.sizing.engine";
+
+  // Timeline Metrics SSL settings
+  public static final String AMRABI_METRICS_HTTPS_ENABLED_KEY = "server.timeline.metrics.https.enabled";
 
   /**
    * Governs the use of {@link Parallel} to process {@link StageEntity}
@@ -941,8 +943,6 @@ public class Configuration {
       jsonObject = jsonElement.getAsJsonObject();
     } catch (FileNotFoundException e) {
       throw new IllegalArgumentException("No file " + file, e);
-    } catch (IOException ioe){
-      throw new IllegalArgumentException("Can't read file " + file, ioe);
     }
 
     return jsonObject;

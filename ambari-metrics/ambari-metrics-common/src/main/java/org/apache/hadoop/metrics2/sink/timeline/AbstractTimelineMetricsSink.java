@@ -24,20 +24,34 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
 
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManagerFactory;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.security.KeyStore;
 
 public abstract class AbstractTimelineMetricsSink {
   public static final String TAGS_FOR_PREFIX_PROPERTY_PREFIX = "tagsForPrefix.";
   public static final String MAX_METRIC_ROW_CACHE_SIZE = "maxRowCacheSize";
   public static final String METRICS_SEND_INTERVAL = "sendInterval";
   public static final String METRICS_POST_TIMEOUT_SECONDS = "timeout";
-  public static final String COLLECTOR_HOST_PROPERTY = "collector";
-  public static final String COLLECTOR_PORT_PROPERTY = "port";
+  public static final String COLLECTOR_PROPERTY = "collector";
   public static final int DEFAULT_POST_TIMEOUT_SECONDS = 10;
   public static final String SKIP_COUNTER_TRANSFROMATION = "skipCounterDerivative";
+
+  public static final String WS_V1_TIMELINE_METRICS = "/ws/v1/timeline/metrics";
+
+  public static final String SSL_KEYSTORE_PATH_PROPERTY = "truststore.path";
+  public static final String SSL_KEYSTORE_TYPE_PROPERTY = "truststore.type";
+  public static final String SSL_KEYSTORE_PASSWORD_PROPERTY = "truststore.password";
+
+  private SSLSocketFactory sslSocketFactory;
 
   protected final Log LOG;
 
@@ -48,7 +62,7 @@ public abstract class AbstractTimelineMetricsSink {
     AnnotationIntrospector introspector = new JaxbAnnotationIntrospector();
     mapper.setAnnotationIntrospector(introspector);
     mapper.getSerializationConfig()
-        .setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
+      .withSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
   }
 
   public AbstractTimelineMetricsSink() {
@@ -59,9 +73,13 @@ public abstract class AbstractTimelineMetricsSink {
     String connectUrl = getCollectorUri();
     int timeout = getTimeoutSeconds() * 1000;
     try {
+      if (connectUrl == null) {
+        throw new IOException("Unknown URL. " +
+          "Unable to connect to metrics collector.");
+      }
       String jsonData = mapper.writeValueAsString(metrics);
-
-      HttpURLConnection connection = (HttpURLConnection) new URL(connectUrl).openConnection();
+      HttpURLConnection connection = connectUrl.startsWith("https") ?
+        getSSLConnection(connectUrl) : getConnection(connectUrl);
 
       connection.setRequestMethod("POST");
       connection.setRequestProperty("Content-Type", "application/json");
@@ -81,10 +99,72 @@ public abstract class AbstractTimelineMetricsSink {
         LOG.info("Unable to POST metrics to collector, " + connectUrl + ", " +
           "statusCode = " + statusCode);
       } else {
-        LOG.debug("Metrics posted to Collector " + connectUrl);
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Metrics posted to Collector " + connectUrl);
+        }
       }
     } catch (IOException e) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Unable to connect to collector, " + connectUrl, e);
+      } else {
+        LOG.info("Unable to connect to collector, " + connectUrl);
+      }
       throw new UnableToConnectException(e).setConnectUrl(connectUrl);
+    }
+  }
+
+  // Get a connection
+  protected HttpURLConnection getConnection(String spec) throws IOException {
+    return (HttpURLConnection) new URL(spec).openConnection();
+  }
+
+  // Get an ssl connection
+  protected HttpsURLConnection getSSLConnection(String spec)
+    throws IOException, IllegalStateException {
+
+    HttpsURLConnection connection = (HttpsURLConnection) (new URL(spec)
+      .openConnection());
+
+    connection.setSSLSocketFactory(sslSocketFactory);
+
+    return connection;
+  }
+
+  protected void loadTruststore(String trustStorePath, String trustStoreType,
+                                String trustStorePassword) {
+    if (sslSocketFactory == null) {
+      if (trustStorePath == null || trustStorePassword == null) {
+
+        String msg =
+          String.format("Can't load TrustStore. " +
+            "Truststore path or password is not set.");
+
+        LOG.error(msg);
+        throw new IllegalStateException(msg);
+      }
+      FileInputStream in = null;
+      try {
+        in = new FileInputStream(new File(trustStorePath));
+        KeyStore store = KeyStore.getInstance(trustStoreType == null ?
+          KeyStore.getDefaultType() : trustStoreType);
+        store.load(in, trustStorePassword.toCharArray());
+        TrustManagerFactory tmf = TrustManagerFactory
+          .getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        tmf.init(store);
+        SSLContext context = SSLContext.getInstance("TLS");
+        context.init(null, tmf.getTrustManagers(), null);
+        sslSocketFactory = context.getSocketFactory();
+      } catch (Exception e) {
+        LOG.error("Unable to load TrustStore", e);
+      } finally {
+        if (in != null) {
+          try {
+            in.close();
+          } catch (IOException e) {
+            LOG.error("Unable to load TrustStore", e);
+          }
+        }
+      }
     }
   }
 

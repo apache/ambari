@@ -1084,7 +1084,6 @@ App.AssignMasterComponents = Em.Mixin.create({
         }else{
           App.router.set('nextBtnClickInProgress', false);
         }
-        self.set('submitButtonClicked', false);
       };
 
       if (this.get('useServerValidation')) {
@@ -1094,6 +1093,7 @@ App.AssignMasterComponents = Em.Mixin.create({
       } else {
         self.updateIsSubmitDisabled();
         goNextStepIfValid();
+        self.set('submitButtonClicked', false);
       }
     }
   },
@@ -1104,18 +1104,31 @@ App.AssignMasterComponents = Em.Mixin.create({
    */
   showValidationIssuesAcceptBox: function(callback) {
     var self = this;
-    if (self.get('anyWarning') || self.get('anyError')) {
-      App.ModalPopup.show({
-        primary: Em.I18n.t('common.continueAnyway'),
-        header: Em.I18n.t('installer.step5.validationIssuesAttention.header'),
-        body: Em.I18n.t('installer.step5.validationIssuesAttention'),
-        onPrimary: function () {
-          this.hide();
-          callback();
-        }
-      });
-    } else {
+
+    // If there are no warnings and no errors, return
+    if (!self.get('anyWarning') && !self.get('anyError')) {
       callback();
+      self.set('submitButtonClicked', false);
+      return;
     }
+
+    App.ModalPopup.show({
+      primary: Em.I18n.t('common.continueAnyway'),
+      header: Em.I18n.t('installer.step5.validationIssuesAttention.header'),
+      body: Em.I18n.t('installer.step5.validationIssuesAttention'),
+      onPrimary: function () {
+        this._super();
+        callback();
+        self.set('submitButtonClicked', false);
+      },
+      onSecondary: function () {
+        this._super();
+        self.set('submitButtonClicked', false);
+      },
+      onClose: function () {
+        this._super();
+        self.set('submitButtonClicked', false);
+      }
+    });
   }
 });

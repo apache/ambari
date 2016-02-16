@@ -170,6 +170,10 @@
       <directory>src/main/resources/host_scripts</directory>
       <outputDirectory>/var/lib/ambari-server/resources/host_scripts</outputDirectory>
     </fileSet>
+    <fileSet>
+      <directory>etc/init</directory>
+      <outputDirectory>/etc/init</outputDirectory>
+    </fileSet>
   </fileSets>
   <!-- Single files. Syntax:
 	  <files>

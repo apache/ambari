@@ -298,6 +298,14 @@ App.AlertInstanceServiceHostView = Em.View.extend({
 
   templateName: require('templates/main/alerts/instance_service_host'),
 
+  didInsertElement: function () {
+    App.tooltip(this.$("[rel='UsageTooltip']"));
+  },
+
+  willDestroyElement: function() {
+    this.$("[rel='UsageTooltip']").remove();
+  },
+
   /**
    * Define whether show link for transition to service page
    */

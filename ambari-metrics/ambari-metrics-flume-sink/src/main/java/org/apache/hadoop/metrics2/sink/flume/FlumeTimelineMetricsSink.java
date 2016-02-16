@@ -18,7 +18,6 @@
 
 package org.apache.hadoop.metrics2.sink.flume;
 
-import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.flume.Context;
 import org.apache.flume.FlumeException;
@@ -96,9 +95,13 @@ public class FlumeTimelineMetricsSink extends AbstractTimelineMetricsSink implem
     metricsSendInterval = Integer.parseInt(configuration.getProperty(METRICS_SEND_INTERVAL,
         String.valueOf(TimelineMetricsCache.MAX_EVICTION_TIME_MILLIS)));
     metricsCaches = new HashMap<String, TimelineMetricsCache>();
-    String collectorHostname = configuration.getProperty(COLLECTOR_HOST_PROPERTY);
-    String port = configuration.getProperty(COLLECTOR_PORT_PROPERTY);
-    collectorUri = "http://" + collectorHostname + ":" + port + "/ws/v1/timeline/metrics";
+    collectorUri = configuration.getProperty(COLLECTOR_PROPERTY) + WS_V1_TIMELINE_METRICS;
+    if (collectorUri.toLowerCase().startsWith("https://")) {
+      String trustStorePath = configuration.getProperty(SSL_KEYSTORE_PATH_PROPERTY).trim();
+      String trustStoreType = configuration.getProperty(SSL_KEYSTORE_TYPE_PROPERTY).trim();
+      String trustStorePwd = configuration.getProperty(SSL_KEYSTORE_PASSWORD_PROPERTY).trim();
+      loadTruststore(trustStorePath, trustStoreType, trustStorePwd);
+    }
     pollFrequency = Long.parseLong(configuration.getProperty("collectionFrequency"));
 
     String[] metrics = configuration.getProperty(COUNTER_METRICS_PROPERTY).trim().split(",");

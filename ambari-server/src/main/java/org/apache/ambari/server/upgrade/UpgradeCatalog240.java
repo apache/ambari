@@ -27,9 +27,11 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.DaoUtils;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
+import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.slf4j.Logger;
@@ -48,6 +50,10 @@ import java.util.UUID;
  * Upgrade catalog for version 2.4.0.
  */
 public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
+
+  protected static final String ADMIN_PERMISSION_TABLE = "adminpermission";
+  protected static final String PERMISSION_ID_COL = "permission_name";
+  protected static final String SORT_ORDER_COL = "sort_order";
 
   @Inject
   DaoUtils daoUtils;
@@ -96,7 +102,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
 
   @Override
   protected void executeDDLUpdates() throws AmbariException, SQLException {
-    //To change body of implemented methods use File | Settings | File Templates.
+    updateAdminPermissionTable();
   }
 
   @Override
@@ -108,6 +114,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   protected void executeDMLUpdates() throws AmbariException, SQLException {
     addNewConfigurationsFromXml();
     updateAlerts();
+    setRoleSortOrder();
 
   }
 
@@ -303,6 +310,29 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     return sourceJson.toString();
   }
 
+  protected void updateAdminPermissionTable() throws SQLException {
+    // Add the sort_order column to the adminpermission table
+    dbAccessor.addColumn(ADMIN_PERMISSION_TABLE, new DBAccessor.DBColumnInfo(SORT_ORDER_COL, Short.class, null, 1, false));
+  }
 
+  protected void setRoleSortOrder() throws SQLException {
+    String updateStatement = "UPDATE " + ADMIN_PERMISSION_TABLE + " SET " + SORT_ORDER_COL + "=%d WHERE " + PERMISSION_ID_COL + "='%s'";
+
+    LOG.info("Setting permission labels");
+    dbAccessor.executeUpdate(String.format(updateStatement,
+        1, PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION_NAME));
+    dbAccessor.executeUpdate(String.format(updateStatement,
+        2, PermissionEntity.CLUSTER_ADMINISTRATOR_PERMISSION_NAME));
+    dbAccessor.executeUpdate(String.format(updateStatement,
+        3, PermissionEntity.CLUSTER_OPERATOR_PERMISSION_NAME));
+    dbAccessor.executeUpdate(String.format(updateStatement,
+        4, PermissionEntity.SERVICE_ADMINISTRATOR_PERMISSION_NAME));
+    dbAccessor.executeUpdate(String.format(updateStatement,
+        5, PermissionEntity.SERVICE_OPERATOR_PERMISSION_NAME));
+    dbAccessor.executeUpdate(String.format(updateStatement,
+        6, PermissionEntity.CLUSTER_USER_PERMISSION_NAME));
+    dbAccessor.executeUpdate(String.format(updateStatement,
+        7, PermissionEntity.VIEW_USER_PERMISSION_NAME));
+  }
 
 }

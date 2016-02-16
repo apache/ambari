@@ -98,6 +98,7 @@ def setup_hadoop():
 
       File(os.path.join(params.hadoop_conf_dir, "hadoop-metrics2.properties"),
            owner=params.hdfs_user,
+           group=params.user_group,
            content=Template("hadoop-metrics2.properties.j2")
       )
 

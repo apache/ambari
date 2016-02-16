@@ -530,6 +530,7 @@ CREATE TABLE adminpermission (
   permission_name VARCHAR(255) NOT NULL,
   resource_type_id INTEGER NOT NULL,
   permission_label VARCHAR(255),
+  sort_order SMALLINT NOT NULL DEFAULT 1,
   PRIMARY KEY(permission_id));
 
 CREATE TABLE roleauthorization (
@@ -1070,20 +1071,20 @@ INSERT INTO adminprincipal (principal_id, principal_type_id)
 INSERT INTO Users (user_id, principal_id, user_name, user_password)
   SELECT 1, 1, 'admin', '538916f8943ec225d97a9a86a2c6ec0818c1cd400e09e03b660fdaaec4af29ddbb6f2b1033b81b00';
 
-insert into adminpermission(permission_id, permission_name, resource_type_id, permission_label)
-  SELECT 1, 'AMBARI.ADMINISTRATOR', 1, 'Administrator'
+insert into adminpermission(permission_id, permission_name, resource_type_id, permission_label, sort_order)
+  SELECT 1, 'AMBARI.ADMINISTRATOR', 1, 'Administrator', 1
   UNION ALL
-  SELECT 2, 'CLUSTER.USER', 2, 'Cluster User'
+  SELECT 2, 'CLUSTER.USER', 2, 'Cluster User', 6
   UNION ALL
-  SELECT 3, 'CLUSTER.ADMINISTRATOR', 2, 'Cluster Administrator'
+  SELECT 3, 'CLUSTER.ADMINISTRATOR', 2, 'Cluster Administrator', 2
   UNION ALL
-  SELECT 4, 'VIEW.USER', 3, 'View User'
+  SELECT 4, 'VIEW.USER', 3, 'View User', 7
   UNION ALL
-  SELECT 5, 'CLUSTER.OPERATOR', 2, 'Cluster Operator'
+  SELECT 5, 'CLUSTER.OPERATOR', 2, 'Cluster Operator', 3
   UNION ALL
-  SELECT 6, 'SERVICE.ADMINISTRATOR', 2, 'Service Administrator'
+  SELECT 6, 'SERVICE.ADMINISTRATOR', 2, 'Service Administrator', 4
   UNION ALL
-  SELECT 7, 'SERVICE.OPERATOR', 2, 'Service Operator';
+  SELECT 7, 'SERVICE.OPERATOR', 2, 'Service Operator', 5;
 
 INSERT INTO roleauthorization(authorization_id, authorization_name)
   SELECT 'VIEW.USE', 'Use View' UNION ALL

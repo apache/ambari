@@ -23,6 +23,7 @@ angular.module('ambariAdminConsole')
   $scope.createController = true;
   $scope.osList = [];
   $scope.skipValidation = false;
+  $scope.useRedhatSatellite = false;
 
   $scope.clusterName = $routeParams.clusterName;
   $scope.subversionPattern = /^\d+\.\d+(-\d+)?$/;

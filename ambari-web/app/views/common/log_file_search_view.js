@@ -128,7 +128,7 @@ App.LogFileSearchView = Em.View.extend(App.InfiniteScrollMixin, {
   /**
   * Make request and get content with applied filters.
   */
-  fetchContent: function(params) {
+  fetchContent: function() {
     console.debug('Make Request with params:', this.serializeFilters());
   },
 

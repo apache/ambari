@@ -692,7 +692,10 @@
             <function>stop</function>
           </task>
 
-          <task xsi:type="execute" hosts="any" sequential="true" summary="Upgrading the Oozie database and creating a new sharelib">
+          <!-- It is extremely important that both of these tasks run on the exact same host. Hence, pick the first alphabetically. -->
+          <task xsi:type="configure_function" hosts="first" />
+
+          <task xsi:type="execute" hosts="first" sequential="true" summary="Upgrading the Oozie database and creating a new sharelib">
             <script>scripts/oozie_server_upgrade.py</script>
             <function>upgrade_oozie_database_and_sharelib</function>
           </task>

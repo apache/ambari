@@ -165,9 +165,16 @@ if has_metric_collector:
 
   metric_collector_report_interval = 60
   metric_collector_app_id = "nimbus"
-
+  if default("/configurations/ams-site/timeline.metrics.service.http.policy", "HTTP_ONLY") == "HTTPS_ONLY":
+    metric_collector_protocol = 'https'
+  else:
+    metric_collector_protocol = 'http'
+  metric_truststore_path= default("/configurations/ams-ssl-client/ssl.client.truststore.location", "")
+  metric_truststore_type= default("/configurations/ams-ssl-client/ssl.client.truststore.type", "")
+  metric_truststore_password= default("/configurations/ams-ssl-client/ssl.client.truststore.password", "")
+  pass
 metrics_report_interval = default("/configurations/ams-site/timeline.metrics.sink.report.interval", 60)
-metrics_collection_period = default("/configurations/ams-site/timeline.metrics.sink.collection.period", 60)
+metrics_collection_period = default("/configurations/ams-site/timeline.metrics.sink.collection.period", 10)
 metric_collector_sink_jar = "/usr/lib/storm/lib/ambari-metrics-storm-sink*.jar"
 
 # ranger host

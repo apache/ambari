@@ -687,6 +687,9 @@ table.no-border tr td{
 .login-message-pane i.inactive {color: #d9534f;margin-top: 2px;}
 .login-message-pane .on-off-switch-wrap {height:32px;}
 
+.home-directory-pane .separator {
+  margin-top: 10px;
+}
 /*.login-message-pane .well {height: 74px;}
 .login-message-pane input {margin-left: 3px;}*/
 

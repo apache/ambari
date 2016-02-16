@@ -195,6 +195,11 @@
         <div class="task-detail-ico-wrap">
           <a {{translateAttr title="common.fullLogPopup.clickToCopy"}} {{action "textTrigger" taskInfo target="view"}} class="task-detail-copy"><i
                   class="icon-copy"></i> {{t common.copy}}</a>
+          {{#if App.supports.logSearch}}
+            <a {{action navigateToHostLogs target="view"}} {{bindAttr class="view.isLogsLinkVisible::hidden"}} href="#">
+              <i class="icon-file"></i> {{t common.logs}}
+            </a>
+          {{/if}}
           <a {{translateAttr title="common.openNewWindow"}} {{action openTaskLogInDialog}} class="task-detail-open-dialog"><i
                   class="icon-external-link"></i> {{t common.open}}</a>
         </div>

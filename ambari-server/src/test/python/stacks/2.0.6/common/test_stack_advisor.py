@@ -1941,3 +1941,62 @@ class TestHDP206StackAdvisor(TestCase):
     siteProperties = stack_advisor.getServicesSiteProperties(services, "ranger-admin-site")
     self.assertEquals(siteProperties, expected)
 
+  def test_createComponentLayoutRecommendations_addService_1freeHost(self):
+    """
+    Test that already installed slaves are not added to any free hosts (not having any component installed)
+    as part of recommendation received during Add service operation.
+    For already installed services, recommendation for installed components should match the existing layout
+    """
+
+    services = {
+                  "services" : [
+                 {
+                    "StackServices" : {
+                      "service_name" : "HDFS"
+                    },
+                    "components" : [ {
+                      "StackServiceComponents" : {
+                        "cardinality" : "1+",
+                        "component_category" : "SLAVE",
+                        "component_name" : "DATANODE",
+                        "hostnames" : [ "c6401.ambari.apache.org" ]
+                      }
+                    } ]
+                 } ]
+              }
+
+    hosts = self.prepareHosts(["c6401.ambari.apache.org", "c6402.ambari.apache.org"])
+    recommendations = self.stackAdvisor.createComponentLayoutRecommendations(services, hosts)
+    """
+    Recommendation received should be as below:
+                               {
+                                  'blueprint': {
+                                          'host_groups': [{
+                                                  'name': 'host-group-1',
+                                                  'components': []
+                                          }, {
+                                                  'name': 'host-group-2',
+                                                  'components': [{
+                                                          'name': 'DATANODE'
+                                                  }]
+                                          }]
+                                  },
+                                  'blueprint_cluster_binding': {
+                                          'host_groups': [{
+                                                  'hosts': [{
+                                                          'fqdn': 'c6402.ambari.apache.org'
+                                                  }],
+                                                  'name': 'host-group-1'
+                                          }, {
+                                                  'hosts': [{
+                                                          'fqdn': 'c6401.ambari.apache.org'
+                                                  }],
+                                                  'name': 'host-group-2'
+                                          }]
+                                  }
+                           }
+    """
+    # Assert that the list is empty for host-group-1
+    self.assertFalse(recommendations['blueprint']['host_groups'][0]['components'])
+    # Assert that DATANODE is placed on host-group-2
+    self.assertEquals(recommendations['blueprint']['host_groups'][1]['components'][0]['name'], 'DATANODE')

@@ -75,6 +75,8 @@ angular.module('ambariAdminConsole')
       'warning': 'Warning',
       'filterInfo': '{{showed}} of {{total}} {{term}} showing',
       'usersGroups': 'Users/Groups',
+      'enabled': 'Enabled',
+      'disabled': 'Disabled',
 
       'clusterNameChangeConfirmation': {
         'title': 'Confirm Cluster Name Change',
@@ -92,8 +94,13 @@ angular.module('ambariAdminConsole')
         'message': 'Message',
         'buttonText': 'Button',
         'status': 'Status',
-        'status.enabled': 'Enabled',
-        'status.disabled': 'Disabled'
+        'status.disabled': 'Disabled',
+        'homeDirectory.alert': 'Many Ambari Views store user preferences in the logged in user\'s / user directory in HDFS. Optionally, Ambari can auto-create these directories for users on login.',
+        'homeDirectory.autoCreate': 'Auto-Create HDFS user directories',
+        'homeDirectory.header': 'User Directory Creation Options',
+        'homeDirectory.template': 'User Directory creation template',
+        'homeDirectory.group': 'Default Group',
+        'homeDirectory.permissions': 'Permissions'
       },
 
       'controls': {
@@ -320,6 +327,7 @@ angular.module('ambariAdminConsole')
         'actualVersion': 'Actual Version',
         'releaseNotes': 'Release Notes'
       },
+      'useRedhatSatellite': 'Use RedHat Satellite/Spacewalk',
       'changeBaseURLConfirmation': {
         'title': 'Confirm Base URL Change',
         'message': 'You are about to change repository Base URLs that are already in use. Please confirm that you intend to make this change and that the new Base URLs point to the same exact Stack version and build'
@@ -329,6 +337,7 @@ angular.module('ambariAdminConsole')
         'baseURLs': 'Provide Base URLs for the Operating Systems you are configuring.',
         'validationFailed': 'Some of the repositories failed validation. Make changes to the base url or skip validation if you are sure that urls are correct',
         'skipValidationWarning': '<b>Warning:</b> This is for advanced users only. Use this option if you want to skip validation for Repository Base URLs.',
+        'useRedhatSatelliteWarning': 'Disable distributed repositories and use RedHat Satellite/Spacewalk channels instead',
         'filterListError': 'Fetch stack version filter list error',
         'versionCreated': 'Created version <a href="#/stackVersions/{{stackName}}/{{versionName}}/edit">{{stackName}}-{{versionName}}</a>',
         'versionCreationError': 'Version creation error',

@@ -811,6 +811,9 @@
         "ams-hbase-log4j": {
             "content": "\n"
         },
+        "ams-ssl-server": {
+            "content": "\n"
+        },
         "ams-site": {
             "timeline.metrics.host.aggregator.minute.ttl": "604800",
             "timeline.metrics.cluster.aggregator.daily.checkpointCutOffMultiplier": "1",
@@ -859,6 +862,7 @@
         "ams-hbase-site": {},
         "ams-hbase-policy": {},
         "ams-hbase-log4j": {},
+        "ams-ssl-server": {},
         "ams-site": {},
         "yarn-site": {
         "final": {
@@ -939,6 +943,9 @@
             "tag": "version1"
         },
         "ams-site": {
+            "tag": "version1"
+        },
+        "ams-ssl-server": {
             "tag": "version1"
         },
         "ams-hbase-policy": {

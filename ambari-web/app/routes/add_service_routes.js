@@ -201,6 +201,7 @@ module.exports = App.WizardRoute.extend({
           });
           router.get('wizardStep7Controller').set('recommendationsConfigs', null);
           router.get('wizardStep7Controller').clearAllRecommendations();
+          addServiceController.setDBProperty('serviceConfigGroups', undefined);
           router.transitionTo('step4');
         });
       });

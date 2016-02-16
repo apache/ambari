@@ -198,6 +198,7 @@ public class UpgradeCatalog230 extends AbstractUpgradeCatalog {
     dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'CLUSTER.VIEW_ALERTS'", "'View cluster-level alerts'"}, false);
     dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'CLUSTER.MANAGE_CREDENTIALS'", "'Manage external credentials'"}, false);
     dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'CLUSTER.MODIFY_CONFIGS'", "'Modify cluster configurations'"}, false);
+    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'CLUSTER.MANAGE_CONFIG_GROUPS'", "'Manage cluster configuration groups'"}, false);
     dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'CLUSTER.MANAGE_ALERTS'", "'Manage cluster-level alerts'"}, false);
     dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'CLUSTER.TOGGLE_ALERTS'", "'Enable/disable cluster-level alerts'"}, false);
     dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'CLUSTER.TOGGLE_KERBEROS'", "'Enable/disable Kerberos'"}, false);

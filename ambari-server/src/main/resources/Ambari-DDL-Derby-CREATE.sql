@@ -529,6 +529,7 @@ CREATE TABLE adminpermission (
   permission_name VARCHAR(255) NOT NULL,
   resource_type_id INTEGER NOT NULL,
   permission_label VARCHAR(255),
+  sort_order SMALLINT NOT NULL DEFAULT 1,
   PRIMARY KEY(permission_id));
 
 CREATE TABLE roleauthorization (
@@ -1068,20 +1069,20 @@ INSERT INTO adminprincipal (principal_id, principal_type_id)
 INSERT INTO Users (user_id, principal_id, user_name, user_password)
   SELECT 1, 1, 'admin', '538916f8943ec225d97a9a86a2c6ec0818c1cd400e09e03b660fdaaec4af29ddbb6f2b1033b81b00' FROM SYSIBM.SYSDUMMY1;
 
-insert into adminpermission(permission_id, permission_name, resource_type_id, permission_label)
-  SELECT 1, 'AMBARI.ADMINISTRATOR', 1, 'Administrator' FROM SYSIBM.SYSDUMMY1
+insert into adminpermission(permission_id, permission_name, resource_type_id, permission_label, sort_order)
+  SELECT 1, 'AMBARI.ADMINISTRATOR', 1, 'Administrator', 1 FROM SYSIBM.SYSDUMMY1
   UNION ALL
-  SELECT 2, 'CLUSTER.USER', 2, 'Cluster User' FROM SYSIBM.SYSDUMMY1
+  SELECT 2, 'CLUSTER.USER', 2, 'Cluster User', 6 FROM SYSIBM.SYSDUMMY1
   UNION ALL
-  SELECT 3, 'CLUSTER.ADMINISTRATOR', 2, 'Cluster Administrator' FROM SYSIBM.SYSDUMMY1
+  SELECT 3, 'CLUSTER.ADMINISTRATOR', 2, 'Cluster Administrator', 2 FROM SYSIBM.SYSDUMMY1
   UNION ALL
-  SELECT 4, 'VIEW.USER', 3, 'View User' FROM SYSIBM.SYSDUMMY1
+  SELECT 4, 'VIEW.USER', 3, 'View User', 7 FROM SYSIBM.SYSDUMMY1
   UNION ALL
-  SELECT 5, 'CLUSTER.OPERATOR', 2, 'Cluster Operator' FROM SYSIBM.SYSDUMMY1
+  SELECT 5, 'CLUSTER.OPERATOR', 2, 'Cluster Operator', 3 FROM SYSIBM.SYSDUMMY1
   UNION ALL
-  SELECT 6, 'SERVICE.ADMINISTRATOR', 2, 'Service Administrator' FROM SYSIBM.SYSDUMMY1
+  SELECT 6, 'SERVICE.ADMINISTRATOR', 2, 'Service Administrator', 4 FROM SYSIBM.SYSDUMMY1
   UNION ALL
-  SELECT 7, 'SERVICE.OPERATOR', 2, 'Service Operator' FROM SYSIBM.SYSDUMMY1;
+  SELECT 7, 'SERVICE.OPERATOR', 2, 'Service Operator', 5 FROM SYSIBM.SYSDUMMY1;
 
 INSERT INTO roleauthorization(authorization_id, authorization_name)
   SELECT 'VIEW.USE', 'Use View' FROM SYSIBM.SYSDUMMY1 UNION ALL

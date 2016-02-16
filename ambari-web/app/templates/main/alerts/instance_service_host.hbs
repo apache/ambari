@@ -15,18 +15,20 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-{{#if view.instance.serviceDisplayName}}
-  {{#if view.serviceIsLink}}
-    <a {{action goToService view.instance.service target="view.parentView"}} href="#">{{view.instance.serviceDisplayName}}</a>
-  {{else}}
-    {{view.instance.serviceDisplayName}}
+<span class="trim_hostname">
+  {{#if view.instance.serviceDisplayName}}
+    {{#if view.serviceIsLink}}
+      <a {{action goToService view.instance.service target="view.parentView"}} href="#">{{view.instance.serviceDisplayName}}</a>
+    {{else}}
+      {{view.instance.serviceDisplayName}}
+    {{/if}}
   {{/if}}
-{{/if}}
-{{#if view.showSeparator}}
-  &nbsp;/&nbsp;
-{{/if}}
-{{#if view.instance.hostName}}
-  <a {{action goToHostAlerts view.instance.host target="view.parentView"}} href="#">
-    {{view.instance.hostName}}
-  </a>
-{{/if}}
+  {{#if view.showSeparator}}
+    &nbsp;/&nbsp;
+  {{/if}}
+  {{#if view.instance.hostName}}
+    <a rel="UsageTooltip" {{action goToHostAlerts view.instance.host target="view.parentView"}} data-original-title="{{unbound view.instance.hostName}}" href="#">
+      {{view.instance.hostName}}
+    </a>
+  {{/if}}
+</span>

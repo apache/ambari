@@ -803,10 +803,11 @@
           <!-- We need to set up the "/etc/oozie/conf" symlink before upgrading, as the HDP 2.1 directory
           pertaining to oozie has been deleted as part of HDP 2.1 removal in Express Upgrade
           from HDP 2.1->2.3.
+          This configure task should run on all Oozie Servers.
           -->
           <task xsi:type="configure_function"/>
 
-          <task xsi:type="execute" hosts="any" sequential="true" summary="Upgrading the Oozie database and creating a new sharelib">
+          <task xsi:type="execute" hosts="first" sequential="true" summary="Upgrading the Oozie database and creating a new sharelib">
             <script>scripts/oozie_server_upgrade.py</script>
             <function>upgrade_oozie_database_and_sharelib</function>
           </task>

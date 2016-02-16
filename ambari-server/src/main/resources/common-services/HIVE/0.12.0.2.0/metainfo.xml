@@ -320,6 +320,7 @@
         <config-type>hive-log4j</config-type>
         <config-type>hive-exec-log4j</config-type>
         <config-type>hive-env</config-type>
+        <config-type>hive-interactive-site</config-type>
         <config-type>webhcat-site</config-type>
         <config-type>webhcat-env</config-type>
         <config-type>ranger-hive-plugin-properties</config-type>

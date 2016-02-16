@@ -1018,7 +1018,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 //       If the user is authorized to view information about this cluster, add it to the response
 //       if (AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, c.getResourceId(),
 //        RoleAuthorization.AUTHORIZATIONS_VIEW_CLUSTER)) {
-      response.add(c.convertToResponse());
+      ClusterResponse cr = c.convertToResponse();
+      cr.setDesiredConfigs(c.getDesiredConfigs());
+      cr.setDesiredServiceConfigVersions(c.getActiveServiceConfigVersions());
+      cr.setCredentialStoreServiceProperties(getCredentialStoreServiceProperties());
+      response.add(cr);
 //       }
     }
     StringBuilder builder = new StringBuilder();

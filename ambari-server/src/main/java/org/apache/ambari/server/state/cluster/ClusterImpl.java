@@ -2279,7 +2279,17 @@ public class ClusterImpl implements Cluster {
                 " unknown configType=" + e.getType());
             continue;
           }
-          c.setVersion(allConfigs.get(e.getType()).get(e.getTag()).getVersion());
+
+          Map<String, Config> configMap = allConfigs.get(e.getType());
+          if(!configMap.containsKey(e.getTag())) {
+            LOG.debug("Config inconsistency exists for typeName=" +
+                    e.getType() +
+                    ", unknown versionTag=" + e.getTag());
+            continue;
+          }
+
+          Config config = configMap.get(e.getTag());
+          c.setVersion(config.getVersion());
 
           Set<DesiredConfig> configs = map.get(e.getType());
           if (configs == null) {
