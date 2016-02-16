@@ -18,7 +18,7 @@
 
 package org.apache.hadoop.metrics2.sink.timeline;
 
-import static org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink.COLLECTOR_HOST_PROPERTY;
+import static org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink.COLLECTOR_PROPERTY;
 import static org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink.MAX_METRIC_ROW_CACHE_SIZE;
 import static org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink.METRICS_SEND_INTERVAL;
 import static org.easymock.EasyMock.anyInt;
@@ -62,7 +62,7 @@ public class HadoopTimelineMetricsSinkTest {
     expect(conf.getString(eq("slave.host.name"))).andReturn("testhost").anyTimes();
     expect(conf.getParent()).andReturn(null).anyTimes();
     expect(conf.getPrefix()).andReturn("service").anyTimes();
-    expect(conf.getString(eq(COLLECTOR_HOST_PROPERTY))).andReturn("localhost:63188").anyTimes();
+    expect(conf.getString(eq(COLLECTOR_PROPERTY))).andReturn("localhost:63188").anyTimes();
     expect(conf.getString(eq("serviceName-prefix"), eq(""))).andReturn("").anyTimes();
 
     expect(conf.getInt(eq(MAX_METRIC_ROW_CACHE_SIZE), anyInt())).andReturn(10).anyTimes();
@@ -130,7 +130,7 @@ public class HadoopTimelineMetricsSinkTest {
     expect(conf.getString(eq("slave.host.name"))).andReturn("testhost").anyTimes();
     expect(conf.getParent()).andReturn(null).anyTimes();
     expect(conf.getPrefix()).andReturn("service").anyTimes();
-    expect(conf.getString(eq(COLLECTOR_HOST_PROPERTY))).andReturn("localhost:63188").anyTimes();
+    expect(conf.getString(eq(COLLECTOR_PROPERTY))).andReturn("localhost:63188").anyTimes();
     expect(conf.getString(eq("serviceName-prefix"), eq(""))).andReturn("").anyTimes();
 
     expect(conf.getInt(eq(MAX_METRIC_ROW_CACHE_SIZE), anyInt())).andReturn(10).anyTimes();

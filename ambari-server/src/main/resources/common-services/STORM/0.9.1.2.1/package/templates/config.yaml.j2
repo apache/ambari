@@ -57,8 +57,12 @@ enableMetricsSink: True
 metrics_collector:
 
   reportInterval: {{metric_collector_report_interval}}
-  host: "{{metric_collector_host}}"
-  port: {{metric_collector_port}}
+  collector: "{{metric_collector_protocol}}://{{metric_collector_host}}:{{metric_collector_port}}"
   appId: "{{metric_collector_app_id}}"
+
+  # HTTPS settings
+  truststore.path : "{{metric_truststore_path}}"
+  truststore.type : "{{metric_truststore_type}}"
+  truststore.password : "{{metric_truststore_password}}"
 
 {% endif %}

@@ -34,7 +34,6 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.controller.utilities.StreamProvider;
 import org.apache.ambari.server.state.StackId;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
@@ -625,7 +624,8 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
             if (metricsRequest == null) {
               metricsRequest = new MetricsRequest(temporalInfo,
                 getAMSUriBuilder(collectorHostName,
-                  collectorPort != null ? Integer.parseInt(collectorPort) : COLLECTOR_DEFAULT_PORT),
+                  collectorPort != null ? Integer.parseInt(collectorPort) : COLLECTOR_DEFAULT_PORT,
+                  configuration.isHttpsEnabled()),
                   (String) resource.getPropertyValue(clusterNamePropertyId));
               requests.put(temporalInfo, metricsRequest);
             }
@@ -643,9 +643,9 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
     return requestMap;
   }
 
-  static URIBuilder getAMSUriBuilder(String hostname, int port) {
+  static URIBuilder getAMSUriBuilder(String hostname, int port, boolean httpsEnabled) {
     URIBuilder uriBuilder = new URIBuilder();
-    uriBuilder.setScheme("http");
+    uriBuilder.setScheme(httpsEnabled ? "https" : "http");
     uriBuilder.setHost(hostname);
     uriBuilder.setPort(port);
     uriBuilder.setPath("/ws/v1/timeline/metrics");

@@ -484,7 +484,6 @@
       </property>
     </depends-on>
   </property>
-
   <property>
     <name>timeline.metrics.sink.report.interval</name>
     <value>60</value>
@@ -551,6 +550,17 @@
     <description>
       Skip block cache on aggregator queries to allow, HBase block
       utilization only for user queries.
+    </description>
+  </property>
+  <property>
+    <name>timeline.metrics.service.http.policy</name>
+    <value>HTTP_ONLY</value>
+    <description>
+      This configures the HTTP endpoint for Yarn Application History Server for
+      Ambari Metrics System.
+      The following values are supported:
+      - HTTP_ONLY : Service is provided only on http
+      - HTTPS_ONLY : Service is provided only on https
     </description>
   </property>
 

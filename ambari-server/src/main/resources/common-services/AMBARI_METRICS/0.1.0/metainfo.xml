@@ -155,6 +155,8 @@
         <config-type>ams-hbase-log4j</config-type>
         <config-type>ams-grafana-env</config-type>
         <config-type>ams-grafana-ini</config-type>
+        <config-type>ams-ssl-server</config-type>
+        <config-type>ams-ssl-client</config-type>
       </configuration-dependencies>
 
       <excluded-config-types>

@@ -63,11 +63,13 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
   private static final String TIMELINE_METRICS_MAX_ROW_CACHE_SIZE_PROPERTY = "kafka.timeline.metrics.maxRowCacheSize";
   private static final String TIMELINE_HOST_PROPERTY = "kafka.timeline.metrics.host";
   private static final String TIMELINE_PORT_PROPERTY = "kafka.timeline.metrics.port";
+  private static final String TIMELINE_PROTOCOL_PROPERTY = "kafka.timeline.metrics.protocol";
   private static final String TIMELINE_REPORTER_ENABLED_PROPERTY = "kafka.timeline.metrics.reporter.enabled";
   private static final String EXCLUDED_METRICS_PROPERTY = "external.kafka.metrics.exclude.prefix";
   private static final String INCLUDED_METRICS_PROPERTY = "external.kafka.metrics.include.prefix";
   private static final String TIMELINE_DEFAULT_HOST = "localhost";
-  private static final String TIMELINE_DEFAULT_PORT = "8188";
+  private static final String TIMELINE_DEFAULT_PORT = "6188";
+  private static final String TIMELINE_DEFAULT_PROTOCOL = "http";
 
   private boolean initialized = false;
   private boolean running = false;
@@ -117,8 +119,19 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
         int maxRowCacheSize = props.getInt(TIMELINE_METRICS_MAX_ROW_CACHE_SIZE_PROPERTY, MAX_RECS_PER_NAME_DEFAULT);
         String metricCollectorHost = props.getString(TIMELINE_HOST_PROPERTY, TIMELINE_DEFAULT_HOST);
         String metricCollectorPort = props.getString(TIMELINE_PORT_PROPERTY, TIMELINE_DEFAULT_PORT);
+        String metricCollectorProtocol = props.getString(TIMELINE_PROTOCOL_PROPERTY, TIMELINE_DEFAULT_PROTOCOL);
         setMetricsCache(new TimelineMetricsCache(maxRowCacheSize, metricsSendInterval));
-        collectorUri = "http://" + metricCollectorHost + ":" + metricCollectorPort + "/ws/v1/timeline/metrics";
+
+        collectorUri = metricCollectorProtocol + "://" + metricCollectorHost +
+                       ":" + metricCollectorPort + WS_V1_TIMELINE_METRICS;
+
+        if (collectorUri.toLowerCase().startsWith("https://")) {
+          String trustStorePath = props.getString(SSL_KEYSTORE_PATH_PROPERTY).trim();
+          String trustStoreType = props.getString(SSL_KEYSTORE_TYPE_PROPERTY).trim();
+          String trustStorePwd = props.getString(SSL_KEYSTORE_PASSWORD_PROPERTY).trim();
+          loadTruststore(trustStorePath, trustStoreType, trustStorePwd);
+        }
+
 
         // Exclusion policy
         String excludedMetricsStr = props.getString(EXCLUDED_METRICS_PROPERTY, "");

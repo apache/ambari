@@ -35,7 +35,12 @@ rpc.collector={{metric_collector_host}}:{{metric_collector_port}}
 accumulo.sink.timeline.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
 accumulo.sink.timeline.period={{metrics_collection_period}}
 accumulo.sink.timeline.sendInterval={{metrics_report_interval}}000
-accumulo.sink.timeline.collector={{metric_collector_host}}:{{metric_collector_port}}
+accumulo.sink.timeline.collector={{metric_collector_protocol}}://{{metric_collector_host}}:{{metric_collector_port}}
+
+# HTTPS properties
+accumulo.sink.timeline.truststore.path = {{metric_truststore_path}}
+accumulo.sink.timeline.truststore.type = {{metric_truststore_type}}
+accumulo.sink.timeline.truststore.password = {{metric_truststore_password}}
 
 {% else %}
 

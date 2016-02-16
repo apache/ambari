@@ -220,7 +220,7 @@ public class GangliaPropertyProviderTest {
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 
 
-    String expected = (configuration.isGangliaSSL() ? "https" : "http") +
+    String expected = (configuration.isHttpsEnabled() ? "https" : "http") +
         "://domU-12-31-39-0E-34-E1.compute-1.internal/cgi-bin/rrd.py?c=HDPDataNode%2CHDPSlaves&h=domU-12-31-39-0E-34-E1.compute-1.internal&m=jvm.metrics.gcCount&s=10&e=20&r=1";
     Assert.assertEquals(expected, streamProvider.getLastSpec());
 
@@ -269,7 +269,7 @@ public class GangliaPropertyProviderTest {
     
     URIBuilder expectedUri = new URIBuilder();
 
-    expectedUri.setScheme((configuration.isGangliaSSL() ? "https" : "http"));
+    expectedUri.setScheme((configuration.isHttpsEnabled() ? "https" : "http"));
     expectedUri.setHost("domU-12-31-39-0E-34-E1.compute-1.internal");
     expectedUri.setPath("/cgi-bin/rrd.py");
     expectedUri.setParameter("c", "HDPTaskTracker,HDPSlaves");
@@ -418,7 +418,7 @@ public class GangliaPropertyProviderTest {
     
     URIBuilder uriBuilder = new URIBuilder();
 
-    uriBuilder.setScheme((configuration.isGangliaSSL() ? "https" : "http"));
+    uriBuilder.setScheme((configuration.isHttpsEnabled() ? "https" : "http"));
     uriBuilder.setHost("domU-12-31-39-0E-34-E1.compute-1.internal");
     uriBuilder.setPath("/cgi-bin/rrd.py");
     uriBuilder.setParameter("c", "HDPJobTracker,HDPHBaseMaster,HDPResourceManager,HDPFlumeServer,HDPSlaves,HDPHistoryServer,HDPJournalNode,HDPTaskTracker,HDPHBaseRegionServer,HDPNameNode");
@@ -435,7 +435,7 @@ public class GangliaPropertyProviderTest {
         "HDPSlaves", "HDPHistoryServer", "HDPJournalNode", "HDPTaskTracker", "HDPHBaseRegionServer", "HDPNameNode"});
     List<String> hosts = Arrays.asList(new String[]{"domU-12-31-39-0E-34-E3.compute-1.internal", "domU-12-31-39-0E-34-E1.compute-1.internal",
         "domU-12-31-39-0E-34-E2.compute-1.internal"});
-    int httpsVariation = configuration.isGangliaSSL() ? 1 : 0;
+    int httpsVariation = configuration.isHttpsEnabled() ? 1 : 0;
 
     Assert.assertEquals(expected.substring(0, 66 + httpsVariation), streamProvider.getLastSpec().substring(0, 66 + httpsVariation));
     Assert.assertTrue(CollectionPresentationUtils.isStringPermutationOfCollection(streamProvider.getLastSpec().substring(66 + httpsVariation, 236 + httpsVariation), components, "%2C", 0, 0));
@@ -487,7 +487,7 @@ public class GangliaPropertyProviderTest {
     
     URIBuilder expectedUri = new URIBuilder();
     
-    expectedUri.setScheme((configuration.isGangliaSSL() ? "https" : "http"));
+    expectedUri.setScheme((configuration.isHttpsEnabled() ? "https" : "http"));
     expectedUri.setHost("domU-12-31-39-0E-34-E1.compute-1.internal");
     expectedUri.setPath("/cgi-bin/rrd.py");
     expectedUri.setParameter("c", "HDPJobTracker,HDPHBaseMaster,HDPResourceManager,HDPFlumeServer,HDPSlaves,HDPHistoryServer,HDPJournalNode,HDPTaskTracker,HDPHBaseRegionServer,HDPNameNode");
@@ -543,7 +543,7 @@ public class GangliaPropertyProviderTest {
     
     URIBuilder expectedUri = new URIBuilder();
     
-    expectedUri.setScheme((configuration.isGangliaSSL() ? "https" : "http"));
+    expectedUri.setScheme((configuration.isHttpsEnabled() ? "https" : "http"));
     expectedUri.setHost("domU-12-31-39-0E-34-E1.compute-1.internal");
     expectedUri.setPath("/cgi-bin/rrd.py");
     expectedUri.setParameter("c", "HDPFlumeServer,HDPSlaves");
@@ -606,7 +606,7 @@ public class GangliaPropertyProviderTest {
     
     URIBuilder expectedUri = new URIBuilder();
 
-    expectedUri.setScheme((configuration.isGangliaSSL() ? "https" : "http"));
+    expectedUri.setScheme((configuration.isHttpsEnabled() ? "https" : "http"));
     expectedUri.setHost("domU-12-31-39-0E-34-E1.compute-1.internal");
     expectedUri.setPath("/cgi-bin/rrd.py");
     expectedUri.setParameter("c", "HDPFlumeServer,HDPSlaves");
@@ -653,12 +653,12 @@ public class GangliaPropertyProviderTest {
 
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 
-    String expected = (configuration.isGangliaSSL() ? "https" : "http") +
+    String expected = (configuration.isHttpsEnabled() ? "https" : "http") +
         "://domU-12-31-39-0E-34-E1.compute-1.internal/cgi-bin/rrd.py?c=HDPFlumeServer%2CHDPSlaves&h=ip-10-39-113-33.ec2.internal&m=";
 
     // Depends on hashing, string representation can be different
     List<String> components = Arrays.asList(new String[]{"HDPFlumeServer", "HDPSlaves"});
-    int httpsVariation = configuration.isGangliaSSL() ? 1 : 0;
+    int httpsVariation = configuration.isHttpsEnabled() ? 1 : 0;
 
     Assert.assertEquals(expected.substring(0, 66 + httpsVariation), streamProvider.getLastSpec().substring(0, 66 + httpsVariation));
     Assert.assertTrue(CollectionPresentationUtils.isStringPermutationOfCollection(streamProvider.getLastSpec().substring(66 + httpsVariation, 92 + httpsVariation), components, "%2C", 0, 0));
@@ -704,7 +704,7 @@ public class GangliaPropertyProviderTest {
     
     URIBuilder expectedUri = new URIBuilder();
 
-    expectedUri.setScheme((configuration.isGangliaSSL() ? "https" : "http"));
+    expectedUri.setScheme((configuration.isHttpsEnabled() ? "https" : "http"));
     expectedUri.setHost("domU-12-31-39-0E-34-E1.compute-1.internal");
     expectedUri.setPath("/cgi-bin/rrd.py");
     expectedUri.setParameter("c", "HDPFlumeServer,HDPSlaves");
@@ -762,7 +762,7 @@ public class GangliaPropertyProviderTest {
     
     URIBuilder expectedUri = new URIBuilder();
 
-    expectedUri.setScheme((configuration.isGangliaSSL() ? "https" : "http"));
+    expectedUri.setScheme((configuration.isHttpsEnabled() ? "https" : "http"));
     expectedUri.setHost("domU-12-31-39-0E-34-E1.compute-1.internal");
     expectedUri.setPath("/cgi-bin/rrd.py");
     expectedUri.setParameter("c", "HDPFlumeServer,HDPSlaves");
@@ -821,7 +821,7 @@ public class GangliaPropertyProviderTest {
     
     URIBuilder expectedUri = new URIBuilder();
 
-    expectedUri.setScheme((configuration.isGangliaSSL() ? "https" : "http"));
+    expectedUri.setScheme((configuration.isHttpsEnabled() ? "https" : "http"));
     expectedUri.setHost("domU-12-31-39-0E-34-E1.compute-1.internal");
     expectedUri.setPath("/cgi-bin/rrd.py");
     expectedUri.setParameter("c", "HDPFlumeServer,HDPSlaves");
@@ -880,7 +880,7 @@ public class GangliaPropertyProviderTest {
     
     URIBuilder expectedUri = new URIBuilder();
 
-    expectedUri.setScheme((configuration.isGangliaSSL() ? "https" : "http"));
+    expectedUri.setScheme((configuration.isHttpsEnabled() ? "https" : "http"));
     expectedUri.setHost("domU-12-31-39-0E-34-E1.compute-1.internal");
     expectedUri.setPath("/cgi-bin/rrd.py");
     expectedUri.setParameter("c", "HDPFlumeServer,HDPSlaves");

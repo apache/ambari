@@ -91,6 +91,7 @@ debug_level = INFO
 metrics_server = host:port
 enable_time_threshold = false
 enable_value_threshold = false
+https_enabled = false
 
 [emitter]
 send_interval = 60
@@ -181,7 +182,7 @@ class Configuration:
 
   def get(self, section, key, default=None):
     try:
-      value = self.config.get(section, key)
+      value = str(self.config.get(section, key)).strip()
     except:
       return default
     return value
@@ -209,3 +210,6 @@ class Configuration:
 
   def get_max_queue_size(self):
     return int(self.get("collector", "max_queue_size", 5000))
+
+  def get_server_https_enabled(self):
+    return "true" == str(self.get("default", "https_enabled")).lower()

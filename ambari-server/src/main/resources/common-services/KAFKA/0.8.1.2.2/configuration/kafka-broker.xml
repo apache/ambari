@@ -325,6 +325,27 @@
     <description>Timeline port</description>
   </property>
   <property>
+  <property>
+    <name>kafka.timeline.metrics.protocol</name>
+    <value>{{metric_collector_protocol}}</value>
+    <description>Timeline protocol(http or https)</description>
+  </property>
+  <property>
+    <name>kafka.timeline.metrics.truststore.path</name>
+    <value>{{metric_truststore_path}}</value>
+    <description>Location of the trust store file.</description>
+  </property>
+  <property>
+    <name>kafka.timeline.metrics.truststore.type</name>
+    <value>{{metric_truststore_type}}</value>
+    <description>Optional. Default value is "jks".</description>
+  </property>
+  <property>
+    <name>kafka.timeline.metrics.truststore.password</name>
+    <value>{{metric_truststore_password}}</value>
+    <description>Password to open the trust store file.</description>
+  </property>
+  <property>
     <name>kafka.timeline.metrics.reporter.sendInterval</name>
     <value>5900</value>
     <description>Timeline metrics reporter send interval</description>

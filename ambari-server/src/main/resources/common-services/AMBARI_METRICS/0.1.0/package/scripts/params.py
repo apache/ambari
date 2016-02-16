@@ -50,6 +50,16 @@ ams_pid_dir = status_params.ams_collector_pid_dir
 ams_collector_script = "/usr/sbin/ambari-metrics-collector"
 ams_collector_pid_dir = status_params.ams_collector_pid_dir
 ams_collector_hosts = default("/clusterHostInfo/metrics_collector_hosts", [])
+if default("/configurations/ams-site/timeline.metrics.service.http.policy", "HTTP_ONLY") == "HTTPS_ONLY":
+  metric_collector_https_enabled = True
+  metric_collector_protocol = 'https'
+else:
+  metric_collector_https_enabled = False
+  metric_collector_protocol = 'http'
+metric_truststore_path= default("/configurations/ams-ssl-client/ssl.client.truststore.location", "")
+metric_truststore_type= default("/configurations/ams-ssl-client/ssl.client.truststore.type", "")
+metric_truststore_password= default("/configurations/ams-ssl-client/ssl.client.truststore.password", "")
+
 if 'cluster-env' in config['configurations'] and \
     'metrics_collector_vip_host' in config['configurations']['cluster-env']:
   metric_collector_host = config['configurations']['cluster-env']['metrics_collector_vip_host']
