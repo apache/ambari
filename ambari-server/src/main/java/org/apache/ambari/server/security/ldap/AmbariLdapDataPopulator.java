@@ -38,6 +38,8 @@ import org.apache.ambari.server.security.authorization.User;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import com.google.common.collect.Sets;
 import org.springframework.ldap.control.PagedResultsDirContextProcessor;
 import org.springframework.ldap.core.AttributesMapper;
 import org.springframework.ldap.core.ContextMapper;
@@ -293,7 +295,9 @@ public class AmbariLdapDataPopulator {
     final Map<String, Group> internalGroupsMap = getInternalGroups();
     final Map<String, User> internalUsersMap = getInternalUsers();
 
-    for (Group group : internalGroupsMap.values()) {
+    final Set<Group> internalGroupSet = Sets.newHashSet(internalGroupsMap.values());
+
+    for (Group group : internalGroupSet) {
       if (group.isLdapGroup()) {
         Set<LdapGroupDto> groupDtos = getLdapGroups(group.getGroupName());
         if (groupDtos.isEmpty()) {
