@@ -267,7 +267,7 @@ function start()
   sleep 2
 
   echo "Verifying ${METRIC_COLLECTOR} process status..." | tee -a $STARTUPFILE
-  if [ -z "`ps ax -o pid | grep ${PID}`" ]; then
+  if [ -z "`ps ax | grep -w ${PID} | grep ApplicationHistoryServer`" ]; then
     if [ -s ${OUTFILE} ]; then
       echo "ERROR: ${METRIC_COLLECTOR} start failed. For more details, see ${OUTFILE}:" | tee -a $STARTUPFILE
       echo "===================="
