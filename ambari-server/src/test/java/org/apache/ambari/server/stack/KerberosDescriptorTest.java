@@ -48,7 +48,11 @@ public class KerberosDescriptorTest {
     URL rootDirectoryURL = KerberosDescriptorTest.class.getResource("/");
     Assert.notNull(rootDirectoryURL);
 
-    stacksDirectory = new File(new File(rootDirectoryURL.getFile()).getParent(), "classes/stacks");
+    File resourcesDirectory = new File(new File(rootDirectoryURL.getFile()).getParentFile().getParentFile(), "src/main/resources");
+    Assert.notNull(resourcesDirectory);
+    Assert.isTrue(resourcesDirectory.canRead());
+
+    stacksDirectory = new File(resourcesDirectory, "stacks");
     Assert.notNull(stacksDirectory);
     Assert.isTrue(stacksDirectory.canRead());
 
@@ -64,7 +68,7 @@ public class KerberosDescriptorTest {
     Assert.notNull(hdp22ServicesDirectory);
     Assert.isTrue(hdp22ServicesDirectory.canRead());
 
-    commonServicesDirectory = new File(new File(rootDirectoryURL.getFile()).getParent(), "classes/common-services");
+    commonServicesDirectory = new File(resourcesDirectory, "common-services");
     Assert.notNull(commonServicesDirectory);
     Assert.isTrue(commonServicesDirectory.canRead());
 
