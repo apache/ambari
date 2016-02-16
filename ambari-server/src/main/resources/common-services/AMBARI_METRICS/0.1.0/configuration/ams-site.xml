@@ -492,7 +492,7 @@
   </property>
   <property>
     <name>timeline.metrics.sink.collection.period</name>
-    <value>60</value>
+    <value>10</value>
     <description>
       The interval between two service metrics data exports.
     </description>
