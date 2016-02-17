@@ -181,24 +181,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
   ],
 
   /**
-   * get array of config properties that are shown in settings tab
-   * @type {String[]}
-   */
-  settingsTabProperties: function () {
-    var properties = [];
-    App.Tab.find().forEach(function (t) {
-      if (!t.get('isAdvanced') && t.get('serviceName') === this.get('content.serviceName')) {
-        t.get('sections').forEach(function (s) {
-          s.get('subSections').forEach(function (ss) {
-            properties = properties.concat(ss.get('configProperties'));
-          });
-        });
-      }
-    }, this);
-    return properties;
-  }.property('content.serviceName', 'App.router.clusterController.isStackConfigsLoaded'),
-
-  /**
    * Dropdown menu items in filter combobox
    * @type {{attributeName: string, attributeValue: string, name: string, selected: boolean}[]}
    */
@@ -379,8 +361,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
 
     //put properties from capacity-scheduler.xml into one config with textarea view
     if (this.get('content.serviceName') === 'YARN') {
-      var configsToSkip = this.get('settingsTabProperties').filterProperty('filename', 'capacity-scheduler.xml');
-      configs = App.config.fileConfigsIntoTextarea(configs, 'capacity-scheduler.xml', configsToSkip);
+      configs = App.config.addYarnCapacityScheduler(configs);
     }
 
     if (this.get('content.serviceName') === 'KERBEROS') {
@@ -407,7 +388,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
    * @method mergeWithStackProperties
    */
   mergeWithStackProperties: function (configs) {
-    this.get('settingsTabProperties').forEach(function (advanced_id) {
+    App.config.getPropertiesFromTheme(this.get('content.serviceName')).forEach(function (advanced_id) {
       if (!configs.someProperty('id', advanced_id)) {
         var advanced = App.configsCollection.getConfig(advanced_id);
         if (advanced) {
