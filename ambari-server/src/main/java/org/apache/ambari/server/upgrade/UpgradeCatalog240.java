@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.upgrade;
 
+import com.google.common.collect.Lists;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -30,6 +31,8 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.DaoUtils;
+import org.apache.ambari.server.orm.dao.PermissionDAO;
+import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.state.Cluster;
@@ -37,7 +40,9 @@ import org.apache.ambari.server.state.Clusters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -58,12 +63,19 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   @Inject
   DaoUtils daoUtils;
 
+  @Inject
+  PermissionDAO permissionDAO;
+
+  @Inject
+  ResourceTypeDAO resourceTypeDAO;
+
   /**
    * Logger.
    */
   private static final Logger LOG = LoggerFactory.getLogger(UpgradeCatalog240.class);
 
-
+  private static final String ID = "id";
+  private static final String SETTING_TABLE = "setting";
 
 
   // ----- Constructors ------------------------------------------------------
@@ -76,7 +88,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   @Inject
   public UpgradeCatalog240(Injector injector) {
     super(injector);
-    this.injector = injector;
+    injector.injectMembers(this);
   }
 
   // ----- UpgradeCatalog ----------------------------------------------------
@@ -103,6 +115,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   @Override
   protected void executeDDLUpdates() throws AmbariException, SQLException {
     updateAdminPermissionTable();
+    createSettingTable();
   }
 
   @Override
@@ -115,7 +128,39 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     addNewConfigurationsFromXml();
     updateAlerts();
     setRoleSortOrder();
+    addSettingPermission();
+  }
 
+  private void createSettingTable() throws SQLException {
+    List<DBAccessor.DBColumnInfo> columns = new ArrayList<>();
+
+    //  Add setting table
+    LOG.info("Creating " + SETTING_TABLE + " table");
+
+    columns.add(new DBAccessor.DBColumnInfo(ID, Long.class, null, null, false));
+    columns.add(new DBAccessor.DBColumnInfo("name", String.class, 255, null, false));
+    columns.add(new DBAccessor.DBColumnInfo("setting_type", String.class, 255, null, false));
+    columns.add(new DBAccessor.DBColumnInfo("content", String.class, 3000, null, false));
+    columns.add(new DBAccessor.DBColumnInfo("updated_by", String.class, 255, "_db", false));
+    columns.add(new DBAccessor.DBColumnInfo("update_timestamp", Long.class, null, null, false));
+    dbAccessor.createTable(SETTING_TABLE, columns, ID);
+    addSequence("setting_id_seq", 0L, false);
+  }
+
+  protected void addSettingPermission() throws SQLException {
+    String administratorPermissionId =
+            permissionDAO.findPermissionByNameAndType("AMBARI.ADMINISTRATOR", resourceTypeDAO.findByName("AMBARI")).getId().toString();
+    String selectRoleSql = "select * from roleauthorization where authorization_id = 'AMBARI.MANAGE_SETTINGS'";
+    if (executeAndCheckEmptyResult(selectRoleSql)) {
+      dbAccessor.insertRow("roleauthorization", new String[]{"authorization_id", "authorization_name"},
+              new String[]{"'AMBARI.MANAGE_SETTINGS'", "'Manage settings'"}, false);
+    }
+
+    String selectPermissionSql = "select * from permission_roleauthorization where authorization_id = 'AMBARI.MANAGE_SETTINGS'";
+    if (executeAndCheckEmptyResult(selectPermissionSql)) {
+      dbAccessor.insertRow("permission_roleauthorization", new String[]{"permission_id", "authorization_id"},
+              new String[]{administratorPermissionId, "'AMBARI.MANAGE_SETTINGS'"}, false);
+    }
   }
 
   protected void updateAlerts() {
@@ -147,21 +192,21 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
 
       Map<AlertDefinitionEntity, List<String>> alertDefinitionParams = new HashMap<>();
       checkedPutToMap(alertDefinitionParams, namenodeLastCheckpointAlertDefinitionEntity,
-              new ArrayList<String>(Arrays.asList("connection.timeout", "checkpoint.time.warning.threshold", "checkpoint.time.critical.threshold")));
+              Lists.newArrayList("connection.timeout", "checkpoint.time.warning.threshold", "checkpoint.time.critical.threshold"));
       checkedPutToMap(alertDefinitionParams, namenodeHAHealthAlertDefinitionEntity,
-              new ArrayList<String>(Arrays.asList("connection.timeout")));
+              Lists.newArrayList("connection.timeout"));
       checkedPutToMap(alertDefinitionParams, nodemanagerHealthAlertDefinitionEntity,
-              new ArrayList<String>(Arrays.asList("connection.timeout")));
+              Lists.newArrayList("connection.timeout"));
       checkedPutToMap(alertDefinitionParams, nodemanagerHealthSummaryAlertDefinitionEntity,
-              new ArrayList<String>(Arrays.asList("connection.timeout")));
+              Lists.newArrayList("connection.timeout"));
       checkedPutToMap(alertDefinitionParams, hiveMetastoreProcessAlertDefinitionEntity,
-              new ArrayList<String>(Arrays.asList("default.smoke.user", "default.smoke.principal", "default.smoke.keytab")));
+              Lists.newArrayList("default.smoke.user", "default.smoke.principal", "default.smoke.keytab"));
       checkedPutToMap(alertDefinitionParams, hiveServerProcessAlertDefinitionEntity,
-              new ArrayList<String>(Arrays.asList("default.smoke.user", "default.smoke.principal", "default.smoke.keytab")));
+              Lists.newArrayList("default.smoke.user", "default.smoke.principal", "default.smoke.keytab"));
       checkedPutToMap(alertDefinitionParams, hiveWebhcatServerStatusAlertDefinitionEntity,
-              new ArrayList<String>(Arrays.asList("default.smoke.user", "connection.timeout")));
+              Lists.newArrayList("default.smoke.user", "connection.timeout"));
       checkedPutToMap(alertDefinitionParams, flumeAgentStatusAlertDefinitionEntity,
-              new ArrayList<String>(Arrays.asList("run.directory")));
+              Lists.newArrayList("run.directory"));
 
       for(Map.Entry<AlertDefinitionEntity, List<String>> entry : alertDefinitionParams.entrySet()){
         AlertDefinitionEntity alertDefinition = entry.getKey();
@@ -183,6 +228,17 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
                                List<String> params) {
     if (alertDefinitionEntity != null) {
       alertDefinitionParams.put(alertDefinitionEntity, params);
+    }
+  }
+
+  private boolean executeAndCheckEmptyResult(String sql) throws SQLException {
+    try(Statement statement = dbAccessor.getConnection().createStatement();
+        ResultSet resultSet = statement.executeQuery(sql)) {
+      if (resultSet != null && resultSet.next()) {
+        return false;
+      } else {
+        return true;
+      }
     }
   }
 
