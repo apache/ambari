@@ -38,7 +38,7 @@ import org.springframework.security.core.userdetails.User;
 
 /**
  * This creator handles operation requests (start, stop, install, etc)
- * For resource type {@link Resource.Type#HostComponent}
+ * For resource type {@link Resource.Type#Service}
  * and request types {@link Request.Type#POST}, {@link Request.Type#PUT} and {@link Request.Type#DELETE}
  */
 public class ServiceEventCreator implements RequestAuditEventCreator {

@@ -27,19 +27,26 @@ import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.audit.AuditEvent;
-import org.apache.ambari.server.audit.request.ConfigurationChangeRequestAuditEvent;
+import org.apache.ambari.server.audit.request.ActivateUserRequestAuditEvent;
+import org.apache.ambari.server.audit.request.AdminUserRequestAuditEvent;
+import org.apache.ambari.server.audit.request.CreateGroupRequestAuditEvent;
+import org.apache.ambari.server.audit.request.CreateUserRequestAuditEvent;
+import org.apache.ambari.server.audit.request.DeleteGroupRequestAuditEvent;
+import org.apache.ambari.server.audit.request.DeleteUserRequestAuditEvent;
 import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
+import org.apache.ambari.server.audit.request.UserPasswordChangeRequestAuditEvent;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.joda.time.DateTime;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 
 /**
- * This creator handles operation requests (start, stop, install, etc)
- * For resource type {@link Resource.Type#HostComponent}
- * and request types {@link Request.Type#POST}, {@link Request.Type#PUT} and {@link Request.Type#DELETE}
+ * This creator handles group requests
+ * For resource type {@link Resource.Type#Group}
+ * and request types {@link Request.Type#POST} and {@link Request.Type#DELETE}
  */
-public class ConfigurationChangeEventCreator implements RequestAuditEventCreator {
+public class GroupEventCreator implements RequestAuditEventCreator {
 
   /**
    * Set of {@link Request.Type}s that are handled by this plugin
@@ -48,7 +55,6 @@ public class ConfigurationChangeEventCreator implements RequestAuditEventCreator
 
   {
     requestTypes.add(Request.Type.POST);
-    requestTypes.add(Request.Type.PUT);
     requestTypes.add(Request.Type.DELETE);
   }
 
@@ -65,7 +71,7 @@ public class ConfigurationChangeEventCreator implements RequestAuditEventCreator
    */
   @Override
   public Set<Resource.Type> getResourceTypes() {
-    return Collections.singleton(Resource.Type.Cluster);
+    return Collections.singleton(Resource.Type.Group);
   }
 
   /**
@@ -80,31 +86,36 @@ public class ConfigurationChangeEventCreator implements RequestAuditEventCreator
   public AuditEvent createAuditEvent(Request request, Result result) {
     String username = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
 
-    return ConfigurationChangeRequestAuditEvent.builder()
-      .withTimestamp(DateTime.now())
-      .withRequestType(request.getRequestType())
-      .withResultStatus(result.getStatus())
-      .withUrl(request.getURI())
-      .withRemoteIp(request.getRemoteAddress())
-      .withUserName(username)
-      .withVersionNote(getServiceConfigVersionNote(result))
-      .withVersionNumber(getServiceConfigVersion(result))
-      .build();
+    switch(request.getRequestType()) {
+      case POST:
+        return CreateGroupRequestAuditEvent.builder()
+          .withTimestamp(DateTime.now())
+          .withRequestType(request.getRequestType())
+          .withResultStatus(result.getStatus())
+          .withUrl(request.getURI())
+          .withRemoteIp(request.getRemoteAddress())
+          .withUserName(username)
+          .withGroupName(getGroupName(request))
+          .build();
+      case DELETE:
+        return DeleteGroupRequestAuditEvent.builder()
+          .withTimestamp(DateTime.now())
+          .withRequestType(request.getRequestType())
+          .withResultStatus(result.getStatus())
+          .withUrl(request.getURI())
+          .withRemoteIp(request.getRemoteAddress())
+          .withUserName(username)
+          .withGroupName(request.getResource().getKeyValueMap().get(Resource.Type.Group))
+          .build();
+      default:
+        break;
+    }
+    return null;
   }
 
-  private String getServiceConfigVersion(Result result) {
-    return String.valueOf(getServiceConfigMap(result).get("service_config_version"));
-  }
-
-  private String getServiceConfigVersionNote(Result result) {
-    return String.valueOf(getServiceConfigMap(result).get("service_config_version_note"));
-  }
-
-  private Map<String, Object> getServiceConfigMap(Result result) {
-    if (result.getResultTree().getChild("resources") != null &&
-      !result.getResultTree().getChild("resources").getChildren().isEmpty() &&
-      result.getResultTree().getChild("resources").getChildren().iterator().next().getObject() != null) {
-      return result.getResultTree().getChild("resources").getChildren().iterator().next().getObject().getPropertiesMap().get("");
+  private String getGroupName(Request request) {
+    if(!request.getBody().getPropertySets().isEmpty()) {
+      return String.valueOf(request.getBody().getPropertySets().iterator().next().get(PropertyHelper.getPropertyId("Groups", "group_name")));
     }
     return null;
   }

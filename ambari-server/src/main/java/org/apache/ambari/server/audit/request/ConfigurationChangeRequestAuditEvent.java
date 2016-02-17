@@ -16,10 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.audit;
-
-import org.apache.ambari.server.api.services.Request;
-import org.apache.ambari.server.api.services.ResultStatus;
+package org.apache.ambari.server.audit.request;
 
 /**
  * Base class for start operation audit events.

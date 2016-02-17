@@ -79,7 +79,9 @@ public class RequestAuditLoggerImpl implements RequestAuditLogger {
     RequestAuditEventCreator creator = selectCreator(resourceType, resultStatus, requestType);
     if (creator != null) {
       AuditEvent ae = creator.createAuditEvent(request, result);
-      auditLogger.log(ae);
+      if(ae != null) {
+        auditLogger.log(ae);
+      }
     }
   }
 

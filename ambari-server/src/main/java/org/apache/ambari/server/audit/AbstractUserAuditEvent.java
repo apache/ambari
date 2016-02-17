@@ -26,7 +26,7 @@ package org.apache.ambari.server.audit;
  */
 public abstract class AbstractUserAuditEvent extends AbstractAuditEvent {
 
-  static abstract class AbstractUserAuditEventBuilder<T extends AbstractUserAuditEvent, TBuilder extends AbstractUserAuditEventBuilder<T, TBuilder>>
+  public static abstract class AbstractUserAuditEventBuilder<T extends AbstractUserAuditEvent, TBuilder extends AbstractUserAuditEventBuilder<T, TBuilder>>
     extends AbstractAuditEventBuilder<T, TBuilder> {
 
     private String userName;

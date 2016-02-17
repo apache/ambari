@@ -44,11 +44,15 @@ import org.apache.ambari.server.actionmanager.StageFactoryImpl;
 import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
 import org.apache.ambari.server.audit.request.RequestAuditLogger;
 import org.apache.ambari.server.audit.request.RequestAuditLoggerImpl;
+import org.apache.ambari.server.audit.request.eventcreator.PrivilegeEventCreator;
+import org.apache.ambari.server.audit.request.eventcreator.GroupEventCreator;
+import org.apache.ambari.server.audit.request.eventcreator.MemberEventCreator;
 import org.apache.ambari.server.audit.request.eventcreator.UnauthorizedEventCreator;
 import org.apache.ambari.server.audit.request.eventcreator.ConfigurationChangeEventCreator;
 import org.apache.ambari.server.audit.request.eventcreator.DefaultEventCreator;
 import org.apache.ambari.server.audit.request.eventcreator.ComponentEventCreator;
 import org.apache.ambari.server.audit.request.eventcreator.ServiceEventCreator;
+import org.apache.ambari.server.audit.request.eventcreator.UserEventCreator;
 import org.apache.ambari.server.checks.AbstractCheckDescriptor;
 import org.apache.ambari.server.checks.UpgradeCheckRegistry;
 import org.apache.ambari.server.configuration.Configuration;
@@ -398,6 +402,10 @@ public class ControllerModule extends AbstractModule {
     auditLogEventCreatorBinder.addBinding().to(ServiceEventCreator.class);
     auditLogEventCreatorBinder.addBinding().to(UnauthorizedEventCreator.class);
     auditLogEventCreatorBinder.addBinding().to(ConfigurationChangeEventCreator.class);
+    auditLogEventCreatorBinder.addBinding().to(UserEventCreator.class);
+    auditLogEventCreatorBinder.addBinding().to(GroupEventCreator.class);
+    auditLogEventCreatorBinder.addBinding().to(MemberEventCreator.class);
+    auditLogEventCreatorBinder.addBinding().to(PrivilegeEventCreator.class);
 
     bind(RequestAuditLogger.class).to(RequestAuditLoggerImpl.class);
   }

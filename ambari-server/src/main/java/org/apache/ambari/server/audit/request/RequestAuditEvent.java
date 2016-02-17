@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,10 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.audit;
+package org.apache.ambari.server.audit.request;
 
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.ResultStatus;
+import org.apache.ambari.server.audit.AbstractUserAuditEvent;
 
 /**
  * Base class for start operation audit events.
