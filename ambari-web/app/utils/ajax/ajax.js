@@ -3054,6 +3054,18 @@ var ajax = Em.Object.extend({
    */
   defaultErrorKDCHandler: function(opt, msg) {
     return App.showInvalidKDCPopup(opt, msg);
+  },
+
+  /**
+   * Abort all requests stored in the certain array
+   * @param requestsArray
+   */
+  abortRequests: function (requestsArray) {
+    requestsArray.forEach(function (xhr) {
+      xhr.isForcedAbort = true;
+      xhr.abort();
+    });
+    requestsArray.clear();
   }
 
 });
