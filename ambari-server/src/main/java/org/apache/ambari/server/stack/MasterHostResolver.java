@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.stack;
 
-import java.lang.reflect.Type;
 import java.net.MalformedURLException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -38,11 +37,8 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.UpgradeState;
 import org.apache.ambari.server.utils.HTTPUtils;
 import org.apache.ambari.server.utils.HostAndPort;
-import org.apache.ambari.server.utils.StageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.reflect.TypeToken;
 
 
 public class MasterHostResolver {
@@ -52,6 +48,7 @@ public class MasterHostResolver {
   private Cluster m_cluster;
   private String m_version;
   private ConfigHelper m_configHelper;
+  private JmxQuery m_jmxQuery;
 
   public enum Service {
     HDFS,
@@ -73,10 +70,11 @@ public class MasterHostResolver {
    * resolving hosts.  Common use case is creating an upgrade that should
    * include an entire cluster.
    * @param configHelper Configuration Helper
+   * @param jmxQuery Jmx Query utils
    * @param cluster the cluster
    */
-  public MasterHostResolver(ConfigHelper configHelper, Cluster cluster) {
-    this(configHelper, cluster, null);
+  public MasterHostResolver(ConfigHelper configHelper, JmxQuery jmxQuery, Cluster cluster) {
+    this(configHelper, jmxQuery, cluster, null);
   }
 
   /**
@@ -85,11 +83,13 @@ public class MasterHostResolver {
    * HostComponents need to be downgraded, and HostComponents already at the
    * correct version are skipped.
    * @param configHelper Configuration Helper
+   * @param jmxQuery Jmx Query utils
    * @param cluster the cluster
    * @param version the version, or {@code null} to not compare versions
    */
-  public MasterHostResolver(ConfigHelper configHelper, Cluster cluster, String version) {
+  public MasterHostResolver(ConfigHelper configHelper, JmxQuery jmxQuery, Cluster cluster, String version) {
     m_configHelper = configHelper;
+    m_jmxQuery = jmxQuery;
     m_cluster = cluster;
     m_version = version;
   }
@@ -247,11 +247,11 @@ public class MasterHostResolver {
     return false;
   }
 
-
   /**
    * Get mapping of the HDFS Namenodes from the state ("active" or "standby") to the hostname.
    * @return Returns a map from the state ("active" or "standby" to the hostname with that state if exactly
    * one active and one standby host were found, otherwise, return null.
+   * The hostnames are returned in lowercase.
    */
   private Map<Status, String> getNameNodePair() {
     Map<Status, String> stateToHost = new HashMap<Status, String>();
@@ -287,11 +287,13 @@ public class MasterHostResolver {
           throw new MalformedURLException("Could not parse host and port from " + value);
         }
 
-        String state = queryJmxBeanValue(hp.host, hp.port, "Hadoop:service=NameNode,name=NameNodeStatus", "State", true, encrypted);
+        String state = m_jmxQuery.queryJmxBeanValue(hp.host, hp.port, "Hadoop:service=NameNode,name=NameNodeStatus", "State", true, encrypted);
 
         if (null != state && (state.equalsIgnoreCase(Status.ACTIVE.toString()) || state.equalsIgnoreCase(Status.STANDBY.toString()))) {
           Status status = Status.valueOf(state.toUpperCase());
-          stateToHost.put(status, hp.host);
+          stateToHost.put(status, hp.host.toLowerCase());
+        } else {
+          LOG.error(String.format("Could not retrieve state for NameNode %s from property %s by querying JMX.", hp.host, key));
         }
       } catch (MalformedURLException e) {
         LOG.error(e.getMessage());
@@ -304,6 +306,12 @@ public class MasterHostResolver {
     return null;
   }
 
+  /**
+   * Resolve the name of the Resource Manager master and convert the hostname to lowercase.
+   * @param cluster Cluster
+   * @param hostType RM hosts
+   * @throws MalformedURLException
+   */
   private void resolveResourceManagers(Cluster cluster, HostsType hostType) throws MalformedURLException {
     LinkedHashSet<String> orderedHosts = new LinkedHashSet<String>(hostType.hosts);
 
@@ -315,23 +323,29 @@ public class MasterHostResolver {
     }
 
     for (String hostname : hostType.hosts) {
-      String value = queryJmxBeanValue(hostname, hp.port,
+      String value = m_jmxQuery.queryJmxBeanValue(hostname, hp.port,
           "Hadoop:service=ResourceManager,name=RMNMInfo", "modelerType", true);
 
       if (null != value) {
         if (null == hostType.master) {
-          hostType.master = hostname;
+          hostType.master = hostname.toLowerCase();
         }
 
         // Quick and dirty to make sure the master is last in the list
-        orderedHosts.remove(hostname);
-        orderedHosts.add(hostname);
+        orderedHosts.remove(hostname.toLowerCase());
+        orderedHosts.add(hostname.toLowerCase());
       }
 
     }
     hostType.hosts = orderedHosts;
   }
 
+  /**
+   * Resolve the HBASE master and convert the hostname to lowercase.
+   * @param cluster Cluster
+   * @param hostsType HBASE master host.
+   * @throws AmbariException
+   */
   private void resolveHBaseMasters(Cluster cluster, HostsType hostsType) throws AmbariException {
     String hbaseMasterInfoPortProperty = "hbase.master.info.port";
     String hbaseMasterInfoPortValue = m_configHelper.getValueFromDesiredConfigurations(cluster, ConfigHelper.HBASE_SITE, hbaseMasterInfoPortProperty);
@@ -342,55 +356,17 @@ public class MasterHostResolver {
 
     final int hbaseMasterInfoPort = Integer.parseInt(hbaseMasterInfoPortValue);
     for (String hostname : hostsType.hosts) {
-      String value = queryJmxBeanValue(hostname, hbaseMasterInfoPort,
+      String value = m_jmxQuery.queryJmxBeanValue(hostname, hbaseMasterInfoPort,
           "Hadoop:service=HBase,name=Master,sub=Server", "tag.isActiveMaster", false);
 
       if (null != value) {
         Boolean bool = Boolean.valueOf(value);
         if (bool.booleanValue()) {
-          hostsType.master = hostname;
+          hostsType.master = hostname.toLowerCase();
         } else {
-          hostsType.secondary = hostname;
+          hostsType.secondary = hostname.toLowerCase();
         }
       }
-
     }
-  }
-
-  private String queryJmxBeanValue(String hostname, int port, String beanName, String attributeName,
-                                   boolean asQuery) {
-    return queryJmxBeanValue(hostname, port, beanName, attributeName, asQuery, false);
-  }
-
-  private String queryJmxBeanValue(String hostname, int port, String beanName, String attributeName,
-      boolean asQuery, boolean encrypted) {
-
-    String protocol = encrypted ? "https://" : "http://";
-    String endPoint = protocol + (asQuery ?
-        String.format("%s:%s/jmx?qry=%s", hostname, port, beanName) :
-        String.format("%s:%s/jmx?get=%s::%s", hostname, port, beanName, attributeName));
-
-    String response = HTTPUtils.requestURL(endPoint);
-
-    if (null == response || response.isEmpty()) {
-      return null;
-    }
-
-    Type type = new TypeToken<Map<String, ArrayList<HashMap<String, String>>>>() {}.getType();
-
-    try {
-      Map<String, ArrayList<HashMap<String, String>>> jmxBeans =
-          StageUtils.getGson().fromJson(response, type);
-
-      return jmxBeans.get("beans").get(0).get(attributeName);
-    } catch (Exception e) {
-      if (LOG.isDebugEnabled()) {
-        LOG.info("Could not load JMX from {}/{} from {}", beanName, attributeName, hostname, e);
-      } else {
-        LOG.info("Could not load JMX from {}/{} from {}", beanName, attributeName, hostname);
-      }
-    }
-
-    return null;
   }
 }

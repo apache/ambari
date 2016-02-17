@@ -4625,7 +4625,7 @@ public class AmbariManagementControllerTest {
 
     actionRequest = new ExecuteActionRequest("c1", null, "a2", resourceFilters, null, params, false);
     expectActionCreationErrorWithMessage(actionRequest, requestProperties,
-        "Request specifies host h6 but its not a valid host based on the target service=HDFS and component=DATANODE");
+        "Request specifies host h6 but it is not a valid host based on the target service=HDFS and component=DATANODE");
 
     hosts.clear();
     hosts.add("h1");

@@ -78,6 +78,7 @@ import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeGroupEntity;
 import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
+import org.apache.ambari.server.stack.JmxQuery;
 import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
@@ -679,10 +680,11 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     final String version = (String) requestMap.get(UPGRADE_VERSION);
 
     MasterHostResolver resolver = null;
+    JmxQuery jmx = new JmxQuery();
     if (direction.isUpgrade()) {
-      resolver = new MasterHostResolver(configHelper, cluster);
+      resolver = new MasterHostResolver(configHelper, jmx, cluster);
     } else {
-      resolver = new MasterHostResolver(configHelper, cluster, version);
+      resolver = new MasterHostResolver(configHelper, jmx, cluster, version);
     }
 
     StackId sourceStackId = null;
@@ -1162,6 +1164,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     RequestResourceFilter filter = new RequestResourceFilter("", "",
         new ArrayList<String>(wrapper.getHosts()));
 
+    LOG.debug(String.format("Analyzing upgrade item %s with tasks: %s.", entity.getText(), entity.getTasks()));
     Map<String, String> params = getNewParameterMap();
     params.put(COMMAND_PARAM_TASKS, entity.getTasks());
     params.put(COMMAND_PARAM_VERSION, context.getVersion());

@@ -45,6 +45,7 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.stack.HostsType;
+import org.apache.ambari.server.stack.JmxQuery;
 import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.state.UpgradeHelper.UpgradeGroupHolder;
 import org.apache.ambari.server.state.stack.ConfigUpgradePack;
@@ -91,22 +92,25 @@ public class UpgradeHelperTest {
   private ConfigHelper m_configHelper;
   private AmbariManagementController m_managementController;
   private Gson m_gson = new Gson();
+  private JmxQuery m_jmxQuery;
+
+  /**
+   * Because test cases need to share config mocks, put common ones in this function.
+   * @throws Exception
+   */
+  private void setConfigMocks() throws Exception {
+    // configure the mock to return data given a specific placeholder
+    m_configHelper = EasyMock.createNiceMock(ConfigHelper.class);
+    expect(m_configHelper.getPlaceholderValueFromDesiredConfigurations(
+        EasyMock.anyObject(Cluster.class), EasyMock.eq("{{foo/bar}}"))).andReturn("placeholder-rendered-properly").anyTimes();
+    expect(m_configHelper.getEffectiveDesiredTags(
+        EasyMock.anyObject(Cluster.class), EasyMock.anyObject(String.class))).andReturn(new HashMap<String, Map<String, String>>()).anyTimes();
+  }
 
   @Before
   public void before() throws Exception {
-    // configure the mock to return data given a specific placeholder
-    m_configHelper = EasyMock.createNiceMock(ConfigHelper.class);
-
-    expect(
-      m_configHelper.getPlaceholderValueFromDesiredConfigurations(
-        EasyMock.anyObject(Cluster.class), EasyMock.eq("{{foo/bar}}"))).andReturn(
-        "placeholder-rendered-properly").anyTimes();
-
-    expect(
-        m_configHelper.getEffectiveDesiredTags(
-            EasyMock.anyObject(Cluster.class), EasyMock.anyObject(String.class))).
-        andReturn(new HashMap<String, Map<String, String>>()).anyTimes();
-
+    setConfigMocks();
+    // Most test cases can replay the common config mocks. If any test case needs custom ones, it can re-initialize m_configHelper;
     replay(m_configHelper);
 
     final InMemoryDefaultTestModule injectorModule = new InMemoryDefaultTestModule() {
@@ -115,6 +119,8 @@ public class UpgradeHelperTest {
         super.configure();
       }
     };
+
+    m_jmxQuery = EasyMock.createNiceMock(JmxQuery.class);
 
     MockModule mockModule = new MockModule();
     // create an injector which will inject the mocks
@@ -1190,7 +1196,7 @@ public class UpgradeHelperTest {
     Service s = c.getService("ZOOKEEPER");
     ServiceComponent sc = s.addServiceComponent("ZOOKEEPER_SERVER");
 
-    ServiceComponentHost sch1 =sc.addServiceComponentHost("h1");
+    ServiceComponentHost sch1 = sc.addServiceComponentHost("h1");
     sch1.setVersion("2.1.1.0-1234");
 
     ServiceComponentHost sch2 = sc.addServiceComponentHost("h2");
@@ -1199,7 +1205,8 @@ public class UpgradeHelperTest {
     List<ServiceComponentHost> schs = c.getServiceComponentHosts("ZOOKEEPER", "ZOOKEEPER_SERVER");
     assertEquals(2, schs.size());
 
-    MasterHostResolver mhr = new MasterHostResolver(null, c, "2.1.1.0-1234");
+    JmxQuery jmx = new JmxQuery();
+    MasterHostResolver mhr = new MasterHostResolver(null, jmx, c, "2.1.1.0-1234");
 
     HostsType ht = mhr.getMasterAndHosts("ZOOKEEPER", "ZOOKEEPER_SERVER");
     assertEquals(0, ht.hosts.size());
@@ -1211,6 +1218,80 @@ public class UpgradeHelperTest {
 
     assertEquals(1, ht.hosts.size());
     assertEquals("h2", ht.hosts.iterator().next());
+  }
+
+  /**
+   * Test that MasterHostResolver is case-insensitive even if configs have hosts in upper case for NameNode.
+   * @throws Exception
+   */
+  @Test
+  public void testResolverCaseInsensitive() throws Exception {
+    Clusters clusters = injector.getInstance(Clusters.class);
+    ServiceFactory serviceFactory = injector.getInstance(ServiceFactory.class);
+
+    String clusterName = "c1";
+    String version = "2.1.1.0-1234";
+
+    StackId stackId = new StackId("HDP-2.1.1");
+    clusters.addCluster(clusterName, stackId);
+    Cluster c = clusters.getCluster(clusterName);
+
+    helper.getOrCreateRepositoryVersion(stackId,
+        c.getDesiredStackVersion().getStackVersion());
+
+    c.createClusterVersion(stackId,
+        c.getDesiredStackVersion().getStackVersion(), "admin",
+        RepositoryVersionState.UPGRADING);
+
+    for (int i = 0; i < 2; i++) {
+      String hostName = "h" + (i+1);
+      clusters.addHost(hostName);
+      Host host = clusters.getHost(hostName);
+
+      Map<String, String> hostAttributes = new HashMap<String, String>();
+      hostAttributes.put("os_family", "redhat");
+      hostAttributes.put("os_release_version", "6");
+
+      host.setHostAttributes(hostAttributes);
+
+      host.persist();
+      clusters.mapHostToCluster(hostName, clusterName);
+    }
+
+    // Add services
+    c.addService(serviceFactory.createNew(c, "HDFS"));
+
+    Service s = c.getService("HDFS");
+    ServiceComponent sc = s.addServiceComponent("NAMENODE");
+    sc.addServiceComponentHost("h1");
+    sc.addServiceComponentHost("h2");
+
+    List<ServiceComponentHost> schs = c.getServiceComponentHosts("HDFS", "NAMENODE");
+    assertEquals(2, schs.size());
+
+    setConfigMocks();
+    expect(m_configHelper.getValueFromDesiredConfigurations(c, "hdfs-site", "dfs.nameservices")).andReturn("ha").anyTimes();
+    expect(m_configHelper.getValueFromDesiredConfigurations(c, "hdfs-site", "dfs.ha.namenodes.ha")).andReturn("nn1,nn2").anyTimes();
+    expect(m_configHelper.getValueFromDesiredConfigurations(c, "hdfs-site", "dfs.http.policy")).andReturn("HTTP_ONLY").anyTimes();
+
+    // Notice that these names are all caps.
+    expect(m_configHelper.getValueFromDesiredConfigurations(c, "hdfs-site", "dfs.namenode.http-address.ha.nn1")).andReturn("H1:50070").anyTimes();
+    expect(m_configHelper.getValueFromDesiredConfigurations(c, "hdfs-site", "dfs.namenode.http-address.ha.nn2")).andReturn("H2:50070").anyTimes();
+    replay(m_configHelper);
+
+    // Mock the calls to JMX
+    expect(m_jmxQuery.queryJmxBeanValue("H1", 50070, "Hadoop:service=NameNode,name=NameNodeStatus", "State", true, false)).andReturn("ACTIVE").anyTimes();
+    expect(m_jmxQuery.queryJmxBeanValue("H2", 50070, "Hadoop:service=NameNode,name=NameNodeStatus", "State", true, false)).andReturn("STANDBY").anyTimes();
+    replay(m_jmxQuery);
+
+    MasterHostResolver mhr = new MasterHostResolver(m_configHelper, m_jmxQuery, c, version);
+
+    HostsType ht = mhr.getMasterAndHosts("HDFS", "NAMENODE");
+    assertEquals(2, ht.hosts.size());
+
+    // Should be stored in lowercase.
+    assertTrue(ht.hosts.contains("h1"));
+    assertTrue(ht.hosts.contains("h1"));
   }
 
 
