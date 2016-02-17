@@ -129,7 +129,7 @@ class TestRUExecuteTasks(RMFTestCase):
     ru_execute.actionexecute(None)
 
     call_mock.assert_called_with(
-        "/usr/bin/ambari-python-wrap /var/lib/ambari-agent/cache/common-services/HDFS/2.1.0.2.0/package" + os.sep +
+        "source /var/lib/ambari-agent/ambari-env.sh ; /usr/bin/ambari-python-wrap /var/lib/ambari-agent/cache/common-services/HDFS/2.1.0.2.0/package" + os.sep +
         "scripts/namenode.py prepare_rolling_upgrade /tmp", logoutput=True, quiet=True)
     pass
 
@@ -176,6 +176,6 @@ class TestRUExecuteTasks(RMFTestCase):
     ru_execute = ExecuteUpgradeTasks()
     ru_execute.actionexecute(None)
 
-    call_mock.assert_called_with("/usr/bin/ambari-python-wrap /var/lib/ambari-agent/cache/custom_actions" + os.sep +
+    call_mock.assert_called_with("source /var/lib/ambari-agent/ambari-env.sh ; /usr/bin/ambari-python-wrap /var/lib/ambari-agent/cache/custom_actions" + os.sep +
                                  "scripts/namenode.py prepare_rolling_upgrade /tmp", logoutput=True, quiet=True)
     pass
