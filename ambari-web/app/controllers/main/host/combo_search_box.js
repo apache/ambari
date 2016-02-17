@@ -88,13 +88,7 @@ App.MainHostComboSearchBoxController = Em.Controller.extend({
           callback(App.HostComponent.find().toArray().mapProperty('componentName').uniq(), {preserveOrder: true});
           break;
         case 'state':
-          callback([
-            Em.I18n.t('common.started'),
-            Em.I18n.t('common.stopped'),
-            Em.I18n.t('hosts.host.stackVersions.status.install_failed'),
-            Em.I18n.t('hosts.host.decommissioning'),
-            Em.I18n.t('hosts.host.decommissioned')
-          ], {preserveOrder: true});
+          callback(App.HostComponentStatus.getStatusesList(), {preserveOrder: true});
           break;
       }
     }
