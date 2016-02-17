@@ -25,6 +25,59 @@ App.MainHostComboSearchBoxView = Em.View.extend({
   },
 
   initVS: function() {
+    var self = this;
+
+    var callbacks = this.get('controller').VSCallbacks;
+    callbacks.search = function (query, searchCollection) {
+
+      searchCollection.models.forEach(function (data) {
+        var query = data.attributes;
+
+        switch (query.category) {
+          case 'health':
+            self.get('parentView').get('parentView').updateFilter(0, query.value, 'string');
+            break;
+          case 'host_name':
+            self.get('parentView').get('parentView').updateFilter(1, query.value, 'string');
+            break;
+          case 'ip':
+            self.get('parentView').get('parentView').updateFilter(2, query.value, 'string');
+            break;
+          case 'rack':
+            self.get('parentView').get('parentView').updateFilter(12, query.value, 'string');
+            break;
+          case 'version':
+            self.get('parentView').get('parentView').updateFilter(11, query.value, 'string');
+            break;
+          case 'component':
+            self.get('parentView').get('parentView').updateFilter(15, query.value, 'string');
+            break;
+          case 'service':
+            self.get('parentView').get('parentView').updateFilter(13, query.value, 'string');
+            break;
+          case 'state':
+            self.get('parentView').get('parentView').updateFilter(14, query.value, 'string');
+            break;
+        }
+      });
+
+      var $query = $('#search_query');
+      var count = searchCollection.size();
+      $query.stop().animate({opacity: 1}, {duration: 300, queue: false});
+      $query.html('<span class="raquo">&raquo;</span> You searched for: ' +
+          '<b>' + (query || '<i>nothing</i>') + '</b>. ' +
+          '(' + count + ' facet' + (count == 1 ? '' : 's') + ')');
+      clearTimeout(window.queryHideDelay);
+      window.queryHideDelay = setTimeout(function () {
+        $query.animate({
+          opacity: 0
+        }, {
+          duration: 1000,
+          queue: false
+        });
+      }, 2000);
+    };
+
     window.visualSearch = VS.init({
       container: $('#combo_search_box'),
       query: '',
@@ -33,7 +86,7 @@ App.MainHostComboSearchBoxView = Em.View.extend({
       unquotable: [
         'text'
       ],
-      callbacks: this.get('controller').VSCallbacks
+      callbacks: callbacks
     });
   }
 });
