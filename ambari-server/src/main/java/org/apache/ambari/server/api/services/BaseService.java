@@ -58,7 +58,7 @@ public abstract class BaseService {
    */
   private ResultSerializer m_serializer = new JsonSerializer();
 
-  private static RequestAuditLogger requestAuditLogger;
+  protected static RequestAuditLogger requestAuditLogger;
 
   @Inject
   public static void init(RequestAuditLogger instance) {

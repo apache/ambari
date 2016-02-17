@@ -22,8 +22,6 @@ public class BlueprintExportRequestAuditEvent extends RequestAuditEvent {
 
   public static class BlueprintExportRequestAuditEventBuilder extends RequestAuditEventBuilder<BlueprintExportRequestAuditEvent, BlueprintExportRequestAuditEventBuilder> {
 
-    private String username;
-
     public BlueprintExportRequestAuditEventBuilder() {
       super.withOperation("Blueprint export");
     }
