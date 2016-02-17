@@ -625,17 +625,6 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
                 rangerAuditProperty = services["configurations"][item['filename']]["properties"][item['configname']]
               putRangerAuditProperty(item['target_configname'], rangerAuditProperty)
 
-    audit_solr_flag = 'false'
-    audit_db_flag = 'false'
-    ranger_audit_source_type = 'solr'
-    if 'ranger-env' in services['configurations'] and 'xasecure.audit.destination.solr' in services['configurations']["ranger-env"]["properties"]:
-      audit_solr_flag = services['configurations']["ranger-env"]["properties"]['xasecure.audit.destination.solr']
-    if 'ranger-env' in services['configurations'] and 'xasecure.audit.destination.db' in services['configurations']["ranger-env"]["properties"]:
-      audit_db_flag = services['configurations']["ranger-env"]["properties"]['xasecure.audit.destination.db']
-
-    if audit_db_flag == 'true' and audit_solr_flag == 'false':
-      ranger_audit_source_type = 'db'
-    putRangerAdminProperty('ranger.audit.source.type',ranger_audit_source_type)
 
 
   def recommendYARNConfigurations(self, configurations, clusterData, services, hosts):
