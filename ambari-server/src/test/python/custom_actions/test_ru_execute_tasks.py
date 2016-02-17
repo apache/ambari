@@ -104,7 +104,7 @@ class TestRUExecuteTasks(RMFTestCase):
     ru_execute = ExecuteUpgradeTasks()
     ru_execute.actionexecute(None)
 
-    call_mock.assert_called_with("/usr/bin/ambari-python-wrap /var/lib/ambari-agent/cache/common-services/HDFS/2.1.0.2.0/package/scripts/namenode.py prepare_rolling_upgrade /tmp", logoutput=True, quiet=True)
+    call_mock.assert_called_with("source /var/lib/ambari-agent/ambari-env.sh ; /usr/bin/ambari-python-wrap /var/lib/ambari-agent/cache/common-services/HDFS/2.1.0.2.0/package/scripts/namenode.py prepare_rolling_upgrade /tmp", logoutput=True, quiet=True)
 
   @patch("resource_management.core.shell.checked_call")
   @patch("os.path.exists")
@@ -149,4 +149,4 @@ class TestRUExecuteTasks(RMFTestCase):
     ru_execute = ExecuteUpgradeTasks()
     ru_execute.actionexecute(None)
 
-    call_mock.assert_called_with("/usr/bin/ambari-python-wrap /var/lib/ambari-agent/cache/custom_actions/scripts/namenode.py prepare_rolling_upgrade /tmp", logoutput=True, quiet=True)
+    call_mock.assert_called_with("source /var/lib/ambari-agent/ambari-env.sh ; /usr/bin/ambari-python-wrap /var/lib/ambari-agent/cache/custom_actions/scripts/namenode.py prepare_rolling_upgrade /tmp", logoutput=True, quiet=True)
