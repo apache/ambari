@@ -523,7 +523,8 @@ describe('App.ChartLinearTimeView.LoadAggregator', function () {
       sinon.stub(App.ajax, 'send', function(){
         return {
           done: Em.K,
-          fail: Em.K
+          fail: Em.K,
+          always: Em.K
         }
       });
     });
@@ -533,7 +534,12 @@ describe('App.ChartLinearTimeView.LoadAggregator', function () {
       aggregator.formatRequestData.restore();
     });
     it("", function () {
-      var context = Em.Object.create({content: {hostName: 'host1'}});
+      var context = Em.Object.create({
+        content: {
+          hostName: 'host1'
+        },
+        runningRequests: []
+      });
       var requests = {
         'r1': {
           name: 'r1',

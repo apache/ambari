@@ -394,6 +394,7 @@ describe('App.WidgetMixin', function () {
       cases = [
         {
           graphView: null,
+          isForcedAbort: false,
           metricsLength: 1,
           showMessageCallCount: 0,
           isExportButtonHidden: false,
@@ -401,6 +402,7 @@ describe('App.WidgetMixin', function () {
         },
         {
           graphView: {},
+          isForcedAbort: false,
           metricsLength: 1,
           showMessageCallCount: 0,
           isExportButtonHidden: false,
@@ -409,6 +411,7 @@ describe('App.WidgetMixin', function () {
         {
           graphView: {},
           childViews: [],
+          isForcedAbort: false,
           metricsLength: 1,
           showMessageCallCount: 0,
           isExportButtonHidden: false,
@@ -417,6 +420,7 @@ describe('App.WidgetMixin', function () {
         {
           graphView: {},
           childViews: [Em.Object.create({})],
+          isForcedAbort: false,
           metricsLength: 1,
           showMessageCallCount: 0,
           isExportButtonHidden: false,
@@ -425,10 +429,20 @@ describe('App.WidgetMixin', function () {
         {
           graphView: {},
           childViews: [Em.Object.create({}), view],
+          isForcedAbort: false,
           metricsLength: 0,
           showMessageCallCount: 1,
           isExportButtonHidden: true,
           title: 'graph view is available'
+        },
+        {
+          graphView: {},
+          childViews: [Em.Object.create({}), view],
+          isForcedAbort: true,
+          metricsLength: 1,
+          showMessageCallCount: 0,
+          isExportButtonHidden: false,
+          title: 'request is aborted'
         }
       ],
       messageCases = [
@@ -471,7 +485,9 @@ describe('App.WidgetMixin', function () {
             graphView: item.graphView,
             childViews: item.childViews
           });
-          obj.getMetricsErrorCallback({});
+          obj.getMetricsErrorCallback({
+            isForcedAbort: item.isForcedAbort
+          });
         });
 
         it('metrics array', function () {
