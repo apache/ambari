@@ -79,12 +79,8 @@ def exec_ssh_cmd(hostname, cmd):
   """
   Runs the command on the remote host as gpadmin user
   """
-  import params
   # Only gpadmin should be allowed to run command via ssh, thus not exposing user as a parameter
-  if params.hostname != hostname:
-    cmd = "su - {0} -c 'ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {1} \"{2} \" '".format(hawq_constants.hawq_user, hostname, cmd)
-  else:
-    cmd = "su - {0} -c \"{1}\"".format(hawq_constants.hawq_user, cmd)
+  cmd = "su - {0} -c \"ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {1} \\\"{2} \\\" \"".format(hawq_constants.hawq_user, hostname, cmd)
   Logger.info("Command executed: {0}".format(cmd))
   process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
   (stdout, stderr) = process.communicate()
@@ -97,9 +93,9 @@ def exec_psql_cmd(command, host, port, db="template1", tuples_only=True):
   """
   src_cmd = "export PGPORT={0} && source {1}".format(port, hawq_constants.hawq_greenplum_path_file)
   if tuples_only:
-    cmd = src_cmd + " && psql -d {0} -c \\\"{1};\\\"".format(db, command)
+    cmd = src_cmd + " && psql -d {0} -c \\\\\\\"{1};\\\\\\\"".format(db, command)
   else:
-    cmd = src_cmd + " && psql -t -d {0} -c \\\"{1};\\\"".format(db, command)
+    cmd = src_cmd + " && psql -t -d {0} -c \\\\\\\"{1};\\\\\\\"".format(db, command)
   retcode, out, err = exec_ssh_cmd(host, cmd)
   if retcode:
     Logger.error("SQL command executed failed: {0}\nReturncode: {1}\nStdout: {2}\nStderr: {3}".format(cmd, retcode, out, err))
