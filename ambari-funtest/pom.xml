@@ -22,6 +22,9 @@
   <packaging>${packagingFormat}</packaging>
   <name>Ambari Functional Tests</name>
   <description>Ambari Functional Tests</description>
+  <properties>
+    <maven.test.skip>true</maven.test.skip> <!-- Don't run tests by default. Run with -Dmaven.test.skip=false to run tests -->
+  </properties>
   <build>
     <plugins>
       <plugin>
