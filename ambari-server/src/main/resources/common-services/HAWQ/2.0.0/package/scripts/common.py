@@ -20,9 +20,7 @@ import os
 import time
 import crypt
 import filecmp
-from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.core.resources.system import Execute, Directory, File
-from resource_management.libraries.script.config_dictionary import ConfigDictionary
 from resource_management.core.logger import Logger
 from resource_management.core.system import System
 from resource_management.core.exceptions import Fail
@@ -67,58 +65,20 @@ def setup_common_configurations():
   """
   Sets up the config files common to master, standby and segment nodes.
   """
-  __update_hdfs_client()
-  __update_yarn_client()
-  __update_hawq_site()
+  import params
+
+  params.XmlConfig(filename="hdfs-client.xml",
+                   configurations=params.hdfs_client,
+                   configuration_attributes=params.config_attrs['hdfs-client'])
+
+  params.XmlConfig(filename="yarn-client.xml",
+                   configurations=params.yarn_client,
+                   configuration_attributes=params.config_attrs['yarn-client'])
+
+  params.XmlConfig(filename="hawq-site.xml",
+                   configurations=params.hawq_site,
+                   configuration_attributes=params.config_attrs['hawq-site'])
   __set_osparams()
-
-def __update_hdfs_client():
-  """
-  Writes hdfs-client.xml on the local filesystem on hawq nodes.
-  If hdfs ha is enabled, appends related parameters to hdfs-client.xml
-  """
-  import params
-
-  hdfs_client_dict = params.hdfs_client.copy()
-
-  XmlConfig("hdfs-client.xml",
-            conf_dir=hawq_constants.hawq_config_dir,
-            configurations=ConfigDictionary(hdfs_client_dict),
-            configuration_attributes=params.config['configuration_attributes']['hdfs-client'],
-            owner=hawq_constants.hawq_user,
-            group=hawq_constants.hawq_group,
-            mode=0644)
-
-
-def __update_yarn_client():
-  """
-  Writes yarn-client.xml on the local filesystem on hawq nodes.
-  If yarn ha is enabled, appends related parameters to yarn-client.xml
-  """
-  import params
-
-  XmlConfig("yarn-client.xml",
-            conf_dir=hawq_constants.hawq_config_dir,
-            configurations=params.yarn_client,
-            configuration_attributes=params.config['configuration_attributes']['yarn-client'],
-            owner=hawq_constants.hawq_user,
-            group=hawq_constants.hawq_group,
-            mode=0644)
-
-
-def __update_hawq_site():
-  """
-  Sets up hawq-site.xml
-  """
-  import params
-  
-  XmlConfig("hawq-site.xml",
-            conf_dir=hawq_constants.hawq_config_dir,
-            configurations=ConfigDictionary(params.hawq_site),
-            configuration_attributes=params.config['configuration_attributes']['hawq-site'],
-            owner=hawq_constants.hawq_user,
-            group=hawq_constants.hawq_group,
-            mode=0644)
 
 
 def __set_osparams():
