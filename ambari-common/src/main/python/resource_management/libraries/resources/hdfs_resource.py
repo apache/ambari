@@ -76,6 +76,18 @@ class HdfsResource(Resource):
   hadoop_bin_dir = ResourceArgument()
   hadoop_conf_dir = ResourceArgument()
   
+  """
+  Path to file which contains '\n'-separated list of hdfs resources, which should not
+  be managed. (simply any action to be skipped on it)
+  
+  This mean that if HdfsResource('/test1'..) is executed and /test1 is one of the lines
+  in the given file, the execution will be ignored.
+  
+  Example value:
+  /var/lib/ambari-agent/data/.hdfs_resource_ignore
+  """
+  hdfs_resource_ignore_file = ResourceArgument()
+  
   # WebHDFS needs these
   hdfs_site = ResourceArgument()
   default_fs = ResourceArgument()

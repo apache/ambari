@@ -50,7 +50,7 @@ class TestPigServiceCheck(RMFTestCase):
         owner = 'ambari-qa',
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
         type = 'directory',
-        action = ['delete_on_execute'],
+        action = ['delete_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa/passwd',
         security_enabled = True,
@@ -66,7 +66,7 @@ class TestPigServiceCheck(RMFTestCase):
         owner = 'ambari-qa',
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
         type = 'file',
-        action = ['create_on_execute'],
+        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
     )
     self.assertResourceCalled('HdfsResource', None,
         security_enabled = True,
@@ -78,7 +78,7 @@ class TestPigServiceCheck(RMFTestCase):
         principal_name = 'hdfs@EXAMPLE.COM',
         user = 'hdfs',
         dfs_type = '',
-        action = ['execute'],
+        action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
     )
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa@EXAMPLE.COM;',
@@ -113,7 +113,7 @@ class TestPigServiceCheck(RMFTestCase):
         owner = 'ambari-qa',
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
         type = 'directory',
-        action = ['delete_on_execute'],
+        action = ['delete_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa/passwd',
         security_enabled = True,
@@ -129,7 +129,7 @@ class TestPigServiceCheck(RMFTestCase):
         owner = 'ambari-qa',
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
         type = 'file',
-        action = ['create_on_execute'],
+        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
     )
 
     copy_to_hdfs_mock.assert_called_with("tez", "hadoop", "hdfs", host_sys_prepped=False)
@@ -143,7 +143,7 @@ class TestPigServiceCheck(RMFTestCase):
         principal_name = 'hdfs@EXAMPLE.COM',
         user = 'hdfs',
         dfs_type = '',
-        action = ['execute'],
+        action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
     )
 

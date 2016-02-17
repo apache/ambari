@@ -102,7 +102,7 @@ class TestSparkThriftServer(RMFTestCase):
         owner = 'spark',
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
         type = 'directory',
-        action = ['create_on_execute'],
+        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         dfs_type = '',
         mode = 0775,
     )
@@ -115,7 +115,7 @@ class TestSparkThriftServer(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         principal_name = UnknownConfigurationMock(),
         user = 'hdfs',
-        action = ['execute'],
+        action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         dfs_type = '',
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
     )
