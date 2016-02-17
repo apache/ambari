@@ -95,6 +95,22 @@ App.AssignMasterComponents = Em.Mixin.create({
   showInstalledMastersFirst: false,
 
   /**
+   * Map of component name to list of hostnames for that component
+   * format:
+   * {
+   *   NAMENODE: [
+   *     'c6401.ambari.apache.org'
+   *   ],
+   *   DATANODE: [
+   *     'c6402.ambari.apache.org',
+   *     'c6403.ambari.apache.org',
+   *   ]
+   * }
+   * @type {Object}
+   */
+  recommendedHostsForComponents: {},
+
+  /**
    * Array of <code>servicesMasters</code> objects, that will be shown on the page
    * Are filtered using <code>mastersToShow</code>
    * @type {Array}
@@ -731,7 +747,31 @@ App.AssignMasterComponents = Em.Mixin.create({
    * @method loadRecommendationsSuccessCallback
    */
   loadRecommendationsSuccessCallback: function (data) {
-    this.set('content.recommendations', data.resources[0].recommendations);
+    var recommendations = data.resources[0].recommendations;
+    this.set('content.recommendations', recommendations);
+
+    var recommendedHostsForComponent = {};
+    var hostsForHostGroup = {};
+
+    recommendations.blueprint_cluster_binding.host_groups.forEach(function(hostGroup) {
+      hostsForHostGroup[hostGroup.name] = hostGroup.hosts.map(function(host) {
+        return host.fqdn;
+      });
+    });
+
+    recommendations.blueprint.host_groups.forEach(function (hostGroup) {
+      var components = hostGroup.components.map(function (component) {
+        return component.name;
+      });
+      components.forEach(function (componentName) {
+        var hostList = recommendedHostsForComponent[componentName] || [];
+        var hostNames = hostsForHostGroup[hostGroup.name] || [];
+        Array.prototype.push.apply(hostList, hostNames);
+        recommendedHostsForComponent[componentName] = hostList;
+      });
+    });
+
+    this.set('content.recommendedHostsForComponents', recommendedHostsForComponent);
   },
 
   /**
@@ -817,6 +857,21 @@ App.AssignMasterComponents = Em.Mixin.create({
    * @returns {*}
    */
   getHostForMaster: function (master, allMasters) {
+    var masterHostList = [];
+
+    allMasters.forEach(function (component) {
+      if (component.component_name === master) {
+        masterHostList.push(component.selectedHost);
+      }
+    });
+
+    var recommendedHostsForMaster = this.get('content.recommendedHostsForComponents')[master] || [];
+    for (var k = 0; k < recommendedHostsForMaster.length; k++) {
+      if(!masterHostList.contains(recommendedHostsForMaster[k])) {
+        return recommendedHostsForMaster[k];
+      }
+    }
+
     var usedHosts = allMasters.filterProperty('component_name', master).mapProperty('selectedHost');
     var allHosts = this.get('hosts');
     for (var i = 0; i < allHosts.length; i++) {
@@ -824,6 +879,7 @@ App.AssignMasterComponents = Em.Mixin.create({
         return allHosts[i].get('host_name');
       }
     }
+
     return false;
   },
 
