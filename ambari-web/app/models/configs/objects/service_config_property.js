@@ -367,6 +367,8 @@ App.ServiceConfigProperty = Em.Object.extend({
         return App.ServiceConfigComponentHostsView;
       case 'supportTextConnection':
         return App.checkConnectionView;
+      case 'capacityScheduler':
+        return App.CapacitySceduler;
       default:
         if (this.get('unit')) {
           return App.ServiceConfigTextFieldWithUnit;

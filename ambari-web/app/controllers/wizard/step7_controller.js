@@ -713,9 +713,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   },
 
   applyServicesConfigs: function (configs, storedConfigs) {
-    if (this.get('allSelectedServiceNames').contains('YARN')) {
-      configs = App.config.fileConfigsIntoTextarea(configs, 'capacity-scheduler.xml', []);
-    }
     // If HAWQ service is being added, add NN-HA/RM-HA/Kerberos related parameters to hdfs-client/yarn-client if applicable
     if (this.get('wizardController.name') == 'addServiceController') {
       if (!this.get('installedServiceNames').contains('HAWQ') && this.get('allSelectedServiceNames').contains('HAWQ')) {
@@ -990,6 +987,9 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         serviceConfigProperty.validate();
         configsByService.pushObject(serviceConfigProperty);
       }, this);
+      if (service.get('serviceName') === 'YARN') {
+        configsByService = App.config.addYarnCapacityScheduler(configsByService);
+      }
       var serviceConfig = App.config.createServiceConfig(service.get('serviceName'));
       serviceConfig.set('showConfig', service.get('showConfig'));
       serviceConfig.set('configs', configsByService);
