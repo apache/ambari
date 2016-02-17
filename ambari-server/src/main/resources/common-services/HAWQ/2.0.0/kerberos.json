@@ -1,73 +1,60 @@
 {
-    "services": [
+  "services": [
+    {
+      "name": "HAWQ",
+      "identities": [
         {
-            "name": "HAWQ",
-            "identities": [
-                {
-                    "name": "/hdfs"
-                }
-            ], 
-            "configurations": [
-                {
-                    "hawq-site": {
-                        "enable_secure_filesystem": "ON",
-                        "krb_server_keyfile": "${keytab_dir}/hawq.service.keytab"
-                    }
-                },
-                {
-                    "hdfs-client": {
-                        "hadoop.security.authentication": "kerberos"
-                    }
-                }
-            ],
-            "components": [
-                {
-                    "identities": [
-                        {
-                            "keytab": {
-                                "file": "${keytab_dir}/hawq.service.keytab", 
-                                "group": {
-                                    "access": "", 
-                                    "name": "${cluster-env/user_group}"
-                                }, 
-                                "owner": {
-                                    "access": "r", 
-                                    "name": "gpadmin"
-                                }
-                            }, 
-                            "name": "hawq_master_hawq", 
-                            "principal": {
-                                "type": "service", 
-                                "value": "postgres@${realm}"
-                            }
-                        }
-                    ], 
-                    "name": "HAWQMASTER"
-                }, 
-                {
-                    "identities": [
-                        {
-                            "keytab": {
-                                "file": "${keytab_dir}/hawq.service.keytab", 
-                                "group": {
-                                    "access": "", 
-                                    "name": "${cluster-env/user_group}"
-                                }, 
-                                "owner": {
-                                    "access": "r", 
-                                    "name": "gpadmin"
-                                }
-                            }, 
-                            "name": "hawq_standby_hawq", 
-                            "principal": {
-                                "type": "service", 
-                                "value": "postgres@${realm}"
-                            }
-                        }
-                    ], 
-                    "name": "HAWQSTANDBY"
-                }
-            ] 
+          "name": "/HDFS/NAMENODE/hdfs"
+        },
+        {
+          "name": "hawq_identity",
+          "principal": {
+            "type": "user",
+            "value": "postgres@${realm}"
+          },
+          "keytab": {
+            "file": "${keytab_dir}/hawq.service.keytab",
+            "owner": {
+              "access": "r",
+              "name": "gpadmin"
+            },
+            "group": {
+              "name": "${cluster-env/user_group}"
+            }
+          }
         }
-    ]
+      ],
+      "configurations": [
+        {
+          "hawq-site": {
+            "enable_secure_filesystem": "ON",
+            "krb_server_keyfile": "${keytab_dir}/hawq.service.keytab"
+          }
+        },
+        {
+          "hdfs-client": {
+            "hadoop.security.authentication": "kerberos"
+          }
+        }
+      ],
+      "components" : [
+        {
+          "name": "HAWQMASTER",
+          "identities": [
+            {
+              "name": "/HAWQ/hawq_identity"
+            }
+          ]
+        },
+        {
+          "name": "HAWQSTANDBY",
+          "identities": [
+            {
+              "name": "/HAWQ/hawq_identity"
+            }
+          ]
+        }
+      ]
+    }
+  ]
 }
