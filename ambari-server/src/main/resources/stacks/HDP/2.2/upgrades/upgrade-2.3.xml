@@ -811,6 +811,8 @@
             <script>scripts/kafka_broker.py</script>
             <function>stop</function>
           </task>
+
+          <task xsi:type="configure" id="hdp_2_3_0_0_kafka_broker_deprecate_port"/>
         </pre-upgrade>
 
         <upgrade>
