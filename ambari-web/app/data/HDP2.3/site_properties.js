@@ -342,8 +342,8 @@ hdp23properties.push({
   {
     "name": "content",
     "serviceName": "HAWQ",
-    "filename": "gpcheck-env.xml",
-    "category": "AdvancedGpcheck"
+    "filename": "hawq-check-env.xml",
+    "category": "AdvancedHawqCheck"
   }
 );
 

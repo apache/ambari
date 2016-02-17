@@ -107,7 +107,7 @@ rm_host = __get_component_host('rm_host')
 yarn_ha_enabled = default('/configurations/yarn-site/yarn.resourcemanager.ha.enabled', False)
 
 # Config files
-gpcheck_content = config['configurations']['gpcheck-env']['content']
+hawq_check_content = config['configurations']['hawq-check-env']['content']
 # database user limits
 hawq_limits = config['configurations']['hawq-limits-env']
 # sysctl parameters
