@@ -49,6 +49,7 @@ import org.apache.ambari.server.audit.request.eventcreator.BlueprintExportEventC
 import org.apache.ambari.server.audit.request.eventcreator.PrivilegeEventCreator;
 import org.apache.ambari.server.audit.request.eventcreator.GroupEventCreator;
 import org.apache.ambari.server.audit.request.eventcreator.MemberEventCreator;
+import org.apache.ambari.server.audit.request.eventcreator.RepositoryEventCreator;
 import org.apache.ambari.server.audit.request.eventcreator.ServiceConfigDownloadEventCreator;
 import org.apache.ambari.server.audit.request.eventcreator.UnauthorizedEventCreator;
 import org.apache.ambari.server.audit.request.eventcreator.ConfigurationChangeEventCreator;
@@ -416,6 +417,7 @@ public class ControllerModule extends AbstractModule {
     auditLogEventCreatorBinder.addBinding().to(BlueprintEventCreator.class);
     auditLogEventCreatorBinder.addBinding().to(ViewInstanceEventCreator.class);
     auditLogEventCreatorBinder.addBinding().to(ViewPrivilegeEventCreator.class);
+    auditLogEventCreatorBinder.addBinding().to(RepositoryEventCreator.class);
 
     bind(RequestAuditLogger.class).to(RequestAuditLoggerImpl.class);
   }
