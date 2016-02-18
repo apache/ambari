@@ -67,36 +67,6 @@ describe('App.WizardStep8Controller', function () {
     configurationController = App.MainServiceInfoConfigsController.create({});
   });
 
-  var siteObjTests = Em.A([
-    {name: 'createHdfsSiteObj', e: {type: 'hdfs-site', tag: 'version1', l: 2}},
-    {name: 'createHueSiteObj', e: {type: 'hue-site', tag: 'version1', l: 2}},
-    {name: 'createMrSiteObj', e: {type: 'mapred-site', tag: 'version1', l: 2}},
-    {name: 'createYarnSiteObj', e: {type: 'yarn-site', tag: 'version1', l: 2}},
-    {name: 'createCapacityScheduler', e: {type: 'capacity-scheduler', tag: 'version1', l: 2}},
-    {name: 'createMapredQueueAcls', e: {type: 'mapred-queue-acls', tag: 'version1', l: 2}},
-    {name: 'createHbaseSiteObj', e: {type: 'hbase-site', tag: 'version1', l: 2}},
-    {name: 'createOozieSiteObj', e: {type: 'oozie-site', tag: 'version1', l: 2}},
-    {name: 'createHiveSiteObj', e: {type: 'hive-site', tag: 'version1', l: 2}},
-    {name: 'createWebHCatSiteObj', e: {type: 'webhcat-site', tag: 'version1', l: 2}},
-    {name: 'createTezSiteObj', e: {type: 'tez-site', tag: 'version1', l: 2}},
-    {name: 'createPigPropertiesSiteObj', e: {type: 'pig-properties', tag: 'version1', l: 1}},
-    {name: 'createFalconStartupSiteObj', e: {type: 'falcon-startup.properties', tag: 'version1', l: 2}},
-    {name: 'createFalconRuntimeSiteObj', e: {type: 'falcon-runtime.properties', tag: 'version1', l: 2}}
-  ]);
-
-  siteObjTests.forEach(function (test) {
-    describe('#' + test.name, function () {
-
-      it(test.name, function () {
-
-        var siteObj = installerStep8Controller.createSiteObj(test.e.type, test.e.tag);
-        expect(siteObj.tag).to.equal(test.e.tag);
-        expect(Em.keys(siteObj.properties).length).to.equal(test.e.l);
-      });
-
-    });
-  });
-
   App.TestAliases.testAsComputedFilterBy(getController(), 'installedServices', 'content.services', 'isInstalled', true);
 
   App.TestAliases.testAsComputedEqual(getController(), 'isManualKerberos', 'App.router.mainAdminKerberosController.kdc_type', 'none');
@@ -239,91 +209,6 @@ describe('App.WizardStep8Controller', function () {
 
   });
 
-  describe('#createCoreSiteObj', function () {
-
-    beforeEach(function () {
-      var content = Em.Object.create({
-        services: Em.A([
-          Em.Object.create({
-            serviceName: 's1',
-            isSelected: true,
-            isInstalled: false
-          }),
-          Em.Object.create({
-            serviceName: 's2',
-            isSelected: true,
-            isInstalled: false
-          }),
-          Em.Object.create({
-            serviceName: 's3',
-            isSelected: true,
-            isInstalled: false
-          }),
-          Em.Object.create({
-            serviceName: 'GLUSTERFS',
-            isSelected: false,
-            isInstalled: true,
-            configTypesRendered: {hdfs:'tag1'}
-          })
-        ])
-      });
-      var installedServices = content.services.filterProperty('isInstalled', true);
-      var selectedServices = content.services.filterProperty('isSelected', true);
-      installerStep8Controller.set('content', content);
-      installerStep8Controller.set('installedServices', installedServices);
-      installerStep8Controller.set('selectedServices', selectedServices);
-      installerStep8Controller.set('configs', Em.A([
-        Em.Object.create({
-          name: 'fs_glusterfs_default_name',
-          filename: 'core-site.xml',
-          value: 'value',
-          overrides: Em.A([
-            Em.Object.create({
-              value: '4',
-              hosts: Em.A(['h1','h2'])
-            })
-          ])
-        }),
-        Em.Object.create({
-          name: 'fs.defaultFS',
-          filename: 'core-site.xml',
-          value: 'value',
-          overrides: Em.A([
-            Em.Object.create({
-              value: '4',
-              hosts: Em.A(['h1','h2'])
-            })
-          ])
-        }),
-        Em.Object.create({
-          name: 'glusterfs_defaultFS_name',
-          filename: 'core-site.xml',
-          value: 'value',
-          overrides: Em.A([
-            Em.Object.create({
-              value: '4',
-              hosts: Em.A(['h1','h2'])
-            })
-          ])
-        })
-      ]));
-    });
-
-    it('should return config', function () {
-      var expected = {
-        "type": "core-site",
-        "tag": "version1",
-        "properties": {
-          "fs_glusterfs_default_name": "value",
-          "fs.defaultFS": "value",
-          "glusterfs_defaultFS_name": "value"
-        }
-      };
-
-      expect(installerStep8Controller.createCoreSiteObj()).to.eql(expected);
-    });
-  });
-
   describe('#createConfigurationGroups', function () {
     var content;
     beforeEach(function() {
@@ -337,8 +222,7 @@ describe('App.WizardStep8Controller', function () {
         },
         getConfigAttributes: function() {
           return Em.A(['atr']);
-        },
-        createSiteObj: App.MainServiceInfoConfigsController.create({}).createSiteObj.bind(App.MainServiceInfoConfigsController.create({}))
+        }
       }));
       content = Em.Object.create({
         configGroups: Em.A([
@@ -420,22 +304,6 @@ describe('App.WizardStep8Controller', function () {
       ];
       var result = JSON.parse(JSON.stringify(content.configGroups[1].properties));
       expect(result).to.eql(expected);
-    });
-  });
-
-  describe('#isConfigsChanged', function () {
-    it('should return true if config changed', function () {
-      var properties = Em.Object.create({
-        property:true,
-        property1: Em.Object.create({
-          hasInitialValue: false,
-          isNotDefaultValue: false
-        })
-      });
-      var _configs = Em.A([Em.Object.create({
-        name: 'property'
-      })]);
-      expect(installerStep8Controller.isConfigsChanged(properties, _configs)).to.be.true;
     });
   });
 
@@ -1195,42 +1063,6 @@ describe('App.WizardStep8Controller', function () {
       expect(installerStep8Controller.get('clusterDeleteErrorViews')).to.eql([]);
     });
 
-  });
-
-  describe('#createStormSiteObj', function() {
-    it('should replace quote \'"\' to "\'" for some properties', function() {
-      var _configs = [
-          {filename: 'storm-site.xml', value: ["a", "b"], name: 'storm.zookeeper.servers'}
-        ],
-        expected = {
-          type: 'storm-site',
-          tag: 'version1',
-          properties: {
-            'storm.zookeeper.servers': '[\'a\',\'b\']'
-          }
-        };
-      installerStep8Controller.reopen({configs: _configs});
-      expect(installerStep8Controller.createStormSiteObj('version1')).to.eql(expected);
-    });
-
-    it('should not escape special characters', function() {
-      var _configs = [
-          {filename: 'storm-site.xml', value: "abc\n\t", name: 'nimbus.childopts'},
-          {filename: 'storm-site.xml', value: "a\nb", name: 'supervisor.childopts'},
-          {filename: 'storm-site.xml', value: "a\t\tb", name: 'worker.childopts'}
-        ],
-        expected = {
-          type: 'storm-site',
-          tag: 'version1',
-          properties: {
-            'nimbus.childopts': 'abc\n\t',
-            'supervisor.childopts': 'a\nb',
-            'worker.childopts': 'a\t\tb'
-          }
-        };
-      installerStep8Controller.reopen({configs: _configs});
-      expect(installerStep8Controller.createStormSiteObj('version1')).to.eql(expected);
-    });
   });
 
   describe('#ajaxQueueFinished', function() {
@@ -2068,20 +1900,20 @@ describe('App.WizardStep8Controller', function () {
 
   describe('#startDeploy', function () {
 
-    var stubbedNames = ['createCluster', 'createSelectedServices', 'updateConfigurations', 'createConfigurations',
+    var stubbedNames = ['createCluster', 'createSelectedServices', 'createConfigurations',
         'applyConfigurationsToCluster', 'createComponents', 'registerHostsToCluster', 'createConfigurationGroups',
         'createMasterHostComponents', 'createSlaveAndClientsHostComponents', 'createAdditionalClientComponents',
         'createAdditionalHostComponents'],
       cases = [
         {
           controllerName: 'installerController',
-          notExecuted: ['createAdditionalClientComponents', 'updateConfigurations'],
+          notExecuted: ['createAdditionalClientComponents'],
           fileNamesToUpdate: [],
           title: 'Installer, no configs to update'
         },
         {
           controllerName: 'addHostController',
-          notExecuted: ['updateConfigurations', 'createConfigurations', 'applyConfigurationsToCluster', 'createAdditionalClientComponents'],
+          notExecuted: ['createConfigurations', 'applyConfigurationsToCluster', 'createAdditionalClientComponents'],
           title: 'Add Host Wizard'
         },
         {
