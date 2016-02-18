@@ -16,21 +16,23 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.audit.request;
+package org.apache.ambari.server.audit.request.event;
 
-public class DeleteGroupRequestAuditEvent extends RequestAuditEvent {
+import org.apache.ambari.server.audit.request.RequestAuditEvent;
 
-  public static class DeleteGroupRequestAuditEventBuilder extends RequestAuditEventBuilder<DeleteGroupRequestAuditEvent, DeleteGroupRequestAuditEventBuilder> {
+public class UserPasswordChangeRequestAuditEvent extends RequestAuditEvent {
 
-    private String groupName;
+  public static class UserPasswordChangeRequestAuditEventBuilder extends RequestAuditEventBuilder<UserPasswordChangeRequestAuditEvent, UserPasswordChangeRequestAuditEventBuilder> {
 
-    public DeleteGroupRequestAuditEventBuilder() {
-      super.withOperation("Group delete");
+    private String username;
+
+    public UserPasswordChangeRequestAuditEventBuilder() {
+      super.withOperation("Password change");
     }
 
     @Override
-    protected DeleteGroupRequestAuditEvent newAuditEvent() {
-      return new DeleteGroupRequestAuditEvent(this);
+    protected UserPasswordChangeRequestAuditEvent newAuditEvent() {
+      return new UserPasswordChangeRequestAuditEvent(this);
     }
 
     /**
@@ -42,34 +44,34 @@ public class DeleteGroupRequestAuditEvent extends RequestAuditEvent {
       super.buildAuditMessage(builder);
 
       builder
-        .append(", Group(")
-        .append(groupName)
+        .append(", Affected username(")
+        .append(username)
         .append(")");
     }
 
-    public DeleteGroupRequestAuditEventBuilder withGroupName(String groupName) {
-      this.groupName = groupName;
+
+    public UserPasswordChangeRequestAuditEventBuilder withAffectedUsername(String username) {
+      this.username = username;
       return this;
     }
-
   }
 
-  protected DeleteGroupRequestAuditEvent() {
+  protected UserPasswordChangeRequestAuditEvent() {
   }
 
   /**
    * {@inheritDoc}
    */
-  protected DeleteGroupRequestAuditEvent(DeleteGroupRequestAuditEventBuilder builder) {
+  protected UserPasswordChangeRequestAuditEvent(UserPasswordChangeRequestAuditEventBuilder builder) {
     super(builder);
   }
 
   /**
-   * Returns an builder for {@link DeleteGroupRequestAuditEvent}
+   * Returns an builder for {@link UserPasswordChangeRequestAuditEvent}
    * @return a builder instance
    */
-  public static DeleteGroupRequestAuditEventBuilder builder() {
-    return new DeleteGroupRequestAuditEventBuilder();
+  public static UserPasswordChangeRequestAuditEventBuilder builder() {
+    return new UserPasswordChangeRequestAuditEventBuilder();
   }
 
 }

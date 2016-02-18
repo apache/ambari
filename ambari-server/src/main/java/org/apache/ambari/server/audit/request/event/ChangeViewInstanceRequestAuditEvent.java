@@ -16,15 +16,13 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.audit.request;
+package org.apache.ambari.server.audit.request.event;
 
-import java.util.List;
+import org.apache.ambari.server.audit.request.RequestAuditEvent;
 
-import org.apache.commons.lang.StringUtils;
+public class ChangeViewInstanceRequestAuditEvent extends RequestAuditEvent {
 
-public class AddViewInstanceRequestAuditEvent extends RequestAuditEvent {
-
-  public static class AddViewInstanceRequestAuditEventBuilder extends RequestAuditEventBuilder<AddViewInstanceRequestAuditEvent, AddViewInstanceRequestAuditEventBuilder> {
+  public static class ChangeViewInstanceRequestAuditEventBuilder extends RequestAuditEventBuilder<ChangeViewInstanceRequestAuditEvent, ChangeViewInstanceRequestAuditEventBuilder> {
 
     private String description;
 
@@ -36,13 +34,13 @@ public class AddViewInstanceRequestAuditEvent extends RequestAuditEvent {
 
     private String version;
 
-    public AddViewInstanceRequestAuditEventBuilder() {
-      super.withOperation("View addition");
+    public ChangeViewInstanceRequestAuditEventBuilder() {
+      super.withOperation("View change");
     }
 
     @Override
-    protected AddViewInstanceRequestAuditEvent newAuditEvent() {
-      return new AddViewInstanceRequestAuditEvent(this);
+    protected ChangeViewInstanceRequestAuditEvent newAuditEvent() {
+      return new ChangeViewInstanceRequestAuditEvent(this);
     }
 
     /**
@@ -66,48 +64,48 @@ public class AddViewInstanceRequestAuditEvent extends RequestAuditEvent {
         .append(")");
     }
 
-    public AddViewInstanceRequestAuditEventBuilder withDescription(String description) {
+    public ChangeViewInstanceRequestAuditEventBuilder withDescription(String description) {
       this.description = description;
       return this;
     }
 
-    public AddViewInstanceRequestAuditEventBuilder withName(String name) {
+    public ChangeViewInstanceRequestAuditEventBuilder withName(String name) {
       this.name = name;
       return this;
     }
 
-    public AddViewInstanceRequestAuditEventBuilder withType(String type) {
+    public ChangeViewInstanceRequestAuditEventBuilder withType(String type) {
       this.type = type;
       return this;
     }
 
-    public AddViewInstanceRequestAuditEventBuilder withDisplayName(String displayName) {
+    public ChangeViewInstanceRequestAuditEventBuilder withDisplayName(String displayName) {
       this.displayName = displayName;
       return this;
     }
 
-    public AddViewInstanceRequestAuditEventBuilder withVersion(String version) {
+    public ChangeViewInstanceRequestAuditEventBuilder withVersion(String version) {
       this.version = version;
       return this;
     }
   }
 
-  protected AddViewInstanceRequestAuditEvent() {
+  protected ChangeViewInstanceRequestAuditEvent() {
   }
 
   /**
    * {@inheritDoc}
    */
-  protected AddViewInstanceRequestAuditEvent(AddViewInstanceRequestAuditEventBuilder builder) {
+  protected ChangeViewInstanceRequestAuditEvent(ChangeViewInstanceRequestAuditEventBuilder builder) {
     super(builder);
   }
 
   /**
-   * Returns an builder for {@link AddViewInstanceRequestAuditEvent}
+   * Returns an builder for {@link ChangeViewInstanceRequestAuditEvent}
    * @return a builder instance
    */
-  public static AddViewInstanceRequestAuditEventBuilder builder() {
-    return new AddViewInstanceRequestAuditEventBuilder();
+  public static ChangeViewInstanceRequestAuditEventBuilder builder() {
+    return new ChangeViewInstanceRequestAuditEventBuilder();
   }
 
 }

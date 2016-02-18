@@ -27,7 +27,7 @@ import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.audit.AuditEvent;
-import org.apache.ambari.server.audit.request.ConfigurationChangeRequestAuditEvent;
+import org.apache.ambari.server.audit.request.event.ConfigurationChangeRequestAuditEvent;
 import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.joda.time.DateTime;

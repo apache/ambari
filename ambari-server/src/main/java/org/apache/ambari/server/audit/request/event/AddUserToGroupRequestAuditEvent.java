@@ -16,22 +16,24 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.audit.request;
+package org.apache.ambari.server.audit.request.event;
 
-public class RemoveUserFromGroupRequestAuditEvent extends RequestAuditEvent {
+import org.apache.ambari.server.audit.request.RequestAuditEvent;
 
-  public static class AddUserToGroupRequestAuditEventBuilder extends RequestAuditEventBuilder<RemoveUserFromGroupRequestAuditEvent, AddUserToGroupRequestAuditEventBuilder> {
+public class AddUserToGroupRequestAuditEvent extends RequestAuditEvent {
+
+  public static class AddUserToGroupRequestAuditEventBuilder extends RequestAuditEventBuilder<AddUserToGroupRequestAuditEvent, AddUserToGroupRequestAuditEventBuilder> {
 
     private String groupName;
     private String affectedUserName;
 
     public AddUserToGroupRequestAuditEventBuilder() {
-      super.withOperation("User removal from group");
+      super.withOperation("User addition to group");
     }
 
     @Override
-    protected RemoveUserFromGroupRequestAuditEvent newAuditEvent() {
-      return new RemoveUserFromGroupRequestAuditEvent(this);
+    protected AddUserToGroupRequestAuditEvent newAuditEvent() {
+      return new AddUserToGroupRequestAuditEvent(this);
     }
 
     /**
@@ -60,18 +62,18 @@ public class RemoveUserFromGroupRequestAuditEvent extends RequestAuditEvent {
     }
   }
 
-  protected RemoveUserFromGroupRequestAuditEvent() {
+  protected AddUserToGroupRequestAuditEvent() {
   }
 
   /**
    * {@inheritDoc}
    */
-  protected RemoveUserFromGroupRequestAuditEvent(AddUserToGroupRequestAuditEventBuilder builder) {
+  protected AddUserToGroupRequestAuditEvent(AddUserToGroupRequestAuditEventBuilder builder) {
     super(builder);
   }
 
   /**
-   * Returns an builder for {@link RemoveUserFromGroupRequestAuditEvent}
+   * Returns an builder for {@link AddUserToGroupRequestAuditEvent}
    * @return a builder instance
    */
   public static AddUserToGroupRequestAuditEventBuilder builder() {

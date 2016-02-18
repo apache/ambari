@@ -1,7 +1,7 @@
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for changeitional information
+ * distributed with this work for additional information
  * regarding copyright ownership.  The ASF licenses this file
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
@@ -16,11 +16,13 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.audit.request;
+package org.apache.ambari.server.audit.request.event;
 
-public class ChangeViewInstanceRequestAuditEvent extends RequestAuditEvent {
+import org.apache.ambari.server.audit.request.RequestAuditEvent;
 
-  public static class ChangeViewInstanceRequestAuditEventBuilder extends RequestAuditEventBuilder<ChangeViewInstanceRequestAuditEvent, ChangeViewInstanceRequestAuditEventBuilder> {
+public class AddViewInstanceRequestAuditEvent extends RequestAuditEvent {
+
+  public static class AddViewInstanceRequestAuditEventBuilder extends RequestAuditEventBuilder<AddViewInstanceRequestAuditEvent, AddViewInstanceRequestAuditEventBuilder> {
 
     private String description;
 
@@ -32,13 +34,13 @@ public class ChangeViewInstanceRequestAuditEvent extends RequestAuditEvent {
 
     private String version;
 
-    public ChangeViewInstanceRequestAuditEventBuilder() {
-      super.withOperation("View change");
+    public AddViewInstanceRequestAuditEventBuilder() {
+      super.withOperation("View addition");
     }
 
     @Override
-    protected ChangeViewInstanceRequestAuditEvent newAuditEvent() {
-      return new ChangeViewInstanceRequestAuditEvent(this);
+    protected AddViewInstanceRequestAuditEvent newAuditEvent() {
+      return new AddViewInstanceRequestAuditEvent(this);
     }
 
     /**
@@ -62,48 +64,48 @@ public class ChangeViewInstanceRequestAuditEvent extends RequestAuditEvent {
         .append(")");
     }
 
-    public ChangeViewInstanceRequestAuditEventBuilder withDescription(String description) {
+    public AddViewInstanceRequestAuditEventBuilder withDescription(String description) {
       this.description = description;
       return this;
     }
 
-    public ChangeViewInstanceRequestAuditEventBuilder withName(String name) {
+    public AddViewInstanceRequestAuditEventBuilder withName(String name) {
       this.name = name;
       return this;
     }
 
-    public ChangeViewInstanceRequestAuditEventBuilder withType(String type) {
+    public AddViewInstanceRequestAuditEventBuilder withType(String type) {
       this.type = type;
       return this;
     }
 
-    public ChangeViewInstanceRequestAuditEventBuilder withDisplayName(String displayName) {
+    public AddViewInstanceRequestAuditEventBuilder withDisplayName(String displayName) {
       this.displayName = displayName;
       return this;
     }
 
-    public ChangeViewInstanceRequestAuditEventBuilder withVersion(String version) {
+    public AddViewInstanceRequestAuditEventBuilder withVersion(String version) {
       this.version = version;
       return this;
     }
   }
 
-  protected ChangeViewInstanceRequestAuditEvent() {
+  protected AddViewInstanceRequestAuditEvent() {
   }
 
   /**
    * {@inheritDoc}
    */
-  protected ChangeViewInstanceRequestAuditEvent(ChangeViewInstanceRequestAuditEventBuilder builder) {
+  protected AddViewInstanceRequestAuditEvent(AddViewInstanceRequestAuditEventBuilder builder) {
     super(builder);
   }
 
   /**
-   * Returns an builder for {@link ChangeViewInstanceRequestAuditEvent}
+   * Returns an builder for {@link AddViewInstanceRequestAuditEvent}
    * @return a builder instance
    */
-  public static ChangeViewInstanceRequestAuditEventBuilder builder() {
-    return new ChangeViewInstanceRequestAuditEventBuilder();
+  public static AddViewInstanceRequestAuditEventBuilder builder() {
+    return new AddViewInstanceRequestAuditEventBuilder();
   }
 
 }

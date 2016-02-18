@@ -16,21 +16,23 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.audit.request;
+package org.apache.ambari.server.audit.request.event;
 
-public class DeleteBlueprintRequestAuditEvent extends RequestAuditEvent {
+import org.apache.ambari.server.audit.request.RequestAuditEvent;
 
-  public static class DeleteBlueprintRequestAuditEventBuilder extends RequestAuditEventBuilder<DeleteBlueprintRequestAuditEvent, DeleteBlueprintRequestAuditEventBuilder> {
+public class DeleteGroupRequestAuditEvent extends RequestAuditEvent {
 
-    private String blueprintName;
+  public static class DeleteGroupRequestAuditEventBuilder extends RequestAuditEventBuilder<DeleteGroupRequestAuditEvent, DeleteGroupRequestAuditEventBuilder> {
 
-    public DeleteBlueprintRequestAuditEventBuilder() {
-      super.withOperation("Delete blueprint");
+    private String groupName;
+
+    public DeleteGroupRequestAuditEventBuilder() {
+      super.withOperation("Group delete");
     }
 
     @Override
-    protected DeleteBlueprintRequestAuditEvent newAuditEvent() {
-      return new DeleteBlueprintRequestAuditEvent(this);
+    protected DeleteGroupRequestAuditEvent newAuditEvent() {
+      return new DeleteGroupRequestAuditEvent(this);
     }
 
     /**
@@ -42,34 +44,34 @@ public class DeleteBlueprintRequestAuditEvent extends RequestAuditEvent {
       super.buildAuditMessage(builder);
 
       builder
-        .append(", Blueprint name(")
-        .append(blueprintName)
+        .append(", Group(")
+        .append(groupName)
         .append(")");
     }
 
-    public DeleteBlueprintRequestAuditEventBuilder withBlueprintName(String blueprintName) {
-      this.blueprintName = blueprintName;
+    public DeleteGroupRequestAuditEventBuilder withGroupName(String groupName) {
+      this.groupName = groupName;
       return this;
     }
 
   }
 
-  protected DeleteBlueprintRequestAuditEvent() {
+  protected DeleteGroupRequestAuditEvent() {
   }
 
   /**
    * {@inheritDoc}
    */
-  protected DeleteBlueprintRequestAuditEvent(DeleteBlueprintRequestAuditEventBuilder builder) {
+  protected DeleteGroupRequestAuditEvent(DeleteGroupRequestAuditEventBuilder builder) {
     super(builder);
   }
 
   /**
-   * Returns an builder for {@link DeleteBlueprintRequestAuditEvent}
+   * Returns an builder for {@link DeleteGroupRequestAuditEvent}
    * @return a builder instance
    */
-  public static DeleteBlueprintRequestAuditEventBuilder builder() {
-    return new DeleteBlueprintRequestAuditEventBuilder();
+  public static DeleteGroupRequestAuditEventBuilder builder() {
+    return new DeleteGroupRequestAuditEventBuilder();
   }
 
 }

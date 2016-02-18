@@ -16,21 +16,25 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.audit.request;
+package org.apache.ambari.server.audit.request.event;
 
-public class DeleteUserRequestAuditEvent extends RequestAuditEvent {
+import org.apache.ambari.server.audit.request.RequestAuditEvent;
 
-  public static class DeleteUserRequestAuditEventBuilder extends RequestAuditEventBuilder<DeleteUserRequestAuditEvent, DeleteUserRequestAuditEventBuilder> {
+public class AdminUserRequestAuditEvent extends RequestAuditEvent {
+
+  public static class AdminUserRequestAuditEventBuilder extends RequestAuditEventBuilder<AdminUserRequestAuditEvent, AdminUserRequestAuditEventBuilder> {
+
+    private boolean admin;
 
     private String username;
 
-    public DeleteUserRequestAuditEventBuilder() {
-      super.withOperation("User delete");
+    public AdminUserRequestAuditEventBuilder() {
+      super.withOperation("Set user admin");
     }
 
     @Override
-    protected DeleteUserRequestAuditEvent newAuditEvent() {
-      return new DeleteUserRequestAuditEvent(this);
+    protected AdminUserRequestAuditEvent newAuditEvent() {
+      return new AdminUserRequestAuditEvent(this);
     }
 
     /**
@@ -42,34 +46,42 @@ public class DeleteUserRequestAuditEvent extends RequestAuditEvent {
       super.buildAuditMessage(builder);
 
       builder
-        .append(", Deleted Username(")
+        .append(", Affeted username(")
         .append(username)
+        .append("), ")
+        .append("Administrator(")
+        .append(admin ? "yes" : "no")
         .append(")");
     }
 
-    public DeleteUserRequestAuditEventBuilder withDeletedUsername(String username) {
+    public AdminUserRequestAuditEventBuilder withAdmin(boolean admin) {
+      this.admin = admin;
+      return this;
+    }
+
+    public AdminUserRequestAuditEventBuilder withAffectedUsername(String username) {
       this.username = username;
       return this;
     }
 
   }
 
-  protected DeleteUserRequestAuditEvent() {
+  protected AdminUserRequestAuditEvent() {
   }
 
   /**
    * {@inheritDoc}
    */
-  protected DeleteUserRequestAuditEvent(DeleteUserRequestAuditEventBuilder builder) {
+  protected AdminUserRequestAuditEvent(AdminUserRequestAuditEventBuilder builder) {
     super(builder);
   }
 
   /**
-   * Returns an builder for {@link DeleteUserRequestAuditEvent}
+   * Returns an builder for {@link AdminUserRequestAuditEvent}
    * @return a builder instance
    */
-  public static DeleteUserRequestAuditEventBuilder builder() {
-    return new DeleteUserRequestAuditEventBuilder();
+  public static AdminUserRequestAuditEventBuilder builder() {
+    return new AdminUserRequestAuditEventBuilder();
   }
 
 }

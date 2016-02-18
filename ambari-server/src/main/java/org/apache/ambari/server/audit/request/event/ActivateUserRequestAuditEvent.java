@@ -16,21 +16,25 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.audit.request;
+package org.apache.ambari.server.audit.request.event;
 
-public class UserPasswordChangeRequestAuditEvent extends RequestAuditEvent {
+import org.apache.ambari.server.audit.request.RequestAuditEvent;
 
-  public static class UserPasswordChangeRequestAuditEventBuilder extends RequestAuditEventBuilder<UserPasswordChangeRequestAuditEvent, UserPasswordChangeRequestAuditEventBuilder> {
+public class ActivateUserRequestAuditEvent extends RequestAuditEvent {
+
+  public static class ActivateUserRequestAuditEventBuilder extends RequestAuditEventBuilder<ActivateUserRequestAuditEvent, ActivateUserRequestAuditEventBuilder> {
+
+    private boolean active;
 
     private String username;
 
-    public UserPasswordChangeRequestAuditEventBuilder() {
-      super.withOperation("Password change");
+    public ActivateUserRequestAuditEventBuilder() {
+      super.withOperation("Set user activate");
     }
 
     @Override
-    protected UserPasswordChangeRequestAuditEvent newAuditEvent() {
-      return new UserPasswordChangeRequestAuditEvent(this);
+    protected ActivateUserRequestAuditEvent newAuditEvent() {
+      return new ActivateUserRequestAuditEvent(this);
     }
 
     /**
@@ -44,32 +48,40 @@ public class UserPasswordChangeRequestAuditEvent extends RequestAuditEvent {
       builder
         .append(", Affected username(")
         .append(username)
+        .append("), ")
+        .append("Active(")
+        .append(active ? "yes" : "no")
         .append(")");
     }
 
+    public ActivateUserRequestAuditEventBuilder withActive(boolean active) {
+      this.active = active;
+      return this;
+    }
 
-    public UserPasswordChangeRequestAuditEventBuilder withAffectedUsername(String username) {
+    public ActivateUserRequestAuditEventBuilder withAffectedUsername(String username) {
       this.username = username;
       return this;
     }
+
   }
 
-  protected UserPasswordChangeRequestAuditEvent() {
+  protected ActivateUserRequestAuditEvent() {
   }
 
   /**
    * {@inheritDoc}
    */
-  protected UserPasswordChangeRequestAuditEvent(UserPasswordChangeRequestAuditEventBuilder builder) {
+  protected ActivateUserRequestAuditEvent(ActivateUserRequestAuditEventBuilder builder) {
     super(builder);
   }
 
   /**
-   * Returns an builder for {@link UserPasswordChangeRequestAuditEvent}
+   * Returns an builder for {@link ActivateUserRequestAuditEvent}
    * @return a builder instance
    */
-  public static UserPasswordChangeRequestAuditEventBuilder builder() {
-    return new UserPasswordChangeRequestAuditEventBuilder();
+  public static ActivateUserRequestAuditEventBuilder builder() {
+    return new ActivateUserRequestAuditEventBuilder();
   }
 
 }

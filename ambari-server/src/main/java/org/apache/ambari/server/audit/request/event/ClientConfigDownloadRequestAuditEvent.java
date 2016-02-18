@@ -16,7 +16,9 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.audit.request;
+package org.apache.ambari.server.audit.request.event;
+
+import org.apache.ambari.server.audit.request.RequestAuditEvent;
 
 public class ClientConfigDownloadRequestAuditEvent extends RequestAuditEvent {
 

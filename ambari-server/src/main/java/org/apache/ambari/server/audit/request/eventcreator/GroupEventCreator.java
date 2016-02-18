@@ -20,21 +20,15 @@ package org.apache.ambari.server.audit.request.eventcreator;
 
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.audit.AuditEvent;
-import org.apache.ambari.server.audit.request.ActivateUserRequestAuditEvent;
-import org.apache.ambari.server.audit.request.AdminUserRequestAuditEvent;
-import org.apache.ambari.server.audit.request.CreateGroupRequestAuditEvent;
-import org.apache.ambari.server.audit.request.CreateUserRequestAuditEvent;
-import org.apache.ambari.server.audit.request.DeleteGroupRequestAuditEvent;
-import org.apache.ambari.server.audit.request.DeleteUserRequestAuditEvent;
+import org.apache.ambari.server.audit.request.event.CreateGroupRequestAuditEvent;
+import org.apache.ambari.server.audit.request.event.DeleteGroupRequestAuditEvent;
 import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
-import org.apache.ambari.server.audit.request.UserPasswordChangeRequestAuditEvent;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.joda.time.DateTime;

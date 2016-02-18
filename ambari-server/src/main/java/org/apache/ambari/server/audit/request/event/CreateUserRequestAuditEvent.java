@@ -16,23 +16,27 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.audit.request;
+package org.apache.ambari.server.audit.request.event;
 
-public class AdminUserRequestAuditEvent extends RequestAuditEvent {
+import org.apache.ambari.server.audit.request.RequestAuditEvent;
 
-  public static class AdminUserRequestAuditEventBuilder extends RequestAuditEventBuilder<AdminUserRequestAuditEvent, AdminUserRequestAuditEventBuilder> {
+public class CreateUserRequestAuditEvent extends RequestAuditEvent {
+
+  public static class CreateUserRequestAuditEventBuilder extends RequestAuditEventBuilder<CreateUserRequestAuditEvent, CreateUserRequestAuditEventBuilder> {
 
     private boolean admin;
 
+    private boolean active;
+
     private String username;
 
-    public AdminUserRequestAuditEventBuilder() {
-      super.withOperation("Set user admin");
+    public CreateUserRequestAuditEventBuilder() {
+      super.withOperation("User create");
     }
 
     @Override
-    protected AdminUserRequestAuditEvent newAuditEvent() {
-      return new AdminUserRequestAuditEvent(this);
+    protected CreateUserRequestAuditEvent newAuditEvent() {
+      return new CreateUserRequestAuditEvent(this);
     }
 
     /**
@@ -44,42 +48,49 @@ public class AdminUserRequestAuditEvent extends RequestAuditEvent {
       super.buildAuditMessage(builder);
 
       builder
-        .append(", Affeted username(")
+        .append(", Created Username(")
         .append(username)
+        .append("), Active(")
+        .append(active ? "yes" : "no")
         .append("), ")
         .append("Administrator(")
         .append(admin ? "yes" : "no")
         .append(")");
     }
 
-    public AdminUserRequestAuditEventBuilder withAdmin(boolean admin) {
+    public CreateUserRequestAuditEventBuilder withAdmin(boolean admin) {
       this.admin = admin;
       return this;
     }
 
-    public AdminUserRequestAuditEventBuilder withAffectedUsername(String username) {
+    public CreateUserRequestAuditEventBuilder withActive(boolean active) {
+      this.active = active;
+      return this;
+    }
+
+    public CreateUserRequestAuditEventBuilder withCreatedUsername(String username) {
       this.username = username;
       return this;
     }
 
   }
 
-  protected AdminUserRequestAuditEvent() {
+  protected CreateUserRequestAuditEvent() {
   }
 
   /**
    * {@inheritDoc}
    */
-  protected AdminUserRequestAuditEvent(AdminUserRequestAuditEventBuilder builder) {
+  protected CreateUserRequestAuditEvent(CreateUserRequestAuditEventBuilder builder) {
     super(builder);
   }
 
   /**
-   * Returns an builder for {@link AdminUserRequestAuditEvent}
+   * Returns an builder for {@link CreateUserRequestAuditEvent}
    * @return a builder instance
    */
-  public static AdminUserRequestAuditEventBuilder builder() {
-    return new AdminUserRequestAuditEventBuilder();
+  public static CreateUserRequestAuditEventBuilder builder() {
+    return new CreateUserRequestAuditEventBuilder();
   }
 
 }

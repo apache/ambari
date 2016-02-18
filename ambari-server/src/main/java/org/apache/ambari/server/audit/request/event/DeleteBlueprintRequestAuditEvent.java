@@ -16,21 +16,23 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.audit.request;
+package org.apache.ambari.server.audit.request.event;
 
-public class AddBlueprintRequestAuditEvent extends RequestAuditEvent {
+import org.apache.ambari.server.audit.request.RequestAuditEvent;
 
-  public static class AddBlueprintRequestAuditEventBuilder extends RequestAuditEventBuilder<AddBlueprintRequestAuditEvent, AddBlueprintRequestAuditEventBuilder> {
+public class DeleteBlueprintRequestAuditEvent extends RequestAuditEvent {
+
+  public static class DeleteBlueprintRequestAuditEventBuilder extends RequestAuditEventBuilder<DeleteBlueprintRequestAuditEvent, DeleteBlueprintRequestAuditEventBuilder> {
 
     private String blueprintName;
 
-    public AddBlueprintRequestAuditEventBuilder() {
-      super.withOperation("Upload blueprint");
+    public DeleteBlueprintRequestAuditEventBuilder() {
+      super.withOperation("Delete blueprint");
     }
 
     @Override
-    protected AddBlueprintRequestAuditEvent newAuditEvent() {
-      return new AddBlueprintRequestAuditEvent(this);
+    protected DeleteBlueprintRequestAuditEvent newAuditEvent() {
+      return new DeleteBlueprintRequestAuditEvent(this);
     }
 
     /**
@@ -47,29 +49,29 @@ public class AddBlueprintRequestAuditEvent extends RequestAuditEvent {
         .append(")");
     }
 
-    public AddBlueprintRequestAuditEventBuilder withBlueprintName(String blueprintName) {
+    public DeleteBlueprintRequestAuditEventBuilder withBlueprintName(String blueprintName) {
       this.blueprintName = blueprintName;
       return this;
     }
 
   }
 
-  protected AddBlueprintRequestAuditEvent() {
+  protected DeleteBlueprintRequestAuditEvent() {
   }
 
   /**
    * {@inheritDoc}
    */
-  protected AddBlueprintRequestAuditEvent(AddBlueprintRequestAuditEventBuilder builder) {
+  protected DeleteBlueprintRequestAuditEvent(DeleteBlueprintRequestAuditEventBuilder builder) {
     super(builder);
   }
 
   /**
-   * Returns an builder for {@link AddBlueprintRequestAuditEvent}
+   * Returns an builder for {@link DeleteBlueprintRequestAuditEvent}
    * @return a builder instance
    */
-  public static AddBlueprintRequestAuditEventBuilder builder() {
-    return new AddBlueprintRequestAuditEventBuilder();
+  public static DeleteBlueprintRequestAuditEventBuilder builder() {
+    return new DeleteBlueprintRequestAuditEventBuilder();
   }
 
 }

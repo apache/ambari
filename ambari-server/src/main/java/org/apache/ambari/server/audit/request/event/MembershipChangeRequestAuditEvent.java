@@ -16,10 +16,11 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.audit.request;
+package org.apache.ambari.server.audit.request.event;
 
 import java.util.List;
 
+import org.apache.ambari.server.audit.request.RequestAuditEvent;
 import org.apache.commons.lang.StringUtils;
 
 public class MembershipChangeRequestAuditEvent extends RequestAuditEvent {

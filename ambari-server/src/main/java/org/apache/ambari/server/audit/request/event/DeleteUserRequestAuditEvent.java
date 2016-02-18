@@ -16,19 +16,23 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.audit.request;
+package org.apache.ambari.server.audit.request.event;
 
-public class BlueprintExportRequestAuditEvent extends RequestAuditEvent {
+import org.apache.ambari.server.audit.request.RequestAuditEvent;
 
-  public static class BlueprintExportRequestAuditEventBuilder extends RequestAuditEventBuilder<BlueprintExportRequestAuditEvent, BlueprintExportRequestAuditEventBuilder> {
+public class DeleteUserRequestAuditEvent extends RequestAuditEvent {
 
-    public BlueprintExportRequestAuditEventBuilder() {
-      super.withOperation("Blueprint export");
+  public static class DeleteUserRequestAuditEventBuilder extends RequestAuditEventBuilder<DeleteUserRequestAuditEvent, DeleteUserRequestAuditEventBuilder> {
+
+    private String username;
+
+    public DeleteUserRequestAuditEventBuilder() {
+      super.withOperation("User delete");
     }
 
     @Override
-    protected BlueprintExportRequestAuditEvent newAuditEvent() {
-      return new BlueprintExportRequestAuditEvent(this);
+    protected DeleteUserRequestAuditEvent newAuditEvent() {
+      return new DeleteUserRequestAuditEvent(this);
     }
 
     /**
@@ -38,25 +42,36 @@ public class BlueprintExportRequestAuditEvent extends RequestAuditEvent {
     @Override
     protected void buildAuditMessage(StringBuilder builder) {
       super.buildAuditMessage(builder);
+
+      builder
+        .append(", Deleted Username(")
+        .append(username)
+        .append(")");
     }
+
+    public DeleteUserRequestAuditEventBuilder withDeletedUsername(String username) {
+      this.username = username;
+      return this;
+    }
+
   }
 
-  protected BlueprintExportRequestAuditEvent() {
+  protected DeleteUserRequestAuditEvent() {
   }
 
   /**
    * {@inheritDoc}
    */
-  protected BlueprintExportRequestAuditEvent(BlueprintExportRequestAuditEventBuilder builder) {
+  protected DeleteUserRequestAuditEvent(DeleteUserRequestAuditEventBuilder builder) {
     super(builder);
   }
 
   /**
-   * Returns an builder for {@link BlueprintExportRequestAuditEvent}
+   * Returns an builder for {@link DeleteUserRequestAuditEvent}
    * @return a builder instance
    */
-  public static BlueprintExportRequestAuditEventBuilder builder() {
-    return new BlueprintExportRequestAuditEventBuilder();
+  public static DeleteUserRequestAuditEventBuilder builder() {
+    return new DeleteUserRequestAuditEventBuilder();
   }
 
 }

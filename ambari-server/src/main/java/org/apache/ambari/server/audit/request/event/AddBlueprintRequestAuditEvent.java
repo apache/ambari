@@ -16,21 +16,23 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.audit.request;
+package org.apache.ambari.server.audit.request.event;
 
-public class CreateGroupRequestAuditEvent extends RequestAuditEvent {
+import org.apache.ambari.server.audit.request.RequestAuditEvent;
 
-  public static class CreateGroupRequestAuditEventBuilder extends RequestAuditEventBuilder<CreateGroupRequestAuditEvent, CreateGroupRequestAuditEventBuilder> {
+public class AddBlueprintRequestAuditEvent extends RequestAuditEvent {
 
-    private String groupName;
+  public static class AddBlueprintRequestAuditEventBuilder extends RequestAuditEventBuilder<AddBlueprintRequestAuditEvent, AddBlueprintRequestAuditEventBuilder> {
 
-    public CreateGroupRequestAuditEventBuilder() {
-      super.withOperation("Group create");
+    private String blueprintName;
+
+    public AddBlueprintRequestAuditEventBuilder() {
+      super.withOperation("Upload blueprint");
     }
 
     @Override
-    protected CreateGroupRequestAuditEvent newAuditEvent() {
-      return new CreateGroupRequestAuditEvent(this);
+    protected AddBlueprintRequestAuditEvent newAuditEvent() {
+      return new AddBlueprintRequestAuditEvent(this);
     }
 
     /**
@@ -42,34 +44,34 @@ public class CreateGroupRequestAuditEvent extends RequestAuditEvent {
       super.buildAuditMessage(builder);
 
       builder
-        .append(", Group(")
-        .append(groupName)
+        .append(", Blueprint name(")
+        .append(blueprintName)
         .append(")");
     }
 
-    public CreateGroupRequestAuditEventBuilder withGroupName(String groupName) {
-      this.groupName = groupName;
+    public AddBlueprintRequestAuditEventBuilder withBlueprintName(String blueprintName) {
+      this.blueprintName = blueprintName;
       return this;
     }
 
   }
 
-  protected CreateGroupRequestAuditEvent() {
+  protected AddBlueprintRequestAuditEvent() {
   }
 
   /**
    * {@inheritDoc}
    */
-  protected CreateGroupRequestAuditEvent(CreateGroupRequestAuditEventBuilder builder) {
+  protected AddBlueprintRequestAuditEvent(AddBlueprintRequestAuditEventBuilder builder) {
     super(builder);
   }
 
   /**
-   * Returns an builder for {@link CreateGroupRequestAuditEvent}
+   * Returns an builder for {@link AddBlueprintRequestAuditEvent}
    * @return a builder instance
    */
-  public static CreateGroupRequestAuditEventBuilder builder() {
-    return new CreateGroupRequestAuditEventBuilder();
+  public static AddBlueprintRequestAuditEventBuilder builder() {
+    return new AddBlueprintRequestAuditEventBuilder();
   }
 
 }

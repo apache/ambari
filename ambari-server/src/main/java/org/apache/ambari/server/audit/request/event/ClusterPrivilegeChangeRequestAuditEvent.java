@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.audit.request;
+package org.apache.ambari.server.audit.request.event;
 
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -24,29 +24,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.audit.request.RequestAuditEvent;
 import org.apache.commons.lang.StringUtils;
 
-public class ViewPrivilegeChangeRequestAuditEvent extends RequestAuditEvent {
+public class ClusterPrivilegeChangeRequestAuditEvent extends RequestAuditEvent {
 
-  public static class ViewPrivilegeChangeRequestAuditEventBuilder extends RequestAuditEventBuilder<ViewPrivilegeChangeRequestAuditEvent, ViewPrivilegeChangeRequestAuditEventBuilder> {
+  public static class ClusterPrivilegeChangeRequestAuditEventBuilder extends RequestAuditEventBuilder<ClusterPrivilegeChangeRequestAuditEvent, ClusterPrivilegeChangeRequestAuditEventBuilder> {
 
     private Map<String, List<String>> users;
     private Map<String, List<String>> groups;
 
-    private String name;
-
-    private String type;
-
-    private String version;
-
-
-    public ViewPrivilegeChangeRequestAuditEventBuilder() {
-      super.withOperation("View permission change");
+    public ClusterPrivilegeChangeRequestAuditEventBuilder() {
+      super.withOperation("Role change");
     }
 
     @Override
-    protected ViewPrivilegeChangeRequestAuditEvent newAuditEvent() {
-      return new ViewPrivilegeChangeRequestAuditEvent(this);
+    protected ClusterPrivilegeChangeRequestAuditEvent newAuditEvent() {
+      return new ClusterPrivilegeChangeRequestAuditEvent(this);
     }
 
     /**
@@ -57,19 +51,11 @@ public class ViewPrivilegeChangeRequestAuditEvent extends RequestAuditEvent {
     protected void buildAuditMessage(StringBuilder builder) {
       super.buildAuditMessage(builder);
 
-      builder.append(", Type(")
-        .append(type)
-        .append("), Version(")
-        .append(version)
-        .append("), Name(")
-        .append(name)
-        .append(")");
-
       Set<String> roleSet = new HashSet<String>();
       roleSet.addAll(users.keySet());
       roleSet.addAll(groups.keySet());
 
-      builder.append(", Permissions(");
+      builder.append(", Roles(");
       if(!users.isEmpty() || !groups.isEmpty()) {
         builder.append(System.lineSeparator());
       }
@@ -91,48 +77,33 @@ public class ViewPrivilegeChangeRequestAuditEvent extends RequestAuditEvent {
       builder.append(")");
     }
 
-    public ViewPrivilegeChangeRequestAuditEventBuilder withName(String name) {
-      this.name = name;
-      return this;
-    }
-
-    public ViewPrivilegeChangeRequestAuditEventBuilder withType(String type) {
-      this.type = type;
-      return this;
-    }
-
-    public ViewPrivilegeChangeRequestAuditEventBuilder withVersion(String version) {
-      this.version = version;
-      return this;
-    }
-
-    public ViewPrivilegeChangeRequestAuditEventBuilder withUsers(Map<String, List<String>> users) {
+    public ClusterPrivilegeChangeRequestAuditEventBuilder withUsers(Map<String, List<String>> users) {
       this.users = users;
       return this;
     }
 
-    public ViewPrivilegeChangeRequestAuditEventBuilder withGroups(Map<String, List<String>> groups) {
+    public ClusterPrivilegeChangeRequestAuditEventBuilder withGroups(Map<String, List<String>> groups) {
       this.groups = groups;
       return this;
     }
   }
 
-  protected ViewPrivilegeChangeRequestAuditEvent() {
+  protected ClusterPrivilegeChangeRequestAuditEvent() {
   }
 
   /**
    * {@inheritDoc}
    */
-  protected ViewPrivilegeChangeRequestAuditEvent(ViewPrivilegeChangeRequestAuditEventBuilder builder) {
+  protected ClusterPrivilegeChangeRequestAuditEvent(ClusterPrivilegeChangeRequestAuditEventBuilder builder) {
     super(builder);
   }
 
   /**
-   * Returns an builder for {@link ViewPrivilegeChangeRequestAuditEvent}
+   * Returns an builder for {@link ClusterPrivilegeChangeRequestAuditEvent}
    * @return a builder instance
    */
-  public static ViewPrivilegeChangeRequestAuditEventBuilder builder() {
-    return new ViewPrivilegeChangeRequestAuditEventBuilder();
+  public static ClusterPrivilegeChangeRequestAuditEventBuilder builder() {
+    return new ClusterPrivilegeChangeRequestAuditEventBuilder();
   }
 
 }
