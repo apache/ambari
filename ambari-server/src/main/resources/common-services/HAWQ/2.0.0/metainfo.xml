@@ -39,7 +39,7 @@
           </commandScript>
           <customCommands>
             <customCommand>
-              <name>IMMEDIATE_STOP_CLUSTER</name>
+              <name>IMMEDIATE_STOP_HAWQ_SERVICE</name>
               <commandScript>
                 <script>scripts/hawqmaster.py</script>
                 <scriptType>PYTHON</scriptType>
@@ -78,7 +78,15 @@
           </commandScript>
           <customCommands>
             <customCommand>
-              <name>ACTIVATE_STANDBY</name>
+              <name>ACTIVATE_HAWQ_STANDBY</name>
+              <commandScript>
+                <script>scripts/hawqstandby.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>1200</timeout>
+              </commandScript>
+            </customCommand>
+            <customCommand>
+              <name>RESYNC_HAWQ_STANDBY</name>
               <commandScript>
                 <script>scripts/hawqstandby.py</script>
                 <scriptType>PYTHON</scriptType>
@@ -110,7 +118,7 @@
           </commandScript>
           <customCommands>
             <customCommand>
-              <name>IMMEDIATE_STOP</name>
+              <name>IMMEDIATE_STOP_HAWQ_SEGMENT</name>
               <commandScript>
                 <script>scripts/hawqsegment.py</script>
                 <scriptType>PYTHON</scriptType>
@@ -144,7 +152,7 @@
       <configuration-dependencies>
         <config-type>hawq-env</config-type>
         <config-type>hawq-site</config-type>
-        <config-type>gpcheck-env</config-type>
+        <config-type>hawq-check-env</config-type>
         <config-type>hdfs-client</config-type>
         <config-type>yarn-client</config-type>
         <config-type>hawq-limits-env</config-type>

@@ -63,7 +63,7 @@ class TestJobHistoryServer(RMFTestCase):
         principal_name = UnknownConfigurationMock(),
         user = 'hdfs',
         dfs_type = '',
-        action = ['execute'],
+        action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
     )
     self.assertResourceCalled('Execute', '/usr/hdp/current/spark-client/sbin/start-history-server.sh',
@@ -118,6 +118,7 @@ class TestJobHistoryServer(RMFTestCase):
 
     self.assertResourceCalled('HdfsResource', None,
         action=['execute'],
+        hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         default_fs= UnknownConfigurationMock(),
         hadoop_bin_dir='/usr/hdp/current/hadoop-client/bin',
         hadoop_conf_dir='/usr/hdp/current/hadoop-client/conf',
@@ -180,7 +181,7 @@ class TestJobHistoryServer(RMFTestCase):
         owner = 'spark',
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
         type = 'directory',
-        action = ['create_on_execute'],
+        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         mode = 0775,
     )
     self.assertResourceCalled('HdfsResource', None,
@@ -193,7 +194,7 @@ class TestJobHistoryServer(RMFTestCase):
         principal_name = UnknownConfigurationMock(),
         user = 'hdfs',
         dfs_type = '',
-        action = ['execute'],
+        action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
     )
     self.assertResourceCalled('PropertiesFile', '/usr/hdp/current/spark-client/conf/spark-defaults.conf',
@@ -251,7 +252,7 @@ class TestJobHistoryServer(RMFTestCase):
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
         dfs_type = '',
         type = 'directory',
-        action = ['create_on_execute'],
+        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         mode = 0775,
     )
     self.assertResourceCalled('HdfsResource', None,
@@ -264,7 +265,7 @@ class TestJobHistoryServer(RMFTestCase):
         principal_name = UnknownConfigurationMock(),
         user = UnknownConfigurationMock(),
         dfs_type = '',
-        action = ['execute'],
+        action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
     )
     self.assertResourceCalled('PropertiesFile', '/usr/hdp/current/spark-client/conf/spark-defaults.conf',

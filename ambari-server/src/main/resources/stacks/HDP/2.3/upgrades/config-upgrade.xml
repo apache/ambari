@@ -893,9 +893,10 @@
     <service name="KAFKA">
       <component name="KAFKA_BROKER">
         <changes>
-          <definition xsi:type="configure" id="hdp_2_3_0_0_kafka_broker_listeners">
+          <definition xsi:type="configure" id="hdp_2_3_0_0_kafka_broker_deprecate_port">
             <type>kafka-broker</type>
-            <set key="listeners" value="PLAINTEXT://localhost:6667"/>
+            <!-- Deprecate "port" property since "listeners" will be added. -->
+            <transfer operation="delete" delete-key="port"/>
           </definition>
         </changes>
       </component>

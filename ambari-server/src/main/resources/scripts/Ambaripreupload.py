@@ -166,7 +166,8 @@ with Environment() as env:
       hadoop_conf_dir = hadoop_conf_dir,
       principal_name = None,
       hdfs_site = hdfs_site,
-      default_fs = fs_default
+      default_fs = fs_default,
+      hdfs_resource_ignore_file = "/var/lib/ambari-agent/data/.hdfs_resource_ignore",
     )
    
   def _copy_files(source_and_dest_pairs, file_owner, group_owner, kinit_if_needed):
@@ -231,7 +232,40 @@ with Environment() as env:
    
     source_and_dest_pairs = [(component_tar_source_file, destination_file), ]
     return _copy_files(source_and_dest_pairs, file_owner, group_owner, kinit_if_needed)
+  
+  def createHdfsResources():
+    params.HdfsResource('/atshistory', user='hdfs', change_permissions_for_parents=True, owner='yarn', group='hadoop', type='directory', action= ['create_on_execute'], mode=0755)
+    params.HdfsResource('/user/hcat', owner='hcat', type='directory', action=['create_on_execute'], mode=0755)
+    params.HdfsResource('/hive/warehouse', owner='hive', type='directory', action=['create_on_execute'], mode=0777)
+    params.HdfsResource('/user/hive', owner='hive', type='directory', action=['create_on_execute'], mode=0755)
+    params.HdfsResource('/tmp', mode=0777, action=['create_on_execute'], type='directory', owner='hdfs')
+    params.HdfsResource('/user/ambari-qa', type='directory', action=['create_on_execute'], mode=0770)
+    params.HdfsResource('/user/oozie', owner='oozie', type='directory', action=['create_on_execute'], mode=0775)
+    params.HdfsResource('/app-logs', recursive_chmod=True, owner='yarn', group='hadoop', type='directory', action=['create_on_execute'], mode=0777)
+    params.HdfsResource('/tmp/entity-file-history/active', owner='yarn', group='hadoop', type='directory', action=['create_on_execute'])
+    params.HdfsResource('/mapred', owner='mapred', type='directory', action=['create_on_execute'])
+    params.HdfsResource('/mapred/system', owner='hdfs', type='directory', action=['create_on_execute'])
+    params.HdfsResource('/mr-history/done', change_permissions_for_parents=True, owner='mapred', group='hadoop', type='directory', action=['create_on_execute'], mode=0777)
+    params.HdfsResource('/atshistory/done', owner='yarn', group='hadoop', type='directory', action=['create_on_execute'], mode=0700)
+    params.HdfsResource('/atshistory/active', owner='yarn', group='hadoop', type='directory', action=['create_on_execute'], mode=01777)
+    params.HdfsResource('/ams/hbase', owner='ams', type='directory', action=['create_on_execute'], mode=0775)
+    params.HdfsResource('/amshbase/staging', owner='ams', type='directory', action=['create_on_execute'], mode=0711)
+    params.HdfsResource('/user/ams/hbase', owner='ams', type='directory', action=['create_on_execute'], mode=0775)
 
+
+  def putCreatedHdfsResourcesToIgnore(env):
+    if not 'hdfs_files' in env.config:
+      Logger.info("Not creating .hdfs_resource_ignore as no resources to use.")
+      return
+    
+    file_content = ""
+    for file in env.config['hdfs_files']:
+      file_content += file['target']
+      file_content += "\n"
+      
+    with open("/var/lib/ambari-agent/data/.hdfs_resource_ignore", "a+") as fp:
+      fp.write(file_content)
+      
   env.set_params(params)
   hadoop_conf_dir = params.hadoop_conf_dir
    
@@ -272,7 +306,7 @@ with Environment() as env:
   # DON'T CHANGE THE VALUE SINCE IT'S USED TO DETERMINE WHETHER TO RUN THE COMMAND OR NOT BY READING THE MARKER FILE.
   # Oozie tmp dir should be /var/tmp/oozie and is already created by a function above.
   command = format("cd {oozie_tmp_dir} && {oozie_setup_sh} prepare-war {oozie_secure} ")
-  command_to_file = format("cd {oozie_tmp_dir} && {oozie_setup_sh_current} prepare-war {oozie_secure} ")
+  command_to_file = format("cd {oozie_tmp_dir} && {oozie_setup_sh_current} prepare-war {oozie_secure} ").strip()
 
   run_prepare_war = False
   if os.path.exists(prepare_war_cmd_file):
@@ -338,7 +372,9 @@ with Environment() as env:
   copy_tarballs_to_hdfs(format("/usr/hdp/{hdp_version}/pig/pig.tar.gz"), hdfs_path_prefix+"/hdp/apps/{{ hdp_stack_version }}/pig/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
   copy_tarballs_to_hdfs(format("/usr/hdp/{hdp_version}/hadoop-mapreduce/hadoop-streaming.jar"), hdfs_path_prefix+"/hdp/apps/{{ hdp_stack_version }}/mapreduce/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
   copy_tarballs_to_hdfs(format("/usr/hdp/{hdp_version}/sqoop/sqoop.tar.gz"), hdfs_path_prefix+"/hdp/apps/{{ hdp_stack_version }}/sqoop/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
-
+  print "Creating hdfs directories..."
+  createHdfsResources()
+  putCreatedHdfsResourcesToIgnore(env)
   
   # jar shouldn't be used before (read comment below)
   File(format("{ambari_libs_dir}/fast-hdfs-resource.jar"),
@@ -347,8 +383,12 @@ with Environment() as env:
   )
   # Create everything in one jar call (this is fast).
   # (! Before everything should be executed with action="create_on_execute/delete_on_execute" for this time-optimization to work)
-  params.HdfsResource(None, 
-               logoutput=True,
-               action="execute"
-  )
+  try:
+    params.HdfsResource(None, 
+                 logoutput=True,
+                 action="execute"
+    )
+  except:
+    os.remove("/var/lib/ambari-agent/data/.hdfs_resource_ignore")
+    raise
   print "Completed tarball copy. Ambari preupload script completed."

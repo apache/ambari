@@ -31,7 +31,8 @@ describe('App.MainServiceInfoSummaryView', function() {
         serviceName: 'HDFS',
         hostComponents: []
       }),
-      getActiveWidgetLayout: Em.K
+      getActiveWidgetLayout: Em.K,
+      loadWidgetLayouts: Em.K
     }),
     alertsController: Em.Object.create(),
     service: Em.Object.create()
@@ -196,270 +197,17 @@ describe('App.MainServiceInfoSummaryView', function() {
 
   });
 
-  describe('#didInsertElement', function () {
-
-    var cases = [
-      {
-        serviceName: 'STORM',
-        isStormMetricsSupported: false,
-        isConstructGraphObjectsCalled: false,
-        title: 'Storm, metrics not supported'
-      },
-      {
-        serviceName: 'STORM',
-        isStormMetricsSupported: true,
-        isConstructGraphObjectsCalled: true,
-        title: 'Storm, metrics supported'
-      },
-      {
-        serviceName: 'HDFS',
-        isConstructGraphObjectsCalled: true,
-        title: 'not Storm'
-      }
-    ];
-
-    beforeEach(function () {
-      sinon.stub(view, 'constructGraphObjects', Em.K);
-      this.mock = sinon.stub(App, 'get');
-    });
-
-    afterEach(function () {
-      view.constructGraphObjects.restore();
-      this.mock.restore();
-    });
-
-    cases.forEach(function (item) {
-      it(item.title, function () {
-        view.set('controller.content.serviceName', item.serviceName);
-        this.mock.withArgs('isStormMetricsSupported').returns(item.isStormMetricsSupported);
-        view.didInsertElement();
-        expect(view.constructGraphObjects.calledOnce).to.equal(item.isConstructGraphObjectsCalled);
-      });
-    });
-
-  });
-
-  describe.skip('#setTimeRange', function () {
-
-    var cases = [
-      {
-        currentTimeRangeIndex: 0,
-        isServiceMetricLoaded: false,
-        graphIds: [],
-        title: 'no event passed'
-      },
-      {
-        event: {},
-        currentTimeRangeIndex: 0,
-        isServiceMetricLoaded: false,
-        graphIds: [],
-        title: 'no event context passed'
-      },
-      {
-        event: {
-          context: {
-            index: 1
-          }
-        },
-        currentTimeRangeIndex: 1,
-        isServiceMetricLoaded: false,
-        graphIds: [],
-        title: 'no service name set'
-      },
-      {
-        event: {
-          context: {
-            index: 2
-          }
-        },
-        serviceName: 'HDFS',
-        currentTimeRangeIndex: 2,
-        isServiceMetricLoaded: true,
-        graphIds: [
-          [
-            'service-metrics-hdfs-space-utilization', 'service-metrics-hdfs-file-operations',
-            'service-metrics-hdfs-block-status', 'service-metrics-hdfs-io', 'service-metrics-hdfs-rpc'
-          ],
-          [
-            'service-metrics-hdfs-gc', 'service-metrics-hdfs-jvm-heap', 'service-metrics-hdfs-jvm-threads'
-          ]
-        ]
-      },
-      {
-        event: {
-          context: {
-            index: 3
-          }
-        },
-        serviceName: 'YARN',
-        currentTimeRangeIndex: 3,
-        isServiceMetricLoaded: true,
-        graphIds: [
-          [
-            'service-metrics-yarn-queue-allocated', 'service-metrics-yarn-queue-memory-resource',
-            'service-metrics-yarn-queue-allocated-container', 'service-metrics-yarn-node-manager-statuses',
-            'service-metrics-yarn-apps-current-states'
-          ],
-          [
-            'service-metrics-yarn-apps-finished-states', 'service-metrics-yarn-rpc', 'service-metrics-yarn-gc',
-            'service-metrics-yarn-jvm-threads', 'service-metrics-yarn-jvm-heap'
-          ]
-        ]
-      },
-      {
-        event: {
-          context: {
-            index: 4
-          }
-        },
-        serviceName: 'HBASE',
-        currentTimeRangeIndex: 4,
-        isServiceMetricLoaded: true,
-        graphIds: [
-          [
-            'service-metrics-hbase-cluster-requests', 'service-metrics-hbase-regionserver-rw-requests',
-            'service-metrics-hbase-regionserver-regions', 'service-metrics-hbase-regionserver-queuesize',
-            'service-metrics-hbase-hlog-split-time'
-          ],
-          [
-            'service-metrics-hbase-hlog-split-size'
-          ]
-        ]
-      },
-      {
-        event: {
-          context: {
-            index: 5
-          }
-        },
-        serviceName: 'AMBARI_METRICS',
-        currentTimeRangeIndex: 5,
-        isServiceMetricLoaded: true,
-        graphIds: [
-          [
-            'service-metrics-ambari-metrics-master-average-load',
-            'service-metrics-ambari-metrics-region-server-store-files',
-            'service-metrics-ambari-metrics-region-server-regions',
-            'service-metrics-ambari-metrics-region-server-requests',
-            'service-metrics-ambari-metrics-region-server-block-cache-hit-percent'
-          ],
-          [
-            'service-metrics-ambari-metrics-region-server-compaction-queue-size'
-          ]
-        ]
-      },
-      {
-        event: {
-          context: {
-            index: 6
-          }
-        },
-        serviceName: 'FLUME',
-        currentTimeRangeIndex: 6,
-        isServiceMetricLoaded: true,
-        graphIds: [
-          [
-            'service-metrics-flume-channel-size-mma', 'service-metrics-flume-channel-size-sum',
-            'service-metrics-flume-incoming_mma', 'service-metrics-flume-incoming_sum',
-            'service-metrics-flume-outgoing_mma'
-          ],
-          [
-            'service-metrics-flume-outgoing_sum'
-          ]
-        ]
-      },
-      {
-        event: {
-          context: {
-            index: 7
-          }
-        },
-        serviceName: 'STORM',
-        currentTimeRangeIndex: 7,
-        isServiceMetricLoaded: true,
-        graphIds: [
-          [
-            'service-metrics-storm-supervisor-allocated', 'service-metrics-storm-executors',
-            'service-metrics-storm-topologies', 'service-metrics-storm-tasks'
-          ]
-        ]
-      },
-      {
-        event: {
-          context: {
-            index: 8
-          }
-        },
-        serviceName: 'KAFKA',
-        chunkSize: 4,
-        currentTimeRangeIndex: 8,
-        isServiceMetricLoaded: true,
-        graphIds: [
-          [
-            'service-metrics-kafka-broker-topic-metrics', 'service-metrics-kafka-controller-metrics',
-            'service-metrics-kafka-controler-status-metrics', 'service-metrics-kafka-replica-manager-metrics'
-          ],
-          [
-            'service-metrics-kafka-log-metrics', 'service-metrics-kafka-replica-fetcher-metrics'
-          ]
-        ]
-      }
-    ];
-
-    beforeEach(function () {
-      sinon.stub(view, 'postUserPref', Em.K);
-      view.setProperties({
-        chunkSize: 5,
-        currentTimeRangeIndex: 0,
-        isServiceMetricLoaded: false,
-        serviceMetricGraphs: []
-      });
-    });
-
-    afterEach(function () {
-      view.postUserPref.restore();
-    });
-
-    cases.forEach(function (item) {
-      it(item.serviceName || item.title, function () {
-        view.set('chunkSize', Em.isNone(item.chunkSize) ? 5 : item.chunkSize);
-        view.set('service.serviceName', item.serviceName);
-        view.setTimeRange(item.event);
-        var graphIndices = [],
-          graphIds = view.get('serviceMetricGraphs').map(function (graphs) {
-          return graphs.map(function (graph) {
-            var graphView = graph.create();
-            graphIndices.push(graphView.get('currentTimeIndex'));
-            return graphView.get('id');
-          });
-        });
-        expect(view.get('currentTimeRangeIndex')).to.equal(item.currentTimeRangeIndex);
-        expect(view.get('isServiceMetricLoaded')).to.equal(item.isServiceMetricLoaded);
-        if (item.event && item.event.context && item.serviceName) {
-          expect(graphIndices.uniq()).to.eql([item.currentTimeRangeIndex]);
-        }
-        expect(graphIds).to.eql(item.graphIds);
-      });
-    });
-
-  });
-
   describe("#restartAllStaleConfigComponents", function () {
 
     describe('trigger restartAllServiceHostComponents', function () {
 
       beforeEach(function () {
-        view = App.MainServiceInfoSummaryView.create({
-          controller: Em.Object.create({
-            content: {
-              serviceName: "HDFS"
-            },
-            getActiveWidgetLayout: Em.K
-          }),
-          service: Em.Object.create({
-            displayName: 'HDFS'
-          })
-        });
+        view.set('controller.content', Em.Object.create({
+          serviceName: "HDFS"
+        }));
+        view.set('service', Em.Object.create({
+          displayName: 'HDFS'
+        }));
         sinon.stub(batchUtils, "restartAllServiceHostComponents", Em.K);
       });
 
@@ -479,25 +227,20 @@ describe('App.MainServiceInfoSummaryView', function() {
       var mainServiceItemController;
 
       beforeEach(function () {
-        view = App.MainServiceInfoSummaryView.create({
-          controller: Em.Object.create({
-            content: {
-              serviceName: "HDFS",
-              hostComponents: [{
-                componentName: 'NAMENODE',
-                workStatus: 'STARTED'
-              }],
-              restartRequiredHostsAndComponents: {
-                "host1": ['NameNode'],
-                "host2": ['DataNode', 'ZooKeeper']
-              }
-            },
-            getActiveWidgetLayout: Em.K
-          }),
-          service: Em.Object.create({
-            displayName: 'HDFS'
-          })
-        });
+        view.set('controller.content', Em.Object.create({
+          serviceName: "HDFS",
+          hostComponents: [{
+            componentName: 'NAMENODE',
+            workStatus: 'STARTED'
+          }],
+          restartRequiredHostsAndComponents: {
+            "host1": ['NameNode'],
+            "host2": ['DataNode', 'ZooKeeper']
+          }
+        }));
+        view.set('service', Em.Object.create({
+          displayName: 'HDFS'
+        }));
         mainServiceItemController = App.MainServiceItemController.create({});
         sinon.stub(mainServiceItemController, 'checkNnLastCheckpointTime', function() {
           return true;
@@ -580,4 +323,555 @@ describe('App.MainServiceInfoSummaryView', function() {
     });
   });
 
+  describe("#clientsHostText", function() {
+
+    it("no installed clients", function() {
+      view.set('controller.content.installedClients', []);
+      view.propertyDidChange('clientsHostText');
+      expect(view.get('clientsHostText')).to.be.empty;
+    });
+
+    it("has many clients", function() {
+      view.set('controller.content.installedClients', [1]);
+      view.reopen({
+        hasManyClients: true
+      });
+      view.propertyDidChange('clientsHostText');
+      expect(view.get('clientsHostText')).to.be.equal(Em.I18n.t('services.service.summary.viewHosts'));
+    });
+
+    it("otherwise", function() {
+      view.set('controller.content.installedClients', [1]);
+      view.reopen({
+        hasManyClients: false
+      });
+      view.propertyDidChange('clientsHostText');
+      expect(view.get('clientsHostText')).to.be.equal(Em.I18n.t('services.service.summary.viewHost'));
+    });
+  });
+
+  describe("#historyServerUI", function() {
+
+    it("singleNodeInstall is true", function() {
+      App.set('singleNodeInstall', true);
+      App.set('singleNodeAlias', 'alias');
+      view.propertyDidChange('historyServerUI');
+      expect(view.get('historyServerUI')).to.equal("http://alias:19888");
+    });
+
+    it("singleNodeInstall is false", function () {
+      App.set('singleNodeInstall', false);
+      view.set('controller.content', Em.Object.create({
+        hostComponents: [
+          Em.Object.create({
+            isMaster: true,
+            host: Em.Object.create({
+              publicHostName: 'host1'
+            })
+          })
+        ]
+      }));
+      view.propertyDidChange('historyServerUI');
+      expect(view.get('historyServerUI')).to.equal("http://host1:19888");
+    });
+  });
+
+  describe("#serversHost", function() {
+
+    it("should return empty object", function() {
+      view.set('controller.content', Em.Object.create({
+        id: 'S1',
+        hostComponents: []
+      }));
+      view.propertyDidChange('serversHost');
+      expect(view.get('serversHost')).to.be.empty;
+    });
+
+    it("should return server object", function() {
+      view.set('controller.content', Em.Object.create({
+        id: 'ZOOKEEPER',
+        hostComponents: [
+          Em.Object.create({
+            isMaster: true
+          })
+        ]
+      }));
+      view.propertyDidChange('serversHost');
+      expect(view.get('serversHost')).to.eql(Em.Object.create({
+        isMaster: true
+      }));
+    });
+  });
+
+  describe("#updateComponentList()", function() {
+
+    it("add components to empty source", function() {
+      var source = [],
+          data = [{id: 1}];
+      view.updateComponentList(source, data);
+      expect(source.mapProperty('id')).to.eql([1]);
+    });
+
+    it("add components to exist source", function() {
+      var source = [{id: 1}],
+        data = [{id: 1}, {id: 2}];
+      view.updateComponentList(source, data);
+      expect(source.mapProperty('id')).to.eql([1, 2]);
+    });
+
+    it("remove components from exist source", function() {
+      var source = [{id: 1}, {id: 2}],
+        data = [{id: 1}];
+      view.updateComponentList(source, data);
+      expect(source.mapProperty('id')).to.eql([1]);
+    });
+  });
+
+  describe("#componentNameView", function () {
+    var componentNameView;
+
+    beforeEach(function () {
+      componentNameView = view.get('componentNameView').create();
+    });
+
+    describe("#displayName", function () {
+
+      it("component is MYSQL_SERVER", function () {
+        componentNameView.set('comp', Em.Object.create({
+          componentName: 'MYSQL_SERVER'
+        }));
+        componentNameView.propertyDidChange('displayName');
+        expect(componentNameView.get('displayName')).to.equal(Em.I18n.t('services.hive.databaseComponent'));
+      });
+
+      it("any component", function () {
+        componentNameView.set('comp', Em.Object.create({
+          componentName: 'C1',
+          displayName: 'c1'
+        }));
+        componentNameView.propertyDidChange('displayName');
+        expect(componentNameView.get('displayName')).to.equal('c1');
+      });
+    });
+  });
+
+
+  describe("#getServiceModel()", function() {
+
+    beforeEach(function() {
+      sinon.stub(App.Service, 'find').returns({serviceName: 'S1'});
+      sinon.stub(App.HDFSService, 'find').returns([{serviceName: 'HDFS'}]);
+    });
+    afterEach(function() {
+      App.Service.find.restore();
+      App.HDFSService.find.restore();
+    });
+
+    it("HDFS service", function() {
+      expect(view.getServiceModel('HDFS')).to.eql({serviceName: 'HDFS'});
+    });
+
+    it("Simple model service", function() {
+      expect(view.getServiceModel('S1')).to.eql({serviceName: 'S1'});
+    });
+  });
+
+  describe("#updateComponentInformation()", function () {
+    it("should count hosts and components", function () {
+      view.set('controller.content.restartRequiredHostsAndComponents', {
+        'host1': ['c1', 'c2']
+      });
+      view.updateComponentInformation();
+      expect(view.get('componentsCount')).to.equal(2);
+      expect(view.get('hostsCount')).to.equal(1);
+    });
+  });
+
+  describe("#rollingRestartSlaveComponentName ", function() {
+
+    beforeEach(function() {
+      sinon.stub(batchUtils, 'getRollingRestartComponentName').returns('C1');
+    });
+    afterEach(function() {
+      batchUtils.getRollingRestartComponentName.restore();
+    });
+
+    it("should returns component name", function() {
+      view.set('serviceName', 'S1');
+      view.propertyDidChange('rollingRestartSlaveComponentName');
+      expect(view.get('rollingRestartSlaveComponentName')).to.equal('C1');
+    });
+  });
+
+  describe("#rollingRestartActionName ", function() {
+
+    beforeEach(function() {
+      sinon.stub(App.format, 'role').returns('C1');
+    });
+    afterEach(function() {
+      App.format.role.restore();
+    });
+
+    it("rollingRestartSlaveComponentName is set", function() {
+      view.reopen({
+        rollingRestartSlaveComponentName: 'C1'
+      });
+      view.propertyDidChange('rollingRestartActionName');
+      expect(view.get('rollingRestartActionName')).to.equal(Em.I18n.t('rollingrestart.dialog.title').format('C1'));
+    });
+
+    it("rollingRestartSlaveComponentName is null", function() {
+      view.reopen({
+        rollingRestartSlaveComponentName: null
+      });
+      view.propertyDidChange('rollingRestartActionName');
+      expect(view.get('rollingRestartActionName')).to.be.null;
+    });
+  });
+
+  describe("#rollingRestartStaleConfigSlaveComponents() ", function() {
+
+    beforeEach(function() {
+      sinon.stub(batchUtils, 'launchHostComponentRollingRestart');
+    });
+    afterEach(function() {
+      batchUtils.launchHostComponentRollingRestart.restore();
+    });
+
+    it("launchHostComponentRollingRestart should be called", function() {
+      view.get('service').setProperties({
+        displayName: 's1',
+        passiveState: 'ON'
+      });
+      view.rollingRestartStaleConfigSlaveComponents({context: 'C1'});
+      expect(batchUtils.launchHostComponentRollingRestart.calledWith(
+        'C1', 's1', true, true
+      )).to.be.true;
+    });
+  });
+
+  describe("#constructGraphObjects()", function() {
+    var mock = Em.Object.create({
+      isServiceWithWidgets: false
+    });
+
+    beforeEach(function() {
+      sinon.stub(App.StackService, 'find').returns(mock);
+      sinon.stub(view, 'getUserPref').returns({
+        complete: function(callback){callback();}
+      })
+    });
+    afterEach(function() {
+      App.StackService.find.restore();
+      view.getUserPref.restore();
+    });
+
+    it("metrics not loaded", function() {
+      mock.set('isServiceWithWidgets', false);
+      view.constructGraphObjects(null);
+      expect(view.get('isServiceMetricLoaded')).to.be.false;
+      expect(view.getUserPref.called).to.be.false;
+    });
+
+    it("metrics loaded", function() {
+      App.ChartServiceMetricsG1 = Em.Object.extend();
+      mock.set('isServiceWithWidgets', true);
+      view.constructGraphObjects(['G1']);
+      expect(view.get('isServiceMetricLoaded')).to.be.true;
+      expect(view.getUserPref.calledOnce).to.be.true;
+      expect(view.get('serviceMetricGraphs')).to.not.be.empty;
+    });
+  });
+
+  describe("#getUserPrefSuccessCallback()", function() {
+
+    it("currentTimeRangeIndex should be set", function() {
+      view.getUserPrefSuccessCallback(1);
+      expect(view.get('currentTimeRangeIndex')).to.equal(1);
+    });
+  });
+
+  describe("#getUserPrefErrorCallback()", function() {
+
+    beforeEach(function() {
+      sinon.stub(view, 'postUserPref');
+    });
+    afterEach(function() {
+      view.postUserPref.restore();
+    });
+
+    it("request.status = 404", function() {
+      view.getUserPrefErrorCallback({status: 404});
+      expect(view.get('currentTimeRangeIndex')).to.equal(0);
+      expect(view.postUserPref.calledOnce).to.be.true;
+    });
+
+    it("request.status = 403", function() {
+      view.getUserPrefErrorCallback({status: 403});
+      expect(view.postUserPref.called).to.be.false;
+    });
+  });
+
+  describe("#widgetActions", function() {
+
+    beforeEach(function() {
+      this.mock = sinon.stub(App, 'isAuthorized');
+      view.setProperties({
+        staticWidgetLayoutActions: [{id: 1}],
+        staticAdminPrivelegeWidgetActions: [{id: 2}],
+        staticGeneralWidgetActions: [{id: 3}]
+      });
+    });
+    afterEach(function() {
+      this.mock.restore();
+    });
+
+    it("not authorized", function() {
+      this.mock.returns(false);
+      view.propertyDidChange('widgetActions');
+      expect(view.get('widgetActions').mapProperty('id')).to.eql([3]);
+    });
+
+    it("is authorized", function() {
+      this.mock.returns(true);
+      App.supports.customizedWidgetLayout = true;
+      view.propertyDidChange('widgetActions');
+      expect(view.get('widgetActions').mapProperty('id')).to.eql([1, 2, 3]);
+    });
+  });
+
+  describe("#doWidgetAction()", function() {
+
+    beforeEach(function() {
+      view.set('controller.action1', Em.K);
+      sinon.stub(view.get('controller'), 'action1');
+    });
+    afterEach(function() {
+      view.get('controller').action1.restore();
+    });
+
+    it("action exist", function() {
+      view.doWidgetAction({context: 'action1'});
+      expect(view.get('controller').action1.calledOnce).to.be.true;
+    });
+  });
+
+  describe("#setTimeRange", function() {
+
+    it("range = 0", function() {
+      var widget = Em.Object.create({
+        widgetType: 'GRAPH',
+        properties: {
+          time_range: '0'
+        }
+      });
+      view.set('controller.widgets', [widget]);
+      view.setTimeRange({context: {value: '0'}});
+      expect(widget.get('properties')['time_range']).to.equal('0')
+    });
+
+    it("range = 1", function() {
+      var widget = Em.Object.create({
+        widgetType: 'GRAPH',
+        properties: {
+          time_range: 0
+        }
+      });
+      view.set('controller.widgets', [widget]);
+      view.setTimeRange({context: {value: '1'}});
+      expect(widget.get('properties')['time_range']).to.equal('1')
+    });
+  });
+
+  describe("#makeSortable()", function() {
+    var mock = {
+      on: function(arg1, arg2, callback) {
+        callback();
+      },
+      off: Em.K,
+      sortable: function() {
+        return {
+          disableSelection: Em.K
+        }
+      }
+    };
+
+    beforeEach(function() {
+      sinon.stub(window, '$').returns(mock);
+      sinon.spy(mock, 'on');
+      sinon.spy(mock, 'off');
+      sinon.spy(mock, 'sortable');
+      view.makeSortable();
+    });
+    afterEach(function() {
+      window.$.restore();
+      mock.on.restore();
+      mock.off.restore();
+      mock.sortable.restore();
+    });
+
+    it("on() should be called", function() {
+      expect(mock.on.calledWith('DOMNodeInserted', '#widget_layout')).to.be.true;
+    });
+
+    it("sortable() should be called", function() {
+      expect(mock.sortable.calledOnce).to.be.true;
+    });
+
+    it("off() should be called", function() {
+      expect(mock.off.calledWith('DOMNodeInserted', '#widget_layout')).to.be.true;
+    });
+  });
+
+  describe('#didInsertElement', function () {
+
+    beforeEach(function () {
+      sinon.stub(view, 'constructGraphObjects', Em.K);
+      this.mock = sinon.stub(App, 'get');
+      sinon.stub(view, 'getServiceModel');
+      sinon.stub(view.get('controller'), 'getActiveWidgetLayout');
+      sinon.stub(view.get('controller'), 'loadWidgetLayouts');
+      sinon.stub(view, 'adjustSummaryHeight');
+      sinon.stub(view, 'makeSortable');
+      sinon.stub(view, 'addWidgetTooltip');
+
+    });
+
+    afterEach(function () {
+      view.constructGraphObjects.restore();
+      this.mock.restore();
+      view.getServiceModel.restore();
+      view.get('controller').getActiveWidgetLayout.restore();
+      view.get('controller').loadWidgetLayouts.restore();
+      view.adjustSummaryHeight.restore();
+      view.makeSortable.restore();
+      view.addWidgetTooltip.restore();
+    });
+
+    it("getServiceModel should be called", function() {
+      view.didInsertElement();
+      expect(view.getServiceModel.calledOnce).to.be.true;
+    });
+    it("adjustSummaryHeight should be called", function() {
+      view.didInsertElement();
+      expect(view.adjustSummaryHeight.calledOnce).to.be.true;
+    });
+    it("addWidgetTooltip should be called", function() {
+      view.didInsertElement();
+      expect(view.addWidgetTooltip.calledOnce).to.be.true;
+    });
+    it("makeSortable should be called", function() {
+      view.didInsertElement();
+      expect(view.makeSortable.calledOnce).to.be.true;
+    });
+    it("getActiveWidgetLayout should be called", function() {
+      view.didInsertElement();
+      expect(view.get('controller').getActiveWidgetLayout.calledOnce).to.be.true;
+    });
+
+    describe("serviceName is null, metrics not supported, widgets not supported", function() {
+      beforeEach(function () {
+        view.set('controller.content.serviceName', null);
+        this.mock.returns(false);
+        view.didInsertElement();
+      });
+
+      it("loadWidgetLayouts should not be called", function() {
+        expect(view.get('controller').loadWidgetLayouts.called).to.be.false;
+      });
+      it("constructGraphObjects should not be called", function() {
+        expect(view.constructGraphObjects.called).to.be.false;
+      });
+    });
+
+    describe("serviceName is set, metrics is supported, widgets is supported", function() {
+      beforeEach(function () {
+        view.set('controller.content.serviceName', 'S1');
+        this.mock.returns(true);
+        view.didInsertElement();
+      });
+
+      it("loadWidgetLayouts should be called", function() {
+        expect(view.get('controller').loadWidgetLayouts.calledOnce).to.be.true;
+      });
+      it("constructGraphObjects should be called", function() {
+        expect(view.constructGraphObjects.calledOnce).to.be.true;
+      });
+    });
+  });
+
+  describe("#addWidgetTooltip()", function() {
+    var mock = {
+      hoverIntent: Em.K
+    };
+
+    beforeEach(function() {
+      sinon.stub(Em.run, 'later', function(arg1, callback) {
+        callback();
+      });
+      sinon.stub(App, 'tooltip');
+      sinon.stub(window, '$').returns(mock);
+      sinon.spy(mock, 'hoverIntent');
+      view.addWidgetTooltip();
+    });
+    afterEach(function() {
+      Em.run.later.restore();
+      App.tooltip.restore();
+      window.$.restore();
+      mock.hoverIntent.restore();
+    });
+
+    it("Em.run.later should be called", function() {
+      expect(Em.run.later.calledOnce).to.be.true;
+    });
+    it("App.tooltip should be called", function() {
+      expect(App.tooltip.calledOnce).to.be.true;
+    });
+    it("hoverIntent should be called", function() {
+      expect(mock.hoverIntent.calledOnce).to.be.true;
+    });
+  });
+
+  describe("#adjustSummaryHeight()", function() {
+    var jQueryMock = {
+      find: Em.K,
+      attr: Em.K
+    };
+
+    beforeEach(function() {
+      sinon.stub(window, '$').returns(jQueryMock);
+      this.mockFind = sinon.stub(jQueryMock, 'find');
+      sinon.spy(jQueryMock, 'attr');
+      this.mockGetElementById = sinon.stub(document, 'getElementById');
+    });
+    afterEach(function() {
+      this.mockGetElementById.restore();
+      window.$.restore();
+      this.mockFind.restore();
+      jQueryMock.attr.restore();
+    });
+
+    it("summary-info not in DOM", function() {
+      this.mockGetElementById.returns(null);
+      view.adjustSummaryHeight();
+      expect(jQueryMock.find.called).to.be.false;
+    });
+
+    it("summary-info has no rows", function() {
+      this.mockGetElementById.returns({});
+      this.mockFind.returns(null);
+      view.adjustSummaryHeight();
+      expect(jQueryMock.find.calledOnce).to.be.true;
+      expect(jQueryMock.attr.called).to.be.false;
+    });
+
+    it("summary-info has rows", function() {
+      this.mockGetElementById.returns({
+        clientHeight: 10
+      });
+      this.mockFind.returns([{}]);
+      view.adjustSummaryHeight();
+      expect(jQueryMock.attr.calledWith('style', "height:20px;")).to.be.true;
+    });
+  });
 });

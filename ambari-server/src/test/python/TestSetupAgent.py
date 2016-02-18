@@ -307,7 +307,7 @@ class TestSetupAgent(TestCase):
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(subprocess, 'Popen')
   def test_execOsCommand(self, Popen_mock):
-    self.assertFalse(setup_agent.execOsCommand("hostname -f") == None)
+    self.assertIsNone(setup_agent.execOsCommand("hostname -f"))
 
   @only_for_platform(PLATFORM_WINDOWS)
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))

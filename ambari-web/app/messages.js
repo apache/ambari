@@ -1689,9 +1689,12 @@ Em.I18n.translations = {
   'services.service.actions.run.stopLdapKnox.title':'Stop Demo LDAP Knox Gateway',
   'services.service.actions.run.stopLdapKnox.context':'Stop Demo LDAP',
   'services.service.actions.run.startStopLdapKnox.error': 'Error during remote command: ',
-  'services.service.actions.run.immediateStopHawqCluster.context':'Stop HAWQ Cluster (Immediate Mode)',
+  'services.service.actions.run.immediateStopHawqService.context':'Stop HAWQ Service (Immediate Mode)',
+  'services.service.actions.run.immediateStopHawqService.label':'Stop HAWQ Service (Immediate Mode)',
   'services.service.actions.run.immediateStopHawqSegment.label':'Stop (Immediate Mode)',
   'services.service.actions.run.immediateStopHawqSegment.context':'Stop HAWQ Segment (Immediate Mode)',
+  'services.service.actions.run.resyncHawqStandby.context':'Re-Sync HAWQ Standby',
+  'services.service.actions.run.resyncHawqStandby.label':'Re-Synchronize HAWQ Standby',
   'services.service.actions.manage_configuration_groups.short':'Manage Config Groups',
   'services.service.actions.serviceActions':'Service Actions',
 

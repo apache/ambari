@@ -34,7 +34,7 @@ def __setup_master_specific_conf_files():
   """
   import params
 
-  File(hawq_constants.hawq_check_file, content=params.gpcheck_content, owner=hawq_constants.hawq_user, group=hawq_constants.hawq_group,
+  File(hawq_constants.hawq_check_file, content=params.hawq_check_content, owner=hawq_constants.hawq_user, group=hawq_constants.hawq_group,
       mode=0644)
 
   File(hawq_constants.hawq_slaves_file, content=Template("slaves.j2"), owner=hawq_constants.hawq_user, group=hawq_constants.hawq_group,

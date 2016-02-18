@@ -51,7 +51,7 @@ class HawqMaster(Script):
     from hawqstatus import get_pid_file
     check_process_status(get_pid_file())
 
-  def immediate_stop_cluster(self, env):
+  def immediate_stop_hawq_service(self, env):
     master_helper.stop(hawq_constants.IMMEDIATE, hawq_constants.CLUSTER)
 
 if __name__ == "__main__":

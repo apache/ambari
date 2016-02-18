@@ -537,8 +537,8 @@ describe('App.MainAlertDefinitionConfigsController', function () {
       });
 
       it('should update parameters', function () {
-        expect(this.result['AlertDefinition/source/parameters']).to.have.property('length').equal(4);
-        expect(this.result['AlertDefinition/source/parameters'].mapProperty('value')).to.be.eql(['v11', 'v21', 'v31', 'v41']);
+        expect(this.result['AlertDefinition/source'].parameters).to.have.property('length').equal(4);
+        expect(this.result['AlertDefinition/source'].parameters.mapProperty('value')).to.be.eql(['v11', 'v21', 'v31', 'v41']);
       });
 
     });

@@ -33,10 +33,12 @@ Use **ambari-metrics** to visualize metrics exposed via AMS in Grafana.
  - [Save Dashboard](#savedash)
  - [Time Ranges](#timerange)
  - [Edit Panel/Graph](#editpanel)
+ - [Templated Dashboards](#templating)
+    - [Multi Host Templated Dashboards](#multi-templating)
 
 
 ----------
-![enter image description here](screenshots/full-dashboard.png)
+![Full Dashboard](screenshots/full-dashboard.png)
 
 ----------
 <a name="installg"></a>
@@ -257,7 +259,23 @@ http://GRAFANA_HOST:3000
 > 10. When you now add a graph, and select your component and metric, the plotted graph will show you metrics for the selected hostname from the dropdown.
 > 11. The legend on the graph will also now update with the selected host.
 
-**Templalted dashboards do support multiple metrics in a single graph.** 
+**Templated dashboards do support multiple metrics in a single graph.** 
 
 
 ![Templating](screenshots/20-templating.png)
+
+---
+
+<a name="multi-templating"></a>
+### Multi Host Templated Dashboards.
+
+**Templated dashboards now have the ability to filter graphs based on a single host or multiple hosts.**
+
+> 1. Once you've created your templated dashboard, you can edit it gain by clicking on the "cog" on the top, select "Templating".
+> 2. Click on "Edit" for your templating variable.
+> 3. To be able to select Multiiple Hosts, set multi-value selection to "enable" and leave multi-format set to "glob".
+> 4. To have an option for All hosts, select All Value, and set it to "*" and All format to "wildcard".
+> 5. Hit Update and close the templating variables options and you should be now able to select multiple hosts from the dropdown (or "all" hosts at once.)
+
+
+![Multi Host Templating](screenshots/21-multi-templating.png)

@@ -131,6 +131,17 @@ public class GroupService extends BaseService {
   }
 
   /**
+   * Gets the group privilege service
+   */
+  @Path("{groupName}/privileges")
+  public PrivilegeService getPrivilegeService(@Context javax.ws.rs.core.Request request,
+                                              @PathParam ("groupName") String groupName) {
+
+    return new GroupPrivilegeService(groupName);
+  }
+
+
+  /**
    * Create a group resource instance.
    *
    * @param groupName group name

@@ -16,16 +16,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import os
 import functools
-from hawq_constants import PXF_PORT, pxf_hdfs_test_dir
+import hawq_constants
 from resource_management import Script
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
+from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.libraries.functions import get_kinit_path
 
 config = Script.get_config()
-
+config_attrs = config['configuration_attributes']
 
 def __get_component_host(component):
   """
@@ -76,9 +76,16 @@ HdfsResource = functools.partial(HdfsResource,
                                  default_fs=default_fs)
 
 
+# XMLConfig partial function
+XmlConfig = functools.partial(XmlConfig,
+                              conf_dir=hawq_constants.hawq_config_dir,
+                              owner=hawq_constants.hawq_user,
+                              group=hawq_constants.hawq_group,
+                              mode=0644)
+
 # For service Check
 is_pxf_installed = __get_component_host("pxf_hosts") is not None
-namenode_path =  "{0}:{1}".format(__get_component_host("namenode_host"), PXF_PORT) if dfs_nameservice is None else dfs_nameservice
+namenode_path =  "{0}:{1}".format(__get_component_host("namenode_host"), hawq_constants.PXF_PORT) if dfs_nameservice is None else dfs_nameservice
 table_definition = {
   "HAWQ": {
     "name": "ambari_hawq_test",
@@ -90,13 +97,13 @@ table_definition = {
     "name": "ambari_hawq_pxf_hdfs_readable_test",
     "create_type": "READABLE EXTERNAL",
     "drop_type": "EXTERNAL",
-    "description": "(col1 int) LOCATION ('pxf://{0}{1}?PROFILE=HdfsTextSimple') FORMAT 'TEXT'".format(namenode_path, pxf_hdfs_test_dir)
+    "description": "(col1 int) LOCATION ('pxf://{0}{1}?PROFILE=HdfsTextSimple') FORMAT 'TEXT'".format(namenode_path, hawq_constants.pxf_hdfs_test_dir)
   },
   "EXTERNAL_HDFS_WRITABLE": {
     "name": "ambari_hawq_pxf_hdfs_writable_test",
     "create_type": "WRITABLE EXTERNAL",
     "drop_type": "EXTERNAL",
-    "description": "(col1 int) LOCATION ('pxf://{0}{1}?PROFILE=HdfsTextSimple') FORMAT 'TEXT'".format(namenode_path, pxf_hdfs_test_dir)
+    "description": "(col1 int) LOCATION ('pxf://{0}{1}?PROFILE=HdfsTextSimple') FORMAT 'TEXT'".format(namenode_path, hawq_constants.pxf_hdfs_test_dir)
   }
 }
 
@@ -107,7 +114,7 @@ rm_host = __get_component_host('rm_host')
 yarn_ha_enabled = default('/configurations/yarn-site/yarn.resourcemanager.ha.enabled', False)
 
 # Config files
-gpcheck_content = config['configurations']['gpcheck-env']['content']
+hawq_check_content = config['configurations']['hawq-check-env']['content']
 # database user limits
 hawq_limits = config['configurations']['hawq-limits-env']
 # sysctl parameters

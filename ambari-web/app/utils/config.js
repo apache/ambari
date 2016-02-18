@@ -438,7 +438,13 @@ App.config = Em.Object.create({
    * @returns {string}
    */
   getDefaultCategory: function(stackConfigProperty, fileName) {
-    return (stackConfigProperty ? 'Advanced ' : 'Custom ') + this.getConfigTagFromFileName(fileName);
+    var tag = this.getConfigTagFromFileName(fileName);
+    switch (tag) {
+      case 'capacity-scheduler':
+        return 'CapacityScheduler';
+      default :
+        return (stackConfigProperty ? 'Advanced ' : 'Custom ') + tag;
+    }
   },
 
   /**
@@ -693,106 +699,67 @@ App.config = Em.Object.create({
     return App.ServiceConfigProperty.create(propertyObject);
   },
 
-  complexConfigsTemplate: [
-    {
-      "name": "capacity-scheduler",
-      "displayName": "Capacity Scheduler",
-      "value": "",
-      "description": "Capacity Scheduler properties",
-      "displayType": "custom",
-      "isOverridable": true,
-      "isRequired": true,
-      "isVisible": true,
-      "isReconfigurable": true,
-      "supportsFinal": false,
-      "serviceName": "YARN",
-      "filename": "capacity-scheduler.xml",
-      "category": "CapacityScheduler"
-    }
-  ],
-
   /**
-   * transform set of configs from file
-   * into one config with textarea content:
-   * name=value
-   * @param {App.ServiceConfigProperty[]} configs
-   * @param {String} filename
-   * @param {App.ServiceConfigProperty[]} [configsToSkip=[]]
-   * @return {*}
+   *
+   * @param configs
    */
-  fileConfigsIntoTextarea: function (configs, filename, configsToSkip) {
-    var fileConfigs = configs.filterProperty('filename', filename);
-    var value = '', savedValue = '', recommendedValue = '';
-    var template = this.get('complexConfigsTemplate').findProperty('filename', filename);
-    var complexConfig = $.extend({}, template);
-    if (complexConfig) {
-      fileConfigs.forEach(function (_config) {
-        if (!(configsToSkip && configsToSkip.someProperty('name', _config.name))) {
-          value += _config.name + '=' + _config.value + '\n';
-          if (!Em.isNone(_config.savedValue)) {
-            savedValue += _config.name + '=' + _config.savedValue + '\n';
-          }
-          if (!Em.isNone(_config.recommendedValue)) {
-            recommendedValue += _config.name + '=' + _config.recommendedValue + '\n';
-          }
-        }
-      }, this);
-      var isFinal = fileConfigs.someProperty('isFinal', true);
-      var savedIsFinal = fileConfigs.someProperty('savedIsFinal', true);
-      var recommendedIsFinal = fileConfigs.someProperty('recommendedIsFinal', true);
-      complexConfig.value = value;
-      if (savedValue) {
-        complexConfig.savedValue = savedValue;
+  addYarnCapacityScheduler: function(configs) {
+    var value = '', savedValue = '', recommendedValue = '',
+      excludedConfigs = App.config.getPropertiesFromTheme('YARN');
+
+    var connectedConfigs = configs.filter(function(config) {
+      return !excludedConfigs.contains(App.config.configId(config.get('name'), config.get('filename'))) && (config.get('filename') === 'capacity-scheduler.xml');
+    });
+    connectedConfigs.setEach('isVisible', false);
+
+    connectedConfigs.forEach(function (config) {
+      value += config.get('name') + '=' + config.get('value') + '\n';
+      if (!Em.isNone(config.get('savedValue'))) {
+        savedValue += config.get('name') + '=' + config.get('savedValue') + '\n';
       }
-      if (recommendedValue) {
-        complexConfig.recommendedValue = recommendedValue;
+      if (!Em.isNone(config.get('recommendedValue'))) {
+        recommendedValue += config.get('name') + '=' + config.get('recommendedValue') + '\n';
       }
-      complexConfig.isFinal = isFinal;
-      complexConfig.savedIsFinal = savedIsFinal;
-      complexConfig.recommendedIsFinal = recommendedIsFinal;
-      configs = configs.filter(function (_config) {
-        return _config.filename !== filename || (configsToSkip && configsToSkip.someProperty('name', _config.name));
-      });
-      configs.push(App.ServiceConfigProperty.create(complexConfig));
-    }
+    }, this);
+
+    var isFinal = connectedConfigs.someProperty('isFinal', true);
+    var savedIsFinal = connectedConfigs.someProperty('savedIsFinal', true);
+    var recommendedIsFinal = connectedConfigs.someProperty('recommendedIsFinal', true);
+
+    var cs = App.config.createDefaultConfig('capacity-scheduler', 'YARN', 'capacity-scheduler.xml', true, {
+      'value': value,
+      'savedValue': savedValue || null,
+      'recommendedValue': recommendedValue || null,
+      'isFinal': isFinal,
+      'savedIsFinal': savedIsFinal,
+      'recommendedIsFinal': recommendedIsFinal,
+      'displayName': 'Capacity Scheduler',
+      'description': 'Capacity Scheduler properties',
+      'displayType': 'capacityScheduler',
+      'isRequiredByAgent': false
+    });
+
+    configs.push(App.ServiceConfigProperty.create(cs));
     return configs;
   },
 
   /**
-   * transform one config with textarea content
-   * into set of configs of file
-   * @param configs
-   * @param filename
-   * @return {*}
+   *
+   * @param serviceName
+   * @returns {Array}
    */
-  textareaIntoFileConfigs: function (configs, filename) {
-    var complexConfigName = this.get('complexConfigsTemplate').findProperty('filename', filename).name;
-    var configsTextarea = configs.findProperty('name', complexConfigName);
-    if (configsTextarea && !App.get('testMode')) {
-      var properties = configsTextarea.get('value').split('\n');
-
-      properties.forEach(function (_property) {
-        var name, value;
-        if (_property) {
-          _property = _property.split('=');
-          name = _property[0];
-          value = (_property[1]) ? _property[1] : "";
-          configs.push(Em.Object.create({
-            name: name,
-            value: value,
-            savedValue: value,
-            serviceName: configsTextarea.get('serviceName'),
-            filename: filename,
-            isFinal: configsTextarea.get('isFinal'),
-            isNotDefaultValue: configsTextarea.get('isNotDefaultValue'),
-            isRequiredByAgent: configsTextarea.get('isRequiredByAgent'),
-            group: null
-          }));
-        }
-      });
-      return configs.without(configsTextarea);
-    }
-    return configs;
+  getPropertiesFromTheme: function (serviceName) {
+    var properties = [];
+    App.Tab.find().forEach(function (t) {
+      if (!t.get('isAdvanced') && t.get('serviceName') === serviceName) {
+        t.get('sections').forEach(function (s) {
+          s.get('subSections').forEach(function (ss) {
+            properties = properties.concat(ss.get('configProperties'));
+          });
+        });
+      }
+    }, this);
+    return properties;
   },
 
   /**

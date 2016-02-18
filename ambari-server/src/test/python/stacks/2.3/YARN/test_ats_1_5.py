@@ -165,7 +165,7 @@ class TestAts(RMFTestCase):
                               group = 'hadoop',
                               hadoop_conf_dir = '/etc/hadoop/conf',
                               type = 'directory',
-                              action = ['create_on_execute'],
+                              action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
                               mode = 0755,
                               )
     self.assertResourceCalled('HdfsResource', '/ats/done',
@@ -182,7 +182,7 @@ class TestAts(RMFTestCase):
                               group = 'hadoop',
                               hadoop_conf_dir = '/etc/hadoop/conf',
                               type = 'directory',
-                              action = ['create_on_execute'],
+                              action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
                               mode = 0700,
                               )
     self.assertResourceCalled('HdfsResource', '/ats',
@@ -200,7 +200,7 @@ class TestAts(RMFTestCase):
                               group = 'hadoop',
                               hadoop_conf_dir = '/etc/hadoop/conf',
                               type = 'directory',
-                              action = ['create_on_execute'],
+                              action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
                               mode = 0755,
                               )
     self.assertResourceCalled('HdfsResource', '/ats/active',
@@ -217,7 +217,7 @@ class TestAts(RMFTestCase):
                               group = 'hadoop',
                               hadoop_conf_dir = '/etc/hadoop/conf',
                               type = 'directory',
-                              action = ['create_on_execute'],
+                              action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
                               mode = 01777,
                               )
     self.assertResourceCalled('HdfsResource', None,
@@ -230,7 +230,7 @@ class TestAts(RMFTestCase):
                               kinit_path_local = '/usr/bin/kinit',
                               principal_name = UnknownConfigurationMock(),
                               user = 'hdfs',
-                              action = ['execute'],
+                              action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
                               hadoop_conf_dir = '/etc/hadoop/conf',
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/yarn.exclude',

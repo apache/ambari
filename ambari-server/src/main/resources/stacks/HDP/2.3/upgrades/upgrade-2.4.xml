@@ -740,6 +740,10 @@
 
     <service name="KAFKA">
       <component name="KAFKA_BROKER">
+        <pre-upgrade>
+          <task xsi:type="configure" id ="hdp_2_4_0_0_kafka_broker_deprecate_port"/>
+        </pre-upgrade>
+        
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>

@@ -69,7 +69,7 @@ class TestServiceCheck(RMFTestCase):
         principal_name = None,
         user = 'hdfs',
         dfs_type = '',
-        action = ['create_on_execute'],
+        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
         mode = 0777,
@@ -84,7 +84,7 @@ class TestServiceCheck(RMFTestCase):
         principal_name = None,
         user = 'hdfs',
         dfs_type = '',
-        action = ['delete_on_execute'],
+        action = ['delete_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'file',
     )
@@ -99,7 +99,7 @@ class TestServiceCheck(RMFTestCase):
         principal_name = None,
         user = 'hdfs',
         dfs_type = '',
-        action = ['create_on_execute'],
+        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'file',
     )
@@ -113,7 +113,7 @@ class TestServiceCheck(RMFTestCase):
         principal_name = None,
         user = 'hdfs',
         dfs_type = '',
-        action = ['execute'],
+        action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         hadoop_conf_dir = '/etc/hadoop/conf',
     )
     self.assertNoMoreResources()

@@ -532,7 +532,7 @@ App.AlertConfigProperties.Parameters = {
       value = String(value).trim();
       value = parseFloat(value);
 
-      return !isNaN(value) && value > 0 && value <= 100;
+      return !isNaN(value) && value > 0;
     }.property('value')
   })
 
@@ -622,7 +622,7 @@ App.AlertConfigProperties.Thresholds = {
         return false;
       }
 
-      return this.get('showInputForValue') ? !isNaN(value) && value > 0 && value <= 100 : true;
+      return this.get('showInputForValue') ? !isNaN(value) && value > 0 : true;
     }.property('displayValue', 'showInputForValue'),
 
     /**

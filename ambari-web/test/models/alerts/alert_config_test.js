@@ -104,13 +104,13 @@ describe('App.AlertConfigProperties', function () {
           {value: 'abc', expected: false},
           {value: 'g1', expected: false},
           {value: '1g', expected: false},
-          {value: '123', expected: false},
+          {value: '123', expected: true},
           {value: '23', expected: true},
-          {value: '123.8', expected: false},
+          {value: '123.8', expected: true},
           {value: '5.8', expected: true},
-          {value: 123, expected: false},
+          {value: 123, expected: true},
           {value: 23, expected: true},
-          {value: 123.8, expected: false},
+          {value: 123.8, expected: true},
           {value: 5.8, expected: true}
         ]).forEach(function (test) {
           it('value: ' + JSON.stringify(test.value) + ' ;result - ' + test.expected, function () {

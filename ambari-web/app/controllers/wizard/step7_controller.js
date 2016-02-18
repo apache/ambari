@@ -718,9 +718,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   },
 
   applyServicesConfigs: function (configs) {
-    if (this.get('allSelectedServiceNames').contains('YARN')) {
-      configs = App.config.fileConfigsIntoTextarea(configs, 'capacity-scheduler.xml', []);
-    }
     if (!this.get('installedServiceNames').contains('HAWQ') && this.get('allSelectedServiceNames').contains('HAWQ')) {
       this.updateHawqConfigs(configs);
     }
@@ -941,6 +938,9 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     }, this);
 
     stepConfigs.forEach(function (service) {
+      if (service.get('serviceName') === 'YARN') {
+        configsByService[service.get('serviceName')] = App.config.addYarnCapacityScheduler(configsByService[service.get('serviceName')]);
+      }
       service.set('configs', configsByService[service.get('serviceName')]);
       if (['addServiceController', 'installerController'].contains(this.get('wizardController.name'))) {
         this.addHostNamesToConfigs(service, localDB.masterComponentHosts, localDB.slaveComponentHosts);

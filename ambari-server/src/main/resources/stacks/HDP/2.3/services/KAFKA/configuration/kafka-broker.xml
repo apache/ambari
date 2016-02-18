@@ -23,7 +23,7 @@
     <name>listeners</name>
     <value>PLAINTEXT://localhost:6667</value>
     <property-type>DONT_ADD_ON_UPGRADE</property-type>
-    <description>host and port where kafka broker will be accepting connnections. localhost will be subsituted with hostname.</description>
+    <description>host and port where kafka broker will be accepting connections. localhost will be substituted with hostname.</description>
   </property>
   <property>
     <name>controlled.shutdown.enable</name>

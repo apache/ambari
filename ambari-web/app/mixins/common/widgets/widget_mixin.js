@@ -120,9 +120,18 @@ App.WidgetMixin = Ember.Mixin.create({
           startCallName: 'getHostComponentMetrics',
           successCallback: this.getHostComponentMetricsSuccessCallback,
           errorCallback: this.getMetricsErrorCallback,
-          completeCallback: function () {
+          completeCallback: function (xhr) {
             requestCounter--;
             if (requestCounter === 0) this.onMetricsLoaded();
+            if (this.get('graphView')) {
+              var graph = this.get('childViews') && this.get('childViews').findProperty('runningRequests');
+              if (graph) {
+                var requestsArrayName = graph.get('isPopup') ? 'runningPopupRequests' : 'runningRequests';
+                graph.set(requestsArrayName, graph.get(requestsArrayName).reject(function (item) {
+                  return item === xhr;
+                }));
+              }
+            }
           }
         });
       } else {
@@ -132,9 +141,18 @@ App.WidgetMixin = Ember.Mixin.create({
           startCallName: 'getServiceComponentMetrics',
           successCallback: this.getMetricsSuccessCallback,
           errorCallback: this.getMetricsErrorCallback,
-          completeCallback: function () {
+          completeCallback: function (xhr) {
             requestCounter--;
             if (requestCounter === 0) this.onMetricsLoaded();
+            if (this.get('graphView')) {
+              var graph = this.get('childViews') && this.get('childViews').findProperty('runningRequests');
+              if (graph) {
+                var requestsArrayName = graph.get('isPopup') ? 'runningPopupRequests' : 'runningRequests';
+                graph.set(requestsArrayName, graph.get(requestsArrayName).reject(function (item) {
+                  return item === xhr;
+                }));
+              }
+            }
           }
         });
       }
@@ -192,7 +210,7 @@ App.WidgetMixin = Ember.Mixin.create({
    * @returns {$.ajax}
    */
   getServiceComponentMetrics: function (request) {
-    return App.ajax.send({
+    var xhr = App.ajax.send({
       name: 'widgets.serviceComponent.metrics.get',
       sender: this,
       data: {
@@ -201,6 +219,14 @@ App.WidgetMixin = Ember.Mixin.create({
         metricPaths: this.prepareMetricPaths(request.metric_paths)
       }
     });
+    if (this.get('graphView')) {
+      var graph = this.get('childViews') && this.get('childViews').findProperty('runningRequests');
+      if (graph) {
+        var requestsArrayName = graph.get('isPopup') ? 'runningPopupRequests' : 'runningRequests';
+        graph.get(requestsArrayName).push(xhr);
+      }
+    }
+    return xhr;
   },
 
   /**
@@ -230,15 +256,21 @@ App.WidgetMixin = Ember.Mixin.create({
     var metricPaths = this.prepareMetricPaths(request.metric_paths);
 
     if (metricPaths.length) {
-      return App.ajax.send({
-        name: 'widgets.hostComponent.metrics.get',
-        sender: this,
-        data: {
-          componentName: request.component_name,
-          metricPaths: this.prepareMetricPaths(request.metric_paths),
-          hostComponentCriteria: this.computeHostComponentCriteria(request)
-        }
-      });
+      var xhr = App.ajax.send({
+          name: 'widgets.hostComponent.metrics.get',
+          sender: this,
+          data: {
+            componentName: request.component_name,
+            metricPaths: this.prepareMetricPaths(request.metric_paths),
+            hostComponentCriteria: this.computeHostComponentCriteria(request)
+          }
+        }),
+        graph = this.get('graphView') && this.get('childViews') && this.get('childViews').findProperty('runningRequests');
+      if (graph) {
+        var requestsArrayName = graph.get('isPopup') ? 'runningPopupRequests' : 'runningRequests';
+        graph.get(requestsArrayName).push(xhr);
+      }
+      return xhr;
     }
     return jQuery.Deferred().reject().promise();
   },
@@ -286,7 +318,9 @@ App.WidgetMixin = Ember.Mixin.create({
             graph.set('hasData', false);
             this.set('isExportButtonHidden', true);
             graph._showMessage('info', this.t('graphs.noData.title'), this.t('graphs.noDataAtTime.message'));
-            this.get('metrics').clear();
+            this.set('metrics', this.get('metrics').reject(function (item) {
+              return this.get('content.metrics').someProperty('name', item.name);
+            }, this));
           }
         }
       }, this);
@@ -300,7 +334,7 @@ App.WidgetMixin = Ember.Mixin.create({
    * @param {string} errorThrown
    */
   getMetricsErrorCallback: function (xhr, textStatus, errorThrown) {
-    if (this.get('graphView')) {
+    if (this.get('graphView') && !xhr.isForcedAbort) {
       var graph = this.get('childViews') && this.get('childViews').findProperty('_showMessage');
       if (graph) {
         if (xhr.readyState == 4 && xhr.status) {
@@ -309,7 +343,9 @@ App.WidgetMixin = Ember.Mixin.create({
         graph.set('hasData', false);
         this.set('isExportButtonHidden', true);
         graph._showMessage('warn', this.t('graphs.error.title'), this.t('graphs.error.message').format(textStatus, errorThrown));
-        this.get('metrics').clear();
+        this.set('metrics', this.get('metrics').reject(function (item) {
+          return this.get('content.metrics').someProperty('name', item.name);
+        }, this));
       }
     }
   },
@@ -778,9 +814,9 @@ App.WidgetLoadAggregator = Em.Object.create({
                 subRequest.errorCallback.call(subRequest.context, xhr, textStatus, errorThrown);
               }
             }, this);
-          }).always(function () {
+          }).always(function (xhr) {
               _request.subRequests.forEach(function (subRequest) {
-                subRequest.completeCallback.call(subRequest.context);
+                subRequest.completeCallback.call(subRequest.context, xhr);
               }, this);
             });
       })(bulks[id]);

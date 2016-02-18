@@ -104,7 +104,7 @@ App.SupportsDependentConfigs = Ember.Mixin.create({
       var type = App.config.getConfigTagFromFileName(config.get('filename'));
       var p = App.configsCollection.getConfig(App.config.configId(name, type));
       controller.removeCurrentFromDependentList(config, saveRecommended);
-       if ((p && Em.get(p, 'propertyDependedBy.length') > 0 || Em.get(p, 'displayType') === 'user') && config.get('oldValue') !== config.get('value')) {
+       if ((p && Em.get(p, 'propertyDependedBy.length') > 0 || config.get('displayType') === 'user') && config.get('oldValue') !== config.get('value')) {
          var old = config.get('oldValue');
          config.set('oldValue', config.get('value'));
          return controller.loadConfigRecommendations([{
@@ -293,6 +293,79 @@ App.ServiceConfigTextArea = Ember.TextArea.extend(App.ServiceConfigPopoverSuppor
   classNames: ['directories'],
   classNameBindings: ['widthClass'],
   widthClass: 'span9'
+});
+
+
+/**
+ * Special config type for Capacity Scheduler
+ */
+App.CapacitySceduler = Ember.TextArea.extend(App.ServiceConfigPopoverSupport, App.ServiceConfigCalculateId, App.SupportsDependentConfigs, {
+
+  configs: function() {
+    return this.get('controller.stepConfigs').findProperty('serviceName', 'YARN').get('configs');
+  }.property('controller.stepConfigs'),
+
+  valueBinding: 'serviceConfig.value',
+  excludedConfigs: function() {
+    return App.config.getPropertiesFromTheme('YARN');
+  }.property(),
+  rows: 16,
+  classNames: ['directories'],
+  classNameBindings: ['widthClass'],
+  widthClass: 'span9',
+
+  connectedConfigs: function() {
+    return this.get('categoryConfigsAll').filter(function(config) {
+      return !this.get('excludedConfigs').contains(App.config.configId(config.get('name'), config.get('filename')))
+        && (config.get('name') !== this.get('serviceConfig.name'))
+        && (config.get('filename') === 'capacity-scheduler.xml');
+    }, this);
+  }.property('categoryConfigsAll.length'),
+
+  valueObserver: function () {
+    var self = this, controller = this.get('controller'),
+      names = [];
+    delay(function () {
+      self.get('serviceConfig.value').split('\n').forEach(function (_property) {
+        if (_property) {
+          _property = _property.split('=');
+          var name = _property[0];
+          var value = (_property[1]) ? _property[1] : "";
+
+          names.push(name);
+
+          var cfg = self.get('connectedConfigs').findProperty('name', name);
+          if (cfg) {
+            /** update configs **/
+            if (cfg.get('value') !== value) {
+              cfg.set('value', value);
+              self.sendRequestRorDependentConfigs(cfg, controller);
+            }
+          } else {
+            /** add configs **/
+            var newCfg = App.config.getDefaultConfig(name, 'YARN', 'capacity-scheduler', {
+              'value': value
+            });
+            self.get('configs').pushObject(App.ServiceConfigProperty.create(newCfg));
+          }
+        }
+      });
+
+      /** remove configs **/
+      self.get('connectedConfigs').filter(function(c) {
+        return !names.contains(c.get('name'));
+      }).forEach(function(c) {
+        self.get('configs').removeObject(c);
+      });
+    }, 500);
+  }.observes('serviceConfig.value'),
+
+  /**
+   * update fina; value for connected configs
+   */
+  isFinalObserver: function () {
+    this.get('connectedConfigs').setEach('isFinal', this.get('serviceConfig.isFinal'));
+  }.observes('serviceConfig.isFinal')
 });
 
 /**
