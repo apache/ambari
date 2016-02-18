@@ -150,32 +150,13 @@ class WebHDFSUtil:
     # only hdfs seems to support webHDFS
     return (is_webhdfs_enabled and default_fs.startswith("hdfs"))
     
-  def parse_path(self, path):
-    """
-    hdfs://nn_url:1234/a/b/c -> /a/b/c
-    hdfs://nn_ha_name/a/b/c -> /a/b/c
-    hdfs:///a/b/c -> /a/b/c
-    /a/b/c -> /a/b/c
-    """
-    math_with_protocol_and_nn_url = re.match("[a-zA-Z]+://[^/]+(/.+)", path)
-    math_with_protocol = re.match("[a-zA-Z]+://(/.+)", path)
-    
-    if math_with_protocol_and_nn_url:
-      path = math_with_protocol_and_nn_url.group(1)
-    elif math_with_protocol:
-      path = math_with_protocol.group(1)
-    else:
-      path = path
-      
-    return re.sub("[/]+", "/", path)
-    
   valid_status_codes = ["200", "201"]
   def run_command(self, target, operation, method='POST', assertable_result=True, file_to_put=None, ignore_status_codes=[], **kwargs):
     """
     assertable_result - some POST requests return '{"boolean":false}' or '{"boolean":true}'
     depending on if query was successful or not, we can assert this for them
     """
-    target = self.parse_path(target)
+    target = HdfsResourceProvider.parse_path(target)
     
     url = format("{address}/webhdfs/v1{target}?op={operation}&user.name={run_user}", address=self.address, run_user=self.run_user)
     for k,v in kwargs.iteritems():
@@ -393,7 +374,7 @@ class HdfsResourceWebHDFS:
     
     
   def _fill_in_parent_directories(self, target, results):
-    path_parts = self.util.parse_path(target).split("/")[1:]# [1:] remove '' from parts
+    path_parts = HdfsResourceProvider.parse_path(target).split("/")[1:]# [1:] remove '' from parts
     path = "/"
 
     for path_part in path_parts:
@@ -415,11 +396,50 @@ class HdfsResourceProvider(Provider):
   def __init__(self, resource):
     super(HdfsResourceProvider,self).__init__(resource)
     self.assert_parameter_is_set('hdfs_site')
-    
+    self.ignored_resources_list = self.get_ignored_resources_list()
     self.webhdfs_enabled = self.resource.hdfs_site['dfs.webhdfs.enabled']
+    
+      
+  @staticmethod
+  def parse_path(path):
+    """
+    hdfs://nn_url:1234/a/b/c -> /a/b/c
+    hdfs://nn_ha_name/a/b/c -> /a/b/c
+    hdfs:///a/b/c -> /a/b/c
+    /a/b/c -> /a/b/c
+    """
+    math_with_protocol_and_nn_url = re.match("[a-zA-Z]+://[^/]+(/.+)", path)
+    math_with_protocol = re.match("[a-zA-Z]+://(/.+)", path)
+    
+    if math_with_protocol_and_nn_url:
+      path = math_with_protocol_and_nn_url.group(1)
+    elif math_with_protocol:
+      path = math_with_protocol.group(1)
+    else:
+      path = path
+      
+    return re.sub("[/]+", "/", path)
+  
+  def get_ignored_resources_list(self):
+    if not self.resource.hdfs_resource_ignore_file or not os.path.exists(self.resource.hdfs_resource_ignore_file):
+      return []
+    
+    with open(self.resource.hdfs_resource_ignore_file, "rb") as fp:
+      content = fp.read()
+      
+    hdfs_resources_to_ignore = []
+    for hdfs_resource_to_ignore in content.split("\n"):
+      hdfs_resources_to_ignore.append(HdfsResourceProvider.parse_path(hdfs_resource_to_ignore))
+            
+    return hdfs_resources_to_ignore
+
     
   def action_delayed(self, action_name):
     self.assert_parameter_is_set('type')
+    
+    if HdfsResourceProvider.parse_path(self.resource.target) in self.ignored_resources_list:
+      Logger.info("Skipping '{0}' because it is in ignore file {1}.".format(self.resource, self.resource.hdfs_resource_ignore_file))
+      return
 
     self.get_hdfs_resource_executor().action_delayed(action_name, self)
 

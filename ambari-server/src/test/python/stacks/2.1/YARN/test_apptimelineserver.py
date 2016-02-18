@@ -196,7 +196,7 @@ class TestAppTimelineServer(RMFTestCase):
                               kinit_path_local = '/usr/bin/kinit',
                               principal_name = UnknownConfigurationMock(),
                               user = 'hdfs',
-                              action = ['execute'],
+                              action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
                               hadoop_conf_dir = '/etc/hadoop/conf',
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/yarn.exclude',

@@ -68,7 +68,7 @@ class TestServiceCheck(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         principal_name = None,
         user = 'hdfs',
-        action = ['create_on_execute'],
+        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
         mode = 0777,
@@ -82,7 +82,7 @@ class TestServiceCheck(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         principal_name = None,
         user = 'hdfs',
-        action = ['delete_on_execute'],
+        action = ['delete_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'file',
     )
@@ -96,7 +96,7 @@ class TestServiceCheck(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         principal_name = None,
         user = 'hdfs',
-        action = ['create_on_execute'],
+        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'file',
     )
@@ -109,7 +109,7 @@ class TestServiceCheck(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         principal_name = None,
         user = 'hdfs',
-        action = ['execute'],
+        action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         hadoop_conf_dir = '/etc/hadoop/conf',
     )
     self.assertNoMoreResources()
