@@ -26,20 +26,27 @@ import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 
-public class ClusterPrivilegeChangeRequestAuditEvent extends RequestAuditEvent {
+public class ViewPrivilegeChangeRequestAuditEvent extends RequestAuditEvent {
 
-  public static class ClusterPrivilegeChangeRequestAuditEventBuilder extends RequestAuditEventBuilder<ClusterPrivilegeChangeRequestAuditEvent, ClusterPrivilegeChangeRequestAuditEventBuilder> {
+  public static class ViewPrivilegeChangeRequestAuditEventBuilder extends RequestAuditEventBuilder<ViewPrivilegeChangeRequestAuditEvent, ViewPrivilegeChangeRequestAuditEventBuilder> {
 
     private Map<String, List<String>> users;
     private Map<String, List<String>> groups;
 
-    public ClusterPrivilegeChangeRequestAuditEventBuilder() {
-      super.withOperation("Role change");
+    private String name;
+
+    private String type;
+
+    private String version;
+
+
+    public ViewPrivilegeChangeRequestAuditEventBuilder() {
+      super.withOperation("View permission change");
     }
 
     @Override
-    protected ClusterPrivilegeChangeRequestAuditEvent newAuditEvent() {
-      return new ClusterPrivilegeChangeRequestAuditEvent(this);
+    protected ViewPrivilegeChangeRequestAuditEvent newAuditEvent() {
+      return new ViewPrivilegeChangeRequestAuditEvent(this);
     }
 
     /**
@@ -50,11 +57,19 @@ public class ClusterPrivilegeChangeRequestAuditEvent extends RequestAuditEvent {
     protected void buildAuditMessage(StringBuilder builder) {
       super.buildAuditMessage(builder);
 
+      builder.append(", Type(")
+        .append(type)
+        .append("), Version(")
+        .append(version)
+        .append("), Name(")
+        .append(name)
+        .append(")");
+
       Set<String> roleSet = new HashSet<String>();
       roleSet.addAll(users.keySet());
       roleSet.addAll(groups.keySet());
 
-      builder.append(", Roles(");
+      builder.append(", Permissions(");
       if(!users.isEmpty() || !groups.isEmpty()) {
         builder.append(System.lineSeparator());
       }
@@ -76,33 +91,48 @@ public class ClusterPrivilegeChangeRequestAuditEvent extends RequestAuditEvent {
       builder.append(")");
     }
 
-    public ClusterPrivilegeChangeRequestAuditEventBuilder withUsers(Map<String, List<String>> users) {
+    public ViewPrivilegeChangeRequestAuditEventBuilder withName(String name) {
+      this.name = name;
+      return this;
+    }
+
+    public ViewPrivilegeChangeRequestAuditEventBuilder withType(String type) {
+      this.type = type;
+      return this;
+    }
+
+    public ViewPrivilegeChangeRequestAuditEventBuilder withVersion(String version) {
+      this.version = version;
+      return this;
+    }
+
+    public ViewPrivilegeChangeRequestAuditEventBuilder withUsers(Map<String, List<String>> users) {
       this.users = users;
       return this;
     }
 
-    public ClusterPrivilegeChangeRequestAuditEventBuilder withGroups(Map<String, List<String>> groups) {
+    public ViewPrivilegeChangeRequestAuditEventBuilder withGroups(Map<String, List<String>> groups) {
       this.groups = groups;
       return this;
     }
   }
 
-  protected ClusterPrivilegeChangeRequestAuditEvent() {
+  protected ViewPrivilegeChangeRequestAuditEvent() {
   }
 
   /**
    * {@inheritDoc}
    */
-  protected ClusterPrivilegeChangeRequestAuditEvent(ClusterPrivilegeChangeRequestAuditEventBuilder builder) {
+  protected ViewPrivilegeChangeRequestAuditEvent(ViewPrivilegeChangeRequestAuditEventBuilder builder) {
     super(builder);
   }
 
   /**
-   * Returns an builder for {@link ClusterPrivilegeChangeRequestAuditEvent}
+   * Returns an builder for {@link ViewPrivilegeChangeRequestAuditEvent}
    * @return a builder instance
    */
-  public static ClusterPrivilegeChangeRequestAuditEventBuilder builder() {
-    return new ClusterPrivilegeChangeRequestAuditEventBuilder();
+  public static ViewPrivilegeChangeRequestAuditEventBuilder builder() {
+    return new ViewPrivilegeChangeRequestAuditEventBuilder();
   }
 
 }
