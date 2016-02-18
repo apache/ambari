@@ -18,7 +18,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 import json
-from unittest import SkipTest
+import sys
+import unittest
 
 from mock.mock import MagicMock, patch
 from stacks.utils.RMFTestCase import *
@@ -152,7 +153,11 @@ class TestPhoenixQueryServer(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_start_default_24(self):
-    raise SkipTest("there's nothing to upgrade to yet")
+    if sys.version_info >= (2, 7):
+      raise unittest.SkipTest("there's nothing to upgrade to yet")
+    else:
+      # skiptest functionality is not available with Python 2.6 unittest
+      return
 
     self.executeScript(
       self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/phoenix_queryserver.py",
