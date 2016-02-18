@@ -318,7 +318,9 @@ App.WidgetMixin = Ember.Mixin.create({
             graph.set('hasData', false);
             this.set('isExportButtonHidden', true);
             graph._showMessage('info', this.t('graphs.noData.title'), this.t('graphs.noDataAtTime.message'));
-            this.get('metrics').clear();
+            this.set('metrics', this.get('metrics').reject(function (item) {
+              return this.get('content.metrics').someProperty('name', item.name);
+            }, this));
           }
         }
       }, this);
@@ -341,7 +343,9 @@ App.WidgetMixin = Ember.Mixin.create({
         graph.set('hasData', false);
         this.set('isExportButtonHidden', true);
         graph._showMessage('warn', this.t('graphs.error.title'), this.t('graphs.error.message').format(textStatus, errorThrown));
-        this.get('metrics').clear();
+        this.set('metrics', this.get('metrics').reject(function (item) {
+          return this.get('content.metrics').someProperty('name', item.name);
+        }, this));
       }
     }
   },
