@@ -342,6 +342,7 @@ angular.module('ambariAdminConsole')
         'versionCreated': 'Created version <a href="#/stackVersions/{{stackName}}/{{versionName}}/edit">{{stackName}}-{{versionName}}</a>',
         'versionCreationError': 'Version creation error',
         'osListError': 'getSupportedOSList error',
+        'readVersionInfoError': 'Version Definition read error',
         'versionEdited': 'Edited version <a href="#/stackVersions/{{stackName}}/{{versionName}}/edit">{{displayName}}</a>',
         'versionUpdateError': 'Version update error',
         'versionDeleteError': 'Version delete error'

@@ -397,6 +397,9 @@ App.UpgradeVersionBoxView = Em.View.extend({
         secondary: Em.I18n.t('common.close'),
         onPrimary: function () {
           this.hide();
+          if ($('.version-box-popup .modal')) {
+            $('.version-box-popup .modal .modal-footer .btn-success').click();
+          }
           self.filterHostsByStack(displayName, status.id);
         }
       });

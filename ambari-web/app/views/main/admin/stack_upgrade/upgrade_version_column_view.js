@@ -86,6 +86,9 @@ App.UpgradeVersionColumnView = App.UpgradeVersionBoxView.extend({
     }
   },
 
+  /**
+   * on click handler for "show details" link
+   */
   openVersionBoxPopup: function (event) {
     var content = this.get('content');
     var parentView = this.get('parentView');

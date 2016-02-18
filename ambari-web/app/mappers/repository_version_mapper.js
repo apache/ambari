@@ -97,7 +97,6 @@ App.repoVersionMapper = App.QuickDataMapper.create({
     if (json && json.items) {
       json.items.forEach(function (item) {
         ////////////// to test//////////////
-        item[repoVersionsKey].type = "PATCH";
         item[repoVersionsKey].release = {
           "stack_id": "HDP-2.2",
           "version": "2.2.4.1",
@@ -105,55 +104,108 @@ App.repoVersionMapper = App.QuickDataMapper.create({
           "compatible_with": "", /* regex */
           "release_notes": "http://someurl"
         };
-        item[repoVersionsKey].services = [
-          {
-            "name": "HDFS",
-            "display_name": "HDFS",
-            "versions": [
-              {
-                "version": "2.1.1",
-                "version_id": "10",
-                "components": [ "NAMENODE"]
-              }
-            ]
-          },
-          {
-            "name": "YARN",
-            "display_name": "YARN",
-            "versions": [
-              {
-                "version": "2.7.1.2.3"
-              }
-            ]
-          },
-          {
-            "name": "ZOOKEEPER",
-            "display_name": "ZooKeeper",
-            "versions": [
-              {
-                "version": "3.4.6.2.3"
-              }
-            ]
-          },
-          {
-            "name": "wrong",
-            "display_name": "MapReduce2",
-            "versions": [
-              {
-                "version": "2.7.1.2.3"
-              }
-            ]
-          },
-          {
-            "name": "AMBARI_METRICS",
-            "display_name": "Ambari Metrics",
-            "versions": [
-              {
-                "version": "0.1.0"
-              }
-            ]
-          }
-        ];
+        if (item[repoVersionsKey].id  % 2 ) {
+          item[repoVersionsKey].type = "PATCH";
+          item[repoVersionsKey].services = [
+            {
+              "name": "HDFS",
+              "display_name": "HDFS",
+              "versions": [
+                {
+                  "version": "2.1.1",
+                  "version_id": "10",
+                  "components": [ "NAMENODE"]
+                }
+              ]
+            },
+            {
+              "name": "YARN",
+              "display_name": "YARN",
+              "versions": [
+                {
+                  "version": "2.7.1.2.3"
+                }
+              ]
+            },
+            {
+              "name": "ZOOKEEPER",
+              "display_name": "ZooKeeper",
+              "versions": [
+                {
+                  "version": "3.4.6.2.3"
+                }
+              ]
+            },
+            {
+              "name": "wrong",
+              "display_name": "MapReduce2",
+              "versions": [
+                {
+                  "version": "2.7.1.2.3"
+                }
+              ]
+            },
+            {
+              "name": "AMBARI_METRICS",
+              "display_name": "Ambari Metrics",
+              "versions": [
+                {
+                  "version": "0.1.0"
+                }
+              ]
+            }
+          ];
+        } else {
+          item[repoVersionsKey].services = [
+            {
+              "name": "HDFS",
+              "display_name": "HDFS",
+              "versions": [
+                {
+                  "version": "2.1.1",
+                  "version_id": "10",
+                  "components": [ "NAMENODE"]
+                }
+              ]
+            },
+            {
+              "name": "wrong",
+              "display_name": "YARN",
+              "versions": [
+                {
+                  "version": "2.7.1.2.3"
+                }
+              ]
+            },
+            {
+              "name": "wrong",
+              "display_name": "ZooKeeper",
+              "versions": [
+                {
+                  "version": "3.4.6.2.3"
+                }
+              ]
+            },
+            {
+              "name": "MAPREDUCE2",
+              "display_name": "MapReduce2",
+              "versions": [
+                {
+                  "version": "2.7.1.2.3"
+                }
+              ]
+            },
+            {
+              "name": "AMBARI_METRICS",
+              "display_name": "Ambari Metrics",
+              "versions": [
+                {
+                  "version": "0.1.0"
+                }
+              ]
+            }
+          ];
+        }
         //////////////////////////////
 
         if (loadAll || (item[repoVersionsKey] && !App.StackVersion.find().someProperty('repositoryVersion.id', item[repoVersionsKey].id))) {

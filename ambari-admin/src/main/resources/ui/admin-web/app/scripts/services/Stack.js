@@ -145,11 +145,21 @@ angular.module('ambariAdminConsole')
       return $http.post(Settings.baseUrl + url, payloadWrap);
     },
 
-    getRepo: function (repoVersion, stack_name) {
-      var url = Settings.baseUrl + '/stacks/' + stack_name + '/versions?' +
-      'fields=repository_versions/operating_systems/repositories/*' +
-      ',repository_versions/RepositoryVersions/display_name' +
-      '&repository_versions/RepositoryVersions/repository_version=' + repoVersion;
+    getRepo: function (repoVersion, stack_name, stack_version) {
+      if (stack_version) {
+        // get repo by stack version(2.3) and id (112)
+        var url = Settings.baseUrl + '/stacks/' + stack_name + '/versions?' +
+          'fields=repository_versions/operating_systems/repositories/*' +
+          ',repository_versions/RepositoryVersions/*' +
+          '&repository_versions/RepositoryVersions/id=' + repoVersion +
+          '&Versions/stack_version=' + stack_version;
+      } else {
+        // get repo by repoVersion (2.3.6.0-2345)
+        var url = Settings.baseUrl + '/stacks/' + stack_name + '/versions?' +
+          'fields=repository_versions/operating_systems/repositories/*' +
+          ',repository_versions/RepositoryVersions/*' +
+          '&repository_versions/RepositoryVersions/repository_version=' + repoVersion;
+      }
       var deferred = $q.defer();
       $http.get(url, {mock: 'version/version.json'})
       .success(function (data) {
@@ -186,140 +196,21 @@ angular.module('ambariAdminConsole')
       return deferred.promise;
     },
 
-    getLatestRepo: function (stack_name) {
-      var url = Settings.baseUrl + '/stacks/' + stack_name + '/versions?' +
-        'fields=repository_versions/operating_systems/repositories/*' +
-        ',repository_versions/RepositoryVersions/*';  // tbd
-      var deferred = $q.defer();
-      $http.get(url, {mock: 'version/version.json'})
-        .success(function (data) {
-          //data = data.items[0];
-          data = {
-            "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.3",
-            "Versions" : {
-              "stack_name" : "HDP",
-              "stack_version" : "2.3"
-            },
-            "repository_versions" : [
-              {
-                "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.3/repository_versions/15",
-                "RepositoryVersions" : {
-                  "id" : 15,
-                  "repository_version" : "2.3.6.0-3509",
-                  "stack_name" : "HDP",
-                  "stack_version" : "2.3",
-                  "type": "PATCH",
-                  "release": {
-                    "stack_id": "HDP-2.3",
-                    "version": "2.3.6.0",
-                    "build": "3509",
-                    "compatible_with": "2.3.6.0-[1-9]",
-                    "release_notes": "http://someurl"
-                  },
-                  "services": [
-                    {
-                      "name": "HDFS",
-                      "display_name": "HDFS",
-                      "versions": [
-                        {
-                          "version": "2.1.1",
-                          "version_id": "10",
-                          "components": [ "NAMENODE"]
-                        }
-                      ]
-                    },
-                    {
-                      "name": "HIVE",
-                      "display_name": "Hive",
-                      "versions": [
-                        {
-                          "version": "1.2.1"
-                        }
-                      ]
-                    },
-                    {
-                      "name": "ZOOKEEPER",
-                      "display_name": "ZooKeeper",
-                      "versions": [
-                        {
-                          "version": "3.4.5"
-                        }
-                      ]
-                    }
-                  ]
-                },
-                "operating_systems" : [
-                  {
-                    "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.3/repository_versions/15/operating_systems/redhat6",
-                    "OperatingSystems" : {
-                      "os_type" : "redhat6",
-                      "repository_version_id" : 15,
-                      "stack_name" : "HDP",
-                      "stack_version" : "2.3"
-                    },
-                    "repositories" : [
-                      {
-                        "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.3/repository_versions/15/operating_systems/redhat6/repositories/HDP-2.3.6.0-3509",
-                        "Repositories" : {
-                          "base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/BUILDS/2.3.6.0-3509",
-                          "default_base_url" : "",
-                          "latest_base_url" : "",
-                          "mirrors_list" : "",
-                          "os_type" : "redhat6",
-                          "repo_id" : "HDP-2.3.6.0-3509",
-                          "repo_name" : "HDP",
-                          "repository_version_id" : 15,
-                          "stack_name" : "HDP",
-                          "stack_version" : "2.3"
-                        }
-                      },
-                      {
-                        "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.3/repository_versions/15/operating_systems/redhat6/repositories/HDP-UTILS-2.3.6.0-3509",
-                        "Repositories" : {
-                          "base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos6",
-                          "default_base_url" : "",
-                          "latest_base_url" : "",
-                          "mirrors_list" : "",
-                          "os_type" : "redhat6",
-                          "repo_id" : "HDP-UTILS-2.3.6.0-3509",
-                          "repo_name" : "HDP-UTILS",
-                          "repository_version_id" : 15,
-                          "stack_name" : "HDP",
-                          "stack_version" : "2.3"
-                        }
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          };
+    postVersionDefinitionFile: function (isXMLdata, data) {
+      var deferred = $q.defer(),
+        url = Settings.baseUrl + '/version_definitions',
+        configs = isXMLdata? { headers: {'Content-Type': 'text/xml'}} : null;
 
-          var response = {
-            id : data.repository_versions[0].RepositoryVersions.id,
-            stackVersion : data.Versions.stack_version,
-            stackName: data.Versions.stack_name,
-            type: data.repository_versions[0].RepositoryVersions.type,
-            stackNameVersion: data.Versions.stack_name + '-' + data.Versions.stack_version, /// HDP-2.3
-            actualVersion: data.repository_versions[0].RepositoryVersions.repository_version, /// 2.3.4.0-3846
-            version: data.repository_versions[0].RepositoryVersions.release ? data.repository_versions[0].RepositoryVersions.release.version: null, /// 2.3.4.0
-            releaseNotes: data.repository_versions[0].RepositoryVersions.release ? data.repository_versions[0].RepositoryVersions.release.release_notes: null,
-            displayName: data.repository_versions[0].RepositoryVersions.release ? data.Versions.stack_name + '-' + data.repository_versions[0].RepositoryVersions.release.version :
-              data.Versions.stack_name + '-' + data.repository_versions[0].RepositoryVersions.repository_version.split('-')[0], //HDP-2.3.4.0
-            repoVersionFullName : data.Versions.stack_name + '-' + data.repository_versions[0].RepositoryVersions.repository_version,
-            osList: data.repository_versions[0].operating_systems,
-            updateObj: data.repository_versions[0]
-          };
-          var services = [];
-          angular.forEach(data.repository_versions[0].RepositoryVersions.services, function (service) {
-            services.push({
-              name: service.display_name,
-              version: service.versions[0].version,
-              components: service.versions[0].components
-            });
-          });
-          response.services = services;
-          deferred.resolve(response);
+      $http.post(url, data, configs)
+        .success(function (response) {
+          if (response.resources.length && response.resources[0].VersionDefinition) {
+            deferred.resolve(
+              {
+                stackName: response.resources[0].VersionDefinition.stack_name,
+                id: response.resources[0].VersionDefinition.id,
+                stackVersion: response.resources[0].VersionDefinition.stack_version
+              });
+          }
         })
         .error(function (data) {
           deferred.reject(data);
