@@ -82,6 +82,18 @@ public class ServiceEventCreator implements RequestAuditEventCreator {
   public AuditEvent createAuditEvent(Request request, Result result) {
     String username = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
 
+    if(request.getRequestType() == Request.Type.DELETE) {
+      return DeleteServiceRequestAuditEvent.builder()
+        .withTimestamp(DateTime.now())
+        .withRequestType(request.getRequestType())
+        .withResultStatus(result.getStatus())
+        .withUrl(request.getURI())
+        .withRemoteIp(request.getRemoteAddress())
+        .withUserName(username)
+        .withService(request.getResource().getKeyValueMap().get(Resource.Type.Service))
+        .build();
+    }
+
     String operation = getOperation(request);
 
     if (result.getStatus().isErrorState()) {
