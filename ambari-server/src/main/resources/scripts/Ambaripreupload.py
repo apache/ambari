@@ -43,6 +43,8 @@ from resource_management.libraries.functions.format import format
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.resources.execute_hadoop import ExecuteHadoop
 from resource_management import Script
+
+SQL_DRIVER_PATH = "/var/lib/ambari-server/resources/sqljdbc41.jar"
  
 """
 This file provides helper methods needed for the versioning of RPMs. Specifically, it does dynamic variable
@@ -266,6 +268,10 @@ with Environment() as env:
     with open("/var/lib/ambari-agent/data/.hdfs_resource_ignore", "a+") as fp:
       fp.write(file_content)
       
+  def putSQLDriverToOozieShared():
+    params.HdfsResource('/user/oozie/share/lib/sqoop/{0}'.format(os.path.basename(SQL_DRIVER_PATH)),
+                        owner='hdfs', type='file', action=['create_on_execute'], mode=0644, source=SQL_DRIVER_PATH)
+      
   env.set_params(params)
   hadoop_conf_dir = params.hadoop_conf_dir
    
@@ -374,6 +380,7 @@ with Environment() as env:
   copy_tarballs_to_hdfs(format("/usr/hdp/{hdp_version}/sqoop/sqoop.tar.gz"), hdfs_path_prefix+"/hdp/apps/{{ hdp_stack_version }}/sqoop/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
   print "Creating hdfs directories..."
   createHdfsResources()
+  putSQLDriverToOozieShared()
   putCreatedHdfsResourcesToIgnore(env)
   
   # jar shouldn't be used before (read comment below)
