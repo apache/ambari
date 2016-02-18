@@ -22,9 +22,6 @@
   <packaging>${packagingFormat}</packaging>
   <name>Ambari Functional Tests</name>
   <description>Ambari Functional Tests</description>
-  <properties>
-    <maven.test.skip>true</maven.test.skip> <!-- Don't run tests by default. Run with -Dmaven.test.skip=false to run tests -->
-  </properties>
   <build>
     <plugins>
       <plugin>
@@ -62,15 +59,6 @@
           <forkMode>once</forkMode>
         </configuration>
         <executions>
-          <!-- Will display BUILD SUCCESSFUL if build is successful.
-               Does not matter if the tests fail -->
-          <execution>
-            <id>run-integration-tests</id>
-            <phase>test</phase>
-            <goals>
-              <goal>integration-test</goal>
-            </goals>
-          </execution>
           <!-- Will display BUILD FAILURE if build fails or any test fails -->
           <execution>
             <id>run-verify</id>
@@ -128,7 +116,7 @@
         <executable.shell>sh</executable.shell>
         <fileextension.shell>sh</fileextension.shell>
         <fileextension.dot.shell-default></fileextension.dot.shell-default>
-        <assemblydescriptor>src/main/assemblies/funtest.xml</assemblydescriptor>
+        <assemblydescriptor>src/main/assemblies/empty.xml</assemblydescriptor>
         <packagingFormat>jar</packagingFormat>
       </properties>
     </profile>
@@ -146,7 +134,7 @@
         <executable.shell>cmd</executable.shell>
         <fileextension.shell>cmd</fileextension.shell>
         <fileextension.dot.shell-default></fileextension.dot.shell-default>
-        <assemblydescriptor>src/main/assemblies/funtest.xml</assemblydescriptor>
+        <assemblydescriptor>src/main/assemblies/empty.xml</assemblydescriptor>
         <packagingFormat>jar</packagingFormat>
         </properties>
     </profile>
