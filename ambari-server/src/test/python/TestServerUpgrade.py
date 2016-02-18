@@ -16,6 +16,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+import os
+os.environ["ROOT"] = ""
 import StringIO
 import sys
 from ambari_commons.exceptions import FatalException

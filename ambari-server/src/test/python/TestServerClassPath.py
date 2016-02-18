@@ -17,6 +17,9 @@ limitations under the License.
 '''
 
 import os
+os.environ["ROOT"] = ""
+
+import os
 from mock.mock import patch, MagicMock
 from unittest import TestCase
 from ambari_server.properties import Properties

@@ -19,6 +19,9 @@ limitations under the License.
 
 import unittest
 
+import os
+os.environ["ROOT"] = ""
+
 import mock
 from mock.mock import MagicMock, patch
 from ambari_server import BackupRestore

@@ -16,6 +16,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+import os
+os.environ["ROOT"] = ""
+
 from unittest import TestCase
 from ambari_server.serverUtils import get_ambari_server_api_base
 from ambari_server.serverConfiguration import CLIENT_API_PORT, CLIENT_API_PORT_PROPERTY, SSL_API, DEFAULT_SSL_API_PORT, SSL_API_PORT

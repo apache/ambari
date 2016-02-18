@@ -34,6 +34,7 @@ import stat
 import StringIO
 import tempfile
 from unittest import TestCase
+os.environ["ROOT"] = ""
 
 from only_for_platform import get_platform, not_for_platform, only_for_platform, os_distro_value, PLATFORM_LINUX, PLATFORM_WINDOWS
 
@@ -45,7 +46,6 @@ with patch("platform.linux_distribution", return_value = os_distro_value):
   with patch("os.symlink"):
     with patch("__builtin__.open"):
       with patch("glob.glob", return_value = ['/etc/init.d/postgresql-9.3']):
-        os.environ["ROOT"] = ""
         _ambari_server_ = __import__('ambari-server')
 
         from ambari_commons.firewall import Firewall
