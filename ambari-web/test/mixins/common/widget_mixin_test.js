@@ -391,11 +391,19 @@ describe('App.WidgetMixin', function () {
       view = Em.Object.create({
         _showMessage: Em.K
       }),
+      metrics = [
+        {
+          name: 'n0'
+        },
+        {
+          name: 'n1'
+        }
+      ],
       cases = [
         {
           graphView: null,
           isForcedAbort: false,
-          metricsLength: 1,
+          metrics: metrics,
           showMessageCallCount: 0,
           isExportButtonHidden: false,
           title: 'no graph view'
@@ -403,7 +411,7 @@ describe('App.WidgetMixin', function () {
         {
           graphView: {},
           isForcedAbort: false,
-          metricsLength: 1,
+          metrics: metrics,
           showMessageCallCount: 0,
           isExportButtonHidden: false,
           title: 'no childViews property'
@@ -412,7 +420,7 @@ describe('App.WidgetMixin', function () {
           graphView: {},
           childViews: [],
           isForcedAbort: false,
-          metricsLength: 1,
+          metrics: metrics,
           showMessageCallCount: 0,
           isExportButtonHidden: false,
           title: 'no child views'
@@ -421,7 +429,7 @@ describe('App.WidgetMixin', function () {
           graphView: {},
           childViews: [Em.Object.create({})],
           isForcedAbort: false,
-          metricsLength: 1,
+          metrics: metrics,
           showMessageCallCount: 0,
           isExportButtonHidden: false,
           title: 'no view with _showMessage method'
@@ -430,7 +438,11 @@ describe('App.WidgetMixin', function () {
           graphView: {},
           childViews: [Em.Object.create({}), view],
           isForcedAbort: false,
-          metricsLength: 0,
+          metrics: [
+            {
+              name: 'n1'
+            }
+          ],
           showMessageCallCount: 1,
           isExportButtonHidden: true,
           title: 'graph view is available'
@@ -439,7 +451,7 @@ describe('App.WidgetMixin', function () {
           graphView: {},
           childViews: [Em.Object.create({}), view],
           isForcedAbort: true,
-          metricsLength: 1,
+          metrics: metrics,
           showMessageCallCount: 0,
           isExportButtonHidden: false,
           title: 'request is aborted'
@@ -480,7 +492,14 @@ describe('App.WidgetMixin', function () {
 
         beforeEach(function () {
           obj = Em.Object.create(App.WidgetMixin, {
-            metrics: [{}],
+            metrics: metrics,
+            content: {
+              metrics: [
+                {
+                  name: 'n0'
+                }
+              ]
+            },
             isExportButtonHidden: false,
             graphView: item.graphView,
             childViews: item.childViews
@@ -491,7 +510,7 @@ describe('App.WidgetMixin', function () {
         });
 
         it('metrics array', function () {
-          expect(obj.get('metrics')).to.have.length(item.metricsLength);
+          expect(obj.get('metrics')).to.eql(item.metrics);
         });
 
         it('error message', function () {
