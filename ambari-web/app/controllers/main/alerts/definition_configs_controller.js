@@ -330,6 +330,7 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
       result.push(App.AlertConfigProperties.Parameter.create(mixin, {
         value: isWizard ? '' : parameter.get('value'),
         apiProperty: parameter.get('name'),
+        description: parameter.get('description'),
         label: isWizard ? '' : parameter.get('displayName'),
         threshold: isWizard ? '' : parameter.get('threshold'),
         units: isWizard ? '' : parameter.get('units'),

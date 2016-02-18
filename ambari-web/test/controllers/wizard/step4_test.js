@@ -646,19 +646,29 @@ describe('App.WizardStep4Controller', function () {
     });
 
     cases.forEach(function (item) {
-      it(item.title, function () {
-        controller.set('content', generateSelectedServicesContent(item.services));        
-        controller.serviceDependencyValidation();   
-        expect(controller.get('errorStack').mapProperty('id').contains("serviceCheck_"+item.dependentServices[0])).to.equal(true);        
-        expect(controller.get('errorStack').mapProperty('id').contains("serviceCheck_"+item.dependentServices[1])).to.equal(true);
-        controller.findProperty('serviceName', item.dependentServices[0]).set('isSelected', true);
-        
-        //simulate situation where user clicks cancel on error for first dependent service and then selects it in which case
-        //serviceDependencyValidation() will be called again
-        controller.serviceDependencyValidation();   
-        //error for first dependent service must be removed from errorStack array
-        expect(controller.get('errorStack').mapProperty('id').contains("serviceCheck_"+item.dependentServices[0])).to.equal(false);        
-        expect(controller.get('errorStack').mapProperty('id').contains("serviceCheck_"+item.dependentServices[1])).to.equal(true);
+      describe(item.title, function () {
+
+        beforeEach(function () {
+          controller.set('content', generateSelectedServicesContent(item.services));
+          controller.serviceDependencyValidation();
+        });
+
+        it('check errors in the stack', function () {
+          var ids = controller.get('errorStack').mapProperty('id');
+          expect(ids.contains("serviceCheck_" + item.dependentServices[0])).to.be.true;
+          expect(ids.contains("serviceCheck_" + item.dependentServices[1])).to.be.true;
+        });
+
+        it('simulate situation where user clicks cancel on error for first dependent service and then selects it in which case', function () {
+          controller.findProperty('serviceName', item.dependentServices[0]).set('isSelected', true);
+          //serviceDependencyValidation() will be called again
+          controller.serviceDependencyValidation();
+          //error for first dependent service must be removed from errorStack array
+          var ids = controller.get('errorStack').mapProperty('id');
+          expect(ids.contains("serviceCheck_" + item.dependentServices[0])).to.be.false;
+          expect(ids.contains("serviceCheck_" + item.dependentServices[1])).to.be.true;
+        });
+
       });
     });
   });

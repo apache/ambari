@@ -23,10 +23,6 @@ require('utils/config');
 require('models/service/hdfs');
 var setups = require('test/init_model_test');
 
-function dummyCopy(val) {
-  return JSON.parse(JSON.stringify(val));
-}
-
 describe('App.config', function () {
 
   describe('#trimProperty',function() {
