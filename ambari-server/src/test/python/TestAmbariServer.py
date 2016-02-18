@@ -45,6 +45,7 @@ with patch("platform.linux_distribution", return_value = os_distro_value):
   with patch("os.symlink"):
     with patch("__builtin__.open"):
       with patch("glob.glob", return_value = ['/etc/init.d/postgresql-9.3']):
+        os.environ["ROOT"] = ""
         _ambari_server_ = __import__('ambari-server')
 
         from ambari_commons.firewall import Firewall
@@ -6622,7 +6623,6 @@ class TestAmbariServer(TestCase):
     dbms = OracleConfig(args, properties, "local")
 
     self.assertTrue(decrypt_password_for_alias_method.called)
-    self.assertFalse(path_isabs_method.called)
     self.assertEquals("fakeuser", dbms.database_username)
     self.assertEquals("falepasswd", dbms.database_password)
 

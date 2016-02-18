@@ -38,6 +38,7 @@ from ambari_commons.logging_utils import get_debug_mode, print_info_msg, print_w
 from ambari_server.properties import Properties
 from ambari_server.userInput import get_validated_string_input
 from ambari_server.utils import compare_versions, locate_file
+from ambari_server.ambariPath import AmbariPath
 
 
 OS_VERSION = OSCheck().get_os_major_version()
@@ -281,7 +282,7 @@ class ServerConfigDefaults(object):
   def __init__(self):
     self.JAVA_SHARE_PATH = "/usr/share/java"
     self.SHARE_PATH = "/usr/share"
-    self.OUT_DIR = os.sep + os.path.join("var", "log", "ambari-server")
+    self.OUT_DIR = AmbariPath.get(os.sep + os.path.join("var", "log", "ambari-server"))
     self.SERVER_OUT_FILE = os.path.join(self.OUT_DIR, "ambari-server.out")
     self.SERVER_LOG_FILE = os.path.join(self.OUT_DIR, "ambari-server.log")
     self.ROOT_FS_PATH = os.sep
@@ -294,7 +295,7 @@ class ServerConfigDefaults(object):
 
     # Configuration defaults
     self.DEFAULT_CONF_DIR = ""
-    self.PID_DIR = os.sep + os.path.join("var", "run", "ambari-server")
+    self.PID_DIR = AmbariPath.get(os.sep + os.path.join("var", "run", "ambari-server"))
     self.DEFAULT_LIBS_DIR = ""
     self.DEFAULT_VLIBS_DIR = ""
 
@@ -395,9 +396,9 @@ class ServerConfigDefaultsLinux(ServerConfigDefaults):
     self.JAVA_EXE_SUBPATH = "bin/java"
 
     # Configuration defaults
-    self.DEFAULT_CONF_DIR = "/etc/ambari-server/conf"
-    self.DEFAULT_LIBS_DIR = "/usr/lib/ambari-server"
-    self.DEFAULT_VLIBS_DIR = "/var/lib/ambari-server"
+    self.DEFAULT_CONF_DIR = AmbariPath.get("/etc/ambari-server/conf")
+    self.DEFAULT_LIBS_DIR = AmbariPath.get("/usr/lib/ambari-server")
+    self.DEFAULT_VLIBS_DIR = AmbariPath.get("/var/lib/ambari-server")
 
     self.AMBARI_PROPERTIES_BACKUP_FILE = "ambari.properties.rpmsave"
     self.AMBARI_ENV_BACKUP_FILE = "ambari-env.sh.rpmsave"
@@ -407,55 +408,55 @@ class ServerConfigDefaultsLinux(ServerConfigDefaults):
     # Rules are executed in the same order as they are listed
     # {0} in user/group will be replaced by customized ambari-server username
     self.NR_ADJUST_OWNERSHIP_LIST = [
-      ("/var/log/ambari-server/", "644", "{0}", True),
-      ("/var/log/ambari-server/", "755", "{0}", False),
-      ("/var/run/ambari-server/", "644", "{0}", True),
-      ("/var/run/ambari-server/", "755", "{0}", False),
-      ("/var/run/ambari-server/bootstrap", "755", "{0}", False),
-      ("/var/lib/ambari-server/ambari-env.sh", "700", "{0}", False),
-      ("/var/lib/ambari-server/ambari-sudo.sh", "700", "{0}", False),
-      ("/var/lib/ambari-server/keys/", "600", "{0}", True),
-      ("/var/lib/ambari-server/keys/", "700", "{0}", False),
-      ("/var/lib/ambari-server/keys/db/", "700", "{0}", False),
-      ("/var/lib/ambari-server/keys/db/newcerts/", "700", "{0}", False),
-      ("/var/lib/ambari-server/keys/.ssh", "700", "{0}", False),
-      ("/var/lib/ambari-server/resources/common-services/", "755", "{0}", True),
-      ("/var/lib/ambari-server/resources/stacks/", "755", "{0}", True),
-      ("/var/lib/ambari-server/resources/custom_actions/", "755", "{0}", True),
-      ("/var/lib/ambari-server/resources/host_scripts/", "755", "{0}", True),
-      ("/var/lib/ambari-server/resources/views/", "644", "{0}", True),
-      ("/var/lib/ambari-server/resources/views/", "755", "{0}", False),
-      ("/var/lib/ambari-server/resources/views/work/", "755", "{0}", True),
-      ("/etc/ambari-server/conf/", "644", "{0}", True),
-      ("/etc/ambari-server/conf/", "755", "{0}", False),
-      ("/etc/ambari-server/conf/password.dat", "640", "{0}", False),
-      ("/var/lib/ambari-server/keys/pass.txt", "600", "{0}", False),
-      ("/etc/ambari-server/conf/ldap-password.dat", "640", "{0}", False),
-      ("/var/run/ambari-server/stack-recommendations/", "744", "{0}", True),
-      ("/var/run/ambari-server/stack-recommendations/", "755", "{0}", False),
-      ("/var/lib/ambari-server/resources/data/", "644", "{0}", False),
-      ("/var/lib/ambari-server/resources/data/", "755", "{0}", False),
-      ("/var/lib/ambari-server/data/tmp/", "644", "{0}", True),
-      ("/var/lib/ambari-server/data/tmp/", "755", "{0}", False),
-      ("/var/lib/ambari-server/data/cache/", "600", "{0}", True),
-      ("/var/lib/ambari-server/data/cache/", "700", "{0}", False),
+      (AmbariPath.get("/var/log/ambari-server/"), "644", "{0}", True),
+      (AmbariPath.get("/var/log/ambari-server/"), "755", "{0}", False),
+      (AmbariPath.get("/var/run/ambari-server/"), "644", "{0}", True),
+      (AmbariPath.get("/var/run/ambari-server/"), "755", "{0}", False),
+      (AmbariPath.get("/var/run/ambari-server/bootstrap"), "755", "{0}", False),
+      (AmbariPath.get("/var/lib/ambari-server/ambari-env.sh"), "700", "{0}", False),
+      (AmbariPath.get("/var/lib/ambari-server/ambari-sudo.sh"), "700", "{0}", False),
+      (AmbariPath.get("/var/lib/ambari-server/keys/"), "600", "{0}", True),
+      (AmbariPath.get("/var/lib/ambari-server/keys/"), "700", "{0}", False),
+      (AmbariPath.get("/var/lib/ambari-server/keys/db/"), "700", "{0}", False),
+      (AmbariPath.get("/var/lib/ambari-server/keys/db/newcerts/"), "700", "{0}", False),
+      (AmbariPath.get("/var/lib/ambari-server/keys/.ssh"), "700", "{0}", False),
+      (AmbariPath.get("/var/lib/ambari-server/resources/common-services/"), "755", "{0}", True),
+      (AmbariPath.get("/var/lib/ambari-server/resources/stacks/"), "755", "{0}", True),
+      (AmbariPath.get("/var/lib/ambari-server/resources/custom_actions/"), "755", "{0}", True),
+      (AmbariPath.get("/var/lib/ambari-server/resources/host_scripts/"), "755", "{0}", True),
+      (AmbariPath.get("/var/lib/ambari-server/resources/views/"), "644", "{0}", True),
+      (AmbariPath.get("/var/lib/ambari-server/resources/views/"), "755", "{0}", False),
+      (AmbariPath.get("/var/lib/ambari-server/resources/views/work/"), "755", "{0}", True),
+      (AmbariPath.get("/etc/ambari-server/conf/"), "644", "{0}", True),
+      (AmbariPath.get("/etc/ambari-server/conf/"), "755", "{0}", False),
+      (AmbariPath.get("/etc/ambari-server/conf/password.dat"), "640", "{0}", False),
+      (AmbariPath.get("/var/lib/ambari-server/keys/pass.txt"), "600", "{0}", False),
+      (AmbariPath.get("/etc/ambari-server/conf/ldap-password.dat"), "640", "{0}", False),
+      (AmbariPath.get("/var/run/ambari-server/stack-recommendations/"), "744", "{0}", True),
+      (AmbariPath.get("/var/run/ambari-server/stack-recommendations/"), "755", "{0}", False),
+      (AmbariPath.get("/var/lib/ambari-server/resources/data/"), "644", "{0}", False),
+      (AmbariPath.get("/var/lib/ambari-server/resources/data/"), "755", "{0}", False),
+      (AmbariPath.get("/var/lib/ambari-server/data/tmp/"), "644", "{0}", True),
+      (AmbariPath.get("/var/lib/ambari-server/data/tmp/"), "755", "{0}", False),
+      (AmbariPath.get("/var/lib/ambari-server/data/cache/"), "600", "{0}", True),
+      (AmbariPath.get("/var/lib/ambari-server/data/cache/"), "700", "{0}", False),
       # Also, /etc/ambari-server/conf/password.dat
       # is generated later at store_password_file
     ]
     self.NR_CHANGE_OWNERSHIP_LIST = [
-      ("/var/lib/ambari-server", "{0}", True),
-      ("/usr/lib/ambari-server", "{0}", True),
-      ("/var/log/ambari-server", "{0}", True),
-      ("/var/run/ambari-server", "{0}", True),
-      ("/etc/ambari-server", "{0}", True),
+      (AmbariPath.get("/var/lib/ambari-server"), "{0}", True),
+      (AmbariPath.get("/usr/lib/ambari-server"), "{0}", True),
+      (AmbariPath.get("/var/log/ambari-server"), "{0}", True),
+      (AmbariPath.get("/var/run/ambari-server"), "{0}", True),
+      (AmbariPath.get("/etc/ambari-server"), "{0}", True),
     ]
     self.NR_USERADD_CMD = 'useradd -M --comment "{1}" ' \
-                 '--shell %s -d /var/lib/ambari-server/keys/ {0}' % locate_file('nologin', '/sbin')
+                 '--shell %s ' % locate_file('nologin', '/sbin') + ' -d ' + AmbariPath.get('/var/lib/ambari-server/keys/') + ' {0}'
 
-    self.SERVER_RESOURCES_DIR = "/var/lib/ambari-server/resources"
-    self.STACK_LOCATION_DEFAULT = "/var/lib/ambari-server/resources/stacks"
+    self.SERVER_RESOURCES_DIR = AmbariPath.get("/var/lib/ambari-server/resources")
+    self.STACK_LOCATION_DEFAULT = AmbariPath.get("/var/lib/ambari-server/resources/stacks")
 
-    self.DEFAULT_VIEWS_DIR = "/var/lib/ambari-server/resources/views"
+    self.DEFAULT_VIEWS_DIR = AmbariPath.get("/var/lib/ambari-server/resources/views")
 
     #keytool commands
     self.keytool_bin_subpath = "bin/keytool"
@@ -523,6 +524,10 @@ def get_ambari_properties():
     properties = Properties()
     with open(conf_file) as hfR:
       properties.load(hfR)
+      
+    for k,v in properties.iteritems():
+      properties.__dict__[k] = v.replace("$ROOT", os.environ["ROOT"])
+      properties._props[k] = v.replace("$ROOT", os.environ["ROOT"])
   except (Exception), e:
     print 'Could not read "%s": %s' % (conf_file, e)
     return -1
@@ -571,7 +576,7 @@ def get_value_from_properties(properties, key, default=""):
 def get_views_dir(properties):
   views_dir = properties.get_property(VIEWS_DIR_PROPERTY)
   if views_dir is None or views_dir == "":
-    views_dirs = glob.glob("/var/lib/ambari-server/resources/views/work")
+    views_dirs = glob.glob(AmbariPath.get("/var/lib/ambari-server/resources/views/work"))
   else:
     views_dirs = glob.glob(views_dir + "/work")
   return views_dirs
@@ -579,7 +584,7 @@ def get_views_dir(properties):
 def get_admin_views_dir(properties):
   views_dir = properties.get_property(VIEWS_DIR_PROPERTY)
   if views_dir is None or views_dir == "":
-    views_dirs = glob.glob("/var/lib/ambari-server/resources/views/work/ADMIN_VIEW*")
+    views_dirs = glob.glob(AmbariPath.get("/var/lib/ambari-server/resources/views/work/ADMIN_VIEW*"))
   else:
     views_dirs = glob.glob(views_dir + "/work/ADMIN_VIEW*")
   return views_dirs
@@ -599,7 +604,7 @@ def get_is_persisted(properties):
 def get_credential_store_location(properties):
   store_loc = properties[SECURITY_KEYS_DIR]
   if store_loc is None or store_loc == "":
-    store_loc = "/var/lib/ambari-server/keys/credentials.jceks"
+    store_loc = AmbariPath.get("/var/lib/ambari-server/keys/credentials.jceks")
   else:
     store_loc += os.sep + "credentials.jceks"
   return store_loc

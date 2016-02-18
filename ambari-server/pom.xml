@@ -46,6 +46,7 @@
     <skipPythonTests>false</skipPythonTests>
     <hadoop.version>2.7.1</hadoop.version>
     <jetty.version>9.2.11.v20150529</jetty.version>
+    <empty.dir>src/main/package</empty.dir> <!-- any directory in project with not very big amount of files (not to waste-load them) -->
   </properties>
   <build>
     <plugins>

@@ -21,6 +21,7 @@ limitations under the License.
 import sys
 import zipfile
 import os
+from ambari_server.ambariPath import AmbariPath
 
 # Default values are hardcoded here
 BACKUP_PROCESS = 'backup'
@@ -28,13 +29,13 @@ RESTORE_PROCESS = 'restore'
 SUPPORTED_PROCESSES = [BACKUP_PROCESS, RESTORE_PROCESS]
 
 # The list of files where the ambari server state is kept on the filesystem
-AMBARI_FILESYSTEM_STATE = ["/etc/ambari-server/conf",
-                           "/var/lib/ambari-server/resources",
-                           "/var/run/ambari-server/bootstrap/",
-                           "/var/run/ambari-server/stack-recommendations"]
+AMBARI_FILESYSTEM_STATE = [AmbariPath.get("/etc/ambari-server/conf"),
+                           AmbariPath.get("/var/lib/ambari-server/resources"),
+                           AmbariPath.get("/var/run/ambari-server/bootstrap/"),
+                           AmbariPath.get("/var/run/ambari-server/stack-recommendations")]
 
 # What to use when no path/archive is specified
-DEFAULT_ARCHIVE = "/var/lib/ambari-server/Ambari_State_Backup.zip"
+DEFAULT_ARCHIVE = AmbariPath.get("/var/lib/ambari-server/Ambari_State_Backup.zip")
 
 # Responsible for managing the Backup/Restore process
 class BackupRestore:
