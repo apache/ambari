@@ -27,12 +27,14 @@ App.ReassignMasterWizardStep5View = Em.View.extend({
     if (!this.get('controller.content.componentsWithManualCommands').contains(this.get('controller.content.reassign.component_name'))) {
       return '';
     }
-    var componentDir = this.get('controller.content.componentDir') || '';
-    var componentDirCmd = componentDir.replace(/,/g, ' ');
-    var sourceHost = this.get('controller.content.reassignHosts.source');
-    var targetHost = this.get('controller.content.reassignHosts.target');
-    var ha = '';
-    var user = this.get('controller.content.hdfsUser'), path;
+    var
+      atsDir = App.get('isHadoop23Stack') ? "timeline-state-store.ldb" : "leveldb-timeline-store.ldb",
+      componentDir = this.get('controller.content.componentDir') || '',
+      componentDirCmd = componentDir.replace(/,/g, ' '),
+      sourceHost = this.get('controller.content.reassignHosts.source'),
+      targetHost = this.get('controller.content.reassignHosts.target'),
+      ha = '',
+      user = this.get('controller.content.hdfsUser'), path;
 
     if (this.get('controller.content.reassign.component_name') === 'NAMENODE' && App.get('isHaEnabled')) {
       ha = '_ha';
@@ -45,7 +47,7 @@ App.ReassignMasterWizardStep5View = Em.View.extend({
     }
 
     return Em.I18n.t('services.reassign.step5.body.' + this.get('controller.content.reassign.component_name').toLowerCase() + ha).
-      format(componentDir, sourceHost, targetHost, user, nnStartedHost,this.get('controller.content.group'), componentDirCmd, path);
+      format(componentDir, sourceHost, targetHost, user, nnStartedHost,this.get('controller.content.group'), componentDirCmd, path, atsDir);
   }.property('controller.content.reassign.component_name', 'controller.content.componentDir', 'controller.content.masterComponentHosts', 'controller.content.reassign.host_id', 'controller.content.hdfsUser'),
 
   /**
