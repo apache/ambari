@@ -1373,7 +1373,7 @@ BEGIN TRANSACTION
     select 1, 1, 1, 1;
 
   insert into metainfo(metainfo_key, metainfo_value)
-    select 'version','${ambariVersion}';
+    select 'version','${ambariSchemaVersion}';
 COMMIT TRANSACTION
 
 -- Quartz tables
