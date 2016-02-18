@@ -23,6 +23,8 @@ import static org.junit.Assert.assertNotNull;
 import java.io.File;
 
 import org.apache.ambari.server.state.RepositoryType;
+import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.StackInfo;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
@@ -79,5 +81,25 @@ public class VersionDefinitionTest {
     assertEquals("HDP-2.3", xml.repositoryInfo.getOses().get(0).getRepos().get(0).getRepoId());
     assertEquals("HDP", xml.repositoryInfo.getOses().get(0).getRepos().get(0).getRepoName());
   }
+
+  @Test
+  public void testAllServices() throws Exception {
+
+    File f = new File("src/test/resources/version_definition_test_all_services.xml");
+
+    VersionDefinitionXml xml = VersionDefinitionXml.load(f.toURI().toURL());
+
+    StackInfo stack = new StackInfo() {
+      @Override
+      public ServiceInfo getService(String name) {
+        return null;
+      }
+    };
+
+    // the file does not define available services, which
+    assertEquals(4, xml.manifestServices.size());
+    assertEquals(3, xml.getAvailableServices(stack).size());
+  }
+
 
 }

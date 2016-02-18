@@ -24,7 +24,6 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.VERSION;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -85,15 +84,12 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
-import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.UpgradeHelper;
 import org.apache.ambari.server.state.UpgradeHelper.UpgradeGroupHolder;
-import org.apache.ambari.server.state.repository.AvailableService;
-import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.ConfigUpgradePack;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.UpgradePack;
@@ -718,31 +714,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         RepositoryVersionEntity targetRepositoryVersion = s_repoVersionDAO.findByStackNameAndVersion(
             sourceStackId.getStackName(), version);
 
-        EnumSet<RepositoryType> serviceAware = EnumSet.of(RepositoryType.PATCH, RepositoryType.SERVICE);
-        if (serviceAware.contains(targetRepositoryVersion.getType())) {
-
-          VersionDefinitionXml xml = null;
-          StackInfo stackInfo = s_metaProvider.get().getStack(sourceStackId.getStackName(),
-              sourceStackId.getStackVersion());
-
-          try {
-            xml = targetRepositoryVersion.getRepositoryXml();
-          } catch (Exception e) {
-            throw new AmbariException(String.format("Could not load repository definition for version %s", version));
-          }
-
-          if (null != xml) {
-            Collection<AvailableService> services = xml.getAvailableServices(stackInfo);
-
-            for (AvailableService available : services) {
-              supportedServices.add(available.getName());
-            }
-
-            if (!services.isEmpty()) {
-              scope = UpgradeScope.PARTIAL;
-            }
-          }
-        }
+        // !!! TODO check the repo_version for patch-ness and restrict the context
+        // to those services that require it.  Consult the version definition and add the
+        // service names to supportedServices
 
         targetStackId = targetRepositoryVersion.getStackId();
         break;

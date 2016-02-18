@@ -43,6 +43,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
@@ -102,6 +104,7 @@ import org.easymock.IAnswer;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.inject.AbstractModule;
@@ -355,7 +358,8 @@ public class ClusterStackVersionResourceProviderTest {
 
   }
 
-  @Test
+  @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
+  @Ignore
   public void testCreateResourcesForPatch() throws Exception {
     Resource.Type type = Resource.Type.ClusterStackVersion;
 

@@ -73,14 +73,11 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
-import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.repository.AvailableService;
-import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -418,27 +415,9 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
       // determine services for the repo
       Set<String> serviceNames = new HashSet<>();
-      if (RepositoryType.STANDARD != repoVersionEnt.getType() && null != repoVersionEnt.getVersionXsd()) {
-        VersionDefinitionXml xml = null;
-        try {
-         xml = repoVersionEnt.getRepositoryXml();
 
-         Collection<AvailableService> available = xml.getAvailableServices(
-             ami.getStack(stackId.getStackName(), stackId.getStackVersion()));
-
-         // check if the service is part of the cluster
-         for (AvailableService as : available) {
-           if (cluster.getServices().containsKey(as.getName())) {
-             serviceNames.add(as.getName());
-           }
-         }
-
-        } catch (Exception e) {
-          String msg = String.format("Could not load repo xml for %s", repoVersionEnt.getDisplayName());
-          LOG.error(msg, e);
-          throw new SystemException (msg);
-        }
-      }
+      // !!! TODO for patch upgrades, we need to limit the serviceNames to those
+      // that are detailed for the repository
 
       // Populate with commands for host
       for (int i = 0; i < maxTasks && hostIterator.hasNext(); i++) {

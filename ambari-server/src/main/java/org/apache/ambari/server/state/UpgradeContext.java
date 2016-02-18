@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
@@ -364,6 +366,7 @@ public class UpgradeContext {
    *
    * @param services  the set of specific services
    */
+  @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
   public void setSupportedServices(Set<String> services) {
     m_supported = services;
   }
@@ -374,6 +377,7 @@ public class UpgradeContext {
    * @param serviceName the service name to check.
    * @return {@code true} when the service is supported
    */
+  @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
   public boolean isServiceSupported(String serviceName) {
     if (m_supported.isEmpty() || m_supported.contains(serviceName)) {
       return true;
@@ -382,10 +386,12 @@ public class UpgradeContext {
     return false;
   }
 
+  @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
   public void setScope(UpgradeScope scope) {
     m_scope = scope;
   }
 
+  @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
   public boolean isScoped(UpgradeScope scope) {
     return m_scope.isScoped(scope);
   }

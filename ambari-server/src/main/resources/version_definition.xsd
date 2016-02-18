@@ -96,7 +96,7 @@
       </xs:documentation>
     </xs:annotation>
     <xs:sequence>
-      <xs:element name="service" maxOccurs="unbounded">
+      <xs:element name="service" minOccurs="0" maxOccurs="unbounded">
         <xs:complexType>
           <xs:sequence>
             <xs:element name="component" minOccurs="0" maxOccurs="unbounded" />

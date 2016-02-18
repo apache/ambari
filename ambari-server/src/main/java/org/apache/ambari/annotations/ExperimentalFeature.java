@@ -35,5 +35,10 @@ public enum ExperimentalFeature {
    * The caching of current alert information in order to reduce overall load on
    * the database by preventing frequent updates and JPA entity invalidation.
    */
-  ALERT_CACHING
+  ALERT_CACHING,
+
+  /**
+   * Used for code that is targeted for patch upgrades
+   */
+  PATCH_UPGRADES
 }

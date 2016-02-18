@@ -100,32 +100,47 @@ public class VersionDefinitionXml {
    * @return a collection of AvailableServices used for web service consumption
    */
   public Collection<AvailableService> getAvailableServices(StackInfo stack) {
-    if (availableServices.isEmpty()) {
-      return Collections.emptyList();
-    }
-
     if (null == availableMap) {
       Map<String, ManifestService> manifests = buildManifest();
       availableMap = new HashMap<>();
 
-      for (AvailableServiceReference ref : availableServices) {
-        ManifestService ms = manifests.get(ref.serviceIdReference);
-        ServiceInfo service = stack.getService(ms.serviceName);
-
-        if (!availableMap.containsKey(ms.serviceName)) {
-          String display = (null == service) ? ms.serviceName: service.getDisplayName();
-
-          availableMap.put(ms.serviceName, new AvailableService(ms.serviceName, display));
+      if (availableServices.isEmpty()) {
+        for (ManifestService ms : manifests.values()) {
+          addToAvailable(ms, stack, Collections.<String>emptySet());
         }
 
-        AvailableService as = availableMap.get(ms.serviceName);
-        as.getVersions().add(new AvailableVersion(ms.version, ms.versionId,
-            buildComponents(service, ref.components)));
+      } else {
+        for (AvailableServiceReference ref : availableServices) {
+          ManifestService ms = manifests.get(ref.serviceIdReference);
+
+          addToAvailable(ms, stack, ref.components);
+        }
       }
     }
 
     return availableMap.values();
   }
+
+  /**
+   * Helper method to use a {@link ManifestService} to generate the available services structure
+   * @param ms          the ManifestService instance
+   * @param stack       the stack object
+   * @param components  the set of components for the service
+   */
+  private void addToAvailable(ManifestService ms, StackInfo stack, Set<String> components) {
+    ServiceInfo service = stack.getService(ms.serviceName);
+
+    if (!availableMap.containsKey(ms.serviceName)) {
+      String display = (null == service) ? ms.serviceName: service.getDisplayName();
+
+      availableMap.put(ms.serviceName, new AvailableService(ms.serviceName, display));
+    }
+
+    AvailableService as = availableMap.get(ms.serviceName);
+    as.getVersions().add(new AvailableVersion(ms.version, ms.versionId,
+        buildComponents(service, components)));
+  }
+
 
   /**
    * @return the list of manifest services to a map for easier access.
