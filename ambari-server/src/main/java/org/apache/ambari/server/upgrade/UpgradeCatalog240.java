@@ -18,17 +18,21 @@
 
 package org.apache.ambari.server.upgrade;
 
-import com.google.common.collect.Lists;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
+import java.sql.Clob;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.DaoUtils;
 import org.apache.ambari.server.orm.dao.PermissionDAO;
@@ -37,19 +41,20 @@ import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.RepositoryType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.support.JdbcUtils;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import com.google.common.collect.Lists;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.persist.Transactional;
 
 /**
  * Upgrade catalog for version 2.4.0.
@@ -59,6 +64,13 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   protected static final String ADMIN_PERMISSION_TABLE = "adminpermission";
   protected static final String PERMISSION_ID_COL = "permission_name";
   protected static final String SORT_ORDER_COL = "sort_order";
+  protected static final String REPO_VERSION_TABLE = "repo_version";
+  protected static final String SERVICE_COMPONENT_DS_TABLE = "servicecomponentdesiredstate";
+  protected static final String HOST_COMPONENT_DS_TABLE = "hostcomponentdesiredstate";
+  protected static final String HOST_COMPONENT_STATE_TABLE = "hostcomponentstate";
+  protected static final String SERVICE_COMPONENT_HISTORY_TABLE = "servicecomponent_history";
+  protected static final String UPGRADE_TABLE = "upgrade";
+  protected static final String STACK_TABLE = "stack";
 
   @Inject
   DaoUtils daoUtils;
@@ -116,6 +128,9 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   protected void executeDDLUpdates() throws AmbariException, SQLException {
     updateAdminPermissionTable();
     createSettingTable();
+    updateRepoVersionTableDDL();
+    updateServiceComponentDesiredStateTableDDL();
+    createServiceComponentHistoryTable();
   }
 
   @Override
@@ -132,17 +147,17 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   }
 
   private void createSettingTable() throws SQLException {
-    List<DBAccessor.DBColumnInfo> columns = new ArrayList<>();
+    List<DBColumnInfo> columns = new ArrayList<>();
 
     //  Add setting table
     LOG.info("Creating " + SETTING_TABLE + " table");
 
-    columns.add(new DBAccessor.DBColumnInfo(ID, Long.class, null, null, false));
-    columns.add(new DBAccessor.DBColumnInfo("name", String.class, 255, null, false));
-    columns.add(new DBAccessor.DBColumnInfo("setting_type", String.class, 255, null, false));
-    columns.add(new DBAccessor.DBColumnInfo("content", String.class, 3000, null, false));
-    columns.add(new DBAccessor.DBColumnInfo("updated_by", String.class, 255, "_db", false));
-    columns.add(new DBAccessor.DBColumnInfo("update_timestamp", Long.class, null, null, false));
+    columns.add(new DBColumnInfo(ID, Long.class, null, null, false));
+    columns.add(new DBColumnInfo("name", String.class, 255, null, false));
+    columns.add(new DBColumnInfo("setting_type", String.class, 255, null, false));
+    columns.add(new DBColumnInfo("content", String.class, 3000, null, false));
+    columns.add(new DBColumnInfo("updated_by", String.class, 255, "_db", false));
+    columns.add(new DBColumnInfo("update_timestamp", Long.class, null, null, false));
     dbAccessor.createTable(SETTING_TABLE, columns, ID);
     addSequence("setting_id_seq", 0L, false);
   }
@@ -368,7 +383,8 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
 
   protected void updateAdminPermissionTable() throws SQLException {
     // Add the sort_order column to the adminpermission table
-    dbAccessor.addColumn(ADMIN_PERMISSION_TABLE, new DBAccessor.DBColumnInfo(SORT_ORDER_COL, Short.class, null, 1, false));
+    dbAccessor.addColumn(ADMIN_PERMISSION_TABLE,
+        new DBColumnInfo(SORT_ORDER_COL, Short.class, null, 1, false));
   }
 
   protected void setRoleSortOrder() throws SQLException {
@@ -391,4 +407,159 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
         7, PermissionEntity.VIEW_USER_PERMISSION_NAME));
   }
 
+  /**
+   * Makes the following changes to the {@value #REPO_VERSION_TABLE} table:
+   * <ul>
+   * <li>repo_type VARCHAR(255) DEFAULT 'STANDARD' NOT NULL</li>
+   * <li>version_url VARCHAR(1024)</li>
+   * <li>version_xml MEDIUMTEXT</li>
+   * <li>version_xsd VARCHAR(512)</li>
+   * <li>parent_id BIGINT</li>
+   * </ul>
+   *
+   * @throws SQLException
+   */
+  private void updateRepoVersionTableDDL() throws SQLException {
+    DBColumnInfo repoTypeColumn = new DBColumnInfo("repo_type", String.class, 255, RepositoryType.STANDARD.name(), false);
+    DBColumnInfo versionUrlColumn = new DBColumnInfo("version_url", String.class, 1024, null, true);
+    DBColumnInfo versionXmlColumn = new DBColumnInfo("version_xml", Clob.class, null, null, true);
+    DBColumnInfo versionXsdColumn = new DBColumnInfo("version_xsd", String.class, 512, null, true);
+    DBColumnInfo parentIdColumn = new DBColumnInfo("parent_id", Long.class, null, null, true);
+
+    dbAccessor.addColumn(REPO_VERSION_TABLE, repoTypeColumn);
+    dbAccessor.addColumn(REPO_VERSION_TABLE, versionUrlColumn);
+    dbAccessor.addColumn(REPO_VERSION_TABLE, versionXmlColumn);
+    dbAccessor.addColumn(REPO_VERSION_TABLE, versionXsdColumn);
+    dbAccessor.addColumn(REPO_VERSION_TABLE, parentIdColumn);
+  }
+
+  /**
+   * Makes the following changes to the {@value #SERVICE_COMPONENT_DS_TABLE} table,
+   * but only if the table doesn't have it's new PK set.
+   * <ul>
+   * <li>id BIGINT NOT NULL</li>
+   * <li>Drops FKs on {@value #HOST_COMPONENT_DS_TABLE} and {@value #HOST_COMPONENT_STATE_TABLE}</li>
+   * <li>Populates {@value #SQLException#ID} in {@value #SERVICE_COMPONENT_DS_TABLE}</li>
+   * <li>Creates {@code UNIQUE} constraint on {@value #HOST_COMPONENT_DS_TABLE}</li>
+   * <li>Adds FKs on {@value #HOST_COMPONENT_DS_TABLE} and {@value #HOST_COMPONENT_STATE_TABLE}</li>
+   * <li>Adds new sequence value of {@code servicecomponentdesiredstate_id_seq}</li>
+   * </ul>
+   *
+   * @throws SQLException
+   */
+  @Transactional
+  private void updateServiceComponentDesiredStateTableDDL() throws SQLException {
+    if (dbAccessor.tableHasPrimaryKey(SERVICE_COMPONENT_DS_TABLE, ID)) {
+      LOG.info("Skipping {} table Primary Key modifications since the new {} column already exists",
+          SERVICE_COMPONENT_DS_TABLE, ID);
+
+      return;
+    }
+
+    // drop FKs to SCDS in both HCDS and HCS tables
+    dbAccessor.dropFKConstraint(HOST_COMPONENT_DS_TABLE, "hstcmpnntdesiredstatecmpnntnme");
+    dbAccessor.dropFKConstraint(HOST_COMPONENT_STATE_TABLE, "hstcomponentstatecomponentname");
+
+    // remove existing compound PK
+    dbAccessor.dropPKConstraint(SERVICE_COMPONENT_DS_TABLE, "servicecomponentdesiredstate_pkey");
+
+    // add new PK column to SCDS, making it nullable for now
+    DBColumnInfo idColumn = new DBColumnInfo(ID, Long.class, null, null, true);
+    dbAccessor.addColumn(SERVICE_COMPONENT_DS_TABLE, idColumn);
+
+    // populate SCDS id column
+    AtomicLong scdsIdCounter = new AtomicLong(1);
+    Statement statement = null;
+    ResultSet resultSet = null;
+    try {
+      statement = dbAccessor.getConnection().createStatement();
+      if (statement != null) {
+        String selectSQL = String.format("SELECT cluster_id, service_name, component_name FROM %s",
+            SERVICE_COMPONENT_DS_TABLE);
+
+        resultSet = statement.executeQuery(selectSQL);
+        while (null != resultSet && resultSet.next()) {
+          final Long clusterId = resultSet.getLong("cluster_id");
+          final String serviceName = resultSet.getString("service_name");
+          final String componentName = resultSet.getString("component_name");
+
+          String updateSQL = String.format(
+              "UPDATE %s SET %s = %d WHERE cluster_id = %d AND service_name = '%s' AND component_name = '%s'",
+              SERVICE_COMPONENT_DS_TABLE, ID, scdsIdCounter.getAndIncrement(), clusterId,
+              serviceName, componentName);
+
+          dbAccessor.executeQuery(updateSQL);
+        }
+      }
+    } finally {
+      JdbcUtils.closeResultSet(resultSet);
+      JdbcUtils.closeStatement(statement);
+    }
+
+    // make the column NON NULL now
+    dbAccessor.alterColumn(SERVICE_COMPONENT_DS_TABLE,
+        new DBColumnInfo(ID, Long.class, null, null, false));
+
+    // create a new PK, matching the name of the constraint found in SQL
+    dbAccessor.addPKConstraint(SERVICE_COMPONENT_DS_TABLE, "pk_sc_desiredstate", ID);
+
+    // create UNIQUE constraint, ensuring column order matches SQL files
+    String[] uniqueColumns = new String[] { "component_name", "service_name", "cluster_id" };
+    dbAccessor.addUniqueConstraint(SERVICE_COMPONENT_DS_TABLE, "unq_scdesiredstate_name",
+        uniqueColumns);
+
+    // add FKs back to SCDS in both HCDS and HCS tables
+    dbAccessor.addFKConstraint(HOST_COMPONENT_DS_TABLE, "hstcmpnntdesiredstatecmpnntnme",
+        uniqueColumns, SERVICE_COMPONENT_DS_TABLE, uniqueColumns, false);
+
+    dbAccessor.addFKConstraint(HOST_COMPONENT_STATE_TABLE, "hstcomponentstatecomponentname",
+        uniqueColumns, SERVICE_COMPONENT_DS_TABLE, uniqueColumns, false);
+
+    // Add sequence for SCDS id
+    addSequence("servicecomponentdesiredstate_id_seq", scdsIdCounter.get(), false);
+  }
+
+  /**
+   * Makes the following changes to the {@value #SERVICE_COMPONENT_HISTORY_TABLE} table:
+   * <ul>
+   * <li>id BIGINT NOT NULL</li>
+   * <li>component_id BIGINT NOT NULL</li>
+   * <li>upgrade_id BIGINT NOT NULL</li>
+   * <li>from_stack_id BIGINT NOT NULL</li>
+   * <li>to_stack_id BIGINT NOT NULL</li>
+   * <li>CONSTRAINT PK_sc_history PRIMARY KEY (id)</li>
+   * <li>CONSTRAINT FK_sc_history_component_id FOREIGN KEY (component_id) REFERENCES servicecomponentdesiredstate (id)</li>
+   * <li>CONSTRAINT FK_sc_history_upgrade_id FOREIGN KEY (upgrade_id) REFERENCES upgrade (upgrade_id)</li>
+   * <li>CONSTRAINT FK_sc_history_from_stack_id FOREIGN KEY (from_stack_id) REFERENCES stack (stack_id)</li>
+   * <li>CONSTRAINT FK_sc_history_to_stack_id FOREIGN KEY (to_stack_id) REFERENCES stack (stack_id)</li>
+   * <li>Creates the {@code servicecomponent_history_id_seq}</li>
+   * </ul>
+   *
+   * @throws SQLException
+   */
+  private void createServiceComponentHistoryTable() throws SQLException {
+    List<DBColumnInfo> columns = new ArrayList<>();
+    columns.add(new DBColumnInfo(ID, Long.class, null, null, false));
+    columns.add(new DBColumnInfo("component_id", Long.class, null, null, false));
+    columns.add(new DBColumnInfo("upgrade_id", Long.class, null, null, false));
+    columns.add(new DBColumnInfo("from_stack_id", Long.class, null, null, false));
+    columns.add(new DBColumnInfo("to_stack_id", Long.class, null, null, false));
+    dbAccessor.createTable(SERVICE_COMPONENT_HISTORY_TABLE, columns, (String[]) null);
+
+    dbAccessor.addPKConstraint(SERVICE_COMPONENT_HISTORY_TABLE, "PK_sc_history", ID);
+
+    dbAccessor.addFKConstraint(SERVICE_COMPONENT_HISTORY_TABLE, "FK_sc_history_component_id",
+        "component_id", SERVICE_COMPONENT_DS_TABLE, "id", false);
+
+    dbAccessor.addFKConstraint(SERVICE_COMPONENT_HISTORY_TABLE, "FK_sc_history_upgrade_id",
+        "upgrade_id", UPGRADE_TABLE, "upgrade_id", false);
+
+    dbAccessor.addFKConstraint(SERVICE_COMPONENT_HISTORY_TABLE, "FK_sc_history_from_stack_id",
+        "from_stack_id", STACK_TABLE, "stack_id", false);
+
+    dbAccessor.addFKConstraint(SERVICE_COMPONENT_HISTORY_TABLE, "FK_sc_history_to_stack_id",
+        "to_stack_id", STACK_TABLE, "stack_id", false);
+
+    addSequence("servicecomponent_history_id_seq", 0L, false);
+  }
 }

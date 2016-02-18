@@ -1020,6 +1020,7 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_re
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_host_group_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('setting_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('hostcomponentstate_id_seq', 0);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('servicecomponentdesiredstate_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('servicecomponent_history_id_seq', 0);
 
 insert into adminresourcetype (resource_type_id, resource_type_name)

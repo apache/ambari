@@ -545,7 +545,9 @@ public interface DBAccessor {
   /**
    * Queries the database to determine the name of the primary key constraint on
    * the specified table. Currently, this is only implemented for
-   * {@link DatabaseType#ORACLE} and {@link DatabaseType#SQL_SERVER}.
+   * {@link DatabaseType#POSTGRES}, {@link DatabaseType#ORACLE} and
+   * {@link DatabaseType#SQL_SERVER}. {@link DatabaseType#MYSQL} does not need
+   * this since PKs can be dropped without referencing their name.
    *
    * @param tableName
    *          the name of the table to lookup the PK constraint.
@@ -553,6 +555,18 @@ public interface DBAccessor {
    * @throws SQLException
    */
   String getPrimaryKeyConstraintName(String tableName) throws SQLException;
+
+  /**
+   * Attempts to drop the discovered PRIMARY KEY constraint on the specified
+   * table, defaulting to the specified default if not found.
+   *
+   * @param tableName
+   *          the table to drop the PK from (not {@code null}).
+   * @param defaultConstraintName
+   *          the default name of the PK constraint if none is found.
+   * @throws SQLException
+   */
+  void dropPKConstraint(String tableName, String defaultConstraintName) throws SQLException;
 
   enum DbType {
     ORACLE,

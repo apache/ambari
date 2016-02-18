@@ -19,41 +19,6 @@
 package org.apache.ambari.server.upgrade;
 
 
-import com.google.inject.Binder;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Module;
-import com.google.inject.Provider;
-import junit.framework.Assert;
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.orm.DBAccessor;
-import org.apache.ambari.server.orm.GuiceJpaInitializer;
-import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.orm.dao.StackDAO;
-import org.easymock.Capture;
-import org.easymock.CaptureType;
-import org.apache.ambari.server.state.stack.OsFamily;
-import org.easymock.EasyMock;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import javax.persistence.EntityManager;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMockBuilder;
@@ -66,6 +31,44 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.persistence.EntityManager;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.GuiceJpaInitializer;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.dao.StackDAO;
+import org.apache.ambari.server.state.stack.OsFamily;
+import org.easymock.Capture;
+import org.easymock.CaptureType;
+import org.easymock.EasyMock;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import com.google.inject.Binder;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.google.inject.Provider;
+
+import junit.framework.Assert;
 
 public class UpgradeCatalog240Test {
   private static Injector injector;
@@ -114,7 +117,44 @@ public class UpgradeCatalog240Test {
     expect(connection.createStatement()).andReturn(statement);
     expect(statement.executeQuery(anyObject(String.class))).andReturn(resultSet);
 
-    replay(dbAccessor);
+    Capture<DBAccessor.DBColumnInfo> repoVersionRepoTypeColumnCapture = newCapture();
+    Capture<DBAccessor.DBColumnInfo> repoVersionUrlColumnCapture = newCapture();
+    Capture<DBAccessor.DBColumnInfo> repoVersionXmlColumnCapture = newCapture();
+    Capture<DBAccessor.DBColumnInfo> repoVersionXsdColumnCapture = newCapture();
+    Capture<DBAccessor.DBColumnInfo> repoVersionParentIdColumnCapture = newCapture();
+
+    dbAccessor.addColumn(eq("repo_version"), capture(repoVersionRepoTypeColumnCapture));
+    dbAccessor.addColumn(eq("repo_version"), capture(repoVersionUrlColumnCapture));
+    dbAccessor.addColumn(eq("repo_version"), capture(repoVersionXmlColumnCapture));
+    dbAccessor.addColumn(eq("repo_version"), capture(repoVersionXsdColumnCapture));
+    dbAccessor.addColumn(eq("repo_version"), capture(repoVersionParentIdColumnCapture));
+
+    // skip all of the drama of the servicecomponentdesiredstate table for now
+    expect(dbAccessor.tableHasPrimaryKey("servicecomponentdesiredstate", "id")).andReturn(true);
+
+    Capture<List<DBAccessor.DBColumnInfo>> capturedHistoryColumns = EasyMock.newCapture();
+    dbAccessor.createTable(eq("servicecomponent_history"), capture(capturedHistoryColumns),
+        eq((String[]) null));
+
+    dbAccessor.addPKConstraint("servicecomponent_history", "PK_sc_history", "id");
+    dbAccessor.addFKConstraint("servicecomponent_history", "FK_sc_history_component_id",
+        "component_id", "servicecomponentdesiredstate", "id", false);
+
+    dbAccessor.addFKConstraint("servicecomponent_history", "FK_sc_history_upgrade_id", "upgrade_id",
+        "upgrade", "upgrade_id", false);
+
+    dbAccessor.addFKConstraint("servicecomponent_history", "FK_sc_history_from_stack_id",
+        "from_stack_id", "stack", "stack_id", false);
+
+    dbAccessor.addFKConstraint("servicecomponent_history", "FK_sc_history_to_stack_id",
+        "to_stack_id", "stack", "stack_id", false);
+
+    expect(dbAccessor.getConnection()).andReturn(connection);
+    expect(connection.createStatement()).andReturn(statement);
+    expect(statement.executeQuery(anyObject(String.class))).andReturn(resultSet);
+
+    replay(dbAccessor, configuration, connection, statement, resultSet);
+
     Module module = new Module() {
       @Override
       public void configure(Binder binder) {
@@ -148,6 +188,21 @@ public class UpgradeCatalog240Test {
     for(DBAccessor.DBColumnInfo settingColumnInfo : capturedSettingColumns.getValue()) {
       actualCaptures.put(settingColumnInfo.getName(), settingColumnInfo.getType());
     }
+
+    assertEquals(expectedCaptures, actualCaptures);
+
+    expectedCaptures = new HashMap<>();
+    expectedCaptures.put("id", Long.class);
+    expectedCaptures.put("component_id", Long.class);
+    expectedCaptures.put("upgrade_id", Long.class);
+    expectedCaptures.put("from_stack_id", Long.class);
+    expectedCaptures.put("to_stack_id", Long.class);
+
+    actualCaptures = new HashMap<>();
+    for (DBAccessor.DBColumnInfo historyColumnInfo : capturedHistoryColumns.getValue()) {
+      actualCaptures.put(historyColumnInfo.getName(), historyColumnInfo.getType());
+    }
+
     assertEquals(expectedCaptures, actualCaptures);
 
     verify(dbAccessor);
