@@ -1175,6 +1175,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     RequestResourceFilter filter = new RequestResourceFilter("", "",
         new ArrayList<String>(wrapper.getHosts()));
 
+    LOG.debug("Analyzing upgrade item {} with tasks: {}.", entity.getText(), entity.getTasks());
     Map<String, String> params = getNewParameterMap();
     params.put(COMMAND_PARAM_TASKS, entity.getTasks());
     params.put(COMMAND_PARAM_VERSION, context.getVersion());
