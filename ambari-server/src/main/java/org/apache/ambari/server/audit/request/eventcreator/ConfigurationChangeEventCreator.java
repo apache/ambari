@@ -93,11 +93,13 @@ public class ConfigurationChangeEventCreator implements RequestAuditEventCreator
   }
 
   private String getServiceConfigVersion(Result result) {
-    return String.valueOf(getServiceConfigMap(result).get("service_config_version"));
+    Map<String, Object> map = getServiceConfigMap(result);
+    return map == null ? null : String.valueOf(map.get("service_config_version"));
   }
 
   private String getServiceConfigVersionNote(Result result) {
-    return String.valueOf(getServiceConfigMap(result).get("service_config_version_note"));
+    Map<String, Object> map = getServiceConfigMap(result);
+    return map == null ? null : String.valueOf(map.get("service_config_version_note"));
   }
 
   private Map<String, Object> getServiceConfigMap(Result result) {
