@@ -19,6 +19,7 @@
 
 var App = require('app');
 require('views/main/service/info/configs');
+var batchUtils = require('utils/batch_scheduled_requests');
 
 describe('App.MainServiceInfoConfigsView', function () {
 
@@ -26,7 +27,11 @@ describe('App.MainServiceInfoConfigsView', function () {
 
   beforeEach(function () {
     view = App.MainServiceInfoConfigsView.create({
-      controller: Em.Object.create()
+      controller: Em.Object.create({
+        loadStep: Em.K,
+        clearStep: Em.K,
+        content: Em.Object.create()
+      })
     });
   });
 
@@ -101,4 +106,96 @@ describe('App.MainServiceInfoConfigsView', function () {
     });
   });
 
+  describe("#didInsertElement()", function() {
+    var mock = {
+      isLoading: function () {
+        return {
+          done: function (callback) {
+            callback();
+          }
+        }
+      }
+    };
+
+    beforeEach(function() {
+      sinon.stub(App.router, 'get').returns(mock);
+      sinon.stub(view.get('controller'), 'loadStep');
+      sinon.stub(view, 'resetConfigTabSelection');
+      view.didInsertElement();
+    });
+    afterEach(function() {
+      App.router.get.restore();
+      view.get('controller').loadStep.restore();
+      view.resetConfigTabSelection.restore();
+    });
+
+    it("loadStep should be called", function() {
+      expect(view.get('controller').loadStep.calledOnce).to.be.true;
+    });
+
+    it("resetConfigTabSelection should be called", function() {
+      expect(view.resetConfigTabSelection.calledOnce).to.be.true;
+    });
+  });
+
+  describe("#willDestroyElement()", function() {
+
+    beforeEach(function() {
+      sinon.stub(view.get('controller'), 'clearStep');
+    });
+    afterEach(function() {
+      view.get('controller').clearStep.restore();
+    });
+
+    it("resetConfigTabSelection should be called", function() {
+      view.willDestroyElement();
+      expect(view.get('controller').clearStep.calledOnce).to.be.true;
+    });
+  });
+
+  describe("#rollingRestartSlaveComponentName", function() {
+
+    beforeEach(function() {
+      sinon.stub(batchUtils, 'getRollingRestartComponentName', function(input) {
+        return input;
+      });
+    });
+    afterEach(function() {
+      batchUtils.getRollingRestartComponentName.restore();
+    });
+
+    it("should return service name", function() {
+      view.set('controller.content.serviceName', 'S1');
+      view.propertyDidChange('rollingRestartSlaveComponentName');
+      expect(view.get('rollingRestartSlaveComponentName')).to.equal('S1');
+    });
+  });
+
+  describe("#rollingRestartActionName", function() {
+
+    beforeEach(function() {
+      sinon.stub(App.format, 'role', function(input) {
+        return input;
+      });
+    });
+    afterEach(function() {
+      App.format.role.restore();
+    });
+
+    it("should return action name", function() {
+      view.reopen({
+        rollingRestartSlaveComponentName: 'C1'
+      });
+      view.propertyDidChange('rollingRestartActionName');
+      expect(view.get('rollingRestartActionName')).to.equal(Em.I18n.t('rollingrestart.dialog.title').format('C1'));
+    });
+
+    it("should return empty", function() {
+      view.reopen({
+        rollingRestartSlaveComponentName: null
+      });
+      view.propertyDidChange('rollingRestartActionName');
+      expect(view.get('rollingRestartActionName')).to.be.empty;
+    });
+  });
 });

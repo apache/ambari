@@ -199,6 +199,10 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
     });
   },
 
+  setCurrentTimeIndex: function () {
+    this.set('currentTimeIndex', this.get('parentView.currentTimeRangeIndex'));
+  }.observes('parentView.currentTimeRangeIndex'),
+
   /**
    * Maps server data into series format ready for export to graph and JSON formats
    * @param jsonData

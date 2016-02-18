@@ -229,7 +229,7 @@ App.Service.Health = {
  * association between service and extended model name
  * @type {Object}
  */
-  App.Service.extendedModel = {
+App.Service.extendedModel = {
   'HDFS': 'HDFSService',
   'HBASE': 'HBaseService',
   'YARN': 'YARNService',

@@ -74,11 +74,6 @@ describe('App.upgradeWizardView', function () {
   });
 
   describe("#activeGroup", function () {
-    after(function () {
-      view.reopen({
-        activeGroup: Em.Object.create()
-      });
-    });
     it("status is updated", function () {
       view.reopen({
         activeStatuses: ['IN_PROGRESS'],

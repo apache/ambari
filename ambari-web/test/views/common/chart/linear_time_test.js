@@ -302,7 +302,8 @@ describe('App.ChartLinearTimeView', function () {
           parentView: Em.Object.create({
             currentTimeRangeIndex: 2
           })
-        })
+        }),
+        timeUnitSecondsSetter: Em.K
       });
     });
 

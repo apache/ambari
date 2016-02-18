@@ -89,7 +89,7 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
   hasManyServers: Em.computed.gt('servers.length', 1),
 
   clientsHostText: function () {
-    if (this.get('controller.content.installedClients').length == 0) {
+    if (this.get('controller.content.installedClients').length === 0) {
       return '';
     } else if (this.get("hasManyClients")) {
       return Em.I18n.t('services.service.summary.viewHosts');
@@ -134,9 +134,11 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
     return result;
   }.property('controller.content'),
 
-  historyServerUI: function(){
-    var service=this.get('controller.content');
-    return (App.singleNodeInstall ? "http://" + App.singleNodeAlias + ":19888" : "http://" + service.get("hostComponents").findProperty('isMaster', true).get("host").get("publicHostName")+":19888");
+  historyServerUI: function () {
+    var master = this.get('controller.content.hostComponents').findProperty('isMaster');
+    return (App.singleNodeInstall
+      ? "http://" + App.singleNodeAlias + ":19888"
+      : "http://" + master.get("host.publicHostName") + ":19888");
   }.property('controller.content'),
 
   /**
@@ -189,7 +191,7 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
   updateComponentList: function(source, data) {
     var sourceIds = source.mapProperty('id');
     var dataIds = data.mapProperty('id');
-    if (sourceIds.length == 0) {
+    if (sourceIds.length === 0) {
       source.pushObjects(data);
     }
     if (source.length > data.length) {
@@ -216,13 +218,14 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
   },
 
   /**
+   * @type {Em.View}
    * Wrapper for displayName. used to render correct display name for mysql_server
    */
   componentNameView: Ember.View.extend({
     template: Ember.Handlebars.compile('{{view.displayName}}'),
     comp : null,
-    displayName: function(){
-      if(this.get('comp.componentName') == 'MYSQL_SERVER'){
+    displayName: function () {
+      if (this.get('comp.componentName') === 'MYSQL_SERVER') {
         return this.t('services.hive.databaseComponent');
       }
       return this.get('comp.displayName');
@@ -232,43 +235,32 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
   service: null,
 
   getServiceModel: function (serviceName) {
-    var svc = App.Service.find(serviceName);
-    var svcName = svc.get('serviceName');
-    if (svcName) {
-      switch (svcName.toLowerCase()) {
-        case 'hdfs':
-          svc = App.HDFSService.find().objectAt(0);
-          break;
-        case 'yarn':
-          svc = App.YARNService.find().objectAt(0);
-          break;
-        case 'hbase':
-          svc = App.HBaseService.find().objectAt(0);
-          break;
-        case 'flume':
-          svc = App.FlumeService.find().objectAt(0);
-          break;
-        case 'storm':
-          svc = App.StormService.find().objectAt(0);
-          break;
-        default:
-          break;
-      }
+    var extended = App.Service.extendedModel[serviceName];
+    if (extended) {
+      return App[extended].find().objectAt(0);
     }
-    return svc;
+    return App.Service.find(serviceName);
   },
 
-  isHide:true,
-  moreStatsView:Em.View.extend({
-    tagName:"a",
-    template:Ember.Handlebars.compile('{{t services.service.summary.moreStats}}'),
-    attributeBindings:[ 'href' ],
-    classNames:[ 'more-stats' ],
-    click:function (event) {
+  /**
+   * @type {boolean}
+   * @default true
+   */
+  isHide: true,
+
+  /**
+   * @type {Em.View}
+   */
+  moreStatsView: Em.View.extend({
+    tagName: "a",
+    template: Ember.Handlebars.compile('{{t services.service.summary.moreStats}}'),
+    attributeBindings: ['href'],
+    classNames: ['more-stats'],
+    click: function (event) {
       this._parentView._parentView.set('isHide', false);
       this.remove();
     },
-    href:'javascript:void(null)'
+    href: 'javascript:void(null)'
   }),
 
   serviceName: Em.computed.alias('service.serviceName'),
@@ -293,7 +285,7 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
     return App.AlertDefinition.find().someProperty('serviceName', this.get('controller.content.serviceName'));
   }.property('controller.content.serviceName'),
 
-  updateComponentInformation: function() {
+  updateComponentInformation: function () {
     var hc = this.get('controller.content.restartRequiredHostsAndComponents');
     var hostsCount = 0;
     var componentsCount = 0;
@@ -305,10 +297,11 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
     this.set('hostsCount', hostsCount);
   }.observes('controller.content.restartRequiredHostsAndComponents'),
 
-  rollingRestartSlaveComponentName : function() {
+  rollingRestartSlaveComponentName: function() {
     return batchUtils.getRollingRestartComponentName(this.get('serviceName'));
   }.property('serviceName'),
-  rollingRestartActionName : function() {
+
+  rollingRestartActionName: function() {
     var label = null;
     var componentName = this.get('rollingRestartSlaveComponentName');
     if (componentName) {
@@ -349,6 +342,7 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
       }, bodyMessage);
     }
   },
+
   rollingRestartStaleConfigSlaveComponents: function (componentName) {
     batchUtils.launchHostComponentRollingRestart(componentName.context, this.get('service.displayName'), this.get('service.passiveState') === "ON", true);
   },
@@ -358,31 +352,25 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
    * the array into sections of 5 for displaying on the page
    * (will only display rows with 5 items)
    */
-  constructGraphObjects: function(graphNames) {
-    var result = [], graphObjects = [], chunkSize = this.get('chunkSize');
-    var self = this;
-    var serviceName = this.get('controller.content.serviceName');
-    var stackService = App.StackService.find().findProperty('serviceName', serviceName);
+  constructGraphObjects: function (graphNames) {
+    var self = this,
+        stackService = App.StackService.find(this.get('controller.content.serviceName'));
 
     if (!graphNames && !stackService.get('isServiceWithWidgets')) {
-      self.get('serviceMetricGraphs').clear();
-      self.set('isServiceMetricLoaded', false);
+      this.get('serviceMetricGraphs').clear();
+      this.set('isServiceMetricLoaded', false);
       return;
     }
 
-    // load time range for current service from server
-    self.getUserPref(self.get('persistKey')).complete(function () {
-      var index = self.get('currentTimeRangeIndex');
+    // load time range(currentTimeRangeIndex) for current service from server
+    this.getUserPref(self.get('persistKey')).complete(function () {
+      var result = [], graphObjects = [], chunkSize = self.get('chunkSize');
       if (graphNames) {
-        graphNames.forEach(function(graphName) {
-          graphObjects.push(App["ChartServiceMetrics" + graphName].extend({
-            setCurrentTimeIndex: function () {
-              this.set('currentTimeIndex', this.get('parentView.currentTimeRangeIndex'));
-            }.observes('parentView.currentTimeRangeIndex')
-          }));
+        graphNames.forEach(function (graphName) {
+          graphObjects.push(App["ChartServiceMetrics" + graphName].extend());
         });
       }
-      while(graphObjects.length) {
+      while (graphObjects.length) {
         result.push(graphObjects.splice(0, chunkSize));
       }
       self.set('serviceMetricGraphs', result);
@@ -394,6 +382,11 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
    * Contains graphs for this particular service
    */
   serviceMetricGraphs: [],
+
+  /**
+   * @type {boolean}
+   * @default false
+   */
   isServiceMetricLoaded: false,
 
   /**
@@ -409,7 +402,7 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
   },
 
   getUserPrefErrorCallback: function (request) {
-    if (request.status == 404) {
+    if (request.status === 404) {
       this.postUserPref(this.get('persistKey'), 0);
       this.set('currentTimeRangeIndex', 0);
     }
@@ -543,7 +536,7 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
     this._super();
     var svcName = this.get('controller.content.serviceName');
     this.set('service', this.getServiceModel(svcName));
-    var isMetricsSupported = svcName != 'STORM' || App.get('isStormMetricsSupported');
+    var isMetricsSupported = svcName !== 'STORM' || App.get('isStormMetricsSupported');
 
     this.get('controller').getActiveWidgetLayout();
     if (App.get('supports.customizedWidgetLayout')) {
@@ -551,11 +544,35 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
     }
 
     if (svcName && isMetricsSupported) {
-      var allServices =  require('data/service_graph_config');
+      var allServices = require('data/service_graph_config');
       this.constructGraphObjects(allServices[svcName.toLowerCase()]);
     }
-    // adjust the summary table height
+    this.adjustSummaryHeight();
+    this.makeSortable();
+    this.addWidgetTooltip();
+    App.loadTimer.finish('Service Summary Page');
+  },
+
+  addWidgetTooltip: function() {
+    Em.run.later(this, function () {
+      App.tooltip($("[rel='add-widget-tooltip']"));
+      // enable description show up on hover
+      $('.thumbnail').hoverIntent(function() {
+        if ($(this).is(':hover')) {
+          $(this).find('.hidden-description').delay(1000).fadeIn(200).end();
+        }
+      }, function() {
+        $(this).find('.hidden-description').stop().hide().end();
+      });
+    }, 1000);
+  },
+
+  /**
+   * adjust the summary table height
+   */
+  adjustSummaryHeight: function() {
     var summaryTable = document.getElementById('summary-info');
+
     if (summaryTable) {
       var rows = $(summaryTable).find('tr');
       if (rows != null && rows.length > 0) {
@@ -567,19 +584,6 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
         }
       }
     }
-    this.makeSortable();
-    Em.run.later(this, function () {
-      App.tooltip($("[rel='add-widget-tooltip']"));
-      // enalble description show up on hover
-      $('.thumbnail').hoverIntent(function() {
-        if ($(this).is(':hover')) {
-          $(this).find('.hidden-description').delay(1000).fadeIn(200).end();
-        }
-      }, function() {
-        $(this).find('.hidden-description').stop().hide().end();
-      });
-    }, 1000);
-    App.loadTimer.finish('Service Summary Page');
   },
 
   willDestroyElement: function() {
