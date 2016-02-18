@@ -67,18 +67,15 @@ def setup_common_configurations():
   """
   import params
 
-  # Write hdfs-client.xml on the local filesystem. If hdfs HA is enabled, append related parameters
-  params.XmlConfig(filename="hdfs-client.xml",
+  params.XmlConfig("hdfs-client.xml",
                    configurations=params.hdfs_client,
                    configuration_attributes=params.config_attrs['hdfs-client'])
 
-  # Write yarn-client.xml on the local filesystem. If yarn HA is enabled, append related parameters
-  params.XmlConfig(filename="yarn-client.xml",
+  params.XmlConfig("yarn-client.xml",
                    configurations=params.yarn_client,
                    configuration_attributes=params.config_attrs['yarn-client'])
 
-  # Write hawq-site.xml on the local filesystem.
-  params.XmlConfig(filename="hawq-site.xml",
+  params.XmlConfig("hawq-site.xml",
                    configurations=params.hawq_site,
                    configuration_attributes=params.config_attrs['hawq-site'])
   __set_osparams()
