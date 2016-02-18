@@ -176,7 +176,7 @@ public class DatabaseChecker {
       throw new AmbariException("Unable to read server version file.");
     }
 
-    if (schemaVersionEntity==null || VersionUtils.compareVersions(schemaVersion, serverVersion, 4) != 0) {
+    if (schemaVersionEntity==null || VersionUtils.compareVersions(schemaVersion, serverVersion, 3) != 0) {
       String error = "Current database store version is not compatible with " +
         "current server version"
         + ", serverVersion=" + serverVersion
