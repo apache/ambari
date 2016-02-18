@@ -225,11 +225,14 @@ public class ComponentResourceProviderTest {
     expect(service.getServiceComponents()).andReturn(serviceComponentMap).anyTimes();
 
     expect(serviceComponent1.convertToResponse()).andReturn(
-      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component100", null, "", 1, 1, 0));
+      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component100", null, "", 1, 1, 0,
+              true /* recovery enabled */));
     expect(serviceComponent2.convertToResponse()).andReturn(
-      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component101", null, "", 1, 1, 0));
+      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component101", null, "", 1, 1, 0,
+              false /* recovery not enabled */));
     expect(serviceComponent3.convertToResponse()).andReturn(
-      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component102", null, "", 1, 1, 0));
+      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component102", null, "", 1, 1, 0,
+              true /* recovery enabled */));
 
     expect(ambariMetaInfo.getComponent((String) anyObject(),
         (String) anyObject(), (String) anyObject(), (String) anyObject()))
@@ -258,6 +261,7 @@ public class ComponentResourceProviderTest {
     propertyIds.add(ComponentResourceProvider.COMPONENT_TOTAL_COUNT_PROPERTY_ID);
     propertyIds.add(ComponentResourceProvider.COMPONENT_STARTED_COUNT_PROPERTY_ID);
     propertyIds.add(ComponentResourceProvider.COMPONENT_INSTALLED_COUNT_PROPERTY_ID);
+    propertyIds.add(ComponentResourceProvider.COMPONENT_RECOVERY_ENABLED_ID);
 
     Predicate predicate = new PredicateBuilder()
       .property(ComponentResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID)
@@ -282,6 +286,8 @@ public class ComponentResourceProviderTest {
         ComponentResourceProvider.COMPONENT_STARTED_COUNT_PROPERTY_ID));
       Assert.assertEquals(0, resource.getPropertyValue(
         ComponentResourceProvider.COMPONENT_INSTALLED_COUNT_PROPERTY_ID));
+      Assert.assertEquals(String.valueOf(true), resource.getPropertyValue(
+        ComponentResourceProvider.COMPONENT_RECOVERY_ENABLED_ID));
     }
 
     // verify
@@ -364,11 +370,14 @@ public class ComponentResourceProviderTest {
     expect(component3Info.getCategory()).andReturn(null);
 
     expect(serviceComponent1.convertToResponse()).andReturn(
-      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component101", null, "", 1, 0, 1));
+      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component101", null, "", 1, 0, 1,
+              false /* recovery not enabled */));
     expect(serviceComponent2.convertToResponse()).andReturn(
-      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component102", null, "", 1, 0, 1));
+      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component102", null, "", 1, 0, 1,
+              false /* recovery not enabled */));
     expect(serviceComponent3.convertToResponse()).andReturn(
-      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component103", null, "", 1, 0, 1));
+      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component103", null, "", 1, 0, 1,
+              false /* recovery not enabled */));
     expect(serviceComponent1.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
     expect(serviceComponent2.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
     expect(serviceComponent3.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
@@ -412,6 +421,7 @@ public class ComponentResourceProviderTest {
 
     Map<String, Object> properties = new LinkedHashMap<String, Object>();
 
+    properties.put(ComponentResourceProvider.COMPONENT_RECOVERY_ENABLED_ID, String.valueOf(true) /* recovery enabled */);
     properties.put(ComponentResourceProvider.COMPONENT_STATE_PROPERTY_ID, "STARTED");
     properties.put(ComponentResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
 
@@ -607,7 +617,7 @@ public class ComponentResourceProviderTest {
 
     // requests
     ServiceComponentRequest request1 = new ServiceComponentRequest("cluster1", "service1", "component1",
-        null);
+        null, String.valueOf(true /* recovery enabled */));
 
     Set<ServiceComponentRequest> setRequests = new HashSet<ServiceComponentRequest>();
     setRequests.add(request1);
@@ -667,14 +677,15 @@ public class ComponentResourceProviderTest {
 
     // requests
     ServiceComponentRequest request1 = new ServiceComponentRequest("cluster1", "service1", "component1",
-        null);
+        null, String.valueOf(true /* recovery enabled */));
     ServiceComponentRequest request2 = new ServiceComponentRequest("cluster1", "service1", "component2",
-        null);
+        null, String.valueOf(true /* recovery enabled */));
     ServiceComponentRequest request3 = new ServiceComponentRequest("cluster1", "service1", "component3",
-        null);
+        null, String.valueOf(true /* recovery enabled */));
     ServiceComponentRequest request4 = new ServiceComponentRequest("cluster1", "service1", "component4",
-        null);
-    ServiceComponentRequest request5 = new ServiceComponentRequest("cluster1", "service2", null, null);
+        null, String.valueOf(true /* recovery enabled */));
+    ServiceComponentRequest request5 = new ServiceComponentRequest("cluster1", "service2", null, null,
+              String.valueOf(true /* recovery enabled */));
 
     Set<ServiceComponentRequest> setRequests = new HashSet<ServiceComponentRequest>();
     setRequests.add(request1);
@@ -758,7 +769,7 @@ public class ComponentResourceProviderTest {
 
     // requests
     ServiceComponentRequest request1 = new ServiceComponentRequest("cluster1", "service1", "component1",
-        null);
+        null, String.valueOf(true /* recovery enabled */));
 
     Set<ServiceComponentRequest> setRequests = new HashSet<ServiceComponentRequest>();
     setRequests.add(request1);

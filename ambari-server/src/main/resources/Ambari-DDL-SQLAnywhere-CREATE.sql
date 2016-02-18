@@ -166,6 +166,7 @@ CREATE TABLE servicecomponentdesiredstate (
   desired_stack_id NUMERIC(19) NOT NULL,
   desired_state VARCHAR(255) NOT NULL,
   service_name VARCHAR(255) NOT NULL,
+  recovery_enabled BIT NOT NULL DEFAULT 0,
   PRIMARY KEY (component_name, cluster_id, service_name)
 );
 

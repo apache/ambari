@@ -5683,6 +5683,7 @@ public class AmbariManagementControllerTest {
       clusters.getCluster(clusterName).getService(serviceName)
       .getServiceComponents().values()) {
       Assert.assertEquals(State.INSTALLED, sc.getDesiredState());
+      Assert.assertFalse(sc.isRecoveryEnabled()); // default value of recoveryEnabled
       for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
         Assert.assertEquals(State.INSTALLED, sch.getDesiredState());
         Assert.assertEquals(State.INIT, sch.getState());
@@ -5699,6 +5700,7 @@ public class AmbariManagementControllerTest {
     for (ServiceComponent sc :
       clusters.getCluster(clusterName).getService(serviceName)
           .getServiceComponents().values()) {
+      sc.setRecoveryEnabled(true);
       for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
         sch.setState(State.INSTALLED);
       }
@@ -5718,6 +5720,7 @@ public class AmbariManagementControllerTest {
       clusters.getCluster(clusterName).getService(serviceName)
           .getServiceComponents().values()) {
       Assert.assertEquals(State.INSTALLED, sc.getDesiredState());
+      Assert.assertTrue(sc.isRecoveryEnabled());
       for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
         Assert.assertEquals(State.INSTALLED, sch.getDesiredState());
         Assert.assertEquals(State.INSTALLED, sch.getState());

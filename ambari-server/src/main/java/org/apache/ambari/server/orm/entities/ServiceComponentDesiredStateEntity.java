@@ -55,6 +55,9 @@ public class ServiceComponentDesiredStateEntity {
   @Enumerated(EnumType.STRING)
   private State desiredState = State.INIT;
 
+  @Column(name = "recovery_enabled", nullable = false, insertable = true, updatable = true)
+  private Integer recoveryEnabled = 0;
+
   /**
    * Unidirectional one-to-one association to {@link StackEntity}
    */
@@ -110,6 +113,14 @@ public class ServiceComponentDesiredStateEntity {
 
   public void setDesiredStack(StackEntity desiredStack) {
     this.desiredStack = desiredStack;
+  }
+
+  public boolean isRecoveryEnabled() {
+    return recoveryEnabled != 0;
+  }
+
+  public void setRecoveryEnabled(boolean recoveryEnabled) {
+    this.recoveryEnabled = (recoveryEnabled == false) ? 0 : 1;
   }
 
   @Override
