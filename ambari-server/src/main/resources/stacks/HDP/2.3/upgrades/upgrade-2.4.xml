@@ -658,6 +658,7 @@
 
     <service name="SPARK">
       <component name="SPARK_JOBHISTORYSERVER">
+        <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_4_0_0_spark_jobhistoryserver"/>
         </pre-upgrade>
@@ -666,6 +667,7 @@
         </upgrade>
       </component>
       <component name="SPARK_THRIFTSERVER">
+        <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_4_0_0_spark_thriftserver"/>
         </pre-upgrade>
