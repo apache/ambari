@@ -288,16 +288,15 @@ App.ListConfigWidgetView = App.ConfigWidgetView.extend({
   },
 
   isOptionExist: function(value) {
-    var isExist = false;
-    if (value !== null && value !== undefined) {
+    var isExist = true;
+    if (Em.isNone(value)) {
+      return !isExist;
+    } else {
       value = Em.typeOf(value) == 'string' ? value.split(',') : value;
       value.forEach(function(item) {
-        isExist = this.get('options').mapProperty('value').contains(item);
+        isExist = isExist && this.get('options').mapProperty('value').contains(item);
       }, this);
       return isExist;
-    } else {
-      return false;
     }
   }
-
 });

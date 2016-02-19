@@ -1028,7 +1028,7 @@ class TestHDP22StackAdvisor(TestCase):
       'hive-site': {
         'properties': {
           'hive.server2.enable.doAs': 'true',
-          'hive.server2.tez.default.queues': "default",
+          'hive.server2.tez.default.queues': "queue1,queue2",
           'hive.server2.tez.initialize.default.sessions': 'false',
           'hive.server2.tez.sessions.per.default.queue': '1',
           'hive.auto.convert.join.noconditionaltask.size': '268435456',
@@ -1073,7 +1073,16 @@ class TestHDP22StackAdvisor(TestCase):
          'hive.server2.authentication.kerberos.keytab': {'delete': 'true'},
          'hive.server2.authentication.ldap.url': {'delete': 'true'},
          'hive.server2.tez.default.queues': {
-           'entries': [{'value': 'default', 'label': 'default queue'}]
+           "entries": [
+             {
+               "value": "queue1",
+               "label": "queue1 queue"
+             },
+             {
+               "value": "queue2",
+               "label": "queue2 queue"
+             }
+           ]
           }
         }
       },
