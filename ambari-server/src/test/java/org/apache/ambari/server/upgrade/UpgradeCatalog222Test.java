@@ -19,12 +19,12 @@
 package org.apache.ambari.server.upgrade;
 
 
-import com.google.common.collect.Maps;
-import com.google.gson.Gson;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Provider;
-import com.google.inject.persist.PersistService;
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.persistence.EntityManager;
+
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -33,6 +33,7 @@ import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.ConfigurationResponse;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
+import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.StackDAO;
@@ -40,6 +41,7 @@ import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
@@ -47,10 +49,14 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.persistence.EntityManager;
-import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
+import com.google.common.collect.Maps;
+import com.google.gson.Gson;
+import com.google.inject.Binder;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.google.inject.Provider;
+import com.google.inject.persist.PersistService;
 
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
@@ -58,6 +64,7 @@ import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMockBuilder;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
@@ -101,6 +108,7 @@ public class UpgradeCatalog222Test {
     Method updateAlerts = UpgradeCatalog222.class.getDeclaredMethod("updateAlerts");
     Method updateStormConfigs = UpgradeCatalog222.class.getDeclaredMethod("updateStormConfigs");
     Method updateAMSConfigs = UpgradeCatalog222.class.getDeclaredMethod("updateAMSConfigs");
+    Method updateHostRoleCommands = UpgradeCatalog222.class.getDeclaredMethod("updateHostRoleCommands");
 
 
     UpgradeCatalog222 upgradeCatalog222 = createMockBuilder(UpgradeCatalog222.class)
@@ -108,6 +116,7 @@ public class UpgradeCatalog222Test {
             .addMockedMethod(updateAlerts)
             .addMockedMethod(updateStormConfigs)
             .addMockedMethod(updateAMSConfigs)
+            .addMockedMethod(updateHostRoleCommands)
             .createMock();
 
     upgradeCatalog222.addNewConfigurationsFromXml();
@@ -117,6 +126,8 @@ public class UpgradeCatalog222Test {
     upgradeCatalog222.updateStormConfigs();
     expectLastCall().once();
     upgradeCatalog222.updateAMSConfigs();
+    expectLastCall().once();
+    upgradeCatalog222.updateHostRoleCommands();
     expectLastCall().once();
 
     replay(upgradeCatalog222);
@@ -201,6 +212,30 @@ public class UpgradeCatalog222Test {
     Map<String, String> updatedProperties = propertiesCapture.getValue();
     assertTrue(Maps.difference(newPropertiesAmsSite, updatedProperties).areEqual());
 
+  }
+
+  @Test
+  public void testUpdateHostRoleCommands() throws Exception {
+    final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
+    dbAccessor.createIndex(eq("idx_hrc_status"), eq("host_role_command"), eq("status"), eq("role"));
+    expectLastCall().once();
+
+    replay(dbAccessor);
+
+    Module module = new Module() {
+      @Override
+      public void configure(Binder binder) {
+        binder.bind(DBAccessor.class).toInstance(dbAccessor);
+        binder.bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    };
+
+    Injector injector = Guice.createInjector(module);
+    UpgradeCatalog222 upgradeCatalog222 = injector.getInstance(UpgradeCatalog222.class);
+    upgradeCatalog222.updateHostRoleCommands();
+
+
+    verify(dbAccessor);
   }
 
 }

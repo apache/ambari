@@ -115,6 +115,7 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
     updateAlerts();
     updateStormConfigs();
     updateAMSConfigs();
+    updateHostRoleCommands();
   }
 
   protected void updateStormConfigs() throws  AmbariException {
@@ -151,6 +152,10 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
     }
 
 
+  }
+
+  protected void updateHostRoleCommands() throws SQLException{
+    dbAccessor.createIndex("idx_hrc_status", "host_role_command", "status", "role");
   }
 
   protected void updateAMSConfigs() throws AmbariException {
