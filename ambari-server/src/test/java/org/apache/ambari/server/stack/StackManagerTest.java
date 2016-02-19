@@ -31,6 +31,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 import java.io.FileReader;
 import java.lang.reflect.Type;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -62,6 +63,7 @@ import org.apache.commons.lang.StringUtils;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.springframework.util.Assert;
 
 /**
  * StackManager unit tests.
@@ -641,12 +643,16 @@ public class StackManagerTest {
         stack.getKerberosDescriptorFileLocation());
   }
 
-  @Ignore
   @Test
   public void testMetricsLoaded() throws Exception {
 
-    String stackRoot = ClassLoader.getSystemClassLoader().getResource("stacks").getPath().replace("test-classes","classes");
-    String commonServices = ClassLoader.getSystemClassLoader().getResource("common-services").getPath().replace("test-classes","classes");
+    URL rootDirectoryURL = StackManagerTest.class.getResource("/");
+    Assert.notNull(rootDirectoryURL);
+
+    File resourcesDirectory = new File(new File(rootDirectoryURL.getFile()).getParentFile().getParentFile(), "src/main/resources");
+
+    File stackRoot = new File(resourcesDirectory, "stacks");
+    File commonServices = new File(resourcesDirectory, "common-services");
 
     MetainfoDAO metaInfoDao = createNiceMock(MetainfoDAO.class);
     StackDAO stackDao = createNiceMock(StackDAO.class);
@@ -660,7 +666,7 @@ public class StackManagerTest {
 
     OsFamily osFamily = new OsFamily(config);
 
-    StackManager stackManager = new StackManager(new File(stackRoot), new File(commonServices),
+    StackManager stackManager = new StackManager(stackRoot, commonServices,
             osFamily, metaInfoDao, actionMetadata, stackDao);
 
     for (StackInfo stackInfo : stackManager.getStacks()) {
@@ -682,12 +688,15 @@ public class StackManagerTest {
     }
   }
 
-  @Ignore
   @Test
   public void testServicesWithRangerPluginRoleCommandOrder() throws AmbariException {
-    // Given
-    String stackRoot = ClassLoader.getSystemClassLoader().getResource("stacks").getPath().replace("test-classes","classes");
-    String commonServices = ClassLoader.getSystemClassLoader().getResource("common-services").getPath().replace("test-classes","classes");
+    URL rootDirectoryURL = StackManagerTest.class.getResource("/");
+    Assert.notNull(rootDirectoryURL);
+
+    File resourcesDirectory = new File(new File(rootDirectoryURL.getFile()).getParentFile().getParentFile(), "src/main/resources");
+
+    File stackRoot = new File(resourcesDirectory, "stacks");
+    File commonServices = new File(resourcesDirectory, "common-services");
 
     MetainfoDAO metaInfoDao = createNiceMock(MetainfoDAO.class);
     StackDAO stackDao = createNiceMock(StackDAO.class);
@@ -701,7 +710,7 @@ public class StackManagerTest {
 
     OsFamily osFamily = new OsFamily(config);
 
-    StackManager stackManager = new StackManager(new File(stackRoot), new File(commonServices), osFamily, metaInfoDao, actionMetadata, stackDao);
+    StackManager stackManager = new StackManager(stackRoot, commonServices, osFamily, metaInfoDao, actionMetadata, stackDao);
 
     String rangerUserSyncRoleCommand = Role.RANGER_USERSYNC + "-" + RoleCommand.START;
     String rangerAdminRoleCommand = Role.RANGER_ADMIN + "-" + RoleCommand.START;
@@ -783,14 +792,6 @@ public class StackManagerTest {
 
     assertTrue(rangerUserSyncRoleCommand + " should be dependent of " + rangerAdminRoleCommand, rangerUserSyncBlockers.contains(rangerAdminRoleCommand));
     assertTrue(rangerUserSyncRoleCommand + " should be dependent of " + kmsRoleCommand, rangerUserSyncBlockers.contains(kmsRoleCommand));
-
-    // Zookeeper Server
-    ArrayList<String> zookeeperBlockers = (ArrayList<String>)generalDeps.get(zookeeperServerRoleCommand);
-
-    assertTrue(zookeeperServerRoleCommand + " should be dependent of " + rangerUserSyncRoleCommand, zookeeperBlockers.contains(rangerUserSyncRoleCommand));
-
   }
-
-
   //todo: component override assertions
 }
