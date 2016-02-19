@@ -2052,6 +2052,7 @@ class TestHDP22StackAdvisor(TestCase):
           "timeline.metrics.cluster.aggregate.splitpoints": " ",
           "timeline.metrics.host.aggregate.splitpoints": " ",
           "timeline.metrics.host.aggregator.ttl": "1",
+          "timeline.metrics.service.handler.thread.count": "20",
           'timeline.metrics.service.watcher.disabled': 'false'
         }
       }
