@@ -931,30 +931,30 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
                                 "HAWQ Master or Standby Master cannot use the port 5432 when installed on the same host as the Ambari Server. Ambari Postgres DB uses the same port. Please choose a different value (e.g. 10432)")})
 
     # 2. Check if any data directories are pointing to root dir '/'
-    prop_name = 'hawq_master_directory'
-    display_name = 'HAWQ Master directory'
-    self.validateIfRootDir (properties, validationItems, prop_name, display_name)
-
-    prop_name = 'hawq_master_temp_directory'
-    display_name = 'HAWQ Master temp directory'
-    self.validateIfRootDir (properties, validationItems, prop_name, display_name)
-
-    prop_name = 'hawq_segment_directory'
-    display_name = 'HAWQ Segment directory'
-    self.validateIfRootDir (properties, validationItems, prop_name, display_name)
-
-    prop_name = 'hawq_segment_temp_directory'
-    display_name = 'HAWQ Segment temp directory'
-    self.validateIfRootDir (properties, validationItems, prop_name, display_name)
+    directories = {
+                    'hawq_master_directory': 'HAWQ Master directory',
+                    'hawq_master_temp_directory': 'HAWQ Master temp directory',
+                    'hawq_segment_directory': 'HAWQ Segment directory',
+                    'hawq_segment_temp_directory': 'HAWQ Segment temp directory'
+                  }
+    for property_name, display_name in directories.iteritems():
+      self.validateIfRootDir(properties, validationItems, property_name, display_name)
 
     # 3. Check YARN RM address properties
+    YARN = "YARN"
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
-    if "YARN" in servicesList and "yarn-site" in configurations:
+    if YARN in servicesList and "yarn-site" in configurations:
       yarn_site = getSiteProperties(configurations, "yarn-site")
       for hs_prop, ys_prop in self.getHAWQYARNPropertyMapping().items():
         if hs_prop in hawq_site and ys_prop in yarn_site and hawq_site[hs_prop] != yarn_site[ys_prop]:
           message = "Expected value: {0} (this property should have the same value as the property {1} in yarn-site)".format(yarn_site[ys_prop], ys_prop)
           validationItems.append({"config-name": hs_prop, "item": self.getWarnItem(message)})
+
+    # 4. Check HAWQ Resource Manager type
+    HAWQ_GLOBAL_RM_TYPE = "hawq_global_rm_type"
+    if YARN not in servicesList and HAWQ_GLOBAL_RM_TYPE in hawq_site and hawq_site[HAWQ_GLOBAL_RM_TYPE].upper() == YARN:
+      message = "{0} must be set to none if YARN service is not installed".format(HAWQ_GLOBAL_RM_TYPE)
+      validationItems.append({"config-name": HAWQ_GLOBAL_RM_TYPE, "item": self.getErrorItem(message)})
 
     return self.toConfigurationValidationProblems(validationItems, "hawq-site")
   
