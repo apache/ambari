@@ -18,7 +18,7 @@ limitations under the License.
 import os
 import sys
 from resource_management.core.resources.system import File, Execute
-from resource_management.core.source import Template
+from resource_management.core.source import InlineTemplate
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions.format import format
@@ -34,14 +34,14 @@ def __setup_master_specific_conf_files():
   """
   import params
 
-  File(hawq_constants.hawq_check_file, content=params.hawq_check_content, owner=hawq_constants.hawq_user, group=hawq_constants.hawq_group,
-      mode=0644)
+  params.File(hawq_constants.hawq_check_file,
+              content=params.hawq_check_content)
 
-  File(hawq_constants.hawq_slaves_file, content=Template("slaves.j2"), owner=hawq_constants.hawq_user, group=hawq_constants.hawq_group,
-       mode=0644)
+  params.File(hawq_constants.hawq_slaves_file,
+              content=InlineTemplate("{% for host in hawqsegment_hosts %}{{host}}\n{% endfor %}"))
 
-  File(hawq_constants.hawq_hosts_file, content=Template("hawq-hosts.j2"), owner=hawq_constants.hawq_user, group=hawq_constants.hawq_group,
-       mode=0644)
+  params.File(hawq_constants.hawq_hosts_file,
+              content=InlineTemplate("{% for host in hawq_all_hosts %}{{host}}\n{% endfor %}"))
 
 
 def __setup_passwordless_ssh():
@@ -50,8 +50,6 @@ def __setup_passwordless_ssh():
   """
   import params
   utils.exec_hawq_operation("ssh-exkeys", format('-f {hawq_hosts_file} -p {hawq_password!p}', hawq_hosts_file=hawq_constants.hawq_hosts_file, hawq_password=params.hawq_password))
-
-  File(hawq_constants.hawq_hosts_file, action='delete')
 
 
 def configure_master():
