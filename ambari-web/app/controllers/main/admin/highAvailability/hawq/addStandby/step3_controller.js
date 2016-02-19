@@ -138,7 +138,7 @@ App.AddHawqStandbyWizardStep3Controller = Em.Controller.extend({
   submit: function () {
     if (!this.get('isSubmitDisabled')) {
       dataDir = this.get('hawqProps').items[0].properties['hawq_master_directory'];
-      hawqStandby = this.get('hawqProps').items[0].properties['hawq_standby_address_host']
+      hawqStandby = this.get('content.hawqHosts.newHawqStandby');
       App.showConfirmationPopup(
         function() {
           App.get('router.mainAdminKerberosController').getKDCSessionState(function() {
