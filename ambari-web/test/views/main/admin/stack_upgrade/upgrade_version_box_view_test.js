@@ -79,21 +79,32 @@ describe('App.UpgradeVersionBoxView', function () {
   });
 
   describe("#installProgress", function () {
+
     beforeEach(function () {
-      sinon.stub(App.db, 'get').returns(1);
+      this.mockDB = sinon.stub(App.db, 'get');
       this.mock = sinon.stub(App.router, 'get');
+      App.set('testMode', false);
     });
     afterEach(function () {
-      App.db.get.restore();
+      this.mockDB.restore();
       this.mock.restore();
+    });
+
+    it("request id is not set", function () {
+      this.mock.returns([]);
+      this.mockDB.returns(undefined);
+      view.propertyDidChange('installProgress');
+      expect(view.get('installProgress')).to.equal(0);
     });
     it("request absent", function () {
       this.mock.returns([]);
+      this.mockDB.returns([1]);
       view.propertyDidChange('installProgress');
       expect(view.get('installProgress')).to.equal(0);
     });
     it("request present", function () {
-      this.mock.returns([Em.Object.create({progress: 100})]);
+      this.mockDB.returns([1]);
+      this.mock.returns([Em.Object.create({progress: 100, id: 1})]);
       view.propertyDidChange('installProgress');
       expect(view.get('installProgress')).to.equal(100);
     });
