@@ -278,6 +278,9 @@ public class Configuration {
   public static final String TEMPORARY_KEYSTORE_ACTIVELY_PURGE = "security.temporary.keystore.actibely.purge";
   public static final boolean TEMPORARY_KEYSTORE_ACTIVELY_PURGE_DEFAULT = true;
 
+  // Alerts notifications properties
+  public static final String AMBARI_DISPLAY_URL = "ambari.display.url";
+
   /**
    * Key for repo validation suffixes.
    */
@@ -2479,6 +2482,15 @@ public class Configuration {
   public int getAlertCacheSize() {
     return Integer.parseInt(properties.getProperty(ALERTS_CACHE_SIZE, ALERTS_CACHE_SIZE_DEFAULT));
   }
+
+  /**
+   * Get the ambari display URL
+   * @return
+   */
+  public String getAmbariDisplayUrl() {
+    return properties.getProperty(AMBARI_DISPLAY_URL, null);
+  }
+
 
   /**
    * @return number of retry attempts for api and blueprint operations
