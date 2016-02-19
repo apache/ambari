@@ -64,6 +64,7 @@ import org.apache.ambari.server.notifications.NotificationDispatcher;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessorImpl;
 import org.apache.ambari.server.orm.PersistenceType;
+import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.scheduler.ExecutionSchedulerImpl;
 import org.apache.ambari.server.security.SecurityHelper;
@@ -334,6 +335,21 @@ public class ControllerModule extends AbstractModule {
 
     bindConstant().annotatedWith(Names.named("executionCommandCacheSize")).
         to(configuration.getExecutionCommandsCacheSize());
+
+
+    // Host role commands status summary max cache enable/disable
+    bindConstant().annotatedWith(Names.named(HostRoleCommandDAO.HRC_STATUS_SUMMARY_CACHE_ENABLED)).
+      to(configuration.getHostRoleCommandStatusSummaryCacheEnabled());
+
+    // Host role commands status summary max cache size
+    bindConstant().annotatedWith(Names.named(HostRoleCommandDAO.HRC_STATUS_SUMMARY_CACHE_SIZE)).
+      to(configuration.getHostRoleCommandStatusSummaryCacheSize());
+    // Host role command status summary cache expiry duration in minutes
+    bindConstant().annotatedWith(Names.named(HostRoleCommandDAO.HRC_STATUS_SUMMARY_CACHE_EXPIRY_DURATION_MINUTES)).
+      to(configuration.getHostRoleCommandStatusSummaryCacheExpiryDuration());
+
+
+
 
     bind(AmbariManagementController.class).to(
       AmbariManagementControllerImpl.class);

@@ -726,6 +726,7 @@ GRANT ALL PRIVILEGES ON TABLE ambari.topology_logical_task TO :username;
 -- tasks indices --
 CREATE INDEX idx_stage_request_id ON ambari.stage (request_id);
 CREATE INDEX idx_hrc_request_id ON ambari.host_role_command (request_id);
+CREATE INDEX idx_hrc_status_role ON ambari.host_role_command (status, role);
 CREATE INDEX idx_rsc_request_id ON ambari.role_success_criteria (request_id);
 
 --------altering tables by creating unique constraints----------
