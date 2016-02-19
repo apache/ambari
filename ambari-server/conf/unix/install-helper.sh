@@ -30,8 +30,10 @@ COMMON_DIR_SERVER="${ROOT}/usr/lib/ambari-server/lib/ambari_commons"
 RESOURCE_MANAGEMENT_DIR_SERVER="${ROOT}/usr/lib/ambari-server/lib/resource_management"
 JINJA_SERVER_DIR="${ROOT}/usr/lib/ambari-server/lib/ambari_jinja2"
 SIMPLEJSON_SERVER_DIR="${ROOT}/usr/lib/ambari-server/lib/ambari_simplejson"
+AMBARI_PROPERTIES="${ROOT}/etc/ambari-server/conf/ambari.properties"
 
-PYTHON_WRAPER_TARGET="${ROOT}/usr/bin/ambari-python-wrap"
+PYTHON_WRAPER_DIR="${ROOT}/usr/bin/"
+PYTHON_WRAPER_TARGET="${PYTHON_WRAPER_DIR}/ambari-python-wrap"
 
 AMBARI_SERVER_EXECUTABLE_LINK="${ROOT}/usr/sbin/ambari-server"
 AMBARI_SERVER_EXECUTABLE="${ROOT}/etc/init.d/ambari-server"
@@ -80,6 +82,7 @@ do_install(){
   if [ -z "$AMBARI_PYTHON" ] ; then
     >&2 echo "Cannot detect python for ambari to use. Please manually set $PYTHON_WRAPER link to point to correct python binary"
   else
+	mkdir -p "$PYTHON_WRAPER_DIR"
     ln -s "$AMBARI_PYTHON" "$PYTHON_WRAPER_TARGET"
   fi
 
@@ -90,7 +93,7 @@ do_install(){
   which update-rc.d > /dev/null 2>&1
   if [ "$?" -eq 0 ] ; then
     update-rc.d ambari-server defaults
-  fi
+  fi 
 }
 
 do_remove(){

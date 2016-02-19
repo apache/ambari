@@ -45,7 +45,7 @@ from ambari_server.setupSecurity import adjust_directory_permissions
 from ambari_server.userInput import get_YN_input, get_validated_string_input
 from ambari_server.utils import locate_file
 from ambari_server.serverClassPath import ServerClassPath
-
+from ambari_server.ambariPath import AmbariPath
 
 # selinux commands
 GET_SE_LINUX_ST_CMD = locate_file('sestatus', '/usr/sbin')
@@ -310,7 +310,7 @@ class AmbariUserChecksLinux(AmbariUserChecks):
     self.NR_DEFAULT_USER = "root"
 
     self.NR_USERADD_CMD = 'useradd -M --comment "{1}" ' \
-                          '--shell %s -d /var/lib/ambari-server/keys/ {0}' % locate_file('nologin', '/sbin')
+                          '--shell %s ' % locate_file('nologin', '/sbin') + '-d ' + AmbariPath.get('/var/lib/ambari-server/keys/') + ' {0}'
 
   def _create_custom_user(self):
     user = get_validated_string_input(
@@ -960,7 +960,7 @@ def _reset_database(options):
   if persistence_type == "remote":
       err = 'Ambari doesn\'t support resetting exernal DB automatically. ' \
             'To reset Ambari Server schema you must first drop and then create it ' \
-            'using DDL scripts from "/var/lib/ambari-server/resources/"'
+            'using DDL scripts from "{0}"'.format(AmbariPath.get("/var/lib/ambari-server/resources/"))
       raise FatalException(1, err)
   else:
     factory = DBMSConfigFactory()

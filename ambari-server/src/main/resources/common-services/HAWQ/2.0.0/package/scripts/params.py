@@ -19,6 +19,7 @@ limitations under the License.
 import functools
 import hawq_constants
 from resource_management import Script
+from resource_management.core.resources.system import File
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.resources.xml_config import XmlConfig
@@ -75,6 +76,11 @@ HdfsResource = functools.partial(HdfsResource,
                                  hdfs_site=hdfs_site,
                                  default_fs=default_fs)
 
+# File partial function
+File = functools.partial(File,
+                         owner=hawq_constants.hawq_user,
+                         group=hawq_constants.hawq_group,
+                         mode=0644)
 
 # XMLConfig partial function
 XmlConfig = functools.partial(XmlConfig,

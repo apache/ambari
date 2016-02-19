@@ -46,6 +46,22 @@
                 <timeout>1200</timeout>
               </commandScript>
             </customCommand>
+            <customCommand>
+              <name>HAWQ_CLEAR_CACHE</name>
+              <commandScript>
+                <script>scripts/hawqmaster.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>1200</timeout>
+              </commandScript>
+            </customCommand>
+            <customCommand>
+              <name>RUN_HAWQ_CHECK</name>
+              <commandScript>
+                <script>scripts/hawqmaster.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>1200</timeout>
+              </commandScript>
+            </customCommand>
           </customCommands>
           <dependencies>
             <dependency>

@@ -667,7 +667,7 @@ describe('App.MainServiceInfoSummaryView', function() {
       });
       view.set('controller.widgets', [widget]);
       view.setTimeRange({context: {value: '0'}});
-      expect(widget.get('properties')['time_range']).to.equal('0')
+      expect(widget.get('properties').time_range).to.be.equal('0')
     });
 
     it("range = 1", function() {
@@ -679,7 +679,7 @@ describe('App.MainServiceInfoSummaryView', function() {
       });
       view.set('controller.widgets', [widget]);
       view.setTimeRange({context: {value: '1'}});
-      expect(widget.get('properties')['time_range']).to.equal('1')
+      expect(widget.get('properties').time_range).to.be.equal('1')
     });
   });
 

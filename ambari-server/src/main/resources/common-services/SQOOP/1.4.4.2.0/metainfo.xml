@@ -55,6 +55,11 @@
           </commandScript>
           <configFiles>
             <configFile>
+              <type>xml</type>
+              <fileName>squoop-site.xml</fileName>
+              <dictionaryName>squoop-site</dictionaryName>
+            </configFile>
+            <configFile>
               <type>env</type>
               <fileName>sqoop-env.sh</fileName>
               <dictionaryName>sqoop-env</dictionaryName>
@@ -89,6 +94,7 @@
       
       <configuration-dependencies>
         <config-type>sqoop-env</config-type>
+        <config-type>sqoop-site</config-type>
       </configuration-dependencies>
     </service>
   </services>

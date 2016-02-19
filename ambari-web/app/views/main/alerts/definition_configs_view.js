@@ -100,6 +100,14 @@ App.AlertConfigParameterView = Em.View.extend({
 
   bigInput: Em.computed.equal('property.type', 'STRING'),
 
-  classNameBindings: ['property.classNames', 'parentView.basicClass']
+  classNameBindings: ['property.classNames', 'parentView.basicClass'],
+
+  didInsertElement: function () {
+    App.tooltip($("[rel='parameter-tooltip']"));
+  },
+
+  willDestroyElement: function () {
+    $("[rel='parameter-tooltip']").tooltip('destroy');
+  }
 
 });

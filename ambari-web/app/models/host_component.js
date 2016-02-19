@@ -375,6 +375,12 @@ App.HostComponentActionMap = {
         hasSubmenu: ctx.get('controller.isSeveralClients'),
         submenuOptions: ctx.get('controller.clientComponents')
       },
+      DELETE_SERVICE: {
+        action: 'deleteService',
+        context: ctx.get('serviceName'),
+        label: Em.I18n.t('common.delete'),
+        cssClass: 'icon-remove'
+      },
       IMMEDIATE_STOP_HAWQ_SERVICE: {
         action: 'executeHawqCustomCommand',
         customCommand: 'IMMEDIATE_STOP_HAWQ_SERVICE',
@@ -398,18 +404,6 @@ App.HostComponentActionMap = {
         isHidden : App.get('isSingleNode') || !HS ,
         disabled: !((!!HMComponent && HMComponent.get('startedCount') === 1) && (!!HS && HS.get('workStatus') === App.HostComponentStatus.started))
       },
-      MASTER_CUSTOM_COMMAND: {
-        action: 'executeCustomCommand',
-        cssClass: 'icon-play-circle',
-        isHidden: false,
-        disabled: false
-      },
-      DELETE_SERVICE: {
-        action: 'deleteService',
-        context: ctx.get('serviceName'),
-        label: Em.I18n.t('common.delete'),
-        cssClass: 'icon-remove'
-      },
       TOGGLE_ADD_HAWQ_STANDBY: {
         action: 'addHawqStandby',
         label: Em.I18n.t('admin.addHawqStandby.button.enable'),
@@ -424,7 +418,31 @@ App.HostComponentActionMap = {
         cssClass: 'icon-arrow-up',
         isHidden: App.get('isSingleNode') || !HS,
         disabled: false
-       }
+      },
+      HAWQ_CLEAR_CACHE: {
+        action: 'executeHawqCustomCommand',
+        customCommand: 'HAWQ_CLEAR_CACHE',
+        context: Em.I18n.t('services.service.actions.run.clearHawqCache.label'),
+        label: Em.I18n.t('services.service.actions.run.clearHawqCache.label'),
+        cssClass: 'icon-refresh',
+        isHidden : false,
+        disabled: !HM || HM.get('workStatus') != App.HostComponentStatus.started
+      },
+      RUN_HAWQ_CHECK: {
+        action: 'executeHawqCustomCommand',
+        customCommand: 'RUN_HAWQ_CHECK',
+        context: Em.I18n.t('services.service.actions.run.runHawqCheck.label'),
+        label: Em.I18n.t('services.service.actions.run.runHawqCheck.label'),
+        cssClass: 'icon-thumbs-up-alt',
+        isHidden : false,
+        disabled: false
+      },
+      MASTER_CUSTOM_COMMAND: {
+        action: 'executeCustomCommand',
+        cssClass: 'icon-play-circle',
+        isHidden: false,
+        disabled: false
+      }
     };
   }
 };

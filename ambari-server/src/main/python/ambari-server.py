@@ -50,6 +50,7 @@ from ambari_server.setupSecurity import setup_ldap, sync_ldap, setup_master_key,
 from ambari_server.userInput import get_validated_string_input
 
 from ambari_server_main import server_process_main
+from ambari_server.ambariPath import AmbariPath
 
 
 class UserActionPossibleArgs(object):
@@ -326,20 +327,20 @@ def init_parser_options(parser):
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def init_parser_options(parser):
   parser.add_option('-f', '--init-script-file',
-                    default='/var/lib/ambari-server/'
-                            'resources/Ambari-DDL-Postgres-EMBEDDED-CREATE.sql',
+                    default=AmbariPath.get('/var/lib/ambari-server/'
+                            'resources/Ambari-DDL-Postgres-EMBEDDED-CREATE.sql'),
                     help="File with setup script")
-  parser.add_option('-r', '--drop-script-file', default="/var/lib/"
+  parser.add_option('-r', '--drop-script-file', default=AmbariPath.get("/var/lib/"
                                                         "ambari-server/resources/"
-                                                        "Ambari-DDL-Postgres-EMBEDDED-DROP.sql",
+                                                        "Ambari-DDL-Postgres-EMBEDDED-DROP.sql"),
                     help="File with drop script")
-  parser.add_option('-u', '--upgrade-script-file', default="/var/lib/"
+  parser.add_option('-u', '--upgrade-script-file', default=AmbariPath.get("/var/lib/"
                                                            "ambari-server/resources/upgrade/ddl/"
-                                                           "Ambari-DDL-Postgres-UPGRADE-1.3.0.sql",
+                                                           "Ambari-DDL-Postgres-UPGRADE-1.3.0.sql"),
                     help="File with upgrade script")
-  parser.add_option('-t', '--upgrade-stack-script-file', default="/var/lib/"
+  parser.add_option('-t', '--upgrade-stack-script-file', default=AmbariPath.get("/var/lib/"
                                                                  "ambari-server/resources/upgrade/dml/"
-                                                                 "Ambari-DML-Postgres-UPGRADE_STACK.sql",
+                                                                 "Ambari-DML-Postgres-UPGRADE_STACK.sql"),
                     help="File with stack upgrade script")
   parser.add_option('-j', '--java-home', default=None,
                     help="Use specified java_home.  Must be valid on all hosts")

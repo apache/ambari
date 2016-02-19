@@ -46,6 +46,7 @@
     <skipPythonTests>false</skipPythonTests>
     <hadoop.version>2.7.1</hadoop.version>
     <jetty.version>9.2.11.v20150529</jetty.version>
+    <empty.dir>src/main/package</empty.dir> <!-- any directory in project with not very big amount of files (not to waste-load them) -->
   </properties>
   <build>
     <plugins>
@@ -71,6 +72,19 @@
               <value>${project.version}</value>
               <regex>^([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)(\.|-).*</regex>
               <replacement>$1.$2.$3.$4</replacement>
+              <failIfNoMatch>false</failIfNoMatch>
+            </configuration>
+          </execution>
+          <execution>
+            <id>regex-schema-version</id>
+            <goals>
+              <goal>regex-property</goal>
+            </goals>
+            <configuration>
+              <name>ambariSchemaVersion</name>
+              <value>${project.version}</value>
+              <regex>^([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)(\.|-).*</regex>
+              <replacement>$1.$2.$3</replacement>
               <failIfNoMatch>false</failIfNoMatch>
             </configuration>
           </execution>

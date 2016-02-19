@@ -1695,6 +1695,8 @@ Em.I18n.translations = {
   'services.service.actions.run.immediateStopHawqSegment.context':'Stop HAWQ Segment (Immediate Mode)',
   'services.service.actions.run.resyncHawqStandby.context':'Re-Sync HAWQ Standby',
   'services.service.actions.run.resyncHawqStandby.label':'Re-Synchronize HAWQ Standby',
+  'services.service.actions.run.clearHawqCache.label':'Clear HAWQ\'s HDFS Metadata Cache',
+  'services.service.actions.run.runHawqCheck.label':'Run HAWQ Check',
   'services.service.actions.manage_configuration_groups.short':'Manage Config Groups',
   'services.service.actions.serviceActions':'Service Actions',
 
@@ -2098,10 +2100,10 @@ Em.I18n.translations = {
     '</div>',
   'services.reassign.step5.body.app_timeline_server': '<div class="alert alert-info">' +
   '<ol>' +
-  '<li>Copy <b>{7}/leveldb-timeline-store.ldb</b> from the source host <b>{1}</b> to <b>{7}/leveldb-timeline-store.ldb</b> on the target host <b>{2}</b>.</li>' +
+  '<li>Copy <b>{7}/{8}</b> from the source host <b>{1}</b> to <b>{7}/{8}</b> on the target host <b>{2}</b>.</li>' +
   '<li>Login to the target host <b>{2}</b> and change permissions by running:' +
-  '<div class="code-snippet">chown -R {3}:{5} {7}/leveldb-timeline-store.ldb</div></li>' +
-  '<div class="code-snippet">chmod -R 700 {7}/leveldb-timeline-store.ldb</div></li>' +
+  '<div class="code-snippet">chown -R {3}:{5} {7}/{8}</div></li>' +
+  '<div class="code-snippet">chmod -R 700 {7}/{8}</div></li>' +
   '</ol>' +
   '</div>',
   'services.reassign.step5.body.securityNotice': '<div class="alert alert-info"> <div class="alert alert-warn"> <strong>Note: </strong> Secure cluster' +

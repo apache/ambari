@@ -1013,7 +1013,7 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('hostcompone
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('servicecomponentdesiredstate_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('servicecomponent_history_id_seq', 0);
 
-INSERT INTO metainfo("metainfo_key", "metainfo_value") values ('version', '${ambariVersion}');
+INSERT INTO metainfo("metainfo_key", "metainfo_value") values ('version', '${ambariSchemaVersion}');
 
 insert into adminresourcetype (resource_type_id, resource_type_name)
   select 1, 'AMBARI' from dual

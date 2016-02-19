@@ -21,6 +21,7 @@ from resource_management.libraries.functions.version import format_hdp_stack_ver
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.get_kinit_path import get_kinit_path
 from resource_management.libraries.script import Script
+import os
 
 # a map of the Ambari role to the component name
 # for use with /usr/hdp/current/<component>
@@ -31,6 +32,9 @@ SERVER_ROLE_DIRECTORY_MAP = {
 component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, "SQOOP")
 
 config = Script.get_config()
+
+cluster_name = config['clusterName']
+
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 
 stack_name = default("/hostLevelParams/stack_name", None)
@@ -104,3 +108,17 @@ if "jdbc_drivers" in config['configurations']['sqoop-env']:
     sqoop_jdbc_drivers_dict[jdbc_jar_name] = jdbc_symlink_name
     sqoop_jdbc_drivers_name_dict[jdbc_jar_name] = jdbc_driver_name
 jdk_location = config['hostLevelParams']['jdk_location']
+
+job_data_publish_class = ''
+
+########################################################
+############# Atlas related params #####################
+########################################################
+
+atlas_hosts = default('/clusterHostInfo/atlas_server_hosts', [])
+has_atlas = len(atlas_hosts) > 0
+
+if has_atlas:
+  atlas_home_dir = os.environ['METADATA_HOME_DIR'] if 'METADATA_HOME_DIR' in os.environ else '/usr/hdp/current/atlas-server'
+  atlas_conf_dir = os.environ['METADATA_CONF'] if 'METADATA_CONF' in os.environ else '/etc/atlas/conf'
+  job_data_publish_class = 'org.apache.atlas.sqoop.hook.SqoopHook'

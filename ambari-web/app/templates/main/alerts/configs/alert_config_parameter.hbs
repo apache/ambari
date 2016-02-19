@@ -24,7 +24,7 @@
         </span>&nbsp;
     </div>
   {{/if}}
-  <div {{bindAttr class="view.bigInput:span12:span3 view.property.units:input-append view.property.thresholdNotExists:stuck-left"}}>
+  <div rel="parameter-tooltip" {{bindAttr data-original-title="view.property.description" class="view.bigInput:span12:span3 view.property.units:input-append view.property.thresholdNotExists:stuck-left"}}>
     {{view Em.TextField valueBinding="view.property.value" disabledBinding="view.property.isDisabled" class ="view.bigInput:span12:span7"}}
     {{#if view.property.units}}
       <span class="add-on">{{view.property.units}}</span>

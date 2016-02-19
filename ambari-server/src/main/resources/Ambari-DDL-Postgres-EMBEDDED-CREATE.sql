@@ -1437,7 +1437,7 @@ INSERT INTO ambari.adminprivilege (privilege_id, permission_id, resource_id, pri
   SELECT 1, 1, 1, 1;
 
 INSERT INTO ambari.metainfo (metainfo_key, metainfo_value)
-  SELECT 'version', '${ambariVersion}';
+  SELECT 'version', '${ambariSchemaVersion}';
 COMMIT;
 
 -- Quartz tables

@@ -310,7 +310,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
         if (!configProperties.isEmpty()) {
           clusterMetricserverVipHost = configProperties.get("METRICS_COLLECTOR");
           if (clusterMetricserverVipHost != null) {
-            clusterMetricCollectorMap.put(clusterName, clusterMetricserverVipHost);
+            LOG.info("Setting Metrics Collector Vip Host : " + clusterMetricserverVipHost);
             vipHostConfigPresent = true;
           }
         }
@@ -340,15 +340,19 @@ public abstract class AbstractProviderModule implements ProviderModule,
           if (isHostLive(clusterName, hostname)
             && isHostComponentLive(clusterName, hostname, "AMBARI_METRICS", Role.METRICS_COLLECTOR.name())) {
             clusterMetricCollectorMap.put(clusterName, hostname);
-            LOG.debug("New Metrics Collector Host : " + hostname);
+            LOG.info("New Metrics Collector Host : " + hostname);
             break;
           } else {
-            LOG.debug("Metrics Collector Host or host component not live : " + hostname);
+            LOG.info("Metrics Collector Host or host component not live : " + hostname);
           }
         }
       }
     }
-    return clusterMetricCollectorMap.get(clusterName);
+
+    LOG.debug("Cluster Metrics Vip Host : " + clusterMetricserverVipHost);
+    LOG.debug("Cluster Metrics Collector Host : " + clusterMetricCollectorMap.get(clusterName));
+
+    return (clusterMetricserverVipHost != null) ? clusterMetricserverVipHost : clusterMetricCollectorMap.get(clusterName);
   }
 
   @Override
@@ -848,19 +852,16 @@ public abstract class AbstractProviderModule implements ProviderModule,
             clusterGangliaCollectorMap.put(clusterName, hostName);
           }
           if (componentName.equals(METRIC_SERVER)) {
-            //If vip config not present
             //  If current collector host is null or if the host or the host component not live
             //    Update clusterMetricCollectorMap.
-            if (!vipHostConfigPresent) {
-              String currentCollectorHost = clusterMetricCollectorMap.get(clusterName);
-              LOG.debug("Current Metrics collector Host : " + currentCollectorHost);
-              if ((currentCollectorHost == null) ||
-                !(isHostLive(clusterName, currentCollectorHost) &&
-                  isHostComponentLive(clusterName, currentCollectorHost, "AMBARI_METRICS", Role.METRICS_COLLECTOR.name()))
-                ) {
-                LOG.debug("New Metrics collector Host : " + hostName);
-                clusterMetricCollectorMap.put(clusterName, hostName);
-              }
+            String currentCollectorHost = clusterMetricCollectorMap.get(clusterName);
+            LOG.info("Current Metrics collector Host : " + currentCollectorHost);
+            if ((currentCollectorHost == null) ||
+              !(isHostLive(clusterName, currentCollectorHost) &&
+                isHostComponentLive(clusterName, currentCollectorHost, "AMBARI_METRICS", Role.METRICS_COLLECTOR.name()))
+              ) {
+              LOG.info("New Metrics collector Host : " + hostName);
+              clusterMetricCollectorMap.put(clusterName, hostName);
             }
             metricServerHosts.add(hostName);
           }

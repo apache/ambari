@@ -200,7 +200,7 @@ class Installer:
     if self.verbose:
       bash_args.append("-x")
       
-    Utils.os_call(["bash"] + bash_args + [script_name] + args, env={ROOT_FOLDER_ENV_VARIABLE: self.root_folder})
+    Utils.os_call(["bash"] + bash_args + [script_name] + args, env={ROOT_FOLDER_ENV_VARIABLE: self.root_folder}, logoutput=True)
     
 
 class TargzInstaller(Installer):

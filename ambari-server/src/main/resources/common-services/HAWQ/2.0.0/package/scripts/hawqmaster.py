@@ -17,7 +17,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 from resource_management import Script
+from resource_management.core.resources.system import Execute
+from resource_management.core.logger import Logger
 from resource_management.libraries.functions.check_process_status import check_process_status
+try:
+    from resource_management.libraries.functions import hdp_select as hadoop_select
+except ImportError:
+    from resource_management.libraries.functions import phd_select as hadoop_select
 
 import master_helper
 import common
@@ -53,6 +59,19 @@ class HawqMaster(Script):
 
   def immediate_stop_hawq_service(self, env):
     master_helper.stop(hawq_constants.IMMEDIATE, hawq_constants.CLUSTER)
+
+  def hawq_clear_cache(self, env):
+    import params
+    from utils import exec_psql_cmd
+    cmd = "SELECT gp_metadata_cache_clear()"
+    Logger.info("Clearing HAWQ's HDFS Metadata cache ...")
+    exec_psql_cmd(cmd, params.hawqmaster_host, params.hawq_master_address_port)
+
+  def run_hawq_check(self, env):
+    Logger.info("Executing HAWQ Check ...")
+    Execute("source {0} && hawq check -f {1} --hadoop {2} --config {3}".format(hawq_constants.hawq_greenplum_path_file, hawq_constants.hawq_hosts_file, hadoop_select.get_hadoop_dir('home'), hawq_constants.hawq_check_file),
+            user=hawq_constants.hawq_user,
+            timeout=hawq_constants.default_exec_timeout)
 
 if __name__ == "__main__":
   HawqMaster().execute()
