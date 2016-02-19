@@ -168,7 +168,7 @@ public class TestApplicationHistoryClientService extends
     writeApplicationStartData(appId);
     ApplicationAttemptId appAttemptId =
         ApplicationAttemptId.newInstance(appId, 1);
-    ContainerId containerId = ContainerId.newInstance(appAttemptId, 1);
+    ContainerId containerId = ContainerId.newContainerId(appAttemptId, 1);
     writeContainerStartData(containerId);
     writeContainerFinishData(containerId);
     writeApplicationFinishData(appId);
@@ -189,8 +189,8 @@ public class TestApplicationHistoryClientService extends
     writeApplicationStartData(appId);
     ApplicationAttemptId appAttemptId =
         ApplicationAttemptId.newInstance(appId, 1);
-    ContainerId containerId = ContainerId.newInstance(appAttemptId, 1);
-    ContainerId containerId1 = ContainerId.newInstance(appAttemptId, 2);
+    ContainerId containerId = ContainerId.newContainerId(appAttemptId, 1);
+    ContainerId containerId1 = ContainerId.newContainerId(appAttemptId, 2);
     writeContainerStartData(containerId);
     writeContainerFinishData(containerId);
     writeContainerStartData(containerId1);

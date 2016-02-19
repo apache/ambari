@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Implements MetricsSender and provides a way of pushing metrics to application metrics history service using REST
@@ -65,7 +66,8 @@ public class RestMetricsSender implements MetricsSender {
       responseString = svc.send(payload);
 
       timer.stop();
-      LOG.info("http response time: " + timer.elapsedMillis() + " ms");
+      LOG.info("http response time: " + timer.elapsed(TimeUnit.MILLISECONDS)
+        + " ms");
 
       if (responseString.length() > 0) {
         LOG.debug("POST response from server: " + responseString);
