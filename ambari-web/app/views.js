@@ -219,6 +219,7 @@ require('views/main/dashboard/widgets/namenode_heap');
 require('views/main/dashboard/widgets/namenode_cpu');
 require('views/main/dashboard/widgets/hdfs_capacity');
 require('views/main/dashboard/widgets/datanode_live');
+require('views/main/dashboard/widgets/hawqsegment_live');
 require('views/main/dashboard/widgets/namenode_rpc');
 require('views/main/dashboard/widgets/metrics_memory');
 require('views/main/dashboard/widgets/metrics_network');
