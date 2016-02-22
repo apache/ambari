@@ -44,6 +44,7 @@ import org.apache.ambari.server.actionmanager.StageFactoryImpl;
 import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
 import org.apache.ambari.server.audit.request.RequestAuditLogger;
 import org.apache.ambari.server.audit.request.RequestAuditLoggerImpl;
+import org.apache.ambari.server.audit.request.eventcreator.AlertGroupEventCreator;
 import org.apache.ambari.server.audit.request.eventcreator.BlueprintEventCreator;
 import org.apache.ambari.server.audit.request.eventcreator.BlueprintExportEventCreator;
 import org.apache.ambari.server.audit.request.eventcreator.PrivilegeEventCreator;
@@ -420,6 +421,7 @@ public class ControllerModule extends AbstractModule {
     auditLogEventCreatorBinder.addBinding().to(ViewPrivilegeEventCreator.class);
     auditLogEventCreatorBinder.addBinding().to(RepositoryEventCreator.class);
     auditLogEventCreatorBinder.addBinding().to(RepositoryVersionEventCreator.class);
+    auditLogEventCreatorBinder.addBinding().to(AlertGroupEventCreator.class);
 
     bind(RequestAuditLogger.class).to(RequestAuditLoggerImpl.class);
   }
