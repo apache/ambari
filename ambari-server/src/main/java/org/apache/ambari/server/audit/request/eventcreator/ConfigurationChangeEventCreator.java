@@ -27,9 +27,11 @@ import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.audit.AuditEvent;
+import org.apache.ambari.server.audit.request.event.ClusterNameChangeRequestAuditEvent;
 import org.apache.ambari.server.audit.request.event.ConfigurationChangeRequestAuditEvent;
 import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.joda.time.DateTime;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
@@ -79,6 +81,24 @@ public class ConfigurationChangeEventCreator implements RequestAuditEventCreator
   @Override
   public AuditEvent createAuditEvent(Request request, Result result) {
     String username = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
+
+    if(!request.getBody().getPropertySets().isEmpty()) {
+      Map<String, Object> map = request.getBody().getPropertySets().iterator().next();
+      if(map.size() == 1 && map.containsKey(PropertyHelper.getPropertyId("Clusters","cluster_name"))) {
+        String newName = String.valueOf(map.get(PropertyHelper.getPropertyId("Clusters","cluster_name")));
+        String oldName = request.getResource().getKeyValueMap().get(Resource.Type.Cluster);
+        return ClusterNameChangeRequestAuditEvent.builder()
+          .withTimestamp(DateTime.now())
+          .withRequestType(request.getRequestType())
+          .withResultStatus(result.getStatus())
+          .withUrl(request.getURI())
+          .withRemoteIp(request.getRemoteAddress())
+          .withUserName(username)
+          .withOldName(oldName)
+          .withNewName(newName)
+          .build();
+      }
+    }
 
     return ConfigurationChangeRequestAuditEvent.builder()
       .withTimestamp(DateTime.now())
