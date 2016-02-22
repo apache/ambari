@@ -2474,31 +2474,13 @@ public class ClusterImpl implements Cluster {
     clusterGlobalLock.readLock().lock();
     try {
       List<ServiceConfigVersionResponse> serviceConfigVersionResponses = new ArrayList<ServiceConfigVersionResponse>();
+      Set<Long> activeIds = getActiveServiceConfigVersionIds();
 
-      List<ServiceConfigEntity> serviceConfigs = serviceConfigDAO.getServiceConfigs(getClusterId());
-      Map<String, ServiceConfigVersionResponse> activeServiceConfigResponses = new HashMap<>();
-
-      for (ServiceConfigEntity serviceConfigEntity : serviceConfigs) {
+      for (ServiceConfigEntity serviceConfigEntity : serviceConfigDAO.getServiceConfigs(getClusterId())) {
         ServiceConfigVersionResponse serviceConfigVersionResponse = convertToServiceConfigVersionResponse(serviceConfigEntity);
 
-        ServiceConfigVersionResponse activeServiceConfigResponse = activeServiceConfigResponses.get(serviceConfigVersionResponse.getServiceName());
-        if (activeServiceConfigResponse == null) {
-          activeServiceConfigResponse = serviceConfigVersionResponse;
-          activeServiceConfigResponses.put(serviceConfigVersionResponse.getServiceName(), serviceConfigVersionResponse);
-        }
-
         serviceConfigVersionResponse.setConfigurations(new ArrayList<ConfigurationResponse>());
-
-        if (serviceConfigEntity.getGroupId() == null) {
-          if (serviceConfigVersionResponse.getCreateTime() > activeServiceConfigResponse.getCreateTime())
-            activeServiceConfigResponses.put(serviceConfigVersionResponse.getServiceName(), serviceConfigVersionResponse);
-        }
-        else if (clusterConfigGroups != null && clusterConfigGroups.containsKey(serviceConfigEntity.getGroupId())){
-          if (serviceConfigVersionResponse.getVersion() > activeServiceConfigResponse.getVersion())
-            activeServiceConfigResponses.put(serviceConfigVersionResponse.getServiceName(), serviceConfigVersionResponse);
-        }
-
-        serviceConfigVersionResponse.setIsCurrent(false);
+        serviceConfigVersionResponse.setIsCurrent(activeIds.contains(serviceConfigEntity.getServiceConfigId()));
 
         List<ClusterConfigEntity> clusterConfigEntities = serviceConfigEntity.getClusterConfigEntities();
         for (ClusterConfigEntity clusterConfigEntity : clusterConfigEntities) {
@@ -2512,10 +2494,6 @@ public class ClusterImpl implements Cluster {
         }
 
         serviceConfigVersionResponses.add(serviceConfigVersionResponse);
-      }
-
-      for (ServiceConfigVersionResponse serviceConfigVersionResponse: activeServiceConfigResponses.values()) {
-        serviceConfigVersionResponse.setIsCurrent(true);
       }
 
       return serviceConfigVersionResponses;
@@ -2534,6 +2512,14 @@ public class ClusterImpl implements Cluster {
       responses.add(response);
     }
     return responses;
+  }
+
+  private Set<Long> getActiveServiceConfigVersionIds() {
+    Set<Long> idSet = new HashSet<Long>();
+    for (ServiceConfigEntity entity : getActiveServiceConfigVersionEntities()) {
+      idSet.add(entity.getServiceConfigId());
+    }
+    return idSet;
   }
 
   private List<ServiceConfigEntity> getActiveServiceConfigVersionEntities() {

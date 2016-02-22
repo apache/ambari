@@ -55,8 +55,8 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 public class ApplicationHistoryServer extends CompositeService {
 
   public static final int SHUTDOWN_HOOK_PRIORITY = 30;
-  private static final Log LOG =
-    LogFactory.getLog(ApplicationHistoryServer.class);
+  private static final Log LOG = LogFactory
+    .getLog(ApplicationHistoryServer.class);
 
   ApplicationHistoryClientService ahsClientService;
   ApplicationHistoryManager historyManager;
@@ -172,8 +172,6 @@ public class ApplicationHistoryServer extends CompositeService {
     LOG.info("Instantiating AHSWebApp at " + bindAddress);
     try {
       Configuration conf = metricConfiguration.getMetricsConf();
-      conf.set("hadoop.http.max.threads", String.valueOf(metricConfiguration
-        .getTimelineMetricsServiceHandlerThreadCount()));
       HttpConfig.Policy policy = HttpConfig.Policy.valueOf(
         conf.get(TimelineMetricConfiguration.TIMELINE_SERVICE_HTTP_POLICY,
           HttpConfig.Policy.HTTP_ONLY.name()));

@@ -41,8 +41,8 @@ App.AlertDefinition = DS.Model.extend({
   groups: DS.hasMany('App.AlertGroup'),
   reporting: DS.hasMany('App.AlertReportDefinition'),
   parameters: DS.hasMany('App.AlertDefinitionParameter'),
-  lastTriggered: 0,
-  lastTriggeredRaw: 0,
+  lastTriggered: DS.attr('number'),
+  lastTriggeredRaw: DS.attr('number'),
 
   //relates only to SCRIPT-type alert definition
   location: DS.attr('string'),

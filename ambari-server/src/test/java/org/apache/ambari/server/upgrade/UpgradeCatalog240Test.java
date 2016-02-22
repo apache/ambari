@@ -103,7 +103,6 @@ public class UpgradeCatalog240Test {
   @Test
   public void testExecuteDDLUpdates() throws SQLException, AmbariException {
     Capture<DBAccessor.DBColumnInfo> capturedColumnInfo = newCapture();
-    Capture<DBAccessor.DBColumnInfo> capturedScColumnInfo = newCapture();
     final DBAccessor dbAccessor = createStrictMock(DBAccessor.class);
     Configuration configuration = createNiceMock(Configuration.class);
     Connection connection = createNiceMock(Connection.class);
@@ -112,8 +111,6 @@ public class UpgradeCatalog240Test {
     Capture<List<DBAccessor.DBColumnInfo>> capturedSettingColumns = EasyMock.newCapture();
 
     dbAccessor.addColumn(eq("adminpermission"), capture(capturedColumnInfo));
-    dbAccessor.addColumn(eq(UpgradeCatalog240.SERVICE_COMPONENT_DESIRED_STATE_TABLE), capture(capturedScColumnInfo));
-
     dbAccessor.createTable(eq("setting"), capture(capturedSettingColumns), eq("id"));
     expect(configuration.getDatabaseUrl()).andReturn(Configuration.JDBC_IN_MEMORY_URL).anyTimes();
     expect(dbAccessor.getConnection()).andReturn(connection);
@@ -178,15 +175,6 @@ public class UpgradeCatalog240Test {
     Assert.assertEquals(Short.class, columnInfo.getType());
     Assert.assertEquals(1, columnInfo.getDefaultValue());
     Assert.assertEquals(false, columnInfo.isNullable());
-
-    // Verify if recovery_enabled column was added to servicecomponentdesiredstate table
-    DBAccessor.DBColumnInfo columnScInfo = capturedScColumnInfo.getValue();
-    Assert.assertNotNull(columnScInfo);
-    Assert.assertEquals(UpgradeCatalog240.RECOVERY_ENABLED_COL, columnScInfo.getName());
-    Assert.assertEquals(null, columnScInfo.getLength());
-    Assert.assertEquals(Short.class, columnScInfo.getType());
-    Assert.assertEquals(0, columnScInfo.getDefaultValue());
-    Assert.assertEquals(false, columnScInfo.isNullable());
 
     Map<String, Class> expectedCaptures = new HashMap<>();
     expectedCaptures.put("id", Long.class);

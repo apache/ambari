@@ -173,4 +173,4 @@ class Logger:
     if arguments_str:
       arguments_str = arguments_str[:-2]
         
-    return unicode("{0} {{{1}}}", 'UTF-8').format(name, arguments_str)
+    return unicode("{0} {{{1}}}").format(name, arguments_str)

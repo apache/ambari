@@ -177,10 +177,8 @@ CREATE TABLE servicecomponentdesiredstate (
   desired_stack_id BIGINT NOT NULL,
   desired_state VARCHAR(255) NOT NULL,
   service_name VARCHAR(255) NOT NULL,
-  recovery_enabled SMALLINT NOT NULL DEFAULT 0,
   CONSTRAINT pk_sc_desiredstate PRIMARY KEY (id),
   CONSTRAINT unq_scdesiredstate_name UNIQUE(component_name, service_name, cluster_id)
-  PRIMARY KEY (component_name, cluster_id, service_name)
 );
 
 CREATE TABLE servicedesiredstate (

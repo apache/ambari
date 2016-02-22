@@ -184,9 +184,6 @@ public class Configuration {
   public static final String LDAP_REFERRAL_KEY = "authentication.ldap.referral";
   public static final String LDAP_PAGINATION_ENABLED_KEY = "authentication.ldap.pagination.enabled";
   public static final String SERVER_EC_CACHE_SIZE = "server.ecCacheSize";
-  public static final String SERVER_HRC_STATUS_SUMMARY_CACHE_ENABLED = "server.hrcStatusSummary.cache.enabled";
-  public static final String SERVER_HRC_STATUS_SUMMARY_CACHE_SIZE = "server.hrcStatusSummary.cache.size";
-  public static final String SERVER_HRC_STATUS_SUMMARY_CACHE_EXPIRY_DURATION = "server.hrcStatusSummary.cache.expiryDuration";
   public static final String SERVER_STALE_CONFIG_CACHE_ENABLED_KEY = "server.cache.isStale.enabled";
   public static final String SERVER_PERSISTENCE_TYPE_KEY = "server.persistence.type";
   public static final String SERVER_JDBC_USER_NAME_KEY = "server.jdbc.user.name";
@@ -281,9 +278,6 @@ public class Configuration {
   public static final String TEMPORARY_KEYSTORE_ACTIVELY_PURGE = "security.temporary.keystore.actibely.purge";
   public static final boolean TEMPORARY_KEYSTORE_ACTIVELY_PURGE_DEFAULT = true;
 
-  // Alerts notifications properties
-  public static final String AMBARI_DISPLAY_URL = "ambari.display.url";
-
   /**
    * Key for repo validation suffixes.
    */
@@ -370,11 +364,6 @@ public class Configuration {
 
   public static final String CUSTOM_ACTION_DEFINITION_KEY = "custom.action.definitions";
   public static final String SHARED_RESOURCES_DIR_KEY = "shared.resources.dir";
-
-  protected static final boolean SERVER_HRC_STATUS_SUMMARY_CACHE_ENABLED_DEFAULT = true;
-  protected static final long SERVER_HRC_STATUS_SUMMARY_CACHE_SIZE_DEFAULT = 10000L;
-  protected static final long SERVER_HRC_STATUS_SUMMARY_CACHE_EXPIRY_DURATION_DEFAULT = 30; //minutes
-
   private static final String CUSTOM_ACTION_DEFINITION_DEF_VALUE = "/var/lib/ambari-server/resources/custom_action_definitions";
 
   private static final long SERVER_EC_CACHE_SIZE_DEFAULT = 10000L;
@@ -1785,75 +1774,6 @@ public class Configuration {
   }
 
   /**
-   * Caching of host role command status summary can be enabled/disabled
-   * through the {@link #SERVER_HRC_STATUS_SUMMARY_CACHE_ENABLED} config property.
-   * This method returns the value of {@link #SERVER_HRC_STATUS_SUMMARY_CACHE_ENABLED}
-   * config property. If this config property is not defined than returns the default defined by {@link #SERVER_HRC_STATUS_SUMMARY_CACHE_ENABLED_DEFAULT}.
-   * @return true if caching is to be enabled otherwise false.
-   */
-  public boolean getHostRoleCommandStatusSummaryCacheEnabled() {
-    String stringValue = properties.getProperty(SERVER_HRC_STATUS_SUMMARY_CACHE_ENABLED);
-    boolean value = SERVER_HRC_STATUS_SUMMARY_CACHE_ENABLED_DEFAULT;
-    if (stringValue != null) {
-      try {
-        value = Boolean.valueOf(stringValue);
-      }
-      catch (NumberFormatException ignored) {
-      }
-
-    }
-
-    return value;
-  }
-
-  /**
-   * In order to avoid the cache storing host role command status summary objects exhaust
-   * memory we set a max record number allowed for the cache. This limit can be configured
-   * through {@link #SERVER_HRC_STATUS_SUMMARY_CACHE_SIZE} config property. The method returns
-   * the value of this config property. If this config property is not defined than
-   * the default value specified by {@link #SERVER_HRC_STATUS_SUMMARY_CACHE_SIZE_DEFAULT} is returned.
-   * @return the upper limit for the number of cached host role command summaries.
-   */
-  public long getHostRoleCommandStatusSummaryCacheSize() {
-    String stringValue = properties.getProperty(SERVER_HRC_STATUS_SUMMARY_CACHE_SIZE);
-    long value = SERVER_HRC_STATUS_SUMMARY_CACHE_SIZE_DEFAULT;
-    if (stringValue != null) {
-      try {
-        value = Long.valueOf(stringValue);
-      }
-      catch (NumberFormatException ignored) {
-      }
-
-    }
-
-    return value;
-  }
-
-  /**
-   * As a safety measure the cache storing host role command status summaries should auto expire after a while.
-   * The expiry duration is specified through the {@link #SERVER_HRC_STATUS_SUMMARY_CACHE_EXPIRY_DURATION} config property
-   * expressed in minutes. The method returns the value of this config property. If this config property is not defined than
-   * the default value specified by {@link #SERVER_HRC_STATUS_SUMMARY_CACHE_EXPIRY_DURATION_DEFAULT}
-   * @return the cache expiry duration in minutes
-   */
-  public long getHostRoleCommandStatusSummaryCacheExpiryDuration() {
-    String stringValue = properties.getProperty(SERVER_HRC_STATUS_SUMMARY_CACHE_EXPIRY_DURATION);
-    long value = SERVER_HRC_STATUS_SUMMARY_CACHE_EXPIRY_DURATION_DEFAULT;
-    if (stringValue != null) {
-      try {
-        value = Long.valueOf(stringValue);
-      }
-      catch (NumberFormatException ignored) {
-      }
-
-    }
-
-    return value;
-  }
-
-
-
-  /**
    * @return whether staleConfig's flag is cached.
    */
   public boolean isStaleConfigCacheEnabled() {
@@ -2579,15 +2499,6 @@ public class Configuration {
   public int getAlertCacheSize() {
     return Integer.parseInt(properties.getProperty(ALERTS_CACHE_SIZE, ALERTS_CACHE_SIZE_DEFAULT));
   }
-
-  /**
-   * Get the ambari display URL
-   * @return
-   */
-  public String getAmbariDisplayUrl() {
-    return properties.getProperty(AMBARI_DISPLAY_URL, null);
-  }
-
 
   /**
    * @return number of retry attempts for api and blueprint operations

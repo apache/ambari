@@ -41,8 +41,6 @@ public class ServiceComponentResponse {
 
   private int installedCount;
 
-  private boolean recoveryEnabled;
-
   public ServiceComponentResponse(Long clusterId, String clusterName,
                                   String serviceName,
                                   String componentName,
@@ -50,8 +48,7 @@ public class ServiceComponentResponse {
                                   String desiredState,
                                   int totalCount,
                                   int startedCount,
-                                  int installedCount,
-                                  boolean recoveryEnabled) {
+                                  int installedCount) {
     super();
     this.clusterId = clusterId;
     this.clusterName = clusterName;
@@ -62,7 +59,6 @@ public class ServiceComponentResponse {
     this.totalCount = totalCount;
     this.startedCount = startedCount;
     this.installedCount = installedCount;
-    this.recoveryEnabled = recoveryEnabled;
   }
 
   /**
@@ -213,22 +209,6 @@ public class ServiceComponentResponse {
    */
   public void setTotalCount(int totalCount) {
     this.totalCount = totalCount;
-  }
-
-  /**
-   * Get a true or false value indicating if the service component is auto start enabled
-   * @return true or false
-   */
-  public boolean isRecoveryEnabled() {
-    return recoveryEnabled;
-  }
-
-  /**
-   * Set a true or false value indicating whether the service component is auto start enabled
-   * @param recoveryEnabled
-   */
-  public void setRecoveryEnabled(boolean recoveryEnabled) {
-    this.recoveryEnabled = recoveryEnabled;
   }
 
   @Override

@@ -581,8 +581,8 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.upperLimit", 0.3)
         putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.lowerLimit", 0.25)
         putAmsHbaseSiteProperty("phoenix.query.maxGlobalMemoryPercentage", 20)
-        putAmsHbaseSiteProperty("phoenix.coprocessor.maxMetaDataCacheSize", 81920000)
         putAmsSiteProperty("phoenix.query.maxGlobalMemoryPercentage", 30)
+        putAmsHbaseSiteProperty("phoenix.coprocessor.maxMetaDataCacheSize", 81920000)
       elif total_sinks_count >= 500:
         putAmsHbaseSiteProperty("hbase.regionserver.handler.count", 60)
         putAmsHbaseSiteProperty("hbase.regionserver.hlog.blocksize", 134217728)
@@ -592,9 +592,6 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       else:
         putAmsHbaseSiteProperty("phoenix.coprocessor.maxMetaDataCacheSize", 20480000)
       pass
-
-    metrics_api_handlers = min(50, max(20, int(total_sinks_count / 100)))
-    putAmsSiteProperty("timeline.metrics.service.handler.thread.count", metrics_api_handlers)
 
     # Distributed mode heap size
     if operatingMode == "distributed":

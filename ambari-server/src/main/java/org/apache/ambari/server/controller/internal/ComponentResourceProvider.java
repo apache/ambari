@@ -84,7 +84,6 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   protected static final String COMPONENT_TOTAL_COUNT_PROPERTY_ID     = "ServiceComponentInfo/total_count";
   protected static final String COMPONENT_STARTED_COUNT_PROPERTY_ID   = "ServiceComponentInfo/started_count";
   protected static final String COMPONENT_INSTALLED_COUNT_PROPERTY_ID = "ServiceComponentInfo/installed_count";
-  protected static final String COMPONENT_RECOVERY_ENABLED_ID         = "ServiceComponentInfo/recovery_enabled";
 
   private static final String TRUE = "true";
 
@@ -179,7 +178,6 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       setResourceProperty(resource, COMPONENT_TOTAL_COUNT_PROPERTY_ID, response.getTotalCount(), requestedIds);
       setResourceProperty(resource, COMPONENT_STARTED_COUNT_PROPERTY_ID, response.getStartedCount(), requestedIds);
       setResourceProperty(resource, COMPONENT_INSTALLED_COUNT_PROPERTY_ID, response.getInstalledCount(), requestedIds);
-      setResourceProperty(resource, COMPONENT_RECOVERY_ENABLED_ID, String.valueOf(response.isRecoveryEnabled()), requestedIds);
 
       resources.add(resource);
     }
@@ -253,7 +251,6 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
         (String) properties.get(COMPONENT_SERVICE_NAME_PROPERTY_ID),
         (String) properties.get(COMPONENT_COMPONENT_NAME_PROPERTY_ID),
         (String) properties.get(COMPONENT_STATE_PROPERTY_ID),
-        (String) properties.get(COMPONENT_RECOVERY_ENABLED_ID),
         (String) properties.get(COMPONENT_CATEGORY_PROPERTY_ID));
   }
 
@@ -466,9 +463,6 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
     Map<String, Map<String, Set<String>>> componentNames = new HashMap<>();
     Set<State> seenNewStates = new HashSet<>();
 
-    Collection<ServiceComponent> recoveryEnabledComponents = new ArrayList<>();
-    Collection<ServiceComponent> recoveryDisabledComponents = new ArrayList<>();
-
     // Determine operation level
     Resource.Type reqOpLvl;
     if (requestProperties.containsKey(RequestOperationLevel.OPERATION_LEVEL_ID)) {
@@ -519,20 +513,6 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
         continue;
       }
 
-      // Gather the components affected by the change in
-      // auto start state
-      if (!StringUtils.isEmpty(request.getRecoveryEnabled())) {
-        boolean newRecoveryEnabled = Boolean.parseBoolean(request.getRecoveryEnabled());
-        boolean oldRecoveryEnabled = sc.isRecoveryEnabled();
-        if (newRecoveryEnabled != oldRecoveryEnabled) {
-          if (newRecoveryEnabled) {
-            recoveryEnabledComponents.add(sc);
-          } else {
-            recoveryDisabledComponents.add(sc);
-          }
-        }
-      }
-
       if (newState == null) {
         debug("Nothing to do for new updateServiceComponent request, request ={}, newDesiredState=null" + request);
         continue;
@@ -559,11 +539,9 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
               + ", clusterId=" + cluster.getClusterId()
               + ", serviceName=" + sc.getServiceName()
               + ", componentName=" + sc.getName()
-              + ", recoveryEnabled=" + sc.isRecoveryEnabled()
               + ", currentDesiredState=" + oldScState
               + ", newDesiredState=" + newState);
         }
-
         if (!changedComps.containsKey(newState)) {
           changedComps.put(newState, new ArrayList<ServiceComponent>());
         }
@@ -571,7 +549,6 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
               + ", clusterName=" + clusterName
               + ", serviceName=" + serviceName
               + ", componentName=" + sc.getName()
-              + ", recoveryEnabled=" + sc.isRecoveryEnabled()
               + ", currentDesiredState=" + oldScState
               + ", newDesiredState=" + newState);
 
@@ -585,7 +562,6 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
                 + ", clusterName=" + clusterName
                 + ", serviceName=" + serviceName
                 + ", componentName=" + sc.getName()
-                + ", recoveryEnabled=" + sc.isRecoveryEnabled()
                 + ", hostname=" + sch.getHostName()
                 + ", currentState=" + oldSchState
                 + ", newDesiredState=" + newState);
@@ -598,7 +574,6 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
                 + ", clusterName=" + clusterName
                 + ", serviceName=" + serviceName
                 + ", componentName=" + sc.getName()
-                + ", recoveryEnabled=" + sc.isRecoveryEnabled()
                 + ", hostname=" + sch.getHostName()
                 + ", currentState=" + oldSchState
                 + ", newDesiredState=" + newState);
@@ -612,7 +587,6 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
                 + ", clusterName=" + clusterName
                 + ", serviceName=" + serviceName
                 + ", componentName=" + sc.getName()
-                + ", recoveryEnabled=" + sc.isRecoveryEnabled()
                 + ", hostname=" + sch.getHostName());
 
           continue;
@@ -626,7 +600,6 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
               + ", clusterId=" + cluster.getClusterId()
               + ", serviceName=" + sch.getServiceName()
               + ", componentName=" + sch.getServiceComponentName()
-              + ", recoveryEnabled=" + sc.isRecoveryEnabled()
               + ", hostname=" + sch.getHostName()
               + ", currentState=" + oldSchState
               + ", newDesiredState=" + newState);
@@ -642,7 +615,6 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
               + ", clusterName=" + clusterName
               + ", serviceName=" + serviceName
               + ", componentName=" + sc.getName()
-              + ", recoveryEnabled=" + sc.isRecoveryEnabled()
               + ", hostname=" + sch.getHostName()
               + ", currentState=" + oldSchState
               + ", newDesiredState=" + newState);
@@ -655,16 +627,6 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
         "Cannot handle different desired state changes for a set of service components at the same time");
 
     // TODO additional validation?
-
-    // Validations completed. Update the affected service components now.
-
-    for (ServiceComponent sc : recoveryEnabledComponents) {
-      sc.setRecoveryEnabled(true);
-    }
-
-    for (ServiceComponent sc : recoveryDisabledComponents) {
-      sc.setRecoveryEnabled(false);
-    }
 
     Cluster cluster = clusters.getCluster(clusterNames.iterator().next());
 
