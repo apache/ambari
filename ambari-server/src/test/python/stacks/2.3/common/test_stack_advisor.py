@@ -1630,6 +1630,7 @@ class TestHDP23StackAdvisor(TestCase):
   def test_validateHAWQConfigurations(self):
     services = self.load_json("services-hawq-3-hosts.json")
     # setup default configuration values
+    # Test hawq_rm_yarn_address and hawq_rm_scheduler_address are set correctly
     configurations = services["configurations"]
     configurations["hawq-site"] = {"properties": {"hawq_rm_yarn_address": "localhost:8032",
                                                   "hawq_rm_yarn_scheduler_address": "localhost:8030"}}
@@ -1664,3 +1665,48 @@ class TestHDP23StackAdvisor(TestCase):
     self.assertEqual(len(problems), 2)
     self.assertEqual(problems_dict, expected_warnings)
 
+    # Test hawq_global_rm_type validation
+    services = {
+                 "services" : [
+                   {
+                     "StackServices" : {
+                     "service_name" : "HAWQ"
+                     },
+                     "components": []
+                   } ],
+                 "configurations":
+                   {
+                     "hawq-site": {
+                       "properties": {
+                         "hawq_global_rm_type": "yarn"
+                       }
+                     }
+                   }
+                }
+    properties = services["configurations"]["hawq-site"]["properties"]
+
+    # case 1: hawq_global_rm_type is set as yarn, but YARN service is not installed. Validation error expected.
+    """
+    Validation error expected is as below:
+                    [ {
+                          "config-type": "hawq-site",
+                          "message": "hawq_global_rm_type must be set to none if YARN service is not installed",
+                          "type": "configuration",
+                          "config-name": "hawq_global_rm_type",
+                          "level": "ERROR"
+                    } ]
+    """
+    problems = self.stackAdvisor.validateHAWQConfigurations(properties, defaults, services["configurations"], services, hosts)
+    self.assertEqual(len(problems), 1)
+    self.assertEqual(problems[0]["config-type"], "hawq-site")
+    self.assertEqual(problems[0]["message"], "hawq_global_rm_type must be set to none if YARN service is not installed")
+    self.assertEqual(problems[0]["type"], "configuration")
+    self.assertEqual(problems[0]["config-name"], "hawq_global_rm_type")
+    self.assertEqual(problems[0]["level"], "ERROR")
+
+
+    # case 2: hawq_global_rm_type is set as yarn, and YARN service is installed. No validation errors expected.
+    services["services"].append({"StackServices" : {"service_name" : "YARN"}, "components":[]})
+
+    problems = self.stackAdvisor.validateHAWQConfigurations(properties, defaults, services["configurations"], services, hosts)
+    self.assertEqual(len(problems), 0)

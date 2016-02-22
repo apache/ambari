@@ -607,8 +607,8 @@ public class TestActionScheduler {
     doAnswer(new Answer<List<HostRoleCommand>>() {
       @Override
       public List<HostRoleCommand> answer(InvocationOnMock invocation) throws Throwable {
-        String role = (String) invocation.getArguments()[1];
-        HostRoleStatus status = (HostRoleStatus) invocation.getArguments()[2];
+        String role = (String) invocation.getArguments()[0];
+        HostRoleStatus status = (HostRoleStatus) invocation.getArguments()[1];
 
         HostRoleCommand task = s.getHostRoleCommand(null, role);
 
@@ -618,7 +618,7 @@ public class TestActionScheduler {
           return Collections.emptyList();
         }
       }
-    }).when(db).getTasksByHostRoleAndStatus(anyString(), anyString(), any(HostRoleStatus.class));
+    }).when(db).getTasksByRoleAndStatus(anyString(), any(HostRoleStatus.class));
 
     ServerActionExecutor.init(injector);
     ActionScheduler scheduler = new ActionScheduler(100, 50, db, aq, fsm, 3,
@@ -762,8 +762,8 @@ public class TestActionScheduler {
     doAnswer(new Answer<List<HostRoleCommand>>() {
       @Override
       public List<HostRoleCommand> answer(InvocationOnMock invocation) throws Throwable {
-        String role = (String) invocation.getArguments()[1];
-        HostRoleStatus status = (HostRoleStatus) invocation.getArguments()[2];
+        String role = (String) invocation.getArguments()[0];
+        HostRoleStatus status = (HostRoleStatus) invocation.getArguments()[1];
 
         HostRoleCommand task = s.getHostRoleCommand(null, role);
 
@@ -774,7 +774,7 @@ public class TestActionScheduler {
         }
 
       }
-    }).when(db).getTasksByHostRoleAndStatus(anyString(), anyString(), any(HostRoleStatus.class));
+    }).when(db).getTasksByRoleAndStatus(anyString(), any(HostRoleStatus.class));
 
     ServerActionExecutor.init(injector);
     ActionScheduler scheduler = new ActionScheduler(100, 50, db, aq, fsm, 3,
@@ -843,8 +843,8 @@ public class TestActionScheduler {
     doAnswer(new Answer<List<HostRoleCommand>>() {
       @Override
       public List<HostRoleCommand> answer(InvocationOnMock invocation) throws Throwable {
-        String role = (String) invocation.getArguments()[1];
-        HostRoleStatus status = (HostRoleStatus) invocation.getArguments()[2];
+        String role = (String) invocation.getArguments()[0];
+        HostRoleStatus status = (HostRoleStatus) invocation.getArguments()[1];
 
         HostRoleCommand task = s.getHostRoleCommand(null, role);
 
@@ -854,7 +854,7 @@ public class TestActionScheduler {
           return Collections.emptyList();
         }
       }
-    }).when(db).getTasksByHostRoleAndStatus(anyString(), anyString(), any(HostRoleStatus.class));
+    }).when(db).getTasksByRoleAndStatus(anyString(), any(HostRoleStatus.class));
 
     ActionScheduler scheduler = new ActionScheduler(100, 50, db, aq, fsm, 3,
         new HostsMap((String) null), unitOfWork, null, conf);
@@ -1951,8 +1951,8 @@ public class TestActionScheduler {
     doAnswer(new Answer<List<HostRoleCommand>>() {
       @Override
       public List<HostRoleCommand> answer(InvocationOnMock invocation) throws Throwable {
-        String role = (String) invocation.getArguments()[1];
-        HostRoleStatus status = (HostRoleStatus) invocation.getArguments()[2];
+        String role = (String) invocation.getArguments()[0];
+        HostRoleStatus status = (HostRoleStatus) invocation.getArguments()[1];
 
         HostRoleCommand task = s.getHostRoleCommand(null, role);
 
@@ -1962,7 +1962,7 @@ public class TestActionScheduler {
           return Collections.emptyList();
         }
       }
-    }).when(db).getTasksByHostRoleAndStatus(anyString(), anyString(), any(HostRoleStatus.class));
+    }).when(db).getTasksByRoleAndStatus(anyString(), any(HostRoleStatus.class));
 
     doAnswer(new Answer<HostRoleCommand>() {
       @Override

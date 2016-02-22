@@ -95,6 +95,7 @@ public class ServiceComponentImpl implements ServiceComponent {
     desiredStateEntity.setDesiredState(State.INIT);
     desiredStateEntity.setServiceName(service.getName());
     desiredStateEntity.setClusterId(service.getClusterId());
+    desiredStateEntity.setRecoveryEnabled(false);
 
     setDesiredStackVersion(service.getDesiredStackVersion());
 
@@ -181,6 +182,55 @@ public class ServiceComponentImpl implements ServiceComponent {
     return componentName;
   }
 
+  /**
+   * Get the recoveryEnabled value.
+   *
+   * @return true or false
+   */
+  @Override
+  public boolean isRecoveryEnabled() {
+    ServiceComponentDesiredStateEntity desiredStateEntity = getDesiredStateEntity();
+    if (desiredStateEntity != null) {
+      return desiredStateEntity.isRecoveryEnabled();
+    } else {
+      LOG.warn("Trying to fetch a member from an entity object that may " +
+              "have been previously deleted, serviceName = " + service.getName() + ", " +
+              "componentName = " + componentName);
+    }
+    return false;
+  }
+
+  /**
+   * Set the recoveryEnabled field in the entity object.
+   *
+   * @param recoveryEnabled - true or false
+   */
+  @Override
+  public void setRecoveryEnabled(boolean recoveryEnabled) {
+    readWriteLock.writeLock().lock();
+    try {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Setting RecoveryEnabled of Component" + ", clusterName="
+                + service.getCluster().getClusterName() + ", clusterId="
+                + service.getCluster().getClusterId() + ", serviceName="
+                + service.getName() + ", componentName=" + getName()
+                + ", oldRecoveryEnabled=" + isRecoveryEnabled() + ", newRecoveryEnabled="
+                + recoveryEnabled);
+      }
+      ServiceComponentDesiredStateEntity desiredStateEntity = getDesiredStateEntity();
+      if (desiredStateEntity != null) {
+        desiredStateEntity.setRecoveryEnabled(recoveryEnabled);
+        saveIfPersisted(desiredStateEntity);
+      } else {
+        LOG.warn("Setting a member on an entity object that may have been " +
+                "previously deleted, serviceName = " + service.getName());
+      }
+
+    } finally {
+      readWriteLock.writeLock().unlock();
+    }
+  }
+
   @Override
   public String getServiceName() {
     return service.getName();
@@ -247,7 +297,8 @@ public class ServiceComponentImpl implements ServiceComponent {
               + ", clusterId=" + service.getCluster().getClusterId()
               + ", serviceName=" + service.getName()
               + ", serviceComponentName=" + getName()
-              + ", hostname=" + hostComponent.getHostName());
+              + ", hostname=" + hostComponent.getHostName()
+              + ", recoveryEnabled=" + isRecoveryEnabled());
         }
         if (hostComponents.containsKey(hostComponent.getHostName())) {
           throw new AmbariException("Cannot add duplicate ServiceComponentHost"
@@ -255,7 +306,8 @@ public class ServiceComponentImpl implements ServiceComponent {
               + ", clusterId=" + service.getCluster().getClusterId()
               + ", serviceName=" + service.getName()
               + ", serviceComponentName=" + getName()
-              + ", hostname=" + hostComponent.getHostName());
+              + ", hostname=" + hostComponent.getHostName()
+              + ", recoveryEnabled=" + isRecoveryEnabled());
         }
         // FIXME need a better approach of caching components by host
         ClusterImpl clusterImpl = (ClusterImpl) service.getCluster();
@@ -283,6 +335,7 @@ public class ServiceComponentImpl implements ServiceComponent {
               + ", clusterId=" + service.getCluster().getClusterId()
               + ", serviceName=" + service.getName()
               + ", serviceComponentName=" + getName()
+              + ", recoveryEnabled=" + isRecoveryEnabled()
               + ", hostname=" + hostName);
         }
         if (hostComponents.containsKey(hostName)) {
@@ -291,6 +344,7 @@ public class ServiceComponentImpl implements ServiceComponent {
               + ", clusterId=" + service.getCluster().getClusterId()
               + ", serviceName=" + service.getName()
               + ", serviceComponentName=" + getName()
+              + ", recoveryEnabled=" + isRecoveryEnabled()
               + ", hostname=" + hostName);
         }
         ServiceComponentHost hostComponent = serviceComponentHostFactory.createNew(this, hostName);
@@ -354,11 +408,11 @@ public class ServiceComponentImpl implements ServiceComponent {
     try {
       if (LOG.isDebugEnabled()) {
         LOG.debug("Setting DesiredState of Service" + ", clusterName="
-            + service.getCluster().getClusterName() + ", clusterId="
-            + service.getCluster().getClusterId() + ", serviceName="
-            + service.getName() + ", serviceComponentName=" + getName()
-            + ", oldDesiredState=" + getDesiredState() + ", newDesiredState="
-            + state);
+                + service.getCluster().getClusterName() + ", clusterId="
+                + service.getCluster().getClusterId() + ", serviceName="
+                + service.getName() + ", serviceComponentName=" + getName()
+                + ", oldDesiredState=" + getDesiredState() + ", newDesiredState="
+                + state);
       }
       ServiceComponentDesiredStateEntity desiredStateEntity = getDesiredStateEntity();
       if (desiredStateEntity != null) {
@@ -428,7 +482,8 @@ public class ServiceComponentImpl implements ServiceComponent {
       ServiceComponentResponse r = new ServiceComponentResponse(getClusterId(),
           cluster.getClusterName(), service.getName(), getName(),
           getDesiredStackVersion().getStackId(), getDesiredState().toString(),
-          getTotalCount(), getStartedCount(), getInstalledCount());
+          getTotalCount(), getStartedCount(), getInstalledCount(),
+          isRecoveryEnabled());
       return r;
     } finally {
       readWriteLock.readLock().unlock();
@@ -440,11 +495,13 @@ public class ServiceComponentImpl implements ServiceComponent {
     return service.getCluster().getClusterName();
   }
 
+
   @Override
   public void debugDump(StringBuilder sb) {
     readWriteLock.readLock().lock();
     try {
       sb.append("ServiceComponent={ serviceComponentName=" + getName()
+          + ", recoveryEnabled=" + isRecoveryEnabled()
           + ", clusterName=" + service.getCluster().getClusterName()
           + ", clusterId=" + service.getCluster().getClusterId()
           + ", serviceName=" + service.getName() + ", desiredStackVersion="
@@ -592,6 +649,7 @@ public class ServiceComponentImpl implements ServiceComponent {
                 + ", clusterName=" + getClusterName()
                 + ", serviceName=" + getServiceName()
                 + ", componentName=" + getName()
+                + ", recoveryEnabled=" + isRecoveryEnabled()
                 + ", hostname=" + sch.getHostName());
             return false;
           }
@@ -615,7 +673,8 @@ public class ServiceComponentImpl implements ServiceComponent {
         LOG.info("Deleting all servicecomponenthosts for component"
             + ", clusterName=" + getClusterName()
             + ", serviceName=" + getServiceName()
-            + ", componentName=" + getName());
+            + ", componentName=" + getName()
+            + ", recoveryEnabled=" + isRecoveryEnabled());
         for (ServiceComponentHost sch : hostComponents.values()) {
           if (!sch.canBeRemoved()) {
             throw new AmbariException("Found non removable hostcomponent "
@@ -624,6 +683,7 @@ public class ServiceComponentImpl implements ServiceComponent {
                 + ", clusterName=" + getClusterName()
                 + ", serviceName=" + getServiceName()
                 + ", componentName=" + getName()
+                + ", recoveryEnabled=" + isRecoveryEnabled()
                 + ", hostname=" + sch.getHostName());
           }
         }
@@ -652,12 +712,14 @@ public class ServiceComponentImpl implements ServiceComponent {
             + ", clusterName=" + getClusterName()
             + ", serviceName=" + getServiceName()
             + ", componentName=" + getName()
+            + ", recoveryEnabled=" + isRecoveryEnabled()
             + ", hostname=" + sch.getHostName());
         if (!sch.canBeRemoved()) {
           throw new AmbariException("Could not delete hostcomponent from cluster"
               + ", clusterName=" + getClusterName()
               + ", serviceName=" + getServiceName()
               + ", componentName=" + getName()
+              + ", recoveryEnabled=" + isRecoveryEnabled()
               + ", hostname=" + sch.getHostName());
         }
         sch.delete();

@@ -132,6 +132,7 @@ with Environment() as env:
   TAR_DESTINATION_FOLDER_SUFFIX = "_tar_destination_folder"
   
   class params:
+    hdfs_path_prefix = hdfs_path_prefix
     hdfs_user = "hdfs"
     mapred_user ="mapred"
     hadoop_bin_dir="/usr/hdp/" + hdp_version + "/hadoop/bin"
@@ -236,23 +237,23 @@ with Environment() as env:
     return _copy_files(source_and_dest_pairs, file_owner, group_owner, kinit_if_needed)
   
   def createHdfsResources():
-    params.HdfsResource('/atshistory', user='hdfs', change_permissions_for_parents=True, owner='yarn', group='hadoop', type='directory', action= ['create_on_execute'], mode=0755)
-    params.HdfsResource('/user/hcat', owner='hcat', type='directory', action=['create_on_execute'], mode=0755)
-    params.HdfsResource('/hive/warehouse', owner='hive', type='directory', action=['create_on_execute'], mode=0777)
-    params.HdfsResource('/user/hive', owner='hive', type='directory', action=['create_on_execute'], mode=0755)
-    params.HdfsResource('/tmp', mode=0777, action=['create_on_execute'], type='directory', owner='hdfs')
-    params.HdfsResource('/user/ambari-qa', type='directory', action=['create_on_execute'], mode=0770)
-    params.HdfsResource('/user/oozie', owner='oozie', type='directory', action=['create_on_execute'], mode=0775)
-    params.HdfsResource('/app-logs', recursive_chmod=True, owner='yarn', group='hadoop', type='directory', action=['create_on_execute'], mode=0777)
-    params.HdfsResource('/tmp/entity-file-history/active', owner='yarn', group='hadoop', type='directory', action=['create_on_execute'])
-    params.HdfsResource('/mapred', owner='mapred', type='directory', action=['create_on_execute'])
-    params.HdfsResource('/mapred/system', owner='hdfs', type='directory', action=['create_on_execute'])
-    params.HdfsResource('/mr-history/done', change_permissions_for_parents=True, owner='mapred', group='hadoop', type='directory', action=['create_on_execute'], mode=0777)
-    params.HdfsResource('/atshistory/done', owner='yarn', group='hadoop', type='directory', action=['create_on_execute'], mode=0700)
-    params.HdfsResource('/atshistory/active', owner='yarn', group='hadoop', type='directory', action=['create_on_execute'], mode=01777)
-    params.HdfsResource('/ams/hbase', owner='ams', type='directory', action=['create_on_execute'], mode=0775)
-    params.HdfsResource('/amshbase/staging', owner='ams', type='directory', action=['create_on_execute'], mode=0711)
-    params.HdfsResource('/user/ams/hbase', owner='ams', type='directory', action=['create_on_execute'], mode=0775)
+    params.HdfsResource(format('{hdfs_path_prefix}/atshistory'), user='hdfs', change_permissions_for_parents=True, owner='yarn', group='hadoop', type='directory', action= ['create_on_execute'], mode=0755)
+    params.HdfsResource(format('{hdfs_path_prefix}/user/hcat'), owner='hcat', type='directory', action=['create_on_execute'], mode=0755)
+    params.HdfsResource(format('{hdfs_path_prefix}/hive/warehouse'), owner='hive', type='directory', action=['create_on_execute'], mode=0777)
+    params.HdfsResource(format('{hdfs_path_prefix}/user/hive'), owner='hive', type='directory', action=['create_on_execute'], mode=0755)
+    params.HdfsResource(format('{hdfs_path_prefix}/tmp'), mode=0777, action=['create_on_execute'], type='directory', owner='hdfs')
+    params.HdfsResource(format('{hdfs_path_prefix}/user/ambari-qa'), type='directory', action=['create_on_execute'], mode=0770)
+    params.HdfsResource(format('{hdfs_path_prefix}/user/oozie'), owner='oozie', type='directory', action=['create_on_execute'], mode=0775)
+    params.HdfsResource(format('{hdfs_path_prefix}/app-logs'), recursive_chmod=True, owner='yarn', group='hadoop', type='directory', action=['create_on_execute'], mode=0777)
+    params.HdfsResource(format('{hdfs_path_prefix}/tmp/entity-file-history/active'), owner='yarn', group='hadoop', type='directory', action=['create_on_execute'])
+    params.HdfsResource(format('{hdfs_path_prefix}/mapred'), owner='mapred', type='directory', action=['create_on_execute'])
+    params.HdfsResource(format('{hdfs_path_prefix}/mapred/system'), owner='hdfs', type='directory', action=['create_on_execute'])
+    params.HdfsResource(format('{hdfs_path_prefix}/mr-history/done'), change_permissions_for_parents=True, owner='mapred', group='hadoop', type='directory', action=['create_on_execute'], mode=0777)
+    params.HdfsResource(format('{hdfs_path_prefix}/atshistory/done'), owner='yarn', group='hadoop', type='directory', action=['create_on_execute'], mode=0700)
+    params.HdfsResource(format('{hdfs_path_prefix}/atshistory/active'), owner='yarn', group='hadoop', type='directory', action=['create_on_execute'], mode=01777)
+    params.HdfsResource(format('{hdfs_path_prefix}/ams/hbase'), owner='ams', type='directory', action=['create_on_execute'], mode=0775)
+    params.HdfsResource(format('{hdfs_path_prefix}/amshbase/staging'), owner='ams', type='directory', action=['create_on_execute'], mode=0711)
+    params.HdfsResource(format('{hdfs_path_prefix}/user/ams/hbase'), owner='ams', type='directory', action=['create_on_execute'], mode=0775)
 
 
   def putCreatedHdfsResourcesToIgnore(env):
@@ -262,14 +263,16 @@ with Environment() as env:
     
     file_content = ""
     for file in env.config['hdfs_files']:
-      file_content += file['target']
+      if not file['target'].startswith(hdfs_path_prefix):
+        raise Exception("Something created outside hdfs_path_prefix!")
+      file_content += file['target'][len(hdfs_path_prefix):]
       file_content += "\n"
       
     with open("/var/lib/ambari-agent/data/.hdfs_resource_ignore", "a+") as fp:
       fp.write(file_content)
       
   def putSQLDriverToOozieShared():
-    params.HdfsResource('/user/oozie/share/lib/sqoop/{0}'.format(os.path.basename(SQL_DRIVER_PATH)),
+    params.HdfsResource(hdfs_path_prefix + '/user/oozie/share/lib/sqoop/{0}'.format(os.path.basename(SQL_DRIVER_PATH)),
                         owner='hdfs', type='file', action=['create_on_execute'], mode=0644, source=SQL_DRIVER_PATH)
       
   env.set_params(params)
