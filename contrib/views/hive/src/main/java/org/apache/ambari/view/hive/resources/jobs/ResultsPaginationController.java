@@ -190,7 +190,12 @@ public class ResultsPaginationController {
       for(Object[] row : rows ){
         String[] strs = new String[row.length];
         for( int colNum = 0 ; colNum < row.length ; colNum++ ){
-          strs[colNum] = String.valueOf(row[colNum]);
+          String value = String.valueOf(row[colNum]);
+          if(row[colNum] != null && (value.isEmpty() || value.equalsIgnoreCase("null"))){
+            strs[colNum] = String.format("\"%s\"",value);
+          }else{
+            strs[colNum] = value;
+          }
         }
         this.rows.add(strs);
       }
