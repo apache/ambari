@@ -63,6 +63,9 @@ public class ConfigurationBuilder {
   public static final String FAILOVER_PROXY_PROVIDER_INSTANCE_PROPERTY = "webhdfs.client.failover.proxy.provider";
   public static final String FAILOVER_PROXY_PROVIDER_CLUSTER_PROPERTY  = "dfs.client.failover.proxy.provider.%s";
 
+  public static final String UMASK_CLUSTER_PROPERTY = "fs.permissions.umask-mode";
+  public static final String UMASK_INSTANCE_PROPERTY = "hdfs.umask-mode";
+
   private Configuration conf = new Configuration();
   private ViewContext context;
   private AmbariApi ambariApi = null;
@@ -223,6 +226,9 @@ public class ConfigurationBuilder {
   public Configuration buildConfig() throws HdfsApiException {
     parseProperties();
     setAuthParams(buildAuthenticationConfig());
+
+    String umask = context.getProperties().get(UMASK_INSTANCE_PROPERTY);
+    if(umask != null && !umask.isEmpty()) conf.set(UMASK_CLUSTER_PROPERTY,umask);
 
     conf.set("fs.hdfs.impl", DistributedFileSystem.class.getName());
     conf.set("fs.webhdfs.impl", WebHdfsFileSystem.class.getName());
