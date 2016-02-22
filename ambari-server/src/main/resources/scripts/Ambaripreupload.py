@@ -279,14 +279,15 @@ with Environment() as env:
   hadoop_conf_dir = params.hadoop_conf_dir
    
   oozie_libext_dir = format("/usr/hdp/{hdp_version}/oozie/libext")
+  sql_driver_filename = os.path.basename(SQL_DRIVER_PATH)
   oozie_home=format("/usr/hdp/{hdp_version}/oozie")
   oozie_setup_sh=format("/usr/hdp/{hdp_version}/oozie/bin/oozie-setup.sh")
   oozie_setup_sh_current="/usr/hdp/current/oozie-server/bin/oozie-setup.sh"
   oozie_tmp_dir = "/var/tmp/oozie"
   configure_cmds = []
   configure_cmds.append(('tar','-xvf', oozie_home + '/oozie-sharelib.tar.gz','-C', oozie_home))
-  configure_cmds.append(('cp', "/usr/share/HDP-oozie/ext-2.2.zip", format("/usr/hdp/{hdp_version}/oozie/libext")))
-  configure_cmds.append(('chown', 'oozie:hadoop', oozie_libext_dir + "/ext-2.2.zip"))
+  configure_cmds.append(('cp', "/usr/share/HDP-oozie/ext-2.2.zip", SQL_DRIVER_PATH, oozie_libext_dir))
+  configure_cmds.append(('chown', 'oozie:hadoop', oozie_libext_dir + "/ext-2.2.zip", oozie_libext_dir + "/" + sql_driver_filename))
    
   no_op_test = "ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1"
 
