@@ -367,13 +367,16 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
 
     yarn_queues = "default"
     capacitySchedulerProperties = {}
-    if "capacity-scheduler" in services['configurations'] and "capacity-scheduler" in services['configurations']["capacity-scheduler"]["properties"]:
-      properties = str(services['configurations']["capacity-scheduler"]["properties"]["capacity-scheduler"]).split('\n')
-      for property in properties:
-        key,sep,value = property.partition("=")
-        capacitySchedulerProperties[key] = value
-    if "yarn.scheduler.capacity.root.queues" in capacitySchedulerProperties:
-      yarn_queues = str(capacitySchedulerProperties["yarn.scheduler.capacity.root.queues"])
+    if "capacity-scheduler" in services['configurations']:
+      if "capacity-scheduler" in services['configurations']["capacity-scheduler"]["properties"]:
+        properties = str(services['configurations']["capacity-scheduler"]["properties"]["capacity-scheduler"]).split('\n')
+        for property in properties:
+          key,sep,value = property.partition("=")
+          capacitySchedulerProperties[key] = value
+      if "yarn.scheduler.capacity.root.queues" in capacitySchedulerProperties:
+        yarn_queues = str(capacitySchedulerProperties["yarn.scheduler.capacity.root.queues"])
+      elif "yarn.scheduler.capacity.root.queues" in services['configurations']["capacity-scheduler"]["properties"]:
+        yarn_queues =  services['configurations']["capacity-scheduler"]["properties"]["yarn.scheduler.capacity.root.queues"]
     # Interactive Queues property attributes
     putHiveServerPropertyAttribute = self.putPropertyAttribute(configurations, "hiveserver2-site")
     toProcessQueues = yarn_queues.split(",")

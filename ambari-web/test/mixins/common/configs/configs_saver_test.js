@@ -59,14 +59,14 @@ describe('App.ConfigsSaverMixin', function() {
       currentServices: stackServices[2],
       res: false,
       m: 'not ok'
-    }].forEach(function (c) {
+    }].forEach(function (c, index) {
         describe(c.m, function () {
           beforeEach(function () {
             instanceObject.reopen({
               currentServices: c.currentServices
             });
-            it('', function () {
-              expect(instanceObject.allowSaveCoreSite()).to.equal(c.res);
+            it('test #' + index, function () {
+              expect(instanceObject.allowSaveCoreSite()).to.be.equal(c.res);
             });
           });
         });
@@ -79,7 +79,7 @@ describe('App.ConfigsSaverMixin', function() {
       { fName: 'core-site', res: true, allowSaveCoreSite: true, m: 'core site is allowed to be saved' },
       { fName: 'core-site', res: false, allowSaveCoreSite: false, m: 'core site is not allowed to be saved' },
       { fName: 'other-file-name', res: true, m: 'file name has not restriction rule, so can be saved' }
-    ].forEach(function (c) {
+    ].forEach(function (c, index) {
         describe(c.m, function () {
           beforeEach(function() {
             sinon.stub(instanceObject, 'allowSaveCoreSite').returns(c.allowSaveCoreSite);
@@ -87,7 +87,7 @@ describe('App.ConfigsSaverMixin', function() {
           afterEach(function() {
             instanceObject.allowSaveCoreSite.restore();
           });
-          it('', function () {
+          it('test #' + index, function () {
             expect(instanceObject.allowSaveSite(c.fName)).to.equal(c.res);
           });
         });

@@ -51,8 +51,7 @@ describe('App.AlertInstance', function () {
         lastTriggeredFormatted: lastTriggeredFormatted
       });
       var status = model.get('statusChangedAndLastCheckedFormatted');
-      expect(status.indexOf(lastCheckedFormatted) > status.indexOf(lastTriggeredFormatted)).to.be.true;
-
+      expect(status.indexOf(lastCheckedFormatted)).to.be.above(status.indexOf(lastTriggeredFormatted));
     });
 
   });

@@ -128,7 +128,8 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, Ap
       '13', '12', '14', '16', //hbase
       '17', '18', '19', '20', '23', // all yarn
       '21', // storm
-      '22' // flume
+      '22', // flume
+      '24' // hawq
     ]; // all in order
     var hiddenFull = [
       ['15', 'Region In Transition']
@@ -173,6 +174,12 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, Ap
         visibleFull = visibleFull.without(item);
       }, this);
     }
+    if (this.get('hawq_model') == null) {
+      var hawq = ['24'];
+      hawq.forEach(function (item) {
+        visibleFull = visibleFull.without(item);
+      }, this);
+    }
     var obj = this.get('initPrefObject');
     obj.set('visible', visibleFull);
     obj.set('hidden', hiddenFull);
@@ -191,6 +198,8 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, Ap
   storm_model: null,
 
   flume_model: null,
+
+  hawq_model: null,
 
   /**
    * List of visible widgets
@@ -383,7 +392,8 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, Ap
       hbase_model: ['12', '13', '14', '15', '16'],
       yarn_model: ['17', '18', '19', '20', '23'],
       storm_model: ['21'],
-      flume_model: ['22']
+      flume_model: ['22'],
+      hawq_model: ['24']
     };
 
     // check each service, find out the newly added service and already deleted service
@@ -450,7 +460,8 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, Ap
       '20': App.YARNMemoryPieChartView,
       '21': App.SuperVisorUpView,
       '22': App.FlumeAgentUpView,
-      '23': App.YARNLinksView
+      '23': App.YARNLinksView,
+      '24': App.HawqSegmentUpView
     }, id);
   },
 
@@ -467,7 +478,7 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, Ap
     visible: [],
     hidden: [],
     threshold: {1: [80, 90], 2: [85, 95], 3: [90, 95], 4: [80, 90], 5: [1000, 3000], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: [], 13: [70, 90], 14: [150, 250], 15: [3, 10], 16: [],
-      17: [70, 90], 18: [], 19: [50, 75], 20: [50, 75], 21: [85, 95], 22: [85, 95], 23: []} // id:[thresh1, thresh2]
+      17: [70, 90], 18: [], 19: [50, 75], 20: [50, 75], 21: [85, 95], 22: [85, 95], 23: [], 24: [80, 90]} // id:[thresh1, thresh2]
   }),
 
   /**

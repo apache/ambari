@@ -50,7 +50,7 @@ describe('App.TableView', function () {
 
     it('should set filterConditions on instance', function() {
       var tableView = App.TableView.create();
-      expect(tableView.get('filterConditions') === App.TableView.prototype.filterConditions).to.be.false;
+      expect(tableView.get('filterConditions')).to.be.not.equal(App.TableView.prototype.filterConditions);
     });
 
   });

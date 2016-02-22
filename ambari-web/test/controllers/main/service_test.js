@@ -178,12 +178,6 @@ describe('App.MainServiceController', function () {
       expect(r).to.be.null;
     });
 
-    it('nothing disabled', function() {
-      var event = {target: {}}, query = 'query';
-      mainServiceController.startAllService(event).onPrimary(query);
-      expect(mainServiceController.allServicesCall.calledWith('STARTED', query));
-    });
-
   });
 
   describe('#stopAllService', function() {
@@ -206,12 +200,6 @@ describe('App.MainServiceController', function () {
       var event = {target: {parentElement: {className: 'disabled', nodeType: 1}}};
       var r = mainServiceController.stopAllService(event);
       expect(r).to.be.null;
-    });
-
-    it('nothing disabled', function() {
-      var event = {target: {}}, query = 'query';
-      mainServiceController.stopAllService(event).onPrimary(query);
-      expect(mainServiceController.allServicesCall.calledWith('STARTED', query));
     });
 
   });

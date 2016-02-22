@@ -31,21 +31,28 @@ public class ServiceComponentRequest {
 
   private String componentCategory;
 
+  private String recoveryEnabled; // CREATE/UPDATE
+
   public ServiceComponentRequest(String clusterName, String serviceName,
                                  String componentName, String desiredState) {
-    this.clusterName = clusterName;
-    this.serviceName = serviceName;
-    this.componentName = componentName;
-    this.desiredState = desiredState;
+    this(clusterName, serviceName, componentName, desiredState, null, null);
+  }
+
+  public ServiceComponentRequest(String clusterName, String serviceName,
+                                 String componentName, String desiredState,
+                                 String recoveryEnabled) {
+    this(clusterName, serviceName, componentName, desiredState, recoveryEnabled, null);
   }
 
   public ServiceComponentRequest(String clusterName,
                                  String serviceName, String componentName,
-                                 String desiredState, String componentCategory) {
+                                 String desiredState, String recoveryEnabled,
+                                 String componentCategory) {
     this.clusterName = clusterName;
     this.serviceName = serviceName;
     this.componentName = componentName;
     this.desiredState = desiredState;
+    this.recoveryEnabled = recoveryEnabled;
     this.componentCategory = componentCategory;
   }
 
@@ -105,6 +112,20 @@ public class ServiceComponentRequest {
     this.clusterName = clusterName;
   }
 
+  /**
+   * @return recoveryEnabled
+   */
+  public String getRecoveryEnabled() {
+    return recoveryEnabled;
+  }
+
+  /**
+   * @param recoveryEnabled the recoveryEnabled value to set.
+   */
+  public void setRecoveryEnabled(String recoveryEnabled) {
+    this.recoveryEnabled = recoveryEnabled;
+  }
+
   public String getComponentCategory() {
     return componentCategory;
   }
@@ -115,7 +136,7 @@ public class ServiceComponentRequest {
 
   @Override
   public String toString() {
-    return String.format("[clusterName=%s, serviceName=%s, componentName=%s, desiredState=%s, componentCategory=%s]",
-        clusterName, serviceName, clusterName, desiredState, componentCategory);
+    return String.format("[clusterName=%s, serviceName=%s, componentName=%s, desiredState=%s, recoveryEnabled=%s, componentCategory=%s]",
+        clusterName, serviceName, clusterName, desiredState, recoveryEnabled, componentCategory);
   }
 }

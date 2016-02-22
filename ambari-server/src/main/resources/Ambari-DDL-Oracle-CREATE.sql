@@ -168,6 +168,7 @@ CREATE TABLE servicecomponentdesiredstate (
   desired_stack_id NUMBER(19) NOT NULL,
   desired_state VARCHAR2(255) NOT NULL,
   service_name VARCHAR2(255) NOT NULL,
+  recovery_enabled SMALLINT DEFAULT 0 NOT NULL,
   CONSTRAINT pk_sc_desiredstate PRIMARY KEY (id),
   CONSTRAINT unq_scdesiredstate_name UNIQUE(component_name, service_name, cluster_id)
 );
@@ -672,6 +673,7 @@ CREATE TABLE setting (
 -- tasks indices --
 CREATE INDEX idx_stage_request_id ON stage (request_id);
 CREATE INDEX idx_hrc_request_id ON host_role_command (request_id);
+CREATE INDEX idx_hrc_status_role ON host_role_command (status, role);
 CREATE INDEX idx_rsc_request_id ON role_success_criteria (request_id);
 
 --------altering tables by creating unique constraints----------

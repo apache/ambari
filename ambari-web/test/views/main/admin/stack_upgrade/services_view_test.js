@@ -73,14 +73,16 @@ describe('App.MainAdminStackServicesView', function () {
     it("routes to Add Service Wizard and set redirect path on wizard close", function() {
       isAccessibleMock.returns(true);
       view.goToAddService({context: "serviceName"});
-      expect(App.router.get.calledWith('addServiceController') && mock.setDBProperty.calledWith('onClosePath', 'main.admin.stackAndUpgrade.services')).to.be.true;
+      expect(App.router.get.calledWith('addServiceController')).to.be.true;
+      expect(mock.setDBProperty.calledWith('onClosePath', 'main.admin.stackAndUpgrade.services')).to.be.true;
       expect(App.get('router').transitionTo.calledWith('main.serviceAdd')).to.be.true;
       expect(mock.get('serviceToInstall')).to.be.equal("serviceName");
     });
     it("routes to Security Wizard", function() {
       isAccessibleMock.returns(true);
       view.goToAddService({context: "KERBEROS"});
-      expect(App.router.get.calledWith('kerberosWizardController') && mock.setDBProperty.calledWith('onClosePath', 'main.admin.stackAndUpgrade.services')).to.be.true;
+      expect(App.router.get.calledWith('kerberosWizardController')).to.be.true;
+      expect(mock.setDBProperty.calledWith('onClosePath', 'main.admin.stackAndUpgrade.services')).to.be.true;
       expect(mock.checkAndStartKerberosWizard.calledOnce).to.be.true;
     });
   });

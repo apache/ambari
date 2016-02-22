@@ -191,7 +191,7 @@ describe('App.SelectHostView', function() {
 
     it('should call assignHostToMaster', function() {
       view.changeHandler();
-      expect(view.get('controller').assignHostToMaster.calledWith('ZOOKEEPER_SERVER', 'h1', 1));
+      expect(view.get('controller').assignHostToMaster.args[0]).to.be.eql(['ZOOKEEPER_SERVER', 'h1 info', 1]);
     });
 
     it('should increment rebalanceComponentHostsCounter if component it is multiple', function() {
@@ -271,7 +271,7 @@ describe('App.InputHostView', function() {
 
     it('should call assignHostToMaster', function() {
       view.changeHandler();
-      expect(view.get('controller').assignHostToMaster.calledWith('ZOOKEEPER_SERVER', 'h1', 1));
+      expect(view.get('controller').assignHostToMaster.args[0]).to.be.eql(['ZOOKEEPER_SERVER', 'h1', 1]);
     });
 
     it('should increment rebalanceComponentHostsCounter if component it is multiple', function() {

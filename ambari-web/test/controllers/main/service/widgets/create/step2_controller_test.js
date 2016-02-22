@@ -731,7 +731,7 @@ describe('App.WidgetWizardStep2Controller', function () {
     });
     it("user is moved to the next step", function () {
       controller.next();
-      expect(App.router.send.calledWith('next'));
+      expect(App.router.send.calledWith('next')).to.be.true;
     });
   });
 });

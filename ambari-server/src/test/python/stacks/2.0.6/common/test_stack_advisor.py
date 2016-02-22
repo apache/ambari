@@ -1820,7 +1820,7 @@ class TestHDP206StackAdvisor(TestCase):
     )
     recommendedDefaults = {"property1": "file:///grid/0/var/dir"}
     warn = self.stackAdvisor.validatorNotRootFs(properties, recommendedDefaults, 'property1', hostInfo)
-    self.assertIsNotNone(warn)
+    self.assertTrue(warn != None)
     self.assertEquals({'message': 'It is not recommended to use root partition for property1', 'level': 'WARN'}, warn)
 
     # Set by user /var mountpoint, which is non-root , but not preferable - no warning
@@ -1831,7 +1831,7 @@ class TestHDP206StackAdvisor(TestCase):
         "mountpoint" : "/var"
       }
     )
-    self.assertIsNone(self.stackAdvisor.validatorNotRootFs(properties, recommendedDefaults, 'property1', hostInfo))
+    self.assertTrue(self.stackAdvisor.validatorNotRootFs(properties, recommendedDefaults, 'property1', hostInfo) == None)
 
   def test_validatorEnoughDiskSpace(self):
     reqiuredDiskSpace = 1048576
@@ -1847,7 +1847,7 @@ class TestHDP206StackAdvisor(TestCase):
       }
     ]}
     properties = {"property1": "file:///var/dir"}
-    self.assertIsNone(self.stackAdvisor.validatorEnoughDiskSpace(properties, 'property1', hostInfo, reqiuredDiskSpace))
+    self.assertTrue(self.stackAdvisor.validatorEnoughDiskSpace(properties, 'property1', hostInfo, reqiuredDiskSpace) == None)
 
     # local FS, no enough space
     hostInfo = {"disk_info": [
@@ -1858,16 +1858,16 @@ class TestHDP206StackAdvisor(TestCase):
       }
     ]}
     warn = self.stackAdvisor.validatorEnoughDiskSpace(properties, 'property1', hostInfo, reqiuredDiskSpace)
-    self.assertIsNotNone(warn)
+    self.assertTrue(warn != None)
     self.assertEquals({'message': errorMsg, 'level': 'WARN'}, warn)
 
     # non-local FS, HDFS
     properties = {"property1": "hdfs://h1"}
-    self.assertIsNone(self.stackAdvisor.validatorEnoughDiskSpace(properties, 'property1', hostInfo, reqiuredDiskSpace))
+    self.assertTrue(self.stackAdvisor.validatorEnoughDiskSpace(properties, 'property1', hostInfo, reqiuredDiskSpace) == None)
 
     # non-local FS, WASB
     properties = {"property1": "wasb://h1"}
-    self.assertIsNone(self.stackAdvisor.validatorEnoughDiskSpace(properties, 'property1', hostInfo, reqiuredDiskSpace))
+    self.assertTrue(self.stackAdvisor.validatorEnoughDiskSpace(properties, 'property1', hostInfo, reqiuredDiskSpace) == None)
 
   def test_round_to_n(self):
     self.assertEquals(self.stack_advisor_impl.round_to_n(0), 0)

@@ -158,6 +158,20 @@
                   <div class="label-small">
                     $alert.getAlertText()
                   </div>
+                  <div class="label-small">
+                    Cluster: $alert.getAlertDefinition().getCluster().getClusterName()
+                  </div>
+                  #if( $alert.getHostName() )
+                    #if( $ambari.hasUrl() )
+                      <div class="label-small">
+                      Host: <a href=$ambari.getUrl()/#/main/hosts/$alert.getHostName()/summary>$ambari.getUrl()/#/main/hosts/$alert.getHostName()/summary</a>
+                      </div>
+                    #else
+                      <div class="label-small">
+                        Host: $alert.getHostName()
+                      </div>
+                    #end
+                  #end
                 </td>
               </tr>
             #end
@@ -170,6 +184,10 @@
     This notification was sent to $dispatch.getTargetName()
     <br/>
     Apache Ambari $ambari.getServerVersion()
+    #if( $ambari.hasUrl() )
+    <br/>
+    Ambari Server link: <a href=$ambari.getUrl()>$ambari.getUrl()</a>
+    #end
   </div>
 </html>
       ]]>

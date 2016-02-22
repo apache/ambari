@@ -28,9 +28,12 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -72,17 +75,19 @@ public abstract class AbstractTimelineMetricsSink {
   protected void emitMetrics(TimelineMetrics metrics) {
     String connectUrl = getCollectorUri();
     int timeout = getTimeoutSeconds() * 1000;
+    HttpURLConnection connection = null;
     try {
       if (connectUrl == null) {
         throw new IOException("Unknown URL. " +
           "Unable to connect to metrics collector.");
       }
       String jsonData = mapper.writeValueAsString(metrics);
-      HttpURLConnection connection = connectUrl.startsWith("https") ?
+      connection = connectUrl.startsWith("https") ?
         getSSLConnection(connectUrl) : getConnection(connectUrl);
 
       connection.setRequestMethod("POST");
       connection.setRequestProperty("Content-Type", "application/json");
+      connection.setRequestProperty("Connection", "Keep-Alive");
       connection.setConnectTimeout(timeout);
       connection.setReadTimeout(timeout);
       connection.setDoOutput(true);
@@ -103,14 +108,52 @@ public abstract class AbstractTimelineMetricsSink {
           LOG.debug("Metrics posted to Collector " + connectUrl);
         }
       }
-    } catch (IOException e) {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Unable to connect to collector, " + connectUrl, e);
-      } else {
-        LOG.info("Unable to connect to collector, " + connectUrl);
+      cleanupInputStream(connection.getInputStream());
+    } catch (IOException ioe) {
+      StringBuilder errorMessage =
+        new StringBuilder("Unable to connect to collector, " + connectUrl + "\n");
+      try {
+        if ((connection != null)) {
+          errorMessage.append(cleanupInputStream(connection.getErrorStream()));
+        }
+      } catch (IOException e) {
+        //NOP
       }
-      throw new UnableToConnectException(e).setConnectUrl(connectUrl);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(errorMessage, ioe);
+      } else {
+        LOG.info(errorMessage);
+      }
+      throw new UnableToConnectException(ioe).setConnectUrl(connectUrl);
     }
+  }
+
+  /**
+   * Cleans up and closes an input stream
+   * see http://docs.oracle.com/javase/6/docs/technotes/guides/net/http-keepalive.html
+   * @param is the InputStream to clean up
+   * @return string read from the InputStream
+   * @throws IOException
+   */
+  private String cleanupInputStream(InputStream is) throws IOException {
+    StringBuilder sb = new StringBuilder();
+    if (is != null) {
+      try (
+        InputStreamReader isr = new InputStreamReader(is);
+        BufferedReader br = new BufferedReader(isr)
+      ) {
+        // read the response body
+        String line;
+        while ((line = br.readLine()) != null) {
+          if (LOG.isDebugEnabled()) {
+            sb.append(line);
+          }
+        }
+      } finally {
+        is.close();
+      }
+    }
+    return sb.toString();
   }
 
   // Get a connection

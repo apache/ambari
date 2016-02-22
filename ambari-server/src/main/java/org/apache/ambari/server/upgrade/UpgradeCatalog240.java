@@ -89,6 +89,8 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   private static final String ID = "id";
   private static final String SETTING_TABLE = "setting";
 
+  protected static final String SERVICE_COMPONENT_DESIRED_STATE_TABLE = "servicecomponentdesiredstate";
+  protected static final String RECOVERY_ENABLED_COL = "recovery_enabled";
 
   // ----- Constructors ------------------------------------------------------
 
@@ -127,6 +129,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   @Override
   protected void executeDDLUpdates() throws AmbariException, SQLException {
     updateAdminPermissionTable();
+    updateServiceComponentDesiredStateTable();
     createSettingTable();
     updateRepoVersionTableDDL();
     updateServiceComponentDesiredStateTableDDL();
@@ -561,5 +564,16 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
         "to_stack_id", STACK_TABLE, "stack_id", false);
 
     addSequence("servicecomponent_history_id_seq", 0L, false);
+  }
+
+  /**
+   * Alter servicecomponentdesiredstate table to add recovery_enabled column.
+   * @throws SQLException
+   */
+  private void updateServiceComponentDesiredStateTable() throws SQLException {
+    // ALTER TABLE servicecomponentdesiredstate ADD COLUMN
+    // recovery_enabled SMALLINT DEFAULT 0 NOT NULL
+    dbAccessor.addColumn(SERVICE_COMPONENT_DESIRED_STATE_TABLE,
+            new DBColumnInfo(RECOVERY_ENABLED_COL, Short.class, null, 0, false));
   }
 }

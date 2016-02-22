@@ -50,7 +50,7 @@ describe('App.ChartServiceMetricsAMS_RegionServerBaseView', function () {
     });
 
     it('displayName', function () {
-      expect(this.result[0].name === regionServerView.displayName).to.be.true;
+      expect(this.result[0].name).to.be.equal(regionServerView.displayName);
     });
 
     it('data.length', function () {

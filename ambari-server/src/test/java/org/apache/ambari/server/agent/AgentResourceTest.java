@@ -36,6 +36,7 @@ import org.apache.ambari.server.agent.rest.AgentResource;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.SecurityHelperImpl;
 import org.apache.ambari.server.stack.StackManagerFactory;
@@ -308,6 +309,7 @@ public class AgentResourceTest extends RandomPortJerseyTest {
       bind(HeartBeatHandler.class).toInstance(handler);
       bind(AmbariMetaInfo.class).toInstance(ambariMetaInfo);
       bind(DBAccessor.class).toInstance(mock(DBAccessor.class));
+      bind(HostRoleCommandDAO.class).toInstance(mock(HostRoleCommandDAO.class));
     }
 
     private void installDependencies() {

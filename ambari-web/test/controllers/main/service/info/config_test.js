@@ -478,7 +478,7 @@ describe("App.MainServiceInfoConfigsController", function () {
     });
     it("ajax request to put cluster cfg", function () {
       mainServiceInfoConfigsController.set('stepConfigs', sc);
-      expect(mainServiceInfoConfigsController.putChangedConfigurations([]));
+      mainServiceInfoConfigsController.putChangedConfigurations([]);
       var args = testHelpers.findAjaxRequest('name', 'common.across.services.configurations');
       expect(args[0]).exists;
     });

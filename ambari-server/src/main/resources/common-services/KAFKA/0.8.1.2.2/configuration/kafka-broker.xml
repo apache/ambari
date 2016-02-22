@@ -325,7 +325,6 @@
     <description>Timeline port</description>
   </property>
   <property>
-  <property>
     <name>kafka.timeline.metrics.protocol</name>
     <value>{{metric_collector_protocol}}</value>
     <description>Timeline protocol(http or https)</description>

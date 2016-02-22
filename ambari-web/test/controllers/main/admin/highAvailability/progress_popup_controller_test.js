@@ -46,11 +46,11 @@ describe('App.HighAvailabilityProgressPopupController', function () {
       });
 
       it('taskInfo.id = 2', function () {
-        expect(controller.get('taskInfo.id'), 2);
+        expect(controller.get('taskInfo.id')).to.be.equal(2);
       });
 
       it('taskInfo.requestId = 1', function () {
-        expect(controller.get('taskInfo.requestId'), 1);
+        expect(controller.get('taskInfo.requestId')).to.be.equal(1);
       });
 
       it('App.updater.run is called once', function () {

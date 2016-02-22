@@ -26,7 +26,7 @@
             <name>HIVE_SERVER_INTERACTIVE</name>
             <displayName>HiveServer2 Interactive</displayName>
             <category>MASTER</category>
-            <cardinality>1</cardinality>
+            <cardinality>0+</cardinality>
             <versionAdvertised>true</versionAdvertised>
             <clientsToUpdateConfigs></clientsToUpdateConfigs>
             <dependencies>
@@ -35,7 +35,7 @@
                 <scope>cluster</scope>
                 <auto-deploy>
                   <enabled>true</enabled>
-                  <co-locate>HIVE/HIVE_SERVER</co-locate>
+                  <co-locate>HIVE/HIVE_SERVER_INTERACTIVE</co-locate>
                 </auto-deploy>
               </dependency>
               <dependency>
@@ -43,6 +43,15 @@
                 <scope>host</scope>
                 <auto-deploy>
                   <enabled>true</enabled>
+                  <co-locate>HIVE/HIVE_SERVER_INTERACTIVE</co-locate>
+                </auto-deploy>
+              </dependency>
+              <dependency>
+                <name>HDFS/HDFS_CLIENT</name>
+                <scope>host</scope>
+                <auto-deploy>
+                  <enabled>true</enabled>
+                  <co-locate>HIVE/HIVE_SERVER_INTERACTIVE</co-locate>
                 </auto-deploy>
               </dependency>
               <dependency>
@@ -50,6 +59,7 @@
                 <scope>host</scope>
                 <auto-deploy>
                   <enabled>true</enabled>
+                  <co-locate>HIVE/HIVE_SERVER_INTERACTIVE</co-locate>
                 </auto-deploy>
               </dependency>
               <dependency>
@@ -57,9 +67,26 @@
                 <scope>host</scope>
                 <auto-deploy>
                   <enabled>true</enabled>
+                  <co-locate>HIVE/HIVE_SERVER_INTERACTIVE</co-locate>
                 </auto-deploy>
               </dependency>
-              </dependencies>
+              <dependency>
+                <name>PIG/PIG</name>
+                <scope>host</scope>
+                <auto-deploy>
+                  <enabled>true</enabled>
+                  <co-locate>HIVE/HIVE_SERVER_INTERACTIVE</co-locate>
+                </auto-deploy>
+              </dependency>
+              <dependency>
+                <name>SLIDER/SLIDER</name>
+                <scope>host</scope>
+                <auto-deploy>
+                  <enabled>true</enabled>
+                  <co-locate>HIVE/HIVE_SERVER_INTERACTIVE</co-locate>
+                </auto-deploy>
+              </dependency>
+            </dependencies>
                 <commandScript>
                   <script>scripts/hive_server_interactive.py</script>
                   <scriptType>PYTHON</scriptType>
@@ -70,6 +97,14 @@
                 </configuration-dependencies>
           </component>
         </components>
+      <requiredServices>
+        <service>ZOOKEEPER</service>
+        <service>HDFS</service>
+        <service>YARN</service>
+        <service>TEZ</service>
+        <service>PIG</service>
+        <service>SLIDER</service>
+      </requiredServices>
     </service>
   </services>
 </metainfo>
