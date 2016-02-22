@@ -35,11 +35,18 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
+import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
+import org.apache.ambari.server.orm.dao.StackDAO;
+import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
+import org.apache.ambari.server.orm.entities.ServiceComponentHistoryEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.serveraction.AbstractServerAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -65,6 +72,7 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
   public static final String CLUSTER_NAME_KEY = "cluster_name";
   public static final String UPGRADE_DIRECTION_KEY = "upgrade_direction";
   public static final String VERSION_KEY = "version";
+  public static final String REQUEST_ID = "request_id";
   public static final String PREVIOUS_UPGRADE_NOT_COMPLETED_MSG = "It is possible that a previous upgrade was not finalized. " +
       "For this reason, Ambari will not remove any configs. Please ensure that all database records are correct.";
 
@@ -97,6 +105,24 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
   @Inject
   private HostComponentStateDAO hostComponentStateDAO;
 
+  /**
+   * Gets {@link StackEntity} instances from {@link StackId}.
+   */
+  @Inject
+  private StackDAO stackDAO;
+
+  /**
+   * Gets desired state entities for service components.
+   */
+  @Inject
+  private ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO;
+
+  /**
+   * Gets {@link UpgradeEntity} instances.
+   */
+  @Inject
+  private UpgradeDAO upgradeDAO;
+
   @Inject
   private AmbariMetaInfo ambariMetaInfo;
 
@@ -116,10 +142,9 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
     String clusterName = getExecutionCommand().getClusterName();
 
     if (isDowngrade) {
-      return finalizeDowngrade(clusterName, originalStackId, targetStackId,
-          version);
+      return finalizeDowngrade(clusterName, originalStackId, targetStackId, version);
     } else {
-      return finalizeUpgrade(clusterName, version);
+      return finalizeUpgrade(clusterName, version, commandParams);
     }
   }
 
@@ -129,7 +154,8 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
    * @param version     the target version of the upgrade
    * @return the command report
    */
-  private CommandReport finalizeUpgrade(String clusterName, String version)
+  private CommandReport finalizeUpgrade(String clusterName, String version,
+      Map<String, String> commandParams)
     throws AmbariException, InterruptedException {
 
     StringBuilder outSB = new StringBuilder();
@@ -140,6 +166,7 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
 
       Cluster cluster = clusters.getCluster(clusterName);
       StackId clusterDesiredStackId = cluster.getDesiredStackVersion();
+      StackId clusterCurrentStackId = cluster.getCurrentStackVersion();
 
       ClusterVersionEntity upgradingClusterVersion = clusterVersionDAO.findByClusterAndStackAndVersion(
           clusterName, clusterDesiredStackId, version);
@@ -258,7 +285,9 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
             upgradingClusterVersion.getState(), RepositoryVersionState.CURRENT.toString()));
       }
 
-      outSB.append(String.format("Will finalize the upgraded state of host components in %d host(s).\n", hostVersionsAllowed.size()));
+      outSB.append(
+          String.format("Finalizing the upgraded state of host components in %d host(s).\n",
+              hostVersionsAllowed.size()));
 
       // Reset the upgrade state
       for (HostVersionEntity hostVersion : hostVersionsAllowed) {
@@ -269,17 +298,33 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
         }
       }
 
-      outSB.append(String.format("Will finalize the version for %d host(s).\n", hostVersionsAllowed.size()));
-
       // Impacts all hosts that have a version
+      outSB.append(
+          String.format("Finalizing the version for %d host(s).\n", hostVersionsAllowed.size()));
       cluster.mapHostVersions(hostsToUpdate, upgradingClusterVersion, RepositoryVersionState.CURRENT);
-
-      outSB.append(String.format("Will finalize the version for cluster %s.\n", clusterName));
 
       // transitioning the cluster into CURRENT will update the current/desired
       // stack values
+      outSB.append(String.format("Finalizing the version for cluster %s.\n", clusterName));
       cluster.transitionClusterVersion(clusterDesiredStackId, version,
           RepositoryVersionState.CURRENT);
+
+      if (commandParams.containsKey(REQUEST_ID)) {
+        String requestId = commandParams.get(REQUEST_ID);
+        UpgradeEntity upgradeEntity = upgradeDAO.findUpgradeByRequestId(Long.valueOf(requestId));
+
+        if (null != upgradeEntity) {
+          outSB.append("Creating upgrade history.\n");
+          writeComponentHistory(cluster, upgradeEntity, clusterCurrentStackId,
+              clusterDesiredStackId);
+        } else {
+          String warning = String.format(
+              "Unable to create upgrade history because no upgrade could be found for request with ID %s\n",
+              requestId);
+
+          outSB.append(warning);
+        }
+      }
 
       outSB.append("Upgrade was successful!\n");
       return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", outSB.toString(), errSB.toString());
@@ -455,6 +500,33 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
     return errors;
   }
 
+  private void writeComponentHistory(Cluster cluster, UpgradeEntity upgradeEntity,
+      StackId fromStackId, StackId toStackId) {
+
+    StackEntity fromStack = stackDAO.find(fromStackId.getStackName(), fromStackId.getStackVersion());
+    StackEntity toStack = stackDAO.find(toStackId.getStackName(), toStackId.getStackVersion());
+
+    // for every service component, if it was included in the upgrade then
+    // create a historical entry
+    for (Service service : cluster.getServices().values()) {
+      for (ServiceComponent serviceComponent : service.getServiceComponents().values()) {
+        if (serviceComponent.isVersionAdvertised()) {
+          ServiceComponentHistoryEntity historyEntity = new ServiceComponentHistoryEntity();
+          historyEntity.setUpgrade(upgradeEntity);
+          historyEntity.setFromStack(fromStack);
+          historyEntity.setToStack(toStack);
+
+          ServiceComponentDesiredStateEntity desiredStateEntity = serviceComponentDesiredStateDAO.findByName(
+              cluster.getClusterId(), serviceComponent.getServiceName(),
+              serviceComponent.getName());
+
+          historyEntity.setServiceComponentDesiredState(desiredStateEntity);
+          serviceComponentDesiredStateDAO.create(historyEntity);
+        }
+      }
+    }
+  }
+
   protected static class InfoTuple {
     protected final String serviceName;
     protected final String componentName;
@@ -467,7 +539,6 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
       hostName = host;
       currentVersion = version;
     }
-
   }
 
 }

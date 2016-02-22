@@ -50,11 +50,17 @@ import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.dao.RequestDAO;
+import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
+import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.RequestEntity;
+import org.apache.ambari.server.orm.entities.ServiceComponentHistoryEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -73,6 +79,7 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -109,8 +116,6 @@ public class UpgradeActionTest {
 
   private AmbariManagementController amc;
 
-  private AmbariMetaInfo ambariMetaInfo;
-
   @Inject
   private OrmTestHelper m_helper;
 
@@ -141,6 +146,15 @@ public class UpgradeActionTest {
   @Inject
   private ServiceComponentHostFactory serviceComponentHostFactory;
 
+  @Inject
+  private RequestDAO requestDAO;
+
+  @Inject
+  private UpgradeDAO upgradeDAO;
+
+  @Inject
+  private ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO;
+
   @Before
   public void setup() throws Exception {
     m_injector = Guice.createInjector(new InMemoryDefaultTestModule());
@@ -150,7 +164,6 @@ public class UpgradeActionTest {
 
     // Initialize AmbariManagementController
     amc = m_injector.getInstance(AmbariManagementController.class);
-    ambariMetaInfo = m_injector.getInstance(AmbariMetaInfo.class);
 
     Field field = AmbariServer.class.getDeclaredField("clusterController");
     field.setAccessible(true);
@@ -906,6 +919,97 @@ public class UpgradeActionTest {
     assertEquals(targetStack, currentStackId);
     assertEquals(targetStack, desiredStackId);
   }
+
+  @Test
+  public void testUpgradeHistory() throws Exception {
+    StackId sourceStack = HDP_21_STACK;
+    StackId targetStack = HDP_21_STACK;
+    String sourceRepo = HDP_2_1_1_0;
+    String targetRepo = HDP_2_1_1_1;
+
+    makeUpgradeCluster(sourceStack, sourceRepo, targetStack, targetRepo);
+
+    // Verify the repo before calling Finalize
+    AmbariMetaInfo metaInfo = m_injector.getInstance(AmbariMetaInfo.class);
+    AmbariCustomCommandExecutionHelper helper = m_injector.getInstance(AmbariCustomCommandExecutionHelper.class);
+    Host host = clusters.getHost("h1");
+    Cluster cluster = clusters.getCluster(clusterName);
+
+    // install HDFS with some components
+    Service service = installService(cluster, "HDFS");
+    addServiceComponent(cluster, service, "NAMENODE");
+    addServiceComponent(cluster, service, "DATANODE");
+    ServiceComponentHost nnSCH = createNewServiceComponentHost(cluster, "HDFS", "NAMENODE", "h1");
+    ServiceComponentHost dnSCH = createNewServiceComponentHost(cluster, "HDFS", "DATANODE", "h1");
+
+    // fake their upgrade
+    nnSCH.setStackVersion(nnSCH.getDesiredStackVersion());
+    nnSCH.setVersion(targetRepo);
+    dnSCH.setStackVersion(nnSCH.getDesiredStackVersion());
+    dnSCH.setVersion(targetRepo);
+
+    // create some entities for the finalize action to work with for patch
+    // history
+    RequestEntity requestEntity = new RequestEntity();
+    requestEntity.setClusterId(cluster.getClusterId());
+    requestEntity.setRequestId(1L);
+    requestEntity.setStartTime(System.currentTimeMillis());
+    requestEntity.setCreateTime(System.currentTimeMillis());
+    requestDAO.create(requestEntity);
+
+    UpgradeEntity upgradeEntity = new UpgradeEntity();
+    upgradeEntity.setId(1L);
+    upgradeEntity.setClusterId(cluster.getClusterId());
+    upgradeEntity.setRequestId(requestEntity.getRequestId());
+    upgradeEntity.setUpgradePackage("");
+    upgradeEntity.setFromVersion(sourceRepo);
+    upgradeEntity.setToVersion(targetRepo);
+    upgradeEntity.setUpgradeType(UpgradeType.NON_ROLLING);
+    upgradeDAO.create(upgradeEntity);
+
+    // verify that no history exist exists yet
+    List<ServiceComponentHistoryEntity> historyEntites = serviceComponentDesiredStateDAO.findHistory(
+        cluster.getClusterId(), nnSCH.getServiceName(),
+        nnSCH.getServiceComponentName());
+
+    assertEquals(0, historyEntites.size());
+
+    RepositoryInfo repo = metaInfo.getRepository(sourceStack.getStackName(), sourceStack.getStackVersion(), "redhat6", sourceStack.getStackId());
+    assertEquals(HDP_211_CENTOS6_REPO_URL, repo.getBaseUrl());
+    verifyBaseRepoURL(helper, cluster, host, HDP_211_CENTOS6_REPO_URL);
+
+    // Finalize the upgrade, passing in the request ID so that history is
+    // created
+    Map<String, String> commandParams = new HashMap<String, String>();
+    commandParams.put(FinalizeUpgradeAction.REQUEST_ID, String.valueOf(requestEntity.getRequestId()));
+    commandParams.put(FinalizeUpgradeAction.UPGRADE_DIRECTION_KEY, "upgrade");
+    commandParams.put(FinalizeUpgradeAction.VERSION_KEY, targetRepo);
+
+    ExecutionCommand executionCommand = new ExecutionCommand();
+    executionCommand.setCommandParams(commandParams);
+    executionCommand.setClusterName(clusterName);
+
+    HostRoleCommand hostRoleCommand = hostRoleCommandFactory.create(null, null, null, null);
+    hostRoleCommand.setExecutionCommandWrapper(new ExecutionCommandWrapper(executionCommand));
+
+    FinalizeUpgradeAction action = m_injector.getInstance(FinalizeUpgradeAction.class);
+    action.setExecutionCommand(executionCommand);
+    action.setHostRoleCommand(hostRoleCommand);
+
+    CommandReport report = action.execute(null);
+    assertNotNull(report);
+    assertEquals(HostRoleStatus.COMPLETED.name(), report.getStatus());
+
+    // Verify the metainfo url
+    verifyBaseRepoURL(helper, cluster, host, "http://foo1");
+
+    // ensure that history now exists
+    historyEntites = serviceComponentDesiredStateDAO.findHistory(cluster.getClusterId(),
+        nnSCH.getServiceName(), nnSCH.getServiceComponentName());
+
+    assertEquals(1, historyEntites.size());
+  }
+
 
   private ServiceComponentHost createNewServiceComponentHost(Cluster cluster, String svc,
                                                              String svcComponent, String hostName) throws AmbariException {
