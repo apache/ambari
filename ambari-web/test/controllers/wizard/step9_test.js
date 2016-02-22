@@ -974,7 +974,12 @@ describe('App.InstallerStep9Controller', function () {
     tests.forEach(function (test) {
       it(test.m, function () {
         c.onInProgressPerHost(test.actions, test.host);
-        expect(test.host.message === test.e.message).to.equal(test.e.b);
+        if (test.e.b) {
+          expect(test.host.message).to.be.equal(test.e.message);
+        }
+        else {
+          expect(test.host.message).to.be.not.equal(test.e.message);
+        }
       });
     });
   });

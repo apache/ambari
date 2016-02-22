@@ -1733,7 +1733,7 @@ describe('App.InstallerStep7Controller', function () {
     it('should copy properties from hdfs-site to hdfs-client for HAWQ', function() {
       installerStep7Controller.addHawqConfigsOnNnHa(configs);
       // ensure 6 new configs were added
-      expect(configs.length - oldConfigs.length).to.be.equal(6);
+      expect(configs.length).to.be.equal(oldConfigs.length + 6);
     });
 
     describe('find the same property in hdfs-client for HAWQ and see if attribute value matches with the corresponding property\'s attribute value in hdfs-site', function () {

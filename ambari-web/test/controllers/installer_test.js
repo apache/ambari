@@ -36,7 +36,7 @@ describe('App.InstallerController', function () {
       c = App.InstallerController.create({});
     });
     it('all steps are disabled by default', function () {
-      expect(c.get('isStepDisabled.length') > 0 ).to.be.ok;
+      expect(c.get('isStepDisabled.length')).to.be.above(0);
       expect(c.get('isStepDisabled').everyProperty('value', true)).to.be.ok;
     });
   });

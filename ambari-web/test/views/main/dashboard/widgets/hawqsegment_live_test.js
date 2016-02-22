@@ -52,7 +52,7 @@ describe('App.HawqSegmentUpView', function() {
   ];
 
   tests.forEach(function(test) {
-    describe('', function() {
+    describe('data -' + test.data, function() {
       var hawqSegmentUpView = App.HawqSegmentUpView.create({model_type:null, data: test.data, content: test.data.toString()});
       it('shows red', function() {
         expect(hawqSegmentUpView.get('isRed')).to.equal(test.e.isRed);

@@ -113,11 +113,11 @@ describe('App.QuickDataMapper', function () {
     });
 
     it('numeric array. element doesn\'t exists', function () {
-      expect(mapper.binaryIndexOf(array1, 0) < 0).to.be.true;
+      expect(mapper.binaryIndexOf(array1, 0)).to.be.below(0);
     });
 
     it('numeric array. element doesn\'t exists 2', function () {
-      expect(mapper.binaryIndexOf(array1, 10) < 0).to.be.true;
+      expect(mapper.binaryIndexOf(array1, 10)).to.be.below(0);
     });
 
     array2.forEach(function(item, index) {
@@ -127,11 +127,11 @@ describe('App.QuickDataMapper', function () {
     });
 
     it('string array. element doesn\'t exists', function () {
-      expect(mapper.binaryIndexOf(array2, 'a') < 0).to.be.true;
+      expect(mapper.binaryIndexOf(array2, 'a')).to.be.below(0);
     });
 
     it('string array. element doesn\'t exists 2', function () {
-      expect(mapper.binaryIndexOf(array2, 'q') < 0).to.be.true;
+      expect(mapper.binaryIndexOf(array2, 'q')).to.be.below(0);
     });
 
   });

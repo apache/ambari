@@ -701,14 +701,29 @@ describe('App.HostStatusView', function () {
           e: false
         }
       ]).forEach(function (test) {
-        it(JSON.stringify(test.obj) + ' ' + test.progress, function() {
-          hv.set('barColor', '');
-          hv.set('obj', test.obj);
-          hv.set('obj.message', '');
-          hv.set('controller', {progress: test.progress});
-          hv.onStatus();
-          expect(hv.get('obj.message') === Em.I18n.t('installer.step9.host.status.success')).to.equal(test.e);
-          expect(hv.get('barColor') === 'progress-success').to.equal(test.e);
+        describe(JSON.stringify(test.obj) + ' ' + test.progress, function() {
+          beforeEach(function () {
+            hv.setProperties({
+              barColor: '',
+              obj: test.obj
+            });
+            hv.set('obj.message', '');
+            hv.set('controller', {progress: test.progress});
+            hv.onStatus();
+          });
+
+          if (test.e) {
+            it('completed successful', function () {
+              expect(hv.get('obj.message')).to.be.equal(Em.I18n.t('installer.step9.host.status.success'));
+              expect(hv.get('barColor')).to.be.equal('progress-success');
+            });
+          }
+          else {
+            it('completed not successful', function () {
+              expect(hv.get('obj.message')).to.be.not.equal(Em.I18n.t('installer.step9.host.status.success'));
+              expect(hv.get('barColor')).to.be.not.equal('progress-success');
+            });
+          }
         });
       });
   });

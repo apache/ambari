@@ -34,7 +34,7 @@ describe('App.FormField', function () {
       formField.set('value', '');
       formField.set('isRequired', true);
       formField.validate();
-      expect(formField.get('errorMessage') === '').to.equal(false);
+      expect(formField.get('errorMessage')).to.be.not.equal('');
     });
     /*REQUIRE END*/
 

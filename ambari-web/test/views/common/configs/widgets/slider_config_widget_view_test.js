@@ -127,8 +127,8 @@ describe('App.SliderConfigWidgetView', function () {
 
   describe('#mirrorValue', function () {
     it('should be equal to config.value after init', function () {
-      expect('' + viewInt.get('mirrorValue')).to.equal(viewInt.get('config.value'));
-      expect('' + viewFloat.get('mirrorValue')).to.equal(viewFloat.get('config.value'));
+      expect(viewInt.get('mirrorValue').toString()).to.be.equal(viewInt.get('config.value'));
+      expect(viewFloat.get('mirrorValue').toString()).to.be.equal(viewFloat.get('config.value'));
     });
 
     it('should be converted according to widget format', function() {

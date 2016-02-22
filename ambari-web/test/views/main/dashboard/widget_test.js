@@ -103,20 +103,22 @@ describe('App.DashboardWidgetView', function () {
       dashboardWidgetView.get('parentView').translateToReal.restore();
     });
     it("postUserPref is called with correct data", function () {
-      expect(dashboardWidgetView.get('parentView').postUserPref.calledWith('key', {
+      var arg = JSON.parse(JSON.stringify(dashboardWidgetView.get('parentView').postUserPref.args[0][1]));
+      expect(arg).to.be.eql({
         dashboardVersion: 'new',
-        visible: ['2'],
-        hidden: ['1'],
+        visible: ['1', '2'],
+        hidden: [[5, null]],
         threshold: 'threshold'
-      }));
+      });
     });
     it("translateToReal is called with valid data", function () {
-      expect(dashboardWidgetView.get('parentView').translateToReal.calledWith({
+      var arg = JSON.parse(JSON.stringify(dashboardWidgetView.get('parentView').translateToReal.args[0][0]));
+      expect(arg).to.be.eql({
         dashboardVersion: 'new',
-        visible: ['2'],
-        hidden: ['1'],
+        visible: ['1', '2'],
+        hidden: [[5, null]],
         threshold: 'threshold'
-      }));
+      });
     });
   });
 

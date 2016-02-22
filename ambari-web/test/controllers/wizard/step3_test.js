@@ -380,24 +380,6 @@ describe('App.WizardStep3Controller', function () {
 
   });
 
-  describe('#removeHost', function () {
-
-    beforeEach(function () {
-      sinon.stub(c, 'removeHosts', Em.K);
-    });
-
-    afterEach(function () {
-      c.removeHosts.restore();
-    });
-
-    it('should call removeHosts with array as arg', function () {
-      var host = {a: ''};
-      c.removeHost(host);
-      expect(c.removeHosts.calledWith([host]));
-    });
-
-  });
-
   describe('#removeSelectedHosts', function () {
 
     beforeEach(function () {
