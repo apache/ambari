@@ -40,6 +40,8 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       for host_group in hostGroups:
         if {"name": "DATANODE"} in host_group["components"] and {"name": "HAWQSEGMENT"} not in host_group["components"]:
           host_group["components"].append({"name": "HAWQSEGMENT"})
+        if {"name": "DATANODE"} not in host_group["components"] and {"name": "HAWQSEGMENT"} in host_group["components"]:
+          host_group["components"].remove({"name": "HAWQSEGMENT"})
 
     # co-locate PXF with NAMENODE and DATANODE
     if "PXF" in servicesList:
