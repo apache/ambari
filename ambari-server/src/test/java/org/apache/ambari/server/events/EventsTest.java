@@ -114,7 +114,7 @@ public class EventsTest {
     m_cluster.setDesiredStackVersion(stackId);
     m_helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
     m_cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
-        RepositoryVersionState.UPGRADING);
+        RepositoryVersionState.INSTALLING);
 
     m_clusters.mapHostToCluster(HOSTNAME, m_clusterName);
   }

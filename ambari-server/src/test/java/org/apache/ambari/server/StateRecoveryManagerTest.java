@@ -89,9 +89,6 @@ public class StateRecoveryManagerTest {
       add(getHostVersionMock("installing_version", RepositoryVersionState.INSTALLING, installingHostVersionCapture));
       add(getHostVersionMock("installed_version", RepositoryVersionState.INSTALLED, installedHostVersionCapture));
       add(getHostVersionMock("out_of_sync_version", RepositoryVersionState.OUT_OF_SYNC, outOfSyncHostVersionCapture));
-      add(getHostVersionMock("upgrade_failed_version", RepositoryVersionState.UPGRADE_FAILED, upgradeFailedHostVersionCapture));
-      add(getHostVersionMock("upgrading_version", RepositoryVersionState.UPGRADING, upgradingHostVersionCapture));
-      add(getHostVersionMock("upgraded_version", RepositoryVersionState.UPGRADED, upgradedHostVersionCapture));
       add(getHostVersionMock("current_version", RepositoryVersionState.CURRENT, currentHostVersionCapture));
     }});
 
@@ -111,9 +108,6 @@ public class StateRecoveryManagerTest {
       add(getClusterVersionMock("installing_version", RepositoryVersionState.INSTALLING, installingClusterVersionCapture));
       add(getClusterVersionMock("installed_version", RepositoryVersionState.INSTALLED, installedClusterVersionCapture));
       add(getClusterVersionMock("out_of_sync_version", RepositoryVersionState.OUT_OF_SYNC, outOfSyncClusterVersionCapture));
-      add(getClusterVersionMock("upgrade_failed_version", RepositoryVersionState.UPGRADE_FAILED, upgradeFailedClusterVersionCapture));
-      add(getClusterVersionMock("upgrading_version", RepositoryVersionState.UPGRADING, upgradingClusterVersionCapture));
-      add(getClusterVersionMock("upgraded_version", RepositoryVersionState.UPGRADED, upgradedClusterVersionCapture));
       add(getClusterVersionMock("current_version", RepositoryVersionState.CURRENT, currentClusterVersionCapture));
     }});
 

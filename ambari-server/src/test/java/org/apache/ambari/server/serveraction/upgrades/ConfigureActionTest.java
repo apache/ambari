@@ -703,7 +703,7 @@ public class ConfigureActionTest {
 
     // Creating starting repo
     m_helper.getOrCreateRepositoryVersion(HDP_220_STACK, HDP_2_2_0_0);
-    c.createClusterVersion(HDP_220_STACK, HDP_2_2_0_0, "admin", RepositoryVersionState.UPGRADING);
+    c.createClusterVersion(HDP_220_STACK, HDP_2_2_0_0, "admin", RepositoryVersionState.INSTALLING);
     c.transitionClusterVersion(HDP_220_STACK, HDP_2_2_0_0, RepositoryVersionState.CURRENT);
 
     String urlInfo = "[{'repositories':["
@@ -714,8 +714,6 @@ public class ConfigureActionTest {
 
     c.createClusterVersion(HDP_220_STACK, HDP_2_2_0_1, "admin", RepositoryVersionState.INSTALLING);
     c.transitionClusterVersion(HDP_220_STACK, HDP_2_2_0_1, RepositoryVersionState.INSTALLED);
-    c.transitionClusterVersion(HDP_220_STACK, HDP_2_2_0_1, RepositoryVersionState.UPGRADING);
-    c.transitionClusterVersion(HDP_220_STACK, HDP_2_2_0_1, RepositoryVersionState.UPGRADED);
     c.setCurrentStackVersion(HDP_220_STACK);
 
     c.mapHostVersions(Collections.singleton(hostName), c.getCurrentClusterVersion(),
@@ -726,7 +724,7 @@ public class ConfigureActionTest {
     HostVersionEntity entity = new HostVersionEntity();
     entity.setHostEntity(hostDAO.findByName(hostName));
     entity.setRepositoryVersion(repoVersionDAO.findByStackAndVersion(HDP_220_STACK, HDP_2_2_0_1));
-    entity.setState(RepositoryVersionState.UPGRADED);
+    entity.setState(RepositoryVersionState.INSTALLED);
     hostVersionDAO.create(entity);
 
     // verify that our configs are there

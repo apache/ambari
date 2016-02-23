@@ -20,13 +20,17 @@ package org.apache.ambari.server.events.listeners.upgrade;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;
-import org.apache.ambari.server.events.HostComponentVersionEvent;
+import org.apache.ambari.server.events.HostComponentVersionAdvertisedEvent;
 import org.apache.ambari.server.events.publishers.VersionEventPublisher;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.state.UpgradeState;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,19 +73,35 @@ public class StackVersionListener {
 
   @Subscribe
   @AllowConcurrentEvents
-  public void onAmbariEvent(HostComponentVersionEvent event) {
+  public void onAmbariEvent(HostComponentVersionAdvertisedEvent event) {
     LOG.debug("Received event {}", event);
 
     Cluster cluster = event.getCluster();
 
     ServiceComponentHost sch = event.getServiceComponentHost();
+    String newVersion = event.getVersion();
 
     m_stackVersionLock.lock();
 
+    // Update host component version value if needed
     try {
-      RepositoryVersionEntity repoVersion = sch.recalculateHostVersionState();
-      if (null != repoVersion) {
-        cluster.recalculateClusterVersionState(repoVersion);
+      ServiceComponent sc = cluster.getService(sch.getServiceName()).getServiceComponent(sch.getServiceComponentName());
+      if (newVersion == null) {
+        processComponentVersionNotAdvertised(sch);
+      } else if (sc.getDesiredVersion().equals(State.UNKNOWN.toString())) {
+        processUnknownDesiredVersion(cluster, sc, sch, newVersion);
+      } else if (StringUtils.isNotBlank(newVersion)) {
+        String previousVersion = sch.getVersion();
+        String unknownVersion = State.UNKNOWN.toString();
+        if (previousVersion == null || previousVersion.equalsIgnoreCase(unknownVersion)) {
+          // value may be "UNKNOWN" when upgrading from older Ambari versions
+          // or if host component reports it's version for the first time
+          sch.setUpgradeState(UpgradeState.NONE);
+          sch.setVersion(newVersion);
+          bootstrapVersion(cluster, sch);
+        } else if (!StringUtils.equals(previousVersion, newVersion)) { //
+          processComponentVersionChange(cluster, sc, sch, newVersion);
+        }
       }
     } catch (Exception e) {
       LOG.error(
@@ -89,6 +109,73 @@ public class StackVersionListener {
           sch.getServiceComponentName(), sch.getHostName(), e.getMessage());
     } finally {
       m_stackVersionLock.unlock();
+    }
+  }
+
+  /**
+   * Bootstrap cluster/repo version when version is reported for the first time
+   * @param cluster target cluster
+   * @param sch target host component
+   * @throws AmbariException
+   */
+  private void bootstrapVersion(Cluster cluster, ServiceComponentHost sch) throws AmbariException {
+    RepositoryVersionEntity repoVersion = sch.recalculateHostVersionState();
+    if (null != repoVersion) {
+      cluster.recalculateClusterVersionState(repoVersion);
+    }
+  }
+
+  /**
+   * Possible situation after upgrade from older Ambari version. Just use
+   * reported component version as desired version
+   * @param cluster target cluster
+   * @param sc target service component
+   * @param sch target host component
+   * @param newVersion advertised version
+   */
+  private void processUnknownDesiredVersion(Cluster cluster, ServiceComponent sc,
+                                            ServiceComponentHost sch,
+                                            String newVersion) throws AmbariException {
+    sc.setDesiredVersion(newVersion);
+    sch.setUpgradeState(UpgradeState.NONE);
+    sch.setVersion(newVersion);
+    bootstrapVersion(cluster, sch);
+  }
+
+  /**
+   * Focuses on cases when host component version really changed
+   * @param cluster target cluster
+   * @param sc target service component
+   * @param sch target host component
+   * @param newVersion advertised version
+   */
+  private void processComponentVersionChange(Cluster cluster, ServiceComponent sc,
+                                             ServiceComponentHost sch,
+                                             String newVersion) {
+    if (sch.getUpgradeState().equals(UpgradeState.IN_PROGRESS)) {
+      // Component status update is received during upgrade process
+      if (sc.getDesiredVersion().equals(newVersion)) {
+        sch.setUpgradeState(UpgradeState.COMPLETE);  // Component upgrade confirmed
+        sch.setStackVersion(cluster.getDesiredStackVersion());
+      } else { // Unexpected (wrong) version received
+        // Even during failed upgrade, we should not receive wrong version
+        // That's why mark as VERSION_MISMATCH
+        sch.setUpgradeState(UpgradeState.VERSION_MISMATCH);
+      }
+    } else { // No upgrade in progress, unexpected version change
+      sch.setUpgradeState(UpgradeState.VERSION_MISMATCH);
+    }
+    sch.setVersion(newVersion);
+  }
+
+  /**
+   * Focuses on cases when component does not advertise it's version
+   */
+  private void processComponentVersionNotAdvertised(ServiceComponentHost sch) {
+    if (UpgradeState.ONGOING_UPGRADE_STATES.contains(sch.getUpgradeState())) {
+      sch.setUpgradeState(UpgradeState.FAILED);
+    } else {
+      sch.setUpgradeState(UpgradeState.VERSION_MISMATCH);
     }
   }
 }

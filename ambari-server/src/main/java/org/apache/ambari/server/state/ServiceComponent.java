@@ -56,6 +56,10 @@ public interface ServiceComponent {
 
   void setDesiredStackVersion(StackId stackVersion);
 
+  String getDesiredVersion();
+
+  void setDesiredVersion(String version);
+
   Map<String, ServiceComponentHost> getServiceComponentHosts();
 
   ServiceComponentHost getServiceComponentHost(String hostname)

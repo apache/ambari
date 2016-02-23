@@ -260,12 +260,12 @@ public class ClustersTest {
     cluster1.setDesiredStackVersion(stackId);
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
     cluster1.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
-        RepositoryVersionState.UPGRADING);
+        RepositoryVersionState.INSTALLING);
     cluster1.transitionClusterVersion(stackId, stackId.getStackVersion(),
         RepositoryVersionState.CURRENT);
     cluster2.setDesiredStackVersion(stackId);
     cluster2.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
-        RepositoryVersionState.UPGRADING);
+        RepositoryVersionState.INSTALLING);
     cluster2.transitionClusterVersion(stackId, stackId.getStackVersion(),
         RepositoryVersionState.CURRENT);
 
@@ -354,12 +354,12 @@ public class ClustersTest {
 
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
     cluster1.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
-        RepositoryVersionState.UPGRADING);
+        RepositoryVersionState.INSTALLING);
     cluster1.transitionClusterVersion(stackId, stackId.getStackVersion(),
         RepositoryVersionState.CURRENT);
     cluster2.setDesiredStackVersion(stackId);
     cluster2.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
-        RepositoryVersionState.UPGRADING);
+        RepositoryVersionState.INSTALLING);
     cluster2.transitionClusterVersion(stackId, stackId.getStackVersion(),
         RepositoryVersionState.CURRENT);
     clusters.addHost(h1);
@@ -394,7 +394,7 @@ public class ClustersTest {
     cluster.setCurrentStackVersion(stackId);
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
     cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
-        RepositoryVersionState.UPGRADING);
+        RepositoryVersionState.INSTALLING);
     cluster.transitionClusterVersion(stackId, stackId.getStackVersion(),
         RepositoryVersionState.CURRENT);
 

@@ -96,7 +96,7 @@ public class ServiceComponentTest {
     Assert.assertNotNull(cluster);
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
     cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
-        RepositoryVersionState.UPGRADING);
+        RepositoryVersionState.INSTALLING);
 
     Service s = serviceFactory.createNew(cluster, serviceName);
     cluster.addService(s);

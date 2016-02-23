@@ -21,8 +21,7 @@ package org.apache.ambari.server.state;
 /**
  * There must be exactly one repository version that is in a CURRENT state for a particular cluster or host.
  * There may be 0 or more repository versions in an INSTALLED or INSTALLING state.
- * A repository version state transitions from UPGRADING -> UPGRADED | UPGRADE_FAILED
- * The operation to transition a repository version state from UPGRADED into CURRENT must be atomic and change the existing
+ * The operation to transition a repository version state from INSTALLED into CURRENT must be atomic and change the existing
  * relation between repository version and cluster or host from CURRENT to INSTALLED.
  *
  * <pre>
@@ -42,40 +41,25 @@ package org.apache.ambari.server.state;
  * Version 1: CURRENT
  * Version 2: INSTALL_FAILED (a retry can set this back to INSTALLING)
  *
- * Step 4: Start an upgrade from Version 1 to Version 2
- * Version 1: CURRENT
- * Version 2: UPGRADING
- *
- * Step 5: Upgrade can either complete successfully or fail
- * Version 1: CURRENT
- * Version 2: UPGRADE_FAILED (a retry can set this back to UPGRADING)
- *
- * or
- *
+ * Step 4: Perform an upgrade from Version 1 to Version 2
  * Version 1: INSTALLED
  * Version 2: CURRENT
  *
- * Step 4: May revert to the original version via a downgrade, which is technically still an upgrade to a version.
- * Version 1: UPGRADING
- * Version 2: CURRENT
- *
+ * Step 4: May revert to the original version via a downgrade, which is technically still an upgrade to a version
  * and eventually becomes
  *
  * Version 1: CURRENT
  * Version 2: INSTALLED
  *
  * *********************************************
- * Start states: CURRENT, UPGRADING, INSTALLING
+ * Start states: CURRENT, INSTALLING
  * Allowed Transitions:
- * UPGRADING -> UPGRADED | UPGRADE_FAILED
- * UPGRADE_FAILED -> UPGRADING
- * UPGRADED -> CURRENT
+ * INSTALLED -> CURRENT
  * INSTALLING -> INSTALLED | INSTALL_FAILED | OUT_OF_SYNC
  * INSTALLED -> INSTALLED | INSTALLING | OUT_OF_SYNC
  * OUT_OF_SYNC -> INSTALLING
  * INSTALL_FAILED -> INSTALLING
  * CURRENT -> INSTALLED
- * INSTALLED -> UPGRADING
  * </pre>
  */
 public enum RepositoryVersionState {
@@ -103,18 +87,5 @@ public enum RepositoryVersionState {
    * Repository version that is installed and supported and is the active version.
    */
   CURRENT,
-  /**
-   * Repository version that is in the process of upgrading to become the CURRENT active version,
-   * and the previous active version transitions to an INSTALLED state.
-   */
-  UPGRADING,
-  /**
-   * Repository version that during the upgrade process failed to become the active version and must be remedied.
-   */
-  UPGRADE_FAILED,
-  /**
-   * Repository version that finished upgrading and should be finalized to become CURRENT.
-   */
-  UPGRADED
 
 }

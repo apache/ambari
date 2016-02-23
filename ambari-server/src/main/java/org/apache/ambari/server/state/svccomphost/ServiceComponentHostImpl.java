@@ -1790,8 +1790,11 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   public RepositoryVersionEntity recalculateHostVersionState() throws AmbariException {
     RepositoryVersionEntity repositoryVersion = null;
     String version = getVersion();
-    if (version == null || version.isEmpty() || version.equalsIgnoreCase(State.UNKNOWN.toString())) {
-      // Recalculate only if some particular version is set
+    if (getUpgradeState().equals(UpgradeState.IN_PROGRESS) ||
+      getUpgradeState().equals(UpgradeState.VERSION_MISMATCH) ||
+        State.UNKNOWN.toString().equals(version)) {
+      // TODO: we still recalculate host version if upgrading component failed. It seems to be ok
+      // Recalculate only if no upgrade in progress/no version mismatch
       return null;
     }
 

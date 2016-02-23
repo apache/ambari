@@ -39,6 +39,7 @@ CREATE TABLE stack(
 CREATE TABLE clusters (
   cluster_id BIGINT NOT NULL,
   resource_id BIGINT NOT NULL,
+  upgrade_id BIGINT,
   cluster_info VARCHAR(255) NOT NULL,
   cluster_name VARCHAR(100) NOT NULL UNIQUE,
   provisioning_state VARCHAR(255) NOT NULL DEFAULT 'INIT',
@@ -185,6 +186,7 @@ CREATE TABLE servicecomponentdesiredstate (
   component_name VARCHAR(255) NOT NULL,
   cluster_id BIGINT NOT NULL,
   desired_stack_id BIGINT NOT NULL,
+  desired_version VARCHAR(255) NOT NULL DEFAULT 'UNKNOWN',
   desired_state VARCHAR(255) NOT NULL,
   service_name VARCHAR(255) NOT NULL,
   CONSTRAINT pk_sc_desiredstate PRIMARY KEY (id),
@@ -778,6 +780,60 @@ CREATE TABLE setting (
   PRIMARY KEY (id)
 );
 
+
+-- upgrade tables
+CREATE TABLE upgrade (
+  upgrade_id BIGINT NOT NULL,
+  cluster_id BIGINT NOT NULL,
+  request_id BIGINT NOT NULL,
+  from_version VARCHAR(255) DEFAULT '' NOT NULL,
+  to_version VARCHAR(255) DEFAULT '' NOT NULL,
+  direction VARCHAR(255) DEFAULT 'UPGRADE' NOT NULL,
+  upgrade_package VARCHAR(255) NOT NULL,
+  upgrade_type VARCHAR(32) NOT NULL,
+  skip_failures BIT NOT NULL DEFAULT 0,
+  skip_sc_failures BIT NOT NULL DEFAULT 0,
+  downgrade_allowed BIT NOT NULL DEFAULT 1,
+  PRIMARY KEY CLUSTERED (upgrade_id),
+  FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id),
+  FOREIGN KEY (request_id) REFERENCES request(request_id)
+);
+
+CREATE TABLE upgrade_group (
+  upgrade_group_id BIGINT NOT NULL,
+  upgrade_id BIGINT NOT NULL,
+  group_name VARCHAR(255) DEFAULT '' NOT NULL,
+  group_title VARCHAR(1024) DEFAULT '' NOT NULL,
+  PRIMARY KEY CLUSTERED (upgrade_group_id),
+  FOREIGN KEY (upgrade_id) REFERENCES upgrade(upgrade_id)
+);
+
+CREATE TABLE upgrade_item (
+  upgrade_item_id BIGINT NOT NULL,
+  upgrade_group_id BIGINT NOT NULL,
+  stage_id BIGINT NOT NULL,
+  state VARCHAR(255) DEFAULT 'NONE' NOT NULL,
+  hosts TEXT,
+  tasks TEXT,
+  item_text VARCHAR(1024),
+  PRIMARY KEY CLUSTERED (upgrade_item_id),
+  FOREIGN KEY (upgrade_group_id) REFERENCES upgrade_group(upgrade_group_id)
+);
+
+CREATE TABLE servicecomponent_history(
+  id BIGINT NOT NULL,
+  component_id BIGINT NOT NULL,
+  upgrade_id BIGINT NOT NULL,
+  from_stack_id BIGINT NOT NULL,
+  to_stack_id BIGINT NOT NULL,
+  CONSTRAINT PK_sc_history PRIMARY KEY (id),
+  CONSTRAINT FK_sc_history_component_id FOREIGN KEY (component_id) REFERENCES servicecomponentdesiredstate (id),
+  CONSTRAINT FK_sc_history_upgrade_id FOREIGN KEY (upgrade_id) REFERENCES upgrade (upgrade_id),
+  CONSTRAINT FK_sc_history_from_stack_id FOREIGN KEY (from_stack_id) REFERENCES stack (stack_id),
+  CONSTRAINT FK_sc_history_to_stack_id FOREIGN KEY (to_stack_id) REFERENCES stack (stack_id)
+);
+
+
 -- tasks indices --
 CREATE INDEX idx_stage_request_id ON stage (request_id);
 CREATE INDEX idx_hrc_request_id ON host_role_command (request_id);
@@ -805,6 +861,7 @@ ALTER TABLE stack ADD CONSTRAINT unq_stack UNIQUE (stack_name, stack_version);
 -- Note, Oracle has a limitation of 32 chars in the FK name, and we should use the same FK name in all DB types.
 ALTER TABLE members ADD CONSTRAINT FK_members_group_id FOREIGN KEY (group_id) REFERENCES groups (group_id);
 ALTER TABLE members ADD CONSTRAINT FK_members_user_id FOREIGN KEY (user_id) REFERENCES users (user_id);
+ALTER TABLE clusters ADD CONSTRAINT FK_clusters_upgrade_id FOREIGN KEY (upgrade_id) REFERENCES upgrade (upgrade_id);
 ALTER TABLE clusterconfig ADD CONSTRAINT FK_clusterconfig_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id);
 ALTER TABLE clusterservices ADD CONSTRAINT FK_clusterservices_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id);
 ALTER TABLE clusterconfigmapping ADD CONSTRAINT clusterconfigmappingcluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id);
@@ -1023,58 +1080,6 @@ CREATE INDEX idx_alert_history_time on alert_history(alert_timestamp);
 CREATE INDEX idx_alert_history_state on alert_history(alert_state);
 CREATE INDEX idx_alert_group_name on alert_group(group_name);
 CREATE INDEX idx_alert_notice_state on alert_notice(notify_state);
-
--- upgrade tables
-CREATE TABLE upgrade (
-  upgrade_id BIGINT NOT NULL,
-  cluster_id BIGINT NOT NULL,
-  request_id BIGINT NOT NULL,
-  from_version VARCHAR(255) DEFAULT '' NOT NULL,
-  to_version VARCHAR(255) DEFAULT '' NOT NULL,
-  direction VARCHAR(255) DEFAULT 'UPGRADE' NOT NULL,
-  upgrade_package VARCHAR(255) NOT NULL,
-  upgrade_type VARCHAR(32) NOT NULL,
-  skip_failures BIT NOT NULL DEFAULT 0,
-  skip_sc_failures BIT NOT NULL DEFAULT 0,
-  downgrade_allowed BIT NOT NULL DEFAULT 1,
-  PRIMARY KEY CLUSTERED (upgrade_id),
-  FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id),
-  FOREIGN KEY (request_id) REFERENCES request(request_id)
-);
-
-CREATE TABLE upgrade_group (
-  upgrade_group_id BIGINT NOT NULL,
-  upgrade_id BIGINT NOT NULL,
-  group_name VARCHAR(255) DEFAULT '' NOT NULL,
-  group_title VARCHAR(1024) DEFAULT '' NOT NULL,
-  PRIMARY KEY CLUSTERED (upgrade_group_id),
-  FOREIGN KEY (upgrade_id) REFERENCES upgrade(upgrade_id)
-);
-
-CREATE TABLE upgrade_item (
-  upgrade_item_id BIGINT NOT NULL,
-  upgrade_group_id BIGINT NOT NULL,
-  stage_id BIGINT NOT NULL,
-  state VARCHAR(255) DEFAULT 'NONE' NOT NULL,
-  hosts TEXT,
-  tasks TEXT,
-  item_text VARCHAR(1024),
-  PRIMARY KEY CLUSTERED (upgrade_item_id),
-  FOREIGN KEY (upgrade_group_id) REFERENCES upgrade_group(upgrade_group_id)
-);
-
-CREATE TABLE servicecomponent_history(
-  id BIGINT NOT NULL,
-  component_id BIGINT NOT NULL,
-  upgrade_id BIGINT NOT NULL,
-  from_stack_id BIGINT NOT NULL,
-  to_stack_id BIGINT NOT NULL,
-  CONSTRAINT PK_sc_history PRIMARY KEY (id),
-  CONSTRAINT FK_sc_history_component_id FOREIGN KEY (component_id) REFERENCES servicecomponentdesiredstate (id),
-  CONSTRAINT FK_sc_history_upgrade_id FOREIGN KEY (upgrade_id) REFERENCES upgrade (upgrade_id),
-  CONSTRAINT FK_sc_history_from_stack_id FOREIGN KEY (from_stack_id) REFERENCES stack (stack_id),
-  CONSTRAINT FK_sc_history_to_stack_id FOREIGN KEY (to_stack_id) REFERENCES stack (stack_id)
-);
 
 ---------inserting some data-----------
 BEGIN TRANSACTION

@@ -17,17 +17,23 @@
  */
 package org.apache.ambari.server.events.listeners.upgrade;
 
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
-import org.apache.ambari.server.events.HostComponentVersionEvent;
+import org.apache.ambari.server.events.HostComponentVersionAdvertisedEvent;
 import org.apache.ambari.server.events.publishers.VersionEventPublisher;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceImpl;
 import org.easymock.EasyMock;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -35,23 +41,36 @@ import org.junit.Test;
  */
 public class StackVersionListenerTest {
 
+  private static final String DESIRED_VERSION = "1.2.3.4-5678";
+  private static final String SERVICE_COMPONENT_NAME = "Some component name";
+  private static final String SERVICE_NAME = "Service name";
+
   @Test
   public void testOnAmbariEvent() throws Exception {
     VersionEventPublisher publisher = createNiceMock(VersionEventPublisher.class);
     Cluster cluster = createNiceMock(Cluster.class);
     ServiceComponentHost sch = createNiceMock(ServiceComponentHost.class);
     RepositoryVersionEntity repositoryVersionEntity = createNiceMock(RepositoryVersionEntity.class);
+    Service service = createNiceMock(Service.class);
+    ServiceComponent serviceComponent = createNiceMock(ServiceComponent.class);
+
+    expect(serviceComponent.getDesiredVersion()).andReturn(DESIRED_VERSION);
+    expect(service.getServiceComponent(SERVICE_COMPONENT_NAME)).andReturn(serviceComponent);
 
     expect(cluster.getClusterId()).andReturn(99L);
+    expect(cluster.getService(anyString())).andReturn(service);
+
+    expect(sch.getServiceName()).andReturn(SERVICE_NAME);
+    expect(sch.getServiceComponentName()).andReturn(SERVICE_COMPONENT_NAME);
     expect(sch.recalculateHostVersionState()).andReturn(repositoryVersionEntity).atLeastOnce();
 
     cluster.recalculateClusterVersionState(repositoryVersionEntity);
     EasyMock.expectLastCall().atLeastOnce();
 
     // Replay and assert expectations
-    replay(cluster, sch);
+    replay(cluster, sch, serviceComponent, service);
 
-    HostComponentVersionEvent event = new HostComponentVersionEvent(cluster, sch);
+    HostComponentVersionAdvertisedEvent event = new HostComponentVersionAdvertisedEvent(cluster, sch, DESIRED_VERSION);
     StackVersionListener listener = new StackVersionListener(publisher);
 
     listener.onAmbariEvent(event);

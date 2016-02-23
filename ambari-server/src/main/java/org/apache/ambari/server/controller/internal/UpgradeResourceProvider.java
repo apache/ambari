@@ -84,6 +84,9 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.RepositoryType;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
@@ -813,6 +816,20 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       configUpgradePack = ConfigUpgradePack.merge(intermediateConfigUpgradePacks);
     }
 
+    // TODO: for now, all service components are transitioned to upgrading state
+    // TODO: When performing patch upgrade, we should only target supported services/components
+    // from upgrade pack
+    Set<Service> services = new HashSet<>(cluster.getServices().values());
+    Map<Service, Set<ServiceComponent>> targetComponents = new HashMap<>();
+    for (Service service: services) {
+      Set<ServiceComponent> serviceComponents =
+        new HashSet<>(service.getServiceComponents().values());
+      targetComponents.put(service, serviceComponents);
+    }
+    // TODO: is there any extreme case when we need to set component upgrade state back to NONE
+    // from IN_PROGRESS (e.g. canceled downgrade)
+    s_upgradeHelper.putComponentsToUpgradingState(version, targetComponents);
+
     for (UpgradeGroupHolder group : groups) {
       boolean skippable = group.skippable;
       boolean supportsAutoSkipOnFailure = group.supportsAutoSkipOnFailure;
@@ -894,6 +911,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     req.persist();
 
     s_upgradeDAO.create(entity);
+    cluster.setUpgradeEntity(entity);
 
     return entity;
   }
@@ -1600,11 +1618,19 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
               HostRoleStatus.ABORTED, internalStatus));
     }
 
+    Long clusterId = internalRequest.getClusterId();
     if (HostRoleStatus.ABORTED == status) {
       if (!internalStatus.isCompletedState()) {
         actionManager.cancelRequest(internalRequest.getRequestId(), reason);
+        // Remove relevant upgrade entity
+        try {
+          Cluster cluster = clusters.get().getClusterById(clusterId);
+          cluster.setUpgradeEntity(null);
+        } catch (AmbariException e) {
+          LOG.warn("Could not clear upgrade entity for cluster with id {}", clusterId, e);
+        }
       }
-    } else {
+    } else { // Processing PENDING
       List<Long> taskIds = new ArrayList<Long>();
 
       for (HostRoleCommand hrc : internalRequest.getCommands()) {
@@ -1615,6 +1641,15 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       }
 
       actionManager.resubmitTasks(taskIds);
+
+      try {
+        Cluster cluster = clusters.get().getClusterById(clusterId);
+        UpgradeEntity lastUpgradeItemForCluster = s_upgradeDAO.findLastUpgradeForCluster(cluster.getClusterId());
+        cluster.setUpgradeEntity(lastUpgradeItemForCluster);
+      } catch (AmbariException e) {
+        LOG.warn("Could not clear upgrade entity for cluster with id {}", clusterId, e);
+      }
+
     }
   }
 }

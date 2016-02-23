@@ -47,7 +47,7 @@ import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.events.ActionFinalReportReceivedEvent;
 import org.apache.ambari.server.events.AlertEvent;
 import org.apache.ambari.server.events.AlertReceivedEvent;
-import org.apache.ambari.server.events.HostComponentVersionEvent;
+import org.apache.ambari.server.events.HostComponentVersionAdvertisedEvent;
 import org.apache.ambari.server.events.publishers.AlertEventPublisher;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.events.publishers.VersionEventPublisher;
@@ -562,10 +562,8 @@ public class HeartBeatHandler {
 
               String newVersion = structuredOutput == null ? null : structuredOutput.version;
 
-              // Pass true to always publish a version event.  It is safer to recalculate the version even if we don't
-              // detect a difference in the value.  This is useful in case that a manual database edit is done while
-              // ambari-server is stopped.
-              handleComponentVersionReceived(cl, scHost, newVersion, true);
+              HostComponentVersionAdvertisedEvent event = new HostComponentVersionAdvertisedEvent(cl, scHost, newVersion);
+              versionEventPublisher.publish(event);
             }
 
             // Updating stack version, if needed (this is not actually for express/rolling upgrades!)
@@ -618,7 +616,8 @@ public class HeartBeatHandler {
               try {
                 ComponentVersionStructuredOut structuredOutput = gson.fromJson(report.getStructuredOut(), ComponentVersionStructuredOut.class);
 
-                if (null != structuredOutput.upgradeDirection && structuredOutput.upgradeDirection.isUpgrade()) {
+                if (null != structuredOutput.upgradeDirection) {
+                  // TODO: backward compatibility: now state is set to FAILED also during downgrade
                   scHost.setUpgradeState(UpgradeState.FAILED);
                 }
               } catch (JsonSyntaxException ex) {
@@ -726,7 +725,8 @@ public class HeartBeatHandler {
                   if (extra.containsKey("version")) {
                     String version = extra.get("version").toString();
 
-                    handleComponentVersionReceived(cl, scHost, version, false);
+                    HostComponentVersionAdvertisedEvent event = new HostComponentVersionAdvertisedEvent(cl, scHost, version);
+                    versionEventPublisher.publish(event);
                   }
 
                 } catch (Exception e) {
@@ -778,39 +778,6 @@ public class HeartBeatHandler {
           }
         }
       }
-    }
-  }
-
-  /**
-   * Updates the version of the given service component, sets the upgrade state (if needed)
-   * and publishes a version event through the version event publisher.
-   *
-   * @param cluster        the cluster
-   * @param scHost         service component host
-   * @param newVersion     new version of service component
-   * @param alwaysPublish  if true, always publish a version event; if false,
-   *                       only publish if the component version was updated
-   */
-  private void handleComponentVersionReceived(Cluster cluster, ServiceComponentHost scHost,
-                                              String newVersion, boolean alwaysPublish) {
-
-    boolean updated = false;
-
-    if (StringUtils.isNotBlank(newVersion)) {
-      final String previousVersion = scHost.getVersion();
-      if (!StringUtils.equals(previousVersion, newVersion)) {
-        scHost.setVersion(newVersion);
-        scHost.setStackVersion(cluster.getDesiredStackVersion());
-        if (previousVersion != null && !previousVersion.equalsIgnoreCase(State.UNKNOWN.toString())) {
-          scHost.setUpgradeState(UpgradeState.COMPLETE);
-        }
-        updated = true;
-      }
-    }
-
-    if (updated || alwaysPublish) {
-      HostComponentVersionEvent event = new HostComponentVersionEvent(cluster, scHost);
-      versionEventPublisher.publish(event);
     }
   }
 

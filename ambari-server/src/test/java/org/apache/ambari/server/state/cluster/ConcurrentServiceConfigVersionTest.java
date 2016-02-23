@@ -110,7 +110,7 @@ public class ConcurrentServiceConfigVersionTest {
     cluster = clusters.getCluster("c1");
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
     cluster.createClusterVersion(stackId,
-        stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
+        stackId.getStackVersion(), "admin", RepositoryVersionState.INSTALLING);
 
     String hostName = "c6401.ambari.apache.org";
     clusters.addHost(hostName);

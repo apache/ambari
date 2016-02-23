@@ -181,7 +181,7 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
       List<HostVersionEntity> hostVersions = hostVersionDAO.findByClusterStackAndVersion(
           clusterName, clusterDesiredStackId, version);
 
-      // Will include hosts whose state is UPGRADED, and potentially INSTALLED
+      // Will include hosts whose state is INSTALLED
       Set<HostVersionEntity> hostVersionsAllowed = new HashSet<HostVersionEntity>();
       Set<String> hostsWithoutCorrectVersionState = new HashSet<String>();
       Set<String> hostsToUpdate = new HashSet<String>();
@@ -193,12 +193,12 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
         boolean hostHasCorrectVersionState = false;
         RepositoryVersionState hostVersionState = hostVersion.getState();
         switch( hostVersionState ){
-          case UPGRADED:
           case CURRENT:{
             // if the state is correct, then do nothing
             hostHasCorrectVersionState = true;
             break;
           }
+          case NOT_REQUIRED:
           case INSTALLED:{
             // It is possible that the host version has a state of INSTALLED and it
             // never changed if the host only has components that do not advertise a
@@ -209,12 +209,10 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
                 host, clusterDesiredStackId);
 
             // if all components have finished advertising their version, then
-            // this host can be considered UPGRADED
+            // this host can be considered upgraded
             if (hostSummary.haveAllComponentsFinishedAdvertisingVersion()) {
-              // mark this as UPGRADED
+              // mark this as upgraded
               hostHasCorrectVersionState = true;
-              hostVersion.setState(RepositoryVersionState.UPGRADED);
-              hostVersion = hostVersionDAO.merge(hostVersion);
             } else {
               hostsWithoutCorrectVersionState.add(hostVersion.getHostName());
             }
@@ -235,7 +233,7 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
         }
       }
 
-      // throw an exception if there are hosts which are not not fully UPGRADED
+      // throw an exception if there are hosts which are not not fully upgraded
       if (hostsWithoutCorrectVersionState.size() > 0) {
         String message = String.format("The following %d host(s) have not been upgraded to version %s. " +
                 "Please install and upgrade the Stack Version on those hosts and try again.\nHosts: %s\n",
@@ -265,22 +263,21 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
       }
 
 
-      // we're guaranteed to be ready transition to UPGRADED now; ensure that
-      // the transition will be allowed if the cluster state is not UPGRADED
+      // we're guaranteed to be ready transition to upgraded now; ensure that
+      // the transition will be allowed if the cluster state is not upgraded
       upgradingClusterVersion = clusterVersionDAO.findByClusterAndStackAndVersion(clusterName,
           clusterDesiredStackId, version);
 
-      if (RepositoryVersionState.UPGRADING == upgradingClusterVersion.getState()) {
-        cluster.transitionClusterVersion(clusterDesiredStackId, version,
-            RepositoryVersionState.UPGRADED);
+      if (RepositoryVersionState.INSTALLING == upgradingClusterVersion.getState()) {
+        cluster.transitionClusterVersion(clusterDesiredStackId, version, RepositoryVersionState.INSTALLED);
 
         upgradingClusterVersion = clusterVersionDAO.findByClusterAndStackAndVersion(
             clusterName, clusterDesiredStackId, version);
       }
 
       // we cannot finalize since the cluster was not ready to move into the
-      // UPGRADED state
-      if (RepositoryVersionState.UPGRADED != upgradingClusterVersion.getState()) {
+      // upgraded state
+      if (RepositoryVersionState.INSTALLED != upgradingClusterVersion.getState()) {
         throw new AmbariException(String.format("The cluster stack version state %s is not allowed to transition directly into %s",
             upgradingClusterVersion.getState(), RepositoryVersionState.CURRENT.toString()));
       }
@@ -302,6 +299,9 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
       outSB.append(
           String.format("Finalizing the version for %d host(s).\n", hostVersionsAllowed.size()));
       cluster.mapHostVersions(hostsToUpdate, upgradingClusterVersion, RepositoryVersionState.CURRENT);
+
+      // Reset upgrade state
+      cluster.setUpgradeEntity(null);
 
       // transitioning the cluster into CURRENT will update the current/desired
       // stack values
@@ -405,9 +405,9 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
       // update the cluster version
       for (ClusterVersionEntity cve : clusterVersionDAO.findByCluster(clusterName)) {
         switch (cve.getState()) {
-          case UPGRADE_FAILED:
-          case UPGRADED:
-          case UPGRADING: {
+          case INSTALL_FAILED:
+          case INSTALLED:
+          case INSTALLING: {
               badVersions.add(cve.getRepositoryVersion().getVersion());
               cve.setState(RepositoryVersionState.INSTALLED);
               clusterVersionDAO.merge(cve);
@@ -447,6 +447,8 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
       // ensure that when downgrading, we set the desired back to the
       // original value
       cluster.setDesiredStackVersion(currentClusterStackId);
+      // Reset upgrade state
+      cluster.setUpgradeEntity(null);
 
       return createCommandReport(0, HostRoleStatus.COMPLETED, "{}",
           out.toString(), err.toString());
@@ -467,7 +469,7 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
    * have been upgraded to the target version.
    * @param cluster         the cluster the upgrade is for
    * @param desiredVersion  the target version of the upgrade
-   * @param targetStack     the target stack id for meta-info lookup
+   * @param targetStackId     the target stack id for meta-info lookup
    * @return the list of {@link InfoTuple} objects of host components in error
    */
   protected List<InfoTuple> checkHostComponentVersions(Cluster cluster, String desiredVersion, StackId targetStackId)

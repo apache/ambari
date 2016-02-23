@@ -132,7 +132,7 @@ public class StackDefinedPropertyProviderTest {
     cluster.setDesiredStackVersion(stackId);
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
     cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
-        RepositoryVersionState.UPGRADING);
+        RepositoryVersionState.INSTALLING);
 
     clusters.addHost("h1");
     Host host = clusters.getHost("h1");

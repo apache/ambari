@@ -22,6 +22,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -91,6 +92,7 @@ import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.TopologyRequestEntity;
+import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.state.Cluster;
@@ -150,6 +152,8 @@ public class ClusterImpl implements Cluster {
    * Prefix for cluster session attributes name.
    */
   private static final String CLUSTER_SESSION_ATTRIBUTES_PREFIX = "cluster_session_attributes:";
+  private static final Set<RepositoryVersionState> ALLOWED_REPOSITORY_STATES =
+      EnumSet.of(RepositoryVersionState.INSTALLING);
 
   @Inject
   private Clusters clusters;
@@ -1154,10 +1158,10 @@ public class ClusterImpl implements Cluster {
   }
 
   /**
-   * During the Finalize Action, want to transition all Host Versions from UPGRADED to CURRENT, and the last CURRENT one to INSTALLED.
+   * During the Finalize Action, want to transition all Host Versions from INSTALLED to CURRENT, and the last CURRENT one to INSTALLED.
    * @param hostNames Collection of host names
    * @param currentClusterVersion Entity that contains the cluster's current stack (with its name and version)
-   * @param desiredState Desired state must be {@link RepositoryVersionState#CURRENT} or {@link RepositoryVersionState#UPGRADING}
+   * @param desiredState Desired state must be {@link RepositoryVersionState#CURRENT}
    * @throws AmbariException
    */
   @Override
@@ -1221,7 +1225,7 @@ public class ClusterImpl implements Cluster {
               && desiredState == RepositoryVersionState.CURRENT
               && currentHostVersionEntity.getState() == RepositoryVersionState.CURRENT) {
             currentHostVersionEntity.setState(RepositoryVersionState.INSTALLED);
-            currentHostVersionEntity = hostVersionDAO.merge(currentHostVersionEntity);
+            hostVersionDAO.merge(currentHostVersionEntity);
           }
         }
       }
@@ -1329,10 +1333,6 @@ public class ClusterImpl implements Cluster {
    * Calculate the effective Cluster Version State based on the state of its hosts.
    *
    * CURRENT: all hosts are CURRENT
-   * UPGRADE_FAILED: at least one host in UPGRADE_FAILED
-   * UPGRADED: all hosts are UPGRADED
-   * UPGRADING: at least one host is UPGRADING, and the rest in UPGRADING|INSTALLED
-   * UPGRADING: at least one host is UPGRADED, and the rest in UPGRADING|INSTALLED
    * INSTALLED: all hosts in INSTALLED
    * INSTALL_FAILED: at least one host in INSTALL_FAILED
    * INSTALLING: all hosts in INSTALLING -or- INSTALLING and NOT_REQUIRED. Notice that if one host is CURRENT and another is INSTALLING, then the
@@ -1353,22 +1353,6 @@ public class ClusterImpl implements Cluster {
 
     if (stateToHosts.containsKey(RepositoryVersionState.CURRENT) && stateToHosts.get(RepositoryVersionState.CURRENT).size() == totalHosts) {
       return RepositoryVersionState.CURRENT;
-    }
-    if (stateToHosts.containsKey(RepositoryVersionState.UPGRADE_FAILED) && !stateToHosts.get(RepositoryVersionState.UPGRADE_FAILED).isEmpty()) {
-      return RepositoryVersionState.UPGRADE_FAILED;
-    }
-    if (stateToHosts.containsKey(RepositoryVersionState.UPGRADED) && stateToHosts.get(RepositoryVersionState.UPGRADED).size() == totalHosts) {
-      return RepositoryVersionState.UPGRADED;
-    }
-    if (stateToHosts.containsKey(RepositoryVersionState.UPGRADING) && !stateToHosts.get(RepositoryVersionState.UPGRADING).isEmpty()) {
-      return RepositoryVersionState.UPGRADING;
-    }
-    if (stateToHosts.containsKey(RepositoryVersionState.UPGRADED)
-        && !stateToHosts.get(RepositoryVersionState.UPGRADED).isEmpty()
-        && stateToHosts.get(RepositoryVersionState.UPGRADED).size() != totalHosts) {
-      // It is possible that a host has transitioned to UPGRADED state even before any other host has transitioned to UPGRADING state.
-      // Example: Host with single component ZOOKEEPER Server on it which is the first component to be upgraded.
-      return RepositoryVersionState.UPGRADING;
     }
     if (stateToHosts.containsKey(RepositoryVersionState.INSTALLED) && stateToHosts.get(RepositoryVersionState.INSTALLED).size() == totalHosts) {
       return RepositoryVersionState.INSTALLED;
@@ -1404,9 +1388,9 @@ public class ClusterImpl implements Cluster {
       }
     }
 
-    // Also returns when have a mix of CURRENT and INSTALLING|INSTALLED|UPGRADING|UPGRADED
-    LOG.warn("have a mix of CURRENT and INSTALLING|INSTALLED|UPGRADING|UPGRADED host versions, " +
-      "returning OUT_OF_SYNC as cluster version. Host version states: " + stateToHosts.toString());
+    // Also returns when have a mix of CURRENT and INSTALLING|INSTALLED
+    LOG.warn("have a mix of CURRENT and INSTALLING|INSTALLED host versions, " +
+      "returning OUT_OF_SYNC as cluster version. Host version states: {}", stateToHosts);
     return RepositoryVersionState.OUT_OF_SYNC;
   }
 
@@ -1444,7 +1428,7 @@ public class ClusterImpl implements Cluster {
               stackId,
               version,
               AuthorizationHelper.getAuthenticatedName(configuration.getAnonymousAuditName()),
-              RepositoryVersionState.UPGRADING);
+              RepositoryVersionState.INSTALLING);
           clusterVersion = clusterVersionDAO.findByClusterAndStackAndVersion(
               getClusterName(), stackId, version);
 
@@ -1461,14 +1445,11 @@ public class ClusterImpl implements Cluster {
           return;
         }
       }
-
       // Ignore if cluster version is CURRENT or UPGRADE_FAILED
       if (clusterVersion.getState() != RepositoryVersionState.INSTALL_FAILED &&
               clusterVersion.getState() != RepositoryVersionState.OUT_OF_SYNC &&
               clusterVersion.getState() != RepositoryVersionState.INSTALLING &&
-              clusterVersion.getState() != RepositoryVersionState.INSTALLED &&
-              clusterVersion.getState() != RepositoryVersionState.UPGRADING &&
-              clusterVersion.getState() != RepositoryVersionState.UPGRADED) {
+              clusterVersion.getState() != RepositoryVersionState.INSTALLED) {
         // anything else is not supported as of now
         return;
       }
@@ -1584,7 +1565,7 @@ public class ClusterImpl implements Cluster {
           // That is an initial bootstrap
           performingInitialBootstrap = true;
         }
-        hostVersionEntity = new HostVersionEntity(host, repositoryVersion, RepositoryVersionState.UPGRADING);
+        hostVersionEntity = new HostVersionEntity(host, repositoryVersion, RepositoryVersionState.INSTALLING);
         hostVersionDAO.create(hostVersionEntity);
       }
 
@@ -1595,22 +1576,17 @@ public class ClusterImpl implements Cluster {
       if (!isCurrentPresent) {
         // Transition from UPGRADING -> CURRENT. This is allowed because Host Version Entity is bootstrapped in an UPGRADING state.
         // Alternatively, transition to CURRENT during initial bootstrap if at least one host component advertised a version
-        if (hostSummary.isUpgradeFinished() && hostVersionEntity.getState().equals(RepositoryVersionState.UPGRADING) || performingInitialBootstrap) {
+        if (hostSummary.isUpgradeFinished() || performingInitialBootstrap) {
           hostVersionEntity.setState(RepositoryVersionState.CURRENT);
           hostVersionEntity = hostVersionDAO.merge(hostVersionEntity);
         }
       } else {
         // Handle transitions during a Stack Upgrade
+        if (hostSummary.isUpgradeFinished() && hostVersionEntity.getState().equals(RepositoryVersionState.INSTALLED)) {
+          currentVersionEntity.setState(RepositoryVersionState.INSTALLED);
+          hostVersionEntity.setState(RepositoryVersionState.CURRENT);
 
-        // If a host only has one Component to update, that single report can still transition the host version from
-        // INSTALLED->UPGRADING->UPGRADED in one shot.
-        if (hostSummary.isUpgradeInProgress(currentVersionEntity.getRepositoryVersion().getVersion()) && hostVersionEntity.getState().equals(RepositoryVersionState.INSTALLED)) {
-          hostVersionEntity.setState(RepositoryVersionState.UPGRADING);
-          hostVersionEntity = hostVersionDAO.merge(hostVersionEntity);
-        }
-
-        if (hostSummary.isUpgradeFinished() && hostVersionEntity.getState().equals(RepositoryVersionState.UPGRADING)) {
-          hostVersionEntity.setState(RepositoryVersionState.UPGRADED);
+          hostVersionDAO.merge(currentVersionEntity);
           hostVersionEntity = hostVersionDAO.merge(hostVersionEntity);
         }
       }
@@ -1658,16 +1634,8 @@ public class ClusterImpl implements Cluster {
    */
   private void createClusterVersionInternal(StackId stackId, String version,
       String userName, RepositoryVersionState state) throws AmbariException {
-    Set<RepositoryVersionState> allowedStates = new HashSet<RepositoryVersionState>();
-    Collection<ClusterVersionEntity> allClusterVersions = getAllClusterVersions();
-    if (allClusterVersions == null || allClusterVersions.isEmpty()) {
-      allowedStates.add(RepositoryVersionState.UPGRADING);
-    } else {
-      allowedStates.add(RepositoryVersionState.INSTALLING);
-    }
-
-    if (!allowedStates.contains(state)) {
-      throw new AmbariException("The allowed state for a new cluster version must be within " + allowedStates);
+    if (!ALLOWED_REPOSITORY_STATES.contains(state)) {
+      throw new AmbariException("The allowed state for a new cluster version must be within " + ALLOWED_REPOSITORY_STATES);
     }
 
     ClusterVersionEntity existing = clusterVersionDAO.findByClusterAndStackAndVersion(
@@ -1701,10 +1669,10 @@ public class ClusterImpl implements Cluster {
    * following are some of the steps that are taken when transitioning between
    * specific states:
    * <ul>
-   * <li>UPGRADING/UPGRADED --> CURRENT</lki>: Set the current stack to the
+   * <li>INSTALLING/INSTALLED --> CURRENT</lki>: Set the current stack to the
    * desired stack, ensure all hosts with the desired stack are CURRENT as well.
    * </ul>
-   * <li>UPGRADING/UPGRADED --> CURRENT</lki>: Set the current stack to the
+   * <li>INSTALLING/INSTALLED --> CURRENT</lki>: Set the current stack to the
    * desired stack. </ul>
    *
    * @param stackId
@@ -1751,30 +1719,20 @@ public class ClusterImpl implements Cluster {
             allowedStates.add(RepositoryVersionState.INSTALLED);
             allowedStates.add(RepositoryVersionState.INSTALL_FAILED);
             allowedStates.add(RepositoryVersionState.OUT_OF_SYNC);
+            if (clusterVersionDAO.findByClusterAndStateCurrent(getClusterName()) == null) {
+              allowedStates.add(RepositoryVersionState.CURRENT);
+            }
             break;
           case INSTALL_FAILED:
             allowedStates.add(RepositoryVersionState.INSTALLING);
             break;
           case INSTALLED:
             allowedStates.add(RepositoryVersionState.INSTALLING);
-            allowedStates.add(RepositoryVersionState.UPGRADING);
             allowedStates.add(RepositoryVersionState.OUT_OF_SYNC);
+            allowedStates.add(RepositoryVersionState.CURRENT);
             break;
           case OUT_OF_SYNC:
             allowedStates.add(RepositoryVersionState.INSTALLING);
-            break;
-          case UPGRADING:
-            allowedStates.add(RepositoryVersionState.UPGRADED);
-            allowedStates.add(RepositoryVersionState.UPGRADE_FAILED);
-            if (clusterVersionDAO.findByClusterAndStateCurrent(getClusterName()) == null) {
-              allowedStates.add(RepositoryVersionState.CURRENT);
-            }
-            break;
-          case UPGRADED:
-            allowedStates.add(RepositoryVersionState.CURRENT);
-            break;
-          case UPGRADE_FAILED:
-            allowedStates.add(RepositoryVersionState.UPGRADING);
             break;
         }
 
@@ -3464,5 +3422,46 @@ public class ClusterImpl implements Cluster {
    */
   private ClusterEntity getClusterEntity() {
     return clusterDAO.findById(clusterId);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public UpgradeEntity getUpgradeEntity() {
+    clusterGlobalLock.readLock().lock();
+    try {
+      ClusterEntity clusterEntity = getClusterEntity();
+      if (clusterEntity != null) {
+        return clusterEntity.getUpgradeEntity();
+      } else {
+        return null;
+      }
+    } finally {
+      clusterGlobalLock.readLock().unlock();
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  @Transactional
+  public void setUpgradeEntity(UpgradeEntity upgradeEntity) throws AmbariException {
+    clusterGlobalLock.writeLock().lock();
+    try {
+      ClusterEntity clusterEntity = getClusterEntity();
+      if (clusterEntity != null) {
+        clusterEntity.setUpgradeEntity(upgradeEntity);
+        clusterDAO.merge(clusterEntity);
+      }
+    } catch (RollbackException e) {
+      String msg = "Unable to set upgrade entiry " + upgradeEntity + " for cluster "
+        + getClusterName();
+      LOG.warn(msg);
+      throw new AmbariException(msg, e);
+    } finally {
+      clusterGlobalLock.writeLock().unlock();
+    }
   }
 }

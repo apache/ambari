@@ -21,13 +21,14 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ServiceComponentHost;
 
 /**
- * The {@link org.apache.ambari.server.events.HostComponentVersionEvent} represents all events in Ambari that relate
- * to a Host Component advertising a version.
+ * The {@link HostComponentVersionAdvertisedEvent}
+ * occurs when a Host Component advertises it's current version value.
  */
-public class HostComponentVersionEvent extends ClusterEvent {
+public class HostComponentVersionAdvertisedEvent extends ClusterEvent {
 
   protected Cluster cluster;
   protected ServiceComponentHost sch;
+  protected String version;
 
   /**
    * Constructor.
@@ -35,10 +36,12 @@ public class HostComponentVersionEvent extends ClusterEvent {
    * @param cluster: cluster.
    * @param sch: the service component host
    */
-  public HostComponentVersionEvent(Cluster cluster, ServiceComponentHost sch) {
+  public HostComponentVersionAdvertisedEvent(Cluster cluster, ServiceComponentHost sch,
+                                             String version) {
     super(AmbariEventType.HOST_COMPONENT_VERSION_ADVERTISED, cluster.getClusterId());
     this.cluster = cluster;
     this.sch = sch;
+    this.version = version;
   }
 
   public ServiceComponentHost getServiceComponentHost() {
@@ -49,16 +52,21 @@ public class HostComponentVersionEvent extends ClusterEvent {
     return cluster;
   }
 
+  public String getVersion() {
+    return version;
+  }
+
   /**
    * {@inheritDoc}
    */
   @Override
   public String toString() {
-    StringBuilder buffer = new StringBuilder("HostComponentVersionEvent{");
+    StringBuilder buffer = new StringBuilder("HostComponentVersionAdvertisedEvent{");
     buffer.append("cluserId=").append(m_clusterId);
     buffer.append(", serviceName=").append(sch.getServiceName());
     buffer.append(", componentName=").append(sch.getServiceComponentName());
     buffer.append(", hostName=").append(sch.getHostName());
+    buffer.append(", version=").append(version);
     buffer.append("}");
     return buffer.toString();
   }

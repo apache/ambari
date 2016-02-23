@@ -92,7 +92,7 @@ public class UpgradeDAOTest {
     items.add(item);
 
     item = new UpgradeItemEntity();
-    item.setState(UpgradeState.PENDING);
+    item.setState(UpgradeState.COMPLETE);  // TODO: is it a correct value for test context?
     item.setStageId(Long.valueOf(1L));
     items.add(item);
 

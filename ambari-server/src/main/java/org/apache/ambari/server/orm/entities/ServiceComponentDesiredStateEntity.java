@@ -91,6 +91,13 @@ public class ServiceComponentDesiredStateEntity {
   @JoinColumn(name = "desired_stack_id", unique = false, nullable = false, insertable = true, updatable = true)
   private StackEntity desiredStack;
 
+  /**
+   * Version string that should be followed by instances
+   * of component on hosts. Includes both stack version and build
+   */
+  @Column(name = "desired_version", nullable = false, insertable = true, updatable = true)
+  private String desiredVersion = State.UNKNOWN.toString();
+
   @ManyToOne
   @JoinColumns({@javax.persistence.JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false), @JoinColumn(name = "service_name", referencedColumnName = "service_name", nullable = false)})
   private ClusterServiceEntity clusterServiceEntity;
@@ -152,6 +159,14 @@ public class ServiceComponentDesiredStateEntity {
 
   public void setDesiredStack(StackEntity desiredStack) {
     this.desiredStack = desiredStack;
+  }
+
+  public String getDesiredVersion() {
+    return desiredVersion;
+  }
+
+  public void setDesiredVersion(String desiredVersion) {
+    this.desiredVersion = desiredVersion;
   }
 
   /**

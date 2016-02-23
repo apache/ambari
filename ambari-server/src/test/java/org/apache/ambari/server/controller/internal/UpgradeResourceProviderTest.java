@@ -199,7 +199,7 @@ public class UpgradeResourceProviderTest {
     helper.getOrCreateRepositoryVersion(stack211, stack211.getStackVersion());
     helper.getOrCreateRepositoryVersion(stack220, stack220.getStackVersion());
 
-    cluster.createClusterVersion(stack211, stack211.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
+    cluster.createClusterVersion(stack211, stack211.getStackVersion(), "admin", RepositoryVersionState.INSTALLING);
     cluster.transitionClusterVersion(stack211, stack211.getStackVersion(), RepositoryVersionState.CURRENT);
 
     clusters.addHost("h1");

@@ -195,10 +195,10 @@ public class HostVersionDAOTest {
         desiredState = RepositoryVersionState.INSTALLED;
       }
       if (i % 3 == 1) {
-        desiredState = RepositoryVersionState.UPGRADING;
+        desiredState = RepositoryVersionState.INSTALLING;
       }
       if (i % 3 == 2) {
-        desiredState = RepositoryVersionState.UPGRADE_FAILED;
+        desiredState = RepositoryVersionState.INSTALL_FAILED;
       }
 
 
@@ -269,8 +269,8 @@ public class HostVersionDAOTest {
   public void testFindByClusterHostAndState() {
     Assert.assertEquals(1, hostVersionDAO.findByClusterHostAndState("test_cluster1", "test_host1", RepositoryVersionState.CURRENT).size());
     Assert.assertEquals(0, hostVersionDAO.findByClusterHostAndState("test_cluster1", "test_host1", RepositoryVersionState.INSTALLED).size());
-    Assert.assertEquals(0, hostVersionDAO.findByClusterHostAndState("test_cluster1", "test_host2", RepositoryVersionState.UPGRADING).size());
-    Assert.assertEquals(0, hostVersionDAO.findByClusterHostAndState("test_cluster1", "test_host3", RepositoryVersionState.UPGRADE_FAILED).size());
+    Assert.assertEquals(0, hostVersionDAO.findByClusterHostAndState("test_cluster1", "test_host2", RepositoryVersionState.INSTALLING).size());
+    Assert.assertEquals(0, hostVersionDAO.findByClusterHostAndState("test_cluster1", "test_host3", RepositoryVersionState.INSTALL_FAILED).size());
 
     addMoreVersions();
 
@@ -279,8 +279,8 @@ public class HostVersionDAOTest {
     Assert.assertEquals(2, hostVersionDAO.findByClusterHostAndState("test_cluster1", "test_host3", RepositoryVersionState.INSTALLED).size());
 
     Assert.assertEquals(1, hostVersionDAO.findByClusterHostAndState("test_cluster1", "test_host1", RepositoryVersionState.CURRENT).size());
-    Assert.assertEquals(1, hostVersionDAO.findByClusterHostAndState("test_cluster1", "test_host2", RepositoryVersionState.UPGRADING).size());
-    Assert.assertEquals(1, hostVersionDAO.findByClusterHostAndState("test_cluster1", "test_host3", RepositoryVersionState.UPGRADE_FAILED).size());
+    Assert.assertEquals(1, hostVersionDAO.findByClusterHostAndState("test_cluster1", "test_host2", RepositoryVersionState.INSTALLING).size());
+    Assert.assertEquals(1, hostVersionDAO.findByClusterHostAndState("test_cluster1", "test_host3", RepositoryVersionState.INSTALL_FAILED).size());
   }
 
   /**
@@ -318,9 +318,9 @@ public class HostVersionDAOTest {
     HostVersionEntity hostVersionEntity1LastExpected = new HostVersionEntity(host1,
         helper.getOrCreateRepositoryVersion(HDP_22_STACK, repoVersion_2202), RepositoryVersionState.INSTALLED);
     HostVersionEntity hostVersionEntity2LastExpected = new HostVersionEntity(host2,
-        helper.getOrCreateRepositoryVersion(HDP_22_STACK, repoVersion_2202), RepositoryVersionState.UPGRADING);
+        helper.getOrCreateRepositoryVersion(HDP_22_STACK, repoVersion_2202), RepositoryVersionState.INSTALLING);
     HostVersionEntity hostVersionEntity3LastExpected = new HostVersionEntity(host3,
-        helper.getOrCreateRepositoryVersion(HDP_22_STACK, repoVersion_2202), RepositoryVersionState.UPGRADE_FAILED);
+        helper.getOrCreateRepositoryVersion(HDP_22_STACK, repoVersion_2202), RepositoryVersionState.INSTALL_FAILED);
 
     // Actual
     HostVersionEntity hostVersionEntity1LastActual = hostVersionDAO.findByClusterStackVersionAndHost("test_cluster1", HDP_22_STACK, repoVersion_2202, "test_host1");

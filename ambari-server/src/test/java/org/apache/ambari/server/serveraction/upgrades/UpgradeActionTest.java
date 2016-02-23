@@ -83,6 +83,7 @@ import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.gson.Gson;
@@ -196,14 +197,13 @@ public class UpgradeActionTest {
 
     // Create the starting repo version
     m_helper.getOrCreateRepositoryVersion(sourceStack, sourceRepo);
-    c.createClusterVersion(sourceStack, sourceRepo, "admin", RepositoryVersionState.UPGRADING);
+    c.createClusterVersion(sourceStack, sourceRepo, "admin", RepositoryVersionState.INSTALLING);
     c.transitionClusterVersion(sourceStack, sourceRepo, RepositoryVersionState.CURRENT);
 
     // Start upgrading the newer repo
     m_helper.getOrCreateRepositoryVersion(targetStack, targetRepo);
     c.createClusterVersion(targetStack, targetRepo, "admin", RepositoryVersionState.INSTALLING);
     c.transitionClusterVersion(targetStack, targetRepo, RepositoryVersionState.INSTALLED);
-    c.transitionClusterVersion(targetStack, targetRepo, RepositoryVersionState.UPGRADING);
 
     c.mapHostVersions(Collections.singleton(hostName), c.getCurrentClusterVersion(),
         RepositoryVersionState.CURRENT);
@@ -211,7 +211,7 @@ public class UpgradeActionTest {
     HostVersionEntity entity = new HostVersionEntity();
     entity.setHostEntity(hostDAO.findByName(hostName));
     entity.setRepositoryVersion(repoVersionDAO.findByStackAndVersion(targetStack, targetRepo));
-    entity.setState(RepositoryVersionState.UPGRADING);
+    entity.setState(RepositoryVersionState.INSTALLING);
     hostVersionDAO.create(entity);
   }
 
@@ -235,7 +235,7 @@ public class UpgradeActionTest {
 
     // Create the starting repo version
     m_helper.getOrCreateRepositoryVersion(sourceStack, sourceRepo);
-    c.createClusterVersion(sourceStack, sourceRepo, "admin", RepositoryVersionState.UPGRADING);
+    c.createClusterVersion(sourceStack, sourceRepo, "admin", RepositoryVersionState.INSTALLING);
     c.transitionClusterVersion(sourceStack, sourceRepo, RepositoryVersionState.CURRENT);
 
     // Start upgrading the mid repo
@@ -243,8 +243,6 @@ public class UpgradeActionTest {
     c.setDesiredStackVersion(midStack);
     c.createClusterVersion(midStack, midRepo, "admin", RepositoryVersionState.INSTALLING);
     c.transitionClusterVersion(midStack, midRepo, RepositoryVersionState.INSTALLED);
-    c.transitionClusterVersion(midStack, midRepo, RepositoryVersionState.UPGRADING);
-    c.transitionClusterVersion(midStack, midRepo, RepositoryVersionState.UPGRADED);
     c.transitionClusterVersion(midStack, midRepo, RepositoryVersionState.CURRENT);
 
     // Set original version as INSTALLED
@@ -257,8 +255,6 @@ public class UpgradeActionTest {
     c.setDesiredStackVersion(targetStack);
     c.createClusterVersion(targetStack, targetRepo, "admin", RepositoryVersionState.INSTALLING);
     c.transitionClusterVersion(targetStack, targetRepo, RepositoryVersionState.INSTALLED);
-    c.transitionClusterVersion(targetStack, targetRepo, RepositoryVersionState.UPGRADING);
-    c.transitionClusterVersion(targetStack, targetRepo, RepositoryVersionState.UPGRADED);
 
     // Create a host version for the starting repo in INSTALLED
     HostVersionEntity entitySource = new HostVersionEntity();
@@ -275,7 +271,7 @@ public class UpgradeActionTest {
     HostVersionEntity entityTarget = new HostVersionEntity();
     entityTarget.setHostEntity(hostDAO.findByName(hostName));
     entityTarget.setRepositoryVersion(repoVersionDAO.findByStackAndVersion(targetStack, targetRepo));
-    entityTarget.setState(RepositoryVersionState.UPGRADED);
+    entityTarget.setState(RepositoryVersionState.INSTALLED);
     hostVersionDAO.create(entityTarget);
   }
 
@@ -310,7 +306,7 @@ public class UpgradeActionTest {
 
     // Create the starting repo version
     m_helper.getOrCreateRepositoryVersion(sourceStack, sourceRepo);
-    c.createClusterVersion(sourceStack, sourceRepo, "admin", RepositoryVersionState.UPGRADING);
+    c.createClusterVersion(sourceStack, sourceRepo, "admin", RepositoryVersionState.INSTALLING);
     c.transitionClusterVersion(sourceStack, sourceRepo, RepositoryVersionState.CURRENT);
 
     // Create the new repo version
@@ -323,8 +319,6 @@ public class UpgradeActionTest {
     // Start upgrading the newer repo
     c.createClusterVersion(targetStack, targetRepo, "admin", RepositoryVersionState.INSTALLING);
     c.transitionClusterVersion(targetStack, targetRepo, RepositoryVersionState.INSTALLED);
-    c.transitionClusterVersion(targetStack, targetRepo, RepositoryVersionState.UPGRADING);
-    c.transitionClusterVersion(targetStack, targetRepo, RepositoryVersionState.UPGRADED);
     c.setCurrentStackVersion(targetStack);
 
     c.mapHostVersions(Collections.singleton(hostName), c.getCurrentClusterVersion(),
@@ -337,7 +331,7 @@ public class UpgradeActionTest {
         targetStack, targetRepo);
 
     HostVersionEntity entity = new HostVersionEntity(hostDAO.findByName(hostName),
-        repositoryVersionEntity, RepositoryVersionState.UPGRADED);
+        repositoryVersionEntity, RepositoryVersionState.INSTALLED);
 
     hostVersionDAO.create(entity);
 
@@ -346,7 +340,7 @@ public class UpgradeActionTest {
         targetStack, targetRepo);
 
     assertEquals(1, hostVersions.size());
-    assertEquals(RepositoryVersionState.UPGRADED, hostVersions.get(0).getState());
+    assertEquals(RepositoryVersionState.INSTALLED, hostVersions.get(0).getState());
   }
 
   private void makeCrossStackUpgradeCluster(StackId sourceStack, String sourceRepo, StackId targetStack, String targetRepo) throws Exception {
@@ -380,7 +374,7 @@ public class UpgradeActionTest {
 
     // Create the starting repo version
     m_helper.getOrCreateRepositoryVersion(sourceStack, sourceRepo);
-    c.createClusterVersion(sourceStack, sourceRepo, "admin", RepositoryVersionState.UPGRADING);
+    c.createClusterVersion(sourceStack, sourceRepo, "admin", RepositoryVersionState.INSTALLING);
     c.transitionClusterVersion(sourceStack, sourceRepo, RepositoryVersionState.CURRENT);
 
     // Create the new repo version
@@ -392,8 +386,6 @@ public class UpgradeActionTest {
     // Start upgrading the newer repo
     c.createClusterVersion(targetStack, targetRepo, "admin", RepositoryVersionState.INSTALLING);
     c.transitionClusterVersion(targetStack, targetRepo, RepositoryVersionState.INSTALLED);
-    c.transitionClusterVersion(targetStack, targetRepo, RepositoryVersionState.UPGRADING);
-    c.transitionClusterVersion(targetStack, targetRepo, RepositoryVersionState.UPGRADED);
 
     c.mapHostVersions(Collections.singleton(hostName), c.getCurrentClusterVersion(),
         RepositoryVersionState.CURRENT);
@@ -403,7 +395,7 @@ public class UpgradeActionTest {
     HostVersionEntity entity = new HostVersionEntity();
     entity.setHostEntity(hostDAO.findByName(hostName));
     entity.setRepositoryVersion(repoVersionDAO.findByStackAndVersion(targetStack, targetRepo));
-    entity.setState(RepositoryVersionState.UPGRADED);
+    entity.setState(RepositoryVersionState.INSTALLED);
     hostVersionDAO.create(entity);
   }
 
@@ -802,7 +794,7 @@ public class UpgradeActionTest {
     List<HostVersionEntity> hosts = dao.findByClusterStackAndVersion(clusterName, targetStack, targetRepo);
     assertFalse(hosts.isEmpty());
     for (HostVersionEntity hve : hosts) {
-      assertFalse(hve.getState() == RepositoryVersionState.INSTALLED);
+      assertTrue(hve.getState() == RepositoryVersionState.INSTALLED);
     }
 
     FinalizeUpgradeAction action = m_injector.getInstance(FinalizeUpgradeAction.class);
@@ -874,17 +866,17 @@ public class UpgradeActionTest {
     ClusterVersionEntity upgradingClusterVersion = clusterVersionDAO.findByClusterAndStackAndVersion(
         clusterName, HDP_22_STACK, targetRepo);
 
-    upgradingClusterVersion.setState(RepositoryVersionState.UPGRADING);
+    upgradingClusterVersion.setState(RepositoryVersionState.INSTALLING);
     upgradingClusterVersion = clusterVersionDAO.merge(upgradingClusterVersion);
 
     // verify the conditions for the test are met properly
     upgradingClusterVersion = clusterVersionDAO.findByClusterAndStackAndVersion(clusterName, HDP_22_STACK, targetRepo);
     List<HostVersionEntity> hostVersions = hostVersionDAO.findByClusterStackAndVersion(clusterName, HDP_22_STACK, targetRepo);
 
-    assertEquals(RepositoryVersionState.UPGRADING, upgradingClusterVersion.getState());
+    assertEquals(RepositoryVersionState.INSTALLING, upgradingClusterVersion.getState());
     assertTrue(hostVersions.size() > 0);
     for (HostVersionEntity hostVersion : hostVersions) {
-      assertEquals(RepositoryVersionState.UPGRADED, hostVersion.getState());
+      assertEquals(RepositoryVersionState.INSTALLED, hostVersion.getState());
     }
 
     // now finalize and ensure we can transition from UPGRADING to UPGRADED

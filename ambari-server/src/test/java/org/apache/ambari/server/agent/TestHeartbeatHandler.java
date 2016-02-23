@@ -2412,7 +2412,7 @@ public class TestHeartbeatHandler {
     cluster.setCurrentStackVersion(stackId);
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
     cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
-        RepositoryVersionState.UPGRADING);
+        RepositoryVersionState.INSTALLING);
 
     Set<String> hostNames = new HashSet<String>(){{
       add(DummyHostname1);

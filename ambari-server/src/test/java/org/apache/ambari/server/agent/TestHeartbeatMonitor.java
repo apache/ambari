@@ -118,7 +118,7 @@ public class TestHeartbeatMonitor {
     Cluster cluster = clusters.getCluster(clusterName);
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
     cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
-        RepositoryVersionState.UPGRADING);
+        RepositoryVersionState.INSTALLING);
     Set<String> hostNames = new HashSet<String>(){{
       add(hostname1);
       add(hostname2);
@@ -205,7 +205,7 @@ public class TestHeartbeatMonitor {
 
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
     cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
-        RepositoryVersionState.UPGRADING);
+        RepositoryVersionState.INSTALLING);
     Set<String> hostNames = new HashSet<String>() {{
       add(hostname1);
       add(hostname2);
@@ -320,7 +320,7 @@ public class TestHeartbeatMonitor {
 
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
     cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
-        RepositoryVersionState.UPGRADING);
+        RepositoryVersionState.INSTALLING);
 
     Set<String> hostNames = new HashSet<String>(){{
       add(hostname1);
@@ -438,7 +438,7 @@ public class TestHeartbeatMonitor {
 
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
     cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
-        RepositoryVersionState.UPGRADING);
+        RepositoryVersionState.INSTALLING);
 
     Set<String> hostNames = new HashSet<String>(){{
       add(hostname1);
@@ -559,7 +559,7 @@ public class TestHeartbeatMonitor {
     cluster.setDesiredStackVersion(stackId);
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
     cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
-        RepositoryVersionState.UPGRADING);
+        RepositoryVersionState.INSTALLING);
 
     Set<String> hostNames = new HashSet<String>(){{
       add(hostname1);

@@ -1152,7 +1152,7 @@ public class AmbariCustomCommandExecutionHelper {
     ClusterVersionEntity clusterVersionEntity = clusterVersionDAO.findByClusterAndStateCurrent(cluster.getClusterName());
     if (clusterVersionEntity == null) {
       List<ClusterVersionEntity> clusterVersionEntityList = clusterVersionDAO
-              .findByClusterAndState(cluster.getClusterName(), RepositoryVersionState.UPGRADING);
+              .findByClusterAndState(cluster.getClusterName(), RepositoryVersionState.INSTALLING);
       if (!clusterVersionEntityList.isEmpty()) {
         clusterVersionEntity = clusterVersionEntityList.iterator().next();
       }

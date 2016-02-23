@@ -32,6 +32,7 @@ import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.scheduler.RequestExecution;
@@ -630,4 +631,18 @@ public interface Cluster {
    * @return true if the cluster was deployed with a Blueprint otherwise false.
    */
   boolean isBluePrintDeployed();
+
+  /**
+   * @return upgrade that is in progress for a cluster. If no upgrade is going
+   * on, a null is returned.
+   */
+  UpgradeEntity getUpgradeEntity();
+
+  /**
+   * The value is explicitly set on the ClusterEntity when Creating,
+   * Aborting (switching to downgrade), Resuming, or Finalizing an upgrade.
+   * @param upgradeEntity the upgrade entity to set for cluster
+   * @throws AmbariException
+   */
+  void setUpgradeEntity(UpgradeEntity upgradeEntity) throws AmbariException;
 }

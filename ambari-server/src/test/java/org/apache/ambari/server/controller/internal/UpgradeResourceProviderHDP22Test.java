@@ -210,7 +210,7 @@ public class UpgradeResourceProviderHDP22Test {
     Cluster cluster = clusters.getCluster("c1");
 
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
-    cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
+    cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin", RepositoryVersionState.INSTALLING);
     cluster.transitionClusterVersion(stackId, stackId.getStackVersion(), RepositoryVersionState.CURRENT);
 
     clusters.addHost("h1");

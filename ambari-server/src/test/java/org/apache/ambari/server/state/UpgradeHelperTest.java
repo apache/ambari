@@ -1017,7 +1017,7 @@ public class UpgradeHelperTest {
 
     c.createClusterVersion(stackId,
         c.getDesiredStackVersion().getStackVersion(), "admin",
-        RepositoryVersionState.UPGRADING);
+        RepositoryVersionState.INSTALLING);
 
     for (int i = 0; i < 4; i++) {
       String hostName = "h" + (i+1);
@@ -1234,7 +1234,7 @@ public class UpgradeHelperTest {
 
     c.createClusterVersion(stackId,
         c.getDesiredStackVersion().getStackVersion(), "admin",
-        RepositoryVersionState.UPGRADING);
+        RepositoryVersionState.INSTALLING);
 
     for (int i = 0; i < 2; i++) {
       String hostName = "h" + (i+1);
@@ -1314,7 +1314,7 @@ public class UpgradeHelperTest {
 
     c.createClusterVersion(stackId,
         c.getDesiredStackVersion().getStackVersion(), "admin",
-        RepositoryVersionState.UPGRADING);
+        RepositoryVersionState.INSTALLING);
 
     for (int i = 0; i < 2; i++) {
       String hostName = "h" + (i+1);
@@ -1380,7 +1380,7 @@ public class UpgradeHelperTest {
 
     c.createClusterVersion(stackId,
         c.getDesiredStackVersion().getStackVersion(), "admin",
-        RepositoryVersionState.UPGRADING);
+        RepositoryVersionState.INSTALLING);
 
     for (int i = 0; i < 2; i++) {
       String hostName = "h" + (i+1);

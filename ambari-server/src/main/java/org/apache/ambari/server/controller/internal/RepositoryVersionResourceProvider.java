@@ -403,9 +403,7 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
       final List<RepositoryVersionState> forbiddenToDeleteStates = Lists.newArrayList(
           RepositoryVersionState.CURRENT,
           RepositoryVersionState.INSTALLED,
-          RepositoryVersionState.INSTALLING,
-          RepositoryVersionState.UPGRADED,
-          RepositoryVersionState.UPGRADING);
+          RepositoryVersionState.INSTALLING);
       for (ClusterVersionEntity clusterVersionEntity : clusterVersionEntities) {
         if (clusterVersionEntity.getRepositoryVersion().getId().equals(id) && forbiddenToDeleteStates.contains(clusterVersionEntity.getState())) {
           throw new SystemException("Repository version can't be deleted as it is " +

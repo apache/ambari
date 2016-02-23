@@ -208,7 +208,8 @@ public class MasterHostResolver {
         if (maintenanceState != MaintenanceState.OFF) {
           unhealthyHosts.add(sch);
         } else if (null == m_version || null == sch.getVersion() ||
-            !sch.getVersion().equals(m_version) || sch.getUpgradeState() == UpgradeState.FAILED) {
+            !sch.getVersion().equals(m_version) ||
+            sch.getUpgradeState() == UpgradeState.FAILED) {
           upgradeHosts.add(hostName);
         }
       }

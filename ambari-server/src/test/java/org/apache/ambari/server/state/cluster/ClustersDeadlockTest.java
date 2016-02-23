@@ -105,7 +105,7 @@ public class ClustersDeadlockTest {
     cluster = clusters.getCluster(CLUSTER_NAME);
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
     cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
-        RepositoryVersionState.UPGRADING);
+        RepositoryVersionState.INSTALLING);
 
     // install HDFS
     installService("HDFS");

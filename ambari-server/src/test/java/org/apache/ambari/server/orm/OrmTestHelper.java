@@ -376,7 +376,7 @@ public class OrmTestHelper {
     cluster.setDesiredStackVersion(stackId);
     getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
     cluster.createClusterVersion(stackId,
-        stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
+        stackId.getStackVersion(), "admin", RepositoryVersionState.INSTALLING);
     return cluster;
   }
 

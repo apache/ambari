@@ -93,6 +93,7 @@ public class ServiceComponentImpl implements ServiceComponent {
     desiredStateEntity = new ServiceComponentDesiredStateEntity();
     desiredStateEntity.setComponentName(componentName);
     desiredStateEntity.setDesiredState(State.INIT);
+    desiredStateEntity.setDesiredVersion(State.UNKNOWN.toString());
     desiredStateEntity.setServiceName(service.getName());
     desiredStateEntity.setClusterId(service.getClusterId());
     desiredStateEntity.setRecoveryEnabled(false);
@@ -462,6 +463,33 @@ public class ServiceComponentImpl implements ServiceComponent {
       ServiceComponentDesiredStateEntity desiredStateEntity = getDesiredStateEntity();
       if (desiredStateEntity != null) {
         desiredStateEntity.setDesiredStack(stackEntity);
+        saveIfPersisted(desiredStateEntity);
+      } else {
+        LOG.warn("Setting a member on an entity object that may have been " +
+          "previously deleted, serviceName = " + (service != null ? service.getName() : ""));
+      }
+    } finally {
+      readWriteLock.writeLock().unlock();
+    }
+  }
+
+  @Override
+  public String getDesiredVersion() {
+    readWriteLock.readLock().lock();
+    try {
+      return getDesiredStateEntity().getDesiredVersion();
+    } finally {
+      readWriteLock.readLock().unlock();
+    }
+  }
+
+  @Override
+  public void setDesiredVersion(String version) {
+    readWriteLock.writeLock().lock();
+    try {
+      ServiceComponentDesiredStateEntity desiredStateEntity = getDesiredStateEntity();
+      if (desiredStateEntity != null) {
+        desiredStateEntity.setDesiredVersion(version);
         saveIfPersisted(desiredStateEntity);
       } else {
         LOG.warn("Setting a member on an entity object that may have been " +

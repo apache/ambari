@@ -365,7 +365,7 @@ public class HostTest {
 
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
     c1.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
-        RepositoryVersionState.UPGRADING);
+        RepositoryVersionState.INSTALLING);
     Assert.assertEquals("c1", c1.getClusterName());
     Assert.assertEquals(1, c1.getClusterId());
     clusters.addHost("h1");
@@ -441,7 +441,7 @@ public class HostTest {
 
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
     c1.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
-        RepositoryVersionState.UPGRADING);
+        RepositoryVersionState.INSTALLING);
     c1.setDesiredStackVersion(stackId);
     clusters.mapHostToCluster("h1", "c1");
 
