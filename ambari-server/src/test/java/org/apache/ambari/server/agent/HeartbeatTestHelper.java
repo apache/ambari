@@ -17,11 +17,22 @@
  */
 package org.apache.ambari.server.agent;
 
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.Singleton;
-import com.google.inject.persist.UnitOfWork;
-import junit.framework.Assert;
+import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyCluster;
+import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyHostname1;
+import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyOSRelease;
+import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyOs;
+import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyStackId;
+import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HBASE;
+import static org.easymock.EasyMock.createMockBuilder;
+import static org.easymock.EasyMock.createNiceMock;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
@@ -55,21 +66,12 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Singleton;
+import com.google.inject.persist.UnitOfWork;
 
-import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyCluster;
-import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyHostname1;
-import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyOSRelease;
-import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyOs;
-import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyStackId;
-import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HBASE;
-import static org.easymock.EasyMock.createMockBuilder;
-import static org.easymock.EasyMock.createNiceMock;
+import junit.framework.Assert;
 
 @Singleton
 public class HeartbeatTestHelper {
@@ -184,7 +186,7 @@ public class HeartbeatTestHelper {
     cluster.setCurrentStackVersion(stackId);
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
     cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
-        RepositoryVersionState.UPGRADING);
+        RepositoryVersionState.INSTALLING);
 
     Set<String> hostNames = new HashSet<String>(){{
       add(DummyHostname1);
