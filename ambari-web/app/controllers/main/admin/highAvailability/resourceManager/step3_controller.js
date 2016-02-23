@@ -142,7 +142,7 @@ App.RMHighAvailabilityWizardStep3Controller = Em.Controller.extend({
     var dependencies = this._prepareDependencies(data);
     /** add dynamic property 'hadoop.proxyuser.' + yarnUser + '.hosts' **/
     var proxyUserConfig = App.ServiceConfigProperty.create(App.config.createDefaultConfig('hadoop.proxyuser.' + yarnUser + '.hosts',
-      'MISC', 'core-site', false,  {category : "HDFS", isUserProperty: false, isEditable: false, isOverridable: false}));
+      'core-site', false,  {category : "HDFS", isUserProperty: false, isEditable: false, isOverridable: false, serviceName: 'MISC'}));
     configs.configs.pushObject(proxyUserConfig);
 
     configs.configs.forEach(function (config) {

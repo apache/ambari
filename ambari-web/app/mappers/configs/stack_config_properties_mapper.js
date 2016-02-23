@@ -114,7 +114,7 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
                 name : dep.StackConfigurationDependency.dependency_name
               });
               var service = App.StackService.find(config.StackConfigurations.service_name);
-              var dependentService = App.config.getServiceByConfigType(dep.StackConfigurationDependency.dependency_type);
+              var dependentService = App.config.get('serviceByConfigTypeMap')[dep.StackConfigurationDependency.dependency_type];
               if (dependentService && service && dependentService.get('serviceName') != service.get('serviceName') && !service.get('dependentServiceNames').contains(dependentService.get('serviceName'))) {
                 service.set('dependentServiceNames', service.get('dependentServiceNames').concat(dependentService.get('serviceName')));
               }
@@ -123,7 +123,7 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
           if (Em.get(config, 'StackConfigurations.property_depends_on.length') > 0) {
             config.StackConfigurations.property_depends_on.forEach(function(dep) {
               var service = App.StackService.find(config.StackConfigurations.service_name);
-              var dependentService = App.config.getServiceByConfigType(dep.type);
+              var dependentService = App.config.get('serviceByConfigTypeMap')[dep.type];
               if (dependentService && service && dependentService.get('serviceName') != service.get('serviceName') && !service.get('dependentServiceNames').contains(dependentService.get('serviceName'))) {
                 service.set('dependentServiceNames', service.get('dependentServiceNames').concat(dependentService.get('serviceName')));
               }

@@ -206,21 +206,10 @@ App.config = Em.Object.create({
     }
   },
 
-  /**
-   * get service for current config type
-   * @param {String} configType - config fileName without xml
-   * @return App.StackService
-   */
-  getServiceByConfigType: function(configType) {
-    return App.StackService.find().find(function(s) {
-      return s.get('configTypeList').contains(configType);
-    });
-  },
-
   serviceByConfigTypeMap: function () {
     var ret = {};
     App.StackService.find().forEach(function(s) {
-      Object.keys(s.get('configTypes')).forEach(function (ct) {
+      s.get('configTypeList').forEach(function (ct) {
         ret[ct] = s;
       });
     });
@@ -228,52 +217,37 @@ App.config = Em.Object.create({
   }.property(),
 
   /**
-   * generates config objects
-   * @param configGroups
-   * @param serviceName
-   * @param selectedConfigGroup
-   * @param canEdit
+   * Generate configs collection with Ember or plain config objects
+   * from config JSON
+   *
+   * @param configJSON
+   * @param useEmberObject
    * @returns {Array}
    */
-  mergePredefinedWithSaved: function (configGroups, serviceName, selectedConfigGroup, canEdit) {
-    var configs = [];
+  getConfigsFromJSON: function(configJSON, useEmberObject) {
+    var configs = [],
+      filename = App.config.getOriginalFileName(configJSON.type),
+      properties = configJSON.properties,
+      finalAttributes = Em.get(configJSON, 'properties_attributes.final') || {};
 
-    configGroups.forEach(function (siteConfig) {
-      var filename = App.config.getOriginalFileName(siteConfig.type);
-      var attributes = siteConfig['properties_attributes'] || {};
-      var finalAttributes = attributes.final || {};
-      var properties = siteConfig.properties || {};
+    for (var index in properties) {
+      var serviceConfigObj = this.getDefaultConfig(index, filename);
 
-      for (var index in properties) {
-        var serviceConfigObj = this.getDefaultConfig(index, serviceName, filename);
-        this.restrictSecureProperties(serviceConfigObj);
+      if (serviceConfigObj.isRequiredByAgent !== false) {
+        serviceConfigObj.value = serviceConfigObj.savedValue = this.formatPropertyValue(serviceConfigObj, properties[index]);
+        serviceConfigObj.isFinal = serviceConfigObj.savedIsFinal = finalAttributes[index] === "true";
+        serviceConfigObj.isEditable = serviceConfigObj.isReconfigurable;
+      }
 
-        if (serviceConfigObj.isRequiredByAgent !== false) {
-          var formattedValue = this.formatPropertyValue(serviceConfigObj, properties[index]);
-          serviceConfigObj.value = serviceConfigObj.savedValue = formattedValue;
-          serviceConfigObj.isFinal = serviceConfigObj.savedIsFinal = finalAttributes[index] === "true";
-          serviceConfigObj.isEditable = this.getIsEditable(serviceConfigObj, selectedConfigGroup, canEdit);
-          serviceConfigObj.isVisible = serviceConfigObj.isVisible !== false || serviceName === 'MISC';
-        }
-
+      if (useEmberObject) {
         var serviceConfigProperty = App.ServiceConfigProperty.create(serviceConfigObj);
         serviceConfigProperty.validate();
         configs.push(serviceConfigProperty);
+      } else {
+        configs.push(serviceConfigObj);
       }
-    }, this);
-    return configs;
-  },
-
-  /**
-   * put secure properties in read-only mode
-   * @param {object} config
-   */
-  restrictSecureProperties: function (config) {
-    if (config.isSecureConfig) {
-      var isReadOnly = App.get('isKerberosEnabled');
-      config.isReconfigurable = config.isReconfigurable && !isReadOnly;
-      config.isOverridable = config.isOverridable && !isReadOnly;
     }
+    return configs;
   },
 
   /**
@@ -282,14 +256,13 @@ App.config = Em.Object.create({
    * such config
    *
    * @param name
-   * @param serviceName
    * @param fileName
    * @param coreObject
    * @returns {*|Object}
    */
-  getDefaultConfig: function(name, serviceName, fileName, coreObject) {
+  getDefaultConfig: function(name, fileName, coreObject) {
     var cfg = App.configsCollection.getConfigByName(name, fileName) ||
-      App.config.createDefaultConfig(name, serviceName, fileName, false, coreObject);
+      App.config.createDefaultConfig(name, fileName, false);
     if (Em.typeOf(coreObject) === 'object') {
       Em.setProperties(cfg, coreObject);
     }
@@ -301,13 +274,13 @@ App.config = Em.Object.create({
    * These property values has the lowest priority and can be overridden be stack/UI
    * config property but is used when such properties are absent in stack/UI configs
    * @param {string} name
-   * @param {string} serviceName
    * @param {string} fileName
    * @param {boolean} definedInStack
    * @param {Object} [coreObject]
    * @returns {Object}
    */
-  createDefaultConfig: function(name, serviceName, fileName, definedInStack, coreObject) {
+  createDefaultConfig: function(name, fileName, definedInStack, coreObject) {
+    var serviceName = this.get('serviceByConfigTypeMap')[fileName] || 'MISC';
     var tpl = {
       /** core properties **/
       id: this.configId(name, fileName),
@@ -457,17 +430,6 @@ App.config = Em.Object.create({
   },
 
   /**
-   * Calculate isEditable rely on controller state selected group and config restriction
-   * @param {Object} serviceConfigProperty
-   * @param {Object} selectedConfigGroup
-   * @param {boolean} canEdit
-   * @returns {boolean}
-   */
-  getIsEditable: function(serviceConfigProperty, selectedConfigGroup, canEdit) {
-    return canEdit && Em.get(selectedConfigGroup, 'isDefault') && Em.get(serviceConfigProperty, 'isReconfigurable')
-  },
-
-  /**
    * format property value depending on displayType
    * and one exception for 'kdc_type'
    * @param serviceConfigProperty
@@ -476,29 +438,14 @@ App.config = Em.Object.create({
    */
   formatPropertyValue: function(serviceConfigProperty, originalValue) {
     var value = Em.isNone(originalValue) ? Em.get(serviceConfigProperty, 'value') : originalValue,
-        displayType = Em.get(serviceConfigProperty, 'displayType') || Em.get(serviceConfigProperty, 'valueAttributes.type'),
-        category = Em.get(serviceConfigProperty, 'category');
+        displayType = Em.get(serviceConfigProperty, 'displayType') || Em.get(serviceConfigProperty, 'valueAttributes.type');
+    if (Em.get(serviceConfigProperty, 'name') === 'kdc_type') {
+      return App.router.get('mainAdminKerberosController.kdcTypesValues')[value];
+    }
+    if ( /^\s+$/.test("" + value)) {
+      return " ";
+    }
     switch (displayType) {
-      case 'content':
-      case 'string':
-      case 'multiLine':
-        return this.trimProperty({ displayType: displayType, value: value });
-        break;
-      case 'directories':
-        if (['DataNode', 'NameNode'].contains(category)) {
-          return value.split(',').sort().join(',');//TODO check if this code is used
-        }
-        break;
-      case 'directory':
-        if (['SNameNode'].contains(category)) {
-          return value.split(',').sort()[0];//TODO check if this code is used
-        }
-        break;
-      case 'componentHosts':
-        if (typeof(value) == 'string') {
-          return value.replace(/\[|]|'|&apos;/g, "").split(',');
-        }
-        break;
       case 'int':
         if (/\d+m$/.test(value) ) {
           return value.slice(0, value.length - 1);
@@ -506,18 +453,24 @@ App.config = Em.Object.create({
           var int = parseInt(value);
           return isNaN(int) ? "" : int.toString();
         }
-        break;
       case 'float':
         var float = parseFloat(value);
         return isNaN(float) ? "" : float.toString();
+      case 'componentHosts':
+        if (typeof(value) == 'string') {
+          return value.replace(/\[|]|'|&apos;/g, "").split(',');
+        }
+        return value;
+      case 'content':
+      case 'string':
+      case 'multiLine':
+      case 'directories':
+      case 'directory':
+        return this.trimProperty({ displayType: displayType, value: value });
+      default:
+        return value;
     }
-    if (Em.get(serviceConfigProperty, 'name') === 'kdc_type') {
-      return App.router.get('mainAdminKerberosController.kdcTypesValues')[value];
-    }
-    if ( /^\s+$/.test("" + value)) {
-      value = " ";
-    }
-    return value;
+
   },
 
   /**
@@ -556,43 +509,6 @@ App.config = Em.Object.create({
       if (Em.get(a, 'name') < Em.get(b, 'index')) return -1;
       return 0;
     });
-  },
-
-  /**
-   *
-   * @param {string} ifStatement
-   * @param {Array} serviceConfigs
-   * @returns {boolean}
-   */
-  calculateConfigCondition: function(ifStatement, serviceConfigs) {
-    // Split `if` statement if it has logical operators
-    var ifStatementRegex = /(&&|\|\|)/;
-    var IfConditions = ifStatement.split(ifStatementRegex);
-    var allConditionResult = [];
-    IfConditions.forEach(function(_condition){
-      var condition = _condition.trim();
-      if (condition === '&&' || condition === '||') {
-        allConditionResult.push(_condition);
-      }  else {
-        var splitIfCondition = condition.split('===');
-        var ifCondition = splitIfCondition[0];
-        var result = splitIfCondition[1] || "true";
-        var parseIfConditionVal = ifCondition;
-        var regex = /\$\{.*?\}/g;
-        var configStrings = ifCondition.match(regex);
-        configStrings.forEach(function (_configString) {
-          var configObject = _configString.substring(2, _configString.length - 1).split("/");
-          var config = serviceConfigs.filterProperty('filename', configObject[0] + '.xml').findProperty('name', configObject[1]);
-          if (config) {
-            var configValue = Em.get(config, 'value');
-            parseIfConditionVal = parseIfConditionVal.replace(_configString, configValue);
-          }
-        }, this);
-        var conditionResult = window.eval(JSON.stringify(parseIfConditionVal.trim())) === result.trim();
-        allConditionResult.push(conditionResult);
-      }
-    }, this);
-    return Boolean(window.eval(allConditionResult.join('')));
   },
 
   /**
@@ -687,7 +603,7 @@ App.config = Em.Object.create({
    * @return {Object}
    **/
   createCustomGroupConfig: function (propertyName, fileName, value, group, isEditable, isInstaller) {
-    var propertyObject = this.createDefaultConfig(propertyName, group.get('service.serviceName'), this.getOriginalFileName(fileName), false, {
+    var propertyObject = this.createDefaultConfig(propertyName, this.getOriginalFileName(fileName), false, {
       savedValue: isInstaller ? null : value,
       value: value,
       group: group,
@@ -726,8 +642,9 @@ App.config = Em.Object.create({
     var savedIsFinal = connectedConfigs.someProperty('savedIsFinal', true);
     var recommendedIsFinal = connectedConfigs.someProperty('recommendedIsFinal', true);
 
-    var cs = App.config.createDefaultConfig('capacity-scheduler', 'YARN', 'capacity-scheduler.xml', true, {
+    var cs = App.config.createDefaultConfig('capacity-scheduler', 'capacity-scheduler.xml', true, {
       'value': value,
+      'serviceName': 'YARN',
       'savedValue': savedValue || null,
       'recommendedValue': recommendedValue || null,
       'isFinal': isFinal,

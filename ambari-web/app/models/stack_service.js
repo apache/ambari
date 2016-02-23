@@ -48,8 +48,14 @@ App.StackService = DS.Model.extend({
    * @type {String[]}
    */
   configTypeList: function() {
-    return Object.keys(this.get('configTypes') || {});
+    var configTypes = Object.keys(this.get('configTypes') || {});
+    //Falcon has dependency on oozie-site but oozie-site advanced/custom section should not be shown on Falcon page
+    if (this.get('serviceName') === 'FALCON') {
+      configTypes = configTypes.without('oozie-site');
+    }
+    return configTypes;
   }.property('configTypes'),
+
   /**
    * contains array of serviceNames that have configs that
    * depends on configs from current service
@@ -367,12 +373,7 @@ App.StackService.configCategories = function () {
   }
   serviceConfigCategories.pushObject(App.ServiceConfigCategory.create({ name: 'Advanced', displayName: 'Advanced'}));
 
-  var configTypes = Object.keys(this.get('configTypes'));
-
-  //Falcon has dependency on oozie-site but oozie-site advanced/custom section should not be shown on Falcon page
-  if (this.get('serviceName') !== 'OOZIE') {
-    configTypes = configTypes.without('oozie-site');
-  }
+  var configTypes = this.get('configTypeList');
 
   // Add Advanced section for every configType to all the services
   configTypes.forEach(function (type) {

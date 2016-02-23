@@ -343,15 +343,15 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
   prepareConfigObjects: function(data, serviceName) {
     this.get('stepConfigs').clear();
 
-    var configGroups = [];
-    data.items.forEach(function (v) {
-      if (v.group_name == 'default') {
-        v.configurations.forEach(function (c) {
-          configGroups.pushObject(c);
+    var configs = [];
+    data.items.forEach(function (version) {
+      if (version.group_name == 'default') {
+        version.configurations.forEach(function (configObject) {
+          configs = configs.concat(App.config.getConfigsFromJSON(configObject, true));
         });
       }
     });
-    var configs = App.config.mergePredefinedWithSaved(configGroups, serviceName, this.get('selectedConfigGroup'), this.get('canEdit'));
+
     configs = App.config.sortConfigs(configs);
     /**
      * if property defined in stack but somehow it missed from cluster properties (can be after stack upgrade)
@@ -367,16 +367,30 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
     if (this.get('content.serviceName') === 'KERBEROS') {
       var kdc_type = configs.findProperty('name', 'kdc_type');
       if (kdc_type.get('value') === 'none') {
-        configs.findProperty('name', 'kdc_host').set('isRequired', false).set('isVisible', false);
-        configs.findProperty('name', 'admin_server_host').set('isRequired', false).set('isVisible', false);
-        configs.findProperty('name', 'domains').set('isRequired', false).set('isVisible', false);
+        configs.findProperty('name', 'kdc_host').set('isVisible', false);
+        configs.findProperty('name', 'admin_server_host').set('isVisible', false);
+        configs.findProperty('name', 'domains').set('isVisible', false);
       } else if (kdc_type.get('value') === 'active-directory') {
         configs.findProperty('name', 'container_dn').set('isVisible', true);
         configs.findProperty('name', 'ldap_url').set('isVisible', true);
       }
     }
 
+    this.setPropertyIsEditable(configs);
     this.set('allConfigs', configs);
+  },
+
+  /**
+   * Set <code>isEditable<code> proeperty based on selected group, security
+   * and controller restriction
+   * @param configs
+   */
+  setPropertyIsEditable: function(configs) {
+    if (!this.get('selectedConfigGroup.isDefault') || !this.get('canEdit')) {
+      configs.setEach('isEditable', false);
+    } else if (App.get('isKerberosEnabled')) {
+      configs.filterProperty('isSecureConfig').setEach('isEditable', false);
+    }
   },
 
   /**

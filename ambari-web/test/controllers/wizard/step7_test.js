@@ -2323,14 +2323,15 @@ describe('App.InstallerStep7Controller', function () {
       beforeEach(function () {
         installerStep7Controller.set('wizardController', {name: 'addServiceController'});
         this.stub = sinon.stub(App.configsCollection, 'getConfigByName');
-        sinon.stub(App.config, 'getServiceByConfigType', function (type) {
-          return Em.Object.create({serviceName: type === 't1' ? 's1' : 's2'});
+        sinon.stub(App.config, 'get').withArgs('serviceByConfigTypeMap').returns({
+          't1': Em.Object.create({serviceName: 's1'}),
+          't2': Em.Object.create({serviceName: 's2'})
         })
       });
 
       afterEach(function () {
         App.configsCollection.getConfigByName.restore();
-        App.config.getServiceByConfigType.restore();
+        App.config.get.restore();
       });
 
       it('stackProperty does not exist', function () {

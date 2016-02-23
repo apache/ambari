@@ -290,6 +290,7 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
     var credentialProperties = this.get('adminPropertyNames').map(function(prop, index) {
       var existingProperty = krbProperties.findProperty('name', prop.name);
       var coreObject = {
+        serviceName: 'Cluster',
         displayName: prop.displayName,
         isRequired: false,
         isRequiredByAgent: false,
@@ -301,7 +302,7 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
         isVisible: true,
         isUserProperty: false
       };
-      var propTpl = App.config.createDefaultConfig(prop.name, 'Cluster', fileName, false, coreObject);
+      var propTpl = App.config.createDefaultConfig(prop.name, fileName, false, coreObject);
       var siteProperty = siteProperties.filterProperty('filename', fileName).findProperty('name', prop.name);
       if (!Em.isNone(siteProperty)) {
         propTpl = $.extend(true, {}, siteProperty, propTpl);

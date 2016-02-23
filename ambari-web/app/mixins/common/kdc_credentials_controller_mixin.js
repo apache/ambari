@@ -111,7 +111,7 @@ App.KDCCredentialsControllerMixin = Em.Mixin.create({
   initilizeKDCStoreProperties: function(configs) {
     var self = this;
     this.get('credentialsStoreConfigs').forEach(function(item) {
-      var configObject = App.config.createDefaultConfig(item.name, 'KERBEROS', 'krb5-conf.xml', false, false);
+      var configObject = App.config.createDefaultConfig(item.name, 'krb5-conf.xml', false);
       $.extend(configObject, item);
       if (item.name === 'persist_credentials') {
         if (self.get('isStorePersisted')) {

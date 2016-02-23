@@ -24,6 +24,7 @@ require('utils/base64');
 require('utils/db');
 require('utils/helper');
 require('utils/config');
+require('utils/configs/theme/theme');
 require('utils/configs/config_initializer');
 require('utils/configs/nn_ha_config_initializer');
 require('utils/configs/rm_ha_config_initializer');

@@ -185,14 +185,17 @@ describe('App.KerberosWizardStep4Controller', function() {
         sinon.stub(App.StackService, 'find').returns([
           Em.Object.create({
             serviceName: 'KERBEROS',
-            configCategories: []
+            configCategories: [],
+            configTypeList: []
           }),
           Em.Object.create({
             serviceName: 'HDFS',
-            configCategories: []
+            configCategories: [],
+            configTypeList: []
           }),
           Em.Object.create({
-            serviceName: 'MAPREDUCE2'
+            serviceName: 'MAPREDUCE2',
+            configTypeList: []
           })
         ]);
         sinon.stub(App.Service, 'find').returns([
