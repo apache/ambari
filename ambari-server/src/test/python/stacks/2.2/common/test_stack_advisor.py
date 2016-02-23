@@ -1402,9 +1402,9 @@ class TestHDP22StackAdvisor(TestCase):
                                    "yarn.scheduler.capacity.root.default.user-limit-factor=1\n"
                                    "yarn.scheduler.capacity.root.queues=default"}
 
-    expected['hive-site']['properties']['hive.server2.tez.default.queues'] = 'default.a.a1,default.a.a2,default.b'
+    expected['hive-site']['properties']['hive.server2.tez.default.queues'] = 'a1,a2,b'
     expected['hive-site']['property_attributes']['hive.server2.tez.default.queues'] = {
-           'entries': [{'value': 'default.a.a1', 'label': 'default.a.a1 queue'}, {'value': 'default.a.a2', 'label': 'default.a.a2 queue'}, {'value': 'default.b', 'label': 'default.b queue'}]
+           'entries': [{'value': 'a1', 'label': 'a1 queue'}, {'value': 'a2', 'label': 'a2 queue'}, {'value': 'b', 'label': 'b queue'}]
           }
     self.stackAdvisor.recommendHIVEConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations['hive-site']['property_attributes']['hive.server2.tez.default.queues'], expected['hive-site']['property_attributes']['hive.server2.tez.default.queues'])

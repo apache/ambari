@@ -88,6 +88,14 @@
         <cluster-config>fake</cluster-config>
     </parameter>
     <parameter>
+        <name>hdfs.umask-mode</name>
+        <description>The umask used when creating files and directories. Defaults to 022</description>
+        <label>Umask</label>
+        <default-value>022</default-value>
+        <required>false</required>
+        <cluster-config>hdfs-site/fs.permissions.umask-mode</cluster-config>
+    </parameter>
+    <parameter>
         <name>hdfs.auth_to_local</name>
         <description>Auth to Local Configuration</description>
         <label>Auth To Local</label>

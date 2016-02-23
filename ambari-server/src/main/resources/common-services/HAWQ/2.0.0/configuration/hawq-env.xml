@@ -19,7 +19,7 @@
 
   <property>
     <name>hawq_password</name>
-    <display-name>HAWQ system user password</display-name>
+    <display-name>HAWQ System User Password</display-name>
     <value></value>
     <description>The password of HAWQ system user.
       During cluster initialization and when provisioning new hosts, ssh keys are exchanged using this password.

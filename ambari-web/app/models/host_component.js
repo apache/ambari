@@ -128,6 +128,18 @@ App.HostComponent = DS.Model.extend({
     return !App.get('components.nonHDP').contains(this.get('componentName'));
   }.property('componentName', 'App.components.nonHDP'),
 
+  /**
+   * Does component have Critical Alerts
+   * @type {boolean}
+   */
+  hasCriticalAlerts: false,
+
+  /**
+   * Number of the Critical and Warning alerts for current component
+   * @type {number}
+   */
+  alertsCount: 0,
+
   statusClass: function () {
     return this.get('isActive') ? this.get('workStatus') : 'icon-medkit';
   }.property('workStatus', 'isActive'),

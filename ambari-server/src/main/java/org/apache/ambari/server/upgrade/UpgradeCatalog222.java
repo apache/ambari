@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.upgrade;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import org.apache.ambari.server.AmbariException;
@@ -160,8 +162,25 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
       final AlertDefinitionEntity regionserverHealthSummaryDefinitionEntity = alertDefinitionDAO.findByName(
               clusterID, "regionservers_health_summary");
 
+      final AlertDefinitionEntity atsWebAlert = alertDefinitionDAO.findByName(
+              clusterID, "yarn_app_timeline_server_webui");
+
       if (regionserverHealthSummaryDefinitionEntity != null) {
         alertDefinitionDAO.remove(regionserverHealthSummaryDefinitionEntity);
+      }
+
+      if (atsWebAlert != null) {
+        String source = atsWebAlert.getSource();
+        JsonObject sourceJson = new JsonParser().parse(source).getAsJsonObject();
+
+        JsonObject uriJson = sourceJson.get("uri").getAsJsonObject();
+        uriJson.remove("http");
+        uriJson.remove("https");
+        uriJson.addProperty("http", "{{yarn-site/yarn.timeline-service.webapp.address}}/ws/v1/timeline");
+        uriJson.addProperty("https", "{{yarn-site/yarn.timeline-service.webapp.https.address}}/ws/v1/timeline");
+
+        atsWebAlert.setSource(sourceJson.toString());
+        alertDefinitionDAO.merge(atsWebAlert);
       }
 
     }

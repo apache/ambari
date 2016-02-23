@@ -375,17 +375,34 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
     putHiveSiteProperty("hive.server2.enable.doAs", "true")
 
     yarn_queues = "default"
-    if "capacity-scheduler" in configurations and \
-      "yarn.scheduler.capacity.root.queues" in configurations["capacity-scheduler"]["properties"]:
-      yarn_queues = str(configurations["capacity-scheduler"]["properties"]["yarn.scheduler.capacity.root.queues"])
-    putHiveSiteProperty("hive.server2.tez.default.queues", yarn_queues)
-
+    capacitySchedulerProperties = {}
+    if "capacity-scheduler" in services['configurations'] and "capacity-scheduler" in services['configurations']["capacity-scheduler"]["properties"]:
+      properties = str(services['configurations']["capacity-scheduler"]["properties"]["capacity-scheduler"]).split('\n')
+      for property in properties:
+        key,sep,value = property.partition("=")
+        capacitySchedulerProperties[key] = value
+    if "yarn.scheduler.capacity.root.queues" in capacitySchedulerProperties:
+      yarn_queues = str(capacitySchedulerProperties["yarn.scheduler.capacity.root.queues"])
     # Interactive Queues property attributes
     putHiveServerPropertyAttribute = self.putPropertyAttribute(configurations, "hiveserver2-site")
-    entries = []
-    for queue in yarn_queues.split(","):
-      entries.append({"label": str(queue) + " queue", "value": queue})
-    putHiveSitePropertyAttribute("hive.server2.tez.default.queues", "entries", entries)
+    toProcessQueues = yarn_queues.split(",")
+    leafQueueNames = set() # Remove duplicates
+    while len(toProcessQueues) > 0:
+      queue = toProcessQueues.pop()
+      queueKey = "yarn.scheduler.capacity.root." + queue + ".queues"
+      if queueKey in capacitySchedulerProperties:
+        # This is a parent queue - need to add children
+        subQueues = capacitySchedulerProperties[queueKey].split(",")
+        for subQueue in subQueues:
+          toProcessQueues.append(queue + "." + subQueue)
+      else:
+        # This is a leaf queue
+        queueName = queue.split(".")[-1] # Fully qualified queue name does not work, we should use only leaf name
+        leafQueueNames.add(queueName)
+    leafQueues = [{"label": str(queueName) + " queue", "value": queueName} for queueName in leafQueueNames]
+    leafQueues = sorted(leafQueues, key=lambda q:q['value'])
+    putHiveSitePropertyAttribute("hive.server2.tez.default.queues", "entries", leafQueues)
+    putHiveSiteProperty("hive.server2.tez.default.queues", ",".join([leafQueue['value'] for leafQueue in leafQueues]))
 
     # Security
     putHiveEnvProperty("hive_security_authorization", "None")

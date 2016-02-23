@@ -380,7 +380,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     # Interactive Queues property attributes
     putHiveServerPropertyAttribute = self.putPropertyAttribute(configurations, "hiveserver2-site")
     toProcessQueues = yarn_queues.split(",")
-    leafQueues = []
+    leafQueueNames = set() # Remove duplicates
     while len(toProcessQueues) > 0:
       queue = toProcessQueues.pop()
       queueKey = "yarn.scheduler.capacity.root." + queue + ".queues"
@@ -391,7 +391,9 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
           toProcessQueues.append(queue + "." + subQueue)
       else:
         # This is a leaf queue
-        leafQueues.append({"label": str(queue) + " queue", "value": queue})
+        queueName = queue.split(".")[-1] # Fully qualified queue name does not work, we should use only leaf name
+        leafQueueNames.add(queueName)
+    leafQueues = [{"label": str(queueName) + " queue", "value": queueName} for queueName in leafQueueNames]
     leafQueues = sorted(leafQueues, key=lambda q:q['value'])
     putHiveSitePropertyAttribute("hive.server2.tez.default.queues", "entries", leafQueues)
     putHiveSiteProperty("hive.server2.tez.default.queues", ",".join([leafQueue['value'] for leafQueue in leafQueues]))

@@ -54,17 +54,6 @@ module.exports = [
     healthClass: 'health-status-DEAD-YELLOW'
   },
   {
-    value: Em.I18n.t('hosts.host.alerts.label'),
-    hostProperty: 'criticalWarningAlertsCount',
-    class: 'icon-exclamation-sign',
-    isHealthStatus: false,
-    healthClass: 'health-status-WITH-ALERTS',
-    healthStatus: 'health-status-WITH-ALERTS',
-    column: 7,
-    type: 'custom',
-    filterValue: ['>0', '>0']
-  },
-  {
     value: Em.I18n.t('common.restart'),
     hostProperty: 'componentsWithStaleConfigsCount',
     class: 'icon-refresh',

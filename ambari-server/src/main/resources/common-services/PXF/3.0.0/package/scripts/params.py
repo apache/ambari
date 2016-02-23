@@ -42,6 +42,7 @@ tomcat_group = "tomcat"
 # Directories
 pxf_conf_dir = "/etc/pxf/conf"
 pxf_instance_dir = "/var/pxf"
+exec_tmp_dir = Script.get_tmp_dir()
 
 # Java home path
 java_home = config["hostLevelParams"]["java_home"] if "java_home" in config["hostLevelParams"] else None

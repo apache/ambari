@@ -47,9 +47,9 @@ def buildAmbari(stack_distribution):
 	return proc.wait()
 
 def install_ambari_server():
-	proc = subprocess.Popen("sudo yum install -y ambari-server-*.noarch.rpm",
+	proc = subprocess.Popen("sudo yum install -y ambari-server-*.x86_64.rpm",
 			shell=True,
-			cwd="/tmp/ambari/ambari-server/target/rpm/ambari-server/RPMS/noarch")
+			cwd="/tmp/ambari/ambari-server/target/rpm/ambari-server/RPMS/x86_64")
 	return proc.wait()
 
 def install_ambari_agent():
