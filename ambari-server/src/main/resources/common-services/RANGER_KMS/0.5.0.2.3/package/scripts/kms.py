@@ -190,7 +190,17 @@ def kms(upgrade_type=None):
 
     Directory(params.kms_log_dir,
       owner = params.kms_user,
-      group = params.kms_group
+      group = params.kms_group,
+      cd_access = 'a',
+      create_parents=True,
+      mode=0755
+    )
+
+    File(format('{kms_conf_dir}/ranger-kms-env-logdir.sh'),
+      content = format("export RANGER_KMS_LOG_DIR={kms_log_dir}"),
+      owner = params.kms_user,
+      group = params.kms_group,
+      mode=0755
     )
 
     Execute(('ln','-sf', format('{kms_home}/ranger-kms'),'/usr/bin/ranger-kms'),

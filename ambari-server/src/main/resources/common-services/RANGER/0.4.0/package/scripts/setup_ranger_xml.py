@@ -102,7 +102,17 @@ def setup_ranger_admin(upgrade_type=None):
 
   Directory(params.admin_log_dir,
     owner = params.unix_user,
-    group = params.unix_group
+    group = params.unix_group,
+    create_parents = True,
+    cd_access='a',
+    mode=0755
+  )
+
+  File(format('{ranger_conf}/ranger-admin-env-logdir.sh'),
+    content = format("export RANGER_ADMIN_LOG_DIR={admin_log_dir}"),
+    owner = params.unix_user,
+    group = params.unix_group,
+    mode=0755
   )
 
   if os.path.isfile(params.ranger_admin_default_file):
@@ -332,7 +342,17 @@ def setup_usersync(upgrade_type=None):
 
   Directory(params.usersync_log_dir,
     owner = params.unix_user,
-    group = params.unix_group
+    group = params.unix_group,
+    cd_access = 'a',
+    create_parents=True,
+    mode=0755
+  )
+
+  File(format('{ranger_ugsync_conf}/ranger-usersync-env-logdir.sh'),
+    content = format("export logdir={usersync_log_dir}"),
+    owner = params.unix_user,
+    group = params.unix_group,
+    mode=0755
   )
   
   Directory(format("{ranger_ugsync_conf}/"),

@@ -308,8 +308,12 @@
 
   <property>
     <name>ranger.usersync.logdir</name>
-    <value>/var/log/ranger/usersync</value>
+    <value>{{usersync_log_dir}}</value>
     <description>User sync log directory</description>
+    <value-attributes>
+      <visible>false</visible>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>

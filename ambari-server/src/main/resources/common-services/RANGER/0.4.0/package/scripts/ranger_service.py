@@ -34,11 +34,6 @@ def ranger_service(name, action=None):
 
 
     if params.stack_is_hdp23_or_further:
-      Directory(format('{usersync_log_dir}/'),
-                owner = params.unix_user,
-                group = params.unix_group,
-                recursive_ownership = True,
-      )
       Execute(params.usersync_start,
               environment=env_dict,
               not_if=no_op_test,

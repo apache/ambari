@@ -48,12 +48,22 @@
     <name>ranger_admin_log_dir</name>
     <value>/var/log/ranger/admin</value>
     <description></description>
+    <value-attributes>
+      <type>directory</type>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
   </property>
 
   <property>
     <name>ranger_usersync_log_dir</name>
     <value>/var/log/ranger/usersync</value>
     <description></description>
+    <value-attributes>
+      <type>directory</type>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
   </property>
 
   <property>

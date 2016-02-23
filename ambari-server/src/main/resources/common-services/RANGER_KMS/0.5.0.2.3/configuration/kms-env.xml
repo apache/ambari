@@ -47,6 +47,11 @@
     <name>kms_log_dir</name>
     <value>/var/log/ranger/kms</value>
     <description></description>
+    <value-attributes>
+      <type>directory</type>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
   </property>
 
   <property>
