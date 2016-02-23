@@ -17,24 +17,20 @@
  */
 package org.apache.ambari.server.api.services;
 
-import com.sun.jersey.core.util.Base64;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;
 
-import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
 
 /**
  * WidgetLayout Service
@@ -73,7 +69,7 @@ public class ActiveWidgetLayoutService extends BaseService {
 
   private ResourceInstance createResource(String widgetLayoutId) {
     Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
-    mapIds.put(Resource.Type.User, userName);
+    mapIds.put(Resource.Type.User, StringUtils.lowerCase(userName));
     return createResource(Resource.Type.ActiveWidgetLayout, mapIds);
   }
 

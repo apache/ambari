@@ -33,9 +33,12 @@ import junit.framework.Assert;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
+import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.easymock.EasyMock;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * Unit tests for GroupService.
@@ -80,6 +83,16 @@ public class UserPrivilegeServiceTest extends BaseServiceTest {
     for (Response response: disabledMethods) {
       Assert.assertEquals(HttpServletResponse.SC_NOT_IMPLEMENTED, response.getStatus());
     }
+  }
+
+  @Test
+  public void testCreatePrivilegeResourcesWithUppercaseUsername() {
+    // GIVEN
+    UserPrivilegeService userPrivilegeService = new UserPrivilegeService("User");
+    // WHEN
+    ResourceInstance result = userPrivilegeService.createPrivilegeResource("test");
+    // THEN
+    assertEquals( "user", result.getKeyValueMap().get(Resource.Type.User));
   }
 
   private class TestUserPrivilegeService extends UserPrivilegeService {
