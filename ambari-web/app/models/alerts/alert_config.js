@@ -442,6 +442,14 @@ App.AlertConfigProperties = {
     label: 'Connection Timeout',
     displayType: 'textField',
     classNames: 'alert-connection-timeout',
+    badge: 'CRITICAL',
+    /**
+     * Custom css-class for different badges
+     * type {string}
+     */
+    badgeCssClass: function () {
+      return 'alert-state-' + this.get('badge');
+    }.property('badge'),
     apiProperty: 'source.uri.connection_timeout',
     unit: 'Seconds',
     isValid: function () {
