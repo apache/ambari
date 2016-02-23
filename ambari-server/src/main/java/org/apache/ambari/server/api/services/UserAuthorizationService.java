@@ -32,6 +32,8 @@ import javax.ws.rs.core.UriInfo;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
+
 /**
  * UserAuthorizationService is a read-only service responsible for user authorization resource requests.
  * <p/>
@@ -94,7 +96,7 @@ public class UserAuthorizationService extends BaseService {
    */
   protected ResourceInstance createAuthorizationResource(String authorizationId) {
     Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
-    mapIds.put(Resource.Type.User, username);
+    mapIds.put(Resource.Type.User, StringUtils.lowerCase(username));
     mapIds.put(Resource.Type.UserAuthorization, authorizationId);
     return createResource(Resource.Type.UserAuthorization, mapIds);
   }
