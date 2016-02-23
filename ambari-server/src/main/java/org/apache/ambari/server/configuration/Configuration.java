@@ -37,6 +37,7 @@ import org.apache.ambari.server.security.authorization.jwt.JwtAuthenticationProp
 import org.apache.ambari.server.security.encryption.CredentialProvider;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.security.encryption.CertificateUtils;
+import org.apache.ambari.server.utils.AmbariPath;
 import org.apache.ambari.server.utils.Parallel;
 import org.apache.ambari.server.utils.ShellCommandUtil;
 import org.apache.commons.io.FileUtils;
@@ -57,7 +58,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
-
 import java.security.cert.CertificateException;
 import java.security.interfaces.RSAPublicKey;
 
@@ -81,23 +81,23 @@ public class Configuration {
    */
   public static final String PREFIX_DIR = "/var/lib/ambari-agent/data";
 
-  public static final String BOOTSTRAP_DIR_DEFAULT = "/var/run/ambari-server/bootstrap";
+  public static final String BOOTSTRAP_DIR_DEFAULT = AmbariPath.getPath("/var/run/ambari-server/bootstrap");
   public static final String VIEWS_DIR = "views.dir";
-  public static final String VIEWS_DIR_DEFAULT = "/var/lib/ambari-server/resources/views";
+  public static final String VIEWS_DIR_DEFAULT = AmbariPath.getPath("/var/lib/ambari-server/resources/views");
   public static final String VIEWS_VALIDATE = "views.validate";
   public static final String VIEWS_VALIDATE_DEFAULT = "false";
   public static final String VIEWS_REMOVE_UNDEPLOYED = "views.remove.undeployed";
   public static final String VIEWS_REMOVE_UNDEPLOYED_DEFAULT = "false";
   public static final String WEBAPP_DIR = "webapp.dir";
   public static final String BOOTSTRAP_SCRIPT = "bootstrap.script";
-  public static final String BOOTSTRAP_SCRIPT_DEFAULT = "/usr/bin/ambari_bootstrap";
+  public static final String BOOTSTRAP_SCRIPT_DEFAULT = AmbariPath.getPath("/usr/bin/ambari_bootstrap");
   public static final String BOOTSTRAP_SETUP_AGENT_SCRIPT = "bootstrap.setup_agent.script";
   public static final String BOOTSTRAP_SETUP_AGENT_PASSWORD = "bootstrap.setup_agent.password";
   public static final String BOOTSTRAP_MASTER_HOSTNAME = "bootstrap.master_host_name";
   public static final String RECOMMENDATIONS_DIR = "recommendations.dir";
-  public static final String RECOMMENDATIONS_DIR_DEFAULT = "/var/run/ambari-server/stack-recommendations";
+  public static final String RECOMMENDATIONS_DIR_DEFAULT = AmbariPath.getPath("/var/run/ambari-server/stack-recommendations");
   public static final String STACK_ADVISOR_SCRIPT = "stackadvisor.script";
-  public static final String STACK_ADVISOR_SCRIPT_DEFAULT = "/var/lib/ambari-server/resources/scripts/stack_advisor.py";
+  public static final String STACK_ADVISOR_SCRIPT_DEFAULT = AmbariPath.getPath("/var/lib/ambari-server/resources/scripts/stack_advisor.py");
   public static final String AMBARI_PYTHON_WRAP_KEY = "ambari.python.wrap";
   public static final String AMBARI_PYTHON_WRAP_DEFAULT = "ambari-python-wrap";
   public static final String API_AUTHENTICATED_USER = "api.authenticated.user";
@@ -302,7 +302,7 @@ public class Configuration {
   public static final String DEFAULT_SCHEDULER_START_DELAY_SECONDS = "120";
   public static final String DEFAULT_EXECUTION_SCHEDULER_WAIT_SECONDS = "1";
   public static final String SERVER_TMP_DIR_KEY = "server.tmp.dir";
-  public static final String SERVER_TMP_DIR_DEFAULT = "/var/lib/ambari-server/tmp";
+  public static final String SERVER_TMP_DIR_DEFAULT = AmbariPath.getPath("/var/lib/ambari-server/tmp");
   public static final String EXTERNAL_SCRIPT_TIMEOUT_KEY = "server.script.timeout";
   public static final String EXTERNAL_SCRIPT_TIMEOUT_DEFAULT = "5000";
   public static final String DEF_ARCHIVE_EXTENSION;
@@ -316,7 +316,7 @@ public class Configuration {
   public static final String KDC_CONNECTION_CHECK_TIMEOUT_KEY = "kdcserver.connection.check.timeout";
   public static final String KDC_CONNECTION_CHECK_TIMEOUT_DEFAULT = "10000";
   public static final String KERBEROS_KEYTAB_CACHE_DIR_KEY = "kerberos.keytab.cache.dir";
-  public static final String KERBEROS_KEYTAB_CACHE_DIR_DEFAULT = "/var/lib/ambari-server/data/cache";
+  public static final String KERBEROS_KEYTAB_CACHE_DIR_DEFAULT = AmbariPath.getPath("/var/lib/ambari-server/data/cache");
   public static final String KERBEROS_CHECK_JAAS_CONFIGURATION_KEY = "kerberos.check.jaas.configuration";
   public static final String KERBEROS_CHECK_JAAS_CONFIGURATION_DEFAULT = "false";
 
@@ -375,7 +375,7 @@ public class Configuration {
   protected static final long SERVER_HRC_STATUS_SUMMARY_CACHE_SIZE_DEFAULT = 10000L;
   protected static final long SERVER_HRC_STATUS_SUMMARY_CACHE_EXPIRY_DURATION_DEFAULT = 30; //minutes
 
-  private static final String CUSTOM_ACTION_DEFINITION_DEF_VALUE = "/var/lib/ambari-server/resources/custom_action_definitions";
+  private static final String CUSTOM_ACTION_DEFINITION_DEF_VALUE = AmbariPath.getPath("/var/lib/ambari-server/resources/custom_action_definitions");
 
   private static final long SERVER_EC_CACHE_SIZE_DEFAULT = 10000L;
   private static final String SERVER_STALE_CONFIG_CACHE_ENABLED_DEFAULT = "true";
@@ -393,8 +393,8 @@ public class Configuration {
   private static final String SRVR_DISABLED_CIPHERS_DEFAULT = "";
   private static final String SRVR_DISABLED_PROTOCOLS_DEFAULT = "";
   private static final String PASSPHRASE_ENV_DEFAULT = "AMBARI_PASSPHRASE";
-  private static final String RESOURCES_DIR_DEFAULT = "/var/lib/ambari-server/resources/";
-  private static final String SHARED_RESOURCES_DIR_DEFAULT = "/usr/lib/ambari-server/lib/ambari_commons/resources";
+  private static final String RESOURCES_DIR_DEFAULT = AmbariPath.getPath("/var/lib/ambari-server/resources/");
+  private static final String SHARED_RESOURCES_DIR_DEFAULT = AmbariPath.getPath("/usr/lib/ambari-server/lib/ambari_commons/resources");
   private static final String ANONYMOUS_AUDIT_NAME_KEY = "anonymous.audit.name";
 
   private static final int CLIENT_API_PORT_DEFAULT = 8080;
@@ -996,7 +996,7 @@ public class Configuration {
 
   public String getBootSetupAgentScript() {
     return properties.getProperty(BOOTSTRAP_SETUP_AGENT_SCRIPT,
-        "/usr/lib/python2.6/site-packages/ambari_server/setupAgent.py");
+        AmbariPath.getPath("/usr/lib/python2.6/site-packages/ambari_server/setupAgent.py"));
   }
 
   public String getBootSetupAgentPassword() {

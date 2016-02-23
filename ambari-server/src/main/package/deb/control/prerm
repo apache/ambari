@@ -16,7 +16,7 @@
 
 # Warning: don't add changes to this script directly, please add changes to install-helper.sh.
 
-INSTALL_HELPER="${AMBARI_ROOT_FOLDER}/var/lib/ambari-server/install-helper.sh"
+INSTALL_HELPER="${RPM_INSTALL_PREFIX}/var/lib/ambari-server/install-helper.sh"
 
 if [ "$1" == "remove" ] ; then # Action is uninstall
     if [ -f "$INSTALL_HELPER" ]; then

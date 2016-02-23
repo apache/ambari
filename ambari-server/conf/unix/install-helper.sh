@@ -16,8 +16,7 @@
 #########################################postinstall.sh#########################
 #                      SERVER INSTALL HELPER                     #
 ##################################################################
-
-ROOT="${AMBARI_ROOT_FOLDER}"
+ROOT="${RPM_INSTALL_PREFIX}" # Customized folder, which ambari-server files are installed into ('/' or '' are default).
 
 COMMON_DIR="${ROOT}/usr/lib/python2.6/site-packages/ambari_commons"
 RESOURCE_MANAGEMENT_DIR="${ROOT}/usr/lib/python2.6/site-packages/resource_management"
@@ -25,7 +24,8 @@ JINJA_DIR="${ROOT}/usr/lib/python2.6/site-packages/ambari_jinja2"
 SIMPLEJSON_DIR="${ROOT}/usr/lib/python2.6/site-packages/ambari_simplejson"
 OLD_COMMON_DIR="${ROOT}/usr/lib/python2.6/site-packages/common_functions"
 AMBARI_SERVER="${ROOT}/usr/lib/python2.6/site-packages/ambari_server"
-INSTALL_HELPER_AGENT="${ROOT}/var/lib/ambari-agent/install-helper.sh"
+INSTALL_HELPER_AGENT="/var/lib/ambari-agent/install-helper.sh"
+CA_CONFIG="${ROOT}/var/lib/ambari-server/keys/ca.config"
 COMMON_DIR_SERVER="${ROOT}/usr/lib/ambari-server/lib/ambari_commons"
 RESOURCE_MANAGEMENT_DIR_SERVER="${ROOT}/usr/lib/ambari-server/lib/resource_management"
 JINJA_SERVER_DIR="${ROOT}/usr/lib/ambari-server/lib/ambari_jinja2"
@@ -41,6 +41,7 @@ AMBARI_SERVER_EXECUTABLE="${ROOT}/etc/init.d/ambari-server"
 AMBARI_CONFIGS_DIR="${ROOT}/etc/ambari-server/conf"
 AMBARI_CONFIGS_DIR_SAVE="${ROOT}/etc/ambari-server/conf.save"
 AMBARI_CONFIGS_DIR_SAVE_BACKUP="${ROOT}/etc/ambari-server/conf_$(date '+%d_%m_%y_%H_%M').save"
+AMBARI_LOG4J="${AMBARI_CONFIGS_DIR}/log4j.properties"
 
 do_install(){
   rm -f "$AMBARI_SERVER_EXECUTABLE_LINK"
@@ -86,14 +87,29 @@ do_install(){
     ln -s "$AMBARI_PYTHON" "$PYTHON_WRAPER_TARGET"
   fi
 
+  sed -i "s|ambari.root.dir\s*=\s*/|ambari.root.dir=${ROOT}|g" "$AMBARI_LOG4J"
+  sed -i "s|root_dir\s*=\s*/|root_dir = ${ROOT}|g" "$CA_CONFIG"
+
+  AUTOSTART_SERVER_CMD="" 
   which chkconfig > /dev/null 2>&1
   if [ "$?" -eq 0 ] ; then
-    chkconfig --add ambari-server
+    AUTOSTART_SERVER_CMD="chkconfig --add ambari-server"
   fi
   which update-rc.d > /dev/null 2>&1
   if [ "$?" -eq 0 ] ; then
-    update-rc.d ambari-server defaults
-  fi 
+    AUTOSTART_SERVER_CMD="update-rc.d ambari-server defaults"
+  fi
+    
+  # if installed to customized root folder, skip ambari-server service actions,
+  # as no file in /etc/init.d/ambari-server is present
+  if [ ! "${ROOT}/" -ef "/" ] ; then 
+	echo "Not adding ambari-server service to startup, as installed to customized root."
+	echo "If you need this functionality run the commands below, which create ambari-server service and configure it to run at startup: "
+	echo "sudo ln -s ${AMBARI_SERVER_EXECUTABLE} /etc/init.d/ambari-server"
+	echo "sudo $AUTOSTART_SERVER_CMD"
+  else
+	$AUTOSTART_SERVER_CMD
+  fi
 }
 
 do_remove(){

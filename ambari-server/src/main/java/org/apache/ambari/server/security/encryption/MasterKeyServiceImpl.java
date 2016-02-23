@@ -20,6 +20,7 @@ package org.apache.ambari.server.security.encryption;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.utils.AmbariPath;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
@@ -104,7 +105,7 @@ public class MasterKeyServiceImpl implements MasterKeyService {
 
   public static void main(String args[]) {
     String masterKey = "ThisissomeSecretPassPhrasse";
-    String masterKeyLocation = "/var/lib/ambari-server/keys/master";
+    String masterKeyLocation = AmbariPath.getPath("/var/lib/ambari-server/keys/master");
     boolean persistMasterKey = false;
     if (args != null && args.length > 0) {
       masterKey = args[0];
