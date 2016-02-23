@@ -431,19 +431,6 @@ App.AlertConfigProperties = {
     }.property('value')
   }),
 
-  ConnectionTimeout: App.AlertConfigProperty.extend({
-    name: 'connection_timeout',
-    label: 'Connection Timeout',
-    displayType: 'textField',
-    classNames: 'alert-connection-timeout',
-    apiProperty: 'source.uri.connection_timeout',
-    unit: 'Seconds',
-    isValid: function () {
-      var value = this.get('value');
-      return numericUtils.isPositiveNumber(value);
-    }.property('value')
-  }),
-
   DefaultPort: App.AlertConfigProperty.extend({
     name: 'default_port',
     label: 'Default Port',
