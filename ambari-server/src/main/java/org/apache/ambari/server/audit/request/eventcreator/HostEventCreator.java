@@ -29,6 +29,7 @@ import org.apache.ambari.server.audit.AuditEvent;
 import org.apache.ambari.server.audit.StartOperationFailedAuditEvent;
 import org.apache.ambari.server.audit.StartOperationSucceededAuditEvent;
 import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
+import org.apache.ambari.server.audit.request.event.AddComponentToHostRequestAuditEvent;
 import org.apache.ambari.server.audit.request.event.AddHostRequestAuditEvent;
 import org.apache.ambari.server.audit.request.event.DeleteAlertGroupRequestAuditEvent;
 import org.apache.ambari.server.audit.request.event.DeleteHostRequestAuditEvent;
@@ -40,9 +41,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 
 /**
- * This creator handles host requests (add, delete)
+ * This creator handles host requests (add, delete, add component)
  * For resource type {@link Resource.Type#HostComponent}
- * and request types {@link Request.Type#POST} and {@link Request.Type#DELETE}
+ * and request types {@link Request.Type#POST}, {@link Request.Type#DELETE} and {@link Request.Type#QUERY_POST}
  */
 public class HostEventCreator implements RequestAuditEventCreator {
 
@@ -54,6 +55,7 @@ public class HostEventCreator implements RequestAuditEventCreator {
   {
     requestTypes.add(Request.Type.POST);
     requestTypes.add(Request.Type.DELETE);
+    requestTypes.add(Request.Type.QUERY_POST);
   }
 
   private Set<Resource.Type> resourceTypes = new HashSet<Resource.Type>();
@@ -105,6 +107,17 @@ public class HostEventCreator implements RequestAuditEventCreator {
           .withUserName(username)
           .withHostName(getHostName(request))
           .build();
+      case QUERY_POST:
+        return AddComponentToHostRequestAuditEvent.builder()
+          .withTimestamp(DateTime.now())
+          .withRequestType(request.getRequestType())
+          .withResultStatus(result.getStatus())
+          .withUrl(request.getURI())
+          .withRemoteIp(request.getRemoteAddress())
+          .withUserName(username)
+          .withHostName(getHostNameFromQuery(request))
+          .withComponent(getHostComponent(request))
+          .build();
       default:
         return null;
     }
@@ -113,6 +126,27 @@ public class HostEventCreator implements RequestAuditEventCreator {
   private String getHostName(Request request) {
     if(!request.getBody().getNamedPropertySets().isEmpty()) {
       return String.valueOf(request.getBody().getNamedPropertySets().iterator().next().getProperties().get(PropertyHelper.getPropertyId("Hosts","host_name")));
+    }
+    return null;
+  }
+
+  private String getHostComponent(Request request) {
+    if(!request.getBody().getNamedPropertySets().isEmpty()) {
+      Set<Map<String, String>> set = (Set<Map<String, String>>)request.getBody().getNamedPropertySets().iterator().next().getProperties().get("host_components");
+      if(set != null && !set.isEmpty()) {
+        return set.iterator().next().get(PropertyHelper.getPropertyId("HostRoles","component_name"));
+      }
+    }
+    return null;
+  }
+
+  private String getHostNameFromQuery(Request request) {
+    final String key = PropertyHelper.getPropertyId("Hosts","host_name");
+    if(request.getBody().getQueryString().contains(key)) {
+      String q = request.getBody().getQueryString();
+      int startIndex = q.indexOf(key) + key.length() + 1;
+      int endIndex = q.indexOf("&", startIndex) == -1 ? q.length() : q.indexOf("&", startIndex);
+      return q.substring(startIndex, endIndex);
     }
     return null;
   }
