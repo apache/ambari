@@ -1526,8 +1526,8 @@ public class ClusterImpl implements Cluster {
     StackId repoVersionStackId = new StackId(repoVersionStackEntity);
 
     HostVersionEntity hostVersionEntity = hostVersionDAO.findByClusterStackVersionAndHost(
-      getClusterName(), repoVersionStackId, repositoryVersion.getVersion(),
-      host.getHostName());
+      getClusterId(), repoVersionStackId, repositoryVersion.getVersion(),
+      host.getHostId());
 
     hostTransitionStateWriteLock.lock();
     try {
@@ -1542,7 +1542,7 @@ public class ClusterImpl implements Cluster {
         hostVersionDAO.create(hostVersionEntity);
       }
 
-      HostVersionEntity currentVersionEntity = hostVersionDAO.findByHostAndStateCurrent(getClusterName(), host.getHostName());
+      HostVersionEntity currentVersionEntity = hostVersionDAO.findByHostAndStateCurrent(getClusterId(), host.getHostId());
       boolean isCurrentPresent = (currentVersionEntity != null);
       final ServiceComponentHostSummary hostSummary = new ServiceComponentHostSummary(ambariMetaInfo, host, stack);
 

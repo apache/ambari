@@ -1319,43 +1319,48 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @Override
   public ServiceComponentHostResponse convertToResponse() {
-    readLock.lock();
+    clusterGlobalLock.readLock().lock();
     try {
-      HostComponentStateEntity hostComponentStateEntity = getStateEntity();
-      if (null == hostComponentStateEntity) {
-        LOG.warn("Could not convert ServiceComponentHostResponse to a response. It's possible that Host " + getHostName() + " was deleted.");
-        return null;
-      }
-
-      String clusterName = serviceComponent.getClusterName();
-      String serviceName = serviceComponent.getServiceName();
-      String serviceComponentName = serviceComponent.getName();
-      String hostName = getHostName();
-      String state = getState().toString();
-      String stackId = getStackVersion().getStackId();
-      String desiredState = getDesiredState().toString();
-      String desiredStackId = getDesiredStackVersion().getStackId();
-      HostComponentAdminState componentAdminState = getComponentAdminState();
-      UpgradeState upgradeState = hostComponentStateEntity.getUpgradeState();
-
-      ServiceComponentHostResponse r = new ServiceComponentHostResponse(
-          clusterName, serviceName,
-          serviceComponentName, hostName, state,
-          stackId, desiredState,
-          desiredStackId, componentAdminState);
-
-      r.setActualConfigs(actualConfigs);
-      r.setUpgradeState(upgradeState);
-
+      readLock.lock();
       try {
-        r.setStaleConfig(helper.isStaleConfigs(this));
-      } catch (Exception e) {
-        LOG.error("Could not determine stale config", e);
-      }
+        HostComponentStateEntity hostComponentStateEntity = getStateEntity();
+        if (null == hostComponentStateEntity) {
+          LOG.warn("Could not convert ServiceComponentHostResponse to a response. It's possible that Host " + getHostName() + " was deleted.");
+          return null;
+        }
 
-      return r;
+        String clusterName = serviceComponent.getClusterName();
+        String serviceName = serviceComponent.getServiceName();
+        String serviceComponentName = serviceComponent.getName();
+        String hostName = getHostName();
+        String state = getState().toString();
+        String stackId = getStackVersion().getStackId();
+        String desiredState = getDesiredState().toString();
+        String desiredStackId = getDesiredStackVersion().getStackId();
+        HostComponentAdminState componentAdminState = getComponentAdminState();
+        UpgradeState upgradeState = hostComponentStateEntity.getUpgradeState();
+
+        ServiceComponentHostResponse r = new ServiceComponentHostResponse(
+            clusterName, serviceName,
+            serviceComponentName, hostName, state,
+            stackId, desiredState,
+            desiredStackId, componentAdminState);
+
+        r.setActualConfigs(actualConfigs);
+        r.setUpgradeState(upgradeState);
+
+        try {
+          r.setStaleConfig(helper.isStaleConfigs(this));
+        } catch (Exception e) {
+          LOG.error("Could not determine stale config", e);
+        }
+
+        return r;
+      } finally {
+        readLock.unlock();
+      }
     } finally {
-      readLock.unlock();
+      clusterGlobalLock.readLock().unlock();
     }
   }
 
@@ -1797,6 +1802,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     }
 
     final String hostName = getHostName();
+    final long hostId = getHost().getHostId();
     final Set<Cluster> clustersForHost = clusters.getClustersForHost(hostName);
     if (clustersForHost.size() != 1) {
       throw new AmbariException("Host " + hostName + " should be assigned only to one cluster");
@@ -1815,7 +1821,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
         repositoryVersion = createRepositoryVersion(version, stackId, stackInfo);
       }
 
-      final HostEntity host = hostDAO.findByName(hostName);
+      final HostEntity host = hostDAO.findById(hostId);
       cluster.transitionHostVersionState(host, repositoryVersion, stackId);
     } finally {
       writeLock.unlock();
