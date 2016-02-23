@@ -108,6 +108,10 @@ public class ComponentEventCreator implements RequestAuditEventCreator {
   }
 
   private String getOperation(Request request) {
+    if(request.getRequestType() == Request.Type.DELETE) {
+      return "Delete component " + request.getResource().getKeyValueMap().get(Resource.Type.HostComponent);
+    }
+
     if (request.getBody().getRequestInfoProperties().containsKey(RequestOperationLevel.OPERATION_LEVEL_ID)) {
       String operation = "";
       switch (request.getBody().getRequestInfoProperties().get(RequestOperationLevel.OPERATION_LEVEL_ID)) {
@@ -116,6 +120,7 @@ public class ComponentEventCreator implements RequestAuditEventCreator {
             if (map.containsKey(PropertyHelper.getPropertyId("HostRoles", "cluster_name"))) {
               operation = String.valueOf(map.get(PropertyHelper.getPropertyId("HostRoles", "state"))) + ": all services"
                 + " on all hosts"
+                + (request.getBody().getQueryString().length() > 0 ? " that matches " + request.getBody().getQueryString() : "")
                 + " (" + request.getBody().getRequestInfoProperties().get(RequestOperationLevel.OPERATION_CLUSTER_ID) + ")";
               break;
             }
@@ -146,6 +151,13 @@ public class ComponentEventCreator implements RequestAuditEventCreator {
       }
       return operation;
     }
+
+    for (Map<String, Object> map : request.getBody().getPropertySets()) {
+      if (map.containsKey(PropertyHelper.getPropertyId("HostRoles", "maintenance_state"))) {
+        return "Turn " + map.get(PropertyHelper.getPropertyId("HostRoles", "maintenance_state")) + " Maintenance Mode for " + map.get(PropertyHelper.getPropertyId("HostRoles", "component_name"));
+      }
+    }
+
     return null;
   }
 
