@@ -19,11 +19,7 @@
 package org.apache.ambari.server.audit.request.eventcreator;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.api.services.Request;
@@ -32,8 +28,6 @@ import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.audit.AuditEvent;
 import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
 import org.apache.ambari.server.audit.request.event.AddRepositoryRequestAuditEvent;
-import org.apache.ambari.server.audit.request.event.ClusterPrivilegeChangeRequestAuditEvent;
-import org.apache.ambari.server.audit.request.event.PrivilegeChangeRequestAuditEvent;
 import org.apache.ambari.server.audit.request.event.UpdateRepositoryRequestAuditEvent;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;

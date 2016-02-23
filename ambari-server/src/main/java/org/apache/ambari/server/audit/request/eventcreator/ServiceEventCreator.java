@@ -29,6 +29,7 @@ import org.apache.ambari.server.audit.AuditEvent;
 import org.apache.ambari.server.audit.StartOperationFailedAuditEvent;
 import org.apache.ambari.server.audit.StartOperationSucceededAuditEvent;
 import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
+import org.apache.ambari.server.audit.request.event.DeleteServiceRequestAuditEvent;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;

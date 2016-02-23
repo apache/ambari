@@ -18,9 +18,6 @@
 
 package org.apache.ambari.server.audit.request.event;
 
-import java.util.List;
-import java.util.Map;
-
 import org.apache.ambari.server.audit.request.RequestAuditEvent;
 
 public class DeleteRepositoryVersionRequestAuditEvent extends RequestAuditEvent {

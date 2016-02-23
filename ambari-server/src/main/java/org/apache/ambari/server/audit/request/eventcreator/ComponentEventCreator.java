@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.audit.request.eventcreator;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
