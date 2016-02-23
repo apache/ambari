@@ -17,7 +17,7 @@
 -->
 
 <br/>
-<div class="login-message-pane" ng-controller="LoginMessageMainCtrl">
+<div class="login-message-pane" data-ng-init="getMOTD()" ng-controller="LoginMessageMainCtrl">
   <form class="form-horizontal" novalidate name="form" autocomplete="off">
     <div class="well">
       <fieldset>
@@ -37,7 +37,6 @@
                  placeholder="{{'common.loginActivities.loginMessage.placeholder' | translate}}"
                  ng-model="text"
                  ng-change="inputChangeEvent()"
-                 ng-pattern="/^([a-zA-Z0-9._\s]+)$/"
                  ng-disabled="!status"
                  autocomplete="off">
             </textarea>
@@ -46,7 +45,7 @@
             </div>
           </div>
         </div>
-        <div class="form-group" ng-class="{'has-error' : (form.login_text.$error.pattern) && form.submitted}">
+        <div class="form-group" ng-class="{'has-error' : (form.button_text.$error.pattern) && form.submitted}">
           <label class="col-sm-2 control-label">{{'common.loginActivities.buttonText' | translate}}</label>
           <div class="col-sm-4">
             <input type="text"
@@ -56,13 +55,13 @@
                    ng-model="buttonText"
                    ng-change="inputChangeEvent()"
                    ng-disabled="!status"
-                   ng-pattern="/^([a-zA-Z0-9._\s]+)$/"
                    maxlength="25"
                    size="25"
+                   required
                    autocomplete="off">
 
-            <div class="alert alert-danger top-margin" ng-show="form.button_text.$error.pattern && form.submitted">
-              {{'common.loginActivities.onlySimpleChars' | translate}}
+            <div class="alert alert-danger top-margin" ng-show="form.button_text.$error.required && form.submitted">
+              {{'common.loginActivities.notEmpty' | translate}}
             </div>
           </div>
         </div>
@@ -73,7 +72,8 @@
             ng-click="saveLoginMsg()">
             {{'common.controls.save' | translate}}
           </button>
-      </div>
+          <a class="btn btn-default pull-right cancel" href ng-click="cancel()">{{'common.controls.cancel' | translate}}</a>
+        </div>
       </fieldset>
     </div>
   </form>

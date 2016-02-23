@@ -394,7 +394,7 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
     configConditions.forEach(function(configCondition){
       var ifStatement =  configCondition.get("if");
       if (configCondition.get("resource") === 'config') {
-        isConditionTrue = App.config.calculateConfigCondition(ifStatement, serviceConfigs);
+        isConditionTrue = App.configTheme.calculateConfigCondition(ifStatement, serviceConfigs);
         if (configCondition.get("type") === 'subsection' || configCondition.get("type") === 'subsectionTab') {
           this.changeSubsectionAttribute(configCondition, isConditionTrue);
         } else {

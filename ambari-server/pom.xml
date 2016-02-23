@@ -366,6 +366,7 @@
           <group>Development</group>
           <description>Maven Recipe: RPM Package.</description>
           <autoRequires>no</autoRequires>
+          <prefix>/</prefix>
           <requires>
             <require>${rpm.dependency.list}</require>
           </requires>

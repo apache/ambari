@@ -652,49 +652,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   },
 
   /**
-   * Resolve config theme conditions
-   * in order to correctly calculate config errors number of service
-   * @param {Array} configs
-   */
-  resolveConfigThemeConditions: function (configs) {
-    App.ThemeCondition.find().forEach(function (configCondition) {
-      var _configs = Em.A(configCondition.get('configs'));
-      if (configCondition.get("resource") === 'config' && _configs.length > 0) {
-        var isConditionTrue = App.config.calculateConfigCondition(configCondition.get("if"), configs);
-        var action = isConditionTrue ? configCondition.get("then") : configCondition.get("else");
-        if (configCondition.get('id')) {
-          var valueAttributes = action.property_value_attributes;
-          if (valueAttributes && !Em.none(valueAttributes['visible'])) {
-            var themeResource;
-            if (configCondition.get('type') === 'subsection') {
-              themeResource = App.SubSection.find().findProperty('name', configCondition.get('name'));
-            } else if (configCondition.get('type') === 'subsectionTab') {
-              themeResource = App.SubSectionTab.find().findProperty('name', configCondition.get('name'));
-            } else if (configCondition.get('type') === 'config') {
-              //simulate section wrapper for condition type "config"
-              themeResource = Em.Object.create({
-                configProperties: [App.config.configId(configCondition.get('configName'), configCondition.get('fileName'))]
-              });
-            }
-            if (themeResource) {
-              themeResource.get('configProperties').forEach(function (_configId) {
-                configs.forEach(function (item) {
-                  if (App.config.configId(item.name, item.filename) === _configId) {
-                    // if config has already been hidden by condition with "subsection" or "subsectionTab" type
-                    // then ignore condition of "config" type
-                    if (configCondition.get('type') === 'config' && item.hiddenBySection) return false;
-                    item.hiddenBySection = !valueAttributes['visible'];
-                  }
-                });
-              }, this);
-            }
-          }
-        }
-      }
-    });
-  },
-
-  /**
    * Update hawq configuration depending on the state of the cluster
    * @param {Array} configs
    */
@@ -724,7 +681,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     if (App.get('isKerberosEnabled') && this.get('wizardController.name') == 'addServiceController') {
       this.addKerberosDescriptorConfigs(configs, this.get('wizardController.kerberosDescriptorConfigs') || []);
     }
-    this.resolveConfigThemeConditions(configs);
+    App.configTheme.resolveConfigThemeConditions(configs);
     var stepConfigs = this.createStepConfigs();
     var serviceConfigs = this.renderConfigs(stepConfigs, configs);
     // if HA is enabled -> Make some reconfigurations
@@ -845,16 +802,16 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     ];
 
     propertyNames.forEach(function(propertyName, propertyIndex) {
-      var propertyFromHdfs = configs.findProperty('id', propertyName + '__hdfs-site');
-      var newProperty = App.config.createDefaultConfig(propertyName, 'HAWQ', 'hdfs-client.xml', true);
+      var propertyFromHdfs = configs.findProperty('id', App.config.configId(propertyName, 'hdfs-site'));
+      var newProperty = App.config.createDefaultConfig(propertyName, 'hdfs-client.xml', true);
       Em.setProperties(newProperty, {
+        serviceName: 'HAWQ',
         description: propertyFromHdfs.description,
         displayName: propertyFromHdfs.displayName,
         displayType: 'string',
         index: propertyIndex,
         isOverridable: false,
         isReconfigurable: false,
-        name: propertyFromHdfs.name,
         value: propertyFromHdfs.value,
         recommendedValue: propertyFromHdfs.recommendedValue
       });
@@ -871,8 +828,8 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    * @returns {Object[]} existing configs + additional config parameters in yarn-client.xml
    */
   addHawqConfigsOnRMHa: function(configs) {
-    var rmHost1 = configs.findProperty('id', 'yarn.resourcemanager.hostname.rm1__yarn-site').value ;
-    var rmHost2 = configs.findProperty('id', 'yarn.resourcemanager.hostname.rm2__yarn-site').value ;
+    var rmHost1 = configs.findProperty('id', App.config.configId('yarn.resourcemanager.hostname.rm1', 'yarn-site')).value ;
+    var rmHost2 = configs.findProperty('id', App.config.configId('yarn.resourcemanager.hostname.rm2', 'yarn-site')).value ;
     var yarnConfigToBeAdded = [
       {
         name: 'yarn.resourcemanager.ha',
@@ -889,10 +846,10 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     ];
 
     yarnConfigToBeAdded.forEach(function(propertyDetails) {
-      var newProperty = App.config.createDefaultConfig(propertyDetails.name, 'HAWQ', 'yarn-client.xml', true);
+      var newProperty = App.config.createDefaultConfig(propertyDetails.name, 'yarn-client.xml', true);
       var value = rmHost1 + ':' + propertyDetails.port + ',' + rmHost2 + ':' + propertyDetails.port;
       Em.setProperties(newProperty, {
-        name: propertyDetails.name,
+        serviceName: 'HAWQ',
         description: propertyDetails.description,
         displayName: propertyDetails.displayName,
         isOverridable: false,
@@ -1143,10 +1100,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     //add user properties
     Em.keys(configsMap).forEach(function (filename) {
       Em.keys(configsMap[filename]).forEach(function (propertyName) {
-        allConfigs.push(App.config.createDefaultConfig(propertyName,
-          App.config.getServiceByConfigType(filename) ? App.config.getServiceByConfigType(filename).get('serviceName') : 'MISC',
-          App.config.getOriginalFileName(filename),
-          false, {
+        allConfigs.push(App.config.createDefaultConfig(propertyName, App.config.getOriginalFileName(filename), false, {
             value: configsMap[filename][propertyName],
             savedValue: configsMap[filename][propertyName],
             hasInitialValue: true
@@ -1376,7 +1330,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         return true;
       } else if (stackProperty.propertyDependsOn.length) {
         return !!stackProperty.propertyDependsOn.filter(function (p) {
-          var service = App.config.getServiceByConfigType(p.type);
+          var service = App.config.get('serviceByConfigTypeMap')[p.type];
           return service && !this.get('installedServices')[service.get('serviceName')];
         }, this).length;
       } else {

@@ -140,6 +140,10 @@ public class HeartbeatMonitor implements Runnable {
     List<Host> allHosts = clusters.getHosts();
     long now = System.currentTimeMillis();
     for (Host hostObj : allHosts) {
+      if (hostObj.getState() == HostState.HEARTBEAT_LOST) {
+        //do not check if host already known be lost
+        continue;
+      }
       String host = hostObj.getHostName();
       HostState hostState = hostObj.getState();
       String hostname = hostObj.getHostName();
@@ -212,6 +216,8 @@ public class HeartbeatMonitor implements Runnable {
         switch (sch.getState()) {
           case INIT:
           case INSTALLING:
+          case STARTING:
+          case STOPPING:
             //don't send commands until component is installed at least
             continue;
           default:

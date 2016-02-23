@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -16,20 +16,24 @@
  * limitations under the License.
  */
 
+package org.apache.ambari.server.utils;
 
-// load needed utils here
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-require('utils/errors/assertions');
-require('utils/base64');
-require('utils/db');
-require('utils/helper');
-require('utils/config');
-require('utils/configs/theme/theme');
-require('utils/configs/config_initializer');
-require('utils/configs/nn_ha_config_initializer');
-require('utils/configs/rm_ha_config_initializer');
-require('utils/configs/move_namenode_config_initializer');
-require('utils/configs/move_rm_config_initializer');
-require('utils/configs/move_os_config_initializer');
-require('utils/configs/move_hm_config_initializer');
-require('utils/configs/move_hs_config_initializer');
+public class AmbariPath {
+  private static Logger LOG = LoggerFactory.getLogger(AmbariPath.class);
+  
+  public static final String AMBARI_SERVER_ROOT_ENV_VARIABLE = "ROOT";
+  public static final String rootDirectory = System.getenv(AMBARI_SERVER_ROOT_ENV_VARIABLE);
+  
+  public static String getPath(String path) {
+    if(rootDirectory == null) {  
+      LOG.warn("Cannot get $ROOT enviroment varaible. Installed to custom root directory Ambari might not work correctly.");
+      return path;
+    }
+    String result = (rootDirectory + path).replaceAll("/+","/");
+    LOG.info(result);
+    return result;
+  }
+}

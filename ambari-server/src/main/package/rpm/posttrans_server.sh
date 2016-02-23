@@ -14,10 +14,12 @@
 # limitations under the License
 
 
-RESOURCE_MANAGEMENT_DIR="/usr/lib/python2.6/site-packages/resource_management"
-RESOURCE_MANAGEMENT_DIR_SERVER="/usr/lib/ambari-server/lib/resource_management"
-JINJA_DIR="/usr/lib/python2.6/site-packages/ambari_jinja2"
-JINJA_SERVER_DIR="/usr/lib/ambari-server/lib/ambari_jinja2"
+ROOT="${RPM_INSTALL_PREFIX}"
+
+RESOURCE_MANAGEMENT_DIR="${ROOT}/usr/lib/python2.6/site-packages/resource_management"
+RESOURCE_MANAGEMENT_DIR_SERVER="${ROOT}/usr/lib/ambari-server/lib/resource_management"
+JINJA_DIR="${ROOT}/usr/lib/python2.6/site-packages/ambari_jinja2"
+JINJA_SERVER_DIR="${ROOT}/usr/lib/ambari-server/lib/ambari_jinja2"
 
 # remove RESOURCE_MANAGEMENT_DIR if it's a directory
 if [ -d "$RESOURCE_MANAGEMENT_DIR" ]; then  # resource_management dir exists

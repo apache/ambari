@@ -22,25 +22,37 @@ angular.module('ambariAdminConsole')
     var $t = $translate.instant,
       targetUrl = '/loginActivities';
 
-    $scope.status = false;
-    $scope.motdExists = false;
-    $scope.text = "";
-    $scope.buttonText = "OK";
-    $scope.submitDisabled = true;
+    $scope.getMOTD = function() {
+      $http.get('/api/v1/settings/motd').then(function (res) {
+        $scope.motdExists = true;
+        var
+          response = JSON.parse(res.data.Settings.content.replace(/\n/g, "\\n")),
+          lt = /&lt;/g,
+          gt = /&gt;/g,
+          ap = /&#39;/g,
+          ic = /&#34;/g;
 
-    $http.get('/api/v1/settings/motd').then(function (res) {
-      $scope.motdExists = true;
-      var response = JSON.parse(res.data.Settings.content.replace(/\n/g, "\\n"));
-      $scope.text = response.text ? response.text : "";
-      $scope.buttonText = response.button ? response.button : "";
-      $scope.status = response.status && response.status == "true" ? true : false;
-    });
+        $scope.text = response.text ? response.text.toString().replace(lt, "<").replace(gt, ">").replace(ap, "'").replace(ic, '"') : "";
+        $scope.buttonText = response.button ? response.button.toString().replace(lt, "<").replace(gt, ">").replace(ap, "'").replace(ic, '"') : "OK";
+        $scope.status = response.status && response.status == "true" ? true : false;
+      }, function(response) {
+        $scope.status = false;
+        $scope.motdExists = false;
+        $scope.text = "";
+        $scope.buttonText = "OK";
+      });
+      $scope.submitDisabled = true;
+    };
 
     $scope.inputChangeEvent = function(){
       $scope.submitDisabled = false;
     };
     $scope.changeStatus = function(){
       $scope.submitDisabled = false;
+    };
+
+    $scope.cancel = function() {
+      $scope.getMOTD();
     };
 
     $scope.$watch(function(scope) {
@@ -50,10 +62,21 @@ angular.module('ambariAdminConsole')
     });
 
     $scope.saveLoginMsg = function(targetUrl) {
-      var method = $scope.motdExists ? 'PUT' : 'POST';
+      var
+        method = $scope.motdExists ? 'PUT' : 'POST',
+        text = "",
+        buttonText = "",
+        lt = /</g,
+        gt = />/g,
+        ap = /'/g,
+        ic = /"/g;
+
+      text = $scope.text.toString().replace(lt, "&lt;").replace(gt, "&gt;").replace(ap, "&#39;").replace(ic, "&#34;");
+      buttonText = $scope.buttonText ? $scope.buttonText.toString().replace(lt, "&lt;").replace(gt, "&gt;").replace(ap, "&#39;").replace(ic, "&#34;") : $scope.buttonText;
+
       var data = {
         'Settings' : {
-          'content' : '{"text":"' + $scope.text + '", "button":"' + $scope.buttonText + '", "status":"' + $scope.status + '"}',
+          'content' : '{"text":"' + text + '", "button":"' + buttonText + '", "status":"' + $scope.status + '"}',
           'name' : 'motd',
           'setting_type' : 'ambari-server'
         }

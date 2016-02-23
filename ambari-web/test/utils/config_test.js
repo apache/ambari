@@ -510,44 +510,6 @@ describe('App.config', function () {
     });
   });
 
-  describe('#getIsEditable', function() {
-    [{
-        isDefaultGroup: true,
-        isReconfigurable: true,
-        canEdit: true,
-        res: true,
-        m: "isEditable is true"
-      },
-      {
-        isDefaultGroup: false,
-        isReconfigurable: true,
-        canEdit: true,
-        res: false,
-        m: "isEditable is false; config group is not default"
-      },
-      {
-        isDefaultGroup: true,
-        isReconfigurable: false,
-        canEdit: true,
-        res: false,
-        m: "isEditable is true; config is not reconfigurable"
-      },
-      {
-        isDefaultGroup: true,
-        isReconfigurable: true,
-        canEdit: false,
-        res: false,
-        m: "isEditable is true; edition restricted by controller state"
-    }].forEach(function(t) {
-        it(t.m, function() {
-          var configProperty = Ember.Object.create({isReconfigurable: t.isReconfigurable});
-          var configGroup = Ember.Object.create({isDefault: t.isDefaultGroup});
-          var isEditable = App.config.getIsEditable(configProperty, configGroup, t.canEdit);
-          expect(isEditable).to.equal(t.res);
-        })
-      });
-  });
-
   describe('#getIsSecure', function() {
     var secureConfigs = App.config.get('secureConfigs');
     before(function() {
@@ -692,6 +654,12 @@ describe('App.config', function () {
       sinon.stub(App.config, 'shouldSupportFinal', function() {
         return true;
       });
+      sinon.stub(App.config, 'get', function(param) {
+        if (param === 'serviceByConfigTypeMap') {
+          return { 'pFileName': 'pServiceName' };
+        }
+        return Em.get(App.config, param);
+      });
     });
 
     after(function() {
@@ -699,11 +667,12 @@ describe('App.config', function () {
       App.config.getDefaultCategory.restore();
       App.config.getIsSecure.restore();
       App.config.shouldSupportFinal.restore();
+      App.config.get.restore();
     });
 
     var res = {
       /** core properties **/
-      id: "pName__pFileName",
+      id: 'pName__pFileName',
       name: 'pName',
       filename: 'pFileName.xml',
       value: '',
@@ -738,7 +707,7 @@ describe('App.config', function () {
       widgetType: null
     };
     it('create default config object', function () {
-      expect(App.config.createDefaultConfig('pName', 'pServiceName', 'pFileName', true)).to.eql(res);
+      expect(App.config.createDefaultConfig('pName', 'pFileName', true)).to.eql(res);
     });
     it('getDefaultDisplayType is called', function() {
       expect(App.config.getDefaultDisplayType.called).to.be.true;
@@ -887,83 +856,6 @@ describe('App.config', function () {
           "category": 'component1',
           "index": 0
         })
-    });
-  });
-
-  describe("#restrictSecureProperties()", function() {
-    var testCases = [
-      {
-        input: {
-          isSecureConfig: true,
-          isKerberosEnabled: true,
-          isReconfigurable: false,
-          isOverridable: false
-        },
-        expected: {
-          isReconfigurable: false,
-          isOverridable: false
-        }
-      },
-      {
-        input: {
-          isSecureConfig: true,
-          isKerberosEnabled: true,
-          isReconfigurable: true,
-          isOverridable: true
-        },
-        expected: {
-          isReconfigurable: false,
-          isOverridable: false
-        }
-      },
-      {
-        input: {
-          isSecureConfig: true,
-          isKerberosEnabled: false,
-          isReconfigurable: true,
-          isOverridable: true
-        },
-        expected: {
-          isReconfigurable: true,
-          isOverridable: true
-        }
-      },
-      {
-        input: {
-          isSecureConfig: false,
-          isReconfigurable: false,
-          isOverridable: false
-        },
-        expected: {
-          isReconfigurable: false,
-          isOverridable: false
-        }
-      },
-      {
-        input: {
-          isSecureConfig: false,
-          isReconfigurable: true,
-          isOverridable: true
-        },
-        expected: {
-          isReconfigurable: true,
-          isOverridable: true
-        }
-      }
-    ];
-
-    testCases.forEach(function(test) {
-      it("isSecureConfig = " + test.input.isSecureConfig + "; isKerberosEnabled = " + test.input.isKerberosEnabled, function() {
-        var config = {
-          isSecureConfig: test.input.isSecureConfig,
-          isReconfigurable: test.input.isReconfigurable,
-          isOverridable: test.input.isOverridable
-        };
-        App.set('isKerberosEnabled', !!test.input.isKerberosEnabled);
-        App.config.restrictSecureProperties(config);
-        expect(config.isReconfigurable).to.equal(test.expected.isReconfigurable);
-        expect(config.isOverridable).to.equal(test.expected.isOverridable);
-      });
     });
   });
 

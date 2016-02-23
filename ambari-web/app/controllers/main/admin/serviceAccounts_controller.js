@@ -103,7 +103,10 @@ App.MainAdminServiceAccountsController = App.MainServiceInfoConfigsController.ex
    * @param {Object[]} serverConfigs
    */
   createConfigObject: function(serverConfigs) {
-    var configs = App.config.mergePredefinedWithSaved(serverConfigs, this.get('selectedService'));
+    var configs = [];
+    serverConfigs.forEach(function(configObject) {
+      configs = configs.concat(App.config.getConfigsFromJSON(configObject, true));
+    });
     var miscConfigs = configs.filterProperty('displayType', 'user').filterProperty('category', 'Users and Groups');
     miscConfigs.setEach('isVisible', true);
     this.set('users', miscConfigs);

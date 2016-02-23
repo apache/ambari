@@ -361,7 +361,7 @@ App.Router = Em.Router.extend({
     }
 
     var
-      text = response.text ? response.text : "",
+      text = response.text ? response.text.replace(/(\r\n|\n|\r)/gm, '<br>') : "",
       buttonText = response.button ? response.button : Em.I18n.t('ok'),
       status = response.status && response.status == "true" ? true : false,
       self = this;
@@ -373,8 +373,15 @@ App.Router = Em.Router.extend({
         bodyClass: Ember.View.extend({
           template: Ember.Handlebars.compile(text)
         }),
-        primary: buttonText,
+        primary:null,
         secondary: null,
+        footerClass: Ember.View.extend({
+          template: Ember.Handlebars.compile(
+            '<div class="modal-footer">' +
+            '<button class="btn btn-success" {{action onPrimary target="view"}}>' + buttonText + '</button>'+
+            '</div>'
+          )
+        }),
 
         onPrimary: function () {
           self.setClusterData(data, opt, params);
