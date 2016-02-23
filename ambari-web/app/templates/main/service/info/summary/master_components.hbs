@@ -30,6 +30,14 @@
     <td {{bindAttr class=":summary-value comp.summaryValueClassName"}}>
       <span rel='SummaryComponentHealthTooltip' {{bindAttr class="comp.statusClass comp.statusIconClass" data-original-title="comp.passiveTooltip"}}></span>
       {{comp.componentTextStatus}}
+      {{#if comp.alertsCount}}
+        <span {{action "showServiceAlertsPopup" comp target="controller"}}
+          {{bindAttr class=":label comp.hasCriticalAlerts:alerts-crit-count:alerts-warn-count"}}>
+          {{comp.alertsCount}} {{pluralize comp.alertsCount singular="alert" plural="alerts"}}</span>
+      {{else}}
+        <span {{action "showServiceAlertsPopup" comp target="controller"}}
+          class="label no-alerts-label">{{t services.service.summary.alerts.noAlerts}}</span>
+      {{/if}}
     </td>
   </tr>
 {{/each}}

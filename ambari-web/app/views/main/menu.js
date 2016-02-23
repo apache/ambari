@@ -39,7 +39,7 @@ App.MainMenuView = Em.CollectionView.extend({
           result.push(
               {label: Em.I18n.t('menu.item.dashboard'), routing: 'dashboard', active: 'active'},
               {label: Em.I18n.t('menu.item.services'), routing: 'services'},
-              {label: Em.I18n.t('menu.item.hosts'), routing: 'hosts', hasAlertsLabel: true},
+              {label: Em.I18n.t('menu.item.hosts'), routing: 'hosts'},
               {label: Em.I18n.t('menu.item.alerts'), routing: 'alerts'}
           );
         }
@@ -75,12 +75,6 @@ App.MainMenuView = Em.CollectionView.extend({
       }
       return "";
     }.property('App.router.location.lastSetURL', 'App.router.clusterController.isLoaded'),
-
-    alertsCount: Em.computed.alias('App.router.mainHostController.hostsCountMap.health-status-WITH-ALERTS'),
-
-    hasCriticalAlerts: Em.computed.gt('App.router.mainHostController.hostsCountMap.health-status-CRITICAL', 0),
-
-    hasAlertsLabel: Em.computed.and('content.hasAlertsLabel', 'alertsCount'),
 
     templateName: require('templates/main/menu_item'),
 

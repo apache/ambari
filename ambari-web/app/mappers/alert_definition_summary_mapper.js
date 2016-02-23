@@ -67,6 +67,7 @@ App.alertDefinitionSummaryMapper = App.QuickDataMapper.create({
     });
     // set alertsCount and hasCriticalAlerts for each service
     var groupedByServiceName = dataManipulation.groupPropertyValues(alertDefinitions, 'service.serviceName');
+    var groupedByComponentName = dataManipulation.groupPropertyValues(alertDefinitions, 'componentName');
     var services = App.Service.find();
     var servicesMap = services.toArray().toMapByProperty('id');
     Object.keys(groupedByServiceName).forEach(function(serviceName) {
@@ -89,6 +90,28 @@ App.alertDefinitionSummaryMapper = App.QuickDataMapper.create({
         service.setProperties({
           alertsCount: alertsCount,
           hasCriticalAlerts: hasCriticalAlerts
+        });
+
+        var masters = service.get('hostComponents').filterProperty('isMaster');
+        masters.forEach(function (master) {
+          var hasCriticalAlerts = false;
+
+          var alertsCount = groupedByComponentName[master.get('componentName')].map(function (alertDefinition) {
+
+            var criticalCount = alertDefinition.getWithDefault('summary.CRITICAL.count', 0);
+            var warningCount = alertDefinition.getWithDefault('summary.WARNING.count', 0);
+
+            if (criticalCount) {
+              hasCriticalAlerts = true;
+            }
+            return criticalCount + warningCount;
+
+          }).reduce(Em.sum, 0);
+
+          master.setProperties({
+            alertsCount: alertsCount,
+            hasCriticalAlerts: hasCriticalAlerts
+          });
         });
       }
     });

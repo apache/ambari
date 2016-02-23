@@ -294,9 +294,9 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
   },
 
   showServiceAlertsPopup: function (event) {
-    var service = event.context;
+    var context = event.context;
     return App.ModalPopup.show({
-      header: Em.I18n.t('services.service.summary.alerts.popup.header').format(service.get('displayName')),
+      header: Em.I18n.t('services.service.summary.alerts.popup.header').format(context.get('displayName')),
       autoHeight: false,
       classNames: ['forty-percent-width-modal'],
       bodyClass: Em.View.extend({
@@ -312,7 +312,8 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
           this.$(".timeago").tooltip('destroy');
         },
         alerts: function () {
-          var serviceDefinitions = this.get('controller.content').filterProperty('service', service);
+          var property = context.get('componentName') ? 'componentName' : 'serviceName';
+          var serviceDefinitions = this.get('controller.content').filterProperty(property, context.get(property));
           // definitions should be sorted in order: critical, warning, ok, unknown, other
           var criticalDefinitions = [], warningDefinitions = [], okDefinitions = [], unknownDefinitions = [];
           serviceDefinitions.forEach(function (definition) {
