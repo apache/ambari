@@ -31,6 +31,7 @@ import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;
+
 import org.apache.commons.lang.StringUtils;
 
 import java.util.Collections;
@@ -158,6 +159,6 @@ public class UserService extends BaseService {
    */
   private ResourceInstance createUserResource(String userName) {
     return createResource(Resource.Type.User,
-        Collections.singletonMap(Resource.Type.User, userName));
+        Collections.singletonMap(Resource.Type.User, StringUtils.lowerCase(userName)));
   }
 }
