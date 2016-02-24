@@ -734,6 +734,7 @@ public class AlertResourceProviderTest {
       expect(configuration.getMasterKeyLocation()).andReturn(new File("/test")).anyTimes();
       expect(configuration.getTemporaryKeyStoreRetentionMinutes()).andReturn(2l).anyTimes();
       expect(configuration.isActivelyPurgeTemporaryKeyStore()).andReturn(true).anyTimes();
+      expect(configuration.getDatabaseSchema()).andReturn(Configuration.DEFAULT_DERBY_SCHEMA).anyTimes();
       replay(configuration);
     }
   }
