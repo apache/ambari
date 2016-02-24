@@ -34,11 +34,12 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
-import org.apache.ambari.server.orm.dao.DaoUtils;
 import org.apache.ambari.server.orm.dao.PermissionDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
+import org.apache.ambari.server.orm.dao.RoleAuthorizationDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
+import org.apache.ambari.server.orm.entities.RoleAuthorizationEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.RepositoryType;
@@ -71,9 +72,6 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   protected static final String SERVICE_COMPONENT_HISTORY_TABLE = "servicecomponent_history";
   protected static final String UPGRADE_TABLE = "upgrade";
   protected static final String STACK_TABLE = "stack";
-
-  @Inject
-  DaoUtils daoUtils;
 
   @Inject
   PermissionDAO permissionDAO;
@@ -166,19 +164,19 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   }
 
   protected void addSettingPermission() throws SQLException {
-    String administratorPermissionId =
-            permissionDAO.findPermissionByNameAndType("AMBARI.ADMINISTRATOR", resourceTypeDAO.findByName("AMBARI")).getId().toString();
-    String selectRoleSql = "select * from roleauthorization where authorization_id = 'AMBARI.MANAGE_SETTINGS'";
-    if (executeAndCheckEmptyResult(selectRoleSql)) {
-      dbAccessor.insertRow("roleauthorization", new String[]{"authorization_id", "authorization_name"},
-              new String[]{"'AMBARI.MANAGE_SETTINGS'", "'Manage settings'"}, false);
+    RoleAuthorizationDAO roleAuthorizationDAO = injector.getInstance(RoleAuthorizationDAO.class);
+
+    if (roleAuthorizationDAO.findById("AMBARI.MANAGE_SETTINGS") == null) {
+      RoleAuthorizationEntity roleAuthorizationEntity = new RoleAuthorizationEntity();
+      roleAuthorizationEntity.setAuthorizationId("AMBARI.MANAGE_SETTINGS");
+      roleAuthorizationEntity.setAuthorizationName("Manage settings");
+      roleAuthorizationDAO.create(roleAuthorizationEntity);
     }
 
-    String selectPermissionSql = "select * from permission_roleauthorization where authorization_id = 'AMBARI.MANAGE_SETTINGS'";
-    if (executeAndCheckEmptyResult(selectPermissionSql)) {
-      dbAccessor.insertRow("permission_roleauthorization", new String[]{"permission_id", "authorization_id"},
-              new String[]{administratorPermissionId, "'AMBARI.MANAGE_SETTINGS'"}, false);
-    }
+    String administratorPermissionId = permissionDAO.findPermissionByNameAndType("AMBARI.ADMINISTRATOR",
+        resourceTypeDAO.findByName("AMBARI")).getId().toString();
+    dbAccessor.insertRowIfMissing("permission_roleauthorization", new String[]{"permission_id", "authorization_id"},
+        new String[]{"'" + administratorPermissionId + "'", "'AMBARI.MANAGE_SETTINGS'"}, false);
   }
 
   protected void updateAlerts() {
@@ -246,17 +244,6 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
                                List<String> params) {
     if (alertDefinitionEntity != null) {
       alertDefinitionParams.put(alertDefinitionEntity, params);
-    }
-  }
-
-  private boolean executeAndCheckEmptyResult(String sql) throws SQLException {
-    try(Statement statement = dbAccessor.getConnection().createStatement();
-        ResultSet resultSet = statement.executeQuery(sql)) {
-      if (resultSet != null && resultSet.next()) {
-        return false;
-      } else {
-        return true;
-      }
     }
   }
 

@@ -21,6 +21,7 @@ package org.apache.ambari.server.orm.dao;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
+import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.RoleAuthorizationEntity;
 
@@ -42,6 +43,16 @@ public class RoleAuthorizationDAO {
 
   @Inject
   DaoUtils daoUtils;
+
+  /**
+   * Create a new role authorization.
+   *
+   * @param roleAuthorizationEntity  entity to store
+   */
+  @Transactional
+  public void create(RoleAuthorizationEntity roleAuthorizationEntity) {
+    entityManagerProvider.get().persist(roleAuthorizationEntity);
+  }
 
   /**
    * Find a authorization entity with the given id.

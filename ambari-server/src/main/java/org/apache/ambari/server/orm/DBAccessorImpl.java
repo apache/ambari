@@ -656,6 +656,51 @@ public class DBAccessorImpl implements DBAccessor {
   }
 
   @Override
+  public boolean insertRowIfMissing(String tableName, String[] columnNames, String[] values, boolean ignoreFailure) throws SQLException {
+    if (columnNames.length == 0) {
+      return false;
+    }
+
+    if (columnNames.length != values.length) {
+      throw new IllegalArgumentException("number of columns should be equal to number of values");
+    }
+
+    StringBuilder builder = new StringBuilder();
+    builder.append("SELECT COUNT(*) FROM ").append(tableName);
+
+    builder.append(" WHERE ").append(columnNames[0]).append("=").append(values[0]);
+    for (int i = 1; i < columnNames.length; i++) {
+      builder.append(" AND ").append(columnNames[i]).append("=").append(values[i]);
+    }
+
+    Statement statement = getConnection().createStatement();
+    ResultSet resultSet = null;
+    int count = -1;
+    String query = builder.toString();
+    try {
+      resultSet = statement.executeQuery(query);
+
+      if ((resultSet != null) && (resultSet.next())) {
+        count = resultSet.getInt(1);
+      }
+    } catch (SQLException e) {
+      LOG.warn("Unable to execute query: " + query, e);
+      if (!ignoreFailure) {
+        throw e;
+      }
+    } finally {
+      if (resultSet != null) {
+        resultSet.close();
+      }
+      if (statement != null) {
+        statement.close();
+      }
+    }
+
+    return (count == 0) && insertRow(tableName, columnNames, values, ignoreFailure);
+  }
+
+  @Override
   public int updateTable(String tableName, String columnName, Object value,
           String whereClause) throws SQLException {
 

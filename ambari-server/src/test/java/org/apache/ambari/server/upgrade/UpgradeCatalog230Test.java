@@ -60,11 +60,11 @@ public class UpgradeCatalog230Test extends EasyMockSupport {
     Module module = new Module() {
       @Override
       public void configure(Binder binder) {
-        binder.bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        binder.bind(DBAccessor.class).toInstance(createMock(DBAccessor.class));
         binder.bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
         binder.bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
         binder.bind(DaoUtils.class).toInstance(createNiceMock(DaoUtils.class));
-        binder.bind(PermissionDAO.class).toInstance(createNiceMock(PermissionDAO.class));
+        binder.bind(PermissionDAO.class).toInstance(createMock(PermissionDAO.class));
         binder.bind(ResourceTypeDAO.class).toInstance(createMock(ResourceTypeDAO.class));
       }
     };
@@ -81,11 +81,21 @@ public class UpgradeCatalog230Test extends EasyMockSupport {
     expect(configuration.getDatabaseUrl()).andReturn(Configuration.JDBC_IN_MEMORY_URL).anyTimes();
 
     Capture<DBAccessor.DBColumnInfo> columnCapture = EasyMock.newCapture();
+    Capture<DBAccessor.DBColumnInfo> columnCaptureUserType = EasyMock.newCapture();
     Capture<DBAccessor.DBColumnInfo> columnCapturePermissionLabel = EasyMock.newCapture();
     Capture<List<DBAccessor.DBColumnInfo>> columnsCaptureRoleAuthorization = EasyMock.newCapture();
     Capture<List<DBAccessor.DBColumnInfo>> columnsCapturePermissionRoleAuthorization = EasyMock.newCapture();
 
     dbAccessor.alterColumn(eq("host_role_command"), capture(columnCapture));
+    expectLastCall();
+
+    dbAccessor.executeQuery("UPDATE users SET user_type='LDAP' WHERE ldap_user=1");
+    expectLastCall();
+
+    dbAccessor.addUniqueConstraint("users", "UNQ_users_0", "user_name", "user_type");
+    expectLastCall();
+
+    dbAccessor.addColumn(eq("users"), capture(columnCaptureUserType));
     expectLastCall();
 
     dbAccessor.addColumn(eq("adminpermission"), capture(columnCapturePermissionLabel));
@@ -116,6 +126,12 @@ public class UpgradeCatalog230Test extends EasyMockSupport {
     verifyAll();
 
     assertTrue(columnCapture.getValue().isNullable());
+
+    assertEquals(columnCaptureUserType.getValue().getName(), "user_type");
+    assertEquals(columnCaptureUserType.getValue().getType(), String.class);
+    assertEquals(columnCaptureUserType.getValue().getLength(), null);
+    assertEquals(columnCaptureUserType.getValue().getDefaultValue(), "LOCAL");
+    assertEquals(columnCaptureUserType.getValue().isNullable(), true);
 
     assertEquals(columnCapturePermissionLabel.getValue().getName(), "permission_label");
     assertEquals(columnCapturePermissionLabel.getValue().getType(), String.class);
@@ -248,6 +264,10 @@ public class UpgradeCatalog230Test extends EasyMockSupport {
     expect(dbAccessor.executeUpdate(String.format(updateQueryPattern,
         PermissionEntity.VIEW_USER_PERMISSION_NAME, PermissionEntity.VIEW_USER_PERMISSION)))
         .andReturn(1).once();
+
+    expect(dbAccessor.insertRowIfMissing(anyString(), anyObject(String[].class), anyObject(String[].class), eq(false)))
+        .andReturn(true)
+        .atLeastOnce();
 
     replayAll();
     upgradeCatalog.executeDMLUpdates();

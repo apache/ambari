@@ -30,7 +30,10 @@ import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.DaoUtils;
 import org.apache.ambari.server.orm.dao.PermissionDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
+import org.apache.ambari.server.orm.dao.RoleAuthorizationDAO;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
+import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
+import org.apache.ambari.server.orm.entities.RoleAuthorizationEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -134,85 +137,103 @@ public class UpgradeCatalog230 extends AbstractUpgradeCatalog {
 
     PermissionDAO permissionDAO = injector.getInstance(PermissionDAO.class);
     ResourceTypeDAO resourceTypeDAO = injector.getInstance(ResourceTypeDAO.class);
-    PermissionEntity permissionEntity = new PermissionEntity();
+    ResourceTypeEntity clusterResourceTypeEntity = resourceTypeDAO.findByName("CLUSTER");
 
     // CLUSTER.OPERATOR: Cluster Operator
-    permissionEntity.setId(null);
-    permissionEntity.setPermissionName("CLUSTER.OPERATOR");
-    permissionEntity.setPermissionLabel("Cluster Operator");
-    permissionEntity.setResourceType(resourceTypeDAO.findByName("CLUSTER"));
-    permissionDAO.create(permissionEntity);
+    if(permissionDAO.findPermissionByNameAndType("CLUSTER.OPERATOR", clusterResourceTypeEntity) == null) {
+      PermissionEntity permissionEntity = new PermissionEntity();
+      permissionEntity.setId(null);
+      permissionEntity.setPermissionName("CLUSTER.OPERATOR");
+      permissionEntity.setPermissionLabel("Cluster Operator");
+      permissionEntity.setResourceType(clusterResourceTypeEntity);
+      permissionDAO.create(permissionEntity);
+    }
 
     // SERVICE.ADMINISTRATOR: Service Administrator
-    permissionEntity.setId(null);
-    permissionEntity.setPermissionName("SERVICE.ADMINISTRATOR");
-    permissionEntity.setPermissionLabel("Service Administrator");
-    permissionEntity.setResourceType(resourceTypeDAO.findByName("CLUSTER"));
-    permissionDAO.create(permissionEntity);
+    if(permissionDAO.findPermissionByNameAndType("SERVICE.ADMINISTRATOR", clusterResourceTypeEntity) == null) {
+      PermissionEntity permissionEntity = new PermissionEntity();
+      permissionEntity.setId(null);
+      permissionEntity.setPermissionName("SERVICE.ADMINISTRATOR");
+      permissionEntity.setPermissionLabel("Service Administrator");
+      permissionEntity.setResourceType(clusterResourceTypeEntity);
+      permissionDAO.create(permissionEntity);
+    }
 
     // SERVICE.OPERATOR: Service Operator
-    permissionEntity.setId(null);
-    permissionEntity.setPermissionName("SERVICE.OPERATOR");
-    permissionEntity.setPermissionLabel("Service Operator");
-    permissionEntity.setResourceType(resourceTypeDAO.findByName("CLUSTER"));
-    permissionDAO.create(permissionEntity);
+    if(permissionDAO.findPermissionByNameAndType("SERVICE.OPERATOR", clusterResourceTypeEntity) == null) {
+      PermissionEntity permissionEntity = new PermissionEntity();
+      permissionEntity.setId(null);
+      permissionEntity.setPermissionName("SERVICE.OPERATOR");
+      permissionEntity.setPermissionLabel("Service Operator");
+      permissionEntity.setResourceType(clusterResourceTypeEntity);
+      permissionDAO.create(permissionEntity);
+    }
   }
 
 
   private void createRoleAuthorizations() throws SQLException {
     LOG.info("Adding authorizations");
 
-    String[] columnNames = new String[]{ROLE_AUTHORIZATION_ID_COL, ROLE_AUTHORIZATION_NAME_COL};
+    RoleAuthorizationDAO roleAuthorizationDAO = injector.getInstance(RoleAuthorizationDAO.class);
 
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'VIEW.USE'", "'Use View'"}, false);
+    createRoleAuthorization(roleAuthorizationDAO, "VIEW.USE", "Use View");
 
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'SERVICE.VIEW_METRICS'", "'View metrics'"}, false);
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'SERVICE.VIEW_STATUS_INFO'", "'View status information'"}, false);
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'SERVICE.VIEW_CONFIGS'", "'View configurations'"}, false);
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'SERVICE.COMPARE_CONFIGS'", "'Compare configurations'"}, false);
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'SERVICE.VIEW_ALERTS'", "'View service-level alerts'"}, false);
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'SERVICE.START_STOP'", "'Start/Stop/Restart Service'"}, false);
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'SERVICE.DECOMMISSION_RECOMMISSION'", "'Decommission/recommission'"}, false);
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'SERVICE.RUN_SERVICE_CHECK'", "'Run service checks'"}, false);
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'SERVICE.TOGGLE_MAINTENANCE'", "'Turn on/off maintenance mode'"}, false);
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'SERVICE.RUN_CUSTOM_COMMAND'", "'Perform service-specific tasks'"}, false);
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'SERVICE.MODIFY_CONFIGS'", "'Modify configurations'"}, false);
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'SERVICE.MANAGE_CONFIG_GROUPS'", "'Manage configuration groups'"}, false);
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'SERVICE.MANAGE_ALERTS'", "'Manage service-level alerts'"}, false);
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'SERVICE.MOVE'", "'Move to another host'"}, false);
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'SERVICE.ENABLE_HA'", "'Enable HA'"}, false);
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'SERVICE.TOGGLE_ALERTS'", "'Enable/disable service-level alerts'"}, false);
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'SERVICE.ADD_DELETE_SERVICES'", "'Add Service to cluster'"}, false);
+    createRoleAuthorization(roleAuthorizationDAO, "SERVICE.VIEW_METRICS", "View metrics");
+    createRoleAuthorization(roleAuthorizationDAO, "SERVICE.VIEW_STATUS_INFO", "View status information");
+    createRoleAuthorization(roleAuthorizationDAO, "SERVICE.VIEW_CONFIGS", "View configurations");
+    createRoleAuthorization(roleAuthorizationDAO, "SERVICE.COMPARE_CONFIGS", "Compare configurations");
+    createRoleAuthorization(roleAuthorizationDAO, "SERVICE.VIEW_ALERTS", "View service-level alerts");
+    createRoleAuthorization(roleAuthorizationDAO, "SERVICE.START_STOP", "Start/Stop/Restart Service");
+    createRoleAuthorization(roleAuthorizationDAO, "SERVICE.DECOMMISSION_RECOMMISSION", "Decommission/recommission");
+    createRoleAuthorization(roleAuthorizationDAO, "SERVICE.RUN_SERVICE_CHECK", "Run service checks");
+    createRoleAuthorization(roleAuthorizationDAO, "SERVICE.TOGGLE_MAINTENANCE", "Turn on/off maintenance mode");
+    createRoleAuthorization(roleAuthorizationDAO, "SERVICE.RUN_CUSTOM_COMMAND", "Perform service-specific tasks");
+    createRoleAuthorization(roleAuthorizationDAO, "SERVICE.MODIFY_CONFIGS", "Modify configurations");
+    createRoleAuthorization(roleAuthorizationDAO, "SERVICE.MANAGE_CONFIG_GROUPS", "Manage configuration groups");
+    createRoleAuthorization(roleAuthorizationDAO, "SERVICE.MANAGE_ALERTS", "Manage service-level alerts");
+    createRoleAuthorization(roleAuthorizationDAO, "SERVICE.MOVE", "Move to another host");
+    createRoleAuthorization(roleAuthorizationDAO, "SERVICE.ENABLE_HA", "Enable HA");
+    createRoleAuthorization(roleAuthorizationDAO, "SERVICE.TOGGLE_ALERTS", "Enable/disable service-level alerts");
+    createRoleAuthorization(roleAuthorizationDAO, "SERVICE.ADD_DELETE_SERVICES", "Add Service to cluster");
 
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'HOST.VIEW_METRICS'", "'View metrics'"}, false);
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'HOST.VIEW_STATUS_INFO'", "'View status information'"}, false);
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'HOST.VIEW_CONFIGS'", "'View configuration'"}, false);
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'HOST.TOGGLE_MAINTENANCE'", "'Turn on/off maintenance mode'"}, false);
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'HOST.ADD_DELETE_COMPONENTS'", "'Install components'"}, false);
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'HOST.ADD_DELETE_HOSTS'", "'Add/Delete hosts'"}, false);
+    createRoleAuthorization(roleAuthorizationDAO, "HOST.VIEW_METRICS", "View metrics");
+    createRoleAuthorization(roleAuthorizationDAO, "HOST.VIEW_STATUS_INFO", "View status information");
+    createRoleAuthorization(roleAuthorizationDAO, "HOST.VIEW_CONFIGS", "View configuration");
+    createRoleAuthorization(roleAuthorizationDAO, "HOST.TOGGLE_MAINTENANCE", "Turn on/off maintenance mode");
+    createRoleAuthorization(roleAuthorizationDAO, "HOST.ADD_DELETE_COMPONENTS", "Install components");
+    createRoleAuthorization(roleAuthorizationDAO, "HOST.ADD_DELETE_HOSTS", "Add/Delete hosts");
 
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'CLUSTER.VIEW_METRICS'", "'View metrics'"}, false);
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'CLUSTER.VIEW_STATUS_INFO'", "'View status information'"}, false);
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'CLUSTER.VIEW_CONFIGS'", "'View configuration'"}, false);
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'CLUSTER.VIEW_STACK_DETAILS'", "'View stack version details'"}, false);
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'CLUSTER.VIEW_ALERTS'", "'View cluster-level alerts'"}, false);
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'CLUSTER.MANAGE_CREDENTIALS'", "'Manage external credentials'"}, false);
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'CLUSTER.MODIFY_CONFIGS'", "'Modify cluster configurations'"}, false);
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'CLUSTER.MANAGE_CONFIG_GROUPS'", "'Manage cluster configuration groups'"}, false);
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'CLUSTER.MANAGE_ALERTS'", "'Manage cluster-level alerts'"}, false);
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'CLUSTER.TOGGLE_ALERTS'", "'Enable/disable cluster-level alerts'"}, false);
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'CLUSTER.TOGGLE_KERBEROS'", "'Enable/disable Kerberos'"}, false);
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'CLUSTER.UPGRADE_DOWNGRADE_STACK'", "'Upgrade/downgrade stack'"}, false);
+    createRoleAuthorization(roleAuthorizationDAO, "CLUSTER.VIEW_METRICS", "View metrics");
+    createRoleAuthorization(roleAuthorizationDAO, "CLUSTER.VIEW_STATUS_INFO", "View status information");
+    createRoleAuthorization(roleAuthorizationDAO, "CLUSTER.VIEW_CONFIGS", "View configuration");
+    createRoleAuthorization(roleAuthorizationDAO, "CLUSTER.VIEW_STACK_DETAILS", "View stack version details");
+    createRoleAuthorization(roleAuthorizationDAO, "CLUSTER.VIEW_ALERTS", "View cluster-level alerts");
+    createRoleAuthorization(roleAuthorizationDAO, "CLUSTER.MANAGE_CREDENTIALS", "Manage external credentials");
+    createRoleAuthorization(roleAuthorizationDAO, "CLUSTER.MODIFY_CONFIGS", "Modify cluster configurations");
+    createRoleAuthorization(roleAuthorizationDAO, "CLUSTER.MANAGE_CONFIG_GROUPS", "Manage cluster configuration groups");
+    createRoleAuthorization(roleAuthorizationDAO, "CLUSTER.MANAGE_ALERTS", "Manage cluster-level alerts");
+    createRoleAuthorization(roleAuthorizationDAO, "CLUSTER.TOGGLE_ALERTS", "Enable/disable cluster-level alerts");
+    createRoleAuthorization(roleAuthorizationDAO, "CLUSTER.TOGGLE_KERBEROS", "Enable/disable Kerberos");
+    createRoleAuthorization(roleAuthorizationDAO, "CLUSTER.UPGRADE_DOWNGRADE_STACK", "Upgrade/downgrade stack");
 
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'AMBARI.ADD_DELETE_CLUSTERS'", "'Create new clusters'"}, false);
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'AMBARI.SET_SERVICE_USERS_GROUPS'", "'Set service users and groups'"}, false);
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'AMBARI.RENAME_CLUSTER'", "'Rename clusters'"}, false);
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'AMBARI.MANAGE_USERS'", "'Manage users'"}, false);
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'AMBARI.MANAGE_GROUPS'", "'Manage groups'"}, false);
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'AMBARI.MANAGE_VIEWS'", "'Manage Ambari Views'"}, false);
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'AMBARI.ASSIGN_ROLES'", "'Assign roles'"}, false);
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'AMBARI.MANAGE_STACK_VERSIONS'", "'Manage stack versions'"}, false);
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'AMBARI.EDIT_STACK_REPOS'", "'Edit stack repository URLs'"}, false);
+    createRoleAuthorization(roleAuthorizationDAO, "AMBARI.ADD_DELETE_CLUSTERS", "Create new clusters");
+    createRoleAuthorization(roleAuthorizationDAO, "AMBARI.SET_SERVICE_USERS_GROUPS", "Set service users and groups");
+    createRoleAuthorization(roleAuthorizationDAO, "AMBARI.RENAME_CLUSTER", "Rename clusters");
+    createRoleAuthorization(roleAuthorizationDAO, "AMBARI.MANAGE_USERS", "Manage users");
+    createRoleAuthorization(roleAuthorizationDAO, "AMBARI.MANAGE_GROUPS", "Manage groups");
+    createRoleAuthorization(roleAuthorizationDAO, "AMBARI.MANAGE_VIEWS", "Manage Ambari Views");
+    createRoleAuthorization(roleAuthorizationDAO, "AMBARI.ASSIGN_ROLES", "Assign roles");
+    createRoleAuthorization(roleAuthorizationDAO, "AMBARI.MANAGE_STACK_VERSIONS", "Manage stack versions");
+    createRoleAuthorization(roleAuthorizationDAO, "AMBARI.EDIT_STACK_REPOS", "Edit stack repository URLs");
+  }
+
+  private void createRoleAuthorization(RoleAuthorizationDAO roleAuthorizationDAO, String id, String name) {
+    if(roleAuthorizationDAO.findById(id) == null) {
+      RoleAuthorizationEntity roleAuthorizationEntity = new RoleAuthorizationEntity();
+      roleAuthorizationEntity.setAuthorizationId(id);
+      roleAuthorizationEntity.setAuthorizationName(name);
+      roleAuthorizationDAO.create(roleAuthorizationEntity);
+    }
   }
 
   private void createPermissionRoleAuthorizationMap() throws SQLException {
@@ -315,8 +336,8 @@ public class UpgradeCatalog230 extends AbstractUpgradeCatalog {
       String authorizationId = entry.getKey();
 
       for(String permissionId : entry.getValue()) {
-        dbAccessor.insertRow(PERMISSION_ROLE_AUTHORIZATION_TABLE, columnNames,
-            new String[]{permissionId, "'" + authorizationId + "'"}, false);
+        dbAccessor.insertRowIfMissing(PERMISSION_ROLE_AUTHORIZATION_TABLE, columnNames,
+            new String[]{"'" + permissionId + "'", "'" + authorizationId + "'"}, false);
       }
     }
   }

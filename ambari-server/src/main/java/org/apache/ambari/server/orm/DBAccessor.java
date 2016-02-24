@@ -213,6 +213,18 @@ public interface DBAccessor {
   boolean insertRow(String tableName, String[] columnNames, String[] values, boolean ignoreFailure) throws SQLException;
 
   /**
+   * Conditionally insert row into table if it does not already exist
+   *
+   * @param tableName
+   * @param columnNames
+   * @param values
+   * @param ignoreFailure
+   * @return
+   * @throws SQLException
+   */
+  boolean insertRowIfMissing(String tableName, String[] columnNames, String[] values, boolean ignoreFailure) throws SQLException;
+
+  /**
    * Simple update operation on table
    * @param tableName
    * @param columnName
