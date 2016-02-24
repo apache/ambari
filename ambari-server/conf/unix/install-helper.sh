@@ -31,6 +31,7 @@ RESOURCE_MANAGEMENT_DIR_SERVER="${ROOT}/usr/lib/ambari-server/lib/resource_manag
 JINJA_SERVER_DIR="${ROOT}/usr/lib/ambari-server/lib/ambari_jinja2"
 SIMPLEJSON_SERVER_DIR="${ROOT}/usr/lib/ambari-server/lib/ambari_simplejson"
 AMBARI_PROPERTIES="${ROOT}/etc/ambari-server/conf/ambari.properties"
+AMBARI_ENV_RPMSAVE="${ROOT}/var/lib/ambari-server/ambari-env.sh.rpmsave" # this turns into ambari-env.sh during ambari-server start
 
 PYTHON_WRAPER_DIR="${ROOT}/usr/bin/"
 PYTHON_WRAPER_TARGET="${PYTHON_WRAPER_DIR}/ambari-python-wrap"
@@ -109,6 +110,12 @@ do_install(){
 	echo "sudo $AUTOSTART_SERVER_CMD"
   else
 	$AUTOSTART_SERVER_CMD
+  fi
+
+  PYTHON_PATH_LINE='export PYTHONPATH=$PYTHONPATH:/usr/lib/python2.6/site-packages'
+  grep "^$PYTHON_PATH_LINE\$" "$AMBARI_ENV_RPMSAVE" > /dev/null
+  if [ $? -ne 0 ]; then
+    echo -e "\n$PYTHON_PATH_LINE" >> $AMBARI_ENV_RPMSAVE
   fi
 }
 
