@@ -18,32 +18,38 @@
 
 package org.apache.ambari.server.orm;
 
-import com.google.inject.Inject;
-import com.google.inject.persist.Transactional;
-import com.google.inject.persist.UnitOfWork;
-import com.google.inject.persist.jpa.AmbariJpaPersistService;
+import java.lang.reflect.Method;
+import java.sql.SQLException;
+
+import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
+import javax.persistence.PersistenceException;
+
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.eclipse.persistence.exceptions.EclipseLinkException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
-import javax.persistence.PersistenceException;
-import java.lang.reflect.Method;
-import java.sql.SQLException;
+import com.google.inject.Inject;
+import com.google.inject.persist.Transactional;
+import com.google.inject.persist.UnitOfWork;
+import com.google.inject.persist.jpa.AmbariJpaPersistService;
 
 public class AmbariJpaLocalTxnInterceptor implements MethodInterceptor {
 
   private static final Logger LOG = LoggerFactory.getLogger(AmbariJpaLocalTxnInterceptor.class);
+
   @Inject
   private final AmbariJpaPersistService emProvider = null;
+
   @Inject
   private final UnitOfWork unitOfWork = null;
+
   // Tracks if the unit of work was begun implicitly by this transaction.
   private final ThreadLocal<Boolean> didWeStartWork = new ThreadLocal<Boolean>();
 
+  @Override
   public Object invoke(MethodInvocation methodInvocation) throws Throwable {
 
     // Should we start a unit of work?
@@ -53,54 +59,57 @@ public class AmbariJpaLocalTxnInterceptor implements MethodInterceptor {
     }
 
     Transactional transactional = readTransactionMetadata(methodInvocation);
-    EntityManager em = this.emProvider.get();
+    EntityManager em = emProvider.get();
 
     // Allow 'joining' of transactions if there is an enclosing @Transactional method.
     if (em.getTransaction().isActive()) {
       return methodInvocation.proceed();
     }
 
+    Object result;
+
     final EntityTransaction txn = em.getTransaction();
     txn.begin();
 
-    Object result;
     try {
       result = methodInvocation.proceed();
 
     } catch (Exception e) {
-      //commit transaction only if rollback didn't occur
+      // commit transaction only if rollback didn't occur
       if (rollbackIfNecessary(transactional, e, txn)) {
         txn.commit();
       }
 
       detailedLogForPersistenceError(e);
 
-      //propagate whatever exception is thrown anyway
+      // propagate whatever exception is thrown anyway
       throw e;
     } finally {
-      // Close the em if necessary (guarded so this code doesn't run unless catch fired).
+      // Close the em if necessary (guarded so this code doesn't run unless
+      // catch fired).
       if (null != didWeStartWork.get() && !txn.isActive()) {
         didWeStartWork.remove();
         unitOfWork.end();
       }
     }
 
-    //everything was normal so commit the txn (do not move into try block above as it
-    //  interferes with the advised method's throwing semantics)
+    // everything was normal so commit the txn (do not move into try block
+    // above as it
+    // interferes with the advised method's throwing semantics)
     try {
       txn.commit();
     } catch (Exception e) {
       detailedLogForPersistenceError(e);
       throw e;
     } finally {
-      //close the em if necessary
+      // close the em if necessary
       if (null != didWeStartWork.get()) {
         didWeStartWork.remove();
         unitOfWork.end();
       }
     }
 
-    //or return result
+    // or return result
     return result;
   }
 
