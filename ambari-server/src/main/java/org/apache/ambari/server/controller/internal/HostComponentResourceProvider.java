@@ -83,6 +83,8 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       = PropertyHelper.getPropertyId("HostRoles", "service_name");
   protected static final String HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID
       = PropertyHelper.getPropertyId("HostRoles", "component_name");
+  protected static final String HOST_COMPONENT_DISPLAY_NAME_PROPERTY_ID
+      = PropertyHelper.getPropertyId("HostRoles", "display_name");
   protected static final String HOST_COMPONENT_HOST_NAME_PROPERTY_ID
       = PropertyHelper.getPropertyId("HostRoles", "host_name");
   protected static final String HOST_COMPONENT_STATE_PROPERTY_ID
@@ -235,6 +237,8 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
               response.getServiceName(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID,
               response.getComponentName(), requestedIds);
+      setResourceProperty(resource, HOST_COMPONENT_DISPLAY_NAME_PROPERTY_ID,
+              response.getDisplayName(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_HOST_NAME_PROPERTY_ID,
               response.getHostname(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_STATE_PROPERTY_ID,

@@ -921,10 +921,10 @@ public class ServiceResourceProviderTest {
     StackId stackId = createNiceMock(StackId.class);
     ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "JOBTRACKER", "Host100",
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "JOBTRACKER", "JOBTRACKER", "Host100",
         "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "MAPREDUCE_CLIENT", "Host100", "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "TASKTRACKER", "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "MAPREDUCE_CLIENT", "MAPREDUCE_CLIENT", "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "TASKTRACKER", "TASKTRACKER", "Host100", "STARTED", "", null, null, null);
 
     Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
     responses.add(shr1);
@@ -970,11 +970,11 @@ public class ServiceResourceProviderTest {
     StackId stackId = createNiceMock(StackId.class);
     ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "JOBTRACKER", "Host100", "UNKNOWN", "", null, null, null);
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "JOBTRACKER", "JOBTRACKER", "Host100", "UNKNOWN", "", null, null, null);
     shr1.setMaintenanceState(MaintenanceState.OFF.toString());
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "MAPREDUCE_CLIENT", "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "MAPREDUCE_CLIENT", "MAPREDUCE_CLIENT", "Host100", "STARTED", "", null, null, null);
     shr2.setMaintenanceState(MaintenanceState.OFF.toString());
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "TASKTRACKER", "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "TASKTRACKER", "TASKTRACKER", "Host100", "STARTED", "", null, null, null);
     shr3.setMaintenanceState(MaintenanceState.OFF.toString());
 
     Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
@@ -1019,11 +1019,11 @@ public class ServiceResourceProviderTest {
     StackId stackId = createNiceMock(StackId.class);
     ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "JOBTRACKER", "Host100", "STARTING", "", null, null, null);
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "JOBTRACKER", "JOBTRACKER", "Host100", "STARTING", "", null, null, null);
     shr1.setMaintenanceState(MaintenanceState.OFF.toString());
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "MAPREDUCE_CLIENT", "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "MAPREDUCE_CLIENT", "MAPREDUCE_CLIENT", "Host100", "STARTED", "", null, null, null);
     shr2.setMaintenanceState(MaintenanceState.OFF.toString());
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "TASKTRACKER", "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "TASKTRACKER", "TASKTRACKER", "Host100", "STARTED", "", null, null, null);
     shr3.setMaintenanceState(MaintenanceState.OFF.toString());
 
     Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
@@ -1068,11 +1068,11 @@ public class ServiceResourceProviderTest {
     StackId stackId = createNiceMock(StackId.class);
     ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "JOBTRACKER", "Host100", "INSTALLED", "", null, null, null);
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "JOBTRACKER", "JOBTRACKER", "Host100", "INSTALLED", "", null, null, null);
     shr1.setMaintenanceState(MaintenanceState.OFF.toString());
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "MAPREDUCE_CLIENT", "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "MAPREDUCE_CLIENT", "MAPREDUCE_CLIENT", "Host100", "STARTED", "", null, null, null);
     shr2.setMaintenanceState(MaintenanceState.OFF.toString());
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "TASKTRACKER", "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "TASKTRACKER", "TASKTRACKER", "Host100", "STARTED", "", null, null, null);
     shr3.setMaintenanceState(MaintenanceState.OFF.toString());
 
     Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
@@ -1117,9 +1117,9 @@ public class ServiceResourceProviderTest {
     StackId stackId = createNiceMock(StackId.class);
     ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "JOBTRACKER", "Host100", "DISABLED", "", null, null, null);
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "MAPREDUCE_CLIENT", "Host100", "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "TASKTRACKER", "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "JOBTRACKER", "JOBTRACKER", "Host100", "DISABLED", "", null, null, null);
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "MAPREDUCE_CLIENT", "MAPREDUCE_CLIENT", "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "TASKTRACKER", "TASKTRACKER", "Host100", "STARTED", "", null, null, null);
 
     Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
     responses.add(shr1);
@@ -1164,9 +1164,9 @@ public class ServiceResourceProviderTest {
     StackId stackId = createNiceMock(StackId.class);
     ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "HDFS", "NAMENODE", "Host100",  "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "HDFS", "SECONDARY_NAMENODE", "Host100", "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "HDFS", "JOURNALNODE", "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "HDFS", "NAMENODE", "NAMENODE", "Host100",  "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "HDFS", "SECONDARY_NAMENODE", "SECONDARY_NAMENODE", "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "HDFS", "JOURNALNODE", "JOURNALNODE", "Host100", "STARTED", "", null, null, null);
 
     Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
     responses.add(shr1);
@@ -1212,9 +1212,9 @@ public class ServiceResourceProviderTest {
     StackId stackId = createNiceMock(StackId.class);
     ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "HDFS", "NAMENODE", "Host100", "INSTALLED", "", null, null, null);
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "HDFS", "NAMENODE", "Host101", "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "HDFS", "JOURNALNODE", "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "HDFS", "NAMENODE", "NAMENODE", "Host100", "INSTALLED", "", null, null, null);
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "HDFS", "NAMENODE", "NAMENODE", "Host101", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "HDFS", "JOURNALNODE", "JOURNALNODE", "Host100", "STARTED", "", null, null, null);
 
     Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
     responses.add(shr1);
@@ -1260,12 +1260,12 @@ public class ServiceResourceProviderTest {
     StackId stackId = createNiceMock(StackId.class);
     ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "HIVE", "HCAT", "Host100",  "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "HIVE", "HIVE_METASTORE", "Host101", "INSTALLED", "", null, null, null);
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "HIVE", "HIVE_CLIENT", "Host100", "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr4 = new ServiceComponentHostResponse("C1", "HIVE", "HIVE_SERVER", "Host100", "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr5 = new ServiceComponentHostResponse("C1", "HIVE", "MYSQL_SERVER", "Host100", "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr6 = new ServiceComponentHostResponse("C1", "HIVE", "WEBHCAT_SERVER", "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "HIVE", "HCAT", "HCAT", "Host100",  "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "HIVE", "HIVE_METASTORE", "HIVE_METASTORE", "Host101", "INSTALLED", "", null, null, null);
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "HIVE", "HIVE_CLIENT", "HIVE_CLIENT", "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr4 = new ServiceComponentHostResponse("C1", "HIVE", "HIVE_SERVER", "HIVE_SERVER", "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr5 = new ServiceComponentHostResponse("C1", "HIVE", "MYSQL_SERVER", "MYSQL_SERVER", "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr6 = new ServiceComponentHostResponse("C1", "HIVE", "WEBHCAT_SERVER", "WEBHCAT_SERVER", "Host100", "STARTED", "", null, null, null);
 
     Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
     responses.add(shr1);
@@ -1316,12 +1316,12 @@ public class ServiceResourceProviderTest {
     StackId stackId = createNiceMock(StackId.class);
     ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "HIVE", "HCAT", "Host100",  "INSTALLED", "", null, null, null);
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "HIVE", "HIVE_METASTORE", "Host101", "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "HIVE", "HIVE_CLIENT", "Host100", "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr4 = new ServiceComponentHostResponse("C1", "HIVE", "HIVE_SERVER", "Host100", "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr5 = new ServiceComponentHostResponse("C1", "HIVE", "MYSQL_SERVER", "Host100", "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr6 = new ServiceComponentHostResponse("C1", "HIVE", "WEBHCAT_SERVER", "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "HIVE", "HCAT", "HCAT", "Host100",  "INSTALLED", "", null, null, null);
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "HIVE", "HIVE_METASTORE", "HIVE_METASTORE", "Host101", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "HIVE", "HIVE_CLIENT", "HIVE_CLIENT", "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr4 = new ServiceComponentHostResponse("C1", "HIVE", "HIVE_SERVER", "HIVE_SERVER", "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr5 = new ServiceComponentHostResponse("C1", "HIVE", "MYSQL_SERVER", "MYSQL_SERVER", "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr6 = new ServiceComponentHostResponse("C1", "HIVE", "WEBHCAT_SERVER", "WEBHCAT_SERVER", "Host100", "STARTED", "", null, null, null);
 
     Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
     responses.add(shr1);
@@ -1372,13 +1372,13 @@ public class ServiceResourceProviderTest {
     StackId stackId = createNiceMock(StackId.class);
     ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "HIVE", "HCAT", "Host100",  "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "HIVE", "HIVE_METASTORE", "Host101", "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "HIVE", "HIVE_METASTORE", "Host101", "INSTALLED", "", null, null, null);
-    ServiceComponentHostResponse shr4 = new ServiceComponentHostResponse("C1", "HIVE", "HIVE_CLIENT", "Host100", "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr5 = new ServiceComponentHostResponse("C1", "HIVE", "HIVE_SERVER", "Host100", "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr6 = new ServiceComponentHostResponse("C1", "HIVE", "MYSQL_SERVER", "Host100", "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr7 = new ServiceComponentHostResponse("C1", "HIVE", "WEBHCAT_SERVER", "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "HIVE", "HCAT", "HCAT", "Host100",  "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "HIVE", "HIVE_METASTORE", "HIVE_METASTORE", "Host101", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "HIVE", "HIVE_METASTORE", "HIVE_METASTORE", "Host101", "INSTALLED", "", null, null, null);
+    ServiceComponentHostResponse shr4 = new ServiceComponentHostResponse("C1", "HIVE", "HIVE_CLIENT", "HIVE_CLIENT", "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr5 = new ServiceComponentHostResponse("C1", "HIVE", "HIVE_SERVER", "HIVE_SERVER", "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr6 = new ServiceComponentHostResponse("C1", "HIVE", "MYSQL_SERVER", "MYSQL_SERVER", "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr7 = new ServiceComponentHostResponse("C1", "HIVE", "WEBHCAT_SERVER", "WEBHCAT_SERVER", "Host100", "STARTED", "", null, null, null);
 
     Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
     responses.add(shr1);
@@ -1430,9 +1430,9 @@ public class ServiceResourceProviderTest {
     StackId stackId = createNiceMock(StackId.class);
     ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "OOZIE", "OOZIE_SERVER", "Host100",  "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "OOZIE", "OOZIE_SERVER", "Host101", "INSTALLED", "", null, null, null);
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "OOZIE", "OOZIE_CLIENT", "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "OOZIE", "OOZIE_SERVER", "OOZIE_SERVER", "Host100",  "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "OOZIE", "OOZIE_SERVER", "OOZIE_SERVER", "Host101", "INSTALLED", "", null, null, null);
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "OOZIE", "OOZIE_CLIENT", "OOZIE_CLIENT", "Host100", "STARTED", "", null, null, null);
 
     Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
     responses.add(shr1);
@@ -1478,9 +1478,9 @@ public class ServiceResourceProviderTest {
     StackId stackId = createNiceMock(StackId.class);
     ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "OOZIE", "OOZIE_SERVER", "Host100", "INSTALLED", "", null, null, null);
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "OOZIE", "OOZIE_SERVER", "Host101", "INSTALLED", "", null, null, null);
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "OOZIE", "OOZIE_CLIENT", "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "OOZIE", "OOZIE_SERVER", "OOZIE_SERVER", "Host100", "INSTALLED", "", null, null, null);
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "OOZIE", "OOZIE_SERVER", "OOZIE_SERVER", "Host101", "INSTALLED", "", null, null, null);
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "OOZIE", "OOZIE_CLIENT", "OOZIE_CLIENT", "Host100", "STARTED", "", null, null, null);
 
     Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
     responses.add(shr1);
@@ -1526,9 +1526,9 @@ public class ServiceResourceProviderTest {
     StackId stackId = createNiceMock(StackId.class);
     ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "HBASE", "HBASE_MASTER", "Host100",  "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "HBASE", "HBASE_MASTER", "Host101", "INSTALLED", "", null, null, null);
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "HBASE", "HBASE_REGIONSERVER", "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "HBASE", "HBASE_MASTER", "HBASE_MASTER", "Host100",  "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "HBASE", "HBASE_MASTER", "HBASE_MASTER", "Host101", "INSTALLED", "", null, null, null);
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "HBASE", "HBASE_REGIONSERVER", "HBASE_REGIONSERVER", "Host100", "STARTED", "", null, null, null);
 
     Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
     responses.add(shr1);
@@ -1574,8 +1574,8 @@ public class ServiceResourceProviderTest {
     StackId stackId = createNiceMock(StackId.class);
     ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "HBASE", "HBASE_MASTER", "Host100",  "INSTALLED", "", null, null, null);
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "HBASE", "HBASE_REGIONSERVER", "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "HBASE", "HBASE_MASTER", "HBASE_MASTER", "Host100",  "INSTALLED", "", null, null, null);
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "HBASE", "HBASE_REGIONSERVER", "HBASE_REGIONSERVER", "Host100", "STARTED", "", null, null, null);
 
     Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
     responses.add(shr1);
@@ -1619,7 +1619,7 @@ public class ServiceResourceProviderTest {
     StackId stackId = createNiceMock(StackId.class);
     ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "HBASE", "HBASE_REGIONSERVER", "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "HBASE", "HBASE_REGIONSERVER", "HBASE_REGIONSERVER", "Host100", "STARTED", "", null, null, null);
 
     Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
     responses.add(shr1);
@@ -1661,9 +1661,9 @@ public class ServiceResourceProviderTest {
     StackId stackId = createNiceMock(StackId.class);
     ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "GANGLIA", "GANGLIA_MONITOR", "Host100", "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "GANGLIA", "GANGLIA_MONITOR", "Host199", "UNKNOWN", "", null, null, null);
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "GANGLIA", "GANGLIA_SERVER", "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "GANGLIA", "GANGLIA_MONITOR", "GANGLIA_MONITOR", "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "GANGLIA", "GANGLIA_MONITOR", "GANGLIA_MONITOR", "Host199", "UNKNOWN", "", null, null, null);
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "GANGLIA", "GANGLIA_SERVER", "GANGLIA_SERVER", "Host100", "STARTED", "", null, null, null);
 
     Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
     responses.add(shr1);
@@ -1709,7 +1709,7 @@ public class ServiceResourceProviderTest {
     StackId stackId = createNiceMock(StackId.class);
     ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "PIG", "PIG", "Host100", "INSTALLED", "", null, null, null);
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "PIG", "PIG", "PIG", "Host100", "INSTALLED", "", null, null, null);
     shr1.setMaintenanceState(MaintenanceState.OFF.toString());
 
     Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
@@ -1752,7 +1752,7 @@ public class ServiceResourceProviderTest {
     StackId stackId = createNiceMock(StackId.class);
     ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "PIG", "PIG", "Host100", "INSTALL_FAILED", "", null, null, null);
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "PIG", "PIG", "PIG", "Host100", "INSTALL_FAILED", "", null, null, null);
     shr1.setMaintenanceState(MaintenanceState.OFF.toString());
 
     Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
@@ -1792,8 +1792,8 @@ public class ServiceResourceProviderTest {
     Clusters clusters = createNiceMock(Clusters.class);
     Cluster cluster = createNiceMock(Cluster.class);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "FLUME", "FLUME_HANDLER", "Host100", "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "FLUME", "FLUME_HANDLER", "Host200", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "FLUME", "FLUME_HANDLER", "FLUME_HANDLER", "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "FLUME", "FLUME_HANDLER", "FLUME_HANDLER", "Host200", "STARTED", "", null, null, null);
 
     Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
     responses.add(shr1);
@@ -1821,8 +1821,8 @@ public class ServiceResourceProviderTest {
     Clusters clusters = createNiceMock(Clusters.class);
     Cluster cluster = createNiceMock(Cluster.class);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "FLUME", "FLUME_HANDLER", "Host100", "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "FLUME", "FLUME_HANDLER", "Host200", "INSTALLED", "", null, null, null);
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "FLUME", "FLUME_HANDLER", "FLUME_HANDLER", "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "FLUME", "FLUME_HANDLER", "FLUME_HANDLER", "Host200", "INSTALLED", "", null, null, null);
 
     Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
     responses.add(shr1);
@@ -1853,11 +1853,11 @@ public class ServiceResourceProviderTest {
     StackId stackId = createNiceMock(StackId.class);
     ComponentInfo componentInfo = createStrictMock(ComponentInfo.class);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "YARN", "RESOURCEMANAGER", "Host100", "INSTALLED", "", null, null, null);
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "YARN", "RESOURCEMANAGER", "RESOURCEMANAGER", "Host100", "INSTALLED", "", null, null, null);
     shr1.setMaintenanceState(MaintenanceState.ON.toString());
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "YARN", "RESOURCEMANAGER", "Host101", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "YARN", "RESOURCEMANAGER", "RESOURCEMANAGER", "Host101", "STARTED", "", null, null, null);
     shr2.setMaintenanceState(MaintenanceState.OFF.toString());
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "YARN", "NODEMANAGER", "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "YARN", "NODEMANAGER", "NODEMANAGER", "Host100", "STARTED", "", null, null, null);
     shr3.setMaintenanceState(MaintenanceState.OFF.toString());
 
     Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
@@ -1912,9 +1912,9 @@ public class ServiceResourceProviderTest {
     StackId stackId = createNiceMock(StackId.class);
     ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "YARN", "NODEMANAGER", "Host100", "INSTALLED", "", null, null, null);
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "YARN", "NODEMANAGER", "NODEMANAGER", "Host100", "INSTALLED", "", null, null, null);
     shr1.setMaintenanceState(MaintenanceState.ON.toString());
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "YARN", "NODEMANAGER", "Host101", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "YARN", "NODEMANAGER", "NODEMANAGER", "Host101", "STARTED", "", null, null, null);
     shr2.setMaintenanceState(MaintenanceState.OFF.toString());
 
     Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
@@ -1969,13 +1969,13 @@ public class ServiceResourceProviderTest {
     /*
      * Any component is started, all other are stopped - service is considered STARTED
      */
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "YARN", "RESOURCEMANAGER", "Host100", "INSTALLED", "", null, null, null);
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "YARN", "RESOURCEMANAGER", "RESOURCEMANAGER", "Host100", "INSTALLED", "", null, null, null);
     shr1.setMaintenanceState(MaintenanceState.ON.toString());
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "YARN", "RESOURCEMANAGER", "Host101", "INSTALLED", "", null, null, null);
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "YARN", "RESOURCEMANAGER", "RESOURCEMANAGER", "Host101", "INSTALLED", "", null, null, null);
     shr2.setMaintenanceState(MaintenanceState.ON.toString());
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "YARN", "NODEMANAGER", "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "YARN", "NODEMANAGER", "NODEMANAGER", "Host100", "STARTED", "", null, null, null);
     shr3.setMaintenanceState(MaintenanceState.ON.toString());
-    ServiceComponentHostResponse shr4 = new ServiceComponentHostResponse("C1", "YARN", "YARN_CLIENT", "Host100", "INSTALLED", "", null, null, null);
+    ServiceComponentHostResponse shr4 = new ServiceComponentHostResponse("C1", "YARN", "YARN_CLIENT", "YARN_CLIENT", "Host100", "INSTALLED", "", null, null, null);
     shr4.setMaintenanceState(MaintenanceState.ON.toString());
 
 
@@ -2028,13 +2028,13 @@ public class ServiceResourceProviderTest {
     reset(componentInfo);
 
     responses.clear();
-    shr1 = new ServiceComponentHostResponse("C1", "YARN", "RESOURCEMANAGER", "Host100", "INSTALLED", "", null, null, null);
+    shr1 = new ServiceComponentHostResponse("C1", "YARN", "RESOURCEMANAGER", "RESOURCEMANAGER", "Host100", "INSTALLED", "", null, null, null);
     shr1.setMaintenanceState(MaintenanceState.ON.toString());
-    shr2 = new ServiceComponentHostResponse("C1", "YARN", "RESOURCEMANAGER", "Host101", "INSTALLED", "", null, null, null);
+    shr2 = new ServiceComponentHostResponse("C1", "YARN", "RESOURCEMANAGER", "RESOURCEMANAGER", "Host101", "INSTALLED", "", null, null, null);
     shr2.setMaintenanceState(MaintenanceState.ON.toString());
-    shr3 = new ServiceComponentHostResponse("C1", "YARN", "NODEMANAGER", "Host100", "INSTALLED", "", null, null, null);
+    shr3 = new ServiceComponentHostResponse("C1", "YARN", "NODEMANAGER", "NODEMANAGER", "Host100", "INSTALLED", "", null, null, null);
     shr3.setMaintenanceState(MaintenanceState.ON.toString());
-    shr4 = new ServiceComponentHostResponse("C1", "YARN", "YARN_CLIENT", "Host100", "INSTALLED", "", null, null, null);
+    shr4 = new ServiceComponentHostResponse("C1", "YARN", "YARN_CLIENT", "YARN_CLIENT", "Host100", "INSTALLED", "", null, null, null);
     shr4.setMaintenanceState(MaintenanceState.ON.toString());
     responses.add(shr1);
     responses.add(shr2);

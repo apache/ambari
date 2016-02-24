@@ -101,9 +101,9 @@ public class HostResourceProviderTest {
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
     ResourceProviderFactory resourceProviderFactory = createNiceMock(ResourceProviderFactory.class);
     ResourceProvider hostResourceProvider = createNiceMock(HostResourceProvider.class);
-    
+
     AbstractControllerResourceProvider.init(resourceProviderFactory);
-    
+
     expect(resourceProviderFactory.getHostResourceProvider(anyObject(Set.class), anyObject(Map.class),
         eq(managementController))).andReturn(hostResourceProvider).anyTimes();
     // replay
@@ -149,7 +149,7 @@ public class HostResourceProviderTest {
     AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
     ResourceProviderFactory resourceProviderFactory = createNiceMock(ResourceProviderFactory.class);
     ResourceProvider hostResourceProvider = createNiceMock(HostResourceProvider.class);
-    
+
     AbstractControllerResourceProvider.init(resourceProviderFactory);
 
     List<Host> hosts = new LinkedList<Host>();
@@ -183,7 +183,7 @@ public class HostResourceProviderTest {
 
     expect(healthStatus.getHealthStatus()).andReturn(HostHealthStatus.HealthStatus.HEALTHY).anyTimes();
     expect(healthStatus.getHealthReport()).andReturn("HEALTHY").anyTimes();
-    
+
     Set<String> propertyIds = new HashSet<String>();
 
     propertyIds.add(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID);
@@ -193,9 +193,9 @@ public class HostResourceProviderTest {
         new PredicateBuilder().property(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").
             toPredicate();
     Request request = PropertyHelper.getReadRequest(propertyIds);
-    
+
     Set<Resource> hostsResources = new HashSet<Resource>();
-    
+
     Resource hostResource1 = new ResourceImpl(Resource.Type.Host);
     hostResource1.setProperty(PropertyHelper.getPropertyId("Hosts", "cluster_name"), "Cluster100");
     hostResource1.setProperty(PropertyHelper.getPropertyId("Hosts", "host_name"), "Host100");
@@ -208,9 +208,9 @@ public class HostResourceProviderTest {
     hostsResources.add(hostResource1);
     hostsResources.add(hostResource2);
     hostsResources.add(hostResource3);
-    
+
     expect(hostResourceProvider.getResources(eq(request), eq(predicate))).andReturn(hostsResources).anyTimes();
-    
+
 
     // replay
     replay(managementController, clusters, cluster,
@@ -223,7 +223,7 @@ public class HostResourceProviderTest {
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
-    
+
     Set<Resource> resources = provider.getResources(request, predicate);
 
     Assert.assertEquals(3, resources.size());
@@ -250,20 +250,20 @@ public class HostResourceProviderTest {
     ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
 
     HostResponse hostResponse1 = createNiceMock(HostResponse.class);
-    
+
     ResourceProviderFactory resourceProviderFactory = createNiceMock(ResourceProviderFactory.class);
     ResourceProvider hostResourceProvider = createNiceMock(HostResourceProvider.class);
-    
+
     AbstractControllerResourceProvider.init(resourceProviderFactory);
 
     Set<Cluster> clusterSet = new HashSet<Cluster>();
     clusterSet.add(cluster);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component100",
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component100", "Component 100",
         "Host100", "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component102",
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component102", "Component 102",
         "Host100", "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component103",
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component103", "Component 103",
         "Host100", "STARTED", "", null, null, null);
 
     Set<ServiceComponentHostResponse> responses = new HashSet<ServiceComponentHostResponse>();
@@ -294,12 +294,12 @@ public class HostResourceProviderTest {
         (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
 
     expect(componentInfo.getCategory()).andReturn("MASTER").anyTimes();
-    
+
     expect(resourceProviderFactory.getHostResourceProvider(anyObject(Set.class),
                                                                anyObject(Map.class),
                                                                eq(managementController))).
                                                                andReturn(hostResourceProvider).anyTimes();
-    
+
     Set<String> propertyIds = new HashSet<String>();
 
     propertyIds.add(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID);
@@ -310,13 +310,13 @@ public class HostResourceProviderTest {
         new PredicateBuilder().property(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").
             toPredicate();
     Request request = PropertyHelper.getReadRequest(propertyIds);
-    
+
     Set<Resource> hostsResources = new HashSet<Resource>();
-    
+
     Resource hostResource1 = new ResourceImpl(Resource.Type.Host);
     hostResource1.setProperty(HostResourceProvider.HOST_HOST_STATUS_PROPERTY_ID, HealthStatus.HEALTHY.name());
     hostsResources.add(hostResource1);
-    
+
     expect(hostResourceProvider.getResources(eq(request), eq(predicate))).andReturn(hostsResources).anyTimes();
 
 
@@ -360,20 +360,20 @@ public class HostResourceProviderTest {
     ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
 
     HostResponse hostResponse1 = createNiceMock(HostResponse.class);
-    
+
     ResourceProviderFactory resourceProviderFactory = createNiceMock(ResourceProviderFactory.class);
     ResourceProvider hostResourceProvider = createNiceMock(HostResourceProvider.class);
-    
+
     AbstractControllerResourceProvider.init(resourceProviderFactory);
 
     Set<Cluster> clusterSet = new HashSet<Cluster>();
     clusterSet.add(cluster);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component100",
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component100", "Component 100",
         "Host100", "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component102",
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component102", "Component 102",
         "Host100", "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component103",
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component103", "Component 103",
         "Host100", "STARTED", "", null, null, null);
 
     Set<ServiceComponentHostResponse> responses = new HashSet<ServiceComponentHostResponse>();
@@ -403,10 +403,10 @@ public class HostResourceProviderTest {
         (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
 
     expect(componentInfo.getCategory()).andReturn("MASTER").anyTimes();
-    
+
     expect(resourceProviderFactory.getHostResourceProvider(anyObject(Set.class), anyObject(Map.class),
         eq(managementController))).andReturn(hostResourceProvider).anyTimes();
-    
+
     Set<String> propertyIds = new HashSet<String>();
 
     propertyIds.add(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID);
@@ -417,15 +417,15 @@ public class HostResourceProviderTest {
         new PredicateBuilder().property(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").
             toPredicate();
     Request request = PropertyHelper.getReadRequest(propertyIds);
-    
-    
+
+
     Set<Resource> hostsResources = new HashSet<Resource>();
-       
+
     Resource hostResource1 = new ResourceImpl(Resource.Type.Host);
     hostResource1.setProperty(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
     hostResource1.setProperty(HostResourceProvider.HOST_HOST_STATUS_PROPERTY_ID, HealthStatus.HEALTHY.name());
     hostsResources.add(hostResource1);
-    
+
     expect(hostResourceProvider.getResources(eq(request), eq(predicate))).andReturn(hostsResources).anyTimes();
 
 
@@ -471,17 +471,17 @@ public class HostResourceProviderTest {
     HostResponse hostResponse1 = createNiceMock(HostResponse.class);
     ResourceProviderFactory resourceProviderFactory = createNiceMock(ResourceProviderFactory.class);
     ResourceProvider hostResourceProvider = createNiceMock(HostResourceProvider.class);
-    
+
     AbstractControllerResourceProvider.init(resourceProviderFactory);
-    
+
     Set<Cluster> clusterSet = new HashSet<Cluster>();
     clusterSet.add(cluster);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component100",
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component100", "Component 100",
         "Host100", "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component102",
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component102", "Component 102",
         "Host100", "INSTALLED", "", null, null, null);
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component103",
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component103", "Component 103",
         "Host100", "STARTED", "", null, null, null);
 
     Set<ServiceComponentHostResponse> responses = new HashSet<ServiceComponentHostResponse>();
@@ -511,10 +511,10 @@ public class HostResourceProviderTest {
         (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
 
     expect(componentInfo.getCategory()).andReturn("MASTER").anyTimes();
-    
+
     expect(resourceProviderFactory.getHostResourceProvider(anyObject(Set.class), anyObject(Map.class),
         eq(managementController))).andReturn(hostResourceProvider).anyTimes();
-    
+
     Set<String> propertyIds = new HashSet<String>();
 
     propertyIds.add(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID);
@@ -525,15 +525,15 @@ public class HostResourceProviderTest {
         new PredicateBuilder().property(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").
             toPredicate();
     Request request = PropertyHelper.getReadRequest(propertyIds);
-    
-    
+
+
     Set<Resource> hostsResources = new HashSet<Resource>();
-    
+
     Resource hostResource1 = new ResourceImpl(Resource.Type.Host);
     hostResource1.setProperty(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
     hostResource1.setProperty(HostResourceProvider.HOST_HOST_STATUS_PROPERTY_ID, HealthStatus.UNHEALTHY.name());
     hostsResources.add(hostResource1);
-    
+
     expect(hostResourceProvider.getResources(eq(request), eq(predicate))).andReturn(hostsResources).anyTimes();
 
 
@@ -577,9 +577,9 @@ public class HostResourceProviderTest {
     HostResponse hostResponse1 = createNiceMock(HostResponse.class);
     ResourceProviderFactory resourceProviderFactory = createNiceMock(ResourceProviderFactory.class);
     ResourceProvider hostResourceProvider = createNiceMock(HostResourceProvider.class);
-    
+
     AbstractControllerResourceProvider.init(resourceProviderFactory);
-    
+
     Set<Cluster> clusterSet = new HashSet<Cluster>();
     clusterSet.add(cluster);
 
@@ -590,7 +590,7 @@ public class HostResourceProviderTest {
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 
     expect(clusters.getClustersForHost("Host100")).andReturn(clusterSet).anyTimes();
-    
+
     expect(hostResponse1.getClusterName()).andReturn("Cluster100").anyTimes();
     expect(hostResponse1.getHostname()).andReturn("Host100").anyTimes();
     expect(hostResponse1.getHealthStatus()).andReturn(healthStatus).anyTimes();
@@ -600,14 +600,14 @@ public class HostResourceProviderTest {
     expect(healthStatus.getHealthReport()).andReturn("UNKNOWN").anyTimes();
     expect(resourceProviderFactory.getHostResourceProvider(anyObject(Set.class), anyObject(Map.class),
         eq(managementController))).andReturn(hostResourceProvider).anyTimes();
-    
+
     Set<Resource> hostsResources = new HashSet<Resource>();
-    
+
     Resource hostResource1 = new ResourceImpl(Resource.Type.Host);
     hostResource1.setProperty(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
     hostResource1.setProperty(HostResourceProvider.HOST_HOST_STATUS_PROPERTY_ID, HealthStatus.UNKNOWN.name());
     hostsResources.add(hostResource1);
-    
+
     Set<String> propertyIds = new HashSet<String>();
 
     propertyIds.add(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID);
@@ -618,7 +618,7 @@ public class HostResourceProviderTest {
         new PredicateBuilder().property(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").
             toPredicate();
     Request request = PropertyHelper.getReadRequest(propertyIds);
-    
+
     expect(hostResourceProvider.getResources(eq(request), eq(predicate))).andReturn(hostsResources).anyTimes();
 
     // replay
@@ -678,8 +678,8 @@ public class HostResourceProviderTest {
     Set<Cluster> clusterSet = new HashSet<Cluster>();
     clusterSet.add(cluster);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component100",
-                                                                         "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component100", "Component 100",
+        "Host100", "STARTED", "", null, null, null);
 
     Set<ServiceComponentHostResponse> responses = new HashSet<ServiceComponentHostResponse>();
     responses.add(shr1);
@@ -775,11 +775,11 @@ public class HostResourceProviderTest {
     Set<Cluster> clusterSet = new HashSet<Cluster>();
     clusterSet.add(cluster);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component100",
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component100", "Component 100",
         "Host100", "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component102",
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component102", "Component 102",
         "Host100", "INSTALLED", "", null, null, null);
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component103",
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component103", "Component 103",
         "Host100", "STARTED", "", null, null, null);
 
     Set<ServiceComponentHostResponse> responses = new HashSet<ServiceComponentHostResponse>();
@@ -804,8 +804,8 @@ public class HostResourceProviderTest {
     expect(componentInfo.getCategory()).andReturn("SLAVE").anyTimes();
     expect(resourceProviderFactory.getHostResourceProvider(anyObject(Set.class), anyObject(Map.class),
         eq(managementController))).andReturn(hostResourceProvider).anyTimes();
-    
-    
+
+
     Set<String> propertyIds = new HashSet<String>();
 
     propertyIds.add(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID);
@@ -816,14 +816,14 @@ public class HostResourceProviderTest {
         new PredicateBuilder().property(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").
             toPredicate();
     Request request = PropertyHelper.getReadRequest(propertyIds);
-    
+
     Set<Resource> hostsResources = new HashSet<Resource>();
-    
+
     Resource hostResource1 = new ResourceImpl(Resource.Type.Host);
     hostResource1.setProperty(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
     hostResource1.setProperty(HostResourceProvider.HOST_HOST_STATUS_PROPERTY_ID, HealthStatus.ALERT.name());
     hostsResources.add(hostResource1);
-    
+
     expect(hostResourceProvider.getResources(eq(request), eq(predicate))).andReturn(hostsResources).anyTimes();
 
 
@@ -838,7 +838,7 @@ public class HostResourceProviderTest {
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
-    
+
     Set<Resource> resources = provider.getResources(request, predicate);
 
     Assert.assertEquals(1, resources.size());
@@ -866,7 +866,7 @@ public class HostResourceProviderTest {
     HostResponse hostResponse1 = createNiceMock(HostResponse.class);
     ResourceProviderFactory resourceProviderFactory = createNiceMock(ResourceProviderFactory.class);
     ResourceProvider hostResourceProvider = createNiceMock(HostResourceProvider.class);
-    
+
     AbstractControllerResourceProvider.init(resourceProviderFactory);
 
     Set<Cluster> clusterSet = new HashSet<Cluster>();
@@ -902,19 +902,19 @@ public class HostResourceProviderTest {
 
     // create the request
     Request request = PropertyHelper.getUpdateRequest(properties, null);
-    
+
     Predicate  predicate = new PredicateBuilder().property(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID).
         equals("Cluster100").
         and().property(HostResourceProvider.HOST_NAME_PROPERTY_ID).equals("Host100").toPredicate();
-    
+
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         Resource.Type.Host,
         PropertyHelper.getPropertyIds(Resource.Type.Host),
         PropertyHelper.getKeyPropertyIds(Resource.Type.Host),
         managementController);
-    
+
     provider.updateResources(request, predicate);
-    
+
     // verify
     verify(managementController, clusters, cluster,
         hostResponse1,
@@ -933,7 +933,7 @@ public class HostResourceProviderTest {
     HostResponse hostResponse1 = createNiceMock(HostResponse.class);
     ResourceProviderFactory resourceProviderFactory = createNiceMock(ResourceProviderFactory.class);
     ResourceProvider hostResourceProvider = createNiceMock(HostResourceProvider.class);
-    
+
     AbstractControllerResourceProvider.init(resourceProviderFactory);
 
     Set<Cluster> clusterSet = new HashSet<Cluster>();
@@ -1306,7 +1306,7 @@ public class HostResourceProviderTest {
     HostResourceProvider.setTopologyManager(topologyManager);
     provider.deleteHosts(requests);
   }
-  
+
   public static void updateHosts(AmbariManagementController controller, Set<HostRequest> requests)
       throws AmbariException {
     HostResourceProvider provider = getHostProvider(controller);
