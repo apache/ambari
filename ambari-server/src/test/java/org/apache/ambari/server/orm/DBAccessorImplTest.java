@@ -51,7 +51,8 @@ import java.sql.PreparedStatement;
 
 public class DBAccessorImplTest {
   private Injector injector;
-  private static final AtomicInteger counter = new AtomicInteger(1);
+  private static final AtomicInteger tables_counter = new AtomicInteger(1);
+  private static final AtomicInteger schemas_counter = new AtomicInteger(1);
 
   @Rule
   public ExpectedException exception = ExpectedException.none();
@@ -67,7 +68,11 @@ public class DBAccessorImplTest {
   }
 
   private static String getFreeTableName() {
-    return "test_table_" + counter.getAndIncrement();
+    return "test_table_" + tables_counter.getAndIncrement();
+  }
+
+  private static String getFreeSchamaName() {
+    return "test_schema_" + schemas_counter.getAndIncrement();
   }
 
   private void createMyTable(String tableName) throws Exception {
@@ -352,6 +357,19 @@ public class DBAccessorImplTest {
   }
 
   @Test
+  public void testTableExistsMultipleSchemas() throws Exception {
+    DBAccessorImpl dbAccessor = injector.getInstance(DBAccessorImpl.class);
+
+    String tableName = getFreeTableName();
+    createMyTable(tableName);
+
+    // create table with the same name but in custom schema
+    createTableUnderNewSchema(dbAccessor, tableName);
+
+    Assert.assertTrue(dbAccessor.tableExists(tableName));
+  }
+
+  @Test
   public void testColumnExists() throws Exception {
     String tableName = getFreeTableName();
     createMyTable(tableName);
@@ -359,6 +377,32 @@ public class DBAccessorImplTest {
     DBAccessorImpl dbAccessor = injector.getInstance(DBAccessorImpl.class);
 
     Assert.assertTrue(dbAccessor.tableHasColumn(tableName, "time"));
+  }
+
+  @Test
+  public void testColumnExistsMultipleSchemas() throws Exception {
+    DBAccessorImpl dbAccessor = injector.getInstance(DBAccessorImpl.class);
+
+    String tableName = getFreeTableName();
+    createMyTable(tableName);
+
+    // create table with the same name and same field (id) but in custom schema
+    createTableUnderNewSchema(dbAccessor, tableName);
+
+    Assert.assertTrue(dbAccessor.tableHasColumn(tableName, "id"));
+  }
+
+  @Test
+  public void testColumnsExistsMultipleSchemas() throws Exception {
+    DBAccessorImpl dbAccessor = injector.getInstance(DBAccessorImpl.class);
+
+    String tableName = getFreeTableName();
+    createMyTable(tableName);
+
+    // create table with the same name and same field (id) but in custom schema
+    createTableUnderNewSchema(dbAccessor, tableName);
+
+    Assert.assertTrue(dbAccessor.tableHasColumn(tableName, "id", "time"));
   }
 
   @Test
@@ -478,5 +522,14 @@ public class DBAccessorImplTest {
     assertEquals(ResultSetMetaData.columnNullable, rsmd.isNullable(1));
 
     statement.close();
+  }
+
+  private void createTableUnderNewSchema(DBAccessorImpl dbAccessor, String tableName) throws SQLException {
+    Statement schemaCreation = dbAccessor.getConnection().createStatement();
+    String schemaName = getFreeSchamaName();
+    schemaCreation.execute("create schema " + schemaName);
+
+    Statement customSchemaTableCreation = dbAccessor.getConnection().createStatement();
+    customSchemaTableCreation.execute(toString().format("Create table %s.%s (id int, time int)", schemaName, tableName));
   }
 }

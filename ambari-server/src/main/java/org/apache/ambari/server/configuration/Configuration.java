@@ -234,7 +234,8 @@ public class Configuration {
   public static final String JDBC_UNIT_NAME = "ambari-server";
   public static final String JDBC_LOCAL_URL = "jdbc:postgresql://localhost/";
   public static final String JDBC_LOCAL_DRIVER = "org.postgresql.Driver";
-  public static final String JDBC_IN_MEMORY_URL = "jdbc:derby:memory:myDB/ambari;create=true";
+  public static final String DEFAULT_DERBY_SCHEMA = "ambari";
+  public static final String JDBC_IN_MEMORY_URL = String.format("jdbc:derby:memory:myDB/%s;create=true", DEFAULT_DERBY_SCHEMA);
   public static final String JDBC_IN_MEMROY_DRIVER = "org.apache.derby.jdbc.EmbeddedDriver";
   public static final String HOSTNAME_MACRO = "{hostname}";
   public static final String JDBC_RCA_LOCAL_URL = "jdbc:postgresql://" + HOSTNAME_MACRO + "/ambarirca";
@@ -2255,6 +2256,30 @@ public class Configuration {
     }
 
     return databaseType;
+  }
+
+  /**
+   * Gets the schema name of database
+   *
+   * @return the database schema name (can return {@code null} for any DB besides Postgres, MySQL, Oracle).
+   */
+  public String getDatabaseSchema() {
+    DatabaseType databaseType = getDatabaseType();
+    String databaseSchema;
+
+    if (databaseType.equals(DatabaseType.POSTGRES)) {
+      databaseSchema = getServerJDBCPostgresSchemaName();
+    } else if (databaseType.equals(DatabaseType.MYSQL)) {
+      databaseSchema = getServerDBName();
+    } else if (databaseType.equals(DatabaseType.ORACLE)) {
+      databaseSchema = getDatabaseUser();
+    } else if (databaseType.equals(DatabaseType.DERBY)) {
+      databaseSchema = DEFAULT_DERBY_SCHEMA;
+    } else {
+      databaseSchema = null;
+    }
+
+    return databaseSchema;
   }
 
   /**
