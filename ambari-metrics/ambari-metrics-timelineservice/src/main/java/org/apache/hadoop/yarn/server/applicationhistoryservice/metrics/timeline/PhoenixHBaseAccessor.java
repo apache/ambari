@@ -22,6 +22,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.DoNotRetryIOException;
+import org.apache.hadoop.hbase.HTableDescriptor;
+import org.apache.hadoop.hbase.client.HBaseAdmin;
 import org.apache.hadoop.hbase.util.RetryCounter;
 import org.apache.hadoop.hbase.util.RetryCounterFactory;
 import org.apache.hadoop.metrics2.sink.timeline.Precision;
@@ -38,8 +40,8 @@ import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataKey;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataManager;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.ConnectionProvider;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.DefaultPhoenixDataSource;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixConnectionProvider;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.SplitByMetricNamesCondition;
 import org.apache.hadoop.yarn.util.timeline.TimelineUtils;
@@ -101,6 +103,7 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_TABLE_NAME;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_RECORD_TABLE_NAME;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.PHOENIX_TABLES;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.UPSERT_AGGREGATE_RECORD_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.UPSERT_CLUSTER_AGGREGATE_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.UPSERT_CLUSTER_AGGREGATE_TIME_SQL;
@@ -134,9 +137,18 @@ public class PhoenixHBaseAccessor {
   private final Configuration hbaseConf;
   private final Configuration metricsConf;
   private final RetryCounterFactory retryCounterFactory;
-  private final ConnectionProvider dataSource;
+  private final PhoenixConnectionProvider dataSource;
   private final long outOfBandTimeAllowance;
   private final boolean skipBlockCacheForAggregatorsEnabled;
+
+  static final String HSTORE_COMPACTION_CLASS_KEY =
+    "hbase.hstore.defaultengine.compactionpolicy.class";
+  static final String FIFO_COMPACTION_POLICY_CLASS =
+    "org.apache.hadoop.hbase.regionserver.compactions.FIFOCompactionPolicy";
+  static final String DEFAULT_COMPACTION_POLICY_CLASS =
+    "org.apache.hadoop.hbase.regionserver.compactions.ExploringCompactionPolicy";
+  static final String BLOCKING_STORE_FILES_KEY =
+    "hbase.hstore.blockingStoreFiles";
 
   public PhoenixHBaseAccessor(Configuration hbaseConf,
                               Configuration metricsConf){
@@ -144,8 +156,8 @@ public class PhoenixHBaseAccessor {
   }
 
   PhoenixHBaseAccessor(Configuration hbaseConf,
-                              Configuration metricsConf,
-                              ConnectionProvider dataSource) {
+                       Configuration metricsConf,
+                       PhoenixConnectionProvider dataSource) {
     this.hbaseConf = hbaseConf;
     this.metricsConf = metricsConf;
     RESULTSET_LIMIT = metricsConf.getInt(GLOBAL_RESULT_LIMIT, RESULTSET_LIMIT);
@@ -213,6 +225,15 @@ public class PhoenixHBaseAccessor {
    */
   public Connection getConnection() throws SQLException {
     return dataSource.getConnection();
+  }
+
+  /**
+   * Unit test purpose only for now.
+   * @return @HBaseAdmin
+   * @throws IOException
+   */
+  HBaseAdmin getHBaseAdmin() throws IOException {
+    return dataSource.getHBaseAdmin();
   }
 
   protected void initMetricSchema() {
@@ -329,6 +350,77 @@ public class PhoenixHBaseAccessor {
         } catch (SQLException e) {
           // Ignore
         }
+      }
+    }
+  }
+
+  protected void initPolicies() {
+    boolean enableNormalizer = hbaseConf.getBoolean("hbase.normalizer.enabled", true);
+    boolean enableFifoCompaction = metricsConf.getBoolean("timeline.metrics.hbase.fifo.compaction.enabled", true);
+
+    if (!enableNormalizer && !enableFifoCompaction) {
+      return;
+    }
+
+    HBaseAdmin hBaseAdmin = null;
+    try {
+      hBaseAdmin = dataSource.getHBaseAdmin();
+    } catch (IOException e) {
+      LOG.warn("Unable to initialize HBaseAdmin for setting policies.", e);
+    }
+
+    if (hBaseAdmin != null) {
+      for (String tableName : PHOENIX_TABLES) {
+        try {
+          boolean modifyTable = false;
+          HTableDescriptor tableDescriptor = hBaseAdmin.getTableDescriptor(tableName.getBytes());
+
+          if (enableNormalizer &&
+              !tableDescriptor.isNormalizationEnabled()) {
+            tableDescriptor.setNormalizationEnabled(true);
+            LOG.info("Enabling normalizer for " + tableName);
+            modifyTable = true;
+          }
+
+          Map<String, String> config = tableDescriptor.getConfiguration();
+          if (enableFifoCompaction &&
+             !FIFO_COMPACTION_POLICY_CLASS.equals(config.get(HSTORE_COMPACTION_CLASS_KEY))) {
+            tableDescriptor.setConfiguration(HSTORE_COMPACTION_CLASS_KEY,
+              FIFO_COMPACTION_POLICY_CLASS);
+            LOG.info("Setting config property " + HSTORE_COMPACTION_CLASS_KEY +
+              " = " + FIFO_COMPACTION_POLICY_CLASS + " for " + tableName);
+            // Need to set blockingStoreFiles to 1000 for FIFO
+            tableDescriptor.setConfiguration(BLOCKING_STORE_FILES_KEY, "1000");
+            LOG.info("Setting config property " + BLOCKING_STORE_FILES_KEY +
+              " = " + 1000 + " for " + tableName);
+            modifyTable = true;
+          }
+          // Set back original policy if fifo disabled
+          if (!enableFifoCompaction &&
+             FIFO_COMPACTION_POLICY_CLASS.equals(config.get(HSTORE_COMPACTION_CLASS_KEY))) {
+            tableDescriptor.setConfiguration(HSTORE_COMPACTION_CLASS_KEY,
+              DEFAULT_COMPACTION_POLICY_CLASS);
+            LOG.info("Setting config property " + HSTORE_COMPACTION_CLASS_KEY +
+              " = " + DEFAULT_COMPACTION_POLICY_CLASS + " for " + tableName);
+            tableDescriptor.setConfiguration(BLOCKING_STORE_FILES_KEY, "300");
+            LOG.info("Setting config property " + BLOCKING_STORE_FILES_KEY +
+              " = " + 300 + " for " + tableName);
+            modifyTable = true;
+          }
+
+          // Persist only if anything changed
+          if (modifyTable) {
+            hBaseAdmin.modifyTable(tableName.getBytes(), tableDescriptor);
+          }
+
+        } catch (IOException e) {
+          LOG.error("Failed setting policies for " + tableName, e);
+        }
+      }
+      try {
+        hBaseAdmin.close();
+      } catch (IOException e) {
+        LOG.warn("Exception on HBaseAdmin close.", e);
       }
     }
   }

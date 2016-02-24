@@ -304,8 +304,6 @@ function start()
   if [ $? -ne 0 ]; then
     echo "WARNING: Ambari Metrics data model initialization failed."
      >&2 echo "WARNING: Ambari Metrics data model initialization failed."
-  else
-    enable_normalization_fifo
   fi
   }
 
@@ -397,7 +395,7 @@ case "$1" in
 	start)
     start
 
-  ;;
+    ;;
 	stop)
     stop
 
@@ -414,6 +412,9 @@ case "$1" in
 	restart)
 	  stop
 	  start
-	;;
+	  ;;
+  enable_normalization_fifo)
+    enable_normalization_fifo
+    ;;
 
 esac

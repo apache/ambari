@@ -19,15 +19,16 @@ package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.metrics2.sink.timeline.Precision;
 import org.apache.hadoop.metrics2.sink.timeline.PrecisionLimitExceededException;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor;
-import org.apache.hadoop.metrics2.sink.timeline.Precision;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataKey;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.Collection;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -289,6 +290,18 @@ public class PhoenixTransactSQL {
     "METRIC_AGGREGATE_HOURLY";
   public static final String METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME =
     "METRIC_AGGREGATE_DAILY";
+
+  public static final String[] PHOENIX_TABLES = {
+    METRICS_RECORD_TABLE_NAME,
+    METRICS_AGGREGATE_MINUTE_TABLE_NAME,
+    METRICS_AGGREGATE_HOURLY_TABLE_NAME,
+    METRICS_AGGREGATE_DAILY_TABLE_NAME,
+    METRICS_CLUSTER_AGGREGATE_TABLE_NAME,
+    METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME,
+    METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME,
+    METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME
+  };
+
   public static final String DEFAULT_TABLE_COMPRESSION = "SNAPPY";
   public static final String DEFAULT_ENCODING = "FAST_DIFF";
   public static final long NATIVE_TIME_RANGE_DELTA = 120000; // 2 minutes
