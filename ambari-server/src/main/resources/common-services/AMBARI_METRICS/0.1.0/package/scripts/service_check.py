@@ -27,6 +27,7 @@ from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
 import httplib
+import network
 import urllib
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 import os
@@ -68,6 +69,8 @@ class AMSServiceCheck(Script):
 
     random_value1 = random.random()
     headers = {"Content-type": "application/json"}
+    ca_certs = os.path.join(params.ams_collector_conf_dir,
+                            params.metric_truststore_ca_certs)
 
     for i in xrange(0, self.AMS_CONNECT_TRIES):
       try:
@@ -79,9 +82,10 @@ class AMSServiceCheck(Script):
         Logger.info("Connecting (POST) to %s:%s%s" % (params.metric_collector_host,
                                                       params.metric_collector_port,
                                                       self.AMS_METRICS_POST_URL))
-        conn = self.get_http_connection(params.metric_collector_host,
-                                        int(params.metric_collector_port),
-                                        params.metric_collector_https_enabled)
+        conn = network.get_http_connection(params.metric_collector_host,
+                                           int(params.metric_collector_port),
+                                           params.metric_collector_https_enabled,
+                                           ca_certs)
         conn.request("POST", self.AMS_METRICS_POST_URL, metric_json, headers)
 
         response = conn.getresponse()
@@ -128,9 +132,10 @@ class AMSServiceCheck(Script):
                                                  params.metric_collector_port,
                                               self.AMS_METRICS_GET_URL % encoded_get_metrics_parameters))
 
-    conn = self.get_http_connection(params.metric_collector_host,
-                                    int(params.metric_collector_port),
-                                    params.metric_collector_https_enabled)
+    conn = network.get_http_connection(params.metric_collector_host,
+                                       int(params.metric_collector_port),
+                                       params.metric_collector_https_enabled,
+                                       ca_certs)
     conn.request("GET", self.AMS_METRICS_GET_URL % encoded_get_metrics_parameters)
     response = conn.getresponse()
     Logger.info("Http response: %s %s" % (response.status, response.reason))
@@ -162,13 +167,6 @@ class AMSServiceCheck(Script):
       raise Fail("Values %s and %s were not found in the response." % (random_value1, current_time))
 
     Logger.info("Ambari Metrics service check is finished.")
-
-  def get_http_connection(self, host, port, https_enabled=False):
-    if https_enabled:
-      # TODO verify certificate
-      return httplib.HTTPSConnection(host, port)
-    else:
-      return httplib.HTTPConnection(host, port)
 
 if __name__ == "__main__":
   AMSServiceCheck().execute()

@@ -46,7 +46,6 @@ class Controller(threading.Thread):
                                                        hostinfo.get_ip_address())
     self.event_queue = Queue(config.get_max_queue_size())
     self.metric_collector = MetricsCollector(self.event_queue, self.application_metric_map, hostinfo)
-    self.server_url = config.get_server_address()
     self.sleep_interval = config.get_collector_sleep_interval()
     self._stop_handler = stop_handler
     self.initialize_events_cache()
