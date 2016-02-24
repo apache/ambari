@@ -60,6 +60,8 @@ import org.apache.ambari.server.audit.request.eventcreator.ConfigurationChangeEv
 import org.apache.ambari.server.audit.request.eventcreator.DefaultEventCreator;
 import org.apache.ambari.server.audit.request.eventcreator.ComponentEventCreator;
 import org.apache.ambari.server.audit.request.eventcreator.ServiceEventCreator;
+import org.apache.ambari.server.audit.request.eventcreator.UpgradeEventCreator;
+import org.apache.ambari.server.audit.request.eventcreator.UpgradeItemEventCreator;
 import org.apache.ambari.server.audit.request.eventcreator.UserEventCreator;
 import org.apache.ambari.server.audit.request.eventcreator.ViewInstanceEventCreator;
 import org.apache.ambari.server.audit.request.eventcreator.ViewPrivilegeEventCreator;
@@ -426,6 +428,8 @@ public class ControllerModule extends AbstractModule {
     auditLogEventCreatorBinder.addBinding().to(AlertGroupEventCreator.class);
     auditLogEventCreatorBinder.addBinding().to(AlertTargetEventCreator.class);
     auditLogEventCreatorBinder.addBinding().to(HostEventCreator.class);
+    auditLogEventCreatorBinder.addBinding().to(UpgradeEventCreator.class);
+    auditLogEventCreatorBinder.addBinding().to(UpgradeItemEventCreator.class);
 
     bind(RequestAuditLogger.class).to(RequestAuditLoggerImpl.class);
   }
