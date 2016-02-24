@@ -30,7 +30,7 @@
       <components>
         <component>
           <name>MAHOUT</name>
-          <displayName>Mahout</displayName>
+          <displayName>Mahout Client</displayName>
           <category>CLIENT</category>
           <cardinality>0+</cardinality>
           <versionAdvertised>true</versionAdvertised>

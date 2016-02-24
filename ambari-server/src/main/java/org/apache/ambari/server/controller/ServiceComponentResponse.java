@@ -29,6 +29,8 @@ public class ServiceComponentResponse {
 
   private String componentName;
 
+  private String displayName;
+
   private String desiredStackVersion;
 
   private String desiredState;
@@ -51,12 +53,14 @@ public class ServiceComponentResponse {
                                   int totalCount,
                                   int startedCount,
                                   int installedCount,
-                                  boolean recoveryEnabled) {
+                                  boolean recoveryEnabled,
+                                  String displayName) {
     super();
     this.clusterId = clusterId;
     this.clusterName = clusterName;
     this.serviceName = serviceName;
     this.componentName = componentName;
+    this.displayName = displayName;
     this.desiredStackVersion = desiredStackVersion;
     this.desiredState = desiredState;
     this.totalCount = totalCount;
@@ -91,6 +95,13 @@ public class ServiceComponentResponse {
    */
   public void setComponentName(String componentName) {
     this.componentName = componentName;
+  }
+
+  /**
+   * @return the displayName
+   */
+  public String getDisplayName() {
+    return displayName;
   }
 
   /**

@@ -226,13 +226,13 @@ public class ComponentResourceProviderTest {
 
     expect(serviceComponent1.convertToResponse()).andReturn(
       new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component100", null, "", 1, 1, 0,
-              true /* recovery enabled */));
+              true /* recovery enabled */, "Component100 Client"));
     expect(serviceComponent2.convertToResponse()).andReturn(
       new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component101", null, "", 1, 1, 0,
-              false /* recovery not enabled */));
+              false /* recovery not enabled */, "Component101 Client"));
     expect(serviceComponent3.convertToResponse()).andReturn(
       new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component102", null, "", 1, 1, 0,
-              true /* recovery enabled */));
+              true /* recovery enabled */, "Component102 Client"));
 
     expect(ambariMetaInfo.getComponent((String) anyObject(),
         (String) anyObject(), (String) anyObject(), (String) anyObject()))
@@ -371,13 +371,13 @@ public class ComponentResourceProviderTest {
 
     expect(serviceComponent1.convertToResponse()).andReturn(
       new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component101", null, "", 1, 0, 1,
-              false /* recovery not enabled */));
+              false /* recovery not enabled */, "Component101 Client"));
     expect(serviceComponent2.convertToResponse()).andReturn(
       new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component102", null, "", 1, 0, 1,
-              false /* recovery not enabled */));
+              false /* recovery not enabled */, "Component102 Client"));
     expect(serviceComponent3.convertToResponse()).andReturn(
       new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component103", null, "", 1, 0, 1,
-              false /* recovery not enabled */));
+              false /* recovery not enabled */, "Component103 Client"));
     expect(serviceComponent1.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
     expect(serviceComponent2.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
     expect(serviceComponent3.getDesiredState()).andReturn(State.INSTALLED).anyTimes();

@@ -22,6 +22,7 @@ App.HostComponent = DS.Model.extend({
   workStatus: DS.attr('string'),
   passiveState: DS.attr('string'),
   componentName: DS.attr('string'),
+  displayName: DS.attr('string'),
   haStatus: DS.attr('string'),
   displayNameAdvanced: DS.attr('string'),
   staleConfigs: DS.attr('boolean'),
@@ -58,12 +59,6 @@ App.HostComponent = DS.Model.extend({
    * @type {boolean}
    */
   isNotInstalled: Em.computed.existsIn('workStatus', ['INIT', 'INSTALL_FAILED']),
-
-  /**
-   * Formatted <code>componentName</code>
-   * @returns {String}
-   */
-  displayName: Em.computed.formatRole('componentName'),
 
   /**
    * Determine if component is master

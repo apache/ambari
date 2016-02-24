@@ -22,6 +22,7 @@ var stringUtils = require('utils/string_utils');
 App.ClientComponent = DS.Model.extend({
   service: DS.belongsTo('App.Service'),
   componentName: DS.attr('string'),
+  displayName: DS.attr('string'),
   installedCount: DS.attr('number'),
   startedCount: DS.attr('number'),
   totalCount: DS.attr('number'),
@@ -34,14 +35,6 @@ App.ClientComponent = DS.Model.extend({
 
   summaryValueClassName:function(){
     return 'value_for_'+this.get('componentName').toLowerCase();
-  }.property('componentName'),
-
-  displayName: function() {
-    var displayName = App.format.role(this.get('componentName'));
-    if (this.get('service.serviceName') === this.get('componentName')) {
-      displayName += ' ' + Em.I18n.t('common.client');
-    }
-    return displayName;
   }.property('componentName'),
 
   displayNamePluralized: function() {

@@ -59,6 +59,7 @@ App.hostsMapper = App.QuickDataMapper.create({
   },
   hostComponentConfig: {
     component_name: 'HostRoles.component_name',
+    display_name: 'HostRoles.display_name',
     service_id: 'HostRoles.service_name',
     passive_state: 'HostRoles.maintenance_state',
     work_status: 'HostRoles.state',

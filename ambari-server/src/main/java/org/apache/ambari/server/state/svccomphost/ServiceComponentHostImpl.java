@@ -54,6 +54,7 @@ import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostComponentAdminState;
@@ -1339,9 +1340,18 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
         HostComponentAdminState componentAdminState = getComponentAdminState();
         UpgradeState upgradeState = hostComponentStateEntity.getUpgradeState();
 
+        String displayName = null;
+        try {
+          ComponentInfo compInfo = ambariMetaInfo.getComponent(getStackVersion().getStackName(),
+            getStackVersion().getStackVersion(), serviceName, serviceComponentName);
+          displayName = compInfo.getDisplayName();
+        } catch (AmbariException e) {
+          displayName = serviceComponentName;
+        }
+
         ServiceComponentHostResponse r = new ServiceComponentHostResponse(
             clusterName, serviceName,
-            serviceComponentName, hostName, state,
+            serviceComponentName, displayName, hostName, state,
             stackId, desiredState,
             desiredStackId, componentAdminState);
 
