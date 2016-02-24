@@ -18,6 +18,9 @@
 
 package org.apache.ambari.server.orm.dao;
 
+import static org.apache.ambari.server.orm.DBAccessor.DbType.ORACLE;
+import static org.apache.ambari.server.orm.dao.DaoUtils.ORACLE_LIST_LIMIT;
+
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -26,6 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReadWriteLock;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -33,6 +37,9 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Order;
 import javax.persistence.metamodel.SingularAttribute;
 
+import org.apache.ambari.annotations.TransactionalLock;
+import org.apache.ambari.annotations.TransactionalLock.LockArea;
+import org.apache.ambari.annotations.TransactionalLock.LockType;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.api.query.JpaPredicateVisitor;
@@ -43,6 +50,7 @@ import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.SortRequest;
 import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.orm.RequiresSession;
+import org.apache.ambari.server.orm.TransactionalLocks;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity_;
@@ -59,9 +67,6 @@ import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
-
-import static org.apache.ambari.server.orm.DBAccessor.DbType.ORACLE;
-import static org.apache.ambari.server.orm.dao.DaoUtils.ORACLE_LIST_LIMIT;
 
 @Singleton
 public class HostRoleCommandDAO {
@@ -102,9 +107,17 @@ public class HostRoleCommandDAO {
   private static final String COMPLETED_REQUESTS_SQL = "SELECT DISTINCT task.requestId FROM HostRoleCommandEntity task WHERE task.requestId NOT IN (SELECT task.requestId FROM HostRoleCommandEntity task WHERE task.status IN :notCompletedStatuses) ORDER BY task.requestId {0}";
 
   /**
-   * A cache that holds {@link HostRoleCommandStatusSummaryDTO} grouped by stage id for requests by request id.
-   * The JPQL computing the host role command status summary for a request is rather expensive
-   * thus this cache helps reducing the load on the database
+   * A cache that holds {@link HostRoleCommandStatusSummaryDTO} grouped by stage
+   * id for requests by request id. The JPQL computing the host role command
+   * status summary for a request is rather expensive thus this cache helps
+   * reducing the load on the database.
+   * <p/>
+   * Methods which interact with this cache, including invalidation and
+   * population, should use the {@link TransactionalLock} annotation along with
+   * the {@link LockArea#HRC_STATUS_CACHE}. This will prevent stale data from
+   * being read during a transaction which has updated a
+   * {@link HostRoleCommandEntity}'s {@link HostRoleStatus} but has not
+   * committed yet.
    */
   private final LoadingCache<Long, Map<Long, HostRoleCommandStatusSummaryDTO>> hrcStatusSummaryCache;
 
@@ -121,6 +134,15 @@ public class HostRoleCommandDAO {
   @Inject
   DaoUtils daoUtils;
 
+  /**
+   * Used to ensure that methods which rely on the completion of
+   * {@link Transactional} can detect when they are able to run.
+   *
+   * @see TransactionalLock
+   */
+  @Inject
+  private final TransactionalLocks transactionLocks = null;
+
   public final static String HRC_STATUS_SUMMARY_CACHE_SIZE =  "hostRoleCommandStatusSummaryCacheSize";
   public final static String HRC_STATUS_SUMMARY_CACHE_EXPIRY_DURATION_MINUTES = "hostRoleCommandStatusCacheExpiryDurationMins";
   public final static String HRC_STATUS_SUMMARY_CACHE_ENABLED =  "hostRoleCommandStatusSummaryCacheEnabled";
@@ -130,12 +152,12 @@ public class HostRoleCommandDAO {
    * @param requestId the key of the cache entry to be invalidated.
    */
   protected void invalidateHostRoleCommandStatusSummaryCache(Long requestId) {
-    if (!hostRoleCommandStatusSummaryCacheEnabled )
+    if (!hostRoleCommandStatusSummaryCacheEnabled ) {
       return;
+    }
 
     LOG.debug("Invalidating host role command status summary cache for request {} !", requestId);
     hrcStatusSummaryCache.invalidate(requestId);
-
   }
 
   /**
@@ -144,21 +166,23 @@ public class HostRoleCommandDAO {
    * @param hostRoleCommandEntity
    */
   protected void invalidateHostRoleCommandStatusCache(HostRoleCommandEntity hostRoleCommandEntity) {
-    if ( !hostRoleCommandStatusSummaryCacheEnabled )
+    if ( !hostRoleCommandStatusSummaryCacheEnabled ) {
       return;
+    }
 
     if (hostRoleCommandEntity != null) {
       Long requestId = hostRoleCommandEntity.getRequestId();
       if (requestId == null) {
         StageEntity stageEntity = hostRoleCommandEntity.getStage();
-        if (stageEntity != null)
+        if (stageEntity != null) {
           requestId = stageEntity.getRequestId();
+        }
       }
 
-      if (requestId != null)
+      if (requestId != null) {
         invalidateHostRoleCommandStatusSummaryCache(requestId.longValue());
+      }
     }
-
   }
 
   /**
@@ -170,42 +194,52 @@ public class HostRoleCommandDAO {
    */
   @RequiresSession
   protected Map<Long, HostRoleCommandStatusSummaryDTO> loadAggregateCounts(Long requestId) {
-
-    TypedQuery<HostRoleCommandStatusSummaryDTO> query = entityManagerProvider.get().createQuery(
-      SUMMARY_DTO, HostRoleCommandStatusSummaryDTO.class);
-
-    query.setParameter("requestId", requestId);
-    query.setParameter("aborted", HostRoleStatus.ABORTED);
-    query.setParameter("completed", HostRoleStatus.COMPLETED);
-    query.setParameter("failed", HostRoleStatus.FAILED);
-    query.setParameter("holding", HostRoleStatus.HOLDING);
-    query.setParameter("holding_failed", HostRoleStatus.HOLDING_FAILED);
-    query.setParameter("holding_timedout", HostRoleStatus.HOLDING_TIMEDOUT);
-    query.setParameter("in_progress", HostRoleStatus.IN_PROGRESS);
-    query.setParameter("pending", HostRoleStatus.PENDING);
-    query.setParameter("queued", HostRoleStatus.QUEUED);
-    query.setParameter("timedout", HostRoleStatus.TIMEDOUT);
-    query.setParameter("skipped_failed", HostRoleStatus.SKIPPED_FAILED);
-
     Map<Long, HostRoleCommandStatusSummaryDTO> map = new HashMap<Long, HostRoleCommandStatusSummaryDTO>();
 
-    for (HostRoleCommandStatusSummaryDTO dto : daoUtils.selectList(query)) {
-      map.put(dto.getStageId(), dto);
+    // ensure that we wait for any running transactions working on this cache to
+    // complete
+    ReadWriteLock lock = transactionLocks.getLock(LockArea.HRC_STATUS_CACHE);
+    lock.readLock().lock();
+
+    try {
+      TypedQuery<HostRoleCommandStatusSummaryDTO> query = entityManagerProvider.get().createQuery(
+          SUMMARY_DTO, HostRoleCommandStatusSummaryDTO.class);
+
+      query.setParameter("requestId", requestId);
+      query.setParameter("aborted", HostRoleStatus.ABORTED);
+      query.setParameter("completed", HostRoleStatus.COMPLETED);
+      query.setParameter("failed", HostRoleStatus.FAILED);
+      query.setParameter("holding", HostRoleStatus.HOLDING);
+      query.setParameter("holding_failed", HostRoleStatus.HOLDING_FAILED);
+      query.setParameter("holding_timedout", HostRoleStatus.HOLDING_TIMEDOUT);
+      query.setParameter("in_progress", HostRoleStatus.IN_PROGRESS);
+      query.setParameter("pending", HostRoleStatus.PENDING);
+      query.setParameter("queued", HostRoleStatus.QUEUED);
+      query.setParameter("timedout", HostRoleStatus.TIMEDOUT);
+      query.setParameter("skipped_failed", HostRoleStatus.SKIPPED_FAILED);
+
+      for (HostRoleCommandStatusSummaryDTO dto : daoUtils.selectList(query)) {
+        map.put(dto.getStageId(), dto);
+      }
+    } finally {
+      lock.readLock().unlock();
     }
 
     return map;
   }
 
   @Inject
-  public HostRoleCommandDAO(@Named(HRC_STATUS_SUMMARY_CACHE_ENABLED) boolean hostRoleCommandStatusSummaryCacheEnabled, @Named(HRC_STATUS_SUMMARY_CACHE_SIZE) long hostRoleCommandStatusSummaryCacheLimit, @Named(HRC_STATUS_SUMMARY_CACHE_EXPIRY_DURATION_MINUTES) long hostRoleCommandStatusSummaryCacheExpiryDurationMins) {
+  public HostRoleCommandDAO(
+      @Named(HRC_STATUS_SUMMARY_CACHE_ENABLED) boolean hostRoleCommandStatusSummaryCacheEnabled,
+      @Named(HRC_STATUS_SUMMARY_CACHE_SIZE) long hostRoleCommandStatusSummaryCacheLimit,
+      @Named(HRC_STATUS_SUMMARY_CACHE_EXPIRY_DURATION_MINUTES) long hostRoleCommandStatusSummaryCacheExpiryDurationMins) {
     this.hostRoleCommandStatusSummaryCacheEnabled = hostRoleCommandStatusSummaryCacheEnabled;
 
     LOG.info("Host role command status summary cache {} !", hostRoleCommandStatusSummaryCacheEnabled ? "enabled" : "disabled");
 
-
     hrcStatusSummaryCache = CacheBuilder.newBuilder()
       .maximumSize(hostRoleCommandStatusSummaryCacheLimit)
-      .expireAfterAccess(hostRoleCommandStatusSummaryCacheExpiryDurationMins, TimeUnit.MINUTES)
+      .expireAfterWrite(hostRoleCommandStatusSummaryCacheExpiryDurationMins, TimeUnit.MINUTES)
       .build(new CacheLoader<Long, Map<Long, HostRoleCommandStatusSummaryDTO>>() {
         @Override
         public Map<Long, HostRoleCommandStatusSummaryDTO> load(Long requestId) throws Exception {
@@ -542,15 +576,19 @@ public class HostRoleCommandDAO {
   }
 
   @Transactional
-  public void create(HostRoleCommandEntity stageEntity) {
-    entityManagerProvider.get().persist(stageEntity);
+  @TransactionalLock(lockArea = LockArea.HRC_STATUS_CACHE, lockType = LockType.WRITE)
+  public void create(HostRoleCommandEntity entity) {
+    EntityManager entityManager = entityManagerProvider.get();
+    entityManager.persist(entity);
 
-    invalidateHostRoleCommandStatusCache(stageEntity);
+    invalidateHostRoleCommandStatusCache(entity);
   }
 
   @Transactional
-  public HostRoleCommandEntity merge(HostRoleCommandEntity stageEntity) {
-    HostRoleCommandEntity entity = entityManagerProvider.get().merge(stageEntity);
+  @TransactionalLock(lockArea = LockArea.HRC_STATUS_CACHE, lockType = LockType.WRITE)
+  public HostRoleCommandEntity merge(HostRoleCommandEntity entity) {
+    EntityManager entityManager = entityManagerProvider.get();
+    entity = entityManager.merge(entity);
 
     invalidateHostRoleCommandStatusCache(entity);
 
@@ -566,21 +604,24 @@ public class HostRoleCommandDAO {
   }
 
   @Transactional
+  @TransactionalLock(lockArea = LockArea.HRC_STATUS_CACHE, lockType = LockType.WRITE)
   public List<HostRoleCommandEntity> mergeAll(Collection<HostRoleCommandEntity> entities) {
     List<HostRoleCommandEntity> managedList = new ArrayList<HostRoleCommandEntity>(entities.size());
     for (HostRoleCommandEntity entity : entities) {
-      managedList.add(entityManagerProvider.get().merge(entity));
-
+      EntityManager entityManager = entityManagerProvider.get();
+      managedList.add(entityManager.merge(entity));
       invalidateHostRoleCommandStatusCache(entity);
     }
+
     return managedList;
   }
 
   @Transactional
-  public void remove(HostRoleCommandEntity stageEntity) {
-    entityManagerProvider.get().remove(merge(stageEntity));
-
-    invalidateHostRoleCommandStatusCache(stageEntity);
+  @TransactionalLock(lockArea = LockArea.HRC_STATUS_CACHE, lockType = LockType.WRITE)
+  public void remove(HostRoleCommandEntity entity) {
+    EntityManager entityManager = entityManagerProvider.get();
+    entityManager.remove(merge(entity));
+    invalidateHostRoleCommandStatusCache(entity);
   }
 
   @Transactional
@@ -595,10 +636,12 @@ public class HostRoleCommandDAO {
    * @return the map of stage-to-summary objects
    */
   public Map<Long, HostRoleCommandStatusSummaryDTO> findAggregateCounts(Long requestId) {
-    if (hostRoleCommandStatusSummaryCacheEnabled)
+    if (hostRoleCommandStatusSummaryCacheEnabled) {
       return hrcStatusSummaryCache.getUnchecked(requestId);
-    else
+    }
+    else {
       return loadAggregateCounts(requestId); // if caching not enabled fall back to fetching through JPA
+    }
   }
 
 

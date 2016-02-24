@@ -198,7 +198,10 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
       }
     }
 
-    hostRoleCommandDAO.mergeAll(commands);
+    // no need to merge if there's nothing to merge
+    if (!commands.isEmpty()) {
+      hostRoleCommandDAO.mergeAll(commands);
+    }
   }
 
   /* (non-Javadoc)
@@ -214,7 +217,12 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
       command.setStatus(command.isRetryAllowed() ? HostRoleStatus.HOLDING_TIMEDOUT : HostRoleStatus.TIMEDOUT);
       command.setEndTime(now);
     }
-    hostRoleCommandDAO.mergeAll(commands);
+
+    // no need to merge if there's nothing to merge
+    if (!commands.isEmpty()) {
+      hostRoleCommandDAO.mergeAll(commands);
+    }
+
     endRequestIfCompleted(requestId);
   }
 
@@ -474,7 +482,11 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
       }
     }
 
-    hostRoleCommandDAO.mergeAll(commandEntities);
+    // no need to merge if there's nothing to merge
+    if (!commandEntities.isEmpty()) {
+      hostRoleCommandDAO.mergeAll(commandEntities);
+    }
+
     // Invalidate cache because of updates to ABORTED commands
     hostRoleCommandCache.invalidateAll(abortedCommandUpdates);
 
@@ -525,7 +537,10 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
       command.setExitcode(report.getExitCode());
     }
 
-    hostRoleCommandDAO.mergeAll(commands);
+    // no need to merge if there's nothing to merge
+    if (!commands.isEmpty()) {
+      hostRoleCommandDAO.mergeAll(commands);
+    }
 
     if (checkRequest) {
       endRequestIfCompleted(requestId);
@@ -722,7 +737,10 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
       task.setEndTime(-1L);
     }
 
-    hostRoleCommandDAO.mergeAll(tasks);
+    // no need to merge if there's nothing to merge
+    if (!tasks.isEmpty()) {
+      hostRoleCommandDAO.mergeAll(tasks);
+    }
   }
 
   /**

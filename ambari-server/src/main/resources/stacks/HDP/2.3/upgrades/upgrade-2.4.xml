@@ -370,7 +370,7 @@
 
     <group xsi:type="cluster" name="FINALIZE_PRE_CHECK" title="Finalize {{direction.text.proper}} Pre-Check">
       <direction>UPGRADE</direction>
-      
+
       <execute-stage title="Check Component Versions">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.ComponentVersionCheckAction" />
       </execute-stage>
@@ -548,7 +548,7 @@
           <task xsi:type="restart-task" />
         </upgrade>
       </component>
-      
+
       <component name="PHOENIX_QUERY_SERVER">
         <upgrade>
           <task xsi:type="restart-task"/>
@@ -688,7 +688,7 @@
           <task xsi:type="configure" id="hdp_2_4_0_0_oozie_remove_service_classes" />
 
           <task xsi:type="server_action" summary="Adjusting Oozie properties" class="org.apache.ambari.server.serveraction.upgrades.OozieConfigCalculation"/>
-        
+
           <task xsi:type="execute" hosts="all" sequential="true" summary="Shut down all Oozie servers">
             <script>scripts/oozie_server.py</script>
             <function>stop</function>
@@ -745,7 +745,7 @@
         <pre-upgrade>
           <task xsi:type="configure" id ="hdp_2_4_0_0_kafka_broker_deprecate_port"/>
         </pre-upgrade>
-        
+
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
