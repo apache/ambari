@@ -22,6 +22,8 @@ App.ClusterMetricsDashboardWidgetView = App.DashboardWidgetView.extend(App.Expor
 
   templateName: require('templates/main/dashboard/widgets/cluster_metrics'),
 
+  isClusterMetricsWidget: true,
+
   exportTargetView: Em.computed.alias('childViews.lastObject'),
 
   didInsertElement: function () {
