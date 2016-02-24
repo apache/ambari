@@ -97,12 +97,7 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
     {
       name: 'hostComponents',
       key: 'host_components/HostRoles/component_name',
-      type: 'MULTIPLE'
-    },
-    {
-      name: 'hostComponents2',
-      key: 'host_components/HostRoles/component_name',
-      type: 'MATCH'
+      type: 'EQUAL'
     },
     {
       name: 'services',
@@ -238,7 +233,13 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
           isFilter: true
         };
         if (filter.type === 'string' && sortProperties.someProperty('name', colPropAssoc[filter.iColumn])) {
-          result.value = this.getRegExp(filter.value);
+          if (Em.isArray(filter.value)) {
+            for(var i = 0; i < filter.value.length; i++) {
+              filter.value[i] = this.getRegExp(filter.value[i]);
+            }
+          } else {
+            result.value = this.getRegExp(filter.value);
+          }
         }
         if (filter.type === 'number' || filter.type === 'ambari-bandwidth') {
           result.type = this.getComparisonType(filter.value);
@@ -559,7 +560,6 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
     associations[12] = 'rack';
     associations[13] = 'services';
     associations[14] = 'state';
-    associations[15] = 'hostComponents2';
     return associations;
   }.property()
 

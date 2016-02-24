@@ -22,54 +22,18 @@ App.MainHostComboSearchBoxController = Em.Controller.extend({
   name: 'mainHostComboSearchBoxController',
   currentSuggestion: [],
   page_size: 10,
-
-  VSCallbacks : {
-
-    facetMatches: function (callback) {
-      callback([
-        {label: 'host_name', category: 'Host'},
-        {label: 'ip', category: 'Host'},
-        {label: 'version', category: 'Host'},
-        {label: 'health', category: 'Host'},
-        {label: 'rack', category: 'Host'},
-        {label: 'service', category: 'Service'},
-        {label: 'component', category: 'Service'},
-        {label: 'state', category: 'Service'}
-      ]);
-    },
-
-    valueMatches: function (facet, searchTerm, callback) {
-      var controller = App.router.get('mainHostComboSearchBoxController');
-      var category_mocks = require('data/host/categories');
-      switch (facet) {
-        case 'host_name':
-        case 'ip':
-          controller.getPropertySuggestions(facet, searchTerm).done(function() {
-            callback(controller.get('currentSuggestion'), {preserveMatches: true});
-          });
-          break;
-        case 'rack':
-          callback(App.Host.find().toArray().mapProperty('rack').uniq());
-          break;
-        case 'version':
-          callback(App.StackVersion.find().toArray().mapProperty('name'));
-          break;
-        case 'health':
-          callback(category_mocks.slice(1).mapProperty('healthStatus'), {preserveOrder: true});
-          break;
-        case 'service':
-          callback(App.Service.find().toArray().mapProperty('serviceName'), {preserveOrder: true});
-          break;
-        case 'component':
-          callback(App.HostComponent.find().toArray().mapProperty('componentName').uniq(), {preserveOrder: true});
-          break;
-        case 'state':
-          callback(App.HostComponentStatus.getStatusesList(), {preserveOrder: true});
-          break;
-      }
-    }
+  nameColumnMap: {
+    'Host Name': 'hostName',
+    'IP': 'ip',
+    'Health Status': 'hostName',
+    'Host Name': 'healthClass',
+    'Rack': 'rack',
+    'Cores': 'cpu',
+    'RAM': 'memoryFormatted',
+    'Service': 'service',
+    'Has Component': 'hostComponents',
+    'State': 'state'
   },
-
   getPropertySuggestions: function(facet, searchTerm) {
     return App.ajax.send({
       name: 'hosts.with_searchTerm',

@@ -122,7 +122,11 @@ App.UpdateController = Em.Controller.extend({
 
       switch (param.type) {
         case 'EQUAL':
-          params += param.key + '=' + param.value;
+          if (Em.isArray(param.value)) {
+            params += param.key + '.in(' + param.value.join(',') + ')';
+          } else {
+            params += param.key + '=' + param.value;
+          }
           break;
         case 'LESS':
           params += param.key + '<' + param.value;
@@ -131,7 +135,16 @@ App.UpdateController = Em.Controller.extend({
           params += param.key + '>' + param.value;
           break;
         case 'MATCH':
-          params += param.key + '.matches(' + param.value + ')';
+          if (Em.isArray(param.value)) {
+            params += '(';
+            param.value.forEach(function(v) {
+              params += param.key + '.matches(' + v + ')' + '|';
+            });
+            params = params.substring(0, params.length - 1);
+            params += ')';
+          } else {
+            params += param.key + '.matches(' + param.value + ')';
+          }
           break;
         case 'MULTIPLE':
           params += param.key + '.in(' + param.value.join(',') + ')';

@@ -84,6 +84,37 @@ App.TableServerViewMixin = Em.Mixin.create({
       this.saveFilterConditions(iColumn, value, type, false);
       this.refresh();
     }
+    return true;
+  },
+
+  updateComboFilter: function(searchCollection) {
+    var self = this;
+    clearTimeout(this.get('timeOut'));
+    this.set('controller.resetStartIndex', true);
+    this.set('filterConditions', []);
+    this.clearFilterConditionsFromLocalStorage();
+    searchCollection.models.forEach(function (model) {
+      var tag = model.attributes;
+      var iColumn = App.router.get('mainHostController').get('colPropAssoc').indexOf(tag.category);
+      var filterCondition = self.get('filterConditions').findProperty('iColumn', iColumn);
+      if (filterCondition) {
+        if (typeof filterCondition.value == 'string') {
+          filterCondition.value = [filterCondition.value, tag.value];
+        } else if (Em.isArray(filterCondition.value) && filterCondition.value.indexOf(tag.value) == -1) {
+          filterCondition.value.push(tag.value);
+        }
+      } else {
+        filterCondition = {
+          skipFilter: false,
+          iColumn: iColumn,
+          value: tag.value,
+          type: 'string'
+        };
+        self.get('filterConditions').push(filterCondition);
+      }
+    });
+    this.saveAllFilterConditions();
+    this.refresh();
   },
 
   /**

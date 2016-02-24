@@ -26,58 +26,7 @@ App.MainHostComboSearchBoxView = Em.View.extend({
 
   initVS: function() {
     var self = this;
-
-    var callbacks = this.get('controller').VSCallbacks;
-    callbacks.search = function (query, searchCollection) {
-
-      searchCollection.models.forEach(function (data) {
-        var query = data.attributes;
-
-        switch (query.category) {
-          case 'health':
-            self.get('parentView').get('parentView').updateFilter(0, query.value, 'string');
-            break;
-          case 'host_name':
-            self.get('parentView').get('parentView').updateFilter(1, query.value, 'string');
-            break;
-          case 'ip':
-            self.get('parentView').get('parentView').updateFilter(2, query.value, 'string');
-            break;
-          case 'rack':
-            self.get('parentView').get('parentView').updateFilter(12, query.value, 'string');
-            break;
-          case 'version':
-            self.get('parentView').get('parentView').updateFilter(11, query.value, 'string');
-            break;
-          case 'component':
-            self.get('parentView').get('parentView').updateFilter(15, query.value, 'string');
-            break;
-          case 'service':
-            self.get('parentView').get('parentView').updateFilter(13, query.value, 'string');
-            break;
-          case 'state':
-            self.get('parentView').get('parentView').updateFilter(14, query.value, 'string');
-            break;
-        }
-      });
-
-      var $query = $('#search_query');
-      var count = searchCollection.size();
-      $query.stop().animate({opacity: 1}, {duration: 300, queue: false});
-      $query.html('<span class="raquo">&raquo;</span> You searched for: ' +
-          '<b>' + (query || '<i>nothing</i>') + '</b>. ' +
-          '(' + count + ' facet' + (count == 1 ? '' : 's') + ')');
-      clearTimeout(window.queryHideDelay);
-      window.queryHideDelay = setTimeout(function () {
-        $query.animate({
-          opacity: 0
-        }, {
-          duration: 1000,
-          queue: false
-        });
-      }, 2000);
-    };
-
+    var controller = App.router.get('mainHostComboSearchBoxController');
     window.visualSearch = VS.init({
       container: $('#combo_search_box'),
       query: '',
@@ -86,7 +35,57 @@ App.MainHostComboSearchBoxView = Em.View.extend({
       unquotable: [
         'text'
       ],
-      callbacks: callbacks
+      callbacks: {
+        search: function (query, searchCollection) {
+          console.error('query: ' + query);
+          var tableView = self.get('parentView').get('parentView');
+          tableView.updateComboFilter(searchCollection);
+        },
+
+        facetMatches: function (callback) {
+          callback([
+            {label: 'hostName', category: 'Host'},
+            {label: 'ip', category: 'Host'},
+            // {label: 'version', category: 'Host'},
+            {label: 'healthClass', category: 'Host'},
+            {label: 'rack', category: 'Host'},
+            {label: 'services', category: 'Service'},
+            {label: 'hostComponents', category: 'Service'},
+            // {label: 'state', category: 'Service'}
+          ]);
+        },
+
+        valueMatches: function (facet, searchTerm, callback) {
+          var category_mocks = require('data/host/categories');
+          switch (facet) {
+            case 'hostName':
+            case 'ip':
+              facet = (facet == 'hostName')? 'host_name' : facet;
+              controller.getPropertySuggestions(facet, searchTerm).done(function() {
+                callback(controller.get('currentSuggestion'), {preserveMatches: true});
+              });
+              break;
+            case 'rack':
+              callback(App.Host.find().toArray().mapProperty('rack').uniq());
+              break;
+            case 'version':
+              callback(App.StackVersion.find().toArray().mapProperty('name'));
+              break;
+            case 'healthClass':
+              callback(category_mocks.slice(1).mapProperty('healthStatus'), {preserveOrder: true});
+              break;
+            case 'services':
+              callback(App.Service.find().toArray().mapProperty('serviceName'), {preserveOrder: true});
+              break;
+            case 'hostComponents':
+              callback(App.HostComponent.find().toArray().mapProperty('componentName').uniq(), {preserveOrder: true});
+              break;
+            case 'state':
+              callback(App.HostComponentStatus.getStatusesList(), {preserveOrder: true});
+              break;
+          }
+        }
+      }
     });
   }
 });
