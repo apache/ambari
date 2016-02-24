@@ -2230,6 +2230,11 @@ a:focus {
       }
     }
   }
+  .screensaver {
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+  }
 }
 .chart-container {
   cursor: pointer;
@@ -2708,6 +2713,11 @@ table.graphs {
     .spinner {
       margin: 55px auto;
     }
+    .chart-container {
+      .spinner {
+        margin: 15px auto 35px;
+      }
+    }
     .row-fluid .span2p4 {
       width: 19.60%;
       *width: 19.60%;
@@ -2807,7 +2817,7 @@ table.graphs {
         border: 1px solid silver;
         color: #ffffff;
         i {
-          font-size: 4em;
+          font-size: inherit;
         }
       }
     }
@@ -4692,9 +4702,6 @@ ul.inline li {
   height: 157px;
   border: 1px solid silver;
   margin: 20px 15px 10px 15px;
-  i {
-    font-size: 4em;
-  }
 }
 
 /* TIME RANGE WIDGET END */

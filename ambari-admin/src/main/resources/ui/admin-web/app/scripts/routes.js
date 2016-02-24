@@ -146,7 +146,12 @@ angular.module('ambariAdminConsole')
   };
   angular.forEach(ROUTES, createRoute);
 }])
-.run(['$rootScope', 'ROUTES', function($rootScope, ROUTES) {
+.run(['$rootScope', 'ROUTES', 'Settings', function($rootScope, ROUTES, Settings) {
   // Make routes available in every template and controller
   $rootScope.ROUTES = ROUTES;
+  $rootScope.$on('$locationChangeStart', function (e, nextUrl) {
+    if (/\/authentication$/.test(nextUrl) && !Settings.isLDAPConfigurationSupported) {
+      e.preventDefault();
+    }
+  });
 }]);

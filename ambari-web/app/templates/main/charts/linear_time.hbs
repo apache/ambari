@@ -18,6 +18,7 @@
 
 <div class="screensaver chart-container" {{bindAttr class="view.isReady:hide"}} >
   <div id="{{unbound view.id}}-title" class="chart-title">{{view.title}}</div>
+  {{view App.SpinnerView}}
 </div>
 <div id="{{unbound view.id}}-container" class="chart-container hide" {{bindAttr class="view.isReady:show"}} rel="ZoomInTooltip">
   <div id="{{unbound view.id}}-yaxis" class="chart-y-axis" {{action showGraphInPopup target="view"}}></div>

@@ -380,7 +380,10 @@ App.Router = Em.Router.extend({
             '<div class="modal-footer">' +
             '<button class="btn btn-success" {{action onPrimary target="view"}}>' + buttonText + '</button>'+
             '</div>'
-          )
+          ),
+          onPrimary: function() {
+            this.get('parentView').onPrimary();
+          }
         }),
 
         onPrimary: function () {

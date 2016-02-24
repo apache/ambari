@@ -18,8 +18,9 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-  .controller('AuthenticationMainCtrl', ['$scope', '$translate', 'Alert', function ($scope, $translate, $Alert) {
+  .controller('AuthenticationMainCtrl', ['$scope', '$translate', 'Alert', 'Settings', function ($scope, $translate, $Alert, Settings) {
     $scope.t = $translate.instant;
+    $scope.settings = Settings;
 
     $scope.isLDAPEnabled = false;
     $scope.connectivity = {

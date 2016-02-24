@@ -820,6 +820,7 @@
             "content": "\n"
         },
         "ams-site": {
+            "timeline.metrics.service.http.policy": "HTTPS_ONLY",
             "timeline.metrics.host.aggregator.minute.ttl": "604800",
             "timeline.metrics.cluster.aggregator.daily.checkpointCutOffMultiplier": "1",
             "timeline.metrics.cluster.aggregator.daily.ttl": "63072000",
@@ -868,6 +869,11 @@
         "ams-ssl-server": {
             "content": "\n"
         },
+        "ams-ssl-client": {
+            "ssl.client.truststore.location": "/etc/security/clientKeys/all.jks",
+            "ssl.client.truststore.type": "jks",
+            "ssl.client.truststore.password": "bigdata"
+        },
         "ams-grafana-ini": {
             "content": "\n"
         }
@@ -881,6 +887,7 @@
         "ams-hbase-log4j": {},
         "ams-site": {},
         "ams-ssl-server": {},
+        "ams-ssl-client": {},
         "sqoop-site": {},
         "yarn-site": {
         "final": {
@@ -964,6 +971,9 @@
             "tag": "version1"
         },
         "ams-ssl-server": {
+            "tag": "version1"
+        },
+        "ams-ssl-client": {
             "tag": "version1"
         },
         "ams-hbase-policy": {
