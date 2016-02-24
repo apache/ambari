@@ -320,4 +320,12 @@ public abstract class AbstractCheckDescriptor {
   public Boolean isRequired(){
       return getClass().getAnnotation(UpgradeCheck.class).required();
   }
+  
+  /**
+   * Return a boolean indicating whether or not configs allow bypassing errors during the RU/EU PreChecks.
+   * @return
+   */
+  public boolean isStackUpgradeAllowedToBypassPreChecks() {
+    return config.isUpgradePrecheckBypass();
+  }
 }

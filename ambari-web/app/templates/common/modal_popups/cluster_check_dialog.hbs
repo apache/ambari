@@ -35,6 +35,25 @@
       {{/each}}
     </div>
   {{/if}}
+
+  <!-- Errors that can by bypassed. -->
+  {{#if view.bypass.length}}
+    {{#if view.failTitle}}
+      <h4>{{view.failTitle}}</h4>
+    {{/if}}
+    {{#if view.failAlert}}
+      <div class="alert alert-warning">
+        {{view.failAlert}}
+      </div>
+    {{/if}}
+    <div class="limited-height-2">
+      {{#each item in view.bypass}}
+        <i class="icon-remove"></i>&nbsp;<span>{{item.UpgradeChecks.check}}</span>
+        <pre>{{t popup.clusterCheck.reason}}{{item.UpgradeChecks.reason}}<br/>{{t popup.clusterCheck.failedOn}}{{item.UpgradeChecks.failed_on}}</pre>
+      {{/each}}
+    </div>
+  {{/if}}
+
   {{#if view.warnings.length}}
     {{#if view.warningTitle}}
       <h4>{{view.warningTitle}}</h4>

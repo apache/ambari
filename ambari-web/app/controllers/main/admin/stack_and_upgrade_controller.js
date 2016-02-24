@@ -891,9 +891,16 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         openMessage: function (event) {
           if (isInUpgradeWizard || !event.context.get('allowed')) return;
           var data = event.context.get('precheckResultsData');
+
+          var failTitle = Em.I18n.t('popup.clusterCheck.Upgrade.fail.title');
+          var failAlert = new Em.Handlebars.SafeString(Em.I18n.t('popup.clusterCheck.Upgrade.fail.alert'));
+          var bypassedFailures = data.items.filterProperty('UpgradeChecks.status', 'BYPASS').length > 0;
+          if (data.items.filterProperty('UpgradeChecks.status', 'ERROR').length == 0 && bypassedFailures) {
+            failTitle = Em.I18n.t('popup.clusterCheck.Upgrade.bypassed-failures.title');
+            failAlert = new Em.Handlebars.SafeString(Em.I18n.t('popup.clusterCheck.Upgrade.bypassed-failures.alert'));
+          }
+
           var header = Em.I18n.t('popup.clusterCheck.Upgrade.header').format(version.get('displayName')),
-            failTitle = Em.I18n.t('popup.clusterCheck.Upgrade.fail.title'),
-            failAlert = new Em.Handlebars.SafeString(Em.I18n.t('popup.clusterCheck.Upgrade.fail.alert')),
             warningTitle = Em.I18n.t('popup.clusterCheck.Upgrade.warning.title'),
             warningAlert = new Em.Handlebars.SafeString(Em.I18n.t('popup.clusterCheck.Upgrade.warning.alert')),
             configsMergeWarning = data.items.findProperty('UpgradeChecks.id', "CONFIG_MERGE"),
@@ -909,6 +916,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
             warningAlert: warningAlert,
             primary: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.preCheck.rerun'),
             secondary: Em.I18n.t('common.cancel'),
+            bypassedFailures: bypassedFailures,
             callback: function () {
               self.runPreUpgradeCheckOnly.call(self, {
                 value: version.get('repositoryVersion'),
@@ -1038,7 +1046,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
 
   /**
    * success callback of <code>runPreUpgradeCheckOnly()</code>
-   * Show a message how many fails/warnings/passed
+   * Show a message how many fails/warnings/bypass/passed
    * on clicking that message a popup window show up
    * @param data {object}
    * @param opt {object}
@@ -1048,15 +1056,27 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     var self = this;
     var message = '';
     var messageClass = 'GREEN';
+    var allowedToStart = true;
     var messageIconClass = 'icon-ok';
+    var bypassedFailures = false;
+
     if (data.items.someProperty('UpgradeChecks.status', 'WARNING')) {
       message = message + data.items.filterProperty('UpgradeChecks.status', 'WARNING').length + ' Warning ';
       messageClass = 'ORANGE';
+      allowedToStart = true;
       messageIconClass = 'icon-warning-sign';
+    }
+    if (data.items.someProperty('UpgradeChecks.status', 'BYPASS')) {
+      message = data.items.filterProperty('UpgradeChecks.status', 'BYPASS').length + ' Error ' + message;
+      messageClass = 'RED';
+      allowedToStart = true;
+      messageIconClass = 'icon-remove';
+      bypassedFailures = true;
     }
     if (data.items.someProperty('UpgradeChecks.status', 'FAIL')) {
       message = data.items.filterProperty('UpgradeChecks.status', 'FAIL').length + ' Required ' + message;
       messageClass = 'RED';
+      allowedToStart = false;
       messageIconClass = 'icon-remove';
     }
 
@@ -1068,10 +1088,11 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       precheckResultsMessage: message,
       precheckResultsMessageClass: messageClass,
       precheckResultsTitle: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.preCheck.msg.title'),
-      isPrecheckFailed: messageClass == 'RED',
+      isPrecheckFailed: allowedToStart === false,
       precheckResultsMessageIconClass: messageIconClass,
       precheckResultsData: data,
       isCheckComplete: true,
+      bypassedFailures: bypassedFailures,
       action: 'openMessage'
     });
     this.updateSelectedMethod(false);
@@ -1157,7 +1178,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    */
   runPreUpgradeCheckSuccess: function (data, opt, params) {
     var self = this;
-    if (data.items.someProperty('UpgradeChecks.status', 'FAIL') || data.items.someProperty('UpgradeChecks.status', 'WARNING')) {
+    if (data.items.someProperty('UpgradeChecks.status', 'FAIL') || data.items.someProperty('UpgradeChecks.status', 'WARNING') || data.items.someProperty('UpgradeChecks.status', 'BYPASS')) {
       this.set('requestInProgress', false);
       var hasFails = data.items.someProperty('UpgradeChecks.status', 'FAIL'),
         header = Em.I18n.t('popup.clusterCheck.Upgrade.header').format(params.label),
@@ -1165,6 +1186,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         failAlert = new Em.Handlebars.SafeString(Em.I18n.t('popup.clusterCheck.Upgrade.fail.alert')),
         warningTitle = Em.I18n.t('popup.clusterCheck.Upgrade.warning.title'),
         warningAlert = new Em.Handlebars.SafeString(Em.I18n.t('popup.clusterCheck.Upgrade.warning.alert')),
+        bypassedFailures = data.items.someProperty('UpgradeChecks.status', 'BYPASS').length > 0,
         configsMergeWarning = data.items.findProperty('UpgradeChecks.id', 'CONFIG_MERGE'),
         popupData = {
           items: data.items.rejectProperty('UpgradeChecks.id', 'CONFIG_MERGE')
@@ -1176,6 +1198,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         failAlert: failAlert,
         warningTitle: warningTitle,
         warningAlert: warningAlert,
+        bypassedFailures: bypassedFailures,
         noCallbackCondition: hasFails,
         callback: function () {
           self.upgrade(params);

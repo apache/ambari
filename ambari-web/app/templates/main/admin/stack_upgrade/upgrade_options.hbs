@@ -41,6 +41,9 @@
                   <a {{action runAction method target="view"}}>
                     {{method.precheckResultsMessage}}
                   </a>
+                  {{#if method.bypassedFailures}}
+                    <div class="alert-danger">{{t admin.stackVersions.version.upgrade.upgradeOptions.errors_bypassed}}</div>
+                  {{/if}}
                 </div>
               {{/if}}
             {{/unless}}
