@@ -19,6 +19,10 @@
 package org.apache.ambari.view.filebrowser;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.ListIterator;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
@@ -90,7 +94,7 @@ public class FileOperationService extends HdfsService {
         result = Response.ok(getApi(context).fileStatusToJSON(api
             .getFileStatus(request.dst)));
       } else {
-        result = Response.ok(new BoolResult(false, "Can't move '" + request.src + "' to '" + request.dst + "'")).status(422);
+        result = Response.ok(new FileOperationResult(false, "Can't move '" + request.src + "' to '" + request.dst + "'")).status(422);
       }
       return result.build();
     } catch (WebApplicationException ex) {
@@ -117,7 +121,7 @@ public class FileOperationService extends HdfsService {
         result = Response.ok(getApi(context).fileStatusToJSON(api
             .getFileStatus(request.path)));
       } else {
-        result = Response.ok(new BoolResult(false, "Can't chmod '" + request.path + "'")).status(422);
+        result = Response.ok(new FileOperationResult(false, "Can't chmod '" + request.path + "'")).status(422);
       }
       return result.build();
     } catch (WebApplicationException ex) {
@@ -133,26 +137,99 @@ public class FileOperationService extends HdfsService {
    * @return response with success
    */
   @POST
-  @Path("/copy")
+  @Path("/move")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response copy(final SrcDstFileRequest request,
+  public Response move(final MultiSrcDstFileRequest request,
                        @Context HttpHeaders headers, @Context UriInfo ui) {
     try {
       HdfsApi api = getApi(context);
       ResponseBuilder result;
-      try {
-        api.copy(request.src, request.dst);
+      String message = "";
 
-        result = Response.ok(getApi(context).fileStatusToJSON(api
-            .getFileStatus(request.dst)));
-      } catch (HdfsApiException e) {
-        result = Response.ok(new BoolResult(false, "Can't copy '" + request.src + "' to '" + request.dst + "'")).
-            status(422);
+      List<String> sources = request.sourcePaths;
+      String destination = request.destinationPath;
+      if(sources.isEmpty()) {
+        result = Response.ok(new FileOperationResult(false, "Can't move 0 file/folder to '" + destination + "'")).
+          status(422);
+        return result.build();
+      }
+
+      int index = 0;
+      for (String src : sources) {
+        String fileName = getFileName(src);
+        String finalDestination = getDestination(destination, fileName);
+        try {
+          if (api.rename(src, finalDestination)) {
+            index ++;
+          } else {
+            message = "Failed to move '" + src + "' to '" + finalDestination + "'";
+            break;
+          }
+        } catch (IOException exception) {
+          message = exception.getMessage();
+          logger.error("Failed to move '{}' to '{}'. Exception: {}", src, finalDestination,
+            exception.getMessage());
+          break;
+        }
+      }
+      if (index == sources.size()) {
+        result = Response.ok(new FileOperationResult(true)).status(200);
+      } else {
+        FileOperationResult errorResult = getFailureFileOperationResult(sources, index, message);
+        result = Response.ok(errorResult).status(422);
       }
       return result.build();
-    } catch (WebApplicationException ex) {
-      throw ex;
+    } catch (Exception ex) {
+      throw new ServiceFormattedException(ex.getMessage(), ex);
+    }
+  }
+
+  /**
+   * Copy file
+   * @param request source and destination request
+   * @return response with success
+   */
+  @POST
+  @Path("/copy")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response copy(final MultiSrcDstFileRequest request,
+                       @Context HttpHeaders headers, @Context UriInfo ui) {
+    try {
+      HdfsApi api = getApi(context);
+      ResponseBuilder result;
+      String message = "";
+
+      List<String> sources = request.sourcePaths;
+      String destination = request.destinationPath;
+      if(sources.isEmpty()) {
+        result = Response.ok(new FileOperationResult(false, "Can't copy 0 file/folder to '" + destination + "'")).
+          status(422);
+        return result.build();
+      }
+
+      int index = 0;
+      for (String src : sources) {
+        String fileName = getFileName(src);
+        String finalDestination = getDestination(destination, fileName);
+        try {
+          api.copy(src, finalDestination);
+          index ++;
+        } catch (IOException|HdfsApiException exception) {
+          message = exception.getMessage();
+          logger.error("Failed to copy '{}' to '{}'. Exception: {}", src, finalDestination,
+            exception.getMessage());
+          break;
+        }
+      }
+      if (index == sources.size()) {
+        result = Response.ok(new FileOperationResult(true)).status(200);
+      } else {
+        FileOperationResult errorResult = getFailureFileOperationResult(sources, index, message);
+        result = Response.ok(errorResult).status(422);
+      }
+      return result.build();
     } catch (Exception ex) {
       throw new ServiceFormattedException(ex.getMessage(), ex);
     }
@@ -173,7 +250,7 @@ public class FileOperationService extends HdfsService {
       if (api.mkdir(request.path)) {
         result = Response.ok(getApi(context).fileStatusToJSON(api.getFileStatus(request.path)));
       } else {
-        result = Response.ok(new BoolResult(false, "Can't create dir '" + request.path + "'")).status(422);
+        result = Response.ok(new FileOperationResult(false, "Can't create dir '" + request.path + "'")).status(422);
       }
       return result.build();
     } catch (WebApplicationException ex) {
@@ -194,7 +271,7 @@ public class FileOperationService extends HdfsService {
     try {
       HdfsApi api = getApi(context);
       api.emptyTrash();
-      return Response.ok(new BoolResult(true)).build();
+      return Response.ok(new FileOperationResult(true)).build();
     } catch (WebApplicationException ex) {
       throw ex;
     } catch (Exception ex) {
@@ -211,31 +288,49 @@ public class FileOperationService extends HdfsService {
   @Path("/moveToTrash")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response moveToTrash(RemoveRequest request) {
+  public Response moveToTrash(MultiRemoveRequest request) {
     try {
       ResponseBuilder result;
-
       HdfsApi api = getApi(context);
       String trash = api.getTrashDirPath();
+      String message = "";
 
-      if (!api.exists(trash)) {
-        if (!api.mkdir(trash)) {
-          result = Response.ok(new BoolResult(false, "Trash dir does not exists. Can't create dir for trash '" + trash + "'")).status(422);
-          return result.build();
+      if (request.paths.size() == 0) {
+        result = Response.ok(new FileOperationResult(false, "No path entries provided.")).status(422);
+      } else {
+        if (!api.exists(trash)) {
+          if (!api.mkdir(trash)) {
+            result = Response.ok(new FileOperationResult(false, "Trash dir does not exists. Can't create dir for " +
+              "trash '" + trash + "'")).status(422);
+            return result.build();
+          }
+        }
+
+        int index = 0;
+        for (MultiRemoveRequest.PathEntry entry : request.paths) {
+          String trashFilePath = api.getTrashDirPath(entry.path);
+          try {
+            if (api.rename(entry.path, trashFilePath)) {
+              index ++;
+            } else {
+              message = "Failed to move '" + entry.path + "' to '" + trashFilePath + "'";
+              break;
+            }
+          } catch (IOException exception) {
+            message = exception.getMessage();
+            logger.error("Failed to move '{}' to '{}'. Exception: {}", entry.path, trashFilePath,
+              exception.getMessage());
+            break;
+          }
+        }
+        if (index == request.paths.size()) {
+          result = Response.ok(new FileOperationResult(true)).status(200);
+        } else {
+          FileOperationResult errorResult = getFailureFileOperationResult(getPathsFromPathsEntries(request.paths), index, message);
+          result = Response.ok(errorResult).status(422);
         }
       }
-
-      String trashFilePath = api.getTrashDirPath(request.path);
-
-      if (api.rename(request.path, trashFilePath)) {
-        result = Response.ok(getApi(context).fileStatusToJSON(api
-            .getFileStatus(trashFilePath)));
-      } else {
-        result = Response.ok(new BoolResult(false, "Can't move file to '" + trashFilePath + "'")).status(422);
-      }
       return result.build();
-    } catch (WebApplicationException ex) {
-      throw ex;
     } catch (Exception ex) {
       throw new ServiceFormattedException(ex.getMessage(), ex);
     }
@@ -250,23 +345,83 @@ public class FileOperationService extends HdfsService {
   @Path("/remove")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response remove(RemoveRequest request, @Context HttpHeaders headers,
+  public Response remove(MultiRemoveRequest request, @Context HttpHeaders headers,
                          @Context UriInfo ui) {
     try {
       HdfsApi api = getApi(context);
       ResponseBuilder result;
-      if (api.delete(request.path, request.recursive)) {
-        result = Response.ok(new BoolResult(true)).status(204);
+      String message = "";
+      if(request.paths.size() == 0) {
+        result = Response.ok(new FileOperationResult(false, "No path entries provided."));
       } else {
-        result = Response.ok(new BoolResult(false, "Can't remove '" + request.path + "'")).status(422);
+        int index = 0;
+        for (MultiRemoveRequest.PathEntry entry : request.paths) {
+          try {
+            if (api.delete(entry.path, entry.recursive)) {
+              index++;
+            } else {
+              message = "Failed to remove '" + entry.path + "'";
+              break;
+            }
+          } catch (IOException exception) {
+            message = exception.getMessage();
+            logger.error("Failed to remove '{}'. Exception: {}", entry.path, exception.getMessage());
+            break;
+          }
+
+        }
+        if (index == request.paths.size()) {
+          result = Response.ok(new FileOperationResult(true)).status(200);
+        } else {
+          FileOperationResult errorResult = getFailureFileOperationResult(getPathsFromPathsEntries(request.paths), index, message);
+          result = Response.ok(errorResult).status(422);
+        }
       }
       return result.build();
-    } catch (WebApplicationException ex) {
-      throw ex;
     } catch (Exception ex) {
       throw new ServiceFormattedException(ex.getMessage(), ex);
     }
   }
+
+  private List<String> getPathsFromPathsEntries(List<MultiRemoveRequest.PathEntry> paths) {
+    List<String> entries = new ArrayList<>();
+    for(MultiRemoveRequest.PathEntry path: paths) {
+      entries.add(path.path);
+    }
+    return entries;
+  }
+
+  private FileOperationResult getFailureFileOperationResult(List<String> paths, int failedIndex, String message) {
+    List<String> succeeded = new ArrayList<>();
+    List<String> unprocessed = new ArrayList<>();
+    List<String> failed = new ArrayList<>();
+    ListIterator<String> iter = paths.listIterator();
+    while (iter.hasNext()) {
+      int index = iter.nextIndex();
+      String path = iter.next();
+      if (index < failedIndex) {
+        succeeded.add(path);
+      } else if (index == failedIndex) {
+        failed.add(path);
+      } else {
+        unprocessed.add(path);
+      }
+    }
+    return new FileOperationResult(false, message, succeeded, failed, unprocessed);
+  }
+
+  private String getDestination(String baseDestination, String fileName) {
+    if(baseDestination.endsWith("/")) {
+      return baseDestination + fileName;
+    } else {
+      return baseDestination + "/" + fileName;
+    }
+  }
+
+  private String getFileName(String srcPath) {
+    return srcPath.substring(srcPath.lastIndexOf('/') + 1);
+  }
+
 
   /**
    * Wrapper for json mapping of mkdir request
@@ -301,12 +456,29 @@ public class FileOperationService extends HdfsService {
   }
 
   /**
+   * Wrapper for json mapping of request with multiple
+   * source and destination
+   */
+  @XmlRootElement
+  public static class MultiSrcDstFileRequest {
+    @XmlElement(nillable = false, required = true)
+    public List<String> sourcePaths = new ArrayList<>();
+    @XmlElement(nillable = false, required = true)
+    public String destinationPath;
+  }
+
+  /**
    * Wrapper for json mapping of remove request
    */
   @XmlRootElement
-  public static class RemoveRequest {
+  public static class MultiRemoveRequest {
     @XmlElement(nillable = false, required = true)
-    public String path;
-    public boolean recursive;
+    public List<PathEntry> paths = new ArrayList<>();
+    public static class PathEntry {
+      @XmlElement(nillable = false, required = true)
+      public String path;
+      public boolean recursive;
+    }
+
   }
 }
