@@ -109,7 +109,7 @@ public class HelpService extends HdfsService {
   public Response trashEnabled() {
     try {
       HdfsApi api = getApi(context);
-      return Response.ok(new BoolResult(api.trashEnabled())).build();
+      return Response.ok(new FileOperationResult(api.trashEnabled())).build();
     } catch (WebApplicationException ex) {
       throw ex;
     } catch (Exception ex) {
