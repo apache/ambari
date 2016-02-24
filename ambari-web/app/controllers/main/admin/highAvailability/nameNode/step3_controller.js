@@ -172,6 +172,7 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
 
     configs.forEach(function (config) {
       App.NnHaConfigInitializer.initialValue(config, localDB, dependencies);
+      config.isOverridable = false;
     });
 
     return configs;

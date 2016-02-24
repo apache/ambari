@@ -391,6 +391,14 @@ describe('App.HighAvailabilityWizardStep3Controller', function() {
       });
     });
 
+    it('should set isOverridable=false for each config', function () {
+      var configs = [
+        {name: 'prop1'}, {name: 'prop2'}
+      ];
+      configs = controller.tweakServiceConfigs(configs);
+      expect(configs.everyProperty('isOverridable', false)).to.be.true;
+    });
+
   });
 
 });
