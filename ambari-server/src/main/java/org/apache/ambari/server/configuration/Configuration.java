@@ -195,8 +195,13 @@ public class Configuration {
   public static final String SERVER_JDBC_DRIVER_KEY = "server.jdbc.driver";
   public static final String SERVER_JDBC_URL_KEY = "server.jdbc.url";
   public static final String SERVER_JDBC_PROPERTIES_PREFIX = "server.jdbc.properties.";
+
+  // Properties for stack upgrade (Rolling, Express)
   public static final String ROLLING_UPGRADE_SKIP_PACKAGES_PREFIXES_KEY = "rolling.upgrade.skip.packages.prefixes";
   public static final String ROLLING_UPGRADE_SKIP_PACKAGES_PREFIXES_DEFAULT = "";
+  public static final String STACK_UPGRADE_BYPASS_PRECHECKS_KEY = "stack.upgrade.bypass.prechecks";
+  public static final String STACK_UPGRADE_BYPASS_PRECHECKS_DEFAULT = "false";
+
   public static final String JWT_AUTH_ENBABLED = "authentication.jwt.enabled";
   public static final String JWT_AUTH_PROVIDER_URL = "authentication.jwt.providerUrl";
   public static final String JWT_PUBLIC_KEY = "authentication.jwt.publicKey";
@@ -1058,6 +1063,15 @@ public class Configuration {
       }
     }
     return res;
+  }
+
+  /**
+   * Determine whether or not a Rolling/Express upgrade can bypass the PreChecks. Default value should be false.
+   *
+   * @return true if RU/EU can bypass PreChecks, otherwise, false.
+   */
+  public boolean isUpgradePrecheckBypass() {
+    return Boolean.parseBoolean(properties.getProperty(STACK_UPGRADE_BYPASS_PRECHECKS_KEY, STACK_UPGRADE_BYPASS_PRECHECKS_DEFAULT));
   }
 
   /**
