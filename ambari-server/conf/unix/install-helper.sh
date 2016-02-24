@@ -27,6 +27,7 @@ COMMON_DIR_SERVER="/usr/lib/ambari-server/lib/ambari_commons"
 RESOURCE_MANAGEMENT_DIR_SERVER="/usr/lib/ambari-server/lib/resource_management"
 JINJA_SERVER_DIR="/usr/lib/ambari-server/lib/ambari_jinja2"
 SIMPLEJSON_SERVER_DIR="/usr/lib/ambari-server/lib/ambari_simplejson"
+AMBARI_ENV_RPMSAVE="/var/lib/ambari-server/ambari-env.sh.rpmsave" # this turns into ambari-env.sh during ambari-server start
 
 PYTHON_WRAPER_TARGET="/usr/bin/ambari-python-wrap"
 
@@ -68,6 +69,12 @@ do_install(){
     >&2 echo "Cannot detect python for ambari to use. Please manually set $PYTHON_WRAPER link to point to correct python binary"
   else
     ln -s "$AMBARI_PYTHON" "$PYTHON_WRAPER_TARGET"
+  fi
+
+  PYTHON_PATH_LINE='export PYTHONPATH=$PYTHONPATH:/usr/lib/python2.6/site-packages'
+  grep "^$PYTHON_PATH_LINE\$" "$AMBARI_ENV_RPMSAVE" > /dev/null
+  if [ $? -ne 0 ]; then
+    echo -e "\n$PYTHON_PATH_LINE" >> $AMBARI_ENV_RPMSAVE
   fi
 }
 
