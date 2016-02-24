@@ -18,12 +18,8 @@ limitations under the License.
 
 """
 
-import os
 import re
 import math
-import datetime
-
-from resource_management.core.shell import checked_call
 
 def calc_xmn_from_xms(heapsize_str, xmn_percent, xmn_max):
   """

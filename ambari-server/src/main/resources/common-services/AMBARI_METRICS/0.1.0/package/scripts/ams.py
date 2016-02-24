@@ -333,6 +333,9 @@ def ams(name=None):
                 mode=0644
       )
 
+    if params.metric_collector_https_enabled:
+      export_ca_certs(params.ams_collector_conf_dir)
+
     pass
 
   elif name == 'monitor':
@@ -384,7 +387,9 @@ def ams(name=None):
          content=InlineTemplate(params.ams_env_sh_template)
     )
 
-    # TODO
+    if params.metric_collector_https_enabled:
+      export_ca_certs(params.ams_monitor_conf_dir)
+
     pass
   elif name == 'grafana':
 
@@ -415,6 +420,39 @@ def ams(name=None):
          content=InlineTemplate(params.ams_grafana_ini_template)
          )
 
+    if params.metric_collector_https_enabled:
+      export_ca_certs(params.ams_grafana_conf_dir)
+
     pass
+
+def export_ca_certs(dir_path):
+  # export ca certificates on every restart to handle changed truststore content
+
+  import params
+  import tempfile
+
+  ca_certs_path = os.path.join(dir_path, params.metric_truststore_ca_certs)
+  truststore = params.metric_truststore_path
+
+  tmpdir = tempfile.mkdtemp()
+  truststore_p12 = os.path.join(tmpdir,'truststore.p12')
+
+  if (params.metric_truststore_type.lower() == 'jks'):
+    # Convert truststore from JKS to PKCS12
+    cmd = format("{sudo} {java64_home}/bin/keytool -importkeystore -srckeystore {metric_truststore_path} -destkeystore {truststore_p12} -deststoretype PKCS12 -srcstorepass {metric_truststore_password} -deststorepass {metric_truststore_password}")
+    Execute(cmd,
+    )
+    truststore = truststore_p12
+
+  # Export all CA certificates from the truststore to the conf directory
+  cmd = format("{sudo} openssl pkcs12 -in {truststore} -out {ca_certs_path} -cacerts -nokeys -passin pass:{metric_truststore_password}")
+  Execute(cmd,
+  )
+  Execute(('chown', params.ams_user, ca_certs_path),
+          sudo=True
+  )
+  Execute(format('{sudo} rm -rf {tmpdir}')
+  )
+
 
   pass
