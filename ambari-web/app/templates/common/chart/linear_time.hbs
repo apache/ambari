@@ -16,7 +16,9 @@
 * limitations under the License.
 }}
 <div class="chart-wrapper">
-  <div {{bindAttr class="view.isReady:hide:show :screensaver :no-borders :chart-container"}}></div>
+  <div {{bindAttr class="view.isReady:hide:show :screensaver :no-borders :chart-container"}}>
+    {{view App.SpinnerView}}
+  </div>
   <div {{bindAttr class="view.isReady::hidden :actions-container"}}>
     {{view view.timeRangeListView}}
     <a {{bindAttr class="view.isExportButtonHidden:hidden :corner-icon"}}

@@ -77,6 +77,36 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, App.ExportMetricsMixin, {
    */
   data: [],
 
+  /**
+   * time range index for graph
+   * @type {number}
+   */
+  timeIndex: 0,
+
+  /**
+   * custom start time for graph
+   * @type {number|null}
+   */
+  startTime: null,
+
+  /**
+   * custom end time for graph
+   * @type {number|null}
+   */
+  endTime: null,
+
+  /**
+   * graph time range duration in seconds
+   * @type {number|null}
+   */
+  graphSeconds: null,
+
+  /**
+   * time range duration as string
+   * @type {string|null}
+   */
+  durationFormatted: null,
+
   exportTargetView: function () {
     return this.get('childViews.lastObject');
   }.property(),
