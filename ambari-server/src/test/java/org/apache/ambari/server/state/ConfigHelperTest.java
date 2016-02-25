@@ -661,7 +661,7 @@ public class ConfigHelperTest {
       // set up mocks
       ServiceComponentHost sch = createNiceMock(ServiceComponentHost.class);
       // set up expectations
-      expect(sch.getActualConfigs()).andReturn(schReturn).times(6);
+      expect(sch.getActualConfigs()).andReturn(schReturn).anyTimes();
       expect(sch.getHostName()).andReturn("h1").anyTimes();
       expect(sch.getClusterId()).andReturn(1l).anyTimes();
       expect(sch.getServiceName()).andReturn("FLUME").anyTimes();
