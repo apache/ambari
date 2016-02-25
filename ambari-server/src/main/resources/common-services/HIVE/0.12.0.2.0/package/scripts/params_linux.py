@@ -22,6 +22,8 @@ import status_params
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 import os
 
+from urlparse import urlparse
+
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from ambari_commons.os_check import OSCheck
 
@@ -357,6 +359,7 @@ hive_env_sh_template = config['configurations']['hive-env']['content']
 hive_hdfs_user_dir = format("/user/{hive_user}")
 hive_hdfs_user_mode = 0755
 hive_apps_whs_dir = config['configurations']['hive-site']["hive.metastore.warehouse.dir"]
+whs_dir_protocol = urlparse(hive_apps_whs_dir).scheme
 hive_exec_scratchdir = config['configurations']['hive-site']["hive.exec.scratchdir"]
 #for create_hdfs_directory
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
