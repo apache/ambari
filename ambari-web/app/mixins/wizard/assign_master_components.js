@@ -754,19 +754,15 @@ App.AssignMasterComponents = Em.Mixin.create({
     var hostsForHostGroup = {};
 
     recommendations.blueprint_cluster_binding.host_groups.forEach(function(hostGroup) {
-      hostsForHostGroup[hostGroup.name] = hostGroup.hosts.map(function(host) {
-        return host.fqdn;
-      });
+      hostsForHostGroup[hostGroup.name] = hostGroup.hosts.mapProperty('fqdn');
     });
 
     recommendations.blueprint.host_groups.forEach(function (hostGroup) {
-      var components = hostGroup.components.map(function (component) {
-        return component.name;
-      });
+      var components = hostGroup.components.mapProperty('name');
       components.forEach(function (componentName) {
         var hostList = recommendedHostsForComponent[componentName] || [];
         var hostNames = hostsForHostGroup[hostGroup.name] || [];
-        Array.prototype.push.apply(hostList, hostNames);
+        hostList.pushObjects(hostNames);
         recommendedHostsForComponent[componentName] = hostList;
       });
     });
