@@ -1017,7 +1017,7 @@ public class UpgradeCatalog220 extends AbstractUpgradeCatalog {
         String content = hbaseEnvConfig.getProperties().get(CONTENT_PROPERTY);
         if (content != null) {
           if (!content.contains("-Djava.io.tmpdir")) {
-            content += "\n\nexport HBASE_OPTS=\"-Djava.io.tmpdir={{java_io_tmpdir}}\"";
+            content += "\n\nexport HBASE_OPTS=\"${HBASE_OPTS} -Djava.io.tmpdir={{java_io_tmpdir}}\"";
             updateConfig = true;
           }
           if (stackId != null && stackId.getStackName().equals("HDP") &&
