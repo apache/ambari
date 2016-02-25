@@ -1,5 +1,32 @@
 {
   "HAWQ": {
+    "service": [
+      {
+        "name": "hawq_segment_process_percent",
+        "label": "Percent HAWQ Segments Available",
+        "description": "This alert is triggered if the number of down HAWQ Segments in the cluster is greater than the configured critical threshold.",
+        "interval": 1,
+        "scope": "SERVICE",
+        "enabled": true,
+        "source": {
+          "type": "AGGREGATE",
+          "alert_name": "hawq_segment_process",
+          "reporting": {
+            "ok": {
+              "text": "affected: [{1}], total: [{0}]"
+            },
+            "warning": {
+              "text": "affected: [{1}], total: [{0}]",
+              "value": 0.1
+            },
+            "critical": {
+              "text": "affected: [{1}], total: [{0}]",
+              "value": 0.3
+            }
+          }
+        }
+      }
+    ],
     "HAWQMASTER": [
       {
         "name": "hawqstandby_sync_status",
@@ -12,6 +39,70 @@
           "type": "SCRIPT",
           "path": "HAWQ/2.0.0/package/alerts/alert_sync_status.py",
           "parameters": []
+        }
+      },
+      {
+        "name": "hawq_master_process",
+        "label": "HAWQ Master Process",
+        "description": "This alert is triggered if the HAWQ Master process cannot be confirmed to be up and listening on the network.",
+        "interval": 1,
+        "scope": "ANY",
+        "source": {
+          "type": "SCRIPT",
+          "path": "HAWQ/2.0.0/package/alerts/alert_component_status.py",
+          "parameters": [
+            {
+              "name": "component_name",
+              "display_name": "Component Name",
+              "value": "master",
+              "type": "STRING",
+              "description": "This text string indicates if it is a Master, Standby or Segment"
+            }
+          ]
+        }
+      }
+    ],
+    "HAWQSEGMENT": [
+      {
+        "name": "hawq_segment_process",
+        "label": "HAWQ Segment Process",
+        "description": "This host-level alert is triggered if the HAWQ Segment process cannot be confirmed to be up and listening on the network.",
+        "interval": 1,
+        "scope": "HOST",
+        "source": {
+          "type": "SCRIPT",
+          "path": "HAWQ/2.0.0/package/alerts/alert_component_status.py",
+          "parameters": [
+            {
+              "name": "component_name",
+              "display_name": "Component Name",
+              "value": "segment",
+              "type": "STRING",
+              "description": "This text string indicates if it is a Master, Standby or Segment"
+            }
+          ]
+        }
+      }
+    ],
+    "HAWQSTANDBY": [
+      {
+        "name": "hawq_standby_process",
+        "label": "HAWQ Standby Process",
+        "description": "This alert is triggered if the HAWQ Standby process cannot be confirmed to be up and listening on the network.",
+        "interval": 1,
+        "scope": "ANY",
+        "source": {
+          "type": "SCRIPT",
+          "path": "HAWQ/2.0.0/package/alerts/alert_component_status.py",
+          "parameters": [
+            {
+              "name": "component_name",
+              "display_name": "Component Name",
+              "value": "standby",
+              "type": "STRING",
+              "description": "This text string indicates if it is a Master, Standby or Segment"
+            }
+          ]
         }
       }
     ]
