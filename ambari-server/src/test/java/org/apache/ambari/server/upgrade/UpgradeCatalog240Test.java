@@ -104,6 +104,8 @@ public class UpgradeCatalog240Test {
   public void testExecuteDDLUpdates() throws SQLException, AmbariException {
     Capture<DBAccessor.DBColumnInfo> capturedColumnInfo = newCapture();
     Capture<DBAccessor.DBColumnInfo> capturedScColumnInfo = newCapture();
+    Capture<DBAccessor.DBColumnInfo> capturedScDesiredVersionColumnInfo = newCapture();
+
     final DBAccessor dbAccessor = createStrictMock(DBAccessor.class);
     Configuration configuration = createNiceMock(Configuration.class);
     Connection connection = createNiceMock(Connection.class);
@@ -113,6 +115,8 @@ public class UpgradeCatalog240Test {
 
     dbAccessor.addColumn(eq("adminpermission"), capture(capturedColumnInfo));
     dbAccessor.addColumn(eq(UpgradeCatalog240.SERVICE_COMPONENT_DESIRED_STATE_TABLE), capture(capturedScColumnInfo));
+    dbAccessor.addColumn(eq(UpgradeCatalog240.SERVICE_COMPONENT_DESIRED_STATE_TABLE),
+        capture(capturedScDesiredVersionColumnInfo));
 
     dbAccessor.createTable(eq("setting"), capture(capturedSettingColumns), eq("id"));
     expect(configuration.getDatabaseUrl()).andReturn(Configuration.JDBC_IN_MEMORY_URL).anyTimes();
@@ -152,9 +156,15 @@ public class UpgradeCatalog240Test {
     dbAccessor.addFKConstraint("servicecomponent_history", "FK_sc_history_to_stack_id",
         "to_stack_id", "stack", "stack_id", false);
 
+
     expect(dbAccessor.getConnection()).andReturn(connection);
     expect(connection.createStatement()).andReturn(statement);
     expect(statement.executeQuery(anyObject(String.class))).andReturn(resultSet);
+
+    Capture<DBAccessor.DBColumnInfo> capturedClusterUpgradeColumnInfo = newCapture();
+    dbAccessor.addColumn(eq(UpgradeCatalog240.CLUSTER_TABLE), capture(capturedClusterUpgradeColumnInfo));
+    dbAccessor.addFKConstraint(UpgradeCatalog240.CLUSTER_TABLE, "FK_clusters_upgrade_id",
+        UpgradeCatalog240.CLUSTER_UPGRADE_ID_COLUMN, UpgradeCatalog240.UPGRADE_TABLE, "upgrade_id", false);
 
     replay(dbAccessor, configuration, connection, statement, resultSet);
 
@@ -187,6 +197,23 @@ public class UpgradeCatalog240Test {
     Assert.assertEquals(Short.class, columnScInfo.getType());
     Assert.assertEquals(0, columnScInfo.getDefaultValue());
     Assert.assertEquals(false, columnScInfo.isNullable());
+
+    DBAccessor.DBColumnInfo columnScDesiredVersionInfo = capturedScDesiredVersionColumnInfo.getValue();
+    Assert.assertNotNull(columnScDesiredVersionInfo);
+    Assert.assertEquals(UpgradeCatalog240.DESIRED_VERSION_COLUMN_NAME, columnScDesiredVersionInfo.getName());
+    Assert.assertEquals(Integer.valueOf(255), columnScDesiredVersionInfo.getLength());
+    Assert.assertEquals(String.class, columnScDesiredVersionInfo.getType());
+    Assert.assertEquals("UNKNOWN", columnScDesiredVersionInfo.getDefaultValue());
+    Assert.assertEquals(false, columnScDesiredVersionInfo.isNullable());
+
+    // Verify if upgrade_id column was added to clusters table
+    DBAccessor.DBColumnInfo clusterUpgradeColumnInfo = capturedClusterUpgradeColumnInfo.getValue();
+    Assert.assertNotNull(clusterUpgradeColumnInfo);
+    Assert.assertEquals(UpgradeCatalog240.CLUSTER_UPGRADE_ID_COLUMN, clusterUpgradeColumnInfo.getName());
+    Assert.assertEquals(null, clusterUpgradeColumnInfo.getLength());
+    Assert.assertEquals(Long.class, clusterUpgradeColumnInfo.getType());
+    Assert.assertEquals(null, clusterUpgradeColumnInfo.getDefaultValue());
+    Assert.assertEquals(true, clusterUpgradeColumnInfo.isNullable());
 
     Map<String, Class> expectedCaptures = new HashMap<>();
     expectedCaptures.put("id", Long.class);

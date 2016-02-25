@@ -32,6 +32,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.PermissionDAO;
@@ -43,6 +44,7 @@ import org.apache.ambari.server.orm.entities.RoleAuthorizationEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.RepositoryType;
+import org.apache.ambari.server.state.State;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.support.JdbcUtils;
@@ -72,6 +74,10 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   protected static final String SERVICE_COMPONENT_HISTORY_TABLE = "servicecomponent_history";
   protected static final String UPGRADE_TABLE = "upgrade";
   protected static final String STACK_TABLE = "stack";
+  protected static final String CLUSTER_TABLE = "clusters";
+  protected static final String CLUSTER_UPGRADE_ID_COLUMN = "upgrade_id";
+  public static final String DESIRED_VERSION_COLUMN_NAME = "desired_version";
+
 
   @Inject
   PermissionDAO permissionDAO;
@@ -132,6 +138,14 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     updateRepoVersionTableDDL();
     updateServiceComponentDesiredStateTableDDL();
     createServiceComponentHistoryTable();
+    updateClusterTableDDL();
+  }
+
+  private void updateClusterTableDDL() throws SQLException {
+    dbAccessor.addColumn(CLUSTER_TABLE, new DBColumnInfo(CLUSTER_UPGRADE_ID_COLUMN, Long.class, null, null, true));
+
+    dbAccessor.addFKConstraint(CLUSTER_TABLE, "FK_clusters_upgrade_id",
+        CLUSTER_UPGRADE_ID_COLUMN, UPGRADE_TABLE, "upgrade_id", false);
   }
 
   @Override
@@ -562,5 +576,8 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     // recovery_enabled SMALLINT DEFAULT 0 NOT NULL
     dbAccessor.addColumn(SERVICE_COMPONENT_DESIRED_STATE_TABLE,
             new DBColumnInfo(RECOVERY_ENABLED_COL, Short.class, null, 0, false));
+
+    dbAccessor.addColumn(SERVICE_COMPONENT_DESIRED_STATE_TABLE,
+      new DBColumnInfo(DESIRED_VERSION_COLUMN_NAME, String.class, 255, State.UNKNOWN.toString(), false));
   }
 }
