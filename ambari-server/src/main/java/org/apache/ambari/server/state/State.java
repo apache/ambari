@@ -62,7 +62,8 @@ public enum State {
    */
   WIPING_OUT,
   /**
-   * In the process of upgrading the deployed bits.
+   * In the process of upgrading the host component deployed bits.
+   * Valid only for host component state
    */
   UPGRADING,
   /**

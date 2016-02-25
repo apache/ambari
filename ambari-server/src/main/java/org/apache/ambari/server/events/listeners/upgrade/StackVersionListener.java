@@ -152,15 +152,23 @@ public class StackVersionListener {
   private void processComponentVersionChange(Cluster cluster, ServiceComponent sc,
                                              ServiceComponentHost sch,
                                              String newVersion) {
-    if (sch.getUpgradeState().equals(UpgradeState.IN_PROGRESS)) {
+    String desiredVersion = sc.getDesiredVersion();
+    UpgradeState upgradeState = sch.getUpgradeState();
+    if (upgradeState == UpgradeState.IN_PROGRESS) {
       // Component status update is received during upgrade process
-      if (sc.getDesiredVersion().equals(newVersion)) {
+      if (desiredVersion.equals(newVersion)) {
         sch.setUpgradeState(UpgradeState.COMPLETE);  // Component upgrade confirmed
         sch.setStackVersion(cluster.getDesiredStackVersion());
       } else { // Unexpected (wrong) version received
         // Even during failed upgrade, we should not receive wrong version
         // That's why mark as VERSION_MISMATCH
         sch.setUpgradeState(UpgradeState.VERSION_MISMATCH);
+      }
+    } else if (upgradeState == UpgradeState.VERSION_MISMATCH && desiredVersion.equals(newVersion)) {
+      if (cluster.getUpgradeEntity() != null) {
+        sch.setUpgradeState(UpgradeState.COMPLETE);
+      } else {
+        sch.setUpgradeState(UpgradeState.NONE);
       }
     } else { // No upgrade in progress, unexpected version change
       sch.setUpgradeState(UpgradeState.VERSION_MISMATCH);
