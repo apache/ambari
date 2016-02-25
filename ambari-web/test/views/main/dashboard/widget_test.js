@@ -20,6 +20,7 @@ var App = require('app');
 require('views/main/dashboard/widget');
 
 describe('App.DashboardWidgetView', function () {
+
   var dashboardWidgetView = App.DashboardWidgetView.create({
     parentView: Em.Object.create({
       widgetsMapper: Em.K,
@@ -439,4 +440,5 @@ describe('App.DashboardWidgetView', function () {
       });
     });
   });
+
 });

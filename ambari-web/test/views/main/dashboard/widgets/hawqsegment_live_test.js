@@ -22,48 +22,44 @@ require('views/main/dashboard/widget');
 require('views/main/dashboard/widgets/text_widget');
 require('views/main/dashboard/widgets/hawqsegment_live');
 
+var view;
+
+function testCounterOrNa(propertyName, dependentKey) {
+  describe('#' + propertyName, function () {
+
+    beforeEach(function () {
+      view.reopen({
+        model: Em.Object.create()
+      });
+      view.get('model').set(dependentKey, []);
+    });
+
+    it('n/a (1)', function () {
+      view.get('model').set(dependentKey, null);
+      expect(view.get(propertyName)).to.be.equal(Em.I18n.t('services.service.summary.notAvailable'));
+    });
+
+    it('n/a (2)', function () {
+      view.get('model').set(dependentKey, undefined);
+      expect(view.get(propertyName)).to.be.equal(Em.I18n.t('services.service.summary.notAvailable'));
+    });
+
+    it('value exist', function () {
+      view.get('model').set(dependentKey, 123);
+      expect(view.get(propertyName)).to.be.equal(123);
+    });
+
+  });
+}
+
 describe('App.HawqSegmentUpView', function() {
 
-  var tests = [
-    {
-      data: 100,
-      e: {
-        isRed: false,
-        isOrange: false,
-        isGreen: true
-      }
-    },
-    {
-      data: 0,
-      e: {
-        isRed: true,
-        isOrange: false,
-        isGreen: false
-      }
-    },
-    {
-      data: 50,
-      e: {
-        isRed: false,
-        isOrange: true,
-        isGreen: false
-      }
-    }
-  ];
-
-  tests.forEach(function(test) {
-    describe('data -' + test.data, function() {
-      var hawqSegmentUpView = App.HawqSegmentUpView.create({model_type:null, data: test.data, content: test.data.toString()});
-      it('shows red', function() {
-        expect(hawqSegmentUpView.get('isRed')).to.equal(test.e.isRed);
-      });
-      it('shows orange', function() {
-        expect(hawqSegmentUpView.get('isOrange')).to.equal(test.e.isOrange);
-      });
-      it('shows green', function() {
-        expect(hawqSegmentUpView.get('isGreen')).to.equal(test.e.isGreen);
-      });
-    });
+  beforeEach(function () {
+    view = App.HawqSegmentUpView.create();
   });
+
+  testCounterOrNa('hawqSegmentsStarted', 'hawqSegmentsStarted');
+  testCounterOrNa('hawqSegmentsInstalled', 'hawqSegmentsInstalled');
+  testCounterOrNa('hawqSegmentsStarted', 'hawqSegmentsStarted');
 
 });

@@ -17,7 +17,6 @@
  */
 
 var App = require('app');
-var date = require('utils/date/date');
 
 App.TextDashboardWidgetView = App.DashboardWidgetView.extend({
 
@@ -34,14 +33,14 @@ App.TextDashboardWidgetView = App.DashboardWidgetView.extend({
   }.property('data'),
 
   hiddenInfo: [],
-  thresh1: null,
-  thresh2: null,
+
   maxValue: null,
-  updateColors: function(handlers, colors) {
+
+  updateColors: function (handlers, colors) {
     var colorstops = colors[0] + ", "; // start with the first color
     for (var i = 0; i < handlers.length; i++) {
       colorstops += colors[i] + " " + handlers[i] + "%,";
-      colorstops += colors[i+1] + " " + handlers[i] + "%,";
+      colorstops += colors[i + 1] + " " + handlers[i] + "%,";
     }
     colorstops += colors[colors.length - 1];
     var cssForChromeAndSafari = '-webkit-linear-gradient(left,' + colorstops + ')'; // chrome & safari

@@ -31,36 +31,12 @@ describe('App.TextDashboardWidgetView', function() {
     {
       data: 100,
       e: {
-        isRed: false,
-        isOrange: false,
-        isGreen: true,
-        isNA: false
-      }
-    },
-    {
-      data: 1,
-      e: {
-        isRed: true,
-        isOrange: false,
-        isGreen: false,
-        isNA: false
-      }
-    },
-    {
-      data: 50,
-      e: {
-        isRed: false,
-        isOrange: true,
-        isGreen: false,
         isNA: false
       }
     },
     {
       data: null,
       e: {
-        isRed: true,
-        isOrange: false,
-        isGreen: false,
         isNA: true
       }
     }
@@ -70,15 +46,6 @@ describe('App.TextDashboardWidgetView', function() {
     describe('data - ' + test.data + ' | thresh1 - 40 | thresh2 - 70', function() {
       var textDashboardWidgetView = App.TextDashboardWidgetView.create({thresh1:40, thresh2:70});
       textDashboardWidgetView.set('data', test.data);
-      it('isRed', function() {
-        expect(textDashboardWidgetView.get('isRed')).to.equal(test.e.isRed);
-      });
-      it('isOrange', function() {
-        expect(textDashboardWidgetView.get('isOrange')).to.equal(test.e.isOrange);
-      });
-      it('isGreen', function() {
-        expect(textDashboardWidgetView.get('isGreen')).to.equal(test.e.isGreen);
-      });
       it('isNA', function() {
         expect(textDashboardWidgetView.get('isNA')).to.equal(test.e.isNA);
       });

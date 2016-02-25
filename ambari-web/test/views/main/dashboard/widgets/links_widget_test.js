@@ -29,13 +29,16 @@ describe('App.LinkDashboardWidgetView', function() {
       publicHostName: 'host1'
     })
   });
+
   var linkDashboardWidgetView = App.LinkDashboardWidgetView.create({
     model_type: null,
     model: model,
     port: 1234,
     modelField: 'field'
   });
+
   linkDashboardWidgetView.calc();
+
   describe('#webUrl', function() {
     it('calc', function() {
       expect(linkDashboardWidgetView.get('webUrl')).to.equal('http://host1:1234');

@@ -34,6 +34,10 @@ App.ClusterMetricsDashboardWidgetView = App.DashboardWidgetView.extend(App.Expor
     App.tooltip(this.$('.corner-icon > .icon-save'), {
       title: Em.I18n.t('common.export')
     });
+  },
+
+  willDestroyElement: function () {
+    this.$('.corner-icon > .icon-save').tooltip('destroy');
   }
 
 });

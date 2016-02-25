@@ -17,7 +17,6 @@
  */
 
 var App = require('app');
-var numberUtils = require('utils/number_utils');
 
 App.YARNMemoryPieChartView = App.PieChartDashboardWidgetView.extend({
 

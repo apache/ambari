@@ -3063,7 +3063,7 @@ var ajax = Em.Object.extend({
   abortRequests: function (requestsArray) {
     requestsArray.forEach(function (xhr) {
       xhr.isForcedAbort = true;
-      xhr.abort();
+      Em.tryInvoke(xhr, 'abort');
     });
     requestsArray.clear();
   }

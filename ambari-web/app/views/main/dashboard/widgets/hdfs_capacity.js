@@ -43,34 +43,34 @@ App.NameNodeCapacityPieChartView = App.PieChartDashboardWidgetView.extend({
     var remaining = this.get('model.capacityRemaining');
     var dfsUsed = this.get('model.capacityUsed');
     var nonDfsUsed = this.get('model.capacityNonDfsUsed');
-    var dfsPercent = total > 0 ? ((dfsUsed * 100) / total).toFixed(2) : 0;
-    var nonDfsPercent = total > 0 ? ((nonDfsUsed * 100) / total).toFixed(2) : 0;
-    var remainingPercent = total > 0 ? ((remaining * 100) / total).toFixed(2) : 0;
-    if (dfsPercent == "NaN" || dfsPercent < 0) {
+    var dfsPercent = total > 0 ? (dfsUsed * 100 / total).toFixed(2) : 0;
+    var nonDfsPercent = total > 0 ? (nonDfsUsed * 100 / total).toFixed(2) : 0;
+    var remainingPercent = total > 0 ? (remaining * 100 / total).toFixed(2) : 0;
+    if (dfsPercent === "NaN" || dfsPercent < 0) {
       dfsPercent = Em.I18n.t('services.service.summary.notAvailable') + " ";
     }
-    if (nonDfsPercent == "NaN" || nonDfsPercent < 0) {
+    if (nonDfsPercent === "NaN" || nonDfsPercent < 0) {
       nonDfsPercent = Em.I18n.t('services.service.summary.notAvailable') + " ";
     }
-    if (remainingPercent == "NaN" || remainingPercent < 0) {
+    if (remainingPercent === "NaN" || remainingPercent < 0) {
       remainingPercent = Em.I18n.t('services.service.summary.notAvailable') + " ";
     }
-    var result = [];
-    result.pushObject(Em.I18n.t('dashboard.widgets.HDFSDiskUsage.DFSused'));
-    result.pushObject(Em.I18n.t('dashboard.widgets.HDFSDiskUsage.info').format(numberUtils.bytesToSize(dfsUsed, 1, 'parseFloat'), dfsPercent));
-    result.pushObject(Em.I18n.t('dashboard.widgets.HDFSDiskUsage.nonDFSused'));
-    result.pushObject(Em.I18n.t('dashboard.widgets.HDFSDiskUsage.info').format(numberUtils.bytesToSize(nonDfsUsed, 1, 'parseFloat'), nonDfsPercent));
-    result.pushObject(Em.I18n.t('dashboard.widgets.HDFSDiskUsage.remaining'));
-    result.pushObject(Em.I18n.t('dashboard.widgets.HDFSDiskUsage.info').format(numberUtils.bytesToSize(remaining, 1, 'parseFloat'), remainingPercent));
-    return result;
+    return [
+      Em.I18n.t('dashboard.widgets.HDFSDiskUsage.DFSused'),
+      Em.I18n.t('dashboard.widgets.HDFSDiskUsage.info').format(numberUtils.bytesToSize(dfsUsed, 1, 'parseFloat'), dfsPercent),
+      Em.I18n.t('dashboard.widgets.HDFSDiskUsage.nonDFSused'),
+      Em.I18n.t('dashboard.widgets.HDFSDiskUsage.info').format(numberUtils.bytesToSize(nonDfsUsed, 1, 'parseFloat'), nonDfsPercent),
+      Em.I18n.t('dashboard.widgets.HDFSDiskUsage.remaining'),
+      Em.I18n.t('dashboard.widgets.HDFSDiskUsage.info').format(numberUtils.bytesToSize(remaining, 1, 'parseFloat'), remainingPercent)
+    ];
   },
 
   calcDataForPieChart: function() {
     var total = this.get('model').get(this.get('modelFieldMax')) * 1024 * 1024;
     var used = total - this.get('model').get(this.get('modelFieldUsed')) * 1024 * 1024;
-    var percent = total > 0 ? ((used)*100 / total).toFixed() : 0;
-    var percent_precise = total > 0 ? ((used)*100 / total).toFixed(1) : 0;
-    return [percent, percent_precise];
+    var percent = total > 0 ? (used * 100 / total).toFixed() : 0;
+    var percentPrecise = total > 0 ? (used * 100 / total).toFixed(1) : 0;
+    return [percent, percentPrecise];
   }
 
 });

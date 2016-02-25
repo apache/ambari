@@ -51,7 +51,7 @@ App.UptimeTextDashboardWidgetView = App.TextDashboardWidgetView.extend({
   isRed: false,
 
   timeConverter: function (timestamp) {
-    var m = moment((new Date(timestamp)));
+    var m = moment(new Date(timestamp));
     return [m.format('ddd MMM DD YYYY'), m.format('HH:mm:ss')];
   },
 
@@ -83,7 +83,7 @@ App.UptimeTextDashboardWidgetView = App.TextDashboardWidgetView.extend({
     }
     var formatted = date.timingFormat(diff); //17.67 days
     var timeUnit = null;
-    if (formatted != null) {
+    if (formatted) {
       switch (formatted.split(" ")[1]) {
         case 'secs':
           timeUnit = 's';

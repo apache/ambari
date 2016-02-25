@@ -17,7 +17,6 @@
  */
 
 var App = require('app');
-var numberUtils = require('utils/number_utils');
 
 App.NameNodeHeapPieChartView = App.PieChartDashboardWidgetView.extend({
 
@@ -30,11 +29,11 @@ App.NameNodeHeapPieChartView = App.PieChartDashboardWidgetView.extend({
   widgetHtmlId: 'widget-nn-heap',
 
   getUsed: function() {
-    return (this.get('model').get(this.get('modelFieldUsed')) / (1024 * 1024)) || 0;
+    return this.get('model').get(this.get('modelFieldUsed')) / (1024 * 1024) || 0;
   },
 
   getMax: function() {
-    return (this.get('model').get(this.get('modelFieldMax')) / (1024 * 1024)) || 0;
+    return this.get('model').get(this.get('modelFieldMax')) / (1024 * 1024) || 0;
   },
 
   didInsertElement: function() {

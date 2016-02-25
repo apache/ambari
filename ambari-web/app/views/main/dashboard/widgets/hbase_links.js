@@ -46,10 +46,8 @@ App.HBaseLinksView = App.LinkDashboardWidgetView.extend({
   activeMasterTitle: Em.I18n.t('service.hbase.activeMaster'),
 
   hbaseMasterWebUrl: function () {
-    if (this.get('activeMaster.host') && this.get('activeMaster.host').get('publicHostName')) {
-      return "http://" + this.get('activeMaster.host').get('publicHostName') + ':' + this.get('port');
-    }
-    return '';
+    var hostName = this.get('activeMaster.host.publicHostName');
+    return hostName ? 'http://' + hostName + ':' + this.get('port') : '';
   }.property('activeMaster'),
 
   calcWebUrl: function() {

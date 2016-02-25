@@ -39,9 +39,9 @@ App.NameNodeCpuPieChartView = App.PieChartDashboardWidgetView.extend({
       intervalId;
     App.router.get('mainController').isLoading.call(App.router.get('clusterController'), 'isServiceContentFullyLoaded').done(function () {
       if (App.get('isHaEnabled')) {
-        self.set('nnHostName', self.get('model').get('activeNameNode.hostName'));
+        self.set('nnHostName', self.get('model.activeNameNode.hostName'));
       } else {
-        self.set('nnHostName', self.get('model').get('nameNode.hostName'));
+        self.set('nnHostName', self.get('model.nameNode.hostName'));
       }
       if (self.get('nnHostName')) {
         self.getValue();
@@ -77,28 +77,28 @@ App.NameNodeCpuPieChartView = App.PieChartDashboardWidgetView.extend({
   calcHiddenInfo: function () {
     var value = this.get('cpuWio');
     var obj1;
-    if (value == null) {
-      obj1 = Em.I18n.t('services.service.summary.notAvailable');
-    }
-    else {
+    if (value) {
       value = value >= 100 ? 100 : value;
       obj1 = (value + 0).toFixed(2) + '%';
     }
-    var result = [];
-    result.pushObject(obj1);
-    result.pushObject('CPU wait I/O');
-    return result;
+    else {
+      obj1 = Em.I18n.t('services.service.summary.notAvailable');
+    }
+    return [
+      obj1,
+      'CPU wait I/O'
+    ];
   },
 
   calcIsPieExists: function () {
-    return (!Em.isNone(this.get('cpuWio')));
+    return !Em.isNone(this.get('cpuWio'));
   },
 
   calcDataForPieChart: function () {
     var value = this.get('cpuWio');
     value = value >= 100 ? 100 : value;
     var percent = (value + 0).toFixed(1);
-    var percent_precise = (value + 0).toFixed(2);
-    return [percent, percent_precise];
+    var percentPrecise = (value + 0).toFixed(2);
+    return [percent, percentPrecise];
   }
 });

@@ -35,9 +35,6 @@ describe('App.HBaseAverageLoadView', function() {
         averageLoad: 1
       },
       e: {
-        isRed: false,
-        isOrange: true,
-        isGreen: false,
         isNA: false,
         content: '1'
       }
@@ -47,9 +44,6 @@ describe('App.HBaseAverageLoadView', function() {
         averageLoad: 10
       },
       e: {
-        isRed: true,
-        isOrange: false,
-        isGreen: false,
         isNA: false,
         content: '10'
       }
@@ -59,9 +53,6 @@ describe('App.HBaseAverageLoadView', function() {
         averageLoad: 0
       },
       e: {
-        isRed: false,
-        isOrange: false,
-        isGreen: true,
         isNA: false,
         content: '0'
       }
@@ -71,9 +62,6 @@ describe('App.HBaseAverageLoadView', function() {
         averageLoad: null
       },
       e: {
-        isRed: false,
-        isOrange: false,
-        isGreen: true,
         isNA: true,
         content: Em.I18n.t('services.service.summary.notAvailable')
       }
@@ -85,18 +73,6 @@ describe('App.HBaseAverageLoadView', function() {
       var hBaseAverageLoadView = App.HBaseAverageLoadView.create({model_type:null, model: test.model});
       it('content', function() {
         expect(hBaseAverageLoadView.get('content')).to.equal(test.e.content);
-      });
-      it('data', function() {
-        expect(hBaseAverageLoadView.get('data')).to.equal(test.model.averageLoad);
-      });
-      it('isRed', function() {
-        expect(hBaseAverageLoadView.get('isRed')).to.equal(test.e.isRed);
-      });
-      it('isOrange', function() {
-        expect(hBaseAverageLoadView.get('isOrange')).to.equal(test.e.isOrange);
-      });
-      it('isGreen', function() {
-        expect(hBaseAverageLoadView.get('isGreen')).to.equal(test.e.isGreen);
       });
       it('isNA', function() {
         expect(hBaseAverageLoadView.get('isNA')).to.equal(test.e.isNA);

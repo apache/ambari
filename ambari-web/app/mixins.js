@@ -28,6 +28,8 @@ require('mixins/common/reload_popup');
 require('mixins/common/serverValidator');
 require('mixins/common/table_server_view_mixin');
 require('mixins/common/table_server_mixin');
+require('mixins/main/dashboard/widgets/editable');
+require('mixins/main/dashboard/widgets/editable_with_limit');
 require('mixins/main/host/details/host_components/decommissionable');
 require('mixins/main/host/details/host_components/install_component');
 require('mixins/main/host/details/actions/install_new_version');

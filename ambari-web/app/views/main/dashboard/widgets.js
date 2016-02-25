@@ -124,7 +124,7 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, Ap
     var visibleFull = [
       '2', '4', '11', //hdfs
       '6', '7', '8', '9', //host metrics
-      '1', '5', '3',  '10', //hdfs
+      '1', '5', '3', '10', //hdfs
       '13', '12', '14', '16', //hbase
       '17', '18', '19', '20', '23', // all yarn
       '21', // storm
@@ -282,7 +282,7 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, Ap
     var hidden = value.hidden;
     var threshold = value.threshold;
 
-    if (version == 'new') {
+    if (version === 'new') {
       var visibleWidgets = [];
       var hiddenWidgets = [];
       // re-construct visibleWidgets and hiddenWidgets
