@@ -33,9 +33,7 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.configuration.Configuration.DatabaseType;
@@ -75,7 +73,6 @@ public class DBAccessorImpl implements DBAccessor {
   private DatabaseMetaData databaseMetaData;
   private static final String dbURLPatternString = "jdbc:(.*?):.*";
   private DbType dbType;
-  private final String dbSchema;
 
   @Inject
   public DBAccessorImpl(Configuration configuration) {
@@ -101,7 +98,6 @@ public class DBAccessorImpl implements DBAccessor {
       });
       databasePlatform = (DatabasePlatform) Class.forName(dbPlatform).newInstance();
       dbmsHelper = loadHelper(databasePlatform);
-      dbSchema = convertObjectName(configuration.getDatabaseSchema());
     } catch (Exception e) {
       String message = "Error while creating database accessor ";
       LOG.error(message, e);
@@ -194,17 +190,12 @@ public class DBAccessorImpl implements DBAccessor {
     boolean result = false;
     DatabaseMetaData metaData = getDatabaseMetaData();
 
-    ResultSet res = metaData.getTables(null, dbSchema, convertObjectName(tableName), new String[]{"TABLE"});
+    ResultSet res = metaData.getTables(null, null, convertObjectName(tableName), new String[]{"TABLE"});
 
     if (res != null) {
       try {
         if (res.next()) {
-          result = res.getString("TABLE_NAME") != null && res.getString("TABLE_NAME").equalsIgnoreCase(tableName);
-        }
-        if (res.next()) {
-          throw new IllegalStateException(
-                  String.format("Request for table [%s] existing returned more than one results",
-                          tableName));
+          return res.getString("TABLE_NAME") != null && res.getString("TABLE_NAME").equalsIgnoreCase(tableName);
         }
       } finally {
         res.close();
@@ -247,27 +238,21 @@ public class DBAccessorImpl implements DBAccessor {
 
   @Override
   public boolean tableHasColumn(String tableName, String columnName) throws SQLException {
-    boolean result = false;
     DatabaseMetaData metaData = getDatabaseMetaData();
 
-    ResultSet rs = metaData.getColumns(null, dbSchema, convertObjectName(tableName), convertObjectName(columnName));
+    ResultSet rs = metaData.getColumns(null, null, convertObjectName(tableName), convertObjectName(columnName));
 
     if (rs != null) {
       try {
         if (rs.next()) {
-          result = rs.getString("COLUMN_NAME") != null && rs.getString("COLUMN_NAME").equalsIgnoreCase(columnName);
-        }
-        if (rs.next()) {
-          throw new IllegalStateException(
-                  String.format("Request for column [%s] existing in table [%s] returned more than one results",
-                          columnName, tableName));
+          return rs.getString("COLUMN_NAME") != null && rs.getString("COLUMN_NAME").equalsIgnoreCase(columnName);
         }
       } finally {
         rs.close();
       }
     }
 
-    return result;
+    return false;
   }
 
   @Override
@@ -276,29 +261,18 @@ public class DBAccessorImpl implements DBAccessor {
     DatabaseMetaData metaData = getDatabaseMetaData();
 
     CustomStringUtils.toUpperCase(columnsList);
-    Set<String> columnsListToCheckCopies = new HashSet<>(columnsList);
-    List<String> duplicatedColumns = new ArrayList<>();
-    ResultSet rs = metaData.getColumns(null, dbSchema, convertObjectName(tableName), null);
+    ResultSet rs = metaData.getColumns(null, null, convertObjectName(tableName), null);
 
     if (rs != null) {
       try {
         while (rs.next()) {
-          String actualColumnName = rs.getString("COLUMN_NAME");
-          if (actualColumnName != null) {
-            boolean removingResult = columnsList.remove(actualColumnName.toUpperCase());
-            if (!removingResult && columnsListToCheckCopies.contains(actualColumnName.toUpperCase())) {
-              duplicatedColumns.add(actualColumnName.toUpperCase());
-            }
+          if (rs.getString("COLUMN_NAME") != null) {
+            columnsList.remove(rs.getString("COLUMN_NAME").toUpperCase());
           }
         }
       } finally {
         rs.close();
       }
-    }
-    if (!duplicatedColumns.isEmpty()) {
-      throw new IllegalStateException(
-              String.format("Request for columns [%s] existing in table [%s] returned too many results [%s] for columns [%s]",
-                      columnName, tableName, duplicatedColumns.size(), duplicatedColumns.toString()));
     }
 
     return columnsList.size() == 0;
@@ -308,7 +282,7 @@ public class DBAccessorImpl implements DBAccessor {
   public boolean tableHasForeignKey(String tableName, String fkName) throws SQLException {
     DatabaseMetaData metaData = getDatabaseMetaData();
 
-    ResultSet rs = metaData.getImportedKeys(null, dbSchema, convertObjectName(tableName));
+    ResultSet rs = metaData.getImportedKeys(null, null, convertObjectName(tableName));
 
     if (rs != null) {
       try {
@@ -330,7 +304,7 @@ public class DBAccessorImpl implements DBAccessor {
   public String getCheckedForeignKey(String tableName, String fkName) throws SQLException {
     DatabaseMetaData metaData = getDatabaseMetaData();
 
-    ResultSet rs = metaData.getImportedKeys(null, dbSchema, convertObjectName(tableName));
+    ResultSet rs = metaData.getImportedKeys(null, null, convertObjectName(tableName));
 
     if (rs != null) {
       try {
@@ -360,8 +334,8 @@ public class DBAccessorImpl implements DBAccessor {
     DatabaseMetaData metaData = getDatabaseMetaData();
 
     //NB: reference table contains pk columns while key table contains fk columns
-    ResultSet rs = metaData.getCrossReference(null, dbSchema, convertObjectName(referenceTableName),
-            null, dbSchema, convertObjectName(tableName));
+    ResultSet rs = metaData.getCrossReference(null, null, convertObjectName(referenceTableName),
+            null, null, convertObjectName(tableName));
 
     List<String> pkColumns = new ArrayList<String>(referenceColumns.length);
     for (String referenceColumn : referenceColumns) {
@@ -940,7 +914,7 @@ public class DBAccessorImpl implements DBAccessor {
 
   @Override
   public boolean tableHasPrimaryKey(String tableName, String columnName) throws SQLException {
-    ResultSet rs = getDatabaseMetaData().getPrimaryKeys(null, dbSchema, convertObjectName(tableName));
+    ResultSet rs = getDatabaseMetaData().getPrimaryKeys(null, null, convertObjectName(tableName));
     boolean res = false;
     try {
       if (rs != null && columnName != null) {
@@ -1080,7 +1054,7 @@ public class DBAccessorImpl implements DBAccessor {
   @Override
   public List<String> getIndexesList(String tableName, boolean unique)
     throws SQLException{
-    ResultSet rs = getDatabaseMetaData().getIndexInfo(null, dbSchema, convertObjectName(tableName), unique, false);
+    ResultSet rs = getDatabaseMetaData().getIndexInfo(null, null, convertObjectName(tableName), unique, false);
     List<String> indexList = new ArrayList<String>();
     if (rs != null){
       try{
