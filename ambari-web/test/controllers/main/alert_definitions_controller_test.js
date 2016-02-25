@@ -70,4 +70,23 @@ describe('App.MainAlertDefinitionsController', function() {
 
   });
 
+  describe("#toggleState()", function() {
+
+    beforeEach(function() {
+      sinon.stub(App, 'showConfirmationFeedBackPopup', Em.clb);
+      sinon.stub(controller, 'toggleDefinitionState');
+    });
+    afterEach(function() {
+      App.showConfirmationFeedBackPopup.restore();
+      controller.toggleDefinitionState.restore();
+    });
+
+    it("toggleDefinitionState should be called", function() {
+      var def = Em.Object.create();
+      controller.toggleState({context: def});
+      expect(App.showConfirmationFeedBackPopup.calledOnce).to.be.true;
+      expect(controller.toggleDefinitionState.calledWith(def)).to.be.true;
+    });
+  });
+
 });

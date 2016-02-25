@@ -21,16 +21,20 @@ var App = require('app');
 
 App.RMHighAvailabilityWizardView = Em.View.extend(App.WizardMenuMixin, {
 
+  templateName: require('templates/main/admin/highAvailability/resourceManager/wizard'),
+
+  /**
+   * @type {boolean}
+   * @default false
+   */
+  isLoaded: false,
+
   didInsertElement: function() {
     var currentStep = this.get('controller.currentStep');
     if (currentStep > 3) {
       this.get('controller').setLowerStepsDisable(currentStep);
     }
   },
-
-  templateName: require('templates/main/admin/highAvailability/resourceManager/wizard'),
-
-  isLoaded: false,
 
   willInsertElement: function() {
     this.set('isLoaded', false);
@@ -41,7 +45,7 @@ App.RMHighAvailabilityWizardView = Em.View.extend(App.WizardMenuMixin, {
    * load hosts from server
    */
   loadHosts: function () {
-    App.ajax.send({
+    return App.ajax.send({
       name: 'hosts.high_availability.wizard',
       data: {},
       sender: this,

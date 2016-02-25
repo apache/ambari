@@ -282,6 +282,8 @@ var files = [
   'test/views/main/admin/highAvailability/nameNode/step4_view_test',
   'test/views/main/admin/highAvailability/nameNode/step6_view_test',
   'test/views/main/admin/highAvailability/nameNode/step8_view_test',
+  'test/views/main/admin/highAvailability/resourceManager/step3_view_test',
+  'test/views/main/admin/highAvailability/resourceManager/wizard_view_test',
   'test/views/main/admin/highAvailability/nameNode/wizard_view_test',
   'test/views/main/admin/highAvailability/progress_view_test',
   'test/views/common/host_progress_popup_body_view_test',

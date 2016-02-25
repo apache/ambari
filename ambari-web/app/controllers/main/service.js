@@ -50,10 +50,10 @@ App.MainServiceController = Em.ArrayController.extend({
    * @type {bool}
    */
   isAllServicesInstalled: function () {
-    if (!this.get('content.content')) return false;
+    if (!this.get('content')) return false;
     var availableServices = App.StackService.find().mapProperty('serviceName');
-    return this.get('content.content').length == availableServices.length;
-  }.property('content.content.@each', 'content.content.length'),
+    return this.get('content').length == availableServices.length;
+  }.property('content.@each', 'content.length'),
 
   /**
    * Should "Start All"-button be disabled
@@ -192,7 +192,7 @@ App.MainServiceController = Em.ArrayController.extend({
   isStopAllServicesFailed: function() {
     var workStatuses = App.Service.find().mapProperty('workStatus');
     for (var i = 0; i < workStatuses.length; i++) {
-      if (workStatuses[i] != 'INSTALLED' && workStatuses[i] != 'STOPPING') {
+      if (workStatuses[i] !== 'INSTALLED' && workStatuses[i] !== 'STOPPING') {
         return true;
       }
     }
@@ -210,7 +210,7 @@ App.MainServiceController = Em.ArrayController.extend({
         App.router.get('backgroundOperationsController').showPopup();
       }
 
-      Ember.run.later(function () {
+      Em.run.later(function () {
         self.set('shouldStart', true);
       }, App.bgOperationsUpdateInterval);
     });

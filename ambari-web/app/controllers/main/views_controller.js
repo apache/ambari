@@ -19,7 +19,7 @@
 var App = require('app');
 
 App.MainViewsController = Em.Controller.extend({
-  name:'mainViewsController',
+  name: 'mainViewsController',
 
   isDataLoaded: false,
 
@@ -43,15 +43,14 @@ App.MainViewsController = Em.Controller.extend({
 
 
   loadAmbariViews: function () {
-    if (!App.router.get('loggedIn')) {
-      return;
+    if (App.router.get('loggedIn')) {
+      return App.ajax.send({
+        name: 'views.info',
+        sender: this,
+        success: 'loadAmbariViewsSuccess',
+        error: 'loadAmbariViewsError'
+      });
     }
-    App.ajax.send({
-      name: 'views.info',
-      sender: this,
-      success: 'loadAmbariViewsSuccess',
-      error: 'loadAmbariViewsError'
-    });
   },
 
   loadAmbariViewsSuccess: function (data, opt, params) {
@@ -89,7 +88,7 @@ App.MainViewsController = Em.Controller.extend({
             instanceName: instance.ViewInstanceInfo.instance_name,
             href: instance.ViewInstanceInfo.context_path + "/"
           });
-          if( current_instance.visible ){
+          if (current_instance.visible) {
             instances.push(current_instance);
           }
         }, this);
@@ -104,8 +103,8 @@ App.MainViewsController = Em.Controller.extend({
     this.set('isDataLoaded', true);
   },
 
-  setView: function(event) {
-    if(event.context){
+  setView: function (event) {
+    if (event.context) {
       App.router.route('main/views/' + event.context.viewName + '/' + event.context.version + '/' + event.context.instanceName);
     }
   }

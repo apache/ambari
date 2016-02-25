@@ -25,13 +25,21 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
   clearFilters: null,
 
   filteredCount: 0,
+
   /**
    * total number of installed hosts
+   * @type {number}
    */
   totalCount: function () {
     return this.get('hostsCountMap')['TOTAL'] || 0;
   }.property('hostsCountMap'),
+
+  /**
+   * @type {boolean}
+   * @default false
+   */
   resetStartIndex: false,
+
   /**
    * flag responsible for updating status counters of hosts
    */
@@ -341,9 +349,7 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
   /**
    * success callback on <code>updateStatusCounters()</code>
    */
-  updateStatusCountersErrorCallback: function() {
-
-  },
+  updateStatusCountersErrorCallback: Em.K,
 
   /**
    * Return value without predicate
@@ -351,13 +357,13 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
    * @return {String}
    */
   getProperValue: function (value) {
-    return (value.charAt(0) === '>' || value.charAt(0) === '<' || value.charAt(0) === '=') ? value.substr(1, value.length) : value;
+    return (['>', '<', '='].contains(value.charAt(0))) ? value.substr(1, value.length) : value;
   },
 
   /**
    * Return value converted to kilobytes
    * @param {String} value
-   * @return {*}
+   * @return {number}
    */
   convertMemory: function (value) {
     var scale = value.charAt(value.length - 1);
@@ -396,7 +402,7 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
     value = this.getProperValue(value);
     var parsedValue = parseFloat(value);
     if (isNaN(parsedValue)) {
-      return value;
+      return [0, 0];
     }
     var parsedValuePair = this.rangeConvertNumber(parsedValue, scale);
     var multiplyingFactor = 1;
@@ -429,7 +435,7 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
    */
   rangeConvertNumber: function (value, scale) {
     if (isNaN(value)) {
-      return value;
+      return [0, 0];
     }
     var valuePair = [];
     switch (scale) {
@@ -449,8 +455,8 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
 
   /**
    * Return comparison type depending on populated predicate
-   * @param value
-   * @return {String}
+   * @param {string} value
+   * @return {string}
    */
   getComparisonType: function (value) {
     var comparisonChar = value.charAt(0);
@@ -473,8 +479,7 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
    * @param {App.HostComponent} component
    */
   filterByComponent: function (component) {
-    if (!component)
-      return;
+    if (!component) return;
     var id = component.get('componentName');
     var column = 6;
 
@@ -492,8 +497,7 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
    * @param {String} state
    */
   filterByStack: function (displayName, state) {
-    if (!displayName || !state)
-      return;
+    if (!displayName || !state) return;
     var column = 11;
 
     var filterForStack = {
@@ -525,7 +529,7 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
    */
   removeHosts: function () {
     var hosts = this.get('content');
-    var selectedHosts = hosts.filterProperty('isChecked', true);
+    var selectedHosts = hosts.filterProperty('isChecked');
     this.get('fullContent').removeObjects(selectedHosts);
   },
 

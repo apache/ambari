@@ -17,6 +17,8 @@
  */
 
 var App = require('app');
+
+var testHelpers = require('test/helpers');
 require('utils/batch_scheduled_requests');
 require('controllers/main/host');
 require('mappers/server_data_mapper');
@@ -33,34 +35,49 @@ describe('MainHostController', function () {
     hostController.destroy();
   });
 
-  describe('#getRegExp()', function() {
+  describe("#totalCount()", function () {
+
+    it("TOTAL is undefined", function () {
+      hostController.set('hostsCountMap', {});
+      hostController.propertyDidChange('totalCount');
+      expect(hostController.get('totalCount')).to.be.equal(0);
+    });
+
+    it("TOTAL is 1", function () {
+      hostController.set('hostsCountMap', {TOTAL: 1});
+      hostController.propertyDidChange('totalCount');
+      expect(hostController.get('totalCount')).to.be.equal(1);
+    });
+  });
+
+  describe('#getRegExp()', function () {
     var message = '`{0}` should convert to `{1}`',
       tests = [
-        { value: '.*', expected: '.*' },
-        { value: '.', expected: '.*' },
-        { value: '.*.*', expected: '.*' },
-        { value: '*', expected: '^$' },
-        { value: '........', expected: '.*' },
-        { value: '........*', expected: '.*' },
-        { value: 'a1', expected: '.*a1.*' },
-        { value: 'a1.', expected: '.*a1.*' },
-        { value: 'a1...', expected: '.*a1.*' },
-        { value: 'a1.*', expected: '.*a1.*' },
-        { value: 'a1.*.a2.a3', expected: '.*a1.*.a2.a3.*' },
-        { value: 'a1.*.a2...a3', expected: '.*a1.*.a2...a3.*' }
+        {value: '.*', expected: '.*'},
+        {value: '.', expected: '.*'},
+        {value: '.*.*', expected: '.*'},
+        {value: '*', expected: '^$'},
+        {value: '........', expected: '.*'},
+        {value: '........*', expected: '.*'},
+        {value: 'a1', expected: '.*a1.*'},
+        {value: 'a1.', expected: '.*a1.*'},
+        {value: 'a1...', expected: '.*a1.*'},
+        {value: 'a1.*', expected: '.*a1.*'},
+        {value: 'a1.*.a2.a3', expected: '.*a1.*.a2.a3.*'},
+        {value: 'a1.*.a2...a3', expected: '.*a1.*.a2...a3.*'}
       ];
 
-    tests.forEach(function(test){
-      it(message.format(test.value, test.expected), function() {
+    tests.forEach(function (test) {
+      it(message.format(test.value, test.expected), function () {
         expect(hostController.getRegExp(test.value)).to.be.equal(test.expected);
       });
     });
   });
 
-  describe('#getQueryParameters', function() {
-    beforeEach(function() {
+  describe('#getQueryParameters', function () {
+    beforeEach(function () {
       sinon.spy(hostController, 'getRegExp');
-      sinon.stub(App.db, 'getFilterConditions', function() {
+      sinon.stub(App.db, 'getFilterConditions', function () {
         return [{
           iColumn: 1,
           skipFilter: false,
@@ -70,17 +87,17 @@ describe('MainHostController', function () {
       });
     });
 
-    afterEach(function() {
+    afterEach(function () {
       App.db.getFilterConditions.restore();
       hostController.getRegExp.restore();
     });
 
-    it('should call #getRegExp with value `someval` on host name filter', function() {
+    it('should call #getRegExp with value `someval` on host name filter', function () {
       hostController.getQueryParameters();
       expect(hostController.getRegExp.calledWith('someval')).to.ok;
     });
 
-    it('result should include host name filter converted value', function() {
+    it('result should include host name filter converted value', function () {
       expect(hostController.getQueryParameters().findProperty('key', 'Hosts/host_name').value).to.equal('.*someval.*');
     });
   });
@@ -88,9 +105,11 @@ describe('MainHostController', function () {
   describe('#getSortProps', function () {
 
     beforeEach(function () {
-      db = {mainHostController: [
-        {name: 'hostName', status: 'sorting'}
-      ]};
+      db = {
+        mainHostController: [
+          {name: 'hostName', status: 'sorting'}
+        ]
+      };
       sinon.stub(App.db, 'getSortingStatuses', function (k) {
         return db[k];
       });
@@ -109,6 +128,339 @@ describe('MainHostController', function () {
       expect(db.mainHostController).to.eql([{name: 'hostName', status: 'sorting_asc'}]);
     });
 
+  });
+
+  describe("#updateStatusCounters()", function() {
+
+    it("isCountersUpdating is false", function() {
+      hostController.set('isCountersUpdating', false);
+      hostController.updateStatusCounters();
+      expect(testHelpers.findAjaxRequest('name', 'host.status.counters')).to.be.undefined;
+    });
+
+    it("isCountersUpdating is true", function() {
+      hostController.set('isCountersUpdating', true);
+      hostController.updateStatusCounters();
+      expect(testHelpers.findAjaxRequest('name', 'host.status.counters')).to.be.exist;
+    });
+  });
+
+  describe("#updateStatusCountersSuccessCallback()", function() {
+    var data = {
+      Clusters: {
+        health_report: {
+          'Host/host_status/HEALTHY': 1,
+          'Host/host_status/UNHEALTHY': 2,
+          'Host/host_status/ALERT': 3,
+          'Host/host_status/UNKNOWN': 4,
+          'Host/stale_config': 5,
+          'Host/maintenance_state': 6
+        },
+        total_hosts: 21
+      }
+    };
+
+    it("hostsCountMap should be set", function() {
+      hostController.updateStatusCountersSuccessCallback(data);
+      expect(hostController.get('hostsCountMap')).to.be.eql({
+        "HEALTHY": 1,
+        "UNHEALTHY": 2,
+        "ALERT": 3,
+        "UNKNOWN": 4,
+        "health-status-RESTART": 5,
+        "health-status-PASSIVE_STATE": 6,
+        "TOTAL": 21
+      });
+    });
+  });
+
+  describe("#getProperValue()", function() {
+
+    var testCases = [
+      {
+        input: '>1',
+        expected: '1'
+      },
+      {
+        input: '<1',
+        expected: '1'
+      },
+      {
+        input: '=1',
+        expected: '1'
+      },
+      {
+        input: '1',
+        expected: '1'
+      }
+    ];
+
+    testCases.forEach(function(test) {
+      it("value =" + test.input, function() {
+        expect(hostController.getProperValue(test.input)).to.be.equal(test.expected);
+      });
+    });
+
+  });
+
+  describe("#convertMemory()", function() {
+
+    beforeEach(function() {
+      sinon.stub(hostController, 'getProperValue', function(input) {
+        return input;
+      })
+    });
+    afterEach(function() {
+      hostController.getProperValue.restore();
+    });
+
+    var testCases = [
+      {
+        input: 'm',
+        expected: 'm'
+      },
+      {
+        input: '1',
+        expected: 1048576
+      },
+      {
+        input: '1g',
+        expected: 1048576
+      },
+      {
+        input: '1m',
+        expected: 1024
+      },
+      {
+        input: '1k',
+        expected: 1
+      }
+    ];
+
+    testCases.forEach(function(test) {
+      it("value =" + test.input, function() {
+        expect(hostController.convertMemory(test.input)).to.be.equal(test.expected);
+      });
+    });
+  });
+
+  describe("#convertMemoryToRange()", function() {
+
+    beforeEach(function() {
+      sinon.stub(hostController, 'rangeConvertNumber', function(arg1) {
+        return [arg1, arg1];
+      })
+    });
+    afterEach(function() {
+      hostController.rangeConvertNumber.restore();
+    });
+
+    var testCases = [
+      {
+        input: 'm',
+        expected: [0, 0]
+      },
+      {
+        input: '1',
+        expected: [1048576, 1048576]
+      },
+      {
+        input: '1g',
+        expected: [1048576, 1048576]
+      },
+      {
+        input: '1m',
+        expected: [1024, 1024]
+      },
+      {
+        input: '1k',
+        expected: [1, 1]
+      }
+    ];
+
+    testCases.forEach(function(test) {
+      it("value =" + test.input, function() {
+        expect(hostController.convertMemoryToRange(test.input)).to.be.eql(test.expected);
+      });
+    });
+  });
+
+  describe("#rangeConvertNumber()", function() {
+
+    var testCases = [
+      {
+        value: 'm',
+        scale: '',
+        expected: [0, 0]
+      },
+      {
+        value: 1,
+        scale: '',
+        expected: [0.995, 1.004999999]
+      },
+      {
+        value: 1,
+        scale: 'g',
+        expected: [0.995, 1.004999999]
+      },
+      {
+        value: 1,
+        scale: 'm',
+        expected: [0.95, 1.04999]
+      },
+      {
+        value: 1,
+        scale: 'k',
+        expected: [0.95, 1.04999]
+      }
+    ];
+
+    testCases.forEach(function(test) {
+      it("value = " + test.value + 'scale = ' + test.scale, function() {
+        expect(hostController.rangeConvertNumber(test.value, test.scale)).to.be.eql(test.expected);
+      });
+    });
+  });
+
+  describe("#getComparisonType()", function() {
+
+    var testCases = [
+      {
+        value: '1',
+        expected: 'EQUAL'
+      },
+      {
+        value: '>',
+        expected: 'MORE'
+      },
+      {
+        value: '<',
+        expected: 'LESS'
+      },
+      {
+        value: '=',
+        expected: 'EQUAL'
+      }
+    ];
+
+    testCases.forEach(function(test) {
+      it("value = " + test.value, function() {
+        expect(hostController.getComparisonType(test.value)).to.be.equal(test.expected);
+      });
+    });
+  });
+
+  describe("#filterByComponent()", function() {
+
+    beforeEach(function() {
+      sinon.stub(App.db, 'setFilterConditions');
+    });
+    afterEach(function() {
+      App.db.setFilterConditions.restore();
+    });
+
+    it("component is null", function() {
+      hostController.filterByComponent();
+      expect(App.db.setFilterConditions.called).to.be.false;
+    });
+
+    it("component exist", function() {
+      hostController.set('name', 'ctrl1');
+      hostController.filterByComponent(Em.Object.create({
+        componentName: 'C1'
+      }));
+      expect(App.db.setFilterConditions.calledWith('ctrl1', [{
+        iColumn: 6,
+        value: ['C1'],
+        type: 'multiple'
+      }])).to.be.true;
+    });
+  });
+
+  describe("#filterByStack()", function() {
+
+    beforeEach(function() {
+      sinon.stub(App.db, 'setFilterConditions');
+    });
+    afterEach(function() {
+      App.db.setFilterConditions.restore();
+    });
+
+    it("displayName is null", function() {
+      hostController.filterByStack(null, 'INSTALLED');
+      expect(App.db.setFilterConditions.called).to.be.false;
+    });
+
+    it("state is null", function() {
+      hostController.filterByStack('stack1', null);
+      expect(App.db.setFilterConditions.called).to.be.false;
+    });
+
+    it("stack and displayName exist", function() {
+      hostController.set('name', 'ctrl1');
+      hostController.filterByStack('stack1', 'INSTALLED');
+      expect(App.db.setFilterConditions.calledWith('ctrl1', [{
+        iColumn: 11,
+        value: [
+          {
+            property: 'repository_versions/RepositoryVersions/display_name',
+            value: 'stack1'
+          },
+          {
+            property: 'HostStackVersions/state',
+            value: 'INSTALLED'
+          }
+        ],
+        type: 'sub-resource'
+      }])).to.be.true;
+    });
+  });
+
+  describe("#goToHostAlerts()", function() {
+
+    beforeEach(function() {
+      sinon.stub(App.router, 'transitionTo');
+    });
+    afterEach(function() {
+      App.router.transitionTo.restore();
+    });
+
+    it("event is null", function() {
+      hostController.goToHostAlerts(null);
+      expect(App.router.transitionTo.called).to.be.false;
+    });
+
+    it("event.context is null", function() {
+      hostController.goToHostAlerts({context: null});
+      expect(App.router.transitionTo.called).to.be.false;
+    });
+
+    it("event.context is exist", function() {
+      hostController.goToHostAlerts({context: {}});
+      expect(App.router.transitionTo.calledWith('main.hosts.hostDetails.alerts', {})).to.be.true;
+    });
+  });
+
+  describe("#removeHosts()", function() {
+
+    it("host should be removed", function() {
+      var host1 = Em.Object.create({id: 'host1', isChecked: true});
+      hostController.set('content', [host1]);
+      hostController.set('fullContent', [host1]);
+      hostController.removeHosts();
+      expect(hostController.get('fullContent')).to.be.empty;
+    });
+  });
+
+  describe("#checkRemoved()", function() {
+
+    it("host should be removed", function() {
+      var host1 = Em.Object.create({id: 'host1', isChecked: true});
+      hostController.set('content', [host1]);
+      hostController.set('fullContent', [host1]);
+      hostController.checkRemoved('host1');
+      expect(hostController.get('fullContent')).to.be.empty;
+    });
   });
 
 });
