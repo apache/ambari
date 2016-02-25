@@ -113,6 +113,7 @@ class HostInfo():
     swap_stats = psutil.swap_memory()
     disk_usage = self.get_combined_disk_usage()
     mem_total = self.__host_static_info.get('mem_total')
+    swap_total = self.__host_static_info.get('swap_total')
 
     bytes2kilobytes = lambda x: x / 1024
 
@@ -124,6 +125,7 @@ class HostInfo():
       'mem_buffered': bytes2kilobytes(mem_stats.buffers) if hasattr(mem_stats, 'buffers') else 0,
       'mem_cached': bytes2kilobytes(mem_stats.cached) if hasattr(mem_stats, 'cached') else 0,
       'swap_free': bytes2kilobytes(swap_stats.free) if hasattr(swap_stats, 'free') else 0,
+      'swap_total': bytes2kilobytes(swap_total) if swap_total else 0,
       'disk_free' : disk_usage.get("disk_free"),
       # todo: cannot send string
       #'part_max_used' : disk_usage.get("max_part_used")[0],
