@@ -39,6 +39,9 @@ App.MainAdminHighAvailabilityController = Em.Controller.extend({
     if (hostComponents.filterProperty('componentName', 'ZOOKEEPER_SERVER').length < 3) {
       message.push(Em.I18n.t('admin.highAvailability.error.zooKeeperNum'));
     }
+    if(hostComponents.filterProperty('isMaster', true).someProperty('passiveState', "ON") || hostComponents.filterProperty('isMaster', true).someProperty('isImpliedState', true)) {
+      message.push(Em.I18n.t('admin.highAvailability.error.maintenanceMode'));
+    }
 
     if (App.router.get('mainHostController.hostsCountMap.TOTAL') < 3) {
       message.push(Em.I18n.t('admin.highAvailability.error.hostsNum'));
