@@ -47,6 +47,10 @@ export default Ember.Service.extend({
     this.add(this.types.WARN, message, body);
   },
 
+  pushError: function (message, body) {
+    this.add(this.types.ERROR, message, body);
+  },
+
   error: function (error) {
     var message,
         body;

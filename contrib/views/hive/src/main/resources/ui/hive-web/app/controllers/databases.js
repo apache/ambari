@@ -26,6 +26,7 @@ export default Ember.Controller.extend({
 
   pageCount: 10,
 
+  previousSelectedDatabaseName : "" ,
   selectedDatabase: Ember.computed.alias('databaseService.selectedDatabase'),
   databases: Ember.computed.alias('databaseService.databases'),
 
@@ -99,8 +100,12 @@ export default Ember.Controller.extend({
 
     this.get('databaseService').getAllTables().then(function () {
       self.set('isLoading', false);
-    }, function (err) {
-      self._handleError(err);
+      self.set('previousSelectedDatabaseName',self.get('selectedDatabase').get('name'));
+      self.get('notifyService').info("Selected database : "+self.get('selectedDatabase').get('name'));
+    }, function (error) {
+      self.get('notifyService').pushError("Error while selecting database : "+self.get('selectedDatabase').get('name'),error.responseJSON.message+"\n"+error.responseJSON.trace);
+      self.get('databaseService').setDatabaseByName(self.get('previousSelectedDatabaseName'));
+      self.set('isLoading', false);
     });
   }.observes('selectedDatabase'),
 
@@ -150,7 +155,7 @@ export default Ember.Controller.extend({
 
   getDatabases: function () {
     var self = this;
-    var selectedDatabase = this.get('selectedDatabase.name');
+    var selectedDatabase = this.get('selectedDatabase.name') || 'default';
 
     this.set('isLoading', true);
 
