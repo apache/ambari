@@ -25,6 +25,7 @@ from resource_management.libraries.functions.version import format_hdp_stack_ver
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.script.script import Script
+import os
 
 config = Script.get_config()
 
@@ -58,6 +59,8 @@ if Script.is_hdp_stack_greater_or_equal("2.2"):
 else:
   falcon_webapp_dir = '/var/lib/falcon/webapp'
   falcon_home = '/usr/lib/falcon'
+
+falcon_webinf_lib = falcon_home + "/server/webapp/falcon/WEB-INF/lib"
 
 hadoop_conf_dir = status_params.hadoop_conf_dir
 falcon_conf_dir = status_params.falcon_conf_dir
@@ -106,7 +109,31 @@ supports_hive_dr = config['configurations']['falcon-env']['supports_hive_dr']
 local_data_mirroring_dir = "/usr/hdp/current/falcon-server/data-mirroring"
 dfs_data_mirroring_dir = "/apps/data-mirroring"
 
+atlas_hosts = default('/clusterHostInfo/atlas_server_hosts', [])
+has_atlas = len(atlas_hosts) > 0
 
+if has_atlas:
+  atlas_conf_dir = os.environ['METADATA_CONF'] if 'METADATA_CONF' in os.environ else '/etc/atlas/conf'
+  atlas_home_dir = os.environ['METADATA_HOME_DIR'] if 'METADATA_HOME_DIR' in os.environ else '/usr/hdp/current/atlas-server'
+
+  application_services = "org.apache.falcon.security.AuthenticationInitializationService,\
+      org.apache.falcon.workflow.WorkflowJobEndNotificationService, \
+      org.apache.falcon.service.ProcessSubscriberService,\
+      org.apache.falcon.entity.store.ConfigurationStore,\
+      org.apache.falcon.rerun.service.RetryService,\
+      org.apache.falcon.rerun.service.LateRunService,\
+      org.apache.falcon.service.LogCleanupService,\
+      org.apache.falcon.metadata.MetadataMappingService,\
+      org.apache.falcon.atlas.service.AtlasService"
+else:
+  application_services = "org.apache.falcon.security.AuthenticationInitializationService,\
+      org.apache.falcon.workflow.WorkflowJobEndNotificationService, \
+      org.apache.falcon.service.ProcessSubscriberService,\
+      org.apache.falcon.entity.store.ConfigurationStore,\
+      org.apache.falcon.rerun.service.RetryService,\
+      org.apache.falcon.rerun.service.LateRunService,\
+      org.apache.falcon.service.LogCleanupService,\
+      org.apache.falcon.metadata.MetadataMappingService"
 
 hdfs_site = config['configurations']['hdfs-site']
 default_fs = config['configurations']['core-site']['fs.defaultFS']

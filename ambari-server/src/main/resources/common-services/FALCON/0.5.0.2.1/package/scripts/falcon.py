@@ -27,6 +27,7 @@ from resource_management.core.resources.service import Service
 from resource_management.core.resources.service import ServiceConfig
 from resource_management.core.resources.system import Directory
 from resource_management.core.resources.system import File
+from resource_management.core.resources.system import Link
 from resource_management.libraries.script import Script
 from resource_management.libraries.resources import PropertiesFile
 from resource_management.libraries.functions import format
@@ -106,6 +107,11 @@ def falcon(type, action = None, upgrade_type=None):
         create_parents = True,
         cd_access = "a")
 
+    if params.has_atlas:
+      Link(params.falcon_conf_dir + "/application.properties",
+           to = params.atlas_conf_dir + "/application.properties"
+           )
+
   if type == 'server':
     if action == 'config':
       if params.store_uri[0:4] == "hdfs":
@@ -175,6 +181,15 @@ def falcon(type, action = None, upgrade_type=None):
         user = params.falcon_user,
         path = params.hadoop_bin_dir,
         environment=environment_dictionary)
+
+      if params.has_atlas:
+        atlas_falcon_hook_dir = params.atlas_home_dir + "/hook/falcon"
+        src_files = os.listdir(atlas_falcon_hook_dir)
+        for file_name in src_files:
+          atlas_falcon_hook_file_name = os.path.join(atlas_falcon_hook_dir, file_name)
+          falcon_lib_file_name = os.path.join(params.falcon_webinf_lib, file_name)
+          if (os.path.isfile(atlas_falcon_hook_file_name)):
+            Link(falcon_lib_file_name, to = atlas_falcon_hook_file_name)
 
     if action == 'stop':
       Execute(format('{falcon_home}/bin/falcon-stop'),

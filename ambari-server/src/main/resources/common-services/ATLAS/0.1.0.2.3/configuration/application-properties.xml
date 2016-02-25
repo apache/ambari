@@ -176,4 +176,39 @@
     <value>21443</value>
     <description></description>
   </property>
+  <property>
+    <name>atlas.http.authentication.type</name>
+    <value>simple</value>
+    <description></description>
+  </property>
+  <property>
+    <name>atlas.hook.falcon.synchronous</name>
+    <value>false</value>
+    <description></description>
+  </property>
+  <property>
+    <name>atlas.hook.falcon.numRetries</name>
+    <value>3</value>
+    <description></description>
+  </property>
+  <property>
+    <name>atlas.hook.falcon.minThreads</name>
+    <value>5</value>
+    <description></description>
+  </property>
+  <property>
+    <name>atlas.hook.falcon.maxThreads</name>
+    <value>5</value>
+    <description></description>
+  </property>
+  <property>
+    <name>atlas.hook.falcon.keepAliveTime</name>
+    <value>10</value>
+    <description></description>
+  </property>
+  <property>
+    <name>atlas.hook.falcon.queueSize</name>
+    <value>1000</value>
+    <description></description>
+  </property>
 </configuration>
