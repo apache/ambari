@@ -825,6 +825,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
         .withTaskId(String.valueOf(commandEntity.getTaskId()))
         .withHostName(commandEntity.getHostName())
         .withOperation(commandEntity.getRoleCommand().toString() + " " + commandEntity.getRole().toString())
+        .withDetails(commandEntity.getCommandDetail())
         .withStatus(commandEntity.getStatus().toString())
         .withRequestId(String.valueOf(requestId))
         .withTimestamp(DateTime.now())
