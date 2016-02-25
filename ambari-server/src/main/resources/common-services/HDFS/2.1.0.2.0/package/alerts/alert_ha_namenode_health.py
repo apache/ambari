@@ -45,6 +45,10 @@ KERBEROS_PRINCIPAL = '{{hdfs-site/dfs.web.authentication.kerberos.principal}}'
 SECURITY_ENABLED_KEY = '{{cluster-env/security_enabled}}'
 SMOKEUSER_KEY = '{{cluster-env/smokeuser}}'
 EXECUTABLE_SEARCH_PATHS = '{{kerberos-env/executable_search_paths}}'
+INADDR_ANY = '0.0.0.0'
+NAMENODE_HTTP_FRAGMENT = 'dfs.namenode.http-address.{0}.{1}'
+NAMENODE_HTTPS_FRAGMENT = 'dfs.namenode.https-address.{0}.{1}'
+NAMENODE_RPC_FRAGMENT = 'dfs.namenode.rpc-address.{0}.{1}'
 
 CONNECTION_TIMEOUT_KEY = 'connection.timeout'
 CONNECTION_TIMEOUT_DEFAULT = 5.0
@@ -122,11 +126,11 @@ def execute(configurations={}, parameters={}, host_name=None):
   if not nn_unique_ids_key in hdfs_site:
     return (RESULT_STATE_UNKNOWN, ['Unable to find unique namenode alias key {0}'.format(nn_unique_ids_key)])
 
-  namenode_http_fragment = 'dfs.namenode.http-address.{0}.{1}'
+  namenode_http_fragment = NAMENODE_HTTP_FRAGMENT
   jmx_uri_fragment = "http://{0}/jmx?qry=Hadoop:service=NameNode,name=*"
 
   if is_ssl_enabled:
-    namenode_http_fragment = 'dfs.namenode.https-address.{0}.{1}'
+    namenode_http_fragment = NAMENODE_HTTPS_FRAGMENT
     jmx_uri_fragment = "https://{0}/jmx?qry=Hadoop:service=NameNode,name=*"
 
 
@@ -140,10 +144,16 @@ def execute(configurations={}, parameters={}, host_name=None):
   nn_unique_ids = hdfs_site[nn_unique_ids_key].split(',')
   for nn_unique_id in nn_unique_ids:
     key = namenode_http_fragment.format(name_service,nn_unique_id)
+    rpc_key = NAMENODE_RPC_FRAGMENT.format(name_service,nn_unique_id)
 
     if key in hdfs_site:
       # use str() to ensure that unicode strings do not have the u' in them
       value = str(hdfs_site[key])
+      if INADDR_ANY in value and rpc_key in hdfs_site:
+        rpc_value = str(hdfs_site[rpc_key])
+        if INADDR_ANY not in rpc_value:
+          rpc_host = rpc_value.split(":")[0]
+          value = value.replace(INADDR_ANY, rpc_host)
 
       try:
         jmx_uri = jmx_uri_fragment.format(value)

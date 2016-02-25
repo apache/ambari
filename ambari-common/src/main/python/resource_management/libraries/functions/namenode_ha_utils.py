@@ -33,7 +33,10 @@ HDFS_NN_STATE_STANDBY = 'standby'
 
 NAMENODE_HTTP_FRAGMENT = 'dfs.namenode.http-address.{0}.{1}'
 NAMENODE_HTTPS_FRAGMENT = 'dfs.namenode.https-address.{0}.{1}'
+NAMENODE_RPC_FRAGMENT = 'dfs.namenode.rpc-address.{0}.{1}'
+NAMENODE_RPC_NON_HA = 'dfs.namenode.rpc-address'
 JMX_URI_FRAGMENT = "{0}://{1}/jmx?qry=Hadoop:service=NameNode,name=FSNamesystem"
+INADDR_ANY = '0.0.0.0'
 
 def get_namenode_states(hdfs_site, security_enabled, run_user, times=10, sleep_time=1, backoff_factor=2):
   """
@@ -73,7 +76,8 @@ def get_namenode_states_noretries(hdfs_site, security_enabled, run_user):
   nn_unique_ids = hdfs_site[nn_unique_ids_key].split(',')
   for nn_unique_id in nn_unique_ids:
     is_https_enabled = hdfs_site['dfs.https.enable'] if not is_empty(hdfs_site['dfs.https.enable']) else False
-    
+
+    rpc_key = NAMENODE_RPC_FRAGMENT.format(name_service,nn_unique_id)
     if not is_https_enabled:
       key = NAMENODE_HTTP_FRAGMENT.format(name_service,nn_unique_id)
       protocol = "http"
@@ -84,6 +88,11 @@ def get_namenode_states_noretries(hdfs_site, security_enabled, run_user):
     if key in hdfs_site:
       # use str() to ensure that unicode strings do not have the u' in them
       value = str(hdfs_site[key])
+      if INADDR_ANY in value and rpc_key in hdfs_site:
+        rpc_value = str(hdfs_site[rpc_key])
+        if INADDR_ANY not in rpc_value:
+          rpc_host = rpc_value.split(":")[0]
+          value = value.replace(INADDR_ANY, rpc_host)
 
       jmx_uri = JMX_URI_FRAGMENT.format(protocol, value)
       
@@ -139,6 +148,8 @@ def get_property_for_active_namenode(hdfs_site, property_name, security_enabled,
     - In non-ha mode it will return hdfs_site[dfs.namenode.rpc-address]
     - In ha-mode it will return hdfs_site[dfs.namenode.rpc-address.nnha.nn2], where nnha is the name of HA, and nn2 is id of active NN
   """
+  value = None
+  rpc_key = None
   if is_ha_enabled(hdfs_site):
     name_service = hdfs_site['dfs.nameservices']
     active_namenodes = get_namenode_states(hdfs_site, security_enabled, run_user)[0]
@@ -147,8 +158,16 @@ def get_property_for_active_namenode(hdfs_site, property_name, security_enabled,
       raise Fail("There is no active namenodes.")
     
     active_namenode_id = active_namenodes[0][0]
-    
-    return hdfs_site[format("{property_name}.{name_service}.{active_namenode_id}")]
+    value = hdfs_site[format("{property_name}.{name_service}.{active_namenode_id}")]
+    rpc_key = NAMENODE_RPC_FRAGMENT.format(name_service,active_namenode_id)
   else:
-    return hdfs_site[property_name]
-  
+    value = hdfs_site[property_name]
+    rpc_key = NAMENODE_RPC_NON_HA
+
+  if INADDR_ANY in value and rpc_key in hdfs_site:
+    rpc_value = str(hdfs_site[rpc_key])
+    if INADDR_ANY not in rpc_value:
+      rpc_host = rpc_value.split(":")[0]
+      value = value.replace(INADDR_ANY, rpc_host)
+
+  return value
