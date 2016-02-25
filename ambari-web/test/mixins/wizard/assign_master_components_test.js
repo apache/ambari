@@ -93,7 +93,7 @@ describe('App.AssignMasterComponents', function () {
         "c2": ["h1", "h2", "h4"]
       };
 
-      expect(c.get('content.recommendedHostsForComponents')).to.deep.equal(expected);
+      expect(JSON.stringify(c.get('content.recommendedHostsForComponents'))).to.equal(JSON.stringify(expected));
     });
   });
 
