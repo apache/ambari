@@ -228,7 +228,10 @@ def kms():
 
     Directory(params.kms_log_dir,
       owner = params.kms_user,
-      group = params.kms_group
+      group = params.kms_group,
+      cd_access='a',
+      recursive=True,
+      mode=0755
     )
 
     Execute(('ln','-sf', format('{kms_home}/ranger-kms'),'/usr/bin/ranger-kms'),
