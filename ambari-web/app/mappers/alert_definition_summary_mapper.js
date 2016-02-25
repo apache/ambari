@@ -48,7 +48,7 @@ App.alertDefinitionSummaryMapper = App.QuickDataMapper.create({
         });
         summaryMap[alertDefinitionSummary.definition_id] = {
           summary: summary,
-          lastTriggered: App.dateTimeWithTimeZone(parseInt(timestamp)),
+          lastTriggered: App.dateTimeWithTimeZone(parseInt(timestamp, 10)),
           lastTriggeredRaw: timestamp
         };
       }
@@ -56,7 +56,7 @@ App.alertDefinitionSummaryMapper = App.QuickDataMapper.create({
 
     alertDefinitions.forEach(function (d) {
       var id = d.get('id');
-      if ((alertDefinitionsMap[id].get('stateManager.currentState.name') !== 'saved')) {
+      if (alertDefinitionsMap[id].get('stateManager.currentState.name') !== 'saved') {
         alertDefinitionsMap[id].get('stateManager').transitionTo('saved');
       }
       alertDefinitionsMap[id].setProperties(summaryMap[id]);
@@ -92,11 +92,10 @@ App.alertDefinitionSummaryMapper = App.QuickDataMapper.create({
           hasCriticalAlerts: hasCriticalAlerts
         });
 
-        var masters = service.get('hostComponents').filterProperty('isMaster');
-        masters.forEach(function (master) {
-          var hasCriticalAlerts = false;
+        service.get('hostComponents').filterProperty('isMaster').forEach(function (master) {
 
-          var alertsCount = groupedByComponentName[master.get('componentName')].map(function (alertDefinition) {
+          hasCriticalAlerts = false;
+          alertsCount = (groupedByComponentName[master.get('componentName')] || []).map(function (alertDefinition) {
 
             var criticalCount = alertDefinition.getWithDefault('summary.CRITICAL.count', 0);
             var warningCount = alertDefinition.getWithDefault('summary.WARNING.count', 0);
