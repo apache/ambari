@@ -71,10 +71,12 @@ do_install(){
     ln -s "$AMBARI_PYTHON" "$PYTHON_WRAPER_TARGET"
   fi
 
-  PYTHON_PATH_LINE='export PYTHONPATH=$PYTHONPATH:/usr/lib/python2.6/site-packages'
-  grep "^$PYTHON_PATH_LINE\$" "$AMBARI_ENV_RPMSAVE" > /dev/null
-  if [ -f "$AMBARI_ENV_RPMSAVE" ] && [ $? -ne 0 ] ; then
-    echo -e "\n$PYTHON_PATH_LINE" >> $AMBARI_ENV_RPMSAVE
+  if [ -f "$AMBARI_ENV_RPMSAVE" ] ; then
+    PYTHON_PATH_LINE='export PYTHONPATH=$PYTHONPATH:/usr/lib/python2.6/site-packages'
+    grep "^$PYTHON_PATH_LINE\$" "$AMBARI_ENV_RPMSAVE" > /dev/null
+    if [ $? -ne 0 ] ; then
+      echo -e "\n$PYTHON_PATH_LINE" >> $AMBARI_ENV_RPMSAVE
+    fi
   fi
 }
 
