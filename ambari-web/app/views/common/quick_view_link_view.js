@@ -42,7 +42,8 @@ App.QuickViewLinks = Em.View.extend({
     'FALCON',
     'ACCUMULO',
     'ATLAS',
-    'RANGER'
+    'RANGER',
+    'AMBARI_METRICS'
   ],
 
   /**

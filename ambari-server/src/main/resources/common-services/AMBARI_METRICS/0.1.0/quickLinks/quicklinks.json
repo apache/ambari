@@ -16,7 +16,7 @@
     "links": [
       {
         "name": "metrics_ui_server",
-        "label": "Metrics UI Server",
+        "label": "Grafana",
         "requires_user_name": "false",
         "url":"%@://%@:%@",
         "template":"%@://%@:%@",

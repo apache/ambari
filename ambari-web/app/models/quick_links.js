@@ -346,7 +346,7 @@ App.QuickLinks.FIXTURES = [
   },
   {
     id:37,
-    label:'Metrics UI Server',
+    label:'Grafana',
     url:'%@://%@:%@',
     service_id: 'AMBARI_METRICS',
     template:'%@://%@:%@',
