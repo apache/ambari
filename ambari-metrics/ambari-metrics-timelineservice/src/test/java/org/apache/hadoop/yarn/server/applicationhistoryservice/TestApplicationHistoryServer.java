@@ -20,16 +20,20 @@ package org.apache.hadoop.yarn.server.applicationhistoryservice;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.client.ConnectionFactory;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.service.Service.STATE;
 import org.apache.hadoop.util.ExitUtil;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.DefaultPhoenixDataSource;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics
-  .timeline.PhoenixHBaseAccessor;
 import org.apache.zookeeper.ClientCnxn;
 import org.easymock.EasyMock;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
@@ -48,20 +52,24 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics
-  .timeline.TimelineMetricConfiguration.METRICS_SITE_CONFIGURATION_FILE;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.METRICS_SITE_CONFIGURATION_FILE;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.*;
+import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
-import static org.junit.Assert.*;
-import static org.powermock.api.easymock.PowerMock.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+import static org.powermock.api.easymock.PowerMock.mockStatic;
+import static org.powermock.api.easymock.PowerMock.replayAll;
+import static org.powermock.api.easymock.PowerMock.verifyAll;
 import static org.powermock.api.support.membermodification.MemberMatcher.method;
-import static org.powermock.api.support.membermodification.MemberModifier
-  .suppress;
+import static org.powermock.api.support.membermodification.MemberModifier.suppress;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ PhoenixHBaseAccessor.class, UserGroupInformation.class,
-  ClientCnxn.class, DefaultPhoenixDataSource.class})
+  ClientCnxn.class, DefaultPhoenixDataSource.class, ConnectionFactory.class})
 @PowerMockIgnore( {"javax.management.*"})
 public class TestApplicationHistoryServer {
 
@@ -172,6 +180,11 @@ public class TestApplicationHistoryServer {
     expectLastCall().anyTimes();
     connection.close();
     expectLastCall();
+
+    org.apache.hadoop.hbase.client.Connection conn = createNiceMock(org.apache.hadoop.hbase.client.Connection.class);
+    mockStatic(ConnectionFactory.class);
+    expect(ConnectionFactory.createConnection((Configuration) anyObject())).andReturn(conn);
+    expect(conn.getAdmin()).andReturn(null);
 
     EasyMock.replay(connection, stmt, preparedStatement, rs);
     replayAll();
