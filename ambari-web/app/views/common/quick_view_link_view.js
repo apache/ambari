@@ -575,6 +575,7 @@ App.QuickViewLinks = Em.View.extend({
       case "accumulo":
       case "atlas":
       case "ranger":
+      case "ambari_metrics":
         return "_blank";
         break;
       default:
