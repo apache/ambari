@@ -207,8 +207,9 @@ public class HeartbeatProcessor extends AbstractService{
 
     processAlerts(heartbeat);
 
-    processCommandReports(heartbeat, now);
+    //process status reports before command reports to prevent status override immediately after task finish
     processStatusReports(heartbeat);
+    processCommandReports(heartbeat, now);
     //host status calculation are based on task and status reports, should be performed last
     processHostStatus(heartbeat);
   }
@@ -593,18 +594,18 @@ public class HeartbeatProcessor extends AbstractService{
               org.apache.ambari.server.state.State liveState =
                   org.apache.ambari.server.state.State.valueOf(org.apache.ambari.server.state.State.class,
                       status.getStatus());
+              //ignore reports from status commands if component is in INIT or any "in progress" state
               if (prevState.equals(org.apache.ambari.server.state.State.INSTALLED)
                   || prevState.equals(org.apache.ambari.server.state.State.STARTED)
-                  || prevState.equals(org.apache.ambari.server.state.State.STARTING)
-                  || prevState.equals(org.apache.ambari.server.state.State.STOPPING)
                   || prevState.equals(org.apache.ambari.server.state.State.UNKNOWN)) {
-                scHost.setState(liveState); //TODO direct status set breaks state machine sometimes !!!
+                scHost.setState(liveState);
                 if (!prevState.equals(liveState)) {
                   LOG.info("State of service component " + componentName
                       + " of service " + status.getServiceName()
                       + " of cluster " + status.getClusterName()
                       + " has changed from " + prevState + " to " + liveState
-                      + " at host " + hostname);
+                      + " at host " + hostname
+                      + " according to STATUS_COMMAND report");
                 }
               }
 

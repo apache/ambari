@@ -520,7 +520,8 @@ public class HeartbeatProcessorTest {
     assertEquals(SecurityState.SECURED_KERBEROS, serviceComponentHost1.getSecurityState());
     assertEquals(State.INSTALLED, componentState2);
     assertEquals(SecurityState.SECURING, serviceComponentHost2.getSecurityState());
-    assertEquals(State.STARTED, componentState3);
+    //starting state will not be overridden by status command
+    assertEquals(State.STARTING, componentState3);
     assertEquals(SecurityState.UNSECURED, serviceComponentHost3.getSecurityState());
   }
 
@@ -1285,6 +1286,82 @@ public class HeartbeatProcessorTest {
     entity = dao.findByStackAndVersion(stackId, "2.2.1.0-2222");
     Assert.assertNotNull(entity);
   }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testComponentInProgressStatusSafeAfterStatusReport() throws Exception {
+    Cluster cluster = heartbeatTestHelper.getDummyCluster();
+    Service hdfs = cluster.addService(HDFS);
+    hdfs.persist();
+    hdfs.addServiceComponent(DATANODE).persist();
+    hdfs.getServiceComponent(DATANODE).
+        addServiceComponentHost(DummyHostname1).persist();
+    hdfs.addServiceComponent(NAMENODE).persist();
+    hdfs.getServiceComponent(NAMENODE).
+        addServiceComponentHost(DummyHostname1).persist();
+
+    ActionQueue aq = new ActionQueue();
+
+    ServiceComponentHost serviceComponentHost1 = clusters.
+        getCluster(DummyCluster).getService(HDFS).
+        getServiceComponent(DATANODE).
+        getServiceComponentHost(DummyHostname1);
+    ServiceComponentHost serviceComponentHost2 = clusters.
+        getCluster(DummyCluster).getService(HDFS).
+        getServiceComponent(NAMENODE).
+        getServiceComponentHost(DummyHostname1);
+    serviceComponentHost1.setState(State.STARTING);
+    serviceComponentHost2.setState(State.STOPPING);
+
+    HeartBeat hb = new HeartBeat();
+    hb.setTimestamp(System.currentTimeMillis());
+    hb.setResponseId(0);
+    hb.setHostname(DummyHostname1);
+    hb.setNodeStatus(new HostStatus(HostStatus.Status.HEALTHY, DummyHostStatus));
+    hb.setReports(new ArrayList<CommandReport>());
+    ArrayList<ComponentStatus> componentStatuses = new ArrayList<ComponentStatus>();
+
+    ComponentStatus componentStatus1 = new ComponentStatus();
+    componentStatus1.setClusterName(DummyCluster);
+    componentStatus1.setServiceName(HDFS);
+    componentStatus1.setMessage(DummyHostStatus);
+    componentStatus1.setStatus(State.INSTALLED.name());
+    componentStatus1.setSecurityState(SecurityState.UNSECURED.name());
+    componentStatus1.setComponentName(DATANODE);
+    componentStatuses.add(componentStatus1);
+
+    ComponentStatus componentStatus2 = new ComponentStatus();
+    componentStatus2.setClusterName(DummyCluster);
+    componentStatus2.setServiceName(HDFS);
+    componentStatus2.setMessage(DummyHostStatus);
+    componentStatus2.setStatus(State.INSTALLED.name());
+    componentStatus2.setSecurityState(SecurityState.UNSECURED.name());
+    componentStatus2.setComponentName(NAMENODE);
+    componentStatuses.add(componentStatus2);
+
+    hb.setComponentStatus(componentStatuses);
+
+    final HostRoleCommand command = hostRoleCommandFactory.create(DummyHostname1,
+        Role.DATANODE, null, null);
+
+    ActionManager am = heartbeatTestHelper.getMockActionManager();
+    expect(am.getTasks(anyObject(List.class))).andReturn(
+        new ArrayList<HostRoleCommand>() {{
+          add(command);
+          add(command);
+        }});
+    replay(am);
+
+    HeartBeatHandler handler = heartbeatTestHelper.getHeartBeatHandler(am, aq);
+    HeartbeatProcessor heartbeatProcessor = handler.getHeartbeatProcessor();
+    heartbeatProcessor.processHeartbeat(hb);
+
+    State componentState1 = serviceComponentHost1.getState();
+    State componentState2 = serviceComponentHost2.getState();
+    assertEquals(State.STARTING, componentState1);
+    assertEquals(State.STOPPING, componentState2);
+  }
+
 
 
 }
