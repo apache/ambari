@@ -32,13 +32,14 @@
           <label class="col-sm-2 control-label">{{'common.loginActivities.message' | translate}}</label>
           <div class="col-sm-10">
             <textarea type="text"
-                 class="form-control"
-                 name="login_text"
-                 placeholder="{{'common.loginActivities.loginMessage.placeholder' | translate}}"
-                 ng-model="text"
-                 ng-change="inputChangeEvent()"
-                 ng-disabled="!status"
-                 autocomplete="off">
+                      rows="4"
+                      class="form-control"
+                      name="login_text"
+                      placeholder="{{'common.loginActivities.loginMessage.placeholder' | translate}}"
+                      ng-model="text"
+                      ng-change="inputChangeEvent()"
+                      ng-disabled="!status"
+                      autocomplete="off">
             </textarea>
             <div class="alert alert-danger top-margin" ng-show="form.login_text.$error.pattern && form.submitted">
              {{'common.loginActivities.onlySimpleChars' | translate}}

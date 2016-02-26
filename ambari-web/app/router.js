@@ -393,11 +393,11 @@ App.Router = Em.Router.extend({
         onClose: function () {
           self.setClusterData(data, opt, params);
           this.hide();
-        },
-        didInsertElement: function () {
-          this.fitHeight();
         }
       });
+    }else{
+      this.setClusterData(data, opt, params);
+      return false;
     }
   },
 
