@@ -51,9 +51,9 @@ hawq_password = unicode(config['configurations']['hawq-env']['hawq_password'])
 # HAWQ Hostnames
 hawqmaster_host = __get_component_host('hawqmaster_hosts')
 hawqstandby_host = __get_component_host('hawqstandby_hosts')
-hawqsegment_hosts = default('/clusterHostInfo/hawqsegment_hosts', [])
+hawqsegment_hosts = sorted(default('/clusterHostInfo/hawqsegment_hosts', []))
 hawq_master_hosts = [host for host in hawqmaster_host, hawqstandby_host if host]
-hawq_all_hosts = set(hawq_master_hosts + hawqsegment_hosts)
+hawq_all_hosts = sorted(set(hawq_master_hosts + hawqsegment_hosts))
 
 
 # HDFS
