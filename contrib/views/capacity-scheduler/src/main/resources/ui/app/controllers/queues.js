@@ -416,5 +416,17 @@ App.QueuesController = Ember.ArrayController.extend({
     })
 
     return hasInvalidMapping;
-  }.property('scheduler.queue_mappings','content.length','content.@each.capacity')
+  }.property('scheduler.queue_mappings','content.length','content.@each.capacity'),
+
+  /**
+   * Resource calculator dropdown options
+   */
+  resourceCalculatorValues: [{
+    label: 'Default Resource Calculator',
+    value: 'org.apache.hadoop.yarn.util.resource.DefaultResourceCalculator'
+  }, {
+    label: 'Dominant Resource Calculator',
+    value: 'org.apache.hadoop.yarn.util.resource.DominantResourceCalculator'
+  }]
+
 });
