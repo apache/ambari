@@ -38,7 +38,7 @@
                       <i class="fa fa-edit"></i>
                     </a>
                   </small>
-                  <small>
+                  <small {{bind-attr class="isDefaultQ:del-default-q"}}>
                     {{confirm-delete action="delQ" param=content}}
                   </small>
                 {{/unless}}

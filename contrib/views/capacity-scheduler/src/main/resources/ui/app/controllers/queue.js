@@ -200,7 +200,13 @@ App.QueueController = Ember.ObjectController.extend({
    * Returns true if queue is root.
    * @type {Boolean}
    */
-  isRoot:Ember.computed.match('content.id', /^(root|root.default)$/),
+   isRoot:Ember.computed.match('content.id', /^(root)$/),
+
+   /**
+    * Returns true if queue is default.
+    * @type {Boolean}
+    */
+   isDefaultQ:Ember.computed.match('content.id', /^(root.default)$/),
 
   /**
    * Represents queue run state. Returns true if state is null.
