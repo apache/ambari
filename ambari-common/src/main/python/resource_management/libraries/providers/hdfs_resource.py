@@ -397,7 +397,7 @@ class HdfsResourceProvider(Provider):
   def __init__(self, resource):
     super(HdfsResourceProvider,self).__init__(resource)
     self.fsType = getattr(resource, 'dfs_type')
-    self.ignored_resources_list = self.get_ignored_resources_list()
+    self.ignored_resources_list = HdfsResourceProvider.get_ignored_resources_list(self.resource.hdfs_resource_ignore_file)
     if self.fsType != 'HCFS':
       self.assert_parameter_is_set('hdfs_site')
       self.webhdfs_enabled = self.resource.hdfs_site['dfs.webhdfs.enabled']
@@ -421,12 +421,13 @@ class HdfsResourceProvider(Provider):
       path = path
       
     return re.sub("[/]+", "/", path)
-  
-  def get_ignored_resources_list(self):
-    if not self.resource.hdfs_resource_ignore_file or not os.path.exists(self.resource.hdfs_resource_ignore_file):
+
+  @staticmethod
+  def get_ignored_resources_list(hdfs_resource_ignore_file):
+    if not hdfs_resource_ignore_file or not os.path.exists(hdfs_resource_ignore_file):
       return []
     
-    with open(self.resource.hdfs_resource_ignore_file, "rb") as fp:
+    with open(hdfs_resource_ignore_file, "rb") as fp:
       content = fp.read()
       
     hdfs_resources_to_ignore = []
