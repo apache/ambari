@@ -299,73 +299,33 @@ App.ServiceConfigTextArea = Ember.TextArea.extend(App.ServiceConfigPopoverSuppor
 /**
  * Special config type for Capacity Scheduler
  */
-App.CapacitySceduler = Ember.TextArea.extend(App.ServiceConfigPopoverSupport, App.ServiceConfigCalculateId, App.SupportsDependentConfigs, {
+App.CapacitySceduler = App.ServiceConfigTextArea.extend({
 
-  configs: function() {
-    return this.get('controller.stepConfigs').findProperty('serviceName', 'YARN').get('configs');
-  }.property('controller.stepConfigs'),
-
-  valueBinding: 'serviceConfig.value',
-  excludedConfigs: function() {
-    return App.config.getPropertiesFromTheme('YARN');
-  }.property(),
   rows: 16,
-  classNames: ['directories'],
-  classNameBindings: ['widthClass'],
-  widthClass: 'span9',
-
-  connectedConfigs: function() {
-    return this.get('categoryConfigsAll').filter(function(config) {
-      return !this.get('excludedConfigs').contains(App.config.configId(config.get('name'), config.get('filename')))
-        && (config.get('name') !== this.get('serviceConfig.name'))
-        && (config.get('filename') === 'capacity-scheduler.xml');
-    }, this);
-  }.property('categoryConfigsAll.length'),
-
-  valueObserver: function () {
-    var self = this, controller = this.get('controller'),
-      names = [];
-    delay(function () {
-      self.get('serviceConfig.value').split('\n').forEach(function (_property) {
-        if (_property) {
-          _property = _property.split('=');
-          var name = _property[0];
-          var value = (_property[1]) ? _property[1] : "";
-
-          names.push(name);
-
-          var cfg = self.get('connectedConfigs').findProperty('name', name);
-          if (cfg) {
-            /** update configs **/
-            if (cfg.get('value') !== value) {
-              cfg.set('value', value);
-              self.sendRequestRorDependentConfigs(cfg, controller);
-            }
-          } else {
-            /** add configs **/
-            var newCfg = App.config.getDefaultConfig(name, 'YARN', 'capacity-scheduler', {
-              'value': value
-            });
-            self.get('configs').pushObject(App.ServiceConfigProperty.create(newCfg));
-          }
-        }
-      });
-
-      /** remove configs **/
-      self.get('connectedConfigs').filter(function(c) {
-        return !names.contains(c.get('name'));
-      }).forEach(function(c) {
-        self.get('configs').removeObject(c);
-      });
-    }, 500);
-  }.observes('serviceConfig.value'),
 
   /**
-   * update fina; value for connected configs
+   * specific property handling for cs
+   *
+   * @param {App.ServiceConfigProperty} config
+   * @param [controller]
+   * @returns {$.Deferred}
+   * @override
    */
-  isFinalObserver: function () {
-    this.get('connectedConfigs').setEach('isFinal', this.get('serviceConfig.isFinal'));
-  }.observes('serviceConfig.isFinal')
+  sendRequestRorDependentConfigs: function(config, controller) {
+    if (!config.get('isValid') && config.get('isNotDefaultValue')) return $.Deferred().resolve().promise();
+    controller = controller || this.get('controller');
+    if (controller && ['mainServiceInfoConfigsController','wizardStep7Controller'].contains(controller.get('name'))) {
+      return controller.loadConfigRecommendations(config.get('value').split('\n').map(function (_property) {
+        return {
+          "type": 'capacity-scheduler',
+          "name": _property.split('=')[0]
+        }
+      }));
+    }
+
+    return $.Deferred().resolve().promise();
+  }
+
 });
 
 /**

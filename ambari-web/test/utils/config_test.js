@@ -656,7 +656,7 @@ describe('App.config', function () {
       });
       sinon.stub(App.config, 'get', function(param) {
         if (param === 'serviceByConfigTypeMap') {
-          return { 'pFileName': 'pServiceName' };
+          return { 'pFileName': Em.Object.create({serviceName: 'pServiceName' }) };
         }
         return Em.get(App.config, param);
       });
