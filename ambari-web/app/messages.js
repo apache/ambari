@@ -48,10 +48,12 @@ Em.I18n.translations = {
   'app.settings.notShowBgOperations': 'Do not show this dialog again when starting a background operation',
   'app.settings.categories.general': 'General',
   'app.settings.categories.locale': 'Locale',
+  'app.settings.noData': 'Unable to retrieve settings data',
   'app.settings.no.view.privileges': 'No view privileges',
   'app.settings.no.cluster.privileges': 'No cluster privileges',
   'app.settings.admin.all.privileges': 'This user is an Ambari Admin and has all privileges.',
   'app.settings.no.privileges': 'This user does not have any privileges.',
+  'app.settings.viewPermissions': 'View Permissions',
 
   'app.aboutAmbari.getInvolved': 'Get involved!',
   'app.aboutAmbari.version': 'Version',

@@ -78,7 +78,7 @@
                     {{/isAuthorized}}
                   {{/if}}
                 {{/if}}
-                {{#if isClusterDataLoaded}}
+                {{#if isExistingClusterDataLoaded}}
                   {{#isAuthorized "CLUSTER.UPGRADE_DOWNGRADE_STACK"}}
                     <li><a href="" {{action showSettingsPopup target="App.router.userSettingsController"}}>{{t app.settings}}</a></li>
                   {{/isAuthorized}}
