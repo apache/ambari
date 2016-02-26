@@ -37,6 +37,29 @@ export default Ember.Component.extend(OperationModal, {
     }
   }),
 
+  validateErrors: function() {
+    let suggestedName = this.get('selectionName');
+    if (Ember.isBlank(suggestedName)) {
+      this.set('hasError', true);
+      this.set('errorMessage', 'Name cannot be blank');
+      return false;
+    }
+
+    if (this.get('selected.name') === suggestedName) {
+      this.set('hasError', true);
+      this.set('errorMessage', 'Name should be different');
+      return false;
+    }
+
+    if (suggestedName.length > 255) {
+      this.set('hasError', true);
+      this.set('errorMessage', `Max limit for length of file name is 255. Length: ${suggestedName.length}`);
+      return false;
+    }
+
+    return true;
+  },
+
   actions: {
     didOpenModal: function() {
       this.set('selectionName', this.get('selected.name'));
@@ -48,15 +71,10 @@ export default Ember.Component.extend(OperationModal, {
     },
 
     rename: function() {
-      if(Ember.isBlank(this.get('selectionName'))) {
+      if(!this.validateErrors()) {
         return false;
       }
 
-      if(this.get('selected.name') === this.get('selectionName')) {
-        this.set('hasError', true);
-        this.set('errorMessage', 'Name should be different');
-        return false;
-      }
       this.set('isUpdating', true);
       this.get('renameService').rename(this.get('selected.path'), this.get('selectionName'))
       .then((response) => {
