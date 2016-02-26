@@ -66,9 +66,13 @@ export default Ember.Service.extend(FileOperationMixin, {
     var adapter = this.get('store').adapterFor('file');
     var baseURL = adapter.buildURL('file');
     var renameUrl = baseURL.substring(0, baseURL.lastIndexOf('/'));
-    var previewUrl = renameUrl.substring(0, renameUrl.lastIndexOf('/')) + "/preview/file?path=";
+    var previewUrl = renameUrl.substring(0, renameUrl.lastIndexOf('/')) + "/preview/file";
+    var queryParams = Ember.$.param({
+      path: this.get('selected.path'),
+      start: this.get('startIndex'),
+      end: this.get('endIndex')});
 
-    var currentFetchPath = previewUrl + this.get('selected.path') + '&start=' + this.get('startIndex') + '&end=' + this.get('endIndex');
+    var currentFetchPath = previewUrl + "?" + queryParams;
 
     this.set('isLoading', true);
 

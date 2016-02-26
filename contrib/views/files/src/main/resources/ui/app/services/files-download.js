@@ -137,7 +137,8 @@ export default Ember.Service.extend(FileOperationMixin, {
   },
 
   _getDownloadUrl: function(path) {
-    return this._getDownloadBrowseUrl() + "?path=" + path + "&download=true";
+    let params = Ember.$.param({path: path, download: true});
+    return this._getDownloadBrowseUrl() + "?" + params;
   },
 
   _getConcatGenLinkUrl: function() {
