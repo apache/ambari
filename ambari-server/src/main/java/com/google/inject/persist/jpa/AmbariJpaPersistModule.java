@@ -32,10 +32,8 @@ import javax.persistence.EntityManagerFactory;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
-import org.apache.ambari.annotations.TransactionalLock;
 import org.apache.ambari.server.orm.AmbariJpaLocalTxnInterceptor;
 import org.apache.ambari.server.orm.AmbariLocalSessionInterceptor;
-import org.apache.ambari.server.orm.TransactionalLockInterceptor;
 import org.apache.ambari.server.orm.RequiresSession;
 
 import com.google.common.collect.Lists;
@@ -94,13 +92,6 @@ public class AmbariJpaPersistModule extends PersistModule {
 
     bindInterceptor(annotatedWith(RequiresSession.class), any(), sessionInterceptor);
     bindInterceptor(any(), annotatedWith(RequiresSession.class), sessionInterceptor);
-
-    // method-level binding for cross-cutting locks
-    // this runs before the base class binds Transactional, so it always runs
-    // first
-    MethodInterceptor lockAwareInterceptor = new TransactionalLockInterceptor();
-    requestInjection(lockAwareInterceptor);
-    bindInterceptor(any(), annotatedWith(TransactionalLock.class), lockAwareInterceptor);
   }
 
 
