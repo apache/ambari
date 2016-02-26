@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
+ * <p/>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p/>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,22 +16,33 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.view.hive.resources.uploads;
+package org.apache.ambari.view.hive.resources.uploads.query;
 
-import org.apache.ambari.view.hive.client.ColumnDescription;
-import org.apache.ambari.view.hive.client.Row;
+public class DeleteQueryInput {
+  private String database;
+  private String table;
 
-import java.io.File;
-import java.io.InputStream;
-import java.io.Reader;
-import java.util.List;
+  public DeleteQueryInput() {
+  }
 
-public interface IParser extends Iterable<Row> {
-  public Reader getCSVReader();
+  public DeleteQueryInput(String database, String table) {
+    this.database = database;
+    this.table = table;
+  }
 
-  public List<ColumnDescription> getHeader();
+  public String getDatabase() {
+    return database;
+  }
 
-  public List<Row> getPreviewRows();
+  public void setDatabase(String database) {
+    this.database = database;
+  }
 
-  public void parsePreview();
+  public String getTable() {
+    return table;
+  }
+
+  public void setTable(String table) {
+    this.table = table;
+  }
 }

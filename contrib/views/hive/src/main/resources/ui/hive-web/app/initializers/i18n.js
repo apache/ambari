@@ -201,6 +201,7 @@ TRANSLATIONS = {
     collapse: 'Collapse message',
     previousPage: 'previous',
     uploadTable: 'Upload Table',
+    showPreview: 'Preview',
     nextPage: 'next',
     loadMore: 'Load more...',
     saveHdfs: 'Save to HDFS',

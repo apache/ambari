@@ -18,39 +18,22 @@
 
 import Ember from 'ember';
 
-export default Ember.Service.extend({
-  stopJob: function (job) {
-    var self = this;
-    var id = job.get('id');
-    var url = this.container.lookup('adapter:application').buildURL();
-    url +=  "/jobs/" + id;
+export default Ember.Component.extend({
+  tagName: 'input',
+  type: 'radio',
+  attributeBindings: ['type', 'htmlChecked:checked', 'value', 'name', 'disabled'],
 
-    job.set('isCancelling', true);
+  htmlChecked: function() {
+    return this.get('value') === this.get('checked');
+  }.property('value', 'checked'),
 
-    Ember.$.ajax({
-       url: url,
-       type: 'DELETE',
-       headers: {
-        'X-Requested-By': 'ambari',
-       },
-       success: function () {
-         job.reload();
-       }
-    });
+  change: function() {
+    this.set('checked', this.get('value'));
   },
 
-  fetchJobStatus: function (jobId) {
-    console.log("finding status of job : ", jobId);
-    var self = this;
-    var url = this.container.lookup('adapter:application').buildURL();
-    url +=  "/jobs/" + jobId + "/status";
-
-    return Ember.$.ajax({
-      url: url,
-      type: 'GET',
-      headers: {
-        'X-Requested-By': 'ambari'
-      }
+  _updateElementValue: function() {
+    Ember.run.next(this, function() {
+      this.$().prop('checked', this.get('htmlChecked'));
     });
-  }
+  }.observes('htmlChecked')
 });

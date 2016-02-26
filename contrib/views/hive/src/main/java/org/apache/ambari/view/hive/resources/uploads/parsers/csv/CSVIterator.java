@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
+ * <p/>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p/>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,48 +16,42 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.view.hive.resources.uploads;
+package org.apache.ambari.view.hive.resources.uploads.parsers.csv;
 
-import org.apache.ambari.view.hive.client.ColumnDescription;
 import org.apache.ambari.view.hive.client.Row;
+import org.apache.commons.csv.CSVRecord;
 
-import java.io.IOException;
-import java.io.Reader;
 import java.util.Iterator;
-import java.util.List;
 
-public class DataParser implements IParser {
+/**
+ * iterates over the input CSV records and generates Row objects
+ */
+class CSVIterator implements Iterator<Row> {
 
-  private IParser parser;
+  private Iterator<CSVRecord> iterator;
 
-  public DataParser(Reader reader, ParseOptions parseOptions) throws IOException {
-    if (parseOptions.getOption(ParseOptions.OPTIONS_FILE_TYPE).equals(ParseOptions.FILE_TYPE_CSV)) {
-      parser = new CSVParser(reader, parseOptions);
+  public CSVIterator(Iterator<CSVRecord> iterator) {
+    this.iterator = iterator;
+  }
+
+  @Override
+  public boolean hasNext() {
+    return iterator.hasNext();
+  }
+
+  @Override
+  public Row next() {
+    CSVRecord row = iterator.next();
+    Object[] values = new Object[row.size()];
+    for (int i = 0; i < values.length; i++) {
+      values[i] = row.get(i);
     }
+    Row r = new Row(values);
+    return r;
   }
 
   @Override
-  public Reader getCSVReader() {
-    return parser.getCSVReader();
-  }
-
-  @Override
-  public List<ColumnDescription> getHeader() {
-    return parser.getHeader();
-  }
-
-  @Override
-  public List<Row> getPreviewRows() {
-    return parser.getPreviewRows();
-  }
-
-  @Override
-  public void parsePreview() {
-    parser.parsePreview();
-  }
-
-  @Override
-  public Iterator<Row> iterator() {
-    return parser.iterator();
+  public void remove() {
+    this.iterator.remove();
   }
 }

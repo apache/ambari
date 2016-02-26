@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
+ * <p/>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p/>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,9 +16,10 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.view.hive.resources.uploads;
+package org.apache.ambari.view.hive.resources.uploads.query;
 
 import org.apache.ambari.view.hive.client.ColumnDescription;
+import org.apache.ambari.view.hive.resources.uploads.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +36,7 @@ public class QueryGenerator {
 
   public String generateCreateQuery(TableInfo tableInfo) {
     String tableName = tableInfo.getTableName();
-    List<ColumnDescription> cdList = tableInfo.getColumns();
+    List<ColumnDescriptionImpl> cdList = tableInfo.getColumns();
 
     StringBuilder query = new StringBuilder();
     query.append("create table " + tableName + " (");
@@ -47,7 +48,7 @@ public class QueryGenerator {
     });
 
     boolean first = true;
-    for (ColumnDescription cd : cdList) {
+    for (ColumnDescriptionImpl cd : cdList) {
       if (first) {
         first = false;
       } else {
@@ -55,12 +56,43 @@ public class QueryGenerator {
       }
 
       query.append(cd.getName() + " " + cd.getType());
+      if (cd.getPrecision() != null) {
+        query.append("(").append(cd.getPrecision());
+        if (cd.getScale() != null) {
+          query.append(",").append(cd.getScale());
+        }
+        query.append(")");
+      }
+
     }
 
-    query.append(") ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' STORED AS TEXTFILE;");
+    query.append(")");
+
+    if (tableInfo.getHiveFileType() == HiveFileType.TEXTFILE)
+      query.append(" ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' STORED AS TEXTFILE;");
+    else
+      query.append(" STORED AS " + tableInfo.getHiveFileType() + ";");
 
     String queryString = query.toString();
-    LOG.info("Query : %S", queryString);
+    LOG.info("Query : {}", queryString);
     return queryString;
+  }
+
+  public String generateInsertFromQuery(InsertFromQueryInput ifqi) {
+    String insertQuery = "insert into table " + ifqi.getToDatabase() + "." + ifqi.getToTable() + " select * from " + ifqi.getFromDatabase() + "." + ifqi.getFromTable();
+    LOG.info("Insert Query : {}", insertQuery);
+    return insertQuery;
+  }
+
+  public String generateDropTableQuery(DeleteQueryInput deleteQueryInput) {
+    String dropQuery = "drop table " + deleteQueryInput.getDatabase() + "." + deleteQueryInput.getTable();
+    LOG.info("Drop Query : {}", dropQuery);
+    return dropQuery;
+  }
+
+  public String generateLoadQuery(LoadQueryInput loadQueryInput) {
+    String loadFromQuery = "LOAD DATA INPATH '"  + loadQueryInput.getHdfsFilePath() + "' INTO TABLE " + loadQueryInput.getDatabaseName() + "." + loadQueryInput.getTableName() + ";" ;
+    LOG.info("Load From Query : {}", loadFromQuery);
+    return loadFromQuery;
   }
 }

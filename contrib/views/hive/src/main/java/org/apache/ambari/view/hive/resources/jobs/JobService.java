@@ -259,6 +259,23 @@ public class JobService extends BaseService {
     }
   }
 
+
+  @Path("{jobId}/status")
+  @GET
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response fetchJobStatus(@PathParam("jobId") String jobId) throws ItemNotFound, HiveClientException, NoOperationStatusSetException {
+    JobController jobController = getResourceManager().readController(jobId);
+    String jobStatus = jobController.getStatus().status;
+    LOG.info("jobStatus : {} for jobId : {}",jobStatus, jobId);
+
+    JSONObject jsonObject = new JSONObject();
+    jsonObject.put("jobStatus", jobStatus);
+    jsonObject.put("jobId", jobId);
+
+    return Response.ok(jsonObject).build();
+  }
+
   /**
    * Get next results page
    */

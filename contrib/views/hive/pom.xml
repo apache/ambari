@@ -221,6 +221,11 @@
       <artifactId>httpcore</artifactId>
       <version>4.4.3</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-csv</artifactId>
+      <version>1.1</version>
+    </dependency>
   </dependencies>
 
   <properties>

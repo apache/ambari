@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
+ * <p/>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p/>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.view.hive.resources.uploads;
+package org.apache.ambari.view.hive.resources.uploads.parsers;
 
 import org.apache.ambari.view.hive.client.ColumnDescription;
 
@@ -43,6 +43,35 @@ public class ParseUtils {
     }
   }
 
+  public static boolean isBoolean(Object object) {
+    if (object == null)
+      return false;
+
+    if (object instanceof Boolean)
+      return true;
+
+    String strValue = object.toString();
+    if (strValue.equalsIgnoreCase("true") || strValue.equalsIgnoreCase("false"))
+      return true;
+    else
+      return false;
+  }
+
+  public static boolean isLong(Object object) {
+    if (object == null)
+      return false;
+
+    if (object instanceof Long)
+      return true;
+
+    try {
+      Long i = Long.parseLong(object.toString());
+      return true;
+    } catch (Exception nfe) {
+      return false;
+    }
+  }
+
   public static boolean isDouble(Object object) {
     if (object == null)
       return false;
@@ -53,7 +82,7 @@ public class ParseUtils {
     try {
       Double i = Double.parseDouble(object.toString());
       return true;
-    } catch (NumberFormatException nfe) {
+    } catch (Exception nfe) {
       return false;
     }
   }
@@ -94,6 +123,8 @@ public class ParseUtils {
   public static ColumnDescription.DataTypes detectHiveDataType(Object object) {
     // detect Integer
     if (isInteger(object)) return ColumnDescription.DataTypes.INT;
+    if (isLong(object)) return ColumnDescription.DataTypes.BIGINT;
+    if (isBoolean(object)) return ColumnDescription.DataTypes.BOOLEAN;
     if (isDouble(object)) return ColumnDescription.DataTypes.DOUBLE;
     if (isDate(object)) return ColumnDescription.DataTypes.DATE;
     if (isChar(object)) return ColumnDescription.DataTypes.CHAR;
