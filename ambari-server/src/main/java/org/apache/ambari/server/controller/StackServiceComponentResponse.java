@@ -90,6 +90,11 @@ public class StackServiceComponentResponse {
    */
   private List<String> customCommands;
 
+  /**
+   * Enabled for auto start or not.
+   */
+  private boolean recoveryEnabled;
+
 
   /**
    * Constructor.
@@ -106,6 +111,7 @@ public class StackServiceComponentResponse {
     cardinality = component.getCardinality();
     versionAdvertised = component.isVersionAdvertised();
     autoDeploy = component.getAutoDeploy();
+    recoveryEnabled = component.isRecoveryEnabled();
 
     // the custom command names defined for this component
     List<CustomCommandDefinition> definitions = component.getCustomCommands();
@@ -299,6 +305,24 @@ public class StackServiceComponentResponse {
    */
   public void setVersionAdvertised(boolean versionAdvertised) {
     this.versionAdvertised = versionAdvertised;
+  }
+
+  /**
+   * Get whether auto start is enabled.
+   *
+   * @return True or false.
+   */
+  public boolean isRecoveryEnabled() {
+    return recoveryEnabled;
+  }
+
+  /**
+   * Set whether auto start is enabled.
+   *
+   * @param recoveryEnabled True or false.
+   */
+  public void setRecoveryEnabled(boolean recoveryEnabled) {
+    this.recoveryEnabled = recoveryEnabled;
   }
 
 

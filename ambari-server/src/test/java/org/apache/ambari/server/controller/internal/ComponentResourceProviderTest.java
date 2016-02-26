@@ -126,6 +126,7 @@ public class ComponentResourceProviderTest {
     ServiceComponentFactory serviceComponentFactory = createNiceMock(ServiceComponentFactory.class);
     ServiceComponent serviceComponent = createNiceMock(ServiceComponent.class);
     StackId stackId = createNiceMock(StackId.class);
+    ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
 
     expect(managementController.getClusters()).andReturn(clusters);
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo);
@@ -142,6 +143,9 @@ public class ComponentResourceProviderTest {
     expect(stackId.getStackVersion()).andReturn("99").anyTimes();
 
     expect(ambariMetaInfo.isValidServiceComponent("HDP", "99", "Service100", "Component100")).andReturn(true).anyTimes();
+
+    expect(componentInfo.isRecoveryEnabled()).andReturn(true).anyTimes();
+    expect(ambariMetaInfo.getComponent("HDP", "99", "Service100", "Component100")).andReturn(componentInfo).anyTimes();
 
     expect(serviceComponentFactory.createNew(service, "Component100")).andReturn(serviceComponent);
 

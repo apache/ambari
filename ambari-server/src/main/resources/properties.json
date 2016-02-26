@@ -243,6 +243,7 @@
         "StackServiceComponents/is_master",
         "StackServiceComponents/cardinality",
         "StackServiceComponents/custom_commands",
+        "StackServiceComponents/recovery_enabled",
         "auto_deploy/enabled",
         "auto_deploy/location",
         "_"

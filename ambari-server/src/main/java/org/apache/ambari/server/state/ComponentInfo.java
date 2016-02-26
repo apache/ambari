@@ -90,6 +90,10 @@ public class ComponentInfo {
   @XmlElement(name="auto-deploy")
   private AutoDeployInfo autoDeploy;
 
+  @XmlElements(@XmlElement(name = "recovery_enabled"))
+  private Boolean recoveryEnabled = null;
+
+
   private String timelineAppid;
 
   public ComponentInfo() {
@@ -144,6 +148,10 @@ public class ComponentInfo {
 
   public boolean isMaster() {
     return "MASTER".equals(category);
+  }
+
+  public boolean isSlave() {
+    return "SLAVE".equals(category);
   }
 
   public boolean isDeleted() {
@@ -245,6 +253,27 @@ public class ComponentInfo {
 
   public boolean isVersionAdvertised() {
     return versionAdvertised;
+  }
+
+  public void setRecoveryEnabled(boolean recoveryEnabled) {
+    this.recoveryEnabled = recoveryEnabled;
+  }
+
+  public boolean isRecoveryEnabled() {
+    /**
+     * If recovery_enabled was not provided, then use defaults:
+     * Slave components: recovery_enabled = true
+     * Master components: recovery_enabled = false
+     * All others: recovery_enabled = false
+     */
+    if (recoveryEnabled == null) {
+      if (isSlave()) {
+        recoveryEnabled = true;
+      } else {
+        recoveryEnabled = false;
+      }
+    }
+    return recoveryEnabled;
   }
 
   public List<String> getClientsToUpdateConfigs() {

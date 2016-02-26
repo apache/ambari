@@ -88,6 +88,8 @@ public class ComponentModule extends BaseModule<ComponentModule, ComponentInfo> 
         componentInfo.setAutoDeploy(parentInfo.getAutoDeploy());
       }
 
+      componentInfo.setRecoveryEnabled(parentInfo.isRecoveryEnabled());
+
       mergeComponentDependencies(parentInfo.getDependencies(),
               componentInfo.getDependencies());
 

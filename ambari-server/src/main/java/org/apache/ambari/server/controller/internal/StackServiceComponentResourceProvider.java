@@ -65,6 +65,9 @@ public class StackServiceComponentResourceProvider extends
   private static final String CUSTOM_COMMANDS_PROPERTY_ID = PropertyHelper.getPropertyId(
       "StackServiceComponents", "custom_commands");
 
+  private static final String RECOVERY_ENABLED = PropertyHelper.getPropertyId(
+      "StackServiceComponents", "recovery_enabled");
+
   private static final String AUTO_DEPLOY_ENABLED_ID = PropertyHelper.getPropertyId(
       "auto_deploy", "enabled");
 
@@ -141,6 +144,9 @@ public class StackServiceComponentResourceProvider extends
       setResourceProperty(resource, ADVERTISE_VERSION_ID,
           response.isVersionAdvertised(), requestedIds);
 
+      setResourceProperty(resource, RECOVERY_ENABLED,
+          response.isRecoveryEnabled(), requestedIds);
+
       setResourceProperty(resource, CUSTOM_COMMANDS_PROPERTY_ID,
           response.getCustomCommands(), requestedIds);
 
@@ -165,7 +171,8 @@ public class StackServiceComponentResourceProvider extends
         (String) properties.get(STACK_NAME_PROPERTY_ID),
         (String) properties.get(STACK_VERSION_PROPERTY_ID),
         (String) properties.get(SERVICE_NAME_PROPERTY_ID),
-        (String) properties.get(COMPONENT_NAME_PROPERTY_ID));
+        (String) properties.get(COMPONENT_NAME_PROPERTY_ID),
+        (String) properties.get(RECOVERY_ENABLED));
   }
 
   @Override

@@ -352,6 +352,24 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
         sc.setDesiredState(s.getDesiredState());
       }
 
+      /**
+       * If request does not have recovery_enabled field,
+       * then get the default from the stack definition.
+       */
+      if (StringUtils.isNotEmpty(request.getRecoveryEnabled())) {
+        boolean recoveryEnabled = Boolean.parseBoolean(request.getRecoveryEnabled());
+        sc.setRecoveryEnabled(recoveryEnabled);
+      } else {
+        StackId stackId = s.getDesiredStackVersion();
+        ComponentInfo componentInfo = ambariMetaInfo.getComponent(stackId.getStackName(),
+                stackId.getStackVersion(), s.getName(), request.getComponentName());
+        if (componentInfo == null) {
+            throw new AmbariException("Could not get component information from stack definition: Stack=" +
+                stackId.toString() + ", Service=" + s.getName() + ", Component=" + request.getComponentName());
+        }
+        sc.setRecoveryEnabled(componentInfo.isRecoveryEnabled());
+      }
+
       s.addServiceComponent(sc);
       sc.persist();
     }
