@@ -244,6 +244,78 @@ App.QueueController = Ember.ObjectController.extend({
    */
   asa_anyone:Ember.computed.equal('acl_submit_applications', '*'),
 
+ /**
+  * Returns effective permission of the current queue to perform administrative functions on this queue.
+  */
+  aaq_effective_permission: function(key, value){
+    return this.getEffectivePermission('acl_administer_queue');
+  }.property('content.acl_administer_queue'),
+
+  /**
+   * Returns effective permission of the current queue to submit application.
+   */
+  asa_effective_permission: function(key, value){
+    return this.getEffectivePermission('acl_submit_applications');
+  }.property('content.acl_submit_applications'),
+
+  /**
+   * Returns effective permission of the current queue.
+   */
+  getEffectivePermission: function(permissionType){
+    var effectivePermission,
+    users = [],
+    groups = [],
+    currentPermissions = this.getPermissions(permissionType);
+    for(var i = 0; i < currentPermissions.length; i++){
+      var permission = currentPermissions[i];
+      if (permission === '*') {
+        return '*';
+      } else if (permission.trim() === '') {
+        effectivePermission = '';
+      } else {
+        var usersAndGroups = permission.split(' ');
+        this.fillUsersAndGroups(users, usersAndGroups[0]);
+        if (usersAndGroups.length === 2) {
+          this.fillUsersAndGroups(groups, usersAndGroups[1]);
+        }
+      }
+    }
+    if(users.length > 0 || groups.length > 0){
+      effectivePermission = users.join(',') + ' ' + groups.join(',');
+    }
+    return effectivePermission;
+  },
+
+  /**
+   * Removes duplicate users or groups.
+   */
+  fillUsersAndGroups: function(usersOrGroups, list){
+    var splitted = list.split(',');
+    splitted.forEach(function(item){
+      if(usersOrGroups.indexOf(item) === -1){
+        usersOrGroups.push(item);
+      }
+    });
+  },
+
+  /**
+   * Returns array of permissions from root to leaf.
+   */
+  getPermissions: function(permissionType){
+    var currentQ = this.get('content'),
+    permissions = [];
+    while (currentQ != null) {
+      if (currentQ.get(permissionType) !== null) {
+        permissions.push(currentQ.get(permissionType));
+      } else {
+        permissions.push('*');
+      }
+      currentQ = this.store.getById('queue', currentQ.get('parentPath').toLowerCase());
+    }
+    permissions.reverse();//root permission at the 0th position.
+    return permissions;
+  },
+
   /**
    * Error messages for queue path.
    * @type {Array}
