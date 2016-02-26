@@ -230,7 +230,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
       } else {
         this.set('bootHosts', this.get('hosts'));
         if (App.get('testMode')) {
-          this.startHostcheck();
+          this.startHostcheck(this.get('hosts'));
           this.get('bootHosts').setEach('cpu', '2');
           this.get('bootHosts').setEach('memory', '2000000');
           this.set('isSubmitDisabled', false);
@@ -702,7 +702,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
     }, this);
 
     if (stopPolling) {
-      this.startHostcheck();
+      this.startHostcheck(hosts);
     }
     else {
       if (hosts.someProperty('bootStatus', 'RUNNING') || App.dateTime() - this.get('registrationStartedAt') < this.get('registrationTimeoutSecs') * 1000) {
@@ -718,7 +718,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
           _host.set('bootStatus', 'FAILED');
           _host.set('bootLog', (_host.get('bootLog') != null ? _host.get('bootLog') : '') + Em.I18n.t('installer.step3.hosts.bootLog.failed'));
         });
-        this.startHostcheck();
+        this.startHostcheck(hosts);
       }
     }
   },
@@ -910,10 +910,14 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
   },
 
 
-  startHostcheck: function() {
-    this.set('isWarningsLoaded', false);
-    this.getHostNameResolution();
-    this.checkHostJDK();
+  startHostcheck: function(hosts) {
+    if (!hosts.everyProperty('bootStatus', 'FAILED')) {
+      this.set('isWarningsLoaded', false);
+      this.getHostNameResolution();
+      this.checkHostJDK();
+    } else {
+      this.stopHostCheck();
+    }
   },
 
   getHostNameResolution: function () {
