@@ -293,6 +293,10 @@ App.ConfigsSaverMixin = Em.Mixin.create({
    */
   getServiceConfigToSave: function(serviceName, configs) {
 
+    if (serviceName === 'YARN') {
+      configs = App.config.textareaIntoFileConfigs(configs, 'capacity-scheduler.xml');
+    }
+
     //generates list of properties that was changed
     var modifiedConfigs = this.getModifiedConfigs(configs);
     var serviceFilenames = Object.keys(App.StackService.find(serviceName).get('configTypes')).map(function (type) {

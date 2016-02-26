@@ -919,7 +919,7 @@ App.config = Em.Object.create({
     var connectedConfigs = configs.filter(function(config) {
       return !excludedConfigs.contains(App.config.configId(config.get('name'), config.get('filename'))) && (config.get('filename') === 'capacity-scheduler.xml');
     });
-    connectedConfigs.setEach('isVisible', false);
+    var names = connectedConfigs.mapProperty('name');
 
     connectedConfigs.forEach(function (config) {
       value += config.get('name') + '=' + config.get('value') + '\n';
@@ -944,10 +944,12 @@ App.config = Em.Object.create({
       'recommendedIsFinal': recommendedIsFinal,
       'displayName': 'Capacity Scheduler',
       'description': 'Capacity Scheduler properties',
-      'displayType': 'capacityScheduler',
-      'isRequiredByAgent': false
+      'displayType': 'capacityScheduler'
     });
 
+    configs = configs.filter(function(c) {
+      return !(names.contains(c.get('name')) && (c.get('filename') === 'capacity-scheduler.xml'));
+    });
     configs.push(App.ServiceConfigProperty.create(cs));
     return configs;
   },
@@ -969,6 +971,42 @@ App.config = Em.Object.create({
       }
     }, this);
     return properties.mapProperty('id');
+  },
+
+  /**
+   * transform one config with textarea content
+   * into set of configs of file
+   * @param configs
+   * @param filename
+   * @return {*}
+   */
+  textareaIntoFileConfigs: function (configs, filename) {
+    var configsTextarea = configs.findProperty('name', 'capacity-scheduler');
+    if (configsTextarea && !App.get('testMode')) {
+      var properties = configsTextarea.get('value').split('\n');
+
+      properties.forEach(function (_property) {
+        var name, value;
+        if (_property) {
+          _property = _property.split('=');
+          name = _property[0];
+          value = (_property[1]) ? _property[1] : "";
+          configs.push(Em.Object.create({
+            name: name,
+            value: value,
+            savedValue: value,
+            serviceName: configsTextarea.get('serviceName'),
+            filename: filename,
+            isFinal: configsTextarea.get('isFinal'),
+            isNotDefaultValue: configsTextarea.get('isNotDefaultValue'),
+            isRequiredByAgent: configsTextarea.get('isRequiredByAgent'),
+            group: null
+          }));
+        }
+      });
+      return configs.without(configsTextarea);
+    }
+    return configs;
   },
 
   /**
