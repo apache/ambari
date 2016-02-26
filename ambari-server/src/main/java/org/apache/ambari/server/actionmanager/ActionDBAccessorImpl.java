@@ -29,6 +29,9 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
+import org.apache.ambari.annotations.TransactionalLock;
+import org.apache.ambari.annotations.TransactionalLock.LockArea;
+import org.apache.ambari.annotations.TransactionalLock.LockType;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
@@ -282,6 +285,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
 
   @Override
   @Transactional
+  @TransactionalLock(lockArea = LockArea.HRC_STATUS_CACHE, lockType = LockType.WRITE)
   public void persistActions(Request request) throws AmbariException {
 
     RequestEntity requestEntity = request.constructNewPersistenceEntity();
@@ -376,6 +380,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   }
 
   @Override
+  @Transactional
   public void startRequest(long requestId) {
     RequestEntity requestEntity = getRequestEntity(requestId);
     if (requestEntity != null && requestEntity.getStartTime() == -1L) {
@@ -385,6 +390,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   }
 
   @Override
+  @Transactional
   public void endRequest(long requestId) {
     RequestEntity requestEntity = getRequestEntity(requestId);
     if (requestEntity != null && requestEntity.getEndTime() == -1L) {

@@ -17,42 +17,20 @@
  */
 package org.apache.ambari.annotations;
 
+import java.lang.reflect.Method;
+import java.util.HashSet;
 import java.util.Properties;
 
-import org.aopalliance.intercept.MethodInvocation;
 import org.apache.ambari.annotations.TransactionalLock.LockArea;
+import org.apache.ambari.annotations.TransactionalLock.LockType;
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.orm.AmbariJpaLocalTxnInterceptor;
-import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.orm.TransactionalLockInterceptor;
-import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
-import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
-import org.easymock.EasyMock;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.api.easymock.PowerMock;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.persist.Transactional;
-import com.google.inject.persist.jpa.AmbariJpaPersistModule;
-import com.google.inject.persist.jpa.AmbariJpaPersistService;
 
 import junit.framework.Assert;
 
 /**
  * Tests {@link TransactionalLock} and associated classes.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(
-    value = { HostRoleCommandDAO.class, AmbariJpaLocalTxnInterceptor.class,
-        TransactionalLockInterceptor.class, AmbariJpaPersistModule.class,
-        AmbariJpaPersistService.class })
-@PowerMockIgnore("javax.management.*")
 public class TransactionalLockTest {
 
   /**
@@ -86,41 +64,39 @@ public class TransactionalLockTest {
   }
 
   /**
-   * Tests that the {@link Transactional} and {@link TransactionalLock}
-   * annotations cause the interceptors to be called in the correct order.
    *
-   * @throws Throwable
    */
   @Test
-  public void testTransactionLockOrdering() throws Throwable {
-    AmbariJpaLocalTxnInterceptor ambariJPAInterceptor = PowerMock.createNiceMock(
-        AmbariJpaLocalTxnInterceptor.class);
+  public void testAnnotationEquality() {
+    HashSet<TransactionalLock> annotations = new HashSet<>();
 
-    TransactionalLockInterceptor lockInterceptor = PowerMock.createNiceMock(
-        TransactionalLockInterceptor.class);
+    int annotationsFound = 0;
+    Method[] methods = getClass().getDeclaredMethods();
+    for (Method method : methods) {
+      TransactionalLock annotation = method.getAnnotation(TransactionalLock.class);
+      if (null != annotation) {
+        annotations.add(annotation);
+        annotationsFound++;
+      }
+    }
 
-    PowerMockito.whenNew(AmbariJpaLocalTxnInterceptor.class).withAnyArguments().thenReturn(
-        ambariJPAInterceptor);
+    // there should be 3 discovered annotations, but only 2 in the hashset since
+    // they were collapsed
+    Assert.assertEquals(2, annotations.size());
+    Assert.assertEquals(3, annotationsFound);
+  }
 
-    PowerMockito.whenNew(TransactionalLockInterceptor.class).withAnyArguments().thenReturn(
-        lockInterceptor);
 
-    Object object = new Object();
+  @TransactionalLock(lockArea = LockArea.HRC_STATUS_CACHE, lockType = LockType.READ)
+  private void transactionalHRCRead() {
+  }
 
-    EasyMock.expect(lockInterceptor.invoke(EasyMock.anyObject(MethodInvocation.class))).andReturn(
-        object).once();
+  @TransactionalLock(lockArea = LockArea.HRC_STATUS_CACHE, lockType = LockType.READ)
+  private void transactionalHRCRead2() {
+  }
 
-    EasyMock.expect(
-        ambariJPAInterceptor.invoke(EasyMock.anyObject(MethodInvocation.class))).andReturn(
-            object).once();
-
-    EasyMock.replay(ambariJPAInterceptor, lockInterceptor);
-
-    Injector injector = Guice.createInjector(new InMemoryDefaultTestModule());
-    HostRoleCommandDAO hostRoleCommandDAO = injector.getInstance(HostRoleCommandDAO.class);
-    hostRoleCommandDAO.create(new HostRoleCommandEntity());
-
-    EasyMock.verify(lockInterceptor);
+  @TransactionalLock(lockArea = LockArea.HRC_STATUS_CACHE, lockType = LockType.WRITE)
+  private void transactionalHRCWrite() {
   }
 
 }
