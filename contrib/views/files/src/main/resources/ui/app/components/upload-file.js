@@ -62,11 +62,16 @@ export default Ember.Component.extend(OperationModal, {
       this.set('closeOnEscape', true);
     },
 
+    didCloseModal: function() {
+      this.set('uploader');
+    },
+
     fileLoaded: function(file) {
       var url = this.get('fileOperationService').getUploadUrl();
       var uploader = FileUploader.create({
         url: url
       });
+      this.set('uploader', uploader);
       if(!Ember.isEmpty(file)) {
         uploader.upload(file, {path: this.get('path')});
         this.setUploading(file.name);
@@ -85,6 +90,14 @@ export default Ember.Component.extend(OperationModal, {
         });
       }
 
+    },
+
+    close: function() {
+      if (!Ember.isNone(this.get('uploader'))) {
+        console.log('cancelling the upload');
+        this.get('uploader').abort();
+      }
+      this._super();
     }
 
   }
