@@ -42,6 +42,25 @@ export default Ember.Component.extend(OperationModal, {
     this.set('hasError', true);
     this.set('errorMessage', message);
   },
+  validateFolderName: function(folderName) {
+    if(Ember.isBlank(folderName)) {
+      this.setError('Cannot be empty');
+      return false;
+    }
+
+    if(this.get('fileOperationService').isExistsInCurrentPath(folderName)) {
+      this.setError('Name already exists');
+      return false;
+    }
+
+    if(folderName.length > 255) {
+      this.setError(`Max limit for length of folder name is 255. Length: ${folderName.length}`);
+      return false;
+    }
+
+    return true;
+  },
+
   actions: {
     didOpenModal: function() {
       this.set('folderName');
@@ -50,13 +69,8 @@ export default Ember.Component.extend(OperationModal, {
       }, 500);
     },
     create: function() {
-      if(Ember.isBlank(this.get('folderName'))) {
-        this.setError('Cannot be empty');
-        return false;
-      }
 
-      if(this.get('fileOperationService').isExistsInCurrentPath(this.get('folderName'))) {
-        this.setError('Name already exists');
+      if(!this.validateFolderName(this.get('folderName'))) {
         return false;
       }
 
