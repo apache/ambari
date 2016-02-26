@@ -21,7 +21,7 @@
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <button type="button" class="fa fa-times pull-right" {{action 'close'}}></button>
           <h4 class="modal-title">{{fa-icon icon="edit"}} Rename {{#if selected.isDirectory}}Folder{{else}}File{{/if}}</h4>
         </div>
         <form>
