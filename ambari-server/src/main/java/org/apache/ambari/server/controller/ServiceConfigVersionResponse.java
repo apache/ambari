@@ -20,16 +20,20 @@ package org.apache.ambari.server.controller;
 
 
 import java.util.List;
+import java.util.Objects;
 
-import com.google.inject.Inject;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.StackId;
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
+
+import com.google.inject.Inject;
 
 @StaticallyInject
 public class ServiceConfigVersionResponse {
@@ -175,6 +179,50 @@ public class ServiceConfigVersionResponse {
    */
   public Boolean isCompatibleWithCurrentStack() {
     return isCompatibleWithCurrentStack;
+  }
+
+  @Override
+  public final boolean equals(Object o) {
+    if (this == o) return true;
+
+    if (!(o instanceof ServiceConfigVersionResponse)) return false;
+
+    ServiceConfigVersionResponse that = (ServiceConfigVersionResponse) o;
+
+    return new EqualsBuilder()
+      .append(clusterName, that.clusterName)
+      .append(serviceName, that.serviceName)
+      .append(version, that.version)
+      .append(createTime, that.createTime)
+      .append(groupId, that.groupId)
+      .append(groupName, that.groupName)
+      .append(userName, that.userName)
+      .append(note, that.note)
+      .append(stackId, that.stackId)
+      .append(isCurrent, that.isCurrent)
+      .append(isCompatibleWithCurrentStack, that.isCompatibleWithCurrentStack)
+      .append(configurations, that.configurations)
+      .append(hosts, that.hosts)
+      .isEquals();
+  }
+
+  @Override
+  public final int hashCode() {
+    return new HashCodeBuilder(17, 37)
+      .append(clusterName)
+      .append(serviceName)
+      .append(version)
+      .append(createTime)
+      .append(groupId)
+      .append(groupName)
+      .append(userName)
+      .append(note)
+      .append(stackId)
+      .append(isCurrent)
+      .append(isCompatibleWithCurrentStack)
+      .append(configurations)
+      .append(hosts)
+      .toHashCode();
   }
 }
 

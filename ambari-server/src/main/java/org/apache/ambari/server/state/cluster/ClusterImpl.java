@@ -2347,7 +2347,7 @@ public class ClusterImpl implements Cluster {
       configGroup == null ? "-1" : configGroup.getId(),
       serviceConfigEntity.getVersion());
 
-    String configGroupName = configGroup != null ? configGroup.getName() : null;
+    String configGroupName = configGroup != null ? configGroup.getName() : "default";
 
     ServiceConfigVersionResponse response = new ServiceConfigVersionResponse(
         serviceConfigEntity, configGroupName);
@@ -2434,26 +2434,40 @@ public class ClusterImpl implements Cluster {
       List<ServiceConfigVersionResponse> serviceConfigVersionResponses = new ArrayList<ServiceConfigVersionResponse>();
 
       List<ServiceConfigEntity> serviceConfigs = serviceConfigDAO.getServiceConfigs(getClusterId());
-      Map<String, ServiceConfigVersionResponse> activeServiceConfigResponses = new HashMap<>();
+
+      // Gather for each service in each config group the active service config response  as we
+      // iterate through all service config responses
+      Map<String, Map<String, ServiceConfigVersionResponse>> activeServiceConfigResponses = new HashMap<>();
 
       for (ServiceConfigEntity serviceConfigEntity : serviceConfigs) {
         ServiceConfigVersionResponse serviceConfigVersionResponse = convertToServiceConfigVersionResponse(serviceConfigEntity);
 
-        ServiceConfigVersionResponse activeServiceConfigResponse = activeServiceConfigResponses.get(serviceConfigVersionResponse.getServiceName());
+        Map<String, ServiceConfigVersionResponse> activeServiceConfigResponseGroups = activeServiceConfigResponses.get(serviceConfigVersionResponse.getServiceName());
+
+        if (activeServiceConfigResponseGroups == null) {
+          Map<String, ServiceConfigVersionResponse> serviceConfigGroups = new HashMap<>();
+          activeServiceConfigResponses.put(serviceConfigVersionResponse.getServiceName(), serviceConfigGroups);
+
+          activeServiceConfigResponseGroups = serviceConfigGroups;
+        }
+
+        // the active config within a group
+        ServiceConfigVersionResponse activeServiceConfigResponse = activeServiceConfigResponseGroups.get(serviceConfigVersionResponse.getGroupName());
+
         if (activeServiceConfigResponse == null) {
+          activeServiceConfigResponseGroups.put(serviceConfigVersionResponse.getGroupName(), serviceConfigVersionResponse);
           activeServiceConfigResponse = serviceConfigVersionResponse;
-          activeServiceConfigResponses.put(serviceConfigVersionResponse.getServiceName(), serviceConfigVersionResponse);
         }
 
         serviceConfigVersionResponse.setConfigurations(new ArrayList<ConfigurationResponse>());
 
         if (serviceConfigEntity.getGroupId() == null) {
           if (serviceConfigVersionResponse.getCreateTime() > activeServiceConfigResponse.getCreateTime())
-            activeServiceConfigResponses.put(serviceConfigVersionResponse.getServiceName(), serviceConfigVersionResponse);
+            activeServiceConfigResponseGroups.put(serviceConfigVersionResponse.getGroupName(), serviceConfigVersionResponse);
         }
         else if (clusterConfigGroups != null && clusterConfigGroups.containsKey(serviceConfigEntity.getGroupId())){
           if (serviceConfigVersionResponse.getVersion() > activeServiceConfigResponse.getVersion())
-            activeServiceConfigResponses.put(serviceConfigVersionResponse.getServiceName(), serviceConfigVersionResponse);
+            activeServiceConfigResponseGroups.put(serviceConfigVersionResponse.getGroupName(), serviceConfigVersionResponse);
         }
 
         serviceConfigVersionResponse.setIsCurrent(false);
@@ -2472,8 +2486,10 @@ public class ClusterImpl implements Cluster {
         serviceConfigVersionResponses.add(serviceConfigVersionResponse);
       }
 
-      for (ServiceConfigVersionResponse serviceConfigVersionResponse: activeServiceConfigResponses.values()) {
-        serviceConfigVersionResponse.setIsCurrent(true);
+      for (Map<String, ServiceConfigVersionResponse> serviceConfigVersionResponseGroup: activeServiceConfigResponses.values()) {
+        for (ServiceConfigVersionResponse serviceConfigVersionResponse : serviceConfigVersionResponseGroup.values()) {
+          serviceConfigVersionResponse.setIsCurrent(true);
+        }
       }
 
       return serviceConfigVersionResponses;

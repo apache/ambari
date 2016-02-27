@@ -18,19 +18,12 @@
 
 package org.apache.ambari.server.state.cluster;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.ConcurrentModificationException;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -50,6 +43,7 @@ import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.agent.HostInfo;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ClusterResponse;
+import org.apache.ambari.server.controller.ConfigurationResponse;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -111,6 +105,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
@@ -122,6 +118,16 @@ import com.google.inject.persist.UnitOfWork;
 import com.google.inject.util.Modules;
 
 import junit.framework.Assert;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class ClusterTest {
 
@@ -1332,6 +1338,70 @@ public class ClusterTest {
     Assert.assertEquals("Three service config versions should be active, for default and test groups",
         3, activeServiceConfigVersions.get("HDFS").size());
     assertEquals("Five total scvs", 5, c1.getServiceConfigVersions().size());
+  }
+
+  @Test
+  public void testAllServiceConfigVersionsWithConfigGroups() throws Exception {
+    // Given
+    createDefaultCluster();
+
+    Config hdfsSiteConfigV1 = configFactory.createNew(c1, "hdfs-site", ImmutableMap.of("p1", "v1"), ImmutableMap.<String, Map<String,String>>of());
+    hdfsSiteConfigV1.setTag("version1");
+    hdfsSiteConfigV1.persist();
+
+    c1.addConfig(hdfsSiteConfigV1);
+
+
+    ServiceConfigVersionResponse hdfsSiteConfigResponseV1 = c1.addDesiredConfig("admin", Collections.singleton(hdfsSiteConfigV1));
+    List<ConfigurationResponse> configResponsesDefaultGroup =  Collections.singletonList(
+      new ConfigurationResponse(c1.getClusterName(), hdfsSiteConfigV1.getStackId(),
+        hdfsSiteConfigV1.getType(), hdfsSiteConfigV1.getTag(), hdfsSiteConfigV1.getVersion(),
+        hdfsSiteConfigV1.getProperties(), hdfsSiteConfigV1.getPropertiesAttributes(), hdfsSiteConfigV1.getPropertiesTypes())
+    );
+
+    hdfsSiteConfigResponseV1.setConfigurations(configResponsesDefaultGroup);
+
+    Config hdfsSiteConfigV2 = configFactory.createNew(c1, "hdfs-site", ImmutableMap.of("p1", "v2"), ImmutableMap.<String, Map<String,String>>of());
+    hdfsSiteConfigV2.setTag("version2");
+
+    ConfigGroup configGroup = configGroupFactory.createNew(c1, "configGroup1", "version1", "test description", ImmutableMap.of(hdfsSiteConfigV2.getType(), hdfsSiteConfigV2), ImmutableMap.<Long, Host>of());
+    configGroup.persist();
+
+    c1.addConfigGroup(configGroup);
+    ServiceConfigVersionResponse hdfsSiteConfigResponseV2 = c1.createServiceConfigVersion("HDFS", "admin", "test note", configGroup);
+    hdfsSiteConfigResponseV2.setConfigurations(Collections.singletonList(
+      new ConfigurationResponse(c1.getClusterName(), hdfsSiteConfigV2.getStackId(),
+        hdfsSiteConfigV2.getType(), hdfsSiteConfigV2.getTag(), hdfsSiteConfigV2.getVersion(),
+        hdfsSiteConfigV2.getProperties(), hdfsSiteConfigV2.getPropertiesAttributes(), hdfsSiteConfigV2.getPropertiesTypes())
+    ));
+    hdfsSiteConfigResponseV2.setIsCurrent(true); // this is the active config in 'configGroup1' config group as it's the solely service config
+
+    // hdfs config v3
+    ServiceConfigVersionResponse hdfsSiteConfigResponseV3 = c1.createServiceConfigVersion("HDFS", "admin", "new config in default group", null);
+    hdfsSiteConfigResponseV3.setConfigurations(configResponsesDefaultGroup);
+    hdfsSiteConfigResponseV3.setIsCurrent(true); // this is the active config in default config group as it's more recent than V1
+
+
+
+    // When
+    List<ServiceConfigVersionResponse> expectedServiceConfigResponses = ImmutableList.of(hdfsSiteConfigResponseV1, hdfsSiteConfigResponseV2, hdfsSiteConfigResponseV3);
+    List<ServiceConfigVersionResponse> allServiceConfigResponses = c1.getServiceConfigVersions();
+
+
+    Collections.sort(
+      allServiceConfigResponses,
+      new Comparator<ServiceConfigVersionResponse>() {
+        @Override
+        public int compare(ServiceConfigVersionResponse o1, ServiceConfigVersionResponse o2) {
+          return o1.getVersion().compareTo(o2.getVersion());
+        }
+      }
+    );
+
+    // Then
+    assertThat(
+      allServiceConfigResponses,
+      is(expectedServiceConfigResponses));
   }
 
   @Test
