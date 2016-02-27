@@ -22,7 +22,7 @@ from resource_management import Script, Execute
 from resource_management.libraries.functions import format
 from status import check_service_status
 from ams import ams
-from metrics_grafana_util import create_ams_datasource
+from metrics_grafana_util import create_ams_datasource, create_ams_dashboards
 
 class AmsGrafana(Script):
   def install(self, env):
@@ -47,7 +47,10 @@ class AmsGrafana(Script):
     Execute(start_cmd,
             user=params.ams_user
             )
+    # Create datasource
     create_ams_datasource()
+    # Create pre-built dashboards
+    create_ams_dashboards()
 
   def stop(self, env):
     import params
