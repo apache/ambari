@@ -31,7 +31,7 @@
       {
         "name": "hawqstandby_sync_status",
         "label": "HAWQ Standby Sync Status",
-        "description": "This alert will trigger if HAWQ Standby is not synchronized with HAWQ Master",
+        "description": "This alert will trigger if HAWQ Standby is not synchronized with HAWQ Master. Use the service action 'Re-Synchronize HAWQ Standby' on HAWQ service page to synchronize HAWQ Standby with HAWQ Master.",
         "interval": 1,
         "scope": "ANY",
         "enabled": true,
