@@ -21,11 +21,12 @@ limitations under the License.
 from functions import calc_xmn_from_xms
 from functions import check_append_heap_property
 from functions import trim_heap_property
-
+from resource_management.core.logger import Logger
 from resource_management import *
 import status_params
 from ambari_commons import OSCheck
-
+import ConfigParser
+import os
 
 if OSCheck.is_windows_family():
   from params_windows import *
@@ -61,6 +62,41 @@ metric_truststore_type= default("/configurations/ams-ssl-client/ssl.client.trust
 metric_truststore_password= default("/configurations/ams-ssl-client/ssl.client.truststore.password", "")
 metric_truststore_ca_certs='ca.pem'
 
+agent_cache_dir = config['hostLevelParams']['agentCacheDir']
+service_package_folder = config['commandParams']['service_package_folder']
+dashboards_dir = os.path.join(agent_cache_dir, service_package_folder, 'files', 'grafana-dashboards')
+
+def get_grafana_dashboard_defs():
+  dashboard_defs = []
+  if os.path.exists(dashboards_dir):
+    for root, dirs, files in os.walk(dashboards_dir):
+      for file in files:
+        if 'grafana' in file:
+          dashboard_defs.append(os.path.join(root, file))
+  return dashboard_defs
+
+# find ambari version for grafana dashboards
+def get_ambari_version():
+  ambari_version = None
+  AMBARI_AGENT_CONF = '/etc/ambari-agent/conf/ambari-agent.ini'
+  ambari_agent_config = ConfigParser.RawConfigParser()
+  if os.path.exists(AMBARI_AGENT_CONF):
+    try:
+      ambari_agent_config.read(AMBARI_AGENT_CONF)
+      data_dir = ambari_agent_config.get('agent', 'prefix')
+      ver_file = os.path.join(data_dir, 'version')
+      f = open(ver_file, "r")
+      ambari_version = f.read().strip()
+      f.close()
+    except Exception, e:
+      Logger.info('Unable to determine ambari version from version file.')
+      Logger.debug('Exception: %s' % str(e))
+      # No hostname script identified in the ambari agent conf
+      pass
+    pass
+  return ambari_version
+
+
 if 'cluster-env' in config['configurations'] and \
     'metrics_collector_vip_host' in config['configurations']['cluster-env']:
   metric_collector_host = config['configurations']['cluster-env']['metrics_collector_vip_host']
@@ -92,6 +128,10 @@ ams_grafana_pid_dir = status_params.ams_grafana_pid_dir
 ams_grafana_conf_dir = '/etc/ambari-metrics-grafana/conf'
 ams_grafana_data_dir = default("/configurations/ams-grafana-env/metrics_grafana_data_dir", '/var/lib/ambari-metrics-grafana')
 
+metrics_grafana_hosts = default('/clusterHostInfo/metrics_grafana_hosts', None)
+ams_grafana_host = None
+if metrics_grafana_hosts:
+  ams_grafana_host = metrics_grafana_hosts[0]
 ams_grafana_port = default("/configurations/ams-grafana-ini/port", 3000)
 ams_grafana_protocol = default("/configurations/ams-grafana-ini/protocol", 'http')
 ams_grafana_cert_file = default("/configurations/ams-grafana-ini/cert_file", '/etc/ambari-metrics/conf/ams-grafana.crt')
