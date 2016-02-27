@@ -32,6 +32,7 @@
           <cardinality>1</cardinality>
           <versionAdvertised>false</versionAdvertised>
           <timelineAppid>AMS-HBASE</timelineAppid>
+          <recovery_enabled>true</recovery_enabled>
           <dependencies>
             <dependency>
               <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>
