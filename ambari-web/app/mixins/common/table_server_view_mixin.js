@@ -89,25 +89,28 @@ App.TableServerViewMixin = Em.Mixin.create({
 
   updateComboFilter: function(searchCollection) {
     var self = this;
+    var comboController = App.router.get('mainHostComboSearchBoxController');
     clearTimeout(this.get('timeOut'));
     this.set('controller.resetStartIndex', true);
     this.set('filterConditions', []);
     this.clearFilterConditionsFromLocalStorage();
     searchCollection.models.forEach(function (model) {
       var tag = model.attributes;
-      var iColumn = App.router.get('mainHostController').get('colPropAssoc').indexOf(tag.category);
+      var isComponentState = comboController.isComponentStateFacet(tag.category);
+      var iColumn = App.router.get('mainHostController').get('colPropAssoc').indexOf(isComponentState? 'componentState' : tag.category);
       var filterCondition = self.get('filterConditions').findProperty('iColumn', iColumn);
+      var filterValue = isComponentState? (tag.category + ':' + tag.value) : tag.value;
       if (filterCondition) {
         if (typeof filterCondition.value == 'string') {
-          filterCondition.value = [filterCondition.value, tag.value];
-        } else if (Em.isArray(filterCondition.value) && filterCondition.value.indexOf(tag.value) == -1) {
-          filterCondition.value.push(tag.value);
+          filterCondition.value = [filterCondition.value, filterValue];
+        } else if (Em.isArray(filterCondition.value) && filterCondition.value.indexOf(filterValue) == -1) {
+          filterCondition.value.push(filterValue);
         }
       } else {
         filterCondition = {
           skipFilter: false,
           iColumn: iColumn,
-          value: tag.value,
+          value: filterValue,
           type: 'string'
         };
         self.get('filterConditions').push(filterCondition);

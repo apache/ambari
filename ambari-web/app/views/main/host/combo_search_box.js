@@ -37,26 +37,39 @@ App.MainHostComboSearchBoxView = Em.View.extend({
       ],
       callbacks: {
         search: function (query, searchCollection) {
-          console.error('query: ' + query);
           var tableView = self.get('parentView').get('parentView');
           tableView.updateComboFilter(searchCollection);
         },
 
         facetMatches: function (callback) {
-          callback([
-            {label: 'hostName', category: 'Host'},
-            {label: 'ip', category: 'Host'},
-            // {label: 'version', category: 'Host'},
-            {label: 'healthClass', category: 'Host'},
-            {label: 'rack', category: 'Host'},
-            {label: 'services', category: 'Service'},
-            {label: 'hostComponents', category: 'Service'},
-            // {label: 'state', category: 'Service'}
-          ]);
+          var list = [
+            {label: 'Host Name', value: 'hostName', category: 'Host'},
+            {label: 'IP', value: 'ip', category: 'Host'},
+            {label: 'Heath Status', value: 'healthClass', category: 'Host'},
+            {label: 'Rack', value: 'rack', category: 'Host'},
+            {label: 'Service', value: 'services', category: 'Service'},
+            {label: 'Has Component', value: 'hostComponents', category: 'Service'},
+          ];
+          var hostComponentHash = {};
+          App.HostComponent.find().toArray().forEach(function(component) {
+            hostComponentHash[component.get('displayName')] = component;
+          });
+          for (key in hostComponentHash) {
+            var name = hostComponentHash[key].get('componentName');
+            var displayName = hostComponentHash[key].get('displayName');
+            if (displayName != null && !controller.isClientComponent(name)) {
+              list.push({label: displayName, value: name, category: 'Component'});
+            }
+          }
+          // Append host components
+          callback(list, {preserveOrder: true});
         },
 
         valueMatches: function (facet, searchTerm, callback) {
           var category_mocks = require('data/host/categories');
+          if (controller.isComponentStateFacet(facet)) {
+            facet = 'componentState'
+          }
           switch (facet) {
             case 'hostName':
             case 'ip':
@@ -83,6 +96,8 @@ App.MainHostComboSearchBoxView = Em.View.extend({
             case 'state':
               callback(App.HostComponentStatus.getStatusesList(), {preserveOrder: true});
               break;
+            case 'componentState':
+              callback(['STARTED', 'STOPPED'], {preserveOrder: true});
           }
         }
       }

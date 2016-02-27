@@ -146,6 +146,11 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
       name: 'hostStackVersion',
       key: 'stack_versions',
       type: 'EQUAL'
+    },
+    {
+      name: 'componentState',
+      key: '(host_components/HostRoles/component_name={0}&host_components/HostRoles/state={1})',
+      type: 'COMBO'
     }
   ],
 
@@ -564,6 +569,7 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
     associations[12] = 'rack';
     associations[13] = 'services';
     associations[14] = 'state';
+    associations[15] = 'componentState';
     return associations;
   }.property()
 

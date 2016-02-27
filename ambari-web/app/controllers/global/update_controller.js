@@ -158,6 +158,9 @@ App.UpdateController = Em.Controller.extend({
           }, this);
           params += customKey;
           break;
+        case 'COMBO':
+          params += App.router.get('mainHostComboSearchBoxController').generateQueryParam(param);
+          break;
       }
       params += '&';
     });

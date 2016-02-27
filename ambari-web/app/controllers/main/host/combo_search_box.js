@@ -22,18 +22,6 @@ App.MainHostComboSearchBoxController = Em.Controller.extend({
   name: 'mainHostComboSearchBoxController',
   currentSuggestion: [],
   page_size: 10,
-  nameColumnMap: {
-    'Host Name': 'hostName',
-    'IP': 'ip',
-    'Health Status': 'hostName',
-    'Host Name': 'healthClass',
-    'Rack': 'rack',
-    'Cores': 'cpu',
-    'RAM': 'memoryFormatted',
-    'Service': 'service',
-    'Has Component': 'hostComponents',
-    'State': 'state'
-  },
   getPropertySuggestions: function(facet, searchTerm) {
     return App.ajax.send({
       name: 'hosts.with_searchTerm',
@@ -61,5 +49,83 @@ App.MainHostComboSearchBoxController = Em.Controller.extend({
 
   commonSuggestionErrorCallback:function() {
     // handle suggestion error
+  },
+
+  isComponentStateFacet: function(facet) {
+    return App.HostComponent.find().filterProperty('componentName', facet).length > 0;
+  },
+
+  isClientComponent: function(name) {
+    return name.indexOf('CLIENT') >= 0;
+  },
+
+  generateQueryParam: function(param) {
+    var expression = param.key;
+    var filterName = App.router.get('mainHostController.filterProperties').findProperty('key', expression).name;
+    if (filterName == 'componentState') {
+      var pHash = this.createComboParamHash(param);
+      return this.createComboParamURL(pHash, expression);
+    }
+  },
+
+  /**
+   * @param pHash {k1:v1, k2:[v1,v2], ...}
+   * @param expression
+   * @returns {string} 'k1=v1&(k2=v1|k2=v2)'
+   */
+  createComboParamURL: function(pHash, expression) {
+    var result = '';
+    for (key in pHash) {
+      var v = pHash[key];
+      if (Em.isArray(v)) {
+        var ex = '(';
+        v.forEach(function(item) {
+          var toAdd = expression.replace('{0}', key);
+          toAdd = toAdd.replace('{1}', item);
+          ex += toAdd + '|';
+        });
+        ex = ex.substring(0, ex.length - 1);
+        result += ex + ')';
+      } else {
+        var ex = expression.replace('{0}', key);
+        ex = ex.replace('{1}', v);
+        result += ex;
+      }
+      result += '&';
+    }
+
+    return result.substring(0, result.length - 1);
+  },
+
+  /**
+   * @param param ['k1:v1','k2:v1', 'k2:v2'] or 'k1:v1'
+   * @returns {k1:v1, k2:[v1,v2], ...}
+   */
+  createComboParamHash: function(param) {
+    var pHash = {};
+    if (Em.isArray(param.value)) {
+      param.value.forEach(function(item) {
+        var values = item.split(':');
+        var k = values[0];
+        var v = values[1];
+        if (v == 'STOPPED') { v = 'INSTALLED'; } // 'STOPPED' is not a valid internal state
+        if (!pHash[k]) {
+          pHash[k] = v;
+        } else {
+          if (Em.isArray(pHash[k])) {
+            if (pHash[k].indexOf(v) == -1) {
+              pHash[k].push(v);
+            }
+          } else {
+            pHash[k] = [pHash[k], v];
+          }
+        }
+      });
+    } else {
+      var values = param.value.split(':');
+      if (values[1] == 'STOPPED') { values[1] = 'INSTALLED'; }
+      pHash[values[0]] = values[1];
+    }
+    return pHash;
   }
 });
