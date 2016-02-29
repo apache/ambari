@@ -462,6 +462,7 @@ App.UpdateController = Em.Controller.extend({
         'host_components/HostRoles/stale_configs,' +
         'host_components/HostRoles/ha_state,' +
         'host_components/HostRoles/desired_admin_state,' +
+        'host_components/HostRoles/display_name,' +
         conditionalFieldsString +
         '&minimal_response=true';
 
