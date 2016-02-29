@@ -17,24 +17,28 @@
  */
 
 var App = require('app');
+var c;
+describe('App.KerberosWizardStep5Controller', function() {
 
-App.MainDashboardServiceStormView = App.MainDashboardServiceView.extend({
-  templateName: require('templates/main/service/services/storm'),
-  serviceName: 'STORM',
+  beforeEach(function () {
+    c = App.KerberosWizardStep5Controller.create({});
+  });
 
-  /**
-   * this parameter is used to fiter hosts by component name
-   * used in mainHostController.filterByComponent() method
-   */
-  filterComponent: Em.Object.create({componentName: 'SUPERVISOR'}),
+  describe('#prepareCSVData', function () {
 
-  freeSlotsPercentage: Em.computed.percents('service.freeSlots', 'service.totalSlots'),
+    it('should split data', function () {
 
-  superVisorsLive: Em.computed.alias('service.superVisorsStarted'),
+      var data = [
+        'a,b,c',
+        'd,e',
+        '1,2,3,4'
+      ];
 
-  superVisorsTotal: Em.computed.alias('service.superVisorsTotal'),
+      var result = c.prepareCSVData(data);
+      expect(result).to.be.eql([['a', 'b', 'c'], ['d', 'e'], ['1', '2', '3', '4']])
 
-  nimbusUptimeFormatted: function() {
-    return this.get('service.nimbusUptime') || Em.I18n.t('services.service.summary.notRunning');
-  }.property('service.nimbusUptime')
+    });
+
+  });
+
 });

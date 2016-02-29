@@ -40,11 +40,11 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
     color: '#0066B3',
     stroke: '#0066B3',
     palette: new Rickshaw.Color.Palette({
-      scheme: [ 'rgba(0,102,179,0)', 'rgba(0,102,179,1)'].reverse()
+      scheme: ['rgba(0,102,179,1)', 'rgba(0,102,179,0)']
     }),
     data: function () {
       var total = this.get('service.capacityTotal') + 0;
-      var remaining = (this.get('service.capacityRemaining') + 0);
+      var remaining = this.get('service.capacityRemaining') + 0;
       var used = total - remaining;
       return [ used, remaining ];
     }.property('service.capacityUsed', 'service.capacityTotal')

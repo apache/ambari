@@ -27,7 +27,7 @@ describe('App.KerberosWizardStep2Controller', function() {
 
   App.TestAliases.testAsComputedAlias(getController(), 'isBackBtnDisabled', 'testConnectionInProgress', 'boolean');
 
-  App.TestAliases.testAsComputedAlias(getController(), 'hostNames', 'App.allHostNames');
+  App.TestAliases.testAsComputedAlias(getController(), 'hostNames', 'App.allHostNames', 'array');
 
   App.TestAliases.testAsComputedAlias(getController(), 'isConfigsLoaded', 'wizardController.stackConfigsLoaded', 'boolean');
 

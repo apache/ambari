@@ -549,4 +549,38 @@ describe('App.ManageConfigGroupsController', function() {
     });
 
   });
+
+  describe('#componentsForFilter', function () {
+
+    beforeEach(function () {
+      sinon.stub(App.StackServiceComponent, 'find', function () {
+        return [
+          Em.Object.create({
+            serviceName: 'HDFS'
+          }),
+          Em.Object.create({
+            serviceName: 'noHDFS'
+          }),
+          Em.Object.create({
+            serviceName: 'HDFS'
+          })
+        ];
+      });
+      c.set('serviceName', 'HDFS');
+    });
+
+    afterEach(function () {
+      App.StackServiceComponent.find.restore();
+    });
+
+    it('should map components for current service', function () {
+      expect(c.get('componentsForFilter')).to.have.property('length').equal(2);
+    });
+
+    it('no one is selected', function () {
+      expect(c.get('componentsForFilter').mapProperty('selected')).to.be.eql([false, false]);
+    });
+
+  });
+
 });

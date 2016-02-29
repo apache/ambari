@@ -21,12 +21,17 @@ var App = require('app');
 require('utils/updater');
 require('controllers/global/update_controller');
 var testHelpers = require('test/helpers');
+var c;
 
 describe('App.UpdateController', function () {
   var controller = App.UpdateController.create({
     clusterName: '',
     location: '',
     updateServiceMetric: function(){}
+  });
+
+  beforeEach(function () {
+    c = App.UpdateController.create();
   });
 
   App.TestAliases.testAsComputedAlias(App.UpdateController.create(), 'clusterName', 'App.router.clusterController.clusterName', 'string');
@@ -432,6 +437,104 @@ describe('App.UpdateController', function () {
         });
 
       });
+    });
+
+  });
+
+  describe('#computeParameters', function () {
+
+    Em.A([
+      {
+        q: [{
+          type: 'EQUAL',
+          key: 'k',
+          value: [1, 2]
+        }],
+        result: 'k.in(1,2)'
+      },
+      {
+        q: [{
+          type: 'MULTIPLE',
+          key: 'k',
+          value: [1, 2]
+        }],
+        result: 'k.in(1,2)'
+      },
+      {
+        q: [{
+          type: 'EQUAL',
+          key: 'k',
+          value: 1
+        }],
+        result: 'k=1'
+      },
+      {
+        q: [
+          {
+            type: 'LESS',
+            key: 'k',
+            value: '1'
+          }
+        ],
+        result: 'k<1'
+      },
+      {
+        q: [
+          {
+            type: 'MORE',
+            key: 'k',
+            value: '1'
+          }
+        ],
+        result: 'k>1'
+      },
+      {
+        q: [
+          {
+            type: 'SORT',
+            key: 'k',
+            value: 'f'
+          }
+        ],
+        result: 'sortBy=k.f'
+      },
+      {
+        q: [
+          {
+            type: 'MATCH',
+            key: 'k',
+            value: 'abc'
+          }
+        ],
+        result: 'k.matches(abc)'
+      },
+      {
+        q: [
+          {
+            type: 'MATCH',
+            key: 'k',
+            value: ['a', 'b', 'c']
+          }
+        ],
+        result: '(k.matches(a)|k.matches(b)|k.matches(c))'
+      },
+      {
+        q: [
+          {type: 'EQUAL', key: 'k1', value: [1,2]},
+          {type: 'EQUAL', key: 'k2', value: 'abc'},
+          {type: 'LESS', key: 'k3', value: 1},
+          {type: 'MORE', key: 'k4', value: 1},
+          {type: 'MATCH', key: 'k5', value: ['a', 'b', 'c']}
+        ],
+        result: 'k1.in(1,2)&k2=abc&k3<1&k4>1&(k5.matches(a)|k5.matches(b)|k5.matches(c))'
+      }
+    ]).forEach(function (test, index) {
+
+      it('test#' + index, function () {
+        var result = c.computeParameters(test.q);
+        expect(result).to.be.equal(test.result);
+      });
+
     });
 
   });

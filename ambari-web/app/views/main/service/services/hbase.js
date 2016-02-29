@@ -17,7 +17,22 @@
 
 var App = require('app');
 var date = require('utils/date/date');
-var numberUtils = require('utils/number_utils');
+
+function getMasterTime(key) {
+  var _k = 'service.' + key;
+  return Em.computed(_k, function () {
+    var uptime = this.get(_k);
+    if (uptime && uptime > 0) {
+      var diff = App.dateTime() - uptime;
+      if (diff < 0) {
+        diff = 0;
+      }
+      var formatted = date.timingFormat(diff);
+      return this.t('dashboard.services.uptime').format(formatted);
+    }
+    return this.t('services.service.summary.notRunning');
+  });
+}
 
 App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
   templateName: require('templates/main/service/services/hbase'),
@@ -68,31 +83,9 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
     return this.t('dashboard.services.hbase.averageLoadPerServer').format(avgLoad);
   }.property("service.averageLoad"),
 
-  masterStartedTime: function () {
-    var uptime = this.get('service').get('masterStartTime');
-    if (uptime && uptime > 0) {
-      var diff = App.dateTime() - uptime;
-      if (diff < 0) {
-        diff = 0;
-      }
-      var formatted = date.timingFormat(diff);
-      return this.t('dashboard.services.uptime').format(formatted);
-    }
-    return this.t('services.service.summary.notRunning');
-  }.property("service.masterStartTime"),
+  masterStartedTime: getMasterTime('masterStartTime'),
 
-  masterActivatedTime: function () {
-    var uptime = this.get('service').get('masterActiveTime');
-    if (uptime && uptime > 0) {
-      var diff = App.dateTime() - uptime;
-      if (diff < 0) {
-        diff = 0;
-      }
-      var formatted = date.timingFormat(diff);
-      return this.t('dashboard.services.uptime').format(formatted);
-    }
-    return this.t('services.service.summary.notRunning');
-  }.property("service.masterActiveTime"),
+  masterActivatedTime: getMasterTime('masterActiveTime'),
 
   regionServerComponent: Em.Object.create({
     componentName: 'HBASE_REGIONSERVER'

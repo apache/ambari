@@ -17,24 +17,18 @@
  */
 
 var App = require('app');
+require('/views/main/service/services/storm');
 
-App.MainDashboardServiceStormView = App.MainDashboardServiceView.extend({
-  templateName: require('templates/main/service/services/storm'),
-  serviceName: 'STORM',
+function getView() {
+  return App.MainDashboardServiceStormView.create();
+}
 
-  /**
-   * this parameter is used to fiter hosts by component name
-   * used in mainHostController.filterByComponent() method
-   */
-  filterComponent: Em.Object.create({componentName: 'SUPERVISOR'}),
+describe('App.MainDashboardServiceStormView', function () {
 
-  freeSlotsPercentage: Em.computed.percents('service.freeSlots', 'service.totalSlots'),
+  App.TestAliases.testAsComputedPercents(getView(), 'freeSlotsPercentage', 'service.freeSlots', 'service.totalSlots');
 
-  superVisorsLive: Em.computed.alias('service.superVisorsStarted'),
+  App.TestAliases.testAsComputedAlias(getView(), 'superVisorsLive', 'service.superVisorsStarted');
 
-  superVisorsTotal: Em.computed.alias('service.superVisorsTotal'),
+  App.TestAliases.testAsComputedAlias(getView(), 'superVisorsTotal', 'service.superVisorsTotal');
 
-  nimbusUptimeFormatted: function() {
-    return this.get('service.nimbusUptime') || Em.I18n.t('services.service.summary.notRunning');
-  }.property('service.nimbusUptime')
 });

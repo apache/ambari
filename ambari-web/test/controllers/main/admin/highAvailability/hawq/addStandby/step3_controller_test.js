@@ -20,14 +20,22 @@ var App = require('app');
 require('controllers/main/admin/highAvailability/hawq/addStandby/step3_controller');
 var testHelpers = require('test/helpers');
 
+function getController() {
+  return App.AddHawqStandbyWizardStep3Controller.create({
+    content: Em.Object.create({})
+  });
+}
+var controller;
+
 describe('App.AddHawqStandbyWizardStep3Controller', function () {
+
+  beforeEach(function () {
+    controller = getController();
+  });
 
   describe('#isSubmitDisabled', function () {
 
-    var controller = App.AddHawqStandbyWizardStep3Controller.create({
-        content: Em.Object.create({})
-      }),
-      cases = [
+    var cases = [
         {
           isLoaded: false,
           isSubmitDisabled: true,
@@ -51,10 +59,6 @@ describe('App.AddHawqStandbyWizardStep3Controller', function () {
 
   describe('#loadConfigTagsSuccessCallback', function () {
 
-    var controller = App.AddHawqStandbyWizardStep3Controller.create({
-      content: Em.Object.create({})
-    });
-
     it('should send proper ajax request', function () {
       controller.loadConfigTagsSuccessCallback({
         'Clusters': {
@@ -76,10 +80,7 @@ describe('App.AddHawqStandbyWizardStep3Controller', function () {
 
   describe('#loadConfigsSuccessCallback', function () {
 
-    var controller = App.AddHawqStandbyWizardStep3Controller.create({
-        content: Em.Object.create({})
-      }),
-      cases = [
+    var cases = [
         {
           'items': [
             {
@@ -117,10 +118,6 @@ describe('App.AddHawqStandbyWizardStep3Controller', function () {
 
   describe('#loadConfigsSuccessCallback=loadConfigsErrorCallback(we have one callback for both cases)', function () {
 
-    var controller = App.AddHawqStandbyWizardStep3Controller.create({
-      content: Em.Object.create({})
-    });
-
     beforeEach(function () {
       sinon.stub(controller, 'setDynamicConfigValues', Em.K);
     });
@@ -137,7 +134,6 @@ describe('App.AddHawqStandbyWizardStep3Controller', function () {
 
   });
 
-
   describe('#setDynamicConfigValues', function () {
 
     var data = {
@@ -151,7 +147,17 @@ describe('App.AddHawqStandbyWizardStep3Controller', function () {
       ]
     };
 
-    var controller = App.AddHawqStandbyWizardStep3Controller.create({
+    var configs = {
+      configs: [
+        Em.Object.create({
+          name: 'hawq_standby_address_host'
+        })
+      ]
+    };
+
+
+    beforeEach(function () {
+      controller = App.AddHawqStandbyWizardStep3Controller.create({
         content: Em.Object.create({
           masterComponentHosts: [
             {component: 'HAWQMASTER', hostName: 'h0', isInstalled: true},
@@ -164,17 +170,7 @@ describe('App.AddHawqStandbyWizardStep3Controller', function () {
             newHawqStandby: 'h1'
           }
         })
-      }),
-      configs = {
-        configs: [
-          Em.Object.create({
-            name: 'hawq_standby_address_host'
-          })
-        ]
-      };
-
-
-    beforeEach(function () {
+      })
       controller.setDynamicConfigValues(configs, data);
     });
 

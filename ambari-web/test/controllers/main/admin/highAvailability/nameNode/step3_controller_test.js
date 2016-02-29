@@ -18,6 +18,7 @@
 
 var App = require('app');
 
+var testHelpers = require('test/helpers');
 var controller;
 
 describe('App.HighAvailabilityWizardStep3Controller', function() {
@@ -397,6 +398,42 @@ describe('App.HighAvailabilityWizardStep3Controller', function() {
       ];
       configs = controller.tweakServiceConfigs(configs);
       expect(configs.everyProperty('isOverridable', false)).to.be.true;
+    });
+
+  });
+
+  describe('#onLoadConfigsTags', function () {
+
+    var data = {Clusters: {desired_configs: {
+      'hdfs-site': {tag: 'v1'},
+      'core-site': {tag: 'v2'},
+      'zoo.cfg': {tag: 'v3'},
+      'hbase-site': {tag: 'v4'},
+      'accumulo-site': {tag: 'v5'},
+      'ams-hbase-site': {tag: 'v6'},
+      'hawq-site': {tag: 'v7'},
+      'hdfs-client': {tag: 'v8'},
+    }}};
+
+    beforeEach(function () {
+      sinon.stub(App.Service, 'find', function () {
+        return [
+          Em.Object.create({serviceName: 'HBASE'}),
+          Em.Object.create({serviceName: 'ACCUMULO'}),
+          Em.Object.create({serviceName: 'AMBARI_METRICS'}),
+          Em.Object.create({serviceName: 'HAWQ'})
+        ];
+      });
+      controller.onLoadConfigsTags(data);
+      this.args = testHelpers.findAjaxRequest('name', 'admin.get.all_configurations');
+    });
+
+    afterEach(function () {
+      App.Service.find.restore();
+    });
+
+    it('urlParams are valid', function () {
+      expect(this.args[0].data.urlParams).to.be.equal('(type=hdfs-site&tag=v1)|(type=core-site&tag=v2)|(type=zoo.cfg&tag=v3)|(type=hbase-site&tag=v4)|(type=accumulo-site&tag=v5)|(type=ams-hbase-site&tag=v6)|(type=hawq-site&tag=v7)|(type=hdfs-client&tag=v8)');
     });
 
   });

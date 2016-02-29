@@ -19,7 +19,7 @@
 var App = require('app');
 
 require('models/form');
-/*eslint-disable mocha-cleanup/no-assertions-outside-it */
+
 var form,
   field,
   formField,
@@ -75,7 +75,7 @@ var form,
     formField.validate();
     expect(formField.get('errorMessage')).to.equal(message);
   };
-/*eslint-enable mocha-cleanup/no-assertions-outside-it */
+
 
 describe('App.Form', function () {
 
