@@ -100,7 +100,7 @@
   <property>
     <name>hawq_master_temp_directory</name>
     <display-name>HAWQ Master Temp Directory</display-name>
-    <value>/tmp</value>
+    <value>/tmp/hawq/master</value>
     <description>
       The temporary directory reserved for HAWQ master.
     </description>
@@ -112,7 +112,7 @@
   <property>
     <name>hawq_segment_temp_directory</name>
     <display-name>HAWQ Segment Temp Directory</display-name>
-    <value>/tmp</value>
+    <value>/tmp/hawq/segment</value>
     <description>
       The temporary directory reserved for HAWQ segment.
     </description>
