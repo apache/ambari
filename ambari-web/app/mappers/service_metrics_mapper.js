@@ -407,20 +407,23 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
           var haState2 = Em.get(component.host_components[1], 'metrics.dfs.FSNamesystem.HAState');
           var active_name_node = [];
           var standby_name_nodes = [];
+          var namenodeName1 = component.host_components[0].HostRoles.host_name;
+          var namenodeName2 = component.host_components[1].HostRoles.host_name;
+
           switch (haState1) {
             case "active":
-              active_name_node.push(component.host_components[0].HostRoles.host_name);
+              active_name_node.push(namenodeName1);
               break;
             case "standby":
-              standby_name_nodes.push(component.host_components[0].HostRoles.host_name);
+              standby_name_nodes.push(namenodeName1);
               break;
           }
           switch (haState2) {
             case "active":
-              active_name_node.push(component.host_components[1].HostRoles.host_name);
+              active_name_node.push(namenodeName2);
               break;
             case "standby":
-              standby_name_nodes.push(component.host_components[1].HostRoles.host_name);
+              standby_name_nodes.push(namenodeName2);
               break;
           }
           item.active_name_node_id = null;
@@ -432,6 +435,12 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
               break;
           }
           switch (standby_name_nodes.length) {
+            case 0:
+              if (active_name_node.length === 1) {
+                var standbyNameNode =  (active_name_node[0] === namenodeName1) ? namenodeName2 : namenodeName1;
+                item.standby_name_node_id = 'NAMENODE' + '_' + standbyNameNode;
+              }
+              break;
             case 1:
               item.standby_name_node_id = 'NAMENODE' + '_' + standby_name_nodes[0];
               break;
