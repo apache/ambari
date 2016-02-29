@@ -276,6 +276,11 @@ public class AmbariJpaLocalTxnInterceptor implements MethodInterceptor {
       return;
     }
 
+    // no need to lock again
+    if (s_transactionalLocks.get().contains(annotation)) {
+      return;
+    }
+
     // there is a lock area, so acquire the lock
     LockArea lockArea = annotation.lockArea();
     LockType lockType = annotation.lockType();

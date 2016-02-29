@@ -735,8 +735,6 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
 
   @Override
   public void resubmitTasks(List<Long> taskIds) {
-    hostRoleCommandCache.invalidateAll(taskIds);
-
     List<HostRoleCommandEntity> tasks = hostRoleCommandDAO.findByPKs(taskIds);
     for (HostRoleCommandEntity task : tasks) {
       task.setStatus(HostRoleStatus.PENDING);
@@ -748,6 +746,8 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     if (!tasks.isEmpty()) {
       hostRoleCommandDAO.mergeAll(tasks);
     }
+
+    hostRoleCommandCache.invalidateAll(taskIds);
   }
 
   /**
@@ -756,8 +756,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
    */
   @Subscribe
   public void invalidateCommandCacheOnHostRemove(HostRemovedEvent event) {
-    LOG.info("Invalidating command cache on host delete event." );
-    LOG.debug("HostRemovedEvent => " + event);
+    LOG.info("Invalidating HRC cache after receiveing {}", event);
     hostRoleCommandCache.invalidateAll();
   }
 }

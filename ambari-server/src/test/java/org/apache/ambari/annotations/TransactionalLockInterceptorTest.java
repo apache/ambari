@@ -122,7 +122,7 @@ public class TransactionalLockInterceptorTest {
 
     // invoke method with annotations
     TestObject testObject = m_injector.getInstance(TestObject.class);
-    testObject.testNestedLockMethod();
+    testObject.testLockMethodAsChildOfActiveTransaction();
 
     // verify locks are called
     EasyMock.verify(transactionalLocks, readWriteLock, readLock, writeLock);
@@ -170,26 +170,96 @@ public class TransactionalLockInterceptorTest {
   }
 
   /**
+   * Tests that two invocations of a {@link TransactionalLock} with the same
+   * {@link TransactionalLock} will only lock once on the {@link LockArea}.
+   *
+   * @throws Throwable
+   */
+  @Test
+  public void testNestedMultipleLocks() throws Throwable {
+    // create mocks
+    TransactionalLocks transactionalLocks = m_injector.getInstance(TransactionalLocks.class);
+    ReadWriteLock readWriteLock = EasyMock.createStrictMock(ReadWriteLock.class);
+    Lock readLock = EasyMock.createStrictMock(Lock.class);
+    Lock writeLock = EasyMock.createStrictMock(Lock.class);
+
+    // expectations
+    EasyMock.expect(transactionalLocks.getLock(LockArea.HRC_STATUS_CACHE)).andReturn(readWriteLock).times(2);
+    EasyMock.expect(readWriteLock.writeLock()).andReturn(writeLock).times(2);
+    writeLock.lock();
+    EasyMock.expectLastCall().once();
+    writeLock.unlock();
+    EasyMock.expectLastCall().once();
+
+    // replay
+    EasyMock.replay(transactionalLocks, readWriteLock, readLock, writeLock);
+
+    // invoke method with annotations
+    TestObject testObject = m_injector.getInstance(TestObject.class);
+    testObject.testMultipleNestedLocks();
+
+    // verify locks are called
+    EasyMock.verify(transactionalLocks, readWriteLock, readLock, writeLock);
+  }
+
+  /**
    * A test object which has methods annotated for use with this test class.
    */
   public static class TestObject {
-    public void testNestedLockMethod() {
-      transactionMethod();
-      transactionMethodWithLock();
+    /**
+     * Calls:
+     * <ul>
+     * <li>@Transactional</li>
+     * <li>-> @TransactionalLock(lockArea = LockArea.HRC_STATUS_CACHE, lockType
+     * = LockType.WRITE)</li>
+     * </ul>
+     */
+    public void testLockMethodAsChildOfActiveTransaction() {
+      transactionMethodCallingAnotherWithLock();
     }
 
+    /**
+     * Calls:
+     * <ul>
+     * <li>@TransactionalLock(lockArea = LockArea.HRC_STATUS_CACHE, lockType =
+     * LockType.WRITE)</li>
+     * <li>@TransactionalLock(lockArea = LockArea.HRC_STATUS_CACHE, lockType =
+     * LockType.WRITE)</li>
+     * </ul>
+     */
     public void testMultipleLocks() {
       transactionMethodWithLock();
       transactionMethodWithLock();
     }
 
+    /**
+     * Calls:
+     * <ul>
+     * <li>@TransactionalLock(lockArea = LockArea.HRC_STATUS_CACHE, lockType =
+     * LockType.WRITE)</li>
+     * <li>-> @TransactionalLock(lockArea = LockArea.HRC_STATUS_CACHE, lockType
+     * = LockType.WRITE)</li>
+     * </ul>
+     */
+    public void testMultipleNestedLocks() {
+      transactionMethodWithLockCallingAnotherWithLock();
+    }
+
     @Transactional
-    public void transactionMethod() {
+    public void transactionMethodCallingAnotherWithLock() {
+      transactionMethodWithLock();
     }
 
     @Transactional
     @TransactionalLock(lockArea = LockArea.HRC_STATUS_CACHE, lockType = LockType.WRITE)
     public void transactionMethodWithLock() {
+    }
+
+
+    @Transactional
+    @TransactionalLock(lockArea = LockArea.HRC_STATUS_CACHE, lockType = LockType.WRITE)
+    public void transactionMethodWithLockCallingAnotherWithLock() {
+      transactionMethodWithLock();
     }
   }
 

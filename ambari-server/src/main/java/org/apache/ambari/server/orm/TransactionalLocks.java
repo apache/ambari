@@ -41,14 +41,35 @@ public class TransactionalLocks {
   /**
    * Used to lookup whether {@link LockArea}s are enabled.
    */
-  @Inject
-  private Configuration m_configuration;
+  private final Configuration m_configuration;
 
   /**
    * Manages the locks for each class which uses the {@link Transactional}
    * annotation.
    */
-  private final ConcurrentHashMap<LockArea, ReadWriteLock> m_locks = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<LockArea, ReadWriteLock> m_locks;
+
+
+  /**
+   * Constructor.
+   *
+   */
+  @Inject
+  private TransactionalLocks(Configuration configuration) {
+    m_configuration = configuration;
+    m_locks = new ConcurrentHashMap<>();
+
+    for (LockArea lockArea : LockArea.values()) {
+      final ReadWriteLock lock;
+      if (lockArea.isEnabled(m_configuration)) {
+        lock = new ReentrantReadWriteLock(true);
+      } else {
+        lock = new NoOperationReadWriteLock();
+      }
+
+      m_locks.put(lockArea, lock);
+    }
+  }
 
   /**
    * Gets a lock for the specified lock area. There is a 1:1 relationship
@@ -62,18 +83,7 @@ public class TransactionalLocks {
    * @return the lock to use for the specified lock area (never {@code null}).
    */
   public ReadWriteLock getLock(LockArea lockArea) {
-    ReadWriteLock lock = m_locks.get(lockArea);
-    if (null == lock) {
-      if (lockArea.isEnabled(m_configuration)) {
-        lock = new ReentrantReadWriteLock(true);
-      } else {
-        lock = new NoOperationReadWriteLock();
-      }
-
-      m_locks.put(lockArea, lock);
-    }
-
-    return lock;
+    return m_locks.get(lockArea);
   }
 
   /**
