@@ -15,7 +15,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-<configuration>
+<configuration supports_adding_forbidden="true">
 
   <property>
     <name>hawq_password</name>
@@ -32,4 +32,3 @@
   </property>
 
 </configuration>
-  

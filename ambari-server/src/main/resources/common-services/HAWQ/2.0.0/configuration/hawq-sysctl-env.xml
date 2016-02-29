@@ -15,7 +15,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-<configuration>
+<configuration supports_adding_forbidden="true">
   <property>
     <name>kernel.shmmax</name>
     <value>500000000</value>
