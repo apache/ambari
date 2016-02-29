@@ -267,6 +267,21 @@ public class Services {
     }
   }
 
+  /**
+   * @return Returns the protocol used by YARN daemons, the value is always taken from the
+   * yarn-site.xml.
+   */
+  public String getYARNProtocol() {
+    String httpPolicy = getYarnConfig(YARN_HTTP_POLICY);
+
+    if (!(HTTP_ONLY.equals(httpPolicy) || HTTPS_ONLY.equals(httpPolicy))) {
+      LOG.error(String.format("RA030 Unknown value %s of yarn-site/yarn.http.policy. HTTP_ONLY assumed.", httpPolicy));
+      httpPolicy = HTTP_ONLY;
+    }
+
+    return getProtocol(httpPolicy);
+  }
+
   private String getATSUrlFromCluster() {
     String url;
 

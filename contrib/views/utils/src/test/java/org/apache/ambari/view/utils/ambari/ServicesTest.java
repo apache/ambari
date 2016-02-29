@@ -377,6 +377,22 @@ public class ServicesTest extends EasyMockSupport {
     assertEquals(HTTPS_RM_URL2, services.getRMUrl());
   }
 
+  @Test
+  public void basicGetYARNProtocol() throws Exception {
+    ViewContext viewContext = getViewContext(new HashMap<String, String>());
+    AmbariApi ambariApi = createNiceMock(AmbariApi.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+
+    expect(ambariApi.isClusterAssociated()).andReturn(true).anyTimes();
+    setClusterExpectationWithEmptyWebappConfig(cluster, "HTTP_ONLY");
+    expect(ambariApi.getCluster()).andReturn(cluster).anyTimes();
+
+    Services services = new Services(ambariApi, viewContext);
+
+    replayAll();
+    assertEquals("http", services.getYARNProtocol());
+  }
+
   private void setClusterExpectation(Cluster cluster, String httpPolicy) {
     expect(cluster.getConfigurationValue("yarn-site", "yarn.resourcemanager.ha.enabled")).andReturn("false");
     expect(cluster.getConfigurationValue("yarn-site", "yarn.http.policy")).andReturn(httpPolicy);

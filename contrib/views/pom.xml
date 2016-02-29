@@ -34,13 +34,13 @@
     <hadoop.version>2.7.1</hadoop.version>
   </properties>
   <modules>
+    <module>utils</module>
     <module>files</module>
     <module>jobs</module>
     <module>pig</module>
     <module>slider</module>
     <module>capacity-scheduler</module>
     <module>tez</module>
-    <module>utils</module>
     <module>storm</module>
   </modules>
   <build>
