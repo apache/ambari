@@ -53,39 +53,52 @@ App.MainAdminServiceAutoStartController = Em.Controller.extend({
     var tabs = [];
     this.get('componentsConfigs').forEach(function(component) {
       var serviceComponentInfo = component.ServiceComponentInfo;
-      if (serviceComponentInfo.category === "MASTER" || serviceComponentInfo.category === "SLAVE") {
-        var componentRecovery = Ember.Object.create({
-          display_name: App.format.role(serviceComponentInfo.component_name),
-          component_name: serviceComponentInfo.component_name,
-          //recovery_enabled: serviceComponentInfo.recovery_enabled === 'true',
-          recovery_enabled: false,
-          valueChanged: false,
-          service_name: serviceComponentInfo.service_name
-        });
-        if (services[serviceComponentInfo.service_name]) {
-          services[serviceComponentInfo.service_name].get('componentRecovery').push(componentRecovery);
-          services[serviceComponentInfo.service_name].set('enabledComponents', services[serviceComponentInfo.service_name].get('enabledComponents') + (componentRecovery.get('recovery_enabled') ? 1 : 0));
-          services[serviceComponentInfo.service_name].set('totalComponents', services[serviceComponentInfo.service_name].get('totalComponents') + 1);
-        } else {
-          services[serviceComponentInfo.service_name] = Ember.Object.create({
-            service_name: serviceComponentInfo.service_name,
-            display_name: App.format.role(serviceComponentInfo.service_name),
-            headingClass: "." + serviceComponentInfo.service_name,
-            isActive: false,
-            componentRecovery: [componentRecovery],
-            enabledComponents: componentRecovery.recovery_enabled ? 1 : 0,
-            totalComponents: 1,
-            indicator: function() {
-              var percentage = this.get('enabledComponents') / this.get('totalComponents');
-              var indicator = "icon-adjust";
-              if (percentage === 1) {
-                indicator = "icon-circle";
-              } else if (percentage === 0) {
-                indicator = "icon-circle-blank";
-              }
-              return indicator;
-            }.property('enabledComponents', 'totalComponents')
+      if (serviceComponentInfo.total_count) {
+        if (serviceComponentInfo.category === "MASTER" || serviceComponentInfo.category === "SLAVE") {
+          var componentRecovery = Ember.Object.create({
+            display_name: App.format.role(serviceComponentInfo.component_name),
+            component_name: serviceComponentInfo.component_name,
+            recovery_enabled: serviceComponentInfo.recovery_enabled === 'true',
+            valueChanged: false,
+            service_name: serviceComponentInfo.service_name
           });
+          if (services[serviceComponentInfo.service_name]) {
+            services[serviceComponentInfo.service_name].get('componentRecovery').push(componentRecovery);
+            services[serviceComponentInfo.service_name].set('enabledComponents', services[serviceComponentInfo.service_name].get('enabledComponents') + (componentRecovery.get('recovery_enabled') ? 1 : 0));
+            services[serviceComponentInfo.service_name].set('totalComponents', services[serviceComponentInfo.service_name].get('totalComponents') + 1);
+          } else {
+            services[serviceComponentInfo.service_name] = Ember.Object.create({
+              service_name: serviceComponentInfo.service_name,
+              display_name: App.format.role(serviceComponentInfo.service_name),
+              headingClass: "." + serviceComponentInfo.service_name,
+              isActive: false,
+              tooltip: function () {
+                var percentage = this.get('enabledComponents') / this.get('totalComponents');
+                var tooltip = '';
+                if (percentage === 1) {
+                  tooltip = Em.I18n.t('admin.serviceAutoStart.tooltip.text').format("All");
+                } else if (percentage === 0) {
+                  tooltip = Em.I18n.t('admin.serviceAutoStart.tooltip.text').format("No");
+                } else {
+                  tooltip = Em.I18n.t('admin.serviceAutoStart.tooltip.text').format(this.get('enabledComponents') + "/" + this.get('totalComponents'));
+                }
+                return tooltip;
+              }.property('enabledComponents', 'totalComponents'),
+              componentRecovery: [componentRecovery],
+              enabledComponents: componentRecovery.recovery_enabled ? 1 : 0,
+              totalComponents: 1,
+              indicator: function () {
+                var percentage = this.get('enabledComponents') / this.get('totalComponents');
+                var indicator = "icon-adjust";
+                if (percentage === 1) {
+                  indicator = "icon-circle";
+                } else if (percentage === 0) {
+                  indicator = "icon-circle-blank";
+                }
+                return indicator;
+              }.property('enabledComponents', 'totalComponents')
+            });
+          }
         }
       }
     });
@@ -108,6 +121,18 @@ App.MainAdminServiceAutoStartController = Em.Controller.extend({
     this.set('isSaveDisabled', !valuesChanged);
   }.observes('valueChanged'),
 
+  enableAll: function (event) {
+    event.context.get('componentRecovery').forEach(function (component) {
+      component.set('recoveryEnabled', true);
+    });
+  },
+
+  disableAll: function (event) {
+    event.context.get('componentRecovery').forEach(function (component) {
+      component.set('recoveryEnabled', false);
+    });
+  },
+
   doReload: function () {
     window.location.reload();
   },
@@ -120,10 +145,22 @@ App.MainAdminServiceAutoStartController = Em.Controller.extend({
    */
   showSavePopup: function (transitionCallback) {
     var self = this;
+    var title = '';
+    var body = '';
+    if (typeof transitionCallback === 'function') {
+      title = Em.I18n.t('admin.serviceAutoStart.save.popup.transition.title');
+      body = Em.I18n.t('admin.serviceAutoStart.save.popup.transition.body');
+    } else {
+      title = Em.I18n.t('admin.serviceAutoStart.save.popup.title');
+      body = Em.I18n.t('admin.serviceAutoStart.save.popup.body');
+    }
     return App.ModalPopup.show({
-      header: Em.I18n.t('dashboard.configHistory.info-bar.save.popup.title'),
+      header: title,
+      bodyClass: Ember.View.extend({
+        template: Ember.Handlebars.compile(body)
+      }),
       footerClass: Em.View.extend({
-        templateName: require('templates/main/service/info/save_popup_footer'),
+        templateName: require('templates/main/service/info/save_popup_footer')
       }),
       primary: Em.I18n.t('common.save'),
       secondary: Em.I18n.t('common.cancel'),
@@ -138,7 +175,7 @@ App.MainAdminServiceAutoStartController = Em.Controller.extend({
         self.get('tabs').forEach(function (service) {
           service.get('componentRecovery').forEach(function (component) {
             if (component.get('valueChanged')) {
-              if (component.get('recoveryEnabled')) {
+              if (component.get('recovery_enabled')) {
                 enabledComponents.push(component.get('component_name'));
               } else {
                 disabledComponents.push(component.get('component_name'));

@@ -2356,7 +2356,7 @@ var urls = {
     'mock': ''
   },
   'components.get_category': {
-    'real': '/clusters/{clusterName}/components?fields=ServiceComponentInfo/component_name,ServiceComponentInfo/service_name,ServiceComponentInfo/category,ServiceComponentInfo/recovery_enabled&minimal_response=true',
+    'real': '/clusters/{clusterName}/components?fields=ServiceComponentInfo/component_name,ServiceComponentInfo/service_name,ServiceComponentInfo/category,ServiceComponentInfo/recovery_enabled,ServiceComponentInfo/total_count&minimal_response=true',
     'mock': ''
   },
   'components.update': {
@@ -2369,9 +2369,7 @@ var urls = {
           RequestInfo: {
             query: data.query
           },
-          Body: {
-            ServiceComponentInfo: data.ServiceComponentInfo
-          }
+          ServiceComponentInfo: data.ServiceComponentInfo
         })
       }
     }

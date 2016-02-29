@@ -31,6 +31,10 @@ App.MainAdminServiceAutoStartComponentView = Em.View.extend({
     this.initSwitcher();
   },
 
+  onValueChange: function () {
+    this.get('switcher').bootstrapSwitch('state', this.get('component.recoveryEnabled'));
+  }.observes('component.recoveryEnabled'),
+
   /**
    * Init switcher plugin.
    *
@@ -39,7 +43,7 @@ App.MainAdminServiceAutoStartComponentView = Em.View.extend({
   initSwitcher: function () {
     var self = this;
     if (this.$()) {
-      this.$("input:eq(0)").bootstrapSwitch({
+      this.set('switcher', this.$("input:eq(0)").bootstrapSwitch({
         onText: Em.I18n.t('common.enabled'),
         offText: Em.I18n.t('common.disabled'),
         offColor: 'default',
@@ -51,7 +55,7 @@ App.MainAdminServiceAutoStartComponentView = Em.View.extend({
           self.set('component.valueChanged', self.get('savedRecoveryEnabled') !== state);
           self.get('parentView.controller').checkValuesChange();
         }
-      });
+      }));
     }
   }
 });

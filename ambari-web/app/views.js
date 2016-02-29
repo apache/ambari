@@ -143,6 +143,7 @@ require('views/main/host/addHost/step4_view');
 require('views/main/admin');
 require('views/main/admin/service_auto_start');
 require('views/main/admin/service_auto_start/component_auto_start');
+require('views/main/admin/service_auto_start/service_auto_start_indicator');
 require('views/main/admin/highAvailability/nameNode/wizard_view');
 require('views/main/admin/highAvailability/progress_view');
 require('views/main/admin/highAvailability/nameNode/rollback_view');

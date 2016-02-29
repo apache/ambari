@@ -25,8 +25,8 @@
   </div>
   <br/>
   <div class="cluster-switcher row-fluid">
-      <div class="span4">
-        {{t admin.serviceAutoStart.body.text}}
+      <div class="span2">
+          <strong>{{t admin.serviceAutoStart.body.text}}</strong>
       </div>
       <div class="span4">
           {{view Ember.Checkbox checkedBinding="view.switcherValue"}}
@@ -37,24 +37,24 @@
       </div>
   </div>
     {{#if view.switcherValue}}
+        <hr>
+        <div class="row-fluid mlm"><h5 class="span2">{{t common.service}}</h5><h5 class="span4">{{t common.component}}</h5><h5 class="span4">{{t common.status}}</h5></div>
         <div class="tabs-left">
-            <hr>
-            <ul class="nav nav-tabs">
+            <ul class="nav nav-tabs span2">
                 {{#each tab in controller.tabs}}
                     <li {{bindAttr class="tab.isActive:active"}}>
                         <a href="#" data-toggle="tab" {{bindAttr data-target="tab.headingClass"}}>
                             {{tab.display_name}}
-                            <i {{bindAttr class=":pull-right tab.indicator"}}>
-                            </i>
+                            {{view App.MainAdminServiceAutoStartIndicatorView tabBinding="tab"}}
                         </a>
                     </li>
                 {{/each}}
             </ul>
             <div class="tab-content">
                 {{#each tab in controller.tabs}}
-                    <div {{bindAttr class=":tab-pane tab.isActive:active tab.service_name :row-fluid"}}>
+                    <div {{bindAttr class=":tab-pane tab.isActive:active tab.service_name :row-fluid :mtm"}}>
                         {{#each component in tab.componentRecovery}}
-                            <div class="row-fluid">
+                            <div class="row-fluid mbm">
                                 <div class="span4">
                                     {{component.display_name}}
                                 </div>
@@ -63,6 +63,10 @@
                                 </div>
                             </div>
                         {{/each}}
+                        <div class="offset4">
+                            <a href="#" class="enable-all-link" {{action enableAll tab target="controller"}}>{{t common.enableAll}}</a> |
+                            <a href="#" {{action disableAll tab target="controller"}}>{{t common.disableAll}}</a>
+                        </div>
                     </div>
                 {{/each}}
             </div>

@@ -137,6 +137,8 @@ Em.I18n.translations = {
   'common.ram':'RAM',
   'common.disabled':'Disabled',
   'common.enabled':'Enabled',
+  'common.enableAll':'Enable All',
+  'common.disableAll':'Disable All',
   'common.disk':'Disk',
   'common.diskUsage':'Disk Usage',
   'common.loadAvg':'Load Avg',
@@ -1467,7 +1469,8 @@ Em.I18n.translations = {
   'admin.serviceAutoStart.title': "Service Auto Start",
   'admin.serviceAutoStart.header': "Service Auto Start Configuration",
   'admin.serviceAutoStart.header.text': "Ambari services can be configured to start automatically on system boot. Each service can be configured to start all components, masters and workers, or selectively.",
-  'admin.serviceAutoStart.body.text': "Auto-Start Services Enabled",
+  'admin.serviceAutoStart.body.text': "Auto-Start Services",
+  'admin.serviceAutoStart.tooltip.text': "{0} components enabled",
 
   'admin.stackVersions.filter.notInstalled': "Not Installed ({0})",
   'admin.stackVersions.filter.all': "All ({0})",
@@ -2951,5 +2954,10 @@ Em.I18n.translations = {
       ' get back to a stable state. Are you sure you want to exit the wizard?',
   'admin.activateHawqStandby.wizard.step3.notice.inProgress':'Please wait while HAWQ Standby is being activated',
   'admin.activateHawqStandby.wizard.step3.notice.completed':'HAWQ Standby has been activated successfully.',
-  'admin.activateHawqStandby.wizard.step3.activateHawqStandbyCommand.context': "Execute HAWQ Standby activate command"
+  'admin.activateHawqStandby.wizard.step3.activateHawqStandbyCommand.context': "Execute HAWQ Standby activate command",
+  'admin.serviceAutoStart.save.popup.title': 'Save Auto-Start Configuration',
+  'admin.serviceAutoStart.save.popup.body': 'You are changing the auto-start configuration.' +
+      'Click <b>Save</b> to commit the change or <b>Discard</b> to revert your changes',
+  'admin.serviceAutoStart.save.popup.transition.title': 'Warning',
+  'admin.serviceAutoStart.save.popup.transition.body': 'You have unsaved changes'
 };
