@@ -46,6 +46,8 @@ App.MainHostComboSearchBoxView = Em.View.extend({
             {label: 'Host Name', value: 'hostName', category: 'Host'},
             {label: 'IP', value: 'ip', category: 'Host'},
             {label: 'Heath Status', value: 'healthClass', category: 'Host'},
+            {label: 'Stack Version', value: 'version', category: 'Host'},
+            {label: 'Version State', value: 'versionState', category: 'Host'},
             {label: 'Rack', value: 'rack', category: 'Host'},
             {label: 'Service', value: 'services', category: 'Service'},
             {label: 'Has Component', value: 'hostComponents', category: 'Service'},
@@ -66,7 +68,6 @@ App.MainHostComboSearchBoxView = Em.View.extend({
         },
 
         valueMatches: function (facet, searchTerm, callback) {
-          var category_mocks = require('data/host/categories');
           if (controller.isComponentStateFacet(facet)) {
             facet = 'componentState'
           }
@@ -82,16 +83,28 @@ App.MainHostComboSearchBoxView = Em.View.extend({
               callback(App.Host.find().toArray().mapProperty('rack').uniq());
               break;
             case 'version':
-              callback(App.StackVersion.find().toArray().mapProperty('name'));
+              callback(App.HostStackVersion.find().toArray().filterProperty('isVisible', true).mapProperty('displayName').uniq());
+              break;
+            case 'versionState':
+              callback(App.HostStackVersion.statusDefinition.map(function (status) {
+                return {label: App.HostStackVersion.formatStatus(status), value: status};
+              }));
               break;
             case 'healthClass':
-              callback(category_mocks.slice(1).mapProperty('healthStatus'), {preserveOrder: true});
+              var category_mocks = require('data/host/categories');
+              callback(category_mocks.slice(1).map(function (category) {
+                return {label: category.value, value: category.healthStatus}
+              }), {preserveOrder: true});
               break;
             case 'services':
-              callback(App.Service.find().toArray().mapProperty('serviceName'), {preserveOrder: true});
+              callback(App.Service.find().toArray().map(function (service) {
+                return {label: App.format.role(service.get('serviceName')), value: service.get('serviceName')};
+              }), {preserveOrder: true});
               break;
             case 'hostComponents':
-              callback(App.HostComponent.find().toArray().mapProperty('componentName').uniq(), {preserveOrder: true});
+              callback(App.HostComponent.find().toArray().mapProperty('componentName').uniq().map(function (componentName) {
+                return {label: App.format.role(componentName), value: componentName};
+              }));
               break;
             case 'state':
               callback(App.HostComponentStatus.getStatusesList(), {preserveOrder: true});
