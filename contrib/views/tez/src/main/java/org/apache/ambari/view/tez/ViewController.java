@@ -28,6 +28,7 @@ public interface ViewController {
 
   public static final String PARAM_YARN_ATS_URL = "yarn.timeline-server.url";
   public static final String PARAM_YARN_RESOURCEMANAGER_URL = "yarn.resourcemanager.url";
+  public static final String PARAM_YARN_PROTOCOL = "yarn.protocol";
 
   /**
    * @return Get the properties that any user is allowed to see, even non-admin users.
@@ -45,4 +46,9 @@ public interface ViewController {
    * @return The active resource manager URL.
    */
   String getActiveRMUrl();
+
+  /**
+   * @return The protocol used by YARN daemons.
+   */
+  String getYARNProtocol();
 }
