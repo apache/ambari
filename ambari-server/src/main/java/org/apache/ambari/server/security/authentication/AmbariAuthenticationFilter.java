@@ -77,7 +77,6 @@ public class AmbariAuthenticationFilter extends BasicAuthenticationFilter {
       .withUserName(authResult.getName())
       .withTimestamp(DateTime.now())
       .withRoles(AuthorizationHelper.getPermissionLabels(authResult))
-      .withPrivileges(AuthorizationHelper.getAuthorizationNames(authResult))
       .build();
     auditLogger.log(loginSucceededAuditEvent);
   }

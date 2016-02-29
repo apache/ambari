@@ -35,8 +35,6 @@ public class LoginSucceededAuditEvent extends AbstractLoginAuditEvent {
 
     private List<String> roles;
 
-    private List<String> privileges;
-
 
     /**
      * {@inheritDoc}
@@ -44,13 +42,11 @@ public class LoginSucceededAuditEvent extends AbstractLoginAuditEvent {
     @Override
     protected void buildAuditMessage(StringBuilder builder) {
       super.buildAuditMessage(builder);
-      String lineSeparator = System.lineSeparator();
+
       builder
         .append(", Roles(")
         .append(StringUtils.join(roles, ","))
-        .append(String.format("),%-26s Privileges(%-28s    ", lineSeparator, lineSeparator))
-        .append(StringUtils.join(privileges, String.format("%-28s    ", lineSeparator)))
-        .append(String.format("%-26s), Status(Login succeeded !)", lineSeparator));
+        .append("), Status(Login succeeded !)");
     }
 
     /**
@@ -64,16 +60,6 @@ public class LoginSucceededAuditEvent extends AbstractLoginAuditEvent {
       return this;
     }
 
-    /**
-     * Sets the list of privileges possessed by the principal requesting access to a resource.
-     * @param privileges
-     * @return this builder
-     */
-    public LoginSucceededAuditEventBuilder withPrivileges(List<String> privileges) {
-      this.privileges = privileges;
-
-      return this;
-    }
     /**
      * {@inheritDoc}
      */

@@ -140,7 +140,6 @@ public class AmbariAuthorizationFilter implements Filter {
           .withUserName(internalAuthenticationToken.getName())
           .withRemoteIp(RequestUtils.getRemoteAddress(httpRequest))
           .withRoles(AuthorizationHelper.getPermissionLabels(authentication))
-          .withPrivileges(AuthorizationHelper.getAuthorizationNames(authentication))
           .withTimestamp(DateTime.now()).build();
         auditLogger.log(loginSucceededAuditEvent);
       } else {
