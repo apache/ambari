@@ -634,7 +634,15 @@ public class HostRoleCommandDAO {
       entity = entityManager.merge(entity);
       managedList.add(entity);
 
-      requestsToInvalidate.add(entity.getRequestId());
+      Long requestId = entity.getRequestId();
+      if (requestId == null) {
+        StageEntity stageEntity = entity.getStage();
+        if (stageEntity != null) {
+          requestId = stageEntity.getRequestId();
+        }
+      }
+
+      requestsToInvalidate.add(requestId);
     }
 
     invalidateHostRoleCommandStatusSummaryCache(requestsToInvalidate);
