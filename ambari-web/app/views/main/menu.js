@@ -43,7 +43,7 @@ App.MainMenuView = Em.CollectionView.extend({
               {label: Em.I18n.t('menu.item.alerts'), routing: 'alerts'}
           );
         }
-        if (App.isAuthorized('CLUSTER.TOGGLE_KERBEROS, SERVICE.START_STOP, AMBARI.SET_SERVICE_USERS_GROUPS, CLUSTER.UPGRADE_DOWNGRADE_STACK, CLUSTER.VIEW_STACK_DETAILS')) {
+        if (App.isAuthorized('CLUSTER.TOGGLE_KERBEROS, CLUSTER.MODIFY_CONFIGS, SERVICE.START_STOP, AMBARI.SET_SERVICE_USERS_GROUPS, CLUSTER.UPGRADE_DOWNGRADE_STACK, CLUSTER.VIEW_STACK_DETAILS')) {
           result.push({ label: Em.I18n.t('menu.item.admin'), routing: 'admin'});
         }
       }
@@ -125,7 +125,7 @@ App.MainMenuView = Em.CollectionView.extend({
             label: Em.I18n.t('common.kerberos')
           });
         }
-        if (App.isAuthorized('SERVICE.START_STOP')) {
+        if (App.isAuthorized('SERVICE.START_STOP, CLUSTER.MODIFY_CONFIGS')) {
           if (App.supports.serviceAutoStart) {
             categories.push({
               name: 'serviceAutoStart',

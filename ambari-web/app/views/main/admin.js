@@ -44,7 +44,7 @@ App.MainAdminView = Em.View.extend({
         label: Em.I18n.t('common.kerberos')
       });
     }
-    if (App.isAuthorized('SERVICE.START_STOP')) {
+    if (App.isAuthorized('SERVICE.START_STOP, CLUSTER.MODIFY_CONFIGS')) {
       if (App.supports.serviceAutoStart) {
         items.push({
           name: 'serviceAutoStart',

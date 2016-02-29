@@ -542,6 +542,10 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       // Gather the components affected by the change in
       // auto start state
       if (!StringUtils.isEmpty(request.getRecoveryEnabled())) {
+        // Verify that the authenticated user has authorization to change auto-start states for services
+        AuthorizationHelper.verifyAuthorization(ResourceType.CLUSTER, getClusterResourceId(clusterName),
+            EnumSet.of(RoleAuthorization.SERVICE_START_STOP));
+
         boolean newRecoveryEnabled = Boolean.parseBoolean(request.getRecoveryEnabled());
         boolean oldRecoveryEnabled = sc.isRecoveryEnabled();
         if (newRecoveryEnabled != oldRecoveryEnabled) {
