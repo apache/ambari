@@ -24,10 +24,15 @@ import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.audit.AuditEvent;
+import org.apache.ambari.server.audit.AuditLogger;
+import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.utils.StageUtils;
 
 import java.util.Collections;
 import java.util.Map;
+
+import com.google.inject.Injector;
 
 /**
  * AbstractServerActionImpl is an abstract implementation of a ServerAction.
@@ -51,6 +56,22 @@ public abstract class AbstractServerAction implements ServerAction {
    * The ActionLog that used to log execution progress of ServerAction
    */
   protected ActionLog actionLog = new ActionLog();
+
+  /**
+   * Guice injector
+   */
+  private static Injector injector;
+
+  /**
+   * Statically initialize the Injector
+   * <p/>
+   * This should only be used for unit tests.
+   *
+   * @param injector the Injector to (manually) statically inject
+   */
+  public static void init(Injector injector) {
+    AbstractServerAction.injector = injector;
+  }
 
   @Override
   public ExecutionCommand getExecutionCommand() {
@@ -173,6 +194,10 @@ public abstract class AbstractServerAction implements ServerAction {
    */
   protected Map<String, String> getConfiguration(String configurationName) {
     return getConfigurations().get(configurationName);
+  }
+
+  protected void auditLog(AuditEvent ae) {
+    injector.getInstance(AuditLogger.class).log(ae);
   }
 
 }

@@ -48,6 +48,7 @@ import org.apache.ambari.server.audit.request.eventcreator.AlertGroupEventCreato
 import org.apache.ambari.server.audit.request.eventcreator.AlertTargetEventCreator;
 import org.apache.ambari.server.audit.request.eventcreator.BlueprintEventCreator;
 import org.apache.ambari.server.audit.request.eventcreator.BlueprintExportEventCreator;
+import org.apache.ambari.server.audit.request.eventcreator.CredentialEventCreator;
 import org.apache.ambari.server.audit.request.eventcreator.HostEventCreator;
 import org.apache.ambari.server.audit.request.eventcreator.PrivilegeEventCreator;
 import org.apache.ambari.server.audit.request.eventcreator.GroupEventCreator;
@@ -55,6 +56,7 @@ import org.apache.ambari.server.audit.request.eventcreator.MemberEventCreator;
 import org.apache.ambari.server.audit.request.eventcreator.RecommendationIgnoreEventCreator;
 import org.apache.ambari.server.audit.request.eventcreator.RepositoryEventCreator;
 import org.apache.ambari.server.audit.request.eventcreator.RepositoryVersionEventCreator;
+import org.apache.ambari.server.audit.request.eventcreator.RequestEventCreator;
 import org.apache.ambari.server.audit.request.eventcreator.ServiceConfigDownloadEventCreator;
 import org.apache.ambari.server.audit.request.eventcreator.UnauthorizedEventCreator;
 import org.apache.ambari.server.audit.request.eventcreator.ConfigurationChangeEventCreator;
@@ -434,6 +436,8 @@ public class ControllerModule extends AbstractModule {
     auditLogEventCreatorBinder.addBinding().to(UpgradeItemEventCreator.class);
     auditLogEventCreatorBinder.addBinding().to(RecommendationIgnoreEventCreator.class);
     auditLogEventCreatorBinder.addBinding().to(ValidationIgnoreEventCreator.class);
+    auditLogEventCreatorBinder.addBinding().to(CredentialEventCreator.class);
+    auditLogEventCreatorBinder.addBinding().to(RequestEventCreator.class);
 
     bind(RequestAuditLogger.class).to(RequestAuditLoggerImpl.class);
   }

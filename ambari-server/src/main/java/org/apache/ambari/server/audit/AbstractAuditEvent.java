@@ -37,7 +37,7 @@ public abstract class AbstractAuditEvent implements  AuditEvent {
    * @param <T> the type of the concrete audit event built by this builder
    * @param <TBuilder> the type of the concrete audit event builder.
    */
-  static abstract class AbstractAuditEventBuilder<T extends AbstractAuditEvent, TBuilder extends AbstractAuditEventBuilder<T, TBuilder>>
+  protected static abstract class AbstractAuditEventBuilder<T extends AbstractAuditEvent, TBuilder extends AbstractAuditEventBuilder<T, TBuilder>>
     implements AuditEventBuilder<T> {
 
     private DateTime timestamp;

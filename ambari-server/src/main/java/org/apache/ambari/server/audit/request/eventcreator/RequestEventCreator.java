@@ -18,17 +18,20 @@
 
 package org.apache.ambari.server.audit.request.eventcreator;
 
-import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.audit.AuditEvent;
+import org.apache.ambari.server.audit.StartOperationFailedAuditEvent;
+import org.apache.ambari.server.audit.StartOperationSucceededAuditEvent;
 import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
-import org.apache.ambari.server.audit.request.event.AddUpgradeRequestAuditEvent;
-import org.apache.ambari.server.audit.request.event.UpdateUpgradeItemRequestAuditEvent;
+import org.apache.ambari.server.audit.request.event.AddRequestRequestAuditEvent;
+import org.apache.ambari.server.audit.request.event.DeleteServiceRequestAuditEvent;
+import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.joda.time.DateTime;
@@ -36,11 +39,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 
 /**
- * This creator handles upgrade requests
- * For resource type {@link Resource.Type#Upgrade}
- * and request types {@link Request.Type#PUT}
+ * This creator handles request type requests
+ * For resource type {@link Resource.Type#Request}
+ * and request types {@link Request.Type#POST}
  */
-public class UpgradeItemEventCreator implements RequestAuditEventCreator {
+public class RequestEventCreator implements RequestAuditEventCreator {
 
   /**
    * Set of {@link Request.Type}s that are handled by this plugin
@@ -48,30 +51,30 @@ public class UpgradeItemEventCreator implements RequestAuditEventCreator {
   private Set<Request.Type> requestTypes = new HashSet<Request.Type>();
 
   {
-    requestTypes.add(Request.Type.PUT);
+    requestTypes.add(Request.Type.POST);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  private Set<Resource.Type> resourceTypes = new HashSet<Resource.Type>();
+  {
+    resourceTypes.add(Resource.Type.Request);
+  }
+
+  /** {@inheritDoc} */
   @Override
   public Set<Request.Type> getRequestTypes() {
     return requestTypes;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Set<Resource.Type> getResourceTypes() {
-    return Collections.singleton(Resource.Type.UpgradeItem);
+    return resourceTypes;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Set<ResultStatus.STATUS> getResultStatuses() {
+    // null makes this default
     return null;
   }
 
@@ -79,24 +82,20 @@ public class UpgradeItemEventCreator implements RequestAuditEventCreator {
   public AuditEvent createAuditEvent(Request request, Result result) {
     String username = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
 
-    return UpdateUpgradeItemRequestAuditEvent.builder()
-      .withTimestamp(DateTime.now())
-      .withRequestType(request.getRequestType())
-      .withResultStatus(result.getStatus())
-      .withUrl(request.getURI())
-      .withRemoteIp(request.getRemoteAddress())
-      .withUserName(username)
-      .withStatus(getProperty(request, "status"))
-      .withStageId(getProperty(request, "stage_id"))
-      .withRequestId(getProperty(request, "request_id"))
-      .build();
-
-  }
-
-  private String getProperty(Request request, String propertyName) {
-    if(!request.getBody().getPropertySets().isEmpty()) {
-      return String.valueOf(request.getBody().getPropertySets().iterator().next().get(PropertyHelper.getPropertyId("UpgradeItem",propertyName)));
+    switch(request.getRequestType()) {
+      case POST:
+        return AddRequestRequestAuditEvent.builder()
+          .withTimestamp(DateTime.now())
+          .withRequestType(request.getRequestType())
+          .withResultStatus(result.getStatus())
+          .withUrl(request.getURI())
+          .withRemoteIp(request.getRemoteAddress())
+          .withUserName(username)
+          .withCommand(request.getBody().getRequestInfoProperties().get("command"))
+          .withClusterName(request.getBody().getRequestInfoProperties().get(RequestOperationLevel.OPERATION_CLUSTER_ID))
+          .build();
+      default:
+        return null;
     }
-    return null;
   }
 }

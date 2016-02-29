@@ -27,7 +27,7 @@ import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.audit.AuditEvent;
 import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
-import org.apache.ambari.server.audit.request.event.AddUpgradeRequestAuditEvent;
+import org.apache.ambari.server.audit.request.event.AddCredentialRequestAuditEvent;
 import org.apache.ambari.server.audit.request.event.UpdateUpgradeItemRequestAuditEvent;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
@@ -36,11 +36,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 
 /**
- * This creator handles upgrade requests
+ * This creator handles crednetial requests
  * For resource type {@link Resource.Type#Upgrade}
- * and request types {@link Request.Type#PUT}
+ * and request types {@link Request.Type#POST}
  */
-public class UpgradeItemEventCreator implements RequestAuditEventCreator {
+public class CredentialEventCreator implements RequestAuditEventCreator {
 
   /**
    * Set of {@link Request.Type}s that are handled by this plugin
@@ -48,7 +48,7 @@ public class UpgradeItemEventCreator implements RequestAuditEventCreator {
   private Set<Request.Type> requestTypes = new HashSet<Request.Type>();
 
   {
-    requestTypes.add(Request.Type.PUT);
+    requestTypes.add(Request.Type.POST);
   }
 
   /**
@@ -64,7 +64,7 @@ public class UpgradeItemEventCreator implements RequestAuditEventCreator {
    */
   @Override
   public Set<Resource.Type> getResourceTypes() {
-    return Collections.singleton(Resource.Type.UpgradeItem);
+    return Collections.singleton(Resource.Type.Credential);
   }
 
   /**
@@ -79,23 +79,24 @@ public class UpgradeItemEventCreator implements RequestAuditEventCreator {
   public AuditEvent createAuditEvent(Request request, Result result) {
     String username = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
 
-    return UpdateUpgradeItemRequestAuditEvent.builder()
+    return AddCredentialRequestAuditEvent.builder()
       .withTimestamp(DateTime.now())
       .withRequestType(request.getRequestType())
       .withResultStatus(result.getStatus())
       .withUrl(request.getURI())
       .withRemoteIp(request.getRemoteAddress())
       .withUserName(username)
-      .withStatus(getProperty(request, "status"))
-      .withStageId(getProperty(request, "stage_id"))
-      .withRequestId(getProperty(request, "request_id"))
+      .withClusterName(getProperty(request, "cluster_name"))
+      .withType(getProperty(request, "type"))
+      .withAlias(getProperty(request, "alias"))
+      .withPrincipal(getProperty(request, "principal"))
       .build();
 
   }
 
   private String getProperty(Request request, String propertyName) {
     if(!request.getBody().getPropertySets().isEmpty()) {
-      return String.valueOf(request.getBody().getPropertySets().iterator().next().get(PropertyHelper.getPropertyId("UpgradeItem",propertyName)));
+      return String.valueOf(request.getBody().getPropertySets().iterator().next().get(PropertyHelper.getPropertyId("Credential",propertyName)));
     }
     return null;
   }
