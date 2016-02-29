@@ -121,7 +121,7 @@ class TestHawqSegment(RMFTestCase):
         create_parents = True
         )
 
-    self.assertResourceCalled('Directory', '/tmp',
+    self.assertResourceCalled('Directory', '/tmp/hawq/segment',
         owner = self.GPADMIN,
         group = self.GPADMIN,
         create_parents = True

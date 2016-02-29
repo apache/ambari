@@ -99,7 +99,7 @@ class TestHawqMaster(RMFTestCase):
         create_parents = True
         )
 
-    self.assertResourceCalled('Directory', '/tmp',
+    self.assertResourceCalled('Directory', '/tmp/hawq/master',
         group = self.GPADMIN,
         owner = self.GPADMIN,
         create_parents = True
