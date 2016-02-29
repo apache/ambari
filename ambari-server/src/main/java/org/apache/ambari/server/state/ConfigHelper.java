@@ -19,8 +19,6 @@ package org.apache.ambari.server.state;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.RemovalListener;
-import com.google.common.cache.RemovalNotification;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -35,7 +33,6 @@ import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.state.PropertyInfo.PropertyType;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.upgrade.UpgradeCatalog170;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,30 +83,6 @@ public class ConfigHelper {
   public static final String HTTP_ONLY = "HTTP_ONLY";
   public static final String HTTPS_ONLY = "HTTPS_ONLY";
 
-  /**
-   * Used to debug stale config cache changes.
-   */
-  private class StaleConfigRemovalListener implements RemovalListener {
-
-    @Override
-    public void onRemoval(RemovalNotification removalNotification) {
-      ServiceComponentHost sch;
-      if(removalNotification.getKey() instanceof ServiceComponentHost)
-      {
-        sch = (ServiceComponentHost)removalNotification.getKey();
-      } else {
-        return;
-      }
-      String message = String.format(
-              "Removed stale config flag for:\n\thost:component=%s:%s\n\treason=%s",
-          sch.getHostName(),
-          sch.getServiceComponentName(),
-              removalNotification.getCause().toString()
-      );
-      LOG.info(message);
-    }
-  }
-
   @Inject
   public ConfigHelper(Clusters c, AmbariMetaInfo metaInfo, Configuration configuration, ClusterDAO clusterDAO) {
     clusters = c;
@@ -117,8 +90,7 @@ public class ConfigHelper {
     this.clusterDAO = clusterDAO;
     STALE_CONFIGS_CACHE_ENABLED = configuration.isStaleConfigCacheEnabled();
     staleConfigsCache = CacheBuilder.newBuilder().
-        expireAfterWrite(STALE_CONFIGS_CACHE_EXPIRATION_TIME, TimeUnit.SECONDS).
-        removalListener(new StaleConfigRemovalListener()).build();
+        expireAfterWrite(STALE_CONFIGS_CACHE_EXPIRATION_TIME, TimeUnit.SECONDS).build();
   }
 
   /**
@@ -1004,17 +976,6 @@ public class ConfigHelper {
 
     Map<String, Map<String, String>> desired = getEffectiveDesiredTags(cluster,
         sch.getHostName());
-
-    ArrayList<String> configs = new ArrayList<>();
-    Iterator<Entry<String, Map<String, String>>> configIterator = desired.entrySet().iterator();
-    while (configIterator.hasNext()) {
-      Entry<String, Map<String, String>> desiredEntry = configIterator.next();
-      configs.add(desiredEntry.getKey() + ":" + desiredEntry.getValue());
-    }
-    LOG.info(String.format(
-            "Calculating stale configs for \n\tcomponent:%s\n\twith configs:%s",
-            sch.getHostName() + ":" + sch.getServiceComponentName(),
-            StringUtils.join(configs, ';')));
 
     ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
         stackId.getStackVersion(), sch.getServiceName());
