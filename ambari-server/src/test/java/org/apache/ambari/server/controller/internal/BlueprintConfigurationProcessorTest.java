@@ -2541,7 +2541,7 @@ public class BlueprintConfigurationProcessorTest {
   public void testDoUpdateForClusterWithNameNodeHAEnabledSpecifyingHostNamesDirectly() throws Exception {
     final String expectedNameService = "mynameservice";
     final String expectedHostName = "c6401.apache.ambari.org";
-    final String expectedHostNameTwo = "serverTwo";
+    final String expectedHostNameTwo = "server-two";
     final String expectedPortNum = "808080";
     final String expectedNodeOne = "nn1";
     final String expectedNodeTwo = "nn2";
@@ -3986,7 +3986,7 @@ public class BlueprintConfigurationProcessorTest {
     hgComponents.add("FALCON_CLIENT");
     List<String> hosts = new ArrayList<String>();
     hosts.add("c6401.apache.ambari.org");
-    hosts.add("serverTwo");
+    hosts.add("server-two");
     TestHostGroup group1 = new TestHostGroup("host_group_1", hgComponents, hosts);
 
     Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
@@ -4032,7 +4032,7 @@ public class BlueprintConfigurationProcessorTest {
     hgComponents.add("FALCON_CLIENT");
     List<String> hosts = new ArrayList<String>();
     hosts.add(expectedHostName);
-    hosts.add("serverTwo");
+    hosts.add("server-two");
     TestHostGroup group1 = new TestHostGroup(expectedHostGroupName, hgComponents, hosts);
 
     Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
@@ -4649,7 +4649,7 @@ public class BlueprintConfigurationProcessorTest {
   public void testDoUpdateForClusterWithNameNodeHAEnabled() throws Exception {
     final String expectedNameService = "mynameservice";
     final String expectedHostName = "c6401.apache.ambari.org";
-    final String expectedHostNameTwo = "serverTwo";
+    final String expectedHostNameTwo = "server-two";
     final String expectedPortNum = "808080";
     final String expectedNodeOne = "nn1";
     final String expectedNodeTwo = "nn2";
@@ -4861,8 +4861,8 @@ public class BlueprintConfigurationProcessorTest {
   @Test
   public void testDoUpdateForClusterWithNameNodeHAEnabledAndActiveNodeSet() throws Exception {
     final String expectedNameService = "mynameservice";
-    final String expectedHostName = "serverThree";
-    final String expectedHostNameTwo = "serverFour";
+    final String expectedHostName = "server-three";
+    final String expectedHostNameTwo = "server-four";
     final String expectedPortNum = "808080";
     final String expectedNodeOne = "nn1";
     final String expectedNodeTwo = "nn2";
