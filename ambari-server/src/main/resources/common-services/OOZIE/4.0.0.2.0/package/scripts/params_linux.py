@@ -46,6 +46,8 @@ hostname = config["hostname"]
 version = default("/commandParams/version", None)
 stack_name = default("/hostLevelParams/stack_name", None)
 upgrade_direction = default("/commandParams/upgrade_direction", None)
+agent_stack_retry_on_unavailability = config["hostLevelParams"]["agent_stack_retry_on_unavailability"]
+agent_stack_retry_count = config["hostLevelParams"]["agent_stack_retry_count"]
 
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)

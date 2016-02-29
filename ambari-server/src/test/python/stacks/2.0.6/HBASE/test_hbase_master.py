@@ -37,7 +37,9 @@ class TestHBaseMaster(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        try_install=True
     )
-    self.assertResourceCalled('Package', 'hbase_2_3_*',)
+    self.assertResourceCalled('Package', 'hbase_2_3_*',
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
 
     self.assertNoMoreResources()
 
@@ -50,8 +52,12 @@ class TestHBaseMaster(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        try_install=True
     )
-    self.assertResourceCalled('Package', 'hbase_2_3_*',)
-    self.assertResourceCalled('Package', 'phoenix_2_3_*',)
+    self.assertResourceCalled('Package', 'hbase_2_3_*',
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'phoenix_2_3_*',
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
 
     self.assertNoMoreResources()
 

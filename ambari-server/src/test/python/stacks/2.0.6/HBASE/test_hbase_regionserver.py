@@ -549,7 +549,7 @@ class TestHbaseRegionServer(RMFTestCase):
                               owner='hbase',
                               content='log4jproperties\nline2')
 
-    self.assertResourceCalled('Package', 'phoenix_2_2_*')
+    self.assertResourceCalled('Package', 'phoenix_2_2_*', retry_count=5, retry_on_repo_unavailability=False)
 
     self.assertResourceCalled('Execute', '/usr/hdp/current/hbase-regionserver/bin/hbase-daemon.sh --config /usr/hdp/current/hbase-regionserver/conf start regionserver',
       not_if = 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hbase/hbase-hbase-regionserver.pid && ps -p `ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E cat /var/run/hbase/hbase-hbase-regionserver.pid` >/dev/null 2>&1',

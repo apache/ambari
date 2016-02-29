@@ -299,7 +299,9 @@ def oozie_server_specific():
       not_if  = no_op_test)
 
   if params.lzo_enabled and len(params.all_lzo_packages) > 0:
-    Package(params.all_lzo_packages)
+    Package(params.all_lzo_packages,
+            retry_on_repo_unavailability=params.agent_stack_retry_on_unavailability,
+            retry_count=params.agent_stack_retry_count)
     Execute(format('{sudo} cp {hadoop_lib_home}/hadoop-lzo*.jar {oozie_lib_dir}'),
       not_if  = no_op_test,
     )

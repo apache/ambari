@@ -40,6 +40,6 @@ class TestHookBeforeInstall(RMFTestCase):
         repo_file_name='HDP',
         repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0'
     )
-    self.assertResourceCalled('Package', 'unzip',)
-    self.assertResourceCalled('Package', 'curl',)
+    self.assertResourceCalled('Package', 'unzip', retry_count=5, retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'curl', retry_count=5, retry_on_repo_unavailability=False)
     self.assertNoMoreResources()

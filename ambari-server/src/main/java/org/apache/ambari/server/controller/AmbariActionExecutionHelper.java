@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.controller;
 
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AGENT_STACK_RETRY_ON_UNAVAILABILITY;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AGENT_STACK_RETRY_COUNT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_TIMEOUT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMPONENT_CATEGORY;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.REPO_INFO;
@@ -58,7 +60,6 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpInProgressEvent;
 import org.apache.ambari.server.utils.SecretReference;
-import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -414,7 +415,10 @@ public class AmbariActionExecutionHelper {
       execCmd.setComponentName(componentName == null || componentName.isEmpty() ?
         resourceFilter.getComponentName() : componentName);
 
-      addRepoInfoToHostLevelParams(cluster, execCmd.getHostLevelParams(), hostName);
+      Map<String, String> hostLevelParams = execCmd.getHostLevelParams();
+      hostLevelParams.put(AGENT_STACK_RETRY_ON_UNAVAILABILITY, configs.isAgentStackRetryOnInstallEnabled());
+      hostLevelParams.put(AGENT_STACK_RETRY_COUNT, configs.getAgentStackRetryOnInstallCount());
+      addRepoInfoToHostLevelParams(cluster, hostLevelParams, hostName);
 
       Map<String, String> roleParams = execCmd.getRoleParams();
       if (roleParams == null) {

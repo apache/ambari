@@ -348,6 +348,8 @@ public class ExecutionCommand extends AgentCommand {
     String HOST_SYS_PREPPED = "host_sys_prepped";
     String MAX_DURATION_OF_RETRIES = "max_duration_for_retries";
     String COMMAND_RETRY_ENABLED = "command_retry_enabled";
+    String AGENT_STACK_RETRY_ON_UNAVAILABILITY = "agent_stack_retry_on_unavailability";
+    String AGENT_STACK_RETRY_COUNT = "agent_stack_retry_count";
     /**
      * Comma separated list of config-types whose tags have be refreshed
      * at runtime before being executed. If all config-type tags have to be

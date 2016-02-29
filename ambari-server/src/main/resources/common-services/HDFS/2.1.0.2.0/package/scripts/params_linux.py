@@ -47,6 +47,8 @@ stack_name = default("/hostLevelParams/stack_name", None)
 upgrade_direction = default("/commandParams/upgrade_direction", None)
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
+agent_stack_retry_on_unavailability = config["hostLevelParams"]["agent_stack_retry_on_unavailability"]
+agent_stack_retry_count = config["hostLevelParams"]["agent_stack_retry_count"]
 
 # New Cluster Stack Version that is defined during the RESTART of a Stack Upgrade
 version = default("/commandParams/version", None)

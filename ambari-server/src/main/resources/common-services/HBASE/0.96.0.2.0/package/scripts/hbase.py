@@ -192,7 +192,9 @@ def hbase(name=None):
     params.HdfsResource(None, action="execute")
 
   if params.phoenix_enabled:
-    Package(params.phoenix_package)
+    Package(params.phoenix_package,
+            retry_on_repo_unavailability=params.agent_stack_retry_on_unavailability,
+            retry_count=params.agent_stack_retry_count)
 
 def hbase_TemplateConfig(name, tag=None):
   import params

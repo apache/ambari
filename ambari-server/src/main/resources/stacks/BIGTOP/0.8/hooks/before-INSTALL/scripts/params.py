@@ -28,6 +28,9 @@ tmp_dir = Script.get_tmp_dir()
 #RPM versioning support
 rpm_version = default("/configurations/cluster-env/rpm_version", None)
 
+agent_stack_retry_on_unavailability = config["hostLevelParams"]["agent_stack_retry_on_unavailability"]
+agent_stack_retry_count = config["hostLevelParams"]["agent_stack_retry_count"]
+
 #users and groups
 hbase_user = config['configurations']['hbase-env']['hbase_user']
 smoke_user =  config['configurations']['cluster-env']['smokeuser']

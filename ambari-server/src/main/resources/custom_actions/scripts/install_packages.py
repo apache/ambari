@@ -359,10 +359,16 @@ class InstallPackages(Script):
     # Clear cache of package manager right before installation of the packages
     self._clear_package_manager_cache()
 
+    config = self.get_config()
+    agent_stack_retry_on_unavailability = bool(config['hostLevelParams']['agent_stack_retry_on_unavailability'])
+    agent_stack_retry_count = int(config['hostLevelParams']['agent_stack_retry_count'])
+
     # Install packages
     packages_were_checked = False
     try:
-      Package(self.get_base_packages_to_install())
+      Package(self.get_base_packages_to_install(),
+              retry_on_repo_unavailability=agent_stack_retry_on_unavailability,
+              retry_count=agent_stack_retry_count)
 
       packages_installed_before = []
       allInstalledPackages(packages_installed_before)
@@ -373,7 +379,9 @@ class InstallPackages(Script):
         name = self.format_package_name(package['name'], self.repository_version)
         Package(name,
                 use_repos=list(self.current_repo_files) if OSCheck.is_ubuntu_family() else self.current_repositories,
-                skip_repos=[self.REPO_FILE_NAME_PREFIX + "*"] if OSCheck.is_redhat_family() else [])
+                skip_repos=[self.REPO_FILE_NAME_PREFIX + "*"] if OSCheck.is_redhat_family() else [],
+                retry_on_repo_unavailability=agent_stack_retry_on_unavailability,
+                retry_count=agent_stack_retry_count)
     except Exception, err:
       ret_code = 1
       Logger.logger.exception("Package Manager failed to install packages. Error: {0}".format(str(err)))

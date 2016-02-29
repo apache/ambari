@@ -108,15 +108,43 @@ class TestInstallPackages(RMFTestCase):
         logoutput = False,
         sudo = True,
     )
-    self.assertResourceCalled('Package', 'fuse')
-    self.assertResourceCalled('Package', 'fuse-libs')
-    self.assertResourceCalled('Package', 'hadoop_2_2_*', use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'], skip_repos=['HDP-*'])
-    self.assertResourceCalled('Package', 'snappy', use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'], skip_repos=['HDP-*'])
-    self.assertResourceCalled('Package', 'snappy-devel', use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'], skip_repos=['HDP-*'])
-    self.assertResourceCalled('Package', 'lzo', use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'], skip_repos=['HDP-*'])
-    self.assertResourceCalled('Package', 'hadooplzo_2_2_*', use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'], skip_repos=['HDP-*'])
-    self.assertResourceCalled('Package', 'hadoop_2_2_*-libhdfs', use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'], skip_repos=['HDP-*'])
-    self.assertResourceCalled('Package', 'ambari-log4j', use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'], skip_repos=['HDP-*'])
+    self.assertResourceCalled('Package', 'fuse', retry_count=5, retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'fuse-libs', retry_count=5, retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'hadoop_2_2_*',
+                              use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'],
+                              skip_repos=['HDP-*'],
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'snappy',
+                              use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'],
+                              skip_repos=['HDP-*'],
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'snappy-devel',
+                              use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'],
+                              skip_repos=['HDP-*'],
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'lzo',
+                              use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'],
+                              skip_repos=['HDP-*'],
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'hadooplzo_2_2_*',
+                              use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'],
+                              skip_repos=['HDP-*'],
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'hadoop_2_2_*-libhdfs',
+                              use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'],
+                              skip_repos=['HDP-*'],
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'ambari-log4j',
+                              use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'],
+                              skip_repos=['HDP-*'],
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
     self.assertNoMoreResources()
 
   @patch("ambari_commons.os_check.OSCheck.is_suse_family")
@@ -172,15 +200,47 @@ class TestInstallPackages(RMFTestCase):
         logoutput = False,
         sudo = True,
     )
-    self.assertResourceCalled('Package', 'fuse')
-    self.assertResourceCalled('Package', 'libfuse2')
-    self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885*', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'], skip_repos=[])
-    self.assertResourceCalled('Package', 'snappy', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'], skip_repos=[])
-    self.assertResourceCalled('Package', 'snappy-devel', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'], skip_repos=[])
-    self.assertResourceCalled('Package', 'lzo', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'], skip_repos=[])
-    self.assertResourceCalled('Package', 'hadooplzo_2_2_0_1_885*', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'], skip_repos=[])
-    self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885*-libhdfs', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'], skip_repos=[])
-    self.assertResourceCalled('Package', 'ambari-log4j', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'], skip_repos=[])
+    self.assertResourceCalled('Package', 'fuse',
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'libfuse2',
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885*',
+                              use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'],
+                              skip_repos=[],
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'snappy',
+                              use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'],
+                              skip_repos=[],
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'snappy-devel',
+                              use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'],
+                              skip_repos=[],
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'lzo',
+                              use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'],
+                              skip_repos=[],
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'hadooplzo_2_2_0_1_885*',
+                              use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'],
+                              skip_repos=[],
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885*-libhdfs',
+                              use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'],
+                              skip_repos=[],
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'ambari-log4j',
+                              use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'],
+                              skip_repos=[],
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
     self.assertNoMoreResources()
 
 
@@ -239,15 +299,47 @@ class TestInstallPackages(RMFTestCase):
         logoutput = False,
         sudo = True,
     )
-    self.assertResourceCalled('Package', 'fuse')
-    self.assertResourceCalled('Package', 'fuse-libs')
-    self.assertResourceCalled('Package', 'hadoop_2_2_*', use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'], skip_repos=['HDP-*'])
-    self.assertResourceCalled('Package', 'snappy', use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'], skip_repos=['HDP-*'])
-    self.assertResourceCalled('Package', 'snappy-devel', use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'], skip_repos=['HDP-*'])
-    self.assertResourceCalled('Package', 'lzo', use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'], skip_repos=['HDP-*'])
-    self.assertResourceCalled('Package', 'hadooplzo_2_2_*', use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'], skip_repos=['HDP-*'])
-    self.assertResourceCalled('Package', 'hadoop_2_2_*-libhdfs', use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'], skip_repos=['HDP-*'])
-    self.assertResourceCalled('Package', 'ambari-log4j', use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'], skip_repos=['HDP-*'])
+    self.assertResourceCalled('Package', 'fuse',
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'fuse-libs',
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'hadoop_2_2_*',
+                              use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'],
+                              skip_repos=['HDP-*'],
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'snappy',
+                              use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'],
+                              skip_repos=['HDP-*'],
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'snappy-devel',
+                              use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'],
+                              skip_repos=['HDP-*'],
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'lzo',
+                              use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'],
+                              skip_repos=['HDP-*'],
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'hadooplzo_2_2_*',
+                              use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'],
+                              skip_repos=['HDP-*'],
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'hadoop_2_2_*-libhdfs',
+                              use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'],
+                              skip_repos=['HDP-*'],
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'ambari-log4j',
+                              use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'],
+                              skip_repos=['HDP-*'],
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
     self.assertNoMoreResources()
 
 
@@ -381,15 +473,47 @@ class TestInstallPackages(RMFTestCase):
         logoutput = False,
         sudo = True,
     )
-    self.assertResourceCalled('Package', 'fuse')
-    self.assertResourceCalled('Package', 'libfuse2')
-    self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885*', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'], skip_repos=[])
-    self.assertResourceCalled('Package', 'snappy', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'], skip_repos=[])
-    self.assertResourceCalled('Package', 'snappy-devel', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'], skip_repos=[])
-    self.assertResourceCalled('Package', 'lzo', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'], skip_repos=[])
-    self.assertResourceCalled('Package', 'hadooplzo_2_2_0_1_885*', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'], skip_repos=[])
-    self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885*-libhdfs', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'], skip_repos=[])
-    self.assertResourceCalled('Package', 'ambari-log4j', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'], skip_repos=[])
+    self.assertResourceCalled('Package', 'fuse',
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'libfuse2',
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885*',
+                              use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'],
+                              skip_repos=[],
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'snappy',
+                              use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'],
+                              skip_repos=[],
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'snappy-devel',
+                              use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'],
+                              skip_repos=[],
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'lzo',
+                              use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'],
+                              skip_repos=[],
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'hadooplzo_2_2_0_1_885*',
+                              use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'],
+                              skip_repos=[],
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885*-libhdfs',
+                              use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'],
+                              skip_repos=[],
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'ambari-log4j',
+                              use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'],
+                              skip_repos=[],
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
     self.assertNoMoreResources()
 
 

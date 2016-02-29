@@ -67,11 +67,21 @@ class TestPxf(RMFTestCase):
                        target=RMFTestCase.TARGET_COMMON_SERVICES,
                        try_install=True)
 
-    self.assertResourceCalled('Package', 'pxf-service',)
-    self.assertResourceCalled('Package', 'apache-tomcat',)
-    self.assertResourceCalled('Package', 'pxf-hive',)
-    self.assertResourceCalled('Package', 'pxf-hdfs',)
-    self.assertResourceCalled('Package', 'pxf-hbase',)
+    self.assertResourceCalled('Package', 'pxf-service',
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'apache-tomcat',
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'pxf-hive',
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'pxf-hdfs',
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'pxf-hbase',
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
 
     self.assert_configure_default()
 

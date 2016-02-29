@@ -552,6 +552,14 @@ public class Configuration {
   public static final String VIEWS_HTTP_X_XSS_PROTECTION_HEADER_VALUE_KEY = "views.http.x-xss-protection";
   public static final String VIEWS_HTTP_X_XSS_PROTECTION_HEADER_VALUE_DEFAULT = "1; mode=block";
 
+  /**
+   * For Agent Stack Install retry configuration
+   */
+  public static final String AGENT_STACK_RETRY_ON_REPO_UNAVAILABILITY_KEY = "agent.stack.retry.on_repo_unavailability";
+  public static final String AGENT_STACK_RETRY_ON_REPO_UNAVAILABILITY_DEFAULT = "false";
+  public static final String AGENT_STACK_RETRY_COUNT_KEY = "agent.stack.retry.tries";
+  public static final String AGENT_STACK_RETRY_COUNT_DEFAULT = "5";
+
   private static final Logger LOG = LoggerFactory.getLogger(
       Configuration.class);
 
@@ -2534,5 +2542,13 @@ public class Configuration {
       LOG.info("Operations retry enabled. Number of retry attempts: {}", attempts);
     }
     return attempts;
+  }
+
+  public String getAgentStackRetryOnInstallCount(){
+    return properties.getProperty(AGENT_STACK_RETRY_COUNT_KEY, AGENT_STACK_RETRY_COUNT_DEFAULT);
+  }
+
+  public String isAgentStackRetryOnInstallEnabled(){
+    return properties.getProperty(AGENT_STACK_RETRY_ON_REPO_UNAVAILABILITY_KEY, AGENT_STACK_RETRY_ON_REPO_UNAVAILABILITY_DEFAULT);
   }
 }

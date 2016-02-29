@@ -43,6 +43,9 @@ exec_tmp_dir = Script.get_tmp_dir()
 sudo = AMBARI_SUDO_BINARY
 
 stack_name = default("/hostLevelParams/stack_name", None)
+agent_stack_retry_on_unavailability = config["hostLevelParams"]["agent_stack_retry_on_unavailability"]
+agent_stack_retry_count = config["hostLevelParams"]["agent_stack_retry_count"]
+
 version = default("/commandParams/version", None)
 component_directory = status_params.component_directory
 etc_prefix_dir = "/etc/hbase"
