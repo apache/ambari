@@ -64,7 +64,8 @@ public class TransactionalLockTest {
   }
 
   /**
-   *
+   * Tests that annotations are actually equal (more of a proof of the javadoc
+   * than anything).
    */
   @Test
   public void testAnnotationEquality() {
@@ -86,7 +87,6 @@ public class TransactionalLockTest {
     Assert.assertEquals(3, annotationsFound);
   }
 
-
   @TransactionalLock(lockArea = LockArea.HRC_STATUS_CACHE, lockType = LockType.READ)
   private void transactionalHRCRead() {
   }
@@ -98,5 +98,4 @@ public class TransactionalLockTest {
   @TransactionalLock(lockArea = LockArea.HRC_STATUS_CACHE, lockType = LockType.WRITE)
   private void transactionalHRCWrite() {
   }
-
 }
