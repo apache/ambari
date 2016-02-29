@@ -135,20 +135,32 @@
           "is_visible": true,
           "metrics": [
             {
-              "name": "mem_total",
+              "name": "mem_total._sum",
               "metric_path": "metrics/memory/mem_total",
               "service_name": "HAWQ",
               "component_name": "HAWQSEGMENT"
             },
             {
-              "name": "mem_free",
+              "name": "mem_free._sum",
               "metric_path": "metrics/memory/mem_free",
               "service_name": "HAWQ",
               "component_name": "HAWQSEGMENT"
             },
             {
-              "name": "mem_cached",
+              "name": "mem_cached._sum",
               "metric_path": "metrics/memory/mem_cached",
+              "service_name": "HAWQ",
+              "component_name": "HAWQSEGMENT"
+            },
+            {
+              "name": "swap_total._sum",
+              "metric_path": "metrics/memory/swap_total",
+              "service_name": "HAWQ",
+              "component_name": "HAWQSEGMENT"
+            },
+            {
+              "name": "swap_free._sum",
+              "metric_path": "metrics/memory/swap_free",
               "service_name": "HAWQ",
               "component_name": "HAWQSEGMENT"
             }
@@ -156,7 +168,11 @@
           "values": [
             {
               "name": "Memory utilization",
-              "value": "${((mem_total - mem_free - mem_cached)/mem_total) * 100}"
+              "value": "${((mem_total._sum - mem_free._sum - mem_cached._sum)/mem_total._sum) * 100}"
+            },
+            {
+              "name": "Swap utilization",
+              "value": "${((swap_total._sum - swap_free._sum)/swap_total._sum) * 100}"
             }
           ],
           "properties": {
