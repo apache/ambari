@@ -20,6 +20,107 @@ var App = require('app');
 
 describe('App.serviceMetricsMapper', function () {
 
+  describe('#computeAdditionalRelations', function () {
+
+    var tests = [
+      {
+        message: 'if both namenodes are standby then `display_name_advanced` for both should be `Standby NameNode`',
+        haStateForNn1: 'standby',
+        haStateForNn2: 'standby',
+        expectedNameForNn1: 'Standby NameNode',
+        expectedNameForNn2: 'Standby NameNode'
+      },
+      {
+        message: 'if one namenode is active and another is standby then they should be shown as  `Active NameNode` and `Standby NameNode` respectively',
+        haStateForNn1: 'active',
+        haStateForNn2: 'standby',
+        expectedNameForNn1: 'Active NameNode',
+        expectedNameForNn2: 'Standby NameNode'
+      },
+      {
+        message: 'if one namenode is active and another is unknown then they should be shown as  `Active NameNode` and `Standby NameNode` respectively',
+        haStateForNn1: 'active',
+        haStateForNn2: undefined,
+        expectedNameForNn1: 'Active NameNode',
+        expectedNameForNn2: 'Standby NameNode'
+      },
+      {
+        message: 'if both namenodes state are unknown then `display_name_advanced` for both should be null (NN will be shown with display name as `NameNode`)',
+        haStateForNn1: undefined,
+        haStateForNn2: undefined,
+        expectedNameForNn1: null,
+        expectedNameForNn2: null
+      }
+    ];
+
+    var services = [
+      {
+        ServiceInfo: {
+          service_name: "HDFS"
+        },
+        components: [
+          {
+            ServiceComponentInfo: {
+              component_name: "NAMENODE",
+              service_name: "HDFS"
+            },
+            host_components: [
+              {
+                HostRoles: {
+                  component_name: "NAMENODE",
+                  host_name: "h1"
+                },
+                metrics: {
+                  dfs: {
+                    FSNamesystem: {
+                      HAState: ""
+                    }
+                  }
+                }
+              },
+              {
+                HostRoles: {
+                  component_name: "NAMENODE",
+                  host_name: "h2"
+                },
+                metrics: {
+                  dfs: {
+                    FSNamesystem: {
+                      HAState: ""
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ];
+
+    var hostComponents = [
+      {
+        component_name: "NAMENODE",
+        host_id: "h1",
+        service_id: "HDFS"
+      },
+      {
+        component_name: "NAMENODE",
+        host_id: "h2",
+        service_id: "HDFS"
+      }
+    ];
+
+    tests.forEach(function (test) {
+      it(test.message, function () {
+        services[0].components[0].host_components[0].metrics.dfs.FSNamesystem['HAState'] = test.haStateForNn1;
+        services[0].components[0].host_components[1].metrics.dfs.FSNamesystem['HAState'] = test.haStateForNn2;
+        App.serviceMetricsMapper.computeAdditionalRelations(hostComponents, services);
+        expect(hostComponents[0].display_name_advanced).to.equal(test.expectedNameForNn1);
+        expect(hostComponents[1].display_name_advanced).to.equal(test.expectedNameForNn2);
+      });
+    });
+  });
+
   describe('#yarnMapper', function () {
 
     it('should set ACTIVE RM first in any cases (if RM HA enabled)', function() {
