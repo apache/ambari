@@ -20,7 +20,11 @@ package org.apache.ambari.server.audit;
 
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 import org.junit.Test;
@@ -37,21 +41,25 @@ public class LoginSucceededAuditEventTest {
     // Given
     String testUserName = "USER1";
     String testRemoteIp = "127.0.0.1";
-    String testRole = "Administrator";
+
+    Map<String, List<String>> roles = new HashMap<>();
+    roles.put("a", Arrays.asList("r1", "r2", "r3"));
 
     LoginSucceededAuditEvent evnt = LoginSucceededAuditEvent.builder()
       .withTimestamp(DateTime.now())
       .withRemoteIp(testRemoteIp)
       .withUserName(testUserName)
-      .withRoles(Arrays.asList(testRole))
+      .withRoles(roles)
       .build();
 
     // When
     String actualAuditMessage = evnt.getAuditMessage();
 
+    String roleMessage = System.lineSeparator() + "    a: r1, r2, r3" + System.lineSeparator();
+
     // Then
     String expectedAuditMessage = String.format("User(%s), RemoteIp(%s), Roles(%s), Status(Login succeeded !)",
-      testUserName, testRemoteIp, testRole);
+      testUserName, testRemoteIp, roleMessage);
 
     assertThat(actualAuditMessage, equalTo(expectedAuditMessage));
 

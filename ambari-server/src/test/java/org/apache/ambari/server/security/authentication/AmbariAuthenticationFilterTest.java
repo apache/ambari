@@ -19,6 +19,10 @@ package org.apache.ambari.server.security.authentication;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -83,8 +87,11 @@ public class AmbariAuthenticationFilterTest {
     HttpServletResponse response = createMock(HttpServletResponse.class);
     Authentication authentication = createMock(Authentication.class);
     PowerMock.mockStatic(AuthorizationHelper.class);
+
+    Map<String, List<String>> roles = new HashMap<>();
+    roles.put("a", Arrays.asList("r1", "r2", "r3"));
     expect(AuthorizationHelper.getPermissionLabels(authentication))
-      .andReturn(Arrays.asList("role1", "role2"));
+      .andReturn(roles);
     expect(AuthorizationHelper.getAuthorizationNames(authentication))
       .andReturn(Arrays.asList("perm1", "perm2"));
     expect(request.getHeader("X-Forwarded-For")).andReturn("1.2.3.4");

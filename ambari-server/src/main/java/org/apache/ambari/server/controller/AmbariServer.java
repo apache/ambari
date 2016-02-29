@@ -98,6 +98,7 @@ import org.apache.ambari.server.security.SecurityFilter;
 import org.apache.ambari.server.security.authorization.AmbariAuthorizationFilter;
 import org.apache.ambari.server.security.authorization.AmbariLdapAuthenticationProvider;
 import org.apache.ambari.server.security.authorization.AmbariLocalUserDetailsService;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.security.authorization.internal.AmbariInternalAuthenticationProvider;
 import org.apache.ambari.server.security.authorization.jwt.JwtAuthenticationFilter;
@@ -889,6 +890,7 @@ public class AmbariServer {
     RetryHelper.init(configs.getOperationsRetryAttempts());
 
     AbstractServerAction.init(injector);
+    AuthorizationHelper.init(injector.getInstance(Clusters.class), injector.getInstance(ViewInstanceDAO.class));
   }
 
   /**

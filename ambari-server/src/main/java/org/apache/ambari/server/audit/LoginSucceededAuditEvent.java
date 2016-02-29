@@ -18,7 +18,10 @@
 
 package org.apache.ambari.server.audit;
 
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+
 import javax.annotation.concurrent.Immutable;
 import org.apache.commons.lang.StringUtils;
 
@@ -33,7 +36,7 @@ public class LoginSucceededAuditEvent extends AbstractLoginAuditEvent {
 
     private LoginSucceededAuditEventBuilder() { }
 
-    private List<String> roles;
+    private Map<String, List<String>> roles;
 
 
     /**
@@ -43,10 +46,14 @@ public class LoginSucceededAuditEvent extends AbstractLoginAuditEvent {
     protected void buildAuditMessage(StringBuilder builder) {
       super.buildAuditMessage(builder);
 
-      builder
-        .append(", Roles(")
-        .append(StringUtils.join(roles, ","))
-        .append("), Status(Login succeeded !)");
+      builder.append(", Roles(").append(System.lineSeparator());
+
+      List<String> lines = new LinkedList<>();
+      for( Map.Entry<String, List<String>> entry : roles.entrySet()) {
+        lines.add("    " + entry.getKey() + ": " + StringUtils.join(entry.getValue(), ", "));
+      }
+      builder.append(StringUtils.join(lines, System.lineSeparator()));
+      builder.append(System.lineSeparator()).append("), Status(Login succeeded !)");
     }
 
     /**
@@ -54,7 +61,7 @@ public class LoginSucceededAuditEvent extends AbstractLoginAuditEvent {
      * @param roles
      * @return this builder
      */
-    public LoginSucceededAuditEventBuilder withRoles(List<String> roles) {
+    public LoginSucceededAuditEventBuilder withRoles(Map<String, List<String>> roles) {
       this.roles = roles;
 
       return this;
