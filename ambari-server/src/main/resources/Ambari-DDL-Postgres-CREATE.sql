@@ -559,7 +559,7 @@ CREATE TABLE repo_version (
   repositories TEXT NOT NULL,
   repo_type VARCHAR(255) DEFAULT 'STANDARD' NOT NULL,
   version_url VARCHAR(1024),
-  version_xml VARCHAR TEXT,
+  version_xml TEXT,
   version_xsd VARCHAR(512),
   parent_id BIGINT,
   PRIMARY KEY(repo_version_id)

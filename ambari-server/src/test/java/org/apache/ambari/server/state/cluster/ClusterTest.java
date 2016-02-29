@@ -18,6 +18,16 @@
 
 package org.apache.ambari.server.state.cluster;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -118,16 +128,6 @@ import com.google.inject.persist.UnitOfWork;
 import com.google.inject.util.Modules;
 
 import junit.framework.Assert;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class ClusterTest {
 
@@ -1715,6 +1715,37 @@ public class ClusterTest {
     checkStackVersionState(stackId, stackVersion,
         RepositoryVersionState.CURRENT);
   }
+
+  @Test
+  public void testRecalculateClusterVersionStateWithNotRequired() throws Exception {
+    createDefaultCluster();
+
+    Host h1 = clusters.getHost("h1");
+    h1.setState(HostState.HEALTHY);
+
+    Host h2 = clusters.getHost("h2");
+    h2.setState(HostState.HEALTHY);
+
+    // Phase 1: Install bits during distribution
+    StackId stackId = new StackId("HDP-0.1");
+    final String stackVersion = "0.1-1000";
+    RepositoryVersionEntity repositoryVersionEntity = helper.getOrCreateRepositoryVersion(
+        stackId,
+        stackVersion);
+    // Because the cluster already has a Cluster Version, an additional stack must init with INSTALLING
+    c1.createClusterVersion(stackId, stackVersion, "admin",
+        RepositoryVersionState.INSTALLING);
+    c1.setCurrentStackVersion(stackId);
+
+    HostVersionEntity hv1 = helper.createHostVersion("h1", repositoryVersionEntity, RepositoryVersionState.INSTALLED);
+    HostVersionEntity hv2 = helper.createHostVersion("h2", repositoryVersionEntity, RepositoryVersionState.NOT_REQUIRED);
+
+    c1.recalculateClusterVersionState(repositoryVersionEntity);
+    //Should remain in its current state
+    checkStackVersionState(stackId, stackVersion,
+        RepositoryVersionState.INSTALLED);
+  }
+
 
   @Test
   public void testRecalculateAllClusterVersionStates() throws Exception {

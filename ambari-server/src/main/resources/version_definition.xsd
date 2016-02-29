@@ -54,7 +54,6 @@
       <xs:enumeration value="ubuntu12" />
       <xs:enumeration value="ubuntu14" />
       <xs:enumeration value="suse11" />
-      <xs:enumeration value="amazon2015" />
     </xs:restriction>
   </xs:simpleType>
   

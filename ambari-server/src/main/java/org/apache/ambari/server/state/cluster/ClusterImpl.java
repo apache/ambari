@@ -1379,13 +1379,14 @@ public class ClusterImpl implements Cluster {
     }
 
     if (totalNotRequired > 0) {
+      if (totalInstalled + totalNotRequired == totalHosts) {
+        return RepositoryVersionState.INSTALLED;
+      }
+
       if (totalInstalling + totalInstalled + totalNotRequired == totalHosts) {
         return RepositoryVersionState.INSTALLING;
       }
 
-      if (totalInstalled + totalNotRequired == totalHosts) {
-        return RepositoryVersionState.INSTALLED;
-      }
     }
 
     // Also returns when have a mix of CURRENT and INSTALLING|INSTALLED
