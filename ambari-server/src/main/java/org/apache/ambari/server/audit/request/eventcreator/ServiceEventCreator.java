@@ -132,6 +132,15 @@ public class ServiceEventCreator implements RequestAuditEventCreator {
           }
         }
       }
+      if("SERVICE".equals(request.getBody().getRequestInfoProperties().get(RequestOperationLevel.OPERATION_LEVEL_ID))) {
+        for (Map<String, Object> map : request.getBody().getPropertySets()) {
+          if (map.containsKey(PropertyHelper.getPropertyId("ServiceInfo", "state"))) {
+            operation = String.valueOf(map.get(PropertyHelper.getPropertyId("ServiceInfo", "state"))) + ": " + map.get(PropertyHelper.getPropertyId("ServiceInfo", "service_name"))
+              + " (" + request.getBody().getRequestInfoProperties().get(RequestOperationLevel.OPERATION_CLUSTER_ID) + ")";
+            break;
+          }
+        }
+      }
       return operation;
     }
 
