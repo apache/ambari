@@ -150,6 +150,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
   config3: {
     work_status: 'HostRoles.state',
     passive_state: 'HostRoles.maintenance_state',
+    display_name: 'HostRoles.display_name',
     component_name: 'HostRoles.component_name',
     host_id: 'HostRoles.host_name',
     host_name: 'HostRoles.host_name',
