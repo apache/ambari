@@ -360,7 +360,8 @@ public class ClusterTopologyImpl implements ClusterTopology {
       }
     }
     if (! duplicates.isEmpty()) {
-      throw new InvalidTopologyException("The following hosts are mapped to multiple host groups: " + duplicates);
+      throw new InvalidTopologyException("The following hosts are mapped to multiple host groups: " + duplicates + "." +
+        " Be aware that host names are converted to lowercase, case differences do not matter in Ambari deployments.");
     }
   }
 }
