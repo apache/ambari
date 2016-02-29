@@ -554,7 +554,7 @@ public class UpgradeHelperTest {
 
     assertEquals(4, groups.get(0).items.size());
     assertEquals(8, groups.get(1).items.size());
-    assertEquals(3, groups.get(2).items.size());
+    assertEquals(5, groups.get(2).items.size());
     assertEquals(8, groups.get(3).items.size());
     assertEquals(8, groups.get(4).items.size());
   }
@@ -670,8 +670,9 @@ public class UpgradeHelperTest {
 
     List<ConfigUpgradeChangeDefinition.Transfer> transfers = m_gson.fromJson(configurationJson,
             new TypeToken<List<ConfigUpgradeChangeDefinition.Transfer>>() { }.getType());
+    System.out.println(">> transfers"+transfers);
 
-    assertEquals(10, transfers.size());
+    assertEquals(6, transfers.size());
     assertEquals("copy-key", transfers.get(0).fromKey);
     assertEquals("copy-key-to", transfers.get(0).toKey);
 
@@ -679,15 +680,178 @@ public class UpgradeHelperTest {
     assertEquals("move-key-to", transfers.get(1).toKey);
 
     assertEquals("delete-key", transfers.get(2).deleteKey);
+    assertEquals("delete-http-1", transfers.get(3).deleteKey);
+    assertEquals("delete-http-2", transfers.get(4).deleteKey);
+    assertEquals("delete-http-3", transfers.get(5).deleteKey);
 
-    assertEquals("delete-http", transfers.get(3).deleteKey);
-    assertEquals("delete-null-if-value", transfers.get(4).deleteKey);
-    assertEquals("delete-blank-if-key", transfers.get(5).deleteKey);
-    assertEquals("delete-blank-if-type", transfers.get(6).deleteKey);
-    assertEquals("delete-thrift", transfers.get(7).deleteKey);
 
-    assertEquals("delete-if-key-present", transfers.get(8).deleteKey);
-    assertEquals("delete-if-key-absent", transfers.get(9).deleteKey);
+  }
+
+  @Test
+  public void testConfigTaskConditionMet() throws Exception {
+    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
+    assertTrue(upgrades.containsKey("upgrade_test"));
+    UpgradePack upgrade = upgrades.get("upgrade_test");
+    ConfigUpgradePack cup = ambariMetaInfo.getConfigUpgradePack("HDP", "2.1.1");
+    assertNotNull(upgrade);
+
+    Cluster cluster = makeCluster();
+
+    UpgradeContext context = new UpgradeContext(m_masterHostResolver, HDP_21,
+        HDP_21, UPGRADE_VERSION, Direction.UPGRADE, UpgradeType.ROLLING);
+
+    List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade,
+        context);
+
+    assertEquals(7, groups.size());
+
+    // grab the configure task out of Hive
+    UpgradeGroupHolder hiveGroup = groups.get(4);
+    assertEquals("HIVE", hiveGroup.name);
+
+    //Condition is met
+    ConfigureTask configureTask = (ConfigureTask) hiveGroup.items.get(3).getTasks().get(0).getTasks().get(0);
+    Map<String, String> configProperties = configureTask.getConfigurationChanges(cluster, cup);
+
+    assertFalse(configProperties.isEmpty());
+    assertEquals(configProperties.get(ConfigureTask.PARAMETER_CONFIG_TYPE), "hive-site");
+
+    assertTrue(configProperties.containsKey(ConfigureTask.PARAMETER_KEY_VALUE_PAIRS));
+    assertTrue(configProperties.containsKey(ConfigureTask.PARAMETER_REPLACEMENTS));
+    assertTrue(configProperties.containsKey(ConfigureTask.PARAMETER_TRANSFERS));
+
+    String configurationJson = configProperties.get(ConfigureTask.PARAMETER_KEY_VALUE_PAIRS);
+    String transferJson = configProperties.get(ConfigureTask.PARAMETER_TRANSFERS);
+    String replacementJson = configProperties.get(ConfigureTask.PARAMETER_REPLACEMENTS);
+    assertNotNull(configurationJson);
+    assertNotNull(transferJson);
+    assertNotNull(replacementJson);
+
+    //if conditions for sets...
+    List<ConfigUpgradeChangeDefinition.ConfigurationKeyValue> keyValuePairs = m_gson.fromJson(configurationJson,
+        new TypeToken<List<ConfigUpgradeChangeDefinition.ConfigurationKeyValue>>() {
+        }.getType());
+    assertEquals("setKeyOne", keyValuePairs.get(0).key);
+    assertEquals("1", keyValuePairs.get(0).value);
+
+    assertEquals("setKeyTwo", keyValuePairs.get(1).key);
+    assertEquals("2", keyValuePairs.get(1).value);
+
+    assertEquals("setKeyThree", keyValuePairs.get(2).key);
+    assertEquals("3", keyValuePairs.get(2).value);
+
+    assertEquals("setKeyFour", keyValuePairs.get(3).key);
+    assertEquals("4", keyValuePairs.get(3).value);
+
+    //if conditions for transfer
+    List<ConfigUpgradeChangeDefinition.Transfer> transfers = m_gson.fromJson(transferJson,
+        new TypeToken<List<ConfigUpgradeChangeDefinition.Transfer>>() {
+        }.getType());
+
+    System.out.println(" testConfigTaskConditionMet >> transfer"+transfers);
+
+    assertEquals("copy-key-one", transfers.get(0).fromKey);
+    assertEquals("copy-to-key-one", transfers.get(0).toKey);
+
+    assertEquals("copy-key-two", transfers.get(1).fromKey);
+    assertEquals("copy-to-key-two", transfers.get(1).toKey);
+
+    assertEquals("copy-key-three", transfers.get(2).fromKey);
+    assertEquals("copy-to-key-three", transfers.get(2).toKey);
+
+    assertEquals("copy-key-four", transfers.get(3).fromKey);
+    assertEquals("copy-to-key-four", transfers.get(3).toKey);
+
+    assertEquals("move-key-one", transfers.get(4).fromKey);
+    assertEquals("move-to-key-one", transfers.get(4).toKey);
+
+    assertEquals("move-key-two", transfers.get(5).fromKey);
+    assertEquals("move-to-key-two", transfers.get(5).toKey);
+
+    assertEquals("move-key-three", transfers.get(6).fromKey);
+    assertEquals("move-to-key-three", transfers.get(6).toKey);
+
+    assertEquals("move-key-four", transfers.get(7).fromKey);
+    assertEquals("move-to-key-four", transfers.get(7).toKey);
+
+    assertEquals("delete-key-one", transfers.get(8).deleteKey);
+    assertEquals("delete-key-two", transfers.get(9).deleteKey);
+    assertEquals("delete-key-three", transfers.get(10).deleteKey);
+    assertEquals("delete-key-four", transfers.get(11).deleteKey);
+
+    //if conditions for replace
+    List<ConfigUpgradeChangeDefinition.Replace> replacements = m_gson.fromJson(replacementJson,
+        new TypeToken<List<ConfigUpgradeChangeDefinition.Replace>>() {
+        }.getType());
+    assertEquals("replace-key-one", replacements.get(0).key);
+    assertEquals("abc", replacements.get(0).find);
+    assertEquals("abc-replaced", replacements.get(0).replaceWith);
+    assertEquals("replace-key-two", replacements.get(1).key);
+    assertEquals("efg", replacements.get(1).find);
+    assertEquals("efg-replaced", replacements.get(1).replaceWith);
+    assertEquals("replace-key-three", replacements.get(2).key);
+    assertEquals("ijk", replacements.get(2).find);
+    assertEquals("ijk-replaced", replacements.get(2).replaceWith);
+    assertEquals("replace-key-four", replacements.get(3).key);
+    assertEquals("lmn", replacements.get(3).find);
+    assertEquals("lmn-replaced", replacements.get(3).replaceWith);
+  }
+
+  @Test
+  public void testConfigTaskConditionSkipped() throws Exception {
+    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
+    assertTrue(upgrades.containsKey("upgrade_test"));
+    UpgradePack upgrade = upgrades.get("upgrade_test");
+    ConfigUpgradePack cup = ambariMetaInfo.getConfigUpgradePack("HDP", "2.1.1");
+    assertNotNull(upgrade);
+
+    Cluster cluster = makeCluster();
+
+    UpgradeContext context = new UpgradeContext(m_masterHostResolver, HDP_21,
+        HDP_21, UPGRADE_VERSION, Direction.UPGRADE, UpgradeType.ROLLING);
+
+    List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade,
+        context);
+
+    assertEquals(7, groups.size());
+
+    UpgradeGroupHolder hiveGroup = groups.get(4);
+    assertEquals("HIVE", hiveGroup.name);
+
+    //Condition is not met, so no config operations should be present in the configureTask...
+    ConfigureTask configureTask = (ConfigureTask) hiveGroup.items.get(4).getTasks().get(0).getTasks().get(0);
+    Map<String, String> configProperties = configureTask.getConfigurationChanges(cluster, cup);
+
+    assertFalse(configProperties.isEmpty());
+    assertEquals(configProperties.get(ConfigureTask.PARAMETER_CONFIG_TYPE), "hive-site");
+
+    assertTrue(configProperties.containsKey(ConfigureTask.PARAMETER_KEY_VALUE_PAIRS));
+    assertTrue(configProperties.containsKey(ConfigureTask.PARAMETER_REPLACEMENTS));
+    assertTrue(configProperties.containsKey(ConfigureTask.PARAMETER_TRANSFERS));
+
+    String configurationJson = configProperties.get(ConfigureTask.PARAMETER_KEY_VALUE_PAIRS);
+    String transferJson = configProperties.get(ConfigureTask.PARAMETER_TRANSFERS);
+    System.out.println(" testConfigTaskConditionSkip >> transferJson"+transferJson);
+
+    String replacementJson = configProperties.get(ConfigureTask.PARAMETER_REPLACEMENTS);
+    assertNotNull(configurationJson);
+    assertNotNull(transferJson);
+    assertNotNull(replacementJson);
+
+    List<ConfigUpgradeChangeDefinition.ConfigurationKeyValue> keyValuePairs = m_gson.fromJson(configurationJson,
+        new TypeToken<List<ConfigUpgradeChangeDefinition.ConfigurationKeyValue>>() {
+        }.getType());
+    assertTrue(keyValuePairs.isEmpty());
+
+    List<ConfigUpgradeChangeDefinition.Replace> replacements = m_gson.fromJson(replacementJson,
+        new TypeToken<List<ConfigUpgradeChangeDefinition.Replace>>() {
+        }.getType());
+    assertTrue(replacements.isEmpty());
+
+    List<ConfigUpgradeChangeDefinition.Transfer> transfers = m_gson.fromJson(transferJson,
+        new TypeToken<List<ConfigUpgradeChangeDefinition.Transfer>>() {
+        }.getType());
+    assertTrue(transfers.isEmpty());
   }
 
   @Test

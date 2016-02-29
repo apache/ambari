@@ -211,6 +211,8 @@
           </task>
           <task xsi:type="configure" id="hdp_2_1_1_set_transport_mode"/>
           <task xsi:type="configure" id="hdp_2_1_1_hive_server_foo"/>
+          <task xsi:type="configure" id="hdp_2_1_1_hive_server_conditions"/>
+          <task xsi:type="configure" id="hdp_2_1_1_hive_server_conditions_skip"/>
         </pre-upgrade>
        </component>
      </service>

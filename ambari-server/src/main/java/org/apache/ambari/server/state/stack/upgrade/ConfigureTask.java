@@ -233,67 +233,94 @@ public class ConfigureTask extends ServerSideActionTask {
 
     // for every <set key=foo value=bar/> add it to this list
     if (null != definition.getKeyValuePairs() && !definition.getKeyValuePairs().isEmpty()) {
+      List<ConfigurationKeyValue> allowedSets = getValidSets(cluster, definition.getConfigType(), definition.getKeyValuePairs());
       configParameters.put(ConfigureTask.PARAMETER_KEY_VALUE_PAIRS,
-          m_gson.toJson(definition.getKeyValuePairs()));
+          m_gson.toJson(allowedSets));
     }
 
     // transfers
     List<Transfer> transfers = definition.getTransfers();
     if (null != transfers && !transfers.isEmpty()) {
-
-      List<Transfer> allowedTransfers = new ArrayList<>();
-      for (Transfer transfer : transfers) {
-        if (transfer.operation == TransferOperation.DELETE) {
-          boolean ifKeyIsNotBlank = StringUtils.isNotBlank(transfer.ifKey);
-          boolean ifTypeIsNotBlank = StringUtils.isNotBlank(transfer.ifType);
-
-          //  value doesn't required for Key Check
-          if (ifKeyIsNotBlank && ifTypeIsNotBlank && transfer.ifKeyState == PropertyKeyState.ABSENT) {
-            boolean keyPresent = getDesiredConfigurationKeyPresence(cluster, transfer.ifType, transfer.ifKey);
-            if (keyPresent) {
-              LOG.info("Skipping property delete for {}/{} as the key {} for {} is present",
-                definition.getConfigType(), transfer.deleteKey, transfer.ifKey, transfer.ifType);
-              continue;
-            }
-          }
-
-          if (ifKeyIsNotBlank && ifTypeIsNotBlank && transfer.ifValue == null &&
-            transfer.ifKeyState == PropertyKeyState.PRESENT) {
-            boolean keyPresent = getDesiredConfigurationKeyPresence(cluster, transfer.ifType, transfer.ifKey);
-            if (!keyPresent) {
-              LOG.info("Skipping property delete for {}/{} as the key {} for {} is not present",
-                definition.getConfigType(), transfer.deleteKey, transfer.ifKey, transfer.ifType);
-              continue;
-            }
-          }
-
-          if (ifKeyIsNotBlank && ifTypeIsNotBlank && transfer.ifValue != null) {
-
-            String ifConfigType = transfer.ifType;
-            String ifKey = transfer.ifKey;
-            String ifValue = transfer.ifValue;
-
-            String checkValue = getDesiredConfigurationValue(cluster, ifConfigType, ifKey);
-            if (!ifValue.toLowerCase().equals(StringUtils.lowerCase(checkValue))) {
-              // skip adding
-              LOG.info("Skipping property delete for {}/{} as the value {} for {}/{} is not equal to {}",
-                       definition.getConfigType(), transfer.deleteKey, checkValue, ifConfigType, ifKey, ifValue);
-              continue;
-            }
-          }
-        }
-        allowedTransfers.add(transfer);
-      }
+      List<Transfer> allowedTransfers = getValidTransfers(cluster, definition.getConfigType(), definition.getTransfers());
       configParameters.put(ConfigureTask.PARAMETER_TRANSFERS, m_gson.toJson(allowedTransfers));
     }
 
     // replacements
     List<Replace> replacements = definition.getReplacements();
     if( null != replacements && !replacements.isEmpty() ){
-      configParameters.put(ConfigureTask.PARAMETER_REPLACEMENTS, m_gson.toJson(replacements));
+      List<Replace> allowedReplacements = getValidReplacements(cluster, definition.getConfigType(), replacements);
+      configParameters.put(ConfigureTask.PARAMETER_REPLACEMENTS, m_gson.toJson(allowedReplacements));
     }
 
     return configParameters;
+  }
+
+  private List<Replace> getValidReplacements(Cluster cluster, String configType, List<Replace> replacements){
+    List<Replace> allowedReplacements= new ArrayList<>();
+
+    for(Replace replacement: replacements){
+      if(isValidConditionSettings(cluster, configType, replacement.key,
+          replacement.ifKey, replacement.ifType, replacement.ifValue, replacement.ifKeyState))
+        allowedReplacements.add(replacement);
+    }
+
+    return allowedReplacements;
+  }
+
+  private List<ConfigurationKeyValue> getValidSets(Cluster cluster, String configType, List<ConfigurationKeyValue> sets){
+    List<ConfigurationKeyValue> allowedSets = new ArrayList<>();
+
+    for(ConfigurationKeyValue configurationKeyValue: sets){
+      if(isValidConditionSettings(cluster, configType, configurationKeyValue.key,
+          configurationKeyValue.ifKey, configurationKeyValue.ifType, configurationKeyValue.ifValue, configurationKeyValue.ifKeyState))
+        allowedSets.add(configurationKeyValue);
+    }
+
+    return allowedSets;
+  }
+
+  private List<Transfer> getValidTransfers(Cluster cluster, String configType, List<Transfer> transfers){
+    List<Transfer> allowedTransfers = new ArrayList<>();
+    for (Transfer transfer : transfers) {
+      String key = "";
+      if(transfer.operation == TransferOperation.DELETE)
+        key = transfer.deleteKey;
+      else
+        key = transfer.fromKey;
+
+      if(isValidConditionSettings(cluster, configType, key,
+          transfer.ifKey, transfer.ifType, transfer.ifValue, transfer.ifKeyState))
+        allowedTransfers.add(transfer);
+    }
+
+    return allowedTransfers;
+  }
+
+  /**
+   * Sanity check for invalid attribute settings on if-key, if-value, if-key-state, if-site
+   * Regardless whether it's set, transfrer, or replace, the condition attributres are the same
+   * So the same logic can be used to determine if the operation is allowed or not.
+   * */
+  private boolean isValidConditionSettings(Cluster cluster, String configType, String targetPropertyKey,
+      String ifKey, String ifType, String ifValue, PropertyKeyState ifKeyState){
+
+    //Operation is always valid if there are no conditions specified
+    boolean isValid = false;
+
+    boolean ifKeyIsNotBlank = StringUtils.isNotBlank(ifKey);
+    boolean ifTypeIsNotBlank = StringUtils.isNotBlank(ifType);
+    boolean ifValueIsNotNull = (null != ifValue);
+    boolean ifKeyStateIsValid = (PropertyKeyState.PRESENT == ifKeyState || PropertyKeyState.ABSENT == ifKeyState);
+
+    if(ifKeyIsNotBlank && ifTypeIsNotBlank && (ifValueIsNotNull || ifKeyStateIsValid)) {
+      // allow if the condition has ifKey, ifType and either ifValue or ifKeyState
+      isValid = true;
+    } else if (!ifKeyIsNotBlank && !ifTypeIsNotBlank && !ifValueIsNotNull &&  !ifKeyStateIsValid) {
+      //no condition, allow
+      isValid = true;
+    }
+
+    return isValid;
   }
 
   /**
@@ -323,31 +350,4 @@ public class ConfigureTask extends ServerSideActionTask {
 
     return config.getProperties().get(propertyKey);
   }
-
-  /**
-   * Gets the property presence state
-   * @param cluster
-   *          the cluster (not {@code null}).
-   * @param configType
-   *          the configuration type (ie hdfs-site) (not {@code null}).
-   * @param propertyKey
-   *          the key to retrieve (not {@code null}).
-   * @return {@code true} if property key exists or {@code false} if not.
-   */
-  private boolean getDesiredConfigurationKeyPresence(Cluster cluster,
-      String configType, String propertyKey) {
-
-    Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
-    DesiredConfig desiredConfig = desiredConfigs.get(configType);
-    if (null == desiredConfig) {
-      return false;
-    }
-
-    Config config = cluster.getConfig(configType, desiredConfig.getTag());
-    if (null == config) {
-      return false;
-    }
-    return config.getProperties().containsKey(propertyKey);
-  }
-
 }
