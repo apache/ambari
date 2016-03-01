@@ -35,8 +35,6 @@ export default Ember.Service.extend(FileOperationMixin, {
   path: '',
   isLoading: false,
   fileFetchFinished: false,
-  hasError: false,
-
   endIndex: function () {
     return this.get('startIndex') + this.get('offset');
   }.property('startIndex'),
@@ -56,7 +54,6 @@ export default Ember.Service.extend(FileOperationMixin, {
   },
 
   _getContent: function () {
-
     var _self = this;
 
     if (this.get('fileFetchFinished')) {
@@ -73,46 +70,22 @@ export default Ember.Service.extend(FileOperationMixin, {
       end: this.get('endIndex')});
 
     var currentFetchPath = previewUrl + "?" + queryParams;
-
     this.set('isLoading', true);
 
-    Ember.$.ajax({
-      url: currentFetchPath,
-      dataType: 'json',
-      type: 'get',
-      contentType: 'application/json',
-      success: this._fetchSuccess,
-      beforeSend: function (xhr) {
-        xhr.setRequestHeader('X-Requested-By', 'ambari');
-        xhr.setRequestHeader('Authorization', 'Basic YWRtaW46YWRtaW4=');
-      },
-      success: function (response, textStatus, jQxhr) {
-        _self.set('fileContent', _self.get('fileContent') + response.data);
-        _self.set('fileFetchFinished', response.isFileEnd);
-        _self.set('isLoading', false);
+    return new Ember.RSVP.Promise((resolve, reject) => {
+      adapter.ajax(currentFetchPath, "GET").then(
+        (response) => {
 
-      },
-      error: function (jQxhr, textStatus, errorThrown) {
-        console.log("Preview Fail pagecontent: " + errorThrown);
-        _self.set('hasError', true);
-        _self.set('isLoading', false);
-      }
-    })
-
-    this.set('startIndex', (this.get('startIndex') + this.get('offset')));
-
-  },
-
-  _fetchSuccess: function (response, textStatus, jQxhr) {
-    this.set('fileContent', this.get('fileContent') + response.data);
-    this.set('fileFetchFinished', response.isFileEnd);
-    this.set('isLoading', false);
-  },
-
-  _fetchError: function (jQxhr, textStatus, errorThrown) {
-    console.log("Preview Fail pagecontent: " + errorThrown);
-    this.set('hasError', true);
-    this.set('isLoading', false);
+          _self.set('fileContent', _self.get('fileContent') + response.data);
+          _self.set('fileFetchFinished', response.isFileEnd);
+          _self.set('isLoading', false);
+          _self.set('startIndex', (_self.get('startIndex') + _self.get('offset')));
+          return resolve(response);
+        }, (responseError) => {
+          _self.set('isLoading', false);
+          return reject(error);
+        });
+    });
   },
 
   download: function (event) {
