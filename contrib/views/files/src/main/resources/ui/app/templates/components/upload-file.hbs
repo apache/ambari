@@ -26,7 +26,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="fa fa-times pull-right" {{action 'close'}}></button>
-          <h4>{{fa-icon "upload"}} Upload file to {{path}}</h4>
+          <h4>{{fa-icon "upload"}} Upload file to <span class="sub-heading">{{path}}</span></h4>
         </div>
         <div class="modal-body">
           {{#unless isUploading}}
