@@ -1696,6 +1696,20 @@ var hdp2properties = [
     "index": 5
   },
   {
+    "name": "metrics_grafana_username",
+    "serviceName": "AMBARI_METRICS",
+    "filename": "ams-grafana-env.xml",
+    "category": "General",
+    "index": 6
+  },
+  {
+    "name": "metrics_grafana_password",
+    "serviceName": "AMBARI_METRICS",
+    "filename": "ams-grafana-env.xml",
+    "category": "General",
+    "index": 7
+  },
+  {
     "name": "timeline.metrics.aggregator.checkpoint.dir",
     "serviceName": "AMBARI_METRICS",
     "filename": "ams-site.xml",

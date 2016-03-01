@@ -127,6 +127,8 @@ ams_grafana_log_dir = default("/configurations/ams-grafana-env/metrics_grafana_l
 ams_grafana_pid_dir = status_params.ams_grafana_pid_dir
 ams_grafana_conf_dir = '/etc/ambari-metrics-grafana/conf'
 ams_grafana_data_dir = default("/configurations/ams-grafana-env/metrics_grafana_data_dir", '/var/lib/ambari-metrics-grafana')
+ams_grafana_admin_user = config['configurations']['ams-grafana-env']['metrics_grafana_username']
+ams_grafana_admin_pwd = config['configurations']['ams-grafana-env']['metrics_grafana_password']
 
 metrics_grafana_hosts = default('/clusterHostInfo/metrics_grafana_hosts', None)
 ams_grafana_host = None

@@ -38,7 +38,8 @@ class TestMetricsGrafana(RMFTestCase):
   import  metrics_grafana_util
 
   @patch("metrics_grafana_util.create_ams_datasource")
-  def test_start(self, create_ams_datasource_mock):
+  @patch("metrics_grafana_util.create_ams_dashboards")
+  def test_start(self, create_ams_datasource_mock, create_ams_dashboards_mock):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/metrics_grafana.py",
                        classname = "AmsGrafana",
                        command = "start",
@@ -64,6 +65,7 @@ class TestMetricsGrafana(RMFTestCase):
                               user = 'ams'
                               )
     create_ams_datasource_mock.assertCalled()
+    create_ams_dashboards_mock.assertCalled()
     self.assertNoMoreResources()
 
   def assert_configure(self):

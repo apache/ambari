@@ -23,6 +23,7 @@ from resource_management.core.base import Fail
 from resource_management import Template
 from collections import namedtuple
 from urlparse import urlparse
+from base64 import b64encode
 import time
 import socket
 import ambari_simplejson as json
@@ -35,7 +36,7 @@ GRAFANA_DATASOURCE_URL = "/api/datasources"
 GRAFANA_DASHBOARDS_URL = "/api/dashboards/db"
 METRICS_GRAFANA_DATASOURCE_NAME = "AMBARI_METRICS"
 
-Server = namedtuple('Server', [ 'protocol', 'host', 'port' ])
+Server = namedtuple('Server', [ 'protocol', 'host', 'port', 'user', 'password' ])
 
 def perform_grafana_get_call(url, server):
   grafana_https_enabled = server.protocol.lower() == 'https'
@@ -44,10 +45,12 @@ def perform_grafana_get_call(url, server):
                                      int(server.port),
                                      grafana_https_enabled)
 
-  Logger.info("Connecting (GET) to %s:%s%s" % (server.host,
-                                               server.port,
-                                               url))
-  conn.request("GET", url)
+  userAndPass = b64encode('{0}:{1}'.format(server.user, server.password))
+  headers = { 'Authorization' : 'Basic %s' %  userAndPass }
+
+  Logger.info("Connecting (GET) to %s:%s%s" % (server.host, server.port, url))
+
+  conn.request("GET", url, headers = headers)
   response = conn.getresponse()
   Logger.info("Http response: %s %s" % (response.status, response.reason))
 
@@ -56,7 +59,9 @@ def perform_grafana_get_call(url, server):
 def perform_grafana_put_call(url, id, payload, server):
   response = None
   data = None
-  headers = {"Content-Type": "application/json"}
+  userAndPass = b64encode('{0}:{1}'.format(server.user, server.password))
+  headers = {"Content-Type": "application/json",
+             'Authorization' : 'Basic %s' %  userAndPass }
   grafana_https_enabled = server.protocol.lower() == 'https'
 
   for i in xrange(0, GRAFANA_CONNECT_TRIES):
@@ -82,8 +87,10 @@ def perform_grafana_put_call(url, id, payload, server):
 def perform_grafana_post_call(url, payload, server):
   response = None
   data = None
+  userAndPass = b64encode('{0}:{1}'.format(server.user, server.password))
   Logger.debug('POST payload: %s' % payload)
-  headers = {"Content-Type": "application/json", "Content-Length" : len(payload)}
+  headers = {"Content-Type": "application/json", "Content-Length" : len(payload),
+             'Authorization' : 'Basic %s' %  userAndPass}
   grafana_https_enabled = server.protocol.lower() == 'https'
 
   for i in xrange(0, GRAFANA_CONNECT_TRIES):
@@ -115,21 +122,24 @@ def perform_grafana_post_call(url, payload, server):
 def is_unchanged_datasource_url(datasource_url):
   import params
   parsed_url = urlparse(datasource_url)
-  Logger.debug("parsed url, scheme = %s, host = %s, port = %s" % (
+  Logger.debug("parsed url: scheme = %s, host = %s, port = %s" % (
     parsed_url.scheme, parsed_url.hostname, parsed_url.port))
-  Logger.debug("collector, scheme = %s, host = %s, port = %s" %
+  Logger.debug("collector: scheme = %s, host = %s, port = %s" %
               (params.metric_collector_protocol, params.metric_collector_host,
                params.metric_collector_port))
 
-  return (parsed_url.scheme == params.metric_collector_protocol.strip()) and \
-         (parsed_url.hostname == params.metric_collector_host.strip()) and \
-         (parsed_url.port == params.metric_collector_port)
+  return parsed_url.scheme.strip() == params.metric_collector_protocol.strip() and \
+         parsed_url.hostname.strip() == params.metric_collector_host.strip() and \
+         str(parsed_url.port) == params.metric_collector_port
+
 
 def create_ams_datasource():
   import params
   server = Server(protocol = params.ams_grafana_protocol.strip(),
                   host = params.ams_grafana_host.strip(),
-                  port = params.ams_grafana_port)
+                  port = params.ams_grafana_port,
+                  user = params.ams_grafana_admin_user,
+                  password = params.ams_grafana_admin_pwd)
 
   """
   Create AMS datasource in Grafana, if exsists make sure the collector url is accurate
@@ -206,7 +216,9 @@ def create_ams_dashboards():
   import params
   server = Server(protocol = params.ams_grafana_protocol.strip(),
                   host = params.ams_grafana_host.strip(),
-                  port = params.ams_grafana_port)
+                  port = params.ams_grafana_port,
+                  user = params.ams_grafana_admin_user,
+                  password = params.ams_grafana_admin_pwd)
 
   dashboard_files = params.get_grafana_dashboard_defs()
   version = params.get_ambari_version()
@@ -283,7 +295,8 @@ def create_ams_dashboards():
           else:
             Logger.error("Failed creating dashboard: %s" % dashboard_def['title'])
           pass
-        pass
+        else:
+          Logger.info('No update needed for dashboard = %s' % dashboard_def['title'])
       pass
     pass
 
