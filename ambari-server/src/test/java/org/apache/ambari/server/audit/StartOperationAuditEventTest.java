@@ -49,7 +49,7 @@ public class StartOperationAuditEventTest {
     String actualAuditMessage = evnt.getAuditMessage();
 
     // Then
-    String expectedAuditMessage = String.format("User(%s), RemoteIp(%s), Operation(%s), RequestId(%d), Status(Success)", testUserName, testRemoteIp, testRequestDetails, testRequestId);
+    String expectedAuditMessage = String.format("User(%s), RemoteIp(%s), Operation(%s), RequestId(%d), Status(Successfully queued)", testUserName, testRemoteIp, testRequestDetails, testRequestId);
 
     assertThat(actualAuditMessage, equalTo(expectedAuditMessage));
 
