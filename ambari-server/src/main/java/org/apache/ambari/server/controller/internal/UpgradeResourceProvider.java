@@ -808,6 +808,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       // For cross-stack upgrade, follow all major stacks and merge a new config upgrade pack from all
       // target stacks involved into upgrade
       ArrayList<ConfigUpgradePack> intermediateConfigUpgradePacks = new ArrayList<>();
+      // Config change definitions are taken from all stacks up to (but excluding) target stack
+      intermediateStacks = intermediateStacks.subList(0, intermediateStacks.size() - 1);
       for (UpgradePack.IntermediateStack intermediateStack : intermediateStacks) {
         ConfigUpgradePack intermediateConfigUpgradePack = s_metaProvider.get().getConfigUpgradePack(
                 targetStackId.getStackName(), intermediateStack.version);

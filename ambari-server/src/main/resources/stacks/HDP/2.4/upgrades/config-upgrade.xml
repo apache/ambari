@@ -20,57 +20,12 @@
 
   <services>
 
-    <service name="HDFS">
-      <component name="NAMENODE">
-        <changes>
-          <definition xsi:type="configure" id="hdp_2_4_0_0_namenode_ha_adjustments">
-            <type>hdfs-site</type>
-            <transfer operation="delete" delete-key="dfs.namenode.rpc-address" if-type="hdfs-site" if-key="dfs.nameservices" if-key-state="present"/>
-          </definition>
-        </changes>
-      </component>
-    </service>
-
-    <service name="HBASE">
-      <component name="HBASE_MASTER">
-        <changes>
-          <!-- These HBASE configs changed in HDP 2.3.4.0, so upgrades like HDP 2.2 to 2.4 still need them. -->
-          <definition xsi:type="configure" id="hdp_2_4_0_0_hbase_remove_local_indexing">
-            <type>hbase-site</type>
-            <set key="phoenix.functions.allowUserDefinedFunctions" value="true"/>
-            <transfer operation="delete" delete-key="hbase.master.loadbalancer.class"
-                      if-key="hbase.master.loadbalancer.class"
-                      if-type="hbase-site"
-                      if-value="org.apache.phoenix.hbase.index.balancer.IndexLoadBalancer"/>
-            <replace key="hbase.coprocessor.master.classes"
-                     find="org.apache.phoenix.hbase.index.master.IndexMasterObserver"
-                     replace-with="" />
-            <replace key="hbase.coprocessor.regionserver.classes"
-                     find="org.apache.hadoop.hbase.regionserver.LocalIndexMerger"
-                     replace-with="" />
-
-          </definition>
-        </changes>
-      </component>
-    </service>
-
     <service name="TEZ">
       <component name="TEZ_CLIENT">
         <changes>
           <definition xsi:type="configure" id="hdp_2_4_0_0_tez_client_adjust_tez_lib_uris_property">
             <type>tez-site</type>
             <set key="tez.lib.uris" value="/hdp/apps/${hdp.version}/tez/tez.tar.gz"/>
-          </definition>
-        </changes>
-      </component>
-    </service>
-    
-    <service name="OOZIE">
-      <component name="OOZIE_SERVER">
-        <changes>
-          <definition xsi:type="configure" id="hdp_2_4_0_0_oozie_remove_service_classes" summary="Updating Oozie Service classes">
-            <type>oozie-site</type>
-            <replace key="oozie.services" find="org.apache.oozie.service.CoordinatorStoreService," replace-with="" />
           </definition>
         </changes>
       </component>
@@ -105,40 +60,8 @@
             </condition>
           </definition>
 
-          <definition xsi:type="configure" id="hdp_2_4_0_0_hive_server_configure_authentication" summary="Removing unused properties for current hive authentication type">
-            <type>hive-site</type>
-            <transfer operation="delete" delete-key="hive.server2.authentication.ldap.url" if-key="hive.server2.authentication" if-type="hive-site" if-value="NONE"/>
-            <transfer operation="delete" delete-key="hive.server2.authentication.ldap.baseDN" if-key="hive.server2.authentication" if-type="hive-site" if-value="NONE"/>
-            <transfer operation="delete" delete-key="hive.server2.authentication.pam.services" if-key="hive.server2.authentication" if-type="hive-site" if-value="NONE"/>
-            <transfer operation="delete" delete-key="hive.server2.custom.authentication.class" if-key="hive.server2.authentication" if-type="hive-site" if-value="NONE"/>
-            <transfer operation="delete" delete-key="hive.server2.authentication.kerberos.keytab" if-key="hive.server2.authentication" if-type="hive-site" if-value="NONE"/>
-            <transfer operation="delete" delete-key="hive.server2.authentication.kerberos.principal" if-key="hive.server2.authentication" if-type="hive-site" if-value="NONE"/>
-
-            <transfer operation="delete" delete-key="hive.server2.authentication.kerberos.keytab" if-key="hive.server2.authentication" if-type="hive-site" if-value="ldap"/>
-            <transfer operation="delete" delete-key="hive.server2.authentication.kerberos.principal" if-key="hive.server2.authentication" if-type="hive-site" if-value="ldap"/>
-            <transfer operation="delete" delete-key="hive.server2.authentication.pam.services" if-key="hive.server2.authentication" if-type="hive-site" if-value="ldap"/>
-            <transfer operation="delete" delete-key="hive.server2.custom.authentication.class" if-key="hive.server2.authentication" if-type="hive-site" if-value="ldap"/>
-
-            <transfer operation="delete" delete-key="hive.server2.authentication.ldap.url" if-key="hive.server2.authentication" if-type="hive-site" if-value="kerberos"/>
-            <transfer operation="delete" delete-key="hive.server2.authentication.ldap.baseDN" if-key="hive.server2.authentication" if-type="hive-site" if-value="kerberos"/>
-            <transfer operation="delete" delete-key="hive.server2.authentication.pam.services" if-key="hive.server2.authentication" if-type="hive-site" if-value="kerberos"/>
-            <transfer operation="delete" delete-key="hive.server2.custom.authentication.class" if-key="hive.server2.authentication" if-type="hive-site" if-value="kerberos"/>
-
-            <transfer operation="delete" delete-key="hive.server2.authentication.ldap.url" if-key="hive.server2.authentication" if-type="hive-site" if-value="pam"/>
-            <transfer operation="delete" delete-key="hive.server2.authentication.ldap.baseDN" if-key="hive.server2.authentication" if-type="hive-site" if-value="pam"/>
-            <transfer operation="delete" delete-key="hive.server2.custom.authentication.class" if-key="hive.server2.authentication" if-type="hive-site" if-value="pam"/>
-            <transfer operation="delete" delete-key="hive.server2.authentication.kerberos.keytab" if-key="hive.server2.authentication" if-type="hive-site" if-value="pam"/>
-            <transfer operation="delete" delete-key="hive.server2.authentication.kerberos.principal" if-key="hive.server2.authentication" if-type="hive-site" if-value="pam"/>
-
-            <transfer operation="delete" delete-key="hive.server2.authentication.ldap.url" if-key="hive.server2.authentication" if-type="hive-site" if-value="custom"/>
-            <transfer operation="delete" delete-key="hive.server2.authentication.ldap.baseDN" if-key="hive.server2.authentication" if-type="hive-site" if-value="custom"/>
-            <transfer operation="delete" delete-key="hive.server2.authentication.pam.services" if-key="hive.server2.authentication" if-type="hive-site" if-value="custom"/>
-            <transfer operation="delete" delete-key="hive.server2.authentication.kerberos.keytab" if-key="hive.server2.authentication" if-type="hive-site" if-value="custom"/>
-            <transfer operation="delete" delete-key="hive.server2.authentication.kerberos.principal" if-key="hive.server2.authentication" if-type="hive-site" if-value="custom"/>
-          </definition>
         </changes>
       </component>
-
       <component name="WEBHCAT_SERVER">
         <changes>
           <definition xsi:type="configure" id="hdp_2_4_0_0_webhcat_server_update_configuration_paths" summary="Updating Configuration Paths">
@@ -153,46 +76,7 @@
       </component>
     </service>
 
-    <!--TODO: remove? Used for non-rolling upgrade only-->
-    <service name="KAFKA">
-      <component name="KAFKA_BROKER">
-        <changes>
-          <definition xsi:type="configure" id="hdp_2_4_0_0_kafka_broker_deprecate_port">
-            <type>kafka-broker</type>
-            <!-- Deprecate "port" property since "listeners" will be added. -->
-            <transfer operation="delete" delete-key="port"/>
-          </definition>
-        </changes>
-      </component>
-    </service>
 
-    <service name="SPARK">
-      <component name="SPARK_JOBHISTORYSERVER">
-        <changes>
-          <definition xsi:type="configure" id="hdp_2_4_0_0_spark_jobhistoryserver">
-            <type>spark-defaults</type>
-            <transfer operation="delete" delete-key="spark.yarn.services" />
-            <set key="spark.history.provider" value="org.apache.spark.deploy.history.FsHistoryProvider"/>
-          </definition>
-        </changes>
-      </component>
-      <component name="SPARK_THRIFTSERVER">
-        <changes>
-          <definition xsi:type="configure" id="hdp_2_4_0_0_spark_thriftserver">
-            <type>spark-thrift-sparkconf</type>
-            <transfer operation="delete" delete-key="spark.yarn.executor.memoryOverhead" />
-            <transfer operation="delete" delete-key="spark.yarn.driver.memoryOverhead" />
-            <transfer operation="delete" delete-key="spark.yarn.scheduler.heartbeat.interval-ms" />
-            <transfer operation="delete" delete-key="spark.yarn.max.executor.failures" />
-            <transfer operation="delete" delete-key="spark.yarn.containerLauncherMaxThreads" />
-            <transfer operation="delete" delete-key="spark.yarn.submit.file.replication" />
-            <transfer operation="delete" delete-key="spark.yarn.preserve.staging.files" />
-            <transfer operation="delete" delete-key="spark.yarn.max.executor.failures" />
-          </definition>
-        </changes>
-      </component>
-    </service>
   </services>
-
 
 </upgrade-config-changes>
