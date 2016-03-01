@@ -112,8 +112,8 @@ describe('App.serviceMetricsMapper', function () {
 
     tests.forEach(function (test) {
       it(test.message, function () {
-        services[0].components[0].host_components[0].metrics.dfs.FSNamesystem['HAState'] = test.haStateForNn1;
-        services[0].components[0].host_components[1].metrics.dfs.FSNamesystem['HAState'] = test.haStateForNn2;
+        services[0].components[0].host_components[0].metrics.dfs.FSNamesystem.HAState = test.haStateForNn1;
+        services[0].components[0].host_components[1].metrics.dfs.FSNamesystem.HAState = test.haStateForNn2;
         App.serviceMetricsMapper.computeAdditionalRelations(hostComponents, services);
         expect(hostComponents[0].display_name_advanced).to.equal(test.expectedNameForNn1);
         expect(hostComponents[1].display_name_advanced).to.equal(test.expectedNameForNn2);

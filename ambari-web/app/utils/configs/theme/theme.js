@@ -26,14 +26,15 @@ App.configTheme = Em.Object.create({
    * @param {Array} configs
    */
   resolveConfigThemeConditions: function (configs) {
+    var self = this;
     App.ThemeCondition.find().forEach(function (configCondition) {
       var _configs = Em.A(configCondition.get('configs'));
       if (configCondition.get("resource") === 'config' && _configs.length > 0) {
-        var isConditionTrue = this.calculateConfigCondition(configCondition.get("if"), configs);
+        var isConditionTrue = self.calculateConfigCondition(configCondition.get("if"), configs);
         var action = isConditionTrue ? configCondition.get("then") : configCondition.get("else");
         if (configCondition.get('id')) {
           var valueAttributes = action.property_value_attributes;
-          if (valueAttributes && !Em.none(valueAttributes['visible'])) {
+          if (valueAttributes && !Em.none(valueAttributes.visible)) {
             var themeResource;
             if (configCondition.get('type') === 'subsection') {
               themeResource = App.SubSection.find().findProperty('name', configCondition.get('name'));
@@ -52,7 +53,7 @@ App.configTheme = Em.Object.create({
                     // if config has already been hidden by condition with "subsection" or "subsectionTab" type
                     // then ignore condition of "config" type
                     if (configCondition.get('type') === 'config' && item.hiddenBySection) return false;
-                    item.hiddenBySection = !valueAttributes['visible'];
+                    item.hiddenBySection = !valueAttributes.visible;
                   }
                 });
               }, this);
@@ -78,7 +79,7 @@ App.configTheme = Em.Object.create({
       var condition = _condition.trim();
       if (condition === '&&' || condition === '||') {
         allConditionResult.push(_condition);
-      }  else {
+      } else {
         var splitIfCondition = condition.split('===');
         var ifCondition = splitIfCondition[0];
         var result = splitIfCondition[1] || "true";
