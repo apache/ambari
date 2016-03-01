@@ -30,7 +30,7 @@ import ambari_simplejson as json
 import network
 
 GRAFANA_CONNECT_TRIES = 5
-GRAFANA_CONNECT_TIMEOUT = 15
+GRAFANA_CONNECT_TIMEOUT = 10
 GRAFANA_SEARCH_BULTIN_DASHBOARDS = "/api/search?tag=builtin"
 GRAFANA_DATASOURCE_URL = "/api/datasources"
 GRAFANA_DASHBOARDS_URL = "/api/dashboards/db"
@@ -40,19 +40,31 @@ Server = namedtuple('Server', [ 'protocol', 'host', 'port', 'user', 'password' ]
 
 def perform_grafana_get_call(url, server):
   grafana_https_enabled = server.protocol.lower() == 'https'
+  response = None
 
-  conn = network.get_http_connection(server.host,
-                                     int(server.port),
-                                     grafana_https_enabled)
+  for i in xrange(0, GRAFANA_CONNECT_TRIES):
+    try:
+      conn = network.get_http_connection(server.host,
+                                         int(server.port),
+                                         grafana_https_enabled)
 
-  userAndPass = b64encode('{0}:{1}'.format(server.user, server.password))
-  headers = { 'Authorization' : 'Basic %s' %  userAndPass }
+      userAndPass = b64encode('{0}:{1}'.format(server.user, server.password))
+      headers = { 'Authorization' : 'Basic %s' %  userAndPass }
 
-  Logger.info("Connecting (GET) to %s:%s%s" % (server.host, server.port, url))
+      Logger.info("Connecting (GET) to %s:%s%s" % (server.host, server.port, url))
 
-  conn.request("GET", url, headers = headers)
-  response = conn.getresponse()
-  Logger.info("Http response: %s %s" % (response.status, response.reason))
+      conn.request("GET", url, headers = headers)
+      response = conn.getresponse()
+      Logger.info("Http response: %s %s" % (response.status, response.reason))
+    except (httplib.HTTPException, socket.error) as ex:
+      if i < GRAFANA_CONNECT_TRIES - 1:
+        time.sleep(GRAFANA_CONNECT_TIMEOUT)
+        Logger.info("Connection to Grafana failed. Next retry in %s seconds."
+                    % (GRAFANA_CONNECT_TIMEOUT))
+        continue
+      else:
+        raise Fail("Ambari Metrics Grafana update failed due to: %s" % str(ex))
+      pass
 
   return response
 
@@ -80,7 +92,8 @@ def perform_grafana_put_call(url, id, payload, server):
                     % (GRAFANA_CONNECT_TIMEOUT))
         continue
       else:
-        raise Fail("Ambari Metrics Grafana update failed")
+        raise Fail("Ambari Metrics Grafana update failed due to: %s" % str(ex))
+      pass
 
   return (response, data)
 
@@ -115,7 +128,8 @@ def perform_grafana_post_call(url, payload, server):
                     % (GRAFANA_CONNECT_TIMEOUT))
         continue
       else:
-        raise Fail("Ambari Metrics Grafana create failed.")
+        raise Fail("Ambari Metrics Grafana update failed due to: %s" % str(ex))
+      pass
 
   return (response, data)
 
@@ -153,7 +167,7 @@ def create_ams_datasource():
   response = perform_grafana_get_call(GRAFANA_DATASOURCE_URL, server)
   create_datasource = True
 
-  if response.status == 200:
+  if response and response.status == 200:
     datasources = response.read()
     datasources_json = json.loads(datasources)
     for i in xrange(0, len(datasources_json)):
