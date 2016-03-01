@@ -61,7 +61,9 @@ def setup_hadoop():
       tc_owner = params.hdfs_user
       
     # if WebHDFS is not enabled we need this jar to create hadoop folders.
-    if not WebHDFSUtil.is_webhdfs_available(params.is_webhdfs_enabled, params.default_fs):
+    if params.host_sys_prepped:
+      print "Skipping copying of fast-hdfs-resource.jar as host is sys prepped"
+    elif not WebHDFSUtil.is_webhdfs_available(params.is_webhdfs_enabled, params.default_fs):
       # for source-code of jar goto contrib/fast-hdfs-resource
       File(format("{ambari_libs_dir}/fast-hdfs-resource.jar"),
            mode=0644,

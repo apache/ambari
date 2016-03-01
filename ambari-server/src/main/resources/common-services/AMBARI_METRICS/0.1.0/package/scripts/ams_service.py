@@ -111,4 +111,4 @@ def ams_service(name, action):
 
       pass
     pass
-  pass
+  Logger.info(format("Component {name} finished action={action}."))
