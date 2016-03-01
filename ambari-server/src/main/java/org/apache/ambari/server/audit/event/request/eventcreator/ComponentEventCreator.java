@@ -144,7 +144,7 @@ public class ComponentEventCreator implements RequestAuditEventCreator {
             if (map.containsKey(PropertyHelper.getPropertyId("HostRoles", "component_name"))) {
               operation = String.valueOf(map.get(PropertyHelper.getPropertyId("HostRoles", "state"))) + ": " + String.valueOf(map.get(PropertyHelper.getPropertyId("HostRoles", "component_name")))
                 + "/" + request.getBody().getRequestInfoProperties().get(RequestOperationLevel.OPERATION_SERVICE_ID)
-                + " on " + request.getBody().getRequestInfoProperties().get("operation_level/host_names")
+                + " on " + request.getBody().getRequestInfoProperties().get("operation_level/host_name")
                 + " (" + request.getBody().getRequestInfoProperties().get(RequestOperationLevel.OPERATION_CLUSTER_ID) + ")";
               break;
             }
