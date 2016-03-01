@@ -117,6 +117,14 @@
         <label>WebHDFS Authorization</label>
         <required>false</required>
     </parameter>
+    <parameter>
+        <name>tmp.dir</name>
+        <description>HDFS directory path to store temporary files required for the view operations.</description>
+        <label>Temporary HDFS Directory</label>
+        <placeholder>/user/${username}/files-view/tmp</placeholder>
+        <default-value>/user/${username}/files-view/tmp</default-value>
+        <required>true</required>
+    </parameter>
 
     <resource>
         <name>files</name>

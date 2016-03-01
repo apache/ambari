@@ -47,10 +47,14 @@ import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.annotation.XmlElement;
 
 import com.google.gson.Gson;
+import org.apache.ambari.view.filebrowser.utils.MisconfigurationFormattedException;
 import org.apache.ambari.view.filebrowser.utils.NotFoundFormattedException;
 import org.apache.ambari.view.filebrowser.utils.ServiceFormattedException;
 import org.apache.ambari.view.utils.hdfs.HdfsApi;
+import org.apache.ambari.view.utils.hdfs.HdfsApiException;
+import org.apache.ambari.view.utils.hdfs.HdfsUtil;
 import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.ambari.view.ViewContext;
 import org.apache.hadoop.security.AccessControlException;
@@ -285,12 +289,7 @@ public class DownloadService extends HdfsService {
   @Produces("application/zip")
   public Response zipByRequestId(@QueryParam("requestId") String requestId) {
     try {
-      String json = context.getInstanceData(requestId);
-      if (json == null) {
-        throw new NotFoundFormattedException("Request is old", null);
-      }
-      DownloadRequest request = gson.fromJson(json, DownloadRequest.class);
-      context.removeInstanceData(requestId);
+      DownloadRequest request = getDownloadRequest(requestId);
       return downloadGZip(request);
     } catch (WebApplicationException ex) {
       throw ex;
@@ -310,16 +309,7 @@ public class DownloadService extends HdfsService {
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public Response zipGenerateLink(final DownloadRequest request) {
-    try {
-      String requestId = generateUniqueIdentifer(request);
-      JSONObject json = new JSONObject();
-      json.put("requestId", requestId);
-      return Response.ok(json).build();
-    } catch (WebApplicationException ex) {
-      throw ex;
-    } catch (Exception ex) {
-      throw new ServiceFormattedException(ex.getMessage(), ex);
-    }
+    return generateLink(request);
   }
 
   /**
@@ -333,9 +323,7 @@ public class DownloadService extends HdfsService {
   @Produces(MediaType.APPLICATION_OCTET_STREAM)
   public Response concatByRequestId(@QueryParam("requestId") String requestId) {
     try {
-      String json = context.getInstanceData(requestId);
-      DownloadRequest request = gson.fromJson(json, DownloadRequest.class);
-      context.removeInstanceData(requestId);
+      DownloadRequest request = getDownloadRequest(requestId);
       return concat(request);
     } catch (WebApplicationException ex) {
       throw ex;
@@ -355,6 +343,10 @@ public class DownloadService extends HdfsService {
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public Response concatGenerateLink(final DownloadRequest request) {
+    return generateLink(request);
+  }
+
+  private Response generateLink(DownloadRequest request) {
     try {
       String requestId = generateUniqueIdentifer(request);
       JSONObject json = new JSONObject();
@@ -367,39 +359,48 @@ public class DownloadService extends HdfsService {
     }
   }
 
+  private DownloadRequest getDownloadRequest(String requestId) throws HdfsApiException, IOException, InterruptedException {
+    String fileName = getFileNameForRequestData(requestId);
+    String json = HdfsUtil.readFile(getApi(context), fileName);
+    DownloadRequest request = gson.fromJson(json, DownloadRequest.class);
+
+    deleteFileFromHdfs(fileName);
+    return request;
+  }
+
   private Gson gson = new Gson();
 
   private String generateUniqueIdentifer(DownloadRequest request) {
     String uuid = UUID.randomUUID().toString().replaceAll("-", "");
     String json = gson.toJson(request);
-    context.putInstanceData(uuid, json);
+    writeToHdfs(uuid, json);
     return uuid;
   }
 
-    /*
-     * Temporary use Stream Output
-     *
-     * @POST
-     *
-     * @Path("/concat")
-     *
-     * @Consumes(MediaType.APPLICATION_JSON)
-     *
-     * @Produces(MediaType.APPLICATION_OCTET_STREAM) public ChunkedOutput<byte[]>
-     * concat(final DownloadRequest request) { final ChunkedOutput<byte[]> output
-     * = new ChunkedOutput<byte[]>(byte[].class);
-     *
-     * new Thread() { public void run() { try { FSDataInputStream in = null; for
-     * (String path : request.entries) { try { in = getApi(context).open(path);
-     * byte[] chunk = new byte[1024]; while (in.read(chunk) != -1) {
-     * output.write(chunk); } } finally { if (in != null) in.close(); }
-     *
-     * } } catch (Exception ex) { logger.error("Error occured: " +
-     * ex.getMessage()); } finally { try { output.close(); } catch (IOException e)
-     * { e.printStackTrace(); } } } }.start();
-     *
-     * return output; }
-     */
+  private void writeToHdfs(String uuid, String json) {
+    String fileName = getFileNameForRequestData(uuid);
+    try {
+      HdfsUtil.putStringToFile(getApi(context), fileName, json);
+    } catch (HdfsApiException e) {
+      logger.error("Failed to write request data to HDFS", e);
+      throw new ServiceFormattedException("Failed to write request data to HDFS", e);
+    }
+  }
+
+  private String getFileNameForRequestData(String uuid) {
+    String tmpPath = context.getProperties().get("tmp.dir");
+    if (tmpPath == null) {
+      String msg = "tmp.dir is not configured!";
+      logger.error(msg);
+      throw new MisconfigurationFormattedException("tmp.dir");
+    }
+    return String.format(tmpPath + "/%s.json", uuid);
+  }
+
+  private void deleteFileFromHdfs(String fileName) throws IOException, InterruptedException {
+    getApi(context).delete(fileName, true);
+  }
+
 
   /**
    * Wrapper for json mapping of download request
