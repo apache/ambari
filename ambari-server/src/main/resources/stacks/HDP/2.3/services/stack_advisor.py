@@ -364,6 +364,11 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     putHdfsSiteProperty = self.putProperty(configurations, "hdfs-site", services)
     putHdfsSitePropertyAttribute = self.putPropertyAttribute(configurations, "hdfs-site")
 
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    if "HAWQ" in servicesList:
+      # Set dfs.allow.truncate to true
+      putHdfsSiteProperty('dfs.allow.truncate', 'true')
+
     if ('ranger-hdfs-plugin-properties' in services['configurations']) and ('ranger-hdfs-plugin-enabled' in services['configurations']['ranger-hdfs-plugin-properties']['properties']):
       rangerPluginEnabled = ''
       if 'ranger-hdfs-plugin-properties' in configurations and 'ranger-hdfs-plugin-enabled' in  configurations['ranger-hdfs-plugin-properties']['properties']:
