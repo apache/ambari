@@ -53,6 +53,7 @@ Em.I18n.translations = {
   'app.settings.no.cluster.privileges': 'No cluster privileges',
   'app.settings.admin.all.privileges': 'This user is an Ambari Admin and has all privileges.',
   'app.settings.no.privileges': 'This user does not have any privileges.',
+  'app.settings.clusterRole': 'Cluster Role',
   'app.settings.viewPermissions': 'View Permissions',
 
   'app.aboutAmbari.getInvolved': 'Get involved!',

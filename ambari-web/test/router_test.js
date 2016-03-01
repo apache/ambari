@@ -497,4 +497,83 @@ describe('App.Router', function () {
 
   });
 
+  describe('#setClusterData', function () {
+
+    var data = {
+        loginName: 'user',
+        loginData: {
+          PrivilegeInfo: {}
+        }
+      },
+      clusterData = {
+        items: []
+      },
+      cases = [
+        {
+          clusterData: clusterData,
+          callbackCallCount: 1,
+          isAjaxCalled: false,
+          title: 'cluster data available'
+        },
+        {
+          clusterData: null,
+          callbackCallCount: 0,
+          isAjaxCalled: true,
+          title: 'no cluster data'
+        }
+      ];
+
+    beforeEach(function () {
+      sinon.stub(router, 'loginGetClustersSuccessCallback', Em.K);
+    });
+
+    afterEach(function () {
+      router.loginGetClustersSuccessCallback.restore();
+    });
+
+    cases.forEach(function (item) {
+
+      describe(item.title, function () {
+
+        var ajaxCallArgs;
+
+        beforeEach(function () {
+          router.set('clusterData', item.clusterData);
+          router.setClusterData({}, {}, data);
+          ajaxCallArgs = testHelpers.findAjaxRequest('name', 'router.login.clusters');
+        });
+
+        it('loginGetClustersSuccessCallback', function () {
+          expect(router.loginGetClustersSuccessCallback.callCount).to.equal(item.callbackCallCount);
+        });
+
+        if (item.isAjaxCalled) {
+          it('App.ajax.send is called', function () {
+            expect(ajaxCallArgs).to.have.length(1);
+          });
+          it('data for AJAX request', function () {
+            expect(ajaxCallArgs).to.eql([
+              {
+                name: 'router.login.clusters',
+                sender: router,
+                data: data,
+                success: 'loginGetClustersSuccessCallback'
+              }
+            ]);
+          });
+        } else {
+          it('App.ajax.send is not called', function () {
+            expect(ajaxCallArgs).to.be.undefined;
+          });
+          it('arguments for callback', function () {
+            expect(router.loginGetClustersSuccessCallback.firstCall.args).to.eql([clusterData, {}, data]);
+          });
+        }
+
+      });
+
+    });
+
+  });
+
 });

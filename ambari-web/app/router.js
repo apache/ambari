@@ -406,7 +406,7 @@ App.Router = Em.Router.extend({
       self = this,
       requestData = {
         loginName: params.loginName,
-        loginData: data
+        loginData: params.loginData
       };
     // no need to load cluster data if it's already loaded
     if (this.get('clusterData')) {
