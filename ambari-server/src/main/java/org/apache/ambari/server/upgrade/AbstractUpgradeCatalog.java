@@ -17,16 +17,27 @@
  */
 package org.apache.ambari.server.upgrade;
 
-import com.google.common.collect.Maps;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.Provider;
-import com.google.inject.persist.Transactional;
+import java.io.StringReader;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import javax.persistence.EntityManager;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.configuration.Configuration.DatabaseType;
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
@@ -48,21 +59,11 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 
-import javax.persistence.EntityManager;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import java.io.StringReader;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
+import com.google.common.collect.Maps;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Provider;
+import com.google.inject.persist.Transactional;
 
 public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
   @Inject
@@ -462,10 +463,14 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
           LOG.info("Applying configuration with tag '{}' to " +
             "cluster '{}'", newTag, cluster.getClusterName());
 
-          Map<String, Map<String, String>> propertiesAttributes;
+          Map<String, Map<String, String>> propertiesAttributes = null;
           if (oldConfig != null) {
             propertiesAttributes = oldConfig.getPropertiesAttributes();
-          } else {
+          }
+
+          // the contract of creating a configuration requires non-null
+          // collections for attributes
+          if (null == propertiesAttributes) {
             propertiesAttributes = Collections.emptyMap();
           }
 
