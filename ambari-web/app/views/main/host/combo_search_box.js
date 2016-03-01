@@ -47,6 +47,8 @@ App.MainHostComboSearchBoxView = Em.View.extend({
             {label: 'IP', value: 'ip', category: 'Host'},
             {label: 'Heath Status', value: 'healthClass', category: 'Host'},
             {label: 'Stack Version', value: 'version', category: 'Host'},
+            {label: 'Cores', value: 'cpu', category: 'Host'},
+            {label: 'RAM', value: 'memoryFormatted', category: 'Host'},
             {label: 'Version State', value: 'versionState', category: 'Host'},
             {label: 'Rack', value: 'rack', category: 'Host'},
             {label: 'Service', value: 'services', category: 'Service'},

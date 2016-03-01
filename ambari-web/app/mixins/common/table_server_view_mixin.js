@@ -107,11 +107,18 @@ App.TableServerViewMixin = Em.Mixin.create({
           filterCondition.value.push(filterValue);
         }
       } else {
+        var type = 'string';
+        if (tag.category === 'cpu') {
+          type = 'number';
+        }
+        if (tag.category === 'memoryFormatted') {
+          type = 'ambari-bandwidth';
+        }
         filterCondition = {
           skipFilter: false,
           iColumn: iColumn,
           value: filterValue,
-          type: 'string'
+          type: type
         };
         self.get('filterConditions').push(filterCondition);
       }
