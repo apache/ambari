@@ -34,13 +34,18 @@ export default Ember.Component.extend(OperationModal, {
   actions: {
     // Actions to preview modal HTML.
     didOpenModal: function () {
-      this.set('selectedFilePath', this.get('filePreviewService.selectedFilePath'));
-      this.get('filePreviewService').getNextContent();
       var _self = this;
-      this.$('.preview-content').on('scroll', function () {
-        if (Ember.$(this).scrollTop() + Ember.$(this).innerHeight() >= this.scrollHeight) {
-          _self.get('filePreviewService').getNextContent();
-        }
+      this.set('selectedFilePath', this.get('filePreviewService.selectedFilePath'));
+      this.get('filePreviewService').getNextContent().then(function () {
+        _self.$('.preview-content').on('scroll', function () {
+          if (Ember.$(this).scrollTop() + Ember.$(this).innerHeight() >= this.scrollHeight) {
+            _self.get('filePreviewService').getNextContent();
+          }
+        });
+      }, function () {
+        // close modal here.
+        _self.send('close');
+        _self.sendAction('refreshAction');
       });
     },
     didCloseModal: function () {
@@ -53,4 +58,3 @@ export default Ember.Component.extend(OperationModal, {
   }
 
 });
-

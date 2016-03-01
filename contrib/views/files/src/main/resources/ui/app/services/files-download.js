@@ -43,6 +43,12 @@ export default Ember.Service.extend(FileOperationMixin, {
     }
   },
 
+  checkIfFileHasReadPermission: function(path) {
+    var adapter = this.get('store').adapterFor('file');
+    var data = {checkperm: true, path: path};
+    return adapter.ajax(this._getDownloadBrowseUrl(), "GET", {data: data});
+  },
+
   _downloadSingle: function(entries) {
     var entry = entries[0];
     if(entry.get('isDirectory')) {
@@ -50,20 +56,19 @@ export default Ember.Service.extend(FileOperationMixin, {
       // or multiple directories and file.
       return this._downloadMulti(entries);
     }
-    var adapter = this.get('store').adapterFor('file');
-    var data = {checkperm: true, path: entry.get('path')};
+
     return new Ember.RSVP.Promise((resolve, reject) => {
-        adapter.ajax(this._getDownloadBrowseUrl(), "GET", {data: data}).then(
-          (response) => {
-            if(response.allowed) {
-              window.location.href = this._getDownloadUrl(entry.get('path'));
-              resolve();
-            }
-          }, (rejectResponse) => {
-            var error = this.extractError(rejectResponse);
-            this.get('logger').danger("Failed to download file.", error);
-            reject(error);
-          });
+      this.checkIfFileHasReadPermission(entry.get('path')).then(
+        (response) => {
+          if(response.allowed) {
+            window.location.href = this._getDownloadUrl(entry.get('path'));
+            resolve();
+          }
+        }, (rejectResponse) => {
+          var error = this.extractError(rejectResponse);
+          this.get('logger').danger("Failed to download file.", error);
+          reject(error);
+        });
     });
   },
 

@@ -17,9 +17,11 @@
  */
 
 import Ember from 'ember';
+import FileOperationMixin from '../mixins/file-operation';
 
-export default Ember.Component.extend({
+export default Ember.Component.extend(FileOperationMixin, {
   fileSelectionService: Ember.inject.service('files-selection'),
+  logger: Ember.inject.service('alert-messages'),
   modalEventBus: Ember.inject.service('modal-event-bus'),
   alertMessages: Ember.inject.service('alert-messages'),
   filesDownloadService: Ember.inject.service('files-download'),
@@ -65,15 +67,26 @@ export default Ember.Component.extend({
 
   actions: {
     open: function(event) {
+      var _self = this;
       if (this.get('isSingleSelected')) {
         var file = this.get('fileSelectionService.files').objectAt(0);
         if (file.get('isDirectory')) {
           this.sendAction('openFolderAction', file.get('path'));
         } else {
-          this.get('modalEventBus').showModal('ctx-open');
+          return new Ember.RSVP.Promise((resolve, reject) => {
+            this.get('filesDownloadService').checkIfFileHasReadPermission(this.get('fileSelectionService.files')[0].get('path')).then(
+              (response) => {
+                if(response.allowed) {
+                  _self.get('modalEventBus').showModal('ctx-open');
+                }
+              }, (rejectResponse) => {
+                var error = this.extractError(rejectResponse);
+                this.get('logger').danger("Failed to Preview the file.", error);
+                reject(error);
+              });
+          });
         }
       }
-
     },
 
     delete: function(event) {
