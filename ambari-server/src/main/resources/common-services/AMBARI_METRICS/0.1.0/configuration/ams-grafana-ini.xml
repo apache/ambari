@@ -153,10 +153,10 @@ cert_key = {{ams_grafana_cert_key}}
 #################################### Security ####################################
 [security]
 # default admin user, created on startup
-;admin_user = admin
+admin_user = {{ams_grafana_admin_user}}
 
 # default admin password, can be changed before first start of grafana,  or in profile settings
-;admin_password = admin
+admin_password = {{ams_grafana_admin_pwd}}
 
 # used for signing
 ;secret_key = SW2YcwTIb9zpOOhoPsMm

@@ -865,7 +865,9 @@
             "metrics_grafana_log_dir": "/var/log/ambari-metrics-grafana",
             "metrics_grafana_pid_dir": "/var/run/ambari-metrics-grafana",
             "metrics_grafana_data_dir": "/var/lib/ambari-metrics-grafana",
-            "content": "\n"
+            "content": "\n",
+            "metrics_grafana_username" : "admin",
+            "metrics_grafana_password" : "admin"
         },
         "ams-ssl-server": {
             "content": "\n"
