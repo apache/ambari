@@ -24,6 +24,7 @@ import re
 import shutil
 import sys
 import subprocess
+import getpass
 
 from ambari_commons.exceptions import FatalException
 from ambari_commons.firewall import Firewall
@@ -46,6 +47,8 @@ from ambari_server.userInput import get_YN_input, get_validated_string_input
 from ambari_server.utils import locate_file
 from ambari_server.serverClassPath import ServerClassPath
 from ambari_server.ambariPath import AmbariPath
+
+from ambari_commons.constants import AMBARI_SUDO_BINARY
 
 # selinux commands
 GET_SE_LINUX_ST_CMD = locate_file('sestatus', '/usr/sbin')
@@ -307,14 +310,14 @@ class AmbariUserChecksLinux(AmbariUserChecks):
 
     self.NR_USER_CHANGE_PROMPT = "Ambari-server daemon is configured to run under user '{0}'. Change this setting [y/n] ({1})? "
     self.NR_USER_CUSTOMIZE_PROMPT = "Customize user account for ambari-server daemon [y/n] ({0})? "
-    self.NR_DEFAULT_USER = "root"
+    self.NR_DEFAULT_USER = getpass.getuser()
 
     self.NR_USERADD_CMD = 'useradd -M --comment "{1}" ' \
                           '--shell %s ' % locate_file('nologin', '/sbin') + '-d ' + AmbariPath.get('/var/lib/ambari-server/keys/') + ' {0}'
 
   def _create_custom_user(self):
     user = get_validated_string_input(
-      "Enter user account for ambari-server daemon (root):",
+      "Enter user account for ambari-server daemon ({0}):".format(self.user),
       self.user,
       "^[a-z_][a-z0-9_-]{1,31}$",
       "Invalid username.",
@@ -731,7 +734,7 @@ class JDKSetupLinux(JDKSetup):
       JDKRelease("jdk1.8", "Oracle JDK 1.8 + Java Cryptography Extension (JCE) Policy Files 8",
                  "http://public-repo-1.hortonworks.com/ARTIFACTS/jdk-8u60-linux-x64.tar.gz", "jdk-8u60-linux-x64.tar.gz",
                  "http://public-repo-1.hortonworks.com/ARTIFACTS/jce_policy-8.zip", "jce_policy-8.zip",
-                 "/usr/jdk64/jdk1.8.0_40",
+                 AmbariPath.get("/usr/jdk64/jdk1.8.0_40"),
                  "(jdk.*)/jre")
     ]
 
@@ -1065,8 +1068,8 @@ def setup(options):
     raise FatalException(1, None)
 
   if not is_root():
-    err = configDefaults.MESSAGE_ERROR_SETUP_NOT_ROOT
-    raise FatalException(4, err)
+    warn_msg = configDefaults.MESSAGE_WARN_SETUP_NOT_ROOT
+    print warn_msg
 
   # proceed jdbc properties if they were set
   if _check_jdbc_options(options):

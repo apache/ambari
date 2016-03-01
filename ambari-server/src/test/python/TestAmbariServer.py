@@ -1202,7 +1202,6 @@ class TestAmbariServer(TestCase):
     get_resources_location_mock.return_value = "dummy_resources_dir"
     exists_mock.return_value = False
     adjust_directory_permissions("user")
-    self.assertEquals(rmtree_mock.call_args_list[0][0][0], os.path.join(os.getcwd(), "dummy_bootstrap_dir"))
     self.assertTrue(mkdir_mock.called)
 
     set_file_permissions_mock.reset_mock()

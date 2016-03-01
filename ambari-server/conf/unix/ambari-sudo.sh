@@ -13,29 +13,39 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 
-# since ambari-server doesn't have sudo permissions this file is just a mock file
-# which always runs commands without sudo.
-ENV=()
-SUDO_ARGS=()
+SUDO_BINARY="/usr/bin/sudo"
 
-for i ; do
-  if [[ "$i" == *"="* ]] ; then
-    ENV+=("$i")
-    shift
-  elif [[ "$i" == "-"* ]] ; then
-    SUDO_ARGS+=("$i")
-    shift
-  else
-    break
-  fi
-done
-  
-#echo "sudo arguments: ${SUDO_ARGS[@]}"
-#echo "env: ${ENV[@]}"
-#echo "args: $@"
-
-if [ "$ENV" ] ; then
-  export "${ENV[@]}"
+if [[ $# -eq 0 ]] ; then
+  echo 'usage: ambari-sudo.sh [sudo_arg1, sudo_arg2 ...] command [arg1, arg2 ...]'
+  exit 1
 fi
 
-"$@"
+# if user is non-root
+if [ "$EUID" -ne 0 ] ; then
+  $SUDO_BINARY "$@"
+else
+  ENV=()
+  SUDO_ARGS=()
+
+  for i ; do
+    if [[ "$i" == *"="* ]] ; then
+      ENV+=("$i")
+      shift
+    elif [[ "$i" == "-"* ]] ; then
+      SUDO_ARGS+=("$i")
+      shift
+    else
+      break
+    fi
+  done
+  
+  #echo "sudo arguments: ${SUDO_ARGS[@]}"
+  #echo "env: ${ENV[@]}"
+  #echo "args: $@"
+
+  if [ "$ENV" ] ; then
+    export "${ENV[@]}"
+  fi
+
+  "$@"
+fi

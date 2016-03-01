@@ -326,7 +326,7 @@ class ServerConfigDefaults(object):
 
     #Standard messages
     self.MESSAGE_SERVER_RUNNING_AS_ROOT = ""
-    self.MESSAGE_ERROR_SETUP_NOT_ROOT = ""
+    self.MESSAGE_WARN_SETUP_NOT_ROOT = ""
     self.MESSAGE_ERROR_RESET_NOT_ROOT = ""
     self.MESSAGE_ERROR_UPGRADE_NOT_ROOT = ""
     self.MESSAGE_CHECK_FIREWALL = ""
@@ -381,7 +381,7 @@ class ServerConfigDefaultsWindows(ServerConfigDefaults):
 
     #Standard messages
     self.MESSAGE_SERVER_RUNNING_AS_ROOT = "Ambari Server running with 'root' privileges."
-    self.MESSAGE_ERROR_SETUP_NOT_ROOT = "Ambari-server setup must be run with administrator-level privileges"
+    self.MESSAGE_WARN_SETUP_NOT_ROOT = "Ambari-server setup is run with root-level privileges, passwordless sudo access for some commands commands may be required"
     self.MESSAGE_ERROR_RESET_NOT_ROOT = "Ambari-server reset must be run with administrator-level privileges"
     self.MESSAGE_ERROR_UPGRADE_NOT_ROOT = "Ambari-server upgrade must be run with administrator-level privileges"
     self.MESSAGE_CHECK_FIREWALL = "Checking firewall status..."
@@ -391,7 +391,7 @@ class ServerConfigDefaultsLinux(ServerConfigDefaults):
   def __init__(self):
     super(ServerConfigDefaultsLinux, self).__init__()
     # JDK
-    self.JDK_INSTALL_DIR = "/usr/jdk64"
+    self.JDK_INSTALL_DIR = AmbariPath.get("/usr/jdk64")
     self.JDK_SEARCH_PATTERN = "jdk*"
     self.JAVA_EXE_SUBPATH = "bin/java"
 
@@ -410,12 +410,12 @@ class ServerConfigDefaultsLinux(ServerConfigDefaults):
     self.NR_ADJUST_OWNERSHIP_LIST = [
       (AmbariPath.get("/var/log/ambari-server/"), "644", "{0}", True),
       (AmbariPath.get("/var/log/ambari-server/"), "755", "{0}", False),
-      (AmbariPath.get("/var/run/ambari-server/"), "644", "{0}", True),
+      (AmbariPath.get("/var/run/ambari-server/*"), "644", "{0}", True),
       (AmbariPath.get("/var/run/ambari-server/"), "755", "{0}", False),
       (AmbariPath.get("/var/run/ambari-server/bootstrap"), "755", "{0}", False),
       (AmbariPath.get("/var/lib/ambari-server/ambari-env.sh"), "700", "{0}", False),
       (AmbariPath.get("/var/lib/ambari-server/ambari-sudo.sh"), "700", "{0}", False),
-      (AmbariPath.get("/var/lib/ambari-server/keys/"), "600", "{0}", True),
+      (AmbariPath.get("/var/lib/ambari-server/keys/*"), "600", "{0}", True),
       (AmbariPath.get("/var/lib/ambari-server/keys/"), "700", "{0}", False),
       (AmbariPath.get("/var/lib/ambari-server/keys/db/"), "700", "{0}", False),
       (AmbariPath.get("/var/lib/ambari-server/keys/db/newcerts/"), "700", "{0}", False),
@@ -424,10 +424,10 @@ class ServerConfigDefaultsLinux(ServerConfigDefaults):
       (AmbariPath.get("/var/lib/ambari-server/resources/stacks/"), "755", "{0}", True),
       (AmbariPath.get("/var/lib/ambari-server/resources/custom_actions/"), "755", "{0}", True),
       (AmbariPath.get("/var/lib/ambari-server/resources/host_scripts/"), "755", "{0}", True),
-      (AmbariPath.get("/var/lib/ambari-server/resources/views/"), "644", "{0}", True),
+      (AmbariPath.get("/var/lib/ambari-server/resources/views/*"), "644", "{0}", True),
       (AmbariPath.get("/var/lib/ambari-server/resources/views/"), "755", "{0}", False),
       (AmbariPath.get("/var/lib/ambari-server/resources/views/work/"), "755", "{0}", True),
-      (AmbariPath.get("/etc/ambari-server/conf/"), "644", "{0}", True),
+      (AmbariPath.get("/etc/ambari-server/conf/*"), "644", "{0}", True),
       (AmbariPath.get("/etc/ambari-server/conf/"), "755", "{0}", False),
       (AmbariPath.get("/etc/ambari-server/conf/password.dat"), "640", "{0}", False),
       (AmbariPath.get("/var/lib/ambari-server/keys/pass.txt"), "600", "{0}", False),
@@ -463,7 +463,7 @@ class ServerConfigDefaultsLinux(ServerConfigDefaults):
 
     #Standard messages
     self.MESSAGE_SERVER_RUNNING_AS_ROOT = "Ambari Server running with administrator privileges."
-    self.MESSAGE_ERROR_SETUP_NOT_ROOT = "Ambari-server setup should be run with root-level privileges"
+    self.MESSAGE_WARN_SETUP_NOT_ROOT = "Ambari-server setup is run with root-level privileges, passwordless sudo access for some commands commands may be required"
     self.MESSAGE_ERROR_RESET_NOT_ROOT = "Ambari-server reset should be run with root-level privileges"
     self.MESSAGE_ERROR_UPGRADE_NOT_ROOT = "Ambari-server upgrade must be run with root-level privileges"
     self.MESSAGE_CHECK_FIREWALL = "Checking firewall status..."

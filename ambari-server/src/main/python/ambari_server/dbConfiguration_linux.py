@@ -47,6 +47,8 @@ from ambari_server.serverConfiguration import encrypt_password, store_password_f
     JDBC_CONNECTION_POOL_IDLE_TEST_INTERVAL, JDBC_CONNECTION_POOL_MAX_AGE, JDBC_CONNECTION_POOL_MAX_IDLE_TIME, \
     JDBC_CONNECTION_POOL_MAX_IDLE_TIME_EXCESS, JDBC_SQLA_SERVER_NAME
 
+from ambari_commons.constants import AMBARI_SUDO_BINARY
+
 from ambari_server.userInput import get_YN_input, get_validated_string_input, read_password
 from ambari_server.utils import get_postgre_hba_dir, get_postgre_running_status
 from ambari_server.ambariPath import AmbariPath
@@ -312,12 +314,12 @@ class LinuxDBMSConfig(DBMSConfig):
 # PostgreSQL configuration and setup
 class PGConfig(LinuxDBMSConfig):
   # PostgreSQL settings
-  SETUP_DB_CMD = ['su', '-', 'postgres',
+  SETUP_DB_CMD = [AMBARI_SUDO_BINARY, 'su', 'postgres', '-', 
                   '--command=psql -f {0} -v username=\'"{1}"\' -v password="\'{2}\'" -v dbname="{3}"']
-  UPGRADE_STACK_CMD = ['su', 'postgres',
+  UPGRADE_STACK_CMD = [AMBARI_SUDO_BINARY, 'su', 'postgres',
                        '--command=psql -f {0} -v stack_name="\'{1}\'"  -v stack_version="\'{2}\'" -v dbname="{3}"']
 
-  CHANGE_OWNER_COMMAND = ['su', '-', 'postgres',
+  CHANGE_OWNER_COMMAND = [AMBARI_SUDO_BINARY, 'su', 'postgres', '-',
                           '--command=' + AmbariPath.get("/var/lib/ambari-server/resources/scripts/change_owner.sh") + ' -d {0} -s {1} -o {2}']
 
   PG_ERROR_BLOCKED = "is being accessed by other users"

@@ -120,12 +120,9 @@ def adjust_directory_permissions(ambari_user):
   bootstrap_dir = os.path.abspath(get_value_from_properties(properties, BOOTSTRAP_DIR_PROPERTY))
   print_info_msg("Cleaning bootstrap directory ({0}) contents...".format(bootstrap_dir))
 
-  shutil.rmtree(bootstrap_dir, True) #Ignore the non-existent dir error
-  #Protect against directories lingering around
-  del_attempts = 0
-  while os.path.exists(bootstrap_dir) and del_attempts < 100:
-    time.sleep(50)
-    del_attempts += 1
+  if os.path.exists(bootstrap_dir):
+    shutil.rmtree(bootstrap_dir) #Ignore the non-existent dir error
+
   if not os.path.exists(bootstrap_dir):
     try:
       os.makedirs(bootstrap_dir)
@@ -164,7 +161,7 @@ def adjust_directory_permissions(ambari_user):
   if java_home:
     jdk_security_dir = os.path.abspath(os.path.join(java_home, configDefaults.JDK_SECURITY_DIR))
     if(os.path.exists(jdk_security_dir)):
-      configDefaults.NR_ADJUST_OWNERSHIP_LIST.append((jdk_security_dir, "644", "{0}", True))
+      configDefaults.NR_ADJUST_OWNERSHIP_LIST.append((jdk_security_dir + "/*", "644", "{0}", True))
       configDefaults.NR_ADJUST_OWNERSHIP_LIST.append((jdk_security_dir, "755", "{0}", False))
 
   # Grant read permissions to all users. This is required when a non-admin user is configured to setup ambari-server.
