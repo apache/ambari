@@ -23,8 +23,6 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
   name: 'kerberosWizardStep4Controller',
   isWithinAddService: Em.computed.equal('wizardController.name', 'addServiceController'),
 
-  adminPropertyNames: [{name: 'admin_principal', displayName: 'Admin principal'}, {name: 'admin_password', displayName: 'Admin password'}],
-
   clearStep: function() {
     this.set('isRecommendedLoaded', false);
     this.set('selectedService', null);
@@ -116,8 +114,6 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
     if (this.get('wizardController.name') == 'addServiceController') {
       // config properties for installed services should be disabled on Add Service Wizard
       configProperties.forEach(function(item) {
-        if (this.get('adminPropertyNames').mapProperty('name').contains(item.get('name'))
-            || item.get('name') === 'persist_credentials') return;
         if (this.get('installedServiceNames').contains(item.get('serviceName')) || item.get('serviceName') == 'Cluster') {
           item.set('isEditable', false);
         } else if (stackConfigs) {
@@ -161,7 +157,6 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
     // stored configs from previous steps (Configure Kerberos or Customize Services for ASW)
     var storedServiceConfigs = this.get('wizardController').getDBProperty('serviceConfigProperties');
     var installedServiceNames = ['Cluster'].concat(App.Service.find().mapProperty('serviceName'));
-    var adminProps = [];
     var configProperties = configs.slice(0);
     var siteProperties = App.configsCollection.getAll();
     // override stored values
@@ -170,9 +165,7 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
     // show admin properties in add service wizard
     if (this.get('isWithinAddService')) {
       installedServiceNames = installedServiceNames.concat(this.get('selectedServiceNames'));
-      adminProps = this.createAdminCredentialsProperties(configProperties);
     }
-    configProperties = adminProps.concat(configProperties);
     configProperties = configProperties.filter(function(item) {
       return installedServiceNames.contains(item.get('serviceName'));
     });
@@ -271,60 +264,5 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
     });
     this.updateKerberosDescriptor(kerberosDescriptor, configs);
     App.get('router.kerberosWizardController').saveKerberosDescriptorConfigs(kerberosDescriptor);
-  },
-
-  /**
-   * Generate App.ServiceConfigProperty instances for 'admin_principal' and 'admin_password' properties
-   * Used for Add Service Wizard only on Configure Identities step.
-   *
-   * @param {object[]} loadedProperties list of already loaded config properties
-   * @returns {App.ServiceConfigProperty[]}
-   */
-  createAdminCredentialsProperties: function(loadedProperties) {
-    if (App.router.get('mainAdminKerberosController.isManualKerberos')) {
-      return [];
-    }
-    var fileName = 'krb5-conf.xml';
-    var krbProperties = loadedProperties.filterProperty('filename', fileName);
-    var siteProperties = App.config.get('preDefinedSiteProperties');
-    var credentialProperties = this.get('adminPropertyNames').map(function(prop, index) {
-      var existingProperty = krbProperties.findProperty('name', prop.name);
-      var coreObject = {
-        serviceName: 'Cluster',
-        displayName: prop.displayName,
-        isRequired: false,
-        isRequiredByAgent: false,
-        supportsFinal: false,
-        isFinal: false,
-        isSecureConfig: true,
-        index: index,
-        value: '',
-        isVisible: true,
-        isUserProperty: false
-      };
-      var propTpl = App.config.createDefaultConfig(prop.name, fileName, false, coreObject);
-      var siteProperty = siteProperties.filterProperty('filename', fileName).findProperty('name', prop.name);
-      if (!Em.isNone(siteProperty)) {
-        propTpl = $.extend(true, {}, siteProperty, propTpl);
-      }
-      if (!Em.isNone(existingProperty)) {
-        propTpl = $.extend(true, {}, propTpl, existingProperty);
-      }
-      return App.ServiceConfigProperty.create(propTpl);
-    });
-    if (App.get('supports.storeKDCCredentials')) {
-      var storeProps = [];
-      this.initilizeKDCStoreProperties(storeProps);
-      var persistCredentialsProp = storeProps.findProperty('name', 'persist_credentials');
-      if (!Em.isNone(persistCredentialsProp)) {
-        Em.setProperties(persistCredentialsProp, {
-          index: credentialProperties.length,
-          serviceName: 'Cluster',
-          category: 'Global'
-        });
-        credentialProperties.pushObject(App.ServiceConfigProperty.create(persistCredentialsProp));
-      }
-    }
-    return credentialProperties;
   }
 });
