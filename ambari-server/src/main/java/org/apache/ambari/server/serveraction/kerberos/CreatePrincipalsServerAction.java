@@ -22,7 +22,7 @@ import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
-import org.apache.ambari.server.audit.kerberos.CreatePrincipalKerberosAuditEvent;
+import org.apache.ambari.server.audit.event.kerberos.CreatePrincipalKerberosAuditEvent;
 import org.apache.ambari.server.orm.dao.KerberosPrincipalDAO;
 import org.apache.ambari.server.orm.dao.KerberosPrincipalHostDAO;
 import org.apache.ambari.server.orm.entities.KerberosPrincipalEntity;

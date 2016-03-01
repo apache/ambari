@@ -25,7 +25,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
 import org.apache.ambari.server.audit.AuditLogger;
-import org.apache.ambari.server.audit.LogoutAuditEvent;
+import org.apache.ambari.server.audit.event.LogoutAuditEvent;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.utils.RequestUtils;
 

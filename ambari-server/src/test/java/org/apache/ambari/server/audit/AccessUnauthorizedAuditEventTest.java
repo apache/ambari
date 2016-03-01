@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.audit;
 
+import org.apache.ambari.server.audit.event.AccessUnauthorizedAuditEvent;
 import org.joda.time.DateTime;
 import org.junit.Test;
 
@@ -47,7 +48,7 @@ public class AccessUnauthorizedAuditEventTest {
     String actualAuditMessage = evnt.getAuditMessage();
 
     // Then
-    String expectedAuditMessage = String.format("User(%s), RemoteIp(%s), Operation(%s), ResourcePath(%s), Status(Access not authorized !)", testUserName, testRemoteIp, testHttpMethod, testResourcePath);
+    String expectedAuditMessage = String.format("User(%s), RemoteIp(%s), Operation(%s), ResourcePath(%s), Status(Failed), Reason(Access not authorized)", testUserName, testRemoteIp, testHttpMethod, testResourcePath);
 
     assertThat(actualAuditMessage, equalTo(expectedAuditMessage));
   }

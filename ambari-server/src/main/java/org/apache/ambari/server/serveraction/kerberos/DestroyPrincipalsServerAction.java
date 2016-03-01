@@ -21,7 +21,7 @@ package org.apache.ambari.server.serveraction.kerberos;
 import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.CommandReport;
-import org.apache.ambari.server.audit.kerberos.DestroyPrincipalKerberosAuditEvent;
+import org.apache.ambari.server.audit.event.kerberos.DestroyPrincipalKerberosAuditEvent;
 import org.apache.ambari.server.orm.dao.KerberosPrincipalDAO;
 import org.apache.ambari.server.orm.entities.KerberosPrincipalEntity;
 import org.joda.time.DateTime;

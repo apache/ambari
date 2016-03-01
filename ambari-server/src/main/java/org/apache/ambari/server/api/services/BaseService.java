@@ -27,7 +27,7 @@ import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
 import org.apache.ambari.server.api.services.serializers.CsvSerializer;
 import org.apache.ambari.server.api.services.serializers.JsonSerializer;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
-import org.apache.ambari.server.audit.request.RequestAuditLogger;
+import org.apache.ambari.server.audit.event.request.RequestAuditLogger;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.utils.RetryHelper;
 import org.eclipse.jetty.util.ajax.JSON;

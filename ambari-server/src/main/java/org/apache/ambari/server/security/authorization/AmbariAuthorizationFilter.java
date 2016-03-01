@@ -19,10 +19,10 @@
 package org.apache.ambari.server.security.authorization;
 
 import com.google.inject.Inject;
-import org.apache.ambari.server.audit.AccessUnauthorizedAuditEvent;
-import org.apache.ambari.server.audit.AuditEvent;
+import org.apache.ambari.server.audit.event.AccessUnauthorizedAuditEvent;
+import org.apache.ambari.server.audit.event.AuditEvent;
 import org.apache.ambari.server.audit.AuditLogger;
-import org.apache.ambari.server.audit.LoginSucceededAuditEvent;
+import org.apache.ambari.server.audit.event.LoginAuditEvent;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
@@ -136,12 +136,12 @@ public class AmbariAuthorizationFilter implements Filter {
       if (token != null) {
         InternalAuthenticationToken internalAuthenticationToken = new InternalAuthenticationToken(token);
         context.setAuthentication(internalAuthenticationToken);
-        LoginSucceededAuditEvent loginSucceededAuditEvent = LoginSucceededAuditEvent.builder()
+        LoginAuditEvent loginAuditEvent = LoginAuditEvent.builder()
           .withUserName(internalAuthenticationToken.getName())
           .withRemoteIp(RequestUtils.getRemoteAddress(httpRequest))
           .withRoles(AuthorizationHelper.getPermissionLabels(authentication))
           .withTimestamp(DateTime.now()).build();
-        auditLogger.log(loginSucceededAuditEvent);
+        auditLogger.log(loginAuditEvent);
       } else {
         // for view access, we should redirect to the Ambari login
         if (requestURI.matches(VIEWS_CONTEXT_ALL_PATTERN)) {

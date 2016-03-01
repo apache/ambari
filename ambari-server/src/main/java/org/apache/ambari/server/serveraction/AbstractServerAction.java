@@ -24,9 +24,8 @@ import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
-import org.apache.ambari.server.audit.AuditEvent;
+import org.apache.ambari.server.audit.event.AuditEvent;
 import org.apache.ambari.server.audit.AuditLogger;
-import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.utils.StageUtils;
 
 import java.util.Collections;

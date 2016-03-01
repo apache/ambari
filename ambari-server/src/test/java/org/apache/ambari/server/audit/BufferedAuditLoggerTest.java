@@ -21,6 +21,8 @@ package org.apache.ambari.server.audit;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.ambari.server.audit.event.AuditEvent;
+import org.apache.ambari.server.audit.event.OperationStatusAuditEvent;
 import org.easymock.Capture;
 import org.easymock.EasyMockRule;
 import org.easymock.Mock;

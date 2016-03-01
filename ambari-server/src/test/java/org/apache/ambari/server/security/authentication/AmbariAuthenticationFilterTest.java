@@ -27,7 +27,7 @@ import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.ambari.server.audit.AuditEvent;
+import org.apache.ambari.server.audit.event.AuditEvent;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.junit.runner.RunWith;

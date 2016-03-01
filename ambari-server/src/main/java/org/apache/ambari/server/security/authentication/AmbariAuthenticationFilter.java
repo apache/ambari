@@ -24,10 +24,9 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.ambari.server.audit.AuditEvent;
+import org.apache.ambari.server.audit.event.AuditEvent;
 import org.apache.ambari.server.audit.AuditLogger;
-import org.apache.ambari.server.audit.LoginFailedAuditEvent;
-import org.apache.ambari.server.audit.LoginSucceededAuditEvent;
+import org.apache.ambari.server.audit.event.LoginAuditEvent;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.utils.RequestUtils;
 import org.joda.time.DateTime;
@@ -59,10 +58,10 @@ public class AmbariAuthenticationFilter extends BasicAuthenticationFilter {
     HttpServletRequest request = (HttpServletRequest) req;
     String header = request.getHeader("Authorization");
     if (AuthorizationHelper.getAuthenticatedName() == null && (header == null || !header.startsWith("Basic "))) {
-      AuditEvent loginFailedAuditEvent = LoginFailedAuditEvent.builder()
+      AuditEvent loginFailedAuditEvent = LoginAuditEvent.builder()
         .withRemoteIp(RequestUtils.getRemoteAddress(request))
         .withTimestamp(DateTime.now())
-        .withReason("Authentication required")
+        .withReasonOfFailure("Authentication required")
         .withUserName(null)
         .build();
       auditLogger.log(loginFailedAuditEvent);
@@ -72,7 +71,7 @@ public class AmbariAuthenticationFilter extends BasicAuthenticationFilter {
 
   @Override
   protected void onSuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, Authentication authResult) throws IOException {
-    AuditEvent loginSucceededAuditEvent = LoginSucceededAuditEvent.builder()
+    AuditEvent loginSucceededAuditEvent = LoginAuditEvent.builder()
       .withRemoteIp(RequestUtils.getRemoteAddress(request))
       .withUserName(authResult.getName())
       .withTimestamp(DateTime.now())
@@ -91,10 +90,10 @@ public class AmbariAuthenticationFilter extends BasicAuthenticationFilter {
     } catch (Exception e) {
       LOG.warn("Error occurred during decoding authorization header.",e);
     }
-    AuditEvent loginFailedAuditEvent = LoginFailedAuditEvent.builder()
+    AuditEvent loginFailedAuditEvent = LoginAuditEvent.builder()
       .withRemoteIp(RequestUtils.getRemoteAddress(request))
       .withTimestamp(DateTime.now())
-      .withReason("Invalid username/password combination")
+      .withReasonOfFailure("Invalid username/password combination")
       .withUserName(username)
       .build();
     auditLogger.log(loginFailedAuditEvent);

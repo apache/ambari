@@ -18,6 +18,8 @@
 package org.apache.ambari.server.audit;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
+
+import org.apache.ambari.server.audit.event.LogoutAuditEvent;
 import org.joda.time.DateTime;
 import org.junit.Test;
 
@@ -42,7 +44,7 @@ public class LogoutAuditEventTest {
     String actualAuditMessage = evnt.getAuditMessage();
 
     // Then
-    String expectedAuditMessage = String.format("User(%s), RemoteIp(%s), Status(Logout succeeded !)",
+    String expectedAuditMessage = String.format("User(%s), RemoteIp(%s), Operation(Logout), Status(Success)",
       testUserName, testRemoteIp);
 
     assertThat(actualAuditMessage, equalTo(expectedAuditMessage));

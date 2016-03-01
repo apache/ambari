@@ -52,7 +52,7 @@ import org.apache.ambari.server.api.services.PersistKeyValueService;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorBlueprintProcessor;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorHelper;
 import org.apache.ambari.server.audit.AuditLogger;
-import org.apache.ambari.server.audit.request.RequestAuditLogger;
+import org.apache.ambari.server.audit.event.request.RequestAuditLogger;
 import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.security.authentication.AmbariAuthenticationFilter;
 import org.apache.ambari.server.bootstrap.BootStrapImpl;

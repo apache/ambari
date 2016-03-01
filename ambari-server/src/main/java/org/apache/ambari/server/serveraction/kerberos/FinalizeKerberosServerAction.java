@@ -21,7 +21,7 @@ package org.apache.ambari.server.serveraction.kerberos;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
-import org.apache.ambari.server.audit.kerberos.ChangeSecurityStateKerberosAuditEvent;
+import org.apache.ambari.server.audit.event.kerberos.ChangeSecurityStateKerberosAuditEvent;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.SecurityState;

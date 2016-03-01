@@ -28,7 +28,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -45,10 +44,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpUpgradeHandler;
 import javax.servlet.http.Part;
-import javax.ws.rs.core.Cookie;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
 
 import org.apache.ambari.server.api.query.QueryImpl;
 import org.apache.ambari.server.api.resources.HostComponentResourceDefinition;
@@ -60,7 +55,7 @@ import org.apache.ambari.server.api.services.RequestFactory;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultImpl;
 import org.apache.ambari.server.api.services.ResultStatus;
-import org.apache.ambari.server.audit.request.eventcreator.DefaultEventCreator;
+import org.apache.ambari.server.audit.event.request.eventcreator.DefaultEventCreator;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -72,8 +67,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-
-import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 public class DefaultEventCreatorTest {
 

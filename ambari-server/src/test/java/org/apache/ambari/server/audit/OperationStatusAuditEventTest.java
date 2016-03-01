@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.audit;
 
+import org.apache.ambari.server.audit.event.OperationStatusAuditEvent;
 import org.joda.time.DateTime;
 import org.junit.Test;
 
