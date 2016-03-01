@@ -19,6 +19,7 @@
 package org.apache.ambari.server.audit.request.eventcreator;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.ambari.server.api.services.Request;
@@ -44,9 +45,16 @@ public class UnauthorizedEventCreator implements RequestAuditEventCreator{
     return null;
   }
 
+  private Set<ResultStatus.STATUS> statuses = new HashSet<>();
+
+  {
+    statuses.add(ResultStatus.STATUS.UNAUTHORIZED);
+    statuses.add(ResultStatus.STATUS.FORBIDDEN);
+  }
+
   @Override
   public Set<ResultStatus.STATUS> getResultStatuses() {
-    return Collections.singleton(ResultStatus.STATUS.UNAUTHORIZED);
+    return statuses;
   }
 
   @Override

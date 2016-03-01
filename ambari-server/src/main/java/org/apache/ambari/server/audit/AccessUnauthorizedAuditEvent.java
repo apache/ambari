@@ -61,7 +61,7 @@ public class AccessUnauthorizedAuditEvent extends AbstractAuthorizationEvent {
   }
 
   /**
-   * Returns an builder for {@link AccessAuthorizedAuditEvent}
+   * Returns an builder for {@link AccessUnauthorizedAuditEvent}
    * @return a builder instance
    */
   public static AccessUnauthorizedAuditEventBuilder builder() {
