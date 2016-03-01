@@ -22,6 +22,14 @@ App.MainHostComboSearchBoxView = Em.View.extend({
   templateName: require('templates/main/host/combo_search_box'),
   didInsertElement: function () {
     this.initVS();
+    this.restoreComboFilterQuery();
+  },
+
+  restoreComboFilterQuery: function() {
+    var query = App.db.getComboSearchQuery(this.get('parentView.parentView.controller.name'));
+    if (query) {
+      visualSearch.searchBox.setQuery(query);
+    }
   },
 
   initVS: function() {
@@ -38,6 +46,7 @@ App.MainHostComboSearchBoxView = Em.View.extend({
       callbacks: {
         search: function (query, searchCollection) {
           var tableView = self.get('parentView').get('parentView');
+          App.db.setComboSearchQuery(tableView.get('controller.name'), query);
           tableView.updateComboFilter(searchCollection);
         },
 

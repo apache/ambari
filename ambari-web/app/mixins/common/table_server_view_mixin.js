@@ -93,7 +93,6 @@ App.TableServerViewMixin = Em.Mixin.create({
     clearTimeout(this.get('timeOut'));
     this.set('controller.resetStartIndex', true);
     this.set('filterConditions', []);
-    this.clearFilterConditionsFromLocalStorage();
     searchCollection.models.forEach(function (model) {
       var tag = model.attributes;
       var isComponentState = comboController.isComponentStateFacet(tag.category);

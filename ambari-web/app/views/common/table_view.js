@@ -403,6 +403,11 @@ App.TableView = Em.View.extend(App.UserPref, {
       App.db.setFilterConditions(this.get('controller.name'), null);
       result = true;
     }
+    var query = App.db.getComboSearchQuery(this.get('controller.name'));
+    if (query != null) {
+      App.db.setComboSearchQuery(this.get('controller.name'), null);
+      result = true;
+    }
     return result;
   },
 

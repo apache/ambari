@@ -79,7 +79,7 @@ App.supports = {
   skipComponentStartAfterInstall: false,
   storeKDCCredentials: true,
   preInstallChecks: false,
-  hostComboSearchBox: false,
+  hostComboSearchBox: true,
   serviceAutoStart: false,
   logSearch: false,
   redhatSatellite: false
