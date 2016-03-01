@@ -397,9 +397,9 @@ def run_component_https_cmd(cmd):
 
 def setup_https(args):
   if not is_root():
-        err = 'ambari-server setup-https should be run with ' \
-              'root-level privileges'
-        raise FatalException(4, err)
+    warn = 'ambari-server setup-https is run as ' \
+          'non-root user, some sudo privileges might be required'
+    print warn
   args.exit_message = None
   if not get_silent():
     properties = get_ambari_properties()

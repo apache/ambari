@@ -376,9 +376,9 @@ def sync_ldap(options):
 
 def setup_master_key(options):
   if not is_root():
-    err = 'Ambari-server setup should be run with ' \
-          'root-level privileges'
-    raise FatalException(4, err)
+    warn = 'ambari-server setup-https is run as ' \
+          'non-root user, some sudo privileges might be required'
+    print warn
 
   properties = get_ambari_properties()
   if properties == -1:

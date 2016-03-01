@@ -408,7 +408,7 @@ class ServerConfigDefaultsLinux(ServerConfigDefaults):
     # Rules are executed in the same order as they are listed
     # {0} in user/group will be replaced by customized ambari-server username
     self.NR_ADJUST_OWNERSHIP_LIST = [
-      (AmbariPath.get("/var/log/ambari-server/"), "644", "{0}", True),
+      (AmbariPath.get("/var/log/ambari-server/*"), "644", "{0}", True),
       (AmbariPath.get("/var/log/ambari-server/"), "755", "{0}", False),
       (AmbariPath.get("/var/run/ambari-server/*"), "644", "{0}", True),
       (AmbariPath.get("/var/run/ambari-server/"), "755", "{0}", False),
@@ -436,7 +436,7 @@ class ServerConfigDefaultsLinux(ServerConfigDefaults):
       (AmbariPath.get("/var/run/ambari-server/stack-recommendations/"), "755", "{0}", False),
       (AmbariPath.get("/var/lib/ambari-server/resources/data/"), "644", "{0}", False),
       (AmbariPath.get("/var/lib/ambari-server/resources/data/"), "755", "{0}", False),
-      (AmbariPath.get("/var/lib/ambari-server/data/tmp/"), "644", "{0}", True),
+      (AmbariPath.get("/var/lib/ambari-server/data/tmp/*"), "644", "{0}", True),
       (AmbariPath.get("/var/lib/ambari-server/data/tmp/"), "755", "{0}", False),
       (AmbariPath.get("/var/lib/ambari-server/data/cache/"), "600", "{0}", True),
       (AmbariPath.get("/var/lib/ambari-server/data/cache/"), "700", "{0}", False),
