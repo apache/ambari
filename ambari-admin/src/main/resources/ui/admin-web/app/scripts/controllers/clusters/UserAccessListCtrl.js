@@ -81,6 +81,12 @@ function($scope, $location, Cluster, $modal, $rootScope, $routeParams, Permissio
 
   // TODO change to PUT after it's available
   $scope.save = function(user) {
+    for (var i = $scope.roles.length; i--;) {
+      if ($scope.roles[i].permission_name === user.permission_name) {
+        user.permission_label = $scope.roles[i].permission_label;
+        break;
+      }
+    }
     Cluster.deletePrivilege(
     $routeParams.id,
     user.privilege_id
@@ -96,7 +102,10 @@ function($scope, $location, Cluster, $modal, $rootScope, $routeParams, Permissio
           principal_type: user.principal_type
         }}]
         ).then(function() {
-          Alert.success(user.principal_name + " changed to " + user.permission_label);
+          Alert.success($t('users.alerts.roleChanged', {
+            name: user.principal_name,
+            role: user.permission_label
+          }));
           $scope.loadUsers();
         })
         .catch(function(data) {

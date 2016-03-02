@@ -294,7 +294,8 @@ angular.module('ambariAdminConsole')
         'removeUserError': 'Removing from group error',
         'cannotAddUser': 'Cannot add user to group',
         'passwordChanged': 'Password changed.',
-        'cannotChangePassword': 'Cannot change password'
+        'cannotChangePassword': 'Cannot change password',
+        'roleChanged': '{{name}} changed to {{role}}'
       }
     },
 
