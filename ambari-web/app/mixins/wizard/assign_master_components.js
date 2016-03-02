@@ -897,8 +897,11 @@ App.AssignMasterComponents = Em.Mixin.create({
    */
   sortComponentsByServiceName: function(components) {
     var displayOrder = App.StackService.displayOrder;
+    var componentsOrderForService = App.StackService.componentsOrderForService;
     var indexForUnordered = Math.max(displayOrder.length, components.length);
     return components.sort(function (a, b) {
+      if(a.serviceId === b.serviceId && a.serviceId in componentsOrderForService)
+        return componentsOrderForService[a.serviceId].indexOf(a.component_name) - componentsOrderForService[b.serviceId].indexOf(b.component_name);
       var aValue = displayOrder.indexOf(a.serviceId) != -1 ? displayOrder.indexOf(a.serviceId) : indexForUnordered;
       var bValue = displayOrder.indexOf(b.serviceId) != -1 ? displayOrder.indexOf(b.serviceId) : indexForUnordered;
       return aValue - bValue;

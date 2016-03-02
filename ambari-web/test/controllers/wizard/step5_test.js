@@ -1261,33 +1261,6 @@ describe('App.WizardStep5Controller', function () {
 
   });
 
-  describe('#sortComponentsByServiceName', function () {
-
-    var components = [{
-      "component_name": "METRICS_COLLECTOR",
-      "serviceId": "AMBARI_METRICS"
-    }, {"component_name": "ZOOKEEPER_SERVER", "serviceId": "ZOOKEEPER"}, {
-      "component_name": "NAMENODE",
-      "serviceId": "HDFS"
-    }, {"component_name": "DRPC_SERVER", "serviceId": "STORM"}, {
-      "component_name": "APP_TIMELINE_SERVER",
-      "serviceId": "YARN"
-    }, {"component_name": "RESOURCEMANAGER", "serviceId": "YARN"}, {
-      "component_name": "SECONDARY_NAMENODE",
-      "serviceId": "HDFS"
-    }, {"component_name": "ZOOKEEPER_SERVER", "serviceId": "ZOOKEEPER"}, {
-      "component_name": "HISTORYSERVER",
-      "serviceId": "MAPREDUCE2"
-    }, {"component_name": "NIMBUS", "serviceId": "STORM"}, {"component_name": "STORM_UI_SERVER", "serviceId": "STORM"}];
-
-    it('ZKS should be one after anothert', function () {
-      var sorted = c.sortComponentsByServiceName(components);
-      expect(sorted.mapProperty('component_name').join('|').contains('ZOOKEEPER_SERVER|ZOOKEEPER_SERVER')).to.be.true;
-    });
-
-
-  });
-
   describe('#submit',function(){
     it('if Next button is clicked multiple times before the next step renders, it must not be processed',function(){
       c.reopen({isSubmitDisabled:false, submitDisabled:false, useServerValidation:false});

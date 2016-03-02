@@ -151,4 +151,60 @@ describe('App.AssignMasterComponents', function () {
     });
 
   });
+
+
+  describe('#sortComponentsByServiceName', function () {
+
+    var components = [{
+      "component_name": "METRICS_COLLECTOR",
+      "serviceId": "AMBARI_METRICS"
+    }, {
+      "component_name": "ZOOKEEPER_SERVER",
+      "serviceId": "ZOOKEEPER"
+    }, {
+      "component_name": "NAMENODE",
+      "serviceId": "HDFS"
+    }, {
+      "component_name": "DRPC_SERVER",
+      "serviceId": "STORM"
+    }, {
+      "component_name": "APP_TIMELINE_SERVER",
+      "serviceId": "YARN"
+    }, {
+      "component_name": "RESOURCEMANAGER",
+      "serviceId": "YARN"
+    }, {
+      "component_name": "SECONDARY_NAMENODE",
+      "serviceId": "HDFS"
+    }, {
+      "component_name": "ZOOKEEPER_SERVER",
+      "serviceId": "ZOOKEEPER"
+    }, {
+      "component_name": "HISTORYSERVER",
+      "serviceId": "MAPREDUCE2"
+    }, {
+      "component_name": "HAWQSTANDBY",
+      "serviceId": "HAWQ"
+    }, {
+      "component_name": "NIMBUS",
+      "serviceId": "STORM"
+    }, {
+      "component_name": "HAWQMASTER",
+      "serviceId": "HAWQ"
+    }, {
+      "component_name": "STORM_UI_SERVER",
+      "serviceId": "STORM"
+    }];
+
+    it('should place ZOOKEEPER_SERVER one after another', function () {
+      var sorted = c.sortComponentsByServiceName(components);
+      expect(sorted.mapProperty('component_name').join('|').contains('ZOOKEEPER_SERVER|ZOOKEEPER_SERVER')).to.be.true;
+    });
+
+    it('should place HAWQMASTER just before HAWQSTANDBY', function () {
+      var sorted = c.sortComponentsByServiceName(components);
+      expect(sorted.mapProperty('component_name').join('|').contains('HAWQMASTER|HAWQSTANDBY')).to.be.true;
+    });
+
+  });
 });
