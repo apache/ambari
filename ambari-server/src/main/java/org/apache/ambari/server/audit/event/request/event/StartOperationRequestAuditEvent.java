@@ -16,19 +16,21 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.audit.event;
+package org.apache.ambari.server.audit.event.request.event;
 
 
 import javax.annotation.concurrent.Immutable;
+
+import org.apache.ambari.server.audit.event.AbstractUserAuditEvent;
 
 /**
  * Start operation request was accepted.
  */
 @Immutable
-public class StartOperationAuditEvent extends AbstractUserAuditEvent {
+public class StartOperationRequestAuditEvent extends AbstractUserAuditEvent {
 
   public static class StartOperationAuditEventBuilder
-    extends AbstractUserAuditEventBuilder<StartOperationAuditEvent, StartOperationAuditEventBuilder> {
+    extends AbstractUserAuditEventBuilder<StartOperationRequestAuditEvent, StartOperationAuditEventBuilder> {
 
     private String requestId;
 
@@ -68,8 +70,8 @@ public class StartOperationAuditEvent extends AbstractUserAuditEvent {
      * {@inheritDoc}
      */
     @Override
-    protected StartOperationAuditEvent newAuditEvent() {
-      return new StartOperationAuditEvent(this);
+    protected StartOperationRequestAuditEvent newAuditEvent() {
+      return new StartOperationRequestAuditEvent(this);
     }
 
     /**
@@ -94,18 +96,18 @@ public class StartOperationAuditEvent extends AbstractUserAuditEvent {
     }
   }
 
-  private StartOperationAuditEvent() {
+  private StartOperationRequestAuditEvent() {
   }
 
   /**
    * {@inheritDoc}
    */
-  private StartOperationAuditEvent(StartOperationAuditEventBuilder builder) {
+  private StartOperationRequestAuditEvent(StartOperationAuditEventBuilder builder) {
     super(builder);
   }
 
   /**
-   * Returns an builder for {@link StartOperationAuditEvent}
+   * Returns an builder for {@link StartOperationRequestAuditEvent}
    *
    * @return a builder instance
    */

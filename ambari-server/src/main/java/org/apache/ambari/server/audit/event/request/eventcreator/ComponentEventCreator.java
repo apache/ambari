@@ -26,7 +26,7 @@ import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.audit.event.AuditEvent;
-import org.apache.ambari.server.audit.event.StartOperationAuditEvent;
+import org.apache.ambari.server.audit.event.request.event.StartOperationRequestAuditEvent;
 import org.apache.ambari.server.audit.event.request.RequestAuditEventCreator;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -95,7 +95,7 @@ public class ComponentEventCreator implements RequestAuditEventCreator {
       requestId = getRequestId(result);
     }
 
-    StartOperationAuditEvent.StartOperationAuditEventBuilder auditEventBuilder = StartOperationAuditEvent.builder()
+    StartOperationRequestAuditEvent.StartOperationAuditEventBuilder auditEventBuilder = StartOperationRequestAuditEvent.builder()
       .withOperation(operation)
       .withUserName(username)
       .withRemoteIp(request.getRemoteAddress())

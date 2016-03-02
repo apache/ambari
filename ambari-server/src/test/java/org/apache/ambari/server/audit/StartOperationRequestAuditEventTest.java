@@ -18,7 +18,7 @@
 package org.apache.ambari.server.audit;
 
 import org.apache.ambari.server.audit.event.LoginAuditEvent;
-import org.apache.ambari.server.audit.event.StartOperationAuditEvent;
+import org.apache.ambari.server.audit.event.request.event.StartOperationRequestAuditEvent;
 import org.joda.time.DateTime;
 import org.junit.Test;
 
@@ -27,7 +27,7 @@ import nl.jqno.equalsverifier.EqualsVerifier;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertThat;
 
-public class StartOperationAuditEventTest {
+public class StartOperationRequestAuditEventTest {
 
   @Test
   public void testAuditMessage() throws Exception {
@@ -37,7 +37,7 @@ public class StartOperationAuditEventTest {
     String testRequestDetails = "{ \"key\": \"value\"}";
     Long testRequestId = 100L;
 
-    StartOperationAuditEvent evnt = StartOperationAuditEvent.builder()
+    StartOperationRequestAuditEvent evnt = StartOperationRequestAuditEvent.builder()
       .withTimestamp(DateTime.now())
       .withRemoteIp(testRemoteIp)
       .withUserName(testUserName)
@@ -59,7 +59,7 @@ public class StartOperationAuditEventTest {
   public void testTimestamp() throws Exception {
     // Given
     DateTime testTimestamp = DateTime.now();
-    StartOperationAuditEvent evnt = StartOperationAuditEvent.builder()
+    StartOperationRequestAuditEvent evnt = StartOperationRequestAuditEvent.builder()
       .withTimestamp(testTimestamp)
       .build();
 
