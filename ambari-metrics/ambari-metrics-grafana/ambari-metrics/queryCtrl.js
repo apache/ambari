@@ -45,6 +45,12 @@ define([
               $scope.target.aggregator = 'avg';
             }
           });
+          $scope.$watch('target.app', function (newValue) {
+            if (newValue === '') {
+              $scope.target.metric = '';
+              $scope.target.hosts = '';
+            }
+          });
 
           if (!$scope.target.downsampleAggregator) {
             $scope.target.downsampleAggregator = 'avg';
