@@ -214,11 +214,14 @@ App.StackService.displayOrder = [
   'FLUME'
 ];
 
+App.StackService.componentsOrderForService = {
+  'HAWQ': ['HAWQMASTER', 'HAWQSTANDBY']
+};
+
 //@TODO: Write unit test for no two keys in the object should have any intersecting elements in their values
 App.StackService.coSelected = {
   'YARN': ['MAPREDUCE2']
 };
-
 
 App.StackService.reviewPageHandlers = {
   'HIVE': {
