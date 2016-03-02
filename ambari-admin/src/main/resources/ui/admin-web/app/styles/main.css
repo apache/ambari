@@ -1461,7 +1461,7 @@ thead.view-permission-header > tr > th {
 
 .register-version-form .contents-panel .version-contents-body {
     max-height: 150px;
-    overflow: scroll;
+    overflow: auto;
 }
 
 .register-version-form .repos-panel .remove-icon {
