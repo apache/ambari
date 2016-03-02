@@ -26,7 +26,7 @@
             <name>HIVE_SERVER_INTERACTIVE</name>
             <displayName>HiveServer2 Interactive</displayName>
             <category>MASTER</category>
-            <cardinality>0+</cardinality>
+            <cardinality>0-1</cardinality>
             <versionAdvertised>true</versionAdvertised>
             <clientsToUpdateConfigs></clientsToUpdateConfigs>
             <dependencies>
@@ -97,6 +97,13 @@
                 </configuration-dependencies>
           </component>
         </components>
+        <themes>
+          <theme>
+            <fileName>theme.json</fileName>
+            <default>true</default>
+          </theme>
+        </themes>
+
       <requiredServices>
         <service>ZOOKEEPER</service>
         <service>HDFS</service>

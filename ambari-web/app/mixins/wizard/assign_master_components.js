@@ -37,6 +37,12 @@ App.AssignMasterComponents = Em.Mixin.create({
   mastersToShow: [],
 
   /**
+   * Array of master component names to show on the service config assign master page
+   * @type {Array}
+   */
+  mastersToCreate: [],
+
+  /**
    * Array of master component names to add for install
    * @type {Array}
    */
@@ -109,6 +115,8 @@ App.AssignMasterComponents = Em.Mixin.create({
    * @type {Object}
    */
   recommendedHostsForComponents: {},
+
+  markSavedComponentsAsInstalled: false,
 
   /**
    * Array of <code>servicesMasters</code> objects, that will be shown on the page
@@ -446,7 +454,7 @@ App.AssignMasterComponents = Em.Mixin.create({
   },
 
   /**
-   * Composes selected values of comboboxes into master blueprint + merge it with currenlty installed slave blueprint
+   * Composes selected values of comboboxes into master blueprint + merge it with currently installed slave blueprint
    */
   getCurrentBlueprint: function() {
     var self = this;
@@ -516,7 +524,7 @@ App.AssignMasterComponents = Em.Mixin.create({
     self.get('addableComponents').forEach(function (componentName) {
       self.updateComponent(componentName);
     }, self);
-    if (self.thereIsNoMasters()) {
+    if (self.thereIsNoMasters() && !this.get('mastersToCreate').length) {
       App.router.send('next');
     }
   },
@@ -668,11 +676,11 @@ App.AssignMasterComponents = Em.Mixin.create({
 
     App.StackServiceComponent.find().forEach(function(component) {
       if (this.get('isInstallerWizard')) {
-        if (component.get('isShownOnInstallerAssignMasterPage')) {
+        if (component.get('isShownOnInstallerAssignMasterPage') || this.get('mastersToCreate').contains(component.get('componentName'))) {
           stackMasterComponentsMap[component.get('componentName')] = component;
         }
       } else {
-        if (component.get('isShownOnAddServiceAssignMasterPage') || this.get('mastersToShow').contains(component.get('componentName'))) {
+        if (component.get('isShownOnAddServiceAssignMasterPage') || this.get('mastersToShow').contains(component.get('componentName')) || this.get('mastersToCreate').contains(component.get('componentName'))) {
           stackMasterComponentsMap[component.get('componentName')] = component;
         }
       }
@@ -737,7 +745,7 @@ App.AssignMasterComponents = Em.Mixin.create({
     componentObj.serviceId = fullComponent.get('serviceName');
     componentObj.isServiceCoHost = App.StackServiceComponent.find().findProperty('componentName', componentName).get('isCoHostedComponent') && !this.get('mastersToMove').contains(componentName);
     componentObj.selectedHost = savedComponent ? savedComponent.hostName : hostName;
-    componentObj.isInstalled = savedComponent ? savedComponent.isInstalled : false;
+    componentObj.isInstalled = savedComponent ? savedComponent.isInstalled || (this.get('markSavedComponentsAsInstalled') && !this.get('mastersToCreate').contains(fullComponent.get('componentName'))) : false;
     return componentObj;
   },
 

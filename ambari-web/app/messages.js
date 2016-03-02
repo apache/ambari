@@ -853,6 +853,9 @@ Em.I18n.translations = {
   'installer.step7.preInstallChecks.checksPopup.header':'Pre Install Checks',
 
 
+  'installer.step7.assign.master.body':'Assign {0} to {1} you want to run {2} on.',
+
+
   'installer.step8.header': 'Review',
   'installer.step8.body': 'Please review the configuration before installation',
   'installer.step8.kerberors.warning': '<strong>Because Kerberos has been manually installed on the cluster, you will have to create/distribute principals and keytabs when this operation is finished.</strong>',

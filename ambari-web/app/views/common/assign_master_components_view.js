@@ -41,6 +41,8 @@ App.AssignMasterComponentsView = Em.View.extend({
    */
   shouldUseInputs: Em.computed.gt('controller.hosts.length', 25),
 
+  isBackButtonVisible: true,
+
   didInsertElement: function () {
     this.get('controller').loadStep();
   }

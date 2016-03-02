@@ -70,6 +70,7 @@ require('models/configs/theme/tab');
 require('models/configs/theme/section');
 require('models/configs/theme/sub_section');
 require('models/configs/theme/sub_section_tab');
+require('models/configs/theme/config_action');
 require('models/configs/objects/service_config');
 require('models/configs/objects/service_config_category');
 require('models/configs/objects/service_config_property');

@@ -61,7 +61,50 @@ App.configTheme = Em.Object.create({
           }
         }
       }
-    });
+    }, this);
+  },
+
+  getConfigThemeActions: function(configs, storedConfigs) {
+    //config actions for changed configs should be only effective
+    var configActions = App.ConfigAction.find().filter(function(item){
+      var isAnyConfigAbsent = false;
+      var configChanged = false;
+      item.get("configs").forEach(function(_config){
+        var config = configs.filterProperty('filename',_config.fileName).findProperty('name', _config.configName);
+        if (!config) {
+          isAnyConfigAbsent = true;
+        } else {
+          configChanged = configChanged || config.get('value') != config.get('recommendedValue');
+          var storedConfig = storedConfigs.filterProperty('filename',_config.fileName).findProperty('name', _config.configName);
+          if (storedConfig) {
+            configChanged = configChanged || config.get('value') != storedConfig.value;
+          }
+        }
+      }, this);
+      return !isAnyConfigAbsent && configChanged;
+    }, this);
+
+    var componentsToAdd = [];
+    var componentsToDelete = [];
+    configActions.forEach(function(_action){
+      var isConditionTrue = this.calculateConfigCondition(_action.get('if'), configs);
+      var action = isConditionTrue ? _action.get("then") : _action.get("else");
+      switch(action) {
+        case 'add':
+          componentsToAdd.push(_action.get('hostComponent'));
+          break;
+        case 'delete':
+          componentsToDelete.push(_action.get('hostComponent'));
+          break;
+      }
+    }, this);
+
+    var configThemeActions = {
+      add: componentsToAdd,
+      delete: componentsToDelete
+    };
+
+    return configThemeActions;
   },
 
   /**

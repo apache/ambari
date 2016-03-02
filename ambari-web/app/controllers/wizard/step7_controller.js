@@ -1614,17 +1614,24 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    * @method submit
    */
   submit: function () {
+    var self = this;
     if (this.get('isSubmitDisabled') || App.router.nextBtnClickInProgress) {
       return false;
     }
-    var preInstallChecksController = App.router.get('preInstallChecksController');
+
+    var assignMasterOnStep7Controller =  App.router.get('assignMasterOnStep7Controller');
+    var dfdPromise = assignMasterOnStep7Controller.execute(self);
+
     if (this.get('supportsPreInstallChecks')) {
+      var preInstallChecksController = App.router.get('preInstallChecksController');
       if (preInstallChecksController.get('preInstallChecksWhereRun')) {
-        return this.postSubmit();
+        return dfdPromise.done(self.postSubmit.bind(self));
       }
-      return preInstallChecksController.notRunChecksWarnPopup(this.postSubmit.bind(this));
+      return dfdPromise.done(function() {
+        preInstallChecksController.notRunChecksWarnPopup(self.postSubmit.bind(self));
+      });
     }
-    return this.postSubmit();
+    return dfdPromise.done(self.postSubmit.bind(self));
   },
 
   postSubmit: function () {

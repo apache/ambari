@@ -101,7 +101,7 @@ App.StackServiceComponent = DS.Model.extend({
   /** @property {Boolean} isShownOnInstallerAssignMasterPage - component visible on "Assign Masters" step of Install Wizard **/
   isShownOnInstallerAssignMasterPage: function() {
     var component = this.get('componentName');
-    var mastersNotShown = ['MYSQL_SERVER', 'POSTGRESQL_SERVER'];
+    var mastersNotShown = ['MYSQL_SERVER', 'POSTGRESQL_SERVER', 'HIVE_SERVER_INTERACTIVE'];
     return this.get('isMaster') && !mastersNotShown.contains(component);
   }.property('isMaster','componentName'),
 

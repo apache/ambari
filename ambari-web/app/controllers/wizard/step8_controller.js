@@ -437,8 +437,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
       service.get('serviceComponents').forEach(function (component) {
         // show clients for services that have only clients components
         if ((component.get('isClient') || component.get('isRequiredOnAllHosts')) && !service.get('isClientOnlyService')) return;
-        // skip components that was hide on assign master page
-        if (component.get('isMaster') && !component.get('isShownOnInstallerAssignMasterPage')) return;
         // no HA component
         if (component.get('isHAComponentOnly')) return;
         // skip if component is not allowed on single node cluster
@@ -450,11 +448,19 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
           // remove service name from component display name
           displayName = App.format.role(component.get('componentName')).replace(new RegExp('^' + service.get('serviceName') + '\\s', 'i'), '');
         }
-        serviceObj.get('service_components').pushObject(Em.Object.create({
-          component_name: component.get('isClient') ? Em.I18n.t('common.client').toUpperCase() : component.get('componentName'),
-          display_name: displayName,
-          component_value: this.assignComponentHosts(component)
-        }));
+
+        var componentName = component.get('componentName');
+        var masterComponents = this.get('content.masterComponentHosts');
+        var isMasterComponentSelected = masterComponents.someProperty('component', componentName);
+        var isMaster = component.get('isMaster');
+
+        if (!isMaster || isMasterComponentSelected) {
+          serviceObj.get('service_components').pushObject(Em.Object.create({
+            component_name: component.get('isClient') ? Em.I18n.t('common.client').toUpperCase() : component.get('componentName'),
+            display_name: displayName,
+            component_value: this.assignComponentHosts(component)
+          }));
+        }
       }, this);
       if (service.get('customReviewHandler')) {
         for (var displayName in service.get('customReviewHandler')) {

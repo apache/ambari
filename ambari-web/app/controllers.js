@@ -136,6 +136,7 @@ require('controllers/wizard/step4_controller');
 require('controllers/wizard/step5_controller');
 require('controllers/wizard/step6_controller');
 require('controllers/wizard/step7_controller');
+require('controllers/wizard/step7/assign_master_controller');
 require('controllers/wizard/step7/pre_install_checks_controller');
 require('controllers/wizard/step8_controller');
 require('controllers/wizard/step9_controller');

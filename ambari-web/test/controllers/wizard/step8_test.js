@@ -376,7 +376,8 @@ describe('App.WizardStep8Controller', function () {
         hosts: Em.A([
           Em.Object.create({hostName: 'h1', isInstalled: true}),
           Em.Object.create({hostName: 'h2', isInstalled: false})
-        ])
+        ]),
+        masterComponentHosts: []
       });
       installerStep8Controller.set('content', content);
       installerStep8Controller.set('services', Em.A([]));
