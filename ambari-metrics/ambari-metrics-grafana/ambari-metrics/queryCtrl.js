@@ -65,7 +65,7 @@ define([
         };
 
         $scope.suggestHosts = function(query, callback) {
-          $scope.datasource.suggestHosts(query)
+          $scope.datasource.suggestHosts(query, $scope.target.app)
             .then($scope.getTextValues)
             .then(callback);
         };

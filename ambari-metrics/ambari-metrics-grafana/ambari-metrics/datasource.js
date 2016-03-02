@@ -295,15 +295,28 @@ define([
          *
          * Query Hosts on the cluster.
          */
-        AmbariMetricsDatasource.prototype.suggestHosts = function (query) {
+        AmbariMetricsDatasource.prototype.suggestHosts = function (query, app) {
           console.log(query);
           return this.doAmbariRequest({method: 'GET', url: '/ws/v1/timeline/metrics/hosts'})
             .then(function (results) {
+              var compToHostMap = {};
               //Remove fakehostname from the list of hosts on the cluster.
               var fake = "fakehostname"; delete results.data[fake];
-              return _.map(Object.keys(results.data), function (hostName) {
-                return {text: hostName};
+              //Query hosts based on component name
+              _.forEach(results.data, function (comp, hostName) {
+                comp.forEach(function (component) {
+                  if (!compToHostMap[component]){
+                    compToHostMap[component] = [];
+                  }
+                  compToHostMap[component].push(hostName);
+                });
               });
+              var compHosts = compToHostMap[app];
+              compHosts = _.map(compHosts, function (h) {
+                return {text: h};
+              });
+              compHosts = _.sortBy(compHosts, function (i) { return i.text.toLowerCase(); });
+              return $q.when(compHosts);
             });
         };
 
