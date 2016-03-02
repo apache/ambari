@@ -37,6 +37,7 @@ from ambari_server.serverSetup import reset, setup, setup_jce_policy
 from ambari_server.serverUpgrade import upgrade, upgrade_stack, set_current
 from ambari_server.setupHttps import setup_https, setup_truststore
 from ambari_server.setupSso import setup_sso
+from ambari_server.dbCleanup import db_cleanup
 from ambari_server.hostUpdate import update_host_names
 from ambari_server.checkDatabase import check_database
 from ambari_server.enableStack import enable_stack_version
@@ -45,7 +46,7 @@ from ambari_server.setupActions import BACKUP_ACTION, LDAP_SETUP_ACTION, LDAP_SY
   REFRESH_STACK_HASH_ACTION, RESET_ACTION, RESTORE_ACTION, UPDATE_HOST_NAMES_ACTION, CHECK_DATABASE_ACTION, \
   SETUP_ACTION, SETUP_SECURITY_ACTION,START_ACTION, STATUS_ACTION, STOP_ACTION, UPGRADE_ACTION, UPGRADE_STACK_ACTION, \
   SETUP_JCE_ACTION, SET_CURRENT_ACTION, START_ACTION, STATUS_ACTION, STOP_ACTION, UPGRADE_ACTION, UPGRADE_STACK_ACTION, SETUP_JCE_ACTION, \
-  SET_CURRENT_ACTION, ENABLE_STACK_ACTION, SETUP_SSO_ACTION
+  SET_CURRENT_ACTION, ENABLE_STACK_ACTION, SETUP_SSO_ACTION, DB_CLEANUP_ACTION
 from ambari_server.setupSecurity import setup_ldap, sync_ldap, setup_master_key, setup_ambari_krb5_jaas
 from ambari_server.userInput import get_validated_string_input
 
@@ -392,6 +393,8 @@ def init_parser_options(parser):
                     help="Specify stack version that needs to be enabled. All other stacks versions will be disabled")
   parser.add_option('--stack', dest="stack_name", default=None, type="string",
                     help="Specify stack name for the stack versions that needs to be enabled")
+  parser.add_option("-d", "--from-date", dest="cleanup_from_date", default=None, type="string", help="Specify date for the cleanup process in 'yyyy-MM-dd' format")
+
 
 @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
 def are_cmd_line_db_args_blank(options):
@@ -546,7 +549,8 @@ def create_user_action_map(args, options):
         UPDATE_HOST_NAMES_ACTION: UserActionPossibleArgs(update_host_names, [2], args, options),
         CHECK_DATABASE_ACTION: UserAction(check_database, options),
         ENABLE_STACK_ACTION: UserAction(enable_stack, options, args),
-        SETUP_SSO_ACTION: UserActionRestart(setup_sso, options)
+        SETUP_SSO_ACTION: UserActionRestart(setup_sso, options),
+        DB_CLEANUP_ACTION: UserAction(db_cleanup, options)
       }
   return action_map
 

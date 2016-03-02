@@ -58,7 +58,9 @@ import org.apache.ambari.server.state.MaintenanceState;
     @NamedQuery(name = "AlertCurrentEntity.removeDisabled", query = "DELETE FROM AlertCurrentEntity alert WHERE alert.alertDefinition.enabled = 0"),
     @NamedQuery(name = "AlertCurrentEntity.removeByService", query = "DELETE FROM AlertCurrentEntity alert WHERE alert.alertHistory.serviceName = :serviceName"),
     @NamedQuery(name = "AlertCurrentEntity.removeByHost", query = "DELETE FROM AlertCurrentEntity alert WHERE alert.alertHistory.hostName = :hostName"),
-    @NamedQuery(name = "AlertCurrentEntity.removeByHostComponent", query = "DELETE FROM AlertCurrentEntity alert WHERE alert.alertHistory.serviceName = :serviceName AND alert.alertHistory.componentName = :componentName AND alert.alertHistory.hostName = :hostName") })
+    @NamedQuery(name = "AlertCurrentEntity.removeByHostComponent", query = "DELETE FROM AlertCurrentEntity alert WHERE alert.alertHistory.serviceName = :serviceName AND alert.alertHistory.componentName = :componentName AND alert.alertHistory.hostName = :hostName"),
+    @NamedQuery(name = "AlertCurrentEntity.removeByAlertHistoryBeforeDate", query = "DELETE FROM AlertCurrentEntity alert WHERE alert.alertHistory.clusterId = :clusterId AND alert.alertHistory.alertTimestamp <= :beforeDate")
+})
 public class AlertCurrentEntity {
 
   @Id
