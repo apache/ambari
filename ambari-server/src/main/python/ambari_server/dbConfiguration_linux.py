@@ -678,7 +678,7 @@ class PGConfig(LinuxDBMSConfig):
   def _configure_pg_hba_postgres_user():
     postgresString = "all   postgres"
     pg_hba_conf_file_content_in = sudo.read_file(PGConfig.PG_HBA_CONF_FILE)
-    pg_hba_conf_file_content_out = re.sub('all\s*all', postgresString, postgresString)
+    pg_hba_conf_file_content_out = re.sub('all\s*all', postgresString, pg_hba_conf_file_content_in)
     sudo.create_file(PGConfig.PG_HBA_CONF_FILE, pg_hba_conf_file_content_out)
     sudo.chmod(PGConfig.PG_HBA_CONF_FILE, 0644)
 
@@ -687,6 +687,7 @@ class PGConfig(LinuxDBMSConfig):
     listenAddress = "listen_addresses = '*'        #"
     postgresql_conf_file_in = sudo.read_file(PGConfig.POSTGRESQL_CONF_FILE)
     postgresql_conf_file_out = re.sub('#+listen_addresses.*?(#|$)', listenAddress, postgresql_conf_file_in)
+    sudo.create_file(PGConfig.POSTGRESQL_CONF_FILE, postgresql_conf_file_out)
     sudo.chmod(PGConfig.POSTGRESQL_CONF_FILE, 0644)
 
   def _configure_postgres(self):

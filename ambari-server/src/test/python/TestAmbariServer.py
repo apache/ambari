@@ -15,15 +15,20 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
+import os
+from mock.mock import patch, MagicMock, create_autospec, call
+import sys
+
+with patch.object(os, "geteuid", new=MagicMock(return_value=0)):
+  from resource_management.core import sudo
+  reload(sudo)
+
 from stacks.utils.RMFTestCase import *
 
-import sys
 import traceback
-import os
 import datetime
 import errno
 import json
-from mock.mock import patch, MagicMock, create_autospec, call
 import operator
 from optparse import OptionParser
 import platform
@@ -2100,16 +2105,6 @@ class TestAmbariServer(TestCase):
     args = MagicMock()
     open_Mock.return_value = file
     p = get_ambari_properties_mock.return_value
-
-    # Testing call under non-root
-    is_root_mock.return_value = False
-    try:
-      setup_https(args)
-      self.fail("Should throw exception")
-    except FatalException as fe:
-      # Expected
-      self.assertTrue("root-level" in fe.reason)
-      pass
 
     # Testing call under root
     is_root_mock.return_value = True
@@ -6812,16 +6807,6 @@ class TestAmbariServer(TestCase):
                                       get_master_key_location_method,
                                       read_ambari_user_method, exists_mock,
                                       remove_password_file_method, read_master_key_method):
-
-    # Testing call under non-root
-    is_root_method.return_value = False
-    try:
-      setup_master_key(MagicMock())
-      self.fail("Should throw exception")
-    except FatalException as fe:
-      # Expected
-      self.assertTrue("root-level" in fe.reason)
-      pass
 
     # Testing call under root
     is_root_method.return_value = True
