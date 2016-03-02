@@ -26,6 +26,7 @@ export default Ember.Route.extend({
   setupController: function(controller, model) {
     this._super(controller, model);
     this.get('logger').clearMessages();
+    this.get('logger').setUnreadMessagesToRead();
     controller.set('isExpanded', true);
   }
 });

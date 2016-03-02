@@ -34,6 +34,24 @@ import Ember from 'ember';
 export default Ember.Service.extend({
   flashMessages: Ember.inject.service('flash-messages'),
   store: Ember.inject.service('store'),
+  alertsChanged: false,
+
+  currentUnreadMessages: function() {
+   return this.get('store').peekAll('alert').filter((entry) => {
+     return entry.get('read') === false;
+   });
+  },
+
+  setUnreadMessagesToRead: function() {
+    this.currentUnreadMessages().forEach((entry) => {
+      entry.set('read', true);
+    });
+    this.toggleProperty('alertsChanged');
+  },
+
+  currentMessagesCount: Ember.computed('alertsChanged', function() {
+    return this.currentUnreadMessages().get('length');
+  }),
 
   success: function(message, options = {}, alertOptions = {}) {
     this._processMessage('success', message, options, alertOptions);
@@ -59,6 +77,7 @@ export default Ember.Service.extend({
     this._clearMessagesIfRequired(alertOptions);
     let alertRecord = this._createAlert(message, type, options, alertOptions);
     if(alertRecord) {
+      this.toggleProperty('alertsChanged');
       message = this._addDetailsToMessage(message, alertRecord);
     }
     switch (type) {
@@ -96,7 +115,6 @@ export default Ember.Service.extend({
     if(alertOptions.flashOnly === true) {
       return;
     }
-
     return this.get('store').createRecord('alert', data);
   },
 

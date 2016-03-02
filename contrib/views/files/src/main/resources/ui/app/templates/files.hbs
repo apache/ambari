@@ -57,7 +57,7 @@
             </button>
           {{new-directory path=path refreshAction="refreshCurrentRoute" currentPathIsTrash=currentPathIsTrash}}
           {{upload-file path=path refreshAction="refreshCurrentRoute" currentPathIsTrash=currentPathIsTrash}}
-          {{#link-to 'messages' class="btn btn-sm btn-default"}}{{fa-icon "comment-o"}}{{/link-to}}
+          {{#link-to 'messages' class="btn btn-sm btn-default message-count-button"}}{{fa-icon "comment-o"}}<span class="badge">{{currentMessagesCount}}</span>{{/link-to}}
         </p>
     </div>
 </div>

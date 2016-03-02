@@ -23,5 +23,6 @@ export default DS.Model.extend({
   message: DS.attr('string'),
   responseMessage: DS.attr('string'),
   status: DS.attr('number'),
-  trace: DS.attr('string')
+  trace: DS.attr('string'),
+  read: DS.attr('string', {defaultValue: false})
 });
