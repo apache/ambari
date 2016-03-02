@@ -155,15 +155,11 @@ case "$1" in
         ;;
   setup-sso)
         echo -e "Setting up SSO authentication properties..."
-        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
-        ;;
-  db-cleanup)
-        echo -e "Cleanup database..."
-        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
-        ;;
+                $PYTHON /usr/sbin/ambari-server.py $@
+                ;;
   *)
         echo "Usage: $AMBARI_PYTHON_EXECUTABLE
-        {start|stop|restart|setup|setup-jce|upgrade|status|upgradestack|setup-ldap|sync-ldap|set-current|setup-security|setup-sso|refresh-stack-hash|backup|restore|update-host-names|enable-stack|check-database|db-cleanup} [options]
+        {start|stop|restart|setup|setup-jce|upgrade|status|upgradestack|setup-ldap|sync-ldap|set-current|setup-security|setup-sso|refresh-stack-hash|backup|restore|update-host-names|enable-stack|check-database} [options]
         Use $AMBARI_PYTHON_EXECUTABLE <action> --help to get details on options available.
         Or, simply invoke ambari-server.py --help to print the options."
         exit 1
