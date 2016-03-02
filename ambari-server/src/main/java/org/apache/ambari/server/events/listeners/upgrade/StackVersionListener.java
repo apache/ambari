@@ -54,6 +54,7 @@ public class StackVersionListener {
    * Logger.
    */
   private final static Logger LOG = LoggerFactory.getLogger(StackVersionListener.class);
+  private static final String UNKNOWN_VERSION = State.UNKNOWN.toString();
 
   /**
    * Used to prevent multiple threads from trying to create host alerts
@@ -87,13 +88,12 @@ public class StackVersionListener {
     try {
       ServiceComponent sc = cluster.getService(sch.getServiceName()).getServiceComponent(sch.getServiceComponentName());
       if (newVersion == null) {
-        processComponentVersionNotAdvertised(sch);
-      } else if (sc.getDesiredVersion().equals(State.UNKNOWN.toString())) {
+        processComponentVersionNotAdvertised(sc, sch);
+      } else if (UNKNOWN_VERSION.equals(sc.getDesiredVersion())) {
         processUnknownDesiredVersion(cluster, sc, sch, newVersion);
       } else if (StringUtils.isNotBlank(newVersion)) {
         String previousVersion = sch.getVersion();
-        String unknownVersion = State.UNKNOWN.toString();
-        if (previousVersion == null || previousVersion.equalsIgnoreCase(unknownVersion)) {
+        if (previousVersion == null || UNKNOWN_VERSION.equalsIgnoreCase(previousVersion)) {
           // value may be "UNKNOWN" when upgrading from older Ambari versions
           // or if host component reports it's version for the first time
           sch.setUpgradeState(UpgradeState.NONE);
@@ -179,9 +179,11 @@ public class StackVersionListener {
   /**
    * Focuses on cases when component does not advertise it's version
    */
-  private void processComponentVersionNotAdvertised(ServiceComponentHost sch) {
+  private void processComponentVersionNotAdvertised(ServiceComponent sc, ServiceComponentHost sch) {
     if (UpgradeState.ONGOING_UPGRADE_STATES.contains(sch.getUpgradeState())) {
       sch.setUpgradeState(UpgradeState.FAILED);
+    } else if (!sc.isVersionAdvertised()) {
+      sch.setUpgradeState(UpgradeState.NONE);
     } else {
       sch.setUpgradeState(UpgradeState.VERSION_MISMATCH);
     }

@@ -17,64 +17,270 @@
  */
 package org.apache.ambari.server.events.listeners.upgrade;
 
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.anyString;
-import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
+import static org.easymock.EasyMock.expectLastCall;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.events.HostComponentVersionAdvertisedEvent;
 import org.apache.ambari.server.events.publishers.VersionEventPublisher;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.ServiceImpl;
-import org.easymock.EasyMock;
-import org.junit.Ignore;
+import org.apache.ambari.server.state.UpgradeState;
+import org.easymock.EasyMockSupport;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
  * StackVersionListener tests.
  */
-public class StackVersionListenerTest {
+public class StackVersionListenerTest extends EasyMockSupport {
 
-  private static final String DESIRED_VERSION = "1.2.3.4-5678";
+  private static final String INVALID_NEW_VERSION = "1.2.3.4-5678";
+  private static final String VALID_NEW_VERSION = "2.4.0.0-1000";
   private static final String SERVICE_COMPONENT_NAME = "Some component name";
   private static final String SERVICE_NAME = "Service name";
+  private static final Long CLUSTER_ID = 1L;
+  private static final String UNKNOWN_VERSION = "UNKNOWN";
+  private static final String VALID_PREVIOUS_VERSION = "2.2.0.0";
+  private static final RepositoryVersionEntity DUMMY_REPOSITORY_VERSION_ENTITY = new RepositoryVersionEntity();
+  private static final UpgradeEntity DUMMY_UPGRADE_ENTITY = new UpgradeEntity();
 
-  @Test
-  public void testOnAmbariEvent() throws Exception {
-    VersionEventPublisher publisher = createNiceMock(VersionEventPublisher.class);
-    Cluster cluster = createNiceMock(Cluster.class);
-    ServiceComponentHost sch = createNiceMock(ServiceComponentHost.class);
-    RepositoryVersionEntity repositoryVersionEntity = createNiceMock(RepositoryVersionEntity.class);
-    Service service = createNiceMock(Service.class);
-    ServiceComponent serviceComponent = createNiceMock(ServiceComponent.class);
+  private Cluster cluster;
+  private ServiceComponentHost sch;
+  private Service service;
+  private ServiceComponent serviceComponent;
+  private VersionEventPublisher publisher;
 
-    expect(serviceComponent.getDesiredVersion()).andReturn(DESIRED_VERSION);
+  @Before
+  public void setup() throws Exception {
+    cluster = createNiceMock(Cluster.class);
+    sch = createNiceMock(ServiceComponentHost.class);
+    service = createNiceMock(Service.class);
+    serviceComponent = createNiceMock(ServiceComponent.class);
+    publisher = createNiceMock(VersionEventPublisher.class);
+
+    expect(cluster.getClusterId()).andReturn(CLUSTER_ID);
+    expect(cluster.getService(SERVICE_NAME)).andReturn(service);
     expect(service.getServiceComponent(SERVICE_COMPONENT_NAME)).andReturn(serviceComponent);
-
-    expect(cluster.getClusterId()).andReturn(99L);
-    expect(cluster.getService(anyString())).andReturn(service);
-
     expect(sch.getServiceName()).andReturn(SERVICE_NAME);
     expect(sch.getServiceComponentName()).andReturn(SERVICE_COMPONENT_NAME);
-    expect(sch.recalculateHostVersionState()).andReturn(repositoryVersionEntity).atLeastOnce();
+  }
 
-    cluster.recalculateClusterVersionState(repositoryVersionEntity);
-    EasyMock.expectLastCall().atLeastOnce();
+  @Test
+  public void testRecalculateHostVersionStateWhenVersionIsNullAndNewVersionIsNotBlank() throws AmbariException {
+    expect(sch.getVersion()).andReturn(null);
+    sch.setVersion(INVALID_NEW_VERSION);
+    expectLastCall().once();
+    expect(sch.recalculateHostVersionState()).andReturn(null).once();
 
-    // Replay and assert expectations
-    replay(cluster, sch, serviceComponent, service);
+    replayAll();
 
-    HostComponentVersionAdvertisedEvent event = new HostComponentVersionAdvertisedEvent(cluster, sch, DESIRED_VERSION);
+    sendEventAndVerify(INVALID_NEW_VERSION);
+  }
+
+  @Test
+  public void testRecalculateHostVersionStateWhenVersionIsUnknownAndNewVersionIsNotBlank() throws AmbariException {
+    expect(sch.getVersion()).andReturn(UNKNOWN_VERSION);
+    sch.setVersion(INVALID_NEW_VERSION);
+    expectLastCall().once();
+    expect(sch.recalculateHostVersionState()).andReturn(null).once();
+
+    replayAll();
+
+    sendEventAndVerify(INVALID_NEW_VERSION);
+  }
+
+  @Test
+  public void testRecalculateClusterVersionStateWhenVersionIsNullAndNewVersionIsValid() throws AmbariException {
+    expect(sch.getVersion()).andReturn(null);
+    sch.setVersion(VALID_NEW_VERSION);
+    expectLastCall().once();
+    expect(sch.recalculateHostVersionState()).andReturn(DUMMY_REPOSITORY_VERSION_ENTITY).once();
+    cluster.recalculateClusterVersionState(DUMMY_REPOSITORY_VERSION_ENTITY);
+    expectLastCall().once();
+
+    replayAll();
+
+    sendEventAndVerify(VALID_NEW_VERSION);
+  }
+
+  @Test
+  public void testRecalculateClusterVersionStateWhenVersionIsUnknownAndNewVersionIsValid() throws AmbariException {
+    expect(sch.getVersion()).andReturn(UNKNOWN_VERSION);
+    sch.setVersion(VALID_NEW_VERSION);
+    expectLastCall().once();
+    expect(sch.recalculateHostVersionState()).andReturn(DUMMY_REPOSITORY_VERSION_ENTITY).once();
+    cluster.recalculateClusterVersionState(DUMMY_REPOSITORY_VERSION_ENTITY);
+    expectLastCall().once();
+
+    replayAll();
+
+    sendEventAndVerify(VALID_NEW_VERSION);
+  }
+
+  @Test
+  public void testRecalculateHostVersionStateWhenComponentDesiredVersionIsUnknownAndNewVersionIsNotValid() throws AmbariException {
+    expect(serviceComponent.getDesiredVersion()).andReturn(UNKNOWN_VERSION);
+    serviceComponent.setDesiredVersion(INVALID_NEW_VERSION);
+    expectLastCall().once();
+    sch.setUpgradeState(UpgradeState.NONE);
+    expectLastCall().once();
+    sch.setVersion(INVALID_NEW_VERSION);
+    expectLastCall().once();
+    expect(sch.recalculateHostVersionState()).andReturn(null).once();
+
+    replayAll();
+
+    sendEventAndVerify(INVALID_NEW_VERSION);
+  }
+
+  @Test
+  public void testRecalculateClusterVersionStateWhenComponentDesiredVersionIsUnknownAndNewVersionIsValid() throws AmbariException {
+    expect(serviceComponent.getDesiredVersion()).andReturn(UNKNOWN_VERSION);
+    serviceComponent.setDesiredVersion(VALID_NEW_VERSION);
+    expectLastCall().once();
+    sch.setUpgradeState(UpgradeState.NONE);
+    expectLastCall().once();
+    sch.setVersion(VALID_NEW_VERSION);
+    expectLastCall().once();
+    expect(sch.recalculateHostVersionState()).andReturn(DUMMY_REPOSITORY_VERSION_ENTITY).once();
+    cluster.recalculateClusterVersionState(DUMMY_REPOSITORY_VERSION_ENTITY);
+    expectLastCall().once();
+
+    replayAll();
+
+    sendEventAndVerify(VALID_NEW_VERSION);
+  }
+
+  @Test
+  public void testSetUpgradeStateToFailedWhenNewVersionIsNullAndUpgradeIsInProgress() {
+    expect(sch.getUpgradeState()).andReturn(UpgradeState.IN_PROGRESS);
+    sch.setUpgradeState(UpgradeState.FAILED);
+    expectLastCall().once();
+
+    replayAll();
+
+    sendEventAndVerify(null);
+  }
+
+  @Test
+  public void testSetUpgradeStateToFailedWhenNewVersionIsNullAndUpgradeHasComplete() {
+    expect(sch.getUpgradeState()).andReturn(UpgradeState.COMPLETE);
+    sch.setUpgradeState(UpgradeState.FAILED);
+    expectLastCall().once();
+
+    replayAll();
+
+    sendEventAndVerify(null);
+  }
+
+  @Test
+  public void testSetUpgradeStateToFailedWhenNewVersionIsNullAndUpgradeHasFailed() {
+    expect(sch.getUpgradeState()).andReturn(UpgradeState.FAILED);
+    sch.setUpgradeState(UpgradeState.FAILED);
+    expectLastCall().once();
+
+    replayAll();
+
+    sendEventAndVerify(null);
+  }
+
+  @Test
+  public void testSetUpgradeStateToNoneWhenNewVersionIsNullAndComponentVersionIsNotAdvertised() {
+    expect(serviceComponent.isVersionAdvertised()).andReturn(false);
+    sch.setUpgradeState(UpgradeState.NONE);
+    expectLastCall().once();
+
+    replayAll();
+
+    sendEventAndVerify(null);
+  }
+
+  @Test
+  public void testSetUpgradeStateToVersionMismatchByDefaultWhenNewVersionIsNull() {
+    expect(serviceComponent.isVersionAdvertised()).andReturn(true);
+    sch.setUpgradeState(UpgradeState.VERSION_MISMATCH);
+    expectLastCall().once();
+
+    replayAll();
+
+    sendEventAndVerify(null);
+  }
+
+  @Test
+  public void testSetUpgradeStateToCompleteWhenUpgradeIsInProgressAndNewVersionIsEqualToComponentDesiredVersion() {
+    expect(sch.getVersion()).andReturn(VALID_PREVIOUS_VERSION);
+    expect(sch.getUpgradeState()).andReturn(UpgradeState.IN_PROGRESS);
+    sch.setUpgradeState(UpgradeState.COMPLETE);
+    expectLastCall().once();
+
+    expect(serviceComponent.getDesiredVersion()).andStubReturn(VALID_NEW_VERSION);
+    replayAll();
+
+    sendEventAndVerify(VALID_NEW_VERSION);
+  }
+
+  @Test
+  public void testSetUpgradeStateToVersionMismatchWhenUpgradeIsInProgressAndNewVersionIsNotEqualToComponentDesiredVersion() {
+    expect(sch.getVersion()).andReturn(VALID_PREVIOUS_VERSION);
+    expect(sch.getUpgradeState()).andReturn(UpgradeState.IN_PROGRESS);
+    sch.setUpgradeState(UpgradeState.VERSION_MISMATCH);
+    expectLastCall().once();
+
+    expect(serviceComponent.getDesiredVersion()).andStubReturn(VALID_PREVIOUS_VERSION);
+    replayAll();
+
+    sendEventAndVerify(VALID_NEW_VERSION);
+  }
+
+  @Test
+  public void testSetUpgradeStateToCompleteWhenHostHasVersionMismatchAndNewVersionIsEqualToComponentDesiredVersionAndClusterUpgradeIsInProgress() {
+    expect(sch.getVersion()).andReturn(VALID_PREVIOUS_VERSION);
+    expect(sch.getUpgradeState()).andReturn(UpgradeState.VERSION_MISMATCH);
+    expect(cluster.getUpgradeEntity()).andReturn(DUMMY_UPGRADE_ENTITY);
+    expect(serviceComponent.getDesiredVersion()).andStubReturn(VALID_NEW_VERSION);
+    sch.setUpgradeState(UpgradeState.COMPLETE);
+    expectLastCall().once();
+
+    replayAll();
+
+    sendEventAndVerify(VALID_NEW_VERSION);
+  }
+
+  @Test
+  public void testSetUpgradeStateToNoneWhenHostHasVersionMismatchAndNewVersionIsEqualToComponentDesiredVersion() {
+    expect(sch.getVersion()).andReturn(VALID_PREVIOUS_VERSION);
+    expect(sch.getUpgradeState()).andReturn(UpgradeState.VERSION_MISMATCH);
+    expect(serviceComponent.getDesiredVersion()).andStubReturn(VALID_NEW_VERSION);
+    sch.setUpgradeState(UpgradeState.NONE);
+    expectLastCall().once();
+
+    replayAll();
+
+    sendEventAndVerify(VALID_NEW_VERSION);
+  }
+
+  @Test
+  public void testSetUpgradeStateToVersionMismatchByDefaultWhenHostAndNewVersionsAreValid() {
+    expect(sch.getVersion()).andReturn(VALID_PREVIOUS_VERSION);
+    sch.setUpgradeState(UpgradeState.VERSION_MISMATCH);
+    expectLastCall().once();
+
+    replayAll();
+
+    sendEventAndVerify(VALID_NEW_VERSION);
+  }
+
+  private void sendEventAndVerify(String newVersion) {
+    HostComponentVersionAdvertisedEvent event = new HostComponentVersionAdvertisedEvent(cluster, sch, newVersion);
     StackVersionListener listener = new StackVersionListener(publisher);
-
     listener.onAmbariEvent(event);
 
-    verify(cluster, sch);
+    verifyAll();
   }
 }
