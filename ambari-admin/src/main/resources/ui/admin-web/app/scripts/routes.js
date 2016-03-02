@@ -154,4 +154,9 @@ angular.module('ambariAdminConsole')
       e.preventDefault();
     }
   });
+  $rootScope.$on('$locationChangeStart', function (e, nextUrl) {
+    if ((/\/loginMessage$/.test(nextUrl) || /\/homeDirectory$/.test(nextUrl)) && !Settings.isLoginActivitiesSupported) {
+      e.preventDefault();
+    }
+  });
 }]);

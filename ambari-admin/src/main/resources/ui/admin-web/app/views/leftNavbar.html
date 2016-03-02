@@ -105,12 +105,12 @@
     </div>
   </div>
 
-  <div class="panel panel-default">
+  <div class="panel panel-default" ng-show="settings.isLoginActivitiesSupported || settings.isLDAPConfigurationSupported">
     <div class="panel-heading"><span class="glyphicon glyphicon-cog"></span> {{'common.settings' | translate}}</div>
     <div class="panel-body">
       <ul class="nav nav-pills nav-stacked">
         <li ng-class="{active: isActive('authentication.main')}" ng-show="settings.isLDAPConfigurationSupported"><link-to route="authentication.main">{{'common.authentication' | translate}}</link-to></li>
-        <li ng-class="{active: isActive('loginActivities.loginMessage')}"><link-to route="loginActivities.loginMessage">{{'common.loginActivities.loginActivities' | translate}}</link-to></li>
+        <li ng-class="{active: isActive('loginActivities.loginMessage')}" ng-show="settings.isLoginActivitiesSupported"><link-to route="loginActivities.loginMessage">{{'common.loginActivities.loginActivities' | translate}}</link-to></li>
       </ul>
     </div>
   </div>
