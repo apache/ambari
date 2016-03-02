@@ -39,7 +39,6 @@ define([
             $scope.target.precision = '';
           }
 
-          $scope.target.precision = $scope.precisions[1];
           
           $scope.$watch('target.precision', function() {
             if ($scope.target.precision !== "seconds") {
