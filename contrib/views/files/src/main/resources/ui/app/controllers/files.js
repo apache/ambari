@@ -20,6 +20,7 @@ import Ember from 'ember';
 import columnConfig from '../config/files-columns';
 
 export default Ember.Controller.extend({
+  logger: Ember.inject.service('alert-messages'),
   fileSelectionService: Ember.inject.service('files-selection'),
   lastSelectedFile: Ember.computed.oneWay('fileSelectionService.lastFileSelected'),
   selectedFilesCount: Ember.computed.oneWay('fileSelectionService.filesCount'),
@@ -31,6 +32,8 @@ export default Ember.Controller.extend({
   queryParams: ['path'],
   path: '/',
   columns: columnConfig,
+
+  currentMessagesCount: Ember.computed.alias('logger.currentMessagesCount'),
 
   hasHomePath: false,
   hasTrashPath: false,
