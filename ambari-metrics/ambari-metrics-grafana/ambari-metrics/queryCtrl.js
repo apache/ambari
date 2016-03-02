@@ -35,6 +35,18 @@ define([
             $scope.target.aggregator = 'avg';
           }
 
+          if (!$scope.target.shouldAddPrecision) {
+            $scope.target.precision = '';
+          }
+
+          $scope.target.precision = $scope.precisions[1];
+          
+          $scope.$watch('target.precision', function() {
+            if ($scope.target.precision !== "seconds") {
+              $scope.target.aggregator = 'avg';
+            }
+          });
+
           if (!$scope.target.downsampleAggregator) {
             $scope.target.downsampleAggregator = 'avg';
           }

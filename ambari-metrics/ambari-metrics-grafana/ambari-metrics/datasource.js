@@ -128,6 +128,7 @@ define([
           var getHostAppIdData = function(target) {
             var precision = target.shouldAddPrecision ? '&precision=' + target.precision : '';
             var rate = target.shouldComputeRate ? '._rate._' : '._';
+            target.aggregator = target.precision !== "seconds" ? target.aggregator : '';
             return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.metric + rate +
                 target.aggregator + "&hostname=" + target.hosts + '&appId=' + target.app + '&startTime=' + from +
                 '&endTime=' + to + precision).then(
