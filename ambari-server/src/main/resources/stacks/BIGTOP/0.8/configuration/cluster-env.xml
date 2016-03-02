@@ -47,6 +47,7 @@
         <description>User executing service checks</description>
         <value-attributes>
             <type>user</type>
+            <overridable>false</overridable>
         </value-attributes>
     </property>
     <property>
@@ -62,6 +63,7 @@
         <description>Hadoop user group.</description>
         <value-attributes>
             <type>user</type>
+            <overridable>false</overridable>
         </value-attributes>
     </property>
 </configuration>

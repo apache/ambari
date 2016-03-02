@@ -37,6 +37,7 @@
     <description>Metadata User Name.</description>
     <value-attributes>
       <type>user</type>
+      <overridable>false</overridable>
     </value-attributes>
   </property>
   <property>

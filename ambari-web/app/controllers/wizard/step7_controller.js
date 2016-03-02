@@ -522,7 +522,12 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   _updateIsEditableFlagForConfig: function (serviceConfigProperty, defaultGroupSelected) {
     if (App.isAuthorized('AMBARI.ADD_DELETE_CLUSTERS')) {
       if (defaultGroupSelected && !this.get('isHostsConfigsPage') && !Em.get(serviceConfigProperty, 'group')) {
-        serviceConfigProperty.set('isEditable', serviceConfigProperty.get('isReconfigurable'));
+        if (serviceConfigProperty.get('serviceName') === 'MISC') {
+          var service = App.config.get('serviceByConfigTypeMap')[App.config.getConfigTagFromFileName(serviceConfigProperty.get('filename'))];
+          serviceConfigProperty.set('isEditable', service && !this.get('installedServiceNames').contains(service.get('serviceName')));
+        } else {
+          serviceConfigProperty.set('isEditable', serviceConfigProperty.get('isReconfigurable'));
+        }
       } else if (Em.get(serviceConfigProperty, 'group') && Em.get(serviceConfigProperty, 'group.name') == this.get('selectedConfigGroup.name')) {
         serviceConfigProperty.set('isEditable', true);
       } else {

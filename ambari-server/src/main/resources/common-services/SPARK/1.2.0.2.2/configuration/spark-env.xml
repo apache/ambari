@@ -28,6 +28,7 @@
     <property-type>USER</property-type>
     <value-attributes>
       <type>user</type>
+      <overridable>false</overridable>
     </value-attributes>
   </property>
 

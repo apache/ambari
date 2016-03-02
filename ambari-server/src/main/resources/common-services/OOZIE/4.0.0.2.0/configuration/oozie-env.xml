@@ -29,6 +29,7 @@
     <description>Oozie User.</description>
     <value-attributes>
       <type>user</type>
+      <overridable>false</overridable>
     </value-attributes>
   </property>
   <property>
