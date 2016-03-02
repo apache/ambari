@@ -2190,7 +2190,7 @@ public class ClusterImpl implements Cluster {
    */
   @Override
   public Map<String, Set<DesiredConfig>> getAllDesiredConfigVersions() {
-    return getDesiredConfigs(true);
+    return getDesiredConfigs(true, false);
   }
 
   /**
@@ -2199,9 +2199,12 @@ public class ClusterImpl implements Cluster {
    */
   @Override
   public Map<String, DesiredConfig> getDesiredConfigs() {
+    return getDesiredConfigs(false);
+  }
 
-    Map<String, Set<DesiredConfig>> activeConfigsByType = getDesiredConfigs(false);
-
+  @Override
+  public Map<String, DesiredConfig> getDesiredConfigs(boolean bypassCache) {
+    Map<String, Set<DesiredConfig>> activeConfigsByType = getDesiredConfigs(false, bypassCache);
     return Maps.transformEntries(
         activeConfigsByType,
         new Maps.EntryTransformer<String, Set<DesiredConfig>, DesiredConfig>() {
@@ -2212,7 +2215,6 @@ public class ClusterImpl implements Cluster {
         });
   }
 
-
   /**
    * Gets desired configurations for the cluster.
    * @param allVersions specifies if all versions of the desired configurations to be returned
@@ -2220,14 +2222,17 @@ public class ClusterImpl implements Cluster {
    *                    desired configuration per config type.
    * @return a map of type-to-configuration information.
    */
-  private Map<String, Set<DesiredConfig>> getDesiredConfigs(boolean allVersions) {
+  private Map<String, Set<DesiredConfig>> getDesiredConfigs(boolean allVersions, boolean bypassCache) {
     loadConfigurations();
     clusterGlobalLock.readLock().lock();
     try {
       Map<String, Set<DesiredConfig>> map = new HashMap<>();
       Collection<String> types = new HashSet<>();
-
-      for (ClusterConfigMappingEntity e : getClusterEntity().getConfigMappingEntities()) {
+      Collection<ClusterConfigMappingEntity> entities =
+          bypassCache ?
+              clusterDAO.getClusterConfigMappingEntitiesByCluster(getClusterId()) :
+              getClusterEntity().getConfigMappingEntities();
+      for (ClusterConfigMappingEntity e : entities) {
         if (allVersions || e.isSelected() > 0) {
           DesiredConfig c = new DesiredConfig();
           c.setServiceName(null);
