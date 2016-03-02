@@ -31,6 +31,7 @@ from resource_management.core.logger import Logger
 from resource_management.core.utils import suppress_stdout
 from resource_management.core import shell
 
+
 PACKAGE_MANAGER_LOCK_ACQUIRED_MSG = "Cannot obtain lock for Package manager. Retrying after {0} seconds. Reason: {1}"
 PACKAGE_MANAGER_REPO_ERROR_MSG = "Cannot download the package due to repository unavailability. Retrying after {0} seconds. Reason: {1}"
 
@@ -83,10 +84,9 @@ class PackageProvider(Provider):
 
   def _call_with_retries(self, cmd, is_checked=True, **kwargs):
     func = shell.checked_call if is_checked else shell.call
-    retry_count = self.resource.retry_count
 
-    for i in range(retry_count):
-      is_last_time = (i == retry_count - 1)
+    for i in range(self.resource.retry_count):
+      is_last_time = (i == self.resource.retry_count - 1)
       try:
         code, out = func(cmd, **kwargs)
       except Fail as ex:

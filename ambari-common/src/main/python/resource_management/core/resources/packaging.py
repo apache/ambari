@@ -22,7 +22,7 @@ Ambari Agent
 
 __all__ = ["Package"]
 
-from resource_management.core.base import Resource, ForcedListArgument, ResourceArgument
+from resource_management.core.base import Resource, ForcedListArgument, ResourceArgument, BooleanArgument
 
 
 class Package(Resource):
@@ -46,8 +46,8 @@ class Package(Resource):
   """
   retry_count = ResourceArgument(default=4)
   retry_sleep = ResourceArgument(default=30)
-  retry_on_repo_unavailability = ResourceArgument(default=False)
-  retry_on_locked = ResourceArgument(default=True)
+  retry_on_repo_unavailability = BooleanArgument(default=False)
+  retry_on_locked = BooleanArgument(default=True)
 
   version = ResourceArgument()
   actions = ["install", "upgrade", "remove"]

@@ -30,6 +30,7 @@ import ambari_simplejson as json  # simplejson is much faster comparing to Pytho
 from resource_management import *
 from resource_management.libraries.functions.list_ambari_managed_repos import list_ambari_managed_repos
 from ambari_commons.os_check import OSCheck, OSConst
+from ambari_commons.str_utils import cbool, cint
 from resource_management.libraries.functions.packages_analyzer import allInstalledPackages
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions.hdp_select import get_hdp_versions
@@ -360,8 +361,8 @@ class InstallPackages(Script):
     self._clear_package_manager_cache()
 
     config = self.get_config()
-    agent_stack_retry_on_unavailability = bool(config['hostLevelParams']['agent_stack_retry_on_unavailability'])
-    agent_stack_retry_count = int(config['hostLevelParams']['agent_stack_retry_count'])
+    agent_stack_retry_on_unavailability = cbool(config['hostLevelParams']['agent_stack_retry_on_unavailability'])
+    agent_stack_retry_count = cint(config['hostLevelParams']['agent_stack_retry_count'])
 
     # Install packages
     packages_were_checked = False

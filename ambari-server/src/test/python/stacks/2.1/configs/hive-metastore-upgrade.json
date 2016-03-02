@@ -23,6 +23,8 @@
     "clusterName": "c1", 
     "hostname": "c6402.ambari.apache.org", 
     "hostLevelParams": {
+        "agent_stack_retry_count": "5",
+        "agent_stack_retry_on_unavailability": "false",
         "stack_name": "HDP", 
         "group_list": "[\"hadoop\",\"users\"]", 
         "host_sys_prepped": "false", 
