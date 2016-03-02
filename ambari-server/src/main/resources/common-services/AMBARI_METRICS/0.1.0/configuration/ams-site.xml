@@ -552,5 +552,12 @@
       - HTTPS_ONLY : Service is provided only on https
     </description>
   </property>
+  <property>
+    <name>timeline.metrics.hbase.init.check.enabled</name>
+    <value>true</value>
+    <description>
+      Enable Initialization check for HBase tables during Metrics service startup.
+    </description>
+  </property>
 
 </configuration>

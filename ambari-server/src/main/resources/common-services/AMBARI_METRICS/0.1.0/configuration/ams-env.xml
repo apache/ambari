@@ -91,6 +91,9 @@ export AMS_HBASE_NORMALIZER_ENABLED={{ams_hbase_normalizer_enabled}}
 # HBase compaction policy enabled
 export AMS_HBASE_FIFO_COMPACTION_ENABLED={{ams_hbase_fifo_compaction_enabled}}
 
+# HBase Tables Initialization check enabled
+export AMS_HBASE_INIT_CHECK_ENABLED={{ams_hbase_init_check_enabled}}
+
 # AMS Collector options
 export AMS_COLLECTOR_OPTS="-Djava.library.path=/usr/lib/ams-hbase/lib/hadoop-native"
 {% if security_enabled %}
