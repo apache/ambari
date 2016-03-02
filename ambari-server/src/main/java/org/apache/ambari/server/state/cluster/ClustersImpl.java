@@ -18,20 +18,10 @@
 
 package org.apache.ambari.server.state.cluster;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
-import javax.persistence.RollbackException;
-
+import com.google.common.collect.Sets;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -56,7 +46,6 @@ import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.dao.TopologyHostRequestDAO;
-import org.apache.ambari.server.orm.dao.TopologyHostTaskDAO;
 import org.apache.ambari.server.orm.dao.TopologyLogicalTaskDAO;
 import org.apache.ambari.server.orm.dao.TopologyRequestDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
@@ -91,10 +80,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
 
-import com.google.common.collect.Sets;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import com.google.inject.persist.Transactional;
+import javax.persistence.RollbackException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 @Singleton
 public class ClustersImpl implements Clusters {
@@ -346,20 +343,17 @@ public class ClustersImpl implements Clusters {
   public Set<Cluster> getClustersForHost(String hostname)
       throws AmbariException {
     checkLoaded();
-    r.lock();
-    try {
-      if(!hostClusterMap.containsKey(hostname)){
-            throw new HostNotFoundException(hostname);
-      }
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Looking up clusters for hostname"
-            + ", hostname=" + hostname
-            + ", mappedClusters=" + hostClusterMap.get(hostname).size());
-      }
-      return Collections.unmodifiableSet(hostClusterMap.get(hostname));
-    } finally {
-      r.unlock();
+    Set<Cluster> clusters = hostClusterMap.get(hostname);
+    if(clusters == null){
+      throw new HostNotFoundException(hostname);
     }
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Looking up clusters for hostname"
+          + ", hostname=" + hostname
+          + ", mappedClusters=" + clusters.size());
+    }
+    return Collections.unmodifiableSet(clusters);
+
   }
 
   @Override
