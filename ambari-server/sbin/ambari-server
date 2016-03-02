@@ -142,14 +142,10 @@ case "$1" in
         echo -e "Checking database"
         $PYTHON /usr/sbin/ambari-server.py $@
         ;;
-  db-cleanup)
-        echo -e "Cleanup database..."
-        $PYTHON /usr/sbin/ambari-server.py $@
-        ;;
   *)
-        echo "Usage: $AMBARI_PYTHON_EXECUTABLE
-        {start|stop|restart|setup|setup-jce|upgrade|status|upgradestack|setup-ldap|sync-ldap|set-current|setup-security|setup-sso|refresh-stack-hash|backup|restore|update-host-names|check-database|db-cleanup} [options]
-        Use $AMBARI_PYTHON_EXECUTABLE <action> --help to get details on options available.
+        echo "Usage: /usr/sbin/ambari-server
+        {start|stop|restart|setup|setup-jce|upgrade|status|upgradestack|setup-ldap|sync-ldap|set-current|setup-security|refresh-stack-hash|backup|restore|update-host-names|check-database} [options]
+        Use usr/sbin/ambari-server <action> --help to get details on options available.
         Or, simply invoke ambari-server.py --help to print the options."
         exit 1
 esac

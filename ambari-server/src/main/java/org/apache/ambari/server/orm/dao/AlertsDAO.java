@@ -37,10 +37,8 @@ import javax.persistence.metamodel.SingularAttribute;
 
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
-import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.query.JpaPredicateVisitor;
 import org.apache.ambari.server.api.query.JpaSortBuilder;
-import org.apache.ambari.server.cleanup.TimeBasedCleanupPolicy;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AlertCurrentRequest;
 import org.apache.ambari.server.controller.AlertHistoryRequest;
@@ -53,7 +51,6 @@ import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
 import org.apache.ambari.server.orm.entities.AlertCurrentEntity_;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity_;
-import org.apache.ambari.server.orm.entities.AlertNoticeEntity;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -84,7 +81,7 @@ import com.google.inject.persist.Transactional;
  */
 @Singleton
 @Experimental(feature = ExperimentalFeature.ALERT_CACHING)
-public class AlertsDAO implements Cleanable {
+public class AlertsDAO {
   /**
    * Logger.
    */
@@ -1188,25 +1185,6 @@ public class AlertsDAO implements Cleanable {
     return cachedAlerts;
   }
 
-  @Transactional
-  @Override
-  public long cleanup(TimeBasedCleanupPolicy policy) {
-    long affectedRows = 0;
-    Long clusterId = null;
-    try {
-      clusterId = m_clusters.get().getCluster(policy.getClusterName()).getClusterId();
-      affectedRows += cleanAlertNoticesForClusterBeforeDate(clusterId, policy.getToDateInMillis());
-      affectedRows += cleanAlertCurrentsForClusterBeforeDate(clusterId, policy.getToDateInMillis());
-      affectedRows += cleanAlertHistoriesForClusterBeforeDate(clusterId, policy.getToDateInMillis());
-    } catch (AmbariException e) {
-      LOG.error("Error while looking up cluster with name: {}", policy.getClusterName(), e);
-      throw new IllegalStateException(e);
-    }
-
-    return affectedRows;
-  }
-
-
   /**
    * The {@link HistoryPredicateVisitor} is used to convert an Ambari
    * {@link Predicate} into a JPA {@link javax.persistence.criteria.Predicate}.
@@ -1432,71 +1410,4 @@ public class AlertsDAO implements Cleanable {
   @SuppressWarnings("serial")
   private static final class AlertNotYetCreatedException extends Exception {
   }
-
-
-  /**
-   * Deletes AlertNotice records in relation with AlertHistory entries older than the given date.
-   *
-   * @param clusterId        the identifier of the cluster the AlertNotices belong to
-   * @param beforeDateMillis the date in milliseconds the
-   * @return a long representing the number of affected (deleted) records
-   */
-  @Transactional
-  private int cleanAlertNoticesForClusterBeforeDate(Long clusterId, long beforeDateMillis) {
-    return executeQuery("AlertNoticeEntity.removeByAlertHistoryBeforeDate", AlertNoticeEntity.class, clusterId, beforeDateMillis);
-  }
-
-
-  /**
-   * Deletes AlertCurrent records in relation with AlertHistory entries older than the given date.
-   *
-   * @param clusterId        the identifier of the cluster the AlertCurrents belong to
-   * @param beforeDateMillis the date in milliseconds the
-   * @return a long representing the number of affected (deleted) records
-   */
-  @Transactional
-  private int cleanAlertCurrentsForClusterBeforeDate(long clusterId, long beforeDateMillis) {
-    return executeQuery("AlertCurrentEntity.removeByAlertHistoryBeforeDate", AlertCurrentEntity.class, clusterId, beforeDateMillis);
-  }
-
-  /**
-   * Deletes AlertHistory entries in a cluster older than the given date.
-   *
-   * @param clusterId        the identifier of the cluster the AlertHistory entries belong to
-   * @param beforeDateMillis the date in milliseconds the
-   * @return a long representing the number of affected (deleted) records
-   */
-
-  @Transactional
-  private int cleanAlertHistoriesForClusterBeforeDate(Long clusterId, long beforeDateMillis) {
-    return executeQuery("AlertHistoryEntity.removeInClusterBeforeDate", AlertHistoryEntity.class, clusterId, beforeDateMillis);
-  }
-
-  /**
-   * Utility method for executing update or delete named queries having as input parameters the cluster id and a timestamp.
-   *
-   * @param namedQuery the named query to be executed
-   * @param entityType the type of the entity
-   * @param clusterId  the cluster identifier
-   * @param timestamp  timestamp
-   * @return the number of rows affected by the query execution.
-   */
-  private int executeQuery(String namedQuery, Class entityType, long clusterId, long timestamp) {
-    LOG.info("Starting: Delete/update entries older than [ {} ] for entity [{}]", timestamp, entityType);
-    TypedQuery query = m_entityManagerProvider.get().createNamedQuery(namedQuery, entityType);
-
-    query.setParameter("clusterId", clusterId);
-    query.setParameter("beforeDate", timestamp);
-
-    int affectedRows = query.executeUpdate();
-
-    m_entityManagerProvider.get().flush();
-    m_entityManagerProvider.get().clear();
-
-    LOG.info("Completed: Delete/update entries older than [ {} ] for entity: [{}]. Number of entities deleted: [{}]",
-        timestamp, entityType, affectedRows);
-
-    return affectedRows;
-  }
-
 }
