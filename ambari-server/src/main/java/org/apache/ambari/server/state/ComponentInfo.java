@@ -91,7 +91,7 @@ public class ComponentInfo {
   private AutoDeployInfo autoDeploy;
 
   @XmlElements(@XmlElement(name = "recovery_enabled"))
-  private Boolean recoveryEnabled = null;
+  private boolean recoveryEnabled = false;
 
 
   private String timelineAppid;
@@ -260,19 +260,6 @@ public class ComponentInfo {
   }
 
   public boolean isRecoveryEnabled() {
-    /**
-     * If recovery_enabled was not provided, then use defaults:
-     * Slave components: recovery_enabled = true
-     * Master components: recovery_enabled = false
-     * All others: recovery_enabled = false
-     */
-    if (recoveryEnabled == null) {
-      if (isSlave()) {
-        recoveryEnabled = true;
-      } else {
-        recoveryEnabled = false;
-      }
-    }
     return recoveryEnabled;
   }
 
