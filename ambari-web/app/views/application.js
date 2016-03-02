@@ -25,15 +25,15 @@ App.ApplicationView = Em.View.extend({
   didInsertElement: function () {
     // on 'Enter' pressed, trigger modal window primary button if primary button is enabled(green)
     // on 'Esc' pressed, close the modal
-    $(document).keydown(function(event){
-      if (event.which === 13 || event.keyCode === 13 ) {
-        $('#modal').trigger('enter-key-pressed');
+    $(document).keydown(function (event) {
+      if (event.which === 13 || event.keyCode === 13) {
+        $('.modal:last').trigger('enter-key-pressed');
       }
       return true;
     });
-    $(document).keyup(function(event){
+    $(document).keyup(function (event) {
       if (event.which === 27 || event.keyCode === 27) {
-        $('#modal').trigger('escape-key-pressed');
+        $('.modal:last').trigger('escape-key-pressed');
       }
       return true;
     });
