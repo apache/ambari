@@ -399,19 +399,16 @@ describe('MainHostController', function () {
     it("stack and displayName exist", function() {
       hostController.set('name', 'ctrl1');
       hostController.filterByStack('stack1', 'INSTALLED');
-      expect(App.db.setFilterConditions.calledWith('ctrl1', [{
-        iColumn: 11,
-        value: [
-          {
-            property: 'repository_versions/RepositoryVersions/display_name',
-            value: 'stack1'
-          },
-          {
-            property: 'HostStackVersions/state',
-            value: 'INSTALLED'
-          }
-        ],
-        type: 'sub-resource'
+      expect(App.db.setFilterConditions.calledWith('ctrl1', [
+      {
+        iColumn: 16,
+        value: 'stack1',
+        type: 'string'
+      },
+      {
+        iColumn: 17,
+        value: 'INSTALLED',
+        type: 'string'
       }])).to.be.true;
     });
   });

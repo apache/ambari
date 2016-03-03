@@ -497,6 +497,7 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
     if (!component) return;
     var id = component.get('componentName');
     var column = 6;
+    var colPropAssoc = this.get('colPropAssoc');
 
     var filterForComponent = {
       iColumn: column,
@@ -504,6 +505,7 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
       type: 'multiple'
     };
     App.db.setFilterConditions(this.get('name'), [filterForComponent]);
+    App.db.setComboSearchQuery(this.get('name'), colPropAssoc[column] + ': ' + '"' + id + '"');
   },
 
   /**
@@ -513,23 +515,22 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
    */
   filterByStack: function (displayName, state) {
     if (!displayName || !state) return;
-    var column = 11;
+    var colPropAssoc = this.get('colPropAssoc');
 
-    var filterForStack = {
-      iColumn: column,
-      value: [
-        {
-          property: 'repository_versions/RepositoryVersions/display_name',
-          value: displayName
-        },
-        {
-          property: 'HostStackVersions/state',
-          value: state.toUpperCase()
-        }
-      ],
-      type: 'sub-resource'
+    var versionFilter = {
+      iColumn: 16,
+      value: displayName,
+      type: 'string'
     };
-    App.db.setFilterConditions(this.get('name'), [filterForStack]);
+    var stateFilter = {
+      iColumn: 17,
+      value: state.toUpperCase(),
+      type: 'string'
+    };
+    var versionFilterStr = colPropAssoc[versionFilter.iColumn] + ': ' + '"' + versionFilter.value + '"';
+    var stateFilterStr = colPropAssoc[stateFilter.iColumn] + ': ' + '"' + stateFilter.value + '"';
+    App.db.setFilterConditions(this.get('name'), [versionFilter, stateFilter]);
+    App.db.setComboSearchQuery(this.get('name'), [versionFilterStr, stateFilterStr].join(' '));
   },
 
   goToHostAlerts: function (event) {

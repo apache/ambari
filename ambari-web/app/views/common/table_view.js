@@ -127,6 +127,8 @@ App.TableView = Em.View.extend(App.UserPref, {
               self.set('tableFilteringComplete', true);
             }
           });
+        } else {
+          self.set('tableFilteringComplete', true);
         }
       });
     } else {
