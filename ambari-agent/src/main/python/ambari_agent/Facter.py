@@ -31,6 +31,8 @@ import subprocess
 from ambari_commons.shell import shellRunner
 import time
 import uuid
+import json
+import glob
 from AmbariConfig import AmbariConfig
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
@@ -149,6 +151,47 @@ class Facter(object):
   # Return uptime days
   def getUptimeDays(self):
     return self.getUptimeSeconds() / (60 * 60 * 24)
+
+  def getSystemResourceIfExists(self, systemResources, key, default):
+    if key in systemResources:
+      return systemResources[key]
+    else:
+      return default
+
+  def replaceFacterInfoWithSystemResources(self, systemResources, facterInfo):
+    """
+    Replace facter info with fake system resource data (if there are any).
+    """
+    for key in facterInfo:
+      facterInfo[key] = self.getSystemResourceIfExists(systemResources, key, facterInfo[key])
+    return facterInfo
+
+  def getSystemResourceOverrides(self):
+    """
+    Read all json files from 'system_resource_overrides' directory, and later these values are used as
+    fake system data for hosts. In case of the key-value pairs cannot be loaded use default behaviour.
+    """
+    systemResources = {}
+    if self.config.has_option('agent', 'system_resource_overrides'):
+      systemResourceDir = self.config.get('agent', 'system_resource_overrides', '').strip()
+      if systemResourceDir:
+        if os.path.isdir(systemResourceDir) and os.path.exists(systemResourceDir):
+          try:
+            for filename in glob.glob('%s/*.json' % systemResourceDir):
+              with open(filename) as fp:
+                data = json.loads(fp.read())
+                for (key, value) in data.items():
+                  systemResources[key] = data[key]
+          except:
+            log.warn(
+              "Cannot read values from json files in %s. it won't be used for gathering system resources." % systemResourceDir)
+        else:
+          log.info(
+            "Directory: '%s' does not exist - it won't be used for gathering system resources." % systemResourceDir)
+      else:
+        log.info("'system_resource_dir' is not set - it won't be used for gathering system resources.")
+    return systemResources
+
 
   def facterInfo(self):
     facterInfo = {}
@@ -290,8 +333,12 @@ class FacterWindows(Facter):
 
   def facterInfo(self):
     facterInfo = super(FacterWindows, self).facterInfo()
-    facterInfo['swapsize'] = Facter.convertSizeMbToGb(self.getSwapSize())
-    facterInfo['swapfree'] = Facter.convertSizeMbToGb(self.getSwapFree())
+    systemResourceOverrides = self.getSystemResourceOverrides()
+    facterInfo = self.replaceFacterInfoWithSystemResources(systemResourceOverrides, facterInfo)
+    facterInfo['swapsize'] = Facter.convertSizeMbToGb(
+      self.getSystemResourceIfExists(systemResourceOverrides, 'swapsize', self.getSwapSize()))
+    facterInfo['swapfree'] = Facter.convertSizeMbToGb(
+      self.getSystemResourceIfExists(systemResourceOverrides, 'swapfree', self.getSwapFree()))
     return facterInfo
 
 
@@ -473,9 +520,14 @@ class FacterLinux(Facter):
 
   def facterInfo(self):
     facterInfo = super(FacterLinux, self).facterInfo()
+    systemResourceOverrides = self.getSystemResourceOverrides()
+    facterInfo = self.replaceFacterInfoWithSystemResources(systemResourceOverrides, facterInfo)
+
     facterInfo['selinux'] = self.isSeLinux()
-    facterInfo['swapsize'] = Facter.convertSizeKbToGb(self.getSwapSize())
-    facterInfo['swapfree'] = Facter.convertSizeKbToGb(self.getSwapFree())
+    facterInfo['swapsize'] = Facter.convertSizeKbToGb(
+      self.getSystemResourceIfExists(systemResourceOverrides, 'swapsize', self.getSwapSize()))
+    facterInfo['swapfree'] = Facter.convertSizeKbToGb(
+      self.getSystemResourceIfExists(systemResourceOverrides, 'swapfree', self.getSwapFree()))
     return facterInfo
 
 
