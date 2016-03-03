@@ -381,16 +381,13 @@ class TestCustomServiceOrchestrator(TestCase):
     except:
       pass
 
-  from ambari_agent.StackVersionsFileHandler import StackVersionsFileHandler
-
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(CustomServiceOrchestrator, "get_py_executor")
   @patch("ambari_commons.shell.kill_process_with_children")
   @patch.object(FileCache, "__init__")
   @patch.object(CustomServiceOrchestrator, "resolve_script_path")
   @patch.object(CustomServiceOrchestrator, "resolve_hook_script_path")
-  @patch.object(StackVersionsFileHandler, "read_stack_version")
-  def test_cancel_backgound_command(self, read_stack_version_mock, resolve_hook_script_path_mock,
+  def test_cancel_backgound_command(self, resolve_hook_script_path_mock,
                                     resolve_script_path_mock, FileCache_mock, kill_process_with_children_mock,
                                     get_py_executor_mock):
     FileCache_mock.return_value = None

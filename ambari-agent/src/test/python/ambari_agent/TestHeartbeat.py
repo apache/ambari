@@ -33,7 +33,6 @@ with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
   from ambari_agent.ActionQueue import ActionQueue
   from ambari_agent.LiveStatus import LiveStatus
   from ambari_agent import AmbariConfig
-  from ambari_agent.StackVersionsFileHandler import StackVersionsFileHandler
   from ambari_agent.HostInfo import HostInfoLinux
 
 from only_for_platform import not_for_platform, PLATFORM_WINDOWS

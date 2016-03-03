@@ -81,7 +81,7 @@ class ActionQueue(threading.Thread):
     self.customServiceOrchestrator = CustomServiceOrchestrator(config, controller)
     self.parallel_execution = config.get_parallel_exec_option()
     if self.parallel_execution == 1:
-      logger.info("Parallel execution is enabled, will start Agent commands in parallel")
+      logger.info("Parallel execution is enabled, will execute agent commands in parallel")
 
   def stop(self):
     self._stop.set()
@@ -167,9 +167,9 @@ class ActionQueue(threading.Thread):
     while not self.backgroundCommandQueue.empty():
       try:
         command = self.backgroundCommandQueue.get(False)
-        if(command.has_key('__handle') and command['__handle'].status == None):
+        if command.has_key('__handle') and command['__handle'].status == None:
           self.process_command(command)
-      except (Queue.Empty):
+      except Queue.Empty:
         pass
 
   def processStatusCommandQueueSafeEmpty(self):
@@ -177,12 +177,12 @@ class ActionQueue(threading.Thread):
       try:
         command = self.statusCommandQueue.get(False)
         self.process_command(command)
-      except (Queue.Empty):
+      except Queue.Empty:
         pass
 
 
   def createCommandHandle(self, command):
-    if(command.has_key('__handle')):
+    if command.has_key('__handle'):
       raise AgentException("Command already has __handle")
     command['__handle'] = BackgroundCommandExecutionHandle(command, command['commandId'], None, self.on_background_command_complete_callback)
     return command
@@ -293,7 +293,7 @@ class ActionQueue(threading.Thread):
         else:
           status = self.FAILED_STATUS
 
-      if status != self.COMPLETED_STATUS and retryAble == True and retryDuration > 0:
+      if status != self.COMPLETED_STATUS and retryAble and retryDuration > 0:
         delay = self.get_retry_delay(delay)
         if delay > retryDuration:
           delay = retryDuration
@@ -364,20 +364,19 @@ class ActionQueue(threading.Thread):
       if command.has_key('configurationTags'):
         configHandler.write_actual(command['configurationTags'])
         roleResult['configurationTags'] = command['configurationTags']
-      component = {'serviceName':command['serviceName'],'componentName':command['role']}
-      if command.has_key('roleCommand') and \
-        (command['roleCommand'] == self.ROLE_COMMAND_START or \
-        (command['roleCommand'] == self.ROLE_COMMAND_INSTALL \
-        and component in LiveStatus.CLIENT_COMPONENTS) or \
-        (command['roleCommand'] == self.ROLE_COMMAND_CUSTOM_COMMAND and \
-        command['hostLevelParams'].has_key('custom_command') and \
-        command['hostLevelParams']['custom_command'] == self.CUSTOM_COMMAND_RESTART)):
-        configHandler.write_actual_component(command['role'], command['configurationTags'])
-        if command['hostLevelParams'].has_key('clientsToUpdateConfigs') and \
-          command['hostLevelParams']['clientsToUpdateConfigs']:
-          configHandler.write_client_components(command['serviceName'], command['configurationTags'],
+      if 'roleCommand' in command and \
+          (command['roleCommand'] == self.ROLE_COMMAND_START or
+               (command['roleCommand'] == self.ROLE_COMMAND_CUSTOM_COMMAND and
+                  'custom_command' in command['hostLevelParams'] and
+                      command['hostLevelParams']['custom_command'] == self.CUSTOM_COMMAND_RESTART)):
+        configHandler.write_actual_component(command['role'],
+                                             command['configurationTags'])
+        if 'clientsToUpdateConfigs' in command['hostLevelParams'] and command['hostLevelParams']['clientsToUpdateConfigs']:
+          configHandler.write_client_components(command['serviceName'],
+                                                command['configurationTags'],
                                                 command['hostLevelParams']['clientsToUpdateConfigs'])
-        roleResult['configurationTags'] = configHandler.read_actual_component(command['role'])
+        roleResult['configurationTags'] = configHandler.read_actual_component(
+            command['role'])
 
     self.commandStatuses.put_command_status(command, roleResult)
 
@@ -434,7 +433,6 @@ class ActionQueue(threading.Thread):
                               globalConfig, self.config, self.configTags)
 
       component_extra = None
-      request_execution_cmd = False
 
       # For custom services, responsibility to determine service status is
       # delegated to python scripts
@@ -444,20 +442,20 @@ class ActionQueue(threading.Thread):
       if component_status_result['exitcode'] == 0:
         component_status = LiveStatus.LIVE_STATUS
         if self.controller.recovery_manager.enabled() \
-            and self.controller.recovery_manager.configured_for_recovery(component):
+          and self.controller.recovery_manager.configured_for_recovery(component):
           self.controller.recovery_manager.update_current_status(component, component_status)
       else:
         component_status = LiveStatus.DEAD_STATUS
         if self.controller.recovery_manager.enabled() \
-            and self.controller.recovery_manager.configured_for_recovery(component):
+          and self.controller.recovery_manager.configured_for_recovery(component):
           self.controller.recovery_manager.update_current_status(component, component_status)
       request_execution_cmd = self.controller.recovery_manager.requires_recovery(component) and \
                                 not self.controller.recovery_manager.command_exists(component, ActionQueue.EXECUTION_COMMAND)
 
-      if component_status_result.has_key('structuredOut'):
+      if 'structuredOut' in component_status_result:
         component_extra = component_status_result['structuredOut']
 
-      result = livestatus.build(forced_component_status= component_status)
+      result = livestatus.build(component_status=component_status)
       if self.controller.recovery_manager.enabled():
         result['sendExecCmdDet'] = str(request_execution_cmd)
 
