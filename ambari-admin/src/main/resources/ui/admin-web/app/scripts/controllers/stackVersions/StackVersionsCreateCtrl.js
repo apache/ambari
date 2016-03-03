@@ -238,26 +238,6 @@ angular.module('ambariAdminConsole')
     });
   };
 
-//
-//  $scope.save = function () {
-//    return Stack.validateBaseUrls($scope.skipValidation, $scope.osList, $scope.upgradeStack).then(function (invalidUrls) {
-//      if (invalidUrls.length === 0) {
-//        Stack.addRepo($scope.upgradeStack, $scope.actualVersion, $scope.osList)
-//          .success(function () {
-//            var versionName = $scope.upgradeStack.selected.stack_version + '.' + $scope.repoSubversion;
-//            var stackName = $scope.upgradeStack.selected.stack_name;
-//            Alert.success($t('versions.alerts.versionCreated', {stackName: stackName, versionName: versionName}));
-//            $location.path('/stackVersions');
-//          })
-//          .error(function (data) {
-//              Alert.error($t('versions.alerts.versionCreationError'), data.message);
-//          });
-//      } else {
-//        Stack.highlightInvalidUrls(invalidUrls);
-//      }
-//    });
-//  };
-
   $scope.cancel = function () {
     $scope.editVersionDisabled = true;
     $location.path('/stackVersions');

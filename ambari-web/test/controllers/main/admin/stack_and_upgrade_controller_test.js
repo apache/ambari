@@ -49,7 +49,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     });
     it("should be valid", function() {
       controller.propertyDidChange('realRepoUrl');
-      expect(controller.get('realRepoUrl')).to.equal('apiPrefixstackVersionURL/compatible_repository_versions?fields=*,operating_systems/*,operating_systems/repositories/*');
+      expect(controller.get('realRepoUrl')).to.equal('apiPrefixstackVersionURL/repository_versions?fields=*,RepositoryVersions/*,operating_systems/*,operating_systems/repositories/*');
     });
   });
 
