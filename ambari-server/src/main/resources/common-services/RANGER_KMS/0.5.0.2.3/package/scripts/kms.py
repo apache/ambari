@@ -48,69 +48,24 @@ def password_validation(password, key):
   else:
     Logger.info("Password validated")
 
-def setup_kms_db():
+def setup_kms_db(stack_version=None):
   import params
 
   if params.has_ranger_admin:
 
+    kms_home = params.kms_home
+    version = params.version
+    if stack_version is not None:
+      kms_home = format("/usr/hdp/{stack_version}/ranger-kms")
+      version = stack_version
+
     password_validation(params.kms_master_key_password, 'KMS master key')
 
-    File(params.downloaded_custom_connector,
-      content = DownloadSource(params.driver_curl_source),
-      mode = 0644
-    )
+    copy_jdbc_connector(stack_version=version)
 
-    Directory(params.java_share_dir,
-      mode=0755,
-      create_parents = True,
-      cd_access="a"
-    )
-    
-    if params.db_flavor.lower() != 'sqla':
-      Execute(('cp', '--remove-destination', params.downloaded_custom_connector, params.driver_curl_target),
-          path=["/bin", "/usr/bin/"],
-          sudo=True)
-
-      File(params.driver_curl_target, mode=0644)
-
-    Directory(os.path.join(params.kms_home, 'ews', 'lib'),
-      mode=0755
-    )
-    
+    env_dict = {'RANGER_KMS_HOME':kms_home, 'JAVA_HOME': params.java_home}
     if params.db_flavor.lower() == 'sqla':
-      Execute(('tar', '-xvf', params.downloaded_custom_connector, '-C', params.tmp_dir), sudo = True)
-
-      Execute(('cp', '--remove-destination', params.jar_path_in_archive, os.path.join(params.kms_home, 'ews', 'webapp', 'lib')),
-        path=["/bin", "/usr/bin/"],
-        sudo=True)
-
-      Directory(params.jdbc_libs_dir,
-        cd_access="a",
-        create_parents = True)
-
-      Execute(as_sudo(['yes', '|', 'cp', params.libs_path_in_archive, params.jdbc_libs_dir], auto_escape=False),
-        path=["/bin", "/usr/bin/"])
-    else:
-      Execute(('cp', '--remove-destination', params.downloaded_custom_connector, os.path.join(params.kms_home, 'ews', 'webapp', 'lib')),
-        path=["/bin", "/usr/bin/"],
-        sudo=True)
-
-    File(os.path.join(params.kms_home, 'ews', 'webapp', 'lib', params.jdbc_jar_name), mode=0644)
-
-    ModifyPropertiesFile(format("/usr/hdp/current/ranger-kms/install.properties"),
-      properties = params.config['configurations']['kms-properties'],
-      owner = params.kms_user
-    )
-
-    if params.db_flavor.lower() == 'sqla':
-      ModifyPropertiesFile(format("{kms_home}/install.properties"),
-        properties = {'SQL_CONNECTOR_JAR': format('{kms_home}/ews/webapp/lib/{jdbc_jar_name}')},
-        owner = params.kms_user,
-      )
-
-    env_dict = {'RANGER_KMS_HOME':params.kms_home, 'JAVA_HOME': params.java_home}
-    if params.db_flavor.lower() == 'sqla':
-      env_dict = {'RANGER_KMS_HOME':params.kms_home, 'JAVA_HOME': params.java_home, 'LD_LIBRARY_PATH':params.ld_library_path}
+      env_dict = {'RANGER_KMS_HOME':kms_home, 'JAVA_HOME': params.java_home, 'LD_LIBRARY_PATH':params.ld_library_path}
 
     dba_setup = format('ambari-python-wrap {kms_home}/dba_script.py -q')
     db_setup = format('ambari-python-wrap {kms_home}/db_setup.py')
@@ -127,11 +82,12 @@ def setup_java_patch():
 
   if params.has_ranger_admin:
 
+    kms_home = params.kms_home
     setup_java_patch = format('ambari-python-wrap {kms_home}/db_setup.py -javapatch')
 
-    env_dict = {'RANGER_KMS_HOME':params.kms_home, 'JAVA_HOME': params.java_home}
+    env_dict = {'RANGER_KMS_HOME':kms_home, 'JAVA_HOME': params.java_home}
     if params.db_flavor.lower() == 'sqla':
-      env_dict = {'RANGER_KMS_HOME':params.kms_home, 'JAVA_HOME': params.java_home, 'LD_LIBRARY_PATH':params.ld_library_path}
+      env_dict = {'RANGER_KMS_HOME':kms_home, 'JAVA_HOME': params.java_home, 'LD_LIBRARY_PATH':params.ld_library_path}
 
     Execute(setup_java_patch, environment=env_dict, logoutput=True, user=params.kms_user, tries=5, try_sleep=10)
 
@@ -168,7 +124,7 @@ def do_keystore_setup(cred_provider_path, credential_alias, credential_password)
       mode = 0640
     )
 
-def kms():
+def kms(upgrade_type=None):
   import params
 
   if params.has_ranger_admin:
@@ -178,6 +134,9 @@ def kms():
       group = params.kms_group,
       create_parents = True
     )
+
+    if upgrade_type is not None:
+      copy_jdbc_connector(stack_version=params.version)
 
     File(format("/usr/lib/ambari-agent/{check_db_connection_jar_name}"),
       content = DownloadSource(format("{jdk_location}{check_db_connection_jar_name}")),
@@ -296,6 +255,66 @@ def kms():
       group=params.kms_group,
       content=params.kms_log4j,
       mode=0644
+    )
+
+def copy_jdbc_connector(stack_version=None):
+  import params
+
+  kms_home = params.kms_home
+  if stack_version is not None:
+    kms_home = format("/usr/hdp/{stack_version}/ranger-kms")
+
+  File(params.downloaded_custom_connector,
+    content = DownloadSource(params.driver_curl_source),
+    mode = 0644
+  )
+
+  Directory(params.java_share_dir,
+    mode=0755,
+    recursive=True,
+    cd_access="a"
+  )
+
+  if params.db_flavor.lower() != 'sqla':
+    Execute(('cp', '--remove-destination', params.downloaded_custom_connector, params.driver_curl_target),
+        path=["/bin", "/usr/bin/"],
+        sudo=True)
+
+    File(params.driver_curl_target, mode=0644)
+
+  Directory(os.path.join(kms_home, 'ews', 'lib'),
+    mode=0755
+  )
+
+  if params.db_flavor.lower() == 'sqla':
+    Execute(('tar', '-xvf', params.downloaded_custom_connector, '-C', params.tmp_dir), sudo = True)
+
+    Execute(('cp', '--remove-destination', params.jar_path_in_archive, os.path.join(kms_home, 'ews', 'webapp', 'lib')),
+      path=["/bin", "/usr/bin/"],
+      sudo=True)
+
+    Directory(params.jdbc_libs_dir,
+      cd_access="a",
+      recursive=True)
+
+    Execute(as_sudo(['yes', '|', 'cp', params.libs_path_in_archive, params.jdbc_libs_dir], auto_escape=False),
+      path=["/bin", "/usr/bin/"])
+  else:
+    Execute(('cp', '--remove-destination', params.downloaded_custom_connector, os.path.join(kms_home, 'ews', 'webapp', 'lib')),
+      path=["/bin", "/usr/bin/"],
+      sudo=True)
+
+  File(os.path.join(kms_home, 'ews', 'webapp', 'lib', params.jdbc_jar_name), mode=0644)
+
+  ModifyPropertiesFile(format("{kms_home}/install.properties"),
+    properties = params.config['configurations']['kms-properties'],
+    owner = params.kms_user
+  )
+
+  if params.db_flavor.lower() == 'sqla':
+    ModifyPropertiesFile(format("{kms_home}/install.properties"),
+      properties = {'SQL_CONNECTOR_JAR': format('{kms_home}/ews/webapp/lib/{jdbc_jar_name}')},
+      owner = params.kms_user,
     )
 
 def enable_kms_plugin():

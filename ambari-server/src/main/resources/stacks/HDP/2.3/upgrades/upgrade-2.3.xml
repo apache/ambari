@@ -452,9 +452,37 @@
 
     <service name="RANGER">
       <component name="RANGER_ADMIN">
+        <pre-upgrade>
+          <task xsi:type="execute" hosts="any" sequential="true" summary="Upgrading Ranger database schema">
+            <script>scripts/ranger_admin.py</script>
+            <function>setup_ranger_database</function>
+          </task>
+        </pre-upgrade>
+
+        <pre-downgrade>
+          <task xsi:type="execute" hosts="any" sequential="true" summary="Downgrading Ranger database schema">
+            <script>scripts/ranger_admin.py</script>
+            <function>setup_ranger_database</function>
+          </task>
+        </pre-downgrade>
+
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
+
+        <post-upgrade>
+          <task xsi:type="execute" hosts="any" sequential="true" summary="Applying Ranger java patches">
+            <script>scripts/ranger_admin.py</script>
+            <function>setup_ranger_java_patches</function>
+          </task>
+        </post-upgrade>
+
+        <post-downgrade>
+          <task xsi:type="execute" hosts="any" sequential="true" summary="Applying Ranger java patches">
+            <script>scripts/ranger_admin.py</script>
+            <function>setup_ranger_java_patches</function>
+          </task>
+        </post-downgrade>
       </component>
 
       <component name="RANGER_USERSYNC">
@@ -466,6 +494,20 @@
 
     <service name="RANGER_KMS">
       <component name="RANGER_KMS_SERVER">
+        <pre-upgrade>
+          <task xsi:type="execute" hosts="any" sequential="true" summary="Upgrading Ranger KMS database schema">
+            <script>scripts/kms_server.py</script>
+            <function>setup_ranger_kms_database</function>
+          </task>
+        </pre-upgrade>
+
+        <pre-downgrade>
+          <task xsi:type="execute" hosts="any" sequential="true" summary="Downgrading Ranger KMS database schema">
+            <script>scripts/kms_server.py</script>
+            <function>setup_ranger_kms_database</function>
+          </task>
+        </pre-downgrade>
+
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>

@@ -32,7 +32,7 @@ class RangerUsersync(Script):
     self.install_packages(env)
     self.configure(env)
     
-  def configure(self, env):
+  def configure(self, env, upgrade_type=None):
     import params
     env.set_params(params)
 
@@ -41,13 +41,13 @@ class RangerUsersync(Script):
     else:
       from setup_ranger import ranger    
     
-    ranger('ranger_usersync')
+    ranger('ranger_usersync', upgrade_type=upgrade_type)
     
   def start(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     
-    self.configure(env)
+    self.configure(env, upgrade_type=upgrade_type)
     ranger_service('ranger_usersync')
     
   def stop(self, env, upgrade_type=None):
@@ -69,10 +69,6 @@ class RangerUsersync(Script):
     import params
     env.set_params(params)
     upgrade.prestart(env, "ranger-usersync")
-
-    if params.xml_configurations_supported:
-      from setup_ranger_xml import ranger
-      ranger('ranger_usersync', upgrade_type=upgrade_type)
 
   def get_stack_to_component(self):
     return {"HDP": "ranger-usersync"}

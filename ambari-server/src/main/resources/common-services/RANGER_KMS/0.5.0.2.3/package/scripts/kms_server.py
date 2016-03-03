@@ -17,6 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+from resource_management.libraries.functions import hdp_select
 from resource_management.libraries.script import Script
 from resource_management.core.resources.system import Execute
 from resource_management.core.exceptions import ComponentIsNotRunning
@@ -74,9 +75,20 @@ class KmsServer(Script):
     env.set_params(params)
 
     upgrade.prestart(env, "ranger-kms")
-    setup_kms_db()
-    kms()
+    kms(upgrade_type=upgrade_type)
     setup_java_patch()
+
+  def setup_ranger_kms_database(self, env):
+    import params
+    env.set_params(params)
+
+    upgrade_stack = hdp_select._get_upgrade_stack()
+    if upgrade_stack is None:
+      raise Fail('Unable to determine the stack and stack version')
+
+    stack_version = upgrade_stack[1]
+    Logger.info(format('Setting Ranger KMS database schema, using version {stack_version}'))
+    setup_kms_db(stack_version=stack_version)
 
 if __name__ == "__main__":
   KmsServer().execute()
