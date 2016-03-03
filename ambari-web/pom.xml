@@ -256,7 +256,6 @@
         <dirsep>\</dirsep>
         <executable.brunch>cmd</executable.brunch>
         <args.brunch>/C brunch</args.brunch>
-        <executable.gzip>${basedir}\gzip-content.cmd</executable.gzip>
         <executable.mkdir>cmd</executable.mkdir>
         <args.mkdir>/C mkdir</args.mkdir>
         <executable.npm>cmd</executable.npm>
@@ -280,7 +279,6 @@
         <dirsep>/</dirsep>
         <executable.brunch>brunch</executable.brunch>
         <args.brunch></args.brunch>
-        <executable.gzip>gzip</executable.gzip>
         <executable.mkdir>mkdir</executable.mkdir>
         <args.mkdir></args.mkdir>
         <executable.npm>npm</executable.npm>
