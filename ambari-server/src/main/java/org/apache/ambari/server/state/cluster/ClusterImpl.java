@@ -2349,11 +2349,11 @@ public class ClusterImpl implements Cluster {
 
     configChangeLog.info("Cluster '{}' changed by: '{}'; service_name='{}' config_group='{}' config_group_id='{}' " +
         "version='{}'", getClusterName(), user, serviceName,
-      configGroup == null ? "default" : configGroup.getName(),
+      configGroup == null ? ServiceConfigVersionResponse.DEFAULT_CONFIG_GROUP_NAME : configGroup.getName(),
       configGroup == null ? "-1" : configGroup.getId(),
       serviceConfigEntity.getVersion());
 
-    String configGroupName = configGroup != null ? configGroup.getName() : "default";
+    String configGroupName = configGroup != null ? configGroup.getName() : ServiceConfigVersionResponse.DEFAULT_CONFIG_GROUP_NAME;
 
     ServiceConfigVersionResponse response = new ServiceConfigVersionResponse(
         serviceConfigEntity, configGroupName);
@@ -2460,7 +2460,8 @@ public class ClusterImpl implements Cluster {
         // the active config within a group
         ServiceConfigVersionResponse activeServiceConfigResponse = activeServiceConfigResponseGroups.get(serviceConfigVersionResponse.getGroupName());
 
-        if (activeServiceConfigResponse == null) {
+        if (activeServiceConfigResponse == null && !ServiceConfigVersionResponse.DELETED_CONFIG_GROUP_NAME.equals(serviceConfigVersionResponse.getGroupName())) {
+          // service config version with deleted group should always be marked is not current
           activeServiceConfigResponseGroups.put(serviceConfigVersionResponse.getGroupName(), serviceConfigVersionResponse);
           activeServiceConfigResponse = serviceConfigVersionResponse;
         }
@@ -2468,12 +2469,14 @@ public class ClusterImpl implements Cluster {
         serviceConfigVersionResponse.setConfigurations(new ArrayList<ConfigurationResponse>());
 
         if (serviceConfigEntity.getGroupId() == null) {
-          if (serviceConfigVersionResponse.getCreateTime() > activeServiceConfigResponse.getCreateTime())
+          if (serviceConfigVersionResponse.getCreateTime() > activeServiceConfigResponse.getCreateTime()) {
             activeServiceConfigResponseGroups.put(serviceConfigVersionResponse.getGroupName(), serviceConfigVersionResponse);
+          }
         }
         else if (clusterConfigGroups != null && clusterConfigGroups.containsKey(serviceConfigEntity.getGroupId())){
-          if (serviceConfigVersionResponse.getVersion() > activeServiceConfigResponse.getVersion())
+          if (serviceConfigVersionResponse.getVersion() > activeServiceConfigResponse.getVersion()) {
             activeServiceConfigResponseGroups.put(serviceConfigVersionResponse.getGroupName(), serviceConfigVersionResponse);
+          }
         }
 
         serviceConfigVersionResponse.setIsCurrent(false);
@@ -2554,10 +2557,10 @@ public class ClusterImpl implements Cluster {
       if (configGroup != null) {
         groupName = configGroup.getName();
       } else {
-        groupName = "deleted";
+        groupName = ServiceConfigVersionResponse.DELETED_CONFIG_GROUP_NAME;
       }
     } else {
-      groupName = "default";
+      groupName = ServiceConfigVersionResponse.DEFAULT_CONFIG_GROUP_NAME;
     }
 
     ServiceConfigVersionResponse serviceConfigVersionResponse = new ServiceConfigVersionResponse(
