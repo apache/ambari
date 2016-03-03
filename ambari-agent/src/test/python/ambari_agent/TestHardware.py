@@ -29,7 +29,6 @@ from ambari_agent.Hardware import Hardware
 from ambari_agent.AmbariConfig import AmbariConfig
 from ambari_agent.Facter import Facter, FacterLinux
 from ambari_commons import OSCheck
-from glob import glob
 
 @not_for_platform(PLATFORM_WINDOWS)
 @patch.object(platform,"linux_distribution", new = ('Suse','11','Final'))
@@ -329,56 +328,6 @@ lo        Link encap:Local Loopback
     result = Facter().facterInfo()
     self.assertEquals(result['operatingsystem'], 'some_type_of_os')
     self.assertEquals(result['osfamily'], 'My_new_family')
-
-
-  @patch("os.path.exists")
-  @patch("os.path.isdir")
-  @patch("json.loads")
-  @patch("glob.glob")
-  @patch("__builtin__.open")
-  @patch.object(OSCheck, "get_os_type")
-  @patch.object(OSCheck, "get_os_version")
-  @patch.object(FacterLinux, "resolve_ambari_config")
-  def test_system_resource_overrides(self, resolve_ambari_config, get_os_version_mock, get_os_type_mock,
-                                     open_mock, glob_mock, json_mock, isdir, exists):
-    get_os_type_mock.return_value = "suse"
-    get_os_version_mock.return_value = "11"
-    config = MagicMock()
-    config.get.return_value = '/etc/custom_resource_overrides'
-    config.has_option.return_value = True
-    resolve_ambari_config.return_value = config
-    isdir.return_value = True
-    exists.return_value = True
-    open_mock.return_value.read = "1"
-    file_handle = open_mock.return_value.__enter__.return_value
-    file_handle.read.return_value = '1'
-    glob_mock.side_effect = \
-      [
-        [
-          "/etc/custom_resource_overrides/1.json",
-          "/etc/custom_resource_overrides/2.json"
-          ]
-      ]
-    json_data = json_mock.return_value
-    json_data.items.return_value = {('key', 'value')}
-    json_data.__getitem__.return_value = 'value'
-
-    facter = Facter()
-    facter.config = config
-    result = facter.getSystemResourceOverrides()
-
-    isdir.assert_called_with('/etc/custom_resource_overrides')
-    exists.assert_called_with('/etc/custom_resource_overrides')
-    glob_mock.assert_called_with('/etc/custom_resource_overrides/*.json')
-    self.assertTrue(config.has_option.called)
-    self.assertTrue(config.get.called)
-    self.assertTrue(glob_mock.called)
-    self.assertEquals(2, file_handle.read.call_count)
-    self.assertEquals(2, open_mock.call_count)
-    self.assertEquals(2, json_mock.call_count)
-    self.assertEquals('value', result['key'])
-
-
 
 if __name__ == "__main__":
   unittest.main()
