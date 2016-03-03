@@ -22,7 +22,7 @@
     <service>
       <name>PXF</name>
       <displayName>PXF</displayName>
-      <comment>HAWQ Extension Framework</comment>
+      <comment>Apache HAWQ Extension Framework for querying external data in HDFS files, Hive tables, and HBase tables</comment>
       <version>3.0.0</version>
       <components>
 
