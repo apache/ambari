@@ -650,6 +650,32 @@ public class ConfigHelperTest {
     }
 
     @Test
+    public void testUpdateConfigTypeRemovals() throws Exception {
+      Config currentConfig = cluster.getDesiredConfigByType("oozie-site");
+      Map<String, String> properties = currentConfig.getProperties();
+      // Config tag before update
+      Assert.assertEquals("version1", currentConfig.getTag());
+      // Properties before update
+      Assert.assertEquals("simple", properties.get("oozie.authentication.type"));
+      Assert.assertEquals("false", properties.get("oozie.service.HadoopAccessorService.kerberos.enabled"));
+
+      List<String> removals = new ArrayList<String>();
+      removals.add("oozie.authentication.type");
+
+      configHelper.updateConfigType(cluster, managementController, "oozie-site", null, removals, "admin", "Test note");
+
+      Config updatedConfig = cluster.getDesiredConfigByType("oozie-site");
+      // Config tag updated
+      Assert.assertFalse("version1".equals(updatedConfig.getTag()));
+      // Property removed
+      properties = updatedConfig.getProperties();
+      Assert.assertFalse(properties.containsKey("oozie.authentication.type"));
+      // Property unchanged
+      Assert.assertTrue(properties.containsKey("oozie.service.HadoopAccessorService.kerberos.enabled"));
+      Assert.assertEquals("false", properties.get("oozie.service.HadoopAccessorService.kerberos.enabled"));
+    }
+
+    @Test
     public void testCalculateIsStaleConfigs() throws Exception {
 
       Map<String, HostConfig> schReturn = new HashMap<String, HostConfig>();
