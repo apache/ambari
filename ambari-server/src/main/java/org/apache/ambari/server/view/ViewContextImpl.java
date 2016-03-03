@@ -58,6 +58,7 @@ import sun.security.krb5.KrbException;
 
 import java.io.StringWriter;
 import java.io.Writer;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -237,8 +238,11 @@ public class ViewContextImpl implements ViewContext, ViewController {
           shortName = new KerberosName(shortName+"@"+defaultRealm).getShortName();
         }
       }
-    } catch (Exception e) {
-      LOG.error("Failed to get username",e);
+    } catch (InvocationTargetException e) {
+      LOG.debug("Failed to get default realm",e);
+    }catch (Exception e){
+      LOG.warn("Failed to apply auth_to_local rules. "+e.getMessage());
+      LOG.debug("Failed to apply auth_to_local rules",e);
     }
     return shortName;
   }
