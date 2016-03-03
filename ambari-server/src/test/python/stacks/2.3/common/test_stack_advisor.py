@@ -170,9 +170,11 @@ class TestHDP23StackAdvisor(TestCase):
       component_names = [component["name"] for component in hostgroup["components"]]
       if "NAMENODE" in component_names or "DATANODE" in component_names:
         self.assertTrue("PXF" in component_names)
+      if "NAMENODE" not in component_names and "DATANODE" not in component_names:
+        self.assertTrue("PXF" not in component_names)
 
 
-  def test_hawqsegmentDatanode(self):
+  def test_createComponentLayoutRecommendations_hawqsegment_co_locate_datanode(self):
     """ Test that HAWQSegment gets recommended on same host group which has DATANODE"""
 
     # Case 1: HDFS is already installed, HAWQ is being added during Add Service Wizard
@@ -275,6 +277,7 @@ class TestHDP23StackAdvisor(TestCase):
       self.assertTrue('HAWQSEGMENT' in component_names)
       self.assertTrue('DATANODE' in component_names)
 
+
   def fqdn_mock_result(value=None):
       return 'c6401.ambari.apache.org' if value is None else value
 
@@ -283,7 +286,7 @@ class TestHDP23StackAdvisor(TestCase):
     return [component["StackServiceComponents"] for component in componentsList if component["StackServiceComponents"]["component_name"] == componentName][0]
 
 
-  def test_validations_hawqsegment(self):
+  def test_getComponentLayoutValidations_hawqsegment_not_co_located_with_datanode(self):
     """ Test validation warning for HAWQ segment not colocated with DATANODE """
 
     services = self.load_json("services-normal-hawq-3-hosts.json")
@@ -297,7 +300,12 @@ class TestHDP23StackAdvisor(TestCase):
     datanodeComponent["hostnames"] = ['c6402.ambari.apache.org']
 
     validations = self.stackAdvisor.getComponentLayoutValidations(services, hosts)
-    expected = {'component-name': 'HAWQSEGMENT', 'message': 'HAWQSEGMENT is not co-located with DATANODE on the following 2 host(s): c6402.ambari.apache.org, c6401.ambari.apache.org', 'type': 'host-component', 'level': 'WARN'}
+    expected = {
+      'type': 'host-component',
+      'level': 'WARN',
+      'component-name': 'HAWQSEGMENT',
+      'message': 'HAWQ Segment must be installed on all DataNodes. The following 2 host(s) do not satisfy the colocation recommendation: c6401.ambari.apache.org, c6402.ambari.apache.org',
+    }
     self.assertEquals(validations[0], expected)
 
     datanodeComponent["hostnames"] = ['c6401.ambari.apache.org']
@@ -325,11 +333,11 @@ class TestHDP23StackAdvisor(TestCase):
     validations = [validation for validation in self.stackAdvisor.getComponentLayoutValidations(services, hosts) if validation["component-name"] == "PXF"]
     self.assertEquals(len(validations), 1)
     expected = {
-        "type": 'host-component',
-        "level": 'WARN',
-        "message": 'PXF is not co-located with NAMENODE on the following 1 host(s): c6401.ambari.apache.org',
-        "component-name": 'PXF'
-      }
+      "type": 'host-component',
+      "level": 'WARN',
+      "component-name": 'PXF',
+      "message": 'PXF must be installed on the NameNode, Standby NameNode and all DataNodes. The following 1 host(s) do not satisfy the colocation recommendation: c6401.ambari.apache.org'
+    }
     self.assertEquals(validations[0], expected)
 
 
@@ -353,11 +361,11 @@ class TestHDP23StackAdvisor(TestCase):
     validations = [validation for validation in self.stackAdvisor.getComponentLayoutValidations(services, hosts) if validation["component-name"] == "PXF"]
     self.assertEquals(len(validations), 1)
     expected = {
-        "type": 'host-component',
-        "level": 'WARN',
-        "message": 'PXF is not co-located with DATANODE on the following 2 host(s): c6402.ambari.apache.org, c6403.ambari.apache.org',
-        "component-name": 'PXF'
-      }
+      "type": 'host-component',
+      "level": 'WARN',
+      "component-name": 'PXF',
+      "message": 'PXF must be installed on the NameNode, Standby NameNode and all DataNodes. The following 2 host(s) do not satisfy the colocation recommendation: c6402.ambari.apache.org, c6403.ambari.apache.org'
+    }
     self.assertEquals(validations[0], expected)
 
 
@@ -381,11 +389,11 @@ class TestHDP23StackAdvisor(TestCase):
     validations = [validation for validation in self.stackAdvisor.getComponentLayoutValidations(services, hosts) if validation["component-name"] == "PXF"]
     self.assertEquals(len(validations), 1)
     expected = {
-        "type": 'host-component',
-        "level": 'WARN',
-        "message": 'PXF is not co-located with NAMENODE or DATANODE on the following 1 host(s): c6403.ambari.apache.org',
-        "component-name": 'PXF'
-      }
+      "type": 'host-component',
+      "level": 'WARN',
+      "component-name": 'PXF',
+      "message": 'PXF must be installed on the NameNode, Standby NameNode and all DataNodes. The following 1 host(s) do not satisfy the colocation recommendation: c6403.ambari.apache.org'
+    }
     self.assertEquals(validations[0], expected)
 
 
@@ -443,7 +451,7 @@ class TestHDP23StackAdvisor(TestCase):
 
     validations = self.stackAdvisor.getComponentLayoutValidations(services, hosts)
     self.assertEquals(len(validations), 1)
-    expected={'component-name': 'HAWQSTANDBY', 'message': 'HAWQ Standby Master and HAWQ Master should not be deployed on the same host.', 'type': 'host-component', 'host': 'c6403.ambari.apache.org', 'level': 'ERROR'}
+    expected={'component-name': 'HAWQSTANDBY', 'message': 'HAWQ Master and HAWQ Standby Master cannot be deployed on the same host.', 'type': 'host-component', 'host': 'c6403.ambari.apache.org', 'level': 'ERROR'}
     self.assertEquals(validations[0], expected)
 
     # case-3: HAWQ Master and Ambari Server are collocated
@@ -459,7 +467,7 @@ class TestHDP23StackAdvisor(TestCase):
 
     validations = self.stackAdvisor.getComponentLayoutValidations(services, hosts)
     self.assertEquals(len(validations), 1)
-    expected={'component-name': 'HAWQMASTER', 'message': 'HAWQ Master and Ambari Server should not be deployed on the same host. If you leave them collocated, make sure to set HAWQ Master Port property to a value different from the port number used by Ambari Server database.', 'type': 'host-component', 'host': 'c6401.ambari.apache.org', 'level': 'WARN'}
+    expected={'component-name': 'HAWQMASTER', 'message': 'HAWQ Master and Ambari Server should not be deployed on the same host. If you leave them colocated, make sure to set HAWQ Master Port property to a value different from the port number used by Ambari Server database.', 'type': 'host-component', 'host': 'c6401.ambari.apache.org', 'level': 'WARN'}
     self.assertEquals(validations[0], expected)
 
     # case-4: HAWQ Standby and Ambari Server are collocated
@@ -475,7 +483,7 @@ class TestHDP23StackAdvisor(TestCase):
 
     validations = self.stackAdvisor.getComponentLayoutValidations(services, hosts)
     self.assertEquals(len(validations), 1)
-    expected={'component-name': 'HAWQSTANDBY', 'message': 'HAWQ Standby Master and Ambari Server should not be deployed on the same host. If you leave them collocated, make sure to set HAWQ Master Port property to a value different from the port number used by Ambari Server database.', 'type': 'host-component', 'host': 'c6401.ambari.apache.org', 'level': 'WARN'}
+    expected={'component-name': 'HAWQSTANDBY', 'message': 'HAWQ Standby Master and Ambari Server should not be deployed on the same host. If you leave them colocated, make sure to set HAWQ Master Port property to a value different from the port number used by Ambari Server database.', 'type': 'host-component', 'host': 'c6401.ambari.apache.org', 'level': 'WARN'}
     self.assertEquals(validations[0], expected)
 
 
@@ -1731,6 +1739,7 @@ class TestHDP23StackAdvisor(TestCase):
     problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, hosts)
     self.assertEqual(len(problems), 0)
 
+
   def test_validateHAWQConfigurations(self):
     services = self.load_json("services-hawq-3-hosts.json")
     # setup default configuration values
@@ -1802,15 +1811,57 @@ class TestHDP23StackAdvisor(TestCase):
     """
     problems = self.stackAdvisor.validateHAWQConfigurations(properties, defaults, services["configurations"], services, hosts)
     self.assertEqual(len(problems), 1)
-    self.assertEqual(problems[0]["config-type"], "hawq-site")
-    self.assertEqual(problems[0]["message"], "hawq_global_rm_type must be set to none if YARN service is not installed")
-    self.assertEqual(problems[0]["type"], "configuration")
-    self.assertEqual(problems[0]["config-name"], "hawq_global_rm_type")
-    self.assertEqual(problems[0]["level"], "ERROR")
-
+    expected = {
+      "config-type": "hawq-site",
+      "message": "hawq_global_rm_type must be set to none if YARN service is not installed",
+      "type": "configuration",
+      "config-name": "hawq_global_rm_type",
+      "level": "ERROR"
+    }
+    self.assertEqual(problems[0], expected)
 
     # case 2: hawq_global_rm_type is set as yarn, and YARN service is installed. No validation errors expected.
     services["services"].append({"StackServices" : {"service_name" : "YARN"}, "components":[]})
 
     problems = self.stackAdvisor.validateHAWQConfigurations(properties, defaults, services["configurations"], services, hosts)
+    self.assertEqual(len(problems), 0)
+
+    # Test HAWQ Master port conflict with Ambari Server Postgres port
+
+    # case 1: HAWQ Master is placed on Ambari Server and HAWQ Master port is same as Ambari Server Postgres Port
+    self.stackAdvisor.isHawqMasterComponentOnAmbariServer = MagicMock(return_value=True)
+    configurations = {
+      "hawq-site": {
+        "properties":
+          {"hawq_master_address_port": "5432"}
+      }
+    }
+    problems = self.stackAdvisor.validateHAWQConfigurations(properties, defaults, configurations, services, hosts)
+    self.assertEqual(len(problems), 1)
+    expected = {
+      "config-name": "hawq_master_address_port",
+      "config-type": "hawq-site",
+      "level": "WARN",
+      "message": "The default Postgres port (5432) on the Ambari Server conflicts with the default HAWQ Master port. "
+                 "If you are using port 5432 for Postgres, you must either deploy the HAWQ Master on a different host "
+                 "or configure a different port for the HAWQ Master in the HAWQ Configuration page.",
+      "type": "configuration"}
+    self.assertEqual(problems[0], expected)
+
+    # case 2: HAWQ Master is placed on Ambari Server and HAWQ Master port is different from  Ambari Server Postgres Port
+    self.stackAdvisor.isHawqMasterComponentOnAmbariServer = MagicMock(return_value=True)
+    configurations["hawq-site"]["properties"]["hawq_master_address_port"] = "10432"
+    problems = self.stackAdvisor.validateHAWQConfigurations(properties, defaults, configurations, services, hosts)
+    self.assertEqual(len(problems), 0)
+
+    # case 3: HAWQ Master is not placed on Ambari Server and HAWQ Master port is same as  Ambari Server Postgres Port
+    self.stackAdvisor.isHawqMasterComponentOnAmbariServer = MagicMock(return_value=False)
+    configurations["hawq-site"]["properties"]["hawq_master_address_port"] = "5432"
+    problems = self.stackAdvisor.validateHAWQConfigurations(properties, defaults, configurations, services, hosts)
+    self.assertEqual(len(problems), 0)
+
+    # case 4: HAWQ Master is not placed on Ambari Server and HAWQ Master port is different from  Ambari Server Postgres Port
+    self.stackAdvisor.isHawqMasterComponentOnAmbariServer = MagicMock(return_value=False)
+    configurations["hawq-site"]["properties"]["hawq_master_address_port"] = "10432"
+    problems = self.stackAdvisor.validateHAWQConfigurations(properties, defaults, configurations, services, hosts)
     self.assertEqual(len(problems), 0)

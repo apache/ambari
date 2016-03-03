@@ -69,54 +69,41 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       hawqSegmentHosts = self.__getHosts(componentsList, "HAWQSEGMENT")
       datanodeHosts = self.__getHosts(componentsList, "DATANODE")
 
-      # Generate WARNING if any HAWQSEGMENT is not co-located with a DATANODE
-      mismatchHosts = set(hawqSegmentHosts).symmetric_difference(set(datanodeHosts))
+      # Generate WARNING if any HAWQSEGMENT is not colocated with a DATANODE
+      mismatchHosts = sorted(set(hawqSegmentHosts).symmetric_difference(set(datanodeHosts)))
       if len(mismatchHosts) > 0:
         hostsString = ', '.join(mismatchHosts)
-        message = "HAWQSEGMENT is not co-located with DATANODE on the following {0} host(s): {1}".format(len(mismatchHosts), hostsString)
+        message = "HAWQ Segment must be installed on all DataNodes. " \
+                  "The following {0} host(s) do not satisfy the colocation recommendation: {1}".format(len(mismatchHosts), hostsString)
         childItems.append( { "type": 'host-component', "level": 'WARN', "message": message, "component-name": 'HAWQSEGMENT' } )
 
       # single node case is not analyzed because HAWQ Standby Master will not be present in single node topology due to logic in createComponentLayoutRecommendations()
       if len(hawqMasterHosts) == 1 and len(hawqStandbyHosts) == 1 and hawqMasterHosts == hawqStandbyHosts:
-        message = "HAWQ Standby Master and HAWQ Master should not be deployed on the same host."
+        message = "HAWQ Master and HAWQ Standby Master cannot be deployed on the same host."
         childItems.append( { "type": 'host-component', "level": 'ERROR', "message": message, "component-name": 'HAWQSTANDBY', "host": hawqStandbyHosts[0] } )
 
       if len(hawqMasterHosts) ==  1 and hostsCount > 1 and self.isLocalHost(hawqMasterHosts[0]):
         message = "HAWQ Master and Ambari Server should not be deployed on the same host. " \
-                  "If you leave them collocated, make sure to set HAWQ Master Port property " \
+                  "If you leave them colocated, make sure to set HAWQ Master Port property " \
                   "to a value different from the port number used by Ambari Server database."
         childItems.append( { "type": 'host-component', "level": 'WARN', "message": message, "component-name": 'HAWQMASTER', "host": hawqMasterHosts[0] } )
 
       if len(hawqStandbyHosts) ==  1 and hostsCount > 1 and self.isLocalHost(hawqStandbyHosts[0]):
         message = "HAWQ Standby Master and Ambari Server should not be deployed on the same host. " \
-                  "If you leave them collocated, make sure to set HAWQ Master Port property " \
+                  "If you leave them colocated, make sure to set HAWQ Master Port property " \
                   "to a value different from the port number used by Ambari Server database."
         childItems.append( { "type": 'host-component', "level": 'WARN', "message": message, "component-name": 'HAWQSTANDBY', "host": hawqStandbyHosts[0] } )
 
     if "PXF" in servicesList:
       pxfHosts = self.__getHosts(componentsList, "PXF")
-      namenodeHosts = self.__getHosts(componentsList, "NAMENODE")
-      datanodeHosts = self.__getHosts(componentsList, "DATANODE")
+      expectedPxfHosts = set(self.__getHosts(componentsList, "NAMENODE") + self.__getHosts(componentsList, "DATANODE"))
 
-      # Generate WARNING if any PXF is not co-located with a NAMENODE
-      mismatchHosts = sorted(set(namenodeHosts).difference(set(pxfHosts)))
+      # Generate WARNING if any PXF is not colocated with NAMENODE or DATANODE
+      mismatchHosts = sorted(expectedPxfHosts.symmetric_difference(set(pxfHosts)))
       if len(mismatchHosts) > 0:
         hostsString = ', '.join(mismatchHosts)
-        message = "PXF is not co-located with NAMENODE on the following {0} host(s): {1}".format(len(mismatchHosts), hostsString)
-        childItems.append( { "type": 'host-component', "level": 'WARN', "message": message, "component-name": 'PXF' } )
-
-      # Generate WARNING if any PXF is not co-located with a DATANODE
-      mismatchHosts = sorted(set(datanodeHosts).difference(set(pxfHosts)))
-      if len(mismatchHosts) > 0:
-        hostsString = ', '.join(mismatchHosts)
-        message = "PXF is not co-located with DATANODE on the following {0} host(s): {1}".format(len(mismatchHosts), hostsString)
-        childItems.append( { "type": 'host-component', "level": 'WARN', "message": message, "component-name": 'PXF' } )
-
-      # Generate WARNING if any PXF is not co-located with a NAMENODE or a DATANODE
-      mismatchHosts = sorted(set(pxfHosts).difference(set(namenodeHosts).union(set(datanodeHosts))))
-      if len(mismatchHosts) > 0:
-        hostsString = ', '.join(mismatchHosts)
-        message = "PXF is not co-located with NAMENODE or DATANODE on the following {0} host(s): {1}".format(len(mismatchHosts), hostsString)
+        message = "PXF must be installed on the NameNode, Standby NameNode and all DataNodes. " \
+                  "The following {0} host(s) do not satisfy the colocation recommendation: {1}".format(len(mismatchHosts), hostsString)
         childItems.append( { "type": 'host-component', "level": 'WARN', "message": message, "component-name": 'PXF' } )
 
     if "SPARK" in servicesList:
@@ -935,7 +922,9 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       prop_name = 'hawq_master_address_port'
       validationItems.append({"config-name": prop_name,
                                 "item": self.getWarnItem(
-                                "HAWQ Master or Standby Master cannot use the port 5432 when installed on the same host as the Ambari Server. Ambari Postgres DB uses the same port. Please choose a different value (e.g. 10432)")})
+                                "The default Postgres port (5432) on the Ambari Server conflicts with the default HAWQ Master port. "
+                                "If you are using port 5432 for Postgres, you must either deploy the HAWQ Master on a different host "
+                                "or configure a different port for the HAWQ Master in the HAWQ Configuration page.")})
 
     # 2. Check if any data directories are pointing to root dir '/'
     directories = {
