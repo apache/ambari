@@ -136,8 +136,19 @@ define([
             );
           };
           //Check if it's a templated dashboard.
-          var templatedHost = (_.isEmpty(templateSrv.variables)) ? "" : templateSrv.variables[0].options.filter(function(host)
-              { return host.selected; }).map(function(hostName) { return hostName.value; });
+          var templatedHosts = templateSrv.variables.filter(function(o) {
+            return o.name === "hosts"
+          });
+          var templatedHost = (_.isEmpty(templateSrv.variables)) ? '' : templatedHosts[0].options.filter(function(host) {
+            return host.selected;
+          }).map(function(hostName) {
+            return hostName.value;
+          });
+
+          var tComponents = _.isEmpty(templateSrv.variables) ? '' : templateSrv.variables.filter(function(variable) {
+            return variable.name === "components"
+          });
+          var tComponent = _.isEmpty(tComponents) ? '' : tComponents[0].current.value;
 
           var getServiceAppIdData = function(target) {
             var tHost = (_.isEmpty(templateSrv.variables)) ? templatedHost : target.templatedHost;
@@ -156,8 +167,9 @@ define([
 
           var metricsPromises = [];
           if (!_.isEmpty(templateSrv.variables)) {
-            if (!_.isEmpty(_.find(templatedHost, function (o) { return o === "*"; }))) {
-              var allHost = templateSrv.variables[0].options.filter(function(all) {
+            if (!_.isEmpty(_.find(templatedHost, function (wildcard) { return wildcard === "*"; })))  {
+              var allHosts = templateSrv.variables.filter(function(variable) { return variable.name === "hosts"});
+              var allHost = allHosts[0].options.filter(function(all) {
                 return all.text !== "All"; }).map(function(hostName) { return hostName.value; });
               _.forEach(allHost, function(processHost) {
               metricsPromises.push(_.map(options.targets, function(target) {
@@ -214,27 +226,62 @@ define([
         /**
          * AMS Datasource Templating Variables.
          */
-        AmbariMetricsDatasource.prototype.metricFindQuery = function (query) {
+        AmbariMetricsDatasource.prototype.metricFindQuery = function(query) {
           var interpolated;
           try {
             interpolated = templateSrv.replace(query);
           } catch (err) {
             return $q.reject(err);
           }
-          return this.doAmbariRequest({
+          var tComponents = _.isEmpty(templateSrv.variables) ? '' : templateSrv.variables.filter(function(variable) {
+            return variable.name === "components"
+          });
+          var tComponent = _.isEmpty(tComponents) ? '' : tComponents[0].current.value;
+          if (!tComponent) {
+            return this.doAmbariRequest({
                 method: 'GET',
                 url: '/ws/v1/timeline/metrics/' + interpolated
-              })
-              .then(function (results) {
+              }).then(function(results) {
                 //Remove fakehostname from the list of hosts on the cluster.
-                var fake = "fakehostname"; delete results.data[fake];
-                return _.map(_.keys(results.data), function (hostName) {
+                var fake = "fakehostname";
+                delete results.data[fake];
+                return _.map(_.keys(results.data), function(hostName) {
                   return {
-                        text: hostName,
-                        expandable: hostName.expandable ? true : false
-                      };
+                    text: hostName,
+                    expandable: hostName.expandable ? true : false
+                  };
                 });
               });
+          } else {
+            return this.doAmbariRequest({
+                method: 'GET',
+                url: '/ws/v1/timeline/metrics/hosts'
+              }).then(function(results) {
+                var compToHostMap = {};
+                //Remove fakehostname from the list of hosts on the cluster.
+                var fake = "fakehostname"; delete results.data[fake];
+                //Query hosts based on component name
+                _.forEach(results.data, function(comp, hostName) {
+                  comp.forEach(function(component) {
+                    if (!compToHostMap[component]) {
+                      compToHostMap[component] = [];
+                    }
+                    compToHostMap[component].push(hostName);
+                  });
+                });
+                var compHosts = compToHostMap[tComponent];
+                compHosts = _.map(compHosts, function(host) {
+                  return {
+                    text: host,
+                    expandable: host.expandable ? true : false
+                  };
+                });
+                compHosts = _.sortBy(compHosts, function(i) {
+                  return i.text.toLowerCase();
+                });
+                return $q.when(compHosts);
+              });
+          }
         };
 
         /**
