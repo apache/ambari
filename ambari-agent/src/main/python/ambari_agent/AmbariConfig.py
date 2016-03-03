@@ -46,6 +46,7 @@ data_cleanup_max_size_MB = 100
 ping_port=8670
 cache_dir={ps}var{ps}lib{ps}ambari-agent{ps}cache
 parallel_execution=0
+system_resource_overrides={ps}etc{ps}resource_overrides
 
 [services]
 
