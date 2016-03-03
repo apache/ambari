@@ -321,8 +321,8 @@ App.Router = Em.Router.extend({
         name: 'router.login.message',
         sender: self,
         data: requestData,
-        success: 'showLoginMessage',
-        error: 'showLoginMessage'
+        success: 'showLoginMessageSuccessCallback',
+        error: 'showLoginMessageErrorCallback'
       });
     });
   },
@@ -352,7 +352,7 @@ App.Router = Em.Router.extend({
    * @param {object} opt
    * @param {object} params
    */
-  showLoginMessage: function (data, opt, params){
+  showLoginMessageSuccessCallback: function (data, opt, params) {
     try {
       var response = JSON.parse(data.Settings.content.replace(/\n/g, "\\n"))
     } catch (e) {
@@ -399,6 +399,18 @@ App.Router = Em.Router.extend({
       this.setClusterData(data, opt, params);
       return false;
     }
+  },
+
+  /**
+   * error callback of router.login.message
+   * @param {object} request
+   * @param {string} ajaxOptions
+   * @param {string} error
+   * @param {object} opt
+   * @param {object} params
+   */
+  showLoginMessageErrorCallback: function (request, ajaxOptions, error, opt, params) {
+    this.showLoginMessageSuccessCallback(null, opt, params);
   },
 
   setClusterData: function (data, opt, params) {
