@@ -33,18 +33,27 @@ case "$1" in
         ;;
 esac
 
+get_agent_property() {
+  property_name="$1"
+  value=$(awk -F "=" "/$property_name/ {print \$2}" /etc/ambari-agent/conf/ambari-agent.ini)
+  echo $value
+}
+
 export PATH=/usr/sbin:/sbin:/usr/lib/ambari-server/*:$PATH
 export AMBARI_CONF_DIR=/etc/ambari-server/conf:$PATH
 
 # Because Ambari rpm unpacks modules here on all systems
 export PYTHONPATH=/usr/lib/python2.6/site-packages:$PYTHONPATH
 
+export AMBARI_PID_DIR=`get_agent_property piddir`
+export AMBARI_AGENT_LOG_DIR=`get_agent_property logdir`
+KEYSDIR=`get_agent_property keysdir`
+
 AMBARI_AGENT=ambari-agent
 PYTHON_WRAP=/usr/bin/ambari-python-wrap
-PIDDIR=/var/run/ambari-agent
-PIDFILE=$PIDDIR/$AMBARI_AGENT.pid
-OUTFILE=/var/log/ambari-agent/ambari-agent.out
-LOGFILE=/var/log/ambari-agent/ambari-agent.log
+PIDFILE=$AMBARI_PID_DIR/$AMBARI_AGENT.pid
+OUTFILE=$AMBARI_AGENT_LOG_DIR/ambari-agent.out
+LOGFILE=$AMBARI_AGENT_LOG_DIR/ambari-agent.log
 AGENT_SCRIPT=/usr/lib/python2.6/site-packages/ambari_agent/main.py
 AGENT_TMP_DIR=/var/lib/ambari-agent/tmp
 AMBARI_AGENT_PY_SCRIPT=/usr/lib/python2.6/site-packages/ambari_agent/AmbariAgent.py
@@ -64,18 +73,14 @@ fi
 # set reliable cwd for this and child processes.
 cd $AGENT_TMP_DIR
 
-keysdir=$(awk -F "=" '/keysdir/ {print $2}' /etc/ambari-agent/conf/ambari-agent.ini)
-# trim spaces
-keysdir=${keysdir// }
-keysdir=${keysdir%% }
-
 change_files_permissions() {
     if [ ! -z "$keysdir" ]; then
         ambari-sudo.sh chown -R $current_user "$keysdir"
     fi
-	ambari-sudo.sh mkdir -p "$PIDDIR"
-	ambari-sudo.sh chown -R $current_user "$PIDDIR"
-	ambari-sudo.sh chown -R $current_user "/var/log/ambari-agent/"
+	ambari-sudo.sh mkdir -p "$AMBARI_PID_DIR"
+	ambari-sudo.sh chown -R $current_user "$AMBARI_PID_DIR"
+	ambari-sudo.sh mkdir -p "$AMBARI_AGENT_LOG_DIR"
+	ambari-sudo.sh chown -R $current_user "$AMBARI_AGENT_LOG_DIR"
 	ambari-sudo.sh chown -R $current_user "/var/lib/ambari-agent/data/"
 	ambari-sudo.sh chown -R $current_user "/var/lib/ambari-agent/cache/"
 	ambari-sudo.sh chown 	$current_user "/usr/lib/ambari-agent/"
