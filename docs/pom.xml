@@ -203,6 +203,18 @@
             </roles>
         </developer>
         <developer>
+            <id>bhuvnesh2703</id>
+            <name>Bhuvnesh Chaudhary</name>
+            <email>bhuvnesh2703@apache.org</email>
+            <timezone></timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Pivotal
+            </organization>
+        </developer>
+        <developer>
             <id>billie</id>
             <name>Billie Rinaldi</name>
             <email>billie@apache.org</email>
@@ -467,6 +479,30 @@
             </organization>
         </developer>
         <developer>
+            <id>magyari_sandor</id>
+            <name>Sandor Magyari</name>
+            <email>magyari_sandor@apache.org</email>
+            <timezone></timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
+            <id>mithmatt</id>
+            <name>Mithun Mathew</name>
+            <email>mithmatt@apache.org</email>
+            <timezone></timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Pivotal
+            </organization>
+        </developer>
+        <developer>
             <id>mpapirkovskyy</id>
             <name>Myroslav Papyrkovskyy</name>
             <email>mpapirkovskyy@apache.org</email>
@@ -641,6 +677,18 @@
             <timezone>-8</timezone>
             <roles>
                 <role>PMC</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
+            <id>stoader</id>
+            <name>Sebastian Toader</name>
+            <email>stoader@apache.org</email>
+            <timezone></timezone>
+            <roles>
+                <role>Committer</role>
             </roles>
             <organization>
                 Hortonworks
