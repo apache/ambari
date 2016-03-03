@@ -2924,35 +2924,6 @@ Em.I18n.translations = {
   'admin.addHawqStandby.wizard.step4.task3.title': 'Start HAWQ Service',
   'admin.addHawqStandby.wizard.step4.notice.inProgress':'Please wait while HAWQ Standby Master is being deployed.',
   'admin.addHawqStandby.wizard.step4.notice.completed':'HAWQ Standby Master has been added successfully.',
-  'admin.removeHawqStandby.button.enable': 'Remove HAWQ Standby',
-  'admin.removeHawqStandby.wizard.header': 'Remove HAWQ Standby Wizard',
-  'admin.removeHawqStandby.wizard.step1.header': 'Get Started',
-  'admin.removeHawqStandby.wizard.step1.body':'This wizard walks you through the process of removing the HAWQ Standby Master ' +
-      'in the event of HAWQ Standby Master host failure or maintenance. After you remove the HAWQ Standby Master, the existing HAWQ Master will run in standalone mode without a backup.' +
-      '<br/><br/><b>This procedure stops and restarts the HAWQ service. Perform this procedure during a scheduled cluster ' +
-      'maintenance window, only when HAWQ Master is functioning properly.</b>' +
-      '<br/><br/>After you complete this wizard, the HAWQ cluster will no longer have a Standby Master. ' +
-      'As a best practice, use the “Add HAWQ Standby Master” service action to configure a new HAWQ Standby Master for the cluster.',
-  'admin.removeHawqStandby.wizard.step2.header': 'Review',
-  'admin.removeHawqStandby.wizard.step2.hawqStandby': '<b>Current HAWQ Standby:</b>',
-  'admin.removeHawqStandby.wizard.step2.confirm.config.body':'<div class="alert alert-info">' +
-      '<b>Review Configuration Changes.</b></br></br>After removing the HAWQ Standby Master, the Wizard removes the ' +
-      'hawq_standby_address_host property from hawq-site.xml. As a best practice, you should configure a new HAWQ Standby Master host after the Wizard completes.</div>',
-  'admin.removeHawqStandby.wizard.step2.confirm.host.body':'<b>Review HAWQ Standby Master role changes.</b>',
-  'admin.removeHawqStandby.wizard.step2.confirmPopup.body': 'Do you wish to continue with removing HAWQ Standby Master? Please confirm, before proceeding as you will not be able to rollback from Ambari.',
-  'admin.removeHawqStandby.wizard.step3.header': 'Finalize Setup',
-  'admin.removeHawqStandby.wizard.step3.task0.title': 'Remove HAWQ Standby',
-  'admin.removeHawqStandby.wizard.step3.task1.title': 'Stop HAWQ Service',
-  'admin.removeHawqStandby.wizard.step3.task2.title': 'Reconfigure HAWQ',
-  'admin.removeHawqStandby.wizard.step3.task3.title': 'Delete Role: HAWQ Standby',
-  'admin.removeHawqStandby.wizard.step3.task4.title': 'Start HAWQ Service',
-  'admin.removeHawqStandby.closePopup':'Remove HAWQ Standby Wizard is in progress. You must allow the wizard to' +
-      ' complete for Ambari to be in usable state. If you choose to quit, you must follow manual instructions to' +
-      ' get back to a stable state. Are you sure you want to exit the wizard?',
-  'admin.removeHawqStandby.wizard.step3.notice.inProgress':'Please wait while HAWQ Standby is being removed',
-  'admin.removeHawqStandby.wizard.step3.notice.completed':'HAWQ Standby has been removed successfully.',
-  'admin.removeHawqStandby.wizard.step3.removeHawqStandbyCommand.context': 'Execute HAWQ Standby remove command',
-  'admin.removeHawqStandby.wizard.step3.save.configuration.note': 'This configuration was created by Remove HAWQ Standby wizard',
   'admin.activateHawqStandby.button.enable': 'Activate HAWQ Standby',
   'admin.activateHawqStandby.wizard.header': 'Activate HAWQ Standby Wizard',
   'admin.activateHawqStandby.wizard.step1.header': 'Get Started',

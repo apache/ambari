@@ -312,17 +312,15 @@ App.HostComponentView = Em.View.extend({
       }
 
       var commandMap = App.HostComponentActionMap.getMap(self)[command];
-      if (!commandMap.hideFromComponentView) {
-        customCommands.push({
-          label: self.getCustomCommandLabel(command),
-          service: component.get('serviceName'),
-          hosts: hostComponent.get('hostName'),
-          context: (!!commandMap && !!commandMap.context) ? commandMap.context : null,
-          component: component.get('componentName'),
-          command: command,
-          disabled: !!commandMap ? !!commandMap.disabled : false
-        });
-      }
+      customCommands.push({
+        label: self.getCustomCommandLabel(command),
+        service: component.get('serviceName'),
+        hosts: hostComponent.get('hostName'),
+        context: (!!commandMap && !!commandMap.context) ? commandMap.context : null,
+        component: component.get('componentName'),
+        command: command,
+        disabled: !!commandMap ? !!commandMap.disabled : false
+      });
     });
 
     return customCommands;

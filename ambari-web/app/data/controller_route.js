@@ -54,10 +54,6 @@ module.exports = [
     route: 'main.services.addHawqStandby'
   },
   {
-    wizardControllerName: App.router.get('removeHawqStandbyWizardController.name'),
-    route: 'main.services.removeHawqStandby'
-  },
-  {
     wizardControllerName: App.router.get('activateHawqStandbyWizardController.name'),
     route: 'main.services.activateHawqStandby'
   },

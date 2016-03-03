@@ -882,11 +882,6 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     highAvailabilityController.addHawqStandby();
   },
 
-  removeHawqStandby: function() {
-    var highAvailabilityController = App.router.get('mainAdminHighAvailabilityController');
-    highAvailabilityController.removeHawqStandby();
-  },
-
   activateHawqStandby: function() {
     var highAvailabilityController = App.router.get('mainAdminHighAvailabilityController');
     highAvailabilityController.activateHawqStandby();
