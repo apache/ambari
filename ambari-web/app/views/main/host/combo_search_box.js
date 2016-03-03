@@ -61,7 +61,6 @@ App.MainHostComboSearchBoxView = Em.View.extend({
             {label: 'Version State', value: 'versionState', category: 'Host'},
             {label: 'Rack', value: 'rack', category: 'Host'},
             {label: 'Service', value: 'services', category: 'Service'},
-            {label: 'Has Component', value: 'hostComponents', category: 'Service'},
           ];
           var hostComponentHash = {};
           App.HostComponent.find().toArray().forEach(function(component) {
@@ -112,16 +111,20 @@ App.MainHostComboSearchBoxView = Em.View.extend({
                 return {label: App.format.role(service.get('serviceName')), value: service.get('serviceName')};
               }), {preserveOrder: true});
               break;
-            case 'hostComponents':
-              callback(App.HostComponent.find().toArray().mapProperty('componentName').uniq().map(function (componentName) {
-                return {label: App.format.role(componentName), value: componentName};
-              }));
-              break;
-            case 'state':
-              callback(App.HostComponentStatus.getStatusesList(), {preserveOrder: true});
-              break;
             case 'componentState':
-              callback(['STARTED', 'STOPPED'], {preserveOrder: true});
+              callback([{label: "All", value: "ALL"}]
+                  .concat(App.HostComponentStatus.getStatusesList().map(function (status) {
+                    return {label: App.HostComponentStatus.getTextStatus(status), value: status};
+                  }))
+                  .concat([
+                    {label: "Inservice", value: "INSERVICE"},
+                    {label: "Decommissioned", value: "DECOMMISSIONED"},
+                    {label: "Decommissioning", value: "DECOMMISSIONING"},
+                    {label: "RS Decommissioned", value: "RS_DECOMMISSIONED"},
+                    {label: "Maintenance Mode On", value: "ON"},
+                    {label: "Maintenance Mode Off", value: "OFF"}
+                  ]), {preserveOrder: true});
+              break;
           }
         }
       }

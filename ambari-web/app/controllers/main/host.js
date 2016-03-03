@@ -159,7 +159,12 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
     },
     {
       name: 'componentState',
-      key: '(host_components/HostRoles/component_name={0}&host_components/HostRoles/state={1})',
+      key: [
+        '(host_components/HostRoles/component_name={0})',
+        '(host_components/HostRoles/component_name={0}&host_components/HostRoles/state={1})',
+        '(host_components/HostRoles/component_name={0}&host_components/HostRoles/desired_admin_state={1})',
+        '(host_components/HostRoles/component_name={0}&host_components/HostRoles/maintenance_state={1})'
+      ],
       type: 'COMBO'
     }
   ],

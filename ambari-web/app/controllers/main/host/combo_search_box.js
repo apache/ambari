@@ -60,12 +60,9 @@ App.MainHostComboSearchBoxController = Em.Controller.extend({
   },
 
   generateQueryParam: function(param) {
-    var expression = param.key;
-    var filterName = App.router.get('mainHostController.filterProperties').findProperty('key', expression).name;
-    if (filterName == 'componentState') {
-      var pHash = this.createComboParamHash(param);
-      return this.createComboParamURL(pHash, expression);
-    }
+    var expressions = param.key;
+    var pHash = this.createComboParamHash(param);
+    return this.createComboParamURL(pHash, expressions);
   },
 
   /**
@@ -73,13 +70,15 @@ App.MainHostComboSearchBoxController = Em.Controller.extend({
    * @param expression
    * @returns {string} 'k1=v1&(k2=v1|k2=v2)'
    */
-  createComboParamURL: function(pHash, expression) {
+  createComboParamURL: function(pHash, expressions) {
+    var self = this;
     var result = '';
     for (key in pHash) {
       var v = pHash[key];
       if (Em.isArray(v)) {
         var ex = '(';
         v.forEach(function(item) {
+          var expression = self.getComboParamURL(item, expressions);
           var toAdd = expression.replace('{0}', key);
           toAdd = toAdd.replace('{1}', item);
           ex += toAdd + '|';
@@ -87,6 +86,7 @@ App.MainHostComboSearchBoxController = Em.Controller.extend({
         ex = ex.substring(0, ex.length - 1);
         result += ex + ')';
       } else {
+        var expression = self.getComboParamURL(v, expressions);
         var ex = expression.replace('{0}', key);
         ex = ex.replace('{1}', v);
         result += ex;
@@ -95,6 +95,41 @@ App.MainHostComboSearchBoxController = Em.Controller.extend({
     }
 
     return result.substring(0, result.length - 1);
+  },
+
+  /**
+   * @param value //value of component state
+   * @returns expression //url of query of state
+   */
+  getComboParamURL: function(value, expressions) {
+    var expression = expressions[1];
+    switch (value) {
+      case 'ALL':
+        expression = expressions[0];
+        break;
+      case 'STARTED':
+      case 'STARTING':
+      case 'INSTALLED':
+      case 'STOPPING':
+      case 'INSTALL_FAILED':
+      case 'INSTALLING':
+      case 'UPGRADE_FAILED':
+      case 'UNKNOWN':
+      case 'DISABLED':
+      case 'INIT':
+        break;
+      case 'INSERVICE':
+      case 'DECOMMISSIONING':
+      case 'DECOMMISSIONED':
+      case 'RS_DECOMMISSIONED':
+        expression = expressions[2];
+        break;
+      case 'ON':
+      case 'OFF':
+        expression = expressions[3];
+        break;
+    }
+    return expression;
   },
 
   /**
@@ -108,7 +143,6 @@ App.MainHostComboSearchBoxController = Em.Controller.extend({
         var values = item.split(':');
         var k = values[0];
         var v = values[1];
-        if (v == 'STOPPED') { v = 'INSTALLED'; } // 'STOPPED' is not a valid internal state
         if (!pHash[k]) {
           pHash[k] = v;
         } else {
@@ -123,7 +157,6 @@ App.MainHostComboSearchBoxController = Em.Controller.extend({
       });
     } else {
       var values = param.value.split(':');
-      if (values[1] == 'STOPPED') { values[1] = 'INSTALLED'; }
       pHash[values[0]] = values[1];
     }
     return pHash;
