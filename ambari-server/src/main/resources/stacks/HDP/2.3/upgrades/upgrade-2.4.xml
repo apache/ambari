@@ -101,6 +101,12 @@
                 3. Follow upgrade process and once completed then restore audit data to audit table.</message>
         </task>
       </execute-stage>
+
+      <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Pre Upgrade Ranger KMS Backup">
+        <task xsi:type="manual">
+          <message>Before continuing, please backup Ranger KMS database on the following host(s): {{hosts.all}}.</message>
+        </task>
+      </execute-stage>
     </group>
 
     <group name="ZOOKEEPER" title="ZooKeeper">
@@ -115,6 +121,14 @@
       <service name="RANGER">
         <component>RANGER_ADMIN</component>
         <component>RANGER_USERSYNC</component>
+      </service>
+    </group>
+
+    <group name="RANGER_KMS" title="Ranger_KMS">
+      <skippable>true</skippable>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
+      <service name="RANGER_KMS">
+        <component>RANGER_KMS_SERVER</component>
       </service>
     </group>
 
@@ -418,14 +432,62 @@
 
     <service name="RANGER">
       <component name="RANGER_ADMIN">
-        <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
+        <pre-upgrade>
+          <task xsi:type="execute" hosts="any" sequential="true" summary="Upgrading Ranger database schema">
+            <script>scripts/ranger_admin.py</script>
+            <function>setup_ranger_database</function>
+          </task>
+        </pre-upgrade>
+
+        <pre-downgrade>
+          <task xsi:type="execute" hosts="any" sequential="true" summary="Downgrading Ranger database schema">
+            <script>scripts/ranger_admin.py</script>
+            <function>setup_ranger_database</function>
+          </task>
+        </pre-downgrade>
 
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
+
+        <post-upgrade>
+          <task xsi:type="execute" hosts="any" sequential="true" summary="Applying Ranger java patches">
+            <script>scripts/ranger_admin.py</script>
+            <function>setup_ranger_java_patches</function>
+          </task>
+        </post-upgrade>
+
+        <post-downgrade>
+          <task xsi:type="execute" hosts="any" sequential="true" summary="Applying Ranger java patches">
+            <script>scripts/ranger_admin.py</script>
+            <function>setup_ranger_java_patches</function>
+          </task>
+        </post-downgrade>
       </component>
 
       <component name="RANGER_USERSYNC">
+        <upgrade>
+          <task xsi:type="restart-task" />
+        </upgrade>
+      </component>
+    </service>
+
+    <service name="RANGER_KMS">
+      <component name="RANGER_KMS_SERVER">
+        <pre-upgrade>
+          <task xsi:type="execute" hosts="any" sequential="true" summary="Upgrading Ranger KMS database schema">
+            <script>scripts/kms_server.py</script>
+            <function>setup_ranger_kms_database</function>
+          </task>
+        </pre-upgrade>
+
+        <pre-downgrade>
+          <task xsi:type="execute" hosts="any" sequential="true" summary="Downgrading Ranger KMS database schema">
+            <script>scripts/kms_server.py</script>
+            <function>setup_ranger_kms_database</function>
+          </task>
+        </pre-downgrade>
+
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>

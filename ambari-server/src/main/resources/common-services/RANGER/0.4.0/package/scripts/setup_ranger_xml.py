@@ -58,6 +58,7 @@ def setup_ranger_admin(upgrade_type=None):
   if upgrade_type is not None:
     ranger_home = format("/usr/hdp/{version}/ranger-admin")
     ranger_conf = format("/usr/hdp/{version}/ranger-admin/conf")
+    copy_jdbc_connector(stack_version=params.version)
 
   File(format("/usr/lib/ambari-agent/{check_db_connection_jar_name}"),
     content = DownloadSource(format("{jdk_location}{check_db_connection_jar_name}")),
@@ -69,7 +70,7 @@ def setup_ranger_admin(upgrade_type=None):
     cp = cp + os.pathsep + format("{ranger_home}/ews/lib/{jdbc_jar_name}")
   else:
     cp = cp + os.pathsep + format("{driver_curl_target}")
-  cp = cp + os.pathsep + format("{ranger_home}/ews/webapp/WEB-INF/lib/*")
+  cp = cp + os.pathsep + format("{ranger_home}/ews/lib/*")
 
   db_connection_check_command = format(
     "{java_home}/bin/java -cp {cp} org.apache.ambari.server.DBConnectionVerification '{ranger_jdbc_connection_url}' {ranger_db_user} {ranger_db_password!p} {ranger_jdbc_driver}")
@@ -145,61 +146,16 @@ def setup_ranger_admin(upgrade_type=None):
   do_keystore_setup(upgrade_type=upgrade_type)
 
 
-def setup_ranger_db(upgrade_type=None):
+def setup_ranger_db(stack_version=None):
   import params
   
-  File(params.downloaded_custom_connector,
-    content = DownloadSource(params.driver_curl_source),
-    mode = 0644
-  )
-
-  Directory(params.java_share_dir,
-    mode=0755,
-    recursive=True,
-    cd_access="a"
-  )
-
-  if params.db_flavor.lower() != 'sqla':
-    Execute(('cp', '--remove-destination', params.downloaded_custom_connector, params.driver_curl_target),
-      path=["/bin", "/usr/bin/"],
-      sudo=True)
-
-    File(params.driver_curl_target, mode=0644)
-
   ranger_home = params.ranger_home
-  if upgrade_type is not None:
-    ranger_home = format("/usr/hdp/{version}/ranger-admin")
+  version = params.version
+  if stack_version is not None:
+    ranger_home = format("/usr/hdp/{stack_version}/ranger-admin")
+    version = stack_version
 
-  if params.db_flavor.lower() == 'sqla':
-    Execute(('tar', '-xvf', params.downloaded_custom_connector, '-C', params.tmp_dir), sudo = True)
-
-    Execute(('cp', '--remove-destination', params.jar_path_in_archive, os.path.join(params.ranger_home, 'ews', 'lib')),
-      path=["/bin", "/usr/bin/"],
-      sudo=True)
-
-    Directory(params.jdbc_libs_dir,
-      cd_access="a",
-      recursive=True)
-
-    Execute(as_sudo(['yes', '|', 'cp', params.libs_path_in_archive, params.jdbc_libs_dir], auto_escape=False),
-            path=["/bin", "/usr/bin/"])
-  else:
-    Execute(('cp', '--remove-destination', params.downloaded_custom_connector, os.path.join(params.ranger_home, 'ews', 'lib')),
-      path=["/bin", "/usr/bin/"],
-      sudo=True)
-
-  File(os.path.join(params.ranger_home, 'ews', 'lib',params.jdbc_jar_name), mode=0644)
-
-  ModifyPropertiesFile(format("{ranger_home}/install.properties"),
-    properties = params.config['configurations']['admin-properties'],
-    owner = params.unix_user,
-  )
-
-  if params.db_flavor.lower() == 'sqla':
-    ModifyPropertiesFile(format("{ranger_home}/install.properties"),
-      properties = {'SQL_CONNECTOR_JAR': format('{ranger_home}/ews/lib/{jdbc_jar_name}')},
-      owner = params.unix_user,
-    )
+  copy_jdbc_connector(stack_version=version)
 
   env_dict = {'RANGER_ADMIN_HOME':ranger_home, 'JAVA_HOME':params.java_home}
   if params.db_flavor.lower() == 'sqla':
@@ -225,12 +181,12 @@ def setup_ranger_db(upgrade_type=None):
   )
 
 
-def setup_java_patch(upgrade_type=None):
+def setup_java_patch(stack_version=None):
   import params
 
   ranger_home = params.ranger_home
-  if upgrade_type is not None:
-    ranger_home = format("/usr/hdp/{version}/ranger-admin")
+  if stack_version is not None:
+    ranger_home = format("/usr/hdp/{stack_version}/ranger-admin")
 
   env_dict = {'RANGER_ADMIN_HOME':ranger_home, 'JAVA_HOME':params.java_home}
   if params.db_flavor.lower() == 'sqla':
@@ -294,6 +250,62 @@ def password_validation(password):
     raise Fail("LDAP/AD bind password contains one of the unsupported special characters like \" ' \ `")
   else:
     Logger.info("password validated")
+
+def copy_jdbc_connector(stack_version=None):
+  import params
+
+  File(params.downloaded_custom_connector,
+    content = DownloadSource(params.driver_curl_source),
+    mode = 0644
+  )
+
+  Directory(params.java_share_dir,
+    mode=0755,
+    recursive=True,
+    cd_access="a"
+  )
+
+  if params.db_flavor.lower() != 'sqla':
+    Execute(('cp', '--remove-destination', params.downloaded_custom_connector, params.driver_curl_target),
+      path=["/bin", "/usr/bin/"],
+      sudo=True)
+
+    File(params.driver_curl_target, mode=0644)
+
+  ranger_home = params.ranger_home
+  if stack_version is not None:
+    ranger_home = format("/usr/hdp/{stack_version}/ranger-admin")
+
+  if params.db_flavor.lower() == 'sqla':
+    Execute(('tar', '-xvf', params.downloaded_custom_connector, '-C', params.tmp_dir), sudo = True)
+
+    Execute(('cp', '--remove-destination', params.jar_path_in_archive, os.path.join(ranger_home, 'ews', 'lib')),
+      path=["/bin", "/usr/bin/"],
+      sudo=True)
+
+    Directory(params.jdbc_libs_dir,
+      cd_access="a",
+      recursive=True)
+
+    Execute(as_sudo(['yes', '|', 'cp', params.libs_path_in_archive, params.jdbc_libs_dir], auto_escape=False),
+            path=["/bin", "/usr/bin/"])
+  else:
+    Execute(('cp', '--remove-destination', params.downloaded_custom_connector, os.path.join(ranger_home, 'ews', 'lib')),
+      path=["/bin", "/usr/bin/"],
+      sudo=True)
+
+  File(os.path.join(ranger_home, 'ews', 'lib',params.jdbc_jar_name), mode=0644)
+
+  ModifyPropertiesFile(format("{ranger_home}/install.properties"),
+    properties = params.config['configurations']['admin-properties'],
+    owner = params.unix_user,
+  )
+
+  if params.db_flavor.lower() == 'sqla':
+    ModifyPropertiesFile(format("{ranger_home}/install.properties"),
+      properties = {'SQL_CONNECTOR_JAR': format('{ranger_home}/ews/lib/{jdbc_jar_name}')},
+      owner = params.unix_user,
+    )
  
 def setup_usersync(upgrade_type=None):
   import params

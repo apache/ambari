@@ -17,6 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+from resource_management.libraries.functions import hdp_select
 from resource_management.libraries.script import Script
 from resource_management.core.resources.system import Execute
 from resource_management.core.exceptions import ComponentIsNotRunning
@@ -59,12 +60,6 @@ class RangerAdmin(Script):
 
     upgrade.prestart(env, "ranger-admin")
 
-    if params.xml_configurations_supported:
-      from setup_ranger_xml import ranger, setup_ranger_db, setup_java_patch
-      ranger('ranger_admin', upgrade_type=upgrade_type)
-      setup_ranger_db(upgrade_type=upgrade_type)
-      setup_java_patch(upgrade_type=upgrade_type)
-
     self.set_ru_rangeradmin_in_progress(params.upgrade_marker_file)
 
   def post_upgrade_restart(self,env, upgrade_type=None):
@@ -77,7 +72,7 @@ class RangerAdmin(Script):
   def start(self, env, upgrade_type=None):
     import params
     env.set_params(params)
-    self.configure(env)
+    self.configure(env, upgrade_type=upgrade_type)
     ranger_service('ranger_admin')
 
 
@@ -96,7 +91,7 @@ class RangerAdmin(Script):
         raise ComponentIsNotRunning()
     pass
 
-  def configure(self, env):
+  def configure(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     if params.xml_configurations_supported:
@@ -104,7 +99,7 @@ class RangerAdmin(Script):
     else:
       from setup_ranger import ranger
 
-    ranger('ranger_admin')
+    ranger('ranger_admin', upgrade_type=upgrade_type)
 
   def set_ru_rangeradmin_in_progress(self, upgrade_marker_file):
     config_dir = os.path.dirname(upgrade_marker_file)
@@ -123,6 +118,38 @@ class RangerAdmin(Script):
 
   def is_ru_rangeradmin_in_progress(self, upgrade_marker_file):
     return os.path.isfile(upgrade_marker_file)
+
+  def setup_ranger_database(self, env):
+    import params
+    env.set_params(params)
+
+    upgrade_stack = hdp_select._get_upgrade_stack()
+    if upgrade_stack is None:
+      raise Fail('Unable to determine the stack and stack version')
+
+    stack_version = upgrade_stack[1]
+
+    if params.xml_configurations_supported:
+      Logger.info(format('Setting Ranger database schema, using version {stack_version}'))
+
+      from setup_ranger_xml import setup_ranger_db
+      setup_ranger_db(stack_version=stack_version)
+
+  def setup_ranger_java_patches(self, env):
+    import params
+    env.set_params(params)
+
+    upgrade_stack = hdp_select._get_upgrade_stack()
+    if upgrade_stack is None:
+      raise Fail('Unable to determine the stack and stack version')
+
+    stack_version = upgrade_stack[1]
+
+    if params.xml_configurations_supported:
+      Logger.info(format('Applying Ranger java patches, using version {stack_version}'))
+
+      from setup_ranger_xml import setup_java_patch
+      setup_java_patch(stack_version=stack_version)
 
 if __name__ == "__main__":
   RangerAdmin().execute()
