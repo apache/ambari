@@ -96,15 +96,6 @@ App.MainAdminHighAvailabilityController = Em.Controller.extend({
   },
 
   /**
-   * remove Hawq Standby
-   * @return {Boolean}
-   */
-  removeHawqStandby: function () {
-    App.router.transitionTo('main.services.removeHawqStandby');
-    return true;
-  },
-
-  /**
    * activate Hawq Standby
    * @return {Boolean}
    */

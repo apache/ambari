@@ -28,7 +28,6 @@ except ImportError:
 import master_helper
 import common
 import hawq_constants
-import utils
 
 class HawqMaster(Script):
   """
@@ -73,10 +72,6 @@ class HawqMaster(Script):
     Execute("source {0} && hawq check -f {1} --hadoop {2} --config {3}".format(hawq_constants.hawq_greenplum_path_file, hawq_constants.hawq_hosts_file, hadoop_select.get_hadoop_dir('home'), hawq_constants.hawq_check_file),
             user=hawq_constants.hawq_user,
             timeout=hawq_constants.default_exec_timeout)
-
-  def remove_hawq_standby(self, env):
-    Logger.info("Removing HAWQ Standby Master ...")
-    utils.exec_hawq_operation(hawq_constants.INIT, "{0} -a -v -r".format(hawq_constants.STANDBY))
 
 if __name__ == "__main__":
   HawqMaster().execute()
