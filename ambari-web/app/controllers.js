@@ -58,6 +58,10 @@ require('controllers/main/admin/highAvailability/hawq/addStandby/step1_controlle
 require('controllers/main/admin/highAvailability/hawq/addStandby/step2_controller');
 require('controllers/main/admin/highAvailability/hawq/addStandby/step3_controller');
 require('controllers/main/admin/highAvailability/hawq/addStandby/step4_controller');
+require('controllers/main/admin/highAvailability/hawq/removeStandby/wizard_controller');
+require('controllers/main/admin/highAvailability/hawq/removeStandby/step1_controller');
+require('controllers/main/admin/highAvailability/hawq/removeStandby/step2_controller');
+require('controllers/main/admin/highAvailability/hawq/removeStandby/step3_controller');
 require('controllers/main/admin/highAvailability/hawq/activateStandby/wizard_controller');
 require('controllers/main/admin/highAvailability/hawq/activateStandby/step1_controller');
 require('controllers/main/admin/highAvailability/hawq/activateStandby/step2_controller');
