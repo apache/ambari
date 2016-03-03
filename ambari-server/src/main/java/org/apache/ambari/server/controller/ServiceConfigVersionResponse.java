@@ -37,6 +37,17 @@ import com.google.inject.Inject;
 
 @StaticallyInject
 public class ServiceConfigVersionResponse {
+  /**
+   * Name used for default config group.
+   */
+  public static final String DEFAULT_CONFIG_GROUP_NAME = "default";
+
+  /**
+   * Name used for config groups that were deleted in the service config version response.
+   */
+  public static final String DELETED_CONFIG_GROUP_NAME = "deleted";
+
+
   @JsonProperty("cluster_name")
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
   private final String clusterName;
