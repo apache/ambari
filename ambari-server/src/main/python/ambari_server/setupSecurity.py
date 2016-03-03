@@ -663,10 +663,15 @@ def setup_ldap():
       ldap_property_value_map[SSL_TRUSTSTORE_PATH_PROPERTY] = ts_path
       ldap_property_value_map[SSL_TRUSTSTORE_PASSWORD_PROPERTY] = ts_password
       pass
-    else:
-      properties.removeOldProp(SSL_TRUSTSTORE_TYPE_PROPERTY)
-      properties.removeOldProp(SSL_TRUSTSTORE_PATH_PROPERTY)
-      properties.removeOldProp(SSL_TRUSTSTORE_PASSWORD_PROPERTY)
+    elif properties.get_property(SSL_TRUSTSTORE_TYPE_PROPERTY):
+      print 'The TrustStore is already configured: '
+      print '  ' + SSL_TRUSTSTORE_TYPE_PROPERTY + ' = ' + properties.get_property(SSL_TRUSTSTORE_TYPE_PROPERTY)
+      print '  ' + SSL_TRUSTSTORE_PATH_PROPERTY + ' = ' + properties.get_property(SSL_TRUSTSTORE_PATH_PROPERTY)
+      print '  ' + SSL_TRUSTSTORE_PASSWORD_PROPERTY + ' = ' + properties.get_property(SSL_TRUSTSTORE_PASSWORD_PROPERTY)
+      if get_YN_input("Do you want to remove these properties [y/n] (y)? ", True):
+        properties.removeOldProp(SSL_TRUSTSTORE_TYPE_PROPERTY)
+        properties.removeOldProp(SSL_TRUSTSTORE_PATH_PROPERTY)
+        properties.removeOldProp(SSL_TRUSTSTORE_PASSWORD_PROPERTY)
     pass
   pass
 
