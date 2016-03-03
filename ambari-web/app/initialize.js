@@ -36,6 +36,7 @@ require('models');
 require('controllers');
 require('templates');
 require('views');
+require('utils/handlebars_helpers');
 require('router');
 
 require('utils/ajax/ajax');

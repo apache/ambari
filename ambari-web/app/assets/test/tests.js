@@ -26,6 +26,7 @@ require('mixins');
 require('models');
 require('controllers');
 require('views');
+require('utils/handlebars_helpers');
 require('router');
 require('mappers');
 
@@ -197,6 +198,7 @@ var files = [
   'test/views/common/configs/widgets/list_config_widget_view_test',
   'test/views/common/configs/widgets/slider_config_widget_view_test',
   'test/views/common/configs/widgets/toggle_config_widget_view_test',
+  'test/views/common/helpers/format_word_break_view_test',
   'test/views/common/ajax_default_error_popup_body_test',
   'test/views/common/filter_combo_cleanable_test',
   'test/views/common/filter_view_test',
