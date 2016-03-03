@@ -22,7 +22,7 @@
     <service>
       <name>HAWQ</name>
       <displayName>HAWQ</displayName>
-      <comment>Apache HAWQ - Apache Hadoop Native SQL</comment>
+      <comment>Apache HAWQ - Hadoop Native SQL for High-Performance Advanced Analytics</comment>
       <version>2.0.0</version>
       <components>
 
