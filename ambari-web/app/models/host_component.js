@@ -418,6 +418,15 @@ App.HostComponentActionMap = {
         isHidden: App.get('isSingleNode') || HS,
         disabled: false
       },
+      REMOVE_HAWQ_STANDBY: {
+        action: 'removeHawqStandby',
+        context: Em.I18n.t('admin.removeHawqStandby.button.enable'),
+        label: Em.I18n.t('admin.removeHawqStandby.button.enable'),
+        cssClass: 'icon-minus',
+        isHidden: App.get('isSingleNode') || !HS,
+        disabled: !HM || HM.get('workStatus') != App.HostComponentStatus.started,
+        hideFromComponentView: true
+      },
       ACTIVATE_HAWQ_STANDBY: {
         action: 'activateHawqStandby',
         label: Em.I18n.t('admin.activateHawqStandby.button.enable'),
