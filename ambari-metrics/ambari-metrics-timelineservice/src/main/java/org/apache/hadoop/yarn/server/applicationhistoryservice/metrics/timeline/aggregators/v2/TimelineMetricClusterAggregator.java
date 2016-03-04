@@ -72,7 +72,7 @@ public class TimelineMetricClusterAggregator extends AbstractTimelineAggregator 
 
     condition.setStatement(String.format(GET_AGGREGATED_APP_METRIC_GROUPBY_SQL,
       PhoenixTransactSQL.getNaiveTimeRangeHint(startTime, nativeTimeRangeDelay),
-      outputTableName, aggregateColumnName, tableName,
+      outputTableName, endTime, aggregateColumnName, tableName,
       startTime, endTime));
 
     if (LOG.isDebugEnabled()) {

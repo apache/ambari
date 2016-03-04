@@ -17,8 +17,6 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
@@ -81,13 +79,13 @@ public class TimelineMetricClusterAggregator extends AbstractTimelineAggregator 
 
   @Override
   protected void aggregate(ResultSet rs, long startTime, long endTime) throws IOException, SQLException {
-    Map<TimelineClusterMetric, MetricHostAggregate> hostAggregateMap = aggregateMetricsFromResultSet(rs);
+    Map<TimelineClusterMetric, MetricHostAggregate> hostAggregateMap = aggregateMetricsFromResultSet(rs, endTime);
 
     LOG.info("Saving " + hostAggregateMap.size() + " metric aggregates.");
     hBaseAccessor.saveClusterTimeAggregateRecords(hostAggregateMap, outputTableName);
   }
 
-  private Map<TimelineClusterMetric, MetricHostAggregate> aggregateMetricsFromResultSet(ResultSet rs)
+  private Map<TimelineClusterMetric, MetricHostAggregate> aggregateMetricsFromResultSet(ResultSet rs, long endTime)
     throws IOException, SQLException {
 
     TimelineClusterMetric existingMetric = null;
@@ -106,6 +104,7 @@ public class TimelineMetricClusterAggregator extends AbstractTimelineAggregator 
       if (existingMetric == null) {
         // First row
         existingMetric = currentMetric;
+        currentMetric.setTimestamp(endTime);
         hostAggregate = new MetricHostAggregate();
         hostAggregateMap.put(currentMetric, hostAggregate);
       }
@@ -117,6 +116,7 @@ public class TimelineMetricClusterAggregator extends AbstractTimelineAggregator 
       } else {
         // Switched over to a new metric - save existing
         hostAggregate = new MetricHostAggregate();
+        currentMetric.setTimestamp(endTime);
         updateAggregatesFromHost(hostAggregate, currentHostAggregate);
         hostAggregateMap.put(currentMetric, hostAggregate);
         existingMetric = currentMetric;

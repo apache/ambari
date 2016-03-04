@@ -48,6 +48,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.AGGREGATOR_CHECKPOINT_DELAY;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.USE_GROUPBY_AGGREGATOR_QUERIES;
 
 public class HBaseTimelineMetricStore extends AbstractService implements TimelineMetricStore {
@@ -92,58 +94,37 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
       // Start the cluster aggregator second
       TimelineMetricAggregator secondClusterAggregator =
         TimelineMetricAggregatorFactory.createTimelineClusterAggregatorSecond(hBaseAccessor, metricsConf, metricMetadataManager);
-      if (!secondClusterAggregator.isDisabled()) {
-        Thread aggregatorThread = new Thread(secondClusterAggregator);
-        aggregatorThread.start();
-      }
+      scheduleAggregatorThread(secondClusterAggregator, metricsConf);
 
-      // Start the minute cluster aggregator
+//      // Start the minute cluster aggregator
       TimelineMetricAggregator minuteClusterAggregator =
         TimelineMetricAggregatorFactory.createTimelineClusterAggregatorMinute(hBaseAccessor, metricsConf);
-      if (!minuteClusterAggregator.isDisabled()) {
-        Thread aggregatorThread = new Thread(minuteClusterAggregator);
-        aggregatorThread.start();
-      }
+      scheduleAggregatorThread(minuteClusterAggregator, metricsConf);
 
       // Start the hourly cluster aggregator
       TimelineMetricAggregator hourlyClusterAggregator =
         TimelineMetricAggregatorFactory.createTimelineClusterAggregatorHourly(hBaseAccessor, metricsConf);
-      if (!hourlyClusterAggregator.isDisabled()) {
-        Thread aggregatorThread = new Thread(hourlyClusterAggregator);
-        aggregatorThread.start();
-      }
+      scheduleAggregatorThread(hourlyClusterAggregator, metricsConf);
 
       // Start the daily cluster aggregator
       TimelineMetricAggregator dailyClusterAggregator =
         TimelineMetricAggregatorFactory.createTimelineClusterAggregatorDaily(hBaseAccessor, metricsConf);
-      if (!dailyClusterAggregator.isDisabled()) {
-        Thread aggregatorThread = new Thread(dailyClusterAggregator);
-        aggregatorThread.start();
-      }
+      scheduleAggregatorThread(dailyClusterAggregator, metricsConf);
 
       // Start the minute host aggregator
       TimelineMetricAggregator minuteHostAggregator =
         TimelineMetricAggregatorFactory.createTimelineMetricAggregatorMinute(hBaseAccessor, metricsConf);
-      if (!minuteHostAggregator.isDisabled()) {
-        Thread minuteAggregatorThread = new Thread(minuteHostAggregator);
-        minuteAggregatorThread.start();
-      }
+      scheduleAggregatorThread(minuteHostAggregator, metricsConf);
 
       // Start the hourly host aggregator
       TimelineMetricAggregator hourlyHostAggregator =
         TimelineMetricAggregatorFactory.createTimelineMetricAggregatorHourly(hBaseAccessor, metricsConf);
-      if (!hourlyHostAggregator.isDisabled()) {
-        Thread aggregatorHourlyThread = new Thread(hourlyHostAggregator);
-        aggregatorHourlyThread.start();
-      }
+      scheduleAggregatorThread(hourlyHostAggregator, metricsConf);
 
       // Start the daily host aggregator
       TimelineMetricAggregator dailyHostAggregator =
         TimelineMetricAggregatorFactory.createTimelineMetricAggregatorDaily(hBaseAccessor, metricsConf);
-      if (!dailyHostAggregator.isDisabled()) {
-        Thread aggregatorDailyThread = new Thread(dailyHostAggregator);
-        aggregatorDailyThread.start();
-      }
+      scheduleAggregatorThread(dailyHostAggregator, metricsConf);
 
       if (!configuration.isTimelineMetricsServiceWatcherDisabled()) {
         int initDelay = configuration.getTimelineMetricsServiceWatcherInitDelay();
@@ -349,5 +330,16 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
   @Override
   public Map<String, Set<String>> getHostAppsMetadata() throws SQLException, IOException {
     return metricMetadataManager.getHostedAppsCache();
+  }
+
+  private void scheduleAggregatorThread(TimelineMetricAggregator aggregator,
+                                        Configuration metricsConf) {
+    ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+    if (!aggregator.isDisabled()) {
+      executorService.scheduleAtFixedRate(aggregator,
+        SECONDS.toMillis(metricsConf.getInt(AGGREGATOR_CHECKPOINT_DELAY, 120)),
+        aggregator.getSleepIntervalMillis(),
+        TimeUnit.MILLISECONDS);
+    }
   }
 }
