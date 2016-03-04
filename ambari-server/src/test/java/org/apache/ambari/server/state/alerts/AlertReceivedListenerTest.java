@@ -35,6 +35,7 @@ import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
@@ -258,5 +259,51 @@ public class AlertReceivedListenerTest {
     listener.onAlertEvent(event1);
     allCurrent = m_dao.findCurrent();
     assertEquals(0, allCurrent.size());
+  }
+
+  /**
+   * Tests that a disabled definition doesn't record alert events.
+   */
+  @Test
+  public void testMaintenanceModeSet() throws Exception {
+    String definitionName = ALERT_DEFINITION + "1";
+    String componentName = "DATANODE";
+
+    Alert alert1 = new Alert(definitionName, null, "HDFS", componentName, HOST1,
+        AlertState.CRITICAL);
+
+    alert1.setCluster(m_cluster.getClusterName());
+    alert1.setLabel(ALERT_LABEL);
+    alert1.setText("HDFS " + componentName + " is OK");
+    alert1.setTimestamp(1L);
+
+    // verify that the listener works with a regular alert
+    AlertReceivedListener listener = m_injector.getInstance(AlertReceivedListener.class);
+    AlertReceivedEvent event = new AlertReceivedEvent(m_cluster.getClusterId(), alert1);
+    listener.onAlertEvent(event);
+
+    List<AlertCurrentEntity> allCurrent = m_dao.findCurrent();
+    assertEquals(1, allCurrent.size());
+
+    AlertCurrentEntity current = allCurrent.get(0);
+    assertEquals(MaintenanceState.OFF, current.getMaintenanceState());
+
+    // remove it
+    m_dao.removeCurrentByService(m_cluster.getClusterId(), "HDFS");
+    allCurrent = m_dao.findCurrent();
+    assertEquals(0, allCurrent.size());
+
+    // set maintenance mode on the service
+    m_cluster.getService("HDFS").setMaintenanceState(MaintenanceState.ON);
+
+    // verify that the listener handles the event and creates the current alert
+    // with the correct MM
+    listener.onAlertEvent(event);
+
+    allCurrent = m_dao.findCurrent();
+    assertEquals(1, allCurrent.size());
+
+    current = allCurrent.get(0);
+    assertEquals(MaintenanceState.ON, current.getMaintenanceState());
   }
 }

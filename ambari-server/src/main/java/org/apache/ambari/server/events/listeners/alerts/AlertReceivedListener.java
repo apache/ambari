@@ -24,6 +24,7 @@ import java.util.Map;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.RootServiceResponseFactory.Services;
 import org.apache.ambari.server.events.AlertEvent;
 import org.apache.ambari.server.events.AlertReceivedEvent;
@@ -79,6 +80,16 @@ public class AlertReceivedListener {
    */
   @Inject
   Provider<Clusters> m_clusters;
+
+  /**
+   * Used to calculate the maintenance state of new alerts being created.
+   * Consider the case where you have disabled alerts for a component in MM.
+   * This means that there are no current alerts in the system since disabling
+   * them removes all current instances. New alerts being created for the
+   * component in MM must reflect the correct MM.
+   */
+  @Inject
+  private Provider<MaintenanceStateHelper> m_maintenanceStateHelper;
 
   /**
    * Receives and publishes {@link AlertEvent} instances.
@@ -164,8 +175,18 @@ public class AlertReceivedListener {
       if (null == current) {
         AlertHistoryEntity history = createHistory(clusterId, definition, alert);
 
+        // this new alert must reflect the correct MM state for the
+        // service/component/host
+        MaintenanceState maintenanceState = MaintenanceState.OFF;
+        try {
+          maintenanceState = m_maintenanceStateHelper.get().getEffectiveState(clusterId, alert);
+        } catch (Exception exception) {
+          LOG.error("Unable to determine the maintenance mode state for {}, defaulting to OFF",
+              alert, exception);
+        }
+
         current = new AlertCurrentEntity();
-        current.setMaintenanceState(MaintenanceState.OFF);
+        current.setMaintenanceState(maintenanceState);
         current.setAlertHistory(history);
         current.setLatestTimestamp(alert.getTimestamp());
         current.setOriginalTimestamp(alert.getTimestamp());
