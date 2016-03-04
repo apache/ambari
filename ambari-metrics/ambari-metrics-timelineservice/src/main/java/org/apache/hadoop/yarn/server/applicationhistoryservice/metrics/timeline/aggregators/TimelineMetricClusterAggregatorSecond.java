@@ -236,12 +236,12 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
   }
 
   /**
-   * Return beginning of the time slice into which the metric fits.
+   * Return end of the time slice into which the metric fits.
    */
   private Long getSliceTimeForMetric(List<Long[]> timeSlices, Long timestamp) {
     for (Long[] timeSlice : timeSlices) {
-      if (timestamp >= timeSlice[0] && timestamp < timeSlice[1]) {
-        return timeSlice[0];
+      if (timestamp > timeSlice[0] && timestamp <= timeSlice[1]) {
+        return timeSlice[1];
       }
     }
     return -1l;

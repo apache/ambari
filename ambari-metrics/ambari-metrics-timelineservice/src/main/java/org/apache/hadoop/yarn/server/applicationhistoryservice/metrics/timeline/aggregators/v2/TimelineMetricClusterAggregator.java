@@ -69,7 +69,7 @@ public class TimelineMetricClusterAggregator extends AbstractTimelineAggregator 
      */
 
     condition.setStatement(String.format(GET_AGGREGATED_APP_METRIC_GROUPBY_SQL,
-      getQueryHint(startTime), outputTableName, aggregateColumnName, tableName,
+      getQueryHint(startTime), outputTableName, endTime, aggregateColumnName, tableName,
       startTime, endTime));
 
     if (LOG.isDebugEnabled()) {

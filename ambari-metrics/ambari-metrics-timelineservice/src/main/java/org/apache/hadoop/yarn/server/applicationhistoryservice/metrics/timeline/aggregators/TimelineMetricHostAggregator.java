@@ -53,7 +53,7 @@ public class TimelineMetricHostAggregator extends AbstractTimelineAggregator {
   @Override
   protected void aggregate(ResultSet rs, long startTime, long endTime) throws IOException, SQLException {
 
-    Map<TimelineMetric, MetricHostAggregate> hostAggregateMap = aggregateMetricsFromResultSet(rs);
+    Map<TimelineMetric, MetricHostAggregate> hostAggregateMap = aggregateMetricsFromResultSet(rs, endTime);
 
     LOG.info("Saving " + hostAggregateMap.size() + " metric aggregates.");
     hBaseAccessor.saveHostAggregateRecords(hostAggregateMap, outputTableName);
@@ -76,7 +76,7 @@ public class TimelineMetricHostAggregator extends AbstractTimelineAggregator {
     return condition;
   }
 
-  private Map<TimelineMetric, MetricHostAggregate> aggregateMetricsFromResultSet(ResultSet rs)
+  private Map<TimelineMetric, MetricHostAggregate> aggregateMetricsFromResultSet(ResultSet rs, long endTime)
       throws IOException, SQLException {
     TimelineMetric existingMetric = null;
     MetricHostAggregate hostAggregate = null;
@@ -92,6 +92,7 @@ public class TimelineMetricHostAggregator extends AbstractTimelineAggregator {
       if (existingMetric == null) {
         // First row
         existingMetric = currentMetric;
+        currentMetric.setTimestamp(endTime);
         hostAggregate = new MetricHostAggregate();
         hostAggregateMap.put(currentMetric, hostAggregate);
       }
@@ -101,6 +102,7 @@ public class TimelineMetricHostAggregator extends AbstractTimelineAggregator {
         hostAggregate.updateAggregates(currentHostAggregate);
       } else {
         // Switched over to a new metric - save existing - create new aggregate
+        currentMetric.setTimestamp(endTime);
         hostAggregate = new MetricHostAggregate();
         hostAggregate.updateAggregates(currentHostAggregate);
         hostAggregateMap.put(currentMetric, hostAggregate);
