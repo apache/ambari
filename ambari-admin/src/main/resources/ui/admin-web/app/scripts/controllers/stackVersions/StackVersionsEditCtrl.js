@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('StackVersionsEditCtrl', ['$scope', '$location', 'Cluster', 'Stack', '$routeParams', 'ConfirmationModal', 'Alert', function($scope, $location, Cluster, Stack, $routeParams, ConfirmationModal, Alert) {
+.controller('StackVersionsEditCtrl', ['$scope', '$location', 'Cluster', 'Stack', '$routeParams', 'ConfirmationModal', 'Alert', 'AddRepositoryModal', function($scope, $location, Cluster, Stack, $routeParams, ConfirmationModal, Alert, AddRepositoryModal) {
   $scope.editController = true;
   $scope.osList = [];
   $scope.skipValidation = false;
@@ -246,6 +246,14 @@ angular.module('ambariAdminConsole')
   $scope.cancel = function () {
     $scope.editVersionDisabled = true;
     $location.path('/stackVersions');
+  };
+
+  /**
+  * TODO create parent controller for StackVersionsEditCtrl and StackVersionsCreateCtrl and
+  * move this method to it
+  */
+  $scope.addRepository = function() {
+    AddRepositoryModal.show($scope.osList, $scope.stackName, $scope.stackVersion, $scope.id);
   };
 
 }]);

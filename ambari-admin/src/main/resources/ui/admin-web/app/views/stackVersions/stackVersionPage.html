@@ -59,9 +59,15 @@
     </div>
   </div>
   <div class="panel panel-default">
-    <div class="panel-heading">
-      <h3 class="panel-title">Repositories</h3>
-    </div>
+      <div class="panel-heading">
+          <h3 class="panel-title">
+              Repositories
+              <button ng-show="supports.addingNewRepository" class="btn btn-primary pull-right btn-xs pull-up" ng-click="addRepository()">
+                  <span class="glyphicon glyphicon-plus"></span>
+                  &nbsp;Add Repository
+              </button>
+          </h3>
+      </div>
     <div class="panel-body ">
       <div class="alert alert-info" role="alert">
         Provide Base URLs for the Operating Systems you are configuring. Uncheck all other Operating Systems.
