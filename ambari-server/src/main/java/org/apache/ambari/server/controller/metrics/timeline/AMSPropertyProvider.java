@@ -69,6 +69,13 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
   private static AtomicInteger printSkipPopulateMsgHostCompCounter = new AtomicInteger(0);
   private static final Map<String, String> timelineAppIdCache = new ConcurrentHashMap<>(10);
 
+  private static final Map<String, String> JVM_PROCESS_NAMES = new HashMap<>(2);
+
+  static {
+    JVM_PROCESS_NAMES.put("HBASE_MASTER", "Master.");
+    JVM_PROCESS_NAMES.put("HBASE_REGIONSERVER", "RegionServer.");
+  }
+
   public AMSPropertyProvider(Map<String, Map<String, PropertyInfo>> componentPropertyInfoMap,
                              URLStreamProvider streamProvider,
                              ComponentSSLConfiguration configuration,
@@ -411,6 +418,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
         if (metricsMap != null) {
           for (String propertyId : propertyIdSet) {
             if (propertyId != null) {
+//              propertyId = postProcessPropertyId(propertyId, getComponentName(resource));
               if (metricsMap.containsKey(propertyId)){
                 if (containsArguments(propertyId)) {
                   int i = 1;
@@ -614,7 +622,9 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
               requests.put(temporalInfo, metricsRequest);
             }
             metricsRequest.putResource(getComponentName(resource), resource);
-            metricsRequest.putPropertyId(propertyInfo.getPropertyId(), propertyId);
+            metricsRequest.putPropertyId(
+              preprocessPropertyId(propertyInfo.getPropertyId(), getComponentName(resource)),
+              propertyId);
             // If request is for a host metric we need to create multiple requests
             if (propertyInfo.isAmsHostMetric()) {
               metricsRequest.putHosComponentHostMetric(propertyInfo.getPropertyId());
@@ -625,6 +635,21 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
     }
 
     return requestMap;
+  }
+
+  /**
+   * Account for the processName added to the jvm metrics by the HadoopSink.
+   * E.g.: jvm.RegionServer.JvmMetrics.GcTimeMillis
+   *
+   */
+  private String preprocessPropertyId(String propertyId, String componentName) {
+    if (propertyId.startsWith("jvm") && JVM_PROCESS_NAMES.keySet().contains(componentName)) {
+      String newPropertyId = propertyId.replace("jvm.", "jvm." + JVM_PROCESS_NAMES.get(componentName));
+      LOG.debug("Pre-process: " + propertyId + ", to: " + newPropertyId);
+      return newPropertyId;
+    }
+
+    return propertyId;
   }
 
   static URIBuilder getAMSUriBuilder(String hostname, int port, boolean httpsEnabled) {

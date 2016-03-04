@@ -118,8 +118,7 @@ public class StackArtifactResourceProviderTest {
     Map<String, Object> descriptor = propertyMap.get(ARTIFACT_DATA_PROPERTY_ID + "/HDFS/DATANODE");
     Assert.assertNotNull(descriptor);
     Assert.assertEquals(1, ((ArrayList) descriptor.get("Component")).size());
-    MetricDefinition md = (MetricDefinition) ((ArrayList) descriptor.get
-      ("Component")).iterator().next();
+    MetricDefinition md = (MetricDefinition) ((ArrayList) descriptor.get("Component")).iterator().next();
 
     Metric m1 = md.getMetrics().get("metrics/dfs/datanode/heartBeats_avg_time");
     Metric m2 = md.getMetrics().get("metrics/rpc/closeRegion_num_ops");
@@ -127,6 +126,53 @@ public class StackArtifactResourceProviderTest {
     Assert.assertTrue(m1.isAmsHostMetric());
     Assert.assertEquals("unitless", m1.getUnit());
     Assert.assertFalse(m2.isAmsHostMetric());
+
+    verify(managementController);
+  }
+
+  @Test
+  public void testGetMetricsDescriptorRpcForNamenode() throws Exception {
+    AmbariManagementController managementController = createNiceMock(AmbariManagementController.class);
+
+    expect(managementController.getAmbariMetaInfo()).andReturn(metaInfo).anyTimes();
+
+    replay(managementController);
+
+    StackArtifactResourceProvider resourceProvider = getStackArtifactResourceProvider(managementController);
+
+    Set<String> propertyIds = new HashSet<String>();
+    propertyIds.add(ARTIFACT_NAME_PROPERTY_ID);
+    propertyIds.add(STACK_NAME_PROPERTY_ID);
+    propertyIds.add(STACK_VERSION_PROPERTY_ID);
+    propertyIds.add(STACK_SERVICE_NAME_PROPERTY_ID);
+    propertyIds.add(ARTIFACT_DATA_PROPERTY_ID);
+
+    Request request = PropertyHelper.getReadRequest(propertyIds);
+
+    Predicate predicate = new PredicateBuilder().property
+      (ARTIFACT_NAME_PROPERTY_ID).equals("metrics_descriptor").and().property
+      (STACK_NAME_PROPERTY_ID).equals("OTHER").and().property
+      (STACK_VERSION_PROPERTY_ID).equals("1.0").and().property
+      (STACK_SERVICE_NAME_PROPERTY_ID).equals("HDFS").toPredicate();
+
+    Set<Resource> resources = resourceProvider.getResources(request, predicate);
+
+    Assert.assertEquals(1, resources.size());
+    Resource resource = resources.iterator().next();
+    Map<String, Map<String, Object>> propertyMap = resource.getPropertiesMap();
+    Map<String, Object> descriptor = propertyMap.get(ARTIFACT_DATA_PROPERTY_ID + "/HDFS/NAMENODE");
+    Assert.assertNotNull(descriptor);
+    Assert.assertEquals(2, ((ArrayList) descriptor.get("Component")).size());
+    MetricDefinition md = (MetricDefinition) ((ArrayList) descriptor.get("Component")).iterator().next();
+
+    Assert.assertEquals("rpcdetailed.rpcdetailed.client.BlockReceivedAndDeletedAvgTime",
+      md.getMetrics().get("metrics/rpcdetailed/client/blockReceived_avg_time").getName());
+
+    Assert.assertEquals("rpc.rpc.healthcheck.CallQueueLength",
+      md.getMetrics().get("metrics/rpc/healthcheck/callQueueLen").getName());
+
+    Assert.assertEquals("rpcdetailed.rpcdetailed.datanode.DeleteNumOps",
+      md.getMetrics().get("metrics/rpcdetailed/datanode/delete_num_ops").getName());
 
     verify(managementController);
   }

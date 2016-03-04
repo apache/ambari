@@ -18,25 +18,38 @@
 
 package org.apache.ambari.server.upgrade;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.DaoUtils;
+import org.apache.ambari.server.orm.dao.WidgetDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
+import org.apache.ambari.server.orm.entities.WidgetEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.stack.WidgetLayout;
+import org.apache.ambari.server.state.stack.WidgetLayoutInfo;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.FileReader;
+import java.lang.reflect.Type;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -79,6 +92,9 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
   public static final String CLUSTER_MINUTE_TABLE_TTL = "timeline.metrics.cluster.aggregator.minute.ttl";
   public static final String CLUSTER_HOUR_TABLE_TTL = "timeline.metrics.cluster.aggregator.hourly.ttl";
   public static final String CLUSTER_DAILY_TABLE_TTL = "timeline.metrics.cluster.aggregator.daily.ttl";
+
+  private static final String[] HDFS_WIDGETS_TO_UPDATE = new String[] {
+    "NameNode RPC", "NN Connection Load" };
 
 
   // ----- Constructors ------------------------------------------------------
@@ -133,6 +149,7 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
     updateAMSConfigs();
     updateHiveConfig();
     updateHostRoleCommands();
+    updateHDFSWidgetDefinition();
   }
 
   protected void updateStormConfigs() throws  AmbariException {
@@ -331,6 +348,79 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
             updateConfigurationPropertiesForCluster(cluster, AMS_SITE, newProperties, true, true);
           }
 
+        }
+      }
+    }
+  }
+
+  protected void updateHDFSWidgetDefinition() throws AmbariException {
+    LOG.info("Updating HDFS widget definition.");
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    AmbariMetaInfo ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
+    Type widgetLayoutType = new TypeToken<Map<String, List<WidgetLayout>>>(){}.getType();
+    Gson gson = injector.getInstance(Gson.class);
+    WidgetDAO widgetDAO = injector.getInstance(WidgetDAO.class);
+
+    Clusters clusters = ambariManagementController.getClusters();
+
+    Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
+    for (final Cluster cluster : clusterMap.values()) {
+      long clusterID = cluster.getClusterId();
+
+      for (String widgetName : HDFS_WIDGETS_TO_UPDATE) {
+        List<WidgetEntity> widgetEntities = widgetDAO.findByName(clusterID,
+          widgetName, "ambari", "HDFS_SUMMARY");
+
+        if (widgetEntities != null) {
+          WidgetEntity entityToUpdate = null;
+          if (widgetEntities.size() > 1) {
+            LOG.info("Found more that 1 entity with name = "+ widgetName +
+              " for cluster = " + cluster.getClusterName() + ", skipping update.");
+          } else {
+            entityToUpdate = widgetEntities.iterator().next();
+          }
+          if (entityToUpdate != null) {
+            LOG.info("Updating widget: " + entityToUpdate.getWidgetName());
+            // Get the definition from widgets.json file
+            WidgetLayoutInfo targetWidgetLayoutInfo = null;
+            StackId stackId = cluster.getDesiredStackVersion();
+            Map<String, Object> widgetDescriptor = null;
+            StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
+            ServiceInfo serviceInfo = stackInfo.getService("HDFS");
+            File widgetDescriptorFile = serviceInfo.getWidgetsDescriptorFile();
+            if (widgetDescriptorFile != null && widgetDescriptorFile.exists()) {
+              try {
+                widgetDescriptor = gson.fromJson(new FileReader(widgetDescriptorFile), widgetLayoutType);
+              } catch (Exception ex) {
+                String msg = "Error loading widgets from file: " + widgetDescriptorFile;
+                LOG.error(msg, ex);
+                widgetDescriptor = null;
+              }
+            }
+            if (widgetDescriptor != null) {
+              LOG.debug("Loaded widget descriptor: " + widgetDescriptor);
+              for (Object artifact : widgetDescriptor.values()) {
+                List<WidgetLayout> widgetLayouts = (List<WidgetLayout>) artifact;
+                for (WidgetLayout widgetLayout : widgetLayouts) {
+                  if (widgetLayout.getLayoutName().equals("default_hdfs_dashboard")) {
+                    for (WidgetLayoutInfo layoutInfo : widgetLayout.getWidgetLayoutInfoList()) {
+                      if (layoutInfo.getWidgetName().equals(widgetName)) {
+                        targetWidgetLayoutInfo = layoutInfo;
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            if (targetWidgetLayoutInfo != null) {
+              entityToUpdate.setMetrics(gson.toJson(targetWidgetLayoutInfo.getMetricsInfo()));
+              entityToUpdate.setWidgetValues(gson.toJson(targetWidgetLayoutInfo.getValues()));
+              widgetDAO.merge(entityToUpdate);
+            } else {
+              LOG.warn("Unable to find widget layout info for " + widgetName +
+                " in the stack: " + stackId);
+            }
+          }
         }
       }
     }

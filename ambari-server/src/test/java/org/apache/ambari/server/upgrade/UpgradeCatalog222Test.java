@@ -42,24 +42,34 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
+import org.apache.ambari.server.orm.dao.WidgetDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.orm.entities.WidgetEntity;
+import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.commons.io.FileUtils;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import javax.persistence.EntityManager;
+import java.io.File;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -83,7 +93,8 @@ public class UpgradeCatalog222Test {
   private UpgradeCatalogHelper upgradeCatalogHelper;
   private StackEntity desiredStackEntity;
 
-
+  @Rule
+  public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
   @Before
   public void init() {
@@ -114,16 +125,18 @@ public class UpgradeCatalog222Test {
     Method updateAMSConfigs = UpgradeCatalog222.class.getDeclaredMethod("updateAMSConfigs");
     Method updateHiveConfigs = UpgradeCatalog222.class.getDeclaredMethod("updateHiveConfig");
     Method updateHostRoleCommands = UpgradeCatalog222.class.getDeclaredMethod("updateHostRoleCommands");
+    Method updateHDFSWidget = UpgradeCatalog222.class.getDeclaredMethod("updateHDFSWidgetDefinition");
 
 
     UpgradeCatalog222 upgradeCatalog222 = createMockBuilder(UpgradeCatalog222.class)
-            .addMockedMethod(addNewConfigurationsFromXml)
-            .addMockedMethod(updateAlerts)
-            .addMockedMethod(updateStormConfigs)
-            .addMockedMethod(updateAMSConfigs)
-            .addMockedMethod(updateHiveConfigs)
-            .addMockedMethod(updateHostRoleCommands)
-            .createMock();
+      .addMockedMethod(addNewConfigurationsFromXml)
+      .addMockedMethod(updateAlerts)
+      .addMockedMethod(updateStormConfigs)
+      .addMockedMethod(updateAMSConfigs)
+      .addMockedMethod(updateHiveConfigs)
+      .addMockedMethod(updateHostRoleCommands)
+      .addMockedMethod(updateHDFSWidget)
+      .createMock();
 
     upgradeCatalog222.addNewConfigurationsFromXml();
     expectLastCall().once();
@@ -136,6 +149,8 @@ public class UpgradeCatalog222Test {
     upgradeCatalog222.updateHostRoleCommands();
     expectLastCall().once();
     upgradeCatalog222.updateHiveConfig();
+    expectLastCall().once();
+    upgradeCatalog222.updateHDFSWidgetDefinition();
     expectLastCall().once();
 
     replay(upgradeCatalog222);
@@ -176,8 +191,8 @@ public class UpgradeCatalog222Test {
     expect(mockAlertDefinitionDAO.findByName(eq(clusterId), eq("yarn_app_timeline_server_webui")))
             .andReturn(mockATSWebAlert).atLeastOnce();
     expect(mockATSWebAlert.getSource()).andReturn("{\"uri\": {\n" +
-            "            \"http\": \"{{yarn-site/yarn.timeline-service.webapp.address}}/ws/v1/timeline\",\n" +
-            "            \"https\": \"{{yarn-site/yarn.timeline-service.webapp.https.address}}/ws/v1/timeline\" } }");
+      "            \"http\": \"{{yarn-site/yarn.timeline-service.webapp.address}}/ws/v1/timeline\",\n" +
+      "            \"https\": \"{{yarn-site/yarn.timeline-service.webapp.https.address}}/ws/v1/timeline\" } }");
 
     mockATSWebAlert.setSource("{\"uri\":{\"http\":\"{{yarn-site/yarn.timeline-service.webapp.address}}/ws/v1/timeline\",\"https\":\"{{yarn-site/yarn.timeline-service.webapp.https.address}}/ws/v1/timeline\"}}");
     expectLastCall().once();
@@ -255,7 +270,6 @@ public class UpgradeCatalog222Test {
     easyMockSupport.verifyAll();
   }
 
-
   @Test
   public void testAmsSiteUpdateConfigs() throws Exception{
 
@@ -331,7 +345,60 @@ public class UpgradeCatalog222Test {
     ConfigurationRequest configurationRequest = configurationRequestCapture.getValue();
     Map<String, String> updatedProperties = configurationRequest.getProperties();
     assertTrue(Maps.difference(newPropertiesAmsSite, updatedProperties).areEqual());
+  }
 
+  @Test
+  public void testHDFSWidgetUpdate() throws Exception {
+    final Clusters clusters = createNiceMock(Clusters.class);
+    final Cluster cluster = createNiceMock(Cluster.class);
+    final AmbariManagementController controller = createNiceMock(AmbariManagementController.class);
+    final Gson gson = new Gson();
+    final WidgetDAO widgetDAO = createNiceMock(WidgetDAO.class);
+    final AmbariMetaInfo metaInfo = createNiceMock(AmbariMetaInfo.class);
+    WidgetEntity widgetEntity = createNiceMock(WidgetEntity.class);
+    StackId stackId = new StackId("HDP", "2.0.0");
+    StackInfo stackInfo = createNiceMock(StackInfo.class);
+    ServiceInfo serviceInfo = createNiceMock(ServiceInfo.class);
+
+    String widgetStr = "{\"layouts\":[{\"layout_name\":\"default_hdfs_dashboard\",\"display_name\":\"Standard HDFS Dashboard\",\"section_name\":\"HDFS_SUMMARY\",\"widgetLayoutInfo\":[{\"widget_name\":\"NameNode RPC\",\"metrics\":[],\"values\":[]}]}]}";
+
+    File dataDirectory = temporaryFolder.newFolder();
+    File file = new File(dataDirectory, "hdfs_widget.json");
+    FileUtils.writeStringToFile(file, widgetStr);
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
+        bind(AmbariManagementController.class).toInstance(controller);
+        bind(Clusters.class).toInstance(clusters);
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+        bind(Gson.class).toInstance(gson);
+        bind(WidgetDAO.class).toInstance(widgetDAO);
+        bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
+        bind(AmbariMetaInfo.class).toInstance(metaInfo);
+      }
+    });
+    expect(controller.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", cluster);
+    }}).anyTimes();
+    expect(cluster.getClusterId()).andReturn(1L).anyTimes();
+    expect(widgetDAO.findByName(1L, "NameNode RPC", "ambari", "HDFS_SUMMARY"))
+      .andReturn(Collections.singletonList(widgetEntity));
+    expect(cluster.getDesiredStackVersion()).andReturn(stackId);
+    expect(metaInfo.getStack("HDP", "2.0.0")).andReturn(stackInfo);
+    expect(stackInfo.getService("HDFS")).andReturn(serviceInfo);
+    expect(serviceInfo.getWidgetsDescriptorFile()).andReturn(file);
+    expect(widgetDAO.merge(widgetEntity)).andReturn(null);
+    expect(widgetEntity.getWidgetName()).andReturn("Namenode RPC").anyTimes();
+
+    replay(clusters, cluster, controller, widgetDAO, metaInfo, widgetEntity, stackInfo, serviceInfo);
+
+    mockInjector.getInstance(UpgradeCatalog222.class).updateHDFSWidgetDefinition();
+
+    verify(clusters, cluster, controller, widgetDAO, widgetEntity, stackInfo, serviceInfo);
   }
 
   @Test

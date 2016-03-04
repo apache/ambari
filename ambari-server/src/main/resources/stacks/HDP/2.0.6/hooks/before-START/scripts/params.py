@@ -215,3 +215,61 @@ net_topology_script_file_path = "/etc/hadoop/conf/topology_script.py"
 net_topology_script_dir = os.path.dirname(net_topology_script_file_path)
 net_topology_mapping_data_file_name = 'topology_mappings.data'
 net_topology_mapping_data_file_path = os.path.join(net_topology_script_dir, net_topology_mapping_data_file_name)
+
+##### Namenode RPC ports - metrics config section start #####
+
+# Figure out the rpc ports for current namenode
+
+nn_rpc_client_port = None
+nn_rpc_dn_port = None
+nn_rpc_healthcheck_port = None
+
+namenode_id = None
+namenode_rpc = None
+
+dfs_ha_enabled = False
+dfs_ha_nameservices = default("/configurations/hdfs-site/dfs.nameservices", None)
+dfs_ha_namenode_ids = default(format("/configurations/hdfs-site/dfs.ha.namenodes.{dfs_ha_nameservices}"), None)
+
+dfs_ha_namemodes_ids_list = []
+other_namenode_id = None
+
+if dfs_ha_namenode_ids:
+  dfs_ha_namemodes_ids_list = dfs_ha_namenode_ids.split(",")
+  dfs_ha_namenode_ids_array_len = len(dfs_ha_namemodes_ids_list)
+  if dfs_ha_namenode_ids_array_len > 1:
+    dfs_ha_enabled = True
+
+if dfs_ha_enabled:
+  for nn_id in dfs_ha_namemodes_ids_list:
+    nn_host = config['configurations']['hdfs-site'][format('dfs.namenode.rpc-address.{dfs_ha_nameservices}.{nn_id}')]
+    if hostname in nn_host:
+      namenode_id = nn_id
+      namenode_rpc = nn_host
+    pass
+  pass
+else:
+  namenode_rpc = default('/configurations/hdfs-site/dfs.namenode.rpc-address', None)
+
+if namenode_rpc:
+  nn_rpc_client_port = namenode_rpc.split(':')[1].strip()
+
+if dfs_ha_enabled:
+  dfs_service_rpc_address = default(format('/configurations/hdfs-site/dfs.namenode.servicerpc-address.{namenode_id}'), None)
+  dfs_lifeline_rpc_address = default(format('/configurations/hdfs-site/dfs.namenode.lifeline.rpc-address.{namenode_id}'), None)
+else:
+  dfs_service_rpc_address = default('/configurations/hdfs-site/dfs.namenode.servicerpc-address', None)
+  dfs_lifeline_rpc_address = default(format('/configurations/hdfs-site/dfs.namenode.lifeline.rpc-address'), None)
+
+if dfs_service_rpc_address:
+  nn_rpc_dn_port = dfs_service_rpc_address.split(':')[1].strip()
+
+if dfs_lifeline_rpc_address:
+  nn_rpc_healthcheck_port = dfs_lifeline_rpc_address.split(':')[1].strip()
+
+is_nn_client_port_configured = False if nn_rpc_client_port is None else True
+is_nn_dn_port_configured = False if nn_rpc_dn_port is None else True
+is_nn_healthcheck_port_configured = False if nn_rpc_healthcheck_port is None else True
+
+##### end #####
+
