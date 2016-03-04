@@ -153,6 +153,37 @@
           "path": "AMBARI_METRICS/0.1.0/package/alerts/alert_ambari_metrics_monitor.py"
         }
       }
+    ],
+    "METRICS_GRAFANA": [
+      {
+        "name": "grafana_webui",
+        "label": "Grafana Web UI",
+        "description": "This host-level alert is triggered if the Grafana Web UI is unreachable.",
+        "interval": 1,
+        "scope": "ANY",
+        "source": {
+          "type": "WEB",
+          "uri": {
+              "http": "{{ams-grafana-ini/port}}",
+              "https": "{{ams-grafana-ini/port}}",
+              "https_property": "{{ams-grafana-ini/protocol}}",
+              "https_property_value": "https",
+              "connection_timeout": 5.0,
+              "default_port": 3000
+          },
+          "reporting": {
+              "ok": {
+                  "text": "HTTP {0} response in {2:.3f}s"
+              },
+              "warning":{
+                  "text": "HTTP {0} response from {1} in {2:.3f}s ({3})"
+              },
+              "critical": {
+                  "text": "Connection failed to {1} ({3})"
+              }
+          }
+        }
+      }
     ]
   }
 }
