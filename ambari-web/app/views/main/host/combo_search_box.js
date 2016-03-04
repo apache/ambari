@@ -32,6 +32,33 @@ App.MainHostComboSearchBoxView = Em.View.extend({
     }
   },
 
+  getHostComponentList: function() {
+    var controller = App.router.get('mainHostComboSearchBoxController');
+    var hostComponentList = [];
+    App.HostComponent.find().toArray().forEach(function(component) {
+      var displayName = component.get('displayName');
+      var name = component.get('componentName');
+      if (displayName != null && !controller.isClientComponent(name)) {
+        hostComponentList.push({label: displayName, value: name, category: 'Component'});
+      }
+    });
+    return hostComponentList;
+  },
+
+  getComponentStateFacets: function(hostComponentList, includeAllValue) {
+    if (!hostComponentList) {
+      hostComponentList = this.getHostComponentList();
+    }
+    var currentComponentFacets = visualSearch.searchQuery.toJSON().filter(function (facet) {
+      var result = !!(hostComponentList.findProperty('value', facet.category) && facet.value);
+      if (!includeAllValue) {
+        result &= (facet.value != 'ALL');
+      }
+      return result;
+    });
+    return currentComponentFacets;
+  },
+
   initVS: function() {
     var self = this;
     var controller = App.router.get('mainHostComboSearchBoxController');
@@ -62,16 +89,12 @@ App.MainHostComboSearchBoxView = Em.View.extend({
             {label: 'Rack', value: 'rack', category: 'Host'},
             {label: 'Service', value: 'services', category: 'Service'},
           ];
-          var hostComponentHash = {};
-          App.HostComponent.find().toArray().forEach(function(component) {
-            hostComponentHash[component.get('displayName')] = component;
-          });
-          for (key in hostComponentHash) {
-            var name = hostComponentHash[key].get('componentName');
-            var displayName = hostComponentHash[key].get('displayName');
-            if (displayName != null && !controller.isClientComponent(name)) {
-              list.push({label: displayName, value: name, category: 'Component'});
-            }
+          var hostComponentList = self.getHostComponentList();
+          // Add host component facets only when there isn't any component filter
+          // with value other than ALL yet
+          var currentComponentFacets = self.getComponentStateFacets(hostComponentList, false);
+          if (currentComponentFacets.length == 0) {
+            list = list.concat(hostComponentList);
           }
           // Append host components
           callback(list, {preserveOrder: true});
@@ -84,46 +107,61 @@ App.MainHostComboSearchBoxView = Em.View.extend({
           switch (facet) {
             case 'hostName':
             case 'ip':
-              facet = (facet == 'hostName')? 'host_name' : facet;
               controller.getPropertySuggestions(facet, searchTerm).done(function() {
-                callback(controller.get('currentSuggestion'), {preserveMatches: true});
+                callback(controller.get('currentSuggestion').reject(function (item) {
+                  return visualSearch.searchQuery.values(facet).indexOf(item) >= 0; // reject the ones already in search
+                }), {preserveMatches: true});
               });
               break;
             case 'rack':
-              callback(App.Host.find().toArray().mapProperty('rack').uniq());
+              callback(App.Host.find().toArray().mapProperty('rack').uniq().reject(function (item) {
+                return visualSearch.searchQuery.values(facet).indexOf(item) >= 0;
+              }), {preserveMatches: true});
               break;
             case 'version':
-              callback(App.HostStackVersion.find().toArray().filterProperty('isVisible', true).mapProperty('displayName').uniq());
+              callback(App.HostStackVersion.find().toArray()
+                .filterProperty('isVisible', true).mapProperty('displayName').uniq().reject(function (item) {
+                  return visualSearch.searchQuery.values(facet).indexOf(item) >= 0;
+                }));
               break;
             case 'versionState':
               callback(App.HostStackVersion.statusDefinition.map(function (status) {
                 return {label: App.HostStackVersion.formatStatus(status), value: status};
+              }).reject(function (item) {
+                return visualSearch.searchQuery.values(facet).indexOf(item.value) >= 0;
               }));
               break;
             case 'healthClass':
               var category_mocks = require('data/host/categories');
               callback(category_mocks.slice(1).map(function (category) {
                 return {label: category.value, value: category.healthStatus}
+              }).reject(function (item) {
+                return visualSearch.searchQuery.values(facet).indexOf(item.value) >= 0;
               }), {preserveOrder: true});
               break;
             case 'services':
               callback(App.Service.find().toArray().map(function (service) {
                 return {label: App.format.role(service.get('serviceName')), value: service.get('serviceName')};
+              }).reject(function (item) {
+                return visualSearch.searchQuery.values(facet).indexOf(item.value) >= 0;
               }), {preserveOrder: true});
               break;
             case 'componentState':
-              callback([{label: "All", value: "ALL"}]
-                  .concat(App.HostComponentStatus.getStatusesList().map(function (status) {
-                    return {label: App.HostComponentStatus.getTextStatus(status), value: status};
-                  }))
-                  .concat([
+              var list = [{label: "All", value: "ALL"}];
+              var currentComponentFacets = self.getComponentStateFacets(null, true);
+              if (currentComponentFacets.length == 0) {
+                list = list.concat(App.HostComponentStatus.getStatusesList().map(function (status) {
+                  return {label: App.HostComponentStatus.getTextStatus(status), value: status};
+                })).concat([
                     {label: "Inservice", value: "INSERVICE"},
                     {label: "Decommissioned", value: "DECOMMISSIONED"},
                     {label: "Decommissioning", value: "DECOMMISSIONING"},
                     {label: "RS Decommissioned", value: "RS_DECOMMISSIONED"},
                     {label: "Maintenance Mode On", value: "ON"},
                     {label: "Maintenance Mode Off", value: "OFF"}
-                  ]), {preserveOrder: true});
+                ]);
+              }
+              callback(list, {preserveOrder: true});
               break;
           }
         }

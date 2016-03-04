@@ -23,6 +23,7 @@ App.MainHostComboSearchBoxController = Em.Controller.extend({
   currentSuggestion: [],
   page_size: 10,
   getPropertySuggestions: function(facet, searchTerm) {
+    facet = (facet == 'hostName')? 'host_name' : facet;
     return App.ajax.send({
       name: 'hosts.with_searchTerm',
       sender: this,
