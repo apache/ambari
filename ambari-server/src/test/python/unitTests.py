@@ -96,6 +96,14 @@ def stack_test_executor(base_folder, service, stack, custom_tests, executor_resu
     if os.path.split(root)[-1] in ["scripts", "files"] and service in root:
       script_folders.add(root)
 
+  # Add the common-services scripts directories to the PATH
+  base_commserv_folder = os.path.join(server_src_dir, "main", "resources", "common-services")
+  for folder, subFolders, files in os.walk(os.path.join(base_commserv_folder, service)):
+    # folder will return the versions of the services
+    scripts_dir = os.path.join(folder, "package", "scripts")
+    if os.path.exists(scripts_dir):
+      script_folders.add(scripts_dir)
+
   sys.path.extend(script_folders)
 
   tests = get_test_files(base_folder, mask = test_mask)
