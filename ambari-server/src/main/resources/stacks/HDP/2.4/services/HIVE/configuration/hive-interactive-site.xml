@@ -1830,7 +1830,7 @@ limitations under the License.
 
   <property>
     <name>hive.server2.thrift.port</name>
-    <value>10001</value>
+    <value>10500</value>
     <display-name>HiveServer2 Port</display-name>
     <description>
       TCP port number to listen on, default 10000.
@@ -1950,7 +1950,7 @@ limitations under the License.
 
   <property>
     <name>hive.server2.thrift.http.port</name>
-    <value>10003</value>
+    <value>10501</value>
     <description>Port number of HiveServer2 Thrift interface when hive.server2.transport.mode is 'http'.</description>
   </property>
 
