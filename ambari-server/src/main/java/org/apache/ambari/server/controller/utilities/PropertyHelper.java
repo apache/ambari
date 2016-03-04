@@ -36,6 +36,7 @@ import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SortRequest;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
+import org.apache.ambari.server.state.stack.Metric;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
@@ -67,6 +68,9 @@ public class PropertyHelper {
   private static final Map<Resource.InternalType, Map<String, Map<String, PropertyInfo>>> SQLSERVER_PROPERTY_IDS = readPropertyProviderIds(SQLSERVER_PROPERTIES_FILE);
   private static final Map<Resource.InternalType, Map<Resource.Type, String>> KEY_PROPERTY_IDS = readKeyPropertyIds(KEY_PROPERTIES_FILE);
 
+  // Suffixes to add for Namenode rpc metrics prefixes
+  private static final Map<String, List<String>> RPC_METRIC_SUFFIXES = new HashMap<>();
+
   /**
    * Regular expression to check for replacement arguments (e.g. $1) in a property id.
    */
@@ -91,6 +95,11 @@ public class PropertyHelper {
    * quotes.
    */
   private static final Pattern METRIC_CATEGORY_TOKENIZE_REGEX = Pattern.compile("/+(?=([^\"\\\\\\\\]*(\\\\\\\\.|\"([^\"\\\\\\\\]*\\\\\\\\.)*[^\"\\\\\\\\]*\"))*[^\"]*$)");
+
+  static {
+    RPC_METRIC_SUFFIXES.put("rpc.rpc", Arrays.asList("client", "datanode", "healthcheck"));
+    RPC_METRIC_SUFFIXES.put("rpcdetailed.rpcdetailed", Arrays.asList("client", "datanode", "healthcheck"));
+  }
 
   public static String getPropertyId(String category, String name) {
     String propertyId =  (category == null || category.isEmpty())? name :
@@ -625,5 +634,73 @@ public class PropertyHelper {
       }
     }
     return false;
+  }
+
+
+  /**
+   * Special handle rpc port tags added to metric names for HDFS Namenode
+   *
+   * Returns the replacement definitions
+   */
+  public static Map<String, org.apache.ambari.server.state.stack.Metric> processRpcMetricDefinition(
+      String componentName, String propertyId, org.apache.ambari.server.state.stack.Metric metric) {
+    Map<String, org.apache.ambari.server.state.stack.Metric> replacementMap = null;
+    if (componentName.equalsIgnoreCase("NAMENODE")) {
+      for (Map.Entry<String, List<String>> entry : RPC_METRIC_SUFFIXES.entrySet()) {
+        String prefix = entry.getKey();
+        if (metric.getName().startsWith(prefix)) {
+          replacementMap = new HashMap<>();
+          for (String suffix : entry.getValue()) {
+            org.apache.ambari.server.state.stack.Metric newMetric = new org.apache.ambari.server.state.stack.Metric(
+              insertTagInToMetricName(suffix, metric.getName(), prefix),
+              metric.isPointInTime(),
+              metric.isTemporal(),
+              metric.isAmsHostMetric(),
+              metric.getUnit()
+            );
+
+            replacementMap.put(insertTagInToMetricName(suffix, propertyId, prefix), newMetric);
+          }
+        }
+      }
+    }
+    return replacementMap;
+  }
+
+  /**
+   * Returns tag inserted metric name after the prefix.
+   * @param tag E.g.: client
+   * @param metricName : rpc.rpc.CallQueueLength Or metrics/rpc/CallQueueLen
+   * @param prefix : rpc.rpc
+   * @return rpc.rpc.client.CallQueueLength Or metrics/rpc/client/CallQueueLen
+   */
+  static String insertTagInToMetricName(String tag, String metricName, String prefix) {
+    String sepExpr = "\\.";
+    String seperator = ".";
+    if (metricName.indexOf(EXTERNAL_PATH_SEP) != -1) {
+      sepExpr = Character.toString(EXTERNAL_PATH_SEP);
+      seperator = sepExpr;
+    }
+    String prefixSep = prefix.contains(".") ? "\\." : "" + EXTERNAL_PATH_SEP;
+
+    // Remove separator if any
+    if (prefix.substring(prefix.length() - 1).equals(prefixSep)) {
+      prefix = prefix.substring(0, prefix.length() - 1);
+    }
+    int pos = prefix.split(prefixSep).length - 1;
+    String[] parts = metricName.split(sepExpr);
+    StringBuilder sb = new StringBuilder();
+
+    for (int i = 0; i < parts.length; i++) {
+      sb.append(parts[i]);
+      if (i < parts.length - 1) {
+        sb.append(seperator);
+      }
+      if (i == pos) { // append the tag
+        sb.append(tag);
+        sb.append(seperator);
+      }
+    }
+    return sb.toString();
   }
 }

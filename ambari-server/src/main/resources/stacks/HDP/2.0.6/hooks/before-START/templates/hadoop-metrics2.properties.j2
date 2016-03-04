@@ -91,4 +91,15 @@ reducetask.sink.timeline.collector={{metric_collector_protocol}}://{{metric_coll
 
 resourcemanager.sink.timeline.tagsForPrefix.yarn=Queue
 
+{% if is_nn_client_port_configured %}
+# Namenode rpc ports customization
+namenode.sink.timeline.metric.rpc.client.port={{nn_rpc_client_port}}
+{% endif %}
+{% if is_nn_dn_port_configured %}
+namenode.sink.timeline.metric.rpc.datanode.port={{nn_rpc_dn_port}}
+{% endif %}
+{% if is_nn_healthcheck_port_configured %}
+namenode.sink.timeline.metric.rpc.healthcheck.port={{nn_rpc_healthcheck_port}}
+{% endif %}
+
 {% endif %}

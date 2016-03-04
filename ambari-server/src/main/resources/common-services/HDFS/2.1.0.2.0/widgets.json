@@ -74,8 +74,16 @@
           "is_visible": true,
           "metrics": [
             {
-              "name": "rpc.rpc.NumOpenConnections",
-              "metric_path": "metrics/rpc/NumOpenConnections",
+              "name": "rpc.rpc.client.NumOpenConnections",
+              "metric_path": "metrics/rpc/client/NumOpenConnections",
+              "category": "",
+              "service_name": "HDFS",
+              "component_name": "NAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            },
+            {
+              "name": "rpc.rpc.datanode.NumOpenConnections",
+              "metric_path": "metrics/rpc/datanode/NumOpenConnections",
               "category": "",
               "service_name": "HDFS",
               "component_name": "NAMENODE",
@@ -84,8 +92,12 @@
           ],
           "values": [
             {
-              "name": "Open Connections",
-              "value": "${rpc.rpc.NumOpenConnections}"
+              "name": "Open Client Connections",
+              "value": "${rpc.rpc.client.NumOpenConnections}"
+            },
+            {
+              "name": "Open Datanode Connections",
+              "value": "${rpc.rpc.datanode.NumOpenConnections}"
             }
           ],
           "properties": {
@@ -216,15 +228,29 @@
           "is_visible": true,
           "metrics": [
             {
-              "name": "rpc.rpc.RpcQueueTimeAvgTime",
-              "metric_path": "metrics/rpc/RpcQueueTime_avg_time",
+              "name": "rpc.rpc.client.RpcQueueTimeAvgTime",
+              "metric_path": "metrics/rpc/client/RpcQueueTime_avg_time",
               "service_name": "HDFS",
               "component_name": "NAMENODE",
               "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
             },
             {
-              "name": "rpc.rpc.RpcProcessingTimeAvgTime",
-              "metric_path": "metrics/rpc/RpcProcessingTime_avg_time",
+              "name": "rpc.rpc.client.RpcProcessingTimeAvgTime",
+              "metric_path": "metrics/rpc/client/RpcProcessingTime_avg_time",
+              "service_name": "HDFS",
+              "component_name": "NAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            },
+            {
+              "name": "rpc.rpc.datanode.RpcQueueTimeAvgTime",
+              "metric_path": "metrics/rpc/datanode/RpcQueueTime_avg_time",
+              "service_name": "HDFS",
+              "component_name": "NAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            },
+            {
+              "name": "rpc.rpc.datanode.RpcProcessingTimeAvgTime",
+              "metric_path": "metrics/rpc/datanode/RpcProcessingTime_avg_time",
               "service_name": "HDFS",
               "component_name": "NAMENODE",
               "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
@@ -232,12 +258,20 @@
           ],
           "values": [
             {
-              "name": "RPC Queue Wait time",
-              "value": "${rpc.rpc.RpcQueueTimeAvgTime}"
+              "name": "Client RPC Queue Wait time",
+              "value": "${rpc.rpc.client.RpcQueueTimeAvgTime}"
             },
             {
-              "name": "RPC Processing time",
-              "value": "${rpc.rpc.RpcProcessingTimeAvgTime}"
+              "name": "Client RPC Processing time",
+              "value": "${rpc.rpc.client.RpcProcessingTimeAvgTime}"
+            },
+            {
+              "name": "Datanode RPC Queue Wait time",
+              "value": "${rpc.rpc.datanode.RpcQueueTimeAvgTime}"
+            },
+            {
+              "name": "Datanode RPC Processing time",
+              "value": "${rpc.rpc.datanode.RpcProcessingTimeAvgTime}"
             }
           ],
           "properties": {

@@ -302,6 +302,20 @@ public class PropertyHelperTest {
     }
   }
 
+  @Test
+  public void testInsertTagIntoMetricName() {
+    Assert.assertEquals("rpc.rpc.client.CallQueueLength",
+      PropertyHelper.insertTagInToMetricName("client", "rpc.rpc.CallQueueLength", "rpc.rpc"));
+
+    Assert.assertEquals("rpc.rpc.client.CallQueueLength",
+      PropertyHelper.insertTagInToMetricName("client", "rpc.rpc.CallQueueLength", "rpc.rpc."));
+
+    Assert.assertEquals("metrics/rpc/client/CallQueueLen",
+      PropertyHelper.insertTagInToMetricName("client", "metrics/rpc/CallQueueLen", "rpc.rpc"));
+
+    Assert.assertEquals("metrics/rpc/client/CallQueueLen",
+      PropertyHelper.insertTagInToMetricName("client", "metrics/rpc/CallQueueLen", "rpc.rpc."));
+  }
 
   // remove any replacement tokens (e.g. $1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)) in the metric names
   private static Map<String, Map<String, PropertyInfo>> normalizeMetricNames(Map<String, Map<String, PropertyInfo>> gids) {

@@ -47,6 +47,9 @@ public abstract class AbstractTimelineMetricsSink {
   public static final String COLLECTOR_PROPERTY = "collector";
   public static final int DEFAULT_POST_TIMEOUT_SECONDS = 10;
   public static final String SKIP_COUNTER_TRANSFROMATION = "skipCounterDerivative";
+  public static final String RPC_METRIC_PREFIX = "metric.rpc";
+  public static final String RPC_METRIC_NAME_SUFFIX = "suffix";
+  public static final String RPC_METRIC_PORT_SUFFIX = "port";
 
   public static final String WS_V1_TIMELINE_METRICS = "/ws/v1/timeline/metrics";
 
@@ -78,8 +81,7 @@ public abstract class AbstractTimelineMetricsSink {
     HttpURLConnection connection = null;
     try {
       if (connectUrl == null) {
-        throw new IOException("Unknown URL. " +
-          "Unable to connect to metrics collector.");
+        throw new IOException("Unknown URL. Unable to connect to metrics collector.");
       }
       String jsonData = mapper.writeValueAsString(metrics);
       connection = connectUrl.startsWith("https") ?
