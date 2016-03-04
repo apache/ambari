@@ -183,6 +183,23 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
         alertDefinitionDAO.merge(atsWebAlert);
       }
 
+      //update Atlas alert
+      final AlertDefinitionEntity atlasMetadataServerWebUI = alertDefinitionDAO.findByName(
+              clusterID, "metadata_server_webui");
+      if (atlasMetadataServerWebUI != null) {
+        String source = atlasMetadataServerWebUI.getSource();
+        JsonObject sourceJson = new JsonParser().parse(source).getAsJsonObject();
+
+        JsonObject uriJson = sourceJson.get("uri").getAsJsonObject();
+        uriJson.remove("http");
+        uriJson.remove("https");
+        uriJson.addProperty("http", "{{application-properties/atlas.server.http.port}}");
+        uriJson.addProperty("https", "{{application-properties/atlas.server.https.port}}");
+
+        atlasMetadataServerWebUI.setSource(sourceJson.toString());
+        alertDefinitionDAO.merge(atlasMetadataServerWebUI);
+      }
+
     }
 
 

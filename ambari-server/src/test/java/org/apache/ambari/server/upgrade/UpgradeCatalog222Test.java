@@ -357,4 +357,46 @@ public class UpgradeCatalog222Test {
     verify(dbAccessor);
   }
 
+  @Test
+  public void testUpdateAlerts_AtlasAlert() {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+    final AlertDefinitionDAO mockAlertDefinitionDAO = easyMockSupport.createNiceMock(AlertDefinitionDAO.class);
+    final AlertDefinitionEntity atlasMetadataServerWebUIMock = easyMockSupport.createNiceMock(AlertDefinitionEntity.class);
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(EntityManager.class).toInstance(entityManager);
+        bind(AlertDefinitionDAO.class).toInstance(mockAlertDefinitionDAO);
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    });
+
+    long clusterId = 1;
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockClusterExpected);
+    }}).atLeastOnce();
+    expect(mockClusterExpected.getClusterId()).andReturn(clusterId).anyTimes();
+    expect(mockAlertDefinitionDAO.findByName(eq(clusterId), eq("metadata_server_webui")))
+            .andReturn(atlasMetadataServerWebUIMock).atLeastOnce();
+    expect(atlasMetadataServerWebUIMock.getSource()).andReturn("{\"uri\": {\n" +
+            "            \"http\": \"{{hostname}}:{{application-properties/atlas.server.http.port}}\",\n" +
+            "            \"https\": \"{{hostname}}:{{application-properties/atlas.server.https.port}}\" } }");
+
+    atlasMetadataServerWebUIMock.setSource("{\"uri\":{\"http\":\"{{application-properties/atlas.server.http.port}}\",\"https\":\"{{application-properties/atlas.server.https.port}}\"}}");
+    expectLastCall().once();
+
+    easyMockSupport.replayAll();
+    mockInjector.getInstance(UpgradeCatalog222.class).updateAlerts();
+    easyMockSupport.verifyAll();
+  }
+
 }

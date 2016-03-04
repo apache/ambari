@@ -37,8 +37,8 @@
         "source": {
           "type": "WEB",
           "uri": {
-            "http": "{{hostname}}:{{application-properties/atlas.server.http.port}}",
-            "https": "{{hostname}}:{{application-properties/atlas.server.https.port}}",
+            "http": "{{application-properties/atlas.server.http.port}}",
+            "https": "{{application-properties/atlas.server.https.port}}",
             "https_property": "{{application-properties/atlas.enableTLS}}",
             "https_property_value": "true",
             "default_port": 21000,
