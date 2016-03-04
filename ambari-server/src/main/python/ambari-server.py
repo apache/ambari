@@ -327,13 +327,9 @@ def init_parser_options(parser):
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def init_parser_options(parser):
-  parser.add_option('-f', '--init-script-file',
-                    default=AmbariPath.get('/var/lib/ambari-server/'
-                            'resources/Ambari-DDL-Postgres-EMBEDDED-CREATE.sql'),
+  parser.add_option('-f', '--init-script-file', default=None,
                     help="File with setup script")
-  parser.add_option('-r', '--drop-script-file', default=AmbariPath.get("/var/lib/"
-                                                        "ambari-server/resources/"
-                                                        "Ambari-DDL-Postgres-EMBEDDED-DROP.sql"),
+  parser.add_option('-r', '--drop-script-file', default=None,
                     help="File with drop script")
   parser.add_option('-u', '--upgrade-script-file', default=AmbariPath.get("/var/lib/"
                                                            "ambari-server/resources/upgrade/ddl/"
