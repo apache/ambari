@@ -101,6 +101,12 @@ public class BlueprintConfigurationProcessor {
       new HashMap<String, Map<String, PropertyUpdater>>();
 
   /**
+   * Non topology related updaters
+   */
+  private static Map<String, Map<String, PropertyUpdater>> nonTopologyUpdaters =
+      new HashMap<String, Map<String, PropertyUpdater>>();
+
+  /**
    * Updaters that preserve the original property value, functions
    * as a placeholder for DB-related properties that need to be
    * removed from export, but do not require an update during
@@ -359,6 +365,8 @@ public class BlueprintConfigurationProcessor {
       doSingleHostExportUpdate(dbHostTopologyUpdaters, configuration);
 
       doMultiHostExportUpdate(multiHostTopologyUpdaters, configuration);
+
+      doNonTopologyUpdate(nonTopologyUpdaters, configuration);
 
       doRemovePropertyExport(removePropertyUpdaters, configuration);
 
@@ -1106,6 +1114,28 @@ public class BlueprintConfigurationProcessor {
     }
 
     return namesWithoutWhitespace.toArray(new String[namesWithoutWhitespace.size()]);
+  }
+
+  /**
+   * Update non topology related configuration properties for blueprint export.
+   *
+   * @param updaters       registered non topology updaters
+   * @param configuration  configuration being processed
+   */
+  private void doNonTopologyUpdate(Map<String, Map<String, PropertyUpdater>> updaters, Configuration configuration) {
+    Map<String, Map<String, String>> properties = configuration.getFullProperties();
+    for (Map.Entry<String, Map<String, PropertyUpdater>> entry : updaters.entrySet()) {
+      String type = entry.getKey();
+      for (String propertyName : entry.getValue().keySet()) {
+        NonTopologyUpdater npu = (NonTopologyUpdater) entry.getValue().get(propertyName);
+        Map<String, String> typeProperties = properties.get(type);
+
+        if (typeProperties != null && typeProperties.containsKey(propertyName)) {
+          String newValue = npu.updateForBlueprintExport(propertyName, typeProperties.get(propertyName), properties, clusterTopology);
+          configuration.setProperty(type, propertyName, newValue);
+        }
+      }
+    }
   }
 
   /**
@@ -2137,6 +2167,13 @@ public class BlueprintConfigurationProcessor {
                                                     ClusterTopology topology) {
       return Collections.emptyList();
     }
+
+    public String updateForBlueprintExport(String propertyName,
+                                           String origValue,
+                                           Map<String, Map<String, String>> properties,
+                                           ClusterTopology topology) {
+      return origValue;
+    }
   }
 
 
@@ -2149,6 +2186,7 @@ public class BlueprintConfigurationProcessor {
     allUpdaters.add(multiHostTopologyUpdaters);
     allUpdaters.add(dbHostTopologyUpdaters);
     allUpdaters.add(mPropertyUpdaters);
+    allUpdaters.add(nonTopologyUpdaters);
 
     Map<String, PropertyUpdater> hdfsSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> mapredSiteMap = new HashMap<String, PropertyUpdater>();
@@ -2156,12 +2194,15 @@ public class BlueprintConfigurationProcessor {
     Map<String, PropertyUpdater> hbaseSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> yarnSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> hiveSiteMap = new HashMap<String, PropertyUpdater>();
+    Map<String, PropertyUpdater> hiveSiteNonTopologyMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> oozieSiteOriginalValueMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> oozieSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> stormSiteMap = new HashMap<String, PropertyUpdater>();
+    Map<String, PropertyUpdater> stormSiteNonTopologyMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> accumuloSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> falconStartupPropertiesMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> kafkaBrokerMap = new HashMap<String, PropertyUpdater>();
+    Map<String, PropertyUpdater> kafkaBrokerNonTopologyMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> atlasPropsMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> mapredEnvMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> hadoopEnvMap = new HashMap<String, PropertyUpdater>();
@@ -2229,6 +2270,10 @@ public class BlueprintConfigurationProcessor {
     removePropertyUpdaters.put("oozie-env", oozieEnvOriginalValueMap);
     removePropertyUpdaters.put("oozie-site", oozieSiteOriginalValueMap);
 
+    nonTopologyUpdaters.put("hive-site", hiveSiteNonTopologyMap);
+    nonTopologyUpdaters.put("kafka-broker", kafkaBrokerNonTopologyMap);
+    nonTopologyUpdaters.put("storm-site", stormSiteNonTopologyMap);
+
     //todo: Need to change updaters back to being static
     //todo: will need to pass ClusterTopology in as necessary
 
@@ -2293,7 +2338,7 @@ public class BlueprintConfigurationProcessor {
     multiHiveSiteMap.put("hive.cluster.delegation.token.store.zookeeper.connectString", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
 
     // HIVE Atlas integration
-    hiveSiteMap.put("hive.exec.post.hooks", new NonTopologyUpdater() {
+    hiveSiteNonTopologyMap.put("hive.exec.post.hooks", new NonTopologyUpdater() {
       @Override
       public String updateForClusterCreate(String propertyName,
                                            String origValue,
@@ -2314,7 +2359,7 @@ public class BlueprintConfigurationProcessor {
     });
 
     //todo: john - this property should be moved to atlas configuration
-    hiveSiteMap.put("atlas.cluster.name", new NonTopologyUpdater() {
+    hiveSiteNonTopologyMap.put("atlas.cluster.name", new NonTopologyUpdater() {
       @Override
       public String updateForClusterCreate(String propertyName,
                                            String origValue,
@@ -2333,6 +2378,19 @@ public class BlueprintConfigurationProcessor {
         } else {
           return origValue;
         }
+      }
+
+      @Override
+      public String updateForBlueprintExport(String propertyName,
+                                            String origValue,
+                                            Map<String, Map<String, String>> properties,
+                                            ClusterTopology topology) {
+
+        // if the value is the cluster id, then update to primary
+        if (origValue.equals(String.valueOf(topology.getClusterId()))) {
+          return "primary";
+        }
+        return origValue;
       }
     });
 
@@ -2387,7 +2445,7 @@ public class BlueprintConfigurationProcessor {
     stormSiteMap.put("supervisor.childopts", new OptionalSingleHostTopologyUpdater("GANGLIA_SERVER"));
     stormSiteMap.put("nimbus.childopts", new OptionalSingleHostTopologyUpdater("GANGLIA_SERVER"));
     // Storm AMS integration
-    stormSiteMap.put("metrics.reporter.register", new NonTopologyUpdater() {
+    stormSiteNonTopologyMap.put("metrics.reporter.register", new NonTopologyUpdater() {
       @Override
       public String updateForClusterCreate(String propertyName,
                                            String origValue,
@@ -2420,7 +2478,7 @@ public class BlueprintConfigurationProcessor {
     // KAFKA
     kafkaBrokerMap.put("kafka.ganglia.metrics.host", new OptionalSingleHostTopologyUpdater("GANGLIA_SERVER"));
     // KAFKA AMS integration
-    kafkaBrokerMap.put("kafka.metrics.reporters", new NonTopologyUpdater() {
+    kafkaBrokerNonTopologyMap.put("kafka.metrics.reporters", new NonTopologyUpdater() {
       @Override
       public String updateForClusterCreate(String propertyName,
                                            String origValue,

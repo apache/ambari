@@ -6662,6 +6662,78 @@ public class BlueprintConfigurationProcessorTest {
     assertEquals(createHostAddress(expectedHostNameNamenode, expectedPortNamenode) + "/hawq_default", hawqSite.get("hawq_dfs_url"));
   }
 
+  @Test
+  public void testDoUpdateForBlueprintExport_NonTopologyProperty__AtlasClusterName() throws Exception {
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+
+    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+
+    Collection<String> hgComponents = new HashSet<String>();
+    hgComponents.add("ATLAS_SERVER");
+    TestHostGroup group1 = new TestHostGroup("group1", hgComponents, Collections.singleton("testhost"));
+
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group1);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    Long clusterId = topology.getClusterId();
+    Map<String, String> typeProps = new HashMap<String, String>();
+    typeProps.put("atlas.cluster.name", String.valueOf(clusterId));
+    properties.put("hive-site", typeProps);
+
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+    configProcessor.doUpdateForBlueprintExport();
+
+    String updatedVal = properties.get("hive-site").get("atlas.cluster.name");
+    assertEquals("primary", updatedVal);
+  }
+
+  @Test
+  public void testDoUpdateForBlueprintExport_NonTopologyProperty() throws Exception {
+    String someString = "String.To.Represent.A.String.Value";
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+
+    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+
+    Collection<String> hgComponents = new HashSet<String>();
+    hgComponents.add("ATLAS_SERVER");
+    hgComponents.add("HIVE_SERVER");
+    hgComponents.add("KAFKA_BROKER");
+    hgComponents.add("NIMBUS");
+    TestHostGroup group1 = new TestHostGroup("group1", hgComponents, Collections.singleton("testhost"));
+
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group1);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    Long clusterId = topology.getClusterId();
+
+    Map<String, String> hiveSiteProps = new HashMap<String, String>();
+    hiveSiteProps.put("atlas.cluster.name", String.valueOf(clusterId));
+    hiveSiteProps.put("hive.exec.post.hooks", someString);
+    properties.put("hive-site", hiveSiteProps);
+
+    Map<String, String> kafkaBrokerProps = new HashMap<String, String>();
+    kafkaBrokerProps.put("kafka.metrics.reporters", someString);
+    properties.put("kafka-broker", kafkaBrokerProps);
+
+    Map<String, String> stormSiteProps = new HashMap<String, String>();
+    stormSiteProps.put("metrics.reporter.register", someString);
+    properties.put("storm-site", stormSiteProps);
+
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+    configProcessor.doUpdateForBlueprintExport();
+
+    String atlasClusterName = properties.get("hive-site").get("atlas.cluster.name");
+    String hiveExecPostHooks = properties.get("hive-site").get("hive.exec.post.hooks");
+    String kafkaMetricsReporters = properties.get("kafka-broker").get("kafka.metrics.reporters");
+    String metricsReporterRegister = properties.get("storm-site").get("metrics.reporter.register");
+    assertEquals("primary", atlasClusterName);
+    assertEquals(someString, hiveExecPostHooks);
+    assertEquals(someString, kafkaMetricsReporters);
+    assertEquals(someString, metricsReporterRegister);
+  }
+
 
   private Map<String, AdvisedConfiguration> createAdvisedConfigMap() {
     Map<String, AdvisedConfiguration> advMap = new HashMap<String, AdvisedConfiguration>();
