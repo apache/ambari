@@ -772,6 +772,9 @@ public abstract class AbstractProviderModule implements ProviderModule,
               gpp));
         }
         break;
+        case RootServiceComponent:
+          providers.add(new RootServiceComponentPropertyProvider());
+          break;
         default:
           break;
       }
