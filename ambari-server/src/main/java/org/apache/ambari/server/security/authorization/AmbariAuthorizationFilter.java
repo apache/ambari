@@ -18,19 +18,6 @@
 
 package org.apache.ambari.server.security.authorization;
 
-import java.io.IOException;
-import java.security.Principal;
-import java.util.regex.Pattern;
-
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import com.google.inject.Inject;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
@@ -45,8 +32,19 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-public class AmbariAuthorizationFilter implements Filter {
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.security.Principal;
+import java.util.regex.Pattern;
 
+public class AmbariAuthorizationFilter implements Filter {
   private static final String REALM_PARAM = "realm";
   private static final String DEFAULT_REALM = "AuthFilter";
 
@@ -121,7 +119,6 @@ public class AmbariAuthorizationFilter implements Filter {
         authentication = defaultAuthentication;
       }
     }
-
     if (authentication == null || authentication instanceof AnonymousAuthenticationToken ||
         !authentication.isAuthenticated()) {
       String token = httpRequest.getHeader(INTERNAL_TOKEN_HEADER);
@@ -183,11 +180,6 @@ public class AmbariAuthorizationFilter implements Filter {
               authorized = true;
               break;
             }
-          } else if (requestURI.matches(API_PERSIST_ALL_PATTERN)) {
-            if (permissionId.equals(PermissionEntity.CLUSTER_ADMINISTRATOR_PERMISSION)) {
-              authorized = true;
-              break;
-            }
           }
         }
       }
@@ -203,7 +195,6 @@ public class AmbariAuthorizationFilter implements Filter {
         return;
       }
     }
-
     if (AuthorizationHelper.getAuthenticatedName() != null) {
       httpResponse.setHeader("User", AuthorizationHelper.getAuthenticatedName());
     }
@@ -264,7 +255,8 @@ public class AmbariAuthorizationFilter implements Filter {
         requestURI.matches(API_CLUSTER_HOSTS_ALL_PATTERN) ||
         requestURI.matches(API_HOSTS_ALL_PATTERN) ||
         requestURI.matches(API_ALERT_TARGETS_ALL_PATTERN) ||
-        requestURI.matches(API_PRIVILEGES_ALL_PATTERN);
+        requestURI.matches(API_PRIVILEGES_ALL_PATTERN) ||
+        requestURI.matches(API_PERSIST_ALL_PATTERN);
   }
 
   @Override

@@ -159,6 +159,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     updateAlerts();
     setRoleSortOrder();
     addSettingPermission();
+    addManageUserPersistedDataPermission();
   }
 
   private void createSettingTable() throws SQLException {
@@ -190,7 +191,57 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     String administratorPermissionId = permissionDAO.findPermissionByNameAndType("AMBARI.ADMINISTRATOR",
         resourceTypeDAO.findByName("AMBARI")).getId().toString();
     dbAccessor.insertRowIfMissing("permission_roleauthorization", new String[]{"permission_id", "authorization_id"},
-        new String[]{"'" + administratorPermissionId + "'", "'AMBARI.MANAGE_SETTINGS'"}, false);
+      new String[]{"'" + administratorPermissionId + "'", "'AMBARI.MANAGE_SETTINGS'"}, false);
+  }
+
+  /**
+   * Add 'MANAGE_USER_PERSISTED_DATA' permissions for CLUSTER.ADMINISTRATOR, SERVICE.OPERATOR, SERVICE.ADMINISTRATOR,
+   * CLUSTER.OPERATOR, AMBARI.ADMINISTRATOR.
+   *
+   */
+  protected void addManageUserPersistedDataPermission() throws SQLException {
+
+    RoleAuthorizationDAO roleAuthorizationDAO = injector.getInstance(RoleAuthorizationDAO.class);
+
+    // Add to 'roleauthorization' table
+    if (roleAuthorizationDAO.findById("CLUSTER.MANAGE_USER_PERSISTED_DATA") == null) {
+      RoleAuthorizationEntity roleAuthorizationEntity = new RoleAuthorizationEntity();
+      roleAuthorizationEntity.setAuthorizationId("CLUSTER.MANAGE_USER_PERSISTED_DATA");
+      roleAuthorizationEntity.setAuthorizationName("Manage cluster-level user persisted data");
+      roleAuthorizationDAO.create(roleAuthorizationEntity);
+    }
+
+    // Adds to 'permission_roleauthorization' table
+    String permissionId = permissionDAO.findPermissionByNameAndType("CLUSTER.ADMINISTRATOR",
+      resourceTypeDAO.findByName("CLUSTER")).getId().toString();
+    dbAccessor.insertRowIfMissing("permission_roleauthorization", new String[]{"permission_id", "authorization_id"},
+      new String[]{"'" + permissionId + "'", "'CLUSTER.MANAGE_USER_PERSISTED_DATA'"}, false);
+
+    permissionId = permissionDAO.findPermissionByNameAndType("SERVICE.OPERATOR",
+      resourceTypeDAO.findByName("CLUSTER")).getId().toString();
+    dbAccessor.insertRowIfMissing("permission_roleauthorization", new String[]{"permission_id", "authorization_id"},
+      new String[]{"'" + permissionId + "'", "'CLUSTER.MANAGE_USER_PERSISTED_DATA'"}, false);
+
+    permissionId = permissionDAO.findPermissionByNameAndType("SERVICE.ADMINISTRATOR",
+      resourceTypeDAO.findByName("CLUSTER")).getId().toString();
+    dbAccessor.insertRowIfMissing("permission_roleauthorization", new String[]{"permission_id", "authorization_id"},
+      new String[]{"'" + permissionId + "'", "'CLUSTER.MANAGE_USER_PERSISTED_DATA'"}, false);
+
+    permissionId = permissionDAO.findPermissionByNameAndType("CLUSTER.OPERATOR",
+      resourceTypeDAO.findByName("CLUSTER")).getId().toString();
+    dbAccessor.insertRowIfMissing("permission_roleauthorization", new String[]{"permission_id", "authorization_id"},
+      new String[]{"'" + permissionId + "'", "'CLUSTER.MANAGE_USER_PERSISTED_DATA'"}, false);
+
+    permissionId = permissionDAO.findPermissionByNameAndType("AMBARI.ADMINISTRATOR",
+      resourceTypeDAO.findByName("AMBARI")).getId().toString();
+    dbAccessor.insertRowIfMissing("permission_roleauthorization", new String[]{"permission_id", "authorization_id"},
+      new String[]{"'" + permissionId + "'", "'CLUSTER.MANAGE_USER_PERSISTED_DATA'"}, false);
+
+    permissionId = permissionDAO.findPermissionByNameAndType("CLUSTER.USER",
+      resourceTypeDAO.findByName("CLUSTER")).getId().toString();
+    dbAccessor.insertRowIfMissing("permission_roleauthorization", new String[]{"permission_id", "authorization_id"},
+      new String[]{"'" + permissionId + "'", "'CLUSTER.MANAGE_USER_PERSISTED_DATA'"}, false);
+
   }
 
   protected void updateAlerts() {

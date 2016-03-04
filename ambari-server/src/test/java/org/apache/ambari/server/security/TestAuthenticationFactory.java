@@ -195,7 +195,8 @@ public class TestAuthenticationFactory {
         RoleAuthorization.SERVICE_VIEW_ALERTS,
         RoleAuthorization.SERVICE_VIEW_CONFIGS,
         RoleAuthorization.SERVICE_VIEW_METRICS,
-        RoleAuthorization.SERVICE_VIEW_STATUS_INFO)));
+        RoleAuthorization.SERVICE_VIEW_STATUS_INFO,
+        RoleAuthorization.CLUSTER_MANAGE_USER_PERSISTED_DATA)));
     return permissionEntity;
   }
 
@@ -226,7 +227,8 @@ public class TestAuthenticationFactory {
         RoleAuthorization.SERVICE_VIEW_ALERTS,
         RoleAuthorization.SERVICE_VIEW_CONFIGS,
         RoleAuthorization.SERVICE_VIEW_METRICS,
-        RoleAuthorization.SERVICE_VIEW_STATUS_INFO)));
+        RoleAuthorization.SERVICE_VIEW_STATUS_INFO,
+        RoleAuthorization.CLUSTER_MANAGE_USER_PERSISTED_DATA)));
     return permissionEntity;
   }
 
@@ -250,7 +252,8 @@ public class TestAuthenticationFactory {
         RoleAuthorization.CLUSTER_VIEW_ALERTS,
         RoleAuthorization.CLUSTER_VIEW_CONFIGS,
         RoleAuthorization.CLUSTER_VIEW_STACK_DETAILS,
-        RoleAuthorization.CLUSTER_VIEW_STATUS_INFO
+        RoleAuthorization.CLUSTER_VIEW_STATUS_INFO,
+        RoleAuthorization.CLUSTER_MANAGE_USER_PERSISTED_DATA
     )));
     return permissionEntity;
   }
@@ -271,7 +274,8 @@ public class TestAuthenticationFactory {
         RoleAuthorization.CLUSTER_VIEW_ALERTS,
         RoleAuthorization.CLUSTER_VIEW_CONFIGS,
         RoleAuthorization.CLUSTER_VIEW_STACK_DETAILS,
-        RoleAuthorization.CLUSTER_VIEW_STATUS_INFO
+        RoleAuthorization.CLUSTER_VIEW_STATUS_INFO,
+        RoleAuthorization.CLUSTER_MANAGE_USER_PERSISTED_DATA
     )));
     return permissionEntity;
   }
@@ -281,7 +285,7 @@ public class TestAuthenticationFactory {
     permissionEntity.setId(PermissionEntity.VIEW_USER_PERMISSION);
     permissionEntity.setResourceType(createResourceTypeEntity(ResourceType.CLUSTER));
     permissionEntity.setAuthorizations(createAuthorizations(EnumSet.of(
-        RoleAuthorization.VIEW_USE
+      RoleAuthorization.VIEW_USE
     )));
     return permissionEntity;
   }

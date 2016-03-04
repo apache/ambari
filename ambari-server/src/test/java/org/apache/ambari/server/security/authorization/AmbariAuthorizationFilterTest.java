@@ -18,16 +18,27 @@
 
 package org.apache.ambari.server.security.authorization;
 
-import static org.easymock.EasyMock.createMockBuilder;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.getCurrentArguments;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Table;
+import com.google.common.collect.Table.Cell;
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import junit.framework.Assert;
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.dao.UserDAO;
+import org.apache.ambari.server.security.TestAuthenticationFactory;
+import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.view.ViewRegistry;
+import org.easymock.EasyMock;
+import org.junit.After;
+import org.junit.Test;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.Collection;
-import java.util.Collections;
 import javax.persistence.EntityManager;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -35,134 +46,18 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Collections;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import junit.framework.Assert;
-
-import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.orm.DBAccessor;
-import org.apache.ambari.server.orm.dao.UserDAO;
-import org.apache.ambari.server.orm.entities.PermissionEntity;
-import org.apache.ambari.server.orm.entities.PrivilegeEntity;
-import org.apache.ambari.server.security.TestAuthenticationFactory;
-import org.apache.ambari.server.state.stack.OsFamily;
-import org.apache.ambari.server.view.ViewRegistry;
-import org.easymock.EasyMock;
-import org.easymock.IAnswer;
-import org.junit.After;
-import org.junit.Test;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContext;
-
-import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.Table;
-import com.google.common.collect.Table.Cell;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import static org.easymock.EasyMock.createMockBuilder;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 
 public class AmbariAuthorizationFilterTest {
   @After
   public void clearAuthentication() {
     SecurityContextHolder.getContext().setAuthentication(null);
-  }
-
-  @Test
-  public void testDoFilter_postPersist_hasOperatePermission() throws Exception {
-    FilterChain chain = createNiceMock(FilterChain.class);
-    HttpServletRequest request = createNiceMock(HttpServletRequest.class);
-    HttpServletResponse response = createNiceMock(HttpServletResponse.class);
-    AmbariAuthorizationFilter filter = createMockBuilder(AmbariAuthorizationFilter.class)
-        .addMockedMethod("getSecurityContext").withConstructor().createMock();
-    SecurityContext securityContext = createNiceMock(SecurityContext.class);
-    Authentication authentication = createNiceMock(Authentication.class);
-    AmbariGrantedAuthority authority = createNiceMock(AmbariGrantedAuthority.class);
-    PrivilegeEntity privilegeEntity = createNiceMock(PrivilegeEntity.class);
-    PermissionEntity permission = createNiceMock(PermissionEntity.class);
-    FilterConfig filterConfig = createNiceMock(FilterConfig.class);
-    Authentication auth = new UsernamePasswordAuthenticationToken("admin",null);
-    SecurityContextHolder.getContext().setAuthentication(auth);
-
-
-    expect(filterConfig.getInitParameter("realm")).andReturn("AuthFilter");
-    expect(authentication.isAuthenticated()).andReturn(true);
-    expect(request.getRequestURI()).andReturn("/api/v1/persist/some_val");
-    expect(authority.getPrivilegeEntity()).andReturn(privilegeEntity);
-    expect(privilegeEntity.getPermission()).andReturn(permission);
-    EasyMock.<Collection<? extends GrantedAuthority>>expect(authentication.getAuthorities())
-        .andReturn(Collections.singletonList(authority));
-    expect(filter.getSecurityContext()).andReturn(securityContext);
-    expect(securityContext.getAuthentication()).andReturn(authentication);
-    response.setHeader("User", "admin");
-    expectLastCall().andAnswer(new IAnswer() {
-      public Object answer() {
-        String arg1 = (String) getCurrentArguments()[0];
-        String arg2 = (String) getCurrentArguments()[1];
-        Assert.assertEquals("User", arg1);
-        Assert.assertEquals("admin", arg2);
-        return null;
-      }
-    });
-
-    expect(permission.getId()).andReturn(PermissionEntity.CLUSTER_ADMINISTRATOR_PERMISSION);
-
-    // expect continue filtering
-    chain.doFilter(request, response);
-
-    replay(request, response, chain, filter, securityContext, authentication, authority,
-        privilegeEntity, permission, filterConfig);
-
-    filter.init(filterConfig);
-    filter.doFilter(request, response, chain);
-
-    verify(request, response, chain, filter, securityContext, authentication, authority,
-        privilegeEntity, permission, filterConfig);
-  }
-
-  @Test
-  public void testDoFilter_postPersist_hasNoOperatePermission() throws Exception {
-    FilterChain chain = createNiceMock(FilterChain.class);
-    HttpServletRequest request = createNiceMock(HttpServletRequest.class);
-    HttpServletResponse response = createNiceMock(HttpServletResponse.class);
-    AmbariAuthorizationFilter filter = createMockBuilder(AmbariAuthorizationFilter.class)
-        .addMockedMethod("getSecurityContext").withConstructor().createMock();
-    SecurityContext securityContext = createNiceMock(SecurityContext.class);
-    Authentication authentication = createNiceMock(Authentication.class);
-    AmbariGrantedAuthority authority = createNiceMock(AmbariGrantedAuthority.class);
-    PrivilegeEntity privilegeEntity = createNiceMock(PrivilegeEntity.class);
-    PermissionEntity permission = createNiceMock(PermissionEntity.class);
-    FilterConfig filterConfig = createNiceMock(FilterConfig.class);
-
-    expect(filterConfig.getInitParameter("realm")).andReturn("AuthFilter");
-    expect(authentication.isAuthenticated()).andReturn(true);
-    expect(request.getRequestURI()).andReturn("/api/v1/persist/some_val");
-    expect(authority.getPrivilegeEntity()).andReturn(privilegeEntity);
-    expect(privilegeEntity.getPermission()).andReturn(permission);
-    EasyMock.<Collection<? extends GrantedAuthority>>expect(authentication.getAuthorities())
-        .andReturn(Collections.singletonList(authority));
-    expect(filter.getSecurityContext()).andReturn(securityContext);
-    expect(securityContext.getAuthentication()).andReturn(authentication);
-
-
-    expect(request.getMethod()).andReturn("POST").anyTimes();
-    expect(permission.getId()).andReturn(PermissionEntity.VIEW_USER_PERMISSION);
-
-    // expect permission denial
-    response.setHeader("WWW-Authenticate", "Basic realm=\"AuthFilter\"");
-    response.sendError(HttpServletResponse.SC_FORBIDDEN, "You do not have permissions to access this resource.");
-    response.flushBuffer();
-
-    replay(request, response, chain, filter, securityContext, authentication, authority,
-        privilegeEntity, permission, filterConfig);
-
-    filter.init(filterConfig);
-    filter.doFilter(request, response, chain);
-
-    verify(request, response, chain, filter, securityContext, authentication, authority,
-        privilegeEntity, permission, filterConfig);
   }
 
   @Test
@@ -206,7 +101,7 @@ public class AmbariAuthorizationFilterTest {
     urlTests.put("/api/v1/views", "GET", true);
     urlTests.put("/api/v1/views", "POST", true);
     urlTests.put("/api/v1/persist/SomeValue", "GET", true);
-    urlTests.put("/api/v1/persist/SomeValue", "POST", false);
+    urlTests.put("/api/v1/persist/SomeValue", "POST", true);
     urlTests.put("/api/v1/clusters/c1/credentials/ambari.credential", "POST", true);
     urlTests.put("/api/v1/clusters/c1/credentials/ambari.credential", "PUT", true);
     urlTests.put("/api/v1/clusters/c1/credentials/ambari.credential", "GET", true);
@@ -272,7 +167,7 @@ public class AmbariAuthorizationFilterTest {
     urlTests.put("/api/v1/views", "GET", true);
     urlTests.put("/api/v1/views", "POST", true);
     urlTests.put("/api/v1/persist/SomeValue", "GET", true);
-    urlTests.put("/api/v1/persist/SomeValue", "POST", false);
+    urlTests.put("/api/v1/persist/SomeValue", "POST", true);
     urlTests.put("/api/v1/clusters/c1/credentials/ambari.credential", "POST", true);
     urlTests.put("/api/v1/clusters/c1/credentials/ambari.credential", "PUT", true);
     urlTests.put("/api/v1/clusters/c1/credentials/ambari.credential", "GET", true);
@@ -305,7 +200,7 @@ public class AmbariAuthorizationFilterTest {
     urlTests.put("/api/v1/views", "GET", true);
     urlTests.put("/api/v1/views", "POST", true);
     urlTests.put("/api/v1/persist/SomeValue", "GET", true);
-    urlTests.put("/api/v1/persist/SomeValue", "POST", false);
+    urlTests.put("/api/v1/persist/SomeValue", "POST", true);
     urlTests.put("/api/v1/clusters/c1/credentials/ambari.credential", "POST", true);
     urlTests.put("/api/v1/clusters/c1/credentials/ambari.credential", "PUT", true);
     urlTests.put("/api/v1/clusters/c1/credentials/ambari.credential", "GET", true);

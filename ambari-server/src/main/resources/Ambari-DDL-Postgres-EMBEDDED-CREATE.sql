@@ -1236,6 +1236,7 @@ INSERT INTO ambari.roleauthorization(authorization_id, authorization_name)
   SELECT 'CLUSTER.MANAGE_CREDENTIALS', 'Manage external credentials' UNION ALL
   SELECT 'CLUSTER.MODIFY_CONFIGS', 'Modify cluster configurations' UNION ALL
   SELECT 'CLUSTER.MANAGE_ALERTS', 'Manage cluster-level alerts' UNION ALL
+  SELECT 'CLUSTER.MANAGE_USER_PERSISTED_DATA', 'Manage cluster-level user persisted data' UNION ALL
   SELECT 'CLUSTER.TOGGLE_ALERTS', 'Enable/disable cluster-level alerts' UNION ALL
   SELECT 'CLUSTER.MANAGE_CONFIG_GROUPS', 'Manage cluster config groups' UNION ALL
   SELECT 'CLUSTER.TOGGLE_KERBEROS', 'Enable/disable Kerberos' UNION ALL
@@ -1269,7 +1270,8 @@ INSERT INTO ambari.permission_roleauthorization(permission_id, authorization_id)
   SELECT permission_id, 'CLUSTER.VIEW_STATUS_INFO' FROM ambari.adminpermission WHERE permission_name='CLUSTER.USER' UNION ALL
   SELECT permission_id, 'CLUSTER.VIEW_CONFIGS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.USER' UNION ALL
   SELECT permission_id, 'CLUSTER.VIEW_STACK_DETAILS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.USER' UNION ALL
-  SELECT permission_id, 'CLUSTER.VIEW_ALERTS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.USER';
+  SELECT permission_id, 'CLUSTER.VIEW_ALERTS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.USER' UNION ALL
+  SELECT permission_id, 'CLUSTER.MANAGE_USER_PERSISTED_DATA' FROM ambari.adminpermission WHERE permission_name='CLUSTER.USER';
 
 -- Set authorizations for Service Operator role
 INSERT INTO ambari.permission_roleauthorization(permission_id, authorization_id)
@@ -1290,7 +1292,8 @@ INSERT INTO ambari.permission_roleauthorization(permission_id, authorization_id)
   SELECT permission_id, 'CLUSTER.VIEW_STATUS_INFO' FROM ambari.adminpermission WHERE permission_name='SERVICE.OPERATOR' UNION ALL
   SELECT permission_id, 'CLUSTER.VIEW_CONFIGS' FROM ambari.adminpermission WHERE permission_name='SERVICE.OPERATOR' UNION ALL
   SELECT permission_id, 'CLUSTER.VIEW_STACK_DETAILS' FROM ambari.adminpermission WHERE permission_name='SERVICE.OPERATOR' UNION ALL
-  SELECT permission_id, 'CLUSTER.VIEW_ALERTS' FROM ambari.adminpermission WHERE permission_name='SERVICE.OPERATOR';
+  SELECT permission_id, 'CLUSTER.VIEW_ALERTS' FROM ambari.adminpermission WHERE permission_name='SERVICE.OPERATOR' UNION ALL
+  SELECT permission_id, 'CLUSTER.MANAGE_USER_PERSISTED_DATA' FROM ambari.adminpermission WHERE permission_name='SERVICE.OPERATOR';
 
 -- Set authorizations for Service Administrator role
 INSERT INTO ambari.permission_roleauthorization(permission_id, authorization_id)
@@ -1318,7 +1321,8 @@ INSERT INTO ambari.permission_roleauthorization(permission_id, authorization_id)
   SELECT permission_id, 'CLUSTER.VIEW_CONFIGS' FROM ambari.adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'CLUSTER.VIEW_STACK_DETAILS' FROM ambari.adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'CLUSTER.MANAGE_CONFIG_GROUPS' FROM ambari.adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
-  SELECT permission_id, 'CLUSTER.VIEW_ALERTS' FROM ambari.adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR';
+  SELECT permission_id, 'CLUSTER.VIEW_ALERTS' FROM ambari.adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'CLUSTER.MANAGE_USER_PERSISTED_DATA' FROM ambari.adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR';
 
 -- Set authorizations for Cluster Operator role
 INSERT INTO ambari.permission_roleauthorization(permission_id, authorization_id)
@@ -1349,7 +1353,8 @@ INSERT INTO ambari.permission_roleauthorization(permission_id, authorization_id)
   SELECT permission_id, 'CLUSTER.VIEW_CONFIGS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
   SELECT permission_id, 'CLUSTER.VIEW_STACK_DETAILS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
   SELECT permission_id, 'CLUSTER.MANAGE_CONFIG_GROUPS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
-  SELECT permission_id, 'CLUSTER.VIEW_ALERTS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR';
+  SELECT permission_id, 'CLUSTER.VIEW_ALERTS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
+  SELECT permission_id, 'CLUSTER.MANAGE_USER_PERSISTED_DATA' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR';
 
 -- Set authorizations for Cluster Administrator role
 INSERT INTO ambari.permission_roleauthorization(permission_id, authorization_id)
@@ -1387,7 +1392,8 @@ INSERT INTO ambari.permission_roleauthorization(permission_id, authorization_id)
   SELECT permission_id, 'CLUSTER.MANAGE_ALERTS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'CLUSTER.TOGGLE_ALERTS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'CLUSTER.TOGGLE_KERBEROS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
-  SELECT permission_id, 'CLUSTER.UPGRADE_DOWNGRADE_STACK' FROM ambari.adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR';
+  SELECT permission_id, 'CLUSTER.UPGRADE_DOWNGRADE_STACK' FROM ambari.adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'CLUSTER.MANAGE_USER_PERSISTED_DATA' FROM ambari.adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR';
 
 -- Set authorizations for Administrator role
 INSERT INTO ambari.permission_roleauthorization(permission_id, authorization_id)
@@ -1427,6 +1433,7 @@ INSERT INTO ambari.permission_roleauthorization(permission_id, authorization_id)
   SELECT permission_id, 'CLUSTER.TOGGLE_ALERTS' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'CLUSTER.TOGGLE_KERBEROS' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'CLUSTER.UPGRADE_DOWNGRADE_STACK' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'CLUSTER.MANAGE_USER_PERSISTED_DATA' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'AMBARI.ADD_DELETE_CLUSTERS' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'AMBARI.SET_SERVICE_USERS_GROUPS' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'AMBARI.RENAME_CLUSTER' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
@@ -1437,6 +1444,7 @@ INSERT INTO ambari.permission_roleauthorization(permission_id, authorization_id)
   SELECT permission_id, 'AMBARI.ASSIGN_ROLES' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'AMBARI.MANAGE_STACK_VERSIONS' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'AMBARI.EDIT_STACK_REPOS' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR';
+
 
 INSERT INTO ambari.adminprivilege (privilege_id, permission_id, resource_id, principal_id)
   SELECT 1, 1, 1, 1;
