@@ -839,6 +839,8 @@ class TestAmbariServer(TestCase):
     del args.database_name
     del args.database_username
     del args.database_password
+    del args.init_script_file
+    del args.drop_script_file
 
     properties = Properties()
     properties.process_pair(JDBC_PASSWORD_PROPERTY, get_alias_string("mypwdalias"))
@@ -868,6 +870,8 @@ class TestAmbariServer(TestCase):
     del args.database_name
     del args.database_username
     del args.database_password
+    del args.init_script_file
+    del args.drop_script_file
 
     properties = Properties()
 
@@ -896,6 +900,8 @@ class TestAmbariServer(TestCase):
     del args.database_name
     del args.database_username
     del args.database_password
+    del args.init_script_file
+    del args.drop_script_file
 
     properties = Properties()
 
@@ -2994,6 +3000,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
       del args.persistence_type
       del args.sid_or_sname
       del args.jdbc_url
+      del args.init_script_file
+      del args.drop_script_file
 
       args.jdbc_driver= None
       args.jdbc_db = None
@@ -3284,6 +3292,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     del args.database_username
     del args.database_password
     del args.persistence_type
+    del args.init_script_file
+    del args.drop_script_file
 
     set_silent(True)
 
