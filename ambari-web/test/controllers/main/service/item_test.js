@@ -1262,16 +1262,18 @@ describe('App.MainServiceItemController', function () {
       sinon.stub(mainServiceItemController, 'servicesDisplayNames', function(servicesDisplayNames) {
         return servicesDisplayNames;
       });
-      sinon.stub(mainServiceItemController, 'interDependentServices').returns([]);
       this.allowUninstallServices = sinon.stub(mainServiceItemController, 'allowUninstallServices');
       this.mockService = sinon.stub(App.Service, 'find');
       sinon.stub(App, 'showConfirmationPopup');
       sinon.stub(App.ModalPopup, 'show');
       sinon.stub(App.format, 'role', function(name) {return name});
+
+      mainServiceItemController.reopen({
+        interDependentServices: []
+      })
     });
     afterEach(function() {
       mainServiceItemController.allowUninstallServices.restore();
-      mainServiceItemController.interDependentServices.restore();
       mainServiceItemController.servicesDisplayNames.restore();
       this.mockDependentServices.restore();
       this.mockService.restore();
@@ -1372,16 +1374,27 @@ describe('App.MainServiceItemController', function () {
       sinon.stub(App.StackService, 'find', function (serviceName) {
         return stackSerivceModel[serviceName];
       });
-      mainServiceItemController = App.MainServiceItemController.create({});
+      mainServiceItemController = App.MainServiceItemController.create({
+        content: {}
+      });
     });
 
     afterEach(function() {
       App.StackService.find.restore();
     });
 
-    it('get interdependent services', function() {
-      expect(mainServiceItemController.interDependentServices('YARN')).to.eql(['MAPREDUCE2']);
-      expect(mainServiceItemController.interDependentServices('MAPREDUCE2')).to.eql(['YARN']);
+    it('get interdependent services for YARN', function() {
+      mainServiceItemController.set('content', Em.Object.create({
+        serviceName: 'YARN'
+      }));
+      expect(mainServiceItemController.get('interDependentServices')).to.eql(['MAPREDUCE2']);
+    });
+
+    it('get interdependent services for MAPREDUCE2', function() {
+      mainServiceItemController.set('content', Em.Object.create({
+        serviceName: 'MAPREDUCE2'
+      }));
+      expect(mainServiceItemController.get('interDependentServices')).to.eql(['YARN']);
     });
   });
 
@@ -1409,23 +1422,27 @@ describe('App.MainServiceItemController', function () {
 
     beforeEach(function() {
       mainServiceItemController = App.MainServiceItemController.create({});
-      sinon.stub(window.location, 'reload');
+      sinon.spy(mainServiceItemController, 'loadConfigRecommendations');
       sinon.spy(mainServiceItemController, 'deleteServiceCall');
+      mainServiceItemController.reopen({
+        interDependentServices: []
+      })
     });
     afterEach(function() {
-      window.location.reload.restore();
+      mainServiceItemController.loadConfigRecommendations.restore();
+      mainServiceItemController.deleteServiceCall.restore();
     });
 
     it("window.location.reload should be called", function() {
       mainServiceItemController.deleteServiceCallSuccessCallback([], null, {});
       expect(mainServiceItemController.deleteServiceCall.called).to.be.false;
-      expect(window.location.reload.calledOnce).to.be.true;
+      expect(mainServiceItemController.loadConfigRecommendations.calledOnce).to.be.true;
     });
 
     it("deleteServiceCall should be called", function() {
       mainServiceItemController.deleteServiceCallSuccessCallback([], null, {servicesToDeleteNext: true});
       expect(mainServiceItemController.deleteServiceCall.calledOnce).to.be.true;
-      expect(window.location.reload.called).to.be.false;
+      expect(mainServiceItemController.loadConfigRecommendations.called).to.be.false;
     });
   });
 

@@ -34,8 +34,7 @@ App.TextFieldConfigWidgetView = App.ConfigWidgetView.extend({
   configView: App.ServiceConfigTextField.extend({
     isPopoverEnabled: 'false',
     textFieldClassName: 'span12',
-    serviceConfigBinding: 'parentView.config',
-    focusIn: function() {}
+    serviceConfigBinding: 'parentView.config'
   }),
 
   didInsertElement: function() {

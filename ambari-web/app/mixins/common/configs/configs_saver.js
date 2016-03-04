@@ -135,7 +135,7 @@ App.ConfigsSaverMixin = Em.Mixin.create({
       }, this);
 
       if (Em.isArray(data) && data.length) {
-        this.putChangedConfigurations(data, true);
+        this.putChangedConfigurations(data, 'doPUTClusterConfigurationSiteSuccessCallback');
       } else {
         this.onDoPUTClusterConfigurations();
       }
@@ -151,7 +151,7 @@ App.ConfigsSaverMixin = Em.Mixin.create({
             var configsToSave = this.getServiceConfigToSave(serviceName, configs);
 
             if (configsToSave) {
-              this.putChangedConfigurations([configsToSave], false);
+              this.putChangedConfigurations([configsToSave]);
             }
 
           } else {
@@ -573,11 +573,11 @@ App.ConfigsSaverMixin = Em.Mixin.create({
    * Saves configuration of set of sites. The provided data
    * contains the site name and tag to be used.
    * @param {Object[]} services
-   * @param {boolean} showPopup
+   * @param {String} [successCallback]
    * @return {$.ajax}
    * @method putChangedConfigurations
    */
-  putChangedConfigurations: function (services, showPopup) {
+  putChangedConfigurations: function (services, successCallback) {
     var ajaxData = {
       name: 'common.across.services.configurations',
       sender: this,
@@ -586,8 +586,8 @@ App.ConfigsSaverMixin = Em.Mixin.create({
       },
       error: 'doPUTClusterConfigurationSiteErrorCallback'
     };
-    if (showPopup) {
-      ajaxData.success = 'doPUTClusterConfigurationSiteSuccessCallback'
+    if (successCallback) {
+      ajaxData.success = successCallback;
     }
     return App.ajax.send(ajaxData);
   },

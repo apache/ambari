@@ -1327,6 +1327,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    * @override
    */
   allowUpdateProperty: function(parentProperties, name, fileName) {
+    if (name.contains('proxyuser')) return true;
     if (['installerController'].contains(this.get('wizardController.name')) || !!(parentProperties && parentProperties.length)) {
       return true;
     } else if (['addServiceController'].contains(this.get('wizardController.name'))) {

@@ -24,7 +24,7 @@
 var App = require('app');
 require('views/common/controls_view');
 
-App.PlainConfigTextField = Ember.View.extend(App.SupportsDependentConfigs, App.WidgetPopoverSupport, {
+App.PlainConfigTextField = Ember.View.extend(App.SupportsDependentConfigs, App.WidgetPopoverSupport, App.ValueObserver, {
   templateName: require('templates/common/configs/widgets/plain_config_text_field'),
   valueBinding: 'config.value',
   classNames: ['widget-config-plain-text-field'],
@@ -51,10 +51,6 @@ App.PlainConfigTextField = Ember.View.extend(App.SupportsDependentConfigs, App.W
     }
     return unit;
   }.property('unit'),
-
-  focusOut: function () {
-    this.sendRequestRorDependentConfigs(this.get('config'));
-  },
 
   insertNewline: function() {
     this.get('parentView').trigger('toggleWidgetView');

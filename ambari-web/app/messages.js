@@ -1714,6 +1714,8 @@ Em.I18n.translations = {
   'services.service.actions.serviceActions':'Service Actions',
 
   'services.service.delete.popup.header': 'Delete Service',
+  'services.service.delete.configVersionNote': 'Update configs after {0} has been removed',
+  'services.service.delete.configVersionNote.plural': 'Update configs after {0} have been removed',
   'services.service.delete.lastService.popup.body': 'The <b>{0}</b> service can\'t be deleted, at least one service must be installed.',
   'services.service.delete.popup.dependentServices': 'Prior to deleting <b>{0}</b>, you must delete the following dependent services:',
   'services.service.delete.popup.mustBeStopped': 'Prior to deleting <b>{0}</b>, you must stop the service.',

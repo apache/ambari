@@ -18,8 +18,9 @@
 
 var App = require('app');
 var batchUtils = require('utils/batch_scheduled_requests');
+var blueprintUtils = require('utils/blueprint');
 
-App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDownload, App.InstallComponent, {
+App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDownload, App.InstallComponent, App.ConfigsSaverMixin, App.EnhancedConfigsMixin, {
   name: 'mainServiceItemController',
 
   /**
@@ -106,20 +107,85 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   }.property('content.serviceName'),
 
   /**
+   * Returns interdependent services
+   *
+   * @returns {string[]}
+   */
+  interDependentServices: function() {
+    var serviceName = this.get('content.serviceName'), interDependentServices = [];
+    App.StackService.find(serviceName).get('requiredServices').forEach(function(requiredService) {
+      if (App.StackService.find(requiredService).get('requiredServices').contains(serviceName)) {
+        interDependentServices.push(requiredService);
+      }
+    });
+    return interDependentServices;
+  }.property('content.serviceName'),
+
+  /**
+   * collection of serviceConfigs
+   *
+   * @type {Object[]}
+   */
+  stepConfigs: [],
+
+  /**
+   * List of service names that have configs dependent on current service configs
+   *
+   * @type {String[]}
+   */
+  dependentServiceNames: function() {
+    return App.StackService.find(this.get('content.serviceName')).get('dependentServiceNames');
+  }.property('content.serviceName'),
+
+  /**
+   * List of service names that could be deleted
+   * Common case when there is only current service should be removed
+   * But for some services there is <code>interDependentServices<code> services
+   * Like 'YARN' depends on 'MAPREDUCE2' and 'MAPREDUCE2' depends on 'YARN'
+   * So these services can be removed only together
+   *
+   * @type {String[]}
+   */
+  serviceNamesToDelete: function() {
+    return [this.get('content.serviceName')].concat(this.get('interDependentServices'));
+  }.property('content.serviceName'),
+
+  /**
+   * List of config types that should be loaded
+   * Includes
+   * 1. Dependent services config-types
+   * 2. Some special cases from <code>serviceConfigsMap<code>
+   * 3. 'cluster-env'
+   *
+   * @type {String[]}
+   */
+  sitesToLoad: function() {
+    var services = this.get('dependentServiceNames'), configTypeList = [];
+    if (services.length) {
+      var configTypeList = App.StackService.find().filter(function(s) {
+        return services.contains(s.get('serviceName'));
+      }).mapProperty('configTypeList').reduce(function(p, v) {
+        return p.concat(v);
+      });
+    }
+    if (this.get('serviceConfigsMap')[this.get('content.serviceName')]) {
+      configTypeList = configTypeList.concat(this.get('serviceConfigsMap')[this.get('content.serviceName')]);
+    }
+    configTypeList.push('cluster-env');
+    return configTypeList.uniq();
+  }.property('content.serviceName'),
+
+  /**
    * Load all config tags for loading configs
    */
   loadConfigs: function(){
-    if (this.get('serviceConfigsMap')[this.get('content.serviceName')]) {
-      this.set('isServiceConfigsLoaded', false);
-      App.ajax.send({
-        name: 'config.tags',
-        sender: this,
-        success: 'onLoadConfigsTags',
-        error: 'onTaskError'
-      });
-    } else {
-      this.set('isServiceConfigsLoaded', true);
-    }
+    this.set('isServiceConfigsLoaded', false);
+    App.ajax.send({
+      name: 'config.tags',
+      sender: this,
+      success: 'onLoadConfigsTags',
+      error: 'onTaskError'
+    });
   },
 
   /**
@@ -128,7 +194,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
    */
   onLoadConfigsTags: function (data) {
     var self = this;
-    var sitesToLoad = this.get('serviceConfigsMap')[this.get('content.serviceName')];
+    var sitesToLoad = this.get('sitesToLoad'), allConfigs = [];
     var loadedSites = data.Clusters.desired_configs;
     var siteTagsToLoad = [];
     for (var site in loadedSites) {
@@ -142,7 +208,17 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     App.router.get('configurationController').getConfigsByTags(siteTagsToLoad).done(function (configs) {
       configs.forEach(function (site) {
         self.get('configs')[site.type] = site.properties;
+        allConfigs = allConfigs.concat(App.config.getConfigsFromJSON(site, true));
       });
+
+      self.get('dependentServiceNames').forEach(function(serviceName) {
+        var configTypes = App.StackService.find(serviceName).get('configTypeList');
+        var configsByService = allConfigs.filter(function (c) {
+          return configTypes.contains(App.config.getConfigTagFromFileName(c.get('filename')));
+        });
+        self.get('stepConfigs').pushObject(App.config.createServiceConfig(serviceName, [], configsByService));
+      });
+
       self.set('isServiceConfigsLoaded', true);
     });
   },
@@ -971,22 +1047,6 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   },
 
   /**
-   * Returns interdependent services
-   *
-   * @param serviceName
-   * @returns {string[]}
-   */
-  interDependentServices: function(serviceName) {
-    var interDependentServices = [];
-    App.StackService.find(serviceName).get('requiredServices').forEach(function(requiredService) {
-      if (App.StackService.find(requiredService).get('requiredServices').contains(serviceName)) {
-        interDependentServices.push(requiredService);
-      }
-    });
-    return interDependentServices;
-  },
-
-  /**
    * find dependent services
    * @param {string[]} serviceNamesToDelete
    * @returns {Array}
@@ -1035,8 +1095,8 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
    */
   deleteService: function(serviceName) {
     var self = this,
-      interDependentServices = this.interDependentServices(serviceName),
-      serviceNamesToDelete = interDependentServices.concat(serviceName),
+      interDependentServices = this.get('interDependentServices'),
+      serviceNamesToDelete = this.get('serviceNamesToDelete'),
       dependentServices = this.findDependentServices(serviceNamesToDelete),
       displayName = App.format.role(serviceName),
       popupHeader = Em.I18n.t('services.service.delete.popup.header'),
@@ -1168,6 +1228,96 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   },
 
   /**
+   * All host names
+   * This property required for request for recommendations
+   *
+   * @type {String[]}
+   * @override
+   */
+  hostNames: Em.computed.alias('App.allHostNames'),
+
+  /**
+   * Recommendation object
+   * This property required for request for recommendations
+   *
+   * @type {Object}
+   * @override
+   */
+  hostGroups: function() {
+    var hostGroup = blueprintUtils.generateHostGroups(App.get('allHostNames'));
+    return blueprintUtils.removeDeletedComponents(hostGroup, [this.get('serviceNamesToDelete')]);
+  }.property('serviceNamesToDelete', 'App.allHostNames'),
+
+  /**
+   * List of services without removed
+   * This property required for request for recommendations
+   *
+   * @type {String[]}
+   * @override
+   */
+  serviceNames: function() {
+    return App.Service.find().filter(function(s) {
+      return !this.get('serviceNamesToDelete').contains(s.get('serviceName'));
+    }, this).mapProperty('serviceName');
+  }.property('serviceNamesToDelete'),
+
+  /**
+   * This property required for request for recommendations
+   *
+   * @return {Boolean}
+   * @override
+   */
+  isConfigHasInitialState: function() { return false; },
+
+  /**
+   * Describes condition when recommendation should be applied
+   * For removing services it's always true
+   * This property required for request for recommendations
+   *
+   * @return {Boolean}
+   * @override
+   */
+  allowUpdateProperty: function() { return true; },
+
+  /**
+   * Just config version note
+   *
+   * @type {String}
+   */
+  serviceConfigVersionNote: function() {
+    var services = this.get('serviceNamesToDelete').join(',');
+    if (this.get('serviceNamesToDelete.length') === 1) {
+      return Em.I18n.t('services.service.delete.configVersionNote').format(services);
+    }
+    return Em.I18n.t('services.service.delete.configVersionNote.plural').format(services);
+  }.property('serviceNamesToDelete'),
+
+  /**
+   * Method ot save configs after service have been removed
+   * @override
+   */
+  saveConfigs: function() {
+    var data = [];
+    this.get('stepConfigs').forEach(function(stepConfig) {
+      var serviceConfig = this.getServiceConfigToSave(stepConfig.get('serviceName'), stepConfig.get('configs'));
+
+      if (serviceConfig)  {
+        data.push(serviceConfig);
+      }
+    }, this);
+
+    if (Em.isArray(data) && data.length) {
+      this.putChangedConfigurations(data, 'onSaveConfigs');
+    } else {
+      this.onSaveConfigs();
+    }
+  },
+
+  onSaveConfigs: function() {
+    window.location.reload();
+  },
+
+  /**
    * Ajax call to delete service
    * @param {string[]} serviceNames
    * @returns {$.ajax}
@@ -1193,7 +1343,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     if (params.servicesToDeleteNext) {
       this.deleteServiceCall(params.servicesToDeleteNext);
     } else {
-      window.location.reload();
+      this.loadConfigRecommendations(null, this.saveConfigs.bind(this));
     }
   },
 

@@ -396,6 +396,28 @@ module.exports = {
   },
 
   /**
+   * Clean up host groups from components that should be removed
+   *
+   * @param hostGroups
+   * @param serviceNames
+   */
+  removeDeletedComponents: function(hostGroups, serviceNames) {
+    var components = [];
+    App.StackService.find().forEach(function(s) {
+      if (serviceNames.contains(s.get('serviceName'))) {
+        components = components.concat(s.get('serviceComponents').mapProperty('componentName'));
+      }
+    });
+
+    hostGroups.blueprint.host_groups.forEach(function(hg) {
+      hg.components = hg.components.filter(function(c) {
+        return !components.contains(c.name);
+      })
+    });
+    return hostGroups;
+  },
+
+  /**
    * collect all component names that are present on hosts
    * @returns {object}
    */
