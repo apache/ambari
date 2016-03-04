@@ -182,6 +182,7 @@ def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess.PIPE
     env['PATH'] = os.pathsep.join([env['PATH'], path])
   
   # prepare command cmd
+  env['KRB5_CONFIG'] = os.getenv('KRB5_CONFIG','/etc/krb5.conf')
   if sudo:
     command = as_sudo(command, env=env)
   elif user:
