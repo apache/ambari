@@ -20,6 +20,9 @@
 angular.module('ambariAdminConsole')
 .controller('StackVersionsCreateCtrl', ['$scope', 'Stack', '$routeParams', '$location', 'Alert', '$translate', 'Cluster', function($scope, Stack, $routeParams, $location, Alert, $translate, Cluster) {
   var $t = $translate.instant;
+  $scope.constants = {
+    os: $t('versions.os')
+  };
   $scope.createController = true;
   $scope.osList = [];
   $scope.skipValidation = false;
@@ -35,14 +38,14 @@ angular.module('ambariAdminConsole')
 
   $scope.option1 = {
     index: 1,
-    displayName: 'Upload Version Definition File',
+    displayName: $t('versions.uploadFile'),
     file: null,
     hasError: false
   };
   $scope.option2 = {
     index: 2,
-    displayName: 'Version Definition File URL',
-    url: 'https://',
+    displayName: $t('versions.enterURL'),
+    url: $t('versions.defaultURL'),
     hasError: false
   };
   $scope.selectedOption = {
@@ -102,10 +105,10 @@ angular.module('ambariAdminConsole')
           .then(function (response) {
             $scope.id = response.id;
             $scope.isPatch = response.type == 'PATCH';
-            $scope.stackNameVersion = response.stackNameVersion || 'n/a';
-            $scope.displayName = response.displayName || 'n/a';
-            $scope.version = response.version || 'n/a';
-            $scope.actualVersion = response.actualVersion || 'n/a';
+            $scope.stackNameVersion = response.stackNameVersion || $t('common.NA');
+            $scope.displayName = response.displayName || $t('common.NA');
+            $scope.version = response.version || $t('common.NA');
+            $scope.actualVersion = response.actualVersion || $t('common.NA');
             $scope.updateObj = response.updateObj;
             $scope.upgradeStack = {
               stack_name: response.stackName,

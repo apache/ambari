@@ -77,6 +77,7 @@ angular.module('ambariAdminConsole')
       'usersGroups': 'Users/Groups',
       'enabled': 'Enabled',
       'disabled': 'Disabled',
+      'NA': 'n/a',
 
       'clusterNameChangeConfirmation': {
         'title': 'Confirm Cluster Name Change',
@@ -110,7 +111,8 @@ angular.module('ambariAdminConsole')
         'save': 'Save',
         'clearFilters': 'clear filters',
         'confirmChange': 'Confirm Change',
-        'discard': 'Discard'
+        'discard': 'Discard',
+        'remove': 'Remove'
       },
 
       'alerts': {
@@ -305,6 +307,7 @@ angular.module('ambariAdminConsole')
       'installed': 'Installed',
       'uploadFile': 'Upload Version Definition File',
       'enterURL': 'Version Definition File URL',
+      'defaultURL': 'https://',
       'readInfo': 'Read Version Info',
       'browse': 'Browse',
       'installOn': 'Install on...',
@@ -317,6 +320,7 @@ angular.module('ambariAdminConsole')
       'baseURL': 'Base URL',
       'skipValidation': 'Skip Repository Base URL validation (Advanced)',
       'noVersions': 'Select version to display details.',
+      'patch': 'Patch',
       'contents': {
         'title': 'Contents',
         'empty': 'No contents to display'

@@ -97,7 +97,7 @@
       <div class="clearfix">
         <label class="control-label col-sm-3">{{'versions.details.stackName' | translate}}</label>
         <div class="version-info col-sm-7">{{stackNameVersion}}</div>
-        <div class="col-sm-2 patch-icon" ng-if="isPatch"><span class="glyphicon glyphicon-tree-deciduous"></span>Patch</div>
+        <div class="col-sm-2 patch-icon" ng-if="isPatch"><span class="glyphicon glyphicon-tree-deciduous"></span>{{'versions.patch' | translate}}</div>
       </div>
       <div class="clearfix">
         <label class="control-label col-sm-3">{{'versions.details.displayName' | translate}}</label>
@@ -152,13 +152,13 @@
                                          ng-change="clearError()" ng-disabled="!os.selected"></div>
               </div>
             </div>
-            <div class="col-sm-1 remove-icon" ng-click="removeOS()"><span class="glyphicon glyphicon-minus"></span>Remove</div>
+            <div class="col-sm-1 remove-icon" ng-click="removeOS()"><span class="glyphicon glyphicon-minus"></span>{{'common.controls.remove' | translate}}</div>
           </div>
         </div>
       </div>
         <div class="btn-group pull-right" dropdown>
           <button class="btn dropdown-toggle">
-            <span class="glyphicon glyphicon-plus"></span> Add OS &nbsp;<span class="caret"></span></button>
+            <span class="glyphicon glyphicon-plus"></span> {{'common.add' | translate: '{term: constants.os}'}} &nbsp;<span class="caret"></span></button>
           <ul class="dropdown-menu">
             <li ng-repeat="os in osList"><a ng-if="os.selected==false" ng-click="addOS()">{{os.OperatingSystems.os_type}}</a></li>
           </ul>

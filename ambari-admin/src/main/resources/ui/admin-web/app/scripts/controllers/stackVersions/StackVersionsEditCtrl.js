@@ -20,6 +20,9 @@
 angular.module('ambariAdminConsole')
 .controller('StackVersionsEditCtrl', ['$scope', '$location', 'Cluster', 'Stack', '$routeParams', 'ConfirmationModal', 'Alert', '$translate', function($scope, $location, Cluster, Stack, $routeParams, ConfirmationModal, Alert, $translate) {
   var $t = $translate.instant;
+  $scope.constants = {
+    os: $t('versions.os')
+  };
   $scope.editController = true;
   $scope.osList = [];
   $scope.skipValidation = false;
@@ -35,10 +38,10 @@ angular.module('ambariAdminConsole')
     return Stack.getRepo($routeParams.versionId, $routeParams.stackName).then(function (response) {
       $scope.id = response.id;
       $scope.isPatch = response.type == 'PATCH';
-      $scope.stackNameVersion = response.stackNameVersion || 'n/a';
-      $scope.displayName = response.displayName || 'n/a';
-      $scope.version = response.version || 'n/a';
-      $scope.actualVersion = response.actualVersion || 'n/a';
+      $scope.stackNameVersion = response.stackNameVersion || $t('common.NA');
+      $scope.displayName = response.displayName || $t('common.NA');
+      $scope.version = response.version || $t('common.NA');
+      $scope.actualVersion = response.actualVersion || $t('common.NA');
       $scope.updateObj = response.updateObj;
       $scope.upgradeStack = {
         stack_name: response.stackName,
