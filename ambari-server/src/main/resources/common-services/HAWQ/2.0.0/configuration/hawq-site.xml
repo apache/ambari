@@ -16,6 +16,7 @@
    limitations under the License.
 -->
 <configuration>
+
   <property>
     <name>hawq_master_address_host</name>
     <display-name>HAWQ Master</display-name>
@@ -37,6 +38,7 @@
     </description>
     <value-attributes>
       <type>int</type>
+      <minimum>0</minimum>
     </value-attributes>
   </property>
 
@@ -61,6 +63,7 @@
     </description>
     <value-attributes>
       <type>int</type>
+      <minimum>0</minimum>
     </value-attributes>
   </property>
 
@@ -71,6 +74,11 @@
     <description>
       URL for accessing HDFS.
     </description>
+    <value-attributes>
+      <type>string</type>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
   </property>
 
   <property>
@@ -82,6 +90,8 @@
     </description>
     <value-attributes>
       <type>directory</type>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
     </value-attributes>
   </property>
 
@@ -94,8 +104,10 @@
     </description>
     <value-attributes>
       <type>directory</type>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
     </value-attributes>
-  </property> 
+  </property>
 
   <property>
     <name>hawq_master_temp_directory</name>
@@ -124,27 +136,54 @@
   <!-- HAWQ resource manager parameters -->
   <property>
     <name>hawq_global_rm_type</name>
+    <display-name>Resource Manager</display-name>
     <value>none</value>
-    <description>The resource manager type to start for allocating resource. 
-      'none' means HAWQ resource manager exclusively uses whole cluster; 'yarn' means HAWQ resource manager
-      contacts YARN resource manager to negotiate resource.
+    <description>
+      The resource manager to use for allocating resources.
+      When set to Native ('none'), HAWQ resource manager exclusively uses whole cluster.
+      When set to YARN ('yarn') HAWQ resource manager contacts YARN resource manager to negotiate resource.
     </description>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>none</value>
+          <label>Native</label>
+        </entry>
+        <entry>
+          <value>yarn</value>
+          <label>YARN</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
   </property>
 
   <property>
     <name>hawq_rm_memory_limit_perseg</name>
+    <display-name>Segment Memory Usage Limit</display-name>
     <value>64GB</value>
     <description>
-      The limit of memory usage in a HAWQ segment when hawq_global_rm_type is set 'none'.
+      The limit of memory usage in a HAWQ segment when Resource Manager (hawq_global_rm_type) is set to Native ('none').
     </description>
+    <value-attributes>
+      <type>string</type>
+    </value-attributes>
   </property>
 
   <property>
     <name>hawq_rm_nvcore_limit_perseg</name>
+    <display-name>Segment Virtual Core Usage Limit</display-name>
     <value>16</value>
     <description>
-      The limit of virtual core usage in a HAWQ segment when hawq_global_rm_type is set 'none'.
+      The limit of virtual core usage in a HAWQ segment when Resource Manager (hawq_global_rm_type) is set to Native ('none').
     </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>64</maximum>
+      <increment-step>4</increment-step>
+    </value-attributes>
   </property>
 
   <property>
@@ -159,6 +198,10 @@
         <name>yarn.resourcemanager.address</name>
       </property>
     </depends-on>
+    <value-attributes>
+      <type>string</type>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
@@ -173,6 +216,10 @@
         <name>yarn.resourcemanager.scheduler.address</name>
       </property>
     </depends-on>
+    <value-attributes>
+      <type>string</type>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
@@ -181,6 +228,9 @@
     <description>
       The YARN queue name to register HAWQ resource manager.
     </description>
+    <value-attributes>
+      <type>string</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -189,6 +239,9 @@
     <description>
       The application name to register HAWQ resource manager in YARN.
     </description>
+    <value-attributes>
+      <type>string</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -197,6 +250,9 @@
     <description>
       The control to enable/disable CPU resource enforcement.
     </description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -206,6 +262,9 @@
       The mount point of CGroup file system for resource enforcement.
       For example, /sys/fs/cgroup/cpu/hawq for CPU sub-system.
     </description>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -215,6 +274,9 @@
       The name of the hierarchy to accomodate CGroup directories/files for resource enforcement.
       For example, /sys/fs/cgroup/cpu/hawq for CPU sub-system.
     </description>
+    <value-attributes>
+      <type>string</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -222,12 +284,12 @@
     <display-name>Default Number of Virtual Segments</display-name>
     <value>24</value>
     <description>
-      The default number of virtual segments to use when executing a query statement. When the query is actually executed,
-      the number of virtual segments may differ from this number depending on the query's needs.
+      The default number of virtual segments to use when executing a query statement. When the query is actually executed, the number of virtual segments may differ from this number depending on the query's needs.
       When expanding the cluster, you should adjust this number to reflect the number of nodes in the new cluster times the number of virtual segments per node.
     </description>
     <value-attributes>
       <type>int</type>
+      <minimum>0</minimum>
     </value-attributes>
   </property>
 

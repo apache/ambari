@@ -16,7 +16,6 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-
 <configuration supports_adding_forbidden="true">
   <!-- hawq_check.cnf -->
     <property>
@@ -83,7 +82,8 @@ ipc.client.connection.maxidletime = 3600000
 dfs.namenode.accesstime.precision = -1
     </value>
     <value-attributes>
-        <type>content</type>
+      <type>content</type>
+      <show-property-name>false</show-property-name>
     </value-attributes>
   </property>
 </configuration>
