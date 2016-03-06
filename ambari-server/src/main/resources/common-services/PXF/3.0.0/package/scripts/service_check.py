@@ -17,6 +17,7 @@ limitations under the License.
 """
 import json
 import os
+import sys
 
 from resource_management.libraries.script import Script
 from resource_management.core.exceptions import Fail
@@ -30,11 +31,16 @@ from resource_management.libraries.functions.default import default
 from pxf_utils import makeHTTPCall, runLocalCmd
 import pxf_constants
 
+GP_PROFILE= "X-GP-profile"
+GP_DATA_DIR = "X-GP-DATA-DIR"
+
 class PXFServiceCheck(Script):
   """
   Runs a set of simple PXF tests to verify if the service has been setup correctly
   """
   pxf_version = None
+  gp_profile = "X-GP-profile"
+  gp_data_dir = "X-GP-DATA-DIR"
   base_url = "http://" + pxf_constants.service_check_hostname + ":" + str(pxf_constants.PXF_PORT) + "/pxf/"
   commonPXFHeaders = {
     "X-GP-SEGMENT-COUNT": "1",
@@ -53,26 +59,34 @@ class PXFServiceCheck(Script):
     Runs the service check for PXF
     """
     import params
+    self.total_tests = 0
+    self.checks_failed = 0
     Logger.info("Starting PXF service checks")
-    try:
-      # Get delegation token if security is enabled
-      if params.security_enabled:
-        token = self.__get_delegation_token(params.hdfs_user, params.hdfs_user_keytab,
-                                            params.hdfs_principal_name, params.kinit_path_local)
-        self.commonPXFHeaders.update({"X-GP-TOKEN": token})
 
-      self.pxf_version = self.__get_pxf_protocol_version()
-      self.run_hdfs_tests()
-      if params.is_hbase_installed:
-        self.run_hbase_tests()
-      if params.is_hive_installed:
-        self.run_hive_tests()
-    except Exception, ex:
-      Logger.error("Exception received during service check execution:\n{0}".format(ex))
-      Logger.error("PXF service check failed.")
-      raise
+    # Get delegation token if security is enabled
+    if params.security_enabled:
+      self.total_tests +=1
+      token = self.__get_delegation_token(params.hdfs_user, params.hdfs_user_keytab,
+                                          params.hdfs_principal_name, params.kinit_path_local)
+      self.commonPXFHeaders.update({"X-GP-TOKEN": token})
 
+    self.total_tests +=1
+    self.pxf_version = self.__get_pxf_protocol_version()
+
+    self.total_tests +=1
+    self.run_hdfs_tests()
+    if params.is_hbase_installed:
+      self.total_tests +=1
+      self.run_hbase_tests()
+    if params.is_hive_installed:
+      self.total_tests +=1
+      self.run_hive_tests()
+
+    if self.checks_failed:
+      Logger.error("***FAILURE*** - {0} out of {1} tests failed.".format(self.checks_failed,self.total_tests))
+      sys.exit(1)
     Logger.info("Service check completed successfully")
+
 
   def __get_pxf_protocol_version(self):
     """
@@ -83,16 +97,18 @@ class PXFServiceCheck(Script):
     response = makeHTTPCall(url)
     Logger.info(response)
     # Sample response: 'PXF protocol version v14'
-    if response:
-      import re
-      # Extract the v14 from the output
-      match =  re.search('.*(v\d*).*', response)
-      if match:
-         return match.group(1)      
+    if not response:
+      error_msg = "Fetch PXF version: Could not get response from \nurl = {0}".format(url)
+      Logger.error(error_msg)
 
-    msg = "Unable to determine PXF version"
-    Logger.error(msg)
-    raise Fail(msg)
+    import re
+    # Extract the v14 from the output
+    match =  re.search('.*(v\d*).*', response)
+    if match:
+      return match.group(1)
+
+    error_msg = "Fetch PXF Version: Could not find version in \nresponse ={0} \nurl = {1}".format(response, url)
+    Logger.error(error_msg)
 
   def __check_pxf_read(self, headers):
     """
@@ -104,10 +120,8 @@ class PXFServiceCheck(Script):
       if not "PXFFragments" in response:
         Logger.error("Unable to find PXFFragments in the response. Response received from the server:\n{0}".format(response))
         raise
-    except:
-      msg = "PXF data read failed"
-      Logger.error(msg)
-      raise Fail(msg)
+    except Exception, ex:
+      raise Fail("PXF data read failed: {0}".format(ex))
     Logger.info("PXF data read successful")
 
 
@@ -124,10 +138,9 @@ class PXFServiceCheck(Script):
     if json_response['Token'] and json_response['Token']['urlString']:
       return json_response['Token']['urlString']
 
-    msg = "Unable to get delegation token"
-    Logger.error(msg)
-    raise Fail(msg)
-
+    error_msg = "Get Token: Unable to get kerberos delegation token from webhdfs: \nurl = {0}, user = {1}, keytab = {2}, principal = {3}, kinit-path = {4} \nresponse = {5}".format(url, user, keytab, principal, kinit_path, json_response)
+    Logger.error(error_msg)
+    self.checks_failed += 1
 
   # HDFS Routines
   def run_hdfs_tests(self):
@@ -135,12 +148,17 @@ class PXFServiceCheck(Script):
     Runs a set of PXF HDFS checks
     """
     Logger.info("Running PXF HDFS service checks")
-    self.__check_if_client_exists("Hadoop-HDFS")
-    self.__cleanup_hdfs_data()
     try:
+      self.__check_if_client_exists("Hadoop-HDFS")
+      self.__cleanup_hdfs_data()
       self.__write_hdfs_data()
       self.__check_pxf_hdfs_read()
       self.__check_pxf_hdfs_write()
+
+    except Exception, ex:
+      self.checks_failed += 1
+      Logger.error("HDFS test Failed: Exception occurred in HDFS test: {0}".format(ex))
+
     finally:
       self.__cleanup_hdfs_data()
 
@@ -149,18 +167,21 @@ class PXFServiceCheck(Script):
     Writes some test HDFS data for the tests
     """
     Logger.info("Writing temporary HDFS test data")
-    import params
-    params.HdfsResource(pxf_constants.pxf_hdfs_test_dir,
-        type="directory",
-        action="create_on_execute",
-        mode=0777
-    )
-    params.HdfsResource(pxf_constants.pxf_hdfs_read_test_file,
-        type="file",
-        source="/etc/passwd",
-        action="create_on_execute"
-    )
-    params.HdfsResource(None, action="execute")
+    try:
+      import params
+      params.HdfsResource(pxf_constants.pxf_hdfs_test_dir,
+          type="directory",
+          action="create_on_execute",
+          mode=0777
+      )
+      params.HdfsResource(pxf_constants.pxf_hdfs_read_test_file,
+          type="file",
+          source="/etc/passwd",
+          action="create_on_execute"
+      )
+      params.HdfsResource(None, action="execute")
+    except Exception, ex:
+      raise Fail("HDFS Write: Exception occurred when writing to hdfs:  {0} ".format(ex))
 
   def __check_pxf_hdfs_read(self):
     """
@@ -168,8 +189,8 @@ class PXFServiceCheck(Script):
     """
     Logger.info("Testing PXF HDFS read")
     headers = {
-        "X-GP-DATA-DIR": pxf_constants.pxf_hdfs_test_dir,
-        "X-GP-profile": "HdfsTextSimple",
+        GP_DATA_DIR: pxf_constants.pxf_hdfs_test_dir,
+        GP_PROFILE: "HdfsTextSimple",
         }
     headers.update(self.commonPXFHeaders)
     self.__check_pxf_read(headers)
@@ -196,12 +217,11 @@ class PXFServiceCheck(Script):
     try:
       response = makeHTTPCall(url, headers, body)
       if not "wrote" in response:
-        Logger.error("Unable to confirm write from the response")
-        raise 
+        error_msg = "PXF HDFS data write: Could not find write in response : \nurl = {0} \nresponse = {1}".format(url, response)
+        raise Fail(error_msg)
     except:
-      msg = "PXF HDFS data write test failed"
-      Logger.error(msg)
-      raise Fail(msg)
+      error_msg = "PXF HDFS data write test failed with url= {0}".format(url)
+      raise Fail(error_msg)
 
   def __cleanup_hdfs_data(self):
     """
@@ -233,6 +253,11 @@ class PXFServiceCheck(Script):
       message = "Creating temporary HBase smoke test table with data"
       self.__run_hbase_script(pxf_constants.hbase_populate_data_script, kinit_cmd, message)
       self.__check_pxf_hbase_read()
+
+    except Exception, ex:
+      self.checks_failed += 1
+      Logger.error("HBASE test Failed: Exception occurred in HBASE test: {0}".format(ex))
+
     finally:
       message = "Cleaning up HBase smoke test table"
       self.__run_hbase_script(pxf_constants.hbase_cleanup_data_script, kinit_cmd, message)
@@ -241,21 +266,25 @@ class PXFServiceCheck(Script):
     """
     Create file holding hbase commands
     """
-    import params
-    hbase_populate_data_cmds = "disable '{0}'\n" \
-                               "drop '{0}'\n" \
-                               "create '{0}', 'cf'\n" \
-                               "put '{0}', 'row1', 'cf:a', 'value1'\n" \
-                               "put '{0}', 'row1', 'cf:b', 'value2'".format(pxf_constants.pxf_hbase_test_table)
+    try:
+      import params
+      hbase_populate_data_cmds = "disable '{0}'\n" \
+                                 "drop '{0}'\n" \
+                                 "create '{0}', 'cf'\n" \
+                                 "put '{0}', 'row1', 'cf:a', 'value1'\n" \
+                                 "put '{0}', 'row1', 'cf:b', 'value2'".format(pxf_constants.pxf_hbase_test_table)
 
-    File("{0}".format(os.path.join(params.exec_tmp_dir, pxf_constants.hbase_populate_data_script)),
-         content=InlineTemplate("{0}".format(hbase_populate_data_cmds)))
+      File("{0}".format(os.path.join(params.exec_tmp_dir, pxf_constants.hbase_populate_data_script)),
+           content=InlineTemplate("{0}".format(hbase_populate_data_cmds)))
 
-    hbase_cleanup_data_cmds = "disable '{0}'\n" \
-                              "drop '{0}'".format(pxf_constants.pxf_hbase_test_table)
+      hbase_cleanup_data_cmds = "disable '{0}'\n" \
+                                "drop '{0}'".format(pxf_constants.pxf_hbase_test_table)
 
-    File("{0}".format(os.path.join(params.exec_tmp_dir, pxf_constants.hbase_cleanup_data_script)),
-         content=InlineTemplate("{0}".format(hbase_cleanup_data_cmds)))
+      File("{0}".format(os.path.join(params.exec_tmp_dir, pxf_constants.hbase_cleanup_data_script)),
+           content=InlineTemplate("{0}".format(hbase_cleanup_data_cmds)))
+
+    except Exception, ex:
+      raise Fail("Create HBASE Script: Could not create hbase_scripts: {0}".format(ex))
 
   def __run_hbase_script(self, script, kinit_cmd, message):
     """
@@ -271,9 +300,9 @@ class PXFServiceCheck(Script):
     Checks reading HBase data through PXF
     """
     Logger.info("Testing PXF HBase data read")
-    headers = { 
-        "X-GP-DATA-DIR": pxf_constants.pxf_hbase_test_table,
-        "X-GP-profile": "HBase",
+    headers = {
+        GP_DATA_DIR: pxf_constants.pxf_hbase_test_table,
+        GP_PROFILE: "HBase",
         }
     headers.update(self.commonPXFHeaders)
     self.__check_pxf_read(headers)
@@ -314,6 +343,11 @@ class PXFServiceCheck(Script):
     try:
       self.__write_hive_data(beeline_conn_cmd)
       self.__check_pxf_hive_read()
+
+    except Exception, ex:
+      self.checks_failed += 1
+      Logger.error("HIVE test Failed: Exception occurred in HIVE test: {0}".format(ex))
+
     finally:
       self.__cleanup_hive_data(beeline_conn_cmd)
 
@@ -321,10 +355,14 @@ class PXFServiceCheck(Script):
     """
     Creates a temporary Hive table for the service checks
     """
-    import params
-    Logger.info("Creating temporary Hive smoke test table with data")
-    cmd = "{0} -f {1}".format(beeline_conn_cmd, os.path.join(params.exec_tmp_dir, pxf_constants.hive_populate_data_script))
-    Execute(cmd, logoutput=True, user=params.hdfs_user)
+    try:
+      import params
+      Logger.info("Creating temporary Hive smoke test table with data")
+      cmd = "{0} -f {1}".format(beeline_conn_cmd, os.path.join(params.exec_tmp_dir, pxf_constants.hive_populate_data_script))
+      Execute(cmd, logoutput=True, user=params.hdfs_user)
+
+    except Exception, ex:
+      raise Fail("HIVE write: Could not write hive data: {0} \n command = {1}".format(ex, cmd))
 
   def __check_pxf_hive_read(self):
     """
@@ -332,8 +370,8 @@ class PXFServiceCheck(Script):
     """
     Logger.info("Testing PXF Hive data read")
     headers = {
-        "X-GP-DATA-DIR": pxf_constants.pxf_hive_test_table,
-        "X-GP-profile": "Hive",
+        GP_DATA_DIR: pxf_constants.pxf_hive_test_table,
+        GP_PROFILE: "Hive",
         }
     headers.update(self.commonPXFHeaders)
     self.__check_pxf_read(headers)
@@ -361,9 +399,7 @@ class PXFServiceCheck(Script):
     Logger.info("Checking if " + serviceName + " client libraries exist")
     if not self.__package_exists(serviceName):
       error_msg = serviceName + " client libraries do not exist on the PXF node"
-      Logger.error(error_msg)
       raise Fail(error_msg)
-
 
 if __name__ == "__main__":
   PXFServiceCheck().execute()
