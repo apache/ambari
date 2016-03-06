@@ -22,8 +22,8 @@
     <description>Maximum size in bytes of a single shared memory segment that a Linux process can allocate in its
       virtual address space</description>
     <value-attributes>
-      <overridable>false</overridable>
-      <editable-only-at-install>true</editable-only-at-install>
+      <type>int</type>
+      <minimum>0</minimum>
     </value-attributes>
   </property>
 
@@ -32,8 +32,8 @@
     <value>4096</value>
     <description>System wide maximum number of shared memory segments</description>
     <value-attributes>
-      <overridable>false</overridable>
-      <editable-only-at-install>true</editable-only-at-install>
+      <type>int</type>
+      <minimum>0</minimum>
     </value-attributes>
   </property>
 
@@ -42,8 +42,8 @@
     <value>4000000000</value>
     <description>Total amount of shared memory pages that can be used system wide</description>
     <value-attributes>
-      <overridable>false</overridable>
-      <editable-only-at-install>true</editable-only-at-install>
+      <type>int</type>
+      <minimum>0</minimum>
     </value-attributes>
   </property>
 
@@ -52,8 +52,7 @@
     <value>250 512000 100 2048</value>
     <description>Parameter to define semaphore related values</description>
     <value-attributes>
-      <overridable>false</overridable>
-      <editable-only-at-install>true</editable-only-at-install>
+      <type>string</type>
     </value-attributes>
   </property>
 
@@ -62,8 +61,9 @@
     <value>1</value>
     <description>Enable(1)/Disable(0) functions of sysrq</description>
     <value-attributes>
-      <overridable>false</overridable>
-      <editable-only-at-install>true</editable-only-at-install>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>1</maximum>
     </value-attributes>
   </property>
 
@@ -72,8 +72,9 @@
     <value>1</value>
     <description>Enable appending process id to the name of core dump file. Ex: core.PID</description>
     <value-attributes>
-      <overridable>false</overridable>
-      <editable-only-at-install>true</editable-only-at-install>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>1</maximum>
     </value-attributes>
   </property>
 
@@ -82,8 +83,8 @@
     <value>65536</value>
     <description>Default maximum size of a message in bytes</description>
     <value-attributes>
-      <overridable>false</overridable>
-      <editable-only-at-install>true</editable-only-at-install>
+      <type>int</type>
+      <minimum>0</minimum>
     </value-attributes>
   </property>
 
@@ -92,8 +93,8 @@
     <value>65536</value>
     <description>Default maxmimum size of a mesage queue</description>
     <value-attributes>
-      <overridable>false</overridable>
-      <editable-only-at-install>true</editable-only-at-install>
+      <type>int</type>
+      <minimum>0</minimum>
     </value-attributes>
   </property>
 
@@ -102,8 +103,8 @@
     <value>2048</value>
     <description>Number of message queue identifiers</description>
     <value-attributes>
-      <overridable>false</overridable>
-      <editable-only-at-install>true</editable-only-at-install>
+      <type>int</type>
+      <minimum>0</minimum>
     </value-attributes>
   </property>
 
@@ -112,8 +113,9 @@
     <value>0</value>
     <description>Enable(1)/Disable(0) SYN cookie protection</description>
     <value-attributes>
-      <overridable>false</overridable>
-      <editable-only-at-install>true</editable-only-at-install>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>1</maximum>
     </value-attributes>
   </property>
 
@@ -122,8 +124,9 @@
     <value>0</value>
     <description>Enable(1)/Disable(0) IP forwarding</description>
     <value-attributes>
-      <overridable>false</overridable>
-      <editable-only-at-install>true</editable-only-at-install>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>1</maximum>
     </value-attributes>
   </property>
 
@@ -132,8 +135,9 @@
     <value>0</value>
     <description>Enable(1)/Disable(0) IP source routing</description>
     <value-attributes>
-      <overridable>false</overridable>
-      <editable-only-at-install>true</editable-only-at-install>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>1</maximum>
     </value-attributes>
   </property>
 
@@ -142,8 +146,9 @@
     <value>1</value>
     <description>Enable(1)/Disable(0) fast recycling of TIME_WAIT sockets</description>
     <value-attributes>
-      <overridable>false</overridable>
-      <editable-only-at-install>true</editable-only-at-install>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>1</maximum>
     </value-attributes>
   </property>
 
@@ -152,8 +157,8 @@
     <value>200000</value>
     <description>Number of outstanding syn requests allowed</description>
     <value-attributes>
-      <overridable>false</overridable>
-      <editable-only-at-install>true</editable-only-at-install>
+      <type>int</type>
+      <minimum>0</minimum>
     </value-attributes>
   </property>
 
@@ -162,8 +167,9 @@
     <value>1</value>
     <description>Enable(1)/Disable(0) route lookup to determine the interface through which to send the reply</description>
     <value-attributes>
-      <overridable>false</overridable>
-      <editable-only-at-install>true</editable-only-at-install>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>1</maximum>
     </value-attributes>
   </property>
 
@@ -172,8 +178,7 @@
     <value>1281 65535</value>
     <description>Local port range that is used by TCP and UDP traffic to choose the local port</description>
     <value-attributes>
-      <overridable>false</overridable>
-      <editable-only-at-install>true</editable-only-at-install>
+      <type>string</type>
     </value-attributes>
   </property>
 
@@ -182,8 +187,8 @@
     <value>200000</value>
     <description>Maximum number of packets allowed to queue when a particular interface receives packets faster than the kernel can process them</description>
     <value-attributes>
-      <overridable>false</overridable>
-      <editable-only-at-install>true</editable-only-at-install>
+      <type>int</type>
+      <minimum>0</minimum>
     </value-attributes>
   </property>
 
@@ -192,8 +197,8 @@
     <value>3000000</value>
     <description>Maximum number of file-handles a process can allocate</description>
     <value-attributes>
-      <overridable>false</overridable>
-      <editable-only-at-install>true</editable-only-at-install>
+      <type>int</type>
+      <minimum>0</minimum>
     </value-attributes>
   </property>
 
@@ -202,8 +207,8 @@
     <value>798720</value>
     <description>System-wide maximum number of threads to be used by the kernel at one time</description>
     <value-attributes>
-      <overridable>false</overridable>
-      <editable-only-at-install>true</editable-only-at-install>
+      <type>int</type>
+      <minimum>0</minimum>
     </value-attributes>
   </property>
 
@@ -212,8 +217,8 @@
     <value>798720</value>
     <description>Maximum number of unique process identifiers</description>
     <value-attributes>
-      <overridable>false</overridable>
-      <editable-only-at-install>true</editable-only-at-install>
+      <type>int</type>
+      <minimum>0</minimum>
     </value-attributes>
   </property>
 
@@ -222,8 +227,8 @@
     <value>2097152</value>
     <description>Maximum receive socket buffer size in bytes</description>
     <value-attributes>
-      <overridable>false</overridable>
-      <editable-only-at-install>true</editable-only-at-install>
+      <type>int</type>
+      <minimum>0</minimum>
     </value-attributes>
   </property>
 
@@ -232,16 +237,34 @@
     <value>2097152</value>
     <description>Maximum send socket buffer size in bytes</description>
     <value-attributes>
-      <overridable>false</overridable>
-      <editable-only-at-install>true</editable-only-at-install>
+      <type>int</type>
+      <minimum>0</minimum>
     </value-attributes>
   </property>
 
   <property>
     <name>vm.overcommit_memory</name>
+    <display-name>VM Overcommit</display-name>
     <value>1</value>
-    <description>Defines the conditions that determine whether a large memory request is accepted or denied. There are
-      three possible values for this parameter: 0, 1 or 2. For production environment, value of 2 is recommended</description>
+    <description>Defines the conditions that determine whether a large memory request is accepted or denied. There are three possible values for this parameter: 0, 1 or 2. For production environment, value of 2 is recommended</description>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>0</value>
+          <description>Heuristic overcommit handling</description>
+        </entry>
+        <entry>
+          <value>1</value>
+          <description>Always overcommit</description>
+        </entry>
+        <entry>
+          <value>2</value>
+          <description>Don't overcommit</description>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
   </property>
 
 </configuration>

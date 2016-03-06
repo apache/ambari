@@ -17,83 +17,132 @@
 -->
 
 <configuration>
+
 	<!-- RPC client configuration -->
-      <property>
-          <name>rpc.client.timeout</name>
-          <value>3600000</value>
-          <description>
-          Timeout interval of a RPC invocation in millisecond. Default is 3600000.
-          </description>
-        </property>
-        <property>
-          <name>rpc.client.connect.tcpnodelay</name>
-          <value>true</value>
-          <description>
-          Whether to set socket TCP_NODELAY to true when connecting to RPC server. Default is true.
-          </description>
-        </property>
+  <property>
+    <name>rpc.client.timeout</name>
+    <value>3600000</value>
+    <description>
+      Timeout interval of a RPC invocation in millisecond. Default is 3600000.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <unit>milliseconds</unit>
+    </value-attributes>
+  </property>
 
-        <property>
-          <name>rpc.client.max.idle</name>
-          <value>10000</value>
-          <description>
-          Max idle time of a RPC connection in milliseconds. Default is 10000.
-          </description>
-        </property>
-        
-        <property>
-          <name>rpc.client.ping.interval</name>
-          <value>10000</value>
-          <description>
-          Interval at which the RPC client sends a heart beat to server. 0 means disable, default is 10000.
-          </description>
-        </property>
-        
-        <property>
-          <name>rpc.client.connect.timeout</name>
-          <value>600000</value>
-          <description>
-          Timeout interval in milliseconds for which RPC client tries to setup the connection. Default is 600000.
-          </description>
-        </property>
-        
-        <property>
-          <name>rpc.client.connect.retry</name>
-          <value>10</value>
-          <description>
-          Max retry attempts if the RPC client fails to setup the connection to server. Default is 10.
-          </description>
-        </property>
-        
-        <property>
-          <name>rpc.client.read.timeout</name>
-          <value>3600000</value>
-          <description>
-          Timeout interval in milliseconds when the RPC client is trying to read from server. Default is 3600000.
-          </description>
-        </property>
+  <property>
+    <name>rpc.client.connect.tcpnodelay</name>
+    <value>true</value>
+    <description>
+      Whether to set socket TCP_NODELAY to true when connecting to RPC server. Default is true.
+    </description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+  </property>
 
-        <property>
-          <name>rpc.client.write.timeout</name>
-          <value>3600000</value>
-          <description>
-          Timeout interval in milliseconds when the RPC client is trying to write to server. Default is 3600000.
-          </description>
-        </property>
-        
-        <property>
-          <name>rpc.client.socket.linger.timeout</name>
-          <value>-1</value>
-          <description>
-          Set value to socket SO_LINGER when connecting to RPC server. -1 means default OS value. Default is -1.
-          </description>
-        </property>
-        
-        <property>
-          <name>yarn.client.failover.max.attempts</name>
-          <value>15</value>
-          <description>
-          If multiple resource managers are configured, it is the max retry attempts for which yarn client tries to issue a RPC call. Default is 15.
-          </description>
-        </property>
+  <property>
+    <name>rpc.client.max.idle</name>
+    <value>10000</value>
+    <description>
+      Max idle time of a RPC connection in milliseconds. Default is 10000.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <unit>milliseconds</unit>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>rpc.client.ping.interval</name>
+    <value>10000</value>
+    <description>
+      Interval at which the RPC client sends a heart beat to server. 0 means disable, default is 10000.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <unit>milliseconds</unit>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>rpc.client.connect.timeout</name>
+    <value>600000</value>
+    <description>
+      Timeout interval in milliseconds for which RPC client tries to setup the connection. Default is 600000.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <unit>milliseconds</unit>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>rpc.client.connect.retry</name>
+    <value>10</value>
+    <description>
+      Max retry attempts if the RPC client fails to setup the connection to server. Default is 10.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>rpc.client.read.timeout</name>
+    <value>3600000</value>
+    <description>
+      Timeout interval in milliseconds when the RPC client is trying to read from server. Default is 3600000.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <unit>milliseconds</unit>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>rpc.client.write.timeout</name>
+    <value>3600000</value>
+    <description>
+      Timeout interval in milliseconds when the RPC client is trying to write to server. Default is 3600000.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <unit>milliseconds</unit>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>rpc.client.socket.linger.timeout</name>
+    <value>-1</value>
+    <description>
+      Set value to socket SO_LINGER when connecting to RPC server. -1 means default OS value. Default is -1.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <unit>milliseconds</unit>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>yarn.client.failover.max.attempts</name>
+    <value>15</value>
+    <description>
+      If multiple resource managers are configured, it is the max retry attempts for which yarn client tries to issue a RPC call. Default is 15.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+    </value-attributes>
+  </property>
+
 </configuration>
