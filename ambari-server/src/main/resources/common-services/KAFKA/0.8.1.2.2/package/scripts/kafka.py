@@ -131,6 +131,13 @@ def kafka(upgrade_type=None):
          content=Template("kafka.conf.j2")
     )
 
+    File(os.path.join(params.conf_dir, 'tools-log4j.properties'),
+         owner='root',
+         group='root',
+         mode=0644,
+         content=Template("tools-log4j.properties.j2")
+         )
+
     setup_symlink(params.kafka_managed_pid_dir, params.kafka_pid_dir)
     setup_symlink(params.kafka_managed_log_dir, params.kafka_log_dir)
 
