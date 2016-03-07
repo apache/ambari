@@ -53,7 +53,7 @@
   </property>
   <property require-input="true">
     <name>metrics_grafana_password</name>
-    <value>admin</value>
+    <value></value>
     <property-type>PASSWORD</property-type>
     <display-name>Metrics Grafana Admin Password</display-name>
     <description>
@@ -63,6 +63,7 @@
     </description>
     <value-attributes>
       <overridable>false</overridable>
+      <type>password</type>
     </value-attributes>
   </property>
   <property>
