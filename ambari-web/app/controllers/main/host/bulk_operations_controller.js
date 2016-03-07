@@ -39,7 +39,7 @@ App.BulkOperationsController = Em.Controller.extend({
         this.bulkOperationForHostComponentsRestart(operationData, hosts);
       }
       else if (operationData.action === 'ADD') {
-        this.bulkOperationForHostComponentsAddConfirm(operationData, hosts);
+        this.bulkOperationForHostComponentsAdd(operationData, hosts);
       }
       else {
         if (operationData.action.indexOf('DECOMMISSION') == -1) {
@@ -310,16 +310,26 @@ App.BulkOperationsController = Em.Controller.extend({
   },
 
   /**
-   * Confirm bulk add for selected hostComponent
+   * bulk add for selected hostComponent
    * @param {Object} operationData - data about bulk operation (action, hostComponent etc)
    * @param {Array} hosts - list of affected hosts
    */
-  bulkOperationForHostComponentsAddConfirm: function (operationData, hosts) {
+  bulkOperationForHostComponentsAdd: function (operationData, hosts) {
+    var self = this;
+    return batchUtils.getComponentsFromServer({
+      components: [operationData.componentName],
+      hosts: hosts.mapProperty('hostName')
+    }, function (data) {
+      return self._getComponentsFromServerForHostComponentsAddCallback(operationData, data, hosts);
+    });
+  },
+
+  _getComponentsFromServerForHostComponentsAddCallback: function (operationData, data, hosts) {
     var self = this;
 
     hosts = hosts.mapProperty('hostName');
 
-    var allHostsWithComponent = App.HostComponent.find().filterProperty('componentName', operationData.componentName).mapProperty('hostName');
+    var allHostsWithComponent = data.items.mapProperty('Hosts.host_name');
     var hostsWithComponent = hosts.filter(function (host) {
       return allHostsWithComponent.contains(host);
     });
@@ -346,7 +356,7 @@ App.BulkOperationsController = Em.Controller.extend({
         },
 
         onPrimary: function() {
-          self.bulkOperationForHostComponentsAdd(operationData, hostsWithOutComponent);
+          self.bulkAddHostComponents(operationData, hostsWithOutComponent);
           this._super();
         },
         bodyClass: Em.View.extend({
@@ -387,7 +397,7 @@ App.BulkOperationsController = Em.Controller.extend({
    * @param {Object} operationData - data about bulk operation (action, hostComponent etc)
    * @param {Array} hostNames - list of affected hosts' names
    */
-  bulkOperationForHostComponentsAdd: function (operationData, hostNames) {
+  bulkAddHostComponents: function (operationData, hostNames) {
     var self= this;
     App.get('router.mainAdminKerberosController').getKDCSessionState(function () {
       App.ajax.send({
