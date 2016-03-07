@@ -20,16 +20,18 @@ limitations under the License.
 
 from unittest import TestCase
 from alerts.base_alert import BaseAlert
-
-alert = BaseAlert({}, {})
+from AmbariConfig import AmbariConfig
 
 class TestBaseAlert(TestCase):
+
+  def setUp(self):
+    self.config = AmbariConfig()
 
   def test_interval_noData(self):
     alert_meta = {}
     alert_source_meta = {}
 
-    alert = BaseAlert(alert_meta, alert_source_meta)
+    alert = BaseAlert(alert_meta, alert_source_meta, self.config)
     interval = alert.interval()
     self.assertEquals(interval, 1)
 
@@ -37,7 +39,7 @@ class TestBaseAlert(TestCase):
     alert_meta = {'interval': 0}
     alert_source_meta = {}
 
-    alert = BaseAlert(alert_meta, alert_source_meta)
+    alert = BaseAlert(alert_meta, alert_source_meta, self.config)
     interval = alert.interval()
     self.assertEquals(interval, 1)
 
@@ -45,7 +47,7 @@ class TestBaseAlert(TestCase):
     alert_meta = {'interval': 5}
     alert_source_meta = {}
 
-    alert = BaseAlert(alert_meta, alert_source_meta)
+    alert = BaseAlert(alert_meta, alert_source_meta, self.config)
     interval = alert.interval()
     self.assertEquals(interval, 5)
 
@@ -53,7 +55,7 @@ class TestBaseAlert(TestCase):
     alert_meta = {'enabled': 'true'}
     alert_source_meta = {}
 
-    alert = BaseAlert(alert_meta, alert_source_meta)
+    alert = BaseAlert(alert_meta, alert_source_meta, self.config)
     enabled = alert.is_enabled()
     self.assertEquals(enabled, 'true')
 
@@ -61,7 +63,7 @@ class TestBaseAlert(TestCase):
     alert_meta = {'name': 'ambari'}
     alert_source_meta = {}
 
-    alert = BaseAlert(alert_meta, alert_source_meta)
+    alert = BaseAlert(alert_meta, alert_source_meta, self.config)
     name = alert.get_name()
     self.assertEquals(name, 'ambari')
 
@@ -69,7 +71,7 @@ class TestBaseAlert(TestCase):
     alert_meta = {'uuid': '123'}
     alert_source_meta = {}
 
-    alert = BaseAlert(alert_meta, alert_source_meta)
+    alert = BaseAlert(alert_meta, alert_source_meta, self.config)
     uuid = alert.get_uuid()
     self.assertEquals(uuid, '123')
 
@@ -79,7 +81,7 @@ class TestBaseAlert(TestCase):
     cluster = 'cluster'
     host = 'host'
 
-    alert = BaseAlert(alert_meta, alert_source_meta)
+    alert = BaseAlert(alert_meta, alert_source_meta, self.config)
     alert.set_cluster(cluster, host)
     self.assertEquals(alert.cluster_name, cluster)
     self.assertEquals(alert.host_name, host)

@@ -24,7 +24,6 @@ __all__ = ["curl_krb_request"]
 import logging
 import os
 import time
-import threading
 
 from resource_management.core import global_lock
 from resource_management.core import shell
@@ -49,11 +48,51 @@ MAX_TIMEOUT_DEFAULT = CONNECTION_TIMEOUT_DEFAULT + 2
 
 logger = logging.getLogger()
 
+# a dictionary of the last time that a kinit was performed for a specific cache
+# dicionaries are inherently thread-safe in Python via the Global Interpreer Lock
+# https://docs.python.org/2/glossary.html#term-global-interpreter-lock
+_KINIT_CACHE_TIMES = {}
+
+# the default time in between forced kinit calls (4 hours)
+DEFAULT_KERBEROS_KINIT_TIMER_MS = 14400000
+
+# a parameter which can be used to pass around the above timout value
+KERBEROS_KINIT_TIMER_PARAMETER = "kerberos.kinit.timer"
+
 def curl_krb_request(tmp_dir, keytab, principal, url, cache_file_prefix,
-    krb_exec_search_paths, return_only_http_code, alert_name, user,
-    connection_timeout = CONNECTION_TIMEOUT_DEFAULT):
+    krb_exec_search_paths, return_only_http_code, caller_label, user,
+    connection_timeout = CONNECTION_TIMEOUT_DEFAULT,
+    kinit_timer_ms=DEFAULT_KERBEROS_KINIT_TIMER_MS):
+  """
+  Makes a curl request using the kerberos credentials stored in a calculated cache file. The
+  cache file is created by combining the supplied principal, keytab, user, and request name into
+  a unique hash.
+
+  This function will use the klist command to determine if the cache is expired and will perform
+  a kinit if necessary. Additionally, it has an internal timer to force a kinit after a
+  configurable amount of time. This is to prevent boundary issues where requests hit the edge
+  of a ticket's lifetime.
+
+  :param tmp_dir: the directory to use for storing the local kerberos cache for this request.
+  :param keytab: the location of the keytab to use when performing a kinit
+  :param principal: the principal to use when performing a kinit
+  :param url: the URL to request
+  :param cache_file_prefix: an identifier used to build the unique cache name for this request.
+                            This ensures that multiple requests can use the same cache.
+  :param krb_exec_search_paths: the search path to use for invoking kerberos binaries
+  :param return_only_http_code: True to return only the HTTP code, False to return GET content
+  :param caller_label: an identifier to give context into the caller of this module (used for logging)
+  :param user: the user to invoke the curl command as
+  :param connection_timeout: if specified, a connection timeout for curl (default 10 seconds)
+  :param kinit_timer_ms: if specified, the time (in ms), before forcing a kinit even if the
+                         klist cache is still valid.
+  :return:
+  """
 
   import uuid
+
+  # start off false
+  is_kinit_required = False
 
   # Create the kerberos credentials cache (ccache) file and set it in the environment to use
   # when executing curl. Use the md5 hash of the combination of the principal and keytab file
@@ -75,19 +114,41 @@ def curl_krb_request(tmp_dir, keytab, principal, url, cache_file_prefix,
     else:
       klist_path_local = get_klist_path()
 
-    if shell.call("{0} -s {1}".format(klist_path_local, ccache_file_path), user=user)[0] != 0:
+    # take a look at the last time kinit was run for the specified cache and force a new
+    # kinit if it's time; this helps to avoid problems approaching ticket boundary when
+    # executing a klist and then a curl
+    last_kinit_time = _KINIT_CACHE_TIMES.get(ccache_file_name, 0)
+    current_time = long(time.time())
+    if current_time - kinit_timer_ms > last_kinit_time:
+      is_kinit_required = True
+
+    # if the time has not expired, double-check that the cache still has a valid ticket
+    if not is_kinit_required:
+      klist_command = "{0} -s {1}".format(klist_path_local, ccache_file_path)
+      is_kinit_required = (shell.call(klist_command, user=user)[0] != 0)
+
+    # if kinit is required, the perform the kinit
+    if is_kinit_required:
       if krb_exec_search_paths:
         kinit_path_local = get_kinit_path(krb_exec_search_paths)
       else:
         kinit_path_local = get_kinit_path()
 
-      logger.debug("[Alert][{0}] Enabling Kerberos authentication via GSSAPI using ccache at {1}.".format(
-        alert_name, ccache_file_path))
+      logger.debug("Enabling Kerberos authentication for %s via GSSAPI using ccache at %s",
+        caller_label, ccache_file_path)
 
-      shell.checked_call("{0} -l 5m -c {1} -kt {2} {3} > /dev/null".format(kinit_path_local, ccache_file_path, keytab, principal), user=user)
+      # kinit; there's no need to set a ticket timeout as this will use the default invalidation
+      # configured in the krb5.conf - regenerating keytabs will not prevent an existing cache
+      # from working correctly
+      shell.checked_call("{0} -c {1} -kt {2} {3} > /dev/null".format(kinit_path_local,
+        ccache_file_path, keytab, principal), user=user)
+
+      # record kinit time
+      _KINIT_CACHE_TIMES[ccache_file_name] = current_time
     else:
-      logger.debug("[Alert][{0}] Kerberos authentication via GSSAPI already enabled using ccache at {1}.".format(
-        alert_name, ccache_file_path))
+      # no kinit needed, use the cache
+      logger.debug("Kerberos authentication for %s via GSSAPI already enabled using ccache at %s.",
+        caller_label, ccache_file_path)
   finally:
     kinit_lock.release()
 
@@ -119,7 +180,7 @@ def curl_krb_request(tmp_dir, keytab, principal, url, cache_file_prefix,
                              user=user, env=kerberos_env)
   except Fail:
     if logger.isEnabledFor(logging.DEBUG):
-      logger.exception("[Alert][{0}] Unable to make a web request.".format(alert_name))
+      logger.exception("Unable to make a curl request for {0}.".format(caller_label))
     raise
   finally:
     if os.path.isfile(cookie_file):
@@ -138,6 +199,7 @@ def curl_krb_request(tmp_dir, keytab, principal, url, cache_file_prefix,
     else:
       return (curl_stdout, error_msg, time_millis)
 
-  logger.debug("[Alert][{0}] Curl response is empty! Please take a look at error message: ".
-               format(alert_name, str(error_msg)))
+  logger.debug("The curl response for %s is empty; standard error = %s",
+    caller_label, str(error_msg))
+
   return ("", error_msg, time_millis)

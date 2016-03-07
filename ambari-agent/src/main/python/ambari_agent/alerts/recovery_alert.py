@@ -30,8 +30,8 @@ DEFAULT_CRITICAL_RECOVERIES_COUNT = 4
 UNKNOWN_COMPONENT = 'UNKNOWN_COMPONENT'
 class RecoveryAlert(BaseAlert):
 
-  def __init__(self, alert_meta, alert_source_meta, recovery_manager):
-    super(RecoveryAlert, self).__init__(alert_meta, alert_source_meta)
+  def __init__(self, alert_meta, alert_source_meta, config, recovery_manager):
+    super(RecoveryAlert, self).__init__(alert_meta, alert_source_meta, config)
 
     self.recovery_manager = recovery_manager
     self.warning_count = DEFAULT_WARNING_RECOVERIES_COUNT

@@ -21,9 +21,10 @@ limitations under the License.
 import urllib2
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 import logging
-import traceback
 
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request
+from resource_management.libraries.functions.curl_krb_request import DEFAULT_KERBEROS_KINIT_TIMER_MS
+from resource_management.libraries.functions.curl_krb_request import KERBEROS_KINIT_TIMER_PARAMETER
 from resource_management.core.environment import Environment
 
 RESULT_STATE_OK = 'OK'
@@ -110,6 +111,7 @@ def execute(configurations={}, parameters={}, host_name=None):
     kerberos_principal = configurations[KERBEROS_PRINCIPAL]
     kerberos_principal = kerberos_principal.replace('_HOST', host_name)
 
+  kinit_timer_ms = parameters.get(KERBEROS_KINIT_TIMER_PARAMETER, DEFAULT_KERBEROS_KINIT_TIMER_MS)
 
   # determine whether or not SSL is enabled
   is_ssl_enabled = False
@@ -165,7 +167,8 @@ def execute(configurations={}, parameters={}, host_name=None):
 
           state_response, error_msg, time_millis  = curl_krb_request(env.tmp_dir,
             kerberos_keytab, kerberos_principal, jmx_uri,"ha_nn_health", executable_paths, False,
-            "NameNode High Availability Health", smokeuser, connection_timeout=curl_connection_timeout)
+            "NameNode High Availability Health", smokeuser, connection_timeout=curl_connection_timeout,
+            kinit_timer_ms = kinit_timer_ms)
 
           state = _get_ha_state_from_json(state_response)
         else:

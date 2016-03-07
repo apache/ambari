@@ -25,6 +25,8 @@ import traceback
 
 from ambari_commons.urllib_handlers import RefreshHeaderProcessor
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request
+from resource_management.libraries.functions.curl_krb_request import DEFAULT_KERBEROS_KINIT_TIMER_MS
+from resource_management.libraries.functions.curl_krb_request import KERBEROS_KINIT_TIMER_PARAMETER
 from resource_management.core.environment import Environment
 
 ERROR_LABEL = '{0} NodeManager{1} {2} unhealthy.'
@@ -109,6 +111,8 @@ def execute(configurations={}, parameters={}, host_name=None):
   if CONNECTION_TIMEOUT_KEY in parameters:
     connection_timeout = float(parameters[CONNECTION_TIMEOUT_KEY])
 
+  kinit_timer_ms = parameters.get(KERBEROS_KINIT_TIMER_PARAMETER, DEFAULT_KERBEROS_KINIT_TIMER_MS)
+
   # determine the right URI and whether to use SSL
   uri = http_uri
   if http_policy == 'HTTPS_ONLY':
@@ -130,7 +134,8 @@ def execute(configurations={}, parameters={}, host_name=None):
 
       url_response, error_msg, time_millis  = curl_krb_request(env.tmp_dir, kerberos_keytab, kerberos_principal,
         live_nodemanagers_qry, "nm_health_summary_alert", executable_paths, False,
-        "NodeManager Health Summary", smokeuser, connection_timeout=curl_connection_timeout)
+        "NodeManager Health Summary", smokeuser, connection_timeout=curl_connection_timeout,
+        kinit_timer_ms = kinit_timer_ms)
 
       try:
         url_response_json = json.loads(url_response)
@@ -143,7 +148,8 @@ def execute(configurations={}, parameters={}, host_name=None):
       if convert_to_json_failed:
         response_code, error_msg, time_millis  = curl_krb_request(env.tmp_dir, kerberos_keytab, kerberos_principal,
           live_nodemanagers_qry, "nm_health_summary_alert", executable_paths, True,
-          "NodeManager Health Summary", smokeuser, connection_timeout=curl_connection_timeout)
+          "NodeManager Health Summary", smokeuser, connection_timeout=curl_connection_timeout,
+          kinit_timer_ms = kinit_timer_ms)
     else:
       live_nodemanagers = json.loads(get_value_from_jmx(live_nodemanagers_qry,
       "LiveNodeManagers", connection_timeout))

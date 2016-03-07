@@ -25,7 +25,12 @@ from math import sqrt
 import urllib
 import time
 import urllib2
-from resource_management import Environment, curl_krb_request
+from resource_management import Environment
+
+from resource_management.libraries.functions.curl_krb_request import curl_krb_request
+from resource_management.libraries.functions.curl_krb_request import DEFAULT_KERBEROS_KINIT_TIMER_MS
+from resource_management.libraries.functions.curl_krb_request import KERBEROS_KINIT_TIMER_PARAMETER
+
 
 RESULT_STATE_OK = 'OK'
 RESULT_STATE_CRITICAL = 'CRITICAL'
@@ -178,6 +183,8 @@ def execute(configurations={}, parameters={}, host_name=None):
       if dfs_policy == "HTTPS_ONLY":
         is_ssl_enabled = True
 
+    kinit_timer_ms = parameters.get(KERBEROS_KINIT_TIMER_PARAMETER, DEFAULT_KERBEROS_KINIT_TIMER_MS)
+
     name_service = configurations[NAMESERVICE_KEY]
     hdfs_site = configurations[HDFS_SITE_KEY]
 
@@ -215,9 +222,10 @@ def execute(configurations={}, parameters={}, host_name=None):
 
             # curl requires an integer timeout
             curl_connection_timeout = int(connection_timeout)
-            state_response, error_msg, time_millis  = curl_krb_request(env.tmp_dir,
-                                                                       kerberos_keytab, kerberos_principal, jmx_uri,"ha_nn_health", executable_paths, False,
-                                                                       "NameNode High Availability Health", smokeuser, connection_timeout=curl_connection_timeout)
+            state_response, error_msg, time_millis = curl_krb_request(env.tmp_dir,
+              kerberos_keytab, kerberos_principal, jmx_uri,"ha_nn_health", executable_paths, False,
+              "NameNode High Availability Health", smokeuser, connection_timeout=curl_connection_timeout,
+              kinit_timer_ms = kinit_timer_ms)
 
             state = _get_ha_state_from_json(state_response)
           else:

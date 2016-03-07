@@ -23,7 +23,10 @@ import ambari_simplejson as json # simplejson is much faster comparing to Python
 import logging
 import traceback
 
-from resource_management.libraries.functions.curl_krb_request import curl_krb_request, CONNECTION_TIMEOUT_DEFAULT
+from resource_management.libraries.functions.curl_krb_request import curl_krb_request
+from resource_management.libraries.functions.curl_krb_request import DEFAULT_KERBEROS_KINIT_TIMER_MS
+from resource_management.libraries.functions.curl_krb_request import KERBEROS_KINIT_TIMER_PARAMETER
+from resource_management.libraries.functions.curl_krb_request import CONNECTION_TIMEOUT_DEFAULT
 from resource_management.core.environment import Environment
 
 NN_HTTP_ADDRESS_KEY = '{{hdfs-site/dfs.namenode.http-address}}'
@@ -100,6 +103,8 @@ def execute(configurations={}, parameters={}, host_name=None):
     kerberos_principal = configurations[KERBEROS_PRINCIPAL]
     kerberos_principal = kerberos_principal.replace('_HOST', host_name)
 
+  kinit_timer_ms = parameters.get(KERBEROS_KINIT_TIMER_PARAMETER, DEFAULT_KERBEROS_KINIT_TIMER_MS)
+
   # determine the right URI and whether to use SSL
   uri = http_uri
   if http_policy == 'HTTPS_ONLY':
@@ -121,7 +126,7 @@ def execute(configurations={}, parameters={}, host_name=None):
       last_checkpoint_time_response, error_msg, time_millis = curl_krb_request(
         env.tmp_dir, kerberos_keytab,
         kerberos_principal, upgrade_finalized_qry, "upgrade_finalized_state", executable_paths, False,
-        "HDFS Upgrade Finalized State", smokeuser
+        "HDFS Upgrade Finalized State", smokeuser, kinit_timer_ms = kinit_timer_ms
        )
 
       upgrade_finalized_response_json = json.loads(last_checkpoint_time_response)

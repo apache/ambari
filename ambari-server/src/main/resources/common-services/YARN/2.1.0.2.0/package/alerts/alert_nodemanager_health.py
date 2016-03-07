@@ -26,6 +26,8 @@ import traceback
 from ambari_commons import OSCheck
 from ambari_commons.inet_utils import resolve_address
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request
+from resource_management.libraries.functions.curl_krb_request import DEFAULT_KERBEROS_KINIT_TIMER_MS
+from resource_management.libraries.functions.curl_krb_request import KERBEROS_KINIT_TIMER_PARAMETER
 from resource_management.core.environment import Environment
 
 RESULT_CODE_OK = 'OK'
@@ -155,9 +157,11 @@ def execute(configurations={}, parameters={}, host_name=None):
       # curl requires an integer timeout
       curl_connection_timeout = int(connection_timeout)
 
+      kinit_timer_ms = parameters.get(KERBEROS_KINIT_TIMER_PARAMETER, DEFAULT_KERBEROS_KINIT_TIMER_MS)
+
       url_response, error_msg, time_millis  = curl_krb_request(env.tmp_dir, kerberos_keytab, kerberos_principal,
         query, "nm_health_alert", executable_paths, False, "NodeManager Health", smokeuser,
-        connection_timeout=curl_connection_timeout)
+        connection_timeout=curl_connection_timeout, kinit_timer_ms = kinit_timer_ms)
 
       json_response = json.loads(url_response)
     else:

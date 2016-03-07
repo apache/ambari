@@ -33,8 +33,8 @@ DEFAULT_CRITICAL_TIMEOUT = 5.0
 
 class PortAlert(BaseAlert):
 
-  def __init__(self, alert_meta, alert_source_meta):
-    super(PortAlert, self).__init__(alert_meta, alert_source_meta)
+  def __init__(self, alert_meta, alert_source_meta, config):
+    super(PortAlert, self).__init__(alert_meta, alert_source_meta, config)
 
     self.uri = None
     self.default_port = None
