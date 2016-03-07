@@ -20,14 +20,12 @@ var App = require('app');
 App.ExperimentalController = Em.Controller.extend(App.UserPref, {
   name: 'experimentalController',
   supports: function () {
-    var supports = [];
-    Em.keys(App.get('supports')).forEach(function (sup) {
-      supports.push(Ember.Object.create({
+    return Em.keys(App.get('supports')).map(function (sup) {
+      return Ember.Object.create({
         name: sup,
         selected: App.get('supports')[sup]
-      }));
+      });
     });
-    return supports;
   }.property('App.supports'),
 
 

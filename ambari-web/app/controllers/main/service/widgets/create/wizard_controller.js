@@ -90,9 +90,7 @@ App.WidgetWizardController = App.WizardController.extend({
     widgetValues: [],
     widgetName: "",
     widgetDescription: "",
-    widgetAuthor: function () {
-      return App.router.get('loginName');
-    }.property('App.router.loginName'),
+    widgetAuthor: Em.computed.alias('App.router.loginName'),
     widgetScope: null
   }),
 

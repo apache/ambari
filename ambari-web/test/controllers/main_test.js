@@ -142,7 +142,7 @@ describe('App.MainController', function () {
     });
   });
 
-  describe.skip('#updateTitle', function() {
+  describe('#updateTitle', function() {
     beforeEach(function () {
       sinon.stub(App.router, 'get', function(message){
         if (message === 'clusterController.clusterName') {

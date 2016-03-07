@@ -37,7 +37,7 @@ App.MainController = Em.Controller.extend({
       }
       $('title').text(Em.I18n.t('app.name.subtitle').format(name));
     }
-  }.observes('App.router.clusterController.clusterName, App.router.clusterInstallCompleted', 'App.router.clusterController.isLoaded'),
+  }.observes('App.router.clusterController.clusterName', 'App.router.clusterInstallCompleted', 'App.router.clusterController.isLoaded'),
 
   isClusterDataLoaded: Em.computed.alias('App.router.clusterController.isLoaded'),
 

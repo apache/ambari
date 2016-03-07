@@ -41,5 +41,5 @@ App.ReassignMasterWizardStep3View = Em.View.extend({
     }
 
     return false;
-  }.property('controller.content.reassign.display_name, controller.content.databaseType')
+  }.property('controller.content.reassign.display_name', 'controller.content.databaseType')
 });

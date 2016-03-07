@@ -33,6 +33,8 @@ describe('App.ApplicationController', function () {
 
   App.TestAliases.testAsComputedAnd(getController(), 'isExistingClusterDataLoaded', ['App.router.clusterInstallCompleted','isClusterDataLoaded']);
 
+  App.TestAliases.testAsComputedAnd(getController(), 'enableLinks', ['isExistingClusterDataLoaded','!App.isOnlyViewUser']);
+
   describe('#showAboutPopup', function() {
     var dataToShowRes = {};
     beforeEach(function () {
