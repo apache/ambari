@@ -43,7 +43,7 @@ public class AbstractTimelineAggregatorTest {
 
   @Before
   public void setUp() throws Exception {
-    sleepIntervalMillis = 2*2*30000l; //2 minutes
+    sleepIntervalMillis = 5*60*1000l; //5 minutes
     checkpointCutOffMultiplier = 2;
 
     Configuration metricsConf = new Configuration();
@@ -112,10 +112,12 @@ public class AbstractTimelineAggregatorTest {
   public void testDoWorkOnZeroDelay() throws Exception {
 
     long currentTime = System.currentTimeMillis();
-    long roundedOffAggregatorTime = AbstractTimelineAggregator.getRoundedAggregateTimeMillis(currentTime);
-
+    long roundedOffAggregatorTime = AbstractTimelineAggregator.getRoundedCheckPointTimeMillis(currentTime,
+      sleepIntervalMillis);
+    
     //Test first run of aggregator with no checkpoint
-    agg.setLastAggregatedEndTime(roundedOffAggregatorTime);
+    checkPoint.set(-1);
+    agg.setLastAggregatedEndTime(-1l);
     agg.runOnce(sleepIntervalMillis);
     assertEquals("startTime should be zero", 0, startTimeInDoWork.get());
     assertEquals("endTime  should be zero", 0, endTimeInDoWork.get());
@@ -123,7 +125,9 @@ public class AbstractTimelineAggregatorTest {
     assertEquals("Do not aggregate on first run", 0, actualRuns);
 
     //Test first run with Too Old checkpoint
-    checkPoint.set(currentTime - 5*60*1000); //Old checkpoint
+    currentTime = System.currentTimeMillis();
+    checkPoint.set(currentTime - 16*60*1000); //Old checkpoint
+    agg.setLastAggregatedEndTime(-1l);
     agg.runOnce(sleepIntervalMillis);
     assertEquals("startTime should be zero", 0, startTimeInDoWork.get());
     assertEquals("endTime  should be zero", 0, endTimeInDoWork.get());
@@ -132,7 +136,7 @@ public class AbstractTimelineAggregatorTest {
 
     //Test first run with too "recent" checkpoint
     currentTime = System.currentTimeMillis();
-    checkPoint.set(currentTime - 30000);
+    checkPoint.set(currentTime);
     agg.setLastAggregatedEndTime(-1l);
     agg.setSleepIntervalMillis(sleepIntervalMillis);
     agg.runOnce(sleepIntervalMillis);
@@ -142,6 +146,9 @@ public class AbstractTimelineAggregatorTest {
     assertEquals("Do not aggregate on first run", 0, actualRuns);
 
     //Test first run with perfect checkpoint (sleepIntervalMillis back)
+    currentTime = System.currentTimeMillis();
+    roundedOffAggregatorTime = AbstractTimelineAggregator.getRoundedCheckPointTimeMillis(currentTime,
+      sleepIntervalMillis);
     long checkPointTime = roundedOffAggregatorTime - sleepIntervalMillis;
     long expectedCheckPoint = AbstractTimelineAggregator.getRoundedCheckPointTimeMillis(checkPointTime, sleepIntervalMillis);
     checkPoint.set(checkPointTime);
@@ -166,7 +173,8 @@ public class AbstractTimelineAggregatorTest {
       expectedCheckPoint + sleepIntervalMillis, endTimeInDoWork.get());
     assertEquals(expectedCheckPoint + sleepIntervalMillis,
       checkPoint.get());
-    assertEquals("Do not aggregate on first run", 2, actualRuns);
+    assertEquals("Aggregate on second run", 2, actualRuns);
+
 
  }
 }
