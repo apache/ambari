@@ -695,7 +695,7 @@
         <pre-upgrade>
           <task xsi:type="manual">
             <summary>HiveServer Port Availability</summary>
-            <message>Please note that the HiveServer port will now change to 10010 if hive is using a binary transfer mode or 10011 if hive is using an http transport mode. You can use "netstat -anp | grep 1001[01]" to determine if the port is available on each of following HiveServer host(s): {{hosts.all}}. If the port is not available, the process using it must be terminated.</message>
+            <message>Please note that the HiveServer port will now change to 10010 if Hive is using a binary transfer mode or 10011 if Hive is using an http transport mode. You can use "netstat -anp | grep 1001[01]" to determine if the port is available on each of following HiveServer host(s): {{hosts.all}}. If the port is not available, the process using it must be terminated.</message>
           </task>
 
           <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_set_transport_mode"/>
@@ -711,7 +711,7 @@
         <pre-downgrade>
           <task xsi:type="manual">
             <summary>HiveServer Port Availability</summary>
-            <message>Please note that the HiveServer port will now change to 10000 if hive is using a binary transfer mode or 10001 if hive is using an http transport mode. You can use "netstat -anp | grep 1000[01]" to determine if the port is available on each of following HiveServer host(s): {{hosts.all}}. If the port is not available, the process using it must be terminated.</message>
+            <message>Please note that the HiveServer port will now change to 10000 if Hive is using a binary transfer mode or 10001 if Hive is using an http transport mode. You can use "netstat -anp | grep 1000[01]" to determine if the port is available on each of following HiveServer host(s): {{hosts.all}}. If the port is not available, the process using it must be terminated.</message>
           </task>
 
           <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_restore_transport_mode_on_downgrade"/>
