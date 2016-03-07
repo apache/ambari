@@ -263,10 +263,9 @@ describe('App.ConfigRecommendationParser', function() {
         'initialValue': 'initialValue',
         'savedValue': null
       });
-      sinon.stub(App.config, 'getDefaultConfig', function(name, serviceName, fileName, coreObject) {
+      sinon.stub(App.config, 'getDefaultConfig', function(name, fileName, coreObject) {
         coreObject.name = name;
         coreObject.filename = fileName;
-        coreObject.serviceName = serviceName;
         return coreObject;
       });
     });
@@ -277,14 +276,13 @@ describe('App.ConfigRecommendationParser', function() {
     });
     
     it('adds new config', function() {
-      expect(instanceObject._createNewProperty('name', 'fileName', 'serviceName', 'recommendedValue', null)).to.eql(App.ServiceConfigProperty.create({
+      expect(instanceObject._createNewProperty('name', 'fileName', 'recommendedValue', null)).to.eql(App.ServiceConfigProperty.create({
         'value': 'recommendedValue',
         'recommendedValue': 'recommendedValue',
         'initialValue': 'initialValue',
         'savedValue': null,
         'name': 'name',
-        'filename': 'fileName',
-        'serviceName': 'serviceName'
+        'filename': 'fileName'
       }));
 
       expect(instanceObject.applyRecommendation.calledOnce).to.be.true;

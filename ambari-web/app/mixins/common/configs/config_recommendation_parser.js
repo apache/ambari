@@ -168,7 +168,7 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
     App.assertExists(serviceName, 'serviceName');
 
     var coreObject = this._getCoreProperties(serviceName, recommendedValue, this._getInitialFromRecommendations(name, fileName)),
-      newConfig = App.config.getDefaultConfig(name, serviceName, fileName, coreObject),
+      newConfig = App.config.getDefaultConfig(name, fileName, coreObject),
       addedPropertyObject = App.ServiceConfigProperty.create(newConfig);
 
     addedPropertyObject.validate();
