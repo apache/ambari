@@ -865,6 +865,17 @@ var urls = {
     }
   },
 
+  'host.host_component.add_new_components': {
+    'real': '/clusters/{clusterName}/hosts',
+    'mock': '/data/wizard/deploy/poll_1.json',
+    'format': function (data) {
+      return {
+        type: 'POST',
+        data: data.data
+      }
+    }
+  },
+
   'host.host_component.slave_desired_admin_state': {
     'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}/?fields=HostRoles/desired_admin_state',
     'mock': '/data/hosts/HDP2/decommission_state.json'

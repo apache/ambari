@@ -134,6 +134,31 @@ App.HostTableMenuView = Em.View.extend({
           })
         ])
       }
+      if (App.isAuthorized("HOST.ADD_DELETE_COMPONENTS")) {
+        menuItems.pushObjects([
+          O.create({
+            label: Em.I18n.t('common.add'),
+            operationData: O.create({
+              action: 'ADD',
+              message: Em.I18n.t('common.add'),
+              componentName: content.componentName,
+              serviceName: content.serviceName,
+              componentNameFormatted: content.componentNameFormatted
+            })
+          }),
+          O.create({
+            label: Em.I18n.t('common.delete'),
+            delete: true,
+            operationData: O.create({
+              action: 'DELETE',
+              message: Em.I18n.t('common.delete'),
+              componentName: content.componentName,
+              serviceName: content.serviceName,
+              componentNameFormatted: content.componentNameFormatted
+            })
+          })
+        ])
+      }
       if (App.isAuthorized("SERVICE.DECOMMISSION_RECOMMISSION") && App.get('components.decommissionAllowed').contains(content.componentName)) {
         menuItems.pushObjects([
           O.create({

@@ -32,6 +32,7 @@ describe('BulkOperationsController', function () {
       sinon.stub(hostController, 'bulkOperationForHostComponentsRestart', Em.K);
       sinon.stub(hostController, 'bulkOperationForHostComponentsDecommission', Em.K);
       sinon.stub(hostController, 'bulkOperationForHostComponents', Em.K);
+      sinon.stub(hostController, 'bulkOperationForHostComponentsAddConfirm', Em.K);
       sinon.stub(hostController, 'bulkOperationForHostsPassiveState', Em.K);
     });
 
@@ -42,6 +43,7 @@ describe('BulkOperationsController', function () {
       hostController.bulkOperationForHostComponentsRestart.restore();
       hostController.bulkOperationForHostComponentsDecommission.restore();
       hostController.bulkOperationForHostComponents.restore();
+      hostController.bulkOperationForHostComponentsAddConfirm.restore();
       hostController.bulkOperationForHostsPassiveState.restore();
 
     });
@@ -111,6 +113,15 @@ describe('BulkOperationsController', function () {
       };
       hostController.bulkOperation(operationData, []);
       expect(hostController.bulkOperationForHostComponents.calledOnce).to.equal(true);
+    });
+
+    it('ADD for hostComponents', function() {
+      var operationData = {
+        action: 'ADD',
+        componentNameFormatted: 'DataNodes'
+      };
+      hostController.bulkOperation(operationData, []);
+      expect(hostController.bulkOperationForHostComponentsAddConfirm.calledOnce).to.equal(true);
     });
 
     it('DECOMMISSION for hostComponents', function() {

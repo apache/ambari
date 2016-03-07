@@ -2272,6 +2272,9 @@ Em.I18n.translations = {
   'hosts.bulkOperation.passiveState.nothingToDo.body':'All hosts that you selected are already in Maintenance Mode.',
   'hosts.bulkOperation.warningInfo.body':'Components on these hosts are stopped so decommission will be skipped.',
   'hosts.bulkOperation.host_components.passiveState.nothingToDo.body':'All host components that you selected are already in Maintenance Mode',
+  'hosts.bulkOperation.confirmation.add.component':'You are going to <strong>{0} {1}</strong> on the following {2} hosts.',
+  'hosts.bulkOperation.confirmation.add.component.skip':'The following hosts are skipped as they already have {0} installed.',
+  'hosts.bulkOperation.confirmation.add.component.nothingToDo.body': 'All the selected hosts have {0} installed already.',
 
   'hosts.selectHostsDialog.title': 'Select Configuration Group Hosts',
   'hosts.selectHostsDialog.message': 'Select hosts that should belong to this {0} Configuration Group. All hosts belonging to this group will have the same set of configurations.',

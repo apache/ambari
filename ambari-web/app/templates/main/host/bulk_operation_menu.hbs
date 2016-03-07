@@ -121,9 +121,11 @@
                           <a href="javascript:void(null);">{{operation.label}}</a>
                       {{/view}}
                     {{else}}
-                      {{#view view.commonOperationView contentBinding="operation.operationData" selection="a"}}
+                      {{#unless operation.delete}}
+                        {{#view view.commonOperationView contentBinding="operation.operationData" selection="a"}}
                           <a href="javascript:void(null);">{{operation.label}}</a>
-                      {{/view}}
+                        {{/view}}
+                      {{/unless}}
                     {{/if}}
                   {{/each}}
                 </ul>

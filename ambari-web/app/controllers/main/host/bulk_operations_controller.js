@@ -38,6 +38,9 @@ App.BulkOperationsController = Em.Controller.extend({
       if (operationData.action === 'RESTART') {
         this.bulkOperationForHostComponentsRestart(operationData, hosts);
       }
+      else if (operationData.action === 'ADD') {
+        this.bulkOperationForHostComponentsAddConfirm(operationData, hosts);
+      }
       else {
         if (operationData.action.indexOf('DECOMMISSION') == -1) {
           this.bulkOperationForHostComponents(operationData, hosts);
@@ -305,6 +308,128 @@ App.BulkOperationsController = Em.Controller.extend({
   updateHostPassiveState: function (data, opt, params) {
     return batchUtils.infoPassiveState(params.passive_state);
   },
+
+  /**
+   * Confirm bulk add for selected hostComponent
+   * @param {Object} operationData - data about bulk operation (action, hostComponent etc)
+   * @param {Array} hosts - list of affected hosts
+   */
+  bulkOperationForHostComponentsAddConfirm: function (operationData, hosts) {
+    var self = this;
+
+    hosts = hosts.mapProperty('hostName');
+
+    var allHostsWithComponent = App.HostComponent.find().filterProperty('componentName', operationData.componentName).mapProperty('hostName');
+    var hostsWithComponent = hosts.filter(function (host) {
+      return allHostsWithComponent.contains(host);
+    });
+    var hostsWithOutComponent = hosts.filter(function(host) {
+      return !hostsWithComponent.contains(host);
+    });
+
+    var minShown = 3;
+
+    if (hostsWithOutComponent.length) {
+      return App.ModalPopup.show({
+        header: Em.I18n.t('hosts.bulkOperation.confirmation.header'),
+        hostNames: hostsWithOutComponent.join("\n"),
+        visibleHosts: self._showHostNames(hostsWithOutComponent, "\n", minShown),
+        hostNamesSkippedVisible: self._showHostNames(hostsWithComponent, "\n", minShown),
+        expanded: false,
+
+        hostNamesSkipped: function() {
+          return hostsWithComponent.length ? hostsWithComponent.join("\n") : false;
+        }.property(),
+
+        didInsertElement: function() {
+          this.set('expanded', hostsWithOutComponent.length <= minShown);
+        },
+
+        onPrimary: function() {
+          self.bulkOperationForHostComponentsAdd(operationData, hostsWithOutComponent);
+          this._super();
+        },
+        bodyClass: Em.View.extend({
+          templateName: require('templates/main/host/bulk_operation_confirm_popup'),
+          message: Em.I18n.t('hosts.bulkOperation.confirmation.add.component').format(operationData.message, operationData.componentNameFormatted, hostsWithOutComponent.length),
+          warningInfo: Em.I18n.t('hosts.bulkOperation.confirmation.add.component.skip').format(operationData.componentNameFormatted),
+          textareaVisible: false,
+          textTrigger: function() {
+            this.toggleProperty('textareaVisible');
+          },
+
+          showAll: function() {
+            this.set('parentView.visibleHosts', this.get('parentView.hostNames'));
+            this.set('parentView.hostNamesSkippedVisible', this.get('parentView.hostNamesSkipped'));
+            this.set('parentView.expanded', true);
+          },
+          putHostNamesToTextarea: function() {
+            var hostNames = this.get('parentView.hostNames');
+            if (this.get('textareaVisible')) {
+              var wrapper = $(".task-detail-log-maintext");
+              $('.task-detail-log-clipboard').html(hostNames).width(wrapper.width()).height(250);
+              Em.run.next(function() {
+                $('.task-detail-log-clipboard').select();
+              });
+            }
+          }.observes('textareaVisible')
+        })
+      });
+    }
+    return App.ModalPopup.show({
+      header: Em.I18n.t('rolling.nothingToDo.header'),
+      body: Em.I18n.t('hosts.bulkOperation.confirmation.add.component.nothingToDo.body').format(operationData.componentNameFormatted),
+      secondary: false
+    });
+  },
+  /**
+   * Bulk add for selected hostComponent
+   * @param {Object} operationData - data about bulk operation (action, hostComponent etc)
+   * @param {Array} hostNames - list of affected hosts' names
+   */
+  bulkOperationForHostComponentsAdd: function (operationData, hostNames) {
+    var self= this;
+    App.get('router.mainAdminKerberosController').getKDCSessionState(function () {
+      App.ajax.send({
+        name: 'host.host_component.add_new_components',
+        sender: self,
+        data: {
+          data: JSON.stringify({
+            RequestInfo: {
+              query: 'Hosts/host_name.in(' + hostNames.join(',') + ')'
+            },
+            Body: {
+              host_components: [
+                {
+                  HostRoles: {
+                    component_name: operationData.componentName
+                  }
+                }
+              ]
+            }
+          }),
+          context: operationData.message + ' ' + operationData.componentNameFormatted,
+        },
+        success: 'bulkOperationForHostComponentsAddSuccessCallback'
+      });
+    });
+  },
+
+  bulkOperationForHostComponentsAddSuccessCallback: function (data, opt, params) {
+    App.ajax.send({
+      name: 'common.host_components.update',
+      sender: this,
+      data: {
+        query: 'HostRoles/state=INIT',
+        HostRoles: {
+          state: 'INSTALLED'
+        },
+        context: params.context
+      },
+      success: 'bulkOperationForHostComponentsSuccessCallback'
+    });
+  },
+
   /**
    * Bulk operation for selected hostComponents
    * @param {Object} operationData - data about bulk operation (action, hostComponents etc)
