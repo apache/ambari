@@ -25,6 +25,8 @@ import logging
 import traceback
 
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request
+from resource_management.libraries.functions.curl_krb_request import DEFAULT_KERBEROS_KINIT_TIMER_MS
+from resource_management.libraries.functions.curl_krb_request import KERBEROS_KINIT_TIMER_PARAMETER
 from resource_management.core.environment import Environment
 
 LABEL = 'Last Checkpoint: [{h} hours, {m} minutes, {tx} transactions]'
@@ -133,6 +135,8 @@ def execute(configurations={}, parameters={}, host_name=None):
   if PERCENT_CRITICAL_KEY in parameters:
     percent_critical = float(parameters[PERCENT_CRITICAL_KEY]) * 100
 
+  kinit_timer_ms = parameters.get(KERBEROS_KINIT_TIMER_PARAMETER, DEFAULT_KERBEROS_KINIT_TIMER_MS)
+
   # determine the right URI and whether to use SSL
   uri = http_uri
   if http_policy == 'HTTPS_ONLY':
@@ -159,14 +163,16 @@ def execute(configurations={}, parameters={}, host_name=None):
 
       last_checkpoint_time_response, error_msg, time_millis = curl_krb_request(env.tmp_dir, kerberos_keytab,
         kerberos_principal, last_checkpoint_time_qry,"checkpoint_time_alert", executable_paths, False,
-        "NameNode Last Checkpoint", smokeuser, connection_timeout=curl_connection_timeout)
+        "NameNode Last Checkpoint", smokeuser, connection_timeout=curl_connection_timeout,
+        kinit_timer_ms = kinit_timer_ms)
 
       last_checkpoint_time_response_json = json.loads(last_checkpoint_time_response)
       last_checkpoint_time = int(last_checkpoint_time_response_json["beans"][0]["LastCheckpointTime"])
 
       journal_transaction_info_response, error_msg, time_millis = curl_krb_request(env.tmp_dir, kerberos_keytab,
         kerberos_principal, journal_transaction_info_qry,"checkpoint_time_alert", executable_paths,
-        False, "NameNode Last Checkpoint", smokeuser, connection_timeout=curl_connection_timeout)
+        False, "NameNode Last Checkpoint", smokeuser, connection_timeout=curl_connection_timeout,
+        kinit_timer_ms = kinit_timer_ms)
 
       journal_transaction_info_response_json = json.loads(journal_transaction_info_response)
       journal_transaction_info = journal_transaction_info_response_json["beans"][0]["JournalTransactionInfo"]

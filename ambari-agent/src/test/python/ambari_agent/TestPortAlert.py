@@ -21,8 +21,12 @@ limitations under the License.
 from unittest import TestCase
 from alerts.port_alert import PortAlert
 from mock.mock import Mock, MagicMock, patch
+from AmbariConfig import AmbariConfig
 
 class TestPortAlert(TestCase):
+
+  def setUp(self):
+    self.config = AmbariConfig()
 
   @patch("socket.socket")
   @patch("time.time")
@@ -44,7 +48,7 @@ class TestPortAlert(TestCase):
     expected_state = 'OK'
     expected_text = 'TCP OK - 0.2010 response on port 80'
     time.side_effect = [123, 324, 567]
-    alert = PortAlert(alert_meta, alert_source_meta)
+    alert = PortAlert(alert_meta, alert_source_meta, self.config)
     alert.set_cluster(cluster, host)
 
     def collector_side_effect(clus, data):
@@ -84,7 +88,7 @@ class TestPortAlert(TestCase):
     expected_state = 'WARNING'
     expected_text = 'TCP OK - 3.1170 response on port 8080'
     time.side_effect = [123, 3240, 567]
-    alert = PortAlert(alert_meta, alert_source_meta)
+    alert = PortAlert(alert_meta, alert_source_meta, self.config)
     alert.set_cluster(cluster, host)
 
     def collector_side_effect(clus, data):
@@ -124,7 +128,7 @@ class TestPortAlert(TestCase):
     expected_state = 'CRITICAL'
     expected_text = 'Connection failed: Socket Timeout to 192.168.0.1:8080'
     time.side_effect = [123, 5240, 567]
-    alert = PortAlert(alert_meta, alert_source_meta)
+    alert = PortAlert(alert_meta, alert_source_meta, self.config)
     alert.set_cluster(cluster, host)
 
     def collector_side_effect(clus, data):
@@ -163,7 +167,7 @@ class TestPortAlert(TestCase):
     expected_state = 'CRITICAL'
     expected_text = 'Connection failed: Socket Timeout to host1:80'
     time.side_effect = [123, 5240, 567]
-    alert = PortAlert(alert_meta, alert_source_meta)
+    alert = PortAlert(alert_meta, alert_source_meta, self.config)
     alert.set_cluster(cluster, host)
 
     def collector_side_effect(clus, data):
@@ -204,7 +208,7 @@ class TestPortAlert(TestCase):
     expected_text = 'Connection failed: exception message to 192.168.0.1:8080'
     time.side_effect = [123, 345, 567]
     socket.side_effect = Exception('exception message')
-    alert = PortAlert(alert_meta, alert_source_meta)
+    alert = PortAlert(alert_meta, alert_source_meta, self.config)
     alert.set_cluster(cluster, host)
 
     def collector_side_effect(clus, data):
@@ -249,7 +253,7 @@ class TestPortAlert(TestCase):
     expected_state = 'OK'
     expected_text = 'TCP OK - 3.1170 response on port 8080'
     time.side_effect = [123, 3240, 567]
-    alert = PortAlert(alert_meta, alert_source_meta)
+    alert = PortAlert(alert_meta, alert_source_meta, self.config)
     alert.set_cluster(cluster, host)
 
     def collector_side_effect(clus, data):
@@ -294,7 +298,7 @@ class TestPortAlert(TestCase):
     expected_state = 'CRITICAL'
     expected_text = 'Connection failed: Socket Timeout to 192.168.0.1:8080'
     time.side_effect = [123, 3240, 567]
-    alert = PortAlert(alert_meta, alert_source_meta)
+    alert = PortAlert(alert_meta, alert_source_meta, self.config)
     alert.set_cluster(cluster, host)
 
     def collector_side_effect(clus, data):
@@ -339,7 +343,7 @@ class TestPortAlert(TestCase):
     expected_state = 'CRITICAL'
     expected_text = 'Connection failed: Socket Timeout to 192.168.0.1:8080'
     time.side_effect = [120, 123, 5240, 567]
-    alert = PortAlert(alert_meta, alert_source_meta)
+    alert = PortAlert(alert_meta, alert_source_meta, self.config)
     alert.set_cluster(cluster, host)
 
     def collector_side_effect(clus, data):

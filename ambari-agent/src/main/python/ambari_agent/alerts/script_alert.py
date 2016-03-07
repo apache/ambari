@@ -24,13 +24,15 @@ import os
 import re
 from alerts.base_alert import BaseAlert
 from resource_management.core.environment import Environment
-from resource_management.core.logger import Logger
+from resource_management.libraries.functions.curl_krb_request import KERBEROS_KINIT_TIMER_PARAMETER
 from ambari_agent import Constants
 
 logger = logging.getLogger("ambari_alerts")
 
 class ScriptAlert(BaseAlert):
+
   def __init__(self, alert_meta, alert_source_meta, config):
+
     """ ScriptAlert reporting structure is output from the script itself """
 
     alert_source_meta['reporting'] = {
@@ -40,15 +42,17 @@ class ScriptAlert(BaseAlert):
       'unknown': { 'text': '{0}' }
     }
 
-    super(ScriptAlert, self).__init__(alert_meta, alert_source_meta)
+    super(ScriptAlert, self).__init__(alert_meta, alert_source_meta, config)
 
-    self.config = config
     self.path = None
     self.stacks_dir = None
     self.common_services_dir = None
     self.host_scripts_dir = None
     self.path_to_script = None
     self.parameters = {}
+
+    # will force a kinit even if klist says there are valid tickets (4 hour default)
+    self.kinit_timeout = long(config.get('agent', 'alert_kinit_timeout', BaseAlert._DEFAULT_KINIT_TIMEOUT))
 
     if 'path' in alert_source_meta:
       self.path = alert_source_meta['path']
@@ -74,6 +78,9 @@ class ScriptAlert(BaseAlert):
         parameter_name = parameter['name']
         parameter_value = parameter['value']
         self.parameters[parameter_name] = parameter_value
+
+    # pass in some basic parameters to the scripts
+    self.parameters[KERBEROS_KINIT_TIMER_PARAMETER] = self.kinit_timeout
 
   def _collect(self):
     cmd_module = self._load_source()

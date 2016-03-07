@@ -103,12 +103,9 @@ class Controller(threading.Thread):
 
     self.move_data_dir_mount_file()
 
-    self.alert_grace_period = int(config.get('agent', 'alert_grace_period', 5))
-
-    self.alert_scheduler_handler = AlertSchedulerHandler(alerts_cache_dir, 
+    self.alert_scheduler_handler = AlertSchedulerHandler(alerts_cache_dir,
       stacks_cache_dir, common_services_cache_dir, host_scripts_cache_dir,
-      self.alert_grace_period, self.cluster_configuration, config,
-      self.recovery_manager)
+      self.cluster_configuration, config, self.recovery_manager)
 
     self.alert_scheduler_handler.start()
 

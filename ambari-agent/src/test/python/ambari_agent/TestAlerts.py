@@ -41,11 +41,14 @@ from collections import namedtuple
 from mock.mock import MagicMock, patch
 from unittest import TestCase
 
+from AmbariConfig import AmbariConfig
+
 class TestAlerts(TestCase):
 
   def setUp(self):
     # save original open() method for later use
     self.original_open = open
+    self.config = AmbariConfig()
 
   def tearDown(self):
     sys.stdout == sys.__stdout__
@@ -62,8 +65,8 @@ class TestAlerts(TestCase):
     cluster_configuration = self.__get_cluster_configuration()
 
     ash = AlertSchedulerHandler(test_file_path, test_stack_path,
-      test_common_services_path, test_host_scripts_path, 5, cluster_configuration,
-      None, None)
+      test_common_services_path, test_host_scripts_path, cluster_configuration,
+      self.config, None)
 
     ash.start()
 
@@ -89,7 +92,7 @@ class TestAlerts(TestCase):
       0,2000,336283100000,
       socket.timeout,336283200000]
 
-    alert = PortAlert(definition_json, definition_json['source'])
+    alert = PortAlert(definition_json, definition_json['source'], self.config)
     alert.set_helpers(collector, cluster_configuration)
     alert.set_cluster("c1", "c6401.ambari.apache.org")
     self.assertEquals(6, alert.interval())
@@ -134,7 +137,7 @@ class TestAlerts(TestCase):
     self.__update_cluster_configuration(cluster_configuration, {})
 
     rm = RecoveryManager(tempfile.mktemp(), True)
-    alert = RecoveryAlert(definition_json, definition_json['source'], rm)
+    alert = RecoveryAlert(definition_json, definition_json['source'], self.config, rm)
     alert.set_helpers(collector, cluster_configuration)
     alert.set_cluster("c1", "c6401.ambari.apache.org")
     self.assertEquals(1, alert.interval())
@@ -221,7 +224,7 @@ class TestAlerts(TestCase):
     cluster_configuration = self.__get_cluster_configuration()
     self.__update_cluster_configuration(cluster_configuration, configuration)
 
-    alert = PortAlert(definition_json, definition_json['source'])
+    alert = PortAlert(definition_json, definition_json['source'], self.config)
     alert.set_helpers(collector, cluster_configuration)
     alert.set_cluster("c1", "c6402.ambari.apache.org")
 
@@ -266,7 +269,7 @@ class TestAlerts(TestCase):
 
     cluster_configuration = self.__get_cluster_configuration()
 
-    alert = PortAlert(definition_json, definition_json['source'])
+    alert = PortAlert(definition_json, definition_json['source'], self.config)
     alert.set_helpers(AlertCollector(), cluster_configuration)
     alert.set_cluster("c1", "c6401.ambari.apache.org")
 
@@ -354,7 +357,7 @@ class TestAlerts(TestCase):
     cluster_configuration = self.__get_cluster_configuration()
     self.__update_cluster_configuration(cluster_configuration, configuration)
 
-    alert = MetricAlert(definition_json, definition_json['source'], None)
+    alert = MetricAlert(definition_json, definition_json['source'], self.config)
     alert.set_helpers(collector, cluster_configuration)
     alert.set_cluster("c1", "c6401.ambari.apache.org")
 
@@ -388,7 +391,7 @@ class TestAlerts(TestCase):
     del definition_json['source']['jmx']['value']
     collector = AlertCollector()
 
-    alert = MetricAlert(definition_json, definition_json['source'], None)
+    alert = MetricAlert(definition_json, definition_json['source'], self.config)
     alert.set_helpers(collector, cluster_configuration)
     alert.set_cluster("c1", "c6401.ambari.apache.org")
 
@@ -412,7 +415,7 @@ class TestAlerts(TestCase):
     # indicating that there was no URI and the result is UNKNOWN
     collector = AlertCollector()
     cluster_configuration = self.__get_cluster_configuration()
-    alert = MetricAlert(definition_json, definition_json['source'], None)
+    alert = MetricAlert(definition_json, definition_json['source'], self.config)
     alert.set_helpers(collector, cluster_configuration)
     alert.set_cluster("c1", "c6401.ambari.apache.org")
     alert.collect()
@@ -428,7 +431,7 @@ class TestAlerts(TestCase):
     cluster_configuration = self.__get_cluster_configuration()
     self.__update_cluster_configuration(cluster_configuration, configuration)
 
-    alert = MetricAlert(definition_json, definition_json['source'], None)
+    alert = MetricAlert(definition_json, definition_json['source'], self.config)
     alert.set_helpers(collector, cluster_configuration)
     alert.set_cluster("c1", "c6401.ambari.apache.org")
     alert.collect()
@@ -444,7 +447,7 @@ class TestAlerts(TestCase):
     self.__update_cluster_configuration(cluster_configuration, configuration)
 
     collector = AlertCollector()
-    alert = MetricAlert(definition_json, definition_json['source'], None)
+    alert = MetricAlert(definition_json, definition_json['source'], self.config)
     alert.set_helpers(collector, cluster_configuration)
     alert.set_cluster("c1", "c6401.ambari.apache.org")
     alert.collect()
@@ -460,7 +463,7 @@ class TestAlerts(TestCase):
     self.__update_cluster_configuration(cluster_configuration, configuration)
 
     collector = AlertCollector()
-    alert = MetricAlert(definition_json, definition_json['source'], None)
+    alert = MetricAlert(definition_json, definition_json['source'], self.config)
     alert.set_helpers(collector, cluster_configuration)
     alert.set_cluster("c1", "c6401.ambari.apache.org")
     alert.collect()
@@ -477,7 +480,7 @@ class TestAlerts(TestCase):
     self.__update_cluster_configuration(cluster_configuration, configuration)
 
     collector = AlertCollector()
-    alert = MetricAlert(definition_json, definition_json['source'], None)
+    alert = MetricAlert(definition_json, definition_json['source'], self.config)
     alert.set_helpers(collector, cluster_configuration)
     alert.set_cluster("c1", "c6401.ambari.apache.org")
     alert.collect()
@@ -501,7 +504,7 @@ class TestAlerts(TestCase):
     cluster_configuration = self.__get_cluster_configuration()
     self.__update_cluster_configuration(cluster_configuration, configuration)
 
-    alert = WebAlert(definition_json, definition_json['source'], None)
+    alert = WebAlert(definition_json, definition_json['source'], self.config)
     alert.set_helpers(collector, cluster_configuration)
     alert.set_cluster("c1", "c6401.ambari.apache.org")
     alert.collect()
@@ -515,7 +518,7 @@ class TestAlerts(TestCase):
     # run the alert and check HTTP 500
     wa_make_web_request_mock.return_value = WebResponse(500,1.234,"Internal Server Error")
     collector = AlertCollector()
-    alert = WebAlert(definition_json, definition_json['source'], None)
+    alert = WebAlert(definition_json, definition_json['source'], self.config)
     alert.set_helpers(collector, cluster_configuration)
     alert.set_cluster("c1", "c6401.ambari.apache.org")
     alert.collect()
@@ -530,7 +533,7 @@ class TestAlerts(TestCase):
     wa_make_web_request_mock.return_value = WebResponse(0,0,'error message')
      
     collector = AlertCollector()
-    alert = WebAlert(definition_json, definition_json['source'], None)
+    alert = WebAlert(definition_json, definition_json['source'], self.config)
     alert.set_helpers(collector, cluster_configuration)
     alert.set_cluster("c1", "c6401.ambari.apache.org")
     alert.collect()
@@ -551,7 +554,7 @@ class TestAlerts(TestCase):
     self.__update_cluster_configuration(cluster_configuration, configuration)
 
     collector = AlertCollector()
-    alert = WebAlert(definition_json, definition_json['source'], None)
+    alert = WebAlert(definition_json, definition_json['source'], self.config)
     alert.set_helpers(collector, cluster_configuration)
     alert.set_cluster("c1", "c6401.ambari.apache.org")
 
@@ -573,8 +576,8 @@ class TestAlerts(TestCase):
     cluster_configuration = self.__get_cluster_configuration()
 
     ash = AlertSchedulerHandler(test_file_path, test_stack_path,
-      test_common_services_path, test_host_scripts_path, 5, cluster_configuration,
-      None, None)
+      test_common_services_path, test_host_scripts_path, cluster_configuration,
+      self.config, None)
 
     ash.start()
 
@@ -594,7 +597,7 @@ class TestAlerts(TestCase):
     cluster_configuration = self.__get_cluster_configuration()
     self.__update_cluster_configuration(cluster_configuration, configuration)
 
-    alert = PortAlert(definition_json, definition_json['source'])
+    alert = PortAlert(definition_json, definition_json['source'], self.config)
     alert.set_helpers(collector, cluster_configuration)
     alert.set_cluster("c1", "c6401.ambari.apache.org")
     self.assertEquals(6, alert.interval())
@@ -620,8 +623,8 @@ class TestAlerts(TestCase):
     cluster_configuration = self.__get_cluster_configuration()
 
     ash = AlertSchedulerHandler(test_file_path, test_stack_path,
-      test_common_services_path, test_host_scripts_path, 5, cluster_configuration,
-      None, None)
+      test_common_services_path, test_host_scripts_path, cluster_configuration,
+      self.config, None)
 
     ash.start()
 
@@ -629,20 +632,20 @@ class TestAlerts(TestCase):
 
     definition_json = self._get_port_alert_definition()
 
-    alert = PortAlert(definition_json, definition_json['source'])
+    alert = PortAlert(definition_json, definition_json['source'], self.config)
     ash.schedule_definition(alert)
 
     self.assertEquals(2, ash.get_job_count())
 
     definition_json['enabled'] = False
-    alert = PortAlert(definition_json, definition_json['source'])
+    alert = PortAlert(definition_json, definition_json['source'], self.config)
     ash.schedule_definition(alert)
 
     # verify disabled alert not scheduled
     self.assertEquals(2, ash.get_job_count())
 
     definition_json['enabled'] = True
-    pa = PortAlert(definition_json, definition_json['source'])
+    pa = PortAlert(definition_json, definition_json['source'], self.config)
     ash.schedule_definition(pa)
 
     # verify enabled alert was scheduled
@@ -656,8 +659,8 @@ class TestAlerts(TestCase):
 
     cluster_configuration = self.__get_cluster_configuration()
     ash = AlertSchedulerHandler(test_file_path, test_stack_path,
-      test_common_services_path, test_host_scripts_path, 5, cluster_configuration,
-      None, None)
+      test_common_services_path, test_host_scripts_path, cluster_configuration,
+      self.config, None)
 
     ash.start()
 
@@ -691,7 +694,7 @@ class TestAlerts(TestCase):
     cluster_configuration = self.__get_cluster_configuration()
     self.__update_cluster_configuration(cluster_configuration, configuration)
 
-    alert = ScriptAlert(definition_json, definition_json['source'], None)
+    alert = ScriptAlert(definition_json, definition_json['source'], self.config)
 
     # instruct the test alert script to be skipped
     alert.set_helpers(collector, cluster_configuration )
@@ -709,32 +712,32 @@ class TestAlerts(TestCase):
   def test_default_reporting_text(self):
     definition_json = self._get_script_alert_definition()
 
-    alert = ScriptAlert(definition_json, definition_json['source'], None)
+    alert = ScriptAlert(definition_json, definition_json['source'], self.config)
     self.assertEquals(alert._get_reporting_text(alert.RESULT_OK), '{0}')
     self.assertEquals(alert._get_reporting_text(alert.RESULT_WARNING), '{0}')
     self.assertEquals(alert._get_reporting_text(alert.RESULT_CRITICAL), '{0}')
 
     definition_json['source']['type'] = 'PORT'
-    alert = PortAlert(definition_json, definition_json['source'])
+    alert = PortAlert(definition_json, definition_json['source'], self.config)
     self.assertEquals(alert._get_reporting_text(alert.RESULT_OK), 'TCP OK - {0:.4f} response on port {1}')
     self.assertEquals(alert._get_reporting_text(alert.RESULT_WARNING), 'TCP OK - {0:.4f} response on port {1}')
     self.assertEquals(alert._get_reporting_text(alert.RESULT_CRITICAL), 'Connection failed: {0} to {1}:{2}')
 
     definition_json['source']['type'] = 'WEB'
-    alert = WebAlert(definition_json, definition_json['source'], None)
+    alert = WebAlert(definition_json, definition_json['source'], self.config)
     self.assertEquals(alert._get_reporting_text(alert.RESULT_OK), 'HTTP {0} response in {2:.4f} seconds')
     self.assertEquals(alert._get_reporting_text(alert.RESULT_WARNING), 'HTTP {0} response in {2:.4f} seconds')
     self.assertEquals(alert._get_reporting_text(alert.RESULT_CRITICAL), 'Connection failed to {1}')
 
     definition_json['source']['type'] = 'METRIC'
-    alert = MetricAlert(definition_json, definition_json['source'], None)
+    alert = MetricAlert(definition_json, definition_json['source'], self.config)
     self.assertEquals(alert._get_reporting_text(alert.RESULT_OK), '{0}')
     self.assertEquals(alert._get_reporting_text(alert.RESULT_WARNING), '{0}')
     self.assertEquals(alert._get_reporting_text(alert.RESULT_CRITICAL), '{0}')
 
     rm = RecoveryManager(tempfile.mktemp())
     definition_json['source']['type'] = 'RECOVERY'
-    alert = RecoveryAlert(definition_json, definition_json['source'], rm)
+    alert = RecoveryAlert(definition_json, definition_json['source'], self.config, rm)
     self.assertEquals(alert._get_reporting_text(alert.RESULT_OK), 'No recovery operations executed for {2}{0}.')
     self.assertEquals(alert._get_reporting_text(alert.RESULT_WARNING), '{1} recovery operations executed for {2}{0}.')
     self.assertEquals(alert._get_reporting_text(alert.RESULT_CRITICAL), '{1} recovery operations executed for {2}{0}.')
@@ -973,7 +976,7 @@ class TestAlerts(TestCase):
     cluster_configuration = self.__get_cluster_configuration()
     self.__update_cluster_configuration(cluster_configuration, configuration)
 
-    alert = MetricAlert(definition_json, definition_json['source'], None)
+    alert = MetricAlert(definition_json, definition_json['source'], self.config)
     alert.set_helpers(collector, cluster_configuration)
     alert.set_cluster("c1", "c6401.ambari.apache.org")
 
@@ -1065,13 +1068,13 @@ class TestAlerts(TestCase):
   def test_uri_timeout(self):
     # the web alert will have a timeout value
     definition_json = self._get_web_alert_definition()
-    alert = WebAlert(definition_json, definition_json['source'], None)
+    alert = WebAlert(definition_json, definition_json['source'], self.config)
     self.assertEquals(5.678, alert.connection_timeout)
     self.assertEquals(5, alert.curl_connection_timeout)
 
     # the metric definition will not and should default to 5.0
     definition_json = self._get_metric_alert_definition()
-    alert = MetricAlert(definition_json, definition_json['source'], None)
+    alert = MetricAlert(definition_json, definition_json['source'], self.config)
     self.assertEquals(5.0, alert.connection_timeout)
 
 
@@ -1129,7 +1132,7 @@ class TestAlerts(TestCase):
     cluster_configuration = self.__get_cluster_configuration()
     self.__update_cluster_configuration(cluster_configuration, configuration)
 
-    alert = MetricAlert(definition_json, definition_json['source'], None)
+    alert = MetricAlert(definition_json, definition_json['source'], self.config)
     alert.set_helpers(collector, cluster_configuration)
     alert.set_cluster("c1", "c6401.ambari.apache.org")
 
@@ -1162,7 +1165,7 @@ class TestAlerts(TestCase):
     cluster_configuration = self.__get_cluster_configuration()
     self.__update_cluster_configuration(cluster_configuration, configuration)
 
-    alert = PortAlert(definition_json, definition_json['source'])
+    alert = PortAlert(definition_json, definition_json['source'], self.config)
     alert.set_helpers(collector, cluster_configuration)
     alert.set_cluster("c1", "c6402.ambari.apache.org")
 
@@ -1200,7 +1203,7 @@ class TestAlerts(TestCase):
     cluster_configuration = self.__get_cluster_configuration()
     self.__update_cluster_configuration(cluster_configuration, configuration)
 
-    alert = PortAlert(definition_json, definition_json['source'])
+    alert = PortAlert(definition_json, definition_json['source'], self.config)
     alert.set_helpers(collector, cluster_configuration)
     alert.set_cluster("c1", "c6402.ambari.apache.org")
 
@@ -1523,7 +1526,7 @@ class MockAlert(BaseAlert):
   Mock class for testing
   """
   def __init__(self):
-    super(MockAlert, self).__init__(None, None)
+    super(MockAlert, self).__init__(None, None, AmbariConfig())
 
   def get_name(self):
     return "mock_alert"

@@ -21,9 +21,12 @@ limitations under the License.
 from unittest import TestCase
 from alerts.metric_alert import MetricAlert
 from mock.mock import Mock, MagicMock, patch
-import os
+from AmbariConfig import AmbariConfig
 
 class TestMetricAlert(TestCase):
+
+  def setUp(self):
+    self.config = AmbariConfig()
 
   @patch("urllib2.urlopen")
   def test_collect(self, urllib):
@@ -81,7 +84,7 @@ class TestMetricAlert(TestCase):
     mock_collector = MagicMock()
     mock_collector.put = Mock(side_effect=collector_side_effect)
 
-    alert = MetricAlert(alert_meta, alert_source_meta)
+    alert = MetricAlert(alert_meta, alert_source_meta, self.config)
     alert.set_helpers(mock_collector, {'foo-site/bar': 12, 'foo-site/baz': 'asd'})
     alert.set_cluster(cluster, host)
 
@@ -143,7 +146,7 @@ class TestMetricAlert(TestCase):
     mock_collector = MagicMock()
     mock_collector.put = Mock(side_effect=collector_side_effect)
 
-    alert = MetricAlert(alert_meta, alert_source_meta)
+    alert = MetricAlert(alert_meta, alert_source_meta, self.config)
     alert.set_helpers(mock_collector, {'foo-site/bar': 12, 'foo-site/baz': 'asd'})
     alert.set_cluster(cluster, host)
 
@@ -205,7 +208,7 @@ class TestMetricAlert(TestCase):
     mock_collector = MagicMock()
     mock_collector.put = Mock(side_effect=collector_side_effect)
 
-    alert = MetricAlert(alert_meta, alert_source_meta, None)
+    alert = MetricAlert(alert_meta, alert_source_meta, self.config)
     alert.set_helpers(mock_collector, {'foo-site/bar': 12, 'foo-site/baz': 'asd'})
     alert.set_cluster(cluster, host)
 

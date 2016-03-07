@@ -42,7 +42,7 @@ DEFAULT_CONNECTION_TIMEOUT = 5.0
 class MetricAlert(BaseAlert):
   
   def __init__(self, alert_meta, alert_source_meta, config):
-    super(MetricAlert, self).__init__(alert_meta, alert_source_meta)
+    super(MetricAlert, self).__init__(alert_meta, alert_source_meta, config)
 
     connection_timeout = DEFAULT_CONNECTION_TIMEOUT
 
@@ -63,7 +63,9 @@ class MetricAlert(BaseAlert):
     self.connection_timeout = float(connection_timeout)
     self.curl_connection_timeout = int(connection_timeout)
 
-    self.config = config
+    # will force a kinit even if klist says there are valid tickets (4 hour default)
+    self.kinit_timeout = long(config.get('agent', 'alert_kinit_timeout', BaseAlert._DEFAULT_KINIT_TIMEOUT))
+
 
   def _collect(self):
     if self.metric_info is None:
@@ -209,7 +211,7 @@ class MetricAlert(BaseAlert):
 
           response, error_msg, time_millis = curl_krb_request(tmp_dir, kerberos_keytab, kerberos_principal, url,
             "metric_alert", kerberos_executable_search_paths, False, self.get_name(), smokeuser,
-            connection_timeout=self.curl_connection_timeout)
+            connection_timeout=self.curl_connection_timeout, kinit_timer_ms = self.kinit_timeout)
 
           content = response
         else:
@@ -249,7 +251,8 @@ class MetricAlert(BaseAlert):
       if not json_is_valid and security_enabled and kerberos_principal is not None and kerberos_keytab is not None:
         http_response_code, error_msg, time_millis = curl_krb_request(tmp_dir, kerberos_keytab,
           kerberos_principal, url, "metric_alert", kerberos_executable_search_paths, True,
-          self.get_name(), smokeuser, connection_timeout=self.curl_connection_timeout)
+          self.get_name(), smokeuser, connection_timeout=self.curl_connection_timeout,
+          kinit_timer_ms = self.kinit_timeout)
 
     return (value_list, http_response_code)
 
