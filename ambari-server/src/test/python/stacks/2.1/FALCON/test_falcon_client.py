@@ -32,7 +32,7 @@ class TestFalconClient(RMFTestCase):
                        classname="FalconClient",
                        command="configure",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Directory', '/var/run/falcon',
@@ -92,7 +92,7 @@ class TestFalconClient(RMFTestCase):
                        classname="FalconClient",
                        command="security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -103,7 +103,7 @@ class TestFalconClient(RMFTestCase):
                        classname="FalconClient",
                        command="security_status",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -119,7 +119,7 @@ class TestFalconClient(RMFTestCase):
                        classname = "FalconClient",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
     self.assertResourceCalled('Execute',
                               ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'falcon-client', version), sudo=True,)
@@ -138,7 +138,7 @@ class TestFalconClient(RMFTestCase):
                        classname = "FalconClient",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict = mocks_dict)

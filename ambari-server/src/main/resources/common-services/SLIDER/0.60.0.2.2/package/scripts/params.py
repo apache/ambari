@@ -20,7 +20,7 @@ limitations under the License.
 from ambari_commons.os_check import OSCheck
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions.version import format_hdp_stack_version
+from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.script.script import Script
@@ -41,7 +41,7 @@ stack_name = default("/hostLevelParams/stack_name", None)
 version = default("/commandParams/version", None)
 
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
+stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 #hadoop params
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()

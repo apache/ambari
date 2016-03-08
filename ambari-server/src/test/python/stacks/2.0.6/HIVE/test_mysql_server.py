@@ -32,7 +32,7 @@ class TestMySqlServer(RMFTestCase):
                        classname = "MysqlServer",
                        command = "configure",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -43,7 +43,7 @@ class TestMySqlServer(RMFTestCase):
                        classname = "MysqlServer",
                        command = "start",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -59,7 +59,7 @@ class TestMySqlServer(RMFTestCase):
                        classname = "MysqlServer",
                        command = "stop",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', ('service','mysql','stop'),
@@ -75,7 +75,7 @@ class TestMySqlServer(RMFTestCase):
                        classname = "MysqlServer",
                        command = "configure",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
@@ -86,7 +86,7 @@ class TestMySqlServer(RMFTestCase):
                        classname = "MysqlServer",
                        command = "start",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -102,7 +102,7 @@ class TestMySqlServer(RMFTestCase):
                        classname = "MysqlServer",
                        command = "stop",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     
@@ -118,7 +118,7 @@ class TestMySqlServer(RMFTestCase):
                        classname = "MysqlServer",
                        command = "clean",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_clean_default()
@@ -129,7 +129,7 @@ class TestMySqlServer(RMFTestCase):
                        classname = "MysqlServer",
                        command = "clean",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_clean_secured()

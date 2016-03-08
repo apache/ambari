@@ -37,7 +37,7 @@ class TestHiveMetastore(RMFTestCase):
                        classname = "HiveMetastore",
                        command = "configure",
                        config_file="../../2.1/configs/default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -47,7 +47,7 @@ class TestHiveMetastore(RMFTestCase):
                        classname = "HiveMetastore",
                        command = "start",
                        config_file="../../2.1/configs/default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -77,7 +77,7 @@ class TestHiveMetastore(RMFTestCase):
                        classname = "HiveMetastore",
                        command = "start",
                        config_file="../../2.1/configs/default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -104,7 +104,7 @@ class TestHiveMetastore(RMFTestCase):
                        classname = "HiveMetastore",
                        command = "stop",
                        config_file="../../2.1/configs/default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -128,7 +128,7 @@ class TestHiveMetastore(RMFTestCase):
                        classname = "HiveMetastore",
                        command = "configure",
                        config_file="../../2.1/configs/secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
@@ -139,7 +139,7 @@ class TestHiveMetastore(RMFTestCase):
                        classname = "HiveMetastore",
                        command = "start",
                        config_file="../../2.1/configs/secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -164,7 +164,7 @@ class TestHiveMetastore(RMFTestCase):
                        classname = "HiveMetastore",
                        command = "stop",
                        config_file="../../2.1/configs/secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -413,7 +413,7 @@ class TestHiveMetastore(RMFTestCase):
                        classname = "HiveMetastore",
                        command = "security_status",
                        config_file="../../2.1/configs/secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -437,7 +437,7 @@ class TestHiveMetastore(RMFTestCase):
                          classname = "HiveMetastore",
                          command = "security_status",
                          config_file="../../2.1/configs/secured.json",
-                         hdp_stack_version = self.STACK_VERSION,
+                         stack_version = self.STACK_VERSION,
                          target = RMFTestCase.TARGET_COMMON_SERVICES
       )
     except:
@@ -454,7 +454,7 @@ class TestHiveMetastore(RMFTestCase):
                        classname = "HiveMetastore",
                        command = "security_status",
                        config_file="../../2.1/configs/secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityIssuesFound": "Keytab file or principal are not set property."})
@@ -473,7 +473,7 @@ class TestHiveMetastore(RMFTestCase):
                        classname = "HiveMetastore",
                        command = "security_status",
                        config_file="../../2.1/configs/secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
@@ -483,7 +483,7 @@ class TestHiveMetastore(RMFTestCase):
                        classname = "HiveMetastore",
                        command = "security_status",
                        config_file="../../2.1/configs/default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
@@ -498,7 +498,7 @@ class TestHiveMetastore(RMFTestCase):
                        classname = "HiveMetastore",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
     self.assertResourceCalled('Execute',
                               ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hive-metastore', version), sudo=True,)
@@ -519,7 +519,7 @@ class TestHiveMetastore(RMFTestCase):
                        classname = "HiveMetastore",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict = mocks_dict)
@@ -551,7 +551,7 @@ class TestHiveMetastore(RMFTestCase):
       classname = "HiveMetastore",
       command = "pre_upgrade_restart",
       config_dict = json_content,
-      hdp_stack_version = self.STACK_VERSION,
+      stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES,
       call_mocks = [(0, None, ''), (0, None)])
 
@@ -571,7 +571,7 @@ class TestHiveMetastore(RMFTestCase):
       classname = "HiveMetastore",
       command = "pre_upgrade_restart",
       config_dict = json_content,
-      hdp_stack_version = self.STACK_VERSION,
+      stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES,
       call_mocks = [(0, None, ''), (0, None)])
 
@@ -589,7 +589,7 @@ class TestHiveMetastore(RMFTestCase):
       classname = "HiveMetastore",
       command = "pre_upgrade_restart",
       config_dict = json_content,
-      hdp_stack_version = self.STACK_VERSION,
+      stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES,
       call_mocks = [(0, None, ''), (0, None)])
 
@@ -598,9 +598,9 @@ class TestHiveMetastore(RMFTestCase):
 
   @patch("os.path.exists")
   @patch("resource_management.core.shell.call")
-  @patch("resource_management.libraries.functions.get_hdp_version")
-  def test_upgrade_metastore_schema(self, get_hdp_version_mock, call_mock, os_path_exists_mock):
-    get_hdp_version_mock.return_value = '2.3.0.0-1234'
+  @patch("resource_management.libraries.functions.get_stack_version")
+  def test_upgrade_metastore_schema(self, get_stack_version_mock, call_mock, os_path_exists_mock):
+    get_stack_version_mock.return_value = '2.3.0.0-1234'
 
     def side_effect(path):
       if path == "/usr/hdp/2.2.7.0-1234/hive-server2/lib/mysql-connector-java.jar":
@@ -633,7 +633,7 @@ class TestHiveMetastore(RMFTestCase):
       classname = "HiveMetastore",
       command = "pre_upgrade_restart",
       config_dict = json_content,
-      hdp_stack_version = self.STACK_VERSION,
+      stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES,
       call_mocks = [(0, None, ''), (0, None)],
       mocks_dict = mocks_dict)
@@ -688,9 +688,9 @@ class TestHiveMetastore(RMFTestCase):
 
   @patch("os.path.exists")
   @patch("resource_management.core.shell.call")
-  @patch("resource_management.libraries.functions.get_hdp_version")
-  def test_upgrade_metastore_schema_using_new_db(self, get_hdp_version_mock, call_mock, os_path_exists_mock):
-    get_hdp_version_mock.return_value = '2.3.0.0-1234'
+  @patch("resource_management.libraries.functions.get_stack_version")
+  def test_upgrade_metastore_schema_using_new_db(self, get_stack_version_mock, call_mock, os_path_exists_mock):
+    get_stack_version_mock.return_value = '2.3.0.0-1234'
 
     def side_effect(path):
       if path == "/usr/hdp/2.2.7.0-1234/hive-server2/lib/mysql-connector-java.jar":
@@ -713,7 +713,7 @@ class TestHiveMetastore(RMFTestCase):
       classname = "HiveMetastore",
       command = "upgrade_schema",
       config_dict = json_content,
-      hdp_stack_version = self.STACK_VERSION,
+      stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES,
       call_mocks = [(0, None, ''), (0, None)],
       mocks_dict = mocks_dict)
@@ -754,10 +754,10 @@ class TestHiveMetastore(RMFTestCase):
 
   @patch("os.path.exists")
   @patch("resource_management.core.shell.call")
-  @patch("resource_management.libraries.functions.get_hdp_version")
-  def test_upgrade_sqla_metastore_schema_with_jdbc_download(self, get_hdp_version_mock, call_mock, os_path_exists_mock):
+  @patch("resource_management.libraries.functions.get_stack_version")
+  def test_upgrade_sqla_metastore_schema_with_jdbc_download(self, get_stack_version_mock, call_mock, os_path_exists_mock):
 
-    get_hdp_version_mock.return_value = '2.3.0.0-1234'
+    get_stack_version_mock.return_value = '2.3.0.0-1234'
 
     def side_effect(path):
       if path == "/usr/hdp/2.2.7.0-1234/hive-server2/lib/mysql-connector-java.jar":
@@ -789,7 +789,7 @@ class TestHiveMetastore(RMFTestCase):
                        classname = "HiveMetastore",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict = mocks_dict)

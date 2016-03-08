@@ -37,7 +37,7 @@ class TestFalconServer(RMFTestCase):
       classname="FalconServer",
       command="start",
       config_file="default.json",
-      hdp_stack_version = self.STACK_VERSION,
+      stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES)
 
     self.assert_configure_default()
@@ -54,7 +54,7 @@ class TestFalconServer(RMFTestCase):
       classname="FalconServer",
       command="stop",
       config_file="default.json",
-      hdp_stack_version = self.STACK_VERSION,
+      stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES)
 
     self.assertResourceCalled('Execute', '/usr/lib/falcon/bin/falcon-stop',
@@ -72,7 +72,7 @@ class TestFalconServer(RMFTestCase):
                        classname="FalconServer",
                        command="configure",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -201,7 +201,7 @@ class TestFalconServer(RMFTestCase):
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/falcon_server.py",
      classname = "FalconServer", command = "restart", config_file = "falcon-upgrade.json",
-     hdp_stack_version = self.UPGRADE_STACK_VERSION,
+     stack_version = self.UPGRADE_STACK_VERSION,
      target = RMFTestCase.TARGET_COMMON_SERVICES )
 
     self.assertResourceCalled('Execute',
@@ -421,7 +421,7 @@ class TestFalconServer(RMFTestCase):
                        classname="FalconServer",
                        command="security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -445,7 +445,7 @@ class TestFalconServer(RMFTestCase):
                        classname="FalconServer",
                        command="security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
       )
     except:
@@ -462,7 +462,7 @@ class TestFalconServer(RMFTestCase):
                        classname="FalconServer",
                        command="security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityIssuesFound": "Keytab file or principal are not set property."})
@@ -481,7 +481,7 @@ class TestFalconServer(RMFTestCase):
                        classname="FalconServer",
                        command="security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
@@ -491,7 +491,7 @@ class TestFalconServer(RMFTestCase):
                        classname="FalconServer",
                        command="security_status",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
@@ -509,7 +509,7 @@ class TestFalconServer(RMFTestCase):
                        classname = "FalconServer",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
     self.assertResourceCalled('Execute',
                               ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'falcon-server', version), sudo=True,)
@@ -554,7 +554,7 @@ class TestFalconServer(RMFTestCase):
                        classname = "FalconServer",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict = mocks_dict)

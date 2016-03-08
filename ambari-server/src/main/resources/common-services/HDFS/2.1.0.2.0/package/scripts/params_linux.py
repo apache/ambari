@@ -27,9 +27,9 @@ from ambari_commons.os_check import OSCheck
 from ambari_commons.str_utils import cbool, cint
 
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import format
-from resource_management.libraries.functions.version import format_hdp_stack_version
+from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_klist_path
 from resource_management.libraries.functions import get_kinit_path
@@ -47,7 +47,7 @@ tmp_dir = Script.get_tmp_dir()
 stack_name = default("/hostLevelParams/stack_name", None)
 upgrade_direction = default("/commandParams/upgrade_direction", None)
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
+stack_version_formatted = format_stack_version(stack_version_unformatted)
 agent_stack_retry_on_unavailability = cbool(config["hostLevelParams"]["agent_stack_retry_on_unavailability"])
 agent_stack_retry_count = cint(config["hostLevelParams"]["agent_stack_retry_count"])
 
@@ -77,17 +77,17 @@ secure_dn_ports_are_in_use = False
 
 # hadoop default parameters
 mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
-hadoop_libexec_dir = hdp_select.get_hadoop_dir("libexec")
-hadoop_bin = hdp_select.get_hadoop_dir("sbin")
-hadoop_bin_dir = hdp_select.get_hadoop_dir("bin")
-hadoop_home = hdp_select.get_hadoop_dir("home")
+hadoop_libexec_dir = stack_select.get_hadoop_dir("libexec")
+hadoop_bin = stack_select.get_hadoop_dir("sbin")
+hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
+hadoop_home = stack_select.get_hadoop_dir("home")
 hadoop_secure_dn_user = hdfs_user
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 hadoop_conf_secure_dir = os.path.join(hadoop_conf_dir, "secure")
-hadoop_lib_home = hdp_select.get_hadoop_dir("lib")
+hadoop_lib_home = stack_select.get_hadoop_dir("lib")
 
 # hadoop parameters for 2.2+
-if Script.is_hdp_stack_greater_or_equal("2.2"):
+if Script.is_stack_greater_or_equal("2.2"):
   mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce-client/*"
 
   if not security_enabled:
@@ -114,7 +114,7 @@ limits_conf_dir = "/etc/security/limits.d"
 hdfs_user_nofile_limit = default("/configurations/hadoop-env/hdfs_user_nofile_limit", "128000")
 hdfs_user_nproc_limit = default("/configurations/hadoop-env/hdfs_user_nproc_limit", "65536")
 
-create_lib_snappy_symlinks = not Script.is_hdp_stack_greater_or_equal("2.2")
+create_lib_snappy_symlinks = not Script.is_stack_greater_or_equal("2.2")
 jsvc_path = "/usr/lib/bigtop-utils"
 
 execute_path = os.environ['PATH'] + os.pathsep + hadoop_bin_dir

@@ -31,8 +31,8 @@ origin_exists = os.path.exists
   side_effect=lambda *args: origin_exists(args[0])
   if args[0][-2:] == "j2" else True))
 
-@patch.object(Script, "is_hdp_stack_greater_or_equal", new = MagicMock(return_value=False))
-@patch.object(functions, "get_hdp_version", new = MagicMock(return_value="2.0.0.0-1234"))
+@patch.object(Script, "is_stack_greater_or_equal", new = MagicMock(return_value=False))
+@patch.object(functions, "get_stack_version", new = MagicMock(return_value="2.0.0.0-1234"))
 class TestAts(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "YARN/2.1.0.2.0/package"
   STACK_VERSION = "2.3"
@@ -42,7 +42,7 @@ class TestAts(RMFTestCase):
                        classname="ApplicationTimelineServer",
                        command="configure",
                        config_file="ats_1_5.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
                        )
     self.assert_configure_default()

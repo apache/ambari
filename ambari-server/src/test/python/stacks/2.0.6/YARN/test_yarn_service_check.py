@@ -39,7 +39,7 @@ class TestServiceCheck(RMFTestCase):
                           classname="ServiceCheck",
                           command="service_check",
                           config_file="default.json",
-                          hdp_stack_version = self.STACK_VERSION,
+                          stack_version = self.STACK_VERSION,
                           target = RMFTestCase.TARGET_COMMON_SERVICES,
                           checked_call_mocks = [(0, "some test text, appTrackingUrl=http:"
                                 "//c6402.ambari.apache.org:8088/proxy/application_1429885383763_0001/, some test text")]
@@ -57,7 +57,7 @@ class TestServiceCheck(RMFTestCase):
                           classname="ServiceCheck",
                           command="service_check",
                           config_file="secured.json",
-                          hdp_stack_version = self.STACK_VERSION,
+                          stack_version = self.STACK_VERSION,
                           target = RMFTestCase.TARGET_COMMON_SERVICES,
                           checked_call_mocks = [(0, "some test text, appTrackingUrl=http:"
                                "//c6402.ambari.apache.org:8088/proxy/application_1429885383763_0001/, some test text")]

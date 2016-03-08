@@ -21,7 +21,7 @@ import os
 import ambari_simplejson as json
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.version import compare_versions
 from resource_management.libraries.resources.xml_config import XmlConfig
@@ -37,11 +37,11 @@ def setup_hdp_symlinks():
   :return:
   """
   import params
-  if params.hdp_stack_version != "" and compare_versions(params.hdp_stack_version, '2.2') >= 0:
+  if params.stack_version_formatted != "" and compare_versions(params.stack_version_formatted, '2.2') >= 0:
     # try using the exact version first, falling back in just the stack if it's not defined
     # which would only be during an intial cluster installation
     version = params.current_version if params.current_version is not None else params.stack_version_unformatted
-    hdp_select.select_all(version)
+    stack_select.select_all(version)
 
 
 def setup_config():
@@ -87,7 +87,7 @@ def link_configs(struct_out_file):
   Links configs, only on a fresh install of HDP-2.3 and higher
   """
 
-  if not Script.is_hdp_stack_greater_or_equal("2.3"):
+  if not Script.is_stack_greater_or_equal("2.3"):
     Logger.info("Can only link configs for HDP-2.3 and higher.")
     return
 

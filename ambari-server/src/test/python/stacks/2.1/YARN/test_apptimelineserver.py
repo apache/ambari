@@ -38,7 +38,7 @@ class TestAppTimelineServer(RMFTestCase):
                        classname="ApplicationTimelineServer",
                        command="configure",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -49,7 +49,7 @@ class TestAppTimelineServer(RMFTestCase):
                        classname="ApplicationTimelineServer",
                        command="start",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -83,7 +83,7 @@ class TestAppTimelineServer(RMFTestCase):
                        classname="ApplicationTimelineServer",
                        command="stop",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -275,7 +275,7 @@ class TestAppTimelineServer(RMFTestCase):
                        classname="ApplicationTimelineServer",
                        command="status",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -320,7 +320,7 @@ class TestAppTimelineServer(RMFTestCase):
                        classname="ApplicationTimelineServer",
                        command="security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -343,7 +343,7 @@ class TestAppTimelineServer(RMFTestCase):
                          classname="ApplicationTimelineServer",
                          command="security_status",
                          config_file="secured.json",
-                         hdp_stack_version = self.STACK_VERSION,
+                         stack_version = self.STACK_VERSION,
                          target = RMFTestCase.TARGET_COMMON_SERVICES
       )
     except:
@@ -360,7 +360,7 @@ class TestAppTimelineServer(RMFTestCase):
                        classname="ApplicationTimelineServer",
                        command="security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityIssuesFound": "Keytab file or principal are not set property."})
@@ -379,7 +379,7 @@ class TestAppTimelineServer(RMFTestCase):
                        classname="ApplicationTimelineServer",
                        command="security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
@@ -389,12 +389,12 @@ class TestAppTimelineServer(RMFTestCase):
                        classname="ApplicationTimelineServer",
                        command="security_status",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
 
-  @patch.object(resource_management.libraries.functions, "get_hdp_version", new = MagicMock(return_value='2.3.0.0-1234'))
+  @patch.object(resource_management.libraries.functions, "get_stack_version", new = MagicMock(return_value='2.3.0.0-1234'))
   def test_pre_upgrade_restart_23(self):
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
     with open(config_file, "r") as f:
@@ -407,7 +407,7 @@ class TestAppTimelineServer(RMFTestCase):
                        classname = "ApplicationTimelineServer",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None, '')],
                        mocks_dict = mocks_dict)

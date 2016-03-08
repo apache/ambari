@@ -63,7 +63,7 @@ class TestPxf(RMFTestCase):
                        classname="Pxf",
                        command="install",
                        config_file="pxf_default.json",
-                       hdp_stack_version=self.STACK_VERSION,
+                       stack_version=self.STACK_VERSION,
                        target=RMFTestCase.TARGET_COMMON_SERVICES,
                        try_install=True)
 
@@ -91,7 +91,7 @@ class TestPxf(RMFTestCase):
                    classname="Pxf",
                    command="configure",
                    config_file="pxf_default.json",
-                   hdp_stack_version=self.STACK_VERSION,
+                   stack_version=self.STACK_VERSION,
                    target=RMFTestCase.TARGET_COMMON_SERVICES,
                    try_install=True)
 
@@ -103,7 +103,7 @@ class TestPxf(RMFTestCase):
                    classname="Pxf",
                    command="start",
                    config_file="pxf_default.json",
-                   hdp_stack_version=self.STACK_VERSION,
+                   stack_version=self.STACK_VERSION,
                    target=RMFTestCase.TARGET_COMMON_SERVICES,
                    try_install=True)
 
@@ -123,7 +123,7 @@ class TestPxf(RMFTestCase):
                    classname="Pxf",
                    command="stop",
                    config_file="pxf_default.json",
-                   hdp_stack_version=self.STACK_VERSION,
+                   stack_version=self.STACK_VERSION,
                    target=RMFTestCase.TARGET_COMMON_SERVICES,
                    try_install=True)
 
@@ -136,7 +136,7 @@ class TestPxf(RMFTestCase):
                    classname="Pxf",
                    command="status",
                    config_file="pxf_default.json",
-                   hdp_stack_version=self.STACK_VERSION,
+                   stack_version=self.STACK_VERSION,
                    target=RMFTestCase.TARGET_COMMON_SERVICES,
                    try_install=True)
 

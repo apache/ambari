@@ -22,7 +22,7 @@ import status_params
 import os
 
 from resource_management.libraries.functions import format
-from resource_management.libraries.functions.version import format_hdp_stack_version
+from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.script.script import Script
@@ -32,7 +32,7 @@ config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
+stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 stack_name = default("/hostLevelParams/stack_name", None)
 current_version = default("/hostLevelParams/current_version", None)
@@ -49,7 +49,7 @@ config_dir = "/etc/zookeeper/conf"
 zk_smoke_out = os.path.join(tmp_dir, "zkSmoke.out")
 
 # hadoop parameters for 2.2+
-if Script.is_hdp_stack_greater_or_equal("2.2"):
+if Script.is_stack_greater_or_equal("2.2"):
   zk_home = format("/usr/hdp/current/{component_directory}")
   zk_bin = format("/usr/hdp/current/{component_directory}/bin")
   zk_cli_shell = format("/usr/hdp/current/{component_directory}/bin/zkCli.sh")

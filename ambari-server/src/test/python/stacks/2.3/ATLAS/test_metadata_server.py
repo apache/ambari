@@ -101,7 +101,7 @@ class TestMetadataServer(RMFTestCase):
                        classname = "MetadataServer",
                        command = "configure",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -113,7 +113,7 @@ class TestMetadataServer(RMFTestCase):
                        classname = "MetadataServer",
                        command = "configure",
                        config_file="secure.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
                        )
 
@@ -128,7 +128,7 @@ class TestMetadataServer(RMFTestCase):
                        classname = "MetadataServer",
                        command = "start",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.configureResourcesCalled()
@@ -142,7 +142,7 @@ class TestMetadataServer(RMFTestCase):
                        classname = "MetadataServer",
                        command = "stop",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', 'source /etc/atlas/conf/atlas-env.sh; /usr/hdp/current/atlas-server/bin/atlas_stop.py',

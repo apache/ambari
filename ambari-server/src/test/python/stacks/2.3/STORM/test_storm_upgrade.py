@@ -41,7 +41,7 @@ class TestStormUpgrade(RMFTestCase):
       classname = "StormUpgrade",
       command = "delete_storm_zookeeper_data",
       config_dict = json_content,
-      hdp_stack_version = self.STACK_VERSION,
+      stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES,
       call_mocks = [],
       mocks_dict = mocks_dict)
@@ -73,7 +73,7 @@ class TestStormUpgrade(RMFTestCase):
       classname = "StormUpgrade",
       command = "delete_storm_zookeeper_data",
       config_dict = json_content,
-      hdp_stack_version = self.STACK_VERSION,
+      stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES,
       call_mocks = [],
       mocks_dict = mocks_dict)

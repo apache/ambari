@@ -22,7 +22,7 @@ __all__ = ["select", "create", "get_hadoop_conf_dir", "get_hadoop_dir"]
 
 import os
 import version
-import hdp_select
+import stack_select
 import subprocess
 
 from resource_management.core import shell
@@ -34,7 +34,7 @@ from resource_management.core.resources.system import Execute
 from resource_management.core.resources.system import Link
 from resource_management.libraries.functions.default import default
 from resource_management.core.exceptions import Fail
-from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
+from resource_management.libraries.functions.version import compare_versions, format_stack_version
 from resource_management.core.shell import as_sudo
 
 
@@ -192,7 +192,7 @@ def _valid(stack_name, package, ver):
   if stack_name != "HDP":
     return False
 
-  if version.compare_versions(version.format_hdp_stack_version(ver), "2.3.0.0") < 0:
+  if version.compare_versions(version.format_stack_version(ver), "2.3.0.0") < 0:
     return False
 
   return True
@@ -298,10 +298,10 @@ def get_hadoop_conf_dir(force_latest_on_upgrade=False):
 
   if not Script.in_stack_upgrade():
     # During normal operation, the HDP stack must be 2.3 or higher
-    if Script.is_hdp_stack_greater_or_equal("2.2"):
+    if Script.is_stack_greater_or_equal("2.2"):
       hadoop_conf_dir = "/usr/hdp/current/hadoop-client/conf"
 
-    if Script.is_hdp_stack_greater_or_equal("2.3"):
+    if Script.is_stack_greater_or_equal("2.3"):
       hadoop_conf_dir = "/usr/hdp/current/hadoop-client/conf"
       stack_name = default("/hostLevelParams/stack_name", None)
       version = default("/commandParams/version", None)
@@ -326,16 +326,16 @@ def get_hadoop_conf_dir(force_latest_on_upgrade=False):
     EU/RU | 2.3    | 2.3.*  | Any                   | Use /usr/hdp/$version/hadoop/conf, which should be a symlink destination
     '''
 
-    # The method "is_hdp_stack_greater_or_equal" uses "stack_version" which is the desired stack, e.g., 2.2 or 2.3
+    # The method "is_stack_greater_or_equal" uses "stack_version" which is the desired stack, e.g., 2.2 or 2.3
     # In an RU, it is always the desired stack, and doesn't change even during the Downgrade!
     # In an RU Downgrade from HDP 2.3 to 2.2, the first thing we do is 
     # rm /etc/[component]/conf and then mv /etc/[component]/conf.backup /etc/[component]/conf
-    if Script.is_hdp_stack_greater_or_equal("2.2"):
+    if Script.is_stack_greater_or_equal("2.2"):
       hadoop_conf_dir = "/usr/hdp/current/hadoop-client/conf"
 
       # This contains the "version", including the build number, that is actually used during a stack upgrade and
       # is the version upgrading/downgrading to.
-      stack_info = hdp_select._get_upgrade_stack()
+      stack_info = stack_select._get_upgrade_stack()
 
       if stack_info is not None:
         stack_name = stack_info[0]
@@ -345,14 +345,14 @@ def get_hadoop_conf_dir(force_latest_on_upgrade=False):
       
       Logger.info("In the middle of a stack upgrade/downgrade for Stack {0} and destination version {1}, determining which hadoop conf dir to use.".format(stack_name, version))
       # This is the version either upgrading or downgrading to.
-      if compare_versions(format_hdp_stack_version(version), "2.3.0.0") >= 0:
+      if compare_versions(format_stack_version(version), "2.3.0.0") >= 0:
         # Determine if hdp-select has been run and if not, then use the current
         # hdp version until this component is upgraded.
         if not force_latest_on_upgrade:
-          current_hdp_version = hdp_select.get_role_component_current_hdp_version()
-          if current_hdp_version is not None and version != current_hdp_version:
-            version = current_hdp_version
-            Logger.info("hdp-select has not yet been called to update the symlink for this component, keep using version {0}".format(current_hdp_version))
+          current_stack_version = stack_select.get_role_component_current_stack_version()
+          if current_stack_version is not None and version != current_stack_version:
+            version = current_stack_version
+            Logger.info("hdp-select has not yet been called to update the symlink for this component, keep using version {0}".format(current_stack_version))
 
         # Only change the hadoop_conf_dir path, don't conf-select this older version
         hadoop_conf_dir = "/usr/hdp/{0}/hadoop/conf".format(version)

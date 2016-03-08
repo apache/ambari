@@ -24,8 +24,8 @@ from resource_management import *
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
-from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
+from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions.version import compare_versions, format_stack_version
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def zookeeper_service(action='start', upgrade_type=None):
@@ -33,9 +33,9 @@ def zookeeper_service(action='start', upgrade_type=None):
 
   # This path may be missing after Ambari upgrade. We need to create it.
   if upgrade_type is None and not os.path.exists("/usr/hdp/current/zookeeper-server") and params.current_version \
-    and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
+    and compare_versions(format_stack_version(params.version), '2.2.0.0') >= 0:
     conf_select.select(params.stack_name, "zookeeper", params.current_version)
-    hdp_select.select("zookeeper-server", params.version)
+    stack_select.select("zookeeper-server", params.version)
 
   cmd = format("env ZOOCFGDIR={config_dir} ZOOCFG=zoo.cfg {zk_bin}/zkServer.sh")
 

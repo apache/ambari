@@ -84,7 +84,7 @@ class PigServiceCheckLinux(PigServiceCheck):
       bin_dir = params.hadoop_bin_dir
     )
 
-    if params.hdp_stack_version != "" and compare_versions(params.hdp_stack_version, '2.2') >= 0:
+    if params.stack_version_formatted != "" and compare_versions(params.stack_version_formatted, '2.2') >= 0:
       # cleanup results from previous test
       params.HdfsResource(output_dir,
                           type="directory",

@@ -30,8 +30,8 @@ from resource_management.core.resources.system import File
 from resource_management.libraries.functions import Direction
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import compare_versions
-from resource_management.libraries.functions import hdp_select
-from resource_management.libraries.functions import format_hdp_stack_version
+from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions import format_stack_version
 from resource_management.libraries.functions import tar_archive
 from resource_management.libraries.script.script import Script
 
@@ -108,7 +108,7 @@ class OozieUpgrade(Script):
 
     # some versions of HDP don't need the lzo compression libraries
     target_version_needs_compression_libraries = compare_versions(
-      format_hdp_stack_version(params.version), '2.2.1.0') >= 0
+      format_stack_version(params.version), '2.2.1.0') >= 0
 
     # ensure the directory exists
     Directory(params.oozie_libext_dir, mode = 0777)
@@ -162,7 +162,7 @@ class OozieUpgrade(Script):
     oozie.download_database_library_if_needed()
 
     # get the upgrade version in the event that it's needed
-    upgrade_stack = hdp_select._get_upgrade_stack()
+    upgrade_stack = stack_select._get_upgrade_stack()
     if upgrade_stack is None or len(upgrade_stack) < 2 or upgrade_stack[1] is None:
       raise Fail("Unable to determine the stack that is being upgraded to or downgraded to.")
 
@@ -226,7 +226,7 @@ class OozieUpgrade(Script):
       command = format("{kinit_path_local} -kt {oozie_keytab} {oozie_principal_with_host}")
       Execute(command, user=params.oozie_user, logoutput=True)
 
-    upgrade_stack = hdp_select._get_upgrade_stack()
+    upgrade_stack = stack_select._get_upgrade_stack()
     if upgrade_stack is None or len(upgrade_stack) < 2 or upgrade_stack[1] is None:
       raise Fail("Unable to determine the stack that is being upgraded to or downgraded to.")
 
@@ -278,7 +278,7 @@ class OozieUpgrade(Script):
 
     params.HdfsResource(None, action = "execute")
 
-    upgrade_stack = hdp_select._get_upgrade_stack()
+    upgrade_stack = stack_select._get_upgrade_stack()
     if upgrade_stack is None or upgrade_stack[1] is None:
       raise Fail("Unable to determine the stack that is being upgraded to or downgraded to.")
 

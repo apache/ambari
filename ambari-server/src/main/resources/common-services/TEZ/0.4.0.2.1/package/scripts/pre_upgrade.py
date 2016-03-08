@@ -38,8 +38,8 @@ class TezPreUpgrade(Script):
 
     Logger.info("Before starting Stack Upgrade, check if tez tarball has been copied to HDFS.")
 
-    if params.hdp_stack_version and compare_versions(params.hdp_stack_version, '2.2.0.0') >= 0:
-      Logger.info("Stack version {0} is sufficient to check if need to copy tez.tar.gz to HDFS.".format(params.hdp_stack_version))
+    if params.stack_version_formatted and compare_versions(params.stack_version_formatted, '2.2.0.0') >= 0:
+      Logger.info("Stack version {0} is sufficient to check if need to copy tez.tar.gz to HDFS.".format(params.stack_version_formatted))
 
       # Force it to copy the current version of the tez tarball, rather than the version the RU will go to.
       resource_created = copy_to_hdfs(

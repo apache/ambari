@@ -18,10 +18,10 @@ limitations under the License.
 
 """
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions import format
-from resource_management.libraries.functions.version import format_hdp_stack_version
+from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.get_bare_principal import get_bare_principal
 from resource_management.libraries.script.script import Script
@@ -39,10 +39,10 @@ security_enabled = status_params.security_enabled
 stack_name = default("/hostLevelParams/stack_name", None)
 version = default("/commandParams/version", None)
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
+stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 has_secure_user_auth = False
-if Script.is_hdp_stack_greater_or_equal("2.3"):
+if Script.is_stack_greater_or_equal("2.3"):
   has_secure_user_auth = True
 
 # configuration directories
@@ -50,8 +50,8 @@ conf_dir = status_params.conf_dir
 server_conf_dir = status_params.server_conf_dir
 
 # service locations
-hadoop_prefix = hdp_select.get_hadoop_dir("home")
-hadoop_bin_dir = hdp_select.get_hadoop_dir("bin")
+hadoop_prefix = stack_select.get_hadoop_dir("home")
+hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 zookeeper_home = "/usr/hdp/current/zookeeper-client"
 
 # the configuration direction for HDFS/YARN/MapR is the hadoop config

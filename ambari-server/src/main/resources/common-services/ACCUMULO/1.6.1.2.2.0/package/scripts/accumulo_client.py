@@ -21,7 +21,7 @@ limitations under the License.
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import ClientComponentHasNoStatus
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.script.script import Script
 
 from accumulo_configuration import setup_conf_dir
@@ -54,12 +54,12 @@ class AccumuloClient(Script):
 
     # this function should not execute if the version can't be determined or
     # is not at least HDP 2.2.0.0
-    if Script.is_hdp_stack_less_than("2.2"):
+    if Script.is_stack_less_than("2.2"):
       return
 
     Logger.info("Executing Accumulo Client Upgrade pre-restart")
     conf_select.select(params.stack_name, "accumulo", params.version)
-    hdp_select.select("accumulo-client", params.version)
+    stack_select.select("accumulo-client", params.version)
 
 if __name__ == "__main__":
   AccumuloClient().execute()

@@ -146,7 +146,7 @@ def oozie(is_server=False):
       owner=params.oozie_user
     )
 
-  if params.hdp_stack_version != "" and compare_versions(params.hdp_stack_version, '2.2') >= 0:
+  if params.stack_version_formatted != "" and compare_versions(params.stack_version_formatted, '2.2') >= 0:
     File(format("{params.conf_dir}/adminusers.txt"),
       mode=0644,
       group=params.user_group,
@@ -318,7 +318,7 @@ def oozie_server_specific():
        mode = 0644,
   )
 
-  if params.hdp_stack_version != "" and compare_versions(params.hdp_stack_version, '2.2') >= 0:
+  if params.stack_version_formatted != "" and compare_versions(params.stack_version_formatted, '2.2') >= 0:
     # Create hive-site and tez-site configs for oozie
     Directory(params.hive_conf_dir,
         create_parents = True,

@@ -33,7 +33,7 @@ class TestGangliaServer(RMFTestCase):
                      classname="GangliaServer",
                      command="configure",
                      config_file="default.json",
-                     hdp_stack_version = self.STACK_VERSION,
+                     stack_version = self.STACK_VERSION,
                      target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -44,7 +44,7 @@ class TestGangliaServer(RMFTestCase):
                        classname="GangliaServer",
                        command="start",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -60,7 +60,7 @@ class TestGangliaServer(RMFTestCase):
                        classname="GangliaServer",
                        command="stop",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E service hdp-gmetad stop >> /tmp/gmetad.log  2>&1 ; /bin/ps auwx | /bin/grep [g]metad  >> /tmp/gmetad.log  2>&1',
@@ -75,7 +75,7 @@ class TestGangliaServer(RMFTestCase):
                        classname="GangliaServer",
                        command="install",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()

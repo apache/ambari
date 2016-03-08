@@ -38,7 +38,7 @@ class TestPhoenixQueryServer(RMFTestCase):
       classname = "PhoenixQueryServer",
       command = "configure",
       config_file = "hbase_default.json",
-      hdp_stack_version = self.STACK_VERSION,
+      stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES,
       call_mocks = [(0, None, None)]
     )
@@ -52,7 +52,7 @@ class TestPhoenixQueryServer(RMFTestCase):
       classname = "PhoenixQueryServer",
       command = "start",
       config_file = "hbase_default.json",
-      hdp_stack_version = self.STACK_VERSION,
+      stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES,
       call_mocks = [(0, None, None)]
     )
@@ -71,7 +71,7 @@ class TestPhoenixQueryServer(RMFTestCase):
       classname = "PhoenixQueryServer",
       command = "stop",
       config_file = "hbase_default.json",
-      hdp_stack_version = self.STACK_VERSION,
+      stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES,
       call_mocks = [(0, None, None)]
     )
@@ -98,7 +98,7 @@ class TestPhoenixQueryServer(RMFTestCase):
       classname = "PhoenixQueryServer",
       command = "configure",
       config_file = "hbase_secure.json",
-      hdp_stack_version = self.STACK_VERSION,
+      stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES,
       call_mocks = [(0, None, None)]
     )
@@ -112,7 +112,7 @@ class TestPhoenixQueryServer(RMFTestCase):
       classname = "PhoenixQueryServer",
       command = "start",
       config_file = "hbase_secure.json",
-      hdp_stack_version = self.STACK_VERSION,
+      stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES,
       call_mocks = [(0, None, None)]
     )
@@ -131,7 +131,7 @@ class TestPhoenixQueryServer(RMFTestCase):
       classname = "PhoenixQueryServer",
       command = "stop",
       config_file = "hbase_secure.json",
-      hdp_stack_version = self.STACK_VERSION,
+      stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES,
       call_mocks = [(0, None, None)]
     )
@@ -164,7 +164,7 @@ class TestPhoenixQueryServer(RMFTestCase):
       classname = "PhoenixQueryServer",
       command = "start",
       config_file = "hbase-rs-2.4.json",
-      hdp_stack_version = self.STACK_VERSION,
+      stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES)
 
     self.assertResourceCalled('Directory', '/etc/hbase',
@@ -470,7 +470,7 @@ class TestPhoenixQueryServer(RMFTestCase):
       command = "pre_upgrade_restart",
       config_dict = json_content,
       call_mocks = [(0, "/etc/hbase/2.3.0.0-1234/0", ''), (0, None, None), (0, None, None)],
-      hdp_stack_version = self.STACK_VERSION,
+      stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES)
 
     self.assertResourceCalled('Directory', '/etc/hbase/2.3.0.0-1234/0',

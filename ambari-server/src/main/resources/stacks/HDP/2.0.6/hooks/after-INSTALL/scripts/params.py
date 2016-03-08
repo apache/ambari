@@ -21,9 +21,9 @@ from ambari_commons.constants import AMBARI_SUDO_BINARY
 from resource_management.libraries.script import Script
 from resource_management.libraries.functions import default
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import format_jvm_option
-from resource_management.libraries.functions.version import format_hdp_stack_version
+from resource_management.libraries.functions.version import format_stack_version
 
 config = Script.get_config()
 
@@ -32,18 +32,18 @@ dfs_type = default("/commandParams/dfs_type", "")
 sudo = AMBARI_SUDO_BINARY
 
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
+stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 # current host stack version
 current_version = default("/hostLevelParams/current_version", None)
 
 # default hadoop params
 mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
-hadoop_libexec_dir = hdp_select.get_hadoop_dir("libexec")
+hadoop_libexec_dir = stack_select.get_hadoop_dir("libexec")
 hadoop_conf_empty_dir = "/etc/hadoop/conf.empty"
 
 # HDP 2.2+ params
-if Script.is_hdp_stack_greater_or_equal("2.2"):
+if Script.is_stack_greater_or_equal("2.2"):
   mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce-client/*"
 
   # not supported in HDP 2.2+

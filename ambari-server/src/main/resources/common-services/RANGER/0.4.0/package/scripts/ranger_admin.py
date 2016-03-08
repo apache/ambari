@@ -17,7 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.script import Script
 from resource_management.core.resources.system import Execute
 from resource_management.core.exceptions import ComponentIsNotRunning
@@ -123,7 +123,7 @@ class RangerAdmin(Script):
     import params
     env.set_params(params)
 
-    upgrade_stack = hdp_select._get_upgrade_stack()
+    upgrade_stack = stack_select._get_upgrade_stack()
     if upgrade_stack is None:
       raise Fail('Unable to determine the stack and stack version')
 
@@ -139,7 +139,7 @@ class RangerAdmin(Script):
     import params
     env.set_params(params)
 
-    upgrade_stack = hdp_select._get_upgrade_stack()
+    upgrade_stack = stack_select._get_upgrade_stack()
     if upgrade_stack is None:
       raise Fail('Unable to determine the stack and stack version')
 

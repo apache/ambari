@@ -24,7 +24,7 @@ from stacks.utils.RMFTestCase import *
 from only_for_platform import not_for_platform, PLATFORM_WINDOWS
 
 @not_for_platform(PLATFORM_WINDOWS)
-@patch("resource_management.libraries.functions.get_hdp_version", new=MagicMock(return_value="2.3.0.0-1597"))
+@patch("resource_management.libraries.functions.get_stack_version", new=MagicMock(return_value="2.3.0.0-1597"))
 class TestSparkClient(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "SPARK/1.2.0.2.2/package"
   STACK_VERSION = "2.2"
@@ -34,7 +34,7 @@ class TestSparkClient(RMFTestCase):
                    classname = "SparkClient",
                    command = "configure",
                    config_file="default.json",
-                   hdp_stack_version = self.STACK_VERSION,
+                   stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -45,7 +45,7 @@ class TestSparkClient(RMFTestCase):
                    classname = "SparkClient",
                    command = "configure",
                    config_file="secured.json",
-                   hdp_stack_version = self.STACK_VERSION,
+                   stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
@@ -149,7 +149,7 @@ class TestSparkClient(RMFTestCase):
                        classname = "SparkClient",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict = mocks_dict)

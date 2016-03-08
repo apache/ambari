@@ -30,7 +30,7 @@ class TestFalconServiceCheck(RMFTestCase):
                        classname="FalconServiceCheck",
                        command="service_check",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', '/usr/lib/falcon/bin/falcon admin -version',
@@ -44,7 +44,7 @@ class TestFalconServiceCheck(RMFTestCase):
                        classname="FalconServiceCheck",
                        command="service_check",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute','/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa@EXAMPLE.COM',

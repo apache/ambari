@@ -28,13 +28,13 @@ from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.version import compare_versions
-from resource_management.libraries.functions.version import format_hdp_stack_version
+from resource_management.libraries.functions.version import format_stack_version
 from resource_management.core import shell
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, Link, Directory
 
-HDP_SELECT = '/usr/bin/hdp-select'
+STACK_SELECT = '/usr/bin/hdp-select'
 
 class UpgradeSetAll(Script):
   """
@@ -56,14 +56,14 @@ class UpgradeSetAll(Script):
       cmd = ('/usr/bin/yum', 'clean', 'all')
       code, out = shell.call(cmd, sudo=True)
 
-    min_ver = format_hdp_stack_version("2.2")
-    real_ver = format_hdp_stack_version(version)
+    min_ver = format_stack_version("2.2")
+    real_ver = format_stack_version(version)
     if stack_name == "HDP":
       if compare_versions(real_ver, min_ver) >= 0:
-        cmd = ('ambari-python-wrap', HDP_SELECT, 'set', 'all', version)
+        cmd = ('ambari-python-wrap', STACK_SELECT, 'set', 'all', version)
         code, out = shell.call(cmd, sudo=True)
 
-      if compare_versions(real_ver, format_hdp_stack_version("2.3")) >= 0:
+      if compare_versions(real_ver, format_stack_version("2.3")) >= 0:
         # backup the old and symlink /etc/[component]/conf to /usr/hdp/current/[component]
         for k, v in conf_select.PACKAGE_DIRS.iteritems():
           for dir_def in v:
@@ -97,9 +97,9 @@ class UpgradeSetAll(Script):
     Logger.info("Unlinking all configs when downgrading from HDP 2.3 to 2.2")
 
     # normalize the versions
-    stack_23 = format_hdp_stack_version("2.3")
-    downgrade_to_version = format_hdp_stack_version(downgrade_to_version)
-    downgrade_from_version = format_hdp_stack_version(downgrade_from_version)
+    stack_23 = format_stack_version("2.3")
+    downgrade_to_version = format_stack_version(downgrade_to_version)
+    downgrade_from_version = format_stack_version(downgrade_from_version)
 
     # downgrade-to-version must be 2.2 (less than 2.3)
     if compare_versions(downgrade_to_version, stack_23) >= 0:

@@ -32,7 +32,7 @@ class TestStormRestApi(TestStormBase):
                        classname = "StormRestApi",
                        command = "configure",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -43,7 +43,7 @@ class TestStormRestApi(TestStormBase):
                        classname = "StormRestApi",
                        command = "start",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -73,7 +73,7 @@ class TestStormRestApi(TestStormBase):
                        classname = "StormRestApi",
                        command = "stop",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', "ambari-sudo.sh kill 123",
@@ -93,7 +93,7 @@ class TestStormRestApi(TestStormBase):
                        classname = "StormRestApi",
                        command = "configure",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
@@ -104,7 +104,7 @@ class TestStormRestApi(TestStormBase):
                        classname = "StormRestApi",
                        command = "start",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -133,7 +133,7 @@ class TestStormRestApi(TestStormBase):
                        classname = "StormRestApi",
                        command = "stop",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', "ambari-sudo.sh kill 123",

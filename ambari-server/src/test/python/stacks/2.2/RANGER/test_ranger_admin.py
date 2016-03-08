@@ -33,7 +33,7 @@ class TestRangerAdmin(RMFTestCase):
                    classname = "RangerAdmin",
                    command = "configure",
                    config_file="ranger-admin-default.json",
-                   hdp_stack_version = self.STACK_VERSION,
+                   stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -44,7 +44,7 @@ class TestRangerAdmin(RMFTestCase):
                    classname = "RangerAdmin",
                    command = "start",
                    config_file="ranger-admin-default.json",
-                   hdp_stack_version = self.STACK_VERSION,
+                   stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -60,7 +60,7 @@ class TestRangerAdmin(RMFTestCase):
                    classname = "RangerAdmin",
                    command = "stop",
                    config_file="ranger-admin-default.json",
-                   hdp_stack_version = self.STACK_VERSION,
+                   stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', '/usr/bin/ranger-admin-stop',
@@ -74,7 +74,7 @@ class TestRangerAdmin(RMFTestCase):
                    classname = "RangerAdmin",
                    command = "configure",
                    config_file="ranger-admin-secured.json",
-                   hdp_stack_version = self.STACK_VERSION,
+                   stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
@@ -85,7 +85,7 @@ class TestRangerAdmin(RMFTestCase):
                    classname = "RangerAdmin",
                    command = "start",
                    config_file="ranger-admin-secured.json",
-                   hdp_stack_version = self.STACK_VERSION,
+                   stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
@@ -101,7 +101,7 @@ class TestRangerAdmin(RMFTestCase):
                    classname = "RangerAdmin",
                    command = "stop",
                    config_file="ranger-admin-secured.json",
-                   hdp_stack_version = self.STACK_VERSION,
+                   stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', '/usr/bin/ranger-admin-stop',
@@ -206,7 +206,7 @@ class TestRangerAdmin(RMFTestCase):
                        classname = "RangerAdmin",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict = mocks_dict)

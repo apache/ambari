@@ -30,7 +30,7 @@ class TestStormJaasConfiguration(TestStormBase):
                        classname = "Nimbus",
                        command = "configure",
                        config_file = "default-storm-start.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -40,7 +40,7 @@ class TestStormJaasConfiguration(TestStormBase):
                        classname = "Nimbus",
                        command = "start",
                        config_file = "default-storm-start.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -53,7 +53,7 @@ class TestStormJaasConfiguration(TestStormBase):
                        classname = "Nimbus",
                        command = "configure",
                        config_file = "secured-storm-start.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
@@ -64,7 +64,7 @@ class TestStormJaasConfiguration(TestStormBase):
                        classname = "Nimbus",
                        command = "start",
                        config_file = "secured-storm-start.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()

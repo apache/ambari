@@ -21,7 +21,7 @@ limitations under the License.
 import sys
 from resource_management import *
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import stack_select
 from hbase import hbase
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
@@ -57,13 +57,13 @@ class HbaseClientDefault(HbaseClient):
     import params
     env.set_params(params)
 
-    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
+    if params.version and compare_versions(format_stack_version(params.version), '2.2.0.0') >= 0:
       conf_select.select(params.stack_name, "hbase", params.version)
-      hdp_select.select("hbase-client", params.version)
+      stack_select.select("hbase-client", params.version)
 
       # phoenix may not always be deployed
       try:
-        hdp_select.select("phoenix-client", params.version)
+        stack_select.select("phoenix-client", params.version)
       except Exception as e:
         print "Ignoring error due to missing phoenix-client"
         print str(e)
@@ -73,7 +73,7 @@ class HbaseClientDefault(HbaseClient):
       # of the final "CLIENTS" group and we need to ensure that hadoop-client
       # is also set
       conf_select.select(params.stack_name, "hadoop", params.version)
-      hdp_select.select("hadoop-client", params.version)
+      stack_select.select("hadoop-client", params.version)
 
 
 if __name__ == "__main__":

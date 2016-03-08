@@ -42,7 +42,7 @@ from resource_management.core.exceptions import Fail, ClientComponentHasNoStatus
 from resource_management.core.resources.packaging import Package
 from resource_management.libraries.functions.version_select_util import get_component_version
 from resource_management.libraries.functions.version import compare_versions
-from resource_management.libraries.functions.version import format_hdp_stack_version
+from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.functions import packages_analyzer
 from resource_management.libraries.script.config_dictionary import ConfigDictionary, UnknownConfiguration
@@ -52,7 +52,7 @@ from contextlib import closing
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 
 if OSCheck.is_windows_family():
-  from resource_management.libraries.functions.install_hdp_msi import install_windows_msi
+  from resource_management.libraries.functions.install_windows_msi import install_windows_msi
   from resource_management.libraries.functions.reload_windows_env import reload_windows_env
   from resource_management.libraries.functions.zip_archive import archive_dir
   from resource_management.libraries.resources import Msi
@@ -177,8 +177,8 @@ class Script(object):
     """
     from resource_management.libraries.functions.default import default
     stack_version_unformatted = str(default("/hostLevelParams/stack_version", ""))
-    hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
-    if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
+    stack_version_formatted = format_stack_version(stack_version_unformatted)
+    if stack_version_formatted != "" and compare_versions(stack_version_formatted, '2.2') >= 0:
       if command_name.lower() == "status":
         request_version = default("/commandParams/request_version", None)
         if request_version is not None:
@@ -259,13 +259,13 @@ class Script(object):
     
     before the call. However takes a bit of time, so better to avoid.
 
-    :return: hdp version including the build number. e.g.: 2.3.4.0-1234.
+    :return: stack version including the build number. e.g.: 2.3.4.0-1234.
     """
     # preferred way is to get the actual selected version of current component
     component_name = self.get_component_name()
     if not Script.stack_version_from_distro_select and component_name:
-      from resource_management.libraries.functions import hdp_select
-      Script.stack_version_from_distro_select = hdp_select.get_hdp_version_before_install(component_name)
+      from resource_management.libraries.functions import stack_select
+      Script.stack_version_from_distro_select = stack_select.get_stack_version_before_install(component_name)
       
     # if hdp-select has not yet been done (situations like first install), we can use hdp-select version itself.
     if not Script.stack_version_from_distro_select:
@@ -329,7 +329,7 @@ class Script(object):
     return default("/hostLevelParams/stack_name", None)
 
   @staticmethod
-  def get_hdp_stack_version():
+  def get_stack_version():
     """
     Gets the normalized version of the HDP stack in the form #.#.#.# if it is
     present on the configurations sent.
@@ -348,7 +348,7 @@ class Script(object):
     if stack_version_unformatted is None or stack_version_unformatted == '':
       return None
 
-    return format_hdp_stack_version(stack_version_unformatted)
+    return format_stack_version(stack_version_unformatted)
 
 
   @staticmethod
@@ -360,57 +360,57 @@ class Script(object):
 
 
   @staticmethod
-  def is_hdp_stack_greater(formatted_hdp_stack_version, compare_to_version):
+  def is_stack_greater(stack_version_formatted, compare_to_version):
     """
-    Gets whether the provided formatted_hdp_stack_version (normalized)
+    Gets whether the provided stack_version_formatted (normalized)
     is greater than the specified stack version
-    :param formatted_hdp_stack_version: the version of stack to compare
+    :param stack_version_formatted: the version of stack to compare
     :param compare_to_version: the version of stack to compare to
     :return: True if the command's stack is greater than the specified version
     """
-    if formatted_hdp_stack_version is None or formatted_hdp_stack_version == "":
+    if stack_version_formatted is None or stack_version_formatted == "":
       return False
 
-    return compare_versions(formatted_hdp_stack_version, compare_to_version) > 0
+    return compare_versions(stack_version_formatted, compare_to_version) > 0
 
   @staticmethod
-  def is_hdp_stack_greater_or_equal(compare_to_version):
+  def is_stack_greater_or_equal(compare_to_version):
     """
     Gets whether the hostLevelParams/stack_version, after being normalized,
     is greater than or equal to the specified stack version
     :param compare_to_version: the version to compare to
     :return: True if the command's stack is greater than or equal the specified version
     """
-    return Script.is_hdp_stack_greater_or_equal_to(Script.get_hdp_stack_version(), compare_to_version)
+    return Script.is_stack_greater_or_equal_to(Script.get_stack_version(), compare_to_version)
 
   @staticmethod
-  def is_hdp_stack_greater_or_equal_to(formatted_hdp_stack_version, compare_to_version):
+  def is_stack_greater_or_equal_to(stack_version_formatted, compare_to_version):
     """
-    Gets whether the provided formatted_hdp_stack_version (normalized)
+    Gets whether the provided stack_version_formatted (normalized)
     is greater than or equal to the specified stack version
-    :param formatted_hdp_stack_version: the version of stack to compare
+    :param stack_version_formatted: the version of stack to compare
     :param compare_to_version: the version of stack to compare to
     :return: True if the command's stack is greater than or equal to the specified version
     """
-    if formatted_hdp_stack_version is None or formatted_hdp_stack_version == "":
+    if stack_version_formatted is None or stack_version_formatted == "":
       return False
 
-    return compare_versions(formatted_hdp_stack_version, compare_to_version) >= 0
+    return compare_versions(stack_version_formatted, compare_to_version) >= 0
 
   @staticmethod
-  def is_hdp_stack_less_than(compare_to_version):
+  def is_stack_less_than(compare_to_version):
     """
     Gets whether the hostLevelParams/stack_version, after being normalized,
     is less than the specified stack version
     :param compare_to_version: the version to compare to
     :return: True if the command's stack is less than the specified version
     """
-    hdp_stack_version = Script.get_hdp_stack_version()
+    stack_version_formatted = Script.get_stack_version()
 
-    if hdp_stack_version is None:
+    if stack_version_formatted is None:
       return False
 
-    return compare_versions(hdp_stack_version, compare_to_version) < 0
+    return compare_versions(stack_version_formatted, compare_to_version) < 0
 
   def install(self, env):
     """

@@ -29,7 +29,7 @@ class TestServiceCheck(RMFTestCase):
                        classname = "ZookeeperServiceCheck",
                        command = "service_check",
                        config_file = "default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('File', '/tmp/zkSmoke.out',
@@ -52,7 +52,7 @@ class TestServiceCheck(RMFTestCase):
                        classname = "ZookeeperServiceCheck",
                        command = "service_check",
                        config_file = "secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('File', '/tmp/zkSmoke.out',
@@ -75,7 +75,7 @@ class TestServiceCheck(RMFTestCase):
                        classname = "ZookeeperServiceCheck",
                        command = "service_check",
                        config_file = "zk-service_check_2.2.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('File', '/tmp/zkSmoke.out',

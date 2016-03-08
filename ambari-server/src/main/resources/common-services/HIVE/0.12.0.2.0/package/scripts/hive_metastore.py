@@ -23,10 +23,10 @@ from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, Directory
 from resource_management.libraries.script import Script
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.functions.format import format
-from resource_management.libraries.functions.version import format_hdp_stack_version
+from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.version import compare_versions
 from resource_management.libraries.functions.security_commons import build_expectations
 from resource_management.libraries.functions.security_commons import cached_kinit_executor
@@ -102,15 +102,15 @@ class HiveMetastoreDefault(HiveMetastore):
 
     env.set_params(params)
 
-    is_stack_hdp_23 = Script.is_hdp_stack_greater_or_equal("2.3")
+    is_stack_hdp_23 = Script.is_stack_greater_or_equal("2.3")
     is_upgrade = params.upgrade_direction == Direction.UPGRADE
 
     if is_stack_hdp_23 and is_upgrade:
       self.upgrade_schema(env)
 
-    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
+    if params.version and compare_versions(format_stack_version(params.version), '2.2.0.0') >= 0:
       conf_select.select(params.stack_name, "hive", params.version)
-      hdp_select.select("hive-metastore", params.version)
+      stack_select.select("hive-metastore", params.version)
 
 
   def security_status(self, env):
@@ -229,7 +229,7 @@ class HiveMetastoreDefault(HiveMetastore):
     # we need to choose the original legacy location
     schematool_hive_server_conf_dir = params.hive_server_conf_dir
     if params.current_version is not None:
-      current_version = format_hdp_stack_version(params.current_version)
+      current_version = format_stack_version(params.current_version)
       if compare_versions(current_version, "2.3") < 0:
         schematool_hive_server_conf_dir = LEGACY_HIVE_SERVER_CONF
 

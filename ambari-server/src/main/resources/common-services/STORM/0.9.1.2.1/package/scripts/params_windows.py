@@ -25,7 +25,7 @@ from resource_management.libraries.functions.default import default
 # server configurations
 config = Script.get_config()
 
-stack_is_hdp23_or_further = Script.is_hdp_stack_greater_or_equal("2.3")
+stack_is_hdp23_or_further = Script.is_stack_greater_or_equal("2.3")
 
 hdp_root = os.path.abspath(os.path.join(os.environ["HADOOP_HOME"],".."))
 conf_dir = os.environ["STORM_CONF_DIR"]

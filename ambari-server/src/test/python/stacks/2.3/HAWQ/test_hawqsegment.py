@@ -79,7 +79,7 @@ class TestHawqSegment(RMFTestCase):
         classname = 'HawqSegment',
         command = 'configure',
         config_file ='hawq_default.json',
-        hdp_stack_version = self.STACK_VERSION,
+        stack_version = self.STACK_VERSION,
         target = RMFTestCase.TARGET_COMMON_SERVICES
         )
 
@@ -94,7 +94,7 @@ class TestHawqSegment(RMFTestCase):
         classname = 'HawqSegment',
         command = 'install',
         config_file ='hawq_default.json',
-        hdp_stack_version = self.STACK_VERSION,
+        stack_version = self.STACK_VERSION,
         target = RMFTestCase.TARGET_COMMON_SERVICES
         )
 
@@ -109,7 +109,7 @@ class TestHawqSegment(RMFTestCase):
         classname = 'HawqSegment',
         command = 'start',
         config_file ='hawq_default.json',
-        hdp_stack_version = self.STACK_VERSION,
+        stack_version = self.STACK_VERSION,
         target = RMFTestCase.TARGET_COMMON_SERVICES
         )
 
@@ -144,7 +144,7 @@ class TestHawqSegment(RMFTestCase):
         classname = 'HawqSegment',
         command = 'stop',
         config_file ='hawq_default.json',
-        hdp_stack_version = self.STACK_VERSION,
+        stack_version = self.STACK_VERSION,
         target = RMFTestCase.TARGET_COMMON_SERVICES
         )
 

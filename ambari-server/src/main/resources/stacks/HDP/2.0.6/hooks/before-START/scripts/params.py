@@ -20,11 +20,11 @@ limitations under the License.
 import os
 
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import default
 from resource_management.libraries.functions import format_jvm_option
 from resource_management.libraries.functions import format
-from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
+from resource_management.libraries.functions.version import format_stack_version, compare_versions
 from ambari_commons.os_check import OSCheck
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import get_kinit_path
@@ -35,7 +35,7 @@ config = Script.get_config()
 host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
 
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
+stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 dfs_type = default("/commandParams/dfs_type", "")
 hadoop_conf_dir = "/etc/hadoop/conf"
@@ -45,16 +45,16 @@ component_list = default("/localComponents", [])
 # hadoop default params
 mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
 
-hadoop_libexec_dir = hdp_select.get_hadoop_dir("libexec")
-hadoop_lib_home = hdp_select.get_hadoop_dir("lib")
-hadoop_bin = hdp_select.get_hadoop_dir("sbin")
+hadoop_libexec_dir = stack_select.get_hadoop_dir("libexec")
+hadoop_lib_home = stack_select.get_hadoop_dir("lib")
+hadoop_bin = stack_select.get_hadoop_dir("sbin")
 hadoop_home = '/usr'
 create_lib_snappy_symlinks = True
 
 # HDP 2.2+ params
-if Script.is_hdp_stack_greater_or_equal("2.2"):
+if Script.is_stack_greater_or_equal("2.2"):
   mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce-client/*"
-  hadoop_home = hdp_select.get_hadoop_dir("home")
+  hadoop_home = stack_select.get_hadoop_dir("home")
   create_lib_snappy_symlinks = False
   
 current_service = config['serviceName']
@@ -227,8 +227,8 @@ has_core_site = 'core-site' in config['configurations']
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 kinit_path_local = get_kinit_path()
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
-hadoop_bin_dir = hdp_select.get_hadoop_dir("bin")
+stack_version_formatted = format_stack_version(stack_version_unformatted)
+hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 hdfs_principal_name = default('/configurations/hadoop-env/hdfs_principal_name', None)
 hdfs_site = config['configurations']['hdfs-site']
 default_fs = config['configurations']['core-site']['fs.defaultFS']

@@ -36,7 +36,7 @@ class TestServiceCheck(RMFTestCase):
                       classname="MapReduce2ServiceCheck",
                       command="service_check",
                       config_file="default.json",
-                      hdp_stack_version = self.STACK_VERSION,
+                      stack_version = self.STACK_VERSION,
                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa/mapredsmokeoutput',
@@ -93,7 +93,7 @@ class TestServiceCheck(RMFTestCase):
                       classname="MapReduce2ServiceCheck",
                       command="service_check",
                       config_file="secured.json",
-                      hdp_stack_version = self.STACK_VERSION,
+                      stack_version = self.STACK_VERSION,
                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa/mapredsmokeoutput',

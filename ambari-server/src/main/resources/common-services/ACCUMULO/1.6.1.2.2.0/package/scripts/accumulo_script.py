@@ -22,7 +22,7 @@ from resource_management.core.logger import Logger
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import check_process_status
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.security_commons import build_expectations
 from resource_management.libraries.functions.security_commons import cached_kinit_executor
 from resource_management.libraries.functions.security_commons import get_params_from_filesystem
@@ -37,7 +37,7 @@ class AccumuloScript(Script):
 
   # a mapping between the component named used by these scripts and the name
   # which is used by hdp-select
-  COMPONENT_TO_HDP_SELECT_MAPPING = {
+  COMPONENT_TO_STACK_SELECT_MAPPING = {
     "gc" : "accumulo-gc",
     "master" : "accumulo-master",
     "monitor" : "accumulo-monitor",
@@ -55,11 +55,11 @@ class AccumuloScript(Script):
     :return:  the name of the component on the HDP stack which is used by
               hdp-select
     """
-    if self.component not in self.COMPONENT_TO_HDP_SELECT_MAPPING:
+    if self.component not in self.COMPONENT_TO_STACK_SELECT_MAPPING:
       return None
 
-    hdp_component = self.COMPONENT_TO_HDP_SELECT_MAPPING[self.component]
-    return {"HDP": hdp_component}
+    stack_component = self.COMPONENT_TO_STACK_SELECT_MAPPING[self.component]
+    return {"HDP": stack_component}
 
 
   def install(self, env):
@@ -102,21 +102,21 @@ class AccumuloScript(Script):
 
     # this function should not execute if the version can't be determined or
     # is not at least HDP 2.2.0.0
-    if Script.is_hdp_stack_less_than("2.2"):
+    if Script.is_stack_less_than("2.2"):
       return
 
-    if self.component not in self.COMPONENT_TO_HDP_SELECT_MAPPING:
+    if self.component not in self.COMPONENT_TO_STACK_SELECT_MAPPING:
       Logger.info("Unable to execute an upgrade for unknown component {0}".format(self.component))
       raise Fail("Unable to execute an upgrade for unknown component {0}".format(self.component))
 
-    hdp_component = self.COMPONENT_TO_HDP_SELECT_MAPPING[self.component]
+    stack_component = self.COMPONENT_TO_STACK_SELECT_MAPPING[self.component]
 
-    Logger.info("Executing Accumulo Upgrade pre-restart for {0}".format(hdp_component))
+    Logger.info("Executing Accumulo Upgrade pre-restart for {0}".format(stack_component))
     conf_select.select(params.stack_name, "accumulo", params.version)
-    hdp_select.select(hdp_component, params.version)
+    stack_select.select(stack_component, params.version)
 
     # some accumulo components depend on the client, so update that too
-    hdp_select.select("accumulo-client", params.version)
+    stack_select.select("accumulo-client", params.version)
 
 
   def security_status(self, env):

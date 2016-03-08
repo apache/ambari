@@ -90,7 +90,7 @@ def webhcat():
             )
 
   # if we're in an upgrade of a secure cluster, make sure hive-site and yarn-site are created
-  if Script.is_hdp_stack_greater_or_equal("2.3") and params.version:
+  if Script.is_stack_greater_or_equal("2.3") and params.version:
     XmlConfig("hive-site.xml",
       conf_dir = format("/usr/hdp/{version}/hive/conf"),
       configurations = params.config['configurations']['hive-site'],

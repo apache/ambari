@@ -21,7 +21,7 @@ from resource_management.core.resources.system import Execute
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions.check_process_status import check_process_status
 try:
-    from resource_management.libraries.functions import hdp_select as hadoop_select
+    from resource_management.libraries.functions import stack_select as hadoop_select
 except ImportError:
     from resource_management.libraries.functions import phd_select as hadoop_select
 

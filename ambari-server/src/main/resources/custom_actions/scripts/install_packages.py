@@ -34,8 +34,8 @@ from ambari_commons.os_check import OSCheck, OSConst
 from ambari_commons.str_utils import cbool, cint
 from resource_management.libraries.functions.packages_analyzer import allInstalledPackages
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions.hdp_select import get_hdp_versions
-from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
+from resource_management.libraries.functions.stack_select import get_stack_versions
+from resource_management.libraries.functions.version import compare_versions, format_stack_version
 from resource_management.libraries.functions.repo_version_history \
   import read_actual_version_from_history_file, write_actual_version_to_history_file, REPO_VERSION_HISTORY_FILE
 from resource_management.core.resources.system import Execute
@@ -83,10 +83,10 @@ class InstallPackages(Script):
       stack_id = config['commandParams']['stack_id']
 
     # current stack information
-    self.current_hdp_stack_version = None
+    self.current_stack_version_formatted = None
     if 'stack_version' in config['hostLevelParams']:
       current_stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-      self.current_hdp_stack_version = format_hdp_stack_version(current_stack_version_unformatted)
+      self.current_stack_version_formatted = format_stack_version(current_stack_version_unformatted)
 
 
     stack_name = None
@@ -145,7 +145,7 @@ class InstallPackages(Script):
       raise Fail("Failed to distribute repositories/install packages")
 
     # Initial list of versions, used to compute the new version installed
-    self.old_versions = get_hdp_versions(self.stack_root_folder)
+    self.old_versions = get_stack_versions(self.stack_root_folder)
 
     try:
       is_package_install_successful = False
@@ -189,13 +189,13 @@ class InstallPackages(Script):
     if args[0] != "HDP":
       Logger.info("Unrecognized stack name {0}, cannot create config links".format(args[0]))
 
-    if compare_versions(format_hdp_stack_version(args[1]), "2.3.0.0") < 0:
+    if compare_versions(format_stack_version(args[1]), "2.3.0.0") < 0:
       Logger.info("Configuration symlinks are not needed for {0}, only HDP-2.3+".format(stack_version))
       return
 
     for package_name, directories in conf_select.PACKAGE_DIRS.iteritems():
       # if already on HDP 2.3, then we should skip making conf.backup folders
-      if self.current_hdp_stack_version and compare_versions(self.current_hdp_stack_version, '2.3') >= 0:
+      if self.current_stack_version_formatted and compare_versions(self.current_stack_version_formatted, '2.3') >= 0:
         Logger.info("The current cluster stack of {0} does not require backing up configurations; "
                     "only conf-select versioned config directories will be created.".format(stack_version))
         # only link configs for all known packages
@@ -226,7 +226,7 @@ class InstallPackages(Script):
     Logger.info("Attempting to determine actual version with build number.")
     Logger.info("Old versions: {0}".format(self.old_versions))
 
-    new_versions = get_hdp_versions(self.stack_root_folder)
+    new_versions = get_stack_versions(self.stack_root_folder)
     Logger.info("New versions: {0}".format(new_versions))
 
     deltas = set(new_versions) - set(self.old_versions)
@@ -268,7 +268,7 @@ class InstallPackages(Script):
     Logger.info("Installation of packages failed. Checking if installation was partially complete")
     Logger.info("Old versions: {0}".format(self.old_versions))
 
-    new_versions = get_hdp_versions(self.stack_root_folder)
+    new_versions = get_stack_versions(self.stack_root_folder)
     Logger.info("New versions: {0}".format(new_versions))
 
     deltas = set(new_versions) - set(self.old_versions)

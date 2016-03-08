@@ -61,7 +61,7 @@ TARBALL_MAP = {
 }
 
 
-def _get_single_version_from_hdp_select():
+def _get_single_version_from_stack_select():
   """
   Call "hdp-select versions" and return the version string if only one version is available.
   :return: Returns a version string if successful, and None otherwise.
@@ -70,12 +70,12 @@ def _get_single_version_from_hdp_select():
   tmpfile = tempfile.NamedTemporaryFile()
   tmp_dir = Script.get_tmp_dir()
   tmp_file = os.path.join(tmp_dir, "copy_tarball_out.txt")
-  hdp_version = None
+  stack_version = None
 
   out = None
-  get_hdp_versions_cmd = "/usr/bin/hdp-select versions > {0}".format(tmp_file)
+  get_stack_versions_cmd = "/usr/bin/hdp-select versions > {0}".format(tmp_file)
   try:
-    code, stdoutdata = shell.call(get_hdp_versions_cmd, logoutput=True)
+    code, stdoutdata = shell.call(get_stack_versions_cmd, logoutput=True)
     with open(tmp_file, 'r+') as file:
       out = file.read()
   except Exception, e:
@@ -88,17 +88,17 @@ def _get_single_version_from_hdp_select():
       Logger.logger.exception("Could not remove file {0}. Error: {1}".format(str(tmp_file), str(e)))
 
   if code != 0 or out is None or out == "":
-    Logger.error("Could not verify HDP version by calling '{0}'. Return Code: {1}, Output: {2}.".format(get_hdp_versions_cmd, str(code), str(out)))
+    Logger.error("Could not verify HDP version by calling '{0}'. Return Code: {1}, Output: {2}.".format(get_stack_versions_cmd, str(code), str(out)))
     return None
 
   matches = re.findall(r"([\d\.]+\-\d+)", out)
 
   if matches and len(matches) == 1:
-    hdp_version = matches[0]
+    stack_version = matches[0]
   elif matches and len(matches) > 1:
     Logger.error("Found multiple matches for HDP version, cannot identify the correct one from: {0}".format(", ".join(matches)))
 
-  return hdp_version
+  return stack_version
 
 def copy_to_hdfs(name, user_group, owner, file_mode=0444, custom_source_file=None, custom_dest_file=None, force_execute=False,
                  use_upgrading_version_during_uprade=True, replace_existing_files=False, host_sys_prepped=False):
@@ -152,10 +152,10 @@ def copy_to_hdfs(name, user_group, owner, file_mode=0444, custom_source_file=Non
     if current_version is None:
       # During normal operation, the first installation of services won't yet know about the version, so must rely
       # on hdp-select to get it.
-      hdp_version = _get_single_version_from_hdp_select()
-      if hdp_version:
-        Logger.info("Will use stack version {0}".format(hdp_version))
-        current_version = hdp_version
+      stack_version = _get_single_version_from_stack_select()
+      if stack_version:
+        Logger.info("Will use stack version {0}".format(stack_version))
+        current_version = stack_version
 
   if current_version is None:
     message_suffix = "during rolling %s" % str(upgrade_direction) if is_stack_upgrade else ""

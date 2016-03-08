@@ -17,14 +17,14 @@ limitations under the License.
 
 """
 
-from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
+from resource_management.libraries.functions.version import format_stack_version, compare_versions
 from resource_management import *
 import os
 import itertools
 import re
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
-from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import stack_select
 
 config = Script.get_config()
 
@@ -38,8 +38,8 @@ hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 kinit_path_local = functions.get_kinit_path()
 
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
-hadoop_bin_dir = hdp_select.get_hadoop_dir("bin")
+stack_version_formatted = format_stack_version(stack_version_unformatted)
+hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 
 smoke_user =  config['configurations']['cluster-env']['smokeuser']
 smoke_hdfs_user_dir = format("/user/{smoke_user}")

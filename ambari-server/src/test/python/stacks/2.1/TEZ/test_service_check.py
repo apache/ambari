@@ -30,7 +30,7 @@ class TestTezServiceCheck(RMFTestCase):
                        classname="TezServiceCheck",
                        command="service_check",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('File', '/tmp/sample-tez-test',
@@ -107,7 +107,7 @@ class TestTezServiceCheck(RMFTestCase):
                        classname="TezServiceCheck",
                        command="service_check",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 

@@ -38,7 +38,7 @@ class SliderServiceCheck(Script):
     import params
     env.set_params(params)
     
-    if Script.is_hdp_stack_greater_or_equal("2.2"):
+    if Script.is_stack_greater_or_equal("2.2"):
       copy_to_hdfs("slider", params.user_group, params.hdfs_user, host_sys_prepped=params.host_sys_prepped)
     
     smokeuser_kinit_cmd = format(

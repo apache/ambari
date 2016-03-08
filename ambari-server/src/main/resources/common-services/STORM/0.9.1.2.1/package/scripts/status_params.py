@@ -66,7 +66,7 @@ else:
 
   storm_component_home_dir = "/usr/lib/storm"
   conf_dir = "/etc/storm/conf"
-  if Script.is_hdp_stack_greater_or_equal("2.2"):
+  if Script.is_stack_greater_or_equal("2.2"):
     storm_component_home_dir = format("/usr/hdp/current/{component_directory}")
     conf_dir = format("/usr/hdp/current/{component_directory}/conf")
 

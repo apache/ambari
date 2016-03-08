@@ -18,10 +18,10 @@ limitations under the License.
 """
 from metadata import metadata
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import stack_select
 from resource_management import Execute, check_process_status, Script
 from resource_management.libraries.functions import format
-from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
+from resource_management.libraries.functions.version import compare_versions, format_stack_version
 from resource_management.libraries.functions.security_commons import build_expectations, \
   get_params_from_filesystem, validate_security_config_properties, \
   FILE_TYPE_PROPERTIES
@@ -43,9 +43,9 @@ class MetadataServer(Script):
     import params
     env.set_params(params)
 
-    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.3.0.0') >= 0:
+    if params.version and compare_versions(format_stack_version(params.version), '2.3.0.0') >= 0:
       # conf_select.select(params.stack_name, "atlas", params.version)
-      hdp_select.select("atlas-server", params.version)
+      stack_select.select("atlas-server", params.version)
 
   def start(self, env, upgrade_type=None):
     import params

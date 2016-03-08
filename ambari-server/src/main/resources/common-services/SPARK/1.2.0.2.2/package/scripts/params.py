@@ -25,10 +25,10 @@ from setup_spark import *
 
 import resource_management.libraries.functions
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import format
-from resource_management.libraries.functions.get_hdp_version import get_hdp_version
-from resource_management.libraries.functions.version import format_hdp_stack_version
+from resource_management.libraries.functions.get_stack_version import get_stack_version
+from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
 
@@ -49,7 +49,7 @@ tmp_dir = Script.get_tmp_dir()
 
 stack_name = default("/hostLevelParams/stack_name", None)
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
+stack_version_formatted = format_stack_version(stack_version_unformatted)
 host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
 
 # New Cluster Stack Version that is defined during the RESTART of a Stack Upgrade
@@ -58,16 +58,16 @@ version = default("/commandParams/version", None)
 # TODO! FIXME! Version check is not working as of today :
 #   $ yum list installed | grep hdp-select
 #   hdp-select.noarch                            2.2.1.0-2340.el6           @HDP-2.2
-# And hdp_stack_version returned from hostLevelParams/stack_version is : 2.2.0.0
+# And stack_version_formatted returned from hostLevelParams/stack_version is : 2.2.0.0
 # Commenting out for time being
-#stack_is_hdp22_or_further = hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2.1.0') >= 0
+#stack_is_hdp22_or_further = stack_version_formatted != "" and compare_versions(stack_version_formatted, '2.2.1.0') >= 0
 
 spark_conf = '/etc/spark/conf'
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
-hadoop_bin_dir = hdp_select.get_hadoop_dir("bin")
+hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 
-if Script.is_hdp_stack_greater_or_equal("2.2"):
-  hadoop_home = hdp_select.get_hadoop_dir("home")
+if Script.is_stack_greater_or_equal("2.2"):
+  hadoop_home = stack_select.get_hadoop_dir("home")
   spark_conf = format("/usr/hdp/current/{component_directory}/conf")
   spark_log_dir = config['configurations']['spark-env']['spark_log_dir']
   spark_pid_dir = status_params.spark_pid_dir

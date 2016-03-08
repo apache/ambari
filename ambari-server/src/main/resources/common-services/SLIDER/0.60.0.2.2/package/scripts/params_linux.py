@@ -18,7 +18,7 @@ limitations under the License.
 """
 from resource_management.libraries.resources import HdfsResource
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.default import default
@@ -31,7 +31,7 @@ slider_home_dir = '/usr/hdp/current/slider-client'
 
 #hadoop params
 slider_bin_dir = "/usr/lib/slider/bin"
-if Script.is_hdp_stack_greater_or_equal("2.2"):
+if Script.is_stack_greater_or_equal("2.2"):
     slider_bin_dir = format('{slider_home_dir}/bin')
 
 slider_conf_dir = format("{slider_home_dir}/conf")
@@ -52,7 +52,7 @@ hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 
-hadoop_bin_dir = hdp_select.get_hadoop_dir("bin")
+hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 
 hdfs_site = config['configurations']['hdfs-site']

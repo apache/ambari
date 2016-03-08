@@ -519,7 +519,7 @@ class TestHookAfterInstall(RMFTestCase):
   @patch("resource_management.libraries.functions.conf_select.select")
   @patch("os.symlink")
   @patch("shutil.rmtree")
-  def test_hook_default_hdp_select_specific_version(self, rmtree_mock, symlink_mock, conf_select_select_mock, conf_select_create_mock):
+  def test_hook_default_stack_select_specific_version(self, rmtree_mock, symlink_mock, conf_select_select_mock, conf_select_create_mock):
     """
     Tests that hdp-select set all on a specific version, not a 2.3* wildcard is used when
     installing a component when the cluster version is already set.

@@ -66,7 +66,7 @@ def knox():
      content=InlineTemplate(params.admin_topology_template)
   )
 
-  if Script.is_hdp_stack_greater_or_equal_to(params.version_formatted, "2.3.8.0"):
+  if Script.is_stack_greater_or_equal_to(params.version_formatted, "2.3.8.0"):
       File(os.path.join(params.knox_conf_dir, "topologies", "knoxsso.xml"),
          group=params.knox_group,
          owner=params.knox_user,
@@ -123,7 +123,7 @@ def knox():
          content=InlineTemplate(params.admin_topology_template)
     )
 
-    if Script.is_hdp_stack_greater_or_equal_to(params.version_formatted, "2.3.8.0"):
+    if Script.is_stack_greater_or_equal_to(params.version_formatted, "2.3.8.0"):
         File(os.path.join(params.knox_conf_dir, "topologies", "knoxsso.xml"),
             group=params.knox_group,
             owner=params.knox_user,

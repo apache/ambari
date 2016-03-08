@@ -22,7 +22,7 @@ Ambari Agent
 __all__ = ["get_lzo_packages"]
 
 from ambari_commons.os_check import OSCheck
-from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
+from resource_management.libraries.functions.version import compare_versions, format_stack_version
 from resource_management.libraries.functions.format import format
 
 def get_lzo_packages(stack_version_unformatted):
@@ -35,9 +35,9 @@ def get_lzo_packages(stack_version_unformatted):
     
   underscored_version = stack_version_unformatted.replace('.', '_')
   dashed_version = stack_version_unformatted.replace('.', '-')
-  hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
+  stack_version_formatted = format_stack_version(stack_version_unformatted)
 
-  if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
+  if stack_version_formatted != "" and compare_versions(stack_version_formatted, '2.2') >= 0:
     lzo_packages += ["hadooplzo_*"]
   else:
     lzo_packages += ["hadoop-lzo"]

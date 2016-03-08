@@ -29,9 +29,9 @@ from resource_management import Script
 from resource_management.core.resources.system import Execute, File
 from resource_management.core import shell
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import Direction
-from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
+from resource_management.libraries.functions.version import compare_versions, format_stack_version
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
@@ -190,14 +190,14 @@ class NameNodeDefault(NameNode):
     import params
     env.set_params(params)
 
-    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
+    if params.version and compare_versions(format_stack_version(params.version), '2.2.0.0') >= 0:
       # When downgrading an Express Upgrade, the first thing we do is to revert the symlinks.
       # Therefore, we cannot call this code in that scenario.
       call_if = [("rolling", "upgrade"), ("rolling", "downgrade"), ("nonrolling", "upgrade")]
       for e in call_if:
         if (upgrade_type, params.upgrade_direction) == e:
           conf_select.select(params.stack_name, "hadoop", params.version)
-      hdp_select.select("hadoop-hdfs-namenode", params.version)
+      stack_select.select("hadoop-hdfs-namenode", params.version)
 
   def post_upgrade_restart(self, env, upgrade_type=None):
     Logger.info("Executing Stack Upgrade post-restart")

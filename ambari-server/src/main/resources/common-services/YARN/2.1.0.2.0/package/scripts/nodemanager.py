@@ -23,8 +23,8 @@ import nodemanager_upgrade
 
 from resource_management import *
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
-from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
+from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions.version import compare_versions, format_stack_version
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
@@ -72,9 +72,9 @@ class NodemanagerDefault(Nodemanager):
     import params
     env.set_params(params)
 
-    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
+    if params.version and compare_versions(format_stack_version(params.version), '2.2.0.0') >= 0:
       conf_select.select(params.stack_name, "hadoop", params.version)
-      hdp_select.select("hadoop-yarn-nodemanager", params.version)
+      stack_select.select("hadoop-yarn-nodemanager", params.version)
 
   def post_upgrade_restart(self, env, upgrade_type=None):
     Logger.info("Executing NodeManager Stack Upgrade post-restart")

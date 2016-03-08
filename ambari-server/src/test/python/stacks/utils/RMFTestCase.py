@@ -61,7 +61,7 @@ class RMFTestCase(TestCase):
                     config_dict=None,
                     # common mocks for all the scripts
                     config_overrides = None,
-                    hdp_stack_version = None,
+                    stack_version = None,
                     checked_call_mocks = itertools.cycle([(0, "OK.")]),
                     call_mocks = itertools.cycle([(0, "OK.")]),
                     os_type=('Suse','11','Final'),
@@ -82,7 +82,7 @@ class RMFTestCase(TestCase):
       configs_path = os.path.join(src_dir, PATH_TO_CUSTOM_ACTION_TESTS, "configs")
     elif target == self.TARGET_COMMON_SERVICES:
       base_path = os.path.join(src_dir, PATH_TO_COMMON_SERVICES)
-      configs_path = os.path.join(src_dir, PATH_TO_STACK_TESTS, hdp_stack_version, "configs")
+      configs_path = os.path.join(src_dir, PATH_TO_STACK_TESTS, stack_version, "configs")
     else:
       raise RuntimeError("Wrong target value %s", target)
     script_path = os.path.join(base_path, norm_path)

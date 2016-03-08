@@ -22,8 +22,8 @@ Ambari Agent
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
-from resource_management.libraries.functions.version import format_hdp_stack_version
+from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
 
@@ -34,22 +34,22 @@ tmp_dir = Script.get_tmp_dir()
 stack_name = default("/hostLevelParams/stack_name", None)
 
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
+stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 # New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
 version = default("/commandParams/version", None)
 
 # hadoop default parameters
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
-hadoop_bin_dir = hdp_select.get_hadoop_dir("bin")
+hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 pig_conf_dir = "/etc/pig/conf"
 hadoop_home = '/usr'
 pig_bin_dir = ""
 
 # hadoop parameters for 2.2+
-if Script.is_hdp_stack_greater_or_equal("2.2"):
+if Script.is_stack_greater_or_equal("2.2"):
   pig_conf_dir = "/usr/hdp/current/pig-client/conf"
-  hadoop_home = hdp_select.get_hadoop_dir("home")
+  hadoop_home = stack_select.get_hadoop_dir("home")
   pig_bin_dir = '/usr/hdp/current/pig-client/bin'
 
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']

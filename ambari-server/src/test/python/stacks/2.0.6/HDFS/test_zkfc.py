@@ -31,7 +31,7 @@ class TestZkfc(RMFTestCase):
                        classname = "ZkfcSlave",
                        command = "start",
                        config_file = "ha_default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Directory', '/usr/lib/hadoop/lib/native/Linux-i386-32',
@@ -111,7 +111,7 @@ class TestZkfc(RMFTestCase):
                        classname = "ZkfcSlave",
                        command = "stop",
                        config_file = "ha_default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', "ambari-sudo.sh su hdfs -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ulimit -c unlimited ;  /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf stop zkfc'",
@@ -126,7 +126,7 @@ class TestZkfc(RMFTestCase):
                        classname = "ZkfcSlave",
                        command = "start",
                        config_file = "ha_secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Directory', '/usr/lib/hadoop/lib/native/Linux-i386-32',
@@ -205,7 +205,7 @@ class TestZkfc(RMFTestCase):
                        classname = "ZkfcSlave",
                        command = "stop",
                        config_file = "ha_secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', "ambari-sudo.sh su hdfs -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ulimit -c unlimited ;  /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf stop zkfc'",
@@ -220,7 +220,7 @@ class TestZkfc(RMFTestCase):
                        classname = "ZkfcSlave",
                        command = "start",
                        config_file="ha_bootstrap_active_node.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Directory', '/usr/lib/hadoop/lib/native/Linux-i386-32',
@@ -300,7 +300,7 @@ class TestZkfc(RMFTestCase):
                        classname = "ZkfcSlave",
                        command = "start",
                        config_file="ha_bootstrap_standby_node.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Directory', '/usr/lib/hadoop/lib/native/Linux-i386-32',
@@ -404,7 +404,7 @@ class TestZkfc(RMFTestCase):
                        classname = "ZkfcSlave",
                        command = "security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -426,7 +426,7 @@ class TestZkfc(RMFTestCase):
                            classname = "ZkfcSlave",
                            command = "security_status",
                            config_file="secured.json",
-                           hdp_stack_version = self.STACK_VERSION,
+                           stack_version = self.STACK_VERSION,
                            target = RMFTestCase.TARGET_COMMON_SERVICES
         )
     except:
@@ -439,7 +439,7 @@ class TestZkfc(RMFTestCase):
                        classname = "ZkfcSlave",
                        command = "security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -460,7 +460,7 @@ class TestZkfc(RMFTestCase):
                        classname = "ZkfcSlave",
                        command = "security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
@@ -470,7 +470,7 @@ class TestZkfc(RMFTestCase):
                        classname = "ZkfcSlave",
                        command = "security_status",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})

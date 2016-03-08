@@ -118,7 +118,7 @@ class TestHawqMaster(RMFTestCase):
         classname = 'HawqMaster',
         command = 'configure',
         config_file ='hawq_default.json',
-        hdp_stack_version = self.STACK_VERSION,
+        stack_version = self.STACK_VERSION,
         target = RMFTestCase.TARGET_COMMON_SERVICES
         )
 
@@ -133,7 +133,7 @@ class TestHawqMaster(RMFTestCase):
         classname = 'HawqMaster',
         command = 'install',
         config_file ='hawq_default.json',
-        hdp_stack_version = self.STACK_VERSION,
+        stack_version = self.STACK_VERSION,
         target = RMFTestCase.TARGET_COMMON_SERVICES
         )
 
@@ -152,7 +152,7 @@ class TestHawqMaster(RMFTestCase):
         classname = 'HawqMaster',
         command = 'start',
         config_file ='hawq_default.json',
-        hdp_stack_version = self.STACK_VERSION,
+        stack_version = self.STACK_VERSION,
         target = RMFTestCase.TARGET_COMMON_SERVICES
         )
 
@@ -215,7 +215,7 @@ class TestHawqMaster(RMFTestCase):
         classname = 'HawqMaster',
         command = 'start',
         config_file ='hawq_default.json',
-        hdp_stack_version = self.STACK_VERSION,
+        stack_version = self.STACK_VERSION,
         target = RMFTestCase.TARGET_COMMON_SERVICES
         )
 
@@ -276,7 +276,7 @@ class TestHawqMaster(RMFTestCase):
         classname = 'HawqMaster',
         command = 'stop',
         config_file ='hawq_default.json',
-        hdp_stack_version = self.STACK_VERSION,
+        stack_version = self.STACK_VERSION,
         target = RMFTestCase.TARGET_COMMON_SERVICES
         )
 

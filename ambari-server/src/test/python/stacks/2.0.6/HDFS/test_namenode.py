@@ -38,7 +38,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "configure",
                        config_file = "default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -49,7 +49,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "start",
                        config_file = "altfs_plus_hdfs.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0,"")],
     )
@@ -149,7 +149,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "install",
                        config_file = "default_no_install.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        try_install=True
     )
@@ -162,7 +162,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "start",
                        config_file = "default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0,"")],
     )
@@ -262,7 +262,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "stop",
                        config_file = "default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', "ambari-sudo.sh su hdfs -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ulimit -c unlimited ;  /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf stop namenode'",
@@ -276,7 +276,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "configure",
                        config_file = "secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
@@ -288,7 +288,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "start",
                        config_file = "secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0,"")],
     )
@@ -382,7 +382,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "stop",
                        config_file = "secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', "ambari-sudo.sh su hdfs -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ulimit -c unlimited ;  /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf stop namenode'",
@@ -396,7 +396,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "start",
                        config_file = "ha_default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -492,7 +492,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "start",
                        config_file = "ha_default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = call_mocks
     )
@@ -593,7 +593,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "start",
                        config_file = "ha_secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
@@ -689,7 +689,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "start",
                        config_file="ha_bootstrap_active_node.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -795,7 +795,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "start",
                        config_file="ha_bootstrap_standby_node.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = call_mocks
     )
@@ -905,7 +905,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "start",
                        config_file="ha_bootstrap_standby_node_initial_start.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = call_mocks
     )
@@ -1009,7 +1009,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "decommission",
                        config_file = "default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
@@ -1029,7 +1029,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "decommission",
                        config_file = "default_update_exclude_file_only.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
@@ -1045,7 +1045,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "decommission",
                        config_file = "ha_default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
@@ -1066,7 +1066,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "decommission",
                        config_file = "secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
@@ -1194,7 +1194,7 @@ class TestNamenode(RMFTestCase):
                          classname = "NameNode",
                          command = "rebalancehdfs",
                          config_file = "rebalancehdfs_default.json",
-                         hdp_stack_version = self.STACK_VERSION,
+                         stack_version = self.STACK_VERSION,
                          target = RMFTestCase.TARGET_COMMON_SERVICES
       )
       self.assertResourceCalled('Execute', "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf balancer -threshold -1'",
@@ -1212,7 +1212,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "rebalancehdfs",
                        config_file = "rebalancehdfs_secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks=[(1, "no kinit")]
     )
@@ -1245,7 +1245,7 @@ class TestNamenode(RMFTestCase):
     try:
       self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
         classname = "NameNode", command = "start", config_file = "ranger-namenode-start.json",
-        hdp_stack_version = self.STACK_VERSION, target = RMFTestCase.TARGET_COMMON_SERVICES )
+        stack_version = self.STACK_VERSION, target = RMFTestCase.TARGET_COMMON_SERVICES )
 
       self.fail("Expected a failure since the ranger install.properties was missing")
     except Fail, failure:
@@ -1285,7 +1285,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -1305,7 +1305,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -1321,7 +1321,7 @@ class TestNamenode(RMFTestCase):
                          classname = "NameNode",
                          command = "security_status",
                          config_file="secured.json",
-                         hdp_stack_version = self.STACK_VERSION,
+                         stack_version = self.STACK_VERSION,
                          target = RMFTestCase.TARGET_COMMON_SERVICES
       )
     except:
@@ -1342,7 +1342,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -1362,7 +1362,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
@@ -1382,7 +1382,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "restart",
                        config_file = "nn_ru_lzo.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
     unknown_namenodes = active_namenodes
@@ -1392,7 +1392,7 @@ class TestNamenode(RMFTestCase):
                      classname = "NameNode",
                      command = "restart",
                      config_file = "nn_ru_lzo.json",
-                     hdp_stack_version = self.STACK_VERSION,
+                     stack_version = self.STACK_VERSION,
                      target = RMFTestCase.TARGET_COMMON_SERVICES)
 
     self.assertFalse(0 == len(Script.structuredOut))
@@ -1414,7 +1414,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "restart",
                        config_file = "nn_eu_standby.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict=mocks_dict)
@@ -1447,7 +1447,7 @@ class TestNamenode(RMFTestCase):
                        command = "start",
                        command_args=["nonrolling"],
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict=mocks_dict)
@@ -1469,7 +1469,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
     self.assertResourceCalled('Execute',
                               ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hadoop-hdfs-namenode', version), sudo=True)
@@ -1488,7 +1488,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None), (0, None)],
                        mocks_dict = mocks_dict)
@@ -1503,7 +1503,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "post_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
     self.assertResourceCalled('Execute', 'hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -report -live',
                               user='hdfs',
@@ -1520,7 +1520,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "post_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
     self.assertResourceCalled('Execute', 'hdfs dfsadmin -fs hdfs://ns1 -report -live',
                               user='hdfs',
@@ -1539,7 +1539,7 @@ class TestNamenode(RMFTestCase):
       classname = "NameNode",
       command = "prepare_rolling_upgrade",
       config_dict = json_content,
-      hdp_stack_version = self.STACK_VERSION,
+      stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES,
       call_mocks = [(0, "Safe mode is OFF in c6401.ambari.apache.org")])
     
@@ -1564,7 +1564,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "prepare_rolling_upgrade",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, "Safe mode is OFF in c6401.ambari.apache.org")])
 
@@ -1595,7 +1595,7 @@ class TestNamenode(RMFTestCase):
       classname = "NameNode",
       command = "prepare_rolling_upgrade",
       config_dict = json_content,
-      hdp_stack_version = self.STACK_VERSION,
+      stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES)
     
     self.assertResourceCalled('Execute', 
@@ -1613,7 +1613,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "finalize_rolling_upgrade",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
     self.assertResourceCalled('Execute', 'hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -rollingUpgrade query',
@@ -1638,7 +1638,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "finalize_rolling_upgrade",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
     self.assertResourceCalled('Execute', 'hdfs dfsadmin -fs hdfs://ns1 -rollingUpgrade query',
@@ -1668,7 +1668,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None), (0, None), (0, None), (0, None), (0, None), (0, None), (0, None)],
                        mocks_dict = mocks_dict)
@@ -1694,7 +1694,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None), (0, None), (0, None), (0, None), (0, None), (0, None), (0, None)],
                        mocks_dict = mocks_dict)
@@ -1722,7 +1722,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = itertools.cycle([(0, None)]),
                        mocks_dict = mocks_dict)

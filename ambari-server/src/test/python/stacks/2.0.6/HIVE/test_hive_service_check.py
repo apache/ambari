@@ -38,7 +38,7 @@ class TestServiceCheck(RMFTestCase):
                         classname="HiveServiceCheck",
                         command="service_check",
                         config_file="default.json",
-                        hdp_stack_version = self.STACK_VERSION,
+                        stack_version = self.STACK_VERSION,
                         target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', "! beeline -u 'jdbc:hive2://c6402.ambari.apache.org:10000/;transportMode=binary;auth=noSasl' -e '' 2>&1| awk '{print}'|grep -i -e 'Connection refused' -e 'Invalid URL'",
@@ -146,7 +146,7 @@ class TestServiceCheck(RMFTestCase):
                         classname="HiveServiceCheck",
                         command="service_check",
                         config_file="secured.json",
-                        hdp_stack_version = self.STACK_VERSION,
+                        stack_version = self.STACK_VERSION,
                         target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa@EXAMPLE.COM; ',
@@ -264,7 +264,7 @@ class TestServiceCheck(RMFTestCase):
       classname="HiveServiceCheck",
       command="service_check",
       config_dict = json_content,
-      hdp_stack_version = self.STACK_VERSION,
+      stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES)
 
     self.assertResourceCalled('Execute', "! beeline -u 'jdbc:hive2://c6402.ambari.apache.org:10010/;transportMode=binary' -e '' 2>&1| awk '{print}'|grep -i -e 'Connection refused' -e 'Invalid URL'",

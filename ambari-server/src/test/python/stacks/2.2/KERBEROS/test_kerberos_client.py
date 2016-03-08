@@ -38,7 +38,7 @@ class TestKerberosClient(RMFTestCase):
                        classname="KerberosClient",
                        command="configure",
                        config_dict=json_data,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -64,7 +64,7 @@ class TestKerberosClient(RMFTestCase):
                        classname="KerberosClient",
                        command="configure",
                        config_dict=json_data,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -91,7 +91,7 @@ class TestKerberosClient(RMFTestCase):
                        classname="KerberosClient",
                        command="configure",
                        config_dict=json_data,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -110,7 +110,7 @@ class TestKerberosClient(RMFTestCase):
                        classname="KerberosClient",
                        command="configure",
                        config_dict=json_data,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -136,7 +136,7 @@ class TestKerberosClient(RMFTestCase):
                        classname="KerberosClient",
                        command="configure",
                        config_dict=json_data,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -270,7 +270,7 @@ class TestKerberosClient(RMFTestCase):
                        classname="KerberosClient",
                        command="set_keytab",
                        config_dict=json_data,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -347,7 +347,7 @@ class TestKerberosClient(RMFTestCase):
                        classname="KerberosClient",
                        command="remove_keytab",
                        config_dict=json_data,
-                       hdp_stack_version=self.STACK_VERSION,
+                       stack_version=self.STACK_VERSION,
                        target=RMFTestCase.TARGET_COMMON_SERVICES
     )
 

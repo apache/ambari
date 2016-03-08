@@ -34,7 +34,7 @@ class TestRangerUsersync(RMFTestCase):
                    classname = "RangerUsersync",
                    command = "configure",
                    config_file="ranger-admin-default.json",
-                   hdp_stack_version = self.STACK_VERSION,
+                   stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -45,7 +45,7 @@ class TestRangerUsersync(RMFTestCase):
                    classname = "RangerUsersync",
                    command = "start",
                    config_file="ranger-admin-default.json",
-                   hdp_stack_version = self.STACK_VERSION,
+                   stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -61,7 +61,7 @@ class TestRangerUsersync(RMFTestCase):
                    classname = "RangerUsersync",
                    command = "stop",
                    config_file="ranger-admin-default.json",
-                   hdp_stack_version = self.STACK_VERSION,
+                   stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', ('/usr/bin/ranger-usersync-stop',),
@@ -75,7 +75,7 @@ class TestRangerUsersync(RMFTestCase):
                    classname = "RangerUsersync",
                    command = "configure",
                    config_file="ranger-admin-secured.json",
-                   hdp_stack_version = self.STACK_VERSION,
+                   stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
@@ -86,7 +86,7 @@ class TestRangerUsersync(RMFTestCase):
                    classname = "RangerUsersync",
                    command = "start",
                    config_file="ranger-admin-secured.json",
-                   hdp_stack_version = self.STACK_VERSION,
+                   stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
@@ -102,7 +102,7 @@ class TestRangerUsersync(RMFTestCase):
                    classname = "RangerUsersync",
                    command = "stop",
                    config_file="ranger-admin-secured.json",
-                   hdp_stack_version = self.STACK_VERSION,
+                   stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', ('/usr/bin/ranger-usersync-stop',),
@@ -117,7 +117,7 @@ class TestRangerUsersync(RMFTestCase):
                        classname = "RangerUsersync",
                        command = "restart",
                        config_file="ranger-usersync-upgrade.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
     self.assertTrue(setup_usersync_mock.called)
@@ -139,7 +139,7 @@ class TestRangerUsersync(RMFTestCase):
                        classname = "RangerUsersync",
                        command = "restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict = mocks_dict)

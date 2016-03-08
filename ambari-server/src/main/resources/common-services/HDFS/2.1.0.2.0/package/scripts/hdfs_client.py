@@ -19,7 +19,7 @@ limitations under the License.
 
 from resource_management import *
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
   FILE_TYPE_XML
@@ -60,9 +60,9 @@ class HdfsClientDefault(HdfsClient):
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
     env.set_params(params)
-    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
+    if params.version and compare_versions(format_stack_version(params.version), '2.2.0.0') >= 0:
       conf_select.select(params.stack_name, "hadoop", params.version)
-      hdp_select.select("hadoop-client", params.version)
+      stack_select.select("hadoop-client", params.version)
 
   def security_status(self, env):
     import status_params

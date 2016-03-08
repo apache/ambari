@@ -107,7 +107,7 @@ def hive(name=None):
 
   if name == 'hiveserver2':
     # HDP 2.1.* or lower
-    if params.hdp_stack_version_major != "" and compare_versions(params.hdp_stack_version_major, "2.2.0.0") < 0:
+    if params.stack_version_formatted_major != "" and compare_versions(params.stack_version_formatted_major, "2.2.0.0") < 0:
       params.HdfsResource(params.webhcat_apps_dir,
                             type="directory",
                             action="create_on_execute",
@@ -134,7 +134,7 @@ def hive(name=None):
     # ****** Begin Copy Tarballs ******
     # *********************************
     # HDP 2.2 or higher, copy mapreduce.tar.gz to HDFS
-    if params.hdp_stack_version_major != "" and compare_versions(params.hdp_stack_version_major, '2.2') >= 0:
+    if params.stack_version_formatted_major != "" and compare_versions(params.stack_version_formatted_major, '2.2') >= 0:
       copy_to_hdfs("mapreduce", params.user_group, params.hdfs_user, host_sys_prepped=params.host_sys_prepped)
       copy_to_hdfs("tez", params.user_group, params.hdfs_user, host_sys_prepped=params.host_sys_prepped)
 

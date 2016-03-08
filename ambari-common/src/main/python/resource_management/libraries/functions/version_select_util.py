@@ -47,23 +47,23 @@ def get_component_version(stack_name, component_name):
   if stack_name == "HDP":
     tmpfile = tempfile.NamedTemporaryFile()
 
-    get_hdp_comp_version_cmd = ""
+    get_stack_comp_version_cmd = ""
     try:
       # This is necessary because Ubuntu returns "stdin: is not a tty", see AMBARI-8088
       with open(tmpfile.name, 'r') as file:
-        get_hdp_comp_version_cmd = '/usr/bin/hdp-select status %s > %s' % (component_name, tmpfile.name)
-        code, stdoutdata = shell.call(get_hdp_comp_version_cmd)
+        get_stack_comp_version_cmd = '/usr/bin/hdp-select status %s > %s' % (component_name, tmpfile.name)
+        code, stdoutdata = shell.call(get_stack_comp_version_cmd)
         out = file.read()
 
       if code != 0 or out is None:
         raise Exception("Code is nonzero or output is empty")
 
-      Logger.debug("Command: %s\nOutput: %s" % (get_hdp_comp_version_cmd, str(out)))
+      Logger.debug("Command: %s\nOutput: %s" % (get_stack_comp_version_cmd, str(out)))
       matches = re.findall(r"([\d\.]+\-\d+)", out)
       version = matches[0] if matches and len(matches) > 0 else None
     except Exception, e:
       Logger.error("Could not determine HDP version for component %s by calling '%s'. Return Code: %s, Output: %s." %
-                   (component_name, get_hdp_comp_version_cmd, str(code), str(out)))
+                   (component_name, get_stack_comp_version_cmd, str(code), str(out)))
   elif stack_name == "HDPWIN":
     pass
   elif stack_name == "GlusterFS":

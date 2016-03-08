@@ -44,7 +44,7 @@ class TestMetricsGrafana(RMFTestCase):
                        classname = "AmsGrafana",
                        command = "start",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
                        )
     self.maxDiff=None

@@ -30,7 +30,7 @@ class TestHiveClient(RMFTestCase):
                        classname = "HiveClient",
                        command = "configure",
                        config_file="default_client.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Directory', '/etc/hive',
@@ -106,7 +106,7 @@ class TestHiveClient(RMFTestCase):
                        classname = "HiveClient",
                        command = "configure",
                        config_file="secured_client.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Directory', '/etc/hive',
@@ -185,7 +185,7 @@ class TestHiveClient(RMFTestCase):
                        classname = "HiveClient",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
     self.assertResourceCalled('Execute',
                               ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hadoop-client', version), sudo=True,)
@@ -206,7 +206,7 @@ class TestHiveClient(RMFTestCase):
                        classname = "HiveClient",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None, ''), (0, None, ''), (0, None, '')],
                        mocks_dict = mocks_dict)

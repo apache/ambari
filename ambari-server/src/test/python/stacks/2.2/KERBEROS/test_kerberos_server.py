@@ -36,7 +36,7 @@ class TestKerberosServer(RMFTestCase):
                        classname="KerberosServer",
                        command="configure",
                        config_dict=json_data,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -95,7 +95,7 @@ class TestKerberosServer(RMFTestCase):
                        classname="KerberosServer",
                        command="configure",
                        config_dict=json_data,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -154,7 +154,7 @@ class TestKerberosServer(RMFTestCase):
                        classname="KerberosServer",
                        command="configure",
                        config_dict=json_data,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -213,7 +213,7 @@ class TestKerberosServer(RMFTestCase):
                        classname="KerberosServer",
                        command="configure",
                        config_dict=json_data,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 

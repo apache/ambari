@@ -22,7 +22,7 @@ import falcon_server_upgrade
 from resource_management.core.logger import Logger
 from resource_management.libraries.script import Script
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import check_process_status
 from resource_management.libraries.functions.security_commons import build_expectations
 from resource_management.libraries.functions.security_commons import cached_kinit_executor
@@ -77,12 +77,12 @@ class FalconServerLinux(FalconServer):
 
     # this function should not execute if the version can't be determined or
     # is not at least HDP 2.2.0.0
-    if Script.is_hdp_stack_less_than("2.2"):
+    if Script.is_stack_less_than("2.2"):
       return
 
     Logger.info("Executing Falcon Server Stack Upgrade pre-restart")
     conf_select.select(params.stack_name, "falcon", params.version)
-    hdp_select.select("falcon-server", params.version)
+    stack_select.select("falcon-server", params.version)
     falcon_server_upgrade.pre_start_restore()
 
   def security_status(self, env):

@@ -32,7 +32,7 @@ class TestWebHCatServer(RMFTestCase):
                        classname = "WebHCatServer",
                        command = "configure",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -43,7 +43,7 @@ class TestWebHCatServer(RMFTestCase):
                        classname = "WebHCatServer",
                        command = "start",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -60,7 +60,7 @@ class TestWebHCatServer(RMFTestCase):
                        classname = "WebHCatServer",
                        command = "stop",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -88,7 +88,7 @@ class TestWebHCatServer(RMFTestCase):
                          classname = "WebHCatServer",
                          command = "configure",
                          config_file="secured.json",
-                         hdp_stack_version = self.STACK_VERSION,
+                         stack_version = self.STACK_VERSION,
                          target = RMFTestCase.TARGET_COMMON_SERVICES
       )
 
@@ -100,7 +100,7 @@ class TestWebHCatServer(RMFTestCase):
                        classname = "WebHCatServer",
                        command = "start",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -117,7 +117,7 @@ class TestWebHCatServer(RMFTestCase):
                        classname = "WebHCatServer",
                        command = "stop",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -266,7 +266,7 @@ class TestWebHCatServer(RMFTestCase):
                        classname = "WebHCatServer",
                        command = "security_status",
                        config_file="../../2.1/configs/secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -291,7 +291,7 @@ class TestWebHCatServer(RMFTestCase):
                          classname = "WebHCatServer",
                          command = "security_status",
                          config_file="../../2.1/configs/secured.json",
-                         hdp_stack_version = self.STACK_VERSION,
+                         stack_version = self.STACK_VERSION,
                          target = RMFTestCase.TARGET_COMMON_SERVICES
       )
     except:
@@ -308,7 +308,7 @@ class TestWebHCatServer(RMFTestCase):
                        classname = "WebHCatServer",
                        command = "security_status",
                        config_file="../../2.1/configs/secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityIssuesFound": "Keytab file or principal are not set property."})
@@ -327,7 +327,7 @@ class TestWebHCatServer(RMFTestCase):
                        classname = "WebHCatServer",
                        command = "security_status",
                        config_file="../../2.1/configs/secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
@@ -337,7 +337,7 @@ class TestWebHCatServer(RMFTestCase):
                        classname = "WebHCatServer",
                        command = "security_status",
                        config_file="../../2.1/configs/default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
@@ -353,7 +353,7 @@ class TestWebHCatServer(RMFTestCase):
                        classname = "WebHCatServer",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
     self.assertResourceCalled('Execute',
                               ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hive-webhcat', version), sudo=True,)
@@ -375,7 +375,7 @@ class TestWebHCatServer(RMFTestCase):
                        classname = "WebHCatServer",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None, '')],
                        mocks_dict = mocks_dict)
@@ -419,7 +419,7 @@ class TestWebHCatServer(RMFTestCase):
       classname = "WebHCatServer",
       command = "configure",
       config_dict = json_content,
-      hdp_stack_version = self.STACK_VERSION,
+      stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES,
       call_mocks = [(0, None), (0, None)],
       mocks_dict = mocks_dict)

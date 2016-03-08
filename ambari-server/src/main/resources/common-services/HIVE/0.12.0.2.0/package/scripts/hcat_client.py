@@ -23,7 +23,7 @@ from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import ClientComponentHasNoStatus
-from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.version import compare_versions
 from resource_management.libraries.script.script import Script
 
@@ -78,7 +78,7 @@ class HCatClientDefault(HCatClient):
     # HCat client doesn't have a first-class entry in hdp-select. Since clients always
     # update after daemons, this ensures that the hcat directories are correct on hosts
     # which do not include the WebHCat daemon
-    hdp_select.select("hive-webhcat", params.version)
+    stack_select.select("hive-webhcat", params.version)
 
 
 if __name__ == "__main__":

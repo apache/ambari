@@ -33,7 +33,7 @@ class TestHBaseMaster(RMFTestCase):
                        classname = "HbaseMaster",
                        command = "install",
                        config_file="hbase_no_phx.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        try_install=True,
                        checked_call_mocks = [(0, "OK.", ""),(0, "OK.", "")],
@@ -54,7 +54,7 @@ class TestHBaseMaster(RMFTestCase):
                        classname = "HbaseMaster",
                        command = "install",
                        config_file="hbase_with_phx.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        try_install=True,
                        checked_call_mocks = [(0, "OK.", ""),(0, "OK.", "")],
@@ -73,7 +73,7 @@ class TestHBaseMaster(RMFTestCase):
                    classname = "HbaseMaster",
                    command = "configure",
                    config_file="default.json",
-                   hdp_stack_version = self.STACK_VERSION,
+                   stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     
@@ -85,7 +85,7 @@ class TestHBaseMaster(RMFTestCase):
                    classname = "HbaseMaster",
                    command = "start",
                    config_file="default.json",
-                   hdp_stack_version = self.STACK_VERSION,
+                   stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     
@@ -101,7 +101,7 @@ class TestHBaseMaster(RMFTestCase):
                    classname = "HbaseMaster",
                    command = "stop",
                    config_file="default.json",
-                   hdp_stack_version = self.STACK_VERSION,
+                   stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     
@@ -122,7 +122,7 @@ class TestHBaseMaster(RMFTestCase):
                        classname = "HbaseMaster",
                        command = "decommission",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -153,7 +153,7 @@ class TestHBaseMaster(RMFTestCase):
                        classname = "HbaseMaster",
                        command = "decommission",
                        config_file="default.hbasedecom.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -172,7 +172,7 @@ class TestHBaseMaster(RMFTestCase):
                    classname = "HbaseMaster",
                    command = "configure",
                    config_file="secured.json",
-                   hdp_stack_version = self.STACK_VERSION,
+                   stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     
@@ -184,7 +184,7 @@ class TestHBaseMaster(RMFTestCase):
                    classname = "HbaseMaster",
                    command = "start",
                    config_file="secured.json",
-                   hdp_stack_version = self.STACK_VERSION,
+                   stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     
@@ -200,7 +200,7 @@ class TestHBaseMaster(RMFTestCase):
                    classname = "HbaseMaster",
                    command = "stop",
                    config_file="secured.json",
-                   hdp_stack_version = self.STACK_VERSION,
+                   stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -221,7 +221,7 @@ class TestHBaseMaster(RMFTestCase):
                        classname = "HbaseMaster",
                        command = "decommission",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -517,7 +517,7 @@ class TestHBaseMaster(RMFTestCase):
                    classname = "HbaseMaster",
                    command = "start",
                    config_file="hbase-2.2.json",
-                   hdp_stack_version = self.STACK_VERSION,
+                   stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES)
     
     self.assertResourceCalled('Directory', '/etc/hbase',
@@ -701,7 +701,7 @@ class TestHBaseMaster(RMFTestCase):
                    classname = "HbaseMaster",
                    command = "security_status",
                    config_file="secured.json",
-                   hdp_stack_version = self.STACK_VERSION,
+                   stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -723,7 +723,7 @@ class TestHBaseMaster(RMFTestCase):
                    classname = "HbaseMaster",
                    command = "security_status",
                    config_file="secured.json",
-                   hdp_stack_version = self.STACK_VERSION,
+                   stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
       )
     except:
@@ -740,7 +740,7 @@ class TestHBaseMaster(RMFTestCase):
                    classname = "HbaseMaster",
                    command = "security_status",
                    config_file="secured.json",
-                   hdp_stack_version = self.STACK_VERSION,
+                   stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityIssuesFound": "Keytab file or principal are not set property."})
@@ -758,7 +758,7 @@ class TestHBaseMaster(RMFTestCase):
                    classname = "HbaseMaster",
                    command = "security_status",
                    config_file="default.json",
-                   hdp_stack_version = self.STACK_VERSION,
+                   stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
@@ -768,7 +768,7 @@ class TestHBaseMaster(RMFTestCase):
                    classname = "HbaseMaster",
                    command = "security_status",
                    config_file="secured.json",
-                   hdp_stack_version = self.STACK_VERSION,
+                   stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
@@ -778,7 +778,7 @@ class TestHBaseMaster(RMFTestCase):
                    classname = "HbaseMasterUpgrade",
                    command = "take_snapshot",
                    config_file="hbase-preupgrade.json",
-                   hdp_stack_version = self.STACK_VERSION,
+                   stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES)
 
     self.assertResourceCalled('Execute', " echo 'snapshot_all' | /usr/hdp/current/hbase-client/bin/hbase shell",
@@ -801,7 +801,7 @@ class TestHBaseMaster(RMFTestCase):
                        classname = "HbaseMaster",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        mocks_dict = mocks_dict)
     self.assertResourceCalled('Execute',
@@ -824,7 +824,7 @@ class TestHBaseMaster(RMFTestCase):
                        classname = "HbaseMaster",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None, ''), (0, None, ''), (0, None, '')],
                        mocks_dict = mocks_dict)

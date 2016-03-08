@@ -29,9 +29,9 @@ from ambari_commons.os_utils import copy_file, extract_path_component
 from resource_management.core.exceptions import ClientComponentHasNoStatus
 from resource_management.core.source import InlineTemplate
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
-from resource_management.libraries.functions.get_hdp_version import get_hdp_version
-from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
+from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions.get_stack_version import get_stack_version
+from resource_management.libraries.functions.version import compare_versions, format_stack_version
 from resource_management.libraries.script.script import Script
 
 from tez import tez
@@ -55,10 +55,10 @@ class TezClientLinux(TezClient):
     import params
     env.set_params(params)
 
-    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
+    if params.version and compare_versions(format_stack_version(params.version), '2.2.0.0') >= 0:
       conf_select.select(params.stack_name, "tez", params.version)
       conf_select.select(params.stack_name, "hadoop", params.version)
-      hdp_select.select("hadoop-client", params.version)
+      stack_select.select("hadoop-client", params.version)
 
   def install(self, env):
     self.install_packages(env)

@@ -18,7 +18,7 @@ limitations under the License.
 """
 
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.script import Script
 from phoenix_service import phoenix_service
 from hbase import hbase
@@ -59,10 +59,10 @@ class PhoenixQueryServer(Script):
     import params
     env.set_params(params)
 
-    if Script.is_hdp_stack_greater_or_equal("2.3"):
+    if Script.is_stack_greater_or_equal("2.3"):
       # phoenix uses hbase configs
       conf_select.select(params.stack_name, "hbase", params.version)
-      hdp_select.select("phoenix-server", params.version)
+      stack_select.select("phoenix-server", params.version)
 
 
   def status(self, env):

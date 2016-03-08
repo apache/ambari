@@ -48,40 +48,40 @@ SQL_DRIVER_PATH = "/var/lib/ambari-server/resources/sqljdbc41.jar"
  
 """
 This file provides helper methods needed for the versioning of RPMs. Specifically, it does dynamic variable
-interpretation to replace strings like {{ hdp_stack_version }}  where the value of the
+interpretation to replace strings like {{ stack_version_formatted }}  where the value of the
 variables cannot be determined ahead of time, but rather, depends on what files are found.
  
-It assumes that {{ hdp_stack_version }} is constructed as ${major.minor.patch.rev}-${build_number}
+It assumes that {{ stack_version_formatted }} is constructed as ${major.minor.patch.rev}-${build_number}
 E.g., 998.2.2.1.0-998
 Please note that "-${build_number}" is optional.
 """
 
 with Environment() as env:
-  def get_hdp_version():
+  def get_stack_version():
     if not options.hdp_version:
       # Ubuntu returns: "stdin: is not a tty", as subprocess output.
       tmpfile = tempfile.NamedTemporaryFile()
       out = None
       with open(tmpfile.name, 'r+') as file:
-        get_hdp_version_cmd = '/usr/bin/hdp-select status %s > %s' % ('hadoop-mapreduce-historyserver', tmpfile.name)
-        code, stdoutdata = shell.call(get_hdp_version_cmd)
+        get_stack_version_cmd = '/usr/bin/hdp-select status %s > %s' % ('hadoop-mapreduce-historyserver', tmpfile.name)
+        code, stdoutdata = shell.call(get_stack_version_cmd)
         out = file.read()
       pass
       if code != 0 or out is None:
         Logger.warning("Could not verify HDP version by calling '%s'. Return Code: %s, Output: %s." %
-                       (get_hdp_version_cmd, str(code), str(out)))
+                       (get_stack_version_cmd, str(code), str(out)))
         return 1
      
       matches = re.findall(r"([\d\.]+\-\d+)", out)
-      hdp_version = matches[0] if matches and len(matches) > 0 else None
+      stack_version = matches[0] if matches and len(matches) > 0 else None
      
-      if not hdp_version:
+      if not stack_version:
         Logger.error("Could not parse HDP version from output of hdp-select: %s" % str(out))
         return 1
     else:
-      hdp_version = options.hdp_version
+      stack_version = options.hdp_version
       
-    return hdp_version
+    return stack_version
   
   parser = OptionParser()
   parser.add_option("-v", "--hdp-version", dest="hdp_version", default="",
@@ -97,7 +97,7 @@ with Environment() as env:
   if len(args) > 0:
     hdfs_path_prefix = args[0]
   
-  hdp_version = get_hdp_version()
+  stack_version = get_stack_version()
   
   def getPropertyValueFromConfigXMLFile(xmlfile, name, defaultValue=None):
     xmldoc = minidom.parse(xmlfile)
@@ -135,12 +135,12 @@ with Environment() as env:
     hdfs_path_prefix = hdfs_path_prefix
     hdfs_user = "hdfs"
     mapred_user ="mapred"
-    hadoop_bin_dir="/usr/hdp/" + hdp_version + "/hadoop/bin"
+    hadoop_bin_dir="/usr/hdp/" + stack_version + "/hadoop/bin"
     hadoop_conf_dir = "/etc/hadoop/conf"
     user_group = "hadoop"
     security_enabled = False
     oozie_user = "oozie"
-    execute_path = "/usr/hdp/" + hdp_version + "/hadoop/bin"
+    execute_path = "/usr/hdp/" + stack_version + "/hadoop/bin"
     ambari_libs_dir = "/var/lib/ambari-agent/lib"
     hdfs_site = ConfigDictionary({'dfs.webhdfs.enabled':False, 
     })
@@ -157,7 +157,7 @@ with Environment() as env:
   export CATALINA_TMPDIR=${{CATALINA_TMPDIR:-/var/tmp/oozie}}
   export CATALINA_PID=${{CATALINA_PID:-/var/run/oozie/oozie.pid}}
   export OOZIE_CATALINA_HOME=/usr/lib/bigtop-tomcat
-  '''.format(hdp_version)
+  '''.format(stack_version)
     
     HdfsResource = functools.partial(
       HdfsResource,
@@ -196,17 +196,17 @@ with Environment() as env:
       )
    
    
-  def copy_tarballs_to_hdfs(source, dest, hdp_select_component_name, component_user, file_owner, group_owner):
+  def copy_tarballs_to_hdfs(source, dest, stack_select_component_name, component_user, file_owner, group_owner):
     """
     :param tarball_prefix: Prefix of the tarball must be one of tez, hive, mr, pig
-    :param hdp_select_component_name: Component name to get the status to determine the version
+    :param stack_select_component_name: Component name to get the status to determine the version
     :param component_user: User that will execute the Hadoop commands
     :param file_owner: Owner of the files copied to HDFS (typically hdfs account)
     :param group_owner: Group owner of the files copied to HDFS (typically hadoop group)
     :return: Returns 0 on success, 1 if no files were copied, and in some cases may raise an exception.
    
     In order to call this function, params.py must have all of the following,
-    hdp_stack_version, kinit_path_local, security_enabled, hdfs_user, hdfs_principal_name, hdfs_user_keytab,
+    stack_version_formatted, kinit_path_local, security_enabled, hdfs_user, hdfs_principal_name, hdfs_user_keytab,
     hadoop_bin_dir, hadoop_conf_dir, and HdfsDirectory as a partial function.
     """
    
@@ -220,7 +220,7 @@ with Environment() as env:
    
     file_name = os.path.basename(component_tar_source_file)
     destination_file = os.path.join(component_tar_destination_folder, file_name)
-    destination_file = destination_file.replace("{{ hdp_stack_version }}", hdp_version)
+    destination_file = destination_file.replace("{{ stack_version_formatted }}", stack_version)
    
   
     kinit_if_needed = ""
@@ -278,10 +278,10 @@ with Environment() as env:
   env.set_params(params)
   hadoop_conf_dir = params.hadoop_conf_dir
    
-  oozie_libext_dir = format("/usr/hdp/{hdp_version}/oozie/libext")
+  oozie_libext_dir = format("/usr/hdp/{stack_version}/oozie/libext")
   sql_driver_filename = os.path.basename(SQL_DRIVER_PATH)
-  oozie_home=format("/usr/hdp/{hdp_version}/oozie")
-  oozie_setup_sh=format("/usr/hdp/{hdp_version}/oozie/bin/oozie-setup.sh")
+  oozie_home=format("/usr/hdp/{stack_version}/oozie")
+  oozie_setup_sh=format("/usr/hdp/{stack_version}/oozie/bin/oozie-setup.sh")
   oozie_setup_sh_current="/usr/hdp/current/oozie-server/bin/oozie-setup.sh"
   oozie_tmp_dir = "/var/tmp/oozie"
   configure_cmds = []
@@ -353,7 +353,7 @@ with Environment() as env:
   ###############################################
   # PREPARE-WAR END [BEGIN]
   ###############################################
-  oozie_shared_lib = format("/usr/hdp/{hdp_version}/oozie/share")
+  oozie_shared_lib = format("/usr/hdp/{stack_version}/oozie/share")
   oozie_user = 'oozie'
   oozie_hdfs_user_dir = format("{hdfs_path_prefix}/user/{oozie_user}")
   kinit_if_needed = ''
@@ -376,12 +376,12 @@ with Environment() as env:
     )
 
   print "Copying tarballs..."
-  copy_tarballs_to_hdfs(format("/usr/hdp/{hdp_version}/hadoop/mapreduce.tar.gz"), hdfs_path_prefix+"/hdp/apps/{{ hdp_stack_version }}/mapreduce/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
-  copy_tarballs_to_hdfs(format("/usr/hdp/{hdp_version}/tez/lib/tez.tar.gz"), hdfs_path_prefix+"/hdp/apps/{{ hdp_stack_version }}/tez/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
-  copy_tarballs_to_hdfs(format("/usr/hdp/{hdp_version}/hive/hive.tar.gz"), hdfs_path_prefix+"/hdp/apps/{{ hdp_stack_version }}/hive/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
-  copy_tarballs_to_hdfs(format("/usr/hdp/{hdp_version}/pig/pig.tar.gz"), hdfs_path_prefix+"/hdp/apps/{{ hdp_stack_version }}/pig/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
-  copy_tarballs_to_hdfs(format("/usr/hdp/{hdp_version}/hadoop-mapreduce/hadoop-streaming.jar"), hdfs_path_prefix+"/hdp/apps/{{ hdp_stack_version }}/mapreduce/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
-  copy_tarballs_to_hdfs(format("/usr/hdp/{hdp_version}/sqoop/sqoop.tar.gz"), hdfs_path_prefix+"/hdp/apps/{{ hdp_stack_version }}/sqoop/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
+  copy_tarballs_to_hdfs(format("/usr/hdp/{stack_version}/hadoop/mapreduce.tar.gz"), hdfs_path_prefix+"/hdp/apps/{{ stack_version_formatted }}/mapreduce/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
+  copy_tarballs_to_hdfs(format("/usr/hdp/{stack_version}/tez/lib/tez.tar.gz"), hdfs_path_prefix+"/hdp/apps/{{ stack_version_formatted }}/tez/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
+  copy_tarballs_to_hdfs(format("/usr/hdp/{stack_version}/hive/hive.tar.gz"), hdfs_path_prefix+"/hdp/apps/{{ stack_version_formatted }}/hive/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
+  copy_tarballs_to_hdfs(format("/usr/hdp/{stack_version}/pig/pig.tar.gz"), hdfs_path_prefix+"/hdp/apps/{{ stack_version_formatted }}/pig/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
+  copy_tarballs_to_hdfs(format("/usr/hdp/{stack_version}/hadoop-mapreduce/hadoop-streaming.jar"), hdfs_path_prefix+"/hdp/apps/{{ stack_version_formatted }}/mapreduce/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
+  copy_tarballs_to_hdfs(format("/usr/hdp/{stack_version}/sqoop/sqoop.tar.gz"), hdfs_path_prefix+"/hdp/apps/{{ stack_version_formatted }}/sqoop/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
   print "Creating hdfs directories..."
   createHdfsResources()
   putSQLDriverToOozieShared()

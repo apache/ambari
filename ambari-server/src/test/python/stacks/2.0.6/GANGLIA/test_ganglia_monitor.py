@@ -32,7 +32,7 @@ class TestGangliaMonitor(RMFTestCase):
                        classname="GangliaMonitor",
                        command="configure",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -45,7 +45,7 @@ class TestGangliaMonitor(RMFTestCase):
                        classname="GangliaMonitor",
                        command="configure",
                        config_file="default.non_gmetad_host.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -57,7 +57,7 @@ class TestGangliaMonitor(RMFTestCase):
                        classname="GangliaMonitor",
                        command="start",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -73,7 +73,7 @@ class TestGangliaMonitor(RMFTestCase):
                        classname="GangliaMonitor",
                        command="stop",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E service hdp-gmond stop >> /tmp/gmond.log  2>&1 ; /bin/ps auwx | /bin/grep [g]mond  >> /tmp/gmond.log  2>&1',
@@ -87,7 +87,7 @@ class TestGangliaMonitor(RMFTestCase):
                        classname="GangliaMonitor",
                        command="install",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()

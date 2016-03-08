@@ -28,9 +28,9 @@ from ambari_commons.str_utils import cbool, cint
 
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import format
-from resource_management.libraries.functions.version import format_hdp_stack_version
+from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions import is_empty
@@ -51,10 +51,10 @@ component_directory = status_params.component_directory
 etc_prefix_dir = "/etc/hbase"
 
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
+stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 # hadoop default parameters
-hadoop_bin_dir = hdp_select.get_hadoop_dir("bin")
+hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 daemon_script = "/usr/lib/hbase/bin/hbase-daemon.sh"
 region_mover = "/usr/lib/hbase/bin/region_mover.rb"
@@ -63,7 +63,7 @@ hbase_cmd = "/usr/lib/hbase/bin/hbase"
 hbase_max_direct_memory_size = None
 
 # hadoop parameters for 2.2+
-if Script.is_hdp_stack_greater_or_equal("2.2"):
+if Script.is_stack_greater_or_equal("2.2"):
   daemon_script = format('/usr/hdp/current/hbase-client/bin/hbase-daemon.sh')
   region_mover = format('/usr/hdp/current/hbase-client/bin/region_mover.rb')
   region_drainer = format('/usr/hdp/current/hbase-client/bin/draining_servers.rb')

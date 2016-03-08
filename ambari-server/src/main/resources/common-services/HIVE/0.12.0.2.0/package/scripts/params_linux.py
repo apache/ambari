@@ -32,7 +32,7 @@ from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.is_empty import is_empty
-from resource_management.libraries.functions.version import format_hdp_stack_version
+from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.copy_tarball import STACK_VERSION_PATTERN
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.script.script import Script
@@ -53,11 +53,11 @@ hostname = config["hostname"]
 
 # This is expected to be of the form #.#.#.#
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-hdp_stack_version_major = format_hdp_stack_version(stack_version_unformatted)
-stack_is_hdp21 = Script.is_hdp_stack_less_than("2.2")
+stack_version_formatted_major = format_stack_version(stack_version_unformatted)
+stack_is_hdp21 = Script.is_stack_less_than("2.2")
 
 # this is not available on INSTALL action because hdp-select is not available
-hdp_stack_version = functions.get_hdp_version('hive-server2')
+stack_version_formatted = functions.get_stack_version('hive-server2')
 
 # New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade.
 # It cannot be used during the initial Cluser Install because the version is not yet known.
@@ -109,7 +109,7 @@ webhcat_bin_dir = '/usr/lib/hive-hcatalog/sbin'
 
 # Starting from HDP2.3 drop should be executed with purge suffix
 purge_tables = "false"
-if Script.is_hdp_stack_greater_or_equal("2.3"):
+if Script.is_stack_greater_or_equal("2.3"):
   purge_tables = 'true'
 
   # this is NOT a typo.  HDP-2.3 configs for hcatalog/webhcat point to a
@@ -117,7 +117,7 @@ if Script.is_hdp_stack_greater_or_equal("2.3"):
   hcat_conf_dir = '/usr/hdp/current/hive-webhcat/etc/hcatalog'
   config_dir = '/usr/hdp/current/hive-webhcat/etc/webhcat'
 
-if Script.is_hdp_stack_greater_or_equal("2.2"):
+if Script.is_stack_greater_or_equal("2.2"):
   hive_specific_configs_supported = True
 
   component_directory = status_params.component_directory
@@ -287,7 +287,7 @@ target = format("{hive_lib}/{jdbc_jar_name}")
 jars_in_hive_lib = format("{hive_lib}/*.jar")
 
 
-if Script.is_hdp_stack_less_than("2.2"):
+if Script.is_stack_less_than("2.2"):
   source_jdbc_file = target
 else:
   # normally, the JDBC driver would be referenced by /usr/hdp/current/.../foo.jar
@@ -304,7 +304,7 @@ start_metastore_path = format("{tmp_dir}/start_metastore_script")
 hadoop_heapsize = config['configurations']['hadoop-env']['hadoop_heapsize']
 
 if 'role' in config and config['role'] in ["HIVE_SERVER", "HIVE_METASTORE"]:
-  if Script.is_hdp_stack_less_than("2.2"):
+  if Script.is_stack_less_than("2.2"):
     hive_heapsize = config['configurations']['hive-site']['hive.heapsize']
   else:
     hive_heapsize = config['configurations']['hive-env']['hive.heapsize']

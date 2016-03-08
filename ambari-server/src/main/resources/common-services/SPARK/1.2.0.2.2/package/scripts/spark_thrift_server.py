@@ -23,8 +23,8 @@ import os
 
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
-from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
+from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions.version import compare_versions, format_stack_version
 from resource_management.libraries.functions.copy_tarball import copy_to_hdfs
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.core.logger import Logger
@@ -70,10 +70,10 @@ class SparkThriftServer(Script):
     import params
 
     env.set_params(params)
-    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.3.2.0') >= 0:
+    if params.version and compare_versions(format_stack_version(params.version), '2.3.2.0') >= 0:
       Logger.info("Executing Spark Thrift Server Stack Upgrade pre-restart")
       conf_select.select(params.stack_name, "spark", params.version)
-      hdp_select.select("spark-thriftserver", params.version)
+      stack_select.select("spark-thriftserver", params.version)
 
 if __name__ == "__main__":
   SparkThriftServer().execute()

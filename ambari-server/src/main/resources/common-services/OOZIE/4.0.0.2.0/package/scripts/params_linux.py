@@ -22,8 +22,8 @@ from ambari_commons.constants import AMBARI_SUDO_BINARY
 from ambari_commons.str_utils import cbool, cint
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
-from resource_management.libraries.functions.version import format_hdp_stack_version
+from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions import get_port_from_url
@@ -51,17 +51,17 @@ agent_stack_retry_on_unavailability = cbool(config["hostLevelParams"]["agent_sta
 agent_stack_retry_count = cint(config["hostLevelParams"]["agent_stack_retry_count"])
 
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
+stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
-hadoop_bin_dir = hdp_select.get_hadoop_dir("bin")
-hadoop_lib_home = hdp_select.get_hadoop_dir("lib")
+hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
+hadoop_lib_home = stack_select.get_hadoop_dir("lib")
 
 #hadoop params
-if Script.is_hdp_stack_greater_or_equal("2.2"):
+if Script.is_stack_greater_or_equal("2.2"):
   # something like 2.3.0.0-1234
   stack_version = None
-  upgrade_stack = hdp_select._get_upgrade_stack()
+  upgrade_stack = stack_select._get_upgrade_stack()
   if upgrade_stack is not None and len(upgrade_stack) == 2 and upgrade_stack[1] is not None:
     stack_version = upgrade_stack[1]
 
@@ -143,7 +143,7 @@ oozie_site = config['configurations']['oozie-site']
 # Need this for yarn.nodemanager.recovery.dir in yarn-site
 yarn_log_dir_prefix = config['configurations']['yarn-env']['yarn_log_dir_prefix']
 
-if security_enabled and Script.is_hdp_stack_less_than("2.2"):
+if security_enabled and Script.is_stack_less_than("2.2"):
   #older versions of oozie have problems when using _HOST in principal
   oozie_site = dict(config['configurations']['oozie-site'])
   oozie_site['oozie.service.HadoopAccessorService.kerberos.principal'] = \
@@ -194,7 +194,7 @@ if https_port is not None:
 hdfs_site = config['configurations']['hdfs-site']
 fs_root = config['configurations']['core-site']['fs.defaultFS']
 
-if Script.is_hdp_stack_less_than("2.2"):
+if Script.is_stack_less_than("2.2"):
   put_shared_lib_to_hdfs_cmd = format("hadoop --config {hadoop_conf_dir} dfs -put {oozie_shared_lib} {oozie_hdfs_user_dir}")
 # for newer
 else:

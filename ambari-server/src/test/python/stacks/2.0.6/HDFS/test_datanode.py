@@ -35,7 +35,7 @@ class TestDatanode(RMFTestCase):
                        classname = "DataNode",
                        command = "configure",
                        config_file = "default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -46,7 +46,7 @@ class TestDatanode(RMFTestCase):
                        classname = "DataNode",
                        command = "start",
                        config_file = "default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -79,7 +79,7 @@ class TestDatanode(RMFTestCase):
                        classname = "DataNode",
                        command = "stop",
                        config_file = "default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', "ambari-sudo.sh su hdfs -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ulimit -c unlimited ;  /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf stop datanode'",
@@ -95,7 +95,7 @@ class TestDatanode(RMFTestCase):
                        classname = "DataNode",
                        command = "configure",
                        config_file = "secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
@@ -106,7 +106,7 @@ class TestDatanode(RMFTestCase):
                        classname = "DataNode",
                        command = "start",
                        config_file = "secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
@@ -144,7 +144,7 @@ class TestDatanode(RMFTestCase):
                        classname = "DataNode",
                        command = "start",
                        config_dict = secured_json,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured("2.2", snappy_enabled=False)
@@ -185,7 +185,7 @@ class TestDatanode(RMFTestCase):
                        classname = "DataNode",
                        command = "start",
                        config_dict = secured_json,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured("2.2", snappy_enabled=False)
@@ -218,7 +218,7 @@ class TestDatanode(RMFTestCase):
                        classname = "DataNode",
                        command = "stop",
                        config_file = "secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf stop datanode',
@@ -241,7 +241,7 @@ class TestDatanode(RMFTestCase):
                        classname = "DataNode",
                        command = "stop",
                        config_dict = secured_json,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E /usr/hdp/current/hadoop-client/sbin/hadoop-daemon.sh --config /usr/hdp/current/hadoop-client/conf stop datanode',
@@ -266,7 +266,7 @@ class TestDatanode(RMFTestCase):
                        classname = "DataNode",
                        command = "stop",
                        config_dict = secured_json,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', "ambari-sudo.sh su hdfs -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ulimit -c unlimited ;  /usr/hdp/current/hadoop-client/sbin/hadoop-daemon.sh --config /usr/hdp/current/hadoop-client/conf stop datanode'",
@@ -437,7 +437,7 @@ class TestDatanode(RMFTestCase):
                        classname = "DataNode",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
     self.assertResourceCalled('Execute',
                               ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hadoop-hdfs-datanode', version), sudo=True,)
@@ -457,7 +457,7 @@ class TestDatanode(RMFTestCase):
                        classname = "DataNode",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict = mocks_dict)
@@ -505,7 +505,7 @@ class TestDatanode(RMFTestCase):
                        classname = "DataNode",
                        command = "post_upgrade_restart",
                        config_file = "default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, shell_call_output)],
                        mocks_dict = mocks_dict
@@ -525,7 +525,7 @@ class TestDatanode(RMFTestCase):
                          classname = "DataNode",
                          command = "post_upgrade_restart",
                          config_file = "default.json",
-                         hdp_stack_version = self.STACK_VERSION,
+                         stack_version = self.STACK_VERSION,
                          target = RMFTestCase.TARGET_COMMON_SERVICES,
                          call_mocks = [(0, 'There are no DataNodes here!')],
                          mocks_dict = mocks_dict
@@ -546,7 +546,7 @@ class TestDatanode(RMFTestCase):
                          classname = "DataNode",
                          command = "post_upgrade_restart",
                          config_file = "default.json",
-                         hdp_stack_version = self.STACK_VERSION,
+                         stack_version = self.STACK_VERSION,
                          target = RMFTestCase.TARGET_COMMON_SERVICES,
                          call_mocks = [(0, 'some')],
                          mocks_dict = mocks_dict
@@ -574,7 +574,7 @@ class TestDatanode(RMFTestCase):
         classname = "DataNode",
         command = "stop",
         config_dict = json_content,
-        hdp_stack_version = self.STACK_VERSION,
+        stack_version = self.STACK_VERSION,
         target = RMFTestCase.TARGET_COMMON_SERVICES,
         call_mocks = call_mock_side_effects,
         command_args=["rolling"])
@@ -604,7 +604,7 @@ class TestDatanode(RMFTestCase):
                          classname = "DataNode",
                          command = "stop",
                          config_dict = json_content,
-                         hdp_stack_version = self.STACK_VERSION,
+                         stack_version = self.STACK_VERSION,
                          target = RMFTestCase.TARGET_COMMON_SERVICES,
                          call_mocks = call_mock_side_effects,
                          command_args=["rolling"])
@@ -649,7 +649,7 @@ class TestDatanode(RMFTestCase):
                        classname = "DataNode",
                        command = "security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -669,7 +669,7 @@ class TestDatanode(RMFTestCase):
                        classname = "DataNode",
                        command = "security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -685,7 +685,7 @@ class TestDatanode(RMFTestCase):
                          classname = "DataNode",
                          command = "security_status",
                          config_file="secured.json",
-                         hdp_stack_version = self.STACK_VERSION,
+                         stack_version = self.STACK_VERSION,
                          target = RMFTestCase.TARGET_COMMON_SERVICES
       )
     except:
@@ -704,7 +704,7 @@ class TestDatanode(RMFTestCase):
                        classname = "DataNode",
                        command = "security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -723,7 +723,7 @@ class TestDatanode(RMFTestCase):
                        classname = "DataNode",
                        command = "security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})

@@ -39,7 +39,7 @@ class TestNodeManager(RMFTestCase):
                        classname="Nodemanager",
                        command="configure",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -50,7 +50,7 @@ class TestNodeManager(RMFTestCase):
                        classname="Nodemanager",
                        command="start",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -77,7 +77,7 @@ class TestNodeManager(RMFTestCase):
                        classname="Nodemanager",
                        command="stop",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', 'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop-yarn/sbin/yarn-daemon.sh --config /etc/hadoop/conf stop nodemanager',
@@ -90,7 +90,7 @@ class TestNodeManager(RMFTestCase):
                        classname="Nodemanager",
                        command="configure",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
@@ -101,7 +101,7 @@ class TestNodeManager(RMFTestCase):
                        classname="Nodemanager",
                        command="start",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -129,7 +129,7 @@ class TestNodeManager(RMFTestCase):
                        classname="Nodemanager",
                        command="stop",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', 'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop-yarn/sbin/yarn-daemon.sh --config /etc/hadoop/conf stop nodemanager',
@@ -523,7 +523,7 @@ class TestNodeManager(RMFTestCase):
 
   @patch("socket.gethostbyname")
   @patch('time.sleep')
-  @patch.object(resource_management.libraries.functions, "get_hdp_version", new = MagicMock(return_value='2.3.0.0-1234'))
+  @patch.object(resource_management.libraries.functions, "get_stack_version", new = MagicMock(return_value='2.3.0.0-1234'))
   def test_post_upgrade_restart(self, time_mock, socket_gethostbyname_mock):
     process_output = """
       c6401.ambari.apache.org:45454  RUNNING  c6401.ambari.apache.org:8042  0
@@ -535,7 +535,7 @@ class TestNodeManager(RMFTestCase):
       classname = "Nodemanager",
       command = "post_upgrade_restart",
       config_file = "default.json",
-      hdp_stack_version = self.STACK_VERSION,
+      stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES,
       call_mocks = [(0, process_output)],
       mocks_dict = mocks_dict
@@ -563,7 +563,7 @@ class TestNodeManager(RMFTestCase):
                          classname="Nodemanager",
                          command = "post_upgrade_restart",
                          config_file="default.json",
-                         hdp_stack_version = self.STACK_VERSION,
+                         stack_version = self.STACK_VERSION,
                          target = RMFTestCase.TARGET_COMMON_SERVICES,
                          call_mocks = [(0, process_output)],
                          mocks_dict = mocks_dict,
@@ -586,7 +586,7 @@ class TestNodeManager(RMFTestCase):
                          classname="Nodemanager",
                          command = "post_upgrade_restart",
                          config_file="default.json",
-                         hdp_stack_version = self.STACK_VERSION,
+                         stack_version = self.STACK_VERSION,
                          target = RMFTestCase.TARGET_COMMON_SERVICES,
                          call_mocks = [(999, process_output)],
                          mocks_dict = mocks_dict,
@@ -630,7 +630,7 @@ class TestNodeManager(RMFTestCase):
                        classname="Nodemanager",
                        command="security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -653,7 +653,7 @@ class TestNodeManager(RMFTestCase):
                        classname="Nodemanager",
                        command="security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
           )
     except:
@@ -670,7 +670,7 @@ class TestNodeManager(RMFTestCase):
                        classname="Nodemanager",
                        command="security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityIssuesFound": "Keytab file or principal are not set property."})
@@ -689,7 +689,7 @@ class TestNodeManager(RMFTestCase):
                        classname="Nodemanager",
                        command="security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
@@ -699,13 +699,13 @@ class TestNodeManager(RMFTestCase):
                        classname="Nodemanager",
                        command="security_status",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
 
   
-  @patch.object(resource_management.libraries.functions, "get_hdp_version", new = MagicMock(return_value='2.3.0.0-1234'))
+  @patch.object(resource_management.libraries.functions, "get_stack_version", new = MagicMock(return_value='2.3.0.0-1234'))
   def test_pre_upgrade_restart_23(self):
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
     with open(config_file, "r") as f:
@@ -718,7 +718,7 @@ class TestNodeManager(RMFTestCase):
                        classname = "Nodemanager",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict = mocks_dict)

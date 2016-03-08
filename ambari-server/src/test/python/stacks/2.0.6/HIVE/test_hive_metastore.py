@@ -32,7 +32,7 @@ class TestHiveMetastore(RMFTestCase):
                        classname = "HiveMetastore",
                        command = "configure",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -42,7 +42,7 @@ class TestHiveMetastore(RMFTestCase):
                        classname = "HiveMetastore",
                        command = "start",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -67,7 +67,7 @@ class TestHiveMetastore(RMFTestCase):
                        classname = "HiveMetastore",
                        command = "stop",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -91,7 +91,7 @@ class TestHiveMetastore(RMFTestCase):
                        classname = "HiveMetastore",
                        command = "configure",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -102,7 +102,7 @@ class TestHiveMetastore(RMFTestCase):
                        classname = "HiveMetastore",
                        command = "start",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
@@ -126,7 +126,7 @@ class TestHiveMetastore(RMFTestCase):
                        classname = "HiveMetastore",
                        command = "stop",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -363,11 +363,11 @@ class TestHiveMetastore(RMFTestCase):
                               )
 
   @patch("resource_management.core.shell.call")
-  @patch("resource_management.libraries.functions.get_hdp_version")
-  def test_start_ru(self, call_mock, get_hdp_version_mock):
+  @patch("resource_management.libraries.functions.get_stack_version")
+  def test_start_ru(self, call_mock, get_stack_version_mock):
     from ambari_commons.constants import UPGRADE_TYPE_ROLLING
 
-    get_hdp_version_mock.return_value = '2.3.0.0-1234'
+    get_stack_version_mock.return_value = '2.3.0.0-1234'
 
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
     with open(config_file, "r") as f:
@@ -385,7 +385,7 @@ class TestHiveMetastore(RMFTestCase):
                        command = "start",
                        command_args = [UPGRADE_TYPE_ROLLING],
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
     self.assertResourceCalled('Directory', '/etc/hive',

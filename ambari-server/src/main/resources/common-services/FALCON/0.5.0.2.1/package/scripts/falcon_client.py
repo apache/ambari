@@ -19,7 +19,7 @@ limitations under the License.
 
 from resource_management import *
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import stack_select
 from falcon import falcon
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
@@ -49,12 +49,12 @@ class FalconClientLinux(FalconClient):
 
     # this function should not execute if the version can't be determined or
     # is not at least HDP 2.2.0.0
-    if not params.version or compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') < 0:
+    if not params.version or compare_versions(format_stack_version(params.version), '2.2.0.0') < 0:
       return
 
     Logger.info("Executing Falcon Client Stack Upgrade pre-restart")
     conf_select.select(params.stack_name, "falcon", params.version)
-    hdp_select.select("falcon-client", params.version)
+    stack_select.select("falcon-client", params.version)
 
   def security_status(self, env):
     import status_params

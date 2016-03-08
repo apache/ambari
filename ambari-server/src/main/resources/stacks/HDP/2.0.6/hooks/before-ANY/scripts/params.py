@@ -27,10 +27,10 @@ from resource_management.libraries.script import Script
 from resource_management.libraries.functions import default
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import format_jvm_option
 from resource_management.libraries.functions.is_empty import is_empty
-from resource_management.libraries.functions.version import format_hdp_stack_version
+from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.version import compare_versions
 from ambari_commons.os_check import OSCheck
 from ambari_commons.constants import AMBARI_SUDO_BINARY
@@ -52,13 +52,13 @@ sudo = AMBARI_SUDO_BINARY
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
+stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 restart_type = default("/commandParams/restart_type", "")
 version = default("/commandParams/version", None)
 # Handle upgrade and downgrade
 if (restart_type.lower() == "rolling_upgrade" or restart_type.lower() == "nonrolling_upgrade") and version:
-  hdp_stack_version = format_hdp_stack_version(version)
+  stack_version_formatted = format_stack_version(version)
 
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
@@ -97,8 +97,8 @@ mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
 # upgrades would cause these directories to have a version instead of "current"
 # which would cause a lot of problems when writing out hadoop-env.sh; instead
 # force the use of "current" in the hook
-hadoop_home = hdp_select.get_hadoop_dir("home", force_latest_on_upgrade=True)
-hadoop_libexec_dir = hdp_select.get_hadoop_dir("libexec", force_latest_on_upgrade=True)
+hadoop_home = stack_select.get_hadoop_dir("home", force_latest_on_upgrade=True)
+hadoop_libexec_dir = stack_select.get_hadoop_dir("libexec", force_latest_on_upgrade=True)
 
 hadoop_conf_empty_dir = "/etc/hadoop/conf.empty"
 hadoop_secure_dn_user = hdfs_user
@@ -109,7 +109,7 @@ datanode_max_locked_memory = config['configurations']['hdfs-site']['dfs.datanode
 is_datanode_max_locked_memory_set = not is_empty(config['configurations']['hdfs-site']['dfs.datanode.max.locked.memory'])
 
 # HDP 2.2+ params
-if Script.is_hdp_stack_greater_or_equal("2.2"):
+if Script.is_stack_greater_or_equal("2.2"):
   mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce-client/*"
 
   # not supported in HDP 2.2+

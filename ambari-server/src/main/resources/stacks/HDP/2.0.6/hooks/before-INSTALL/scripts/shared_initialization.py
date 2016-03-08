@@ -27,7 +27,7 @@ def install_packages():
     return
 
   packages = ['unzip', 'curl']
-  if params.hdp_stack_version != "" and compare_versions(params.hdp_stack_version, '2.2') >= 0:
+  if params.stack_version_formatted != "" and compare_versions(params.stack_version_formatted, '2.2') >= 0:
     packages.append('hdp-select')
   Package(packages,
           retry_on_repo_unavailability=params.agent_stack_retry_on_unavailability,

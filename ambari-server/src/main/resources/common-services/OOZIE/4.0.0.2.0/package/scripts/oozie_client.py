@@ -21,7 +21,7 @@ limitations under the License.
 import sys
 from resource_management import *
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import stack_select
 
 from oozie import oozie
 from oozie_service import oozie_service
@@ -53,12 +53,12 @@ class OozieClient(Script):
 
     # this function should not execute if the version can't be determined or
     # is not at least HDP 2.2.0.0
-    if not params.version or compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') < 0:
+    if not params.version or compare_versions(format_stack_version(params.version), '2.2.0.0') < 0:
       return
 
     Logger.info("Executing Oozie Client Stack Upgrade pre-restart")
     conf_select.select(params.stack_name, "oozie", params.version)
-    hdp_select.select("oozie-client", params.version)
+    stack_select.select("oozie-client", params.version)
 
   # We substitute some configs (oozie.authentication.kerberos.principal) before generation (see oozie.py and params.py).
   # This function returns changed configs (it's used for config generation before config download)

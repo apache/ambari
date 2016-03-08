@@ -253,7 +253,7 @@ def yarn(name = None):
     )
 
     # if HDP stack is greater than/equal to 2.2, mkdir for state store property (added in 2.2)
-    if (Script.is_hdp_stack_greater_or_equal("2.2")):
+    if (Script.is_stack_greater_or_equal("2.2")):
       Directory(params.ats_leveldb_state_store_dir,
        owner=params.yarn_user,
        group=params.user_group,

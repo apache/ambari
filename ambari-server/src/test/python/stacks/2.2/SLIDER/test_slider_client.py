@@ -31,7 +31,7 @@ class TestSliderClient(RMFTestCase):
                        classname="SliderClient",
                        command="configure",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -81,7 +81,7 @@ class TestSliderClient(RMFTestCase):
                        classname="SliderServiceCheck",
                        command="service_check",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -99,7 +99,7 @@ class TestSliderClient(RMFTestCase):
                        classname="SliderServiceCheck",
                        command="service_check",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -117,7 +117,7 @@ class TestSliderClient(RMFTestCase):
                        classname = "SliderClient",
                        command = "pre_upgrade_restart",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
     self.assertResourceCalled("Execute", ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'slider-client', '2.2.1.0-2067'), sudo=True)
@@ -136,7 +136,7 @@ class TestSliderClient(RMFTestCase):
                        classname = "SliderClient",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None, ''), (0, None, ''), (0, None, '')],
                        mocks_dict = mocks_dict)

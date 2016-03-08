@@ -28,7 +28,7 @@ from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
 from resource_management.libraries.functions.reload_windows_env import reload_windows_env
 from resource_management.libraries.functions.windows_service_utils import check_windows_service_exists
-from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
+from resource_management.libraries.functions.version import format_stack_version, compare_versions
 import socket
 import os
 import glob
@@ -120,8 +120,8 @@ def _create_symlinks(stack_version):
   # folders
   Execute("cmd /c mklink /d %HADOOP_NODE%\\hadoop %HADOOP_HOME%")
   Execute("cmd /c mklink /d %HADOOP_NODE%\\hive %HIVE_HOME%")
-  hdp_stack_version = format_hdp_stack_version(stack_version)
-  if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
+  stack_version_formatted = format_stack_version(stack_version)
+  if stack_version_formatted != "" and compare_versions(stack_version_formatted, '2.2') >= 0:
     Execute("cmd /c mklink /d %HADOOP_NODE%\\knox %KNOX_HOME%")
   # files pairs (symlink_path, path_template_to_target_file), use * to replace file version
   links_pairs = [
@@ -173,9 +173,9 @@ def install_windows_msi(url_base, save_dir, save_files, hadoop_user, hadoop_pass
       Logger.info("hdp.msi already installed")
       return
 
-    hdp_stack_version = format_hdp_stack_version(stack_version)
+    stack_version_formatted = format_stack_version(stack_version)
     hdp_22_specific_props = ''
-    if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
+    if stack_version_formatted != "" and compare_versions(stack_version_formatted, '2.2') >= 0:
       hdp_22_specific_props = hdp_22.format(hdp_data_dir=hdp_data_dir)
 
     # MSIs cannot be larger than 2GB. HDPWIN 2.3 needed split in order to accommodate this limitation

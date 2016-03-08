@@ -117,7 +117,7 @@ class TestHawqStandby(RMFTestCase):
         classname = 'HawqStandby',
         command = 'configure',
         config_file ='hawq_default.json',
-        hdp_stack_version = self.STACK_VERSION,
+        stack_version = self.STACK_VERSION,
         target = RMFTestCase.TARGET_COMMON_SERVICES
         )
 
@@ -132,7 +132,7 @@ class TestHawqStandby(RMFTestCase):
         classname = 'HawqStandby',
         command = 'install',
         config_file ='hawq_default.json',
-        hdp_stack_version = self.STACK_VERSION,
+        stack_version = self.STACK_VERSION,
         target = RMFTestCase.TARGET_COMMON_SERVICES
         )
 
@@ -152,7 +152,7 @@ class TestHawqStandby(RMFTestCase):
         classname = 'HawqStandby',
         command = 'start',
         config_file ='hawq_default.json',
-        hdp_stack_version = self.STACK_VERSION,
+        stack_version = self.STACK_VERSION,
         target = RMFTestCase.TARGET_COMMON_SERVICES
         )
 
@@ -185,7 +185,7 @@ class TestHawqStandby(RMFTestCase):
         classname = 'HawqStandby',
         command = 'stop',
         config_file ='hawq_default.json',
-        hdp_stack_version = self.STACK_VERSION,
+        stack_version = self.STACK_VERSION,
         target = RMFTestCase.TARGET_COMMON_SERVICES
         )
 

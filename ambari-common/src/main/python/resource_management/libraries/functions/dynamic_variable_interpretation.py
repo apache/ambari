@@ -35,10 +35,10 @@ from resource_management.core import shell
 
 """
 This file provides helper methods needed for the versioning of RPMs. Specifically, it does dynamic variable
-interpretation to replace strings like {{ hdp_stack_version }}  where the value of the
+interpretation to replace strings like {{ stack_version_formatted }}  where the value of the
 variables cannot be determined ahead of time, but rather, depends on what files are found.
 
-It assumes that {{ hdp_stack_version }} is constructed as ${major.minor.patch.rev}-${build_number}
+It assumes that {{ stack_version_formatted }} is constructed as ${major.minor.patch.rev}-${build_number}
 E.g., 998.2.2.1.0-998
 Please note that "-${build_number}" is optional.
 """
@@ -54,10 +54,10 @@ def _get_tar_source_and_dest_folder(tarball_prefix):
   :return: Returns a tuple of (x, y) after verifying the properties
   """
   component_tar_source_file = default("/configurations/cluster-env/%s%s" % (tarball_prefix.lower(), TAR_SOURCE_SUFFIX), None)
-  # E.g., /usr/hdp/current/hadoop-client/tez-{{ hdp_stack_version }}.tar.gz
+  # E.g., /usr/hdp/current/hadoop-client/tez-{{ stack_version_formatted }}.tar.gz
 
   component_tar_destination_folder = default("/configurations/cluster-env/%s%s" % (tarball_prefix.lower(), TAR_DESTINATION_FOLDER_SUFFIX), None)
-  # E.g., hdfs:///hdp/apps/{{ hdp_stack_version }}/mapreduce/
+  # E.g., hdfs:///hdp/apps/{{ stack_version_formatted }}/mapreduce/
 
   if not component_tar_source_file or not component_tar_destination_folder:
     Logger.warning("Did not find %s tar source file and destination folder properties in cluster-env.xml" %
@@ -137,10 +137,10 @@ def _copy_files(source_and_dest_pairs, component_user, file_owner, group_owner, 
   return return_value
 
 
-def copy_tarballs_to_hdfs(tarball_prefix, hdp_select_component_name, component_user, file_owner, group_owner, ignore_sysprep=False):
+def copy_tarballs_to_hdfs(tarball_prefix, stack_select_component_name, component_user, file_owner, group_owner, ignore_sysprep=False):
   """
   :param tarball_prefix: Prefix of the tarball must be one of tez, hive, mr, pig
-  :param hdp_select_component_name: Component name to get the status to determine the version
+  :param stack_select_component_name: Component name to get the status to determine the version
   :param component_user: User that will execute the Hadoop commands, usually smokeuser
   :param file_owner: Owner of the files copied to HDFS (typically hdfs user)
   :param group_owner: Group owner of the files copied to HDFS (typically hadoop group)
@@ -148,17 +148,17 @@ def copy_tarballs_to_hdfs(tarball_prefix, hdp_select_component_name, component_u
   :return: Returns 0 on success, 1 if no files were copied, and in some cases may raise an exception.
 
   In order to call this function, params.py must have all of the following,
-  hdp_stack_version, kinit_path_local, security_enabled, hdfs_user, hdfs_principal_name, hdfs_user_keytab,
+  stack_version_formatted, kinit_path_local, security_enabled, hdfs_user, hdfs_principal_name, hdfs_user_keytab,
   hadoop_bin_dir, hadoop_conf_dir, and HdfsDirectory as a partial function.
   """
   import params
 
   if not ignore_sysprep and hasattr(params, "host_sys_prepped") and params.host_sys_prepped:
-    Logger.info("Host is sys-prepped. Tarball %s will not be copied for %s." % (tarball_prefix, hdp_select_component_name))
+    Logger.info("Host is sys-prepped. Tarball %s will not be copied for %s." % (tarball_prefix, stack_select_component_name))
     return 0
 
-  if not hasattr(params, "hdp_stack_version") or params.hdp_stack_version is None:
-    Logger.warning("Could not find hdp_stack_version")
+  if not hasattr(params, "stack_version_formatted") or params.stack_version_formatted is None:
+    Logger.warning("Could not find stack_version_formatted")
     return 1
 
   component_tar_source_file, component_tar_destination_folder = _get_tar_source_and_dest_folder(tarball_prefix)
@@ -174,25 +174,25 @@ def copy_tarballs_to_hdfs(tarball_prefix, hdp_select_component_name, component_u
   tmpfile = tempfile.NamedTemporaryFile()
   out = None
   with open(tmpfile.name, 'r+') as file:
-    get_hdp_version_cmd = '/usr/bin/hdp-select status %s > %s' % (hdp_select_component_name, tmpfile.name)
-    code, stdoutdata = shell.call(get_hdp_version_cmd)
+    get_stack_version_cmd = '/usr/bin/hdp-select status %s > %s' % (stack_select_component_name, tmpfile.name)
+    code, stdoutdata = shell.call(get_stack_version_cmd)
     out = file.read()
   pass
   if code != 0 or out is None:
     Logger.warning("Could not verify HDP version by calling '%s'. Return Code: %s, Output: %s." %
-                   (get_hdp_version_cmd, str(code), str(out)))
+                   (get_stack_version_cmd, str(code), str(out)))
     return 1
 
   matches = re.findall(r"([\d\.]+\-\d+)", out)
-  hdp_version = matches[0] if matches and len(matches) > 0 else None
+  stack_version = matches[0] if matches and len(matches) > 0 else None
 
-  if not hdp_version:
+  if not stack_version:
     Logger.error("Could not parse HDP version from output of hdp-select: %s" % str(out))
     return 1
 
   file_name = os.path.basename(component_tar_source_file)
   destination_file = os.path.join(component_tar_destination_folder, file_name)
-  destination_file = destination_file.replace("{{ hdp_stack_version }}", hdp_version)
+  destination_file = destination_file.replace("{{ stack_version_formatted }}", stack_version)
 
   does_hdfs_file_exist_cmd = "fs -ls %s" % destination_file
 

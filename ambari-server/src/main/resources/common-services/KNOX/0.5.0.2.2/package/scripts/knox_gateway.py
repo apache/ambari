@@ -22,12 +22,12 @@ import tarfile
 
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import conf_select, tar_archive
-from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.functions import format
-from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
+from resource_management.libraries.functions.version import compare_versions, format_stack_version
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import Direction
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, validate_security_config_properties, get_params_from_filesystem, \
@@ -112,7 +112,7 @@ class KnoxGatewayDefault(KnoxGateway):
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
     env.set_params(params)
-    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
+    if params.version and compare_versions(format_stack_version(params.version), '2.2.0.0') >= 0:
 
       absolute_backup_dir = None
       if params.upgrade_direction and params.upgrade_direction == Direction.UPGRADE:
@@ -123,7 +123,7 @@ class KnoxGatewayDefault(KnoxGateway):
 
       # conf-select will change the symlink to the conf folder.
       conf_select.select(params.stack_name, "knox", params.version)
-      hdp_select.select("knox-server", params.version)
+      stack_select.select("knox-server", params.version)
 
       # Extract the tar of the old conf folder into the new conf directory
       if absolute_backup_dir is not None and params.upgrade_direction and params.upgrade_direction == Direction.UPGRADE:

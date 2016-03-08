@@ -25,12 +25,12 @@ import status_params
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.functions import format
-from resource_management.libraries.functions.version import format_hdp_stack_version
+from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.get_bare_principal import get_bare_principal
 from resource_management.libraries.script import Script
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
-from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import get_kinit_path
 
@@ -47,8 +47,8 @@ storm_component_home_dir = status_params.storm_component_home_dir
 conf_dir = status_params.conf_dir
 
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
-stack_is_hdp22_or_further = Script.is_hdp_stack_greater_or_equal("2.2")
+stack_version_formatted = format_stack_version(stack_version_unformatted)
+stack_is_hdp22_or_further = Script.is_stack_greater_or_equal("2.2")
 
 # default hadoop params
 rest_lib_dir = "/usr/lib/storm/contrib/storm-rest"
@@ -285,7 +285,7 @@ hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab'] if
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name'] if has_namenode else None
 hdfs_site = config['configurations']['hdfs-site'] if has_namenode else None
 default_fs = config['configurations']['core-site']['fs.defaultFS'] if has_namenode else None
-hadoop_bin_dir = hdp_select.get_hadoop_dir("bin") if has_namenode else None
+hadoop_bin_dir = stack_select.get_hadoop_dir("bin") if has_namenode else None
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir() if has_namenode else None
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 

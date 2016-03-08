@@ -25,18 +25,18 @@ from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
 from resource_management.core.resources.system import Execute
 from resource_management.libraries.functions.default import default
-from resource_management.libraries.functions.get_hdp_version import get_hdp_version
+from resource_management.libraries.functions.get_stack_version import get_stack_version
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.script.script import Script
 from resource_management.core.shell import call
-from resource_management.libraries.functions.version import format_hdp_stack_version
+from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.version_select_util import get_versions_from_stack_root
 
-HDP_SELECT = '/usr/bin/hdp-select'
-HDP_SELECT_PREFIX = ('ambari-python-wrap', HDP_SELECT)
+STACK_SELECT = '/usr/bin/hdp-select'
+STACK_SELECT_PREFIX = ('ambari-python-wrap', STACK_SELECT)
 
 # hdp-select set oozie-server 2.2.0.0-1234
-TEMPLATE = HDP_SELECT_PREFIX + ('set',)
+TEMPLATE = STACK_SELECT_PREFIX + ('set',)
 
 # a mapping of Ambari server role to hdp-select component name for all
 # non-clients
@@ -154,33 +154,33 @@ def select(component, version):
       Logger.info("After {0}, reloaded module {1}".format(command, moduleName))
 
 
-def get_role_component_current_hdp_version():
+def get_role_component_current_stack_version():
   """
   Gets the current HDP version of the component that this role command is for.
   :return:  the current HDP version of the specified component or None
   """
-  hdp_select_component = None
+  stack_select_component = None
   role = default("/role", "")
   role_command =  default("/roleCommand", "")
 
   if role in SERVER_ROLE_DIRECTORY_MAP:
-    hdp_select_component = SERVER_ROLE_DIRECTORY_MAP[role]
+    stack_select_component = SERVER_ROLE_DIRECTORY_MAP[role]
   elif role_command == "SERVICE_CHECK" and role in SERVICE_CHECK_DIRECTORY_MAP:
-    hdp_select_component = SERVICE_CHECK_DIRECTORY_MAP[role]
+    stack_select_component = SERVICE_CHECK_DIRECTORY_MAP[role]
 
-  if hdp_select_component is None:
+  if stack_select_component is None:
     return None
 
-  current_hdp_version = get_hdp_version(hdp_select_component)
+  current_stack_version = get_stack_version(stack_select_component)
 
-  if current_hdp_version is None:
+  if current_stack_version is None:
     Logger.warning("Unable to determine hdp-select version for {0}".format(
-      hdp_select_component))
+      stack_select_component))
   else:
     Logger.info("{0} is currently at version {1}".format(
-      hdp_select_component, current_hdp_version))
+      stack_select_component, current_stack_version))
 
-  return current_hdp_version
+  return current_stack_version
 
 
 def get_hadoop_dir(target, force_latest_on_upgrade=False):
@@ -201,7 +201,7 @@ def get_hadoop_dir(target, force_latest_on_upgrade=False):
 
   hadoop_dir = HADOOP_DIR_DEFAULTS[target]
 
-  if Script.is_hdp_stack_greater_or_equal("2.2"):
+  if Script.is_stack_greater_or_equal("2.2"):
     # home uses a different template
     if target == "home":
       hadoop_dir = HADOOP_HOME_DIR_TEMPLATE.format("current", "hadoop-client")
@@ -218,9 +218,9 @@ def get_hadoop_dir(target, force_latest_on_upgrade=False):
 
         # determine if hdp-select has been run and if not, then use the current
         # hdp version until this component is upgraded
-        current_hdp_version = get_role_component_current_hdp_version()
-        if current_hdp_version is not None and stack_version != current_hdp_version:
-          stack_version = current_hdp_version
+        current_stack_version = get_role_component_current_stack_version()
+        if current_stack_version is not None and stack_version != current_stack_version:
+          stack_version = current_stack_version
 
         if target == "home":
           # home uses a different template
@@ -243,8 +243,8 @@ def get_hadoop_dir_for_stack_version(target, stack_version):
 
   hadoop_dir = HADOOP_DIR_DEFAULTS[target]
 
-  formatted_stack_version = format_hdp_stack_version(stack_version)
-  if Script.is_hdp_stack_greater_or_equal_to(formatted_stack_version, "2.2"):
+  formatted_stack_version = format_stack_version(stack_version)
+  if Script.is_stack_greater_or_equal_to(formatted_stack_version, "2.2"):
     # home uses a different template
     if target == "home":
       hadoop_dir = HADOOP_HOME_DIR_TEMPLATE.format(stack_version, "hadoop")
@@ -271,7 +271,7 @@ def _get_upgrade_stack():
   return None
 
 
-def get_hdp_versions(stack_root):
+def get_stack_versions(stack_root):
   """
   Gets list of stack versions installed on the host.
   Be default a call to hdp-select versions is made to get the list of installed stack versions.
@@ -279,7 +279,7 @@ def get_hdp_versions(stack_root):
   :param stack_root: Stack install root
   :return: Returns list of installed stack versions.
   """
-  code, out = call(HDP_SELECT_PREFIX + ('versions',))
+  code, out = call(STACK_SELECT_PREFIX + ('versions',))
   versions = []
   if 0 == code:
     for line in out.splitlines():
@@ -288,7 +288,7 @@ def get_hdp_versions(stack_root):
     versions = get_versions_from_stack_root(stack_root)
   return versions
 
-def get_hdp_version_before_install(component_name):
+def get_stack_version_before_install(component_name):
   """
   Works in the similar way to 'hdp-select status component', 
   but also works for not yet installed packages.
@@ -297,11 +297,11 @@ def get_hdp_version_before_install(component_name):
   """
   component_dir = HADOOP_HOME_DIR_TEMPLATE.format("current", component_name)
   if os.path.islink(component_dir):
-    hdp_version = os.path.basename(os.path.dirname(os.readlink(component_dir)))
-    match = re.match('[0-9]+.[0-9]+.[0-9]+.[0-9]+-[0-9]+', hdp_version)
+    stack_version = os.path.basename(os.path.dirname(os.readlink(component_dir)))
+    match = re.match('[0-9]+.[0-9]+.[0-9]+.[0-9]+-[0-9]+', stack_version)
     if match is None:
-      Logger.info('Failed to get extracted version with hdp-select in method get_hdp_version_before_install')
+      Logger.info('Failed to get extracted version with hdp-select in method get_stack_version_before_install')
       return None # lazy fail
-    return hdp_version
+    return stack_version
   else:
     return None

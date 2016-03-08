@@ -29,7 +29,7 @@ origin_exists = os.path.exists
 @patch.object(os.path, "exists", new=MagicMock(
   side_effect=lambda *args: origin_exists(args[0])
   if args[0][-2:] == "j2" else True))
-@patch.object(functions, "get_hdp_version", new = MagicMock(return_value="2.2.0.0-1234"))
+@patch.object(functions, "get_stack_version", new = MagicMock(return_value="2.2.0.0-1234"))
 class TestMapReduce2Client(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "YARN/2.1.0.2.0/package"
   STACK_VERSION = "2.0.6"
@@ -39,7 +39,7 @@ class TestMapReduce2Client(RMFTestCase):
                        classname = "MapReduce2Client",
                        command = "configure",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -207,7 +207,7 @@ class TestMapReduce2Client(RMFTestCase):
                        classname = "MapReduce2Client",
                        command = "configure",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn',
@@ -375,13 +375,13 @@ class TestMapReduce2Client(RMFTestCase):
                               )
     self.assertNoMoreResources()
 
-  @patch.object(functions, "get_hdp_version", new=MagicMock(return_value="2.2.0.0-2041"))
+  @patch.object(functions, "get_stack_version", new=MagicMock(return_value="2.2.0.0-2041"))
   def test_upgrade(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/mapreduce2_client.py",
                    classname = "MapReduce2Client",
                    command = "restart",
                    config_file="client-upgrade.json",
-                   hdp_stack_version = self.STACK_VERSION,
+                   stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -401,7 +401,7 @@ class TestMapReduce2Client(RMFTestCase):
                        classname = "MapReduce2Client",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict = mocks_dict)

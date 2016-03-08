@@ -17,7 +17,7 @@ limitations under the License.
 
 """
 
-from resource_management.libraries.functions.version import format_hdp_stack_version
+from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.get_kinit_path import get_kinit_path
 from resource_management.libraries.script import Script
@@ -40,7 +40,7 @@ ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 stack_name = default("/hostLevelParams/stack_name", None)
 
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
+stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 # New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
 version = default("/commandParams/version", None)
@@ -55,7 +55,7 @@ sqoop_bin_dir = "/usr/bin"
 zoo_conf_dir = "/etc/zookeeper"
 
 # HDP 2.2+ params
-if Script.is_hdp_stack_greater_or_equal("2.2"):
+if Script.is_stack_greater_or_equal("2.2"):
   sqoop_conf_dir = '/usr/hdp/current/sqoop-client/conf'
   sqoop_lib = '/usr/hdp/current/sqoop-client/lib'
   hadoop_home = '/usr/hdp/current/hbase-client'

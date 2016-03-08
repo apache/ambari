@@ -39,10 +39,10 @@ class TestVersion(TestCase):
          ("2.2.1.3", "2.2.1.3")]
     
     for input, expected in l:
-      actual = self.version_module.format_hdp_stack_version(input)
+      actual = self.version_module.format_stack_version(input)
       self.assertEqual(expected, actual)
 
-    gluster_fs_actual = self.version_module.format_hdp_stack_version("GlusterFS")
+    gluster_fs_actual = self.version_module.format_stack_version("GlusterFS")
     self.assertEqual("", gluster_fs_actual)
 
   def test_comparison(self):

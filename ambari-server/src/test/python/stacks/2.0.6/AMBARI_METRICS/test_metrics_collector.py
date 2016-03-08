@@ -33,7 +33,7 @@ class TestMetricsCollector(RMFTestCase):
                        classname = "AmsCollector",
                        command = "start",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.maxDiff=None
@@ -88,7 +88,7 @@ class TestMetricsCollector(RMFTestCase):
                        classname = "AmsCollector",
                        command = "start",
                        config_file="default_ams_embedded.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.maxDiff=None

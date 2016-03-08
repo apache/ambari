@@ -46,7 +46,7 @@ else:
   hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 
   falcon_conf_dir = "/etc/falcon/conf"
-  if Script.is_hdp_stack_greater_or_equal("2.2"):
+  if Script.is_stack_greater_or_equal("2.2"):
     falcon_conf_dir = format("/usr/hdp/current/{component_directory}/conf")
 
   # Security related/required params

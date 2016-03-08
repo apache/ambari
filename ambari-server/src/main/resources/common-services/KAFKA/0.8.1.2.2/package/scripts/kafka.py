@@ -20,7 +20,7 @@ limitations under the License.
 import collections
 import os
 
-from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
+from resource_management.libraries.functions.version import format_stack_version, compare_versions
 from resource_management.libraries.resources.properties_file import PropertiesFile
 from resource_management.libraries.resources.template_config import TemplateConfig
 from resource_management.core.resources.system import Directory, Execute, File, Link
@@ -39,7 +39,7 @@ def kafka(upgrade_type=None):
     # This still has an issue of hostnames being alphabetically out-of-order for broker.id in HDP-2.2.
     # Starting in HDP 2.3, Kafka handles the generation of broker.id so Ambari doesn't have to.
 
-    effective_version = params.hdp_stack_version if upgrade_type is None else format_hdp_stack_version(params.version)
+    effective_version = params.stack_version_formatted if upgrade_type is None else format_stack_version(params.version)
     Logger.info(format("Effective stack version: {effective_version}"))
 
     if effective_version is not None and effective_version != "" and compare_versions(effective_version, '2.2.0.0') >= 0 and compare_versions(effective_version, '2.3.0.0') < 0:

@@ -69,7 +69,7 @@ def setup_users():
     if params.has_namenode:
       if should_create_users_and_groups:
         create_dfs_cluster_admins()
-    if params.has_tez and params.hdp_stack_version != "" and compare_versions(params.hdp_stack_version, '2.3') >= 0:
+    if params.has_tez and params.stack_version_formatted != "" and compare_versions(params.stack_version_formatted, '2.3') >= 0:
       if should_create_users_and_groups:
         create_tez_am_view_acls()
   else:
@@ -146,7 +146,7 @@ def setup_hadoop_env():
     Directory(params.hadoop_dir, mode=0755)
 
     # HDP < 2.2 used a conf -> conf.empty symlink for /etc/hadoop/
-    if Script.is_hdp_stack_less_than("2.2"):
+    if Script.is_stack_less_than("2.2"):
       Directory(params.hadoop_conf_empty_dir, create_parents = True, owner="root",
         group=params.user_group )
 

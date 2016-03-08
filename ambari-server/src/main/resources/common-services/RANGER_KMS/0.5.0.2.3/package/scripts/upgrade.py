@@ -19,7 +19,7 @@ limitations under the License.
 """
 from resource_management.core.resources.system import Execute
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.format import format
 
 def prestart(env, hdp_component):
@@ -27,4 +27,4 @@ def prestart(env, hdp_component):
 
   if params.version and params.stack_is_hdp23_or_further:
     conf_select.select(params.stack_name, hdp_component, params.version)
-    hdp_select.select(hdp_component, params.version)
+    stack_select.select(hdp_component, params.version)

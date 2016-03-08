@@ -30,7 +30,7 @@ if OSCheck.is_windows_family():
   knox_ldap_win_service_name = "ldap"
 else:
   knox_conf_dir = '/etc/knox/conf'
-  if Script.is_hdp_stack_greater_or_equal("2.2"):
+  if Script.is_stack_greater_or_equal("2.2"):
     knox_conf_dir = '/usr/hdp/current/knox-server/conf'
   knox_pid_dir = config['configurations']['knox-env']['knox_pid_dir']
   knox_pid_file = format("{knox_pid_dir}/gateway.pid")

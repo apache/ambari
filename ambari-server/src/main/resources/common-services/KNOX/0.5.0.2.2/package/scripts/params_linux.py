@@ -22,15 +22,15 @@ from resource_management.core.logger import Logger
 
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 from resource_management.libraries.functions import format
-from resource_management.libraries.functions.version import format_hdp_stack_version
+from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.get_port_from_url import get_port_from_url
-from resource_management.libraries.functions.get_hdp_version import get_hdp_version
+from resource_management.libraries.functions.get_stack_version import get_stack_version
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.script.script import Script
 from status_params import *
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
-from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import conf_select
 
 # server configurations
@@ -41,11 +41,11 @@ stack_name = default("/hostLevelParams/stack_name", None)
 upgrade_direction = default("/commandParams/upgrade_direction", None)
 version = default("/commandParams/version", None)
 # E.g., 2.3.2.0
-version_formatted = format_hdp_stack_version(version)
+version_formatted = format_stack_version(version)
 
 # E.g., 2.3
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
+stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 # This is the version whose state is CURRENT. During an RU, this is the source version.
 # DO NOT format it since we need the build number too.
@@ -59,7 +59,7 @@ knox_data_dir = '/var/lib/knox/data'
 # Important, it has to be strictly greater than 2.3.0.0!!!
 if stack_name and stack_name.upper() == "HDP":
   Logger.info(format("HDP version to use is {version_formatted}"))
-  if Script.is_hdp_stack_greater(version_formatted, "2.3.0.0"):
+  if Script.is_stack_greater(version_formatted, "2.3.0.0"):
     # This is the current version. In the case of a Rolling Upgrade, it will be the newer version.
     # In the case of a Downgrade, it will be the version downgrading to.
     # This is always going to be a symlink to /var/lib/knox/data_${version}
@@ -82,7 +82,7 @@ ldap_bin = '/usr/lib/knox/bin/ldap.sh'
 knox_client_bin = '/usr/lib/knox/bin/knoxcli.sh'
 
 # HDP 2.2+ parameters
-if Script.is_hdp_stack_greater_or_equal("2.2"):
+if Script.is_stack_greater_or_equal("2.2"):
   knox_bin = '/usr/hdp/current/knox-server/bin/gateway.sh'
   knox_conf_dir = '/usr/hdp/current/knox-server/conf'
   ldap_bin = '/usr/hdp/current/knox-server/bin/ldap.sh'
@@ -96,7 +96,7 @@ knox_group = default("/configurations/knox-env/knox_group", "knox")
 mode = 0644
 
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
+stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 dfs_ha_enabled = False
 dfs_ha_nameservices = default("/configurations/hdfs-site/dfs.nameservices", None)
@@ -334,7 +334,7 @@ hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab'] if
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name'] if has_namenode else None
 hdfs_site = config['configurations']['hdfs-site'] if has_namenode else None
 default_fs = config['configurations']['core-site']['fs.defaultFS'] if has_namenode else None
-hadoop_bin_dir = hdp_select.get_hadoop_dir("bin") if has_namenode else None
+hadoop_bin_dir = stack_select.get_hadoop_dir("bin") if has_namenode else None
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir() if has_namenode else None
 
 import functools

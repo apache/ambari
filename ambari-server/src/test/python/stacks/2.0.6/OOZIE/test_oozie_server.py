@@ -45,7 +45,7 @@ class TestOozieServer(RMFTestCase):
                        classname = "OozieServer",
                        command = "configure",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = call_mocks
     )
@@ -59,7 +59,7 @@ class TestOozieServer(RMFTestCase):
                        classname = "OozieServer",
                        command = "configure",
                        config_file="default_oozie_mysql.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = call_mocks
     )
@@ -274,7 +274,7 @@ class TestOozieServer(RMFTestCase):
                        classname = "OozieServer",
                        command = "configure",
                        config_file="oozie_existing_sqla.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = call_mocks
     )
@@ -496,7 +496,7 @@ class TestOozieServer(RMFTestCase):
                          classname = "OozieServer",
                          command = "start",
                          config_file="default.json",
-                         hdp_stack_version = self.STACK_VERSION,
+                         stack_version = self.STACK_VERSION,
                          target = RMFTestCase.TARGET_COMMON_SERVICES,
                          call_mocks = call_mocks
         )
@@ -551,7 +551,7 @@ class TestOozieServer(RMFTestCase):
                          classname = "OozieServer",
                          command = "stop",
                          config_file="default.json",
-                         hdp_stack_version = self.STACK_VERSION,
+                         stack_version = self.STACK_VERSION,
                          target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-stop.sh',
@@ -571,7 +571,7 @@ class TestOozieServer(RMFTestCase):
                        classname = "OozieServer",
                        command = "configure",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = call_mocks
     )
@@ -587,7 +587,7 @@ class TestOozieServer(RMFTestCase):
                          classname = "OozieServer",
                          command = "start",
                          config_file="secured.json",
-                         hdp_stack_version = self.STACK_VERSION,
+                         stack_version = self.STACK_VERSION,
                          target = RMFTestCase.TARGET_COMMON_SERVICES,
                          call_mocks = call_mocks
     )
@@ -646,7 +646,7 @@ class TestOozieServer(RMFTestCase):
                          classname = "OozieServer",
                          command = "stop",
                          config_file="secured.json",
-                         hdp_stack_version = self.STACK_VERSION,
+                         stack_version = self.STACK_VERSION,
                          target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-stop.sh',
@@ -1047,7 +1047,7 @@ class TestOozieServer(RMFTestCase):
                      classname = "OozieServer",
                      command = "configure",
                      config_file="default.json",
-                     hdp_stack_version = self.STACK_VERSION,
+                     stack_version = self.STACK_VERSION,
                      target = RMFTestCase.TARGET_COMMON_SERVICES,
                      call_mocks = call_mocks
     )
@@ -1090,7 +1090,7 @@ class TestOozieServer(RMFTestCase):
                        classname = "OozieServer",
                        command = "security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -1114,7 +1114,7 @@ class TestOozieServer(RMFTestCase):
                          classname = "OozieServer",
                          command = "security_status",
                          config_file="secured.json",
-                         hdp_stack_version = self.STACK_VERSION,
+                         stack_version = self.STACK_VERSION,
                          target = RMFTestCase.TARGET_COMMON_SERVICES
       )
     except:
@@ -1131,7 +1131,7 @@ class TestOozieServer(RMFTestCase):
                        classname = "OozieServer",
                        command = "security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityIssuesFound": "Keytab file or principal are not set property."})
@@ -1150,7 +1150,7 @@ class TestOozieServer(RMFTestCase):
                        classname = "OozieServer",
                        command = "security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
@@ -1160,7 +1160,7 @@ class TestOozieServer(RMFTestCase):
                        classname = "OozieServer",
                        command = "security_status",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
@@ -1192,7 +1192,7 @@ class TestOozieServer(RMFTestCase):
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server.py",
      classname = "OozieServer", command = "pre_upgrade_restart", config_file = "oozie-upgrade.json",
-     hdp_stack_version = self.UPGRADE_STACK_VERSION,
+     stack_version = self.UPGRADE_STACK_VERSION,
      target = RMFTestCase.TARGET_COMMON_SERVICES,
      call_mocks = [(0, prepare_war_stdout)])
     
@@ -1263,7 +1263,7 @@ class TestOozieServer(RMFTestCase):
     mocks_dict = {}
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server.py",
      classname = "OozieServer", command = "pre_upgrade_restart", config_dict = json_content,
-     hdp_stack_version = self.UPGRADE_STACK_VERSION,
+     stack_version = self.UPGRADE_STACK_VERSION,
      target = RMFTestCase.TARGET_COMMON_SERVICES,
      call_mocks = [(0, None, ''), (0, prepare_war_stdout)],
      mocks_dict = mocks_dict)
@@ -1334,7 +1334,7 @@ class TestOozieServer(RMFTestCase):
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server.py",
      classname = "OozieServer", command = "pre_upgrade_restart", config_file = "oozie-downgrade.json",
-     hdp_stack_version = self.UPGRADE_STACK_VERSION,
+     stack_version = self.UPGRADE_STACK_VERSION,
      target = RMFTestCase.TARGET_COMMON_SERVICES,
      call_mocks = [(0, prepare_war_stdout)])
 
@@ -1385,7 +1385,7 @@ class TestOozieServer(RMFTestCase):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server_upgrade.py",
       classname = "OozieUpgrade", command = "upgrade_oozie_database_and_sharelib",
       config_dict = json_content,
-      hdp_stack_version = self.UPGRADE_STACK_VERSION,
+      stack_version = self.UPGRADE_STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES )
 
     self.assertResourceCalled('Execute', '/usr/hdp/2.3.0.0-1234/oozie/bin/ooziedb.sh upgrade -run',
@@ -1448,7 +1448,7 @@ class TestOozieServer(RMFTestCase):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server_upgrade.py",
       classname = "OozieUpgrade", command = "upgrade_oozie_database_and_sharelib",
       config_dict = json_content,
-      hdp_stack_version = self.UPGRADE_STACK_VERSION,
+      stack_version = self.UPGRADE_STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES )
 
     self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
@@ -1534,7 +1534,7 @@ class TestOozieServer(RMFTestCase):
     mocks_dict = {}
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server.py",
      classname = "OozieServer", command = "pre_upgrade_restart", config_dict = json_content,
-     hdp_stack_version = self.UPGRADE_STACK_VERSION,
+     stack_version = self.UPGRADE_STACK_VERSION,
      target = RMFTestCase.TARGET_COMMON_SERVICES,
      call_mocks = [(0, None, ''), (0, prepare_war_stdout)],
      mocks_dict = mocks_dict)

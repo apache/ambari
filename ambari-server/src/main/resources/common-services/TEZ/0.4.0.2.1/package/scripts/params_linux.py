@@ -21,8 +21,8 @@ import os
 
 from resource_management.libraries.resources import HdfsResource
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
-from resource_management.libraries.functions.version import format_hdp_stack_version
+from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.script.script import Script
@@ -35,25 +35,25 @@ stack_name = default("/hostLevelParams/stack_name", None)
 
 # This is expected to be of the form #.#.#.#
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
+stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 # New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
 version = default("/commandParams/version", None)
 
 # default hadoop parameters
 hadoop_home = '/usr'
-hadoop_bin_dir = hdp_select.get_hadoop_dir("bin")
+hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 tez_etc_dir = "/etc/tez"
 config_dir = "/etc/tez/conf"
 tez_examples_jar = "/usr/lib/tez/tez-mapreduce-examples*.jar"
 
 # hadoop parameters for 2.2+
-if Script.is_hdp_stack_greater_or_equal("2.2"):
+if Script.is_stack_greater_or_equal("2.2"):
   tez_examples_jar = "/usr/hdp/current/tez-client/tez-examples*.jar"
 
 # tez only started linking /usr/hdp/x.x.x.x/tez-client/conf in HDP 2.3+
-if Script.is_hdp_stack_greater_or_equal("2.3"):
+if Script.is_stack_greater_or_equal("2.3"):
   # !!! use realpath for now since the symlink exists but is broken and a
   # broken symlink messes with the DirectoryProvider class
   config_dir = os.path.realpath("/usr/hdp/current/tez-client/conf")

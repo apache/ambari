@@ -33,7 +33,7 @@ class TestPigServiceCheck(RMFTestCase):
                        classname="PigServiceCheck",
                        command="service_check",
                        config_file="pig-service-check-secure.json",
-                       hdp_stack_version=self.STACK_VERSION,
+                       stack_version=self.STACK_VERSION,
                        target=RMFTestCase.TARGET_COMMON_SERVICES
     )
     

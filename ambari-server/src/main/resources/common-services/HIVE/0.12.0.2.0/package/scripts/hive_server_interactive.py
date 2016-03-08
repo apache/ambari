@@ -22,12 +22,12 @@ limitations under the License.
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.copy_tarball import copy_to_hdfs
-from resource_management.libraries.functions.get_hdp_version import get_hdp_version
+from resource_management.libraries.functions.get_stack_version import get_stack_version
 from resource_management.libraries.functions.check_process_status import check_process_status
-from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
+from resource_management.libraries.functions.version import compare_versions, format_stack_version
 from resource_management.libraries.functions.security_commons import build_expectations, \
     cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
     FILE_TYPE_XML

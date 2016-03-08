@@ -19,7 +19,7 @@ limitations under the License.
 Ambari Agent
 
 """
-__all__ = ["get_hdp_version"]
+__all__ = ["get_stack_version"]
 
 import os
 import re
@@ -31,27 +31,27 @@ from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
 from resource_management.core import shell
 
-HDP_SELECT_BINARY = "/usr/bin/hdp-select"
+STACK_SELECT_BINARY = "/usr/bin/hdp-select"
 
 @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
-def get_hdp_version(package_name):
+def get_stack_version(package_name):
   """
-  @param package_name, name of the package, from which, function will try to get hdp version
+  @param package_name, name of the package, from which, function will try to get stack version
   """
   try:
     component_home_dir = os.environ[package_name.upper() + "_HOME"]
   except KeyError:
-    Logger.info('Skipping get_hdp_version since the component {0} is not yet available'.format(package_name))
+    Logger.info('Skipping get_stack_version since the component {0} is not yet available'.format(package_name))
     return None # lazy fail
 
-  #As a rule, component_home_dir is of the form <hdp_root_dir>\[\]<component_versioned_subdir>[\]
+  #As a rule, component_home_dir is of the form <stack_root_dir>\[\]<component_versioned_subdir>[\]
   home_dir_split = os.path.split(component_home_dir)
   iSubdir = len(home_dir_split) - 1
   while not home_dir_split[iSubdir]:
     iSubdir -= 1
 
-  #The component subdir is expected to be of the form <package_name>-<package_version>.<hdp_stack_version>
-  # with package_version = #.#.# and hdp_stack_version=#.#.#.#-<build_number>
+  #The component subdir is expected to be of the form <package_name>-<package_version>.<stack_version>
+  # with package_version = #.#.# and stack_version=#.#.#.#-<build_number>
   match = re.findall('[0-9]+.[0-9]+.[0-9]+.[0-9]+-[0-9]+', home_dir_split[iSubdir])
   if not match:
     Logger.info('Failed to get extracted version for component {0}. Home dir not in expected format.'.format(package_name))
@@ -60,32 +60,32 @@ def get_hdp_version(package_name):
   return match[0]
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
-def get_hdp_version(package_name):
+def get_stack_version(package_name):
   """
-  @param package_name, name of the package, from which, function will try to get hdp version
+  @param package_name, name of the package, from which, function will try to get stack version
   """
   
-  if not os.path.exists(HDP_SELECT_BINARY):
-    Logger.info('Skipping get_hdp_version since hdp-select is not yet available')
+  if not os.path.exists(STACK_SELECT_BINARY):
+    Logger.info('Skipping get_stack_version since " + STACK_SELECT_BINARY + " is not yet available')
     return None # lazy fail
   
   try:
-    command = 'ambari-python-wrap {HDP_SELECT_BINARY} status {package_name}'.format(HDP_SELECT_BINARY=HDP_SELECT_BINARY, package_name=package_name)
-    return_code, hdp_output = shell.call(command, timeout=20)
+    command = 'ambari-python-wrap {STACK_SELECT_BINARY} status {package_name}'.format(STACK_SELECT_BINARY=STACK_SELECT_BINARY, package_name=package_name)
+    return_code, stack_output = shell.call(command, timeout=20)
   except Exception, e:
     Logger.error(str(e))
-    raise Fail('Unable to execute hdp-select command to retrieve the version.')
+    raise Fail('Unable to execute " + STACK_SELECT_BINARY + " command to retrieve the version.')
 
   if return_code != 0:
     raise Fail(
       'Unable to determine the current version because of a non-zero return code of {0}'.format(str(return_code)))
 
-  hdp_version = re.sub(package_name + ' - ', '', hdp_output)
-  hdp_version = hdp_version.rstrip()
-  match = re.match('[0-9]+.[0-9]+.[0-9]+.[0-9]+-[0-9]+', hdp_version)
+  stack_version = re.sub(package_name + ' - ', '', stack_output)
+  stack_version = stack_output.rstrip()
+  match = re.match('[0-9]+.[0-9]+.[0-9]+.[0-9]+-[0-9]+', stack_version)
 
   if match is None:
-    Logger.info('Failed to get extracted version with hdp-select')
+    Logger.info('Failed to get extracted version with ' + STACK_SELECT_BINARY)
     return None # lazy fail
 
-  return hdp_version
+  return stack_version

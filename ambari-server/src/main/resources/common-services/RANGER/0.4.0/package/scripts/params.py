@@ -19,7 +19,7 @@ limitations under the License.
 """
 import os
 from resource_management.libraries.script import Script
-from resource_management.libraries.functions.version import format_hdp_stack_version
+from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.is_empty import is_empty
@@ -43,7 +43,7 @@ version = default("/commandParams/version", None)
 host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
 
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
+stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 upgrade_marker_file = format("{tmp_dir}/rangeradmin_ru.inprogress")
 
@@ -51,8 +51,8 @@ xml_configurations_supported = config['configurations']['ranger-env']['xml_confi
 
 create_db_dbuser = config['configurations']['ranger-env']['create_db_dbuser']
 
-stack_is_hdp22_or_further = Script.is_hdp_stack_greater_or_equal("2.2")
-stack_is_hdp23_or_further = Script.is_hdp_stack_greater_or_equal("2.3")
+stack_is_hdp22_or_further = Script.is_stack_greater_or_equal("2.2")
+stack_is_hdp23_or_further = Script.is_stack_greater_or_equal("2.3")
 
 downgrade_from_version = default("/commandParams/downgrade_from_version", None)
 upgrade_direction = default("/commandParams/upgrade_direction", None)
@@ -60,7 +60,7 @@ upgrade_direction = default("/commandParams/upgrade_direction", None)
 ranger_conf    = '/etc/ranger/admin/conf'
 ranger_ugsync_conf = '/etc/ranger/usersync/conf'
 
-if upgrade_direction == Direction.DOWNGRADE and compare_versions(format_hdp_stack_version(version),'2.3' ) < 0:
+if upgrade_direction == Direction.DOWNGRADE and compare_versions(format_stack_version(version),'2.3' ) < 0:
   stack_is_hdp22_or_further = True
   stack_is_hdp23_or_further = False
 

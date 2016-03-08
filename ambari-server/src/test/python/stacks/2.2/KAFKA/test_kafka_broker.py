@@ -33,7 +33,7 @@ class TestKafkaBroker(RMFTestCase):
                          classname = "KafkaBroker",
                          command = "configure",
                          config_file="default.json",
-                         hdp_stack_version = self.STACK_VERSION,
+                         stack_version = self.STACK_VERSION,
                          target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Directory', '/var/log/kafka',
@@ -80,7 +80,7 @@ class TestKafkaBroker(RMFTestCase):
                        classname = "KafkaBroker",
                        command = "configure",
                        config_file="default_custom_path_config.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -133,7 +133,7 @@ class TestKafkaBroker(RMFTestCase):
                        classname = "KafkaBroker",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
     self.assertResourceCalled('Execute',
                               ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'kafka-broker', version), sudo=True,)
@@ -152,7 +152,7 @@ class TestKafkaBroker(RMFTestCase):
                        classname = "KafkaBroker",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict = mocks_dict)

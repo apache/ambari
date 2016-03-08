@@ -39,7 +39,7 @@ class TestHistoryServer(RMFTestCase):
                        classname="HistoryServer",
                        command="configure",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -50,7 +50,7 @@ class TestHistoryServer(RMFTestCase):
                        classname="HistoryServer",
                        command="start",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -128,7 +128,7 @@ class TestHistoryServer(RMFTestCase):
                        classname="HistoryServer",
                        command="stop",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -144,7 +144,7 @@ class TestHistoryServer(RMFTestCase):
                        classname="HistoryServer",
                        command="configure",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
@@ -155,7 +155,7 @@ class TestHistoryServer(RMFTestCase):
                        classname="HistoryServer",
                        command="start",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -183,7 +183,7 @@ class TestHistoryServer(RMFTestCase):
                        classname="HistoryServer",
                        command="stop",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -718,7 +718,7 @@ class TestHistoryServer(RMFTestCase):
                        classname="HistoryServer",
                        command="security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -750,7 +750,7 @@ class TestHistoryServer(RMFTestCase):
                          classname="HistoryServer",
                          command="security_status",
                          config_file="secured.json",
-                         hdp_stack_version = self.STACK_VERSION,
+                         stack_version = self.STACK_VERSION,
                          target = RMFTestCase.TARGET_COMMON_SERVICES
       )
     except:
@@ -767,7 +767,7 @@ class TestHistoryServer(RMFTestCase):
                        classname="HistoryServer",
                        command="security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityIssuesFound": "Keytab file or principal not set."})
@@ -784,7 +784,7 @@ class TestHistoryServer(RMFTestCase):
                        classname="HistoryServer",
                        command="security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
@@ -794,7 +794,7 @@ class TestHistoryServer(RMFTestCase):
                        classname="HistoryServer",
                        command="security_status",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
@@ -808,8 +808,8 @@ class TestHistoryServer(RMFTestCase):
                               action = ["delete"])
     self.assertResourceCalled("Link", "/etc/hadoop/conf", to="/usr/hdp/current/hadoop-client/conf")
 
-  @patch.object(Script, "is_hdp_stack_greater_or_equal", new = MagicMock(return_value="2.3.0"))
-  @patch.object(functions, "get_hdp_version", new = MagicMock(return_value="2.3.0.0-1234"))
+  @patch.object(Script, "is_stack_greater_or_equal", new = MagicMock(return_value="2.3.0"))
+  @patch.object(functions, "get_stack_version", new = MagicMock(return_value="2.3.0.0-1234"))
   @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
   def test_pre_upgrade_restart_23(self, copy_to_hdfs_mock):
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
@@ -824,7 +824,7 @@ class TestHistoryServer(RMFTestCase):
                        classname = "HistoryServer",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None, None), (0, None, None), (0, None, None), (0, None, None)],
                        mocks_dict = mocks_dict)

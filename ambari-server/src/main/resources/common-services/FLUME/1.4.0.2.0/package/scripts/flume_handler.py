@@ -24,7 +24,7 @@ from flume import get_desired_state
 
 from resource_management import *
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.flume_agent_helper import find_expected_agent_names
 from resource_management.libraries.functions.flume_agent_helper import get_flume_status
 
@@ -89,12 +89,12 @@ class FlumeHandlerLinux(FlumeHandler):
 
     # this function should not execute if the version can't be determined or
     # is not at least HDP 2.2.0.0
-    if not params.version or Script.is_hdp_stack_less_than("2.2"):
+    if not params.version or Script.is_stack_less_than("2.2"):
       return
 
     Logger.info("Executing Flume Stack Upgrade pre-restart")
     conf_select.select(params.stack_name, "flume", params.version)
-    hdp_select.select("flume-server", params.version)
+    stack_select.select("flume-server", params.version)
 
     # only restore on upgrade, not downgrade
     if params.upgrade_direction == Direction.UPGRADE:
