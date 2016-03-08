@@ -38,7 +38,9 @@ class TestHBaseMaster(RMFTestCase):
                        try_install=True,
                        checked_call_mocks = [(0, "OK.", ""),(0, "OK.", "")],
     )
-    self.assertResourceCalled('Package', 'hbase_2_3_*',)
+    self.assertResourceCalled('Package', 'hbase_2_3_*',
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
 
     self.assertNoMoreResources()
   
@@ -57,8 +59,12 @@ class TestHBaseMaster(RMFTestCase):
                        try_install=True,
                        checked_call_mocks = [(0, "OK.", ""),(0, "OK.", "")],
     )
-    self.assertResourceCalled('Package', 'hbase_2_3_*',)
-    self.assertResourceCalled('Package', 'phoenix_2_3_*',)
+    self.assertResourceCalled('Package', 'hbase_2_3_*',
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'phoenix_2_3_*',
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
 
     self.assertNoMoreResources()
 

@@ -591,8 +591,16 @@ public class Configuration {
    */
   private static final int VERSION_DEFINITION_READ_TIMEOUT_DEFAULT = 5000;
 
+  /**
+   * For Agent Stack Install retry configuration
+   */
+  public static final String AGENT_STACK_RETRY_ON_REPO_UNAVAILABILITY_KEY = "agent.stack.retry.on_repo_unavailability";
+  public static final String AGENT_STACK_RETRY_ON_REPO_UNAVAILABILITY_DEFAULT = "false";
+  public static final String AGENT_STACK_RETRY_COUNT_KEY = "agent.stack.retry.tries";
+  public static final String AGENT_STACK_RETRY_COUNT_DEFAULT = "5";
+
   private static final Logger LOG = LoggerFactory.getLogger(
-      Configuration.class);
+    Configuration.class);
 
   private Properties properties;
   private JsonObject hostChangesJson;
@@ -625,7 +633,7 @@ public class Configuration {
     SQL_ANYWHERE("sqlanywhere");
 
     private static final Map<String, DatabaseType> m_mappedTypes =
-        new HashMap<String, Configuration.DatabaseType>(5);
+      new HashMap<String, Configuration.DatabaseType>(5);
 
     static {
       for (DatabaseType databaseType : EnumSet.allOf(DatabaseType.class)) {
@@ -711,59 +719,59 @@ public class Configuration {
       CHECK_MOUNTS_TIMEOUT_KEY, CHECK_MOUNTS_TIMEOUT_DEFAULT));
 
     agentConfigsMap.put(ENABLE_AUTO_AGENT_CACHE_UPDATE_KEY, properties.getProperty(
-        ENABLE_AUTO_AGENT_CACHE_UPDATE_KEY, ENABLE_AUTO_AGENT_CACHE_UPDATE_DEFAULT));
+      ENABLE_AUTO_AGENT_CACHE_UPDATE_KEY, ENABLE_AUTO_AGENT_CACHE_UPDATE_DEFAULT));
 
     configsMap = new HashMap<String, String>();
     configsMap.putAll(agentConfigsMap);
     configsMap.put(AMBARI_PYTHON_WRAP_KEY, properties.getProperty(
-        AMBARI_PYTHON_WRAP_KEY, AMBARI_PYTHON_WRAP_DEFAULT));
+      AMBARI_PYTHON_WRAP_KEY, AMBARI_PYTHON_WRAP_DEFAULT));
     configsMap.put(SRVR_TWO_WAY_SSL_KEY, properties.getProperty(
-        SRVR_TWO_WAY_SSL_KEY, SRVR_TWO_WAY_SSL_DEFAULT));
+      SRVR_TWO_WAY_SSL_KEY, SRVR_TWO_WAY_SSL_DEFAULT));
     configsMap.put(SRVR_TWO_WAY_SSL_PORT_KEY, properties.getProperty(
-        SRVR_TWO_WAY_SSL_PORT_KEY, SRVR_TWO_WAY_SSL_PORT_DEFAULT));
+      SRVR_TWO_WAY_SSL_PORT_KEY, SRVR_TWO_WAY_SSL_PORT_DEFAULT));
     configsMap.put(SRVR_ONE_WAY_SSL_PORT_KEY, properties.getProperty(
-        SRVR_ONE_WAY_SSL_PORT_KEY, SRVR_ONE_WAY_SSL_PORT_DEFAULT));
+      SRVR_ONE_WAY_SSL_PORT_KEY, SRVR_ONE_WAY_SSL_PORT_DEFAULT));
     configsMap.put(SRVR_KSTR_DIR_KEY, properties.getProperty(
-        SRVR_KSTR_DIR_KEY, SRVR_KSTR_DIR_DEFAULT));
+      SRVR_KSTR_DIR_KEY, SRVR_KSTR_DIR_DEFAULT));
     configsMap.put(SRVR_CRT_NAME_KEY, properties.getProperty(
-        SRVR_CRT_NAME_KEY, SRVR_CRT_NAME_DEFAULT));
+      SRVR_CRT_NAME_KEY, SRVR_CRT_NAME_DEFAULT));
     configsMap.put(SRVR_KEY_NAME_KEY, properties.getProperty(
       SRVR_KEY_NAME_KEY, SRVR_KEY_NAME_DEFAULT));
     configsMap.put(SRVR_CSR_NAME_KEY, properties.getProperty(
       SRVR_CSR_NAME_KEY, SRVR_CSR_NAME_DEFAULT));
     configsMap.put(KSTR_NAME_KEY, properties.getProperty(
-        KSTR_NAME_KEY, KSTR_NAME_DEFAULT));
+      KSTR_NAME_KEY, KSTR_NAME_DEFAULT));
     configsMap.put(KSTR_TYPE_KEY, properties.getProperty(
-        KSTR_TYPE_KEY, KSTR_TYPE_DEFAULT));
+      KSTR_TYPE_KEY, KSTR_TYPE_DEFAULT));
     configsMap.put(TSTR_NAME_KEY, properties.getProperty(
-        TSTR_NAME_KEY, TSTR_NAME_DEFAULT));
+      TSTR_NAME_KEY, TSTR_NAME_DEFAULT));
     configsMap.put(TSTR_TYPE_KEY, properties.getProperty(
-        TSTR_TYPE_KEY, TSTR_TYPE_DEFAULT));
+      TSTR_TYPE_KEY, TSTR_TYPE_DEFAULT));
     configsMap.put(SRVR_CRT_PASS_FILE_KEY, properties.getProperty(
-        SRVR_CRT_PASS_FILE_KEY, SRVR_CRT_PASS_FILE_DEFAULT));
+      SRVR_CRT_PASS_FILE_KEY, SRVR_CRT_PASS_FILE_DEFAULT));
     configsMap.put(PASSPHRASE_ENV_KEY, properties.getProperty(
-        PASSPHRASE_ENV_KEY, PASSPHRASE_ENV_DEFAULT));
+      PASSPHRASE_ENV_KEY, PASSPHRASE_ENV_DEFAULT));
     configsMap.put(PASSPHRASE_KEY, System.getenv(configsMap.get(
-        PASSPHRASE_ENV_KEY)));
+      PASSPHRASE_ENV_KEY)));
     configsMap.put(RESOURCES_DIR_KEY, properties.getProperty(
-        RESOURCES_DIR_KEY, RESOURCES_DIR_DEFAULT));
+      RESOURCES_DIR_KEY, RESOURCES_DIR_DEFAULT));
     configsMap.put(SRVR_CRT_PASS_LEN_KEY, properties.getProperty(
-        SRVR_CRT_PASS_LEN_KEY, SRVR_CRT_PASS_LEN_DEFAULT));
+      SRVR_CRT_PASS_LEN_KEY, SRVR_CRT_PASS_LEN_DEFAULT));
     configsMap.put(SRVR_DISABLED_CIPHERS, properties.getProperty(
-        SRVR_DISABLED_CIPHERS, SRVR_DISABLED_CIPHERS_DEFAULT));
+      SRVR_DISABLED_CIPHERS, SRVR_DISABLED_CIPHERS_DEFAULT));
     configsMap.put(SRVR_DISABLED_PROTOCOLS, properties.getProperty(
-        SRVR_DISABLED_PROTOCOLS, SRVR_DISABLED_PROTOCOLS_DEFAULT));
+      SRVR_DISABLED_PROTOCOLS, SRVR_DISABLED_PROTOCOLS_DEFAULT));
 
     configsMap.put(CLIENT_API_SSL_KSTR_DIR_NAME_KEY, properties.getProperty(
       CLIENT_API_SSL_KSTR_DIR_NAME_KEY, configsMap.get(SRVR_KSTR_DIR_KEY)));
     configsMap.put(CLIENT_API_SSL_KSTR_NAME_KEY, properties.getProperty(
       CLIENT_API_SSL_KSTR_NAME_KEY, CLIENT_API_SSL_KSTR_NAME_DEFAULT));
     configsMap.put(CLIENT_API_SSL_KSTR_TYPE_KEY, properties.getProperty(
-        CLIENT_API_SSL_KSTR_TYPE_KEY, CLIENT_API_SSL_KSTR_TYPE_DEFAULT));
+      CLIENT_API_SSL_KSTR_TYPE_KEY, CLIENT_API_SSL_KSTR_TYPE_DEFAULT));
     configsMap.put(CLIENT_API_SSL_TSTR_NAME_KEY, properties.getProperty(
-        CLIENT_API_SSL_TSTR_NAME_KEY, CLIENT_API_SSL_TSTR_NAME_DEFAULT));
+      CLIENT_API_SSL_TSTR_NAME_KEY, CLIENT_API_SSL_TSTR_NAME_DEFAULT));
     configsMap.put(CLIENT_API_SSL_TSTR_TYPE_KEY, properties.getProperty(
-        CLIENT_API_SSL_TSTR_TYPE_KEY, CLIENT_API_SSL_TSTR_TYPE_DEFAULT));
+      CLIENT_API_SSL_TSTR_TYPE_KEY, CLIENT_API_SSL_TSTR_TYPE_DEFAULT));
     configsMap.put(CLIENT_API_SSL_CRT_PASS_FILE_NAME_KEY, properties.getProperty(
       CLIENT_API_SSL_CRT_PASS_FILE_NAME_KEY, CLIENT_API_SSL_CRT_PASS_FILE_NAME_DEFAULT));
     configsMap.put(CLIENT_API_SSL_KEY_NAME_KEY, properties.getProperty(
@@ -771,41 +779,41 @@ public class Configuration {
     configsMap.put(CLIENT_API_SSL_CRT_NAME_KEY, properties.getProperty(
       CLIENT_API_SSL_CRT_NAME_KEY, CLIENT_API_SSL_CRT_NAME_DEFAULT));
     configsMap.put(JAVA_HOME_KEY, properties.getProperty(
-        JAVA_HOME_KEY));
+      JAVA_HOME_KEY));
     configsMap.put(PARALLEL_STAGE_EXECUTION_KEY, properties.getProperty(
-            PARALLEL_STAGE_EXECUTION_KEY, PARALLEL_STAGE_EXECUTION_DEFAULT));
+      PARALLEL_STAGE_EXECUTION_KEY, PARALLEL_STAGE_EXECUTION_DEFAULT));
     configsMap.put(SERVER_TMP_DIR_KEY, properties.getProperty(
-            SERVER_TMP_DIR_KEY, SERVER_TMP_DIR_DEFAULT));
+      SERVER_TMP_DIR_KEY, SERVER_TMP_DIR_DEFAULT));
     configsMap.put(EXTERNAL_SCRIPT_TIMEOUT_KEY, properties.getProperty(
-            EXTERNAL_SCRIPT_TIMEOUT_KEY, EXTERNAL_SCRIPT_TIMEOUT_DEFAULT));
+      EXTERNAL_SCRIPT_TIMEOUT_KEY, EXTERNAL_SCRIPT_TIMEOUT_DEFAULT));
 
     configsMap.put(SHARED_RESOURCES_DIR_KEY, properties.getProperty(
-       SHARED_RESOURCES_DIR_KEY, SHARED_RESOURCES_DIR_DEFAULT));
+      SHARED_RESOURCES_DIR_KEY, SHARED_RESOURCES_DIR_DEFAULT));
 
     configsMap.put(KDC_PORT_KEY, properties.getProperty(
-        KDC_PORT_KEY, KDC_PORT_KEY_DEFAULT));
+      KDC_PORT_KEY, KDC_PORT_KEY_DEFAULT));
 
     configsMap.put(AGENT_PACKAGE_PARALLEL_COMMANDS_LIMIT_KEY, properties.getProperty(
-            AGENT_PACKAGE_PARALLEL_COMMANDS_LIMIT_KEY, AGENT_PACKAGE_PARALLEL_COMMANDS_LIMIT_DEFAULT));
+      AGENT_PACKAGE_PARALLEL_COMMANDS_LIMIT_KEY, AGENT_PACKAGE_PARALLEL_COMMANDS_LIMIT_DEFAULT));
     configsMap.put(PROXY_ALLOWED_HOST_PORTS, properties.getProperty(
-        PROXY_ALLOWED_HOST_PORTS, PROXY_ALLOWED_HOST_PORTS_DEFAULT));
+      PROXY_ALLOWED_HOST_PORTS, PROXY_ALLOWED_HOST_PORTS_DEFAULT));
 
     File passFile = new File(configsMap.get(SRVR_KSTR_DIR_KEY) + File.separator
-        + configsMap.get(SRVR_CRT_PASS_FILE_KEY));
+      + configsMap.get(SRVR_CRT_PASS_FILE_KEY));
     String password = null;
 
     if (!passFile.exists()) {
       LOG.info("Generation of file with password");
       try {
         password = RandomStringUtils.randomAlphanumeric(Integer
-            .parseInt(configsMap.get(SRVR_CRT_PASS_LEN_KEY)));
+          .parseInt(configsMap.get(SRVR_CRT_PASS_LEN_KEY)));
         FileUtils.writeStringToFile(passFile, password);
         ShellCommandUtil.setUnixFilePermissions(
-               ShellCommandUtil.MASK_OWNER_ONLY_RW, passFile.getAbsolutePath());
+          ShellCommandUtil.MASK_OWNER_ONLY_RW, passFile.getAbsolutePath());
       } catch (IOException e) {
         e.printStackTrace();
         throw new RuntimeException(
-            "Error reading certificate password from file");
+          "Error reading certificate password from file");
       }
     } else {
       LOG.info("Reading password from existing file");
@@ -884,12 +892,12 @@ public class Configuration {
     }
     if (properties.getProperty(SSL_TRUSTSTORE_PASSWORD_KEY) != null) {
       String ts_password = readPasswordFromStore(
-              properties.getProperty(SSL_TRUSTSTORE_PASSWORD_KEY));
+        properties.getProperty(SSL_TRUSTSTORE_PASSWORD_KEY));
       if (ts_password != null) {
         System.setProperty(JAVAX_SSL_TRUSTSTORE_PASSWORD, ts_password);
       } else {
         System.setProperty(JAVAX_SSL_TRUSTSTORE_PASSWORD,
-                properties.getProperty(SSL_TRUSTSTORE_PASSWORD_KEY));
+          properties.getProperty(SSL_TRUSTSTORE_PASSWORD_KEY));
       }
     }
     if (properties.getProperty(SSL_TRUSTSTORE_TYPE_KEY) != null) {
@@ -901,9 +909,9 @@ public class Configuration {
     if (!credentialProviderInitialized) {
       try {
         credentialProvider = new CredentialProvider(null,
-            getMasterKeyLocation(),
-            isMasterKeyPersisted(),
-            getMasterKeyStoreLocation());
+          getMasterKeyLocation(),
+          isMasterKeyPersisted(),
+          getMasterKeyStoreLocation());
       } catch (Exception e) {
         LOG.info("Credential provider creation failed. Reason: " + e.getMessage());
         if (LOG.isDebugEnabled()) {
@@ -937,7 +945,7 @@ public class Configuration {
       LOG.info("No configuration file " + CONFIG_FILE + " found in classpath.", fnf);
     } catch (IOException ie) {
       throw new IllegalArgumentException("Can't read configuration file " +
-          CONFIG_FILE, ie);
+        CONFIG_FILE, ie);
     }
 
     return properties;
@@ -1023,7 +1031,7 @@ public class Configuration {
 
   public String getBootSetupAgentScript() {
     return properties.getProperty(BOOTSTRAP_SETUP_AGENT_SCRIPT,
-        AmbariPath.getPath("/usr/lib/python2.6/site-packages/ambari_server/setupAgent.py"));
+      AmbariPath.getPath("/usr/lib/python2.6/site-packages/ambari_server/setupAgent.py"));
   }
 
   public String getBootSetupAgentPassword() {
@@ -1056,7 +1064,7 @@ public class Configuration {
    */
   public List<String> getRollingUpgradeSkipPackagesPrefixes() {
     String propertyValue = properties.getProperty(ROLLING_UPGRADE_SKIP_PACKAGES_PREFIXES_KEY,
-            ROLLING_UPGRADE_SKIP_PACKAGES_PREFIXES_DEFAULT);
+      ROLLING_UPGRADE_SKIP_PACKAGES_PREFIXES_DEFAULT);
     ArrayList<String> res = new ArrayList<>();
     for (String prefix : propertyValue.split(",")) {
       if (! prefix.isEmpty()) {
@@ -1114,7 +1122,7 @@ public class Configuration {
   }
 
   public void setLdap(String host, String userClass, String userNameAttr, String groupClass, String groupName, String groupMember,
-      String baseDN, boolean anon, String managerDN, String managerPass) {
+                      String baseDN, boolean anon, String managerDN, String managerPass) {
     properties.setProperty(LDAP_PRIMARY_URL_KEY, host);
     properties.setProperty(LDAP_USER_OBJECT_CLASS_KEY, userClass);
     properties.setProperty(LDAP_USERNAME_ATTRIBUTE_KEY, userNameAttr);
@@ -1192,7 +1200,7 @@ public class Configuration {
    */
   public int getClientSSLApiPort() {
     return Integer.parseInt(properties.getProperty(CLIENT_API_SSL_PORT_KEY,
-                                                   String.valueOf(CLIENT_API_SSL_PORT_DEFAULT)));
+      String.valueOf(CLIENT_API_SSL_PORT_DEFAULT)));
   }
 
   /**
@@ -1322,8 +1330,8 @@ public class Configuration {
    */
   public boolean isApiGzipped() {
     return "true".equalsIgnoreCase(properties.getProperty(
-        API_GZIP_COMPRESSION_ENABLED_KEY,
-        API_GZIP_COMPRESSION_ENABLED_DEFAULT));
+      API_GZIP_COMPRESSION_ENABLED_KEY,
+      API_GZIP_COMPRESSION_ENABLED_DEFAULT));
   }
 
   /**
@@ -1474,16 +1482,16 @@ public class Configuration {
     LdapServerProperties ldapServerProperties = new LdapServerProperties();
 
     ldapServerProperties.setPrimaryUrl(properties.getProperty(
-        LDAP_PRIMARY_URL_KEY, LDAP_PRIMARY_URL_DEFAULT));
+      LDAP_PRIMARY_URL_KEY, LDAP_PRIMARY_URL_DEFAULT));
     ldapServerProperties.setSecondaryUrl(properties.getProperty(
-        LDAP_SECONDARY_URL_KEY));
+      LDAP_SECONDARY_URL_KEY));
     ldapServerProperties.setUseSsl("true".equalsIgnoreCase(properties.
-        getProperty(LDAP_USE_SSL_KEY)));
+      getProperty(LDAP_USE_SSL_KEY)));
     ldapServerProperties.setAnonymousBind("true".
-        equalsIgnoreCase(properties.getProperty(LDAP_BIND_ANONYMOUSLY_KEY,
-            LDAP_BIND_ANONYMOUSLY_DEFAULT)));
+      equalsIgnoreCase(properties.getProperty(LDAP_BIND_ANONYMOUSLY_KEY,
+        LDAP_BIND_ANONYMOUSLY_DEFAULT)));
     ldapServerProperties.setManagerDn(properties.getProperty(
-        LDAP_MANAGER_DN_KEY));
+      LDAP_MANAGER_DN_KEY));
     String ldapPasswordProperty = properties.getProperty(LDAP_MANAGER_PASSWORD_KEY);
     String ldapPassword = null;
     if (CredentialProvider.isAliasString(ldapPasswordProperty)) {
@@ -1497,9 +1505,9 @@ public class Configuration {
       }
     }
     ldapServerProperties.setBaseDN(properties.getProperty
-        (LDAP_BASE_DN_KEY, LDAP_BASE_DN_DEFAULT));
+      (LDAP_BASE_DN_KEY, LDAP_BASE_DN_DEFAULT));
     ldapServerProperties.setUsernameAttribute(properties.
-        getProperty(LDAP_USERNAME_ATTRIBUTE_KEY, LDAP_USERNAME_ATTRIBUTE_DEFAULT));
+      getProperty(LDAP_USERNAME_ATTRIBUTE_KEY, LDAP_USERNAME_ATTRIBUTE_DEFAULT));
 
     ldapServerProperties.setUserBase(properties.getProperty(
       LDAP_USER_BASE_KEY, LDAP_USER_BASE_DEFAULT));
@@ -1509,28 +1517,28 @@ public class Configuration {
       LDAP_DN_ATTRIBUTE_KEY, LDAP_DN_ATTRIBUTE_DEFAULT));
 
     ldapServerProperties.setGroupBase(properties.
-        getProperty(LDAP_GROUP_BASE_KEY, LDAP_GROUP_BASE_DEFAULT));
+      getProperty(LDAP_GROUP_BASE_KEY, LDAP_GROUP_BASE_DEFAULT));
     ldapServerProperties.setGroupObjectClass(properties.
-        getProperty(LDAP_GROUP_OBJECT_CLASS_KEY, LDAP_GROUP_OBJECT_CLASS_DEFAULT));
+      getProperty(LDAP_GROUP_OBJECT_CLASS_KEY, LDAP_GROUP_OBJECT_CLASS_DEFAULT));
     ldapServerProperties.setGroupMembershipAttr(properties.getProperty(
-        LDAP_GROUP_MEMEBERSHIP_ATTR_KEY, LDAP_GROUP_MEMBERSHIP_ATTR_DEFAULT));
+      LDAP_GROUP_MEMEBERSHIP_ATTR_KEY, LDAP_GROUP_MEMBERSHIP_ATTR_DEFAULT));
     ldapServerProperties.setGroupNamingAttr(properties.
-        getProperty(LDAP_GROUP_NAMING_ATTR_KEY, LDAP_GROUP_NAMING_ATTR_DEFAULT));
+      getProperty(LDAP_GROUP_NAMING_ATTR_KEY, LDAP_GROUP_NAMING_ATTR_DEFAULT));
     ldapServerProperties.setAdminGroupMappingRules(properties.getProperty(
-        LDAP_ADMIN_GROUP_MAPPING_RULES_KEY, LDAP_ADMIN_GROUP_MAPPING_RULES_DEFAULT));
+      LDAP_ADMIN_GROUP_MAPPING_RULES_KEY, LDAP_ADMIN_GROUP_MAPPING_RULES_DEFAULT));
     ldapServerProperties.setGroupSearchFilter(properties.getProperty(
-        LDAP_GROUP_SEARCH_FILTER_KEY, LDAP_GROUP_SEARCH_FILTER_DEFAULT));
+      LDAP_GROUP_SEARCH_FILTER_KEY, LDAP_GROUP_SEARCH_FILTER_DEFAULT));
     ldapServerProperties.setReferralMethod(properties.getProperty(
       LDAP_REFERRAL_KEY, LDAP_REFERRAL_DEFAULT));
     ldapServerProperties.setPaginationEnabled("true".equalsIgnoreCase(
       properties.getProperty(LDAP_PAGINATION_ENABLED_KEY, LDAP_PAGINATION_ENABLED_DEFAULT)));
 
     if (properties.containsKey(LDAP_GROUP_BASE_KEY) ||
-        properties.containsKey(LDAP_GROUP_OBJECT_CLASS_KEY) ||
-        properties.containsKey(LDAP_GROUP_MEMEBERSHIP_ATTR_KEY) ||
-        properties.containsKey(LDAP_GROUP_NAMING_ATTR_KEY) ||
-        properties.containsKey(LDAP_ADMIN_GROUP_MAPPING_RULES_KEY) ||
-        properties.containsKey(LDAP_GROUP_SEARCH_FILTER_KEY)) {
+      properties.containsKey(LDAP_GROUP_OBJECT_CLASS_KEY) ||
+      properties.containsKey(LDAP_GROUP_MEMEBERSHIP_ATTR_KEY) ||
+      properties.containsKey(LDAP_GROUP_NAMING_ATTR_KEY) ||
+      properties.containsKey(LDAP_ADMIN_GROUP_MAPPING_RULES_KEY) ||
+      properties.containsKey(LDAP_GROUP_SEARCH_FILTER_KEY)) {
       ldapServerProperties.setGroupMappingEnabled(true);
     }
 
@@ -1558,7 +1566,7 @@ public class Configuration {
   }
 
   public String getOjdbcJarName() {
-	return properties.getProperty(OJDBC_JAR_NAME_KEY, OJDBC_JAR_NAME_DEFAULT);
+    return properties.getProperty(OJDBC_JAR_NAME_KEY, OJDBC_JAR_NAME_DEFAULT);
   }
 
   public String getJavaHome() {
@@ -1574,11 +1582,11 @@ public class Configuration {
   }
 
   public String getServerDBName() {
-	return properties.getProperty(SERVER_DB_NAME_KEY, SERVER_DB_NAME_DEFAULT);
+    return properties.getProperty(SERVER_DB_NAME_KEY, SERVER_DB_NAME_DEFAULT);
   }
 
   public String getMySQLJarName() {
-	return properties.getProperty(MYSQL_JAR_NAME_KEY, MYSQL_JAR_NAME_DEFAULT);
+    return properties.getProperty(MYSQL_JAR_NAME_KEY, MYSQL_JAR_NAME_DEFAULT);
   }
 
   public JPATableGenerationStrategy getJPATableGenerationStrategy() {
@@ -1606,8 +1614,8 @@ public class Configuration {
   public File getServerKeyStoreDirectory() {
     String path = properties.getProperty(SRVR_KSTR_DIR_KEY, SRVR_KSTR_DIR_DEFAULT);
     return ((path == null) || path.isEmpty())
-        ? new File(".")
-        : new File(path);
+      ? new File(".")
+      : new File(path);
   }
 
   /**
@@ -1684,7 +1692,7 @@ public class Configuration {
 
     if(StringUtils.isEmpty(value)) {
       LOG.debug("Value of {} is not set, using default value ({})",
-          TEMPORARY_KEYSTORE_RETENTION_MINUTES, TEMPORARY_KEYSTORE_RETENTION_MINUTES_DEFAULT);
+        TEMPORARY_KEYSTORE_RETENTION_MINUTES, TEMPORARY_KEYSTORE_RETENTION_MINUTES_DEFAULT);
       minutes = TEMPORARY_KEYSTORE_RETENTION_MINUTES_DEFAULT;
     }
     else {
@@ -1693,7 +1701,7 @@ public class Configuration {
         LOG.debug("Value of {} is {}", TEMPORARY_KEYSTORE_RETENTION_MINUTES, value);
       } catch (NumberFormatException e) {
         LOG.warn("Value of {} ({}) should be a number, falling back to default value ({})",
-            TEMPORARY_KEYSTORE_RETENTION_MINUTES, value, TEMPORARY_KEYSTORE_RETENTION_MINUTES_DEFAULT);
+          TEMPORARY_KEYSTORE_RETENTION_MINUTES, value, TEMPORARY_KEYSTORE_RETENTION_MINUTES_DEFAULT);
         minutes = TEMPORARY_KEYSTORE_RETENTION_MINUTES_DEFAULT;
       }
     }
@@ -1715,7 +1723,7 @@ public class Configuration {
 
     if (StringUtils.isEmpty(value)) {
       LOG.debug("Value of {} is not set, using default value ({})",
-          TEMPORARY_KEYSTORE_ACTIVELY_PURGE, TEMPORARY_KEYSTORE_ACTIVELY_PURGE_DEFAULT);
+        TEMPORARY_KEYSTORE_ACTIVELY_PURGE, TEMPORARY_KEYSTORE_ACTIVELY_PURGE_DEFAULT);
       return TEMPORARY_KEYSTORE_ACTIVELY_PURGE_DEFAULT;
     } else if ("true".equalsIgnoreCase(value)) {
       LOG.debug("Value of {} is {}", TEMPORARY_KEYSTORE_ACTIVELY_PURGE, value);
@@ -1725,22 +1733,22 @@ public class Configuration {
       return false;
     } else {
       LOG.warn("Value of {} should be either \"true\" or \"false\" but is \"{}\", falling back to default value ({})",
-          TEMPORARY_KEYSTORE_ACTIVELY_PURGE, value, TEMPORARY_KEYSTORE_ACTIVELY_PURGE_DEFAULT);
+        TEMPORARY_KEYSTORE_ACTIVELY_PURGE, value, TEMPORARY_KEYSTORE_ACTIVELY_PURGE_DEFAULT);
       return TEMPORARY_KEYSTORE_ACTIVELY_PURGE_DEFAULT;
     }
   }
 
   public String getSrvrDisabledCiphers() {
     String disabledCiphers = properties.getProperty(SRVR_DISABLED_CIPHERS,
-                                                    properties.getProperty(SRVR_DISABLED_CIPHERS,
-                                                                           SRVR_DISABLED_CIPHERS_DEFAULT));
+      properties.getProperty(SRVR_DISABLED_CIPHERS,
+        SRVR_DISABLED_CIPHERS_DEFAULT));
     return disabledCiphers.trim();
   }
 
   public String getSrvrDisabledProtocols() {
     String disabledProtocols = properties.getProperty(SRVR_DISABLED_PROTOCOLS,
-                                                      properties.getProperty(SRVR_DISABLED_PROTOCOLS,
-                                                                             SRVR_DISABLED_PROTOCOLS_DEFAULT));
+      properties.getProperty(SRVR_DISABLED_PROTOCOLS,
+        SRVR_DISABLED_PROTOCOLS_DEFAULT));
     return disabledProtocols.trim();
   }
 
@@ -1751,7 +1759,7 @@ public class Configuration {
 
   public int getTwoWayAuthPort() {
     return Integer.parseInt(properties.getProperty(SRVR_TWO_WAY_SSL_PORT_KEY,
-                                                   String.valueOf(SRVR_TWO_WAY_SSL_PORT_DEFAULT)));
+      String.valueOf(SRVR_TWO_WAY_SSL_PORT_DEFAULT)));
   }
 
   /**
@@ -1887,10 +1895,10 @@ public class Configuration {
 
     if(osFamily.isUbuntuFamily(osType)) {
       repoSuffixes = properties.getProperty(REPO_SUFFIX_KEY_UBUNTU,
-          REPO_SUFFIX_UBUNTU);
+        REPO_SUFFIX_UBUNTU);
     } else {
       repoSuffixes = properties.getProperty(REPO_SUFFIX_KEY_DEFAULT,
-          REPO_SUFFIX_DEFAULT);
+        REPO_SUFFIX_DEFAULT);
     }
 
     return repoSuffixes.split(",");
@@ -1903,7 +1911,7 @@ public class Configuration {
 
   public String getExecutionSchedulerThreads() {
     return properties.getProperty(EXECUTION_SCHEDULER_THREADS_KEY,
-                                  DEFAULT_SCHEDULER_THREAD_COUNT);
+      DEFAULT_SCHEDULER_THREAD_COUNT);
   }
 
   public Integer getRequestReadTimeout() {
@@ -1913,7 +1921,7 @@ public class Configuration {
 
   public Integer getRequestConnectTimeout() {
     return Integer.parseInt(properties.getProperty(REQUEST_CONNECT_TIMEOUT,
-                                                   REQUEST_CONNECT_TIMEOUT_DEFAULT));
+      REQUEST_CONNECT_TIMEOUT_DEFAULT));
   }
 
   public String getExecutionSchedulerConnections() {
@@ -1930,7 +1938,7 @@ public class Configuration {
 
   public Integer getExecutionSchedulerStartDelay() {
     String delay = properties.getProperty(EXECUTION_SCHEDULER_START_DELAY_KEY,
-                                          DEFAULT_SCHEDULER_START_DELAY_SECONDS);
+      DEFAULT_SCHEDULER_START_DELAY_SECONDS);
     return Integer.parseInt(delay);
   }
 
@@ -1944,7 +1952,7 @@ public class Configuration {
         sleepTime = Long.valueOf(stringValue);
       } catch (NumberFormatException ignored) {
         LOG.warn("Value of {} ({}) should be a number, " +
-          "falling back to default value ({})", EXECUTION_SCHEDULER_WAIT_KEY,
+            "falling back to default value ({})", EXECUTION_SCHEDULER_WAIT_KEY,
           stringValue, DEFAULT_EXECUTION_SCHEDULER_WAIT_SECONDS);
       }
 
@@ -1969,13 +1977,13 @@ public class Configuration {
 
   public String getCustomActionDefinitionPath() {
     return properties.getProperty(CUSTOM_ACTION_DEFINITION_KEY,
-                                  CUSTOM_ACTION_DEFINITION_DEF_VALUE);
+      CUSTOM_ACTION_DEFINITION_DEF_VALUE);
   }
 
   public int getAgentPackageParallelCommandsLimit() {
     int value = Integer.parseInt(properties.getProperty(
-            AGENT_PACKAGE_PARALLEL_COMMANDS_LIMIT_KEY,
-            AGENT_PACKAGE_PARALLEL_COMMANDS_LIMIT_DEFAULT));
+      AGENT_PACKAGE_PARALLEL_COMMANDS_LIMIT_KEY,
+      AGENT_PACKAGE_PARALLEL_COMMANDS_LIMIT_DEFAULT));
     if (value < 1) {
       value = 1;
     }
@@ -1996,7 +2004,7 @@ public class Configuration {
     } else {
       LOG.warn(String.format("Value of %s (%s) should be a number, " +
           "falling back to default value (%s)",
-          key, value, defaultValue));
+        key, value, defaultValue));
       return defaultValue;
     }
   }
@@ -2010,7 +2018,7 @@ public class Configuration {
       return Integer.parseInt(value);
     } else {
       LOG.warn("Value of {} ({}) should be a number, falling back to default value ({})",
-          SERVER_TASK_TIMEOUT_KEY, value, SERVER_TASK_TIMEOUT_DEFAULT);
+        SERVER_TASK_TIMEOUT_KEY, value, SERVER_TASK_TIMEOUT_DEFAULT);
       return Integer.parseInt(SERVER_TASK_TIMEOUT_DEFAULT);
     }
   }
@@ -2020,7 +2028,7 @@ public class Configuration {
   }
 
   public String getSharedResourcesDirPath(){
-      return properties.getProperty(SHARED_RESOURCES_DIR_KEY, SHARED_RESOURCES_DIR_DEFAULT);
+    return properties.getProperty(SHARED_RESOURCES_DIR_KEY, SHARED_RESOURCES_DIR_DEFAULT);
   }
 
   public String getServerJDBCPostgresSchemaName() {
@@ -2032,7 +2040,7 @@ public class Configuration {
    */
   public int getClientThreadPoolSize() {
     return Integer.parseInt(properties.getProperty(
-        CLIENT_THREADPOOL_SIZE_KEY, String.valueOf(CLIENT_THREADPOOL_SIZE_DEFAULT)));
+      CLIENT_THREADPOOL_SIZE_KEY, String.valueOf(CLIENT_THREADPOOL_SIZE_DEFAULT)));
   }
 
   /**
@@ -2040,7 +2048,7 @@ public class Configuration {
    */
   public int getAgentThreadPoolSize() {
     return Integer.parseInt(properties.getProperty(
-        AGENT_THREADPOOL_SIZE_KEY, String.valueOf(AGENT_THREADPOOL_SIZE_DEFAULT)));
+      AGENT_THREADPOOL_SIZE_KEY, String.valueOf(AGENT_THREADPOOL_SIZE_DEFAULT)));
   }
 
   /**
@@ -2050,7 +2058,7 @@ public class Configuration {
    */
   public int getViewExtractionThreadPoolMaxSize() {
     return Integer.parseInt(properties.getProperty(
-        VIEW_EXTRACTION_THREADPOOL_MAX_SIZE_KEY, String.valueOf(VIEW_EXTRACTION_THREADPOOL_MAX_SIZE_DEFAULT)));
+      VIEW_EXTRACTION_THREADPOOL_MAX_SIZE_KEY, String.valueOf(VIEW_EXTRACTION_THREADPOOL_MAX_SIZE_DEFAULT)));
   }
 
   /**
@@ -2060,7 +2068,7 @@ public class Configuration {
    */
   public int getViewExtractionThreadPoolCoreSize() {
     return Integer.parseInt(properties.getProperty(
-        VIEW_EXTRACTION_THREADPOOL_CORE_SIZE_KEY, String.valueOf(VIEW_EXTRACTION_THREADPOOL_CORE_SIZE_DEFAULT)));
+      VIEW_EXTRACTION_THREADPOOL_CORE_SIZE_KEY, String.valueOf(VIEW_EXTRACTION_THREADPOOL_CORE_SIZE_DEFAULT)));
   }
 
   /**
@@ -2070,7 +2078,7 @@ public class Configuration {
    */
   public int getPropertyProvidersThreadPoolCoreSize() {
     return Integer.parseInt(properties.getProperty(PROPERTY_PROVIDER_THREADPOOL_CORE_SIZE_KEY,
-        String.valueOf(PROPERTY_PROVIDER_THREADPOOL_CORE_SIZE_DEFAULT)));
+      String.valueOf(PROPERTY_PROVIDER_THREADPOOL_CORE_SIZE_DEFAULT)));
   }
 
   /**
@@ -2080,7 +2088,7 @@ public class Configuration {
    */
   public int getPropertyProvidersThreadPoolMaxSize() {
     return Integer.parseInt(properties.getProperty(PROPERTY_PROVIDER_THREADPOOL_MAX_SIZE_KEY,
-        String.valueOf(PROPERTY_PROVIDER_THREADPOOL_MAX_SIZE_DEFAULT)));
+      String.valueOf(PROPERTY_PROVIDER_THREADPOOL_MAX_SIZE_DEFAULT)));
   }
 
   /**
@@ -2090,7 +2098,7 @@ public class Configuration {
    */
   public long getViewExtractionThreadPoolTimeout() {
     return Long.parseLong(properties.getProperty(
-        VIEW_EXTRACTION_THREADPOOL_TIMEOUT_KEY, String.valueOf(VIEW_EXTRACTION_THREADPOOL_TIMEOUT_DEFAULT)));
+      VIEW_EXTRACTION_THREADPOOL_TIMEOUT_KEY, String.valueOf(VIEW_EXTRACTION_THREADPOOL_TIMEOUT_DEFAULT)));
   }
 
   /**
@@ -2251,8 +2259,8 @@ public class Configuration {
       databaseType = DatabaseType.SQL_ANYWHERE;
     } else {
       throw new RuntimeException(
-          "The database type could be not determined from the JDBC URL "
-              + dbUrl);
+        "The database type could be not determined from the JDBC URL "
+          + dbUrl);
     }
 
     return databaseType;
@@ -2289,7 +2297,7 @@ public class Configuration {
    */
   public ConnectionPoolType getConnectionPoolType(){
     String connectionPoolType = properties.getProperty(
-        SERVER_JDBC_CONNECTION_POOL, ConnectionPoolType.INTERNAL.getName());
+      SERVER_JDBC_CONNECTION_POOL, ConnectionPoolType.INTERNAL.getName());
 
     if (connectionPoolType.equals(ConnectionPoolType.C3P0.getName())) {
       return ConnectionPoolType.C3P0;
@@ -2306,7 +2314,7 @@ public class Configuration {
    */
   public int getConnectionPoolMinimumSize() {
     return Integer.parseInt(properties.getProperty(
-        SERVER_JDBC_CONNECTION_POOL_MIN_SIZE, DEFAULT_JDBC_POOL_MIN_CONNECTIONS));
+      SERVER_JDBC_CONNECTION_POOL_MIN_SIZE, DEFAULT_JDBC_POOL_MIN_CONNECTIONS));
   }
 
   /**
@@ -2317,7 +2325,7 @@ public class Configuration {
    */
   public int getConnectionPoolMaximumSize() {
     return Integer.parseInt(properties.getProperty(
-        SERVER_JDBC_CONNECTION_POOL_MAX_SIZE, DEFAULT_JDBC_POOL_MAX_CONNECTIONS));
+      SERVER_JDBC_CONNECTION_POOL_MAX_SIZE, DEFAULT_JDBC_POOL_MAX_CONNECTIONS));
   }
 
   /**
@@ -2329,7 +2337,7 @@ public class Configuration {
    */
   public int getConnectionPoolMaximumAge() {
     return Integer.parseInt(properties.getProperty(
-        SERVER_JDBC_CONNECTION_POOL_MAX_AGE, DEFAULT_JDBC_POOL_MAX_AGE_SECONDS));
+      SERVER_JDBC_CONNECTION_POOL_MAX_AGE, DEFAULT_JDBC_POOL_MAX_AGE_SECONDS));
   }
 
   /**
@@ -2341,8 +2349,8 @@ public class Configuration {
    */
   public int getConnectionPoolMaximumIdle() {
     return Integer.parseInt(properties.getProperty(
-        SERVER_JDBC_CONNECTION_POOL_MAX_IDLE_TIME,
-        DEFAULT_JDBC_POOL_MAX_IDLE_TIME_SECONDS));
+      SERVER_JDBC_CONNECTION_POOL_MAX_IDLE_TIME,
+      DEFAULT_JDBC_POOL_MAX_IDLE_TIME_SECONDS));
   }
 
   /**
@@ -2354,8 +2362,8 @@ public class Configuration {
    */
   public int getConnectionPoolMaximumExcessIdle() {
     return Integer.parseInt(properties.getProperty(
-        SERVER_JDBC_CONNECTION_POOL_MAX_IDLE_TIME_EXCESS,
-        DEFAULT_JDBC_POOL_EXCESS_MAX_IDLE_TIME_SECONDS));
+      SERVER_JDBC_CONNECTION_POOL_MAX_IDLE_TIME_EXCESS,
+      DEFAULT_JDBC_POOL_EXCESS_MAX_IDLE_TIME_SECONDS));
   }
 
   /**
@@ -2367,8 +2375,8 @@ public class Configuration {
    */
   public int getConnectionPoolAcquisitionSize() {
     return Integer.parseInt(properties.getProperty(
-        SERVER_JDBC_CONNECTION_POOL_AQUISITION_SIZE,
-        DEFAULT_JDBC_POOL_ACQUISITION_SIZE));
+      SERVER_JDBC_CONNECTION_POOL_AQUISITION_SIZE,
+      DEFAULT_JDBC_POOL_ACQUISITION_SIZE));
   }
 
   /**
@@ -2379,8 +2387,8 @@ public class Configuration {
    */
   public int getConnectionPoolAcquisitionRetryAttempts() {
     return Integer.parseInt(properties.getProperty(
-        SERVER_JDBC_CONNECTION_POOL_ACQUISITION_RETRY_ATTEMPTS,
-        DEFAULT_JDBC_POOL_ACQUISITION_RETRY_ATTEMPTS));
+      SERVER_JDBC_CONNECTION_POOL_ACQUISITION_RETRY_ATTEMPTS,
+      DEFAULT_JDBC_POOL_ACQUISITION_RETRY_ATTEMPTS));
   }
 
   /**
@@ -2390,8 +2398,8 @@ public class Configuration {
    */
   public int getConnectionPoolAcquisitionRetryDelay() {
     return Integer.parseInt(properties.getProperty(
-        SERVER_JDBC_CONNECTION_POOL_ACQUISITION_RETRY_DELAY,
-        DEFAULT_JDBC_POOL_ACQUISITION_RETRY_DELAY));
+      SERVER_JDBC_CONNECTION_POOL_ACQUISITION_RETRY_DELAY,
+      DEFAULT_JDBC_POOL_ACQUISITION_RETRY_DELAY));
   }
 
 
@@ -2403,8 +2411,8 @@ public class Configuration {
    */
   public int getConnectionPoolIdleTestInternval() {
     return Integer.parseInt(properties.getProperty(
-        SERVER_JDBC_CONNECTION_POOL_IDLE_TEST_INTERVAL,
-        DEFAULT_JDBC_POOL_IDLE_TEST_INTERVAL));
+      SERVER_JDBC_CONNECTION_POOL_IDLE_TEST_INTERVAL,
+      DEFAULT_JDBC_POOL_IDLE_TEST_INTERVAL));
   }
 
   /**
@@ -2446,7 +2454,7 @@ public class Configuration {
    */
   public int getMetricCacheIdleSeconds() {
     return Integer.parseInt(properties.getProperty(TIMELINE_METRICS_CACHE_IDLE_TIME,
-        DEFAULT_TIMELINE_METRICS_CACHE_IDLE_TIME));
+      DEFAULT_TIMELINE_METRICS_CACHE_IDLE_TIME));
   }
 
   /**
@@ -2577,7 +2585,7 @@ public class Configuration {
   @Experimental(feature = ExperimentalFeature.PARALLEL_PROCESSING)
   public boolean isExperimentalConcurrentStageProcessingEnabled() {
     return Boolean.parseBoolean(properties.getProperty(
-        EXPERIMENTAL_CONCURRENCY_STAGE_PROCESSING_ENABLED, Boolean.FALSE.toString()));
+      EXPERIMENTAL_CONCURRENCY_STAGE_PROCESSING_ENABLED, Boolean.FALSE.toString()));
   }
 
   /**
@@ -2593,7 +2601,7 @@ public class Configuration {
   @Experimental(feature = ExperimentalFeature.ALERT_CACHING)
   public boolean isAlertCacheEnabled() {
     return Boolean.parseBoolean(
-        properties.getProperty(ALERTS_CACHE_ENABLED, Boolean.FALSE.toString()));
+      properties.getProperty(ALERTS_CACHE_ENABLED, Boolean.FALSE.toString()));
   }
 
   /**
@@ -2606,7 +2614,7 @@ public class Configuration {
   @Experimental(feature = ExperimentalFeature.ALERT_CACHING)
   public int getAlertCacheFlushInterval() {
     return Integer.parseInt(
-        properties.getProperty(ALERTS_CACHE_FLUSH_INTERVAL, ALERTS_CACHE_FLUSH_INTERVAL_DEFAULT));
+      properties.getProperty(ALERTS_CACHE_FLUSH_INTERVAL, ALERTS_CACHE_FLUSH_INTERVAL_DEFAULT));
   }
 
   /**
@@ -2637,11 +2645,11 @@ public class Configuration {
     Integer attempts = Integer.valueOf(property);
     if (attempts < 0) {
       LOG.warn("Invalid operations retry attempts number ({}), should be [0,{}]. Value reset to default {}",
-          attempts, RETRY_ATTEMPTS_LIMIT, OPERATIONS_RETRY_ATTEMPTS_DEFAULT);
+        attempts, RETRY_ATTEMPTS_LIMIT, OPERATIONS_RETRY_ATTEMPTS_DEFAULT);
       attempts = Integer.valueOf(OPERATIONS_RETRY_ATTEMPTS_DEFAULT);
     } else if (attempts > RETRY_ATTEMPTS_LIMIT) {
       LOG.warn("Invalid operations retry attempts number ({}), should be [0,{}]. Value set to {}",
-          attempts, RETRY_ATTEMPTS_LIMIT, RETRY_ATTEMPTS_LIMIT);
+        attempts, RETRY_ATTEMPTS_LIMIT, RETRY_ATTEMPTS_LIMIT);
       attempts = RETRY_ATTEMPTS_LIMIT;
     }
     if (attempts > 0) {
@@ -2655,15 +2663,23 @@ public class Configuration {
    */
   public int getVersionDefinitionConnectTimeout() {
     return NumberUtils.toInt(
-        properties.getProperty(VERSION_DEFINITION_CONNECT_TIMEOUT),
-            VERSION_DEFINITION_CONNECT_TIMEOUT_DEFAULT);
+      properties.getProperty(VERSION_DEFINITION_CONNECT_TIMEOUT),
+      VERSION_DEFINITION_CONNECT_TIMEOUT_DEFAULT);
   }
   /**
    * @return the read timeout used when loading a version definition URL
    */
   public int getVersionDefinitionReadTimeout() {
     return NumberUtils.toInt(
-        properties.getProperty(VERSION_DEFINITION_READ_TIMEOUT),
-            VERSION_DEFINITION_READ_TIMEOUT_DEFAULT);
+      properties.getProperty(VERSION_DEFINITION_READ_TIMEOUT),
+      VERSION_DEFINITION_READ_TIMEOUT_DEFAULT);
+  }
+
+  public String getAgentStackRetryOnInstallCount(){
+    return properties.getProperty(AGENT_STACK_RETRY_COUNT_KEY, AGENT_STACK_RETRY_COUNT_DEFAULT);
+  }
+
+  public String isAgentStackRetryOnInstallEnabled(){
+    return properties.getProperty(AGENT_STACK_RETRY_ON_REPO_UNAVAILABILITY_KEY, AGENT_STACK_RETRY_ON_REPO_UNAVAILABILITY_DEFAULT);
   }
 }

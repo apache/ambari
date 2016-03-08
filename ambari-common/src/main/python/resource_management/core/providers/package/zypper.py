@@ -54,7 +54,7 @@ class ZypperProvider(PackageProvider):
 
       cmd = cmd + [name]
       Logger.info("Installing package %s ('%s')" % (name, string_cmd_from_args_list(cmd)))
-      self.checked_call_until_not_locked(cmd, sudo=True, logoutput=self.get_logoutput())
+      self.checked_call_with_retries(cmd, sudo=True, logoutput=self.get_logoutput())
     else:
       Logger.info("Skipping installation of existing package %s" % (name))
 
@@ -65,12 +65,12 @@ class ZypperProvider(PackageProvider):
     if self._check_existence(name):
       cmd = REMOVE_CMD[self.get_logoutput()] + [name]
       Logger.info("Removing package %s ('%s')" % (name, string_cmd_from_args_list(cmd)))
-      self.checked_call_until_not_locked(cmd, sudo=True, logoutput=self.get_logoutput())
+      self.checked_call_with_retries(cmd, sudo=True, logoutput=self.get_logoutput())
     else:
       Logger.info("Skipping removal of non-existing package %s" % (name))
       
   def get_active_base_repos(self):
-    (code, output) = self.call_until_not_locked(LIST_ACTIVE_REPOS_CMD)
+    (code, output) = self.call_with_retries(LIST_ACTIVE_REPOS_CMD)
     enabled_repos = []
     if not code:
       for line in output.split('\n')[2:]:
@@ -81,8 +81,11 @@ class ZypperProvider(PackageProvider):
           return [line_list[1].strip()]
     return enabled_repos
       
-  def is_locked_output(self ,out):
+  def is_locked_output(self, out):
     return "System management is locked by the application" in out
+
+  def is_repo_error_output(self, out):
+    return "Failure when receiving data from the peer" in out
 
   def _check_existence(self, name):
     """

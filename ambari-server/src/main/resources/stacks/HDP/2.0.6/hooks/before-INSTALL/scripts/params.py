@@ -18,6 +18,7 @@ limitations under the License.
 """
 
 from ambari_commons.constants import AMBARI_SUDO_BINARY
+from ambari_commons.str_utils import cbool, cint
 from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
 from resource_management.core.system import System
 from resource_management.libraries.script.script import Script
@@ -28,6 +29,9 @@ tmp_dir = Script.get_tmp_dir()
 sudo = AMBARI_SUDO_BINARY
 
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+agent_stack_retry_on_unavailability = cbool(config["hostLevelParams"]["agent_stack_retry_on_unavailability"])
+agent_stack_retry_count = cint(config["hostLevelParams"]["agent_stack_retry_count"])
+
 hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 
 #users and groups

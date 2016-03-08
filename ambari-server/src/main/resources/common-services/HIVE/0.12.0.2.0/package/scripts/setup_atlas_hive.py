@@ -32,7 +32,7 @@ def setup_atlas_hive(configuration_directory=None):
 
     if not params.host_sys_prepped:
       Package(params.atlas_ubuntu_plugin_package if OSCheck.is_ubuntu_family() else params.atlas_plugin_package, # FIXME HACK: install the package during RESTART/START when install_packages is not triggered.
-      )
+              retry_on_repo_unavailability=params.agent_stack_retry_on_unavailability, retry_count=params.agent_stack_retry_count)
 
     PropertiesFile(format('{configuration_directory}/client.properties'),
                    properties = params.atlas_client_props,

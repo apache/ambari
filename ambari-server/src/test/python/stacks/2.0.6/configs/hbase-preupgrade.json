@@ -6,6 +6,8 @@
     "componentName": "", 
     "hostname": "c6401.ambari.apache.org", 
     "hostLevelParams": {
+        "agent_stack_retry_count": "5",
+        "agent_stack_retry_on_unavailability": "false",
         "jdk_location": "http://10.0.0.15:8080/resources/", 
         "ambari_db_rca_password": "mapred", 
         "java_home": "/usr/jdk64/jdk1.7.0_45",

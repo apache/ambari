@@ -3,6 +3,8 @@
     "clusterName": "c1",
     "hostname": "c6401.ambari.apache.org",
     "hostLevelParams": {
+        "agent_stack_retry_count": "5",
+        "agent_stack_retry_on_unavailability": "false",
         "agentCacheDir": "/var/lib/ambari-agent/cache",
         "jdk_location": "http://c6401.ambari.apache.org:8080/resources/",
         "ambari_db_rca_password": "mapred",
@@ -1140,9 +1142,6 @@
             "c6402.ambari.apache.org"
         ],
         "metrics_collector_hosts": [
-            "c6401.ambari.apache.org"
-        ],
-        "metrics_grafana_hosts": [
             "c6401.ambari.apache.org"
         ]
     }

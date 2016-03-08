@@ -110,14 +110,14 @@ class TestInstallPackages(RMFTestCase):
                               mirror_list=None,
                               append_to_file=True,
     )
-    self.assertResourceCalled('Package', 'hdp-select', action=["upgrade"])
-    self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885', action=["upgrade"])
-    self.assertResourceCalled('Package', 'snappy', action=["upgrade"])
-    self.assertResourceCalled('Package', 'snappy-devel', action=["upgrade"])
-    self.assertResourceCalled('Package', 'lzo', action=["upgrade"])
-    self.assertResourceCalled('Package', 'hadooplzo_2_2_0_1_885', action=["upgrade"])
-    self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885-libhdfs', action=["upgrade"])
-    self.assertResourceCalled('Package', 'ambari-log4j', action=["upgrade"])
+    self.assertResourceCalled('Package', 'hdp-select', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'snappy', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'snappy-devel', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'lzo', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'hadooplzo_2_2_0_1_885', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885-libhdfs', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'ambari-log4j', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
     self.assertNoMoreResources()
 
   @patch("ambari_commons.os_check.OSCheck.is_suse_family")
@@ -170,14 +170,14 @@ class TestInstallPackages(RMFTestCase):
                               mirror_list=None,
                               append_to_file=True,
                               )
-    self.assertResourceCalled('Package', 'hdp-select', action=["upgrade"])
-    self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885', action=["upgrade"])
-    self.assertResourceCalled('Package', 'snappy', action=["upgrade"])
-    self.assertResourceCalled('Package', 'snappy-devel', action=["upgrade"])
-    self.assertResourceCalled('Package', 'lzo', action=["upgrade"])
-    self.assertResourceCalled('Package', 'hadooplzo_2_2_0_1_885', action=["upgrade"])
-    self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885-libhdfs', action=["upgrade"])
-    self.assertResourceCalled('Package', 'ambari-log4j', action=["upgrade"])
+    self.assertResourceCalled('Package', 'hdp-select', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'snappy', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'snappy-devel', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'lzo', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'hadooplzo_2_2_0_1_885', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885-libhdfs', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'ambari-log4j', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
     self.assertNoMoreResources()
 
 
@@ -233,14 +233,14 @@ class TestInstallPackages(RMFTestCase):
                               mirror_list=None,
                               append_to_file=True,
     )
-    self.assertResourceCalled('Package', 'hdp-select', action=["upgrade"])
-    self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885', action=["upgrade"])
-    self.assertResourceCalled('Package', 'snappy', action=["upgrade"])
-    self.assertResourceCalled('Package', 'snappy-devel', action=["upgrade"])
-    self.assertResourceCalled('Package', 'lzo', action=["upgrade"])
-    self.assertResourceCalled('Package', 'hadooplzo_2_2_0_1_885', action=["upgrade"])
-    self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885-libhdfs', action=["upgrade"])
-    self.assertResourceCalled('Package', 'ambari-log4j', action=["upgrade"])
+    self.assertResourceCalled('Package', 'hdp-select', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'snappy', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'snappy-devel', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'lzo', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'hadooplzo_2_2_0_1_885', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885-libhdfs', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'ambari-log4j', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
     self.assertNoMoreResources()
 
 
@@ -367,14 +367,14 @@ class TestInstallPackages(RMFTestCase):
                               mirror_list=None,
                               append_to_file=True,
                               )
-    self.assertResourceCalled('Package', 'hdp-select', action=["upgrade"])
-    self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885', action=["upgrade"])
-    self.assertResourceCalled('Package', 'snappy', action=["upgrade"])
-    self.assertResourceCalled('Package', 'snappy-devel', action=["upgrade"])
-    self.assertResourceCalled('Package', 'lzo', action=["upgrade"])
-    self.assertResourceCalled('Package', 'hadooplzo_2_2_0_1_885', action=["upgrade"])
-    self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885-libhdfs', action=["upgrade"])
-    self.assertResourceCalled('Package', 'ambari-log4j', action=["upgrade"])
+    self.assertResourceCalled('Package', 'hdp-select', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'snappy', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'snappy-devel', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'lzo', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'hadooplzo_2_2_0_1_885', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885-libhdfs', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'ambari-log4j', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
     self.assertNoMoreResources()
 
 

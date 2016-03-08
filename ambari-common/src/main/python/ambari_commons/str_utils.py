@@ -18,16 +18,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+
 def compress_backslashes(s):
   s1 = s
   while (-1 != s1.find('\\\\')):
     s1 = s1.replace('\\\\', '\\')
   return s1
 
+
 def ensure_double_backslashes(s):
   s1 = compress_backslashes(s)
   s2 = s1.replace('\\', '\\\\')
   return s2
+
 
 def cbool(obj):
   """
@@ -43,4 +46,19 @@ def cbool(obj):
       return False
     raise ValueError('Unable to interpret value "%s" as boolean' % obj)
   return bool(obj)
+
+
+def cint(obj):
+  """
+  Interprets an object as a integer value.
+  :param obj:
+  :return:
+  """
+  if isinstance(obj, str):
+    obj = obj.strip().lower()
+    try:
+      return int(obj)
+    except ValueError:
+      raise ValueError('Unable to interpret value "%s" as integer' % obj)
+  return int(obj)
 

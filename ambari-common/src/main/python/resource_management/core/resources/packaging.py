@@ -22,7 +22,7 @@ Ambari Agent
 
 __all__ = ["Package"]
 
-from resource_management.core.base import Resource, ForcedListArgument, ResourceArgument
+from resource_management.core.base import Resource, ForcedListArgument, ResourceArgument, BooleanArgument
 
 
 class Package(Resource):
@@ -41,11 +41,13 @@ class Package(Resource):
   logoutput = ResourceArgument(default=None)
   
   """
-  Retry if package manager is locked. (usually another process is running).
-  Note that this works only for apt-get and zypper, while yum manages lock retries itself.
+  Retry if package manager is locked or unavailable.
+  Note that retry_on_lock works only for apt-get and zypper, while yum manages lock retries itself.
   """
-  locked_tries = ResourceArgument(default=8)
-  locked_try_sleep = ResourceArgument(default=30) # seconds
+  retry_count = ResourceArgument(default=4)
+  retry_sleep = ResourceArgument(default=30)
+  retry_on_repo_unavailability = BooleanArgument(default=False)
+  retry_on_locked = BooleanArgument(default=True)
 
   version = ResourceArgument()
   actions = ["install", "upgrade", "remove"]

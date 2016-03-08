@@ -24,6 +24,7 @@ import os
 import re
 
 from ambari_commons.os_check import OSCheck
+from ambari_commons.str_utils import cbool, cint
 
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import hdp_select
@@ -47,6 +48,8 @@ stack_name = default("/hostLevelParams/stack_name", None)
 upgrade_direction = default("/commandParams/upgrade_direction", None)
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
+agent_stack_retry_on_unavailability = cbool(config["hostLevelParams"]["agent_stack_retry_on_unavailability"])
+agent_stack_retry_count = cint(config["hostLevelParams"]["agent_stack_retry_count"])
 
 # New Cluster Stack Version that is defined during the RESTART of a Stack Upgrade
 version = default("/commandParams/version", None)

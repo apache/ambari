@@ -187,6 +187,7 @@ public class ClusterStackVersionResourceProviderTest {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Clusters clusters = createNiceMock(Clusters.class);
     Cluster cluster = createNiceMock(Cluster.class);
+    Map<String, String> hostLevelParams = new HashMap<>();
     StackId stackId = new StackId("HDP", "2.0.1");
 
     RepositoryVersionEntity repoVersion = new RepositoryVersionEntity();
@@ -287,6 +288,8 @@ public class ClusterStackVersionResourceProviderTest {
     Stage stage = createNiceMock(Stage.class);
     expect(stage.getExecutionCommandWrapper(anyObject(String.class), anyObject(String.class))).
             andReturn(executionCommandWrapper).anyTimes();
+
+    expect(executionCommand.getHostLevelParams()).andReturn(hostLevelParams).anyTimes();
 
     Map<Role, Float> successFactors = new HashMap<>();
     expect(stage.getSuccessFactors()).andReturn(successFactors).atLeastOnce();

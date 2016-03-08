@@ -60,4 +60,7 @@ def install_packages():
   packages = ['unzip', 'curl']
   if params.rpm_version:
     packages.append('bigtop-select')
-  Package(packages)
+  Package(packages,
+          retry_on_repo_unavailability=params.agent_stack_retry_on_unavailability,
+          retry_count=params.agent_stack_retry_count)
+

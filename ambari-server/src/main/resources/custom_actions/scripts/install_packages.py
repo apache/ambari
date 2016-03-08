@@ -31,12 +31,14 @@ from resource_management import *
 import resource_management
 from resource_management.libraries.functions.list_ambari_managed_repos import list_ambari_managed_repos
 from ambari_commons.os_check import OSCheck, OSConst
+from ambari_commons.str_utils import cbool, cint
 from resource_management.libraries.functions.packages_analyzer import allInstalledPackages
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions.hdp_select import get_hdp_versions
 from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
 from resource_management.libraries.functions.repo_version_history \
   import read_actual_version_from_history_file, write_actual_version_to_history_file, REPO_VERSION_HISTORY_FILE
+from resource_management.core.resources.system import Execute
 
 from resource_management.core.logger import Logger
 
@@ -52,7 +54,7 @@ class InstallPackages(Script):
   UBUNTU_REPO_COMPONENTS_POSTFIX = ["main"]
   REPO_FILE_NAME_PREFIX = 'HDP-'
   STACK_TO_ROOT_FOLDER = {"HDP": "/usr/hdp"}
-  
+
   def actionexecute(self, env):
     num_errors = 0
 
@@ -332,11 +334,18 @@ class InstallPackages(Script):
     :return: Returns 0 if no errors were found, and 1 otherwise.
     """
     ret_code = 0
+    
+    config = self.get_config()
+    agent_stack_retry_on_unavailability = cbool(config['hostLevelParams']['agent_stack_retry_on_unavailability'])
+    agent_stack_retry_count = cint(config['hostLevelParams']['agent_stack_retry_count'])
+
     # Install packages
     packages_were_checked = False
     try:
       Package("hdp-select", 
               action="upgrade",
+              retry_on_repo_unavailability=agent_stack_retry_on_unavailability,
+              retry_count=agent_stack_retry_count
       )
       
       packages_installed_before = []
@@ -347,7 +356,9 @@ class InstallPackages(Script):
       for package in filtered_package_list:
         name = self.format_package_name(package['name'])
         Package(name,
-          action="upgrade" # this enables upgrading non-versioned packages, despite the fact they exist. Needed by 'mahout' which is non-version but have to be updated     
+          action="upgrade", # this enables upgrading non-versioned packages, despite the fact they exist. Needed by 'mahout' which is non-version but have to be updated     
+          retry_on_repo_unavailability=agent_stack_retry_on_unavailability,
+          retry_count=agent_stack_retry_count
         )
     except Exception, err:
       ret_code = 1
