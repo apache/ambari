@@ -451,7 +451,13 @@ class TestHDP23StackAdvisor(TestCase):
 
     validations = self.stackAdvisor.getComponentLayoutValidations(services, hosts)
     self.assertEquals(len(validations), 1)
-    expected={'component-name': 'HAWQSTANDBY', 'message': 'HAWQ Master and HAWQ Standby Master cannot be deployed on the same host.', 'type': 'host-component', 'host': 'c6403.ambari.apache.org', 'level': 'ERROR'}
+    expected = {
+      'component-name': 'HAWQSTANDBY',
+      'message': 'HAWQ Master and HAWQ Standby Master cannot be deployed on the same host.',
+      'type': 'host-component',
+      'host': 'c6403.ambari.apache.org',
+      'level': 'ERROR'
+    }
     self.assertEquals(validations[0], expected)
 
     # case-3: HAWQ Master and Ambari Server are collocated
@@ -467,7 +473,15 @@ class TestHDP23StackAdvisor(TestCase):
 
     validations = self.stackAdvisor.getComponentLayoutValidations(services, hosts)
     self.assertEquals(len(validations), 1)
-    expected={'component-name': 'HAWQMASTER', 'message': 'HAWQ Master and Ambari Server should not be deployed on the same host. If you leave them colocated, make sure to set HAWQ Master Port property to a value different from the port number used by Ambari Server database.', 'type': 'host-component', 'host': 'c6401.ambari.apache.org', 'level': 'WARN'}
+    expected = {
+      'component-name': 'HAWQMASTER',
+      'message': 'The default Postgres port (5432) on the Ambari Server conflicts with the default HAWQ Masters port. '  +
+                 'If you are using port 5432 for Postgres, you must either deploy the HAWQ Master on a different host ' +
+                 'or configure a different port for the HAWQ Masters in the HAWQ Configuration page.',
+      'type': 'host-component',
+      'host': 'c6401.ambari.apache.org',
+      'level': 'WARN'
+    }
     self.assertEquals(validations[0], expected)
 
     # case-4: HAWQ Standby and Ambari Server are collocated
@@ -483,7 +497,15 @@ class TestHDP23StackAdvisor(TestCase):
 
     validations = self.stackAdvisor.getComponentLayoutValidations(services, hosts)
     self.assertEquals(len(validations), 1)
-    expected={'component-name': 'HAWQSTANDBY', 'message': 'HAWQ Standby Master and Ambari Server should not be deployed on the same host. If you leave them colocated, make sure to set HAWQ Master Port property to a value different from the port number used by Ambari Server database.', 'type': 'host-component', 'host': 'c6401.ambari.apache.org', 'level': 'WARN'}
+    expected = {
+      'component-name': 'HAWQSTANDBY',
+      'message': 'The default Postgres port (5432) on the Ambari Server conflicts with the default HAWQ Masters port. '  +
+                 'If you are using port 5432 for Postgres, you must either deploy the HAWQ Standby Master on a different host ' +
+                 'or configure a different port for the HAWQ Masters in the HAWQ Configuration page.',
+      'type': 'host-component',
+      'host': 'c6401.ambari.apache.org',
+      'level': 'WARN'
+    }
     self.assertEquals(validations[0], expected)
 
 
@@ -1842,9 +1864,9 @@ class TestHDP23StackAdvisor(TestCase):
       "config-name": "hawq_master_address_port",
       "config-type": "hawq-site",
       "level": "WARN",
-      "message": "The default Postgres port (5432) on the Ambari Server conflicts with the default HAWQ Master port. "
-                 "If you are using port 5432 for Postgres, you must either deploy the HAWQ Master on a different host "
-                 "or configure a different port for the HAWQ Master in the HAWQ Configuration page.",
+      "message": "The default Postgres port (5432) on the Ambari Server conflicts with the default HAWQ Masters port. "
+                 "If you are using port 5432 for Postgres, you must either deploy the HAWQ Masters on a different host "
+                 "or configure a different port for the HAWQ Masters in the HAWQ Configuration page.",
       "type": "configuration"}
     self.assertEqual(problems[0], expected)
 
