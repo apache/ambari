@@ -269,6 +269,8 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
     context.put("is_service", service);
     context.put("container_dn", this.principalContainerDn);
     context.put("principal_digest", DigestUtils.sha1Hex(deconstructedPrincipal.getNormalizedPrincipal()));
+    context.put("principal_digest_256", DigestUtils.sha256Hex(deconstructedPrincipal.getNormalizedPrincipal()));
+    context.put("principal_digest_512", DigestUtils.sha512Hex(deconstructedPrincipal.getNormalizedPrincipal()));
 
     Map<String, Object> data = processCreateTemplate(context);
 
