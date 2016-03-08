@@ -46,7 +46,19 @@
             <scriptType>PYTHON</scriptType>
             <timeout>1200</timeout>
           </commandScript>
+          <configuration-dependencies>
+            <config-type>ams-site</config-type>
+            <config-type>ams-log4j</config-type>
+            <config-type>ams-hbase-policy</config-type>
+            <config-type>ams-hbase-site</config-type>
+            <config-type>ams-hbase-security-site</config-type>
+            <config-type>ams-hbase-env</config-type>
+            <config-type>ams-hbase-log4j</config-type>
+            <config-type>ams-ssl-server</config-type>
+            <config-type>ams-ssl-client</config-type>
+          </configuration-dependencies>
         </component>
+
         <component>
           <name>METRICS_MONITOR</name>
           <displayName>Metrics Monitor</displayName>
@@ -62,6 +74,7 @@
             <timeout>1200</timeout>
           </commandScript>
         </component>
+
         <component>
           <name>METRICS_GRAFANA</name>
           <displayName>Grafana</displayName>
@@ -73,6 +86,10 @@
             <scriptType>PYTHON</scriptType>
             <timeout>1200</timeout>
           </commandScript>
+          <configuration-dependencies>
+            <config-type>ams-grafana-env</config-type>
+            <config-type>ams-grafana-ini</config-type>
+          </configuration-dependencies>
         </component>
       </components>
 
@@ -143,18 +160,7 @@
       </requiredServices>
 
       <configuration-dependencies>
-        <config-type>ams-site</config-type>
-        <config-type>ams-log4j</config-type>
         <config-type>ams-env</config-type>
-        <config-type>ams-hbase-policy</config-type>
-        <config-type>ams-hbase-site</config-type>
-        <config-type>ams-hbase-security-site</config-type>
-        <config-type>ams-hbase-env</config-type>
-        <config-type>ams-hbase-log4j</config-type>
-        <config-type>ams-grafana-env</config-type>
-        <config-type>ams-grafana-ini</config-type>
-        <config-type>ams-ssl-server</config-type>
-        <config-type>ams-ssl-client</config-type>
       </configuration-dependencies>
 
       <excluded-config-types>
