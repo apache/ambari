@@ -83,15 +83,15 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
         childItems.append( { "type": 'host-component', "level": 'ERROR', "message": message, "component-name": 'HAWQSTANDBY', "host": hawqStandbyHosts[0] } )
 
       if len(hawqMasterHosts) ==  1 and hostsCount > 1 and self.isLocalHost(hawqMasterHosts[0]):
-        message = "HAWQ Master and Ambari Server should not be deployed on the same host. " \
-                  "If you leave them colocated, make sure to set HAWQ Master Port property " \
-                  "to a value different from the port number used by Ambari Server database."
+        message = "The default Postgres port (5432) on the Ambari Server conflicts with the default HAWQ Masters port. " \
+                  "If you are using port 5432 for Postgres, you must either deploy the HAWQ Master on a different host " \
+                  "or configure a different port for the HAWQ Masters in the HAWQ Configuration page."
         childItems.append( { "type": 'host-component', "level": 'WARN', "message": message, "component-name": 'HAWQMASTER', "host": hawqMasterHosts[0] } )
 
       if len(hawqStandbyHosts) ==  1 and hostsCount > 1 and self.isLocalHost(hawqStandbyHosts[0]):
-        message = "HAWQ Standby Master and Ambari Server should not be deployed on the same host. " \
-                  "If you leave them colocated, make sure to set HAWQ Master Port property " \
-                  "to a value different from the port number used by Ambari Server database."
+        message = "The default Postgres port (5432) on the Ambari Server conflicts with the default HAWQ Masters port. " \
+                  "If you are using port 5432 for Postgres, you must either deploy the HAWQ Standby Master on a different host " \
+                  "or configure a different port for the HAWQ Masters in the HAWQ Configuration page."
         childItems.append( { "type": 'host-component', "level": 'WARN', "message": message, "component-name": 'HAWQSTANDBY', "host": hawqStandbyHosts[0] } )
 
     if "PXF" in servicesList:
@@ -934,9 +934,9 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       prop_name = 'hawq_master_address_port'
       validationItems.append({"config-name": prop_name,
                                 "item": self.getWarnItem(
-                                "The default Postgres port (5432) on the Ambari Server conflicts with the default HAWQ Master port. "
-                                "If you are using port 5432 for Postgres, you must either deploy the HAWQ Master on a different host "
-                                "or configure a different port for the HAWQ Master in the HAWQ Configuration page.")})
+                                "The default Postgres port (5432) on the Ambari Server conflicts with the default HAWQ Masters port. "
+                                "If you are using port 5432 for Postgres, you must either deploy the HAWQ Masters on a different host "
+                                "or configure a different port for the HAWQ Masters in the HAWQ Configuration page.")})
 
     # 2. Check if any data directories are pointing to root dir '/'
     directories = {
