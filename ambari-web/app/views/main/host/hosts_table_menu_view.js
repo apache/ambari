@@ -145,17 +145,6 @@ App.HostTableMenuView = Em.View.extend({
               serviceName: content.serviceName,
               componentNameFormatted: content.componentNameFormatted
             })
-          }),
-          O.create({
-            label: Em.I18n.t('common.delete'),
-            delete: true,
-            operationData: O.create({
-              action: 'DELETE',
-              message: Em.I18n.t('common.delete'),
-              componentName: content.componentName,
-              serviceName: content.serviceName,
-              componentNameFormatted: content.componentNameFormatted
-            })
           })
         ])
       }
