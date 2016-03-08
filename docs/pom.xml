@@ -86,6 +86,24 @@
             <archive>http://mail-archives.apache.org/mod_mbox/ambari-dev/</archive>
         </mailingList>
         <mailingList>
+            <name>JIRA list</name>
+            <subscribe>mailto:issues-subscribe@ambari.apache.org
+            </subscribe>
+            <unsubscribe>mailto:issues-unsubscribe@ambari.apache.org
+            </unsubscribe>
+            <post>mailto:issues@ambari.apache.org</post>
+            <archive>http://mail-archives.apache.org/mod_mbox/ambari-issues/</archive>
+        </mailingList>
+        <mailingList>
+            <name>Review Board list</name>
+            <subscribe>mailto:reviews-subscribe@ambari.apache.org
+            </subscribe>
+            <unsubscribe>mailto:reviews-unsubscribe@ambari.apache.org
+            </unsubscribe>
+            <post>mailto:reviews@ambari.apache.org</post>
+            <archive>http://mail-archives.apache.org/mod_mbox/ambari-reviews/</archive>
+        </mailingList>
+        <mailingList>
             <name>Commit list</name>
             <subscribe>mailto:commits-subscribe@ambari.apache.org
             </subscribe>
