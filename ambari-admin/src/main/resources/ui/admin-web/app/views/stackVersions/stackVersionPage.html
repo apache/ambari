@@ -40,10 +40,10 @@
       </label>
     </div>
     <div class="col-sm-7">
-      <input type="file" class="choose-file-input" onchange="angular.element(this).scope().onFileSelect(this)"/>
+      <input type="file" class="choose-file-input" ng-model="option1.file" onchange="angular.element(this).scope().onFileSelect(this)"/>
     </div>
   </div>
-  <div class="clearfix register-version-options border-bottom bottom-margin">
+  <div class="clearfix register-version-options bottom-margin">
     <div class="col-sm-5 option-radio-button">
       <label class="option-label">
         <input type="radio" ng-model="selectedOption.index" value="2" ng-change="toggleOptionSelect()"> {{'versions.enterURL' | translate}}
@@ -55,7 +55,7 @@
       </div>
     </div>
     <div class="col-sm-12 read-info-button">
-      <button class="btn btn-primary pull-right" ng-click="readVersionInfo()"
+      <button class="btn btn-primary pull-right" ng-model="button" ng-click="readVersionInfo()"
             ng-disabled="readInfoButtonDisabled()">{{'versions.readInfo' | translate}}</button>
     </div>
   </div>
@@ -84,7 +84,7 @@
   </div>
 </accordion>
 
-<form ng-class="{'col-sm-10': editController}" class="form-horizontal register-version-form" role="form" name="repoRegForm" novalidate>
+<form ng-class="{'col-sm-10': editController, 'visible': !allInfoCategoriesBlank()}" class="form-horizontal register-version-form hide-soft" role="form" name="repoRegForm" novalidate>
   <div class="panel panel-default details-panel">
     <div class="panel-heading">
       <h3 class="panel-title">{{'common.details' | translate}}</h3>
@@ -129,7 +129,7 @@
     <div class="panel-heading">
       <h3 class="panel-title">{{'versions.repos' | translate}}</h3>
     </div>
-    <div class="panel-body ">
+    <div class="panel-body">
       <div class="alert alert-info" role="alert">{{'versions.alerts.baseURLs' | translate}}</div>
       <div class="alert alert-warning hide-soft" ng-class="{'visible' : hasValidationErrors()}" role="alert">{{'versions.alerts.validationFailed' | translate}}</div>
       <div class="border-bottom bottom-margin clearfix">
@@ -147,7 +147,7 @@
             </div>
             <div class="col-sm-9">
               <div class="form-group {{repository.Repositories.repo_name}}" ng-class="{'has-error': repository.hasError }" ng-repeat="repository in os.repositories">
-                <div class="col-sm-3"><label class="control-label">{{repository.Repositories.repo_name}}</label></div>
+                <label class="repo-name-label control-label col-sm-3">{{repository.Repositories.repo_name}}</label>
                 <div class="col-sm-9"><input type="text" class="form-control" ng-model="repository.Repositories.base_url"
                                          ng-change="clearError()" ng-disabled="!os.selected"></div>
               </div>

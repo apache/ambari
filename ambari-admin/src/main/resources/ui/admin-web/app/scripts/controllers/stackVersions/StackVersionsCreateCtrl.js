@@ -39,7 +39,7 @@ angular.module('ambariAdminConsole')
   $scope.option1 = {
     index: 1,
     displayName: $t('versions.uploadFile'),
-    file: null,
+    file: '',
     hasError: false
   };
   $scope.option2 = {
@@ -64,7 +64,11 @@ angular.module('ambariAdminConsole')
     $scope.option2.hasError = false;
   };
   $scope.readInfoButtonDisabled = function () {
-    return $scope.option1.index == $scope.selectedOption.index ? !$scope.option1.file : !$scope.option2.url;
+    return $scope.option1.index == $scope.selectedOption.index ? false : !$scope.option2.url;
+  };
+
+  $scope.allInfoCategoriesBlank = function () {
+    return !$scope.upgradeStack.stack_name;
   };
 
   $scope.onFileSelect = function(e){
@@ -77,6 +81,8 @@ angular.module('ambariAdminConsole')
         };
       })(file);
       reader.readAsText(file);
+    } else {
+      $scope.option1.file = '';
     }
   };
 

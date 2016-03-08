@@ -1433,9 +1433,13 @@ thead.view-permission-header > tr > th {
 .left-menu-all-repos .repos-table .repos-td.active > a {
   color: white;
 }
-
+#upload-definition-file-panel {
+  background-color: #f5f5f5;
+  padding: 20px 10px 5px 10px;
+  margin-bottom: 15px;
+}
 .register-version-options .read-info-button {
-  margin-bottom: 10px;
+  margin-top: 10px;
 }
 
 .register-version-options .option-radio-button {
@@ -1470,6 +1474,9 @@ thead.view-permission-header > tr > th {
   padding: 0px;
   text-align: center;
   cursor: pointer;
+}
+.register-version-form .repos-panel .repo-name-label {
+  text-align: left;
 }
 
 .register-version-form .repos-panel .os-type-label {
