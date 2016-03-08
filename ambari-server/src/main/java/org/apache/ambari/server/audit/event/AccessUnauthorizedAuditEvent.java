@@ -29,7 +29,14 @@ public class AccessUnauthorizedAuditEvent extends AbstractUserAuditEvent {
   public static class AccessUnauthorizedAuditEventBuilder
     extends AbstractUserAuditEventBuilder<AccessUnauthorizedAuditEvent, AccessUnauthorizedAuditEventBuilder> {
 
+    /**
+     * Name of http method (PUT, POST, DELETE, etc...)
+     */
     private String httpMethodName;
+
+    /**
+     * The resource path that is tried to be accessed
+     */
     private String resourcePath;
 
     /**

@@ -20,14 +20,32 @@ package org.apache.ambari.server.audit.event.kerberos;
 
 import javax.annotation.concurrent.Immutable;
 
+/**
+ * Audit event for kerberos security state change of components
+ */
 @Immutable
 public class ChangeSecurityStateKerberosAuditEvent extends AbstractKerberosAuditEvent {
 
   public static class ChangeSecurityStateKerberosAuditEventBuilder extends AbstractKerberosAuditEventBuilder<ChangeSecurityStateKerberosAuditEvent, ChangeSecurityStateKerberosAuditEventBuilder> {
 
+    /**
+     * Service name
+     */
     private String service;
+
+    /**
+     * Component name
+     */
     private String component;
+
+    /**
+     * Host name
+     */
     private String hostName;
+
+    /**
+     * Security state
+     */
     private String state;
 
     private ChangeSecurityStateKerberosAuditEventBuilder() {

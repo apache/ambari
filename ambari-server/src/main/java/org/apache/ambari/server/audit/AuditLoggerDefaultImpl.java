@@ -32,6 +32,9 @@ public class AuditLoggerDefaultImpl implements AuditLogger {
 
   private static final Logger LOG = LoggerFactory.getLogger("audit");
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void log(AuditEvent event) {
     LOG.info("{}, {}", event.getTimestamp(), event.getAuditMessage());

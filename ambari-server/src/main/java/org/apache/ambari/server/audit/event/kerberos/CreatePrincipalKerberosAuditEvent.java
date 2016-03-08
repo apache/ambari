@@ -34,7 +34,7 @@ public class CreatePrincipalKerberosAuditEvent extends AbstractKerberosAuditEven
     @Override
     protected void buildAuditMessage(StringBuilder builder) {
       super.buildAuditMessage(builder);
-      builder.append("), Principal(")
+      builder.append(", Principal(")
         .append(principal);
     }
 

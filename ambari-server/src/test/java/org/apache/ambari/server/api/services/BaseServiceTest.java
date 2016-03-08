@@ -22,7 +22,7 @@ import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.parsers.BodyParseException;
 import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
-import org.apache.ambari.server.audit.event.request.RequestAuditLogger;
+import org.apache.ambari.server.audit.request.RequestAuditLogger;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.BeforeClass;

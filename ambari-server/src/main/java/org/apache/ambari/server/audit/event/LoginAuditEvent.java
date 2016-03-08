@@ -27,7 +27,7 @@ import javax.annotation.concurrent.Immutable;
 import org.apache.commons.lang.StringUtils;
 
 /**
- * Successful login audit event.
+ * Login audit event.
  */
 @Immutable
 public class LoginAuditEvent extends AbstractUserAuditEvent {
@@ -38,8 +38,15 @@ public class LoginAuditEvent extends AbstractUserAuditEvent {
     private LoginAuditEventBuilder() {
     }
 
+    /**
+     * List of roles possessed by the principal requesting access to a resource.
+     * [ view name | cluster name | 'Ambari'] -> list of permissions
+     */
     private Map<String, List<String>> roles;
 
+    /**
+     * Reason of failure, if it is not null, then the request status is consider as failed
+     */
     private String reasonOfFailure;
 
     /**

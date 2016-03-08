@@ -23,7 +23,9 @@ import java.util.List;
 
 import org.apache.ambari.server.audit.event.AuditEvent;
 import org.apache.ambari.server.audit.event.OperationStatusAuditEvent;
+import org.apache.ambari.server.configuration.Configuration;
 import org.easymock.Capture;
+import org.easymock.EasyMock;
 import org.easymock.EasyMockRule;
 import org.easymock.Mock;
 import org.easymock.MockType;
@@ -55,6 +57,9 @@ public class BufferedAuditLoggerTest {
   @Mock(type = MockType.STRICT)
   private AuditLogger auditLogger;
 
+  @Mock(type = MockType.STRICT)
+  private Configuration configuration;
+
 
   @Before
   public void setUp() throws Exception {
@@ -68,7 +73,10 @@ public class BufferedAuditLoggerTest {
     Capture<AuditEvent> capturedArgument = newCapture();
     auditLogger.log(capture(capturedArgument));
 
-    BufferedAuditLogger bufferedAuditLogger = new BufferedAuditLogger(auditLogger, 50);
+    EasyMock.expect(configuration.getBufferedAuditLoggerCapacity()).andReturn(50);
+    replay(configuration);
+
+    BufferedAuditLogger bufferedAuditLogger = new BufferedAuditLogger(auditLogger, configuration);
 
     replay(auditLogger, auditEvent);
 
@@ -78,7 +86,7 @@ public class BufferedAuditLoggerTest {
 
     Thread.sleep(100);
     // Then
-    verify(auditLogger);
+    verify(auditLogger, configuration);
 
 
     assertThat(capturedArgument.getValue(), equalTo(auditEvent));
@@ -87,7 +95,9 @@ public class BufferedAuditLoggerTest {
   @Test(timeout = 300)
   public void testConsumeAuditEventsFromInternalBuffer() throws Exception {
     // Given
-    BufferedAuditLogger bufferedAuditLogger = new BufferedAuditLogger(auditLogger, 5);
+    EasyMock.expect(configuration.getBufferedAuditLoggerCapacity()).andReturn(5);
+    replay(configuration);
+    BufferedAuditLogger bufferedAuditLogger = new BufferedAuditLogger(auditLogger, configuration);
 
     List<AuditEvent> auditEvents = Collections.nCopies(50, auditEvent);
 
@@ -106,7 +116,7 @@ public class BufferedAuditLoggerTest {
       Thread.sleep(100);
     }
 
-    verify(auditLogger, auditEvent);
+    verify(auditLogger, auditEvent, configuration);
   }
 
   @Test(timeout = 3000)
@@ -114,8 +124,10 @@ public class BufferedAuditLoggerTest {
     // Given
     int nProducers = 100;
 
+    EasyMock.expect(configuration.getBufferedAuditLoggerCapacity()).andReturn(10000);
+    replay(configuration);
 
-    final BufferedAuditLogger bufferedAuditLogger = new BufferedAuditLogger(new AuditLoggerDefaultImpl(), 10000);
+    final BufferedAuditLogger bufferedAuditLogger = new BufferedAuditLogger(new AuditLoggerDefaultImpl(), configuration);
 
     ImmutableList.Builder<Thread> producersBuilder = ImmutableList.builder();
 
@@ -156,6 +168,8 @@ public class BufferedAuditLoggerTest {
     while (!bufferedAuditLogger.auditEventWorkQueue.isEmpty()) {
       Thread.sleep(100);
     }
+
+    verify(configuration);
 
   }
 }

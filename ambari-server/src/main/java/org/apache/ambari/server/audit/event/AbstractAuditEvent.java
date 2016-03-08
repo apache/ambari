@@ -28,8 +28,14 @@ import org.joda.time.DateTime;
  */
 public abstract class AbstractAuditEvent implements AuditEvent {
 
+  /**
+   * Timestamp for the audit event creation
+   */
   private final DateTime timestamp;
 
+  /**
+   * Message to log
+   */
   private final String auditMessage;
 
   /**

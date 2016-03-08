@@ -126,6 +126,10 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   @Inject
   AuditLogger auditLogger;
 
+  /**
+   * Caches to store current request and task statuses.
+   * It is used for deduplicating status reports in order to avoid autitlog entry duplication
+   */
   private Map<Long, HostRoleStatus> temporaryStatusCache = new HashMap<Long, HostRoleStatus>();
   private Map<Long, HostRoleStatus> temporaryTaskStatusCache = new HashMap<Long, HostRoleStatus>();
 

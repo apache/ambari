@@ -24,6 +24,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.ambari.server.audit.event.AuditEvent;
+import org.apache.ambari.server.configuration.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,14 +42,29 @@ public class BufferedAuditLogger implements AuditLogger {
 
   private static final Logger LOG = LoggerFactory.getLogger(BufferedAuditLogger.class);
 
+  /**
+   * Capacity of the buffer
+   */
   private final int bufferCapacity;
 
+  /**
+   * Buffer capacity status
+   */
   private final double capacityWaterMark;
 
+  /**
+   * Wrapped audit logger
+   */
   private final AuditLogger auditLogger;
 
+  /**
+   * Thread pool
+   */
   private final ExecutorService pool;
 
+  /**
+   * Names for guice injection
+   */
   public final static String InnerLogger = "BufferedAuditLogger";
   public final static String Capacity = "BufferedAuditLogger.capacity";
 
@@ -88,8 +104,8 @@ public class BufferedAuditLogger implements AuditLogger {
    * @param auditLogger the audit logger to extend
    */
   @Inject
-  public BufferedAuditLogger(@Named(InnerLogger) AuditLogger auditLogger, @Named(Capacity) int bufferCapacity) {
-    this.bufferCapacity = bufferCapacity;
+  public BufferedAuditLogger(@Named(InnerLogger) AuditLogger auditLogger, Configuration configuration) {
+    this.bufferCapacity = configuration.getBufferedAuditLoggerCapacity();
     this.capacityWaterMark = 0.2; // 20 percent of full capacity
 
     this.auditEventWorkQueue = new LinkedBlockingQueue<>(bufferCapacity);

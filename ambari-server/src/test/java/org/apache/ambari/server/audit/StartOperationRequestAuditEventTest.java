@@ -18,7 +18,7 @@
 package org.apache.ambari.server.audit;
 
 import org.apache.ambari.server.audit.event.LoginAuditEvent;
-import org.apache.ambari.server.audit.event.request.event.StartOperationRequestAuditEvent;
+import org.apache.ambari.server.audit.event.request.StartOperationRequestAuditEvent;
 import org.joda.time.DateTime;
 import org.junit.Test;
 

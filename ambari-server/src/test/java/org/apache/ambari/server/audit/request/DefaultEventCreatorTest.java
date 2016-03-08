@@ -55,7 +55,7 @@ import org.apache.ambari.server.api.services.RequestFactory;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultImpl;
 import org.apache.ambari.server.api.services.ResultStatus;
-import org.apache.ambari.server.audit.event.request.eventcreator.DefaultEventCreator;
+import org.apache.ambari.server.audit.request.eventcreator.DefaultEventCreator;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.junit.Before;
 import org.junit.BeforeClass;

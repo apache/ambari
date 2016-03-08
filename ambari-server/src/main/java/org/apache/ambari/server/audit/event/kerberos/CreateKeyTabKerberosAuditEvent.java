@@ -20,13 +20,27 @@ package org.apache.ambari.server.audit.event.kerberos;
 
 import javax.annotation.concurrent.Immutable;
 
+/**
+ * Audit event for kerberos keytab change
+ */
 @Immutable
 public class CreateKeyTabKerberosAuditEvent extends AbstractKerberosAuditEvent {
 
   public static class CreateKeyTabKerberosAuditEventBuilder extends AbstractKerberosAuditEventBuilder<CreateKeyTabKerberosAuditEvent, CreateKeyTabKerberosAuditEventBuilder> {
 
+    /**
+     * Path to keytab file
+     */
     private String keyTabFilePath;
+
+    /**
+     * Host name
+     */
     private String hostName;
+
+    /**
+     * Principal that belons to the keytab file
+     */
     private String principal;
 
     private CreateKeyTabKerberosAuditEventBuilder() {

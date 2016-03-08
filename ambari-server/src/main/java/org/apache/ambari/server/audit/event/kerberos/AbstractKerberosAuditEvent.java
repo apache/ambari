@@ -23,12 +23,22 @@ import javax.annotation.concurrent.Immutable;
 
 import org.apache.ambari.server.audit.event.AbstractAuditEvent;
 
+/**
+ * Base class for kerberos audit events
+ */
 @Immutable
 public class AbstractKerberosAuditEvent extends AbstractAuditEvent {
   static abstract class AbstractKerberosAuditEventBuilder<T extends AbstractKerberosAuditEvent, TBuilder extends AbstractKerberosAuditEventBuilder<T, TBuilder>>
     extends AbstractAuditEvent.AbstractAuditEventBuilder<T, TBuilder> {
 
+    /**
+     * Description of the operation
+     */
     protected String operation;
+
+    /**
+     * Reason of failure, if it is not null, then the request is considered as failed
+     */
     protected String reasonOfFailure;
 
     /**

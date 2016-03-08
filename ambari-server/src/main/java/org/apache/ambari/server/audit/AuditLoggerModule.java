@@ -18,12 +18,13 @@
 
 package org.apache.ambari.server.audit;
 
+import org.apache.ambari.server.configuration.Configuration;
+
 import com.google.inject.AbstractModule;
+import com.google.inject.Inject;
 import com.google.inject.name.Names;
 
 public class AuditLoggerModule extends AbstractModule {
-
-  private final static int BUFFERED_LOGGER_CAPACITY = 10000;
 
   @Override
   protected void configure() {
@@ -31,11 +32,5 @@ public class AuditLoggerModule extends AbstractModule {
 
     // set AuditLoggerDefaultImpl to be used by BufferedAuditLogger
     bind(AuditLogger.class).annotatedWith(Names.named(BufferedAuditLogger.InnerLogger)).to(AuditLoggerDefaultImpl.class);
-
-    // set buffered audit logger capacity
-    bindConstant().annotatedWith(Names.named(BufferedAuditLogger.Capacity)).to(BUFFERED_LOGGER_CAPACITY);
-
   }
-
-
 }

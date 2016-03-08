@@ -21,6 +21,9 @@ package org.apache.ambari.server.audit.event;
 
 import javax.annotation.concurrent.Immutable;
 
+/**
+ * Audit event for tracking operations
+ */
 @Immutable
 public class OperationStatusAuditEvent extends AbstractAuditEvent {
 

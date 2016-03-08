@@ -28,8 +28,14 @@ public abstract class AbstractUserAuditEvent extends AbstractAuditEvent {
   public static abstract class AbstractUserAuditEventBuilder<T extends AbstractUserAuditEvent, TBuilder extends AbstractUserAuditEventBuilder<T, TBuilder>>
     extends AbstractAuditEventBuilder<T, TBuilder> {
 
+    /**
+     * Name of the user started the operation
+     */
     private String userName;
 
+    /**
+     * Ip of the user who started the operation. Note: remote ip might not be the original ip (proxies, routers can modify it)
+     */
     private String remoteIp;
 
     /**

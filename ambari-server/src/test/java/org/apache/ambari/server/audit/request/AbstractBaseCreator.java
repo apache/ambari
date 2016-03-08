@@ -21,7 +21,6 @@ package org.apache.ambari.server.audit.request;
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.audit.event.AuditEvent;
-import org.apache.ambari.server.audit.event.request.RequestAuditEventCreator;
 import org.joda.time.DateTime;
 
 public abstract class AbstractBaseCreator implements RequestAuditEventCreator {

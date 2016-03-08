@@ -20,11 +20,17 @@ package org.apache.ambari.server.audit.event.kerberos;
 
 import javax.annotation.concurrent.Immutable;
 
+/**
+ * Audit event for destroying principal
+ */
 @Immutable
 public class DestroyPrincipalKerberosAuditEvent extends AbstractKerberosAuditEvent {
 
   public static class DestroyPrincipalKerberosAuditEventBuilder extends AbstractKerberosAuditEventBuilder<DestroyPrincipalKerberosAuditEvent, DestroyPrincipalKerberosAuditEventBuilder> {
 
+    /**
+     * Destroyed principal
+     */
     private String principal;
 
     private DestroyPrincipalKerberosAuditEventBuilder() {
@@ -35,7 +41,7 @@ public class DestroyPrincipalKerberosAuditEvent extends AbstractKerberosAuditEve
     protected void buildAuditMessage(StringBuilder builder) {
       super.buildAuditMessage(builder);
 
-      builder.append("), Principal(")
+      builder.append(", Principal(")
         .append(principal);
     }
 

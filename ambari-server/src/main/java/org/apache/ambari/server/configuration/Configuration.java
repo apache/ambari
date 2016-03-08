@@ -674,6 +674,16 @@ public class Configuration {
           "custom.oracle.jdbc.name", "custom.postgres.jdbc.name", "custom.mssql.jdbc.name", "custom.hsqldb.jdbc.name",
           "custom.sqlanywhere.jdbc.name"));
 
+  /**
+   * Capacity for buffered audit logger
+   */
+  private static final String BUFFERED_AUDIT_LOGGER_CAPACITY_KEY = "auditlog.bufferedlogger.capacity";
+  /**
+   * Default value for buffered audit logger capacity
+   */
+  private static final int BUFFERED_AUDIT_LOGGER_CAPACITY_DEFAULT = 10000;
+
+
   private static final Logger LOG = LoggerFactory.getLogger(
     Configuration.class);
 
@@ -2837,5 +2847,11 @@ public class Configuration {
 
   public String isAgentStackRetryOnInstallEnabled(){
     return properties.getProperty(AGENT_STACK_RETRY_ON_REPO_UNAVAILABILITY_KEY, AGENT_STACK_RETRY_ON_REPO_UNAVAILABILITY_DEFAULT);
+  }
+
+  public int getBufferedAuditLoggerCapacity() {
+    return NumberUtils.toInt(
+      properties.getProperty(BUFFERED_AUDIT_LOGGER_CAPACITY_KEY),
+        BUFFERED_AUDIT_LOGGER_CAPACITY_DEFAULT);
   }
 }
