@@ -36,28 +36,28 @@ define([
           this.url = datasource.url;
           this.initMetricAppidMapping();
         }
-        var allMetrics = [];
+        var allMetrics = {};
         var appIds = [];
+
         //We get a list of components and their associated metrics.
         AmbariMetricsDatasource.prototype.initMetricAppidMapping = function () {
           backendSrv.get(this.url + '/ws/v1/timeline/metrics/metadata')
             .then(function (items) {
-              allMetrics = [];
+              allMetrics = {};
               appIds = [];
+              _.forEach(items, function (metric,app) {
+                metric.forEach(function (component) {
+                  if (!allMetrics[app]) {
+                    allMetrics[app] = [];
+                  }
+                  allMetrics[app].push(component.metricname);
+                });
+              });
               //We remove a couple of components from the list that do not contain any
               //pertinent metrics.
-              delete items.timeline_metric_store_watcher; delete items.amssmoketestfake;
-              for (var key in items) {
-                if (items.hasOwnProperty(key)) {
-                  items[key].forEach(function (_item) {
-                    allMetrics.push({
-                      metric: _item.metricname,
-                      app: key
-                    });
-                  });
-                }
-                appIds = _.keys(items);
-              }
+              delete allMetrics["timeline_metric_store_watcher"];
+              delete allMetrics["amssmoketestfake"];
+              appIds = Object.keys(allMetrics);
             });
         };
 
@@ -106,7 +106,7 @@ define([
               var timeSeries = {};
               if (target.hosts === undefined || target.hosts.trim() === "") {
                 timeSeries = {
-                  target: target.metric + hostLegend,
+                  target: res.metrics[0].metricname + hostLegend,
                   datapoints: []
                 };
               } else {
@@ -123,7 +123,6 @@ define([
               series.push(timeSeries);
               return $q.when({data: series});
             };
-
           };
           var getHostAppIdData = function(target) {
             var precision = target.shouldAddPrecision && target.precision !== '' ? '&precision=' + target.precision : '';
@@ -136,18 +135,12 @@ define([
             );
           };
           //Check if it's a templated dashboard.
-          var templatedHosts = templateSrv.variables.filter(function(o) {
-            return o.name === "hosts"
-          });
-          var templatedHost = (_.isEmpty(templateSrv.variables)) ? '' : templatedHosts[0].options.filter(function(host) {
-            return host.selected;
-          }).map(function(hostName) {
-            return hostName.value;
-          });
+          var templatedHosts = templateSrv.variables.filter(function(o) { return o.name === "hosts"});
+          var templatedHost = (_.isEmpty(templatedHosts)) ? '' : templatedHosts[0].options.filter(function(host)
+            { return host.selected; }).map(function(hostName) { return hostName.value; });
 
-          var tComponents = _.isEmpty(templateSrv.variables) ? '' : templateSrv.variables.filter(function(variable) {
-            return variable.name === "components"
-          });
+          var tComponents = _.isEmpty(templateSrv.variables) ? '' : templateSrv.variables.filter(function(variable)
+            { return variable.name === "components"});
           var tComponent = _.isEmpty(tComponents) ? '' : tComponents[0].current.value;
 
           var getServiceAppIdData = function(target) {
@@ -161,12 +154,50 @@ define([
             );
           };
 
+          var getYarnAppIdData = function(target) {
+            var precision = target.shouldAddPrecision && target.precision !== '' ? '&precision=' + target.precision : '';
+            var rate = target.shouldComputeRate ? '._rate._' : '._';
+            return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.queue + rate
+              + target.aggregator + '&appId=resourcemanager&startTime=' + from +
+              '&endTime=' + to + precision).then(
+              getMetricsData(target)
+            );
+          };
+
           // Time Ranges
           var from = Math.floor(options.range.from.valueOf() / 1000);
           var to = Math.floor(options.range.to.valueOf() / 1000);
 
           var metricsPromises = [];
           if (!_.isEmpty(templateSrv.variables)) {
+            // YARN Queues Dashboard
+            if (templateSrv.variables[0].query === "yarnqueues") {
+              var allQueues = templateSrv.variables.filter(function(variable) { return variable.query === "yarnqueues";});
+              var selectedQs = (_.isEmpty(allQueues)) ? "" : allQueues[0].options.filter(function(q)
+              { return q.selected; }).map(function(qName) { return qName.value; });
+              // All Queues
+              if (!_.isEmpty(_.find(selectedQs, function (wildcard) { return wildcard === "*"; })))  {
+                var allQueue = allQueues[0].options.filter(function(q) {
+                  return q.text !== "All"; }).map(function(queue) { return queue.value; });
+                _.forEach(allQueue, function(processQueue) {
+                  metricsPromises.push(_.map(options.targets, function(target) {
+                    target.qmetric = processQueue;
+                    target.queue = target.metric.replace('root', target.qmetric);
+                    return getYarnAppIdData(target);
+                  }));
+                });
+              } else {
+                // All selected queues.
+                _.forEach(selectedQs, function(processQueue) {
+                  metricsPromises.push(_.map(options.targets, function(target) {
+                    target.qmetric = processQueue;
+                    target.queue = target.metric.replace('root', target.qmetric);
+                    return getYarnAppIdData(target);
+                  }));
+                });
+              }
+            }
+            //All Hosts
             if (!_.isEmpty(_.find(templatedHost, function (wildcard) { return wildcard === "*"; })))  {
               var allHosts = templateSrv.variables.filter(function(variable) { return variable.name === "hosts"});
               var allHost = allHosts[0].options.filter(function(all) {
@@ -180,6 +211,7 @@ define([
               }));
             });
             } else {
+              // Single or multi selected hosts
               _.forEach(templatedHost, function(processHost) {
               metricsPromises.push(_.map(options.targets, function(target) {
                 target.templatedHost = processHost;
@@ -192,6 +224,7 @@ define([
 
             metricsPromises = _.flatten(metricsPromises);
           } else {
+            // Non Templatized Dashboards
             metricsPromises = _.map(options.targets, function(target) {
               console.debug('target app=' + target.app + ',' +
                 'target metric=' + target.metric + ' on host=' + target.tempHost);
@@ -226,40 +259,76 @@ define([
         /**
          * AMS Datasource Templating Variables.
          */
-        AmbariMetricsDatasource.prototype.metricFindQuery = function(query) {
+        AmbariMetricsDatasource.prototype.metricFindQuery = function (query) {
           var interpolated;
           try {
             interpolated = templateSrv.replace(query);
           } catch (err) {
             return $q.reject(err);
           }
-          var tComponents = _.isEmpty(templateSrv.variables) ? '' : templateSrv.variables.filter(function(variable) {
-            return variable.name === "components"
-          });
+          var tComponents = _.isEmpty(templateSrv.variables) ? '' : templateSrv.variables.filter(function(variable) 
+            { return variable.name === "components"});
           var tComponent = _.isEmpty(tComponents) ? '' : tComponents[0].current.value;
-          if (!tComponent) {
-            return this.doAmbariRequest({
-                method: 'GET',
-                url: '/ws/v1/timeline/metrics/' + interpolated
-              }).then(function(results) {
-                //Remove fakehostname from the list of hosts on the cluster.
-                var fake = "fakehostname";
-                delete results.data[fake];
-                return _.map(_.keys(results.data), function(hostName) {
+          // Templated Variable for YARN Queues.
+          // It will search the cluster and populate the queues.
+          if(interpolated === "yarnqueues") {
+            return backendSrv.get(this.url + '/ws/v1/timeline/metrics/metadata')
+              .then(function (results) {
+                var allM = {};
+                _.forEach(results, function (metric,app) {
+                  metric.forEach(function (component) {
+                    if (!allM[app]) {
+                      allM[app] = [];
+                    }
+                    allM[app].push(component.metricname);
+                  });
+                });
+                var yarnqueues = allM["resourcemanager"];
+                var extractQueues = yarnqueues.filter(/./.test.bind(new RegExp(".=root", 'g')));
+                var queues = _.map(extractQueues, function(metric) {
+                  return metric.substring("yarn.QueueMetrics.Queue=".length);
+                });
+                queues = _.map(queues, function(metricName) {
+                  return metricName.substring(metricName.lastIndexOf("."), 0);
+                });
+                queues = _.sortBy(_.uniq(queues));
+                return _.map(queues, function (queues) {
                   return {
-                    text: hostName,
-                    expandable: hostName.expandable ? true : false
+                    text: queues
                   };
                 });
               });
+          }
+          // Templated Variable that will populate all hosts on the cluster.
+          // The variable needs to be set to "hosts".
+          if (!tComponent){
+                  return this.doAmbariRequest({
+                        method: 'GET',
+                        url: '/ws/v1/timeline/metrics/' + interpolated
+                      })
+                      .then(function (results) {
+                        //Remove fakehostname from the list of hosts on the cluster.
+                        var fake = "fakehostname"; delete results.data[fake];
+                        return _.map(_.keys(results.data), function (hostName) {
+                          return {
+                                text: hostName,
+                                expandable: hostName.expandable ? true : false
+                              };
+                        });
+                      });
           } else {
+            // Create a dropdown in templated dashboards for single components.
+            // This will check for the component set and show hosts only for the
+            // selected component.
             return this.doAmbariRequest({
                 method: 'GET',
                 url: '/ws/v1/timeline/metrics/hosts'
-              }).then(function(results) {
+              })
+              .then(function(results) {
                 var compToHostMap = {};
                 //Remove fakehostname from the list of hosts on the cluster.
-                var fake = "fakehostname"; delete results.data[fake];
+                var fake = "fakehostname";
+                delete results.data[fake];
                 //Query hosts based on component name
                 _.forEach(results.data, function(comp, hostName) {
                   comp.forEach(function(component) {
@@ -281,7 +350,7 @@ define([
                 });
                 return $q.when(compHosts);
               });
-          }
+           }
         };
 
         /**
@@ -326,12 +395,8 @@ define([
           if (!app) {
             return $q.when([]);
           }
-          var metrics = allMetrics.filter(function(item) {
-            return (item.app === app);
-          });
           var keys = [];
-          _.forEach(metrics, function (k) { keys.push(k.metric); });
-          keys = _.map(keys,function(m) {
+          keys = _.map(allMetrics[app],function(m) {
             return {text: m};
           });
           keys = _.sortBy(keys, function (i) { return i.text.toLowerCase(); });

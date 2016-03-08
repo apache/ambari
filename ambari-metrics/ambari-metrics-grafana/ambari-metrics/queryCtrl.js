@@ -42,7 +42,7 @@ define([
           
           $scope.$watch('target.precision', function() {
             if ($scope.target.precision !== "seconds") {
-              $scope.target.aggregator = 'avg';
+              $scope.target.aggregator = $scope.target.aggregator;
             }
           });
           $scope.$watch('target.app', function (newValue) {
