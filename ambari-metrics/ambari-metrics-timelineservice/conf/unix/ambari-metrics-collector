@@ -291,7 +291,7 @@ function start()
     # Wait until METRIC_* tables created
     for retry in {1..5}
     do
-      echo 'list' | ${HBASE_CMD} --config ${HBASE_CONF_DIR} shell | grep ^${METRIC_TABLES[0]} > /dev/null 2>&1
+      echo 'list' | ${HBASE_CMD} --config ${HBASE_CONF_DIR} shell 2> /dev/null | grep ^${METRIC_TABLES[0]} > /dev/null 2>&1
       if [ $? -eq 0 ]; then
         echo "$(date) Ambari Metrics data model initialization completed." | tee -a $STARTUPFILE
         break
