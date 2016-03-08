@@ -135,18 +135,18 @@
 
     <menu name="Releases">
       <item name="2.2.1" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-2.2.1"/>
-      <item name="2.2.0" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-2.2.0"/>
-      <item name="2.1.2" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-2.1.2"/>
-      <item name="2.1.1" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-2.1.1"/>
-      <item name="2.1.0" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-2.1.0"/>
-      <item name="2.0.2" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-2.0.2"/>
-      <item name="2.0.1" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-2.0.1"/>
-      <item name="2.0.0" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-2.0.0"/>
-      <item name="1.7.0" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-1.7.0"/>
-      <item name="1.6.1" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-1.6.1"/>
-      <item name="1.6.0" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-1.6.0"/>
-      <item name="1.5.1" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-1.5.1"/>
-      <item name="1.5.0" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-1.5.0"/>
+      <item name="2.2.0" href="http://archive.apache.org/dist/ambari/ambari-2.2.0"/>
+      <item name="2.1.2" href="http://archive.apache.org/dist/ambari/ambari-2.1.2"/>
+      <item name="2.1.1" href="http://archive.apache.org/dist/ambari/ambari-2.1.1"/>
+      <item name="2.1.0" href="http://archive.apache.org/dist/ambari/ambari-2.1.0"/>
+      <item name="2.0.2" href="http://archive.apache.org/dist/ambari/ambari-2.0.2"/>
+      <item name="2.0.1" href="http://archive.apache.org/dist/ambari/ambari-2.0.1"/>
+      <item name="2.0.0" href="http://archive.apache.org/dist/ambari/ambari-2.0.0"/>
+      <item name="1.7.0" href="http://archive.apache.org/dist/ambari/ambari-1.7.0"/>
+      <item name="1.6.1" href="http://archive.apache.org/dist/ambari/ambari-1.6.1"/>
+      <item name="1.6.0" href="http://archive.apache.org/dist/ambari/ambari-1.6.0"/>
+      <item name="1.5.1" href="http://archive.apache.org/dist/ambari/ambari-1.5.1"/>
+      <item name="1.5.0" href="http://archive.apache.org/dist/ambari/ambari-1.5.0"/>
       <item name="1.4.4" href="http://archive.apache.org/dist/ambari/ambari-1.4.4/"/>
       <item name="1.4.3" href="http://archive.apache.org/dist/ambari/ambari-1.4.3/"/>
       <item name="1.4.2" href="http://archive.apache.org/dist/ambari/ambari-1.4.2/"/>
