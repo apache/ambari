@@ -30,8 +30,8 @@
     "HAWQMASTER": [
       {
         "name": "hawqstandby_sync_status",
-        "label": "HAWQ Standby Sync Status",
-        "description": "This alert will trigger if HAWQ Standby is not synchronized with HAWQ Master. Use the service action 'Re-Synchronize HAWQ Standby' on HAWQ service page to synchronize HAWQ Standby with HAWQ Master.",
+        "label": "HAWQ Standby Master Sync Status",
+        "description": "This alert will trigger if HAWQ Standby Master is not synchronized with HAWQ Master. Use the service action 'Re-Sync HAWQ Standby Master' on HAWQ service page to synchronize HAWQ Standby Master with HAWQ Master.",
         "interval": 1,
         "scope": "ANY",
         "enabled": true,
@@ -56,7 +56,7 @@
               "display_name": "Component Name",
               "value": "master",
               "type": "STRING",
-              "description": "This text string indicates if it is a Master, Standby or Segment"
+              "description": "This text string indicates if it is a HAWQ Master, HAWQ Standby Master or HAWQ Segment"
             }
           ]
         }
@@ -78,7 +78,7 @@
               "display_name": "Component Name",
               "value": "segment",
               "type": "STRING",
-              "description": "This text string indicates if it is a Master, Standby or Segment"
+              "description": "This text string indicates if it is a HAWQ Master, HAWQ Standby Master or HAWQ Segment"
             }
           ]
         }
@@ -87,8 +87,8 @@
     "HAWQSTANDBY": [
       {
         "name": "hawq_standby_process",
-        "label": "HAWQ Standby Process",
-        "description": "This alert is triggered if the HAWQ Standby process cannot be confirmed to be up and listening on the network.",
+        "label": "HAWQ Standby Master Process",
+        "description": "This alert is triggered if the HAWQ Standby Master process cannot be confirmed to be up and listening on the network.",
         "interval": 1,
         "scope": "ANY",
         "source": {
@@ -100,7 +100,7 @@
               "display_name": "Component Name",
               "value": "standby",
               "type": "STRING",
-              "description": "This text string indicates if it is a Master, Standby or Segment"
+              "description": "This text string indicates if it is a HAWQ Master, HAWQ Standby Master or HAWQ Segment"
             }
           ]
         }
