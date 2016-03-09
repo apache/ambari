@@ -94,6 +94,9 @@ define([
           };
           var self = this;
           var getMetricsData = function (target) {
+            var alias = target.alias ? target.alias : target.metric;
+            if(!_.isEmpty(templateSrv.variables) && templateSrv.variables[0].query === "yarnqueues") {
+              alias = alias + ' on ' + target.qmetric; }
             return function (res) {
               console.log('processing metric ' + target.metric);
               if (!res.metrics[0] || target.hide) {
@@ -106,12 +109,12 @@ define([
               var timeSeries = {};
               if (target.hosts === undefined || target.hosts.trim() === "") {
                 timeSeries = {
-                  target: res.metrics[0].metricname + hostLegend,
+                  target: alias + hostLegend,
                   datapoints: []
                 };
               } else {
                 timeSeries = {
-                  target: target.metric + ' on ' + target.hosts,
+                  target: alias + ' on ' + target.hosts,
                   datapoints: []
                 };
               }
