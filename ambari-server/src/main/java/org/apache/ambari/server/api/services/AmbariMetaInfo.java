@@ -950,17 +950,19 @@ public class AmbariMetaInfo {
 
   private Map<String, Metric> getAggregateFunctionMetrics(String metricName, Metric currentMetric) {
     Map<String, Metric> newMetrics = new HashMap<String, Metric>();
-    // For every function id
-    for (String identifierToAdd : AGGREGATE_FUNCTION_IDENTIFIERS) {
-      String newMetricKey = metricName + identifierToAdd;
-      Metric newMetric = new Metric(
-        currentMetric.getName() + identifierToAdd,
-        currentMetric.isPointInTime(),
-        currentMetric.isTemporal(),
-        currentMetric.isAmsHostMetric(),
-        currentMetric.getUnit()
-      );
-      newMetrics.put(newMetricKey, newMetric);
+    if (!PropertyHelper.hasAggregateFunctionSuffix(currentMetric.getName())) {
+      // For every function id
+      for (String identifierToAdd : AGGREGATE_FUNCTION_IDENTIFIERS) {
+        String newMetricKey = metricName + identifierToAdd;
+        Metric newMetric = new Metric(
+          currentMetric.getName() + identifierToAdd,
+          currentMetric.isPointInTime(),
+          currentMetric.isTemporal(),
+          currentMetric.isAmsHostMetric(),
+          currentMetric.getUnit()
+        );
+        newMetrics.put(newMetricKey, newMetric);
+      }
     }
 
     return newMetrics;
