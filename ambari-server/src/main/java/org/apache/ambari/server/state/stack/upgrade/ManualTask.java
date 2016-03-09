@@ -46,9 +46,6 @@ public class ManualTask extends ServerSideActionTask {
   @XmlTransient
   public String structuredOut = null;
 
-  /*@XmlElement(name="message")
-  public String message;*/
-
   @XmlElement(name="message")
   public List<String> messages;
 
