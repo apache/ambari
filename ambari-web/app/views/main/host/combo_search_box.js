@@ -33,14 +33,14 @@ App.MainHostComboSearchBoxView = Em.View.extend({
   },
 
   getHostComponentList: function() {
-    var controller = App.router.get('mainHostComboSearchBoxController');
     var hostComponentList = [];
-    App.HostComponent.find().toArray().forEach(function(component) {
+    App.MasterComponent.find().rejectProperty('totalCount', 0).toArray()
+        .concat(App.SlaveComponent.find().rejectProperty('totalCount', 0).toArray())
+        .forEach(function(component) {
       var displayName = component.get('displayName');
-      var name = component.get('componentName');
-      if (displayName != null && !controller.isClientComponent(name)) {
+      if (displayName) {
         hostComponentList.push({label: displayName, category: 'Component'});
-        App.router.get('mainHostController.labelValueMap')[displayName] = name;
+        App.router.get('mainHostController.labelValueMap')[displayName] = component.get('componentName');
       }
     });
     return hostComponentList;
@@ -130,7 +130,7 @@ App.MainHostComboSearchBoxView = Em.View.extend({
             case 'rack':
               callback(App.Host.find().toArray().mapProperty('rack').uniq().reject(function (item) {
                 return visualSearch.searchQuery.values(facet).indexOf(item) >= 0;
-              }), {preserveMatches: true});
+              }));
               break;
             case 'version':
               callback(App.HostStackVersion.find().toArray()

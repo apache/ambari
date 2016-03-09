@@ -56,10 +56,6 @@ App.MainHostComboSearchBoxController = Em.Controller.extend({
     return App.HostComponent.find().filterProperty('componentName', facet).length > 0;
   },
 
-  isClientComponent: function(name) {
-    return name.indexOf('CLIENT') >= 0;
-  },
-
   generateQueryParam: function(param) {
     var expressions = param.key;
     var pHash = this.createComboParamHash(param);
