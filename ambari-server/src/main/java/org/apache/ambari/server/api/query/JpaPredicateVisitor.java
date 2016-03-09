@@ -55,12 +55,17 @@ public abstract class JpaPredicateVisitor<T> implements PredicateVisitor {
   /**
    * The root that the {@code from} clause requests from.
    */
-  private Root<T> m_root;
+  final private Root<T> m_root;
 
   /**
    * The query to submit to JPA.
    */
-  private CriteriaQuery<T> m_query;
+  final private CriteriaQuery<T> m_query;
+
+  /**
+   * The entity class that the root of the query is built from.
+   */
+  final private Class<T> m_entityClass;
 
   /**
    * The last calculated predicate.
@@ -87,6 +92,7 @@ public abstract class JpaPredicateVisitor<T> implements PredicateVisitor {
   public JpaPredicateVisitor(EntityManager entityManager, Class<T> entityClass) {
     m_entityManager = entityManager;
     m_builder = m_entityManager.getCriteriaBuilder();
+    m_entityClass = entityClass;
     m_query = m_builder.createQuery(entityClass);
     m_root = m_query.from(entityClass);
   }
