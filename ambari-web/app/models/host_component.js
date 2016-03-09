@@ -22,6 +22,7 @@ App.HostComponent = DS.Model.extend({
   workStatus: DS.attr('string'),
   passiveState: DS.attr('string'),
   componentName: DS.attr('string'),
+  displayName: DS.attr('string'),
   haStatus: DS.attr('string'),
   displayNameAdvanced: DS.attr('string'),
   staleConfigs: DS.attr('boolean'),
@@ -52,14 +53,6 @@ App.HostComponent = DS.Model.extend({
   isRunning: function () {
     return (this.get('workStatus') == 'STARTED' || this.get('workStatus') == 'STARTING');
   }.property('workStatus'),
-
-  /**
-   * Formatted <code>componentName</code>
-   * @returns {String}
-   */
-  displayName: function () {
-    return App.format.role(this.get('componentName'));
-  }.property('componentName'),
 
   /**
    * Determine if component is master

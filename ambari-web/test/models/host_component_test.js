@@ -54,16 +54,6 @@ describe('App.HostComponent', function() {
     });
   });
 
-  describe('#displayName', function() {
-    it('', function() {
-      sinon.stub(App.format, 'role', Em.K);
-      hc.propertyDidChange('displayName');
-      hc.get('displayName');
-      expect(App.format.role.calledWith('COMP1')).to.be.true;
-      App.format.role.restore();
-    });
-  });
-
   describe('#isMaster', function() {
     it('', function() {
       sinon.stub(App.get('components.masters'), 'contains', Em.K);

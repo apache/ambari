@@ -212,7 +212,7 @@ App.UpdateController = Em.Controller.extend({
         hostDetailsFilter = '',
         realUrl = '/hosts?fields=Hosts/rack_info,Hosts/host_name,Hosts/maintenance_state,Hosts/public_host_name,Hosts/cpu_count,Hosts/ph_cpu_count,' +
             'alerts_summary,Hosts/host_status,Hosts/last_heartbeat_time,Hosts/ip,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,' +
-            'host_components/HostRoles/stale_configs,host_components/HostRoles/service_name,host_components/HostRoles/desired_admin_state,' +
+            'host_components/HostRoles/stale_configs,host_components/HostRoles/service_name,host_components/HostRoles/display_name,host_components/HostRoles/desired_admin_state,' +
             '<metrics>Hosts/total_mem<hostDetailsParams><stackVersions>&minimal_response=true',
         hostDetailsParams = ',Hosts/os_arch,Hosts/os_type,metrics/cpu/cpu_system,metrics/cpu/cpu_user,metrics/memory/mem_total,metrics/memory/mem_free',
         stackVersionInfo = ',stack_versions/HostStackVersions,' +
@@ -522,7 +522,7 @@ App.UpdateController = Em.Controller.extend({
   updateComponentsState: function (callback) {
     var testUrl = '/data/services/HDP2/components_state.json';
     var realUrl = '/components/?fields=ServiceComponentInfo/service_name,' +
-      'ServiceComponentInfo/category,ServiceComponentInfo/installed_count,ServiceComponentInfo/started_count,ServiceComponentInfo/total_count,host_components/HostRoles/host_name&minimal_response=true';
+      'ServiceComponentInfo/category,ServiceComponentInfo/installed_count,ServiceComponentInfo/started_count,ServiceComponentInfo/total_count,ServiceComponentInfo/display_name,host_components/HostRoles/host_name&minimal_response=true';
     var url = this.getUrl(testUrl, realUrl);
 
     App.HttpClient.get(url, App.componentsStateMapper, {
