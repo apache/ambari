@@ -1425,7 +1425,7 @@ describe('App.WizardStep3Controller', function () {
             {
               tasks: [
                 {Tasks: {host_name: 'c1',
-                         structured_out: {last_agent_env_check: {existingUsers: [{userName: 'n1'}]}}
+                         structured_out: {last_agent_env_check: {existingUsers: [{name: 'n1'}]}}
                         }
                 }
               ],
@@ -1445,11 +1445,11 @@ describe('App.WizardStep3Controller', function () {
             {
               tasks: [
                 {Tasks: {host_name: 'c1',
-                         structured_out:{last_agent_env_check: {existingUsers: [{userName: 'n1'}]}}
+                         structured_out:{last_agent_env_check: {existingUsers: [{name: 'n1'}]}}
                         }
                 },
                 {Tasks: {host_name: 'c2',
-                         structured_out:{last_agent_env_check: {existingUsers: [{userName: 'n1'}]}}
+                         structured_out:{last_agent_env_check: {existingUsers: [{name: 'n1'}]}}
                         }
                 }
               ],
@@ -1910,7 +1910,7 @@ describe('App.WizardStep3Controller', function () {
             {
               items: [
                 {Hosts: {host_name: 'c1', last_agent_env: {existingUsers: [
-                  {userName: 'n1'}
+                  {name: 'n1'}
                 ]}}}
               ],
               m: 'not empty existingUsers',
@@ -1929,10 +1929,10 @@ describe('App.WizardStep3Controller', function () {
             {
               items: [
                 {Hosts: {host_name: 'c1', last_agent_env: {existingUsers: [
-                  {userName: 'n1'}
+                  {name: 'n1'}
                 ]}}},
                 {Hosts: {host_name: 'c2', last_agent_env: {existingUsers: [
-                  {userName: 'n1'}
+                  {name: 'n1'}
                 ]}}}
               ],
               m: 'not empty existingUsers on two hosts',

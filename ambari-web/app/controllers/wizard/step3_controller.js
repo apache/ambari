@@ -1222,14 +1222,14 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
       var existingUsers = lastAgentEnvCheck.existingUsers;
       if (existingUsers) {
         existingUsers.forEach(function (user) {
-          warning = warningCategories.usersWarnings[user.userName];
+          warning = warningCategories.usersWarnings[user.name];
           if (warning) {
             warning.hosts.push(hostName);
             warning.hostsLong.push(hostName);
             warning.onSingleHost = false;
           } else {
-            warningCategories.usersWarnings[user.userName] = warning = {
-              name: user.userName,
+            warningCategories.usersWarnings[user.name] = warning = {
+              name: user.name,
               hosts: [hostName],
               hostsLong: [hostName],
               category: 'users',
@@ -1902,14 +1902,14 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
       //todo: to be removed after check in new API
       if (_host.Hosts.last_agent_env.existingUsers) {
         _host.Hosts.last_agent_env.existingUsers.forEach(function (user) {
-          warning = warningCategories.usersWarnings[user.userName];
+          warning = warningCategories.usersWarnings[user.name];
           if (warning) {
             warning.hosts.push(_host.Hosts.host_name);
             warning.hostsLong.push(_host.Hosts.host_name);
             warning.onSingleHost = false;
           } else {
-            warningCategories.usersWarnings[user.userName] = warning = {
-              name: user.userName,
+            warningCategories.usersWarnings[user.name] = warning = {
+              name: user.name,
               hosts: [_host.Hosts.host_name],
               hostsLong: [_host.Hosts.host_name],
               category: 'users',
