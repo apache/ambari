@@ -426,6 +426,11 @@ def ams(name=None):
          content=InlineTemplate(params.ams_grafana_ini_template)
          )
 
+    for dir in ams_grafana_directories:
+      Execute(('chown', '-R', params.ams_user, dir),
+              sudo=True
+              )
+
     if params.metric_collector_https_enabled:
       export_ca_certs(params.ams_grafana_conf_dir)
 

@@ -49,6 +49,18 @@ class TestMetricsGrafana(RMFTestCase):
                        )
     self.maxDiff=None
     self.assert_configure()
+    self.assertResourceCalled('Execute', ('chown', u'-R', u'ams', '/etc/ambari-metrics-grafana/conf'),
+                              sudo = True
+                              )
+    self.assertResourceCalled('Execute', ('chown', u'-R', u'ams', '/var/log/ambari-metrics-grafana'),
+                              sudo = True
+                              )
+    self.assertResourceCalled('Execute', ('chown', u'-R', u'ams', '/var/lib/ambari-metrics-grafana'),
+                              sudo = True
+                              )
+    self.assertResourceCalled('Execute', ('chown', u'-R', u'ams', '/var/run/ambari-metrics-grafana'),
+                              sudo = True
+                              )
     self.assertResourceCalled('Execute', 'ambari-sudo.sh /usr/jdk64/jdk1.7.0_45/bin/keytool -importkeystore -srckeystore /etc/security/clientKeys/all.jks -destkeystore /some_tmp_dir/truststore.p12 -deststoretype PKCS12 -srcstorepass bigdata -deststorepass bigdata',
                               )
     self.assertResourceCalled('Execute', 'ambari-sudo.sh openssl pkcs12 -in /some_tmp_dir/truststore.p12 -out /etc/ambari-metrics-grafana/conf/ca.pem -cacerts -nokeys -passin pass:bigdata',
