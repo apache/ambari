@@ -80,12 +80,15 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
                                                 Configuration metricsConf) {
     if (!isInitialized) {
       hBaseAccessor = new PhoenixHBaseAccessor(hbaseConf, metricsConf);
+      // Initialize schema
       hBaseAccessor.initMetricSchema();
       // Initialize metadata from store
       metricMetadataManager = new TimelineMetricMetadataManager(hBaseAccessor, metricsConf);
       metricMetadataManager.initializeMetadata();
-
+      // Initialize policies before TTL update
       hBaseAccessor.initPolicies();
+      // Alter TTL on tables
+      hBaseAccessor.alterMetricTableTTL();
 
       if (Boolean.parseBoolean(metricsConf.get(USE_GROUPBY_AGGREGATOR_QUERIES, "true"))) {
         LOG.info("Using group by aggregators for aggregating host and cluster metrics.");
@@ -96,7 +99,7 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
         TimelineMetricAggregatorFactory.createTimelineClusterAggregatorSecond(hBaseAccessor, metricsConf, metricMetadataManager);
       scheduleAggregatorThread(secondClusterAggregator, metricsConf);
 
-//      // Start the minute cluster aggregator
+      // Start the minute cluster aggregator
       TimelineMetricAggregator minuteClusterAggregator =
         TimelineMetricAggregatorFactory.createTimelineClusterAggregatorMinute(hBaseAccessor, metricsConf);
       scheduleAggregatorThread(minuteClusterAggregator, metricsConf);
