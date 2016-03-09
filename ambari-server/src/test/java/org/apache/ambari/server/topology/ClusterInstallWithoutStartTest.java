@@ -251,8 +251,8 @@ public class ClusterInstallWithoutStartTest {
     expect(stack.getConfiguration()).andReturn(stackConfig).anyTimes();
     expect(stack.getName()).andReturn(STACK_NAME).anyTimes();
     expect(stack.getVersion()).andReturn(STACK_VERSION).anyTimes();
-    expect(stack.getServiceForConfigType("service1-site")).andReturn("service1");
-    expect(stack.getServiceForConfigType("service2-site")).andReturn("service2");
+    expect(stack.getServiceForConfigType("service1-site")).andReturn("service1").anyTimes();
+    expect(stack.getServiceForConfigType("service2-site")).andReturn("service2").anyTimes();
     expect(stack.getExcludedConfigurationTypes("service1")).andReturn(Collections.<String>emptySet()).anyTimes();
     expect(stack.getExcludedConfigurationTypes("service2")).andReturn(Collections.<String>emptySet()).anyTimes();
 

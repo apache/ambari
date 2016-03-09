@@ -217,7 +217,7 @@ public class ClusterConfigurationRequestTest {
     expect(topology.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.NEVER_APPLY).anyTimes();
     expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(topology.getConfiguration()).andReturn(blueprintConfig).anyTimes();
-    expect(topology.getHostGroupInfo()).andReturn(Collections.<String, HostGroupInfo>emptyMap());
+    expect(topology.getHostGroupInfo()).andReturn(Collections.<String, HostGroupInfo>emptyMap()).anyTimes();
     expect(topology.getClusterId()).andReturn(Long.valueOf(1)).anyTimes();
     expect(ambariContext.getClusterName(Long.valueOf(1))).andReturn("testCluster").anyTimes();
     expect(ambariContext.createConfigurationRequests(anyObject(Map.class))).andReturn(Collections
@@ -295,7 +295,7 @@ public class ClusterConfigurationRequestTest {
     expect(topology.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.NEVER_APPLY).anyTimes();
     expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(topology.getConfiguration()).andReturn(stackConfig).anyTimes();
-    expect(topology.getHostGroupInfo()).andReturn(Collections.<String, HostGroupInfo>emptyMap());
+    expect(topology.getHostGroupInfo()).andReturn(Collections.<String, HostGroupInfo>emptyMap()).anyTimes();
     expect(topology.getClusterId()).andReturn(Long.valueOf(1)).anyTimes();
     expect(ambariContext.getClusterName(Long.valueOf(1))).andReturn("testCluster").anyTimes();
     expect(ambariContext.createConfigurationRequests(anyObject(Map.class))).andReturn(Collections
@@ -315,7 +315,7 @@ public class ClusterConfigurationRequestTest {
   }
 
   @Test
-  public void testProcessClusterConfigRequestRemoveUnusedConfigTypes() {
+  public void testProcessClusterConfigRequestRemoveUnusedConfigTypes() throws Exception {
     // GIVEN
     Configuration configuration = createConfigurations();
     Set<String> services = new HashSet<String>();
@@ -323,7 +323,7 @@ public class ClusterConfigurationRequestTest {
     services.add("RANGER");
     Map<String, HostGroupInfo> hostGroupInfoMap = Maps.newHashMap();
     HostGroupInfo hg1 = new HostGroupInfo("hg1");
-    hg1.setConfiguration(createConfigurations());
+    hg1.setConfiguration(createConfigurationsForHostGroup());
     hostGroupInfoMap.put("hg1", hg1);
 
     expect(topology.getConfiguration()).andReturn(configuration).anyTimes();
@@ -339,13 +339,57 @@ public class ClusterConfigurationRequestTest {
     // WHEN
     new ClusterConfigurationRequest(ambariContext, topology, false, stackAdvisorBlueprintProcessor);
     // THEN
-    assertFalse(configuration.getFullProperties().containsKey("yarn-site"));
-    assertFalse(configuration.getFullAttributes().containsKey("yarn-site"));
-    assertTrue(configuration.getFullAttributes().containsKey("hdfs-site"));
-    assertTrue(configuration.getFullProperties().containsKey("cluster-env"));
-    assertTrue(configuration.getFullProperties().containsKey("global"));
-    assertFalse(hg1.getConfiguration().getFullAttributes().containsKey("yarn-site"));
+    assertFalse("YARN service not present in topology config thus 'yarn-site' config type should be removed from config.", configuration.getFullProperties().containsKey("yarn-site"));
+    assertTrue("HDFS service is present in topology host group config thus 'hdfs-site' config type should be left in the config.", configuration.getFullAttributes().containsKey("hdfs-site"));
+    assertTrue("'cluster-env' config type should not be removed from configuration.", configuration.getFullProperties().containsKey("cluster-env"));
+    assertTrue("'global' config type should not be removed from configuration.", configuration.getFullProperties().containsKey("global"));
+
+    assertFalse("SPARK service not present in topology host group config thus 'spark-env' config type should be removed from config.", hg1.getConfiguration().getFullAttributes().containsKey("spark-env"));
+    assertTrue("HDFS service is present in topology host group config thus 'hdfs-site' config type should be left in the config.", hg1.getConfiguration().getFullAttributes().containsKey("hdfs-site"));
     verify(stack, blueprint, topology);
+  }
+
+  @Test
+  public void testProcessClusterConfigRequestWithOnlyHostGroupConfigRemoveUnusedConfigTypes() throws Exception {
+    // Given
+    Map<String, Map<String, String>> config = Maps.newHashMap();
+    config.put("cluster-env", new HashMap<String, String>());
+    config.put("global", new HashMap<String, String>());
+    Map<String, Map<String, Map<String, String>>> attributes = Maps.newHashMap();
+
+    Configuration configuration = new Configuration(config, attributes);
+
+    Set<String> services = new HashSet<>();
+    services.add("HDFS");
+    services.add("RANGER");
+    Map<String, HostGroupInfo> hostGroupInfoMap = Maps.newHashMap();
+    HostGroupInfo hg1 = new HostGroupInfo("hg1");
+    hg1.setConfiguration(createConfigurationsForHostGroup());
+    hostGroupInfoMap.put("hg1", hg1);
+
+    expect(topology.getConfiguration()).andReturn(configuration).anyTimes();
+    expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
+    expect(topology.getHostGroupInfo()).andReturn(hostGroupInfoMap);
+    expect(blueprint.getStack()).andReturn(stack).anyTimes();
+    expect(blueprint.getServices()).andReturn(services).anyTimes();
+    expect(stack.getServiceForConfigType("hdfs-site")).andReturn("HDFS").anyTimes();
+    expect(stack.getServiceForConfigType("admin-properties")).andReturn("RANGER").anyTimes();
+    expect(stack.getServiceForConfigType("yarn-site")).andReturn("YARN").anyTimes();
+
+    EasyMock.replay(stack, blueprint, topology);
+
+    // When
+
+    new ClusterConfigurationRequest(ambariContext, topology, false, stackAdvisorBlueprintProcessor);
+
+    // Then
+    assertTrue("'cluster-env' config type should not be removed from configuration.", configuration.getFullProperties().containsKey("cluster-env"));
+    assertTrue("'global' config type should not be removed from configuration.", configuration.getFullProperties().containsKey("global"));
+
+    assertFalse("SPARK service not present in topology host group config thus 'spark-env' config type should be removed from config.", hg1.getConfiguration().getFullAttributes().containsKey("spark-env"));
+    assertTrue("HDFS service is present in topology host group config thus 'hdfs-site' config type should be left in the config.", hg1.getConfiguration().getFullAttributes().containsKey("hdfs-site"));
+    verify(stack, blueprint, topology);
+
   }
 
   private Configuration createConfigurations() {
@@ -362,9 +406,31 @@ public class ClusterConfigurationRequestTest {
     secondLevelConfig.put("admin-properties", new HashMap<String, String>());
     Map<String, Map<String, Map<String, String>>> secondLevelAttributes = Maps.newHashMap();
     secondLevelAttributes.put("admin-properties", new HashMap<String, Map<String, String>>());
-    secondLevelAttributes.put("yarn-site", new HashMap<String, Map<String, String>>());
+
 
     Configuration secondLevelConf = new Configuration(secondLevelConfig, secondLevelAttributes);
     return new Configuration(firstLevelConfig, firstLevelAttributes, secondLevelConf);
   }
+
+  private Configuration createConfigurationsForHostGroup() {
+    Map<String, Map<String, String>> firstLevelConfig = Maps.newHashMap();
+    firstLevelConfig.put("hdfs-site", new HashMap<String, String>());
+    firstLevelConfig.put("spark-env", new HashMap<String, String>());
+    firstLevelConfig.put("cluster-env", new HashMap<String, String>());
+    firstLevelConfig.put("global", new HashMap<String, String>());
+
+    Map<String, Map<String, Map<String, String>>> firstLevelAttributes = Maps.newHashMap();
+    firstLevelAttributes.put("hdfs-site", new HashMap<String, Map<String, String>>());
+
+    Map<String, Map<String, String>> secondLevelConfig = Maps.newHashMap();
+    secondLevelConfig.put("admin-properties", new HashMap<String, String>());
+    Map<String, Map<String, Map<String, String>>> secondLevelAttributes = Maps.newHashMap();
+    secondLevelAttributes.put("admin-properties", new HashMap<String, Map<String, String>>());
+
+
+    Configuration secondLevelConf = new Configuration(secondLevelConfig, secondLevelAttributes);
+    return new Configuration(firstLevelConfig, firstLevelAttributes, secondLevelConf);
+  }
+
+
 }

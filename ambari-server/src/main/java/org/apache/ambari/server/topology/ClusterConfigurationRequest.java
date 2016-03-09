@@ -75,7 +75,7 @@ public class ClusterConfigurationRequest {
     // set initial configuration (not topology resolved)
     this.configurationProcessor = new BlueprintConfigurationProcessor(clusterTopology);
     this.stackAdvisorBlueprintProcessor = stackAdvisorBlueprintProcessor;
-    removeOrphanConfigTypes(clusterTopology);
+    removeOrphanConfigTypes();
     if (setInitial) {
       setConfigurationsOnCluster(clusterTopology, TopologyManager.INITIAL_CONFIG_TAG, Collections.<String>emptySet());
     }
@@ -84,24 +84,35 @@ public class ClusterConfigurationRequest {
   /**
    * Remove config-types, if there is no any services related to them (except cluster-env and global).
    */
-  private void removeOrphanConfigTypes(ClusterTopology clusterTopology) {
+  private void removeOrphanConfigTypes() {
     Configuration configuration = clusterTopology.getConfiguration();
+    removeOrphanConfigTypes(configuration);
+
+    Map<String, HostGroupInfo> hostGroupInfoMap = clusterTopology.getHostGroupInfo();
+    if (MapUtils.isNotEmpty(hostGroupInfoMap)) {
+      for (Map.Entry<String, HostGroupInfo> hostGroupInfo : hostGroupInfoMap.entrySet()) {
+        configuration = hostGroupInfo.getValue().getConfiguration();
+
+        if (configuration != null) {
+          removeOrphanConfigTypes(configuration);
+        }
+      }
+    }
+  }
+
+  /**
+   * Remove config-types from the given configuration if there is no any services related to them (except cluster-env and global).
+   */
+  private void removeOrphanConfigTypes(Configuration configuration) {
+    Blueprint blueprint = clusterTopology.getBlueprint();
+
     Collection<String> configTypes = configuration.getAllConfigTypes();
     for (String configType : configTypes) {
-      if (!configType.equals("cluster-env") && !configType.equals("global")) {
-        String service = clusterTopology.getBlueprint().getStack().getServiceForConfigType(configType);
-        if (!clusterTopology.getBlueprint().getServices().contains(service)) {
+      if (!"cluster-env".equals(configType) && !"global".equals(configType)) {
+        String service = blueprint.getStack().getServiceForConfigType(configType);
+        if (!blueprint.getServices().contains(service)) {
           configuration.removeConfigType(configType);
-          LOG.info("Not found any service for config type '{}'. It will be removed from configuration.", configType);
-          Map<String, HostGroupInfo> hostGroupInfoMap = clusterTopology.getHostGroupInfo();
-          if (MapUtils.isNotEmpty(hostGroupInfoMap)) {
-            for (Map.Entry<String, HostGroupInfo> hostGroupInfo : hostGroupInfoMap.entrySet()) {
-              if (hostGroupInfo.getValue().getConfiguration() != null) {
-                hostGroupInfo.getValue().getConfiguration().removeConfigType(configType);
-                LOG.info("Not found any service for config type '{}'. It will be removed from host group scoped configuration.", configType);
-              }
-            }
-          }
+          LOG.info("Removing config type '{}' as service '{}' is not present in either Blueprint or cluster creation template.", configType, service);
         }
       }
     }
