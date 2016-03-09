@@ -17,9 +17,9 @@
 }}
 <div>
   {{#if view.property.badge}}
-    <div class="span2 badge-container"><span {{bindAttr class="view.property.badgeCssClass :alert-threshold-badge :alert-state-single-host :label"}}>{{view.property.badge}}</span>&nbsp;</div>
+    <div class="stuck-left span2 badge-container"><span {{bindAttr class="view.property.badgeCssClass :alert-threshold-badge :alert-state-single-host :label"}}>{{view.property.badge}}</span>&nbsp;</div>
   {{/if}}
-  <div {{bindAttr class=":span5 view.property.unit:input-append"}}>
+  <div {{bindAttr class=":span5 view.property.unit:input-append view.property.stuckLeft:stuck-left"}}>
     {{view Em.TextField valueBinding="view.property.value" disabledBinding="view.property.isDisabled"}}
     {{#if view.property.unit}}
       <span class="add-on">{{view.property.unit}}</span>

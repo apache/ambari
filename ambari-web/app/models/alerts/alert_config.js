@@ -237,6 +237,7 @@ App.AlertConfigProperties = {
     displayType: 'textField',
     unit: 'Minute',
     classNames: 'alert-interval-input',
+    stuckLeft: true,
     apiProperty: 'interval',
     isValid: function () {
       var value = this.get('value');
