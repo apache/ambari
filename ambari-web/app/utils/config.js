@@ -965,12 +965,15 @@ App.config = Em.Object.create({
       if (!t.get('isAdvanced') && t.get('serviceName') === serviceName) {
         t.get('sections').forEach(function (s) {
           s.get('subSections').forEach(function (ss) {
-            properties = properties.concat(ss.get('configProperties'));
+            var configIds = ss.get('configProperties').map(function(p) {
+              return App.config.configId(p.get('name'), p.get('filename'));
+            });
+            properties = properties.concat(configIds);
           });
         });
       }
     }, this);
-    return properties.mapProperty('id');
+    return properties;
   },
 
   /**
