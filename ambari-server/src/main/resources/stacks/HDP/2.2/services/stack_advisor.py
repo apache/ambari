@@ -493,8 +493,10 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
         putHiveSitePropertyAttribute("hive.server2.authentication.ldap.url", "delete", "true")
 
     if hive_server2_auth == "kerberos":
-      putHiveSiteProperty("hive.server2.authentication.kerberos.keytab", "")
-      putHiveSiteProperty("hive.server2.authentication.kerberos.principal", "")
+      if "hive-site" in services["configurations"] and "hive.server2.authentication.kerberos.keytab" not in services["configurations"]["hive-site"]["properties"]:
+        putHiveSiteProperty("hive.server2.authentication.kerberos.keytab", "")
+      if "hive-site" in services["configurations"] and "hive.server2.authentication.kerberos.principal" not in services["configurations"]["hive-site"]["properties"]:
+        putHiveSiteProperty("hive.server2.authentication.kerberos.principal", "")
     elif "KERBEROS" not in servicesList: # Since 'hive_server2_auth' cannot be relied on within the default, empty recommendations request
       if ("hive.server2.authentication.kerberos.keytab" in configurations["hive-site"]["properties"]) or \
               ("hive-site" not in services["configurations"]) or \
