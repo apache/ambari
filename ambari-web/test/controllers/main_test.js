@@ -144,19 +144,13 @@ describe('App.MainController', function () {
 
   describe('#updateTitle', function() {
     beforeEach(function () {
-      sinon.stub(App.router, 'get', function(message){
-        if (message === 'clusterController.clusterName') {
-          return 'c1';
-        } else if (message === 'clusterInstallCompleted') {
-          return true;
-        } else if (message === 'clusterController') {
-          return {
-            get: function() {
-              return true;
-            }
-          };
-        }
-      });
+      sinon.stub(App.router, 'get').withArgs('clusterController.clusterName').returns('c1')
+        .withArgs('clusterInstallCompleted').returns(true)
+        .withArgs('clusterController').returns({
+          get: function() {
+            return true;
+          }
+        });
     });
     afterEach(function () {
       App.router.get.restore();
