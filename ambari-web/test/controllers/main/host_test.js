@@ -370,9 +370,9 @@ describe('MainHostController', function () {
         componentName: 'C1'
       }));
       expect(App.db.setFilterConditions.calledWith('ctrl1', [{
-        iColumn: 6,
-        value: ['C1'],
-        type: 'multiple'
+        iColumn: 15,
+        value: 'C1:ALL',
+        type: 'string'
       }])).to.be.true;
     });
   });

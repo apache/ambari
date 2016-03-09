@@ -92,7 +92,7 @@ App.MainHostComboSearchBoxController = Em.Controller.extend({
         ex = ex.replace('{1}', v);
         result += ex;
       }
-      result += '&';
+      result += '|';
     }
 
     return result.substring(0, result.length - 1);

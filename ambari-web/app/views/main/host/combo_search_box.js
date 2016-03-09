@@ -39,7 +39,8 @@ App.MainHostComboSearchBoxView = Em.View.extend({
       var displayName = component.get('displayName');
       var name = component.get('componentName');
       if (displayName != null && !controller.isClientComponent(name)) {
-        hostComponentList.push({label: displayName, value: name, category: 'Component'});
+        hostComponentList.push({label: displayName, category: 'Component'});
+        App.router.get('mainHostController.labelValueMap')[displayName] = name;
       }
     });
     return hostComponentList;
@@ -50,9 +51,9 @@ App.MainHostComboSearchBoxView = Em.View.extend({
       hostComponentList = this.getHostComponentList();
     }
     var currentComponentFacets = visualSearch.searchQuery.toJSON().filter(function (facet) {
-      var result = !!(hostComponentList.findProperty('value', facet.category) && facet.value);
+      var result = !!(hostComponentList.findProperty('label', facet.category) && facet.value);
       if (!includeAllValue) {
-        result &= (facet.value != 'ALL');
+        result &= (facet.value != 'All');
       }
       return result;
     });
@@ -79,16 +80,27 @@ App.MainHostComboSearchBoxView = Em.View.extend({
 
         facetMatches: function (callback) {
           var list = [
-            {label: 'Host Name', value: 'hostName', category: 'Host'},
-            {label: 'IP', value: 'ip', category: 'Host'},
-            {label: 'Heath Status', value: 'healthClass', category: 'Host'},
-            {label: 'Cores', value: 'cpu', category: 'Host'},
-            {label: 'RAM', value: 'memoryFormatted', category: 'Host'},
-            {label: 'Stack Version', value: 'version', category: 'Host'},
-            {label: 'Version State', value: 'versionState', category: 'Host'},
-            {label: 'Rack', value: 'rack', category: 'Host'},
-            {label: 'Service', value: 'services', category: 'Service'},
+            {label: 'Host Name', category: 'Host'},
+            {label: 'IP', category: 'Host'},
+            {label: 'Heath Status', category: 'Host'},
+            {label: 'Cores', category: 'Host'},
+            {label: 'RAM', category: 'Host'},
+            {label: 'Stack Version', category: 'Host'},
+            {label: 'Version State', category: 'Host'},
+            {label: 'Rack', category: 'Host'},
+            {label: 'Service', category: 'Service'}
           ];
+          var map = App.router.get('mainHostController.labelValueMap');
+          map['Host Name'] = 'hostName';
+          map['IP'] = 'ip';
+          map['Heath Status'] = 'healthClass';
+          map['Cores'] = 'cpu';
+          map['RAM'] = 'memoryFormatted';
+          map['Stack Version'] = 'version';
+          map['Version State'] = 'versionState';
+          map['Rack'] = 'rack';
+          map['Service'] = 'services';
+
           var hostComponentList = self.getHostComponentList();
           // Add host component facets only when there isn't any component filter
           // with value other than ALL yet
@@ -101,13 +113,15 @@ App.MainHostComboSearchBoxView = Em.View.extend({
         },
 
         valueMatches: function (facet, searchTerm, callback) {
-          if (controller.isComponentStateFacet(facet)) {
-            facet = 'componentState'
+          var map = App.router.get('mainHostController.labelValueMap');
+          var facetValue = map[facet] || facet;
+          if (controller.isComponentStateFacet(facetValue)) {
+            facetValue = 'componentState'
           }
-          switch (facet) {
+          switch (facetValue) {
             case 'hostName':
             case 'ip':
-              controller.getPropertySuggestions(facet, searchTerm).done(function() {
+              controller.getPropertySuggestions(facetValue, searchTerm).done(function() {
                 callback(controller.get('currentSuggestion').reject(function (item) {
                   return visualSearch.searchQuery.values(facet).indexOf(item) >= 0; // reject the ones already in search
                 }), {preserveMatches: true});
@@ -126,7 +140,8 @@ App.MainHostComboSearchBoxView = Em.View.extend({
               break;
             case 'versionState':
               callback(App.HostStackVersion.statusDefinition.map(function (status) {
-                return {label: App.HostStackVersion.formatStatus(status), value: status};
+                map[App.HostStackVersion.formatStatus(status)] = status;
+                return App.HostStackVersion.formatStatus(status);
               }).reject(function (item) {
                 return visualSearch.searchQuery.values(facet).indexOf(item.value) >= 0;
               }));
@@ -134,32 +149,42 @@ App.MainHostComboSearchBoxView = Em.View.extend({
             case 'healthClass':
               var category_mocks = require('data/host/categories');
               callback(category_mocks.slice(1).map(function (category) {
-                return {label: category.value, value: category.healthStatus}
+                map[category.value] = category.healthStatus;
+                return category.value;
               }).reject(function (item) {
                 return visualSearch.searchQuery.values(facet).indexOf(item.value) >= 0;
               }), {preserveOrder: true});
               break;
             case 'services':
               callback(App.Service.find().toArray().map(function (service) {
-                return {label: App.format.role(service.get('serviceName')), value: service.get('serviceName')};
+                map[App.format.role(service.get('serviceName'))] = service.get('serviceName');
+                return App.format.role(service.get('serviceName'));
               }).reject(function (item) {
                 return visualSearch.searchQuery.values(facet).indexOf(item.value) >= 0;
               }), {preserveOrder: true});
               break;
             case 'componentState':
-              var list = [{label: "All", value: "ALL"}];
+              var list = [ "All" ];
+              map['All'] = 'ALL';
               var currentComponentFacets = self.getComponentStateFacets(null, true);
               if (currentComponentFacets.length == 0) {
                 list = list.concat(App.HostComponentStatus.getStatusesList().map(function (status) {
-                  return {label: App.HostComponentStatus.getTextStatus(status), value: status};
+                  map[App.HostComponentStatus.getTextStatus(status)] = status;
+                  return App.HostComponentStatus.getTextStatus(status);
                 })).concat([
-                    {label: "Inservice", value: "INSERVICE"},
-                    {label: "Decommissioned", value: "DECOMMISSIONED"},
-                    {label: "Decommissioning", value: "DECOMMISSIONING"},
-                    {label: "RS Decommissioned", value: "RS_DECOMMISSIONED"},
-                    {label: "Maintenance Mode On", value: "ON"},
-                    {label: "Maintenance Mode Off", value: "OFF"}
+                    "Inservice",
+                    "Decommissioned",
+                    "Decommissioning",
+                    "RS Decommissioned",
+                    "Maintenance Mode On",
+                    "Maintenance Mode Off"
                 ]);
+                map['Inservice'] = 'INSERVICE';
+                map['Decommissioned'] = 'DECOMMISSIONED';
+                map['Decommissioning'] = 'DECOMMISSIONING';
+                map['RS Decommissioned'] = 'RS_DECOMMISSIONED';
+                map['Maintenance Mode On'] = 'ON';
+                map['Maintenance Mode Off'] = 'OFF';
               }
               callback(list, {preserveOrder: true});
               break;

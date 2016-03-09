@@ -95,10 +95,13 @@ App.TableServerViewMixin = Em.Mixin.create({
     this.set('filterConditions', []);
     searchCollection.models.forEach(function (model) {
       var tag = model.attributes;
-      var isComponentState = comboController.isComponentStateFacet(tag.category);
-      var iColumn = App.router.get('mainHostController').get('colPropAssoc').indexOf(isComponentState? 'componentState' : tag.category);
+      var map = App.router.get('mainHostController.labelValueMap');
+      var category = map[tag.category] || tag.category;
+      var value = map[tag.value] || tag.value;
+      var isComponentState = comboController.isComponentStateFacet(category);
+      var iColumn = App.router.get('mainHostController').get('colPropAssoc').indexOf(isComponentState? 'componentState' : category);
       var filterCondition = self.get('filterConditions').findProperty('iColumn', iColumn);
-      var filterValue = isComponentState? (tag.category + ':' + tag.value) : tag.value;
+      var filterValue = isComponentState? (category + ':' + value) : value;
       if (filterCondition) {
         if (typeof filterCondition.value == 'string') {
           filterCondition.value = [filterCondition.value, filterValue];
@@ -107,10 +110,10 @@ App.TableServerViewMixin = Em.Mixin.create({
         }
       } else {
         var type = 'string';
-        if (tag.category === 'cpu') {
+        if (category === 'cpu') {
           type = 'number';
         }
-        if (tag.category === 'memoryFormatted') {
+        if (category === 'memoryFormatted') {
           type = 'ambari-bandwidth';
         }
         filterCondition = {

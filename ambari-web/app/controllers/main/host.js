@@ -494,23 +494,29 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
     return result;
   },
 
+  labelValueMap: {},
+
   /**
    * Filter hosts by componentName of <code>component</code>
    * @param {App.HostComponent} component
    */
   filterByComponent: function (component) {
     if (!component) return;
-    var id = component.get('componentName');
-    var column = 6;
+    var componentName = component.get('componentName');
+    var displayName = App.format.role(componentName);
     var colPropAssoc = this.get('colPropAssoc');
+    var map = this.get('labelValueMap');
 
     var filterForComponent = {
-      iColumn: column,
-      value: [id],
-      type: 'multiple'
+      iColumn: 15,
+      value: componentName + ':ALL',
+      type: 'string'
     };
+    map[displayName] = componentName;
+    map['All'] = 'ALL';
+    var filterStr = '"' + displayName + '"' + ': "All"';
     App.db.setFilterConditions(this.get('name'), [filterForComponent]);
-    App.db.setComboSearchQuery(this.get('name'), colPropAssoc[column] + ': ' + '"' + id + '"');
+    App.db.setComboSearchQuery(this.get('name'), filterStr);
   },
 
   /**
@@ -521,6 +527,7 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
   filterByStack: function (displayName, state) {
     if (!displayName || !state) return;
     var colPropAssoc = this.get('colPropAssoc');
+    var map = this.get('labelValueMap');
 
     var versionFilter = {
       iColumn: 16,
@@ -532,8 +539,11 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
       value: state.toUpperCase(),
       type: 'string'
     };
-    var versionFilterStr = colPropAssoc[versionFilter.iColumn] + ': ' + '"' + versionFilter.value + '"';
-    var stateFilterStr = colPropAssoc[stateFilter.iColumn] + ': ' + '"' + stateFilter.value + '"';
+    map["Stack Version"] = colPropAssoc[versionFilter.iColumn];
+    map["Version State"] = colPropAssoc[stateFilter.iColumn];
+    map[App.HostStackVersion.formatStatus(stateFilter.value)] = stateFilter.value;
+    var versionFilterStr = '"Stack Version": "' + versionFilter.value + '"';
+    var stateFilterStr = '"Version State": "' + App.HostStackVersion.formatStatus(stateFilter.value) + '"';
     App.db.setFilterConditions(this.get('name'), [versionFilter, stateFilter]);
     App.db.setComboSearchQuery(this.get('name'), [versionFilterStr, stateFilterStr].join(' '));
   },
