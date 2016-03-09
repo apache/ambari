@@ -887,10 +887,10 @@ computed.percents = function (dependentKey1, dependentKey2, accuracy) {
  * @param {string} dependentKey
  * @returns {Ember.ComputedProperty}
  */
-computed.formatRole = function (dependentKey) {
+computed.formatRole = function (dependentKey, level) {
   return computed(dependentKey, function () {
     var value = get(this, dependentKey);
-    return App.format.role(value);
+    return App.format.role(value, level);
   });
 };
 

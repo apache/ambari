@@ -535,8 +535,17 @@ App.format = {
    * @param {string} role
    * return {string}
    */
-  role: function (role) {
-    var models = [App.StackService, App.StackServiceComponent];
+  role: function (role, level) {
+    switch (level) {
+      case 'SERVICE':
+        var models = [App.StackService];
+        break;
+      case 'COMPONENT':
+        var models = [App.StackServiceComponent];
+        break;
+      default:
+        var models = [App.StackService, App.StackServiceComponent];
+    }
 
     if (App.isEmptyObject(this.stackRolesMap)) {
       models.forEach(function (model) {
