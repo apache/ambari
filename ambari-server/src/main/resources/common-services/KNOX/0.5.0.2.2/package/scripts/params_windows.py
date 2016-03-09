@@ -25,7 +25,7 @@ from status_params import *
 # server configurations
 config = Script.get_config()
 
-hdp_root = None
+stack_root = None
 knox_home = None
 knox_conf_dir = None
 knox_logs_dir = None
@@ -38,7 +38,7 @@ knox_master_secret_path = None
 knox_cert_store_path = None
 
 try:
-  hdp_root = os.path.abspath(os.path.join(os.environ["HADOOP_HOME"],".."))
+  stack_root = os.path.abspath(os.path.join(os.environ["HADOOP_HOME"],".."))
   knox_home = os.environ['KNOX_HOME']
   knox_conf_dir = os.environ['KNOX_CONF_DIR']
   knox_logs_dir = os.environ['KNOX_LOG_DIR']

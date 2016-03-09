@@ -34,10 +34,10 @@ def setup_ranger_hdfs(upgrade_type=None):
     else:
       from resource_management.libraries.functions.setup_ranger_plugin import setup_ranger_plugin
 
-    hdp_version = None
+    stack_version = None
 
     if upgrade_type is not None:
-      hdp_version = params.version
+      stack_version = params.version
 
     if params.retryAble:
       Logger.info("HDFS: Setup ranger: command retry enables thus retrying if ranger admin is down !")
@@ -58,11 +58,11 @@ def setup_ranger_hdfs(upgrade_type=None):
                         component_list=['hadoop-client'], audit_db_is_enabled=params.xa_audit_db_is_enabled,
                         credential_file=params.credential_file, xa_audit_db_password=params.xa_audit_db_password, 
                         ssl_truststore_password=params.ssl_truststore_password, ssl_keystore_password=params.ssl_keystore_password,
-                        hdp_version_override = hdp_version, skip_if_rangeradmin_down= not params.retryAble)
+                        stack_version_override = stack_version, skip_if_rangeradmin_down= not params.retryAble)
 
-    if hdp_version and params.upgrade_direction == Direction.UPGRADE:
+    if stack_version and params.upgrade_direction == Direction.UPGRADE:
       # when upgrading to 2.3+, this env file must be removed
-      if compare_versions(hdp_version, '2.3', format=True) > 0:
+      if compare_versions(stack_version, '2.3', format=True) > 0:
         source_file = os.path.join(params.hadoop_conf_dir, 'set-hdfs-plugin-env.sh')
         target_file = source_file + ".bak"
         Execute(("mv", source_file, target_file), sudo=True, only_if=format("test -f {source_file}"))

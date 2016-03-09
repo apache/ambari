@@ -27,7 +27,7 @@ from ambari_commons import OSConst
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def hcat_service_check():
   import params
-  smoke_cmd = os.path.join(params.hdp_root, "Run-SmokeTests.cmd")
+  smoke_cmd = os.path.join(params.stack_root, "Run-SmokeTests.cmd")
   service = "HCatalog"
   Execute(format("cmd /C {smoke_cmd} {service}"), user=params.hcat_user, logoutput=True)
 

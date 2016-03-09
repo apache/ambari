@@ -37,7 +37,7 @@ class HiveServiceCheckWindows(HiveServiceCheck):
   def service_check(self, env):
     import params
     env.set_params(params)
-    smoke_cmd = os.path.join(params.hdp_root,"Run-SmokeTests.cmd")
+    smoke_cmd = os.path.join(params.stack_root,"Run-SmokeTests.cmd")
     service = "HIVE"
     Execute(format("cmd /C {smoke_cmd} {service}"), user=params.hive_user, logoutput=True)
 

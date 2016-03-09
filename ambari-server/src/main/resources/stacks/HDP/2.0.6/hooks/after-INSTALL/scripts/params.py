@@ -49,7 +49,7 @@ if Script.is_stack_greater_or_equal("2.2"):
   # not supported in HDP 2.2+
   hadoop_conf_empty_dir = None
 
-versioned_hdp_root = '/usr/hdp/current'
+versioned_stack_root = '/usr/hdp/current'
 
 #security params
 security_enabled = config['configurations']['cluster-env']['security_enabled']

@@ -121,7 +121,7 @@ def _get_current_hiveserver_version():
     if formatted_source_version and compare_versions(formatted_source_version, "2.2") >= 0:
       version_hive_bin = format('/usr/hdp/{source_version}/hive/bin')
     command = format('{version_hive_bin}/hive --version')
-    return_code, hdp_output = shell.call(command, user=params.hive_user, path=hive_execute_path)
+    return_code, output = shell.call(command, user=params.hive_user, path=hive_execute_path)
   except Exception, e:
     Logger.error(str(e))
     raise Fail('Unable to execute hive --version command to retrieve the hiveserver2 version.')
@@ -129,12 +129,12 @@ def _get_current_hiveserver_version():
   if return_code != 0:
     raise Fail('Unable to determine the current HiveServer2 version because of a non-zero return code of {0}'.format(str(return_code)))
 
-  match = re.search('^(Hive) ([0-9]+.[0-9]+.\S+)', hdp_output, re.MULTILINE)
+  match = re.search('^(Hive) ([0-9]+.[0-9]+.\S+)', output, re.MULTILINE)
 
   if match:
     current_hive_server_version = match.group(2)
     return current_hive_server_version
   else:
-    raise Fail('The extracted hiveserver2 version "{0}" does not matching any known pattern'.format(hdp_output))
+    raise Fail('The extracted hiveserver2 version "{0}" does not matching any known pattern'.format(output))
 
 

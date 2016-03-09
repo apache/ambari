@@ -109,8 +109,8 @@ def server_process_main(options, scmStatus=None):
 
   #Ensure the 3 Hadoop services required are started on the local machine
   if not options.no_embedded_hbase:
-    from amc_service import ensure_hdp_service_soft_dependencies
-    ensure_hdp_service_soft_dependencies()
+    from amc_service import ensure_hadoop_service_soft_dependencies
+    ensure_hadoop_service_soft_dependencies()
 
   if scmStatus is not None:
     scmStatus.reportStartPending()

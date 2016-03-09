@@ -19,7 +19,7 @@ limitations under the License.
 import os
 from resource_management import *
 
-def setup_hdp_install_directory():
+def setup_install_directory():
   import params
   if params.rpm_version:
     Execute(format('ambari-python-wrap /usr/bin/bigtop-select set all `ambari-python-wrap /usr/bin/bigtop-select versions | grep ^{rpm_version}- | tail -1`'),

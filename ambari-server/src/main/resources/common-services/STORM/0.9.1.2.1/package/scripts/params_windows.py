@@ -27,7 +27,7 @@ config = Script.get_config()
 
 stack_is_hdp23_or_further = Script.is_stack_greater_or_equal("2.3")
 
-hdp_root = os.path.abspath(os.path.join(os.environ["HADOOP_HOME"],".."))
+stack_root = os.path.abspath(os.path.join(os.environ["HADOOP_HOME"],".."))
 conf_dir = os.environ["STORM_CONF_DIR"]
 hadoop_user = config["configurations"]["cluster-env"]["hadoop.user.name"]
 storm_user = hadoop_user

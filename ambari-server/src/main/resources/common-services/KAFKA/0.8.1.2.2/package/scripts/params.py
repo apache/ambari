@@ -248,8 +248,8 @@ if has_ranger_admin and is_supported_kafka_ranger:
   ssl_truststore_password = unicode(config['configurations']['ranger-kafka-policymgr-ssl']['xasecure.policymgr.clientssl.truststore.password']) if xml_configurations_supported else None
   credential_file = format('/etc/ranger/{repo_name}/cred.jceks') if xml_configurations_supported else None
 
-  hdp_version = get_stack_version('kafka-broker')
-  setup_ranger_env_sh_source = format('/usr/hdp/{hdp_version}/ranger-kafka-plugin/install/conf.templates/enable/kafka-ranger-env.sh')
+  stack_version = get_stack_version('kafka-broker')
+  setup_ranger_env_sh_source = format('/usr/hdp/{stack_version}/ranger-kafka-plugin/install/conf.templates/enable/kafka-ranger-env.sh')
   setup_ranger_env_sh_target = format("{conf_dir}/kafka-ranger-env.sh")
 
   #For SQLA explicitly disable audit to DB for Ranger

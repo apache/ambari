@@ -37,10 +37,10 @@ PERCENT_USED_WARNING_DEFAULT = 50
 PERCENT_USED_CRITICAL_DEFAULT = 80
 
 # the location where HDP installs components when using HDP 2.2+
-HDP_HOME_DIR = "/usr/hdp"
+STACK_HOME_DIR = "/usr/hdp"
 
 # the location where HDP installs components when using HDP 2.0 to 2.1
-HDP_HOME_LEGACY_DIR = "/usr/lib"
+STACK_HOME_LEGACY_DIR = "/usr/lib"
 
 def get_tokens():
   """
@@ -66,14 +66,14 @@ def execute(configurations={}, parameters={}, host_name=None):
   """
 
   # determine the location of HDP home
-  hdp_home = None
-  if os.path.isdir(HDP_HOME_DIR):
-    hdp_home = HDP_HOME_DIR
-  elif os.path.isdir(HDP_HOME_LEGACY_DIR):
-    hdp_home = HDP_HOME_LEGACY_DIR
+  stack_home = None
+  if os.path.isdir(STACK_HOME_DIR):
+    stack_home = STACK_HOME_DIR
+  elif os.path.isdir(STACK_HOME_LEGACY_DIR):
+    stack_home = STACK_HOME_LEGACY_DIR
 
-  # if hdp home was found, use it; otherwise default to None
-  path = hdp_home if hdp_home is not None else None
+  # if stack home was found, use it; otherwise default to None
+  path = stack_home if stack_home is not None else None
 
   try:
     disk_usage = _get_disk_usage(path)

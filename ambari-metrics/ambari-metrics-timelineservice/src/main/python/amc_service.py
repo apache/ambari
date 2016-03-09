@@ -165,7 +165,7 @@ def init_service_debug(options):
     sys.frozen = 'windows_exe'  # Fake py2exe so we can debug
 
 
-def ensure_hdp_service_soft_dependencies():
+def ensure_hadoop_service_soft_dependencies():
   if SERVICE_STATUS_RUNNING != WinServiceController.QueryStatus(EMBEDDED_HBASE_MASTER_SERVICE):
     err = 'ERROR: Service "{0}" was not started.'.format(EMBEDDED_HBASE_MASTER_SERVICE)
     raise FatalException(1, err)

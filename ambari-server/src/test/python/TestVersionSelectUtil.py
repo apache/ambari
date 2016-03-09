@@ -39,7 +39,7 @@ class TestVersionSelectUtil(TestCase):
   @patch('__builtin__.open')
   @patch("resource_management.core.shell.call")
   def test_get_component_version(self, call_mock, open_mock):
-    hdp_expected_version = "2.2.1.0-2175"
+    stack_expected_version = "2.2.1.0-2175"
 
     # Mock classes for reading from a file
     class MagicFile(object):
@@ -49,7 +49,7 @@ class TestVersionSelectUtil(TestCase):
                            "zookeeper-client"
                            ])
       def read(self, value):
-        return (value + " - " + hdp_expected_version) if value in self.allowed_names else ("ERROR: Invalid package - " + value)
+        return (value + " - " + stack_expected_version) if value in self.allowed_names else ("ERROR: Invalid package - " + value)
 
       def __exit__(self, exc_type, exc_val, exc_tb):
         pass
@@ -88,6 +88,6 @@ class TestVersionSelectUtil(TestCase):
 
     # Pass
     version = self.module.get_component_version("HDP", "hadoop-hdfs-namenode")
-    self.assertEquals(version, hdp_expected_version)
+    self.assertEquals(version, stack_expected_version)
     version = self.module.get_component_version("HDP", "hadoop-hdfs-datanode")
-    self.assertEquals(version, hdp_expected_version)
+    self.assertEquals(version, stack_expected_version)

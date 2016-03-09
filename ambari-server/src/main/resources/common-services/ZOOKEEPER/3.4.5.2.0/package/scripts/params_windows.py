@@ -26,11 +26,11 @@ import status_params
 config = Script.get_config()
 
 config_dir = None
-hdp_root = None
+stack_root = None
 try:
   # not used zookeeper_home_dir = os.environ["ZOOKEEPER_HOME"]
   config_dir = os.environ["ZOOKEEPER_CONF_DIR"]
-  hdp_root = os.environ["HADOOP_NODE_INSTALL_ROOT"]
+  stack_root = os.environ["HADOOP_NODE_INSTALL_ROOT"]
 except:
   pass
 

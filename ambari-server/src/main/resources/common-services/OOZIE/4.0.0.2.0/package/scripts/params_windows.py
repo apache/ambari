@@ -24,7 +24,7 @@ from status_params import *
 config = Script.get_config()
 
 hadoop_user = config["configurations"]["cluster-env"]["hadoop.user.name"]
-hdp_root = os.path.abspath(os.path.join(os.environ["HADOOP_HOME"], ".."))
+stack_root = os.path.abspath(os.path.join(os.environ["HADOOP_HOME"], ".."))
 oozie_root = os.environ['OOZIE_ROOT']
 oozie_home = os.environ['OOZIE_HOME']
 oozie_conf_dir = os.path.join(oozie_home,'conf')

@@ -36,9 +36,9 @@ except KeyError:
 
 stack_version_formatted = ""
 
-hdp_root = None
+stack_root = None
 try:
-  hdp_root = os.path.abspath(os.path.join(os.environ["HADOOP_HOME"], ".."))
+  stack_root = os.path.abspath(os.path.join(os.environ["HADOOP_HOME"], ".."))
 except:
   pass
 

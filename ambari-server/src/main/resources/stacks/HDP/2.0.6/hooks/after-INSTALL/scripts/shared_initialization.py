@@ -28,7 +28,7 @@ from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.libraries.script import Script
 
 
-def setup_hdp_symlinks():
+def setup_stack_symlinks():
   """
   Invokes hdp-select set all against a calculated fully-qualified, "normalized" version based on a
   stack version, such as "2.3". This should always be called after a component has been

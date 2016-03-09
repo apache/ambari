@@ -26,7 +26,7 @@ config = Script.get_config()
 
 hadoop_user = config["configurations"]["cluster-env"]["hadoop.user.name"]
 
-hdp_root = os.path.abspath(os.path.join(os.environ["HADOOP_HOME"],".."))
+stack_root = os.path.abspath(os.path.join(os.environ["HADOOP_HOME"],".."))
 flume_home = os.environ['FLUME_HOME']
 flume_conf_dir = os.path.join(flume_home, 'conf')
 flume_user = hadoop_user
