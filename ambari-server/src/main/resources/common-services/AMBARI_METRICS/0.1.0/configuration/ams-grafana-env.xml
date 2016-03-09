@@ -40,7 +40,7 @@
   <property>
     <name>metrics_grafana_username</name>
     <value>admin</value>
-    <display-name>Metrics Grafana Admin Username</display-name>
+    <display-name>Grafana Admin Username</display-name>
     <description>
       Metrics Grafana Username. This value cannot be modified by Ambari
       except on initial install. Please make sure the username change in
@@ -55,7 +55,7 @@
     <name>metrics_grafana_password</name>
     <value></value>
     <property-type>PASSWORD</property-type>
-    <display-name>Metrics Grafana Admin Password</display-name>
+    <display-name>Grafana Admin Password</display-name>
     <description>
       Metrics Grafana password. This value cannot be modified by Ambari
       except on initial install. Please make sure the password change in
