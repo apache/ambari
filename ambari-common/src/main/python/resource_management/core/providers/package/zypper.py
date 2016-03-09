@@ -49,7 +49,7 @@ class ZypperProvider(PackageProvider):
           use_repos.extend(active_base_repos)
         use_repos_options = []
         for repo in use_repos:
-          use_repos_options = use_repos_options + ['--repo', repo]
+          use_repos_options = use_repos_options + ['--from', repo]
         cmd = cmd + use_repos_options
 
       cmd = cmd + [name]
