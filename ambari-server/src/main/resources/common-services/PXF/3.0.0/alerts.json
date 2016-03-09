@@ -3,8 +3,8 @@
     "PXF": [
       {
         "name": "pxf_process",
-        "label": "This alert is triggered when the PXF is not functional.",
-        "description": "This alert is triggered when the PXF is not functional.",
+        "label": "PXF Process",
+        "description": "This host-level alert is triggered if the PXF process cannot be established to be up and listening on the network.",
         "interval": 1,
         "scope": "ANY",
         "enabled": true,
