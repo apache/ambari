@@ -19,16 +19,20 @@ package org.apache.ambari.server.api.query;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Root;
 import javax.persistence.metamodel.SingularAttribute;
 
 import org.apache.ambari.server.controller.spi.SortRequest;
 import org.apache.ambari.server.controller.spi.SortRequestProperty;
+import org.apache.commons.lang.ObjectUtils;
 
 /**
  * The {@link JpaSortBuilder} class is used to convert and Ambari
@@ -84,9 +88,32 @@ public class JpaSortBuilder<T> {
       Path<?> path = null;
       for (SingularAttribute<?, ?> singularAttribute : singularAttributes) {
         if (null == path) {
+
           CriteriaQuery<T> query = visitor.getCriteriaQuery();
-          path = query.from(visitor.getEntityClass()).get(
-              singularAttribute.getName());
+          Set<Root<?>> roots = query.getRoots();
+
+          // if there are existing roots; use the existing roots to prevent more
+          // roots from being added potentially causing a cartesian product
+          // where we don't want one
+          if (null != roots && !roots.isEmpty()) {
+            Iterator<Root<?>> iterator = roots.iterator();
+            while (iterator.hasNext()) {
+              Root<?> root = iterator.next();
+
+              Class<?> visitorEntityClass = visitor.getEntityClass();
+              if (ObjectUtils.equals(visitorEntityClass, root.getJavaType())
+                  || ObjectUtils.equals(visitorEntityClass, root.getModel().getJavaType())) {
+                path = root.get(singularAttribute.getName());
+                break;
+              }
+            }
+          }
+
+          // no roots exist already which match this entity class, create a new
+          // path
+          if (null == path) {
+            path = query.from(visitor.getEntityClass()).get(singularAttribute.getName());
+          }
         } else {
           path = path.get(singularAttribute.getName());
         }
