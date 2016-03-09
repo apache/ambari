@@ -271,7 +271,7 @@ def copy_jdbc_connector(stack_version=None):
 
   Directory(params.java_share_dir,
     mode=0755,
-    recursive=True,
+    create_parents=True,
     cd_access="a"
   )
 
@@ -295,7 +295,7 @@ def copy_jdbc_connector(stack_version=None):
 
     Directory(params.jdbc_libs_dir,
       cd_access="a",
-      recursive=True)
+      create_parents=True)
 
     Execute(as_sudo(['yes', '|', 'cp', params.libs_path_in_archive, params.jdbc_libs_dir], auto_escape=False),
       path=["/bin", "/usr/bin/"])
