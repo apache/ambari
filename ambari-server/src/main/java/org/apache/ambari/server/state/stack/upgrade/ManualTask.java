@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.state.stack.upgrade;
 
+import java.util.List;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -44,8 +46,11 @@ public class ManualTask extends ServerSideActionTask {
   @XmlTransient
   public String structuredOut = null;
 
+  /*@XmlElement(name="message")
+  public String message;*/
+
   @XmlElement(name="message")
-  public String message;
+  public List<String> messages;
 
   @Override
   public Task.Type getType() {

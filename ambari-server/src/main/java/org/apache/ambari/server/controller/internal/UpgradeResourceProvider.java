@@ -115,6 +115,8 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.assistedinject.Assisted;
@@ -1468,20 +1470,28 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     String itemDetail = entity.getText();
     String stageText = StringUtils.abbreviate(entity.getText(), 255);
-
     switch (task.getType()) {
       case MANUAL: {
         ManualTask mt = (ManualTask) task;
-        itemDetail = mt.message;
+        JsonArray messageArray = new JsonArray();
+        for(String message: mt.messages){
+          JsonObject messageObj = new JsonObject();
+          messageObj.addProperty("message", message);
+          messageArray.add(messageObj);
+        }
+        itemDetail = messageArray.toString();
         if (null != mt.summary) {
           stageText = mt.summary;
         }
+
         entity.setText(itemDetail);
 
         if (null != mt.structuredOut) {
           commandParams.put(COMMAND_PARAM_STRUCT_OUT, mt.structuredOut);
         }
 
+        //To be used later on by the Stage...
+        itemDetail = StringUtils.join(mt.messages, " ");
         break;
       }
       case CONFIGURE: {

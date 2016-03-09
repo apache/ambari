@@ -164,7 +164,9 @@ public class ColocatedGrouping extends Grouping {
 
         ManualTask task = new ManualTask();
         task.summary = m_batch.summary;
-        task.message = m_batch.message;
+        List<String> messages =  new ArrayList<String>();
+        messages.add(m_batch.message);
+        task.messages = messages;
         formatFirstBatch(upgradeContext, task, befores);
 
         StageWrapper wrapper = new StageWrapper(
@@ -264,21 +266,27 @@ public class ColocatedGrouping extends Grouping {
         }
       }
 
-      // !!! add the display names to the message, if needed
-      if (task.message.contains("{{components}}")) {
-        StringBuilder sb = new StringBuilder();
+      for(int i = 0; i < task.messages.size(); i++){
+        String message = task.messages.get(i);
+        // !!! add the display names to the message, if needed
+        if (message.contains("{{components}}")) {
+          StringBuilder sb = new StringBuilder();
 
-        List<String> compNames = new ArrayList<String>(names);
+          List<String> compNames = new ArrayList<String>(names);
 
-        if (compNames.size() == 1) {
-          sb.append(compNames.get(0));
-        } else if (names.size() > 1) {
-          String last = compNames.remove(compNames.size() - 1);
-          sb.append(StringUtils.join(compNames, ", "));
-          sb.append(" and ").append(last);
+          if (compNames.size() == 1) {
+            sb.append(compNames.get(0));
+          } else if (names.size() > 1) {
+            String last = compNames.remove(compNames.size() - 1);
+            sb.append(StringUtils.join(compNames, ", "));
+            sb.append(" and ").append(last);
+          }
+
+          message = message.replace("{{components}}", sb.toString());
+
+          //Add the updated message back to the message list.
+          task.messages.set(i, message);
         }
-
-        task.message = task.message.replace("{{components}}", sb.toString());
       }
 
       // !!! build the structured out to attach to the manual task

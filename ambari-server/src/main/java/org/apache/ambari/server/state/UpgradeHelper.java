@@ -508,9 +508,12 @@ public class UpgradeHelper {
 
           if (task.getType() == Type.MANUAL) {
             ManualTask mt = (ManualTask) task;
-            if (null != mt.message) {
-              mt.message = tokenReplace(ctx, mt.message,
-                  taskWrapper.getService(), taskWrapper.getComponent());
+            if(null != mt.messages && !mt.messages.isEmpty()){
+              for(int i = 0; i < mt.messages.size(); i++){
+                String message =  mt.messages.get(i);
+                message = tokenReplace(ctx, message, taskWrapper.getService(), taskWrapper.getComponent());
+                mt.messages.set(i, message);
+              }
             }
           }
         }

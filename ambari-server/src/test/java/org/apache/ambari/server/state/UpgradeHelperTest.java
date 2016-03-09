@@ -222,7 +222,7 @@ public class UpgradeHelperTest {
     Task t = sw.getTasks().get(0).getTasks().get(0);
     assertEquals(ManualTask.class, t.getClass());
     ManualTask mt = (ManualTask) t;
-    assertTrue(mt.message.contains("DataNode and NodeManager"));
+    assertTrue(mt.messages.get(0).contains("DataNode and NodeManager"));
     assertNotNull(mt.structuredOut);
     assertTrue(mt.structuredOut.contains("DATANODE"));
     assertTrue(mt.structuredOut.contains("NODEMANAGER"));
@@ -611,9 +611,9 @@ public class UpgradeHelperTest {
     ManualTask manualTask = (ManualTask) zookeeperGroup.items.get(0).getTasks().get(
         0).getTasks().get(0);
 
-    assertEquals(
-        "This is a manual task with a placeholder of placeholder-rendered-properly",
-        manualTask.message);
+    assertEquals(1, manualTask.messages.size());
+    assertEquals("This is a manual task with a placeholder of placeholder-rendered-properly",
+        manualTask.messages.get(0));
   }
 
   @Test
@@ -1044,9 +1044,10 @@ public class UpgradeHelperTest {
     ManualTask manualTask = (ManualTask) zookeeperGroup.items.get(0).getTasks().get(
         0).getTasks().get(0);
 
+    assertEquals(1, manualTask.messages.size());
     assertEquals(
         "This is a manual task with a placeholder of placeholder-rendered-properly",
-        manualTask.message);
+        manualTask.messages.get(0));
   }
 
   @Test
@@ -1072,9 +1073,10 @@ public class UpgradeHelperTest {
     ManualTask manualTask = (ManualTask) zookeeperGroup.items.get(0).getTasks().get(
         0).getTasks().get(0);
 
+    assertEquals(1, manualTask.messages.size());
     assertEquals(
         "This is a manual task with a placeholder of placeholder-rendered-properly",
-        manualTask.message);
+        manualTask.messages.get(0));
   }
 
   @Test
@@ -1128,7 +1130,7 @@ public class UpgradeHelperTest {
     Task t = sw.getTasks().get(0).getTasks().get(0);
     assertEquals(ManualTask.class, t.getClass());
     ManualTask mt = (ManualTask) t;
-    assertTrue(mt.message.contains("DataNode and NodeManager"));
+    assertTrue(mt.messages.get(0).contains("DataNode and NodeManager"));
     assertNotNull(mt.structuredOut);
     assertTrue(mt.structuredOut.contains("DATANODE"));
     assertTrue(mt.structuredOut.contains("NODEMANAGER"));

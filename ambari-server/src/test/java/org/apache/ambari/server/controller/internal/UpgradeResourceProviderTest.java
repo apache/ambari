@@ -96,6 +96,9 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -281,8 +284,8 @@ public class UpgradeResourceProviderTest {
 
     List<UpgradeItemEntity> preClusterUpgradeItems = preClusterGroup.getItems();
     assertEquals(2, preClusterUpgradeItems.size());
-    assertEquals("Foo", preClusterUpgradeItems.get(0).getText());
-    assertEquals("Foo", preClusterUpgradeItems.get(1).getText());
+    assertEquals("Foo", parseSingleMessage(preClusterUpgradeItems.get(0).getText()));
+    assertEquals("Foo", parseSingleMessage(preClusterUpgradeItems.get(1).getText()));
 
     UpgradeGroupEntity zookeeperGroup = upgradeGroups.get(1);
     assertEquals("ZOOKEEPER", zookeeperGroup.getName());
@@ -291,7 +294,7 @@ public class UpgradeResourceProviderTest {
     assertEquals(5, zookeeperUpgradeItems.size());
 
     assertEquals("This is a manual task with a placeholder of placeholder-rendered-properly",
-        zookeeperUpgradeItems.get(0).getText());
+        parseSingleMessage(zookeeperUpgradeItems.get(0).getText()));
     assertEquals("Restarting ZooKeeper Server on h1", zookeeperUpgradeItems.get(1).getText());
     assertEquals("Skipping Configuration Task 2.2.0", zookeeperUpgradeItems.get(2).getText());
     assertEquals("Service Check ZooKeeper", zookeeperUpgradeItems.get(3).getText());
@@ -306,7 +309,7 @@ public class UpgradeResourceProviderTest {
 
     List<UpgradeItemEntity> postClusterUpgradeItems = postClusterGroup.getItems();
     assertEquals(2, postClusterUpgradeItems.size());
-    assertEquals("Please confirm you are ready to finalize", postClusterUpgradeItems.get(0).getText());
+    assertEquals("Please confirm you are ready to finalize", parseSingleMessage(postClusterUpgradeItems.get(0).getText()));
     assertEquals("Save Cluster State", postClusterUpgradeItems.get(1).getText());
   }
 
@@ -492,7 +495,12 @@ public class UpgradeResourceProviderTest {
     res = resources.iterator().next();
 
     assertEquals("Confirm Finalize", res.getPropertyValue("UpgradeItem/context"));
-    assertTrue(res.getPropertyValue("UpgradeItem/text").toString().startsWith("Please confirm"));
+    String msgStr = res.getPropertyValue("UpgradeItem/text").toString();
+    JsonParser parser = new JsonParser();
+    JsonArray msgArray = (JsonArray) parser.parse(msgStr);
+    JsonObject msg = (JsonObject) msgArray.get(0);
+
+    assertTrue(msg.get("message").getAsString().startsWith("Please confirm"));
   }
 
   /**
@@ -1319,6 +1327,13 @@ public class UpgradeResourceProviderTest {
     }
   }
 
+  private String parseSingleMessage(String msgStr){
+    JsonParser parser = new JsonParser();
+    JsonArray msgArray = (JsonArray) parser.parse(msgStr);
+    JsonObject msg = (JsonObject) msgArray.get(0);
+
+    return msg.get("message").getAsString();
+  }
 
   /**
    *

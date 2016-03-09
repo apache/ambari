@@ -413,6 +413,21 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         upgradeItems = [];
       newGroup.upgrade_items.forEach(function (item) {
         var oldItem = App.upgradeEntity.create({type: 'ITEM'}, item.UpgradeItem);
+        var status = oldItem.get('status');
+        if ('HOLDING' == status){
+          //manualItem
+          var text = oldItem.get('text');
+          try {
+            var messageArray = $.parseJSON(text)
+            var messages = [];
+            for(var i = 0; i < messageArray.length; i ++){
+              var aMessageObj = messageArray[i];
+              messages.push(aMessageObj.message);
+            }
+            oldItem.set('messages', messages)
+            oldItem.set('text', messages.join(' '))
+          } catch (err){}
+        }
         oldItem.set('tasks', []);
         upgradeItems.pushObject(oldItem);
       });

@@ -307,7 +307,7 @@ public class UpgradeResourceProviderHDP22Test {
     group = upgrade.getUpgradeGroups().get(0);
     assertEquals(2, group.getItems().size());
     UpgradeItemEntity item = group.getItems().get(1);
-    assertEquals("Value is set for the source stack upgrade pack", "Goo", item.getText());
+    assertEquals("Value is set for the source stack upgrade pack", "[{\"message\":\"Goo\"}]", item.getText());
 
     assertTrue(cluster.getDesiredConfigs().containsKey("hive-site"));
 
