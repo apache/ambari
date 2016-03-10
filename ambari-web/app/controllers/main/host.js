@@ -528,7 +528,7 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
     if (Em.isNone(displayName) || Em.isNone(states) || !states.length) return;
     var colPropAssoc = this.get('colPropAssoc');
     var map = this.get('labelValueMap');
-    var displayStates = [];
+    var stateFilterStrs = [];
 
     var versionFilter = {
       iColumn: 16,
@@ -544,12 +544,11 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
     map["Version State"] = colPropAssoc[stateFilter.iColumn];
     stateFilter.value.forEach(function(state) {
       map[App.HostStackVersion.formatStatus(state)] = state;
-      displayStates.push(App.HostStackVersion.formatStatus(state));
+      stateFilterStrs.push('"Version State": "' + App.HostStackVersion.formatStatus(state) + '"');
     });
     var versionFilterStr = '"Stack Version": "' + versionFilter.value + '"';
-    var stateFilterStr = '"Version State": "' + displayStates.join(',') + '"';
     App.db.setFilterConditions(this.get('name'), [versionFilter, stateFilter]);
-    App.db.setComboSearchQuery(this.get('name'), [versionFilterStr, stateFilterStr].join(' '));
+    App.db.setComboSearchQuery(this.get('name'), [versionFilterStr, stateFilterStrs.join(' ')].join(' '));
   },
 
   goToHostAlerts: function (event) {
