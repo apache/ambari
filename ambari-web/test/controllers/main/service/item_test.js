@@ -1362,7 +1362,7 @@ describe('App.MainServiceItemController', function () {
     });
 
     it("App.ModalPopup.show should be called", function() {
-      mainServiceItemController.confirmDeleteService();
+      mainServiceItemController.confirmDeleteService('S1', [], '');
       expect(App.ModalPopup.show.calledOnce).to.be.true;
     });
   });

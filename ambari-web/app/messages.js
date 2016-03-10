@@ -1724,10 +1724,11 @@ Em.I18n.translations = {
   ' and configuration history will be lost.</b>',
   'services.service.delete.popup.warning.dependent': '<b>Note! {0} will be deleted too.</b>',
   'services.service.confirmDelete.popup.header': 'Confirm Delete',
-  'services.service.confirmDelete.popup.body': 'You must confirm delete of <b>{0}</b> by typing "yes"' +
+  'services.service.confirmDelete.popup.body': 'You must confirm delete of <b>{0}</b> by typing "{1}"' +
   ' in the confirmation box. <b>This operation is not reversible and all configuration history will be lost.</b>',
+  'services.service.confirmDelete.popup.body.type': 'Type "{0}" to confirm',
 
-  'services.service.confirmDelete.popup.body.dependent': 'You must confirm delete of <b>{0}</b> and <b>{1}</b> by typing "yes"' +
+  'services.service.confirmDelete.popup.body.dependent': 'You must confirm delete of <b>{0}</b> and <b>{1}</b> by typing "{2}"' +
   ' in the confirmation box. <b>This operation is not reversible and all configuration history will be lost.</b>',
   'services.service.summary.unknown':'unknown',
   'services.service.summary.notRunning':'Not Running',

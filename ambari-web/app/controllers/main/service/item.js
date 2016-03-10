@@ -1167,11 +1167,14 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
    * @param {string} [servicesToDeleteFmt]
    */
   confirmDeleteService: function (serviceName, dependentServiceNames, servicesToDeleteFmt) {
-    var message = dependentServiceNames && dependentServiceNames.length
-        ? Em.I18n.t('services.service.confirmDelete.popup.body.dependent').format(App.format.role(serviceName), servicesToDeleteFmt)
-        : Em.I18n.t('services.service.confirmDelete.popup.body').format(App.format.role(serviceName)),
-        confirmKey = 'yes',
-        self = this;
+    var confirmKey = 'delete',
+        self = this,
+        message = Em.I18n.t('services.service.confirmDelete.popup.body').format(App.format.role(serviceName), confirmKey);
+
+    if (dependentServiceNames.length > 0) {
+      message = Em.I18n.t('services.service.confirmDelete.popup.body.dependent')
+                .format(App.format.role(serviceName), servicesToDeleteFmt, confirmKey);
+    }
 
     App.ModalPopup.show({
 
@@ -1213,9 +1216,10 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
        */
       bodyClass: Em.View.extend({
         confirmKey: confirmKey,
+        typeMessage: Em.I18n.t('services.service.confirmDelete.popup.body.type').format(confirmKey),
         template: Em.Handlebars.compile(message +
         '<div class="form-inline align-center"></br>' +
-        '<label><b>{{t common.enter}}&nbsp;{{view.confirmKey}}</b></label>&nbsp;' +
+        '<label><b>{{view.typeMessage}}</b></label>&nbsp;' +
         '{{view Ember.TextField valueBinding="view.parentView.confirmInput" class="input-small"}}</br>' +
         '</div>')
       }),
