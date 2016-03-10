@@ -66,6 +66,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService.GANGLIA;
 import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService.TIMELINE_METRICS;
@@ -199,8 +200,8 @@ public abstract class AbstractProviderModule implements ProviderModule,
   /**
    * JMX ports read from the configs
    */
-  private final Map<String, Map<String, Map<String, String>> >jmxPortMap =
-      new HashMap<String, Map<String, Map<String, String>>>();
+  private final Map<String, ConcurrentMap<String, ConcurrentMap<String, String>> >jmxPortMap =
+      Collections.synchronizedMap(new HashMap<String, ConcurrentMap<String, ConcurrentMap<String, String>>>());
 
   private volatile boolean initialized = false;
 
@@ -494,12 +495,12 @@ public abstract class AbstractProviderModule implements ProviderModule,
   @Override
   public String getPort(String clusterName, String componentName, String hostName, boolean httpsEnabled) throws SystemException {
     // Parent map need not be synchronized
-    Map<String, Map<String, String>> clusterJmxPorts = jmxPortMap.get(clusterName);
+    ConcurrentMap<String, ConcurrentMap<String, String>> clusterJmxPorts = jmxPortMap.get(clusterName);
     if (clusterJmxPorts == null) {
       synchronized (jmxPortMap) {
         clusterJmxPorts = jmxPortMap.get(clusterName);
         if (clusterJmxPorts == null) {
-          clusterJmxPorts = new ConcurrentHashMap<String, Map<String, String>>();
+          clusterJmxPorts = new ConcurrentHashMap<String, ConcurrentMap<String, String>>();
           jmxPortMap.put(clusterName, clusterJmxPorts);
         }
       }
@@ -547,20 +548,28 @@ public abstract class AbstractProviderModule implements ProviderModule,
             // this will trigger using the default port for the component
             String portString = getPortString(entry.getValue());
             if (null != portString) {
-              if(!clusterJmxPorts.containsKey(hostName)) {
-                clusterJmxPorts.put(hostName, new ConcurrentHashMap<String, String>());
-              }
+              clusterJmxPorts.putIfAbsent(hostName, new ConcurrentHashMap<String, String>());
               clusterJmxPorts.get(hostName).put(entry.getKey(), portString);
             }
           }
         }
       } catch (Exception e) {
-        LOG.error("Exception initializing jmx port maps. " + e);
+        LOG.error("Exception initializing jmx port maps. ", e);
       }
     }
 
     LOG.debug("jmxPortMap -> " + jmxPortMap);
-    return clusterJmxPorts.get(hostName).get(componentName);
+
+    ConcurrentMap<String, String> hostJmxPorts = clusterJmxPorts.get(hostName);
+    if (hostJmxPorts == null) {
+      LOG.debug("Jmx ports not loaded from properties: clusterName={}, componentName={}, hostName={}, " +
+          "clusterJmxPorts={}, jmxPortMap.get(clusterName)={}",
+          clusterName, componentName, hostName, clusterJmxPorts, jmxPortMap.get(clusterName));
+      //returning null is acceptable in cases when property with port not present
+      //or loading from property is not supported for specific component
+      return null;
+    }
+    return hostJmxPorts.get(componentName);
   }
 
   /**
