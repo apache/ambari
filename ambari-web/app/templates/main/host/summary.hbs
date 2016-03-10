@@ -159,10 +159,8 @@
                         <dt class="summary-agent-heart-label">{{t hosts.host.summary.agentHeartbeat}}:</dt>
                           <dd class="summary-agent-heart-value">&nbsp;{{view.timeSinceHeartBeat}}</dd>
 
-                        {{#if App.supports.stackUpgrade}}
-                          <dt class="summary-cur-ver-label">{{t hosts.host.summary.currentVersion}}:</dt>
-                            <dd class="summary-cur-ver-value">&nbsp;{{view.content.currentVersion}}</dd>
-                        {{/if}}
+                        <dt class="summary-cur-ver-label">{{t hosts.host.summary.currentVersion}}:</dt>
+                          <dd class="summary-cur-ver-value">&nbsp;{{view.content.currentVersion}}</dd>
                     </dl>
                 </div>
             </div>

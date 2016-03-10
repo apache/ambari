@@ -92,7 +92,7 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend(App.KDCCred
     }));
 
     this.filterConfigs(this.get('configs'));
-    if (App.get('supports.storeKDCCredentials') && !this.get('wizardController.skipClientInstall')) {
+    if (!this.get('wizardController.skipClientInstall')) {
       this.initilizeKDCStoreProperties(this.get('configs'));
     }
     this.applyServicesConfigs(this.get('configs'));
@@ -249,7 +249,7 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend(App.KDCCred
    */
   createKerberosAdminSession: function (configs) {
     configs = configs || this.get('stepConfigs')[0].get('configs');
-    if (App.get('supports.storeKDCCredentials') && !this.get('wizardController.skipClientInstall')) {
+    if (!this.get('wizardController.skipClientInstall')) {
       return this.createKDCCredentials(configs);
     }
 

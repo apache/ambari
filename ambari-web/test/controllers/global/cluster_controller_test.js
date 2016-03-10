@@ -212,27 +212,7 @@ describe('App.clusterController', function () {
       App.get.restore();
     });
 
-    it("KDC Store supports disabled, credentials updated via kdc session call", function() {
-      this.stub.withArgs('supports.storeKDCCredentials').returns(false);
-      controller.createKerberosAdminSession({
-        principal: 'admin',
-        key: 'pass',
-        type: 'persistent'
-      }, {});
-      var args = testHelpers.findAjaxRequest('name', 'common.cluster.update');
-      expect(args[0]).to.exists;
-      expect(args[0].sender).to.be.eql(controller);
-      expect(args[0].data).to.be.eql({
-        clusterName: 'test',
-        data: [{
-          session_attributes: {
-            kerberos_admin: {principal: "admin", password: "pass"}
-          }
-        }]
-      });
-    });
-    it("KDC Store supports enabled, credentials updated via credentials storage call", function() {
-      this.stub.withArgs('supports.storeKDCCredentials').returns(true);
+    it("credentials updated via credentials storage call", function() {
       controller.createKerberosAdminSession({
         principal: 'admin',
         key: 'pass',

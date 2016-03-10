@@ -49,9 +49,7 @@ App.MainHostMenuView = Em.CollectionView.extend({
         name: 'versions',
         label: Em.I18n.t('hosts.host.menu.stackVersions'),
         routing: 'stackVersions',
-        hidden: function () {
-          return !App.get('supports.stackUpgrade') || !App.get('stackVersionsAvailable')
-        }.property('App.supports.stackUpgrade'),
+        hidden: !App.get('stackVersionsAvailable'),
         id: 'host-details-summary-version'
       }),
       Em.Object.create({

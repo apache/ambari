@@ -92,7 +92,6 @@ App.hostsMapper = App.QuickDataMapper.create({
       var currentServiceComponentsMap = App.get('componentConfigMapper').buildServiceComponentMap(cacheServices);
       var newHostComponentsMap = {};
       var selectedHosts = App.db.getSelectedHosts('mainHostController');
-      var stackUpgradeSupport = App.get('supports.stackUpgrade');
       var clusterName = App.get('clusterName');
       var advancedHostComponents = [];
 
@@ -146,17 +145,15 @@ App.hostsMapper = App.QuickDataMapper.create({
           }
         }
 
-        if (stackUpgradeSupport) {
-          var currentVersion = item.stack_versions.findProperty('HostStackVersions.state', 'CURRENT');
-          var currentVersionNumber = currentVersion && currentVersion.repository_versions
-            ? Em.get(currentVersion.repository_versions[0], 'RepositoryVersions.repository_version') : '';
-          for (var j = 0; j < item.stack_versions.length; j++) {
-            var stackVersion = item.stack_versions[j];
-            stackVersion.host_name = item.Hosts.host_name;
-            stackVersion.is_visible = stringUtils.compareVersions(Em.get(stackVersion.repository_versions[0], 'RepositoryVersions.repository_version'), currentVersionNumber) >= 0
-              || App.get('supports.displayOlderVersions') || !currentVersionNumber;
-            stackVersions.push(this.parseIt(stackVersion, this.stackVersionConfig));
-          }
+        var currentVersion = item.stack_versions.findProperty('HostStackVersions.state', 'CURRENT');
+        var currentVersionNumber = currentVersion && currentVersion.repository_versions
+          ? Em.get(currentVersion.repository_versions[0], 'RepositoryVersions.repository_version') : '';
+        for (var j = 0; j < item.stack_versions.length; j++) {
+          var stackVersion = item.stack_versions[j];
+          stackVersion.host_name = item.Hosts.host_name;
+          stackVersion.is_visible = stringUtils.compareVersions(Em.get(stackVersion.repository_versions[0], 'RepositoryVersions.repository_version'), currentVersionNumber) >= 0
+            || App.get('supports.displayOlderVersions') || !currentVersionNumber;
+          stackVersions.push(this.parseIt(stackVersion, this.stackVersionConfig));
         }
 
         var alertsSummary = item.alerts_summary;
@@ -166,15 +163,13 @@ App.hostsMapper = App.QuickDataMapper.create({
         // There is no need to override existing index in host detail view since old model(already have indexes) will not be cleared.
         item.index = (existingHost && !json.itemTotal)? existingHost.get('index'): index;
 
-        if (stackUpgradeSupport) {
-          this.config = $.extend(this.config, {
-            stack_versions_key: 'stack_versions',
-            stack_versions_type: 'array',
-            stack_versions: {
-              item: 'HostStackVersions.id'
-            }
-          })
-        }
+        this.config = $.extend(this.config, {
+          stack_versions_key: 'stack_versions',
+          stack_versions_type: 'array',
+          stack_versions: {
+            item: 'HostStackVersions.id'
+          }
+        });
         var parsedItem = this.parseIt(item, this.config);
         parsedItem.is_requested = true;
         parsedItem.last_heart_beat_time = App.dateTimeWithTimeZone(parsedItem.last_heart_beat_time);
@@ -199,9 +194,7 @@ App.hostsMapper = App.QuickDataMapper.create({
       }
 
       App.store.commit();
-      if (stackUpgradeSupport) {
-        App.store.loadMany(App.HostStackVersion, stackVersions);
-      }
+      App.store.loadMany(App.HostStackVersion, stackVersions);
       App.store.loadMany(App.HostComponent, components);
       //"itemTotal" present only for Hosts page request
       if (!Em.isNone(json.itemTotal)) {

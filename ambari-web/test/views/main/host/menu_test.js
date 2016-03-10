@@ -38,32 +38,17 @@ describe('App.MainHostMenuView', function () {
     Em.A([
         {
           stackVersionsAvailable: true,
-          stackUpgrade: true,
           m: '`versions` is visible',
           e: false
         },
         {
-          stackVersionsAvailable: true,
-          stackUpgrade: false,
-          m: '`versions` is invisible (1)',
-          e: true
-        },
-        {
           stackVersionsAvailable: false,
-          stackUpgrade: true,
-          m: '`versions` is invisible (2)',
-          e: true
-        },
-        {
-          stackVersionsAvailable: false,
-          stackUpgrade: false,
-          m: '`versions` is invisible (3)',
+          m: '`versions` is invisible',
           e: true
         }
       ]).forEach(function (test) {
         it(test.m, function () {
           this.mock.withArgs('stackVersionsAvailable').returns(test.stackVersionsAvailable);
-          this.mock.withArgs('supports.stackUpgrade').returns(test.stackUpgrade);
           view.propertyDidChange('content');
           expect(view.get('content').findProperty('name', 'versions').get('hidden')).to.equal(test.e);
         });

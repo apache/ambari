@@ -202,9 +202,7 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
     });
 
 
-    if (App.get('supports.stackUpgrade')) {
-      self.restoreUpgradeState();
-    }
+    self.restoreUpgradeState();
 
     App.router.get('wizardWatcherController').getUser();
 
@@ -424,26 +422,7 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
    * @returns {$.ajax}
    */
   createKerberosAdminSession: function (credentialResource, ajaxOpt) {
-    if (App.get('supports.storeKDCCredentials')) {
-      return credentialUtils.createOrUpdateCredentials(App.get('clusterName'), credentialUtils.ALIAS.KDC_CREDENTIALS, credentialResource).then(function() {
-        if (ajaxOpt) {
-          $.ajax(ajaxOpt);
-        }
-      });
-    }
-
-    return App.ajax.send({
-      name: 'common.cluster.update',
-      sender: this,
-      data: {
-        clusterName: App.get('clusterName'),
-        data: [{
-          session_attributes: {
-            kerberos_admin: {principal: credentialResource.principal, password: credentialResource.key}
-          }
-        }]
-      }
-    }).success(function () {
+    return credentialUtils.createOrUpdateCredentials(App.get('clusterName'), credentialUtils.ALIAS.KDC_CREDENTIALS, credentialResource).then(function() {
       if (ajaxOpt) {
         $.ajax(ajaxOpt);
       }

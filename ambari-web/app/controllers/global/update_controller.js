@@ -260,7 +260,7 @@ App.UpdateController = Em.Controller.extend({
       }
     }
 
-    realUrl = realUrl.replace("<stackVersions>", App.get('supports.stackUpgrade') ? stackVersionInfo : "");
+    realUrl = realUrl.replace("<stackVersions>", stackVersionInfo);
     realUrl = realUrl.replace("<metrics>", lazyLoadMetrics ? "" : "metrics/disk,metrics/load/load_one,");
     realUrl = realUrl.replace('<hostDetailsParams>', hostDetailsParams);
 

@@ -65,7 +65,6 @@ App.enableExperimental = false;
 
 App.supports = {
   preUpgradeCheck: true,
-  stackUpgrade: true,
   displayOlderVersions: false,
   autoRollbackHA: false,
   alwaysEnableManagedMySQLForHive: false,
@@ -74,10 +73,8 @@ App.supports = {
   installGanglia: false,
   opsDuringRollingUpgrade: false,
   customizedWidgetLayout: false,
-  enhancedConfigs: true,
   showPageLoadTime: false,
   skipComponentStartAfterInstall: false,
-  storeKDCCredentials: true,
   preInstallChecks: false,
   hostComboSearchBox: true,
   serviceAutoStart: false,

@@ -44,10 +44,6 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
    */
   requestError: null,
 
-  colspan: function () {
-    return 11 + +App.get('supports.stackUpgrade');
-  }.property("App.supports.stackUpgrade"),
-
   /**
    * List of hosts in cluster
    * @type {Array}

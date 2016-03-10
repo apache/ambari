@@ -194,10 +194,9 @@ module.exports = Em.Application.create({
   /**
    * when working with enhanced configs we should rely on stack version
    * as version that is below 2.2 doesn't supports it
-   * even if flag <code>supports.enhancedConfigs<code> is true
    * @type {boolean}
    */
-  isClusterSupportsEnhancedConfigs: Em.computed.and('isHadoop22Stack', 'supports.enhancedConfigs'),
+  isClusterSupportsEnhancedConfigs: Em.computed.alias('isHadoop22Stack'),
 
   /**
    * If NameNode High Availability is enabled
