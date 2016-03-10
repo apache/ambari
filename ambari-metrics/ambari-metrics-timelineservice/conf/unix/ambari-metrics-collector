@@ -36,12 +36,6 @@ METRIC_TABLES=(METRIC_AGGREGATE_DAILY METRIC_AGGREGATE_HOURLY METRIC_AGGREGATE_M
 METRIC_FIFO_COMPACTION_TABLES=(METRIC_AGGREGATE METRIC_RECORD METRIC_RECORD_MINUTE)
 METRIC_COLLECTOR=ambari-metrics-collector
 
-AMS_COLLECTOR_LOG_DIR=/var/log/ambari-metrics-collector
-
-AMS_HBASE_NORMALIZER_ENABLED=true
-AMS_HBASE_FIFO_COMPACTION_ENABLED=true
-AMS_HBASE_INIT_CHECK_ENABLED=true
-
 NORMALIZER_ENABLED_STUB_FILE=/var/run/ambari-metrics-collector/normalizer_enabled
 FIFO_ENABLED_STUB_FILE=/var/run/ambari-metrics-collector/fifo_enabled
 
@@ -375,6 +369,12 @@ else
   echo "ERROR: Cannot execute ${COLLECTOR_CONF_DIR}/ams-env.sh." 2>&1
   exit 1
 fi
+
+# set these env variables only if they were not set by ams-env.sh
+: ${AMS_COLLECTOR_LOG_DIR:=/var/log/ambari-metrics-collector}
+: ${AMS_HBASE_NORMALIZER_ENABLED:=true}
+: ${AMS_HBASE_FIFO_COMPACTION_ENABLED:=true}
+: ${AMS_HBASE_INIT_CHECK_ENABLED:=true}
 
 # set pid dir path
 if [[ -n "${AMS_COLLECTOR_PID_DIR}" ]]; then

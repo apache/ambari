@@ -1216,16 +1216,16 @@ public class UpgradeCatalog220 extends AbstractUpgradeCatalog {
         "export AMS_COLLECTOR_OPTS=\"$AMS_COLLECTOR_OPTS $AMS_COLLECTOR_GC_OPTS\"\n";
     }
 
-    if (!content.contains("HBASE_NORMALIZATION_ENABLED")) {
+    if (!content.contains("AMS_HBASE_NORMALIZER_ENABLED")) {
       content += "\n" +
-        "# HBase compaction policy enabled\n" +
-        "export HBASE_NORMALIZATION_ENABLED={{ams_hbase_normalizer_enabled}}\n";
+        "# HBase normalizer enabled\n" +
+        "export AMS_HBASE_NORMALIZER_ENABLED={{ams_hbase_normalizer_enabled}}\n";
     }
 
-    if (!content.contains("HBASE_FIFO_COMPACTION_POLICY_ENABLED")) {
+    if (!content.contains("AMS_HBASE_FIFO_COMPACTION_ENABLED")) {
       content += "\n" +
         "# HBase compaction policy enabled\n" +
-        "export HBASE_FIFO_COMPACTION_POLICY_ENABLED={{ams_hbase_fifo_compaction_policy_enabled}}\n";
+        "export AMS_HBASE_FIFO_COMPACTION_ENABLED={{ams_hbase_fifo_compaction_enabled}}\n";
     }
 
     return content;

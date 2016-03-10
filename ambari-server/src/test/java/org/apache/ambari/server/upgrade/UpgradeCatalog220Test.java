@@ -836,11 +836,11 @@ public class UpgradeCatalog220Test {
       "-Xloggc:{{ams_collector_log_dir}}/collector-gc.log-`date +'%Y%m%d%H%M'`\"\n" +
       "export AMS_COLLECTOR_OPTS=\"$AMS_COLLECTOR_OPTS $AMS_COLLECTOR_GC_OPTS\"\n"+
       "\n" +
-      "# HBase compaction policy enabled\n" +
-      "export HBASE_NORMALIZATION_ENABLED={{ams_hbase_normalizer_enabled}}\n" +
+      "# HBase normalizer enabled\n" +
+      "export AMS_HBASE_NORMALIZER_ENABLED={{ams_hbase_normalizer_enabled}}\n" +
       "\n" +
       "# HBase compaction policy enabled\n" +
-      "export HBASE_FIFO_COMPACTION_POLICY_ENABLED={{ams_hbase_fifo_compaction_policy_enabled}}\n";
+      "export AMS_HBASE_FIFO_COMPACTION_ENABLED={{ams_hbase_fifo_compaction_enabled}}\n";
 
     String result = (String) updateAmsEnvContent.invoke(upgradeCatalog220, oldContent);
     Assert.assertEquals(expectedContent, result);

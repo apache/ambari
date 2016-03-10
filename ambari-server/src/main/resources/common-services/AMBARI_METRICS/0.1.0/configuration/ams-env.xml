@@ -101,7 +101,7 @@ export AMS_HBASE_PID_DIR={{hbase_pid_dir}}
 # AMS Collector heapsize
 export AMS_COLLECTOR_HEAPSIZE={{metrics_collector_heapsize}}
 
-# HBase compaction policy enabled
+# HBase normalizer enabled
 export AMS_HBASE_NORMALIZER_ENABLED={{ams_hbase_normalizer_enabled}}
 
 # HBase compaction policy enabled
