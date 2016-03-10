@@ -108,6 +108,7 @@ import org.apache.ambari.server.utils.AmbariPath;
 import org.apache.ambari.server.utils.RetryHelper;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.ambari.server.utils.VersionUtils;
+import org.apache.ambari.server.view.AmbariViewsMDCLoggingFilter;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.apache.velocity.app.Velocity;
 import org.eclipse.jetty.http.HttpVersion;
@@ -354,6 +355,10 @@ public class AmbariServer {
       // requests.
       root.addFilter(new FilterHolder(injector.getInstance(AmbariViewsSecurityHeaderFilter.class)), "/api/v1/views/*",
           DISPATCHER_TYPES);
+
+      // Add MDC logging for all view APIs
+      root.addFilter(new FilterHolder(injector.getInstance(AmbariViewsMDCLoggingFilter.class)), "/api/v1/views/*",
+              DISPATCHER_TYPES);
 
       // session-per-request strategy for api
       root.addFilter(new FilterHolder(injector.getInstance(AmbariPersistFilter.class)), "/api/*", DISPATCHER_TYPES);
