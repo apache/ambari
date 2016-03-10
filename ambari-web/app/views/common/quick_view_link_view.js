@@ -23,6 +23,8 @@ App.QuickViewLinks = Em.View.extend({
 
   isLoaded: false,
 
+  areQuickLinksUndefined: false,
+
   loadTags: function () {
     App.ajax.send({
       name: 'config.tags',
@@ -64,7 +66,8 @@ App.QuickViewLinks = Em.View.extend({
         masterHosts: masterHosts.join(','),
         urlParams: ',host_components/metrics/hbase/master/IsActiveMaster'
       },
-      success: 'setQuickLinksSuccessCallback'
+      success: 'setQuickLinksSuccessCallback',
+      error: 'setQuickLinksErrorCallback'
     });
   },
 
@@ -169,12 +172,7 @@ App.QuickViewLinks = Em.View.extend({
     var quickLinks = [];
     var hosts = this.setHost(response, this.get('content.serviceName'));
     if (hosts.length === 0 || !this.get('content.quickLinks')) {
-      quickLinks = [{
-          label: this.t('quick.links.error.label'),
-          url: 'javascript:alert("' + this.t('contact.administrator') + '");return false;'
-      }];
-      this.set('quickLinks', quickLinks);
-      this.set('isLoaded', true);
+      this.setQuickLinksErrorCallback();
     } else if (hosts.length == 1) {
 
       quickLinks = this.get('content.quickLinks').map(function (item) {
@@ -212,8 +210,11 @@ App.QuickViewLinks = Em.View.extend({
         }
         return item;
       });
-      this.set('quickLinks', quickLinks);
-      this.set('isLoaded', true);
+      this.setProperties({
+        quickLinks: quickLinks,
+        isLoaded: true,
+        areQuickLinksUndefined: false
+      });
     } else {
       // multiple hbase masters or HDFS HA enabled
       var quickLinksArray = [];
@@ -267,9 +268,23 @@ App.QuickViewLinks = Em.View.extend({
         }
         quickLinksArray.push(quickLinks);
       }, this);
-      this.set('quickLinksArray', quickLinksArray);
-      this.set('isLoaded', true);
+      this.setProperties({
+        quickLinksArray: quickLinksArray,
+        isLoaded: true,
+        areQuickLinksUndefined: false
+      });
     }
+  },
+
+  setQuickLinksErrorCallback: function () {
+    this.setProperties({
+      quickLinks: [{
+        label: this.t('quick.links.error.label'),
+        url: 'javascript:alert("' + this.t('contact.administrator') + '");'
+      }],
+      isLoaded: true,
+      areQuickLinksUndefined: true
+    });
   },
 
   /**
@@ -562,6 +577,9 @@ App.QuickViewLinks = Em.View.extend({
   },
 
   linkTarget: function () {
+    if (this.get('isLoaded') && this.get('areQuickLinksUndefined')) {
+      return '';
+    }
     switch (this.get('content.serviceName').toLowerCase()) {
       case "hdfs":
       case "yarn":
@@ -582,6 +600,6 @@ App.QuickViewLinks = Em.View.extend({
         return "";
         break;
     }
-  }.property('service')
+  }.property('service', 'isLoaded')
 
 });
