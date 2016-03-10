@@ -42,6 +42,7 @@
     <module>capacity-scheduler</module>
     <module>tez</module>
     <module>storm</module>
+    <module>zeppelin</module>
   </modules>
   <build>
     <pluginManagement>

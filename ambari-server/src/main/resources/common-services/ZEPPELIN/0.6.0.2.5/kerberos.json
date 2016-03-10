@@ -1,0 +1,17 @@
+{
+  "services": [
+    {
+      "name": "ZEPPELIN",
+      "identities": [
+        {
+          "name": "/smokeuser"
+        }
+      ],
+      "components": [
+        {
+          "name": "ZEPPELIN_MASTER"
+        }
+      ]
+    }
+  ]
+}
