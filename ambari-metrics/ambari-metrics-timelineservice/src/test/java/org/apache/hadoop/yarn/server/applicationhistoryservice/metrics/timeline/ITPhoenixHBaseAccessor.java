@@ -19,6 +19,7 @@ package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline
 
 import junit.framework.Assert;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.HColumnDescriptor;
 import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.client.HBaseAdmin;
 import org.apache.hadoop.metrics2.sink.timeline.Precision;
@@ -38,6 +39,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -53,10 +55,10 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.MetricTestHelper.createEmptyTimelineMetric;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.MetricTestHelper.createMetricHostAggregate;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.MetricTestHelper.prepareSingleTimelineMetric;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor.DEFAULT_COMPACTION_POLICY_CLASS;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor.FIFO_COMPACTION_POLICY_CLASS;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor.HSTORE_COMPACTION_CLASS_KEY;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_AGGREGATE_MINUTE_TABLE_NAME;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_RECORD_TABLE_NAME;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.PHOENIX_TABLES;
 
 
@@ -335,9 +337,9 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
   }
 
   @Test
-  public void testInitPolicies() throws Exception {
+  public void testInitPoliciesAndTTL() throws Exception {
     HBaseAdmin hBaseAdmin = hdb.getHBaseAdmin();
-
+    String precisionTtl = "";
     // Verify policies are unset
     for (String tableName : PHOENIX_TABLES) {
       HTableDescriptor tableDescriptor = hBaseAdmin.getTableDescriptor(tableName.getBytes());
@@ -345,9 +347,22 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
       Assert.assertFalse("Normalizer disabled by default.", tableDescriptor.isNormalizationEnabled());
       Assert.assertNull("Default compaction policy is null.",
         tableDescriptor.getConfigurationValue(HSTORE_COMPACTION_CLASS_KEY));
+
+      for (HColumnDescriptor family : tableDescriptor.getColumnFamilies()) {
+        if (tableName.equals(METRICS_RECORD_TABLE_NAME)) {
+          precisionTtl = family.getValue("TTL");
+        }
+      }
+      Assert.assertEquals("Precision TTL value.", hdb.getDaysInSeconds("1"), precisionTtl);
     }
 
-    hdb.initPolicies();
+    Field f = PhoenixHBaseAccessor.class.getDeclaredField("tableTTL");
+    f.setAccessible(true);
+    Map<String, String> precisionValues = (Map<String, String>) f.get(hdb);
+    precisionValues.put(METRICS_RECORD_TABLE_NAME, hdb.getDaysInSeconds("2"));
+    f.set(hdb, precisionValues);
+
+    hdb.initPoliciesAndTTL();
 
     // Verify expected policies are set
     boolean normalizerEnabled = false;
@@ -364,11 +379,17 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
         if (!normalizerEnabled || compactionPolicy == null) {
           Thread.sleep(2000l);
         }
+        if (tableName.equals(METRICS_RECORD_TABLE_NAME)) {
+          for (HColumnDescriptor family : tableDescriptor.getColumnFamilies()) {
+            precisionTtl = family.getValue("TTL");
+          }
+        }
       }
     }
 
     Assert.assertTrue("Normalizer enabled.", normalizerEnabled);
     Assert.assertEquals("FIFO compaction policy is set.", FIFO_COMPACTION_POLICY_CLASS, compactionPolicy);
+    Assert.assertEquals("Precision TTL value not changed.", hdb.getDaysInSeconds("2"), precisionTtl);
 
     hBaseAdmin.close();
   }

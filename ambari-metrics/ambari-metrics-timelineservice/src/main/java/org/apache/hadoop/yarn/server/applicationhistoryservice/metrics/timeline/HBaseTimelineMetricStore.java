@@ -86,9 +86,7 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
       metricMetadataManager = new TimelineMetricMetadataManager(hBaseAccessor, metricsConf);
       metricMetadataManager.initializeMetadata();
       // Initialize policies before TTL update
-      hBaseAccessor.initPolicies();
-      // Alter TTL on tables
-      hBaseAccessor.alterMetricTableTTL();
+      hBaseAccessor.initPoliciesAndTTL();
 
       if (Boolean.parseBoolean(metricsConf.get(USE_GROUPBY_AGGREGATOR_QUERIES, "true"))) {
         LOG.info("Using group by aggregators for aggregating host and cluster metrics.");
