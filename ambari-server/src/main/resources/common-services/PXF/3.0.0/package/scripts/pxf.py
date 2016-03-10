@@ -58,6 +58,10 @@ class Pxf(Script):
     self.__execute_service_command("stop")
 
 
+  def restart(self, env):
+    self.start(env)
+
+
   def status(self, env):
     try:
       self.__execute_service_command("status")
