@@ -209,8 +209,8 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
     } catch (AuthorizationException e) {
       // Need to rethrow the catched 'AuthorizationException'.
       throw e;
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
+      LOG.error("Error loading deferred resources", e);
       throw new SystemException("Error loading deferred resources", e);
     }
 

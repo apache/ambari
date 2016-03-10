@@ -543,6 +543,9 @@ public class JMXHostProviderTest {
     //Unrelated ports
     Assert.assertEquals("70070", providerModule.getPort("c1", "NAMENODE", "localhost"));
     Assert.assertEquals(null, providerModule.getPort("c1", "JOBTRACKER", "localhost"));
+
+    //test another host and component without property
+    Assert.assertNull(providerModule.getPort("c1", "HBASE_REGIONSERVER", "remotehost1"));
   }
 
   private static class JMXHostProviderModule extends AbstractProviderModule {
