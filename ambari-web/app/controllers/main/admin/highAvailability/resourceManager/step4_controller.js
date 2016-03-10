@@ -44,7 +44,7 @@ App.RMHighAvailabilityWizardStep4Controller = App.HighAvailabilityProgressPageCo
 
   installResourceManager: function () {
     var hostName = this.get('content.rmHosts.additionalRM');
-    this.createComponent('RESOURCEMANAGER', hostName, "YARN");
+    this.createInstallComponentTask('RESOURCEMANAGER', hostName, "YARN");
   },
 
   reconfigureYARN: function () {
@@ -134,4 +134,3 @@ App.RMHighAvailabilityWizardStep4Controller = App.HighAvailabilityProgressPageCo
     this.startServices(true);
   }
 });
-
