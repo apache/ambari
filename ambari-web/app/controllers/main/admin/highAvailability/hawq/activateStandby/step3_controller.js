@@ -106,7 +106,7 @@ App.ActivateHawqStandbyWizardStep3Controller = App.HighAvailabilityProgressPageC
 
   installHawqMaster: function () {
     var hostName = this.get('content.hawqHosts.hawqStandby');
-    this.createComponent(this.hawqMasterComponentName, hostName, this.hawqServiceName);
+    this.createInstallComponentTask(this.hawqMasterComponentName, hostName, this.hawqServiceName);
   },
 
   deleteOldHawqMaster: function () {

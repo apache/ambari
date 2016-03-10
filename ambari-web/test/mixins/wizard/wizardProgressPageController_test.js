@@ -20,7 +20,7 @@ var App = require('app');
 
 describe('App.wizardProgressPageControllerMixin', function() {
   var mixedObject = Em.Object.extend(App.wizardProgressPageControllerMixin, {});
-  
+
   describe('#createComponent', function() {
     var mixedObjectInstance;
     beforeEach(function() {
@@ -66,7 +66,7 @@ describe('App.wizardProgressPageControllerMixin', function() {
       });
       App.serviceComponents = ['ZOOKEEPER_SERVER', 'ZOOKEEPER_CLIENT'];
     });
-    
+
     afterEach(function() {
       App.ajax.send.restore();
       App.StackServiceComponent.find.restore();
@@ -75,7 +75,7 @@ describe('App.wizardProgressPageControllerMixin', function() {
       mixedObjectInstance.updateComponent.restore();
       mixedObjectInstance.checkInstalledComponents.restore();
     });
-    
+
     it('should call `checkInstalledComponents` method', function() {
       mixedObjectInstance.createComponent('ZOOKEEPER_SERVER', 'host1', 'ZOOKEEPER');
       expect(mixedObjectInstance.checkInstalledComponents.called).to.be.true;
@@ -134,7 +134,7 @@ describe('App.wizardProgressPageControllerMixin', function() {
         ]
       }
     ];
-    
+
     testsAjax.forEach(function(test) {
       describe('called with params: ' + JSON.stringify(test.callParams), function() {
         before(function() {
@@ -146,7 +146,7 @@ describe('App.wizardProgressPageControllerMixin', function() {
         after(function() {
           App.ajax.send.restore();
         });
-        
+
         test.e.forEach(function(eKey) {
           it('key: {0} should have value: {1}'.format(eKey.key, eKey.value), function() {
             var args = App.ajax.send.args[0][0];
@@ -157,5 +157,44 @@ describe('App.wizardProgressPageControllerMixin', function() {
     });
   });
 
+  describe('#createInstallComponentTask', function() {
+    var mixedObjectInstance;
+    beforeEach(function() {
+      mixedObjectInstance = mixedObject.create({});
+      sinon.stub(mixedObjectInstance, 'createComponent', Em.K);
+      sinon.stub(mixedObjectInstance, 'onTaskError', Em.K);
+      this.KDCStub = sinon.stub(App, 'get').withArgs('router.mainAdminKerberosController');
+    });
 
+    afterEach(function() {
+      mixedObjectInstance.createComponent.restore();
+      mixedObjectInstance.onTaskError.restore();
+      mixedObjectInstance.destroy();
+      mixedObjectInstance = null;
+      App.get.restore();
+      this.KDCStub = null;
+    });
+
+    it('when credentials are ok, createComponent method called', function() {
+      this.KDCStub.returns({
+        getKDCSessionState: function(sCallback, eCallback) {
+          sCallback();
+        }
+      });
+      mixedObjectInstance.createInstallComponentTask('componentName', 'hostName', 'serviceName');
+      assert.isTrue(mixedObjectInstance.createComponent.calledOnce, 'createComponent should be called');
+      assert.equal(JSON.stringify(mixedObjectInstance.createComponent.args[0]), JSON.stringify(['componentName', 'hostName', 'serviceName']), 'passed argument order should be the same');
+    });
+
+    it('when credentials are expired and KDC dialog cancelled task status should be changed to failed', function() {
+      this.KDCStub.returns({
+        getKDCSessionState: function(sCallback, eCallback) {
+          eCallback();
+        }
+      });
+      mixedObjectInstance.createInstallComponentTask('componentName', 'hostName', 'serviceName');
+      assert.isFalse(mixedObjectInstance.createComponent.calledOnce, 'createComponent should not be called');
+      assert.isTrue(mixedObjectInstance.onTaskError.called, 'onTaskError handler called');
+    });
+  });
 });

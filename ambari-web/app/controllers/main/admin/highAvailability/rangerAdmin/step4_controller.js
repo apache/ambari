@@ -34,7 +34,7 @@ App.RAHighAvailabilityWizardStep4Controller = App.HighAvailabilityProgressPageCo
 
   installRangerAdmin: function () {
     var hostNames = this.get('content.raHosts.additionalRA');
-    this.createComponent('RANGER_ADMIN', hostNames, "RANGER");
+    this.createInstallComponentTask('RANGER_ADMIN', hostNames, "RANGER");
   },
 
   reconfigureRanger: function () {
@@ -85,4 +85,3 @@ App.RAHighAvailabilityWizardStep4Controller = App.HighAvailabilityProgressPageCo
     this.startServices(true);
   }
 });
-

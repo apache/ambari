@@ -60,7 +60,7 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
 
   installZKFC: function () {
     var hostName = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').mapProperty('hostName');
-    this.createComponent('ZKFC', hostName, "HDFS");
+    this.createInstallComponentTask('ZKFC', hostName, "HDFS");
   },
 
   startZKFC: function () {
@@ -85,7 +85,7 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
   },
 
   installPXF: function () {
-    this.createComponent('PXF', this.get('secondNameNodeHost'), "PXF");
+    this.createInstallComponentTask('PXF', this.get('secondNameNodeHost'), "PXF");
   },
 
   reconfigureHBase: function () {
@@ -162,4 +162,3 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
   }
 
 });
-

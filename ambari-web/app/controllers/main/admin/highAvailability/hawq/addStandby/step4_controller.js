@@ -36,7 +36,7 @@ App.AddHawqStandbyWizardStep4Controller = App.HighAvailabilityProgressPageContro
 
   installHawqStandbyMaster: function () {
     var hostName = this.get('content.hawqHosts.newHawqStandby');
-    this.createComponent('HAWQSTANDBY', hostName, "HAWQ");
+    this.createInstallComponentTask('HAWQSTANDBY', hostName, "HAWQ");
   },
 
   reconfigureHAWQ: function () {
