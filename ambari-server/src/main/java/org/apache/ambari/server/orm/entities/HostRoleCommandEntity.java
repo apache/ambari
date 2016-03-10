@@ -61,6 +61,8 @@ import org.apache.commons.lang.ArrayUtils;
 )
 @NamedQueries({
     @NamedQuery(name = "HostRoleCommandEntity.findCountByCommandStatuses", query = "SELECT COUNT(command.taskId) FROM HostRoleCommandEntity command WHERE command.status IN :statuses"),
+    @NamedQuery(name = "HostRoleCommandEntity.findTasksByStatusesOrderByIdDesc", query = "SELECT task FROM HostRoleCommandEntity task WHERE task.requestId = :requestId AND task.status IN :statuses ORDER BY task.taskId DESC"),
+    @NamedQuery(name = "HostRoleCommandEntity.findNumTasksAlreadyRanInStage", query = "SELECT COUNT(task.taskId) FROM HostRoleCommandEntity task WHERE task.requestId = :requestId AND task.taskId > :taskId AND task.stageId > :stageId AND task.status NOT IN :statuses"),
     @NamedQuery(name = "HostRoleCommandEntity.findByCommandStatuses", query = "SELECT command FROM HostRoleCommandEntity command WHERE command.status IN :statuses ORDER BY command.requestId, command.stageId"),
     @NamedQuery(name = "HostRoleCommandEntity.findByHostId", query = "SELECT command FROM HostRoleCommandEntity command WHERE command.hostId=:hostId"),
     @NamedQuery(name = "HostRoleCommandEntity.findByHostRole", query = "SELECT command FROM HostRoleCommandEntity command WHERE command.hostEntity.hostName=:hostName AND command.requestId=:requestId AND command.stageId=:stageId AND command.role=:role ORDER BY command.taskId"),

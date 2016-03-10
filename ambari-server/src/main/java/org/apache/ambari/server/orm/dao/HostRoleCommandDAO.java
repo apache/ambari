@@ -23,6 +23,7 @@ import static org.apache.ambari.server.orm.dao.DaoUtils.ORACLE_LIST_LIMIT;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -689,6 +690,42 @@ public class HostRoleCommandDAO {
     }
   }
 
+  /**
+   * During Rolling and Express Upgrade, want to bubble up the error of the most recent failure, i.e., greatest
+   * task id, assuming that there are no other completed tasks after it.
+   * @param requestId upgrade request id
+   * @return Most recent task failure during stack upgrade, or null if one doesn't exist.
+   */
+  public HostRoleCommandEntity findMostRecentFailure(Long requestId) {
+    TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createNamedQuery(
+        "HostRoleCommandEntity.findTasksByStatusesOrderByIdDesc", HostRoleCommandEntity.class);
+
+    query.setParameter("requestId", requestId);
+    query.setParameter("statuses", HostRoleStatus.STACK_UPGRADE_FAILED_STATUSES);
+    List results = query.getResultList();
+
+    if (!results.isEmpty()) {
+      HostRoleCommandEntity candidate = (HostRoleCommandEntity) results.get(0);
+
+      // Ensure that there are no other completed tasks in a future stage to avoid returning an old error.
+      // During Express Upgrade, we can run multiple commands in the same stage, so it's possible to have
+      // COMPLETED tasks in the failed task's stage.
+      // During Rolling Upgrade, we run exactly one command per stage.
+      TypedQuery<Number> numberAlreadyRanTasksInFutureStage = entityManagerProvider.get().createNamedQuery(
+          "HostRoleCommandEntity.findNumTasksAlreadyRanInStage", Number.class);
+
+      numberAlreadyRanTasksInFutureStage.setParameter("requestId", requestId);
+      numberAlreadyRanTasksInFutureStage.setParameter("taskId", candidate.getTaskId());
+      numberAlreadyRanTasksInFutureStage.setParameter("stageId", candidate.getStageId());
+      numberAlreadyRanTasksInFutureStage.setParameter("statuses", HostRoleStatus.SCHEDULED_STATES);
+
+      Number result = daoUtils.selectSingle(numberAlreadyRanTasksInFutureStage);
+      if (result.longValue() == 0L) {
+        return candidate;
+      }
+    }
+    return null;
+  }
 
   /**
    * Updates the {@link HostRoleCommandEntity#isFailureAutoSkipped()} flag for

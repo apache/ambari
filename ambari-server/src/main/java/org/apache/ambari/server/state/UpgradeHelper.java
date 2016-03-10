@@ -31,6 +31,7 @@ import java.util.regex.Pattern;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.internal.StageResourceProvider;
+import org.apache.ambari.server.controller.internal.TaskResourceProvider;
 import org.apache.ambari.server.controller.predicate.AndPredicate;
 import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
@@ -703,6 +704,32 @@ public class UpgradeHelper {
         request, new AndPredicate(p1, p2, p3));
 
     return response.getResources();
+  }
+
+  /**
+   * Get a single resource for the task with the given parameters.
+   * @param clusterName Cluster Name
+   * @param requestId Request Id
+   * @param stageId Stage Id
+   * @param taskId Task Id
+   * @return Single task resource that matches the predicates, otherwise, null.
+   */
+  public Resource getTaskResource(String clusterName, Long requestId, Long stageId, Long taskId)
+      throws UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException, SystemException {
+    ClusterController clusterController = ClusterControllerHelper.getClusterController();
+
+    Request request = PropertyHelper.getReadRequest();
+
+    Predicate p1 = new PredicateBuilder().property(TaskResourceProvider.TASK_CLUSTER_NAME_PROPERTY_ID).equals(clusterName).toPredicate();
+    Predicate p2 = new PredicateBuilder().property(TaskResourceProvider.TASK_REQUEST_ID_PROPERTY_ID).equals(requestId.toString()).toPredicate();
+    Predicate p3 = new PredicateBuilder().property(TaskResourceProvider.TASK_STAGE_ID_PROPERTY_ID).equals(stageId.toString()).toPredicate();
+    Predicate p4 = new PredicateBuilder().property(TaskResourceProvider.TASK_ID_PROPERTY_ID).equals(taskId.toString()).toPredicate();
+
+    QueryResponse response = clusterController.getResources(Resource.Type.Task,
+        request, new AndPredicate(p1, p2, p3, p4));
+
+    Set<Resource> task = response.getResources();
+    return task.size() == 1 ? task.iterator().next() : null;
   }
 
   /**

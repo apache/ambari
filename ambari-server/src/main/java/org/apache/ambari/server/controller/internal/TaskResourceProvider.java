@@ -81,6 +81,35 @@ public class TaskResourceProvider extends AbstractControllerResourceProvider {
           TASK_ID_PROPERTY_ID}));
 
   /**
+   * The property ids for a task resource.
+   */
+  static final Set<String> PROPERTY_IDS = new HashSet<String>();
+
+  // These are static so that they can be referenced by other classes such as UpgradeSummaryResourceProvider.java
+  static {
+    // properties
+    PROPERTY_IDS.add(TASK_CLUSTER_NAME_PROPERTY_ID);
+    PROPERTY_IDS.add(TASK_REQUEST_ID_PROPERTY_ID);
+    PROPERTY_IDS.add(TASK_ID_PROPERTY_ID);
+    PROPERTY_IDS.add(TASK_STAGE_ID_PROPERTY_ID);
+    PROPERTY_IDS.add(TASK_HOST_NAME_PROPERTY_ID);
+    PROPERTY_IDS.add(TASK_ROLE_PROPERTY_ID);
+    PROPERTY_IDS.add(TASK_COMMAND_PROPERTY_ID);
+    PROPERTY_IDS.add(TASK_STATUS_PROPERTY_ID);
+    PROPERTY_IDS.add(TASK_EXIT_CODE_PROPERTY_ID);
+    PROPERTY_IDS.add(TASK_STDERR_PROPERTY_ID);
+    PROPERTY_IDS.add(TASK_STOUT_PROPERTY_ID);
+    PROPERTY_IDS.add(TASK_OUTPUTLOG_PROPERTY_ID);
+    PROPERTY_IDS.add(TASK_ERRORLOG_PROPERTY_ID);
+    PROPERTY_IDS.add(TASK_STRUCT_OUT_PROPERTY_ID);
+    PROPERTY_IDS.add(TASK_START_TIME_PROPERTY_ID);
+    PROPERTY_IDS.add(TASK_END_TIME_PROPERTY_ID);
+    PROPERTY_IDS.add(TASK_ATTEMPT_CNT_PROPERTY_ID);
+    PROPERTY_IDS.add(TASK_COMMAND_DET_PROPERTY_ID);
+    PROPERTY_IDS.add(TASK_CUST_CMD_NAME_PROPERTY_ID);
+  }
+
+  /**
    * Used for querying tasks.
    */
   @Inject

@@ -576,6 +576,21 @@ public class ClusterService extends BaseService {
   }
 
   /**
+   * Gets a list of upgrade summaries.
+   *
+   * @param request the request
+   * @param clusterName the cluster name
+   *
+   * @return the upgrade summary service
+   */
+  @Path("{clusterName}/upgrade_summary")
+  public UpgradeSummaryService getUpgradeSummaryService(
+      @Context javax.ws.rs.core.Request request,
+      @PathParam("clusterName") String clusterName) {
+    return new UpgradeSummaryService(clusterName);
+  }
+  
+  /**
    * Gets the pre-upgrade checks service.
    *
    * @param request the request
