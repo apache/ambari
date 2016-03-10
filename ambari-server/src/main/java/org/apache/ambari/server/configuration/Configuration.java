@@ -196,6 +196,11 @@ public class Configuration {
   public static final String SERVER_JDBC_URL_KEY = "server.jdbc.url";
   public static final String SERVER_JDBC_PROPERTIES_PREFIX = "server.jdbc.properties.";
 
+  public static final String SERVER_HTTP_REQUEST_HEADER_SIZE = "server.http.request.header.size";
+  public static final String SERVER_HTTP_RESPONSE_HEADER_SIZE = "server.http.response.header.size";
+  public static final int SERVER_HTTP_REQUEST_HEADER_SIZE_DEFAULT = 64*1024;
+  public static final int SERVER_HTTP_RESPONSE_HEADER_SIZE_DEFAULT = 64*1024;
+
   // Properties for stack upgrade (Rolling, Express)
   public static final String ROLLING_UPGRADE_SKIP_PACKAGES_PREFIXES_KEY = "rolling.upgrade.skip.packages.prefixes";
   public static final String ROLLING_UPGRADE_SKIP_PACKAGES_PREFIXES_DEFAULT = "";
@@ -1781,6 +1786,22 @@ public class Configuration {
     }
 
     return customDbProperties;
+  }
+
+  /**
+   * @return Custom property for request header size
+   */
+  public int getHttpRequestHeaderSize() {
+    return Integer.parseInt(properties.getProperty(
+        SERVER_HTTP_REQUEST_HEADER_SIZE, String.valueOf(SERVER_HTTP_REQUEST_HEADER_SIZE_DEFAULT)));
+  }
+
+  /**
+   * @return Custom property for response header size
+   */
+  public int getHttpResponseHeaderSize() {
+    return Integer.parseInt(properties.getProperty(
+        SERVER_HTTP_RESPONSE_HEADER_SIZE, String.valueOf(SERVER_HTTP_RESPONSE_HEADER_SIZE_DEFAULT)));
   }
 
   public Map<String, String> getAmbariProperties() {

@@ -377,6 +377,7 @@ public class AmbariServer {
         httpConfigurationTwoWay.setSecureScheme("https");
         httpConfigurationTwoWay.setSecurePort(configs.getTwoWayAuthPort());
         httpConfigurationTwoWay.addCustomizer(new SecureRequestCustomizer());
+        setHeaderSize(httpConfigurationTwoWay);
 
         String keystore = configsMap.get(Configuration.SRVR_KSTR_DIR_KEY) + File.separator
             + configsMap.get(Configuration.KSTR_NAME_KEY);
@@ -412,6 +413,7 @@ public class AmbariServer {
         httpConfigurationOneWay.setSecureScheme("https");
         httpConfigurationOneWay.setSecurePort(configs.getOneWayAuthPort());
         httpConfigurationOneWay.addCustomizer(new SecureRequestCustomizer());
+        setHeaderSize(httpConfigurationOneWay);
 
         Map <String, Integer> agentSelectorAcceptorMap = getDesiredAgentAcceptorSelector(serverForAgent);
         // SSL for 1-way auth
@@ -529,6 +531,7 @@ public class AmbariServer {
 
         HttpConfiguration httpConfigurationSSL = new HttpConfiguration();
         httpConfigurationSSL.setSecurePort(configs.getClientSSLApiPort());
+        setHeaderSize(httpConfigurationSSL);
 
         ServerConnector https = new ServerConnector(server, new SslConnectionFactory(contextFactoryApi, "http/1.1"),
             new HttpConnectionFactory(httpConfigurationSSL));
@@ -538,6 +541,7 @@ public class AmbariServer {
       } else  {
         HttpConfiguration httpConfiguration = new HttpConfiguration();
         httpConfiguration.setSecurePort(configs.getClientApiPort());
+        setHeaderSize(httpConfiguration);
 
         apiConnector = new ServerConnector(server, new HttpConnectionFactory(httpConfiguration));
         apiConnector.setPort(configs.getClientApiPort());
@@ -714,6 +718,14 @@ public class AmbariServer {
       String[] masks = configs.getSrvrDisabledProtocols().split(DISABLED_ENTRIES_SPLITTER);
       factory.setExcludeProtocols(masks);
     }
+  }
+
+  /**
+   * Propagate header size to Jetty HTTP configuration
+   */
+  private void setHeaderSize(HttpConfiguration httpConfiguration) {
+    httpConfiguration.setResponseHeaderSize(configs.getHttpResponseHeaderSize());
+    httpConfiguration.setRequestHeaderSize(configs.getHttpRequestHeaderSize());
   }
 
   /**
