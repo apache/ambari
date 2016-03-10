@@ -103,4 +103,13 @@ gpgcheck=0</value>
         </value-attributes>
     </property>
 
+    <property>
+        <name>managed_hdfs_resource_property_names</name>
+        <value></value>
+        <description>Comma separated list of property names with HDFS resource paths.
+        Resource from this list will be managed even if it is marked as not managed in the stack</description>
+        <value-attributes>
+            <overridable>false</overridable>
+        </value-attributes>
+    </property>
 </configuration>

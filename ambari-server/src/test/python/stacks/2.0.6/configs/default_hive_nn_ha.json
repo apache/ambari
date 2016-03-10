@@ -3,6 +3,7 @@
     "clusterName": "c1", 
     "hostname": "c6401.ambari.apache.org", 
     "hostLevelParams": {
+        "not_managed_hdfs_path_list": "[\"/apps/hive/warehouse\",\"/apps/falcon\",\"/mr-history/done\",\"/app-logs\",\"/tmp\"]",
         "agent_stack_retry_count": "5",
         "agent_stack_retry_on_unavailability": "false",
         "jdk_location": "http://c6401.ambari.apache.org:8080/resources/", 
@@ -276,6 +277,7 @@
             "hive_database": "New MySQL Database"
         },
       "cluster-env": {
+        "managed_hdfs_resource_property_names": "",
         "security_enabled": "false",
         "hdfs_user_principal" : "",
         "hdfs_user_keytab" : "",

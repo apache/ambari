@@ -151,6 +151,7 @@ class TestAts(RMFTestCase):
                               cd_access = 'a',
                               )
     self.assertResourceCalled('HdfsResource', '/ats',
+                              immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
                               security_enabled = False,
                               hadoop_bin_dir = '/usr/bin',
                               keytab = UnknownConfigurationMock(),
@@ -168,6 +169,7 @@ class TestAts(RMFTestCase):
                               mode = 0755,
                               )
     self.assertResourceCalled('HdfsResource', '/ats/done',
+                              immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
                               security_enabled = False,
                               hadoop_bin_dir = '/usr/bin',
                               keytab = UnknownConfigurationMock(),
@@ -184,6 +186,7 @@ class TestAts(RMFTestCase):
                               mode = 0700,
                               )
     self.assertResourceCalled('HdfsResource', '/ats',
+                              immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
                               security_enabled = False,
                               hadoop_bin_dir = '/usr/bin',
                               keytab = UnknownConfigurationMock(),
@@ -201,6 +204,7 @@ class TestAts(RMFTestCase):
                               mode = 0755,
                               )
     self.assertResourceCalled('HdfsResource', '/ats/active',
+                              immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
                               security_enabled = False,
                               hadoop_bin_dir = '/usr/bin',
                               keytab = UnknownConfigurationMock(),
@@ -217,6 +221,7 @@ class TestAts(RMFTestCase):
                               mode = 01777,
                               )
     self.assertResourceCalled('HdfsResource', None,
+                              immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
                               security_enabled = False,
                               hadoop_bin_dir = '/usr/bin',
                               keytab = UnknownConfigurationMock(),

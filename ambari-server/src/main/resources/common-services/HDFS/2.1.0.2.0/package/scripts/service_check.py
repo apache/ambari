@@ -34,7 +34,7 @@ class HdfsServiceCheckDefault(HdfsServiceCheck):
 
     env.set_params(params)
     unique = functions.get_unique_id_and_date()
-    dir = '/tmp'
+    dir = params.hdfs_tmp_dir
     tmp_file = format("{dir}/{unique}")
 
     safemode_command = format("dfsadmin -fs {namenode_address} -safemode get | grep OFF")
@@ -119,7 +119,7 @@ class HdfsServiceCheckWindows(HdfsServiceCheck):
     unique = functions.get_unique_id_and_date()
 
     #Hadoop uses POSIX-style paths, separator is always /
-    dir = '/tmp'
+    dir = params.hdfs_tmp_dir
     tmp_file = dir + '/' + unique
 
     #commands for execution

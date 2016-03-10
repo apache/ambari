@@ -56,7 +56,8 @@
     "clusterName": "c1", 
     "hostname": "c6408.ambari.apache.org", 
     "hostLevelParams": {
-        "jdk_location": "http://c6407.ambari.apache.org:8080/resources/", 
+        "not_managed_hdfs_path_list": "[\"/apps/hive/warehouse\",\"/apps/falcon\",\"/mr-history/done\",\"/app-logs\",\"/tmp\"]",
+        "jdk_location": "http://c6407.ambari.apache.org:8080/resources/",
         "ambari_db_rca_password": "mapred", 
         "java_home": "/usr/jdk64/jdk1.7.0_67",
         "java_version": "8",
@@ -801,6 +802,7 @@
             "zookeeper_principal_name": "zookeeper/_HOST@EXAMPLE.COM"
         }, 
         "cluster-env": {
+            "managed_hdfs_resource_property_names": "",
             "security_enabled": "true",
             "ignore_groupsusers_create": "false",
             "kerberos_domain": "EXAMPLE.COM",

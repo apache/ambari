@@ -40,6 +40,7 @@ class TestServiceCheck(RMFTestCase):
                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa/mapredsmokeoutput',
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),
@@ -50,6 +51,7 @@ class TestServiceCheck(RMFTestCase):
         type = 'directory',
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa/mapredsmokeinput',
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),
@@ -61,6 +63,7 @@ class TestServiceCheck(RMFTestCase):
         type = 'file',
     )
     self.assertResourceCalled('HdfsResource', None,
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),
@@ -94,6 +97,7 @@ class TestServiceCheck(RMFTestCase):
                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa/mapredsmokeoutput',
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = True,
         hadoop_bin_dir = '/usr/bin',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
@@ -104,6 +108,7 @@ class TestServiceCheck(RMFTestCase):
         type = 'directory',
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa/mapredsmokeinput',
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = True,
         hadoop_bin_dir = '/usr/bin',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
@@ -115,6 +120,7 @@ class TestServiceCheck(RMFTestCase):
         type = 'file',
     )
     self.assertResourceCalled('HdfsResource', None,
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = True,
         hadoop_bin_dir = '/usr/bin',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',

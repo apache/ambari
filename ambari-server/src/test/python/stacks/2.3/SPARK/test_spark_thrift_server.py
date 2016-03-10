@@ -91,6 +91,7 @@ class TestSparkThriftServer(RMFTestCase):
         mode = 0775
     )
     self.assertResourceCalled('HdfsResource', '/user/spark',
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = False,
         hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
         keytab = UnknownConfigurationMock(),
@@ -106,6 +107,7 @@ class TestSparkThriftServer(RMFTestCase):
         mode = 0775,
     )
     self.assertResourceCalled('HdfsResource', None,
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = False,
         hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
         keytab = UnknownConfigurationMock(),

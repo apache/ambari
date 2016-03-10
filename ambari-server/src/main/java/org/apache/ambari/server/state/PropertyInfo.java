@@ -234,6 +234,7 @@ public class PropertyInfo {
     GROUP,
     TEXT,
     ADDITIONAL_USER_PROPERTY,
-    DONT_ADD_ON_UPGRADE
+    DONT_ADD_ON_UPGRADE,
+    NOT_MANAGED_HDFS_PATH
   }
 }

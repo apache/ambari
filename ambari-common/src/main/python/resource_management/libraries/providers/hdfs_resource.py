@@ -51,7 +51,9 @@ RESOURCE_TO_JSON_FIELDS = {
   'mode': 'mode',
   'recursive_chown': 'recursiveChown',
   'recursive_chmod': 'recursiveChmod',
-  'change_permissions_for_parents': 'changePermissionforParents'
+  'change_permissions_for_parents': 'changePermissionforParents',
+  'manage_if_exists': 'manageIfExists'
+
 }
 
 class HdfsResourceJar:
@@ -76,6 +78,8 @@ class HdfsResourceJar:
         resource[json_field_name] = action_name
       elif field_name == 'mode' and main_resource.resource.mode:
         resource[json_field_name] = oct(main_resource.resource.mode)[1:]
+      elif field_name == 'manage_if_exists':
+        resource[json_field_name] = main_resource.manage_if_exists
       elif getattr(main_resource.resource, field_name):
         resource[json_field_name] = getattr(main_resource.resource, field_name)
 
@@ -244,7 +248,12 @@ class HdfsResourceWebHDFS:
     self.mode_set = False
     self.main_resource = main_resource
     self._assert_valid()
-
+    
+    if self.main_resource.manage_if_exists == False and self.target_status:
+      Logger.info("Skipping the operation for not managed DFS directory " + str(self.main_resource.resource.target) +
+                  " since immutable_paths contains it.")
+      return        
+    
     if action_name == "create":
       self._create_resource()
       self._set_mode(self.target_status)
@@ -437,7 +446,12 @@ class HdfsResourceProvider(Provider):
   def action_delayed(self, action_name):
     self.assert_parameter_is_set('type')
 
-    if HdfsResourceProvider.parse_path(self.resource.target) in self.ignored_resources_list:
+    parsed_path = HdfsResourceProvider.parse_path(self.resource.target)
+
+    parsed_not_managed_paths = [HdfsResourceProvider.parse_path(path) for path in self.resource.immutable_paths]
+    self.manage_if_exists = not parsed_path in parsed_not_managed_paths
+
+    if parsed_path in self.ignored_resources_list:
       Logger.info("Skipping '{0}' because it is in ignore file {1}.".format(self.resource, self.resource.hdfs_resource_ignore_file))
       return
 

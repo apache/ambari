@@ -83,6 +83,7 @@ class TestServiceCheck(RMFTestCase):
         try_sleep = 5,
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa/examples',
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),
@@ -93,6 +94,7 @@ class TestServiceCheck(RMFTestCase):
         type = 'directory',
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa/examples',
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),
@@ -106,6 +108,7 @@ class TestServiceCheck(RMFTestCase):
         group = 'hadoop'
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa/input-data',
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),
@@ -116,6 +119,7 @@ class TestServiceCheck(RMFTestCase):
         type = 'directory',
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa/input-data',
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),
@@ -129,6 +133,7 @@ class TestServiceCheck(RMFTestCase):
         group = 'hadoop'
     )
     self.assertResourceCalled('HdfsResource', None,
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),

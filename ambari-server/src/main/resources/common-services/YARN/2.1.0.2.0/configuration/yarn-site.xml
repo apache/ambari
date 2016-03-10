@@ -292,6 +292,7 @@
     <name>yarn.nodemanager.remote-app-log-dir</name>
     <value>/app-logs</value>
     <description>Location to aggregate logs to. </description>
+    <property-type>NOT_MANAGED_HDFS_PATH</property-type>
   </property>
 
   <property>

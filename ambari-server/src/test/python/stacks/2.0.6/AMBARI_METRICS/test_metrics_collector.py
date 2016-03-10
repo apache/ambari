@@ -320,6 +320,7 @@ class TestMetricsCollector(RMFTestCase):
     if name == 'master':
       if distributed:
         self.assertResourceCalled('HdfsResource', 'hdfs://localhost:8020/apps/hbase/data',
+                                  immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
                                   security_enabled = False,
                                   hadoop_bin_dir = '/usr/bin',
                                   keytab = UnknownConfigurationMock(),
@@ -335,6 +336,7 @@ class TestMetricsCollector(RMFTestCase):
                                   default_fs='hdfs://c6401.ambari.apache.org:8020',
                                   )
         self.assertResourceCalled('HdfsResource', '/amshbase/staging',
+                                  immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
                                   security_enabled = False,
                                   hadoop_bin_dir = '/usr/bin',
                                   keytab = UnknownConfigurationMock(),
@@ -350,6 +352,7 @@ class TestMetricsCollector(RMFTestCase):
                                   default_fs='hdfs://c6401.ambari.apache.org:8020',
                                   )
         self.assertResourceCalled('HdfsResource', None,
+                                  immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
                                   security_enabled = False,
                                   hadoop_bin_dir = '/usr/bin',
                                   keytab = UnknownConfigurationMock(),

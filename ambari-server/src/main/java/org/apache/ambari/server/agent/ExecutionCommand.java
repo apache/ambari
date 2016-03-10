@@ -343,6 +343,7 @@ public class ExecutionCommand extends AgentCommand {
     String REFRESH_ADITIONAL_COMPONENT_TAGS = "forceRefreshConfigTags";
     String USER_LIST = "user_list";
     String GROUP_LIST = "group_list";
+    String NOT_MANAGED_HDFS_PATH_LIST = "not_managed_hdfs_path_list";
     String VERSION = "version";
     String REFRESH_TOPOLOGY = "refresh_topology";
     String HOST_SYS_PREPPED = "host_sys_prepped";

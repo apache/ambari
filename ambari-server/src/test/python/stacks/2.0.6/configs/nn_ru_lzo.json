@@ -14,6 +14,7 @@
     "clusterName": "c1", 
     "hostname": "c6401.ambari.apache.org", 
     "hostLevelParams": {
+        "not_managed_hdfs_path_list": "[\"/apps/hive/warehouse\",\"/apps/falcon\",\"/mr-history/done\",\"/app-logs\",\"/tmp\"]",
         "agent_stack_retry_count": "5",
         "agent_stack_retry_on_unavailability": "false",
         "jdk_location": "http://10.0.0.15:8080/resources/", 
@@ -145,6 +146,7 @@
             "ipc.client.connection.maxidletime": "30000"
         }, 
         "hadoop-env": {
+            "hdfs_tmp_dir": "/tmp",
             "dtnode_heapsize": "1024m", 
             "namenode_opt_maxnewsize": "256m", 
             "hdfs_log_dir_prefix": "/var/log/hadoop", 
@@ -160,6 +162,7 @@
             "namenode_opt_permsize": "128m"
         }, 
         "cluster-env": {
+            "managed_hdfs_resource_property_names": "",
             "security_enabled": "false",
             "ignore_groupsusers_create": "false",
             "kerberos_domain": "EXAMPLE.COM",

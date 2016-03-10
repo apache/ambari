@@ -331,6 +331,7 @@ class TestHiveServer(RMFTestCase):
   def assert_configure_default(self, no_tmp = False, default_fs_default='hdfs://c6401.ambari.apache.org:8020'):
     # Verify creating of Hcat and Hive directories
     self.assertResourceCalled('HdfsResource', '/apps/webhcat',
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),
@@ -343,6 +344,7 @@ class TestHiveServer(RMFTestCase):
         mode = 0755,
     )
     self.assertResourceCalled('HdfsResource', '/user/hcat',
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),
@@ -360,6 +362,7 @@ class TestHiveServer(RMFTestCase):
       return
 
     self.assertResourceCalled('HdfsResource', '/apps/hive/warehouse',
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),
@@ -372,6 +375,7 @@ class TestHiveServer(RMFTestCase):
         mode = 0777,
     )
     self.assertResourceCalled('HdfsResource', '/user/hive',
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),
@@ -385,6 +389,7 @@ class TestHiveServer(RMFTestCase):
     )
     if not no_tmp:
       self.assertResourceCalled('HdfsResource', '/custompath/tmp/hive',
+          immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
           security_enabled = False,
           hadoop_conf_dir = '/etc/hadoop/conf',
           keytab = UnknownConfigurationMock(),
@@ -398,6 +403,7 @@ class TestHiveServer(RMFTestCase):
           mode = 0777,
       )
     self.assertResourceCalled('HdfsResource', None,
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),
@@ -513,6 +519,7 @@ class TestHiveServer(RMFTestCase):
 
   def assert_configure_secured(self):
     self.assertResourceCalled('HdfsResource', '/apps/webhcat',
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = True,
         hadoop_bin_dir = '/usr/bin',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
@@ -525,6 +532,7 @@ class TestHiveServer(RMFTestCase):
         mode = 0755,
     )
     self.assertResourceCalled('HdfsResource', '/user/hcat',
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = True,
         hadoop_bin_dir = '/usr/bin',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
@@ -538,6 +546,7 @@ class TestHiveServer(RMFTestCase):
     )
 
     self.assertResourceCalled('HdfsResource', '/apps/hive/warehouse',
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = True,
         hadoop_bin_dir = '/usr/bin',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
@@ -550,6 +559,7 @@ class TestHiveServer(RMFTestCase):
         mode = 0777,
     )
     self.assertResourceCalled('HdfsResource', '/user/hive',
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = True,
         hadoop_bin_dir = '/usr/bin',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
@@ -562,6 +572,7 @@ class TestHiveServer(RMFTestCase):
         mode = 0755,
     )
     self.assertResourceCalled('HdfsResource', '/custompath/tmp/hive',
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = True,
         hadoop_conf_dir = '/etc/hadoop/conf',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
@@ -575,6 +586,7 @@ class TestHiveServer(RMFTestCase):
         mode = 0777,
     )
     self.assertResourceCalled('HdfsResource', None,
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = True,
         hadoop_bin_dir = '/usr/bin',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
@@ -908,6 +920,7 @@ From source with checksum 150f554beae04f76f814f59549dead8b"""
     copy_to_hdfs_mock.assert_any_call("tez", "hadoop", "hdfs", host_sys_prepped=False)
     self.assertEquals(2, copy_to_hdfs_mock.call_count)
     self.assertResourceCalled('HdfsResource', None,
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = False,
         hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
         keytab = UnknownConfigurationMock(),
@@ -949,6 +962,7 @@ From source with checksum 150f554beae04f76f814f59549dead8b"""
     copy_to_hdfs_mock.assert_any_call("tez", "hadoop", "hdfs", host_sys_prepped=False)
     self.assertEquals(2, copy_to_hdfs_mock.call_count)
     self.assertResourceCalled('HdfsResource', None,
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = False,
         hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
         keytab = UnknownConfigurationMock(),

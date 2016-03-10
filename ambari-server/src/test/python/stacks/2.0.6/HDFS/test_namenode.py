@@ -95,6 +95,7 @@ class TestNamenode(RMFTestCase):
         logoutput=True
     )
     self.assertResourceCalled('HdfsResource', '/tmp',
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = False,
         only_if=True,
         keytab = UnknownConfigurationMock(),
@@ -111,6 +112,7 @@ class TestNamenode(RMFTestCase):
         mode = 0777,
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa',
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = False,
         only_if=True,
         keytab = UnknownConfigurationMock(),
@@ -127,6 +129,7 @@ class TestNamenode(RMFTestCase):
         mode = 0770,
     )
     self.assertResourceCalled('HdfsResource', None,
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = False,
         only_if=True,
         keytab = UnknownConfigurationMock(),
@@ -205,6 +208,7 @@ class TestNamenode(RMFTestCase):
         logoutput=True
     )
     self.assertResourceCalled('HdfsResource', '/tmp',
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = False,
         only_if = True,
         keytab = UnknownConfigurationMock(),
@@ -221,6 +225,7 @@ class TestNamenode(RMFTestCase):
         mode = 0777,
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa',
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = False,
         only_if = True,
         keytab = UnknownConfigurationMock(),
@@ -237,6 +242,7 @@ class TestNamenode(RMFTestCase):
         mode = 0770,
     )
     self.assertResourceCalled('HdfsResource', None,
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = False,
         only_if = True,
         keytab = UnknownConfigurationMock(),
@@ -331,6 +337,7 @@ class TestNamenode(RMFTestCase):
         logoutput=True
     )
     self.assertResourceCalled('HdfsResource', '/tmp',
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = True,
         hadoop_bin_dir = '/usr/bin',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
@@ -344,6 +351,7 @@ class TestNamenode(RMFTestCase):
         only_if = True
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa',
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = True,
         hadoop_bin_dir = '/usr/bin',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
@@ -357,6 +365,7 @@ class TestNamenode(RMFTestCase):
         only_if = True
     )
     self.assertResourceCalled('HdfsResource', None,
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = True,
         only_if = True,
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
@@ -424,6 +433,7 @@ class TestNamenode(RMFTestCase):
         logoutput=True
     )
     self.assertResourceCalled('HdfsResource', '/tmp',
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = False,
         only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
         keytab = UnknownConfigurationMock(),
@@ -440,6 +450,7 @@ class TestNamenode(RMFTestCase):
         mode = 0777,
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa',
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = False,
         only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
         keytab = UnknownConfigurationMock(),
@@ -456,6 +467,7 @@ class TestNamenode(RMFTestCase):
         mode = 0770,
     )
     self.assertResourceCalled('HdfsResource', None,
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = False,
         only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
         keytab = UnknownConfigurationMock(),
@@ -518,6 +530,7 @@ class TestNamenode(RMFTestCase):
         logoutput=True
     )
     self.assertResourceCalled('HdfsResource', '/tmp',
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = False,
         only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
         keytab = UnknownConfigurationMock(),
@@ -534,6 +547,7 @@ class TestNamenode(RMFTestCase):
         mode = 0777,
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa',
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = False,
         only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
         keytab = UnknownConfigurationMock(),
@@ -550,6 +564,7 @@ class TestNamenode(RMFTestCase):
         mode = 0770,
     )
     self.assertResourceCalled('HdfsResource', None,
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = False,
         only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
         keytab = UnknownConfigurationMock(),
@@ -618,6 +633,7 @@ class TestNamenode(RMFTestCase):
         logoutput=True
     )
     self.assertResourceCalled('HdfsResource', '/tmp',
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = True,
         only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
@@ -634,6 +650,7 @@ class TestNamenode(RMFTestCase):
         mode = 0777,
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa',
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = True,
         only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
@@ -650,6 +667,7 @@ class TestNamenode(RMFTestCase):
         mode = 0770,
     )
     self.assertResourceCalled('HdfsResource', None,
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = True,
         only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
@@ -718,6 +736,7 @@ class TestNamenode(RMFTestCase):
         logoutput=True
     )
     self.assertResourceCalled('HdfsResource', '/tmp',
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = False,
         only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
         keytab = UnknownConfigurationMock(),
@@ -734,6 +753,7 @@ class TestNamenode(RMFTestCase):
         mode = 0777,
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa',
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = False,
         only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
         keytab = UnknownConfigurationMock(),
@@ -750,6 +770,7 @@ class TestNamenode(RMFTestCase):
         mode = 0770,
     )
     self.assertResourceCalled('HdfsResource', None,
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = False,
         only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
         keytab = UnknownConfigurationMock(),
@@ -817,6 +838,7 @@ class TestNamenode(RMFTestCase):
         logoutput=True
     )
     self.assertResourceCalled('HdfsResource', '/tmp',
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = False,
         only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn2 | grep active'",
         keytab = UnknownConfigurationMock(),
@@ -833,6 +855,7 @@ class TestNamenode(RMFTestCase):
         mode = 0777,
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa',
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = False,
         only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn2 | grep active'",
         keytab = UnknownConfigurationMock(),
@@ -849,6 +872,7 @@ class TestNamenode(RMFTestCase):
         mode = 0770,
     )
     self.assertResourceCalled('HdfsResource', None,
+        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
         security_enabled = False,
         only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn2 | grep active'",
         keytab = UnknownConfigurationMock(),
@@ -924,6 +948,7 @@ class TestNamenode(RMFTestCase):
                               logoutput=True
     )
     self.assertResourceCalled('HdfsResource', '/tmp',
+                              immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
                               security_enabled = False,
                               only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn2 | grep active'",
                               keytab = UnknownConfigurationMock(),
@@ -940,6 +965,7 @@ class TestNamenode(RMFTestCase):
                               mode = 0777,
                               )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa',
+                              immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
                               security_enabled = False,
                               only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn2 | grep active'",
                               keytab = UnknownConfigurationMock(),
@@ -956,6 +982,7 @@ class TestNamenode(RMFTestCase):
                               mode = 0770,
                               )
     self.assertResourceCalled('HdfsResource', None,
+                              immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
                               security_enabled = False,
                               only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn2 | grep active'",
                               keytab = UnknownConfigurationMock(),

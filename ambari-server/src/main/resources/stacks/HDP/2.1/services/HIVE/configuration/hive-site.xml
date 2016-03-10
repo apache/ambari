@@ -88,6 +88,7 @@ limitations under the License.
     <name>hive.metastore.warehouse.dir</name>
     <value>/apps/hive/warehouse</value>
     <description>location of default database for the warehouse</description>
+    <property-type>NOT_MANAGED_HDFS_PATH</property-type>
   </property>
 
   <property>
