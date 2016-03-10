@@ -81,7 +81,7 @@ def get_stack_version(package_name):
       'Unable to determine the current version because of a non-zero return code of {0}'.format(str(return_code)))
 
   stack_version = re.sub(package_name + ' - ', '', stack_output)
-  stack_version = stack_output.rstrip()
+  stack_version = stack_version.rstrip()
   match = re.match('[0-9]+.[0-9]+.[0-9]+.[0-9]+-[0-9]+', stack_version)
 
   if match is None:
