@@ -23,6 +23,7 @@ from functions import check_append_heap_property
 from functions import trim_heap_property
 from resource_management.core.logger import Logger
 from resource_management import *
+from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
 import status_params
 from ambari_commons import OSCheck
 import ConfigParser
@@ -318,7 +319,8 @@ HdfsResource = functools.partial(
   hadoop_conf_dir = hadoop_conf_dir,
   principal_name = hdfs_principal_name,
   hdfs_site = hdfs_site,
-  default_fs = default_fs
+  default_fs = default_fs,
+  immutable_paths = get_not_managed_resources()
  )
 
 

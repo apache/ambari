@@ -252,6 +252,7 @@
     <description>
       Directory where history files are managed by the MR JobHistory Server.
     </description>
+    <property-type>NOT_MANAGED_HDFS_PATH</property-type>
   </property>
 
   <property>       

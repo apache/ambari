@@ -34,6 +34,7 @@ class TestOozieServer(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "OOZIE/4.0.0.2.0/package"
   STACK_VERSION = "2.0.6"
   UPGRADE_STACK_VERSION = "2.2"
+  DEFAULT_IMMUTABLE_PATHS = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp']
 
   def setUp(self):
     self.maxDiff = None
@@ -64,6 +65,7 @@ class TestOozieServer(RMFTestCase):
                        call_mocks = call_mocks
     )
     self.assertResourceCalled('HdfsResource', '/user/oozie',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),
@@ -77,6 +79,7 @@ class TestOozieServer(RMFTestCase):
         mode = 0775,
     )
     self.assertResourceCalled('HdfsResource', None,
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),
@@ -279,6 +282,7 @@ class TestOozieServer(RMFTestCase):
                        call_mocks = call_mocks
     )
     self.assertResourceCalled('HdfsResource', '/user/oozie',
+                              immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
                               security_enabled = False,
                               hadoop_bin_dir = '/usr/bin',
                               keytab = UnknownConfigurationMock(),
@@ -295,6 +299,7 @@ class TestOozieServer(RMFTestCase):
                               mode = 0775,
                               )
     self.assertResourceCalled('HdfsResource', None,
+                              immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
                               security_enabled = False,
                               hadoop_bin_dir = '/usr/bin',
                               keytab = UnknownConfigurationMock(),
@@ -511,6 +516,7 @@ class TestOozieServer(RMFTestCase):
         user = 'oozie',
     )
     self.assertResourceCalled('HdfsResource', '/user/oozie/share',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),
@@ -527,6 +533,7 @@ class TestOozieServer(RMFTestCase):
         mode = 0755,
     )
     self.assertResourceCalled('HdfsResource', None,
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),
@@ -606,6 +613,7 @@ class TestOozieServer(RMFTestCase):
         user = 'oozie',
     )
     self.assertResourceCalled('HdfsResource', '/user/oozie/share',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = True,
         hadoop_bin_dir = '/usr/bin',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
@@ -622,6 +630,7 @@ class TestOozieServer(RMFTestCase):
         mode = 0755,
     )
     self.assertResourceCalled('HdfsResource', None,
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = True,
         hadoop_bin_dir = '/usr/bin',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
@@ -661,6 +670,7 @@ class TestOozieServer(RMFTestCase):
 
   def assert_configure_default(self):
     self.assertResourceCalled('HdfsResource', '/user/oozie',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_conf_dir = '/etc/hadoop/conf',
         keytab = UnknownConfigurationMock(),
@@ -674,6 +684,7 @@ class TestOozieServer(RMFTestCase):
         mode = 0775,
     )
     self.assertResourceCalled('HdfsResource', None,
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),
@@ -848,6 +859,7 @@ class TestOozieServer(RMFTestCase):
 
   def assert_configure_secured(self):
     self.assertResourceCalled('HdfsResource', '/user/oozie',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = True,
         hadoop_conf_dir = '/etc/hadoop/conf',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
@@ -862,6 +874,7 @@ class TestOozieServer(RMFTestCase):
         mode = 0775,
     )
     self.assertResourceCalled('HdfsResource', None,
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = True,
         hadoop_bin_dir = '/usr/bin',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
@@ -1392,6 +1405,7 @@ class TestOozieServer(RMFTestCase):
       user = 'oozie', logoutput = True )
 
     self.assertResourceCalled('HdfsResource', '/user/oozie/share',
+      immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
       security_enabled = False,
       hadoop_bin_dir = '/usr/hdp/2.3.0.0-1234/hadoop/bin',
       keytab = UnknownConfigurationMock(),
@@ -1410,6 +1424,7 @@ class TestOozieServer(RMFTestCase):
       mode = 0755 )
 
     self.assertResourceCalled('HdfsResource', None,
+      immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
       security_enabled = False,
       hadoop_bin_dir = '/usr/hdp/2.3.0.0-1234/hadoop/bin',
       keytab = UnknownConfigurationMock(),
@@ -1465,6 +1480,7 @@ class TestOozieServer(RMFTestCase):
       user = 'oozie', logoutput = True )
 
     self.assertResourceCalled('HdfsResource', '/user/oozie/share',
+      immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
       security_enabled = False,
       hadoop_bin_dir = '/usr/hdp/2.3.0.0-1234/hadoop/bin',
       keytab = UnknownConfigurationMock(),
@@ -1483,6 +1499,7 @@ class TestOozieServer(RMFTestCase):
       mode = 0755 )
 
     self.assertResourceCalled('HdfsResource', None,
+      immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
       security_enabled = False,
       hadoop_bin_dir = '/usr/hdp/2.3.0.0-1234/hadoop/bin',
       keytab = UnknownConfigurationMock(),

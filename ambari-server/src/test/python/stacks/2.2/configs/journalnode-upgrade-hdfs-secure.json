@@ -64,6 +64,7 @@
     "clusterName": "c1", 
     "hostname": "c6406.ambari.apache.org", 
     "hostLevelParams": {
+        "not_managed_hdfs_path_list": "[\"/apps/hive/warehouse\",\"/apps/falcon\",\"/mr-history/done\",\"/app-logs\",\"/tmp\"]",
         "agent_stack_retry_count": "5",
         "agent_stack_retry_on_unavailability": "false",
         "jdk_location": "http://c6406.ambari.apache.org:8080/resources/", 
@@ -1028,6 +1029,7 @@
             "content": "\n#\n#\n# Licensed to the Apache Software Foundation (ASF) under one\n# or more contributor license agreements.  See the NOTICE file\n# distributed with this work for additional information\n# regarding copyright ownership.  The ASF licenses this file\n# to you under the Apache License, Version 2.0 (the\n# \"License\"); you may not use this file except in compliance\n# with the License.  You may obtain a copy of the License at\n#\n#   http://www.apache.org/licenses/LICENSE-2.0\n#\n# Unless required by applicable law or agreed to in writing,\n# software distributed under the License is distributed on an\n# \"AS IS\" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY\n# KIND, either express or implied.  See the License for the\n# specific language governing permissions and limitations\n# under the License.\n#\n#\n#\n\n# ***** Set root logger level to DEBUG and its only appender to A.\nlog4j.logger.org.apache.pig=info, A\n\n# ***** A is set to be a ConsoleAppender.\nlog4j.appender.A=org.apache.log4j.ConsoleAppender\n# ***** A uses PatternLayout.\nlog4j.appender.A.layout=org.apache.log4j.PatternLayout\nlog4j.appender.A.layout.ConversionPattern=%-4r [%t] %-5p %c %x - %m%n"
         }, 
         "cluster-env": {
+            "managed_hdfs_resource_property_names": "",
             "security_enabled": "true",
             "ignore_groupsusers_create": "false",
             "kerberos_domain": "EXAMPLE.COM",

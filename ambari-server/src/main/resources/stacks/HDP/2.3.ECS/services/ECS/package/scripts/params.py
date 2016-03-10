@@ -23,6 +23,7 @@ import os
 import itertools
 import re
 from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions import stack_select
 
@@ -57,6 +58,8 @@ hadoop_env_sh_template = config['configurations']['hadoop-env']['content']
 tmp_dir = Script.get_tmp_dir()
 hadoop_java_io_tmpdir = os.path.join(tmp_dir, "hadoop_java_io_tmpdir")
 
+hdfs_tmp_dir = config['configurations']['hadoop-env']['hdfs_tmp_dir']
+
 hdfs_principal_name = default('/configurations/hadoop-env/hdfs_principal_name', None)
 hdfs_site = config['configurations']['hdfs-site']
 default_fs = config['configurations']['core-site']['fs.defaultFS']
@@ -78,5 +81,6 @@ HdfsResource = functools.partial(
   principal_name = hdfs_principal_name,
   hdfs_site = hdfs_site,
   default_fs = default_fs,
+  immutable_paths = get_not_managed_resources(),
   dfs_type = dfs_type
 )

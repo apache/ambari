@@ -34,6 +34,7 @@
     "clusterName": "c1",
     "hostname": "c6402.ambari.apache.org",
     "hostLevelParams": {
+        "not_managed_hdfs_path_list": "[\"/apps/hive/warehouse\",\"/apps/falcon\",\"/mr-history/done\",\"/app-logs\",\"/tmp\"]",
         "agent_stack_retry_count": "5",
         "agent_stack_retry_on_unavailability": "false",
         "jdk_location": "http://hw10897.ix:8080/resources/",
@@ -374,6 +375,7 @@
             "hive.security.authorization.manager": "org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdHiveAuthorizerFactory"
         },
         "cluster-env": {
+            "managed_hdfs_resource_property_names": "",
             "security_enabled": "false",
             "ignore_groupsusers_create": "false",
             "kerberos_domain": "EXAMPLE.COM",

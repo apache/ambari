@@ -24,6 +24,7 @@ from resource_management.libraries.functions.default import default
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.libraries.functions import get_kinit_path
+from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
 
 config = Script.get_config()
 config_attrs = config['configuration_attributes']
@@ -74,7 +75,8 @@ HdfsResource = functools.partial(HdfsResource,
                                  kinit_path_local=kinit_path_local,
                                  principal_name=hdfs_principal_name,
                                  hdfs_site=hdfs_site,
-                                 default_fs=default_fs)
+                                 default_fs=default_fs,
+                                 immutable_paths = get_not_managed_resources())
 
 # File partial function
 File = functools.partial(File,

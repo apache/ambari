@@ -26,6 +26,7 @@ from mock.mock import MagicMock, call, patch
 class TestServiceCheck(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "OOZIE/4.0.0.2.0/package"
   STACK_VERSION = "2.0.6"
+  DEFAULT_IMMUTABLE_PATHS = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp']
   
   def test_service_check_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/service_check.py",
@@ -83,6 +84,7 @@ class TestServiceCheck(RMFTestCase):
         try_sleep = 5,
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa/examples',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),
@@ -94,6 +96,7 @@ class TestServiceCheck(RMFTestCase):
         type = 'directory',
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa/examples',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),
@@ -108,6 +111,7 @@ class TestServiceCheck(RMFTestCase):
         group = 'hadoop'
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa/input-data',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),
@@ -119,6 +123,7 @@ class TestServiceCheck(RMFTestCase):
         type = 'directory',
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa/input-data',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),
@@ -133,6 +138,7 @@ class TestServiceCheck(RMFTestCase):
         group = 'hadoop'
     )
     self.assertResourceCalled('HdfsResource', None,
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),

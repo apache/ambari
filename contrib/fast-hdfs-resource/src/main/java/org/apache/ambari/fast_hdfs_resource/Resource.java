@@ -44,6 +44,7 @@ public class Resource {
   private boolean recursiveChown;
   private boolean recursiveChmod;
   private boolean changePermissionforParents;
+  private boolean manageIfExists;
 
   public String getSource() {
     return source;
@@ -125,16 +126,22 @@ public class Resource {
     this.changePermissionforParents = changePermissionforParents;
   }
 
-  
-  
-  
+  public boolean isManageIfExists() {
+    return manageIfExists;
+  }
+
+  public void setManageIfExists(boolean manageIfExists) {
+    this.manageIfExists = manageIfExists;
+  }
+
   @Override
   public String toString() {
     return "Resource [source=" + source + ", target=" + target + ", type="
         + type + ", action=" + action + ", owner=" + owner + ", group=" + group
         + ", mode=" + mode + ", recursiveChown=" + recursiveChown
         + ", recursiveChmod=" + recursiveChmod
-        + ", changePermissionforParents=" + changePermissionforParents + "]";
+        + ", changePermissionforParents=" + changePermissionforParents
+        + ", manageIfExists=" + manageIfExists + "]";
   }
 
   /*

@@ -126,7 +126,7 @@ def falcon(type, action = None, upgrade_type=None):
           create_parents = True)
 
       # TODO change to proper mode
-      params.HdfsResource(params.flacon_apps_dir,
+      params.HdfsResource(params.falcon_apps_dir,
         type = "directory",
         action = "create_on_execute",
         owner = params.falcon_user,

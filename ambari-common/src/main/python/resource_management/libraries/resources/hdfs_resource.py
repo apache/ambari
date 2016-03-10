@@ -87,7 +87,14 @@ class HdfsResource(Resource):
   /var/lib/ambari-agent/data/.hdfs_resource_ignore
   """
   hdfs_resource_ignore_file = ResourceArgument()
-  
+
+  """
+  If the name of the HdfsResource is in immutable_paths
+  and it is already created, any actions on it will be skipped
+  (like changing permissions/recursive permissions, copying from source, deleting etc.)
+  """
+  immutable_paths = ResourceArgument(default=[])
+
   # WebHDFS needs these
   hdfs_site = ResourceArgument()
   default_fs = ResourceArgument()

@@ -3,6 +3,7 @@
     "clusterName": "c1",
     "hostname": "c6401.ambari.apache.org",
     "hostLevelParams": {
+        "not_managed_hdfs_path_list": "[\"/apps/hive/warehouse\",\"/apps/falcon\",\"/mr-history/done\",\"/app-logs\",\"/tmp\"]",
         "jdk_location": "http://c6401.ambari.apache.org:8080/resources/",
         "ambari_db_rca_password": "mapred",
         "ambari_db_rca_url": "jdbc:postgresql://c6401.ambari.apache.org/ambarirca",
@@ -148,6 +149,7 @@
             "yarn.resourcemanager.scheduler.address": "c6401.ambari.apache.org:8030"
         },
         "cluster-env": {
+            "managed_hdfs_resource_property_names": "",
             "security_enabled": "false",
             "ignore_groupsusers_create": "false",
             "smokeuser": "ambari-qa",

@@ -28,6 +28,7 @@ from resource_management.libraries.functions.version import format_stack_version
 from ambari_commons.os_check import OSCheck
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import get_kinit_path
+from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 
 config = Script.get_config()
@@ -41,6 +42,8 @@ dfs_type = default("/commandParams/dfs_type", "")
 hadoop_conf_dir = "/etc/hadoop/conf"
 
 component_list = default("/localComponents", [])
+
+hdfs_tmp_dir = config['configurations']['hadoop-env']['hdfs_tmp_dir']
 
 # hadoop default params
 mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
@@ -308,5 +311,6 @@ HdfsResource = functools.partial(
   principal_name = hdfs_principal_name,
   hdfs_site = hdfs_site,
   default_fs = default_fs,
+  immutable_paths = get_not_managed_resources(),
   dfs_type = dfs_type
 )

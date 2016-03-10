@@ -27,6 +27,7 @@ class TestHawqMaster(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = 'HAWQ/2.0.0/package'
   STACK_VERSION = '2.3'
   GPADMIN = 'gpadmin'
+  DEFAULT_IMMUTABLE_PATHS = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp']
 
   def __asserts_for_configure(self):
 
@@ -167,6 +168,7 @@ class TestHawqMaster(RMFTestCase):
         )
 
     self.assertResourceCalled('HdfsResource', '/hawq_default',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         default_fs = u'hdfs://c6401.ambari.apache.org:8020',
         hdfs_site = self.getConfig()['configurations']['hdfs-site'],
         type = 'directory',
@@ -183,6 +185,7 @@ class TestHawqMaster(RMFTestCase):
         )
 
     self.assertResourceCalled('HdfsResource', None,
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         default_fs = u'hdfs://c6401.ambari.apache.org:8020',
         hdfs_site = self.getConfig()['configurations']['hdfs-site'],
         action = ['execute'],
@@ -230,6 +233,7 @@ class TestHawqMaster(RMFTestCase):
         )
 
     self.assertResourceCalled('HdfsResource', '/hawq_default',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         default_fs = u'hdfs://c6401.ambari.apache.org:8020',
         hdfs_site = self.getConfig()['configurations']['hdfs-site'],
         type = 'directory',
@@ -246,6 +250,7 @@ class TestHawqMaster(RMFTestCase):
         )
 
     self.assertResourceCalled('HdfsResource', None,
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         default_fs = u'hdfs://c6401.ambari.apache.org:8020',
         hdfs_site = self.getConfig()['configurations']['hdfs-site'],
         action = ['execute'],

@@ -185,6 +185,18 @@
     </value-attributes>
   </property>
   <property>
+    <name>hdfs_tmp_dir</name>
+    <value>/tmp</value>
+    <description>HDFS tmp Dir</description>
+    <display-name>HDFS tmp Dir</display-name>
+    <property-type>NOT_MANAGED_HDFS_PATH</property-type>
+    <value-attributes>
+      <read-only>true</read-only>
+      <overridable>false</overridable>
+      <visible>false</visible>
+    </value-attributes>
+  </property>
+  <property>
     <name>hdfs_user_nofile_limit</name>
     <value>128000</value>
     <description>Max open files limit setting for HDFS user.</description>

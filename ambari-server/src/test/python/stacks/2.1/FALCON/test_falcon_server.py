@@ -31,6 +31,7 @@ class TestFalconServer(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "FALCON/0.5.0.2.1/package"
   STACK_VERSION = "2.1"
   UPGRADE_STACK_VERSION = "2.2"
+  DEFAULT_IMMUTABLE_PATHS = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp']
 
   def test_start_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/falcon_server.py",
@@ -132,6 +133,7 @@ class TestFalconServer(RMFTestCase):
                               create_parents = True
                               )
     self.assertResourceCalled('HdfsResource', '/apps/falcon',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),
@@ -149,6 +151,7 @@ class TestFalconServer(RMFTestCase):
         create_parents = True,
     )
     self.assertResourceCalled('HdfsResource', '/apps/data-mirroring',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),
@@ -167,6 +170,7 @@ class TestFalconServer(RMFTestCase):
     )
 
     self.assertResourceCalled('HdfsResource', None,
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),
@@ -315,6 +319,7 @@ class TestFalconServer(RMFTestCase):
         create_parents = True,
     )
     self.assertResourceCalled('HdfsResource', '/apps/falcon',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
         keytab = UnknownConfigurationMock(),
@@ -335,6 +340,7 @@ class TestFalconServer(RMFTestCase):
         create_parents = True,
     )
     self.assertResourceCalled('HdfsResource', '/apps/data-mirroring',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
         keytab = UnknownConfigurationMock(),
@@ -355,6 +361,7 @@ class TestFalconServer(RMFTestCase):
         mode = 0770,
     )
     self.assertResourceCalled('HdfsResource', None,
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
         keytab = UnknownConfigurationMock(),

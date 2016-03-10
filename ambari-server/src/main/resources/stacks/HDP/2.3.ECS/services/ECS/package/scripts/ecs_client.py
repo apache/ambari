@@ -91,7 +91,7 @@ class ECSClient(Script):
   def create_dirs(self,env):
     import params
     env.set_params(params)
-    params.HdfsResource("/tmp",
+    params.HdfsResource(params.hdfs_tmp_dir,
                        type="directory",
                        action="create_on_execute",
                        owner=params.hdfs_user,

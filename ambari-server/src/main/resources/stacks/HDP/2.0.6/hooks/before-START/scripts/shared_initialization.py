@@ -157,7 +157,7 @@ def create_javahome_symlink():
 
 def create_dirs():
    import params
-   params.HdfsResource("/tmp",
+   params.HdfsResource(params.hdfs_tmp_dir,
                        type="directory",
                        action="create_on_execute",
                        owner=params.hdfs_user,
