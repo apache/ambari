@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('MainCtrl',['$scope','$rootScope','$window','Auth', 'Alert', '$modal', 'Cluster', 'View', '$translate', function($scope, $rootScope, $window, Auth, Alert, $modal, Cluster, View, $translate) {
+.controller('MainCtrl',['$scope','$rootScope','$window','Auth', 'Alert', '$modal', 'Cluster', 'View', '$translate', '$http', 'Settings', function($scope, $rootScope, $window, Auth, Alert, $modal, Cluster, View, $translate, $http, Settings) {
   var $t = $translate.instant;
   $scope.signOut = function() {
     Auth.signout().finally(function() {
@@ -27,6 +27,12 @@ angular.module('ambariAdminConsole')
   };
 
   $scope.ambariVersion = null;
+  $rootScope.supports = {};
+
+  $http.get(Settings.baseUrl + "/persist/user-pref-" + Auth.getCurrentUser() + "-supports")
+      .then(function(data) {
+        $rootScope.supports = data.data ? data.data : {};
+      });
 
   $scope.about = function() {
    var ambariVersion = $scope.ambariVersion;

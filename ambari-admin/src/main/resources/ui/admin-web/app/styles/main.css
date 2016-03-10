@@ -1487,5 +1487,6 @@ thead.view-permission-header > tr > th {
   text-align: center;
 }
 
-
-
+.pull-up {
+  margin-top: -2px;
+}

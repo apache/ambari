@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('StackVersionsEditCtrl', ['$scope', '$location', 'Cluster', 'Stack', '$routeParams', 'ConfirmationModal', 'Alert', '$translate', function($scope, $location, Cluster, Stack, $routeParams, ConfirmationModal, Alert, $translate) {
+.controller('StackVersionsEditCtrl', ['$scope', '$location', 'Cluster', 'Stack', '$routeParams', 'ConfirmationModal', 'Alert', '$translate', 'AddRepositoryModal', function($scope, $location, Cluster, Stack, $routeParams, ConfirmationModal, Alert, $translate, AddRepositoryModal) {
   var $t = $translate.instant;
   $scope.constants = {
     os: $t('versions.os')
@@ -232,6 +232,13 @@ angular.module('ambariAdminConsole')
         repo.hasError = false;
       });
     }
+  };
+
+  /**
+   * On click handler for adding a new repository
+   */
+  $scope.addRepository = function() {
+    AddRepositoryModal.show($scope.osList, $scope.upgradeStack.stack_name, $scope.upgradeStack.stack_version, $scope.id);
   };
 
   $scope.isSaveButtonDisabled = function() {

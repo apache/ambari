@@ -79,7 +79,8 @@ App.supports = {
   hostComboSearchBox: true,
   serviceAutoStart: false,
   logSearch: false,
-  redhatSatellite: false
+  redhatSatellite: false,
+  addingNewRepository: false
 };
 
 if (App.enableExperimental) {

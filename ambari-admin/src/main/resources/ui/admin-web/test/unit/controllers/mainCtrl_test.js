@@ -97,6 +97,7 @@ describe('#Auth', function () {
             }
           ]
         });
+      $httpBackend.whenGET(/\/persist\/user-pref-.*/).respond(200, {data: {data: {addingNewRepository: true}}});
       scope = $rootScope.$new();
       scope.$apply();
       ctrl = $controller('MainCtrl', {$scope: scope});
