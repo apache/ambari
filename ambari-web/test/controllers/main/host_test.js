@@ -387,7 +387,7 @@ describe('MainHostController', function () {
     });
 
     it("displayName is null", function() {
-      hostController.filterByStack(null, 'INSTALLED');
+      hostController.filterByStack(null, ['INSTALLED']);
       expect(App.db.setFilterConditions.called).to.be.false;
     });
 
@@ -398,7 +398,7 @@ describe('MainHostController', function () {
 
     it("stack and displayName exist", function() {
       hostController.set('name', 'ctrl1');
-      hostController.filterByStack('stack1', 'INSTALLED');
+      hostController.filterByStack('stack1', ['INSTALLED']);
       expect(App.db.setFilterConditions.calledWith('ctrl1', [
       {
         iColumn: 16,
@@ -407,7 +407,7 @@ describe('MainHostController', function () {
       },
       {
         iColumn: 17,
-        value: 'INSTALLED',
+        value: ['INSTALLED'],
         type: 'string'
       }])).to.be.true;
     });

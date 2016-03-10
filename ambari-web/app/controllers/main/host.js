@@ -522,12 +522,13 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
   /**
    * Filter hosts by stack version and state
    * @param {String} displayName
-   * @param {String} state
+   * @param {Array} states
    */
-  filterByStack: function (displayName, state) {
-    if (!displayName || !state) return;
+  filterByStack: function (displayName, states) {
+    if (Em.isNone(displayName) || Em.isNone(states) || !states.length) return;
     var colPropAssoc = this.get('colPropAssoc');
     var map = this.get('labelValueMap');
+    var displayStates = [];
 
     var versionFilter = {
       iColumn: 16,
@@ -536,14 +537,17 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
     };
     var stateFilter = {
       iColumn: 17,
-      value: state.toUpperCase(),
+      value: states,
       type: 'string'
     };
     map["Stack Version"] = colPropAssoc[versionFilter.iColumn];
     map["Version State"] = colPropAssoc[stateFilter.iColumn];
-    map[App.HostStackVersion.formatStatus(stateFilter.value)] = stateFilter.value;
+    stateFilter.value.forEach(function(state) {
+      map[App.HostStackVersion.formatStatus(state)] = state;
+      displayStates.push(App.HostStackVersion.formatStatus(state));
+    });
     var versionFilterStr = '"Stack Version": "' + versionFilter.value + '"';
-    var stateFilterStr = '"Version State": "' + App.HostStackVersion.formatStatus(stateFilter.value) + '"';
+    var stateFilterStr = '"Version State": "' + displayStates.join(',') + '"';
     App.db.setFilterConditions(this.get('name'), [versionFilter, stateFilter]);
     App.db.setComboSearchQuery(this.get('name'), [versionFilterStr, stateFilterStr].join(' '));
   },

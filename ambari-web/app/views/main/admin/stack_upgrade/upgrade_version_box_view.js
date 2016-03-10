@@ -81,17 +81,17 @@ App.UpgradeVersionBoxView = Em.View.extend({
    */
   versionStateMap: {
     'current': {
-      'id': 'current',
+      'value': ['CURRENT'],
       'property': 'currentHosts',
       'label': Em.I18n.t('admin.stackVersions.hosts.popup.header.current')
     },
     'installed': {
-      'id': 'installed',
+      'value': ['INSTALLED'],
       'property': 'installedHosts',
       'label': Em.I18n.t('admin.stackVersions.hosts.popup.header.installed')
     },
     'not_installed': {
-      'id': 'installing',
+      'value': ['INSTALLING', 'INSTALL_FAILED', 'OUT_OF_SYNC'],
       'property': 'notInstalledHosts',
       'label': Em.I18n.t('admin.stackVersions.hosts.popup.header.not_installed')
     }
@@ -400,7 +400,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
           if ($('.version-box-popup .modal')) {
             $('.version-box-popup .modal .modal-footer .btn-success').click();
           }
-          self.filterHostsByStack(displayName, status.id);
+          self.filterHostsByStack(displayName, status.value);
         }
       });
     }
@@ -408,14 +408,15 @@ App.UpgradeVersionBoxView = Em.View.extend({
 
   /**
    * goes to the hosts page with content filtered by repo_version_name and repo_version_state
-   * @param displayName
-   * @param state
+   * @param {string} displayName
+   * @param {Array} states
    * @method filterHostsByStack
    */
-  filterHostsByStack: function (displayName, state) {
-    if (!displayName || !state) return;
-    App.router.get('mainHostController').filterByStack(displayName, state);
+  filterHostsByStack: function (displayName, states) {
+    if (Em.isNone(displayName) || Em.isNone(states) || !states.length) return;
+    App.router.get('mainHostController').filterByStack(displayName, states);
     App.router.get('mainHostController').set('showFilterConditionsFirstLoad', true);
+    App.router.get('mainHostController').set('filterChangeHappened', true);
     App.router.transitionTo('hosts.index');
   },
 
@@ -430,7 +431,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
     var maintenanceHosts = this.get('maintenanceHosts');
     if (notInstalledHosts.length && notRequiredHosts.length) {
       notRequiredHosts.forEach(function(not_required) {
-        var index = notInstalledHosts.indexOf(not_required)
+        var index = notInstalledHosts.indexOf(not_required);
         if (index > -1) {
           notInstalledHosts.splice(index, 1);
         }
@@ -438,7 +439,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
     }
     if (notInstalledHosts.length && maintenanceHosts.length) {
       maintenanceHosts.forEach(function(mm_host) {
-        var index = notInstalledHosts.indexOf(mm_host)
+        var index = notInstalledHosts.indexOf(mm_host);
         if (index > -1) {
           notInstalledHosts.splice(index, 1);
         }

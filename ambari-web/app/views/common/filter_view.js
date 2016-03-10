@@ -448,8 +448,9 @@ module.exports = {
             case false:
             case '=':
               return compareValue == rowValue;
+            default:
+              return false;
           }
-          return false;
         };
       case 'date':
         return function (rowValue, rangeExp) {
@@ -472,7 +473,6 @@ module.exports = {
             default:
               return false;
           }
-          return false;
         };
       case 'number':
         return function (rowValue, rangeExp) {
@@ -498,12 +498,11 @@ module.exports = {
             case '<':
               return compareValue > rowValue;
             case '>':
-              return compareValue < rowValue
+              return compareValue < rowValue;
             case '=':
             default:
               return compareValue === rowValue;
           }
-          return false;
         };
       case 'sub-resource':
         return function (origin, compareValue) {
@@ -513,8 +512,10 @@ module.exports = {
 
           return origin.some(function (item) {
             for (var i = 0, l = compareValue.length; i < l; i++) {
-              if(item.get(compareValue[i].property) !== compareValue[i].value) {
-                return false;
+              if (Array.isArray(compareValue[i].value)) {
+                if (!compareValue[i].value.contains(item.get(compareValue[i].property))) return false;
+              } else {
+                if (item.get(compareValue[i].property) !== compareValue[i].value) return false;
               }
             }
             return true;

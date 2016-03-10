@@ -296,7 +296,7 @@ describe('App.UpgradeVersionBoxView', function () {
       }));
       view.set('p1', ['host1']);
       var popup = view.showHosts({contexts: [
-        {id: 1, 'property': 'p1'}
+        {value: 1, 'property': 'p1'}
       ]});
       expect(App.ModalPopup.show.calledOnce).to.be.true;
       popup.onPrimary();
@@ -324,6 +324,7 @@ describe('App.UpgradeVersionBoxView', function () {
     it("version and state are valid", function () {
       view.filterHostsByStack('version', 'state');
       expect(mock.set.calledWith('showFilterConditionsFirstLoad', true)).to.be.true;
+      expect(mock.set.calledWith('filterChangeHappened', true)).to.be.true;
       expect(mock.filterByStack.calledWith('version', 'state')).to.be.true;
       expect(App.router.transitionTo.calledWith('hosts.index')).to.be.true;
     });
