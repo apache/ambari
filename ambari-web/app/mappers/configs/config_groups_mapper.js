@@ -129,7 +129,7 @@ App.configGroupsMapper = App.QuickDataMapper.create({
       config_group_id: -1,
       name: 'Default',
       service_name: serviceName,
-      description: 'Default cluster level ' + App.format.role(serviceName) + ' configuration',
+      description: 'Default cluster level ' + App.format.role(serviceName, true) + ' configuration',
       hosts: hostNames ? hostNames.slice() : App.get('allHostNames').slice(),
       child_config_groups: childConfigGroups ? childConfigGroups.uniq() : [],
       service_id: serviceName,

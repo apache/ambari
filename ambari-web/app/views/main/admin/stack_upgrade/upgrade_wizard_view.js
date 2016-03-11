@@ -294,7 +294,7 @@ App.upgradeWizardView = Em.View.extend({
             item.tasks.forEach(function (task) {
               var detail = Em.get(task, 'Tasks.command_detail');
               if (detail && detail.startsWith('SERVICE_CHECK ')) {
-                skippedServiceChecks.push(App.format.role(detail.replace('SERVICE_CHECK ', '')));
+                skippedServiceChecks.push(App.format.role(detail.replace('SERVICE_CHECK ', ''), true));
               }
             });
           }

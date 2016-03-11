@@ -90,7 +90,7 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
 
   reconfigureHBase: function () {
     var data = this.get('content.serviceConfigProperties');
-    var configData = this.reconfigureSites(['hbase-site'], data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('NAMENODE')));
+    var configData = this.reconfigureSites(['hbase-site'], data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('NAMENODE', false)));
     App.ajax.send({
       name: 'common.service.configurations',
       sender: this,
@@ -104,7 +104,7 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
 
   reconfigureAccumulo: function () {
     var data = this.get('content.serviceConfigProperties');
-    var configData = this.reconfigureSites(['accumulo-site'], data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('NAMENODE')));
+    var configData = this.reconfigureSites(['accumulo-site'], data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('NAMENODE', false)));
     App.ajax.send({
       name: 'common.service.configurations',
       sender: this,
@@ -120,7 +120,7 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
     var data = this.get('content.serviceConfigProperties');
     var reconfigureFiles = ['hawq-site', 'hdfs-client'];
     reconfigureFiles.forEach(function (fileName) {
-      var configData = this.reconfigureSites([fileName], data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('NAMENODE')));
+      var configData = this.reconfigureSites([fileName], data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('NAMENODE', false)));
       App.ajax.send({
         name: 'common.service.configurations',
         sender: this,

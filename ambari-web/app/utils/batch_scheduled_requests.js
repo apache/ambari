@@ -394,7 +394,7 @@ module.exports = {
    */
   showRollingRestartPopup: function(hostComponentName, serviceName, isMaintenanceModeOn, staleConfigsOnly, hostComponents, skipMaintenance) {
     hostComponents = hostComponents || [];
-    var componentDisplayName = App.format.role(hostComponentName);
+    var componentDisplayName = App.format.role(hostComponentName, false);
     var self = this;
     if (!componentDisplayName) {
       componentDisplayName = hostComponentName;
@@ -481,7 +481,7 @@ module.exports = {
    * @param {String} hostComponentName
    */
   showWarningRollingRestartPopup: function(hostComponentName) {
-    var componentDisplayName = App.format.role(hostComponentName) || hostComponentName;
+    var componentDisplayName = App.format.role(hostComponentName, false) || hostComponentName;
     var title = Em.I18n.t('rollingrestart.dialog.title').format(componentDisplayName);
     var msg = Em.I18n.t('rollingrestart.notsupported.hostComponent').format(componentDisplayName);
 

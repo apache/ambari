@@ -305,7 +305,7 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
     var label = null;
     var componentName = this.get('rollingRestartSlaveComponentName');
     if (componentName) {
-      label = Em.I18n.t('rollingrestart.dialog.title').format(App.format.role(componentName));
+      label = Em.I18n.t('rollingrestart.dialog.title').format(App.format.role(componentName, false));
     }
     return label;
   }.property('rollingRestartSlaveComponentName'),

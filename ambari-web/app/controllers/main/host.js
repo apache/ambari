@@ -503,7 +503,7 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
   filterByComponent: function (component) {
     if (!component) return;
     var componentName = component.get('componentName');
-    var displayName = App.format.role(componentName);
+    var displayName = App.format.role(componentName, false);
     var colPropAssoc = this.get('colPropAssoc');
     var map = this.get('labelValueMap');
 

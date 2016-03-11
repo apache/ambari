@@ -1091,7 +1091,8 @@ describe('Ember.computed macros', function () {
     beforeEach(function () {
       this.obj = Em.Object.create({
         prop1: 'NAMENODE',
-        prop2: Em.computed.formatRole('prop1')
+        prop2: false,
+        prop3: Em.computed.formatRole('prop1', 'prop2')
       });
       sinon.stub(App.StackServiceComponent, 'find', function () {
         return [
@@ -1113,12 +1114,13 @@ describe('Ember.computed macros', function () {
     });
 
     it('should format as role', function () {
-      expect(this.obj.get('prop2')).to.equal('NameNode');
+      expect(this.obj.get('prop3')).to.equal('NameNode');
     });
 
     it('should format as role (2)', function () {
       this.obj.set('prop1', 'HIVE');
-      expect(this.obj.get('prop2')).to.equal('Hive');
+      this.obj.set('prop2', true);
+      expect(this.obj.get('prop3')).to.equal('Hive');
     });
 
   });

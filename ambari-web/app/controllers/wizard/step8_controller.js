@@ -446,7 +446,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
           displayName = Em.I18n.t('common.clients')
         } else {
           // remove service name from component display name
-          displayName = App.format.role(component.get('componentName')).replace(new RegExp('^' + service.get('serviceName') + '\\s', 'i'), '');
+          displayName = App.format.role(component.get('componentName'), false).replace(new RegExp('^' + service.get('serviceName') + '\\s', 'i'), '');
         }
 
         var componentName = component.get('componentName');

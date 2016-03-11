@@ -133,7 +133,7 @@ App.AlertDefinition = DS.Model.extend({
    * Formatted displayName for <code>componentName</code>
    * @type {String}
    */
-  componentNameFormatted: Em.computed.formatRole('componentName'),
+  componentNameFormatted: Em.computed.formatRole('componentName', false),
 
   /**
    * Status generates from child-alerts

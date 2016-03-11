@@ -367,7 +367,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
           if (hostComponent.display_name_advanced) {
             service.tool_tip_content += hostComponent.display_name_advanced + " " + App.HostComponentStatus.getTextStatus(hostComponent.work_status) + "<br/>";
           } else {
-            service.tool_tip_content += App.format.role(hostComponent.component_name) + " " + App.HostComponentStatus.getTextStatus(hostComponent.work_status) + "<br/>";
+            service.tool_tip_content += App.format.role(hostComponent.component_name, false) + " " + App.HostComponentStatus.getTextStatus(hostComponent.work_status) + "<br/>";
           }
         }
       }

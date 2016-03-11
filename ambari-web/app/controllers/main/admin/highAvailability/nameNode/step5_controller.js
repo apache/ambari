@@ -72,7 +72,7 @@ App.HighAvailabilityWizardStep5Controller = App.HighAvailabilityProgressPageCont
    */
   updateConfigProperties: function(data) {
     var siteNames = ['hdfs-site','core-site'];
-    var configData = this.reconfigureSites(siteNames, data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('NAMENODE')));
+    var configData = this.reconfigureSites(siteNames, data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('NAMENODE', false)));
     App.ajax.send({
       name: 'common.service.configurations',
       sender: this,

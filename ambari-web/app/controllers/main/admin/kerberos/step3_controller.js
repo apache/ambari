@@ -77,7 +77,7 @@ App.KerberosWizardStep3Controller = App.KerberosProgressPageController.extend({
       },
       'data': {
         'serviceName': this.serviceName,
-        'displayName': App.format.role(this.serviceName),
+        'displayName': App.format.role(this.serviceName, true),
         'actionName': this.serviceName + '_SERVICE_CHECK',
         'operationLevel': {
           "level": "CLUSTER",

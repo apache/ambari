@@ -378,7 +378,7 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
         items = this.get('content.stackVersions').filterProperty('isVisible').map(function (stackVersion) {
           return {
             name: stackVersion.get('displayName'),
-            status: App.format.role(stackVersion.get('status'))
+            status: App.format.role(stackVersion.get('status'), false)
           };
         });
       App.showHostsTableListPopup(header, hostName, items);

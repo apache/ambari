@@ -598,7 +598,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
           state: state
         },
         query: 'HostRoles/component_name=' + componentName + '&HostRoles/host_name.in(' + hostName.join(',') + ')&HostRoles/maintenance_state=OFF',
-        context: context + " " + App.format.role(componentName),
+        context: context + " " + App.format.role(componentName, false),
         hostName: hostName,
         taskNum: taskNum || 1,
         componentName: componentName,

@@ -643,7 +643,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     if (subComponentNames && subComponentNames.length > 0) {
       var dns = [];
       subComponentNames.forEach(function (scn) {
-        dns.push(App.format.role(scn));
+        dns.push(App.format.role(scn, false));
       });
       displayName += " (" + dns.join(", ") + ")";
     }
@@ -993,7 +993,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
           "tag": tag,
           "properties": properties[site],
           "properties_attributes": group.properties_attributes[site],
-          "service_config_version_note": Em.I18n.t('hosts.host.configs.save.note').format(App.format.role(componentName))
+          "service_config_version_note": Em.I18n.t('hosts.host.configs.save.note').format(App.format.role(componentName, false))
         });
       }
       if (desiredConfigs.length > 0) {
@@ -2158,7 +2158,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       componentsBody: Em.computed.i18nFormat('hosts.cant.do.popup.' + type + '.body', 'components.length'),
       componentsBodyEnd: function () {
         if (this.get('showBodyEnd')) {
-          return Em.I18n.t('hosts.cant.do.popup.' + type + '.body.end').format(App.get('components.decommissionAllowed').map(function(c){return App.format.role(c)}).join(", "));
+          return Em.I18n.t('hosts.cant.do.popup.' + type + '.body.end').format(App.get('components.decommissionAllowed').map(function(c){return App.format.role(c, false)}).join(", "));
         }
         return '';
       }.property(),

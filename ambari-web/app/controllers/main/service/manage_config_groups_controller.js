@@ -108,7 +108,7 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
     return App.StackServiceComponent.find().filterProperty('serviceName', this.get('serviceName')).map(function (component) {
       return Em.Object.create({
         componentName: component.get('componentName'),
-        displayName: App.format.role(component.get('componentName')),
+        displayName: App.format.role(component.get('componentName'), false),
         selected: false
       });
     });
@@ -306,7 +306,7 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
       host.host_components.forEach(function (hostComponent) {
         hostComponents.push(Em.Object.create({
           componentName: hostComponent.HostRoles.component_name,
-          displayName: App.format.role(hostComponent.HostRoles.component_name)
+          displayName: App.format.role(hostComponent.HostRoles.component_name, false)
         }));
       }, this);
       wrappedHosts.pushObject(Em.Object.create({

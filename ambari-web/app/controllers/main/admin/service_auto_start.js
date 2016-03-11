@@ -56,7 +56,7 @@ App.MainAdminServiceAutoStartController = Em.Controller.extend({
       if (serviceComponentInfo.total_count) {
         if (serviceComponentInfo.category === "MASTER" || serviceComponentInfo.category === "SLAVE") {
           var componentRecovery = Ember.Object.create({
-            display_name: App.format.role(serviceComponentInfo.component_name),
+            display_name: App.format.role(serviceComponentInfo.component_name, false),
             component_name: serviceComponentInfo.component_name,
             recovery_enabled: serviceComponentInfo.recovery_enabled === 'true',
             valueChanged: false,
@@ -69,7 +69,7 @@ App.MainAdminServiceAutoStartController = Em.Controller.extend({
           } else {
             services[serviceComponentInfo.service_name] = Ember.Object.create({
               service_name: serviceComponentInfo.service_name,
-              display_name: App.format.role(serviceComponentInfo.service_name),
+              display_name: App.format.role(serviceComponentInfo.service_name, true),
               headingClass: "." + serviceComponentInfo.service_name,
               isActive: false,
               tooltip: function () {

@@ -157,8 +157,8 @@ App.MainHostComboSearchBoxView = Em.View.extend({
               break;
             case 'services':
               callback(App.Service.find().toArray().map(function (service) {
-                map[App.format.role(service.get('serviceName'))] = service.get('serviceName');
-                return App.format.role(service.get('serviceName'));
+                map[App.format.role(service.get('serviceName'), true)] = service.get('serviceName');
+                return App.format.role(service.get('serviceName'), true);
               }).reject(function (item) {
                 return visualSearch.searchQuery.values(facet).indexOf(item.value) >= 0;
               }), {preserveOrder: true});

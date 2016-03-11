@@ -99,7 +99,7 @@ App.MainChartsHeatmapController = Em.Controller.extend(App.WidgetSectionMixin, {
         if (!category) {
           categories.pushObject(Em.Object.create({
             serviceName: _serviceName,
-            displayName: _serviceName === 'STACK' ? 'Host' : App.format.role(_serviceName),
+            displayName: _serviceName === 'STACK' ? 'Host' : App.format.role(_serviceName, true),
             heatmaps: [_heatmap]
           }));
         } else {

@@ -25,7 +25,7 @@ App.ServiceConfigVersion = DS.Model.extend({
   MAX_AUTHOR_LENGTH: 20,
   MAX_NOTES_LENGTH: 80,
   serviceName: DS.attr('string'),
-  displayName: Em.computed.formatRole('serviceName'),
+  displayName: Em.computed.formatRole('serviceName', true),
   groupName: DS.attr('string'),
   groupId: DS.attr('number'),
   version: DS.attr('number'),

@@ -338,11 +338,11 @@ App.BackgroundOperationsController = Em.Controller.extend({
           if (service === 'ALL_SERVICES') {
             parsedRequestContext = Em.I18n.t("requestInfo." + contextCommand.toLowerCase()).format(Em.I18n.t('common.allServices'));
           } else {
-            parsedRequestContext = Em.I18n.t("requestInfo." + contextCommand.toLowerCase()).format(App.format.role(service));
+            parsedRequestContext = Em.I18n.t("requestInfo." + contextCommand.toLowerCase()).format(App.format.role(service, true));
           }
           break;
         case "ROLLING-RESTART":
-          parsedRequestContext = Em.I18n.t("rollingrestart.rest.context").format(App.format.role(service), contextSplits[3], contextSplits[4]);
+          parsedRequestContext = Em.I18n.t("rollingrestart.rest.context").format(App.format.role(service, true), contextSplits[3], contextSplits[4]);
           break;
         }
       } else {

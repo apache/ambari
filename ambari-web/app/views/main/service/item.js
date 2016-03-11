@@ -76,19 +76,19 @@ App.MainServiceItemView = Em.View.extend({
        },
        {
          cssClass: 'icon-plus',
-         'label': '{0} {1}'.format(Em.I18n.t('add'), App.format.role('RANGER_KMS_SERVER')),
+         'label': '{0} {1}'.format(Em.I18n.t('add'), App.format.role('RANGER_KMS_SERVER', false)),
          service: 'RANGER_KMS',
          component: 'RANGER_KMS_SERVER'
        },
        {
          cssClass: 'icon-plus',
-         'label': '{0} {1}'.format(Em.I18n.t('add'), App.format.role('NIMBUS')),
+         'label': '{0} {1}'.format(Em.I18n.t('add'), App.format.role('NIMBUS', false)),
          service: 'STORM',
          component: 'NIMBUS'
        },
        {
          cssClass: 'icon-plus',
-         'label': '{0} {1}'.format(Em.I18n.t('add'), App.format.role('OOZIE_SERVER')),
+         'label': '{0} {1}'.format(Em.I18n.t('add'), App.format.role('OOZIE_SERVER', false)),
          service: 'OOZIE',
          component: 'OOZIE_SERVER'
        }
@@ -147,7 +147,7 @@ App.MainServiceItemView = Em.View.extend({
       }).forEach(function(_component) {
         options.push(self.createOption(actionMap.ROLLING_RESTART, {
           context: _component,
-          label: actionMap.ROLLING_RESTART.label.format(App.format.role(_component))
+          label: actionMap.ROLLING_RESTART.label.format(App.format.role(_component, false))
         }));
       });
       allMasters.filter(function(master) {
@@ -155,7 +155,7 @@ App.MainServiceItemView = Em.View.extend({
       }).forEach(function(master) {
         options.push(self.createOption(actionMap.MOVE_COMPONENT, {
           context: master,
-          label: actionMap.MOVE_COMPONENT.label.format(App.format.role(master)),
+          label: actionMap.MOVE_COMPONENT.label.format(App.format.role(master, false)),
           disabled: App.allHostNames.length === App.HostComponent.find().filterProperty('componentName', master).mapProperty('hostName').length
         }));
       });
