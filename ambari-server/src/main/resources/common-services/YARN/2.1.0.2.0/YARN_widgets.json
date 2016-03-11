@@ -78,20 +78,20 @@
           "is_visible": true,
           "metrics": [
             {
-              "name": "yarn.NodeManagerMetrics.ContainersFailed._sum",
-              "metric_path": "metrics/yarn/ContainersFailed._sum",
+              "name": "yarn.NodeManagerMetrics.ContainersFailed._rate",
+              "metric_path": "metrics/yarn/ContainersFailed._rate",
               "service_name": "YARN",
               "component_name": "NODEMANAGER"
             },
             {
-              "name": "yarn.NodeManagerMetrics.ContainersCompleted._sum",
-              "metric_path": "metrics/yarn/ContainersCompleted._sum",
+              "name": "yarn.NodeManagerMetrics.ContainersCompleted._rate",
+              "metric_path": "metrics/yarn/ContainersCompleted._rate",
               "service_name": "YARN",
               "component_name": "NODEMANAGER"
             },
             {
-              "name": "yarn.NodeManagerMetrics.ContainersLaunched._sum",
-              "metric_path": "metrics/yarn/ContainersLaunched._sum",
+              "name": "yarn.NodeManagerMetrics.ContainersLaunched._rate",
+              "metric_path": "metrics/yarn/ContainersLaunched._rate",
               "service_name": "YARN",
               "component_name": "NODEMANAGER"
             },
@@ -102,8 +102,8 @@
               "component_name": "NODEMANAGER"
             },
             {
-              "name": "yarn.NodeManagerMetrics.ContainersKilled._sum",
-              "metric_path": "metrics/yarn/ContainersKilled._sum",
+              "name": "yarn.NodeManagerMetrics.ContainersKilled._rate",
+              "metric_path": "metrics/yarn/ContainersKilled._rate",
               "service_name": "YARN",
               "component_name": "NODEMANAGER"
             },
@@ -133,15 +133,15 @@
           "is_visible": true,
           "metrics": [
             {
-              "name": "yarn.QueueMetrics.Queue=root.AppsFailed",
-              "metric_path": "metrics/yarn/Queue/root/AppsFailed",
+              "name": "yarn.QueueMetrics.Queue=root.AppsFailed._rate",
+              "metric_path": "metrics/yarn/Queue/root/AppsFailed._rate",
               "service_name": "YARN",
               "component_name": "RESOURCEMANAGER",
               "host_component_criteria": "host_components/HostRoles/ha_state=ACTIVE"
             },
             {
-              "name": "yarn.QueueMetrics.Queue=root.AppsKilled",
-              "metric_path": "metrics/yarn/Queue/root/AppsKilled",
+              "name": "yarn.QueueMetrics.Queue=root.AppsKilled._rate",
+              "metric_path": "metrics/yarn/Queue/root/AppsKilled._rate",
               "service_name": "YARN",
               "component_name": "RESOURCEMANAGER",
               "host_component_criteria": "host_components/HostRoles/ha_state=ACTIVE"
@@ -161,15 +161,15 @@
               "host_component_criteria": "host_components/HostRoles/ha_state=ACTIVE"
             },
             {
-              "name": "yarn.QueueMetrics.Queue=root.AppsSubmitted",
-              "metric_path": "metrics/yarn/Queue/root/AppsSubmitted",
+              "name": "yarn.QueueMetrics.Queue=root.AppsSubmitted._rate",
+              "metric_path": "metrics/yarn/Queue/root/AppsSubmitted._rate",
               "service_name": "YARN",
               "component_name": "RESOURCEMANAGER",
               "host_component_criteria": "host_components/HostRoles/ha_state=ACTIVE"
             },
             {
-              "name": "yarn.QueueMetrics.Queue=root.AppsCompleted",
-              "metric_path": "metrics/yarn/Queue/root/AppsCompleted",
+              "name": "yarn.QueueMetrics.Queue=root.AppsCompleted._rate",
+              "metric_path": "metrics/yarn/Queue/root/AppsCompleted._rate",
               "service_name": "YARN",
               "component_name": "RESOURCEMANAGER",
               "host_component_criteria": "host_components/HostRoles/ha_state=ACTIVE"
@@ -444,20 +444,20 @@
           "is_visible": false,
           "metrics": [
             {
-              "name": "yarn.NodeManagerMetrics.ContainersFailed",
-              "metric_path": "metrics/yarn/ContainersFailed",
+              "name": "yarn.NodeManagerMetrics.ContainersFailed._rate",
+              "metric_path": "metrics/yarn/ContainersFailed._rate",
               "service_name": "YARN",
               "component_name": "NODEMANAGER"
             },
             {
-              "name": "yarn.NodeManagerMetrics.ContainersCompleted",
-              "metric_path": "metrics/yarn/ContainersCompleted",
+              "name": "yarn.NodeManagerMetrics.ContainersCompleted._rate",
+              "metric_path": "metrics/yarn/ContainersCompleted._rate",
               "service_name": "YARN",
               "component_name": "NODEMANAGER"
             },
             {
-              "name": "yarn.NodeManagerMetrics.ContainersLaunched",
-              "metric_path": "metrics/yarn/ContainersLaunched",
+              "name": "yarn.NodeManagerMetrics.ContainersLaunched._rate",
+              "metric_path": "metrics/yarn/ContainersLaunched._rate",
               "service_name": "YARN",
               "component_name": "NODEMANAGER"
             },
@@ -468,8 +468,8 @@
               "component_name": "NODEMANAGER"
             },
             {
-              "name": "yarn.NodeManagerMetrics.ContainersKilled",
-              "metric_path": "metrics/yarn/ContainersKilled",
+              "name": "yarn.NodeManagerMetrics.ContainersKilled._rate",
+              "metric_path": "metrics/yarn/ContainersKilled._rate",
               "service_name": "YARN",
               "component_name": "NODEMANAGER"
             },

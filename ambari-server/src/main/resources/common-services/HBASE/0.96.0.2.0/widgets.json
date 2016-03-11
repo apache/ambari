@@ -13,32 +13,32 @@
           "is_visible": true,
           "metrics": [
             {
-              "name": "regionserver.Server.Get_num_ops._sum",
-              "metric_path": "metrics/hbase/regionserver/Server/Get_num_ops._sum",
+              "name": "regionserver.Server.Get_num_ops._rate",
+              "metric_path": "metrics/hbase/regionserver/Server/Get_num_ops._rate",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
             },
             {
-              "name": "regionserver.Server.Append_num_ops._sum",
-              "metric_path": "metrics/hbase/regionserver/Server/Append_num_ops._sum",
+              "name": "regionserver.Server.Append_num_ops._rate",
+              "metric_path": "metrics/hbase/regionserver/Server/Append_num_ops._rate",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
             },
             {
-              "name": "regionserver.Server.Delete_num_ops._sum",
-              "metric_path": "metrics/hbase/regionserver/Server/Delete_num_ops._sum",
+              "name": "regionserver.Server.Delete_num_ops._rate",
+              "metric_path": "metrics/hbase/regionserver/Server/Delete_num_ops._rate",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
             },
             {
-              "name": "regionserver.Server.Increment_num_ops._sum",
-              "metric_path": "metrics/hbase/regionserver/Server/Increment_num_ops._sum",
+              "name": "regionserver.Server.Increment_num_ops._rate",
+              "metric_path": "metrics/hbase/regionserver/Server/Increment_num_ops._rate",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
             },
             {
-              "name": "regionserver.Server.Mutate_num_ops._sum",
-              "metric_path": "metrics/hbase/regionserver/Server/Mutate_num_ops._sum",
+              "name": "regionserver.Server.Mutate_num_ops._rate",
+              "metric_path": "metrics/hbase/regionserver/Server/Mutate_num_ops._rate",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
             }
@@ -235,8 +235,8 @@
           "is_visible": true,
           "metrics": [
             {
-              "name": "regionserver.Server.updatesBlockedTime._sum",
-              "metric_path": "metrics/hbase/regionserver/Server/updatesBlockedTime._sum",
+              "name": "regionserver.Server.updatesBlockedTime._rate",
+              "metric_path": "metrics/hbase/regionserver/Server/updatesBlockedTime._rate",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
             }

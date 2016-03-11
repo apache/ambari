@@ -43,7 +43,7 @@ App.WidgetWizardExpressionView = Em.View.extend({
    * @type {Array}
    * @const
    */
-  AGGREGATE_FUNCTIONS: ['avg', 'sum', 'min', 'max'],
+  AGGREGATE_FUNCTIONS: ['avg', 'sum', 'min', 'max', 'rate'],
 
   /**
    * @type {RegExp}
