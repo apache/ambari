@@ -33,6 +33,7 @@
 <hr>
 
 <div id="upload-definition-file-panel" ng-if="createController">
+  <div class="introduction-info hide-soft" ng-class="{'visible': allInfoCategoriesBlank()}" role="alert">{{'versions.introduction' | translate}}</div>
   <div class="clearfix register-version-options">
     <div class="col-sm-5 option-radio-button">
       <label class="option-label">

@@ -78,9 +78,10 @@
 
 <div class="services-section">
   {{#each service in view.services}}
+    <div class="line-separator"></div>
     <p class="service-version-info">
        <span {{bindAttr class="service.isVersionInvisible:invisible :label"}}>{{service.latestVersion}}</span>
     </p>
-    <div class="line-separator"></div>
+    <div class="line-separator-bottom"></div>
   {{/each}}
 </div>

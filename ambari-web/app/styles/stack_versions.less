@@ -132,9 +132,15 @@
     max-height: 563px;
     max-width: 340px;
     margin: -250px 0 0 -180px;
+    .modal-body {
+      padding: 0px 0px;
+    }
   }
   .version-box-in-popup.version-box {
-    max-width: 300px;
+    width: 340px;
+    padding: 0px 0px;
+    margin: 0px 0px;
+    border: none;
     .hosts-section {
       padding-bottom: 16px;
     }
@@ -148,9 +154,6 @@
     padding-bottom: 25px;
     margin-left: 0px;
     margin-top: 5px;
-    background-color: #f5f5f5;
-    border: 2px solid #f5f5f5;
-    border-left: none;
     .versions-slides-bar {
       min-width: 1000px;
       max-width: 20000px;
@@ -315,7 +318,8 @@
       text-align: center;
       padding-bottom: 4px;
       .service-version-info {
-        margin-bottom: 16px;
+        margin-bottom: 14px;
+        text-align: center;
         span.label {
           padding: 5px 15px;
           background-color: #a3a3a3;
@@ -323,14 +327,18 @@
           position: relative;
         }
       }
-      .line-separator{
+      .line-separator, .line-separator-bottom{
         height: 2px;
         background: #e4e4e4;
         position: relative;
-        top: -45px;
         margin: 0px 0px 0px -15px;
       }
-
+      .line-separator {
+        top: -7px;
+      }
+      .line-separator-bottom {
+        top: -5px;
+      }
     }
   }
   div.current-version-box.version-column {

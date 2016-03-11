@@ -27,6 +27,18 @@ App.UpgradeVersionColumnView = App.UpgradeVersionBoxView.extend({
   didInsertElement: function () {
     App.tooltip($('.link-tooltip'), {title: Em.I18n.t('admin.stackVersions.version.linkTooltip')});
     App.tooltip($('.out-of-sync-badge'), {title: Em.I18n.t('hosts.host.stackVersions.status.out_of_sync')});
+
+    //set the width, height of each version colum dynamically
+    var widthFactor = App.RepositoryVersion.find().get('length') > 3 ? 0.18: 0.31;
+    $('.version-column').width($('.versions-slides').width() * widthFactor);
+    var height = App.Service.find().get('length') > 10 ? ((App.Service.find().get('length') - 10) * 40 + 500) : 500;
+    $('.version-column').height(height);
+
+    // fix the line up minor diff issue in FireFox
+    if ($.browser.mozilla) {
+      $('.line-separator').css('top', '-6px');
+      $('.line-separator-bottom').css('top', '-4px');
+    }
   },
 
   services: function() {
