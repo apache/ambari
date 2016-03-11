@@ -32,6 +32,7 @@ origin_exists = os.path.exists
 class TestAppTimelineServer(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "YARN/2.1.0.2.0/package"
   STACK_VERSION = "2.0.6"
+  DEFAULT_IMMUTABLE_PATHS = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp']
 
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/application_timeline_server.py",
@@ -188,7 +189,7 @@ class TestAppTimelineServer(RMFTestCase):
                               cd_access='a'
                               )
     self.assertResourceCalled('HdfsResource', None,
-                              immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
+                              immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
                               security_enabled = False,
                               hadoop_bin_dir = '/usr/bin',
                               keytab = UnknownConfigurationMock(),

@@ -82,6 +82,7 @@
     "clusterName": "phd", 
     "hostname": "c6401.ambari.apache.org", 
     "hostLevelParams": {
+        "not_managed_hdfs_path_list": "[\"/apps/hive/warehouse\",\"/apps/falcon\",\"/mr-history/done\",\"/app-logs\",\"/tmp\"]",
         "jdk_location": "http://c6401.ambari.apache.org:8080/resources/", 
         "ambari_db_rca_password": "mapred", 
         "java_home": "/usr/jdk64/jdk1.8.0_60", 
@@ -1027,6 +1028,7 @@
             "mapreduce.admin.map.child.java.opts": "-server -XX:NewRatio=8 -Djava.net.preferIPv4Stack=true -Dhdp.version=${hdp.version}"
         }, 
         "cluster-env": {
+            "managed_hdfs_resource_property_names": "",
             "security_enabled": "false", 
             "smokeuser_keytab": "/etc/security/keytabs/smokeuser.headless.keytab", 
             "ignore_groupsusers_create": "false", 

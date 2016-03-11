@@ -110,6 +110,7 @@ gpgcheck=0</value>
         Resource from this list will be managed even if it is marked as not managed in the stack</description>
         <value-attributes>
             <overridable>false</overridable>
+            <empty-value-valid>true</empty-value-valid>
         </value-attributes>
     </property>
 </configuration>

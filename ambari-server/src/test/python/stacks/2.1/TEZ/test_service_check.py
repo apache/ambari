@@ -24,6 +24,7 @@ from stacks.utils.RMFTestCase import *
 class TestTezServiceCheck(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "TEZ/0.4.0.2.1/package"
   STACK_VERSION = "2.1"
+  DEFAULT_IMMUTABLE_PATHS = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp']
 
   def test_service_check(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/service_check.py",
@@ -39,7 +40,7 @@ class TestTezServiceCheck(RMFTestCase):
     )
 
     self.assertResourceCalled('HdfsResource', '/tmp/tezsmokeoutput',
-      immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
+      immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
       security_enabled = False,
       hadoop_bin_dir = '/usr/bin',
       keytab = UnknownConfigurationMock(),
@@ -51,7 +52,7 @@ class TestTezServiceCheck(RMFTestCase):
     )
 
     self.assertResourceCalled('HdfsResource', '/tmp/tezsmokeinput',
-        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),
@@ -63,7 +64,7 @@ class TestTezServiceCheck(RMFTestCase):
         action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
     )
     self.assertResourceCalled('HdfsResource', '/tmp/tezsmokeinput/sample-tez-test',
-        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),
@@ -76,7 +77,7 @@ class TestTezServiceCheck(RMFTestCase):
         action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
     )
     self.assertResourceCalled('HdfsResource', None,
-        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),
@@ -116,7 +117,7 @@ class TestTezServiceCheck(RMFTestCase):
                               mode = 0755,
                               )
     self.assertResourceCalled('HdfsResource', '/tmp/tezsmokeoutput',
-                              immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
+                              immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
                               security_enabled = True,
                               hadoop_bin_dir = '/usr/bin',
                               keytab = '/etc/security/keytabs/hdfs.headless.keytab',
@@ -130,7 +131,7 @@ class TestTezServiceCheck(RMFTestCase):
                               type = 'directory',
                               )
     self.assertResourceCalled('HdfsResource', '/tmp/tezsmokeinput',
-                              immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
+                              immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
                               security_enabled = True,
                               hadoop_bin_dir = '/usr/bin',
                               keytab = '/etc/security/keytabs/hdfs.headless.keytab',
@@ -145,7 +146,7 @@ class TestTezServiceCheck(RMFTestCase):
                               action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
                               )
     self.assertResourceCalled('HdfsResource', '/tmp/tezsmokeinput/sample-tez-test',
-                              immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
+                              immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
                               security_enabled = True,
                               hadoop_bin_dir = '/usr/bin',
                               keytab = '/etc/security/keytabs/hdfs.headless.keytab',
@@ -161,7 +162,7 @@ class TestTezServiceCheck(RMFTestCase):
                               action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
                               )
     self.assertResourceCalled('HdfsResource', None,
-                              immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
+                              immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
                               security_enabled = True,
                               hadoop_bin_dir = '/usr/bin',
                               keytab = '/etc/security/keytabs/hdfs.headless.keytab',

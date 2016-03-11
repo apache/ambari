@@ -24,6 +24,7 @@ from stacks.utils.RMFTestCase import *
 class TestPigServiceCheck(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "PIG/0.12.0.2.0/package"
   STACK_VERSION = "2.2"
+  DEFAULT_IMMUTABLE_PATHS = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp']
 
   @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
   def test_service_check_secure(self, copy_to_hdfs_mock):
@@ -38,7 +39,7 @@ class TestPigServiceCheck(RMFTestCase):
     )
     
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa/pigsmoke.out',
-        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = True,
         hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
@@ -53,7 +54,7 @@ class TestPigServiceCheck(RMFTestCase):
         action = ['delete_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa/passwd',
-        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = True,
         hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
@@ -69,7 +70,7 @@ class TestPigServiceCheck(RMFTestCase):
         action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
     )
     self.assertResourceCalled('HdfsResource', None,
-        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = True,
         hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
@@ -101,7 +102,7 @@ class TestPigServiceCheck(RMFTestCase):
         conf_dir = '/usr/hdp/current/hadoop-client/conf',
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa/pigsmoke.out',
-        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = True,
         hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
@@ -116,7 +117,7 @@ class TestPigServiceCheck(RMFTestCase):
         action = ['delete_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa/passwd',
-        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = True,
         hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
@@ -134,7 +135,7 @@ class TestPigServiceCheck(RMFTestCase):
 
     copy_to_hdfs_mock.assert_called_with("tez", "hadoop", "hdfs", host_sys_prepped=False)
     self.assertResourceCalled('HdfsResource', None,
-        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = True,
         hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',

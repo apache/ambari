@@ -28,6 +28,7 @@ from only_for_platform import not_for_platform, PLATFORM_WINDOWS
 class TestSparkThriftServer(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "SPARK/1.2.0.2.2/package"
   STACK_VERSION = "2.3"
+  DEFAULT_IMMUTABLE_PATHS = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp']
 
   @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
   def test_configure_default(self, copy_to_hdfs_mock):
@@ -91,7 +92,7 @@ class TestSparkThriftServer(RMFTestCase):
         mode = 0775
     )
     self.assertResourceCalled('HdfsResource', '/user/spark',
-        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
         keytab = UnknownConfigurationMock(),
@@ -107,7 +108,7 @@ class TestSparkThriftServer(RMFTestCase):
         mode = 0775,
     )
     self.assertResourceCalled('HdfsResource', None,
-        immutable_paths = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp'],
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
         keytab = UnknownConfigurationMock(),
