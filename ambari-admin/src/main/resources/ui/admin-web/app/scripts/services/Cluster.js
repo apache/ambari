@@ -22,6 +22,16 @@ angular.module('ambariAdminConsole')
   return {
     repoStatusCache : {},
 
+    orderedRoles : [
+      'CLUSTER.ADMINISTRATOR',
+      'CLUSTER.OPERATOR',
+      'SERVICE.ADMINISTRATOR',
+      'SERVICE.OPERATOR',
+      'CLUSTER.USER'
+    ],
+
+    ineditableRoles : ['VIEW.USER', 'AMBARI.ADMINISTRATOR'],
+
     getAllClusters: function() {
       var deferred = $q.defer();
       $http.get(Settings.baseUrl + '/clusters', {mock: 'cluster/clusters.json'})
@@ -129,17 +139,17 @@ angular.module('ambariAdminConsole')
     },
     getPrivilegesWithFilters: function(params) {
       var deferred = $q.defer();
-
+      var endpoint = params.typeFilter.value == 'USER'? '/users' : '/groups';
+      var nameFilter = params.nameFilter? '&privileges/PrivilegeInfo/principal_name.matches(.*' + params.nameFilter + '.*)' : '';
+      var roleFilter = params.roleFilter.value? '&privileges/PrivilegeInfo/permission_name.matches(.*' + params.roleFilter.value + '.*)' : '';
       $http({
         method: 'GET',
-        url: Settings.baseUrl + '/clusters/'+ params.clusterId + '/privileges?'
-        + 'fields=PrivilegeInfo/*'
-        + '&PrivilegeInfo/principal_name.matches(.*' + params.nameFilter + '.*)'
-        + '&PrivilegeInfo/principal_type.matches(.*' + params.typeFilter.value + '.*)'
-        + '&PrivilegeInfo/permission_name.matches(.*' + params.roleFilter.value + '.*)'
+        url: Settings.baseUrl + endpoint + '?'
+        + 'fields=privileges/PrivilegeInfo/*'
+        + nameFilter
+        + roleFilter
         + '&from=' + (params.currentPage - 1) * params.usersPerPage
         + '&page_size=' + params.usersPerPage
-        + '&sortBy=PrivilegeInfo/principal_name'
       })
       .success(function(data) {
         deferred.resolve(data);

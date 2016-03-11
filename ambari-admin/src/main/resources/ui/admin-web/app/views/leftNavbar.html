@@ -65,7 +65,7 @@
 
         <ul class="nav nav-pills nav-stacked" ng-show="cluster.Clusters.provisioning_state == 'INSTALLED' ">
           <li ng-class="{active: isActive('clusters.manageAccess')}">
-            <a href="#/clusters/{{cluster.Clusters.cluster_name}}/userAccessList" class="permissions">{{'common.roles' | translate}}</a>
+            <a href="#/clusters/{{cluster.Clusters.cluster_name}}/manageAccess" class="permissions">{{'common.roles' | translate}}</a>
           </li>
           <li><a href="#/dashboard"  class="gotodashboard">{{'common.goToDashboard' | translate}}</a></li>
         </ul>

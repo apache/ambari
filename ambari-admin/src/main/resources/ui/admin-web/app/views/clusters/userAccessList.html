@@ -24,13 +24,24 @@
   </div>
   <hr>
   <div class="pull-right">
-    <i class="glyphicon glyphicon-th-large layout-switch-icon disabled" ng-click="switchToBlock()" tooltip-html-unsafe="{{'clusters.switchToBlock' | translate}}"></i>
-    <i class="glyphicon glyphicon-list layout-switch-icon"></i>
+    <div class="layout-switch-icon-wrapper disabled">
+      <i class="glyphicon glyphicon-th-large layout-switch-icon" ng-click="switchToBlock()" tooltip-html-unsafe="{{'clusters.switchToBlock' | translate}}"></i>
+      <p class="label-block">{{'common.blockViewLabel' | translate}}</p>
+    </div>
+    <div class="layout-switch-icon-wrapper">
+      <i class="glyphicon glyphicon-list layout-switch-icon"></i>
+      <p class="label-list">{{'common.listViewLabel' | translate}}</p>
+    </div>
   </div>
+  <ul class="nav nav-pills">
+    <li ng-class="{'active': isUserActive}"><a ng-click="switchToUser()">{{'common.users' | translate}}</a></li>
+    <li ng-class="{'active': !isUserActive}"><a ng-click="switchToGroup()">{{'common.groups' | translate}}</a></li>
+  </ul>
+  <br/>
   <table class="table table-striped table-hover">
     <thead>
     <tr>
-      <th>
+      <th class="role-name-column">
         <div class="search-container">
           <label for="">{{'common.name' | translate}}</label>
           <input type="text" class="form-control namefilter" placeholder="{{'common.any' | translate}}" ng-model="currentNameFilter" ng-change="resetPagination()">
@@ -39,16 +50,7 @@
           </button>
         </div>
       </th>
-      <th>
-        <label for="">{{'common.type' | translate}}</label>
-        <select class="form-control typefilter"
-                ng-model="currentTypeFilter"
-                ng-options="item.label for item in typeFilterOptions"
-                ng-change="resetPagination()">
-        </select>
-
-      </th>
-      <th>
+      <th colspan="2">
         <label for="">{{'clusters.role' | translate}}</label>
         <select class="form-control statusfilter"
                 ng-model="currentRoleFilter"
@@ -63,11 +65,21 @@
       <td>
         <a href="#/{{user.url}}">{{user.encoded_name}}</a>
       </td>
-      <td>{{user.principal_type}}</td>
       <td>
-        <select ng-model="user.permission_name" ng-change="save(user)"
-                ng-options="role.permission_name as role.permission_label for role in roles">
+        <div ng-show="!user.editable">{{user.permission_label}}</div>
+        <select class="role-select" ng-show="user.editable" ng-model="user.permission_name"
+                ng-options="role.permission_name as role.permission_label for role in roleValueOptions">
         </select>
+      </td>
+      <td class="role-actions">
+        <div class="pull-left" ng-show="user.permission_name != user.original_perm">
+          <button class="btn btn-default btn-xs cancel" ng-click="cancel(user)">
+            <span class="glyphicon glyphicon-remove cancel"></span>
+          </button>
+          <button class="btn btn-primary btn-xs" ng-click="save(user)">
+            <span class="glyphicon glyphicon-ok"></span>
+          </button>
+        </div>
       </td>
     </tr>
     </tbody>

@@ -1363,10 +1363,20 @@ accordion .panel-group .panel{
 }
 
 .layout-switch-icon {
-  font-size: 20px;
+  font-size: 35px;
 }
 
-.layout-switch-icon.disabled {
+.layout-switch-icon-wrapper {
+  display: inline-block;
+  font-size: 9px;
+  text-align: center;
+}
+
+.layout-switch-icon-wrapper .label-block {
+  margin-left: -2px;
+}
+
+.layout-switch-icon-wrapper.disabled {
   opacity: 0.4;
   cursor: pointer;
 }
@@ -1489,4 +1499,15 @@ thead.view-permission-header > tr > th {
 
 .pull-up {
   margin-top: -2px;
+}
+.role-select {
+  font-size: 20px;
+}
+
+.role-name-column {
+  width: 40%;
+}
+
+.role-actions {
+  width: 400px;
 }

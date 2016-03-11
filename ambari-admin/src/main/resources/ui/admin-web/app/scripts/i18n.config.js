@@ -78,6 +78,8 @@ angular.module('ambariAdminConsole')
       'enabled': 'Enabled',
       'disabled': 'Disabled',
       'NA': 'n/a',
+      'blockViewLabel': 'BLOCK',
+      'listViewLabel': 'LIST',
 
       'clusterNameChangeConfirmation': {
         'title': 'Confirm Cluster Name Change',
@@ -284,7 +286,10 @@ angular.module('ambariAdminConsole')
         'clusterAdministrator': 'Cluster Administrator',
         'clusterOperator': 'Cluster Operator',
         'serviceAdministrator': 'Service Administrator',
-        'serviceOperator': 'Service Operator'
+        'serviceOperator': 'Service Operator',
+        'ambariAdmin': 'Administrator',
+        'viewUser': 'View User',
+        'none': 'None'
       },
 
       'alerts': {
