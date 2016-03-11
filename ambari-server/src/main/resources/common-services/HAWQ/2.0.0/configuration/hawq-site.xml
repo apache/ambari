@@ -34,7 +34,8 @@
     <display-name>HAWQ Master Port</display-name>
     <value>5432</value>
     <description>
-      The port number of HAWQ master.
+      The port used by HAWQ master.
+      The default is 5432.
     </description>
     <value-attributes>
       <type>int</type>
@@ -47,7 +48,7 @@
     <display-name>HAWQ Standby Master</display-name>
     <value>localhost</value>
     <description>
-      The hostname of HAWQ standby.
+      The hostname of the HAWQ standby master. The standby master and master must reside on different hosts.
     </description>
     <value-attributes>
       <type>componentHost</type>
@@ -59,7 +60,8 @@
     <display-name>HAWQ Segment Port</display-name>
     <value>40000</value>
     <description>
-      The port number of HAWQ segment.
+      The base port used by HAWQ segments.
+      The default is 40000.
     </description>
     <value-attributes>
       <type>int</type>
@@ -100,7 +102,8 @@
     <display-name>HAWQ Segment Directory</display-name>
     <value>/data/hawq/segment</value>
     <description>
-      The directory of HAWQ segment.
+      The base path for the HAWQ segment data directory.
+      The default is /data/hawq/segment.
     </description>
     <value-attributes>
       <type>directory</type>
@@ -114,7 +117,8 @@
     <display-name>HAWQ Master Temp Directory</display-name>
     <value>/tmp/hawq/master</value>
     <description>
-      The temporary directory reserved for HAWQ master.
+      One or more temporary directories reserved for the HAWQ master. Separate multiple entries with commas.
+      The default is /tmp/hawq/master.
     </description>
     <value-attributes>
       <type>directory</type>
@@ -126,7 +130,8 @@
     <display-name>HAWQ Segment Temp Directory</display-name>
     <value>/tmp/hawq/segment</value>
     <description>
-      The temporary directory reserved for HAWQ segment.
+      One or more temporary directories reserved for the HAWQ segment. Separate multiple entries with commas.
+      The default is /tmp/hawq/segment.
     </description>
     <value-attributes>
       <type>directory</type>
@@ -139,9 +144,10 @@
     <display-name>Resource Manager</display-name>
     <value>none</value>
     <description>
-      The resource manager to use for allocating resources.
-      When set to Native ('none'), HAWQ resource manager exclusively uses whole cluster.
-      When set to YARN ('yarn') HAWQ resource manager contacts YARN resource manager to negotiate resource.
+      HAWQ global resource manager type. Valid values are YARN ('yarn') and Native ('none').
+      Native('none') indicates that the HAWQ resource manager manages its own resources exclusively for the entire cluster.
+      YARN ('yarn') means that HAWQ will negotiate with YARN's resource manager for resources.
+      The default is Native ('none').
     </description>
     <value-attributes>
       <type>value-list</type>
@@ -164,7 +170,8 @@
     <display-name>Segment Memory Usage Limit</display-name>
     <value>64GB</value>
     <description>
-      The limit of memory usage in a HAWQ segment when Resource Manager (hawq_global_rm_type) is set to Native ('none').
+      The maximum memory that can be used by a HAWQ segment when Resource Manager ('hawq_global_rm_type') is set to Native ('none').
+      The default is 64GB.
     </description>
     <value-attributes>
       <type>string</type>
@@ -176,7 +183,8 @@
     <display-name>Segment Virtual Core Usage Limit</display-name>
     <value>16</value>
     <description>
-      The limit of virtual core usage in a HAWQ segment when Resource Manager (hawq_global_rm_type) is set to Native ('none').
+      The maximum number of virtual cores that can be used for query execution in a HAWQ segment when Resource Manager ('hawq_global_rm_type') is set to Native ('none').
+      The default is 16.
     </description>
     <value-attributes>
       <type>int</type>
@@ -190,7 +198,9 @@
     <name>hawq_rm_yarn_address</name>
     <value>localhost:8032</value>
     <description>
-      The address of YARN resource manager server.
+      Server address (host and port) of the YARN Resource Manager server (the value of yarn.resourcemanager.address).
+      You must define this if Resource Manager ('hawq_global_rm_type') is set to YARN ('yarn').
+      The default is localhost:8032.
     </description>
     <depends-on>
       <property>
@@ -208,7 +218,9 @@
     <name>hawq_rm_yarn_scheduler_address</name>
     <value>localhost:8030</value>
     <description>
-      The address of YARN scheduler server.
+      Server address (host and port) of the YARN resource manager scheduler (the value of yarn.resourcemanager.scheduler.address).
+      User must define this if Resource Manager ('hawq_global_rm_type') is set to YARN ('yarn').
+      The default is localhost:8030.
     </description>
     <depends-on>
       <property>
@@ -226,7 +238,8 @@
     <name>hawq_rm_yarn_queue_name</name>
     <value>default</value>
     <description>
-      The YARN queue name to register HAWQ resource manager.
+      The name of the YARN queue to register with HAWQ's resource manager.
+      The default is 'default'.
     </description>
     <value-attributes>
       <type>string</type>
@@ -237,7 +250,8 @@
     <name>hawq_rm_yarn_app_name</name>
     <value>hawq</value>
     <description>
-      The application name to register HAWQ resource manager in YARN.
+      The name of the YARN application to register with HAWQ's resource manager.
+      The default is 'hawq'.
     </description>
     <value-attributes>
       <type>string</type>
@@ -248,7 +262,8 @@
     <name>hawq_re_cpu_enable</name>
     <value>false</value>
     <description>
-      The control to enable/disable CPU resource enforcement.
+      Determines whether to enable or disable CPU resource enforcement.
+      The default is false (disabled).
     </description>
     <value-attributes>
       <type>boolean</type>
@@ -259,8 +274,9 @@
     <name>hawq_re_cgroup_mount_point</name>
     <value>/sys/fs/cgroup</value>
     <description>
-      The mount point of CGroup file system for resource enforcement.
-      For example, /sys/fs/cgroup/cpu/hawq for CPU sub-system.
+     The mount point of CGroup file system for resource enforcement.
+     For example, /sys/fs/cgroup/cpu/hawq for CPU subsystem.
+     The default is '/sys/fs/cgroup'.
     </description>
     <value-attributes>
       <type>directory</type>
@@ -271,8 +287,9 @@
     <name>hawq_re_cgroup_hierarchy_name</name>
     <value>hawq</value>
     <description>
-      The name of the hierarchy to accomodate CGroup directories/files for resource enforcement.
-      For example, /sys/fs/cgroup/cpu/hawq for CPU sub-system.
+      The name of the hierarchy to accommodate CGroup directories/files for resource enforcement.
+      For example, /sys/fs/cgroup/cpu/hawq for CPU subsystem.
+      The default is 'hawq'.
     </description>
     <value-attributes>
       <type>string</type>
@@ -284,8 +301,10 @@
     <display-name>Default Number of Virtual Segments</display-name>
     <value>24</value>
     <description>
-      The default number of virtual segments to use when executing a query statement. When the query is actually executed, the number of virtual segments may differ from this number depending on the query's needs.
+      The default number of virtual segments to use when executing a query statement.
+      When the query is actually executed, the number of virtual segments may differ from this number depending on the query's needs.
       When expanding the cluster, you should adjust this number to reflect the number of nodes in the new cluster times the number of virtual segments per node.
+      The default is 24.
     </description>
     <value-attributes>
       <type>int</type>

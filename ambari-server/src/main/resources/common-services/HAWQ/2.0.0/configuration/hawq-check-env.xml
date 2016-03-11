@@ -21,7 +21,11 @@
     <property>
       <name>content</name>
       <display-name>Content</display-name>
-      <description>Contents of the configuration file /usr/local/hawq/etc/hawq_check.cnf. This file is used by 'hawq check' command, which can be run manually by gpadmin user on the HAWQ master host. This command validates the system parameters and HDFS parameters mentioned in this file to ensure optimal HAWQ operation.</description>
+      <description>
+        Contents of the configuration file /usr/local/hawq/etc/hawq_check.cnf.
+        This file is used by 'hawq check' command, which can be run manually by gpadmin user on the HAWQ master host.
+        This command validates the system parameters and HDFS parameters mentioned in this file to ensure optimal HAWQ operation.
+      </description>
         <value>
 [global]
 configfile_version = 4
@@ -30,7 +34,7 @@ configfile_version = 4
 mount.points = /
 
 [linux.sysctl]
-sysctl.kernel.shmmax = 500000000
+sysctl.kernel.shmmax = 1000000000
 sysctl.kernel.shmmni = 4096
 sysctl.kernel.shmall = 4000000000
 sysctl.kernel.sem = 250 512000 100 2048
@@ -45,7 +49,7 @@ sysctl.net.ipv4.conf.default.accept_source_route = 0
 sysctl.net.ipv4.tcp_tw_recycle = 1
 sysctl.net.ipv4.tcp_max_syn_backlog = 200000
 sysctl.net.ipv4.conf.all.arp_filter = 1
-sysctl.net.ipv4.ip_local_port_range = 1281 65535
+sysctl.net.ipv4.ip_local_port_range = 1025 65535
 sysctl.net.core.netdev_max_backlog = 200000
 sysctl.vm.overcommit_memory = 2
 sysctl.fs.nr_open = 3000000

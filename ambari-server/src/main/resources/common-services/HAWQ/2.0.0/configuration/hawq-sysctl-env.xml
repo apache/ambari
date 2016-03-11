@@ -18,9 +18,11 @@
 <configuration supports_adding_forbidden="true">
   <property>
     <name>kernel.shmmax</name>
-    <value>500000000</value>
-    <description>Maximum size in bytes of a single shared memory segment that a Linux process can allocate in its
-      virtual address space</description>
+    <value>1000000000</value>
+    <description>
+      The maximum size, in bytes, of a single shared memory segment that a Linux process can allocate in its virtual address space.
+      The default is 500000000.
+    </description>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
@@ -30,7 +32,10 @@
   <property>
     <name>kernel.shmmni</name>
     <value>4096</value>
-    <description>System wide maximum number of shared memory segments</description>
+    <description>
+      The maximum number of shared memory segments allowed system-wide.
+      The default is 4096.
+    </description>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
@@ -40,7 +45,10 @@
   <property>
     <name>kernel.shmall</name>
     <value>4000000000</value>
-    <description>Total amount of shared memory pages that can be used system wide</description>
+    <description>
+      The total number of shared memory pages that can be used system-wide.
+      The default is 4000000000.
+    </description>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
@@ -50,7 +58,10 @@
   <property>
     <name>kernel.sem</name>
     <value>250 512000 100 2048</value>
-    <description>Parameter to define semaphore related values</description>
+    <description>
+      Parameter used to define semaphore-related values.
+      The default is 250 512000 100 2048.
+    </description>
     <value-attributes>
       <type>string</type>
     </value-attributes>
@@ -59,7 +70,11 @@
   <property>
     <name>kernel.sysrq</name>
     <value>1</value>
-    <description>Enable(1)/Disable(0) functions of sysrq</description>
+    <description>
+      Determines whether to enable or disable functions of sysrq.
+      Set to 1 to enable or 0 to disable.
+      The default is 1 (enabled).
+    </description>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
@@ -70,7 +85,11 @@
   <property>
     <name>kernel.core_uses_pid</name>
     <value>1</value>
-    <description>Enable appending process id to the name of core dump file. Ex: core.PID</description>
+    <description>
+      Determines whether to append the process ID to the name of the core dump file.
+      For example, core.PID. Set to 1 to enable or 0 to disable.
+      The default is 1 (enabled).
+    </description>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
@@ -81,7 +100,10 @@
   <property>
     <name>kernel.msgmnb</name>
     <value>65536</value>
-    <description>Default maximum size of a message in bytes</description>
+    <description>
+      The maximum size of a message, in bytes.
+      The default is 65336.
+    </description>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
@@ -91,7 +113,10 @@
   <property>
     <name>kernel.msgmax</name>
     <value>65536</value>
-    <description>Default maxmimum size of a mesage queue</description>
+    <description>
+      The maximum size of a message queue, in bytes.
+      The default is 65336.
+    </description>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
@@ -101,7 +126,10 @@
   <property>
     <name>kernel.msgmni</name>
     <value>2048</value>
-    <description>Number of message queue identifiers</description>
+    <description>
+      The maximum number of message queue identifiers.
+      The default is 2048.
+    </description>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
@@ -111,7 +139,11 @@
   <property>
     <name>net.ipv4.tcp_syncookies</name>
     <value>0</value>
-    <description>Enable(1)/Disable(0) SYN cookie protection</description>
+    <description>
+      Determines whether to enable or disable SYN cookie protection.
+      Set to 1 to enable or 0 to disable.
+      The default is 0 (disabled).
+    </description>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
@@ -122,7 +154,11 @@
   <property>
     <name>net.ipv4.ip_forward</name>
     <value>0</value>
-    <description>Enable(1)/Disable(0) IP forwarding</description>
+    <description>
+      Determines whether to enable or disable IP forwarding.
+      Set to 1 to enable or 0 to disable.
+      The default is 0 (disabled).
+    </description>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
@@ -133,7 +169,11 @@
   <property>
     <name>net.ipv4.conf.default.accept_source_route</name>
     <value>0</value>
-    <description>Enable(1)/Disable(0) IP source routing</description>
+    <description>
+      Determines whether to enable or disable IP source routing.
+      Set to 1 to enable or 0 to disable.
+      The default is 0 (disabled).
+    </description>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
@@ -144,7 +184,11 @@
   <property>
     <name>net.ipv4.tcp_tw_recycle</name>
     <value>1</value>
-    <description>Enable(1)/Disable(0) fast recycling of TIME_WAIT sockets</description>
+    <description>
+      Determines whether to enable or disable fast recycling of TIME_WAIT sockets.
+      Set to 1 to enable or 0 to disable.
+      The default is 1 (enabled).
+    </description>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
@@ -155,7 +199,10 @@
   <property>
     <name>net.ipv4.tcp_max_syn_backlog</name>
     <value>200000</value>
-    <description>Number of outstanding syn requests allowed</description>
+    <description>
+      The maximum number of outstanding syn requests allowed.
+      The default is 200000.
+    </description>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
@@ -165,7 +212,11 @@
   <property>
     <name>net.ipv4.conf.all.arp_filter</name>
     <value>1</value>
-    <description>Enable(1)/Disable(0) route lookup to determine the interface through which to send the reply</description>
+    <description>
+      Determines whether to enable or disable route lookup to select the interface for replies.
+      Set to 1 to enable or 0 to disable.
+      The default is 1 (enabled).
+    </description>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
@@ -175,8 +226,11 @@
 
   <property>
     <name>net.ipv4.ip_local_port_range</name>
-    <value>1281 65535</value>
-    <description>Local port range that is used by TCP and UDP traffic to choose the local port</description>
+    <value>1025 65535</value>
+    <description>
+      The local port range, specified by two values separated by a space, used by TCP and UDP traffic when choosing the local port.
+      The default is 1281 65535.
+    </description>
     <value-attributes>
       <type>string</type>
     </value-attributes>
@@ -185,7 +239,10 @@
   <property>
     <name>net.core.netdev_max_backlog</name>
     <value>200000</value>
-    <description>Maximum number of packets allowed to queue when a particular interface receives packets faster than the kernel can process them</description>
+    <description>
+      The maximum number of packets allowed to queue when a particular interface receives packets faster than the kernel can process them.
+      The default is 200000.
+    </description>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
@@ -195,7 +252,10 @@
   <property>
     <name>fs.nr_open</name>
     <value>3000000</value>
-    <description>Maximum number of file-handles a process can allocate</description>
+    <description>
+      The maximum number of file handles that a process can allocate.
+      The default is 3000000.
+    </description>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
@@ -205,7 +265,10 @@
   <property>
     <name>kernel.threads-max</name>
     <value>798720</value>
-    <description>System-wide maximum number of threads to be used by the kernel at one time</description>
+    <description>
+      The maximum number of threads that can be used by the kernel at one time system-wide.
+      The default is 798720.
+    </description>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
@@ -215,7 +278,10 @@
   <property>
     <name>kernel.pid_max</name>
     <value>798720</value>
-    <description>Maximum number of unique process identifiers</description>
+    <description>
+      The maximum number of unique process identifiers.
+      The default is 798720.
+    </description>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
@@ -225,7 +291,10 @@
   <property>
     <name>net.core.rmem_max</name>
     <value>2097152</value>
-    <description>Maximum receive socket buffer size in bytes</description>
+    <description>
+      The maximum size of the receive socket buffer, in bytes.
+      The default is 2097152.
+    </description>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
@@ -235,7 +304,10 @@
   <property>
     <name>net.core.wmem_max</name>
     <value>2097152</value>
-    <description>Maximum send socket buffer size in bytes</description>
+    <description>
+      The maximum size of the send socket buffer, in bytes.
+      The default is 2097152.
+    </description>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
@@ -246,7 +318,12 @@
     <name>vm.overcommit_memory</name>
     <display-name>VM Overcommit</display-name>
     <value>1</value>
-    <description>Defines the conditions that determine whether a large memory request is accepted or denied. There are three possible values for this parameter: 0, 1 or 2. For production environment, value of 2 is recommended</description>
+    <description>
+      Establishes the conditions for determining whether large memory requests are accepted or denied.
+      The three possible values for this parameter are: 0, 1 or 2.
+      For production environments, the value of 2 is recommended and means that processes will not be killed but will receive errors upon memory allocation.
+      The default value is 1.
+    </description>
     <value-attributes>
       <type>value-list</type>
       <entries>

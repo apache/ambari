@@ -19,6 +19,8 @@
 	<property>
 		<name>pxf.service.kerberos.keytab</name>
 		<value>/etc/security/keytabs/pxf.service.keytab</value>
-		<description>Path to keytab file owned by pxf service with permissions 0400</description>
+		<description>
+		  Path to the PXF keytab file, owned by PXF service and with permissions 0400.
+		</description>
 	</property>
 </configuration>
