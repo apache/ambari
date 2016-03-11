@@ -385,7 +385,7 @@ module.exports = {
    */
   showRollingRestartPopup: function(hostComponentName, serviceName, isMaintenanceModeOn, staleConfigsOnly, hostComponents, skipMaintenance) {
     hostComponents = hostComponents || [];
-    var componentDisplayName = App.format.role(hostComponentName);
+    var componentDisplayName = App.format.role(hostComponentName, false);
     var self = this;
     if (!componentDisplayName) {
       componentDisplayName = hostComponentName;
@@ -471,7 +471,7 @@ module.exports = {
    * @param {String} hostComponentName
    */
   showWarningRollingRestartPopup: function(hostComponentName) {
-    var componentDisplayName = App.format.role(hostComponentName);
+    var componentDisplayName = App.format.role(hostComponentName, false);
     if (!componentDisplayName) {
       componentDisplayName = hostComponentName;
     }

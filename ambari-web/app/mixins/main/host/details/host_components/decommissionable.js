@@ -74,7 +74,7 @@ App.Decommissionable = Em.Mixin.create({
   decommissionTooltipMessage: function () {
     if (this.get('isComponentDecommissionDisable') && (this.get('isComponentRecommissionAvailable') || this.get('isComponentDecommissionAvailable'))) {
       var decom = this.get('isComponentRecommissionAvailable') ? Em.I18n.t('common.recommission') : Em.I18n.t('common.decommission');
-      return Em.I18n.t('hosts.decommission.tooltip.warning').format(decom, App.format.role(this.get('componentForCheckDecommission')));
+      return Em.I18n.t('hosts.decommission.tooltip.warning').format(decom, App.format.role(this.get('componentForCheckDecommission'), false));
     }
   }.property('isComponentDecommissionDisable', 'isComponentRecommissionAvailable', 'isComponentDecommissionAvailable', 'componentForCheckDecommission'),
   /**

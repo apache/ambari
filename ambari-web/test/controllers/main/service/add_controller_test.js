@@ -39,7 +39,7 @@ describe('App.AddServiceController', function() {
         hostNames: []
       },
       RequestInfo: {
-        "context": Em.I18n.t('requestInfo.installHostComponent') + ' ' + App.format.role("TEZ_CLIENT"),
+        "context": Em.I18n.t('requestInfo.installHostComponent') + ' ' + App.format.role("TEZ_CLIENT", false),
         "query": "HostRoles/component_name=TEZ_CLIENT&HostRoles/host_name.in(hostName1,hostName2)"
       },
       Body: {

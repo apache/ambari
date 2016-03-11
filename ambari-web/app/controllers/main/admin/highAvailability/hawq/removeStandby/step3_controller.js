@@ -82,7 +82,7 @@ App.RemoveHawqStandbyWizardStep3Controller = App.HighAvailabilityProgressPageCon
   onLoadConfigs: function (data, opt, params) {
     delete data.items[0].properties['hawq_standby_address_host'];
 
-    var configData = this.reconfigureSites([params.type], data, Em.I18n.t('admin.removeHawqStandby.wizard.step3.save.configuration.note').format(App.format.role('HAWQSTANDBY')));
+    var configData = this.reconfigureSites([params.type], data, Em.I18n.t('admin.removeHawqStandby.wizard.step3.save.configuration.note').format(App.format.role('HAWQSTANDBY', false)));
 
     App.ajax.send({
       name: 'common.service.configurations',

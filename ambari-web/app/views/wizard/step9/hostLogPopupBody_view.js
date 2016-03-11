@@ -140,7 +140,7 @@ App.WizardStep9HostLogPopupBodyView = Em.View.extend({
         taskInfo.set('command', _task.Tasks.command.toLowerCase() === 'service_check' ? '' : _task.Tasks.command.toLowerCase());
         taskInfo.set('commandDetail', App.format.commandDetail(_task.Tasks.command_detail, _task.Tasks.request_inputs));
         taskInfo.set('status', App.format.taskStatus(_task.Tasks.status));
-        taskInfo.set('role', App.format.role(_task.Tasks.role));
+        taskInfo.set('role', App.format.role(_task.Tasks.role, false));
         taskInfo.set('stderr', _task.Tasks.stderr);
         taskInfo.set('stdout', _task.Tasks.stdout);
         taskInfo.set('outputLog', _task.Tasks.output_log);

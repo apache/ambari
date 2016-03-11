@@ -328,7 +328,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     var hostComponentsNames = '';
     this.get('hostComponents').forEach(function (comp, index) {
       hostComponentsNames += index ? '+' : '';
-      hostComponentsNames += comp === 'ZKFC' ? comp : App.format.role(comp);
+      hostComponentsNames += comp === 'ZKFC' ? comp : App.format.role(comp, false);
     }, this);
     return hostComponentsNames;
   },
@@ -635,7 +635,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
         type: _siteName,
         tag: tagName,
         properties: configs[_siteName],
-        service_config_version_note: Em.I18n.t('services.reassign.step4.save.configuration.note').format(App.format.role(componentName))
+        service_config_version_note: Em.I18n.t('services.reassign.step4.save.configuration.note').format(App.format.role(componentName, false))
       }
     });
     var allConfigData = [];

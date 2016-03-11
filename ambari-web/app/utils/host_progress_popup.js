@@ -451,7 +451,7 @@ App.HostPopup = Em.Object.create({
       command: ( _task.Tasks.command.toLowerCase() != 'service_check') ? _task.Tasks.command.toLowerCase() : '',
       commandDetail: App.format.commandDetail(_task.Tasks.command_detail, _task.Tasks.request_inputs),
       status: App.format.taskStatus(_task.Tasks.status),
-      role: App.format.role(_task.Tasks.role),
+      role: App.format.role(_task.Tasks.role, false),
       stderr: _task.Tasks.stderr,
       stdout: _task.Tasks.stdout,
       request_id: _task.Tasks.request_id,

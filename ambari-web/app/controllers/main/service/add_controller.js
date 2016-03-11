@@ -455,7 +455,7 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
             sender: this,
             data: {
               query: queryStr,
-              context: 'Install ' + App.format.role(c.componentName),
+              context: 'Install ' + App.format.role(c.componentName, false),
               HostRoles: {
                 state: 'INSTALLED'
               },

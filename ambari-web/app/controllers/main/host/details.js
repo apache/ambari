@@ -666,7 +666,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     if (subComponentNames && subComponentNames.length > 0) {
       var dns = [];
       subComponentNames.forEach(function (scn) {
-        dns.push(App.format.role(scn));
+        dns.push(App.format.role(scn, false));
       });
       displayName += " (" + dns.join(", ") + ")";
     }
@@ -958,7 +958,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
           "tag": tag,
           "properties": properties[site],
           "properties_attributes": group.properties_attributes[site],
-          "service_config_version_note": Em.I18n.t('hosts.host.configs.save.note').format(App.format.role(componentName))
+          "service_config_version_note": Em.I18n.t('hosts.host.configs.save.note').format(App.format.role(componentName, false))
         });
       }
       if (desiredConfigs.length > 0) {

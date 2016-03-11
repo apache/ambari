@@ -339,10 +339,12 @@ describe('utils/helper', function() {
           App.StackServiceComponent.find.restore();
         });
         it("", function() {
-          App.format.stackRolesMap = {};
-          expect(App.format.role('S1')).to.equal('s1');
-          expect(App.format.role('C1')).to.equal('c1');
-          expect(App.format.stackRolesMap).to.not.be.empty;
+          App.format.stackServiceRolesMap = {};
+          App.format.stackComponentRolesMap = {};
+          expect(App.format.role('S1', true)).to.equal('s1');
+          expect(App.format.role('C1', false)).to.equal('c1');
+          expect(App.format.stackServiceRolesMap).to.not.be.empty;
+          expect(App.format.stackComponentRolesMap).to.not.be.empty;
         });
       });
     });

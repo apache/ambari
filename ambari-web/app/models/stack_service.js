@@ -76,7 +76,7 @@ App.StackService = DS.Model.extend({
     console.info("displayName = " + displayName);
     var services = this.get('coSelectedServices').slice();
     var serviceDisplayNames = services.map(function (item) {
-      return App.format.role(item);
+      return App.format.role(item, true);
     }, this);
     if (!!serviceDisplayNames.length) {
       serviceDisplayNames.unshift(displayName);

@@ -90,7 +90,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
       dbHosts[hostName].hostComponents.forEach(function (componentName) {
         hostComponents.push(Em.Object.create({
           componentName: componentName,
-          displayName: App.format.role(componentName)
+          displayName: App.format.role(componentName, false)
         }));
       });
       dbHosts[hostName].disk_info.forEach(function (disk) {
@@ -1010,7 +1010,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
       var name = (componentName === 'HDFS_CLIENT') ? 'CLIENT' : componentName;
       var component = {
         componentName: name,
-        displayName: App.format.role(name),
+        displayName: App.format.role(name, false),
         hosts: [],
         isInstalled: true
       };
@@ -1029,7 +1029,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
       hosts.setEach('isInstalled', false);
       result.push({
         componentName: component.get('componentName'),
-        displayName: App.format.role(component.get('componentName')),
+        displayName: App.format.role(component.get('componentName'), false),
         hosts: hosts,
         isInstalled: false
       })

@@ -127,7 +127,7 @@ App.AlertDefinition = DS.Model.extend({
    * @type {String}
    */
   componentNameFormatted: function () {
-    return App.format.role(this.get('componentName'));
+    return App.format.role(this.get('componentName'), false);
   }.property('componentName'),
 
   /**

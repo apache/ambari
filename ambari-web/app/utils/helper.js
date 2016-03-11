@@ -415,10 +415,16 @@ App.format = {
   },
 
   /**
-   * cached map of service and component names
+   * cached map of service names
    * @type {object}
    */
-  stackRolesMap: {},
+  stackServiceRolesMap: {},
+
+  /**
+   * cached map of component names
+   * @type {object}
+   */
+  stackComponentRolesMap: {},
 
   /**
    * convert role to readable string
@@ -426,32 +432,33 @@ App.format = {
    * @memberof App.format
    * @method role
    * @param {string} role
-   * @param {string} level
+   * @param {boolean} isServiceRole
    * return {string}
    */
-  role: function (role, level) {
-    switch (level) {
-      case 'SERVICE':
-        var models = [App.StackService];
-        break;
-      case 'COMPONENT':
-        var models = [App.StackServiceComponent];
-        break;
-      default:
-        var models = [App.StackService, App.StackServiceComponent];
-    }
-    if (App.isEmptyObject(this.stackRolesMap)) {
-      models.forEach(function (model) {
-        model.find().forEach(function (item) {
-          this.stackRolesMap[item.get('id')] = item.get('displayName');
-        }, this);
-      }, this);
+  role: function (role, isServiceRole) {
+
+    if (isServiceRole) {
+      var model = App.StackService;
+      var map = this.stackServiceRolesMap;
+    } else {
+      var model = App.StackServiceComponent;
+      var map = this.stackComponentRolesMap;
     }
 
-    if (this.stackRolesMap[role]) {
-      return this.stackRolesMap[role];
+    this.initializeStackRolesMap(map, model);
+
+    if (map[role]) {
+      return map[role];
     }
     return this.normalizeName(role);
+  },
+
+  initializeStackRolesMap: function (map, model) {
+    if (App.isEmptyObject(map)) {
+      model.find().forEach(function (item) {
+        map[item.get('id')] = item.get('displayName');
+      });
+    }
   },
 
   /**
@@ -506,7 +513,7 @@ App.format = {
       } else if (self.command[item]) {
         result = result + ' ' + self.command[item];
       } else {
-        result = result + ' ' + self.role(item);
+        result = result + ' ' + self.role(item, false);
       }
     });
 

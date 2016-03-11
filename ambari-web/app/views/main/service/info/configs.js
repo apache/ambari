@@ -79,7 +79,7 @@ App.MainServiceInfoConfigsView = Em.View.extend({
    */
   rollingRestartActionName : function() {
     var componentName = this.get('rollingRestartSlaveComponentName');
-    return componentName ? Em.I18n.t('rollingrestart.dialog.title').format(App.format.role(componentName)) : '';
+    return componentName ? Em.I18n.t('rollingrestart.dialog.title').format(App.format.role(componentName, false)) : '';
   }.property('rollingRestartSlaveComponentName'),
 
   /**

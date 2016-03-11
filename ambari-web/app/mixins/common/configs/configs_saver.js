@@ -695,7 +695,7 @@ App.ConfigsSaverMixin = Em.Mixin.create({
                 if (!components[name]) {
                   components[name] = [];
                 }
-                components[name].push(App.format.role(item.ServiceComponentInfo.component_name));
+                components[name].push(App.format.role(item.ServiceComponentInfo.component_name, false));
               });
               return components;
             },

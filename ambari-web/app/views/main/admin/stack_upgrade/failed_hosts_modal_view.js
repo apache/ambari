@@ -56,8 +56,8 @@ App.FailedHostsPopupBodyView = Em.View.extend({
       if (content.host_detail[hostName]) {
         content.host_detail[hostName].forEach(function (details) {
           hostComponents.push(Em.Object.create({
-            componentName: App.format.role(details.component),
-            serviceName: App.format.role(details.service)
+            componentName: App.format.role(details.component, false),
+            serviceName: App.format.role(details.service, true)
           }))
         }, this);
       }

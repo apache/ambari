@@ -24,15 +24,15 @@ App.ReassignMasterWizardStep6View = App.HighAvailabilityProgressPageView.extend(
   headerTitle: Em.I18n.t('services.reassign.step6.header'),
 
   noticeInProgress: function () {
-    return Em.I18n.t('services.reassign.step6.status.info').format(App.format.role(this.get('controller.content.reassign.component_name')))
+    return Em.I18n.t('services.reassign.step6.status.info').format(App.format.role(this.get('controller.content.reassign.component_name'), false))
   }.property('controller.content.reassign.component_name'),
 
   noticeFailed: function () {
-    return Em.I18n.t('services.reassign.step6.status.failed').format(App.format.role(this.get('controller.content.reassign.component_name')),this.get('controller.content.reassignHosts.source'),this.get('controller.content.reassignHosts.target'))
+    return Em.I18n.t('services.reassign.step6.status.failed').format(App.format.role(this.get('controller.content.reassign.component_name'), false),this.get('controller.content.reassignHosts.source'),this.get('controller.content.reassignHosts.target'))
   }.property('controller.content.reassign.component_name','controller.content.reassignHosts.source','controller.content.reassignHosts.target'),
 
   noticeCompleted: function () {
-    return Em.I18n.t('services.reassign.step6.status.success').format(App.format.role(this.get('controller.content.reassign.component_name')),this.get('controller.content.reassignHosts.source'),this.get('controller.content.reassignHosts.target'))
+    return Em.I18n.t('services.reassign.step6.status.success').format(App.format.role(this.get('controller.content.reassign.component_name'), false),this.get('controller.content.reassignHosts.source'),this.get('controller.content.reassignHosts.target'))
   }.property('controller.content.reassign.component_name','controller.content.reassignHosts.source','controller.content.reassignHosts.target'),
 
   submitButtonText: Em.I18n.t('common.complete'),

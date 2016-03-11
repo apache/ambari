@@ -202,7 +202,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
           service: Em.Object.create({
             serviceName: hostComponent.HostRoles.service_name
           }),
-          displayName: App.format.role(hostComponent.HostRoles.component_name)
+          displayName: App.format.role(hostComponent.HostRoles.component_name, false)
         }));
       });
       hosts.push(Em.Object.create({

@@ -129,7 +129,7 @@ App.SlaveComponentGroupsController = Em.ArrayController.extend({
   }.property('service'),
 
   selectedComponentDisplayName: function() {
-    return App.format.role(this.get('selectedComponentName'));
+    return App.format.role(this.get('selectedComponentName'), false);
   }.property('selectedComponentName'),
 
   selectedSlaveComponent: function () {

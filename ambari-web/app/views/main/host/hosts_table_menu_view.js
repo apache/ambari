@@ -187,7 +187,7 @@ App.HostTableMenuView = Em.View.extend({
 
       tooltipMsg: function () {
         return (this.get('disabledElement') == 'disabled') ?
-           Em.I18n.t('hosts.decommission.tooltip.warning').format(this.get('content.message'),  App.format.role(this.get('content.componentName'))) : '';
+           Em.I18n.t('hosts.decommission.tooltip.warning').format(this.get('content.message'),  App.format.role(this.get('content.componentName'), false)) : '';
       }.property('disabledElement','content.componentName'),
 
       disabledElement: function () {

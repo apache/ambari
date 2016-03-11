@@ -141,7 +141,7 @@ App.WizardStep10Controller = Em.Controller.extend({
             {Tst: 'TIMEDOUT', st: 'timedout'}
           ]).forEach(function (s) {
             _host.tasks.filterProperty('Tasks.status', s.Tst).forEach(function (_task) {
-              var statement = clusterState + App.format.role(_task.Tasks.role) + Em.I18n.t('installer.step10.taskStatus.failed') + _host.name;
+              var statement = clusterState + App.format.role(_task.Tasks.role, false) + Em.I18n.t('installer.step10.taskStatus.failed') + _host.name;
               self.get('clusterInfo').findProperty('id', 1).get('status').findProperty('id', 2).get('statements').pushObject(Em.Object.create({
                 status: s.st,
                 color: 'text-info',

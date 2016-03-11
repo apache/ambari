@@ -44,7 +44,7 @@ describe('App.WizardStep4Controller', function () {
         isDFS: ['HDFS','GLUSTERFS'].contains(serviceName),
         isMonitoringService: ['GANGLIA'].contains(serviceName),
         requiredServices: App.StackService.find(serviceName).get('requiredServices'),
-        displayNameOnSelectServicePage: App.format.role(serviceName),
+        displayNameOnSelectServicePage: App.format.role(serviceName, true),
         coSelectedServices: function() {
           return App.StackService.coSelected[this.get('serviceName')] || [];
         }.property('serviceName')

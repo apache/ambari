@@ -99,7 +99,7 @@ App.ConfigOverridable = Em.Mixin.create({
     availableConfigGroups = result;
     var selectedConfigGroup = availableConfigGroups && availableConfigGroups.length > 0 ?
       availableConfigGroups[0] : null;
-    var serviceName = App.format.role(serviceId);
+    var serviceName = App.format.role(serviceId, true);
 
     return App.ModalPopup.show({
       classNames: ['sixty-percent-width-modal'],

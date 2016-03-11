@@ -302,7 +302,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
         if (serviceComponent.get('isShownOnInstallerSlaveClientPage')) {
           headers.pushObject(Em.Object.create({
             name: serviceComponent.get('componentName'),
-            label: App.format.role(serviceComponent.get('componentName')),
+            label: App.format.role(serviceComponent.get('componentName'), false),
             allChecked: false,
             isRequired: serviceComponent.get('isRequired'),
             noChecked: true,
@@ -316,7 +316,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
     if (this.get('content.clients') && !!this.get('content.clients').length) {
       headers.pushObject(Em.Object.create({
         name: 'CLIENT',
-        label: App.format.role('CLIENT'),
+        label: App.format.role('CLIENT', false),
         allChecked: false,
         noChecked: true,
         isDisabled: false,

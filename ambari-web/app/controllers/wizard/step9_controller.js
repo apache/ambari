@@ -366,7 +366,7 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
    * @method displayMessage
    */
   displayMessage: function (task) {
-    var role = App.format.role(task.role);
+    var role = App.format.role(task.role, false);
     /* istanbul ignore next */
     switch (task.command) {
       case 'INSTALL':
@@ -1157,7 +1157,7 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
       var hostComponentObj = {hostName: host.Hosts.host_name};
       var componentArr = [];
       host.host_components.forEach(function (_hostComponent) {
-        var componentName = App.format.role(_hostComponent.HostRoles.component_name);
+        var componentName = App.format.role(_hostComponent.HostRoles.component_name, false);
         componentArr.pushObject(componentName);
       }, this);
       hostComponentObj.componentNames = stringUtils.getFormattedStringFromArray(componentArr);

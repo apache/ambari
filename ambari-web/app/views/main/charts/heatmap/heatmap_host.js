@@ -69,7 +69,7 @@ App.MainChartsHeatmapHostView = Em.View.extend({
           val = [];
           host[i].forEach(function (componentName) {
             if (nonClientComponents.contains(componentName)) {
-              val.push(App.format.role(componentName));
+              val.push(App.format.role(componentName, false));
             }
           }, this);
           val = val.join(', ')

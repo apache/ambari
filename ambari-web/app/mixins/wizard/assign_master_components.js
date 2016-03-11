@@ -740,7 +740,7 @@ App.AssignMasterComponents = Em.Mixin.create({
 
     var componentObj = {};
     componentObj.component_name = componentName;
-    componentObj.display_name = App.format.role(fullComponent.get('componentName'));
+    componentObj.display_name = App.format.role(fullComponent.get('componentName'), false);
     componentObj.serviceId = fullComponent.get('serviceName');
     componentObj.isServiceCoHost = App.StackServiceComponent.find().findProperty('componentName', componentName).get('isCoHostedComponent') && !this.get('mastersToMove').contains(componentName);
     componentObj.selectedHost = savedComponent ? savedComponent.hostName : hostName;
