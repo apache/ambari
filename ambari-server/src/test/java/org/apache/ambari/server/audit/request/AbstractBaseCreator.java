@@ -21,7 +21,6 @@ package org.apache.ambari.server.audit.request;
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.audit.event.AuditEvent;
-import org.joda.time.DateTime;
 
 public abstract class AbstractBaseCreator implements RequestAuditEventCreator {
 
@@ -33,8 +32,8 @@ public abstract class AbstractBaseCreator implements RequestAuditEventCreator {
   public AuditEvent createAuditEvent(final Request request, final Result result) {
     return new AuditEvent() {
       @Override
-      public DateTime getTimestamp() {
-        return DateTime.now();
+      public Long getTimestamp() {
+        return System.currentTimeMillis();
       }
 
       @Override

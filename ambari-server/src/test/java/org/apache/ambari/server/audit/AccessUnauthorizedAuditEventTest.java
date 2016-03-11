@@ -18,7 +18,6 @@
 package org.apache.ambari.server.audit;
 
 import org.apache.ambari.server.audit.event.AccessUnauthorizedAuditEvent;
-import org.joda.time.DateTime;
 import org.junit.Test;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
@@ -37,7 +36,7 @@ public class AccessUnauthorizedAuditEventTest {
     String testResourcePath = "/api/v1/hosts";
 
     AccessUnauthorizedAuditEvent evnt = AccessUnauthorizedAuditEvent.builder()
-      .withTimestamp(DateTime.now())
+      .withTimestamp(System.currentTimeMillis())
       .withRemoteIp(testRemoteIp)
       .withUserName(testUserName)
       .withHttpMethodName(testHttpMethod)
@@ -57,13 +56,13 @@ public class AccessUnauthorizedAuditEventTest {
   @Test
   public void testTimestamp() throws Exception {
     // Given
-    DateTime testTimestamp = DateTime.now();
+    long testTimestamp = System.currentTimeMillis();
     AccessUnauthorizedAuditEvent evnt = AccessUnauthorizedAuditEvent.builder()
       .withTimestamp(testTimestamp)
       .build();
 
     // When
-    DateTime actualTimestamp = evnt.getTimestamp();
+    long actualTimestamp = evnt.getTimestamp();
 
     // Then
     assertThat(actualTimestamp, equalTo(testTimestamp));

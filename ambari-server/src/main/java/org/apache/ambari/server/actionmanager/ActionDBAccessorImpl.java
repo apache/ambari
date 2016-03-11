@@ -66,7 +66,6 @@ import org.apache.ambari.server.utils.Parallel;
 import org.apache.ambari.server.utils.ParallelLoopResult;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.lang.StringUtils;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -497,18 +496,17 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
         report.getStructuredOut().getBytes());
       commandEntity.setExitcode(report.getExitCode());
 
-      String actionId = report.getActionId();
-      long[] requestStageIds = StageUtils.getRequestStage(actionId);
-      long requestId = requestStageIds[0];
-
       if (HostRoleStatus.getCompletedStates().contains(commandEntity.getStatus())) {
         commandEntity.setEndTime(now);
+
+        String actionId = report.getActionId();
+        long[] requestStageIds = StageUtils.getRequestStage(actionId);
+        long requestId = requestStageIds[0];
         long stageId = requestStageIds[1];
         if (requestDAO.getLastStageId(requestId).equals(stageId)) {
           requestsToCheck.add(requestId);
         }
       }
-
     }
 
     // no need to merge if there's nothing to merge
@@ -808,7 +806,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
           .withRequestId(String.valueOf(requestId))
           .withStatus(String.valueOf(cs.getStatus()))
           .withRequestContext(stages.isEmpty() ? "" : stages.get(0).getRequestContext())
-          .withTimestamp(DateTime.now())
+          .withTimestamp(System.currentTimeMillis())
           .build();
         auditLogger.log(auditEvent);
 
@@ -832,7 +830,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
         .withDetails(commandEntity.getCommandDetail())
         .withStatus(commandEntity.getStatus().toString())
         .withRequestId(String.valueOf(requestId))
-        .withTimestamp(DateTime.now())
+        .withTimestamp(System.currentTimeMillis())
         .build();
 
       auditLogger.log(taskEvent);

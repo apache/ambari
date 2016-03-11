@@ -60,7 +60,6 @@ public abstract class BaseService {
 
   protected static RequestAuditLogger requestAuditLogger;
 
-  @Inject
   public static void init(RequestAuditLogger instance) {
     requestAuditLogger = instance;
   }
@@ -118,15 +117,19 @@ public abstract class BaseService {
             headers, requestBody, uriInfo, requestType, resource);
 
         result  = request.process();
+        requestAuditLogger.log(request, result);
+      }
+
+      if(requestBodySet.isEmpty() || !ResultStatus.STATUS.OK.equals(result.getStatus().getStatus())) {
+        requestAuditLogger.log(request, result);
       }
     } catch (BodyParseException e) {
       result =  new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST, e.getMessage()));
+      requestAuditLogger.log(request, result);
     } catch (Throwable t) {
       requestAuditLogger.log(request, new ResultImpl(new ResultStatus(ResultStatus.STATUS.SERVER_ERROR, t.getMessage())));
       throw t;
     }
-
-    requestAuditLogger.log(request, result);
 
     ResultSerializer serializer = mediaType == null ? getResultSerializer() : getResultSerializer(mediaType);
 

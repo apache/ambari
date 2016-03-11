@@ -19,7 +19,6 @@
 package org.apache.ambari.server.audit;
 
 import org.apache.ambari.server.audit.event.OperationStatusAuditEvent;
-import org.joda.time.DateTime;
 import org.junit.Test;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
@@ -36,7 +35,7 @@ public class OperationStatusAuditEventTest {
     String testStatus = "IN PROGRESS";
 
     OperationStatusAuditEvent evnt = OperationStatusAuditEvent.builder()
-      .withTimestamp(DateTime.now())
+      .withTimestamp(System.currentTimeMillis())
       .withRequestId(testRequestId.toString())
       .withStatus(testStatus)
       .withRequestContext("Start Service")
@@ -54,13 +53,13 @@ public class OperationStatusAuditEventTest {
   @Test
   public void testTimestamp() throws Exception {
     // Given
-    DateTime testTimestamp = DateTime.now();
+    long testTimestamp = System.currentTimeMillis();
     OperationStatusAuditEvent evnt = OperationStatusAuditEvent.builder()
       .withTimestamp(testTimestamp)
       .build();
 
     // When
-    DateTime actualTimestamp = evnt.getTimestamp();
+    long actualTimestamp = evnt.getTimestamp();
 
     // Then
     assertThat(actualTimestamp, equalTo(testTimestamp));

@@ -20,7 +20,6 @@ package org.apache.ambari.server.audit;
 import nl.jqno.equalsverifier.EqualsVerifier;
 
 import org.apache.ambari.server.audit.event.LogoutAuditEvent;
-import org.joda.time.DateTime;
 import org.junit.Test;
 
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -35,7 +34,7 @@ public class LogoutAuditEventTest {
     String testRemoteIp = "127.0.0.1";
 
     LogoutAuditEvent evnt = LogoutAuditEvent.builder()
-      .withTimestamp(DateTime.now())
+      .withTimestamp(System.currentTimeMillis())
       .withRemoteIp(testRemoteIp)
       .withUserName(testUserName)
       .build();
@@ -54,13 +53,13 @@ public class LogoutAuditEventTest {
   @Test
   public void testTimestamp() throws Exception {
     // Given
-    DateTime testTimestamp = DateTime.now();
+    long testTimestamp = System.currentTimeMillis();
     LogoutAuditEvent evnt = LogoutAuditEvent.builder()
       .withTimestamp(testTimestamp)
       .build();
 
     // When
-    DateTime actualTimestamp = evnt.getTimestamp();
+    long actualTimestamp = evnt.getTimestamp();
 
     // Then
     assertThat(actualTimestamp, equalTo(testTimestamp));

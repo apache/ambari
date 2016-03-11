@@ -29,7 +29,6 @@ import org.apache.ambari.server.orm.entities.KerberosPrincipalEntity;
 import org.apache.ambari.server.security.SecurePasswordHelper;
 import org.apache.ambari.server.serveraction.ActionLog;
 import org.apache.commons.lang.StringUtils;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -176,7 +175,7 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
                                                KerberosOperationHandler kerberosOperationHandler,
                                                ActionLog actionLog) {
     CreatePrincipalKerberosAuditEvent.CreatePrincipalKerberosAuditEventBuilder auditEventBuilder = CreatePrincipalKerberosAuditEvent.builder()
-      .withTimestamp(DateTime.now())
+      .withTimestamp(System.currentTimeMillis())
       .withPrincipal(principal);
     CreatePrincipalResult result = null;
     String message = null;

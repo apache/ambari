@@ -19,6 +19,7 @@
 package org.apache.ambari.server.audit.request.eventcreator;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -32,7 +33,6 @@ import org.apache.ambari.server.audit.event.request.DeleteAlertGroupRequestAudit
 import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.joda.time.DateTime;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 
@@ -89,7 +89,7 @@ public class AlertGroupEventCreator implements RequestAuditEventCreator {
     switch (request.getRequestType()) {
       case POST:
         return AddAlertGroupRequestAuditEvent.builder()
-          .withTimestamp(DateTime.now())
+          .withTimestamp(System.currentTimeMillis())
           .withRequestType(request.getRequestType())
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
@@ -101,7 +101,7 @@ public class AlertGroupEventCreator implements RequestAuditEventCreator {
           .build();
       case PUT:
         return ChangeAlertGroupRequestAuditEvent.builder()
-          .withTimestamp(DateTime.now())
+          .withTimestamp(System.currentTimeMillis())
           .withRequestType(request.getRequestType())
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
@@ -113,7 +113,7 @@ public class AlertGroupEventCreator implements RequestAuditEventCreator {
           .build();
       case DELETE:
         return DeleteAlertGroupRequestAuditEvent.builder()
-          .withTimestamp(DateTime.now())
+          .withTimestamp(System.currentTimeMillis())
           .withRequestType(request.getRequestType())
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())

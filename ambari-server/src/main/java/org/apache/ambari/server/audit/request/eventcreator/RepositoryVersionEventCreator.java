@@ -34,7 +34,6 @@ import org.apache.ambari.server.audit.event.request.DeleteRepositoryVersionReque
 import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.joda.time.DateTime;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 
@@ -91,7 +90,7 @@ public class RepositoryVersionEventCreator implements RequestAuditEventCreator {
     switch (request.getRequestType()) {
       case POST:
         return AddRepositoryVersionRequestAuditEvent.builder()
-          .withTimestamp(DateTime.now())
+          .withTimestamp(System.currentTimeMillis())
           .withRequestType(request.getRequestType())
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
@@ -105,7 +104,7 @@ public class RepositoryVersionEventCreator implements RequestAuditEventCreator {
           .build();
       case PUT:
         return ChangeRepositoryVersionRequestAuditEvent.builder()
-          .withTimestamp(DateTime.now())
+          .withTimestamp(System.currentTimeMillis())
           .withRequestType(request.getRequestType())
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
@@ -119,7 +118,7 @@ public class RepositoryVersionEventCreator implements RequestAuditEventCreator {
           .build();
       case DELETE:
         return DeleteRepositoryVersionRequestAuditEvent.builder()
-          .withTimestamp(DateTime.now())
+          .withTimestamp(System.currentTimeMillis())
           .withRequestType(request.getRequestType())
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())

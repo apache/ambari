@@ -18,8 +18,7 @@
 
 package org.apache.ambari.server.audit.request.eventcreator;
 
-import java.util.Arrays;
-import java.util.HashSet;
+import java.util.EnumSet;
 import java.util.Set;
 
 import org.apache.ambari.server.api.services.Request;
@@ -30,7 +29,6 @@ import org.apache.ambari.server.audit.request.RequestAuditEvent;
 import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
 import org.apache.ambari.server.audit.request.RequestAuditLogger;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.joda.time.DateTime;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 
@@ -43,18 +41,10 @@ public class DefaultEventCreator implements RequestAuditEventCreator {
 
   /**
    * Set of {@link org.apache.ambari.server.api.services.Request.Type}s that are handled by this plugin
+   * In this case all {@link Request.Type}s are listed, except {@link Request.Type#GET}
    */
-  private Set<Request.Type> requestTypes;
+  private Set<Request.Type> requestTypes = ImmutableSet.<Request.Type>builder().addAll(EnumSet.complementOf(EnumSet.of(Request.Type.GET))).build();
 
-  {
-    Set<Request.Type> allowedTypes = new HashSet<Request.Type>();
-    allowedTypes.addAll(Arrays.asList(Request.Type.values()));
-    allowedTypes.remove(Request.Type.GET); // get is not handled by default
-
-    ImmutableSet.Builder<Request.Type> builder = ImmutableSet.builder();
-    requestTypes = builder.addAll(allowedTypes).build();
-
-  }
 
   /** {@inheritDoc} */
   @Override
@@ -87,7 +77,7 @@ public class DefaultEventCreator implements RequestAuditEventCreator {
     String username = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
 
     return RequestAuditEvent.builder()
-      .withTimestamp(DateTime.now())
+      .withTimestamp(System.currentTimeMillis())
       .withUserName(username)
       .withRemoteIp(request.getRemoteAddress())
       .withRequestType(request.getRequestType())

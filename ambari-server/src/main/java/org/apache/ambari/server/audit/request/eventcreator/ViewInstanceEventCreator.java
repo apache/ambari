@@ -30,7 +30,6 @@ import org.apache.ambari.server.audit.event.request.DeleteViewInstanceRequestAud
 import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.joda.time.DateTime;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 
@@ -88,7 +87,7 @@ public class ViewInstanceEventCreator implements RequestAuditEventCreator {
 
       case POST:
         return AddViewInstanceRequestAuditEvent.builder()
-          .withTimestamp(DateTime.now())
+          .withTimestamp(System.currentTimeMillis())
           .withRequestType(request.getRequestType())
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
@@ -103,7 +102,7 @@ public class ViewInstanceEventCreator implements RequestAuditEventCreator {
 
       case PUT:
         return ChangeViewInstanceRequestAuditEvent.builder()
-          .withTimestamp(DateTime.now())
+          .withTimestamp(System.currentTimeMillis())
           .withRequestType(request.getRequestType())
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
@@ -118,7 +117,7 @@ public class ViewInstanceEventCreator implements RequestAuditEventCreator {
 
       case DELETE:
         return DeleteViewInstanceRequestAuditEvent.builder()
-          .withTimestamp(DateTime.now())
+          .withTimestamp(System.currentTimeMillis())
           .withRequestType(request.getRequestType())
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())

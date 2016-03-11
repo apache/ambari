@@ -23,12 +23,22 @@ import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.ambari.server.api.services.Request;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
+/**
+ * The purpose of this helper is to get remote address from an HTTP request
+ */
 public class RequestUtils {
 
   private static Set<String> headersToCheck= ImmutableSet.copyOf(Arrays.asList(
     "X-Forwarded-For", "Proxy-Client-IP", "WL-Proxy-Client-IP", "HTTP_CLIENT_IP", "HTTP_X_FORWARDED_FOR"));
 
+  /**
+   * Returns remote address
+   * @param request contains the details of http request
+   * @return
+   */
   public static String getRemoteAddress(HttpServletRequest request) {
     String ip = null;
     for (String header : headersToCheck) {
@@ -43,8 +53,36 @@ public class RequestUtils {
     return ip;
   }
 
+  /**
+   * Returns remote address by using {@link HttpServletRequest} from {@link RequestContextHolder}
+   * @return
+   */
+  public static String getRemoteAddress() {
+
+    if(hasValidRequest()) {
+      return getRemoteAddress(((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest());
+    }
+
+    return null;
+  }
+
+  /**
+   * Checks whether ip address is null, empty or unknown
+   * @param ip
+   * @return
+   */
   private static boolean isRemoteAddressUnknown(String ip) {
     return ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip);
+  }
+
+  /**
+   * Checks if RequestContextHolder contains a valid HTTP request
+   * @return
+   */
+  private static boolean hasValidRequest() {
+    return RequestContextHolder.getRequestAttributes() != null &&
+      RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes &&
+      ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest() != null;
   }
 
 }

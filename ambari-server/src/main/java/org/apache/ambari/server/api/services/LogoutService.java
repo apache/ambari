@@ -30,7 +30,6 @@ import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.utils.RequestUtils;
 
 import com.google.inject.Inject;
-import org.joda.time.DateTime;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
@@ -57,7 +56,7 @@ public class LogoutService {
 
   private void auditLog(HttpServletRequest servletRequest) {
     LogoutAuditEvent logoutEvent = LogoutAuditEvent.builder()
-      .withTimestamp(DateTime.now())
+      .withTimestamp(System.currentTimeMillis())
       .withRemoteIp(RequestUtils.getRemoteAddress(servletRequest))
       .withUserName(AuthorizationHelper.getAuthenticatedName())
       .build();

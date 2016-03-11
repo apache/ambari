@@ -50,6 +50,7 @@
   <beans:bean id="ambariAuthenticationFilter" class="org.apache.ambari.server.security.authentication.AmbariAuthenticationFilter">
     <beans:constructor-arg ref="authenticationManager"/>
     <beans:constructor-arg ref="auditLogger"/>
+    <beans:constructor-arg ref="permissionHelper"/>
     <beans:constructor-arg ref="ambariEntryPoint"/>
   </beans:bean>
 </beans:beans>

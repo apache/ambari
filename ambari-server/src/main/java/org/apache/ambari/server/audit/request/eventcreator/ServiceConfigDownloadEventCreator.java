@@ -27,7 +27,6 @@ import org.apache.ambari.server.audit.event.AuditEvent;
 import org.apache.ambari.server.audit.event.request.ClientConfigDownloadRequestAuditEvent;
 import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.joda.time.DateTime;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 
@@ -80,7 +79,7 @@ public class ServiceConfigDownloadEventCreator implements RequestAuditEventCreat
   public AuditEvent createAuditEvent(Request request, Result result) {
     String username = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
     return ClientConfigDownloadRequestAuditEvent.builder()
-      .withTimestamp(DateTime.now())
+      .withTimestamp(System.currentTimeMillis())
       .withRequestType(request.getRequestType())
       .withResultStatus(result.getStatus())
       .withUrl(request.getURI())

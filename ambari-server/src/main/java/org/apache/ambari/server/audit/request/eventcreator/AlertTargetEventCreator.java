@@ -32,7 +32,6 @@ import org.apache.ambari.server.audit.event.request.DeleteAlertTargetRequestAudi
 import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.joda.time.DateTime;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 
@@ -89,7 +88,7 @@ public class AlertTargetEventCreator implements RequestAuditEventCreator {
     switch (request.getRequestType()) {
       case POST:
         return AddAlertTargetRequestAuditEvent.builder()
-          .withTimestamp(DateTime.now())
+          .withTimestamp(System.currentTimeMillis())
           .withRequestType(request.getRequestType())
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
@@ -105,7 +104,7 @@ public class AlertTargetEventCreator implements RequestAuditEventCreator {
           .build();
       case PUT:
         return ChangeAlertTargetRequestAuditEvent.builder()
-          .withTimestamp(DateTime.now())
+          .withTimestamp(System.currentTimeMillis())
           .withRequestType(request.getRequestType())
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
@@ -121,7 +120,7 @@ public class AlertTargetEventCreator implements RequestAuditEventCreator {
           .build();
       case DELETE:
         return DeleteAlertTargetRequestAuditEvent.builder()
-          .withTimestamp(DateTime.now())
+          .withTimestamp(System.currentTimeMillis())
           .withRequestType(request.getRequestType())
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())

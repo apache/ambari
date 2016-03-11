@@ -99,6 +99,7 @@ import org.apache.ambari.server.security.authorization.AmbariAuthorizationFilter
 import org.apache.ambari.server.security.authorization.AmbariLdapAuthenticationProvider;
 import org.apache.ambari.server.security.authorization.AmbariLocalUserDetailsService;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
+import org.apache.ambari.server.security.authorization.PermissionHelper;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.security.authorization.internal.AmbariInternalAuthenticationProvider;
 import org.apache.ambari.server.security.authorization.jwt.JwtAuthenticationFilter;
@@ -305,6 +306,8 @@ public class AmbariServer {
         injector.getInstance(PasswordEncoder.class));
       factory.registerSingleton("auditLogger",
         injector.getInstance(AuditLogger.class));
+      factory.registerSingleton("permissionHelper",
+        injector.getInstance(PermissionHelper.class));
       factory.registerSingleton("ambariLocalUserService",
         injector.getInstance(AmbariLocalUserDetailsService.class));
       factory.registerSingleton("ambariLdapAuthenticationProvider",
@@ -888,9 +891,6 @@ public class AmbariServer {
     LogoutService.init(injector.getInstance(AuditLogger.class));
 
     RetryHelper.init(configs.getOperationsRetryAttempts());
-
-    AbstractServerAction.init(injector);
-    AuthorizationHelper.init(injector.getInstance(Clusters.class), injector.getInstance(ViewInstanceDAO.class));
   }
 
   /**

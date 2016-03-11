@@ -28,7 +28,6 @@ import org.apache.ambari.server.audit.event.request.AddBlueprintRequestAuditEven
 import org.apache.ambari.server.audit.event.request.DeleteBlueprintRequestAuditEvent;
 import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.joda.time.DateTime;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 
@@ -85,7 +84,7 @@ public class BlueprintEventCreator implements RequestAuditEventCreator {
     switch (request.getRequestType()) {
       case POST:
         return AddBlueprintRequestAuditEvent.builder()
-          .withTimestamp(DateTime.now())
+          .withTimestamp(System.currentTimeMillis())
           .withRequestType(request.getRequestType())
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
@@ -95,7 +94,7 @@ public class BlueprintEventCreator implements RequestAuditEventCreator {
           .build();
       case DELETE:
         return DeleteBlueprintRequestAuditEvent.builder()
-          .withTimestamp(DateTime.now())
+          .withTimestamp(System.currentTimeMillis())
           .withRequestType(request.getRequestType())
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())

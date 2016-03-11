@@ -25,8 +25,13 @@ import org.apache.ambari.server.api.services.serializers.ResultSerializer;
 import org.apache.ambari.server.audit.request.RequestAuditLogger;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
+import org.easymock.EasyMockRunner;
+import org.easymock.Mock;
+import org.easymock.MockType;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
@@ -48,6 +53,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * Base class for service unit tests.
  */
+@RunWith(EasyMockRunner.class)
 public abstract class BaseServiceTest {
 
   protected ResourceInstance resourceInstance = createNiceMock(ResourceInstance.class);
@@ -91,9 +97,12 @@ public abstract class BaseServiceTest {
     return serializer;
   }
 
-  @BeforeClass
-  public static void beforeClass() throws Exception {
-    BaseService.init(EasyMock.createNiceMock(RequestAuditLogger.class));
+  @Mock(type = MockType.NICE)
+  public RequestAuditLogger requestAuditLogger;
+
+  @Before
+  public void before() throws Exception {
+    BaseService.init(requestAuditLogger);
   }
 
   @Test

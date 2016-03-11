@@ -24,7 +24,6 @@ import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.audit.event.kerberos.DestroyPrincipalKerberosAuditEvent;
 import org.apache.ambari.server.orm.dao.KerberosPrincipalDAO;
 import org.apache.ambari.server.orm.entities.KerberosPrincipalEntity;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -92,7 +91,7 @@ public class DestroyPrincipalsServerAction extends KerberosServerAction {
     LOG.info(message);
     actionLog.writeStdOut(message);
     DestroyPrincipalKerberosAuditEvent.DestroyPrincipalKerberosAuditEventBuilder auditEventBuilder = DestroyPrincipalKerberosAuditEvent.builder()
-      .withTimestamp(DateTime.now())
+      .withTimestamp(System.currentTimeMillis())
       .withPrincipal(evaluatedPrincipal);
 
     try {

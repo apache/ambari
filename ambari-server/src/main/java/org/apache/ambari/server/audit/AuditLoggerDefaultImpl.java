@@ -18,6 +18,10 @@
 
 package org.apache.ambari.server.audit;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import org.apache.ambari.server.audit.event.AuditEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +41,10 @@ public class AuditLoggerDefaultImpl implements AuditLogger {
    */
   @Override
   public void log(AuditEvent event) {
-    LOG.info("{}, {}", event.getTimestamp(), event.getAuditMessage());
+    Date date = new Date(event.getTimestamp());
+    //2016-03-11T10:42:36.376Z
+    DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX");
+
+    LOG.info("{}, {}", dateFormat.format(date), event.getAuditMessage());
   }
 }

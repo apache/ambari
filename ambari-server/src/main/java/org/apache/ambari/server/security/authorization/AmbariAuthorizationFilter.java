@@ -30,7 +30,6 @@ import org.apache.ambari.server.security.authorization.internal.InternalAuthenti
 import org.apache.ambari.server.utils.RequestUtils;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.apache.commons.lang.StringUtils;
-import org.joda.time.DateTime;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -99,6 +98,8 @@ public class AmbariAuthorizationFilter implements Filter {
   @Inject
   private AuditLogger auditLogger;
 
+  @Inject PermissionHelper permissionHelper;
+
   /**
    * The realm to use for the basic http auth
    */
@@ -139,8 +140,8 @@ public class AmbariAuthorizationFilter implements Filter {
         LoginAuditEvent loginAuditEvent = LoginAuditEvent.builder()
           .withUserName(internalAuthenticationToken.getName())
           .withRemoteIp(RequestUtils.getRemoteAddress(httpRequest))
-          .withRoles(AuthorizationHelper.getPermissionLabels(authentication))
-          .withTimestamp(DateTime.now()).build();
+          .withRoles(permissionHelper.getPermissionLabels(authentication))
+          .withTimestamp(System.currentTimeMillis()).build();
         auditLogger.log(loginAuditEvent);
       } else {
         // for view access, we should redirect to the Ambari login
@@ -211,7 +212,7 @@ public class AmbariAuthorizationFilter implements Filter {
           .withRemoteIp(RequestUtils.getRemoteAddress(httpRequest))
           .withResourcePath(httpRequest.getRequestURI())
           .withUserName(AuthorizationHelper.getAuthenticatedName())
-          .withTimestamp(DateTime.now())
+          .withTimestamp(System.currentTimeMillis())
           .build();
         auditLogger.log(auditEvent);
 
@@ -229,7 +230,7 @@ public class AmbariAuthorizationFilter implements Filter {
           .withRemoteIp(RequestUtils.getRemoteAddress(httpRequest))
           .withResourcePath(httpRequest.getRequestURI())
           .withUserName(AuthorizationHelper.getAuthenticatedName())
-          .withTimestamp(DateTime.now())
+          .withTimestamp(System.currentTimeMillis())
           .build();
         auditLogger.log(auditEvent);
       }

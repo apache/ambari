@@ -31,7 +31,6 @@ import org.apache.ambari.server.audit.event.request.DeleteHostRequestAuditEvent;
 import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.joda.time.DateTime;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 
@@ -89,7 +88,7 @@ public class HostEventCreator implements RequestAuditEventCreator {
     switch (request.getRequestType()) {
       case DELETE:
         return DeleteHostRequestAuditEvent.builder()
-          .withTimestamp(DateTime.now())
+          .withTimestamp(System.currentTimeMillis())
           .withRequestType(request.getRequestType())
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
@@ -99,7 +98,7 @@ public class HostEventCreator implements RequestAuditEventCreator {
           .build();
       case POST:
         return AddHostRequestAuditEvent.builder()
-          .withTimestamp(DateTime.now())
+          .withTimestamp(System.currentTimeMillis())
           .withRequestType(request.getRequestType())
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
@@ -109,7 +108,7 @@ public class HostEventCreator implements RequestAuditEventCreator {
           .build();
       case QUERY_POST:
         return AddComponentToHostRequestAuditEvent.builder()
-          .withTimestamp(DateTime.now())
+          .withTimestamp(System.currentTimeMillis())
           .withRequestType(request.getRequestType())
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())

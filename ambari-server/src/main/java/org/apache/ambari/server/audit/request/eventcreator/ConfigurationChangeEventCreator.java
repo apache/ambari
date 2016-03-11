@@ -30,7 +30,6 @@ import org.apache.ambari.server.audit.event.request.ConfigurationChangeRequestAu
 import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.joda.time.DateTime;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 
@@ -90,7 +89,7 @@ public class ConfigurationChangeEventCreator implements RequestAuditEventCreator
         String newName = String.valueOf(map.get(PropertyHelper.getPropertyId("Clusters", "cluster_name")));
         String oldName = request.getResource().getKeyValueMap().get(Resource.Type.Cluster);
         return ClusterNameChangeRequestAuditEvent.builder()
-          .withTimestamp(DateTime.now())
+          .withTimestamp(System.currentTimeMillis())
           .withRequestType(request.getRequestType())
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
@@ -103,7 +102,7 @@ public class ConfigurationChangeEventCreator implements RequestAuditEventCreator
     }
 
     return ConfigurationChangeRequestAuditEvent.builder()
-      .withTimestamp(DateTime.now())
+      .withTimestamp(System.currentTimeMillis())
       .withRequestType(request.getRequestType())
       .withResultStatus(result.getStatus())
       .withUrl(request.getURI())

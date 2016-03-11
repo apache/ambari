@@ -30,6 +30,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.ambari.server.audit.event.AuditEvent;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
+import org.apache.ambari.server.security.authorization.PermissionHelper;
 import org.junit.runner.RunWith;
 import org.powermock.api.easymock.PowerMock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -55,10 +56,13 @@ public class AmbariAuthenticationFilterTest {
 
   private AuditLogger mockedAuditLogger;
 
+  private PermissionHelper permissionHelper;
+
   @Before
   public void setUp() {
     mockedAuditLogger = createMock(AuditLogger.class);
-    underTest = new AmbariAuthenticationFilter(null, mockedAuditLogger);
+    permissionHelper = createMock(PermissionHelper.class);
+    underTest = new AmbariAuthenticationFilter(null, mockedAuditLogger, permissionHelper);
   }
 
   @Test
@@ -90,7 +94,7 @@ public class AmbariAuthenticationFilterTest {
 
     Map<String, List<String>> roles = new HashMap<>();
     roles.put("a", Arrays.asList("r1", "r2", "r3"));
-    expect(AuthorizationHelper.getPermissionLabels(authentication))
+    expect(permissionHelper.getPermissionLabels(authentication))
       .andReturn(roles);
     expect(AuthorizationHelper.getAuthorizationNames(authentication))
       .andReturn(Arrays.asList("perm1", "perm2"));
@@ -98,7 +102,7 @@ public class AmbariAuthenticationFilterTest {
     expect(authentication.getName()).andReturn("admin");
     mockedAuditLogger.log(anyObject(AuditEvent.class));
     expectLastCall().times(1);
-    replay(mockedAuditLogger, request, authentication);
+    replay(mockedAuditLogger, request, authentication, permissionHelper);
     PowerMock.replayAll();
     // WHEN
     underTest.onSuccessfulAuthentication(request, response, authentication);

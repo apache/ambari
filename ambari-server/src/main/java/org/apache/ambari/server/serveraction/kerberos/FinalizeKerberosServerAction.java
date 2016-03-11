@@ -27,7 +27,6 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.commons.io.FileUtils;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,7 +93,7 @@ public class FinalizeKerberosServerAction extends KerberosServerAction {
 
             sch.setSecurityState(sch.getDesiredSecurityState());
             ChangeSecurityStateKerberosAuditEvent auditEvent = ChangeSecurityStateKerberosAuditEvent.builder()
-              .withTimestamp(DateTime.now())
+              .withTimestamp(System.currentTimeMillis())
               .withService(sch.getServiceName())
               .withComponent(sch.getServiceComponentName())
               .withHostName(sch.getHostName())

@@ -31,7 +31,6 @@ import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.joda.time.DateTime;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 
@@ -88,7 +87,7 @@ public class ServiceEventCreator implements RequestAuditEventCreator {
 
     if (request.getRequestType() == Request.Type.DELETE) {
       return DeleteServiceRequestAuditEvent.builder()
-        .withTimestamp(DateTime.now())
+        .withTimestamp(System.currentTimeMillis())
         .withRequestType(request.getRequestType())
         .withResultStatus(result.getStatus())
         .withUrl(request.getURI())
@@ -109,7 +108,7 @@ public class ServiceEventCreator implements RequestAuditEventCreator {
       .withOperation(operation)
       .withUserName(username)
       .withRemoteIp(request.getRemoteAddress())
-      .withTimestamp(DateTime.now())
+      .withTimestamp(System.currentTimeMillis())
       .withRequestId(String.valueOf(requestId));
 
     if (result.getStatus().isErrorState()) {

@@ -18,10 +18,8 @@
 
 package org.apache.ambari.server.audit.event;
 
-
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.joda.time.DateTime;
 
 /**
  * Base class for concrete audit event types.
@@ -31,7 +29,7 @@ public abstract class AbstractAuditEvent implements AuditEvent {
   /**
    * Timestamp for the audit event creation
    */
-  private final DateTime timestamp;
+  private final Long timestamp;
 
   /**
    * Message to log
@@ -47,7 +45,7 @@ public abstract class AbstractAuditEvent implements AuditEvent {
   protected static abstract class AbstractAuditEventBuilder<T extends AbstractAuditEvent, TBuilder extends AbstractAuditEventBuilder<T, TBuilder>>
     implements AuditEventBuilder<T> {
 
-    private DateTime timestamp;
+    private Long timestamp;
     private String auditMessage;
 
 
@@ -72,7 +70,7 @@ public abstract class AbstractAuditEvent implements AuditEvent {
      * @param timestamp
      * @return
      */
-    public TBuilder withTimestamp(DateTime timestamp) {
+    public TBuilder withTimestamp(Long timestamp) {
       this.timestamp = timestamp;
 
       return (TBuilder) this;
@@ -113,7 +111,7 @@ public abstract class AbstractAuditEvent implements AuditEvent {
    * {@inheritDoc}
    */
   @Override
-  public DateTime getTimestamp() {
+  public Long getTimestamp() {
     return timestamp;
   }
 

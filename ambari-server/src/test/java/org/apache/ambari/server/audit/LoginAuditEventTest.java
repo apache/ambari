@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.server.audit.event.LoginAuditEvent;
-import org.joda.time.DateTime;
 import org.junit.Test;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
@@ -45,7 +44,7 @@ public class LoginAuditEventTest {
     roles.put("a", Arrays.asList("r1", "r2", "r3"));
 
     LoginAuditEvent evnt = LoginAuditEvent.builder()
-      .withTimestamp(DateTime.now())
+      .withTimestamp(System.currentTimeMillis())
       .withRemoteIp(testRemoteIp)
       .withUserName(testUserName)
       .withRoles(roles)
@@ -75,7 +74,7 @@ public class LoginAuditEventTest {
     roles.put("a", Arrays.asList("r1", "r2", "r3"));
 
     LoginAuditEvent evnt = LoginAuditEvent.builder()
-      .withTimestamp(DateTime.now())
+      .withTimestamp(System.currentTimeMillis())
       .withRemoteIp(testRemoteIp)
       .withUserName(testUserName)
       .withRoles(roles)
@@ -98,13 +97,13 @@ public class LoginAuditEventTest {
   @Test
   public void testTimestamp() throws Exception {
     // Given
-    DateTime testTimestamp = DateTime.now();
+    long testTimestamp = System.currentTimeMillis();
     LoginAuditEvent evnt = LoginAuditEvent.builder()
       .withTimestamp(testTimestamp)
       .build();
 
     // When
-    DateTime actualTimestamp = evnt.getTimestamp();
+    long actualTimestamp = evnt.getTimestamp();
 
     // Then
     assertThat(actualTimestamp, equalTo(testTimestamp));

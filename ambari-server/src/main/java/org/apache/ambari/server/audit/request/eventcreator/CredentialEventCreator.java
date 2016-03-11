@@ -28,7 +28,6 @@ import org.apache.ambari.server.audit.event.request.AddCredentialRequestAuditEve
 import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.joda.time.DateTime;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 
@@ -83,7 +82,7 @@ public class CredentialEventCreator implements RequestAuditEventCreator {
     String username = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
 
     return AddCredentialRequestAuditEvent.builder()
-      .withTimestamp(DateTime.now())
+      .withTimestamp(System.currentTimeMillis())
       .withRequestType(request.getRequestType())
       .withResultStatus(result.getStatus())
       .withUrl(request.getURI())

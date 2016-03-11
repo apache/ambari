@@ -129,22 +129,7 @@ public abstract class BaseRequest implements Request {
     m_uriInfo     = uriInfo;
     m_resource    = resource;
     m_body        = body;
-    m_remoteAddress  = retrieveRemoteAddress();
-  }
-
-  private static String retrieveRemoteAddress() {
-
-    if(hasValidRequest()) {
-      return RequestUtils.getRemoteAddress(((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest());
-    }
-
-    return null;
-  }
-
-  private static boolean hasValidRequest() {
-    return RequestContextHolder.getRequestAttributes() != null &&
-      RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes &&
-      ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest() != null;
+    m_remoteAddress  = RequestUtils.getRemoteAddress();
   }
 
   @Override

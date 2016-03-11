@@ -31,6 +31,7 @@ import org.apache.ambari.server.utils.StageUtils;
 import java.util.Collections;
 import java.util.Map;
 
+import com.google.inject.Inject;
 import com.google.inject.Injector;
 
 /**
@@ -56,21 +57,8 @@ public abstract class AbstractServerAction implements ServerAction {
    */
   protected ActionLog actionLog = new ActionLog();
 
-  /**
-   * Guice injector
-   */
-  private static Injector injector;
-
-  /**
-   * Statically initialize the Injector
-   * <p/>
-   * This should only be used for unit tests.
-   *
-   * @param injector the Injector to (manually) statically inject
-   */
-  public static void init(Injector injector) {
-    AbstractServerAction.injector = injector;
-  }
+  @Inject
+  private AuditLogger auditLogger;
 
   @Override
   public ExecutionCommand getExecutionCommand() {
@@ -196,7 +184,7 @@ public abstract class AbstractServerAction implements ServerAction {
   }
 
   protected void auditLog(AuditEvent ae) {
-    injector.getInstance(AuditLogger.class).log(ae);
+    auditLogger.log(ae);
   }
 
 }

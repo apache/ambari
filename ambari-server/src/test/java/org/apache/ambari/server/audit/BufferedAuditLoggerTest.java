@@ -29,7 +29,6 @@ import org.easymock.EasyMock;
 import org.easymock.EasyMockRule;
 import org.easymock.Mock;
 import org.easymock.MockType;
-import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -136,7 +135,7 @@ public class BufferedAuditLoggerTest {
       final AuditEvent event =
         OperationStatusAuditEvent.builder()
           .withStatus("IN PROGRESS")
-          .withTimestamp(DateTime.now())
+          .withTimestamp(System.currentTimeMillis())
           .withRequestId(reqId.toString())
           .build();
 

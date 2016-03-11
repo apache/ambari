@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import com.google.inject.Singleton;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
@@ -45,15 +46,6 @@ import java.util.*;
  */
 public class AuthorizationHelper {
   private final static Logger LOG = LoggerFactory.getLogger(AuthorizationHelper.class);
-
-  private static Clusters clusters;
-
-  private static ViewInstanceDAO viewInstanceDAO;
-
-  public static void init(Clusters clusters, ViewInstanceDAO viewInstanceDAO) {
-    AuthorizationHelper.clusters = clusters;
-    AuthorizationHelper.viewInstanceDAO = viewInstanceDAO;
-  }
 
   /**
    * Converts collection of RoleEntities to collection of GrantedAuthorities

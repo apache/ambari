@@ -18,8 +18,6 @@
 
 package org.apache.ambari.server.audit.event;
 
-import org.joda.time.DateTime;
-
 /**
  * Audit event that contains
  * the details of an action/event
@@ -46,7 +44,7 @@ public interface AuditEvent {
    *
    * @return timestamp of the audit event.
    */
-  DateTime getTimestamp();
+  Long getTimestamp();
 
   /**
    * Returns the details of the audit event.

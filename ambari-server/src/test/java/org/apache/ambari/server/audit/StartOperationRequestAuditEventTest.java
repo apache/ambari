@@ -19,7 +19,6 @@ package org.apache.ambari.server.audit;
 
 import org.apache.ambari.server.audit.event.LoginAuditEvent;
 import org.apache.ambari.server.audit.event.request.StartOperationRequestAuditEvent;
-import org.joda.time.DateTime;
 import org.junit.Test;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
@@ -38,7 +37,7 @@ public class StartOperationRequestAuditEventTest {
     Long testRequestId = 100L;
 
     StartOperationRequestAuditEvent evnt = StartOperationRequestAuditEvent.builder()
-      .withTimestamp(DateTime.now())
+      .withTimestamp(System.currentTimeMillis())
       .withRemoteIp(testRemoteIp)
       .withUserName(testUserName)
       .withOperation(testRequestDetails)
@@ -58,13 +57,13 @@ public class StartOperationRequestAuditEventTest {
   @Test
   public void testTimestamp() throws Exception {
     // Given
-    DateTime testTimestamp = DateTime.now();
+    long testTimestamp = System.currentTimeMillis();
     StartOperationRequestAuditEvent evnt = StartOperationRequestAuditEvent.builder()
       .withTimestamp(testTimestamp)
       .build();
 
     // When
-    DateTime actualTimestamp = evnt.getTimestamp();
+    long actualTimestamp = evnt.getTimestamp();
 
     // Then
     assertThat(actualTimestamp, equalTo(testTimestamp));

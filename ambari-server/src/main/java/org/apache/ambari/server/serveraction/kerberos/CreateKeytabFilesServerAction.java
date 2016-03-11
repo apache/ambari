@@ -32,7 +32,6 @@ import org.apache.ambari.server.orm.entities.KerberosPrincipalEntity;
 import org.apache.ambari.server.serveraction.ActionLog;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.directory.server.kerberos.shared.keytab.Keytab;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -151,7 +150,7 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
       throws AmbariException {
 
 
-    CreateKeyTabKerberosAuditEvent.CreateKeyTabKerberosAuditEventBuilder auditEventBuilder = CreateKeyTabKerberosAuditEvent.builder().withTimestamp(DateTime.now());
+    CreateKeyTabKerberosAuditEvent.CreateKeyTabKerberosAuditEventBuilder auditEventBuilder = CreateKeyTabKerberosAuditEvent.builder().withTimestamp(System.currentTimeMillis());
     CommandReport commandReport = null;
     String message = null;
     try {

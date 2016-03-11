@@ -19,7 +19,6 @@
 package org.apache.ambari.server.serveraction.kerberos;
 
 import com.google.inject.Inject;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
