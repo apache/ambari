@@ -1706,10 +1706,10 @@ Em.I18n.translations = {
   'services.service.actions.run.immediateStopHawqService.label':'Stop HAWQ Service (Immediate Mode)',
   'services.service.actions.run.immediateStopHawqSegment.label':'Stop (Immediate Mode)',
   'services.service.actions.run.immediateStopHawqSegment.context':'Stop HAWQ Segment (Immediate Mode)',
-  'services.service.actions.run.resyncHawqStandby.context':'Re-Sync HAWQ Standby',
-  'services.service.actions.run.resyncHawqStandby.label':'Re-Synchronize HAWQ Standby',
+  'services.service.actions.run.resyncHawqStandby.context':'Re-Sync HAWQ Standby Master',
+  'services.service.actions.run.resyncHawqStandby.label':'Re-Synchronize HAWQ Standby Master',
   'services.service.actions.run.clearHawqCache.label':'Clear HAWQ\'s HDFS Metadata Cache',
-  'services.service.actions.run.runHawqCheck.label':'Run HAWQ Check',
+  'services.service.actions.run.runHawqCheck.label':'Run HAWQ Config Check',
   'services.service.actions.manage_configuration_groups.short':'Manage Config Groups',
   'services.service.actions.serviceActions':'Service Actions',
 
