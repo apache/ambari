@@ -224,6 +224,13 @@ public enum CheckDescription {
           " That is a potential problem when doing stack update.");
       }}),
 
+  VERSION_MISMATCH(PrereqCheckType.HOST,
+      "All components must be reporting the expected version",
+      new HashMap<String, String>() {{
+        put(AbstractCheckDescriptor.DEFAULT,
+            "There are components which are not reporting the expected stack version: \n%s");
+      }}),
+
   SERVICES_RANGER_PASSWORD_VERIFY(PrereqCheckType.SERVICE,
       "Verify Ambari and Ranger Password Synchronization",
       new HashMap<String, String>() {{
