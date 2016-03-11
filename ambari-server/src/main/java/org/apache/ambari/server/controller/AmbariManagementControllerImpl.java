@@ -516,7 +516,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       ServiceComponent sc = s.getServiceComponent(
           request.getComponentName());
 
-      setRestartRequiredServices(s, request.getHostname());
+      setRestartRequiredServices(s, request.getComponentName());
 
       Host host;
       try {
@@ -657,10 +657,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   private void setRestartRequiredServices(
-          Service service, String hostName) throws AmbariException {
-
+          Service service, String componentName) throws AmbariException {
     Cluster cluster = service.getCluster();
     StackId stackId = cluster.getCurrentStackVersion();
+    if (service.getServiceComponent(componentName).isClientComponent()) {
+      return;
+    }
     Set<String> needRestartServices = ambariMetaInfo.getRestartRequiredServicesNames(
         stackId.getStackName(), stackId.getStackVersion());
 
@@ -668,16 +670,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       Map<String, ServiceComponent> m = service.getServiceComponents();
       for (Entry<String, ServiceComponent> entry : m.entrySet()) {
         ServiceComponent serviceComponent = entry.getValue();
-        if (serviceComponent.isMasterComponent()) {
-          Map<String, ServiceComponentHost> schMap = serviceComponent.getServiceComponentHosts();
-          //schMap will only contain hostName when deleting a host; when adding a host the test skips the loop
-          if(schMap.containsKey(hostName)) {
-            for (Entry<String, ServiceComponentHost> sch : schMap.entrySet()) {
-              ServiceComponentHost serviceComponentHost = sch.getValue();
-              serviceComponentHost.setRestartRequired(true);
-            }
+        Map<String, ServiceComponentHost> schMap = serviceComponent.getServiceComponentHosts();
+
+          for (Entry<String, ServiceComponentHost> sch : schMap.entrySet()) {
+            ServiceComponentHost serviceComponentHost = sch.getValue();
+            serviceComponentHost.setRestartRequired(true);
           }
-        }
+
       }
     }
   }
@@ -2907,7 +2906,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             "DISABLED/INIT/INSTALLED/INSTALL_FAILED/UNKNOWN state. Current=" + componentHost.getState() + ".");
       }
 
-      setRestartRequiredServices(service, request.getHostname());
+      setRestartRequiredServices(service, request.getComponentName());
 
       if (!safeToRemoveSCHs.containsKey(component)) {
         safeToRemoveSCHs.put(component, new HashSet<ServiceComponentHost>());

@@ -9797,11 +9797,15 @@ public class AmbariManagementControllerTest {
     String datanode = "DATANODE";
     String hdfsClient = "HDFS_CLIENT";
     String zookeeperServer = "ZOOKEEPER_SERVER";
+    String zookeeperClient = "ZOOKEEPER_CLIENT";
+
     createServiceComponent(clusterName, hdfsService, namenode,
       State.INIT);
     createServiceComponent(clusterName, hdfsService, datanode,
       State.INIT);
     createServiceComponent(clusterName, zookeeperService, zookeeperServer,
+      State.INIT);
+    createServiceComponent(clusterName, zookeeperService, zookeeperClient,
       State.INIT);
 
     String host1 = "h1";
@@ -9811,6 +9815,8 @@ public class AmbariManagementControllerTest {
     createServiceComponentHost(clusterName, hdfsService, namenode, host1, null);
     createServiceComponentHost(clusterName, hdfsService, datanode, host1, null);
     createServiceComponentHost(clusterName, zookeeperService, zookeeperServer, host1,
+      null);
+    createServiceComponentHost(clusterName, zookeeperService, zookeeperClient, host1,
       null);
 
     ServiceComponentHost zookeeperSch = null;
@@ -9822,11 +9828,16 @@ public class AmbariManagementControllerTest {
     assertFalse(zookeeperSch.isRestartRequired());
 
     addHostToCluster(host2, clusterName);
-    createServiceComponentHost(clusterName, zookeeperService, zookeeperServer, host2, null);
+    createServiceComponentHost(clusterName, zookeeperService, zookeeperClient, host2, null);
 
     assertFalse(zookeeperSch.isRestartRequired());  //No restart required if adding host
 
+    createServiceComponentHost(clusterName, zookeeperService, zookeeperServer, host2, null);
+
+    assertTrue(zookeeperSch.isRestartRequired());  //Add zk server required restart
+
     deleteServiceComponentHost(clusterName, zookeeperService, zookeeperServer, host2, null);
+    deleteServiceComponentHost(clusterName, zookeeperService, zookeeperClient, host2, null);
     deleteHost(host2);
 
     assertTrue(zookeeperSch.isRestartRequired());   //Restart if removing host!
