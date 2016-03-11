@@ -91,7 +91,10 @@ class ServiceCheckDefault(ServiceCheck):
       path_to_distributed_shell_jar = "/usr/lib/hadoop-yarn/hadoop-yarn-applications-distributedshell*.jar"
 
     yarn_distrubuted_shell_check_cmd = format("yarn org.apache.hadoop.yarn.applications.distributedshell.Client "
-                                              "-shell_command ls -num_containers {number_of_nm} -jar {path_to_distributed_shell_jar}")
+                                              "-shell_command ls "
+                                              "-num_containers {number_of_nm} "
+                                              "-jar {path_to_distributed_shell_jar} "
+                                              "-timeout 30000")
 
     if params.security_enabled:
       kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal};")
