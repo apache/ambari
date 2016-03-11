@@ -834,7 +834,7 @@ class TestHDP23StackAdvisor(TestCase):
       "hbase-site": {
         "properties": {
           "hbase.bucketcache.size": "92160",
-          "hbase.bucketcache.percentage.in.combinedcache": "0.8519",
+          "hbase.bucketcache.percentage.in.combinedcache": "1.0000",
           "hbase.regionserver.global.memstore.size": "0.4",
           "hfile.block.cache.size": "0.4",
           "hbase.coprocessor.region.classes": "org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint",

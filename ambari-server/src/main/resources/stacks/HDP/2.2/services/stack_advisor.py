@@ -609,9 +609,9 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       hfile_block_cache_size = '0.4'
       block_cache_heap = 8192 # int(regionserver_heap_size * hfile_block_cache_size)
       hbase_regionserver_global_memstore_size = '0.4'
-      reserved_offheap_memory = regionserver_max_direct_memory_size / 2
+      reserved_offheap_memory = 2048
       bucketcache_offheap_memory = regionserver_max_direct_memory_size - reserved_offheap_memory
-      hbase_bucketcache_size = min(block_cache_heap + bucketcache_offheap_memory, regionserver_max_direct_memory_size - 1024)
+      hbase_bucketcache_size = bucketcache_offheap_memory
       hbase_bucketcache_percentage_in_combinedcache = float(bucketcache_offheap_memory) / hbase_bucketcache_size
       hbase_bucketcache_percentage_in_combinedcache_str = "{0:.4f}".format(math.ceil(hbase_bucketcache_percentage_in_combinedcache * 10000) / 10000.0)
 
