@@ -80,6 +80,11 @@ hive_bin = '/usr/lib/hive/bin'
 hive_lib = '/usr/lib/hive/lib/'
 hive_var_lib = '/var/lib/hive'
 
+# Hive Interative related paths
+hive_interactive_bin = '/usr/lib/hive2/bin'
+hive_interactive_lib = '/usr/lib/hive2/lib/'
+hive_interactive_var_lib = '/var/lib/hive2'
+
 # These tar folders were used in HDP 2.1
 hadoop_streaming_jars = '/usr/lib/hadoop-mapreduce/hadoop-streaming-*.jar'
 pig_tar_file = '/usr/share/HDP-webhcat/pig.tar.gz'
@@ -88,6 +93,7 @@ sqoop_tar_file = '/usr/share/HDP-webhcat/sqoop*.tar.gz'
 
 hive_specific_configs_supported = False
 hive_etc_dir_prefix = "/etc/hive"
+hive_interactive_etc_dir_prefix = "/etc/hive2"
 limits_conf_dir = "/etc/security/limits.d"
 
 hive_user_nofile_limit = default("/configurations/hive-env/hive_user_nofile_limit", "32000")
@@ -102,6 +108,8 @@ hive_conf_dir = status_params.hive_conf_dir
 hive_config_dir = status_params.hive_config_dir
 hive_client_conf_dir = status_params.hive_client_conf_dir
 hive_server_conf_dir = status_params.hive_server_conf_dir
+hive_interactive_client_conf_dir = status_params.hive_interactive_client_conf_dir
+hive_server_interactive_conf_dir = status_params.hive_server_interactive_conf_dir
 
 hcat_conf_dir = '/etc/hive-hcatalog/conf'
 config_dir = '/etc/hive-webhcat/conf'
@@ -122,14 +130,17 @@ if Script.is_stack_greater_or_equal("2.2"):
   hive_specific_configs_supported = True
 
   component_directory = status_params.component_directory
+  component_directory_interactive = status_params.component_directory_interactive
   hadoop_home = '/usr/hdp/current/hadoop-client'
   hive_bin = format('/usr/hdp/current/{component_directory}/bin')
+  hive_interactive_bin = format('/usr/hdp/current/{component_directory_interactive}/bin')
   hive_lib = format('/usr/hdp/current/{component_directory}/lib')
+  hive_interactive_lib = format('/usr/hdp/current/{component_directory_interactive}/lib')
 
   # there are no client versions of these, use server versions directly
   hcat_lib = '/usr/hdp/current/hive-webhcat/share/hcatalog'
   webhcat_bin_dir = '/usr/hdp/current/hive-webhcat/sbin'
-  
+
   # --- Tarballs ---
   # DON'T CHANGE THESE VARIABLE NAMES
   # Values don't change from those in copy_tarball.py
@@ -163,6 +174,7 @@ else:
   tarballs_mode = 0755
 
 execute_path = os.environ['PATH'] + os.pathsep + hive_bin + os.pathsep + hadoop_bin_dir
+execute_path_hive_interactive = os.environ['PATH'] + os.pathsep + hive_interactive_bin + os.pathsep + hadoop_bin_dir
 hive_metastore_user_name = config['configurations']['hive-site']['javax.jdo.option.ConnectionUserName']
 hive_jdbc_connection_url = config['configurations']['hive-site']['javax.jdo.option.ConnectionURL']
 
@@ -257,9 +269,11 @@ hive_server2_keytab = config['configurations']['hive-site']['hive.server2.authen
 hive_log_dir = config['configurations']['hive-env']['hive_log_dir']
 hive_pid_dir = status_params.hive_pid_dir
 hive_pid = status_params.hive_pid
+hive_interactive_pid = status_params.hive_interactive_pid
 
 #Default conf dir for client
 hive_conf_dirs_list = [hive_client_conf_dir]
+hive_interactive_conf_dirs_list = [hive_interactive_client_conf_dir]
 
 if hostname in hive_metastore_hosts or hostname in hive_server_hosts:
   hive_conf_dirs_list.append(hive_server_conf_dir)
@@ -285,6 +299,7 @@ artifact_dir = format("{tmp_dir}/AMBARI-artifacts/")
 yarn_log_dir_prefix = config['configurations']['yarn-env']['yarn_log_dir_prefix']
 
 target = format("{hive_lib}/{jdbc_jar_name}")
+target_interactive = format("{hive_interactive_lib}/{jdbc_jar_name}")
 jars_in_hive_lib = format("{hive_lib}/*.jar")
 
 
@@ -394,6 +409,8 @@ hive_use_existing_db = hive_database.startswith('Existing')
 
 
 hive_site_config = dict(config['configurations']['hive-site'])
+hive_interactive_site_config = dict(config['configurations']['hive-interactive-site'])
+
 ########################################################
 ############# Atlas related params #####################
 ########################################################

@@ -69,6 +69,12 @@ PACKAGE_DIRS = {
       "current_dir": "/usr/hdp/current/hive-client/conf"
     }
   ],
+  "hive2": [
+    {
+      "conf_dir": "/etc/hive2/conf",
+      "current_dir": "/usr/hdp/current/hive-server2-hive2/conf"
+    }
+  ],
   "kafka": [
     {
       "conf_dir": "/etc/kafka/conf",

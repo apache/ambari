@@ -32,61 +32,52 @@ from resource_management.libraries.functions.security_commons import build_expec
     cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
     FILE_TYPE_XML
 from ambari_commons import OSCheck, OSConst
-if OSCheck.is_windows_family():
-    from resource_management.libraries.functions.windows_service_utils import check_windows_service_status
 from setup_ranger_hive import setup_ranger_hive
 from ambari_commons.os_family_impl import OsFamilyImpl
 from ambari_commons.constants import UPGRADE_TYPE_ROLLING
 from resource_management.core.logger import Logger
 
 import hive_server_upgrade
-from hive import hive
-from hive_service import hive_service
-
 
 class HiveServerInteractive(Script):
     def install(self, env):
-        pass
+      import params
+      self.install_packages(env)
 
     def configure(self, env):
-        pass
-
+      pass
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class HiveServerWindows(HiveServerInteractive):
     def start(self, env):
-        pass
+      pass
 
     def stop(self, env):
-        pass
+      pass
 
     def status(self, env):
-        pass
+      pass
 
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class HiveServerDefault(HiveServerInteractive):
     def get_stack_to_component(self):
-        pass
+      return {"HDP": "hive-server2-hive2"}
 
     def start(self, env, upgrade_type=None):
-        pass
-
+      pass
 
     def stop(self, env, upgrade_type=None):
-        pass
-
+      pass
 
     def status(self, env):
-        pass
-
+      pass
 
     def pre_upgrade_restart(self, env, upgrade_type=None):
-        pass
-
+      pass
 
     def security_status(self, env):
-        pass
+      pass
 
 
 if __name__ == "__main__":
