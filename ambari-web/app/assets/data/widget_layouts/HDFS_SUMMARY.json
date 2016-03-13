@@ -132,11 +132,11 @@
               "description" : null,
               "scope" : "CLUSTER",
               "properties" : "{}",
-              "widget_name" : "Corrupted Blocks",
+              "widget_name" : "Blocks With Corrupted Replicas",
               "widget_type" : "NUMBER",
               "time_created" : 1429906622107,
-              "display_name" : "Corrupted Blocks",
-              "values" : "[{\"name\":\"Corrupted Blocks\",\"value\":\"${Hadoop:service\\u003dNameNode,name\\u003dFSNamesystem.CorruptBlocks}\"}]",
+              "display_name" : "Blocks With Corrupted Replicas",
+              "values" : "[{\"name\":\"Blocks With Corrupted Replicas\",\"value\":\"${Hadoop:service\\u003dNameNode,name\\u003dFSNamesystem.CorruptBlocks}\"}]",
               "cluster_name" : "c1"
             }
           }

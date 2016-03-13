@@ -329,8 +329,8 @@
           }
         },
         {
-          "widget_name": "Corrupted Blocks",
-          "description": "Number represents data blocks that have become corrupted or missing. Its indicative of HDFS bad health.",
+          "widget_name": "Blocks With Corrupted Replicas",
+          "description": "Number represents data blocks with at least one corrupted replica (but not all of them). Its indicative of HDFS bad health.",
           "widget_type": "NUMBER",
           "is_visible": true,
           "metrics": [
@@ -344,7 +344,7 @@
           ],
           "values": [
             {
-              "name": "Corrupted Blocks",
+              "name": "Blocks With Corrupted Replicas",
               "value": "${Hadoop:service=NameNode,name=FSNamesystem.CorruptBlocks}"
             }
           ],
