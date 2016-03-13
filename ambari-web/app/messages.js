@@ -2540,7 +2540,7 @@ Em.I18n.translations = {
   'dashboard.services.hdfs.nodes.heap':'NameNode Heap',
   'dashboard.services.hdfs.nodes.heapUsed':'{0} / {1} ({2}% used)',
   'dashboard.services.hdfs.chart.label':'Capacity (Used/Total)',
-  'dashboard.services.hdfs.blockErrors':'{0} corrupt / {1} missing / {2} under replicated',
+  'dashboard.services.hdfs.blockErrors':'{0} corrupt replica / {1} missing / {2} under replicated',
   'dashboard.services.hdfs.datanode.status.tooltip.live': 'This is the number of DataNodes that are live as reported from ' +
     'the NameNode. Even if a DataNode process is up, NameNode might see the status as dead ' +
     'if the DataNode is not communicating with the NameNode as expected. This can be due situations ' +

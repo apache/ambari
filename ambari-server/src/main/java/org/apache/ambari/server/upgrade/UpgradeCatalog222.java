@@ -96,6 +96,19 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
   private static final String[] HDFS_WIDGETS_TO_UPDATE = new String[] {
     "NameNode RPC", "NN Connection Load" };
 
+  protected static final String WIDGET_TABLE = "widget";
+  protected static final String WIDGET_DESCRIPTION = "description";
+  protected static final String WIDGET_NAME = "widget_name";
+  protected static final String WIDGET_CORRUPT_BLOCKS = "Corrupted Blocks";
+  protected static final String WIDGET_CORRUPT_REPLICAS = "Blocks With Corrupted Replicas";
+  protected static final String WIDGET_CORRUPT_REPLICAS_DESCRIPTION = "Number represents data blocks with at least one " +
+    "corrupted replica (but not all of them). Its indicative of HDFS bad health.";
+  protected static final String WIDGET_VALUES = "widget_values";
+  protected static final String WIDGET_VALUES_VALUE =
+    "${Hadoop:service\\" +
+    "\\u003dNameNode,name\\" +
+    "\\u003dFSNamesystem.CorruptBlocks}";
+
 
   // ----- Constructors ------------------------------------------------------
 
@@ -150,6 +163,7 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
     updateHiveConfig();
     updateHostRoleCommands();
     updateHDFSWidgetDefinition();
+    updateCorruptedReplicaWidget();
   }
 
   protected void updateStormConfigs() throws  AmbariException {
@@ -460,6 +474,20 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
     }
   }
 
+  protected void updateCorruptedReplicaWidget() throws SQLException {
+    String widgetValues = String.format("[{\"name\": \"%s\", \"value\": \"%s\"}]",
+      WIDGET_CORRUPT_REPLICAS, WIDGET_VALUES_VALUE);
+    String updateStatement = "UPDATE %s SET %s='%s', %s='%s', %s='%s' WHERE %s='%s'";
+
+    LOG.info("Update widget definition for HDFS corrupted blocks metric");
+    dbAccessor.executeUpdate(String.format(updateStatement,
+      WIDGET_TABLE,
+      WIDGET_NAME, WIDGET_CORRUPT_REPLICAS,
+      WIDGET_DESCRIPTION, WIDGET_CORRUPT_REPLICAS_DESCRIPTION,
+      WIDGET_VALUES, widgetValues,
+      WIDGET_NAME, WIDGET_CORRUPT_BLOCKS
+    ));
+  }
 
   private String convertToDaysIfInSeconds(String secondsString) {
 

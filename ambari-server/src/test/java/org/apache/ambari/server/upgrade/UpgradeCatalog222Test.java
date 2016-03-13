@@ -28,6 +28,7 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Provider;
 import com.google.inject.persist.PersistService;
+import java.sql.SQLException;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -57,6 +58,7 @@ import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.commons.io.FileUtils;
 import org.easymock.Capture;
+import org.easymock.CaptureType;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.junit.After;
@@ -126,6 +128,7 @@ public class UpgradeCatalog222Test {
     Method updateHiveConfigs = UpgradeCatalog222.class.getDeclaredMethod("updateHiveConfig");
     Method updateHostRoleCommands = UpgradeCatalog222.class.getDeclaredMethod("updateHostRoleCommands");
     Method updateHDFSWidget = UpgradeCatalog222.class.getDeclaredMethod("updateHDFSWidgetDefinition");
+    Method updateCorruptedReplicaWidget = UpgradeCatalog222.class.getDeclaredMethod("updateCorruptedReplicaWidget");
 
 
     UpgradeCatalog222 upgradeCatalog222 = createMockBuilder(UpgradeCatalog222.class)
@@ -136,6 +139,7 @@ public class UpgradeCatalog222Test {
       .addMockedMethod(updateHiveConfigs)
       .addMockedMethod(updateHostRoleCommands)
       .addMockedMethod(updateHDFSWidget)
+      .addMockedMethod(updateCorruptedReplicaWidget)
       .createMock();
 
     upgradeCatalog222.addNewConfigurationsFromXml();
@@ -151,6 +155,8 @@ public class UpgradeCatalog222Test {
     upgradeCatalog222.updateHiveConfig();
     expectLastCall().once();
     upgradeCatalog222.updateHDFSWidgetDefinition();
+    expectLastCall().once();
+    upgradeCatalog222.updateCorruptedReplicaWidget();
     expectLastCall().once();
 
     replay(upgradeCatalog222);
@@ -465,6 +471,42 @@ public class UpgradeCatalog222Test {
     easyMockSupport.replayAll();
     mockInjector.getInstance(UpgradeCatalog222.class).updateAlerts();
     easyMockSupport.verifyAll();
+  }
+
+  @Test
+  public void testUpdateCorruptedReplicaWidget() throws SQLException{
+    final DBAccessor dbAccessor = createStrictMock(DBAccessor.class);
+    Module module = new Module() {
+      @Override
+      public void configure(Binder binder) {
+        binder.bind(DBAccessor.class).toInstance(dbAccessor);
+        binder.bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+        binder.bind(EntityManager.class).toInstance(entityManager);
+      }
+    };
+
+    Injector injector = Guice.createInjector(module);
+
+    String expectedWidgetUpdate = "UPDATE widget SET widget_name='%s', description='%s', " +
+      "widget_values='[{\"name\": \"%s\", \"value\": \"%s\"}]' WHERE widget_name='%s'";
+    Capture<String> capturedStatements = Capture.newInstance(CaptureType.ALL);
+
+    expect(dbAccessor.executeUpdate(capture(capturedStatements))).andReturn(1);
+
+    UpgradeCatalog222 upgradeCatalog222 = injector.getInstance(UpgradeCatalog222.class);
+    replay(dbAccessor);
+
+    upgradeCatalog222.updateCorruptedReplicaWidget();
+
+    List<String> statements = capturedStatements.getValues();
+
+    assertTrue(statements.contains(String.format(expectedWidgetUpdate,
+      UpgradeCatalog222.WIDGET_CORRUPT_REPLICAS,
+      UpgradeCatalog222.WIDGET_CORRUPT_REPLICAS_DESCRIPTION,
+      UpgradeCatalog222.WIDGET_CORRUPT_REPLICAS,
+      UpgradeCatalog222.WIDGET_VALUES_VALUE,
+      UpgradeCatalog222.WIDGET_CORRUPT_BLOCKS)));
+
   }
 
 }
