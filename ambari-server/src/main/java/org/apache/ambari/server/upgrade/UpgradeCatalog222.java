@@ -381,11 +381,21 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
     for (final Cluster cluster : clusterMap.values()) {
       long clusterID = cluster.getClusterId();
 
+      StackId stackId = cluster.getDesiredStackVersion();
+      Map<String, Object> widgetDescriptor = null;
+      StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
+      ServiceInfo serviceInfo = stackInfo.getService("HDFS");
+      if (serviceInfo == null) {
+        LOG.info("Skipping updating HDFS widget definition, because HDFS service is not present in cluster " +
+          "cluster_name= " + cluster.getClusterName());
+        continue;
+      }
+
       for (String widgetName : HDFS_WIDGETS_TO_UPDATE) {
         List<WidgetEntity> widgetEntities = widgetDAO.findByName(clusterID,
           widgetName, "ambari", "HDFS_SUMMARY");
 
-        if (widgetEntities != null) {
+        if (widgetEntities != null && widgetEntities.size() > 0) {
           WidgetEntity entityToUpdate = null;
           if (widgetEntities.size() > 1) {
             LOG.info("Found more that 1 entity with name = "+ widgetName +
@@ -397,10 +407,6 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
             LOG.info("Updating widget: " + entityToUpdate.getWidgetName());
             // Get the definition from widgets.json file
             WidgetLayoutInfo targetWidgetLayoutInfo = null;
-            StackId stackId = cluster.getDesiredStackVersion();
-            Map<String, Object> widgetDescriptor = null;
-            StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
-            ServiceInfo serviceInfo = stackInfo.getService("HDFS");
             File widgetDescriptorFile = serviceInfo.getWidgetsDescriptorFile();
             if (widgetDescriptorFile != null && widgetDescriptorFile.exists()) {
               try {
