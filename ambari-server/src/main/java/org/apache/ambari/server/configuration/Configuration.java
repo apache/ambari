@@ -620,7 +620,7 @@ public class Configuration {
   private CredentialProvider credentialProvider = null;
   private volatile boolean credentialProviderInitialized = false;
   private Map<String, String> customDbProperties = null;
-  private Long configLastModifiedDate = null;
+  private Long configLastModifiedDate = 0L;
   private Map<String, String> databaseConnectorNames = new HashMap<>();
 
   static {
