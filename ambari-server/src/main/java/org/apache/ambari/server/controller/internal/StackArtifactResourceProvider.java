@@ -21,7 +21,6 @@ package org.apache.ambari.server.controller.internal;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.inject.Inject;
-import com.rits.cloning.Cloner;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.StaticallyInject;
@@ -58,7 +57,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -598,62 +596,51 @@ public class StackArtifactResourceProvider extends AbstractControllerResourcePro
     return serviceDescriptors;
   }
 
-  private Map<String, Map<String, List<MetricDefinition>>> removeAggregateFunctions(
+  private static Map<String, Map<String, List<MetricDefinition>>> removeAggregateFunctions(
           Map<String, Map<String, List<MetricDefinition>>> serviceMetrics  ) {
     Map<String, Map<String, List<MetricDefinition>>> filteredServiceMetrics = null;
+
     if (serviceMetrics != null) {
-      Cloner cloner = new Cloner();
-      filteredServiceMetrics = cloner.deepClone(serviceMetrics);
+      filteredServiceMetrics = new HashMap<>();
       // For every Component
-      for (Map<String, List<MetricDefinition>> componentMetricDef :  filteredServiceMetrics.values()) {
-        // For every Component / HostComponent category
-        for (Map.Entry<String, List<MetricDefinition>> metricDefEntry : componentMetricDef.entrySet()) {
-          //For every metric definition
-          for (MetricDefinition metricDefinition : metricDefEntry.getValue()) {
-            // Metrics System metrics only
-            if (metricDefinition.getType().equals("ganglia")) {
-              // Create a new map for each category
-              for (Map<String, Metric> metricByCategory : metricDefinition.getMetricsByCategory().values()) {
-                Iterator<Map.Entry<String, Metric>> iterator = metricByCategory.entrySet().iterator();
-                while (iterator.hasNext()) {
-                  Map.Entry<String, Metric> entry = iterator.next();
-                  String metricName = entry.getKey();
-                  if (PropertyHelper.hasAggregateFunctionSuffix(metricName)) {
-                    iterator.remove();
-                  }
-                }
-              }
-            }
-          }
+      for (String component : serviceMetrics.keySet()) {
+        Map<String, List<MetricDefinition>> componentMetricsCopy = new HashMap<>();
+        Map<String, List<MetricDefinition>> componentMetrics = serviceMetrics.get(component);
+        // For every Component / HostComponent category retrieve metrics definitions
+        for (String category : componentMetrics.keySet()) {
+          componentMetricsCopy.put(category,
+            removeAggregateFunctions(componentMetrics.get(category)));
         }
+        filteredServiceMetrics.put(component, componentMetricsCopy);
       }
     }
     return filteredServiceMetrics;
   }
 
-  private List<MetricDefinition> removeAggregateFunctions(List<MetricDefinition> componentMetrics) {
+  private static List<MetricDefinition> removeAggregateFunctions(List<MetricDefinition> metricsDefinitions) {
     List<MetricDefinition> filteredComponentMetrics = null;
-    if (componentMetrics != null) {
-      Cloner cloner = new Cloner();
-      filteredComponentMetrics = cloner.deepClone(componentMetrics);
+
+    if (metricsDefinitions != null) {
+      filteredComponentMetrics = new ArrayList<>();
       // For every metric definition
-      for (MetricDefinition metricDefinition : filteredComponentMetrics) {
-        // Metrics System metrics only
-        if (metricDefinition.getType().equals("ganglia")) {
-          // Create a new map for each category
-          for (Map<String, Metric> metricByCategory : metricDefinition.getMetricsByCategory().values()) {
-            Iterator<Map.Entry<String, Metric>> iterator = metricByCategory.entrySet().iterator();
-            while (iterator.hasNext()) {
-              Map.Entry<String, Metric> entry = iterator.next();
-              String metricName = entry.getKey();
-              if (PropertyHelper.hasAggregateFunctionSuffix(metricName)) {
-                iterator.remove();
-              }
+      for (MetricDefinition metricDefinition : metricsDefinitions) {
+        Map<String, Map<String, Metric>> categorizedMetricsCopy = new HashMap<>();
+        Map<String, Map<String, Metric>> categorizedMetrics = metricDefinition.getMetricsByCategory();
+        for (String category : categorizedMetrics.keySet()) {
+          Map<String, Metric> namedMetricsCopy = new HashMap<>();
+          Map<String, Metric> namedMetrics = categorizedMetrics.get(category);
+          for (String metricName : namedMetrics.keySet()) {
+            // Metrics System metrics only
+            if (!(metricDefinition.getType().equals("ganglia") && PropertyHelper.hasAggregateFunctionSuffix(metricName))) {
+              namedMetricsCopy.put(metricName, namedMetrics.get(metricName));
             }
           }
+          categorizedMetricsCopy.put(category, namedMetricsCopy);
         }
+        filteredComponentMetrics.add(
+          new MetricDefinition(metricDefinition.getType(), metricDefinition.getProperties(), categorizedMetricsCopy));
       }
     }
-    return  filteredComponentMetrics;
+    return filteredComponentMetrics;
   }
 }
