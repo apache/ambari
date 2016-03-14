@@ -139,8 +139,10 @@ angular.module('ambariAdminConsole')
     },
     getPrivilegesWithFilters: function(params) {
       var deferred = $q.defer();
-      var endpoint = params.typeFilter.value == 'USER'? '/users' : '/groups';
-      var nameFilter = params.nameFilter? '&privileges/PrivilegeInfo/principal_name.matches(.*' + params.nameFilter + '.*)' : '';
+      var isUser = params.typeFilter.value == 'USER';
+      var endpoint = isUser? '/users' : '/groups';
+      var nameURL = isUser? '&Users/user_name.matches(.*' : '&Groups/group_name.matches(.*';
+      var nameFilter = params.nameFilter? nameURL + params.nameFilter + '.*)' : '';
       var roleFilter = params.roleFilter.value? '&privileges/PrivilegeInfo/permission_name.matches(.*' + params.roleFilter.value + '.*)' : '';
       $http({
         method: 'GET',
