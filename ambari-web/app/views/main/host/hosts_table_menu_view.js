@@ -45,6 +45,16 @@ App.HostTableMenuView = Em.View.extend({
       componentNameFormatted: Em.I18n.t('dashboard.services.yarn.nodeManagers')
     }),
     Em.Object.create({
+      serviceName: 'HAWQ',
+      componentName: 'HAWQSEGMENT',
+      componentNameFormatted: Em.I18n.t('dashboard.services.hawq.hawqSegments')
+    }),
+     Em.Object.create({
+      serviceName: 'PXF',
+      componentName: 'PXF',
+      componentNameFormatted: Em.I18n.t('dashboard.services.pxf.pxfHosts')
+    }),
+    Em.Object.create({
       serviceName: 'HBASE',
       componentName: 'HBASE_REGIONSERVER',
       masterComponentName: 'HBASE_MASTER',
