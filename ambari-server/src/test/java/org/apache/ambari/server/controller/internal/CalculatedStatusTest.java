@@ -563,6 +563,59 @@ public class CalculatedStatusTest {
     assertEquals(HostRoleStatus.COMPLETED, calc.getStatus());
   }
 
+  /**
+   * Tests that upgrade group will correctly show status according to all stages.
+   *
+   * Example:
+   *
+   * If first stage have status COMPLETED and second IN_PROGRESS, overall group status should be IN_PROGRESS
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testSummaryStatus_UpgradeGroup() throws Exception {
+
+    final HostRoleCommandStatusSummaryDTO summary1 = createNiceMock(HostRoleCommandStatusSummaryDTO.class);
+    ArrayList<HostRoleStatus> taskStatuses1 = new ArrayList<HostRoleStatus>() {{
+      add(HostRoleStatus.COMPLETED);
+      add(HostRoleStatus.COMPLETED);
+      add(HostRoleStatus.COMPLETED);
+    }};
+
+    final HostRoleCommandStatusSummaryDTO summary2 = createNiceMock(HostRoleCommandStatusSummaryDTO.class);
+    ArrayList<HostRoleStatus> taskStatuses2 = new ArrayList<HostRoleStatus>() {{
+      add(HostRoleStatus.IN_PROGRESS);
+      add(HostRoleStatus.COMPLETED);
+      add(HostRoleStatus.COMPLETED);
+    }};
+
+    Map<Long, HostRoleCommandStatusSummaryDTO> stageDto = new HashMap<Long, HostRoleCommandStatusSummaryDTO>(){{
+      put(1l, summary1);
+      put(2l, summary2);
+    }};
+
+    Set<Long> stageIds = new HashSet<Long>() {{
+      add(1l);
+      add(2l);
+    }};
+
+    expect(summary1.getTaskTotal()).andReturn(taskStatuses1.size()).anyTimes();
+    expect(summary2.getTaskTotal()).andReturn(taskStatuses2.size()).anyTimes();
+
+    expect(summary1.isStageSkippable()).andReturn(true).anyTimes();
+    expect(summary2.isStageSkippable()).andReturn(true).anyTimes();
+
+    expect(summary1.getTaskStatuses()).andReturn(taskStatuses1).anyTimes();
+    expect(summary2.getTaskStatuses()).andReturn(taskStatuses2).anyTimes();
+
+    replay(summary1, summary2);
+
+    CalculatedStatus calc = CalculatedStatus.statusFromStageSummary(stageDto, stageIds);
+
+    assertEquals(HostRoleStatus.IN_PROGRESS, calc.getDisplayStatus());
+    assertEquals(HostRoleStatus.IN_PROGRESS, calc.getStatus());
+  }
+
   private Collection<HostRoleCommandEntity> getTaskEntities(HostRoleStatus... statuses) {
     Collection<HostRoleCommandEntity> entities = new LinkedList<HostRoleCommandEntity>();
 
