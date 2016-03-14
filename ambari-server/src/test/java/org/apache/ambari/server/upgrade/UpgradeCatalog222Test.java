@@ -354,6 +354,56 @@ public class UpgradeCatalog222Test {
   }
 
   @Test
+  public void testHDFSWidgetUpdateWithOnlyZkService() throws Exception {
+    final Clusters clusters = createNiceMock(Clusters.class);
+    final Cluster cluster = createNiceMock(Cluster.class);
+    final AmbariManagementController controller = createNiceMock(AmbariManagementController.class);
+    final Gson gson = new Gson();
+    final WidgetDAO widgetDAO = createNiceMock(WidgetDAO.class);
+    final AmbariMetaInfo metaInfo = createNiceMock(AmbariMetaInfo.class);
+    StackInfo stackInfo = createNiceMock(StackInfo.class);
+    StackId stackId = new StackId("HDP", "2.0.0");
+
+    String widgetStr = "{\"layouts\":[{\"layout_name\":\"default_hdfs_dashboard\",\"display_name\":\"Standard HDFS Dashboard\",\"section_name\":\"HDFS_SUMMARY\",\"widgetLayoutInfo\":[{\"widget_name\":\"NameNode RPC\",\"metrics\":[],\"values\":[]}]}]}";
+
+    File dataDirectory = temporaryFolder.newFolder();
+    File file = new File(dataDirectory, "hdfs_widget.json");
+    FileUtils.writeStringToFile(file, widgetStr);
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
+        bind(AmbariManagementController.class).toInstance(controller);
+        bind(Clusters.class).toInstance(clusters);
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+        bind(Gson.class).toInstance(gson);
+        bind(WidgetDAO.class).toInstance(widgetDAO);
+        bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
+        bind(AmbariMetaInfo.class).toInstance(metaInfo);
+      }
+    });
+    expect(controller.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", cluster);
+    }}).anyTimes();
+    expect(cluster.getClusterId()).andReturn(1L).anyTimes();
+    expect(stackInfo.getService("HDFS")).andReturn(null);
+    expect(cluster.getDesiredStackVersion()).andReturn(stackId);
+    expect(metaInfo.getStack("HDP", "2.0.0")).andReturn(stackInfo);
+
+    replay(clusters, cluster, controller, widgetDAO, metaInfo, stackInfo);
+
+    UpgradeCatalog222 upgradeCatalog222 = createMockBuilder(UpgradeCatalog222.class)
+            .withConstructor(Injector.class)
+            .withArgs(mockInjector)
+            .createMock();
+    upgradeCatalog222.updateHDFSWidgetDefinition();
+
+  }
+
+  @Test
   public void testHDFSWidgetUpdate() throws Exception {
     final Clusters clusters = createNiceMock(Clusters.class);
     final Cluster cluster = createNiceMock(Cluster.class);
@@ -391,11 +441,11 @@ public class UpgradeCatalog222Test {
       put("normal", cluster);
     }}).anyTimes();
     expect(cluster.getClusterId()).andReturn(1L).anyTimes();
+    expect(stackInfo.getService("HDFS")).andReturn(serviceInfo);
     expect(widgetDAO.findByName(1L, "NameNode RPC", "ambari", "HDFS_SUMMARY"))
       .andReturn(Collections.singletonList(widgetEntity));
     expect(cluster.getDesiredStackVersion()).andReturn(stackId);
     expect(metaInfo.getStack("HDP", "2.0.0")).andReturn(stackInfo);
-    expect(stackInfo.getService("HDFS")).andReturn(serviceInfo);
     expect(serviceInfo.getWidgetsDescriptorFile()).andReturn(file);
     expect(widgetDAO.merge(widgetEntity)).andReturn(null);
     expect(widgetEntity.getWidgetName()).andReturn("Namenode RPC").anyTimes();
