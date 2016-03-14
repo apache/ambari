@@ -2033,9 +2033,9 @@ class TestHDP22StackAdvisor(TestCase):
     expected = {
       "ams-hbase-env": {
         "properties": {
-          "hbase_master_xmn_size": "128",
+          "hbase_master_xmn_size": "192",
           "hbase_master_heapsize": "512",
-          "hbase_regionserver_heapsize": "512"
+          "hbase_regionserver_heapsize": "768"
         }
       },
       "ams-env": {
@@ -2167,7 +2167,7 @@ class TestHDP22StackAdvisor(TestCase):
 
     ]
     expected["ams-hbase-env"]['properties']['hbase_master_heapsize'] = '2432'
-    expected["ams-hbase-env"]['properties']['hbase_master_xmn_size'] = '448'
+    expected["ams-hbase-env"]['properties']['hbase_master_xmn_size'] = '512'
     expected["ams-env"]['properties']['metrics_collector_heapsize'] = '640'
 
     self.stackAdvisor.recommendAmsConfigurations(configurations, clusterData, services, hosts)
