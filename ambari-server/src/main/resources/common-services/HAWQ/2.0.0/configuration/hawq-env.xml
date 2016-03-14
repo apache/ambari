@@ -15,16 +15,16 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-<configuration>
+<configuration supports_adding_forbidden="true">
 
   <property>
     <name>hawq_password</name>
     <display-name>HAWQ System User Password</display-name>
     <value></value>
-    <description>The password of HAWQ system user.
-      During cluster initialization and when provisioning new hosts, ssh keys are exchanged using this password.
-      Initially, the HAWQ system user will be created with this password.
-      Afterwards, the password should be changed directly on the hosts first and then the updated value must be entered here.
+    <description>
+      Sets the HAWQ system user password. This password is used for ssh key exchange when initializing a cluster or provisioning a new host.
+      Set when the HAWQ system user is created.
+      When changing passwords after initial creation, first update the password directly on the hosts, then enter a new hawq_password value.
     </description>
     <value-attributes>
       <type>password</type>

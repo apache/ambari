@@ -20,7 +20,7 @@
  */
 -->
 
-<configuration supports_final="false">
+<configuration supports_final="false" supports_adding_forbidden="true">
 
   <property>
     <name>content</name>
@@ -63,7 +63,9 @@ under the License.
 <profiles>
     <profile>
         <name>HBase</name>
-        <description>This profile is suitable for using when connecting to an HBase data store engine</description>
+        <description>
+          This profile is for HBase tables.
+        </description>
         <plugins>
             <fragmenter>org.apache.hawq.pxf.plugins.hbase.HBaseDataFragmenter</fragmenter>
             <accessor>org.apache.hawq.pxf.plugins.hbase.HBaseAccessor</accessor>
@@ -72,7 +74,9 @@ under the License.
     </profile>
     <profile>
         <name>Hive</name>
-        <description>This profile is suitable for using when connecting to Hive</description>
+        <description>
+          This profile can be used for Hive tables in any Hive-supported file storage format.
+        </description>
         <plugins>
             <fragmenter>org.apache.hawq.pxf.plugins.hive.HiveDataFragmenter</fragmenter>
             <accessor>org.apache.hawq.pxf.plugins.hive.HiveAccessor</accessor>
@@ -81,10 +85,10 @@ under the License.
     </profile>
     <profile>
         <name>HiveRC</name>
-        <description>This profile is suitable only for Hive tables stored in RC files
-            and serialized with either the ColumnarSerDe or the LazyBinaryColumnarSerDe.
-            It is much faster than the general purpose Hive profile.
-            DELIMITER parameter is mandatory.
+        <description>
+          This profile is for Hive tables in RCFile format, serialized with either
+          ColumnarSerDe or LazyBinaryColumnarSerDe. It is much faster than the Hive profile.
+          The DELIMITER parameter is required.
         </description>
         <plugins>
             <fragmenter>org.apache.hawq.pxf.plugins.hive.HiveInputFormatFragmenter</fragmenter>
@@ -94,9 +98,10 @@ under the License.
     </profile>
     <profile>
         <name>HiveText</name>
-        <description>This profile is suitable only for Hive tables stored as Text files.
-            It is much faster than the general purpose Hive profile.
-            DELIMITER parameter is mandatory.
+        <description>
+          This profile is for Hive tables stored in Text files.
+          It is much faster than the Hive profile.
+          The DELIMITER parameter is required.
         </description>
         <plugins>
             <fragmenter>org.apache.hawq.pxf.plugins.hive.HiveInputFormatFragmenter</fragmenter>
@@ -106,8 +111,8 @@ under the License.
     </profile>
     <profile>
         <name>HdfsTextSimple</name>
-        <description>This profile is suitable for using when reading delimited single line records from plain text files
-            on HDFS
+        <description>
+          This profile is for reading delimited single-line records from text files in HDFS.
         </description>
         <plugins>
             <fragmenter>org.apache.hawq.pxf.plugins.hdfs.HdfsDataFragmenter</fragmenter>
@@ -117,8 +122,10 @@ under the License.
     </profile>
     <profile>
         <name>HdfsTextMulti</name>
-        <description>This profile is suitable for using when reading delimited single or multi line records (with quoted
-            linefeeds) from plain text files on HDFS. It is not splittable (non parallel) and slower than HdfsTextSimple.
+        <description>
+          This profile is for reading delimited single-line records or multi-line records
+          (with quoted linefeeds) from text files in HDFS. It is not splittable
+          (non-parallel) and is slower than the HdfsTextSimple profile.
         </description>
         <plugins>
             <fragmenter>org.apache.hawq.pxf.plugins.hdfs.HdfsDataFragmenter</fragmenter>
@@ -128,7 +135,9 @@ under the License.
     </profile>
     <profile>
         <name>Avro</name>
-        <description>This profile is suitable for using when reading Avro files (i.e fileName.avro)</description>
+        <description>
+          This profile is for reading data stored in Avro files.
+        </description>
         <plugins>
             <fragmenter>org.apache.hawq.pxf.plugins.hdfs.HdfsDataFragmenter</fragmenter>
             <accessor>org.apache.hawq.pxf.plugins.hdfs.AvroFileAccessor</accessor>
@@ -138,8 +147,9 @@ under the License.
     <profile>
         <name>SequenceWritable</name>
         <description>
-            Profile for accessing Sequence files serialized with a custom Writable class
-            usage: pxf://nn:50070/path/to/file?profile=SequenceWritable&amp;data-schema=CustomClass
+          This profile is for Hadoop Sequence files serialized with a custom Writable
+          class. Provide the name of the custom class with the "data-schema" parameter.
+          For example: pxf://nn:51200/path-to-file?Profile=SequenceWritable&amp;data-schema=CustomClass
         </description>
         <plugins>
             <fragmenter>org.apache.hawq.pxf.plugins.hdfs.HdfsDataFragmenter</fragmenter>
@@ -149,7 +159,9 @@ under the License.
     </profile>
     <profile>
         <name>GemFireXD</name>
-        <description>This profile is suitable for using when connecting to GemFireXD</description>
+        <description>
+          This profile is for tables in GemFireXD.
+        </description>
         <plugins>
             <fragmenter>org.apache.hawq.pxf.plugins.gemfirexd.GemFireXDFragmenter</fragmenter>
             <accessor>org.apache.hawq.pxf.plugins.gemfirexd.GemFireXDAccessor</accessor>

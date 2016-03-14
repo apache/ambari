@@ -20,11 +20,11 @@
  */
 -->
 
-<configuration supports_final="false">
+<configuration supports_final="false" supports_adding_forbidden="true">
 
   <property>
     <name>content</name>
-    <description>PXF service's classpath file</description>
+    <description>Classpath file for the PXF service.</description>
     <value>
 #
 # Licensed to the Apache Software Foundation (ASF) under one
@@ -46,11 +46,11 @@
 #
 
 ##############################################################
-# This is PXF service's classpath file
-# Any connector should be added here, one resource per line.
-# e.g. /usr/lib/myconnector/myconnector.jar
-# Wildcard characters (*,[],?) are supported for the file names
-# e.g. /usr/lib/myconnector/*.jar
+# This is the classpath file for the PXF service.
+# Add connectors here, one resource per line, e.g.:
+#      /usr/lib/myconnector/myconnector.jar
+# Wildcard characters (*,[],?) are supported for file names, e.g.:
+#      /usr/lib/myconnector/*.jar
 #      /usr/lib/myconnector/myconnector*[0-9].jar
 ##############################################################
 
