@@ -41,7 +41,7 @@
   </property>
   <property>
     <name>hbase_regionserver_heapsize</name>
-    <value>756</value>
+    <value>768</value>
     <description>
         HBase RegionServer Heap Size. In embedded mode, total heap size is
         sum of master and regionserver heap sizes.
