@@ -221,6 +221,8 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
         return new UserAuthorizationResourceProvider(managementController);
       case VersionDefinition:
         return new VersionDefinitionResourceProvider();
+      case ClusterKerberosDescriptor:
+        return new ClusterKerberosDescriptorResourceProvider(managementController);
       default:
         throw new IllegalArgumentException("Unknown type " + type);
     }

@@ -81,4 +81,15 @@ public class ResourceInstanceFactoryImplTest {
     assertEquals("authorizations", resourceDefinition.getPluralName());
     assertEquals(Resource.Type.UserAuthorization, resourceDefinition.getType());
   }
+
+  @Test
+  public void testGetClusterKerberosDescriptorDefinition() {
+    ResourceDefinition resourceDefinition = ResourceInstanceFactoryImpl.getResourceDefinition(
+        Resource.Type.ClusterKerberosDescriptor, null);
+
+    assertNotNull(resourceDefinition);
+    assertEquals("kerberos_descriptor", resourceDefinition.getSingularName());
+    assertEquals("kerberos_descriptors", resourceDefinition.getPluralName());
+    assertEquals(Resource.Type.ClusterKerberosDescriptor, resourceDefinition.getType());
+  }
 }

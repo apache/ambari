@@ -72,6 +72,7 @@ public class ClusterResourceDefinition extends BaseResourceDefinition {
     setChildren.add(new SubResourceDefinition(Resource.Type.AlertDefinition));
     setChildren.add(new SubResourceDefinition(Resource.Type.Alert));
     setChildren.add(new SubResourceDefinition(Resource.Type.ClusterStackVersion));
+    setChildren.add(new SubResourceDefinition(Resource.Type.ClusterKerberosDescriptor));
     //todo: dynamic sub-resource definition
     setChildren.add(new SubResourceDefinition(Resource.Type.Artifact));
 

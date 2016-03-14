@@ -29,7 +29,6 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
@@ -635,6 +634,21 @@ public class ClusterService extends BaseService {
       @Context javax.ws.rs.core.Request request,
       @PathParam("clusterName") String clusterName) {
     return new CredentialService(clusterName);
+  }
+
+  /**
+   * Handles: GET /clusters/{clusterID}/kerberos_descriptor
+   * Gets the composite Kerberos descriptor associated with the cluster.
+   *
+   * @param request     the request.
+   * @param clusterName the cluster name.
+   * @return composite Kerberos descriptor resource representation
+   */
+  @Path("{clusterName}/kerberos_descriptors")
+  public ClusterKerberosDescriptorService getCompositeKerberosDescriptor(
+      @Context javax.ws.rs.core.Request request,
+      @PathParam("clusterName") String clusterName) {
+    return new ClusterKerberosDescriptorService(clusterName);
   }
 
   // ----- helper methods ----------------------------------------------------
