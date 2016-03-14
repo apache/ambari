@@ -380,46 +380,7 @@
             "hive.server2.transport.mode": "binary",
             "hive.optimize.mapjoin.mapreduce": "true",
             "hive.exec.scratchdir" : "/custompath/tmp/hive"
-        },
-        "hive-interactive-site": {
-            "hive.enforce.sorting": "true",
-            "javax.jdo.option.ConnectionPassword": "!`\"' 1",
-            "javax.jdo.option.ConnectionDriverName": "com.mysql.jdbc.Driver",
-            "hive.optimize.bucketmapjoin.sortedmerge": "true",
-            "hive.security.metastore.authorization.manager": "org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider",
-            "fs.file.impl.disable.cache": "true",
-            "hive.auto.convert.join.noconditionaltask": "true",
-            "hive.map.aggr": "true",
-            "hive.optimize.index.filter": "true",
-            "hive.security.authorization.enabled": "false",
-            "hive.optimize.reducededuplication.min.reducer": "1",
-            "hive.optimize.bucketmapjoin": "true",
-            "hive.metastore.uris": "thrift://c6402.ambari.apache.org:9084",
-            "hive.mapjoin.bucket.cache.size": "10000",
-            "hive.auto.convert.join.noconditionaltask.size": "1000000000",
-            "hive.vectorized.execution.enabled": "false",
-            "javax.jdo.option.ConnectionUserName": "hive",
-            "hive.metastore.cache.pinobjtypes": "Table,Database,Type,FieldSchema,Order",
-            "hive.optimize.reducededuplication": "true",
-            "hive.metastore.warehouse.dir": "/apps/hive/warehouse",
-            "hive.metastore.client.socket.timeout": "60",
-            "hive.auto.convert.join": "true",
-            "hive.enforce.bucketing": "true",
-            "hive.mapred.reduce.tasks.speculative.execution": "false",
-            "hive.security.authenticator.manager": "org.apache.hadoop.hive.ql.security.ProxyUserAuthenticator",
-            "javax.jdo.option.ConnectionURL": "jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true",
-            "hive.auto.convert.sortmerge.join": "true",
-            "fs.hdfs.impl.disable.cache": "true",
-            "hive.security.authorization.manager": "org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider",
-            "ambari.hive.db.schema.name": "hive",
-            "hive.metastore.execute.setugi": "true",
-            "hive.auto.convert.sortmerge.join.noconditionaltask": "true",
-            "hive.server2.enable.doAs": "true",
-            "hive.server2.authentication": "NOSASL",
-            "hive.server2.transport.mode": "binary",
-            "hive.optimize.mapjoin.mapreduce": "true",
-            "hive.exec.scratchdir" : "/custompath/tmp/hive"
-        },
+        }, 
         "ranger-hive-plugin-properties": {
             "XAAUDIT.HDFS.DESTINTATION_FLUSH_INTERVAL_SECONDS": "900", 
             "XAAUDIT.HDFS.DESTINATION_DIRECTORY": "hdfs://__REPLACE__NAME_NODE_HOST:8020/ranger/audit/%app-type%/%time:yyyyMMdd%", 
@@ -774,13 +735,6 @@
           "javax.jdo.option.ConnectionDriverName": "true",
           "hive.optimize.bucketmapjoin.sortedmerge": "true"
         }
-      },
-      "hive-interactive-site": {
-        "final": {
-          "javax.jdo.option.ConnectionPassword": "true",
-          "javax.jdo.option.ConnectionDriverName": "true",
-          "hive.optimize.bucketmapjoin.sortedmerge": "true"
-        }
       }
     },
     "configurationTags": {
@@ -815,9 +769,6 @@
             "tag": "version1"
         }, 
         "hive-site": {
-            "tag": "version1"
-        },
-        "hive-interactive-site": {
             "tag": "version1"
         },
         "hdfs-log4j": {
@@ -889,7 +840,7 @@
         ], 
         "supervisor_hosts": [
             "c6401.ambari.apache.org", 
-            "c6pache.org"
+            "c6402.ambari.apache.org"
         ], 
         "ganglia_monitor_hosts": [
             "c6401.ambari.apache.org", 

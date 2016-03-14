@@ -58,7 +58,6 @@ SERVER_ROLE_DIRECTORY_MAP = {
   'HBASE_REGIONSERVER' : 'hbase-regionserver',
   'HIVE_METASTORE' : 'hive-metastore',
   'HIVE_SERVER' : 'hive-server2',
-  'HIVE_SERVER_INTERACTIVE' : 'hive-server2-hive2',
   'WEBHCAT_SERVER' : 'hive-webhcat',
   'KAFKA_BROKER' : 'kafka-broker',
   'KNOX_GATEWAY' : 'knox-server',

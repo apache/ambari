@@ -442,50 +442,7 @@
             "hive.optimize.mapjoin.mapreduce": "true",
             "hive.server2.transport.mode": "binary",
             "hive.server2.authentication.kerberos.keytab": "/etc/security/keytabs/hive.service.keytab"
-        },
-        "hive-interactive-site": {
-            "hive.enforce.sorting": "true",
-            "javax.jdo.option.ConnectionPassword": "!`\"' 1",
-            "javax.jdo.option.ConnectionDriverName": "com.mysql.jdbc.Driver",
-            "hive.optimize.bucketmapjoin.sortedmerge": "true",
-            "hive.security.metastore.authorization.manager": "org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider",
-            "fs.file.impl.disable.cache": "true",
-            "hive.auto.convert.join.noconditionaltask": "true",
-            "hive.server2.authentication.kerberos.principal": "hive/_HOST@EXAMPLE.COM",
-            "hive.optimize.bucketmapjoin": "true",
-            "hive.map.aggr": "true",
-            "hive.optimize.index.filter": "true",
-            "hive.security.authorization.enabled": "true",
-            "hive.optimize.reducededuplication": "true",
-            "hive.metastore.kerberos.keytab.file": "/etc/security/keytabs/hive.service.keytab",
-            "hive.metastore.uris": "thrift://c6402.ambari.apache.org:9084",
-            "hive.mapjoin.bucket.cache.size": "10000",
-            "hive.auto.convert.join.noconditionaltask.size": "1000000000",
-            "hive.vectorized.execution.enabled": "false",
-            "javax.jdo.option.ConnectionUserName": "hive",
-            "hive.metastore.cache.pinobjtypes": "Table,Database,Type,FieldSchema,Order",
-            "hive.server2.authentication": "KERBEROS",
-            "hive.metastore.sasl.enabled": "true",
-            "hive.metastore.warehouse.dir": "/apps/hive/warehouse",
-            "hive.metastore.client.socket.timeout": "60",
-            "hive.metastore.kerberos.principal": "hive/_HOST@EXAMPLE.COM",
-            "hive.optimize.reducededuplication.min.reducer": "1",
-            "hive.auto.convert.join": "true",
-            "hive.enforce.bucketing": "true",
-            "hive.mapred.reduce.tasks.speculative.execution": "false",
-            "hive.security.authenticator.manager": "org.apache.hadoop.hive.ql.security.ProxyUserAuthenticator",
-            "javax.jdo.option.ConnectionURL": "jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true",
-            "hive.auto.convert.sortmerge.join": "true",
-            "fs.hdfs.impl.disable.cache": "true",
-            "hive.security.authorization.manager": "org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider",
-            "ambari.hive.db.schema.name": "hive",
-            "hive.metastore.execute.setugi": "true",
-            "hive.auto.convert.sortmerge.join.noconditionaltask": "true",
-            "hive.server2.enable.doAs": "true",
-            "hive.optimize.mapjoin.mapreduce": "true",
-            "hive.server2.transport.mode": "binary",
-            "hive.server2.authentication.kerberos.keytab": "/etc/security/keytabs/hive.service.keytab"
-        },
+        }, 
         "yarn-site": {
             "yarn.nodemanager.disk-health-checker.min-healthy-disks": "0.25", 
             "yarn.nodemanager.container-executor.class": "org.apache.hadoop.yarn.server.nodemanager.LinuxContainerExecutor", 
@@ -746,13 +703,6 @@
           "javax.jdo.option.ConnectionDriverName": "true",
           "hive.optimize.bucketmapjoin.sortedmerge": "true"
         }
-      },
-      "hive-interactive-site": {
-        "final": {
-          "javax.jdo.option.ConnectionPassword": "true",
-          "javax.jdo.option.ConnectionDriverName": "true",
-          "hive.optimize.bucketmapjoin.sortedmerge": "true"
-        }
       }
     },
     "configurationTags": {
@@ -787,9 +737,6 @@
             "tag": "version1389972945449"
         }, 
         "hive-site": {
-            "tag": "version1389972945450"
-        },
-        "hive-interactive-site": {
             "tag": "version1389972945450"
         },
         "hdfs-log4j": {

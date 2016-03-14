@@ -88,14 +88,6 @@ class TestHookAfterInstall(RMFTestCase):
     self.assertResourceCalled('Link', '/etc/ranger/kms/conf',
         to = '/usr/hdp/current/ranger-kms/conf',)
 
-    self.assertResourceCalled('Execute', ('cp', '-R', '-p', '/etc/hive2/conf', '/etc/hive2/conf.backup'),
-                              not_if = 'test -e /etc/hive2/conf.backup',
-                              sudo = True)
-    self.assertResourceCalled('Directory', '/etc/hive2/conf',
-                            action = ['delete'])
-    self.assertResourceCalled('Link', '/etc/hive2/conf',
-                            to = '/usr/hdp/current/hive-server2-hive2/conf')
-
     self.assertResourceCalled('Execute', ('cp', '-R', '-p', '/etc/zookeeper/conf', '/etc/zookeeper/conf.backup'),
         not_if = 'test -e /etc/zookeeper/conf.backup',
         sudo = True)
@@ -332,14 +324,6 @@ class TestHookAfterInstall(RMFTestCase):
         action = ['delete'],)
     self.assertResourceCalled('Link', '/etc/ranger/kms/conf',
         to = '/usr/hdp/current/ranger-kms/conf',)
-
-    self.assertResourceCalled('Execute', ('cp', '-R', '-p', '/etc/hive2/conf', '/etc/hive2/conf.backup'),
-                              not_if = 'test -e /etc/hive2/conf.backup',
-                              sudo = True)
-    self.assertResourceCalled('Directory', '/etc/hive2/conf',
-                              action = ['delete'])
-    self.assertResourceCalled('Link', '/etc/hive2/conf',
-                              to = '/usr/hdp/current/hive-server2-hive2/conf')
 
     self.assertResourceCalled('Execute', ('cp', '-R', '-p', '/etc/zookeeper/conf', '/etc/zookeeper/conf.backup'),
         not_if = 'test -e /etc/zookeeper/conf.backup',
