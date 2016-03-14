@@ -107,6 +107,8 @@
                     {{view.enabledDisplay}}
                   </span>
                 </a>
+              {{else}}
+                {{view.enabledDisplay}}
               {{/isAuthorized}}
             {{else}}
               {{#isAuthorized "SERVICE.TOGGLE_ALERTS"}}
@@ -116,6 +118,8 @@
                     {{view.disabledDisplay}}
                   </span>
                 </a>
+              {{else}}
+                {{view.disabledDisplay}}
               {{/isAuthorized}}
             {{/if}}
           </div>

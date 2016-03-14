@@ -23,9 +23,8 @@
         {{view.labelText}}
       </span>
   </a>
-{{/isAuthorized}}
-{{#isNotAuthorized "CLUSTER.TOGGLE_ALERTS"}}
+{{else}}
   <span {{bindAttr class="view.content.enabled:alert-definition-enable:alert-definition-disable"}}>
     {{view.labelText}}
   </span>
-{{/isNotAuthorized}}
+{{/isAuthorized}}
