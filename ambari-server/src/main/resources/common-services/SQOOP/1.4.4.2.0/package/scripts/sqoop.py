@@ -100,9 +100,8 @@ def jdbc_connector():
     if 'mysql-connector-java.jar' in jar_name:
       continue
     downloaded_custom_connector = format("{sqoop_lib}/{jar_name}")
-    jdbc_symlink_remote = params.sqoop_jdbc_drivers_dict[jar_name]
     jdbc_driver_label = params.sqoop_jdbc_drivers_name_dict[jar_name]
-    driver_curl_source = format("{jdk_location}/{jdbc_symlink_remote}")
+    driver_curl_source = format("{jdk_location}/{jar_name}")
     environment = {
       "no_proxy": format("{ambari_server_hostname}")
     }

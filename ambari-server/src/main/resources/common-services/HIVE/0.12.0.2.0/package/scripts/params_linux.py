@@ -189,31 +189,50 @@ if hive_metastore_db_type == "mssql":
 hive_user = config['configurations']['hive-env']['hive_user']
 #JDBC driver jar name
 hive_jdbc_driver = config['configurations']['hive-site']['javax.jdo.option.ConnectionDriverName']
+jdk_location = config['hostLevelParams']['jdk_location']
+java_share_dir = '/usr/share/java'
+hive_database_name = config['configurations']['hive-env']['hive_database_name']
+hive_database = config['configurations']['hive-env']['hive_database']
+hive_use_existing_db = hive_database.startswith('Existing')
 # NOT SURE THAT IT'S A GOOD IDEA TO USE PATH TO CLASS IN DRIVER, MAYBE IT WILL BE BETTER TO USE DB TYPE.
 # BECAUSE PATH TO CLASSES COULD BE CHANGED
 sqla_db_used = False
+target = None
 if hive_jdbc_driver == "com.microsoft.sqlserver.jdbc.SQLServerDriver":
-  jdbc_jar_name = "sqljdbc4.jar"
-  jdbc_symlink_name = "mssql-jdbc-driver.jar"
+  jdbc_jar_name = default("/hostLevelParams/custom_mssql_jdbc_name", None)
 elif hive_jdbc_driver == "com.mysql.jdbc.Driver":
-  jdbc_jar_name = "mysql-connector-java.jar"
-  jdbc_symlink_name = "mysql-jdbc-driver.jar"
+  jdbc_jar_name = default("/hostLevelParams/custom_mysql_jdbc_name", None)
 elif hive_jdbc_driver == "org.postgresql.Driver":
-  jdbc_jar_name = "postgresql-jdbc.jar"
-  jdbc_symlink_name = "postgres-jdbc-driver.jar"
+  jdbc_jar_name = default("/hostLevelParams/custom_postgres_jdbc_name", None)
 elif hive_jdbc_driver == "oracle.jdbc.driver.OracleDriver":
-  jdbc_jar_name = "ojdbc.jar"
-  jdbc_symlink_name = "oracle-jdbc-driver.jar"
+  jdbc_jar_name = default("/hostLevelParams/custom_oracle_jdbc_name", None)
 elif hive_jdbc_driver == "sap.jdbc4.sqlanywhere.IDriver":
-  jdbc_jar_name = "sajdbc4.jar"
-  jdbc_symlink_name = "sqlanywhere-jdbc-driver.tar.gz"
+  jdbc_jar_name = default("/hostLevelParams/custom_sqlanywhere_jdbc_name", None)
   sqla_db_used = True
+
+default_mysql_jar_name = "mysql-connector-java.jar"
+default_mysql_target = format("{hive_lib}/{default_mysql_jar_name}")
+if not hive_use_existing_db:
+  jdbc_jar_name = default_mysql_jar_name
+
+
+downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
+target = format("{hive_lib}/{jdbc_jar_name}")
+driver_curl_source = format("{jdk_location}/{jdbc_jar_name}")
+
+if Script.is_stack_less_than("2.2"):
+  source_jdbc_file = target
+else:
+  # normally, the JDBC driver would be referenced by /usr/hdp/current/.../foo.jar
+  # but in RU if hdp-select is called and the restart fails, then this means that current pointer
+  # is now pointing to the upgraded version location; that's bad for the cp command
+  source_jdbc_file = format("/usr/hdp/{current_version}/hive/lib/{jdbc_jar_name}")
 
 check_db_connection_jar_name = "DBConnectionVerification.jar"
 check_db_connection_jar = format("/usr/lib/ambari-agent/{check_db_connection_jar_name}")
 hive_jdbc_drivers_list = ["com.microsoft.sqlserver.jdbc.SQLServerDriver","com.mysql.jdbc.Driver",
                           "org.postgresql.Driver","oracle.jdbc.driver.OracleDriver","sap.jdbc4.sqlanywhere.IDriver"]
-downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
+
 prepackaged_ojdbc_symlink = format("{hive_lib}/ojdbc6.jar")
 templeton_port = config['configurations']['webhcat-site']['templeton.port']
 
@@ -278,9 +297,6 @@ hive_interactive_conf_dirs_list = [hive_interactive_client_conf_dir]
 if hostname in hive_metastore_hosts or hostname in hive_server_hosts:
   hive_conf_dirs_list.append(hive_server_conf_dir)
 
-#hive-site
-hive_database_name = config['configurations']['hive-env']['hive_database_name']
-hive_database = config['configurations']['hive-env']['hive_database']
 
 #Starting hiveserver2
 start_hiveserver2_script = 'startHiveserver2.sh.j2'
@@ -288,8 +304,6 @@ start_hiveserver2_script = 'startHiveserver2.sh.j2'
 ##Starting metastore
 start_metastore_script = 'startMetastore.sh'
 hive_metastore_pid = status_params.hive_metastore_pid
-java_share_dir = '/usr/share/java'
-driver_curl_target = format("{java_share_dir}/{jdbc_jar_name}")
 
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 yarn_user = config['configurations']['yarn-env']['yarn_user']
@@ -298,21 +312,8 @@ artifact_dir = format("{tmp_dir}/AMBARI-artifacts/")
 # Need this for yarn.nodemanager.recovery.dir in yarn-site
 yarn_log_dir_prefix = config['configurations']['yarn-env']['yarn_log_dir_prefix']
 
-target = format("{hive_lib}/{jdbc_jar_name}")
 target_interactive = format("{hive_interactive_lib}/{jdbc_jar_name}")
 jars_in_hive_lib = format("{hive_lib}/*.jar")
-
-
-if Script.is_stack_less_than("2.2"):
-  source_jdbc_file = target
-else:
-  # normally, the JDBC driver would be referenced by /usr/hdp/current/.../foo.jar
-  # but in RU if hdp-select is called and the restart fails, then this means that current pointer
-  # is now pointing to the upgraded version location; that's bad for the cp command
-  source_jdbc_file = format("/usr/hdp/{current_version}/hive/lib/{jdbc_jar_name}")
-
-jdk_location = config['hostLevelParams']['jdk_location']
-driver_curl_source = format("{jdk_location}/{jdbc_symlink_name}")
 
 start_hiveserver2_path = format("{tmp_dir}/start_hiveserver2_script")
 start_metastore_path = format("{tmp_dir}/start_metastore_script")
@@ -405,7 +406,7 @@ mysql_user = 'mysql'
 hive_authorization_enabled = config['configurations']['hive-site']['hive.security.authorization.enabled']
 
 mysql_jdbc_driver_jar = "/usr/share/java/mysql-connector-java.jar"
-hive_use_existing_db = hive_database.startswith('Existing')
+
 
 
 hive_site_config = dict(config['configurations']['hive-site'])

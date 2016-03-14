@@ -869,16 +869,9 @@ def _cache_jdbc_driver(args):
     raise FatalException(-1, err)
 
   resources_dir = get_resources_location(properties)
-
-  if args.jdbc_driver.endswith(TAR_GZ_ARCHIVE_TYPE):
-    symlink_name = args.jdbc_db + "-jdbc-driver" + TAR_GZ_ARCHIVE_TYPE
-  else:
-    symlink_name = args.jdbc_db + "-jdbc-driver.jar"
-  jdbc_symlink = os.path.join(resources_dir, symlink_name)
   path, jdbc_name = os.path.split(args.jdbc_driver)
 
-  if os.path.lexists(jdbc_symlink):
-    os.remove(jdbc_symlink)
+  properties.process_pair("custom." + args.jdbc_db + ".jdbc.name", jdbc_name)
 
   if os.path.isfile(os.path.join(resources_dir, jdbc_name)):
     os.remove(os.path.join(resources_dir, jdbc_name))
@@ -891,7 +884,7 @@ def _cache_jdbc_driver(args):
           "permissions and free disk space.".format(args.jdbc_driver, resources_dir, str(e))
     raise FatalException(1, err)
 
-  os.symlink(os.path.join(resources_dir, jdbc_name), jdbc_symlink)
+  update_properties(properties)
   print "JDBC driver was successfully initialized."
 
 #

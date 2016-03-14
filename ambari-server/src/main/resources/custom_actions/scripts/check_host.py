@@ -27,6 +27,7 @@ import socket
 import getpass
 
 from resource_management.libraries.functions import packages_analyzer
+from resource_management.libraries.functions.default import default
 from ambari_commons import os_utils
 from ambari_commons.os_check import OSCheck, OSConst
 from ambari_commons.inet_utils import download_file
@@ -65,12 +66,7 @@ JDBC_DRIVER_CLASS_POSTGRESQL = "org.postgresql.Driver"
 JDBC_DRIVER_CLASS_MSSQL = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
 JDBC_DRIVER_CLASS_SQLA = "sap.jdbc4.sqlanywhere.IDriver"
 
-JDBC_DRIVER_SYMLINK_MYSQL = "mysql-jdbc-driver.jar"
-JDBC_DRIVER_SYMLINK_ORACLE = "oracle-jdbc-driver.jar"
-JDBC_DRIVER_SYMLINK_POSTGRESQL = "postgres-jdbc-driver.jar"
-JDBC_DRIVER_SYMLINK_MSSQL = "sqljdbc4.jar"
 JDBC_AUTH_SYMLINK_MSSQL = "sqljdbc_auth.dll"
-JDBC_DRIVER_SYMLINK_SQLA = "sqlanywhere-jdbc-driver.tar.gz"
 
 JDBC_DRIVER_SQLA_JAR = "sajdbc4.jar"
 JARS_PATH_IN_ARCHIVE_SQLA = "/sqla-client-jdbc/java"
@@ -262,25 +258,30 @@ class CheckHost(Script):
     db_name = config['commandParams']['db_name']
 
     if db_name == DB_MYSQL:
-      jdbc_url = jdk_location + JDBC_DRIVER_SYMLINK_MYSQL
+      jdbc_driver_mysql_name = default("/hostLevelParams/custom_mysql_jdbc_name", None)
+      jdbc_url = jdk_location + jdbc_driver_mysql_name
       jdbc_driver_class = JDBC_DRIVER_CLASS_MYSQL
-      jdbc_name = JDBC_DRIVER_SYMLINK_MYSQL
+      jdbc_name = jdbc_driver_mysql_name
     elif db_name == DB_ORACLE:
-      jdbc_url = jdk_location + JDBC_DRIVER_SYMLINK_ORACLE
+      jdbc_driver_oracle_name = default("/hostLevelParams/custom_oracle_jdbc_name", None)
+      jdbc_url = jdk_location + jdbc_driver_oracle_name
       jdbc_driver_class = JDBC_DRIVER_CLASS_ORACLE
-      jdbc_name = JDBC_DRIVER_SYMLINK_ORACLE
+      jdbc_name = jdbc_driver_oracle_name
     elif db_name == DB_POSTGRESQL:
-      jdbc_url = jdk_location + JDBC_DRIVER_SYMLINK_POSTGRESQL
+      jdbc_driver_postgres_name = default("/hostLevelParams/custom_postgres_jdbc_name", None)
+      jdbc_url = jdk_location + jdbc_driver_postgres_name
       jdbc_driver_class = JDBC_DRIVER_CLASS_POSTGRESQL
-      jdbc_name = JDBC_DRIVER_SYMLINK_POSTGRESQL
+      jdbc_name = jdbc_driver_postgres_name
     elif db_name == DB_MSSQL:
-      jdbc_url = jdk_location + JDBC_DRIVER_SYMLINK_MSSQL
+      jdbc_driver_mssql_name = default("/hostLevelParams/custom_mssql_jdbc_name", None)
+      jdbc_url = jdk_location + jdbc_driver_mssql_name
       jdbc_driver_class = JDBC_DRIVER_CLASS_MSSQL
-      jdbc_name = JDBC_DRIVER_SYMLINK_MSSQL
+      jdbc_name = jdbc_driver_mssql_name
     elif db_name == DB_SQLA:
-      jdbc_url = jdk_location + JDBC_DRIVER_SYMLINK_SQLA
+      jdbc_driver_sqla_name = default("/hostLevelParams/custom_sqlanywhere_jdbc_name", None)
+      jdbc_url = jdk_location + jdbc_driver_sqla_name
       jdbc_driver_class = JDBC_DRIVER_CLASS_SQLA
-      jdbc_name = JDBC_DRIVER_SYMLINK_SQLA
+      jdbc_name = jdbc_driver_sqla_name
   
     db_connection_url = config['commandParams']['db_connection_url']
     user_name = config['commandParams']['user_name']

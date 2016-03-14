@@ -237,7 +237,7 @@ class TestOozieServer(RMFTestCase):
                               recursive_ownership = True,
     )
     self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
-        content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-jdbc-driver.jar'),
+        content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar'),
     )
     self.assertResourceCalled('Execute', ('cp',
      '--remove-destination',
@@ -457,7 +457,7 @@ class TestOozieServer(RMFTestCase):
                               recursive_ownership = True,
                               )
     self.assertResourceCalled('File', '/tmp/sqla-client-jdbc.tar.gz',
-                              content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//sqlanywhere-jdbc-driver.tar.gz'),
+                              content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//sqla-client-jdbc.tar.gz'),
                               )
     self.assertResourceCalled('Execute', ('tar', '-xvf', '/tmp/sqla-client-jdbc.tar.gz', '-C', '/tmp'),
                               sudo = True,
@@ -468,7 +468,7 @@ class TestOozieServer(RMFTestCase):
                               )
     self.assertResourceCalled('Execute', 'yes | ambari-sudo.sh cp /tmp/sqla-client-jdbc/native/lib64/* /usr/lib/oozie/libext/native/lib64')
     self.assertResourceCalled('Execute', 'ambari-sudo.sh chown -R oozie:hadoop /usr/lib/oozie/libext/*')
-    self.assertResourceCalled('File', '/usr/lib/oozie/libext/sajdbc4.jar',
+    self.assertResourceCalled('File', '/usr/lib/oozie/libext/sqla-client-jdbc.tar.gz',
                               owner = 'oozie',
                               group = 'hadoop',
                               )
@@ -1467,7 +1467,7 @@ class TestOozieServer(RMFTestCase):
       target = RMFTestCase.TARGET_COMMON_SERVICES )
 
     self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
-      content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-jdbc-driver.jar') )
+      content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar') )
 
     self.assertResourceCalled('Execute', ('cp', '--remove-destination', '/tmp/mysql-connector-java.jar',
       '/usr/hdp/2.3.0.0-1234/oozie/libext/mysql-connector-java.jar'),

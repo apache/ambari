@@ -20,7 +20,8 @@
         "java_version": "8",
         "db_name": "ambari",
         "group_list": "[\"hadoop\",\"nobody\",\"users\"]",
-        "user_list": "[\"hive\",\"oozie\",\"nobody\",\"ambari-qa\",\"flume\",\"hdfs\",\"storm\",\"mapred\",\"hbase\",\"tez\",\"zookeeper\",\"falcon\",\"sqoop\",\"yarn\",\"hcat\"]"
+        "user_list": "[\"hive\",\"oozie\",\"nobody\",\"ambari-qa\",\"flume\",\"hdfs\",\"storm\",\"mapred\",\"hbase\",\"tez\",\"zookeeper\",\"falcon\",\"sqoop\",\"yarn\",\"hcat\"]",
+        "custom_sqlanywhere_jdbc_name" : "sqla-client-jdbc.tar.gz"
     },
     "commandType": "EXECUTION_COMMAND",
     "roleParams": {},

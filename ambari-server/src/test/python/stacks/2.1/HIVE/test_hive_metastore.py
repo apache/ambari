@@ -649,7 +649,7 @@ class TestHiveMetastore(RMFTestCase):
     )
 
     self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
-        content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-jdbc-driver.jar'),
+        content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar'),
     )
     self.assertResourceCalled('Execute', ('cp',
      '--remove-destination',
@@ -806,7 +806,7 @@ class TestHiveMetastore(RMFTestCase):
 
     self.assertResourceCalled('File',
                               '/tmp/sqla-client-jdbc.tar.gz',
-                              content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//sqlanywhere-jdbc-driver.tar.gz')
+                              content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//sqla-client-jdbc.tar.gz')
                               )
 
     self.assertResourceCalled('Execute',
@@ -826,7 +826,7 @@ class TestHiveMetastore(RMFTestCase):
     self.assertResourceCalled('Execute',
                               ('ambari-sudo.sh chown -R hive:hadoop /usr/hdp/current/hive-server2/lib/*'))
 
-    self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/lib/sajdbc4.jar',
+    self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/lib/sqla-client-jdbc.tar.gz',
                               mode = 0644,
                               )
 
@@ -843,7 +843,7 @@ class TestHiveMetastore(RMFTestCase):
     self.assertResourceCalled('Execute',
                               ('ambari-sudo.sh chown -R hive:hadoop /usr/hdp/current/hive-server2/lib/*'))
 
-    self.assertResourceCalled('File', '/usr/hdp/2.3.0.0-1234/hive/lib/sajdbc4.jar',
+    self.assertResourceCalled('File', '/usr/hdp/2.3.0.0-1234/hive/lib/sqla-client-jdbc.tar.gz',
                               mode = 0644,
                               )
 

@@ -206,27 +206,22 @@ jdbc_driver_name = default("/configurations/oozie-site/oozie.service.JPAService.
 # BECAUSE PATH TO CLASSES COULD BE CHANGED
 sqla_db_used = False
 if jdbc_driver_name == "com.microsoft.sqlserver.jdbc.SQLServerDriver":
-  jdbc_driver_jar = "sqljdbc4.jar"
-  jdbc_symlink_name = "mssql-jdbc-driver.jar"
+  jdbc_driver_jar = default("/hostLevelParams/custom_mssql_jdbc_name", None)
 elif jdbc_driver_name == "com.mysql.jdbc.Driver":
-  jdbc_driver_jar = "mysql-connector-java.jar"
-  jdbc_symlink_name = "mysql-jdbc-driver.jar"
+  jdbc_driver_jar = default("/hostLevelParams/custom_mysql_jdbc_name", None)
 elif jdbc_driver_name == "org.postgresql.Driver":
   jdbc_driver_jar = format("{oozie_home}/libserver/postgresql-9.0-801.jdbc4.jar")  #oozie using it's own postgres jdbc
-  jdbc_symlink_name = "postgres-jdbc-driver.jar"
 elif jdbc_driver_name == "oracle.jdbc.driver.OracleDriver":
-  jdbc_driver_jar = "ojdbc.jar"
-  jdbc_symlink_name = "oracle-jdbc-driver.jar"
+  jdbc_driver_jar = default("/hostLevelParams/custom_oracle_jdbc_name", None)
 elif jdbc_driver_name == "sap.jdbc4.sqlanywhere.IDriver":
-  jdbc_driver_jar = "sajdbc4.jar"
-  jdbc_symlink_name = "sqlanywhere-jdbc-driver.tar.gz"
+  jdbc_driver_jar = default("/hostLevelParams/custom_sqlanywhere_jdbc_name", None)
   sqla_db_used = True
 else:
   jdbc_driver_jar = ""
   jdbc_symlink_name = ""
 
-driver_curl_source = format("{jdk_location}/{jdbc_symlink_name}")
-driver_curl_target = format("{java_share_dir}/{jdbc_driver_jar}")
+default("/hostLevelParams/custom_sqlanywhere_jdbc_name", None)
+driver_curl_source = format("{jdk_location}/{jdbc_driver_jar}")
 downloaded_custom_connector = format("{tmp_dir}/{jdbc_driver_jar}")
 if jdbc_driver_name == "org.postgresql.Driver":
   target = jdbc_driver_jar

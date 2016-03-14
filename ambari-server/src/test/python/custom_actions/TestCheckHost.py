@@ -85,7 +85,9 @@ class TestCheckHost(TestCase):
                                                    "user_name" : "test_user_name",
                                                    "user_passwd" : "test_user_passwd",
                                                    "jdk_name" : "test_jdk_name"},
-                                "hostLevelParams": { "agentCacheDir": "/nonexistent_tmp" }}
+                                "hostLevelParams": { "agentCacheDir": "/nonexistent_tmp",
+                                                     "custom_mysql_jdbc_name" : "mysql-connector-java.jar"}
+                                }
     get_tmp_dir_mock.return_value = "/tmp"
     download_file_mock.side_effect = Exception("test exception")
     isfile_mock.return_value = True
@@ -111,7 +113,8 @@ class TestCheckHost(TestCase):
                                                    "user_name" : "test_user_name",
                                                    "user_passwd" : "test_user_passwd",
                                                    "jdk_name" : "test_jdk_name"},
-                                "hostLevelParams": { "agentCacheDir": "/nonexistent_tmp" }}
+                                "hostLevelParams": { "agentCacheDir": "/nonexistent_tmp",
+                                                     "custom_oracle_jdbc_name" : "oracle-jdbc-driver.jar"}}
     format_mock.reset_mock()
     download_file_mock.reset_mock()
     p = MagicMock()
@@ -140,7 +143,8 @@ class TestCheckHost(TestCase):
                                                    "user_name" : "test_user_name",
                                                    "user_passwd" : "test_user_passwd",
                                                    "jdk_name" : "test_jdk_name"},
-                                "hostLevelParams": { "agentCacheDir": "/nonexistent_tmp" }}
+                                "hostLevelParams": { "agentCacheDir": "/nonexistent_tmp",
+                                                     "custom_postgres_jdbc_name" : "test-postgres-jdbc.jar"}}
     format_mock.reset_mock()
     download_file_mock.reset_mock()
     download_file_mock.side_effect = [p, p]
@@ -177,7 +181,8 @@ class TestCheckHost(TestCase):
                                                    "user_name" : "test_user_name",
                                                    "user_passwd" : "test_user_passwd",
                                                    "db_name" : "postgres"},
-                                "hostLevelParams": { "agentCacheDir": "/nonexistent_tmp" }}
+                                "hostLevelParams": { "agentCacheDir": "/nonexistent_tmp",
+                                                     "custom_postgres_jdbc_name" : "test-postgres-jdbc.jar"}}
 
     isfile_mock.return_value = False
 

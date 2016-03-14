@@ -75,7 +75,7 @@ sqoop_user = config['configurations']['sqoop-env']['sqoop_user']
 smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 #JDBC driver jar name
-sqoop_jdbc_drivers_dict = {}
+sqoop_jdbc_drivers_dict = []
 sqoop_jdbc_drivers_name_dict = {}
 if "jdbc_drivers" in config['configurations']['sqoop-env']:
   sqoop_jdbc_drivers = config['configurations']['sqoop-env']['jdbc_drivers'].split(',')
@@ -84,29 +84,24 @@ if "jdbc_drivers" in config['configurations']['sqoop-env']:
     driver_name = driver_name.strip()
     if driver_name and not driver_name == '':
       if driver_name == "com.microsoft.sqlserver.jdbc.SQLServerDriver":
-        jdbc_jar_name = "sqljdbc4.jar"
-        jdbc_symlink_name = "mssql-jdbc-driver.jar"
+        jdbc_name = default("/hostLevelParams/custom_mssql_jdbc_name", None)
         jdbc_driver_name = "mssql"
       elif driver_name == "com.mysql.jdbc.Driver":
-        jdbc_jar_name = "mysql-connector-java.jar"
-        jdbc_symlink_name = "mysql-jdbc-driver.jar"
+        jdbc_name = default("/hostLevelParams/custom_mysql_jdbc_name", None)
         jdbc_driver_name = "mysql"
       elif driver_name == "org.postgresql.Driver":
-        jdbc_jar_name = "postgresql-jdbc.jar"
-        jdbc_symlink_name = "postgres-jdbc-driver.jar"
+        jdbc_name = default("/hostLevelParams/custom_postgres_jdbc_name", None)
         jdbc_driver_name = "postgres"
       elif driver_name == "oracle.jdbc.driver.OracleDriver":
-        jdbc_jar_name = "ojdbc.jar"
-        jdbc_symlink_name = "oracle-jdbc-driver.jar"
+        jdbc_name = default("/hostLevelParams/custom_oracle_jdbc_name", None)
         jdbc_driver_name = "oracle"
       elif driver_name == "org.hsqldb.jdbc.JDBCDriver":
-        jdbc_jar_name = "hsqldb.jar"
-        jdbc_symlink_name = "hsqldb-jdbc-driver.jar"
+        jdbc_name = default("/hostLevelParams/custom_hsqldb_jdbc_name", None)
         jdbc_driver_name = "hsqldb"
     else:
       continue
-    sqoop_jdbc_drivers_dict[jdbc_jar_name] = jdbc_symlink_name
-    sqoop_jdbc_drivers_name_dict[jdbc_jar_name] = jdbc_driver_name
+    sqoop_jdbc_drivers_dict.append(jdbc_name)
+    sqoop_jdbc_drivers_name_dict[jdbc_name] = jdbc_driver_name
 jdk_location = config['hostLevelParams']['jdk_location']
 
 job_data_publish_class = ''

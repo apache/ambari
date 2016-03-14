@@ -17,21 +17,11 @@
  */
 package org.apache.ambari.server.configuration;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.security.cert.CertificateException;
-import java.security.interfaces.RSAPublicKey;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Properties;
-
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
@@ -56,11 +46,23 @@ import org.apache.commons.lang.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.cert.CertificateException;
+import java.security.interfaces.RSAPublicKey;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Properties;
+import java.util.Set;
 
 
 /**
@@ -604,6 +606,10 @@ public class Configuration {
   public static final String AGENT_STACK_RETRY_COUNT_KEY = "agent.stack.retry.tries";
   public static final String AGENT_STACK_RETRY_COUNT_DEFAULT = "5";
 
+  private static final Set<String> dbConnectorPropertyNames = new HashSet<String>(Arrays.asList("custom.mysql.jdbc.name",
+          "custom.oracle.jdbc.name", "custom.postgres.jdbc.name", "custom.mssql.jdbc.name", "custom.hsqldb.jdbc.name",
+          "custom.sqlanywhere.jdbc.name"));
+
   private static final Logger LOG = LoggerFactory.getLogger(
     Configuration.class);
 
@@ -614,6 +620,8 @@ public class Configuration {
   private CredentialProvider credentialProvider = null;
   private volatile boolean credentialProviderInitialized = false;
   private Map<String, String> customDbProperties = null;
+  private Long configLastModifiedDate = null;
+  private Map<String, String> databaseConnectorNames = new HashMap<>();
 
   static {
     if (System.getProperty("os.name").contains("Windows")) {
@@ -954,6 +962,31 @@ public class Configuration {
     }
 
     return properties;
+  }
+
+  public Map<String, String> getDatabaseConnectorNames() {
+    File file = new File(Configuration.class.getClassLoader().getResource(CONFIG_FILE).getPath());
+    Long currentConfigLastModifiedDate = file.lastModified();
+    Properties properties = null;
+    if (currentConfigLastModifiedDate.longValue() != configLastModifiedDate.longValue()) {
+      LOG.info("Ambari properties config file changed.");
+      if (configLastModifiedDate != null) {
+        properties = readConfigFile();
+      } else {
+        properties = this.properties;
+      }
+
+      for (String propertyName : dbConnectorPropertyNames) {
+        String propertyValue = properties.getProperty(propertyName);
+        if (propertyValue != null) {
+          databaseConnectorNames.put(propertyName.replace(".", "_"), propertyValue);
+        }
+      }
+
+      configLastModifiedDate = currentConfigLastModifiedDate;
+    }
+
+    return databaseConnectorNames;
   }
 
   public JsonObject getHostChangesJson(String hostChangesFile) {

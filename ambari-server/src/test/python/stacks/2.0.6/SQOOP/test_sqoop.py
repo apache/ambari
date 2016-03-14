@@ -82,12 +82,12 @@ class TestSqoop(RMFTestCase):
     self.assertResourceCalled('Link', '/usr/lib/sqoop/lib/mysql-connector-java.jar',
                               to = '/usr/share/java/mysql-connector-java.jar',
                               )
-    self.assertResourceCalled('File', '/usr/lib/sqoop/lib/ojdbc.jar',
-                              content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//oracle-jdbc-driver.jar'),
+    self.assertResourceCalled('File', '/usr/lib/sqoop/lib/test-postgres-jdbc.jar',
+                              content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//test-postgres-jdbc.jar'),
                               mode = 0644,
                               )
-    self.assertResourceCalled('File', '/usr/lib/sqoop/lib/postgresql-jdbc.jar',
-                              content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//postgres-jdbc-driver.jar'),
+    self.assertResourceCalled('File', '/usr/lib/sqoop/lib/oracle-jdbc-driver.jar',
+                              content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//oracle-jdbc-driver.jar'),
                               mode = 0644,
                               )
     self.assertResourceCalled('Directory', '/usr/lib/sqoop/conf',

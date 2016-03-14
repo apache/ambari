@@ -256,7 +256,7 @@ def hive(name=None):
        content=Template("hive.conf.j2")
        )
 
-  if (name == 'metastore' or name == 'hiveserver2') and not os.path.exists(params.target):
+  if (name == 'metastore' or name == 'hiveserver2') and params.target != None and not os.path.exists(params.target):
     jdbc_connector()
 
   File(format("/usr/lib/ambari-agent/{check_db_connection_jar_name}"),
@@ -421,7 +421,7 @@ def jdbc_connector():
             path=["/bin", "/usr/bin/"],
             sudo=True
     )
-    
+
   File(params.target,
        mode = 0644,
   )
