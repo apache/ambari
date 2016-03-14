@@ -17,21 +17,26 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-import glob
 
+import datetime
+import glob
 import os
+import re
+import shutil
+import stat
+import string
+import sys
+import tempfile
 
 import ambari_server
-import re
-from ambari_commons.exceptions import FatalException
-from ambari_commons.logging_utils import print_info_msg, print_error_msg
+from ambari_commons.logging_utils import print_info_msg
 from resource_management.core.shell import quote_bash_args
 AMBARI_CONF_VAR = "AMBARI_CONF_DIR"
 SERVER_CLASSPATH_KEY = "SERVER_CLASSPATH"
 LIBRARY_PATH_KEY = "LD_LIBRARY_PATH"
 AMBARI_SERVER_LIB = "AMBARI_SERVER_LIB"
 JDBC_DRIVER_PATH_PROPERTY = "server.jdbc.driver.path"
-JAR_FILE_PATTERN = re.compile(r'^(.*)(-\d.*\.jar$)')
+
 
 
 class ServerClassPath():
@@ -89,7 +94,7 @@ class ServerClassPath():
 
   def get_full_ambari_classpath_escaped_for_shell(self):
     class_path = self._get_ambari_classpath()
-    self._validate_classpath(class_path)
+
     # When classpath is required we should also set native libs os env variable
     # This is required for some jdbc (ex. sqlAnywhere)
     self.set_native_libs_path()
@@ -108,46 +113,3 @@ class ServerClassPath():
           native_libs_path = os.environ[LIBRARY_PATH_KEY] + os.pathsep + native_libs_path
         os.environ[LIBRARY_PATH_KEY] = native_libs_path
 
-  def _validate_classpath(self, classpath):
-    """
-    Check if  java class path contains multiple versions of the same jar
-    archives, if yes - raise FatalException()
-
-    Keyword arguments:
-      classpath - java class path
-    """
-    jars = self._find_all_jars(classpath)
-    jar_names = {}
-
-    for jar in jars:
-      match = JAR_FILE_PATTERN.match(os.path.basename(jar))
-      if match:
-        for group in match.groups():
-          if group in jar_names:
-            err = "Multiple versions of {0}.jar found in java class path " \
-                  "({1} and {2}). \n Make sure that you include only one " \
-                  "{0}.jar in the java class path '{3}'."\
-                  .format(group, jar, jar_names[group], classpath)
-            raise FatalException(1, err)
-          else:
-            jar_names[group] = jar
-            break
-
-  def _find_all_jars(self, classpath):
-    """
-    Return the list of absolute paths to jars in classpath.
-    Raise FatalException() if classpath isn't set
-
-    Keyword arguments:
-      classpath - java class path
-    """
-    if classpath:
-      jars = []
-      for wildcard in classpath.split(os.pathsep):
-        for path in glob.glob(wildcard):
-          if os.path.isfile(path) and path.endswith(".jar"):
-            jars.append(path)
-      return jars
-    else:
-      raise FatalException(1, "No classpath specified.")
-    pass
