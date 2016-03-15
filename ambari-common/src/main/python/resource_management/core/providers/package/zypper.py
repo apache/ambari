@@ -75,6 +75,9 @@ class ZypperProvider(PackageProvider):
     if not code:
       for line in output.split('\n')[2:]:
         line_list = line.split('|')
+        if len(line_list) < 5:
+          continue  # Skip malformed line, such as "---+--------+---------+----------+--------"
+                    # Handle good line such as "1 | HDP-2.3 | HDP-2.3 | No | No"
         if line_list[3].strip() == 'Yes' and line_list[2].strip().startswith("SUSE-"):
           enabled_repos.append(line_list[1].strip())
         if line_list[2].strip() == 'OpenSuse':
