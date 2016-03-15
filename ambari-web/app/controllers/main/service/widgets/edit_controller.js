@@ -115,19 +115,6 @@ App.WidgetEditController = App.WidgetWizardController.extend({
   },
 
   /**
-   * set current step
-   * @param {string} currentStep
-   * @param {boolean} completed
-   * @param {boolean} skipStateSave
-   */
-  setCurrentStep: function (currentStep, completed, skipStateSave) {
-    this._super(currentStep, completed);
-    if (App.get('testMode') || skipStateSave) {
-      return;
-    }
-  },
-
-  /**
    * post widget definition to server
    * @returns {$.ajax}
    */
