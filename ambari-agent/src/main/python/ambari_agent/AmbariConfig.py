@@ -90,6 +90,7 @@ servicesToPidNames = {
   'KERBEROS_SERVER': 'kadmind.pid',
   'HIVE_SERVER': 'hive-server.pid',
   'HIVE_METASTORE': 'hive.pid',
+  'HIVE_SERVER_INTERACTIVE' : 'hive-interactive.pid',
   'MYSQL_SERVER': 'mysqld.pid',
   'HUE_SERVER': '/var/run/hue/supervisor.pid',
   'WEBHCAT_SERVER': 'webhcat.pid',
