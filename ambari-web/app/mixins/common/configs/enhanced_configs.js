@@ -577,10 +577,10 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
         var cp = configProperties.findProperty('name', propertyName);
         var stackProperty = stackConfigsMap[App.config.configId(propertyName, siteName)];
         var attributes = properties[propertyName] || {};
+        var fileName = App.config.getOriginalFileName(siteName);
         Em.keys(attributes).forEach(function (attributeName) {
           if (attributeName == 'delete' && cp) {
             if (!updateOnlyBoundaries) {
-              var fileName = App.config.getOriginalFileName(siteName);
               var modifiedFileNames = self.get('modifiedFileNames');
               var dependentProperty = self.get('_dependentConfigValues').filterProperty('propertyName', propertyName).filterProperty('fileName', siteName).findProperty('configGroup', group && Em.get(group,'name'));
               if (dependentProperty) {
@@ -625,6 +625,12 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
               }
             } else {
               Em.set(stackProperty.get('valueAttributes'), attributeName, attributes[attributeName]);
+              if (attributeName === 'visible') {
+                var p = self.findConfigProperty(propertyName, fileName);
+                if (p) {
+                  p.set('isVisible', attributes[attributeName]);
+                }
+              }
             }
           }
         });
