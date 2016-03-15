@@ -28,3 +28,6 @@ hbase_populate_data_script = "hbase-populate-data.sh"
 hbase_cleanup_data_script = "hbase-cleanup-data.sh"
 pxf_hive_test_table = "pxf_hive_smoke_test_table"
 hive_populate_data_script = "hive-populate-data.hql"
+pxf_service_name = "pxf-service"
+pxf_user = "pxf"
+default_exec_timeout = 600

@@ -70,9 +70,9 @@ class Pxf(Script):
 
 
   def __execute_service_command(self, command):
-    import params
-    Execute("service {0} {1}".format(params.pxf_service_name, command),
-              timeout=params.default_exec_timeout,
+    import pxf_constants
+    Execute("service {0} {1}".format(pxf_constants.pxf_service_name, command),
+              timeout=pxf_constants.default_exec_timeout,
               logoutput=True)
 
 
