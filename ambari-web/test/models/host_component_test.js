@@ -310,4 +310,85 @@ describe('App.HostComponent', function() {
 
   App.TestAliases.testAsComputedExistsIn(hc, 'isNotInstalled', 'workStatus', ['INIT', 'INSTALL_FAILED']);
 
+  describe("#getDisplayName",function(){
+    var testCases = [
+      {
+        testName: 'for displayName of length < 19',
+        displayName: 'abc',
+        result: 'abc'
+      },
+      {
+        testName:'for displayName of length = 19',
+        displayName: '1234567890123456789',
+        result: '1234567890123456789'
+      },
+      {
+        testName:'for displayName of length > 19',
+        displayName: '12345678901234567890',
+        result: '1234567890123456...'
+      }
+    ];
+
+    testCases.forEach(function(test){
+      it(test.testName, function(){
+        hc.set('displayName',test.displayName);
+        expect(hc.get('getDisplayName')).to.equal(test.result);
+      });
+    });
+  });
+
+  describe("#getDisplayNameAdvanced",function(){
+    var testCases = [
+      {
+        testName: 'for displayNameAdvanced of length < 19',
+        displayNameAdvanced: 'abc',
+        result: 'abc'
+      },
+      {
+        testName:'for displayNameAdvanced of length = 19',
+        displayNameAdvanced: '1234567890123456789',
+        result: '1234567890123456789'
+      },
+      {
+        testName:'for displayNameAdvanced of length > 19',
+        displayNameAdvanced: '12345678901234567890',
+        result: '1234567890123456...'
+      }
+    ];
+
+    testCases.forEach(function(test){
+      it(test.testName, function(){
+        hc.set('displayNameAdvanced',test.displayNameAdvanced);
+        expect(hc.get('getDisplayNameAdvanced')).to.equal(test.result);
+      });
+    });
+  });
+
+
+  describe("#serviceDisplayName",function(){
+    var testCases = [
+      {
+        testName: 'for service.displayName of length < 14',
+        serviceDisplayName: 'abc',
+        result: 'abc'
+      },
+      {
+        testName:'for service.displayName of length = 14',
+        serviceDisplayName: '12345678901234',
+        result: '12345678901234'
+      },
+      {
+        testName:'for service.displayName of length > 14',
+        serviceDisplayName: '123456789012345',
+        result: '12345678901...'
+      }
+    ];
+
+    testCases.forEach(function(test){
+      it(test.testName, function(){
+        hc.set('service',Em.Object.create({displayName:test.serviceDisplayName}));
+        expect(hc.get('serviceDisplayName')).to.equal(test.result);
+      });
+    });
+  });
 });

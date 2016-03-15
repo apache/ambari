@@ -31,6 +31,21 @@ App.HostComponent = DS.Model.extend({
   service: DS.belongsTo('App.Service'),
   adminState: DS.attr('string'),
 
+  serviceDisplayName: function(){
+    var name = this.get('service.displayName');
+    return name.length > 14 ? name.substr(0, 11) + "..." : name;
+  }.property('service'),
+
+  getDisplayName:function(){
+    var name = this.get('displayName');
+    return name.length > 19 ? name.substr(0, 16) + "..." : name;
+  }.property('displayName'),
+
+  getDisplayNameAdvanced:function(){
+    var name = this.get('displayNameAdvanced');
+    return name.length > 19 ? name.substr(0, 16) + "..." : name;
+  }.property('displayNameAdvanced'),
+
   summaryLabelClassName:function(){
     return 'label_for_'+this.get('componentName').toLowerCase();
   }.property('componentName'),
