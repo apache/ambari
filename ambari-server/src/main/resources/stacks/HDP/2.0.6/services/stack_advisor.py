@@ -493,6 +493,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     putAmsHbaseSiteProperty = self.putProperty(configurations, "ams-hbase-site", services)
     putAmsSiteProperty = self.putProperty(configurations, "ams-site", services)
     putHbaseEnvProperty = self.putProperty(configurations, "ams-hbase-env", services)
+    putGrafanaPropertyAttribute = self.putPropertyAttribute(configurations, "ams-grafana-env")
 
     amsCollectorHosts = self.getComponentHostNames(services, "AMBARI_METRICS", "METRICS_COLLECTOR")
 
@@ -655,6 +656,19 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       aggregate_splits = result.aggregate
     putAmsSiteProperty("timeline.metrics.host.aggregate.splitpoints", ','.join(precision_splits))
     putAmsSiteProperty("timeline.metrics.cluster.aggregate.splitpoints", ','.join(aggregate_splits))
+
+    component_grafana_exists = False
+    for service in services:
+      if 'components' in service:
+        for component in service['components']:
+          if 'StackServiceComponents' in component:
+            if 'METRICS_GRAFANA' in component['StackServiceComponents']['component_name']:
+              component_grafana_exists = True
+              break
+    pass
+
+    if not component_grafana_exists:
+      putGrafanaPropertyAttribute("metrics_grafana_password", "visible", "false")
 
     pass
 
