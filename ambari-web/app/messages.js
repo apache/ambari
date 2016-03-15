@@ -1215,6 +1215,10 @@ Em.I18n.translations = {
   'admin.highAvailability.wizard.step6.jnStopped':'All JournalNodes should be started before initializing',
   'admin.highAvailability.wizard.step8.metaNoInit':'Metadata not initialized yet',
   'admin.highAvailability.wizard.step8.confirmPopup.body':'Please confirm that you have run the manual steps before continuing.',
+  'admin.highAvailability.wizard.step9.hawq.confirmPopup.header':'Additional Steps Required for HAWQ',
+  'admin.highAvailability.wizard.step9.hawq.confirmPopup.body':'You must refer to the HAWQ documentation under section ' +
+     '"HAWQ Filespaces and High Availability Enabled HDFS" and perform the required manual steps to update the HAWQ filespace ' +
+     'location. HAWQ will not use HDFS nameservice unless the steps have been completed successfully.',
 
   'admin.highAvailability.rollback.header':'Disable NameNode HA Wizard',
   'admin.highAvailability.rollback.task0.title':'Stop All Services',
@@ -1291,6 +1295,9 @@ Em.I18n.translations = {
     '<b>manual steps</b> (that you must perform in sequence as instructed by the wizard).<br/><br/>' +
     '<b>You should plan a cluster maintenance window and prepare for cluster downtime when enabling NameNode HA.</b>',
   'admin.highAvailability.wizard.step1.alert':'If you have HBase running, please exit this wizard and stop HBase first.',
+  'admin.highAvailability.wizard.step1.hawq.alert':'<br/><br/>You will need to perform additional manual ' +
+    'steps to update the HAWQ filespace location, once this wizard completes. Refer to the HAWQ documentation under section ' +
+    '"HAWQ Filespaces and High Availability Enabled HDFS" for more information.',
 
   'admin.rm_highAvailability.wizard.header': 'Enable ResourceManager HA Wizard',
   'admin.rm_highAvailability.wizard.step1.header': 'Get Started',

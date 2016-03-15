@@ -114,6 +114,8 @@ module.exports = App.WizardRoute.extend({
         controller.setCurrentStep('1');
         controller.usersLoading().done(function () {
           controller.saveHdfsUser();
+          var highAvailabilityWizardStep1Controller = router.get('highAvailabilityWizardStep1Controller');
+          highAvailabilityWizardStep1Controller.setHawqInstalled();
           controller.loadAllPriorSteps().done(function () {
             controller.connectOutlet('highAvailabilityWizardStep1', controller.get('content'));
           });
@@ -322,22 +324,33 @@ module.exports = App.WizardRoute.extend({
       return false;
     },
     next: function (router) {
-      var controller = router.get('highAvailabilityWizardController');
-      controller.clearTasksData();
-      controller.finish();
-      App.clusterStatus.setClusterStatus({
-        clusterName: controller.get('content.cluster.name'),
-        clusterState: 'DEFAULT',
-        localdb: App.db.data
-      }, {
-        alwaysCallback: function () {
-          controller.get('popup').hide();
-          router.transitionTo('main.services.index');
-          Em.run.next(function() {
-            location.reload();
-          });
-        }
-      });
+      var proceed = function() {
+        var controller = router.get('highAvailabilityWizardController');
+        controller.clearTasksData();
+        controller.finish();
+        App.clusterStatus.setClusterStatus({
+          clusterName: controller.get('content.cluster.name'),
+          clusterState: 'DEFAULT',
+          localdb: App.db.data
+        }, {
+          alwaysCallback: function () {
+            controller.get('popup').hide();
+            router.transitionTo('main.services.index');
+            Em.run.next(function() {
+              location.reload();
+            });
+          }
+        });
+      };
+      if (App.Service.find().someProperty('serviceName', 'HAWQ')) {
+        App.showAlertPopup(
+            Em.I18n.t('admin.highAvailability.wizard.step9.hawq.confirmPopup.header'),
+            Em.I18n.t('admin.highAvailability.wizard.step9.hawq.confirmPopup.body'),
+            proceed);
+      }
+      else {
+        proceed();
+      }
     }
   })
 
