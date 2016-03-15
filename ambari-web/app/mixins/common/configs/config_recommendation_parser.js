@@ -66,11 +66,11 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
           if (propertyAttributes) {
             var stackProperty = App.configsCollection.getConfigByName(name, fileName);
             for (var attr in propertyAttributes) {
-              if (attr == 'delete' && this.allowUpdateProperty(parentProperties, name, fileName)) {
+              if (attr === 'delete' && this.allowUpdateProperty(parentProperties, name, fileName)) {
                 propertiesToDelete.push(config);
-              } else if (stackProperty) {
+              } else if ((attr === 'visible') || stackProperty) {
                 /** update config boundaries **/
-                updateBoundariesCallback(stackProperty, attr, propertyAttributes[attr], configGroup);
+                updateBoundariesCallback(stackProperty, attr, propertyAttributes[attr], name, fileName, configGroup);
               }
             }
           }
@@ -221,15 +221,24 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
 	 * @param {Object} stackProperty
 	 * @param {string} attr
 	 * @param {Number|String|Boolean} value
+	 * @param {String} name
+	 * @param {String} fileName
 	 * @protected
 	 */
-	_updateBoundaries: function(stackProperty, attr, value) {
-    App.assertObject(stackProperty);
-    if (!Em.get(stackProperty, 'valueAttributes')) {
-      stackProperty.valueAttributes = {};
-    }
-		Em.set(stackProperty.valueAttributes, attr, value);
-    return stackProperty;
+	_updateBoundaries: function(stackProperty, attr, value, name, fileName) {
+		if (attr === 'visible') {
+			var p = App.config.findConfigProperty(this.get('stepConfigs'), name, App.config.getOriginalFileName(fileName));
+			if (p) {
+				p.set('isVisible', value);
+			}
+		}
+		if (stackProperty) {
+			if (!Em.get(stackProperty, 'valueAttributes')) {
+				stackProperty.valueAttributes = {};
+			}
+			Em.set(stackProperty.valueAttributes, attr, value);
+		}
+    return stackProperty || null;
 	},
 
   /**

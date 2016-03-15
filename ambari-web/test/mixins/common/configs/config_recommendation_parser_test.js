@@ -100,12 +100,12 @@ describe('App.ConfigRecommendationParser', function() {
 
       it('updateBoundariesCallback maximum', function() {
         expect(instanceObject.updateBoundariesCallback.calledWith({ name: 'p3', filename: 'fileName1' },
-          'maximum', 100, null)).to.be.true;
+          'maximum', 100, 'p3', 'fileName1', null)).to.be.true;
       });
 
       it('updateBoundariesCallback minimum', function() {
         expect(instanceObject.updateBoundariesCallback.calledWith({ name: 'p3', filename: 'fileName1' },
-          'minimum', 1, null)).to.be.true;
+          'minimum', 1, 'p3', 'fileName1', null)).to.be.true;
       });
     });
 
@@ -324,10 +324,6 @@ describe('App.ConfigRecommendationParser', function() {
   describe('#_updateBoundaries', function() {
     it('sets appropriate attribute', function() {
       expect(instanceObject._updateBoundaries({}, 'attr1', 'v1')).to.eql({ valueAttributes: {'attr1': 'v1'}});
-    });
-
-    it('throws error', function() {
-      expect(instanceObject._updateBoundaries.bind(instanceObject, null, 'attr1', 'v1')).to.throw(App.ObjectTypeError);
     });
   });
 
