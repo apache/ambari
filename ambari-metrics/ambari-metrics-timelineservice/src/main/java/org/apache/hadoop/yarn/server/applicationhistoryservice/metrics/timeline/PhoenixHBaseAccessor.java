@@ -173,14 +173,14 @@ public class PhoenixHBaseAccessor {
     this.outOfBandTimeAllowance = metricsConf.getLong(OUT_OFF_BAND_DATA_TIME_ALLOWANCE,
       DEFAULT_OUT_OF_BAND_TIME_ALLOWANCE);
 
-    tableTTL.put(METRICS_RECORD_TABLE_NAME, getDaysInSeconds(metricsConf.get(PRECISION_TABLE_TTL, "1")));                            //1 day
-    tableTTL.put(METRICS_AGGREGATE_MINUTE_TABLE_NAME, getDaysInSeconds(metricsConf.get(HOST_MINUTE_TABLE_TTL, "7")));                //7 days
-    tableTTL.put(METRICS_AGGREGATE_HOURLY_TABLE_NAME, getDaysInSeconds(metricsConf.get(HOST_HOUR_TABLE_TTL, "30")));                 //30 days
-    tableTTL.put(METRICS_AGGREGATE_DAILY_TABLE_NAME, getDaysInSeconds(metricsConf.get(HOST_DAILY_TABLE_TTL, "365")));                //1 year
-    tableTTL.put(METRICS_CLUSTER_AGGREGATE_TABLE_NAME, getDaysInSeconds(metricsConf.get(CLUSTER_SECOND_TABLE_TTL, "7")));            //7 days
-    tableTTL.put(METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME, getDaysInSeconds(metricsConf.get(CLUSTER_MINUTE_TABLE_TTL, "30")));    //30 days
-    tableTTL.put(METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME, getDaysInSeconds(metricsConf.get(CLUSTER_HOUR_TABLE_TTL, "365")));     //1 year
-    tableTTL.put(METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME, getDaysInSeconds(metricsConf.get(CLUSTER_DAILY_TABLE_TTL, "730")));     //2 years
+    tableTTL.put(METRICS_RECORD_TABLE_NAME, metricsConf.get(PRECISION_TABLE_TTL, String.valueOf(1 * 86400)));  // 1 day
+    tableTTL.put(METRICS_AGGREGATE_MINUTE_TABLE_NAME, metricsConf.get(HOST_MINUTE_TABLE_TTL, String.valueOf(7 * 86400))); //7 days
+    tableTTL.put(METRICS_AGGREGATE_HOURLY_TABLE_NAME, metricsConf.get(HOST_HOUR_TABLE_TTL, String.valueOf(30 * 86400))); //30 days
+    tableTTL.put(METRICS_AGGREGATE_DAILY_TABLE_NAME, metricsConf.get(HOST_DAILY_TABLE_TTL, String.valueOf(365 * 86400))); //1 year
+    tableTTL.put(METRICS_CLUSTER_AGGREGATE_TABLE_NAME, metricsConf.get(CLUSTER_SECOND_TABLE_TTL, String.valueOf(7 * 86400))); //7 days
+    tableTTL.put(METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME, metricsConf.get(CLUSTER_MINUTE_TABLE_TTL, String.valueOf(30 * 86400))); //30 days
+    tableTTL.put(METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME, metricsConf.get(CLUSTER_HOUR_TABLE_TTL, String.valueOf(365 * 86400))); //1 year
+    tableTTL.put(METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME, metricsConf.get(CLUSTER_DAILY_TABLE_TTL, String.valueOf(730 * 86400))); //2 years
   }
 
   private static TimelineMetric getLastTimelineMetricFromResultSet(ResultSet rs)

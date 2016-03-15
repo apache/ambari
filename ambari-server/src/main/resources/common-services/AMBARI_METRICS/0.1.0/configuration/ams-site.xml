@@ -283,58 +283,58 @@
   </property>
   <property>
     <name>timeline.metrics.host.aggregator.daily.ttl</name>
-    <value>365</value>
+    <value>31536000</value>
     <description>
-      Host based daily resolution data purge interval. Default is 1 year.
+      Host based daily resolution data purge interval in seconds. Default is 1 year.
     </description>
   </property>
   <property>
     <name>timeline.metrics.host.aggregator.hourly.ttl</name>
-    <value>30</value>
+    <value>2592000</value>
     <description>
-      Host based hourly resolution data purge interval. Default is 30 days.
+      Host based hourly resolution data purge interval in seconds. Default is 30 days.
     </description>
   </property>
   <property>
     <name>timeline.metrics.host.aggregator.minute.ttl</name>
-    <value>7</value>
+    <value>604800</value>
     <description>
-      Host based minute resolution data purge interval. Default is 7 days.
+      Host based minute resolution data purge interval in seconds. Default is 7 days.
     </description>
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.second.ttl</name>
-    <value>7</value>
+    <value>604800</value>
     <description>
-      Cluster wide second resolution data purge interval. Default is 7 days.
+      Cluster wide second resolution data purge interval in seconds. Default is 7 days.
     </description>
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.minute.ttl</name>
-    <value>30</value>
+    <value>2592000</value>
     <description>
-      Cluster wide minute resolution data purge interval. Default is 30 days.
+      Cluster wide minute resolution data purge interval in seconds. Default is 30 days.
     </description>
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.hourly.ttl</name>
-    <value>365</value>
+    <value>31536000</value>
     <description>
-      Cluster wide hourly resolution data purge interval. Default is 1 year.
+      Cluster wide hourly resolution data purge interval in seconds. Default is 1 year.
     </description>
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.daily.ttl</name>
-    <value>730</value>
+    <value>63072000</value>
     <description>
-      Cluster wide daily resolution data purge interval. Default is 2 years.
+      Cluster wide daily resolution data purge interval in seconds. Default is 2 years.
     </description>
   </property>
   <property>
     <name>timeline.metrics.host.aggregator.ttl</name>
-    <value>1</value>
+    <value>86400</value>
     <description>
-      1 minute resolution data purge interval. Default is 1 day for embedded mode and 7 days for Distributed mode.
+      1 minute resolution data purge interval in seconds. Default is 1 day for embedded mode and 7 days for Distributed mode.
     </description>
     <depends-on>
       <property>

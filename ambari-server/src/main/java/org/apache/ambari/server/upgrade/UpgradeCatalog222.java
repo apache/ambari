@@ -49,11 +49,9 @@ import java.io.File;
 import java.io.FileReader;
 import java.lang.reflect.Type;
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Upgrade catalog for version 2.2.2.
@@ -85,13 +83,8 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
   private static final String TIMELINE_METRICS_SERVICE_WATCHER_DISBALED = "timeline.metrics.service.watcher.disabled";
   private static final String AMS_MODE = "timeline.metrics.service.operation.mode";
   public static final String PRECISION_TABLE_TTL = "timeline.metrics.host.aggregator.ttl";
-  public static final String HOST_MINUTE_TABLE_TTL = "timeline.metrics.host.aggregator.minute.ttl";
-  public static final String HOST_HOUR_TABLE_TTL = "timeline.metrics.host.aggregator.hourly.ttl";
-  public static final String HOST_DAILY_TABLE_TTL = "timeline.metrics.host.aggregator.daily.ttl";
   public static final String CLUSTER_SECOND_TABLE_TTL = "timeline.metrics.cluster.aggregator.second.ttl";
   public static final String CLUSTER_MINUTE_TABLE_TTL = "timeline.metrics.cluster.aggregator.minute.ttl";
-  public static final String CLUSTER_HOUR_TABLE_TTL = "timeline.metrics.cluster.aggregator.hourly.ttl";
-  public static final String CLUSTER_DAILY_TABLE_TTL = "timeline.metrics.cluster.aggregator.daily.ttl";
 
   private static final String[] HDFS_WIDGETS_TO_UPDATE = new String[] {
     "NameNode RPC", "NN Connection Load" };
@@ -283,50 +276,22 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
 
             if (amsSiteProperties.containsKey(PRECISION_TABLE_TTL)) {
               String oldTtl = amsSiteProperties.get(PRECISION_TABLE_TTL);
-              String newTtl = convertToDaysIfInSeconds(oldTtl);
+              String newTtl = oldTtl;
               if (isDistributed) {
                 if ("86400".equals(oldTtl)) {
-                  newTtl = "7.0"; // 7 days
+                  newTtl = String.valueOf(7 * 86400); // 7 days
                 }
               }
               newProperties.put(PRECISION_TABLE_TTL, newTtl);
               LOG.info("Setting value of " + PRECISION_TABLE_TTL + " : " + newTtl);
             }
 
-            if (amsSiteProperties.containsKey(HOST_MINUTE_TABLE_TTL)) {
-              String oldTtl = amsSiteProperties.get(HOST_MINUTE_TABLE_TTL);
-              String newTtl = convertToDaysIfInSeconds(oldTtl);
-              newProperties.put(HOST_MINUTE_TABLE_TTL, newTtl);
-              LOG.info("Setting value of " + HOST_MINUTE_TABLE_TTL + " : " + newTtl);
-            }
-
-            if (amsSiteProperties.containsKey(HOST_MINUTE_TABLE_TTL)) {
-              String oldTtl = amsSiteProperties.get(HOST_MINUTE_TABLE_TTL);
-              String newTtl = convertToDaysIfInSeconds(oldTtl);
-              newProperties.put(HOST_MINUTE_TABLE_TTL, newTtl);
-              LOG.info("Setting value of " + HOST_MINUTE_TABLE_TTL + " : " + newTtl);
-            }
-
-            if (amsSiteProperties.containsKey(HOST_HOUR_TABLE_TTL)) {
-              String oldTtl = amsSiteProperties.get(HOST_HOUR_TABLE_TTL);
-              String newTtl = convertToDaysIfInSeconds(oldTtl);
-              newProperties.put(HOST_HOUR_TABLE_TTL, newTtl);
-              LOG.info("Setting value of " + HOST_HOUR_TABLE_TTL + " : " + newTtl);
-            }
-
-            if (amsSiteProperties.containsKey(HOST_DAILY_TABLE_TTL)) {
-              String oldTtl = amsSiteProperties.get(HOST_DAILY_TABLE_TTL);
-              String newTtl = convertToDaysIfInSeconds(oldTtl);
-              newProperties.put(HOST_DAILY_TABLE_TTL, newTtl);
-              LOG.info("Setting value of " + HOST_DAILY_TABLE_TTL + " : " + newTtl);
-            }
-
             if (amsSiteProperties.containsKey(CLUSTER_SECOND_TABLE_TTL)) {
               String oldTtl = amsSiteProperties.get(CLUSTER_SECOND_TABLE_TTL);
-              String newTtl = convertToDaysIfInSeconds(oldTtl);
+              String newTtl = oldTtl;
 
               if ("2592000".equals(oldTtl)) {
-                newTtl = "7.0"; // 7 days
+                newTtl = String.valueOf(7 * 86400); // 7 days
               }
 
               newProperties.put(CLUSTER_SECOND_TABLE_TTL, newTtl);
@@ -335,28 +300,14 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
 
             if (amsSiteProperties.containsKey(CLUSTER_MINUTE_TABLE_TTL)) {
               String oldTtl = amsSiteProperties.get(CLUSTER_MINUTE_TABLE_TTL);
-              String newTtl = convertToDaysIfInSeconds(oldTtl);
+              String newTtl = oldTtl;
 
               if ("7776000".equals(oldTtl)) {
-                newTtl = "30.0"; // 30 days
+                newTtl = String.valueOf(30 * 86400); // 30 days
               }
 
               newProperties.put(CLUSTER_MINUTE_TABLE_TTL, newTtl);
               LOG.info("Setting value of " + CLUSTER_MINUTE_TABLE_TTL + " : " + newTtl);
-            }
-
-            if (amsSiteProperties.containsKey(CLUSTER_HOUR_TABLE_TTL)) {
-              String oldTtl = amsSiteProperties.get(CLUSTER_HOUR_TABLE_TTL);
-              String newTtl = convertToDaysIfInSeconds(oldTtl);
-              newProperties.put(CLUSTER_HOUR_TABLE_TTL, newTtl);
-              LOG.info("Setting value of " + CLUSTER_HOUR_TABLE_TTL + " : " + newTtl);
-            }
-
-            if (amsSiteProperties.containsKey(CLUSTER_DAILY_TABLE_TTL)) {
-              String oldTtl = amsSiteProperties.get(CLUSTER_DAILY_TABLE_TTL);
-              String newTtl = convertToDaysIfInSeconds(oldTtl);
-              newProperties.put(CLUSTER_DAILY_TABLE_TTL, newTtl);
-              LOG.info("Setting value of " + CLUSTER_DAILY_TABLE_TTL + " : " + newTtl);
             }
 
             updateConfigurationPropertiesForCluster(cluster, AMS_SITE, newProperties, true, true);
@@ -493,21 +444,6 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
       WIDGET_VALUES, widgetValues,
       WIDGET_NAME, WIDGET_CORRUPT_BLOCKS
     ));
-  }
-
-  private String convertToDaysIfInSeconds(String secondsString) {
-
-    int seconds = Integer.valueOf(secondsString);
-    double days = 0.0;
-
-    if (seconds >= 86400) {
-      days += TimeUnit.SECONDS.toDays(seconds);
-    }
-
-    days += ((float)seconds % 86400.0) / 86400.0;
-    days = Math.round(days * 100.0)/100.0;
-
-    return String.valueOf(days);
   }
 
 }

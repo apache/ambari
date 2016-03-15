@@ -299,14 +299,14 @@ public class UpgradeCatalog222Test {
         put("timeline.metrics.host.aggregator.daily.checkpointCutOffMultiplier", String.valueOf(2));
         put("timeline.metrics.cluster.aggregator.daily.checkpointCutOffMultiplier", String.valueOf(2));
         put("timeline.metrics.service.watcher.disabled", String.valueOf(false));
-        put("timeline.metrics.host.aggregator.ttl", String.valueOf(7.0));
-        put("timeline.metrics.host.aggregator.minute.ttl", String.valueOf(7.0));
-        put("timeline.metrics.host.aggregator.hourly.ttl", String.valueOf(30.0));
-        put("timeline.metrics.host.aggregator.daily.ttl", String.valueOf(365.0));
-        put("timeline.metrics.cluster.aggregator.second.ttl", String.valueOf(0.25));
-        put("timeline.metrics.cluster.aggregator.minute.ttl", String.valueOf(30.0));
-        put("timeline.metrics.cluster.aggregator.hourly.ttl", String.valueOf(365.0));
-        put("timeline.metrics.cluster.aggregator.daily.ttl", String.valueOf(730.0));
+        put("timeline.metrics.host.aggregator.ttl", String.valueOf(7 * 86400));
+        put("timeline.metrics.host.aggregator.minute.ttl", String.valueOf(7 * 86400));
+        put("timeline.metrics.host.aggregator.hourly.ttl", String.valueOf(30 * 86400));
+        put("timeline.metrics.host.aggregator.daily.ttl", String.valueOf(365 * 86400));
+        put("timeline.metrics.cluster.aggregator.second.ttl", String.valueOf(21600));
+        put("timeline.metrics.cluster.aggregator.minute.ttl", String.valueOf(30 * 86400));
+        put("timeline.metrics.cluster.aggregator.hourly.ttl", String.valueOf(365 * 86400));
+        put("timeline.metrics.cluster.aggregator.daily.ttl", String.valueOf(730 * 86400));
         put("timeline.metrics.service.operation.mode", "distributed");
       }
     };
