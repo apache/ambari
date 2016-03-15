@@ -36,6 +36,9 @@
                 <h4> Drag file to upload or click to browse</h4>
               </div>
             {{/file-picker}}
+            <div class="upload-notice text-right">
+              <em class="text-danger">Currently support single file upload</em>
+            </div>
           {{else}}
             <div class="progress file-picker-progress">
               <div class="progress-bar" role="progressbar" aria-valuenow="{{uploadPercent}}" aria-valuemin="0"
