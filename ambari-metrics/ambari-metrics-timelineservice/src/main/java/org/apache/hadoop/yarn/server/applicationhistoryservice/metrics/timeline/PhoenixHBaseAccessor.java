@@ -339,10 +339,6 @@ public class PhoenixHBaseAccessor {
     boolean enableNormalizer = hbaseConf.getBoolean("hbase.normalizer.enabled", true);
     boolean enableFifoCompaction = metricsConf.getBoolean("timeline.metrics.hbase.fifo.compaction.enabled", true);
 
-    if (!enableNormalizer && !enableFifoCompaction) {
-      return;
-    }
-
     HBaseAdmin hBaseAdmin = null;
     try {
       hBaseAdmin = dataSource.getHBaseAdmin();
@@ -356,8 +352,7 @@ public class PhoenixHBaseAccessor {
           boolean modifyTable = false;
           HTableDescriptor tableDescriptor = hBaseAdmin.getTableDescriptor(tableName.getBytes());
 
-          if (enableNormalizer &&
-              !tableDescriptor.isNormalizationEnabled()) {
+          if (enableNormalizer && !tableDescriptor.isNormalizationEnabled()) {
             tableDescriptor.setNormalizationEnabled(true);
             LOG.info("Enabling normalizer for " + tableName);
             modifyTable = true;
