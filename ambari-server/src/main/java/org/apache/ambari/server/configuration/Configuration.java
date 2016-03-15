@@ -161,6 +161,10 @@ public class Configuration {
   public static final String REQUEST_READ_TIMEOUT_DEFAULT= "10000";
   public static final String REQUEST_CONNECT_TIMEOUT = "views.request.connect.timeout.millis";
   public static final String REQUEST_CONNECT_TIMEOUT_DEFAULT = "5000";
+  public static final String AMBARI_REQUEST_READ_TIMEOUT = "views.ambari.request.read.timeout.millis";
+  public static final String AMBARI_REQUEST_READ_TIMEOUT_DEFAULT= "10000";
+  public static final String AMBARI_REQUEST_CONNECT_TIMEOUT = "views.ambari.request.connect.timeout.millis";
+  public static final String AMBARI_REQUEST_CONNECT_TIMEOUT_DEFAULT = "5000";
   public static final String SERVER_JDBC_POSTGRES_SCHEMA_NAME = "server.jdbc.postgres.schema";
   public static final String OJDBC_JAR_NAME_KEY = "db.oracle.jdbc.name";
   public static final String OJDBC_JAR_NAME_DEFAULT = "ojdbc6.jar";
@@ -1976,6 +1980,22 @@ public class Configuration {
   public Integer getRequestConnectTimeout() {
     return Integer.parseInt(properties.getProperty(REQUEST_CONNECT_TIMEOUT,
       REQUEST_CONNECT_TIMEOUT_DEFAULT));
+  }
+
+  /**
+   * @return The read timeout value for views when trying to access ambari apis
+   */
+  public Integer getViewAmbariRequestReadTimeout() {
+    return Integer.parseInt(properties.getProperty(AMBARI_REQUEST_READ_TIMEOUT,
+      AMBARI_REQUEST_READ_TIMEOUT_DEFAULT));
+  }
+
+  /**
+   * @return The connection timeout value for views when trying to connect to ambari apis
+   */
+  public Integer getViewAmbariRequestConnectTimeout() {
+    return Integer.parseInt(properties.getProperty(AMBARI_REQUEST_CONNECT_TIMEOUT,
+      AMBARI_REQUEST_CONNECT_TIMEOUT_DEFAULT));
   }
 
   public String getExecutionSchedulerConnections() {
