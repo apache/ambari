@@ -71,7 +71,9 @@
       {{/if}}
 		</span>
       {{#if controller.isHostsConfigsPage}}
-        &nbsp;<a href="#" {{action "switchHostGroup" target="controller"}}>{{t common.change}}</a>
+        {{#isAuthorized "SERVICE.MANAGE_CONFIG_GROUPS"}}
+          &nbsp;<a href="#" {{action "switchHostGroup" target="controller"}}>{{t common.change}}</a>
+        {{/isAuthorized}}
       {{else}}
         {{#isAuthorized "SERVICE.MANAGE_CONFIG_GROUPS"}}
             <a href="#" class="link-left-pad" {{action "manageConfigurationGroup" target="controller"}}>{{t services.service.actions.manage_configuration_groups.short}}</a>
