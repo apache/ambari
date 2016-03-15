@@ -52,6 +52,31 @@ export default Ember.Component.extend(OperationModal, {
     this.set('closeOnEscape', false);
   },
 
+  // Returns a promise which resolves if the entry is a file else it rejects if it is a directory.
+  // This tries to read entry and FileReader fails if the entry points to a directory. The file is
+  // only opened and the reader is aborted when the loading starts.
+  _checkIfFileIsNotDirectory: function(file) {
+    return new Ember.RSVP.Promise((resolve, reject) => {
+
+      if (!Ember.isNone(file.size) && file.size <= 4096) { // Directories generally have less equal to 4096 bytes as size
+        var reader = new FileReader();
+        reader.onerror = function() {
+          return reject();
+        };
+
+        reader.onloadstart = function() {
+          reader.abort();
+          return resolve();
+        };
+
+        reader.readAsArrayBuffer(file);
+
+      } else {
+        return resolve();
+      }
+    })
+  },
+
   actions: {
     openModal : function() {
       this.get('modalEventBus').showModal('ctx-uploader');
@@ -67,28 +92,35 @@ export default Ember.Component.extend(OperationModal, {
     },
 
     fileLoaded: function(file) {
-      var url = this.get('fileOperationService').getUploadUrl();
-      var uploader = FileUploader.create({
-        url: url
+
+      this._checkIfFileIsNotDirectory(file).then(() => {
+        var url = this.get('fileOperationService').getUploadUrl();
+        var uploader = FileUploader.create({
+          url: url
+        });
+        this.set('uploader', uploader);
+        if(!Ember.isEmpty(file)) {
+          uploader.upload(file, {path: this.get('path')});
+          this.setUploading(file.name);
+          uploader.on('progress', (e) => {
+            this.setUploadPercent(e.percent);
+          });
+          uploader.on('didUpload', (e) => {
+            this.set('uploader');
+            this.send('close');
+            this.sendAction('refreshAction');
+          });
+          uploader.on('didError', (jqXHR, textStatus, errorThrown) => {
+            var error = Ember.$.parseJSON(jqXHR.responseText);
+            this.set('uploader');
+            this.get('logger').danger(`Failed to upload ${file.name} to ${this.get('path')}`, error);
+            this.send('close');
+            return false;
+          });
+        }
+      }, () => {
+        console.error("Cannot add a directory.");
       });
-      this.set('uploader', uploader);
-      if(!Ember.isEmpty(file)) {
-        uploader.upload(file, {path: this.get('path')});
-        this.setUploading(file.name);
-        uploader.on('progress', (e) => {
-          this.setUploadPercent(e.percent);
-        });
-        uploader.on('didUpload', (e) => {
-          this.send('close');
-          this.sendAction('refreshAction');
-        });
-        uploader.on('didError', (jqXHR, textStatus, errorThrown) => {
-          var error = Ember.$.parseJSON(jqXHR.responseText);
-          this.get('logger').danger(`Failed to upload ${file.name} to ${this.get('path')}`, error);
-          this.send('close');
-          return false;
-        });
-      }
 
     },
 
