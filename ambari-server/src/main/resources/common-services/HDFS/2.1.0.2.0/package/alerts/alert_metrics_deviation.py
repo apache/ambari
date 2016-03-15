@@ -70,6 +70,9 @@ DEVIATION_CRITICAL_THRESHOLD_KEY = 'metric.deviation.critical.threshold'
 DEVIATION_CRITICAL_THRESHOLD_DEFAULT = 10
 DEVIATION_WARNING_THRESHOLD_KEY = 'metric.deviation.warning.threshold'
 DEVIATION_WARNING_THRESHOLD_DEFAULT = 5
+NAMENODE_SERVICE_RPC_PORT_KEY = ''
+
+MINIMUM_VALUE_THRESHOLD_KEY = 'minimumValue'
 
 AMS_METRICS_GET_URL = "/ws/v1/timeline/metrics?%s"
 
@@ -130,6 +133,10 @@ def execute(configurations={}, parameters={}, host_name=None):
   if DEVIATION_CRITICAL_THRESHOLD_KEY in parameters:
     critical_threshold = int(parameters[DEVIATION_CRITICAL_THRESHOLD_KEY])
 
+  minimum_value_threshold = None
+  if MINIMUM_VALUE_THRESHOLD_KEY in parameters:
+    minimum_value_threshold = int(parameters[MINIMUM_VALUE_THRESHOLD_KEY])
+
   #parse configuration
   if configurations is None:
     return (RESULT_STATE_UNKNOWN, ['There were no configurations supplied to the script.'])
@@ -148,6 +155,16 @@ def execute(configurations={}, parameters={}, host_name=None):
       collector_port = int(collector_webapp_address[1])
     else:
       return (RESULT_STATE_UNKNOWN, ['{0} value should be set as "fqdn_hostname:port", but set to {1}'.format(METRICS_COLLECTOR_WEBAPP_ADDRESS_KEY, configurations[METRICS_COLLECTOR_WEBAPP_ADDRESS_KEY])])
+
+  namenode_service_rpc_address = None
+  # hdfs-site is required
+  if not HDFS_SITE_KEY in configurations:
+    return (RESULT_STATE_UNKNOWN, ['{0} is a required parameter for the script'.format(HDFS_SITE_KEY)])
+
+  hdfs_site = configurations[HDFS_SITE_KEY]
+
+  if 'dfs.namenode.servicerpc-address' in hdfs_site:
+    namenode_service_rpc_address = hdfs_site['dfs.namenode.servicerpc-address']
 
   # if namenode alert and HA mode
   if NAMESERVICE_KEY in configurations and app_id.lower() == 'namenode':
@@ -186,7 +203,6 @@ def execute(configurations={}, parameters={}, host_name=None):
     kinit_timer_ms = parameters.get(KERBEROS_KINIT_TIMER_PARAMETER, DEFAULT_KERBEROS_KINIT_TIMER_MS)
 
     name_service = configurations[NAMESERVICE_KEY]
-    hdfs_site = configurations[HDFS_SITE_KEY]
 
     # look for dfs.ha.namenodes.foo
     nn_unique_ids_key = 'dfs.ha.namenodes.' + name_service
@@ -207,7 +223,7 @@ def execute(configurations={}, parameters={}, host_name=None):
     active_namenodes = []
     nn_unique_ids = hdfs_site[nn_unique_ids_key].split(',')
     for nn_unique_id in nn_unique_ids:
-      key = namenode_http_fragment.format(name_service,nn_unique_id)
+      key = namenode_http_fragment.format(name_service, nn_unique_id)
 
       if key in hdfs_site:
         # use str() to ensure that unicode strings do not have the u' in them
@@ -234,21 +250,32 @@ def execute(configurations={}, parameters={}, host_name=None):
 
           if state == HDFS_NN_STATE_ACTIVE:
             active_namenodes.append(namenode)
+
+            # Only check active NN
+            nn_service_rpc_address_key = 'dfs.namenode.servicerpc-address.{0}.{1}'.format(name_service, nn_unique_id)
+            if nn_service_rpc_address_key in hdfs_site:
+              namenode_service_rpc_address = hdfs_site[nn_service_rpc_address_key]
+          pass
         except:
           logger.exception("Unable to determine active NameNode")
-
+    pass
 
     if merge_ha_metrics:
       hostnames = ",".join(namenodes)
-      # run only on active NN, no need to run the same requests from the
+      # run only on active NN, no need to run the same requests from the standby
       if host_name not in active_namenodes:
         return (RESULT_STATE_SKIPPED, ['Another host will report this alert'])
+    pass
+
+  # Skip service rpc alert if port is not enabled
+  if not namenode_service_rpc_address and 'rpc.rpc.datanode' in metric_name:
+    return (RESULT_STATE_SKIPPED, ['Service RPC port is not enabled.'])
 
   get_metrics_parameters = {
     "metricNames": metric_name,
     "appId": app_id,
     "hostname": hostnames,
-    "startTime": current_time - interval*60*1000,
+    "startTime": current_time - interval * 60 * 1000,
     "endTime": current_time,
     "grouped": "true",
     }
@@ -274,15 +301,25 @@ def execute(configurations={}, parameters={}, host_name=None):
   # if host1 reports small local values, but host2 reports large local values
   for metrics_data in data_json["metrics"]:
     metrics += metrics_data["metrics"].values()
+  pass
 
   if not metrics or len(metrics) < 2:
     return (RESULT_STATE_UNKNOWN, ["Unable to calculate the standard deviation for {0} datapoints".format(len(metrics))])
+
+  # Filter out points below min threshold
+  for metric in metrics:
+    if metric <= minimum_value_threshold:
+      metrics.remove(metric)
+  pass
+
+  if len(metrics) < 2:
+    return (RESULT_STATE_SKIPPED, ['No datapoints found above the minimum threshold of {0}'.format(minimum_value_threshold)])
 
   mean = calculate_mean(metrics)
   stddev = calulate_sample_std_deviation(metrics)
 
   try:
-    deviation_percent = stddev/mean*100
+    deviation_percent = stddev / mean * 100
   except ZeroDivisionError:
     # should not be a case for this alert
     return (RESULT_STATE_UNKNOWN, ["Unable to calculate the standard deviation percentage. The mean value is 0"])
