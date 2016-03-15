@@ -24,6 +24,8 @@ COMMON_SERVICES_FOLDER_OLD="${ROOT}/var/lib/ambari-server/resources/common-servi
 AMBARI_VIEWS_FOLDER="${ROOT}/var/lib/ambari-server/resources/views"
 AMBARI_VIEWS_BACKUP_FOLDER="$AMBARI_VIEWS_FOLDER/backups"
 
+AMBARI_SERVER_JAR_FILES="/usr/lib/ambari-server/ambari-server-*.jar"
+AMBARI_SERVER_JAR_FILES_BACKUP_FOLDER="/usr/lib/ambari-server-backups"
 SERVER_CONF_SAVE="${ROOT}/etc/ambari-server/conf.save"
 SERVER_CONF_SAVE_BACKUP="${ROOT}/etc/ambari-server/conf_$(date '+%d_%m_%y_%H_%M').save"
 
@@ -51,5 +53,17 @@ if [ -d "$AMBARI_VIEWS_FOLDER" ] && [ -d "$AMBARI_VIEWS_BACKUP_FOLDER" ]
 then
     cp -u $AMBARI_VIEWS_FOLDER/*.jar $AMBARI_VIEWS_BACKUP_FOLDER/
 fi
+
+for f in $AMBARI_SERVER_JAR_FILES;
+do
+    if [ -f "$f" ]
+    then
+        if [ ! -d "$AMBARI_SERVER_JAR_FILES_BACKUP_FOLDER" ]
+        then
+            mkdir -p "$AMBARI_SERVER_JAR_FILES_BACKUP_FOLDER"
+        fi
+        mv -f $f $AMBARI_SERVER_JAR_FILES_BACKUP_FOLDER/
+    fi
+done
 
 exit 0

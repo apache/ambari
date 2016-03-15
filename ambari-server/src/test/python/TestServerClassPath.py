@@ -20,6 +20,9 @@ import os
 os.environ["ROOT"] = ""
 
 import os
+import shutil
+import tempfile
+from ambari_commons.exceptions import FatalException
 from mock.mock import patch, MagicMock
 from unittest import TestCase
 from ambari_server.properties import Properties
@@ -28,7 +31,6 @@ from ambari_server.serverConfiguration import get_conf_dir
 from ambari_server.serverClassPath import ServerClassPath, AMBARI_SERVER_LIB, SERVER_CLASSPATH_KEY, JDBC_DRIVER_PATH_PROPERTY
 
 class TestConfigs(TestCase):
-
 
   @patch("ambari_server.serverConfiguration.get_conf_dir")
   def test_server_class_path_default(self, get_conf_dir_mock):
@@ -90,3 +92,75 @@ class TestConfigs(TestCase):
     actual_classpath = serverClassPath.get_full_ambari_classpath_escaped_for_shell()
     self.assertEquals(expected_classpath, actual_classpath)
 
+  @patch("ambari_server.serverConfiguration.get_conf_dir")
+  def test_server_class_path_find_all_jars(self, get_conf_dir_mock):
+    temp_dir = tempfile.mkdtemp()
+    sub_dir = tempfile.mkdtemp(dir=temp_dir)
+    serverClassPath = ServerClassPath(None, None)
+    jar0 = tempfile.NamedTemporaryFile(suffix='.jar')
+    jar1 = tempfile.NamedTemporaryFile(suffix='.jar', dir=temp_dir)
+    jar2 = tempfile.NamedTemporaryFile(suffix='.jar', dir=temp_dir)
+    jar3 = tempfile.NamedTemporaryFile(suffix='.jar', dir=sub_dir)
+    # test /dir/*:file.jar
+    classpath = str(temp_dir) + os.path.sep + "*" + os.path.pathsep + jar0.name
+    jars = serverClassPath._find_all_jars(classpath)
+    self.assertEqual(len(jars), 3)
+    self.assertTrue(jar0.name in jars)
+    self.assertTrue(jar1.name in jars)
+    self.assertTrue(jar2.name in jars)
+    self.assertFalse(jar3.name in jars)
+
+    # test no classpath specified
+    try:
+      serverClassPath._find_all_jars(None)
+      self.fail()
+    except FatalException as fe:
+      pass
+
+    shutil.rmtree(temp_dir)
+
+  @patch.object(ServerClassPath, "_find_all_jars")
+  @patch("ambari_server.serverConfiguration.get_conf_dir")
+  def test_server_class_path_validate_classpath(self, get_conf_dir_mock,
+                                                find_jars_mock):
+    serverClassPath = ServerClassPath(None, None)
+
+    # No jars
+    find_jars_mock.return_value = []
+    try:
+      serverClassPath._validate_classpath(None)
+    except:
+      self.fail()
+
+    # Correct jars list
+    find_jars_mock.return_value = ["ambari-metrics-common-2.1.1.236.jar",
+                                   "ambari-server-2.1.1.236.jar",
+                                   "jetty-client-8.1.17.v20150415.jar",
+                                   "spring-core-3.0.7.RELEASE.jar"]
+    try:
+      serverClassPath._validate_classpath(None)
+    except:
+      self.fail()
+
+    # Incorrect jars list, multiple versions for ambari-server.jar
+    find_jars_mock.return_value = ["ambari-metrics-common-2.1.1.236.jar",
+                                   "ambari-server-2.1.1.236.jar",
+                                   "ambari-server-2.1.1.hotfixed.jar",
+                                   "jetty-client-8.1.17.v20150415.jar",
+                                   "spring-core-3.0.7.RELEASE.jar"]
+    try:
+      serverClassPath._validate_classpath(None)
+      self.fail()
+    except:
+      pass
+
+    # Incorrect jars list, multiple versions for not ambari-server.jar
+    find_jars_mock.return_value = ["ambari-metrics-common-2.1.1.236.jar",
+                                   "ambari-server-2.1.1.236.jar",
+                                   "jetty-client-8.1.17.v20150415.jar",
+                                   "jetty-client-9.jar",
+                                   "spring-core-3.0.7.RELEASE.jar"]
+    try:
+      serverClassPath._validate_classpath(None)
+    except:
+      self.fail()
