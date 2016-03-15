@@ -35,7 +35,6 @@ class TestMetricsGrafana(RMFTestCase):
 
   sys.path.append(file_path)
   global metrics_grafana_util
-  import  metrics_grafana_util
 
   @patch("metrics_grafana_util.create_ams_datasource")
   @patch("metrics_grafana_util.create_ams_dashboards")
@@ -69,9 +68,6 @@ class TestMetricsGrafana(RMFTestCase):
                               sudo = True
     )
     self.assertResourceCalled('Execute', 'ambari-sudo.sh rm -rf /some_tmp_dir',
-                              )
-    self.assertResourceCalled('Execute', '/usr/sbin/ambari-metrics-grafana stop',
-                              user = 'ams'
                               )
     self.assertResourceCalled('Execute', '/usr/sbin/ambari-metrics-grafana start',
                               user = 'ams'
