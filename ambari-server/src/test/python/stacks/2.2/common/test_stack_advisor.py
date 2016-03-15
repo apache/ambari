@@ -1999,6 +1999,13 @@ class TestHDP22StackAdvisor(TestCase):
           "hbase_regionserver_heapsize": "768"
         }
       },
+      "ams-grafana-env": {
+        "property_attributes": {
+          "metrics_grafana_password": {
+            "visible": "false"
+          }
+        }
+      },
       "ams-env": {
         "properties": {
           "metrics_collector_heapsize": "512",
