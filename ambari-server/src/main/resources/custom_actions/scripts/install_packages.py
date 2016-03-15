@@ -212,9 +212,10 @@ class InstallPackages(Script):
         Logger.info("The current cluster stack of {0} does not require backing up configurations; "
                     "only conf-select versioned config directories will be created.".format(stack_version))
         # only link configs for all known packages
-        conf_select.link_component_conf_to_versioned_config(package_name, stack_version)
+        conf_select.select("HDP", package_name, stack_version, ignore_errors = True)
       else:
         # link configs and create conf.backup folders for all known packages
+        # this will also call conf-select select
         conf_select.convert_conf_directories_to_symlinks(package_name, stack_version, directories,
           skip_existing_links = False, link_to = "backup")
 

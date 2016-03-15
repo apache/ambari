@@ -206,6 +206,7 @@ def create(stack_name, package, version, dry_run = False):
   :param stack_name: the name of the stack
   :param package: the name of the package, as-used by conf-select
   :param version: the version number to create
+  :param dry_run: False to create the versioned config directory, True to only return what would be created
   :return List of directories created
   """
   Logger.info("Checking if need to create versioned conf dir /etc/{0}/{1}/0".format(package, version))
@@ -219,62 +220,75 @@ def create(stack_name, package, version, dry_run = False):
 
   # conf-select can set more than one directory
   # per package, so return that list, especially for dry_run
-  dirs = []
+  # > conf-select dry-run-create --package hive-hcatalog --stack-version 2.4.0.0-169 0
+  # /etc/hive-webhcat/2.4.0.0-169/0
+  # /etc/hive-hcatalog/2.4.0.0-169/0
+  created_directories = []
   if 0 == code and stdout is not None: # just be sure we have a stdout
     for line in stdout.splitlines():
-      dirs.append(line.rstrip('\n'))
+      created_directories.append(line.rstrip('\n'))
 
-  # take care of permissions
-  if not code and stdout and command == "create-conf-dir":
-    for d in dirs:
-      Directory(d,
-          mode=0755,
-          cd_access='a',
-          recursive=True)
+  # if directories were created, then do some post-processing
+  if not code and stdout and not dry_run:
+    # take care of permissions if directories were created
+    for directory in created_directories:
+      Directory(directory, mode=0755, cd_access='a', recursive=True)
 
-  return dirs
+    # seed the new directories with configurations from the old (current) directories
+    _seed_new_configuration_directories(package, created_directories)
+
+  return created_directories
 
 
-def select(stack_name, package, version, try_create=True):
+def select(stack_name, package, version, try_create=True, ignore_errors=False):
   """
   Selects a config version for the specified package.
-  :stack_name: the name of the stack
-  :package: the name of the package, as-used by conf-select
-  :version: the version number to create
-  :try_create: optional argument to attempt to create the directory before setting it
+  :param stack_name: the name of the stack
+  :param package: the name of the package, as-used by conf-select
+  :param version: the version number to create
+  :param try_create: optional argument to attempt to create the directory before setting it
+  :param ignore_errors: optional argument to ignore any error and simply log a warning
   """
-  if not _valid(stack_name, package, version):
-    return
+  try:
+    if not _valid(stack_name, package, version):
+      return
 
-  if try_create:
-    create(stack_name, package, version)
+    if try_create:
+      create(stack_name, package, version)
 
-  shell.checked_call(get_cmd("set-conf-dir", package, version), logoutput=False, quiet=False, sudo=True)
+    shell.checked_call(get_cmd("set-conf-dir", package, version), logoutput=False, quiet=False, sudo=True)
 
-  # for consistency sake, we must ensure that the /etc/<component>/conf symlink exists and
-  # points to /usr/hdp/current/<component>/conf - this is because some people still prefer to
-  # use /etc/<component>/conf even though /usr/hdp is the "future"
-  if package in PACKAGE_DIRS:
-    Logger.info("Ensuring that {0} has the correct symlink structure".format(package))
+    # for consistency sake, we must ensure that the /etc/<component>/conf symlink exists and
+    # points to /usr/hdp/current/<component>/conf - this is because some people still prefer to
+    # use /etc/<component>/conf even though /usr/hdp is the "future"
+    if package in PACKAGE_DIRS:
+      Logger.info("Ensuring that {0} has the correct symlink structure".format(package))
 
-    directory_list = PACKAGE_DIRS[package]
-    for directory_structure in directory_list:
-      conf_dir = directory_structure["conf_dir"]
-      current_dir = directory_structure["current_dir"]
+      directory_list = PACKAGE_DIRS[package]
+      for directory_structure in directory_list:
+        conf_dir = directory_structure["conf_dir"]
+        current_dir = directory_structure["current_dir"]
 
-      # if /etc/<component>/conf is not a symlink, we need to change it
-      if not os.path.islink(conf_dir):
-        # if it exists, try to back it up
-        if os.path.exists(conf_dir):
-          parent_directory = os.path.dirname(conf_dir)
-          conf_install_dir = os.path.join(parent_directory, "conf.backup")
+        # if /etc/<component>/conf is not a symlink, we need to change it
+        if not os.path.islink(conf_dir):
+          # if it exists, try to back it up
+          if os.path.exists(conf_dir):
+            parent_directory = os.path.dirname(conf_dir)
+            conf_install_dir = os.path.join(parent_directory, "conf.backup")
 
-          Execute(("cp", "-R", "-p", conf_dir, conf_install_dir),
-            not_if = format("test -e {conf_install_dir}"), sudo = True)
+            Execute(("cp", "-R", "-p", conf_dir, conf_install_dir),
+              not_if = format("test -e {conf_install_dir}"), sudo = True)
 
-          Directory(conf_dir, action="delete")
+            Directory(conf_dir, action="delete")
 
-        Link(conf_dir, to = current_dir)
+          Link(conf_dir, to = current_dir)
+  except Exception, exception:
+    if ignore_errors is True:
+      Logger.warning("Could not select the directory for package {0}. Error: {1}".format(package,
+        str(exception)))
+    else:
+      raise
+
 
 
 def get_hadoop_conf_dir(force_latest_on_upgrade=False):
@@ -378,7 +392,6 @@ def get_hadoop_conf_dir(force_latest_on_upgrade=False):
 
 
 def convert_conf_directories_to_symlinks(package, version, dirs, skip_existing_links=True, link_to="current"):
-
   """
   Assumes HDP 2.3+, moves around directories and creates the conf symlink for the given package.
   If the package does not exist, then no work is performed.
@@ -386,11 +399,11 @@ def convert_conf_directories_to_symlinks(package, version, dirs, skip_existing_l
   - Creates a /etc/<component>/conf.backup directory
   - Copies all configs from /etc/<component>/conf to conf.backup
   - Removes /etc/<component>/conf
-  - Creates /etc/<component>/<version>/0
-  - Creates /usr/hdp/current/<component>-client/conf -> /etc/<component>/<version>/0
-  - Links /etc/<component>/conf to <something>
-  -- /etc/<component>/conf -> /usr/hdp/current/[component]-client/conf
-  -- /etc/<component>/conf -> /etc/<component>/conf.backup
+  - Creates /etc/<component>/<version>/0 via conf-select
+  - /usr/hdp/current/<component>-client/conf -> /etc/<component>/<version>/0 via conf-select
+  - Links /etc/<component>/conf to <something> depending on function paramter
+  -- /etc/<component>/conf -> /usr/hdp/current/[component]-client/conf (usually)
+  -- /etc/<component>/conf -> /etc/<component>/conf.backup (only when supporting < HDP 2.3)
 
   :param package: the package to create symlinks for (zookeeper, falcon, etc)
   :param version: the version number to use with conf-select (2.3.0.0-1234)
@@ -463,7 +476,7 @@ def convert_conf_directories_to_symlinks(package, version, dirs, skip_existing_l
 
   # /usr/hdp/current/[component] is already set to to the correct version, e.g., /usr/hdp/[version]/[component]
   
-  link_component_conf_to_versioned_config(package, version)
+  select("HDP", package, version, ignore_errors = True)
 
   # Symlink /etc/[component]/conf to /etc/[component]/conf.backup
   try:
@@ -488,11 +501,70 @@ def convert_conf_directories_to_symlinks(package, version, dirs, skip_existing_l
     Logger.warning("Could not change symlink for package {0} to point to {1} directory. Error: {2}".format(package, link_to, e))
 
 
-def link_component_conf_to_versioned_config(package, version):
+def _seed_new_configuration_directories(package, created_directories):
   """
-  Make /usr/hdp/[version]/[component]/conf point to the versioned config.
+  Copies any files from the "current" configuration directory to the directories which were
+  newly created with conf-select. This function helps ensure that files which are not tracked
+  by Ambari will be available after performing a stack upgrade. Although old configurations
+  will be copied as well, they will be overwritten when the components are writing out their
+  configs after upgrade during their restart.
+
+  This function will catch all errors, logging them, but not raising an exception. This is to
+  prevent problems here from stopping and otherwise healthy upgrade.
+
+  :param package: the conf-select package name
+  :param created_directories: a list of directories that conf-select said it created
+  :return: None
   """
+  if package not in PACKAGE_DIRS:
+    Logger.warning("Unable to seed newly created configuration directories for {0} because it is an unknown component".format(package))
+    return
+
+  # seed the directories with any existing configurations
+  # this allows files which are not tracked by Ambari to be available after an upgrade
+  Logger.info("Seeding versioned configuration directories for {0}".format(package))
+  expected_directories = PACKAGE_DIRS[package]
+
   try:
-    select("HDP", package, version)
+    # if the expected directories don't match those created, we can't seed them
+    if len(created_directories) != len(expected_directories):
+      Logger.warning("The known configuration directories for {0} do not match those created by conf-select: {1}".format(
+        package, str(created_directories)))
+
+      return
+
+    # short circuit for a simple 1:1 mapping
+    if len(expected_directories) == 1:
+      # /usr/hdp/current/component/conf
+      # the current directory is the source of the seeded configurations;
+      source_seed_directory = expected_directories[0]["current_dir"]
+      target_seed_directory = created_directories[0]
+      _copy_configurations(source_seed_directory, target_seed_directory)
+    else:
+      for created_directory in created_directories:
+        for expected_directory_structure in expected_directories:
+          prefix = expected_directory_structure.get("prefix", None)
+          if prefix is not None and created_directory.startswith(prefix):
+            source_seed_directory = expected_directory_structure["current_dir"]
+            target_seed_directory = created_directory
+            _copy_configurations(source_seed_directory, target_seed_directory)
+
   except Exception, e:
-    Logger.warning("Could not select the directory for package {0}. Error: {1}".format(package, e))
+    Logger.warning("Unable to seed new configuration directories for {0}. {1}".format(package, str(e)))
+
+
+def _copy_configurations(source_directory, target_directory):
+  """
+  Copies from the source directory to the target directory. If the source directory is a symlink
+  then it will be followed (deferenced) but any other symlinks found to copy will not be. This
+  will ensure that if the configuration directory itself is a symlink, then it's contents will be
+  copied, preserving and children found which are also symlinks.
+
+  :param source_directory:  the source directory to copy from
+  :param target_directory:  the target directory to copy to
+  :return: None
+  """
+  # append trailing slash so the cp command works correctly WRT recursion and symlinks
+  source_directory = os.path.join(source_directory, "*")
+  Execute(as_sudo(["cp", "-R", "-p", "-v", source_directory, target_directory], auto_escape = False),
+    logoutput = True)
