@@ -56,6 +56,7 @@ def perform_grafana_get_call(url, server):
       conn.request("GET", url, headers = headers)
       response = conn.getresponse()
       Logger.info("Http response: %s %s" % (response.status, response.reason))
+      break
     except (httplib.HTTPException, socket.error) as ex:
       if i < GRAFANA_CONNECT_TRIES - 1:
         time.sleep(GRAFANA_CONNECT_TIMEOUT)

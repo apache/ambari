@@ -34,17 +34,12 @@ class AmsGrafana(Script):
   def configure(self, env, action = None):
     import params
     env.set_params(params)
-    ams(name='grafana')
+    ams(name='grafana', action=action)
 
   def start(self, env):
     import params
     env.set_params(params)
     self.configure(env, action = 'start')
-
-    stop_cmd = format("{ams_grafana_script} stop")
-    Execute(stop_cmd,
-            user=params.ams_user
-            )
 
     start_cmd = format("{ams_grafana_script} start")
     Execute(start_cmd,
@@ -59,9 +54,8 @@ class AmsGrafana(Script):
     import params
     env.set_params(params)
     self.configure(env, action = 'stop')
-    stop_cmd = format("{ams_grafana_script} stop")
-    Execute(stop_cmd,
-            user=params.ams_user
+    Execute((format("{ams_grafana_script}"), 'stop'),
+            sudo=True
             )
 
   def status(self, env):
