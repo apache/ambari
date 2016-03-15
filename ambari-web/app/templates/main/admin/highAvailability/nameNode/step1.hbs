@@ -22,6 +22,9 @@
     {{t admin.highAvailability.wizard.step1.body}}
     <div class="alert alert-warn">
       {{t admin.highAvailability.wizard.step1.alert}}
+      {{#if controller.isHawqInstalled}}
+        {{{t admin.highAvailability.wizard.step1.hawq.alert}}}
+      {{/if}}
     </div>
   </div>
 
