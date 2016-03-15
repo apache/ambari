@@ -51,7 +51,6 @@ class AmsGrafana(Script):
     import params
     env.set_params(params)
     self.configure(env, action = 'stop')
-    stop_cmd = format("{ams_grafana_script} stop")
     Execute((format("{ams_grafana_script}"), 'stop'),
             sudo=True
             )
