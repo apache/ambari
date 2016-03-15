@@ -268,8 +268,8 @@ def server_process_main(options, scmStatus=None):
   suspend_mode = 'y' if suspend_start else 'n'
 
   param_list = generate_child_process_param_list(ambari_user, java_exe,
-                                                 serverClassPath.get_full_ambari_classpath_escaped_for_shell(), debug_start,
-                                                 suspend_mode)
+                                                 serverClassPath.get_full_ambari_classpath_escaped_for_shell(validate_classpath=True),
+                                                 debug_start, suspend_mode)
   environ = generate_env(options, ambari_user, current_user)
 
   if not os.path.exists(configDefaults.PID_DIR):

@@ -252,7 +252,7 @@ def run_schema_upgrade(args):
   print 'Upgrading database schema'
 
   serverClassPath = ServerClassPath(get_ambari_properties(), args)
-  class_path = serverClassPath.get_full_ambari_classpath_escaped_for_shell()
+  class_path = serverClassPath.get_full_ambari_classpath_escaped_for_shell(validate_classpath=True)
 
   command = SCHEMA_UPGRADE_HELPER_CMD.format(jdk_path, class_path)
 
