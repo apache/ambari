@@ -99,7 +99,16 @@ module.exports = Em.Application.create({
            App.router.get('wizardWatcherController.isNonWizardUser');
   }.property('upgradeIsRunning', 'upgradeAborted', 'router.wizardWatcherController.isNonWizardUser'),
 
+  /**
+   * Options:
+   *  - ignoreWizard: ignore when some wizard is running by another user (default `false`)
+   *
+   * @param {string} authRoles
+   * @param {object} options
+   * @returns {boolean}
+   */
   isAuthorized: function(authRoles, options) {
+    options = $.extend({ignoreWizard: false}, options);
     var result = false;
     authRoles = $.map(authRoles.split(","), $.trim);
 
@@ -110,7 +119,7 @@ module.exports = Em.Application.create({
       return false;
     }
 
-    if (App.router.get('wizardWatcherController.isNonWizardUser')) {
+    if (!options.ignoreWizard && App.router.get('wizardWatcherController.isNonWizardUser')) {
       return false;
     }
 

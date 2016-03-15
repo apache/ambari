@@ -294,7 +294,7 @@ App.MainServiceItemView = Em.View.extend({
   }.property('maintenance'),
 
   hasConfigTab: function() {
-    return App.isAuthorized('CLUSTER.VIEW_CONFIGS') && !App.get('services.noConfigTypes').contains(this.get('controller.content.serviceName'));
+    return App.isAuthorized('CLUSTER.VIEW_CONFIGS', {ignoreWizard: true}) && !App.get('services.noConfigTypes').contains(this.get('controller.content.serviceName'));
   }.property('controller.content.serviceName','App.services.noConfigTypes'),
 
   hasHeatmapTab: function() {
