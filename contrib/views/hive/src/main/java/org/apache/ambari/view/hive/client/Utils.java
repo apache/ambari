@@ -77,7 +77,7 @@ public class Utils {
     List<String> nonEmptyStrings = new ArrayList<>();
     for(String str : strs) {
       if (!(str == null || str.trim().isEmpty())) {
-        nonEmptyStrings.add(str);
+        nonEmptyStrings.add(str.trim());
       }
     }
     return nonEmptyStrings.toArray(new String[] {});
