@@ -1683,6 +1683,11 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   }
 
   @Override
+  public boolean isRecoveryEnabled() {
+    return serviceComponent.isRecoveryEnabled();
+  }
+
+  @Override
   public void setMaintenanceState(MaintenanceState state) {
     writeLock.lock();
     try {

@@ -64,6 +64,13 @@ public interface ServiceComponentHost {
   Host getHost();
 
   /**
+   * Get whether recovery is enabled for
+   * this component or not.
+   * @return True or false.
+   */
+  boolean isRecoveryEnabled();
+
+  /**
    * Send a ServiceComponentHostState event to the StateMachine
    * @param event Event to handle
    * @throws InvalidStateTransitionException

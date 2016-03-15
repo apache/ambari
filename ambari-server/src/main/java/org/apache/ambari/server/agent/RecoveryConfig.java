@@ -19,7 +19,6 @@
 package org.apache.ambari.server.agent;
 
 import com.google.gson.annotations.SerializedName;
-import org.apache.ambari.server.configuration.Configuration;
 
 
 /**
@@ -97,17 +96,6 @@ public class RecoveryConfig {
 
   public void setMaxLifetimeCount(String maxLifetimeCount) {
     this.maxLifetimeCount = maxLifetimeCount;
-  }
-
-  public static RecoveryConfig getRecoveryConfig(Configuration conf) {
-    RecoveryConfig rc = new RecoveryConfig();
-    rc.setMaxCount(conf.getNodeRecoveryMaxCount());
-    rc.setMaxLifetimeCount(conf.getNodeRecoveryLifetimeMaxCount());
-    rc.setRetryGap(conf.getNodeRecoveryRetryGap());
-    rc.setType(conf.getNodeRecoveryType());
-    rc.setWindowInMinutes(conf.getNodeRecoveryWindowInMin());
-    rc.setEnabledComponents(conf.getEnabledComponents());
-    return rc;
   }
 
   @Override

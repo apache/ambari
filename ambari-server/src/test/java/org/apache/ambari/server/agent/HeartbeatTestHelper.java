@@ -27,6 +27,7 @@ import static org.easymock.EasyMock.createMockBuilder;
 import static org.easymock.EasyMock.createNiceMock;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -60,6 +61,8 @@ import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.StackId;
@@ -116,11 +119,6 @@ public class HeartbeatTestHelper {
 
       @Override
       protected void configure() {
-        getProperties().put("recovery.type", "FULL");
-        getProperties().put("recovery.lifetime_max_count", "10");
-        getProperties().put("recovery.max_count", "4");
-        getProperties().put("recovery.window_in_minutes", "23");
-        getProperties().put("recovery.retry_interval", "2");
         super.configure();
       }
     };
@@ -158,6 +156,25 @@ public class HeartbeatTestHelper {
 
   public Cluster getDummyCluster()
       throws AmbariException {
+    Map<String, String> configProperties = new HashMap<String, String>() {{
+      put(RecoveryConfigHelper.RECOVERY_ENABLED_KEY, "true");
+      put(RecoveryConfigHelper.RECOVERY_TYPE_KEY, "AUTO_START");
+      put(RecoveryConfigHelper.RECOVERY_MAX_COUNT_KEY, "4");
+      put(RecoveryConfigHelper.RECOVERY_LIFETIME_MAX_COUNT_KEY, "10");
+      put(RecoveryConfigHelper.RECOVERY_WINDOW_IN_MIN_KEY, "23");
+      put(RecoveryConfigHelper.RECOVERY_RETRY_GAP_KEY, "2");
+    }};
+
+    Set<String> hostNames = new HashSet<String>(){{
+      add(DummyHostname1);
+    }};
+
+    return getDummyCluster(DummyCluster, DummyStackId, configProperties, hostNames);
+  }
+
+  public Cluster getDummyCluster(String clusterName, String desiredStackId,
+                                 Map<String, String> configProperties, Set<String> hostNames)
+      throws AmbariException {
     StackEntity stackEntity = stackDAO.find(HDP_22_STACK.getStackName(), HDP_22_STACK.getStackVersion());
     org.junit.Assert.assertNotNull(stackEntity);
 
@@ -171,26 +188,31 @@ public class HeartbeatTestHelper {
     resourceEntity.setResourceType(resourceTypeEntity);
 
     ClusterEntity clusterEntity = new ClusterEntity();
-    clusterEntity.setClusterName(DummyCluster);
+    clusterEntity.setClusterName(clusterName);
     clusterEntity.setClusterInfo("test_cluster_info1");
     clusterEntity.setResource(resourceEntity);
     clusterEntity.setDesiredStack(stackEntity);
 
     clusterDAO.create(clusterEntity);
 
-    StackId stackId = new StackId(DummyStackId);
+    StackId stackId = new StackId(desiredStackId);
 
-    Cluster cluster = clusters.getCluster(DummyCluster);
+    Cluster cluster = clusters.getCluster(clusterName);
 
     cluster.setDesiredStackVersion(stackId);
     cluster.setCurrentStackVersion(stackId);
+
+    ConfigFactory cf = injector.getInstance(ConfigFactory.class);
+    Config config = cf.createNew(cluster, "cluster-env", configProperties, new HashMap<String, Map<String, String>>());
+    config.setTag("version1");
+    config.persist();
+
+    cluster.addConfig(config);
+    cluster.addDesiredConfig("user", Collections.singleton(config));
+
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
     cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
         RepositoryVersionState.INSTALLING);
-
-    Set<String> hostNames = new HashSet<String>(){{
-      add(DummyHostname1);
-    }};
 
     Map<String, String> hostAttributes = new HashMap<String, String>();
     hostAttributes.put("os_family", "redhat");
@@ -208,7 +230,7 @@ public class HeartbeatTestHelper {
       hostEntities.add(hostEntity);
     }
     clusterEntity.setHostEntities(hostEntities);
-    clusters.mapHostsToCluster(hostNames, DummyCluster);
+    clusters.mapHostsToCluster(hostNames, clusterName);
 
     return cluster;
   }

@@ -339,22 +339,6 @@ public class Configuration {
   public static final String KERBEROS_CHECK_JAAS_CONFIGURATION_DEFAULT = "false";
 
   /**
-   * Recovery related configuration
-   */
-  public static final String RECOVERY_TYPE_KEY = "recovery.type";
-  public static final String RECOVERY_TYPE_DEFAULT = "DEFAULT";
-  public static final String RECOVERY_LIFETIME_MAX_COUNT_KEY = "recovery.lifetime_max_count";
-  public static final String RECOVERY_LIFETIME_MAX_COUNT_DEFAULT = "12";
-  public static final String RECOVERY_MAX_COUNT_KEY = "recovery.max_count";
-  public static final String RECOVERY_MAX_COUNT_DEFAULT = "6";
-  public static final String RECOVERY_WINDOW_IN_MIN_KEY = "recovery.window_in_minutes";
-  public static final String RECOVERY_WINDOW_IN_MIN_DEFAULT = "60";
-  public static final String RECOVERY_RETRY_GAP_KEY = "recovery.retry_interval";
-  public static final String RECOVERY_RETRY_GAP_DEFAULT = "5";
-  public static final String RECOVERY_DISABLED_COMPONENTS_KEY = "recovery.disabled_components";
-  public static final String RECOVERY_ENABLED_COMPONENTS_KEY = "recovery.enabled_components";
-
-  /**
    * Allow proxy calls to these hosts and ports only
    */
   public static final String PROXY_ALLOWED_HOST_PORTS = "proxy.allowed.hostports";
@@ -2205,64 +2189,6 @@ public class Configuration {
   public int getAlertEventPublisherPoolSize() {
     return Integer.parseInt(properties.getProperty(
       ALERTS_EXECUTION_SCHEDULER_THREADS_KEY, ALERTS_EXECUTION_SCHEDULER_THREADS_DEFAULT));
-  }
-
-  /**
-   * Get the node recovery type DEFAULT|AUTO_START|FULL
-   * @return
-   */
-  public String getNodeRecoveryType() {
-    return properties.getProperty(RECOVERY_TYPE_KEY, RECOVERY_TYPE_DEFAULT);
-  }
-
-  /**
-   * Get configured max count of recovery attempt allowed per host component in a window
-   * This is reset when agent is restarted.
-   * @return
-   */
-  public String getNodeRecoveryMaxCount() {
-    return properties.getProperty(RECOVERY_MAX_COUNT_KEY, RECOVERY_MAX_COUNT_DEFAULT);
-  }
-
-  /**
-   * Get configured max lifetime count of recovery attempt allowed per host component.
-   * This is reset when agent is restarted.
-   * @return
-   */
-  public String getNodeRecoveryLifetimeMaxCount() {
-    return properties.getProperty(RECOVERY_LIFETIME_MAX_COUNT_KEY, RECOVERY_LIFETIME_MAX_COUNT_DEFAULT);
-  }
-
-  /**
-   * Get configured window size in minutes
-   * @return
-   */
-  public String getNodeRecoveryWindowInMin() {
-    return properties.getProperty(RECOVERY_WINDOW_IN_MIN_KEY, RECOVERY_WINDOW_IN_MIN_DEFAULT);
-  }
-
-  /**
-   * Get the components for which recovery is disabled
-   * @return
-   */
-  public String getDisabledComponents() {
-    return properties.getProperty(RECOVERY_DISABLED_COMPONENTS_KEY, "");
-  }
-
-  /**
-   * Get the components for which recovery is enabled
-   * @return
-   */
-  public String getEnabledComponents() {
-    return properties.getProperty(RECOVERY_ENABLED_COMPONENTS_KEY, "");
-  }
-
-  /**
-   * Get the configured retry gap between tries per host component
-   * @return
-   */
-  public String getNodeRecoveryRetryGap() {
-    return properties.getProperty(RECOVERY_RETRY_GAP_KEY, RECOVERY_RETRY_GAP_DEFAULT);
   }
 
   /**
