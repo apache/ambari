@@ -509,11 +509,11 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
     if operatingMode == "distributed":
       putAmsSiteProperty("timeline.metrics.service.watcher.disabled", 'true')
-      putAmsSiteProperty("timeline.metrics.host.aggregator.ttl", 7)
+      putAmsSiteProperty("timeline.metrics.host.aggregator.ttl", 604800)
       putAmsHbaseSiteProperty("hbase.cluster.distributed", 'true')
     else:
       putAmsSiteProperty("timeline.metrics.service.watcher.disabled", 'false')
-      putAmsSiteProperty("timeline.metrics.host.aggregator.ttl", 1)
+      putAmsSiteProperty("timeline.metrics.host.aggregator.ttl", 86400)
       putAmsHbaseSiteProperty("hbase.cluster.distributed", 'false')
 
     rootDir = "file:///var/lib/ambari-metrics-collector/hbase"

@@ -353,13 +353,13 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
           precisionTtl = family.getValue("TTL");
         }
       }
-      Assert.assertEquals("Precision TTL value.", hdb.getDaysInSeconds("1"), precisionTtl);
+      Assert.assertEquals("Precision TTL value.", "86400", precisionTtl);
     }
 
     Field f = PhoenixHBaseAccessor.class.getDeclaredField("tableTTL");
     f.setAccessible(true);
     Map<String, String> precisionValues = (Map<String, String>) f.get(hdb);
-    precisionValues.put(METRICS_RECORD_TABLE_NAME, hdb.getDaysInSeconds("2"));
+    precisionValues.put(METRICS_RECORD_TABLE_NAME, String.valueOf(2 * 86400));
     f.set(hdb, precisionValues);
 
     hdb.initPoliciesAndTTL();
@@ -389,7 +389,7 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
 
     Assert.assertTrue("Normalizer enabled.", normalizerEnabled);
     Assert.assertEquals("FIFO compaction policy is set.", FIFO_COMPACTION_POLICY_CLASS, compactionPolicy);
-    Assert.assertEquals("Precision TTL value not changed.", hdb.getDaysInSeconds("2"), precisionTtl);
+    Assert.assertEquals("Precision TTL value not changed.", String.valueOf(2 * 86400), precisionTtl);
 
     hBaseAdmin.close();
   }
