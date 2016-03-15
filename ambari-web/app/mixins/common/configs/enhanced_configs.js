@@ -186,8 +186,12 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
     var allConfigs = stepConfigs.mapProperty('configs').filterProperty('length').reduce(function(p, c) {
       return p && p.concat(c);
     });
+    // Do not clear the configs that are in excluded list
+    var excludedConfigs = ['hadoop.proxyuser', 'dfs.allow.truncate'];
     var cleanDependencies = this.get('_dependentConfigValues').reject(function(item) {
-      if (Em.get(item, 'propertyName').contains('hadoop.proxyuser')) return false;
+      for (var i = 0; i < excludedConfigs.length; i++) {
+        if (Em.get(item, 'propertyName').contains(excludedConfigs[i])) return false;
+      }
       if (installedServices.contains(Em.get(item, 'serviceName'))) {
         var stackProperty = App.StackConfigProperty.find(App.config.configId(item.propertyName, item.fileName));
         var parentConfigs = stackProperty && stackProperty.get('propertyDependsOn');
