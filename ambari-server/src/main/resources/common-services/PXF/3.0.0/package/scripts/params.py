@@ -17,7 +17,7 @@ limitations under the License.
 """
 
 import functools
-
+import pxf_constants
 from resource_management import Script
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
@@ -27,11 +27,11 @@ from resource_management.libraries.functions.get_not_managed_resources import ge
 
 config = Script.get_config()
 
-pxf_service_name = "pxf-service"
+pxf_service_name = pxf_constants.pxf_service_name
 stack_name = str(config["hostLevelParams"]["stack_name"])
 
 # Users and Groups
-pxf_user = "pxf"
+pxf_user = pxf_constants.pxf_user
 pxf_group = pxf_user
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_superuser_group = config["configurations"]["hdfs-site"]["dfs.permissions.superusergroup"]
