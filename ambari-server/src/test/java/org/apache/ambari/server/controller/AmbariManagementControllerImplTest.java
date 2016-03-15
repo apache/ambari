@@ -1999,6 +1999,7 @@ public class AmbariManagementControllerImplTest {
     expect(configuration.getServerDBName()).andReturn(SERVER_DB_NAME);
     expect(configuration.getJavaVersion()).andReturn(8);
     expect(configuration.areHostsSysPrepped()).andReturn("true");
+    expect(configuration.getDatabaseConnectorNames()).andReturn(new HashMap<String, String>()).anyTimes();
     expect(clusterVersionDAO.findByClusterAndStateCurrent(clusterName)).andReturn(clusterVersionEntity).anyTimes();
     expect(clusterVersionEntity.getRepositoryVersion()).andReturn(repositoryVersionEntity).anyTimes();
     expect(repositoryVersionEntity.getVersion()).andReturn("1234").anyTimes();
