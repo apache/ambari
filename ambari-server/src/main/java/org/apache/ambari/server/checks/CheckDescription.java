@@ -248,7 +248,15 @@ public enum CheckDescription {
             "The response from Ranger was malformed. %s. Request: %s");
         put(RangerPasswordCheck.KEY_RANGER_CONFIG_MISSING,
             "Could not check credentials.  Missing property %s/%s");
-      }});
+      }}),
+
+  KAFKA_KERBEROS_CHECK(PrereqCheckType.SERVICE,
+    "Kafka upgrade on Kerberized cluster",
+    new HashMap<String, String>() {{
+      put(AbstractCheckDescriptor.DEFAULT,
+        "Kafka is currently not Kerberized, but your cluster is. After upgrading, Kafka will automatically be Kerberized for you.");
+    }}
+  );
 
 
   private PrereqCheckType m_type;
