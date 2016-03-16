@@ -41,6 +41,7 @@ import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ActionExecutionContext;
@@ -78,6 +79,7 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -423,7 +425,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       for (int i = 0; i < maxTasks && hostIterator.hasNext(); i++) {
         Host host = hostIterator.next();
         if (hostHasVersionableComponents(cluster, serviceNames, ami, stackId, host)) {
-          ActionExecutionContext actionContext = getHostVersionInstallCommand(desiredRepoVersion,
+          ActionExecutionContext actionContext = getHostVersionInstallCommand(repoVersionEnt,
                   cluster, managementController, ami, stackId, serviceNames, perOsRepos, stage, host);
           if (null != actionContext) {
             try {
@@ -488,7 +490,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     return getRequestStatus(req.getRequestStatusResponse());
   }
 
-  private ActionExecutionContext getHostVersionInstallCommand(final String desiredRepoVersion,
+  private ActionExecutionContext getHostVersionInstallCommand(RepositoryVersionEntity repoVersion,
       Cluster cluster, AmbariManagementController managementController, AmbariMetaInfo ami,
       final StackId stackId, Set<String> repoServices, Map<String, List<RepositoryEntity>> perOsRepos, Stage stage1, Host host)
           throws SystemException {
@@ -498,7 +500,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     if (repoInfo == null) {
       throw new SystemException(String.format("Repositories for os type %s are " +
                       "not defined. Repo version=%s, stackId=%s",
-        osFamily, desiredRepoVersion, stackId));
+        osFamily, repoVersion.getVersion(), stackId));
     }
 
 
@@ -548,9 +550,22 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
     Map<String, String> params = new HashMap<String, String>();
     params.put("stack_id", stackId.getStackId());
-    params.put("repository_version", desiredRepoVersion);
+    params.put("repository_version", repoVersion.getVersion());
     params.put("base_urls", repoList);
-    params.put("package_list", packageList);
+    params.put(KeyNames.PACKAGE_LIST, packageList);
+
+    VersionDefinitionXml xml = null;
+    try {
+      xml = repoVersion.getRepositoryXml();
+    } catch (Exception e) {
+      throw new SystemException(String.format("Could not load xml from repo version %s",
+          repoVersion.getVersion()));
+    }
+
+    if (null != xml && StringUtils.isNotBlank(xml.release.packageVersion)) {
+      params.put(KeyNames.PACKAGE_VERSION, xml.release.packageVersion);
+    }
+
 
     // add host to this stage
     RequestResourceFilter filter = new RequestResourceFilter(null, null,

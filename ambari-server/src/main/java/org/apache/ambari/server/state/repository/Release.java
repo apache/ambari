@@ -75,6 +75,12 @@ public class Release {
   public String display;
 
   /**
+   * The optional package version
+   */
+  @XmlElement(name="package-version")
+  public String packageVersion;
+
+  /**
    * @return the full version
    */
   public String getFullVersion() {

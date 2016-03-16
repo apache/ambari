@@ -26,6 +26,7 @@
     <build>3396</build>
     <compatible-with>2.3.2.[0-9]</compatible-with>
     <release-notes>http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.3.4/</release-notes>
+    <package-version>2_3_4_0_3396</package-version>
   </release>
   
   <manifest>

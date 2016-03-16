@@ -40,6 +40,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
+import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 
 import org.apache.ambari.server.StaticallyInject;
@@ -118,6 +119,9 @@ public class RepositoryVersionEntity {
   @Lob
   @Column(name="version_xml", insertable = true, updatable = true)
   private String versionXml;
+
+  @Transient
+  private VersionDefinitionXml versionDefinition = null;
 
   @Column(name="version_url", nullable=true, insertable=true, updatable=true)
   private String versionUrl;
@@ -348,7 +352,7 @@ public class RepositoryVersionEntity {
 
   /**
    * Parse the version XML into its object representation.  This causes the XML to be lazy-loaded
-   * from storage.
+   * from storage, and will only be parsed once per request.
    * @return {@code null} if the XSD (from the XML) is not available.
    * @throws Exception
    */
@@ -357,7 +361,11 @@ public class RepositoryVersionEntity {
       return null;
     }
 
-    return VersionDefinitionXml.load(getVersionXml());
+    if (null == versionDefinition) {
+      versionDefinition = VersionDefinitionXml.load(getVersionXml());
+    }
+
+    return versionDefinition;
   }
 
   @Override

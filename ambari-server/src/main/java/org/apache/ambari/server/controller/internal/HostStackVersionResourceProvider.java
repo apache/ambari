@@ -28,13 +28,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.collect.Sets;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
+import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ActionExecutionContext;
@@ -64,12 +64,15 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.utils.StageUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 
+import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
-import org.apache.commons.lang.Validate;
 
 /**
  * Resource provider for host stack versions resources.
@@ -391,8 +394,21 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
       put("stack_id", stackId.getStackId());
       put("repository_version", desiredRepoVersion);
       put("base_urls", repoList);
-      put("package_list", packageList);
+      put(KeyNames.PACKAGE_LIST, packageList);
     }};
+
+    VersionDefinitionXml xml = null;
+    try {
+      xml = repoVersionEnt.getRepositoryXml();
+    } catch (Exception e) {
+      throw new SystemException(String.format("Could not load xml from repo version %s",
+          repoVersionEnt.getVersion()));
+    }
+
+    if (null != xml && StringUtils.isNotBlank(xml.release.packageVersion)) {
+      params.put(KeyNames.PACKAGE_VERSION, xml.release.packageVersion);
+    }
+
 
     // Create custom action
     RequestResourceFilter filter = new RequestResourceFilter(null, null,

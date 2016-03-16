@@ -100,8 +100,8 @@ public class ExecutionCommand extends AgentCommand {
   private String serviceName;
 
   @SerializedName("serviceType")
-  private String serviceType;  
-  
+  private String serviceType;
+
   @SerializedName("componentName")
   private String componentName;
 
@@ -284,7 +284,7 @@ public class ExecutionCommand extends AgentCommand {
   public void setServiceName(String serviceName) {
     this.serviceName = serviceName;
   }
-  
+
   public String getServiceType() {
 	return serviceType;
   }
@@ -383,6 +383,10 @@ public class ExecutionCommand extends AgentCommand {
 
     String SERVICE_CHECK = "SERVICE_CHECK"; // TODO: is it standard command? maybe add it to RoleCommand enum?
     String CUSTOM_COMMAND = "custom_command";
+    /**
+     * The key indicating that the package_version string is available
+     */
+    String PACKAGE_VERSION = "package_version";
   }
 
 }
