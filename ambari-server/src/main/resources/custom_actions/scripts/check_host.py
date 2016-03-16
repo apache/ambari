@@ -25,6 +25,7 @@ import re
 import subprocess
 import socket
 import getpass
+import tempfile
 
 from resource_management.libraries.functions import packages_analyzer
 from ambari_commons import os_utils
@@ -343,14 +344,14 @@ class CheckHost(Script):
           db_connection_check_structured_output = {"exit_code" : 1, "message": message}
           return db_connection_check_structured_output
       else:
-        tmp_java_dir = format("{tmp_dir}/jdk")
+        tmp_java_dir = tempfile.mkdtemp(prefix="jdk_tmp_", dir=tmp_dir)
         sudo = AMBARI_SUDO_BINARY
         if jdk_name.endswith(".bin"):
           chmod_cmd = ("chmod", "+x", jdk_download_target)
-          install_cmd = format("mkdir -p {tmp_java_dir} && cd {tmp_java_dir} && echo A | {jdk_download_target} -noregister && {sudo} cp -rp {tmp_java_dir}/* {java_dir}")
+          install_cmd = format("cd {tmp_java_dir} && echo A | {jdk_download_target} -noregister && {sudo} cp -rp {tmp_java_dir}/* {java_dir}")
         elif jdk_name.endswith(".gz"):
           chmod_cmd = ("chmod","a+x", java_dir)
-          install_cmd = format("mkdir -p {tmp_java_dir} && cd {tmp_java_dir} && tar -xf {jdk_download_target} && {sudo} cp -rp {tmp_java_dir}/* {java_dir}")
+          install_cmd = format("cd {tmp_java_dir} && tar -xf {jdk_download_target} && {sudo} cp -rp {tmp_java_dir}/* {java_dir}")
         try:
           Directory(java_dir)
           Execute(chmod_cmd, not_if = format("test -e {java_exec}"), sudo = True)
@@ -362,6 +363,8 @@ class CheckHost(Script):
           print message
           db_connection_check_structured_output = {"exit_code" : 1, "message": message}
           return db_connection_check_structured_output
+        finally:
+          Directory(tmp_java_dir, action="delete")
 
     # download DBConnectionVerification.jar from ambari-server resources
     try:

@@ -72,6 +72,7 @@ class TestCheckHost(TestCase):
                                                                                 "exit_code" : 1}})
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
+  @patch("tempfile.mkdtemp", new = MagicMock(return_value='/tmp/jdk_tmp_dir'))
   @patch.object(Script, 'get_config')
   @patch.object(Script, 'get_tmp_dir')
   @patch("check_host.download_file")

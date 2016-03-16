@@ -28,6 +28,7 @@ class TestHookBeforeInstall(RMFTestCase):
   TMP_PATH = '/tmp/hbase-hbase'
 
   @patch.object(getpass, "getuser", new = MagicMock(return_value='some_user'))
+  @patch("tempfile.mkdtemp", new = MagicMock(return_value='/tmp/jdk_tmp_dir'))
   @patch("os.path.exists")
   def test_hook_default(self, os_path_exists_mock):
 
@@ -193,8 +194,12 @@ class TestHookBeforeInstall(RMFTestCase):
     self.assertResourceCalled('Execute', ('chmod', 'a+x', u'/usr/jdk64'),
                               sudo = True
                               )
-    self.assertResourceCalled('Execute', 'mkdir -p /tmp/jdk && cd /tmp/jdk && tar -xf /tmp/jdk-7u67-linux-x64.tar.gz && ambari-sudo.sh cp -rp /tmp/jdk/* /usr/jdk64'
+    self.assertResourceCalled('Execute', 'cd /tmp/jdk_tmp_dir && tar -xf /tmp/jdk-7u67-linux-x64.tar.gz && ambari-sudo.sh cp -rp /tmp/jdk_tmp_dir/* /usr/jdk64'
                               )
+    self.assertResourceCalled('Directory', '/tmp/jdk_tmp_dir',
+                              action = ['delete']
+                              )
+
     self.assertResourceCalled('File', '/usr/jdk64/jdk1.7.0_45/bin/java',
                               mode = 0755,
                               cd_access = "a",
