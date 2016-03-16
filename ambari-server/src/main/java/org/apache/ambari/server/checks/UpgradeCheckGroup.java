@@ -75,6 +75,11 @@ public enum UpgradeCheckGroup {
   COMPONENT_VERSION(9.0f),
 
   /**
+   * A general group for related to Kerberos checks
+   */
+  KERBEROS(10.0f),
+
+  /**
    * All other checks.
    */
   DEFAULT(Float.MAX_VALUE);

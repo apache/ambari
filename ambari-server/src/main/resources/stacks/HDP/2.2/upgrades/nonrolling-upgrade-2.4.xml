@@ -22,6 +22,9 @@
   <target-stack>HDP-2.4</target-stack>
   <type>NON_ROLLING</type>
   <prerequisite-checks>
+    <!-- List of additional pre-req checks to run in addition to the required pre-reqs -->
+    <check>org.apache.ambari.server.checks.KafkaKerberosCheck</check>
+
     <configuration>
       <!-- Configuration properties for all pre-reqs including required pre-reqs -->
       <check-properties name="org.apache.ambari.server.checks.HiveDynamicServiceDiscoveryCheck">
