@@ -689,7 +689,8 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         },
         exitRoute: function (router, context, callback) {
           var controller = router.get('mainServiceInfoConfigsController');
-          if (controller.hasUnsavedChanges()) {
+          // If another user is running some wizard, current user can't save configs
+          if (controller.hasUnsavedChanges() && !router.get('wizardWatcherController.isWizardRunning')) {
             controller.showSavePopup(callback);
           } else {
             callback();

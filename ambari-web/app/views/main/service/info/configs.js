@@ -31,6 +31,16 @@ App.MainServiceInfoConfigsView = Em.View.extend({
     this.resetConfigTabSelection();
   },
 
+  /**
+   * If user A is on the Service Configs page and B starts some Wizard, user A should be moved-out and then moved-in this page
+   * It's done to properly disable "admin"-elements
+   * This code can't be moved to the controller, because it should work only if user is in the configs page (this view exists)
+   */
+  simulateRefresh: function() {
+    App.router.transitionTo('main.services.service.summary', this.get('controller.content'));
+    App.router.transitionTo('main.services.service.configs', this.get('controller.content'));
+  }.observes('App.router.wizardWatcherController.isWizardRunning'),
+
   willDestroyElement: function() {
     this.get('controller').clearStep();
   },

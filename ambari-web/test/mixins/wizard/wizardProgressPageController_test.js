@@ -188,9 +188,7 @@ describe('App.wizardProgressPageControllerMixin', function() {
 
     it('when credentials are ok, createComponent method called', function() {
       this.KDCStub.returns({
-        getKDCSessionState: function(sCallback, eCallback) {
-          sCallback();
-        }
+        getKDCSessionState: Em.clb
       });
       mixedObjectInstance.createInstallComponentTask('componentName', 'hostName', 'serviceName');
       assert.isTrue(mixedObjectInstance.createComponent.calledOnce, 'createComponent should be called');

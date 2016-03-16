@@ -184,8 +184,9 @@ App.MainServiceItemView = Em.View.extend({
       var knoxGatewayComponent = App.StackServiceComponent.find().findProperty('componentName','KNOX_GATEWAY');
       if (serviceName === 'HDFS' && nnComponent) {
         var namenodeCustomCommands = nnComponent.get('customCommands');
-        if (namenodeCustomCommands && namenodeCustomCommands.contains('REBALANCEHDFS'))
-        options.push(actionMap.REBALANCEHDFS);
+        if (namenodeCustomCommands && namenodeCustomCommands.contains('REBALANCEHDFS')) {
+          options.push(actionMap.REBALANCEHDFS);
+        }
       }
 
       if (serviceName === 'KNOX' && knoxGatewayComponent) {
@@ -203,8 +204,7 @@ App.MainServiceItemView = Em.View.extend({
       if(serviceName === 'HAWQ') {
         var hawqMasterComponent = App.StackServiceComponent.find().findProperty('componentName','HAWQMASTER');
         var hawqStandByComponent = App.StackServiceComponent.find().findProperty('componentName','HAWQSTANDBY');
-        components = [hawqMasterComponent,hawqStandByComponent]
-        components.forEach(function(component){
+        [hawqMasterComponent,hawqStandByComponent].forEach(function(component){
           component.get('customCommands').forEach(function(command){
             options.push(self.createOption(actionMap[command], {
               context: {
@@ -241,12 +241,12 @@ App.MainServiceItemView = Em.View.extend({
         var commands = component.get('customCommands');
 
         if (!commands.length) {
-          return false;
+          return;
         }
 
         commands.forEach(function(command) {
           if (excludedCommands[master] && excludedCommands[master].contains(command)){
-            return false;
+            return;
           }
 
           options.push(self.createOption(actionMap.MASTER_CUSTOM_COMMAND, {
@@ -268,14 +268,25 @@ App.MainServiceItemView = Em.View.extend({
 
     options.push(actionMap.DELETE_SERVICE);
 
+    /**
+     * When some Wizard is running by another user, "Service Actions" is hidden and there is no sense to calculate its items
+     * Also, when this menu is not empty and becomes visible, there are some JS-errors based on Ember inner logic for adding Listeners
+     * To avoid this behavior it's cleaned while it's not visible
+     */
+    if (App.router.get('wizardWatcherController.isWizardRunning')) {
+      this.set('maintenance', []);
+      this.set('isMaintenanceSet', true);
+      return;
+    }
+
     if (this.get('maintenance.length')) {
       this.get('maintenance').forEach(function(option, index) {
-        if (JSON.stringify(option) != JSON.stringify(options[index])) {
+        if (JSON.stringify(option) !== JSON.stringify(options[index])) {
           self.get('maintenance').removeAt(index).insertAt(index, options[index]);
         }
       });
       options.forEach(function(opt, index) {
-        if (JSON.stringify(opt) != JSON.stringify(self.get('maintenance')[index])) {
+        if (JSON.stringify(opt) !== JSON.stringify(self.get('maintenance')[index])) {
           self.get('maintenance').pushObject(opt);
         }
       });
