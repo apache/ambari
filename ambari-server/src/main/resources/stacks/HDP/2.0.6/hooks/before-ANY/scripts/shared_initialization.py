@@ -20,6 +20,7 @@ limitations under the License.
 import os
 import re
 import getpass
+import tempfile
 from copy import copy
 from resource_management.libraries.functions.version import compare_versions
 from resource_management import *
@@ -179,7 +180,6 @@ def setup_java():
 
     jdk_curl_target = format("{tmp_dir}/{jdk_name}")
     java_dir = os.path.dirname(params.java_home)
-    tmp_java_dir = format("{tmp_dir}/jdk")
 
     if not params.jdk_name:
       return
@@ -193,22 +193,28 @@ def setup_java():
          not_if = format("test -f {jdk_curl_target}")
     )
 
-    if params.jdk_name.endswith(".bin"):
-      chmod_cmd = ("chmod", "+x", jdk_curl_target)
-      install_cmd = format("mkdir -p {tmp_java_dir} && cd {tmp_java_dir} && echo A | {jdk_curl_target} -noregister && {sudo} cp -rp {tmp_java_dir}/* {java_dir}")
-    elif params.jdk_name.endswith(".gz"):
-      chmod_cmd = ("chmod","a+x", java_dir)
-      install_cmd = format("mkdir -p {tmp_java_dir} && cd {tmp_java_dir} && tar -xf {jdk_curl_target} && {sudo} cp -rp {tmp_java_dir}/* {java_dir}")
+    tmp_java_dir = tempfile.mkdtemp(prefix="jdk_tmp_", dir=params.tmp_dir)
 
-    Directory(java_dir
-    )
+    try:
+      if params.jdk_name.endswith(".bin"):
+        chmod_cmd = ("chmod", "+x", jdk_curl_target)
+        install_cmd = format("cd {tmp_java_dir} && echo A | {jdk_curl_target} -noregister && {sudo} cp -rp {tmp_java_dir}/* {java_dir}")
+      elif params.jdk_name.endswith(".gz"):
+        chmod_cmd = ("chmod","a+x", java_dir)
+        install_cmd = format("cd {tmp_java_dir} && tar -xf {jdk_curl_target} && {sudo} cp -rp {tmp_java_dir}/* {java_dir}")
 
-    Execute(chmod_cmd,
-            sudo = True,
-            )
+      Directory(java_dir
+      )
 
-    Execute(install_cmd,
-            )
+      Execute(chmod_cmd,
+              sudo = True,
+              )
+
+      Execute(install_cmd,
+              )
+
+    finally:
+      Directory(tmp_java_dir, action="delete")
 
     File(format("{java_home}/bin/java"),
          mode=0755,
