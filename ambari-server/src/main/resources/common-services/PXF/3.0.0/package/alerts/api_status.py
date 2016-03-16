@@ -25,13 +25,15 @@ import urllib2
 import urllib
 
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request
+from resource_management.libraries.functions.namenode_ha_utils import get_active_namenode
+from resource_management.libraries.script.config_dictionary import ConfigDictionary
 from resource_management.core.environment import Environment
 
 CLUSTER_ENV_SECURITY = '{{cluster-env/security_enabled}}'
 HADOOP_ENV_HDFS_USER = '{{hadoop-env/hdfs_user}}'
 HADOOP_ENV_HDFS_USER_KEYTAB = '{{hadoop-env/hdfs_user_keytab}}'
 HADOOP_ENV_HDFS_PRINCIPAL_NAME = '{{hadoop-env/hdfs_principal_name}}'
-HDFS_SITE_DFS_NAMENODE_HTTP_ADDRESS = '{{hdfs-site/dfs.namenode.http-address}}'
+HDFS_SITE = '{{hdfs-site}}'
 
 
 RESULT_STATE_OK = 'OK'
@@ -61,7 +63,7 @@ def get_tokens():
           HADOOP_ENV_HDFS_USER,
           HADOOP_ENV_HDFS_USER_KEYTAB,
           HADOOP_ENV_HDFS_PRINCIPAL_NAME,
-          HDFS_SITE_DFS_NAMENODE_HTTP_ADDRESS)
+          HDFS_SITE)
 
 def _get_delegation_token(namenode_address, user, keytab, principal, kinit_path):
   """
@@ -134,7 +136,10 @@ def execute(configurations={}, parameters={}, host_name=None):
   try:
     # Get delegation token if security is enabled
     if CLUSTER_ENV_SECURITY in configurations and configurations[CLUSTER_ENV_SECURITY].lower() == "true":
-      namenode_address =  configurations[HDFS_SITE_DFS_NAMENODE_HTTP_ADDRESS]
+      if 'dfs.nameservices' in configurations[HDFS_SITE]:
+        namenode_address = get_active_namenode(ConfigDictionary(configurations[HDFS_SITE]), configurations[CLUSTER_ENV_SECURITY], configurations[HADOOP_ENV_HDFS_USER])[1]
+      else:
+        namenode_address = configurations[HDFS_SITE]['dfs.namenode.http-address']
 
       token = _get_delegation_token(namenode_address,
                                      configurations[HADOOP_ENV_HDFS_USER],
