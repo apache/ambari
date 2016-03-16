@@ -96,9 +96,8 @@ App.WidgetWizardExpressionView = Em.View.extend({
 
   /**
    * add operator to expression data
-   * @param event
    */
-  addNumber: function (event) {
+  addNumber: function () {
     var data = this.get('expression.data');
     var lastId = (data.length > 0) ? Math.max.apply(this, data.mapProperty('id')) : 0;
 
@@ -424,7 +423,7 @@ App.InputCursorTextfieldView = Ember.TextField.extend({
     });
   }.observes('parentView.expression.data.length'),
 
-  focusOut: function(evt) {
+  focusOut: function() {
     this.saveNumber();
   },
 
@@ -444,7 +443,7 @@ App.InputCursorTextfieldView = Ember.TextField.extend({
           isOperator: true
         }));
         this.set('value', '');
-      } else if (value && value == 'm') {
+      } else if (value && value === 'm') {
         // open add metric menu
         var expressionId = "_" + parentView.get('expression.id');
         $('#add-metric-menu' + expressionId + '> div > a').click();
@@ -458,22 +457,19 @@ App.InputCursorTextfieldView = Ember.TextField.extend({
   }.observes('value'),
 
   keyDown: function (event) {
-    if ((event.keyCode == 8 || event.which == 8) && !this.get('value')) { // backspace
+    if ((event.keyCode === 8 || event.which === 8) && !this.get('value')) { // backspace
       var data = this.get('parentView.expression.data');
       if (data.length >= 1) {
         data.removeObject(data[data.length - 1]);
       }
-    } else if (event.keyCode == 13) { //Enter
+    } else if (event.keyCode === 13) { //Enter
       this.saveNumber();
     }
   },
 
   saveNumber: function() {
-    var number_utils = require("utils/number_utils");
-    var value = this.get('value');
-    if (number_utils.isPositiveNumber(value))  {
-      var parentView = this.get('parentView');
-      var data = parentView.get('expression.data');
+    if (number_utils.isPositiveNumber(this.get('value')))  {
+      var data = this.get('parentView.expression.data');
       var lastId = (data.length > 0) ? Math.max.apply(this, data.mapProperty('id')) : 0;
       data.pushObject(Em.Object.create({
         id: ++lastId,

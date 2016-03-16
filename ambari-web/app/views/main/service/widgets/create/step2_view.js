@@ -23,6 +23,7 @@ App.WidgetWizardStep2View = Em.View.extend({
 
   /**
    * calculate template by widget type
+   * @type {object}
    */
   templateType: function () {
     switch (this.get('controller.content.widgetType')) {
@@ -38,7 +39,9 @@ App.WidgetWizardStep2View = Em.View.extend({
       case 'GRAPH':
         return {
           isGraph: true
-        }
+        };
+      default:
+        return {};
     }
   }.property('controller.content.widgetType'),
 
@@ -46,7 +49,7 @@ App.WidgetWizardStep2View = Em.View.extend({
     Em.run.later(this, function () {
       App.tooltip($("[rel='threshold-tooltip']"));
     }, 500);
-  }.observes(''),
+  },
 
   didInsertElement: function () {
     var controller = this.get('controller');

@@ -21,8 +21,7 @@ App.WidgetWizardStep3View = Em.View.extend({
   templateName: require('templates/main/service/widgets/create/step3'),
 
   didInsertElement: function () {
-    var controller = this.get('controller');
-    controller.initPreviewData();
+    this.get('controller').initPreviewData();
   }
 
 });

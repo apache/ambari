@@ -17,18 +17,32 @@
  */
 
 var App = require('app');
+require('/views/main/service/widgets/create/step3_view');
 
-App.WidgetWizardStep1View = Em.View.extend({
 
-  templateName: require('templates/main/service/widgets/create/step1'),
+describe('App.WidgetWizardStep3View', function () {
+  var view;
 
-  didInsertElement: function () {
-    this.get('controller').loadStep();
-    Em.run.later(this, function () {
-      App.tooltip($("[rel='selectable-tooltip']"));
-    }, 300);
-  }
+  beforeEach(function() {
+    view = App.WidgetWizardStep3View.create({
+      controller: Em.Object.create({
+        initPreviewData: Em.K
+      })
+    });
+  });
 
+  describe("#didInsertElement()", function() {
+
+    beforeEach(function () {
+      sinon.stub(view.get('controller'), 'initPreviewData');
+    });
+    afterEach(function () {
+      view.get('controller').initPreviewData.restore();
+    });
+
+    it("initPreviewData should be called", function() {
+      view.didInsertElement();
+      expect(view.get('controller').initPreviewData.calledOnce).to.be.true;
+    });
+  });
 });
-
-
