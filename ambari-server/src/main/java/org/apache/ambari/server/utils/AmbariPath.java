@@ -33,7 +33,6 @@ public class AmbariPath {
       return path;
     }
     String result = (rootDirectory + path).replaceAll("/+","/");
-    LOG.info(result);
     return result;
   }
 }

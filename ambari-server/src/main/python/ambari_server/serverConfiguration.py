@@ -32,7 +32,7 @@ import ambari_server.serverClassPath
 from ambari_commons.exceptions import FatalException
 from ambari_commons.os_check import OSCheck, OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
-from ambari_commons.os_utils import run_os_command, search_file, set_file_permissions
+from ambari_commons.os_utils import run_os_command, search_file, set_file_permissions, parse_log4j_file
 from ambari_commons.logging_utils import get_debug_mode, print_info_msg, print_warning_msg, print_error_msg, \
   set_debug_mode
 from ambari_server.properties import Properties
@@ -59,6 +59,7 @@ OS_FAMILY_PROPERTY = "server.os_family"
 OS_TYPE_PROPERTY = "server.os_type"
 
 BOOTSTRAP_DIR_PROPERTY = "bootstrap.dir"
+RECOMMENDATIONS_DIR_PROPERTY = 'recommendations.dir'
 
 AMBARI_CONF_VAR = "AMBARI_CONF_DIR"
 AMBARI_PROPERTIES_FILE = "ambari.properties"
@@ -189,11 +190,50 @@ BOOTSTRAP_SCRIPT = 'bootstrap.script'
 CUSTOM_ACTION_DEFINITIONS = 'custom.action.definitions'
 BOOTSTRAP_SETUP_AGENT_SCRIPT = 'bootstrap.setup_agent.script'
 STACKADVISOR_SCRIPT = 'stackadvisor.script'
+PID_DIR_PROPERTY = 'pid.dir'
 REQUIRED_PROPERTIES = [OS_FAMILY_PROPERTY, OS_TYPE_PROPERTY, COMMON_SERVICES_PATH_PROPERTY, SERVER_VERSION_FILE_PATH,
                        WEBAPP_DIR_PROPERTY, STACK_LOCATION_KEY, SECURITY_KEYS_DIR, JDBC_DATABASE_NAME_PROPERTY,
                        NR_USER_PROPERTY, JAVA_HOME_PROPERTY, JDBC_PASSWORD_PROPERTY, SHARED_RESOURCES_DIR,
                        JDBC_USER_NAME_PROPERTY, BOOTSTRAP_SCRIPT, RESOURCES_DIR_PROPERTY, CUSTOM_ACTION_DEFINITIONS,
-                       BOOTSTRAP_SETUP_AGENT_SCRIPT, STACKADVISOR_SCRIPT, BOOTSTRAP_DIR_PROPERTY]
+                       BOOTSTRAP_SETUP_AGENT_SCRIPT, STACKADVISOR_SCRIPT, BOOTSTRAP_DIR_PROPERTY, PID_DIR_PROPERTY]
+
+def get_conf_dir():
+  try:
+    conf_dir = os.environ[AMBARI_CONF_VAR]
+    return conf_dir
+  except KeyError:
+    default_conf_dir = AmbariPath.get("/etc/ambari-server/conf")
+    print_info_msg(AMBARI_CONF_VAR + " is not set, using default " + default_conf_dir)
+    return default_conf_dir
+
+def find_properties_file():
+  conf_file = search_file(AMBARI_PROPERTIES_FILE, get_conf_dir())
+  if conf_file is None:
+    err = 'File %s not found in search path $%s: %s' % (AMBARI_PROPERTIES_FILE,
+          AMBARI_CONF_VAR, get_conf_dir())
+    print err
+    raise FatalException(1, err)
+  else:
+    print_info_msg('Loading properties from ' + conf_file)
+  return conf_file
+
+# Load ambari properties and return dict with values
+def get_ambari_properties():
+  conf_file = find_properties_file()
+
+  properties = None
+  try:
+    properties = Properties()
+    with open(conf_file) as hfR:
+      properties.load(hfR)
+      
+    for k,v in properties.iteritems():
+      properties.__dict__[k] = v.replace("$ROOT", os.environ["ROOT"])
+      properties._props[k] = v.replace("$ROOT", os.environ["ROOT"])
+  except (Exception), e:
+    print 'Could not read "%s": %s' % (conf_file, e)
+    return -1
+  return properties
 
 class ServerDatabaseType(object):
   internal = 0
@@ -279,9 +319,13 @@ class ServerDatabases(object):
 
 class ServerConfigDefaults(object):
   def __init__(self):
+    properties = get_ambari_properties()
+    if properties == -1:
+      print_error_msg("Error getting ambari properties")
+  
     self.JAVA_SHARE_PATH = "/usr/share/java"
     self.SHARE_PATH = "/usr/share"
-    self.OUT_DIR = AmbariPath.get(os.sep + os.path.join("var", "log", "ambari-server"))
+    self.OUT_DIR = parse_log4j_file("/etc/ambari-server/conf/log4j.properties")['ambari.log.dir']
     self.SERVER_OUT_FILE = os.path.join(self.OUT_DIR, "ambari-server.out")
     self.SERVER_LOG_FILE = os.path.join(self.OUT_DIR, "ambari-server.log")
     self.ROOT_FS_PATH = os.sep
@@ -294,7 +338,10 @@ class ServerConfigDefaults(object):
 
     # Configuration defaults
     self.DEFAULT_CONF_DIR = ""
-    self.PID_DIR = AmbariPath.get(os.sep + os.path.join("var", "run", "ambari-server"))
+    self.PID_DIR = properties.get_property(PID_DIR_PROPERTY)
+    self.BOOTSTRAP_DIR = properties.get_property(BOOTSTRAP_DIR_PROPERTY)
+    self.RECOMMENDATIONS_DIR = properties.get_property(RECOMMENDATIONS_DIR_PROPERTY)
+    
     self.DEFAULT_LIBS_DIR = ""
     self.DEFAULT_VLIBS_DIR = ""
 
@@ -407,11 +454,11 @@ class ServerConfigDefaultsLinux(ServerConfigDefaults):
     # Rules are executed in the same order as they are listed
     # {0} in user/group will be replaced by customized ambari-server username
     self.NR_ADJUST_OWNERSHIP_LIST = [
-      (AmbariPath.get("/var/log/ambari-server/*"), "644", "{0}", True),
-      (AmbariPath.get("/var/log/ambari-server/"), "755", "{0}", False),
-      (AmbariPath.get("/var/run/ambari-server/*"), "644", "{0}", True),
-      (AmbariPath.get("/var/run/ambari-server/"), "755", "{0}", False),
-      (AmbariPath.get("/var/run/ambari-server/bootstrap"), "755", "{0}", False),
+      (self.OUT_DIR + "/*", "644", "{0}", True),
+      (self.OUT_DIR, "755", "{0}", False),
+      (self.PID_DIR + "/*", "644", "{0}", True),
+      (self.PID_DIR, "755", "{0}", False),
+      (self.BOOTSTRAP_DIR, "755", "{0}", False),
       (AmbariPath.get("/var/lib/ambari-server/ambari-env.sh"), "700", "{0}", False),
       (AmbariPath.get("/var/lib/ambari-server/ambari-sudo.sh"), "700", "{0}", False),
       (AmbariPath.get("/var/lib/ambari-server/keys/*"), "600", "{0}", True),
@@ -431,8 +478,8 @@ class ServerConfigDefaultsLinux(ServerConfigDefaults):
       (AmbariPath.get("/etc/ambari-server/conf/password.dat"), "640", "{0}", False),
       (AmbariPath.get("/var/lib/ambari-server/keys/pass.txt"), "600", "{0}", False),
       (AmbariPath.get("/etc/ambari-server/conf/ldap-password.dat"), "640", "{0}", False),
-      (AmbariPath.get("/var/run/ambari-server/stack-recommendations/"), "744", "{0}", True),
-      (AmbariPath.get("/var/run/ambari-server/stack-recommendations/"), "755", "{0}", False),
+      (self.RECOMMENDATIONS_DIR, "744", "{0}", True),
+      (self.RECOMMENDATIONS_DIR, "755", "{0}", False),
       (AmbariPath.get("/var/lib/ambari-server/resources/data/"), "644", "{0}", False),
       (AmbariPath.get("/var/lib/ambari-server/resources/data/"), "755", "{0}", False),
       (AmbariPath.get("/var/lib/ambari-server/data/tmp/*"), "644", "{0}", True),
@@ -445,8 +492,8 @@ class ServerConfigDefaultsLinux(ServerConfigDefaults):
     self.NR_CHANGE_OWNERSHIP_LIST = [
       (AmbariPath.get("/var/lib/ambari-server"), "{0}", True),
       (AmbariPath.get("/usr/lib/ambari-server"), "{0}", True),
-      (AmbariPath.get("/var/log/ambari-server"), "{0}", True),
-      (AmbariPath.get("/var/run/ambari-server"), "{0}", True),
+      (self.OUT_DIR, "{0}", True),
+      (self.PID_DIR, "{0}", True),
       (AmbariPath.get("/etc/ambari-server"), "{0}", True),
     ]
     self.NR_USERADD_CMD = 'useradd -M --comment "{1}" ' \
@@ -493,44 +540,6 @@ SECURITY_PROVIDER_KEY_CMD = "{0} -cp {1} " + \
                             "> " + configDefaults.SERVER_OUT_FILE + " 2>&1"
 
 
-
-def get_conf_dir():
-  try:
-    conf_dir = os.environ[AMBARI_CONF_VAR]
-    return conf_dir
-  except KeyError:
-    default_conf_dir = configDefaults.DEFAULT_CONF_DIR
-    print_info_msg(AMBARI_CONF_VAR + " is not set, using default " + default_conf_dir)
-    return default_conf_dir
-
-def find_properties_file():
-  conf_file = search_file(AMBARI_PROPERTIES_FILE, get_conf_dir())
-  if conf_file is None:
-    err = 'File %s not found in search path $%s: %s' % (AMBARI_PROPERTIES_FILE,
-          AMBARI_CONF_VAR, get_conf_dir())
-    print err
-    raise FatalException(1, err)
-  else:
-    print_info_msg('Loading properties from ' + conf_file)
-  return conf_file
-
-# Load ambari properties and return dict with values
-def get_ambari_properties():
-  conf_file = find_properties_file()
-
-  properties = None
-  try:
-    properties = Properties()
-    with open(conf_file) as hfR:
-      properties.load(hfR)
-      
-    for k,v in properties.iteritems():
-      properties.__dict__[k] = v.replace("$ROOT", os.environ["ROOT"])
-      properties._props[k] = v.replace("$ROOT", os.environ["ROOT"])
-  except (Exception), e:
-    print 'Could not read "%s": %s' % (conf_file, e)
-    return -1
-  return properties
 
 def read_ambari_user():
   '''

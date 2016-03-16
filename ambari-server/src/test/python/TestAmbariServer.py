@@ -42,68 +42,77 @@ from unittest import TestCase
 os.environ["ROOT"] = ""
 
 from only_for_platform import get_platform, not_for_platform, only_for_platform, os_distro_value, PLATFORM_LINUX, PLATFORM_WINDOWS
+from ambari_commons import os_utils
 
 if get_platform() != PLATFORM_WINDOWS:
   from pwd import getpwnam
+  
+import shutil
+shutil.copyfile("/home/user/ambari/ambari-server/conf/unix/ambari.properties", "/tmp/ambari.properties")
 
 # We have to use this import HACK because the filename contains a dash
-with patch("platform.linux_distribution", return_value = os_distro_value):
-  with patch("os.symlink"):
-    with patch("__builtin__.open"):
+_search_file = os_utils.search_file
+os_utils.search_file = MagicMock(return_value="/tmp/ambari.properties")
+with patch.object(os_utils, "parse_log4j_file", return_value={'ambari.log.dir': '/var/log/ambari-server'}):
+  with patch("platform.linux_distribution", return_value = os_distro_value):
+    with patch("os.symlink"):
       with patch("glob.glob", return_value = ['/etc/init.d/postgresql-9.3']):
         _ambari_server_ = __import__('ambari-server')
-
-        from ambari_commons.firewall import Firewall
-        from ambari_commons.os_check import OSCheck, OSConst
-        from ambari_commons.os_family_impl import OsFamilyImpl, OsFamilyFuncImpl
-        from ambari_commons.exceptions import FatalException, NonFatalException
-        from ambari_commons.logging_utils import get_verbose, set_verbose, get_silent, set_silent, get_debug_mode, \
-          print_info_msg, print_warning_msg, print_error_msg
-        from ambari_commons.os_utils import run_os_command, search_file, set_file_permissions, remove_file, copy_file, \
-          is_valid_filepath
-        from ambari_server.dbConfiguration import DBMSConfigFactory, check_jdbc_drivers
-        from ambari_server.dbConfiguration_linux import PGConfig, LinuxDBMSConfig, OracleConfig
-        from ambari_server.properties import Properties
-        from ambari_server.resourceFilesKeeper import ResourceFilesKeeper, KeeperException
-        from ambari_server.serverConfiguration import configDefaults, get_java_exe_path, \
-          check_database_name_property, OS_FAMILY_PROPERTY, \
-          find_properties_file, get_ambari_properties, get_JAVA_HOME, \
-          parse_properties_file, read_ambari_user, update_ambari_properties, update_properties_2, write_property, find_jdk, \
-          get_is_active_instance, \
-          AMBARI_CONF_VAR, AMBARI_SERVER_LIB, JDBC_DATABASE_PROPERTY, JDBC_RCA_PASSWORD_FILE_PROPERTY, \
-          PERSISTENCE_TYPE_PROPERTY, JDBC_URL_PROPERTY, get_conf_dir, JDBC_USER_NAME_PROPERTY, JDBC_PASSWORD_PROPERTY, \
-          JDBC_DATABASE_NAME_PROPERTY, OS_TYPE_PROPERTY, validate_jdk, JDBC_POSTGRES_SCHEMA_PROPERTY, \
-          RESOURCES_DIR_PROPERTY, JDBC_RCA_PASSWORD_ALIAS, JDBC_RCA_SCHEMA_PROPERTY, IS_LDAP_CONFIGURED, \
-          SSL_API, SSL_API_PORT, CLIENT_API_PORT_PROPERTY,\
-          JDBC_CONNECTION_POOL_TYPE, JDBC_CONNECTION_POOL_ACQUISITION_SIZE, \
-          JDBC_CONNECTION_POOL_IDLE_TEST_INTERVAL, JDBC_CONNECTION_POOL_MAX_AGE, JDBC_CONNECTION_POOL_MAX_IDLE_TIME, \
-          JDBC_CONNECTION_POOL_MAX_IDLE_TIME_EXCESS,\
-          LDAP_MGR_PASSWORD_PROPERTY, LDAP_MGR_PASSWORD_ALIAS, JDBC_PASSWORD_FILENAME, NR_USER_PROPERTY, SECURITY_KEY_IS_PERSISTED, \
-          SSL_TRUSTSTORE_PASSWORD_PROPERTY, SECURITY_IS_ENCRYPTION_ENABLED, SSL_TRUSTSTORE_PASSWORD_ALIAS, \
-          SECURITY_MASTER_KEY_LOCATION, SECURITY_KEYS_DIR, LDAP_PRIMARY_URL_PROPERTY, store_password_file, \
-          get_pass_file_path, GET_FQDN_SERVICE_URL, JDBC_USE_INTEGRATED_AUTH_PROPERTY, SECURITY_KEY_ENV_VAR_NAME, \
-          JAVA_HOME_PROPERTY, JDK_NAME_PROPERTY, JCE_NAME_PROPERTY, STACK_LOCATION_KEY, SERVER_VERSION_FILE_PATH, \
-          COMMON_SERVICES_PATH_PROPERTY, WEBAPP_DIR_PROPERTY, SHARED_RESOURCES_DIR, BOOTSTRAP_SCRIPT, \
-          CUSTOM_ACTION_DEFINITIONS, BOOTSTRAP_SETUP_AGENT_SCRIPT, STACKADVISOR_SCRIPT, BOOTSTRAP_DIR_PROPERTY
-        from ambari_server.serverUtils import is_server_runing, refresh_stack_hash
-        from ambari_server.serverSetup import check_selinux, check_ambari_user, proceedJDBCProperties, SE_STATUS_DISABLED, SE_MODE_ENFORCING, configure_os_settings, \
-          download_and_install_jdk, prompt_db_properties, setup, \
-          AmbariUserChecks, AmbariUserChecksLinux, AmbariUserChecksWindows, JDKSetup, reset, setup_jce_policy, expand_jce_zip_file
-        from ambari_server.serverUpgrade import upgrade, upgrade_local_repo, change_objects_owner, upgrade_stack, \
-          run_stack_upgrade, run_metainfo_upgrade, run_schema_upgrade, move_user_custom_actions
-        from ambari_server.setupHttps import is_valid_https_port, setup_https, import_cert_and_key_action, get_fqdn, \
-          generate_random_string, get_cert_info, COMMON_NAME_ATTR, is_valid_cert_exp, NOT_AFTER_ATTR, NOT_BEFORE_ATTR, \
-          SSL_DATE_FORMAT, import_cert_and_key, is_valid_cert_host, setup_truststore, \
-          SRVR_ONE_WAY_SSL_PORT_PROPERTY, SRVR_TWO_WAY_SSL_PORT_PROPERTY, GANGLIA_HTTPS
-        from ambari_server.setupSecurity import adjust_directory_permissions, get_alias_string, get_ldap_event_spec_names, sync_ldap, LdapSyncOptions, \
-          configure_ldap_password, setup_ldap, REGEX_HOSTNAME_PORT, REGEX_TRUE_FALSE, REGEX_ANYTHING, setup_master_key, \
-          setup_ambari_krb5_jaas, ensure_can_start_under_current_user, generate_env
-        from ambari_server.userInput import get_YN_input, get_choice_string_input, get_validated_string_input, \
-          read_password
-        from ambari_server_main import get_ulimit_open_files, ULIMIT_OPEN_FILES_KEY, ULIMIT_OPEN_FILES_DEFAULT
-        from ambari_server.serverClassPath import ServerClassPath
-        from ambari_server.hostUpdate import update_host_names
-        from ambari_server.checkDatabase import check_database
+        os_utils.search_file = _search_file
+        with patch("__builtin__.open"):
+          from ambari_commons.firewall import Firewall
+          from ambari_commons.os_check import OSCheck, OSConst
+          from ambari_commons.os_family_impl import OsFamilyImpl, OsFamilyFuncImpl
+          from ambari_commons.exceptions import FatalException, NonFatalException
+          from ambari_commons.logging_utils import get_verbose, set_verbose, get_silent, set_silent, get_debug_mode, \
+            print_info_msg, print_warning_msg, print_error_msg
+          from ambari_commons.os_utils import run_os_command, search_file, set_file_permissions, remove_file, copy_file, \
+            is_valid_filepath
+          from ambari_server.dbConfiguration import DBMSConfigFactory, check_jdbc_drivers
+          from ambari_server.dbConfiguration_linux import PGConfig, LinuxDBMSConfig, OracleConfig
+          from ambari_server.properties import Properties
+          from ambari_server.resourceFilesKeeper import ResourceFilesKeeper, KeeperException
+          from ambari_server.serverConfiguration import configDefaults, get_java_exe_path, \
+            check_database_name_property, OS_FAMILY_PROPERTY, \
+            find_properties_file, get_ambari_properties, get_JAVA_HOME, \
+            parse_properties_file, read_ambari_user, update_ambari_properties, update_properties_2, write_property, find_jdk, \
+            get_is_active_instance, \
+            AMBARI_CONF_VAR, AMBARI_SERVER_LIB, JDBC_DATABASE_PROPERTY, JDBC_RCA_PASSWORD_FILE_PROPERTY, \
+            PERSISTENCE_TYPE_PROPERTY, JDBC_URL_PROPERTY, get_conf_dir, JDBC_USER_NAME_PROPERTY, JDBC_PASSWORD_PROPERTY, \
+            JDBC_DATABASE_NAME_PROPERTY, OS_TYPE_PROPERTY, validate_jdk, JDBC_POSTGRES_SCHEMA_PROPERTY, \
+            RESOURCES_DIR_PROPERTY, JDBC_RCA_PASSWORD_ALIAS, JDBC_RCA_SCHEMA_PROPERTY, IS_LDAP_CONFIGURED, \
+            SSL_API, SSL_API_PORT, CLIENT_API_PORT_PROPERTY,\
+            JDBC_CONNECTION_POOL_TYPE, JDBC_CONNECTION_POOL_ACQUISITION_SIZE, \
+            JDBC_CONNECTION_POOL_IDLE_TEST_INTERVAL, JDBC_CONNECTION_POOL_MAX_AGE, JDBC_CONNECTION_POOL_MAX_IDLE_TIME, \
+            JDBC_CONNECTION_POOL_MAX_IDLE_TIME_EXCESS,\
+            LDAP_MGR_PASSWORD_PROPERTY, LDAP_MGR_PASSWORD_ALIAS, JDBC_PASSWORD_FILENAME, NR_USER_PROPERTY, SECURITY_KEY_IS_PERSISTED, \
+            SSL_TRUSTSTORE_PASSWORD_PROPERTY, SECURITY_IS_ENCRYPTION_ENABLED, PID_DIR_PROPERTY, SSL_TRUSTSTORE_PASSWORD_ALIAS, \
+            SECURITY_MASTER_KEY_LOCATION, SECURITY_KEYS_DIR, LDAP_PRIMARY_URL_PROPERTY, store_password_file, \
+            get_pass_file_path, GET_FQDN_SERVICE_URL, JDBC_USE_INTEGRATED_AUTH_PROPERTY, SECURITY_KEY_ENV_VAR_NAME, \
+            JAVA_HOME_PROPERTY, JDK_NAME_PROPERTY, JCE_NAME_PROPERTY, STACK_LOCATION_KEY, SERVER_VERSION_FILE_PATH, \
+            COMMON_SERVICES_PATH_PROPERTY, WEBAPP_DIR_PROPERTY, SHARED_RESOURCES_DIR, BOOTSTRAP_SCRIPT, \
+            CUSTOM_ACTION_DEFINITIONS, BOOTSTRAP_SETUP_AGENT_SCRIPT, STACKADVISOR_SCRIPT, BOOTSTRAP_DIR_PROPERTY
+          from ambari_server.serverUtils import is_server_runing, refresh_stack_hash
+          from ambari_server.serverSetup import check_selinux, check_ambari_user, proceedJDBCProperties, SE_STATUS_DISABLED, SE_MODE_ENFORCING, configure_os_settings, \
+            download_and_install_jdk, prompt_db_properties, setup, \
+            AmbariUserChecks, AmbariUserChecksLinux, AmbariUserChecksWindows, JDKSetup, reset, setup_jce_policy, expand_jce_zip_file
+          from ambari_server.serverUpgrade import upgrade, upgrade_local_repo, change_objects_owner, upgrade_stack, \
+            run_stack_upgrade, run_metainfo_upgrade, run_schema_upgrade, move_user_custom_actions
+          from ambari_server.setupHttps import is_valid_https_port, setup_https, import_cert_and_key_action, get_fqdn, \
+            generate_random_string, get_cert_info, COMMON_NAME_ATTR, is_valid_cert_exp, NOT_AFTER_ATTR, NOT_BEFORE_ATTR, \
+            SSL_DATE_FORMAT, import_cert_and_key, is_valid_cert_host, setup_truststore, \
+            SRVR_ONE_WAY_SSL_PORT_PROPERTY, SRVR_TWO_WAY_SSL_PORT_PROPERTY, GANGLIA_HTTPS
+          from ambari_server.setupSecurity import adjust_directory_permissions, get_alias_string, get_ldap_event_spec_names, sync_ldap, LdapSyncOptions, \
+            configure_ldap_password, setup_ldap, REGEX_HOSTNAME_PORT, REGEX_TRUE_FALSE, REGEX_ANYTHING, setup_master_key, \
+            setup_ambari_krb5_jaas, ensure_can_start_under_current_user, generate_env
+          from ambari_server.userInput import get_YN_input, get_choice_string_input, get_validated_string_input, \
+            read_password
+          from ambari_server_main import get_ulimit_open_files, ULIMIT_OPEN_FILES_KEY, ULIMIT_OPEN_FILES_DEFAULT
+          from ambari_server.serverClassPath import ServerClassPath
+          from ambari_server.hostUpdate import update_host_names
+          from ambari_server.checkDatabase import check_database
+          from ambari_server import serverConfiguration
+          serverConfiguration.search_file = _search_file
 
 CURR_AMBARI_VERSION = "2.0.0"
 
@@ -4376,6 +4385,7 @@ class TestAmbariServer(TestCase):
     check_exitcode_mock.return_value = 0
 
     p = Properties()
+    p.process_pair(PID_DIR_PROPERTY, '/var/run/ambari-server')
     p.process_pair(SECURITY_IS_ENCRYPTION_ENABLED, 'False')
     p.process_pair(JDBC_DATABASE_NAME_PROPERTY, 'some_value')
     p.process_pair(NR_USER_PROPERTY, 'some_value')
