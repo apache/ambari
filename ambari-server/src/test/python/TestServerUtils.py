@@ -19,10 +19,20 @@ limitations under the License.
 import os
 os.environ["ROOT"] = ""
 
+from mock.mock import patch, MagicMock
 from unittest import TestCase
-from ambari_server.serverUtils import get_ambari_server_api_base
-from ambari_server.serverConfiguration import CLIENT_API_PORT, CLIENT_API_PORT_PROPERTY, SSL_API, DEFAULT_SSL_API_PORT, SSL_API_PORT
 
+from ambari_commons import os_utils
+os_utils.search_file = MagicMock(return_value="/tmp/ambari.properties")
+import shutil
+project_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),os.path.normpath("../../../../"))
+shutil.copyfile(project_dir+"/ambari-server/conf/unix/ambari.properties", "/tmp/ambari.properties")
+
+with patch.object(os_utils, "parse_log4j_file", return_value={'ambari.log.dir': '/var/log/ambari-server'}):
+  from ambari_server.serverUtils import get_ambari_server_api_base
+  from ambari_server.serverConfiguration import CLIENT_API_PORT, CLIENT_API_PORT_PROPERTY, SSL_API, DEFAULT_SSL_API_PORT, SSL_API_PORT
+
+#@patch("ambari_server.serverConfiguration.search_file", new=MagicMock(return_value="/tmp/ambari.properties"))
 class TestServerUtils(TestCase):
 
   def test_get_ambari_server_api_base(self):

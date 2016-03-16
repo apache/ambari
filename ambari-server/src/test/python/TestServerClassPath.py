@@ -30,7 +30,8 @@ from ambari_server.properties import Properties
 from ambari_commons import os_utils
 os_utils.search_file = MagicMock(return_value="/tmp/ambari.properties")
 import shutil
-shutil.copyfile("/home/user/ambari/ambari-server/conf/unix/ambari.properties", "/tmp/ambari.properties")
+project_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),os.path.normpath("../../../../"))
+shutil.copyfile(project_dir+"/ambari-server/conf/unix/ambari.properties", "/tmp/ambari.properties")
 
 with patch.object(os_utils, "parse_log4j_file", return_value={'ambari.log.dir': '/var/log/ambari-server'}):
   from ambari_server.dbConfiguration import get_jdbc_driver_path, get_native_libs_path
