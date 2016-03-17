@@ -1,8 +1,10 @@
 {
-  "id": 3,
-  "title": "YARN Home",
-  "originalTitle": "YARN Home",
-  "tags": [],
+  "id": 5,
+  "title": "YARN - Applications",
+  "originalTitle": "YARN - Applications",
+  "tags": [
+    "yarn"
+  ],
   "style": "dark",
   "timezone": "browser",
   "editable": true,
@@ -10,181 +12,30 @@
   "sharedCrosshair": false,
   "rows": [
     {
-      "collapse": false,
+      "title": "New row",
+      "height": "25px",
       "editable": true,
-      "height": "200px",
+      "collapse": false,
       "panels": [
         {
-          "cacheTimeout": null,
-          "colorBackground": false,
-          "colorValue": false,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "datasource": null,
-          "editable": true,
+          "title": "",
           "error": false,
-          "format": "none",
-          "id": 3,
-          "interval": null,
-          "isNew": true,
-          "links": [],
-          "maxDataPoints": 100,
-          "nullPointMode": "connected",
-          "nullText": null,
-          "postfix": "",
-          "postfixFontSize": "50%",
-          "prefix": "",
-          "prefixFontSize": "50%",
-          "span": 4,
-          "sparkline": {
-            "fillColor": "rgba(31, 118, 189, 0.18)",
-            "full": false,
-            "lineColor": "rgb(31, 120, 193)",
-            "show": true
-          },
-          "targets": [
-            {
-              "aggregator": "avg",
-              "app": "resourcemanager",
-              "downsampleAggregator": "avg",
-              "errors": {},
-              "metric": "yarn.ClusterMetrics.NumActiveNMs",
-              "refId": "A"
-            }
-          ],
-          "thresholds": "",
-          "title": "Active nodes",
-          "type": "singlestat",
-          "valueFontSize": "80%",
-          "valueMaps": [
-            {
-              "op": "=",
-              "text": "N/A",
-              "value": "null"
-            }
-          ],
-          "valueName": "current"
-        },
-        {
-          "cacheTimeout": null,
-          "colorBackground": false,
-          "colorValue": false,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "datasource": null,
+          "span": 12,
           "editable": true,
-          "error": false,
-          "format": "none",
-          "id": 2,
-          "interval": null,
+          "type": "text",
           "isNew": true,
-          "links": [],
-          "maxDataPoints": 100,
-          "nullPointMode": "connected",
-          "nullText": null,
-          "postfix": "",
-          "postfixFontSize": "50%",
-          "prefix": "",
-          "prefixFontSize": "50%",
-          "span": 4,
-          "sparkline": {
-            "fillColor": "rgba(31, 118, 189, 0.18)",
-            "full": false,
-            "lineColor": "rgb(31, 120, 193)",
-            "show": true
-          },
-          "targets": [
-            {
-              "aggregator": "avg",
-              "app": "resourcemanager",
-              "downsampleAggregator": "avg",
-              "errors": {},
-              "metric": "yarn.QueueMetrics.Queue=root.AppsRunning",
-              "precision": "seconds",
-              "refId": "A",
-              "shouldAddPrecision": false
-            }
-          ],
-          "thresholds": "",
-          "title": "Running apps",
-          "type": "singlestat",
-          "valueFontSize": "80%",
-          "valueMaps": [
-            {
-              "op": "=",
-              "text": "N/A",
-              "value": "null"
-            }
-          ],
-          "valueName": "current"
-        },
-        {
-          "cacheTimeout": null,
-          "colorBackground": false,
-          "colorValue": false,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "datasource": null,
-          "editable": true,
-          "error": false,
-          "format": "mbytes",
-          "id": 6,
-          "interval": null,
-          "isNew": true,
-          "links": [],
-          "maxDataPoints": 100,
-          "nullPointMode": "connected",
-          "nullText": null,
-          "postfix": "",
-          "postfixFontSize": "50%",
-          "prefix": "",
-          "prefixFontSize": "50%",
-          "span": 4,
-          "sparkline": {
-            "fillColor": "rgba(31, 118, 189, 0.18)",
-            "full": false,
-            "lineColor": "rgb(31, 120, 193)",
-            "show": true
-          },
-          "targets": [
-            {
-              "aggregator": "avg",
-              "app": "resourcemanager",
-              "downsampleAggregator": "avg",
-              "errors": {},
-              "metric": "jvm.JvmMetrics.MemHeapUsedM",
-              "refId": "C"
-            }
-          ],
-          "thresholds": "",
-          "title": "ResourceManager Heap",
-          "type": "singlestat",
-          "valueFontSize": "80%",
-          "valueMaps": [
-            {
-              "op": "=",
-              "text": "N/A",
-              "value": "null"
-            }
-          ],
-          "valueName": "current"
+          "id": 7,
+          "mode": "html",
+          "content": "<h4 align=\"center\">Metrics to see the status of Applications on the YARN cluster. </h4>",
+          "style": {},
+          "links": []
         }
-      ],
-      "title": "Row"
+      ]
     },
     {
       "collapse": false,
       "editable": true,
-      "height": "250px",
+      "height": 256,
       "panels": [
         {
           "aliasColors": {},
@@ -205,7 +56,7 @@
             "threshold2": null,
             "threshold2Color": "rgba(234, 112, 112, 0.22)"
           },
-          "id": 8,
+          "id": 6,
           "isNew": true,
           "legend": {
             "avg": false,
@@ -218,52 +69,63 @@
           },
           "lines": true,
           "linewidth": 2,
-          "links": [
-            {
-              "dashUri": "db/node-managers",
-              "dashboard": "Node Managers",
-              "title": "Node Managers",
-              "type": "dashboard"
-            }
-          ],
+          "links": [],
           "nullPointMode": "connected",
           "percentage": false,
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
           "seriesOverrides": [],
-          "span": 6,
+          "span": 12,
           "stack": false,
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "avg",
+              "aggregator": "max",
+              "alias": "24 Hours",
               "app": "resourcemanager",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "yarn.ClusterMetrics.NumActiveNMs",
+              "hide": false,
+              "hosts": "",
+              "metric": "yarn.QueueMetrics.Queue=root.running_1440",
+              "precision": "",
               "refId": "A"
             },
             {
-              "aggregator": "avg",
+              "aggregator": "max",
+              "alias": "5 Hours",
               "app": "resourcemanager",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "yarn.ClusterMetrics.NumUnhealthyNMs",
+              "metric": "yarn.QueueMetrics.Queue=root.running_300",
+              "precision": "",
               "refId": "B"
             },
             {
-              "aggregator": "avg",
+              "aggregator": "max",
+              "alias": "1 Hour",
               "app": "resourcemanager",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "yarn.ClusterMetrics.NumLostNMs",
+              "metric": "yarn.QueueMetrics.Queue=root.running_60",
+              "precision": "",
               "refId": "C"
+            },
+            {
+              "aggregator": "max",
+              "alias": "1 Minute",
+              "app": "resourcemanager",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "yarn.QueueMetrics.Queue=root.running_0",
+              "precision": "",
+              "refId": "D"
             }
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Nodes",
+          "title": "Applications  By Running Time",
           "tooltip": {
             "shared": true,
             "value_type": "cumulative"
@@ -275,7 +137,16 @@
             "short",
             "short"
           ]
-        },
+        }
+      ],
+      "showTitle": false,
+      "title": "New row"
+    },
+    {
+      "collapse": false,
+      "editable": true,
+      "height": "250px",
+      "panels": [
         {
           "aliasColors": {},
           "bars": false,
@@ -308,14 +179,7 @@
           },
           "lines": true,
           "linewidth": 2,
-          "links": [
-            {
-              "dashUri": "db/yarn-applications",
-              "dashboard": "YARN Applications",
-              "title": "YARN Applications",
-              "type": "dashboard"
-            }
-          ],
+          "links": [],
           "nullPointMode": "connected",
           "percentage": false,
           "pointradius": 5,
@@ -327,38 +191,116 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "avg",
+              "aggregator": "max",
+              "alias": "Running Apps",
               "app": "resourcemanager",
               "downsampleAggregator": "avg",
               "errors": {},
+              "hide": false,
+              "hosts": "",
               "metric": "yarn.QueueMetrics.Queue=root.AppsRunning",
+              "precision": "",
               "refId": "A"
             },
             {
-              "aggregator": "avg",
+              "aggregator": "max",
+              "alias": "Completed Apps",
               "app": "resourcemanager",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "yarn.QueueMetrics.Queue=root.AppsPending",
+              "metric": "yarn.QueueMetrics.Queue=root.AppsCompleted",
+              "precision": "",
               "refId": "B"
-            },
-            {
-              "aggregator": "avg",
-              "app": "resourcemanager",
-              "downsampleAggregator": "avg",
-              "errors": {},
-              "metric": "yarn.QueueMetrics.Queue=root.AppsFailed",
-              "refId": "C"
             }
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Apps",
+          "title": "Apps Running vs Completed",
           "tooltip": {
             "shared": true,
             "value_type": "cumulative"
           },
-          "transparent": false,
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "short",
+            "short"
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {
+            "leftLogBase": 1,
+            "leftMax": null,
+            "leftMin": null,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": null,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 3,
+          "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "max",
+              "alias": "Pending Apps",
+              "app": "resourcemanager",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "hide": false,
+              "hosts": "",
+              "metric": "yarn.QueueMetrics.Queue=root.AppsPending",
+              "precision": "",
+              "refId": "A"
+            },
+            {
+              "aggregator": "max",
+              "alias": "Submitted Apps",
+              "app": "resourcemanager",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "yarn.QueueMetrics.Queue=root.AppsSubmitted",
+              "precision": "",
+              "refId": "B"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Apps Submitted vs Pending",
+          "tooltip": {
+            "shared": true,
+            "value_type": "cumulative"
+          },
           "type": "graph",
           "x-axis": true,
           "y-axis": true,
@@ -394,7 +336,7 @@
             "threshold2": null,
             "threshold2Color": "rgba(234, 112, 112, 0.22)"
           },
-          "id": 9,
+          "id": 1,
           "isNew": true,
           "legend": {
             "avg": false,
@@ -414,22 +356,26 @@
           "points": false,
           "renderer": "flot",
           "seriesOverrides": [],
-          "span": 12,
+          "span": 6,
           "stack": false,
           "steppedLine": false,
           "targets": [
             {
               "aggregator": "avg",
+              "alias": "Avg AM Launch Delay",
               "app": "resourcemanager",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "yarn.QueueMetrics.Queue=root.AllocatedMB",
-              "refId": "A"
+              "metric": "yarn.ClusterMetrics.AMLaunchDelayAvgTime",
+              "precision": "",
+              "refId": "A",
+              "shouldAddPrecision": false,
+              "shouldComputeRate": false
             }
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Cluster utilization",
+          "title": "Avg AM Launch Delay",
           "tooltip": {
             "shared": true,
             "value_type": "cumulative"
@@ -438,16 +384,87 @@
           "x-axis": true,
           "y-axis": true,
           "y_formats": [
-            "mbytes",
+            "ms",
+            "short"
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {
+            "leftLogBase": 1,
+            "leftMax": null,
+            "leftMin": null,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": null,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 2,
+          "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "avg",
+              "alias": "Avg AM Register Delay",
+              "app": "resourcemanager",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "yarn.ClusterMetrics.AMRegisterDelayAvgTime",
+              "precision": "",
+              "refId": "A",
+              "shouldAddPrecision": false,
+              "shouldComputeRate": false
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Avg AM Register Delay",
+          "tooltip": {
+            "shared": true,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "µs",
             "short"
           ]
         }
       ],
-      "title": "New row"
+      "title": "Row"
     }
   ],
   "time": {
-    "from": "now-3d",
+    "from": "now-7d",
     "to": "now"
   },
   "timepicker": {
@@ -482,7 +499,19 @@
   "annotations": {
     "list": []
   },
+  "refresh": false,
   "schemaVersion": 8,
-  "version": 22,
-  "links": []
+  "version": 16,
+  "links": [
+    {
+      "asDropdown": true,
+      "icon": "external link",
+      "keepTime": true,
+      "tags": [
+        "yarn"
+      ],
+      "title": "YARN Dashboards",
+      "type": "dashboards"
+    }
+  ]
 }
