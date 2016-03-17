@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.internal;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -59,8 +60,10 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.OperatingSystemInfo;
 import org.apache.ambari.server.state.RepositoryVersionState;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.repository.ManifestServiceInfo;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
@@ -95,6 +98,7 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
   public static final String REPOSITORY_VERSION_RELEASE_NOTES                  = "RepositoryVersions/release/notes";
   public static final String REPOSITORY_VERSION_RELEASE_COMPATIBLE_WITH        = "RepositoryVersions/release/compatible_with";
   public static final String REPOSITORY_VERSION_AVAILABLE_SERVICES             = "RepositoryVersions/services";
+  public static final String REPOSITORY_VERSION_STACK_SERVICES                 = "RepositoryVersions/stack_services";
 
   public static final String REPOSITORY_VERSION_PARENT_ID                      = "RepositoryVersions/parent_id";
   public static final String REPOSITORY_VERSION_HAS_CHILDREN                   = "RepositoryVersions/has_children";
@@ -121,7 +125,8 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
       REPOSITORY_VERSION_RELEASE_VERSION,
       REPOSITORY_VERSION_PARENT_ID,
       REPOSITORY_VERSION_HAS_CHILDREN,
-      REPOSITORY_VERSION_AVAILABLE_SERVICES);
+      REPOSITORY_VERSION_AVAILABLE_SERVICES,
+      REPOSITORY_VERSION_STACK_SERVICES);
 
   @SuppressWarnings("serial")
   public static Map<Type, String> keyPropertyIds = new HashMap<Type, String>() {
@@ -273,29 +278,40 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
           null != children && !children.isEmpty(), requestedIds);
 
       final VersionDefinitionXml xml;
-
       try {
         xml = entity.getRepositoryXml();
       } catch (Exception e) {
         throw new SystemException(String.format("Could not load xml for Repository %s", entity.getId()), e);
       }
 
+      final StackInfo stack;
+      try {
+        stack = ambariMetaInfo.getStack(entity.getStackName(), entity.getStackVersion());
+      } catch (AmbariException e) {
+        throw new SystemException(String.format("Could not load stack %s for Repository %s",
+            entity.getStackId().toString(), entity.getId()));
+      }
+
+      final List<ManifestServiceInfo> stackServices;
+
       if (null != xml) {
-        final StackInfo stack;
-
-        try {
-          stack = ambariMetaInfo.getStack(entity.getStackName(), entity.getStackVersion());
-        } catch (AmbariException e) {
-          throw new SystemException(String.format("Could not load stack %s for Repository %s",
-              entity.getStackId().toString(), entity.getId()));
-        }
-
         setResourceProperty(resource, REPOSITORY_VERSION_RELEASE_VERSION, xml.release.version, requestedIds);
         setResourceProperty(resource, REPOSITORY_VERSION_RELEASE_BUILD, xml.release.build, requestedIds);
         setResourceProperty(resource, REPOSITORY_VERSION_RELEASE_COMPATIBLE_WITH, xml.release.compatibleWith, requestedIds);
         setResourceProperty(resource, REPOSITORY_VERSION_RELEASE_NOTES, xml.release.releaseNotes, requestedIds);
         setResourceProperty(resource, REPOSITORY_VERSION_AVAILABLE_SERVICES, xml.getAvailableServices(stack), requestedIds);
+        stackServices = xml.getStackServices(stack);
+      } else {
+        stackServices = new ArrayList<>();
+
+        for (ServiceInfo si : stack.getServices()) {
+          stackServices.add(new ManifestServiceInfo(si.getName(), si.getDisplayName(), si.getComment(),
+              Collections.singleton(si.getVersion())));
+        }
+
       }
+
+      setResourceProperty(resource, REPOSITORY_VERSION_STACK_SERVICES, stackServices, requestedIds);
 
       resources.add(resource);
     }

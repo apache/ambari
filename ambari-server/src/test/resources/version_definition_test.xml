@@ -30,8 +30,8 @@
   
   <manifest>
     <service id="HDFS-271" name="HDFS" version="2.7.1" version-id="10" />
-    <service id="HIVE-110" name="HIVE" version="1.1.0" />
     <service id="HIVE-200" name="HIVE" version="2.0.0" />
+    <service id="HIVE-110" name="HIVE" version="1.1.0" />
     <service id="HBASE-899" name="HBASE" version="8.9.9" />
   </manifest>
   

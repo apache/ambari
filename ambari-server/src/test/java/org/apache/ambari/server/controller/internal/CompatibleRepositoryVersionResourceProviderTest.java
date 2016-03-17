@@ -18,10 +18,19 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
 import static junit.framework.Assert.assertEquals;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ResourceProviderFactory;
 import org.apache.ambari.server.controller.predicate.AndPredicate;
@@ -43,14 +52,14 @@ import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.easymock.EasyMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.util.*;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 
 /**
  * CompatibleRepositoryVersionResourceProvider tests.
@@ -213,6 +222,8 @@ public class CompatibleRepositoryVersionResourceProviderTest {
     };
     injector = Guice.createInjector(injectorModule);
 
+    expect(ambariMetaInfo.getStack("HDP", "1.1")).andReturn(stack1).atLeastOnce();
+    expect(ambariMetaInfo.getStack("HDP", "2.2")).andReturn(stack2).atLeastOnce();
     expect(ambariMetaInfo.getUpgradePacks("HDP", "1.1")).andReturn(stack1.getUpgradePacks());
     expect(ambariMetaInfo.getUpgradePacks("HDP", "2.2")).andReturn(stack2.getUpgradePacks());
 

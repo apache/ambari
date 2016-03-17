@@ -28,6 +28,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
@@ -94,10 +95,15 @@ public class VersionDefinitionXml {
   @XmlTransient
   private Map<String, AvailableService> availableMap;
 
+  @XmlTransient
+  private List<ManifestServiceInfo> m_manifest = null;
+
 
   /**
    * @param stack the stack info needed to lookup service and component display names
-   * @return a collection of AvailableServices used for web service consumption
+   * @return a collection of AvailableServices used for web service consumption.  This
+   * collection is either the subset of the manifest, or the manifest if no services
+   * are specified as "available".
    */
   public Collection<AvailableService> getAvailableServices(StackInfo stack) {
     if (null == availableMap) {
@@ -120,6 +126,43 @@ public class VersionDefinitionXml {
 
     return availableMap.values();
   }
+
+  /**
+   * Gets the list of stack services, applying information from the version definition.
+   * @param stack the stack for which to get the information
+   * @return the list of {@code ManifestServiceInfo} instances for each service in the stack
+   */
+  public List<ManifestServiceInfo> getStackServices(StackInfo stack) {
+
+    if (null != m_manifest) {
+      return m_manifest;
+    }
+
+    Map<String, Set<String>> manifestVersions = new HashMap<>();
+
+    for (ManifestService manifest : manifestServices) {
+      String name = manifest.serviceName;
+
+      if (!manifestVersions.containsKey(name)) {
+        manifestVersions.put(manifest.serviceName, new TreeSet<String>());
+      }
+
+      manifestVersions.get(manifest.serviceName).add(manifest.version);
+    }
+
+    m_manifest = new ArrayList<>();
+
+    for (ServiceInfo si : stack.getServices()) {
+      Set<String> versions = manifestVersions.containsKey(si.getName()) ?
+          manifestVersions.get(si.getName()) : Collections.singleton("");
+
+      m_manifest.add(new ManifestServiceInfo(si.getName(), si.getDisplayName(),
+          si.getComment(), versions));
+    }
+
+    return m_manifest;
+  }
+
 
   /**
    * Helper method to use a {@link ManifestService} to generate the available services structure
