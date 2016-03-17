@@ -189,23 +189,22 @@ class TestHDP21StackAdvisor(TestCase):
     servicesList = ["HBASE"]
     configurations = {}
     components = []
+    host_item = {
+      "Hosts" : {
+        "cpu_count" : 6,
+        "total_mem" : 50331648,
+        "disk_info" : [
+          {"mountpoint" : "/"},
+          {"mountpoint" : "/dev/shm"},
+          {"mountpoint" : "/vagrant"},
+          {"mountpoint" : "/"},
+          {"mountpoint" : "/dev/shm"},
+          {"mountpoint" : "/vagrant"}
+        ]
+      }
+    }
     hosts = {
-      "items" : [
-        {
-          "Hosts" : {
-            "cpu_count" : 6,
-            "total_mem" : 50331648,
-            "disk_info" : [
-              {"mountpoint" : "/"},
-              {"mountpoint" : "/dev/shm"},
-              {"mountpoint" : "/vagrant"},
-              {"mountpoint" : "/"},
-              {"mountpoint" : "/dev/shm"},
-              {"mountpoint" : "/vagrant"}
-            ]
-          }
-        }
-      ]
+      "items" : [host_item for i in range(1, 600)]
     }
     services = {
       "services" : [
@@ -240,7 +239,7 @@ class TestHDP21StackAdvisor(TestCase):
     clusterData = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components, None)
     self.assertEquals(clusterData['hbaseRam'], 8)
 
-    self.stackAdvisor.recommendHbaseConfigurations(configurations, clusterData, services, None)
+    self.stackAdvisor.recommendHbaseConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
 
   def test_recommendHDFSConfigurations(self):

@@ -845,7 +845,7 @@ class TestHDP23StackAdvisor(TestCase):
       },
       "hbase-env": {
         "properties": {
-          "hbase_master_heapsize": "114688",
+          "hbase_master_heapsize": "1024",
           "hbase_max_direct_memory_size": "94208",
           "hbase_regionserver_heapsize": "20480"
         }
@@ -975,7 +975,7 @@ class TestHDP23StackAdvisor(TestCase):
     expected["hbase-site"]["property_attributes"]["hbase.bucketcache.ioengine"] = {"delete": "true"}
     expected["hbase-site"]["property_attributes"]["hbase.bucketcache.percentage.in.combinedcache"] = {"delete": "true"}
     expected["hbase-env"]["property_attributes"] = {"hbase_max_direct_memory_size" : {"delete": "true"}}
-    expected["hbase-env"]["properties"]["hbase_master_heapsize"] = "4096"
+    expected["hbase-env"]["properties"]["hbase_master_heapsize"] = "1024"
     expected["hbase-env"]["properties"]["hbase_regionserver_heapsize"] = "4096"
     self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations, expected)

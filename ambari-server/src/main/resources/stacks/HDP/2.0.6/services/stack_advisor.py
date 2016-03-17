@@ -258,9 +258,25 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
   def recommendHbaseConfigurations(self, configurations, clusterData, services, hosts):
     # recommendations for HBase env config
+
+    # If cluster size is < 100, hbase master heap = 2G
+    # else If cluster size is < 500, hbase master heap = 4G
+    # else hbase master heap = 8G
+    # for small test clusters use 1 gb
+    hostsCount = 0
+    if hosts and "items" in hosts:
+      hostsCount = len(hosts["items"])
+
+    hbaseMasterRam = {
+      hostsCount < 20: 1,
+      20 <= hostsCount < 100: 2,
+      100 <= hostsCount < 500: 4,
+      500 <= hostsCount: 8
+    }[True]
+
     putHbaseProperty = self.putProperty(configurations, "hbase-env", services)
     putHbaseProperty('hbase_regionserver_heapsize', int(clusterData['hbaseRam']) * 1024)
-    putHbaseProperty('hbase_master_heapsize', int(clusterData['hbaseRam']) * 1024)
+    putHbaseProperty('hbase_master_heapsize', hbaseMasterRam * 1024)
 
     # recommendations for HBase site config
     putHbaseSiteProperty = self.putProperty(configurations, "hbase-site", services)
@@ -759,7 +775,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       {"os":12, "hbase":16},
       {"os":24, "hbase":24},
       {"os":32, "hbase":32},
-      {"os":64, "hbase":64}
+      {"os":64, "hbase":32}
     ]
     index = {
       cluster["ram"] <= 4: 0,
@@ -774,8 +790,11 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       128 < cluster["ram"] <= 256: 9,
       256 < cluster["ram"]: 10
     }[1]
+
+
     cluster["reservedRam"] = ramRecommendations[index]["os"]
     cluster["hbaseRam"] = ramRecommendations[index]["hbase"]
+
 
     cluster["minContainerSize"] = {
       cluster["ram"] <= 4: 256,
