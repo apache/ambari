@@ -107,17 +107,10 @@ define([
               // Added hostname to legend for templated dashboards.
               var hostLegend = res.metrics[0].hostname ? ' on ' + res.metrics[0].hostname : '';
               var timeSeries = {};
-              if (target.hosts === undefined || target.hosts.trim() === "") {
-                timeSeries = {
-                  target: alias + hostLegend,
-                  datapoints: []
-                };
-              } else {
-                timeSeries = {
-                  target: alias + ' on ' + target.hosts,
-                  datapoints: []
-                };
-              }
+              timeSeries = {
+                target: alias + hostLegend,
+                datapoints: []
+              };
               for (var k in metricData){
                 if (metricData.hasOwnProperty(k)) {
                   timeSeries.datapoints.push([metricData[k], (k - k % 1000)]);
