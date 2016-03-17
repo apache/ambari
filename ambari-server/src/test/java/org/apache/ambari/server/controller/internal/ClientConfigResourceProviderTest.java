@@ -240,6 +240,8 @@ public class ClientConfigResourceProviderTest {
     expect(configuration.getResourceDirPath()).andReturn("/tmp/stacks/S1/V1");
     expect(configuration.getJavaVersion()).andReturn(8);
     expect(configuration.areHostsSysPrepped()).andReturn("false");
+    expect(configuration.isAgentStackRetryOnInstallEnabled()).andReturn("false");
+    expect(configuration.getAgentStackRetryOnInstallCount()).andReturn("5");
     expect(configuration.getExternalScriptTimeout()).andReturn(Integer.parseInt(Configuration.EXTERNAL_SCRIPT_TIMEOUT_DEFAULT));
     Map<String,String> props = new HashMap<String, String>();
     props.put(Configuration.HIVE_METASTORE_PASSWORD_PROPERTY, "pass");
@@ -442,6 +444,8 @@ public class ClientConfigResourceProviderTest {
     expect(configuration.getResourceDirPath()).andReturn("/var/lib/ambari-server/src/main/resources");
     expect(configuration.getJavaVersion()).andReturn(8);
     expect(configuration.areHostsSysPrepped()).andReturn("false");
+    expect(configuration.isAgentStackRetryOnInstallEnabled()).andReturn("false");
+    expect(configuration.getAgentStackRetryOnInstallCount()).andReturn("5");
     expect(configuration.getExternalScriptTimeout()).andReturn(Integer.parseInt(Configuration.EXTERNAL_SCRIPT_TIMEOUT_DEFAULT));
 
     Map<String,String> props = new HashMap<String, String>();
