@@ -2633,6 +2633,8 @@ Em.I18n.translations = {
   'dashboard.services.yarn.memory.msg': '{0} used / {1} reserved / {2} available',
   'dashboard.services.yarn.queues': 'Queues',
   'dashboard.services.yarn.queues.msg': '{0} Queues',
+  'dashboard.services.hawq.hawqSegments':'HAWQ Segments',
+  'dashboard.services.pxf.pxfHosts':'PXF',
 
   'dashboard.services.flume.summary.title':'Flume installed on {0} host{1} ({2} agent{3})',
   'dashboard.services.flume.summary.configure':'Configure Agents',

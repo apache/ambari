@@ -58,6 +58,16 @@ App.HostTableMenuView = Em.View.extend({
         componentNameFormatted: Em.I18n.t('dashboard.services.hbase.regionServers')
       }),
       O.create({
+        serviceName: 'HAWQ',
+        componentName: 'HAWQSEGMENT',
+        componentNameFormatted: Em.I18n.t('dashboard.services.hawq.hawqSegments')
+      }),
+      O.create({
+        serviceName: 'PXF',
+        componentName: 'PXF',
+        componentNameFormatted: Em.I18n.t('dashboard.services.pxf.pxfHosts')
+      }),
+      O.create({
         serviceName: 'STORM',
         componentName: 'SUPERVISOR',
         masterComponentName: 'SUPERVISOR',
