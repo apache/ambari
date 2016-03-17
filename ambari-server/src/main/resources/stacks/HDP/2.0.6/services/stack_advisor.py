@@ -674,7 +674,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     putAmsSiteProperty("timeline.metrics.cluster.aggregate.splitpoints", ','.join(aggregate_splits))
 
     component_grafana_exists = False
-    for service in services:
+    for service in services['services']:
       if 'components' in service:
         for component in service['components']:
           if 'StackServiceComponents' in component:
