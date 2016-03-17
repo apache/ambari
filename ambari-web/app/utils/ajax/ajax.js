@@ -1523,11 +1523,15 @@ var urls = {
     'mock': '/data/wizard/kerberos/stack_descriptors.json'
   },
   'admin.kerberize.stack_descriptor': {
-    'real': '/stacks/{stackName}/versions/{stackVersionNumber}/artifacts/kerberos_descriptor?fields=artifact_data',
+    'real': '/clusters/{clusterName}/kerberos_descriptors/STACK',
+    'mock': '/data/wizard/kerberos/stack_descriptors.json'
+  },
+  'admin.kerberize.cluster_descriptor_artifact': {
+    'real': '/clusters/{clusterName}/artifacts/kerberos_descriptor?fields=artifact_data',
     'mock': '/data/wizard/kerberos/stack_descriptors.json'
   },
   'admin.kerberize.cluster_descriptor': {
-    'real': '/clusters/{clusterName}/artifacts/kerberos_descriptor?fields=artifact_data',
+    'real': '/clusters/{clusterName}/kerberos_descriptors/COMPOSITE',
     'mock': '/data/wizard/kerberos/stack_descriptors.json'
   },
   'admin.kerberos.cluster.artifact.create': {

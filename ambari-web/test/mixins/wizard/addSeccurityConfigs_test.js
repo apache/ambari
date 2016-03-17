@@ -18,7 +18,7 @@
 
 var App = require('app');
 var stackDescriptorData = require('test/mock_data_setup/stack_descriptors');
-var stackDescriptor = stackDescriptorData.artifact_data;
+var stackDescriptor = stackDescriptorData.KerberosDescriptor.kerberos_descriptor;
 
 require('mixins/wizard/addSecurityConfigs');
 

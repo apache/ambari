@@ -35,6 +35,9 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
     'none': Em.I18n.t('admin.kerberos.wizard.step1.option.manual')
   },
 
+  // use cluster descriptor instead of stack
+  loadStackDescriptorConfigs: Em.alias('loadClusterDescriptorConfigs'),
+
   getAddSecurityWizardStatus: function () {
     return App.db.getSecurityWizardStatus();
   },

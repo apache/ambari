@@ -298,8 +298,8 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
     var self = this,
         dfd = $.Deferred();
     if (App.get('isKerberosEnabled')) {
-      this.getDescriptorConfigs().then(function(properties) {
-        self.set('kerberosDescriptorConfigs', properties);
+      this.loadClusterDescriptorConfigs().then(function(properties) {
+        self.set('kerberosDescriptorConfigs', self.createServicesStackDescriptorConfigs(properties));
       }).always(function(){
         dfd.resolve();
       });

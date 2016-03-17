@@ -58,33 +58,6 @@ App.AddSecurityConfigs = Em.Mixin.create({
   }.property('App.isHadoop22Stack'),
 
   /**
-   * Generate stack descriptor configs.
-   *  - Load kerberos artifacts from stack endpoint
-   *  - Load kerberos artifacts from cluster resource and merge them with stack descriptor.
-   * When cluster descriptor is absent then stack artifacts used.
-   *
-   * @returns {$.Deferred}
-   */
-  getDescriptorConfigs: function () {
-    var dfd = $.Deferred();
-    var self = this;
-    this.loadStackDescriptorConfigs().then(function(data) {
-      var stackArtifacts = data;
-      self.loadClusterDescriptorConfigs().then(function(clusterArtifacts) {
-        self.storeClusterDescriptorStatus(true);
-        dfd.resolve(self.createServicesStackDescriptorConfigs(objectUtils.deepMerge(data, clusterArtifacts)));
-      }, function() {
-        self.storeClusterDescriptorStatus(false);
-        dfd.resolve(self.createServicesStackDescriptorConfigs(stackArtifacts));
-      });
-    }, function() {
-      dfd.reject();
-    });
-    return dfd.promise();
-  },
-
-
-  /**
    * Store status of kerberos descriptor located in cluster artifacts.
    * This status needed for Add Service Wizard to select appropriate method to create
    * or update descriptor.
@@ -106,7 +79,7 @@ App.AddSecurityConfigs = Em.Mixin.create({
     var self = this;
     var configs = [];
     var clusterConfigs = [];
-    var kerberosDescriptor = items.artifact_data;
+    var kerberosDescriptor = Em.get(items, 'KerberosDescriptor.kerberos_descriptor');
     this.set('kerberosDescriptor', kerberosDescriptor);
     // generate configs for root level properties object, currently realm, keytab_dir
     clusterConfigs = clusterConfigs.concat(this.expandKerberosStackDescriptorProps(kerberosDescriptor.properties, 'Cluster', 'stackConfigs'));

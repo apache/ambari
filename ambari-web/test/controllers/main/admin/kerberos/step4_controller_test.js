@@ -204,7 +204,7 @@ describe('App.KerberosWizardStep4Controller', function() {
             name: 'addServiceController',
             getDBProperty: function() {
               return Em.A([
-                Em.Object.create({ name: 'realm', value: 'realm_value' }),
+                Em.Object.create({ name: 'realm', value: 'realm_value' })
               ]);
             },
             loadCachedStepConfigValues : function() {
@@ -290,14 +290,14 @@ describe('App.KerberosWizardStep4Controller', function() {
         this.wizardController = App.AddServiceController.create({});
         controller.set('wizardController', this.wizardController);
         sinon.stub(controller, 'clearStep').returns(true);
-        sinon.stub(controller, 'getDescriptorConfigs').returns((new $.Deferred()).resolve(true).promise());
+
         sinon.stub(controller, 'setStepConfigs').returns(true);
         sinon.stub(App.router, 'send').withArgs('next');
       });
 
       afterEach(function() {
         controller.clearStep.restore();
-        controller.getDescriptorConfigs.restore();
+
         controller.setStepConfigs.restore();
         App.router.send.restore();
       });
@@ -339,84 +339,6 @@ describe('App.KerberosWizardStep4Controller', function() {
         controller.loadStep();
         expect(App.router.send.calledWith('next')).to.be.false;
       });
-    });
-  });
-
-  describe('#getDescriptorConfigs', function() {
-    describe('Within Add Service', function () {
-      var controller;
-      beforeEach(function () {
-        controller = App.KerberosWizardStep4Controller.create({
-          wizardController: Em.Object.create({
-            name: 'addServiceController',
-            setDBProperty: sinon.spy()
-          })
-        });
-        this.loadStackDescriptorStub = sinon.stub(controller, 'loadStackDescriptorConfigs').returns($.Deferred().resolve().promise());
-        this.loadClusterDescriptorStub = sinon.stub(controller, 'loadClusterDescriptorConfigs');
-        sinon.stub(controller, 'createServicesStackDescriptorConfigs', Em.K);
-      });
-
-      afterEach(function() {
-        this.loadStackDescriptorStub.restore();
-        this.loadClusterDescriptorStub.restore();
-        controller.createServicesStackDescriptorConfigs.restore();
-        controller.destroy();
-        controller = null;
-      });
-
-      var cases = [
-        {
-          wizardController: 'addServiceController',
-          clusterDescriptorExists: false,
-          m: 'Within Add Service, Cluster Descriptor not exists. Should be reflected in wizard controller',
-          e: {
-            setDBPropertyCalled: true,
-            setDBPropertyCalledWith: ['isClusterDescriptorExists', false]
-          }
-        },
-        {
-          wizardController: 'addServiceController',
-          clusterDescriptorExists: true,
-          m: 'Within Add Service, Cluster Descriptor is present. Should be reflected in wizard controller',
-          e: {
-            setDBPropertyCalled: true,
-            setDBPropertyCalledWith: ['isClusterDescriptorExists', true]
-          }
-        },
-        {
-          wizardController: 'notAddService',
-          clusterDescriptorExists: true,
-          m: 'Within another controller, nothing to store',
-          e: {
-            setDBPropertyCalled: false
-          }
-        }
-      ];
-
-      cases.forEach(function(test) {
-        describe(test.m, function () {
-
-          beforeEach(function () {
-            controller.get('wizardController').set('name', test.wizardController);
-            this.loadClusterDescriptorStub.returns(test.clusterDescriptorExists ?
-              $.Deferred().resolve().promise() :
-              $.Deferred().reject().promise());
-            controller.getDescriptorConfigs();
-          });
-
-          if (test.e.setDBPropertyCalled) {
-            it('setDBProperty is called with valid arguments', function () {
-              expect(controller.get('wizardController').setDBProperty.args[0]).to.be.eql(test.e.setDBPropertyCalledWith);
-            });
-          }
-          else {
-            it('setDBProperty is not called', function () {
-              expect(controller.get('wizardController').setDBProperty.called).to.be.false;
-            });
-          }
-        });
-      })
     });
   });
 });

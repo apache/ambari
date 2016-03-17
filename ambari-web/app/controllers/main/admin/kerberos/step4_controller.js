@@ -36,11 +36,41 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
     }
     var self = this;
     this.clearStep();
-    this.getDescriptorConfigs().then(function (properties) {
-      self.setStepConfigs(properties);
+    this.getDescriptor().then(function (properties) {
+      self.setStepConfigs(self.createServicesStackDescriptorConfigs(properties));
     }).always(function() {
       self.set('isRecommendedLoaded', true);
     });
+  },
+
+  /**
+   * Get descriptor configs from API endpoint.
+   * On <b>Enable Kerberos</b> loads descriptor from cluster STACK resource.
+   * On <b>Add Service Wizard</b> first check for cluster's artifacts descriptor and
+   * save it presence status, then loads from cluster COMPOSITE resource.
+   * Check for cluster/artifacts/kerberos_descriptor is necessary to determine updating or creation
+   * kerberos descriptor.
+   *
+   * @returns {$.Deferred}
+   */
+  getDescriptor: function() {
+    var self = this;
+    var dfd = $.Deferred();
+    var successCallback = function(data) {
+      dfd.resolve(data);
+    };
+    if (this.get('isWithinAddService')) {
+      App.ajax.send({
+        sender: this,
+        name: 'admin.kerberize.cluster_descriptor_artifact'
+      }).always(function(data, status) {
+        self.storeClusterDescriptorStatus(status === 'success');
+        self.loadClusterDescriptorConfigs().then(successCallback);
+      });
+    } else {
+      this.loadStackDescriptorConfigs().then(successCallback);
+    }
+    return dfd.promise();
   },
 
   /**
