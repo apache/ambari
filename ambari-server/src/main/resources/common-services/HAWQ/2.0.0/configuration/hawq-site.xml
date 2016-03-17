@@ -34,7 +34,7 @@
     <display-name>HAWQ Master Port</display-name>
     <value>5432</value>
     <description>
-      The port used by HAWQ master.
+      The port used by HAWQ masters.
       The default is 5432.
     </description>
     <value-attributes>
@@ -117,8 +117,9 @@
     <display-name>HAWQ Master Temp Directory</display-name>
     <value>/tmp/hawq/master</value>
     <description>
-      One or more temporary directories reserved for the HAWQ master. Separate multiple entries with commas.
-      The default is /tmp/hawq/master.
+      Used as temporary filespace to store workfile cache, sort/join temp files etc.
+      The recommended number of temp directories is equal to the number of disks per node, one directory on each disk,
+      excluding system disk. Separate multiple entries with commas. The default is /tmp/hawq/master.
     </description>
     <value-attributes>
       <type>directory</type>
@@ -130,8 +131,9 @@
     <display-name>HAWQ Segment Temp Directory</display-name>
     <value>/tmp/hawq/segment</value>
     <description>
-      One or more temporary directories reserved for the HAWQ segment. Separate multiple entries with commas.
-      The default is /tmp/hawq/segment.
+      Used as temporary filespace to store workfile cache, sort/join temp files etc.
+      The recommended number of temp directories is equal to the number of disks per node, one directory on each disk,
+      excluding system disk. Separate multiple entries with commas. The default is /tmp/hawq/segment.
     </description>
     <value-attributes>
       <type>directory</type>
