@@ -1404,6 +1404,38 @@ App.CheckDBConnectionView = Ember.View.extend({
 });
 
 /**
+ * View for switch group text
+ *
+ * @type {Em.View}
+ */
+App.SwitchToGroupView = Em.View.extend({
+
+  group: null,
+
+  tagName: 'a',
+
+  classNames: ['action'],
+
+  template: Ember.Handlebars.compile('{{ view.group.switchGroupTextShort }}'),
+
+  didInsertElement: function() {
+    var self = this;
+    App.tooltip($(self.get('element')), {
+      placement: 'top',
+      title: self.get('group.switchGroupTextFull')
+    });
+  },
+
+  willDestroyElement: function() {
+    $(this.get('element')).tooltip('destroy');
+  },
+
+  click: function() {
+    this.get('controller').selectConfigGroup({context: this.get('group')});
+  }
+});
+
+/**
  * View with input field used to repo-version URLs
  * @type {*}
  */

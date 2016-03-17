@@ -29,9 +29,7 @@
     {{/if}}
     {{#if view.isDefaultGroupSelected}}
       {{#if overriddenSCP.group}}
-        <a href="#" data-toggle="tooltip" {{bindAttr data-original-title="overriddenSCP.group.switchGroupTextFull" }} class="action" {{action selectConfigGroup overriddenSCP.group target="controller"}}>
-          {{overriddenSCP.group.switchGroupTextShort}}
-        </a>
+        {{view App.SwitchToGroupView controllerBinding="controller" groupBinding="overriddenSCP.group"}}
       {{/if}}
     {{else}}
       {{#if overriddenSCP.isEditable}}

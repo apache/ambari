@@ -43,7 +43,6 @@ App.ServiceConfigView.SCPOverriddenRowsView = Ember.View.extend({
   },
 
   setSwitchText: function () {
-    Em.$('body>.tooltip').remove();
     if (this.get('isDefaultGroupSelected')) {
       var overrides = this.get('serviceConfigProperty.overrides');
       if (!overrides) return;
@@ -55,9 +54,6 @@ App.ServiceConfigView.SCPOverriddenRowsView = Ember.View.extend({
       });
       this.set('serviceConfigProperty.overrides', overrides);
     }
-    App.tooltip(this.$('[data-toggle=tooltip]'),{
-      placement: 'top'
-    });
   },
 
   toggleFinalFlag: function (event) {
@@ -80,6 +76,5 @@ App.ServiceConfigView.SCPOverriddenRowsView = Ember.View.extend({
     }
     overrides = overrides.without(scpToBeRemoved);
     this.set('serviceConfigProperty.overrides', overrides);
-    Em.$('body>.tooltip').remove(); //some tooltips get frozen when their owner's DOM element is removed
   }
 });

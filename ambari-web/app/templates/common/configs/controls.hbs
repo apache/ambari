@@ -17,10 +17,7 @@
 }}
 
 {{#if view.showSwitchToGroup}}
-  <a rel='SwitchGroupTooltip' {{bindAttr data-original-title="this.group.switchGroupTextShort" class="switchGroupAvailable:show:hide :action"}}
-    {{action selectConfigGroup group target="controller"}}>
-    {{group.switchGroupTextShort}}
-  </a>
+  {{view App.SwitchToGroupView controllerBinding="controller" groupBinding="this.group"}}
 {{else}}
   {{#if view.showIsFinal}}
     <a href="#" data-toggle="tooltip"

@@ -96,10 +96,7 @@
 
 {{#if controller.selectedConfigGroup.isDefault}}
   {{#if view.configGroup}}
-    <a href="#" data-toggle="tooltip" {{bindAttr data-original-title="view.configGroup.switchGroupTextFull" }}
-       class="action" {{action selectConfigGroup view.configGroup target="controller"}}>
-      {{view.configGroup.switchGroupTextShort}}
-    </a>
+    {{view App.SwitchToGroupView controllerBinding="controller" groupBinding="view.configGroup"}}
   {{/if}}
 {{/if}}
 
