@@ -2305,7 +2305,7 @@ class TestHDP22StackAdvisor(TestCase):
       },
       "hbase-env": {
         "properties": {
-          "hbase_master_heapsize": "8192",
+          "hbase_master_heapsize": "1024",
           "hbase_regionserver_heapsize": "8192",
           }
       }
@@ -2542,7 +2542,7 @@ class TestHDP22StackAdvisor(TestCase):
       },
       "hbase-env": {
         "properties": {
-          "hbase_master_heapsize": "8192",
+          "hbase_master_heapsize": "1024",
           "hbase_regionserver_heapsize": "8192",
         },
         "property_attributes": {
