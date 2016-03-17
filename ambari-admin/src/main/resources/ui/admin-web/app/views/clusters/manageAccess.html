@@ -36,7 +36,10 @@
   <table class="table">
     <thead>
       <tr>
-        <th class="col-sm-2" width="20%"><label>{{'common.roles' | translate}}</label></th>
+        <th class="col-sm-2" width="20%">
+          <label>{{'common.roles' | translate}}</label>&nbsp;
+          <i class="glyphicon glyphicon-question-sign green-icon cursor-pointer" ng-click="showHelpPage()"></i>
+        </th>
         <th class="col-sm-5" width="40%"><label>{{'clusters.assignRoles' | translate: '{term: getConstant("users")}'}}</label></th>
         <th class="col-sm-5" width="40%"><label>{{'clusters.assignRoles' | translate: '{term: getConstant("groups")}'}}</label></th>
       </tr>

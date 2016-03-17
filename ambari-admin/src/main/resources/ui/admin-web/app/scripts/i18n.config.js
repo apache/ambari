@@ -80,6 +80,7 @@ angular.module('ambariAdminConsole')
       'NA': 'n/a',
       'blockViewLabel': 'BLOCK',
       'listViewLabel': 'LIST',
+      'rbac': 'Role Based Access Control',
 
       'clusterNameChangeConfirmation': {
         'title': 'Confirm Cluster Name Change',

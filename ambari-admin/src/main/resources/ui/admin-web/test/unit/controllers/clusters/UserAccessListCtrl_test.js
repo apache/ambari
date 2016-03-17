@@ -20,7 +20,6 @@ describe('#Cluster', function () {
 
   describe('UserAccessListCtrl', function() {
 
-    /*
     var scope, ctrl, $t, $httpBackend, Cluster, deferred, Alert, mock;
 
     beforeEach(module('ambariAdminConsole', function () {}));
@@ -48,8 +47,11 @@ describe('#Cluster', function () {
       spyOn(Alert, 'success').andCallFake(angular.noop);
       spyOn(Alert, 'error').andCallFake(angular.noop);
       spyOn(scope, 'loadRoles').andCallFake(angular.noop);
-      $httpBackend.expectGET(/\/api\/v1\/clusters\/\w+\/privileges/).respond(200, {
+      $httpBackend.expectGET(/\/api\/v1\/permissions/).respond(200, {
         items: []
+      });
+      $httpBackend.expectGET(/\/api\/v1\/users?.*/).respond(200, {
+        items:[]
       });
       $httpBackend.flush();
     }));
@@ -59,21 +61,24 @@ describe('#Cluster', function () {
       it('should clear filters and reset pagination', function () {
         scope.currentPage = 2;
         scope.currentNameFilter = 'a';
-        scope.currentRoleFilter = {
-          label: $t('users.roles.clusterUser'),
-          value: 'CLUSTER.USER'
-        };
-        scope.currentTypeFilter = {
-          label: $t('common.group'),
-          value: 'GROUP'
-        };
+        scope.roleFilterOptions = [
+          {
+            label: $t('common.all'),
+            value: ''
+          },
+          {
+            label: $t('users.roles.clusterUser'),
+            value: 'CLUSTER.USER'
+          }
+        ];
+        scope.typeFilterOptions = [
+          {label: $t('common.user'), value: 'USER'},
+          {label: $t('common.group'), value: 'GROUP'}
+        ];
+        scope.currentRoleFilter = scope.roleFilterOptions[1];
         scope.clearFilters();
         expect(scope.currentNameFilter).toEqual('');
         expect(scope.currentRoleFilter).toEqual({
-          label: $t('common.all'),
-          value: ''
-        });
-        expect(scope.currentTypeFilter).toEqual({
           label: $t('common.all'),
           value: ''
         });
@@ -237,180 +242,6 @@ describe('#Cluster', function () {
       });
 
     });
-
-    describe('#save()', function () {
-
-      var user,
-        labelCases = [
-          {
-            roles: [],
-            label: '',
-            title: 'roles not loaded'
-          },
-          {
-            roles: [
-              {
-                permission_name: 'CLUSTER.OPERATOR',
-                permission_label: 'Cluster Operator'
-              },
-              {
-                permission_name: 'CLUSTER.ADMINISTRATOR',
-                permission_label: 'Cluster Administrator'
-              }
-            ],
-            label: '',
-            title: 'no roles match'
-          },
-          {
-            roles: [
-              {
-                permission_name: 'CLUSTER.USER',
-                permission_label: 'Cluster User'
-              },
-              {
-                permission_name: 'CLUSTER.OPERATOR',
-                permission_label: 'Cluster Operator'
-              },
-              {
-                permission_name: 'CLUSTER.ADMINISTRATOR',
-                permission_label: 'Cluster Administrator'
-              }
-            ],
-            label: 'Cluster User',
-            title: 'roles not loaded'
-          }
-        ],
-        deferredCases = [
-          {
-            success: ['deletePrivilege', 'createPrivileges'],
-            fail: [],
-            called: [
-              {
-                context: 'Cluster',
-                methodName: 'createPrivileges'
-              },
-              {
-                context: 'Alert',
-                methodName: 'success'
-              }
-            ],
-            notCalled: [
-              {
-                context: 'Alert',
-                methodName: 'error'
-              }
-            ],
-            title: 'all requests are successful'
-          },
-          {
-            success: ['deletePrivilege'],
-            fail: ['createPrivileges'],
-            called: [
-              {
-                context: 'Cluster',
-                methodName: 'createPrivileges'
-              },
-              {
-                context: 'Alert',
-                methodName: 'error'
-              }
-            ],
-            notCalled: [
-              {
-                context: 'Alert',
-                methodName: 'success'
-              }
-            ],
-            title: 'new role request failed'
-          },
-          {
-            success: [],
-            fail: ['deletePrivilege'],
-            called: [],
-            notCalled: [
-              {
-                context: 'Cluster',
-                methodName: 'createPrivileges'
-              },
-              {
-                context: 'Alert',
-                methodName: 'success'
-              },
-              {
-                context: 'Alert',
-                methodName: 'error'
-              }
-            ],
-            title: 'delete current role request failed'
-          }
-        ];
-
-      beforeEach(function () {
-        user = {
-          permission_name: 'CLUSTER.USER',
-          permission_label: ''
-        };
-      });
-
-      labelCases.forEach(function (item) {
-
-        it(item.title, function () {
-          scope.roles = item.roles;
-          scope.save(user);
-          expect(user.permission_label).toEqual(item.label);
-        });
-
-      });
-
-      deferredCases.forEach(function (item) {
-
-        describe(item.title, function () {
-
-          beforeEach(function () {
-            scope.roles = [];
-            scope.save(user);
-            item.success.forEach(function (method) {
-              deferred[method].resolve();
-            });
-            item.fail.forEach(function (method) {
-              deferred[method].reject({
-                data: {
-                  data: {}
-                }
-              });
-            });
-            $httpBackend.expectGET(/\/api\/v1\/clusters\/\w+\/privileges/).respond(200, {
-              items: []
-            });
-            scope.$digest();
-          });
-
-          it('Cluster.deletePrivileges', function () {
-            expect(Cluster.deletePrivilege).toHaveBeenCalled();
-          });
-
-          it('scope.loadRoles', function () {
-            expect(scope.loadRoles).toHaveBeenCalled();
-          });
-
-          item.called.forEach(function (method) {
-            it(method.context + '.' + method.methodName, function () {
-              expect(mock[method.context][method.methodName]).toHaveBeenCalled();
-            });
-          });
-
-          item.notCalled.forEach(function (method) {
-            it(method.context + '.' + method.methodName, function () {
-              expect(mock[method.context][method.methodName]).not.toHaveBeenCalled();
-            });
-          });
-
-        });
-
-      });
-
-    });
-  */
   });
 
 });

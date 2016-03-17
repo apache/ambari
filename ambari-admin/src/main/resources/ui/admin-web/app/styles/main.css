@@ -1516,3 +1516,11 @@ thead.view-permission-header > tr > th {
 .role-actions {
   width: 400px;
 }
+
+.green-icon {
+  color: #5ab400;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}

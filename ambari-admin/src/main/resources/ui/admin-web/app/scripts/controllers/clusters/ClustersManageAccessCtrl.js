@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('ClustersManageAccessCtrl', ['$scope', '$location', 'Cluster', '$routeParams', 'Alert', 'PermissionLoader', 'PermissionSaver', '$translate', function($scope, $location, Cluster, $routeParams, Alert, PermissionLoader, PermissionSaver, $translate) {
+.controller('ClustersManageAccessCtrl', ['$scope', '$location', 'Cluster', '$routeParams', 'Alert', 'PermissionLoader', 'PermissionSaver', '$translate', 'RoleDetailsModal', function($scope, $location, Cluster, $routeParams, Alert, PermissionLoader, PermissionSaver, $translate, RoleDetailsModal) {
   var $t = $translate.instant;
   $scope.getConstant = function (key) {
     return $t('common.' + key).toLowerCase();
@@ -82,5 +82,18 @@ angular.module('ambariAdminConsole')
 
   $scope.switchToList = function() {
     $location.url('/clusters/' + $routeParams.id + '/userAccessList');
+  },
+
+  $scope.showHelpPage = function() {
+    Cluster.getRolesWithAuthorizations().then(function(roles) {
+      RoleDetailsModal.show(roles.map(function(role) {
+        role.authorizations = role.authorizations.map(function(authorization) {
+          return authorization.AuthorizationInfo;
+        });
+        var r = role.PermissionInfo;
+        r.authorizations = role.authorizations;
+        return r;
+      }));
+    });
   }
 }]);
