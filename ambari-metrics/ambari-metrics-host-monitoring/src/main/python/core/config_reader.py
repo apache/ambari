@@ -163,7 +163,8 @@ class Configuration:
       self.config.readfp(StringIO.StringIO(config_content))
     pass
     if os.path.exists(METRIC_FILE_PATH):
-      self.metric_groups = json.load(open(METRIC_FILE_PATH))
+      with open(METRIC_FILE_PATH, 'r') as f:
+        self.metric_groups = json.load(f)
     else:
       print 'No metric configs found at {0}'.format(METRIC_FILE_PATH)
       self.metric_groups = \
@@ -201,7 +202,7 @@ class Configuration:
     return int(self.get("emitter", "send_interval", 60))
 
   def get_collector_sleep_interval(self):
-    return int(self.get("collector", "collector_sleep_interval", 5))
+    return int(self.get("collector", "collector_sleep_interval", 10))
 
   def get_hostname_config(self):
     return self.get("default", "hostname", None)
@@ -232,4 +233,3 @@ class Configuration:
 
   def get_ca_certs(self):
     return self._ca_cert_file_path
-

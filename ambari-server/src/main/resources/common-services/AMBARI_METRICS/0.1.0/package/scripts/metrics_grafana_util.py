@@ -283,7 +283,11 @@ def create_ams_dashboards():
         if "id" in dashboard_def:
           dashboard_def['id'] = None
         # Set correct tags
-        dashboard_def['tags'] = [ 'builtin', version ]
+        if 'tags' in dashboard_def:
+          dashboard_def['tags'].append('builtin', version)
+        else:
+          dashboard_def['tags'] = [ 'builtin', version ]
+
         dashboard_def['overwrite'] = True
         
         for dashboard in existing_dashboards:
