@@ -70,7 +70,7 @@ def metadata():
          content = StaticFile(format('{metadata_home}/server/webapp/atlas.war'))
     )
 
-    PropertiesFile(format('{conf_dir}/application.properties'),
+    PropertiesFile(format('{conf_dir}/{conf_file}'),
          properties = params.application_properties,
          mode=0644,
          owner=params.metadata_user,

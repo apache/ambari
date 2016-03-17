@@ -62,7 +62,7 @@
   </property>
   <property>
     <name>metadata_conf_file</name>
-    <value>application.properties</value>
+    <value>atlas-application.properties</value>
     <description>Atlas configuration file</description>
     <value-attributes>
       <read-only>true</read-only>
@@ -76,36 +76,36 @@
     <name>content</name>
     <description>This is the jinja template for metadata-env.sh file</description>
     <value>
-# The java implementation to use. If JAVA_HOME is not found we expect java and jar to be in path
-export JAVA_HOME={{java64_home}}
+      # The java implementation to use. If JAVA_HOME is not found we expect java and jar to be in path
+      export JAVA_HOME={{java64_home}}
 
-# any additional java opts you want to set. This will apply to both client and server operations
-{% if security_enabled %}
-export METADATA_OPTS="{{metadata_opts}} -Djava.security.auth.login.config={{atlas_jaas_file}}"
-{% else %}
-export METADATA_OPTS="{{metadata_opts}}"
-{% endif %}
+      # any additional java opts you want to set. This will apply to both client and server operations
+      {% if security_enabled %}
+      export ATLAS_OPTS="{{metadata_opts}} -Djava.security.auth.login.config={{atlas_jaas_file}}"
+      {% else %}
+      export ATLAS_OPTS="{{metadata_opts}}"
+      {% endif %}
 
-# metadata configuration directory
-export METADATA_CONF={{conf_dir}}
+      # metadata configuration directory
+      export ATLAS_CONF={{conf_dir}}
 
-# Where log files are stored. Defatult is logs directory under the base install location
-export METADATA_LOG_DIR={{log_dir}}
+      # Where log files are stored. Defatult is logs directory under the base install location
+      export ATLAS_LOG_DIR={{log_dir}}
 
-# additional classpath entries
-export METADATACPPATH={{metadata_classpath}}
+      # additional classpath entries
+      export ATLASCPPATH={{metadata_classpath}}
 
-# data dir
-export METADATA_DATA_DIR={{data_dir}}
+      # data dir
+      export ATLAS_DATA_DIR={{data_dir}}
 
-# pid dir
-export METADATA_PID_DIR={{pid_dir}}
+      # pid dir
+      export ATLAS_PID_DIR={{pid_dir}}
 
-# hbase conf dir
-export HBASE_CONF_DIR=/etc/hbase/conf
+      # hbase conf dir
+      export HBASE_CONF_DIR=/etc/hbase/conf
 
-# Where do you want to expand the war file. By Default it is in /server/webapp dir under the base install dir.
-export METADATA_EXPANDED_WEBAPP_DIR={{expanded_war_dir}}
+      # Where do you want to expand the war file. By Default it is in /server/webapp dir under the base install dir.
+      export ATLAS_EXPANDED_WEBAPP_DIR={{expanded_war_dir}}
     </value>
     <value-attributes>
       <type>content</type>

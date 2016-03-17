@@ -108,9 +108,11 @@ def falcon(type, action = None, upgrade_type=None):
         cd_access = "a")
 
     if params.has_atlas:
-      Link(params.falcon_conf_dir + "/application.properties",
-           to = params.atlas_conf_dir + "/application.properties"
-           )
+      atlas_falcon_hook_dir = os.path.join(params.atlas_home_dir, "hook", "falcon")
+      if os.path.exists(atlas_falcon_hook_dir):
+        Link(os.path.join(params.falcon_conf_dir, params.atlas_conf_file),
+          to = os.path.join(params.atlas_conf_dir, params.atlas_conf_file)
+          )
 
   if type == 'server':
     if action == 'config':
@@ -183,13 +185,14 @@ def falcon(type, action = None, upgrade_type=None):
         environment=environment_dictionary)
 
       if params.has_atlas:
-        atlas_falcon_hook_dir = params.atlas_home_dir + "/hook/falcon"
-        src_files = os.listdir(atlas_falcon_hook_dir)
-        for file_name in src_files:
-          atlas_falcon_hook_file_name = os.path.join(atlas_falcon_hook_dir, file_name)
-          falcon_lib_file_name = os.path.join(params.falcon_webinf_lib, file_name)
-          if (os.path.isfile(atlas_falcon_hook_file_name)):
-            Link(falcon_lib_file_name, to = atlas_falcon_hook_file_name)
+        atlas_falcon_hook_dir = os.path.join(params.atlas_home_dir, "hook", "falcon")
+        if os.path.exists(atlas_falcon_hook_dir):
+          src_files = os.listdir(atlas_falcon_hook_dir)
+          for file_name in src_files:
+            atlas_falcon_hook_file_name = os.path.join(atlas_falcon_hook_dir, file_name)
+            falcon_lib_file_name = os.path.join(params.falcon_webinf_lib, file_name)
+            if (os.path.isfile(atlas_falcon_hook_file_name)):
+              Link(falcon_lib_file_name, to = atlas_falcon_hook_file_name)
 
     if action == 'stop':
       Execute(format('{falcon_home}/bin/falcon-stop'),

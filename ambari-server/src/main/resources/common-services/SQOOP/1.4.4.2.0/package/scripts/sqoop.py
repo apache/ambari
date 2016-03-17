@@ -60,17 +60,18 @@ def sqoop(type=None):
             )
 
   if params.has_atlas:
-    Link(params.sqoop_conf_dir + "/application.properties",
-         to = params.atlas_conf_dir + "/application.properties"
-         )
+    atlas_sqoop_hook_dir = os.path.join(params.atlas_home_dir, "hook", "sqoop")
+    if os.path.exists(atlas_sqoop_hook_dir):
+      Link(os.path.join(params.sqoop_conf_dir, params.atlas_conf_file),
+           to = os.path.join(params.atlas_conf_dir, params.atlas_conf_file)
+           )
 
-    atlas_sqoop_hook_dir = params.atlas_home_dir + "/hook/sqoop"
-    src_files = os.listdir(atlas_sqoop_hook_dir)
-    for file_name in src_files:
-      atlas_sqoop_hook_file_name = os.path.join(atlas_sqoop_hook_dir, file_name)
-      sqoop_lib_file_name = os.path.join(params.sqoop_lib, file_name)
-      if (os.path.isfile(atlas_sqoop_hook_file_name)):
-        Link(sqoop_lib_file_name, to = atlas_sqoop_hook_file_name)
+      src_files = os.listdir(atlas_sqoop_hook_dir)
+      for file_name in src_files:
+        atlas_sqoop_hook_file_name = os.path.join(atlas_sqoop_hook_dir, file_name)
+        sqoop_lib_file_name = os.path.join(params.sqoop_lib, file_name)
+        if (os.path.isfile(atlas_sqoop_hook_file_name)):
+          Link(sqoop_lib_file_name, to = atlas_sqoop_hook_file_name)
 
   File(format("{sqoop_conf_dir}/sqoop-env.sh"),
     owner=params.sqoop_user,

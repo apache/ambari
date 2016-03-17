@@ -114,6 +114,7 @@ atlas_hosts = default('/clusterHostInfo/atlas_server_hosts', [])
 has_atlas = len(atlas_hosts) > 0
 
 if has_atlas:
+  atlas_conf_file = config['configurations']['atlas-env']['metadata_conf_file']
   atlas_home_dir = os.environ['METADATA_HOME_DIR'] if 'METADATA_HOME_DIR' in os.environ else '/usr/hdp/current/atlas-server'
   atlas_conf_dir = os.environ['METADATA_CONF'] if 'METADATA_CONF' in os.environ else '/etc/atlas/conf'
   job_data_publish_class = 'org.apache.atlas.sqoop.hook.SqoopHook'

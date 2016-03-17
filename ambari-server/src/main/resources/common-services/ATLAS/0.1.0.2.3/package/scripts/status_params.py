@@ -25,6 +25,7 @@ from resource_management.libraries.functions.default import default
 
 config = Script.get_config()
 
+conf_file = config['configurations']['atlas-env']['metadata_conf_file']
 conf_dir = os.environ['METADATA_CONF'] if 'METADATA_CONF' in os.environ else '/etc/atlas/conf'
 pid_dir = config['configurations']['atlas-env']['metadata_pid_dir']
 pid_file = format("{pid_dir}/atlas.pid")

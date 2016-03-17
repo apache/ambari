@@ -96,7 +96,7 @@ class MetadataServer(Script):
     atlas_expectations.update(atlas_site_expectations)
 
     security_params = get_params_from_filesystem(status_params.conf_dir,
-                                                 {'application.properties': FILE_TYPE_PROPERTIES})
+                                                 {status_params.conf_file: FILE_TYPE_PROPERTIES})
     result_issues = validate_security_config_properties(security_params, atlas_expectations)
     if not result_issues:  # If all validations passed successfully
       try:
