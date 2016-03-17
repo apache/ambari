@@ -284,7 +284,8 @@ def create_ams_dashboards():
           dashboard_def['id'] = None
         # Set correct tags
         if 'tags' in dashboard_def:
-          dashboard_def['tags'].append('builtin', version)
+          dashboard_def['tags'].append('builtin')
+          dashboard_def['tags'].append(version)
         else:
           dashboard_def['tags'] = [ 'builtin', version ]
 
