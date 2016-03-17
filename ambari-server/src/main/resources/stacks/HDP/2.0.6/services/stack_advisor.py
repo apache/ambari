@@ -486,6 +486,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     putAmsHbaseSiteProperty = self.putProperty(configurations, "ams-hbase-site", services)
     putAmsSiteProperty = self.putProperty(configurations, "ams-site", services)
     putHbaseEnvProperty = self.putProperty(configurations, "ams-hbase-env", services)
+    putGrafanaProperty = self.putProperty(configurations, "ams-grafana-env", services)
     putGrafanaPropertyAttribute = self.putPropertyAttribute(configurations, "ams-grafana-env")
 
     amsCollectorHosts = self.getComponentHostNames(services, "AMBARI_METRICS", "METRICS_COLLECTOR")

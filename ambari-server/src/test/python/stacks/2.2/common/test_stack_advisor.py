@@ -2000,6 +2000,7 @@ class TestHDP22StackAdvisor(TestCase):
         }
       },
       "ams-grafana-env": {
+        "properties" : {},
         "property_attributes": {
           "metrics_grafana_password": {
             "visible": "false"
