@@ -114,7 +114,7 @@
 
   <property>
     <name>hawq_master_temp_directory</name>
-    <display-name>HAWQ Master Temp Directory</display-name>
+    <display-name>HAWQ Master Temp Directories</display-name>
     <value>/tmp/hawq/master</value>
     <description>
       Used as temporary filespace to store workfile cache, sort/join temp files etc.
@@ -128,7 +128,7 @@
 
   <property>
     <name>hawq_segment_temp_directory</name>
-    <display-name>HAWQ Segment Temp Directory</display-name>
+    <display-name>HAWQ Segment Temp Directories</display-name>
     <value>/tmp/hawq/segment</value>
     <description>
       Used as temporary filespace to store workfile cache, sort/join temp files etc.
@@ -146,17 +146,17 @@
     <display-name>Resource Manager</display-name>
     <value>none</value>
     <description>
-      HAWQ global resource manager type. Valid values are YARN ('yarn') and Native ('none').
-      Native('none') indicates that the HAWQ resource manager manages its own resources exclusively for the entire cluster.
+      HAWQ global resource manager type. Valid values are YARN ('yarn') and Standalone ('none').
+      Standalone('none') indicates that the HAWQ resource manager manages its own resources exclusively for the entire cluster.
       YARN ('yarn') means that HAWQ will negotiate with YARN's resource manager for resources.
-      The default is Native ('none').
+      The default is Standalone ('none').
     </description>
     <value-attributes>
       <type>value-list</type>
       <entries>
         <entry>
           <value>none</value>
-          <label>Native</label>
+          <label>Standalone</label>
         </entry>
         <entry>
           <value>yarn</value>
@@ -172,7 +172,7 @@
     <display-name>Segment Memory Usage Limit</display-name>
     <value>64GB</value>
     <description>
-      The maximum memory that can be used by a HAWQ segment when Resource Manager ('hawq_global_rm_type') is set to Native ('none').
+      The maximum memory that can be used by a HAWQ segment when Resource Manager ('hawq_global_rm_type') is set to Standalone ('none').
       The default is 64GB.
     </description>
     <value-attributes>
@@ -185,7 +185,7 @@
     <display-name>Segment Virtual Core Usage Limit</display-name>
     <value>16</value>
     <description>
-      The maximum number of virtual cores that can be used for query execution in a HAWQ segment when Resource Manager ('hawq_global_rm_type') is set to Native ('none').
+      The maximum number of virtual cores that can be used for query execution in a HAWQ segment when Resource Manager ('hawq_global_rm_type') is set to Standalone ('none').
       The default is 16.
     </description>
     <value-attributes>
@@ -299,18 +299,52 @@
   </property>
 
   <property>
-    <name>default_segment_num</name>
-    <display-name>Default Number of Virtual Segments</display-name>
-    <value>24</value>
+    <name>default_hash_table_bucket_number</name>
+    <display-name>Default buckets for Hash Distributed tables</display-name>
+    <value>6</value>
     <description>
-      The default number of virtual segments to use when executing a query statement.
-      When the query is actually executed, the number of virtual segments may differ from this number depending on the query's needs.
-      When expanding the cluster, you should adjust this number to reflect the number of nodes in the new cluster times the number of virtual segments per node.
-      The default is 24.
+     The default number of virtual segments per query for hash distributed tables that can be used for query execution in a HAWQ segment when Resource Manager ('hawq_global_rm_type') is set to Standalone ('none').
+      The default is 6.
     </description>
     <value-attributes>
       <type>int</type>
-      <minimum>0</minimum>
+      <minimum>1</minimum>
+      <maximum>10000</maximum>
+      <increment-step>100</increment-step>
+    </value-attributes>
+  </property>
+
+    <property>
+    <name>hawq_rm_nvseg_perquery_perseg_limit</name>
+    <display-name>Virtual Segments Limit per Query (per Segment Node)</display-name>
+    <value>6</value>
+    <description>
+      Not recommended to change this parameter.
+       The maximum  number of virtual segments per query per Segment Node that can be used for query execution in a HAWQ segment when Resource Manager ('hawq_global_rm_type') is set to Standalone ('none').
+      The default is 6.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1</minimum>
+      <maximum>16</maximum>
+       <increment-step>1</increment-step>
+    </value-attributes>
+  </property>
+
+   <property>
+    <name>hawq_rm_nvseg_perquery_limit</name>
+    <display-name>Virtual Segments Limit per Query (Total)</display-name>
+    <value>512</value>
+    <description>
+      Not recommended to change this parameter.
+      The maximum total number of virtual segments per query that can be used for query execution in a HAWQ segment when Resource Manager ('hawq_global_rm_type') is set to Standalone ('none').
+      The default is 512.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1</minimum>
+      <maximum>10000</maximum>
+       <increment-step>100</increment-step>
     </value-attributes>
   </property>
 

@@ -677,9 +677,8 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     # calculate optimal number of virtual segments
     numSegments = len(self.__getHosts(componentsList, "HAWQSEGMENT"))
     # update default if segments are deployed
-    if numSegments and "default_segment_num" in hawq_site:
-      factor = 6 if numSegments < 50 else 4
-      putHawqSiteProperty('default_segment_num', numSegments * factor)
+    if numSegments and "default_hash_table_bucket_number" in hawq_site:
+      putHawqSiteProperty('default_hash_table_bucket_number', numSegments * 6)
 
     # update YARN RM urls with the values from yarn-site if YARN is installed
     if "YARN" in servicesList and "yarn-site" in services["configurations"]:

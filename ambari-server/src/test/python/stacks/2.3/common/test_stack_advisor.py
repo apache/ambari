@@ -1459,7 +1459,7 @@ class TestHDP23StackAdvisor(TestCase):
     hawqSegmentComponent = [component["StackServiceComponents"] for component in componentsList if component["StackServiceComponents"]["component_name"] == "HAWQSEGMENT"][0]
 
     # setup default configuration values
-    services["configurations"]["hawq-site"] = {"properties": {"default_segment_num": "24",
+    services["configurations"]["hawq-site"] = {"properties": {"default_hash_table_bucket_number": "24",
                                                               "hawq_rm_yarn_address": "localhost:8032",
                                                               "hawq_rm_yarn_scheduler_address": "localhost:8030"}}
     services["configurations"]["yarn-site"] = {"properties": {"yarn.resourcemanager.address": "host1:8050",
@@ -1471,21 +1471,16 @@ class TestHDP23StackAdvisor(TestCase):
     # Test 1 - with 3 segments
     self.assertEquals(len(hawqSegmentComponent["hostnames"]), 3)
     self.stackAdvisor.recommendHAWQConfigurations(configurations, clusterData, services, None)
-    self.assertEquals(configurations["hawq-site"]["properties"]["default_segment_num"], str(3 * 6))
+    self.assertEquals(configurations["hawq-site"]["properties"]["default_hash_table_bucket_number"], str(3 * 6))
 
     # check derived properties
     self.assertEquals(configurations["hawq-site"]["properties"]["hawq_rm_yarn_address"], "host1:8050")
     self.assertEquals(configurations["hawq-site"]["properties"]["hawq_rm_yarn_scheduler_address"], "host1:8030")
 
-    # Test 2 - with 49 segments
-    hawqSegmentComponent["hostnames"] = ["host" + str(i) for i in range(49)]
+    # Test 2 - with 100 segments
+    hawqSegmentComponent["hostnames"] = ["host" + str(i) for i in range(100)]
     self.stackAdvisor.recommendHAWQConfigurations(configurations, clusterData, services, None)
-    self.assertEquals(configurations["hawq-site"]["properties"]["default_segment_num"], str(49 * 6))
-
-    # Test 3 - with 50 segments (threshold for new factor)
-    hawqSegmentComponent["hostnames"] = ["host" + str(i) for i in range(50)]
-    self.stackAdvisor.recommendHAWQConfigurations(configurations, clusterData, services, None)
-    self.assertEquals(configurations["hawq-site"]["properties"]["default_segment_num"], str(50 * 4))
+    self.assertEquals(configurations["hawq-site"]["properties"]["default_hash_table_bucket_number"], str(100 * 6))
 
     # Test 4 - with no segments
     configurations = {}
