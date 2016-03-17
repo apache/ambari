@@ -23,8 +23,20 @@ import sys
 from ambari_commons.exceptions import FatalException
 from unittest import TestCase
 from mock.mock import patch, MagicMock
-from ambari_server.serverUpgrade import set_current, SetCurrentVersionOptions, upgrade_stack
-import ambari_server
+from ambari_commons import os_utils
+
+import shutil
+project_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),os.path.normpath("../../../../"))
+shutil.copyfile(project_dir+"/ambari-server/conf/unix/ambari.properties", "/tmp/ambari.properties")
+
+_search_file = os_utils.search_file
+os_utils.search_file = MagicMock(return_value="/tmp/ambari.properties")
+
+with patch.object(os_utils, "parse_log4j_file", return_value={'ambari.log.dir': '/var/log/ambari-server'}):
+  from ambari_server.serverUpgrade import set_current, SetCurrentVersionOptions, upgrade_stack
+  import ambari_server
+
+os_utils.search_file = _search_file
 
 
 class TestServerUpgrade(TestCase):
