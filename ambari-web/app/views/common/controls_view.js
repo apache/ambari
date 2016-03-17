@@ -376,6 +376,7 @@ App.ServiceConfigCheckbox = Ember.Checkbox.extend(App.ServiceConfigPopoverSuppor
    */
   didInsertElement: function() {
     var self = this;
+    if (this.get('serviceConfig').isDestroyed) return;
     this._super();
     this.addObserver('serviceConfig.value', this, 'toggleChecker');
     Object.keys(this.get('allowedPairs')).forEach(function(key) {
