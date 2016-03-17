@@ -66,6 +66,7 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
    */
   private static final Logger LOG = LoggerFactory.getLogger(UpgradeCatalog222.class);
   private static final String AMS_SITE = "ams-site";
+  private static final String AMS_HBASE_SITE = "ams-hbase-site";
   private static final String HIVE_SITE_CONFIG = "hive-site";
   private static final String ATLAS_APPLICATION_PROPERTIES_CONFIG = "application-properties";
   private static final String ATLAS_HOOK_HIVE_MINTHREADS_PROPERTY = "atlas.hook.hive.minThreads";
@@ -85,6 +86,10 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
   public static final String PRECISION_TABLE_TTL = "timeline.metrics.host.aggregator.ttl";
   public static final String CLUSTER_SECOND_TABLE_TTL = "timeline.metrics.cluster.aggregator.second.ttl";
   public static final String CLUSTER_MINUTE_TABLE_TTL = "timeline.metrics.cluster.aggregator.minute.ttl";
+  public static final String HBASE_CLIENT_SCANNER_TIMEOUT_PERIOD = "hbase.client.scanner.timeout.period";
+  public static final String HBASE_RPC_TIMEOUT = "hbase.rpc.timeout";
+  public static final String PHOENIX_QUERY_TIMEOUT = "phoenix.query.timeoutMs";
+  public static final String PHOENIX_QUERY_KEEPALIVE = "phoenix.query.keepAliveMs";
 
   private static final String[] HDFS_WIDGETS_TO_UPDATE = new String[] {
     "NameNode RPC", "NN Connection Load" };
@@ -311,6 +316,31 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
             }
 
             updateConfigurationPropertiesForCluster(cluster, AMS_SITE, newProperties, true, true);
+          }
+
+          Config amsHbaseSite = cluster.getDesiredConfigByType(AMS_HBASE_SITE);
+          if (amsHbaseSite != null) {
+            Map<String, String> amsHbaseSiteProperties = amsHbaseSite.getProperties();
+            Map<String, String> newProperties = new HashMap<>();
+
+            if (!amsHbaseSiteProperties.containsKey(HBASE_RPC_TIMEOUT)) {
+              newProperties.put(HBASE_RPC_TIMEOUT, String.valueOf(300000));
+            }
+
+            if (!amsHbaseSiteProperties.containsKey(PHOENIX_QUERY_KEEPALIVE)) {
+              newProperties.put(PHOENIX_QUERY_KEEPALIVE, String.valueOf(300000));
+            }
+
+            if (!amsHbaseSiteProperties.containsKey(HBASE_CLIENT_SCANNER_TIMEOUT_PERIOD) ||
+              amsHbaseSiteProperties.get(HBASE_CLIENT_SCANNER_TIMEOUT_PERIOD).equals("900000")) {
+              amsHbaseSiteProperties.put(HBASE_CLIENT_SCANNER_TIMEOUT_PERIOD, String.valueOf(300000));
+            }
+
+            if (!amsHbaseSiteProperties.containsKey(PHOENIX_QUERY_TIMEOUT) ||
+              amsHbaseSiteProperties.get(PHOENIX_QUERY_TIMEOUT).equals("1200000")) {
+              amsHbaseSiteProperties.put(PHOENIX_QUERY_TIMEOUT, String.valueOf(300000));
+            }
+            updateConfigurationPropertiesForCluster(cluster, AMS_HBASE_SITE, newProperties, true, true);
           }
 
         }

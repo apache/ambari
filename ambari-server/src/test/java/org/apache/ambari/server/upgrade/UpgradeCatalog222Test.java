@@ -353,6 +353,65 @@ public class UpgradeCatalog222Test {
   }
 
   @Test
+  public void testAmsHbaseSiteUpdateConfigs() throws Exception{
+
+    Map<String, String> oldPropertiesAmsHbaseSite = new HashMap<String, String>() {
+      {
+        put("hbase.client.scanner.timeout.period", String.valueOf(900000));
+        put("phoenix.query.timeoutMs", String.valueOf(1200000));
+      }
+    };
+    Map<String, String> newPropertiesAmsHbaseSite = new HashMap<String, String>() {
+      {
+        put("hbase.client.scanner.timeout.period", String.valueOf(300000));
+        put("hbase.rpc.timeout", String.valueOf(300000));
+        put("phoenix.query.timeoutMs", String.valueOf(300000));
+        put("phoenix.query.keepAliveMs", String.valueOf(300000));
+      }
+    };
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+
+    Clusters clusters = easyMockSupport.createNiceMock(Clusters.class);
+    final Cluster cluster = easyMockSupport.createNiceMock(Cluster.class);
+    Config mockAmsHbaseSite = easyMockSupport.createNiceMock(Config.class);
+
+    expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", cluster);
+    }}).once();
+    expect(cluster.getDesiredConfigByType("ams-hbase-site")).andReturn(mockAmsHbaseSite).atLeastOnce();
+    expect(mockAmsHbaseSite.getProperties()).andReturn(oldPropertiesAmsHbaseSite).anyTimes();
+
+    Injector injector = easyMockSupport.createNiceMock(Injector.class);
+    expect(injector.getInstance(Gson.class)).andReturn(null).anyTimes();
+    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).anyTimes();
+    expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class)).anyTimes();
+
+    replay(injector, clusters, mockAmsHbaseSite, cluster);
+
+    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
+      .addMockedMethod("createConfiguration")
+      .addMockedMethod("getClusters", new Class[] { })
+      .addMockedMethod("createConfig")
+      .withConstructor(createNiceMock(ActionManager.class), clusters, injector)
+      .createNiceMock();
+
+    Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
+    Capture<Map> propertiesCapture = EasyMock.newCapture();
+
+    expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
+    expect(controller.getClusters()).andReturn(clusters).anyTimes();
+    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
+      anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
+
+    replay(controller, injector2);
+    new UpgradeCatalog222(injector2).updateAMSConfigs();
+    easyMockSupport.verifyAll();
+
+    Map<String, String> updatedProperties = propertiesCapture.getValue();
+    assertTrue(Maps.difference(newPropertiesAmsHbaseSite, updatedProperties).areEqual());
+  }
+
+  @Test
   public void testHDFSWidgetUpdateWithOnlyZkService() throws Exception {
     final Clusters clusters = createNiceMock(Clusters.class);
     final Cluster cluster = createNiceMock(Cluster.class);
