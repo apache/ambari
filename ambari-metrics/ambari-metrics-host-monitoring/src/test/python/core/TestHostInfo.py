@@ -62,31 +62,30 @@ class TestHostInfo(TestCase):
     self.assertAlmostEqual(cpu['cpu_intr'], 0)
     self.assertAlmostEqual(cpu['cpu_sintr'], 0)
 
-    
-  @patch("psutil.disk_usage")
-  @patch("psutil.disk_partitions")
+
   @patch("psutil.swap_memory")
   @patch("psutil.virtual_memory")
-  def testMemInfo(self, vm_mock, sw_mock, dm_mock, du_mock):
+  def testMemInfo(self, vm_mock, sw_mock):
     
     vm = vm_mock.return_value
     vm.free = 2312043
     vm.shared = 1243
     vm.buffers = 23435
     vm.cached = 23545
+    vm.available = 2312043
     
     sw = sw_mock.return_value
     sw.free = 2341234
     
     hostinfo = HostInfo(MagicMock())
     
-    cpu = hostinfo.get_mem_info()
+    mem = hostinfo.get_mem_info()
     
-    self.assertAlmostEqual(cpu['mem_free'], 2257)
-    self.assertAlmostEqual(cpu['mem_shared'], 1)
-    self.assertAlmostEqual(cpu['mem_buffered'], 22)
-    self.assertAlmostEqual(cpu['mem_cached'], 22)
-    self.assertAlmostEqual(cpu['swap_free'], 2286)
+    self.assertAlmostEqual(mem['mem_free'], 2257)
+    self.assertAlmostEqual(mem['mem_shared'], 1)
+    self.assertAlmostEqual(mem['mem_buffered'], 22)
+    self.assertAlmostEqual(mem['mem_cached'], 22)
+    self.assertAlmostEqual(mem['swap_free'], 2286)
 
 
   @patch("psutil.process_iter")
@@ -129,7 +128,7 @@ class TestHostInfo(TestCase):
     self.assertEqual(cdu['disk_total'], "0.00")
     self.assertEqual(cdu['disk_used'], "0.00")
     self.assertEqual(cdu['disk_free'], "0.00")
-    self.assertEqual(cdu['disk_percent'], "0.00")
+    self.assertEqual(cdu['disk_percent'], 0)
 
   @patch("psutil.disk_io_counters")
   def testDiskIOCounters(self, io_mock):
@@ -141,7 +140,7 @@ class TestHostInfo(TestCase):
 
     hostinfo = HostInfo(MagicMock())
 
-    disk_counters = hostinfo.get_disk_io_counters()
+    disk_counters = hostinfo.get_combined_disk_io_counters()
 
     self.assertEqual(disk_counters['read_count'], 0)
     self.assertEqual(disk_counters['write_count'], 1)
@@ -149,5 +148,59 @@ class TestHostInfo(TestCase):
     self.assertEqual(disk_counters['write_bytes'], 3)
     self.assertEqual(disk_counters['read_time'], 4)
     self.assertEqual(disk_counters['write_time'], 5)
+
+  @patch("psutil.disk_io_counters")
+  def test_get_disk_io_counters_per_disk(self, io_counters_mock):
+    Counters = collections.namedtuple('sdiskio', ['read_count', 'write_count',
+                                                  'read_bytes', 'write_bytes',
+                                                  'read_time', 'write_time',
+                                                  'busy_time', 'read_merged_count',
+                                                  'write_merged_count'
+                                                  ])
+
+    disk_counters1 = Counters(read_count = 0, write_count = 1,
+                            read_bytes = 2, write_bytes = 3,
+                            read_time = 4, write_time = 5,
+                            busy_time = 6, read_merged_count = 7,
+                            write_merged_count = 8
+    )
+
+    disk_counters2 = Counters(read_count = 9, write_count = 10,
+                            read_bytes = 11, write_bytes = 12,
+                            read_time = 13, write_time = 14,
+                            busy_time = 15, read_merged_count = 16,
+                            write_merged_count = 17
+    )
+
+    counters_per_disk = { 'sdb1' : disk_counters2, 'sda1' : disk_counters1 }
+    io_counters_mock.return_value = counters_per_disk
+
+    hostinfo = HostInfo(MagicMock())
+
+    disk_counter_per_disk = hostinfo.get_disk_io_counters_per_disk()
+
+    # Assert for sda1
+    self.assertEqual(disk_counter_per_disk['disk_1_read_count'], 0)
+    self.assertEqual(disk_counter_per_disk['disk_1_write_count'], 1)
+    self.assertEqual(disk_counter_per_disk['disk_1_read_bytes'], 2)
+    self.assertEqual(disk_counter_per_disk['disk_1_write_bytes'], 3)
+    self.assertEqual(disk_counter_per_disk['disk_1_read_time'], 4)
+    self.assertEqual(disk_counter_per_disk['disk_1_write_time'], 5)
+    self.assertEqual(disk_counter_per_disk['disk_1_busy_time'], 6)
+    self.assertEqual(disk_counter_per_disk['disk_1_read_merged_count'], 7)
+    self.assertEqual(disk_counter_per_disk['disk_1_write_merged_count'], 8)
+
+    # Assert for sdb1
+
+    self.assertEqual(disk_counter_per_disk['disk_2_read_count'], 9)
+    self.assertEqual(disk_counter_per_disk['disk_2_write_count'], 10)
+    self.assertEqual(disk_counter_per_disk['disk_2_read_bytes'], 11)
+    self.assertEqual(disk_counter_per_disk['disk_2_write_bytes'], 12)
+    self.assertEqual(disk_counter_per_disk['disk_2_read_time'], 13)
+    self.assertEqual(disk_counter_per_disk['disk_2_write_time'], 14)
+    self.assertEqual(disk_counter_per_disk['disk_2_busy_time'], 15)
+    self.assertEqual(disk_counter_per_disk['disk_2_read_merged_count'], 16)
+    self.assertEqual(disk_counter_per_disk['disk_2_write_merged_count'], 17)
+
 
 
