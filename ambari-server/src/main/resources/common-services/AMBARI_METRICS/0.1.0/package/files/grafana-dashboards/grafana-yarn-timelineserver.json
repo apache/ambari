@@ -1,8 +1,10 @@
 {
-  "id": 4,
-  "title": "Node Managers",
-  "originalTitle": "Node Managers",
-  "tags": [],
+  "id": 30,
+  "title": "YARN - TimelineServer",
+  "originalTitle": "YARN - TimelineServer",
+  "tags": [
+    "yarn"
+  ],
   "style": "dark",
   "timezone": "browser",
   "editable": true,
@@ -12,25 +14,33 @@
     {
       "collapse": false,
       "editable": true,
+      "height": "25px",
+      "panels": [
+        {
+          "content": "<h4 align=\"center\">Metrics to see the overall status for Timeline Server. </h4>",
+          "editable": true,
+          "error": false,
+          "id": 5,
+          "isNew": true,
+          "links": [],
+          "mode": "html",
+          "span": 12,
+          "style": {},
+          "title": "",
+          "type": "text"
+        }
+      ],
+      "title": "New row"
+    },
+    {
+      "collapse": false,
+      "editable": true,
       "height": "250px",
       "panels": [
         {
-          "content": "This dashboard is managed by Ambari.\nIf you make any changes to this, Ambari may refresh this dashboard anytime and you could lose your change.\nIf you want to customize this dashboard, please make a copy first.",
-          "editable": true,
-          "error": false,
-          "id": 4,
-          "isNew": true,
-          "links": [],
-          "mode": "markdown",
-          "span": 6,
-          "style": {},
-          "title": "Node Managers Dashboard",
-          "type": "text"
-        },
-        {
           "aliasColors": {},
           "bars": false,
-          "datasource": "AMS",
+          "datasource": null,
           "editable": true,
           "error": false,
           "fill": 1,
@@ -49,13 +59,11 @@
           "id": 1,
           "isNew": true,
           "legend": {
-            "alignAsTable": false,
             "avg": false,
             "current": false,
             "max": false,
             "min": false,
-            "rightSide": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -73,113 +81,19 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "avg",
-              "app": "nodemanager",
+              "aggregator": "max",
+              "alias": "",
+              "app": "applicationhistoryserver",
               "downsampleAggregator": "avg",
               "errors": {},
-              "hosts": "",
-              "metric": "yarn.NodeManagerMetrics.AllocatedGB",
-              "refId": "A",
-              "templatedHost": "perf-a-2.c.pramod-thangali.internal"
-            },
-            {
-              "aggregator": "avg",
-              "app": "nodemanager",
-              "downsampleAggregator": "avg",
-              "errors": {},
-              "metric": "yarn.NodeManagerMetrics.AllocatedVCores",
-              "refId": "B",
-              "templatedHost": "perf-a-2.c.pramod-thangali.internal"
+              "metric": "yarn.TimelineDataManagerMetrics.GetEntitiesTotal",
+              "precision": "",
+              "refId": "A"
             }
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Memory / Vcore",
-          "tooltip": {
-            "shared": true,
-            "value_type": "cumulative"
-          },
-          "type": "graph",
-          "x-axis": true,
-          "y-axis": true,
-          "y_formats": [
-            "short",
-            "short"
-          ]
-        }
-      ],
-      "title": "New row"
-    },
-    {
-      "collapse": false,
-      "editable": true,
-      "height": "250px",
-      "panels": [
-        {
-          "aliasColors": {},
-          "bars": false,
-          "datasource": "AMS",
-          "editable": true,
-          "error": false,
-          "fill": 1,
-          "grid": {
-            "leftLogBase": 1,
-            "leftMax": null,
-            "leftMin": null,
-            "rightLogBase": 1,
-            "rightMax": null,
-            "rightMin": null,
-            "threshold1": null,
-            "threshold1Color": "rgba(216, 200, 27, 0.27)",
-            "threshold2": null,
-            "threshold2Color": "rgba(234, 112, 112, 0.22)"
-          },
-          "id": 3,
-          "isNew": true,
-          "legend": {
-            "avg": false,
-            "current": false,
-            "max": false,
-            "min": false,
-            "show": true,
-            "total": false,
-            "values": false
-          },
-          "lines": true,
-          "linewidth": 2,
-          "links": [],
-          "nullPointMode": "connected",
-          "percentage": false,
-          "pointradius": 5,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "span": 6,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "aggregator": "avg",
-              "app": "nodemanager",
-              "downsampleAggregator": "avg",
-              "errors": {},
-              "metric": "yarn.NodeManagerMetrics.GoodLocalDirsDiskUtilizationPerc",
-              "refId": "A",
-              "templatedHost": "perf-a-2.c.pramod-thangali.internal"
-            },
-            {
-              "aggregator": "avg",
-              "app": "nodemanager",
-              "downsampleAggregator": "avg",
-              "errors": {},
-              "metric": "yarn.NodeManagerMetrics.GoodLogDirsDiskUtilizationPerc",
-              "refId": "B",
-              "templatedHost": "perf-a-2.c.pramod-thangali.internal"
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Disk Utilization Percentage",
+          "title": "Timeline Entity Data Reads",
           "tooltip": {
             "shared": true,
             "value_type": "cumulative"
@@ -195,14 +109,14 @@
         {
           "aliasColors": {},
           "bars": false,
-          "datasource": "AMS",
+          "datasource": null,
           "editable": true,
           "error": false,
           "fill": 1,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
-            "leftMin": null,
+            "leftMin": 0,
             "rightLogBase": 1,
             "rightMax": null,
             "rightMin": null,
@@ -218,7 +132,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -236,27 +150,18 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "avg",
-              "app": "nodemanager",
+              "aggregator": "max",
+              "app": "applicationhistoryserver",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "yarn.NodeManagerMetrics.BadLocalDirs",
-              "refId": "A",
-              "templatedHost": "perf-a-2.c.pramod-thangali.internal"
-            },
-            {
-              "aggregator": "avg",
-              "app": "nodemanager",
-              "downsampleAggregator": "avg",
-              "errors": {},
-              "metric": "yarn.NodeManagerMetrics.BadLogDirs",
-              "refId": "B",
-              "templatedHost": "perf-a-2.c.pramod-thangali.internal"
+              "metric": "yarn.TimelineDataManagerMetrics.PostEntitiesTotal",
+              "precision": "",
+              "refId": "A"
             }
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Bad local / log dir",
+          "title": "Timeline Entity Data Write",
           "tooltip": {
             "shared": true,
             "value_type": "cumulative"
@@ -271,14 +176,157 @@
         }
       ],
       "title": "Row"
+    },
+    {
+      "collapse": false,
+      "editable": true,
+      "height": "250px",
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {
+            "leftLogBase": 1,
+            "leftMax": null,
+            "leftMin": 0,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": null,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 3,
+          "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": false,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "max",
+              "app": "applicationhistoryserver",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "yarn.TimelineDataManagerMetrics.GetEntitiesTimeAvgTime",
+              "precision": "",
+              "refId": "A"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Timeline Entity Data Read time",
+          "tooltip": {
+            "shared": true,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "ms",
+            "short"
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {
+            "leftLogBase": 1,
+            "leftMax": null,
+            "leftMin": 0,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": null,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 4,
+          "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": false,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "max",
+              "app": "applicationhistoryserver",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "yarn.TimelineDataManagerMetrics.PostEntitiesTimeAvgTime",
+              "precision": "",
+              "refId": "A"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Timeline Entity Data Write Time",
+          "tooltip": {
+            "shared": true,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "ms",
+            "short"
+          ]
+        }
+      ],
+      "title": "New row"
     }
   ],
   "time": {
-    "from": "now-30d",
+    "from": "now-6h",
     "to": "now"
   },
   "timepicker": {
-    "now": true,
     "refresh_intervals": [
       "5s",
       "10s",
@@ -310,6 +358,17 @@
     "list": []
   },
   "schemaVersion": 8,
-  "version": 11,
-  "links": []
+  "version": 16,
+  "links": [
+    {
+      "asDropdown": true,
+      "icon": "external link",
+      "keepTime": true,
+      "tags": [
+        "yarn"
+      ],
+      "title": "YARN Dashboards",
+      "type": "dashboards"
+    }
+  ]
 }
