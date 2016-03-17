@@ -20,7 +20,7 @@ limitations under the License.
 import os
 import re
 from resource_management.core.logger import Logger
-from resource_management.core.resources.system import File, Directory, Execute
+from resource_management.core.resources.system import File, Directory, Execute, Link
 from resource_management.core.source import DownloadSource, InlineTemplate
 from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.libraries.resources.modify_properties_file import ModifyPropertiesFile
@@ -56,9 +56,7 @@ def setup_ranger_admin(upgrade_type=None):
   )
 
   if upgrade_type is not None:
-    ranger_home = format("/usr/hdp/{version}/ranger-admin")
-    ranger_conf = format("/usr/hdp/{version}/ranger-admin/conf")
-    copy_jdbc_connector(stack_version=params.version)
+    copy_jdbc_connector()
 
   File(format("/usr/lib/ambari-agent/{check_db_connection_jar_name}"),
     content = DownloadSource(format("{jdk_location}{check_db_connection_jar_name}")),
@@ -123,6 +121,14 @@ def setup_ranger_admin(upgrade_type=None):
     dst_file = format('{ranger_home}/conf/security-applicationContext.xml')
     Execute(('cp', '-f', src_file, dst_file), sudo=True)
     File(params.security_app_context_file, owner=params.unix_user, group=params.unix_group)
+
+  if upgrade_type is not None and params.stack_is_hdp23_or_further:
+
+    if os.path.islink('/usr/bin/ranger-admin'):
+      Link('/usr/bin/ranger-admin', action="delete")
+
+    Link('/usr/bin/ranger-admin',
+    to=format('{ranger_home}/ews/ranger-admin-services.sh'))
 
   Execute(('ln','-sf', format('{ranger_home}/ews/ranger-admin-services.sh'),'/usr/bin/ranger-admin'),
     not_if=format("ls /usr/bin/ranger-admin"),
@@ -206,11 +212,6 @@ def do_keystore_setup(upgrade_type=None):
   ranger_home = params.ranger_home
   cred_lib_path = params.cred_lib_path
   cred_setup_prefix = params.cred_setup_prefix
-
-  if upgrade_type is not None:
-    ranger_home = format("/usr/hdp/{version}/ranger-admin")
-    cred_lib_path = os.path.join(ranger_home,"cred","lib","*")
-    cred_setup_prefix = (format('{ranger_home}/ranger_credential_helper.py'), '-l', cred_lib_path)
 
   if not is_empty(params.ranger_credential_provider_path):    
     jceks_path = params.ranger_credential_provider_path
@@ -316,11 +317,6 @@ def setup_usersync(upgrade_type=None):
 
   if not is_empty(params.ranger_usersync_ldap_ldapbindpassword) and params.ug_sync_source == 'org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder':
     password_validation(params.ranger_usersync_ldap_ldapbindpassword)
-
-  if upgrade_type is not None:
-    usersync_home = format("/usr/hdp/{version}/ranger-usersync")
-    ranger_home = format("/usr/hdp/{version}/ranger-admin")
-    ranger_ugsync_conf = format("/usr/hdp/{version}/ranger-usersync/conf")
 
   Directory(params.ranger_pid_dir,
     mode=0750,
