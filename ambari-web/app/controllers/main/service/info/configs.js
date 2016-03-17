@@ -113,7 +113,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
    */
   canEdit: function () {
     return (this.get('selectedVersion') == this.get('currentDefaultVersion') || !this.get('selectedConfigGroup.isDefault'))
-        && !this.get('isCompareMode') && App.isAuthorized('SERVICE.MODIFY_CONFIGS') && !this.get('isHostsConfigsPage');
+        && !this.get('isCompareMode') && App.isAuthorized('SERVICE.MODIFY_CONFIGS');
   }.property('selectedVersion', 'isCompareMode', 'currentDefaultVersion', 'selectedConfigGroup.isDefault'),
 
   serviceConfigs: Em.computed.alias('App.config.preDefinedServiceConfigs'),
