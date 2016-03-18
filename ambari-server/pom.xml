@@ -823,6 +823,46 @@
         </plugins>
       </build>
     </profile>
+    <profile>
+      <id>replaceBaseUrl</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+        <property>
+          <name>urlInfoPath</name>
+        </property>
+      </activation>
+      <properties>
+        <urlinfo_processor_script_location>${project.basedir}/../ambari-common/src/main/python/urlinfo_processor/urlinfo_processor.py</urlinfo_processor_script_location>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>1.2.1</version>
+            <executions>
+              <execution>
+                <configuration>
+                  <executable>${executable.python}</executable>
+                  <arguments>
+                    <argument>${urlinfo_processor_script_location}</argument>
+                    <argument>-u</argument>
+                    <argument>${urlInfoPath}</argument>
+                    <argument>-s</argument>
+                    <argument>${stacksSrcLocation}</argument>
+                  </arguments>
+                </configuration>
+                <id>replace-base-url</id>
+                <phase>prepare-package</phase>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
   </profiles>
   <dependencies>
     <dependency>
