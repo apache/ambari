@@ -79,6 +79,9 @@ public class AlertDefinitionEntity {
   @Column(name = "label", nullable = true, length = 255)
   private String label;
 
+  @Column(name = "help_url", nullable = true, length = 512)
+  private String helpURL;
+
   @Lob
   @Basic
   @Column(name = "description", nullable = true, length = 32672)
@@ -411,6 +414,24 @@ public class AlertDefinitionEntity {
    */
   public String getLabel() {
     return label;
+  }
+
+  /**
+   * Gets the help url for this alert.
+   *
+   * @return the helpURL or {@code null} if none.
+   */
+  public String getHelpURL() {
+    return helpURL;
+  }
+
+  /**
+   * Sets a help url for this alert.
+   *
+   * @param helpURL the helpURL or {@code null} if none.
+   */
+  public void setHelpURL(String helpURL) {
+    this.helpURL = helpURL;
   }
 
   /**

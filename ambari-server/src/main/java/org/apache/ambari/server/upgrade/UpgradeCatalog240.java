@@ -32,7 +32,6 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.PermissionDAO;
@@ -65,6 +64,8 @@ import com.google.inject.persist.Transactional;
 public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
 
   protected static final String ADMIN_PERMISSION_TABLE = "adminpermission";
+  protected static final String ALERT_DEFINITION_TABLE = "alert_definition";
+  protected static final String HELP_URL_COLUMN = "help_url";
   protected static final String PERMISSION_ID_COL = "permission_name";
   protected static final String SORT_ORDER_COL = "sort_order";
   protected static final String REPO_VERSION_TABLE = "repo_version";
@@ -139,6 +140,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     updateServiceComponentDesiredStateTableDDL();
     createServiceComponentHistoryTable();
     updateClusterTableDDL();
+    updateAlertDefinitionTable();
   }
 
   private void updateClusterTableDDL() throws SQLException {
@@ -440,6 +442,10 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     // Add the sort_order column to the adminpermission table
     dbAccessor.addColumn(ADMIN_PERMISSION_TABLE,
         new DBColumnInfo(SORT_ORDER_COL, Short.class, null, 1, false));
+  }
+
+  protected void updateAlertDefinitionTable() throws SQLException {
+    dbAccessor.addColumn(ALERT_DEFINITION_TABLE, new DBColumnInfo(HELP_URL_COLUMN, String.class, 512, null, true));
   }
 
   protected void setRoleSortOrder() throws SQLException {

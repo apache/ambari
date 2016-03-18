@@ -69,6 +69,8 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.google.gson.Gson;
 import com.google.inject.Binder;
@@ -76,8 +78,6 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.util.Modules;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * AlertDefinition tests
@@ -228,7 +228,8 @@ public class AlertDefinitionResourceProviderTest {
         AlertDefinitionResourceProvider.ALERT_DEF_DESCRIPTION,
         AlertDefinitionResourceProvider.ALERT_DEF_IGNORE_HOST,
         AlertDefinitionResourceProvider.ALERT_DEF_SOURCE,
-        AlertDefinitionResourceProvider.ALERT_DEF_SOURCE_TYPE);
+        AlertDefinitionResourceProvider.ALERT_DEF_SOURCE_TYPE,
+        AlertDefinitionResourceProvider.ALERT_DEF_HELP_URL);
 
     AmbariManagementController amc = createMock(AmbariManagementController.class);
     Clusters clusters = createMock(Clusters.class);
@@ -276,6 +277,10 @@ public class AlertDefinitionResourceProviderTest {
     Assert.assertEquals(
         Boolean.FALSE,
         r.getPropertyValue(AlertDefinitionResourceProvider.ALERT_DEF_IGNORE_HOST));
+
+    Assert.assertEquals(
+            "http://test-help-url",
+            r.getPropertyValue(AlertDefinitionResourceProvider.ALERT_DEF_HELP_URL));
 
     Assert.assertNotNull(r.getPropertyValue("AlertDefinition/source/type"));
   }
@@ -867,6 +872,7 @@ public class AlertDefinitionResourceProviderTest {
     entity.setSourceType(SourceType.METRIC);
     entity.setSource(sourceJson);
     entity.setCluster(clusterEntity);
+    entity.setHelpURL("http://test-help-url");
     return Arrays.asList(entity);
   }
 

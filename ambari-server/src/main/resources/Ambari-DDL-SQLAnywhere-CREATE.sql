@@ -867,6 +867,7 @@ CREATE TABLE alert_definition (
   component_name VARCHAR(255),
   scope VARCHAR(255) DEFAULT 'ANY' NOT NULL,
   label VARCHAR(255),
+  help_url VARCHAR(512),
   description TEXT,
   enabled SMALLINT DEFAULT 1 NOT NULL,
   schedule_interval INTEGER NOT NULL,

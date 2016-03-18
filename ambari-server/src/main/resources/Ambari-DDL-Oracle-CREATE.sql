@@ -868,6 +868,7 @@ CREATE TABLE alert_definition (
   component_name VARCHAR2(255),
   scope VARCHAR2(255) DEFAULT 'ANY' NOT NULL,
   label VARCHAR2(255),
+  help_url VARCHAR2(512),
   description CLOB,
   enabled NUMBER(1) DEFAULT 1 NOT NULL,
   schedule_interval NUMBER(10) NOT NULL,

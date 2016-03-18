@@ -79,6 +79,7 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
   protected static final String ALERT_DEF_ID = "AlertDefinition/id";
   protected static final String ALERT_DEF_NAME = "AlertDefinition/name";
   protected static final String ALERT_DEF_LABEL = "AlertDefinition/label";
+  protected static final String ALERT_DEF_HELP_URL = "AlertDefinition/help_url";
   protected static final String ALERT_DEF_DESCRIPTION = "AlertDefinition/description";
   protected static final String ALERT_DEF_INTERVAL = "AlertDefinition/interval";
   protected static final String ALERT_DEF_SERVICE_NAME = "AlertDefinition/service_name";
@@ -144,6 +145,7 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
     PROPERTY_IDS.add(ALERT_DEF_NAME);
     PROPERTY_IDS.add(ALERT_DEF_LABEL);
     PROPERTY_IDS.add(ALERT_DEF_DESCRIPTION);
+    PROPERTY_IDS.add(ALERT_DEF_HELP_URL);
     PROPERTY_IDS.add(ALERT_DEF_INTERVAL);
     PROPERTY_IDS.add(ALERT_DEF_ENABLED);
     PROPERTY_IDS.add(ALERT_DEF_SCOPE);
@@ -412,6 +414,7 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
     String componentName = (String) requestMap.get(ALERT_DEF_COMPONENT_NAME);
     String type = (String) requestMap.get(ALERT_DEF_SOURCE_TYPE);
     String label = (String) requestMap.get(ALERT_DEF_LABEL);
+    String helpURL = (String) requestMap.get(ALERT_DEF_HELP_URL);
     String description = (String) requestMap.get(ALERT_DEF_DESCRIPTION);
     String desiredScope = (String) requestMap.get(ALERT_DEF_SCOPE);
 
@@ -555,6 +558,11 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
       managed = true;
     }
 
+    if ((null != helpURL) && !helpURL.equals(entity.getHelpURL())) {
+      entity.setHelpURL(helpURL);
+      managed = true;
+    }
+
     if ((null != description) && !description.equals(entity.getDescription())) {
       entity.setDescription(description);
       managed = true;
@@ -688,6 +696,7 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
     setResourceProperty(resource, ALERT_DEF_ENABLED, Boolean.valueOf(entity.getEnabled()), requestedIds);
     setResourceProperty(resource, ALERT_DEF_IGNORE_HOST, Boolean.valueOf(entity.isHostIgnored()), requestedIds);
     setResourceProperty(resource, ALERT_DEF_SCOPE, entity.getScope(), requestedIds);
+    setResourceProperty(resource, ALERT_DEF_HELP_URL, entity.getHelpURL(), requestedIds);
 
     boolean sourceTypeRequested = setResourceProperty(resource,
         ALERT_DEF_SOURCE_TYPE, entity.getSourceType(), requestedIds);
