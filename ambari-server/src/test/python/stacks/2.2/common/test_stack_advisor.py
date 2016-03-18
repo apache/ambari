@@ -2625,8 +2625,8 @@ class TestHDP22StackAdvisor(TestCase):
 
     # Test when Ranger plugin HBase is enabled in kerberos environment
     configurations['hbase-site']['properties'].pop('hbase.coprocessor.region.classes', None)
-    services['configurations']['hbase-site']['properties']['hbase.coprocessor.region.classes'] = ''
-    services['configurations']['hbase-site']['properties']['hbase.coprocessor.master.classes'] = ''
+    services['configurations']['hbase-site']['properties']['hbase.coprocessor.region.classes'] = 'org.apache.hadoop.hbase.security.access.AccessController'
+    services['configurations']['hbase-site']['properties']['hbase.coprocessor.master.classes'] = 'org.apache.hadoop.hbase.security.access.AccessController'
     services['configurations']['hbase-site']['properties']['hbase.security.authentication'] = 'kerberos'
     services['configurations']['hbase-site']['properties']['hbase.security.authorization'] = 'false'
     services['configurations']['ranger-hbase-plugin-properties']['properties']['ranger-hbase-plugin-enabled'] = 'Yes'
