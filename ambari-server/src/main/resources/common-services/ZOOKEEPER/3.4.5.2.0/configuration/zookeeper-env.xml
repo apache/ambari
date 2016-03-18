@@ -55,20 +55,6 @@
   </property>
 
   <property>
-    <name>zk_server_heapsize</name>
-    <value>1024</value>
-    <description>Maximum amount of memory each Zookeeper Server can use.</description>
-    <display-name>Zookeeper Server Maximum Memory</display-name>
-    <value-attributes>
-      <type>int</type>
-      <minimum>256</minimum>
-      <maximum>32768</maximum>
-      <unit>MB</unit>
-      <increment-step>256</increment-step>
-    </value-attributes>
-  </property>
-
-  <property>
     <name>zookeeper_principal_name</name>
     <description>ZooKeeper principal name</description>
   </property>
@@ -88,7 +74,7 @@ export JAVA_HOME={{java64_home}}
 export ZOOKEEPER_HOME={{zk_home}}
 export ZOO_LOG_DIR={{zk_log_dir}}
 export ZOOPIDFILE={{zk_pid_file}}
-export SERVER_JVMFLAGS=-Xmx{{zk_server_heapsize}}
+export SERVER_JVMFLAGS={{zk_server_heapsize}}
 export JAVA=$JAVA_HOME/bin/java
 export CLASSPATH=$CLASSPATH:/usr/share/zookeeper/*
 
