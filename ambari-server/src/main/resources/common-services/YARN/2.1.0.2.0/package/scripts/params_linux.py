@@ -135,10 +135,12 @@ yarn_nodemanager_container_executor_class =  config['configurations']['yarn-site
 is_linux_container_executor = (yarn_nodemanager_container_executor_class == 'org.apache.hadoop.yarn.server.nodemanager.LinuxContainerExecutor')
 container_executor_mode = 06050 if is_linux_container_executor else 02050
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
+yarn_http_policy = config['configurations']['yarn-site']['yarn.http.policy']
+yarn_https_on = (yarn_http_policy.upper() == 'HTTPS_ONLY')
 rm_hosts = config['clusterHostInfo']['rm_host']
 rm_host = rm_hosts[0]
 rm_port = config['configurations']['yarn-site']['yarn.resourcemanager.webapp.address'].split(':')[-1]
-rm_https_port = config['configurations']['yarn-site']['yarn.resourcemanager.webapp.https.address'].split(':')[-1]
+rm_https_port = default('/configurations/yarn-site/yarn.resourcemanager.webapp.https.address', ":8090").split(':')[-1]
 # TODO UPGRADE default, update site during upgrade
 rm_nodes_exclude_path = default("/configurations/yarn-site/yarn.resourcemanager.nodes.exclude-path","/etc/hadoop/conf/yarn.exclude")
 
@@ -316,8 +318,6 @@ else:
 
 ranger_admin_log_dir = default("/configurations/ranger-env/ranger_admin_log_dir","/var/log/ranger/admin")
 
-yarn_http_policy = config['configurations']['yarn-site']['yarn.http.policy']
-yarn_https_on = (yarn_http_policy.upper() == 'HTTPS_ONLY')
 scheme = 'http' if not yarn_https_on else 'https'
 yarn_rm_address = config['configurations']['yarn-site']['yarn.resourcemanager.webapp.address'] if not yarn_https_on else config['configurations']['yarn-site']['yarn.resourcemanager.webapp.https.address']
 rm_active_port = rm_https_port if yarn_https_on else rm_port
