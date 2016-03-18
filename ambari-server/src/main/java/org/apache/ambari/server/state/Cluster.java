@@ -652,4 +652,13 @@ public interface Cluster {
    * @throws AmbariException
    */
   void setUpgradeEntity(UpgradeEntity upgradeEntity) throws AmbariException;
+
+  /**
+   * Gets whether there is an upgrade which has been suspended and not yet
+   * finalized.
+   *
+   * @return {@code true} if the last upgrade is in the
+   *         {@link UpgradeState#SUSPENDED}.
+   */
+  boolean isUpgradeSuspended();
 }

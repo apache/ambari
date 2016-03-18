@@ -3489,4 +3489,17 @@ public class ClusterImpl implements Cluster {
       clusterGlobalLock.writeLock().unlock();
     }
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isUpgradeSuspended() {
+    UpgradeEntity lastUpgradeItemForCluster = upgradeDAO.findLastUpgradeForCluster(clusterId);
+    if (null != lastUpgradeItemForCluster) {
+      return lastUpgradeItemForCluster.isSuspended();
+    }
+
+    return false;
+  }
 }

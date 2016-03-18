@@ -581,6 +581,22 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       error: errorCallback
     });
   },
+  
+  /**
+   * suspend upgrade (in order to restart it later)
+   */
+  abortUpgradeWithSuspend: function () {
+    var errorCallback = this.get('isDowngrade') ? 'abortDowngradeErrorCallback' : 'abortUpgradeErrorCallback';
+    return App.ajax.send({
+      name: 'admin.upgrade.suspend',
+      sender: this,
+      data: {
+        upgradeId: this.get('upgradeId'),
+        isDowngrade: this.get('isDowngrade')
+      },
+      error: errorCallback
+    });
+  },  
 
   /**
    * error callback of <code>abortUpgrade()</code>
@@ -1681,7 +1697,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    */
   suspendUpgrade: function () {
     var self = this;
-    return this.abortUpgrade().done(function () {
+    return this.abortUpgradeWithSuspend().done(function () {
       App.set('upgradeState', 'ABORTED');
       self.setDBProperty('upgradeState', 'ABORTED');
       App.clusterStatus.setClusterStatus({

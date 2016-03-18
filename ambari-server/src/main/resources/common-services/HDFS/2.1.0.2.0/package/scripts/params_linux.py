@@ -52,6 +52,9 @@ stack_version_formatted = format_stack_version(stack_version_unformatted)
 agent_stack_retry_on_unavailability = cbool(config["hostLevelParams"]["agent_stack_retry_on_unavailability"])
 agent_stack_retry_count = cint(config["hostLevelParams"]["agent_stack_retry_count"])
 
+# there is a stack upgrade which has not yet been finalized; it's currently suspended
+upgrade_suspended = default("roleParams/upgrade_suspended", False)
+
 # New Cluster Stack Version that is defined during the RESTART of a Stack Upgrade
 version = default("/commandParams/version", None)
 

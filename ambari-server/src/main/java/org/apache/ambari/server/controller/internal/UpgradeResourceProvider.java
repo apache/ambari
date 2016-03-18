@@ -84,7 +84,6 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
-import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceInfo;
@@ -138,6 +137,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   protected static final String UPGRADE_DIRECTION = "Upgrade/direction";
   protected static final String UPGRADE_DOWNGRADE_ALLOWED = "Upgrade/downgrade_allowed";
   protected static final String UPGRADE_REQUEST_STATUS = "Upgrade/request_status";
+  protected static final String UPGRADE_SUSPENDED = "Upgrade/suspended";
   protected static final String UPGRADE_ABORT_REASON = "Upgrade/abort_reason";
   protected static final String UPGRADE_SKIP_PREREQUISITE_CHECKS = "Upgrade/skip_prerequisite_checks";
   protected static final String UPGRADE_FAIL_ON_CHECK_WARNINGS = "Upgrade/fail_on_check_warnings";
@@ -255,6 +255,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     PROPERTY_IDS.add(UPGRADE_TO_VERSION);
     PROPERTY_IDS.add(UPGRADE_DIRECTION);
     PROPERTY_IDS.add(UPGRADE_DOWNGRADE_ALLOWED);
+    PROPERTY_IDS.add(UPGRADE_SUSPENDED);
     PROPERTY_IDS.add(UPGRADE_SKIP_FAILURES);
     PROPERTY_IDS.add(UPGRADE_SKIP_SC_FAILURES);
     PROPERTY_IDS.add(UPGRADE_SKIP_MANUAL_VERIFICATION);
@@ -453,7 +454,24 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     if (null != requestStatus) {
       HostRoleStatus status = HostRoleStatus.valueOf(requestStatus);
+
+      // when aborting an upgrade, the suspend flag must be present to indicate
+      // if the upgrade is merely being suspended
+      boolean suspended = false;
+      if( status == HostRoleStatus.ABORTED && !propertyMap.containsKey(UPGRADE_SUSPENDED)){
+        throw new IllegalArgumentException(String.format(
+            "When changing the state of an upgrade to %s, the %s property is required to be either true or false.",
+            status, UPGRADE_SUSPENDED ));
+      } else {
+        suspended = Boolean.valueOf((String) propertyMap.get(UPGRADE_SUSPENDED));
+      }
+
       setUpgradeRequestStatus(requestIdProperty, status, propertyMap);
+
+      // when the status of the upgrade's request is changing, we also update
+      // the suspended flag
+      upgradeEntity.setSuspended(suspended);
+      s_upgradeDAO.merge(upgradeEntity);
     }
 
     // if either of the skip failure settings are in the request, then we need
@@ -1598,7 +1616,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    * @param requestId
    *          the request to change the status for.
    * @param status
-   *          the status to set
+   *          the status to set on the associated request.
    * @param propertyMap
    *          the map of request properties (needed for things like abort reason
    *          if present)
@@ -1642,9 +1660,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
           LOG.warn("Could not clear upgrade entity for cluster with id {}", clusterId, e);
         }
       }
-    } else { // Processing PENDING
+    } else {
       List<Long> taskIds = new ArrayList<Long>();
-
       for (HostRoleCommand hrc : internalRequest.getCommands()) {
         if (HostRoleStatus.ABORTED == hrc.getStatus()
             || HostRoleStatus.TIMEDOUT == hrc.getStatus()) {
@@ -1661,7 +1678,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       } catch (AmbariException e) {
         LOG.warn("Could not clear upgrade entity for cluster with id {}", clusterId, e);
       }
-
     }
   }
 }

@@ -785,6 +785,7 @@ public class UpgradeResourceProviderTest {
     Map<String, Object> requestProps = new HashMap<String, Object>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_REQUEST_ID, id.toString());
     requestProps.put(UpgradeResourceProvider.UPGRADE_REQUEST_STATUS, "ABORTED");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SUSPENDED, "false");
 
     UpgradeResourceProvider urp = createProvider(amc);
 
@@ -808,6 +809,7 @@ public class UpgradeResourceProviderTest {
     Map<String, Object> requestProps = new HashMap<String, Object>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_REQUEST_ID, id.toString());
     requestProps.put(UpgradeResourceProvider.UPGRADE_REQUEST_STATUS, "ABORTED");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SUSPENDED, "true");
 
     UpgradeResourceProvider urp = createProvider(amc);
 
@@ -845,6 +847,25 @@ public class UpgradeResourceProviderTest {
     urp.updateResources(req, null);
   }
 
+  @Test(expected = IllegalArgumentException.class)
+  public void testAbortWithoutSuspendFlag() throws Exception {
+    RequestStatus status = testCreateResources();
+
+    Set<Resource> createdResources = status.getAssociatedResources();
+    assertEquals(1, createdResources.size());
+    Resource res = createdResources.iterator().next();
+    Long id = (Long) res.getPropertyValue("Upgrade/request_id");
+    assertNotNull(id);
+    assertEquals(Long.valueOf(1), id);
+
+    Map<String, Object> requestProps = new HashMap<String, Object>();
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REQUEST_ID, id.toString());
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REQUEST_STATUS, "ABORTED");
+
+    UpgradeResourceProvider urp = createProvider(amc);
+    Request req = PropertyHelper.getUpdateRequest(requestProps, null);
+    urp.updateResources(req, null);
+  }
 
   @Test
   public void testDirectionUpgrade() throws Exception {

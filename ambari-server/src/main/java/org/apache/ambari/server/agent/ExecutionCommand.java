@@ -387,6 +387,11 @@ public class ExecutionCommand extends AgentCommand {
      * The key indicating that the package_version string is available
      */
     String PACKAGE_VERSION = "package_version";
+
+    /**
+     * The key indicating that there is an un-finalized upgrade which is suspended.
+     */
+    String UPGRADE_SUSPENDED = "upgrade_suspended";
   }
 
 }

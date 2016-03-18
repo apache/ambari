@@ -698,6 +698,7 @@ CREATE TABLE upgrade (
   skip_failures TINYINT(1) NOT NULL DEFAULT 0,
   skip_sc_failures TINYINT(1) NOT NULL DEFAULT 0,
   downgrade_allowed TINYINT(1) NOT NULL DEFAULT 1,
+  suspended TINYINT(1) DEFAULT 0 NOT NULL,
   PRIMARY KEY (upgrade_id),
   FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id),
   FOREIGN KEY (request_id) REFERENCES request(request_id)
