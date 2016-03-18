@@ -1549,10 +1549,12 @@ def getMountPointForDir(dir, mountPoints):
     # "/", "/hadoop/hdfs", and "/hadoop/hdfs/data".
     # So take the one with the greatest number of segments.
     for mountPoint in mountPoints:
-      if dir.startswith(mountPoint):
+      # Ensure that the mount path and the dir path ends with "/"
+      # The mount point "/hadoop" should not match with the path "/hadoop1"
+      if os.path.join(dir, "").startswith(os.path.join(mountPoint, "")):
         if bestMountFound is None:
           bestMountFound = mountPoint
-        elif bestMountFound.count(os.path.sep) < os.path.join(mountPoint, "").count(os.path.sep):
+        elif os.path.join(bestMountFound, "").count(os.path.sep) < os.path.join(mountPoint, "").count(os.path.sep):
           bestMountFound = mountPoint
 
   return bestMountFound
