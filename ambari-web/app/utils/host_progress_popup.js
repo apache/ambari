@@ -17,7 +17,6 @@
  */
 
 var App = require('app');
-var batchUtils = require('utils/batch_scheduled_requests');
 var date = require('utils/date/date');
 var dataUtils = require('utils/data_manipulation');
 
@@ -229,7 +228,7 @@ App.HostPopup = Em.Object.create({
    */
   isAbortableByStatus: function (status) {
     var statuses = this.get('statusesStyleMap');
-    return !Em.keys(statuses).contains(status) || status == 'IN_PROGRESS';
+    return !Em.keys(statuses).contains(status) || status === 'IN_PROGRESS';
   },
 
   /**
@@ -266,6 +265,7 @@ App.HostPopup = Em.Object.create({
   abortRequestSuccessCallback: function (response, request, data) {
     return App.ModalPopup.show({
       header: Em.I18n.t('hostPopup.bgop.abortRequest.modal.header'),
+      encodeBody: false,
       body: Em.I18n.t('hostPopup.bgop.abortRequest.modal.body').format(data.requestName),
       secondary: null
     });
@@ -329,7 +329,9 @@ App.HostPopup = Em.Object.create({
       dataSourceController: null,
       currentHostName: null
     });
-    this.get('isPopup') ? this.get('isPopup').remove() : null;
+    if(this.get('isPopup')) {
+      this.get('isPopup').remove();
+    }
   },
 
   /**
@@ -422,7 +424,7 @@ App.HostPopup = Em.Object.create({
   setBackgroundOperationHeader: function (isServiceListHidden) {
     if (this.get('isBackgroundOperations') && !isServiceListHidden) {
       var numRunning = App.router.get('backgroundOperationsController.allOperationsCount');
-      this.set("popupHeaderName", numRunning + Em.I18n.t('hostPopup.header.postFix').format(numRunning == 1 ? "" : "s"));
+      this.set("popupHeaderName", numRunning + Em.I18n.t('hostPopup.header.postFix').format(numRunning === 1 ? "" : "s"));
     }
   },
 
@@ -450,7 +452,7 @@ App.HostPopup = Em.Object.create({
           updatedService = this.createService(service);
           servicesInfo.insertAt(index, updatedService);
         }
-        updatedService.set('isAbortable',  App.isAuthorized('SERVICE.START_STOP') &&  this.isAbortableByStatus(service.status));
+        updatedService.set('isAbortable', App.isAuthorized('SERVICE.START_STOP') && this.isAbortableByStatus(service.status));
       }, this);
       this.removeOldServices(servicesInfo, currentServices);
       this.setBackgroundOperationHeader(isServiceListHidden);
@@ -543,7 +545,7 @@ App.HostPopup = Em.Object.create({
     return Em.Object.create({
       id: _task.Tasks.id,
       hostName: _task.Tasks.host_name,
-      command: _task.Tasks.command.toLowerCase() == 'service_check' ? '' : _task.Tasks.command.toLowerCase(),
+      command: _task.Tasks.command.toLowerCase() === 'service_check' ? '' : _task.Tasks.command.toLowerCase(),
       commandDetail: App.format.commandDetail(_task.Tasks.command_detail, _task.Tasks.request_inputs),
       status: App.format.taskStatus(_task.Tasks.status),
       role: App.format.role(_task.Tasks.role, false),
@@ -575,7 +577,6 @@ App.HostPopup = Em.Object.create({
    * @method onHostUpdate
    */
   onHostUpdate: function () {
-    var inputData = this.get('inputData');
     var self = this;
     if (this.get("inputData")) {
       var hostsMap = this._getHostsMap();
@@ -593,7 +594,7 @@ App.HostPopup = Em.Object.create({
       }
     }
     var operation = this.get('servicesInfo').findProperty('name', this.get('serviceName'));
-    this.set('operationInfo', !operation || (operation && operation.get('progress') == 100) ? null : operation);
+    this.set('operationInfo', !operation || operation && operation.get('progress') === 100 ? null : operation);
   },
 
   /**
@@ -653,7 +654,7 @@ App.HostPopup = Em.Object.create({
         name: hostName,
         publicName: _host.publicName,
         displayName: function () {
-          return this.get('name').length < 43 ? this.get('name') : (this.get('name').substr(0, 40) + '...');
+          return this.get('name').length < 43 ? this.get('name') : this.get('name').substr(0, 40) + '...';
         }.property('name'),
         progress: 0,
         status: App.format.taskStatus("PENDING"),
@@ -691,7 +692,6 @@ App.HostPopup = Em.Object.create({
    */
   _processingExistingHostsWithSameService: function (hostsMap) {
     var self = this;
-    var barColorMap = this.get('barColorMap');
     var existedHosts = self.get('hosts');
     var detailedProperties = this.get('detailedProperties');
     var detailedPropertiesKeys = Em.keys(detailedProperties);
@@ -757,13 +757,13 @@ App.HostPopup = Em.Object.create({
       var structuredOut = task.Tasks.structured_out || {};
       var status = task.Tasks.status;
       existTask.setProperties({
-        dataMoved: structuredOut['dataMoved'] || '0',
-        dataLeft: structuredOut['dataLeft'] || '0',
-        dataBeingMoved: structuredOut['dataBeingMoved'] || '0',
+        dataMoved: structuredOut.dataMoved || '0',
+        dataLeft: structuredOut.dataLeft || '0',
+        dataBeingMoved: structuredOut.dataBeingMoved || '0',
         barColor: barColorMap[status],
-        isInProgress: status == 'IN_PROGRESS',
+        isInProgress: status === 'IN_PROGRESS',
         isNotComplete: ['QUEUED', 'IN_PROGRESS'].contains(status),
-        completionProgressStyle: 'width:' + (structuredOut['completePercent'] || 0) * 100 + '%;',
+        completionProgressStyle: 'width:' + (structuredOut.completePercent || 0) * 100 + '%;',
         command: task.Tasks.command,
         custom_command_name: task.Tasks.custom_command_name
       });
@@ -778,7 +778,6 @@ App.HostPopup = Em.Object.create({
    */
   createPopup: function () {
     var self = this;
-    var servicesInfo = this.get("servicesInfo");
     var isBackgroundOperations = this.get('isBackgroundOperations');
 
     this.set('isPopup', App.ModalPopup.show({

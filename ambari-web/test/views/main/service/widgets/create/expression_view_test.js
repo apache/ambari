@@ -17,7 +17,7 @@
  */
 
 var App = require('app');
-var number_utils = require("utils/number_utils");
+var numberUtils = require("utils/number_utils");
 var misc = require('utils/misc');
 
 
@@ -196,10 +196,10 @@ describe('App.WidgetWizardExpressionView', function () {
   describe("#isNumberValueInvalid", function() {
 
     beforeEach(function() {
-      sinon.stub(number_utils, 'isPositiveNumber').returns(true)
+      sinon.stub(numberUtils, 'isPositiveNumber').returns(true)
     });
     afterEach(function() {
-      number_utils.isPositiveNumber.restore();
+      numberUtils.isPositiveNumber.restore();
     });
 
     it("numberValue is empty", function() {
@@ -325,10 +325,10 @@ describe("App.AddNumberExpressionView", function() {
   describe("#isInvalid", function() {
 
     beforeEach(function() {
-      sinon.stub(number_utils, 'isPositiveNumber').returns(true)
+      sinon.stub(numberUtils, 'isPositiveNumber').returns(true)
     });
     afterEach(function() {
-      number_utils.isPositiveNumber.restore();
+      numberUtils.isPositiveNumber.restore();
     });
 
     it("value is empty", function() {
@@ -432,7 +432,7 @@ describe("App.InputCursorTextfieldView", function() {
   describe("#validateInput()", function() {
 
     beforeEach(function() {
-      this.mock = sinon.stub(number_utils, 'isPositiveNumber');
+      this.mock = sinon.stub(numberUtils, 'isPositiveNumber');
     });
     afterEach(function() {
       this.mock.restore();
@@ -527,7 +527,7 @@ describe("App.InputCursorTextfieldView", function() {
   describe("#saveNumber()", function() {
 
     beforeEach(function() {
-      this.mock = sinon.stub(number_utils, 'isPositiveNumber');
+      this.mock = sinon.stub(numberUtils, 'isPositiveNumber');
     });
     afterEach(function() {
       this.mock.restore();
