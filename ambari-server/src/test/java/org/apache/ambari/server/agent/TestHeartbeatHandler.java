@@ -107,6 +107,7 @@ import com.google.inject.persist.PersistService;
 import com.google.inject.persist.UnitOfWork;
 
 import junit.framework.Assert;
+import static org.junit.Assert.assertNull;
 
 public class TestHeartbeatHandler {
 
@@ -412,6 +413,20 @@ public class TestHeartbeatHandler {
     assertEquals(rc.getRetryGap(), "2");
     assertEquals(rc.getWindowInMinutes(), "23");
     assertEquals(rc.getEnabledComponents(), "DATANODE,NAMENODE");
+
+    // Send a heart beat with the recovery timestamp set to the
+    // recovery timestamp from registration. The heart beat
+    // response should not contain a recovery config since
+    // nothing changed between the registration and heart beat.
+    HeartBeat hb = new HeartBeat();
+    hb.setTimestamp(System.currentTimeMillis());
+    hb.setResponseId(0);
+    hb.setHostname(DummyHostname1);
+    hb.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
+    hb.setRecoveryTimestamp(rc.getRecoveryTimestamp());
+
+    HeartBeatResponse hbr = handler.handleHeartBeat(hb);
+    assertNull(hbr.getRecoveryConfig());
   }
 
   //

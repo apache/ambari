@@ -18,13 +18,21 @@
 
 package org.apache.ambari.server.agent;
 
+import com.google.common.eventbus.AllowConcurrentEvents;
+import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
-import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.events.ClusterConfigChangedEvent;
+import org.apache.ambari.server.events.MaintenanceModeEvent;
+import org.apache.ambari.server.events.ServiceComponentInstalledEvent;
+import org.apache.ambari.server.events.ServiceComponentRecoveryChangedEvent;
+import org.apache.ambari.server.events.ServiceComponentUninstalledEvent;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.commons.lang.StringUtils;
@@ -33,10 +41,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Singleton
 public class RecoveryConfigHelper {
-
   /**
    * Recovery related configuration
    */
@@ -55,142 +63,305 @@ public class RecoveryConfigHelper {
   @Inject
   private Clusters clusters;
 
-  private Cluster cluster;
-  private Map<String, String> configProperties;
+  /**
+   * Cluster --> Host --> Timestamp
+   */
+  private ConcurrentHashMap<String, ConcurrentHashMap<String, Long>> timestampMap;
 
-  public RecoveryConfigHelper() {
+  @Inject
+  public RecoveryConfigHelper(AmbariEventPublisher eventPublisher) {
+    eventPublisher.register(this);
+    timestampMap = new ConcurrentHashMap<>();
   }
 
   public RecoveryConfig getDefaultRecoveryConfig()
       throws AmbariException {
-      return getRecoveryConfig(null, null);
+    return getRecoveryConfig(null, null);
   }
 
   public RecoveryConfig getRecoveryConfig(String clusterName, String hostname)
       throws AmbariException {
+    long now = System.currentTimeMillis();
 
     if (StringUtils.isNotEmpty(clusterName)) {
-      cluster = clusters.getCluster(clusterName);
-    }
+      // Insert or update timestamp for cluster::host
+      ConcurrentHashMap<String, Long>  hostTimestamp = timestampMap.get(clusterName);
+      if (hostTimestamp == null) {
+        hostTimestamp = new ConcurrentHashMap<>();
+        timestampMap.put(clusterName, hostTimestamp);
+      }
 
-    configProperties = null;
-
-    if (cluster != null) {
-      Config config = cluster.getDesiredConfigByType(getConfigType());
-      if (config != null) {
-        configProperties = config.getProperties();
+      if (StringUtils.isNotEmpty(hostname)) {
+        hostTimestamp.put(hostname, now);
       }
     }
 
-    if (configProperties == null) {
-      configProperties = new HashMap<>();
-    }
+    AutoStartConfig autoStartConfig = new AutoStartConfig(clusterName);
 
     RecoveryConfig recoveryConfig = new RecoveryConfig();
-    recoveryConfig.setMaxCount(getNodeRecoveryMaxCount());
-    recoveryConfig.setMaxLifetimeCount(getNodeRecoveryLifetimeMaxCount());
-    recoveryConfig.setRetryGap(getNodeRecoveryRetryGap());
-    recoveryConfig.setType(getNodeRecoveryType());
-    recoveryConfig.setWindowInMinutes(getNodeRecoveryWindowInMin());
-    if (isRecoveryEnabled()) {
-      recoveryConfig.setEnabledComponents(StringUtils.join(getEnabledComponents(hostname), ','));
+    recoveryConfig.setMaxCount(autoStartConfig.getNodeRecoveryMaxCount());
+    recoveryConfig.setMaxLifetimeCount(autoStartConfig.getNodeRecoveryLifetimeMaxCount());
+    recoveryConfig.setRetryGap(autoStartConfig.getNodeRecoveryRetryGap());
+    recoveryConfig.setType(autoStartConfig.getNodeRecoveryType());
+    recoveryConfig.setWindowInMinutes(autoStartConfig.getNodeRecoveryWindowInMin());
+    recoveryConfig.setRecoveryTimestamp(now);
+    if (autoStartConfig.isRecoveryEnabled()) {
+      recoveryConfig.setEnabledComponents(StringUtils.join(autoStartConfig.getEnabledComponents(hostname), ','));
     }
 
     return recoveryConfig;
   }
 
   /**
-   * Get a list of enabled components for the specified host and cluster. Filter by
-   * Maintenance Mode OFF, so that agent does not auto start components that are in
-   * maintenance mode.
+   * Computes if the recovery configuration was updated since the last time it was sent to the agent.
+   *
+   * @param clusterName - Name of the cluster which the host belongs to.
+   * @param hostname - Host name from agent.
+   * @param recoveryTimestamp - Time when the recovery configuration was last sent to the agent. Agent
+   *                          stores this value and sends it during each heartbeat. -1 if agent was
+   *                          restarted or configuration was not sent to the agent since it started.
    * @return
    */
-  private List<String> getEnabledComponents(String hostname) {
-    List<String> enabledComponents = new ArrayList<>();
-    List<ServiceComponentHost> scHosts = cluster.getServiceComponentHosts(hostname);
+  public boolean isConfigStale(String clusterName, String hostname, long recoveryTimestamp) {
+    // Look up the last updated timestamp for the clusterName-->hostname-->timestamp if
+    // it is available. If found, compare it with the timestamp from the agent. It the timestamp
+    // is different from the timestamp sent by the agent, the recovery config on the agent
+    // side is stale and should be sent to the agent during this heartbeat.
 
-    for (ServiceComponentHost sch : scHosts) {
-      if (sch.isRecoveryEnabled()) {
-        // Keep the components that are not in maintenance mode.
-        if (sch.getMaintenanceState() == MaintenanceState.OFF) {
-          enabledComponents.add(sch.getServiceComponentName());
+    if (StringUtils.isEmpty(clusterName)) {
+      throw new IllegalArgumentException("clusterName cannot be empty or null.");
+    }
+
+    if (StringUtils.isEmpty(hostname)) {
+      throw new IllegalArgumentException("hostname cannot be empty or null.");
+    }
+
+    ConcurrentHashMap<String, Long> hostTimestamp = timestampMap.get(clusterName);
+    if (hostTimestamp == null) {
+      return true;
+    }
+
+    Long timestamp = hostTimestamp.get(hostname);
+
+    if (timestamp.longValue() != recoveryTimestamp) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Maintenance mode of a service component host changed.
+   * @param event
+   * @throws AmbariException
+   */
+  @Subscribe
+  @AllowConcurrentEvents
+  public void handleMaintenanceModeEvent(MaintenanceModeEvent event)
+      throws AmbariException {
+    ServiceComponentHost sch = event.getServiceComponentHost();
+
+    if (sch != null && sch.isRecoveryEnabled()) {
+      invalidateRecoveryTimestamp(sch.getClusterName(), sch.getHostName());
+    }
+  }
+
+  /**
+   * A service component was installed on a host.
+   * @param event
+   * @throws AmbariException
+   */
+  @Subscribe
+  @AllowConcurrentEvents
+  public void handleServiceComponentInstalledEvent(ServiceComponentInstalledEvent event)
+      throws AmbariException {
+    if (event.isRecoveryEnabled()) {
+      Cluster cluster = clusters.getClusterById(event.getClusterId());
+
+      if (cluster != null) {
+        invalidateRecoveryTimestamp(cluster.getClusterName(), event.getHostName());
+      }
+    }
+  }
+
+  /**
+   * A service component was uninstalled from a host.
+   * @param event
+   * @throws AmbariException
+   */
+  @Subscribe
+  @AllowConcurrentEvents
+  public void handleServiceComponentUninstalledEvent(ServiceComponentUninstalledEvent event)
+      throws AmbariException {
+    if (event.isRecoveryEnabled()) {
+      Cluster cluster = clusters.getClusterById(event.getClusterId());
+
+      if (cluster != null) {
+        invalidateRecoveryTimestamp(cluster.getClusterName(), event.getHostName());
+      }
+    }
+  }
+
+  /**
+   * Recovery enabled was turned on or off.
+   * @param event
+   */
+  @Subscribe
+  @AllowConcurrentEvents
+  public void handleServiceComponentRecoveryChangedEvent(ServiceComponentRecoveryChangedEvent event) {
+    invalidateRecoveryTimestamp(event.getClusterName(), null);
+  }
+
+  /**
+   * Cluster-env configuration changed.
+   * @param event
+   */
+  @Subscribe
+  @AllowConcurrentEvents
+  public void handleClusterEnvConfigChangedEvent(ClusterConfigChangedEvent event) {
+    if (event.getConfigType() == ConfigHelper.CLUSTER_ENV) {
+      invalidateRecoveryTimestamp(event.getclusterName(), null);
+    }
+  }
+
+  private void invalidateRecoveryTimestamp(String clusterName, String hostname) {
+    if (StringUtils.isNotEmpty(clusterName)) {
+      ConcurrentHashMap<String, Long> hostTimestamp = timestampMap.get(clusterName);
+      if (hostTimestamp != null) {
+        if (StringUtils.isNotEmpty(hostname)) {
+          // Clear the time stamp for the specified host in this cluster
+          hostTimestamp.put(hostname, 0L);
+        }
+        else {
+          // Clear the time stamp for all hosts in this cluster
+          for(Map.Entry<String, Long> hostEntry : hostTimestamp.entrySet()) {
+            hostEntry.setValue(0L);
+          }
         }
       }
     }
-
-    return enabledComponents;
   }
 
   /**
-   * The configuration type name.
-   * @return
+   * Helper class to get auto start configuration
    */
-  private String getConfigType() {
-    return "cluster-env";
-  }
+  class AutoStartConfig {
+    private Cluster cluster;
+    private Map<String, String> configProperties;
 
-  /**
-   * Get a value indicating whether the cluster supports recovery.
-   *
-   * @return True or false.
-   */
-  private boolean isRecoveryEnabled() {
-    return Boolean.parseBoolean(getProperty(RECOVERY_ENABLED_KEY, "false"));
-  }
+    public AutoStartConfig(String clusterName)
+        throws AmbariException {
+      if (StringUtils.isNotEmpty(clusterName)) {
+        cluster = clusters.getCluster(clusterName);
+      }
 
-  /**
-   * Get the node recovery type. The only supported value is AUTO_START.
-   * @return
-   */
-  private String getNodeRecoveryType() {
-    return getProperty(RECOVERY_TYPE_KEY, RECOVERY_TYPE_DEFAULT);
-  }
+      if (cluster != null) {
+        Config config = cluster.getDesiredConfigByType(getConfigType());
+        if (config != null) {
+          configProperties = config.getProperties();
+        }
+      }
 
-  /**
-   * Get configured max count of recovery attempt allowed per host component in a window
-   * This is reset when agent is restarted.
-   * @return
-   */
-  private String getNodeRecoveryMaxCount() {
-    return getProperty(RECOVERY_MAX_COUNT_KEY, RECOVERY_MAX_COUNT_DEFAULT);
-  }
+      if (configProperties == null) {
+        configProperties = new HashMap<>();
+      }
+    }
+    /**
+     * Get a list of enabled components for the specified host and cluster. Filter by
+     * Maintenance Mode OFF, so that agent does not auto start components that are in
+     * maintenance mode.
+     * @return
+     */
+    private List<String> getEnabledComponents(String hostname) {
+      List<String> enabledComponents = new ArrayList<>();
 
-  /**
-   * Get configured max lifetime count of recovery attempt allowed per host component.
-   * This is reset when agent is restarted.
-   * @return
-   */
-  private String getNodeRecoveryLifetimeMaxCount() {
-    return getProperty(RECOVERY_LIFETIME_MAX_COUNT_KEY, RECOVERY_LIFETIME_MAX_COUNT_DEFAULT);
-  }
+      if (cluster != null) {
+        List<ServiceComponentHost> scHosts = cluster.getServiceComponentHosts(hostname);
 
-  /**
-   * Get configured window size in minutes
-   * @return
-   */
-  private String getNodeRecoveryWindowInMin() {
-    return getProperty(RECOVERY_WINDOW_IN_MIN_KEY, RECOVERY_WINDOW_IN_MIN_DEFAULT);
-  }
+        for (ServiceComponentHost sch : scHosts) {
+          if (sch.isRecoveryEnabled()) {
+            // Keep the components that are not in maintenance mode.
+            if (sch.getMaintenanceState() == MaintenanceState.OFF) {
+              enabledComponents.add(sch.getServiceComponentName());
+            }
+          }
+        }
+      }
 
-  /**
-   * Get the configured retry gap between tries per host component
-   * @return
-   */
-  private String getNodeRecoveryRetryGap() {
-    return getProperty(RECOVERY_RETRY_GAP_KEY, RECOVERY_RETRY_GAP_DEFAULT);
-  }
-
-  /**
-   * Get the property value for the specified key. If not present, return default value.
-   * @param key The key for which property value is required.
-   * @param defaultValue Default value to return if key is not found.
-   * @return
-   */
-  private String getProperty(String key, String defaultValue) {
-    if (configProperties.containsKey(key)) {
-      return configProperties.get(key);
+      return enabledComponents;
     }
 
-    return defaultValue;
+    /**
+     * The configuration type name.
+     * @return
+     */
+    private String getConfigType() {
+      return "cluster-env";
+    }
+
+    /**
+     * Get a value indicating whether the cluster supports recovery.
+     *
+     * @return True or false.
+     */
+    private boolean isRecoveryEnabled() {
+      return Boolean.parseBoolean(getProperty(RECOVERY_ENABLED_KEY, "false"));
+    }
+
+    /**
+     * Get the node recovery type. The only supported value is AUTO_START.
+     * @return
+     */
+    private String getNodeRecoveryType() {
+      return getProperty(RECOVERY_TYPE_KEY, RECOVERY_TYPE_DEFAULT);
+    }
+
+    /**
+     * Get configured max count of recovery attempt allowed per host component in a window
+     * This is reset when agent is restarted.
+     * @return
+     */
+    private String getNodeRecoveryMaxCount() {
+      return getProperty(RECOVERY_MAX_COUNT_KEY, RECOVERY_MAX_COUNT_DEFAULT);
+    }
+
+    /**
+     * Get configured max lifetime count of recovery attempt allowed per host component.
+     * This is reset when agent is restarted.
+     * @return
+     */
+    private String getNodeRecoveryLifetimeMaxCount() {
+      return getProperty(RECOVERY_LIFETIME_MAX_COUNT_KEY, RECOVERY_LIFETIME_MAX_COUNT_DEFAULT);
+    }
+
+    /**
+     * Get configured window size in minutes
+     * @return
+     */
+    private String getNodeRecoveryWindowInMin() {
+      return getProperty(RECOVERY_WINDOW_IN_MIN_KEY, RECOVERY_WINDOW_IN_MIN_DEFAULT);
+    }
+
+    /**
+     * Get the configured retry gap between tries per host component
+     * @return
+     */
+    private String getNodeRecoveryRetryGap() {
+      return getProperty(RECOVERY_RETRY_GAP_KEY, RECOVERY_RETRY_GAP_DEFAULT);
+    }
+
+    /**
+     * Get the property value for the specified key. If not present, return default value.
+     * @param key The key for which property value is required.
+     * @param defaultValue Default value to return if key is not found.
+     * @return
+     */
+    private String getProperty(String key, String defaultValue) {
+      if (configProperties.containsKey(key)) {
+        return configProperties.get(key);
+      }
+
+      return defaultValue;
+    }
   }
 }

@@ -42,6 +42,7 @@ public class HeartBeat {
   private AgentEnv agentEnv = null;
   private List<Alert> alerts = null;
   private RecoveryReport recoveryReport;
+  private long recoveryTimestamp = -1;
 
   public long getResponseId() {
     return responseId;
@@ -65,6 +66,24 @@ public class HeartBeat {
 
   public void setHostname(String hostname) {
     this.hostname = hostname;
+  }
+
+  /**
+   * Timestamp when the recovery values were last updated.
+   *
+   * @return - Timestamp.
+   */
+  public long getRecoveryTimestamp() {
+    return recoveryTimestamp;
+  }
+
+  /**
+   * Set the timestamp when the recovery values were last updated.
+   *
+   * @param recoveryTimestamp
+   */
+  public void setRecoveryTimestamp(long recoveryTimestamp) {
+    this.recoveryTimestamp = recoveryTimestamp;
   }
 
   @JsonProperty("reports")

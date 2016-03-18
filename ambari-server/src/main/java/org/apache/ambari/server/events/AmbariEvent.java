@@ -105,7 +105,17 @@ public abstract class AmbariEvent {
     /**
      * The cluster was renamed.
      */
-    CLUSTER_RENAME;
+    CLUSTER_RENAME,
+
+    /**
+     * The service component recovery enabled field changed.
+     */
+    SERVICE_COMPONENT_RECOVERY_CHANGED,
+
+    /**
+     * Cluster configuration changed.
+     */
+    CLUSTER_CONFIG_CHANGED;
   }
 
   /**

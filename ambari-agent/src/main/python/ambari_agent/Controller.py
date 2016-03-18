@@ -324,6 +324,10 @@ class Controller(threading.Thread):
         if retry:
           logger.info("Reconnected to %s", self.heartbeatUrl)
 
+        if "recoveryConfig" in response:
+          # update the list of components enabled for recovery
+          self.recovery_manager.update_configuration_from_registration(response)
+
         retry = False
         certVerifFailed = False
         self.DEBUG_SUCCESSFULL_HEARTBEATS += 1

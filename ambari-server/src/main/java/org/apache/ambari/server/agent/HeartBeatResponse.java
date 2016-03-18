@@ -69,6 +69,9 @@ public class HeartBeatResponse {
   @SerializedName("hasPendingTasks")
   private boolean hasPendingTasks = false;
 
+  @SerializedName("recoveryConfig")
+  private RecoveryConfig recoveryConfig;
+
   public long getResponseId() {
     return responseId;
   }
@@ -107,6 +110,26 @@ public class HeartBeatResponse {
 
   public void setRegistrationCommand(RegistrationCommand registrationCommand) {
     this.registrationCommand = registrationCommand;
+  }
+
+  /**
+   * Get the recovery configuration settings for this host. The configuration is set whenever
+   * any value changes. The agent uses this information to update the values on it's side.
+   *
+   * @return Null if nothing changed since the last update, else updated configuration.
+   */
+  public RecoveryConfig getRecoveryConfig() {
+    return recoveryConfig;
+  }
+
+  /**
+   * Set the recovery configuration. Set only when one or more recovery values change. This
+   * is to avoid sending the configuration to the agent during every heartbeat.
+   *
+   * @param recoveryConfig
+   */
+  public void setRecoveryConfig(RecoveryConfig recoveryConfig) {
+    this.recoveryConfig = recoveryConfig;
   }
 
   /**
@@ -197,6 +220,7 @@ public class HeartBeatResponse {
     buffer.append(", alertDefinitionCommands=").append(alertDefinitionCommands);
     buffer.append(", registrationCommand=").append(registrationCommand);
     buffer.append(", restartAgent=").append(restartAgent);
+    buffer.append(", recoveryConfig=").append(recoveryConfig);
     buffer.append('}');
     return buffer.toString();
   }

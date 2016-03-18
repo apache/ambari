@@ -24,6 +24,7 @@ package org.apache.ambari.server.events;
 public class ServiceComponentUninstalledEvent extends ServiceEvent {
   private final String m_componentName;
   private final String m_hostName;
+  private final boolean m_recoveryEnabled;
 
   /**
    * Constructor.
@@ -37,13 +38,14 @@ public class ServiceComponentUninstalledEvent extends ServiceEvent {
    */
   public ServiceComponentUninstalledEvent(long clusterId, String stackName,
       String stackVersion, String serviceName, String componentName,
-      String hostName) {
+      String hostName, boolean recoveryEnabled) {
     super(AmbariEventType.SERVICE_COMPONENT_UNINSTALLED_SUCCESS, clusterId,
         stackName,
         stackVersion, serviceName);
 
     m_componentName = componentName;
     m_hostName = hostName;
+    m_recoveryEnabled = recoveryEnabled;
   }
 
   /**
@@ -61,6 +63,13 @@ public class ServiceComponentUninstalledEvent extends ServiceEvent {
   }
 
   /**
+   * @return recovery enabled.
+   */
+  public boolean isRecoveryEnabled() {
+    return m_recoveryEnabled;
+  }
+
+  /**
    * {@inheritDoc}
    */
   @Override
@@ -72,6 +81,7 @@ public class ServiceComponentUninstalledEvent extends ServiceEvent {
     buffer.append(", serviceName=").append(m_serviceName);
     buffer.append(", componentName=").append(m_componentName);
     buffer.append(", hostName=").append(m_hostName);
+    buffer.append(", recoveryEnabled=").append(m_recoveryEnabled);
     buffer.append("}");
     return buffer.toString();
   }

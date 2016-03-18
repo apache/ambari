@@ -95,6 +95,7 @@ class RecoveryManager:
     self.__cache_lock = threading.RLock()
     self.active_command_count = 0
     self.paused = False
+    self.recovery_timestamp = -1
 
     if not os.path.exists(cache_dir):
       try:
@@ -106,7 +107,7 @@ class RecoveryManager:
 
     self.actions = {}
 
-    self.update_config(6, 60, 5, 12, recovery_enabled, auto_start_only, "")
+    self.update_config(6, 60, 5, 12, recovery_enabled, auto_start_only, "", -1)
 
     pass
 
@@ -539,7 +540,8 @@ class RecoveryManager:
       "maxCount" : 10,
       "windowInMinutes" : 60,
       "retryGap" : 0,
-      "components" : "a,b"
+      "components" : "a,b",
+      "recoveryTimestamp" : 1458150424380
       }
     """
 
@@ -550,6 +552,7 @@ class RecoveryManager:
     retry_gap = 5
     max_lifetime_count = 12
     enabled_components = ""
+    recovery_timestamp = -1 # Default value if recoveryTimestamp is not available.
 
 
     if reg_resp and "recoveryConfig" in reg_resp:
@@ -572,13 +575,27 @@ class RecoveryManager:
       if 'components' in config:
         enabled_components = config['components']
 
+      if 'recoveryTimestamp' in config:
+        recovery_timestamp = config['recoveryTimestamp']
+
     self.update_config(max_count, window_in_min, retry_gap, max_lifetime_count, recovery_enabled, auto_start_only,
-                       enabled_components)
+                       enabled_components, recovery_timestamp)
     pass
 
+  """
+  Update recovery configuration with the specified values.
 
+  max_count - Configured maximum count of recovery attempt allowed per host component in a window.
+  window_in_min - Configured window size in minutes.
+  retry_gap - Configured retry gap between tries per host component
+  max_lifetime_count - Configured maximum lifetime count of recovery attempt allowed per host component.
+  recovery_enabled - True or False. Indicates whether recovery is enabled or not.
+  auto_start_only - True if AUTO_START recovery type was specified. False otherwise.
+  enabled_components - CSV of componenents enabled for auto start.
+  recovery_timestamp - Timestamp when the recovery values were last updated. -1 on start up.
+  """
   def update_config(self, max_count, window_in_min, retry_gap, max_lifetime_count, recovery_enabled,
-                    auto_start_only, enabled_components):
+                    auto_start_only, enabled_components, recovery_timestamp):
     """
     Update recovery configuration, recovery is disabled if configuration values
     are not correct
@@ -610,6 +627,7 @@ class RecoveryManager:
     self.auto_start_only = auto_start_only
     self.max_lifetime_count = max_lifetime_count
     self.enabled_components = []
+    self.recovery_timestamp = recovery_timestamp
 
     self.allowed_desired_states = [self.STARTED, self.INSTALLED]
     self.allowed_current_states = [self.INIT, self.INSTALLED, self.STARTED]

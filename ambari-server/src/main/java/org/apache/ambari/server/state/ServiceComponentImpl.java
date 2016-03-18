@@ -29,6 +29,8 @@ import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ServiceComponentHostNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ServiceComponentResponse;
+import org.apache.ambari.server.events.ServiceComponentRecoveryChangedEvent;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
 import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
@@ -74,6 +76,8 @@ public class ServiceComponentImpl implements ServiceComponent {
   private ServiceComponentHostFactory serviceComponentHostFactory;
   @Inject
   private AmbariMetaInfo ambariMetaInfo;
+  @Inject
+  private AmbariEventPublisher eventPublisher;
 
   ServiceComponentDesiredStateEntity desiredStateEntity;
   private Map<String, ServiceComponentHost> hostComponents;
@@ -224,6 +228,12 @@ public class ServiceComponentImpl implements ServiceComponent {
       if (desiredStateEntity != null) {
         desiredStateEntity.setRecoveryEnabled(recoveryEnabled);
         saveIfPersisted(desiredStateEntity);
+
+        // broadcast the change
+        ServiceComponentRecoveryChangedEvent event = new ServiceComponentRecoveryChangedEvent(
+                getClusterName(), getServiceName(), getName(), isRecoveryEnabled());
+        eventPublisher.publish(event);
+
       } else {
         LOG.warn("Setting a member on an entity object that may have been " +
                 "previously deleted, serviceName = " + service.getName());

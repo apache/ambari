@@ -487,7 +487,7 @@ public class HostVersionOutOfSyncListenerTest {
           .getServiceComponent(componentName), hostName));
       ServiceComponentInstalledEvent event = new ServiceComponentInstalledEvent(cl.getClusterId(),
           stackIdObj.getStackName(), stackIdObj.getStackVersion(),
-          serviceName, componentName, hostName);
+          serviceName, componentName, hostName, false /* recovery not enabled */);
       m_eventPublisher.publish(event);
     }
   }

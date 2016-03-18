@@ -27,6 +27,8 @@ import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import org.apache.ambari.server.events.ClusterConfigChangedEvent;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
@@ -69,6 +71,9 @@ public class ConfigImpl implements Config {
 
   @Inject
   private ServiceConfigDAO serviceConfigDAO;
+
+  @Inject
+  private AmbariEventPublisher eventPublisher;
 
   @AssistedInject
   public ConfigImpl(@Assisted Cluster cluster, @Assisted String type, @Assisted Map<String, String> properties,
@@ -390,8 +395,8 @@ public class ConfigImpl implements Config {
           // if the configuration was found, then update it
           if (null != entity) {
             LOG.debug(
-                "Updating {} version {} with new configurations; a new version will not be created",
-                getType(), getVersion());
+                    "Updating {} version {} with new configurations; a new version will not be created",
+                    getType(), getVersion());
 
             entity.setData(gson.toJson(getProperties()));
 
@@ -399,6 +404,13 @@ public class ConfigImpl implements Config {
             // newest data
             clusterDAO.merge(clusterEntity, true);
             cluster.refresh();
+
+            // broadcast the change event for cluster-env config type
+            if (getType() == ConfigHelper.CLUSTER_ENV) {
+              ClusterConfigChangedEvent event = new ClusterConfigChangedEvent(
+                      cluster.getClusterName(), getType(), getTag(), getVersion());
+              eventPublisher.publish(event);
+            }
           }
         }
       } finally {

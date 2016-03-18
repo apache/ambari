@@ -269,6 +269,28 @@ public class HeartBeatHandler {
       return createRegisterCommand();
     }
 
+    /**
+     * A host can belong to only one cluster. Though getClustersForHost(hostname)
+     * returns a set of clusters, it will have only one entry.
+     *
+     *
+     * TODO: Handle the case when a host is a part of multiple clusters.
+     */
+    Set<Cluster> clusters = clusterFsm.getClustersForHost(hostname);
+
+    if (clusters.size() > 0) {
+      String clusterName = clusters.iterator().next().getClusterName();
+
+      if (recoveryConfigHelper.isConfigStale(clusterName, hostname, heartbeat.getRecoveryTimestamp())) {
+        RecoveryConfig rc = recoveryConfigHelper.getRecoveryConfig(clusterName, hostname);
+        response.setRecoveryConfig(rc);
+
+        if (response.getRecoveryConfig() != null) {
+          LOG.info("Recovery configuration set to {}", response.getRecoveryConfig().toString());
+        }
+      }
+    }
+
     heartbeatProcessor.addHeartbeat(heartbeat);
 
     // Send commands if node is active
@@ -467,19 +489,20 @@ public class HeartBeatHandler {
     /**
      * A host can belong to only one cluster. Though getClustersForHost(hostname)
      * returns a set of clusters, it will have only one entry.
+     *
+     * TODO: Handle the case when a host is a part of multiple clusters.
      */
-    String clusterName = null;
     Set<Cluster> clusters = clusterFsm.getClustersForHost(hostname);
 
     if (clusters.size() > 0) {
-      clusterName = clusters.iterator().next().getClusterName();
-    }
+      String clusterName = clusters.iterator().next().getClusterName();
 
-    RecoveryConfig rc = recoveryConfigHelper.getRecoveryConfig(clusterName, hostname);
-    response.setRecoveryConfig(rc);
+      RecoveryConfig rc = recoveryConfigHelper.getRecoveryConfig(clusterName, hostname);
+      response.setRecoveryConfig(rc);
 
-    if(response.getRecoveryConfig() != null) {
-      LOG.info("Recovery configuration set to " + response.getRecoveryConfig().toString());
+      if(response.getRecoveryConfig() != null) {
+        LOG.info("Recovery configuration set to " + response.getRecoveryConfig().toString());
+      }
     }
 
     Long requestId = 0L;

@@ -1448,7 +1448,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
           ServiceComponentInstalledEvent event = new ServiceComponentInstalledEvent(
               getClusterId(), stackId.getStackName(),
-              stackId.getStackVersion(), getServiceName(), getServiceComponentName(), getHostName());
+              stackId.getStackVersion(), getServiceName(), getServiceComponentName(), getHostName(),
+                  isRecoveryEnabled());
 
           eventPublisher.publish(event);
         } else {
@@ -1593,10 +1594,11 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       String serviceName = getServiceName();
       String componentName = getServiceComponentName();
       String hostName = getHostName();
+      boolean recoveryEnabled = isRecoveryEnabled();
 
       ServiceComponentUninstalledEvent event = new ServiceComponentUninstalledEvent(
           clusterId, stackName, stackVersion, serviceName, componentName,
-          hostName);
+          hostName, recoveryEnabled);
 
       eventPublisher.publish(event);
     }
