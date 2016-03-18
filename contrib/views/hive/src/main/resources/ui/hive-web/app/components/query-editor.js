@@ -114,21 +114,15 @@ export default Ember.Component.extend({
     var query = this.get('query');
     var editor = this.get('editor');
 
-    var isEditorExplainQuery = (editor.getValue().toUpperCase().trim().indexOf('EXPLAIN') === 0);
-    var isFinalExplainQuery = (query.toUpperCase().trim().indexOf('EXPLAIN') === 0);
+    var isFinalExplainQuery = (query.toUpperCase().trim().indexOf('EXPLAIN') > -1);
+    var editorQuery = editor.getValue();
 
     if (editor.getValue() !== query) {
-
-      if(!isEditorExplainQuery && !isFinalExplainQuery){
-        editor.setValue(query || '');
-      } else if(!isEditorExplainQuery && isFinalExplainQuery){
-        editor.setValue(editor.getValue() || '');
-      } else if(isEditorExplainQuery && isFinalExplainQuery){
-        editor.setValue(editor.getValue() || '');
-      } else{
+      if(isFinalExplainQuery){
+        editor.setValue(editorQuery || '')
+      }else {
         editor.setValue(query || '');
       }
-
     }
 
   }.observes('query')
