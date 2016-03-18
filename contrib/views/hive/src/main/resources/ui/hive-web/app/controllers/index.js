@@ -488,8 +488,6 @@ export default Ember.Controller.extend({
             self = this,
             defer = Ember.RSVP.defer();
 
-        self.createJob = this.createJob;
-
         this.send('openModal', 'modal-save', {
           heading: "modals.authenticationLDAP.heading",
           text:"",
@@ -506,21 +504,26 @@ export default Ember.Controller.extend({
             var hiveViewName = pathNameArray[4];
             var ldapAuthURL = "/api/v1/views/HIVE/versions/"+ hiveViewVersion + "/instances/" + hiveViewName + "/jobs/auth";
 
-
             $.ajax({
                 url: ldapAuthURL,
-                dataType: "json",
                 type: 'post',
                 headers: {'X-Requested-With': 'XMLHttpRequest', 'X-Requested-By': 'ambari'},
                 contentType: 'application/json',
                 data: JSON.stringify({ "password" : password}),
                 success: function( data, textStatus, jQxhr ){
-                    console.log( "LDAP done: " + data );
-                    self.createJob (job,originalModel);
+
+                  self.get('databaseService').getDatabases().then(function (databases) {
+                    var selectedDatabase = self.get('databaseService.selectedDatabase.name') || 'default';
+                    self.get('databaseService').setDatabaseByName( selectedDatabase);
+                    return self.send('executeQuery', 'job', self.get('openQueries.currentQuery.fileContent') );
+                  }).catch(function (error) {
+                    self.get('notifyService').error( "Error in accessing databases." );
+                  });
+
                 },
                 error: function( jqXhr, textStatus, errorThrown ){
                     console.log( "LDAP fail: " + errorThrown );
-                        self.get('notifyService').error( "Wrong Credentials." );
+                    self.get('notifyService').error( "Wrong Credentials." );
                 }
             });
 

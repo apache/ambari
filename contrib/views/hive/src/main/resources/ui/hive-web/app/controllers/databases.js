@@ -230,8 +230,6 @@ export default Ember.Controller.extend({
       var self = this,
           defer = Ember.RSVP.defer();
 
-      self.getDatabases = this.getDatabases;
-
       this.send('openModal', 'modal-save', {
         heading: "modals.authenticationLDAP.heading",
         text:"",
@@ -250,7 +248,6 @@ export default Ember.Controller.extend({
 
         $.ajax({
           url: ldapAuthURL,
-          dataType: "json",
           type: 'post',
           headers: {'X-Requested-With': 'XMLHttpRequest', 'X-Requested-By': 'ambari'},
           contentType: 'application/json',
@@ -258,13 +255,13 @@ export default Ember.Controller.extend({
           success: function( data, textStatus, jQxhr ){
             console.log( "LDAP done: " + data );
             self.getDatabases();
+            self.syncDatabases();
           },
           error: function( jqXhr, textStatus, errorThrown ){
             console.log( "LDAP fail: " + errorThrown );
             self.get('notifyService').error( "Wrong Credentials." );
           }
         });
-
       });
     },
 
