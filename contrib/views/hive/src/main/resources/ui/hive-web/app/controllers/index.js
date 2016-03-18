@@ -284,19 +284,23 @@ export default Ember.Controller.extend({
     queries = queryComponents.queryString.split(';');
     queries = queries.filter(Boolean);
 
-    queries = queries.map(function (query) {
-      if (shouldExplain) {
-        query = query.replace(/explain formatted|explain/gi, '');
+    var queriesLength = queries.length;
 
-        if (shouldGetVisualExplain) {
-          return constants.namingConventions.explainFormattedPrefix + query;
-        } else {
-          return constants.namingConventions.explainPrefix + query;
-        }
-      } else {
-        return query;
-      }
+    queries = queries.map(function (q, index) {
+      var newQuery = q.replace(/explain formatted|explain/gi, '');
+      return newQuery;
     });
+
+    var lastQuery = queries[queriesLength - 1];
+
+    if(!Ember.isNone(lastQuery) && shouldExplain) {
+      if (shouldGetVisualExplain) {
+        lastQuery = constants.namingConventions.explainFormattedPrefix + lastQuery;
+      } else {
+        lastQuery = constants.namingConventions.explainPrefix + lastQuery;
+      }
+      queries[queriesLength - 1] = lastQuery;
+    }
 
     if (queryComponents.files.length) {
       finalQuery += queryComponents.files.join("\n") + "\n\n";
@@ -306,8 +310,7 @@ export default Ember.Controller.extend({
       finalQuery += queryComponents.udfs.join("\n") + "\n\n";
     }
 
-    finalQuery += queries.join(";");
-    finalQuery += ";";
+    finalQuery += queries.join(";") + ";";
     return finalQuery.trim();
   },
 
