@@ -128,7 +128,7 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
    */
   getThresholdsProperty: function (type, property) {
     var warning = this.get('content.reporting').findProperty('type', type);
-    return warning && warning.get(property) ? warning.get(property) : null;
+    return warning && !Ember.isEmpty(warning.get(property)) ? warning.get(property) : null;
   },
 
   /**
@@ -346,7 +346,7 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
         label: isWizard ? '' : parameter.get('displayName'),
         threshold: isWizard ? '' : parameter.get('threshold'),
         units: isWizard ? '' : parameter.get('units'),
-        type: isWizard ? '' : parameter.get('type'),
+        type: isWizard ? '' : parameter.get('type')
       }));
     });
 
