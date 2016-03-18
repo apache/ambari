@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.controller;
 
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AGENT_STACK_RETRY_COUNT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AGENT_STACK_RETRY_ON_UNAVAILABILITY;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AGENT_STACK_RETRY_COUNT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CLIENTS_TO_UPDATE_CONFIGS;
@@ -430,6 +431,12 @@ public class AmbariCustomCommandExecutionHelper {
       Map<String, String> roleParams = execCmd.getRoleParams();
       if (roleParams == null) {
         roleParams = new TreeMap<String, String>();
+      }
+
+      // if there is a stack upgrade which is currently suspended then pass that
+      // information down with the command as some components may need to know
+      if (cluster.isUpgradeSuspended()) {
+        roleParams.put(KeyNames.UPGRADE_SUSPENDED, Boolean.TRUE.toString().toLowerCase());
       }
 
       roleParams.put(COMPONENT_CATEGORY, componentInfo.getCategory());

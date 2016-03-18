@@ -88,6 +88,7 @@ import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.TopologyRequestEntity;
+import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ClusterHealthReport;
@@ -3183,7 +3184,7 @@ public class ClusterImpl implements Cluster {
       clusterGlobalLock.writeLock().unlock();
     }
   }
-  
+
   public Collection<ClusterConfigMappingEntity> getLatestConfigMapping(List<ClusterConfigMappingEntity> clusterConfigMappingEntities){
     Map<String, ClusterConfigMappingEntity> temp = new HashMap<String, ClusterConfigMappingEntity>();
     for (ClusterConfigMappingEntity e : clusterConfigMappingEntities) {
@@ -3201,7 +3202,7 @@ public class ClusterImpl implements Cluster {
     }
 
     return temp.values();
-  }  
+  }
 
   /**
    * {@inheritDoc}
@@ -3438,7 +3439,17 @@ public class ClusterImpl implements Cluster {
   private ClusterEntity getClusterEntity() {
     return clusterDAO.findById(clusterId);
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isUpgradeSuspended() {
+    UpgradeEntity lastUpgradeItemForCluster = upgradeDAO.findLastUpgradeForCluster(clusterId);
+    if (null != lastUpgradeItemForCluster) {
+      return lastUpgradeItemForCluster.isSuspended();
+    }
+
+    return false;
+  }
 }
-
-
-

@@ -360,6 +360,11 @@ public class ExecutionCommand extends AgentCommand {
 
     String SERVICE_CHECK = "SERVICE_CHECK"; // TODO: is it standard command? maybe add it to RoleCommand enum?
     String CUSTOM_COMMAND = "custom_command";
+
+    /**
+     * The key indicating that there is an un-finalized upgrade which is suspended.
+     */
+    String UPGRADE_SUSPENDED = "upgrade_suspended";
   }
 
 }

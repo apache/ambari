@@ -1011,6 +1011,7 @@ CREATE TABLE upgrade (
   skip_failures BIT NOT NULL DEFAULT 0,
   skip_sc_failures BIT NOT NULL DEFAULT 0,
   downgrade_allowed BIT NOT NULL DEFAULT 1,
+  suspended BIT DEFAULT 0 NOT NULL,
   PRIMARY KEY CLUSTERED (upgrade_id),
   FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id),
   FOREIGN KEY (request_id) REFERENCES request(request_id)

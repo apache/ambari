@@ -631,4 +631,13 @@ public interface Cluster {
    * @return true if the cluster was deployed with a Blueprint otherwise false.
    */
   boolean isBluePrintDeployed();
+
+  /**
+   * Gets whether there is an upgrade which has been suspended and not yet
+   * finalized.
+   *
+   * @return {@code true} if the last upgrade is in the
+   *         {@link UpgradeState#SUSPENDED}.
+   */
+  boolean isUpgradeSuspended();
 }

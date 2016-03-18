@@ -18,12 +18,15 @@
 
 package org.apache.ambari.server.upgrade;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.reflect.TypeToken;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
+import java.io.File;
+import java.io.FileReader;
+import java.lang.reflect.Type;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -46,14 +49,12 @@ import org.apache.ambari.server.utils.VersionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileReader;
-import java.lang.reflect.Type;
-import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 
 /**
  * Upgrade catalog for version 2.2.2.
@@ -78,6 +79,9 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
   private static final String ATLAS_SERVER_HTTP_PORT_PROPERTY = "atlas.server.http.port";
   private static final String ATLAS_SERVER_HTTPS_PORT_PROPERTY = "atlas.server.https.port";
   private static final String ATLAS_REST_ADDRESS_PROPERTY = "atlas.rest.address";
+
+  private static final String UPGRADE_TABLE = "upgrade";
+  private static final String UPGRADE_SUSPENDED_COLUMN = "suspended";
 
   private static final String HOST_AGGREGATOR_DAILY_CHECKPOINTCUTOFFMULTIPIER_PROPERTY =
     "timeline.metrics.host.aggregator.daily.checkpointCutOffMultiplier";
@@ -154,6 +158,8 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
     dbAccessor.addColumn("topology_host_info", columnInfo);
     dbAccessor.addFKConstraint("topology_host_info", "FK_hostinfo_host_id", "host_id", "hosts", "host_id", true);
     dbAccessor.executeUpdate("update topology_host_info set host_id = (select hosts.host_id from hosts where hosts.host_name = topology_host_info.fqdn)");
+
+    updateUpgradeTable();
   }
 
   @Override
@@ -495,6 +501,20 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
       WIDGET_VALUES, widgetValues,
       WIDGET_NAME, WIDGET_CORRUPT_BLOCKS
     ));
+  }
+
+  /**
+   * Updates the {@value #UPGRADE_TABLE} in the following ways:
+   * <ul>
+   * <li>{value {@link #UPGRADE_SUSPENDED_COLUMN} is added</li>
+   * </ul>
+   *
+   * @throws AmbariException
+   * @throws SQLException
+   */
+  protected void updateUpgradeTable() throws AmbariException, SQLException {
+    dbAccessor.addColumn(UPGRADE_TABLE,
+        new DBAccessor.DBColumnInfo(UPGRADE_SUSPENDED_COLUMN, Short.class, 1, 0, false));
   }
 
 }

@@ -1668,7 +1668,26 @@ var urls = {
             "downgrade": data.isDowngrade
           },
           "Upgrade": {
-            "request_status": "ABORTED"
+            "request_status": "ABORTED",
+            "suspended": "false"
+          }
+        })
+      }
+    }
+  },
+  'admin.upgrade.suspend': {
+    'real': '/clusters/{clusterName}/upgrades/{upgradeId}',
+    'mock': '',
+    'type': 'PUT',
+    'format': function (data) {
+      return {
+        data: JSON.stringify({
+          "RequestInfo": {
+            "downgrade": data.isDowngrade
+          },
+          "Upgrade": {
+            "request_status": "ABORTED",
+            "suspended": "true"
           }
         })
       }

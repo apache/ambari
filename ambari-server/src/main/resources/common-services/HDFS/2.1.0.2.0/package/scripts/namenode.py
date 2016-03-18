@@ -99,7 +99,14 @@ class NameNode(Script):
     env.set_params(params)
     self.configure(env)
     hdfs_binary = self.get_hdfs_binary()
-    namenode(action="start", hdfs_binary=hdfs_binary, upgrade_type=upgrade_type, env=env)
+    namenode(action="start", hdfs_binary=hdfs_binary, upgrade_type=upgrade_type,
+      upgrade_suspended=params.upgrade_suspended, env=env)
+
+    # after starting NN in an upgrade, touch the marker file
+    if upgrade_type is not None:
+      # place a file on the system indicating that we've submitting the command that
+      # instructs NN that it is now part of an upgrade
+      namenode_upgrade.create_upgrade_marker()
 
   def stop(self, env, upgrade_type=None):
     import params
