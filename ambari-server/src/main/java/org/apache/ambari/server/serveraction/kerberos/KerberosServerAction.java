@@ -124,6 +124,12 @@ public abstract class KerberosServerAction extends AbstractServerAction {
   */
   public static final String REGENERATE_ALL = "regenerate_all";
 
+  /*
+  * Key used in kerberosCommandParams in ExecutionCommand to indicate whether to include Ambari server indetity
+  * ("true") or ignore it ("false")
+  */
+  public static final String INCLUDE_AMBARI_IDENTITY = "include_ambari_identity";
+
   private static final Logger LOG = LoggerFactory.getLogger(KerberosServerAction.class);
 
   /**

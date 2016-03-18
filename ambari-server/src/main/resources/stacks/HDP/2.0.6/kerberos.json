@@ -43,6 +43,22 @@
         },
         "configuration": "cluster-env/smokeuser_keytab"
       }
+    },
+    {
+      "name": "ambari-server",
+      "principal": {
+        "value": "ambari-server-${cluster_name}@${realm}",
+        "type" : "user",
+        "configuration": "cluster-env/ambari_principal_name"
+      },
+      "keytab": {
+        "file": "${keytab_dir}/ambari.server.keytab",
+        "owner": {
+          "name": "root",
+          "access": "r"
+        }
+      }
     }
   ]
+
 }

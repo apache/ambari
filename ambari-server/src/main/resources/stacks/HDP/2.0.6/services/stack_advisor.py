@@ -132,6 +132,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
   def recommendYARNConfigurations(self, configurations, clusterData, services, hosts):
     putYarnProperty = self.putProperty(configurations, "yarn-site", services)
+    putYarnPropertyAttribute = self.putPropertyAttribute(configurations, "yarn-site")
     putYarnEnvProperty = self.putProperty(configurations, "yarn-env", services)
     nodemanagerMinRam = 1048576 # 1TB in mb
     if "referenceNodeManagerHost" in clusterData:
@@ -145,6 +146,18 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       containerExecutorGroup = services['configurations']['cluster-env']['properties']['user_group']
     putYarnProperty("yarn.nodemanager.linux-container-executor.group", containerExecutorGroup)
 
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    if "TEZ" in servicesList:
+        ambari_user = self.getAmbariUser(services)
+        putYarnProperty("yarn.timeline-service.http-authentication.proxyuser.{0}.hosts".format(ambari_user), "*")
+        putYarnProperty("yarn.timeline-service.http-authentication.proxyuser.{0}.groups".format(ambari_user), "*")
+        putYarnProperty("yarn.timeline-service.http-authentication.proxyuser.{0}.users".format(ambari_user), "*")
+        old_ambari_user = self.getOldAmbariUser(services)
+        if old_ambari_user is not None:
+            putYarnPropertyAttribute("yarn.timeline-service.http-authentication.proxyuser.{0}.hosts".format(old_ambari_user), 'delete', 'true')
+            putYarnPropertyAttribute("yarn.timeline-service.http-authentication.proxyuser.{0}.groups".format(old_ambari_user), 'delete', 'true')
+            putYarnPropertyAttribute("yarn.timeline-service.http-authentication.proxyuser.{0}.users".format(old_ambari_user), 'delete', 'true')
+
   def recommendMapReduce2Configurations(self, configurations, clusterData, services, hosts):
     putMapredProperty = self.putProperty(configurations, "mapred-site", services)
     putMapredProperty('yarn.app.mapreduce.am.resource.mb', int(clusterData['amMemory']))
@@ -154,6 +167,37 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     putMapredProperty('mapreduce.map.java.opts', "-Xmx" + str(int(round(0.8 * clusterData['mapMemory']))) + "m")
     putMapredProperty('mapreduce.reduce.java.opts', "-Xmx" + str(int(round(0.8 * clusterData['reduceMemory']))) + "m")
     putMapredProperty('mapreduce.task.io.sort.mb', min(int(round(0.4 * clusterData['mapMemory'])), 1024))
+
+  def getAmbariUser(self, services):
+    ambari_user = services['ambari-server-properties']['ambari-server.user']
+    if "cluster-env" in services["configurations"] \
+          and "ambari_principal_name" in services["configurations"]["cluster-env"]["properties"] \
+                and "security_enabled" in services["configurations"]["cluster-env"]["properties"] \
+                    and services["configurations"]["cluster-env"]["properties"]["security_enabled"].lower() == "true":
+      ambari_user = services["configurations"]["cluster-env"]["properties"]["ambari_principal_name"]
+      ambari_user = ambari_user.split('@')[0]
+    return ambari_user
+
+  def getOldAmbariUser(self, services):
+    ambari_user = None
+    if "cluster-env" in services["configurations"]:
+      if "security_enabled" in services["configurations"]["cluster-env"]["properties"] \
+              and services["configurations"]["cluster-env"]["properties"]["security_enabled"].lower() == "true":
+         ambari_user = services['ambari-server-properties']['ambari-server.user']
+      elif "ambari_principal_name" in services["configurations"]["cluster-env"]["properties"]:
+         ambari_user = services["configurations"]["cluster-env"]["properties"]["ambari_principal_name"]
+         ambari_user = ambari_user.split('@')[0]
+    return ambari_user
+
+  def recommendAmbariProxyUsersForHDFS(self, services, servicesList, putCoreSiteProperty, putCoreSitePropertyAttribute):
+      if "HDFS" in servicesList:
+          ambari_user = self.getAmbariUser(services)
+          putCoreSiteProperty("hadoop.proxyuser.{0}.hosts".format(ambari_user), "*")
+          putCoreSiteProperty("hadoop.proxyuser.{0}.groups".format(ambari_user), "*")
+          old_ambari_user = self.getOldAmbariUser(services)
+          if old_ambari_user is not None:
+            putCoreSitePropertyAttribute("hadoop.proxyuser.{0}.hosts".format(old_ambari_user), 'delete', 'true')
+            putCoreSitePropertyAttribute("hadoop.proxyuser.{0}.groups".format(old_ambari_user), 'delete', 'true')
 
   def recommendHadoopProxyUsers (self, configurations, services, hosts):
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
@@ -232,6 +276,8 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         services["forced-configurations"].append({"type" : "core-site", "name" : "hadoop.proxyuser.{0}.groups".format(userOldValue)})
         services["forced-configurations"].append({"type" : "core-site", "name" : "hadoop.proxyuser.{0}.hosts".format(user_name)})
         services["forced-configurations"].append({"type" : "core-site", "name" : "hadoop.proxyuser.{0}.groups".format(user_name)})
+
+    self.recommendAmbariProxyUsersForHDFS(services, servicesList, putCoreSiteProperty, putCoreSitePropertyAttribute)
 
   def recommendHDFSConfigurations(self, configurations, clusterData, services, hosts):
     putHDFSProperty = self.putProperty(configurations, "hadoop-env", services)

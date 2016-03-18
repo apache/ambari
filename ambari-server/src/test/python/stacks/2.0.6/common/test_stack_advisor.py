@@ -510,7 +510,7 @@ class TestHDP206StackAdvisor(TestCase):
 
   def test_recommendYARNConfigurations(self):
     configurations = {}
-    services = {"configurations": configurations}
+    services = {"configurations": configurations, "services": []}
     clusterData = {
       "containers" : 5,
       "ramPerContainer": 256
@@ -1054,7 +1054,8 @@ class TestHDP206StackAdvisor(TestCase):
             "hostnames": ["c6401.ambari.apache.org", "c6402.ambari.apache.org"]
           }, }]
         }],
-      "configurations": configurations
+      "configurations": configurations,
+      "ambari-server-properties": {"ambari-server.user":"ambari_user"}
     }
 
     clusterData = {
@@ -1065,7 +1066,9 @@ class TestHDP206StackAdvisor(TestCase):
                      {'oozie_user': 'oozie'}},
                 'core-site':
                   {'properties':
-                     {'hadoop.proxyuser.oozie.groups': '*',
+                     {'hadoop.proxyuser.ambari_user.groups': '*',
+                      'hadoop.proxyuser.ambari_user.hosts': '*',
+                      'hadoop.proxyuser.oozie.groups': '*',
                       'hadoop.proxyuser.hive.groups': '*',
                       'hadoop.proxyuser.webhcat.hosts': 'c6401.ambari.apache.org,c6402.ambari.apache.org',
                       'hadoop.proxyuser.falcon.hosts': '*',
@@ -1110,7 +1113,9 @@ class TestHDP206StackAdvisor(TestCase):
                   {'properties':
                      {'oozie_user': 'oozie'}},
                 'core-site': {'properties':
-                                {'hadoop.proxyuser.oozie.groups': '*',
+                                {'hadoop.proxyuser.ambari_user.groups': '*',
+                                 'hadoop.proxyuser.ambari_user.hosts': '*',
+                                 'hadoop.proxyuser.oozie.groups': '*',
                                  'hadoop.proxyuser.hive.groups': '*',
                                  'hadoop.proxyuser.hdfs1.groups': '*',
                                  'hadoop.proxyuser.hdfs1.hosts': '*',

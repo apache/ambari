@@ -304,6 +304,20 @@
   </property>
 
   <property>
+  <name>create_ambari_principal</name>
+  <description>
+    Indicates whether Ambari should create the principal, keytab for itself, used by different views.
+  </description>
+  <value>true</value>
+  <display-name>Create Ambari Principal &amp; Keytab</display-name>
+  <value-attributes>
+    <visible>true</visible>
+    <overridable>false</overridable>
+    <type>boolean</type>
+  </value-attributes>
+</property>
+
+  <property>
     <name>kdc_create_attributes</name>
     <display-name>Principal Attributes</display-name>
     <description>

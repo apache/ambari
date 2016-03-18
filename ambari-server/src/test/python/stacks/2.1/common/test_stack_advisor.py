@@ -118,7 +118,7 @@ class TestHDP21StackAdvisor(TestCase):
       }
     }
 
-    self.stackAdvisor.recommendHiveConfigurations(configurations, clusterData, {"configurations": {}}, None)
+    self.stackAdvisor.recommendHiveConfigurations(configurations, clusterData, {"configurations": {}, "services": []}, None)
     self.maxDiff = None
     self.assertEquals(configurations, expected)
 
@@ -143,7 +143,7 @@ class TestHDP21StackAdvisor(TestCase):
       }
     }
 
-    self.stackAdvisor.recommendHiveConfigurations(configurations, clusterData, {"configurations":{}}, None)
+    self.stackAdvisor.recommendHiveConfigurations(configurations, clusterData, {"configurations":{}, "services": []}, None)
     self.assertEquals(configurations, expected)
 
   def test_createComponentLayoutRecommendations_mastersIn10nodes(self):
@@ -276,7 +276,7 @@ class TestHDP21StackAdvisor(TestCase):
       }
     }
 
-    self.stackAdvisor.recommendHiveConfigurations(configurations, clusterData, {"configurations":{}}, None)
+    self.stackAdvisor.recommendHiveConfigurations(configurations, clusterData, {"configurations":{}, "services": []}, None)
     self.assertEquals(configurations, expected)
 
   def test_recommendHbaseConfigurations(self):
@@ -361,7 +361,8 @@ class TestHDP21StackAdvisor(TestCase):
             "service_name": "HDFS"
           }, "components": []
         }],
-      "configurations": configurations
+      "configurations": configurations,
+      "ambari-server-properties": {"ambari-server.user":"ambari_user"}
     }
 
     clusterData = {
@@ -380,6 +381,8 @@ class TestHDP21StackAdvisor(TestCase):
         "properties": {
           "hadoop.proxyuser.hdfs.hosts": "*",
           "hadoop.proxyuser.hdfs.groups": "*",
+          "hadoop.proxyuser.ambari_user.hosts": "*",
+          "hadoop.proxyuser.ambari_user.groups": "*"
         }
       },
       "hdfs-site": {

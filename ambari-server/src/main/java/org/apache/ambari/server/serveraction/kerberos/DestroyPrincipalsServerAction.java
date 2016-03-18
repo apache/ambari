@@ -21,6 +21,7 @@ package org.apache.ambari.server.serveraction.kerberos;
 import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.orm.dao.KerberosPrincipalDAO;
 import org.apache.ambari.server.orm.entities.KerberosPrincipalEntity;
 import org.slf4j.Logger;
@@ -110,6 +111,17 @@ public class DestroyPrincipalsServerAction extends KerberosServerAction {
         if (cachedKeytabPath != null) {
           if (!new File(cachedKeytabPath).delete()) {
             LOG.debug(String.format("Failed to remove cached keytab for %s", evaluatedPrincipal));
+          }
+        }
+      }
+
+      // delete Ambari server keytab
+      String hostName = identityRecord.get(KerberosIdentityDataFileReader.HOSTNAME);
+      if (hostName != null && hostName.equalsIgnoreCase(KerberosHelper.AMBARI_SERVER_HOST_NAME)) {
+        String keytabFilePath = identityRecord.get(KerberosIdentityDataFileReader.KEYTAB_FILE_PATH);
+        if (keytabFilePath != null) {
+          if (!new File(keytabFilePath).delete()) {
+            LOG.debug(String.format("Failed to remove ambari keytab for %s", evaluatedPrincipal));
           }
         }
       }

@@ -93,6 +93,19 @@ class HDP21StackAdvisor(HDP206StackAdvisor):
         dbConnection = self.getDBConnectionString(hiveEnvProperties['hive_database']).format(hiveMSHost['Hosts']['host_name'], hiveSiteProperties['ambari.hive.db.schema.name'])
         putHiveProperty('javax.jdo.option.ConnectionURL', dbConnection)
 
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    if "PIG" in servicesList:
+        ambari_user = self.getAmbariUser(services)
+        webHcatSiteProperty = self.putProperty(configurations, "webhcat-site", services)
+        webHcatSiteProperty("webhcat.proxyuser.{0}.hosts".format(ambari_user), "*")
+        webHcatSiteProperty("webhcat.proxyuser.{0}.groups".format(ambari_user), "*")
+        old_ambari_user = self.getOldAmbariUser(services)
+        if old_ambari_user is not None:
+            webHcatSitePropertyAttributes = self.putPropertyAttribute(configurations, "webhcat-site", services)
+            webHcatSitePropertyAttributes("webhcat.proxyuser.{0}.hosts".format(old_ambari_user), 'delete', 'true')
+            webHcatSitePropertyAttributes("webhcat.proxyuser.{0}.groups".format(old_ambari_user), 'delete', 'true')
+
+
   def recommendTezConfigurations(self, configurations, clusterData, services, hosts):
     putTezProperty = self.putProperty(configurations, "tez-site")
     putTezProperty("tez.am.resource.memory.mb", int(clusterData['amMemory']))

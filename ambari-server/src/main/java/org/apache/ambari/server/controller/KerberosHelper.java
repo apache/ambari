@@ -66,6 +66,14 @@ public interface KerberosHelper {
    */
   String KDC_ADMINISTRATOR_CREDENTIAL_ALIAS = "kdc.admin.credential";
 
+  String AMBARI_SERVER_HOST_NAME = "ambari_server";
+
+  String AMBARI_IDENTITY_NAME = "ambari-server";
+
+  String CREATE_AMBARI_PRINCIPAL = "create_ambari_principal";
+
+  String MANAGE_IDENTITIES = "manage_identities";
+
   /**
    * Toggles Kerberos security to enable it or remove it depending on the state of the cluster.
    * <p/>
@@ -250,13 +258,21 @@ public interface KerberosHelper {
 
   /**
    * Invokes the Stack Advisor to help determine relevant configuration changes when enabling or
-   * disabling Kerberos
+   * disabling Kerberos. If kerberosEnabled = true, recommended properties are inserted into kerberosConfigurations,
+   * while properties to remove in propertiesToRemove map. In case kerberosEnabled = false, recommended properties
+   * are inserted into propertiesToInsert and properties to remove in propertiesToInsert map. This is because in
+   * first case properties in kerberosConfigurations are going to be set, while in second case going to be
+   * removed from cluster config.
    *
    * @param cluster                a cluster
    * @param services               a set of services that are being configured to enabled or disable Kerberos
    * @param existingConfigurations the cluster's existing configurations
-   * @param kerberosConfigurations the configuration updates to make (must not be mutable)
+   * @param kerberosConfigurations the configuration updates to make
    * @param propertiesToIgnore     the configuration properties that should be ignored when applying recommendations
+   * @param propertiesToInsert     the configuration properties that must be inserted to cluster config are inserted
+   *                               into this map in case if provided (not null) and kerberosEnabled = false
+   * @param propertiesToRemove     the configuration properties that must be removed from cluster config are inserted
+   *                               into this map in case if provided (not null) and kerberosEnabled
    * @param kerberosEnabled        true if kerberos is (to be) enabled; otherwise false
    * @return the configuration updates
    * @throws AmbariException
@@ -265,6 +281,8 @@ public interface KerberosHelper {
                                                             Map<String, Map<String, String>> existingConfigurations,
                                                             Map<String, Map<String, String>> kerberosConfigurations,
                                                             Map<String, Set<String>> propertiesToIgnore,
+                                                            Map<String, Map<String, String>> propertiesToInsert,
+                                                            Map<String, Set<String>> propertiesToRemove,
                                                             boolean kerberosEnabled)
       throws AmbariException;
 

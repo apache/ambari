@@ -819,7 +819,8 @@ class TestHDP23StackAdvisor(TestCase):
       "Versions": {
         "stack_version": "2.3"
       },
-      "configurations": configurations
+      "configurations": configurations,
+      "ambari-server-properties": {"ambari-server.user":"ambari_user"}
     }
 
     # Test with Ranger HDFS plugin disabled

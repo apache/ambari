@@ -2814,6 +2814,8 @@ class TestHDP22StackAdvisor(TestCase):
         "properties": {
           "hadoop.proxyuser.hdfs.hosts": "*",
           "hadoop.proxyuser.hdfs.groups": "*",
+          "hadoop.proxyuser.ambari_user.hosts": "*",
+          "hadoop.proxyuser.ambari_user.groups": "*"
         }
       }
     }
@@ -2907,7 +2909,8 @@ class TestHDP22StackAdvisor(TestCase):
                         },
                       ],
                     }],
-                "configurations": configurations
+                "configurations": configurations,
+                "ambari-server-properties": {"ambari-server.user":"ambari_user"}
                 }
     hosts = {
       "items" : [

@@ -975,6 +975,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(kerberosEnvProperties.get("kdc_type")).andReturn(kdcType).anyTimes();
     expect(kerberosEnvProperties.get("manage_identities")).andReturn(manageIdentities).anyTimes();
     expect(kerberosEnvProperties.get("realm")).andReturn("FOOBAR.COM").anyTimes();
+    expect(kerberosEnvProperties.get("create_ambari_principal")).andReturn("false").anyTimes();
 
     final Config kerberosEnvConfig = createMock(Config.class);
     expect(kerberosEnvConfig.getProperties()).andReturn(kerberosEnvProperties).anyTimes();
@@ -1196,6 +1197,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(kerberosEnvProperties.get("kdc_type")).andReturn(kdcType).anyTimes();
     expect(kerberosEnvProperties.get("manage_identities")).andReturn(manageIdentities).anyTimes();
     expect(kerberosEnvProperties.get("realm")).andReturn("FOOBAR.COM").anyTimes();
+    expect(kerberosEnvProperties.get("create_ambari_principal")).andReturn("false").anyTimes();
 
     final Config kerberosEnvConfig = createMock(Config.class);
     expect(kerberosEnvConfig.getProperties()).andReturn(kerberosEnvProperties).anyTimes();
@@ -1627,6 +1629,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     final Map<String, String> kerberosEnvProperties = createMock(Map.class);
     expect(kerberosEnvProperties.get("kdc_type")).andReturn("mit-kdc").anyTimes();
     expect(kerberosEnvProperties.get("realm")).andReturn("FOOBAR.COM").anyTimes();
+    expect(kerberosEnvProperties.get("create_ambari_principal")).andReturn("false").anyTimes();
 
     final Config kerberosEnvConfig = createMock(Config.class);
     expect(kerberosEnvConfig.getProperties()).andReturn(kerberosEnvProperties).anyTimes();
@@ -2052,6 +2055,7 @@ public class KerberosHelperTest extends EasyMockSupport {
         put("kdc_type", "mit-kdc");
         put("realm", "FOOBAR.COM");
         put("case_insensitive_username_rules", "false");
+        put("create_ambari_principal", "false");
       }
     };
 
@@ -2236,16 +2240,17 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(metaInfo.getKerberosDescriptor("HDP", "2.2")).andReturn(kerberosDescriptor).atLeastOnce();
     expect(clusterController.ensureResourceProvider(Resource.Type.Artifact)).andReturn(artifactResourceProvider).atLeastOnce();
 
-    RecommendationResponse.BlueprintConfigurations coreSiteRecommendation = createMock(RecommendationResponse.BlueprintConfigurations.class);
+    RecommendationResponse.BlueprintConfigurations coreSiteRecommendation = createNiceMock(RecommendationResponse
+      .BlueprintConfigurations.class);
     expect(coreSiteRecommendation.getProperties()).andReturn(Collections.singletonMap("newPropertyRecommendation", "newPropertyRecommendation"));
 
-    RecommendationResponse.BlueprintConfigurations newTypeRecommendation = createMock(RecommendationResponse.BlueprintConfigurations.class);
+    RecommendationResponse.BlueprintConfigurations newTypeRecommendation = createNiceMock(RecommendationResponse.BlueprintConfigurations.class);
     expect(newTypeRecommendation.getProperties()).andReturn(Collections.singletonMap("newTypeRecommendation", "newTypeRecommendation"));
 
-    RecommendationResponse.BlueprintConfigurations type1Recommendation = createMock(RecommendationResponse.BlueprintConfigurations.class);
+    RecommendationResponse.BlueprintConfigurations type1Recommendation = createNiceMock(RecommendationResponse.BlueprintConfigurations.class);
     expect(type1Recommendation.getProperties()).andReturn(Collections.singletonMap("replacement1", "not replaced"));
 
-    RecommendationResponse.BlueprintConfigurations service1SiteRecommendation = createMock(RecommendationResponse.BlueprintConfigurations.class);
+    RecommendationResponse.BlueprintConfigurations service1SiteRecommendation = createNiceMock(RecommendationResponse.BlueprintConfigurations.class);
     expect(service1SiteRecommendation.getProperties()).andReturn(Collections.singletonMap("component1b.property", "replaced value"));
 
     Map<String, RecommendationResponse.BlueprintConfigurations> configurations = new HashMap<String, RecommendationResponse.BlueprintConfigurations>();
@@ -2439,7 +2444,8 @@ public class KerberosHelperTest extends EasyMockSupport {
             put("kdc_type", "mit-kdc");
             put("realm", "FOOBAR.COM");
             put("case_insensitive_username_rules", "false");
-          }
+            put("create_ambari_principal", "false");
+        }
         });
         put("", new HashMap<String, String>() {
           {
@@ -2483,6 +2489,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     propertiesKerberosEnv.put("password_min_digits", "1");
     propertiesKerberosEnv.put("password_min_punctuation", "0");
     propertiesKerberosEnv.put("password_min_whitespace","0");
+    propertiesKerberosEnv.put("create_ambari_principal", "false");
 
     Config configKrb5Conf = createMock(Config.class);
     expect(configKrb5Conf.getProperties()).andReturn(propertiesKrb5Conf).times(1);

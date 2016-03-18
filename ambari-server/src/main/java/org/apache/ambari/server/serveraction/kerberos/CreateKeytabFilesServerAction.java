@@ -23,6 +23,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.KerberosPrincipalDAO;
 import org.apache.ambari.server.orm.dao.KerberosPrincipalHostDAO;
@@ -196,7 +197,8 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
             if (hostDirectory.exists()) {
               File destinationKeytabFile = new File(hostDirectory, DigestUtils.sha1Hex(keytabFilePath));
               HostEntity hostEntity = hostDAO.findByName(hostName);
-              if (hostEntity == null) {
+              // in case of ambari-server identity there's no host entity for ambari_server host
+              if (hostEntity == null && !hostName.equalsIgnoreCase(KerberosHelper.AMBARI_SERVER_HOST_NAME)) {
                 message = "Failed to find HostEntity for hostname = " + hostName;
                 actionLog.writeStdErr(message);
                 LOG.error(message);
@@ -205,7 +207,8 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
               }
 
               if (password == null) {
-                if (kerberosPrincipalHostDAO.exists(evaluatedPrincipal, hostEntity.getHostId())) {
+                if (hostName.equalsIgnoreCase(KerberosHelper.AMBARI_SERVER_HOST_NAME) || kerberosPrincipalHostDAO
+                  .exists(evaluatedPrincipal, hostEntity.getHostId())) {
                   // There is nothing to do for this since it must already exist and we don't want to
                   // regenerate the keytab
                   message = String.format("Skipping keytab file for %s, missing password indicates nothing to do", evaluatedPrincipal);

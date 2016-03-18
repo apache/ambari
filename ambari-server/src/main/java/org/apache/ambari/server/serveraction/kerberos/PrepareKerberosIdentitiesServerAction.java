@@ -35,6 +35,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
 /**
@@ -93,11 +94,13 @@ public class PrepareKerberosIdentitiesServerAction extends AbstractPrepareKerber
       actionLog.writeStdOut(String.format("Processing %d components", schCount));
     }
 
-    processServiceComponentHosts(cluster, kerberosDescriptor, schToProcess, identityFilter, dataDirectory, kerberosConfigurations, true);
+    processServiceComponentHosts(cluster, kerberosDescriptor, schToProcess, identityFilter, dataDirectory,
+      kerberosConfigurations, null, null, true, "true".equalsIgnoreCase(getCommandParameterValue(commandParameters,
+        KerberosServerAction.INCLUDE_AMBARI_IDENTITY)));
 
     if ("true".equalsIgnoreCase(getCommandParameterValue(commandParameters, UPDATE_CONFIGURATIONS))) {
       processAuthToLocalRules(cluster, kerberosDescriptor, schToProcess, kerberosConfigurations, getDefaultRealm(commandParameters));
-      processConfigurationChanges(dataDirectory, kerberosConfigurations);
+      processConfigurationChanges(dataDirectory, kerberosConfigurations, null);
     }
 
     return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
@@ -187,10 +190,12 @@ public class PrepareKerberosIdentitiesServerAction extends AbstractPrepareKerber
    *
    * @param dataDirectory          the directory in which to write the configuration changes data file
    * @param kerberosConfigurations the Kerberos-specific configuration map
+   * @param propertiesToBeRemoved
    * @throws AmbariException
    */
   protected void processConfigurationChanges(String dataDirectory,
-                                             Map<String, Map<String, String>> kerberosConfigurations)
+                                             Map<String, Map<String, String>> kerberosConfigurations,
+                                             Map<String, Set<String>> propertiesToBeRemoved)
       throws AmbariException {
     actionLog.writeStdOut("Determining configuration changes");
 
@@ -209,7 +214,7 @@ public class PrepareKerberosIdentitiesServerAction extends AbstractPrepareKerber
       actionLog.writeStdOut(String.format("Writing configuration changes metadata file to %s", configFile.getAbsolutePath()));
       try {
         kerberosConfDataFileWriter = kerberosConfigDataFileWriterFactory.createKerberosConfigDataFileWriter(configFile);
-
+        // add properties to be set
         for (Map.Entry<String, Map<String, String>> entry : kerberosConfigurations.entrySet()) {
           String type = entry.getKey();
           Map<String, String> properties = entry.getValue();
@@ -220,6 +225,22 @@ public class PrepareKerberosIdentitiesServerAction extends AbstractPrepareKerber
                   configTypeEntry.getKey(),
                   configTypeEntry.getValue(),
                   KerberosConfigDataFileWriter.OPERATION_TYPE_SET);
+            }
+          }
+        }
+        // add properties to be removed
+        if (propertiesToBeRemoved != null) {
+          for (Map.Entry<String, Set<String>> entry : propertiesToBeRemoved.entrySet()) {
+            String type = entry.getKey();
+            Set<String> properties = entry.getValue();
+
+            if (properties != null) {
+              for (String property : properties) {
+                kerberosConfDataFileWriter.addRecord(type,
+                  property,
+                  "",
+                  KerberosConfigDataFileWriter.OPERATION_TYPE_REMOVE);
+              }
             }
           }
         }
