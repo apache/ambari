@@ -2953,5 +2953,8 @@ Em.I18n.translations = {
       ' get back to a stable state. Are you sure you want to exit the wizard?',
   'admin.activateHawqStandby.wizard.step3.notice.inProgress':'Please wait while HAWQ Standby Master is being activated',
   'admin.activateHawqStandby.wizard.step3.notice.completed':'HAWQ Standby Master has been activated successfully.',
-  'admin.activateHawqStandby.wizard.step3.activateHawqStandbyCommand.context': "Execute HAWQ Standby Master activate command"
+  'admin.activateHawqStandby.wizard.step3.activateHawqStandbyCommand.context': "Execute HAWQ Standby Master activate command",
+
+  'reset.ui.states': 'Reset UI State',
+  'reset.ui.states.body': 'You should proceed only if the UI is misbehaving (such as incorrect navigation upon login, UI is stuck and won&apos;t load, etc.).  Are you sure you want to reset the UI state?'
 };

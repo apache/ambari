@@ -30,6 +30,18 @@ App.cache = {
   'currentConfigVersions': {}
 };
 
+App.cache.clear = function () {
+  var clear = App.cache.clear;
+  App.cache = {
+    'previousHostStatuses': {},
+    'previousComponentStatuses': {},
+    'previousComponentPassiveStates': {},
+    'services': [],
+    'currentConfigVersions': {}
+  };
+  App.cache.clear = clear;
+};
+
 App.ServerDataMapper = Em.Object.extend({
   jsonKey: false,
   map: function (json) {
