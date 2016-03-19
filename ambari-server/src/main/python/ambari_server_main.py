@@ -53,7 +53,7 @@ if ambari_provider_module is not None:
   ambari_provider_module_option = "-Dprovider.module.class=" + \
                                   ambari_provider_module + " "
 
-jvm_args = os.getenv('AMBARI_JVM_ARGS', '-Xms512m -Xmx2048m')
+jvm_args = os.getenv('AMBARI_JVM_ARGS', '-Xms512m -Xmx2048m -XX:MaxPermSize=128m')
 
 ENV_FOREGROUND_KEY = "AMBARI_SERVER_RUN_IN_FOREGROUND"
 IS_FOREGROUND = ENV_FOREGROUND_KEY in os.environ and os.environ[ENV_FOREGROUND_KEY].lower() == "true"
@@ -62,6 +62,7 @@ SERVER_START_CMD = "{0} " \
     "-server -XX:NewRatio=3 " \
     "-XX:+UseConcMarkSweepGC " + \
     "-XX:-UseGCOverheadLimit -XX:CMSInitiatingOccupancyFraction=60 " \
+    "-XX:+CMSClassUnloadingEnabled " \
     "-Dsun.zip.disableMemoryMapping=true " + \
     "{1} {2} " \
     "-cp {3} "\
@@ -85,6 +86,7 @@ SERVER_START_CMD_WINDOWS = "{0} " \
     "-server -XX:NewRatio=3 " \
     "-XX:+UseConcMarkSweepGC " + \
     "-XX:-UseGCOverheadLimit -XX:CMSInitiatingOccupancyFraction=60 " \
+    "-XX:+CMSClassUnloadingEnabled " \
     "{1} {2} " \
     "-cp {3} " \
     "org.apache.ambari.server.controller.AmbariServer"
