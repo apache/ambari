@@ -23,7 +23,7 @@
     <services>
         <service>
           <name>SPARK</name>
-          <version>1.6.0.2.4</version>
+          <version>1.6.1.2.4</version>
           <configuration-dependencies>
             <config-type>spark-defaults</config-type>
             <config-type>spark-env</config-type>
