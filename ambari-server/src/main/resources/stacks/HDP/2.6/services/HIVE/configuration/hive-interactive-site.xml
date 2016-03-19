@@ -133,18 +133,6 @@ limitations under the License.
     </value-attributes>
   </property>
 
-  <property require-input="true">
-    <name>javax.jdo.option.ConnectionPassword</name>
-    <value></value>
-    <property-type>PASSWORD</property-type>
-    <display-name>Database Password</display-name>
-    <description>password to use against metastore database</description>
-    <value-attributes>
-      <type>password</type>
-      <overridable>false</overridable>
-    </value-attributes>
-  </property>
-
   <property>
     <name>javax.jdo.option.ConnectionURL</name>
     <value>jdbc:mysql://localhost/hive?createDatabaseIfNotExist=true</value>
