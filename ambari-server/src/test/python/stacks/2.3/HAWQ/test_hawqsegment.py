@@ -70,6 +70,12 @@ class TestHawqSegment(RMFTestCase):
         mode = 0644
         )
 
+    self.assertResourceCalled('Directory', '/tmp/hawq/segment',
+        owner = self.GPADMIN,
+        group = self.GPADMIN,
+        create_parents = True
+        )
+
 
 
   @patch ('hawqsegment.common.__set_osparams')
@@ -121,10 +127,9 @@ class TestHawqSegment(RMFTestCase):
         create_parents = True
         )
 
-    self.assertResourceCalled('Directory', '/tmp/hawq/segment',
-        owner = self.GPADMIN,
-        group = self.GPADMIN,
-        create_parents = True
+    self.assertResourceCalled('Execute', 'chmod 700 /data/hawq/segment',
+        user = 'root',
+        timeout =  600
         )
 
     self.assertResourceCalled('Execute', 'source /usr/local/hawq/greenplum_path.sh && hawq init segment -a -v',

@@ -42,6 +42,8 @@ class HawqSegment(Script):
     env.set_params(hawq_constants)
     common.setup_user()
     common.setup_common_configurations()
+    # temp directories are stateless and they should be recreated when configured (started)
+    common.create_temp_dirs(params.hawq_segment_temp_dirs)
 
 
   def __start_segment(self):
@@ -80,10 +82,7 @@ class HawqSegment(Script):
   @staticmethod
   def __init_segment():
     import params
-
-    # Create segment directories
-    utils.create_dir_as_hawq_user(params.hawq_segment_dir)
-    utils.create_dir_as_hawq_user(params.hawq_segment_temp_dir.split(','))
+    common.create_master_dir(params.hawq_segment_dir)
 
     # Initialize hawq segment
     utils.exec_hawq_operation(hawq_constants.INIT, "{0} -a -v".format(hawq_constants.SEGMENT))

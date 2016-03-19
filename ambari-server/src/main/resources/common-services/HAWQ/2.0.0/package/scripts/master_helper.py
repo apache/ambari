@@ -59,20 +59,9 @@ def configure_master():
   common.setup_user()
   common.setup_common_configurations()
   __setup_master_specific_conf_files()
-  __create_local_dirs()
-
-
-def __create_local_dirs():
-  """
-  Creates the required local directories for HAWQ
-  """
   import params
-  # Create Master directories
-  utils.create_dir_as_hawq_user(params.hawq_master_dir)
-  utils.create_dir_as_hawq_user(params.hawq_master_temp_dir.split(','))
-
-  Execute("chmod 700 {0}".format(params.hawq_master_dir), user=hawq_constants.root_user, timeout=hawq_constants.default_exec_timeout)
-
+  common.create_master_dir(params.hawq_master_dir)
+  common.create_temp_dirs(params.hawq_master_temp_dirs)
 
 def __setup_hdfs_dirs():
   """

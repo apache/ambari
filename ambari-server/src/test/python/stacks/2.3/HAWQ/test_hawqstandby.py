@@ -98,15 +98,15 @@ class TestHawqStandby(RMFTestCase):
         create_parents = True
         )
 
+    self.assertResourceCalled('Execute', 'chmod 700 /data/hawq/master',
+        user = 'root',
+        timeout = 600
+        )
+
     self.assertResourceCalled('Directory', '/tmp/hawq/master',
         group = self.GPADMIN,
         owner = self.GPADMIN,
         create_parents = True
-        )
-
-    self.assertResourceCalled('Execute', 'chmod 700 /data/hawq/master',
-        user = 'root',
-        timeout = 600
         )
 
 
