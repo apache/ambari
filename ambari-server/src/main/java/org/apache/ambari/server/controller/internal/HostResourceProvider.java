@@ -60,6 +60,7 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.InvalidTopologyException;
 import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
 import org.apache.ambari.server.topology.LogicalRequest;
@@ -72,6 +73,7 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
+import com.google.inject.persist.Transactional;
 
 
 /**
@@ -775,7 +777,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     }
   }
 
-
+  @Transactional
   protected void deleteHosts(Set<HostRequest> requests)
       throws AmbariException {
 
@@ -840,6 +842,8 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       // Assume the user also wants to delete it entirely, including all clusters.
       clusters.deleteHost(hostRequest.getHostname());
 
+      removeHostFromClusterTopology(clusters, hostRequest);
+
       for (LogicalRequest logicalRequest: topologyManager.getRequests(Collections.<Long>emptyList())) {
         logicalRequest.removeHostRequestByHostName(hostRequest.getHostname());
       }
@@ -847,6 +851,30 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       if (null != hostRequest.getClusterName()) {
         clusters.getCluster(hostRequest.getClusterName()).recalculateAllClusterVersionStates();
       }
+    }
+  }
+
+  /**
+   * Removes hostname from the stateful cluster topology
+   * @param clusters
+   * @param hostRequest
+   * @throws AmbariException
+   */
+  private void removeHostFromClusterTopology(Clusters clusters, HostRequest hostRequest) throws AmbariException{
+    if(hostRequest.getClusterName() == null) {
+      for( Cluster c : clusters.getClusters().values()) {
+        removeHostFromClusterTopology(c.getClusterId(), hostRequest.getHostname());
+      }
+    } else {
+      long clusterId = clusters.getCluster(hostRequest.getClusterName()).getClusterId();
+      removeHostFromClusterTopology(clusterId, hostRequest.getHostname());
+    }
+  }
+
+  private void removeHostFromClusterTopology(long clusterId, String hostname) {
+    ClusterTopology clusterTopology = topologyManager.getClusterTopology(clusterId);
+    if(clusterTopology != null) {
+      clusterTopology.removeHost(hostname);
     }
   }
 

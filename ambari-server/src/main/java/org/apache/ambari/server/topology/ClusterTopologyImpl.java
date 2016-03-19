@@ -280,6 +280,13 @@ public class ClusterTopologyImpl implements ClusterTopology {
     return ambariContext;
   }
 
+  @Override
+  public void removeHost(String hostname) {
+    for(Map.Entry<String,HostGroupInfo> entry : hostGroupInfoMap.entrySet()) {
+      entry.getValue().removeHost(hostname);
+    }
+  }
+
   private void registerHostGroupInfo(Map<String, HostGroupInfo> requestedHostGroupInfoMap) throws InvalidTopologyException {
     LOG.debug("Registering requested host group information for {} hostgroups", requestedHostGroupInfoMap.size());
     checkForDuplicateHosts(requestedHostGroupInfoMap);

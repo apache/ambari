@@ -23,8 +23,10 @@ import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
+import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.TopologyHostGroupDAO;
+import org.apache.ambari.server.orm.dao.TopologyHostInfoDAO;
 import org.apache.ambari.server.orm.dao.TopologyHostRequestDAO;
 import org.apache.ambari.server.orm.dao.TopologyLogicalTaskDAO;
 import org.apache.ambari.server.orm.dao.TopologyRequestDAO;
@@ -37,6 +39,7 @@ import org.apache.ambari.server.orm.entities.TopologyLogicalRequestEntity;
 import org.apache.ambari.server.orm.entities.TopologyLogicalTaskEntity;
 import org.apache.ambari.server.orm.entities.TopologyRequestEntity;
 import org.apache.ambari.server.stack.NoSuchStackException;
+import org.apache.ambari.server.state.Host;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,6 +62,12 @@ public class PersistedStateImpl implements PersistedState {
 
   @Inject
   private TopologyRequestDAO topologyRequestDAO;
+
+  @Inject
+  private TopologyHostInfoDAO topologyHostInfoDAO;
+
+  @Inject
+  private HostDAO hostDAO;
 
   @Inject
   private TopologyHostGroupDAO hostGroupDAO;
@@ -121,6 +130,15 @@ public class PersistedStateImpl implements PersistedState {
     if (entity.getHostName() == null) {
       entity.setHostName(hostName);
       hostRequestDAO.merge(entity);
+    }
+  }
+
+  @Override
+  public void registerInTopologyHostInfo(Host host) {
+    TopologyHostInfoEntity entity = topologyHostInfoDAO.findByHostname(host.getHostName());
+    if(entity != null && entity.getHostEntity() == null) {
+      entity.setHostEntity(hostDAO.findById(host.getHostId()));
+      topologyHostInfoDAO.merge(entity);
     }
   }
 
