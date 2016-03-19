@@ -27,6 +27,7 @@ import com.google.inject.Injector;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.DaoUtils;
 import org.apache.ambari.server.orm.dao.WidgetDAO;
@@ -144,7 +145,10 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
 
   @Override
   protected void executeDDLUpdates() throws AmbariException, SQLException {
-    //To change body of implemented methods use File | Settings | File Templates.
+    DBAccessor.DBColumnInfo columnInfo = new DBAccessor.DBColumnInfo("host_id", Long.class);
+    dbAccessor.addColumn("topology_host_info", columnInfo);
+    dbAccessor.addFKConstraint("topology_host_info", "FK_hostinfo_host_id", "host_id", "hosts", "host_id", true);
+    dbAccessor.executeUpdate("update topology_host_info set host_id = (select hosts.host_id from hosts where hosts.host_name = topology_host_info.fqdn)");
   }
 
   @Override

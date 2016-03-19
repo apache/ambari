@@ -45,6 +45,7 @@ import org.apache.ambari.server.orm.dao.RequestOperationLevelDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
+import org.apache.ambari.server.orm.dao.TopologyHostInfoDAO;
 import org.apache.ambari.server.orm.dao.TopologyHostRequestDAO;
 import org.apache.ambari.server.orm.dao.TopologyLogicalTaskDAO;
 import org.apache.ambari.server.orm.dao.TopologyRequestDAO;
@@ -151,6 +152,8 @@ public class ClustersImpl implements Clusters {
   private TopologyHostRequestDAO topologyHostRequestDAO;
   @Inject
   private TopologyRequestDAO topologyRequestDAO;
+  @Inject
+  private TopologyHostInfoDAO topologyHostInfoDAO;
 
   /**
    * Data access object for stacks.
@@ -900,6 +903,7 @@ public class ClustersImpl implements Clusters {
       hostConfigMappingDAO.removeByHostId(entity.getHostId());
       serviceConfigDAO.removeHostFromServiceConfigs(entity.getHostId());
       requestOperationLevelDAO.removeByHostId(entity.getHostId());
+      topologyHostInfoDAO.removeByHost(entity);
 
       // Remove from dictionaries
       hosts.remove(hostname);

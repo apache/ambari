@@ -21,6 +21,8 @@ package org.apache.ambari.server.topology;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.ambari.server.state.Host;
+
 /**
  * Persistence abstraction.
  */
@@ -66,4 +68,6 @@ public interface PersistedState {
    * @return map of cluster topology to list of logical requests
    */
   Map<ClusterTopology, List<LogicalRequest>> getAllRequests();
+
+  void registerInTopologyHostInfo(Host host);
 }

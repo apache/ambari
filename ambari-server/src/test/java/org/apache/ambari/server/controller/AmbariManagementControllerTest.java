@@ -93,6 +93,7 @@ import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.ExecutionCommandDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.orm.dao.TopologyHostInfoDAO;
 import org.apache.ambari.server.orm.dao.WidgetDAO;
 import org.apache.ambari.server.orm.dao.WidgetLayoutDAO;
 import org.apache.ambari.server.orm.entities.ExecutionCommandEntity;
@@ -210,6 +211,7 @@ public class AmbariManagementControllerTest {
   private OrmTestHelper helper;
   private StageFactory stageFactory;
   private HostDAO hostDAO;
+  private TopologyHostInfoDAO topologyHostInfoDAO;
   private HostRoleCommandDAO hostRoleCommandDAO;
   private TopologyManager topologyManager;
 
@@ -246,6 +248,7 @@ public class AmbariManagementControllerTest {
     helper = injector.getInstance(OrmTestHelper.class);
     stageFactory = injector.getInstance(StageFactory.class);
     hostDAO = injector.getInstance(HostDAO.class);
+    topologyHostInfoDAO = injector.getInstance(TopologyHostInfoDAO.class);
     hostRoleCommandDAO = injector.getInstance(HostRoleCommandDAO.class);
     topologyManager = injector.getInstance(TopologyManager.class);
     StageUtils.setTopologyManager(topologyManager);
@@ -8619,6 +8622,8 @@ public class AmbariManagementControllerTest {
 
     Assert.assertEquals(0, cluster.getServiceComponentHosts(host1).size());
 
+    Assert.assertNull(topologyHostInfoDAO.findByHostname(host1));
+
     // Deletion without specifying cluster should be successful
     requests.clear();
     requests.add(new HostRequest(host1, null, null));
@@ -8630,7 +8635,7 @@ public class AmbariManagementControllerTest {
     // Verify host is no longer part of the cluster
     Assert.assertFalse(clusters.getHostsForCluster(clusterName).containsKey(host1));
     Assert.assertFalse(clusters.getClustersForHost(host1).contains(cluster));
-
+    Assert.assertNull(topologyHostInfoDAO.findByHostname(host1));
 
     // Case 3: Delete host that is still part of the cluster, and specify the cluster_name in the request
     requests.clear();
@@ -8643,6 +8648,7 @@ public class AmbariManagementControllerTest {
     // Verify host is no longer part of the cluster
     Assert.assertFalse(clusters.getHostsForCluster(clusterName).containsKey(host2));
     Assert.assertFalse(clusters.getClustersForHost(host2).contains(cluster));
+    Assert.assertNull(topologyHostInfoDAO.findByHostname(host2));
 
     // Case 4: Attempt to delete a host that has already been deleted
     requests.clear();

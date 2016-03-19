@@ -581,7 +581,7 @@ public class TopologyManager {
     return logicalRequest;
   }
 
-  private void processAcceptedHostOffer(ClusterTopology topology, final HostOfferResponse response, HostImpl host) {
+  private void processAcceptedHostOffer(ClusterTopology topology, final HostOfferResponse response, final HostImpl host) {
     final String hostName = host.getHostName();
     try {
       topology.addHostToTopology(response.getHostGroupName(), hostName);
@@ -603,6 +603,7 @@ public class TopologyManager {
         @Override
         public Object call() throws Exception {
           persistedState.registerHostName(response.getHostRequestId(), hostName);
+          persistedState.registerInTopologyHostInfo(host);
           return null;
         }
       });
