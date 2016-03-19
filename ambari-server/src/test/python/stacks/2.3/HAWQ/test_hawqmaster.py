@@ -100,15 +100,15 @@ class TestHawqMaster(RMFTestCase):
         recursive = True
         )
 
+    self.assertResourceCalled('Execute', 'chmod 700 /data/hawq/master',
+        user = 'root',
+        timeout = 600
+        )
+
     self.assertResourceCalled('Directory', '/tmp',
         group = self.GPADMIN,
         owner = self.GPADMIN,
         recursive = True
-        )
-
-    self.assertResourceCalled('Execute', 'chmod 700 /data/hawq/master',
-        user = 'root',
-        timeout =  600
         )
 
 

@@ -52,6 +52,20 @@ def __create_hawq_user():
        groups=[hawq_constants.hawq_group, params.user_group],
        ignore_failures=True)
 
+def create_master_dir(dir_path):
+  """
+  Creates the master directory (hawq_master_dir or hawq_segment_dir) for HAWQ
+  """
+  utils.create_dir_as_hawq_user(dir_path)
+  Execute("chmod 700 {0}".format(dir_path), user=hawq_constants.root_user, timeout=hawq_constants.default_exec_timeout)
+
+def create_temp_dirs(dir_paths):
+  """
+  Creates the temp directories (hawq_master_temp_dir or hawq_segment_temp_dir) for HAWQ
+  """
+  for path in dir_paths.split(','):
+    if path != "":
+      utils.create_dir_as_hawq_user(path)
 
 def __set_home_dir_ownership():
   """

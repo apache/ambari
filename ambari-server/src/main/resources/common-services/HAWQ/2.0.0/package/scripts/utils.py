@@ -35,7 +35,11 @@ def create_dir_as_hawq_user(directory):
   """
   Creates directories with hawq_user and hawq_group (defaults to gpadmin:gpadmin)
   """
-  Directory(directory, recursive=True, owner=hawq_constants.hawq_user, group=hawq_constants.hawq_group)
+  Directory(
+        directory,
+        recursive=True,
+        owner=hawq_constants.hawq_user,
+        group=hawq_constants.hawq_group)
 
 
 def exec_hawq_operation(operation, option, not_if=None, only_if=None, logoutput=True):

@@ -138,8 +138,8 @@ yarn_client = config['configurations']['yarn-client']
 # Directories and ports
 hawq_master_dir = hawq_site.get('hawq_master_directory')
 hawq_segment_dir = hawq_site.get('hawq_segment_directory')
-hawq_master_temp_dir = hawq_site.get('hawq_master_temp_directory')
-hawq_segment_temp_dir = hawq_site.get('hawq_segment_temp_directory')
+hawq_master_temp_dirs = hawq_site.get('hawq_master_temp_directory')
+hawq_segment_temp_dirs = hawq_site.get('hawq_segment_temp_directory')
 # Extract hawq hdfs directory from hdfs url. Ex: /hawq/hawq_default from
 # host:8080/hawq/hawq_default
 hawq_hdfs_data_dir = "/{0}".format(hawq_site.get('hawq_dfs_url').split('/', 1)[1])
