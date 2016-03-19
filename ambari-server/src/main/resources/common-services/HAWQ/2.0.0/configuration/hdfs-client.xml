@@ -323,10 +323,11 @@
 
   <property>
     <name>output.replace-datanode-on-failure</name>
-    <value>false</value>
+    <value>true</value>
     <description>
-      Determines whether the client adds a new DataNode to pipeline if the number of nodes in the pipeline is less than the specified number of replicas.
-      The default is true.
+      Determines whether the client adds a new DataNode to pipeline if the number of nodes in the pipeline
+      is less than the specified number of replicas. The default is true.
+      For test environments with 4 HAWQ Segments or less, value should be false.
     </description>
     <value-attributes>
       <type>boolean</type>

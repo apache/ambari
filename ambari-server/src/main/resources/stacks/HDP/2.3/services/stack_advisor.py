@@ -662,30 +662,39 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
 
 
   def recommendHAWQConfigurations(self, configurations, clusterData, services, hosts):
-    if "hawq-site" not in services["configurations"]:
-      return
-    hawq_site = services["configurations"]["hawq-site"]["properties"]
-    putHawqSiteProperty = self.putProperty(configurations, "hawq-site", services)
-    componentsListList = [service["components"] for service in services["services"]]
-    componentsList = [item["StackServiceComponents"] for sublist in componentsListList for item in sublist]
-    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    if any(x in services["configurations"] for x in ["hawq-site", "hdfs-client"]):
+      componentsListList = [service["components"] for service in services["services"]]
+      componentsList = [item["StackServiceComponents"] for sublist in componentsListList for item in sublist]
+      servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+      numSegments = len(self.__getHosts(componentsList, "HAWQSEGMENT"))
 
-    # remove master port when master is colocated with Ambari server
-    if self.isHawqMasterComponentOnAmbariServer(services) and "hawq_master_address_port" in hawq_site:
+    if "hawq-site" in services["configurations"]:
+      hawq_site = services["configurations"]["hawq-site"]["properties"]
+      putHawqSiteProperty = self.putProperty(configurations, "hawq-site", services)
+
+      # remove master port when master is colocated with Ambari server
+      if self.isHawqMasterComponentOnAmbariServer(services) and "hawq_master_address_port" in hawq_site:
         putHawqSiteProperty('hawq_master_address_port', '')
 
-    # calculate optimal number of virtual segments
-    numSegments = len(self.__getHosts(componentsList, "HAWQSEGMENT"))
-    # update default if segments are deployed
-    if numSegments and "default_hash_table_bucket_number" in hawq_site:
-      putHawqSiteProperty('default_hash_table_bucket_number', numSegments * 6)
+      # update default if segments are deployed
+      if numSegments and "default_hash_table_bucket_number" in hawq_site:
+        putHawqSiteProperty('default_hash_table_bucket_number', numSegments * 6)
 
-    # update YARN RM urls with the values from yarn-site if YARN is installed
-    if "YARN" in servicesList and "yarn-site" in services["configurations"]:
-      yarn_site = services["configurations"]["yarn-site"]["properties"]
-      for hs_prop, ys_prop in self.getHAWQYARNPropertyMapping().items():
-        if hs_prop in hawq_site and ys_prop in yarn_site:
-          putHawqSiteProperty(hs_prop, yarn_site[ys_prop])
+      # update YARN RM urls with the values from yarn-site if YARN is installed
+      if "YARN" in servicesList and "yarn-site" in services["configurations"]:
+        yarn_site = services["configurations"]["yarn-site"]["properties"]
+        for hs_prop, ys_prop in self.getHAWQYARNPropertyMapping().items():
+          if hs_prop in hawq_site and ys_prop in yarn_site:
+            putHawqSiteProperty(hs_prop, yarn_site[ys_prop])
+
+    # set output.replace-datanode-on-failure in HAWQ hdfs-client depending on the cluster size
+    if "hdfs-client" in services["configurations"]:
+      hdfs_client = services["configurations"]["hdfs-client"]["properties"]
+      if "output.replace-datanode-on-failure" in hdfs_client:
+        propertyValue = "true" if numSegments > 4 else "false"
+        putHdfsClientProperty = self.putProperty(configurations, "hdfs-client", services)
+        putHdfsClientProperty("output.replace-datanode-on-failure", propertyValue)
+
 
   def getServiceConfigurationValidators(self):
     parentValidators = super(HDP23StackAdvisor, self).getServiceConfigurationValidators()
@@ -696,7 +705,8 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       "HBASE": {"hbase-site": self.validateHBASEConfigurations},
       "KAKFA": {"kafka-broker": self.validateKAFKAConfigurations},
       "YARN": {"yarn-site": self.validateYARNConfigurations},
-      "HAWQ": {"hawq-site": self.validateHAWQConfigurations}
+      "HAWQ": {"hawq-site": self.validateHAWQSiteConfigurations,
+               "hdfs-client": self.validateHAWQHdfsClientConfigurations}
     }
     self.mergeValidators(parentValidators, childValidators)
     return parentValidators
@@ -912,7 +922,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
                               "It is not advisable to have " + display_name + " at " + root_dir +". Consider creating a sub directory for HAWQ")})
 
 
-  def validateHAWQConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+  def validateHAWQSiteConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     hawq_site = properties
     validationItems = []
 
@@ -952,7 +962,30 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       validationItems.append({"config-name": HAWQ_GLOBAL_RM_TYPE, "item": self.getErrorItem(message)})
 
     return self.toConfigurationValidationProblems(validationItems, "hawq-site")
-  
+
+  def validateHAWQHdfsClientConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+    hdfs_client = properties
+    validationItems = []
+
+    # check HAWQ hdfs-client output.replace-datanode-on-failure property
+    PROP_NAME = "output.replace-datanode-on-failure"
+    if PROP_NAME in hdfs_client:
+      value = hdfs_client[PROP_NAME].upper()
+      componentsListList = [service["components"] for service in services["services"]]
+      componentsList = [item["StackServiceComponents"] for sublist in componentsListList for item in sublist]
+      numSegments = len(self.__getHosts(componentsList, "HAWQSEGMENT"))
+
+      message = None
+      limit = 4
+      if numSegments > limit and value != 'TRUE':
+        message = "{0} should be set to true (checked) for clusters with more than {1} HAWQ Segments"
+      elif numSegments <= limit and value != 'FALSE':
+        message = "{0} should be set to false (unchecked) for clusters with {1} or less HAWQ Segments"
+
+      if message:
+        validationItems.append({"config-name": PROP_NAME, "item": self.getWarnItem(message.format(PROP_NAME, str(limit)))})
+
+    return self.toConfigurationValidationProblems(validationItems, "hdfs-client")
   
   def isComponentUsingCardinalityForLayout(self, componentName):
     return componentName in ['NFS_GATEWAY', 'PHOENIX_QUERY_SERVER', 'SPARK_THRIFTSERVER']
