@@ -303,8 +303,10 @@
     <display-name>Default buckets for Hash Distributed tables</display-name>
     <value>6</value>
     <description>
-     The default number of virtual segments per query for hash distributed tables that can be used for query execution in a HAWQ segment when Resource Manager ('hawq_global_rm_type') is set to Standalone ('none').
-      The default is 6.
+      The default number of buckets when creating a hash distributed table, if not defined explicitly when creating the table.
+      When running a query on a hash dist table, the query resource is fixed and equal to the number of buckets.
+      The default set during installation is the number of HAWQ Segments multiplied by 6.
+      Adjust the value when the number of HAWQ Segments changes in the cluster.
     </description>
     <value-attributes>
       <type>int</type>
@@ -319,9 +321,9 @@
     <display-name>Virtual Segments Limit per Query (per Segment Node)</display-name>
     <value>6</value>
     <description>
-      Not recommended to change this parameter.
-       The maximum  number of virtual segments per query per Segment Node that can be used for query execution in a HAWQ segment when Resource Manager ('hawq_global_rm_type') is set to Standalone ('none').
-      The default is 6.
+      The maximum number of virtual segments per query per segment node when querying randomly distributed tables, external tables, and tables with user defined functions.
+      This parameter is used to limit the maximum resource usage on each segment node.
+      The default is 6. Not recommended to change this parameter.
     </description>
     <value-attributes>
       <type>int</type>
@@ -336,9 +338,9 @@
     <display-name>Virtual Segments Limit per Query (Total)</display-name>
     <value>512</value>
     <description>
-      Not recommended to change this parameter.
-      The maximum total number of virtual segments per query that can be used for query execution in a HAWQ segment when Resource Manager ('hawq_global_rm_type') is set to Standalone ('none').
-      The default is 512.
+      The maximum number of virtual segments per query across the cluster.
+      This parameter is used to limit the maximum resource usage per query across the cluster regardless of the number of HAWQ Segments.
+      The default value is 512. Not recommended to change this parameter.
     </description>
     <value-attributes>
       <type>int</type>

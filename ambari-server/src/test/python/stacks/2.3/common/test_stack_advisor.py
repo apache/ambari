@@ -1474,6 +1474,9 @@ class TestHDP23StackAdvisor(TestCase):
     services["configurations"]["hawq-site"] = {"properties": {"default_hash_table_bucket_number": "24",
                                                               "hawq_rm_yarn_address": "localhost:8032",
                                                               "hawq_rm_yarn_scheduler_address": "localhost:8030"}}
+
+    services["configurations"]["hdfs-client"] = {"properties": {"output.replace-datanode-on-failure": "true"}}
+
     services["configurations"]["yarn-site"] = {"properties": {"yarn.resourcemanager.address": "host1:8050",
                                                               "yarn.resourcemanager.scheduler.address": "host1:8030"}}
     services["services"].append({"StackServices" : {"service_name" : "YARN"}, "components":[]})
@@ -1484,6 +1487,7 @@ class TestHDP23StackAdvisor(TestCase):
     self.assertEquals(len(hawqSegmentComponent["hostnames"]), 3)
     self.stackAdvisor.recommendHAWQConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations["hawq-site"]["properties"]["default_hash_table_bucket_number"], str(3 * 6))
+    self.assertEquals(configurations["hdfs-client"]["properties"]["output.replace-datanode-on-failure"], "false")
 
     # check derived properties
     self.assertEquals(configurations["hawq-site"]["properties"]["hawq_rm_yarn_address"], "host1:8050")
@@ -1493,14 +1497,15 @@ class TestHDP23StackAdvisor(TestCase):
     hawqSegmentComponent["hostnames"] = ["host" + str(i) for i in range(100)]
     self.stackAdvisor.recommendHAWQConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations["hawq-site"]["properties"]["default_hash_table_bucket_number"], str(100 * 6))
+    self.assertEquals(configurations["hdfs-client"]["properties"]["output.replace-datanode-on-failure"], "true")
 
-    # Test 4 - with no segments
+    # Test 3 - with no segments
     configurations = {}
     services["configurations"]["hawq-site"] = {"properties":{'hawq-site': {'properties': {}}}}
     hawqSegmentComponent["hostnames"] = []
     self.stackAdvisor.recommendHAWQConfigurations(configurations, clusterData, services, None)
-    self.assertEquals(configurations, {'hawq-site': {'properties': {}}})
-
+    self.assertEquals(configurations, {'hdfs-client': {'properties': {'output.replace-datanode-on-failure': 'false'}},
+                                       'hawq-site': {'properties': {}}})
 
   def test_validateHiveConfigurations(self):
     properties = {"hive_security_authorization": "None",
@@ -1770,7 +1775,7 @@ class TestHDP23StackAdvisor(TestCase):
     self.assertEqual(len(problems), 0)
 
 
-  def test_validateHAWQConfigurations(self):
+  def test_validateHAWQSiteConfigurations(self):
     services = self.load_json("services-hawq-3-hosts.json")
     # setup default configuration values
     # Test hawq_rm_yarn_address and hawq_rm_scheduler_address are set correctly
@@ -1801,7 +1806,7 @@ class TestHDP23StackAdvisor(TestCase):
       }
     }
 
-    problems = self.stackAdvisor.validateHAWQConfigurations(properties, defaults, configurations, services, hosts)
+    problems = self.stackAdvisor.validateHAWQSiteConfigurations(properties, defaults, configurations, services, hosts)
     problems_dict = {}
     for problem in problems:
       problems_dict[problem['config-name']] = problem
@@ -1839,7 +1844,7 @@ class TestHDP23StackAdvisor(TestCase):
                           "level": "ERROR"
                     } ]
     """
-    problems = self.stackAdvisor.validateHAWQConfigurations(properties, defaults, services["configurations"], services, hosts)
+    problems = self.stackAdvisor.validateHAWQSiteConfigurations(properties, defaults, services["configurations"], services, hosts)
     self.assertEqual(len(problems), 1)
     expected = {
       "config-type": "hawq-site",
@@ -1853,7 +1858,7 @@ class TestHDP23StackAdvisor(TestCase):
     # case 2: hawq_global_rm_type is set as yarn, and YARN service is installed. No validation errors expected.
     services["services"].append({"StackServices" : {"service_name" : "YARN"}, "components":[]})
 
-    problems = self.stackAdvisor.validateHAWQConfigurations(properties, defaults, services["configurations"], services, hosts)
+    problems = self.stackAdvisor.validateHAWQSiteConfigurations(properties, defaults, services["configurations"], services, hosts)
     self.assertEqual(len(problems), 0)
 
     # Test HAWQ Master port conflict with Ambari Server Postgres port
@@ -1866,7 +1871,7 @@ class TestHDP23StackAdvisor(TestCase):
           {"hawq_master_address_port": "5432"}
       }
     }
-    problems = self.stackAdvisor.validateHAWQConfigurations(properties, defaults, configurations, services, hosts)
+    problems = self.stackAdvisor.validateHAWQSiteConfigurations(properties, defaults, configurations, services, hosts)
     self.assertEqual(len(problems), 1)
     expected = {
       "config-name": "hawq_master_address_port",
@@ -1881,17 +1886,73 @@ class TestHDP23StackAdvisor(TestCase):
     # case 2: HAWQ Master is placed on Ambari Server and HAWQ Master port is different from  Ambari Server Postgres Port
     self.stackAdvisor.isHawqMasterComponentOnAmbariServer = MagicMock(return_value=True)
     configurations["hawq-site"]["properties"]["hawq_master_address_port"] = "10432"
-    problems = self.stackAdvisor.validateHAWQConfigurations(properties, defaults, configurations, services, hosts)
+    problems = self.stackAdvisor.validateHAWQSiteConfigurations(properties, defaults, configurations, services, hosts)
     self.assertEqual(len(problems), 0)
 
     # case 3: HAWQ Master is not placed on Ambari Server and HAWQ Master port is same as  Ambari Server Postgres Port
     self.stackAdvisor.isHawqMasterComponentOnAmbariServer = MagicMock(return_value=False)
     configurations["hawq-site"]["properties"]["hawq_master_address_port"] = "5432"
-    problems = self.stackAdvisor.validateHAWQConfigurations(properties, defaults, configurations, services, hosts)
+    problems = self.stackAdvisor.validateHAWQSiteConfigurations(properties, defaults, configurations, services, hosts)
     self.assertEqual(len(problems), 0)
 
     # case 4: HAWQ Master is not placed on Ambari Server and HAWQ Master port is different from  Ambari Server Postgres Port
     self.stackAdvisor.isHawqMasterComponentOnAmbariServer = MagicMock(return_value=False)
     configurations["hawq-site"]["properties"]["hawq_master_address_port"] = "10432"
-    problems = self.stackAdvisor.validateHAWQConfigurations(properties, defaults, configurations, services, hosts)
+    problems = self.stackAdvisor.validateHAWQSiteConfigurations(properties, defaults, configurations, services, hosts)
     self.assertEqual(len(problems), 0)
+
+  def test_validateHAWQHdfsClientConfigurations(self):
+    services = {
+      "services":  [
+        { "StackServices": {"service_name": "HAWQ"},
+          "components": [{
+            "StackServiceComponents": {
+              "component_name": "HAWQSEGMENT",
+              "hostnames": []
+            }}]
+          }],
+      "configurations": {}
+    }
+    # setup default configuration values
+    configurations = services["configurations"]
+    configurations["hdfs-client"] = {"properties": {"output.replace-datanode-on-failure": "true"}}
+    properties = configurations["hdfs-client"]["properties"]
+    defaults = {}
+    hosts = {}
+
+    # 1. Try with no hosts
+    expected = {
+        'config-type': 'hdfs-client',
+        'message': 'output.replace-datanode-on-failure should be set to false (unchecked) for clusters with 4 or less HAWQ Segments',
+        'type': 'configuration',
+        'config-name': 'output.replace-datanode-on-failure',
+        'level': 'WARN'
+    }
+
+    problems = self.stackAdvisor.validateHAWQHdfsClientConfigurations(properties, defaults, configurations, services, hosts)
+    self.assertEqual(len(problems), 1)
+    self.assertEqual(problems[0], expected)
+
+    # 2. Try with 4 hosts
+    services["services"][0]["components"][0]["StackServiceComponents"]["hostnames"] = ["host1", "host2", "host3", "host4"]
+    problems = self.stackAdvisor.validateHAWQHdfsClientConfigurations(properties, defaults, configurations, services, hosts)
+    self.assertEqual(len(problems), 1)
+    self.assertEqual(problems[0], expected)
+
+    # 3. Try with 5 hosts - default value
+    services["services"][0]["components"][0]["StackServiceComponents"]["hostnames"] = ["host1", "host2", "host3", "host4", "host5"]
+    problems = self.stackAdvisor.validateHAWQHdfsClientConfigurations(properties, defaults, configurations, services, hosts)
+    self.assertEqual(len(problems), 0)
+
+    # 4. Try with 5 hosts
+    properties = {"output.replace-datanode-on-failure": "false"}
+    expected = {
+      'config-type': 'hdfs-client',
+      'message': 'output.replace-datanode-on-failure should be set to true (checked) for clusters with more than 4 HAWQ Segments',
+      'type': 'configuration',
+      'config-name': 'output.replace-datanode-on-failure',
+      'level': 'WARN'
+    }
+    problems = self.stackAdvisor.validateHAWQHdfsClientConfigurations(properties, defaults, configurations, services, hosts)
+    self.assertEqual(len(problems), 1)
+    self.assertEqual(problems[0], expected)
