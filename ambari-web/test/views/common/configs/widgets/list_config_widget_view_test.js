@@ -194,4 +194,132 @@ describe('App.ListConfigWidgetView', function () {
     });
   });
 
+  describe('#onOptionsChangeBeforeRender', function () {
+
+    beforeEach(function () {
+      sinon.stub(view, 'calculateOptions', Em.K);
+      sinon.stub(view, 'calculateInitVal', Em.K);
+      view.onOptionsChangeBeforeRender();
+    });
+
+    afterEach(function () {
+      view.calculateOptions.restore();
+      view.calculateInitVal.restore();
+    });
+
+    it('should calculate options array', function () {
+      expect(view.calculateOptions.calledOnce).to.be.true;
+    });
+
+    it('should calculate initial value', function () {
+      expect(view.calculateInitVal.calledOnce).to.be.true;
+    });
+
+  });
+
+  describe('#onOptionsChangeAfterRender', function () {
+
+    var cases = [
+      {
+        calculateValCallCount: 1,
+        isValueCompatibleWithWidget: true,
+        title: 'correct value'
+      },
+      {
+        calculateValCallCount: 0,
+        isValueCompatibleWithWidget: false,
+        title: 'incorrect value'
+      }
+    ];
+
+    cases.forEach(function (item) {
+
+      describe(item.title, function () {
+
+        beforeEach(function () {
+          sinon.stub(view, 'addObserver', Em.K);
+          sinon.stub(view, 'calculateVal', Em.K);
+          sinon.stub(view, 'checkSelectedItemsCount', Em.K);
+          sinon.stub(view, 'isValueCompatibleWithWidget').returns(item.isValueCompatibleWithWidget);
+          view.onOptionsChangeAfterRender();
+        });
+
+        afterEach(function () {
+          view.addObserver.restore();
+          view.calculateVal.restore();
+          view.checkSelectedItemsCount.restore();
+          view.isValueCompatibleWithWidget.restore();
+        });
+
+        it('observers registration', function () {
+          expect(view.addObserver.calledTwice).to.be.true;
+        });
+
+        it('calculateVal observer', function () {
+          expect(view.addObserver.firstCall.args).to.eql(['options.@each.isSelected', view, view.calculateVal]);
+        });
+
+        it('checkSelectedItemsCount observer', function () {
+          expect(view.addObserver.secondCall.args).to.eql(['options.@each.isSelected', view, view.checkSelectedItemsCount]);
+        });
+
+        it('value calculation', function () {
+          expect(view.calculateVal.callCount).to.equal(item.calculateValCallCount);
+        });
+
+        it('should check selected items count', function () {
+          expect(view.checkSelectedItemsCount.calledOnce).to.be.true;
+        });
+
+      });
+
+    });
+
+  });
+
+  describe('#entriesObserver', function () {
+
+    beforeEach(function () {
+      sinon.stub(view, 'removeObserver', Em.K);
+      sinon.stub(view, 'onOptionsChangeBeforeRender', Em.K);
+      sinon.stub(view, 'initIncompatibleWidgetAsTextBox', Em.K);
+      sinon.stub(view, 'onOptionsChangeAfterRender', Em.K);
+      view.entriesObserver();
+    });
+
+    afterEach(function () {
+      view.removeObserver.restore();
+      view.onOptionsChangeBeforeRender.restore();
+      view.initIncompatibleWidgetAsTextBox.restore();
+      view.onOptionsChangeAfterRender.restore();
+    });
+
+    it('observers removal', function () {
+      expect(view.removeObserver.calledTwice).to.be.true;
+    });
+
+    it('calculateVal observer', function () {
+      expect(view.removeObserver.firstCall.args).to.eql(['options.@each.isSelected', view, view.calculateVal]);
+    });
+
+    it('checkSelectedItemsCount observer', function () {
+      expect(view.removeObserver.secondCall.args).to.eql(['options.@each.isSelected', view, view.checkSelectedItemsCount]);
+    });
+
+    it('first options change handler', function () {
+      expect(view.onOptionsChangeBeforeRender.calledOnce).to.be.true;
+    });
+
+    it('incompatible value processing', function () {
+      expect(view.initIncompatibleWidgetAsTextBox.calledOnce).to.be.true;
+    });
+
+    it('second options change handler', function () {
+      expect(view.onOptionsChangeAfterRender.calledOnce).to.be.true;
+    });
+
+
+  });
+
+
 });

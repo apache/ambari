@@ -111,23 +111,31 @@ App.ListConfigWidgetView = App.ConfigWidgetView.extend({
   willInsertElement: function () {
     this._super();
     this.parseCardinality();
-    this.calculateOptions();
-    this.calculateInitVal();
+    this.onOptionsChangeBeforeRender();
   },
 
   didInsertElement: function () {
     this.initPopover();
     this._super();
     this.toggleWidgetState();
+    this.onOptionsChangeAfterRender();
+    Em.run.next(function () {
+      App.tooltip(this.$('[rel="tooltip"]'));
+    });
+  },
+
+  onOptionsChangeBeforeRender: function () {
+    this.calculateOptions();
+    this.calculateInitVal();
+  },
+
+  onOptionsChangeAfterRender: function () {
     this.addObserver('options.@each.isSelected', this, this.calculateVal);
     this.addObserver('options.@each.isSelected', this, this.checkSelectedItemsCount);
     if (this.isValueCompatibleWithWidget()) {
       this.calculateVal();
     }
     this.checkSelectedItemsCount();
-    Em.run.next(function () {
-      App.tooltip(this.$('[rel="tooltip"]'));
-    });
   },
 
   /**
@@ -147,6 +155,14 @@ App.ListConfigWidgetView = App.ConfigWidgetView.extend({
     });
     this.set('options', options);
   },
+
+  entriesObserver: function () {
+    this.removeObserver('options.@each.isSelected', this, this.calculateVal);
+    this.removeObserver('options.@each.isSelected', this, this.checkSelectedItemsCount);
+    this.onOptionsChangeBeforeRender();
+    this.initIncompatibleWidgetAsTextBox();
+    this.onOptionsChangeAfterRender();
+  }.observes('config.stackConfigProperty.valueAttributes.entries.@each'),
 
   /**
    * Get initial value for <code>val</code> using calculated earlier <code>options</code>
