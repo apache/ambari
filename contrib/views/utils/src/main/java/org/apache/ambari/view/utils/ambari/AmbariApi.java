@@ -312,4 +312,12 @@ public class AmbariApi {
     }
     return services;
   }
+
+  public String getProperty(String type, String key, String instanceProperty) {
+    try {
+      return this.getCluster().getConfigurationValue(type, key);
+    } catch (NoClusterAssociatedException e) {
+      return context.getProperties().get(instanceProperty);
+    }
+  }
 }

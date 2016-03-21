@@ -84,6 +84,16 @@
       <required>false</required>
     </parameter>
 
+    <parameter>
+        <name>hive.metastore.warehouse.dir</name>
+        <description>Hive Metastore directory (example: /apps/hive/warehouse)</description>
+        <label>Hive Metastore directory</label>
+        <placeholder>/apps/hive/warehouse</placeholder>
+        <default-value>/apps/hive/warehouse</default-value>
+        <cluster-config>hive-site/hive.metastore.warehouse.dir</cluster-config>
+        <required>false</required>
+    </parameter>
+
     <!-- HDFS Configs -->
     <parameter>
         <name>webhdfs.url</name>

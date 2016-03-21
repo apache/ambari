@@ -33,7 +33,6 @@ import org.apache.ambari.view.hive.resources.uploads.query.*;
 import org.apache.ambari.view.hive.utils.ServiceFormattedException;
 import org.apache.ambari.view.hive.utils.SharedObjectsFactory;
 import org.apache.ambari.view.utils.ambari.AmbariApi;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.input.ReaderInputStream;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -63,11 +62,12 @@ import java.util.*;
 public class UploadService extends BaseService {
 
   private AmbariApi ambariApi;
-
   protected JobResourceManager resourceManager;
 
-  final private static String HIVE_META_STORE_LOCATION_KEY = "hive.metastore.warehouse.dir";
+  final private static String HIVE_METASTORE_LOCATION_KEY = "hive.metastore.warehouse.dir";
   final private static String HIVE_SITE = "hive-site";
+  final private static String HIVE_METASTORE_LOCATION_KEY_VIEW_PROPERTY = HIVE_METASTORE_LOCATION_KEY;
+  private static final String HIVE_DEFAULT_METASTORE_LOCATION = "/apps/hive/warehouse" ;
   final private static String HIVE_DEFAULT_DB = "default";
 
   @POST
@@ -262,11 +262,10 @@ public class UploadService extends BaseService {
   private String uploadIntoTable(Reader reader, String databaseName, String tempTableName) {
     try {
       String basePath = getHiveMetaStoreLocation();
-      if (null == basePath)
-        basePath = "/apps/hive/warehouse";
 
-      if (!basePath.endsWith("/"))
+      if (!basePath.endsWith("/")) {
         basePath = basePath + "/";
+      }
 
       if (databaseName != null && !databaseName.equals(HIVE_DEFAULT_DB)) {
         basePath = basePath + databaseName + ".db/";
@@ -330,7 +329,13 @@ public class UploadService extends BaseService {
   }
 
   private String getHiveMetaStoreLocation() {
-    return this.getAmbariApi().getCluster().getConfigurationValue(HIVE_SITE, HIVE_META_STORE_LOCATION_KEY);
+    String dir = this.getAmbariApi().getProperty(HIVE_SITE,HIVE_METASTORE_LOCATION_KEY,HIVE_METASTORE_LOCATION_KEY_VIEW_PROPERTY);
+    if(dir != null && !dir.trim().isEmpty()){
+      return dir;
+    }else{
+      LOG.debug("Neither found associated cluster nor found the view property {}. Returning default location : {}", HIVE_METASTORE_LOCATION_KEY_VIEW_PROPERTY, HIVE_DEFAULT_METASTORE_LOCATION);
+      return HIVE_DEFAULT_METASTORE_LOCATION;
+    }
   }
 
   private void uploadFile(final String filePath, InputStream uploadedInputStream)
@@ -357,11 +362,9 @@ public class UploadService extends BaseService {
     DataParser dataParser = new DataParser(new InputStreamReader(uploadedInputStream), parseOptions);
 
     return dataParser.parsePreview();
-
   }
 
   private Response createPreviewResponse(PreviewData pd, Boolean isFirstRowHeader, String tableName) {
-
     Map<String, Object> retData = new HashMap<String, Object>();
     retData.put("header", pd.getHeader());
     retData.put("rows", pd.getPreviewRows());
