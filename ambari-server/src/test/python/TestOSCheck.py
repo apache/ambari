@@ -30,18 +30,23 @@ from mock.mock import MagicMock
 
 from only_for_platform import os_distro_value, os_distro_value_linux
 
+from ambari_commons import os_utils
+
 from ambari_commons import OSCheck, OSConst
 import os_check_type
 
+_search_file = os_utils.search_file
+os_utils.search_file = MagicMock(return_value="/tmp/ambari.properties")
 utils = __import__('ambari_server.utils').utils
 # We have to use this import HACK because the filename contains a dash
-with patch("platform.linux_distribution", return_value = os_distro_value_linux):
-  with patch.object(OSCheck, "os_distribution", return_value = os_distro_value):
-    with patch.object(utils, "get_postgre_hba_dir"):
-      os.environ["ROOT"] = ""
-      ambari_server = __import__('ambari-server')
-
-      from ambari_server.serverConfiguration import update_ambari_properties, configDefaults
+with patch.object(os_utils, "parse_log4j_file", return_value={'ambari.log.dir': '/var/log/ambari-server'}):
+  with patch("platform.linux_distribution", return_value = os_distro_value_linux):
+    with patch.object(OSCheck, "os_distribution", return_value = os_distro_value):
+      with patch.object(utils, "get_postgre_hba_dir"):
+        os.environ["ROOT"] = ""
+        ambari_server = __import__('ambari-server')
+  
+        from ambari_server.serverConfiguration import update_ambari_properties, configDefaults
 
 
 class TestOSCheck(TestCase):
