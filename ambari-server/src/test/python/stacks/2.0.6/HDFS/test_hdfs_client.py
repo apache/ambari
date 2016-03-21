@@ -84,7 +84,7 @@ class Test(RMFTestCase):
 
     self.assertResourceCalled("Execute", ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hadoop-client', '2.2.1.0-2067'), sudo=True)
 
-    # for now, it's enough that hdp-select is confirmed
+    # for now, it's enough that <stack-selector-tool> is confirmed
 
   @patch("resource_management.libraries.functions.security_commons.build_expectations")
   @patch("resource_management.libraries.functions.security_commons.get_params_from_filesystem")

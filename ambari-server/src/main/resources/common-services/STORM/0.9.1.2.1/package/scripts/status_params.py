@@ -23,7 +23,7 @@ from resource_management.libraries.functions import default, format
 from ambari_commons import OSCheck
 
 # a map of the Ambari role to the component name
-# for use with /usr/hdp/current/<component>
+# for use with <stack-root>/current/<component>
 SERVER_ROLE_DIRECTORY_MAP = {
   'NIMBUS' : 'storm-nimbus',
   'SUPERVISOR' : 'storm-supervisor',

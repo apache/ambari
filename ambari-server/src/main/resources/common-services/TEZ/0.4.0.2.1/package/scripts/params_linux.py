@@ -53,7 +53,7 @@ tez_examples_jar = "/usr/lib/tez/tez-mapreduce-examples*.jar"
 if Script.is_stack_greater_or_equal("2.2"):
   tez_examples_jar = "/usr/hdp/current/tez-client/tez-examples*.jar"
 
-# tez only started linking /usr/hdp/x.x.x.x/tez-client/conf in HDP 2.3+
+# tez only started linking <stack-root>/x.x.x.x/tez-client/conf in HDP 2.3+
 if Script.is_stack_greater_or_equal("2.3"):
   # !!! use realpath for now since the symlink exists but is broken and a
   # broken symlink messes with the DirectoryProvider class

@@ -151,4 +151,33 @@ gpgcheck=0</value>
             <empty-value-valid>true</empty-value-valid>
         </value-attributes>
     </property>
+    
+    <property>
+        <name>tarball_map</name>
+        <value></value>
+        <description>Tarball mappings</description>
+        <property-type>VALUE_FROM_PROPERTY_FILE</property-type>
+        <value-attributes>
+            <property-file-name>tarball_map.json</property-file-name>
+            <property-file-type>json</property-file-type>
+        </value-attributes>
+    </property>
+
+    <property>
+        <name>stack_tools</name>
+        <value></value>
+        <description>Stack specific tools</description>
+        <property-type>VALUE_FROM_PROPERTY_FILE</property-type>
+        <value-attributes>
+            <property-file-name>stack_tools.json</property-file-name>
+            <property-file-type>json</property-file-type>
+        </value-attributes>
+    </property>
+
+    <property>
+        <name>stack_root</name>
+        <value>/usr/hdp</value>
+        <description>Stack root folder</description>
+    </property>
+
 </configuration>

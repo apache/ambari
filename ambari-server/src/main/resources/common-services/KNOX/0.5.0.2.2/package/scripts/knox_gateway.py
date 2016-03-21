@@ -121,7 +121,7 @@ class KnoxGatewayDefault(KnoxGateway):
         # This will backup the contents of the conf directory into /tmp/knox-upgrade-backup/knox-conf-backup.tar
         absolute_backup_dir = upgrade.backup_data()
 
-      # conf-select will change the symlink to the conf folder.
+      # <conf-selector-tool> will change the symlink to the conf folder.
       conf_select.select(params.stack_name, "knox", params.version)
       stack_select.select("knox-server", params.version)
 

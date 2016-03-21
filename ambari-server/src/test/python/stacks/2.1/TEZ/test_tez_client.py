@@ -75,7 +75,7 @@ class TestTezClient(RMFTestCase):
     get_stack_version_mock.return_value = "2.2.1.0-2067"
     self.assertResourceCalled("Execute", ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hadoop-client', '2.2.1.0-2067'), sudo=True)
 
-    # for now, it's enough that hdp-select is confirmed
+    # for now, it's enough that <stack-selector-tool> is confirmed
 
   @patch("resource_management.libraries.functions.get_stack_version")
   def test_upgrade_23(self, get_stack_version_mock):
@@ -89,7 +89,7 @@ class TestTezClient(RMFTestCase):
     get_stack_version_mock.return_value = "2.2.1.0-2067"
     self.assertResourceCalled("Execute", ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hadoop-client', '2.2.1.0-2067'), sudo=True)
 
-    # for now, it's enough that hdp-select is confirmed
+    # for now, it's enough that <stack-selector-tool> is confirmed
 
   def test_pre_upgrade_restart_23(self):
     config_file = self.get_src_folder()+"/test/python/stacks/2.1/configs/client-upgrade.json"

@@ -24,7 +24,7 @@ from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.script.script import Script
 
 # a map of the Ambari role to the component name
-# for use with /usr/hdp/current/<component>
+# for use with <stack-root>/current/<component>
 SERVER_ROLE_DIRECTORY_MAP = {
   'ZOOKEEPER_SERVER' : 'zookeeper-server',
   'ZOOKEEPER_CLIENT' : 'zookeeper-client'

@@ -46,7 +46,7 @@ def refresh_tez_state_dependent_params():
   global tez_home_dir, tez_conf_dir, stack_version_formatted
   tez_home_dir = os.environ["TEZ_HOME"]
   tez_conf_dir = os.path.join(tez_home_dir, "conf")
-  # this is not available on INSTALL action because hdp-select is not available
+  # this is not available on INSTALL action because <stack-selector-tool> is not available
   stack_version_formatted = get_stack_version("tez")
 
 

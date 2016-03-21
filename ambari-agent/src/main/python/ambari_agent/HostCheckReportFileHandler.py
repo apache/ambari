@@ -89,7 +89,7 @@ class HostCheckReportFileHandler:
 
   def _stack_list_directory(self):
     """
-    Return filtered list of /usr/hdp directory allowed to be removed
+    Return filtered list of <stack-root> directory allowed to be removed
     :rtype list
     """
 

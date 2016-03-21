@@ -18,8 +18,9 @@ limitations under the License.
 
 """
 
-__all__ = ["select", "create", "get_hadoop_conf_dir", "get_hadoop_dir"]
+__all__ = ["select", "create", "get_hadoop_conf_dir", "get_hadoop_dir", "get_package_dirs"]
 
+import copy
 import os
 import version
 import stack_select
@@ -33,166 +34,169 @@ from resource_management.core.resources.system import Directory
 from resource_management.core.resources.system import Execute
 from resource_management.core.resources.system import Link
 from resource_management.libraries.functions.default import default
+from resource_management.libraries.functions import stack_tools
 from resource_management.core.exceptions import Fail
 from resource_management.libraries.functions.version import compare_versions, format_stack_version
 from resource_management.core.shell import as_sudo
 
+STACK_ROOT_PATTERN = "{{ stack_root }}"
 
-PACKAGE_DIRS = {
+_PACKAGE_DIRS = {
   "accumulo": [
     {
       "conf_dir": "/etc/accumulo/conf",
-      "current_dir": "/usr/hdp/current/accumulo-client/conf"
+      "current_dir": "{0}/current/accumulo-client/conf".format(STACK_ROOT_PATTERN)
     }
   ],
   "falcon": [
     {
       "conf_dir": "/etc/falcon/conf",
-      "current_dir": "/usr/hdp/current/falcon-client/conf"
+      "current_dir": "{0}/current/falcon-client/conf".format(STACK_ROOT_PATTERN)
     }
   ],
   "hadoop": [
     {
       "conf_dir": "/etc/hadoop/conf",
-      "current_dir": "/usr/hdp/current/hadoop-client/conf"
+      "current_dir": "{0}/current/hadoop-client/conf".format(STACK_ROOT_PATTERN)
     }
   ],
   "hbase": [
     {
       "conf_dir": "/etc/hbase/conf",
-      "current_dir": "/usr/hdp/current/hbase-client/conf"
+      "current_dir": "{0}/current/hbase-client/conf".format(STACK_ROOT_PATTERN)
     }
   ],
   "hive": [
     {
       "conf_dir": "/etc/hive/conf",
-      "current_dir": "/usr/hdp/current/hive-client/conf"
+      "current_dir": "{0}/current/hive-client/conf".format(STACK_ROOT_PATTERN)
     }
   ],
   "hive2": [
     {
       "conf_dir": "/etc/hive2/conf",
-      "current_dir": "/usr/hdp/current/hive-server2-hive2/conf"
+      "current_dir": "{0}/current/hive-server2-hive2/conf".format(STACK_ROOT_PATTERN)
     }
   ],
   "kafka": [
     {
       "conf_dir": "/etc/kafka/conf",
-      "current_dir": "/usr/hdp/current/kafka-broker/conf"
+      "current_dir": "{0}/current/kafka-broker/conf".format(STACK_ROOT_PATTERN)
     }
   ],
   "knox": [
     {
       "conf_dir": "/etc/knox/conf",
-      "current_dir": "/usr/hdp/current/knox-server/conf"
+      "current_dir": "{0}/current/knox-server/conf".format(STACK_ROOT_PATTERN)
     }
   ],
   "mahout": [
     {
       "conf_dir": "/etc/mahout/conf",
-      "current_dir": "/usr/hdp/current/mahout-client/conf"
+      "current_dir": "{0}/current/mahout-client/conf".format(STACK_ROOT_PATTERN)
     }
   ],
   "oozie": [
     {
       "conf_dir": "/etc/oozie/conf",
-      "current_dir": "/usr/hdp/current/oozie-client/conf"
+      "current_dir": "{0}/current/oozie-client/conf".format(STACK_ROOT_PATTERN)
     }
   ],
   "phoenix": [
     {
       "conf_dir": "/etc/phoenix/conf",
-      "current_dir": "/usr/hdp/current/phoenix-client/conf"
+      "current_dir": "{0}/current/phoenix-client/conf".format(STACK_ROOT_PATTERN)
     }
   ],
   "ranger-admin": [
     {
       "conf_dir": "/etc/ranger/admin/conf",
-      "current_dir": "/usr/hdp/current/ranger-admin/conf"
+      "current_dir": "{0}/current/ranger-admin/conf".format(STACK_ROOT_PATTERN)
     }
   ],
   "ranger-kms": [
     {
       "conf_dir": "/etc/ranger/kms/conf",
-      "current_dir": "/usr/hdp/current/ranger-kms/conf"
+      "current_dir": "{0}/current/ranger-kms/conf".format(STACK_ROOT_PATTERN)
     }
   ],
   "ranger-usersync": [
     {
       "conf_dir": "/etc/ranger/usersync/conf",
-      "current_dir": "/usr/hdp/current/ranger-usersync/conf"
+      "current_dir": "{0}/current/ranger-usersync/conf".format(STACK_ROOT_PATTERN)
     }
   ],
   "slider": [
     {
       "conf_dir": "/etc/slider/conf",
-      "current_dir": "/usr/hdp/current/slider-client/conf"
+      "current_dir": "{0}/current/slider-client/conf".format(STACK_ROOT_PATTERN)
     }
   ],
   "spark": [
     {
       "conf_dir": "/etc/spark/conf",
-      "current_dir": "/usr/hdp/current/spark-client/conf"
+      "current_dir": "{0}/current/spark-client/conf".format(STACK_ROOT_PATTERN)
     }
   ],
   "sqoop": [
     {
       "conf_dir": "/etc/sqoop/conf",
-      "current_dir": "/usr/hdp/current/sqoop-client/conf"
+      "current_dir": "{0}/current/sqoop-client/conf".format(STACK_ROOT_PATTERN)
     }
   ],
   "storm": [
     {
       "conf_dir": "/etc/storm/conf",
-      "current_dir": "/usr/hdp/current/storm-client/conf"
+      "current_dir": "{0}/current/storm-client/conf".format(STACK_ROOT_PATTERN)
     }
   ],
   "tez": [
     {
       "conf_dir": "/etc/tez/conf",
-      "current_dir": "/usr/hdp/current/tez-client/conf"
+      "current_dir": "{0}/current/tez-client/conf".format(STACK_ROOT_PATTERN)
     }
   ],
   "zookeeper": [
     {
       "conf_dir": "/etc/zookeeper/conf",
-      "current_dir": "/usr/hdp/current/zookeeper-client/conf"
+      "current_dir": "{0}/current/zookeeper-client/conf".format(STACK_ROOT_PATTERN)
     }
   ],
   "pig": [
     {
       "conf_dir": "/etc/pig/conf",
-      "current_dir": "/usr/hdp/current/pig-client/conf"
+      "current_dir": "{0}/current/pig-client/conf".format(STACK_ROOT_PATTERN)
     }
   ],
   "flume": [
     {
       "conf_dir": "/etc/flume/conf",
-      "current_dir": "/usr/hdp/current/flume-server/conf"
+      "current_dir": "{0}/current/flume-server/conf".format(STACK_ROOT_PATTERN)
     }
   ],
   "storm-slider-client": [
     {
       "conf_dir": "/etc/storm-slider-client/conf",
-      "current_dir": "/usr/hdp/current/storm-slider-client/conf"
+      "current_dir": "{0}/current/storm-slider-client/conf".format(STACK_ROOT_PATTERN)
     }
   ],
   "hive-hcatalog": [
     {
       "conf_dir": "/etc/hive-webhcat/conf",
       "prefix": "/etc/hive-webhcat",
-      "current_dir": "/usr/hdp/current/hive-webhcat/etc/webhcat"
+      "current_dir": "{0}/current/hive-webhcat/etc/webhcat".format(STACK_ROOT_PATTERN)
     },
     {
       "conf_dir": "/etc/hive-hcatalog/conf",
       "prefix": "/etc/hive-hcatalog",
-      "current_dir": "/usr/hdp/current/hive-webhcat/etc/hcatalog"
+      "current_dir": "{0}/current/hive-webhcat/etc/hcatalog".format(STACK_ROOT_PATTERN)
     }
   ]
 }
 
-def get_cmd(command, package, version):
-  return ('ambari-python-wrap','/usr/bin/conf-select', command, '--package', package, '--stack-version', version, '--conf-version', '0')
+def _get_cmd(command, package, version):
+  conf_selector_path = stack_tools.get_stack_tool_path(stack_tools.CONF_SELECTOR_NAME)
+  return ('ambari-python-wrap', conf_selector_path, command, '--package', package, '--stack-version', version, '--conf-version', '0')
 
 def _valid(stack_name, package, ver):
   if stack_name != "HDP":
@@ -203,12 +207,25 @@ def _valid(stack_name, package, ver):
 
   return True
 
+def get_package_dirs():
+  """
+  Get package dir mappings
+  :return:
+  """
+  stack_root = Script.get_stack_root()
+  package_dirs = copy.deepcopy(_PACKAGE_DIRS)
+  for package_name, directories in package_dirs.iteritems():
+    for dir in directories:
+      current_dir = dir['current_dir']
+      current_dir = current_dir.replace(STACK_ROOT_PATTERN, stack_root)
+      dir['current_dir'] = current_dir
+  return package_dirs
 
 def create(stack_name, package, version, dry_run = False):
   """
   Creates a config version for the specified package
   :param stack_name: the name of the stack
-  :param package: the name of the package, as-used by conf-select
+  :param package: the name of the package, as-used by <conf-selector-tool>
   :param version: the version number to create
   :param dry_run: False to create the versioned config directory, True to only return what would be created
   :return List of directories created
@@ -220,11 +237,11 @@ def create(stack_name, package, version, dry_run = False):
 
   command = "dry-run-create" if dry_run else "create-conf-dir"
 
-  code, stdout, stderr = shell.call(get_cmd(command, package, version), logoutput=False, quiet=False, sudo=True, stderr = subprocess.PIPE)
+  code, stdout, stderr = shell.call(_get_cmd(command, package, version), logoutput=False, quiet=False, sudo=True, stderr = subprocess.PIPE)
 
-  # conf-select can set more than one directory
+  # <conf-selector-tool> can set more than one directory
   # per package, so return that list, especially for dry_run
-  # > conf-select dry-run-create --package hive-hcatalog --stack-version 2.4.0.0-169 0
+  # > <conf-selector-tool> dry-run-create --package hive-hcatalog --stack-version 2.4.0.0-169 0
   # /etc/hive-webhcat/2.4.0.0-169/0
   # /etc/hive-hcatalog/2.4.0.0-169/0
   created_directories = []
@@ -248,7 +265,7 @@ def select(stack_name, package, version, try_create=True, ignore_errors=False):
   """
   Selects a config version for the specified package.
   :param stack_name: the name of the stack
-  :param package: the name of the package, as-used by conf-select
+  :param package: the name of the package, as-used by <conf-selector-tool>
   :param version: the version number to create
   :param try_create: optional argument to attempt to create the directory before setting it
   :param ignore_errors: optional argument to ignore any error and simply log a warning
@@ -260,15 +277,16 @@ def select(stack_name, package, version, try_create=True, ignore_errors=False):
     if try_create:
       create(stack_name, package, version)
 
-    shell.checked_call(get_cmd("set-conf-dir", package, version), logoutput=False, quiet=False, sudo=True)
+    shell.checked_call(_get_cmd("set-conf-dir", package, version), logoutput=False, quiet=False, sudo=True)
 
     # for consistency sake, we must ensure that the /etc/<component>/conf symlink exists and
-    # points to /usr/hdp/current/<component>/conf - this is because some people still prefer to
-    # use /etc/<component>/conf even though /usr/hdp is the "future"
-    if package in PACKAGE_DIRS:
+    # points to <stack-root>/current/<component>/conf - this is because some people still prefer to
+    # use /etc/<component>/conf even though <stack-root> is the "future"
+    package_dirs = get_package_dirs()
+    if package in package_dirs:
       Logger.info("Ensuring that {0} has the correct symlink structure".format(package))
 
-      directory_list = PACKAGE_DIRS[package]
+      directory_list = package_dirs[package]
       for directory_structure in directory_list:
         conf_dir = directory_structure["conf_dir"]
         current_dir = directory_structure["current_dir"]
@@ -299,30 +317,31 @@ def get_hadoop_conf_dir(force_latest_on_upgrade=False):
   """
   Gets the shared hadoop conf directory using:
   1.  Start with /etc/hadoop/conf
-  2.  When the stack is greater than HDP-2.2, use /usr/hdp/current/hadoop-client/conf
+  2.  When the stack is greater than HDP-2.2, use <stack-root>/current/hadoop-client/conf
   3.  Only when doing a RU and HDP-2.3 or higher, use the value as computed
-      by conf-select.  This is in the form /usr/hdp/VERSION/hadoop/conf to make sure
+      by <conf-selector-tool>.  This is in the form <stack-root>/VERSION/hadoop/conf to make sure
       the configs are written in the correct place. However, if the component itself has
       not yet been upgraded, it should use the hadoop configs from the prior version.
-      This will perform an hdp-select status to determine which version to use.
+      This will perform an <stack-selector-tool> status to determine which version to use.
   :param force_latest_on_upgrade:  if True, then force the returned path to always
-  be that of the upgrade target version, even if hdp-select has not been called. This
+  be that of the upgrade target version, even if <stack-selector-tool> has not been called. This
   is primarily used by hooks like before-ANY to ensure that hadoop environment
   configurations are written to the correct location since they are written out
-  before the hdp-select/conf-select would have been called.
+  before the <stack-selector-tool>/<conf-selector-tool> would have been called.
   """
   hadoop_conf_dir = "/etc/hadoop/conf"
   stack_name = None
+  stack_root = Script.get_stack_root()
   version = None
   allow_setting_conf_select_symlink = False
 
   if not Script.in_stack_upgrade():
     # During normal operation, the HDP stack must be 2.3 or higher
     if Script.is_stack_greater_or_equal("2.2"):
-      hadoop_conf_dir = "/usr/hdp/current/hadoop-client/conf"
+      hadoop_conf_dir = os.path.join(stack_root, "current", "hadoop-client", "conf")
 
     if Script.is_stack_greater_or_equal("2.3"):
-      hadoop_conf_dir = "/usr/hdp/current/hadoop-client/conf"
+      hadoop_conf_dir = os.path.join(stack_root, "current", "hadoop-client", "conf")
       stack_name = default("/hostLevelParams/stack_name", None)
       version = default("/commandParams/version", None)
 
@@ -337,13 +356,13 @@ def get_hadoop_conf_dir(force_latest_on_upgrade=False):
 
     Type__|_Source_|_Target_|_Direction_____________|_Comment_____________________________________________________________
     Normal|        | 2.2    |                       | Use /etc/hadoop/conf
-    Normal|        | 2.3    |                       | Use /etc/hadoop/conf, which should be a symlink to /usr/hdp/current/hadoop-client/conf
-    EU    | 2.1    | 2.3    | Upgrade               | Use versioned /usr/hdp/current/hadoop-client/conf
+    Normal|        | 2.3    |                       | Use /etc/hadoop/conf, which should be a symlink to <stack-root>/current/hadoop-client/conf
+    EU    | 2.1    | 2.3    | Upgrade               | Use versioned <stack-root>/current/hadoop-client/conf
           |        |        | No Downgrade Allowed  | Invalid
-    EU/RU | 2.2    | 2.2.*  | Any                   | Use /usr/hdp/current/hadoop-client/conf
-    EU/RU | 2.2    | 2.3    | Upgrade               | Use /usr/hdp/$version/hadoop/conf, which should be a symlink destination
-          |        |        | Downgrade             | Use /usr/hdp/current/hadoop-client/conf
-    EU/RU | 2.3    | 2.3.*  | Any                   | Use /usr/hdp/$version/hadoop/conf, which should be a symlink destination
+    EU/RU | 2.2    | 2.2.*  | Any                   | Use <stack-root>/current/hadoop-client/conf
+    EU/RU | 2.2    | 2.3    | Upgrade               | Use <stack-root>/$version/hadoop/conf, which should be a symlink destination
+          |        |        | Downgrade             | Use <stack-root>/current/hadoop-client/conf
+    EU/RU | 2.3    | 2.3.*  | Any                   | Use <stack-root>/$version/hadoop/conf, which should be a symlink destination
     '''
 
     # The method "is_stack_greater_or_equal" uses "stack_version" which is the desired stack, e.g., 2.2 or 2.3
@@ -351,7 +370,7 @@ def get_hadoop_conf_dir(force_latest_on_upgrade=False):
     # In an RU Downgrade from HDP 2.3 to 2.2, the first thing we do is 
     # rm /etc/[component]/conf and then mv /etc/[component]/conf.backup /etc/[component]/conf
     if Script.is_stack_greater_or_equal("2.2"):
-      hadoop_conf_dir = "/usr/hdp/current/hadoop-client/conf"
+      hadoop_conf_dir = os.path.join(stack_root, "current", "hadoop-client", "conf")
 
       # This contains the "version", including the build number, that is actually used during a stack upgrade and
       # is the version upgrading/downgrading to.
@@ -366,16 +385,18 @@ def get_hadoop_conf_dir(force_latest_on_upgrade=False):
       Logger.info("In the middle of a stack upgrade/downgrade for Stack {0} and destination version {1}, determining which hadoop conf dir to use.".format(stack_name, version))
       # This is the version either upgrading or downgrading to.
       if compare_versions(format_stack_version(version), "2.3.0.0") >= 0:
-        # Determine if hdp-select has been run and if not, then use the current
+        # Determine if <stack-selector-tool> has been run and if not, then use the current
         # hdp version until this component is upgraded.
         if not force_latest_on_upgrade:
           current_stack_version = stack_select.get_role_component_current_stack_version()
           if current_stack_version is not None and version != current_stack_version:
             version = current_stack_version
-            Logger.info("hdp-select has not yet been called to update the symlink for this component, keep using version {0}".format(current_stack_version))
+            stack_selector_name = stack_tools.get_stack_tool_name(stack_tools.STACK_SELECTOR_NAME)
+            Logger.info("{0} has not yet been called to update the symlink for this component, "
+                        "keep using version {1}".format(stack_selector_name, current_stack_version))
 
-        # Only change the hadoop_conf_dir path, don't conf-select this older version
-        hadoop_conf_dir = "/usr/hdp/{0}/hadoop/conf".format(version)
+        # Only change the hadoop_conf_dir path, don't <conf-selector-tool> this older version
+        hadoop_conf_dir = os.path.join(stack_root, version, "hadoop", "conf")
         Logger.info("Hadoop conf dir: {0}".format(hadoop_conf_dir))
 
         allow_setting_conf_select_symlink = True
@@ -385,10 +406,12 @@ def get_hadoop_conf_dir(force_latest_on_upgrade=False):
     # upgrading stack to version 2.3.0.0 or higher (which may be upgrade or downgrade), then consider setting the
     # symlink for /etc/hadoop/conf.
     # If a host does not have any HDFS or YARN components (e.g., only ZK), then it will not contain /etc/hadoop/conf
-    # Therefore, any calls to conf-select will fail.
+    # Therefore, any calls to <conf-selector-tool> will fail.
     # For that reason, if the hadoop conf directory exists, then make sure it is set.
     if os.path.exists(hadoop_conf_dir):
-      Logger.info("The hadoop conf dir {0} exists, will call conf-select on it for version {1}".format(hadoop_conf_dir, version))
+      conf_selector_name = stack_tools.get_stack_tool_name(stack_tools.CONF_SELECTOR_NAME)
+      Logger.info("The hadoop conf dir {0} exists, will call {1} on it for version {2}".format(
+              hadoop_conf_dir, conf_selector_name, version))
       select(stack_name, "hadoop", version)
 
   Logger.info("Using hadoop conf dir: {0}".format(hadoop_conf_dir))
@@ -403,18 +426,19 @@ def convert_conf_directories_to_symlinks(package, version, dirs, skip_existing_l
   - Creates a /etc/<component>/conf.backup directory
   - Copies all configs from /etc/<component>/conf to conf.backup
   - Removes /etc/<component>/conf
-  - Creates /etc/<component>/<version>/0 via conf-select
-  - /usr/hdp/current/<component>-client/conf -> /etc/<component>/<version>/0 via conf-select
+  - Creates /etc/<component>/<version>/0 via <conf-selector-tool>
+  - <stack-root>/current/<component>-client/conf -> /etc/<component>/<version>/0 via <conf-selector-tool>
   - Links /etc/<component>/conf to <something> depending on function paramter
-  -- /etc/<component>/conf -> /usr/hdp/current/[component]-client/conf (usually)
+  -- /etc/<component>/conf -> <stack-root>/current/[component]-client/conf (usually)
   -- /etc/<component>/conf -> /etc/<component>/conf.backup (only when supporting < HDP 2.3)
 
   :param package: the package to create symlinks for (zookeeper, falcon, etc)
-  :param version: the version number to use with conf-select (2.3.0.0-1234)
-  :param dirs: the directories associated with the package (from PACKAGE_DIRS)
+  :param version: the version number to use with <conf-selector-tool> (2.3.0.0-1234)
+  :param dirs: the directories associated with the package (from get_package_dirs())
   :param skip_existing_links: True to not do any work if already a symlink
   :param link_to: link to "current" or "backup"
   """
+  stack_name = Script.get_stack_name()
   bad_dirs = []
   for dir_def in dirs:
     if not os.path.exists(dir_def['conf_dir']):
@@ -450,7 +474,7 @@ def convert_conf_directories_to_symlinks(package, version, dirs, skip_existing_l
   # we're already in the HDP stack
   # Create the versioned /etc/[component]/[version]/0 folder.
   # The component must be installed on the host.
-  versioned_confs = create("HDP", package, version, dry_run = True)
+  versioned_confs = create(stack_name, package, version, dry_run = True)
 
   Logger.info("Package {0} will have new conf directories: {1}".format(package, ", ".join(versioned_confs)))
 
@@ -460,7 +484,7 @@ def convert_conf_directories_to_symlinks(package, version, dirs, skip_existing_l
       need_dirs.append(d)
 
   if len(need_dirs) > 0:
-    create("HDP", package, version)
+    create(stack_name, package, version)
 
     # find the matching definition and back it up (not the most efficient way) ONLY if there is more than one directory
     if len(dirs) > 1:
@@ -478,9 +502,9 @@ def convert_conf_directories_to_symlinks(package, version, dirs, skip_existing_l
         only_if = format("ls -d {old_conf}/*"))
 
 
-  # /usr/hdp/current/[component] is already set to to the correct version, e.g., /usr/hdp/[version]/[component]
+  # <stack-root>/current/[component] is already set to to the correct version, e.g., <stack-root>/[version]/[component]
   
-  select("HDP", package, version, ignore_errors = True)
+  select(stack_name, package, version, ignore_errors = True)
 
   # Symlink /etc/[component]/conf to /etc/[component]/conf.backup
   try:
@@ -494,7 +518,7 @@ def convert_conf_directories_to_symlinks(package, version, dirs, skip_existing_l
         Directory(new_symlink, action="delete")
 
       if link_to in ["current", "backup"]:
-        # link /etc/[component]/conf -> /usr/hdp/current/[component]-client/conf
+        # link /etc/[component]/conf -> <stack-root>/current/[component]-client/conf
         if link_to == "backup":
           Link(new_symlink, to = backup_dir)
         else:
@@ -508,7 +532,7 @@ def convert_conf_directories_to_symlinks(package, version, dirs, skip_existing_l
 def _seed_new_configuration_directories(package, created_directories):
   """
   Copies any files from the "current" configuration directory to the directories which were
-  newly created with conf-select. This function helps ensure that files which are not tracked
+  newly created with <conf-selector-tool>. This function helps ensure that files which are not tracked
   by Ambari will be available after performing a stack upgrade. Although old configurations
   will be copied as well, they will be overwritten when the components are writing out their
   configs after upgrade during their restart.
@@ -516,18 +540,19 @@ def _seed_new_configuration_directories(package, created_directories):
   This function will catch all errors, logging them, but not raising an exception. This is to
   prevent problems here from stopping and otherwise healthy upgrade.
 
-  :param package: the conf-select package name
-  :param created_directories: a list of directories that conf-select said it created
+  :param package: the <conf-selector-tool> package name
+  :param created_directories: a list of directories that <conf-selector-tool> said it created
   :return: None
   """
-  if package not in PACKAGE_DIRS:
+  package_dirs = get_package_dirs()
+  if package not in package_dirs:
     Logger.warning("Unable to seed newly created configuration directories for {0} because it is an unknown component".format(package))
     return
 
   # seed the directories with any existing configurations
   # this allows files which are not tracked by Ambari to be available after an upgrade
   Logger.info("Seeding versioned configuration directories for {0}".format(package))
-  expected_directories = PACKAGE_DIRS[package]
+  expected_directories = package_dirs[package]
 
   try:
     # if the expected directories don't match those created, we can't seed them
@@ -539,7 +564,7 @@ def _seed_new_configuration_directories(package, created_directories):
 
     # short circuit for a simple 1:1 mapping
     if len(expected_directories) == 1:
-      # /usr/hdp/current/component/conf
+      # <stack-root>/current/component/conf
       # the current directory is the source of the seeded configurations;
       source_seed_directory = expected_directories[0]["current_dir"]
       target_seed_directory = created_directories[0]

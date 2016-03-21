@@ -1,0 +1,34 @@
+{
+  "slider": [
+    "{{ stack_root }}/{{ stack_version }}/slider/lib/slider.tar.gz",
+    "/{{ stack_name }}/apps/{{stack_version}}/slider/slider.tar.gz"
+  ],
+  "tez": [
+    "{{ stack_root }}/{{ stack_version }}/tez/lib/tez.tar.gz",
+    "/{{ stack_name }}/apps/{{ stack_version }}/tez/tez.tar.gz"
+  ],
+  "hive": [
+    "{{ stack_root }}/{{ stack_version }}/hive/hive.tar.gz",
+    "/{{ stack_name }}/apps/{{ stack_version }}/hive/hive.tar.gz"
+  ],
+  "pig": [
+    "{{ stack_root }}/{{ stack_version }}/pig/pig.tar.gz",
+    "/{{ stack_name }}/apps/{{ stack_version }}/pig/pig.tar.gz"
+  ],
+  "hadoop_streaming": [
+    "{{ stack_root }}/{{ stack_version }}/hadoop-mapreduce/hadoop-streaming.jar",
+    "/{{ stack_name }}/apps/{{ stack_version }}/mapreduce/hadoop-streaming.jar"
+  ],
+  "sqoop": [
+    "{{ stack_root }}/{{ stack_version }}/sqoop/sqoop.tar.gz",
+    "/{{ stack_name }}/apps/{{ stack_version }}/sqoop/sqoop.tar.gz"
+  ],
+  "mapreduce": [
+    "{{ stack_root }}/{{ stack_version }}/hadoop/mapreduce.tar.gz",
+    "/{{ stack_name }}/apps/{{ stack_version }}/mapreduce/mapreduce.tar.gz"
+  ],
+  "spark": [
+    "{{ stack_root }}/{{ stack_version }}/spark/lib/spark-{{ stack_name }}-assembly.jar",
+    "/{{ stack_name }}/apps/{{ stack_version }}/spark/spark-{{ stack_name }}-assembly.jar"
+  ]
+}

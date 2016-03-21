@@ -36,7 +36,7 @@ from resource_management.libraries.functions.get_not_managed_resources import ge
 from resource_management.libraries.script.script import Script
 
 # a map of the Ambari role to the component name
-# for use with /usr/hdp/current/<component>
+# for use with <stack-root>/current/<component>
 SERVER_ROLE_DIRECTORY_MAP = {
   'SPARK_JOBHISTORYSERVER' : 'spark-historyserver',
   'SPARK_CLIENT' : 'spark-client',
@@ -57,8 +57,8 @@ host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
 version = default("/commandParams/version", None)
 
 # TODO! FIXME! Version check is not working as of today :
-#   $ yum list installed | grep hdp-select
-#   hdp-select.noarch                            2.2.1.0-2340.el6           @HDP-2.2
+#   $ yum list installed | grep <stack-selector-tool>
+#   <stack-selector-tool>.noarch                            2.2.1.0-2340.el6           @HDP-2.2
 # And stack_version_formatted returned from hostLevelParams/stack_version is : 2.2.0.0
 # Commenting out for time being
 #stack_is_hdp22_or_further = stack_version_formatted != "" and compare_versions(stack_version_formatted, '2.2.1.0') >= 0

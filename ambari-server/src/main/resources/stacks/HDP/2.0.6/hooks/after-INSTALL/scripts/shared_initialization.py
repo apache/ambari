@@ -30,7 +30,7 @@ from resource_management.libraries.script import Script
 
 def setup_stack_symlinks():
   """
-  Invokes hdp-select set all against a calculated fully-qualified, "normalized" version based on a
+  Invokes <stack-selector-tool> set all against a calculated fully-qualified, "normalized" version based on a
   stack version, such as "2.3". This should always be called after a component has been
   installed to ensure that all HDP pointers are correct. The stack upgrade logic does not
   interact with this since it's done via a custom command and will not trigger this hook.
@@ -97,5 +97,5 @@ def link_configs(struct_out_file):
     Logger.info("Could not load 'version' from {0}".format(struct_out_file))
     return
 
-  for k, v in conf_select.PACKAGE_DIRS.iteritems():
+  for k, v in conf_select.get_package_dirs().iteritems():
     conf_select.convert_conf_directories_to_symlinks(k, json_version, v)

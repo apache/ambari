@@ -30,6 +30,7 @@ from resource_management.core.source import DownloadSource
 from resource_management.libraries.resources import ModifyPropertiesFile
 from resource_management.core.exceptions import Fail
 from resource_management.libraries.functions.ranger_functions_v2 import RangeradminV2
+from resource_management.libraries.script.script import Script
 
 def setup_ranger_plugin(component_select_name, service_name,
                         downloaded_custom_connector, driver_curl_source,
@@ -50,8 +51,9 @@ def setup_ranger_plugin(component_select_name, service_name,
 
   File(driver_curl_target, mode=0644)
 
+  stack_root = Script.get_stack_root()
   stack_version = get_stack_version(component_select_name)
-  file_path = format('/usr/hdp/{stack_version}/ranger-{service_name}-plugin/install.properties')
+  file_path = format('{stack_root}/{stack_version}/ranger-{service_name}-plugin/install.properties')
   
   if not os.path.isfile(file_path):
     raise Fail(format('Ranger {service_name} plugin install.properties file does not exist at {file_path}'))
@@ -79,7 +81,9 @@ def setup_ranger_plugin(component_select_name, service_name,
   else:
     cmd = (format('disable-{service_name}-plugin.sh'),)
     
-  cmd_env = {'JAVA_HOME': java_home, 'PWD': format('/usr/hdp/{stack_version}/ranger-{service_name}-plugin'), 'PATH': format('/usr/hdp/{stack_version}/ranger-{service_name}-plugin')}
+  cmd_env = {'JAVA_HOME': java_home,
+             'PWD': format('{stack_root}/{stack_version}/ranger-{service_name}-plugin'),
+             'PATH': format('{stack_root}/{stack_version}/ranger-{service_name}-plugin')}
   
   Execute(cmd, 
         environment=cmd_env, 

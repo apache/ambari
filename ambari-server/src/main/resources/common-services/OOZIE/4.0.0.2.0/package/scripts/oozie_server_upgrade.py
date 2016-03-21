@@ -99,7 +99,7 @@ class OozieUpgrade(Script):
   def prepare_libext_directory():
     """
     Performs the following actions on libext:
-      - creates /usr/hdp/current/oozie/libext and recursively
+      - creates <stack-root>/current/oozie/libext and recursively
       - set 777 permissions on it and its parents.
       - downloads JDBC driver JAR if needed
       - copies Falcon JAR for the Oozie WAR if needed
@@ -114,8 +114,8 @@ class OozieUpgrade(Script):
     Directory(params.oozie_libext_dir, mode = 0777)
 
     # get all hadooplzo* JAR files
-    # hdp-select set hadoop-client has not run yet, therefore we cannot use
-    # /usr/hdp/current/hadoop-client ; we must use params.version directly
+    # <stack-selector-tool> set hadoop-client has not run yet, therefore we cannot use
+    # <stack-root>/current/hadoop-client ; we must use params.version directly
     # however, this only works when upgrading beyond 2.2.0.0; don't do this
     # for downgrade to 2.2.0.0 since hadoop-lzo will not be present
     # This can also be called during a Downgrade.
@@ -145,7 +145,7 @@ class OozieUpgrade(Script):
     # copy ext ZIP to libext dir
     oozie_ext_zip_file = '/usr/share/HDP-oozie/ext-2.2.zip'
 
-    # something like /usr/hdp/current/oozie-server/libext/ext-2.2.zip
+    # something like <stack-root>/current/oozie-server/libext/ext-2.2.zip
     oozie_ext_zip_target_path = os.path.join(params.oozie_libext_dir, "ext-2.2.zip")
 
     if not os.path.isfile(oozie_ext_zip_file):
@@ -236,7 +236,7 @@ class OozieUpgrade(Script):
     Logger.info(format('Upgrading the Oozie database, using version {stack_version}'))
 
     # the database upgrade requires the db driver JAR, but since we have
-    # not yet run hdp-select to upgrade the current points, we have to use
+    # not yet run <stack-selector-tool> to upgrade the current points, we have to use
     # the versioned libext directory as the location[[-vufdtffr,
     versioned_libext_dir = "/usr/hdp/{0}/oozie/libext".format(stack_version)
     oozie.download_database_library_if_needed(target_directory=versioned_libext_dir)

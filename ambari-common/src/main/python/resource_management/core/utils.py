@@ -25,6 +25,7 @@ import sys
 import cStringIO
 from functools import wraps
 from resource_management.core.exceptions import Fail
+from itertools import chain, repeat, islice
 
 PASSWORDS_HIDE_STRING = "[PROTECTED]"
 
@@ -148,4 +149,9 @@ def lazy_property(undecorated):
       return v
 
   return decorated
-  
+
+def pad_infinite(iterable, padding=None):
+  return chain(iterable, repeat(padding))
+
+def pad(iterable, size, padding=None):
+  return islice(pad_infinite(iterable, padding), size)

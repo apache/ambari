@@ -37,7 +37,7 @@ class RemoveBits(Script):
     """
     During Express Upgrade from HDP 2.1 to any higher version (HDP 2.2 or 2.3), the HDP 2.1 bits must be uninstalled.
     This is because /usr/bin/hadoop used to be a shell script in HDP 2.1, but in HDP 2.3 it is
-    a symlink to /usr/hdp/current/hadoop-client/bin/hadoop
+    a symlink to <stack-root>/current/hadoop-client/bin/hadoop
     so both versions cannot coexist.
     """
     Logger.info("Attempting to remove bits for HDP 2.1")

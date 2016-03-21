@@ -183,7 +183,7 @@ class TestRUSetAll(RMFTestCase):
 
     # verify that os.path.islink was called for each conf
     self.assertTrue(islink_mock.called)
-    for key, value in conf_select.PACKAGE_DIRS.iteritems():
+    for key, value in conf_select.get_package_dirs().iteritems():
       for directory_mapping in value:
         original_config_directory = directory_mapping['conf_dir']
         is_link_called = False

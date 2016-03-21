@@ -53,7 +53,7 @@ def post_upgrade_deregister():
   if current_hiveserver_version is None:
     raise Fail('Unable to determine the current HiveServer2 version to deregister.')
 
-  # fallback when upgrading because /usr/hdp/current/hive-server2/conf/conf.server may not exist
+  # fallback when upgrading because <stack-root>/current/hive-server2/conf/conf.server may not exist
   hive_server_conf_dir = params.hive_server_conf_dir
   if not os.path.exists(hive_server_conf_dir):
     hive_server_conf_dir = "/etc/hive/conf.server"
@@ -62,7 +62,7 @@ def post_upgrade_deregister():
   hive_execute_path = params.execute_path
   # If upgrading, the upgrade-target hive binary should be used to call the --deregister command.
   # If downgrading, the downgrade-source hive binary should be used to call the --deregister command.
-  # By now hdp-select has been called to set 'current' to target-stack
+  # By now <stack-selector-tool> has been called to set 'current' to target-stack
   if "downgrade" == params.upgrade_direction:
     # hive_bin
     downgrade_version = params.current_version

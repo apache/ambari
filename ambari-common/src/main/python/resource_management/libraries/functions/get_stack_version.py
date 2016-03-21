@@ -30,8 +30,8 @@ from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
 from resource_management.core import shell
+from resource_management.libraries.functions import stack_tools
 
-STACK_SELECT_BINARY = "/usr/bin/hdp-select"
 
 @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
 def get_stack_version(package_name):
@@ -64,17 +64,20 @@ def get_stack_version(package_name):
   """
   @param package_name, name of the package, from which, function will try to get stack version
   """
-  
-  if not os.path.exists(STACK_SELECT_BINARY):
-    Logger.info('Skipping get_stack_version since " + STACK_SELECT_BINARY + " is not yet available')
+
+  stack_selector_path = stack_tools.get_stack_tool_name(stack_tools.STACK_SELECTOR_NAME)
+
+  if not os.path.exists(stack_selector_path):
+    Logger.info('Skipping get_stack_version since " + stack_selector_tool + " is not yet available')
     return None # lazy fail
   
   try:
-    command = 'ambari-python-wrap {STACK_SELECT_BINARY} status {package_name}'.format(STACK_SELECT_BINARY=STACK_SELECT_BINARY, package_name=package_name)
+    command = 'ambari-python-wrap {stack_selector_path} status {package_name}'.format(
+            stack_selector_path=stack_selector_path, package_name=package_name)
     return_code, stack_output = shell.call(command, timeout=20)
   except Exception, e:
     Logger.error(str(e))
-    raise Fail('Unable to execute " + STACK_SELECT_BINARY + " command to retrieve the version.')
+    raise Fail('Unable to execute " + stack_selector_path + " command to retrieve the version.')
 
   if return_code != 0:
     raise Fail(
@@ -85,7 +88,7 @@ def get_stack_version(package_name):
   match = re.match('[0-9]+.[0-9]+.[0-9]+.[0-9]+-[0-9]+', stack_version)
 
   if match is None:
-    Logger.info('Failed to get extracted version with ' + STACK_SELECT_BINARY)
+    Logger.info('Failed to get extracted version with ' + stack_selector_path)
     return None # lazy fail
 
   return stack_version

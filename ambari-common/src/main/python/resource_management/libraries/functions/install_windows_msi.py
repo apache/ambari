@@ -38,24 +38,24 @@ import urlparse
 __all__ = ['install_windows_msi']
 
 msi_save_dir = None
-hdp_log_dir = "c:\\hadoop\\logs"
-hdp_data_dir = "c:\\hadoopDefaultData"
+log_dir = "c:\\hadoop\\logs"
+data_dir = "c:\\hadoopDefaultData"
 local_host = socket.getfqdn()
 db_flavor = "DERBY"
 hdp_22 = """#Namenode Data directory
-HDFS_NAMENODE_DATA_DIR={hdp_data_dir}\\hdpdatann
+HDFS_NAMENODE_DATA_DIR={data_dir}\\hdpdatann
 
 #Datanode Data directory
-HDFS_DATANODE_DATA_DIR={hdp_data_dir}\\hdpdatadn
+HDFS_DATANODE_DATA_DIR={data_dir}\\hdpdatadn
 
 IS_SLIDER=yes
 IS_PHOENIX=no
 """
 cluster_properties = """#Log directory
-HDP_LOG_DIR={hdp_log_dir}
+HDP_LOG_DIR={log_dir}
 
 #Data directory
-HDP_DATA_DIR={hdp_data_dir}
+HDP_DATA_DIR={data_dir}
 
 {hdp_22_specific_props}
 
@@ -93,8 +93,8 @@ OOZIE_DB_USERNAME=oozie
 OOZIE_DB_PASSWORD=oozie
 """
 
-INSTALL_MSI_CMD = 'cmd /C start /wait msiexec /qn /i  {hdp_msi_path} /lv {hdp_log_path} MSIUSEREALADMINDETECTION=1 ' \
-                  'HDP_LAYOUT={hdp_layout_path} DESTROY_DATA=yes HDP_USER={hadoop_user} HDP_USER_PASSWORD={hadoop_password_arg} HDP=yes ' \
+INSTALL_MSI_CMD = 'cmd /C start /wait msiexec /qn /i  {msi_path} /lv {log_path} MSIUSEREALADMINDETECTION=1 ' \
+                  'HDP_LAYOUT={layout_path} DESTROY_DATA=yes HDP_USER={hadoop_user} HDP_USER_PASSWORD={hadoop_password_arg} HDP=yes ' \
                   'KNOX=yes KNOX_MASTER_SECRET="AmbariHDP2Windows" FALCON=yes STORM=yes HBase=yes STORM=yes FLUME=yes SLIDER=yes PHOENIX=no RANGER=no'
 CREATE_SERVICE_SCRIPT = os.path.abspath("sbin\createservice.ps1")
 CREATE_SERVICE_CMD = 'cmd /C powershell -ExecutionPolicy Bypass -File "{script}" -username {username} -password "{password}" -servicename ' \
@@ -176,33 +176,33 @@ def install_windows_msi(url_base, save_dir, save_files, hadoop_user, hadoop_pass
     stack_version_formatted = format_stack_version(stack_version)
     hdp_22_specific_props = ''
     if stack_version_formatted != "" and compare_versions(stack_version_formatted, '2.2') >= 0:
-      hdp_22_specific_props = hdp_22.format(hdp_data_dir=hdp_data_dir)
+      hdp_22_specific_props = hdp_22.format(data_dir=data_dir)
 
     # MSIs cannot be larger than 2GB. HDPWIN 2.3 needed split in order to accommodate this limitation
-    hdp_msi_file = ''
+    msi_file = ''
     for save_file in save_files:
       if save_file.lower().endswith(".msi"):
-        hdp_msi_file = save_file
+        msi_file = save_file
       file_url = urlparse.urljoin(url_base, save_file)
       try:
         download_file(file_url, os.path.join(msi_save_dir, save_file))
       except:
         raise Fail("Failed to download {url}".format(url=file_url))
 
-    File(os.path.join(msi_save_dir, "properties.txt"), content=cluster_properties.format(hdp_log_dir=hdp_log_dir,
-                                                                                         hdp_data_dir=hdp_data_dir,
+    File(os.path.join(msi_save_dir, "properties.txt"), content=cluster_properties.format(log_dir=log_dir,
+                                                                                         data_dir=data_dir,
                                                                                          local_host=local_host,
                                                                                          db_flavor=db_flavor,
                                                                                          hdp_22_specific_props=hdp_22_specific_props))
 
     # install msi
-    hdp_msi_path = os_utils.quote_path(os.path.join(save_dir, hdp_msi_file))
-    hdp_log_path = os_utils.quote_path(os.path.join(save_dir, hdp_msi_file[:-3] + "log"))
-    hdp_layout_path = os_utils.quote_path(os.path.join(save_dir, "properties.txt"))
+    msi_path = os_utils.quote_path(os.path.join(save_dir, msi_file))
+    log_path = os_utils.quote_path(os.path.join(save_dir, msi_file[:-3] + "log"))
+    layout_path = os_utils.quote_path(os.path.join(save_dir, "properties.txt"))
     hadoop_password_arg = os_utils.quote_path(hadoop_password)
 
     Execute(
-      INSTALL_MSI_CMD.format(hdp_msi_path=hdp_msi_path, hdp_log_path=hdp_log_path, hdp_layout_path=hdp_layout_path,
+      INSTALL_MSI_CMD.format(msi_path=msi_path, log_path=log_path, layout_path=layout_path,
                              hadoop_user=hadoop_user, hadoop_password_arg=hadoop_password_arg))
     reload_windows_env()
     # create additional services manually due to hdp.msi limitaitons

@@ -36,7 +36,7 @@ from accumulo_service import accumulo_service
 class AccumuloScript(Script):
 
   # a mapping between the component named used by these scripts and the name
-  # which is used by hdp-select
+  # which is used by <stack-selector-tool>
   COMPONENT_TO_STACK_SELECT_MAPPING = {
     "gc" : "accumulo-gc",
     "master" : "accumulo-master",
@@ -51,9 +51,9 @@ class AccumuloScript(Script):
 
   def get_stack_to_component(self):
     """
-    Gets the hdp-select component name given the script component
+    Gets the <stack-selector-tool> component name given the script component
     :return:  the name of the component on the HDP stack which is used by
-              hdp-select
+              <stack-selector-tool>
     """
     if self.component not in self.COMPONENT_TO_STACK_SELECT_MAPPING:
       return None

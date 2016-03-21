@@ -28,6 +28,7 @@ from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.resources.copy_from_local import CopyFromLocal
 from resource_management.libraries.resources.execute_hadoop import ExecuteHadoop
+from resource_management.libraries.functions import stack_tools
 from resource_management.core.resources.system import Execute
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
@@ -54,7 +55,7 @@ def _get_tar_source_and_dest_folder(tarball_prefix):
   :return: Returns a tuple of (x, y) after verifying the properties
   """
   component_tar_source_file = default("/configurations/cluster-env/%s%s" % (tarball_prefix.lower(), TAR_SOURCE_SUFFIX), None)
-  # E.g., /usr/hdp/current/hadoop-client/tez-{{ stack_version_formatted }}.tar.gz
+  # E.g., <stack-root>/current/hadoop-client/tez-{{ stack_version_formatted }}.tar.gz
 
   component_tar_destination_folder = default("/configurations/cluster-env/%s%s" % (tarball_prefix.lower(), TAR_DESTINATION_FOLDER_SUFFIX), None)
   # E.g., hdfs:///hdp/apps/{{ stack_version_formatted }}/mapreduce/
@@ -173,13 +174,14 @@ def copy_tarballs_to_hdfs(tarball_prefix, stack_select_component_name, component
   # Ubuntu returns: "stdin: is not a tty", as subprocess output.
   tmpfile = tempfile.NamedTemporaryFile()
   out = None
+  (stack_selector_name, stack_selector_path, stack_selector_package) = stack_tools.get_stack_tool(stack_tools.STACK_SELECTOR_NAME)
   with open(tmpfile.name, 'r+') as file:
-    get_stack_version_cmd = '/usr/bin/hdp-select status %s > %s' % (stack_select_component_name, tmpfile.name)
+    get_stack_version_cmd = '%s status %s > %s' % (stack_selector_path, stack_select_component_name, tmpfile.name)
     code, stdoutdata = shell.call(get_stack_version_cmd)
     out = file.read()
   pass
   if code != 0 or out is None:
-    Logger.warning("Could not verify HDP version by calling '%s'. Return Code: %s, Output: %s." %
+    Logger.warning("Could not verify stack version by calling '%s'. Return Code: %s, Output: %s." %
                    (get_stack_version_cmd, str(code), str(out)))
     return 1
 
@@ -187,7 +189,7 @@ def copy_tarballs_to_hdfs(tarball_prefix, stack_select_component_name, component
   stack_version = matches[0] if matches and len(matches) > 0 else None
 
   if not stack_version:
-    Logger.error("Could not parse HDP version from output of hdp-select: %s" % str(out))
+    Logger.error("Could not parse stack version from output of %s: %s" % (stack_selector_name, str(out)))
     return 1
 
   file_name = os.path.basename(component_tar_source_file)

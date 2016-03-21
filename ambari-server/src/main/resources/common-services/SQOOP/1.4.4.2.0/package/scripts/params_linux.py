@@ -24,7 +24,7 @@ from resource_management.libraries.script import Script
 import os
 
 # a map of the Ambari role to the component name
-# for use with /usr/hdp/current/<component>
+# for use with <stack-root>/current/<component>
 SERVER_ROLE_DIRECTORY_MAP = {
   'SQOOP' : 'sqoop-client'
 }

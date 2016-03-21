@@ -93,6 +93,7 @@ import static org.apache.ambari.server.controller.utilities.PropertyHelper.AGGRE
 @Singleton
 public class AmbariMetaInfo {
   public static final String SERVICE_CONFIG_FOLDER_NAME = "configuration";
+  public static final String SERVICE_PROPERTIES_FOLDER_NAME = "properties";
   public static final String SERVICE_THEMES_FOLDER_NAME = "themes";
   public static final String SERVICE_QUICKLINKS_CONFIGURATIONS_FOLDER_NAME = "quicklinks";
   public static final String SERVICE_CONFIG_FILE_NAME_POSTFIX = ".xml";

@@ -57,7 +57,7 @@ stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 stack_version_formatted_major = format_stack_version(stack_version_unformatted)
 stack_is_hdp21 = Script.is_stack_less_than("2.2")
 
-# this is not available on INSTALL action because hdp-select is not available
+# this is not available on INSTALL action because <stack-selector-tool> is not available
 stack_version_formatted = functions.get_stack_version('hive-server2')
 
 # New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade.
@@ -221,8 +221,8 @@ driver_curl_source = format("{jdk_location}/{jdbc_jar_name}")
 if Script.is_stack_less_than("2.2"):
   source_jdbc_file = target
 else:
-  # normally, the JDBC driver would be referenced by /usr/hdp/current/.../foo.jar
-  # but in RU if hdp-select is called and the restart fails, then this means that current pointer
+  # normally, the JDBC driver would be referenced by <stack-root>/current/.../foo.jar
+  # but in RU if <stack-selector-tool> is called and the restart fails, then this means that current pointer
   # is now pointing to the upgraded version location; that's bad for the cp command
   source_jdbc_file = format("/usr/hdp/{current_version}/hive/lib/{jdbc_jar_name}")
 

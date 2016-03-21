@@ -66,13 +66,13 @@ class OozieServer(Script):
     if upgrade_type is not None and params.upgrade_direction == Direction.UPGRADE and params.version is not None:
       Logger.info(format("Configuring Oozie during upgrade type: {upgrade_type}, direction: {params.upgrade_direction}, and version {params.version}"))
       if compare_versions(format_stack_version(params.version), '2.2.0.0') >= 0:
-        # In order for the "/usr/hdp/current/oozie-<client/server>" point to the new version of
+        # In order for the "<stack-root>/current/oozie-<client/server>" point to the new version of
         # oozie, we need to create the symlinks both for server and client.
         # This is required as both need to be pointing to new installed oozie version.
 
-        # Sets the symlink : eg: /usr/hdp/current/oozie-client -> /usr/hdp/2.3.x.y-<version>/oozie
+        # Sets the symlink : eg: <stack-root>/current/oozie-client -> <stack-root>/2.3.x.y-<version>/oozie
         stack_select.select("oozie-client", params.version)
-        # Sets the symlink : eg: /usr/hdp/current/oozie-server -> /usr/hdp/2.3.x.y-<version>/oozie
+        # Sets the symlink : eg: <stack-root>/current/oozie-server -> <stack-root>/2.3.x.y-<version>/oozie
         stack_select.select("oozie-server", params.version)
 
       if compare_versions(format_stack_version(params.version), '2.3.0.0') >= 0:
@@ -176,7 +176,7 @@ class OozieServerDefault(OozieServer):
     """
     Performs the tasks that should be done before an upgrade of oozie. This includes:
       - backing up configurations
-      - running hdp-select and conf-select
+      - running <stack-selector-tool> and <conf-selector-tool>
       - restoring configurations
       - preparing the libext directory
     :param env:

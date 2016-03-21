@@ -200,7 +200,7 @@ def oozie_ownership():
 def prepare_war():
   """
   Attempt to call prepare-war command if the marker file doesn't exist or its content doesn't equal the expected command.
-  The marker file is stored in /usr/hdp/current/oozie-server/.prepare_war_cmd
+  The marker file is stored in <stack-root>/current/oozie-server/.prepare_war_cmd
   """
   import params
 

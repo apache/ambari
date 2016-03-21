@@ -51,7 +51,7 @@ class HCatClientWindows(HCatClient):
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class HCatClientDefault(HCatClient):
   def get_stack_to_component(self):
-    # HCat client doesn't have a first-class entry in hdp-select. Since clients always
+    # HCat client doesn't have a first-class entry in <stack-selector-tool>. Since clients always
     # update after daemons, this ensures that the hcat directories are correct on hosts
     # which do not include the WebHCat daemon
     return {"HDP": "hive-webhcat"}
@@ -59,7 +59,7 @@ class HCatClientDefault(HCatClient):
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     """
-    Execute hdp-select before reconfiguring this client to the new HDP version.
+    Execute <stack-selector-tool> before reconfiguring this client to the new HDP version.
 
     :param env:
     :param upgrade_type:
@@ -75,7 +75,7 @@ class HCatClientDefault(HCatClient):
     if not params.version or compare_versions(params.version, "2.2", format=True) < 0:
       return
 
-    # HCat client doesn't have a first-class entry in hdp-select. Since clients always
+    # HCat client doesn't have a first-class entry in <stack-selector-tool>. Since clients always
     # update after daemons, this ensures that the hcat directories are correct on hosts
     # which do not include the WebHCat daemon
     stack_select.select("hive-webhcat", params.version)

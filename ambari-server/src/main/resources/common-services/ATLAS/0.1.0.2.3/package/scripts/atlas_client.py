@@ -31,7 +31,7 @@ class AtlasClient(Script):
   def get_stack_to_component(self):
     return {"HDP": "atlas-client"}
 
-  # ToDo: currently hdp-select doesn't contain atlas-client, uncomment this block when
+  # ToDo: currently <stack-selector-tool> doesn't contain atlas-client, uncomment this block when
   # ToDo: atlas-client will be available
   # def pre_upgrade_restart(self, env, upgrade_type=None):
   #   import params

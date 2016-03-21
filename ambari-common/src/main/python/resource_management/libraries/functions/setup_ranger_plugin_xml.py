@@ -31,6 +31,7 @@ from resource_management.core.logger import Logger
 from resource_management.core.source import DownloadSource, InlineTemplate
 from resource_management.libraries.functions.ranger_functions_v2 import RangeradminV2
 from resource_management.core.utils import PasswordString
+from resource_management.libraries.script.script import Script
 
 def setup_ranger_plugin(component_select_name, service_name,
                         component_downloaded_custom_connector, component_driver_curl_source,
@@ -149,20 +150,21 @@ def setup_ranger_plugin(component_select_name, service_name,
 
 def setup_ranger_plugin_jar_symblink(stack_version, service_name, component_list):
 
-  jar_files = os.listdir(format('/usr/hdp/{stack_version}/ranger-{service_name}-plugin/lib'))
+  stack_root = Script.get_stack_root()
+  jar_files = os.listdir(format('{stack_root}/{stack_version}/ranger-{service_name}-plugin/lib'))
 
   for jar_file in jar_files:
     for component in component_list:
-      Execute(('ln','-sf',format('/usr/hdp/{stack_version}/ranger-{service_name}-plugin/lib/{jar_file}'),format('/usr/hdp/current/{component}/lib/{jar_file}')),
-      not_if=format('ls /usr/hdp/current/{component}/lib/{jar_file}'),
-      only_if=format('ls /usr/hdp/{stack_version}/ranger-{service_name}-plugin/lib/{jar_file}'),
+      Execute(('ln','-sf',format('{stack_root}/{stack_version}/ranger-{service_name}-plugin/lib/{jar_file}'),format('{stack_root}/current/{component}/lib/{jar_file}')),
+      not_if=format('ls {stack_root}/current/{component}/lib/{jar_file}'),
+      only_if=format('ls {stack_root}/{stack_version}/ranger-{service_name}-plugin/lib/{jar_file}'),
       sudo=True)
 
 def setup_ranger_plugin_keystore(service_name, audit_db_is_enabled, stack_version, credential_file, xa_audit_db_password,
                                 ssl_truststore_password, ssl_keystore_password, component_user, component_group, java_home):
 
-  cred_lib_path = format('/usr/hdp/{stack_version}/ranger-{service_name}-plugin/install/lib/*')
-  cred_setup_prefix = (format('/usr/hdp/{stack_version}/ranger-{service_name}-plugin/ranger_credential_helper.py'), '-l', cred_lib_path)
+  cred_lib_path = format('{stack_root}/{stack_version}/ranger-{service_name}-plugin/install/lib/*')
+  cred_setup_prefix = (format('{stack_root}/{stack_version}/ranger-{service_name}-plugin/ranger_credential_helper.py'), '-l', cred_lib_path)
 
   if audit_db_is_enabled:
     cred_setup = cred_setup_prefix + ('-f', credential_file, '-k', 'auditDBCred', '-v', PasswordString(xa_audit_db_password), '-c', '1')

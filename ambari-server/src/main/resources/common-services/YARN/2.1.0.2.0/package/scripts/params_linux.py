@@ -34,7 +34,7 @@ from resource_management.libraries import functions
 import status_params
 
 # a map of the Ambari role to the component name
-# for use with /usr/hdp/current/<component>
+# for use with <stack-root>/current/<component>
 MAPR_SERVER_ROLE_DIRECTORY_MAP = {
   'HISTORYSERVER' : 'hadoop-mapreduce-historyserver',
   'MAPREDUCE2_CLIENT' : 'hadoop-mapreduce-client',
@@ -52,6 +52,7 @@ config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
 stack_name = default("/hostLevelParams/stack_name", None)
+tarball_map = default("/configurations/cluster-env/tarball_map", None)
 
 # This is expected to be of the form #.#.#.#
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])

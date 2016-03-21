@@ -25,6 +25,7 @@ import shutil
 from ambari_commons.os_check import OSCheck
 from resource_management.libraries.script import Script
 from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions import stack_tools
 from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.version import compare_versions
@@ -33,8 +34,6 @@ from resource_management.core import shell
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, Link, Directory
-
-STACK_SELECT = '/usr/bin/hdp-select'
 
 class UpgradeSetAll(Script):
   """
@@ -60,12 +59,13 @@ class UpgradeSetAll(Script):
     real_ver = format_stack_version(version)
     if stack_name == "HDP":
       if compare_versions(real_ver, min_ver) >= 0:
-        cmd = ('ambari-python-wrap', STACK_SELECT, 'set', 'all', version)
+        stack_selector_path = stack_tools.get_stack_tool_path(stack_tools.STACK_SELECTOR_NAME)
+        cmd = ('ambari-python-wrap', stack_selector_path, 'set', 'all', version)
         code, out = shell.call(cmd, sudo=True)
 
       if compare_versions(real_ver, format_stack_version("2.3")) >= 0:
-        # backup the old and symlink /etc/[component]/conf to /usr/hdp/current/[component]
-        for k, v in conf_select.PACKAGE_DIRS.iteritems():
+        # backup the old and symlink /etc/[component]/conf to <stack-root>/current/[component]
+        for k, v in conf_select.get_package_dirs().iteritems():
           for dir_def in v:
             link_config(dir_def['conf_dir'], dir_def['current_dir'])
 
@@ -112,7 +112,7 @@ class UpgradeSetAll(Script):
       return
 
     # iterate through all directory conf mappings and undo the symlinks
-    for key, value in conf_select.PACKAGE_DIRS.iteritems():
+    for key, value in conf_select.get_package_dirs().iteritems():
       for directory_mapping in value:
         original_config_directory = directory_mapping['conf_dir']
         self._unlink_config(original_config_directory)
@@ -159,7 +159,7 @@ def link_config(old_conf, link_conf):
   4. Remove the old directory and create a symlink to link_conf
 
   :old_conf: the old config directory, ie /etc/[component]/conf
-  :link_conf: the new target for the config directory, ie /usr/hdp/current/[component-dir]/conf
+  :link_conf: the new target for the config directory, ie <stack-root>/current/[component-dir]/conf
   """
   if os.path.islink(old_conf):
     # if the link exists but is wrong, then change it
@@ -183,7 +183,7 @@ def link_config(old_conf, link_conf):
 
   shutil.rmtree(old_conf, ignore_errors=True)
 
-  # link /etc/[component]/conf -> /usr/hdp/current/[component]-client/conf
+  # link /etc/[component]/conf -> <stack-root>/current/[component]-client/conf
   Link(old_conf, to = link_conf)
 
 

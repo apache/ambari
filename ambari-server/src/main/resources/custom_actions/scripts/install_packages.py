@@ -34,10 +34,12 @@ from ambari_commons.os_check import OSCheck, OSConst
 from ambari_commons.str_utils import cbool, cint
 from resource_management.libraries.functions.packages_analyzer import allInstalledPackages
 from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions import stack_tools
 from resource_management.libraries.functions.stack_select import get_stack_versions
 from resource_management.libraries.functions.version import compare_versions, format_stack_version
 from resource_management.libraries.functions.repo_version_history \
   import read_actual_version_from_history_file, write_actual_version_to_history_file, REPO_VERSION_HISTORY_FILE
+from resource_management.libraries.script.script import Script
 from resource_management.core.resources.system import Execute
 
 from resource_management.core.logger import Logger
@@ -171,7 +173,7 @@ class InstallPackages(Script):
 
   def _create_config_links_if_necessary(self, stack_id, stack_version):
     """
-    Sets up the required structure for /etc/<component>/conf symlinks and /usr/hdp/current
+    Sets up the required structure for /etc/<component>/conf symlinks and <stack-root>/current
     configuration symlinks IFF the current stack is < HDP 2.3+ and the new stack is >= HDP 2.3
 
     stack_id:  stack id, ie HDP-2.3
@@ -193,11 +195,12 @@ class InstallPackages(Script):
       Logger.info("Configuration symlinks are not needed for {0}, only HDP-2.3+".format(stack_version))
       return
 
-    for package_name, directories in conf_select.PACKAGE_DIRS.iteritems():
+    for package_name, directories in conf_select.get_package_dirs().iteritems():
       # if already on HDP 2.3, then we should skip making conf.backup folders
       if self.current_stack_version_formatted and compare_versions(self.current_stack_version_formatted, '2.3') >= 0:
+        conf_selector_name = stack_tools.get_stack_tool_name(stack_tools.CONF_SELECTOR_NAME)
         Logger.info("The current cluster stack of {0} does not require backing up configurations; "
-                    "only conf-select versioned config directories will be created.".format(stack_version))
+                    "only {1} versioned config directories will be created.".format(stack_version, conf_selector_name))
         # only link configs for all known packages
         conf_select.select("HDP", package_name, stack_version, ignore_errors = True)
       else:
@@ -342,8 +345,9 @@ class InstallPackages(Script):
 
     # Install packages
     packages_were_checked = False
+    stack_selector_package = stack_tools.get_stack_tool_package(stack_tools.STACK_SELECTOR_NAME)
     try:
-      Package("hdp-select", 
+      Package(stack_selector_package,
               action="upgrade",
               retry_on_repo_unavailability=agent_stack_retry_on_unavailability,
               retry_count=agent_stack_retry_count

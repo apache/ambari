@@ -385,7 +385,7 @@ class TestMapReduce2Client(RMFTestCase):
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
-    # for now, it's enough that hdp-select is confirmed
+    # for now, it's enough that <stack-selector-tool> is confirmed
     self.assertResourceCalled("Execute", ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hadoop-client', '2.2.1.0-2067'), sudo=True)
 
 

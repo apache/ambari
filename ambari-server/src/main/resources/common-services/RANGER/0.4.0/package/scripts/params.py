@@ -27,7 +27,7 @@ from resource_management.libraries.functions.version import compare_versions
 from resource_management.libraries.functions.constants import Direction
 
 # a map of the Ambari role to the component name
-# for use with /usr/hdp/current/<component>
+# for use with <stack-root>/current/<component>
 SERVER_ROLE_DIRECTORY_MAP = {
   'RANGER_ADMIN' : 'ranger-admin',
   'RANGER_USERSYNC' : 'ranger-usersync'
