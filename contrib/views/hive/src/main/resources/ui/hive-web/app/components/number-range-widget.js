@@ -27,9 +27,6 @@ export default Ember.Component.extend({
     if (!numberRange.get('from') && !numberRange.get('to')) {
       numberRange.set('from', numberRange.get('min'));
       numberRange.set('to', numberRange.get('max'));
-      numberRange.set('fromDuration',utils.secondsToHHMMSS(numberRange.get('min')));
-      numberRange.set('toDuration',utils.secondsToHHMMSS(numberRange.get('max')));
-
     }
 
     this.$('.slider').slider({
@@ -42,28 +39,32 @@ export default Ember.Component.extend({
       slide: function (event, ui) {
         numberRange.set('from', ui.values[0]);
         numberRange.set('to', ui.values[1]);
-        numberRange.set('fromDuration', utils.secondsToHHMMSS(ui.values[0]));
-        numberRange.set('toDuration', utils.secondsToHHMMSS(ui.values[1]));
-
+        self.updateRangeLables();
       },
 
       change: function () {
         self.sendAction('rangeChanged', numberRange);
       }
     });
-
+    this.updateRangeLables();
     this.set('rendered', true);
   },
-
+  updateRangeLables: function () {
+    var numberRange = this.get('numberRange');
+    numberRange.set('fromDuration', utils.secondsToHHMMSS(numberRange.get('from')));
+    numberRange.set('toDuration', utils.secondsToHHMMSS(numberRange.get('to')));
+  },
   updateMin: function () {
     if (this.get('rendered')) {
       this.$('.slider').slider('values', 0, this.get('numberRange.from'));
+      this.updateRangeLables();
     }
   }.observes('numberRange.from'),
 
   updateMax: function () {
     if (this.get('rendered')) {
       this.$('.slider').slider('values', 1, this.get('numberRange.to'));
+      this.updateRangeLables();
     }
   }.observes('numberRange.to')
 });
