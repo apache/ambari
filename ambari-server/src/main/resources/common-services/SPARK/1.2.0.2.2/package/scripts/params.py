@@ -175,7 +175,6 @@ if has_spark_thriftserver and 'spark-thrift-sparkconf' in config['configurations
 default_fs = config['configurations']['core-site']['fs.defaultFS']
 hdfs_site = config['configurations']['hdfs-site']
 
-dfs_type = default("/commandParams/dfs_type", "")
 
 import functools
 #create partial functions with common arguments for every HdfsResource call
@@ -192,6 +191,5 @@ HdfsResource = functools.partial(
   principal_name = hdfs_principal_name,
   hdfs_site = hdfs_site,
   default_fs = default_fs,
-  immutable_paths = get_not_managed_resources(),
-  dfs_type = dfs_type
+  immutable_paths = get_not_managed_resources()
  )

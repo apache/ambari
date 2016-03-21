@@ -27,8 +27,6 @@ from resource_management.libraries.functions import format
 from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
 from ambari_commons.os_check import OSCheck
 from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions import get_kinit_path
-from resource_management.libraries.resources.hdfs_resource import HdfsResource
 
 
 config = Script.get_config()
@@ -37,11 +35,6 @@ host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
 
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
-
-dfs_type = default("/commandParams/dfs_type", "")
-hadoop_conf_dir = "/etc/hadoop/conf"
-
-component_list = default("/localComponents", [])
 
 # hadoop default params
 mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
@@ -135,7 +128,7 @@ metrics_collection_period = default("/configurations/ams-site/timeline.metrics.s
 
 #hadoop params
 
-if has_namenode or dfs_type == 'HCFS':
+if has_namenode:
   hadoop_tmp_dir = format("/tmp/hadoop-{hdfs_user}")
   hadoop_conf_dir = conf_select.get_hadoop_conf_dir(force_latest_on_upgrade=True)
   task_log4j_properties_location = os.path.join(hadoop_conf_dir, "task-log4j.properties")
@@ -222,38 +215,6 @@ net_topology_script_file_path = "/etc/hadoop/conf/topology_script.py"
 net_topology_script_dir = os.path.dirname(net_topology_script_file_path)
 net_topology_mapping_data_file_name = 'topology_mappings.data'
 net_topology_mapping_data_file_path = os.path.join(net_topology_script_dir, net_topology_mapping_data_file_name)
-
-#Added logic to create /tmp and /user directory for HCFS stack.
-has_core_site = 'core-site' in config['configurations']
-hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
-kinit_path_local = get_kinit_path()
-stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
-hadoop_bin_dir = hdp_select.get_hadoop_dir("bin")
-hdfs_principal_name = default('/configurations/hadoop-env/hdfs_principal_name', None)
-hdfs_site = config['configurations']['hdfs-site']
-default_fs = config['configurations']['core-site']['fs.defaultFS']
-smoke_user =  config['configurations']['cluster-env']['smokeuser']
-smoke_hdfs_user_dir = format("/user/{smoke_user}")
-smoke_hdfs_user_mode = 0770
-
-import functools
-#create partial functions with common arguments for every HdfsResource call
-#to create/delete/copyfromlocal hdfs directories/files we need to call params.HdfsResource in code
-HdfsResource = functools.partial(
-  HdfsResource,
-  user=hdfs_user,
-  security_enabled = security_enabled,
-  keytab = hdfs_user_keytab,
-  kinit_path_local = kinit_path_local,
-  hadoop_bin_dir = hadoop_bin_dir,
-  hadoop_conf_dir = hadoop_conf_dir,
-  principal_name = hdfs_principal_name,
-  hdfs_site = hdfs_site,
-  default_fs = default_fs,
-  dfs_type = dfs_type
-)
-
 
 ##### Namenode RPC ports - metrics config section start #####
 

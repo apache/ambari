@@ -337,7 +337,6 @@ class TestHBaseMaster(RMFTestCase):
         
         kinit_path_local = '/usr/bin/kinit',
         user = 'hdfs',
-        dfs_type = '',
         owner = 'hbase',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
@@ -351,7 +350,6 @@ class TestHBaseMaster(RMFTestCase):
         
         kinit_path_local = '/usr/bin/kinit',
         user = 'hdfs',
-        dfs_type = '',
         owner = 'hbase',
         hadoop_bin_dir = '/usr/bin',
         type = 'directory',
@@ -366,7 +364,6 @@ class TestHBaseMaster(RMFTestCase):
         
         kinit_path_local = '/usr/bin/kinit',
         user = 'hdfs',
-        dfs_type = '',
         action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
         hadoop_conf_dir = '/etc/hadoop/conf',
     )
@@ -478,7 +475,6 @@ class TestHBaseMaster(RMFTestCase):
         
         kinit_path_local = '/usr/bin/kinit',
         user = 'hdfs',
-        dfs_type = '',
         owner = 'hbase',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
@@ -492,7 +488,6 @@ class TestHBaseMaster(RMFTestCase):
         
         kinit_path_local = '/usr/bin/kinit',
         user = 'hdfs',
-        dfs_type = '',
         owner = 'hbase',
         hadoop_bin_dir = '/usr/bin',
         type = 'directory',
@@ -507,7 +502,6 @@ class TestHBaseMaster(RMFTestCase):
         
         kinit_path_local = '/usr/bin/kinit',
         user = 'hdfs',
-        dfs_type = '',
         action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='hdfs', default_fs='hdfs://c6401.ambari.apache.org:8020',
         hadoop_conf_dir = '/etc/hadoop/conf',
     )
@@ -630,7 +624,6 @@ class TestHBaseMaster(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         principal_name = UnknownConfigurationMock(),
         user = 'hdfs',
-        dfs_type = '',
         owner = 'hbase',
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
         type = 'directory',
@@ -646,7 +639,6 @@ class TestHBaseMaster(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         principal_name = UnknownConfigurationMock(),
         user = 'hdfs',
-        dfs_type = '',
         owner = 'hbase',
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
         type = 'directory',
@@ -665,7 +657,6 @@ class TestHBaseMaster(RMFTestCase):
         user = 'hdfs',
         action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
-        dfs_type = ''
     )
 
     self.assertResourceCalled('Execute', '/usr/hdp/current/hbase-master/bin/hbase-daemon.sh --config /usr/hdp/current/hbase-master/conf start master',

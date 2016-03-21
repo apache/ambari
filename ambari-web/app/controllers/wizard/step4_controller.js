@@ -278,7 +278,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
     var dfsServices = ['HDFS', 'GLUSTERFS'];
     var availableServices = this.filterProperty('isInstalled',false);
     availableServices.forEach(function(service){
-      if (dfsServices.contains(service.get('serviceName')) || service.get('serviceType') == 'HCFS' ) {
+      if (dfsServices.contains(service.get('serviceName'))) {
         console.log("found DFS " + service.get('serviceName'));
         bDFSStack=true;
       }
@@ -294,25 +294,24 @@ App.WizardStep4Controller = Em.ArrayController.extend({
   fileSystemServiceValidation: function(callback) {
     if(this.isDFSStack()){
       var primaryDFS = this.findProperty('isPrimaryDFS',true);
-      if (primaryDFS) {
-        var primaryDfsDisplayName = primaryDFS.get('displayNameOnSelectServicePage');
-        var primaryDfsServiceName = primaryDFS.get('serviceName');
-        if (this.multipleDFSs()) {
-          var dfsServices = this.filterProperty('isDFS',true).filterProperty('isSelected',true).mapProperty('serviceName');
-          var services = dfsServices.map(function (item){
+      var primaryDfsDisplayName = primaryDFS.get('displayNameOnSelectServicePage');
+      var primaryDfsServiceName = primaryDFS.get('serviceName');
+      if (this.multipleDFSs()) {
+        var dfsServices = this.filterProperty('isDFS',true).filterProperty('isSelected',true).mapProperty('serviceName');
+        var services = dfsServices.map(function (item){
           return  {
-                     serviceName: item,
-                     selected: item === primaryDfsServiceName
-                  };
-          });
-          this.addValidationError({
-                     id: 'multipleDFS',
-                     callback: this.needToAddServicePopup,
-                     callbackParams: [services, 'multipleDFS', primaryDfsDisplayName]
-          });
-        }
+            serviceName: item,
+            selected: item === primaryDfsServiceName
+          };
+        });
+        this.addValidationError({
+          id: 'multipleDFS',
+          callback: this.needToAddServicePopup,
+          callbackParams: [services, 'multipleDFS', primaryDfsDisplayName, callback]
+        });
+      }
     }
-  }},
+  },
 
   /**
    * Checks if a dependent service is selected without selecting the main service.

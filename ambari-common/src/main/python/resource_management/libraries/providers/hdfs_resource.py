@@ -52,8 +52,8 @@ RESOURCE_TO_JSON_FIELDS = {
   'recursive_chown': 'recursiveChown',
   'recursive_chmod': 'recursiveChmod',
   'change_permissions_for_parents': 'changePermissionforParents',
-  'manage_if_exists': 'manageIfExists',
-  'dfs_type': 'dfs_type'
+  'manage_if_exists': 'manageIfExists'
+
 }
 
 class HdfsResourceJar:
@@ -404,11 +404,9 @@ class HdfsResourceWebHDFS:
 class HdfsResourceProvider(Provider):
   def __init__(self, resource):
     super(HdfsResourceProvider,self).__init__(resource)
+    self.assert_parameter_is_set('hdfs_site')
     self.ignored_resources_list = HdfsResourceProvider.get_ignored_resources_list(self.resource.hdfs_resource_ignore_file)
-    self.fsType = getattr(resource, 'dfs_type')
-    if self.fsType != 'HCFS':
-      self.assert_parameter_is_set('hdfs_site')
-      self.webhdfs_enabled = self.resource.hdfs_site['dfs.webhdfs.enabled']
+    self.webhdfs_enabled = self.resource.hdfs_site['dfs.webhdfs.enabled']
           
   @staticmethod
   def parse_path(path):
@@ -469,9 +467,7 @@ class HdfsResourceProvider(Provider):
     self.get_hdfs_resource_executor().action_execute(self)
 
   def get_hdfs_resource_executor(self):
-    if self.fsType == 'HCFS':
-      return HdfsResourceJar()
-    elif WebHDFSUtil.is_webhdfs_available(self.webhdfs_enabled, self.resource.default_fs):
+    if WebHDFSUtil.is_webhdfs_available(self.webhdfs_enabled, self.resource.default_fs):
       return HdfsResourceWebHDFS()
     else:
       return HdfsResourceJar()

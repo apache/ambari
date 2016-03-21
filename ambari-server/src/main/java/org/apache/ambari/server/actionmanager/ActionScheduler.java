@@ -32,7 +32,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.ServiceComponentHostNotFoundException;
@@ -953,17 +952,6 @@ class ActionScheduler implements Runnable {
     commandParamsCmd.putAll(commandParams);
     cmd.setCommandParams(commandParamsCmd);
 
-    try {
-      Cluster cluster = clusters.getCluster(s.getClusterName());
-      if (null != cluster) {
-        // Generate localComponents
-        for (ServiceComponentHost sch : cluster.getServiceComponentHosts(hostname)) {
-          cmd.getLocalComponents().add(sch.getServiceComponentName());
-        }
-      }
-    } catch (ClusterNotFoundException cnfe) {
-      //NOP
-    }
 
     //Try to get hostParams from cache and merge them with command-level parameters
     Map<String, String> hostParams = hostParamsStageCache.getIfPresent(stagePk);

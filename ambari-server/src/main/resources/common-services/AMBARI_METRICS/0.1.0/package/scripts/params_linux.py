@@ -48,6 +48,3 @@ hbase_conf_dir = "/etc/ams-hbase/conf"
 
 limits_conf_dir = "/etc/security/limits.d"
 sudo = AMBARI_SUDO_BINARY
-
-dfs_type = default("/commandParams/dfs_type", "")
-

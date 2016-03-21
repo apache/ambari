@@ -99,17 +99,11 @@ public class ExecutionCommand extends AgentCommand {
   @SerializedName("serviceName")
   private String serviceName;
 
-  @SerializedName("serviceType")
-  private String serviceType;  
-  
   @SerializedName("componentName")
   private String componentName;
 
   @SerializedName("kerberosCommandParams")
   private List<Map<String, String>> kerberosCommandParams = new ArrayList<Map<String, String>>();
-
-  @SerializedName("localComponents")
-  private Set<String> localComponents = new HashSet<String>();
 
   public String getCommandId() {
     return commandId;
@@ -253,14 +247,6 @@ public class ExecutionCommand extends AgentCommand {
     this.forceRefreshConfigTagsBeforeExecution = forceRefreshConfigTagsBeforeExecution;
   }
 
-  public Set<String> getLocalComponents() {
-    return localComponents;
-  }
-
-  public void setLocalComponents(Set<String> localComponents) {
-    this.localComponents = localComponents;
-  }
-
   public Map<String, Map<String, Map<String, String>>> getConfigurationAttributes() {
     return configurationAttributes;
   }
@@ -283,14 +269,6 @@ public class ExecutionCommand extends AgentCommand {
 
   public void setServiceName(String serviceName) {
     this.serviceName = serviceName;
-  }
-  
-  public String getServiceType() {
-	return serviceType;
-  }
-
-  public void setServiceType(String serviceType) {
-	this.serviceType = serviceType;
   }
 
   public String getComponentName() {
@@ -342,7 +320,6 @@ public class ExecutionCommand extends AgentCommand {
     String SERVICE_PACKAGE_FOLDER = "service_package_folder";
     String HOOKS_FOLDER = "hooks_folder";
     String STACK_NAME = "stack_name";
-    String SERVICE_TYPE = "service_type";
     String STACK_VERSION = "stack_version";
     String SERVICE_REPO_INFO = "service_repo_info";
     String PACKAGE_LIST = "package_list";

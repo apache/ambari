@@ -1912,21 +1912,6 @@ var hdp2properties = [
     "category": "Ambari Principals",
     "filename": "storm-env.xml",
     "index": 12
-  },
-//***************************************** ECS stack********************************************
-  {
-    "id": "puppet var",
-    "name": "hdfs_log_dir_prefix",
-    "displayName": "Hadoop Log Dir Prefix",
-    "description": "The parent directory for Hadoop log files.  The HDFS log directory will be ${hadoop_log_dir_prefix} / ${hdfs_user} and the MapReduce log directory will be ${hadoop_log_dir_prefix} / ${mapred_user}.",
-    "recommendedValue": "/var/log/hadoop",
-    "isReconfigurable": false,
-    "displayType": "directory",
-    "isOverridable": false,
-    "isVisible": false,
-    "serviceName": "ECS",
-    "filename": "hadoop-env.xml",
-    "category": "General Hadoop"
   }
 ].concat(require('data/HDP2/alert_notification')).concat(require('data/HDP2/gluster_fs_properties'));
 

@@ -31,6 +31,7 @@ from resource_management.libraries.functions.version import format_hdp_stack_ver
 from resource_management.libraries.functions.default import default
 from resource_management.libraries import functions
 
+
 import status_params
 
 # a map of the Ambari role to the component name
@@ -266,9 +267,6 @@ is_webhdfs_enabled = hdfs_site['dfs.webhdfs.enabled']
 # Path to file that contains list of HDFS resources to be skipped during processing
 hdfs_resource_ignore_file = "/var/lib/ambari-agent/data/.hdfs_resource_ignore"
 
-dfs_type = default("/commandParams/dfs_type", "")
-
-
 import functools
 #create partial functions with common arguments for every HdfsResource call
 #to create/delete hdfs directory/file/copyfromlocal we need to call params.HdfsResource in code
@@ -284,8 +282,7 @@ HdfsResource = functools.partial(
   principal_name = hdfs_principal_name,
   hdfs_site = hdfs_site,
   default_fs = default_fs,
-  immutable_paths = get_not_managed_resources(),
-  dfs_type = dfs_type
+  immutable_paths = get_not_managed_resources()
  )
 update_exclude_file_only = default("/commandParams/update_exclude_file_only",False)
 

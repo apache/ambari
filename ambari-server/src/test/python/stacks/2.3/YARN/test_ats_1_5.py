@@ -168,7 +168,6 @@ class TestAts(RMFTestCase):
                               type = 'directory',
                               action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
                               mode = 0755,
-                              dfs_type = ''
                               )
     self.assertResourceCalled('HdfsResource', '/ats/done',
                               immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
@@ -186,7 +185,6 @@ class TestAts(RMFTestCase):
                               type = 'directory',
                               action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
                               mode = 0700,
-                              dfs_type = ''
                               )
     self.assertResourceCalled('HdfsResource', '/ats',
                               immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
@@ -205,7 +203,6 @@ class TestAts(RMFTestCase):
                               type = 'directory',
                               action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
                               mode = 0755,
-                              dfs_type = ''
                               )
     self.assertResourceCalled('HdfsResource', '/ats/active',
                               immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
@@ -223,7 +220,6 @@ class TestAts(RMFTestCase):
                               type = 'directory',
                               action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
                               mode = 01777,
-                              dfs_type = ''
                               )
     self.assertResourceCalled('HdfsResource', None,
                               immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
@@ -237,7 +233,6 @@ class TestAts(RMFTestCase):
                               user = 'hdfs',
                               action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
                               hadoop_conf_dir = '/etc/hadoop/conf',
-                              dfs_type = ''
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/yarn.exclude',
                               owner = 'yarn',

@@ -23,60 +23,27 @@ describe('App.ConfigsSaverMixin', function() {
   var instanceObject = mixinObject.create({});
 
   describe('#allowSaveSite()', function() {
-    var stackServices = [
-      Em.Object.create({
-        serviceName: 'HDFS',
-        serviceType: 'NONHCFS'
-      }),
-      Em.Object.create({
-        serviceName: 'S1',
-        serviceType: 'HCFS'
-      }),
-      Em.Object.create({
-        serviceName: 'S2',
-        serviceType: 'NONHCFS'
-      }),
-      Em.Object.create({
-        serviceName: 'S3'
-      })
-    ];
+
     beforeEach(function() {
       instanceObject.set('content', {});
-      sinon.stub(App.StackService, 'find', function () {
-        return stackServices;
-      });
-    });
-
-    afterEach(function() {
-      App.StackService.find.restore();
     });
 
     it('returns true by default', function() {
       expect(instanceObject.allowSaveSite('some-site')).to.be.true
     });
 
+    it('returns false for mapred-queue-acls.xml', function() {
+      expect(instanceObject.allowSaveSite('mapred-queue-acls.xml')).to.be.false
+    });
+
+    it('returns false for core-site but not proper service', function() {
+      instanceObject.set('content.serviceName', 'ANY');
+      expect(instanceObject.allowSaveSite('core-site.xml')).to.be.false
+    });
+
     it('returns true for core-site and proper service', function() {
       instanceObject.set('content.serviceName', 'HDFS');
       expect(instanceObject.allowSaveSite('core-site.xml')).to.be.true
-    });
-
-    it('returns true for core-site and serviceType HCFS', function() {
-      instanceObject.set('content.serviceName', 'S1');
-      expect(instanceObject.allowSaveSite('core-site.xml')).to.be.true
-    });
-
-    it('returns false for core-site and serviceType not HCFS', function() {
-      instanceObject.set('content.serviceName', 'S2');
-      expect(instanceObject.allowSaveSite('core-site.xml')).to.be.false
-    });
-
-    it('returns false for core-site but serviceType undefined', function() {
-      instanceObject.set('content.serviceName', 'S3');
-      expect(instanceObject.allowSaveSite('core-site.xml')).to.be.false
-    });
-
-    it('returns false for mapred-queue-acls.xml', function() {
-      expect(instanceObject.allowSaveSite('mapred-queue-acls.xml')).to.be.false
     });
   });
 
