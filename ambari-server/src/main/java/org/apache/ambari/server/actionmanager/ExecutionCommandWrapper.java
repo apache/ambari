@@ -19,7 +19,6 @@ package org.apache.ambari.server.actionmanager;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -31,7 +30,6 @@ import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.utils.StageUtils;
 
 import com.google.inject.Inject;

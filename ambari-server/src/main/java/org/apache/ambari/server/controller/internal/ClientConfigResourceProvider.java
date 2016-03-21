@@ -410,15 +410,12 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
       } catch (TimeoutException e) {
         LOG.error("Generate client configs script was killed due to timeout ", e);
         throw new SystemException("Generate client configs script was killed due to timeout ", e);
-      } catch (InterruptedException e) {
+      } catch (InterruptedException | IOException e) {
         LOG.error("Failed to run generate client configs script for a component " + componentName, e);
         throw new SystemException("Failed to run generate client configs script for a component " + componentName, e);
       } catch (ExecutionException e) {
         LOG.error(e.getMessage(),e);
         throw new SystemException(e.getMessage() + " " + e.getCause());
-      } catch (IOException e) {
-        LOG.error("Failed to run generate client configs script for a component " + componentName, e);
-        throw new SystemException("Failed to run generate client configs script for a component " + componentName, e);
       }
 
     } catch (AmbariException e) {

@@ -30,6 +30,7 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAM
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -453,8 +454,16 @@ public class AmbariActionExecutionHelper {
 
           execCmd.setForceRefreshConfigTagsBeforeExecution(configsToRefresh);
         }
-      }
-    }
+      } 
+
+      if (null != cluster) {
+        // Generate localComponents
+        for (ServiceComponentHost sch : cluster.getServiceComponentHosts(hostName)) {
+          execCmd.getLocalComponents().add(sch.getServiceComponentName());
+        }
+     } 
+
+     } 
   }
 
   /*

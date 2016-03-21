@@ -1,0 +1,145 @@
+<?xml version="1.0"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+
+<metainfo>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>YARN</name>
+      <version>2.7.1.2.3</version>
+      <requiredServices>
+        <service>ECS</service>
+        <service>MAPREDUCE2</service>
+        <service>ZOOKEEPER</service>
+      </requiredServices>
+      <components>
+        <component>
+          <name>NODEMANAGER</name>
+          <displayName>NodeManager</displayName>
+          <category>SLAVE</category>
+          <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <dependencies>
+            <dependency>
+              <name>ECS/ECS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>TEZ/TEZ_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+        </component>
+        <component>
+          <name>APP_TIMELINE_SERVER</name>
+          <displayName>App Timeline Server</displayName>
+          <category>MASTER</category>
+          <cardinality>0-1</cardinality>
+          <dependencies>
+            <dependency>
+              <name>ECS/ECS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+        </component>
+       <component>
+         <name>RESOURCEMANAGER</name>
+         <category>MASTER</category>
+         <cardinality>1-2</cardinality>
+         <dependencies>
+           <dependency>
+              <name>TEZ/TEZ_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+           </dependency>
+            <dependency>
+              <name>ECS/ECS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+         </dependencies>
+          <configuration-dependencies>
+            <config-type>capacity-scheduler</config-type>
+          </configuration-dependencies>
+        </component>
+      </components>
+    </service>
+
+    <service>
+      <name>MAPREDUCE2</name>
+      <version>2.7.1.2.3</version>
+      <components>
+        <component>
+          <name>HISTORYSERVER</name>
+          <displayName>History Server</displayName>
+          <category>MASTER</category>
+          <cardinality>1</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <auto-deploy>
+            <enabled>true</enabled>
+            <co-locate>YARN/RESOURCEMANAGER</co-locate>
+          </auto-deploy>
+          <dependencies>
+            <dependency>
+              <name>ECS/ECS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>TEZ/TEZ_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+        </component>
+
+        <component>
+          <name>MAPREDUCE2_CLIENT</name>
+          <displayName>MapReduce2 Client</displayName>
+          <category>CLIENT</category>
+          <cardinality>0+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+        </component>
+      </components>
+
+      <requiredServices>
+        <service>YARN</service>
+      </requiredServices>
+
+      <configuration-dir>configuration-mapred</configuration-dir>
+    </service>
+
+  </services>
+</metainfo>

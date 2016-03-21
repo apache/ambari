@@ -187,14 +187,15 @@ def yarn(name = None):
   # During RU, Core Masters and Slaves need hdfs-site.xml
   # TODO, instead of specifying individual configs, which is susceptible to breaking when new configs are added,
   # RU should rely on all available in /usr/hdp/<version>/hadoop/conf
-  XmlConfig("hdfs-site.xml",
-            conf_dir=params.hadoop_conf_dir,
-            configurations=params.config['configurations']['hdfs-site'],
-            configuration_attributes=params.config['configuration_attributes']['hdfs-site'],
-            owner=params.hdfs_user,
-            group=params.user_group,
-            mode=0644
-  )
+  if 'hdfs-site' in params.config['configurations']:
+    XmlConfig("hdfs-site.xml",
+              conf_dir=params.hadoop_conf_dir,
+              configurations=params.config['configurations']['hdfs-site'],
+              configuration_attributes=params.config['configuration_attributes']['hdfs-site'],
+              owner=params.hdfs_user,
+              group=params.user_group,
+              mode=0644
+    )
 
   XmlConfig("mapred-site.xml",
             conf_dir=params.hadoop_conf_dir,

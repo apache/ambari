@@ -2678,10 +2678,11 @@ public class ClusterImpl implements Cluster {
             serviceName = entry.getKey();
             break;
           } else if (!serviceName.equals(entry.getKey())) {
-            String error = "Updating configs for multiple services by a " +
-                "single API request isn't supported";
+            String error = String.format("Updating configs for multiple services by a " +
+                "single API request isn't supported. Conflicting services %s and %s for %s",
+                                         serviceName, entry.getKey(), config.getType());
             IllegalArgumentException exception = new IllegalArgumentException(error);
-            LOG.error(error + ", config version not created");
+            LOG.error(error + ", config version not created for {}", serviceName);
             throw exception;
           } else {
             break;

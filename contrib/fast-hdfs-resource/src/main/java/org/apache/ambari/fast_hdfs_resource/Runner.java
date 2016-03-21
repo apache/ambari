@@ -88,8 +88,12 @@ public class Runner {
           dfs.delete(pathHadoop, true);
         }
       }
-
-    } finally {
+    } 
+    catch(Exception e) {
+       System.out.println("Exception occurred, Reason: " + e.getMessage());
+       e.printStackTrace();
+    }
+    finally {
       dfs.close();
     }
 

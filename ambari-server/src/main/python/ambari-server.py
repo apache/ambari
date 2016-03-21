@@ -39,11 +39,12 @@ from ambari_server.setupHttps import setup_https, setup_truststore
 from ambari_server.dbCleanup import db_cleanup
 from ambari_server.hostUpdate import update_host_names
 from ambari_server.checkDatabase import check_database
+from ambari_server.enableStack import enable_stack_version
 
 from ambari_server.setupActions import BACKUP_ACTION, LDAP_SETUP_ACTION, LDAP_SYNC_ACTION, PSTART_ACTION, \
   REFRESH_STACK_HASH_ACTION, RESET_ACTION, RESTORE_ACTION, UPDATE_HOST_NAMES_ACTION, CHECK_DATABASE_ACTION, \
   SETUP_ACTION, SETUP_SECURITY_ACTION,START_ACTION, STATUS_ACTION, STOP_ACTION, UPGRADE_ACTION, UPGRADE_STACK_ACTION, \
-  SETUP_JCE_ACTION, SET_CURRENT_ACTION,DB_CLEANUP_ACTION
+  SETUP_JCE_ACTION, SET_CURRENT_ACTION,DB_CLEANUP_ACTION, ENABLE_STACK_ACTION
 from ambari_server.setupSecurity import setup_ldap, sync_ldap, setup_master_key, setup_ambari_krb5_jaas
 from ambari_server.userInput import get_validated_string_input
 
@@ -378,6 +379,10 @@ def init_parser_options(parser):
   parser.add_option('--version-display-name', default=None, help="Display name of desired repo version", dest="desired_repo_version")
   parser.add_option('--force-version', action="store_true", default=False, help="Force version to current", dest="force_repo_version")
   parser.add_option("-d", "--from-date", dest="cleanup_from_date", default=None, type="string", help="Specify date for the cleanup process in 'yyyy-MM-dd' format")
+  parser.add_option('--version', dest="stack_versions", default=None, action="append", type="string",
+                    help="Specify stack version that needs to be enabled. All other stacks versions will be disabled")
+  parser.add_option('--stack', dest="stack_name", default=None, type="string",
+                    help="Specify stack name for the stack versions that needs to be enabled")
 
 @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
 def are_cmd_line_db_args_blank(options):
@@ -525,7 +530,8 @@ def create_user_action_map(args, options):
         RESTORE_ACTION: UserActionPossibleArgs(restore, [1, 2], args),
         UPDATE_HOST_NAMES_ACTION: UserActionPossibleArgs(update_host_names, [2], args, options),
         CHECK_DATABASE_ACTION: UserAction(check_database, options),
-        DB_CLEANUP_ACTION: UserAction(db_cleanup, options)
+        DB_CLEANUP_ACTION: UserAction(db_cleanup, options),
+        ENABLE_STACK_ACTION: UserAction(enable_stack, options, args)
       }
   return action_map
 
@@ -636,6 +642,23 @@ def mainBody():
       print_error_msg("Unexpected {0}: {1}".format((e).__class__.__name__, str(e)) +\
       "\nFor more info run ambari-server with -v or --verbose option")
       sys.exit(1)     
+
+@OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
+def enable_stack(options, args):
+  if options.stack_name == None:
+     print_error_msg ("Please provide stack name using --stack option")
+     return -1
+  if options.stack_versions == None:
+     print_error_msg ("Please provide stack version using --version option")
+     return -1
+  print_info_msg ("Going to enable Stack Versions: " +  str(options.stack_versions) + " for the stack: " + str(options.stack_name))
+  retcode = enable_stack_version(options.stack_name,options.stack_versions)
+  if retcode == 0:
+     status, pid = is_server_runing()
+     if status:
+        print "restarting ambari server"
+        stop(options)
+        start(options)
       
 
 if __name__ == "__main__":
