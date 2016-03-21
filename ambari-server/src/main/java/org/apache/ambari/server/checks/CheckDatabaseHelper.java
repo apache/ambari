@@ -321,7 +321,7 @@ public class CheckDatabaseHelper {
             "join serviceconfigmapping scm on sc.service_config_id=scm.service_config_id " +
             "join clusterconfig cc on scm.config_id=cc.config_id and sc.cluster_id=cc.cluster_id " +
             "join clusters c on cc.cluster_id=c.cluster_id and sc.stack_id=c.desired_stack_id " +
-            "where sc.group_id is null " +
+            "where sc.group_id is null and sc.service_config_id=(select max(service_config_id) from serviceconfig sc2 where sc2.service_name=sc.service_name and sc2.cluster_id=sc.cluster_id) " +
             "group by c.cluster_name, cs.service_name, cc.type_name, sc.version";
     String GET_NOT_SELECTED_SERVICE_CONFIGS_QUERY = "select c.cluster_name, cs.service_name, cc.type_name from clusterservices cs " +
             "join serviceconfig sc on cs.service_name=sc.service_name and cs.cluster_id=sc.cluster_id " +
