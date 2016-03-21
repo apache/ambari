@@ -408,6 +408,8 @@ def setup_https(args):
       client_api_ssl_port = DEFAULT_SSL_API_PORT if properties.get_property(SSL_API_PORT) in ("") \
             else properties.get_property(SSL_API_PORT)
       api_ssl = properties.get_property(SSL_API) in ['true']
+      client_api_ssl_port_old_value = properties.get_property(SSL_API_PORT)
+      api_ssl_old_value = properties.get_property(SSL_API)
       cert_was_imported = False
       cert_must_import = True
       if api_ssl:
@@ -437,6 +439,11 @@ def setup_https(args):
       conf_file = find_properties_file()
       f = open(conf_file, 'w')
       properties.store(f, "Changed by 'ambari-server setup-https' command")
+
+      if api_ssl_old_value != properties.get_property(SSL_API) \
+          or client_api_ssl_port_old_value != properties.get_property(SSL_API_PORT):
+        print "Ambari server URL changed. To make use of the Tez View in Ambari " \
+              "please update the property tez.tez-ui.history-url.base in tez-site"
 
       ambari_user = read_ambari_user()
       if ambari_user:
