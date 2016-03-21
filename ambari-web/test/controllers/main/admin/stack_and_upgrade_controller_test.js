@@ -1343,7 +1343,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
 
   describe("#suspendUpgrade()", function() {
     beforeEach(function () {
-      sinon.stub(controller, 'abortUpgrade').returns({
+      sinon.stub(controller, 'abortUpgradeWithSuspend').returns({
         done: function (callback) {
           callback();
         }
@@ -1352,13 +1352,13 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       sinon.stub(App.clusterStatus, 'setClusterStatus', Em.K);
     });
     afterEach(function () {
-      controller.abortUpgrade.restore();
+      controller.abortUpgradeWithSuspend.restore();
       controller.setDBProperty.restore();
       App.clusterStatus.setClusterStatus.restore();
     });
     it("", function() {
       controller.suspendUpgrade();
-      expect(controller.abortUpgrade.calledOnce).to.be.true;
+      expect(controller.abortUpgradeWithSuspend.calledOnce).to.be.true;
       expect(App.get('upgradeState')).to.equal('ABORTED');
       expect(controller.setDBProperty.calledWith('upgradeState', 'ABORTED')).to.be.true;
       expect(App.clusterStatus.setClusterStatus.calledOnce).to.be.true;
