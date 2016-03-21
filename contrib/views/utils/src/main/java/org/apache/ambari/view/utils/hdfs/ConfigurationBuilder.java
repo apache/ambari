@@ -26,6 +26,7 @@ import org.apache.hadoop.fs.LocalFileSystem;
 import org.apache.hadoop.fs.azure.NativeAzureFileSystem;
 import org.apache.hadoop.fs.azure.Wasb;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
+import org.apache.hadoop.hdfs.web.SWebHdfsFileSystem;
 import org.apache.hadoop.hdfs.web.WebHdfsFileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -233,7 +234,8 @@ public class ConfigurationBuilder {
     conf.set("fs.hdfs.impl", DistributedFileSystem.class.getName());
     conf.set("fs.webhdfs.impl", WebHdfsFileSystem.class.getName());
     conf.set("fs.file.impl", LocalFileSystem.class.getName());
-
+    conf.set("fs.swebhdfs.impl", SWebHdfsFileSystem.class.getName());
+    
     configureWASB();
 
     return conf;

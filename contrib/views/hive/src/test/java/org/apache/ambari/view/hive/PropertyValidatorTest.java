@@ -68,6 +68,11 @@ public class PropertyValidatorTest {
     assertTrue(validator.validateProperty(PropertyValidator.WEBHDFS_URL,
         definition, Validator.ValidationContext.PRE_CREATE).isValid());
 
+    definition.getPropertyMap().put(PropertyValidator.WEBHDFS_URL, "swebhdfs://hostname.internal:50070");
+
+    assertTrue(validator.validateProperty(PropertyValidator.WEBHDFS_URL,
+        definition, Validator.ValidationContext.PRE_CREATE).isValid());
+
     definition.getPropertyMap().put(PropertyValidator.WEBHDFS_URL, "http://hostname.internal:50070");
 
     assertFalse(validator.validateProperty(PropertyValidator.WEBHDFS_URL,

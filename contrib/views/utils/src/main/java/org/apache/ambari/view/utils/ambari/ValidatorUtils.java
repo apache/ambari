@@ -29,7 +29,7 @@ public class ValidatorUtils {
    * @return is url valid
    */
   public static boolean validateHdfsURL(String webhdfsUrl) {
-    String[] schemes = {"webhdfs", "hdfs", "s3","wasb"};
+    String[] schemes = {"webhdfs", "hdfs", "s3","wasb","swebhdfs"};
     return validateURL(webhdfsUrl, schemes);
   }
 
