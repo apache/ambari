@@ -34,23 +34,22 @@ class ExecuteHadoopProvider(Provider):
     conf_dir = self.resource.conf_dir
     command = self.resource.command
     principal = self.resource.principal
-    
+
     if isinstance(command, (list, tuple)):
       command = ' '.join(quote_bash_args(x) for x in command)
     
-    with Environment.get_instance_copy() as env:
-      if self.resource.security_enabled and not self.resource.kinit_override:
-        Execute (format("{kinit__path_local} -kt {keytab} {principal}"),
-          path = ['/bin'],
-          user = self.resource.user
-        )
-
-
-      Execute (format("hadoop --config {conf_dir} {command}"),
-        user        = self.resource.user,
-        tries       = self.resource.tries,
-        try_sleep   = self.resource.try_sleep,
-        logoutput   = self.resource.logoutput,
-        path        = self.resource.bin_dir,
-        environment = self.resource.environment,
+    if self.resource.security_enabled and not self.resource.kinit_override:
+      Execute (format("{kinit__path_local} -kt {keytab} {principal}"),
+        path = ['/bin'],
+        user = self.resource.user
       )
+
+
+    Execute (format("hadoop --config {conf_dir} {command}"),
+      user        = self.resource.user,
+      tries       = self.resource.tries,
+      try_sleep   = self.resource.try_sleep,
+      logoutput   = self.resource.logoutput,
+      path        = self.resource.bin_dir,
+      environment = self.resource.environment,
+    )

@@ -19,6 +19,7 @@ limitations under the License.
 '''
 
 from PythonExecutor import PythonExecutor
+from resource_management.core.exceptions import ClientComponentHasNoStatus, ComponentIsNotRunning
 
 import imp
 import sys
@@ -57,8 +58,10 @@ class PythonReflectiveExecutor(PythonExecutor):
       returncode = e.code
       if returncode:
         logger.debug("Reflective command failed with return_code=" + str(e))
-    except Exception: 
+    except (ClientComponentHasNoStatus, ComponentIsNotRunning):
       logger.debug("Reflective command failed with exception:", exc_info=1)
+    except Exception:
+      logger.info("Reflective command failed with exception:", exc_info=1)
     else: 
       returncode = 0
       
