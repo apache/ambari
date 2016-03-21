@@ -91,6 +91,7 @@ import org.apache.ambari.view.ViewDefinition;
 import org.apache.ambari.view.ViewResourceHandler;
 import org.apache.ambari.view.events.Event;
 import org.apache.ambari.view.events.Listener;
+import org.apache.log4j.PropertyConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -100,6 +101,7 @@ import javax.inject.Singleton;
 
 import java.beans.IntrospectionException;
 import java.io.File;
+import java.net.URL;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -128,6 +130,7 @@ public class ViewRegistry {
   protected static final int DEFAULT_REQUEST_CONNECT_TIMEOUT = 5000;
   protected static final int DEFAULT_REQUEST_READ_TIMEOUT    = 10000;
   private static final String VIEW_AMBARI_VERSION_REGEXP = "^((\\d+\\.)?)*(\\*|\\d+)$";
+  private static final String VIEW_LOG_FILE = "view.log4j.properties";
 
   /**
    * Thread pool
@@ -1523,6 +1526,8 @@ public class ViewRegistry {
       // extract the archive and get the class loader
       ClassLoader cl = extractor.extractViewArchive(viewDefinition, archiveFile, extractedArchiveDirFile);
 
+      configureViewLogging(viewDefinition,cl);
+
       ViewConfig viewConfig = archiveUtility.getViewConfigFromExtractedArchive(extractedArchiveDirPath,
           configuration.isViewValidationEnabled());
 
@@ -1552,6 +1557,14 @@ public class ViewRegistry {
 
       setViewStatus(viewDefinition, ViewEntity.ViewStatus.ERROR, msg + " : " + e.getMessage());
       LOG.error(msg, e);
+    }
+  }
+
+  private void configureViewLogging(ViewEntity viewDefinition,ClassLoader cl) {
+    URL resourceURL = cl.getResource(VIEW_LOG_FILE);
+    if( null != resourceURL ){
+      LOG.debug("setting up logging for view {} as per property file {}",viewDefinition.getName(), resourceURL);
+      PropertyConfigurator.configure(resourceURL);
     }
   }
 
