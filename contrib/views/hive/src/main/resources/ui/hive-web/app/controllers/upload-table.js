@@ -107,15 +107,19 @@ export default Ember.Controller.extend({
   }.observes('isFirstRowHeader'),
 
   popUploadProgressInfos : function(){
-    this.get('uploadProgressInfos').popObject();
+    var msg = this.get('uploadProgressInfos').popObject();
+   // console.log("popedup message : " + msg);
   },
 
   pushUploadProgressInfos : function(info){
     this.get('uploadProgressInfos').pushObject(info);
+   // console.log("pushed message : " + info);
   },
 
   clearUploadProgressModal : function(){
-    for( var i = 0 ; i < this.get('uploadProgressInfos').length ; i++){
+  //  console.log("inside clearUploadProgressModal this.get('uploadProgressInfos') : " + this.get('uploadProgressInfos'));
+    var len = this.get('uploadProgressInfos').length;
+    for( var i = 0 ; i < len ; i++){
       this.popUploadProgressInfos();
     }
   },
@@ -138,7 +142,7 @@ export default Ember.Controller.extend({
     this.set('isFirstRowHeader',true);
     this.set('files');
     this.set("firstRow");
-    this.set("selectedDatabase");
+    this.set("selectedDatabase",null);
     this.set("databaseName");
     this.set("filePath");
     this.set('tableName');
@@ -170,8 +174,6 @@ export default Ember.Controller.extend({
     console.log("finding status of job: ", jobId);
     var self = this;
     var fetchJobPromise = this.get('jobService').fetchJobStatus(jobId);
-//      console.log("fetchJobPromise : ", fetchJobPromise);
-
       fetchJobPromise.then(function (data) {
         console.log("waitForJobStatus : data : ", data);
         var status = data.jobStatus;
@@ -205,6 +207,7 @@ export default Ember.Controller.extend({
   generatePreview : function(files){
     var self = this;
     var promise = null;
+    this.waitForGeneratingPreview();
     if(this.get('isLocalUpload')){
       promise = this.uploadForPreview(files);
     }else{
@@ -249,280 +252,6 @@ export default Ember.Controller.extend({
     this.setError(error);
   },
 
-  createActualTable : function(){
-    console.log("createActualTable");
-    return this.createTable();
-  },
-
-  waitForCreateActualTable: function (jobId) {
-    console.log("waitForCreateActualTable");
-    this.pushUploadProgressInfos("<li>Creating actual table.... </li>");
-    var self = this;
-    var p = new Ember.RSVP.Promise(function (resolve, reject) {
-      self.waitForJobStatus(jobId, resolve, reject);
-    });
-
-    return p;
-  },
-
-  onCreateActualTableSuccess : function(){
-    console.log("onCreateTableSuccess");
-    this.popUploadProgressInfos();
-    this.pushUploadProgressInfos("<li> Successfully created actual table. </li>");
-  },
-
-  onCreateActualTableFailure : function(error){
-    console.log("onCreateActualTableFailure");
-    this.setError(error);
-  },
-
-  createTempTable : function(){
-    console.log("createTempTable");
-    var tempTableName = this.generateTempTableName();
-    this.set('tempTableName',tempTableName);
-    return this.get('uploader').createTable({
-      "isFirstRowHeader": this.get("isFirstRowHeader"),
-      "header": this.get("header"),
-      "tableName": tempTableName,
-      "databaseName": this.get('databaseName'),
-      "fileType":"TEXTFILE"
-    });
-  },
-
-  waitForCreateTempTable: function (jobId) {
-    console.log("waitForCreateTempTable");
-    this.pushUploadProgressInfos("<li>Creating temporary table.... </li>");
-    var self = this;
-    var p = new Ember.RSVP.Promise(function (resolve, reject) {
-      self.waitForJobStatus(jobId, resolve, reject);
-    });
-
-    return p;
-  },
-
-  onCreateTempTableSuccess : function(){
-    console.log("onCreateTempTableSuccess");
-    this.popUploadProgressInfos();
-    this.pushUploadProgressInfos("<li> Successfully created temporary table. </li>");
-  },
-
-  onCreateTempTableFailure : function(error){
-    console.log("onCreateTempTableFailure");
-    this.setError(error);
-  },
-
-  uploadFile : function(){
-    console.log("uploadFile");
-    if( this.get("isLocalUpload")){
-      this.pushUploadProgressInfos("<li>Uploading file .... </li>");
-      return this.uploadTable();
-    }else{
-      return this.uploadTableFromHdfs();
-    }
-  },
-
-  waitForUploadingFile: function (data) {
-    console.log("waitForUploadingFile");
-    if( data.jobId ){
-      this.pushUploadProgressInfos("<li>Uploading file .... </li>");
-      var self = this;
-          var p = new Ember.RSVP.Promise(function (resolve, reject) {
-            self.waitForJobStatus(data.jobId, resolve, reject);
-          });
-      return p;
-    }else{
-      return  Ember.RSVP.Promise.resolve(data);
-    }
-  },
-
-  onUploadingFileSuccess: function () {
-    console.log("onUploadingFileSuccess");
-    this.popUploadProgressInfos();
-    this.pushUploadProgressInfos("<li> Successfully uploaded file. </li>");
-  },
-
-  onUploadingFileFailure: function (error) {
-    console.log("onUploadingFileFailure");
-    this.setError(error);
-  },
-
-  insertIntoTable : function(){
-    console.log("insertIntoTable");
-
-    return this.get('uploader').insertIntoTable({
-      "fromDatabase":  this.get("databaseName"),
-      "fromTable": this.get("tempTableName"),
-      "toDatabase": this.get("databaseName"),
-      "toTable": this.get("tableName")
-    });
-  },
-
-  waitForInsertIntoTable: function (jobId) {
-    console.log("waitForInsertIntoTable");
-    this.pushUploadProgressInfos("<li>Inserting rows from temporary table to actual table .... </li>");
-    var self = this;
-    var p = new Ember.RSVP.Promise(function (resolve, reject) {
-      self.waitForJobStatus(jobId, resolve, reject);
-    });
-
-    return p;
-  },
-
-  onInsertIntoTableSuccess : function(){
-    console.log("onInsertIntoTableSuccess");
-    this.popUploadProgressInfos();
-    this.pushUploadProgressInfos("<li>Successfully inserted rows from temporary table to actual table. </li>");
-  },
-
-  onInsertIntoTableFailure : function(error){
-    console.log("onInsertIntoTableFailure");
-    this.setError(error);
-  },
-
-  deleteTempTable : function(){
-    console.log("deleteTempTable");
-
-    return this.get('uploader').deleteTable({
-      "database":  this.get("databaseName"),
-      "table": this.get("tempTableName")
-    });
-  },
-
-  waitForDeleteTempTable: function (jobId) {
-    console.log("waitForDeleteTempTable");
-    this.pushUploadProgressInfos("<li>Deleting temporary table .... </li>");
-    var self = this;
-    var p = new Ember.RSVP.Promise(function (resolve, reject) {
-      self.waitForJobStatus(jobId, resolve, reject);
-    });
-
-    return p;
-  },
-
-  onDeleteTempTableSuccess : function(){
-    console.log("onDeleteTempTableSuccess");
-    this.popUploadProgressInfos();
-    this.pushUploadProgressInfos("<li>Successfully inserted row. </li>");
-    this.onUploadSuccessfull();
-  },
-
-  onDeleteTempTableFailure : function(error){
-    console.log("onDeleteTempTableFailure");
-    this.setError(error);
-  },
-
-  createTableAndUploadFile : function(){
-    var self = this;
-    self.setError();
-    self.showUploadModal();
-    self.createActualTable()
-      .then(function(data){
-        console.log("1. received data : ", data);
-        return self.waitForCreateActualTable(data.jobId);
-      },function(error){
-        self.onCreateActualTableFailure(error);
-        console.log("Error occurred: ", error);
-        throw error;
-      })
-      .then(function(data){
-        console.log("2. received data : ", data);
-        self.onCreateActualTableSuccess(data);
-        return self.createTempTable(data);
-      },function(error){
-        if(!self.get('error')){
-          self.onCreateActualTableFailure(new Error("Server job for creation of actual table failed."));
-          console.log("Error occurred: ", error);
-        }
-        throw error;
-      })
-      .then(function(data){
-        console.log("3. received data : ", data);
-        return self.waitForCreateTempTable(data.jobId);
-      },function(error){
-        if(!self.get('error')){
-          self.onCreateTempTableFailure(error);
-          console.log("Error occurred: ", error);
-        }
-        throw error;
-      })
-      .then(function(data){
-        console.log("4. received data : ", data);
-        self.onCreateTempTableSuccess(data);
-        return self.uploadFile(data);
-      },function(error){
-        if(!self.get('error')){
-          self.onCreateTempTableFailure(new Error("Server job for creation of temporary table failed."));
-          console.log("Error occurred: ", error);
-        }
-        throw error;
-      }).then(function(data){
-        console.log("4.5 received data : ", data);
-        return self.waitForUploadingFile(data);
-      },function(error){
-        if(!self.get('error')){
-          self.onUploadingFileFailure(error);
-          console.log("Error occurred: ", error);
-        }
-        throw error;
-      })
-      .then(function(data){
-        console.log("5. received data : ", data);
-        self.onUploadingFileSuccess(data);
-        return self.insertIntoTable(data);
-      },function(error){
-        if(!self.get('error')){
-          self.onUploadingFileFailure(new Error("Server job for upload of file failed."));
-          console.log("Error occurred: ", error);
-        }
-        throw error;
-      })
-      .then(function(data){
-        console.log("6. received data : ", data);
-        return self.waitForInsertIntoTable(data.jobId);
-      },function(error){
-        if(!self.get('error')){
-          self.onInsertIntoTableFailure(error);
-          console.log("Error occurred: ", error);
-        }
-        throw error;
-      })
-      .then(function(data){
-        console.log("7. received data : ", data);
-        self.onInsertIntoTableSuccess(data);
-        return self.deleteTempTable(data);
-      },function(error){
-        if(!self.get('error')){
-          self.onInsertIntoTableFailure(new Error("Server job for insert from temporary to actual table failed."));
-          self.setError(error);
-          console.log("Error occurred: ", error);
-        }
-        throw error;
-      })
-      .then(function(data){
-        console.log("8. received data : ", data);
-        return self.waitForDeleteTempTable(data.jobId);
-      },function(error){
-        if(!self.get('error')){
-          self.onDeleteTempTableFailure(error);
-          console.log("Error occurred: ", error);
-        }
-        throw error;
-      })
-      .then(function(data){
-        console.log("9. received data : ", data);
-        self.onDeleteTempTableSuccess(data);
-      },function(error){
-        if(!self.get('error')){
-          self.onDeleteTempTableFailure(new Error("Server job for deleting temporary table failed."));
-          console.log("Error occurred: ", error);
-        }
-        throw error;
-      }).finally(function(){
-        console.log("finally hide the modal always");
-        self.hideUploadModal();
-      });
-  },
-
   createTable: function () {
     console.log("table headers : ", this.get('header'));
     var headers = this.get('header');
@@ -557,6 +286,362 @@ export default Ember.Controller.extend({
       "databaseName": databaseName,
       "fileType":filetype
     });
+  },
+
+  createActualTable : function(){
+    console.log("createActualTable");
+    this.pushUploadProgressInfos("<li> Starting to create Actual table.... </li>");
+    return this.createTable();
+  },
+
+  waitForCreateActualTable: function (jobId) {
+    console.log("waitForCreateActualTable");
+    this.popUploadProgressInfos();
+    this.pushUploadProgressInfos("<li> Waiting for creation of Actual table.... </li>");
+    var self = this;
+    var p = new Ember.RSVP.Promise(function (resolve, reject) {
+      self.waitForJobStatus(jobId, resolve, reject);
+    });
+
+    return p;
+  },
+
+  onCreateActualTableSuccess : function(){
+    console.log("onCreateTableSuccess");
+    this.popUploadProgressInfos();
+    this.pushUploadProgressInfos("<li> Successfully created Actual table. </li>");
+  },
+
+  onCreateActualTableFailure : function(error){
+    console.log("onCreateActualTableFailure");
+    this.popUploadProgressInfos();
+    this.pushUploadProgressInfos("<li> Failed to create Actual table. </li>");
+    this.setError(error);
+  },
+
+  createTempTable : function(){
+    console.log("createTempTable");
+    this.pushUploadProgressInfos("<li> Starting to create Temporary table.... </li>");
+    var tempTableName = this.generateTempTableName();
+    this.set('tempTableName',tempTableName);
+    return this.get('uploader').createTable({
+      "isFirstRowHeader": this.get("isFirstRowHeader"),
+      "header": this.get("header"),
+      "tableName": tempTableName,
+      "databaseName": this.get('databaseName'),
+      "fileType":"TEXTFILE"
+    });
+  },
+
+  waitForCreateTempTable: function (jobId) {
+    console.log("waitForCreateTempTable");
+    this.popUploadProgressInfos();
+    this.pushUploadProgressInfos("<li> Waiting for creation of Temporary table.... </li>");
+    var self = this;
+    var p = new Ember.RSVP.Promise(function (resolve, reject) {
+      self.waitForJobStatus(jobId, resolve, reject);
+    });
+
+    return p;
+  },
+
+  onCreateTempTableSuccess : function(){
+    console.log("onCreateTempTableSuccess");
+    this.popUploadProgressInfos();
+    this.pushUploadProgressInfos("<li> Successfully created Temporary table. </li>");
+  },
+
+  deleteTable : function(databaseName, tableName){
+    console.log("deleting table " + databaseName + "." + tableName);
+
+    return this.get('uploader').deleteTable({
+      "database":  databaseName,
+      "table": tableName
+    });
+  },
+
+  deleteTableOnError : function(databaseName,tableName, tableLabel){
+      //delete table and wait for delete job
+    var self = this;
+    this.pushUploadProgressInfos("<li> Deleting " + tableLabel + " table...  </li>");
+
+    return this.deleteTable(databaseName,tableName).then(function(data){
+      return new Ember.RSVP.Promise(function(resolve,reject){
+        self.waitForJobStatus(data.jobId,resolve,reject);
+      });
+    }).then(function(){
+      self.popUploadProgressInfos();
+      self.pushUploadProgressInfos("<li> Successfully deleted " + tableLabel + " table. </li>");
+      return Ember.RSVP.Promise.resolve();
+    },function(err){
+      self.popUploadProgressInfos();
+      self.pushUploadProgressInfos("<li> Failed to delete " + tableLabel + " table. </li>");
+      self.setError(err);
+      return Ember.RSVP.Promise.reject();
+    });
+  },
+
+  rollBackActualTableCreation : function(){
+    return this.deleteTableOnError(this.get("databaseName"),this.get("tableName"),"Actual");
+  },
+
+
+  onCreateTempTableFailure : function(error){
+    console.log("onCreateTempTableFailure");
+    this.setError(error);
+    this.popUploadProgressInfos();
+    this.pushUploadProgressInfos("<li> Failed to create temporary table. </li>");
+    return this.rollBackActualTableCreation().then(function(data){
+      return Ember.RSVP.Promise.reject(error); // always reject for the flow to stop
+    },function(err){
+      return Ember.RSVP.Promise.reject(error); // always reject for the flow to stop
+    });
+  },
+
+  uploadFile : function(){
+    console.log("uploadFile");
+    this.pushUploadProgressInfos("<li> Starting to upload the file .... </li>");
+    if( this.get("isLocalUpload")){
+      return this.uploadTable();
+    }else{
+      return this.uploadTableFromHdfs();
+    }
+  },
+
+  waitForUploadingFile: function (data) {
+    console.log("waitForUploadingFile");
+    this.popUploadProgressInfos();
+    this.pushUploadProgressInfos("<li> Waiting for uploading file .... </li>");
+    if( data.jobId ){
+      var self = this;
+          var p = new Ember.RSVP.Promise(function (resolve, reject) {
+            self.waitForJobStatus(data.jobId, resolve, reject);
+          });
+      return p;
+    }else{
+      return  Ember.RSVP.Promise.resolve(data);
+    }
+  },
+
+  onUploadingFileSuccess: function () {
+    console.log("onUploadingFileSuccess");
+    this.popUploadProgressInfos();
+    this.pushUploadProgressInfos("<li> Successfully uploaded file. </li>");
+  },
+
+  rollBackTempTableCreation : function(){
+    var self = this;
+    return this.deleteTableOnError(this.get("databaseName"),this.get("tempTableName"),"Temporary").then(function(data){
+      return self.rollBackActualTableCreation();
+    },function(err){
+      return self.rollBackActualTableCreation();
+    })
+  },
+
+  onUploadingFileFailure: function (error) {
+    console.log("onUploadingFileFailure");
+    this.setError(error);
+    this.popUploadProgressInfos();
+    this.pushUploadProgressInfos("<li> Failed to upload file. </li>");
+    return this.rollBackTempTableCreation().then(function(data){
+      return Ember.RSVP.Promise.reject(error); // always reject for the flow to stop
+    },function(err){
+      return Ember.RSVP.Promise.reject(error); // always reject for the flow to stop
+    });
+  },
+
+  rollBackUploadFile : function(){
+    return this.rollBackTempTableCreation();
+  },
+
+  insertIntoTable : function(){
+    console.log("insertIntoTable");
+    this.pushUploadProgressInfos("<li> Starting to Insert rows from temporary table to actual table .... </li>");
+
+    return this.get('uploader').insertIntoTable({
+      "fromDatabase":  this.get("databaseName"),
+      "fromTable": this.get("tempTableName"),
+      "toDatabase": this.get("databaseName"),
+      "toTable": this.get("tableName")
+    });
+  },
+
+  waitForInsertIntoTable: function (jobId) {
+    console.log("waitForInsertIntoTable");
+    this.popUploadProgressInfos();
+    this.pushUploadProgressInfos("<li> Waiting for Insertion of rows from temporary table to actual table .... </li>");
+    var self = this;
+    var p = new Ember.RSVP.Promise(function (resolve, reject) {
+      self.waitForJobStatus(jobId, resolve, reject);
+    });
+
+    return p;
+  },
+
+  onInsertIntoTableSuccess : function(){
+    console.log("onInsertIntoTableSuccess");
+    this.popUploadProgressInfos();
+    this.pushUploadProgressInfos("<li> Successfully inserted rows from temporary table to actual table. </li>");
+  },
+
+  onInsertIntoTableFailure : function(error){
+    console.log("onInsertIntoTableFailure");
+    this.setError(error);
+    this.popUploadProgressInfos();
+    this.pushUploadProgressInfos("<li> Failed to insert rows from temporary table to actual table. </li>");
+    return this.rollBackUploadFile().then(function(data){
+      return Ember.RSVP.Promise.reject(error); // always reject for the flow to stop
+    },function(err){
+      return Ember.RSVP.Promise.reject(error); // always reject for the flow to stop
+    });
+  },
+
+  deleteTempTable : function(){
+    console.log("deleteTempTable");
+    this.pushUploadProgressInfos("<li> Starting to delete temporary table .... </li>");
+
+    return this.deleteTable(
+      this.get("databaseName"),
+      this.get("tempTableName")
+    );
+  },
+
+  waitForDeleteTempTable: function (jobId) {
+    console.log("waitForDeleteTempTable");
+    this.popUploadProgressInfos();
+    this.pushUploadProgressInfos("<li> Waiting for deletion of temporary table .... </li>");
+    var self = this;
+    var p = new Ember.RSVP.Promise(function (resolve, reject) {
+      self.waitForJobStatus(jobId, resolve, reject);
+    });
+
+    return p;
+  },
+
+  onDeleteTempTableSuccess : function(){
+    console.log("onDeleteTempTableSuccess");
+    this.popUploadProgressInfos();
+    this.pushUploadProgressInfos("<li>Successfully inserted row. </li>");
+    this.onUploadSuccessfull();
+  },
+
+  onDeleteTempTableFailure : function(error){
+    console.log("onDeleteTempTableFailure");
+    this.setError(error);
+    this.setError("You will have to manually delete the table " + this.get("databaseName") + "." + this.get("tempTableName"));
+  },
+
+  createTableAndUploadFile : function(){
+    var self = this;
+    self.setError();
+    self.showUploadModal();
+    self.createActualTable()
+      .then(function(data){
+        console.log("1. received data : ", data);
+        return self.waitForCreateActualTable(data.jobId);
+      },function(error){
+        self.onCreateActualTableFailure(error);
+        console.log("Error occurred: ", error);
+        throw error;
+      })
+      .then(function(data){
+        console.log("2. received data : ", data);
+        self.onCreateActualTableSuccess(data);
+        return self.createTempTable(data);
+      },function(error){
+        if(!self.get('error')){
+          console.log("Error occurred: ", error);
+          self.onCreateActualTableFailure(new Error("Server job for creation of actual table failed."));
+        }
+        throw error;
+      })
+      .then(function(data){
+        console.log("3. received data : ", data);
+        return self.waitForCreateTempTable(data.jobId);
+      },function(error){
+        if(!self.get('error')){
+          console.log("Error occurred: ", error);
+          return self.onCreateTempTableFailure(error);
+        }
+        throw error;
+      })
+      .then(function(data){
+        console.log("4. received data : ", data);
+        self.onCreateTempTableSuccess(data);
+        return self.uploadFile(data);
+      },function(error){
+        if(!self.get('error')){
+          console.log("Error occurred: ", error);
+          return self.onCreateTempTableFailure(new Error("Server job for creation of temporary table failed."));
+        }
+        throw error;
+      }).then(function(data){
+        console.log("4.5 received data : ", data);
+        return self.waitForUploadingFile(data);
+      },function(error){
+        if(!self.get('error')){
+          console.log("Error occurred: ", error);
+          return self.onUploadingFileFailure(error);
+        }
+        throw error;
+      })
+      .then(function(data){
+        console.log("5. received data : ", data);
+        self.onUploadingFileSuccess(data);
+        return self.insertIntoTable(data);
+      },function(error){
+        if(!self.get('error')){
+          console.log("Error occurred: ", error);
+          return self.onUploadingFileFailure(new Error("Server job for upload of file failed."));
+        }
+        throw error;
+      })
+      .then(function(data){
+        console.log("6. received data : ", data);
+        return self.waitForInsertIntoTable(data.jobId);
+      },function(error){
+        if(!self.get('error')){
+          console.log("Error occurred: ", error);
+          return self.onInsertIntoTableFailure(error);
+        }
+        throw error;
+      })
+      .then(function(data){
+        console.log("7. received data : ", data);
+        self.onInsertIntoTableSuccess(data);
+        return self.deleteTempTable(data);
+      },function(error){
+        if(!self.get('error')){
+          console.log("Error occurred: ", error);
+          return self.onInsertIntoTableFailure(new Error("Server job for insert from temporary to actual table failed."));
+        }
+        throw error;
+      })
+      .then(function(data){
+        console.log("8. received data : ", data);
+        return self.waitForDeleteTempTable(data.jobId);
+      },function(error){
+        if(!self.get('error')){
+          console.log("Error occurred: ", error);
+          self.onDeleteTempTableFailure(error);
+        }
+        throw error;
+      })
+      .then(function(data){
+        console.log("9. received data : ", data);
+        self.onDeleteTempTableSuccess(data);
+      },function(error){
+        if(!self.get('error')){
+          console.log("Error occurred: ", error);
+          self.onDeleteTempTableFailure(new Error("Server job for deleting temporary table failed."));
+        }
+        throw error;
+      }).catch(function(error){
+        console.log("inside catch : ", error);
+      }).finally(function(){
+        console.log("finally hide the modal always");
+        self.hideUploadModal();
+      });
   },
 
   validateColumns: function () {
