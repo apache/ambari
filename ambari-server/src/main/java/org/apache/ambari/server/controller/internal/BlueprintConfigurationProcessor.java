@@ -130,6 +130,11 @@ public class BlueprintConfigurationProcessor {
   private static Pattern LOCALHOST_PORT_REGEX = Pattern.compile("localhost:?(\\d+)?");
 
   /**
+   * Special network address
+   */
+  private static String BIND_ALL_IP_ADDRESS = "0.0.0.0";
+
+  /**
    * Statically-defined set of properties that can support HA using a nameservice name
    *   in the configuration, rather than just a host name.
    *   This set also contains other HA properties that will be exported if the
@@ -990,7 +995,7 @@ public class BlueprintConfigurationProcessor {
    *         false if the 0.0.0.0 address is not included in this string
    */
   private static boolean isSpecialNetworkAddress(String propertyValue) {
-    return propertyValue.contains("0.0.0.0");
+    return propertyValue.contains(BIND_ALL_IP_ADDRESS);
   }
 
   /**
@@ -2145,6 +2150,7 @@ public class BlueprintConfigurationProcessor {
     allUpdaters.add(dbHostTopologyUpdaters);
     allUpdaters.add(mPropertyUpdaters);
 
+    Map<String, PropertyUpdater> amsSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> hdfsSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> mapredSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> coreSiteMap = new HashMap<String, PropertyUpdater>();
@@ -2182,6 +2188,7 @@ public class BlueprintConfigurationProcessor {
 
 
 
+    singleHostTopologyUpdaters.put("ams-site", amsSiteMap);
     singleHostTopologyUpdaters.put("hdfs-site", hdfsSiteMap);
     singleHostTopologyUpdaters.put("mapred-site", mapredSiteMap);
     singleHostTopologyUpdaters.put("core-site", coreSiteMap);
@@ -2401,6 +2408,19 @@ public class BlueprintConfigurationProcessor {
     hawqSiteMap.put("hawq_master_address_host", new SingleHostTopologyUpdater("HAWQMASTER"));
     hawqSiteMap.put("hawq_standby_address_host", new SingleHostTopologyUpdater("HAWQSTANDBY"));
     hawqSiteMap.put("hawq_dfs_url", new SingleHostTopologyUpdater("NAMENODE"));
+
+    // AMS
+    amsSiteMap.put("timeline.metrics.service.webapp.address", new SingleHostTopologyUpdater("METRICS_COLLECTOR") {
+      @Override
+      public String updateForClusterCreate(String propertyName, String origValue, Map<String, Map<String, String>> properties, ClusterTopology topology) {
+        String value = origValue;
+        if (isSpecialNetworkAddress(origValue)) {
+          value = origValue.replace(BIND_ALL_IP_ADDRESS, "localhost");
+        }
+        return super.updateForClusterCreate(propertyName, value, properties, topology);
+      }
+    });
+
   }
 
   /**

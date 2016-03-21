@@ -53,6 +53,7 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Upgrade catalog for version 2.2.2.
@@ -78,19 +79,23 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
   private static final String ATLAS_SERVER_HTTPS_PORT_PROPERTY = "atlas.server.https.port";
   private static final String ATLAS_REST_ADDRESS_PROPERTY = "atlas.rest.address";
 
-  private static final String HOST_AGGREGATOR_DAILY_CHECKPOINTCUTOFFMULTIPIER =
+  private static final String HOST_AGGREGATOR_DAILY_CHECKPOINTCUTOFFMULTIPIER_PROPERTY =
     "timeline.metrics.host.aggregator.daily.checkpointCutOffMultiplier";
-  private static final String CLUSTER_AGGREGATOR_DAILY_CHECKPOINTCUTOFFMULTIPIER =
+  private static final String CLUSTER_AGGREGATOR_DAILY_CHECKPOINTCUTOFFMULTIPIER_PROPERTY =
     "timeline.metrics.cluster.aggregator.daily.checkpointCutOffMultiplier";
-  private static final String TIMELINE_METRICS_SERVICE_WATCHER_DISBALED = "timeline.metrics.service.watcher.disabled";
-  private static final String AMS_MODE = "timeline.metrics.service.operation.mode";
-  public static final String PRECISION_TABLE_TTL = "timeline.metrics.host.aggregator.ttl";
-  public static final String CLUSTER_SECOND_TABLE_TTL = "timeline.metrics.cluster.aggregator.second.ttl";
-  public static final String CLUSTER_MINUTE_TABLE_TTL = "timeline.metrics.cluster.aggregator.minute.ttl";
-  public static final String HBASE_CLIENT_SCANNER_TIMEOUT_PERIOD = "hbase.client.scanner.timeout.period";
-  public static final String HBASE_RPC_TIMEOUT = "hbase.rpc.timeout";
-  public static final String PHOENIX_QUERY_TIMEOUT = "phoenix.query.timeoutMs";
-  public static final String PHOENIX_QUERY_KEEPALIVE = "phoenix.query.keepAliveMs";
+  private static final String TIMELINE_METRICS_SERVICE_WATCHER_DISBALED_PROPERTY = "timeline.metrics.service.watcher.disabled";
+  private static final String AMS_MODE_PROPERTY = "timeline.metrics.service.operation.mode";
+  public static final String PRECISION_TABLE_TTL_PROPERTY = "timeline.metrics.host.aggregator.ttl";
+  public static final String CLUSTER_SECOND_TABLE_TTL_PROPERTY = "timeline.metrics.cluster.aggregator.second.ttl";
+  public static final String CLUSTER_MINUTE_TABLE_TTL_PROPERTY = "timeline.metrics.cluster.aggregator.minute.ttl";
+  public static final String AMS_WEBAPP_ADDRESS_PROPERTY = "timeline.metrics.service.webapp.address";
+  public static final String HBASE_CLIENT_SCANNER_TIMEOUT_PERIOD_PROPERTY = "hbase.client.scanner.timeout.period";
+  public static final String HBASE_RPC_TIMEOUT_PROPERTY = "hbase.rpc.timeout";
+  public static final String PHOENIX_QUERY_TIMEOUT_PROPERTY = "phoenix.query.timeoutMs";
+  public static final String PHOENIX_QUERY_KEEPALIVE_PROPERTY = "phoenix.query.keepAliveMs";
+
+  public static final String AMS_SERVICE_NAME = "AMBARI_METRICS";
+  public static final String AMS_COLLECTOR_COMPONENT_NAME = "METRICS_COLLECTOR";
 
   private static final String[] HDFS_WIDGETS_TO_UPDATE = new String[] {
     "NameNode RPC", "NN Connection Load" };
@@ -257,66 +262,79 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
             Map<String, String> amsSiteProperties = amsSite.getProperties();
             Map<String, String> newProperties = new HashMap<>();
 
-            if (amsSiteProperties.containsKey(HOST_AGGREGATOR_DAILY_CHECKPOINTCUTOFFMULTIPIER) &&
-              amsSiteProperties.get(HOST_AGGREGATOR_DAILY_CHECKPOINTCUTOFFMULTIPIER).equals("1")) {
+            if (amsSiteProperties.containsKey(AMS_WEBAPP_ADDRESS_PROPERTY)) {
+              Set<String> collectorHostNames = cluster.getHosts(AMS_SERVICE_NAME, AMS_COLLECTOR_COMPONENT_NAME);
+              for (String collector: collectorHostNames) {
+                String currentValue = amsSiteProperties.get(AMS_WEBAPP_ADDRESS_PROPERTY);
 
-              LOG.info("Setting value of " + HOST_AGGREGATOR_DAILY_CHECKPOINTCUTOFFMULTIPIER + " : 2");
-              newProperties.put(HOST_AGGREGATOR_DAILY_CHECKPOINTCUTOFFMULTIPIER, String.valueOf(2));
+                if (currentValue.startsWith("0.0.0.0")) {
+                  newProperties.put(AMS_WEBAPP_ADDRESS_PROPERTY, currentValue.replace("0.0.0.0", collector));
+                } else if (currentValue.startsWith("localhost")) {
+                  newProperties.put(AMS_WEBAPP_ADDRESS_PROPERTY, currentValue.replace("localhost", collector));
+                }
+              }
+            }
+
+            if (amsSiteProperties.containsKey(HOST_AGGREGATOR_DAILY_CHECKPOINTCUTOFFMULTIPIER_PROPERTY) &&
+              amsSiteProperties.get(HOST_AGGREGATOR_DAILY_CHECKPOINTCUTOFFMULTIPIER_PROPERTY).equals("1")) {
+
+              LOG.info("Setting value of " + HOST_AGGREGATOR_DAILY_CHECKPOINTCUTOFFMULTIPIER_PROPERTY + " : 2");
+              newProperties.put(HOST_AGGREGATOR_DAILY_CHECKPOINTCUTOFFMULTIPIER_PROPERTY, String.valueOf(2));
 
             }
 
-            if (amsSiteProperties.containsKey(CLUSTER_AGGREGATOR_DAILY_CHECKPOINTCUTOFFMULTIPIER) &&
-              amsSiteProperties.get(CLUSTER_AGGREGATOR_DAILY_CHECKPOINTCUTOFFMULTIPIER).equals("1")) {
+            if (amsSiteProperties.containsKey(CLUSTER_AGGREGATOR_DAILY_CHECKPOINTCUTOFFMULTIPIER_PROPERTY) &&
+              amsSiteProperties.get(CLUSTER_AGGREGATOR_DAILY_CHECKPOINTCUTOFFMULTIPIER_PROPERTY).equals("1")) {
 
-              LOG.info("Setting value of " + CLUSTER_AGGREGATOR_DAILY_CHECKPOINTCUTOFFMULTIPIER + " : 2");
-              newProperties.put(CLUSTER_AGGREGATOR_DAILY_CHECKPOINTCUTOFFMULTIPIER, String.valueOf(2));
+              LOG.info("Setting value of " + CLUSTER_AGGREGATOR_DAILY_CHECKPOINTCUTOFFMULTIPIER_PROPERTY + " : 2");
+              newProperties.put(CLUSTER_AGGREGATOR_DAILY_CHECKPOINTCUTOFFMULTIPIER_PROPERTY, String.valueOf(2));
 
             }
 
-            if (!amsSiteProperties.containsKey(TIMELINE_METRICS_SERVICE_WATCHER_DISBALED)) {
-              LOG.info("Add config  " + TIMELINE_METRICS_SERVICE_WATCHER_DISBALED + " = false");
-              newProperties.put(TIMELINE_METRICS_SERVICE_WATCHER_DISBALED, String.valueOf(false));
+            if (!amsSiteProperties.containsKey(TIMELINE_METRICS_SERVICE_WATCHER_DISBALED_PROPERTY)) {
+              LOG.info("Add config  " + TIMELINE_METRICS_SERVICE_WATCHER_DISBALED_PROPERTY + " = false");
+              newProperties.put(TIMELINE_METRICS_SERVICE_WATCHER_DISBALED_PROPERTY, String.valueOf(false));
             }
 
             boolean isDistributed = false;
-            if ("distributed".equals(amsSite.getProperties().get(AMS_MODE))) {
+            if ("distributed".equals(amsSite.getProperties().get(AMS_MODE_PROPERTY))) {
               isDistributed = true;
             }
 
-            if (amsSiteProperties.containsKey(PRECISION_TABLE_TTL)) {
-              String oldTtl = amsSiteProperties.get(PRECISION_TABLE_TTL);
+            if (amsSiteProperties.containsKey(PRECISION_TABLE_TTL_PROPERTY)) {
+              String oldTtl = amsSiteProperties.get(PRECISION_TABLE_TTL_PROPERTY);
               String newTtl = oldTtl;
               if (isDistributed) {
                 if ("86400".equals(oldTtl)) {
                   newTtl = String.valueOf(7 * 86400); // 7 days
                 }
               }
-              newProperties.put(PRECISION_TABLE_TTL, newTtl);
-              LOG.info("Setting value of " + PRECISION_TABLE_TTL + " : " + newTtl);
+              newProperties.put(PRECISION_TABLE_TTL_PROPERTY, newTtl);
+              LOG.info("Setting value of " + PRECISION_TABLE_TTL_PROPERTY + " : " + newTtl);
             }
 
-            if (amsSiteProperties.containsKey(CLUSTER_SECOND_TABLE_TTL)) {
-              String oldTtl = amsSiteProperties.get(CLUSTER_SECOND_TABLE_TTL);
+            if (amsSiteProperties.containsKey(CLUSTER_SECOND_TABLE_TTL_PROPERTY)) {
+              String oldTtl = amsSiteProperties.get(CLUSTER_SECOND_TABLE_TTL_PROPERTY);
               String newTtl = oldTtl;
 
               if ("2592000".equals(oldTtl)) {
                 newTtl = String.valueOf(7 * 86400); // 7 days
               }
 
-              newProperties.put(CLUSTER_SECOND_TABLE_TTL, newTtl);
-              LOG.info("Setting value of " + CLUSTER_SECOND_TABLE_TTL + " : " + newTtl);
+              newProperties.put(CLUSTER_SECOND_TABLE_TTL_PROPERTY, newTtl);
+              LOG.info("Setting value of " + CLUSTER_SECOND_TABLE_TTL_PROPERTY + " : " + newTtl);
             }
 
-            if (amsSiteProperties.containsKey(CLUSTER_MINUTE_TABLE_TTL)) {
-              String oldTtl = amsSiteProperties.get(CLUSTER_MINUTE_TABLE_TTL);
+            if (amsSiteProperties.containsKey(CLUSTER_MINUTE_TABLE_TTL_PROPERTY)) {
+              String oldTtl = amsSiteProperties.get(CLUSTER_MINUTE_TABLE_TTL_PROPERTY);
               String newTtl = oldTtl;
 
               if ("7776000".equals(oldTtl)) {
                 newTtl = String.valueOf(30 * 86400); // 30 days
               }
 
-              newProperties.put(CLUSTER_MINUTE_TABLE_TTL, newTtl);
-              LOG.info("Setting value of " + CLUSTER_MINUTE_TABLE_TTL + " : " + newTtl);
+              newProperties.put(CLUSTER_MINUTE_TABLE_TTL_PROPERTY, newTtl);
+              LOG.info("Setting value of " + CLUSTER_MINUTE_TABLE_TTL_PROPERTY + " : " + newTtl);
             }
 
             updateConfigurationPropertiesForCluster(cluster, AMS_SITE, newProperties, true, true);
@@ -327,22 +345,22 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
             Map<String, String> amsHbaseSiteProperties = amsHbaseSite.getProperties();
             Map<String, String> newProperties = new HashMap<>();
 
-            if (!amsHbaseSiteProperties.containsKey(HBASE_RPC_TIMEOUT)) {
-              newProperties.put(HBASE_RPC_TIMEOUT, String.valueOf(300000));
+            if (!amsHbaseSiteProperties.containsKey(HBASE_RPC_TIMEOUT_PROPERTY)) {
+              newProperties.put(HBASE_RPC_TIMEOUT_PROPERTY, String.valueOf(300000));
             }
 
-            if (!amsHbaseSiteProperties.containsKey(PHOENIX_QUERY_KEEPALIVE)) {
-              newProperties.put(PHOENIX_QUERY_KEEPALIVE, String.valueOf(300000));
+            if (!amsHbaseSiteProperties.containsKey(PHOENIX_QUERY_KEEPALIVE_PROPERTY)) {
+              newProperties.put(PHOENIX_QUERY_KEEPALIVE_PROPERTY, String.valueOf(300000));
             }
 
-            if (!amsHbaseSiteProperties.containsKey(HBASE_CLIENT_SCANNER_TIMEOUT_PERIOD) ||
-              amsHbaseSiteProperties.get(HBASE_CLIENT_SCANNER_TIMEOUT_PERIOD).equals("900000")) {
-              amsHbaseSiteProperties.put(HBASE_CLIENT_SCANNER_TIMEOUT_PERIOD, String.valueOf(300000));
+            if (!amsHbaseSiteProperties.containsKey(HBASE_CLIENT_SCANNER_TIMEOUT_PERIOD_PROPERTY) ||
+              amsHbaseSiteProperties.get(HBASE_CLIENT_SCANNER_TIMEOUT_PERIOD_PROPERTY).equals("900000")) {
+              amsHbaseSiteProperties.put(HBASE_CLIENT_SCANNER_TIMEOUT_PERIOD_PROPERTY, String.valueOf(300000));
             }
 
-            if (!amsHbaseSiteProperties.containsKey(PHOENIX_QUERY_TIMEOUT) ||
-              amsHbaseSiteProperties.get(PHOENIX_QUERY_TIMEOUT).equals("1200000")) {
-              amsHbaseSiteProperties.put(PHOENIX_QUERY_TIMEOUT, String.valueOf(300000));
+            if (!amsHbaseSiteProperties.containsKey(PHOENIX_QUERY_TIMEOUT_PROPERTY) ||
+              amsHbaseSiteProperties.get(PHOENIX_QUERY_TIMEOUT_PROPERTY).equals("1200000")) {
+              amsHbaseSiteProperties.put(PHOENIX_QUERY_TIMEOUT_PROPERTY, String.valueOf(300000));
             }
             updateConfigurationPropertiesForCluster(cluster, AMS_HBASE_SITE, newProperties, true, true);
           }

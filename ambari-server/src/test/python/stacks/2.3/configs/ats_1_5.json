@@ -833,7 +833,7 @@
             "timeline.metrics.host.aggregator.ttl": "86400",
             "timeline.metrics.cluster.aggregator.hourly.checkpointCutOffMultiplier": "2",
             "timeline.metrics.service.cluster.aggregator.appIds": "datanode,nodemanager,hbase",
-            "timeline.metrics.service.webapp.address": "0.0.0.0:6188",
+            "timeline.metrics.service.webapp.address": "localhost:6188",
             "timeline.metrics.cluster.aggregator.hourly.disabled": "false",
             "timeline.metrics.aggregator.checkpoint.dir": "/var/lib/ambari-metrics-collector/checkpoint",
             "timeline.metrics.hbase.data.block.encoding": "FAST_DIFF",

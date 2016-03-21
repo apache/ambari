@@ -2031,6 +2031,7 @@ class TestHDP22StackAdvisor(TestCase):
           "timeline.metrics.host.aggregate.splitpoints": " ",
           "timeline.metrics.host.aggregator.ttl": "86400",
           "timeline.metrics.service.handler.thread.count": "20",
+          'timeline.metrics.service.webapp.address': 'host1:6188',
           'timeline.metrics.service.watcher.disabled': 'false'
         }
       }
