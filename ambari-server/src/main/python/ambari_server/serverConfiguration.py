@@ -226,10 +226,12 @@ def get_ambari_properties():
     properties = Properties()
     with open(conf_file) as hfR:
       properties.load(hfR)
-      
+
+    root = os.environ["ROOT"].rstrip("/")
+
     for k,v in properties.iteritems():
-      properties.__dict__[k] = v.replace("$ROOT", os.environ["ROOT"])
-      properties._props[k] = v.replace("$ROOT", os.environ["ROOT"])
+      properties.__dict__[k] = v.replace("$ROOT", root)
+      properties._props[k] = v.replace("$ROOT", root)
   except (Exception), e:
     print 'Could not read "%s": %s' % (conf_file, e)
     return -1
