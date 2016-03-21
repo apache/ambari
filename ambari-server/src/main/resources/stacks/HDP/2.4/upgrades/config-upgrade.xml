@@ -23,9 +23,11 @@
     <service name="HDFS">
       <component name="NAMENODE">
         <changes>
-          <definition xsi:type="configure" id="hdp_2_4_0_0_namenode_ha_adjustments">
+          <definition xsi:type="configure" id="hdp_2_4_0_0_namenode_ha_adjustments" summary="Removing unused properties when NN HA is enabled">
             <type>hdfs-site</type>
             <transfer operation="delete" delete-key="dfs.namenode.rpc-address" if-type="hdfs-site" if-key="dfs.nameservices" if-key-state="present"/>
+            <transfer operation="delete" delete-key="dfs.namenode.http-address" if-type="hdfs-site" if-key="dfs.nameservices" if-key-state="present"/>
+            <transfer operation="delete" delete-key="dfs.namenode.https-address" if-type="hdfs-site" if-key="dfs.nameservices" if-key-state="present"/>
           </definition>
         </changes>
       </component>
