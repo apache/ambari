@@ -661,4 +661,12 @@ public interface Cluster {
    *         {@link UpgradeState#SUSPENDED}.
    */
   boolean isUpgradeSuspended();
+
+  /**
+   * Returns the name of the service that the passed config type belongs to.
+   * @param configType the config type to look up the service by
+   * @return returns the name of the service that the config type belongs to if there is any
+   *         otherwise returns null.
+   */
+  String getServiceByConfigType(String configType);
 }
