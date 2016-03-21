@@ -77,7 +77,7 @@ public class RemoteCluster implements Cluster {
 
     JSONObject items = (JSONObject) ((JSONArray) config.get("items")).get(0);
     JSONObject properties = (JSONObject) items.get("properties");
-    return (String) properties.get(key);
+    return (properties == null ? null : (String) properties.get(key));
   }
 
   private String getDesiredConfig(String type) throws IOException {
