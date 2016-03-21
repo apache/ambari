@@ -40,9 +40,6 @@ test('Component is initialized correctly', function() {
   equal(component.get('numberRange.from'), numberRange.get('min'), 'from is set to min');
   equal(component.get('numberRange.to'), numberRange.get('max'), 'to is set to max');
 
-  equal(component.get('numberRange.fromDuration'), numberRange.get('min'), 'fromDuration is set to min');
-  equal(component.get('numberRange.toDuration'), numberRange.get('max'), 'toDuration is set to max');
-
 });
 
 test('external change action is called', function() {
