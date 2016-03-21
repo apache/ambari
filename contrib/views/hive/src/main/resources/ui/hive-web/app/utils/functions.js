@@ -40,13 +40,21 @@ export default Ember.Object.create({
 
   validationValues: {
     bool: [
-      Ember.Object.create({ value: 'true' }),
-      Ember.Object.create({ value: 'false' })
+      Ember.Object.create({
+        value: 'true'
+      }),
+      Ember.Object.create({
+        value: 'false'
+      })
     ],
 
     execEngine: [
-      Ember.Object.create({ value: 'tez' }),
-      Ember.Object.create({ value: 'mr' })
+      Ember.Object.create({
+        value: 'tez'
+      }),
+      Ember.Object.create({
+        value: 'mr'
+      })
     ]
   },
 
@@ -66,7 +74,7 @@ export default Ember.Object.create({
     return sourceString.toLowerCase().indexOf(destString.toLowerCase()) > -1;
   },
 
-  convertToArray : function (inputObj) {
+  convertToArray: function (inputObj) {
     var array = [];
 
     for (var key in inputObj) {
@@ -85,23 +93,47 @@ export default Ember.Object.create({
    *
    * @param integer secs Number of seconds to convert
    * @return object
-  */
-  secondsToHHMMSS: function (secs)
-   {
-    var hours = Math.floor(secs / (60 * 60));
+   */
+  secondsToHHMMSS: function (secs) {
+    var hours = 0,
+      minutes = 0,
+      seconds = secs,
+      divisor_for_minutes,
+      divisor_for_seconds,
+      formattedVal = [];
 
-    var divisor_for_minutes = secs % (60 * 60);
-    var minutes = Math.floor(divisor_for_minutes / 60);
+    if (seconds < 60) {
+      formattedVal.push(Ember.I18n.t('labels.secsShort', {
+        seconds: seconds
+      }));
+    } else {
+      hours = Math.floor(seconds / (60 * 60));
 
-    var divisor_for_seconds = divisor_for_minutes % 60;
-    var seconds = Math.ceil(divisor_for_seconds);
+      divisor_for_minutes = seconds % (60 * 60);
+      minutes = Math.floor(divisor_for_minutes / 60);
 
-    var obj = {
-      "h": hours,
-      "m": minutes,
-      "s": seconds
-    };
-    return  ((obj.h > 0) ? obj.h + ' hr ' : '') + ((obj.m > 0) ? obj.m + ' min ' : '') + ((obj.s >= 0) ? obj.m + ' sec ' : '');
+      divisor_for_seconds = divisor_for_minutes % 60;
+      seconds = Math.ceil(divisor_for_seconds);
+
+      if (hours > 0) {
+        formattedVal.push(Ember.I18n.t('labels.hrsShort', {
+          hours: hours
+        }));
+      }
+      if (minutes > 0) {
+        formattedVal.push(Ember.I18n.t('labels.minsShort', {
+          minutes: minutes
+        }));
+      }
+      if (seconds > 0) {
+        formattedVal.push(Ember.I18n.t('labels.secsShort', {
+          seconds: seconds
+        }));
+      }
+
+    }
+
+    return formattedVal.join(' ');
   }
 
 });
