@@ -601,6 +601,9 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     HostRoleCommandEntity entity = hostRoleCommandDAO.findByPK(hostRoleCommand.getTaskId());
     if (entity != null) {
       entity.setStartTime(hostRoleCommand.getStartTime());
+      if (entity.getOriginalStartTime() == null || entity.getOriginalStartTime() == -1) {
+        entity.setOriginalStartTime(System.currentTimeMillis());
+      }
       entity.setLastAttemptTime(hostRoleCommand.getLastAttemptTime());
       entity.setStatus(hostRoleCommand.getStatus());
       entity.setAttemptCount(hostRoleCommand.getAttemptCount());
@@ -738,6 +741,8 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     List<HostRoleCommandEntity> tasks = hostRoleCommandDAO.findByPKs(taskIds);
     for (HostRoleCommandEntity task : tasks) {
       task.setStatus(HostRoleStatus.PENDING);
+      // TODO HACK, shouldn't reset start time.
+      // Because it expects -1, RetryActionMonitor.java also had to set it to -1.
       task.setStartTime(-1L);
       task.setEndTime(-1L);
     }

@@ -228,6 +228,7 @@ CREATE TABLE host_role_command (
   role_command VARCHAR(255),
   stage_id NUMERIC(19) NOT NULL,
   start_time NUMERIC(19) NOT NULL,
+  original_start_time NUMERIC(19) NOT NULL,
   end_time NUMERIC(19),
   status VARCHAR(255),
   auto_skip_on_failure SMALLINT DEFAULT 0 NOT NULL,

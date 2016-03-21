@@ -298,6 +298,7 @@ public class HostRequest implements Comparable<HostRequest> {
           logicalTask.setCustomCommandName(physicalTask.getCustomCommandName());
           //todo: once we retry on failures, start/end times could span multiple physical tasks
           logicalTask.setStartTime(physicalTask.getStartTime());
+          logicalTask.setOriginalStartTime(physicalTask.getOriginalStartTime());
           logicalTask.setEndTime(physicalTask.getEndTime());
           logicalTask.setErrorLog(physicalTask.getErrorLog());
           logicalTask.setExitCode(physicalTask.getExitCode());
@@ -343,6 +344,7 @@ public class HostRequest implements Comparable<HostRequest> {
           entity.setCustomCommandName(physicalTask.getCustomCommandName());
           //todo: once we retry on failures, start/end times could span multiple physical tasks
           entity.setStartTime(physicalTask.getStartTime());
+          entity.setOriginalStartTime(physicalTask.getOriginalStartTime());
           entity.setEndTime(physicalTask.getEndTime());
           entity.setErrorLog(physicalTask.getErrorLog());
           entity.setExitcode(physicalTask.getExitCode());

@@ -229,6 +229,7 @@ CREATE TABLE host_role_command (
   role_command VARCHAR2(255) NULL,
   stage_id NUMBER(19) NOT NULL,
   start_time NUMBER(19) NOT NULL,
+  original_start_time NUMBER(19) NOT NULL,
   end_time NUMBER(19),
   status VARCHAR2(255) NULL,
   auto_skip_on_failure NUMBER(1) DEFAULT 0 NOT NULL,

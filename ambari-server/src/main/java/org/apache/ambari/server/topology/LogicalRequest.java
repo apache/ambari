@@ -47,7 +47,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Logical Request implementation.
+ * Logical Request implementation used to provision a cluster deployed by Blueprints.
  */
 public class LogicalRequest extends Request {
 

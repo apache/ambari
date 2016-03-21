@@ -69,6 +69,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   protected static final String PERMISSION_ID_COL = "permission_name";
   protected static final String SORT_ORDER_COL = "sort_order";
   protected static final String REPO_VERSION_TABLE = "repo_version";
+  protected static final String HOST_ROLE_COMMAND_TABLE = "host_role_command";
   protected static final String SERVICE_COMPONENT_DS_TABLE = "servicecomponentdesiredstate";
   protected static final String HOST_COMPONENT_DS_TABLE = "hostcomponentdesiredstate";
   protected static final String HOST_COMPONENT_STATE_TABLE = "hostcomponentstate";
@@ -636,5 +637,19 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
 
     dbAccessor.addColumn(SERVICE_COMPONENT_DESIRED_STATE_TABLE,
       new DBColumnInfo(DESIRED_VERSION_COLUMN_NAME, String.class, 255, State.UNKNOWN.toString(), false));
+  }
+
+  /**
+   * Alter host_role_command table to add original_start_time, which is needed because the start_time column now
+   * allows overriding the value in ActionScheduler.java
+   * @throws SQLException
+   */
+  private void updateHostRoleCommandTable() throws SQLException {
+    final String columnName = "original_start_time";
+    DBColumnInfo originalStartTimeColumn = new DBColumnInfo(columnName, Long.class, null, -1L, true);
+    dbAccessor.addColumn(HOST_ROLE_COMMAND_TABLE, originalStartTimeColumn);
+    dbAccessor.executeQuery("UPDATE " + HOST_ROLE_COMMAND_TABLE + " SET original_start_time = start_time", false);
+    dbAccessor.executeQuery("UPDATE " + HOST_ROLE_COMMAND_TABLE + " SET original_start_time=-1 WHERE original_start_time IS NULL");
+    dbAccessor.setColumnNullable(HOST_ROLE_COMMAND_TABLE, columnName, false);
   }
 }

@@ -39,6 +39,7 @@ import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.utils.AmbariPath;
 import org.apache.ambari.server.utils.Parallel;
 import org.apache.ambari.server.utils.ShellCommandUtil;
+import org.apache.commons.collections.ListUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
@@ -210,8 +211,40 @@ public class Configuration {
   // Properties for stack upgrade (Rolling, Express)
   public static final String ROLLING_UPGRADE_SKIP_PACKAGES_PREFIXES_KEY = "rolling.upgrade.skip.packages.prefixes";
   public static final String ROLLING_UPGRADE_SKIP_PACKAGES_PREFIXES_DEFAULT = "";
+
   public static final String STACK_UPGRADE_BYPASS_PRECHECKS_KEY = "stack.upgrade.bypass.prechecks";
   public static final String STACK_UPGRADE_BYPASS_PRECHECKS_DEFAULT = "false";
+
+  /**
+   * If a host is shutdown or ambari-agent is stopped, then Ambari Server will still keep waiting til the task timesout,
+   * say 10-20 mins. If the host comes back online and ambari-agent is started, then need this retry property
+   * to be greater; ideally, it should be greater than 2 * command_timeout in order to retry at least
+   * 3 times in that amount of mins.
+   * Suggested value is 15-30 mins.
+   */
+  public static final String STACK_UPGRADE_AUTO_RETRY_TIMEOUT_MINS_KEY = "stack.upgrade.auto.retry.timeout.mins";
+  public static final String STACK_UPGRADE_AUTO_RETRY_TIMEOUT_MINS_DEFAULT = "0";
+
+  /**
+   * If the stack.upgrade.auto.retry.timeout.mins property is positive, then run RetryUpgradeActionService every x
+   * seconds.
+   */
+  public static final String STACK_UPGRADE_AUTO_RETRY_CHECK_INTERVAL_SECS_KEY = "stack.upgrade.auto.retry.check.interval.secs";
+  public static final String STACK_UPGRADE_AUTO_RETRY_CHECK_INTERVAL_SECS_DEFAULT = "20";
+
+  /**
+   * If auto-retry during stack upgrade is enabled, skip any tasks whose custom command name contains at least one
+   * of the strings in the following CSV property. Note that values have to be enclosed in quotes and separated by commas.
+   */
+  public static final String STACK_UPGRADE_AUTO_RETRY_CUSTOM_COMMAND_NAMES_TO_IGNORE_KEY = "stack.upgrade.auto.retry.command.names.to.ignore";
+  public static final String STACK_UPGRADE_AUTO_RETRY_CUSTOM_COMMAND_NAMES_TO_IGNORE_DEFAULT = "\"ComponentVersionCheckAction\",\"FinalizeUpgradeAction\"";
+
+  /**
+   * If auto-retry during stack upgrade is enabled, skip any tasks whose command details contains at least one
+   * of the strings in the following CSV property. Note that values have to be enclosed in quotes and separated by commas.
+   */
+  public static final String STACK_UPGRADE_AUTO_RETRY_COMMAND_DETAILS_TO_IGNORE_KEY = "stack.upgrade.auto.retry.command.details.to.ignore";
+  public static final String STACK_UPGRADE_AUTO_RETRY_COMMAND_DETAILS_TO_IGNORE_DEFAULT = "\"Execute HDFS Finalize\"";
 
   public static final String JWT_AUTH_ENBABLED = "authentication.jwt.enabled";
   public static final String JWT_AUTH_PROVIDER_URL = "authentication.jwt.providerUrl";
@@ -1107,6 +1140,82 @@ public class Configuration {
    */
   public boolean isUpgradePrecheckBypass() {
     return Boolean.parseBoolean(properties.getProperty(STACK_UPGRADE_BYPASS_PRECHECKS_KEY, STACK_UPGRADE_BYPASS_PRECHECKS_DEFAULT));
+  }
+
+  /**
+   * During stack upgrade, can auto-retry failures for up to x mins. This is useful to improve the robustness in unstable environments.
+   * Suggested value is 0-30 mins.
+   * @return
+   */
+  public int getStackUpgradeAutoRetryTimeoutMins() {
+    Integer result = NumberUtils.toInt(properties.getProperty(STACK_UPGRADE_AUTO_RETRY_TIMEOUT_MINS_KEY, STACK_UPGRADE_AUTO_RETRY_TIMEOUT_MINS_DEFAULT));
+    return result >= 0 ? result : 0;
+  }
+
+  /**
+   * If the stack.upgrade.auto.retry.timeout.mins property is positive, then run RetryUpgradeActionService every x
+   * seconds.
+   * @return Number of seconds between runs of {@link org.apache.ambari.server.state.services.RetryUpgradeActionService}
+   */
+  public int getStackUpgradeAutoRetryCheckIntervalSecs() {
+    Integer result = NumberUtils.toInt(properties.getProperty(STACK_UPGRADE_AUTO_RETRY_CHECK_INTERVAL_SECS_KEY, STACK_UPGRADE_AUTO_RETRY_CHECK_INTERVAL_SECS_DEFAULT));
+    return result >= 0 ? result : 0;
+  }
+
+  /**
+   * If auto-retry during stack upgrade is enabled, skip any tasks whose custom command name contains at least one
+   * of the strings in the following CSV property. Note that values have to be enclosed in quotes and separated by commas.
+   * @return
+   */
+  public List<String> getStackUpgradeAutoRetryCustomCommandNamesToIgnore() {
+    String value = properties.getProperty(STACK_UPGRADE_AUTO_RETRY_CUSTOM_COMMAND_NAMES_TO_IGNORE_KEY, STACK_UPGRADE_AUTO_RETRY_CUSTOM_COMMAND_NAMES_TO_IGNORE_DEFAULT);
+    List<String> list = convertCSVwithQuotesToList(value);
+    listToLowerCase(list);
+    return list;
+  }
+
+  /**
+   * If auto-retry during stack upgrade is enabled, skip any tasks whose command details contains at least one
+   * of the strings in the following CSV property. Note that values have to be enclosed in quotes and separated by commas.
+   * @return
+   */
+  public List<String> getStackUpgradeAutoRetryCommandDetailsToIgnore() {
+    String value = properties.getProperty(STACK_UPGRADE_AUTO_RETRY_COMMAND_DETAILS_TO_IGNORE_KEY, STACK_UPGRADE_AUTO_RETRY_COMMAND_DETAILS_TO_IGNORE_DEFAULT);
+    List<String> list = convertCSVwithQuotesToList(value);
+    listToLowerCase(list);
+    return list;
+  }
+
+  /**
+   * Convert quoted elements separated by commas into a list. Values cannot contain double quotes or commas.
+   * @param value, e.g., String with value "a","b","c" => ["a", "b", "c"]
+   * @return List of parsed values, or empty list if no values exist.
+   */
+  private List<String> convertCSVwithQuotesToList(String value) {
+    List<String> list = new ArrayList<>();
+    if (StringUtils.isNotEmpty(value)) {
+      if (value.indexOf(",") >= 0) {
+        for (String e : value.split(",")) {
+          e = StringUtils.stripStart(e, "\"");
+          e = StringUtils.stripEnd(e, "\"");
+          list.add(e);
+        }
+      } else {
+        list.add(value);
+      }
+    }
+    return list;
+  }
+
+  /**
+   * Convert the elements of a list to lowercase.
+   * @param list
+   */
+  private void listToLowerCase(List<String> list) {
+    if (list == null) return;
+    for (int i = 0; i < list.size(); i++) {
+      list.set(i, list.get(i).toLowerCase());
+    }
   }
 
   /**

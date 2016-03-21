@@ -403,6 +403,11 @@ public class HeartbeatProcessor extends AbstractService{
       if (hostRoleCommand.getStatus() == HostRoleStatus.QUEUED &&
           report.getStatus().equals("IN_PROGRESS")) {
         hostRoleCommand.setStartTime(now);
+
+        // Because the task may be retried several times, set the original start time only once.
+        if (hostRoleCommand.getOriginalStartTime() == -1) {
+          hostRoleCommand.setOriginalStartTime(now);
+        }
       }
 
       // If the report indicates the keytab file was successfully transferred to a host or removed

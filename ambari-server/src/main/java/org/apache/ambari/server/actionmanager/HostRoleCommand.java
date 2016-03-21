@@ -58,6 +58,7 @@ public class HostRoleCommand {
   private String structuredOut = "";
   private int exitCode = 999; //Default is unknown
   private long startTime = -1;
+  private long originalStartTime = -1;
   private long endTime = -1;
   private long lastAttemptTime = -1;
   private short attemptCount = 0;
@@ -160,6 +161,7 @@ public class HostRoleCommand {
     structuredOut = hostRoleCommandEntity.getStructuredOut() != null ? new String(hostRoleCommandEntity.getStructuredOut()) : "";
     exitCode = hostRoleCommandEntity.getExitcode();
     startTime = hostRoleCommandEntity.getStartTime();
+    originalStartTime = hostRoleCommandEntity.getOriginalStartTime();
     endTime = hostRoleCommandEntity.getEndTime() != null ? hostRoleCommandEntity.getEndTime() : -1L;
     lastAttemptTime = hostRoleCommandEntity.getLastAttemptTime();
     attemptCount = hostRoleCommandEntity.getAttemptCount();
@@ -182,6 +184,7 @@ public class HostRoleCommand {
     hostRoleCommandEntity.setStdOut(stdout.getBytes());
     hostRoleCommandEntity.setStructuredOut(structuredOut.getBytes());
     hostRoleCommandEntity.setStartTime(startTime);
+    hostRoleCommandEntity.setOriginalStartTime(originalStartTime);
     hostRoleCommandEntity.setEndTime(endTime);
     hostRoleCommandEntity.setLastAttemptTime(lastAttemptTime);
     hostRoleCommandEntity.setAttemptCount(attemptCount);
@@ -328,6 +331,14 @@ public class HostRoleCommand {
     this.startTime = startTime;
   }
 
+  public long getOriginalStartTime() {
+    return originalStartTime;
+  }
+
+  public void setOriginalStartTime(long originalStartTime) {
+    this.originalStartTime = originalStartTime;
+  }
+
   public long getLastAttemptTime() {
     return lastAttemptTime;
   }
@@ -429,6 +440,7 @@ public class HostRoleCommand {
     builder.append("  stderr: ").append(stderr).append("\n");
     builder.append("  exitcode: ").append(exitCode).append("\n");
     builder.append("  Start time: ").append(startTime).append("\n");
+    builder.append("  Original Start time: ").append(originalStartTime).append("\n");
     builder.append("  Last attempt time: ").append(lastAttemptTime).append("\n");
     builder.append("  attempt count: ").append(attemptCount).append("\n");
     return builder.toString();

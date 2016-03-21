@@ -313,6 +313,16 @@ public class HostRoleCommandDAO {
   }
 
   @RequiresSession
+  public List<HostRoleCommandEntity> findByRequestIdAndStatuses(Long requestId, Collection<HostRoleStatus> statuses) {
+    TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createNamedQuery(
+        "HostRoleCommandEntity.findByRequestIdAndStatuses", HostRoleCommandEntity.class);
+    query.setParameter("requestId", requestId);
+    query.setParameter("statuses", statuses);
+    List results = query.getResultList();
+    return results;
+  }
+
+  @RequiresSession
   public List<Long> findTaskIdsByRequestIds(Collection<Long> requestIds) {
     TypedQuery<Long> query = entityManagerProvider.get().createQuery(
         "SELECT task.taskId FROM HostRoleCommandEntity task " +
