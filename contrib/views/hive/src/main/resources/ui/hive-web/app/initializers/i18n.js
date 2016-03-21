@@ -212,10 +212,7 @@ TRANSLATIONS = {
 
   labels: {
     noTablesMatch: 'No tables match',
-    table: 'Table ',
-    hoursShort: "{{hours}} hrs",
-    minsShort: "{{minutes}} mins",
-    secsShort: "{{seconds}} secs"
+    table: 'Table '
   },
 
   popover: {
