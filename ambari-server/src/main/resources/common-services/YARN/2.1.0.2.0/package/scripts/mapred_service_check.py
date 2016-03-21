@@ -123,11 +123,13 @@ class MapReduce2ServiceCheckDefault(MapReduce2ServiceCheck):
     params.HdfsResource(output_file,
                         action = "delete_on_execute",
                         type = "directory",
+                        dfs_type = params.dfs_type,
     )
     params.HdfsResource(input_file,
                         action = "create_on_execute",
                         type = "file",
                         source = "/etc/passwd",
+                        dfs_type = params.dfs_type,
     )
     params.HdfsResource(None, action="execute")
 

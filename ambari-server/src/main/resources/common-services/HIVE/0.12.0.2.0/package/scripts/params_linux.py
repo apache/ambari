@@ -456,6 +456,8 @@ security_param = "true" if security_enabled else "false"
 hdfs_site = config['configurations']['hdfs-site']
 default_fs = config['configurations']['core-site']['fs.defaultFS']
 
+dfs_type = default("/commandParams/dfs_type", "")
+
 import functools
 #create partial functions with common arguments for every HdfsResource call
 #to create hdfs directory we need to call params.HdfsResource in code
@@ -471,7 +473,8 @@ HdfsResource = functools.partial(
   principal_name = hdfs_principal_name,
   hdfs_site = hdfs_site,
   default_fs = default_fs,
-  immutable_paths = get_not_managed_resources()
+  immutable_paths = get_not_managed_resources(),
+  dfs_type = dfs_type
  )
 
 

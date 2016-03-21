@@ -16,7 +16,7 @@ RUN echo root:changeme | chpasswd
 
 ## Install some basic utilities that aren't in the default image
 RUN yum clean all -y && yum update -y
-RUN yum -y install vim wget rpm-build sudo which telnet tar openssh-server openssh-clients ntp git python-setuptools httpd
+RUN yum -y install vim wget rpm-build sudo which telnet tar openssh-server openssh-clients ntp git python-setuptools python-devel httpd
 # phantomjs dependency
 RUN yum -y install fontconfig freetype libfreetype.so.6 libfontconfig.so.1 libstdc++.so.6
 RUN rpm -e --nodeps --justdb glibc-common
@@ -25,11 +25,8 @@ RUN yum -y install glibc-common
 ENV HOME /root
 
 #Install JAVA
-# RUN wget --no-check-certificate --no-cookies --header "Cookie:oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/7u55-b13/jdk-7u55-linux-x64.rpm -O jdk-7u55-linux-x64.rpm
-# RUN yum -y install jdk-7u55-linux-x64.rpm
-RUN wget --no-check-certificate --no-cookies --header "Cookie:oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/6u45-b06/jdk-6u45-linux-x64-rpm.bin -O jdk-6u45-linux-x64-rpm.bin
-RUN chmod +x jdk-6u45-linux-x64-rpm.bin
-RUN ./jdk-6u45-linux-x64-rpm.bin
+RUN wget --no-check-certificate --no-cookies --header "Cookie:oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/7u55-b13/jdk-7u55-linux-x64.rpm -O jdk-7u55-linux-x64.rpm
+RUN rpm -ivh jdk-7u55-linux-x64.rpm
 ENV JAVA_HOME /usr/java/default/
 
 #Install Maven
@@ -50,6 +47,9 @@ RUN cat /root/.ssh/id_rsa.pub > /root/.ssh/authorized_keys
 RUN chmod 600 /root/.ssh/authorized_keys
 RUN sed -ri 's/UsePAM yes/UsePAM no/g' /etc/ssh/sshd_config
 
+#To allow bower install behind proxy. See https://github.com/bower/bower/issues/731
+RUN git config --global url."https://".insteadOf git://
+
 # Install python, nodejs and npm
 RUN yum -y install http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
 RUN yum -y install nodejs npm --enablerepo=epel
@@ -59,8 +59,8 @@ RUN npm install -g brunch@1.7.13
 WORKDIR /tmp
 RUN git clone https://github.com/apache/ambari.git
 WORKDIR /tmp/ambari
-RUN mvn versions:set -DnewVersion=1.6.1.0
-RUN mvn -B clean install package rpm:rpm -DskipTests -DnewVersion=1.6.1.0 -Dpython.ver="python >= 2.6" -Preplaceurl
+
+RUN mvn -B -X clean install package rpm:rpm -DskipTests -Dpython.ver="python >= 2.6" -Preplaceurl
 
 # clean git code because I want to use the one on local filesystem.
 WORKDIR /tmp

@@ -106,6 +106,7 @@ class TestSparkThriftServer(RMFTestCase):
         type = 'directory',
         action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         mode = 0775,
+        dfs_type = ''
     )
     self.assertResourceCalled('HdfsResource', None,
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
@@ -119,6 +120,7 @@ class TestSparkThriftServer(RMFTestCase):
         user = 'hdfs',
         action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
+        dfs_type = ''
     )
     self.assertResourceCalled('PropertiesFile', '/usr/hdp/current/spark-client/conf/spark-defaults.conf',
         owner = 'spark',

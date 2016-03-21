@@ -111,17 +111,28 @@ public class StackManagerTest {
   @Test
   public void testGetsStacks() throws Exception {
     Collection<StackInfo> stacks = stackManager.getStacks();
-    assertEquals(18, stacks.size());
+    assertEquals(19, stacks.size());
   }
 
   @Test
   public void testGetStacksByName() {
     Collection<StackInfo> stacks = stackManager.getStacks("HDP");
-    assertEquals(14, stacks.size());
+    assertEquals(15, stacks.size());
 
     stacks = stackManager.getStacks("OTHER");
     assertEquals(2, stacks.size());
   }
+
+  @Test
+  public void testHCFSServiceType() {
+    
+    StackInfo stack = stackManager.getStack("HDP", "2.2.0.ECS");
+    ServiceInfo service = stack.getService("ECS");
+    assertEquals(service.getServiceType(),"HCFS");
+    
+    service = stack.getService("HDFS");
+    assertNull(service);
+  }  
 
   @Test
   public void testGetStack() {

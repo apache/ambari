@@ -61,6 +61,7 @@ class TestJobHistoryServer(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         principal_name = UnknownConfigurationMock(),
         user = 'hdfs',
+        dfs_type = '',
         action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
     )
@@ -125,6 +126,7 @@ class TestJobHistoryServer(RMFTestCase):
         kinit_path_local='/usr/bin/kinit',
         principal_name=UnknownConfigurationMock(),
         security_enabled=True,
+        dfs_type = '',
         user=UnknownConfigurationMock()
     )
 
@@ -175,6 +177,7 @@ class TestJobHistoryServer(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         principal_name = UnknownConfigurationMock(),
         user = 'hdfs',
+        dfs_type = '',
         owner = 'spark',
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
         type = 'directory',
@@ -191,6 +194,7 @@ class TestJobHistoryServer(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         principal_name = UnknownConfigurationMock(),
         user = 'hdfs',
+        dfs_type = '',
         action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
     )
@@ -248,6 +252,7 @@ class TestJobHistoryServer(RMFTestCase):
         user = UnknownConfigurationMock(),
         owner = 'spark',
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
+        dfs_type = '',
         type = 'directory',
         action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         mode = 0775,
@@ -264,6 +269,7 @@ class TestJobHistoryServer(RMFTestCase):
         user = UnknownConfigurationMock(),
         action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
+        dfs_type = '',
     )
     self.assertResourceCalled('PropertiesFile', '/usr/hdp/current/spark-client/conf/spark-defaults.conf',
         owner = 'spark',

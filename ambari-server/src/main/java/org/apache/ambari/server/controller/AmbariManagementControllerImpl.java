@@ -151,6 +151,7 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -1929,17 +1930,31 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     Host host = clusters.getHost(scHost.getHostName());
 
+    LOG.info("Adding service type info in createHostAction:: " + serviceInfo.getServiceType());
+    execCmd.setServiceType(serviceInfo.getServiceType());
+    
     execCmd.setConfigurations(configurations);
     execCmd.setConfigurationAttributes(configurationAttributes);
     execCmd.setConfigurationTags(configTags);
-
-
 
     // Create a local copy for each command
     Map<String, String> commandParams = new TreeMap<String, String>();
     if (commandParamsInp != null) { // if not defined
       commandParams.putAll(commandParamsInp);
     }
+
+    //Propogate HCFS service type info
+    Iterator<Service> it = cluster.getServices().values().iterator();
+    while(it.hasNext()) {
+       ServiceInfo serviceInfoInstance = ambariMetaInfo.getService(stackId.getStackName(),stackId.getStackVersion(), it.next().getName());
+       LOG.info("Iterating service type Instance in createHostAction:: " + serviceInfoInstance.getName());
+       if(serviceInfoInstance.getServiceType() != null) {
+           LOG.info("Adding service type info in createHostAction:: " + serviceInfoInstance.getServiceType());
+            commandParams.put("dfs_type",serviceInfoInstance.getServiceType());
+           break;
+       }
+    }
+
     boolean isInstallCommand = roleCommand.equals(RoleCommand.INSTALL);
     String agentDefaultCommandTimeout = configs.getDefaultAgentTaskTimeout(isInstallCommand);
     String scriptCommandTimeout = "";
@@ -2563,6 +2578,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     ec.setClusterHostInfo(
         StageUtils.getClusterHostInfo(cluster));
+
+    if (null != cluster) {
+      // Generate localComponents
+      for (ServiceComponentHost sch : cluster.getServiceComponentHosts(scHost.getHostName())) {
+        ec.getLocalComponents().add(sch.getServiceComponentName());
+      }
+    }
 
     // Hack - Remove passwords from configs
     if ((ec.getRole().equals(Role.HIVE_CLIENT.toString()) ||
