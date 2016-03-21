@@ -3118,26 +3118,31 @@ class TestHDP22StackAdvisor(TestCase):
     recommendedDefaults = {'tez.task.resource.memory.mb': '1024',
                            'tez.runtime.io.sort.mb' : '256',
                            'tez.runtime.unordered.output.buffer.size-mb' : '256',
-                           'tez.am.resource.memory.mb' : '1024'}
+                           'tez.am.resource.memory.mb' : '1024',
+                           'tez.tez-ui.history-url.base' : 'https://host:8443/#/main/views/TEZ/0.7.0.2.3.0.0-2155/TEZ_CLUSTER_INSTANCE'}
 
     properties = {'tez.task.resource.memory.mb': '2050',
                   'tez.runtime.io.sort.mb' : '256',
                   'tez.runtime.unordered.output.buffer.size-mb' : '256',
-                  'tez.am.resource.memory.mb' : '2050'}
+                  'tez.am.resource.memory.mb' : '2050',
+                  'tez.tez-ui.history-url.base' : 'http://host:8080/#/main/views/TEZ/0.7.0.2.3.0.0-2155/TEZ_CLUSTER_INSTANCE'}
 
 
-    res_expected = [{'config-name': 'tez.am.resource.memory.mb',
-                 'config-type': 'tez-site',
-                 'level': 'WARN',
-                 'message': "tez.am.resource.memory.mb should be less than YARN max allocation size (2048)",
-                 'type': 'configuration',
-                 'level': 'WARN'},
+    res_expected = [{'config-name': 'tez.tez-ui.history-url.base',
+                     'config-type': 'tez-site',
+                     'level': 'WARN',
+                     'message': "It is recommended to set value https://host:8443/#/main/views/TEZ/0.7.0.2.3.0.0-2155/TEZ_CLUSTER_INSTANCE for property tez.tez-ui.history-url.base",
+                     'type': 'configuration'},
+                    {'config-name': 'tez.am.resource.memory.mb',
+                     'config-type': 'tez-site',
+                     'level': 'WARN',
+                     'message': "tez.am.resource.memory.mb should be less than YARN max allocation size (2048)",
+                     'type': 'configuration'},
                     {'config-name': 'tez.task.resource.memory.mb',
-                 'config-type': 'tez-site',
-                 'level': 'WARN',
-                 'message': "tez.task.resource.memory.mb should be less than YARN max allocation size (2048)",
-                 'type': 'configuration',
-                 'level': 'WARN'}]
+                     'config-type': 'tez-site',
+                     'level': 'WARN',
+                     'message': "tez.task.resource.memory.mb should be less than YARN max allocation size (2048)",
+                     'type': 'configuration'}]
 
     res = self.stackAdvisor.validateTezConfigurations(properties, recommendedDefaults, configurations, '', '')
     self.assertEquals(res, res_expected)
