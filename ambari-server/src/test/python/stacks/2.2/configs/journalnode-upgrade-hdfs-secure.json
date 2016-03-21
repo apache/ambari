@@ -316,7 +316,7 @@
             "timeline.metrics.cluster.aggregator.hourly.interval": "3600", 
             "timeline.metrics.host.aggregator.ttl": "86400", 
             "timeline.metrics.cluster.aggregator.hourly.checkpointCutOffMultiplier": "2", 
-            "timeline.metrics.service.webapp.address": "0.0.0.0:6188", 
+            "timeline.metrics.service.webapp.address": "localhost:6188",
             "timeline.metrics.aggregator.checkpoint.dir": "/var/lib/ambari-metrics-collector/checkpoint", 
             "timeline.metrics.host.aggregator.minute.disabled": "false", 
             "timeline.metrics.cluster.aggregator.minute.ttl": "2592000", 

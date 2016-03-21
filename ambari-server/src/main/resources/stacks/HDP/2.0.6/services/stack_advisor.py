@@ -514,6 +514,14 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
     amsCollectorHosts = self.getComponentHostNames(services, "AMBARI_METRICS", "METRICS_COLLECTOR")
 
+    if 'cluster-env' in services['configurations'] and \
+        'metrics_collector_vip_host' in services['configurations']['cluster-env']['properties']:
+      metric_collector_host = services['configurations']['cluster-env']['properties']['metrics_collector_vip_host']
+    else:
+      metric_collector_host = 'localhost' if len(amsCollectorHosts) == 0 else amsCollectorHosts[0]
+
+    putAmsSiteProperty("timeline.metrics.service.webapp.address", str(metric_collector_host) + ":6188")
+
     defaultFs = 'file:///'
     if "core-site" in services["configurations"] and \
       "fs.defaultFS" in services["configurations"]["core-site"]["properties"]:

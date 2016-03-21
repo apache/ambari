@@ -71,6 +71,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -292,6 +293,7 @@ public class UpgradeCatalog222Test {
         put("timeline.metrics.cluster.aggregator.minute.ttl", String.valueOf(7776000));
         put("timeline.metrics.cluster.aggregator.hourly.ttl", String.valueOf(31536000));
         put("timeline.metrics.cluster.aggregator.daily.ttl", String.valueOf(63072000));
+        put("timeline.metrics.service.webapp.address", "0.0.0.0:6188");
       }
     };
     Map<String, String> newPropertiesAmsSite = new HashMap<String, String>() {
@@ -308,6 +310,7 @@ public class UpgradeCatalog222Test {
         put("timeline.metrics.cluster.aggregator.hourly.ttl", String.valueOf(365 * 86400));
         put("timeline.metrics.cluster.aggregator.daily.ttl", String.valueOf(730 * 86400));
         put("timeline.metrics.service.operation.mode", "distributed");
+        put("timeline.metrics.service.webapp.address", "host1:6188");
       }
     };
     EasyMockSupport easyMockSupport = new EasyMockSupport();
@@ -326,6 +329,9 @@ public class UpgradeCatalog222Test {
     expect(injector.getInstance(Gson.class)).andReturn(null).anyTimes();
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).anyTimes();
     expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class)).anyTimes();
+    expect(cluster.getHosts("AMBARI_METRICS", "METRICS_COLLECTOR")).andReturn( new HashSet<String>() {{
+      add("host1");
+    }}).atLeastOnce();
 
     replay(injector, clusters, mockAmsSite, cluster);
 

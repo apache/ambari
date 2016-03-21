@@ -33,7 +33,7 @@
   </property>
   <property>
     <name>timeline.metrics.service.webapp.address</name>
-    <value>0.0.0.0:6188</value>
+    <value>localhost:6188</value>
     <description>
       The address of the metrics service web application.
     </description>
