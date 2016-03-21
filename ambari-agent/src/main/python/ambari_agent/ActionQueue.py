@@ -94,7 +94,8 @@ class ActionQueue(threading.Thread):
     self.statusCommandQueue.queue.clear()
 
     for command in commands:
-      logger.info("Adding " + command['commandType'] + " for service " + \
+      logger.info("Adding " + command['commandType'] + " for component " + \
+                  command['componentName'] + " of service " + \
                   command['serviceName'] + " of cluster " + \
                   command['clusterName'] + " to the queue.")
       self.statusCommandQueue.put(command)

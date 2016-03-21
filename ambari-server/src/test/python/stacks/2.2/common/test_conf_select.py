@@ -30,7 +30,10 @@ class TestConfSelect(RMFTestCase):
     # required for the test to run since the Execute calls need this
     from resource_management.core.environment import Environment
     self.env = Environment(test_mode=True)
-    self.env._instances.append(self.env)
+    self.env.__enter__()
+
+  def tearDown(self):
+    self.env.__exit__(None,None,None)
 
 
   @patch("resource_management.libraries.functions.conf_select._valid", new = MagicMock(return_value=True))

@@ -44,39 +44,37 @@ class RhelSuseRepositoryProvider(Provider):
   update_cmd = ['zypper', 'clean', '--all']
 
   def action_create(self):
-    with Environment.get_instance_copy() as env:
-      repo_file_name = self.resource.repo_file_name
-      repo_dir = get_repo_dir()
-      new_content = InlineTemplate(self.resource.repo_template, repo_id=self.resource.repo_id, repo_file_name=self.resource.repo_file_name,
-                             base_url=self.resource.base_url, mirror_list=self.resource.mirror_list)
-      repo_file_path = format("{repo_dir}/{repo_file_name}.repo")
+    repo_file_name = self.resource.repo_file_name
+    repo_dir = get_repo_dir()
+    new_content = InlineTemplate(self.resource.repo_template, repo_id=self.resource.repo_id, repo_file_name=self.resource.repo_file_name,
+                           base_url=self.resource.base_url, mirror_list=self.resource.mirror_list)
+    repo_file_path = format("{repo_dir}/{repo_file_name}.repo")
 
-      if os.path.isfile(repo_file_path):
-        existing_content_str = sudo.read_file(repo_file_path)
-        new_content_str = new_content.get_content()
-        if existing_content_str != new_content_str and OSCheck.is_suse_family():
-          # We need to reset package manager's cache when we replace base urls
-          # at existing repo. That is a case at least under SLES
-          Logger.info("Flushing package manager cache since repo file content is about to change")
-          checked_call(self.update_cmd, sudo=True)
-        if self.resource.append_to_file:
-          content = existing_content_str + '\n' + new_content_str
-        else:
-          content = new_content_str
-      else: # If repo file does not exist yet
-        content = new_content
+    if os.path.isfile(repo_file_path):
+      existing_content_str = sudo.read_file(repo_file_path)
+      new_content_str = new_content.get_content()
+      if existing_content_str != new_content_str and OSCheck.is_suse_family():
+        # We need to reset package manager's cache when we replace base urls
+        # at existing repo. That is a case at least under SLES
+        Logger.info("Flushing package manager cache since repo file content is about to change")
+        checked_call(self.update_cmd, sudo=True)
+      if self.resource.append_to_file:
+        content = existing_content_str + '\n' + new_content_str
+      else:
+        content = new_content_str
+    else: # If repo file does not exist yet
+      content = new_content
 
-      File(repo_file_path,
-           content=content
-      )
+    File(repo_file_path,
+         content=content
+    )
   
   def action_remove(self):
-    with Environment.get_instance_copy() as env:
-      repo_file_name = self.resource.repo_file_name
-      repo_dir = get_repo_dir()
+    repo_file_name = self.resource.repo_file_name
+    repo_dir = get_repo_dir()
 
-      File(format("{repo_dir}/{repo_file_name}.repo"),
-           action="delete")
+    File(format("{repo_dir}/{repo_file_name}.repo"),
+         action="delete")
     
   
 def get_repo_dir():
@@ -94,56 +92,54 @@ class UbuntuRepositoryProvider(Provider):
   app_pkey_cmd_prefix = ('apt-key', 'adv', '--recv-keys', '--keyserver', 'keyserver.ubuntu.com')
 
   def action_create(self):
-    with Environment.get_instance_copy() as env:
-      with tempfile.NamedTemporaryFile() as tmpf:
-        with tempfile.NamedTemporaryFile() as old_repo_tmpf:
-          repo_file_name = format("{repo_file_name}.list",repo_file_name=self.resource.repo_file_name)
-          repo_file_path = format("{repo_dir}/{repo_file_name}", repo_dir=self.repo_dir)
-  
-          new_content = InlineTemplate(self.resource.repo_template, package_type=self.package_type,
-                                        base_url=self.resource.base_url,
-                                        components=' '.join(self.resource.components)).get_content()
-          old_content = ''
-          if self.resource.append_to_file and os.path.isfile(repo_file_path):
-              old_content = sudo.read_file(repo_file_path) + '\n'
-  
-          File(tmpf.name, 
-               content=old_content+new_content
+    with tempfile.NamedTemporaryFile() as tmpf:
+      with tempfile.NamedTemporaryFile() as old_repo_tmpf:
+        repo_file_name = format("{repo_file_name}.list",repo_file_name=self.resource.repo_file_name)
+        repo_file_path = format("{repo_dir}/{repo_file_name}", repo_dir=self.repo_dir)
+
+        new_content = InlineTemplate(self.resource.repo_template, package_type=self.package_type,
+                                      base_url=self.resource.base_url,
+                                      components=' '.join(self.resource.components)).get_content()
+        old_content = ''
+        if self.resource.append_to_file and os.path.isfile(repo_file_path):
+            old_content = sudo.read_file(repo_file_path) + '\n'
+
+        File(tmpf.name, 
+             content=old_content+new_content
+        )
+        
+        if os.path.isfile(repo_file_path):
+          # a copy of old repo file, which will be readable by current user
+          File(old_repo_tmpf.name, 
+               content=StaticFile(repo_file_path),
+          )
+
+        if not os.path.isfile(repo_file_path) or not filecmp.cmp(tmpf.name, old_repo_tmpf.name):
+          File(repo_file_path,
+               content = StaticFile(tmpf.name)
           )
           
-          if os.path.isfile(repo_file_path):
-            # a copy of old repo file, which will be readable by current user
-            File(old_repo_tmpf.name, 
-                 content=StaticFile(repo_file_path),
+          update_cmd_formatted = [format(x) for x in self.update_cmd]
+          # this is time expensive
+          retcode, out = checked_call(update_cmd_formatted, sudo=True, quiet=False)
+          
+          # add public keys for new repos
+          missing_pkeys = set(re.findall(self.missing_pkey_regex, out))
+          for pkey in missing_pkeys:
+            Execute(self.app_pkey_cmd_prefix + (pkey,),
+                    timeout = 15, # in case we are on the host w/o internet (using localrepo), we should ignore hanging
+                    ignore_failures = True,
+                    sudo = True,
             )
-  
-          if not os.path.isfile(repo_file_path) or not filecmp.cmp(tmpf.name, old_repo_tmpf.name):
-            File(repo_file_path,
-                 content = StaticFile(tmpf.name)
-            )
-            
-            update_cmd_formatted = [format(x) for x in self.update_cmd]
-            # this is time expensive
-            retcode, out = checked_call(update_cmd_formatted, sudo=True, quiet=False)
-            
-            # add public keys for new repos
-            missing_pkeys = set(re.findall(self.missing_pkey_regex, out))
-            for pkey in missing_pkeys:
-              Execute(self.app_pkey_cmd_prefix + (pkey,),
-                      timeout = 15, # in case we are on the host w/o internet (using localrepo), we should ignore hanging
-                      ignore_failures = True,
-                      sudo = True,
-              )
   
   def action_remove(self):
-    with Environment.get_instance_copy() as env:
-      repo_file_name = format("{repo_file_name}.list", repo_file_name=self.resource.repo_file_name)
-      repo_file_path = format("{repo_dir}/{repo_file_name}", repo_dir=self.repo_dir)
+    repo_file_name = format("{repo_file_name}.list", repo_file_name=self.resource.repo_file_name)
+    repo_file_path = format("{repo_dir}/{repo_file_name}", repo_dir=self.repo_dir)
+    
+    if os.path.isfile(repo_file_path):
+      File(repo_file_path,
+           action = "delete")
       
-      if os.path.isfile(repo_file_path):
-        File(repo_file_path,
-             action = "delete")
-        
-        # this is time expensive
-        update_cmd_formatted = [format(x) for x in self.update_cmd]
-        Execute(update_cmd_formatted)
+      # this is time expensive
+      update_cmd_formatted = [format(x) for x in self.update_cmd]
+      Execute(update_cmd_formatted)

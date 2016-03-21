@@ -34,13 +34,12 @@ class ExecuteHadoopProvider(Provider):
     
     if isinstance(command, (list, tuple)):
       command = ' '.join(quote_bash_args(x) for x in command)
-    
-    with Environment.get_instance_copy() as env:
-      Execute (format("hadoop --config {conf_dir} {command}"),
-        user        = self.resource.user,
-        tries       = self.resource.tries,
-        try_sleep   = self.resource.try_sleep,
-        logoutput   = self.resource.logoutput,
-        path        = self.resource.bin_dir,
-        environment = self.resource.environment,
-      )
+
+    Execute (format("hadoop --config {conf_dir} {command}"),
+      user        = self.resource.user,
+      tries       = self.resource.tries,
+      try_sleep   = self.resource.try_sleep,
+      logoutput   = self.resource.logoutput,
+      path        = self.resource.bin_dir,
+      environment = self.resource.environment,
+    )
