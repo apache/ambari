@@ -82,7 +82,7 @@ export default Ember.ArrayController.extend(FilterableMixin, {
       });
 
       minDuration = items.length ? Math.min.apply(Math, items) : 0;
-      maxDuration = items.length ? Math.max.apply(Math, items) : 0;
+      maxDuration = items.length ? Math.max.apply(Math, items) : 60; //Default 1 min
 
       durationColumn.set('numberRange.min', minDuration);
       durationColumn.set('numberRange.max', maxDuration);
@@ -160,6 +160,9 @@ export default Ember.ArrayController.extend(FilterableMixin, {
 
               rangeFilter.set('from', rangeFilter.get('min'));
               rangeFilter.set('to', rangeFilter.get('max'));
+
+              rangeFilter.set('fromDuration', rangeFilter.get('min'));
+              rangeFilter.set('toDuration', rangeFilter.get('max'));
             }
           }
         });
