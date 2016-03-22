@@ -53,6 +53,12 @@ def check_database(options):
 
   properties = serverConfiguration.get_ambari_properties()
   serverConfiguration.parse_properties_file(options)
+
+  database_type = properties[JDBC_DATABASE_PROPERTY]
+  if not database_type:
+    print_error_msg("Please run \"ambari-server setup\" command"
+                    " to initialize ambari db properties.")
+
   options.database_index = LINUX_DBMS_KEYS_LIST.index(properties[JDBC_DATABASE_PROPERTY])
 
   dbConfiguration.ensure_jdbc_driver_is_installed(options, serverConfiguration.get_ambari_properties())
