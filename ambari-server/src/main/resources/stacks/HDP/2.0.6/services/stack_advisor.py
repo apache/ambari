@@ -687,7 +687,9 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       if 'components' in service:
         for component in service['components']:
           if 'StackServiceComponents' in component:
-            if 'METRICS_GRAFANA' in component['StackServiceComponents']['component_name']:
+            # If Grafana is installed the hostnames would indicate its location
+            if 'METRICS_GRAFANA' in component['StackServiceComponents']['component_name'] and\
+              len(component['StackServiceComponents']['hostnames']) != 0:
               component_grafana_exists = True
               break
     pass
