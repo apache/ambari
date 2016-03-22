@@ -60,5 +60,8 @@ def cint(obj):
       return int(obj)
     except ValueError:
       raise ValueError('Unable to interpret value "%s" as integer' % obj)
+  elif obj is None:
+    return obj
+
   return int(obj)
 
