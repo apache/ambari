@@ -85,8 +85,10 @@ http_port = default("/configurations/application-properties/atlas.server.http.po
 https_port = default("/configurations/application-properties/atlas.server.https.port", 21443)
 if ssl_enabled:
   metadata_port = https_port
+  metadata_protocol = 'https'
 else:
   metadata_port = http_port
+  metadata_protocol = 'http'
 
 metadata_host = config['hostname']
 
@@ -112,9 +114,9 @@ kinit_path_local = status_params.kinit_path_local
 
 security_check_status_file = format('{log_dir}/security_check.status')
 if security_enabled:
-    smoke_cmd = format('curl --negotiate -u : -b ~/cookiejar.txt -c ~/cookiejar.txt -s -o /dev/null -w "%{{http_code}}" http://{metadata_host}:{metadata_port}/')
+    smoke_cmd = format('curl --negotiate -u : -b ~/cookiejar.txt -c ~/cookiejar.txt -s -o /dev/null -w "%{{http_code}}" {metadata_protocol}://{metadata_host}:{metadata_port}/')
 else:
-    smoke_cmd = format('curl -s -o /dev/null -w "%{{http_code}}" http://{metadata_host}:{metadata_port}/')
+    smoke_cmd = format('curl -s -o /dev/null -w "%{{http_code}}" {metadata_protocol}://{metadata_host}:{metadata_port}/')
 
 # kafka
 kafka_bootstrap_servers = ""
