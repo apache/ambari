@@ -1236,91 +1236,6 @@ describe('App.InstallerStep7Controller', function () {
       });
   });
 
-  describe('#_updateOverridesForConfig', function () {
-
-    it('should set empty array', function () {
-      var serviceConfigProperty = Em.Object.create({
-        overrides: null
-      }), component = Em.Object.create();
-      installerStep7Controller._updateOverridesForConfig(serviceConfigProperty, component);
-      expect(serviceConfigProperty.get('overrides')).to.eql(Em.A([]));
-    });
-
-    describe('host overrides not supported', function () {
-      var serviceConfigProperty = Em.Object.create({
-        overrides: [
-          {value: 'new value'}
-        ]
-      });
-      var component = Em.Object.create({selectedConfigGroup: {isDefault: false}});
-
-      beforeEach(function () {
-        installerStep7Controller._updateOverridesForConfig(serviceConfigProperty, component);
-      });
-      it('there is 1 override', function () {
-        expect(serviceConfigProperty.get('overrides').length).to.equal(1);
-      });
-      it('override value is valid', function () {
-        expect(serviceConfigProperty.get('overrides.firstObject.value')).to.equal('new value');
-      });
-      it('override is not original SCP', function () {
-        expect(serviceConfigProperty.get('overrides.firstObject.isOriginalSCP')).to.equal(false);
-      });
-      it('override is linked to parent', function () {
-        expect(serviceConfigProperty.get('overrides.firstObject.parentSCP')).to.eql(serviceConfigProperty);
-      });
-    });
-
-    describe('host overrides supported', function () {
-      var serviceConfigProperty;
-      var component;
-      beforeEach(function () {
-        sinon.stub(App, 'get', function (k) {
-          if (k === 'supports.hostOverrides') return true;
-          return Em.get(App, k);
-        });
-        serviceConfigProperty = Em.Object.create({
-          overrides: [
-            {value: 'new value', group: Em.Object.create({name: 'n1'})}
-          ]
-        });
-        component = Em.Object.create({
-          selectedConfigGroup: {isDefault: true},
-          configGroups: Em.A([
-            Em.Object.create({name: 'n1', properties: []})
-          ])
-        });
-        installerStep7Controller._updateOverridesForConfig(serviceConfigProperty, component);
-      });
-
-      afterEach(function () {
-        App.get.restore();
-      });
-      it('there is 1 override', function () {
-        expect(serviceConfigProperty.get('overrides').length).to.equal(1);
-      });
-      it('override.value is valid', function () {
-        expect(serviceConfigProperty.get('overrides.firstObject.value')).to.equal('new value');
-      });
-      it('override is not original SCP', function () {
-        expect(serviceConfigProperty.get('overrides.firstObject.isOriginalSCP')).to.equal(false);
-      });
-      it('override.parentSCP is valid', function () {
-        expect(serviceConfigProperty.get('overrides.firstObject.parentSCP')).to.eql(serviceConfigProperty);
-      });
-      it('there is 1 property in the config group', function () {
-        expect(component.get('configGroups.firstObject.properties').length).to.equal(1);
-      });
-      it('property in the config group is not editable', function () {
-        expect(component.get('configGroups.firstObject.properties.firstObject.isEditable')).to.equal(false);
-      });
-      it('property in the config group is linked to it', function () {
-        expect(component.get('configGroups.firstObject.properties.firstObject.group')).to.be.object;
-      });
-    });
-
-  });
-
   describe('#setInstalledServiceConfigs', function () {
 
     var controller = App.WizardStep7Controller.create({
@@ -2427,7 +2342,7 @@ describe('App.InstallerStep7Controller', function () {
         configKeyToConfigMap: {
           type1: {},
           type2: {
-            p4: {}
+            p4: Em.Object.create({})
           }
         }
       };

@@ -479,18 +479,22 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
 
   loadServiceConfigGroupOverridesSuccess: function (data, opt, params) {
     data.items.forEach(function (config) {
-      var hostOverrideValue, hostOverrideIsFinal;
       var group = params.typeTagToGroupMap[config.type + "///" + config.tag];
       var properties = config.properties;
       for (var prop in properties) {
         var fileName = App.config.getOriginalFileName(config.type);
-        var serviceConfig = !!params.configKeyToConfigMap[fileName] ? params.configKeyToConfigMap[fileName][prop] : false;
-        if (serviceConfig) {
-          hostOverrideValue = App.config.formatPropertyValue(serviceConfig, properties[prop]);
-          hostOverrideIsFinal = !!(config.properties_attributes && config.properties_attributes.final && config.properties_attributes.final[prop]);
-          // Value of this property is different for this host.
-          if (!Em.get(serviceConfig, 'overrides')) Em.set(serviceConfig, 'overrides', []);
-          serviceConfig.overrides.pushObject({value: hostOverrideValue, group: group, isFinal: hostOverrideIsFinal});
+        var serviceConfigProperty = !!params.configKeyToConfigMap[fileName] ? params.configKeyToConfigMap[fileName][prop] : false;
+        if (serviceConfigProperty) {
+          var hostOverrideValue = App.config.formatPropertyValue(serviceConfigProperty, properties[prop]);
+          var hostOverrideIsFinal = !!(config.properties_attributes && config.properties_attributes.final && config.properties_attributes.final[prop]);
+
+          App.config.createOverride(serviceConfigProperty, {
+            "value": hostOverrideValue,
+            "savedValue": hostOverrideValue,
+            "isFinal": hostOverrideIsFinal,
+            "savedIsFinal": hostOverrideIsFinal,
+            "isEditable": false
+          }, group, true);
         } else {
           params.serviceConfigs.push(App.config.createCustomGroupConfig(prop, fileName, config.properties[prop], group));
         }
@@ -539,51 +543,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   },
 
   /**
-   * Set <code>overrides</code>-property to <code>serviceConfigProperty<code>
-   * @param {Ember.Object} serviceConfigProperty
-   * @param {Ember.Object} component
-   * @return {Ember.Object} Updated config-object
-   * @method _updateOverridesForConfig
-   */
-  _updateOverridesForConfig: function (serviceConfigProperty, component) {
-
-    var overrides = serviceConfigProperty.get('overrides');
-
-    if (Em.isNone(overrides)) {
-      serviceConfigProperty.set('overrides', Em.A([]));
-      return serviceConfigProperty;
-    }
-    serviceConfigProperty.set('overrides', null);
-    var defaultGroupSelected = component.get('selectedConfigGroup.isDefault');
-
-    // Wrap each override to App.ServiceConfigProperty
-    overrides.forEach(function (override) {
-      var newSCP = App.ServiceConfigProperty.create(serviceConfigProperty);
-      newSCP.set('value', override.value);
-      newSCP.set('isOriginalSCP', false); // indicated this is overridden value,
-      newSCP.set('parentSCP', serviceConfigProperty);
-      if (defaultGroupSelected) {
-        var group = component.get('configGroups').findProperty('name', override.group.get('name'));
-        // prevent cycle in proto object, clean link
-        if (group.get('properties').length == 0) {
-          group.set('properties', Em.A([]));
-        }
-        group.get('properties').push(newSCP);
-        newSCP.set('group', override.group);
-        newSCP.set('isEditable', false);
-      }
-      var parentOverridesArray = serviceConfigProperty.get('overrides');
-      if (Em.isNone(parentOverridesArray)) {
-        parentOverridesArray = Em.A([]);
-        serviceConfigProperty.set('overrides', parentOverridesArray);
-      }
-      serviceConfigProperty.get('overrides').pushObject(newSCP);
-      newSCP.validate();
-    }, this);
-    return serviceConfigProperty;
-  },
-
-  /**
    * Set configs with overrides, recommended defaults to component
    * @param {Ember.Object[]} configs
    * @param {Ember.Object} componentConfig
@@ -602,7 +561,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       if (!Em.isNone(serviceConfigProperty.get('group'))) {
         serviceConfigProperty.get('group.properties').pushObject(serviceConfigProperty);
       }
-      this._updateOverridesForConfig(serviceConfigProperty, component);
       this._updateIsEditableFlagForConfig(serviceConfigProperty, defaultGroupSelected);
 
       componentConfig.get('configs').pushObject(serviceConfigProperty);

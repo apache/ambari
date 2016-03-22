@@ -893,9 +893,10 @@ App.config = Em.Object.create({
    * @param {App.ServiceConfigProperty} serviceConfigProperty
    * @param {Object} override - plain object with properties that is different from parent SCP
    * @param {App.ServiceConfigGroup} configGroup
+   * @param {boolean} [updateGroup]
    * @returns {App.ServiceConfigProperty}
    */
-  createOverride: function(serviceConfigProperty, override, configGroup) {
+  createOverride: function(serviceConfigProperty, override, configGroup, updateGroup) {
     Em.assert('serviceConfigProperty can\' be null', serviceConfigProperty);
     Em.assert('configGroup can\' be null', configGroup);
 
@@ -915,6 +916,13 @@ App.config = Em.Object.create({
       'group': configGroup,
       'parentSCP': serviceConfigProperty
     });
+
+    if (updateGroup) {
+      if (!configGroup.get('properties.length')) {
+        configGroup.set('properties', Em.A([]));
+      }
+      configGroup.get('properties').push(newOverride);
+    }
 
     serviceConfigProperty.get('overrides').pushObject(newOverride);
     serviceConfigProperty.set('overrideValues', serviceConfigProperty.get('overrides').mapProperty('value'));
