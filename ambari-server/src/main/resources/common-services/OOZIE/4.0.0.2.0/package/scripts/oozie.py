@@ -26,6 +26,7 @@ from resource_management.core.source import InlineTemplate
 from resource_management.core.source import Template
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.version import compare_versions
+from resource_management.libraries.functions.get_user_call_output import get_user_call_output
 from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.libraries.script.script import Script
 from resource_management.core.resources.packaging import Package
@@ -199,12 +200,15 @@ def oozie_ownership():
 
 def prepare_war():
   """
-  Attempt to call prepare-war command if the marker file doesn't exist or its content doesn't equal the expected command.
-  The marker file is stored in <stack-root>/current/oozie-server/.prepare_war_cmd
+  Attempt to call prepare-war command if the marker files don't exist or their content doesn't equal the expected.
+  The marker file for a command is stored in <stack-root>/current/oozie-server/.prepare_war_cmd
+  The marker file for a content of libext folder is stored in <stack-root>/current/oozie-server/.war_libext_content
   """
   import params
 
   prepare_war_cmd_file = format("{oozie_home}/.prepare_war_cmd")
+  libext_content_file = format("{oozie_home}/.war_libext_content")
+  list_libext_command = format("ls -l {oozie_libext_dir}") + " | awk '{print $9, $5}' | awk 'NF > 0'"
 
   # DON'T CHANGE THE VALUE SINCE IT'S USED TO DETERMINE WHETHER TO RUN THE COMMAND OR NOT BY READING THE MARKER FILE.
   # Oozie tmp dir should be /var/tmp/oozie and is already created by a function above.
@@ -225,6 +229,23 @@ def prepare_war():
     run_prepare_war = True
     Logger.info(format("Will run prepare war cmd since marker file {prepare_war_cmd_file} is missing."))
 
+  return_code, libext_content, error_output = get_user_call_output(list_libext_command, user=params.oozie_user)
+  libext_content = libext_content.strip()
+
+  if run_prepare_war == False:
+    if os.path.exists(libext_content_file):
+      old_content = ""
+      with open(libext_content_file, "r") as f:
+        old_content = f.read().strip()
+
+      if libext_content != old_content:
+        run_prepare_war = True
+        Logger.info(format("Will run prepare war cmd since marker file {libext_content_file} has contents which differ.\n" \
+                           "Content of the folder {oozie_libext_dir} changed."))
+    else:
+      run_prepare_war = True
+      Logger.info(format("Will run prepare war cmd since marker file {libext_content_file} is missing."))
+
   if run_prepare_war:
     # Time-consuming to run
     return_code, output = shell.call(command, user=params.oozie_user)
@@ -236,9 +257,13 @@ def prepare_war():
       Logger.error(message)
       raise Fail(message)
 
-    # Generate marker file
+    # Generate marker files
     File(prepare_war_cmd_file,
          content=command,
+         mode=0644,
+    )
+    File(libext_content_file,
+         content=libext_content,
          mode=0644,
     )
   else:

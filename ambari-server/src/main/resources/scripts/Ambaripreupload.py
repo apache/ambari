@@ -40,6 +40,7 @@ from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions.get_user_call_output import get_user_call_output
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.resources.execute_hadoop import ExecuteHadoop
 from resource_management import Script
@@ -312,6 +313,8 @@ with Environment() as env:
   # PREPARE-WAR [BEGIN]
   ###############################################
   prepare_war_cmd_file = format("{oozie_home}/.prepare_war_cmd")
+  libext_content_file = format("{oozie_home}/.war_libext_content")
+  list_libext_command = format("ls -l {oozie_libext_dir}") + " | awk '{print $9, $5}' | awk 'NF > 0'"
 
   # DON'T CHANGE THE VALUE SINCE IT'S USED TO DETERMINE WHETHER TO RUN THE COMMAND OR NOT BY READING THE MARKER FILE.
   # Oozie tmp dir should be /var/tmp/oozie and is already created by a function above.
@@ -332,6 +335,23 @@ with Environment() as env:
     run_prepare_war = True
     Logger.info(format("Will run prepare war cmd since marker file {prepare_war_cmd_file} is missing."))
 
+  return_code, libext_content, error_output = get_user_call_output(list_libext_command, user=params.oozie_user)
+  libext_content = libext_content.strip()
+
+  if run_prepare_war == False:
+    if os.path.exists(libext_content_file):
+      old_content = ""
+      with open(libext_content_file, "r") as f:
+        old_content = f.read().strip()
+
+      if libext_content != old_content:
+        run_prepare_war = True
+        Logger.info(format("Will run prepare war cmd since marker file {libext_content_file} has contents which differ.\n" \
+                           "Content of the folder {oozie_libext_dir} changed."))
+    else:
+      run_prepare_war = True
+      Logger.info(format("Will run prepare war cmd since marker file {libext_content_file} is missing."))
+
   if run_prepare_war:
     # Time-consuming to run
     return_code, output = shell.call(command, user=params.oozie_user)
@@ -343,11 +363,15 @@ with Environment() as env:
       Logger.error(message)
       raise Fail(message)
 
-    # Generate marker file
+    # Generate marker files
     File(prepare_war_cmd_file,
          content=command_to_file,
          mode=0644,
-    )
+         )
+    File(libext_content_file,
+         content=libext_content,
+         mode=0644,
+         )
   else:
     Logger.info(format("No need to run prepare-war since marker file {prepare_war_cmd_file} already exists."))
   ###############################################
