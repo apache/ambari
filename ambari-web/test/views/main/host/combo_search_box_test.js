@@ -29,6 +29,7 @@ describe('App.MainHostComboSearchBoxView', function () {
 
     beforeEach(function() {
       sinon.stub(view, 'initVS');
+      sinon.stub(view, 'showHideClearButton');
     });
     afterEach(function() {
       view.initVS.restore();

@@ -2460,7 +2460,7 @@ Em.I18n.translations = {
   'hosts.passiveMode.popup':'Are you sure you want to <b>Turn {0} Maintenance Mode</b> for {1}?',
   'hosts.passiveMode.popup.version.mismatch': '{0} has components from a stack which is not current. Before bringing this host out of maintenance mode, it is recommended that you upgrade its components to {1}',
   'hosts.passiveMode.popup.version.mismatch.multiple': 'Some hosts have components from a stack which is not current. Before bringing these hosts out of maintenance mode, it is recommended that you upgrade their components to {0}',
-
+  'hosts.combo.search.placebolder': 'Filter by host and component attributes or search by keyword ...',
   'charts.horizon.chart.showText':'show',
   'charts.horizon.chart.hideText':'hide',
   'charts.horizon.chart.attributes.cpu':'CPU',

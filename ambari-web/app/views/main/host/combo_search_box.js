@@ -23,6 +23,15 @@ App.MainHostComboSearchBoxView = Em.View.extend({
   didInsertElement: function () {
     this.initVS();
     this.restoreComboFilterQuery();
+    this.showHideClearButton();
+  },
+
+  showHideClearButton: function() {
+    if(visualSearch.searchQuery.toJSON().length > 0) {
+      $('.VS-cancel-search-box').removeClass('hide');
+    } else {
+      $('.VS-cancel-search-box').addClass('hide');
+    }
   },
 
   restoreComboFilterQuery: function() {
@@ -68,6 +77,7 @@ App.MainHostComboSearchBoxView = Em.View.extend({
       query: '',
       showFacets: true,
       delay: 1000,
+      placeholder: Em.I18n.t('hosts.combo.search.placebolder'),
       unquotable: [
         'text'
       ],
@@ -79,6 +89,7 @@ App.MainHostComboSearchBoxView = Em.View.extend({
         },
 
         facetMatches: function (callback) {
+          self.showHideClearButton();
           var list = [
             {label: 'Host Name', category: 'Host'},
             {label: 'IP', category: 'Host'},
@@ -113,6 +124,7 @@ App.MainHostComboSearchBoxView = Em.View.extend({
         },
 
         valueMatches: function (facet, searchTerm, callback) {
+          self.showHideClearButton();
           var map = App.router.get('mainHostController.labelValueMap');
           var facetValue = map[facet] || facet;
           if (controller.isComponentStateFacet(facetValue)) {
