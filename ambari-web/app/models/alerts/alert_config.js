@@ -474,6 +474,8 @@ App.AlertConfigProperties = {
 
     badge: Em.computed.alias('threshold'),
 
+    thresholdExists: Em.computed.bool('threshold'),
+
     thresholdNotExists: Em.computed.empty('threshold'),
 
     /**

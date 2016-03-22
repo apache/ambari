@@ -17,14 +17,15 @@
 }}
 
 <div>
-  <div class="span2 badge-container">
-    {{#if view.property.threshold}}
-      <span {{bindAttr class="view.property.badgeCssClass :alert-parameter-badge :alert-state-single-host view.property.threshold:label"}}>
-        {{view.property.badge}}
-      </span>&nbsp;
-    {{/if}}
+  {{#if view.property.thresholdExists}}
+  <div {{bindAttr class=":span2 :badge-container :stuck-left"}}>
+    <span {{bindAttr class="view.property.badgeCssClass :alert-parameter-badge :alert-state-single-host view.property.threshold:label"}}>
+      {{view.property.badge}}
+    </span>&nbsp;
   </div>
-  <div rel="parameter-tooltip" {{bindAttr data-original-title="view.property.description" class="view.bigInput:span12:span3 view.property.units:input-append view.property.thresholdNotExists:stuck-left"}}>
+  {{/if}}
+  <div
+    rel="parameter-tooltip" {{bindAttr data-original-title="view.property.description" class="view.bigInput:span12:span3 view.property.units:input-append view.property.thresholdNotExists:stuck-left"}}>
     {{view Em.TextField valueBinding="view.property.value" disabledBinding="view.property.isDisabled" class ="view.bigInput:span12:span7"}}
     {{#if view.property.units}}
       <span class="add-on">{{view.property.units}}</span>
