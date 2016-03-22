@@ -701,7 +701,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     if "hdfs-client" in services["configurations"]:
       hdfs_client = services["configurations"]["hdfs-client"]["properties"]
       if "output.replace-datanode-on-failure" in hdfs_client:
-        propertyValue = "true" if numSegments > 4 else "false"
+        propertyValue = "true" if numSegments > 3 else "false"
         putHdfsClientProperty = self.putProperty(configurations, "hdfs-client", services)
         putHdfsClientProperty("output.replace-datanode-on-failure", propertyValue)
 
@@ -988,7 +988,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       numSegments = len(self.__getHosts(componentsList, "HAWQSEGMENT"))
 
       message = None
-      limit = 4
+      limit = 3
       if numSegments > limit and value != 'TRUE':
         message = "{0} should be set to true (checked) for clusters with more than {1} HAWQ Segments"
       elif numSegments <= limit and value != 'FALSE':
