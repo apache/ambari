@@ -1558,7 +1558,14 @@ Em.I18n.translations = {
   'admin.stackUpgrade.failedHosts.details': "Open Details",
   'admin.stackUpgrade.doThisLater': "Do This Later",
   'admin.stackUpgrade.pauseUpgrade': "Pause Upgrade",
-  'admin.stackUpgrade.pauseDowngrade': "Pause Downgrade",  
+  'admin.stackUpgrade.pauseDowngrade': "Pause Downgrade",
+  'admin.stackUpgrade.pauseUpgrade.warning': "You are about to Pause the {0}. You can return to continue the {0} and finalize at a later time but while the upgrade is paused, you <strong style='color:red;'>SHOULD NOT</strong> perform any cluster changes. For example:" +
+  "<ul><li>DO NOT add / remove hosts on the cluster</li>" +
+  "<li>DO NOT add / remove services on the cluster</li>" +
+  "<li>DO NOT enable / disable Kerberos</li>" +
+  "<li>DO NOT enable / disable HA</li>" +
+  "<li>DO NOT make any drastic changes to service configurations</li></ul>" +
+  "You <strong>MUST</strong> continue the {0} and finalize <strong>BEFORE</strong> performing <strong>ANY</strong> significant changes to the cluster should.",
   'admin.stackUpgrade.downgrade.proceed': "Proceed with Downgrade",
   'admin.stackUpgrade.downgrade.body': "Are you sure you wish to abort the upgrade process and downgrade to <b>{0}</b>?",
   'admin.stackUpgrade.downgrade.retry.body': "Are you sure you wish to retry downgrade to <b>{0}</b>?",
