@@ -97,6 +97,8 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
   public static final String HBASE_RPC_TIMEOUT_PROPERTY = "hbase.rpc.timeout";
   public static final String PHOENIX_QUERY_TIMEOUT_PROPERTY = "phoenix.query.timeoutMs";
   public static final String PHOENIX_QUERY_KEEPALIVE_PROPERTY = "phoenix.query.keepAliveMs";
+  public static final String TIMELINE_METRICS_CLUSTER_AGGREGATOR_INTERPOLATION_ENABLED
+    = "timeline.metrics.cluster.aggregator.interpolation.enabled";
 
   public static final String AMS_SERVICE_NAME = "AMBARI_METRICS";
   public static final String AMS_COLLECTOR_COMPONENT_NAME = "METRICS_COLLECTOR";
@@ -249,7 +251,7 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
 
   }
 
-  protected void updateHostRoleCommands() throws SQLException{
+  protected void updateHostRoleCommands() throws SQLException {
     dbAccessor.createIndex("idx_hrc_status", "host_role_command", "status", "role");
   }
 
@@ -312,7 +314,7 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
               String newTtl = oldTtl;
               if (isDistributed) {
                 if ("86400".equals(oldTtl)) {
-                  newTtl = String.valueOf(7 * 86400); // 7 days
+                  newTtl = String.valueOf(3 * 86400); // 3 days
                 }
               }
               newProperties.put(PRECISION_TABLE_TTL_PROPERTY, newTtl);
@@ -341,6 +343,11 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
 
               newProperties.put(CLUSTER_MINUTE_TABLE_TTL_PROPERTY, newTtl);
               LOG.info("Setting value of " + CLUSTER_MINUTE_TABLE_TTL_PROPERTY + " : " + newTtl);
+            }
+
+            if (!amsSiteProperties.containsKey(TIMELINE_METRICS_CLUSTER_AGGREGATOR_INTERPOLATION_ENABLED)) {
+              LOG.info("Add config  " + TIMELINE_METRICS_CLUSTER_AGGREGATOR_INTERPOLATION_ENABLED + " = true");
+              newProperties.put(TIMELINE_METRICS_CLUSTER_AGGREGATOR_INTERPOLATION_ENABLED, String.valueOf(true));
             }
 
             updateConfigurationPropertiesForCluster(cluster, AMS_SITE, newProperties, true, true);
@@ -514,7 +521,7 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
    */
   protected void updateUpgradeTable() throws AmbariException, SQLException {
     dbAccessor.addColumn(UPGRADE_TABLE,
-        new DBAccessor.DBColumnInfo(UPGRADE_SUSPENDED_COLUMN, Short.class, 1, 0, false));
+      new DBAccessor.DBColumnInfo(UPGRADE_SUSPENDED_COLUMN, Short.class, 1, 0, false));
   }
 
 }

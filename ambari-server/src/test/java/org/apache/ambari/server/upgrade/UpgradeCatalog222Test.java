@@ -301,7 +301,7 @@ public class UpgradeCatalog222Test {
         put("timeline.metrics.host.aggregator.daily.checkpointCutOffMultiplier", String.valueOf(2));
         put("timeline.metrics.cluster.aggregator.daily.checkpointCutOffMultiplier", String.valueOf(2));
         put("timeline.metrics.service.watcher.disabled", String.valueOf(false));
-        put("timeline.metrics.host.aggregator.ttl", String.valueOf(7 * 86400));
+        put("timeline.metrics.host.aggregator.ttl", String.valueOf(3 * 86400));
         put("timeline.metrics.host.aggregator.minute.ttl", String.valueOf(7 * 86400));
         put("timeline.metrics.host.aggregator.hourly.ttl", String.valueOf(30 * 86400));
         put("timeline.metrics.host.aggregator.daily.ttl", String.valueOf(365 * 86400));
@@ -311,6 +311,7 @@ public class UpgradeCatalog222Test {
         put("timeline.metrics.cluster.aggregator.daily.ttl", String.valueOf(730 * 86400));
         put("timeline.metrics.service.operation.mode", "distributed");
         put("timeline.metrics.service.webapp.address", "host1:6188");
+        put("timeline.metrics.cluster.aggregator.interpolation.enabled", String.valueOf(true));
       }
     };
     EasyMockSupport easyMockSupport = new EasyMockSupport();

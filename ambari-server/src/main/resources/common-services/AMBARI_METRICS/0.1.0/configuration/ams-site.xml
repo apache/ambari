@@ -334,7 +334,7 @@
     <name>timeline.metrics.host.aggregator.ttl</name>
     <value>86400</value>
     <description>
-      1 minute resolution data purge interval in seconds. Default is 1 day for embedded mode and 7 days for Distributed mode.
+      1 minute resolution data purge interval in seconds. Default is 1 day for embedded mode and 3 days for Distributed mode.
     </description>
     <depends-on>
       <property>
@@ -557,6 +557,13 @@
     <value>true</value>
     <description>
       Enable Initialization check for HBase tables during Metrics service startup.
+    </description>
+  </property>
+  <property>
+    <name>timeline.metrics.cluster.aggregator.interpolation.enabled</name>
+    <value>true</value>
+    <description>
+      Enable Linear interpolation for missing slices of data, while aggregating.
     </description>
   </property>
 
