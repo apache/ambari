@@ -39,6 +39,7 @@ require('mixins/main/service/themes_mapping');
 require('mixins/main/service/versions_mapping');
 require('mixins/main/service/configs/config_overridable');
 require('mixins/main/service/configs/widget_popover_support');
+require('mixins/main/service/configs/component_actions_by_configs');
 require('mixins/routers/redirections');
 require('mixins/wizard/wizardProgressPageController');
 require('mixins/wizard/wizardDeployProgressController');

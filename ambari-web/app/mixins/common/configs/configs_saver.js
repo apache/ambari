@@ -608,7 +608,8 @@ App.ConfigsSaverMixin = Em.Mixin.create({
    * @method doPUTClusterConfigurationSiteSuccessCallback
    */
   doPUTClusterConfigurationSiteSuccessCallback: function () {
-    this.onDoPUTClusterConfigurations();
+    var doConfigActions = true;
+    this.onDoPUTClusterConfigurations(doConfigActions);
   },
 
   /**
@@ -617,16 +618,17 @@ App.ConfigsSaverMixin = Em.Mixin.create({
    */
   doPUTClusterConfigurationSiteErrorCallback: function () {
     this.set('saveConfigsFlag', false);
-    this.doPUTClusterConfigurationSiteSuccessCallback();
+    this.onDoPUTClusterConfigurations();
   },
 
   /**
    * On save configs handler. Open save configs popup with appropriate message
    * and clear config dependencies list.
+   * @param  {Boolean} doConfigActions
    * @private
    * @method onDoPUTClusterConfigurations
    */
-  onDoPUTClusterConfigurations: function () {
+  onDoPUTClusterConfigurations: function (doConfigActions) {
     var header, message, messageClass, value, status = 'unknown', urlParams = '',
       result = {
         flag: this.get('saveConfigsFlag'),
@@ -667,7 +669,7 @@ App.ConfigsSaverMixin = Em.Mixin.create({
     //  update configs for service actions
     App.router.get('mainServiceItemController').loadConfigs();
 
-    this.showSaveConfigsPopup(header, flag, message, messageClass, value, status, urlParams);
+    this.showSaveConfigsPopup(header, flag, message, messageClass, value, status, urlParams, doConfigActions);
     this.clearAllRecommendations();
   },
 
@@ -677,11 +679,8 @@ App.ConfigsSaverMixin = Em.Mixin.create({
    * @private
    * @method showSaveConfigsPopup
    */
-  showSaveConfigsPopup: function (header, flag, message, messageClass, value, status, urlParams) {
+  showSaveConfigsPopup: function (header, flag, message, messageClass, value, status, urlParams, doConfigActions) {
     var self = this;
-    if (flag) {
-      self.loadStep();
-    }
     return App.ModalPopup.show({
       header: header,
       primary: Em.I18n.t('ok'),
@@ -767,12 +766,12 @@ App.ConfigsSaverMixin = Em.Mixin.create({
           switch (status) {
             case 'unknown':
               response.items.filter(function (item) {
-                return (item.ServiceComponentInfo.total_count > item.ServiceComponentInfo.started_count + item.ServiceComponentInfo.installed_count);
+                return (item.ServiceComponentInfo.total_count > (item.ServiceComponentInfo.started_count + item.ServiceComponentInfo.installed_count));
               }).forEach(function (item) {
                 var total = item.ServiceComponentInfo.total_count,
                   started = item.ServiceComponentInfo.started_count,
                   installed = item.ServiceComponentInfo.installed_count,
-                  unknown = total - started + installed;
+                  unknown = total - (started + installed);
                 components = setComponents(item, components);
                 count += unknown;
               });
@@ -796,7 +795,7 @@ App.ConfigsSaverMixin = Em.Mixin.create({
           this.set('isLoaded', true);
         },
         didInsertElement: function () {
-          return App.ajax.send({
+          var dfd = App.ajax.send({
             name: 'components.filter_by_status',
             sender: this,
             data: {
@@ -805,6 +804,15 @@ App.ConfigsSaverMixin = Em.Mixin.create({
             },
             success: 'componentsFilterSuccessCallback',
             error: 'componentsFilterErrorCallback'
+          });
+
+          dfd.done(function() {
+            if (doConfigActions && self.doConfigActions) {
+              self.doConfigActions.bind(self)();
+              if (flag) {
+                self.loadStep();
+              }
+            }
           });
         },
         getDisplayMessage: function () {

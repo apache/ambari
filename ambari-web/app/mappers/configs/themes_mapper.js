@@ -130,7 +130,9 @@ App.themesMapper = App.QuickDataMapper.create({
                       var type = 'subsectionTab';
                       this.mapThemeConditions(subSectionTabConditions, type);
                     }
+                    App.store.commit();
                     App.store.loadMany(this.get("subSectionTabModel"), subSectionTabs);
+                    App.store.commit();
                     parsedSubSection.sub_section_tabs = subSectionTabs.mapProperty("id");
                   }
                   if (parsedSubSection['depends_on']) {
@@ -142,14 +144,18 @@ App.themesMapper = App.QuickDataMapper.create({
                   var type = 'subsection';
                   this.mapThemeConditions(subSectionConditions, type);
                 }
+                App.store.commit();
                 App.store.loadMany(this.get("subSectionModel"), subSections);
+                App.store.commit();
                 parsedSection.sub_sections = subSections.mapProperty("id");
               }
 
               sections.push(parsedSection);
             }, this);
 
+            App.store.commit();
             App.store.loadMany(this.get("sectionModel"), sections);
+            App.store.commit();
             parsedTab.sections = sections.mapProperty("id");
           }
 

@@ -321,6 +321,7 @@ Em.I18n.translations = {
   'common.levels': 'Levels',
   'common.extension': 'Extension',
   'common.logs': 'Logs',
+  'common.warn.message': '<div class="alert alert-warn">{0}</div>',
 
   'models.alert_instance.tiggered.verbose': "Occurred on {0} <br> Checked on {1}",
   'models.alert_definition.triggered.verbose': "Occurred on {0}",
@@ -853,7 +854,10 @@ Em.I18n.translations = {
   'installer.step7.preInstallChecks.checksPopup.header':'Pre Install Checks',
 
 
-  'installer.step7.assign.master.body':'Assign {0} to {1} you want to run {2} on.',
+  'installer.step7.assign.master.body':'Assign <strong>{0}</strong> to {1} you want to run {2} on.',
+  'installer.step7.assign.master.dependent.component.body':'If not present {0} will also be installed on the selected host. ',
+  'installer.step7.missing.service.header':'Missing Service',
+  'installer.step7.missing.service.body': '{0} service should be added to the cluster to {1}.',
 
 
   'installer.step8.header': 'Review',

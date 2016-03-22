@@ -526,11 +526,9 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
           var service = App.config.get('serviceByConfigTypeMap')[App.config.getConfigTagFromFileName(serviceConfigProperty.get('filename'))];
           serviceConfigProperty.set('isEditable', service && !this.get('installedServiceNames').contains(service.get('serviceName')));
         } else {
-          serviceConfigProperty.set('isEditable', serviceConfigProperty.get('isReconfigurable'));
+          serviceConfigProperty.set('isEditable', serviceConfigProperty.get('isEditable') && serviceConfigProperty.get('isReconfigurable'));
         }
-      } else if (Em.get(serviceConfigProperty, 'group') && Em.get(serviceConfigProperty, 'group.name') == this.get('selectedConfigGroup.name')) {
-        serviceConfigProperty.set('isEditable', true);
-      } else {
+      } else if (!(Em.get(serviceConfigProperty, 'group') && Em.get(serviceConfigProperty, 'group.name') == this.get('selectedConfigGroup.name'))) {
         serviceConfigProperty.set('isEditable', false);
       }
     }
@@ -690,8 +688,11 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     var stepConfigs = this.createStepConfigs();
     var serviceConfigs = this.renderConfigs(stepConfigs, configs);
     // if HA is enabled -> Make some reconfigurations
-    if (this.get('wizardController.name') === 'addServiceController' && App.get('isHaEnabled')) {
-      serviceConfigs = this._reconfigureServicesOnNnHa(serviceConfigs);
+    if (this.get('wizardController.name') === 'addServiceController') {
+      this.updateComponentActionConfigs(configs, serviceConfigs);
+      if (App.get('isHaEnabled')) {
+        serviceConfigs = this._reconfigureServicesOnNnHa(serviceConfigs);
+      }
     }
     this.set('stepConfigs', serviceConfigs);
     this.checkHostOverrideInstaller();
@@ -702,6 +703,31 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       App.config.removeRangerConfigs(self.get('stepConfigs'));
     }
     this.loadConfigRecommendations(null, this.completeConfigLoading.bind(this));
+  },
+
+  /**
+   *
+   * Makes installed service's configs resulting into component actions (add/delete) non editable on Add Service Wizard
+   * @param configs Object[]
+   * @param  stepConfigs Object[]
+   * @private
+   * @method updateComponentActionConfigs
+   */
+  updateComponentActionConfigs: function(configs, stepConfigs) {
+    App.ConfigAction.find().forEach(function(item){
+      var configName = item.get('configName');
+      var fileName = item.get('fileName');
+      var config =  configs.filterProperty('filename', fileName).findProperty('name', configName);
+      if (config) {
+        var isServiceInstalled = App.Service.find().findProperty('serviceName', config.serviceName);
+        if (isServiceInstalled) {
+          var serviceConfigs = stepConfigs.findProperty('serviceName', config.serviceName).get('configs');
+          var serviceConfig =  serviceConfigs.filterProperty('filename', fileName).findProperty('name', configName);
+          serviceConfig.set('isEditable', false);
+          config.isEditable = false;
+        }
+      }
+    }, this);
   },
 
   completeConfigLoading: function() {
@@ -1270,7 +1296,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     var isEditable = config.get('isEditable'),
       isServiceInstalled = this.get('installedServiceNames').contains(this.get('selectedService.serviceName'));
     if (isServiceInstalled) {
-      isEditable = (!isEditable && !config.get('isReconfigurable')) ? false : selectedGroup.get('isDefault');
+      isEditable = (!isEditable || !config.get('isReconfigurable')) ? false : selectedGroup.get('isDefault');
     }
     else {
       isEditable = selectedGroup.get('isDefault');
@@ -1620,24 +1646,18 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    * @method submit
    */
   submit: function () {
-    var self = this;
     if (this.get('isSubmitDisabled') || App.router.nextBtnClickInProgress) {
       return false;
     }
 
-    var assignMasterOnStep7Controller =  App.router.get('assignMasterOnStep7Controller');
-    var dfdPromise = assignMasterOnStep7Controller.execute(self);
-
     if (this.get('supportsPreInstallChecks')) {
       var preInstallChecksController = App.router.get('preInstallChecksController');
       if (preInstallChecksController.get('preInstallChecksWhereRun')) {
-        return dfdPromise.done(self.postSubmit.bind(self));
+        return this.postSubmit();
       }
-      return dfdPromise.done(function() {
-        preInstallChecksController.notRunChecksWarnPopup(self.postSubmit.bind(self));
-      });
+      return preInstallChecksController.notRunChecksWarnPopup(this.postSubmit.bind(this));
     }
-    return dfdPromise.done(self.postSubmit.bind(self));
+    return this.postSubmit();
   },
 
   postSubmit: function () {

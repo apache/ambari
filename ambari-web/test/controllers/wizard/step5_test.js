@@ -1051,46 +1051,49 @@ describe('App.WizardStep5Controller', function () {
         ];
       });
 
+      var recommendations = {
+        "blueprint": {
+          "host_groups": [
+            {
+              "name": "host-group-1",
+              "components": [ {"name": "c1"}, {"name": "c2"} ]
+            },
+            {
+              "name": "host-group-2",
+              "components": [ {"name": "c1"}, {"name": "c2"} ]
+            },
+            {
+              "name": "host-group-3",
+              "components": [ {"name": "c1"} ]
+            }
+          ]
+        },
+        "blueprint_cluster_binding": {
+          "host_groups": [
+            {
+              "name": "host-group-1",
+              "hosts": [ {"fqdn": "h1"} ]
+            },
+            {
+              "name": "host-group-2",
+              "hosts": [ {"fqdn": "h2"} ]
+            },
+            {
+              "name": "host-group-3",
+              "hosts": [ {"fqdn": "h3"} ]
+            }
+          ]
+        }
+      };
+
+      c.set('recommendations', recommendations);
       c.set('content', {
         masterComponentHosts: [],
         services: [
           {serviceName: 's1', isSelected: true, isInstalled: false},
           {serviceName: 's2', isSelected: true, isInstalled: false}
         ],
-        recommendations: {
-          "blueprint": {
-            "host_groups": [
-              {
-                "name": "host-group-1",
-                "components": [ {"name": "c1"}, {"name": "c2"} ]
-              },
-              {
-                "name": "host-group-2",
-                "components": [ {"name": "c1"}, {"name": "c2"} ]
-              },
-              {
-                "name": "host-group-3",
-                "components": [ {"name": "c1"} ]
-              }
-            ]
-          },
-          "blueprint_cluster_binding": {
-            "host_groups": [
-              {
-                "name": "host-group-1",
-                "hosts": [ {"fqdn": "h1"} ]
-              },
-              {
-                "name": "host-group-2",
-                "hosts": [ {"fqdn": "h2"} ]
-              },
-              {
-                "name": "host-group-3",
-                "hosts": [ {"fqdn": "h3"} ]
-              }
-            ]
-          }
-        }
+        recommendations: recommendations
       });
 
     });

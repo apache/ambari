@@ -82,10 +82,11 @@ describe('App.AssignMasterComponents', function () {
 
     it('should set recommendations', function() {
       c.loadRecommendationsSuccessCallback(data);
-      expect(c.get('content.recommendations')).to.eq(data.resources[0].recommendations);
+      expect(c.get('recommendations')).to.eq(data.resources[0].recommendations);
     });
 
-    it('should set recommendedHostsForComponents', function() {
+    it('should set recommendedHostsForComponents and content.recommendations for wizard page', function() {
+      c.set('content.controllerName','installerController');
       c.loadRecommendationsSuccessCallback(data);
       var expected = {
         "c1": ["h1", "h2", "h4", "h3"],
@@ -94,6 +95,7 @@ describe('App.AssignMasterComponents', function () {
       };
 
       expect(JSON.stringify(c.get('content.recommendedHostsForComponents'))).to.equal(JSON.stringify(expected));
+      expect(c.get('content.recommendations')).to.eq(data.resources[0].recommendations);
     });
   });
 

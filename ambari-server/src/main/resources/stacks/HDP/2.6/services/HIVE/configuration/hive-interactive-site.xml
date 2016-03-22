@@ -74,7 +74,7 @@ limitations under the License.
     </description>
   </property>
 
- <property>
+  <property>
     <name>hive.heapsize</name>
     <value>1024</value>
     <display-name>HiveServer2 heap size</display-name>
@@ -201,8 +201,11 @@ limitations under the License.
 
   <property>
     <name>hive.metastore.uris</name>
-    <value>thrift://localhost:9083</value>
+    <value></value>
     <description>Thrift URI for the remote metastore. Used by metastore client to connect to remote metastore.</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
   </property>
 
   <property>
@@ -363,7 +366,7 @@ limitations under the License.
 
   <property>
     <name>hive.server2.enable.doAs</name>
-    <value>true</value>
+    <value>false</value>
     <description>
       Setting this property to true will have HiveServer2 execute
       Hive operations as the user making the calls to it.
@@ -441,13 +444,6 @@ limitations under the License.
   </property>
 
   <property>
-    <name>hive.server2.enable.impersonation</name>
-    <value>true</value>
-    <deleted>true</deleted>
-    <description>Enable user impersonation for HiveServer2</description>
-  </property>
-
-  <property>
     <name>fs.hdfs.impl.disable.cache</name>
     <value>true</value>
     <description>Disable HDFS filesystem cache.</description>
@@ -520,39 +516,6 @@ limitations under the License.
     <name>hive.exec.submitviachild</name>
     <value>false</value>
     <description/>
-  </property>
-
-  <property>
-    <name>hive.enforce.bucketing</name>
-    <value>true</value>
-    <description>Whether bucketing is enforced. If true, while inserting into the table, bucketing is enforced.</description>
-    <display-name>Enforce bucketing</display-name>
-    <value-attributes>
-      <type>value-list</type>
-      <entries>
-        <entry>
-          <value>true</value>
-          <label>True</label>
-        </entry>
-        <entry>
-          <value>false</value>
-          <label>False</label>
-        </entry>
-      </entries>
-      <selection-cardinality>1</selection-cardinality>
-    </value-attributes>
-    <depends-on>
-      <property>
-        <type>hive-env</type>
-        <name>hive_txn_acid</name>
-      </property>
-    </depends-on>
-  </property>
-
-  <property>
-    <name>hive.enforce.sorting</name>
-    <value>true</value>
-    <description>Whether sorting is enforced. If true, while inserting into the table, sorting is enforced.</description>
   </property>
 
   <property>
@@ -1143,6 +1106,7 @@ limitations under the License.
   </property>
 
   <property>
+    <!-- This is different for Hive batch and interactive -->
     <name>hive.prewarm.enabled</name>
     <value>false</value>
     <description>Enables container prewarm for Tez (Hadoop 2 only)</description>
@@ -1261,7 +1225,7 @@ limitations under the License.
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
     <depends-on>
-       <property>
+      <property>
         <type>hive-site</type>
         <name>hive.cbo.enable</name>
       </property>
@@ -1270,12 +1234,12 @@ limitations under the License.
 
   <property>
     <name>hive.tez.container.size</name>
-    <value>682</value>
+    <value>341</value>
     <description>By default, Tez uses the java options from map tasks. Use this property to override that value.</description>
     <display-name>Tez Container Size</display-name>
     <value-attributes>
       <type>int</type>
-      <minimum>682</minimum>
+      <minimum>341</minimum>
       <maximum>6820</maximum>
       <unit>MB</unit>
       <increment-step>682</increment-step>
@@ -1300,8 +1264,11 @@ limitations under the License.
 
   <property>
     <name>hive.tez.java.opts</name>
-    <value>-server -Xmx545m -Djava.net.preferIPv4Stack=true -XX:NewRatio=8 -XX:+UseNUMA -XX:+UseParallelGC -XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps</value>
+    <value></value>
     <description>Java command line options for Tez. The -Xmx parameter value is generally 80% of hive.tez.container.size.</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
   </property>
 
   <property>
@@ -1462,7 +1429,7 @@ limitations under the License.
 
   <property>
     <name>hive.vectorized.execution.reduce.enabled</name>
-    <value>false</value>
+    <value>true</value>
     <description>
       This flag should be set to true to enable vectorized mode of the reduce-side of
       query execution.
@@ -1573,11 +1540,9 @@ limitations under the License.
     <name>hive.server2.tez.sessions.per.default.queue</name>
     <value>1</value>
     <description>
-      A positive integer that determines the number of Tez sessions that should be
-      launched on each of the queues specified by "hive.server2.tez.default.queues".
-      Determines the parallelism on each queue.
+      The maximum number of queries this Hive LLAP cluster will be able to handle concurrently.
     </description>
-    <display-name>Session per queue</display-name>
+    <display-name>Maximum Concurrent Queries</display-name>
     <value-attributes>
       <type>int</type>
       <minimum>1</minimum>
@@ -1588,13 +1553,36 @@ limitations under the License.
 
   <property>
     <name>hive.server2.tez.initialize.default.sessions</name>
-    <value>false</value>
+    <value>true</value>
     <description>
       This flag is used in HiveServer2 to enable a user to use HiveServer2 without
       turning on Tez for HiveServer2. The user could potentially want to run queries
       over Tez without the pool of sessions.
     </description>
     <display-name>Start Tez session at Initialization</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>hive.driver.parallel.compilation</name>
+    <value>true</value>
+    <description>
+      This flag allows HiveServer2 to compile queries in parallel.
+    </description>
+    <display-name>Compile queries in parallel</display-name>
     <value-attributes>
       <type>value-list</type>
       <entries>
@@ -1830,6 +1818,12 @@ limitations under the License.
   </property>
 
   <property>
+    <name>hive.server2.webui.port </name>
+    <value>10502</value>
+    <description>Web UI port address</description>
+  </property>
+
+  <property>
     <name>hive.server2.allow.user.substitution</name>
     <value>true</value>
     <description>Allow alternate user to be specified as part of HiveServer2 open connection request.</description>
@@ -1932,7 +1926,7 @@ limitations under the License.
 
   <property>
     <name>hive.server2.zookeeper.namespace</name>
-    <value>hiveserver2</value>
+    <value>hiveserver2-hive2</value>
     <description>The parent node in ZooKeeper used by HiveServer2 when supporting dynamic service discovery.</description>
   </property>
 
@@ -2036,6 +2030,205 @@ limitations under the License.
     <description>
       Minimum number of threads maintained by Atlas hook.
     </description>
+  </property>
+
+  <property>
+    <name>hive.llap.daemon.queue.name</name>
+    <value>default</value>
+    <description>Choose the YARN queue in this cluster that is dedicated to interactive query.</description>
+    <display-name>Interactive Query Queue</display-name>
+    <value-attributes>
+      <type>combo</type>
+      <entries>
+        <entry>
+          <value>default</value>
+          <label>Default</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>hive.llap.daemon.yarn.shuffle.port</name>
+    <value>15551</value>
+  </property>
+
+  <property>
+    <name>hive.execution.mode</name>
+    <value>llap</value>
+  </property>
+
+  <property>
+    <name>hive.llap.execution.mode</name>
+    <value>all</value>
+  </property>
+
+  <property>
+    <name>hive.llap.io.enabled</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.llap.io.use.lrfu</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.llap.auto.allow.uber</name>
+    <value>false</value>
+  </property>
+
+  <property>
+    <name>hive.llap.object.cache.enabled</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.tez.input.generate.consistent.splits</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.llap.client.consistent.splits</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.llap.task.scheduler.locality.delay</name>
+    <value>-1</value>
+  </property>
+
+  <property>
+    <name>hive.exec.orc.split.strategy</name>
+    <value>HYBRID</value>
+  </property>
+
+  <property>
+    <name>hive.llap.daemon.service.hosts</name>
+    <value>@llap0</value>
+  </property>
+
+  <property>
+    <name>hive.llap.daemon.allow.permanent.fns</name>
+    <value>false</value>
+  </property>
+
+  <property>
+    <name>hive.llap.io.memory.size</name>
+    <display-name>Cache Size</display-name>
+    <description>The amount of data reserved for Hive's optimized in-memory cache.</description>
+    <value>20000000</value>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>268435456</maximum>
+      <unit>MB</unit>
+      <increment-step>256</increment-step>
+      <overridable>false</overridable>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>hive.llap.daemon.num.executors</name>
+    <display-name>Number of Executors</display-name>
+    <description>Number of execution threads per Hive LLAP daemon. Generally this should be set to number of CPU cores.</description>
+    <value>1</value>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>8</maximum>
+      <increment-step>1</increment-step>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>hive.llap.daemon.memory.per.instance.mb</name>
+    <value>250</value>
+  </property>
+
+  <property>
+    <name>hive.llap.daemon.vcpus.per.instance</name>
+    <value>${hive.llap.daemon.num.executors}</value>
+  </property>
+
+  <property>
+    <name>hive.llap.daemon.yarn.container.mb</name>
+    <display-name>Total Daemon Size</display-name>
+    <description>The memory per node to be used by Hive LLAP.</description>
+    <value>341</value>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>268435456</maximum>
+      <unit>MB</unit>
+      <increment-step>256</increment-step>
+      <overridable>false</overridable>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>llap.shuffle.connection-keep-alive.enable</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>llap.shuffle.connection-keep-alive.timeout</name>
+    <value>60</value>
+  </property>
+
+  <property>
+    <name>hive.llap.io.threadpool.size</name>
+    <value>4</value>
+  </property>
+
+  <property>
+    <name>hive.llap.daemon.rpc.port</name>
+    <value>15001</value>
+  </property>
+  <property>
+    <name>hive.llap.management.rpc.port</name>
+    <value>15004</value>
+  </property>
+
+  <property>
+    <name>hive.llap.daemon.task.scheduler.enable.preemption</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.tez.exec.print.summary</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.vectorized.execution.mapjoin.native.enabled</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.vectorized.execution.mapjoin.minmax.enabled</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.vectorized.execution.mapjoin.native.fast.hashtable.enabled</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.mapjoin.hybridgrace.hashtable</name>
+    <value>false</value>
+  </property>
+
+  <property>
+    <name>hive.tez.bucket.pruning</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.optimize.dynamic.partition.hashjoin</name>
+    <value>true</value>
   </property>
 
 </configuration>

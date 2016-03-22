@@ -74,7 +74,7 @@ App.configTheme = Em.Object.create({
         if (!config) {
           isAnyConfigAbsent = true;
         } else {
-          configChanged = configChanged || config.get('value') != config.get('recommendedValue');
+          configChanged = configChanged || config.get('value') != (config.get('savedValue') || config.get('recommendedValue'));
           var storedConfig = storedConfigs.filterProperty('filename',_config.fileName).findProperty('name', _config.configName);
           if (storedConfig) {
             configChanged = configChanged || config.get('value') != storedConfig.value;

@@ -121,6 +121,24 @@ var urls = {
     }
   },
 
+  'common.host.host_components.create': {
+    'real': '/clusters/{clusterName}/hosts',
+    'mock': '',
+    'type': 'POST',
+    'format': function (data) {
+      return {
+        data: JSON.stringify({
+          RequestInfo: {
+            "query": data.query
+          },
+          Body: {
+            "host_components": data.host_components
+          }
+        })
+      }
+    }
+  },
+
   'common.host.host_components.update': {
     'real': '/clusters/{clusterName}/hosts/{hostName}/host_components?{urlParams}',
     'mock': '',
@@ -340,6 +358,10 @@ var urls = {
   'common.delete.request_schedule': {
     'real': '/clusters/{clusterName}/request_schedules/{request_schedule_id}',
     'type': 'DELETE'
+  },
+  'common.get.request.status': {
+    'real': '/clusters/{clusterName}/requests/{requestId}?fields=Requests/request_status',
+    'type': 'GET'
   },
   'alerts.load_alert_groups': {
     'real': '/clusters/{clusterName}/alert_groups?fields=*',

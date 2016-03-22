@@ -25,9 +25,19 @@ var App = require('app');
 
 App.ConfigAction = DS.Model.extend({
 
-  hostComponent: DS.attr('string'),
+  componentName: DS.attr('string'),
 
-  configs: DS.attr('array', {defaultValue: []}),
+  /**
+   * Name of the config that is being affected with the condition
+   */
+  configName: DS.attr('string'),
+
+  /**
+   * File name to which the config getting affected belongs
+   */
+  fileName: DS.attr('string'),
+
+
 
   /**
    * conditional String which can be evaluated to boolean result.
@@ -36,22 +46,23 @@ App.ConfigAction = DS.Model.extend({
    */
   if: DS.attr('string'),
   then: DS.attr('string'),
-  else: DS.attr('string')
+  else: DS.attr('string'),
+  hostComponentConfig: DS.attr('object')
 
 });
 
 App.ConfigAction.FIXTURES = [
   {
     id:1,
-    host_component: 'HIVE_SERVER_INTERACTIVE',
-    "configs":[
-      {
-        configName: "enable_hive_interactive",
-        fileName: "llap-env.xml"
-      }
-    ],
-    if:'${llap-env/enable_hive_interactive}',
+    component_name: 'HIVE_SERVER_INTERACTIVE',
+    config_name: "enable_hive_interactive",
+    file_name: "hive-interactive-env.xml",
+    if:'${hive-interactive-env/enable_hive_interactive}',
     then:'add',
-    else: 'delete'
+    else: 'delete',
+    host_component_config: {
+      configName: "hive_server_interactive_host",
+      fileName: "hive-interactive-env.xml"
+    }
   }
 ];

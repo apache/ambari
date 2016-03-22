@@ -141,6 +141,6 @@
   {{#if view.isBackButtonVisible}}
     <a class="btn pull-left installer-back-btn" {{action back}}>&larr; {{t common.back}}</a>
   {{/if}}
-  <a class="btn btn-success pull-right" {{bindAttr disabled="submitDisabled"}} {{action submit target="controller"}}>{{t common.next}} &rarr;</a>
+  <a class="btn btn-success pull-right" {{bindAttr disabled="submitDisabled"}} {{action submit target="controller"}}>{{view.acceptButtonText}}</a>
   </div>
 </div>

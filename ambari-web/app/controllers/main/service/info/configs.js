@@ -20,7 +20,7 @@ var App = require('app');
 var batchUtils = require('utils/batch_scheduled_requests');
 var databaseUtils = require('utils/configs/database');
 
-App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, App.ServerValidatorMixin, App.EnhancedConfigsMixin, App.ThemesMappingMixin, App.VersionsMappingMixin, App.ConfigsSaverMixin, App.ConfigsComparator, {
+App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, App.ServerValidatorMixin, App.EnhancedConfigsMixin, App.ThemesMappingMixin, App.VersionsMappingMixin, App.ConfigsSaverMixin, App.ConfigsComparator, App.ComponentActionsByConfigs, {
 
   name: 'mainServiceInfoConfigsController',
 
@@ -301,8 +301,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
         // This requires calling  `loadCurrentVersions` after theme has loaded
         self.loadCurrentVersions();
       });
-    }
-    else {
+    } else {
       this.loadCurrentVersions();
     }
     this.loadServiceConfigVersions();
@@ -556,6 +555,21 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
         var component = stackComponent.get('isMaster') ? App.MasterComponent.find(c.name) : App.SlaveComponent.find(c.name);
         var hProperty = App.config.createHostNameProperty(serviceConfig.get('serviceName'), c.name, component.get('hostNames') || [], stackComponent);
         serviceConfig.get('configs').push(App.ServiceConfigProperty.create(hProperty));
+      }
+    }, this);
+
+    App.ConfigAction.find().forEach(function(item){
+      var hostComponentConfig = item.get('hostComponentConfig');
+      var config =  serviceConfig.get('configs').filterProperty('filename', hostComponentConfig.fileName).findProperty('name', hostComponentConfig.configName);
+      if (config){
+        var componentHostName = App.HostComponent.find().findProperty('componentName', item.get('componentName')) ;
+        if (componentHostName) {
+          var setConfigValue =  !config.get('value');
+          if (setConfigValue) {
+            config.set('value', componentHostName.get('hostName'));
+            config.set('recommendedValue', componentHostName.get('hostName'));
+          }
+        }
       }
     }, this);
   },

@@ -116,6 +116,8 @@ App.AssignMasterComponents = Em.Mixin.create({
    */
   recommendedHostsForComponents: {},
 
+  recommendations: null,
+
   markSavedComponentsAsInstalled: false,
 
   /**
@@ -272,6 +274,7 @@ App.AssignMasterComponents = Em.Mixin.create({
   clearRecommendations: function() {
     if (this.get('content.recommendations')) {
       this.set('content.recommendations', null);
+      this.set('recommendations', null);
     }
   },
 
@@ -524,7 +527,7 @@ App.AssignMasterComponents = Em.Mixin.create({
     self.get('addableComponents').forEach(function (componentName) {
       self.updateComponent(componentName);
     }, self);
-    if (self.thereIsNoMasters() && !this.get('mastersToCreate').length) {
+    if (self.thereIsNoMasters() && !self.get('mastersToCreate').length) {
       App.router.send('next');
     }
   },
@@ -620,7 +623,7 @@ App.AssignMasterComponents = Em.Mixin.create({
   loadComponentsRecommendationsFromServer: function(callback, includeMasters) {
     var self = this;
 
-    if (this.get('content.recommendations')) {
+    if (this.get('recommendations')) {
       // Don't do AJAX call if recommendations has been already received
       // But if user returns to previous step (selecting services), stored recommendations will be cleared in routers' next handler and AJAX call will be made again
       callback(self.createComponentInstallationObjects(), self);
@@ -667,22 +670,19 @@ App.AssignMasterComponents = Em.Mixin.create({
    */
   createComponentInstallationObjects: function() {
     var stackMasterComponentsMap = {},
-        masterHosts = this.get('content.masterComponentHosts'), //saved to local storage info
-        servicesToAdd = this.get('content.services').filterProperty('isSelected').filterProperty('isInstalled', false).mapProperty('serviceName'),
-        recommendations = this.get('content.recommendations'),
+        masterHosts = this.get('content.masterComponentHosts') || this.get('masterComponentHosts'), //saved to local storage info
+        servicesToAdd = (this.get('content.services')|| []).filterProperty('isSelected').filterProperty('isInstalled', false).mapProperty('serviceName'),
+        recommendations = this.get('recommendations'),
         resultComponents = [],
         multipleComponentHasBeenAdded = {},
         hostGroupsMap = {};
 
     App.StackServiceComponent.find().forEach(function(component) {
-      if (this.get('isInstallerWizard')) {
-        if (component.get('isShownOnInstallerAssignMasterPage') || this.get('mastersToCreate').contains(component.get('componentName'))) {
-          stackMasterComponentsMap[component.get('componentName')] = component;
-        }
-      } else {
-        if (component.get('isShownOnAddServiceAssignMasterPage') || this.get('mastersToShow').contains(component.get('componentName')) || this.get('mastersToCreate').contains(component.get('componentName'))) {
-          stackMasterComponentsMap[component.get('componentName')] = component;
-        }
+      var isMasterCreateOnConfig = this.get('mastersToCreate').contains(component.get('componentName'));
+      if (this.get('isInstallerWizard') && (component.get('isShownOnInstallerAssignMasterPage') || isMasterCreateOnConfig) ) {
+        stackMasterComponentsMap[component.get('componentName')] = component;
+      } else if (component.get('isShownOnAddServiceAssignMasterPage') || this.get('mastersToShow').contains(component.get('componentName')) || isMasterCreateOnConfig) {
+        stackMasterComponentsMap[component.get('componentName')] = component;
       }
     }, this);
 
@@ -698,10 +698,11 @@ App.AssignMasterComponents = Em.Mixin.create({
           var willBeDisplayed = true;
           var stackMasterComponent = stackMasterComponentsMap[component.name];
           if (stackMasterComponent) {
+            var isMasterCreateOnConfig = this.get('mastersToCreate').contains(component.name);
             // If service is already installed and not being added as a new service then render on UI only those master components
             // that have already installed hostComponents.
             // NOTE: On upgrade there might be a prior installed service with non-installed newly introduced serviceComponent
-            if (!servicesToAdd.contains(stackMasterComponent.get('serviceName'))) {
+            if (!servicesToAdd.contains(stackMasterComponent.get('serviceName')) && !isMasterCreateOnConfig) {
               willBeDisplayed = masterHosts.someProperty('component', component.name);
             }
 
@@ -716,8 +717,7 @@ App.AssignMasterComponents = Em.Mixin.create({
                     resultComponents.push(this.createComponentInstallationObject(stackMasterComponent, host.fqdn.toLowerCase(), saved));
                   }, this);
                 }
-              }
-              else {
+              } else {
                 var savedComponent = masterHosts.findProperty('component', component.name);
                 resultComponents.push(this.createComponentInstallationObject(stackMasterComponent, host.fqdn.toLowerCase(), savedComponent));
               }
@@ -756,7 +756,10 @@ App.AssignMasterComponents = Em.Mixin.create({
    */
   loadRecommendationsSuccessCallback: function (data) {
     var recommendations = data.resources[0].recommendations;
-    this.set('content.recommendations', recommendations);
+    this.set('recommendations', recommendations);
+    if (this.get('content.controllerName')) {
+      this.set('content.recommendations', recommendations);
+    }
 
     var recommendedHostsForComponent = {};
     var hostsForHostGroup = {};
@@ -775,7 +778,10 @@ App.AssignMasterComponents = Em.Mixin.create({
       });
     });
 
-    this.set('content.recommendedHostsForComponents', recommendedHostsForComponent);
+    this.set('recommendedHostsForComponents', recommendedHostsForComponent);
+    if (this.get('content.controllerName')) {
+      this.set('content.recommendedHostsForComponents', recommendedHostsForComponent);
+    }
   },
 
   /**
@@ -869,7 +875,7 @@ App.AssignMasterComponents = Em.Mixin.create({
       }
     });
 
-    var recommendedHostsForMaster = this.get('content.recommendedHostsForComponents')[master] || [];
+    var recommendedHostsForMaster = this.get('recommendedHostsForComponents')[master] || [];
     for (var k = 0; k < recommendedHostsForMaster.length; k++) {
       if(!masterHostList.contains(recommendedHostsForMaster[k])) {
         return recommendedHostsForMaster[k];
@@ -1122,7 +1128,7 @@ App.AssignMasterComponents = Em.Mixin.create({
     // load recommendations with partial request
     self.loadComponentsRecommendationsFromServer(function() {
       // For validation use latest received recommendations because it contains current master layout and recommended slave/client layout
-      self.validate(self.get('content.recommendations'), function() {
+      self.validate(self.get('recommendations'), function() {
         if (callback) {
           callback();
         }
