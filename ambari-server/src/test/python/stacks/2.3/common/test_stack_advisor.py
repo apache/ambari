@@ -1910,7 +1910,7 @@ class TestHDP23StackAdvisor(TestCase):
     # 1. Try with no hosts
     expected = {
         'config-type': 'hdfs-client',
-        'message': 'output.replace-datanode-on-failure should be set to false (unchecked) for clusters with 4 or less HAWQ Segments',
+        'message': 'output.replace-datanode-on-failure should be set to false (unchecked) for clusters with 3 or less HAWQ Segments',
         'type': 'configuration',
         'config-name': 'output.replace-datanode-on-failure',
         'level': 'WARN'
@@ -1920,22 +1920,22 @@ class TestHDP23StackAdvisor(TestCase):
     self.assertEqual(len(problems), 1)
     self.assertEqual(problems[0], expected)
 
-    # 2. Try with 4 hosts
-    services["services"][0]["components"][0]["StackServiceComponents"]["hostnames"] = ["host1", "host2", "host3", "host4"]
+    # 2. Try with 3 hosts
+    services["services"][0]["components"][0]["StackServiceComponents"]["hostnames"] = ["host1", "host2", "host3"]
     problems = self.stackAdvisor.validateHAWQHdfsClientConfigurations(properties, defaults, configurations, services, hosts)
     self.assertEqual(len(problems), 1)
     self.assertEqual(problems[0], expected)
 
-    # 3. Try with 5 hosts - default value
-    services["services"][0]["components"][0]["StackServiceComponents"]["hostnames"] = ["host1", "host2", "host3", "host4", "host5"]
+    # 3. Try with 4 hosts - default value
+    services["services"][0]["components"][0]["StackServiceComponents"]["hostnames"] = ["host1", "host2", "host3", "host4"]
     problems = self.stackAdvisor.validateHAWQHdfsClientConfigurations(properties, defaults, configurations, services, hosts)
     self.assertEqual(len(problems), 0)
 
-    # 4. Try with 5 hosts
+    # 4. Try with 4 hosts
     properties = {"output.replace-datanode-on-failure": "false"}
     expected = {
       'config-type': 'hdfs-client',
-      'message': 'output.replace-datanode-on-failure should be set to true (checked) for clusters with more than 4 HAWQ Segments',
+      'message': 'output.replace-datanode-on-failure should be set to true (checked) for clusters with more than 3 HAWQ Segments',
       'type': 'configuration',
       'config-name': 'output.replace-datanode-on-failure',
       'level': 'WARN'
