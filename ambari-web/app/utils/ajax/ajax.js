@@ -1869,12 +1869,7 @@ var urls = {
   },
   'wizard.service_components': {
     'real': '{stackUrl}/services?fields=StackServices/*,components/*,components/dependencies/Dependencies/scope,artifacts/Artifacts/artifact_name',
-    'mock': '/data/stacks/HDP-2.1/service_components.json',
-    'format': function (data) {
-      return {
-        timeout: 10000
-      };
-    }
+    'mock': '/data/stacks/HDP-2.1/service_components.json'
   },
   'wizard.step9.installer.get_host_status': {
     'real': '/clusters/{cluster}/hosts?fields=Hosts/host_state,host_components/HostRoles/state',
