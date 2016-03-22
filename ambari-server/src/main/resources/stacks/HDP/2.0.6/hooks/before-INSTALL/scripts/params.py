@@ -29,8 +29,8 @@ tmp_dir = Script.get_tmp_dir()
 sudo = AMBARI_SUDO_BINARY
 
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-agent_stack_retry_on_unavailability = cbool(config["hostLevelParams"]["agent_stack_retry_on_unavailability"])
-agent_stack_retry_count = cint(config["hostLevelParams"]["agent_stack_retry_count"])
+agent_stack_retry_on_unavailability = cbool(default("/hostLevelParams/agent_stack_retry_on_unavailability", None))
+agent_stack_retry_count = cint(default("/hostLevelParams/agent_stack_retry_count", None))
 
 hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 
