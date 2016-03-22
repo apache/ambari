@@ -522,6 +522,12 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
     putAmsSiteProperty("timeline.metrics.service.webapp.address", str(metric_collector_host) + ":6188")
 
+    log_dir = "/var/log/ambari-metrics-collector"
+    if "ams-env" in services["configurations"]:
+      if "metrics_collector_log_dir" in services["configurations"]["ams-env"]["properties"]:
+        log_dir = services["configurations"]["ams-env"]["properties"]["metrics_collector_log_dir"]
+      putHbaseEnvProperty("hbase_log_dir", log_dir)
+
     defaultFs = 'file:///'
     if "core-site" in services["configurations"] and \
       "fs.defaultFS" in services["configurations"]["core-site"]["properties"]:
@@ -534,7 +540,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
     if operatingMode == "distributed":
       putAmsSiteProperty("timeline.metrics.service.watcher.disabled", 'true')
-      putAmsSiteProperty("timeline.metrics.host.aggregator.ttl", 604800)
+      putAmsSiteProperty("timeline.metrics.host.aggregator.ttl", 259200)
       putAmsHbaseSiteProperty("hbase.cluster.distributed", 'true')
     else:
       putAmsSiteProperty("timeline.metrics.service.watcher.disabled", 'false')

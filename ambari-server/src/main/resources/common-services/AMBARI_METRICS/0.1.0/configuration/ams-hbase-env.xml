@@ -25,6 +25,12 @@
     <name>hbase_log_dir</name>
     <value>/var/log/ambari-metrics-collector</value>
     <description>Log Directories for HBase.</description>
+    <depends-on>
+      <property>
+        <type>ams-env</type>
+        <name>metrics_collector_log_dir</name>
+      </property>
+    </depends-on>
     <value-attributes>
       <type>directory</type>
     </value-attributes>

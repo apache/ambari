@@ -2249,7 +2249,7 @@ class TestHDP22StackAdvisor(TestCase):
     expected['ams-hbase-env']['properties']['hbase_regionserver_heapsize'] = '512'
     expected["ams-hbase-env"]['properties']['hbase_master_xmn_size'] = '102'
     expected['ams-hbase-env']['properties']['regionserver_xmn_size'] = '384'
-    expected['ams-site']['properties']['timeline.metrics.host.aggregator.ttl'] = '604800'
+    expected['ams-site']['properties']['timeline.metrics.host.aggregator.ttl'] = '259200'
     expected['ams-site']['properties']['timeline.metrics.service.watcher.disabled'] = 'true'
     self.stackAdvisor.recommendAmsConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
