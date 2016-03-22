@@ -2231,6 +2231,7 @@ public class BlueprintConfigurationProcessor {
     Map<String, PropertyUpdater> dbHiveSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> rangerAdminPropsMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> hawqSiteMap = new HashMap<String, PropertyUpdater>();
+    Map<String, PropertyUpdater> zookeeperEnvMap = new HashMap<String, PropertyUpdater>();
 
 
 
@@ -2251,6 +2252,7 @@ public class BlueprintConfigurationProcessor {
     singleHostTopologyUpdaters.put("application-properties", atlasPropsMap);
     singleHostTopologyUpdaters.put("admin-properties", rangerAdminPropsMap);
     singleHostTopologyUpdaters.put("hawq-site", hawqSiteMap);
+    singleHostTopologyUpdaters.put("zookeeper-env", zookeeperEnvMap);
 
 
     mPropertyUpdaters.put("hadoop-env", hadoopEnvMap);
@@ -2533,6 +2535,7 @@ public class BlueprintConfigurationProcessor {
     hbaseEnvMap.put("hbase_regionserver_heapsize", new MPropertyUpdater());
     oozieEnvHeapSizeMap.put("oozie_heapsize", new MPropertyUpdater());
     oozieEnvHeapSizeMap.put("oozie_permsize", new MPropertyUpdater());
+    zookeeperEnvMap.put("zk_server_heapsize", new MPropertyUpdater());
 
     hawqSiteMap.put("hawq_master_address_host", new SingleHostTopologyUpdater("HAWQMASTER"));
     hawqSiteMap.put("hawq_standby_address_host", new SingleHostTopologyUpdater("HAWQSTANDBY"));
