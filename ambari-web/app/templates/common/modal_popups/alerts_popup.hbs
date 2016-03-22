@@ -28,24 +28,24 @@
           {{#if view.isAlertEmptyList}}
             <div class="alert-list-wrap">{{t alerts.fastAccess.popup.body.noalerts}}</div>
           {{else}}
-            {{#each alertInstance in view.pageContent}}
+            {{#each instance in view.pageContent}}
               <div class="alert-list-wrap">
                 <div class="alert-list-line-cursor">
                   <div class="service-text">
-                    {{view App.AlertInstanceServiceHostView instanceBinding="alertInstance"}}
+                    {{view App.AlertInstanceServiceHostView instanceBinding="instance"}}
                   </div>
                   <div class="name-text">
                     <div>
-                      <a href="#" {{action "gotoAlertDetails" alertInstance target="view"}}>{{alertInstance.label}}</a>
+                      <a href="#" {{action "gotoAlertDetails" instance target="view"}}>{{instance.label}}</a>
                     </div>
                     <div class="instance-text">
-                      {{alertInstance.text}}
+                      {{instance.text}}
                     </div>
                   </div>
-                  <div class="status-col" {{bindAttr title="alertInstance.lastTriggered"}}>
+                  <div class="status-col" {{bindAttr title="instance.lastTriggered"}}>
+                    {{template "templates/main/alerts/alert_instance/status"}}
                     <span>
-                      <span class="status-icon">{{{alertInstance.status}}}</span>
-                      <time>{{alertInstance.lastTriggeredForFormatted}}</time>
+                      <time>{{instance.lastTriggeredForFormatted}}</time>
                     </span>
                   </div>
               </div>

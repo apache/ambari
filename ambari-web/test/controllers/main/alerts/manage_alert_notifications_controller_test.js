@@ -19,6 +19,7 @@
 var App = require('app');
 var controller;
 var helpers = require('test/helpers');
+require('templates/main/alerts/alert_instance/status');
 
 
 function getController() {

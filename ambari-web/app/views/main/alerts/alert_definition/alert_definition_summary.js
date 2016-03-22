@@ -21,45 +21,49 @@ App.AlertDefinitionSummary = Em.View.extend({
 
   templateName: require('templates/main/alerts/alert_definition/alert_definition_summary'),
 
-  didInsertElement: function() {
-    this.stateObserver();
-  },
+  /**
+   * Bound from the template
+   * @type {App.AlertDefinition}
+   */
+  content: null,
 
-  hostCount: 0,
-  states: [],
+  hasMultipleCount: Em.computed.gt('content.hostCnt', 0),
 
-  stateObserver: function () {
-    var order = this.get('content.order'),
-      summary = this.get('content.summary'),
-      shortState = this.get('content.shortState');
-
-    var hostCnt = 0;
-    order.forEach(function (state) {
-      hostCnt += summary[state] ? summary[state].count + summary[state].maintenanceCount : 0;
-    });
-    var states = [];
-    if (hostCnt) {
-      order.forEach(function (state) {
-        if (summary[state]) {
-          if (summary[state].count) {
-            states.push({
-              'shortStateWithCounter': shortState[state] + (summary[state].count > 1 ? ' (' + summary[state].count + ')' : ''),
-              'isMaintenance': false,
-              'stateClass': 'alert-state-' + state
-            });
-          }
-          if (summary[state].maintenanceCount) {
-            states.push({
-              'shortStateWithCounter': shortState[state] + (summary[state].maintenanceCount > 1 ? ' (' + summary[state].maintenanceCount + ')' : ''),
-              'isMaintenance': true,
-              'stateClass': 'alert-state-PENDING'
-            });
-          }
-        }
-      }, this);
+  definitionState: function () {
+    var content = this.get('content');
+    if (!content) {
+      return [];
     }
-    this.set('hostCount', hostCnt);
-    this.set('states', states);
-  }.observes('content.summary')
+    var order = content.get('order');
+    var summary = content.get('summary');
+    var hostCnt = content.get('hostCnt');
+    var showCounts = hostCnt > 1;
+    var ret = [];
+    order.forEach(function (state) {
+      var shortState = content.get('shortState')[state];
+      var _stateSummary = {
+        state: 'alert-state-' + state,
+        count: '',
+        maintenanceCount: ''
+      };
+      if (summary[state].count) {
+        var count = shortState;
+        if (showCounts) {
+          count += ' (' + summary[state].count + ')';
+        }
+        _stateSummary.count = count;
+      }
+      // add status with maintenance mode icon
+      if (summary[state].maintenanceCount) {
+        var maintenanceCount = shortState;
+        if (showCounts) {
+          maintenanceCount += ' (' + summary[state].maintenanceCount + ')';
+        }
+        _stateSummary.maintenanceCount = maintenanceCount;
+      }
+      ret.push(_stateSummary);
+    });
+    return ret;
+  }.property('content.summary', 'content.hostCnt')
 
 });

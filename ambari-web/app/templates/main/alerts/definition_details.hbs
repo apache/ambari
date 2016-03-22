@@ -55,7 +55,7 @@
     </div>
 
     <div class="status span4">
-      {{{controller.content.status}}}
+      {{view App.AlertDefinitionSummary contentBinding="view.controller.content"}}
     </div>
   </div>
 
@@ -211,7 +211,8 @@
                     </a>
                   {{/if}}
                 </td>
-                <td>{{{instance.status}}}
+                <td>
+                  {{template "templates/main/alerts/alert_instance/status"}}
                   <time class="timeago"
                         rel="tooltip" {{bindAttr data-original-title="instance.statusChangedAndLastCheckedFormatted"}}>
                     {{instance.lastTriggeredForFormatted}}

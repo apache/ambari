@@ -16,16 +16,11 @@
 * limitations under the License.
 }}
 
-{{#if view.hasMultipleCount}}
-  {{#each st in view.definitionState}}
-    {{#if st.count}}
-      <span {{bindAttr class=":alert-state-single-host :label st.state"}}>{{st.count}}</span>
-    {{/if}}
-    {{#if st.maintenanceCount}}
-      <span class="alert-state-single-host label alert-state-PENDING"><span
-        class="icon-medkit"></span> {{st.maintenanceCount}}</span>
-    {{/if}}
-  {{/each}}
-{{else}}
-  <span class="alert-state-single-host label alert-state-PENDING">{{view.content.shortState.PENDING}}</span>
-{{/if}}
+{{! instance - App.AlertInstance }}
+
+<div {{bindAttr class=":label :alert-state-single-host instance.stateClass"}}>
+  {{#if instance.isMaintenanceStateOn}}
+    <span class="icon-medkit"></span>
+  {{/if}}
+  {{instance.shortStateMsg}}
+</div>

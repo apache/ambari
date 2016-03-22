@@ -1049,7 +1049,7 @@ computed.firstNotBlank = generateComputedWithValues(function (values) {
 computed.formatUnavailable = function(dependentKey) {
   return computed(dependentKey, function () {
     var value = smartGet(this, dependentKey);
-    return (value || value == 0) ? value : Em.I18n.t('services.service.summary.notAvailable');
+    return value || value == 0 ? value : Em.I18n.t('services.service.summary.notAvailable');
   });
 };
 
@@ -1090,3 +1090,31 @@ computed.countBasedMessage = function (dependentKey, zeroMsg, oneMsg, manyMsg) {
     return oneMsg;
   });
 };
+
+/**
+ * A computed property that returns property value according to the property key and object key
+ * App.*-keys are supported
+ * <pre>
+ *   var o = Em.Object.create({
+ *    p1: {a: 1, b: 2, c: 3},
+ *    p2: 'a',
+ *    p3: Em.computed.getByKey('p1', 'p2')
+ *   });
+ *   console.log(o.get('p3')); // 1
+ *   o.set('p2', 'b');
+ *   console.log(o.get('p3')); // 2
+ *   o.set('p2', 'c');
+ *   console.log(o.get('p3')); // 3
+ * </pre>
+ *
+ * @param {string} objectKey
+ * @param {string} propertyKey
+ * @returns {Ember.ComputedProperty}
+ */
+computed.getByKey = function (objectKey, propertyKey) {
+  return computed(objectKey, propertyKey, function () {
+    var object = smartGet(this, objectKey);
+    var property = smartGet(this, propertyKey);
+    return object ? object[property] : null;
+  });
+}

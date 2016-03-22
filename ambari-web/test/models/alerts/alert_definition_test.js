@@ -34,48 +34,6 @@ describe('App.AlertDefinition', function () {
 
   App.TestAliases.testAsComputedAnd(getModel(), 'isHostAlertDefinition', ['isAmbariService', 'isAmbariAgentComponent']);
 
-  describe('#status', function () {
-
-    Em.A([
-      {
-        summary: {OK: {count: 1, maintenanceCount: 0}, UNKNOWN: {count: 1, maintenanceCount: 0}, WARNING: {count: 2, maintenanceCount: 0}, CRITICAL: {count: 0, maintenanceCount: 0}},
-        m: 'No CRITICAL',
-        e: '<span class="alert-state-single-host label alert-state-OK">OK (1)</span> ' +
-        '<span class="alert-state-single-host label alert-state-WARNING">WARN (2)</span> ' +
-        '<span class="alert-state-single-host label alert-state-UNKNOWN">UNKWN (1)</span>'
-      },
-      {
-        summary: {WARNING: {count: 2, maintenanceCount: 0}, CRITICAL: {count: 3, maintenanceCount: 0}, UNKNOWN: {count: 1, maintenanceCount: 0}, OK: {count: 1, maintenanceCount: 0}},
-        m: 'All states exists',
-        e: '<span class="alert-state-single-host label alert-state-OK">OK (1)</span> ' +
-        '<span class="alert-state-single-host label alert-state-WARNING">WARN (2)</span> ' +
-        '<span class="alert-state-single-host label alert-state-CRITICAL">CRIT (3)</span> ' +
-        '<span class="alert-state-single-host label alert-state-UNKNOWN">UNKWN (1)</span>'
-      },
-      {
-        summary: {OK: {count: 1, maintenanceCount: 0}, UNKNOWN: {count: 0, maintenanceCount: 0}, WARNING: {count: 0, maintenanceCount: 0}, CRITICAL: {count: 0, maintenanceCount: 0}},
-        m: 'Single host',
-        e: '<span class="alert-state-single-host label alert-state-OK">OK</span>'
-      },
-      {
-        summary: {OK: {count: 0, maintenanceCount: 1}, UNKNOWN: {count: 0, maintenanceCount: 0}, WARNING: {count: 0, maintenanceCount: 0}, CRITICAL: {count: 0, maintenanceCount: 0}},
-        m: 'Maintenance OK alert',
-        e: '<span class="alert-state-single-host label alert-state-PENDING"><span class="icon-medkit"></span> OK</span>'
-      },
-      {
-        summary: {},
-        m: 'Pending',
-        e: '<span class="alert-state-single-host label alert-state-PENDING">NONE</span>'
-      }
-    ]).forEach(function (test) {
-      it(test.m, function () {
-        model.set('summary', test.summary);
-        expect(model.get('status')).to.equal(test.e);
-      });
-    });
-
-  });
-
   describe('#isCriticalOrWarning', function () {
 
     Em.A([
@@ -206,6 +164,8 @@ describe('App.AlertDefinition', function () {
 
 
   });
+
+  App.TestAliases.testAsComputedGetByKey(getModel(), 'typeIconClass', 'typeIcons', 'type');
 
   describe('REOPEN', function () {
 

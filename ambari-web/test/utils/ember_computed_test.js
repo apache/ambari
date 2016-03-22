@@ -1468,4 +1468,60 @@ describe('Ember.computed macros', function () {
 
   });
 
+  describe('#getByKey', function () {
+
+    beforeEach(function () {
+      this.obj = Em.Object.create({
+        prop1: {a: 1, b: 2, c: 3},
+        prop2: 'a',
+        prop3: Em.computed.getByKey('prop1', 'prop2'),
+        prop4: Em.computed.getByKey('prop1', 'App.someRandomTestingKey')
+      });
+      App.set('someAnotherKey', 'a');
+    });
+
+    it('prop3 dependent keys are valid', function () {
+      expect(Em.meta(this.obj).descs.prop3._dependentKeys).to.eql(['prop1', 'prop2']);
+    });
+
+    it('prop4 dependent keys are valid', function () {
+      expect(Em.meta(this.obj).descs.prop4._dependentKeys).to.eql(['prop1', 'App.someRandomTestingKey']);
+    });
+
+    it('prop3 value is 1', function () {
+      expect(this.obj.get('prop3')).to.be.equal(1);
+    });
+
+    it('prop3 value is 2', function () {
+      this.obj.set('prop2', 'b');
+      expect(this.obj.get('prop3')).to.be.equal(2);
+    });
+
+    it('prop3 value is 3', function () {
+      this.obj.set('prop2', 'c');
+      expect(this.obj.get('prop3')).to.be.equal(3);
+    });
+
+    it('prop3 value is 4', function () {
+      this.obj.set('prop1.c', 4);
+      this.obj.set('prop2', 'c');
+      expect(this.obj.get('prop3')).to.be.equal(4);
+    });
+
+    it('prop4 values is 1', function () {
+      expect(this.obj.get('prop4')).to.be.equal(1);
+    });
+
+    it('prop4 values is 2', function () {
+      App.set('someAnotherKey', 'b');
+      expect(this.obj.get('prop4')).to.be.equal(2);
+    });
+
+    it('prop4 values is 3', function () {
+      App.set('someAnotherKey', 'c');
+      expect(this.obj.get('prop4')).to.be.equal(3);
+    });
+
+  });
+
 });

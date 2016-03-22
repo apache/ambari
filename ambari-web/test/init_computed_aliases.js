@@ -194,3 +194,4 @@ require('test/aliases/computed/sumBy');
 require('test/aliases/computed/and');
 require('test/aliases/computed/or');
 require('test/aliases/computed/formatUnavailable');
+require('test/aliases/computed/getByKey');

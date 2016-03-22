@@ -135,51 +135,15 @@ App.AlertDefinition = DS.Model.extend({
    */
   componentNameFormatted: Em.computed.formatRole('componentName', false),
 
-  /**
-   * Status generates from child-alerts
-   * Format: OK(1)  WARN(2)  CRIT(1)  UNKN(1)
-   * If single host: show: OK/WARNING/CRITICAL/UNKNOWN
-   * If some there are no alerts with some state, this state isn't shown
-   * If no OK/WARN/CRIT/UNKN state, then show PENDING
-   * Order is equal to example
-   * @type {string}
-   */
-  status: function () {
+  hostCnt: function () {
     var order = this.get('order'),
-        summary = this.get('summary'),
-        hostCnt = 0,
-        self = this;
+      summary = this.get('summary'),
+      hostCnt = 0;
     order.forEach(function (state) {
       hostCnt += summary[state] ? summary[state].count + summary[state].maintenanceCount : 0;
     });
-    if (hostCnt > 1) {
-      // multiple hosts
-      return order.map(function (state) {
-        var shortState = self.get('shortState')[state];
-        var result = '';
-        result += summary[state].count ? '<span class="alert-state-single-host label alert-state-' + state + '">' + shortState + ' (' + summary[state].count + ')</span>' : '';
-        // add status with maintenance mode icon
-        result += summary[state].maintenanceCount ?
-        '<span class="alert-state-single-host label alert-state-PENDING"><span class="icon-medkit"></span> ' + shortState + ' (' + summary[state].maintenanceCount + ')</span>' : '';
-        return result;
-      }).without('').join(' ');
-    } else if (hostCnt === 1) {
-      // single host, single status
-      return order.map(function (state) {
-        var shortState = self.get('shortState')[state];
-        var result = '';
-        result += summary[state].count ? '<span class="alert-state-single-host label alert-state-' + state + '">' + shortState + '</span>' : '';
-        // add status with maintenance mode icon
-        result += summary[state].maintenanceCount ?
-        '<span class="alert-state-single-host label alert-state-PENDING"><span class="icon-medkit"></span> ' + shortState + '</span>' : '';
-        return result;
-      }).without('').join(' ');
-    } else if (!hostCnt) {
-      // none
-      return '<span class="alert-state-single-host label alert-state-PENDING">NONE</span>';
-    }
-    return '';
-  }.property('summary'),
+    return hostCnt;
+  }.property('order', 'summary'),
 
   latestText: function () {
     var order = this.get('order'), summary = this.get('summary'), text = '';
@@ -198,20 +162,14 @@ App.AlertDefinition = DS.Model.extend({
 
   isHostAlertDefinition: Em.computed.and('isAmbariService', 'isAmbariAgentComponent'),
 
-  typeIconClass: function () {
-    var typeIcons = this.get('typeIcons'),
-        type = this.get('type');
-    return typeIcons[type];
-  }.property('type'),
+  typeIconClass: Em.computed.getByKey('typeIcons', 'type'),
 
   /**
    * if this definition is in state: CRITICAL / WARNING, if true, will show up in alerts fast access popup
    * instances with maintenance mode ON are ignored
    * @type {boolean}
    */
-  isCriticalOrWarning: function () {
-    return !!(this.get('summary.CRITICAL.count') || this.get('summary.WARNING.count'));
-  }.property('summary'),
+  isCriticalOrWarning: Em.computed.or('summary.CRITICAL.count', 'summary.WARNING.count'),
 
   /**
    * if this definition is in state: CRITICAL

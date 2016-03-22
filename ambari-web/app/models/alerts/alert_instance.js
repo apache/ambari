@@ -40,17 +40,21 @@ App.AlertInstance = DS.Model.extend({
   notification: DS.hasMany('App.AlertNotification'),
 
   /**
-   * Status icon markup
+   * @type {boolean}
+   */
+  isMaintenanceStateOn: Em.computed.equal('maintenanceState', 'ON'),
+
+  /**
    * @type {string}
    */
-  status: function () {
-    var isMaintenanceStateOn = this.get('maintenanceState') === 'ON';
-    var state = this.get('state');
-    var stateClass = isMaintenanceStateOn ? 'PENDING' : state;
-    var shortState = this.get('shortState')[state];
-    var maintenanceIcon = isMaintenanceStateOn ? '<span class="icon-medkit"></span> ' : '';
-    return '<div class="label alert-state-single-host alert-state-' + stateClass + '">' + maintenanceIcon + shortState + '</div>';
-  }.property('state'),
+  shortStateMsg: Em.computed.getByKey('shortState', 'state'),
+
+  /**
+   * @type {string}
+   */
+  stateClass: function () {
+    return 'alert-state-' + (this.get('isMaintenanceStateOn') ? 'PENDING' : this.get('state'));
+  }.property('isMaintenanceStateOn'),
 
   /**
    * For alerts we will have processes which are not typical
@@ -124,7 +128,7 @@ App.AlertInstance = DS.Model.extend({
   */  
   escapeSpecialCharactersFromTooltip: function () {
     var displayedText = this.get('text');
-    return  displayedText.replace(/[<>]/g, '');
+    return displayedText.replace(/[<>]/g, '');
   }.property('text'),
 
   /**
