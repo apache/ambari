@@ -50,7 +50,19 @@
       <overridable>false</overridable>
     </value-attributes>
   </property>
-
+  <property>
+    <name>zk_server_heapsize</name>
+    <value>1024</value>
+    <description>Maximum amount of memory each Zookeeper Server can use.</description>
+    <display-name>Zookeeper Server Maximum Memory</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>256</minimum>
+      <maximum>32768</maximum>
+      <unit>MB</unit>
+      <increment-step>256</increment-step>
+    </value-attributes>
+  </property>
   <property>
     <name>zookeeper_principal_name</name>
     <description>ZooKeeper principal name</description>
