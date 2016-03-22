@@ -425,53 +425,11 @@ describe('App.Host', function () {
     });
   });
 
-  describe('#healthIconClass', function () {
-    var testCases = [
-      {
-        params: {
-          healthClass: 'health-status-LIVE'
-        },
-        result: 'icon-ok-sign'
-      },
-      {
-        params: {
-          healthClass: 'health-status-DEAD-RED'
-        },
-        result: 'icon-warning-sign'
-      },
-      {
-        params: {
-          healthClass: 'health-status-DEAD-YELLOW'
-        },
-        result: 'icon-question-sign'
-      },
-      {
-        params: {
-          healthClass: 'health-status-DEAD-ORANGE'
-        },
-        result: 'icon-minus-sign'
-      },
-      {
-        params: {
-          healthClass: ''
-        },
-        result: ''
-      }
-    ];
-
-    beforeEach(function() {
-      host1.reopen({
-        healthClass: ''
-      });
-    });
-
-    testCases.forEach(function (test) {
-      it('healthClass - ' + test.params.healthClass, function () {
-        host1.set('healthClass', test.params.healthClass);
-        host1.propertyDidChange('healthIconClass');
-        expect(host1.get('healthIconClass')).to.equal(test.result);
-      });
-    });
-  });
+  App.TestAliases.testAsComputedGetByKey(host1, 'healthIconClass', 'healthIconClassMap', 'healthClass', {defaultValue: '', map: {
+    'health-status-LIVE': App.healthIconClassGreen,
+    'health-status-DEAD-RED': App.healthIconClassRed,
+    'health-status-DEAD-YELLOW': App.healthIconClassYellow,
+    'health-status-DEAD-ORANGE': App.healthIconClassOrange
+  }});
 
 });

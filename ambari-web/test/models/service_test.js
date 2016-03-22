@@ -25,32 +25,6 @@ var service,
   serviceData = {
     id: 'service'
   },
-  healthCases = [
-    {
-      status: 'STARTED',
-      health: 'green'
-    },
-    {
-      status: 'STARTING',
-      health: 'green-blinking'
-    },
-    {
-      status: 'INSTALLED',
-      health: 'red'
-    },
-    {
-      status: 'STOPPING',
-      health: 'red-blinking'
-    },
-    {
-      status: 'UNKNOWN',
-      health: 'yellow'
-    },
-    {
-      status: 'ANOTHER',
-      health: 'yellow'
-    }
-  ],
   statusPropertiesCases = [
     {
       status: 'INSTALLED',
@@ -104,6 +78,10 @@ var service,
     host0: ['service0', 'service1']
 };
 
+function getModel() {
+  return App.Service.createRecord(serviceData);
+}
+
 describe('App.Service', function () {
 
   beforeEach(function () {
@@ -125,14 +103,13 @@ describe('App.Service', function () {
     });
   });
 
-  describe('#healthStatus', function () {
-    healthCases.forEach(function (item) {
-      it('should be ' + item.health, function () {
-        service.set('workStatus', item.status);
-        expect(service.get('healthStatus')).to.equal(item.health);
-      });
-    });
-  });
+  App.TestAliases.testAsComputedGetByKey(getModel(), 'healthStatus', 'healthStatusMap', 'workStatus', {defaultValue: 'yellow', map: {
+    STARTED: 'green',
+    STARTING: 'green-blinking',
+    INSTALLED: 'red',
+    STOPPING: 'red-blinking',
+    UNKNOWN: 'yellow'
+  }});
 
   statusPropertiesCases.forEach(function (item) {
     var status = item.status,

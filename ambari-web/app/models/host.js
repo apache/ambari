@@ -209,25 +209,14 @@ App.Host = DS.Model.extend({
     return statusMap[this.get('healthStatus')] || 'health-status-DEAD-YELLOW';
   }.property('healthStatus'),
 
-  healthIconClass: function () {
-    switch (this.get('healthClass')) {
-      case 'health-status-LIVE':
-        return App.healthIconClassGreen;
-        break;
-      case 'health-status-DEAD-RED':
-        return App.healthIconClassRed;
-        break;
-      case 'health-status-DEAD-YELLOW':
-        return App.healthIconClassYellow;
-        break;
-      case 'health-status-DEAD-ORANGE':
-        return App.healthIconClassOrange;
-        break;
-      default:
-        return "";
-        break;
-    }
-  }.property('healthClass'),
+  healthIconClass: Em.computed.getByKey('healthIconClassMap', 'healthClass', ''),
+
+  healthIconClassMap: {
+    'health-status-LIVE': App.healthIconClassGreen,
+    'health-status-DEAD-RED': App.healthIconClassRed,
+    'health-status-DEAD-YELLOW': App.healthIconClassYellow,
+    'health-status-DEAD-ORANGE': App.healthIconClassOrange
+  },
 
   /**
    * Tooltip for host indicator

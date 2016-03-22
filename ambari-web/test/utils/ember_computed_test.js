@@ -1475,7 +1475,8 @@ describe('Ember.computed macros', function () {
         prop1: {a: 1, b: 2, c: 3},
         prop2: 'a',
         prop3: Em.computed.getByKey('prop1', 'prop2'),
-        prop4: Em.computed.getByKey('prop1', 'App.someRandomTestingKey')
+        prop4: Em.computed.getByKey('prop1', 'App.someRandomTestingKey'),
+        prop5: Em.computed.getByKey('prop1', 'prop2', 100500) // with default value
       });
       App.set('someAnotherKey', 'a');
     });
@@ -1486,6 +1487,10 @@ describe('Ember.computed macros', function () {
 
     it('prop4 dependent keys are valid', function () {
       expect(Em.meta(this.obj).descs.prop4._dependentKeys).to.eql(['prop1', 'App.someRandomTestingKey']);
+    });
+
+    it('prop5 dependent keys are valid', function () {
+      expect(Em.meta(this.obj).descs.prop5._dependentKeys).to.eql(['prop1', 'prop2']);
     });
 
     it('prop3 value is 1', function () {
@@ -1520,6 +1525,11 @@ describe('Ember.computed macros', function () {
     it('prop4 values is 3', function () {
       App.set('someAnotherKey', 'c');
       expect(this.obj.get('prop4')).to.be.equal(3);
+    });
+
+    it('prop5 value is set to the default value', function () {
+      this.obj.set('prop2', 'd');
+      expect(this.obj.get('prop5')).to.be.equal(100500);
     });
 
   });

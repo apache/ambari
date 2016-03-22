@@ -165,7 +165,15 @@ describe('App.AlertDefinition', function () {
 
   });
 
-  App.TestAliases.testAsComputedGetByKey(getModel(), 'typeIconClass', 'typeIcons', 'type');
+  App.TestAliases.testAsComputedGetByKey(getModel(), 'typeIconClass', 'typeIcons', 'type', {map: {
+    METRIC: 'icon-bolt',
+    SCRIPT: 'icon-file-text',
+    WEB: 'icon-globe',
+    PORT: 'icon-signin',
+    AGGREGATE: 'icon-plus',
+    SERVER: 'icon-desktop',
+    RECOVERY: 'icon-desktop'
+  }});
 
   describe('REOPEN', function () {
 

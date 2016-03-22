@@ -32,7 +32,15 @@ describe('App.AlertInstance', function () {
     model = getModel();
   });
 
-  App.TestAliases.testAsComputedGetByKey(getModel(), 'shortStateMsg', 'shortState', 'state');
+  App.TestAliases.testAsComputedGetByKey(getModel(), 'shortStateMsg', 'shortState', 'state', {
+    map: {
+      CRITICAL: 'CRIT',
+      WARNING: 'WARN',
+      OK: 'OK',
+      UNKNOWN: 'UNKWN',
+      PENDING: 'NONE'
+    }
+  });
 
   describe('#serviceDisplayName', function () {
 

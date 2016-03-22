@@ -1107,14 +1107,30 @@ computed.countBasedMessage = function (dependentKey, zeroMsg, oneMsg, manyMsg) {
  *   console.log(o.get('p3')); // 3
  * </pre>
  *
+ * With `defaultValue`
+ * <pre>
+ *   var o = Em.Object.create({
+ *    p1: {a: 1, b: 2, c: 3},
+ *    p2: 'd',
+ *    p3: Em.computed.getByKey('p1', 'p2', 100500)
+ *   });
+ *   console.log(o.get('p3')); // 100500 - default value is returned, because there is no key `d` in the `p1`
+ * </pre>
+ * <b>IMPORTANT!</b> This CP <b>SHOULD NOT</b> be used with for object with values equal to the views (like <code>{a: App.MyViewA, b: App.MyViewB}</code>)
+ * This restriction exists because views may be undefined on the moment when this CP is calculated (files are not `required` yet)
+ *
  * @param {string} objectKey
  * @param {string} propertyKey
+ * @param {*} [defaultValue]
  * @returns {Ember.ComputedProperty}
  */
-computed.getByKey = function (objectKey, propertyKey) {
+computed.getByKey = function (objectKey, propertyKey, defaultValue) {
   return computed(objectKey, propertyKey, function () {
     var object = smartGet(this, objectKey);
     var property = smartGet(this, propertyKey);
-    return object ? object[property] : null;
+    if (!object) {
+      return null;
+    }
+    return object.hasOwnProperty(property) ? object[property] : defaultValue;
   });
 }

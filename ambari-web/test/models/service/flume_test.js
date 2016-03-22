@@ -25,29 +25,11 @@ var flumeAgent,
   flumeAgentData = {
     id: 'agent',
     name: 'agent'
-  },
-  cases = [
-    {
-      status: 'RUNNING',
-      healthClass: App.healthIconClassGreen,
-      displayStatus: Em.I18n.t('common.running')
-    },
-    {
-      status: 'NOT_RUNNING',
-      healthClass: App.healthIconClassRed,
-      displayStatus: Em.I18n.t('common.stopped')
-    },
-    {
-      status: 'UNKNOWN',
-      healthClass: App.healthIconClassYellow,
-      displayStatus: Em.I18n.t('common.unknown')
-    },
-    {
-      status: 'ANOTHER_STATUS',
-      healthClass: App.healthIconClassYellow,
-      displayStatus: Em.I18n.t('common.unknown')
-    }
-  ];
+  };
+
+function getModel() {
+  return App.FlumeAgent.createRecord();
+}
 
 describe('App.FlumeAgent', function () {
 
@@ -59,23 +41,16 @@ describe('App.FlumeAgent', function () {
     modelSetup.deleteRecord(flumeAgent);
   });
 
-  describe('#healthClass', function () {
-    cases.forEach(function (item) {
-      var healthClass = item.healthClass;
-      it('should be ' + healthClass, function () {
-        flumeAgent.set('status', item.status);
-        expect(flumeAgent.get('healthClass')).to.equal(healthClass);
-      });
-    });
-  });
+  App.TestAliases.testAsComputedGetByKey(getModel(), 'healthClass', 'healthClassMap', 'status', {defaultValue: App.healthIconClassYellow, map: {
+    RUNNING: App.healthIconClassGreen,
+    NOT_RUNNING: App.healthIconClassRed,
+    UNKNOWN: App.healthIconClassYellow
+  }});
 
-  describe('#displayStatus', function () {
-    cases.forEach(function (item) {
-      var displayStatus = item.displayStatus;
-      it('should be ' + displayStatus, function () {
-        flumeAgent.set('status', item.status);
-        expect(flumeAgent.get('displayStatus')).to.equal(displayStatus);
-      });
-    });
-  });
+  App.TestAliases.testAsComputedGetByKey(getModel(), 'displayStatus', 'displayStatusMap', 'status', {defaultValue: Em.I18n.t('common.unknown'), map: {
+    RUNNING: Em.I18n.t('common.running'),
+    NOT_RUNNING: Em.I18n.t('common.stopped'),
+    UNKNOWN: Em.I18n.t('common.unknown')
+  }});
+
 });

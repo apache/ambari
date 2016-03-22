@@ -22,13 +22,15 @@ var helpers = App.TestAliases.helpers;
  *
  * @param {Em.Object} context
  * @param {string} propertyName
- * @param {string} dependentKey
- * @param {number} neededValue
+ * @param {string} objectKey
+ * @param {string} propertyKey
+ * @param {{defaultValue: *, map: object}} [checks]
  */
-App.TestAliases.testAsComputedGetByKey = function (context, propertyName, objectKey, propertyKey) {
+App.TestAliases.testAsComputedGetByKey = function (context, propertyName, objectKey, propertyKey, checks) {
 
-  var obj = Em.get(context, objectKey);
-  var toCheck = Object.keys(obj);
+  var _checks = checks || {};
+  var obj = _checks.map || Em.get(context, objectKey);
+  var defaultValueIsSet = _checks.hasOwnProperty('defaultValue');
 
   describe('#' + propertyName + ' as Em.computed.getByKey', function () {
 
@@ -40,15 +42,25 @@ App.TestAliases.testAsComputedGetByKey = function (context, propertyName, object
       expect(Em.meta(context).descs[propertyName]._dependentKeys).to.eql([objectKey, propertyKey]);
     });
 
-    toCheck.forEach(function (key) {
+    Object.keys(obj).forEach(function (key) {
       var expectedValue = obj[key];
-      it('should be `' + JSON.stringify(expectedValue) + '` if '+ JSON.stringify(propertyKey) + 'is ' + JSON.stringify(key), function () {
+      it('should be `' + JSON.stringify(expectedValue) + '` if ' + JSON.stringify(propertyKey) + ' is ' + JSON.stringify(key), function () {
         helpers.smartStubGet(context, propertyKey, key)
           .propertyDidChange(context, propertyName);
         var value = helpers.smartGet(context, propertyName);
-        expect(value).to.be.equal(expectedValue);
+        expect(value).to.be.eql(expectedValue);
       });
     });
+
+    if (defaultValueIsSet) {
+      var defaultValue = _checks.defaultValue;
+      it('should be `' + JSON.stringify(defaultValue) + '` if ' + JSON.stringify(propertyKey) + ' is not exist in the tested object', function () {
+        helpers.smartStubGet(context, propertyKey, '' + Math.random())
+          .propertyDidChange(context, propertyName);
+        var value = helpers.smartGet(context, propertyName);
+        expect(value).to.be.eql(defaultValue);
+      });
+    }
 
   });
 
