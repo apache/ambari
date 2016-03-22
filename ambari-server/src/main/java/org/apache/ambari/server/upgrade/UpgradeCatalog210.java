@@ -122,6 +122,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
   private static final String TOPOLOGY_HOST_TASK_TABLE = "topology_host_task";
   private static final String TOPOLOGY_LOGICAL_TASK_TABLE = "topology_logical_task";
   private static final String HDFS_SITE_CONFIG = "hdfs-site";
+  private static final String RANGER_SITE_CONFIG = "ranger-site";
 
   // constants for stack table changes
   private static final String STACK_ID_COLUMN_NAME = "stack_id";
@@ -1337,7 +1338,52 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     updateStormConfigs();
     updateRangerHiveConfigs();
     updateRangerHBaseConfigs();
+    updateRangerSiteConfigs();
     updateHBaseConfigs();
+  }
+
+  protected void updateRangerSiteConfigs() throws AmbariException{
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+
+    Map<String, String> rangerPropertyMap = new HashMap<String, String>() {{
+      put("HTTPS_CLIENT_AUTH", "https.attrib.clientAuth");
+      put("HTTPS_KEYSTORE_FILE", "https.attrib.keystoreFile");
+      put("HTTPS_KEYSTORE_PASS", "https.attrib.keystorePass");
+      put("HTTPS_KEY_ALIAS", "https.attrib.keyAlias");
+      put("HTTPS_SERVICE_PORT", "https.service.port");
+      put("HTTP_ENABLED", "http.enabled");
+      put("HTTP_SERVICE_PORT", "http.service.port");
+    }};
+
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+
+        for (final Cluster cluster : clusterMap.values()) {
+         Config rangerSite = cluster.getDesiredConfigByType(RANGER_SITE_CONFIG);
+         Map<String, String> rangerSiteProperties;
+         Map<String, String> convertedRangerSiteProperties = new HashMap<>();
+         Set<String> oldPropertiesList = new HashSet<>();
+
+          if (rangerSite != null) {
+            rangerSiteProperties = rangerSite.getProperties();
+            for (Map.Entry<String, String> mapEntry: rangerPropertyMap.entrySet()) {
+              String oldKey = mapEntry.getKey();
+              String newKey = mapEntry.getValue();
+              if (rangerSiteProperties.containsKey(oldKey)) {
+                convertedRangerSiteProperties.put(newKey, rangerSiteProperties.get(oldKey));
+                oldPropertiesList.add(oldKey);
+              }
+            }
+          }
+
+          updateConfigurationPropertiesForCluster(cluster, RANGER_SITE_CONFIG, convertedRangerSiteProperties, true, false);
+          removeConfigurationPropertiesFromCluster(cluster, RANGER_SITE_CONFIG, oldPropertiesList);
+        }
+
+      }
+    }
   }
 
   protected void updateRangerHiveConfigs() throws AmbariException{

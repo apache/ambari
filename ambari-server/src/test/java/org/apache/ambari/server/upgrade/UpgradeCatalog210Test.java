@@ -21,7 +21,10 @@ package org.apache.ambari.server.upgrade;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
+import static junit.framework.Assert.assertTrue;
+import static org.easymock.EasyMock.anyBoolean;
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMockBuilder;
 import static org.easymock.EasyMock.createNiceMock;
@@ -46,9 +49,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.persistence.EntityManager;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -75,6 +80,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.ConfigImpl;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.Service;
@@ -83,11 +89,13 @@ import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
+import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Binder;
@@ -375,6 +383,88 @@ public class UpgradeCatalog210Test {
     assertEquals("hive-env", configTypeEnv.getValue());
     assertEquals("hive-site", configTypeSite.getValue());
     assertEquals("hiveserver2-site", configTypeServerSite.getValue());
+  }
+
+  @Test
+  public void TestRangerSitePropertyConversion() throws Exception{
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final String clusterName = "c1";
+    final AmbariManagementController  mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final ConfigHelper mockConfigHelper = easyMockSupport.createMock(ConfigHelper.class);
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster cluster = easyMockSupport.createStrictMock(Cluster.class);
+    final Config config = easyMockSupport.createNiceMock(Config.class);
+    final Map<String,Cluster> clusters = new HashMap<String,Cluster>(){{
+      put(clusterName, cluster);
+    }};
+    final Map<String,String> properties = new HashMap<String, String>() {{
+      put("HTTPS_CLIENT_AUTH", "test123");
+      put("HTTPS_KEYSTORE_FILE", "test123");
+      put("HTTPS_KEYSTORE_PASS", "test123");
+      put("HTTPS_KEY_ALIAS", "test123");
+      put("HTTPS_SERVICE_PORT", "test123");
+      put("HTTP_ENABLED", "test123");
+      put("HTTP_SERVICE_PORT", "test123");
+    }};
+
+    final Map<String, String> expectedPropertyMap = new HashMap<String, String>() {{
+      put("HTTPS_CLIENT_AUTH", "https.attrib.clientAuth");
+      put("HTTPS_KEYSTORE_FILE", "https.attrib.keystoreFile");
+      put("HTTPS_KEYSTORE_PASS", "https.attrib.keystorePass");
+      put("HTTPS_KEY_ALIAS", "https.attrib.keyAlias");
+      put("HTTP_SERVICE_PORT", "http.service.port");
+      put("HTTPS_SERVICE_PORT", "https.service.port");
+      put("HTTP_ENABLED", "http.enabled");
+    }};
+
+    final Map<String,String> convertedProperties = new HashMap<>();
+    final Set<String> removedProperties = new HashSet<>();
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(ConfigHelper.class).toInstance(mockConfigHelper);
+
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    });
+
+    UpgradeCatalog210 upgradeCatalog210 = new UpgradeCatalog210(mockInjector) {
+
+      @Override
+      protected void updateConfigurationPropertiesForCluster(Cluster cluster, String configType,
+        Map<String, String> properties, boolean updateIfExists, boolean createNewConfigType) throws AmbariException {
+        convertedProperties.putAll(properties);
+      }
+
+      @Override
+      protected void removeConfigurationPropertiesFromCluster(Cluster cluster, String configType, Set<String> removePropertiesList)
+        throws AmbariException {
+        removedProperties.addAll(removePropertiesList);
+      }
+    };
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).atLeastOnce();
+    expect(mockClusters.getClusters()).andReturn(clusters).atLeastOnce();
+    expect(config.getProperties()).andReturn(properties).atLeastOnce();
+    expect(cluster.getDesiredConfigByType("ranger-site")).andReturn(config).atLeastOnce();
+
+    replay(mockAmbariManagementController, mockClusters, cluster, config);
+
+    upgradeCatalog210.updateRangerSiteConfigs();
+
+
+    for (Map.Entry<String,String> propertyEntry: expectedPropertyMap.entrySet()){
+      String oldKey = propertyEntry.getKey();
+      String newKey = propertyEntry.getValue();
+      assertTrue(String.format("Old property %s doesn't migrated to new name %s", oldKey, newKey), convertedProperties.containsKey(newKey));
+      assertTrue(String.format("Property value %s doesn't preserved after renaming: %s",properties.get(oldKey), convertedProperties.get(newKey)),
+        convertedProperties.get(newKey).equals(properties.get(oldKey)));
+      assertTrue(String.format("Old property %s doesn't removed after renaming", oldKey), removedProperties.contains(oldKey));
+    }
   }
 
   @Test
