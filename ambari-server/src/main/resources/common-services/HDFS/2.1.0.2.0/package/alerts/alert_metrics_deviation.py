@@ -64,10 +64,16 @@ METRIC_NAME_PARAM_KEY = 'metricName'
 METRIC_NAME_PARAM_DEFAULT = ''
 APP_ID_PARAM_KEY = 'appId'
 APP_ID_PARAM_DEFAULT = 'NAMENODE'
+
+# the interval to check the metric (should be cast to int but could be a float)
 INTERVAL_PARAM_KEY = 'interval'
 INTERVAL_PARAM_DEFAULT = 60
+
+# the default threshold to trigger a CRITICAL (should be cast to int but could a float)
 DEVIATION_CRITICAL_THRESHOLD_KEY = 'metric.deviation.critical.threshold'
 DEVIATION_CRITICAL_THRESHOLD_DEFAULT = 10
+
+# the default threshold to trigger a WARNING (should be cast to int but could be a float)
 DEVIATION_WARNING_THRESHOLD_KEY = 'metric.deviation.warning.threshold'
 DEVIATION_WARNING_THRESHOLD_DEFAULT = 5
 NAMENODE_SERVICE_RPC_PORT_KEY = ''
@@ -123,19 +129,19 @@ def execute(configurations={}, parameters={}, host_name=None):
 
   interval = INTERVAL_PARAM_DEFAULT
   if INTERVAL_PARAM_KEY in parameters:
-    interval = int(parameters[INTERVAL_PARAM_KEY])
+    interval = _coerce_to_integer(parameters[INTERVAL_PARAM_KEY])
 
   warning_threshold = DEVIATION_WARNING_THRESHOLD_DEFAULT
   if DEVIATION_WARNING_THRESHOLD_KEY in parameters:
-    warning_threshold = int(parameters[DEVIATION_WARNING_THRESHOLD_KEY])
+    warning_threshold = _coerce_to_integer(parameters[DEVIATION_WARNING_THRESHOLD_KEY])
 
   critical_threshold = DEVIATION_CRITICAL_THRESHOLD_DEFAULT
   if DEVIATION_CRITICAL_THRESHOLD_KEY in parameters:
-    critical_threshold = int(parameters[DEVIATION_CRITICAL_THRESHOLD_KEY])
+    critical_threshold = _coerce_to_integer(parameters[DEVIATION_CRITICAL_THRESHOLD_KEY])
 
   minimum_value_threshold = None
   if MINIMUM_VALUE_THRESHOLD_KEY in parameters:
-    minimum_value_threshold = int(parameters[MINIMUM_VALUE_THRESHOLD_KEY])
+    minimum_value_threshold = _coerce_to_integer(parameters[MINIMUM_VALUE_THRESHOLD_KEY])
 
   #parse configuration
   if configurations is None:
@@ -400,3 +406,17 @@ def _get_ha_state_from_json(string_json):
     jmx_bean_name = jmx_bean["name"]
     if jmx_bean_name == "Hadoop:service=NameNode,name=FSNamesystem":
       return jmx_bean["tag.HAState"]
+
+
+def _coerce_to_integer(value):
+  """
+  Attempts to correctly coerce a value to an integer. For the case of an integer or a float,
+  this will essentially either NOOP or return a truncated value. If the parameter is a string,
+  then it will first attempt to be coerced from a integer, and failing that, a float.
+  :param value: the value to coerce
+  :return: the coerced value as an integer
+  """
+  try:
+    return int(value)
+  except ValueError:
+    return int(float(value))
