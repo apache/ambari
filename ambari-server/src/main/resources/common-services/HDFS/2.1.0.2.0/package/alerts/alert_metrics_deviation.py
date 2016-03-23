@@ -313,16 +313,14 @@ def execute(configurations={}, parameters={}, host_name=None):
     return (RESULT_STATE_UNKNOWN, ["Unable to calculate the standard deviation for {0} datapoints".format(len(metrics))])
 
   # Filter out points below min threshold
-  for metric in metrics:
-    if metric <= minimum_value_threshold:
-      metrics.remove(metric)
-  pass
+  metrics = [metric for metric in metrics if metric > (minimum_value_threshold * 1000)]
 
   if len(metrics) < 2:
-    return (RESULT_STATE_SKIPPED, ['No datapoints found above the minimum threshold of {0}'.format(minimum_value_threshold)])
+    return (RESULT_STATE_OK, ['No datapoints found above the minimum threshold of {0}'.format(minimum_value_threshold)])
 
   mean = calculate_mean(metrics)
   stddev = calulate_sample_std_deviation(metrics)
+  max_value = max(metrics) / 1000
 
   try:
     deviation_percent = stddev / mean * 100
@@ -339,9 +337,9 @@ def execute(configurations={}, parameters={}, host_name=None):
   """.format(encoded_get_metrics_parameters, data_json, mean, stddev, deviation_percent))
 
   if deviation_percent > critical_threshold:
-    return (RESULT_STATE_CRITICAL,['CRITICAL. Percentage standard deviation value {0}% is beyond the critical threshold of {1}%'.format("%.2f" % deviation_percent, "%.2f" % critical_threshold)])
+    return (RESULT_STATE_CRITICAL,['CRITICAL. Percentage standard deviation value {0}% is beyond the critical threshold of {1}% (growing {2} seconds to {3} seconds)'.format("%.2f" % deviation_percent, "%.2f" % critical_threshold, minimum_value_threshold, "%.2f" % max_value)])
   if deviation_percent > warning_threshold:
-    return (RESULT_STATE_WARNING,['WARNING. Percentage standard deviation value {0}% is beyond the warning threshold of {1}%'.format("%.2f" % deviation_percent, "%.2f" % warning_threshold)])
+    return (RESULT_STATE_WARNING,['WARNING. Percentage standard deviation value {0}% is beyond the warning threshold of {1}% (growing {2} seconds to {3} seconds)'.format("%.2f" % deviation_percent, "%.2f" % warning_threshold, minimum_value_threshold, "%.2f" % max_value)])
   return (RESULT_STATE_OK,['OK. Percentage standard deviation value is {0}%'.format("%.2f" % deviation_percent)])
 
 def calulate_sample_std_deviation(lst):
