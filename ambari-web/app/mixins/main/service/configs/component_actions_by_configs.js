@@ -57,12 +57,16 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
       componentsToDelete.forEach(function(_componentToDelete){
         var displayName = App.StackServiceComponent.find().findProperty('componentName',  _componentToDelete.componentName).get('displayName');
         var context = Em.I18n.t('requestInfo.stop').format(displayName);
-        this.installHostComponents( _componentToDelete.hostName, _componentToDelete.componentName, context).done(function(data){
+        self.refreshYarnQueues().done(function(data) {
           self.isRequestCompleted(data).done(function() {
-            self.deleteHostComponent(_componentToDelete.hostName, _componentToDelete.componentName);
+            self.installHostComponents( _componentToDelete.hostName, _componentToDelete.componentName, context).done(function(data){
+              self.isRequestCompleted(data).done(function() {
+                self.deleteHostComponent(_componentToDelete.hostName, _componentToDelete.componentName);
+              });
+            });
           });
         });
-      }, this);
+      }, self);
     }
   },
 
@@ -99,22 +103,26 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
       }, this);
       var allComponentsToAdd = componentsToAdd.concat(dependentComponents);
       var allComponentsToAddHosts = allComponentsToAdd.mapProperty('hostName').uniq();
-      allComponentsToAddHosts.forEach(function(_hostName, index){
+      allComponentsToAddHosts.forEach(function(_hostName){
         var hostComponents = allComponentsToAdd.filterProperty('hostName', _hostName).mapProperty('componentName').uniq();
         var masterHostComponents =  allComponentsToAdd.filterProperty('hostName', _hostName).filterProperty('isClient', false).mapProperty('componentName').uniq();
-        this.createHostComponents(_hostName, hostComponents).done(function(data){
-          self.installHostComponents(_hostName, hostComponents).done(function(data){
-            self.isRequestCompleted(data).done(function() {
-              var displayNames = masterHostComponents.map(function(item) {
-                return App.StackServiceComponent.find().findProperty('componentName', item).get('displayName');
+        self.refreshYarnQueues().done(function(data) {
+          self.isRequestCompleted(data).done(function() {
+            self.createHostComponents(_hostName, hostComponents).done(function() {
+              self.installHostComponents(_hostName, hostComponents).done(function(data){
+                self.isRequestCompleted(data).done(function() {
+                  var displayNames = masterHostComponents.map(function(item) {
+                    return App.StackServiceComponent.find().findProperty('componentName', item).get('displayName');
+                  });
+                  var displayStr =  stringUtils.getFormattedStringFromArray(displayNames);
+                  var context = Em.I18n.t('requestInfo.start').format(displayStr);
+                  self.startHostComponents(_hostName, masterHostComponents, context);
+                });
               });
-              var displayStr =  stringUtils.getFormattedStringFromArray(displayNames);
-              var context = Em.I18n.t('requestInfo.start').format(displayStr);
-              self.startHostComponents(_hostName, masterHostComponents, context);
             });
           });
         });
-      }, this);
+      }, self);
     }
   },
 
@@ -212,6 +220,42 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
         componentName: component
       }
     });
+  },
+
+  /**
+   * Calls the API to refresh yarn queue
+   * @private
+   * @method {refreshYarnQueues}
+   * @return {Object} Deferred
+   */
+  refreshYarnQueues: function () {
+    var dfd = $.Deferred();
+    var capacitySchedulerConfigs = this.get('allConfigs').filterProperty('filename', 'capacity-scheduler.xml').filter(function(item){
+      return item.get('value') !== item.get('initialValue');
+    });
+
+    if (capacitySchedulerConfigs.length) {
+      var serviceName = 'YARN';
+      var componentName = 'RESOURCEMANAGER';
+      var commandName = 'REFRESHQUEUES';
+      var tag = 'capacity-scheduler';
+      var hosts = App.Service.find(serviceName).get('hostComponents').filterProperty('componentName', componentName).mapProperty('hostName');
+      return App.ajax.send({
+        name : 'service.item.refreshQueueYarnRequest',
+        sender: this,
+        data : {
+          command : commandName,
+          context : Em.I18n.t('services.service.actions.run.yarnRefreshQueues.context') ,
+          hosts : hosts.join(','),
+          serviceName : serviceName,
+          componentName : componentName,
+          forceRefreshConfigTags : tag
+        }
+      });
+    } else {
+      dfd.resolve();
+    }
+    return dfd.promise();
   },
 
   /**
