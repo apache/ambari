@@ -21,6 +21,25 @@
     <service>
       <name>ATLAS</name>
       <version>0.5.0.2.5</version>
+      <components>
+        <component>
+          <name>ATLAS_SERVER</name>
+          <configFile>
+            <type>properties</type>
+            <fileName>atlas-application.properties</fileName>
+            <dictionaryName>application-properties</dictionaryName>
+          </configFile>
+        </component>
+
+        <component>
+          <name>ATLAS_CLIENT</name>
+          <configFile>
+            <type>properties</type>
+            <fileName>atlas-application.properties</fileName>
+            <dictionaryName>application-properties</dictionaryName>
+          </configFile>
+        </component>
+      </components>
     </service>
   </services>
 </metainfo>

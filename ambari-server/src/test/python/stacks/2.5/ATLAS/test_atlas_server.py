@@ -25,7 +25,7 @@ from only_for_platform import not_for_platform, PLATFORM_WINDOWS
 @not_for_platform(PLATFORM_WINDOWS)
 class TestAtlasServer(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "ATLAS/0.1.0.2.3/package"
-  STACK_VERSION = "2.6"
+  STACK_VERSION = "2.5"
 
   def configureResourcesCalled(self):
     self.assertResourceCalled('Directory', '/var/run/atlas',
