@@ -418,6 +418,40 @@ App.upgradeWizardView = Em.View.extend({
   },
 
   /**
+   * pause upgrade confirmation popup
+   * @param {object} event
+   */
+  confirmPauseUpgrade: function () {
+    var self = this;
+    return App.showConfirmationPopup(
+        function() {
+          self.pauseUpgrade();
+        },
+        Em.I18n.t('admin.stackUpgrade.pauseUpgrade.warning').format("upgrade"),
+        null,
+        Em.I18n.t('common.warning'),
+        Em.I18n.t('admin.stackUpgrade.pauseUpgrade')
+    );
+  },
+
+  /**
+   * pause downgrade confirmation popup
+   * @param {object} event
+   */
+  confirmPauseDowngrade: function () {
+    var self = this;
+    return App.showConfirmationPopup(
+        function() {
+          self.pauseUpgrade();
+        },
+        Em.I18n.t('admin.stackUpgrade.pauseUpgrade.warning').format("downgrade"),
+        null,
+        Em.I18n.t('common.warning'),
+        Em.I18n.t('admin.stackUpgrade.pauseDowngrade')
+    );
+  },
+
+  /**
    * @type {string}
    */
   failedHostsMessage: function() {
