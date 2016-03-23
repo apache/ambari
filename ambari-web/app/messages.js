@@ -1565,7 +1565,7 @@ Em.I18n.translations = {
   "<li>DO NOT enable / disable Kerberos</li>" +
   "<li>DO NOT enable / disable HA</li>" +
   "<li>DO NOT make any drastic changes to service configurations</li></ul>" +
-  "You <strong>MUST</strong> continue the {0} and finalize <strong>BEFORE</strong> performing <strong>ANY</strong> significant changes to the cluster should.",
+  "You <strong>MUST</strong> continue the {0} and finalize <strong>BEFORE</strong> performing <strong>ANY</strong> significant changes to the cluster.",
   'admin.stackUpgrade.downgrade.proceed': "Proceed with Downgrade",
   'admin.stackUpgrade.downgrade.body': "Are you sure you wish to abort the upgrade process and downgrade to <b>{0}</b>?",
   'admin.stackUpgrade.downgrade.retry.body': "Are you sure you wish to retry downgrade to <b>{0}</b>?",
