@@ -94,7 +94,7 @@ class ServiceCheckDefault(ServiceCheck):
                                               "-shell_command ls "
                                               "-num_containers {number_of_nm} "
                                               "-jar {path_to_distributed_shell_jar} "
-                                              "-timeout 30000")
+                                              "-timeout 300000")
 
     if params.security_enabled:
       kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal};")
