@@ -26,6 +26,7 @@ import org.apache.ambari.server.audit.event.AuditEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.eventbus.Subscribe;
 import com.google.inject.Singleton;
 
 /**
@@ -40,6 +41,7 @@ public class AuditLoggerDefaultImpl implements AuditLogger {
    * {@inheritDoc}
    */
   @Override
+  @Subscribe
   public void log(AuditEvent event) {
     Date date = new Date(event.getTimestamp());
     //2016-03-11T10:42:36.376Z

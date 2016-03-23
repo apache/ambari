@@ -46,10 +46,8 @@ import org.apache.ambari.server.audit.request.eventcreator.UserEventCreator;
 import org.apache.ambari.server.audit.request.eventcreator.ValidationIgnoreEventCreator;
 import org.apache.ambari.server.audit.request.eventcreator.ViewInstanceEventCreator;
 import org.apache.ambari.server.audit.request.eventcreator.ViewPrivilegeEventCreator;
-import org.apache.ambari.server.configuration.Configuration;
 
 import com.google.inject.AbstractModule;
-import com.google.inject.Inject;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Names;
 
@@ -57,10 +55,10 @@ public class AuditLoggerModule extends AbstractModule {
 
   @Override
   protected void configure() {
-    bind(AuditLogger.class).to(BufferedAuditLogger.class);
+    bind(AuditLogger.class).to(AsyncAuditLogger.class);
 
-    // set AuditLoggerDefaultImpl to be used by BufferedAuditLogger
-    bind(AuditLogger.class).annotatedWith(Names.named(BufferedAuditLogger.InnerLogger)).to(AuditLoggerDefaultImpl.class);
+    // set AuditLoggerDefaultImpl to be used by AsyncAuditLogger
+    bind(AuditLogger.class).annotatedWith(Names.named(AsyncAuditLogger.InnerLogger)).to(AuditLoggerDefaultImpl.class);
 
     // binding for audit event creators
     Multibinder<RequestAuditEventCreator> auditLogEventCreatorBinder = Multibinder.newSetBinder(binder(), RequestAuditEventCreator.class);
