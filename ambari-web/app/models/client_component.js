@@ -29,6 +29,15 @@ App.ClientComponent = DS.Model.extend({
   stackInfo: DS.belongsTo('App.StackServiceComponent'),
   hostNames: DS.attr('array'),
 
+  /**
+   * Defines if all components are in 'INSTALLED' state
+   *
+   * @type {boolean}
+   */
+  allStopped: function() {
+    return this.get('installedCount') === this.get('totalCount');
+  }.property('installedCount', 'totalCount'),
+
   summaryLabelClassName:function(){
     return 'label_for_'+this.get('componentName').toLowerCase();
   }.property('componentName'),

@@ -1082,11 +1082,9 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
    * @param serviceNames
    */
   allowUninstallServices: function(serviceNames) {
-    return !App.Service.find().filter(function (service) {
+    return App.Service.find().filter(function (service) {
       return serviceNames.contains(service.get('serviceName'));
-    }).mapProperty('workStatus').some(function (workStatus) {
-      return !App.Service.allowUninstallStates.contains(workStatus);
-    });
+    }).everyProperty('allowToDelete');
   },
 
   /**

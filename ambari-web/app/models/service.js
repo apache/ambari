@@ -41,6 +41,18 @@ App.Service = DS.Model.extend({
   masterComponents: DS.hasMany('App.MasterComponent'),
 
   /**
+   * Check master/slave component state of service
+   * and general services state to define if it can be removed
+   *
+   * @type {boolean}
+   */
+  allowToDelete: function() {
+    return App.Service.allowUninstallStates.contains(this.get('workStatus'))
+      && this.get('slaveComponents').everyProperty('allStopped')
+      && this.get('masterComponents').everyProperty('allStopped');
+  }.property('slaveComponents.@each.allStopped', 'masterComponents.@each.allStopped', 'workStatus'),
+
+  /**
    * @type {bool}
    */
   isInPassive: Em.computed.equal('passiveState', 'ON'),

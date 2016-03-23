@@ -1742,7 +1742,7 @@ Em.I18n.translations = {
   'services.service.delete.configVersionNote.plural': 'Update configs after {0} have been removed',
   'services.service.delete.lastService.popup.body': 'The <b>{0}</b> service can\'t be deleted, at least one service must be installed.',
   'services.service.delete.popup.dependentServices': 'Prior to deleting <b>{0}</b>, you must delete the following dependent services:',
-  'services.service.delete.popup.mustBeStopped': 'Prior to deleting <b>{0}</b>, you must stop the service.',
+  'services.service.delete.popup.mustBeStopped': 'Prior to deleting <b>{0}</b>, you must stop the service and each slave and master component.',
   'services.service.delete.popup.mustBeStopped.dependent': ' Along with dependent service <b>{0}</b>.',
   'services.service.delete.popup.warning': 'The <b>{0} service will be removed from Ambari and all configurations' +
   ' and configuration history will be lost.</b>',
