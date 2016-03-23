@@ -210,7 +210,11 @@ public class Resource {
     } else if (isCreate && resource.getType().equals("file")) {
       dfs.createNewFile(pathHadoop); // empty file
     } else {
-      dfs.copyFromLocalFile(new Path(resource.getSource()), pathHadoop);// copy
+      if(dfs.exists(pathHadoop) && dfs.getFileStatus(pathHadoop).isDir()) {
+        System.out.println("Skipping copy from local, as target " + pathHadoop + " is an existing directory."); // Copy from local to existing directory is not supported by dfs.
+      } else {
+        dfs.copyFromLocalFile(new Path(resource.getSource()), pathHadoop);
+      }
     }
   }
 
