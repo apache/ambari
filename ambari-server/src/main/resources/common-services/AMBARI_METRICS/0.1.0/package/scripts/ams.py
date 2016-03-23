@@ -417,7 +417,8 @@ def ams(name=None, action=None):
     File(format("{ams_grafana_conf_dir}/ams-grafana.ini"),
          owner=params.ams_user,
          group=params.user_group,
-         content=InlineTemplate(params.ams_grafana_ini_template)
+         content=InlineTemplate(params.ams_grafana_ini_template),
+         mode=0600
          )
 
     if action != 'stop':
