@@ -308,8 +308,50 @@ public class RecoveryConfigHelperTest {
     assertEquals(recoveryConfig.getEnabledComponents(), "");
   }
 
-  private Cluster getDummyCluster(final String hostname)
-          throws AmbariException {
+  /**
+   * Test a cluster with two hosts. The first host gets the configuration during registration.
+   * The second host gets it during it's first heartbeat.
+   *
+   * @throws AmbariException
+   */
+  @Test
+  public void testMultiNodeCluster()
+    throws AmbariException {
+    Set<String> hostNames = new HashSet<String>() {{
+      add("Host1");
+      add("Host2");
+    }};
+
+    // Create a cluster with 2 hosts
+    Cluster cluster = getDummyCluster(hostNames);
+
+    // Add HDFS service with DATANODE component to the cluster
+    Service hdfs = cluster.addService(HDFS);
+    hdfs.persist();
+
+    hdfs.addServiceComponent(DATANODE).setRecoveryEnabled(true);
+    hdfs.getServiceComponent(DATANODE).persist();
+
+    // Add SCH to Host1 and Host2
+    hdfs.getServiceComponent(DATANODE).addServiceComponentHost("Host1").persist();
+    hdfs.getServiceComponent(DATANODE).addServiceComponentHost("Host2").persist();
+
+    // Simulate registration for Host1: Get the recovery configuration right away for Host1.
+    // It makes an entry for cluster name and Host1 in the timestamp dictionary.
+    RecoveryConfig recoveryConfig = recoveryConfigHelper.getRecoveryConfig(cluster.getClusterName(), "Host1");
+    assertEquals(recoveryConfig.getEnabledComponents(), "DATANODE");
+
+    // Simulate heartbeat for Host2: When second host heartbeats, it first checks if config stale.
+    // This should return true since it did not get the configuration during registration.
+    // There is an entry for the cluster name, made by Host1, but no entry for Host2 in the timestamp
+    // dictionary since we skipped registration. Lookup for cluster name will succeed but lookup for Host2
+    // will return null.
+    boolean isConfigStale = recoveryConfigHelper.isConfigStale(cluster.getClusterName(), "Host2", -1);
+    assertTrue(isConfigStale);
+  }
+
+  private Cluster getDummyCluster(Set<String> hostNames)
+    throws AmbariException {
     Map<String, String> configProperties = new HashMap<String, String>() {{
       put(RecoveryConfigHelper.RECOVERY_ENABLED_KEY, "true");
       put(RecoveryConfigHelper.RECOVERY_TYPE_KEY, "AUTO_START");
@@ -319,10 +361,16 @@ public class RecoveryConfigHelperTest {
       put(RecoveryConfigHelper.RECOVERY_RETRY_GAP_KEY, "2");
     }};
 
+    return heartbeatTestHelper.getDummyCluster("cluster1", "HDP-0.1", configProperties, hostNames);
+  }
+
+  private Cluster getDummyCluster(final String hostname)
+          throws AmbariException {
+
     Set<String> hostNames = new HashSet<String>(){{
       add(hostname);
     }};
 
-    return heartbeatTestHelper.getDummyCluster("cluster1", "HDP-0.1", configProperties, hostNames);
+    return getDummyCluster(hostNames);
   }
 }

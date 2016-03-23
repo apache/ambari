@@ -143,6 +143,14 @@ public class RecoveryConfigHelper {
 
     Long timestamp = hostTimestamp.get(hostname);
 
+    /*
+     * An agent that did not get the configuration during registration because it
+     * was not yet a part of a cluster but now is will not have an entry.
+     */
+    if (timestamp == null) {
+      return true;
+    }
+
     if (timestamp.longValue() != recoveryTimestamp) {
       return true;
     }
