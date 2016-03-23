@@ -102,5 +102,6 @@ class TestMetricsGrafana(RMFTestCase):
     self.assertResourceCalled('File', '/etc/ambari-metrics-grafana/conf/ams-grafana.ini',
                               owner = 'ams',
                               group = 'hadoop',
-                              content = InlineTemplate(self.getConfig()['configurations']['ams-env']['content'])
+                              content = InlineTemplate(self.getConfig()['configurations']['ams-env']['content']),
+                              mode = 0600
                               )
