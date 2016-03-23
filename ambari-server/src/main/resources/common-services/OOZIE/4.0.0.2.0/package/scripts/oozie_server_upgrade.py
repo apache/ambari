@@ -33,6 +33,7 @@ from resource_management.libraries.functions import compare_versions
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import format_stack_version
 from resource_management.libraries.functions import tar_archive
+from resource_management.libraries.functions.oozie_prepare_war import prepare_war
 from resource_management.libraries.script.script import Script
 
 import oozie
@@ -199,7 +200,7 @@ class OozieUpgrade(Script):
       command = format("{kinit_path_local} -kt {oozie_keytab} {oozie_principal_with_host}")
       Execute(command, user=params.oozie_user, logoutput=True)
 
-    oozie.prepare_war()
+    prepare_war(params)
 
 
   def upgrade_oozie_database_and_sharelib(self, env):

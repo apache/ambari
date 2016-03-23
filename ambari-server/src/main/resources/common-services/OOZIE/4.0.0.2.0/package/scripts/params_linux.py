@@ -191,6 +191,7 @@ if https_port is not None:
   else:
     oozie_base_url = oozie_base_url.replace(str(parsed_url.port), str(https_port))
 
+oozie_setup_sh_current = oozie_setup_sh
 
 hdfs_site = config['configurations']['hdfs-site']
 fs_root = config['configurations']['core-site']['fs.defaultFS']

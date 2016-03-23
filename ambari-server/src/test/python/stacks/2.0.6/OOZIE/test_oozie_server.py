@@ -30,6 +30,7 @@ import tempfile
 @patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
 @patch.object(WebHDFSUtil, "run_command", new=MagicMock(return_value={}))
 @patch.object(tempfile, "gettempdir", new=MagicMock(return_value="/tmp"))
+@patch("resource_management.libraries.functions.get_user_call_output.get_user_call_output", new=MagicMock(return_value=(0, 'ext-2.2.zip', '')))
 class TestOozieServer(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "OOZIE/4.0.0.2.0/package"
   STACK_VERSION = "2.0.6"
@@ -40,7 +41,6 @@ class TestOozieServer(RMFTestCase):
     self.maxDiff = None
 
   @patch.object(shell, "call")
-  @patch("resource_management.libraries.functions.get_user_call_output.get_user_call_output", new=MagicMock(return_value=(0, 'ext-2.2.zip', '')))
   @patch('os.path.exists', new=MagicMock(side_effect = [False, True, False, True]))
   def test_configure_default(self, call_mocks):
     call_mocks = MagicMock(return_value=(0, "New Oozie WAR file with added"))
@@ -56,7 +56,6 @@ class TestOozieServer(RMFTestCase):
     self.assertNoMoreResources()
 
   @patch.object(shell, "call")
-  @patch("resource_management.libraries.functions.get_user_call_output.get_user_call_output", new=MagicMock(return_value=(0, 'ext-2.2.zip', '')))
   @patch('os.path.exists', new=MagicMock(side_effect = [False, True, False, False, True]))
   def test_configure_default_mysql(self, call_mocks):
     call_mocks = MagicMock(return_value=(0, "New Oozie WAR file with added"))
@@ -279,7 +278,6 @@ class TestOozieServer(RMFTestCase):
     )
 
   @patch.object(shell, "call")
-  @patch("resource_management.libraries.functions.get_user_call_output.get_user_call_output", new=MagicMock(return_value=(0, 'ext-2.2.zip', '')))
   @patch('os.path.exists', new=MagicMock(side_effect = [False, True, False, False, True]))
   def test_configure_existing_sqla(self, call_mocks):
     call_mocks = MagicMock(return_value=(0, "New Oozie WAR file with added"))
@@ -508,7 +506,6 @@ class TestOozieServer(RMFTestCase):
 
   @patch.object(shell, "call")
   @patch("os.path.isfile")
-  @patch("resource_management.libraries.functions.get_user_call_output.get_user_call_output", new=MagicMock(return_value=(0, 'ext-2.2.zip', '')))
   @patch('os.path.exists', new=MagicMock(side_effect = [False, True, False, True]))
   def test_start_default(self, isfile_mock, call_mocks):
     isfile_mock.return_value = True
@@ -588,7 +585,6 @@ class TestOozieServer(RMFTestCase):
     self.assertNoMoreResources()
 
   @patch.object(shell, "call")
-  @patch("resource_management.libraries.functions.get_user_call_output.get_user_call_output", new=MagicMock(return_value=(0, 'ext-2.2.zip', '')))
   @patch('os.path.exists', new=MagicMock(side_effect = [False, True, False, True]))
   def test_configure_secured(self, call_mocks):
     call_mocks = MagicMock(return_value=(0, "New Oozie WAR file with added"))
@@ -605,7 +601,6 @@ class TestOozieServer(RMFTestCase):
 
   @patch.object(shell, "call")
   @patch("os.path.isfile")
-  @patch("resource_management.libraries.functions.get_user_call_output.get_user_call_output", new=MagicMock(return_value=(0, 'ext-2.2.zip', '')))
   @patch('os.path.exists', new=MagicMock(side_effect = [False, True, False, True]))
   def test_start_secured(self, isfile_mock, call_mocks):
     isfile_mock.return_value = True
@@ -1077,7 +1072,6 @@ class TestOozieServer(RMFTestCase):
     )
 
   @patch.object(shell, "call")
-  @patch("resource_management.libraries.functions.get_user_call_output.get_user_call_output", new=MagicMock(return_value=(0, 'ext-2.2.zip', '')))
   @patch('os.path.exists', new=MagicMock(side_effect = [False, True, False, True]))
   def test_configure_default_hdp22(self, call_mocks):
     call_mocks = MagicMock(return_value=(0, "New Oozie WAR file with added"))

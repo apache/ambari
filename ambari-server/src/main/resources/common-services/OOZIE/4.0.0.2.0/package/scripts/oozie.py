@@ -26,15 +26,12 @@ from resource_management.core.source import InlineTemplate
 from resource_management.core.source import Template
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.version import compare_versions
-from resource_management.libraries.functions.get_user_call_output import get_user_call_output
+from resource_management.libraries.functions.oozie_prepare_war import prepare_war
 from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.libraries.script.script import Script
 from resource_management.core.resources.packaging import Package
 from resource_management.core.shell import as_user
 from resource_management.core.shell import as_sudo
-from resource_management.core import shell
-from resource_management.core.exceptions import Fail
-from resource_management.core.logger import Logger
 
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
@@ -197,78 +194,6 @@ def oozie_ownership():
     group = params.user_group
   )
 
-
-def prepare_war():
-  """
-  Attempt to call prepare-war command if the marker files don't exist or their content doesn't equal the expected.
-  The marker file for a command is stored in <stack-root>/current/oozie-server/.prepare_war_cmd
-  The marker file for a content of libext folder is stored in <stack-root>/current/oozie-server/.war_libext_content
-  """
-  import params
-
-  prepare_war_cmd_file = format("{oozie_home}/.prepare_war_cmd")
-  libext_content_file = format("{oozie_home}/.war_libext_content")
-  list_libext_command = format("ls -l {oozie_libext_dir}") + " | awk '{print $9, $5}' | awk 'NF > 0'"
-
-  # DON'T CHANGE THE VALUE SINCE IT'S USED TO DETERMINE WHETHER TO RUN THE COMMAND OR NOT BY READING THE MARKER FILE.
-  # Oozie tmp dir should be /var/tmp/oozie and is already created by a function above.
-  command = format("cd {oozie_tmp_dir} && {oozie_setup_sh} prepare-war {oozie_secure}")
-  command = command.strip()
-
-  run_prepare_war = False
-  if os.path.exists(prepare_war_cmd_file):
-    cmd = ""
-    with open(prepare_war_cmd_file, "r") as f:
-      cmd = f.readline().strip()
-
-    if command != cmd:
-      run_prepare_war = True
-      Logger.info(format("Will run prepare war cmd since marker file {prepare_war_cmd_file} has contents which differ.\n" \
-      "Expected: {command}.\nActual: {cmd}."))
-  else:
-    run_prepare_war = True
-    Logger.info(format("Will run prepare war cmd since marker file {prepare_war_cmd_file} is missing."))
-
-  return_code, libext_content, error_output = get_user_call_output(list_libext_command, user=params.oozie_user)
-  libext_content = libext_content.strip()
-
-  if run_prepare_war == False:
-    if os.path.exists(libext_content_file):
-      old_content = ""
-      with open(libext_content_file, "r") as f:
-        old_content = f.read().strip()
-
-      if libext_content != old_content:
-        run_prepare_war = True
-        Logger.info(format("Will run prepare war cmd since marker file {libext_content_file} has contents which differ.\n" \
-                           "Content of the folder {oozie_libext_dir} changed."))
-    else:
-      run_prepare_war = True
-      Logger.info(format("Will run prepare war cmd since marker file {libext_content_file} is missing."))
-
-  if run_prepare_war:
-    # Time-consuming to run
-    return_code, output = shell.call(command, user=params.oozie_user)
-    if output is None:
-      output = ""
-
-    if return_code != 0 or "New Oozie WAR file with added".lower() not in output.lower():
-      message = "Unexpected Oozie WAR preparation output {0}".format(output)
-      Logger.error(message)
-      raise Fail(message)
-
-    # Generate marker files
-    File(prepare_war_cmd_file,
-         content=command,
-         mode=0644,
-    )
-    File(libext_content_file,
-         content=libext_content,
-         mode=0644,
-    )
-  else:
-    Logger.info(format("No need to run prepare-war since marker file {prepare_war_cmd_file} already exists."))
-
 def oozie_server_specific():
   import params
   
@@ -337,7 +262,7 @@ def oozie_server_specific():
       not_if  = no_op_test,
     )
 
-  prepare_war()
+  prepare_war(params)
 
   File(hashcode_file,
        mode = 0644,
