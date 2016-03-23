@@ -1090,7 +1090,14 @@ App.CheckDBConnectionView = Ember.View.extend({
   didInsertElement: function() {
     var kdc = this.get('parentView.categoryConfigsAll').findProperty('name', 'kdc_type');
     if (kdc) {
-      var name = kdc.get('value') == 'Existing MIT KDC' ? 'KDC' : 'AD';
+      var name = kdc.get('value');
+      if (name == 'Existing MIT KDC') {
+        name = 'KDC';
+      } else if (name == 'Existing IPA') {
+        name = 'IPA';
+      } else {
+        name = 'AD';
+      }
       App.popover(this.$(), {
         title: Em.I18n.t('services.service.config.database.btn.idle'),
         content: Em.I18n.t('installer.controls.checkConnection.popover').format(name),

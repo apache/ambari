@@ -1640,7 +1640,6 @@ public class KerberosHelperImpl implements KerberosHelper {
                       Role.KERBEROS_CLIENT.name().equals(componentName) &&
                       (sch.getState() == State.INSTALLED)) {
                     hostsWithValidKerberosClient.add(hostname);
-
                     int identitiesAdded = 0;
 
                     // Lazily create the KerberosIdentityDataFileWriter instance...
@@ -1671,6 +1670,10 @@ public class KerberosHelperImpl implements KerberosHelper {
             String message = String.format("Failed to write index file - %s", identityDataFile.getAbsolutePath());
             LOG.error(message);
             throw new AmbariException(message, e);
+          } catch (Exception e) {
+            // make sure to log what is going wrong
+            LOG.error("Failed " + e);
+            throw e;
           } finally {
             if (kerberosIdentityDataFileWriter != null) {
               // Make sure the data file is closed
@@ -1687,7 +1690,8 @@ public class KerberosHelperImpl implements KerberosHelper {
           if (!serviceComponentHostsToProcess.isEmpty()) {
             try {
               validateKDCCredentials(kerberosDetails, cluster);
-            } catch (KerberosOperationException e) {
+            } catch (Exception e) {
+              LOG.error("Cannot validate credentials: " + e);
               try {
                 FileUtils.deleteDirectory(dataDirectory);
               } catch (Throwable t) {

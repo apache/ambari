@@ -24,7 +24,7 @@
   <property require-input="true">
     <name>kdc_type</name>
     <description>
-      The type of KDC being used. Either mit-kdc or active-directory
+      The type of KDC being used. Either mit-kdc, ipa, or active-directory
     </description>
     <value>mit-kdc</value>
     <display-name>KDC type</display-name>
@@ -161,7 +161,7 @@
     <name>executable_search_paths</name>
     <display-name>Executable Search Paths</display-name>
     <description>
-      A comma-delimited list of search paths to use to find Kerberos utilities like kadmin and kinit.
+      A comma-delimited list of search paths to use to find Kerberos utilities like kadmin, kinit and ipa.
     </description>
     <value>/usr/bin, /usr/kerberos/bin, /usr/sbin, /usr/lib/mit/bin, /usr/lib/mit/sbin</value>
     <value-attributes>
@@ -253,7 +253,7 @@
     <description>
       The principal name to use when executing the Kerberos service check
     </description>
-    <value>${cluster_name}-${short_date}</value>
+    <value>${cluster_name|toLower()}-${short_date}</value>
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
@@ -315,4 +315,50 @@
       <overridable>false</overridable>
     </value-attributes>
   </property>
+
+  <property>
+    <name>group</name>
+    <display-name>IPA Group</display-name>
+    <description>
+      The group in IPA user principals should be member of
+    </description>
+    <value>ambari-managed-principals</value>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+      <visible>false</visible>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>set_password_expiry</name>
+    <display-name>Set IPA principal password expiry</display-name>
+    <description>
+      Indicates whether Ambari should set the password expiry for the principals it creates. By default
+      IPA does not allow this. It requires write permission of the admin principal to the krbPasswordExpiry
+      attribute. If set IPA principal password expiry is not true it is assumed that a suitable password
+      policy is in place for the IPA Group principals are added to.
+    </description>
+    <value>false</value>
+    <value-attributes>
+      <type>boolean</type>
+      <overridable>false</overridable>
+      <visible>false</visible>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>password_chat_timeout</name>
+    <display-name>Set IPA kinit password chat timeout</display-name>
+    <description>
+      Indicates the timeout in seconds that Ambari should wait for a response during a password chat. This is
+      because it can take some time due to lookups before a response is there.
+    </description>
+    <value>5</value>
+    <value-attributes>
+      <visible>false</visible>
+      <type>int</type>
+      <overridable>false</overridable>
+    </value-attributes>
+  </property>
+
 </configuration>

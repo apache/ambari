@@ -80,6 +80,7 @@ App.supports = {
   serviceAutoStart: false,
   logSearch: false,
   redhatSatellite: false,
+  enableIpa: false,
   addingNewRepository: false
 };
 

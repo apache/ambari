@@ -169,6 +169,8 @@ public class VariableReplacementHelperTest {
 
     Assert.assertEquals("hive.metastore.local=false,hive.metastore.uris=thrift://host1.unit.test:9083\\,thrift://host2.unit.test:9083\\,thrift://host3.unit.test:9083,hive.metastore.sasl.enabled=true,hive.metastore.execute.setugi=true,hive.metastore.warehouse.dir=/apps/hive/warehouse,hive.exec.mode.local.auto=false,hive.metastore.kerberos.principal=hive/_HOST@UNIT.TEST",
         helper.replaceVariables("hive.metastore.local=false,hive.metastore.uris=${clusterHostInfo/hive_metastore_host | each(thrift://%s:9083, \\\\,, \\s*\\,\\s*)},hive.metastore.sasl.enabled=true,hive.metastore.execute.setugi=true,hive.metastore.warehouse.dir=/apps/hive/warehouse,hive.exec.mode.local.auto=false,hive.metastore.kerberos.principal=hive/_HOST@${realm}", configurations));
+
+    Assert.assertEquals("test=unit.test", helper.replaceVariables("test=${realm|toLower()}", configurations));
   }
 
 }

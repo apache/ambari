@@ -24,6 +24,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Map;
 
 /**
  * Logs OpenSsl command exit code with description
@@ -164,9 +165,23 @@ public class ShellCommandUtil {
     }
   }
 
-  public static Result runCommand(String [] args) throws IOException,
+  /**
+   * Runs a command with a given set of environment variables
+   * @param args a String[] of the command and its arguments
+   * @param vars a Map of String,String setting an environment variable to run the command with
+   * @return Result
+   * @throws IOException
+   * @throws InterruptedException
+   */
+  public static Result runCommand(String [] args, Map<String, String> vars) throws IOException,
           InterruptedException {
     ProcessBuilder builder = new ProcessBuilder(args);
+
+    if (vars != null) {
+      Map<String, String> env = builder.environment();
+      env.putAll(vars);
+    }
+
     Process process;
     if (WINDOWS) {
       synchronized (WindowsProcessLaunchLock) {
@@ -187,6 +202,18 @@ public class ShellCommandUtil {
     String stderr = streamToString(process.getErrorStream());
     int exitCode = process.exitValue();
     return new Result(exitCode, stdout, stderr);
+  }
+
+  /**
+   * Run a command
+   * @param args A String[] of the command and its arguments
+   * @return Result
+   * @throws IOException
+   * @throws InterruptedException
+   */
+  public static Result runCommand(String [] args) throws IOException,
+          InterruptedException {
+    return runCommand(args, null);
   }
 
   private static String streamToString(InputStream is) throws IOException {

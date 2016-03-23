@@ -298,6 +298,7 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
   public Keytab createKeytab(String principal, String password, Integer keyNumber,
                              KerberosOperationHandler operationHandler, boolean checkCache,
                              boolean canCache, ActionLog actionLog) throws AmbariException {
+    LOG.debug("Creating keytab for " + principal + " with kvno " + keyNumber);
     Keytab keytab = null;
 
     // Possibly get the keytab from the cache
@@ -335,8 +336,8 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
             File cachedKeytabFile = cacheKeytab(principal, keytab);
             String previousCachedFilePath = principalEntity.getCachedKeytabPath();
             String cachedKeytabFilePath = ((cachedKeytabFile == null) || !cachedKeytabFile.exists())
-                ? null
-                : cachedKeytabFile.getAbsolutePath();
+                    ? null
+                    : cachedKeytabFile.getAbsolutePath();
 
             principalEntity.setCachedKeytabPath(cachedKeytabFilePath);
             kerberosPrincipalDAO.merge(principalEntity);

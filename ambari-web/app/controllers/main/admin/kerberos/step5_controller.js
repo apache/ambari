@@ -130,6 +130,10 @@ App.KerberosWizardStep5Controller = App.KerberosProgressPageController.extend({
             properties: ['kdc_type', 'kdc_host', 'realm', 'ldap_url', 'container_dn', 'executable_search_paths']
           },
           {
+            key: Em.I18n.t('admin.kerberos.wizard.step1.option.ipa'),
+            properties: ['kdc_type', 'kdc_host', 'realm', 'executable_search_paths']
+          },
+          {
             key: Em.I18n.t('admin.kerberos.wizard.step1.option.manual'),
             properties: ['kdc_type', 'realm', 'executable_search_paths']
           }

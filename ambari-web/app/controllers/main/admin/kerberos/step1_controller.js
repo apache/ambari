@@ -25,7 +25,30 @@ App.KerberosWizardStep1Controller = Em.Controller.extend({
 
   isSubmitDisabled: Em.computed.someBy('selectedOption.preConditions', 'checked', false),
 
-  options: [
+  ipaOption: Em.Object.create({
+    displayName: Em.I18n.t('admin.kerberos.wizard.step1.option.ipa'),
+    value: Em.I18n.t('admin.kerberos.wizard.step1.option.ipa'),
+    preConditions: [
+      Em.Object.create({
+        displayText: Em.I18n.t('admin.kerberos.wizard.step1.option.ipa.condition.1'),
+        checked: false
+      }),
+      Em.Object.create({
+        displayText: Em.I18n.t('admin.kerberos.wizard.step1.option.ipa.condition.2'),
+        checked: false
+      }),
+      Em.Object.create({
+        displayText: Em.I18n.t('admin.kerberos.wizard.step1.option.ipa.condition.3'),
+        checked: false
+      }),
+      Em.Object.create({
+        displayText: Em.I18n.t('admin.kerberos.wizard.step1.option.ipa.condition.4'),
+        checked: false
+      }),
+    ]
+  }),
+
+  options: Em.A([
     Em.Object.create({
       displayName: Em.I18n.t('admin.kerberos.wizard.step1.option.kdc'),
       value: Em.I18n.t('admin.kerberos.wizard.step1.option.kdc'),
@@ -96,7 +119,7 @@ App.KerberosWizardStep1Controller = Em.Controller.extend({
         })
       ]
     })
-  ],
+  ]),
 
   /**
    * precondition for the selected KDC option
@@ -108,9 +131,15 @@ App.KerberosWizardStep1Controller = Em.Controller.extend({
   }.property('selectedItem'),
 
 
-
   loadStep: function () {
     this.set('selectedItem', Em.I18n.t('admin.kerberos.wizard.step1.option.kdc'));
+
+    if (App.get('supports.enableIpa')) {
+      var ipaOption = this.get('ipaOption');
+      var options = this.get('options');
+
+      options.pushObject(ipaOption);
+    }
   },
 
   next: function () {
