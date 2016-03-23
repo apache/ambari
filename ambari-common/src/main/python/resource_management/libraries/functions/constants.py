@@ -18,7 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-__all__ = ["Direction", "SafeMode"]
+__all__ = ["Direction", "SafeMode", "StackFeature"]
 
 class Direction:
   """
@@ -34,3 +34,15 @@ class SafeMode:
   ON = "ON"
   OFF = "OFF"
   UNKNOWN = "UNKNOWN"
+  
+class StackFeature:
+  """
+  Stack Feature supported
+  """
+  SNAPPY = "snappy"
+  EXPRESS_UPGRADE = "express_upgrade"
+  ROLLING_UPGRADE = "rolling_upgrade"
+  CONFIG_VERSIONING = "config_versioning"
+  RANGER = "ranger"
+  NFS = "nfs"
+    

@@ -175,6 +175,17 @@ gpgcheck=0</value>
     </property>
 
     <property>
+        <name>stack_features</name>
+        <value></value>
+        <description>List of features supported by the stack</description>
+        <property-type>VALUE_FROM_PROPERTY_FILE</property-type>
+        <value-attributes>
+            <property-file-name>stack_features.json</property-file-name>
+            <property-file-type>json</property-file-type>
+        </value-attributes>
+    </property>
+
+    <property>
         <name>stack_root</name>
         <value>/usr/hdp</value>
         <description>Stack root folder</description>

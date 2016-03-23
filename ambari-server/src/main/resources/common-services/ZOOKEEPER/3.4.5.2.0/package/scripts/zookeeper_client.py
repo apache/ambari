@@ -23,8 +23,10 @@ import sys
 from resource_management import *
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.version import compare_versions, format_stack_version
 from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions.stack_features import check_stack_feature 
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
@@ -65,7 +67,7 @@ class ZookeeperClientLinux(ZookeeperClient):
     import params
     env.set_params(params)
 
-    if params.version and compare_versions(format_stack_version(params.version), '2.2.0.0') >= 0:
+    if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, format_stack_version(params.version)):
       conf_select.select(params.stack_name, "zookeeper", params.version)
       stack_select.select("zookeeper-client", params.version)
 

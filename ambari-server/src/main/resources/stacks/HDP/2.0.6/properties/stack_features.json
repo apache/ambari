@@ -1,0 +1,15 @@
+{
+  "stack_features": [
+    { "name": "snappy", "description" : "Snappy compressor/decompressor support" , "min_version" : "2.0.0.0" , "max_version" : "2.2.0.0" }
+    ,
+    { "name": "express_upgrade", "description" : "Express upgrade support", "min_version" : "2.1.0.0" }
+    ,
+    { "name": "rolling_upgrade", "description" : "Rolling upgrade support", "min_version" : "2.2.0.0" }
+    ,
+    { "name": "config_versioning", "description" : "Configurable versions support", "min_version" : "2.3.0.0" }
+    ,
+    { "name": "ranger", "description" : "Ranger Service support", "min_version" : "2.2.0.0" }
+    ,
+    { "name": "nfs", "description" : "NFS support", "min_version" : "2.3.0.0" }
+  ]
+}

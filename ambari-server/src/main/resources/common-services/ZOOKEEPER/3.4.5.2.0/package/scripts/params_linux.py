@@ -24,15 +24,17 @@ import os
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.default import default
+from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions import get_kinit_path
+from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.script.script import Script
 
 # server configurations
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
-stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-stack_version_formatted = format_stack_version(stack_version_unformatted)
+stack_version_formatted = status_params.stack_version_formatted
+stack_root = status_params.stack_root
 
 stack_name = default("/hostLevelParams/stack_name", None)
 current_version = default("/hostLevelParams/current_version", None)
@@ -48,11 +50,11 @@ zk_cli_shell = "/usr/lib/zookeeper/bin/zkCli.sh"
 config_dir = "/etc/zookeeper/conf"
 zk_smoke_out = os.path.join(tmp_dir, "zkSmoke.out")
 
-# hadoop parameters for 2.2+
-if Script.is_stack_greater_or_equal("2.2"):
-  zk_home = format("/usr/hdp/current/{component_directory}")
-  zk_bin = format("/usr/hdp/current/{component_directory}/bin")
-  zk_cli_shell = format("/usr/hdp/current/{component_directory}/bin/zkCli.sh")
+# hadoop parameters for stacks that support rolling_upgrade
+if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
+  zk_home = format("{stack_root}/current/{component_directory}")
+  zk_bin = format("{stack_root}/current/{component_directory}/bin")
+  zk_cli_shell = format("{stack_root}/current/{component_directory}/bin/zkCli.sh")
   config_dir = status_params.config_dir
 
 
