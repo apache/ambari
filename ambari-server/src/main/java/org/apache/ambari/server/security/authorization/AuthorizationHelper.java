@@ -160,9 +160,6 @@ public class AuthorizationHelper {
         if (ResourceType.AMBARI == privilegeResourceType) {
           // This resource type indicates administrative access
           resourceOK = true;
-        } else if (ResourceType.VIEW == privilegeResourceType) {
-          // For a VIEW USER.
-          resourceOK = true;
         } else if ((resourceType == null) || (resourceType == privilegeResourceType)) {
           resourceOK = (resourceId == null) || resourceId.equals(privilegeResource.getId());
         } else {
