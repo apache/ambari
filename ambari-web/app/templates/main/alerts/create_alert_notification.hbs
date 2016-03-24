@@ -149,19 +149,27 @@
         </div>
       </div>
 
-      <div class="control-group">
+      <div {{bindAttr class=":control-group controller.inputFields.SMTPUsername.errorMsg:error"}}>
         <label class="control-label">{{controller.inputFields.SMTPUsername.label}}</label>
 
         <div class="controls">
           {{view Em.TextField disabledBinding="controller.inputFields.SMTPUseAuthentication.invertedValue" valueBinding="controller.inputFields.SMTPUsername.value" class="input-xlarge"}}
         </div>
+
+        <div class="controls error-msg">
+          {{controller.inputFields.SMTPUsername.errorMsg}}
+        </div>
       </div>
 
-      <div class="control-group">
+      <div {{bindAttr class=":control-group controller.inputFields.SMTPPassword.errorMsg:error"}}>
         <label class="control-label">{{controller.inputFields.SMTPPassword.label}}</label>
 
         <div class="controls">
           {{view Em.TextField type="password" disabledBinding="controller.inputFields.SMTPUseAuthentication.invertedValue" valueBinding="controller.inputFields.SMTPPassword.value" class="input-xlarge"}}
+        </div>
+
+        <div class="controls error-msg">
+          {{controller.inputFields.SMTPPassword.errorMsg}}
         </div>
       </div>
 

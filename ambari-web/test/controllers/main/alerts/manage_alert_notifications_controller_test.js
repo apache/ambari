@@ -518,6 +518,8 @@ describe('App.ManageAlertNotificationsController', function () {
               name: {},
               global: {},
               allGroups: {},
+              SMTPUseAuthentication: {},
+              SMTPUsername: {},
               SMTPPassword: {},
               retypeSMTPPassword: {},
               method: {}
@@ -539,7 +541,7 @@ describe('App.ManageAlertNotificationsController', function () {
         view = getBodyClass();
       });
 
-      App.TestAliases.testAsComputedOr(getBodyClass(), 'someErrorExists', ['nameError', 'emailToError', 'emailFromError', 'smtpPortError', 'hostError', 'portError', 'passwordError']);
+      App.TestAliases.testAsComputedOr(getBodyClass(), 'someErrorExists', ['nameError', 'emailToError', 'emailFromError', 'smtpPortError', 'hostError', 'portError', 'smtpUsernameError', 'smtpPasswordError', 'passwordError']);
 
       describe('#selectAllGroups', function () {
 
@@ -606,6 +608,92 @@ describe('App.ManageAlertNotificationsController', function () {
 
       });
 
+      describe('#smtpUsernameValidation', function () {
+
+        it('should check inputFields.SMTPUsername.value', function () {
+
+          view.set('parentView.hasErrors', false);
+          view.set('controller.inputFields.SMTPUsername.errorMsg', null);
+          view.set('controller.inputFields.SMTPUseAuthentication.value', true);
+          view.set('controller.inputFields.SMTPUsername.value', '');
+          view.set('controller.inputFields.SMTPPassword.value', 'pass');
+          view.set('controller.inputFields.retypeSMTPPassword.value', 'pass');
+          expect(view.get('controller.inputFields.SMTPUsername.errorMsg')).to.equal(Em.I18n.t('alerts.notifications.error.SMTPUsername'));
+          expect(view.get('parentView.hasErrors')).to.be.true;
+
+        });
+
+        it('should check inputFields.SMTPUsername.value (2)', function () {
+
+          view.set('parentView.hasErrors', true);
+          view.set('controller.inputFields.SMTPUsername.errorMsg', 'error');
+          view.set('controller.inputFields.SMTPUseAuthentication.value', true);
+          view.set('controller.inputFields.SMTPUsername.value', 'test');
+          view.set('controller.inputFields.SMTPPassword.value', 'pass');
+          view.set('controller.inputFields.retypeSMTPPassword.value', 'pass');
+          expect(view.get('controller.inputFields.SMTPUsername.errorMsg')).to.equal(null);
+          expect(view.get('parentView.hasErrors')).to.be.false;
+
+        });
+
+        it('should check inputFields.SMTPUsername.value (3)', function () {
+
+          view.set('parentView.hasErrors', true);
+          view.set('controller.inputFields.SMTPUsername.errorMsg', 'error');
+          view.set('controller.inputFields.SMTPUseAuthentication.value', false);
+          view.set('controller.inputFields.SMTPUsername.value', '');
+          view.set('controller.inputFields.SMTPPassword.value', '');
+          view.set('controller.inputFields.retypeSMTPPassword.value', '');
+          expect(view.get('controller.inputFields.SMTPUsername.errorMsg')).to.equal(null);
+          expect(view.get('parentView.hasErrors')).to.be.false;
+
+        });
+
+      });
+
+      describe('#smtpPasswordValidation', function () {
+
+        it('should check inputFields.SMTPPassword.value', function () {
+
+          view.set('parentView.hasErrors', false);
+          view.set('controller.inputFields.SMTPPassword.errorMsg', null);
+          view.set('controller.inputFields.SMTPUseAuthentication.value', true);
+          view.set('controller.inputFields.SMTPUsername.value', 'user');
+          view.set('controller.inputFields.SMTPPassword.value', '');
+          view.set('controller.inputFields.retypeSMTPPassword.value', '');
+          expect(view.get('controller.inputFields.SMTPPassword.errorMsg')).to.equal(Em.I18n.t('alerts.notifications.error.SMTPPassword'));
+          expect(view.get('parentView.hasErrors')).to.be.true;
+
+        });
+
+        it('should check inputFields.SMTPPassword.value (2)', function () {
+
+          view.set('parentView.hasErrors', true);
+          view.set('controller.inputFields.SMTPPassword.errorMsg', 'error');
+          view.set('controller.inputFields.SMTPUseAuthentication.value', true);
+          view.set('controller.inputFields.SMTPUsername.value', 'user');
+          view.set('controller.inputFields.SMTPPassword.value', 'test');
+          view.set('controller.inputFields.retypeSMTPPassword.value', 'test');
+          expect(view.get('controller.inputFields.SMTPPassword.errorMsg')).to.equal(null);
+          expect(view.get('parentView.hasErrors')).to.be.false;
+
+        });
+
+        it('should check inputFields.SMTPPassword.value (3)', function () {
+
+          view.set('parentView.hasErrors', true);
+          view.set('controller.inputFields.SMTPPassword.errorMsg', 'error');
+          view.set('controller.inputFields.SMTPUseAuthentication.value', false);
+          view.set('controller.inputFields.SMTPUsername.value', '');
+          view.set('controller.inputFields.SMTPPassword.value', '');
+          view.set('controller.inputFields.retypeSMTPPassword.value', '');
+          expect(view.get('controller.inputFields.SMTPPassword.errorMsg')).to.equal(null);
+          expect(view.get('parentView.hasErrors')).to.be.false;
+
+        });
+
+      });
+
       describe('#retypePasswordValidation', function () {
 
         it('should check inputFields.retypeSMTPPassword.value', function () {
@@ -639,11 +727,11 @@ describe('App.ManageAlertNotificationsController', function () {
             {
               method: 'EMAIL',
               errors: ['portError', 'hostError'],
-              validators: ['emailToValidation', 'emailFromValidation', 'smtpPortValidation', 'retypePasswordValidation']
+              validators: ['emailToValidation', 'emailFromValidation', 'smtpPortValidation', 'smtpUsernameValidation', 'smtpPasswordValidation', 'retypePasswordValidation']
             },
             {
               method: 'SNMP',
-              errors: ['emailToError', 'emailFromError', 'smtpPortError', 'passwordError'],
+              errors: ['emailToError', 'emailFromError', 'smtpPortError', 'smtpUsernameError', 'smtpPasswordError', 'passwordError'],
               validators: ['portValidation', 'hostsValidation']
             }
           ],

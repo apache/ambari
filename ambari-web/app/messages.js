@@ -1035,6 +1035,8 @@ Em.I18n.translations = {
   'alerts.notifications.error.integer': 'Must be an integer',
   'alerts.notifications.error.host': 'Hosts must be a valid Fully Qualified Domain Name (FQDN)',
 
+  'alerts.notifications.error.SMTPUsername': 'Username is required',
+  'alerts.notifications.error.SMTPPassword': 'Password is required',
   'alerts.notifications.error.retypePassword': 'Password confirmation must match password',
 
   'alerts.notifications.addCustomPropertyPopup.header': 'Add Property',

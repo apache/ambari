@@ -238,6 +238,14 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
         validator: 'smtpPortValidation'
       },
       {
+        errorKey: 'smtpUsernameError',
+        validator: 'smtpUsernameValidation'
+      },
+      {
+        errorKey: 'smtpPasswordError',
+        validator: 'smtpPasswordValidation'
+      },
+      {
         errorKey: 'passwordError',
         validator: 'retypePasswordValidation'
       }
@@ -384,6 +392,8 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
           this.smtpPortValidation();
           this.hostsValidation();
           this.portValidation();
+          this.smtpUsernameValidation();
+          this.smtpPasswordValidation();
           this.retypePasswordValidation();
         },
 
@@ -498,6 +508,32 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
           }
         }.observes('controller.inputFields.port.value'),
 
+        smtpUsernameValidation: function () {
+          var smtpUsernameError = false;
+          var errorMessage = null;
+          if (this.get('controller.inputFields.SMTPUseAuthentication.value')) {
+            if (validator.isEmptyOrSpaces(this.get('controller.inputFields.SMTPUsername.value'))) {
+              smtpUsernameError = true;
+              errorMessage = Em.I18n.t('alerts.notifications.error.SMTPUsername');
+            }
+          }
+          this.set('smtpUsernameError', smtpUsernameError);
+          this.set('controller.inputFields.SMTPUsername.errorMsg', errorMessage);
+        }.observes('controller.inputFields.SMTPUsername.value', 'controller.inputFields.SMTPUseAuthentication.value'),
+
+        smtpPasswordValidation: function () {
+          var smtpPasswordError = false;
+          var errorMessage = null;
+          if (this.get('controller.inputFields.SMTPUseAuthentication.value')) {
+            if (validator.isEmptyOrSpaces(this.get('controller.inputFields.SMTPPassword.value'))) {
+              smtpPasswordError = true;
+              errorMessage = Em.I18n.t('alerts.notifications.error.SMTPPassword');
+            }
+          }
+          this.set('smtpPasswordError', smtpPasswordError);
+          this.set('controller.inputFields.SMTPPassword.errorMsg', errorMessage);
+        }.observes('controller.inputFields.SMTPPassword.value','controller.inputFields.SMTPUseAuthentication.value'),
+
         retypePasswordValidation: function () {
           var passwordValue = this.get('controller.inputFields.SMTPPassword.value');
           var retypePasswordValue = this.get('controller.inputFields.retypeSMTPPassword.value');
@@ -510,7 +546,7 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
           }
         }.observes('controller.inputFields.retypeSMTPPassword.value', 'controller.inputFields.SMTPPassword.value'),
 
-        someErrorExists: Em.computed.or('nameError', 'emailToError', 'emailFromError', 'smtpPortError', 'hostError', 'portError', 'passwordError'),
+        someErrorExists: Em.computed.or('nameError', 'emailToError', 'emailFromError', 'smtpPortError', 'hostError', 'portError', 'smtpUsernameError', 'smtpPasswordError', 'passwordError'),
 
         setParentErrors: function () {
           this.set('parentView.hasErrors', this.get('someErrorExists'));
