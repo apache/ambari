@@ -65,7 +65,7 @@ export ZEPPELIN_PID_DIR={{zeppelin_pid_dir}}
 export JAVA_HOME={{java64_home}}
 
 # Additional jvm options. for example, export ZEPPELIN_JAVA_OPTS="-Dspark.executor.memory=8g -Dspark.cores.max=16"
-export ZEPPELIN_JAVA_OPTS="-Dhdp.version={{hdp_version}} -Dspark.executor.memory={{executor_mem}} -Dspark.executor.instances={{executor_instances}} -Dspark.yarn.queue={{spark_queue}}"
+export ZEPPELIN_JAVA_OPTS="-Dhdp.version={{full_stack_version}} -Dspark.executor.memory={{executor_mem}} -Dspark.executor.instances={{executor_instances}} -Dspark.yarn.queue={{spark_queue}}"
 
 
 # Zeppelin jvm mem options Default -Xmx1024m -XX:MaxPermSize=512m

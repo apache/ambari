@@ -41,13 +41,14 @@ def get_port_from_url(address):
 
 # server configurations
 config = Script.get_config()
+stack_root = Script.get_stack_root()
 
 # e.g. /var/lib/ambari-agent/cache/stacks/HDP/2.2/services/zeppelin-stack/package
 service_packagedir = os.path.realpath(__file__).split('/scripts')[0]
 
 zeppelin_dirname = 'zeppelin-server/lib'
 
-install_dir = '/usr/hdp/current'
+install_dir = os.path.join(stack_root, "current")
 executor_mem = config['configurations']['zeppelin-env']['zeppelin.executor.mem']
 executor_instances = config['configurations']['zeppelin-env'][
   'zeppelin.executor.instances']
@@ -56,7 +57,7 @@ spark_jar_dir = config['configurations']['zeppelin-env']['zeppelin.spark.jar.dir
 spark_jar = format("{spark_jar_dir}/zeppelin-spark-0.5.5-SNAPSHOT.jar")
 setup_view = True
 temp_file = config['configurations']['zeppelin-env']['zeppelin.temp.file']
-spark_home = "/usr/hdp/current/spark-client/"
+spark_home = os.path.join(stack_root, "current", "spark-client")
 
 try:
   fline = open(spark_home + "/RELEASE").readline().rstrip()
@@ -120,11 +121,10 @@ else:
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 
 # e.g. 2.3.0.0
-hdp_stack_version = format_stack_version(stack_version_unformatted)
+stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 # e.g. 2.3.0.0-2130
-full_version = default("/commandParams/version", None)
-hdp_version = full_version
+full_stack_version = default("/commandParams/version", None)
 
 spark_client_version = get_stack_version('spark-client')
 
