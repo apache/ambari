@@ -47,15 +47,16 @@ class TestAlertsApiStatus(RMFTestCase):
 
     mock_response = '{ "version": "v14"}'
     makeHTTPCall_mock.return_value = mock_response
+    BASE_URL = "http://localhost:51200/pxf/"
 
-    version = api_status._get_pxf_protocol_version()
+    version = api_status._get_pxf_protocol_version(BASE_URL)
     self.assertEqual(version, "v14")
 
     mock_response = 'BAD RESPONSE'
     makeHTTPCall_mock.return_value = mock_response
 
     try:
-      api_status._get_pxf_protocol_version()
+      api_status._get_pxf_protocol_version(BASE_URL)
       self.fail()
     except Exception as e:
       self.assertEqual(str(e), "version could not be found in response BAD RESPONSE")
