@@ -17,24 +17,28 @@
  */
 
 var App = require('app');
+require('/views/main/service/services/hive');
 
-App.MainDashboardServiceZookeperView = App.MainDashboardServiceView.extend({
-  templateName: require('templates/main/service/services/zookeeper'),
-  serviceName: 'zookeeper',
+describe('App.MainDashboardServiceHiveView', function () {
+  var view;
 
-  titleInfo: function () {
-    var components = this.get('service.hostComponents').filterProperty('componentName', 'ZOOKEEPER_SERVER');
-    var running = 0;
-    components.forEach(function (item) {
-      if (item.get('workStatus') === App.HostComponentStatus.started) {
-        running++;
-      }
+  beforeEach(function() {
+    view = App.MainDashboardServiceHiveView.create();
+  });
+
+  describe("#titleMasters", function () {
+
+    it("should pass components", function () {
+      view.set('masters', [
+        Em.Object.create({
+          componentName: 'HIVE_SERVER'
+        }),
+        Em.Object.create({
+          componentName: 'HIVE_METASTORE'
+        })
+      ]);
+      view.propertyDidChange('titleMasters');
+      expect(view.get('titleMasters')).to.be.eql([view.get('masters')[0], view.get('masters')[1]]);
     });
-
-    return {
-      pre: this.t('services.zookeeper.prefix').format(running),
-      title: this.t('services.zookeeper.title').format(components.length),
-      component: components.objectAt(0)
-    };
-  }.property('service')
+  });
 });

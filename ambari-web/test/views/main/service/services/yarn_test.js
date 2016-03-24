@@ -17,13 +17,21 @@
  */
 
 var App = require('app');
+var date = require('utils/date/date');
+var numberUtils = require('utils/number_utils');
+
 require('/views/main/service/services/yarn');
 
-function getView() {
-  return App.MainDashboardServiceYARNView.create();
+function getView(options) {
+  return App.MainDashboardServiceYARNView.create(options || {});
 }
 
 describe('App.MainDashboardServiceYARNView', function () {
+  var view;
+
+  beforeEach(function() {
+    view = getView({service: Em.Object.create()});
+  });
 
   App.TestAliases.testAsComputedCountBasedMessage(getView(), 'nodeManagerText', 'service.nodeManagersTotal', '', Em.I18n.t('services.service.summary.viewHost'), Em.I18n.t('services.service.summary.viewHosts'));
 
@@ -47,5 +55,100 @@ describe('App.MainDashboardServiceYARNView', function () {
   App.TestAliases.testAsComputedFormatNa(getView(), '_appsFailed', 'service.appsFailed');
 
   App.TestAliases.testAsComputedFormatNa(getView(), '_queuesCountFormatted', 'service.queuesCount');
+
+  describe("#nodeUptime", function() {
+
+    beforeEach(function() {
+      sinon.stub(App, 'dateTime').returns(10);
+      sinon.stub(date, 'timingFormat').returns('11');
+    });
+    afterEach(function() {
+      App.dateTime.restore();
+      date.timingFormat.restore();
+    });
+
+    it("resourceManagerStartTime is 0", function() {
+      view.set('service.resourceManagerStartTime', 0);
+      view.propertyDidChange('nodeUptime');
+      expect(view.get('nodeUptime')).to.be.equal(view.t('services.service.summary.notRunning'));
+    });
+
+    it("resourceManagerStartTime is -1", function() {
+      view.set('service.resourceManagerStartTime', -1);
+      view.propertyDidChange('nodeUptime');
+      expect(view.get('nodeUptime')).to.be.equal(view.t('services.service.summary.notRunning'));
+    });
+
+    it("resourceManagerStartTime is 1", function() {
+      view.set('service.resourceManagerStartTime', 1);
+      view.propertyDidChange('nodeUptime');
+      expect(view.get('nodeUptime')).to.be.equal(view.t('dashboard.services.uptime').format('11'));
+      expect(date.timingFormat.calledWith(9)).to.be.true;
+    });
+
+    it("resourceManagerStartTime is 11", function() {
+      view.set('service.resourceManagerStartTime', 11);
+      view.propertyDidChange('nodeUptime');
+      expect(view.get('nodeUptime')).to.be.equal(view.t('dashboard.services.uptime').format('11'));
+      expect(date.timingFormat.calledWith(0)).to.be.true;
+    });
+  });
+
+  describe("#memory", function() {
+
+    beforeEach(function() {
+      sinon.stub(numberUtils, 'bytesToSize', function(arg1) {
+        return arg1;
+      })
+    });
+    afterEach(function() {
+      numberUtils.bytesToSize.restore();
+    });
+
+    it("should return formatted memory", function() {
+      view.set('service', Em.Object.create({
+        allocatedMemory: 1,
+        reservedMemory: 2,
+        availableMemory: 3
+      }));
+      view.propertyDidChange('memory');
+      expect(view.get('memory')).to.be.equal(Em.I18n.t('dashboard.services.yarn.memory.msg').format(1,2,3));
+    });
+  });
+
+  describe("#didInsertElement()", function() {
+
+    beforeEach(function() {
+      sinon.stub(App, 'tooltip');
+    });
+    afterEach(function() {
+      App.tooltip.restore();
+    });
+
+    it("App.tooltip should be called", function() {
+      view.didInsertElement();
+      expect(App.tooltip.calledOnce).to.be.true;
+    });
+  });
+
+  describe("#willDestroyElement()", function() {
+    var mock = {
+      tooltip: Em.K
+    };
+
+    beforeEach(function() {
+      sinon.stub(window, '$').returns(mock);
+      sinon.stub(mock, 'tooltip');
+    });
+    afterEach(function() {
+      window.$.restore();
+      mock.tooltip.restore();
+    });
+
+    it("tooltip destroy should be called", function() {
+      view.willDestroyElement();
+      expect(mock.tooltip.calledWith('destroy')).to.be.true;
+    });
+  });
 
 });

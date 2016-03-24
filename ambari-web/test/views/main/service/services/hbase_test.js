@@ -65,4 +65,48 @@ describe('App.MainDashboardServiceHbaseView', function () {
 
   });
 
+  describe("#summaryHeader", function() {
+
+    it("averageLoad is NaN", function() {
+      view.set('service', Em.Object.create({
+        averageLoad: 'null',
+        regionServersTotal: 1
+      }));
+      view.propertyDidChange('summaryHeader');
+      expect(view.get('summaryHeader')).to.be.equal(view.t("dashboard.services.hbase.summary").format(1, view.t("services.service.summary.unknown")));
+    });
+
+    it("averageLoad is number", function() {
+      view.set('service', Em.Object.create({
+        averageLoad: 99,
+        regionServersTotal: 1
+      }));
+      view.propertyDidChange('summaryHeader');
+      expect(view.get('summaryHeader')).to.be.equal(view.t("dashboard.services.hbase.summary").format(1, 99));
+    });
+  });
+
+  describe("#hbaseMasterWebUrl", function() {
+
+    it("activeMaster is present", function() {
+      view.reopen({
+        activeMaster: Em.Object.create({
+          host: Em.Object.create({
+            publicHostName: 'host1'
+          })
+        })
+      });
+      App.set('singleNodeInstall', false);
+      view.propertyDidChange('hbaseMasterWebUrl');
+      expect(view.get('hbaseMasterWebUrl')).to.be.equal('http://host1:60010');
+    });
+    it("activeMaster is null", function() {
+      view.reopen({
+        activeMaster: null
+      });
+      view.propertyDidChange('hbaseMasterWebUrl');
+      expect(view.get('hbaseMasterWebUrl')).to.be.undefined;
+    });
+  });
+
 });

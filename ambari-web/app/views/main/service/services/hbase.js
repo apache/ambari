@@ -70,8 +70,8 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
   }.property('service.regionServersTotal', 'service.averageLoad'),
 
   hbaseMasterWebUrl: function () {
-    if (this.get('activeMaster.host') && this.get('activeMaster.host').get('publicHostName')) {
-      return "http://" + (App.singleNodeInstall ? App.singleNodeAlias : this.get('activeMaster.host').get('publicHostName')) + ":60010";
+    if (this.get('activeMaster.host.publicHostName')) {
+      return "http://" + (App.singleNodeInstall ? App.singleNodeAlias : this.get('activeMaster.host.publicHostName')) + ":60010";
     }
   }.property('activeMaster'),
 
