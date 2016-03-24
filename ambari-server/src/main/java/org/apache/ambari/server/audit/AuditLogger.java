@@ -31,4 +31,9 @@ public interface AuditLogger {
    */
   void log(final AuditEvent event);
 
+  /**
+   * Returns if the feature is enabled
+   */
+  boolean isEnabled();
+
 }

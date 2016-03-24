@@ -814,12 +814,15 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
    * @param requestId
    */
   private void auditLog(HostRoleCommandEntity commandEntity, Long requestId) {
+    if(!auditLogger.isEnabled()) {
+      return;
+    }
+
     if(requestId != null) {
 
       CalculatedStatus cs = calculateStatus(commandEntity, requestId);
 
       if (!temporaryStatusCache.containsKey(requestId) || temporaryStatusCache.get(requestId) != cs.getStatus()) {
-
         RequestEntity request = requestDAO.findByPK(requestId);
         String context = request != null ? request.getRequestContext() : null;
         AuditEvent auditEvent = OperationStatusAuditEvent.builder()

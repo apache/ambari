@@ -25,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.ambari.server.audit.event.AuditEvent;
+import org.apache.ambari.server.configuration.Configuration;
 
 import com.google.common.eventbus.AsyncEventBus;
 import com.google.common.eventbus.EventBus;
@@ -48,21 +49,36 @@ class AsyncAuditLogger implements AuditLogger {
   private EventBus eventBus;
 
   /**
+   * Indicates if audit log feature is enabled
+   */
+  private final boolean isEnabled;
+
+  /**
    * Constructor.
    *
    * @param auditLogger the audit logger to use
    */
   @Inject
-  public AsyncAuditLogger(@Named(InnerLogger) AuditLogger auditLogger) {
-    eventBus = new AsyncEventBus("AuditLoggerEventBus", new ThreadPoolExecutor(0, 1, 5L, TimeUnit.MINUTES,
-      new LinkedBlockingQueue<Runnable>(), new AuditLogThreadFactory(),
-      new ThreadPoolExecutor.CallerRunsPolicy()));
-    eventBus.register(auditLogger);
+  public AsyncAuditLogger(@Named(InnerLogger) AuditLogger auditLogger, Configuration configuration) {
+    isEnabled = configuration.isAuditLogEnabled();
+    if(isEnabled) {
+      eventBus = new AsyncEventBus("AuditLoggerEventBus", new ThreadPoolExecutor(0, 1, 5L, TimeUnit.MINUTES,
+        new LinkedBlockingQueue<Runnable>(), new AuditLogThreadFactory(),
+        new ThreadPoolExecutor.CallerRunsPolicy()));
+      eventBus.register(auditLogger);
+    }
   }
 
   @Override
   public void log(AuditEvent event) {
-    eventBus.post(event);
+    if(isEnabled) {
+      eventBus.post(event);
+    }
+  }
+
+  @Override
+  public boolean isEnabled() {
+    return isEnabled;
   }
 
   /**

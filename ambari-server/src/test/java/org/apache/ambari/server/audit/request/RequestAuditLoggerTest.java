@@ -133,6 +133,7 @@ public class RequestAuditLoggerTest {
   }
 
   private Capture<AuditEvent> createCapture() {
+    EasyMock.expect(mockAuditLogger.isEnabled()).andReturn(true).anyTimes();
     Capture<AuditEvent> capture = EasyMock.newCapture();
     mockAuditLogger.log(EasyMock.capture(capture));
     EasyMock.expectLastCall();

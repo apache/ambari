@@ -23,10 +23,12 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import org.apache.ambari.server.audit.event.AuditEvent;
+import org.apache.ambari.server.configuration.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 /**
@@ -38,15 +40,34 @@ public class AuditLoggerDefaultImpl implements AuditLogger {
   private static final Logger LOG = LoggerFactory.getLogger("audit");
 
   /**
+   * Indicates if audit log feature is enabled
+   */
+  private final boolean isEnabled;
+
+  @Inject
+  public AuditLoggerDefaultImpl(Configuration configuration) {
+    isEnabled = configuration.isAuditLogEnabled();
+  }
+
+  /**
    * {@inheritDoc}
    */
   @Override
   @Subscribe
   public void log(AuditEvent event) {
+    if(!isEnabled) {
+      return;
+    }
+
     Date date = new Date(event.getTimestamp());
     //2016-03-11T10:42:36.376Z
     DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX");
 
     LOG.info("{}, {}", dateFormat.format(date), event.getAuditMessage());
+  }
+
+  @Override
+  public boolean isEnabled() {
+    return isEnabled;
   }
 }

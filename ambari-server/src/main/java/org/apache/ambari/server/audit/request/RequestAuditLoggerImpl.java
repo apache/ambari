@@ -72,6 +72,10 @@ public class RequestAuditLoggerImpl implements RequestAuditLogger {
    */
   @Override
   public void log(Request request, Result result) {
+    if(!auditLogger.isEnabled()) {
+      return;
+    }
+
     Resource.Type resourceType = request.getResource().getResourceDefinition().getType();
     Request.Type requestType = request.getRequestType();
     ResultStatus resultStatus = result.getStatus();
