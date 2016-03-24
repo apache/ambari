@@ -130,7 +130,7 @@ public class UpgradeCatalog222Test {
     Method updateHostRoleCommands = UpgradeCatalog222.class.getDeclaredMethod("updateHostRoleCommands");
     Method updateHDFSWidget = UpgradeCatalog222.class.getDeclaredMethod("updateHDFSWidgetDefinition");
     Method updateCorruptedReplicaWidget = UpgradeCatalog222.class.getDeclaredMethod("updateCorruptedReplicaWidget");
-
+    Method updateZookeeperConfigs = UpgradeCatalog222.class.getDeclaredMethod("updateZookeeperConfigs");
 
     UpgradeCatalog222 upgradeCatalog222 = createMockBuilder(UpgradeCatalog222.class)
       .addMockedMethod(addNewConfigurationsFromXml)
@@ -141,6 +141,7 @@ public class UpgradeCatalog222Test {
       .addMockedMethod(updateHostRoleCommands)
       .addMockedMethod(updateHDFSWidget)
       .addMockedMethod(updateCorruptedReplicaWidget)
+      .addMockedMethod(updateZookeeperConfigs)
       .createMock();
 
     upgradeCatalog222.addNewConfigurationsFromXml();
@@ -158,6 +159,8 @@ public class UpgradeCatalog222Test {
     upgradeCatalog222.updateHDFSWidgetDefinition();
     expectLastCall().once();
     upgradeCatalog222.updateCorruptedReplicaWidget();
+    expectLastCall().once();
+    upgradeCatalog222.updateZookeeperConfigs();
     expectLastCall().once();
 
     replay(upgradeCatalog222);
@@ -276,6 +279,57 @@ public class UpgradeCatalog222Test {
     upgradeCatalog222.updateHiveConfig();
     easyMockSupport.verifyAll();
   }
+
+  @Test
+  public void testUpdateZookeeperConfigs() throws Exception{
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+
+    final Config zookeeperEnv = easyMockSupport.createNiceMock(Config.class);
+    expect(zookeeperEnv.getProperties()).andReturn(new HashMap<String, String>(){{
+      put("zk_server_heapsize", "1024");
+    }}
+    ).anyTimes();
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(EntityManager.class).toInstance(entityManager);
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    });
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockClusterExpected);
+    }}).atLeastOnce();
+    expect(mockClusterExpected.getDesiredConfigByType("zookeeper-env")).andReturn(zookeeperEnv).atLeastOnce();
+
+    UpgradeCatalog222 upgradeCatalog222 = createMockBuilder(UpgradeCatalog222.class)
+        .withConstructor(Injector.class)
+        .withArgs(mockInjector)
+        .addMockedMethod("updateConfigurationPropertiesForCluster", Cluster.class, String.class,
+            Map.class, boolean.class, boolean.class)
+        .createMock();
+
+    Map<String, String> expectedUpdates = new HashMap<>();
+    expectedUpdates.put("zk_server_heapsize", "1024m");
+
+    upgradeCatalog222.updateConfigurationPropertiesForCluster(mockClusterExpected, "zookeeper-env", expectedUpdates,
+        true, false);
+    expectLastCall().once();
+
+    easyMockSupport.replayAll();
+    replay(upgradeCatalog222);
+    upgradeCatalog222.updateZookeeperConfigs();
+    easyMockSupport.verifyAll();
+  }
+
 
   @Test
   public void testAmsSiteUpdateConfigs() throws Exception{

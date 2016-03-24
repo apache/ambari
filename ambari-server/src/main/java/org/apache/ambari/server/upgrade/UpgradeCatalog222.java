@@ -179,6 +179,25 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
     updateHostRoleCommands();
     updateHDFSWidgetDefinition();
     updateCorruptedReplicaWidget();
+    updateZookeeperConfigs();
+  }
+
+  protected void updateZookeeperConfigs() throws  AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Map<String, Cluster> clusterMap = getCheckedClusterMap(ambariManagementController.getClusters());
+
+    for (final Cluster cluster : clusterMap.values()) {
+      Config zooEnv = cluster.getDesiredConfigByType("zookeeper-env");
+      if (zooEnv != null && zooEnv.getProperties().containsKey("zk_server_heapsize")) {
+        String heapSizeValue = zooEnv.getProperties().get("zk_server_heapsize");
+        if(!heapSizeValue.endsWith("m")) {
+          Map<String, String> updates = new HashMap<String, String>();
+          updates.put("zk_server_heapsize", heapSizeValue+"m");
+          updateConfigurationPropertiesForCluster(cluster, "zookeeper-env", updates, true, false);
+        }
+
+      }
+    }
   }
 
   protected void updateStormConfigs() throws  AmbariException {
