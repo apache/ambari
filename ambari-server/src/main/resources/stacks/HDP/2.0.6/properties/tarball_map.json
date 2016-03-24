@@ -1,7 +1,7 @@
 {
   "slider": [
     "{{ stack_root }}/{{ stack_version }}/slider/lib/slider.tar.gz",
-    "/{{ stack_name }}/apps/{{stack_version}}/slider/slider.tar.gz"
+    "/{{ stack_name }}/apps/{{ stack_version }}/slider/slider.tar.gz"
   ],
   "tez": [
     "{{ stack_root }}/{{ stack_version }}/tez/lib/tez.tar.gz",
