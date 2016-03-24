@@ -198,6 +198,13 @@ public class UpgradeEntity {
   }
 
   /**
+   * @return if the upgrade is suspended
+   */
+  public boolean getSuspended() {
+    return suspended == 1;
+  }
+
+  /**
    * @param direction the direction of the upgrade
    */
   public void setDirection(Direction direction) {

@@ -441,6 +441,34 @@ public class CalculatedStatusTest {
     assertEquals(HostRoleStatus.HOLDING, status.getStatus());
     assertNull(status.getDisplayStatus());
     assertEquals(47.5, status.getPercent(), 0.1);
+
+    // aborted
+    stages = getStages(
+        getTaskEntities(HostRoleStatus.COMPLETED, HostRoleStatus.COMPLETED, HostRoleStatus.COMPLETED),
+        getTaskEntities(HostRoleStatus.COMPLETED, HostRoleStatus.COMPLETED, HostRoleStatus.ABORTED),
+        getTaskEntities(HostRoleStatus.ABORTED, HostRoleStatus.ABORTED, HostRoleStatus.ABORTED),
+        getTaskEntities(HostRoleStatus.ABORTED, HostRoleStatus.ABORTED, HostRoleStatus.ABORTED)
+    );
+
+    status = CalculatedStatus.statusFromStages(stages);
+
+    assertEquals(HostRoleStatus.ABORTED, status.getStatus());
+    assertNull(status.getDisplayStatus());
+    assertEquals(100.0, status.getPercent(), 0.1);
+
+    // in-progress even though there are aborted tasks in the middle
+    stages = getStages(
+        getTaskEntities(HostRoleStatus.COMPLETED, HostRoleStatus.COMPLETED, HostRoleStatus.COMPLETED),
+        getTaskEntities(HostRoleStatus.COMPLETED, HostRoleStatus.COMPLETED, HostRoleStatus.COMPLETED),
+        getTaskEntities(HostRoleStatus.ABORTED, HostRoleStatus.ABORTED, HostRoleStatus.PENDING),
+        getTaskEntities(HostRoleStatus.PENDING, HostRoleStatus.PENDING, HostRoleStatus.PENDING)
+    );
+
+    status = CalculatedStatus.statusFromStages(stages);
+
+    assertEquals(HostRoleStatus.IN_PROGRESS, status.getStatus());
+    assertNull(status.getDisplayStatus());
+    assertEquals(66.6, status.getPercent(), 0.1);
   }
 
   @Test

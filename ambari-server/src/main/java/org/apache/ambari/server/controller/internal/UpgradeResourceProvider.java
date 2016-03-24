@@ -464,6 +464,17 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
             status, UPGRADE_SUSPENDED ));
       } else {
         suspended = Boolean.valueOf((String) propertyMap.get(UPGRADE_SUSPENDED));
+        // If either the status is ABORTED or request to be suspended, then both should be set.
+        if ((status == HostRoleStatus.ABORTED || suspended)) {
+          if (status == HostRoleStatus.ABORTED && !suspended) {
+            throw new IllegalArgumentException(String.format(
+                "If the status is set to ABORTED, must also set property %s to true", UPGRADE_SUSPENDED));
+          }
+          if (status != HostRoleStatus.ABORTED && suspended) {
+            throw new IllegalArgumentException(String.format(
+                "If property %s is set to true, must also set the status to ABORTED", UPGRADE_SUSPENDED));
+          }
+        }
       }
 
       setUpgradeRequestStatus(requestIdProperty, status, propertyMap);
@@ -495,7 +506,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
       upgradeEntity.setAutoSkipComponentFailures(skipFailures);
       upgradeEntity.setAutoSkipServiceCheckFailures(skipServiceCheckFailures);
-      upgradeEntity = s_upgradeDAO.merge(upgradeEntity);
+      s_upgradeDAO.merge(upgradeEntity);
 
     }
 
@@ -523,6 +534,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     setResourceProperty(resource, UPGRADE_FROM_VERSION, entity.getFromVersion(), requestedIds);
     setResourceProperty(resource, UPGRADE_TO_VERSION, entity.getToVersion(), requestedIds);
     setResourceProperty(resource, UPGRADE_DIRECTION, entity.getDirection(), requestedIds);
+    setResourceProperty(resource, UPGRADE_SUSPENDED, entity.getSuspended(), requestedIds);
     setResourceProperty(resource, UPGRADE_DOWNGRADE_ALLOWED, entity.isDowngradeAllowed(), requestedIds);
     setResourceProperty(resource, UPGRADE_SKIP_FAILURES, entity.isComponentFailureAutoSkipped(), requestedIds);
     setResourceProperty(resource, UPGRADE_SKIP_SC_FAILURES, entity.isServiceCheckFailureAutoSkipped(), requestedIds);
@@ -1642,7 +1654,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     HostRoleStatus internalStatus = CalculatedStatus.statusFromStages(
         internalRequest.getStages()).getStatus();
 
-    if (HostRoleStatus.PENDING == status && internalStatus != HostRoleStatus.ABORTED) {
+    if (HostRoleStatus.PENDING == status && !(internalStatus == HostRoleStatus.ABORTED || internalStatus == HostRoleStatus.IN_PROGRESS)) {
       throw new IllegalArgumentException(
           String.format("Can only set status to %s when the upgrade is %s (currently %s)", status,
               HostRoleStatus.ABORTED, internalStatus));
@@ -1655,12 +1667,17 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         // Remove relevant upgrade entity
         try {
           Cluster cluster = clusters.get().getClusterById(clusterId);
+          UpgradeEntity lastUpgradeItemForCluster = s_upgradeDAO.findLastUpgradeForCluster(cluster.getClusterId());
+          lastUpgradeItemForCluster.setSuspended(true);
+          s_upgradeDAO.merge(lastUpgradeItemForCluster);
+
           cluster.setUpgradeEntity(null);
         } catch (AmbariException e) {
           LOG.warn("Could not clear upgrade entity for cluster with id {}", clusterId, e);
         }
       }
     } else {
+      // Status must be PENDING.
       List<Long> taskIds = new ArrayList<Long>();
       for (HostRoleCommand hrc : internalRequest.getCommands()) {
         if (HostRoleStatus.ABORTED == hrc.getStatus()
@@ -1674,6 +1691,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       try {
         Cluster cluster = clusters.get().getClusterById(clusterId);
         UpgradeEntity lastUpgradeItemForCluster = s_upgradeDAO.findLastUpgradeForCluster(cluster.getClusterId());
+        lastUpgradeItemForCluster.setSuspended(false);
+        s_upgradeDAO.merge(lastUpgradeItemForCluster);
+
         cluster.setUpgradeEntity(lastUpgradeItemForCluster);
       } catch (AmbariException e) {
         LOG.warn("Could not clear upgrade entity for cluster with id {}", clusterId, e);
