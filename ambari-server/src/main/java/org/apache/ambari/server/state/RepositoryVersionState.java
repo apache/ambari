@@ -54,6 +54,7 @@ package org.apache.ambari.server.state;
  * *********************************************
  * Start states: CURRENT, INSTALLING
  * Allowed Transitions:
+ * INIT -> CURRENT
  * INSTALLED -> CURRENT
  * INSTALLING -> INSTALLED | INSTALL_FAILED | OUT_OF_SYNC
  * INSTALLED -> INSTALLED | INSTALLING | OUT_OF_SYNC
@@ -63,6 +64,13 @@ package org.apache.ambari.server.state;
  * </pre>
  */
 public enum RepositoryVersionState {
+  /**
+   * Repository version is initialized, and will transition to current.  This is used
+   * when creating a cluster using a specific version.  Transition occurs naturally as
+   * hosts report CURRENT.
+   */
+  INIT,
+
   /**
    * Repository version is not required
    */

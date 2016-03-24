@@ -18,42 +18,6 @@
 
 package org.apache.ambari.server.topology;
 
-import com.google.inject.Injector;
-import com.google.inject.Singleton;
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.actionmanager.HostRoleCommand;
-import org.apache.ambari.server.actionmanager.Request;
-import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorBlueprintProcessor;
-import org.apache.ambari.server.controller.ClusterRequest;
-import org.apache.ambari.server.controller.KerberosHelper;
-import org.apache.ambari.server.controller.RequestStatusResponse;
-import org.apache.ambari.server.controller.internal.ArtifactResourceProvider;
-import org.apache.ambari.server.controller.internal.CalculatedStatus;
-import org.apache.ambari.server.controller.internal.CredentialResourceProvider;
-import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
-import org.apache.ambari.server.controller.internal.RequestImpl;
-import org.apache.ambari.server.controller.internal.RequestStageContainer;
-import org.apache.ambari.server.controller.internal.ScaleClusterRequest;
-import org.apache.ambari.server.controller.internal.Stack;
-import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
-import org.apache.ambari.server.controller.spi.RequestStatus;
-import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
-import org.apache.ambari.server.controller.spi.ResourceProvider;
-import org.apache.ambari.server.controller.spi.SystemException;
-import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
-import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
-import org.apache.ambari.server.orm.entities.StageEntity;
-import org.apache.ambari.server.security.encryption.CredentialStoreService;
-import org.apache.ambari.server.serveraction.kerberos.KerberosOperationException;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.SecurityType;
-import org.apache.ambari.server.state.host.HostImpl;
-import org.apache.ambari.server.utils.RetryHelper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -66,6 +30,36 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import javax.inject.Inject;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.actionmanager.HostRoleCommand;
+import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorBlueprintProcessor;
+import org.apache.ambari.server.controller.RequestStatusResponse;
+import org.apache.ambari.server.controller.internal.ArtifactResourceProvider;
+import org.apache.ambari.server.controller.internal.CalculatedStatus;
+import org.apache.ambari.server.controller.internal.CredentialResourceProvider;
+import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
+import org.apache.ambari.server.controller.internal.RequestImpl;
+import org.apache.ambari.server.controller.internal.ScaleClusterRequest;
+import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
+import org.apache.ambari.server.controller.spi.RequestStatus;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
+import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
+import org.apache.ambari.server.orm.entities.StageEntity;
+import org.apache.ambari.server.state.SecurityType;
+import org.apache.ambari.server.state.host.HostImpl;
+import org.apache.ambari.server.utils.RetryHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.inject.Singleton;
 
 /**
  * Manages all cluster provisioning actions on the cluster topology.
@@ -140,6 +134,7 @@ public class TopologyManager {
     ensureInitialized();
     ClusterTopology topology = new ClusterTopologyImpl(ambariContext, request);
     final String clusterName = request.getClusterName();
+    final String repoVersion = request.getRepositoryVersion();
 
     // get the id prior to creating ambari resources which increments the counter
     Long provisionId = ambariContext.getNextRequestId();
@@ -157,7 +152,7 @@ public class TopologyManager {
 
       // create Cluster resource with security_type = KERBEROS, this will trigger cluster Kerberization
       // upon host install task execution
-      ambariContext.createAmbariResources(topology, clusterName, SecurityType.KERBEROS);
+      ambariContext.createAmbariResources(topology, clusterName, SecurityType.KERBEROS, repoVersion);
       if (securityConfiguration.getDescriptor() != null) {
         submitKerberosDescriptorAsArtifact(clusterName, securityConfiguration.getDescriptor());
       }
@@ -168,7 +163,7 @@ public class TopologyManager {
       }
       submitCredential(clusterName, credential);
     } else {
-      ambariContext.createAmbariResources(topology, clusterName, null);
+      ambariContext.createAmbariResources(topology, clusterName, null, repoVersion);
     }
 
     long clusterId = ambariContext.getClusterId(clusterName);

@@ -153,7 +153,7 @@ public class ClusterImpl implements Cluster {
    */
   private static final String CLUSTER_SESSION_ATTRIBUTES_PREFIX = "cluster_session_attributes:";
   private static final Set<RepositoryVersionState> ALLOWED_REPOSITORY_STATES =
-      EnumSet.of(RepositoryVersionState.INSTALLING);
+      EnumSet.of(RepositoryVersionState.INIT, RepositoryVersionState.INSTALLING);
 
   @Inject
   private Clusters clusters;
@@ -1446,11 +1446,13 @@ public class ClusterImpl implements Cluster {
           return;
         }
       }
+
       // Ignore if cluster version is CURRENT or UPGRADE_FAILED
       if (clusterVersion.getState() != RepositoryVersionState.INSTALL_FAILED &&
               clusterVersion.getState() != RepositoryVersionState.OUT_OF_SYNC &&
               clusterVersion.getState() != RepositoryVersionState.INSTALLING &&
-              clusterVersion.getState() != RepositoryVersionState.INSTALLED) {
+              clusterVersion.getState() != RepositoryVersionState.INSTALLED &&
+              clusterVersion.getState() != RepositoryVersionState.INIT) {
         // anything else is not supported as of now
         return;
       }
@@ -1524,6 +1526,7 @@ public class ClusterImpl implements Cluster {
       }
 
       RepositoryVersionState effectiveClusterVersionState = getEffectiveState(stateToHosts);
+
       if (effectiveClusterVersionState != null
           && effectiveClusterVersionState != clusterVersion.getState()) {
         // Any mismatch will be caught while transitioning, and raise an
@@ -1734,6 +1737,9 @@ public class ClusterImpl implements Cluster {
             break;
           case OUT_OF_SYNC:
             allowedStates.add(RepositoryVersionState.INSTALLING);
+            break;
+          case INIT:
+            allowedStates.add(RepositoryVersionState.CURRENT);
             break;
         }
 

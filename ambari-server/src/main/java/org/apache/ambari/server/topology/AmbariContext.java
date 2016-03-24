@@ -18,6 +18,21 @@
 
 package org.apache.ambari.server.topology;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicLong;
+
+import javax.inject.Inject;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.Role;
@@ -60,20 +75,6 @@ import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.utils.RetryHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.inject.Inject;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
-import java.util.concurrent.Callable;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Provides topology related information as well as access to the core Ambari functionality.
@@ -149,15 +150,18 @@ public class AmbariContext {
     return getController().getActionManager().getTasks(ids);
   }
 
-  public void createAmbariResources(ClusterTopology topology, String clusterName, SecurityType securityType) {
+  public void createAmbariResources(ClusterTopology topology, String clusterName, SecurityType securityType, String repoVersion) {
     Stack stack = topology.getBlueprint().getStack();
-    createAmbariClusterResource(clusterName, stack.getName(), stack.getVersion(), securityType);
+
+    createAmbariClusterResource(clusterName, stack.getName(), stack.getVersion(), securityType, repoVersion);
     createAmbariServiceAndComponentResources(topology, clusterName);
   }
 
-  public void createAmbariClusterResource(String clusterName, String stackName, String stackVersion, SecurityType securityType) {
+  public void createAmbariClusterResource(String clusterName, String stackName, String stackVersion, SecurityType securityType, String repoVersion) {
     String stackInfo = String.format("%s-%s", stackName, stackVersion);
     final ClusterRequest clusterRequest = new ClusterRequest(null, clusterName, null, securityType, stackInfo, null);
+    clusterRequest.setRepositoryVersion(repoVersion);
+
     try {
       RetryHelper.executeWithRetry(new Callable<Object>() {
         @Override

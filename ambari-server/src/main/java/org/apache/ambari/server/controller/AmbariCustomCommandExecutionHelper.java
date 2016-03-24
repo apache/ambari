@@ -1044,9 +1044,25 @@ public class AmbariCustomCommandExecutionHelper {
    * @param cluster   the cluster to load the current version
    * @param jsonArray the array containing stack repo data
    */
-  private void updateBaseUrls(Cluster cluster, JsonArray jsonArray) {
+  private void updateBaseUrls(Cluster cluster, JsonArray jsonArray) throws AmbariException {
     ClusterVersionEntity cve = cluster.getCurrentClusterVersion();
+
+    if (null == cve) {
+      List<ClusterVersionEntity> list = clusterVersionDAO.findByClusterAndState(cluster.getClusterName(),
+          RepositoryVersionState.INIT);
+
+      if (!list.isEmpty()) {
+        if (list.size() > 1) {
+          throw new AmbariException(String.format("The cluster can only be initialized by one version: %s found",
+              list.size()));
+        } else {
+          cve = list.get(0);
+        }
+      }
+    }
+
     if (null == cve || null == cve.getRepositoryVersion()) {
+      LOG.info("Cluster {} has no specific Repository Versions.  Using stack-defined values", cluster.getClusterName());
       return;
     }
 

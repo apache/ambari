@@ -18,7 +18,32 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import com.google.gson.Gson;
+import static org.easymock.EasyMock.anyBoolean;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ClusterResponse;
@@ -53,29 +78,7 @@ import org.junit.Test;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-
-import static org.easymock.EasyMock.anyBoolean;
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.assertEquals;
+import com.google.gson.Gson;
 
 
 /**
@@ -775,4 +778,84 @@ public class ClusterResourceProviderTest {
     // verify
     verify(managementController, response, clusters);
   }
+
+  @Test
+  public void testCreateWithRepository() throws Exception {
+    Authentication authentication = TestAuthenticationFactory.createAdministrator();
+
+    Resource.Type type = Resource.Type.Cluster;
+
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Capture<ClusterRequest> cap = Capture.newInstance();
+
+    managementController.createCluster(capture(cap));
+    expectLastCall();
+
+    // replay
+    replay(managementController);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+        type,
+        PropertyHelper.getPropertyIds(type),
+        PropertyHelper.getKeyPropertyIds(type),
+        managementController);
+
+    // add the property map to a set for the request.  add more maps for multiple creates
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+
+    // Cluster 1: create a map of properties for the request
+    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    properties.put(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, "Cluster100");
+    properties.put(ClusterResourceProvider.CLUSTER_VERSION_PROPERTY_ID, "HDP-0.1");
+    properties.put(ClusterResourceProvider.CLUSTER_REPO_VERSION, "2.1.1");
+
+    propertySet.add(properties);
+
+    // create the request
+    Request request = PropertyHelper.getCreateRequest(propertySet, null);
+
+    provider.createResources(request);
+
+    // verify
+    verify(managementController);
+
+    assertTrue(cap.hasCaptured());
+    assertNotNull(cap.getValue());
+    assertEquals("2.1.1", cap.getValue().getRepositoryVersion());
+  }
+
+  @Test
+  public void testCreateResource_blueprint_withRepoVersion() throws Exception {
+    Authentication authentication = TestAuthenticationFactory.createAdministrator();
+
+    Set<Map<String, Object>> requestProperties = createBlueprintRequestProperties(CLUSTER_NAME, BLUEPRINT_NAME);
+    Map<String, Object> properties = requestProperties.iterator().next();
+    properties.put(ProvisionClusterRequest.REPO_VERSION_PROPERTY, "2.1.1");
+
+    Map<String, String> requestInfoProperties = new HashMap<>();
+    requestInfoProperties.put(Request.REQUEST_INFO_BODY_PROPERTY, "{}");
+
+    // set expectations
+    expect(request.getProperties()).andReturn(requestProperties).anyTimes();
+    expect(request.getRequestInfoProperties()).andReturn(requestInfoProperties).anyTimes();
+
+    expect(securityFactory.createSecurityConfigurationFromRequest(anyObject(HashMap.class), anyBoolean())).andReturn(null)
+        .once();
+    expect(topologyFactory.createProvisionClusterRequest(properties, null)).andReturn(topologyRequest).once();
+    expect(topologyManager.provisionCluster(topologyRequest)).andReturn(requestStatusResponse).once();
+    expect(requestStatusResponse.getRequestId()).andReturn(5150L).anyTimes();
+
+    replayAll();
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+
+    RequestStatus requestStatus = provider.createResources(request);
+    assertEquals(5150L, requestStatus.getRequestResource().getPropertyValue(PropertyHelper.getPropertyId("Requests", "id")));
+    assertEquals(Resource.Type.Request, requestStatus.getRequestResource().getType());
+    assertEquals("Accepted", requestStatus.getRequestResource().getPropertyValue(PropertyHelper.getPropertyId("Requests", "status")));
+
+    verifyAll();
+  }
+
 }

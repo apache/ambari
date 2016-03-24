@@ -17,9 +17,13 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import com.google.common.base.Enums;
-import com.google.common.base.Strings;
-import com.google.common.base.Optional;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.security.encryption.CredentialStoreType;
 import org.apache.ambari.server.stack.NoSuchStackException;
@@ -36,12 +40,9 @@ import org.apache.ambari.server.topology.TopologyValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import com.google.common.base.Enums;
+import com.google.common.base.Optional;
+import com.google.common.base.Strings;
 
 /**
  * Request for provisioning a cluster.
@@ -106,6 +107,12 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
   public static final String PROVISION_ACTION_PROPERTY = "provision_action";
 
   /**
+   * The repo version to use
+   */
+  public static final String REPO_VERSION_PROPERTY = "repository_version";
+
+
+  /**
    * configuration factory
    */
   private static ConfigurationFactory configurationFactory = new ConfigurationFactory();
@@ -129,6 +136,8 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
 
   private final ProvisionAction provisionAction;
 
+  private String repoVersion;
+
   private final static Logger LOG = LoggerFactory.getLogger(ProvisionClusterRequest.class);
 
   /**
@@ -141,6 +150,10 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
     InvalidTopologyTemplateException {
     setClusterName(String.valueOf(properties.get(
       ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID)));
+
+    if (properties.containsKey(REPO_VERSION_PROPERTY)) {
+      repoVersion = properties.get(REPO_VERSION_PROPERTY).toString();
+    }
 
     if (properties.containsKey(DEFAULT_PASSWORD_PROPERTY)) {
       defaultPassword = String.valueOf(properties.get(DEFAULT_PASSWORD_PROPERTY));
@@ -432,6 +445,13 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
    */
   public ProvisionAction getProvisionAction() {
     return provisionAction;
+  }
+
+  /**
+   * @return the repository version, if any
+   */
+  public String getRepositoryVersion() {
+    return repoVersion;
   }
 
 }

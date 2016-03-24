@@ -18,11 +18,11 @@
 
 package org.apache.ambari.server.controller;
 
-import org.apache.ambari.server.state.SecurityType;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.apache.ambari.server.state.SecurityType;
 
 /**
  * Used for create Cluster
@@ -54,6 +54,8 @@ public class ClusterRequest {
    * The cluster session attributes.
    */
   private final Map<String, Object> sessionAttributes;
+
+  private String repositoryVersion = null;
 
 
   // ----- Constructors ------------------------------------------------------
@@ -238,4 +240,19 @@ public class ClusterRequest {
   public void setServiceConfigVersionRequest(ServiceConfigVersionRequest serviceConfigVersionRequest) {
     this.serviceConfigVersionRequest = serviceConfigVersionRequest;
   }
+
+  /**
+   * @param version the repo version to use
+   */
+  public void setRepositoryVersion(String version) {
+    repositoryVersion = version;
+  }
+
+  /**
+   * @return the repo version to use
+   */
+  public String getRepositoryVersion() {
+    return repositoryVersion;
+  }
+
 }

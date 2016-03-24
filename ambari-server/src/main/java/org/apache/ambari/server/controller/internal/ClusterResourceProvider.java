@@ -17,7 +17,16 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import com.google.gson.Gson;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
@@ -37,9 +46,9 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
-import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.topology.InvalidTopologyException;
 import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
@@ -49,17 +58,7 @@ import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.topology.TopologyRequestFactory;
 import org.springframework.security.core.Authentication;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static org.apache.ambari.server.controller.internal.ProvisionClusterRequest.PROVISION_ACTION_PROPERTY;
+import com.google.gson.Gson;
 
 
 /**
@@ -84,6 +83,8 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
   public static final String SECURITY_PROPERTY_ID = PropertyHelper.getPropertyId(null, "security");
   public static final String CREDENTIALS_PROPERTY_ID = PropertyHelper.getPropertyId(null, "credentials");
   public static final String SESSION_ATTRIBUTES_PROPERTY_ID = "session_attributes";
+
+  public static final String CLUSTER_REPO_VERSION = "Clusters/repository_version";
 
   /**
    * The session attributes property prefix.
@@ -150,6 +151,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     propertyIds.add(SESSION_ATTRIBUTES_PROPERTY_ID);
     propertyIds.add(SECURITY_PROPERTY_ID);
     propertyIds.add(CREDENTIALS_PROPERTY_ID);
+    propertyIds.add(CLUSTER_REPO_VERSION);
   }
 
 
@@ -191,6 +193,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     baseUnsupported.remove("credentials");
     baseUnsupported.remove("config_recommendation_strategy");
     baseUnsupported.remove("provision_action");
+    baseUnsupported.remove(ProvisionClusterRequest.REPO_VERSION_PROPERTY);
 
     return checkConfigPropertyIds(baseUnsupported, "Clusters");
   }
@@ -414,6 +417,10 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
         (String) properties.get(CLUSTER_VERSION_PROPERTY_ID),
         null,
         getSessionAttributes(properties));
+
+    if (properties.containsKey(CLUSTER_REPO_VERSION)) {
+      cr.setRepositoryVersion(properties.get(CLUSTER_REPO_VERSION).toString());
+    }
 
     List<ConfigurationRequest> configRequests = getConfigurationRequests("Clusters", properties);
 

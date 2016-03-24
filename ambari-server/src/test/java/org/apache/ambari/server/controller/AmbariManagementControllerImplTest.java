@@ -18,81 +18,12 @@
 
 package org.apache.ambari.server.controller;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
-import com.google.gson.Gson;
-import com.google.inject.Binder;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Module;
-import com.google.inject.util.Modules;
-import junit.framework.Assert;
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.ClusterNotFoundException;
-import org.apache.ambari.server.HostNotFoundException;
-import org.apache.ambari.server.ParentObjectNotFoundException;
-import org.apache.ambari.server.ServiceComponentHostNotFoundException;
-import org.apache.ambari.server.ServiceComponentNotFoundException;
-import org.apache.ambari.server.ServiceNotFoundException;
-import org.apache.ambari.server.actionmanager.ActionDBAccessorImpl;
-import org.apache.ambari.server.actionmanager.ActionManager;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.internal.RequestStageContainer;
-import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
-import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
-import org.apache.ambari.server.orm.entities.LdapSyncSpecEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
-import org.apache.ambari.server.security.authorization.Users;
-import org.apache.ambari.server.security.authorization.internal.InternalAuthenticationToken;
-import org.apache.ambari.server.security.encryption.CredentialStoreService;
-import org.apache.ambari.server.security.encryption.CredentialStoreType;
-import org.apache.ambari.server.security.ldap.AmbariLdapDataPopulator;
-import org.apache.ambari.server.security.ldap.LdapBatchDto;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.ComponentInfo;
-import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.server.state.ConfigImpl;
-import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.MaintenanceState;
-import org.apache.ambari.server.state.PropertyInfo;
-import org.apache.ambari.server.state.RepositoryInfo;
-import org.apache.ambari.server.state.SecurityType;
-import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.ServiceComponent;
-import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.state.ServiceOsSpecific;
-import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.State;
-import org.easymock.Capture;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.springframework.security.core.context.SecurityContextHolder;
-
-import javax.persistence.RollbackException;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_DRIVER_FILENAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOST_SYS_PREPPED;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_VERSION;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.NOT_MANAGED_HDFS_PATH_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.NOT_MANAGED_HDFS_PATH_LIST;
 import static org.easymock.EasyMock.anyBoolean;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
@@ -113,6 +44,82 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+
+import javax.persistence.RollbackException;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.ClusterNotFoundException;
+import org.apache.ambari.server.HostNotFoundException;
+import org.apache.ambari.server.ParentObjectNotFoundException;
+import org.apache.ambari.server.ServiceComponentHostNotFoundException;
+import org.apache.ambari.server.ServiceComponentNotFoundException;
+import org.apache.ambari.server.ServiceNotFoundException;
+import org.apache.ambari.server.actionmanager.ActionDBAccessorImpl;
+import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.internal.RequestStageContainer;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
+import org.apache.ambari.server.orm.entities.LdapSyncSpecEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.security.authorization.Users;
+import org.apache.ambari.server.security.authorization.internal.InternalAuthenticationToken;
+import org.apache.ambari.server.security.encryption.CredentialStoreService;
+import org.apache.ambari.server.security.encryption.CredentialStoreType;
+import org.apache.ambari.server.security.ldap.AmbariLdapDataPopulator;
+import org.apache.ambari.server.security.ldap.LdapBatchDto;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.ConfigImpl;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.RepositoryInfo;
+import org.apache.ambari.server.state.RepositoryVersionState;
+import org.apache.ambari.server.state.SecurityType;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.ServiceOsSpecific;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.State;
+import org.easymock.Capture;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.springframework.security.core.context.SecurityContextHolder;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
+import com.google.gson.Gson;
+import com.google.inject.Binder;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.google.inject.util.Modules;
+
+import junit.framework.Assert;
 
 /**
  * AmbariManagementControllerImpl unit tests
@@ -2254,4 +2261,63 @@ public class AmbariManagementControllerImplTest {
 
     verify(injector, cluster, clusters, ambariMetaInfo, service, serviceComponent, serviceComponentHost, stackId);
   }
+
+  @Test
+  public void testCreateClusterWithRepository() throws Exception {
+    Injector injector = createNiceMock(Injector.class);
+
+    ClusterVersionDAO clusterVersionDAO = createNiceMock(ClusterVersionDAO.class);
+    expect(clusterVersionDAO.findByClusterAndStackAndVersion(anyObject(String.class),
+        anyObject(StackId.class), anyObject(String.class))).andReturn(null).once();
+
+    RepositoryVersionEntity repoVersion = createNiceMock(RepositoryVersionEntity.class);
+    RepositoryVersionDAO repoVersionDAO = createNiceMock(RepositoryVersionDAO.class);
+    expect(repoVersionDAO.findByStackAndVersion(anyObject(StackId.class),
+        anyObject(String.class))).andReturn(repoVersion).anyTimes();
+
+    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).atLeastOnce();
+    expect(injector.getInstance(Gson.class)).andReturn(null);
+    expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
+    expect(injector.getInstance(ClusterVersionDAO.class)).andReturn(clusterVersionDAO);
+
+    Cluster cluster = createNiceMock(Cluster.class);
+    expect(cluster.getDesiredStackVersion()).andReturn(new StackId("HDP-2.1")).atLeastOnce();
+
+    // this getting called one time means the cluster version is getting created
+    cluster.createClusterVersion(anyObject(StackId.class), anyObject(String.class), anyObject(String.class), anyObject(RepositoryVersionState.class));
+    expectLastCall().once();
+
+    expect(clusters.getCluster("c1")).andReturn(cluster).atLeastOnce();
+
+    StackInfo stackInfo = createNiceMock(StackInfo.class);
+    expect(stackInfo.getWidgetsDescriptorFileLocation()).andReturn(null).once();
+
+    expect(ambariMetaInfo.getStack("HDP", "2.1")).andReturn(stackInfo).atLeastOnce();
+
+    replay(injector, clusters, ambariMetaInfo, stackInfo, cluster, repoVersionDAO, repoVersion, clusterVersionDAO);
+
+    AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
+    setAmbariMetaInfo(ambariMetaInfo, controller);
+    Class<?> c = controller.getClass();
+
+    Field f = c.getDeclaredField("repositoryVersionDAO");
+    f.setAccessible(true);
+    f.set(controller, repoVersionDAO);
+
+    Properties p = new Properties();
+    p.setProperty("", "");
+    Configuration configuration = new Configuration(p);
+    f = c.getDeclaredField("configs");
+    f.setAccessible(true);
+    f.set(controller, configuration);
+
+    ClusterRequest cr = new ClusterRequest(null, "c1", "HDP-2.1", null);
+    cr.setRepositoryVersion("2.1.1.0-1234");
+    controller.createCluster(cr);
+
+    // verification
+    verify(injector, clusters, ambariMetaInfo, stackInfo, cluster, repoVersionDAO, repoVersion, clusterVersionDAO);
+  }
+
+
 }

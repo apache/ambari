@@ -238,7 +238,8 @@ public interface Cluster {
    * Create a cluster version for the given stack and version, whose initial
    * state must either be either {@link RepositoryVersionState#UPGRADING} (if no
    * other cluster version exists) or {@link RepositoryVersionState#INSTALLING}
-   * (if at exactly one CURRENT cluster version already exists).
+   * (if at exactly one CURRENT cluster version already exists) or {@link RepositoryVersionState#INIT}
+   * (if the cluster is being created using a specific repository version).
    *
    * @param stackId
    *          Stack ID
