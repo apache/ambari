@@ -5670,6 +5670,57 @@ public class BlueprintConfigurationProcessorTest {
   }
 
   @Test
+  public void testRecommendConfiguration_EmptyConfiguration_applyStackDefaultsOnly() throws Exception {
+    // GIVEN
+    //final String expectedHostName = "c6401.apache.ambari.org";
+    //final String expectedPortNum = "808080";
+    final String expectedHostGroupName = "host_group_1";
+
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    //Map<String, String> coreSiteMap = new HashMap<String, String>();
+    //properties.put("core-site", coreSiteMap);
+
+    Collection<String> hgComponents = new HashSet<String>();
+    hgComponents.add("NAMENODE");
+    hgComponents.add("SECONDARY_NAMENODE");
+    hgComponents.add("RESOURCEMANAGER");
+    TestHostGroup group1 = new TestHostGroup("group1", hgComponents, Collections.singleton("testhost"));
+
+    Collection<String> hgComponents2 = new HashSet<String>();
+    hgComponents2.add("DATANODE");
+    hgComponents2.add("HDFS_CLIENT");
+    TestHostGroup group2 = new TestHostGroup("group2", hgComponents2, Collections.singleton(expectedHostGroupName));
+
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group1);
+    hostGroups.add(group2);
+
+    Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
+
+    Configuration parentConfig = new Configuration(parentProperties,
+      Collections.<String, Map<String, Map<String, String>>>emptyMap(), createStackDefaults());
+
+    Configuration clusterConfig = new Configuration(properties,
+      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentConfig);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    topology.getAdvisedConfigurations().putAll(createAdvisedConfigMap());
+    topology.setConfigRecommendationStrategy(ConfigRecommendationStrategy.ONLY_STACK_DEFAULTS_APPLY);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+    reset(stack);
+    expect(stack.getConfiguration(bp.getServices())).andReturn(createStackDefaults()).anyTimes();
+    replay(stack);
+    // WHEN
+    configProcessor.doUpdateForClusterCreate();
+    // THEN
+    assertEquals("stackDefaultUpgraded", clusterConfig.getPropertyValue("core-site", "fs.stackDefault.key1"));
+    // verify that fs.stackDefault.key2 is removed
+    assertNull(clusterConfig.getPropertyValue("core-site", "fs.stackDefault.key2"));
+    // verify that fs.notStackDefault is filtered out
+    assertNull(clusterConfig.getPropertyValue("core-site", "fs.notStackDefault"));
+  }
+
+  @Test
   public void testRecommendConfiguration_applyAlways() throws Exception {
     // GIVEN
     final String expectedHostName = "c6401.apache.ambari.org";

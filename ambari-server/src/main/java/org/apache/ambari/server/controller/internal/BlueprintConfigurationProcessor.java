@@ -439,8 +439,12 @@ public class BlueprintConfigurationProcessor {
         String configType = advConfEntry.getKey();
         AdvisedConfiguration advisedConfig = advConfEntry.getValue();
         LOG.info("Update '{}' configurations with recommended configurations provided by the stack advisor.", configType);
-        doReplaceProperties(configuration, configType, advisedConfig, configTypesUpdated);
-        doRemovePropertiesIfNeeded(configuration, configType, advisedConfig, configTypesUpdated);
+        if (advisedConfig.getProperties() != null) {
+          doReplaceProperties(configuration, configType, advisedConfig, configTypesUpdated);
+        }
+        if (advisedConfig.getPropertyValueAttributes() != null) {
+          doRemovePropertiesIfNeeded(configuration, configType, advisedConfig, configTypesUpdated);
+        }
       }
     } else {
       LOG.info("No any recommended configuration applied. (strategy: {})", ConfigRecommendationStrategy.NEVER_APPLY);
@@ -459,9 +463,11 @@ public class BlueprintConfigurationProcessor {
       AdvisedConfiguration advisedConfiguration = adConfEntry.getValue();
       if (stackDefaultProps.containsKey(adConfEntry.getKey())) {
         Map<String, String> defaultProps = stackDefaultProps.get(adConfEntry.getKey());
-        Map<String, String> outFilteredProps = Maps.filterKeys(advisedConfiguration.getProperties(),
-          Predicates.not(Predicates.in(defaultProps.keySet())));
-        advisedConfiguration.getProperties().keySet().removeAll(Sets.newCopyOnWriteArraySet(outFilteredProps.keySet()));
+        if (advisedConfiguration.getProperties() != null) {
+          Map<String, String> outFilteredProps = Maps.filterKeys(advisedConfiguration.getProperties(),
+            Predicates.not(Predicates.in(defaultProps.keySet())));
+          advisedConfiguration.getProperties().keySet().removeAll(Sets.newCopyOnWriteArraySet(outFilteredProps.keySet()));
+        }
 
         if (advisedConfiguration.getPropertyValueAttributes() != null) {
           Map<String, ValueAttributesInfo> outFilteredValueAttrs = Maps.filterKeys(advisedConfiguration.getPropertyValueAttributes(),
