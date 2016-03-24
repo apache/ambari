@@ -29,7 +29,7 @@ import ConfigParser
 
 from ambari_commons import OSCheck
 from only_for_platform import get_platform, not_for_platform, only_for_platform, PLATFORM_WINDOWS, PLATFORM_LINUX
-from mock.mock import MagicMock, patch, ANY, Mock
+from mock.mock import MagicMock, patch, ANY, Mock, call
 
 if get_platform() != PLATFORM_WINDOWS:
   os_distro_value = ('Suse','11','Final')
@@ -207,13 +207,13 @@ class TestMain(unittest.TestCase):
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch("time.sleep")
   @patch.object(shellRunnerLinux,"run")
-  @patch("sys.exit")
   @patch("os.path.exists")
-  def test_daemonize_and_stop(self, exists_mock, sys_exit_mock, kill_mock, sleep_mock):
+  def test_daemonize_and_stop(self, exists_mock, kill_mock, sleep_mock):
     oldpid = ProcessHelper.pidfile
     pid = str(os.getpid())
     _, tmpoutfile = tempfile.mkstemp()
     ProcessHelper.pidfile = tmpoutfile
+    kill_mock.return_value = {'exitCode': 1}
 
     # Test daemonization
     main.daemonize()
@@ -223,21 +223,30 @@ class TestMain(unittest.TestCase):
     # Reuse pid file when testing agent stop
     # Testing normal exit
     exists_mock.return_value = False
-    main.stop_agent()
-    kill_mock.assert_called_with(['ambari-sudo.sh', 'kill', '-15', pid])
-    sys_exit_mock.assert_called_with(0)
+    try:
+      main.stop_agent()
+      raise Exception("main.stop_agent() should raise sys.exit(0).")
+    except SystemExit as e:
+      self.assertEquals(0, e.code);
+      
+    kill_mock.assert_any_call(['ambari-sudo.sh', 'kill', '-15', pid])
+    
 
     # Restore
     kill_mock.reset_mock()
-    sys_exit_mock.reset_mock()
     kill_mock.return_value = {'exitCode': 0, 'output': 'out', 'error': 'err'}
 
     # Testing exit when failed to remove pid file
     exists_mock.return_value = True
-    main.stop_agent()
+    
+    try:
+      main.stop_agent()
+      raise Exception("main.stop_agent() should raise sys.exit(0).")
+    except SystemExit as e:
+      self.assertEquals(1, e.code);
+
     kill_mock.assert_any_call(['ambari-sudo.sh', 'kill', '-15', pid])
     kill_mock.assert_any_call(['ambari-sudo.sh', 'kill', '-9', pid])
-    sys_exit_mock.assert_called_with(1)
 
     # Restore
     ProcessHelper.pidfile = oldpid
@@ -299,8 +308,8 @@ class TestMain(unittest.TestCase):
   @patch.object(main, "update_log_level")
   @patch.object(NetUtil.NetUtil, "try_to_connect")
   @patch.object(Controller, "__init__")
+  @patch.object(Controller, "is_alive")
   @patch.object(Controller, "start")
-  @patch.object(Controller, "join")
   @patch("optparse.OptionParser.parse_args")
   @patch.object(DataCleaner,"start")
   @patch.object(DataCleaner,"__init__")
@@ -308,13 +317,14 @@ class TestMain(unittest.TestCase):
   @patch.object(PingPortListener,"__init__")
   @patch.object(ExitHelper,"execute_cleanup")
   def test_main(self, cleanup_mock, ping_port_init_mock, ping_port_start_mock, data_clean_init_mock,data_clean_start_mock,
-                parse_args_mock, join_mock, start_mock, Controller_init_mock, try_to_connect_mock,
+                parse_args_mock, start_mock, Controller_is_alive_mock, Controller_init_mock, try_to_connect_mock,
                 update_log_level_mock, daemonize_mock, perform_prestart_checks_mock,
                 ambari_config_mock,
                 stop_mock, bind_signal_handlers_mock,
                 setup_logging_mock, socket_mock):
     data_clean_init_mock.return_value = None
     Controller_init_mock.return_value = None
+    Controller_is_alive_mock.return_value = False
     ping_port_init_mock.return_value = None
     options = MagicMock()
     parse_args_mock.return_value = (options, MagicMock)

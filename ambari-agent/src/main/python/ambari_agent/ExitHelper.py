@@ -64,6 +64,7 @@ class ExitHelper(object):
 
   def exit(self, code):
     self.execute_cleanup()
+    logger.info("Cleanup finished, exiting with code:" + str(code))
     os._exit(code)
 
 
