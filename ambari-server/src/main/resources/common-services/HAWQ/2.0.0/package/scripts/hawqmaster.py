@@ -47,19 +47,23 @@ class HawqMaster(Script):
     master_helper.configure_master()
 
   def start(self, env):
+    import params
     self.configure(env)
     common.validate_configuration()
-    master_helper.start_master()
+    master_helper.setup_passwordless_ssh()
+    common.start_component(hawq_constants.MASTER, params.hawq_master_address_port, params.hawq_master_dir)
 
   def stop(self, env):
-    master_helper.stop()
+    import params
+    common.stop_component(hawq_constants.MASTER, params.hawq_master_address_port, hawq_constants.FAST)
 
   def status(self, env):
     from hawqstatus import get_pid_file
     check_process_status(get_pid_file())
 
   def immediate_stop_hawq_service(self, env):
-    master_helper.stop(hawq_constants.IMMEDIATE, hawq_constants.CLUSTER)
+    import params
+    common.stop_component(hawq_constants.CLUSTER, params.hawq_master_address_port, hawq_constants.IMMEDIATE)
 
   def hawq_clear_cache(self, env):
     import params
