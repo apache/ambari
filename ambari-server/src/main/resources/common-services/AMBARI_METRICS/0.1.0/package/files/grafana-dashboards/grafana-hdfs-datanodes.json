@@ -1,5 +1,5 @@
 {
-  "id": 18,
+  "id": null,
   "title": "HDFS - DataNodes",
   "originalTitle": "HDFS - DataNodes",
   "tags": [
@@ -17,7 +17,7 @@
       "height": "25px",
       "panels": [
         {
-          "content": "<h4 align=\"center\">Metrics to see the status for the Datanodes on the HDFS cluster. Click on each row title to expand on demand to look at various metrics. </h4>",
+          "content": "<h4 align=\"center\">Metrics to see the status for the Datanodes on the HDFS cluster. Click on each row title to expand on demand to look at various metrics. </h4>\n<h6 style=\"color:red;\" align=\"center\">This dashboard is managed by Ambari.  You may lose any changes made to this dashboard.  If you want to customize, make your own copy.</h6>",
           "editable": true,
           "error": false,
           "id": 14,
@@ -43,7 +43,7 @@
           "datasource": "AMBARI_METRICS",
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -114,7 +114,7 @@
           "datasource": "AMBARI_METRICS",
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -194,7 +194,7 @@
           "datasource": "AMBARI_METRICS",
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -264,7 +264,7 @@
           "datasource": "AMBARI_METRICS",
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -344,7 +344,7 @@
           "datasource": "AMBARI_METRICS",
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -414,7 +414,7 @@
           "datasource": "AMBARI_METRICS",
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -494,7 +494,7 @@
           "datasource": "AMBARI_METRICS",
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -564,7 +564,7 @@
           "datasource": "AMBARI_METRICS",
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -644,7 +644,7 @@
           "datasource": "AMBARI_METRICS",
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -715,7 +715,7 @@
           "datasource": "AMBARI_METRICS",
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -795,7 +795,7 @@
           "datasource": "AMBARI_METRICS",
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -866,7 +866,7 @@
           "datasource": "AMBARI_METRICS",
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -993,10 +993,10 @@
         "type": "custom"
       },
       {
-        "allFormat": "wildcard",
+        "allFormat": "glob",
         "current": {
           "text": "All",
-          "value": "*"
+          "value": ""
         },
         "datasource": "AMBARI_METRICS",
         "includeAll": true,
@@ -1006,7 +1006,7 @@
         "options": [
           {
             "text": "All",
-            "value": "*",
+            "value": "",
             "selected": true
           }
         ],

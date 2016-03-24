@@ -1,5 +1,5 @@
 {
-  "id": 5,
+  "id": null,
   "title": "YARN - Applications",
   "originalTitle": "YARN - Applications",
   "tags": [
@@ -26,7 +26,7 @@
           "isNew": true,
           "id": 7,
           "mode": "html",
-          "content": "<h4 align=\"center\">Metrics to see the status of Applications on the YARN cluster. </h4>",
+          "content": "<h4 align=\"center\">Metrics to see the status of Applications on the YARN cluster. </h4>\n<h6 style=\"color:red;\" align=\"center\">This dashboard is managed by Ambari.  You may lose any changes made to this dashboard.  If you want to customize, make your own copy.</h6>",
           "style": {},
           "links": []
         }
@@ -43,7 +43,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -153,7 +153,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -234,7 +234,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -323,7 +323,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -394,7 +394,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,

@@ -1,5 +1,5 @@
 {
-  "id": 4,
+  "id": null,
   "title": "YARN - NodeManagers",
   "originalTitle": "YARN - NodeManagers",
   "tags": [
@@ -17,7 +17,7 @@
       "height": "25px",
       "panels": [
         {
-          "content": "<h4 align=\"center\">Metrics to see the status of NodeManagers on the YARN cluster. Click on each row title to expand on demand to look at various metrics. </h4>",
+          "content": "<h4 align=\"center\">Metrics to see the status of NodeManagers on the YARN cluster. Click on each row title to expand on demand to look at various metrics. </h4>\n<h6 style=\"color:red;\" align=\"center\">This dashboard is managed by Ambari.  You may lose any changes made to this dashboard.  If you want to customize, make your own copy.</h6>",
           "editable": true,
           "error": false,
           "id": 23,
@@ -43,7 +43,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -115,7 +115,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -185,7 +185,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -256,7 +256,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -335,7 +335,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -402,10 +402,10 @@
         {
           "aliasColors": {},
           "bars": false,
-          "datasource": "AMS",
+          "datasource": "",
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -485,10 +485,10 @@
         {
           "aliasColors": {},
           "bars": false,
-          "datasource": "AMS",
+          "datasource": "",
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -560,7 +560,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -627,10 +627,10 @@
         {
           "aliasColors": {},
           "bars": false,
-          "datasource": "AMS",
+          "datasource": "",
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -702,7 +702,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -781,7 +781,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -860,7 +860,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -930,7 +930,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -1000,7 +1000,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -1070,7 +1070,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -1149,7 +1149,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -1230,7 +1230,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -1300,7 +1300,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -1372,7 +1372,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -1451,7 +1451,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -1522,7 +1522,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -1648,11 +1648,10 @@
         "type": "custom"
       },
       {
-        "allFormat": "wildcard",
+        "allFormat": "glob",
         "current": {
           "text": "All",
-          "value": "*",
-          "tags": []
+          "value": ""
         },
         "datasource": null,
         "includeAll": true,
@@ -1661,9 +1660,9 @@
         "name": "hosts",
         "options": [
           {
-            "selected": true,
             "text": "All",
-            "value": "*"
+            "value": "",
+            "selected": true
           }
         ],
         "query": "hosts",
