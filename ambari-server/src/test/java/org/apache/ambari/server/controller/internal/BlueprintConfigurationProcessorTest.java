@@ -6845,6 +6845,39 @@ public class BlueprintConfigurationProcessorTest {
     assertEquals("host1:6188",
       clusterConfig.getPropertyValue("ams-site", "timeline.metrics.service.webapp.address"));
   }
+  @Test
+  public void testStackPasswordPropertyFilter() throws Exception{
+	Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+	Map<String, String> rangerAdminSiteProps = new HashMap<String, String>();
+	rangerAdminSiteProps.put("ranger.service.https.attrib.keystore.pass", "SECRET:admin-prp:1:ranger.service.pass");
+	properties.put("ranger-admin-site", rangerAdminSiteProps);
+	Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
+	Configuration parentClusterConfig = new Configuration(parentProperties,
+	Collections.<String, Map<String, Map<String, String>>>emptyMap());
+
+	Configuration clusterConfig = new Configuration(properties,
+	Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+	Collection<String> hgComponents = new HashSet<String>();
+	hgComponents.add("NAMENODE");
+        hgComponents.add("SECONDARY_NAMENODE");
+	hgComponents.add("RESOURCEMANAGER");
+	TestHostGroup group1 = new TestHostGroup("group1", hgComponents, Collections.singleton("testhost"));
+
+	Collection<String> hgComponents2 = new HashSet<String>();
+	hgComponents2.add("DATANODE");
+	hgComponents2.add("HDFS_CLIENT");
+	TestHostGroup group2 = new TestHostGroup("group2", hgComponents2, Collections.singleton("testhost2"));
+	Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+	hostGroups.add(group1);
+	hostGroups.add(group2);
+
+	expect(stack.isPasswordProperty((String) anyObject(),(String) anyObject(),(String) anyObject())).andReturn(true).once();
+	ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+	BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+	configProcessor.doUpdateForBlueprintExport();
+
+	assertFalse(properties.get("ranger-admin-site").containsKey("ranger.service.https.attrib.keystore.pass"));
+  }
 
   private Map<String, AdvisedConfiguration> createAdvisedConfigMap() {
     Map<String, AdvisedConfiguration> advMap = new HashMap<String, AdvisedConfiguration>();

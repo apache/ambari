@@ -163,7 +163,8 @@ public class BlueprintConfigurationProcessor {
       new SimplePropertyNameExportFilter("kdc_type", "kerberos-env"),
       new SimplePropertyNameExportFilter("ldap-url", "kerberos-env"),
       new SimplePropertyNameExportFilter("container_dn", "kerberos-env"),
-      new SimplePropertyNameExportFilter("domains", "krb5-conf")
+      new SimplePropertyNameExportFilter("domains", "krb5-conf"),
+      new StackPasswordPropertyFilter()
     };
 
   /**
@@ -2719,6 +2720,33 @@ public class BlueprintConfigurationProcessor {
     @Override
     public boolean isPropertyIncluded(String propertyName, String propertyValue, String configType, ClusterTopology topology) {
       return !PASSWORD_NAME_REGEX.matcher(propertyName).matches();
+    }
+  }
+  /**
+   * A Filter that excludes properties if in stack a property is marked as password property
+   *
+   */
+  private static class StackPasswordPropertyFilter implements PropertyFilter {
+
+    /**
+     * Query to determine if a given property should be included in a collection of
+     * properties.
+     *
+     * This implementation filters property if in stack configuration is the property type is password.
+     *
+     * @param propertyName property name
+     * @param propertyValue property value
+     * @param configType config type that contains this property
+     * @param topology cluster topology instance
+     *
+     * @return true if the property should be included
+     *         false if the property should not be included
+     */
+    @Override
+    public boolean isPropertyIncluded(String propertyName, String propertyValue, String configType, ClusterTopology topology) {
+        Stack stack = topology.getBlueprint().getStack();
+        final String serviceName = stack.getServiceForConfigType(configType);
+        return !stack.isPasswordProperty(serviceName, configType, propertyName);
     }
   }
 
