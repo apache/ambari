@@ -25,7 +25,7 @@ from resource_management.core import shell
 from resource_management.core.exceptions import Fail
 from resource_management.core.resources.system import File
 from resource_management.libraries.functions import format
-from resource_management.libraries.functions.get_user_call_output import get_user_call_output
+from resource_management.libraries.functions import get_user_call_output
 
 def prepare_war(params):
   """
@@ -58,7 +58,7 @@ def prepare_war(params):
     run_prepare_war = True
     Logger.info(format("Will run prepare war cmd since marker file {prepare_war_cmd_file} is missing."))
 
-  return_code, libext_content, error_output = get_user_call_output(list_libext_command, user=params.oozie_user)
+  return_code, libext_content, error_output = get_user_call_output.get_user_call_output(list_libext_command, user=params.oozie_user)
   libext_content = libext_content.strip()
 
   if run_prepare_war == False:
