@@ -26,7 +26,8 @@ from resource_management.libraries.resources.template_config import TemplateConf
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.script.script import Script
 from resource_management.core.source import Template
-from resource_management.libraries.functions import compare_versions
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions import StackFeature
 from storm_yaml_utils import yaml_config_template, yaml_config
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
@@ -131,7 +132,7 @@ def storm(name=None):
     TemplateConfig(format("{conf_dir}/storm_jaas.conf"),
                    owner=params.storm_user
     )
-    if params.stack_version_formatted != "" and compare_versions(params.stack_version_formatted, '2.2') >= 0:
+    if params.stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.stack_version_formatted):
       TemplateConfig(format("{conf_dir}/client_jaas.conf"),
                      owner=params.storm_user
       )

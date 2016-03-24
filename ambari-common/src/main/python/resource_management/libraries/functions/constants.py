@@ -48,4 +48,5 @@ class StackFeature:
   TEZ_FOR_SPARK = "tez_for_spark"
   SPARK_16PLUS = "spark_16plus"
   SPARK_THRIFTSERVER = "spark_thriftserver"
-    
+  STORM_KERBEROS = "storm_kerberos"
+  STORM_AMS = "storm_ams"

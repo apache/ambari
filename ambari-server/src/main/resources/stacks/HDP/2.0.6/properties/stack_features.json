@@ -46,6 +46,16 @@
       "name": "spark_thriftserver",
       "description": "Spark Thrift Server",
       "min_version": "2.3.2.0"
+    },
+    {
+      "name": "storm_kerberos",
+      "description": "Storm Kerberos support (AMBARI-7570)",
+      "min_version": "2.2.0.0"
+    },
+    {
+      "name": "storm_ams",
+      "description": "Storm AMS integration (AMBARI-10710)",
+      "min_version": "2.2.0.0"
     }
   ]
 }

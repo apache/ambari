@@ -46,7 +46,7 @@ ganglia:
   #spoof: "192.168.1.1:storm"
 {% endif %}
 
-{% if has_metric_collector and stack_is_hdp22_or_further %}
+{% if has_metric_collector and stack_supports_storm_ams %}
 enableGanglia: False
 
 ganglia:

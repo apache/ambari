@@ -27,6 +27,7 @@ from resource_management.core.resources.system import File
 from resource_management.core.resources.system import Execute
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.default import default
+from resource_management.libraries.functions.format import format
 
 class StormUpgrade(Script):
   """
@@ -68,9 +69,9 @@ class StormUpgrade(Script):
     zookeeper_data_cleared = False
     for storm_zookeeper_server in storm_zookeeper_server_list:
       # Determine where the zkCli.sh shell script is
-      zk_command_location = "/usr/hdp/current/zookeeper-client/bin/zkCli.sh"
+      zk_command_location = os.path.join(params.stack_root, "current", "zookeeper-client", "bin", "zkCli.sh")
       if params.version is not None:
-        zk_command_location = "/usr/hdp/{0}/zookeeper/bin/zkCli.sh".format(params.version)
+        zk_command_location = os.path.join(params.stack_root, params.version, "zookeeper", "bin", "zkCli.sh")
 
       # create the ZooKeeper delete command
       command = "{0} -server {1}:{2} rmr /storm".format(

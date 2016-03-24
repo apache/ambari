@@ -25,7 +25,6 @@ from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import format
 from resource_management.core.resources.system import Execute
-from resource_management.libraries.functions.version import compare_versions, format_stack_version
 
 from storm import storm
 from service import service
@@ -40,7 +39,8 @@ class StormRestApi(Script):
   """
 
   def get_stack_to_component(self):
-    return {"HDP": "storm-client"}
+    import params
+    return {params.stack_name : "storm-client"}
 
   def install(self, env):
     self.install_packages(env)

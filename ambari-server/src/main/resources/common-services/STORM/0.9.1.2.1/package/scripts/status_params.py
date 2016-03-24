@@ -20,6 +20,9 @@ limitations under the License.
 from resource_management.libraries.script import Script
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions import default, format
+from resource_management.libraries.functions.version import format_stack_version
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions import StackFeature
 from ambari_commons import OSCheck
 
 # a map of the Ambari role to the component name
@@ -35,6 +38,9 @@ SERVER_ROLE_DIRECTORY_MAP = {
 component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, "STORM_SERVICE_CHECK")
 
 config = Script.get_config()
+stack_root = Script.get_stack_root()
+stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 if OSCheck.is_windows_family():
   nimbus_win_service_name = "nimbus"
@@ -66,9 +72,9 @@ else:
 
   storm_component_home_dir = "/usr/lib/storm"
   conf_dir = "/etc/storm/conf"
-  if Script.is_stack_greater_or_equal("2.2"):
-    storm_component_home_dir = format("/usr/hdp/current/{component_directory}")
-    conf_dir = format("/usr/hdp/current/{component_directory}/conf")
+  if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
+    storm_component_home_dir = format("{stack_root}/current/{component_directory}")
+    conf_dir = format("{stack_root}/current/{component_directory}/conf")
 
   storm_user = config['configurations']['storm-env']['storm_user']
   storm_ui_principal = default('/configurations/storm-env/storm_ui_principal_name', None)

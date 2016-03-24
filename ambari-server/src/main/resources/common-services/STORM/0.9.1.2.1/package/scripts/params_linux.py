@@ -34,10 +34,13 @@ from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions import StackFeature
 
 # server configurations
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
+stack_root = status_params.stack_root
 sudo = AMBARI_SUDO_BINARY
 
 stack_name = default("/hostLevelParams/stack_name", None)
@@ -47,9 +50,11 @@ version = default("/commandParams/version", None)
 storm_component_home_dir = status_params.storm_component_home_dir
 conf_dir = status_params.conf_dir
 
-stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-stack_version_formatted = format_stack_version(stack_version_unformatted)
-stack_is_hdp22_or_further = Script.is_stack_greater_or_equal("2.2")
+stack_version_unformatted = status_params.stack_version_unformatted
+stack_version_formatted = status_params.stack_version_formatted
+stack_supports_ru = stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted)
+stack_supports_storm_kerberos = stack_version_formatted and check_stack_feature(StackFeature.STORM_KERBEROS, stack_version_formatted)
+stack_supports_storm_ams = stack_version_formatted and check_stack_feature(StackFeature.STORM_AMS, stack_version_formatted)
 
 # default hadoop params
 rest_lib_dir = "/usr/lib/storm/contrib/storm-rest"
@@ -57,7 +62,7 @@ storm_bin_dir = "/usr/bin"
 storm_lib_dir = "/usr/lib/storm/lib/"
 
 # hadoop parameters for 2.2+
-if stack_is_hdp22_or_further:
+if stack_supports_ru:
   rest_lib_dir = format("{storm_component_home_dir}/contrib/storm-rest")
   storm_bin_dir = format("{storm_component_home_dir}/bin")
   storm_lib_dir = format("{storm_component_home_dir}/lib")
@@ -122,29 +127,25 @@ if security_enabled:
   storm_jaas_principal = _storm_principal_name.replace('_HOST',_hostname_lowercase)
   storm_keytab_path = config['configurations']['storm-env']['storm_keytab']
 
-  if stack_is_hdp22_or_further:
+  if stack_supports_storm_kerberos:
     storm_ui_keytab_path = config['configurations']['storm-env']['storm_ui_keytab']
     _storm_ui_jaas_principal_name = config['configurations']['storm-env']['storm_ui_principal_name']
     storm_ui_jaas_principal = _storm_ui_jaas_principal_name.replace('_HOST',_hostname_lowercase)
-
     storm_bare_jaas_principal = get_bare_principal(_storm_principal_name)
-
     _nimbus_principal_name = config['configurations']['storm-env']['nimbus_principal_name']
     nimbus_jaas_principal = _nimbus_principal_name.replace('_HOST', _hostname_lowercase)
     nimbus_bare_jaas_principal = get_bare_principal(_nimbus_principal_name)
     nimbus_keytab_path = config['configurations']['storm-env']['nimbus_keytab']
 
 kafka_bare_jaas_principal = None
-if stack_is_hdp22_or_further:
+if stack_supports_storm_kerberos:
   if security_enabled:
     storm_thrift_transport = config['configurations']['storm-site']['_storm.thrift.secure.transport']
     # generate KafkaClient jaas config if kafka is kerberoized
     _kafka_principal_name = default("/configurations/kafka-env/kafka_principal_name", None)
     kafka_bare_jaas_principal = get_bare_principal(_kafka_principal_name)
-
   else:
     storm_thrift_transport = config['configurations']['storm-site']['_storm.thrift.nonsecure.transport']
-
 
 ams_collector_hosts = default("/clusterHostInfo/metrics_collector_hosts", [])
 has_metric_collector = not len(ams_collector_hosts) == 0
