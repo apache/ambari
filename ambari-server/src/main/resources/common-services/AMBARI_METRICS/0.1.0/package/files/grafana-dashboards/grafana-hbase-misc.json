@@ -1,5 +1,5 @@
 {
-  "id": 20,
+  "id": null,
   "title": "HBase - Misc",
   "originalTitle": "HBase - Misc",
   "tags": [
@@ -17,7 +17,7 @@
       "height": "25px",
       "panels": [
         {
-          "content": "<h4 align=\"center\">Miscellaneous metrics related to the HBase cluster for troubleshooting and other purposes. Click on each row title to expand on demand to look at various metrics. </h4>",
+          "content": "<h4 align=\"center\">Miscellaneous metrics related to the HBase cluster for troubleshooting and other purposes. Click on each row title to expand on demand to look at various metrics. </h4>\n<h6 style=\"color:red;\" align=\"center\">This dashboard is managed by Ambari.  You may lose any changes made to this dashboard.  If you want to customize, make your own copy.</h6>",
           "editable": true,
           "error": false,
           "id": 1,
@@ -44,7 +44,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -96,7 +96,7 @@
           "timeShift": null,
           "title": "Master - Regions In Transition",
           "tooltip": {
-            "shared": true,
+            "shared": false,
             "value_type": "cumulative"
           },
           "type": "graph",
@@ -113,7 +113,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -165,7 +165,7 @@
           "timeShift": null,
           "title": "Master - Regions In Transition Longer Than Threshold Time",
           "tooltip": {
-            "shared": true,
+            "shared": false,
             "value_type": "cumulative"
           },
           "type": "graph",
@@ -182,7 +182,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -234,7 +234,7 @@
           "timeShift": null,
           "title": "Regions In Transition Oldest Age",
           "tooltip": {
-            "shared": true,
+            "shared": false,
             "value_type": "cumulative"
           },
           "type": "graph",
@@ -260,7 +260,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -312,7 +312,7 @@
           "timeShift": null,
           "title": "Master Num Threads - Runnable",
           "tooltip": {
-            "shared": true,
+            "shared": false,
             "value_type": "cumulative"
           },
           "type": "graph",
@@ -329,7 +329,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -381,7 +381,7 @@
           "timeShift": null,
           "title": "RegionServer Num Threads - Runnable",
           "tooltip": {
-            "shared": true,
+            "shared": false,
             "value_type": "cumulative"
           },
           "type": "graph",
@@ -407,7 +407,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -459,7 +459,7 @@
           "timeShift": null,
           "title": "Master Num Threads - Blocked",
           "tooltip": {
-            "shared": true,
+            "shared": false,
             "value_type": "cumulative"
           },
           "type": "graph",
@@ -476,7 +476,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -528,7 +528,7 @@
           "timeShift": null,
           "title": "RegionServer Num Threads - Blocked",
           "tooltip": {
-            "shared": true,
+            "shared": false,
             "value_type": "cumulative"
           },
           "type": "graph",
@@ -554,7 +554,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -606,7 +606,7 @@
           "timeShift": null,
           "title": "Master Num Threads - Waiting",
           "tooltip": {
-            "shared": true,
+            "shared": false,
             "value_type": "cumulative"
           },
           "type": "graph",
@@ -623,7 +623,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -675,7 +675,7 @@
           "timeShift": null,
           "title": "RegionServer Num Threads - Waiting",
           "tooltip": {
-            "shared": true,
+            "shared": false,
             "value_type": "cumulative"
           },
           "type": "graph",
@@ -701,7 +701,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -753,7 +753,7 @@
           "timeShift": null,
           "title": "Master Num Threads - Timed Waiting",
           "tooltip": {
-            "shared": true,
+            "shared": false,
             "value_type": "cumulative"
           },
           "type": "graph",
@@ -770,7 +770,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -822,7 +822,7 @@
           "timeShift": null,
           "title": "RegionServer Num Threads - Timed Waiting",
           "tooltip": {
-            "shared": true,
+            "shared": false,
             "value_type": "cumulative"
           },
           "type": "graph",
@@ -848,7 +848,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -900,7 +900,7 @@
           "timeShift": null,
           "title": "Master Num Threads - New",
           "tooltip": {
-            "shared": true,
+            "shared": false,
             "value_type": "cumulative"
           },
           "type": "graph",
@@ -917,7 +917,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -969,7 +969,7 @@
           "timeShift": null,
           "title": "RegionServer Num Threads - New",
           "tooltip": {
-            "shared": true,
+            "shared": false,
             "value_type": "cumulative"
           },
           "type": "graph",
@@ -995,7 +995,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -1047,7 +1047,7 @@
           "timeShift": null,
           "title": "Master Num Threads - Terminated",
           "tooltip": {
-            "shared": true,
+            "shared": false,
             "value_type": "cumulative"
           },
           "type": "graph",
@@ -1064,7 +1064,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -1116,7 +1116,7 @@
           "timeShift": null,
           "title": "RegionServer Num Threads - Terminated",
           "tooltip": {
-            "shared": true,
+            "shared": false,
             "value_type": "cumulative"
           },
           "type": "graph",
@@ -1142,7 +1142,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -1195,7 +1195,7 @@
           "timeShift": null,
           "title": "RegionServer RPC Authentication Successes /s",
           "tooltip": {
-            "shared": true,
+            "shared": false,
             "value_type": "cumulative"
           },
           "type": "graph",
@@ -1212,7 +1212,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -1265,7 +1265,7 @@
           "timeShift": null,
           "title": "RegionServer RPC Authentication Failures /s",
           "tooltip": {
-            "shared": true,
+            "shared": false,
             "value_type": "cumulative"
           },
           "type": "graph",
@@ -1291,7 +1291,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -1344,7 +1344,7 @@
           "timeShift": null,
           "title": "RegionServer RPC Authorization Successes /s",
           "tooltip": {
-            "shared": true,
+            "shared": false,
             "value_type": "cumulative"
           },
           "type": "graph",
@@ -1361,7 +1361,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -1414,7 +1414,7 @@
           "timeShift": null,
           "title": "RegionServer RPC Authorization Failures /s",
           "tooltip": {
-            "shared": true,
+            "shared": false,
             "value_type": "cumulative"
           },
           "type": "graph",
@@ -1440,7 +1440,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -1493,7 +1493,7 @@
           "timeShift": null,
           "title": "Master Exceptions /s",
           "tooltip": {
-            "shared": true,
+            "shared": false,
             "value_type": "cumulative"
           },
           "type": "graph",
@@ -1510,7 +1510,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -1563,7 +1563,7 @@
           "timeShift": null,
           "title": "RegionServers Exceptions /s",
           "tooltip": {
-            "shared": true,
+            "shared": false,
             "value_type": "cumulative"
           },
           "type": "graph",
@@ -1622,7 +1622,7 @@
         "includeAll": false,
         "multi": false,
         "multiFormat": "glob",
-        "name": "component",
+        "name": "components",
         "options": [
           {
             "selected": true,
@@ -1635,10 +1635,10 @@
         "type": "custom"
       },
       {
-        "allFormat": "wildcard",
+        "allFormat": "glob",
         "current": {
           "text": "All",
-          "value": "*"
+          "value": ""
         },
         "datasource": null,
         "hideLabel": true,
@@ -1648,9 +1648,9 @@
         "name": "hosts",
         "options": [
           {
-            "selected": true,
             "text": "All",
-            "value": "*"
+            "value": "",
+            "selected": true
           }
         ],
         "query": "hosts",

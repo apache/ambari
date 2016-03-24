@@ -1,5 +1,5 @@
 {
-  "id": 6,
+  "id": null,
   "title": "YARN - ResourceManager",
   "originalTitle": "YARN - ResourceManager",
   "tags": [
@@ -26,7 +26,7 @@
           "isNew": true,
           "id": 12,
           "mode": "html",
-          "content": "<h4 align=\"center\">Metrics to see the status of ResourceManagers on the YARN cluster. Click on each row title to expand on demand to look at various metrics. </h4>",
+          "content": "<h4 align=\"center\">Metrics to see the status of ResourceManagers on the YARN cluster. Click on each row title to expand on demand to look at various metrics. </h4>\n<h6 style=\"color:red;\" align=\"center\">This dashboard is managed by Ambari.  You may lose any changes made to this dashboard.  If you want to customize, make your own copy.</h6>",
           "style": {},
           "links": []
         }
@@ -43,7 +43,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -125,7 +125,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -195,7 +195,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -274,7 +274,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -366,7 +366,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -456,7 +456,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -526,7 +526,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -605,7 +605,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -695,7 +695,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -765,7 +765,7 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 1,
+          "fill": 0,
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
@@ -890,10 +890,10 @@
         "type": "custom"
       },
       {
-        "allFormat": "wildcard",
+        "allFormat": "glob",
         "current": {
           "text": "All",
-          "value": "*"
+          "value": ""
         },
         "datasource": null,
         "includeAll": true,
@@ -903,7 +903,7 @@
         "options": [
           {
             "text": "All",
-            "value": "*",
+            "value": "",
             "selected": true
           }
         ],
