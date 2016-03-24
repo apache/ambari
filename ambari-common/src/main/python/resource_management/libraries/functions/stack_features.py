@@ -22,20 +22,57 @@ limitations under the License.
 import ambari_simplejson as json
 from resource_management.libraries.script import Script
 from resource_management.libraries.functions.default import default
-  
+from resource_management.libraries.functions.version import compare_versions
+
 _DEFAULT_STACK_FEATURES = {
   "stack_features": [
-    { "name": "snappy", "description" : "Snappy compressor/decompressor support" , "min_version" : "2.0.0.0" , "max_version" : "2.2.0.0" }
-    ,
-    { "name": "express_upgrade", "description" : "Express upgrade support", "min_version" : "2.1.0.0" }
-    ,
-    { "name": "rolling_upgrade", "description" : "Rolling upgrade support", "min_version" : "2.2.0.0" }
-    ,
-    { "name": "config_versioning", "description" : "Configurable versions support", "min_version" : "2.3.0.0" }
-    ,
-    { "name": "ranger", "description" : "Ranger Service support", "min_version" : "2.2.0.0" }
-    ,
-    { "name": "nfs", "description" : "NFS support", "min_version" : "2.3.0.0" }
+    {
+      "name": "snappy",
+      "description": "Snappy compressor/decompressor support",
+      "min_version": "2.0.0.0",
+      "max_version": "2.2.0.0"
+    },
+    {
+      "name": "express_upgrade",
+      "description": "Express upgrade support",
+      "min_version": "2.1.0.0"
+    },
+    {
+      "name": "rolling_upgrade",
+      "description": "Rolling upgrade support",
+      "min_version": "2.2.0.0"
+    },
+    {
+      "name": "config_versioning",
+      "description": "Configurable versions support",
+      "min_version": "2.3.0.0"
+    },
+    {
+      "name": "ranger",
+      "description": "Ranger Service support",
+      "min_version": "2.2.0.0"
+    },
+    {
+      "name": "nfs",
+      "description": "NFS support",
+      "min_version": "2.3.0.0"
+    },
+    {
+      "name": "tez_for_spark",
+      "description": "Tez dependency for Spark",
+      "min_version": "2.2.0.0",
+      "max_version": "2.3.0.0"
+    },
+    {
+      "name": "spark_16plus",
+      "description": "Spark 1.6+",
+      "min_version": "2.4.0.0"
+    },
+    {
+      "name": "spark_thriftserver",
+      "description": "Spark Thrift Server",
+      "min_version": "2.3.2.0"
+    }
   ]
 }
 
@@ -54,14 +91,14 @@ def check_stack_feature(stack_feature, stack_version):
   
   for feature in data["stack_features"]:
     if feature["name"] == stack_feature:
-        if "min_version" in feature:
-            min_version = feature["min_version"] 
-            if Script.is_stack_less_than(min_version):
-                return False
-        if "max_version" in feature:
-            max_version = feature["max_version"]
-            if Script.is_stack_greater_or_equal(max_version):
-                return False
-        return True 
+      if "min_version" in feature:
+        min_version = feature["min_version"]
+        if compare_versions(stack_version, min_version, format = True) < 0:
+          return False
+      if "max_version" in feature:
+        max_version = feature["max_version"]
+        if compare_versions(stack_version, max_version, format = True) >= 0:
+          return False
+      return True
         
   return False    

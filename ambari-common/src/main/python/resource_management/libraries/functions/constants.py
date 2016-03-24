@@ -45,4 +45,7 @@ class StackFeature:
   CONFIG_VERSIONING = "config_versioning"
   RANGER = "ranger"
   NFS = "nfs"
+  TEZ_FOR_SPARK = "tez_for_spark"
+  SPARK_16PLUS = "spark_16plus"
+  SPARK_THRIFTSERVER = "spark_thriftserver"
     

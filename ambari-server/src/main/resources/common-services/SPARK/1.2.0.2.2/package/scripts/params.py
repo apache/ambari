@@ -20,7 +20,8 @@ limitations under the License.
 
 
 import status_params
-
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions import StackFeature
 from setup_spark import *
 
 import resource_management.libraries.functions
@@ -49,6 +50,7 @@ config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
 stack_name = default("/hostLevelParams/stack_name", None)
+stack_root = Script.get_stack_root()
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
@@ -56,23 +58,16 @@ host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
 # New Cluster Stack Version that is defined during the RESTART of a Stack Upgrade
 version = default("/commandParams/version", None)
 
-# TODO! FIXME! Version check is not working as of today :
-#   $ yum list installed | grep <stack-selector-tool>
-#   <stack-selector-tool>.noarch                            2.2.1.0-2340.el6           @HDP-2.2
-# And stack_version_formatted returned from hostLevelParams/stack_version is : 2.2.0.0
-# Commenting out for time being
-#stack_is_hdp22_or_further = stack_version_formatted != "" and compare_versions(stack_version_formatted, '2.2.1.0') >= 0
-
 spark_conf = '/etc/spark/conf'
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 
-if Script.is_stack_greater_or_equal("2.2"):
+if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
   hadoop_home = stack_select.get_hadoop_dir("home")
-  spark_conf = format("/usr/hdp/current/{component_directory}/conf")
+  spark_conf = format("{stack_root}/current/{component_directory}/conf")
   spark_log_dir = config['configurations']['spark-env']['spark_log_dir']
   spark_pid_dir = status_params.spark_pid_dir
-  spark_home = format("/usr/hdp/current/{component_directory}")
+  spark_home = format("{stack_root}/current/{component_directory}")
 
 spark_thrift_server_conf_file = spark_conf + "/spark-thrift-sparkconf.conf"
 java_home = config['hostLevelParams']['java_home']

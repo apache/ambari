@@ -56,7 +56,8 @@ class ZookeeperClient(Script):
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class ZookeeperClientLinux(ZookeeperClient):
   def get_stack_to_component(self):
-    return {"HDP": "zookeeper-client"}
+    import params
+    return {params.stack_name : "zookeeper-client"}
 
   def install(self, env):
     self.install_packages(env)

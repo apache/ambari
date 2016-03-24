@@ -65,7 +65,8 @@ class ZookeeperServer(Script):
 class ZookeeperServerLinux(ZookeeperServer):
 
   def get_stack_to_component(self):
-    return {"HDP": "zookeeper-server"}
+    import params
+    return {params.stack_name : "zookeeper-server"}
 
   def install(self, env):
     self.install_packages(env)

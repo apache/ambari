@@ -21,11 +21,12 @@ import socket
 
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
-from resource_management.libraries.functions.version import compare_versions
 from resource_management.libraries.functions.copy_tarball import copy_to_hdfs
 from resource_management.libraries.functions import format
 from resource_management.core.resources.system import File, Execute
 from resource_management.libraries.functions.version import format_stack_version
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions import StackFeature
 
 def spark_service(name, upgrade_type=None, action=None):
   import params
@@ -36,7 +37,7 @@ def spark_service(name, upgrade_type=None, action=None):
     if effective_version:
       effective_version = format_stack_version(effective_version)
 
-    if effective_version and compare_versions(effective_version, '2.4.0.0') >= 0:
+    if effective_version and check_stack_feature(StackFeature.SPARK_16PLUS, effective_version):
       # copy spark-hdp-assembly.jar to hdfs
       copy_to_hdfs("spark", params.user_group, params.hdfs_user, host_sys_prepped=params.host_sys_prepped)
       # create spark history directory
@@ -56,7 +57,7 @@ def spark_service(name, upgrade_type=None, action=None):
 
     # Spark 1.3.1.2.3, and higher, which was included in HDP 2.3, does not have a dependency on Tez, so it does not
     # need to copy the tarball, otherwise, copy it.
-    if params.stack_version_formatted and compare_versions(params.stack_version_formatted, '2.3.0.0') < 0:
+    if params.stack_version_formatted and check_stack_feature(StackFeature.TEZ_FOR_SPARK, params.stack_version_formatted):
       resource_created = copy_to_hdfs("tez", params.user_group, params.hdfs_user, host_sys_prepped=params.host_sys_prepped)
       if resource_created:
         params.HdfsResource(None, action="execute")
