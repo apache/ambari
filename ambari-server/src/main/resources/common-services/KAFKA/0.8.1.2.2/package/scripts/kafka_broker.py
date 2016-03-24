@@ -25,6 +25,8 @@ from resource_management.libraries.functions import Direction
 from resource_management.libraries.functions.version import compare_versions, format_stack_version
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.check_process_status import check_process_status
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.stack_features import check_stack_feature
 from kafka import ensure_base_directories
 
 import upgrade
@@ -34,7 +36,8 @@ from setup_ranger_kafka import setup_ranger_kafka
 class KafkaBroker(Script):
 
   def get_stack_to_component(self):
-    return {"HDP": "kafka-broker"}
+    import params
+    return {params.stack_name : "kafka-broker"}
 
   def install(self, env):
     self.install_packages(env)
@@ -48,10 +51,10 @@ class KafkaBroker(Script):
     import params
     env.set_params(params)
 
-    if params.version and compare_versions(format_stack_version(params.version), '2.2.0.0') >= 0:
+    if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
       stack_select.select("kafka-broker", params.version)
 
-    if params.version and compare_versions(format_stack_version(params.version), '2.3.0.0') >= 0:
+    if params.version and check_stack_feature(StackFeature.CONFIG_VERSIONING, params.version):
       conf_select.select(params.stack_name, "kafka", params.version)
 
     # This is extremely important since it should only be called if crossing the HDP 2.3.4.0 boundary. 
@@ -65,6 +68,7 @@ class KafkaBroker(Script):
         src_version = format_stack_version(params.version)
         dst_version = format_stack_version(params.downgrade_from_version)
 
+      # TODO: How to handle the case of crossing stack version boundary in a stack agnostic way?
       if compare_versions(src_version, '2.3.4.0') < 0 and compare_versions(dst_version, '2.3.4.0') >= 0:
         # Calling the acl migration script requires the configs to be present.
         self.configure(env, upgrade_type=upgrade_type)

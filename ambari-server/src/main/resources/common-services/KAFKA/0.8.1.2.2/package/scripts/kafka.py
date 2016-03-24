@@ -20,12 +20,14 @@ limitations under the License.
 import collections
 import os
 
-from resource_management.libraries.functions.version import format_stack_version, compare_versions
+from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.resources.properties_file import PropertiesFile
 from resource_management.libraries.resources.template_config import TemplateConfig
 from resource_management.core.resources.system import Directory, Execute, File, Link
 from resource_management.core.source import StaticFile, Template, InlineTemplate
 from resource_management.libraries.functions import format
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions import StackFeature
 
 
 from resource_management.core.logger import Logger
@@ -42,14 +44,16 @@ def kafka(upgrade_type=None):
     effective_version = params.stack_version_formatted if upgrade_type is None else format_stack_version(params.version)
     Logger.info(format("Effective stack version: {effective_version}"))
 
-    if effective_version is not None and effective_version != "" and compare_versions(effective_version, '2.2.0.0') >= 0 and compare_versions(effective_version, '2.3.0.0') < 0:
+    if effective_version is not None and effective_version != "" and \
+      check_stack_feature(StackFeature.CREATE_KAFKA_BROKER_ID, effective_version):
       if len(params.kafka_hosts) > 0 and params.hostname in params.kafka_hosts:
         brokerid = str(sorted(params.kafka_hosts).index(params.hostname))
         kafka_server_config['broker.id'] = brokerid
         Logger.info(format("Calculating broker.id as {brokerid}"))
 
     # listeners and advertised.listeners are only added in 2.3.0.0 onwards.
-    if effective_version is not None and effective_version != "" and compare_versions(effective_version, '2.3.0.0') >= 0:
+    if effective_version is not None and effective_version != "" and \
+        check_stack_feature(StackFeature.KAFKA_LISTENERS, effective_version):
       listeners = kafka_server_config['listeners'].replace("localhost", params.hostname)
       Logger.info(format("Kafka listeners: {listeners}"))
 

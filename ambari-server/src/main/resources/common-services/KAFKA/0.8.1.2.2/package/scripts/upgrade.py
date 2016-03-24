@@ -56,10 +56,10 @@ def run_migration(env, upgrade_type):
   kafka_acls_script = None
   command_suffix = ""
   if params.upgrade_direction == Direction.UPGRADE:
-    kafka_acls_script = format("/usr/hdp/{version}/kafka/bin/kafka-acls.sh")
+    kafka_acls_script = format("{stack_root}/{version}/kafka/bin/kafka-acls.sh")
     command_suffix = "--upgradeAcls"
   elif params.upgrade_direction == Direction.DOWNGRADE:
-    kafka_acls_script = format("/usr/hdp/{downgrade_from_version}/kafka/bin/kafka-acls.sh")
+    kafka_acls_script = format("{stack_root}/{downgrade_from_version}/kafka/bin/kafka-acls.sh")
     command_suffix = "--downgradeAcls"
 
   if kafka_acls_script is not None:

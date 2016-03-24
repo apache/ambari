@@ -82,6 +82,22 @@ _DEFAULT_STACK_FEATURES = {
       "name": "storm_ams",
       "description": "Storm AMS integration (AMBARI-10710)",
       "min_version": "2.2.0.0"
+    },
+    {
+      "name": "create_kafka_broker_id",
+      "description": "Ambari should create Kafka Broker Id (AMBARI-12678)",
+      "min_version": "2.2.0.0",
+      "max_version": "2.3.0.0"
+    },
+    {
+      "name": "kafka_listeners",
+      "description": "Kafka listeners (AMBARI-10984)",
+      "min_version": "2.3.0.0"
+    },
+    {
+      "name": "kafka_kerberos",
+      "description": "Kafka Kerberos support (AMBARI-10984)",
+      "min_version": "2.3.0.0"
     }
   ]
 }
@@ -111,4 +127,4 @@ def check_stack_feature(stack_feature, stack_version):
           return False
       return True
         
-  return False    
+  return False
