@@ -136,8 +136,26 @@ public class ServiceComponentImpl implements ServiceComponent {
     desiredStateEntity = serviceComponentDesiredStateEntity;
     componentName = serviceComponentDesiredStateEntity.getComponentName();
 
+    StackId stackId = service.getDesiredStackVersion();
+    try {
+      ComponentInfo compInfo = ambariMetaInfo.getComponent(
+        stackId.getStackName(), stackId.getStackVersion(), service.getName(),
+        componentName);
+      isClientComponent = compInfo.isClient();
+      isMasterComponent = compInfo.isMaster();
+      isVersionAdvertised = compInfo.isVersionAdvertised();
+      displayName = compInfo.getDisplayName();
+    } catch (ObjectNotFoundException e) {
+      throw new AmbariException("Trying to create a ServiceComponent"
+        + " not recognized in stack info"
+        + ", clusterName=" + service.getCluster().getClusterName()
+        + ", serviceName=" + service.getName()
+        + ", componentName=" + componentName
+        + ", stackInfo=" + stackId.getStackId());
+    }
+
     hostComponents = new HashMap<String, ServiceComponentHost>();
-    for (HostComponentStateEntity hostComponentStateEntity : serviceComponentDesiredStateEntity.getHostComponentStateEntities()) {
+    for (HostComponentStateEntity hostComponentStateEntity : desiredStateEntity.getHostComponentStateEntities()) {
       HostComponentDesiredStateEntityPK pk = new HostComponentDesiredStateEntityPK();
       pk.setClusterId(hostComponentStateEntity.getClusterId());
       pk.setServiceName(hostComponentStateEntity.getServiceName());
@@ -150,30 +168,12 @@ public class ServiceComponentImpl implements ServiceComponent {
           serviceComponentHostFactory.createExisting(this,
             hostComponentStateEntity, hostComponentDesiredStateEntity));
       } catch(ProvisionException ex) {
-        StackId stackId = service.getCluster().getCurrentStackVersion();
+        StackId currentStackId = service.getCluster().getCurrentStackVersion();
         LOG.error(String.format("Can not get host component info: stackName=%s, stackVersion=%s, serviceName=%s, componentName=%s, hostname=%s",
-          stackId.getStackName(), stackId.getStackVersion(),
+          currentStackId.getStackName(), currentStackId.getStackVersion(),
           service.getName(),serviceComponentDesiredStateEntity.getComponentName(), hostComponentStateEntity.getHostName()));
         ex.printStackTrace();
       }
-    }
-
-    StackId stackId = service.getDesiredStackVersion();
-    try {
-      ComponentInfo compInfo = ambariMetaInfo.getComponent(
-          stackId.getStackName(), stackId.getStackVersion(), service.getName(),
-          componentName);
-      isClientComponent = compInfo.isClient();
-      isMasterComponent = compInfo.isMaster();
-      isVersionAdvertised = compInfo.isVersionAdvertised();
-      displayName = compInfo.getDisplayName();
-    } catch (ObjectNotFoundException e) {
-      throw new AmbariException("Trying to create a ServiceComponent"
-          + " not recognized in stack info"
-          + ", clusterName=" + service.getCluster().getClusterName()
-          + ", serviceName=" + service.getName()
-          + ", componentName=" + componentName
-          + ", stackInfo=" + stackId.getStackId());
     }
 
     persisted = true;
