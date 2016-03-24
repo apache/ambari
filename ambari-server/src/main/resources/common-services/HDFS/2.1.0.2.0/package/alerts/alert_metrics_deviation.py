@@ -316,7 +316,7 @@ def execute(configurations={}, parameters={}, host_name=None):
   metrics = [metric for metric in metrics if metric > (minimum_value_threshold * 1000)]
 
   if len(metrics) < 2:
-    return (RESULT_STATE_OK, ['No datapoints found above the minimum threshold of {0}'.format(minimum_value_threshold)])
+    return (RESULT_STATE_OK, ['No datapoints found above the minimum threshold of {0} seconds'.format(minimum_value_threshold)])
 
   mean = calculate_mean(metrics)
   stddev = calulate_sample_std_deviation(metrics)
