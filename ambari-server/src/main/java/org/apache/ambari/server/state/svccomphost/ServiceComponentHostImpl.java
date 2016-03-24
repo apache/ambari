@@ -498,6 +498,11 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_FAILED,
          new ServiceComponentHostOpCompletedTransition())
 
+     .addTransition(State.INSTALL_FAILED,
+         State.INSTALL_FAILED,
+         ServiceComponentHostEventType.HOST_SVCCOMP_OP_IN_PROGRESS,
+         new ServiceComponentHostOpInProgressTransition())
+
     .addTransition(State.INSTALLED,
          State.INSTALLED,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_SUCCEEDED,
