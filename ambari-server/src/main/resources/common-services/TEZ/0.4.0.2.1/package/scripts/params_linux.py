@@ -22,6 +22,8 @@ import os
 from resource_management.libraries.resources import HdfsResource
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
@@ -33,6 +35,7 @@ config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
 stack_name = default("/hostLevelParams/stack_name", None)
+stack_root = Script.get_stack_root()
 
 # This is expected to be of the form #.#.#.#
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
@@ -49,15 +52,16 @@ tez_etc_dir = "/etc/tez"
 config_dir = "/etc/tez/conf"
 tez_examples_jar = "/usr/lib/tez/tez-mapreduce-examples*.jar"
 
-# hadoop parameters for 2.2+
-if Script.is_stack_greater_or_equal("2.2"):
-  tez_examples_jar = "/usr/hdp/current/tez-client/tez-examples*.jar"
+# hadoop parameters for stacks that support rolling_upgrade
+if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
+  tez_examples_jar = "{stack_root}/current/tez-client/tez-examples*.jar"
 
-# tez only started linking <stack-root>/x.x.x.x/tez-client/conf in HDP 2.3+
-if Script.is_stack_greater_or_equal("2.3"):
+# tez only started linking <stack-root>/x.x.x.x/tez-client/conf in config_versioning
+if stack_version_formatted and check_stack_feature(StackFeature.CONFIG_VERSIONING, stack_version_formatted):
   # !!! use realpath for now since the symlink exists but is broken and a
   # broken symlink messes with the DirectoryProvider class
-  config_dir = os.path.realpath("/usr/hdp/current/tez-client/conf")
+  config_path = os.path.join(stack_root, "current/tez-client/conf")
+  config_dir = os.path.realpath(config_path)
 
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 security_enabled = config['configurations']['cluster-env']['security_enabled']
