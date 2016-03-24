@@ -754,6 +754,8 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
         }
       } else {
         // !!! revisit for PU
+        // If forcing to become CURRENT, get the Cluster Version whose state is CURRENT and make sure that
+        // the Host Version records for the same Repo Version are also marked as CURRENT.
         ClusterVersionEntity current = cluster.getCurrentClusterVersion();
 
         if (!current.getRepositoryVersion().equals(rve)) {

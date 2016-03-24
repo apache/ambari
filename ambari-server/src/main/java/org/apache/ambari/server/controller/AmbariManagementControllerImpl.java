@@ -2153,9 +2153,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         }
         commandParams.put(MAX_DURATION_OF_RETRIES, Integer.toString(retryMaxTime));
         commandParams.put(COMMAND_RETRY_ENABLED, Boolean.toString(retryEnabled));
-        ClusterVersionEntity currentClusterVersion = cluster.getCurrentClusterVersion();
-        if (currentClusterVersion != null) {
-         commandParams.put(VERSION, currentClusterVersion.getRepositoryVersion().getVersion());
+
+        ClusterVersionEntity effectiveClusterVersion = cluster.getEffectiveClusterVersion();
+        if (effectiveClusterVersion != null) {
+         commandParams.put(VERSION, effectiveClusterVersion.getRepositoryVersion().getVersion());
         }
         if (script.getTimeout() > 0) {
           scriptCommandTimeout = String.valueOf(script.getTimeout());
@@ -3582,7 +3583,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     } else {
       actionExecutionHelper.validateAction(actionRequest);
     }
-
+    // TODO Alejandro, Called First. insert params.version. Called during Rebalance HDFS, ZOOKEEPER Restart, Zookeeper Service Check.
     long requestId = actionManager.getNextRequestId();
     RequestStageContainer requestStageContainer = new RequestStageContainer(
         requestId,

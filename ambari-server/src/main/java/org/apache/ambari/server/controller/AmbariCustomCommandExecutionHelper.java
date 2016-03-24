@@ -246,6 +246,15 @@ public class AmbariCustomCommandExecutionHelper {
     return sb.toString();
   }
 
+  /**
+   * Called during the start/stop/restart of services, plus custom commands during Stack Upgrade.
+   * @param actionExecutionContext Execution Context
+   * @param resourceFilter Resource Filter
+   * @param stage Command stage
+   * @param additionalCommandParams Additional command params to add the the stage
+   * @param commandDetail String for the command detail
+   * @throws AmbariException
+   */
   private void addCustomCommandAction(final ActionExecutionContext actionExecutionContext,
       final RequestResourceFilter resourceFilter, Stage stage,
       Map<String, String> additionalCommandParams, String commandDetail) throws AmbariException {
@@ -414,15 +423,12 @@ public class AmbariCustomCommandExecutionHelper {
       }
 
       commandParams.put(COMMAND_TIMEOUT, commandTimeout);
-
-      commandParams.put(SERVICE_PACKAGE_FOLDER,
-          serviceInfo.getServicePackageFolder());
-
+      commandParams.put(SERVICE_PACKAGE_FOLDER, serviceInfo.getServicePackageFolder());
       commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
 
-      ClusterVersionEntity currentClusterVersion = cluster.getCurrentClusterVersion();
-      if (currentClusterVersion != null) {
-       commandParams.put(KeyNames.VERSION, currentClusterVersion.getRepositoryVersion().getVersion());
+      ClusterVersionEntity effectiveClusterVersion = cluster.getEffectiveClusterVersion();
+      if (effectiveClusterVersion != null) {
+       commandParams.put(KeyNames.VERSION, effectiveClusterVersion.getRepositoryVersion().getVersion());
       }
 
       execCmd.setCommandParams(commandParams);
@@ -635,9 +641,7 @@ public class AmbariCustomCommandExecutionHelper {
     }
 
     commandParams.put(COMMAND_TIMEOUT, commandTimeout);
-
-    commandParams.put(SERVICE_PACKAGE_FOLDER,
-        serviceInfo.getServicePackageFolder());
+    commandParams.put(SERVICE_PACKAGE_FOLDER, serviceInfo.getServicePackageFolder());
     commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
 
     execCmd.setCommandParams(commandParams);
@@ -959,7 +963,6 @@ public class AmbariCustomCommandExecutionHelper {
       } else if (isValidCustomCommand(actionExecutionContext, resourceFilter)) {
 
         String commandDetail = getReadableCustomCommandDetail(actionExecutionContext, resourceFilter);
-
         Map<String, String> extraParams = new HashMap<String, String>();
         String componentName = (null == resourceFilter.getComponentName()) ? null :
             resourceFilter.getComponentName().toLowerCase();
