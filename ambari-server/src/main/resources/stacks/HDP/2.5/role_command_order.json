@@ -3,6 +3,9 @@
   "_comment" : "blockedRole-blockedCommand: [blockerRole1-blockerCommand1, blockerRole2-blockerCommand2, ...]",
   "general_deps" : {
     "_comment" : "dependencies for all cases",
-    "ZEPPELIN_MASTER-START" : ["NAMENODE-START"]
+    "ZEPPELIN_MASTER-START" : ["NAMENODE-START"],
+    "HIVE_SERVER_INTERACTIVE-START": ["NODEMANAGER-START", "MYSQL_SERVER-START"],
+    "HIVE_SERVER_INTERACTIVE-RESTART": ["NODEMANAGER-RESTART", "MYSQL_SERVER-RESTART"],
+    "HIVE_SERVICE_CHECK-SERVICE_CHECK": ["HIVE_SERVER-START", "HIVE_METASTORE-START", "WEBHCAT_SERVER-START", "HIVE_SERVER_INTERACTIVE-START"]
   }
 }

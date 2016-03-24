@@ -102,7 +102,7 @@ else:
     webhcat_conf_dir = '/usr/hdp/current/hive-webhcat/etc/webhcat'
     hive_conf_dir = hive_server_conf_dir
 
-  if Script.is_stack_greater_or_equal("2.6"):
+  if Script.is_stack_greater_or_equal("2.5"):
     hive_server_interactive_conf_dir = format("/usr/hdp/current/{component_directory_interactive}/conf/conf.server")
 
   hive_config_dir = hive_client_conf_dir
