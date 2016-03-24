@@ -120,6 +120,32 @@ define([
               return $q.when({data: series});
             };
           };
+          // To speed up querying on templatized dashboards.
+          var allHostMetricsData = function (target) {
+            var alias = target.alias ? target.alias : target.metric;
+            return function (res) {
+              console.log('processing metric ' + target.metric);
+              if (!res.metrics[0] || target.hide) {
+                return $q.when(emptyData(target.metric));
+              }
+              var series = [];
+              var timeSeries = {};
+              var metricData = res.metrics;
+              _.map(metricData, function (data) {
+                timeSeries = {
+                  target: alias + ' on ' + data.hostname,
+                  datapoints: []
+                };
+                for (var k in data.metrics){
+                  if (data.metrics.hasOwnProperty(k)) {
+                    timeSeries.datapoints.push([data.metrics[k], (k - k % 1000)]);
+                  }
+                }
+                series.push(timeSeries);
+              });
+              return $q.when({data: series});
+            };
+          };
           var getHostAppIdData = function(target) {
             var precision = target.shouldAddPrecision && target.precision !== '' ? '&precision=' + target.precision : '';
             var rate = target.shouldComputeRate ? '._rate._' : '._';
@@ -149,7 +175,17 @@ define([
               getMetricsData(target)
             );
           };
-
+          // To speed up querying on templatized dashboards.
+          var getAllHostData = function(target) {
+            var precision = target.shouldAddPrecision && target.precision !== '' ? '&precision=' + target.precision : '';
+            var rate = target.shouldComputeRate ? '._rate._' : '._';
+            var templatedComponent = (_.isEmpty(tComponent)) ? target.app : tComponent;
+            return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.metric + rate
+              + target.aggregator + '&hostname=' + target.templatedHost + '&appId=' + templatedComponent + '&startTime=' + from +
+              '&endTime=' + to + precision).then(
+              allHostMetricsData(target)
+            );
+          };
           var getYarnAppIdData = function(target) {
             var precision = target.shouldAddPrecision && target.precision !== '' ? '&precision=' + target.precision : '';
             var rate = target.shouldComputeRate ? '._rate._' : '._';
@@ -193,31 +229,23 @@ define([
                 });
               }
             }
-            //All Hosts
-            if (!_.isEmpty(_.find(templatedHost, function (wildcard) { return wildcard === "*"; })))  {
-              var allHosts = templateSrv.variables.filter(function(variable) { return variable.name === "hosts"});
-              var allHost = allHosts[0].options.filter(function(all) {
-                return all.text !== "All"; }).map(function(hostName) { return hostName.value; });
-              _.forEach(allHost, function(processHost) {
-              metricsPromises.push(_.map(options.targets, function(target) {
-                target.templatedHost = processHost;
-                console.debug('target app=' + target.app + ',' +
-                  'target metric=' + target.metric + ' on host=' + target.templatedHost);
-                return getServiceAppIdData(target);
-              }));
-            });
-            } else {
-              // Single or multi selected hosts
-              _.forEach(templatedHost, function(processHost) {
-              metricsPromises.push(_.map(options.targets, function(target) {
-                target.templatedHost = processHost;
-                console.debug('target app=' + target.app + ',' +
-                  'target metric=' + target.metric + ' on host=' + target.templatedHost);
-                return getServiceAppIdData(target);
-              }));
-            });
+            // To speed up querying on templatized dashboards.
+            if (templateSrv.variables[1] && templateSrv.variables[1].name === "hosts") {
+              var splitHosts = [];
+              // Remove curly braces that Grafana adds. {host1,host2}
+              var allHosts = templateSrv._values.hosts.lastIndexOf('}') > 0 ? templateSrv._values.hosts.slice(1,-1) :
+                templateSrv._values.hosts;
+              var allHost = allHosts.split(',');
+              while (allHost.length > 0) {
+                splitHosts.push(allHost.splice(0,50));
+              }
+              _.forEach(splitHosts, function(splitHost) {
+                metricsPromises.push(_.map(options.targets, function(target) {
+                  target.templatedHost = _.flatten(splitHost).join(',');
+                  return getAllHostData(target);
+                }));
+              });
             }
-
             metricsPromises = _.flatten(metricsPromises);
           } else {
             // Non Templatized Dashboards
