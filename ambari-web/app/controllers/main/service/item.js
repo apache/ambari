@@ -1311,12 +1311,17 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     if (Em.isArray(data) && data.length) {
       this.putChangedConfigurations(data, 'onSaveConfigs');
     } else {
-      this.onSaveConfigs();
+      this.confirmServiceDeletion();
     }
   },
 
-  onSaveConfigs: function() {
-    window.location.reload();
+  confirmServiceDeletion: function() {
+    var msg = this.get('interDependentServices.length')
+      ? Em.I18n.t('services.service.delete.service.success.confirmation.plural').format(this.get('serviceNamesToDelete').join(','))
+      : Em.I18n.t('services.service.delete.service.success.confirmation').format(this.get('content.serviceName'));
+    return App.showAlertPopup(Em.I18n.t('popup.confirmation.commonHeader'), msg, function() {
+      window.location.reload();
+    })
   },
 
   /**
