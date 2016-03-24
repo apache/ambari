@@ -29,6 +29,7 @@ from ambari_commons import os_utils
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
 from resource_management.libraries.functions.get_user_call_output import get_user_call_output
+from resource_management.core.logger import Logger
 
 CURL_CONNECTION_TIMEOUT = '5'
 
@@ -85,16 +86,26 @@ class ServiceCheckDefault(ServiceCheck):
     import params
     env.set_params(params)
 
+    queue_for_check = params.yarn_default_queue_name
+    yarn_queue_list = params.yarn_scheduler_capacity_root_queues.split(",")
+    yarn_queue_list = list(filter(lambda x: x.strip(), yarn_queue_list))
+
+    if params.yarn_default_queue_name not in yarn_queue_list and len(yarn_queue_list) > 0:
+      queue_for_check = yarn_queue_list[0]
+      Logger.logger.info("No '{0}' queue present, using '{1}' instead".format(params.yarn_default_queue_name, queue_for_check))
+
     if params.hdp_stack_version_major != "" and compare_versions(params.hdp_stack_version_major, '2.2') >= 0:
       path_to_distributed_shell_jar = "/usr/hdp/current/hadoop-yarn-client/hadoop-yarn-applications-distributedshell.jar"
     else:
       path_to_distributed_shell_jar = "/usr/lib/hadoop-yarn/hadoop-yarn-applications-distributedshell*.jar"
 
+
     yarn_distrubuted_shell_check_cmd = format("yarn org.apache.hadoop.yarn.applications.distributedshell.Client "
                                               "-shell_command ls "
                                               "-num_containers {number_of_nm} "
                                               "-jar {path_to_distributed_shell_jar} "
-                                              "-timeout 300000")
+                                              "-timeout 300000"
+                                              "--queue {queue_for_check}")
 
     if params.security_enabled:
       kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal};")
