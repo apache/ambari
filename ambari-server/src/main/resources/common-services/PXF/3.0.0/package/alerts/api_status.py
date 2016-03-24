@@ -41,8 +41,6 @@ RESULT_STATE_WARNING = 'WARNING'
 
 PXF_PORT = 51200
 
-BASE_URL = "http://localhost:" + str(PXF_PORT) + "/pxf/"
-
 logger = logging.getLogger('ambari_alerts')
 
 commonPXFHeaders = {
@@ -110,12 +108,12 @@ def _makeHTTPCall(url, header={}, body=None):
     raise e
 
 
-def _get_pxf_protocol_version():
+def _get_pxf_protocol_version(base_url):
   """
   Gets the pxf protocol version number
   """
   logger.info("Fetching PXF protocol version")
-  url = BASE_URL + "ProtocolVersion"
+  url = base_url + "ProtocolVersion"
   try:
     response = _makeHTTPCall(url)
   except Exception as e:
@@ -133,6 +131,7 @@ def _get_pxf_protocol_version():
   raise Exception("version could not be found in response " + response)
 
 def execute(configurations={}, parameters={}, host_name=None):
+  BASE_URL = "http://{0}:{1}/pxf/".format(host_name, PXF_PORT)
   try:
     # Get delegation token if security is enabled
     if CLUSTER_ENV_SECURITY in configurations and configurations[CLUSTER_ENV_SECURITY].lower() == "true":
@@ -148,7 +147,7 @@ def execute(configurations={}, parameters={}, host_name=None):
                                      None)
       commonPXFHeaders.update({"X-GP-TOKEN": token})
 
-    if _get_pxf_protocol_version().startswith("v"):
+    if _get_pxf_protocol_version(BASE_URL).startswith("v"):
       return (RESULT_STATE_OK, ['PXF is functional'])
 
     message = "Unable to determine PXF version"
