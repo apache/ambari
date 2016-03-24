@@ -69,6 +69,9 @@ def setup_logging(logger, filename, logging_level):
   logger.setLevel(logging_level)
   logger.info("loglevel=logging.{0}".format(logging._levelNames[logging_level]))
 
+GRACEFUL_STOP_TRIES = 10
+GRACEFUL_STOP_TRIES_SLEEP = 3
+
 
 def add_syslog_handler(logger):
     
@@ -161,22 +164,26 @@ def daemonize():
   pid = str(os.getpid())
   file(ProcessHelper.pidfile, 'w').write(pid)
 
-
 def stop_agent():
 # stop existing Ambari agent
   pid = -1
   runner = shellRunner()
   try:
-    f = open(ProcessHelper.pidfile, 'r')
-    pid = f.read()
+    with open(ProcessHelper.pidfile, 'r') as f:
+      pid = f.read()
     pid = int(pid)
-    f.close()
+    
     runner.run([AMBARI_SUDO_BINARY, 'kill', '-15', str(pid)])
-    time.sleep(5)
-    if os.path.exists(ProcessHelper.pidfile):
-      raise Exception("PID file still exists.")
-    sys.exit(0)
+    for i in range(GRACEFUL_STOP_TRIES):
+      result = runner.run([AMBARI_SUDO_BINARY, 'kill', '-0', str(pid)])
+      if result['exitCode'] != 0:
+        logger.info("Agent died gracefully, exiting.")
+        sys.exit(0)
+      time.sleep(GRACEFUL_STOP_TRIES_SLEEP)
+    logger.info("Agent not going to die gracefully, going to execute kill -9")
+    raise Exception("Agent is running")
   except Exception, err:
+    #raise
     if pid == -1:
       print ("Agent process is not running")
     else:
@@ -306,7 +313,8 @@ def main(heartbeat_stop_callback=None):
         # Launch Controller communication
         controller = Controller(config, server_hostname, heartbeat_stop_callback)
         controller.start()
-        controller.join()
+        while controller.is_alive():
+          time.sleep(0.1)
 
       #
       # If Ambari Agent connected to the server or
@@ -314,9 +322,7 @@ def main(heartbeat_stop_callback=None):
       # Clean up if not Windows OS
       #
       if connected or stopped:
-        if not OSCheck.get_os_family() == OSConst.WINSRV_FAMILY:
-          ExitHelper().execute_cleanup()
-          stop_agent()
+        ExitHelper().exit(0)
         logger.info("finished")
         break
     pass # for server_hostname in server_hostnames
@@ -330,7 +336,9 @@ if __name__ == "__main__":
     heartbeat_stop_callback = bind_signal_handlers(agentPid)
   
     main(heartbeat_stop_callback)
-  except:
+  except SystemExit as e:
+    raise e
+  except BaseException as e:
     if is_logger_setup:
-      logger.exception("Fatal exception occurred:")
-    raise
+      logger.exception("Exiting with exception:" + e)
+  raise
