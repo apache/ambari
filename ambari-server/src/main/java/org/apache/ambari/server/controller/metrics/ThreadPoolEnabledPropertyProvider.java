@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.controller.metrics;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import org.apache.ambari.server.controller.internal.AbstractPropertyProvider;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -68,6 +70,10 @@ public abstract class ThreadPoolEnabledPropertyProvider extends AbstractProperty
    */
   protected long populateTimeout = DEFAULT_POPULATE_TIMEOUT_MILLIS;
   public static final String TIMED_OUT_MSG = "Timed out waiting for metrics.";
+
+  private static final Cache<String, Throwable> exceptionsCache = CacheBuilder.newBuilder()
+          .expireAfterWrite(5, TimeUnit.MINUTES)
+          .build();
 
   // ----- Constructors ------------------------------------------------------
 
@@ -221,10 +227,24 @@ public abstract class ThreadPoolEnabledPropertyProvider extends AbstractProperty
    *
    * @return the error message that was logged
    */
-  protected static String logException(Throwable throwable) {
-    String msg = "Caught exception getting JMX metrics : " + throwable.getLocalizedMessage();
+  protected static String logException(final Throwable throwable) {
+    final String msg = "Caught exception getting JMX metrics : " + throwable.getLocalizedMessage();
 
-    LOG.debug(msg, throwable);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(msg, throwable);
+    } else {
+      try {
+        exceptionsCache.get(msg, new Callable<Throwable>() {
+          @Override
+          public Throwable call() {
+            LOG.error(msg + ", skipping same exceptions for next 5 minutes", throwable);
+            return throwable;
+          }
+        });
+      } catch (ExecutionException ignored) {
+      }
+    }
+
 
     return msg;
   }
