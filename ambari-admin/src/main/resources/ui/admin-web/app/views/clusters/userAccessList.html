@@ -63,7 +63,7 @@
     <tbody>
     <tr ng-repeat="user in users">
       <td>
-        <a href="#/{{user.url}}">{{user.encoded_name}}</a>
+        <a href="#/{{user.url}}">{{user.principal_name}}</a>
       </td>
       <td>
         <div ng-show="!user.editable">{{user.permission_label}}</div>
