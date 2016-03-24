@@ -508,6 +508,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
       header: Em.I18n.t('installer.step4.ambariMetricsCheck.popup.header'),
       body: Em.I18n.t('installer.step4.ambariMetricsCheck.popup.body'),
       primary: Em.I18n.t('common.proceedAnyway'),
+      primaryClass: 'btn-warning',
       onPrimary: function () {
         self.onPrimaryPopupCallback(callback);
         this.hide();
