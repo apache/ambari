@@ -195,6 +195,9 @@ yarn_log_dir = format("{yarn_log_dir_prefix}/{yarn_user}")
 mapred_job_summary_log = format("{mapred_log_dir_prefix}/{mapred_user}/hadoop-mapreduce.jobsummary.log")
 yarn_job_summary_log = format("{yarn_log_dir_prefix}/{yarn_user}/hadoop-mapreduce.jobsummary.log")
 
+yarn_default_queue_name = "default"
+yarn_scheduler_capacity_root_queues = default("/configurations/capacity-scheduler/yarn.scheduler.capacity.root.queues", yarn_default_queue_name)
+
 user_group = config['configurations']['cluster-env']['user_group']
 
 #exclude file
