@@ -143,11 +143,7 @@ class TestHawqStandby(RMFTestCase):
 
 
   @patch ('hawqstandby.common.__set_osparams')
-  @patch ('hawqstandby.master_helper.__is_active_master')
-  @patch ('hawqstandby.master_helper.__is_standby_host')
-  def test_start_default(self, standby_host_mock, active_master_mock, set_osparams_mock):
-    standby_host_mock.return_value = True
-    active_master_mock.return_value = False
+  def test_start_default(self, set_osparams_mock):
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + '/scripts/hawqstandby.py',
         classname = 'HawqStandby',
@@ -159,18 +155,10 @@ class TestHawqStandby(RMFTestCase):
 
     self.__asserts_for_configure()
 
-    self.assertResourceCalled('Execute', 'source /usr/local/hawq/greenplum_path.sh && hawq ssh-exkeys -f /usr/local/hawq/etc/hawq_hosts -p gpadmin',
+    self.assertResourceCalled('Execute', 'source /usr/local/hawq/greenplum_path.sh && hawq init standby -a -v',
         logoutput = True,
         not_if = None,
         only_if = None,
-        user = self.GPADMIN,
-        timeout = 900
-        )
-
-    self.assertResourceCalled('Execute', 'source /usr/local/hawq/greenplum_path.sh && hawq init standby -a -v',
-        logoutput = True, 
-        not_if = None, 
-        only_if = None, 
         user = self.GPADMIN,
         timeout = 900
         )
@@ -178,9 +166,7 @@ class TestHawqStandby(RMFTestCase):
 
 
   @patch ('hawqstandby.common.__set_osparams')
-  @patch ('hawqstandby.master_helper.__is_active_master')
-  def test_stop_default(self, active_master_mock, set_osparams_mock):
-    active_master_mock.return_value = False
+  def test_stop_default(self, set_osparams_mock):
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + '/scripts/hawqstandby.py',
         classname = 'HawqStandby',

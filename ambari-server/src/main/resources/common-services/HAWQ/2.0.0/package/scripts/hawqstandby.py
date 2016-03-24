@@ -41,12 +41,14 @@ class HawqStandby(Script):
     master_helper.configure_master()
 
   def start(self, env):
+    import params
     self.configure(env)
     common.validate_configuration()
-    master_helper.start_master()
+    common.start_component(hawq_constants.STANDBY, params.hawq_master_address_port, params.hawq_master_dir)
 
   def stop(self, env):
-    master_helper.stop()
+    import params
+    common.stop_component(hawq_constants.STANDBY, params.hawq_master_address_port, hawq_constants.FAST)
 
   def status(self, env):
     from hawqstatus import get_pid_file

@@ -42,33 +42,19 @@ class HawqSegment(Script):
     env.set_params(hawq_constants)
     common.setup_user()
     common.setup_common_configurations()
+    common.create_master_dir(params.hawq_segment_dir)
     # temp directories are stateless and they should be recreated when configured (started)
     common.create_temp_dirs(params.hawq_segment_temp_dirs)
 
-
-  def __start_segment(self):
-    import params
-    return utils.exec_hawq_operation(
-          hawq_constants.START, 
-          "{0} -a -v".format(hawq_constants.SEGMENT), 
-          not_if=utils.chk_hawq_process_status_cmd(params.hawq_segment_address_port))
-
   def start(self, env):
+    import params
     self.configure(env)
     common.validate_configuration()
-
-    if self.__is_segment_initialized():
-      self.__start_segment()
-      return
-
-    # Initialization also starts process.
-    self.__init_segment()
-
+    common.start_component(hawq_constants.SEGMENT, params.hawq_segment_address_port, params.hawq_segment_dir)
 
   def stop(self, env, mode=hawq_constants.FAST):
     import params
-    utils.exec_hawq_operation(hawq_constants.STOP, "{0} -M {1} -a -v".format(hawq_constants.SEGMENT, mode), only_if=utils.chk_hawq_process_status_cmd(
-                                params.hawq_segment_address_port))
+    common.stop_component(hawq_constants.SEGMENT, params.hawq_segment_address_port, mode)
 
 
   def status(self, env):
@@ -76,24 +62,7 @@ class HawqSegment(Script):
     check_process_status(get_pid_file())
 
   def immediate_stop_hawq_segment(self, env):
-    self.stop(env, mode=hawq_constants.IMMEDIATE)
-
-
-  @staticmethod
-  def __init_segment():
-    import params
-    common.create_master_dir(params.hawq_segment_dir)
-
-    # Initialize hawq segment
-    utils.exec_hawq_operation(hawq_constants.INIT, "{0} -a -v".format(hawq_constants.SEGMENT))
-
-  def __is_segment_initialized(self):
-    """
-    Check whether the HAWQ Segment is initialized
-    """
-    import params
-    return os.path.exists(os.path.join(params.hawq_segment_dir, hawq_constants.postmaster_opts_filename))
-
+    self.stop(env, hawq_constants.IMMEDIATE)
 
 if __name__ == "__main__":
   HawqSegment().execute()
