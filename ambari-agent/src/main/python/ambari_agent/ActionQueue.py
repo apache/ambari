@@ -312,6 +312,22 @@ class ActionQueue(threading.Thread):
       'exitCode': commandresult['exitcode'],
       'status': status,
     })
+
+    if self.config.has_option("logging","log_command_executes"):
+        if roleResult['stdout'] != '':
+            logger.info("Begin command output log for command with id = " + command['taskId'] + ", role = "
+                        + command['role'] + ", roleCommand = " + command['roleCommand'])
+            logger.info(roleResult['stdout'])
+            logger.info("End command output log for command with id = " + command['taskId'] + ", role = "
+                        + command['role'] + ", roleCommand = " + command['roleCommand'])
+
+        if roleResult['stderr'] != '':
+            logger.info("Begin command stderr log for command with id = " + command['taskId'] + ", role = "
+                        + command['role'] + ", roleCommand = " + command['roleCommand'])
+            logger.info(roleResult['stderr'])
+            logger.info("End command stderr log for command with id = " + command['taskId'] + ", role = "
+                        + command['role'] + ", roleCommand = " + command['roleCommand'])
+
     if roleResult['stdout'] == '':
       roleResult['stdout'] = 'None'
     if roleResult['stderr'] == '':
