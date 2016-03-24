@@ -58,6 +58,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -924,6 +925,10 @@ public class ServiceResourceProviderTest {
     Map<String, ServiceComponent> scMap = new HashMap<String, ServiceComponent>();
     scMap.put("Component100", sc);
     State componentState = State.STARTED;
+    ServiceComponentHost sch = createNiceMock(ServiceComponentHost.class);
+    Map<String, ServiceComponentHost> schMap = new HashMap<>();
+    schMap.put("Host1", sch);
+    State schState = State.STARTED;
 
     String serviceName = "Service100";
 
@@ -937,9 +942,12 @@ public class ServiceResourceProviderTest {
     expect(sc.getDesiredState()).andReturn(componentState).anyTimes();
     expect(sc.getName()).andReturn("Component100").anyTimes();
     expect(sc.canBeRemoved()).andReturn(componentState.isRemovableState()).anyTimes();
+    expect(sc.getServiceComponentHosts()).andReturn(schMap).anyTimes();
+    expect(sch.getDesiredState()).andReturn(schState).anyTimes();
+    expect(sch.canBeRemoved()).andReturn(schState.isRemovableState()).anyTimes();
 
     // replay
-    replay(managementController, clusters, cluster, service, sc);
+    replay(managementController, clusters, cluster, service, sc, sch);
 
     SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
 
@@ -962,10 +970,10 @@ public class ServiceResourceProviderTest {
   }
 
   /*
-  If the components of a service are in a removable state, the service should be removable even if it's state is non-removable
+  If the host components of a service are in a removable state, the service should be removable even if it's state is non-removable
  */
   @Test
-  public void testDeleteResourcesStoppedComponentState() throws Exception {
+  public void testDeleteResourcesStoppedHostComponentState() throws Exception {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Clusters clusters = createNiceMock(Clusters.class);
     Cluster cluster = createNiceMock(Cluster.class);
@@ -987,16 +995,28 @@ public class ServiceResourceProviderTest {
     }
 
     //
-    // Set up three components in INSTALLED state, so that the service can be deleted, no matter what state the service is in
+    // Set up three components in STARTED state.
     //
-    TestComponent component1 = new TestComponent("Component100", createNiceMock(ServiceComponent.class), State.INSTALLED);
-    TestComponent component2 = new TestComponent("Component101", createNiceMock(ServiceComponent.class), State.INSTALLED);
-    TestComponent component3 = new TestComponent("Component102", createNiceMock(ServiceComponent.class), State.INSTALLED);
-    Map<String, ServiceComponent> scMap = new HashMap<String, ServiceComponent>();
+    TestComponent component1 = new TestComponent("Component100", createNiceMock(ServiceComponent.class), State.STARTED);
+    TestComponent component2 = new TestComponent("Component101", createNiceMock(ServiceComponent.class), State.STARTED);
+    TestComponent component3 = new TestComponent("Component102", createNiceMock(ServiceComponent.class), State.STARTED);
 
+    Map<String, ServiceComponent> scMap = new HashMap<String, ServiceComponent>();
     scMap.put(component1.Name, component1.Component);
     scMap.put(component2.Name, component2.Component);
     scMap.put(component3.Name, component3.Component);
+
+    Map<String, ServiceComponentHost> schMap1 = new HashMap<>();
+    ServiceComponentHost sch1 = createNiceMock(ServiceComponentHost.class);
+    schMap1.put("Host1", sch1);
+
+    Map<String, ServiceComponentHost> schMap2 = new HashMap<>();
+    ServiceComponentHost sch2 = createNiceMock(ServiceComponentHost.class);
+    schMap2.put("Host2", sch2);
+
+    Map<String, ServiceComponentHost> schMap3 = new HashMap<>();
+    ServiceComponentHost sch3 = createNiceMock(ServiceComponentHost.class);
+    schMap3.put("Host3", sch3);
 
     String clusterName = "Cluster100";
     String serviceName = "Service100";
@@ -1014,11 +1034,30 @@ public class ServiceResourceProviderTest {
     expect(component1.Component.canBeRemoved()).andReturn(component1.DesiredState.isRemovableState()).anyTimes();
     expect(component2.Component.canBeRemoved()).andReturn(component2.DesiredState.isRemovableState()).anyTimes();
     expect(component3.Component.canBeRemoved()).andReturn(component3.DesiredState.isRemovableState()).anyTimes();
+    expect(component1.Component.getServiceComponentHosts()).andReturn(schMap1).anyTimes();
+    expect(component2.Component.getServiceComponentHosts()).andReturn(schMap2).anyTimes();
+    expect(component3.Component.getServiceComponentHosts()).andReturn(schMap3).anyTimes();
+
+    // Put the SCH in INSTALLED state so that the service can be deleted,
+    // no matter what state the service component is in.
+    State sch1State = State.INSTALLED;
+    expect(sch1.getDesiredState()).andReturn(sch1State).anyTimes();
+    expect(sch1.canBeRemoved()).andReturn(sch1State.isRemovableState()).anyTimes();
+
+    State sch2State = State.INSTALLED;
+    expect(sch2.getDesiredState()).andReturn(sch2State).anyTimes();
+    expect(sch2.canBeRemoved()).andReturn(sch2State.isRemovableState()).anyTimes();
+
+    State sch3State = State.INSTALLED;
+    expect(sch3.getDesiredState()).andReturn(sch3State).anyTimes();
+    expect(sch3.canBeRemoved()).andReturn(sch3State.isRemovableState()).anyTimes();
+
     expect(service.getCluster()).andReturn(cluster);
     cluster.deleteService(serviceName);
 
     // replay
-    replay(managementController, clusters, cluster, service, component1.Component, component2.Component, component3.Component);
+    replay(managementController, clusters, cluster, service,
+            component1.Component, component2.Component, component3.Component, sch1, sch2, sch3);
 
     SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
 
@@ -1042,7 +1081,8 @@ public class ServiceResourceProviderTest {
     Assert.assertNull(lastEvent.getRequest());
 
     // verify
-    verify(managementController, clusters, cluster, service, component1.Component, component2.Component, component3.Component);
+    verify(managementController, clusters, cluster, service,
+            component1.Component, component2.Component, component3.Component, sch1, sch2, sch3);
   }
 
   @Test

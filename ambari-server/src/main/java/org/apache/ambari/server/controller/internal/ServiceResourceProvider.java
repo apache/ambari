@@ -776,15 +776,30 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
                 serviceRequest.getServiceName());
 
         //
-        // Run through the list of service components. If all components are in removable state,
+        // Run through the list of service component hosts. If all host components are in removable state,
         // the service can be deleted, irrespective of it's state.
         //
+        boolean isServiceRemovable = true;
+
         for (ServiceComponent sc : service.getServiceComponents().values()) {
-          if (!sc.canBeRemoved()) {
-            throw new AmbariException ("Cannot remove " +
-                    serviceRequest.getClusterName() + "/" + serviceRequest.getServiceName() +
-                    ". " + sc.getName() + " is in a non-removable state.");
+          Map<String, ServiceComponentHost> schHostMap = sc.getServiceComponentHosts();
+
+          for (Map.Entry<String, ServiceComponentHost> entry : schHostMap.entrySet()) {
+            ServiceComponentHost sch = entry.getValue();
+            if (!sch.canBeRemoved()) {
+              String msg = "Cannot remove " + serviceRequest.getClusterName() + "/" + serviceRequest.getServiceName() +
+                      ". " + sch.getServiceComponentName() + "on " + sch.getHost() + " is in " +
+                      String.valueOf(sch.getDesiredState()) + " state.";
+              LOG.error(msg);
+              isServiceRemovable = false;
+            }
           }
+        }
+
+        if (!isServiceRemovable) {
+          throw new AmbariException ("Cannot remove " +
+                  serviceRequest.getClusterName() + "/" + serviceRequest.getServiceName() +
+                    ". " + "One or more host components are in a non-removable state.");
         }
 
         removable.add(service);
