@@ -97,8 +97,8 @@
     <div class="span3 right-column">
       <div class="properties-list background-text">
         <div class="row-fluid">
-          <div class="span4 property-name">{{t alerts.table.state}}:</div>
-          <div class="span8">
+          <div class="span5 property-name">{{t alerts.table.state}}:</div>
+          <div class="span7">
             {{#if controller.content.enabled}}
               {{#isAuthorized "SERVICE.TOGGLE_ALERTS"}}
                 <a href="#" {{action "toggleState" controller.content target="controller"}} {{bindAttr class="controller.content.enabled:alert-definition-enable:alert-definition-disable"}}>
@@ -126,26 +126,26 @@
         </div>
         {{#if controller.content.serviceDisplayName}}
           <div class="row-fluid">
-            <div class="span4 property-name">{{t common.service}}:</div>
-            <div class="span8"><span>{{controller.content.serviceDisplayName}}</span></div>
+            <div class="span5 property-name">{{t common.service}}:</div>
+            <div class="span7"><span>{{controller.content.serviceDisplayName}}</span></div>
           </div>
         {{/if}}
         {{#if controller.content.componentNameFormatted}}
           <div class="row-fluid">
-            <div class="span4 property-name">{{t common.component}}:</div>
-            <div class="span8">{{controller.content.componentNameFormatted}}</div>
+            <div class="span5 property-name">{{t common.component}}:</div>
+            <div class="span7">{{controller.content.componentNameFormatted}}</div>
           </div>
         {{/if}}
         <div class="row-fluid">
-          <div class="span4 property-name">{{t common.type}}:</div>
-          <div class="span8">
+          <div class="span5 property-name">{{t common.type}}:</div>
+          <div class="span7">
             <span {{bindAttr class=":type-icon  controller.content.typeIconClass"}}></span> {{controller.content.type}}
           </div>
         </div>
         {{#if controller.groupsList.length}}
           <div class="row-fluid">
-            <div class="span4 property-name">{{t alerts.definition.details.groups}}:</div>
-            <div class="span8">
+            <div class="span5 property-name">{{t alerts.definition.details.groups}}:</div>
+            <div class="span7">
               <ul>
                 {{#each groupName in controller.groupsList}}
                   <li>{{groupName}}</li>
@@ -155,8 +155,8 @@
           </div>
         {{/if}}
         <div class="row-fluid">
-          <div class="span4 property-name">{{t alerts.table.header.lastTrigger}}:</div>
-          <div class="span8">{{controller.content.lastTriggeredFormatted}}</div>
+          <div class="span5 property-name">{{t alerts.table.header.lastTrigger}}:</div>
+          <div class="span7">{{controller.content.lastTriggeredFormatted}}</div>
         </div>
       </div>
     </div>
