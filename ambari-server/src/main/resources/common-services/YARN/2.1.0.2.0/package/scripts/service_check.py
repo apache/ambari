@@ -99,13 +99,13 @@ class ServiceCheckDefault(ServiceCheck):
     else:
       path_to_distributed_shell_jar = "/usr/lib/hadoop-yarn/hadoop-yarn-applications-distributedshell*.jar"
 
+    yarn_distrubuted_shell_check_params = ["yarn org.apache.hadoop.yarn.applications.distributedshell.Client",
+                                           "-shell_command", "ls", "-num_containers", "{number_of_nm}",
+                                           "-jar", "{path_to_distributed_shell_jar}",
+                                           "-jar", "{path_to_distributed_shell_jar}", "-timeout", "300000",
+                                           "--queue", "{queue_for_check}"]
 
-    yarn_distrubuted_shell_check_cmd = format("yarn org.apache.hadoop.yarn.applications.distributedshell.Client "
-                                              "-shell_command ls "
-                                              "-num_containers {number_of_nm} "
-                                              "-jar {path_to_distributed_shell_jar} "
-                                              "-timeout 300000"
-                                              "--queue {queue_for_check}")
+    yarn_distrubuted_shell_check_cmd = format(" ".join(yarn_distrubuted_shell_check_params))
 
     if params.security_enabled:
       kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal};")
