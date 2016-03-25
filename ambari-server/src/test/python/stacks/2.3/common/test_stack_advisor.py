@@ -1460,6 +1460,7 @@ class TestHDP23StackAdvisor(TestCase):
 
     # setup default configuration values
     services["configurations"]["hawq-site"] = {"properties": {"default_hash_table_bucket_number": "24",
+                                                              "hawq_rm_nvseg_perquery_limit": "512",
                                                               "hawq_rm_yarn_address": "localhost:8032",
                                                               "hawq_rm_yarn_scheduler_address": "localhost:8030"}}
 
@@ -1484,10 +1485,22 @@ class TestHDP23StackAdvisor(TestCase):
     # Test 2 - with 100 segments
     hawqSegmentComponent["hostnames"] = ["host" + str(i) for i in range(100)]
     self.stackAdvisor.recommendHAWQConfigurations(configurations, clusterData, services, None)
-    self.assertEquals(configurations["hawq-site"]["properties"]["default_hash_table_bucket_number"], str(100 * 6))
+    self.assertEquals(configurations["hawq-site"]["properties"]["default_hash_table_bucket_number"], str(100 * 5))
     self.assertEquals(configurations["hdfs-client"]["properties"]["output.replace-datanode-on-failure"], "true")
 
-    # Test 3 - with no segments
+    # Test 3 - with 512 segments
+    hawqSegmentComponent["hostnames"] = ["host" + str(i) for i in range(512)]
+    self.stackAdvisor.recommendHAWQConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations["hawq-site"]["properties"]["default_hash_table_bucket_number"], "512")
+    self.assertEquals(configurations["hdfs-client"]["properties"]["output.replace-datanode-on-failure"], "true")
+
+    # Test 4 - with 513 segments
+    hawqSegmentComponent["hostnames"] = ["host" + str(i) for i in range(513)]
+    self.stackAdvisor.recommendHAWQConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations["hawq-site"]["properties"]["default_hash_table_bucket_number"], "512")
+    self.assertEquals(configurations["hdfs-client"]["properties"]["output.replace-datanode-on-failure"], "true")
+
+    # Test 5 - with no segments
     configurations = {}
     services["configurations"]["hawq-site"] = {"properties":{'hawq-site': {'properties': {}}}}
     hawqSegmentComponent["hostnames"] = []
@@ -1887,6 +1900,44 @@ class TestHDP23StackAdvisor(TestCase):
     configurations["hawq-site"]["properties"]["hawq_master_address_port"] = "10432"
     problems = self.stackAdvisor.validateHAWQSiteConfigurations(properties, defaults, configurations, services, hosts)
     self.assertEqual(len(problems), 0)
+
+    # -------- test query limits warning ----------
+    services = {
+      "services":  [
+        { "StackServices": {"service_name": "HAWQ"},
+          "components": [{
+            "StackServiceComponents": {
+              "component_name": "HAWQSEGMENT",
+              "hostnames": []
+            }}]
+          }],
+      "configurations": {}
+    }
+    # setup default configuration values
+    configurations = services["configurations"]
+    configurations["hawq-site"] = {"properties": {"default_hash_table_bucket_number": "600",
+                                                  "hawq_rm_nvseg_perquery_limit": "500"}}
+    properties = configurations["hawq-site"]["properties"]
+    defaults = {}
+    hosts = {}
+
+    expected = {
+      'config-type': 'hawq-site',
+      'message': 'Default buckets for Hash Distributed tables parameter value should not be greater than the value of Virtual Segments Limit per Query (Total) parameter, currently set to 500.',
+      'type': 'configuration',
+      'config-name': 'default_hash_table_bucket_number',
+      'level': 'ERROR'
+    }
+    problems = self.stackAdvisor.validateHAWQSiteConfigurations(properties, defaults, configurations, services, hosts)
+    self.assertEqual(len(problems), 1)
+    self.assertEqual(problems[0], expected)
+
+    configurations["hawq-site"] = {"properties": {"default_hash_table_bucket_number": "500",
+                                                  "hawq_rm_nvseg_perquery_limit": "500"}}
+    properties = configurations["hawq-site"]["properties"]
+    problems = self.stackAdvisor.validateHAWQSiteConfigurations(properties, defaults, configurations, services, hosts)
+    self.assertEqual(len(problems), 0)
+
 
   def test_validateHAWQHdfsClientConfigurations(self):
     services = {

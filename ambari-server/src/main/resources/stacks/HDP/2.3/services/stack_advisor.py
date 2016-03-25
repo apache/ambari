@@ -676,9 +676,21 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       if self.isHawqMasterComponentOnAmbariServer(services) and "hawq_master_address_port" in hawq_site:
         putHawqSiteProperty('hawq_master_address_port', '')
 
-      # update default if segments are deployed
-      if numSegments and "default_hash_table_bucket_number" in hawq_site:
-        putHawqSiteProperty('default_hash_table_bucket_number', numSegments * 6)
+      # update query limits if segments are deployed
+      if numSegments and "default_hash_table_bucket_number" in hawq_site and "hawq_rm_nvseg_perquery_limit" in hawq_site:
+        factor_min = 1
+        factor_max = 6
+        limit = int(hawq_site["hawq_rm_nvseg_perquery_limit"])
+        factor = limit / numSegments
+        # if too many segments or default limit is too low --> stick with the limit
+        if factor < factor_min:
+          buckets = limit
+        # if the limit is large and results in factor > max --> limit factor to max
+        elif factor > factor_max:
+          buckets = factor_max * numSegments
+        else:
+          buckets = factor * numSegments
+        putHawqSiteProperty('default_hash_table_bucket_number', buckets)
 
       # update YARN RM urls with the values from yarn-site if YARN is installed
       if "YARN" in servicesList and "yarn-site" in services["configurations"]:
@@ -960,6 +972,13 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     if YARN not in servicesList and HAWQ_GLOBAL_RM_TYPE in hawq_site and hawq_site[HAWQ_GLOBAL_RM_TYPE].upper() == YARN:
       message = "{0} must be set to none if YARN service is not installed".format(HAWQ_GLOBAL_RM_TYPE)
       validationItems.append({"config-name": HAWQ_GLOBAL_RM_TYPE, "item": self.getErrorItem(message)})
+
+    # 5. Check query limits
+    if ("default_hash_table_bucket_number" in hawq_site and
+        "hawq_rm_nvseg_perquery_limit"     in hawq_site and
+        int(hawq_site["default_hash_table_bucket_number"]) > int(hawq_site["hawq_rm_nvseg_perquery_limit"])):
+      message = "Default buckets for Hash Distributed tables parameter value should not be greater than the value of Virtual Segments Limit per Query (Total) parameter, currently set to {0}.".format(hawq_site["hawq_rm_nvseg_perquery_limit"])
+      validationItems.append({"config-name": "default_hash_table_bucket_number", "item": self.getErrorItem(message)})
 
     return self.toConfigurationValidationProblems(validationItems, "hawq-site")
 
