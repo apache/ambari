@@ -58,6 +58,7 @@ def check_database(options):
   if not database_type:
     print_error_msg("Please run \"ambari-server setup\" command"
                     " to initialize ambari db properties.")
+    sys.exit(1)
 
   options.database_index = LINUX_DBMS_KEYS_LIST.index(properties[JDBC_DATABASE_PROPERTY])
 
