@@ -148,7 +148,7 @@ angular.module('ambariAdminConsole')
     if (updateRepoUrl && !$scope.deleteEnabled) {
       ConfirmationModal.show(
           $t('versions.changeBaseURLConfirmation.title'),
-          $t('versions.changeBaseURLConfirmationTip.message'),
+          $t('versions.changeBaseURLConfirmation.message'),
           $t('common.controls.confirmChange')
       ).then(function() {
         $scope.updateRepoVersions();
