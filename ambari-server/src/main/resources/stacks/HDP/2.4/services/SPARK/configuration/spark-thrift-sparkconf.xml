@@ -135,6 +135,14 @@
   </property>
 
   <property>
+    <name>spark.hadoop.cacheConf</name>
+    <value>false</value>
+    <description>
+      Specifies whether HadoopRDD caches the Hadoop configuration object
+    </description>
+  </property>
+
+  <property>
     <name>spark.dynamicAllocation.enabled</name>
     <value>true</value>
     <description>
