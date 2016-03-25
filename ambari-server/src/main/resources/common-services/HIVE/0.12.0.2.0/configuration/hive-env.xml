@@ -135,7 +135,6 @@
     <value-attributes>
       <type>directory</type>
       <overridable>false</overridable>
-      <editable-only-at-install>true</editable-only-at-install>
     </value-attributes>
   </property>
   <property>
