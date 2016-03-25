@@ -547,7 +547,7 @@ public class HeartbeatProcessor extends AbstractService{
               }
             }
 
-            LOG.warn("Operation failed - may be retried. Service component host: "
+            LOG.error("Operation failed - may be retried. Service component host: "
                 + schName + ", host: " + hostname + " Action id" + report.getActionId());
             if (actionManager.isInProgressCommand(report)) {
               scHost.handleEvent(new ServiceComponentHostOpFailedEvent

@@ -316,7 +316,7 @@ class ActionScheduler implements Runnable {
         }
 
         if (failed) {
-          LOG.warn("Operation completely failed, aborting request id: {}", stage.getRequestId());
+          LOG.error("Operation completely failed, aborting request id: {}", stage.getRequestId());
           cancelHostRoleCommands(stage.getOrderedHostRoleCommands(), FAILED_TASK_ABORT_REASONING);
           abortOperationsForStage(stage);
           return;
