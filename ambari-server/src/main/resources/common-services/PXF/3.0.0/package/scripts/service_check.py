@@ -147,7 +147,15 @@ class PXFServiceCheck(Script):
     """
     Runs a set of PXF HDFS checks
     """
+    import params
     Logger.info("Running PXF HDFS service checks")
+
+    # YARN is required to access HDFS through PXF if security is enabled
+    if params.security_enabled and not params.is_yarn_installed:
+      self.checks_failed += 1
+      Logger.error("HDFS test prerequisite Failed: PXF in a Kerberos-secured cluster requires YARN to be installed due to a dependency on YARN libraries.")
+      return
+
     try:
       self.__check_if_client_exists("Hadoop-HDFS")
       self.__cleanup_hdfs_data()

@@ -61,6 +61,9 @@ is_hbase_installed = default("/clusterHostInfo/hbase_master_hosts", None) is not
 #Hive
 is_hive_installed = default("/clusterHostInfo/hive_server_host", None) is not None
 
+#YARN
+is_yarn_installed = default("/clusterHostInfo/rm_host", None) is not None
+
 # HDFS
 hdfs_site = config['configurations']['hdfs-site']
 default_fs = config['configurations']['core-site']['fs.defaultFS']
