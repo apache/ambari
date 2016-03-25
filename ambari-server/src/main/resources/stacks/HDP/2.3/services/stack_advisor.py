@@ -460,6 +460,9 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     putRangerKmsDbksProperty = self.putProperty(configurations, "dbks-site", services)
     putRangerKmsProperty = self.putProperty(configurations, "kms-properties", services)
+    kmsEnvProperties = getSiteProperties(services['configurations'], 'kms-env')
+    putCoreSiteProperty = self.putProperty(configurations, "core-site", services)
+    putCoreSitePropertyAttribute = self.putPropertyAttribute(configurations, "core-site")
 
     if 'kms-properties' in services['configurations'] and ('DB_FLAVOR' in services['configurations']['kms-properties']['properties']):
 
@@ -491,6 +494,15 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
         rangerKmsDbProperties = ranger_kms_db_url_dict.get(rangerKmsDbFlavor, ranger_kms_db_url_dict['MYSQL'])
         for key in rangerKmsDbProperties:
           putRangerKmsDbksProperty(key, rangerKmsDbProperties.get(key))
+
+    if kmsEnvProperties and self.checkSiteProperties(kmsEnvProperties, 'kms_user') and 'KERBEROS' in servicesList:
+      kmsUser = kmsEnvProperties['kms_user']
+      kmsUserOld = getOldValue(self, services, 'kms-env', 'kms_user')
+      putCoreSiteProperty('hadoop.proxyuser.{0}.groups'.format(kmsUser), '*')
+      if kmsUserOld is not None and kmsUser != kmsUserOld:
+        putCoreSitePropertyAttribute("hadoop.proxyuser.{0}.groups".format(kmsUserOld), 'delete', 'true')
+        services["forced-configurations"].append({"type" : "core-site", "name" : "hadoop.proxyuser.{0}.groups".format(kmsUserOld)})
+        services["forced-configurations"].append({"type" : "core-site", "name" : "hadoop.proxyuser.{0}.groups".format(kmsUser)})
 
   def recommendRangerConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP23StackAdvisor, self).recommendRangerConfigurations(configurations, clusterData, services, hosts)
@@ -1025,7 +1037,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
         validationItems.append({"config-name": PROP_NAME, "item": self.getWarnItem(message.format(PROP_NAME, str(limit)))})
 
     return self.toConfigurationValidationProblems(validationItems, "hdfs-client")
-  
+
   def isComponentUsingCardinalityForLayout(self, componentName):
     return componentName in ['NFS_GATEWAY', 'PHOENIX_QUERY_SERVER', 'SPARK_THRIFTSERVER']
 

@@ -18,6 +18,7 @@ limitations under the License.
 
 """
 import os
+from resource_management.libraries.functions import conf_select
 from resource_management.libraries.script import Script
 from resource_management.libraries.functions.version import format_stack_version, compare_versions
 from resource_management.libraries.functions.format import format
@@ -33,11 +34,13 @@ stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 stack_is_hdp23_or_further = Script.is_stack_greater_or_equal("2.3")
+hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
+security_enabled = config['configurations']['cluster-env']['security_enabled']
 
 if stack_is_hdp23_or_further:
   kms_home = '/usr/hdp/current/ranger-kms'
   kms_conf_dir = '/usr/hdp/current/ranger-kms/conf'
-  
+
 kms_log_dir = default("/configurations/kms-env/kms_log_dir", "/var/log/ranger/kms")
 java_home = config['hostLevelParams']['java_home']
 kms_user  = default("/configurations/kms-env/kms_user", "kms")

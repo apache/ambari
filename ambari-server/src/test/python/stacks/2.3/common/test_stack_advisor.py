@@ -2215,3 +2215,107 @@ class TestHDP23StackAdvisor(TestCase):
     problems = self.stackAdvisor.validateHAWQHdfsClientConfigurations(properties, defaults, configurations, services, hosts)
     self.assertEqual(len(problems), 1)
     self.assertEqual(problems[0], expected)
+
+  def test_recommendRangerKMSConfigurations(self):
+    clusterData = {}
+    services = {
+      "Versions": {
+        "stack_version" : "2.3",
+        },
+      "services": [
+        {
+          "StackServices": {
+            "service_name": "RANGER",
+            "service_version": "0.5.0.2.3"
+          },
+          "components": [
+            {
+              "StackServiceComponents": {
+                "component_name": "RANGER_ADMIN",
+                "hostnames": ["host1"]
+              }
+            }
+          ]
+        }
+        ],
+      "configurations": {
+        "kms-env": {
+          "properties": {
+            "kms_user": "kmsname"
+            }
+        },
+        "core-site": {
+          "properties": {
+          }
+        }
+      },
+      "forced-configurations": []
+    }
+    expected = {
+      'kms-properties': {
+        'properties': {}
+      },
+      'dbks-site': {
+        'properties': {}
+      },
+      'core-site': {
+        'properties': {
+        }
+      }
+    }
+
+    # non kerberized cluster. There should be no proxyuser configs
+    recommendedConfigurations = {}
+    self.stackAdvisor.recommendRangerKMSConfigurations(recommendedConfigurations, clusterData, services, None)
+    self.assertEquals(recommendedConfigurations, expected)
+
+    # kerberized cluster
+    services['services'].append({
+      "StackServices": {
+        "service_name": "KERBEROS"
+      }
+    })
+
+    expected = {
+      'kms-properties': {
+        'properties': {}
+      },
+      'dbks-site': {
+        'properties': {}
+      },
+      'core-site': {
+        'properties': {
+          'hadoop.proxyuser.kmsname.groups': '*'
+        }
+      }
+    }
+
+    # on kerberized cluster property should be recommended
+    recommendedConfigurations = {}
+    self.stackAdvisor.recommendRangerKMSConfigurations(recommendedConfigurations, clusterData, services, None)
+    self.assertEquals(recommendedConfigurations, expected)
+
+    recommendedConfigurations = {}
+    services['changed-configurations'] = [
+      {
+        'type': 'kms-env',
+        'name': 'kms_user',
+        'old_value': 'kmsname'
+      }
+    ]
+    services['configurations']['kms-env']['properties']['kms_user'] = 'kmsnew'
+
+    expected['core-site'] = {
+      'properties': {
+        'hadoop.proxyuser.kmsnew.groups': '*'
+      },
+      'property_attributes': {
+        'hadoop.proxyuser.kmsname.groups': {
+          'delete': 'true'
+        }
+      }
+    }
+
+    # kms_user was changed, old property should be removed
+    self.stackAdvisor.recommendRangerKMSConfigurations(recommendedConfigurations, clusterData, services, None)
+    self.assertEquals(recommendedConfigurations, expected)

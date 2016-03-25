@@ -256,6 +256,16 @@ def kms(upgrade_type=None):
       content=params.kms_log4j,
       mode=0644
     )
+    if params.stack_is_hdp23_or_further and params.security_enabled:
+      # core-site.xml linking required by setup for HDFS encryption
+      XmlConfig("core-site.xml",
+        conf_dir=params.kms_conf_dir,
+        configurations=params.config['configurations']['core-site'],
+        configuration_attributes=params.config['configuration_attributes']['core-site'],
+        owner=params.kms_user,
+        group=params.kms_group,
+        mode=0644
+      )
 
 def copy_jdbc_connector(stack_version=None):
   import params
