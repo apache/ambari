@@ -809,9 +809,9 @@ App.ConfigsSaverMixin = Em.Mixin.create({
           dfd.done(function() {
             if (doConfigActions && self.doConfigActions) {
               self.doConfigActions.bind(self)();
-              if (flag) {
-                self.loadStep();
-              }
+            }
+            if (flag) {
+              self.loadStep();
             }
           });
         },
