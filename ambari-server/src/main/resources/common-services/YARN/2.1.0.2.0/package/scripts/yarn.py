@@ -20,7 +20,6 @@ Ambari Agent
 """
 
 from resource_management import *
-import sys
 import os
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
@@ -71,7 +70,16 @@ def yarn(name = None):
                            mode=0777,
                            recursive_chmod=True
       )
-      
+
+    # create the /tmp folder with proper permissions if it doesn't exist yet
+    if params.entity_file_history_directory.startswith('/tmp'):
+        params.HdfsResource('/tmp',
+                            action="create_on_execute",
+                            type="directory",
+                            owner=params.yarn_user,
+                            group=params.user_group,
+                            mode=0777
+        )
 
     params.HdfsResource(params.entity_file_history_directory,
                            action="create_on_execute",
