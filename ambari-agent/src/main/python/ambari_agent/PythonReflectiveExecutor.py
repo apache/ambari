@@ -83,7 +83,7 @@ class PythonContext:
     self.old_logging_disable = logging.root.manager.disable
     
     logging.disable(logging.ERROR)
-    sys.path.append(self.script_dir)
+    sys.path.insert(0, self.script_dir)
     sys.argv = self.pythonCommand[1:]
 
   def __exit__(self, exc_type, exc_val, exc_tb):
