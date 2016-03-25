@@ -216,6 +216,25 @@ class TestHistoryServer(RMFTestCase):
         action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
         mode = 0777,
     )
+    self.assertResourceCalled('HdfsResource', '/tmp',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
+        security_enabled = False,
+        hadoop_bin_dir = '/usr/bin',
+        keytab = UnknownConfigurationMock(),
+        default_fs = 'hdfs://c6401.ambari.apache.org:8020',
+        hdfs_site = self.getConfig()['configurations']['hdfs-site'],
+        kinit_path_local = '/usr/bin/kinit',
+        principal_name = UnknownConfigurationMock(),
+        user = 'hdfs',
+        dfs_type = '',
+        owner = 'yarn',
+        group = 'hadoop',
+        hadoop_conf_dir = '/etc/hadoop/conf',
+        type = 'directory',
+        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+        mode = 0777
+      )
+
     self.assertResourceCalled('HdfsResource', '/tmp/entity-file-history/active',
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
@@ -467,6 +486,25 @@ class TestHistoryServer(RMFTestCase):
         type = 'directory',
         action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='hdfs', default_fs='hdfs://c6401.ambari.apache.org:8020',
         mode = 0777,
+    )
+
+    self.assertResourceCalled('HdfsResource', '/tmp',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
+        security_enabled = True,
+        hadoop_bin_dir = '/usr/bin',
+        keytab = '/etc/security/keytabs/hdfs.headless.keytab',
+        default_fs = 'hdfs://c6401.ambari.apache.org:8020',
+        hdfs_site = self.getConfig()['configurations']['hdfs-site'],
+        kinit_path_local = '/usr/bin/kinit',
+        principal_name = 'hdfs',
+        user = 'hdfs',
+        dfs_type = '',
+        owner = 'yarn',
+        group = 'hadoop',
+        hadoop_conf_dir = '/etc/hadoop/conf',
+        type = 'directory',
+        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+        mode = 0777
     )
     self.assertResourceCalled('HdfsResource', '/tmp/entity-file-history/active',
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
