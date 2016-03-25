@@ -19,16 +19,29 @@
 package org.apache.ambari.server.upgrade;
 
 
-import com.google.common.collect.Maps;
-import com.google.gson.Gson;
-import com.google.inject.AbstractModule;
-import com.google.inject.Binder;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Module;
-import com.google.inject.Provider;
-import com.google.inject.persist.PersistService;
+import javax.persistence.EntityManager;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMockBuilder;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertTrue;
+
+import java.io.File;
+import java.lang.reflect.Method;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -51,6 +64,7 @@ import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
@@ -67,27 +81,15 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import javax.persistence.EntityManager;
-import java.io.File;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMockBuilder;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.assertTrue;
+import com.google.common.collect.Maps;
+import com.google.gson.Gson;
+import com.google.inject.AbstractModule;
+import com.google.inject.Binder;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.google.inject.Provider;
+import com.google.inject.persist.PersistService;
 
 public class UpgradeCatalog222Test {
   private Injector injector;
@@ -130,6 +132,7 @@ public class UpgradeCatalog222Test {
     Method updateHostRoleCommands = UpgradeCatalog222.class.getDeclaredMethod("updateHostRoleCommands");
     Method updateHDFSWidget = UpgradeCatalog222.class.getDeclaredMethod("updateHDFSWidgetDefinition");
     Method updateCorruptedReplicaWidget = UpgradeCatalog222.class.getDeclaredMethod("updateCorruptedReplicaWidget");
+    Method createNewSliderConfigVersion = UpgradeCatalog222.class.getDeclaredMethod("createNewSliderConfigVersion");
     Method updateZookeeperConfigs = UpgradeCatalog222.class.getDeclaredMethod("updateZookeeperConfigs");
 
     UpgradeCatalog222 upgradeCatalog222 = createMockBuilder(UpgradeCatalog222.class)
@@ -141,6 +144,7 @@ public class UpgradeCatalog222Test {
       .addMockedMethod(updateHostRoleCommands)
       .addMockedMethod(updateHDFSWidget)
       .addMockedMethod(updateCorruptedReplicaWidget)
+      .addMockedMethod(createNewSliderConfigVersion)
       .addMockedMethod(updateZookeeperConfigs)
       .createMock();
 
@@ -161,6 +165,8 @@ public class UpgradeCatalog222Test {
     upgradeCatalog222.updateCorruptedReplicaWidget();
     expectLastCall().once();
     upgradeCatalog222.updateZookeeperConfigs();
+    expectLastCall().once();
+    upgradeCatalog222.createNewSliderConfigVersion();
     expectLastCall().once();
 
     replay(upgradeCatalog222);
@@ -679,5 +685,37 @@ public class UpgradeCatalog222Test {
       UpgradeCatalog222.WIDGET_CORRUPT_BLOCKS)));
 
   }
+
+  @Test
+  public void testCreateNewSliderConfigVersion() throws AmbariException {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+    final Service mockSliderService = easyMockSupport.createNiceMock(Service.class);
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(EntityManager.class).toInstance(entityManager);
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    });
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockClusterExpected);
+    }}).atLeastOnce();
+    expect(mockClusterExpected.getService("SLIDER")).andReturn(mockSliderService);
+    expect(mockClusterExpected.createServiceConfigVersion("SLIDER", "ambari-upgrade", "Creating new service config version for SLIDER service.", null)).andReturn(null).once();
+
+    easyMockSupport.replayAll();
+    mockInjector.getInstance(UpgradeCatalog222.class).createNewSliderConfigVersion();
+    easyMockSupport.verifyAll();
+  }
+
 
 }

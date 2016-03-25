@@ -39,6 +39,7 @@ import org.apache.ambari.server.orm.entities.WidgetEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
@@ -180,6 +181,27 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
     updateHDFSWidgetDefinition();
     updateCorruptedReplicaWidget();
     updateZookeeperConfigs();
+    createNewSliderConfigVersion();
+  }
+
+  protected void createNewSliderConfigVersion() {
+    // Here we are creating new service config version for SLIDER, to link slider-client
+    // config to SLIDER service, in serviceconfigmapping table. It could be not mapped because
+    // of bug which we had a long time ago.
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Map<String, Cluster> clusterMap = getCheckedClusterMap(ambariManagementController.getClusters());
+
+    for (final Cluster cluster : clusterMap.values()) {
+      Service sliderService = null;
+      try {
+        sliderService = cluster.getService("SLIDER");
+      } catch(AmbariException ambariException) {
+        LOG.info("SLIDER service not found in cluster while creating new serviceconfig version for SLIDER service.");
+      }
+      if (sliderService != null) {
+        cluster.createServiceConfigVersion("SLIDER", AUTHENTICATED_USER_NAME, "Creating new service config version for SLIDER service.", null);
+      }
+    }
   }
 
   protected void updateZookeeperConfigs() throws  AmbariException {
