@@ -317,6 +317,49 @@ class TestActionQueue(TestCase):
     self.assertTrue(print_exc_mock.called)
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
+  @patch.object(CustomServiceOrchestrator, "runCommand")
+  @patch("CommandStatusDict.CommandStatusDict")
+  @patch.object(ActionQueue, "status_update_callback")
+  def test_log_execution_commands(self, status_update_callback_mock,
+                                  command_status_dict_mock,
+                                  cso_runCommand_mock):
+    custom_service_orchestrator_execution_result_dict = {
+        'stdout': 'out',
+        'stderr': 'stderr',
+        'structuredOut' : '',
+        'exitcode' : 0
+    }
+    cso_runCommand_mock.return_value = custom_service_orchestrator_execution_result_dict
+
+    config = AmbariConfig()
+    tempdir = tempfile.gettempdir()
+    config.set('agent', 'prefix', tempdir)
+    config.set('agent', 'cache_dir', "/var/lib/ambari-agent/cache")
+    config.set('agent', 'tolerate_download_failures', "true")
+    config.set('logging', 'log_command_executes', 1)
+    dummy_controller = MagicMock()
+    actionQueue = ActionQueue(config, dummy_controller)
+    actionQueue.execute_command(self.datanode_restart_command)
+    report = actionQueue.result()
+    expected = {'status': 'COMPLETED',
+                'configurationTags': {'global': {'tag': 'v123'}},
+                'stderr': 'stderr',
+                'stdout': 'out',
+                'clusterName': u'cc',
+                'structuredOut': '""',
+                'roleCommand': u'CUSTOM_COMMAND',
+                'serviceName': u'HDFS',
+                'role': u'DATANODE',
+                'actionId': '1-1',
+                'taskId': 9,
+                'customCommand': 'RESTART',
+                'exitCode': 0}
+    # Agent caches configurationTags if custom_command RESTART completed
+    self.assertEqual(len(report['reports']), 1)
+    self.assertEqual(expected, report['reports'][0])
+
+
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch("__builtin__.open")
   @patch.object(ActionQueue, "status_update_callback")
   def test_auto_execute_command(self, status_update_callback_mock, open_mock):

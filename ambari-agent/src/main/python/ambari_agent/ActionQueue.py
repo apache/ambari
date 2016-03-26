@@ -313,19 +313,20 @@ class ActionQueue(threading.Thread):
       'status': status,
     })
 
-    if self.config.has_option("logging","log_command_executes"):
+    if self.config.has_option("logging","log_command_executes") and int(self.config.get("logging",
+                                                                                       "log_command_executes")) == 1:
         if roleResult['stdout'] != '':
-            logger.info("Begin command output log for command with id = " + command['taskId'] + ", role = "
+            logger.info("Begin command output log for command with id = " + str(command['taskId']) + ", role = "
                         + command['role'] + ", roleCommand = " + command['roleCommand'])
             logger.info(roleResult['stdout'])
-            logger.info("End command output log for command with id = " + command['taskId'] + ", role = "
+            logger.info("End command output log for command with id = " + str(command['taskId']) + ", role = "
                         + command['role'] + ", roleCommand = " + command['roleCommand'])
 
         if roleResult['stderr'] != '':
-            logger.info("Begin command stderr log for command with id = " + command['taskId'] + ", role = "
+            logger.info("Begin command stderr log for command with id = " + str(command['taskId']) + ", role = "
                         + command['role'] + ", roleCommand = " + command['roleCommand'])
             logger.info(roleResult['stderr'])
-            logger.info("End command stderr log for command with id = " + command['taskId'] + ", role = "
+            logger.info("End command stderr log for command with id = " + str(command['taskId']) + ", role = "
                         + command['role'] + ", roleCommand = " + command['roleCommand'])
 
     if roleResult['stdout'] == '':
