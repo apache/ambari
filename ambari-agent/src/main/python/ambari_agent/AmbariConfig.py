@@ -63,6 +63,9 @@ state_interval = 6
 dirs={ps}etc{ps}hadoop,{ps}etc{ps}hadoop{ps}conf,{ps}var{ps}run{ps}hadoop,{ps}var{ps}log{ps}hadoop
 log_lines_count=300
 
+[logging]
+log_command_executes = 0
+
 """.format(ps=os.sep)
 
 
