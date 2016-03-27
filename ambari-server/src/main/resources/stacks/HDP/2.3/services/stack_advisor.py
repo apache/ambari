@@ -28,6 +28,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
     hostGroups = parentComponentLayoutRecommendations["blueprint"]["host_groups"]
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    componentsList = [component for service in services["services"] for component in service["components"]]
 
     if "HAWQ" in servicesList:
       # remove HAWQSTANDBY on a single node
@@ -36,19 +37,26 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
         components = [component for component in components if component["name"] != 'HAWQSTANDBY']
         parentComponentLayoutRecommendations["blueprint"]["host_groups"][0]["components"] = components
 
-      # co-locate HAWQSEGMENT with DATANODE
-      for host_group in hostGroups:
-        if {"name": "DATANODE"} in host_group["components"] and {"name": "HAWQSEGMENT"} not in host_group["components"]:
-          host_group["components"].append({"name": "HAWQSEGMENT"})
-        if {"name": "DATANODE"} not in host_group["components"] and {"name": "HAWQSEGMENT"} in host_group["components"]:
-          host_group["components"].remove({"name": "HAWQSEGMENT"})
+      # co-locate HAWQSEGMENT with DATANODE, if no hosts have been allocated for HAWQSEGMENT
+      hawqSegment = [component for component in componentsList if component["StackServiceComponents"]["component_name"] == "HAWQSEGMENT"][0]
+      if not self.isComponentHostsPopulated(hawqSegment):
+        for host_group in hostGroups:
+          if {"name": "DATANODE"} in host_group["components"] and {"name": "HAWQSEGMENT"} not in host_group["components"]:
+            host_group["components"].append({"name": "HAWQSEGMENT"})
+          if {"name": "DATANODE"} not in host_group["components"] and {"name": "HAWQSEGMENT"} in host_group["components"]:
+            host_group["components"].remove({"name": "HAWQSEGMENT"})
 
-    # co-locate PXF with NAMENODE and DATANODE
     if "PXF" in servicesList:
-      for host_group in hostGroups:
-        if ({"name": "NAMENODE"} in host_group["components"] or {"name": "DATANODE"} in host_group["components"]) \
-            and {"name": "PXF"} not in host_group["components"]:
-          host_group["components"].append({"name": "PXF"})
+      # co-locate PXF with NAMENODE and DATANODE, if no hosts have been allocated for PXF
+      pxf = [component for component in componentsList if component["StackServiceComponents"]["component_name"] == "PXF"][0]
+      if not self.isComponentHostsPopulated(pxf):
+        for host_group in hostGroups:
+          if ({"name": "NAMENODE"} in host_group["components"] or {"name": "DATANODE"} in host_group["components"]) \
+              and {"name": "PXF"} not in host_group["components"]:
+            host_group["components"].append({"name": "PXF"})
+          if ({"name": "NAMENODE"} not in host_group["components"] and {"name": "DATANODE"} not in host_group["components"]) \
+              and {"name": "PXF"} in host_group["components"]:
+            host_group["components"].remove({"name": "PXF"})
 
     return parentComponentLayoutRecommendations
 

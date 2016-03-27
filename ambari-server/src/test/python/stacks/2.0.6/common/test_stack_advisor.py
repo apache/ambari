@@ -91,7 +91,7 @@ class TestHDP206StackAdvisor(TestCase):
     result = self.stackAdvisor.recommendComponentLayout(services, hosts)
 
     expectedComponentsHostsMap = {
-      "GANGLIA_MONITOR": ["host1", "host2"]
+      "GANGLIA_MONITOR": ["host1"]
     }
     self.assertHostLayout(expectedComponentsHostsMap, result)
 
