@@ -387,20 +387,21 @@ class DefaultStackAdvisor(StackAdvisor):
       for component in slaveClientComponents:
         componentName = component["StackServiceComponents"]["component_name"]
 
-        if component["StackServiceComponents"]["cardinality"] == "ALL":
-          hostsForComponent = hostsList
+        componentIsPopulated = self.isComponentHostsPopulated(component)
+        hostsForComponent = []
+
+        if componentIsPopulated:
+          hostsForComponent = component["StackServiceComponents"]["hostnames"]
         else:
-          componentIsPopulated = self.isComponentHostsPopulated(component)
-          if componentIsPopulated:
-            hostsForComponent = component["StackServiceComponents"]["hostnames"]
-          else:
-            hostsForComponent = []
 
           if self.isSlaveComponent(component):
             cardinality = str(component["StackServiceComponents"]["cardinality"])
             if self.isComponentUsingCardinalityForLayout(componentName) and cardinality:
               # cardinality types: 1+, 1-2, 1, ALL
-              if "+" in cardinality:
+              if cardinality == "ALL":
+                hostsMin = len(hostsList)
+                hostsForComponent = hostsList
+              elif "+" in cardinality:
                 hostsMin = int(cardinality[:-1])
               elif "-" in cardinality:
                 nums = cardinality.split("-")
@@ -409,13 +410,12 @@ class DefaultStackAdvisor(StackAdvisor):
                 hostsMin = int(cardinality)
               if hostsMin > len(hostsForComponent):
                 hostsForComponent.extend(freeHosts[0:hostsMin-len(hostsForComponent)])
-            # Components which are already installed, keep the recommendation as the existing layout
-            elif not componentIsPopulated:
+            else:
               hostsForComponent.extend(freeHosts)
               if not hostsForComponent:  # hostsForComponent is empty
                 hostsForComponent = hostsList[-1:]
             hostsForComponent = list(set(hostsForComponent))  # removing duplicates
-          elif self.isClientComponent(component) and not componentIsPopulated:
+          elif self.isClientComponent(component):
             hostsForComponent = freeHosts[0:1]
             if not hostsForComponent:  # hostsForComponent is empty
               hostsForComponent = hostsList[-1:]

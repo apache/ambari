@@ -158,26 +158,10 @@ class TestHDP23StackAdvisor(TestCase):
     self.assertFalse('HAWQSTANDBY' in recommendedComponents)
     self.assertFalse('HAWQSEGMENT' in recommendedComponents)
 
+  def test_createComponentLayoutRecommendations_hawqsegment_cluster_install(self):
+    """ Test that HAWQSEGMENT gets recommended correctly during Cluster Install Wizard, when HAWQ is selected for installation """
 
-  def test_createComponentLayoutRecommendations_pxf_co_locate_with_namenode_or_datanode(self):
-    """ Test that PXF gets recommended on same host group which has NAMENODE or DATANODE"""
-
-    services = self.load_json("services-hawq-pxf-hdfs.json")
-    hosts = self.load_json("hosts-3-hosts.json")
-    recommendations = self.stackAdvisor.createComponentLayoutRecommendations(services, hosts)
-
-    for hostgroup in recommendations["blueprint"]["host_groups"]:
-      component_names = [component["name"] for component in hostgroup["components"]]
-      if "NAMENODE" in component_names or "DATANODE" in component_names:
-        self.assertTrue("PXF" in component_names)
-      if "NAMENODE" not in component_names and "DATANODE" not in component_names:
-        self.assertTrue("PXF" not in component_names)
-
-
-  def test_createComponentLayoutRecommendations_hawqsegment_co_locate_datanode(self):
-    """ Test that HAWQSegment gets recommended on same host group which has DATANODE"""
-
-    # Case 1: HDFS is already installed, HAWQ is being added during Add Service Wizard
+    hosts = self.prepareHosts(["c6401.ambari.apache.org", "c6402.ambari.apache.org", "c6403.ambari.apache.org"])
     services =  {
                   "services" : [
                     {
@@ -190,7 +174,7 @@ class TestHDP23StackAdvisor(TestCase):
                             "cardinality" : "1+",
                             "component_category" : "SLAVE",
                             "component_name" : "DATANODE",
-                            "hostnames" : [ "c6401.ambari.apache.org" ]
+                            "hostnames" : []
                           }
                         }
                       ]
@@ -205,7 +189,7 @@ class TestHDP23StackAdvisor(TestCase):
                             "cardinality" : "1+",
                             "component_category" : "SLAVE",
                             "component_name" : "HAWQSEGMENT",
-                            "hostnames" : [ ]
+                            "hostnames" : []
                           }
                         }
                       ]
@@ -213,70 +197,294 @@ class TestHDP23StackAdvisor(TestCase):
                   ]
                 }
 
-    # Cluster has 2 hosts
-    hosts = self.prepareHosts(["c6401.ambari.apache.org", "c6402.ambari.apache.org"])
-
+    hawqSegmentHosts = set(["c6401.ambari.apache.org", "c6402.ambari.apache.org", "c6403.ambari.apache.org"])
     recommendations = self.stackAdvisor.createComponentLayoutRecommendations(services, hosts)
-    """
-    Recommendations is as below:
-                                  {
-                                    'blueprint':{
-                                      'host_groups':[
-                                        {
-                                          'name':'host-group-1',
-                                          'components':[ ]
-                                        },
-                                        {
-                                          'name':'host-group-2',
-                                          'components':[
-                                            {
-                                              'name':'DATANODE'
-                                            },
-                                            {
-                                              'name':'HAWQSEGMENT'
-                                            }
-                                          ]
-                                        }
-                                      ]
-                                    },
-                                      'blueprint_cluster_binding':{
-                                        'host_groups':[
-                                          {
-                                            'hosts':[
-                                              {
-                                                'fqdn':'c6402.ambari.apache.org'
-                                              }
-                                            ],
-                                            'name':'host-group-1'
-                                          },
-                                          {
-                                            'hosts':[
-                                              {
-                                                'fqdn':'c6401.ambari.apache.org'
-                                              }
-                                            ],
-                                            'name':'host-group-2'
-                                          }
-                                        ]
-                                      }
-                                    }
-    """
-    for hostgroup in recommendations["blueprint"]["host_groups"]:
-      component_names = [component["name"] for component in hostgroup["components"]]
-      if 'DATANODE' in component_names:
-        self.assertTrue('HAWQSEGMENT' in component_names)
-      if 'DATANODE' not in component_names:
-        self.assertTrue('HAWQSEGMENT' not in component_names)
+    hostGroups = [ hostgroup["name"] for hostgroup in recommendations["blueprint"]["host_groups"] if {"name": "HAWQSEGMENT"} in hostgroup["components"] ]
+    hostNames = [ host["fqdn"] for hostgroup in recommendations["blueprint_cluster_binding"]["host_groups"] if hostgroup["name"] in hostGroups for host in hostgroup["hosts"] ]
+    self.assertEquals(set(hostNames), hawqSegmentHosts)
 
-    # Case 2: HDFS and HAWQ are being installed on a fresh cluster, HAWQSEGMENT and DATANODE must be recommended on all the host groups
-    # Update HDFS hostnames to empty list
-    services["services"][0]["components"][0]["StackServiceComponents"]["hostnames"] = []
+  def test_createComponentLayoutRecommendations_hawqsegment_add_service_wizard_to_be_installed(self):
+    """ Test that HAWQSEGMENT gets recommended correctly during Add Service Wizard, when HAWQ is selected for installation """
+
+    hosts = self.prepareHosts(["c6401.ambari.apache.org", "c6402.ambari.apache.org", "c6403.ambari.apache.org"])
+    services =  {
+                  "services" : [
+                    {
+                      "StackServices" : {
+                        "service_name" : "HDFS"
+                      },
+                      "components" : [
+                        {
+                          "StackServiceComponents" : {
+                            "cardinality" : "1+",
+                            "component_category" : "SLAVE",
+                            "component_name" : "DATANODE",
+                            "hostnames" : ["c6401.ambari.apache.org", "c6403.ambari.apache.org"]
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "StackServices" : {
+                        "service_name" : "HAWQ"
+                      },
+                      "components" : [
+                        {
+                          "StackServiceComponents" : {
+                            "cardinality" : "1+",
+                            "component_category" : "SLAVE",
+                            "component_name" : "HAWQSEGMENT",
+                            "hostnames" : []
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+
+    hawqSegmentHosts = set(["c6401.ambari.apache.org", "c6403.ambari.apache.org"])
     recommendations = self.stackAdvisor.createComponentLayoutRecommendations(services, hosts)
-    for hostgroup in recommendations["blueprint"]["host_groups"]:
-      component_names = [component["name"] for component in hostgroup["components"]]
-      self.assertTrue('HAWQSEGMENT' in component_names)
-      self.assertTrue('DATANODE' in component_names)
+    hostGroups = [ hostgroup["name"] for hostgroup in recommendations["blueprint"]["host_groups"] if {"name": "HAWQSEGMENT"} in hostgroup["components"] ]
+    hostNames = [ host["fqdn"] for hostgroup in recommendations["blueprint_cluster_binding"]["host_groups"] if hostgroup["name"] in hostGroups for host in hostgroup["hosts"] ]
+    self.assertEquals(set(hostNames), hawqSegmentHosts)
 
+  def test_createComponentLayoutRecommendations_hawqsegment_add_service_wizard_already_installed(self):
+    """ Test that HAWQSEGMENT does not get recommended during Add Service Wizard, when HAWQ has already been installed """
+
+    hosts = self.prepareHosts(["c6401.ambari.apache.org", "c6402.ambari.apache.org", "c6403.ambari.apache.org"])
+    services =  {
+                  "services" : [
+                    {
+                      "StackServices" : {
+                        "service_name" : "HDFS"
+                      },
+                      "components" : [
+                        {
+                          "StackServiceComponents" : {
+                            "cardinality" : "1+",
+                            "component_category" : "SLAVE",
+                            "component_name" : "DATANODE",
+                            "hostnames" : ["c6401.ambari.apache.org", "c6403.ambari.apache.org"]
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "StackServices" : {
+                        "service_name" : "HAWQ"
+                      },
+                      "components" : [
+                        {
+                          "StackServiceComponents" : {
+                            "cardinality" : "1+",
+                            "component_category" : "SLAVE",
+                            "component_name" : "HAWQSEGMENT",
+                            "hostnames" : ["c6402.ambari.apache.org"]
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "StackServices" : {
+                        "service_name" : "PXF"
+                      },
+                      "components" : [
+                        {
+                          "StackServiceComponents" : {
+                            "cardinality" : "1+",
+                            "component_category" : "SLAVE",
+                            "component_name" : "PXF",
+                            "hostnames" : []
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+
+    hawqSegmentHosts = set(["c6402.ambari.apache.org"])
+    recommendations = self.stackAdvisor.createComponentLayoutRecommendations(services, hosts)
+    hostGroups = [ hostgroup["name"] for hostgroup in recommendations["blueprint"]["host_groups"] if {"name": "HAWQSEGMENT"} in hostgroup["components"] ]
+    hostNames = [ host["fqdn"] for hostgroup in recommendations["blueprint_cluster_binding"]["host_groups"] if hostgroup["name"] in hostGroups for host in hostgroup["hosts"] ]
+    self.assertEquals(set(hostNames), hawqSegmentHosts)
+
+  def test_createComponentLayoutRecommendations_pxf_cluster_install(self):
+    """ Test that PXF gets recommended correctly during Cluster Install Wizard, when PXF is selected for installation """
+
+    hosts = self.prepareHosts(["c6401.ambari.apache.org", "c6402.ambari.apache.org", "c6403.ambari.apache.org"])
+    services =  {
+                  "services" : [
+                    {
+                      "StackServices" : {
+                        "service_name" : "HDFS"
+                      },
+                      "components" : [
+                        {
+                          "StackServiceComponents" : {
+                            "cardinality" : "1+",
+                            "component_category" : "MASTER",
+                            "component_name" : "NAMENODE",
+                            "is_master": "true",
+                            "hostnames" : []
+                          }
+                        },
+                        {
+                          "StackServiceComponents" : {
+                            "cardinality" : "1+",
+                            "component_category" : "SLAVE",
+                            "component_name" : "DATANODE",
+                            "hostnames" : []
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "StackServices" : {
+                        "service_name" : "PXF"
+                      },
+                      "components" : [
+                        {
+                          "StackServiceComponents" : {
+                            "cardinality" : "1+",
+                            "component_category" : "SLAVE",
+                            "component_name" : "PXF",
+                            "hostnames" : []
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+
+    pxfHosts = set(["c6401.ambari.apache.org", "c6402.ambari.apache.org", "c6403.ambari.apache.org"])
+    recommendations = self.stackAdvisor.createComponentLayoutRecommendations(services, hosts)
+    hostGroups = [ hostgroup["name"] for hostgroup in recommendations["blueprint"]["host_groups"] if {"name": "PXF"} in hostgroup["components"] ]
+    hostNames = [ host["fqdn"] for hostgroup in recommendations["blueprint_cluster_binding"]["host_groups"] if hostgroup["name"] in hostGroups for host in hostgroup["hosts"] ]
+    self.assertEquals(set(hostNames), pxfHosts)
+
+  def test_createComponentLayoutRecommendations_pxf_add_service_wizard_to_be_installed(self):
+    """ Test that PXF gets recommended correctly during Add Service Wizard, when PXF is selected for installation """
+
+    hosts = self.prepareHosts(["c6401.ambari.apache.org", "c6402.ambari.apache.org", "c6403.ambari.apache.org"])
+    services =  {
+                  "services" : [
+                    {
+                      "StackServices" : {
+                        "service_name" : "HDFS"
+                      },
+                      "components" : [
+                        {
+                          "StackServiceComponents" : {
+                            "cardinality" : "1+",
+                            "component_category" : "MASTER",
+                            "component_name" : "NAMENODE",
+                            "is_master": "true",
+                            "hostnames" : ["c6401.ambari.apache.org"]
+                          }
+                        },
+                        {
+                          "StackServiceComponents" : {
+                            "cardinality" : "1+",
+                            "component_category" : "SLAVE",
+                            "component_name" : "DATANODE",
+                            "hostnames" : ["c6402.ambari.apache.org", "c6403.ambari.apache.org"]
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "StackServices" : {
+                        "service_name" : "PXF"
+                      },
+                      "components" : [
+                        {
+                          "StackServiceComponents" : {
+                            "cardinality" : "1+",
+                            "component_category" : "SLAVE",
+                            "component_name" : "PXF",
+                            "hostnames" : []
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+
+    pxfHosts = set(["c6401.ambari.apache.org", "c6402.ambari.apache.org", "c6403.ambari.apache.org"])
+    recommendations = self.stackAdvisor.createComponentLayoutRecommendations(services, hosts)
+    hostGroups = [ hostgroup["name"] for hostgroup in recommendations["blueprint"]["host_groups"] if {"name": "PXF"} in hostgroup["components"] ]
+    hostNames = [ host["fqdn"] for hostgroup in recommendations["blueprint_cluster_binding"]["host_groups"] if hostgroup["name"] in hostGroups for host in hostgroup["hosts"] ]
+    self.assertEquals(set(hostNames), pxfHosts)
+
+  def test_createComponentLayoutRecommendations_pxf_add_service_wizard_already_installed(self):
+    """ Test that PXF does not get recommended during Add Service Wizard, when PXF has already been installed """
+
+    hosts = self.prepareHosts(["c6401.ambari.apache.org", "c6402.ambari.apache.org", "c6403.ambari.apache.org"])
+    services =  {
+                  "services" : [
+                    {
+                      "StackServices" : {
+                        "service_name" : "HDFS"
+                      },
+                      "components" : [
+                        {
+                          "StackServiceComponents" : {
+                            "cardinality" : "1+",
+                            "component_category" : "MASTER",
+                            "component_name" : "NAMENODE",
+                            "is_master": "true",
+                            "hostnames" : ["c6401.ambari.apache.org"]
+                          }
+                        },
+                        {
+                          "StackServiceComponents" : {
+                            "cardinality" : "1+",
+                            "component_category" : "SLAVE",
+                            "component_name" : "DATANODE",
+                            "hostnames" : ["c6402.ambari.apache.org", "c6403.ambari.apache.org"]
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "StackServices" : {
+                        "service_name" : "PXF"
+                      },
+                      "components" : [
+                        {
+                          "StackServiceComponents" : {
+                            "cardinality" : "1+",
+                            "component_category" : "SLAVE",
+                            "component_name" : "PXF",
+                            "hostnames" : ["c6402.ambari.apache.org"]
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "StackServices" : {
+                        "service_name" : "HBASE"
+                      },
+                      "components" : [
+                        {
+                          "StackServiceComponents" : {
+                            "cardinality" : "1+",
+                            "component_category" : "MASTER",
+                            "component_name" : "HBASE_MASTER",
+                            "is_master": "true",
+                            "hostnames" : []
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+
+    pxfHosts = set(["c6402.ambari.apache.org"])
+    recommendations = self.stackAdvisor.createComponentLayoutRecommendations(services, hosts)
+    hostGroups = [ hostgroup["name"] for hostgroup in recommendations["blueprint"]["host_groups"] if {"name": "PXF"} in hostgroup["components"] ]
+    hostNames = [ host["fqdn"] for hostgroup in recommendations["blueprint_cluster_binding"]["host_groups"] if hostgroup["name"] in hostGroups for host in hostgroup["hosts"] ]
+    self.assertEquals(set(hostNames), pxfHosts)
 
   def fqdn_mock_result(value=None):
       return 'c6401.ambari.apache.org' if value is None else value
