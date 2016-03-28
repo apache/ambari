@@ -64,7 +64,8 @@ App.ReassignMasterController = App.WizardController.extend({
     hasManualSteps: false,
     hasCheckDBStep: false,
     componentsWithCheckDBStep: ['HIVE_METASTORE', 'HIVE_SERVER', 'OOZIE_SERVER'],
-    componentsWithoutSecurityConfigs: ['MYSQL_SERVER']
+    componentsWithoutSecurityConfigs: ['MYSQL_SERVER'],
+    reassignComponentsInMM: []
   }),
 
   /**
@@ -245,6 +246,16 @@ App.ReassignMasterController = App.WizardController.extend({
     }
   },
 
+  loadReassignComponentsInMM: function () {
+    var reassignComponentsInMM = this.getDBProperty('reassignComponentsInMM');
+    this.set('content.reassignComponentsInMM', reassignComponentsInMM);
+  },
+
+  saveReassignComponentsInMM: function (reassignComponentsInMM) {
+    this.setDBProperty('reassignComponentsInMM', reassignComponentsInMM);
+    this.set('content.reassignComponentsInMM', reassignComponentsInMM);
+  },
+
   /**
    * Load data for all steps until <code>current step</code>
    */
@@ -253,6 +264,7 @@ App.ReassignMasterController = App.WizardController.extend({
     switch (step) {
       case '7':
       case '6':
+        this.loadReassignComponentsInMM();
       case '5':
         this.loadSecureConfigs();
         this.loadComponentDir();

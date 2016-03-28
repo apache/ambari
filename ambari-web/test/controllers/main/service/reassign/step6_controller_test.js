@@ -77,24 +77,17 @@ describe('App.ReassignMasterWizardStep6Controller', function () {
       controller.onTaskCompleted.restore();
     });
 
-    it('No host-components', function () {
-      controller.set('multiTaskCounter', 0);
-      controller.set('hostComponents', []);
-      controller.onComponentsTasksSuccess();
-      expect(controller.get('multiTaskCounter')).to.equal(1);
-      expect(controller.onTaskCompleted.calledOnce).to.be.true;
-    });
     it('One host-component', function () {
-      controller.set('multiTaskCounter', 0);
+      controller.set('multiTaskCounter', 1);
       controller.set('hostComponents', [
         {}
       ]);
       controller.onComponentsTasksSuccess();
-      expect(controller.get('multiTaskCounter')).to.equal(1);
+      expect(controller.get('multiTaskCounter')).to.equal(0);
       expect(controller.onTaskCompleted.calledOnce).to.be.true;
     });
     it('two host-components', function () {
-      controller.set('multiTaskCounter', 0);
+      controller.set('multiTaskCounter', 2);
       controller.set('hostComponents', [
         {},
         {}
@@ -225,7 +218,7 @@ describe('App.ReassignMasterWizardStep6Controller', function () {
       controller.putHostComponentsInMaintenanceMode();
       var args = testHelpers.findAjaxRequest('name', 'common.host.host_component.passive');
       expect(args).exists;
-      expect(controller.get('multiTaskCounter')).to.equal(0);
+      expect(controller.get('multiTaskCounter')).to.equal(1);
     });
   });
 

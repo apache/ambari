@@ -609,6 +609,32 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
     });
   },
 
+  /**
+   * Update state for array of components of different services and on different hosts
+   *
+   * @param {Array} components - array of components object with fields serviceName, hostName and componentName
+   * @param {String} state - new state to update
+   */
+  updateComponentsState: function (components, state) {
+    components.forEach(function (component) {
+      App.ajax.send({
+        name: 'common.host.host_component.update',
+        sender: this,
+        data: {
+          hostName: component.hostName,
+          serviceName: component.serviceName,
+          componentName: component.componentName,
+          HostRoles: {
+            state: state
+          },
+          taskNum: components.length
+        },
+        success: 'startPolling',
+        error: 'onTaskError'
+      });
+    }, this)
+  },
+
   startPolling: function (data) {
     if (data) {
       this.get('currentRequestIds').push(data.Requests.id);
