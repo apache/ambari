@@ -534,7 +534,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     setResourceProperty(resource, UPGRADE_FROM_VERSION, entity.getFromVersion(), requestedIds);
     setResourceProperty(resource, UPGRADE_TO_VERSION, entity.getToVersion(), requestedIds);
     setResourceProperty(resource, UPGRADE_DIRECTION, entity.getDirection(), requestedIds);
-    setResourceProperty(resource, UPGRADE_SUSPENDED, entity.getSuspended(), requestedIds);
+    setResourceProperty(resource, UPGRADE_SUSPENDED, entity.isSuspended(), requestedIds);
     setResourceProperty(resource, UPGRADE_DOWNGRADE_ALLOWED, entity.isDowngradeAllowed(), requestedIds);
     setResourceProperty(resource, UPGRADE_SKIP_FAILURES, entity.isComponentFailureAutoSkipped(), requestedIds);
     setResourceProperty(resource, UPGRADE_SKIP_SC_FAILURES, entity.isServiceCheckFailureAutoSkipped(), requestedIds);
