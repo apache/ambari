@@ -684,7 +684,7 @@ public class UpgradeResourceProviderTest {
     Map<String, Object> requestProps = new HashMap<String, Object>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_REQUEST_ID, id.toString());
     requestProps.put(UpgradeResourceProvider.UPGRADE_REQUEST_STATUS, "ABORTED");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_SUSPENDED, "false");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SUSPENDED, "true");
 
     UpgradeResourceProvider urp = createProvider(amc);
 
@@ -740,6 +740,7 @@ public class UpgradeResourceProviderTest {
     requestProps = new HashMap<String, Object>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_REQUEST_ID, id.toString());
     requestProps.put(UpgradeResourceProvider.UPGRADE_REQUEST_STATUS, "PENDING");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SUSPENDED, "false");
 
     // !!! make sure we can.  actual reset is tested elsewhere
     req = PropertyHelper.getUpdateRequest(requestProps, null);
