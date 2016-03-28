@@ -331,6 +331,10 @@ describe('App.HostComponent', function() {
   });
 
 
+  App.TestAliases.testAsComputedTruncate(hc, 'serviceDisplayName', 'service.displayName', 14, 11);
+  App.TestAliases.testAsComputedTruncate(hc, 'getDisplayName', 'displayName', 19, 16);
+  App.TestAliases.testAsComputedTruncate(hc, 'getDisplayNameAdvanced', 'displayNameAdvanced', 19, 16);
+
   describe("#serviceDisplayName",function(){
     var testCases = [
       {

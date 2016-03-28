@@ -79,13 +79,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
   /**
    * formatted notes ready to display
    */
-  shortNotes: function () {
-    //100 is number of symbols that fit into label
-    if (this.get('showMoreLink')) {
-      return this.get('displayedServiceVersion.notes').slice(0, 100) + '...';
-    }
-    return this.get('displayedServiceVersion.notes');
-  }.property('displayedServiceVersion'),
+  shortNotes: Em.computed.truncate('displayedServiceVersion.notes', 100, 100),
 
   serviceVersions: function () {
     var groupName = this.get('controller.selectedConfigGroup.isDefault') ? 'default'

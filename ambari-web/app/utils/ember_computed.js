@@ -1134,3 +1134,37 @@ computed.getByKey = function (objectKey, propertyKey, defaultValue) {
     return object.hasOwnProperty(property) ? object[property] : defaultValue;
   });
 }
+
+/**
+ * A computed property that returns dependent value truncated to the `reduceTo`-size if its length is greater than `maxLength`
+ * Truncated part may be replaced with `replacer` if it's provided ('...' by default)
+ * <pre>
+ *   var o = Em.Object.create({
+ *     p1: Em.computed.truncate('p2', 8, 5, '###'),
+ *     p2: 'some string',
+ *     p3: Em.computed.truncate('p2', 8, 5)
+ *   });
+ *   console.log(o.get('p1')); // 'some ###'
+ *   console.log(o.get('p3')); // 'some ...'
+ *   o.set('p2', '123456789');
+ *   console.log(o.get('p1')); // '12345###'
+ *   console.log(o.get('p3')); // '12345...'
+ * </pre>
+ *
+ * @param {string} dependentKey
+ * @param {number} maxLength
+ * @param {number} reduceTo
+ * @param {string} [replacer] default - '...'
+ * @returns {Ember.ComputedProperty}
+ */
+computed.truncate = function (dependentKey, maxLength, reduceTo, replacer) {
+  Em.assert('`reduceTo` should be <=`maxLength`', reduceTo <= maxLength);
+  var _replacer = arguments.length > 3 ? replacer : '...';
+  return computed(dependentKey, function () {
+    var value = smartGet(this, dependentKey) || '';
+    if (value.length > maxLength) {
+      return value.substr(0, reduceTo) + _replacer;
+    }
+    return value;
+  });
+}

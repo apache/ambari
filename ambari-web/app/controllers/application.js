@@ -36,10 +36,7 @@ App.ApplicationController = Em.Controller.extend(App.UserPref, {
     return (App.router.get('installerController.ambariServerVersion') || App.router.get('mainController.ambariServerVersion') || Em.I18n.t('common.notAvailable'));
   }.property('App.router.installerController.ambariServerVersion', 'App.router.mainController.ambariServerVersion'),
 
-  clusterDisplayName: function () {
-    var name = this.get('clusterName');
-    return name.length > 13 ? name.substr(0, 10) + "..." : name;
-  }.property('clusterName'),
+  clusterDisplayName: Em.computed.truncate('clusterName', 13, 10),
 
   isClusterDataLoaded: Em.computed.and('App.router.clusterController.isLoaded','App.router.loggedIn'),
 

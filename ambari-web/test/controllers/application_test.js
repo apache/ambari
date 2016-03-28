@@ -29,6 +29,8 @@ describe('App.ApplicationController', function () {
 
   var applicationController = getController();
 
+  App.TestAliases.testAsComputedTruncate(getController(), 'clusterDisplayName', 'clusterName', 13, 10);
+
   App.TestAliases.testAsComputedAnd(getController(), 'isClusterDataLoaded', ['App.router.clusterController.isLoaded','App.router.loggedIn']);
 
   App.TestAliases.testAsComputedAnd(getController(), 'isExistingClusterDataLoaded', ['App.router.clusterInstallCompleted','isClusterDataLoaded']);

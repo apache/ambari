@@ -37,7 +37,7 @@ module.exports = {
   nestedExpect: function (expected, actual) {
     expected.forEach(function (group, i) {
       Em.keys(group).forEach(function (key) {
-        if ('array' === Em.typeOf(actual[i][key])) {
+        if (Em.isArray(actual[i][key])) {
           expect(group[key]).to.eql(actual[i][key].toArray());
         }
         else {
@@ -74,7 +74,7 @@ module.exports = {
    * @returns {array|null}
    */
   findAjaxRequest: function(property, value) {
-    if (Em.typeOf(App.ajax.send.args) !== 'array') {
+    if (!Em.isArray(App.ajax.send.args)) {
       return null;
     }
     return App.ajax.send.args.find(function (request) {
@@ -116,7 +116,7 @@ module.exports = {
    * @returns {array}
    */
   filterAjaxRequests: function (property, value) {
-    if (Em.typeOf(App.ajax.send.args) !== 'array') {
+    if (!Em.isArray(App.ajax.send.args)) {
       return [];
     }
     return App.ajax.send.args.filter(function (request) {

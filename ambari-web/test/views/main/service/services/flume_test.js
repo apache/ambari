@@ -33,7 +33,7 @@ describe('App.MainDashboardServiceFlumeView', function () {
   describe("#content", function() {
 
     it("should return content", function() {
-      view.set('service.agents',  [
+      view.set('service.agents', [
         {hostName: 'host1'},
         {hostName: 'host2'},
         {hostName: 'host2'}
@@ -141,10 +141,11 @@ describe('App.MainDashboardServiceFlumeView', function () {
         ]
       });
       view.setActionsDropdownClasses();
-      expect(view.get('content')[0].get('agents')[0].get('isStartAgentDisabled')).to.be.true;
-      expect(view.get('content')[0].get('agents')[0].get('isStopAgentDisabled')).to.be.false;
-      expect(view.get('content')[0].get('agents')[1].get('isStartAgentDisabled')).to.be.false;
-      expect(view.get('content')[0].get('agents')[1].get('isStopAgentDisabled')).to.be.true;
+      var agents = view.get('content.0.agents');
+      expect(agents[0].get('isStartAgentDisabled')).to.be.true;
+      expect(agents[0].get('isStopAgentDisabled')).to.be.false;
+      expect(agents[1].get('isStartAgentDisabled')).to.be.false;
+      expect(agents[1].get('isStopAgentDisabled')).to.be.true;
     });
   });
 

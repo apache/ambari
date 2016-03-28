@@ -22,7 +22,6 @@ var dateUtil = require('utils/date/date');
 
 
 App.ServiceConfigVersion = DS.Model.extend({
-  MAX_AUTHOR_LENGTH: 20,
   MAX_NOTES_LENGTH: 80,
   serviceName: DS.attr('string'),
   displayName: Em.computed.formatRole('serviceName', true),
@@ -54,12 +53,7 @@ App.ServiceConfigVersion = DS.Model.extend({
   /**
    * @type {string}
    */
-  authorFormatted: function () {
-    var author = this.get('author');
-    if (author) {
-      return author.length > this.get('MAX_AUTHOR_LENGTH') ? author.slice(0, this.get('MAX_AUTHOR_LENGTH')) + '...' : author;
-    }
-  }.property('author'),
+  authorFormatted: Em.computed.truncate('author', 20, 20),
 
   /**
    * @type {string}
@@ -73,16 +67,12 @@ App.ServiceConfigVersion = DS.Model.extend({
   /**
    * @type {string}
    */
-  briefNotes: function () {
-    return this.get('fullNotes').slice(0, (this.get('MAX_NOTES_LENGTH') + 1));
-  }.property('fullNotes'),
+  briefNotes: Em.computed.truncate('fullNotes', 81, 81, ''),
 
   /**
    * @type {boolean}
    */
-  moreNotesExists: function () {
-    return (typeof this.get('notes') === 'string') && this.get('notes').length > this.get('MAX_NOTES_LENGTH');
-  }.property('notes'),
+  moreNotesExists: Em.computed.notEqualProperties('fullNotes', 'briefNotes'),
 
   /**
    * @type {string}

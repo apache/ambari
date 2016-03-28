@@ -18,7 +18,6 @@
 
 var App = require('app');
 var date = require('utils/date/date');
-var numberUtils = require('utils/number_utils');
 require('/views/main/service/services/hdfs');
 
 function getView(options) {

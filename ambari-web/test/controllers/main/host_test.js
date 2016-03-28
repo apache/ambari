@@ -114,7 +114,7 @@ describe('MainHostController', function () {
         return db[k];
       });
       sinon.stub(App.db, 'setSortingStatuses', function (k, v) {
-        db[k] = Em.typeOf(v) === 'array' ? v : [v];
+        db[k] = Em.makeArray(v);
       });
     });
 

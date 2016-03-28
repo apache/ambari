@@ -33,91 +33,11 @@ describe.skip('App.ConfigHistoryFlowView', function () {
 
   App.TestAliases.testAsComputedAlias(view, 'serviceName', 'controller.selectedService.serviceName', 'string');
 
-  describe('#isSaveDisabled', function () {
-    var testCases = [
-      {
-        params: {
-          isSubmitDisabled: false,
-          versionLoaded: true
-        },
-        result: false
-      },
-      {
-        params: {
-          isSubmitDisabled: true,
-          versionLoaded: true
-        },
-        result: true
-      },
-      {
-        params: {
-          isSubmitDisabled: false,
-          versionLoaded: false
-        },
-        result: true
-      },
-      {
-        params: {
-          isSubmitDisabled: true,
-          versionLoaded: false
-        },
-        result: true
-      }
-    ];
-    testCases.forEach(function (test) {
-      it('isSubmitDisabled - ' + test.params.isSubmitDisabled + ', versionLoaded - ' + test.params.versionLoaded, function () {
-        view.set('controller.isSubmitDisabled', test.params.isSubmitDisabled);
-        view.set('controller.versionLoaded', test.params.versionLoaded);
-        expect(view.get('isSaveDisabled')).to.equal(test.result);
-      });
-    });
-  });
+  App.TestAliases.testAsComputedOr(view, 'isSaveDisabled', ['controller.isSubmitDisabled', '!controller.versionLoaded', '!controller.isPropertiesChanged']);
 
-  describe('#showMoreLink', function () {
-    var testCases = [
-      {
-        params: {
-          count: 0
-        },
-        result: false
-      },
-      {
-        params: {
-          count: 100
-        },
-        result: false
-      },
-      {
-        params: {
-          count: 101
-        },
-        result: true
-      }
-    ];
-    testCases.forEach(function (test) {
-      it('notes length - ' + test.params.count, function () {
-        view.set('displayedServiceVersion', Em.Object.create({
-          notes: new Array(test.params.count)
-        }));
-        expect(view.get('showMoreLink')).to.equal(test.result);
-      });
-    });
-  });
+  App.TestAliases.testAsComputedGt(view, 'displayedServiceVersion.notes.length', 100);
 
-  describe('#shortNotes', function () {
-    it('notes length more than 100', function () {
-      view.set('displayedServiceVersion', Em.Object.create({
-        notes: '12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123'
-      }));
-      expect(view.get('shortNotes')).to.equal('1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890...');
-    });
-    it('notes length less than 100', function () {
-      view.set('displayedServiceVersion', Em.Object.create({
-        notes: 'notes'
-      }));
-      expect(view.get('shortNotes')).to.equal('notes');
-    });
-  });
+  App.TestAliases.testAsComputedTruncate(view, 'shortNotes', 'displayedServiceVersion.notes', 100, 100);
 
   describe('#visibleServiceVersion', function () {
     var testCases = [

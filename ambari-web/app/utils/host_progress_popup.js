@@ -653,9 +653,7 @@ App.HostPopup = Em.Object.create({
       var hostInfo = Em.Object.create({
         name: hostName,
         publicName: _host.publicName,
-        displayName: function () {
-          return this.get('name').length < 43 ? this.get('name') : this.get('name').substr(0, 40) + '...';
-        }.property('name'),
+        displayName: Em.computed.truncate('name', 43, 40),
         progress: 0,
         status: App.format.taskStatus("PENDING"),
         serviceName: _host.serviceName,

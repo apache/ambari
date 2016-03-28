@@ -33,29 +33,11 @@ describe('App.ServiceConfigVersion', function () {
 
   App.TestAliases.testAsComputedAnd(getModel(), 'canBeMadeCurrent', ['isCompatible', '!isCurrent']);
 
-  describe('#authorFormatted', function () {
+  App.TestAliases.testAsComputedTruncate(getModel(), 'authorFormatted', 'author', 20, 20);
 
-    var cases = [
-      {
-        author: 'admin',
-        authorFormatted: 'admin',
-        title: 'should display username as is'
-      },
-      {
-        author: 'userNameIsTooLongToDisplay',
-        authorFormatted: 'userNameIsTooLongToD...',
-        title: 'should trim username to 20 chars'
-      }
-    ];
+  App.TestAliases.testAsComputedTruncate(getModel(), 'briefNotes', 'fullNotes', 81, 81, '');
 
-    cases.forEach(function (item) {
-      it(item.title, function () {
-        model.set('author', item.author);
-        expect(model.get('authorFormatted')).to.equal(item.authorFormatted);
-      });
-    });
-
-  });
+  App.TestAliases.testAsComputedNotEqualProperties(getModel(), 'moreNotesExists', 'fullNotes', 'briefNotes');
 
   describe("#configGroupName", function() {
 
@@ -91,45 +73,6 @@ describe('App.ServiceConfigVersion', function () {
     it("notes has value", function() {
       model.set('notes', "notes-value");
       expect(model.get('fullNotes')).to.equal('notes-value');
-    });
-
-  });
-
-  describe("#briefNotes", function() {
-
-    it("notes shorter than MAX_NOTES_LENGTH", function() {
-      model.reopen({
-        fullNotes: 'short-notes'
-      });
-      expect(model.get('briefNotes')).to.equal('short-notes');
-    });
-
-    it("notes longer than MAX_NOTES_LENGTH", function() {
-      model.reopen({
-        fullNotes: 'long-notes-long-notes-long-notes-long-notes-long-notes-long-notes-long-notes-long-notes' +
-        '-long-notes-long-notes-long-notes-long-notes-long-notes'
-      });
-      expect(model.get('briefNotes')).to.equal('long-notes-long-notes-long-notes-long-notes-long-notes-long-notes-long-notes-long');
-    });
-
-  });
-
-  describe("#moreNotesExists", function() {
-
-    it("notes is null", function() {
-      model.set('notes', null);
-      expect(model.get('moreNotesExists')).to.be.false;
-    });
-
-    it("notes is shorter than MAX_NOTES_LENGTH", function() {
-      model.set('notes', 'short-notes');
-      expect(model.get('moreNotesExists')).to.be.false;
-    });
-
-    it("notes is longer than MAX_NOTES_LENGTH", function() {
-      model.set('notes', 'long-notes-long-notes-long-notes-long-notes-long-notes-long-notes-long-notes-long-notes' +
-      '-long-notes-long-notes-long-notes-long-notes-long-notes');
-      expect(model.get('moreNotesExists')).to.be.true;
     });
 
   });

@@ -1534,4 +1534,77 @@ describe('Ember.computed macros', function () {
 
   });
 
+  describe('#truncate', function () {
+
+    beforeEach(function () {
+      this.obj = Em.Object.create({
+        prop1: '123456789',
+        prop2: Em.computed.truncate('prop1', 8, 5),
+        prop3: Em.computed.truncate('App.someRandomTestingKey', 8, 5),
+        prop4: Em.computed.truncate('prop1', 8, 5, '###')
+      });
+      App.set('someAnotherKey', 'abcdefghi');
+    });
+
+    it('prop2 dependent keys are valid', function () {
+      expect(Em.meta(this.obj).descs.prop2._dependentKeys).to.be.eql(['prop1']);
+    });
+
+    it('prop3 dependent keys are valid', function () {
+      expect(Em.meta(this.obj).descs.prop3._dependentKeys).to.be.eql(['App.someRandomTestingKey']);
+    });
+
+    it('prop4 dependent keys are valid', function () {
+      expect(Em.meta(this.obj).descs.prop4._dependentKeys).to.be.eql(['prop1']);
+    });
+
+    it('prop2 value is 12345...', function () {
+      expect(this.obj.get('prop2')).to.be.equal('12345...');
+    });
+
+    it('prop2 value is 54321...', function () {
+      this.obj.set('prop1', '543216789');
+      expect(this.obj.get('prop2')).to.be.equal('54321...');
+    });
+
+    it('prop2 value is 1234', function () {
+      this.obj.set('prop1', '1234');
+      expect(this.obj.get('prop2')).to.be.equal('1234');
+    });
+
+    it('prop2 value is ""', function () {
+      this.obj.set('prop1', null);
+      expect(this.obj.get('prop2')).to.be.equal('');
+    });
+
+    it('prop3 value is abcde...', function () {
+      expect(this.obj.get('prop3')).to.be.equal('abcde...');
+    });
+
+    it('prop3 value is edcba...', function () {
+      App.set('someAnotherKey', 'edcbafghi');
+      expect(this.obj.get('prop3')).to.be.equal('edcba...');
+    });
+
+    it('prop3 value is abcd', function () {
+      App.set('someAnotherKey', 'abcd');
+      expect(this.obj.get('prop3')).to.be.equal('abcd');
+    });
+
+    it('prop4 value is 12345###', function () {
+      expect(this.obj.get('prop4')).to.be.equal('12345###');
+    });
+
+    it('prop4 value is 54321###', function () {
+      this.obj.set('prop1', '543216789');
+      expect(this.obj.get('prop4')).to.be.equal('54321###');
+    });
+
+    it('prop4 value is 12345', function () {
+      this.obj.set('prop1', '12345');
+      expect(this.obj.get('prop4')).to.be.equal('12345');
+    });
+
+  });
+
 });
