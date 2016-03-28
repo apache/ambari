@@ -80,33 +80,6 @@ App.WizardStep4Controller = Em.ArrayController.extend({
   },
 
   /**
-   * Check whether user selected Ambari Metrics service to install and go to next step
-   * @param callback {function}
-   * @method ambariMetricsValidation
-   */
-  ambariMetricsValidation: function (callback) {
-    var ambariMetricsService = this.findProperty('serviceName', 'AMBARI_METRICS');
-    if (ambariMetricsService) {
-      if(!ambariMetricsService.get('isSelected')) {
-        this.addValidationError({
-          id: 'ambariMetricsCheck',
-          type: 'WARNING',
-          callback: this.ambariMetricsCheckPopup,
-          callbackParams: [callback]
-        });
-      }
-      else {
-        //metrics is selected, remove the metrics error from errorObject array
-        var metricsError = this.get('errorStack').filterProperty('id',"ambariMetricsCheck");
-        if(metricsError)
-        {
-           this.get('errorStack').removeObject(metricsError[0]);
-        }
-      }
-    }
-  },
-
-  /**
    * Check whether Ranger is selected and show installation requirements if yes
    * @param {function} callback
    * @method rangerValidation
@@ -209,8 +182,9 @@ App.WizardStep4Controller = Em.ArrayController.extend({
     };
     this.serviceDependencyValidation(callback);
     this.fileSystemServiceValidation(callback);
-    if (this.get('wizardController.name') == 'installerController') {
-      this.ambariMetricsValidation(callback);
+    if (this.get('wizardController.name') === 'installerController') {
+      this.serviceValidation(callback, 'AMBARI_METRICS', 'ambariMetricsCheck');
+      this.serviceValidation(callback, 'SMARTSENSE', 'smartSenseCheck');
     }
     this.rangerValidation(callback);
     this.sparkValidation(callback);
@@ -222,6 +196,34 @@ App.WizardStep4Controller = Em.ArrayController.extend({
       result = true;
     }
     return result;
+  },
+
+  /**
+   * Check whether user selected service to install and go to next step
+   * @param callback {Function}
+   * @param serviceName {string}
+   * @param id {string}
+   * @method serviceValidation
+   */
+  serviceValidation: function(callback, serviceName, id) {
+    var service = this.findProperty('serviceName', serviceName);
+    if (service) {
+      if (!service.get('isSelected')) {
+        this.addValidationError({
+          id: id,
+          type: 'WARNING',
+          callback: this.serviceCheckPopup,
+          callbackParams: [callback]
+        });
+      }
+      else {
+        //metrics is selected, remove the metrics error from errorObject array
+        var metricsError = this.get('errorStack').filterProperty('id', id);
+        if (metricsError) {
+          this.get('errorStack').removeObject(metricsError[0]);
+        }
+      }
+    }
   },
 
   /**
@@ -496,17 +498,17 @@ App.WizardStep4Controller = Em.ArrayController.extend({
   },
 
   /**
-   * Show popup with info about not selected Ambari Metrics service
+   * Show popup with info about not selected service
    * @param {function} callback
    * @param {string} id
    * @return {App.ModalPopup}
-   * @method ambariMetricsCheckPopup
+   * @method serviceCheckPopup
    */
-  ambariMetricsCheckPopup: function (callback, id) {
+  serviceCheckPopup: function (callback, id) {
     var self = this;
     return App.ModalPopup.show({
-      header: Em.I18n.t('installer.step4.ambariMetricsCheck.popup.header'),
-      body: Em.I18n.t('installer.step4.ambariMetricsCheck.popup.body'),
+      header: Em.I18n.t('installer.step4.limitedFunctionality.popup.header'),
+      body: Em.I18n.t('installer.step4.' + id + '.popup.body'),
       primary: Em.I18n.t('common.proceedAnyway'),
       primaryClass: 'btn-warning',
       onPrimary: function () {
