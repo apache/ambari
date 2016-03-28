@@ -302,10 +302,13 @@ def hive(name=None):
     )
 
   if name != "client":
-    crt_directory(params.hive_pid_dir)
-    crt_directory(params.hive_log_dir)
-    crt_directory(params.hive_var_lib)
+    create_directory(params.hive_pid_dir)
+    create_directory(params.hive_log_dir)
+    create_directory(params.hive_var_lib)
 
+"""
+Writes configuration files required by Hive.
+"""
 def fill_conf_dir(component_conf_dir):
   import params
   
@@ -359,7 +362,7 @@ def fill_conf_dir(component_conf_dir):
          content=StaticFile(format("{component_conf_dir}/{log4j_filename}.template"))
     )
 
-def crt_directory(name):
+def create_directory(name):
   import params
 
   Directory(name,

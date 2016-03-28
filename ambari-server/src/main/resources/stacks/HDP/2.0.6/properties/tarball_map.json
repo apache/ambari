@@ -7,9 +7,17 @@
     "{{ stack_root }}/{{ stack_version }}/tez/lib/tez.tar.gz",
     "/{{ stack_name }}/apps/{{ stack_version }}/tez/tez.tar.gz"
   ],
+  "tez_hive2": [
+    "{{ stack_root }}/{{ stack_version }}/tez_hive2/lib/tez.tar.gz",
+    "/{{ stack_name }}/apps/{{ stack_version }}/tez_hive2/tez.tar.gz"
+  ],
   "hive": [
     "{{ stack_root }}/{{ stack_version }}/hive/hive.tar.gz",
     "/{{ stack_name }}/apps/{{ stack_version }}/hive/hive.tar.gz"
+  ],
+  "hive2": [
+    "{{ stack_root }}/{{ stack_version }}/hive/hive.tar.gz",
+    "/{{ stack_name }}/apps/{{ stack_version }}/hive2/hive.tar.gz"
   ],
   "pig": [
     "{{ stack_root }}/{{ stack_version }}/pig/pig.tar.gz",

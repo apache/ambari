@@ -27,6 +27,7 @@ from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.script.script import Script
 
+
 # a map of the Ambari role to the component name
 # for use with <stack-root>/current/<component>
 SERVER_ROLE_DIRECTORY_MAP = {
@@ -83,6 +84,7 @@ else:
 
   # !!! required by ranger to be at this location unless HDP 2.3+
   hive_server_conf_dir = "/etc/hive/conf.server"
+
   hive_server_interactive_conf_dir = "/etc/hive2/conf.server"
 
   # HDP 2.2+
@@ -103,7 +105,7 @@ else:
     hive_conf_dir = hive_server_conf_dir
 
   if Script.is_stack_greater_or_equal("2.5"):
-    hive_server_interactive_conf_dir = format("/usr/hdp/current/{component_directory_interactive}/conf/conf.server")
+    hive_server_interactive_conf_dir = format("/usr/hdp/current/{component_directory_interactive}/conf")
 
   hive_config_dir = hive_client_conf_dir
 

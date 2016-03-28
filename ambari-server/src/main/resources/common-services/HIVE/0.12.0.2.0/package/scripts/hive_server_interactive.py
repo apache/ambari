@@ -31,13 +31,16 @@ from resource_management.libraries.functions.version import compare_versions, fo
 from resource_management.libraries.functions.security_commons import build_expectations, \
     cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
     FILE_TYPE_XML
+from resource_management.core.resources.system import File, Execute
+from resource_management.core import shell
+from subprocess import call
 from ambari_commons import OSCheck, OSConst
 from setup_ranger_hive import setup_ranger_hive
 from ambari_commons.os_family_impl import OsFamilyImpl
 from ambari_commons.constants import UPGRADE_TYPE_ROLLING
 from resource_management.core.logger import Logger
-
-import hive_server_upgrade
+from hive_service_interactive import hive_service_interactive, stop_llap, start_llap
+from hive_interactive import hive_interactive
 
 class HiveServerInteractive(Script):
     def install(self, env):
@@ -45,7 +48,9 @@ class HiveServerInteractive(Script):
       self.install_packages(env)
 
     def configure(self, env):
-      pass
+      import params
+      env.set_params(params)
+      hive_interactive(name='hiveserver2')
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class HiveServerWindows(HiveServerInteractive):
@@ -65,15 +70,44 @@ class HiveServerDefault(HiveServerInteractive):
       return {"HDP": "hive-server2-hive2"}
 
     def start(self, env, upgrade_type=None):
-      pass
+      import params
+      env.set_params(params)
+      self.configure(env)
+
+      # TODO : We need have conditional [re]start of LLAP once "status check command" for LLAP is ready.
+      # Check status and based on that decide on [re]starting.
+
+      # Start LLAP before Hive Server Interactive start
+      status = start_llap(self)
+      if status:
+        # TODO : test the workability of Ranger and Hive2 during upgrade
+        # setup_ranger_hive(upgrade_type=upgrade_type)
+
+        hive_service_interactive('hiveserver2', action='start', upgrade_type=upgrade_type)
+      else:
+        Logger.info("Skipping start of Hive Server Interactive due to LLAP start issue.")
 
     def stop(self, env, upgrade_type=None):
-      pass
+      import params
+      env.set_params(params)
+
+      # Stop Hive Interactive Server first
+      # TODO : Upgrade check comes here.
+      hive_service_interactive('hiveserver2', action = 'stop')
+
+      stop_llap(self)
 
     def status(self, env):
-      pass
+      import status_params
+      env.set_params(status_params)
+      pid_file = format("{hive_pid_dir}/{hive_interactive_pid}")
+
+      # Recursively check all existing gmetad pid files
+      check_process_status(pid_file)
+      # TODO : Check the LLAP app status as well.
 
     def pre_upgrade_restart(self, env, upgrade_type=None):
+      # TODO: Make sure, the tez_hive2 is upgraded, while writing the upgrade code.
       pass
 
     def security_status(self, env):

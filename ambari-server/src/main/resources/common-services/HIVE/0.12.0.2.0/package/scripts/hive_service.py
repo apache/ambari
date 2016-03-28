@@ -70,7 +70,7 @@ def hive_service(name, action='start', upgrade_type=None):
 
   if action == 'start':
     if name == 'hiveserver2':
-      check_fs_root()
+      check_fs_root(params.hive_server_conf_dir, params.execute_path)
 
     daemon_cmd = cmd
     hadoop_home = params.hadoop_home
@@ -126,15 +126,15 @@ def hive_service(name, action='start', upgrade_type=None):
          action = "delete"
     )
 
-def check_fs_root():
+def check_fs_root(conf_dir, execution_path):
   import params
 
   if not params.fs_root.startswith("hdfs://"):
     Logger.info("Skipping fs root check as fs_root does not start with hdfs://")
     return
 
-  metatool_cmd = format("hive --config {hive_server_conf_dir} --service metatool")
-  cmd = as_user(format("{metatool_cmd} -listFSRoot", env={'PATH': params.execute_path}), params.hive_user) \
+  metatool_cmd = format("hive --config {conf_dir} --service metatool")
+  cmd = as_user(format("{metatool_cmd} -listFSRoot", env={'PATH': execution_path}), params.hive_user) \
         + format(" 2>/dev/null | grep hdfs:// | cut -f1,2,3 -d '/' | grep -v '{fs_root}' | head -1")
   code, out = shell.call(cmd)
 
@@ -143,6 +143,6 @@ def check_fs_root():
     cmd = format("{metatool_cmd} -updateLocation {fs_root} {out}")
     Execute(cmd,
             user=params.hive_user,
-            environment={'PATH': params.execute_path}
+            environment={'PATH': execution_path}
     )
 

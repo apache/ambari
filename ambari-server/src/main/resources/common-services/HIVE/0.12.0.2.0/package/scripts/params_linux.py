@@ -76,6 +76,7 @@ upgrade_direction = default("/commandParams/upgrade_direction", None)
 
 hadoop_bin_dir = "/usr/bin"
 hadoop_home = '/usr'
+hive_user_home_dir = "/home/hive"
 hive_bin = '/usr/lib/hive/bin'
 hive_lib = '/usr/lib/hive/lib/'
 hive_var_lib = '/var/lib/hive'
@@ -109,6 +110,7 @@ hive_config_dir = status_params.hive_config_dir
 hive_client_conf_dir = status_params.hive_client_conf_dir
 hive_server_conf_dir = status_params.hive_server_conf_dir
 hive_interactive_conf_dir = status_params.hive_server_interactive_conf_dir
+
 
 hcat_conf_dir = '/etc/hive-hcatalog/conf'
 config_dir = '/etc/hive-webhcat/conf'
@@ -173,6 +175,7 @@ else:
   tarballs_mode = 0755
 
 execute_path = os.environ['PATH'] + os.pathsep + hive_bin + os.pathsep + hadoop_bin_dir
+
 hive_metastore_user_name = config['configurations']['hive-site']['javax.jdo.option.ConnectionUserName']
 hive_jdbc_connection_url = config['configurations']['hive-site']['javax.jdo.option.ConnectionURL']
 
@@ -310,7 +313,7 @@ artifact_dir = format("{tmp_dir}/AMBARI-artifacts/")
 yarn_log_dir_prefix = config['configurations']['yarn-env']['yarn_log_dir_prefix']
 
 target = format("{hive_lib}/{jdbc_jar_name}")
-target_interactive = format("{hive_interactive_lib}/{jdbc_jar_name}")
+target_hive_interactive = format("{hive_interactive_lib}/{jdbc_jar_name}")
 jars_in_hive_lib = format("{hive_lib}/*.jar")
 
 start_hiveserver2_path = format("{tmp_dir}/start_hiveserver2_script")
@@ -407,11 +410,6 @@ mysql_jdbc_driver_jar = "/usr/share/java/mysql-connector-java.jar"
 
 hive_site_config = dict(config['configurations']['hive-site'])
 
-hive_interactive_hosts = default('/clusterHostInfo/hive-server2-hive2_hosts', [])
-has_hive_interactive = len(hive_interactive_hosts) > 0
-if has_hive_interactive:
-  hive_interactive_site_config = dict(config['configurations']['hive-interactive-site'])
-
 ########################################################
 ############# Atlas related params #####################
 ########################################################
@@ -480,6 +478,19 @@ HdfsResource = functools.partial(
   immutable_paths = get_not_managed_resources(),
   dfs_type = dfs_type
  )
+
+# Hive Interactive related
+hive_interactive_hosts = default('/clusterHostInfo/hive_server_interactive_hosts', [])
+has_hive_interactive = len(hive_interactive_hosts) > 0
+if has_hive_interactive:
+  hive_server_interactive_conf_dir = status_params.hive_server_interactive_conf_dir
+  execute_path_hive_interactive = os.path.join(os.environ['PATH'], hive_interactive_bin, hadoop_bin_dir)
+  start_hiveserver2_interactive_script = 'startHiveserver2Interactive.sh.j2'
+  start_hiveserver2_interactive_path = format("{tmp_dir}/start_hiveserver2_interactive_script")
+  hive_interactive_env_sh_template = config['configurations']['hive-interactive-env']['content']
+  # Tez for Hive interactive related
+  tez_interactive_config_dir = os.path.realpath("/etc/tez_hive2/conf")
+  tez_interactive_user = config['configurations']['tez-env']['tez_user']
 
 
 # ranger host

@@ -42,8 +42,12 @@ _DEFAULT_TARBALL_MAP = {
              "/{0}/apps/{1}/slider/slider.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
   "tez": ("{0}/{1}/tez/lib/tez.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN),
           "/{0}/apps/{1}/tez/tez.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
+  "tez_hive2": ("{0}/{1}/tez_hive2/lib/tez.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN),
+          "/{0}/apps/{1}/tez_hive2/tez.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
   "hive": ("{0}/{1}/hive/hive.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN),
            "/{0}/apps/{1}/hive/hive.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
+  "hive2": ("{0}/{1}/hive2/hive.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN),
+           "/{0}/apps/{1}/hive2/hive.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
   "pig": ("{0}/{1}/pig/pig.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN),
           "/{0}/apps/{1}/pig/pig.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
   "hadoop_streaming": ("{0}/{1}/hadoop-mapreduce/hadoop-streaming.jar".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN),
@@ -76,7 +80,6 @@ def _get_tarball_paths(name, use_upgrading_version_during_uprade=True, custom_so
     Logger.error("Cannot copy {0} tarball to HDFS because stack name could be be determined.".format(
             str(name)))
     return (False, None, None)
-
   stack_version = _get_current_version(use_upgrading_version_during_uprade)
   if not stack_version:
     Logger.error("Cannot copy {0} tarball to HDFS because stack version could be be determined.".format(
@@ -98,7 +101,6 @@ def _get_tarball_paths(name, use_upgrading_version_during_uprade=True, custom_so
     Logger.error("Cannot copy tarball to HDFS because {0} is not supported in stack {1} for this operation.".format(
             str(name), str(stack_name)))
     return (False, None, None)
-
   (source_file, dest_file) = tarball_map[name.lower()]
 
   if custom_source_file is not None:
@@ -106,7 +108,6 @@ def _get_tarball_paths(name, use_upgrading_version_during_uprade=True, custom_so
 
   if custom_dest_file is not None:
     dest_file = custom_dest_file
-
   source_file = source_file.replace(STACK_NAME_PATTERN, stack_name.lower())
   dest_file = dest_file.replace(STACK_NAME_PATTERN, stack_name.lower())
 
@@ -115,6 +116,7 @@ def _get_tarball_paths(name, use_upgrading_version_during_uprade=True, custom_so
 
   source_file = source_file.replace(STACK_VERSION_PATTERN, stack_version)
   dest_file = dest_file.replace(STACK_VERSION_PATTERN, stack_version)
+
   return (True, source_file, dest_file)
 
 def _get_current_version(use_upgrading_version_during_uprade=True):
