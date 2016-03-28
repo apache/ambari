@@ -38,13 +38,13 @@ public class HiveViewImpl implements View {
 
   @Override
   public void onDestroy(ViewInstanceDefinition definition) {
-
+    SharedObjectsFactory.dropInstanceCache(definition.getInstanceName());
   }
 
   @Override
   public void onUpdate(ViewInstanceDefinition definition) {
     //drop all cached connection for instance
-    UserLocal.dropInstanceConnection(definition.getInstanceName());
-    SharedObjectsFactory.dropInstanceConnection(definition.getInstanceName());
+    UserLocal.dropInstanceCache(definition.getInstanceName());
+    SharedObjectsFactory.dropInstanceCache(definition.getInstanceName());
   }
 }
