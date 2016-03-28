@@ -234,6 +234,19 @@ angular.module('ambariAdminConsole')
     }
   };
 
+  $scope.hasNotDeletedRepo = function () {
+    //check if any repository has been selected for deleting
+    //if yes, drop down should be displayed
+    var repoNotDeleted = true;
+    for(var i=0;i<$scope.osList.length;i++) {
+      if (!$scope.osList[i].selected) {
+        repoNotDeleted=false;
+        break; 
+      }
+    }
+    return repoNotDeleted;
+  };
+
   /**
    * On click handler for adding a new repository
    */

@@ -166,7 +166,7 @@
         <div class="btn-group pull-right" dropdown>
           <button class="btn dropdown-toggle">
             <span class="glyphicon glyphicon-plus"></span> {{'common.add' | translate: '{term: constants.os}'}} &nbsp;<span class="caret"></span></button>
-          <ul class="dropdown-menu">
+          <ul class="dropdown-menu" ng-class="{'hidden': hasNotDeletedRepo()}">
             <li ng-repeat="os in osList"><a ng-if="os.selected==false" ng-click="addOS()">{{os.OperatingSystems.os_type}}</a></li>
           </ul>
         </div>
