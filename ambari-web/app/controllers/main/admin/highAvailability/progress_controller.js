@@ -17,7 +17,6 @@
  */
 
 var App = require('app');
-var installedComponents = [];
 
 App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardController.extend(App.wizardProgressPageControllerMixin, {
 
