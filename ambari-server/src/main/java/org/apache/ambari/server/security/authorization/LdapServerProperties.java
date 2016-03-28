@@ -53,7 +53,8 @@ public class LdapServerProperties {
   private String userSearchBase = "";
 
   private String groupSearchFilter;
-  private static final String userSearchFilter = "(&({attribute}={0})(objectClass={userObjectClass}))";
+  private String userSearchFilter;
+  private String alternateUserSearchFilter; // alternate user search filter to be used when users use their alternate login id (e.g. User Principal Name)
 
   //LDAP pagination properties
   private boolean paginationEnabled = true;
@@ -137,10 +138,17 @@ public class LdapServerProperties {
     this.userSearchBase = userSearchBase;
   }
 
-  public String getUserSearchFilter() {
-    return userSearchFilter
-      .replace("{attribute}", usernameAttribute)
-      .replace("{userObjectClass}", userObjectClass);
+  /**
+   * Returns the LDAP filter to search users by.
+   * @param useAlternateUserSearchFilter if true than return LDAP filter that expects user name in
+   *                                  User Principal Name format to filter users constructed from {@value org.apache.ambari.server.configuration.Configuration#LDAP_ALT_USER_SEARCH_FILTER_KEY}.
+   *                                  Otherwise the filter is constructed from {@value org.apache.ambari.server.configuration.Configuration#LDAP_USER_SEARCH_FILTER_KEY}
+   * @return the LDAP filter string
+   */
+  public String getUserSearchFilter(boolean useAlternateUserSearchFilter) {
+    String filter = useAlternateUserSearchFilter ? alternateUserSearchFilter : userSearchFilter;
+
+    return resolveUserSearchFilterPlaceHolders(filter);
   }
 
   public String getUsernameAttribute() {
@@ -197,6 +205,15 @@ public class LdapServerProperties {
 
   public void setGroupSearchFilter(String groupSearchFilter) {
     this.groupSearchFilter = groupSearchFilter;
+  }
+
+
+  public void setUserSearchFilter(String userSearchFilter) {
+    this.userSearchFilter = userSearchFilter;
+  }
+
+  public void setAlternateUserSearchFilter(String alternateUserSearchFilter) {
+    this.alternateUserSearchFilter = alternateUserSearchFilter;
   }
 
   public boolean isGroupMappingEnabled() {
@@ -288,6 +305,10 @@ public class LdapServerProperties {
 
     if (paginationEnabled != that.isPaginationEnabled()) return false;
 
+    if (userSearchFilter != null ? !userSearchFilter.equals(that.userSearchFilter) : that.userSearchFilter != null) return false;
+    if (alternateUserSearchFilter != null ? !alternateUserSearchFilter.equals(that.alternateUserSearchFilter) : that.alternateUserSearchFilter != null) return false;
+
+
     return true;
   }
 
@@ -311,7 +332,20 @@ public class LdapServerProperties {
     result = 31 * result + (groupSearchFilter != null ? groupSearchFilter.hashCode() : 0);
     result = 31 * result + (dnAttribute != null ? dnAttribute.hashCode() : 0);
     result = 31 * result + (referralMethod != null ? referralMethod.hashCode() : 0);
+    result = 31 * result + (userSearchFilter != null ? userSearchFilter.hashCode() : 0);
+    result = 31 * result + (alternateUserSearchFilter != null ? alternateUserSearchFilter.hashCode() : 0);
     return result;
+  }
+
+  /**
+   * Resolves known placeholders found within the given ldap user search ldap filter
+   * @param filter
+   * @return returns the filter with the resolved placeholders.
+   */
+  protected String resolveUserSearchFilterPlaceHolders(String filter) {
+    return filter
+      .replace("{usernameAttribute}", usernameAttribute)
+      .replace("{userObjectClass}", userObjectClass);
   }
 
 }

@@ -18,7 +18,14 @@
 package org.apache.ambari.server.security.authorization;
 
 
+import java.util.List;
+
+import javax.naming.NamingException;
+import javax.naming.directory.Attributes;
+
 import org.apache.ambari.server.configuration.Configuration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.ldap.core.AttributesMapper;
 import org.springframework.ldap.core.DirContextOperations;
 import org.springframework.ldap.core.LdapTemplate;
@@ -26,16 +33,13 @@ import org.springframework.ldap.core.support.BaseLdapPathContextSource;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.ldap.authentication.BindAuthenticator;
 
-import java.util.*;
-import javax.naming.*;
-import javax.naming.directory.Attributes;
-
 
 /**
  * An authenticator which binds as a user and checks if user should get ambari
  * admin authorities according to LDAP group membership
  */
 public class AmbariLdapBindAuthenticator extends BindAuthenticator {
+  private static final Logger LOG = LoggerFactory.getLogger(AmbariLdapBindAuthenticator.class);
 
   private Configuration configuration;
 
@@ -51,8 +55,23 @@ public class AmbariLdapBindAuthenticator extends BindAuthenticator {
   public DirContextOperations authenticate(Authentication authentication) {
 
     DirContextOperations user = super.authenticate(authentication);
+    setAmbariAdminAttr(user);
 
-    return setAmbariAdminAttr(user);
+    // Users stored locally in ambari are matched against LDAP users by the ldap attribute configured to be used as user name.
+    // (e.g. uid, sAMAccount -> ambari user name )
+    String ldapUserName = user.getStringAttribute(configuration.getLdapServerProperties().getUsernameAttribute());
+    String loginName  = authentication.getName(); // user login name the user has logged in
+
+    if (!ldapUserName.equals(loginName)) {
+      // if authenticated user name is different from ldap user name than user has logged in
+      // with a login name that is different (e.g. user principal name) from the ambari user name stored in
+      // ambari db. In this case add the user login name  as login alias for ambari user name.
+      LOG.info("User with {}='{}' logged in with login alias '{}'", ldapUserName, loginName);
+
+      AuthorizationHelper.addLoginNameAlias(ldapUserName, loginName);
+    }
+
+    return user;
   }
 
   /**

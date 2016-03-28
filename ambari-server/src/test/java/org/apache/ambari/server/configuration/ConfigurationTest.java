@@ -658,4 +658,60 @@ public class ConfigurationTest {
     Assert.assertEquals(actualCacheEnabledConfig, Configuration.SERVER_HRC_STATUS_SUMMARY_CACHE_ENABLED_DEFAULT);
   }
 
+  @Test
+  public void testLdapUserSearchFilterDefault() throws Exception {
+    // Given
+    final Properties ambariProperties = new Properties();
+    final Configuration configuration = new Configuration(ambariProperties);
+
+    // When
+    String actualLdapUserSearchFilter = configuration.getLdapServerProperties().getUserSearchFilter(false);
+
+    // Then
+    Assert.assertEquals("(&(uid={0})(objectClass=person))", actualLdapUserSearchFilter);
+  }
+
+  @Test
+  public void testLdapUserSearchFilter() throws Exception {
+    // Given
+    final Properties ambariProperties = new Properties();
+    final Configuration configuration = new Configuration(ambariProperties);
+    ambariProperties.setProperty(Configuration.LDAP_USERNAME_ATTRIBUTE_KEY, "test_uid");
+    ambariProperties.setProperty(Configuration.LDAP_USER_SEARCH_FILTER_KEY, "{usernameAttribute}={0}");
+
+    // When
+    String actualLdapUserSearchFilter = configuration.getLdapServerProperties().getUserSearchFilter(false);
+
+    // Then
+    Assert.assertEquals("test_uid={0}", actualLdapUserSearchFilter);
+  }
+
+  @Test
+  public void testAlternateLdapUserSearchFilterDefault() throws Exception {
+    // Given
+    final Properties ambariProperties = new Properties();
+    final Configuration configuration = new Configuration(ambariProperties);
+
+    // When
+    String actualLdapUserSearchFilter = configuration.getLdapServerProperties().getUserSearchFilter(true);
+
+    // Then
+    Assert.assertEquals("(&(userPrincipalName={0})(objectClass=person))", actualLdapUserSearchFilter);
+  }
+
+  @Test
+  public void testAlternatLdapUserSearchFilter() throws Exception {
+    // Given
+    final Properties ambariProperties = new Properties();
+    final Configuration configuration = new Configuration(ambariProperties);
+    ambariProperties.setProperty(Configuration.LDAP_USERNAME_ATTRIBUTE_KEY, "test_uid");
+    ambariProperties.setProperty(Configuration.LDAP_ALT_USER_SEARCH_FILTER_KEY, "{usernameAttribute}={5}");
+
+    // When
+    String actualLdapUserSearchFilter = configuration.getLdapServerProperties().getUserSearchFilter(true);
+
+    // Then
+    Assert.assertEquals("test_uid={5}", actualLdapUserSearchFilter);
+  }
+
 }

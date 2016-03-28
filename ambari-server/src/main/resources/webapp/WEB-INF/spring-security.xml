@@ -49,5 +49,6 @@
 
   <beans:bean id="basicFilter" class="org.springframework.security.web.authentication.www.BasicAuthenticationFilter">
     <beans:constructor-arg ref="authenticationManager"/>
+    <beans:constructor-arg ref="ambariEntryPoint"/>
   </beans:bean>
 </beans:beans>

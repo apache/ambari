@@ -29,6 +29,10 @@ import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.easymock.PowerMock;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.ldap.core.DirContextOperations;
 
 import java.util.Collections;
@@ -36,6 +40,8 @@ import java.util.LinkedList;
 import java.util.List;
 import static org.easymock.EasyMock.*;
 
+@RunWith(PowerMockRunner.class)               // Allow mocking static methods
+@PrepareForTest(AuthorizationHelper.class)    // This class has a static method that will be mocked
 public class TestAmbariLdapAuthoritiesPopulator extends EasyMockSupport {
 
   AuthorizationHelper helper = new AuthorizationHelper();
@@ -53,6 +59,7 @@ public class TestAmbariLdapAuthoritiesPopulator extends EasyMockSupport {
   @Before
   public void setUp() throws Exception {
     resetAll();
+    PowerMock.resetAll();
   }
 
   @Test
@@ -106,6 +113,41 @@ public class TestAmbariLdapAuthoritiesPopulator extends EasyMockSupport {
     //test with non-admin
     populator.getGrantedAuthorities(userData, "user");
 
+    verifyAll();
+  }
+
+  @Test
+  public void testGetGrantedAuthoritiesWithLoginAlias() throws Exception {
+    // Given
+    String loginAlias = "testLoginAlias@testdomain.com";
+    String ambariUserName = "user";
+
+    PowerMock.mockStatic(AuthorizationHelper.class);
+    expect(AuthorizationHelper.resolveLoginAliasToUserName(loginAlias)).andReturn(ambariUserName);
+
+    PowerMock.replay(AuthorizationHelper.class);
+
+    AmbariLdapAuthoritiesPopulator populator = createMockBuilder(AmbariLdapAuthoritiesPopulator.class)
+      .withConstructor(helper, userDAO, memberDAO, privilegeDAO).createMock();
+
+    expect(userEntity.getPrincipal()).andReturn(principalEntity);
+    expect(userEntity.getActive()).andReturn(true);
+    expect(memberDAO.findAllMembersByUser(userEntity)).andReturn(Collections.singletonList(memberEntity));
+    expect(memberEntity.getGroup()).andReturn(groupEntity);
+    expect(groupEntity.getPrincipal()).andReturn(groupPrincipalEntity);
+    List<PrincipalEntity> principalEntityList = new LinkedList<PrincipalEntity>();
+    principalEntityList.add(principalEntity);
+    principalEntityList.add(groupPrincipalEntity);
+    expect(privilegeDAO.findAllByPrincipal(principalEntityList)).andReturn(Collections.singletonList(privilegeEntity));
+
+    expect(userDAO.findLdapUserByName(ambariUserName)).andReturn(userEntity); // user should be looked up by user name instead of login alias
+
+    replayAll();
+
+    // When
+    populator.getGrantedAuthorities(userData, loginAlias);
+
+    PowerMock.verify(AuthorizationHelper.class);
     verifyAll();
   }
 

@@ -293,6 +293,7 @@
             <exclude>src/test/resources/TestAmbaryServer.samples/**</exclude>
             <exclude>src/test/resources/*.txt</exclude>
             <exclude>src/test/resources/users_for_dn_with_space.ldif</exclude>
+            <exclude>src/test/resources/users_with_duplicate_uid.ldif</exclude>
 
             <!--Velocity log -->
             <exclude>**/velocity.log*</exclude>

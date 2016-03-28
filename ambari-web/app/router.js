@@ -311,9 +311,9 @@ App.Router = Em.Router.extend({
     var self = this;
     App.router.set('loginController.isSubmitDisabled', false);
     App.usersMapper.map({"items": [data]});
-    this.setUserLoggedIn(decodeURIComponent(params.loginName));
+    this.setUserLoggedIn(data.Users.user_name);
     var requestData = {
-      loginName: params.loginName,
+      loginName: data.Users.user_name,
       loginData: data
     };
     App.router.get('clusterController').loadAuthorizations().complete(function() {

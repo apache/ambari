@@ -188,6 +188,30 @@ public class Configuration {
   public static final String LDAP_GROUP_NAMING_ATTR_KEY = "authentication.ldap.groupNamingAttr";
   public static final String LDAP_GROUP_MEMEBERSHIP_ATTR_KEY = "authentication.ldap.groupMembershipAttr";
   public static final String LDAP_ADMIN_GROUP_MAPPING_RULES_KEY = "authorization.ldap.adminGroupMappingRules";
+  /**
+   * When authentication through LDAP is enabled then Ambari Server uses this filter to lookup
+   * the user in LDAP based on the provided ambari user name.
+   *
+   * If it is not set then the default {@link #LDAP_USER_SEARCH_FILTER_DEFAULT} is used.
+   */
+  public static final String LDAP_USER_SEARCH_FILTER_KEY = "authentication.ldap.userSearchFilter";
+
+  /**
+   * When authentication through LDAP is enabled there might be cases when {@link #LDAP_USER_SEARCH_FILTER_KEY}
+   * may match multiple users in LDAP. In such cases the user is prompted to provide additional info, e.g. the domain
+   * he or she wants ot log in upon login beside the username. This filter will be used by Ambari Server to lookup
+   * users in LDAP if the login name the user logs in contains additional information beside ambari user name.
+   *
+   * If it is not not set then the default {@link #LDAP_ALT_USER_SEARCH_FILTER_DEFAULT} is used.
+   *
+   * <p>
+   *   Note: Currently this filter will only be used by Ambari Server if the user login name
+   *   is in the username@domain format (e.g. user1@x.y.com) which is the userPrincipalName
+   *   format used in AD.
+   * </p>
+   */
+  public static final String LDAP_ALT_USER_SEARCH_FILTER_KEY = "authentication.ldap.alternateUserSearchFilter"; //TODO: we'll need a more generic solution to support any login name format
+
   public static final String LDAP_GROUP_SEARCH_FILTER_KEY = "authorization.ldap.groupSearchFilter";
   public static final String LDAP_REFERRAL_KEY = "authentication.ldap.referral";
   public static final String LDAP_PAGINATION_ENABLED_KEY = "authentication.ldap.pagination.enabled";
@@ -459,6 +483,25 @@ public class Configuration {
   private static final String LDAP_GROUP_NAMING_ATTR_DEFAULT = "cn";
   private static final String LDAP_GROUP_MEMBERSHIP_ATTR_DEFAULT = "member";
   private static final String LDAP_ADMIN_GROUP_MAPPING_RULES_DEFAULT = "Ambari Administrators";
+  /**
+   * When authentication through LDAP is enabled then Ambari Server uses this filter by default to lookup
+   * the user in LDAP if one not provided in the config via {@link #LDAP_USER_SEARCH_FILTER_KEY}.
+   */
+  protected static final String LDAP_USER_SEARCH_FILTER_DEFAULT = "(&({usernameAttribute}={0})(objectClass={userObjectClass}))";
+
+  /**
+   * When authentication through LDAP is enabled Ambari Server uses this filter by default to lookup
+   * the user in LDAP when the user provides beside user name additional information.
+   * This filter can be overridden through {@link #LDAP_ALT_USER_SEARCH_FILTER_KEY}.
+   *
+   * <p>
+   *   Note: Currently the use of alternate user search filter is triggered only if the user login name
+   *   is in the username@domain format (e.g. user1@x.y.com) which is the userPrincipalName
+   *   format used in AD.
+   * </p>
+   */
+  protected static final String LDAP_ALT_USER_SEARCH_FILTER_DEFAULT = "(&(userPrincipalName={0})(objectClass={userObjectClass}))"; //TODO: we'll need a more generic solution to support any login name format
+
   private static final String LDAP_GROUP_SEARCH_FILTER_DEFAULT = "";
   private static final String LDAP_REFERRAL_DEFAULT = "follow";
 
@@ -1661,6 +1704,10 @@ public class Configuration {
       getProperty(LDAP_GROUP_NAMING_ATTR_KEY, LDAP_GROUP_NAMING_ATTR_DEFAULT));
     ldapServerProperties.setAdminGroupMappingRules(properties.getProperty(
       LDAP_ADMIN_GROUP_MAPPING_RULES_KEY, LDAP_ADMIN_GROUP_MAPPING_RULES_DEFAULT));
+    ldapServerProperties.setUserSearchFilter(properties.getProperty(
+      LDAP_USER_SEARCH_FILTER_KEY, LDAP_USER_SEARCH_FILTER_DEFAULT));
+    ldapServerProperties.setAlternateUserSearchFilter(properties.getProperty(
+      LDAP_ALT_USER_SEARCH_FILTER_KEY, LDAP_ALT_USER_SEARCH_FILTER_DEFAULT));
     ldapServerProperties.setGroupSearchFilter(properties.getProperty(
       LDAP_GROUP_SEARCH_FILTER_KEY, LDAP_GROUP_SEARCH_FILTER_DEFAULT));
     ldapServerProperties.setReferralMethod(properties.getProperty(

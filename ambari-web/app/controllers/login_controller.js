@@ -36,14 +36,16 @@ App.LoginController = Em.Object.extend({
   },
 
   postLogin: function (isConnected, isAuthenticated, responseText) {
+    var errorMessage = "";
     if (!isConnected) {
       this.set('errorMessage', responseText || Em.I18n.t('login.error.bad.connection'));
     } else if (!isAuthenticated) {
-      var errorMessage = "";
-      if( responseText === "User is disabled" ){
+      if (responseText === "User is disabled") {
         errorMessage = Em.I18n.t('login.error.disabled');
-      } else {
+      } else if (responseText === "Authentication required" || Em.isNone(responseText)) {
         errorMessage = Em.I18n.t('login.error.bad.credentials');
+      } else {
+        errorMessage = responseText;
       }
       this.set('errorMessage', errorMessage);
     }

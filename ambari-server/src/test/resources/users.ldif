@@ -17,6 +17,7 @@ cn: CraigWalls
 sn: Walls
 uid: allowedUser
 userPassword:password
+mail:allowedUser@ambari.apache.org
 
 dn: uid=deniedUser,ou=people,dc=ambari,dc=apache,dc=org
 objectclass:top

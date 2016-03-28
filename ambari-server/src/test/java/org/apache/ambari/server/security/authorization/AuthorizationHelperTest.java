@@ -17,10 +17,6 @@
  */
 package org.apache.ambari.server.security.authorization;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -36,15 +32,39 @@ import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.RoleAuthorizationEntity;
+import org.easymock.EasyMockRule;
+import org.easymock.Mock;
+import org.easymock.MockType;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class AuthorizationHelperTest {
+
+  @Rule
+  public EasyMockRule mocks = new EasyMockRule(this);
+
+  @Mock(type = MockType.NICE)
+  private ServletRequestAttributes servletRequestAttributes;
+
 
   @Test
   public void testConvertPrivilegesToAuthorities() throws Exception {
@@ -116,6 +136,29 @@ public class AuthorizationHelperTest {
 
     user = AuthorizationHelper.getAuthenticatedName();
     Assert.assertEquals("admin", user);
+
+  }
+
+  @Test
+  public void testLoginAliasAuthName() throws Exception {
+
+    reset(servletRequestAttributes);
+
+    RequestContextHolder.setRequestAttributes(servletRequestAttributes);
+    expect(servletRequestAttributes.getAttribute(eq("user1@domain.com"), eq(RequestAttributes.SCOPE_SESSION)))
+      .andReturn("user1").atLeastOnce(); // user1@domain.com is a login alias for user1
+
+    replay(servletRequestAttributes);
+
+    Authentication auth = new UsernamePasswordAuthenticationToken("user1@domain.com", null);
+    SecurityContextHolder.getContext().setAuthentication(new AmbariAuthentication(auth));
+
+    String user = AuthorizationHelper.getAuthenticatedName();
+    Assert.assertEquals("user1", user);
+
+    SecurityContextHolder.getContext().setAuthentication(null); // clean up security context
+
+    verify(servletRequestAttributes);
 
   }
 
@@ -254,7 +297,6 @@ public class AuthorizationHelperTest {
     assertTrue(AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, 1L, EnumSet.of(RoleAuthorization.AMBARI_MANAGE_USERS)));
   }
 
-  @Test
   public void testIsAuthorizedForSpecificView() {
     RoleAuthorizationEntity readOnlyRoleAuthorizationEntity = new RoleAuthorizationEntity();
     readOnlyRoleAuthorizationEntity.setAuthorizationId(RoleAuthorization.CLUSTER_VIEW_METRICS.getId());
@@ -335,6 +377,70 @@ public class AuthorizationHelperTest {
     context.setAuthentication(administratorUser);
     assertTrue(AuthorizationHelper.isAuthorized(ResourceType.VIEW, 53L, permissionsViewUse));
     assertTrue(AuthorizationHelper.isAuthorized(ResourceType.VIEW, 50L, permissionsViewUse));
+  }
+
+  public void testAddLoginNameAlias() throws Exception {
+    // Given
+    reset(servletRequestAttributes);
+
+    RequestContextHolder.setRequestAttributes(servletRequestAttributes);
+    servletRequestAttributes.setAttribute(eq("loginAlias"), eq("user"), eq(RequestAttributes.SCOPE_SESSION));
+    expectLastCall().once();
+
+    replay(servletRequestAttributes);
+
+    // When
+    AuthorizationHelper.addLoginNameAlias("user","loginAlias");
+
+    // Then
+    verify(servletRequestAttributes);
+  }
+
+  @Test
+  public void testResolveLoginAliasToUserName() throws Exception {
+    // Given
+    reset(servletRequestAttributes);
+
+    RequestContextHolder.setRequestAttributes(servletRequestAttributes);
+
+    expect(servletRequestAttributes.getAttribute(eq("loginAlias1"), eq(RequestAttributes.SCOPE_SESSION)))
+      .andReturn("user1").atLeastOnce();
+
+    replay(servletRequestAttributes);
+
+    // When
+    String user = AuthorizationHelper.resolveLoginAliasToUserName("loginAlias1");
+
+    // Then
+    verify(servletRequestAttributes);
+
+    assertEquals("user1", user);
+  }
+
+  @Test
+  public void testResolveNoLoginAliasToUserName() throws Exception {
+    reset(servletRequestAttributes);
+
+    // No request attributes/http session available yet
+    RequestContextHolder.setRequestAttributes(null);
+    assertEquals("user", AuthorizationHelper.resolveLoginAliasToUserName("user"));
+
+
+    // request attributes available but user doesn't have any login aliases
+    RequestContextHolder.setRequestAttributes(servletRequestAttributes);
+
+    expect(servletRequestAttributes.getAttribute(eq("nosuchalias"), eq(RequestAttributes.SCOPE_SESSION)))
+      .andReturn(null).atLeastOnce();
+
+    replay(servletRequestAttributes);
+
+    // When
+    String user = AuthorizationHelper.resolveLoginAliasToUserName("nosuchalias");
+
+    // Then
+    verify(servletRequestAttributes);
+
+    assertEquals("nosuchalias", user);
   }
 
   private class TestAuthentication implements Authentication {

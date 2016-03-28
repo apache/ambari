@@ -41,6 +41,7 @@ import org.apache.ambari.server.agent.rest.AgentResource;
 import org.apache.ambari.server.api.AmbariErrorHandler;
 import org.apache.ambari.server.api.AmbariPersistFilter;
 import org.apache.ambari.server.api.MethodOverrideFilter;
+import org.apache.ambari.server.api.UserNameOverrideFilter;
 import org.apache.ambari.server.api.rest.BootStrapResource;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.KeyService;
@@ -363,6 +364,7 @@ public class AmbariServer {
       root.addEventListener(new RequestContextListener());
 
       root.addFilter(new FilterHolder(springSecurityFilter), "/api/*", DISPATCHER_TYPES);
+      root.addFilter(new FilterHolder(new UserNameOverrideFilter()), "/api/v1/users/*", DISPATCHER_TYPES);
 
       // session-per-request strategy for agents
       agentroot.addFilter(new FilterHolder(injector.getInstance(AmbariPersistFilter.class)), "/agent/*", DISPATCHER_TYPES);

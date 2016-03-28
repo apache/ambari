@@ -77,9 +77,20 @@ public class LdapServerPropertiesTest {
 
   @Test
   public void testGetUserSearchFilter() throws Exception {
-    assertEquals(INCORRECT_USER_SEARCH_FILTER, "(&(uid={0})(objectClass=dummyObjectClass))", ldapServerProperties.getUserSearchFilter());
+    ldapServerProperties.setUserSearchFilter("(&({usernameAttribute}={0})(objectClass={userObjectClass}))");
+    assertEquals(INCORRECT_USER_SEARCH_FILTER, "(&(uid={0})(objectClass=dummyObjectClass))", ldapServerProperties.getUserSearchFilter(false));
+
     ldapServerProperties.setUsernameAttribute("anotherName");
-    assertEquals(INCORRECT_USER_SEARCH_FILTER, "(&(anotherName={0})(objectClass=dummyObjectClass))", ldapServerProperties.getUserSearchFilter());
+    assertEquals(INCORRECT_USER_SEARCH_FILTER, "(&(anotherName={0})(objectClass=dummyObjectClass))", ldapServerProperties.getUserSearchFilter(false));
+  }
+
+  @Test
+  public void testGetAlternatUserSearchFilterForUserPrincipalName() throws Exception {
+    ldapServerProperties.setAlternateUserSearchFilter("(&({usernameAttribute}={0})(objectClass={userObjectClass}))");
+    assertEquals(INCORRECT_USER_SEARCH_FILTER, "(&(uid={0})(objectClass=dummyObjectClass))", ldapServerProperties.getUserSearchFilter(true));
+
+    ldapServerProperties.setUsernameAttribute("anotherName");
+    assertEquals(INCORRECT_USER_SEARCH_FILTER, "(&(anotherName={0})(objectClass=dummyObjectClass))", ldapServerProperties.getUserSearchFilter(true));
   }
 
   @Test
@@ -91,5 +102,13 @@ public class LdapServerPropertiesTest {
     assertTrue("Hash codes are not equal", properties1.hashCode() == properties2.hashCode());
     properties2.setSecondaryUrl("5.6.7.8:389");
     assertFalse("Objects are equal", properties1.equals(properties2));
+  }
+
+  @Test
+  public void testResolveUserSearchFilterPlaceHolders() throws Exception {
+    String ldapUserSearchFilter = "{usernameAttribute}={0}  {userObjectClass}={1}";
+    String filter = ldapServerProperties.resolveUserSearchFilterPlaceHolders(ldapUserSearchFilter);
+
+    assertEquals("uid={0}  dummyObjectClass={1}", filter);
   }
 }
