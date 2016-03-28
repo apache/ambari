@@ -40,7 +40,7 @@ var configsCollection = [],
 App.configsCollection = Em.Object.create({
 
   /**
-   * adds config property to configs array anf map
+   * adds config property to configs array and map
    * should assert error if config has no id
    * @param c
    * @method add

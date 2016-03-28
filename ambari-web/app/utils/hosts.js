@@ -151,15 +151,11 @@ module.exports = {
 
             host.set('filterColumnValue', value);
 
-            if (!skip && filterText) {
-              if ((value == null || !value.toString().match(filterText)) && !host.get('host.publicHostName').match(filterText)) {
-                skip = true;
-              }
+            if (!skip && filterText && (value == null || !value.toString().match(filterText)) && !host.get('host.publicHostName').match(filterText)) {
+              skip = true;
             }
-            if (!skip && filterComponent) {
-              if (hostComponentNames.length > 0) {
+            if (!skip && filterComponent && hostComponentNames.length > 0) {
                 skip = !hostComponentNames.contains(filterComponent.get('componentName'));
-              }
             }
             host.set('filtered', !skip);
           }, this);

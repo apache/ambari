@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-var App = require('app');
 module.exports = {
   mappers: Em.Mixin.create({
     metricMapperWithTransform: function (json, metricName, transformValueFunction) {
