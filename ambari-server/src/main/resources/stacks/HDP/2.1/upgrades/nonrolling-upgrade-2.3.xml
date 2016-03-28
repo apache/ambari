@@ -177,13 +177,13 @@
 
       <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Restore Oozie Database">
         <task xsi:type="manual">
-          <message>Before continuing, please restore the Oozie Server database on {{hosts.all}}.</message>
+          <message>Before continuing, please restore the Oozie Server database referenced by the Oozie server located on {{hosts.all}}.</message>
         </task>
       </execute-stage>
 
       <execute-stage service="HIVE" component="HIVE_METASTORE" title="Restore Hive Metastore">
         <task xsi:type="manual">
-          <message>Before continuing, please restore the Hive Metastore database located on the following host(s): {{hosts.all}}.</message>
+          <message>Before continuing, please restore the Hive Metastore database referenced by the Hive Metastore service(s) located on the following host(s): {{hosts.all}}.</message>
         </task>
       </execute-stage>
     </group>

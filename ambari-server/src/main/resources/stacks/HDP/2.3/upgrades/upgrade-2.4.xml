@@ -88,7 +88,7 @@
 
       <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Pre Upgrade Oozie Backup">
         <task xsi:type="manual">
-          <message>Before continuing, please backup the Oozie Server database on {{hosts.all}}.</message>
+          <message>Before continuing, please backup the Oozie Server database referenced by the Oozie server located on {{hosts.all}}.</message>
         </task>
       </execute-stage>
 
