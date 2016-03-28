@@ -19,8 +19,6 @@
 package org.apache.ambari.server.upgrade;
 
 
-import javax.persistence.EntityManager;
-import junit.framework.Assert;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMockBuilder;
@@ -46,6 +44,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.persistence.EntityManager;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
@@ -67,6 +67,8 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Provider;
+
+import junit.framework.Assert;
 
 public class UpgradeCatalog240Test {
   private static Injector injector;
@@ -165,7 +167,11 @@ public class UpgradeCatalog240Test {
         UpgradeCatalog240.CLUSTER_UPGRADE_ID_COLUMN, UpgradeCatalog240.UPGRADE_TABLE, "upgrade_id", false);
 
     Capture<DBAccessor.DBColumnInfo> capturedHelpURLColumnInfo = newCapture();
+    Capture<DBAccessor.DBColumnInfo> capturedRepeatToleranceColumnInfo = newCapture();
+    Capture<DBAccessor.DBColumnInfo> capturedRepeatToleranceEnabledColumnInfo = newCapture();
     dbAccessor.addColumn(eq(UpgradeCatalog240.ALERT_DEFINITION_TABLE), capture(capturedHelpURLColumnInfo));
+    dbAccessor.addColumn(eq(UpgradeCatalog240.ALERT_DEFINITION_TABLE), capture(capturedRepeatToleranceColumnInfo));
+    dbAccessor.addColumn(eq(UpgradeCatalog240.ALERT_DEFINITION_TABLE), capture(capturedRepeatToleranceEnabledColumnInfo));
 
     replay(dbAccessor, configuration, connection, statement, resultSet);
 
@@ -250,6 +256,20 @@ public class UpgradeCatalog240Test {
     Assert.assertEquals(String.class, columnHelpURLInfo.getType());
     Assert.assertEquals(null, columnHelpURLInfo.getDefaultValue());
     Assert.assertEquals(true, columnHelpURLInfo.isNullable());
+
+    DBAccessor.DBColumnInfo columnRepeatToleranceInfo = capturedRepeatToleranceColumnInfo.getValue();
+    Assert.assertNotNull(columnRepeatToleranceInfo);
+    Assert.assertEquals(UpgradeCatalog240.REPEAT_TOLERANCE_COLUMN, columnRepeatToleranceInfo.getName());
+    Assert.assertEquals(Integer.class, columnRepeatToleranceInfo.getType());
+    Assert.assertEquals(1, columnRepeatToleranceInfo.getDefaultValue());
+    Assert.assertEquals(false, columnRepeatToleranceInfo.isNullable());
+
+    DBAccessor.DBColumnInfo columnRepeatToleranceEnabledInfo = capturedRepeatToleranceEnabledColumnInfo.getValue();
+    Assert.assertNotNull(columnRepeatToleranceEnabledInfo);
+    Assert.assertEquals(UpgradeCatalog240.REPEAT_TOLERANCE_ENABLED_COLUMN, columnRepeatToleranceEnabledInfo.getName());
+    Assert.assertEquals(Short.class, columnRepeatToleranceEnabledInfo.getType());
+    Assert.assertEquals(0, columnRepeatToleranceEnabledInfo.getDefaultValue());
+    Assert.assertEquals(false, columnRepeatToleranceEnabledInfo.isNullable());
 
     assertEquals(expectedCaptures, actualCaptures);
 

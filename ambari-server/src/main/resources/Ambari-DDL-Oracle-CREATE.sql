@@ -880,6 +880,8 @@ CREATE TABLE alert_definition (
   alert_source CLOB NOT NULL,
   hash VARCHAR2(64) NOT NULL,
   ignore_host NUMBER(1) DEFAULT 0 NOT NULL,
+  repeat_tolerance NUMBER(10) DEFAULT 1 NOT NULL,
+  repeat_tolerance_enabled NUMBER(1) DEFAULT 0 NOT NULL,
   PRIMARY KEY (definition_id),
   FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id),
   CONSTRAINT uni_alert_def_name UNIQUE(cluster_id,definition_name)

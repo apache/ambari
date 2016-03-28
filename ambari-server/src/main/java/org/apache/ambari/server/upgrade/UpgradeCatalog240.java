@@ -66,6 +66,8 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   protected static final String ADMIN_PERMISSION_TABLE = "adminpermission";
   protected static final String ALERT_DEFINITION_TABLE = "alert_definition";
   protected static final String HELP_URL_COLUMN = "help_url";
+  protected static final String REPEAT_TOLERANCE_COLUMN = "repeat_tolerance";
+  protected static final String REPEAT_TOLERANCE_ENABLED_COLUMN = "repeat_tolerance_enabled";
   protected static final String PERMISSION_ID_COL = "permission_name";
   protected static final String SORT_ORDER_COL = "sort_order";
   protected static final String REPO_VERSION_TABLE = "repo_version";
@@ -445,8 +447,25 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
         new DBColumnInfo(SORT_ORDER_COL, Short.class, null, 1, false));
   }
 
+  /**
+   * Updates the {@value #ALERT_DEFINITION_TABLE} in the following ways:
+   * <ul>
+   * <li>Craetes the {@value #HELP_URL_COLUMN} column</li>
+   * <li>Craetes the {@value #REPEAT_TOLERANCE_COLUMN} column</li>
+   * <li>Craetes the {@value #REPEAT_TOLERANCE_ENABLED_COLUMN} column</li>
+   * </ul>
+   *
+   * @throws SQLException
+   */
   protected void updateAlertDefinitionTable() throws SQLException {
-    dbAccessor.addColumn(ALERT_DEFINITION_TABLE, new DBColumnInfo(HELP_URL_COLUMN, String.class, 512, null, true));
+    dbAccessor.addColumn(ALERT_DEFINITION_TABLE,
+        new DBColumnInfo(HELP_URL_COLUMN, String.class, 512, null, true));
+
+    dbAccessor.addColumn(ALERT_DEFINITION_TABLE,
+        new DBColumnInfo(REPEAT_TOLERANCE_COLUMN, Integer.class, null, 1, false));
+
+    dbAccessor.addColumn(ALERT_DEFINITION_TABLE,
+        new DBColumnInfo(REPEAT_TOLERANCE_ENABLED_COLUMN, Short.class, null, 0, false));
   }
 
   protected void setRoleSortOrder() throws SQLException {

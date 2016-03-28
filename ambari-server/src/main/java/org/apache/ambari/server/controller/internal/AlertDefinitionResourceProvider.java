@@ -87,6 +87,9 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
   protected static final String ALERT_DEF_ENABLED = "AlertDefinition/enabled";
   protected static final String ALERT_DEF_SCOPE = "AlertDefinition/scope";
   protected static final String ALERT_DEF_IGNORE_HOST = "AlertDefinition/ignore_host";
+  protected static final String ALERT_DEF_REPEAT_TOLERANCE = "AlertDefinition/repeat_tolerance";
+  protected static final String ALERT_DEF_REPEAT_TOLERANCE_ENABLED = "AlertDefinition/repeat_tolerance_enabled";
+
 
   protected static final String ALERT_DEF_SOURCE = "AlertDefinition/source";
   protected static final String ALERT_DEF_SOURCE_TYPE = "AlertDefinition/source/type";
@@ -150,6 +153,8 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
     PROPERTY_IDS.add(ALERT_DEF_ENABLED);
     PROPERTY_IDS.add(ALERT_DEF_SCOPE);
     PROPERTY_IDS.add(ALERT_DEF_IGNORE_HOST);
+    PROPERTY_IDS.add(ALERT_DEF_REPEAT_TOLERANCE);
+    PROPERTY_IDS.add(ALERT_DEF_REPEAT_TOLERANCE_ENABLED);
     PROPERTY_IDS.add(ALERT_DEF_SOURCE);
 
     // keys
@@ -453,6 +458,17 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
       scope = Scope.ANY;
     }
 
+    Integer repeatTolerance = null;
+    if (requestMap.containsKey(ALERT_DEF_REPEAT_TOLERANCE)) {
+      repeatTolerance = Integer.valueOf((String) requestMap.get(ALERT_DEF_REPEAT_TOLERANCE));
+    }
+
+    Boolean repeatToleranceEnabled = null;
+    if (requestMap.containsKey(ALERT_DEF_REPEAT_TOLERANCE_ENABLED)) {
+      repeatToleranceEnabled = Boolean.valueOf(
+          requestMap.get(ALERT_DEF_REPEAT_TOLERANCE_ENABLED).toString());
+    }
+
     if (StringUtils.isEmpty(clusterName)) {
       throw new IllegalArgumentException(
           "Invalid argument, cluster name is required");
@@ -603,6 +619,16 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
       managed = true;
     }
 
+    if (null != repeatTolerance) {
+      entity.setRepeatTolerance(repeatTolerance);
+      managed = true;
+    }
+
+    if (null != repeatToleranceEnabled) {
+      entity.setRepeatToleranceEnabled(repeatToleranceEnabled);
+      managed = true;
+    }
+
     if (managed) {
       AlertResourceProviderUtils.verifyManageAuthorization(entity);
     } else if (toggled) {
@@ -697,6 +723,8 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
     setResourceProperty(resource, ALERT_DEF_IGNORE_HOST, Boolean.valueOf(entity.isHostIgnored()), requestedIds);
     setResourceProperty(resource, ALERT_DEF_SCOPE, entity.getScope(), requestedIds);
     setResourceProperty(resource, ALERT_DEF_HELP_URL, entity.getHelpURL(), requestedIds);
+    setResourceProperty(resource, ALERT_DEF_REPEAT_TOLERANCE, entity.getRepeatTolerance(), requestedIds);
+    setResourceProperty(resource, ALERT_DEF_REPEAT_TOLERANCE_ENABLED, Boolean.valueOf(entity.isRepeatToleranceEnabled()), requestedIds);
 
     boolean sourceTypeRequested = setResourceProperty(resource,
         ALERT_DEF_SOURCE_TYPE, entity.getSourceType(), requestedIds);

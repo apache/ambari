@@ -22,8 +22,30 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import javax.persistence.*;
+import javax.persistence.Basic;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EntityManager;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.persistence.PreRemove;
+import javax.persistence.QueryHint;
+import javax.persistence.Table;
+import javax.persistence.TableGenerator;
+import javax.persistence.UniqueConstraint;
 
+import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.alert.Scope;
 import org.apache.ambari.server.state.alert.SourceType;
 
@@ -109,6 +131,21 @@ public class AlertDefinitionEntity {
 
   @Column(name = "ignore_host", nullable = false)
   private Integer ignoreHost = Integer.valueOf(0);
+
+  /**
+   * Indicates how many sequential alerts must be received for a non-OK state
+   * change to be considered correct. This value is meant to eliminate
+   * false-positive notifications on alerts which are flaky.
+   */
+  @Column(name = "repeat_tolerance", nullable = false)
+  private Integer repeatTolerance = Integer.valueOf(1);
+
+  /**
+   * If {@code 1}, then the value of {@link #repeatTolerance} is used to
+   * override the global alert tolerance value.
+   */
+  @Column(name = "repeat_tolerance_enabled", nullable = false)
+  private Short repeatToleranceEnabled = Short.valueOf((short) 0);
 
   /**
    * Bi-directional many-to-many association to {@link AlertGroupEntity}
@@ -450,6 +487,62 @@ public class AlertDefinitionEntity {
    */
   public void setDescription(String description) {
     this.description = description;
+  }
+
+  /**
+   * Gets the number of sequential instances of an non-OK {@link AlertState}
+   * must be received in order to consider the alert instance as truly being in
+   * that {@link AlertState}.
+   * <p/>
+   * A value of 1 or less indicates that there is no tolerance and a single
+   * alert will cause dispatching of alert notifications.
+   *
+   * @return the repeatTolerance
+   */
+  public int getRepeatTolerance() {
+    return repeatTolerance;
+  }
+
+  /**
+   * Sets the number of sequential instances of an non-OK {@link AlertState}
+   * must be received in order to consider the alert instance as truly being in
+   * that {@link AlertState}.
+   * <p/>
+   * A value of 1 or less indicates that there is no tolerance and a single
+   * alert will cause dispatching of alert notifications.
+   *
+   * @param repeatTolerance
+   *          the tolerance to set
+   */
+  public void setRepeatTolerance(int repeatTolerance) {
+    this.repeatTolerance = repeatTolerance;
+  }
+
+  /**
+   * Gets whether this definition overrides the default global tolerance value
+   * specified in {@code cluster-env/alerts.repeat.tolerance}. If enabled, the
+   * value from {@link #getRepeatTolerance()} should be used to calculate retry
+   * tolerance.
+   *
+   * @return the repeatToleranceEnabled {@code true} to override the global
+   *         value.
+   */
+  public boolean isRepeatToleranceEnabled() {
+    return repeatToleranceEnabled == Short.valueOf((short) 0) ? false : true;
+  }
+
+  /**
+   * Sets whether this definition overrides the default global tolerance value
+   * specified in {@code cluster-env/alerts.repeat.tolerance}. If enabled, the
+   * value from {@link #getRepeatTolerance()} should be used to calculate retry
+   * tolerance.
+   *
+   * @param repeatToleranceEnabled
+   *          {@code true} to override the defautlt value and use the value
+   *          returned from {@link #getRepeatTolerance()}.
+   */
+  public void setRepeatToleranceEnabled(boolean enabled) {
+    repeatToleranceEnabled = enabled ? Short.valueOf((short) 1) : 0;
   }
 
   /**
