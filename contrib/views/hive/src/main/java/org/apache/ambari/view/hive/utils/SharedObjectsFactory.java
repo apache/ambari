@@ -174,7 +174,7 @@ public class SharedObjectsFactory implements IStorageFactory {
    *
    * @param instanceName
    */
-  public static void dropInstanceConnection(String instanceName){
+  public static void dropInstanceCache(String instanceName){
     for(Map<String,Object> cache : localObjects.values()){
       for(Iterator<Map.Entry<String, Object>> it = cache.entrySet().iterator(); it.hasNext();){
         Map.Entry<String, Object> entry = it.next();

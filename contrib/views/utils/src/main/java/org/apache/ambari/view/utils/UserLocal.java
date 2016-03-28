@@ -134,7 +134,7 @@ public class UserLocal<T> {
    *
    * @param instanceName
    */
-  public static void dropInstanceConnection(String instanceName){
+  public static void dropInstanceCache(String instanceName){
     for(Map<String,Object> cache : viewSingletonObjects.values()){
       for(Iterator<Map.Entry<String, Object>> it = cache.entrySet().iterator();it.hasNext();){
         Map.Entry<String, Object> entry = it.next();
