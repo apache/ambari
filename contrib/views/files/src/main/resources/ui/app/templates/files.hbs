@@ -42,14 +42,6 @@
       {{#if hasTrashPath}}
         {{#link-to 'files' (query-params path=trashPath) class="btn btn-sm btn-default"}}{{fa-icon "trash"}}{{/link-to}}
       {{/if}}
-      {{#copy-button
-        clipboardText=selectedFilePathsText
-        success="success"
-        error="error"
-        class="btn btn-sm btn-default"
-        }}
-          <i class="fa fa-clipboard"></i>
-      {{/copy-button}}
       <a href="#" {{action 'refreshCurrentRoute'}} class="btn btn-sm btn-default">{{fa-icon "refresh"}}</a>
       {{files-breadcrumb path=path}}
     </div>
