@@ -77,6 +77,17 @@ module.exports =
         "serviceName": 'MISC'
       },
       {
+        "name": "dfs.internal.nameservices",
+        "displayName": "dfs.internal.nameservices",
+        "description": "Comma-separated list of nameservices.",
+        "isReconfigurable": false,
+        "recommendedValue": "haCluster",
+        "value": "haCluster",
+        "category": "HDFS",
+        "filename": "hdfs-site",
+        "serviceName": 'MISC'
+      },
+      {
         "name": "dfs.ha.namenodes.${dfs.nameservices}",
         "displayName": "dfs.ha.namenodes.${dfs.nameservices}",
         "description": "The prefix for a given nameservice, contains a comma-separated list of namenodes for a given nameservice.",

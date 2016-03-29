@@ -113,6 +113,7 @@ App.NnHaConfigInitializer = App.HaConfigInitializerClass.create(App.HostsBasedIn
       ],
       'dfs.client.failover.proxy.provider.${dfs.nameservices}': getRenameWithNamespaceConfig('${dfs.nameservices}'),
       'dfs.nameservices': getNamespaceConfig(),
+      'dfs.internal.nameservices': getNamespaceConfig(),
       'fs.defaultFS': getNamespaceConfig('hdfs://'),
       'dfs.namenode.shared.edits.dir': [
         this.getHostsWithPortConfig('JOURNALNODE', 'qjournal://', '/${dfs.nameservices}', ';', '8485', false),
