@@ -68,6 +68,16 @@
     </value-attributes>
   </property>
   <property>
+    <name>oozie_tmp_dir</name>
+    <value>/var/tmp/oozie</value>
+    <display-name>Oozie Tmp Dir</display-name>
+    <description>Directory for oozie temporary files</description>
+    <value-attributes>
+      <type>directory</type>
+      <overridable>false</overridable>
+    </value-attributes>
+  </property>
+  <property>
     <name>oozie_pid_dir</name>
     <value>/var/run/oozie</value>
     <display-name>Oozie PID Dir</display-name>
@@ -119,7 +129,7 @@
 if [ -d "/usr/lib/bigtop-tomcat" ]; then
   export OOZIE_CONFIG=${OOZIE_CONFIG:-/etc/oozie/conf}
   export CATALINA_BASE=${CATALINA_BASE:-{{oozie_server_dir}}}
-  export CATALINA_TMPDIR=${CATALINA_TMPDIR:-/var/tmp/oozie}
+  export CATALINA_TMPDIR=${CATALINA_TMPDIR:-{{oozie_tmp_dir}}}
   export OOZIE_CATALINA_HOME=/usr/lib/bigtop-tomcat
 fi
 

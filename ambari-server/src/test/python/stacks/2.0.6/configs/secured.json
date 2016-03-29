@@ -704,7 +704,8 @@
             "oozie_database": "New Derby Database",
             "oozie_data_dir": "/hadoop/oozie/data", 
             "oozie_log_dir": "/var/log/oozie",
-            "oozie_keytab": "/etc/security/keytabs/oozie.service.keytab"
+            "oozie_keytab": "/etc/security/keytabs/oozie.service.keytab",
+            "oozie_tmp_dir": "/var/tmp/oozie"
         },
         "ranger-env": {
             "xml_configurations_supported" : "false"
