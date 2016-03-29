@@ -528,6 +528,11 @@ public class JMXPropertyProviderTest {
       return "http";
     }
 
+    @Override
+    public String getJMXRpcMetricTag(String clusterName, String componentName, String port) {
+      return null;
+    }
+
   }
 
   public static class TestMetricHostProvider implements MetricHostProvider {

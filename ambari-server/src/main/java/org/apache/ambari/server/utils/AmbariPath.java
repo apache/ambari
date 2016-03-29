@@ -29,7 +29,7 @@ public class AmbariPath {
   
   public static String getPath(String path) {
     if(rootDirectory == null) {  
-      LOG.warn("Cannot get $ROOT enviroment varaible. Installed to custom root directory Ambari might not work correctly.");
+      LOG.warn("Cannot get $ROOT enviroment variable. Installed to custom root directory Ambari might not work correctly.");
       return path;
     }
     String result = (rootDirectory + path).replaceAll("/+","/");

@@ -908,39 +908,35 @@ public class AmbariMetaInfo {
         for (Map.Entry<String, List<MetricDefinition>> metricDefEntry : componentMetricDefEntry.getValue().entrySet()) {
           //For every metric definition
           for (MetricDefinition metricDefinition : metricDefEntry.getValue()) {
-            // Metrics System metrics only
-            if (metricDefinition.getType().equals("ganglia")) {
-              for (Map.Entry<String, Map<String, Metric>> metricByCategory : metricDefinition.getMetricsByCategory().entrySet()) {
-                String category = metricByCategory.getKey();
-                Iterator<Map.Entry<String, Metric>> iterator = metricByCategory.getValue().entrySet().iterator();
-                Map<String, Metric> newMetricsToAdd = new HashMap<>();
+            for (Map.Entry<String, Map<String, Metric>> metricByCategory : metricDefinition.getMetricsByCategory().entrySet()) {
+              Iterator<Map.Entry<String, Metric>> iterator = metricByCategory.getValue().entrySet().iterator();
+              Map<String, Metric> newMetricsToAdd = new HashMap<>();
 
-                while (iterator.hasNext()) {
-                  Map.Entry<String, Metric> metricEntry = iterator.next();
-                  // Process Namenode rpc metrics
-                  Map<String, Metric> replacementMetrics = PropertyHelper.processRpcMetricDefinition(
-                    componentName, metricEntry.getKey(), metricEntry.getValue());
-                  if (replacementMetrics != null) {
-                    iterator.remove(); // Remove current metric entry
-                    newMetricsToAdd.putAll(replacementMetrics);
-                    // Add aggregate functions for replacement metrics
-                    if (metricDefEntry.getKey().equals(Component.name())) {
-                      for (Map.Entry<String, Metric> replacementMetric : replacementMetrics.entrySet()) {
-                        newMetricsToAdd.putAll(getAggregateFunctionMetrics(replacementMetric.getKey(),
-                          replacementMetric.getValue()));
-                      }
-                    }
-                  } else {
-                    // NOTE: Only Component aggregates supported for now.
-                    if (metricDefEntry.getKey().equals(Component.name())) {
-                      Map<String, Metric> aggregateFunctionMetrics =
-                        getAggregateFunctionMetrics(metricEntry.getKey(), metricEntry.getValue());
-                      newMetricsToAdd.putAll(aggregateFunctionMetrics);
+              while (iterator.hasNext()) {
+                Map.Entry<String, Metric> metricEntry = iterator.next();
+                // Process Namenode rpc metrics
+                Map<String, Metric> replacementMetrics = PropertyHelper.processRpcMetricDefinition(metricDefinition.getType(),
+                  componentName, metricEntry.getKey(), metricEntry.getValue());
+                if (replacementMetrics != null) {
+                  iterator.remove(); // Remove current metric entry
+                  newMetricsToAdd.putAll(replacementMetrics);
+                  // Add aggregate functions for replacement metrics
+                  if (metricDefEntry.getKey().equals(Component.name())) {
+                    for (Map.Entry<String, Metric> replacementMetric : replacementMetrics.entrySet()) {
+                      newMetricsToAdd.putAll(getAggregateFunctionMetrics(replacementMetric.getKey(),
+                        replacementMetric.getValue()));
                     }
                   }
+                } else {
+                  // NOTE: Only Component aggregates supported for now.
+                  if (metricDefEntry.getKey().equals(Component.name())) {
+                    Map<String, Metric> aggregateFunctionMetrics =
+                      getAggregateFunctionMetrics(metricEntry.getKey(), metricEntry.getValue());
+                    newMetricsToAdd.putAll(aggregateFunctionMetrics);
+                  }
                 }
-                metricByCategory.getValue().putAll(newMetricsToAdd);
               }
+              metricByCategory.getValue().putAll(newMetricsToAdd);
             }
           }
         }

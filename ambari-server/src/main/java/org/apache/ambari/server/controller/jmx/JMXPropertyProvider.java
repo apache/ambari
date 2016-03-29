@@ -251,8 +251,10 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
     Map<String, Map<String, Object>> categories = new HashMap<String, Map<String, Object>>();
     String componentName = (String) resource.getPropertyValue(componentNamePropertyId);
 
+    String clusterName = (String) resource.getPropertyValue(clusterNamePropertyId);
+
     for (Map<String, Object> bean : metricHolder.getBeans()) {
-      String category = getCategory(bean);
+      String category = getCategory(bean, clusterName, componentName);
       if (category != null) {
         categories.put(category, bean);
       }
@@ -377,13 +379,14 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
             Collections.singleton((String) resource.getPropertyValue(hostNamePropertyId));
   }
 
-  private String getCategory(Map<String, Object> bean) {
+  private String getCategory(Map<String, Object> bean, String clusterName, String componentName) {
     if (bean.containsKey(NAME_KEY)) {
       String name = (String) bean.get(NAME_KEY);
 
       if (bean.containsKey(PORT_KEY)) {
         String port = (String) bean.get(PORT_KEY);
-        name = name.replace("ForPort" + port, "");
+        String tag = jmxHostProvider.getJMXRpcMetricTag(clusterName, componentName, port);
+        name = name.replace("ForPort" + port, tag == null ? "" : ",tag=" + tag);
       }
       return name;
     }

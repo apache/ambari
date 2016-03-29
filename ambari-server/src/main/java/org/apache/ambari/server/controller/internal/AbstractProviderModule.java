@@ -99,6 +99,8 @@ public abstract class AbstractProviderModule implements ProviderModule,
   private static boolean vipHostConfigPresent = false;
 
   private static final Map<String, Map<String, String[]>> jmxDesiredProperties = new HashMap<String, Map<String, String[]>>();
+  private static final Map<String, Map<String, String[]>> jmxDesiredRpcSuffixProperties = new ConcurrentHashMap<>();
+  private volatile Map<String, Map<String, Map<String, String>>> jmxDesiredRpcSuffixes = new HashMap<String, Map<String, Map<String,String>>>();
   private volatile Map<String, String> clusterHdfsSiteConfigVersionMap = new HashMap<String, String>();
   private volatile Map<String, String> clusterJmxProtocolMap = new HashMap<String, String>();
   private volatile Set<String> metricServerHosts = new HashSet<String>();
@@ -108,7 +110,6 @@ public abstract class AbstractProviderModule implements ProviderModule,
 
   static {
     serviceConfigTypes.put(Service.Type.HDFS, "hdfs-site");
-    serviceConfigTypes.put(Service.Type.MAPREDUCE, "mapred-site");
     serviceConfigTypes.put(Service.Type.HBASE, "hbase-site");
     serviceConfigTypes.put(Service.Type.YARN, "yarn-site");
     serviceConfigTypes.put(Service.Type.MAPREDUCE2, "mapred-site");
@@ -117,8 +118,6 @@ public abstract class AbstractProviderModule implements ProviderModule,
     componentServiceMap.put("NAMENODE", Service.Type.HDFS);
     componentServiceMap.put("DATANODE", Service.Type.HDFS);
     componentServiceMap.put("JOURNALNODE", Service.Type.HDFS);
-    componentServiceMap.put("JOBTRACKER", Service.Type.MAPREDUCE);
-    componentServiceMap.put("TASKTRACKER", Service.Type.MAPREDUCE);
     componentServiceMap.put("HBASE_MASTER", Service.Type.HBASE);
     componentServiceMap.put("RESOURCEMANAGER", Service.Type.YARN);
     componentServiceMap.put("NODEMANAGER", Service.Type.YARN);
@@ -134,10 +133,6 @@ public abstract class AbstractProviderModule implements ProviderModule,
     initPropMap.put("JOURNALNODE", new String[]{"dfs.journalnode.http-address"});
     serviceDesiredProperties.put(Service.Type.HDFS, initPropMap);
 
-    initPropMap = new HashMap<String, String[]>();
-    initPropMap.put("JOBTRACKER", new String[]{"mapred.job.tracker.http.address"});
-    initPropMap.put("TASKTRACKER", new String[]{"mapred.task.tracker.http.address"});
-    serviceDesiredProperties.put(Service.Type.MAPREDUCE, initPropMap);
 
     initPropMap = new HashMap<String, String[]>();
     initPropMap.put("HBASE_MASTER", new String[]{"hbase.master.info.port"});
@@ -164,6 +159,18 @@ public abstract class AbstractProviderModule implements ProviderModule,
     initPropMap = new HashMap<String, String[]>();
     initPropMap.put("RESOURCEMANAGER", new String[]{"yarn.http.policy"});
     jmxDesiredProperties.put("RESOURCEMANAGER", initPropMap);
+
+    initPropMap = new HashMap<String, String[]>();
+    initPropMap.put("client", new String[]{"dfs.namenode.rpc-address"});
+    initPropMap.put("datanode", new String[]{"dfs.namenode.servicerpc-address"});
+    initPropMap.put("healthcheck", new String[]{"dfs.namenode.lifeline.rpc-address"});
+    jmxDesiredRpcSuffixProperties.put("NAMENODE", initPropMap);
+
+    initPropMap = new HashMap<String, String[]>();
+    initPropMap.put("client", new String[]{"dfs.namenode.rpc-address.%s.%s"});
+    initPropMap.put("datanode", new String[]{"dfs.namenode.servicerpc-address.%s.%s"});
+    initPropMap.put("healthcheck", new String[]{"dfs.namenode.lifeline.rpc-address.%s.%s"});
+    jmxDesiredRpcSuffixProperties.put("NAMENODE-HA", initPropMap);
   }
 
   /**
@@ -552,6 +559,8 @@ public abstract class AbstractProviderModule implements ProviderModule,
               clusterJmxPorts.get(hostName).put(entry.getKey(), portString);
             }
           }
+
+          initRpcSuffixes(clusterName, componentName, configType, currVersion, hostName);
         }
       } catch (Exception e) {
         LOG.error("Exception initializing jmx port maps. ", e);
@@ -577,38 +586,40 @@ public abstract class AbstractProviderModule implements ProviderModule,
    * for different configurations(like NAMENODE HA).
    * @param service service type
    * @param componentName component name
-   * @param hostName host which contain requested component
+   * @param hostName host which contains requested component
    * @param properties properties which used for special cases(like NAMENODE HA)
    * @param httpsEnabled indicates if https enabled for component
    * @return property name that contain port for {@code componentName} on {@code hostName}
    */
   String[] getPortProperties(Service.Type service, String componentName, String hostName, Map<String, Object> properties, boolean httpsEnabled) {
     componentName = httpsEnabled ? componentName + "-HTTPS" : componentName;
+    if(componentName.startsWith("NAMENODE") && properties.containsKey("dfs.nameservices")) {
+      componentName += "-HA";
+      return getNamenodeHaProperty(properties, serviceDesiredProperties.get(service).get(componentName), hostName);
+    }
+    return serviceDesiredProperties.get(service).get(componentName);
+  }
 
-    if(componentName.equals("NAMENODE")) {
-      // iterate over nameservices and namenodes, to find out namenode http(s) property for concrete host
-      if(properties.containsKey("dfs.nameservices")) {
-        for(String nameserviceId : ((String)properties.get("dfs.nameservices")).split(",")) {
-          String haComponentName = componentName + "-HA";
-          if(properties.containsKey("dfs.ha.namenodes."+nameserviceId)) {
-            for (String namenodeId : ((String)properties.get("dfs.ha.namenodes." + nameserviceId)).split(",")) {
-              String propertyName = String.format(
-                  serviceDesiredProperties.get(service).get(haComponentName)[0],
-                  nameserviceId,
-                  namenodeId
-              );
-              if (properties.containsKey(propertyName)) {
-                String propertyValue = (String)properties.get(propertyName);
-                if (propertyValue.split(":")[0].equals(hostName)) {
-                  return new String[]{propertyName};
-                }
-              }
+  private String[] getNamenodeHaProperty(Map<String, Object> properties, String pattern[], String hostName) {
+    // iterate over nameservices and namenodes, to find out namenode http(s) property for concrete host
+    for(String nameserviceId : ((String)properties.get("dfs.nameservices")).split(",")) {
+      if(properties.containsKey("dfs.ha.namenodes."+nameserviceId)) {
+        for (String namenodeId : ((String)properties.get("dfs.ha.namenodes." + nameserviceId)).split(",")) {
+          String propertyName = String.format(
+            pattern[0],
+            nameserviceId,
+            namenodeId
+          );
+          if (properties.containsKey(propertyName)) {
+            String propertyValue = (String)properties.get(propertyName);
+            if (propertyValue.split(":")[0].equals(hostName)) {
+              return new String[] {propertyName};
             }
           }
         }
       }
     }
-    return serviceDesiredProperties.get(service).get(componentName);
+    return pattern;
   }
 
   /**
@@ -980,8 +991,9 @@ public abstract class AbstractProviderModule implements ProviderModule,
 
   // TODO get configs using ConfigHelper
   private Map<String, String> getDesiredConfigMap(String clusterName, String versionTag,
-                                                  String configType, Map<String, String[]> keys, Map<String, Object> configProperties) throws NoSuchParentResourceException,
-      UnsupportedPropertyException, SystemException {
+                                                  String configType, Map<String, String[]> keys,
+                                                  Map<String, Object> configProperties)
+    throws NoSuchParentResourceException, UnsupportedPropertyException, SystemException {
     if(configProperties == null) {
       configProperties = getConfigProperties(clusterName, versionTag, configType);
     }
@@ -1165,6 +1177,64 @@ public abstract class AbstractProviderModule implements ProviderModule,
       return "https";
     else
       return "http";
+  }
+
+  @Override
+  public String getJMXRpcMetricTag(String clusterName, String componentName, String port){
+    Map<String, Map<String, String>> componentToPortsMap = jmxDesiredRpcSuffixes.get(clusterName);
+    if (componentToPortsMap != null && componentToPortsMap.containsKey(componentName)) {
+      Map<String, String> portToTagMap = componentToPortsMap.get(componentName);
+      if (portToTagMap != null) {
+        return portToTagMap.get(port);
+      }
+    }
+    return null;
+  }
+
+  private void initRpcSuffixes(String clusterName, String componentName,
+                               String config, String configVersion,
+                               String hostName)
+                              throws Exception {
+    if (jmxDesiredRpcSuffixProperties.containsKey(componentName)) {
+      Map<String, Map<String, String>> componentToPortsMap;
+      if (jmxDesiredRpcSuffixes.containsKey(clusterName)) {
+        componentToPortsMap = jmxDesiredRpcSuffixes.get(clusterName);
+      } else {
+        componentToPortsMap = new HashMap<>();
+        componentToPortsMap.put(componentName, new HashMap<String, String>());
+        jmxDesiredRpcSuffixes.put(clusterName, componentToPortsMap);
+      }
+
+      Map<String, String> portToTagMap = componentToPortsMap.get(componentName);
+      portToTagMap.clear();
+
+      Map<String, String[]> keys = jmxDesiredRpcSuffixProperties.get(componentName);
+
+      if ("NAMENODE".equals(componentName)) {
+        Map<String, Object> configProperties = getConfigProperties(
+          clusterName,
+          configVersion,
+          serviceConfigTypes.get(componentServiceMap.get(componentName))
+        );
+        if (configProperties.containsKey("dfs.nameservices")) {
+          componentName += "-HA";
+          keys = jmxDesiredRpcSuffixProperties.get(componentName);
+          Map<String, String[]> stringMap = jmxDesiredRpcSuffixProperties.get(componentName);
+          for (String tag: stringMap.keySet()) {
+            keys.put(tag, getNamenodeHaProperty(configProperties, stringMap.get(tag), hostName));
+          }
+        }
+      }
+
+      Map<String, String> props = getDesiredConfigMap(
+        clusterName, configVersion, config,
+        keys);
+      for (Entry<String, String> prop: props.entrySet()) {
+        if (prop.getValue() != null) {
+          portToTagMap.put(getPortString(prop.getValue()).trim(), prop.getKey());
+        }
+      }
+    }
   }
 
 }
