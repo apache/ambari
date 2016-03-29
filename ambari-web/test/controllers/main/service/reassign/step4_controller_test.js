@@ -320,7 +320,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
     it('stopServices is called with valid list of services', function() {
       controller.set('content.reassign.component_name', 'JOBTRACKER');
       controller.stopRequiredServices();
-      expect(controller.stopServices.calledWith(['HDFS', 'ZOOKEEPER', 'HBASE', 'FLUME', 'SQOOP', 'STORM'])).to.be.true;
+      expect(controller.stopServices.calledWith(['PIG', 'OOZIE'], true)).to.be.true;
     });
   });
 
@@ -1215,7 +1215,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
     it("component has related services", function() {
       controller.set('content.reassign.component_name', 'JOBTRACKER');
       controller.startRequiredServices();
-      expect(controller.startServices.calledWith(false, ['HDFS', 'ZOOKEEPER', 'HBASE', 'FLUME', 'SQOOP', 'STORM'])).to.be.true;
+      expect(controller.startServices.calledWith(false, ['PIG', 'OOZIE'], true)).to.be.true;
     });
     it("component does not have related services", function() {
       controller.set('content.reassign.component_name', 'C1');
