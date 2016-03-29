@@ -105,7 +105,7 @@
   </property>
   <property>
     <name>phoenix.query.spoolThresholdBytes</name>
-    <value>12582912</value>
+    <value>20971520</value>
     <description>
       Threshold size in bytes after which results from parallelly executed
       query results are spooled to disk. Default is 20 mb.
