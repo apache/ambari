@@ -83,6 +83,20 @@ export default Ember.Controller.extend({
     return this.get('sortedContent');
   }),
 
+  selectedFilePathsText: function () {
+    var entities = this.get('fileSelectionService.files');
+    var multiplePaths = [];
+
+    if (entities.length === 0) {
+      return this.get('path');
+    } else {
+      multiplePaths = entities.map((entity) => {
+        return entity.get('path');
+      });
+      return multiplePaths.join(', ');
+    }
+  }.property('fileSelectionService.files.[]', 'path'),
+
   actions: {
     sortFiles: function(sortColumn) {
       if (sortColumn['sortOrder'] !== 0) {
