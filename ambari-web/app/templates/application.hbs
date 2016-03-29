@@ -133,7 +133,7 @@
                           <i class="icon-pause"></i>&nbsp;{{t admin.stackVersions.version.upgrade.pause}}</span>
                     {{/if}}
                   {{/if}}
-                  {{#if App.upgradeAborted}}
+                  {{#if App.upgradeSuspended}}
                     {{#if App.router.mainAdminStackAndUpgradeController.isDowngrade}}
                       <span class="label upgrade-holding" {{action "openUpgradeDialog" target="App.router.mainAdminStackAndUpgradeController"}}>
                         <i class="icon-pause"></i>&nbsp;{{t admin.stackVersions.version.downgrade.suspended}}

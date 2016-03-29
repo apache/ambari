@@ -57,6 +57,8 @@ App.ProgressBarView = Em.View.extend({
         return 'progress-warning';
       case 'COMPLETED':
         return 'progress-success';
+      case 'SUSPENDED':
+        return 'progress-info';
       case 'QUEUED':
       case 'PENDING':
       case 'IN_PROGRESS':

@@ -76,6 +76,13 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   isDowngrade: false,
 
   /**
+   * flag which indicate that upgrade suspended
+   * @type {boolean}
+   * @default false
+   */
+  isSuspended: false,
+
+  /**
    * version that currently applied to server
    * should be plain object, because stored to localStorage
    * @type {object|null}
@@ -139,14 +146,17 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * @type {boolean} true if some request that should disable actions is in progress
    */
   requestInProgress: false,
+
   /**
    * @type {number} repo id, request for which is currently in progress
    */
   requestInProgressRepoId: null,
+
   /**
    * @type {boolean} true while no updated upgrade info is loaded after retry
    */
   isRetryPending: false,
+
   /**
    * properties that stored to localStorage to resume wizard progress
    */
@@ -158,7 +168,8 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     'upgradeType',
     'failuresTolerance',
     'isDowngrade',
-    'downgradeAllowed'
+    'downgradeAllowed',
+    'isSuspended'
   ],
 
   /**
@@ -254,14 +265,14 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * @type {string}
    */
   requestStatus: function () {
-    if (this.get('upgradeData.Upgrade') && this.get('upgradeData.Upgrade.request_status') == 'ABORTED') {
+    if (this.get('upgradeData.Upgrade') && App.get('upgradeSuspended')) {
       return 'SUSPENDED';
     } else if (this.get('upgradeData.Upgrade')){
       return this.get('upgradeData.Upgrade.request_status');
     } else {
       return '';
     }
-  }.property('upgradeData.Upgrade.request_status'),
+  }.property('upgradeData.Upgrade.request_status', 'App.upgradeSuspended'),
 
   init: function () {
     this.initDBProperties();
@@ -342,10 +353,12 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     if (Em.isNone(data)) return;
     App.set('upgradeState', data.Upgrade.request_status);
     this.setDBProperty('upgradeState', data.Upgrade.request_status);
+    this.set('isSuspended', data.Upgrade.suspended);
+    this.setDBProperty('isSuspended', data.Upgrade.suspended);
     if (data.upgrade_groups) {
       this.updateUpgradeData(data);
     }
-    if (this.get('isRetryPending') && data.Upgrade.request_status != 'ABORTED') {
+    if (this.get('isRetryPending') && data.Upgrade.request_status !== 'ABORTED') {
       this.setProperties({
         requestInProgress: false,
         isRetryPending: false
@@ -1714,7 +1727,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     var self = this;
     this.retryUpgrade().done(function () {
       App.set('upgradeState', 'PENDING');
-      App.propertyDidChange('upgradeAborted');
+      App.propertyDidChange('upgradeSuspended');
       self.setDBProperty('upgradeState', 'PENDING');
       App.clusterStatus.setClusterStatus({
         wizardControllerName: self.get('name'),

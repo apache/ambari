@@ -133,7 +133,8 @@ describe('App.upgradeEntity', function () {
     var cases = [
       {
         input: {
-          type: 'ITEM'
+          type: 'ITEM',
+          upgradeSuspended: false
         },
         upgradeGroupStatus: undefined,
         title: 'not upgrade group'
@@ -142,7 +143,8 @@ describe('App.upgradeEntity', function () {
         input: {
           type: 'GROUP',
           status: 'PENDING',
-          hasExpandableItems: false
+          hasExpandableItems: false,
+          upgradeSuspended: false
         },
         upgradeGroupStatus: 'PENDING',
         title: 'pending upgrade group'
@@ -151,7 +153,8 @@ describe('App.upgradeEntity', function () {
         input: {
           type: 'GROUP',
           status: 'PENDING',
-          hasExpandableItems: true
+          hasExpandableItems: true,
+          upgradeSuspended: false
         },
         upgradeGroupStatus: 'SUBITEM_FAILED',
         title: 'pending upgrade group with expandable items'
@@ -160,24 +163,44 @@ describe('App.upgradeEntity', function () {
         input: {
           type: 'GROUP',
           status: 'ABORTED',
-          hasExpandableItems: true
+          hasExpandableItems: false,
+          upgradeSuspended: false
         },
-        upgradeGroupStatus: 'SUSPENDED',
+        upgradeGroupStatus: 'ABORTED',
         title: 'aborted upgrade group with expandable items'
       },
       {
         input: {
           type: 'GROUP',
+          status: 'ABORTED',
+          hasExpandableItems: true,
+          upgradeSuspended: true
+        },
+        upgradeGroupStatus: 'SUSPENDED',
+        title: 'suspended upgrade group with expandable items'
+      },
+      {
+        input: {
+          type: 'GROUP',
           status: 'IN_PROGRESS',
-          hasExpandableItems: false
+          hasExpandableItems: false,
+          upgradeSuspended: false
         },
         upgradeGroupStatus: 'IN_PROGRESS',
         title: 'active upgrade'
       }
     ];
 
+    beforeEach(function() {
+      this.mock = sinon.stub(App, 'get');
+    });
+    afterEach(function() {
+      this.mock.restore();
+    });
+
     cases.forEach(function (item) {
       it(item.title, function () {
+        this.mock.returns(item.input.upgradeSuspended);
         model.setProperties(item.input);
         expect(model.get('upgradeGroupStatus')).to.equal(item.upgradeGroupStatus);
       });

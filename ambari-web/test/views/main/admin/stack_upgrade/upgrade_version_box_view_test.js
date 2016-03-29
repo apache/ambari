@@ -715,6 +715,26 @@ describe('App.UpgradeVersionBoxView', function () {
       },
       {
         inputData: {
+          'content.status': 'UPGRADING',
+          'isUpgrading': true,
+          'controller.isDowngrade': false,
+          'controller.upgradeVersion': 'HDP-2.2.1',
+          'content.displayName': 'HDP-2.2.1'
+        },
+        setup: function () {
+          this.getMock.withArgs('upgradeState').returns('ABORTED');
+        },
+        expected: {
+          status: 'UPGRADING',
+          isLink: true,
+          action: 'openUpgradeDialog',
+          iconClass: 'icon-pause',
+          text: Em.I18n.t('admin.stackVersions.version.upgrade.pause')
+        },
+        title: 'upgrading, upgrade aborted'
+      },
+      {
+        inputData: {
           'content.status': 'UPGRADE_FAILED',
           'isUpgrading': true,
           'controller.isDowngrade': false,
@@ -782,6 +802,26 @@ describe('App.UpgradeVersionBoxView', function () {
           'content.displayName': 'HDP-2.2.1'
         },
         setup: function () {
+          this.getMock.withArgs('upgradeState').returns('ABORTED');
+        },
+        expected: {
+          status: 'UPGRADED',
+          isLink: true,
+          action: 'openUpgradeDialog',
+          iconClass: 'icon-pause',
+          text: Em.I18n.t('admin.stackVersions.version.downgrade.pause')
+        },
+        title: 'downgrading, upgrade aborted'
+      },
+      {
+        inputData: {
+          'content.status': 'UPGRADED',
+          'isUpgrading': true,
+          'controller.isDowngrade': true,
+          'controller.upgradeVersion': 'HDP-2.2.1',
+          'content.displayName': 'HDP-2.2.1'
+        },
+        setup: function () {
           this.getMock.withArgs('upgradeState').returns('HOLDING_TIMEDOUT');
         },
         expected: {
@@ -802,7 +842,7 @@ describe('App.UpgradeVersionBoxView', function () {
           'parentView.repoVersions': []
         },
         setup: function () {
-          this.getMock.withArgs('upgradeState').returns('ABORTED');
+          this.getMock.withArgs('upgradeSuspended').returns('true');
         },
         expected: {
           status: 'UPGRADING',
@@ -811,7 +851,7 @@ describe('App.UpgradeVersionBoxView', function () {
           text: Em.I18n.t('admin.stackUpgrade.dialog.resume'),
           isDisabled: false
         },
-        title: 'upgrade aborted'
+        title: 'upgrade suspended'
       },
       {
         inputData: {
@@ -822,7 +862,7 @@ describe('App.UpgradeVersionBoxView', function () {
           'parentView.repoVersions': []
         },
         setup: function () {
-          this.getMock.withArgs('upgradeState').returns('ABORTED');
+          this.getMock.withArgs('upgradeSuspended').returns('true');
         },
         expected: {
           status: 'UPGRADE_FAILED',
@@ -831,7 +871,7 @@ describe('App.UpgradeVersionBoxView', function () {
           text: Em.I18n.t('admin.stackUpgrade.dialog.resume.downgrade'),
           isDisabled: true
         },
-        title: 'downgrade aborted, request in progress'
+        title: 'downgrade suspended, request in progress'
       }
     ];
 

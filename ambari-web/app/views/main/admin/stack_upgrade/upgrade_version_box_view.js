@@ -160,7 +160,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
       isDisabled: false
     });
     var isInstalling = this.get('parentView.repoVersions').someProperty('status', 'INSTALLING');
-    var isAborted = App.get('upgradeState') === 'ABORTED';
+    var isSuspended = App.get('upgradeSuspended');
 
     if (['INSTALLING', 'CURRENT'].contains(status)) {
       element.setProperties(statePropertiesMap[status]);
@@ -197,10 +197,10 @@ App.UpgradeVersionBoxView = Em.View.extend({
         element.setProperties(statePropertiesMap['INSTALLED']);
       }
     }
-    else if ((['UPGRADING', 'UPGRADE_FAILED', 'UPGRADED'].contains(status) || this.get('isUpgrading')) && !isAborted) {
+    else if ((['UPGRADING', 'UPGRADE_FAILED', 'UPGRADED'].contains(status) || this.get('isUpgrading')) && !isSuspended) {
       element.set('isLink', true);
       element.set('action', 'openUpgradeDialog');
-      if (['HOLDING', 'HOLDING_FAILED', 'HOLDING_TIMEDOUT'].contains(App.get('upgradeState'))) {
+      if (['HOLDING', 'HOLDING_FAILED', 'HOLDING_TIMEDOUT', 'ABORTED'].contains(App.get('upgradeState'))) {
         element.set('iconClass', 'icon-pause');
         if (this.get('controller.isDowngrade')) {
           element.set('text', Em.I18n.t('admin.stackVersions.version.downgrade.pause'));
@@ -219,7 +219,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
         }
       }
     }
-    else if (isAborted) {
+    else if (isSuspended) {
       element.setProperties(statePropertiesMap['SUSPENDED']);
       var text = this.get('controller.isDowngrade') ? Em.I18n.t('admin.stackUpgrade.dialog.resume.downgrade') : Em.I18n.t('admin.stackUpgrade.dialog.resume');
       element.set('text', this.get('isVersionColumnView') ? Em.I18n.t('common.resume'): text);

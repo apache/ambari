@@ -490,28 +490,75 @@ describe('App', function () {
 
   });
 
+  describe('#upgradeSuspended', function () {
+    var cases = [
+      {
+        upgradeState: 'INIT',
+        isSuspended: false,
+        upgradeSuspended: false
+      },
+      {
+        upgradeState: 'ABORTED',
+        isSuspended: false,
+        upgradeSuspended: false
+      },
+      {
+        upgradeState: 'ABORTED',
+        isSuspended: true,
+        upgradeSuspended: true
+      }
+    ];
+
+    beforeEach(function() {
+      this.mock = sinon.stub(App.router, 'get');
+    });
+    afterEach(function() {
+      this.mock.restore();
+    });
+
+    cases.forEach(function (test) {
+      it(test.upgradeState + ", isSuspended=" + test.isSuspended, function () {
+        App.set('upgradeState', test.upgradeState);
+        this.mock.returns(test.isSuspended);
+        App.propertyDidChange('upgradeSuspended');
+        expect(App.get('upgradeSuspended')).to.equal(test.upgradeSuspended);
+      });
+    });
+  });
+
   describe('#upgradeAborted', function () {
 
     var cases = [
       {
         upgradeState: 'INIT',
-        upgradeAborted: false
-      },
-      {
-        upgradeState: 'INIT',
+        isSuspended: false,
         upgradeAborted: false
       },
       {
         upgradeState: 'ABORTED',
+        isSuspended: true,
+        upgradeAborted: false
+      },
+      {
+        upgradeState: 'ABORTED',
+        isSuspended: false,
         upgradeAborted: true
       }
     ];
 
-    cases.forEach(function (item) {
-      it(item.upgradeState + ", ", function () {
-        App.set('upgradeState', item.upgradeState);
+    beforeEach(function() {
+      this.mock = sinon.stub(App.router, 'get');
+    });
+    afterEach(function() {
+      this.mock.restore();
+    });
+
+    cases.forEach(function (test) {
+      it(test.upgradeState + ", isSuspended=" + test.isSuspended, function () {
+        App.set('upgradeState', test.upgradeState);
+        this.mock.returns(test.isSuspended);
         App.propertyDidChange('upgradeAborted');
-        expect(App.get('upgradeAborted')).to.equal(item.upgradeAborted);
+        expect(App.get('upgradeAborted')).to.equal(test.upgradeAborted);
       });
     });
   });
@@ -545,6 +592,49 @@ describe('App', function () {
         App.set('upgradeState', item.upgradeState);
         App.propertyDidChange('wizardIsNotFinished');
         expect(App.get('wizardIsNotFinished')).to.equal(item.wizardIsNotFinished);
+      });
+    });
+  });
+
+  describe("#upgradeHolding", function () {
+    var cases = [
+      {
+        upgradeState: 'INIT',
+        upgradeAborted: false,
+        upgradeHolding: false
+      },
+      {
+        upgradeState: 'HOLDING',
+        upgradeAborted: false,
+        upgradeHolding: true
+      },
+      {
+        upgradeState: 'HOLDING_FAILED',
+        upgradeAborted: false,
+        upgradeHolding: true
+      },
+      {
+        upgradeState: 'INIT',
+        upgradeAborted: true,
+        upgradeHolding: true
+      }
+    ];
+
+    beforeEach(function() {
+      this.mock = sinon.stub(App.router, 'get');
+    });
+    afterEach(function() {
+      this.mock.restore();
+    });
+
+    cases.forEach(function (test) {
+      it(test.upgradeState + ", upgradeAborted=" + test.upgradeAborted, function () {
+        App.reopen({
+          upgradeAborted: test.upgradeAborted,
+          upgradeState: test.upgradeState
+        });
+        App.propertyDidChange('upgradeHolding');
+        expect(App.get('upgradeHolding')).to.equal(test.upgradeHolding);
       });
     });
   });

@@ -80,12 +80,16 @@ App.upgradeEntity = Em.Object.extend({
 
   upgradeItemStatus: Em.computed.firstNotBlank('display_status', 'status'),
 
+  /**
+   * @type {string}
+   */
   upgradeGroupStatus: function () {
-    if (this.get('status') === 'ABORTED') {
+    if (App.get('upgradeSuspended') && this.get('status') === 'ABORTED') {
       return 'SUSPENDED';
     }
-    if (this.get('type') === 'GROUP') {
-      return !this.get('isActive') && this.get('hasExpandableItems') ? 'SUBITEM_FAILED' : this.get('display_status') || this.get('status');
+    if (this.get('type') === 'GROUP' && !this.get('isActive') && this.get('hasExpandableItems')) {
+      return 'SUBITEM_FAILED';
     }
-  }.property('isExpandableGroup', 'display_status', 'status')
+    return this.get('display_status') || this.get('status');
+  }.property('isExpandableGroup', 'display_status', 'status', 'App.upgradeSuspended')
 });

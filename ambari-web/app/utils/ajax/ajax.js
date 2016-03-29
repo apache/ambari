@@ -1628,6 +1628,7 @@ var urls = {
     'real': '/clusters/{clusterName}/upgrades/{id}?upgrade_groups/UpgradeGroup/status!=PENDING&fields=' +
     'Upgrade/progress_percent,Upgrade/request_context,Upgrade/request_status,Upgrade/direction,Upgrade/downgrade_allowed,' +
     'upgrade_groups/UpgradeGroup,' +
+    'Upgrade/*,' +
     'upgrade_groups/upgrade_items/UpgradeItem/status,' +
     'upgrade_groups/upgrade_items/UpgradeItem/display_status,' +
     'upgrade_groups/upgrade_items/UpgradeItem/context,' +
@@ -1641,7 +1642,7 @@ var urls = {
     'mock': '/data/stack_versions/upgrade.json'
   },
   'admin.upgrade.state': {
-    'real': '/clusters/{clusterName}/upgrades/{id}?fields=Upgrade',
+    'real': '/clusters/{clusterName}/upgrades/{id}?fields=Upgrade/*',
     'mock': '/data/stack_versions/upgrade.json'
   },
   'admin.upgrade.finalizeContext': {

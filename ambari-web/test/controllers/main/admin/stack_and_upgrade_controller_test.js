@@ -84,15 +84,33 @@ describe('App.MainAdminStackAndUpgradeController', function() {
   });
 
   describe("#requestStatus", function() {
-    it("state ABORTED", function() {
+
+    beforeEach(function() {
+      this.mock = sinon.stub(App, 'get');
+    });
+    afterEach(function() {
+      this.mock.restore();
+    });
+
+    it("App.upgradeSuspended is true", function() {
+      this.mock.returns(true);
       controller.set('upgradeData', { Upgrade: {request_status: 'ABORTED'}});
       controller.propertyDidChange('requestStatus');
       expect(controller.get('requestStatus')).to.equal('SUSPENDED');
     });
+
     it("state not ABORTED", function() {
+      this.mock.returns(false);
       controller.set('upgradeData', { Upgrade: {request_status: 'INIT'}});
       controller.propertyDidChange('requestStatus');
       expect(controller.get('requestStatus')).to.equal('INIT');
+    });
+
+    it("upgradeData is null", function() {
+      this.mock.returns(false);
+      controller.set('upgradeData', null);
+      controller.propertyDidChange('requestStatus');
+      expect(controller.get('requestStatus')).to.be.empty;
     });
   });
 
