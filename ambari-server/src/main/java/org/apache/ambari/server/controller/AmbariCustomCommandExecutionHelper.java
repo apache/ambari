@@ -20,7 +20,6 @@ package org.apache.ambari.server.controller;
 
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AGENT_STACK_RETRY_COUNT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AGENT_STACK_RETRY_ON_UNAVAILABILITY;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AGENT_STACK_RETRY_COUNT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CLIENTS_TO_UPDATE_CONFIGS;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_TIMEOUT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMPONENT_CATEGORY;
@@ -54,7 +53,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Iterator;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -248,6 +246,15 @@ public class AmbariCustomCommandExecutionHelper {
     return sb.toString();
   }
 
+  /**
+   * Called during the start/stop/restart of services, plus custom commands during Stack Upgrade.
+   * @param actionExecutionContext Execution Context
+   * @param resourceFilter Resource Filter
+   * @param stage Command stage
+   * @param additionalCommandParams Additional command params to add the the stage
+   * @param commandDetail String for the command detail
+   * @throws AmbariException
+   */
   private void addCustomCommandAction(final ActionExecutionContext actionExecutionContext,
       final RequestResourceFilter resourceFilter, Stage stage,
       Map<String, String> additionalCommandParams, String commandDetail) throws AmbariException {
@@ -416,15 +423,12 @@ public class AmbariCustomCommandExecutionHelper {
       }
 
       commandParams.put(COMMAND_TIMEOUT, commandTimeout);
-
-      commandParams.put(SERVICE_PACKAGE_FOLDER,
-          serviceInfo.getServicePackageFolder());
-
+      commandParams.put(SERVICE_PACKAGE_FOLDER, serviceInfo.getServicePackageFolder());
       commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
 
-      ClusterVersionEntity currentClusterVersion = cluster.getCurrentClusterVersion();
-      if (currentClusterVersion != null) {
-       commandParams.put(KeyNames.VERSION, currentClusterVersion.getRepositoryVersion().getVersion());
+      ClusterVersionEntity effectiveClusterVersion = cluster.getEffectiveClusterVersion();
+      if (effectiveClusterVersion != null) {
+       commandParams.put(KeyNames.VERSION, effectiveClusterVersion.getRepositoryVersion().getVersion());
       }
 
       execCmd.setCommandParams(commandParams);
@@ -638,9 +642,7 @@ public class AmbariCustomCommandExecutionHelper {
     }
 
     commandParams.put(COMMAND_TIMEOUT, commandTimeout);
-
-    commandParams.put(SERVICE_PACKAGE_FOLDER,
-        serviceInfo.getServicePackageFolder());
+    commandParams.put(SERVICE_PACKAGE_FOLDER, serviceInfo.getServicePackageFolder());
     commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
 
     execCmd.setCommandParams(commandParams);

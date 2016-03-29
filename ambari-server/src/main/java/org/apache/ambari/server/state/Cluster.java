@@ -125,9 +125,16 @@ public interface Cluster {
 
   /**
    * Get the ClusterVersionEntity object whose state is CURRENT.
-   * @return
+   * @return Cluster Version entity to whose state is CURRENT.
    */
   ClusterVersionEntity getCurrentClusterVersion();
+
+  /**
+   * If no RU/EU is in progress, get the ClusterVersionEntity object whose state is CURRENT.
+   * If RU/EU is in progress, based on the direction and desired stack, determine which version to use.
+   * @return Cluster Version entity to use.
+   */
+  ClusterVersionEntity getEffectiveClusterVersion() throws AmbariException;
 
   /**
    * Get all of the ClusterVersionEntity objects for the cluster.

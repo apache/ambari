@@ -78,6 +78,7 @@ import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeGroupEntity;
 import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
+import org.apache.ambari.server.serveraction.upgrades.UpdateDesiredStackAction;
 import org.apache.ambari.server.stack.JmxQuery;
 import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.state.Cluster;
@@ -134,6 +135,15 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   protected static final String UPGRADE_ABORT_REASON = "Upgrade/abort_reason";
   protected static final String UPGRADE_SKIP_PREREQUISITE_CHECKS = "Upgrade/skip_prerequisite_checks";
   protected static final String UPGRADE_FAIL_ON_CHECK_WARNINGS = "Upgrade/fail_on_check_warnings";
+
+  /**
+   * Names that appear in the Upgrade Packs that are used by
+   * {@link org.apache.ambari.server.state.cluster.ClusterImpl#isNonRollingUpgradePastUpgradingStack}
+   * to determine if an upgrade has already changed the version to use.
+   * For this reason, DO NOT CHANGE the name of these since they represent historic values.
+   */
+  public static final String CONST_UPGRADE_GROUP_NAME = "UPDATE_DESIRED_STACK_ID";
+  public static final String CONST_CUSTOM_COMMAND_NAME = UpdateDesiredStackAction.class.getName();
 
   /**
    * Skip slave/client component failures if the tasks are skippable.
@@ -777,6 +787,23 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     if (groups.isEmpty()) {
       throw new AmbariException("There are no groupings available");
+    }
+
+    // Non Rolling Upgrades require a group with name "UPDATE_DESIRED_STACK_ID".
+    // This is needed as a marker to indicate which version to use when an upgrade is paused.
+    if (pack.getType() == UpgradeType.NON_ROLLING) {
+      boolean foundGroupWithNameUPDATE_DESIRED_STACK_ID = false;
+      for (UpgradeGroupHolder group : groups) {
+        if (group.name.equalsIgnoreCase(this.CONST_UPGRADE_GROUP_NAME)) {
+          foundGroupWithNameUPDATE_DESIRED_STACK_ID = true;
+          break;
+        }
+      }
+
+      if (foundGroupWithNameUPDATE_DESIRED_STACK_ID == false) {
+        throw new AmbariException(String.format("NonRolling Upgrade Pack %s requires a Group with name %s",
+            pack.getName(), this.CONST_UPGRADE_GROUP_NAME));
+      }
     }
 
     List<UpgradeGroupEntity> groupEntities = new ArrayList<UpgradeGroupEntity>();

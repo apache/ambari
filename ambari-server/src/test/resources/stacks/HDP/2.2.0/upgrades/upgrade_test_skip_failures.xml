@@ -19,6 +19,7 @@
   <target>2.2.*</target>
   <skip-failures>true</skip-failures>
   <skip-service-check-failures>true</skip-service-check-failures>
+  <type>ROLLING</type>
   <prerequisite-checks>
     <check>org.apache.ambari.server.checks.HiveMultipleMetastoreCheck</check>
     <check>org.apache.ambari.server.checks.MapReduce2JobHistoryStatePreservingCheck</check>
