@@ -33,29 +33,24 @@ App.AddSecurityConfigs = Em.Mixin.create({
   /**
    * security configs, which values should be modified after APPLY CONFIGURATIONS stage
    */
-  secureConfigs: function () {
-    var configs = [
-      {
-        name: 'zookeeper_principal_name',
-        serviceName: 'ZOOKEEPER'
-      },
-      {
-        name: 'knox_principal_name',
-        serviceName: 'KNOX'
-      },
-      {
-        name: 'storm_principal_name',
-        serviceName: 'STORM'
-      }
-    ];
-    if (App.get('isHadoop22Stack')) {
-      configs.push({
-        name: 'nimbus_principal_name',
-        serviceName: 'STORM'
-      });
+  secureConfigs: [
+    {
+      name: 'zookeeper_principal_name',
+      serviceName: 'ZOOKEEPER'
+    },
+    {
+      name: 'knox_principal_name',
+      serviceName: 'KNOX'
+    },
+    {
+      name: 'storm_principal_name',
+      serviceName: 'STORM'
+    },
+    {
+      name: 'nimbus_principal_name',
+      serviceName: 'STORM'
     }
-    return configs;
-  }.property('App.isHadoop22Stack'),
+  ],
 
   /**
    * Store status of kerberos descriptor located in cluster artifacts.

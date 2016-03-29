@@ -198,26 +198,7 @@ module.exports = Em.Application.create({
     return (stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.3") > -1);
   }.property('currentStackVersionNumber'),
 
-  isHadoop22Stack: function () {
-    return (stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.2") > -1);
-  }.property('currentStackVersionNumber'),
-
-  /**
-   * Determines if current stack is 2.0.*
-   * @type {boolean}
-   */
-  isHadoop20Stack: function () {
-    return (stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.1") == -1 && stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.0") > -1);
-  }.property('currentStackVersionNumber'),
-
   isHadoopWindowsStack: Em.computed.equal('currentStackName', 'HDPWIN'),
-
-  /**
-   * when working with enhanced configs we should rely on stack version
-   * as version that is below 2.2 doesn't supports it
-   * @type {boolean}
-   */
-  isClusterSupportsEnhancedConfigs: Em.computed.alias('isHadoop22Stack'),
 
   /**
    * If NameNode High Availability is enabled

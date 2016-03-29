@@ -492,12 +492,8 @@ App.ServiceConfigProperty = Em.Object.extend({
    * @returns {*|Boolean|boolean}
    */
   configSupportHeterogeneous: function() {
-    if (App.get('isHadoop22Stack')) {
-      return ['directories', 'directory'].contains(this.get('displayType')) && ['dfs.datanode.data.dir'].contains(this.get('name'));
-    } else {
-      return false;
-    }
-  }.property('displayType', 'name', 'App.isHadoop22Stack'),
+    return ['directories', 'directory'].contains(this.get('displayType')) && ['dfs.datanode.data.dir'].contains(this.get('name'));
+  }.property('displayType', 'name'),
 
   /**
    * Get override for selected group

@@ -2010,9 +2010,7 @@ var atsProperties = [
   }
 ];
 
-if (!App.get('isHadoop20Stack')) {
-  hdp2properties.pushObjects(atsProperties);
-}
+hdp2properties.pushObjects(atsProperties);
 
 module.exports =
 {

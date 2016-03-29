@@ -210,21 +210,17 @@ App.AddComponentConfigInitializer = App.HaConfigInitializerClass.extend(App.Host
     ];
   },
 
-  _initYarnRMZkAdress: function(configProperty, localDB, dependencies) {
-    if (App.get('isRMHaEnabled') || App.get('isHadoop22Stack')) {
-      return this._initAsHostsWithPort(configProperty, localDB, dependencies, {
-        component: 'ZOOKEEPER_SERVER',
-        componentExists: true,
-        modifier: {
-          prefix: '',
-          suffix: '',
-          delimiter: ','
-        },
-        portKey: 'zkClientPort'
-      });
-    } else {
-      return configProperty;
-    }
+  _initYarnRMZkAdress: function (configProperty, localDB, dependencies) {
+    return this._initAsHostsWithPort(configProperty, localDB, dependencies, {
+      component: 'ZOOKEEPER_SERVER',
+      componentExists: true,
+      modifier: {
+        prefix: '',
+        suffix: '',
+        delimiter: ','
+      },
+      portKey: 'zkClientPort'
+    });
   },
 
   _initTempletonHiveProperties: function(configProperty, localDB, dependecies, initializer) {

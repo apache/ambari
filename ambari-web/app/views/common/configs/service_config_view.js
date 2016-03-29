@@ -108,9 +108,6 @@ App.ServiceConfigView = Em.View.extend({
    */
   supportsConfigLayout: function() {
     var supportedControllers = ['wizardStep7Controller', 'mainServiceInfoConfigsController', 'mainHostServiceConfigsController'];
-    if (!App.get('isClusterSupportsEnhancedConfigs')) {
-      return false;
-    }
     if (App.Tab.find().someProperty('serviceName', this.get('controller.selectedService.serviceName')) && supportedControllers.contains(this.get('controller.name'))) {
       return !Em.isEmpty(App.Tab.find().filterProperty('serviceName', this.get('controller.selectedService.serviceName')).filterProperty('isAdvanced', false));
     } else {
@@ -172,9 +169,6 @@ App.ServiceConfigView = Em.View.extend({
    * @returns {Ember.A}
    */
   tabs: function() {
-    if (!App.get('isClusterSupportsEnhancedConfigs')) {
-      return Em.A([]);
-    }
     var tabs = App.Tab.find().filterProperty('serviceName', this.get('controller.selectedService.serviceName'));
     var advancedTab = tabs.findProperty('isAdvanced', true);
     if (advancedTab) {
@@ -182,7 +176,7 @@ App.ServiceConfigView = Em.View.extend({
     }
     this.processTabs(tabs);
     return tabs;
-  }.property('controller.selectedService.serviceName', 'App.isClusterSupportsEnhancedConfigs'),
+  }.property('controller.selectedService.serviceName'),
 
   /**
    * Set active tab when view attached and configs are linked to tabs.

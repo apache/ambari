@@ -46,7 +46,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
    * flag is true when Ambari changes some of the dependent properties
    * @type {boolean}
    */
-  hasChangedDependencies: Em.computed.and('App.isClusterSupportsEnhancedConfigs', 'isControllerSupportsEnhancedConfigs', 'changedProperties.length'),
+  hasChangedDependencies: Em.computed.and('isControllerSupportsEnhancedConfigs', 'changedProperties.length'),
 
   /**
    * defines is block with changed dependent configs should be shown

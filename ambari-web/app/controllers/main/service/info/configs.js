@@ -294,16 +294,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
     var serviceName = this.get('content.serviceName');
     this.clearStep();
     this.set('dependentServiceNames', App.StackService.find(serviceName).get('dependentServiceNames'));
-    if (App.get('isClusterSupportsEnhancedConfigs')) {
-      this.loadConfigTheme(serviceName).always(function() {
-        App.themesMapper.generateAdvancedTabs([serviceName]);
-        // Theme mapper has UI only configs that needs to be merged with current service version configs
-        // This requires calling  `loadCurrentVersions` after theme has loaded
-        self.loadCurrentVersions();
-      });
-    } else {
-      this.loadCurrentVersions();
-    }
+    this.loadConfigTheme(serviceName).always(function() {
+      if (!$.mocho) { App.themesMapper.generateAdvancedTabs([serviceName]); }
+      // Theme mapper has UI only configs that needs to be merged with current service version configs
+      // This requires calling  `loadCurrentVersions` after theme has loaded
+      self.loadCurrentVersions();
+    });
     this.loadServiceConfigVersions();
   },
 

@@ -1317,7 +1317,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     if (services.someProperty('serviceName', 'STORM')) {
       urlParams.push('(type=storm-site&tag=' + data.Clusters.desired_configs['storm-site'].tag + ')');
     }
-    if ((services.someProperty('serviceName', 'YARN') && App.get('isHadoop22Stack')) || App.get('isRMHaEnabled')) {
+    if (services.someProperty('serviceName', 'YARN')) {
       urlParams.push('(type=yarn-site&tag=' + data.Clusters.desired_configs['yarn-site'].tag + ')');
       urlParams.push('(type=zoo.cfg&tag=' + data.Clusters.desired_configs['zoo.cfg'].tag + ')');
     }
@@ -1357,7 +1357,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       }
     ];
     var installedServiceNames = App.Service.find().mapProperty('serviceName');
-    if (installedServiceNames.contains('YARN') && App.get('isHadoop22Stack') || App.get('isRMHaEnabled')) {
+    if (installedServiceNames.contains('YARN')) {
       groups.push(
         {
           properties: {

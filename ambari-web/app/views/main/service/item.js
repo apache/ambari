@@ -52,15 +52,13 @@ App.MainServiceItemView = Em.View.extend({
          cssClass: 'icon-plus',
          'label': '{0} {1}'.format(Em.I18n.t('add'), Em.I18n.t('dashboard.services.hive.metastore')),
          service: 'HIVE',
-         component: 'HIVE_METASTORE',
-         isHidden: !App.get('isHadoop22Stack')
+         component: 'HIVE_METASTORE'
        },
        {
          cssClass: 'icon-plus',
          'label': '{0} {1}'.format(Em.I18n.t('add'), Em.I18n.t('dashboard.services.hive.server2')),
          service: 'HIVE',
-         component: 'HIVE_SERVER',
-         isHidden: !App.get('isHadoop22Stack')
+         component: 'HIVE_SERVER'
        },
        {
          cssClass: 'icon-plus',

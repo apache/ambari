@@ -102,10 +102,16 @@ describe('App.MainHostServiceConfigsController', function () {
 
 	describe("#loadStep()", function () {
     beforeEach(function() {
+      sinon.stub(App.themesMapper, 'generateAdvancedTabs', Em.K);
       sinon.stub(controller, 'loadCurrentVersions', Em.K);
+      sinon.stub(controller, 'loadConfigTheme', function() {
+        return { always: Em.K };
+      });
     });
     afterEach(function() {
       controller.loadCurrentVersions.restore();
+      controller.loadConfigTheme.restore();
+      App.themesMapper.generateAdvancedTabs.restore();
     });
 		it("should set host", function () {
 			controller.set('content', {

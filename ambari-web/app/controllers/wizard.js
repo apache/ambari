@@ -1270,16 +1270,11 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
       // Load stack configs before loading themes
       App.config.loadClusterConfigsFromStack().always(function() {
         App.config.loadConfigsFromStack(serviceNames).done(function () {
-          if (App.get('isClusterSupportsEnhancedConfigs')) {
-            self.loadConfigThemeForServices(serviceNames).always(function () {
-              self.set('stackConfigsLoaded', true);
-              App.themesMapper.generateAdvancedTabs(serviceNames);
-              dfd.resolve();
-            });
-          } else {
+          self.loadConfigThemeForServices(serviceNames).always(function () {
             self.set('stackConfigsLoaded', true);
+            App.themesMapper.generateAdvancedTabs(serviceNames);
             dfd.resolve();
-          }
+          });
         });
       });
     }

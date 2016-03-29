@@ -959,7 +959,6 @@ describe('App.MainHostDetailsController', function () {
         id: 'SECONDARY_NAMENODE_host1',
         component_name: 'SECONDARY_NAMENODE'
       });
-      App.set('currentStackVersion', 'HDP-2.0.1');
     });
 
     it('HBASE is installed', function () {
@@ -978,30 +977,14 @@ describe('App.MainHostDetailsController', function () {
       expect(controller.constructConfigUrlParams(data)).to.eql(['(type=storm-site&tag=1)']);
     });
 
-    it('YARN for 2.2 stack is installed', function () {
-      App.set('currentStackVersion', 'HDP-2.2.0');
+    it('YARN is installed', function () {
       loadService('YARN');
       expect(controller.constructConfigUrlParams(data)).to.eql(['(type=yarn-site&tag=1)', '(type=zoo.cfg&tag=1)']);
-      App.set('currentStackVersion', 'HDP-2.0.1');
     });
 
     it('ACCUMULO is installed', function () {
       loadService('ACCUMULO');
       expect(controller.constructConfigUrlParams(data)).to.eql(['(type=accumulo-site&tag=1)']);
-    });
-
-    describe('isRMHaEnabled true', function () {
-      beforeEach(function () {
-        sinon.stub(App, 'get').withArgs('isRMHaEnabled').returns(true);
-      });
-      afterEach(function () {
-        App.get.restore();
-      });
-
-      it('params are valid', function () {
-        expect(controller.constructConfigUrlParams(data)).to.eql(['(type=yarn-site&tag=1)', '(type=zoo.cfg&tag=1)']);
-      });
-
     });
   });
 
@@ -1030,164 +1013,91 @@ describe('App.MainHostDetailsController', function () {
 
   describe('#saveZkConfigs()', function () {
 
-    var yarnCases = [
+    var data = {
+      items: [
         {
-          isYARNInstalled: true,
-          isHadoop22Stack: true,
-          isRMHaEnabled: true,
-          shouldYarnSiteBeModified: true,
-          title: 'HDP 2.2, YARN installed, RM HA enabled'
-        },
-        {
-          isYARNInstalled: true,
-          isHadoop22Stack: false,
-          isRMHaEnabled: true,
-          shouldYarnSiteBeModified: true,
-          title: 'HDP < 2.2, YARN installed, RM HA enabled'
-        },
-        {
-          isYARNInstalled: true,
-          isHadoop22Stack: true,
-          isRMHaEnabled: false,
-          shouldYarnSiteBeModified: true,
-          title: 'HDP 2.2, YARN installed, RM HA disabled'
-        },
-        {
-          isYARNInstalled: false,
-          isHadoop22Stack: true,
-          isRMHaEnabled: false,
-          shouldYarnSiteBeModified: false,
-          title: 'HDP 2.2, YARN not installed'
-        },
-        {
-          isYARNInstalled: true,
-          isHadoop22Stack: false,
-          isRMHaEnabled: false,
-          shouldYarnSiteBeModified: false,
-          title: 'HDP < 2.2, YARN installed, RM HA disabled'
-        },
-        {
-          isYARNInstalled: false,
-          isHadoop22Stack: false,
-          isRMHaEnabled: false,
-          shouldYarnSiteBeModified: false,
-          title: 'HDP < 2.2, YARN not installed'
-        }
-      ],
-      yarnData = {
-        items: [
-          {
-            type: 'yarn-site',
-            properties: {
-              p: 'v'
-            }
+          type: 'yarn-site',
+          properties: {
+            p: 'ys'
+          },
+          properties_attributes: {
+            p: 'pa_ys'
           }
-        ]
-      };
+        },
+        {
+          type: 'hive-site',
+          properties: {
+            hs: 'hs'
+          },
+          properties_attributes: {
+            hs: 'pa_hs'
+          }
+        },
+        {
+          type: 'webhcat-site',
+          properties: {
+            ws: 'ws'
+          },
+          properties_attributes: {
+            ws: 'pa_ws'
+          }
+        },
+        {
+          type: 'hbase-site',
+          properties: {
+            hbs: 'hbs'
+          },
+          properties_attributes: {
+            hbs: 'pa_hbs'
+          }
+        },
+        {
+          type: 'accumulo-site',
+          properties: {
+            as: 'as'
+          },
+          properties_attributes: {
+            as: 'pa_as'
+          }
+        }
+      ]
+    };
 
     beforeEach(function () {
       sinon.stub(controller, 'saveConfigsBatch', Em.K);
+      sinon.stub(controller, 'updateZkConfigs', Em.K);
+      sinon.stub(App.Service, 'find', function() {
+        return [
+          Em.Object.create({ serviceName: 'HIVE' }),
+          Em.Object.create({ serviceName: 'YARN' }),
+          Em.Object.create({ serviceName: 'HBASE' }),
+          Em.Object.create({ serviceName: 'ACCUMULO' })
+        ];
+      });
+
+      controller.saveZkConfigs(data);
+      this.groups = controller.saveConfigsBatch.args[0][0];
     });
     afterEach(function () {
+      App.Service.find.restore();
+      controller.updateZkConfigs.restore();
       controller.saveConfigsBatch.restore();
     });
 
-    it('call saveConfigsBatch()', function () {
-      var data = {items: []};
-      controller.saveZkConfigs(data);
-      expect(controller.saveConfigsBatch.calledOnce).to.be.true;
-    });
-
-    yarnCases.forEach(function (item) {
-      describe(item.title, function () {
-        var servicesMock = item.isYARNInstalled ? [
-          {
-            serviceName: 'YARN'
-          }
-        ] : [];
-
-        beforeEach(function () {
-          sinon.stub(App, 'get').withArgs('isHadoop22Stack').returns(item.isHadoop22Stack).
-            withArgs('isRMHaEnabled').returns(item.isRMHaEnabled);
-          sinon.stub(App.Service, 'find').returns(servicesMock);
-          controller.saveZkConfigs(yarnData);
-        });
-
-        afterEach(function () {
-          App.get.restore();
-          App.Service.find.restore();
-        });
-
-        it('some properties.yarn-site = true (' + item.shouldYarnSiteBeModified + ')', function () {
-          expect(controller.saveConfigsBatch.firstCall.args[0].someProperty('properties.yarn-site')).to.equal(item.shouldYarnSiteBeModified);
-        });
-
-        it('some properties_attributes.yarn-site = true (' + item.shouldYarnSiteBeModified + ')', function () {
-          expect(controller.saveConfigsBatch.firstCall.args[0].someProperty('properties_attributes.yarn-site')).to.equal(item.shouldYarnSiteBeModified);
-        });
-
-      });
-    });
-
-    describe('check groups', function () {
-
-      var data = {
-        items: [
-          {
-            type: 'hive-site',
-            properties: {
-              hs: 'hs'
-            },
-            properties_attributes: {
-              hs: 'pa_hs'
+      it('configs for YARN', function () {
+        var expected = {
+          properties: {
+            'yarn-site': {
+              p: 'ys'
             }
           },
-          {
-            type: 'webhcat-site',
-            properties: {
-              ws: 'ws'
-            },
-            properties_attributes: {
-              ws: 'pa_ws'
-            }
-          },
-          {
-            type: 'hbase-site',
-            properties: {
-              hbs: 'hbs'
-            },
-            properties_attributes: {
-              hbs: 'pa_hbs'
-            }
-          },
-          {
-            type: 'accumulo-site',
-            properties: {
-              as: 'as'
-            },
-            properties_attributes: {
-              as: 'pa_as'
+          properties_attributes: {
+            'yarn-site': {
+              p: 'pa_ys'
             }
           }
-        ]
-      };
-
-      beforeEach(function () {
-        sinon.stub(controller, 'updateZkConfigs', Em.K);
-        sinon.stub(App.Service, 'find', function () {
-          return [
-            {serviceName: 'YARN'},
-            {serviceName: 'HBASE'},
-            {serviceName: 'ACCUMULO'}
-          ];
-        });
-        controller.saveZkConfigs(data);
-        this.groups = controller.saveConfigsBatch.args[0][0];
-      });
-
-      afterEach(function () {
-        controller.updateZkConfigs.restore();
-        App.Service.find.restore();
+        };
+        expect(this.groups[1]).to.be.eql(expected);
       });
 
       it('configs for HIVE', function () {
@@ -1225,7 +1135,7 @@ describe('App.MainHostDetailsController', function () {
             }
           }
         };
-        expect(this.groups[1]).to.be.eql(expected);
+        expect(this.groups[2]).to.be.eql(expected);
       });
 
       it('configs for ACCUMULO', function () {
@@ -1241,10 +1151,8 @@ describe('App.MainHostDetailsController', function () {
             }
           }
         };
-        expect(this.groups[2]).to.be.eql(expected);
+        expect(this.groups[3]).to.be.eql(expected);
       });
-
-    });
 
   });
 
@@ -1426,25 +1334,6 @@ describe('App.MainHostDetailsController', function () {
       },
       {
         appGetterStubs: {
-          isRMHaEnabled: false
-        },
-        hostComponentModel: makeHostComponentModel('ZOOKEEPER_SERVER', ['host1', 'host2']),
-        configs: {
-          "yarn-site": {
-            "yarn.resourcemanager.zk-address": "host3:2181"
-          }
-        },
-        m: 'yarn.resourcemanager.zk-address property, ResourceManager HA not activated. Property value should be untouched.',
-        e: {
-          configs: {
-            "yarn-site": {
-              "yarn.resourcemanager.zk-address": "host3:2181"
-            }
-          }
-        }
-      },
-      {
-        appGetterStubs: {
           currentStackVersionNumber: '2.2'
         },
         hostComponentModel: makeHostComponentModel('ZOOKEEPER_SERVER', ['host1', 'host2']),
@@ -1458,44 +1347,6 @@ describe('App.MainHostDetailsController', function () {
           configs: {
             "hive-site": {
               "hive.zookeeper.quorum": "host1:2181,host2:2181"
-            }
-          }
-        }
-      },
-      {
-        appGetterStubs: {
-          currentStackVersionNumber: '2.1'
-        },
-        hostComponentModel: makeHostComponentModel('ZOOKEEPER_SERVER', ['host1', 'host2']),
-        configs: {
-          "hive-site": {
-            "hive.zookeeper.quorum": "host3:2181"
-          }
-        },
-        m: 'hive.zookeeper.quorum property, current stack version is 2.1 property should be untouched.',
-        e: {
-          configs: {
-            "hive-site": {
-              "hive.zookeeper.quorum": "host3:2181"
-            }
-          }
-        }
-      },
-      {
-        appGetterStubs: {
-          currentStackVersionNumber: '2.1'
-        },
-        hostComponentModel: makeHostComponentModel('ZOOKEEPER_SERVER', ['host1', 'host2']),
-        configs: {
-          "yarn-site": {
-            "hadoop.registry.zk.quorum": "host3:2181"
-          }
-        },
-        m: 'hadoop.registry.zk.quorum property, current stack version is 2.1 property should be untouched.',
-        e: {
-          configs: {
-            "yarn-site": {
-              "hadoop.registry.zk.quorum": "host3:2181"
             }
           }
         }

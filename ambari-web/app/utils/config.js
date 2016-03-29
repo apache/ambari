@@ -171,12 +171,10 @@ App.config = Em.Object.create({
       return sitePropertiesForCurrentStack.configProperties;
     } else if (App.get('isHadoop23Stack')) {
       return require('data/HDP2.3/site_properties').configProperties;
-    } else if (App.get('isHadoop22Stack')) {
-      return require('data/HDP2.2/site_properties').configProperties;
     } else {
-      return require('data/HDP2/site_properties').configProperties;
+      return require('data/HDP2.2/site_properties').configProperties;
     }
-  }.property('App.isHadoop22Stack', 'App.isHadoop23Stack'),
+  }.property('App.isHadoop23Stack'),
 
   preDefinedSiteProperties: function () {
     var serviceNames = App.StackService.find().mapProperty('serviceName').concat('MISC');
