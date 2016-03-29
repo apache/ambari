@@ -50,7 +50,7 @@ current_version = default("/hostLevelParams/current_version", None)
 
 host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
 
-stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 upgrade_direction = default("/commandParams/upgrade_direction", None)
 

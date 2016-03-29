@@ -18,19 +18,19 @@ limitations under the License.
 """
 
 from ambari_commons.constants import AMBARI_SUDO_BINARY
-from ambari_commons.str_utils import cbool, cint
 from resource_management.libraries.functions.version import format_stack_version, compare_versions
 from resource_management.core.system import System
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import default, format
+from resource_management.libraries.functions.expect import expect
 
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 sudo = AMBARI_SUDO_BINARY
 
-stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-agent_stack_retry_on_unavailability = cbool(default("/hostLevelParams/agent_stack_retry_on_unavailability", None))
-agent_stack_retry_count = cint(default("/hostLevelParams/agent_stack_retry_count", None))
+stack_version_unformatted = config['hostLevelParams']['stack_version']
+agent_stack_retry_on_unavailability = config['hostLevelParams']['agent_stack_retry_on_unavailability']
+agent_stack_retry_count = expect("/hostLevelParams/agent_stack_retry_count", int)
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 #users and groups

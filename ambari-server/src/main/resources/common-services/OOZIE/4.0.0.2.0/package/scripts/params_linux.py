@@ -19,7 +19,6 @@ limitations under the License.
 """
 from resource_management import *
 from ambari_commons.constants import AMBARI_SUDO_BINARY
-from ambari_commons.str_utils import cbool, cint
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
@@ -31,6 +30,7 @@ from resource_management.libraries.functions.get_not_managed_resources import ge
 from resource_management.libraries.script.script import Script
 
 from resource_management.libraries.functions.get_lzo_packages import get_lzo_packages
+from resource_management.libraries.functions.expect import expect
 
 from urlparse import urlparse
 
@@ -48,10 +48,10 @@ hostname = config["hostname"]
 version = default("/commandParams/version", None)
 stack_name = default("/hostLevelParams/stack_name", None)
 upgrade_direction = default("/commandParams/upgrade_direction", None)
-agent_stack_retry_on_unavailability = cbool(default("/hostLevelParams/agent_stack_retry_on_unavailability", None))
-agent_stack_retry_count = cint(default("/hostLevelParams/agent_stack_retry_count", None))
+agent_stack_retry_on_unavailability = config['hostLevelParams']['agent_stack_retry_on_unavailability']
+agent_stack_retry_count = expect("/hostLevelParams/agent_stack_retry_count", int)
 
-stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()

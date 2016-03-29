@@ -20,6 +20,7 @@ limitations under the License.
 from resource_management import *
 from utils import get_property_value, get_unstructured_data
 from ambari_commons.os_check import OSCheck
+from resource_management.libraries.functions.expect import expect
 
 krb5_conf_dir = '/etc'
 krb5_conf_file = 'krb5.conf'
@@ -67,7 +68,7 @@ jce_policy_zip = default("/hostLevelParams/jce_name", None) # None when jdk is a
 jce_location = config['hostLevelParams']['jdk_location']
 jdk_name = default("/hostLevelParams/jdk_name", None)
 java_home = config['hostLevelParams']['java_home']
-java_version = int(config['hostLevelParams']['java_version'])
+java_version = expect("/hostLevelParams/java_version", int)
 
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 

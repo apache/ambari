@@ -51,7 +51,7 @@ tmp_dir = Script.get_tmp_dir()
 
 stack_name = default("/hostLevelParams/stack_name", None)
 stack_root = Script.get_stack_root()
-stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
 

@@ -24,13 +24,13 @@ import os
 import re
 
 from ambari_commons.os_check import OSCheck
-from ambari_commons.str_utils import cbool, cint
 
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.default import default
+from resource_management.libraries.functions.expect import expect
 from resource_management.libraries.functions import get_klist_path
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
@@ -40,6 +40,7 @@ from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions.format_jvm_option import format_jvm_option
 from resource_management.libraries.functions.get_lzo_packages import get_lzo_packages
 from resource_management.libraries.functions.is_empty import is_empty
+from resource_management.libraries.functions.expect import expect
 
 
 config = Script.get_config()
@@ -47,10 +48,10 @@ tmp_dir = Script.get_tmp_dir()
 
 stack_name = default("/hostLevelParams/stack_name", None)
 upgrade_direction = default("/commandParams/upgrade_direction", None)
-stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
-agent_stack_retry_on_unavailability = cbool(default("/hostLevelParams/agent_stack_retry_on_unavailability", None))
-agent_stack_retry_count = cint(default("/hostLevelParams/agent_stack_retry_count", None))
+agent_stack_retry_on_unavailability = config['hostLevelParams']['agent_stack_retry_on_unavailability']
+agent_stack_retry_count = expect("/hostLevelParams/agent_stack_retry_count", int)
 
 # there is a stack upgrade which has not yet been finalized; it's currently suspended
 upgrade_suspended = default("roleParams/upgrade_suspended", False)
@@ -356,7 +357,7 @@ lzo_packages = get_lzo_packages(stack_version_unformatted)
 name_node_params = default("/commandParams/namenode", None)
 
 java_home = config['hostLevelParams']['java_home']
-java_version = int(config['hostLevelParams']['java_version'])
+java_version = expect("/hostLevelParams/java_version", int)
 
 hadoop_heapsize = config['configurations']['hadoop-env']['hadoop_heapsize']
 namenode_heapsize = config['configurations']['hadoop-env']['namenode_heapsize']

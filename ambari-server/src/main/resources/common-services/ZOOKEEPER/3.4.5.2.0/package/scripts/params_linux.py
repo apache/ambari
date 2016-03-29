@@ -28,6 +28,7 @@ from resource_management.libraries.functions.stack_features import check_stack_f
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions.expect import expect
 
 # server configurations
 config = Script.get_config()
@@ -82,7 +83,7 @@ zk_principal_name = default("/configurations/zookeeper-env/zookeeper_principal_n
 zk_principal = zk_principal_name.replace('_HOST',hostname.lower())
 
 java64_home = config['hostLevelParams']['java_home']
-java_version = int(config['hostLevelParams']['java_version'])
+java_version = expect("/hostLevelParams/java_version", int)
 
 zookeeper_hosts = config['clusterHostInfo']['zookeeper_hosts']
 zookeeper_hosts.sort()

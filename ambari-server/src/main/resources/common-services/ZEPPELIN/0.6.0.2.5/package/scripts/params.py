@@ -118,7 +118,7 @@ else:
   spark_queue = 'default'
 
 # e.g. 2.3
-stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+stack_version_unformatted = config['hostLevelParams']['stack_version']
 
 # e.g. 2.3.0.0
 stack_version_formatted = format_stack_version(stack_version_unformatted)

@@ -24,7 +24,6 @@ from functions import calc_xmn_from_xms, ensure_unit_for_memory
 
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from ambari_commons.os_check import OSCheck
-from ambari_commons.str_utils import cbool, cint
 
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions import conf_select
@@ -37,6 +36,7 @@ from resource_management.libraries.functions import is_empty
 from resource_management.libraries.functions import get_unique_id_and_date
 from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
 from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions.expect import expect
 
 # server configurations
 config = Script.get_config()
@@ -44,14 +44,14 @@ exec_tmp_dir = Script.get_tmp_dir()
 sudo = AMBARI_SUDO_BINARY
 
 stack_name = default("/hostLevelParams/stack_name", None)
-agent_stack_retry_on_unavailability = cbool(default("/hostLevelParams/agent_stack_retry_on_unavailability", None))
-agent_stack_retry_count = cint(default("/hostLevelParams/agent_stack_retry_count", None))
+agent_stack_retry_on_unavailability = config['hostLevelParams']['agent_stack_retry_on_unavailability']
+agent_stack_retry_count = expect("/hostLevelParams/agent_stack_retry_count", int)
 
 version = default("/commandParams/version", None)
 component_directory = status_params.component_directory
 etc_prefix_dir = "/etc/hbase"
 
-stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 # hadoop default parameters
@@ -102,7 +102,7 @@ metric_prop_file_name = "hadoop-metrics2-hbase.properties"
 
 # not supporting 32 bit jdk.
 java64_home = config['hostLevelParams']['java_home']
-java_version = int(config['hostLevelParams']['java_version'])
+java_version = expect("/hostLevelParams/java_version", int)
 
 log_dir = config['configurations']['hbase-env']['hbase_log_dir']
 java_io_tmpdir = config['configurations']['hbase-env']['hbase_java_io_tmpdir']
@@ -110,7 +110,7 @@ master_heapsize = ensure_unit_for_memory(config['configurations']['hbase-env']['
 
 regionserver_heapsize = ensure_unit_for_memory(config['configurations']['hbase-env']['hbase_regionserver_heapsize'])
 regionserver_xmn_max = config['configurations']['hbase-env']['hbase_regionserver_xmn_max']
-regionserver_xmn_percent = config['configurations']['hbase-env']['hbase_regionserver_xmn_ratio']
+regionserver_xmn_percent = expect("/configurations/hbase-env/hbase_regionserver_xmn_ratio", float)
 regionserver_xmn_size = calc_xmn_from_xms(regionserver_heapsize, regionserver_xmn_percent, regionserver_xmn_max)
 
 

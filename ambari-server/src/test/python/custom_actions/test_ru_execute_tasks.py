@@ -121,7 +121,7 @@ class TestRUExecuteTasks(RMFTestCase):
     service_package_folder = default('/roleParams/service_package_folder', None)
 
     self.assertEqual(stack_name, "HDP")
-    self.assertEqual(stack_version, 2.2)
+    self.assertEqual(stack_version, '2.2')
     self.assertEqual(service_package_folder, "common-services/HDFS/2.1.0.2.0/package")
 
     # Begin the test
@@ -169,7 +169,7 @@ class TestRUExecuteTasks(RMFTestCase):
     service_package_folder = default('/roleParams/service_package_folder', None)
 
     self.assertEqual(stack_name, "HDP")
-    self.assertEqual(stack_version, 2.2)
+    self.assertEqual(stack_version, '2.2')
     self.assertEqual(service_package_folder, None)
 
     # Begin the test

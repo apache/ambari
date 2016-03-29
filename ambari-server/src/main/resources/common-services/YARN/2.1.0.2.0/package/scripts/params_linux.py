@@ -55,7 +55,7 @@ stack_name = default("/hostLevelParams/stack_name", None)
 tarball_map = default("/configurations/cluster-env/tarball_map", None)
 
 # This is expected to be of the form #.#.#.#
-stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted_major = format_stack_version(stack_version_unformatted)
 stack_version_formatted = functions.get_stack_version('hadoop-yarn-resourcemanager')
 

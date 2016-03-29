@@ -26,7 +26,6 @@ from urlparse import urlparse
 
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from ambari_commons.os_check import OSCheck
-from ambari_commons.str_utils import cbool, cint
 
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions.default import default
@@ -38,6 +37,7 @@ from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.get_port_from_url import get_port_from_url
+from resource_management.libraries.functions.expect import expect
 from resource_management.libraries import functions
 
 # server configurations
@@ -46,14 +46,14 @@ tmp_dir = Script.get_tmp_dir()
 sudo = AMBARI_SUDO_BINARY
 
 stack_name = default("/hostLevelParams/stack_name", None)
-agent_stack_retry_on_unavailability = cbool(default("/hostLevelParams/agent_stack_retry_on_unavailability", None))
-agent_stack_retry_count = cint(default("/hostLevelParams/agent_stack_retry_count", None))
+agent_stack_retry_on_unavailability = config['hostLevelParams']['agent_stack_retry_on_unavailability']
+agent_stack_retry_count = expect("/hostLevelParams/agent_stack_retry_count", int)
 
 # node hostname
 hostname = config["hostname"]
 
 # This is expected to be of the form #.#.#.#
-stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted_major = format_stack_version(stack_version_unformatted)
 stack_is_hdp21 = Script.is_stack_less_than("2.2")
 

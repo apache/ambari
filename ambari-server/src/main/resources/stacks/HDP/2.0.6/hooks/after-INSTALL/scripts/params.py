@@ -31,7 +31,7 @@ dfs_type = default("/commandParams/dfs_type", "")
 
 sudo = AMBARI_SUDO_BINARY
 
-stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 # current host stack version

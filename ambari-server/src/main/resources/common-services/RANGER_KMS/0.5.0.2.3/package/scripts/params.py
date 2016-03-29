@@ -30,7 +30,7 @@ tmp_dir = Script.get_tmp_dir()
 stack_name = default("/hostLevelParams/stack_name", None)
 version = default("/commandParams/version", None)
 
-stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 stack_is_hdp23_or_further = Script.is_stack_greater_or_equal("2.3")

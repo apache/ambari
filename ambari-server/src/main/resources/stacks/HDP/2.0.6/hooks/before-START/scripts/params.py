@@ -35,7 +35,7 @@ config = Script.get_config()
 
 host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
 
-stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 dfs_type = default("/commandParams/dfs_type", "")
@@ -229,7 +229,7 @@ net_topology_mapping_data_file_path = os.path.join(net_topology_script_dir, net_
 has_core_site = 'core-site' in config['configurations']
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 kinit_path_local = get_kinit_path()
-stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 hdfs_principal_name = default('/configurations/hadoop-env/hdfs_principal_name', None)

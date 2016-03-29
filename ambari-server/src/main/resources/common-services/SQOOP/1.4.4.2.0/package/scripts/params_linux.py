@@ -39,7 +39,7 @@ ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 
 stack_name = default("/hostLevelParams/stack_name", None)
 
-stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 # New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade

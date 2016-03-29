@@ -58,14 +58,6 @@ class ConfigDictionary(dict):
       value = True
     elif value == "false":
       value = False
-    else: 
-      try:
-        value = int(value)
-      except (ValueError, TypeError):
-        try:
-          value =  float(value)
-        except (ValueError, TypeError):
-          pass
     
     return value
 

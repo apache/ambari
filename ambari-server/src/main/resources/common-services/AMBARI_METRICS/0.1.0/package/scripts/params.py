@@ -24,6 +24,7 @@ from functions import trim_heap_property
 from resource_management.core.logger import Logger
 from resource_management import *
 from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
+from resource_management.libraries.functions.expect import expect
 import status_params
 from ambari_commons import OSCheck
 import ConfigParser
@@ -169,7 +170,7 @@ metric_prop_file_name = "hadoop-metrics2-hbase.properties"
 
 # not supporting 32 bit jdk.
 java64_home = config['hostLevelParams']['java_home']
-java_version = int(config['hostLevelParams']['java_version'])
+java_version = expect("/hostLevelParams/java_version", int)
 
 metrics_collector_heapsize = default('/configurations/ams-env/metrics_collector_heapsize', "512")
 host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
@@ -189,7 +190,7 @@ regionserver_heapsize = check_append_heap_property(str(regionserver_heapsize), "
 regionserver_xmn_max = default('/configurations/ams-hbase-env/hbase_regionserver_xmn_max', None)
 if regionserver_xmn_max:
   regionserver_xmn_max = int(trim_heap_property(str(regionserver_xmn_max), "m"))
-  regionserver_xmn_percent = config['configurations']['ams-hbase-env']['hbase_regionserver_xmn_ratio']
+  regionserver_xmn_percent = expect("/configurations/ams-hbase-env/hbase_regionserver_xmn_ratio", float)
   regionserver_xmn_size = calc_xmn_from_xms(regionserver_heapsize, regionserver_xmn_percent, regionserver_xmn_max)
 else:
   regionserver_xmn_size = config['configurations']['ams-hbase-env']['regionserver_xmn_size']

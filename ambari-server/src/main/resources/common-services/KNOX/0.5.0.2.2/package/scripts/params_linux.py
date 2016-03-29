@@ -45,7 +45,7 @@ version = default("/commandParams/version", None)
 version_formatted = format_stack_version(version)
 
 # E.g., 2.3
-stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 # This is the version whose state is CURRENT. During an RU, this is the source version.
@@ -96,7 +96,7 @@ if Script.is_stack_greater_or_equal("2.2"):
 knox_group = default("/configurations/knox-env/knox_group", "knox")
 mode = 0644
 
-stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 dfs_ha_enabled = False

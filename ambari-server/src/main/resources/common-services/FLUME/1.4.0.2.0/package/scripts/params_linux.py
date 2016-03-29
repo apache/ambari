@@ -26,7 +26,7 @@ config = Script.get_config()
 # upgrade params
 stack_name = default("/hostLevelParams/stack_name", None)
 upgrade_direction = default("/commandParams/upgrade_direction", Direction.UPGRADE)
-stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+stack_version_unformatted = config['hostLevelParams']['stack_version']
 
 flume_conf_dir = '/etc/flume/conf'
 if Script.is_stack_greater_or_equal("2.2"):

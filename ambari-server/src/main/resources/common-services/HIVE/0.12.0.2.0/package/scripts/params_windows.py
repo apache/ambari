@@ -25,7 +25,7 @@ from status_params import *
 config = Script.get_config()
 
 # This is expected to be of the form #.#.#.#
-stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 stack_root = None

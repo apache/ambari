@@ -45,7 +45,7 @@ stack_name = default("/hostLevelParams/stack_name", None)
 version = default("/commandParams/version", None)
 
 # hdp version
-stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 metadata_home = os.environ['METADATA_HOME_DIR'] if 'METADATA_HOME_DIR' in os.environ else '/usr/hdp/current/atlas-server'

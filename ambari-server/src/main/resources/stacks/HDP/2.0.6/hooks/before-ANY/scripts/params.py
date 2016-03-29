@@ -32,6 +32,7 @@ from resource_management.libraries.functions import format_jvm_option
 from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.version import compare_versions
+from resource_management.libraries.functions.expect import expect
 from ambari_commons.os_check import OSCheck
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 
@@ -44,14 +45,14 @@ dfs_type = default("/commandParams/dfs_type", "")
 artifact_dir = format("{tmp_dir}/AMBARI-artifacts/")
 jdk_name = default("/hostLevelParams/jdk_name", None)
 java_home = config['hostLevelParams']['java_home']
-java_version = int(config['hostLevelParams']['java_version'])
+java_version = expect("/hostLevelParams/java_version", int)
 jdk_location = config['hostLevelParams']['jdk_location']
 
 sudo = AMBARI_SUDO_BINARY
 
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 
-stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 restart_type = default("/commandParams/restart_type", "")

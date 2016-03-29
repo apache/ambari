@@ -41,7 +41,7 @@ proxyuser_group =  config['configurations']['hadoop-env']['proxyuser_group']
 
 security_enabled = False
 
-stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 # hadoop default parameters
