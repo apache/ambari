@@ -20,6 +20,8 @@ from resource_management import Script
 from resource_management.core.resources.system import Execute
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions.check_process_status import check_process_status
+from resource_management.libraries.functions.default import default
+from resource_management.core.source import InlineTemplate
 try:
     from resource_management.libraries.functions import stack_select as hadoop_select
 except ImportError:
@@ -50,7 +52,11 @@ class HawqMaster(Script):
     import params
     self.configure(env)
     common.validate_configuration()
-    master_helper.setup_passwordless_ssh()
+    exchange_ssh_keys = default('/configurations/hawq-env/hawq_ssh_exkeys', None)
+    if exchange_ssh_keys is None or str(exchange_ssh_keys).lower() == 'false':
+      Logger.info("Skipping ssh key exchange with HAWQ hosts as hawq_ssh_exkeys is either set to false or is not available in hawq-env.xml")
+    else:
+      master_helper.setup_passwordless_ssh()
     common.start_component(hawq_constants.MASTER, params.hawq_master_address_port, params.hawq_master_dir)
 
   def stop(self, env):
@@ -73,7 +79,9 @@ class HawqMaster(Script):
     exec_psql_cmd(cmd, params.hawqmaster_host, params.hawq_master_address_port)
 
   def run_hawq_check(self, env):
+    import params
     Logger.info("Executing HAWQ Check ...")
+    params.File(hawq_constants.hawq_hosts_file, content=InlineTemplate("{% for host in hawq_all_hosts %}{{host}}\n{% endfor %}"))
     Execute("source {0} && hawq check -f {1} --hadoop {2} --config {3}".format(hawq_constants.hawq_greenplum_path_file, hawq_constants.hawq_hosts_file, hadoop_select.get_hadoop_dir('home'), hawq_constants.hawq_check_file),
             user=hawq_constants.hawq_user,
             timeout=hawq_constants.default_exec_timeout)

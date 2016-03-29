@@ -21,6 +21,7 @@ import time
 import crypt
 import filecmp
 from resource_management.core.resources.system import Execute, Directory, File
+from resource_management.libraries.functions.default import default
 from resource_management.core.logger import Logger
 from resource_management.core.system import System
 from resource_management.core.exceptions import Fail
@@ -29,6 +30,7 @@ import xml.etree.ElementTree as ET
 
 import utils
 import hawq_constants
+import custom_params
 
 
 def setup_user():
@@ -279,6 +281,7 @@ def start_component(component_name, port, data_dir):
   """
   If data directory exists start the component, else initialize the component
   """
+  __check_dfs_truncate_enforced()
   if os.path.exists(os.path.join(data_dir, hawq_constants.postmaster_opts_filename)):
     return utils.exec_hawq_operation(hawq_constants.START,
                                      "{0} -a -v".format(component_name),
@@ -292,3 +295,20 @@ def stop_component(component_name, port, mode):
   utils.exec_hawq_operation(hawq_constants.STOP,
                             "{0} -M {1} -a -v".format(component_name, mode),
                             only_if=utils.chk_hawq_process_status_cmd(port, component_name))
+
+def __check_dfs_truncate_enforced():
+  """
+  If enforce_hdfs_truncate is set to True:
+    throw an ERROR, HAWQ components start should fail
+  Else:
+    throw a WARNING,
+  """
+  DFS_ALLOW_TRUNCATE_WARNING_MSG = "It is recommended to set dfs.allow.truncate as true in hdfs-site.xml configuration file, currently it is set to false. Please review HAWQ installation guide for more information."
+
+  # Check if dfs.allow.truncate exists in hdfs-site.xml and throw appropriate exception if not set to True
+  dfs_allow_truncate = default("/configurations/hdfs-site/dfs.allow.truncate", None)
+  if dfs_allow_truncate is None or str(dfs_allow_truncate).lower() != 'true':
+    if custom_params.enforce_hdfs_truncate:
+      raise Fail("**ERROR**: {0}".format(DFS_ALLOW_TRUNCATE_WARNING_MSG))
+    else:
+      Logger.error("**WARNING**: {0}".format(DFS_ALLOW_TRUNCATE_WARNING_MSG))

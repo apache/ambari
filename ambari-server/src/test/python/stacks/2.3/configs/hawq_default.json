@@ -439,7 +439,8 @@
         }, 
         "ranger-hbase-plugin-properties": {}, 
         "hawq-env": {
-            "hawq_password": "gpadmin"
+            "hawq_password": "gpadmin",
+            "hawq_ssh_exkeys": "false"
         }, 
         "core-site": {
             "ipc.server.listen.queue.size": "3300", 
