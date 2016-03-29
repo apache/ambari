@@ -56,6 +56,7 @@ OUTFILE=$AMBARI_AGENT_LOG_DIR/ambari-agent.out
 LOGFILE=$AMBARI_AGENT_LOG_DIR/ambari-agent.log
 AGENT_SCRIPT=/usr/lib/python2.6/site-packages/ambari_agent/main.py
 AGENT_TMP_DIR=/var/lib/ambari-agent/tmp
+AGENT_WORKING_DIR=/var/lib/ambari-agent
 AMBARI_AGENT_PY_SCRIPT=/usr/lib/python2.6/site-packages/ambari_agent/AmbariAgent.py
 OK=1
 NOTOK=0
@@ -71,7 +72,7 @@ if [ "$EUID" -ne 0 ] ; then
 fi
 
 # set reliable cwd for this and child processes.
-cd $AGENT_TMP_DIR
+cd $AGENT_WORKING_DIR
 
 change_files_permissions() {
     if [ ! -z "$keysdir" ]; then
