@@ -22,6 +22,8 @@ import static org.junit.Assert.assertEquals;
 import java.util.List;
 import java.util.UUID;
 
+import org.apache.ambari.server.controller.RootServiceResponseFactory.Components;
+import org.apache.ambari.server.controller.RootServiceResponseFactory.Services;
 import org.apache.ambari.server.events.AlertReceivedEvent;
 import org.apache.ambari.server.events.listeners.alerts.AlertReceivedListener;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
@@ -305,5 +307,125 @@ public class AlertReceivedListenerTest {
 
     current = allCurrent.get(0);
     assertEquals(MaintenanceState.ON, current.getMaintenanceState());
+  }
+
+  /**
+   * Tests that an invalid host from a host-level agent alert is rejected.
+   */
+  @Test
+  public void testAgentAlertFromInvalidHost() {
+    String definitionName = ALERT_DEFINITION + "1";
+    String serviceName = Services.AMBARI.name();
+    String componentName = Components.AMBARI_AGENT.name();
+
+    Alert alert1 = new Alert(definitionName, null, serviceName, componentName, HOST1,
+        AlertState.OK);
+
+    alert1.setCluster(m_cluster.getClusterName());
+    alert1.setLabel(ALERT_LABEL);
+    alert1.setText(serviceName + " " + componentName + " is OK");
+    alert1.setTimestamp(1L);
+
+    // verify that the listener works with a regular alert
+    AlertReceivedListener listener = m_injector.getInstance(AlertReceivedListener.class);
+    AlertReceivedEvent event1 = new AlertReceivedEvent(m_cluster.getClusterId(), alert1);
+    listener.onAlertEvent(event1);
+
+    List<AlertCurrentEntity> allCurrent = m_dao.findCurrent();
+    assertEquals(1, allCurrent.size());
+
+    // invalid host
+    alert1.setHostName("INVALID");
+
+    // remove all
+    m_dao.removeCurrentByHost(HOST1);
+    allCurrent = m_dao.findCurrent();
+    assertEquals(0, allCurrent.size());
+
+    // verify no new alerts received
+    listener.onAlertEvent(event1);
+    allCurrent = m_dao.findCurrent();
+    assertEquals(0, allCurrent.size());
+  }
+
+  /**
+   * Tests that an alert for AMBARI/AMBARI_SERVER is always valid.
+   */
+  @Test
+  public void testAmbariServerValidAlerts() {
+    String definitionName = ALERT_DEFINITION + "1";
+    String serviceName = Services.AMBARI.name();
+    String componentName = Components.AMBARI_SERVER.name();
+
+    Alert alert1 = new Alert(definitionName, null, serviceName, componentName, HOST1,
+        AlertState.OK);
+
+    alert1.setCluster(m_cluster.getClusterName());
+    alert1.setLabel(ALERT_LABEL);
+    alert1.setText(serviceName + " " + componentName + " is OK");
+    alert1.setTimestamp(1L);
+
+    // verify that the listener works with a regular alert
+    AlertReceivedListener listener = m_injector.getInstance(AlertReceivedListener.class);
+    AlertReceivedEvent event1 = new AlertReceivedEvent(m_cluster.getClusterId(), alert1);
+    listener.onAlertEvent(event1);
+
+    List<AlertCurrentEntity> allCurrent = m_dao.findCurrent();
+    assertEquals(1, allCurrent.size());
+
+    // invalid host, invalid cluster
+    alert1.setHostName("INVALID");
+    alert1.setCluster("INVALID");
+
+    // remove all
+    m_dao.removeCurrentByHost(HOST1);
+    allCurrent = m_dao.findCurrent();
+    assertEquals(0, allCurrent.size());
+
+    // verify that the alert was still received
+    listener.onAlertEvent(event1);
+    allCurrent = m_dao.findCurrent();
+    assertEquals(1, allCurrent.size());
+  }
+
+  /**
+   * Tests that an invalid host from an invalid cluster does not trigger an
+   * alert.
+   */
+  @Test
+  public void testMissingClusterAndInvalidHost() {
+    String definitionName = ALERT_DEFINITION + "1";
+    String serviceName = Services.AMBARI.name();
+    String componentName = Components.AMBARI_AGENT.name();
+
+    Alert alert1 = new Alert(definitionName, null, serviceName, componentName, HOST1,
+        AlertState.OK);
+
+    alert1.setCluster(m_cluster.getClusterName());
+    alert1.setLabel(ALERT_LABEL);
+    alert1.setText(serviceName + " " + componentName + " is OK");
+    alert1.setTimestamp(1L);
+
+    // verify that the listener works with a regular alert
+    AlertReceivedListener listener = m_injector.getInstance(AlertReceivedListener.class);
+    AlertReceivedEvent event1 = new AlertReceivedEvent(m_cluster.getClusterId(), alert1);
+    listener.onAlertEvent(event1);
+
+    List<AlertCurrentEntity> allCurrent = m_dao.findCurrent();
+    assertEquals(1, allCurrent.size());
+
+    // missing cluster, invalid host
+    alert1.setCluster(null);
+    alert1.setHostName("INVALID");
+
+    // remove all
+    m_dao.removeCurrentByHost(HOST1);
+    allCurrent = m_dao.findCurrent();
+    assertEquals(0, allCurrent.size());
+
+    // verify no new alerts received
+    listener.onAlertEvent(event1);
+    allCurrent = m_dao.findCurrent();
+    assertEquals(0, allCurrent.size());
   }
 }

@@ -18,10 +18,20 @@
 
 package org.apache.ambari.server.state.cluster;
 
-import com.google.common.collect.Sets;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import com.google.inject.persist.Transactional;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import javax.persistence.RollbackException;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -81,18 +91,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
 
-import javax.persistence.RollbackException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import com.google.common.collect.Sets;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import com.google.inject.persist.Transactional;
 
 @Singleton
 public class ClustersImpl implements Clusters {
@@ -375,6 +377,28 @@ public class ClustersImpl implements Clusters {
     checkLoaded();
 
     return hosts.containsKey(hostname);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isHostMappedToCluster(String clusterName, String hostName) {
+    checkLoaded();
+
+    r.lock();
+    try {
+      Set<Cluster> clusters = hostClusterMap.get(hostName);
+      for (Cluster cluster : clusters) {
+        if (clusterName.equals(cluster.getClusterName())) {
+          return true;
+        }
+      }
+    } finally {
+      r.unlock();
+    }
+
+    return false;
   }
 
   @Override
@@ -859,8 +883,9 @@ public class ClustersImpl implements Clusters {
       // This will also remove from kerberos_principal_hosts, hostconfigmapping, and configgrouphostmapping
       Set<Cluster> clusters = hostClusterMap.get(hostname);
       Set<Long> clusterIds = Sets.newHashSet();
-      for (Cluster cluster: clusters)
+      for (Cluster cluster: clusters) {
         clusterIds.add(cluster.getClusterId());
+      }
 
 
 

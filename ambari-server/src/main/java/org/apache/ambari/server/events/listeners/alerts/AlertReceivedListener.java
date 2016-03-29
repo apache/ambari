@@ -25,6 +25,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
+import org.apache.ambari.server.controller.RootServiceResponseFactory.Components;
 import org.apache.ambari.server.controller.RootServiceResponseFactory.Services;
 import org.apache.ambari.server.events.AlertEvent;
 import org.apache.ambari.server.events.AlertReceivedEvent;
@@ -318,9 +319,15 @@ public class AlertReceivedListener {
 
   /**
    * Gets whether the specified alert is valid for its reported cluster,
-   * service, component, and host. This method is necessary for the case where a
-   * component has been removed from a host, but the alert data is going to be
-   * returned before the agent alert job can be unscheduled.
+   * service, component, and host. This method is necessary for the following
+   * cases
+   * <ul>
+   * <li>A service/component is removed, but an alert queued for reporting is
+   * received after that event.</li>
+   * <li>A host is removed from the cluster but the agent is still running and
+   * reporting</li>
+   * <li>A cluster is renamed</li>
+   * </ul>
    *
    * @param alert
    *          the alert.
@@ -333,18 +340,36 @@ public class AlertReceivedListener {
     String componentName = alert.getComponent();
     String hostName = alert.getHostName();
 
-    // if the alert is not bound to a cluster, then it's most likely a
-    // host alert and is always valid
-    if( null == clusterName ){
-      return true;
-    }
-
-    // AMBARI is always a valid service
+    // AMBARI/AMBARI_SERVER is always a valid service/component combination
     String ambariServiceName = Services.AMBARI.name();
-    if (ambariServiceName.equals(serviceName)) {
+    String ambariServerComponentName = Components.AMBARI_SERVER.name();
+    String ambariAgentComponentName = Components.AMBARI_AGENT.name();
+    if (ambariServiceName.equals(serviceName) && ambariServerComponentName.equals(componentName)) {
       return true;
     }
 
+    // if the alert is not bound to a cluster, then it's most likely a
+    // host alert and is always valid as long as the host exists
+    if (StringUtils.isBlank(clusterName)) {
+      // no cluster, no host; return true out of respect for the unknown alert
+      if (StringUtils.isBlank(hostName)) {
+        return true;
+      }
+
+      // if a host is reported, it must be registered to some cluster somewhere
+      if (!m_clusters.get().hostExists(hostName)) {
+        LOG.error("Unable to process alert {} for an invalid host named {}",
+            alert.getName(), hostName);
+        return false;
+      }
+
+      // no cluster, valid host; return true
+      return true;
+    }
+
+    // at this point the following criteria is guaranteed, so get the cluster
+    // - a cluster exists
+    // - this is not for AMBARI_SERVER component
     final Cluster cluster;
     try {
       cluster = m_clusters.get().getCluster(clusterName);
@@ -366,24 +391,50 @@ public class AlertReceivedListener {
       return false;
     }
 
+    // at this point the following criteria is guaranteed
+    // - a cluster exists
+    // - this is not for AMBARI_SERVER component
+    //
+    // if the alert is for AMBARI/AMBARI_AGENT, then it's valid IFF
+    // the agent's host is still a part of the reported cluster
+    if (ambariServiceName.equals(serviceName) && ambariAgentComponentName.equals(componentName)) {
+      // agents MUST report a hostname
+      if (StringUtils.isBlank(hostName) || !m_clusters.get().hostExists(hostName)
+          || !m_clusters.get().isHostMappedToCluster(clusterName, hostName)) {
+        LOG.warn(
+            "Unable to process alert {} for cluster {} and host {} because the host is not a part of the cluster.",
+            alert.getName(), clusterName, hostName);
+
+        return false;
+      }
+
+      // AMBARI/AMBARI_AGENT and valid host; return true
+      return true;
+    }
+
+    // at this point the following criteria is guaranteed
+    // - a cluster exists
+    // - not for the AMBARI service
     if (StringUtils.isNotBlank(hostName)) {
       // if valid hostname
       if (!m_clusters.get().hostExists(hostName)) {
-        LOG.error("Unable to process alert {} for an invalid host named {}",
+        LOG.warn("Unable to process alert {} for an invalid host named {}",
             alert.getName(), hostName);
         return false;
       }
+
       if (!cluster.getServices().containsKey(serviceName)) {
-        LOG.error("Unable to process alert {} for an invalid service named {}",
+        LOG.warn("Unable to process alert {} for an invalid service named {}",
             alert.getName(), serviceName);
 
         return false;
       }
+
       // if the alert is for a host/component then verify that the component
       // is actually installed on that host
       if (null != componentName &&
           !cluster.getHosts(serviceName, componentName).contains(hostName)) {
-        LOG.error(
+        LOG.warn(
             "Unable to process alert {} for an invalid service {} and component {} on host {}",
             alert.getName(), serviceName, componentName, hostName);
         return false;

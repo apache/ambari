@@ -19,10 +19,10 @@ package org.apache.ambari.server.alerts;
 
 import java.text.MessageFormat;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import org.apache.ambari.server.events.AlertEvent;
 import org.apache.ambari.server.events.AlertReceivedEvent;
@@ -74,11 +74,11 @@ public class StaleAlertRunnable implements Runnable {
   /**
    * The message to use when alerts are detected as stale.
    */
-  private static final String STALE_ALERTS_MSG = "There are {0} stale alerts from {1} host(s): {2}";
+  private static final String STALE_ALERTS_MSG = "There are {0} stale alerts from {1} host(s):\n{2}";
 
   private static final String TIMED_LABEL_MSG = "{0} ({1})";
 
-  private static final String HOST_LABEL_MSG = "{0}[{1}]";
+  private static final String HOST_LABEL_MSG = "{0}\n  [{1}]";
 
   /**
    * Convert the minutes for the delay of an alert into milliseconds.
@@ -134,9 +134,9 @@ public class StaleAlertRunnable implements Runnable {
         }
 
         long now = System.currentTimeMillis();
-        Set<String> staleAlerts = new HashSet<String>();
+        Set<String> staleAlerts = new TreeSet<String>();
         Map<String, Set<String>> staleHostAlerts = new HashMap<>();
-        Set<String> hostsWithStaleAlerts = new HashSet<String>();
+        Set<String> hostsWithStaleAlerts = new TreeSet<>();
 
         // get the cluster's current alerts
         List<AlertCurrentEntity> currentAlerts = m_alertsDao.findCurrentByCluster(cluster.getClusterId());
@@ -174,13 +174,20 @@ public class StaleAlertRunnable implements Runnable {
           // if the last time it was run is >= 2x the interval, it's stale
           long timeDifference = now - current.getLatestTimestamp();
           if (timeDifference >= 2 * intervalInMillis) {
+
+            // it is technically possible to have a null/blank label; if so,
+            // default to the name of the definition
             String label = definition.getLabel();
+            if (StringUtils.isEmpty(label)) {
+              label = definition.getDefinitionName();
+            }
+
             if (null != history.getHostName()) {
               // keep track of the host, if not null
               String hostName = history.getHostName();
               hostsWithStaleAlerts.add(hostName);
               if(!staleHostAlerts.containsKey(hostName)) {
-                staleHostAlerts.put(hostName, new HashSet<String>());
+                staleHostAlerts.put(hostName, new TreeSet<String>());
               }
 
               staleHostAlerts.get(hostName).add(MessageFormat.format(TIMED_LABEL_MSG, label,
@@ -193,7 +200,8 @@ public class StaleAlertRunnable implements Runnable {
         }
 
         for(String host : staleHostAlerts.keySet()) {
-          staleAlerts.add(MessageFormat.format(HOST_LABEL_MSG, host, StringUtils.join(staleHostAlerts.get(host), ", ")));
+          staleAlerts.add(MessageFormat.format(HOST_LABEL_MSG, host,
+              StringUtils.join(staleHostAlerts.get(host), ",\n  ")));
         }
 
         AlertState alertState = AlertState.OK;
@@ -205,7 +213,7 @@ public class StaleAlertRunnable implements Runnable {
           alertState = AlertState.CRITICAL;
           alertText = MessageFormat.format(STALE_ALERTS_MSG,
               staleAlerts.size(), hostsWithStaleAlerts.size(),
-              StringUtils.join(staleAlerts, ", "));
+              StringUtils.join(staleAlerts, ",\n"));
         }
 
         Alert alert = new Alert(entity.getDefinitionName(), null,
@@ -245,12 +253,15 @@ public class StaleAlertRunnable implements Runnable {
     hour = min / MINUTES_PER_HOUR;
     min = min % MINUTES_PER_HOUR;
     String result = "";
-    if(days > 0)
+    if(days > 0) {
       result += days + "d ";
-    if(hour > 0)
+    }
+    if(hour > 0) {
       result += hour + "h ";
-    if(min > 0)
+    }
+    if(min > 0) {
       result += min + "m ";
+    }
     return result.trim();
   }
 }
