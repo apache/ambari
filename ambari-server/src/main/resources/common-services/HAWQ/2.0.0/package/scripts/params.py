@@ -56,7 +56,6 @@ hawqsegment_hosts = sorted(default('/clusterHostInfo/hawqsegment_hosts', []))
 hawq_master_hosts = [host for host in hawqmaster_host, hawqstandby_host if host]
 hawq_all_hosts = sorted(set(hawq_master_hosts + hawqsegment_hosts))
 
-
 # HDFS
 hdfs_site = config['configurations']['hdfs-site']
 default_fs = config['configurations']['core-site']['fs.defaultFS']
@@ -133,7 +132,6 @@ hawq_site = config['configurations']['hawq-site']
 hdfs_client = config['configurations']['hdfs-client']
 # yarn-client for enabling HAWQ to work with YARN resource manager HA
 yarn_client = config['configurations']['yarn-client']
-
 
 # Directories and ports
 hawq_master_dir = hawq_site.get('hawq_master_directory')

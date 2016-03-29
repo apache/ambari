@@ -87,13 +87,6 @@ class TestHawqMaster(RMFTestCase):
         mode = 0644
         )
 
-    self.assertResourceCalled('File', '/usr/local/hawq/etc/hawq_hosts',
-        content = InlineTemplate('c6401.ambari.apache.org\nc6402.ambari.apache.org\nc6403.ambari.apache.org\n\n'),
-        group = self.GPADMIN,
-        owner = self.GPADMIN,
-        mode = 0644
-        )
-
     self.assertResourceCalled('Directory', '/data/hawq/master',
         group = self.GPADMIN,
         owner = self.GPADMIN,
@@ -113,8 +106,7 @@ class TestHawqMaster(RMFTestCase):
 
 
   @patch ('hawqmaster.common.__set_osparams')
-  @patch ('hawqmaster.master_helper.__check_dfs_truncate_enforced')
-  def test_configure_default(self, set_dfs_truncate_mock, set_osparams_mock):
+  def test_configure_default(self, set_osparams_mock):
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + '/scripts/hawqmaster.py',
         classname = 'HawqMaster',
@@ -155,14 +147,6 @@ class TestHawqMaster(RMFTestCase):
         )
 
     self.__asserts_for_configure()
-
-    self.assertResourceCalled('Execute', 'source /usr/local/hawq/greenplum_path.sh && hawq ssh-exkeys -f /usr/local/hawq/etc/hawq_hosts -p gpadmin',
-        logoutput = True,
-        not_if = None,
-        only_if = None,
-        user = self.GPADMIN,
-        timeout = 900
-        )
 
     self.assertResourceCalled('HdfsResource', '/hawq_default',
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,

@@ -22,13 +22,25 @@
     <display-name>HAWQ System User Password</display-name>
     <value></value>
     <description>
-      Sets the HAWQ system user password. This password is used for ssh key exchange when initializing a cluster or provisioning a new host.
+      Sets the HAWQ system user (gpadmin) password. This password is used for ssh key exchange when initializing a cluster or provisioning a new host.
       Set when the HAWQ system user is created.
       When changing passwords after initial creation, first update the password directly on the hosts, then enter a new hawq_password value.
     </description>
     <value-attributes>
       <type>password</type>
     </value-attributes>
+  </property>
+
+  <property>
+    <name>hawq_ssh_exkeys</name>
+    <display-name>Exchange SSH Keys</display-name>
+    <value>true</value>
+    <description>
+       Enable/Disable exchanging ssh keys for HAWQ system user (gpadmin) across all HAWQ nodes during start of HAWQ Master. HAWQ system user
+       must be able to login to HAWQ nodes using passwordless ssh, else HAWQ operations will fail. SSH keys must be exchanged during installation of
+       HAWQ service or when new HAWQ hosts are added. By default, ssh keys are exchanged every time with HAWQ Master start/restart.
+       For larger clusters, this may be set to false temporarily to allow faster start time. Valid values are true/false.
+    </description>
   </property>
 
 </configuration>

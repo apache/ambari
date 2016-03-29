@@ -85,13 +85,6 @@ class TestHawqStandby(RMFTestCase):
         mode = 0644
         )
 
-    self.assertResourceCalled('File', '/usr/local/hawq/etc/hawq_hosts',
-        content = InlineTemplate('c6401.ambari.apache.org\nc6402.ambari.apache.org\nc6403.ambari.apache.org\n\n'),
-        group = self.GPADMIN,
-        owner = self.GPADMIN,
-        mode = 0644
-        )
-
     self.assertResourceCalled('Directory', '/data/hawq/master',
         group = self.GPADMIN,
         owner = self.GPADMIN,

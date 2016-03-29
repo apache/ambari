@@ -21,6 +21,7 @@ from resource_management.core.source import InlineTemplate
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.default import default
+from resource_management.core.exceptions import Fail
 
 import utils
 import common
@@ -38,16 +39,27 @@ def __setup_master_specific_conf_files():
   params.File(hawq_constants.hawq_slaves_file,
               content=InlineTemplate("{% for host in hawqsegment_hosts %}{{host}}\n{% endfor %}"))
 
-  params.File(hawq_constants.hawq_hosts_file,
-              content=InlineTemplate("{% for host in hawq_all_hosts %}{{host}}\n{% endfor %}"))
-
 
 def setup_passwordless_ssh():
   """
   Exchanges ssh keys to setup passwordless ssh for the hawq_user between the HAWQ Master and the HAWQ Segment nodes
   """
   import params
-  utils.exec_hawq_operation("ssh-exkeys", format('-f {hawq_hosts_file} -p {hawq_password!p}', hawq_hosts_file=hawq_constants.hawq_hosts_file, hawq_password=params.hawq_password))
+
+  failed_hosts = []
+  for host in params.hawq_all_hosts:
+    try:
+      utils.exec_hawq_operation("ssh-exkeys", format('-h {hawq_host} -p {hawq_password!p}', hawq_host=host, hawq_password=params.hawq_password))
+    except:
+      failed_hosts.append(host)
+
+  failed_hosts_cnt = len(failed_hosts)
+  if failed_hosts_cnt > 0:
+    DEBUG_HELP_MSG = "Please verify the logs below to debug the cause of failure."
+    if failed_hosts_cnt == len(params.hawq_all_hosts):
+      raise Fail("Setting up passwordless ssh failed for all the HAWQ hosts. {0}".format(DEBUG_HELP_MSG))
+    else:
+      Logger.error("**WARNING**: Setting up passwordless ssh failed with the hosts below, proceeding with HAWQ Master start:\n{0}\n\n{1}".format("\n".join(failed_hosts), DEBUG_HELP_MSG))
 
 
 def configure_master():
@@ -60,7 +72,6 @@ def configure_master():
   __setup_master_specific_conf_files()
   common.create_master_dir(params.hawq_master_dir)
   common.create_temp_dirs(params.hawq_master_temp_dirs)
-  __check_dfs_truncate_enforced()
 
 def __setup_hdfs_dirs():
   """
@@ -79,25 +90,3 @@ def __setup_hdfs_dirs():
                         recursive_chown = True,
                         mode=0755)
   params.HdfsResource(None, action="execute")
-
-
-def __check_dfs_truncate_enforced():
-  """
-  If enforce_hdfs_truncate is set to True:
-    throw an ERROR, HAWQMASTER or HAWQSTANDBY start should fail
-  Else:
-    throw a WARNING,
-  """
-  import custom_params
-
-  DFS_ALLOW_TRUNCATE_EXCEPTION_MESSAGE = "dfs.allow.truncate property in hdfs-site.xml configuration file should be set to True. Please review HAWQ installation guide for more information."
-
-  # Check if dfs.allow.truncate exists in hdfs-site.xml and throw appropriate exception if not set to True
-  dfs_allow_truncate = default('/configurations/hdfs-site/dfs.allow.truncate', None)
-
-  if dfs_allow_truncate is None or str(dfs_allow_truncate).lower() != 'true':
-    if custom_params.enforce_hdfs_truncate:
-      Logger.error("**ERROR**: {0}".format(DFS_ALLOW_TRUNCATE_EXCEPTION_MESSAGE))
-      sys.exit(1)
-    else:
-      Logger.warning("**WARNING**: {0}".format(DFS_ALLOW_TRUNCATE_EXCEPTION_MESSAGE))

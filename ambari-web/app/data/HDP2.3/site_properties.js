@@ -340,11 +340,18 @@ hdp23properties.push({
     "index": 9
   },
   {
-    "name": "hawq_password",
+    "name": "hawq_ssh_exkeys",
     "filename": "hawq-env.xml",
     "category": "General",
     "serviceName": "HAWQ",
     "index": 10
+  },
+  {
+    "name": "hawq_password",
+    "filename": "hawq-env.xml",
+    "category": "General",
+    "serviceName": "HAWQ",
+    "index": 11
   },
   {
     "name": "content",
