@@ -43,7 +43,7 @@
   </property>
   <property>
     <name>phoenix.query.spoolThresholdBytes</name>
-    <value>12582912</value>
+    <value>20971520</value>
   </property>
   <property>
     <name>hbase.zookeeper.property.dataDir</name>

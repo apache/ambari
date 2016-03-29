@@ -320,10 +320,6 @@
     </description>
   </property>
   <property>
-    <name>phoenix.query.spoolThresholdBytes</name>
-    <value>12582912</value>
-  </property>
-  <property>
     <name>hbase.snapshot.enabled</name>
     <value>false</value>
     <description>Enable/Disable HBase snapshots.</description>
