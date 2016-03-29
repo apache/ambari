@@ -39,6 +39,7 @@
     "ember-cli-release": "0.2.8",
     "ember-cli-sri": "^2.0.0",
     "ember-cli-uglify": "^1.2.0",
+    "ember-cli-clipboard": "^0.3.1",
     "ember-collection": "git://github.com/emberjs/ember-collection.git#bf752508a501161791e3f3b9a546c9b97d5c387a",
     "ember-data": "2.3.0",
     "ember-disable-proxy-controllers": "^1.0.1",
