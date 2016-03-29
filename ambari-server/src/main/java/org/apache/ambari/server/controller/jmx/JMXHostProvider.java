@@ -77,5 +77,16 @@ public interface JMXHostProvider {
    */
   public String getJMXProtocol(String clusterName, String componentName) ;
   
-  
+  /**
+   * Get the rpc tag for the specified cluster name, component and port number
+   *
+   * @param clusterName    the cluster name
+   * @param componentName  the componentName name
+   * @param port           the port
+   *
+   * @return the rpc tag for the specified cluster name, component and port number(client/healthcheck/etc.).
+   *
+   */
+  public String getJMXRpcMetricTag(String clusterName, String componentName, String port);
+
 }

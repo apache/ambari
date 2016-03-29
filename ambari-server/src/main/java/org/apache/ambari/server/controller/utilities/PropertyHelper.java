@@ -31,6 +31,7 @@ import java.util.regex.Pattern;
 
 import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.internal.RequestImpl;
+import org.apache.ambari.server.controller.jmx.JMXPropertyProvider;
 import org.apache.ambari.server.controller.spi.PageRequest;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -97,8 +98,8 @@ public class PropertyHelper {
   private static final Pattern METRIC_CATEGORY_TOKENIZE_REGEX = Pattern.compile("/+(?=([^\"\\\\\\\\]*(\\\\\\\\.|\"([^\"\\\\\\\\]*\\\\\\\\.)*[^\"\\\\\\\\]*\"))*[^\"]*$)");
 
   static {
-    RPC_METRIC_SUFFIXES.put("rpc.rpc", Arrays.asList("client", "datanode", "healthcheck"));
-    RPC_METRIC_SUFFIXES.put("rpcdetailed.rpcdetailed", Arrays.asList("client", "datanode", "healthcheck"));
+    RPC_METRIC_SUFFIXES.put("metrics/rpc/", Arrays.asList("client", "datanode", "healthcheck"));
+    RPC_METRIC_SUFFIXES.put("metrics/rpcdetailed/", Arrays.asList("client", "datanode", "healthcheck"));
   }
 
   public static String getPropertyId(String category, String name) {
@@ -636,23 +637,28 @@ public class PropertyHelper {
     return false;
   }
 
-
   /**
    * Special handle rpc port tags added to metric names for HDFS Namenode
    *
    * Returns the replacement definitions
    */
-  public static Map<String, org.apache.ambari.server.state.stack.Metric> processRpcMetricDefinition(
+  public static Map<String, org.apache.ambari.server.state.stack.Metric> processRpcMetricDefinition(String metricType,
       String componentName, String propertyId, org.apache.ambari.server.state.stack.Metric metric) {
     Map<String, org.apache.ambari.server.state.stack.Metric> replacementMap = null;
     if (componentName.equalsIgnoreCase("NAMENODE")) {
       for (Map.Entry<String, List<String>> entry : RPC_METRIC_SUFFIXES.entrySet()) {
         String prefix = entry.getKey();
-        if (metric.getName().startsWith(prefix)) {
+        if (propertyId.startsWith(prefix)) {
           replacementMap = new HashMap<>();
           for (String suffix : entry.getValue()) {
+            String newMetricName;
+            if ("jmx".equals(metricType)) {
+              newMetricName = insertTagIntoCategoty(suffix, metric.getName());
+            } else {
+              newMetricName = insertTagInToMetricName(suffix, metric.getName(), prefix);
+            }
             org.apache.ambari.server.state.stack.Metric newMetric = new org.apache.ambari.server.state.stack.Metric(
-              insertTagInToMetricName(suffix, metric.getName(), prefix),
+              newMetricName,
               metric.isPointInTime(),
               metric.isTemporal(),
               metric.isAmsHostMetric(),
@@ -702,5 +708,10 @@ public class PropertyHelper {
       }
     }
     return sb.toString();
+  }
+
+  static String insertTagIntoCategoty(String tag, String metricName) {
+    int pos = metricName.lastIndexOf('.');
+    return metricName.substring(0, pos) + ",tag=" + tag + metricName.substring(pos);
   }
 }

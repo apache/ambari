@@ -77,7 +77,6 @@ public class JMXPropertyProviderTest {
     Assert.assertEquals(propertyProvider.getSpec("http", "domu-12-31-39-0e-34-e1.compute-1.internal", "50070", "/jmx"), streamProvider.getLastSpec());
 
     // see test/resources/hdfs_namenode_jmx.json for values
-    Assert.assertEquals(13670605,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/rpc", "ReceivedBytes")));
     Assert.assertEquals(28,      resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/dfs/namenode", "CreateFileOps")));
     Assert.assertEquals(1006632960, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryMax")));
     Assert.assertEquals(473433016, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryUsed")));
@@ -87,6 +86,7 @@ public class JMXPropertyProviderTest {
     Assert.assertEquals(184320, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/dfs/FSNamesystem", "CapacityUsed")));
     Assert.assertEquals(842207944704L, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/dfs/FSNamesystem", "CapacityRemaining")));
     Assert.assertEquals(45509562366L, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/dfs/FSNamesystem", "CapacityNonDFSUsed")));
+    Assert.assertEquals(13670605,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/rpc", "ReceivedBytes")));
 
     // datanode
     resource = new ResourceImpl(Resource.Type.HostComponent);
@@ -174,8 +174,8 @@ public class JMXPropertyProviderTest {
     Assert.assertEquals(propertyProvider.getSpec("http", "domu-12-31-39-0e-34-e1.compute-1.internal", "50070", "/jmx"), streamProvider.getLastSpec());
 
     // see test/resources/hdfs_namenode_jmx.json for values
-    Assert.assertEquals(13670605,  resource.getPropertyValue("metrics/rpc/ReceivedBytes"));
     Assert.assertNull(resource.getPropertyValue("metrics/dfs/namenode/CreateFileOps"));
+    Assert.assertEquals(13670605,  resource.getPropertyValue("metrics/rpc/ReceivedBytes"));
   }
 
   @Test
@@ -246,12 +246,12 @@ public class JMXPropertyProviderTest {
     Assert.assertEquals(propertyProvider.getSpec("http","domu-12-31-39-0e-34-e1.compute-1.internal", "50070","/jmx"), streamProvider.getLastSpec());
 
     // see test/resources/hdfs_namenode_jmx.json for values
-    Assert.assertEquals(13670605,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/rpc", "ReceivedBytes")));
     Assert.assertEquals(28,      resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/dfs/namenode", "CreateFileOps")));
     Assert.assertEquals(1006632960, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryMax")));
     Assert.assertEquals(473433016, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryUsed")));
     Assert.assertEquals(136314880, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "NonHeapMemoryMax")));
     Assert.assertEquals(23634400, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "NonHeapMemoryUsed")));
+    Assert.assertEquals(13670605,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/rpc", "ReceivedBytes")));
   }
 
   @Test
@@ -324,11 +324,11 @@ public class JMXPropertyProviderTest {
 
     for (Resource resource : resourceSet) {
       // see test/resources/hdfs_datanode_jmx.json for values
-      Assert.assertEquals(856,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/rpc", "ReceivedBytes")));
       Assert.assertEquals(954466304, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryMax")));
       Assert.assertEquals(9772616, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryUsed")));
       Assert.assertEquals(136314880, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "NonHeapMemoryMax")));
       Assert.assertEquals(21933376, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "NonHeapMemoryUsed")));
+      Assert.assertEquals(856,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/rpc", "ReceivedBytes")));
     }
   }
 
@@ -421,6 +421,11 @@ public class JMXPropertyProviderTest {
     @Override
     public String getJMXProtocol(String clusterName, String componentName) {
       return "http";
+    }
+
+    @Override
+    public String getJMXRpcMetricTag(String clusterName, String componentName, String port) {
+      return null;
     }
 
   }

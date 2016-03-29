@@ -298,7 +298,7 @@ if dfs_ha_enabled:
   dfs_lifeline_rpc_address = default(format('/configurations/hdfs-site/dfs.namenode.lifeline.rpc-address.{dfs_ha_nameservices}.{namenode_id}'), None)
 else:
   dfs_service_rpc_address = default('/configurations/hdfs-site/dfs.namenode.servicerpc-address', None)
-  dfs_lifeline_rpc_address = default(format('/configurations/hdfs-site/dfs.namenode.lifeline.rpc-address'), None)
+  dfs_lifeline_rpc_address = default('/configurations/hdfs-site/dfs.namenode.lifeline.rpc-address', None)
 
 if dfs_service_rpc_address:
   nn_rpc_dn_port = dfs_service_rpc_address.split(':')[1].strip()
