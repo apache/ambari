@@ -48,6 +48,16 @@ _DEFAULT_STACK_FEATURES = {
       "min_version": "2.3.0.0"
     },
     {
+      "name": "datanode_non_root",
+      "description": "DataNode running as non-root support (AMBARI-7615)",
+      "min_version": "2.2.0.0"
+    },
+    {
+      "name": "remove_ranger_hdfs_plugin_env",
+      "description": "HDFS removes Ranger env files (AMBARI-14299)",
+      "min_version": "2.3.0.0"
+    },
+    {
       "name": "ranger",
       "description": "Ranger Service support",
       "min_version": "2.2.0.0"

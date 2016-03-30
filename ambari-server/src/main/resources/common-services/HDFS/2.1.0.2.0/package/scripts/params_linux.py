@@ -27,6 +27,8 @@ from ambari_commons.os_check import OSCheck
 
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.default import default
@@ -47,6 +49,7 @@ config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
 stack_name = default("/hostLevelParams/stack_name", None)
+stack_root = Script.get_stack_root()
 upgrade_direction = default("/commandParams/upgrade_direction", None)
 stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
@@ -93,9 +96,9 @@ hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 hadoop_conf_secure_dir = os.path.join(hadoop_conf_dir, "secure")
 hadoop_lib_home = stack_select.get_hadoop_dir("lib")
 
-# hadoop parameters for 2.2+
-if Script.is_stack_greater_or_equal("2.2"):
-  mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce-client/*"
+# hadoop parameters for stacks that support rolling_upgrade
+if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
+  mapreduce_libs_path = format("{stack_root}/current/hadoop-mapreduce-client/*")
 
   if not security_enabled:
     hadoop_secure_dn_user = '""'
@@ -121,7 +124,7 @@ limits_conf_dir = "/etc/security/limits.d"
 hdfs_user_nofile_limit = default("/configurations/hadoop-env/hdfs_user_nofile_limit", "128000")
 hdfs_user_nproc_limit = default("/configurations/hadoop-env/hdfs_user_nproc_limit", "65536")
 
-create_lib_snappy_symlinks = not Script.is_stack_greater_or_equal("2.2")
+create_lib_snappy_symlinks = check_stack_feature(StackFeature.SNAPPY, stack_version_formatted)
 jsvc_path = "/usr/lib/bigtop-utils"
 
 execute_path = os.environ['PATH'] + os.pathsep + hadoop_bin_dir

@@ -43,6 +43,8 @@ class StackFeature:
   EXPRESS_UPGRADE = "express_upgrade"
   ROLLING_UPGRADE = "rolling_upgrade"
   CONFIG_VERSIONING = "config_versioning"
+  DATANODE_NON_ROOT = "datanode_non_root"
+  REMOVE_RANGER_HDFS_PLUGIN_ENV = "remove_ranger_hdfs_plugin_env"
   RANGER = "ranger"
   NFS = "nfs"
   TEZ_FOR_SPARK = "tez_for_spark"

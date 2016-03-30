@@ -379,7 +379,7 @@ def get_jmx(query, connection_timeout):
 
 def _get_ha_state_from_json(string_json):
   """
-  Searches through the specified JSON string looking for either the HDP 2.0 or 2.1+ HA state
+  Searches through the specified JSON string looking for HA state
   enumerations.
   :param string_json: the string JSON
   :return:  the value of the HA state (active, standby, etc)
@@ -387,7 +387,7 @@ def _get_ha_state_from_json(string_json):
   json_data = json.loads(string_json)
   jmx_beans = json_data["beans"]
 
-  # look for HDP 2.1+ first
+  # look for NameNodeStatus-State  first
   for jmx_bean in jmx_beans:
     if "name" not in jmx_bean:
       continue
@@ -396,7 +396,7 @@ def _get_ha_state_from_json(string_json):
     if jmx_bean_name == "Hadoop:service=NameNode,name=NameNodeStatus" and "State" in jmx_bean:
       return jmx_bean["State"]
 
-  # look for HDP 2.0 last
+  # look for FSNamesystem-tag.HAState last
   for jmx_bean in jmx_beans:
     if "name" not in jmx_bean:
       continue

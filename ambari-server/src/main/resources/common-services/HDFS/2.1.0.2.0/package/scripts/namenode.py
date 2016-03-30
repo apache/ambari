@@ -31,7 +31,8 @@ from resource_management.core import shell
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import Direction
-from resource_management.libraries.functions.version import compare_versions, format_stack_version
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
@@ -68,7 +69,8 @@ except ImportError:
 class NameNode(Script):
 
   def get_stack_to_component(self):
-    return {"HDP": "hadoop-hdfs-namenode"}
+    import params
+    return {params.stack_name : "hadoop-hdfs-namenode"}
 
   def get_hdfs_binary(self):
     """
@@ -197,7 +199,7 @@ class NameNodeDefault(NameNode):
     import params
     env.set_params(params)
 
-    if params.version and compare_versions(format_stack_version(params.version), '2.2.0.0') >= 0:
+    if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
       # When downgrading an Express Upgrade, the first thing we do is to revert the symlinks.
       # Therefore, we cannot call this code in that scenario.
       call_if = [("rolling", "upgrade"), ("rolling", "downgrade"), ("nonrolling", "upgrade")]

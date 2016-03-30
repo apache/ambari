@@ -20,6 +20,8 @@ limitations under the License.
 from resource_management import *
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
   FILE_TYPE_XML
@@ -55,12 +57,13 @@ class HdfsClient(Script):
 class HdfsClientDefault(HdfsClient):
 
   def get_stack_to_component(self):
-    return {"HDP": "hadoop-client"}
+    import params
+    return { params.stack_name : "hadoop-client"}
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
     env.set_params(params)
-    if params.version and compare_versions(format_stack_version(params.version), '2.2.0.0') >= 0:
+    if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
       conf_select.select(params.stack_name, "hadoop", params.version)
       stack_select.select("hadoop-client", params.version)
 

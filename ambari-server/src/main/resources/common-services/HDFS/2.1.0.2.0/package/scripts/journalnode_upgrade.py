@@ -81,7 +81,7 @@ def hdfs_roll_edits():
   """
   import params
 
-  # TODO, this will be to be doc'ed since existing HDP 2.2 clusters will needs HDFS_CLIENT on all JOURNALNODE hosts
+  # TODO, this will need to be doc'ed since existing clusters will need HDFS_CLIENT on all JOURNALNODE hosts
   dfsadmin_base_command = get_dfsadmin_base_command('hdfs')
   command = dfsadmin_base_command + ' -rollEdits'
   Execute(command, user=params.hdfs_user, tries=1)

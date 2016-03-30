@@ -20,9 +20,11 @@ limitations under the License.
 import os
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.functions.format import format
-from resource_management.libraries.functions.version import compare_versions
+
 
 def setup_ranger_hdfs(upgrade_type=None):
   import params
@@ -61,8 +63,8 @@ def setup_ranger_hdfs(upgrade_type=None):
                         stack_version_override = stack_version, skip_if_rangeradmin_down= not params.retryAble)
 
     if stack_version and params.upgrade_direction == Direction.UPGRADE:
-      # when upgrading to 2.3+, this env file must be removed
-      if compare_versions(stack_version, '2.3', format=True) > 0:
+      # when upgrading to stack remove_ranger_hdfs_plugin_env, this env file must be removed
+      if check_stack_feature(StackFeature.REMOVE_RANGER_HDFS_PLUGIN_ENV, stack_version):
         source_file = os.path.join(params.hadoop_conf_dir, 'set-hdfs-plugin-env.sh')
         target_file = source_file + ".bak"
         Execute(("mv", source_file, target_file), sudo=True, only_if=format("test -f {source_file}"))

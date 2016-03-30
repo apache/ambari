@@ -26,13 +26,15 @@ from hdfs_nfsgateway import nfsgateway
 from hdfs import hdfs
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
-from resource_management.libraries.functions.version import compare_versions, format_stack_version
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.stack_features import check_stack_feature
 
 
 class NFSGateway(Script):
 
   def get_stack_to_component(self):
-    return {"HDP": "hadoop-hdfs-nfs3"}
+    import params
+    return {params.stack_name : "hadoop-hdfs-nfs3"}
 
   def install(self, env):
     import params
@@ -45,7 +47,7 @@ class NFSGateway(Script):
     import params
     env.set_params(params)
 
-    if Script.is_stack_greater_or_equal('2.3.0.0'):
+    if params.stack_version_formatted and check_stack_feature(StackFeature.NFS, params.stack_version_formatted):
       conf_select.select(params.stack_name, "hadoop", params.version)
       stack_select.select("hadoop-hdfs-nfs3", params.version)
 
