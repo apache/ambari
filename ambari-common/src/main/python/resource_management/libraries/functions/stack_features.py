@@ -63,6 +63,11 @@ _DEFAULT_STACK_FEATURES = {
       "min_version": "2.2.0.0"
     },
     {
+      "name": "phoenix",
+      "description": "Phoenix Service support",
+      "min_version": "2.3.0.0"
+    },
+    {
       "name": "nfs",
       "description": "NFS support",
       "min_version": "2.3.0.0"

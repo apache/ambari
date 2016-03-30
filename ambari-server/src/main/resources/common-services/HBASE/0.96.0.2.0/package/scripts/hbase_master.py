@@ -71,7 +71,8 @@ class HbaseMasterWindows(HbaseMaster):
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class HbaseMasterDefault(HbaseMaster):
   def get_stack_to_component(self):
-    return {"HDP": "hbase-master"}
+    import params
+    return {params.stack_name: "hbase-master"}
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params

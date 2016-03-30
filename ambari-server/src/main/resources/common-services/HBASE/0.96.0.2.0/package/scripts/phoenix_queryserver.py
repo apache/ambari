@@ -19,11 +19,13 @@ limitations under the License.
 
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.script import Script
 from phoenix_service import phoenix_service
 from hbase import hbase
 
-# Note: Phoenix Query Server is only applicable to HDP-2.3 and above.
+# Note: Phoenix Query Server is only applicable to stack version supporting Phoenix.
 class PhoenixQueryServer(Script):
 
   def install(self, env):
@@ -33,7 +35,8 @@ class PhoenixQueryServer(Script):
 
 
   def get_stack_to_component(self):
-    return {"HDP": "phoenix-server"}
+    import params
+    return {params.stack_name: "phoenix-server"}
 
 
   def configure(self, env):
@@ -59,7 +62,7 @@ class PhoenixQueryServer(Script):
     import params
     env.set_params(params)
 
-    if Script.is_stack_greater_or_equal("2.3"):
+    if params.stack_version_formatted and check_stack_feature(StackFeature.PHOENIX, params.stack_version_formatted):     
       # phoenix uses hbase configs
       conf_select.select(params.stack_name, "hbase", params.version)
       stack_select.select("phoenix-server", params.version)

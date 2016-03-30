@@ -46,6 +46,7 @@ class StackFeature:
   DATANODE_NON_ROOT = "datanode_non_root"
   REMOVE_RANGER_HDFS_PLUGIN_ENV = "remove_ranger_hdfs_plugin_env"
   RANGER = "ranger"
+  PHOENIX = "phoenix"
   NFS = "nfs"
   TEZ_FOR_SPARK = "tez_for_spark"
   SPARK_16PLUS = "spark_16plus"

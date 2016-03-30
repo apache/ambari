@@ -21,6 +21,9 @@ from ambari_commons.os_check import OSCheck
 
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.default import default
+from resource_management.libraries.functions.version import format_stack_version
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.script.script import Script
 
@@ -48,8 +51,12 @@ else:
   security_enabled = config['configurations']['cluster-env']['security_enabled']
   kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
   tmp_dir = Script.get_tmp_dir()
+  
+  stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+  stack_version_formatted = format_stack_version(stack_version_unformatted)
+  stack_root = Script.get_stack_root()
 
   hbase_conf_dir = "/etc/hbase/conf"
   limits_conf_dir = "/etc/security/limits.d"
-  if Script.is_stack_greater_or_equal("2.2"):
-    hbase_conf_dir = format("/usr/hdp/current/{component_directory}/conf")
+  if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
+    hbase_conf_dir = format("{stack_root}/current/{component_directory}/conf")
