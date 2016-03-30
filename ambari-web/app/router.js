@@ -155,6 +155,8 @@ App.Router = Em.Router.extend({
             },
             success: 'loginSuccessCallback',
             error: 'loginErrorCallback'
+          }).then(function() {
+            dfd.resolve(true);
           });
         } else {
           self.setAuthenticated(false);
