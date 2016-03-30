@@ -34,9 +34,9 @@
     <!-- Needed for generating FindBugs warnings using parent pom -->
     <!--<yarn.basedir>${project.parent.parent.basedir}</yarn.basedir>-->
     <protobuf.version>2.5.0</protobuf.version>
-    <hadoop.version>[2.7.1.2.5.0.0,2.7.1.2.5.0.0-9999)</hadoop.version>
-    <phoenix.version>[4.4.0.2.5.0.0,4.4.0.2.5.0.0-9999)</phoenix.version>
-    <hbase.version>[1.1.2.2.5.0.0,1.1.2.2.5.0.0-9999)</hbase.version>
+    <hadoop.version>2.7.1.2.3.4.0-3347</hadoop.version>
+    <phoenix.version>4.4.0.2.3.4.0-3347</phoenix.version>
+    <hbase.version>1.1.2.2.3.4.0-3347</hbase.version>
   </properties>
 
   <build>
