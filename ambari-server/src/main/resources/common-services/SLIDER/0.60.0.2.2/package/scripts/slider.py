@@ -21,6 +21,8 @@ Ambari Agent
 import os
 from resource_management import *
 from ambari_commons import OSConst
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.stack_features import check_stack_feature
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
@@ -81,7 +83,7 @@ def slider():
     File(format("{params.slider_conf_dir}/log4j.properties"),
          mode=0644
     )
-  if Script.is_stack_greater_or_equal("2.2"):
+  if params.stack_version_formatted and check_stack_feature(StackFeature.COPY_TARBALL_TO_HDFS, params.stack_version_formatted):
     File(params.slider_tar_gz,
          owner=params.hdfs_user,
          group=params.user_group,
