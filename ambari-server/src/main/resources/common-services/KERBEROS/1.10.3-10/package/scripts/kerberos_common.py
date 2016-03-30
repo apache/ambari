@@ -23,10 +23,12 @@ import string
 import subprocess
 import sys
 import tempfile
+from tempfile import gettempdir
 
 from resource_management import *
 from utils import get_property_value
 from ambari_commons.os_utils import remove_file
+from ambari_agent import Constants
 
 class KerberosScript(Script):
   KRB5_REALM_PROPERTIES = [
@@ -282,6 +284,14 @@ class KerberosScript(Script):
           raise Fail("Failed to create principal: %s" % principal)
 
     return success
+
+  @staticmethod
+  def clear_tmp_cache():
+    tmp_dir = Constants.AGENT_TMP_DIR
+    if tmp_dir is None:
+      tmp_dir = gettempdir()
+    curl_krb_cache_path = os.path.join(tmp_dir, "curl_krb_cache")
+    Directory(curl_krb_cache_path, action="delete")
 
   @staticmethod
   def create_principals(identities, auth_identity=None):

@@ -36,6 +36,8 @@ class KerberosClient(KerberosScript):
     env.set_params(params)
     if params.manage_krb5_conf:
       self.write_krb5_conf()
+    #delete krb cache to prevent using old krb tickets on fresh kerberos setup
+    self.clear_tmp_cache()
 
     self.setup_jce()
 
