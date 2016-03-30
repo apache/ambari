@@ -62,6 +62,15 @@ public interface Blueprint {
   public Configuration getConfiguration();
 
   /**
+   * Get the Blueprint cluster scoped setting.
+   * The blueprint cluster scoped setting has the setting properties
+   * with the setting names associated with the blueprint.
+   *
+   * @return blueprint cluster scoped setting
+   */
+  public Setting getSetting();
+
+  /**
    * Get all of the services represented in the blueprint.
    *
    * @return collection of all represented service names
@@ -76,6 +85,17 @@ public interface Blueprint {
    * @return collection of component names for the service.  Will not return null.
    */
   public Collection<String> getComponents(String service);
+
+  /**
+   * Get whether a component is enabled for auto start.
+   *
+   * @param serviceName - Service name.
+   * @param componentName - Component name.
+   *
+   * @return True or false.
+   */
+  public boolean isRecoveryEnabled(String serviceName, String componentName);
+
 
   /**
    * Get the stack associated with the blueprint.

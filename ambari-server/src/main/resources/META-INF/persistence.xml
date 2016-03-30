@@ -21,6 +21,7 @@
     <class>org.apache.ambari.server.orm.entities.AlertTargetEntity</class>
     <class>org.apache.ambari.server.orm.entities.ArtifactEntity</class>
     <class>org.apache.ambari.server.orm.entities.BlueprintConfigEntity</class>
+    <class>org.apache.ambari.server.orm.entities.BlueprintSettingEntity</class>
     <class>org.apache.ambari.server.orm.entities.BlueprintEntity</class>
     <class>org.apache.ambari.server.orm.entities.ClusterConfigEntity</class>
     <class>org.apache.ambari.server.orm.entities.ClusterConfigMappingEntity</class>

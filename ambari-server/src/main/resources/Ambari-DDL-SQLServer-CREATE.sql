@@ -483,6 +483,16 @@ CREATE TABLE blueprint_configuration (
     )
   );
 
+CREATE TABLE blueprint_setting (
+  id BIGINT NOT NULL,
+  blueprint_name VARCHAR(255) NOT NULL,
+  setting_name VARCHAR(255) NOT NULL,
+  setting_data TEXT NOT NULL,
+  CONSTRAINT PK_blueprint_setting PRIMARY KEY (id),
+  CONSTRAINT UQ_blueprint_setting_name UNIQUE(blueprint_name,setting_name),
+  CONSTRAINT FK_blueprint_setting_name FOREIGN KEY (blueprint_name) REFERENCES blueprint(blueprint_name)
+  );
+
 CREATE TABLE hostgroup_configuration (
   blueprint_name VARCHAR(255) NOT NULL,
   hostgroup_name VARCHAR(255) NOT NULL,
@@ -1137,7 +1147,8 @@ BEGIN TRANSACTION
     ('setting_id_seq', 0),
     ('hostcomponentstate_id_seq', 0),
     ('servicecomponentdesiredstate_id_seq', 0),
-    ('servicecomponent_history_id_seq', 0);
+    ('servicecomponent_history_id_seq', 0),
+    ('blueprint_setting_id_seq', 0);
 
   insert into adminresourcetype (resource_type_id, resource_type_name)
   values

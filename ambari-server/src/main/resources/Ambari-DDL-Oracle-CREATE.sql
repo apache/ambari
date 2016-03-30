@@ -421,6 +421,15 @@ CREATE TABLE blueprint_configuration (
   config_attributes CLOB,
   PRIMARY KEY(blueprint_name, type_name));
 
+CREATE TABLE blueprint_setting (
+  id NUMBER(19) NOT NULL,
+  blueprint_name VARCHAR2(255) NOT NULL,
+  setting_name VARCHAR2(255) NOT NULL,
+  setting_data CLOB NOT NULL,
+  CONSTRAINT PK_blueprint_setting PRIMARY KEY (id),
+  CONSTRAINT UQ_blueprint_setting_name UNIQUE(blueprint_name,setting_name),
+  CONSTRAINT FK_blueprint_setting_name FOREIGN KEY (blueprint_name) REFERENCES blueprint(blueprint_name));
+
 CREATE TABLE hostgroup_configuration (
   blueprint_name VARCHAR2(255) NOT NULL,
   hostgroup_name VARCHAR2(255) NOT NULL,
@@ -1026,6 +1035,7 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('setting_id_
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('hostcomponentstate_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('servicecomponentdesiredstate_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('servicecomponent_history_id_seq', 0);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('blueprint_setting_id_seq', 0);
 
 INSERT INTO metainfo("metainfo_key", "metainfo_value") values ('version', '${ambariSchemaVersion}');
 

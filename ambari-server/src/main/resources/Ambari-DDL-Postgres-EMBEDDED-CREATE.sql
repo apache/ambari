@@ -469,6 +469,15 @@ CREATE TABLE ambari.blueprint_configuration (
   config_attributes TEXT,
   PRIMARY KEY(blueprint_name, type_name));
 
+CREATE TABLE ambari.blueprint_setting (
+  id BIGINT NOT NULL,
+  blueprint_name varchar(255) NOT NULL,
+  setting_name varchar(255) NOT NULL,
+  setting_data TEXT NOT NULL, 
+  CONSTRAINT PK_blueprint_setting PRIMARY KEY (id),
+  CONSTRAINT UQ_blueprint_setting_name UNIQUE(blueprint_name,setting_name),
+  CONSTRAINT FK_blueprint_setting_name FOREIGN KEY (blueprint_name) REFERENCES ambari.blueprint(blueprint_name));
+
 CREATE TABLE ambari.hostgroup_configuration (
   blueprint_name VARCHAR(255) NOT NULL,
   hostgroup_name VARCHAR(255) NOT NULL,
@@ -481,6 +490,7 @@ GRANT ALL PRIVILEGES ON TABLE ambari.blueprint TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.hostgroup TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.hostgroup_component TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.blueprint_configuration TO :username;
+GRANT ALL PRIVILEGES ON TABLE ambari.blueprint_setting TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.hostgroup_configuration TO :username;
 
 CREATE TABLE ambari.viewmain (
@@ -1172,7 +1182,9 @@ INSERT INTO ambari.ambari_sequences (sequence_name, sequence_value)
   union all
   select 'servicecomponentdesiredstate_id_seq', 0
   union all
-  select 'servicecomponent_history_id_seq', 0;
+  select 'servicecomponent_history_id_seq', 0
+  union all
+  select 'blueprint_setting_id_seq', 0;
 
 INSERT INTO ambari.adminresourcetype (resource_type_id, resource_type_name)
   SELECT 1, 'AMBARI'

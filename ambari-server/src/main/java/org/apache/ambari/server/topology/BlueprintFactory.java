@@ -66,6 +66,8 @@ public class BlueprintFactory {
   protected static final String PROPERTIES_PROPERTY_ID = "properties";
   protected static final String PROPERTIES_ATTRIBUTES_PROPERTY_ID = "properties_attributes";
 
+  protected static final String SETTINGS_PROPERTY_ID = "settings";
+
   private static BlueprintDAO blueprintDAO;
   private ConfigurationFactory configFactory = new ConfigurationFactory();
 
@@ -104,9 +106,10 @@ public class BlueprintFactory {
     Stack stack = createStack(properties);
     Collection<HostGroup> hostGroups = processHostGroups(name, stack, properties);
     Configuration configuration = configFactory.getConfiguration((Collection<Map<String, String>>)
-        properties.get(CONFIGURATION_PROPERTY_ID));
+            properties.get(CONFIGURATION_PROPERTY_ID));
+    Setting setting =  SettingFactory.getSetting((Collection<Map<String, Object>>) properties.get(SETTINGS_PROPERTY_ID));
 
-    return new BlueprintImpl(name, hostGroups, stack, configuration, securityConfiguration);
+    return new BlueprintImpl(name, hostGroups, stack, configuration, securityConfiguration, setting);
   }
 
   protected Stack createStack(Map<String, Object> properties) throws NoSuchStackException {

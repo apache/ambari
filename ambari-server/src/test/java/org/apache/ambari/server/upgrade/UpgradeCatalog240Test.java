@@ -141,7 +141,7 @@ public class UpgradeCatalog240Test {
 
     Capture<List<DBAccessor.DBColumnInfo>> capturedHistoryColumns = EasyMock.newCapture();
     dbAccessor.createTable(eq("servicecomponent_history"), capture(capturedHistoryColumns),
-        eq((String[]) null));
+            eq((String[]) null));
 
     dbAccessor.addPKConstraint("servicecomponent_history", "PK_sc_history", "id");
     dbAccessor.addFKConstraint("servicecomponent_history", "FK_sc_history_component_id",
@@ -151,10 +151,10 @@ public class UpgradeCatalog240Test {
         "upgrade", "upgrade_id", false);
 
     dbAccessor.addFKConstraint("servicecomponent_history", "FK_sc_history_from_stack_id",
-        "from_stack_id", "stack", "stack_id", false);
+            "from_stack_id", "stack", "stack_id", false);
 
     dbAccessor.addFKConstraint("servicecomponent_history", "FK_sc_history_to_stack_id",
-        "to_stack_id", "stack", "stack_id", false);
+            "to_stack_id", "stack", "stack_id", false);
 
 
     expect(dbAccessor.getConnection()).andReturn(connection);
@@ -164,7 +164,7 @@ public class UpgradeCatalog240Test {
     Capture<DBAccessor.DBColumnInfo> capturedClusterUpgradeColumnInfo = newCapture();
     dbAccessor.addColumn(eq(UpgradeCatalog240.CLUSTER_TABLE), capture(capturedClusterUpgradeColumnInfo));
     dbAccessor.addFKConstraint(UpgradeCatalog240.CLUSTER_TABLE, "FK_clusters_upgrade_id",
-        UpgradeCatalog240.CLUSTER_UPGRADE_ID_COLUMN, UpgradeCatalog240.UPGRADE_TABLE, "upgrade_id", false);
+            UpgradeCatalog240.CLUSTER_UPGRADE_ID_COLUMN, UpgradeCatalog240.UPGRADE_TABLE, "upgrade_id", false);
 
     Capture<DBAccessor.DBColumnInfo> capturedHelpURLColumnInfo = newCapture();
     Capture<DBAccessor.DBColumnInfo> capturedRepeatToleranceColumnInfo = newCapture();
@@ -172,6 +172,19 @@ public class UpgradeCatalog240Test {
     dbAccessor.addColumn(eq(UpgradeCatalog240.ALERT_DEFINITION_TABLE), capture(capturedHelpURLColumnInfo));
     dbAccessor.addColumn(eq(UpgradeCatalog240.ALERT_DEFINITION_TABLE), capture(capturedRepeatToleranceColumnInfo));
     dbAccessor.addColumn(eq(UpgradeCatalog240.ALERT_DEFINITION_TABLE), capture(capturedRepeatToleranceEnabledColumnInfo));
+
+    // Test creation of blueprint_setting table
+    Capture<List<DBAccessor.DBColumnInfo>> capturedBlueprintSettingColumns = EasyMock.newCapture();
+    dbAccessor.createTable(eq(UpgradeCatalog240.BLUEPRINT_SETTING_TABLE), capture(capturedBlueprintSettingColumns));
+    dbAccessor.addPKConstraint(UpgradeCatalog240.BLUEPRINT_SETTING_TABLE, "PK_blueprint_setting", UpgradeCatalog240.ID);
+    dbAccessor.addUniqueConstraint(UpgradeCatalog240.BLUEPRINT_SETTING_TABLE, "UQ_blueprint_setting_name",
+            UpgradeCatalog240.BLUEPRINT_NAME_COL, UpgradeCatalog240.SETTING_NAME_COL);
+    dbAccessor.addFKConstraint(UpgradeCatalog240.BLUEPRINT_SETTING_TABLE, "FK_blueprint_setting_name",
+            UpgradeCatalog240.BLUEPRINT_NAME_COL, UpgradeCatalog240.BLUEPRINT_TABLE,
+            UpgradeCatalog240.BLUEPRINT_NAME_COL, false);
+    expect(dbAccessor.getConnection()).andReturn(connection);
+    expect(connection.createStatement()).andReturn(statement);
+    expect(statement.executeQuery(anyObject(String.class))).andReturn(resultSet);
 
     replay(dbAccessor, configuration, connection, statement, resultSet);
 
@@ -270,6 +283,20 @@ public class UpgradeCatalog240Test {
     Assert.assertEquals(Short.class, columnRepeatToleranceEnabledInfo.getType());
     Assert.assertEquals(0, columnRepeatToleranceEnabledInfo.getDefaultValue());
     Assert.assertEquals(false, columnRepeatToleranceEnabledInfo.isNullable());
+
+    assertEquals(expectedCaptures, actualCaptures);
+
+    // Verify blueprint_setting columns
+    expectedCaptures = new HashMap<>();
+    expectedCaptures.put(UpgradeCatalog240.ID, Long.class);
+    expectedCaptures.put(UpgradeCatalog240.BLUEPRINT_NAME_COL, String.class);
+    expectedCaptures.put(UpgradeCatalog240.SETTING_NAME_COL, String.class);
+    expectedCaptures.put(UpgradeCatalog240.SETTING_DATA_COL, char[].class);
+
+    actualCaptures = new HashMap<>();
+    for(DBAccessor.DBColumnInfo blueprintSettingsColumnInfo : capturedBlueprintSettingColumns.getValue()) {
+      actualCaptures.put(blueprintSettingsColumnInfo.getName(), blueprintSettingsColumnInfo.getType());
+    }
 
     assertEquals(expectedCaptures, actualCaptures);
 

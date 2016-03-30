@@ -358,7 +358,8 @@
         "host_groups/components",
         "host_groups/cardinality",
         "configurations",
-        "validate_topology"
+        "validate_topology",
+        "settings"
     ],
     "Recommendation":[
         "Recommendation/id",

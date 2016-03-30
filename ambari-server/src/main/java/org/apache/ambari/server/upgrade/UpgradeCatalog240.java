@@ -83,7 +83,12 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   protected static final String CLUSTER_TABLE = "clusters";
   protected static final String CLUSTER_UPGRADE_ID_COLUMN = "upgrade_id";
   public static final String DESIRED_VERSION_COLUMN_NAME = "desired_version";
-
+  public static final String BLUEPRINT_SETTING_TABLE = "blueprint_setting";
+  public static final String BLUEPRINT_NAME_COL = "blueprint_name";
+  public static final String SETTING_NAME_COL = "setting_name";
+  public static final String SETTING_DATA_COL = "setting_data";
+  public static final String ID = "id";
+  public static final String BLUEPRINT_TABLE = "blueprint";
 
   @Inject
   PermissionDAO permissionDAO;
@@ -96,7 +101,6 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
    */
   private static final Logger LOG = LoggerFactory.getLogger(UpgradeCatalog240.class);
 
-  private static final String ID = "id";
   private static final String SETTING_TABLE = "setting";
 
   protected static final String SERVICE_COMPONENT_DESIRED_STATE_TABLE = "servicecomponentdesiredstate";
@@ -146,6 +150,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     createServiceComponentHistoryTable();
     updateClusterTableDDL();
     updateAlertDefinitionTable();
+    createBlueprintSettingTable();
   }
 
   private void updateClusterTableDDL() throws SQLException {
@@ -199,7 +204,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     String administratorPermissionId = permissionDAO.findPermissionByNameAndType("AMBARI.ADMINISTRATOR",
         resourceTypeDAO.findByName("AMBARI")).getId().toString();
     dbAccessor.insertRowIfMissing("permission_roleauthorization", new String[]{"permission_id", "authorization_id"},
-      new String[]{"'" + administratorPermissionId + "'", "'AMBARI.MANAGE_SETTINGS'"}, false);
+            new String[]{"'" + administratorPermissionId + "'", "'AMBARI.MANAGE_SETTINGS'"}, false);
   }
 
   /**
@@ -238,7 +243,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     permissionId = permissionDAO.findPermissionByNameAndType("CLUSTER.OPERATOR",
       resourceTypeDAO.findByName("CLUSTER")).getId().toString();
     dbAccessor.insertRowIfMissing("permission_roleauthorization", new String[]{"permission_id", "authorization_id"},
-      new String[]{"'" + permissionId + "'", "'CLUSTER.MANAGE_USER_PERSISTED_DATA'"}, false);
+            new String[]{"'" + permissionId + "'", "'CLUSTER.MANAGE_USER_PERSISTED_DATA'"}, false);
 
     permissionId = permissionDAO.findPermissionByNameAndType("AMBARI.ADMINISTRATOR",
       resourceTypeDAO.findByName("AMBARI")).getId().toString();
@@ -480,15 +485,15 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     dbAccessor.executeUpdate(String.format(updateStatement,
         2, PermissionEntity.CLUSTER_ADMINISTRATOR_PERMISSION_NAME));
     dbAccessor.executeUpdate(String.format(updateStatement,
-        3, PermissionEntity.CLUSTER_OPERATOR_PERMISSION_NAME));
+            3, PermissionEntity.CLUSTER_OPERATOR_PERMISSION_NAME));
     dbAccessor.executeUpdate(String.format(updateStatement,
-        4, PermissionEntity.SERVICE_ADMINISTRATOR_PERMISSION_NAME));
+            4, PermissionEntity.SERVICE_ADMINISTRATOR_PERMISSION_NAME));
     dbAccessor.executeUpdate(String.format(updateStatement,
-        5, PermissionEntity.SERVICE_OPERATOR_PERMISSION_NAME));
+            5, PermissionEntity.SERVICE_OPERATOR_PERMISSION_NAME));
     dbAccessor.executeUpdate(String.format(updateStatement,
-        6, PermissionEntity.CLUSTER_USER_PERMISSION_NAME));
+            6, PermissionEntity.CLUSTER_USER_PERMISSION_NAME));
     dbAccessor.executeUpdate(String.format(updateStatement,
-      7, PermissionEntity.VIEW_USER_PERMISSION_NAME));
+            7, PermissionEntity.VIEW_USER_PERMISSION_NAME));
   }
 
   /**
@@ -642,7 +647,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
         "from_stack_id", STACK_TABLE, "stack_id", false);
 
     dbAccessor.addFKConstraint(SERVICE_COMPONENT_HISTORY_TABLE, "FK_sc_history_to_stack_id",
-        "to_stack_id", STACK_TABLE, "stack_id", false);
+            "to_stack_id", STACK_TABLE, "stack_id", false);
 
     addSequence("servicecomponent_history_id_seq", 0L, false);
   }
@@ -658,7 +663,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
             new DBColumnInfo(RECOVERY_ENABLED_COL, Short.class, null, 0, false));
 
     dbAccessor.addColumn(SERVICE_COMPONENT_DESIRED_STATE_TABLE,
-      new DBColumnInfo(DESIRED_VERSION_COLUMN_NAME, String.class, 255, State.UNKNOWN.toString(), false));
+            new DBColumnInfo(DESIRED_VERSION_COLUMN_NAME, String.class, 255, State.UNKNOWN.toString(), false));
   }
 
   /**
@@ -691,7 +696,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
             String content = amsEnv.getProperties().get("content");
             if (content != null && !content.contains("AMS_INSTANCE_NAME")) {
               String newContent = content + "\n # AMS instance name\n" +
-                "export AMS_INSTANCE_NAME={{hostname}}\n";
+                      "export AMS_INSTANCE_NAME={{hostname}}\n";
 
               updateConfigurationProperties("ams-env", Collections.singletonMap("content", newContent), true, true);
             }
@@ -699,5 +704,31 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
         }
       }
     }
+  }
+
+  /**
+   * Create blueprint_setting table for storing the "settings" section
+   * in the blueprint. Auto start information is specified in the "settings" section.
+   *
+   * @throws SQLException
+   */
+  private void createBlueprintSettingTable() throws SQLException {
+    List<DBColumnInfo> columns = new ArrayList<>();
+
+    //  Add blueprint_setting table
+    LOG.info("Creating " + BLUEPRINT_SETTING_TABLE + " table");
+
+    columns.add(new DBColumnInfo(ID, Long.class, null, null, false));
+    columns.add(new DBColumnInfo(BLUEPRINT_NAME_COL, String.class, 255, null, false));
+    columns.add(new DBColumnInfo(SETTING_NAME_COL, String.class, 255, null, false));
+    columns.add(new DBColumnInfo(SETTING_DATA_COL, char[].class, null, null, false));
+    dbAccessor.createTable(BLUEPRINT_SETTING_TABLE, columns);
+
+    dbAccessor.addPKConstraint(BLUEPRINT_SETTING_TABLE, "PK_blueprint_setting", ID);
+    dbAccessor.addUniqueConstraint(BLUEPRINT_SETTING_TABLE, "UQ_blueprint_setting_name", BLUEPRINT_NAME_COL, SETTING_NAME_COL);
+    dbAccessor.addFKConstraint(BLUEPRINT_SETTING_TABLE, "FK_blueprint_setting_name",
+            BLUEPRINT_NAME_COL, BLUEPRINT_TABLE, BLUEPRINT_NAME_COL, false);
+
+    addSequence("blueprint_setting_id_seq", 0L, false);
   }
 }

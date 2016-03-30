@@ -421,6 +421,15 @@ CREATE TABLE blueprint_configuration (
   config_attributes VARCHAR(3000),
   PRIMARY KEY(blueprint_name, type_name));
 
+CREATE TABLE blueprint_settings (
+  id BIGINT NOT NULL,
+  blueprint_name varchar(255) NOT NULL,
+  setting_name varchar(255) NOT NULL,
+  setting_data CLOB NOT NULL,
+  CONSTRAINT PK_blueprint_settings PRIMARY KEY (id),
+  CONSTRAINT UQ_blueprint_settings_name UNIQUE(blueprint_name,setting_name),
+  CONSTRAINT FK_blueprint_settings_name FOREIGN KEY (blueprint_name) REFERENCES blueprint(blueprint_name));
+
 CREATE TABLE hostgroup_configuration (
   blueprint_name VARCHAR(255) NOT NULL,
   hostgroup_name VARCHAR(255) NOT NULL,
@@ -1070,6 +1079,8 @@ INSERT INTO ambari_sequences (sequence_name, sequence_value)
   select 'servicecomponentdesiredstate_id_seq', 0 FROM SYSIBM.SYSDUMMY1
   union all
   select 'servicecomponent_history_id_seq', 0 FROM SYSIBM.SYSDUMMY1;
+  union all
+  select 'blueprint_settings_id_seq', 0 FROM SYSIBM.SYSDUMMY1;
 
 
 INSERT INTO adminresourcetype (resource_type_id, resource_type_name)
