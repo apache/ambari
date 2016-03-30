@@ -19,6 +19,8 @@
 
 filename="version_241-12345.xml"
 
+rm $filename
+
 python version_builder.py --file $filename --release-type PATCH
 python version_builder.py --file $filename --release-stack HDP-2.4
 python version_builder.py --file $filename --release-version 2.4.1.1

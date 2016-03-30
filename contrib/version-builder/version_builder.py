@@ -22,67 +22,187 @@ import subprocess
 import sys
 import xml.etree.ElementTree as ET
 
-def load_file(filename):
+class VersionBuilder:
   """
-  Loads the specified XML file
+  Used to build a version definition file
   """
-  if os.path.exists(filename):
-    tree = ET.ElementTree()
-    tree.parse(filename)
-    root = tree.getroot()
-  else:
-    attribs = {}
-    attribs['xmlns:xsi'] = "http://www.w3.org/2001/XMLSchema-instance"
-    attribs['xsi:noNamespaceSchemaLocation'] = "version_definition.xsd"
-    root = ET.Element("repository-version", attribs)
+  def __init__(self, filename):
+    self._check_xmllint()
 
-    ET.SubElement(root, "release")
-    ET.SubElement(root, "manifest")
-    ET.SubElement(root, "available-services")
-    ET.SubElement(root, "repository-info")
+    self.filename = filename
 
-  return root
+    if os.path.exists(filename):
+      tree = ET.ElementTree()
+      tree.parse(filename)
+      root = tree.getroot()
+    else:
+      attribs = {}
+      attribs['xmlns:xsi'] = "http://www.w3.org/2001/XMLSchema-instance"
+      attribs['xsi:noNamespaceSchemaLocation'] = "version_definition.xsd"
+      root = ET.Element("repository-version", attribs)
 
-def save_file(xml, filename):
-  """
-  Saves the XML file
-  """
-  p = subprocess.Popen(['xmllint', '--format', '--output', filename, '-'], stdout=subprocess.PIPE, stdin=subprocess.PIPE)
-  (stdout, stderr) = p.communicate(input=ET.tostring(xml))
+      ET.SubElement(root, "release")
+      ET.SubElement(root, "manifest")
+      ET.SubElement(root, "available-services")
+      ET.SubElement(root, "repository-info")
 
-def check_xmllint():
-  """
-  Verifies utility xmllint is available
-  """
-  try:
-    p = subprocess.Popen(['xmllint', '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
+    self.root_element = root
+
+
+  def persist(self):
+    """
+    Saves the XML file
+    """
+    p = subprocess.Popen(['xmllint', '--format', '--output', self.filename, '-'], stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+    (stdout, stderr) = p.communicate(input=ET.tostring(self.root_element))
+
+  def finalize(self, xsd_file):
+    """
+    Validates the XML file against the XSD
+    """
+    args = ['xmllint', '--noout', '--load-trace', '--schema', xsd_file, self.filename]
+
+    p = subprocess.Popen(args, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
     (stdout, stderr) = p.communicate()
 
     if p.returncode != 0:
+      raise Exception(stderr)
+
+    if len(stdout) > 0:
+      print(stdout)
+
+    if len(stderr) > 0:
+      print(stderr)
+
+  def set_release(self, type=None, stack=None, version=None, build=None, notes=None, display=None,
+    compatible=None, package_version=None):
+    """
+    Create elements of the 'release' parent
+    """
+    release_element = self.root_element.find("./release")
+
+    if release_element is None:
+      raise Exception("Element 'release' is not found")
+
+    if type:
+      update_simple(release_element, "type", type)
+
+    if stack:
+      update_simple(release_element, "stack-id", stack)
+
+    if version:
+      update_simple(release_element, "version", version)
+
+    if build:
+      update_simple(release_element, "build", build)
+
+    if compatible:
+      update_simple(release_element, "compatible-with", compatible)
+
+    if notes:
+      update_simple(release_element, "release-notes", notes)
+
+    if display:
+      update_simple(release_element, "display", display)
+
+    if package_version:
+      update_simple(release_element, "package-version", package_version)
+
+
+  def add_manifest(self, id, service_name, version, version_id = None):
+    """
+    Add a manifest service.  A manifest lists all services in a repo, whether they are to be
+    upgraded or not.
+    """
+    manifest_element = self.root_element.find("./manifest")
+
+    if manifest_element is None:
+      raise Exception("Element 'manifest' is not found")
+
+    service_element = manifest_element.find("./service[@id='{0}']".format(id))
+
+    if service_element is None:
+      service_element = ET.SubElement(manifest_element, "service")
+      service_element.set('id', id)
+
+    service_element.set('name', service_name)
+    service_element.set('version', version)
+    if version_id:
+      service_element.set('version-id', version_id)
+
+  def add_available(self, manifest_id, available_components=None):
+    """
+    Adds services available to upgrade for patches
+    """
+    manifest_element = self.root_element.find("./manifest")
+    if manifest_element is None:
+      raise Exception("'manifest' element is not found")
+
+    service_element = manifest_element.find("./service[@id='{0}']".format(manifest_id))
+    if service_element is None:
+      raise Exception("Cannot add an available service for {0}; it's not on the manifest".format(manifest_id))
+
+    available_element = self.root_element.find("./available-services")
+    if available_element is None:
+      raise Exception("'available-services' is not found")
+
+    service_element = available_element.find("./service[@idref='{0}']".format(manifest_id))
+
+    if service_element is not None:
+      available_element.remove(service_element)
+
+    service_element = ET.SubElement(available_element, "service")
+    service_element.set('idref', manifest_id)
+
+    if available_components:
+      components = available_components.split(',')
+      for component in components:
+        e = ET.SubElement(service_element, 'component')
+        e.text = component
+
+  def add_repo(self, os_family, repo_id, repo_name, base_url):
+    """
+    Adds a repository
+    """
+    repo_parent = self.root_element.find("./repository-info")
+    if repo_parent is None:
+      raise Exception("'repository-info' element is not found")
+
+    os_element = repo_parent.find("./os[@family='{0}']".format(os_family))
+    if os_element is None:
+      os_element = ET.SubElement(repo_parent, 'os')
+      os_element.set('family', os_family)
+
+    repo_element = os_element.find("./repo/[reponame='{0}']".format(repo_name))
+
+    if repo_element is not None:
+      os_element.remove(repo_element)
+
+    repo_element = ET.SubElement(os_element, 'repo')
+    e = ET.SubElement(repo_element, 'baseurl')
+    e.text = base_url
+
+    e = ET.SubElement(repo_element, 'repoid')
+    e.text = repo_id
+
+    e = ET.SubElement(repo_element, 'reponame')
+    e.text = repo_name
+
+
+  def _check_xmllint(self):
+    """
+    Verifies utility xmllint is available
+    """
+    try:
+      p = subprocess.Popen(['xmllint', '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
+      (stdout, stderr) = p.communicate()
+
+      if p.returncode != 0:
+        raise Exception("xmllint command does not appear to be available")
+
+    except:
       raise Exception("xmllint command does not appear to be available")
-
-  except:
-    raise Exception("xmllint command does not appear to be available")
   
-
-def validate_file(filename, xsdfile):
-  """
-  Validates the XML file against the XSD
-  """
-  args = ['xmllint', '--noout', '--load-trace', '--schema', xsdfile, filename]
-
-  p = subprocess.Popen(args, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
-  (stdout, stderr) = p.communicate()
-
-  if p.returncode != 0:
-    raise Exception(stderr)
-
-  if len(stdout) > 0:
-    print stdout
-
-  if len(stderr) > 0:
-    print stderr
-
 
 def update_simple(parent, name, value):
   """
@@ -96,97 +216,54 @@ def update_simple(parent, name, value):
   else:
     element.text = value
 
-def process_release(xmlroot, options):
+def process_release(vb, options):
   """
   Create elements of the 'release' parent
   """
-  release_element = xmlroot.find("./release")
-
-  if release_element is None:
-    raise Exception("Element 'release' is not found")
-
   if options.release_type:
-    update_simple(release_element, "type", options.release_type)
+    vb.set_release(type=options.release_type)
 
   if options.release_stack:
-    update_simple(release_element, "stack-id", options.release_stack)
+    vb.set_release(stack=options.release_stack)
 
   if options.release_version:
-    update_simple(release_element, "version", options.release_version)
+    vb.set_release(version=options.release_version)
 
   if options.release_build:
-    update_simple(release_element, "build", options.release_build)
+    vb.set_release(build=options.release_build)
 
   if options.release_compatible:
-    update_simple(release_element, "compatible-with", options.release_compatible)
+    vb.set_release(compatible=options.release_compatible)
 
   if options.release_notes:
-    update_simple(release_element, "release-notes", options.release_notes)
+    vb.set_release(notes=options.release_notes)
 
   if options.release_display:
-    update_simple(release_element, "display", options.release_display)
+    vb.set_release(display=options.release_display)
 
   if options.release_package_version:
-    update_simple(release_element, "package-version", options.release_package_version)
+    vb.set_release(package_version=options.release_package_version)
 
-def process_manifest(xmlroot, options):
+def process_manifest(vb, options):
   """
   Creates the manifest element
   """
   if not options.manifest:
     return
 
-  manifest_element = xmlroot.find("./manifest")
+  vb.add_manifest(options.manifest_id, options.manifest_service, options.manifest_version, options.manifest_version_id)
 
-  if manifest_element is None:
-    raise Exception("Element 'manifest' is not found")
-
-  service_element = manifest_element.find("./service[@id='{0}']".format(options.manifest_id))
-
-  if service_element is None:
-    service_element = ET.SubElement(manifest_element, "service")
-    service_element.set('id', options.manifest_id)
-
-  service_element.set('name', options.manifest_service)
-  service_element.set('version', options.manifest_version)
-  if options.manifest_version_id:
-    service_element.set('version-id', options.manifest_version_id)
-
-def process_available(xmlroot, options):
+def process_available(vb, options):
   """
   Processes available service elements
   """
   if not options.available:
     return
 
-  manifest_element = xmlroot.find("./manifest")
-  if manifest_element is None:
-    raise Exception("'manifest' element is not found")
-
-  service_element = manifest_element.find("./service[@id='{0}']".format(options.manifest_id))
-  if service_element is None:
-    raise Exception("Cannot add an available service for {0}; it's not on the manifest".format(options.manifest_id))
-
-  available_element = xmlroot.find("./available-services")
-  if available_element is None:
-    raise Exception("'available-services' is not found")
-
-  service_element = available_element.find("./service[@idref='{0}']".format(options.manifest_id))
-
-  if service_element is not None:
-    available_element.remove(service_element) 
-
-  service_element = ET.SubElement(available_element, "service")
-  service_element.set('idref', options.manifest_id)
-
-  if options.available_components:
-    components = options.available_components.split(',')
-    for component in components:
-      e = ET.SubElement(service_element, 'component')
-      e.text = component
+  vb.add_available(options.manifest_id, options.available_components)
 
 
-def process_repo(xmlroot, options):
+def process_repo(vb, options):
   """
   Processes repository options.  This method doesn't update or create individual elements, it
   creates the entire repo structure
@@ -194,29 +271,7 @@ def process_repo(xmlroot, options):
   if not options.repo:
     return
 
-  repo_parent = xmlroot.find("./repository-info")
-  if repo_parent is None:
-    raise Exception("'repository-info' element is not found")
-
-  os_element = repo_parent.find("./os[@family='{0}']".format(options.repo_os))
-  if os_element is None:
-    os_element = ET.SubElement(repo_parent, 'os')
-    os_element.set('family', options.repo_os)
-
-  repo_element = os_element.find("./repo/[reponame='{0}']".format(options.repo_name))
-
-  if repo_element is not None:
-    os_element.remove(repo_element)
-
-  repo_element = ET.SubElement(os_element, 'repo')
-  e = ET.SubElement(repo_element, 'baseurl')
-  e.text = options.repo_url
-
-  e = ET.SubElement(repo_element, 'repoid')
-  e.text = options.repo_id
-
-  e = ET.SubElement(repo_element, 'reponame')
-  e.text = options.repo_name
+  vb.add_repo(options.repo_os, options.repo_id, options.repo_name, options.repo_url)
 
 def validate_manifest(parser, options):
   """
@@ -322,33 +377,30 @@ def main(argv):
 
   (options, args) = parser.parse_args()
 
-  check_xmllint()
-
   # validate_filename
   if not options.filename:
     parser.error("--file option is required")
-
-  validate_manifest(parser, options)
-  validate_available(parser, options)
-  validate_repo(parser, options)
 
   # validate_finalize
   if options.finalize and not options.xsd_file:
     parser.error("Must supply XSD (--xsd) when finalizing")
 
-  # load file
-  root = load_file(options.filename)
+  validate_manifest(parser, options)
+  validate_available(parser, options)
+  validate_repo(parser, options)
 
-  process_release(root, options)
-  process_manifest(root, options)
-  process_available(root, options)
-  process_repo(root, options)
+  vb = VersionBuilder(options.filename)
+
+  process_release(vb, options)
+  process_manifest(vb, options)
+  process_available(vb, options)
+  process_repo(vb, options)
 
   # save file
-  save_file(root, options.filename)
+  vb.persist()
 
   if options.finalize:
-    validate_file(options.filename, options.xsd_file)
+    vb.finalize(options.xsd_file)
 
 if __name__ == "__main__":
   main(sys.argv)
