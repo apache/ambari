@@ -92,7 +92,8 @@ class TestKerberosClient(RMFTestCase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-
+    self.assertResourceCalled('Directory', '/var/lib/ambari-agent/tmp/curl_krb_cache', action=["delete"],
+                              )
     self.assertResourceCalled('Directory', '/tmp/AMBARI-artifacts/',
                               recursive = True,
                               )
