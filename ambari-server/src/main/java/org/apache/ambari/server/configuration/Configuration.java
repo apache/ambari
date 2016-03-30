@@ -679,6 +679,12 @@ public class Configuration {
    */
   private static final String AUDIT_LOG_ENABLED = "auditlog.enabled";
 
+  /**
+   * Audit logger capacity
+   */
+  private static final String AUDIT_LOGGER_CAPACITY = "auditlog.logger.capacity";
+  private static final int AUDIT_LOGGER_CAPACITY_DEFAULT = 10000;
+
   private static final Logger LOG = LoggerFactory.getLogger(
     Configuration.class);
 
@@ -2846,5 +2852,14 @@ public class Configuration {
 
   public boolean isAuditLogEnabled() {
     return Boolean.parseBoolean(properties.getProperty(AUDIT_LOG_ENABLED,Boolean.TRUE.toString()));
+  }
+
+  /**
+   * @return the capacity of async audit logger
+   */
+  public int getAuditLoggerCapacity() {
+    return NumberUtils.toInt(
+      properties.getProperty(AUDIT_LOGGER_CAPACITY),
+      AUDIT_LOGGER_CAPACITY_DEFAULT);
   }
 }

@@ -63,7 +63,7 @@ class AsyncAuditLogger implements AuditLogger {
     isEnabled = configuration.isAuditLogEnabled();
     if(isEnabled) {
       eventBus = new AsyncEventBus("AuditLoggerEventBus", new ThreadPoolExecutor(0, 1, 5L, TimeUnit.MINUTES,
-        new LinkedBlockingQueue<Runnable>(10000), new AuditLogThreadFactory(),
+        new LinkedBlockingQueue<Runnable>(configuration.getAuditLoggerCapacity()), new AuditLogThreadFactory(),
         new ThreadPoolExecutor.CallerRunsPolicy()));
       eventBus.register(auditLogger);
     }

@@ -863,7 +863,6 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
       }
     }
     if(!hasInProgress) {
-      LOG.error("=============== Removing request ID {}", requestId);
       tasksForRequest.remove(requestId);
     }
     return calculatedStatus;
