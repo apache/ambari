@@ -72,6 +72,7 @@ import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.actionmanager.TargetHostType;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.ComponentResourceProviderTest;
 import org.apache.ambari.server.controller.internal.HostComponentResourceProviderTest;
@@ -8841,7 +8842,7 @@ public class AmbariManagementControllerTest {
 
   @Test
   public void testApplyConfigurationWithTheSameTag() throws AuthorizationException {
-    Injector injector = Guice.createInjector(new AbstractModule() {
+    Injector injector = Guice.createInjector(new AuditLoggerModule(), new AbstractModule() {
       @Override
       protected void configure() {
         Properties properties = new Properties();
@@ -8913,7 +8914,7 @@ public class AmbariManagementControllerTest {
   @Test
   public void testDeleteClusterCreateHost() throws Exception {
 
-    Injector injector = Guice.createInjector(new AbstractModule() {
+    Injector injector = Guice.createInjector(new AuditLoggerModule(), new AbstractModule() {
       @Override
       protected void configure() {
         Properties properties = new Properties();
@@ -9024,7 +9025,7 @@ public class AmbariManagementControllerTest {
   @Ignore
   public void testDisableAndDeleteStates() throws Exception {
     Map<String,String> mapRequestProps = new HashMap<String, String>();
-    Injector injector = Guice.createInjector(new AbstractModule() {
+    Injector injector = Guice.createInjector(new AuditLoggerModule(), new AbstractModule() {
       @Override
       protected void configure() {
         Properties properties = new Properties();
@@ -9362,7 +9363,7 @@ public class AmbariManagementControllerTest {
     final String YARN_SERVICE_CHECK_ROLE = "YARN_SERVICE_CHECK";
 
     Map<String,String> mapRequestProps = Collections.emptyMap();
-    Injector injector = Guice.createInjector(new AbstractModule() {
+    Injector injector = Guice.createInjector(new AuditLoggerModule(), new AbstractModule() {
       @Override
       protected void configure() {
         Properties properties = new Properties();

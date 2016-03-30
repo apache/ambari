@@ -29,6 +29,7 @@ import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.apache.ambari.server.state.Cluster;
@@ -99,6 +100,7 @@ public class KerberosServerActionTest {
 
         bind(Clusters.class).toInstance(clusters);
         bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+        bind(AuditLogger.class).toInstance(createNiceMock(AuditLogger.class));
       }
     });
 

@@ -23,8 +23,13 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.ambari.annotations.Experimental;
@@ -35,7 +40,13 @@ import org.apache.ambari.annotations.TransactionalLock.LockType;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.api.services.ResultStatus;
+import org.apache.ambari.server.audit.event.AuditEvent;
+import org.apache.ambari.server.audit.AuditLogger;
+import org.apache.ambari.server.audit.event.OperationStatusAuditEvent;
+import org.apache.ambari.server.audit.event.TaskStatusAuditEvent;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.internal.CalculatedStatus;
 import org.apache.ambari.server.events.HostRemovedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
@@ -116,6 +127,22 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
 
   @Inject
   Configuration configuration;
+
+  @Inject
+  AuditLogger auditLogger;
+
+  /**
+   * Caches to store current request and task statuses.
+   * It is used for avoiding audit log entry duplication
+   */
+  private Map<Long, HostRoleStatus> temporaryStatusCache = new HashMap<Long, HostRoleStatus>();
+  private Map<Long, HostRoleStatus> temporaryTaskStatusCache = new HashMap<Long, HostRoleStatus>();
+
+  /**
+   * Stores the host role command entities that are not completed for a request id
+   * It is used to calculate the summary state of the request for audit logging
+   */
+  private Map<Long, Map<Long, HostRoleStatus>> tasksForRequest = new HashMap<>();
 
   private Cache<Long, HostRoleCommand> hostRoleCommandCache;
   private long cacheLimit; //may be exceeded to store tasks from one request
@@ -198,6 +225,8 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
             + " requestId " + command.getRequestId()
             + " taskId " + command.getTaskId()
             + " stageId " + command.getStageId());
+
+        auditLog(command, requestId);
       }
     }
 
@@ -219,6 +248,8 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     for (HostRoleCommandEntity command : commands) {
       command.setStatus(command.isRetryAllowed() ? HostRoleStatus.HOLDING_TIMEDOUT : HostRoleStatus.TIMEDOUT);
       command.setEndTime(now);
+
+      auditLog(command, requestId);
     }
 
     // no need to merge if there's nothing to merge
@@ -448,6 +479,8 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     for (HostRoleCommandEntity commandEntity : commandEntities) {
       CommandReport report = taskReports.get(commandEntity.getTaskId());
 
+      boolean statusChanged = false;
+
       switch (commandEntity.getStatus()) {
         case ABORTED:
           // We don't want to overwrite statuses for ABORTED tasks with
@@ -467,6 +500,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
           }
 
           commandEntity.setStatus(status);
+          statusChanged = true;
           break;
       }
 
@@ -485,6 +519,9 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
         long stageId = requestStageIds[1];
         if (requestDAO.getLastStageId(requestId).equals(stageId)) {
           requestsToCheck.add(requestId);
+          if(statusChanged) {
+            auditLog(commandEntity, requestId); // wrong requestId !!!
+          }
         }
       }
     }
@@ -542,6 +579,8 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
         }
       }
       command.setExitcode(report.getExitCode());
+
+      auditLog(command, requestId);
     }
 
     // no need to merge if there's nothing to merge
@@ -607,6 +646,9 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
       entity.setLastAttemptTime(hostRoleCommand.getLastAttemptTime());
       entity.setStatus(hostRoleCommand.getStatus());
       entity.setAttemptCount(hostRoleCommand.getAttemptCount());
+
+      auditLog(entity, s.getRequestId());
+
       hostRoleCommandDAO.merge(entity);
     } else {
       throw new RuntimeException("HostRoleCommand is not persisted, cannot update:\n" + hostRoleCommand);
@@ -745,6 +787,8 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
       // Because it expects -1, RetryActionMonitor.java also had to set it to -1.
       task.setStartTime(-1L);
       task.setEndTime(-1L);
+
+      auditLog(task, task.getRequestId());
     }
 
     // no need to merge if there's nothing to merge
@@ -763,5 +807,86 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   public void invalidateCommandCacheOnHostRemove(HostRemovedEvent event) {
     LOG.info("Invalidating HRC cache after receiveing {}", event);
     hostRoleCommandCache.invalidateAll();
+  }
+
+  /**
+   * AuditLog operation status change
+   * @param requestId
+   */
+  private void auditLog(HostRoleCommandEntity commandEntity, Long requestId) {
+    if(!auditLogger.isEnabled()) {
+      return;
+    }
+
+    if(requestId != null) {
+
+      HostRoleStatus calculatedStatus = calculateStatus(commandEntity, requestId);
+
+      if (!temporaryStatusCache.containsKey(requestId) || temporaryStatusCache.get(requestId) != calculatedStatus) {
+        RequestEntity request = requestDAO.findByPK(requestId);
+        String context = request != null ? request.getRequestContext() : null;
+        AuditEvent auditEvent = OperationStatusAuditEvent.builder()
+          .withRequestId(String.valueOf(requestId))
+          .withStatus(String.valueOf(calculatedStatus))
+          .withRequestContext(context)
+          .withTimestamp(System.currentTimeMillis())
+          .build();
+        auditLogger.log(auditEvent);
+
+        temporaryStatusCache.put(requestId, calculatedStatus);
+      }
+    }
+    logTask(commandEntity, requestId);
+  }
+
+  /**
+   * Calculates summary status for the given request id for the new command entity status
+   * @param commandEntity
+   * @param requestId
+   * @return
+   */
+  private HostRoleStatus calculateStatus(HostRoleCommandEntity commandEntity, Long requestId) {
+    if(!tasksForRequest.containsKey(requestId)) {
+      tasksForRequest.put(requestId, new HashMap<Long, HostRoleStatus>());
+    }
+
+    tasksForRequest.get(requestId).put(commandEntity.getTaskId(), commandEntity.getStatus());
+
+    HostRoleStatus calculatedStatus = CalculatedStatus.calculateSummaryStatusOfStage(CalculatedStatus.calculateStatusCounts(tasksForRequest.get(requestId).values()), tasksForRequest.get(requestId).size(), false);
+
+    // if all task status is completed, we can remove it from the container
+    boolean hasInProgress = false;
+    for(HostRoleStatus hrcs : tasksForRequest.get(requestId).values()) {
+      if(!hrcs.isCompletedState()) {
+        hasInProgress = true;
+        break;
+      }
+    }
+    if(!hasInProgress) {
+      tasksForRequest.remove(requestId);
+    }
+    return calculatedStatus;
+  }
+
+  /**
+   * Logs task status change
+   * @param commandEntity
+   * @param requestId
+   */
+  private void logTask(HostRoleCommandEntity commandEntity, Long requestId) {
+    if(!temporaryTaskStatusCache.containsKey(commandEntity.getTaskId()) || temporaryTaskStatusCache.get(commandEntity.getTaskId()) != commandEntity.getStatus() ) {
+      AuditEvent taskEvent = TaskStatusAuditEvent.builder()
+        .withTaskId(String.valueOf(commandEntity.getTaskId()))
+        .withHostName(commandEntity.getHostName())
+        .withOperation(commandEntity.getRoleCommand().toString() + " " + commandEntity.getRole().toString())
+        .withDetails(commandEntity.getCommandDetail())
+        .withStatus(commandEntity.getStatus().toString())
+        .withRequestId(String.valueOf(requestId))
+        .withTimestamp(System.currentTimeMillis())
+        .build();
+
+      auditLogger.log(taskEvent);
+      temporaryTaskStatusCache.put(commandEntity.getTaskId(), commandEntity.getStatus());
+    }
   }
 }

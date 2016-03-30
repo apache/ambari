@@ -17,11 +17,17 @@
  */
 package org.apache.ambari.server.security.authorization;
 
+import com.google.common.collect.Lists;
 import com.google.inject.Singleton;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.RoleAuthorizationEntity;
+import org.apache.ambari.server.state.Clusters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
@@ -283,4 +289,27 @@ public class AuthorizationHelper {
 
     return loginAlias;
   }
+
+  /**
+   * Retrieve authorization names based on the details of the authenticated user
+   * @param authentication the authenticated user and associated access privileges
+   * @return human readable role authorizations
+   */
+  public static List<String> getAuthorizationNames(Authentication authentication) {
+    List<String> authorizationNames = Lists.newArrayList();
+    if (authentication.getAuthorities() != null) {
+      for (GrantedAuthority grantedAuthority : authentication.getAuthorities()) {
+        AmbariGrantedAuthority ambariGrantedAuthority = (AmbariGrantedAuthority) grantedAuthority;
+
+        PrivilegeEntity privilegeEntity = ambariGrantedAuthority.getPrivilegeEntity();
+        Collection<RoleAuthorizationEntity> roleAuthorizationEntities =
+          privilegeEntity.getPermission().getAuthorizations();
+        for (RoleAuthorizationEntity entity : roleAuthorizationEntities) {
+          authorizationNames.add(entity.getAuthorizationName());
+        }
+      }
+    }
+    return authorizationNames;
+  }
+
 }

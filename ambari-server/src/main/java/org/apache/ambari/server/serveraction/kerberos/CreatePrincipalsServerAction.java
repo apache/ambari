@@ -22,6 +22,7 @@ import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.audit.event.kerberos.CreatePrincipalKerberosAuditEvent;
 import org.apache.ambari.server.orm.dao.KerberosPrincipalDAO;
 import org.apache.ambari.server.orm.dao.KerberosPrincipalHostDAO;
 import org.apache.ambari.server.orm.entities.KerberosPrincipalEntity;
@@ -173,92 +174,103 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
                                                Map<String, String> kerberosConfiguration,
                                                KerberosOperationHandler kerberosOperationHandler,
                                                ActionLog actionLog) {
+    CreatePrincipalKerberosAuditEvent.CreatePrincipalKerberosAuditEventBuilder auditEventBuilder = CreatePrincipalKerberosAuditEvent.builder()
+      .withTimestamp(System.currentTimeMillis())
+      .withPrincipal(principal);
     CreatePrincipalResult result = null;
-
-    String message = String.format("Creating principal, %s", principal);
-    LOG.info(message);
-    if (actionLog != null) {
-      actionLog.writeStdOut(message);
-    }
-
-    Integer length;
-    Integer minLowercaseLetters;
-    Integer minUppercaseLetters;
-    Integer minDigits;
-    Integer minPunctuation;
-    Integer minWhitespace;
-
-    if (kerberosConfiguration == null) {
-      length = null;
-      minLowercaseLetters = null;
-      minUppercaseLetters = null;
-      minDigits = null;
-      minPunctuation = null;
-      minWhitespace = null;
-    } else {
-      length = toInt(kerberosConfiguration.get("password_length"));
-      minLowercaseLetters = toInt(kerberosConfiguration.get("password_min_lowercase_letters"));
-      minUppercaseLetters = toInt(kerberosConfiguration.get("password_min_uppercase_letters"));
-      minDigits = toInt(kerberosConfiguration.get("password_min_digits"));
-      minPunctuation = toInt(kerberosConfiguration.get("password_min_punctuation"));
-      minWhitespace = toInt(kerberosConfiguration.get("password_min_whitespace"));
-    }
-
-    String password = securePasswordHelper.createSecurePassword(length, minLowercaseLetters, minUppercaseLetters, minDigits, minPunctuation, minWhitespace);
-
+    String message = null;
     try {
 
-      if (kerberosOperationHandler.principalExists(principal)) {
-        // Create a new password since we need to know what it is.
-        // A new password/key would have been generated after exporting the keytab anyways.
-        message = String.format("Principal, %s, already exists, setting new password", principal);
-        LOG.warn(message);
-        if (actionLog != null) {
-          actionLog.writeStdOut(message);
-        }
-
-        Integer keyNumber = kerberosOperationHandler.setPrincipalPassword(principal, password);
-
-        if (keyNumber != null) {
-          result = new CreatePrincipalResult(principal, password, keyNumber);
-          message = String.format("Successfully set password for %s", principal);
-          LOG.debug(message);
-        } else {
-          message = String.format("Failed to set password for %s - unknown reason", principal);
-          LOG.error(message);
-          if (actionLog != null) {
-            actionLog.writeStdErr(message);
-          }
-        }
-      } else {
-        message = String.format("Creating new principal, %s", principal);
-        LOG.debug(message);
-
-        Integer keyNumber = kerberosOperationHandler.createPrincipal(principal, password, isServicePrincipal);
-
-        if (keyNumber != null) {
-          result = new CreatePrincipalResult(principal, password, keyNumber);
-          message = String.format("Successfully created new principal, %s", principal);
-          LOG.debug(message);
-        } else {
-          message = String.format("Failed to create principal, %s - unknown reason", principal);
-          LOG.error(message);
-          if (actionLog != null) {
-            actionLog.writeStdErr(message);
-          }
-        }
-      }
-
-      if (!kerberosPrincipalDAO.exists(principal)) {
-        kerberosPrincipalDAO.create(principal, isServicePrincipal);
-      }
-
-    } catch (KerberosOperationException e) {
-      message = String.format("Failed to create principal, %s - %s", principal, e.getMessage());
-      LOG.error(message, e);
+      message = String.format("Creating principal, %s", principal);
+      LOG.info(message);
       if (actionLog != null) {
-        actionLog.writeStdErr(message);
+        actionLog.writeStdOut(message);
       }
+
+      Integer length;
+      Integer minLowercaseLetters;
+      Integer minUppercaseLetters;
+      Integer minDigits;
+      Integer minPunctuation;
+      Integer minWhitespace;
+
+      if (kerberosConfiguration == null) {
+        length = null;
+        minLowercaseLetters = null;
+        minUppercaseLetters = null;
+        minDigits = null;
+        minPunctuation = null;
+        minWhitespace = null;
+      } else {
+        length = toInt(kerberosConfiguration.get("password_length"));
+        minLowercaseLetters = toInt(kerberosConfiguration.get("password_min_lowercase_letters"));
+        minUppercaseLetters = toInt(kerberosConfiguration.get("password_min_uppercase_letters"));
+        minDigits = toInt(kerberosConfiguration.get("password_min_digits"));
+        minPunctuation = toInt(kerberosConfiguration.get("password_min_punctuation"));
+        minWhitespace = toInt(kerberosConfiguration.get("password_min_whitespace"));
+      }
+
+      String password = securePasswordHelper.createSecurePassword(length, minLowercaseLetters, minUppercaseLetters, minDigits, minPunctuation, minWhitespace);
+
+      try {
+
+        if (kerberosOperationHandler.principalExists(principal)) {
+          // Create a new password since we need to know what it is.
+          // A new password/key would have been generated after exporting the keytab anyways.
+          message = String.format("Principal, %s, already exists, setting new password", principal);
+          LOG.warn(message);
+          if (actionLog != null) {
+            actionLog.writeStdOut(message);
+          }
+
+          Integer keyNumber = kerberosOperationHandler.setPrincipalPassword(principal, password);
+
+          if (keyNumber != null) {
+            result = new CreatePrincipalResult(principal, password, keyNumber);
+            message = String.format("Successfully set password for %s", principal);
+            LOG.debug(message);
+          } else {
+            message = String.format("Failed to set password for %s - unknown reason", principal);
+            LOG.error(message);
+            if (actionLog != null) {
+              actionLog.writeStdErr(message);
+            }
+          }
+        } else {
+          message = String.format("Creating new principal, %s", principal);
+          LOG.debug(message);
+
+          Integer keyNumber = kerberosOperationHandler.createPrincipal(principal, password, isServicePrincipal);
+
+          if (keyNumber != null) {
+            result = new CreatePrincipalResult(principal, password, keyNumber);
+            message = String.format("Successfully created new principal, %s", principal);
+            LOG.debug(message);
+          } else {
+            message = String.format("Failed to create principal, %s - unknown reason", principal);
+            LOG.error(message);
+            if (actionLog != null) {
+              actionLog.writeStdErr(message);
+            }
+          }
+        }
+
+        if (!kerberosPrincipalDAO.exists(principal)) {
+          kerberosPrincipalDAO.create(principal, isServicePrincipal);
+        }
+
+      } catch (KerberosOperationException e) {
+        message = String.format("Failed to create principal, %s - %s", principal, e.getMessage());
+        LOG.error(message, e);
+        if (actionLog != null) {
+          actionLog.writeStdErr(message);
+        }
+      }
+    } finally {
+      if(result == null) {
+        auditEventBuilder.withReasonOfFailure(message == null ? "Unknown error" : message);
+      }
+      auditLog(auditEventBuilder.build());
     }
 
     return result;

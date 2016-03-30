@@ -21,6 +21,7 @@ package org.apache.ambari.server.serveraction.kerberos;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.audit.event.kerberos.ChangeSecurityStateKerberosAuditEvent;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.SecurityState;
@@ -91,6 +92,14 @@ public class FinalizeKerberosServerAction extends KerberosServerAction {
             actionLog.writeStdOut(message);
 
             sch.setSecurityState(sch.getDesiredSecurityState());
+            ChangeSecurityStateKerberosAuditEvent auditEvent = ChangeSecurityStateKerberosAuditEvent.builder()
+              .withTimestamp(System.currentTimeMillis())
+              .withService(sch.getServiceName())
+              .withComponent(sch.getServiceComponentName())
+              .withHostName(sch.getHostName())
+              .withState(sch.getDesiredSecurityState().toString())
+              .build();
+            auditLog(auditEvent);
           }
         }
       }

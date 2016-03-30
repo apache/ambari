@@ -377,7 +377,6 @@ public class ControllerModule extends AbstractModule {
     registerUpgradeChecks();
   }
 
-
   // ----- helper methods ----------------------------------------------------
 
   private PersistModule buildJpaPersistModule() {

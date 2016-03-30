@@ -20,6 +20,8 @@ package org.apache.ambari.server.security.authorization;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+
+import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.configuration.Configuration;
 import org.junit.Before;
 import org.junit.Test;
@@ -43,7 +45,7 @@ public class LdapServerPropertiesTest {
   Configuration configuration;
 
   public LdapServerPropertiesTest() {
-    injector = Guice.createInjector(new AuthorizationTestModule());
+    injector = Guice.createInjector(new AuditLoggerModule(), new AuthorizationTestModule());
     injector.injectMembers(this);
   }
 

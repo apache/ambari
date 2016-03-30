@@ -44,11 +44,17 @@ import org.apache.ambari.server.api.MethodOverrideFilter;
 import org.apache.ambari.server.api.UserNameOverrideFilter;
 import org.apache.ambari.server.api.rest.BootStrapResource;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.api.services.BaseService;
 import org.apache.ambari.server.api.services.KeyService;
+import org.apache.ambari.server.api.services.LogoutService;
 import org.apache.ambari.server.api.services.PersistKeyValueImpl;
 import org.apache.ambari.server.api.services.PersistKeyValueService;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorBlueprintProcessor;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorHelper;
+import org.apache.ambari.server.audit.AuditLogger;
+import org.apache.ambari.server.audit.request.RequestAuditLogger;
+import org.apache.ambari.server.audit.AuditLoggerModule;
+import org.apache.ambari.server.security.authentication.AmbariAuthenticationFilter;
 import org.apache.ambari.server.bootstrap.BootStrapImpl;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.configuration.Configuration;
@@ -92,6 +98,8 @@ import org.apache.ambari.server.security.SecurityFilter;
 import org.apache.ambari.server.security.authorization.AmbariAuthorizationFilter;
 import org.apache.ambari.server.security.authorization.AmbariLdapAuthenticationProvider;
 import org.apache.ambari.server.security.authorization.AmbariLocalUserDetailsService;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
+import org.apache.ambari.server.security.authorization.PermissionHelper;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.security.authorization.internal.AmbariInternalAuthenticationProvider;
 import org.apache.ambari.server.security.authorization.jwt.JwtAuthenticationFilter;
@@ -99,6 +107,7 @@ import org.apache.ambari.server.security.ldap.AmbariLdapDataPopulator;
 import org.apache.ambari.server.security.unsecured.rest.CertificateDownload;
 import org.apache.ambari.server.security.unsecured.rest.CertificateSign;
 import org.apache.ambari.server.security.unsecured.rest.ConnectionInfo;
+import org.apache.ambari.server.serveraction.AbstractServerAction;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.topology.AmbariContext;
 import org.apache.ambari.server.topology.BlueprintFactory;
@@ -294,19 +303,25 @@ public class AmbariServer {
 
       factory.registerSingleton("guiceInjector", injector);
       factory.registerSingleton("passwordEncoder",
-          injector.getInstance(PasswordEncoder.class));
+        injector.getInstance(PasswordEncoder.class));
+      factory.registerSingleton("auditLogger",
+        injector.getInstance(AuditLogger.class));
+      factory.registerSingleton("permissionHelper",
+        injector.getInstance(PermissionHelper.class));
       factory.registerSingleton("ambariLocalUserService",
-          injector.getInstance(AmbariLocalUserDetailsService.class));
+        injector.getInstance(AmbariLocalUserDetailsService.class));
       factory.registerSingleton("ambariLdapAuthenticationProvider",
-          injector.getInstance(AmbariLdapAuthenticationProvider.class));
+        injector.getInstance(AmbariLdapAuthenticationProvider.class));
       factory.registerSingleton("ambariLdapDataPopulator",
-          injector.getInstance(AmbariLdapDataPopulator.class));
+        injector.getInstance(AmbariLdapDataPopulator.class));
       factory.registerSingleton("ambariAuthorizationFilter",
-          injector.getInstance(AmbariAuthorizationFilter.class));
+        injector.getInstance(AmbariAuthorizationFilter.class));
       factory.registerSingleton("ambariInternalAuthenticationProvider",
-          injector.getInstance(AmbariInternalAuthenticationProvider.class));
+        injector.getInstance(AmbariInternalAuthenticationProvider.class));
       factory.registerSingleton("ambariJwtAuthenticationFilter",
-          injector.getInstance(JwtAuthenticationFilter.class));
+        injector.getInstance(JwtAuthenticationFilter.class));
+      factory.registerSingleton("ambariAuthenticationFilter",
+        injector.getInstance(AmbariAuthenticationFilter.class));
 
       // Spring Security xml config depends on this Bean
       String[] contextLocations = {SPRING_CONTEXT_LOCATION};
@@ -698,9 +713,9 @@ public class AmbariServer {
     }
 
     LOG.info(
-        "Jetty is configuring {} with {} reserved acceptors/selectors and a total pool size of {} for {} processors.",
-        threadPoolName, acceptorThreads * 2, configuredThreadPoolSize,
-        Runtime.getRuntime().availableProcessors());
+      "Jetty is configuring {} with {} reserved acceptors/selectors and a total pool size of {} for {} processors.",
+      threadPoolName, acceptorThreads * 2, configuredThreadPoolSize,
+      Runtime.getRuntime().availableProcessors());
 
     final QueuedThreadPool qtp = server.getBean(QueuedThreadPool.class);
     qtp.setName(threadPoolName);
@@ -843,7 +858,7 @@ public class AmbariServer {
     StageUtils.setGson(injector.getInstance(Gson.class));
     StageUtils.setTopologyManager(injector.getInstance(TopologyManager.class));
     WorkflowJsonService.setDBProperties(
-        injector.getInstance(Configuration.class));
+      injector.getInstance(Configuration.class));
     SecurityFilter.init(injector.getInstance(Configuration.class));
     StackDefinedPropertyProvider.init(injector);
     AbstractControllerResourceProvider.init(injector.getInstance(ResourceProviderFactory.class));
@@ -871,6 +886,8 @@ public class AmbariServer {
     ActionManager.setTopologyManager(injector.getInstance(TopologyManager.class));
     StackAdvisorBlueprintProcessor.init(injector.getInstance(StackAdvisorHelper.class));
     ThreadPoolEnabledPropertyProvider.init(injector.getInstance(Configuration.class));
+
+    BaseService.init(injector.getInstance(RequestAuditLogger.class));
 
     RetryHelper.init(configs.getOperationsRetryAttempts());
   }
@@ -909,7 +926,7 @@ public class AmbariServer {
   }
 
   public static void main(String[] args) throws Exception {
-    Injector injector = Guice.createInjector(new ControllerModule());
+    Injector injector = Guice.createInjector(new ControllerModule(), new AuditLoggerModule());
 
     AmbariServer server = null;
     try {

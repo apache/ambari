@@ -27,6 +27,7 @@ import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
 import org.apache.ambari.server.api.services.serializers.CsvSerializer;
 import org.apache.ambari.server.api.services.serializers.JsonSerializer;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
+import org.apache.ambari.server.audit.request.RequestAuditLogger;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.utils.RetryHelper;
 import org.eclipse.jetty.util.ajax.JSON;
@@ -38,6 +39,8 @@ import javax.ws.rs.core.UriInfo;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+
+import com.google.inject.Inject;
 
 /**
  * Provides common functionality to all services.
@@ -55,6 +58,11 @@ public abstract class BaseService {
    */
   private ResultSerializer m_serializer = new JsonSerializer();
 
+  protected static RequestAuditLogger requestAuditLogger;
+
+  public static void init(RequestAuditLogger instance) {
+    requestAuditLogger = instance;
+  }
 
   /**
    * Requests are funneled through this method so that common logic can be executed.
@@ -92,7 +100,12 @@ public abstract class BaseService {
                                    UriInfo uriInfo, Request.Type requestType,
                                    MediaType mediaType, ResourceInstance resource) {
 
+    // original request and initial result
+    RequestBody rb = new RequestBody();
+    rb.setBody(body);
+    Request request = getRequestFactory().createRequest(headers, rb, uriInfo, requestType, resource);
     Result result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.OK));
+
     try {
       Set<RequestBody> requestBodySet = getBodyParser().parse(body);
 
@@ -100,13 +113,22 @@ public abstract class BaseService {
       while (iterator.hasNext() && result.getStatus().getStatus().equals(ResultStatus.STATUS.OK)) {
         RequestBody requestBody = iterator.next();
 
-        Request request = getRequestFactory().createRequest(
+        request = getRequestFactory().createRequest(
             headers, requestBody, uriInfo, requestType, resource);
 
         result  = request.process();
+        requestAuditLogger.log(request, result);
+      }
+
+      if(requestBodySet.isEmpty() || !ResultStatus.STATUS.OK.equals(result.getStatus().getStatus())) {
+        requestAuditLogger.log(request, result);
       }
     } catch (BodyParseException e) {
       result =  new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST, e.getMessage()));
+      requestAuditLogger.log(request, result);
+    } catch (Throwable t) {
+      requestAuditLogger.log(request, new ResultImpl(new ResultStatus(ResultStatus.STATUS.SERVER_ERROR, t.getMessage())));
+      throw t;
     }
 
     ResultSerializer serializer = mediaType == null ? getResultSerializer() : getResultSerializer(mediaType);

@@ -35,6 +35,7 @@ import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.BaseRequest;
+import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.HostsMap;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
@@ -50,6 +51,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 import org.apache.ambari.server.utils.StageUtils;
+import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -124,6 +126,8 @@ public class TestActionDBAccessorImpl {
         new HostsMap((String) null), injector.getInstance(UnitOfWork.class),
 
 		injector.getInstance(RequestFactory.class), null, null);
+
+    EasyMock.replay(injector.getInstance(AuditLogger.class));
   }
 
   @After

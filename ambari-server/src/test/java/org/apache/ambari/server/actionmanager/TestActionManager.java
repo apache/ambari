@@ -37,6 +37,7 @@ import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.controller.HostsMap;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -44,6 +45,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 import org.apache.ambari.server.utils.StageUtils;
+import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -79,6 +81,8 @@ public class TestActionManager {
     StackId stackId = new StackId("HDP-0.1");
     clusters.addCluster(clusterName, stackId);
     unitOfWork = injector.getInstance(UnitOfWork.class);
+
+    EasyMock.replay(injector.getInstance(AuditLogger.class));
   }
 
   @After

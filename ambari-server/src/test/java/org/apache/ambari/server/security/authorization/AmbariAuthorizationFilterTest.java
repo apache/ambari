@@ -25,6 +25,8 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import junit.framework.Assert;
+
+import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.UserDAO;
@@ -278,6 +280,7 @@ public class AmbariAuthorizationFilterTest {
         bind(DBAccessor.class).toInstance(EasyMock.createMock(DBAccessor.class));
         bind(PasswordEncoder.class).toInstance(EasyMock.createMock(PasswordEncoder.class));
         bind(OsFamily.class).toInstance(EasyMock.createMock(OsFamily.class));
+        bind(AuditLogger.class).toInstance(EasyMock.createNiceMock(AuditLogger.class));
       }
     });
 
@@ -302,6 +305,7 @@ public class AmbariAuthorizationFilterTest {
     final FilterConfig filterConfig = createNiceMock(FilterConfig.class);
     final AmbariAuthorizationFilter filter = createMockBuilder(AmbariAuthorizationFilter.class)
         .addMockedMethod("getSecurityContext").addMockedMethod("getViewRegistry").withConstructor().createMock();
+    injectMembers(filter);
     final ViewRegistry viewRegistry = createNiceMock(ViewRegistry.class);
 
     expect(filterConfig.getInitParameter("realm")).andReturn("AuthFilter").anyTimes();
@@ -354,5 +358,25 @@ public class AmbariAuthorizationFilterTest {
         throw new Exception("verify( failed on " + urlTest.getColumnKey() + " " + urlTest.getRowKey(), error);
       }
     }
+  }
+
+  private void injectMembers(AmbariAuthorizationFilter filter) {
+    final Configuration configuration = EasyMock.createMock(Configuration.class);
+    expect(configuration.getDefaultApiAuthenticatedUser()).andReturn(null).anyTimes();
+    Injector injector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(Configuration.class).toInstance(configuration);
+        bind(Users.class).toInstance(EasyMock.createMock(Users.class));
+        bind(EntityManager.class).toInstance(EasyMock.createMock(EntityManager.class));
+        bind(UserDAO.class).toInstance(EasyMock.createMock(UserDAO.class));
+        bind(DBAccessor.class).toInstance(EasyMock.createMock(DBAccessor.class));
+        bind(PasswordEncoder.class).toInstance(EasyMock.createMock(PasswordEncoder.class));
+        bind(OsFamily.class).toInstance(EasyMock.createMock(OsFamily.class));
+        bind(AuditLogger.class).toInstance(EasyMock.createNiceMock(AuditLogger.class));
+      }
+    });
+    injector.injectMembers(filter);
+    replay(configuration);
   }
 }
