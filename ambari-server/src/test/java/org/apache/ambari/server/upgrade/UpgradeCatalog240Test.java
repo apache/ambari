@@ -282,6 +282,7 @@ public class UpgradeCatalog240Test {
     Method updateAlerts = UpgradeCatalog240.class.getDeclaredMethod("updateAlerts");
     Method addManageUserPersistedDataPermission = UpgradeCatalog240.class.getDeclaredMethod("addManageUserPersistedDataPermission");
     Method addSettingPermission = UpgradeCatalog240.class.getDeclaredMethod("addSettingPermission");
+    Method updateAmsConfigs = UpgradeCatalog240.class.getDeclaredMethod("updateAMSConfigs");
 
     Capture<String> capturedStatements = newCapture(CaptureType.ALL);
 
@@ -293,6 +294,7 @@ public class UpgradeCatalog240Test {
             .addMockedMethod(updateAlerts)
             .addMockedMethod(addSettingPermission)
             .addMockedMethod(addManageUserPersistedDataPermission)
+            .addMockedMethod(updateAmsConfigs)
             .createMock();
 
     Field field = AbstractUpgradeCatalog.class.getDeclaredField("dbAccessor");
@@ -302,6 +304,7 @@ public class UpgradeCatalog240Test {
     upgradeCatalog240.updateAlerts();
     upgradeCatalog240.addSettingPermission();
     upgradeCatalog240.addManageUserPersistedDataPermission();
+    upgradeCatalog240.updateAMSConfigs();
 
     replay(upgradeCatalog240, dbAccessor);
 

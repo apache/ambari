@@ -22,10 +22,12 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.metrics2.sink.timeline.PostProcessingUtil;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.AggregationTaskRunner.AGGREGATOR_NAME;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.TimelineMetricHAController;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataManager;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.DefaultCondition;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL;
+
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -39,7 +41,6 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_CLUSTER_AGGREGATOR_INTERPOLATION_ENABLED;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.GET_METRIC_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_RECORD_TABLE_NAME;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.NATIVE_TIME_RANGE_DELTA;
 
 /**
  * Aggregates a metric across all hosts in the cluster. Reads metrics from
@@ -54,8 +55,7 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
   private final Long serverTimeShiftAdjustment;
   private final boolean interpolationEnabled;
 
-
-  public TimelineMetricClusterAggregatorSecond(String aggregatorName,
+  public TimelineMetricClusterAggregatorSecond(AGGREGATOR_NAME aggregatorName,
                                                TimelineMetricMetadataManager metadataManager,
                                                PhoenixHBaseAccessor hBaseAccessor,
                                                Configuration metricsConf,
@@ -66,10 +66,11 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
                                                String tableName,
                                                String outputTableName,
                                                Long nativeTimeRangeDelay,
-                                               Long timeSliceInterval) {
+                                               Long timeSliceInterval,
+                                               TimelineMetricHAController haController) {
     super(aggregatorName, hBaseAccessor, metricsConf, checkpointLocation,
       sleepIntervalMillis, checkpointCutOffMultiplier, aggregatorDisabledParam,
-      tableName, outputTableName, nativeTimeRangeDelay);
+      tableName, outputTableName, nativeTimeRangeDelay, haController);
 
     appAggregator = new TimelineMetricAppAggregator(metadataManager, metricsConf);
     this.timeSliceIntervalMillis = timeSliceInterval;

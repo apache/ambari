@@ -128,7 +128,7 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
   public void testGetMetricRecordsMinutes() throws IOException, SQLException {
     // GIVEN
     TimelineMetricAggregator aggregatorMinute =
-      TimelineMetricAggregatorFactory.createTimelineMetricAggregatorMinute(hdb, new Configuration());
+      TimelineMetricAggregatorFactory.createTimelineMetricAggregatorMinute(hdb, new Configuration(), null);
 
     long startTime = System.currentTimeMillis();
     long ctime = startTime;
@@ -165,7 +165,7 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
   public void testGetMetricRecordsHours() throws IOException, SQLException {
     // GIVEN
     TimelineMetricAggregator aggregator =
-      TimelineMetricAggregatorFactory.createTimelineMetricAggregatorHourly(hdb, new Configuration());
+      TimelineMetricAggregatorFactory.createTimelineMetricAggregatorHourly(hdb, new Configuration(), null);
 
     MetricHostAggregate expectedAggregate =
         createMetricHostAggregate(2.0, 0.0, 20, 15.0);
@@ -217,7 +217,7 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
     // GIVEN
     TimelineMetricAggregator agg =
       TimelineMetricAggregatorFactory.createTimelineClusterAggregatorSecond(
-        hdb, new Configuration(), new TimelineMetricMetadataManager(hdb, new Configuration()));
+        hdb, new Configuration(), new TimelineMetricMetadataManager(hdb, new Configuration()), null);
 
     long startTime = System.currentTimeMillis();
     long ctime = startTime + 1;
@@ -256,8 +256,8 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
   public void testGetClusterMetricRecordLatestWithFunction() throws Exception {
     // GIVEN
     TimelineMetricAggregator agg =
-      TimelineMetricAggregatorFactory.createTimelineClusterAggregatorSecond
-        (hdb, new Configuration(), new TimelineMetricMetadataManager(hdb, new Configuration()));
+      TimelineMetricAggregatorFactory.createTimelineClusterAggregatorSecond(hdb,
+        new Configuration(), new TimelineMetricMetadataManager(hdb, new Configuration()), null);
 
     long startTime = System.currentTimeMillis();
     long ctime = startTime + 1;
@@ -297,7 +297,7 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
   public void testGetClusterMetricRecordsHours() throws Exception {
     // GIVEN
     TimelineMetricAggregator agg =
-      TimelineMetricAggregatorFactory.createTimelineClusterAggregatorHourly(hdb, new Configuration());
+      TimelineMetricAggregatorFactory.createTimelineClusterAggregatorHourly(hdb, new Configuration(), null);
 
     long startTime = System.currentTimeMillis();
     long ctime = startTime;

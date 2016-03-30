@@ -423,6 +423,18 @@ public class TimelineWebServices {
     }
   }
 
+  @GET
+  @Path("/metrics/livenodes")
+  @Produces({ MediaType.APPLICATION_JSON })
+  public List<String> getLiveCollectorNodes(
+    @Context HttpServletRequest req,
+    @Context HttpServletResponse res
+  ) {
+    init(res);
+
+    return timelineMetricStore.getLiveInstances();
+  }
+
   /**
    * Store the given entities into the timeline store, and return the errors
    * that happen during storing.

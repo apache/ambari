@@ -20,19 +20,23 @@ package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.AbstractTimelineAggregator;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.AggregationTaskRunner.AGGREGATOR_NAME;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.TimelineMetricHAController;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.EmptyCondition;
+
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
+
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.GET_AGGREGATED_APP_METRIC_GROUPBY_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_TABLE_NAME;
 
 public class TimelineMetricClusterAggregator extends AbstractTimelineAggregator {
   private final String aggregateColumnName;
 
-  public TimelineMetricClusterAggregator(String aggregatorName,
+  public TimelineMetricClusterAggregator(AGGREGATOR_NAME aggregatorName,
                                          PhoenixHBaseAccessor hBaseAccessor,
                                          Configuration metricsConf,
                                          String checkpointLocation,
@@ -41,11 +45,12 @@ public class TimelineMetricClusterAggregator extends AbstractTimelineAggregator 
                                          String hostAggregatorDisabledParam,
                                          String inputTableName,
                                          String outputTableName,
-                                         Long nativeTimeRangeDelay) {
+                                         Long nativeTimeRangeDelay,
+                                         TimelineMetricHAController haController) {
     super(aggregatorName, hBaseAccessor, metricsConf, checkpointLocation,
       sleepIntervalMillis, checkpointCutOffMultiplier,
       hostAggregatorDisabledParam, inputTableName, outputTableName,
-      nativeTimeRangeDelay);
+      nativeTimeRangeDelay, haController);
 
     if (inputTableName.equals(METRICS_CLUSTER_AGGREGATE_TABLE_NAME)) {
       aggregateColumnName = "HOSTS_COUNT";

@@ -23,6 +23,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -42,6 +43,7 @@ import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.RoleAuthorizationEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.State;
 import org.slf4j.Logger;
@@ -150,7 +152,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     dbAccessor.addColumn(CLUSTER_TABLE, new DBColumnInfo(CLUSTER_UPGRADE_ID_COLUMN, Long.class, null, null, true));
 
     dbAccessor.addFKConstraint(CLUSTER_TABLE, "FK_clusters_upgrade_id",
-        CLUSTER_UPGRADE_ID_COLUMN, UPGRADE_TABLE, "upgrade_id", false);
+      CLUSTER_UPGRADE_ID_COLUMN, UPGRADE_TABLE, "upgrade_id", false);
   }
 
   @Override
@@ -165,6 +167,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     setRoleSortOrder();
     addSettingPermission();
     addManageUserPersistedDataPermission();
+    updateAMSConfigs();
   }
 
   private void createSettingTable() throws SQLException {
@@ -485,7 +488,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     dbAccessor.executeUpdate(String.format(updateStatement,
         6, PermissionEntity.CLUSTER_USER_PERMISSION_NAME));
     dbAccessor.executeUpdate(String.format(updateStatement,
-        7, PermissionEntity.VIEW_USER_PERMISSION_NAME));
+      7, PermissionEntity.VIEW_USER_PERMISSION_NAME));
   }
 
   /**
@@ -670,5 +673,31 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     dbAccessor.executeQuery("UPDATE " + HOST_ROLE_COMMAND_TABLE + " SET original_start_time = start_time", false);
     dbAccessor.executeQuery("UPDATE " + HOST_ROLE_COMMAND_TABLE + " SET original_start_time=-1 WHERE original_start_time IS NULL");
     dbAccessor.setColumnNullable(HOST_ROLE_COMMAND_TABLE, columnName, false);
+  }
+
+  protected void updateAMSConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        for (final Cluster cluster : clusterMap.values()) {
+
+          Config amsEnv = cluster.getDesiredConfigByType("ams-env");
+
+          if (amsEnv != null) {
+            String content = amsEnv.getProperties().get("content");
+            if (content != null && !content.contains("AMS_INSTANCE_NAME")) {
+              String newContent = content + "\n # AMS instance name\n" +
+                "export AMS_INSTANCE_NAME={{hostname}}\n";
+
+              updateConfigurationProperties("ams-env", Collections.singletonMap("content", newContent), true, true);
+            }
+          }
+        }
+      }
+    }
   }
 }
