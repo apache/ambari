@@ -511,10 +511,12 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
         smtpUsernameValidation: function () {
           var smtpUsernameError = false;
           var errorMessage = null;
-          if (this.get('controller.inputFields.SMTPUseAuthentication.value')) {
-            if (validator.isEmptyOrSpaces(this.get('controller.inputFields.SMTPUsername.value'))) {
-              smtpUsernameError = true;
-              errorMessage = Em.I18n.t('alerts.notifications.error.SMTPUsername');
+          if(this.get('isEmailMethodSelected')) {
+            if (this.get('controller.inputFields.SMTPUseAuthentication.value')) {
+              if (Em.isBlank(this.get('controller.inputFields.SMTPUsername.value'))) {
+                smtpUsernameError = true;
+                errorMessage = Em.I18n.t('alerts.notifications.error.SMTPUsername');
+              }
             }
           }
           this.set('smtpUsernameError', smtpUsernameError);
@@ -524,10 +526,12 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
         smtpPasswordValidation: function () {
           var smtpPasswordError = false;
           var errorMessage = null;
-          if (this.get('controller.inputFields.SMTPUseAuthentication.value')) {
-            if (validator.isEmptyOrSpaces(this.get('controller.inputFields.SMTPPassword.value'))) {
-              smtpPasswordError = true;
-              errorMessage = Em.I18n.t('alerts.notifications.error.SMTPPassword');
+          if(this.get('isEmailMethodSelected')) {
+            if (this.get('controller.inputFields.SMTPUseAuthentication.value')) {
+              if (Em.isBlank(this.get('controller.inputFields.SMTPPassword.value'))) {
+                smtpPasswordError = true;
+                errorMessage = Em.I18n.t('alerts.notifications.error.SMTPPassword');
+              }
             }
           }
           this.set('smtpPasswordError', smtpPasswordError);

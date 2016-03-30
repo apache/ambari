@@ -282,15 +282,5 @@ module.exports = {
     var remotePattern = /^(?:(?:https?|ftp):\/{2})(?:\S+(?::\S*)?@)?(?:(?:(?:[\w\-.]))*)(?::[0-9]+)?(?:\/\S*)?$/,
       localPattern = /^file:\/{2,3}([a-zA-Z][:|]\/){0,1}[\w~!*'();@&=\/\\\-+$,?%#.\[\]]+$/;
     return remotePattern.test(value) || localPattern.test(value);
-  },
-
-  /**
-   * Validate if empty or has white spaces
-   * @param value
-   * @return {boolean}
-   */
-  isEmptyOrSpaces: function(value) {
-    var regex = /(\s+)/;
-    return (!value || regex.test(value));
   }
 };
