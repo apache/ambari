@@ -22,6 +22,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -64,6 +65,7 @@ public class UpdateKerberosConfigsServerActionTest extends EasyMockSupport{
       protected void configure() {
         bind(AmbariManagementController.class).toInstance(controller);
         bind(ConfigHelper.class).toInstance(createNiceMock(ConfigHelper.class));
+        bind(AuditLogger.class).toInstance(createNiceMock(AuditLogger.class));
       }
     });
 

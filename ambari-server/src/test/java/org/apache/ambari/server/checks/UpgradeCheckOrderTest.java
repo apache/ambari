@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
+import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ControllerModule;
 import org.junit.Assert;
@@ -53,7 +54,7 @@ public class UpgradeCheckOrderTest {
     properties.setProperty(Configuration.OS_VERSION_KEY, "centos6");
     properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY, sourceResourceDirectory);
 
-    Injector injector = Guice.createInjector(new ControllerModule(properties));
+    Injector injector = Guice.createInjector(new ControllerModule(properties), new AuditLoggerModule());
     UpgradeCheckRegistry registry = injector.getInstance(UpgradeCheckRegistry.class);
     UpgradeCheckRegistry registry2 = injector.getInstance(UpgradeCheckRegistry.class);
 

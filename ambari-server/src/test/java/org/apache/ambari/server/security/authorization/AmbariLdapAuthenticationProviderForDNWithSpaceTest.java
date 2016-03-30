@@ -21,6 +21,8 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
+
+import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.dao.UserDAO;
@@ -74,7 +76,7 @@ public class AmbariLdapAuthenticationProviderForDNWithSpaceTest extends AmbariLd
 
   @Before
   public void setUp() {
-    injector = Guice.createInjector(new AuthorizationTestModuleForLdapDNWithSpace());
+    injector = Guice.createInjector(new AuditLoggerModule(), new AuthorizationTestModuleForLdapDNWithSpace());
     injector.injectMembers(this);
     injector.getInstance(GuiceJpaInitializer.class);
     configuration.setClientSecurityType(ClientSecurityType.LDAP);

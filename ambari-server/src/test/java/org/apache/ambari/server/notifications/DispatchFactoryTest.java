@@ -20,6 +20,7 @@ package org.apache.ambari.server.notifications;
 import java.io.File;
 import java.util.Properties;
 
+import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ControllerModule;
 import org.apache.ambari.server.notifications.dispatchers.EmailDispatcher;
@@ -52,7 +53,7 @@ public class DispatchFactoryTest {
     properties.setProperty(Configuration.OS_VERSION_KEY, "centos6");
     properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY,sourceResourceDirectory);
 
-    Injector injector = Guice.createInjector(new ControllerModule(properties));
+    Injector injector = Guice.createInjector(new AuditLoggerModule(), new ControllerModule(properties));
     DispatchFactory dispatchFactory = injector.getInstance(DispatchFactory.class);
     DispatchFactory dispatchFactory2 = injector.getInstance(DispatchFactory.class);
 

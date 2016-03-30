@@ -376,7 +376,7 @@ public class CalculatedStatus {
    *
    * @return summary request status based on statuses of tasks in different states.
    */
-  private static HostRoleStatus calculateSummaryStatusOfStage(Map<HostRoleStatus, Integer> counters,
+  public static HostRoleStatus calculateSummaryStatusOfStage(Map<HostRoleStatus, Integer> counters,
       int total, boolean skippable) {
     if (counters.get(HostRoleStatus.PENDING) == total) {
       return HostRoleStatus.PENDING;
