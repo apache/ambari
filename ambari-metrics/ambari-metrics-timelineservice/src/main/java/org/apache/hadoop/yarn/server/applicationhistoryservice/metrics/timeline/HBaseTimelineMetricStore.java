@@ -95,37 +95,37 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
       // Start the cluster aggregator second
       TimelineMetricAggregator secondClusterAggregator =
         TimelineMetricAggregatorFactory.createTimelineClusterAggregatorSecond(hBaseAccessor, metricsConf, metricMetadataManager);
-      scheduleAggregatorThread(secondClusterAggregator, metricsConf);
+      scheduleAggregatorThread(secondClusterAggregator);
 
       // Start the minute cluster aggregator
       TimelineMetricAggregator minuteClusterAggregator =
         TimelineMetricAggregatorFactory.createTimelineClusterAggregatorMinute(hBaseAccessor, metricsConf);
-      scheduleAggregatorThread(minuteClusterAggregator, metricsConf);
+      scheduleAggregatorThread(minuteClusterAggregator);
 
       // Start the hourly cluster aggregator
       TimelineMetricAggregator hourlyClusterAggregator =
         TimelineMetricAggregatorFactory.createTimelineClusterAggregatorHourly(hBaseAccessor, metricsConf);
-      scheduleAggregatorThread(hourlyClusterAggregator, metricsConf);
+      scheduleAggregatorThread(hourlyClusterAggregator);
 
       // Start the daily cluster aggregator
       TimelineMetricAggregator dailyClusterAggregator =
         TimelineMetricAggregatorFactory.createTimelineClusterAggregatorDaily(hBaseAccessor, metricsConf);
-      scheduleAggregatorThread(dailyClusterAggregator, metricsConf);
+      scheduleAggregatorThread(dailyClusterAggregator);
 
       // Start the minute host aggregator
       TimelineMetricAggregator minuteHostAggregator =
         TimelineMetricAggregatorFactory.createTimelineMetricAggregatorMinute(hBaseAccessor, metricsConf);
-      scheduleAggregatorThread(minuteHostAggregator, metricsConf);
+      scheduleAggregatorThread(minuteHostAggregator);
 
       // Start the hourly host aggregator
       TimelineMetricAggregator hourlyHostAggregator =
         TimelineMetricAggregatorFactory.createTimelineMetricAggregatorHourly(hBaseAccessor, metricsConf);
-      scheduleAggregatorThread(hourlyHostAggregator, metricsConf);
+      scheduleAggregatorThread(hourlyHostAggregator);
 
       // Start the daily host aggregator
       TimelineMetricAggregator dailyHostAggregator =
         TimelineMetricAggregatorFactory.createTimelineMetricAggregatorDaily(hBaseAccessor, metricsConf);
-      scheduleAggregatorThread(dailyHostAggregator, metricsConf);
+      scheduleAggregatorThread(dailyHostAggregator);
 
       if (!configuration.isTimelineMetricsServiceWatcherDisabled()) {
         int initDelay = configuration.getTimelineMetricsServiceWatcherInitDelay();
@@ -333,12 +333,11 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
     return metricMetadataManager.getHostedAppsCache();
   }
 
-  private void scheduleAggregatorThread(TimelineMetricAggregator aggregator,
-                                        Configuration metricsConf) {
+  private void scheduleAggregatorThread(TimelineMetricAggregator aggregator) {
     ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
     if (!aggregator.isDisabled()) {
       executorService.scheduleAtFixedRate(aggregator,
-        SECONDS.toMillis(metricsConf.getInt(AGGREGATOR_CHECKPOINT_DELAY, 120)),
+        0l,
         aggregator.getSleepIntervalMillis(),
         TimeUnit.MILLISECONDS);
     }
