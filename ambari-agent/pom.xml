@@ -166,6 +166,7 @@
           </execution>
         </executions>
         <configuration>
+
           <copyright>2012, Apache Software Foundation</copyright>
           <group>Development</group>
           <description>Maven Recipe: RPM Package.</description>
@@ -203,23 +204,64 @@
                 </source>
               </sources>
             </mapping>
-			<mapping>
-              <directory>/usr</directory>
+           <mapping>
+              <directory>/usr/sbin</directory>
+              <username>root</username>
+              <groupname>root</groupname>
+              <directoryIncluded>false</directoryIncluded> <!-- avoid managing /usr/sbin -->
+              <sources>
+                <source>
+                  <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}/usr/sbin</location>
+                </source>
+              </sources>
+            </mapping>
+           <mapping>
+              <directory>/usr/lib/ambari-agent</directory>
               <username>root</username>
               <groupname>root</groupname>
               <sources>
                 <source>
-                  <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}/usr</location>
+                  <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}/usr/lib/ambari-agent</location>
                 </source>
               </sources>
             </mapping>
             <mapping>
-              <directory>/var</directory>
+              <directory>/usr/lib/python2.6/site-packages</directory>
               <username>root</username>
               <groupname>root</groupname>
               <sources>
                 <source>
-                  <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}/var</location>
+                  <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}/usr/lib/python2.6/site-packages</location>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
+              <directory>/var/lib/ambari-agent</directory>
+              <username>root</username>
+              <groupname>root</groupname>
+              <sources>
+                <source>
+                  <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}/var/lib/ambari-agent</location>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
+              <directory>/var/log/ambari-agent</directory>
+              <username>root</username>
+              <groupname>root</groupname>
+              <sources>
+                <source>
+                  <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}/var/log/ambari-agent</location>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
+              <directory>/var/run/ambari-agent</directory>
+              <username>root</username>
+              <groupname>root</groupname>
+              <sources>
+                <source>
+                  <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}/var/run/ambari-agent</location>
                 </source>
               </sources>
             </mapping>

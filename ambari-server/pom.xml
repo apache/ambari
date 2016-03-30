@@ -400,23 +400,64 @@
                 </source>
               </sources>
             </mapping>
+            <mapping>
+              <directory>/usr/sbin</directory>
+              <username>root</username>
+              <groupname>root</groupname>
+              <directoryIncluded>false</directoryIncluded> <!-- avoid managing /usr/sbin -->
+              <sources>
+                <source>
+                  <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}-dist/usr/sbin</location>
+                </source>
+              </sources>
+            </mapping>
       			<mapping>
-              <directory>/usr</directory>
+              <directory>/usr/lib/ambari-server</directory>
               <username>root</username>
               <groupname>root</groupname>
               <sources>
                 <source>
-                  <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}-dist/usr</location>
+                  <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}-dist/usr/lib/ambari-server</location>
                 </source>
               </sources>
             </mapping>
             <mapping>
-              <directory>/var</directory>
+              <directory>/var/lib/ambari-server</directory>
               <username>root</username>
               <groupname>root</groupname>
               <sources>
                 <source>
-                  <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}-dist/var</location>
+                  <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}-dist/var/lib/ambari-server</location>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
+              <directory>/usr/lib/python2.6/site-packages</directory>
+              <username>root</username>
+              <groupname>root</groupname>
+              <sources>
+                <source>
+                  <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}-dist/usr/lib/python2.6/site-packages</location>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
+              <directory>/var/log/ambari-server</directory>
+              <username>root</username>
+              <groupname>root</groupname>
+              <sources>
+                <source>
+                  <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}-dist/var/log/ambari-server</location>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
+              <directory>/var/run/ambari-server</directory>
+              <username>root</username>
+              <groupname>root</groupname>
+              <sources>
+                <source>
+                  <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}-dist/var/run/ambari-server</location>
                 </source>
               </sources>
             </mapping>
