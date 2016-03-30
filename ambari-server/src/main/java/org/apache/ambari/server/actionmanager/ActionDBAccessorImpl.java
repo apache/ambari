@@ -142,7 +142,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
    * Stores the host role command entities that are not completed for a request id
    * It is used to calculate the summary state of the request for audit logging
    */
-  private Map<Long, List<HostRoleCommandEntity>> tasksForRequest = new HashMap<>();
+  private Map<Long, Map<Long, HostRoleStatus>> tasksForRequest = new HashMap<>();
 
   private Cache<Long, HostRoleCommand> hostRoleCommandCache;
   private long cacheLimit; //may be exceeded to store tasks from one request
@@ -820,20 +820,20 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
 
     if(requestId != null) {
 
-      CalculatedStatus cs = calculateStatus(commandEntity, requestId);
+      HostRoleStatus calculatedStatus = calculateStatus(commandEntity, requestId);
 
-      if (!temporaryStatusCache.containsKey(requestId) || temporaryStatusCache.get(requestId) != cs.getStatus()) {
+      if (!temporaryStatusCache.containsKey(requestId) || temporaryStatusCache.get(requestId) != calculatedStatus) {
         RequestEntity request = requestDAO.findByPK(requestId);
         String context = request != null ? request.getRequestContext() : null;
         AuditEvent auditEvent = OperationStatusAuditEvent.builder()
           .withRequestId(String.valueOf(requestId))
-          .withStatus(String.valueOf(cs.getStatus()))
+          .withStatus(String.valueOf(calculatedStatus))
           .withRequestContext(context)
           .withTimestamp(System.currentTimeMillis())
           .build();
         auditLogger.log(auditEvent);
 
-        temporaryStatusCache.put(requestId, cs.getStatus());
+        temporaryStatusCache.put(requestId, calculatedStatus);
       }
     }
     logTask(commandEntity, requestId);
@@ -845,32 +845,28 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
    * @param requestId
    * @return
    */
-  private CalculatedStatus calculateStatus(HostRoleCommandEntity commandEntity, Long requestId) {
+  private HostRoleStatus calculateStatus(HostRoleCommandEntity commandEntity, Long requestId) {
     if(!tasksForRequest.containsKey(requestId)) {
-      tasksForRequest.put(requestId, new LinkedList<HostRoleCommandEntity>());
+      tasksForRequest.put(requestId, new HashMap<Long, HostRoleStatus>());
     }
-    for(Iterator<HostRoleCommandEntity> it = tasksForRequest.get(requestId).iterator(); it.hasNext();) {
-      HostRoleCommandEntity hrce = it.next();
-      if(commandEntity.getTaskId().equals(hrce.getTaskId())) {
-        it.remove();
-      }
-    }
-    tasksForRequest.get(requestId).add(commandEntity);
 
-    CalculatedStatus cs = CalculatedStatus.statusFromTaskEntities(tasksForRequest.get(requestId), false);
+    tasksForRequest.get(requestId).put(commandEntity.getTaskId(), commandEntity.getStatus());
+
+    HostRoleStatus calculatedStatus = CalculatedStatus.calculateSummaryStatus(CalculatedStatus.calculateStatusCounts(tasksForRequest.get(requestId).values()), tasksForRequest.get(requestId).size(), false);
 
     // if all task status is completed, we can remove it from the container
     boolean hasInProgress = false;
-    for(HostRoleCommandEntity hrce : tasksForRequest.get(requestId)) {
-      if(!hrce.getStatus().isCompletedState()) {
+    for(HostRoleStatus hrcs : tasksForRequest.get(requestId).values()) {
+      if(!hrcs.isCompletedState()) {
         hasInProgress = true;
         break;
       }
     }
     if(!hasInProgress) {
+      LOG.error("=============== Removing request ID {}", requestId);
       tasksForRequest.remove(requestId);
     }
-    return cs;
+    return calculatedStatus;
   }
 
   /**

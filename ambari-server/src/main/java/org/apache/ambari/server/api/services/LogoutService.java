@@ -24,6 +24,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
+import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.audit.event.LogoutAuditEvent;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
@@ -35,15 +36,12 @@ import org.springframework.security.core.context.SecurityContextHolder;
 /**
  * Service performing logout of current user
  */
+@StaticallyInject
 @Path("/logout")
 public class LogoutService {
 
-  private static AuditLogger auditLogger;
-
   @Inject
-  public static void init(AuditLogger logger) {
-    auditLogger = logger;
-  }
+  private static AuditLogger auditLogger;
 
   @GET
   @Produces("text/plain")
@@ -54,6 +52,10 @@ public class LogoutService {
     return Response.status(Response.Status.OK).build();
   }
 
+  /**
+   * Creates and send and audit log event that the user has successfully logged out
+   * @param servletRequest
+   */
   private void auditLog(HttpServletRequest servletRequest) {
     LogoutAuditEvent logoutEvent = LogoutAuditEvent.builder()
       .withTimestamp(System.currentTimeMillis())

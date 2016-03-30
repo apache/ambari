@@ -63,7 +63,7 @@ class AsyncAuditLogger implements AuditLogger {
     isEnabled = configuration.isAuditLogEnabled();
     if(isEnabled) {
       eventBus = new AsyncEventBus("AuditLoggerEventBus", new ThreadPoolExecutor(0, 1, 5L, TimeUnit.MINUTES,
-        new LinkedBlockingQueue<Runnable>(), new AuditLogThreadFactory(),
+        new LinkedBlockingQueue<Runnable>(10000), new AuditLogThreadFactory(),
         new ThreadPoolExecutor.CallerRunsPolicy()));
       eventBus.register(auditLogger);
     }
@@ -94,7 +94,7 @@ class AsyncAuditLogger implements AuditLogger {
     @Override
     public Thread newThread(Runnable runnable) {
       Thread thread = new Thread(runnable, "auditlog-" + nextId.getAndIncrement());
-      thread.setDaemon(false);
+      thread.setDaemon(true);
       return thread;
     }
   }

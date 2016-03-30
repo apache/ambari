@@ -44,6 +44,8 @@ public class AuditLoggerDefaultImpl implements AuditLogger {
    */
   private final boolean isEnabled;
 
+  private ThreadLocal<DateFormat> dateFormatThreadLocal = new ThreadLocal<>();
+
   @Inject
   public AuditLoggerDefaultImpl(Configuration configuration) {
     isEnabled = configuration.isAuditLogEnabled();
@@ -59,11 +61,13 @@ public class AuditLoggerDefaultImpl implements AuditLogger {
       return;
     }
 
-    Date date = new Date(event.getTimestamp());
-    //2016-03-11T10:42:36.376Z
-    DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX");
+    if(dateFormatThreadLocal.get() == null) {
+      //2016-03-11T10:42:36.376Z
+      dateFormatThreadLocal.set(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX"));
+    }
 
-    LOG.info("{}, {}", dateFormat.format(date), event.getAuditMessage());
+    Date date = new Date(event.getTimestamp());
+    LOG.info("{}, {}", dateFormatThreadLocal.get().format(date), event.getAuditMessage());
   }
 
   @Override

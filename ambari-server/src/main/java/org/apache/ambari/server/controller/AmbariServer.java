@@ -888,7 +888,6 @@ public class AmbariServer {
     ThreadPoolEnabledPropertyProvider.init(injector.getInstance(Configuration.class));
 
     BaseService.init(injector.getInstance(RequestAuditLogger.class));
-    LogoutService.init(injector.getInstance(AuditLogger.class));
 
     RetryHelper.init(configs.getOperationsRetryAttempts());
   }
