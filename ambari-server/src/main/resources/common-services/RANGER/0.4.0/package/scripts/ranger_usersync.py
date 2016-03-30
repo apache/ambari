@@ -71,7 +71,8 @@ class RangerUsersync(Script):
     upgrade.prestart(env, "ranger-usersync")
 
   def get_stack_to_component(self):
-    return {"HDP": "ranger-usersync"}
+    import params
+    return {params.stack_name: "ranger-usersync"}
 
 
 if __name__ == "__main__":

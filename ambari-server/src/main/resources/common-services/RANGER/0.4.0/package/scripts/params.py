@@ -23,8 +23,9 @@ from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.is_empty import is_empty
-from resource_management.libraries.functions.version import compare_versions
 from resource_management.libraries.functions.constants import Direction
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions import StackFeature
 
 # a map of the Ambari role to the component name
 # for use with <stack-root>/current/<component>
@@ -37,6 +38,7 @@ component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, 
 
 config  = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
+stack_root = Script.get_stack_root()
 
 stack_name = default("/hostLevelParams/stack_name", None)
 version = default("/commandParams/version", None)
@@ -51,8 +53,9 @@ xml_configurations_supported = config['configurations']['ranger-env']['xml_confi
 
 create_db_dbuser = config['configurations']['ranger-env']['create_db_dbuser']
 
-stack_is_hdp22_or_further = Script.is_stack_greater_or_equal("2.2")
-stack_is_hdp23_or_further = Script.is_stack_greater_or_equal("2.3")
+stack_supports_rolling_upgrade = stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted)
+stack_supports_config_versioning =  stack_version_formatted and check_stack_feature(StackFeature.CONFIG_VERSIONING, stack_version_formatted)
+stack_supports_usersync_non_root =  stack_version_formatted and check_stack_feature(StackFeature.RANGER_USERSYNC_NON_ROOT, stack_version_formatted)
 
 downgrade_from_version = default("/commandParams/downgrade_from_version", None)
 upgrade_direction = default("/commandParams/upgrade_direction", None)
@@ -60,25 +63,28 @@ upgrade_direction = default("/commandParams/upgrade_direction", None)
 ranger_conf    = '/etc/ranger/admin/conf'
 ranger_ugsync_conf = '/etc/ranger/usersync/conf'
 
-if upgrade_direction == Direction.DOWNGRADE and compare_versions(format_stack_version(version),'2.3' ) < 0:
-  stack_is_hdp22_or_further = True
-  stack_is_hdp23_or_further = False
+if upgrade_direction == Direction.DOWNGRADE and version and not check_stack_feature(StackFeature.CONFIG_VERSIONING, version):
+  stack_supports_rolling_upgrade = True
+  stack_supports_config_versioning = False
 
-if stack_is_hdp22_or_further:
-  ranger_home    = '/usr/hdp/current/ranger-admin'
+if upgrade_direction == Direction.DOWNGRADE and version and not check_stack_feature(StackFeature.RANGER_USERSYNC_NON_ROOT, version):
+  stack_supports_usersync_non_root = False
+
+if stack_supports_rolling_upgrade:
+  ranger_home    = format('{stack_root}/current/ranger-admin')
   ranger_conf    = '/etc/ranger/admin/conf'
   ranger_stop    = '/usr/bin/ranger-admin-stop'
   ranger_start   = '/usr/bin/ranger-admin-start'
-  usersync_home  = '/usr/hdp/current/ranger-usersync'
+  usersync_home  = format('{stack_root}/current/ranger-usersync')
   usersync_start = '/usr/bin/ranger-usersync-start'
   usersync_stop  = '/usr/bin/ranger-usersync-stop'
   ranger_ugsync_conf = '/etc/ranger/usersync/conf'
 
-if stack_is_hdp23_or_further:
-  ranger_conf = '/usr/hdp/current/ranger-admin/conf'
-  ranger_ugsync_conf = '/usr/hdp/current/ranger-usersync/conf'
+if stack_supports_config_versioning:
+  ranger_conf = format('{stack_root}/current/ranger-admin/conf')
+  ranger_ugsync_conf = format('{stack_root}/current/ranger-usersync/conf')
 
-usersync_services_file = "/usr/hdp/current/ranger-usersync/ranger-usersync-services.sh"
+usersync_services_file = format('{stack_root}/current/ranger-usersync/ranger-usersync-services.sh')
 
 java_home = config['hostLevelParams']['java_home']
 unix_user  = config['configurations']['ranger-env']['ranger_user']

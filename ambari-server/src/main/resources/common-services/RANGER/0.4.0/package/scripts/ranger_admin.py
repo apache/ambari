@@ -31,7 +31,8 @@ import os, errno
 class RangerAdmin(Script):
 
   def get_stack_to_component(self):
-    return {"HDP": "ranger-admin"}
+    import params
+    return {params.stack_name: "ranger-admin"}
 
   def install(self, env):
     self.install_packages(env)

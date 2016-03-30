@@ -33,7 +33,7 @@ def ranger_service(name, action=None):
     no_op_test = format('ps -ef | grep proc_rangerusersync | grep -v grep')
 
 
-    if params.stack_is_hdp23_or_further:
+    if params.stack_supports_usersync_non_root:
       Execute(params.usersync_start,
               environment=env_dict,
               not_if=no_op_test,

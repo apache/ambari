@@ -65,7 +65,7 @@ def get_stack_version(package_name):
   @param package_name, name of the package, from which, function will try to get stack version
   """
 
-  stack_selector_path = stack_tools.get_stack_tool_name(stack_tools.STACK_SELECTOR_NAME)
+  stack_selector_path = stack_tools.get_stack_tool_path(stack_tools.STACK_SELECTOR_NAME)
 
   if not os.path.exists(stack_selector_path):
     Logger.info('Skipping get_stack_version since " + stack_selector_tool + " is not yet available')

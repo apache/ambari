@@ -163,6 +163,7 @@ def setup_ranger_plugin_jar_symblink(stack_version, service_name, component_list
 def setup_ranger_plugin_keystore(service_name, audit_db_is_enabled, stack_version, credential_file, xa_audit_db_password,
                                 ssl_truststore_password, ssl_keystore_password, component_user, component_group, java_home):
 
+  stack_root = Script.get_stack_root()
   cred_lib_path = format('{stack_root}/{stack_version}/ranger-{service_name}-plugin/install/lib/*')
   cred_setup_prefix = (format('{stack_root}/{stack_version}/ranger-{service_name}-plugin/ranger_credential_helper.py'), '-l', cred_lib_path)
 

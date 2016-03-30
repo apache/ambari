@@ -20,12 +20,15 @@ limitations under the License.
 import os
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.script import Script
-from resource_management.libraries.functions.version import format_stack_version, compare_versions
+from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.default import default
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions import StackFeature
 
 config  = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
+stack_root = Script.get_stack_root()
 
 stack_name = default("/hostLevelParams/stack_name", None)
 version = default("/commandParams/version", None)
@@ -33,13 +36,13 @@ version = default("/commandParams/version", None)
 stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
-stack_is_hdp23_or_further = Script.is_stack_greater_or_equal("2.3")
+stack_supports_config_versioning =  stack_version_formatted and check_stack_feature(StackFeature.CONFIG_VERSIONING, stack_version_formatted)
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 
-if stack_is_hdp23_or_further:
-  kms_home = '/usr/hdp/current/ranger-kms'
-  kms_conf_dir = '/usr/hdp/current/ranger-kms/conf'
+if stack_supports_config_versioning:
+  kms_home = format('{stack_root}/current/ranger-kms')
+  kms_conf_dir = format('{stack_root}/current/ranger-kms/conf')
 
 kms_log_dir = default("/configurations/kms-env/kms_log_dir", "/var/log/ranger/kms")
 java_home = config['hostLevelParams']['java_home']

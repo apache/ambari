@@ -133,8 +133,7 @@ def setup_ranger_admin(upgrade_type=None):
     Execute(('cp', '-f', src_file, dst_file), sudo=True)
     File(params.security_app_context_file, owner=params.unix_user, group=params.unix_group)
 
-  if upgrade_type is not None and params.stack_is_hdp23_or_further:
-
+  if upgrade_type is not None and params.stack_supports_config_versioning:
     if os.path.islink('/usr/bin/ranger-admin'):
       Link('/usr/bin/ranger-admin', action="delete")
 
@@ -169,7 +168,7 @@ def setup_ranger_db(stack_version=None):
   ranger_home = params.ranger_home
   version = params.version
   if stack_version is not None:
-    ranger_home = format("/usr/hdp/{stack_version}/ranger-admin")
+    ranger_home = format("{stack_root}/{stack_version}/ranger-admin")
     version = stack_version
 
   copy_jdbc_connector(stack_version=version)
@@ -208,7 +207,7 @@ def setup_java_patch(stack_version=None):
 
   ranger_home = params.ranger_home
   if stack_version is not None:
-    ranger_home = format("/usr/hdp/{stack_version}/ranger-admin")
+    ranger_home = format("{stack_root}/{stack_version}/ranger-admin")
 
   env_dict = {'RANGER_ADMIN_HOME':ranger_home, 'JAVA_HOME':params.java_home}
   if params.db_flavor.lower() == 'sqla':
@@ -291,7 +290,7 @@ def copy_jdbc_connector(stack_version=None):
 
   ranger_home = params.ranger_home
   if stack_version is not None:
-    ranger_home = format("/usr/hdp/{stack_version}/ranger-admin")
+    ranger_home = format("{stack_root}/{stack_version}/ranger-admin")
 
   if params.db_flavor.lower() == 'sqla':
     Execute(('tar', '-xvf', params.downloaded_custom_connector, '-C', params.tmp_dir), sudo = True)

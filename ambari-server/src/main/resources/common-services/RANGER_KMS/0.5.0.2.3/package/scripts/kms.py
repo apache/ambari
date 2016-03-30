@@ -56,7 +56,7 @@ def setup_kms_db(stack_version=None):
     kms_home = params.kms_home
     version = params.version
     if stack_version is not None:
-      kms_home = format("/usr/hdp/{stack_version}/ranger-kms")
+      kms_home = format("{stack_root}/{stack_version}/ranger-kms")
       version = stack_version
 
     password_validation(params.kms_master_key_password, 'KMS master key')
@@ -266,7 +266,7 @@ def kms(upgrade_type=None):
       content=params.kms_log4j,
       mode=0644
     )
-    if params.stack_is_hdp23_or_further and params.security_enabled:
+    if params.security_enabled:
       # core-site.xml linking required by setup for HDFS encryption
       XmlConfig("core-site.xml",
         conf_dir=params.kms_conf_dir,
@@ -282,7 +282,7 @@ def copy_jdbc_connector(stack_version=None):
 
   kms_home = params.kms_home
   if stack_version is not None:
-    kms_home = format("/usr/hdp/{stack_version}/ranger-kms")
+    kms_home = format("{stack_root}/{stack_version}/ranger-kms")
 
   File(params.downloaded_custom_connector,
     content = DownloadSource(params.driver_curl_source),

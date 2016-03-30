@@ -128,6 +128,11 @@ _DEFAULT_STACK_FEATURES = {
       "name": "pig_on_tez",
       "description": "Pig on Tez support (AMBARI-7863)",
       "min_version": "2.2.0.0"
+    },
+    {
+      "name": "ranger_usersync_non_root",
+      "description": "Ranger Usersync as non-root user (AMBARI-10416)",
+      "min_version": "2.3.0.0"
     }
   ]
 }

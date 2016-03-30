@@ -59,3 +59,4 @@ class StackFeature:
   KAFKA_LISTENERS = "kafka_listeners"
   KAFKA_KERBEROS = "kafka_kerberos"
   PIG_ON_TEZ = "pig_on_tez"
+  RANGER_USERSYNC_NON_ROOT = "ranger_usersync_non_root"
