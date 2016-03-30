@@ -25,6 +25,8 @@ from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import format
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
 from resource_management.libraries.functions.version import format_stack_version
@@ -52,12 +54,16 @@ config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
 stack_name = default("/hostLevelParams/stack_name", None)
+stack_root = Script.get_stack_root()
 tarball_map = default("/configurations/cluster-env/tarball_map", None)
 
 # This is expected to be of the form #.#.#.#
 stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted_major = format_stack_version(stack_version_unformatted)
 stack_version_formatted = functions.get_stack_version('hadoop-yarn-resourcemanager')
+
+stack_supports_ru = stack_version_formatted_major and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted_major)
+stack_supports_timeline_state_store = stack_version_formatted_major and check_stack_feature(StackFeature.TIMELINE_STATE_STORE, stack_version_formatted_major)
 
 # New Cluster Stack Version that is defined during the RESTART of a Stack Upgrade.
 # It cannot be used during the initial Cluser Install because the version is not yet known.
@@ -77,8 +83,8 @@ yarn_bin = "/usr/lib/hadoop-yarn/sbin"
 yarn_container_bin = "/usr/lib/hadoop-yarn/bin"
 hadoop_java_io_tmpdir = os.path.join(tmp_dir, "hadoop_java_io_tmpdir")
 
-# hadoop parameters for 2.2+
-if Script.is_stack_greater_or_equal("2.2"):
+# hadoop parameters stack supporting rolling_uprade
+if stack_supports_ru:
   # MapR directory root
   mapred_role_root = "hadoop-mapreduce-client"
   command_role = default("/role", "")
@@ -90,14 +96,15 @@ if Script.is_stack_greater_or_equal("2.2"):
   if command_role in YARN_SERVER_ROLE_DIRECTORY_MAP:
     yarn_role_root = YARN_SERVER_ROLE_DIRECTORY_MAP[command_role]
 
-  hadoop_mapred2_jar_location = format("/usr/hdp/current/{mapred_role_root}")
-  mapred_bin = format("/usr/hdp/current/{mapred_role_root}/sbin")
+  hadoop_mapred2_jar_location = format("{stack_root}/current/{mapred_role_root}")
+  mapred_bin = format("{stack_root}/current/{mapred_role_root}/sbin")
 
-  hadoop_yarn_home = format("/usr/hdp/current/{yarn_role_root}")
-  yarn_bin = format("/usr/hdp/current/{yarn_role_root}/sbin")
-  yarn_container_bin = format("/usr/hdp/current/{yarn_role_root}/bin")
+  hadoop_yarn_home = format("{stack_root}/current/{yarn_role_root}")
+  yarn_bin = format("{stack_root}/current/{yarn_role_root}/sbin")
+  yarn_container_bin = format("{stack_root}/current/{yarn_role_root}/bin")
 
-  # Timeline Service property that was added in 2.2
+if stack_supports_timeline_state_store:
+  # Timeline Service property that was added timeline_state_store stack feature
   ats_leveldb_state_store_dir = config['configurations']['yarn-site']['yarn.timeline-service.leveldb-state-store.path']
 
 # ats 1.5 properties
@@ -220,7 +227,7 @@ if security_enabled:
   _rm_keytab = config['configurations']['yarn-site']['yarn.resourcemanager.keytab']
   rm_kinit_cmd = format("{kinit_path_local} -kt {_rm_keytab} {_rm_principal_name};")
 
-  # YARN timeline security options are only available in HDP Champlain
+  # YARN timeline security options
   if has_ats:
     _yarn_timelineservice_principal_name = config['configurations']['yarn-site']['yarn.timeline-service.principal']
     _yarn_timelineservice_principal_name = _yarn_timelineservice_principal_name.replace('_HOST', hostname.lower())

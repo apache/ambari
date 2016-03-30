@@ -49,6 +49,8 @@ class StackFeature:
   PHOENIX = "phoenix"
   NFS = "nfs"
   TEZ_FOR_SPARK = "tez_for_spark"
+  TIMELINE_STATE_STORE = "timeline_state_store"
+  COPY_TARBALL_TO_HDFS = "copy_tarball_to_hdfs"
   SPARK_16PLUS = "spark_16plus"
   SPARK_THRIFTSERVER = "spark_thriftserver"
   STORM_KERBEROS = "storm_kerberos"

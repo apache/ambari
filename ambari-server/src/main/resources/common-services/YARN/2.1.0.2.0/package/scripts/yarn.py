@@ -260,8 +260,8 @@ def yarn(name = None):
        cd_access="a",
     )
 
-    # if HDP stack is greater than/equal to 2.2, mkdir for state store property (added in 2.2)
-    if (Script.is_stack_greater_or_equal("2.2")):
+    # if stack support application timeline-service state store property (timeline_state_store stack feature)
+    if params.stack_supports_timeline_state_store:
       Directory(params.ats_leveldb_state_store_dir,
        owner=params.yarn_user,
        group=params.user_group,

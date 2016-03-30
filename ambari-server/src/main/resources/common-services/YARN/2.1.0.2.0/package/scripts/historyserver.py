@@ -23,9 +23,10 @@ from resource_management.libraries.script.script import Script
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.functions.copy_tarball import copy_to_hdfs
-from resource_management.libraries.functions.version import compare_versions, format_stack_version
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
@@ -70,14 +71,15 @@ class HistoryserverWindows(HistoryServer):
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class HistoryServerDefault(HistoryServer):
   def get_stack_to_component(self):
-    return {"HDP": "hadoop-mapreduce-historyserver"}
+    import params
+    return {params.stack_name: "hadoop-mapreduce-historyserver"}
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     Logger.info("Executing Stack Upgrade pre-restart")
     import params
     env.set_params(params)
 
-    if params.version and compare_versions(format_stack_version(params.version), '2.2.0.0') >= 0:
+    if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
       conf_select.select(params.stack_name, "hadoop", params.version)
       stack_select.select("hadoop-mapreduce-historyserver", params.version)
       # MC Hammer said, "Can't touch this"
@@ -91,7 +93,7 @@ class HistoryServerDefault(HistoryServer):
     env.set_params(params)
     self.configure(env) # FOR SECURITY
 
-    if params.stack_version_formatted_major and compare_versions(params.stack_version_formatted_major, '2.2.0.0') >= 0:
+    if params.stack_version_formatted_major and check_stack_feature(StackFeature.COPY_TARBALL_TO_HDFS, params.stack_version_formatted_major):
       # MC Hammer said, "Can't touch this"
       resource_created = copy_to_hdfs(
         "mapreduce",
@@ -111,7 +113,7 @@ class HistoryServerDefault(HistoryServer):
       if resource_created:
         params.HdfsResource(None, action="execute")
     else:
-      # In HDP 2.1, tez.tar.gz was copied to a different folder in HDFS.
+      # In stack versions before copy_tarball_to_hdfs support tez.tar.gz was copied to a different folder in HDFS.
       install_tez_jars()
 
     service('historyserver', action='start', serviceName='mapreduce')

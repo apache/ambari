@@ -79,6 +79,16 @@ _DEFAULT_STACK_FEATURES = {
       "max_version": "2.3.0.0"
     },
     {
+      "name": "timeline_state_store",
+      "description": "Yarn application timeline-service supports state store property (AMBARI-11442)",
+      "min_version": "2.2.0.0"
+    },
+    {
+      "name": "copy_tarball_to_hdfs",
+      "description": "Copy tarball to HDFS support (AMBARI-12113)",
+      "min_version": "2.2.0.0"
+    },
+    {
       "name": "spark_16plus",
       "description": "Spark 1.6+",
       "min_version": "2.4.0.0"
