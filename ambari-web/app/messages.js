@@ -1988,6 +1988,7 @@ Em.I18n.translations = {
   'services.reassign.step4.tasks.installHostComponents.title':'Install {0}',
   'services.reassign.step4.tasks.startZooKeeperServers.title':'Start ZooKeeper Servers',
   'services.reassign.step4.tasks.startNameNode.title':'Start NameNode',
+  'services.reassign.step4.tasks.stopHostComponentsInMaintenanceMode.title':'Stop {0}',
   'services.reassign.step4.tasks.deleteHostComponents.title':'Delete disabled {0}',
   'services.reassign.step4.tasks.startRequiredServices.title':'Start Required Services',
   'services.reassign.step4.tasks.cleanMySqlServer.title':'Clean MYSQL Server',

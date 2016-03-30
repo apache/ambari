@@ -190,6 +190,7 @@ module.exports = App.WizardRoute.extend({
     },
     back: Em.Router.transitionTo('step2'),
     next: function (router) {
+      var controller = router.get('reassignMasterController');
       App.db.setReassignTasksStatuses(undefined);
       App.db.setReassignTasksRequestIds(undefined);
       App.clusterStatus.setClusterStatus({
@@ -198,6 +199,7 @@ module.exports = App.WizardRoute.extend({
         wizardControllerName: 'reassignMasterController',
         localdb: App.db.data
       });
+      controller.saveReassignComponentsInMM(controller.getReassignComponentsInMM());
       router.transitionTo('step4');
     },
 
@@ -276,17 +278,8 @@ module.exports = App.WizardRoute.extend({
     },
     next: function (router) {
       App.showConfirmationPopup(function () {
-        var hostComponentsInMM = [];
         var controller = router.get('reassignMasterController');
-        var sourceHostComponents = App.HostComponent.find().filterProperty('hostName', controller.get('content.reassignHosts.source'));
-        var reassignComponents = controller.get('content.reassign.component_name') === 'NAMENODE' && App.get('isHaEnabled') ? ['NAMENODE', 'ZKFC'] : [controller.get('content.reassign.component_name')];
-        reassignComponents.forEach(function(hostComponent){
-          var componentToReassign = sourceHostComponents.findProperty('componentName', hostComponent);
-          if (componentToReassign && !componentToReassign.get('isActive') && componentToReassign.get('workStatus') === 'STARTED') {
-            hostComponentsInMM.push(hostComponent);
-          }
-        });
-        controller.saveReassignComponentsInMM(hostComponentsInMM);
+        controller.saveReassignComponentsInMM(controller.getReassignComponentsInMM());
         router.transitionTo('step6');
       }, Em.I18n.t('services.reassign.step5.confirmPopup.body'));
     },

@@ -22,7 +22,13 @@ App.ReassignMasterWizardStep6Controller = App.HighAvailabilityProgressPageContro
 
   name: "reassignMasterWizardStep2Controller",
 
-  commands: ['stopMysqlService', 'putHostComponentsInMaintenanceMode', 'stopHostComponentsInMaintenanceMode', 'deleteHostComponents', 'startAllServices'],
+  commands: [
+    'stopMysqlService',
+    'putHostComponentsInMaintenanceMode',
+    'stopHostComponentsInMaintenanceMode',
+    'deleteHostComponents',
+    'startAllServices'
+  ],
 
   clusterDeployState: 'REASSIGN_MASTER_INSTALLING',
 
@@ -69,10 +75,12 @@ App.ReassignMasterWizardStep6Controller = App.HighAvailabilityProgressPageContro
   },
 
   removeUnneededTasks: function () {
-    if ( this.get('content.reassign.component_name') !== 'MYSQL_SERVER' ) {
+    if (this.get('content.reassign.component_name') !== 'MYSQL_SERVER') {
       this.removeTasks(['putHostComponentsInMaintenanceMode', 'stopMysqlService']);
-    }
-    if (!this.get('content.reassignComponentsInMM.length')) {
+      if (!this.get('content.reassignComponentsInMM.length')) {
+        this.removeTasks(['stopHostComponentsInMaintenanceMode']);
+      }
+    } else {
       this.removeTasks(['stopHostComponentsInMaintenanceMode']);
     }
   },
