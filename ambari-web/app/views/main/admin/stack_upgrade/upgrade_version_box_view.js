@@ -22,7 +22,7 @@ var stringUtils = require('utils/string_utils');
 
 App.UpgradeVersionBoxView = Em.View.extend({
   templateName: require('templates/main/admin/stack_upgrade/upgrade_version_box'),
-  classNames: ['span4', 'version-box'],
+  classNames: ['version-box'],
   classNameBindings: ['versionClass'],
 
   /**
