@@ -108,6 +108,11 @@ _DEFAULT_STACK_FEATURES = {
       "name": "kafka_kerberos",
       "description": "Kafka Kerberos support (AMBARI-10984)",
       "min_version": "2.3.0.0"
+    },
+    {
+      "name": "pig_on_tez",
+      "description": "Pig on Tez support (AMBARI-7863)",
+      "min_version": "2.2.0.0"
     }
   ]
 }

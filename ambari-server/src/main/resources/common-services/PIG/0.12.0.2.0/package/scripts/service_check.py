@@ -25,7 +25,8 @@ from resource_management.core.resources.system import Execute, File
 from resource_management.core.source import InlineTemplate, StaticFile
 from resource_management.libraries.functions.copy_tarball import copy_to_hdfs
 from resource_management.libraries.functions.format import format
-from resource_management.libraries.functions.version import compare_versions
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.resources.execute_hadoop import ExecuteHadoop
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.script.script import Script
@@ -84,7 +85,7 @@ class PigServiceCheckLinux(PigServiceCheck):
       bin_dir = params.hadoop_bin_dir
     )
 
-    if params.stack_version_formatted != "" and compare_versions(params.stack_version_formatted, '2.2') >= 0:
+    if params.stack_version_formatted and check_stack_feature(StackFeature.PIG_ON_TEZ, params.stack_version_formatted):
       # cleanup results from previous test
       params.HdfsResource(output_dir,
                           type="directory",
