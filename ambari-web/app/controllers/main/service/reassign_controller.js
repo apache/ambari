@@ -264,7 +264,6 @@ App.ReassignMasterController = App.WizardController.extend({
     switch (step) {
       case '7':
       case '6':
-        this.loadReassignComponentsInMM();
       case '5':
         this.loadSecureConfigs();
         this.loadComponentDir();
@@ -272,6 +271,7 @@ App.ReassignMasterController = App.WizardController.extend({
         this.loadTasksStatuses();
         this.loadTasksRequestIds();
         this.loadRequestIds();
+        this.loadReassignComponentsInMM();
       case '3':
         this.loadReassignHosts();
       case '2':
@@ -303,6 +303,19 @@ App.ReassignMasterController = App.WizardController.extend({
       wizardControllerName: 'reassignMasterController',
       localdb: App.db.data
     });
+  },
+
+  getReassignComponentsInMM: function () {
+    var hostComponentsInMM = [];
+    var sourceHostComponents = App.HostComponent.find().filterProperty('hostName', this.get('content.reassignHosts.source'));
+    var reassignComponents = this.get('content.reassign.component_name') === 'NAMENODE' && App.get('isHaEnabled') ? ['NAMENODE', 'ZKFC'] : [this.get('content.reassign.component_name')];
+    reassignComponents.forEach(function(hostComponent){
+      var componentToReassign = sourceHostComponents.findProperty('componentName', hostComponent);
+      if (componentToReassign && !componentToReassign.get('isActive') && componentToReassign.get('workStatus') === 'STARTED') {
+        hostComponentsInMM.push(hostComponent);
+      }
+    });
+    return hostComponentsInMM;
   },
 
   /**
