@@ -52,7 +52,6 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
   protected String tableName;
   protected String outputTableName;
   protected Long nativeTimeRangeDelay;
-  protected Long lastAggregatedEndTime = -1l;
 
   // Explicitly name aggregators for logging needs
   private final String aggregatorName;
@@ -93,18 +92,19 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
     LOG.info("Started Timeline aggregator thread @ " + new Date());
     Long SLEEP_INTERVAL = getSleepIntervalMillis();
     runOnce(SLEEP_INTERVAL);
-    this.lastAggregatedEndTime = this.lastAggregatedEndTime + SLEEP_INTERVAL;
   }
 
   /**
    * Access relaxed for tests
    */
   public void runOnce(Long SLEEP_INTERVAL) {
-    long lastCheckPointTime = readLastCheckpointSavingOnFirstRun();
+
+    long currentTime = System.currentTimeMillis();
+    long lastCheckPointTime = readLastCheckpointSavingOnFirstRun(currentTime);
 
     if (lastCheckPointTime != -1) {
       LOG.info("Last check point time: " + lastCheckPointTime + ", lagBy: "
-        + ((lastAggregatedEndTime - lastCheckPointTime) / 1000)
+        + ((currentTime - lastCheckPointTime) / 1000)
         + " seconds.");
 
       boolean success = doWork(lastCheckPointTime, lastCheckPointTime + SLEEP_INTERVAL);
@@ -120,40 +120,40 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
     }
   }
 
-  private long readLastCheckpointSavingOnFirstRun() {
+  private long readLastCheckpointSavingOnFirstRun(long currentTime) {
     long lastCheckPointTime = -1;
 
     try {
       lastCheckPointTime = readCheckPoint();
-      LOG.info("Last Checkpoint read : " + new Date(lastCheckPointTime));
+      if (lastCheckPointTime != -1) {
+        LOG.info("Last Checkpoint read : " + new Date(lastCheckPointTime));
+        if (isLastCheckPointTooOld(currentTime, lastCheckPointTime)) {
+          LOG.warn("Last Checkpoint is too old, discarding last checkpoint. " +
+            "lastCheckPointTime = " + new Date(lastCheckPointTime));
+          lastCheckPointTime = getRoundedAggregateTimeMillis(getSleepIntervalMillis()) - getSleepIntervalMillis();
+          LOG.info("Saving checkpoint time. " + new Date((lastCheckPointTime)));
+          saveCheckPoint(lastCheckPointTime);
 
-      if (lastAggregatedEndTime == -1l) {
-        lastAggregatedEndTime = getRoundedAggregateTimeMillis(getSleepIntervalMillis());
-      }
+        } else {
 
-      if (isLastCheckPointTooOld(lastCheckPointTime)) {
-        LOG.warn("Last Checkpoint is too old, discarding last checkpoint. " +
-          "lastCheckPointTime = " + new Date(lastCheckPointTime));
-        lastCheckPointTime = -1;
-      }
+          if (lastCheckPointTime > 0) {
+            lastCheckPointTime = getRoundedCheckPointTimeMillis(lastCheckPointTime, getSleepIntervalMillis());
+            LOG.info("Rounded off checkpoint : " + new Date(lastCheckPointTime));
+          }
 
-      if (lastCheckPointTime > 0) {
-        lastCheckPointTime = getRoundedCheckPointTimeMillis(lastCheckPointTime, getSleepIntervalMillis());
-        LOG.info("Rounded off checkpoint : " + new Date(lastCheckPointTime));
-      }
-
-      if (isLastCheckPointTooYoung(lastCheckPointTime)) {
-        LOG.info("Last checkpoint too recent for aggregation. Sleeping for 1 cycle.");
-        lastCheckPointTime = -1;
-      }
-
-      if (lastCheckPointTime == -1) {
-        // Assuming first run, save checkpoint and sleep.
-        // Set checkpoint to rounded time in the past to allow the
-        // agents/collectors to catch up
-        LOG.info("Saving checkpoint time on first run. " +
-          new Date((lastAggregatedEndTime)));
-        saveCheckPoint(lastAggregatedEndTime);
+          if (isLastCheckPointTooYoung(lastCheckPointTime)) {
+            LOG.info("Last checkpoint too recent for aggregation. Sleeping for 1 cycle.");
+            return -1; //Skip Aggregation this time around
+          }
+        }
+      } else {
+        /*
+          No checkpoint. Save current rounded checkpoint and sleep for 1 cycle.
+         */
+        LOG.info("No checkpoint found");
+        long firstCheckPoint = getRoundedAggregateTimeMillis(getSleepIntervalMillis());
+        LOG.info("Saving checkpoint time. " + new Date((firstCheckPoint)));
+        saveCheckPoint(firstCheckPoint);
       }
     } catch (IOException io) {
       LOG.warn("Unable to write last checkpoint time. Resuming sleep.", io);
@@ -161,16 +161,16 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
     return lastCheckPointTime;
   }
 
-  private boolean isLastCheckPointTooOld(long checkpoint) {
+  private boolean isLastCheckPointTooOld(long currentTime, long checkpoint) {
     // first checkpoint is saved checkpointDelayMillis in the past,
     // so here we also need to take it into account
     return checkpoint != -1 &&
-      ((lastAggregatedEndTime - checkpoint) > getCheckpointCutOffIntervalMillis());
+      ((currentTime - checkpoint) > getCheckpointCutOffIntervalMillis());
   }
 
   private boolean isLastCheckPointTooYoung(long checkpoint) {
     return checkpoint != -1 &&
-      ((lastAggregatedEndTime <= checkpoint));
+      ((getRoundedAggregateTimeMillis(getSleepIntervalMillis()) <= checkpoint));
   }
 
   protected long readCheckPoint() {
@@ -306,14 +306,6 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
 
   protected String getCheckpointLocation() {
     return checkpointLocation;
-  }
-
-  protected void setLastAggregatedEndTime(long lastAggregatedEndTime) {
-    this.lastAggregatedEndTime = lastAggregatedEndTime;
-  }
-
-  protected long getLastAggregatedEndTime() {
-    return lastAggregatedEndTime;
   }
 
   public static long getRoundedCheckPointTimeMillis(long referenceTime, long aggregatorPeriod) {
