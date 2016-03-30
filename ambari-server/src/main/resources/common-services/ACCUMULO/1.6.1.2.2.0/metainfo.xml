@@ -54,6 +54,11 @@
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
+          <logs>
+            <log>
+              <logId>accumulo_master</logId>
+            </log>
+          </logs>
         </component>
 
         <component>
@@ -68,6 +73,11 @@
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
+          <logs>
+            <log>
+              <logId>accumulo_monitor</logId>
+            </log>
+          </logs>
         </component>
 
         <component>
@@ -82,6 +92,11 @@
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
+          <logs>
+            <log>
+              <logId>accumulo_gc</logId>
+            </log>
+          </logs>
         </component>
 
         <component>
@@ -96,6 +111,11 @@
             <scriptType>PYTHON</scriptType>
             <timeout>180</timeout>
           </commandScript>
+          <logs>
+            <log>
+              <logId>accumulo_tracer</logId>
+            </log>
+          </logs>
         </component>
 
         <component>
@@ -109,6 +129,11 @@
             <script>scripts/accumulo_tserver.py</script>
             <scriptType>PYTHON</scriptType>
           </commandScript>
+          <logs>
+            <log>
+              <logId>accumulo_tserver</logId>
+            </log>
+          </logs>
         </component>
 
         <component>

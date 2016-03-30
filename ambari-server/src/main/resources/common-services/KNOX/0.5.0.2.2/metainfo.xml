@@ -35,24 +35,35 @@
             <scriptType>PYTHON</scriptType>
             <timeout>1200</timeout>
           </commandScript>
-            <customCommands>
-                <customCommand>
-                    <name>STARTDEMOLDAP</name>
-                    <commandScript>
-                        <script>scripts/knox_gateway.py</script>
-                        <scriptType>PYTHON</scriptType>
-                        <timeout>600</timeout>
-                    </commandScript>
-                </customCommand>
-                <customCommand>
-                    <name>STOPDEMOLDAP</name>
-                    <commandScript>
-                        <script>scripts/knox_gateway.py</script>
-                        <scriptType>PYTHON</scriptType>
-                        <timeout>600</timeout>
-                    </commandScript>
-                </customCommand>
-            </customCommands>
+          <logs>
+            <log>
+              <logId>knox_gateway</logId>
+            </log>
+            <log>
+              <logId>knox_cli</logId>
+            </log>
+            <log>
+              <logId>knox_ldap</logId>
+            </log>
+          </logs>
+          <customCommands>
+            <customCommand>
+              <name>STARTDEMOLDAP</name>
+              <commandScript>
+                <script>scripts/knox_gateway.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>600</timeout>
+              </commandScript>
+            </customCommand>
+            <customCommand>
+              <name>STOPDEMOLDAP</name>
+              <commandScript>
+                <script>scripts/knox_gateway.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>600</timeout>
+              </commandScript>
+            </customCommand>
+          </customCommands>
         </component>
       </components>
       <commandScript>

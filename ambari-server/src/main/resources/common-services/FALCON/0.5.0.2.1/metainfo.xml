@@ -80,6 +80,11 @@
             <scriptType>PYTHON</scriptType>
             <timeout>1200</timeout>
           </commandScript>
+          <logs>
+            <log>
+              <logId>falcon_app</logId>
+            </log>
+          </logs>
         </component>
       </components>
 

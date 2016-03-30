@@ -39,6 +39,11 @@
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
+          <logs>
+            <log>
+              <logId>ranger_kms</logId>
+            </log>
+          </logs>
         </component>
 
       </components>

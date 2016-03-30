@@ -38,6 +38,11 @@
             <scriptType>PYTHON</scriptType>
             <timeout>1200</timeout>
           </commandScript>
+          <logs>
+            <log>
+              <logId>atlas_app</logId>
+            </log>
+          </logs>
           <configFile>
             <type>properties</type>
             <fileName>application.properties</fileName>

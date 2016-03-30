@@ -36,6 +36,11 @@
             <scriptType>PYTHON</scriptType>
             <timeout>1200</timeout>
           </commandScript>
+          <logs>
+            <log>
+              <logId>zookeeper</logId>
+            </log>
+          </logs>
         </component>
 
         <component>

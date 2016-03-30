@@ -183,6 +183,28 @@ public class AmbariMetaInfoTest {
   }
 
   @Test
+  public void getLogs() throws AmbariException {
+    ComponentInfo component;
+
+    component = metaInfo.getComponent(STACK_NAME_HDP, "2.1.1", SERVICE_NAME_HDFS, "NAMENODE");
+    assertNotNull(component);
+    assertNotNull(component.getLogs());
+    assertTrue(component.getLogs().size() == 2);
+    assertEquals(component.getLogs().get(0).getLogId(), "hdfs_namenode");
+    assertEquals(component.getLogs().get(1).getLogId(), "hdfs_audit");
+
+    component = metaInfo.getComponent(STACK_NAME_HDP, "2.1.1", SERVICE_NAME_HDFS, "DATANODE");
+    assertNotNull(component);
+    assertNotNull(component.getLogs());
+    assertTrue(component.getLogs().size() == 1);
+    assertEquals(component.getLogs().get(0).getLogId(), "hdfs_datanode");
+
+    component = metaInfo.getComponent(STACK_NAME_HDP, "2.1.1", SERVICE_NAME_HDFS, "HDFS_CLIENT");
+    assertNotNull(component);
+    assertNull(component.getLogs());
+  }
+
+  @Test
   public void getRepository() throws AmbariException {
     Map<String, List<RepositoryInfo>> repository = metaInfo.getRepository(
         STACK_NAME_HDP, STACK_VERSION_HDP);

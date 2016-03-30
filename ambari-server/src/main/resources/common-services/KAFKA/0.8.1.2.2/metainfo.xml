@@ -44,6 +44,23 @@
             <scriptType>PYTHON</scriptType>
             <timeout>1200</timeout>
           </commandScript>
+          <logs>
+            <log>
+              <logId>kafka_controller</logId>
+            </log>
+            <log>
+              <logId>kafka_request</logId>
+            </log>
+            <log>
+              <logId>kafka_logcleaner</logId>
+            </log>
+            <log>
+              <logId>kafka_server</logId>
+            </log>
+            <log>
+              <logId>kafka_statechange</logId>
+            </log>
+          </logs>
         </component>
       </components>
       <commandScript>

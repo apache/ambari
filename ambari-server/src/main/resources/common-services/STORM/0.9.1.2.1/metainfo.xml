@@ -46,6 +46,11 @@
             <scriptType>PYTHON</scriptType>
             <timeout>1200</timeout>
           </commandScript>
+          <logs>
+            <log>
+              <logId>storm_nimbus</logId>
+            </log>
+          </logs>
         </component>
 
         <component>
@@ -59,6 +64,14 @@
             <scriptType>PYTHON</scriptType>
             <timeout>1200</timeout>
           </commandScript>
+          <logs>
+            <log>
+              <logId>storm_logviewer</logId>
+            </log>
+            <log>
+              <logId>storm_worker</logId>
+            </log>
+          </logs>
         </component>
 
         <component>
@@ -72,6 +85,11 @@
             <scriptType>PYTHON</scriptType>
             <timeout>1200</timeout>
           </commandScript>
+          <logs>
+            <log>
+              <logId>storm_supervisor</logId>
+            </log>
+          </logs>
         </component>
 
         <component>
@@ -85,6 +103,11 @@
             <scriptType>PYTHON</scriptType>
             <timeout>1200</timeout>
           </commandScript>
+          <logs>
+            <log>
+              <logId>storm_ui</logId>
+            </log>
+          </logs>
         </component>
 
         <component>
@@ -98,6 +121,11 @@
             <scriptType>PYTHON</scriptType>
             <timeout>1200</timeout>
           </commandScript>
+          <logs>
+            <log>
+              <logId>storm_drpc</logId>
+            </log>
+          </logs>
         </component>
       </components>
 

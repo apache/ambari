@@ -39,6 +39,14 @@
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
+          <logs>
+            <log>
+              <logId>ranger_admin</logId>
+            </log>
+            <log>
+              <logId>ranger_dbpatch</logId>
+            </log>
+          </logs>
         </component>
 
         <component>
@@ -51,10 +59,15 @@
             <script>scripts/ranger_usersync.py</script>
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
-          </commandScript>        
+          </commandScript>
+          <logs>
+            <log>
+              <logId>ranger_usersync</logId>
+            </log>
+          </logs>
         </component>
 
-      </components>              
+      </components>
 
       <configuration-dependencies>
         <config-type>admin-properties</config-type>
@@ -65,7 +78,7 @@
       <commandScript>
         <script>scripts/service_check.py</script>
         <scriptType>PYTHON</scriptType>
-        <timeout>300</timeout>        
+        <timeout>300</timeout>
       </commandScript>
 
     </service>

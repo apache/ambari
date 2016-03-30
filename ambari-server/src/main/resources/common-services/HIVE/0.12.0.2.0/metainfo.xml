@@ -41,6 +41,11 @@
             <scriptType>PYTHON</scriptType>
             <timeout>1200</timeout>
           </commandScript>
+          <logs>
+            <log>
+              <logId>hive_metastore</logId>
+            </log>
+          </logs>
           <configuration-dependencies>
             <config-type>hive-site</config-type>
           </configuration-dependencies>
@@ -81,6 +86,11 @@
             <script>scripts/hive_server.py</script>
             <scriptType>PYTHON</scriptType>
           </commandScript>
+          <logs>
+            <log>
+              <logId>hive_hiveserver2</logId>
+            </log>
+          </logs>
           <configuration-dependencies>
             <config-type>hive-site</config-type>
           </configuration-dependencies>
