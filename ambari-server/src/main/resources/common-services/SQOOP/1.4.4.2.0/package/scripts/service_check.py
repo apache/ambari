@@ -33,7 +33,8 @@ class SqoopServiceCheck(Script):
 class SqoopServiceCheckDefault(SqoopServiceCheck):
 
   def get_stack_to_component(self):
-    return {"HDP": "sqoop-server"}
+    import params
+    return {params.stack_name: "sqoop-server"}
 
   def service_check(self, env):
     import params
