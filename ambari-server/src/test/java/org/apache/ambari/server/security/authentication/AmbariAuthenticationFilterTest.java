@@ -29,6 +29,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.ambari.server.audit.event.AuditEvent;
 import org.apache.ambari.server.audit.AuditLogger;
+import org.apache.ambari.server.security.AmbariEntryPoint;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.PermissionHelper;
 import org.junit.runner.RunWith;
@@ -58,11 +59,15 @@ public class AmbariAuthenticationFilterTest {
 
   private PermissionHelper permissionHelper;
 
+  private AmbariEntryPoint entryPoint;
+
   @Before
   public void setUp() {
     mockedAuditLogger = createMock(AuditLogger.class);
     permissionHelper = createMock(PermissionHelper.class);
-    underTest = new AmbariAuthenticationFilter(null, mockedAuditLogger, permissionHelper);
+    entryPoint = createMock(AmbariEntryPoint.class);
+    underTest = new AmbariAuthenticationFilter(null, mockedAuditLogger, permissionHelper, entryPoint);
+    replay(entryPoint);
   }
 
   @Test

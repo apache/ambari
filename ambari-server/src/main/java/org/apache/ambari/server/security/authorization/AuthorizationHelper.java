@@ -291,47 +291,6 @@ public class AuthorizationHelper {
   }
 
   /**
-   * Retrieve permission labels based on the details of the authenticated user
-   * @param authentication the authenticated user and associated access privileges
-   * @return human-readable permissions
-   */
-  public static Map<String,List<String>> getPermissionLabels(Authentication authentication) {
-    Map<String,List<String>> permissionLabels = new HashMap<>();
-    if (authentication.getAuthorities() != null) {
-      for (GrantedAuthority grantedAuthority : authentication.getAuthorities()) {
-        AmbariGrantedAuthority ambariGrantedAuthority = (AmbariGrantedAuthority) grantedAuthority;
-
-        PrivilegeEntity privilegeEntity = ambariGrantedAuthority.getPrivilegeEntity();
-
-        String key = null;
-        try {
-          switch(privilegeEntity.getResource().getResourceType().getName()) {
-            case "CLUSTER":
-              key = clusters.getClusterById(privilegeEntity.getResource().getResourceType().getId()).getClusterName();
-              break;
-            case "AMBARI":
-              key = "Ambari";
-              break;
-            default:
-              key = viewInstanceDAO.findByResourceId(privilegeEntity.getResource().getId()).getLabel();
-              break;
-          }
-        } catch (Throwable ignored) {
-
-        }
-
-        if(key != null) {
-          if(!permissionLabels.containsKey(key)) {
-            permissionLabels.put(key, new LinkedList<String>());
-          }
-          permissionLabels.get(key).add(privilegeEntity.getPermission().getPermissionLabel());
-        }
-      }
-    }
-    return permissionLabels;
-  }
-
-  /**
    * Retrieve authorization names based on the details of the authenticated user
    * @param authentication the authenticated user and associated access privileges
    * @return human readable role authorizations

@@ -27,6 +27,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.ambari.server.audit.event.AuditEvent;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.audit.event.LoginAuditEvent;
+import org.apache.ambari.server.security.AmbariEntryPoint;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.PermissionHelper;
 import org.apache.ambari.server.utils.RequestUtils;
@@ -57,8 +58,8 @@ public class AmbariAuthenticationFilter extends BasicAuthenticationFilter {
     super();
   }
 
-  public AmbariAuthenticationFilter(AuthenticationManager authenticationManager, AuditLogger auditLogger, PermissionHelper permissionHelper) {
-    super(authenticationManager);
+  public AmbariAuthenticationFilter(AuthenticationManager authenticationManager, AuditLogger auditLogger, PermissionHelper permissionHelper, AmbariEntryPoint ambariEntryPoint) {
+    super(authenticationManager, ambariEntryPoint);
     this.auditLogger = auditLogger;
     this.permissionHelper = permissionHelper;
   }

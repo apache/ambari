@@ -852,7 +852,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
 
     tasksForRequest.get(requestId).put(commandEntity.getTaskId(), commandEntity.getStatus());
 
-    HostRoleStatus calculatedStatus = CalculatedStatus.calculateSummaryStatus(CalculatedStatus.calculateStatusCounts(tasksForRequest.get(requestId).values()), tasksForRequest.get(requestId).size(), false);
+    HostRoleStatus calculatedStatus = CalculatedStatus.calculateSummaryStatusOfStage(CalculatedStatus.calculateStatusCounts(tasksForRequest.get(requestId).values()), tasksForRequest.get(requestId).size(), false);
 
     // if all task status is completed, we can remove it from the container
     boolean hasInProgress = false;
