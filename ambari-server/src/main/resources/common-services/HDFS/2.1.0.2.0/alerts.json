@@ -527,7 +527,7 @@
         "description": "This service-level alert is triggered if the deviation of RPC queue latency on datanode port has grown beyond the specified threshold within a given time interval.",
         "interval": 5,
         "scope": "ANY",
-        "enabled": true,
+        "enabled": false,
         "source": {
           "type": "SCRIPT",
           "path": "HDFS/2.1.0.2.0/package/alerts/alert_metrics_deviation.py",
@@ -592,7 +592,7 @@
         "description": "This service-level alert is triggered if the deviation of RPC queue latency on client port has grown beyond the specified threshold within a given time interval.",
         "interval": 5,
         "scope": "ANY",
-        "enabled": true,
+        "enabled": false,
         "source": {
           "type": "SCRIPT",
           "path": "HDFS/2.1.0.2.0/package/alerts/alert_metrics_deviation.py",
@@ -657,7 +657,7 @@
         "description": "This service-level alert is triggered if the deviation of RPC latency on datanode port has grown beyond the specified threshold within a given time interval.",
         "interval": 5,
         "scope": "ANY",
-        "enabled": true,
+        "enabled": false,
         "source": {
           "type": "SCRIPT",
           "path": "HDFS/2.1.0.2.0/package/alerts/alert_metrics_deviation.py",
@@ -722,7 +722,7 @@
         "description": "This service-level alert is triggered if the deviation of RPC latency on client port has grown beyond the specified threshold within a given time interval.",
         "interval": 5,
         "scope": "ANY",
-        "enabled": true,
+        "enabled": false,
         "source": {
           "type": "SCRIPT",
           "path": "HDFS/2.1.0.2.0/package/alerts/alert_metrics_deviation.py",
@@ -787,7 +787,7 @@
         "description": "This service-level alert is triggered if the NN heap usage deviation has grown beyond the specified threshold within a given time interval.",
         "interval": 480,
         "scope": "ANY",
-        "enabled": true,
+        "enabled": false,
         "source": {
           "type": "SCRIPT",
           "path": "HDFS/2.1.0.2.0/package/alerts/alert_metrics_deviation.py",
@@ -845,7 +845,7 @@
         "description": "This service-level alert is triggered if the deviation of RPC latency on datanode port has grown beyond the specified threshold within a given time interval.",
         "interval": 480,
         "scope": "ANY",
-        "enabled": true,
+        "enabled": false,
         "source": {
           "type": "SCRIPT",
           "path": "HDFS/2.1.0.2.0/package/alerts/alert_metrics_deviation.py",
@@ -910,7 +910,7 @@
         "description": "This service-level alert is triggered if the deviation of RPC latency on client port has grown beyond the specified threshold within a given time interval.",
         "interval": 480,
         "scope": "ANY",
-        "enabled": true,
+        "enabled": false,
         "source": {
           "type": "SCRIPT",
           "path": "HDFS/2.1.0.2.0/package/alerts/alert_metrics_deviation.py",
@@ -975,7 +975,7 @@
         "description": "This service-level alert is triggered if the deviation of RPC latency on datanode port has grown beyond the specified threshold within a given time interval.",
         "interval": 480,
         "scope": "ANY",
-        "enabled": true,
+        "enabled": false,
         "source": {
           "type": "SCRIPT",
           "path": "HDFS/2.1.0.2.0/package/alerts/alert_metrics_deviation.py",
@@ -1040,7 +1040,7 @@
         "description": "This service-level alert is triggered if the deviation of RPC latency on client port has grown beyond the specified threshold within a given time interval.",
         "interval": 480,
         "scope": "ANY",
-        "enabled": true,
+        "enabled": false,
         "source": {
           "type": "SCRIPT",
           "path": "HDFS/2.1.0.2.0/package/alerts/alert_metrics_deviation.py",
@@ -1105,7 +1105,7 @@
         "description": "This service-level alert is triggered if the increase in storage capacity usage deviation has grown beyond the specified threshold within a given time interval.",
         "interval": 480,
         "scope": "ANY",
-        "enabled": true,
+        "enabled": false,
         "source": {
           "type": "SCRIPT",
           "path": "HDFS/2.1.0.2.0/package/alerts/alert_metrics_deviation.py",
@@ -1163,7 +1163,7 @@
         "description": "This service-level alert is triggered if the NN heap usage deviation has grown beyond the specified threshold within a given time interval.",
         "interval": 1440,
         "scope": "ANY",
-        "enabled": true,
+        "enabled": false,
         "source": {
           "type": "SCRIPT",
           "path": "HDFS/2.1.0.2.0/package/alerts/alert_metrics_deviation.py",
@@ -1221,7 +1221,7 @@
         "description": "This service-level alert is triggered if the increase in storage capacity usage deviation has grown beyond the specified threshold within a given time interval.",
         "interval": 1440,
         "scope": "ANY",
-        "enabled": true,
+        "enabled": false,
         "source": {
           "type": "SCRIPT",
           "path": "HDFS/2.1.0.2.0/package/alerts/alert_metrics_deviation.py",
