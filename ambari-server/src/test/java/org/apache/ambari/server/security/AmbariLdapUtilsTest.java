@@ -19,11 +19,29 @@ package org.apache.ambari.server.security;
 
 import org.apache.ambari.server.security.authorization.AmbariLdapUtils;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.easymock.PowerMock;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+import org.springframework.ldap.core.DirContextAdapter;
+import org.springframework.ldap.core.DistinguishedName;
+import org.springframework.security.ldap.LdapUtils;
+
+import javax.naming.Context;
+import javax.naming.NamingException;
 
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(LdapUtils.class)
 public class AmbariLdapUtilsTest {
+
+  private static final String USER_DN = "uid=myuser,ou=hdp,ou=Users,dc=apache,dc=org";
 
   @Test
   public void testIsUserPrincipalNameFormat_True() throws Exception {
@@ -83,5 +101,51 @@ public class AmbariLdapUtilsTest {
 
     // Then
     assertFalse(isUserPrincipalNameFormat);
+  }
+
+  @Test
+  public void testIsLdapObjectOutOfScopeFromBaseDn() throws NamingException {
+    // GIVEN
+    DistinguishedName fullDn = new DistinguishedName(USER_DN);
+    Context context = createNiceMock(Context.class);
+    DirContextAdapter adapter = createNiceMock(DirContextAdapter.class);
+
+    PowerMock.mockStatic(LdapUtils.class);
+    expect(LdapUtils.getFullDn(anyObject(DistinguishedName.class), anyObject(Context.class)))
+      .andReturn(fullDn).anyTimes();
+
+    expect(adapter.getDn()).andReturn(fullDn);
+    expect(context.getNameInNamespace()).andReturn(USER_DN);
+
+    replay(adapter, context);
+    PowerMock.replayAll();
+
+    // WHEN
+    boolean isOutOfScopeFromBaseDN = AmbariLdapUtils.isLdapObjectOutOfScopeFromBaseDn(adapter, "dc=apache,dc=org");
+    // THEN
+    assertFalse(isOutOfScopeFromBaseDN);
+  }
+
+  @Test
+  public void testIsLdapObjectOutOfScopeFromBaseDn_dnOutOfScope() throws NamingException {
+    // GIVEN
+    DistinguishedName fullDn = new DistinguishedName(USER_DN);
+    Context context = createNiceMock(Context.class);
+    DirContextAdapter adapter = createNiceMock(DirContextAdapter.class);
+
+    PowerMock.mockStatic(LdapUtils.class);
+    expect(LdapUtils.getFullDn(anyObject(DistinguishedName.class), anyObject(Context.class)))
+      .andReturn(fullDn).anyTimes();
+
+    expect(adapter.getDn()).andReturn(fullDn);
+    expect(context.getNameInNamespace()).andReturn(USER_DN);
+
+    replay(adapter, context);
+    PowerMock.replayAll();
+
+    // WHEN
+    boolean isOutOfScopeFromBaseDN = AmbariLdapUtils.isLdapObjectOutOfScopeFromBaseDn(adapter, "dc=apache,dc=org,ou=custom");
+    // THEN
+    assertTrue(isOutOfScopeFromBaseDN);
   }
 }

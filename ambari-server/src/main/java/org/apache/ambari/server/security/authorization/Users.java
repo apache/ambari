@@ -360,7 +360,12 @@ public class Users {
     } else {
       final Set<User> users = new HashSet<User>();
       for (MemberEntity memberEntity: groupEntity.getMemberEntities()) {
-        users.add(new User(memberEntity.getUser()));
+        if (memberEntity.getUser() != null) {
+          users.add(new User(memberEntity.getUser()));
+        } else {
+          LOG.error("Wrong state, not found user for member '{}' (group: '{}')",
+            memberEntity.getMemberId(), memberEntity.getGroup().getGroupName());
+        }
       }
       return users;
     }
