@@ -18,16 +18,6 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
-
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collection;
@@ -48,6 +38,7 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.api.services.BaseRequest;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.ExecuteActionRequest;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
@@ -63,17 +54,39 @@ import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.topology.ClusterTopology;
+import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.LogicalRequest;
 import org.apache.ambari.server.topology.TopologyManager;
+import org.apache.ambari.server.topology.TopologyRequest;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.easymock.PowerMock;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
 
 /**
  * RequestResourceProvider tests.
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(AmbariServer.class)
 public class RequestResourceProviderTest {
 
   private RequestDAO requestDAO;
@@ -86,6 +99,8 @@ public class RequestResourceProviderTest {
     requestDAO = createNiceMock(RequestDAO.class);
     hrcDAO = createNiceMock(HostRoleCommandDAO.class);
     topologyManager = createNiceMock(TopologyManager.class);
+
+    reset(topologyManager);
 
     //todo: add assertions for topology manager interactions
     expect(topologyManager.getStageSummaries(EasyMock.<Long>anyObject())).andReturn(
@@ -1261,5 +1276,103 @@ public class RequestResourceProviderTest {
 
     // verify
     verify(managementController, actionManager, clusters, requestMock, requestDAO, hrcDAO);
+  }
+
+  @Test
+  public void testGetLogicalRequestStatusWithNoTasks() throws Exception {
+    // Given
+    Resource.Type type = Resource.Type.Request;
+
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    ActionManager actionManager = createNiceMock(ActionManager.class);
+
+    Clusters clusters = createNiceMock(Clusters.class);
+
+    RequestEntity requestMock = createNiceMock(RequestEntity.class);
+
+    expect(requestMock.getRequestContext()).andReturn("this is a context").anyTimes();
+    expect(requestMock.getRequestId()).andReturn(100L).anyTimes();
+    Capture<Collection<Long>> requestIdsCapture = Capture.newInstance();
+
+
+    ClusterTopology topology = createNiceMock(ClusterTopology.class);
+    expect(topology.getClusterId()).andReturn(2L).anyTimes();
+
+    Long clusterId = 2L;
+    String clusterName = "cluster1";
+    Cluster cluster = createNiceMock(Cluster.class);
+    expect(cluster.getClusterId()).andReturn(clusterId).anyTimes();
+    expect(cluster.getClusterName()).andReturn(clusterName).anyTimes();
+
+    expect(managementController.getActionManager()).andReturn(actionManager).anyTimes();
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getCluster(eq(clusterName))).andReturn(cluster).anyTimes();
+    expect(clusters.getClusterById(clusterId)).andReturn(cluster).anyTimes();
+    expect(requestDAO.findByPks(capture(requestIdsCapture), eq(true))).andReturn(Lists.newArrayList(requestMock));
+    expect(hrcDAO.findAggregateCounts((Long) anyObject())).andReturn(
+      Collections.<Long, HostRoleCommandStatusSummaryDTO>emptyMap()).anyTimes();
+
+    TopologyRequest topologyRequest = createNiceMock(TopologyRequest.class);
+    expect(topologyRequest.getHostGroupInfo()).andReturn(Collections.<String, HostGroupInfo>emptyMap()).anyTimes();
+    expect(topologyRequest.getBlueprint()).andReturn(null).anyTimes();
+
+
+
+    PowerMock.mockStatic(AmbariServer.class);
+    expect(AmbariServer.getController()).andReturn(managementController).anyTimes();
+
+    PowerMock.replayAll(
+      topologyRequest,
+      topology,
+      managementController,
+      clusters);
+
+
+    LogicalRequest logicalRequest = new LogicalRequest(200L, topologyRequest, topology);
+
+    reset(topologyManager);
+
+    expect(topologyManager.getRequest(100L)).andReturn(logicalRequest).anyTimes();
+    expect(topologyManager.getRequests(eq(Collections.singletonList(100L)))).andReturn(
+      Collections.singletonList(logicalRequest)).anyTimes();
+    expect(topologyManager.getStageSummaries(EasyMock.<Long>anyObject())).andReturn(
+      Collections.<Long, HostRoleCommandStatusSummaryDTO>emptyMap()).anyTimes();
+
+    replay(actionManager, requestMock, requestDAO, hrcDAO, topologyManager);
+
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+      type,
+      PropertyHelper.getPropertyIds(type),
+      PropertyHelper.getKeyPropertyIds(type),
+      managementController);
+
+    Set<String> propertyIds = ImmutableSet.of(
+      RequestResourceProvider.REQUEST_ID_PROPERTY_ID,
+      RequestResourceProvider.REQUEST_STATUS_PROPERTY_ID,
+      RequestResourceProvider.REQUEST_PROGRESS_PERCENT_ID
+    );
+
+    Predicate predicate = new PredicateBuilder().
+      property(RequestResourceProvider.REQUEST_ID_PROPERTY_ID).equals("100").
+      toPredicate();
+
+    Request request = PropertyHelper.getReadRequest(propertyIds);
+
+    // When
+    Set<Resource> resources = provider.getResources(request, predicate);
+
+    // Then
+
+
+    // verify
+    PowerMock.verifyAll();
+    verify(actionManager, requestMock, requestDAO, hrcDAO, topologyManager);
+
+    Assert.assertEquals(1, resources.size());
+    for (Resource resource : resources) {
+      Assert.assertEquals(100L, (long)(Long) resource.getPropertyValue(RequestResourceProvider.REQUEST_ID_PROPERTY_ID));
+      Assert.assertEquals("PENDING", resource.getPropertyValue(RequestResourceProvider.REQUEST_STATUS_PROPERTY_ID));
+      Assert.assertEquals(0.0, resource.getPropertyValue(RequestResourceProvider.REQUEST_PROGRESS_PERCENT_ID));
+    }
   }
 }
