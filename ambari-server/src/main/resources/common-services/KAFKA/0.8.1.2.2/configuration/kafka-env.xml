@@ -33,6 +33,14 @@
     </value-attributes>
   </property>
   <property>
+    <name>kafka_keytab</name>
+    <description>Kafka keytab path</description>
+  </property>
+  <property>
+    <name>kafka_principal_name</name>
+    <description>Kafka principal name</description>
+  </property>
+  <property>
     <name>kafka_log_dir</name>
     <value>/var/log/kafka</value>
     <description></description>
