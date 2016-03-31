@@ -17,7 +17,7 @@
 }}
 
 <form class="form-horizontal alert-configs">
-  <div {{bindAttr class="view.isError:error :control-group"}}>
+  <div {{bindAttr class="controller.isErrorWithNewCustomPropertyName:error :control-group"}}>
     <label class="control-label">{{t common.name}} </label>
 
     <div class="controls">
@@ -33,9 +33,9 @@
     </div>
   </div>
 
-  {{#if view.isError}}
+  {{#if controller.isErrorWithNewCustomPropertyName}}
     <div class="alert alert-danger">
-      {{view.errorMessage}}
+      {{controller.errorMessageForNewCustomPropertyName}}
     </div>
   {{/if}}
 

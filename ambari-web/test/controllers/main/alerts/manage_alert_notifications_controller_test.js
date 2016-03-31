@@ -1169,46 +1169,6 @@ describe('App.ManageAlertNotificationsController', function () {
 
     });
 
-    describe('#bodyClass', function () {
-
-      var view;
-
-      beforeEach(function () {
-        view = controller.addCustomPropertyHandler().get('bodyClass').create({
-          parentView: Em.View.create(),
-          controller: Em.Object.create({
-            inputFields: Em.Object.create({
-              customProperties: [
-                {name: 'n1', value: 'v1', defaultValue: 'v1'}
-              ]
-            }),
-            newCustomProperty: {name: '', value: ''}
-          })
-        });
-      });
-
-      describe('#errorHandler', function () {
-
-        it('should fire invalid name', function () {
-          view.set('controller.newCustomProperty.name', '!!');
-          view.errorsHandler();
-          expect(view.get('isError')).to.be.true;
-          expect(view.get('parentView.disablePrimary')).to.be.true;
-          expect(view.get('errorMessage.length')).to.be.above(0);
-        });
-
-        it('should fire existing property name', function () {
-          view.set('controller.newCustomProperty.name', 'n1');
-          view.errorsHandler();
-          expect(view.get('isError')).to.be.true;
-          expect(view.get('parentView.disablePrimary')).to.be.true;
-          expect(view.get('errorMessage.length')).to.be.above(0);
-        });
-
-      });
-
-    });
-
   });
 
 });

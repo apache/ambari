@@ -30,96 +30,6 @@ describe('App.ManageAlertNotificationsView', function () {
 
   });
 
-  describe('#buttonObserver', function () {
-
-    Em.A([
-      {
-        isOperator: false,
-        selectedAlertNotification: {id: 1},
-        m: 'some alert notification is selected and user is an admin',
-        p: {
-          isAddButtonDisabled: true,
-          isEditButtonDisabled: true,
-          isRemoveButtonDisabled: true,
-          isDuplicateButtonDisabled: true
-        },
-        e: {
-          isAddButtonDisabled: false,
-          isEditButtonDisabled: false,
-          isRemoveButtonDisabled: false,
-          isDuplicateButtonDisabled: false
-        }
-      },
-      {
-        isOperator: true,
-        selectedAlertNotification: {id: 1},
-        m: 'some alert notification is selected and user is a non-admin operator',
-        p: {
-          isAddButtonDisabled: true,
-          isEditButtonDisabled: true,
-          isRemoveButtonDisabled: true,
-          isDuplicateButtonDisabled: true
-        },
-        e: {
-          isAddButtonDisabled: true,
-          isEditButtonDisabled: true,
-          isRemoveButtonDisabled: true,
-          isDuplicateButtonDisabled: true
-        }
-      },
-      {
-        isOperator: false,
-        selectedAlertNotification: null,
-        m: 'some alert notification is not selected and user is an admin',
-        p: {
-          isAddButtonDisabled: true,
-          isEditButtonDisabled: false,
-          isRemoveButtonDisabled: false,
-          isDuplicateButtonDisabled: false
-        },
-        e: {
-          isAddButtonDisabled: true,
-          isEditButtonDisabled: true,
-          isRemoveButtonDisabled: true,
-          isDuplicateButtonDisabled: true
-        }
-      },
-      {
-        isOperator: true,
-        selectedAlertNotification: null,
-        m: 'some alert notification is not selected and user is a non-admin operator',
-        p: {
-          isAddButtonDisabled: true,
-          isEditButtonDisabled: false,
-          isRemoveButtonDisabled: false,
-          isDuplicateButtonDisabled: false
-        },
-        e: {
-          isAddButtonDisabled: true,
-          isEditButtonDisabled: true,
-          isRemoveButtonDisabled: true,
-          isDuplicateButtonDisabled: true
-        }
-      }
-    ]).forEach(function (test) {
-      describe(test.m, function () {
-        beforeEach(function () {
-          view.setProperties(test.p);
-          view.set('controller.selectedAlertNotification', test.selectedAlertNotification);
-          App.isOperator = test.isOperator;
-          view.buttonObserver();
-        });
-
-        Em.keys(test.e).forEach(function (k) {
-          it(k, function () {
-            expect(view.get(k)).to.equal(test.e[k]);
-          });
-        });
-      });
-    });
-
-  });
-
   describe('#showEmailDetails', function () {
 
     Em.A([
@@ -274,7 +184,6 @@ describe('App.ManageAlertNotificationsView', function () {
     beforeEach(function () {
       view.removeObserver('controller.isLoaded', view, 'onLoad');
       view.set('controller', Em.Object.create());
-      sinon.stub(view, 'buttonObserver');
       sinon.stub(Em.run, 'later', function (context, callback) {
         callback();
       });
@@ -282,7 +191,6 @@ describe('App.ManageAlertNotificationsView', function () {
       this.clock = sinon.useFakeTimers();
     });
     afterEach(function () {
-      view.buttonObserver.restore();
       Em.run.later.restore();
       App.tooltip.restore();
       this.clock.restore();
@@ -319,14 +227,14 @@ describe('App.ManageAlertNotificationsView', function () {
 
       it("isAddButtonDisabled should be true", function () {
         view.set('isAddButtonDisabled', true);
-        App.isOperator = true;
+        App.set('isOperator', true);
         view.onLoad();
         expect(view.get('isAddButtonDisabled')).to.be.true;
       });
 
       it("isAddButtonDisabled should be false", function () {
         view.set('isAddButtonDisabled', true);
-        App.isOperator = false;
+        App.set('isOperator', false);
         view.onLoad();
         expect(view.get('isAddButtonDisabled')).to.be.false;
       });
@@ -355,10 +263,6 @@ describe('App.ManageAlertNotificationsView', function () {
         expect(view.get('selectedAlertNotification')).to.eql({});
       });
 
-      it("buttonObserver should be called", function () {
-        view.onLoad();
-        expect(view.buttonObserver.calledOnce).to.be.true;
-      });
     });
   });
 });

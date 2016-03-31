@@ -168,10 +168,7 @@ App.MainAlertDefinitionActionsController = Em.ArrayController.extend({
         return App.router.get('manageAlertGroupsController');
       }.property('App.router.manageAlertGroupsController'),
 
-      updateButtons: function () {
-        var modified = this.get('subViewController.isDefsModified');
-        this.set('disablePrimary', !modified);
-      }.observes('subViewController.isDefsModified'),
+      disablePrimary: Em.computed.not('subViewController.isDefsModified'),
 
       didInsertElement: function () {
         this.fitZIndex();
