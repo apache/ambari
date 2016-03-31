@@ -386,16 +386,11 @@ public class ClustersImpl implements Clusters {
   public boolean isHostMappedToCluster(String clusterName, String hostName) {
     checkLoaded();
 
-    r.lock();
-    try {
-      Set<Cluster> clusters = hostClusterMap.get(hostName);
-      for (Cluster cluster : clusters) {
-        if (clusterName.equals(cluster.getClusterName())) {
-          return true;
-        }
+    Set<Cluster> clusters = hostClusterMap.get(hostName);
+    for (Cluster cluster : clusters) {
+      if (clusterName.equals(cluster.getClusterName())) {
+        return true;
       }
-    } finally {
-      r.unlock();
     }
 
     return false;
