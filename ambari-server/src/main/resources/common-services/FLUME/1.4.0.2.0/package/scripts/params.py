@@ -29,6 +29,7 @@ else:
   from params_linux import *
 
 config = Script.get_config()
+stack_root = Script.get_stack_root()
 
 stack_name = default("/hostLevelParams/stack_name", None)
 host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
@@ -49,11 +50,11 @@ flume_bin = '/usr/bin/flume-ng'
 flume_hive_home = '/usr/lib/hive'
 flume_hcat_home = '/usr/lib/hive-hcatalog'
 
-# hadoop parameters for 2.2+
-if Script.is_stack_greater_or_equal("2.2"):
-  flume_bin = '/usr/hdp/current/flume-server/bin/flume-ng'
-  flume_hive_home = '/usr/hdp/current/hive-metastore'
-  flume_hcat_home = '/usr/hdp/current/hive-webhcat'
+# hadoop parameters for stack supporting rolling upgrade
+if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
+  flume_bin = format('{stack_root}/current/flume-server/bin/flume-ng')
+  flume_hive_home = format('{stack_root}/current/hive-metastore')
+  flume_hcat_home = format('{stack_root}/current/hive-webhcat')
 
 java_home = config['hostLevelParams']['java_home']
 flume_log_dir = config['configurations']['flume-env']['flume_log_dir']

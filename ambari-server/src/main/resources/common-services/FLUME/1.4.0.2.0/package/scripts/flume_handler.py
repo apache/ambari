@@ -31,6 +31,8 @@ from resource_management.libraries.functions.flume_agent_helper import get_flume
 import service_mapping
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions import StackFeature
 
 class FlumeHandler(Script):
   def configure(self, env):
@@ -41,7 +43,8 @@ class FlumeHandler(Script):
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class FlumeHandlerLinux(FlumeHandler):
   def get_stack_to_component(self):
-    return {"HDP": "flume-server"}
+    import params
+    return {params.stack_name: "flume-server"}
 
   def install(self, env):
     import params
@@ -88,8 +91,8 @@ class FlumeHandlerLinux(FlumeHandler):
     env.set_params(params)
 
     # this function should not execute if the version can't be determined or
-    # is not at least HDP 2.2.0.0
-    if not params.version or Script.is_stack_less_than("2.2"):
+    # the stack does not support rolling upgrade
+    if not (params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version)):
       return
 
     Logger.info("Executing Flume Stack Upgrade pre-restart")
