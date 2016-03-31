@@ -2412,19 +2412,27 @@ public class BlueprintConfigurationProcessor {
     //todo: john - this property should be removed
     hiveSiteMap.put("atlas.rest.address", new SingleHostTopologyUpdater("ATLAS_SERVER") {
       @Override
-      public String replacePropertyValue(String origValue, String host, Map<String, Map<String, String>> properties) {
-        boolean tlsEnabled = Boolean.parseBoolean(properties.get("application-properties").get("atlas.enableTLS"));
-        String scheme;
-        String port;
-        if (tlsEnabled) {
-          scheme = "https";
-          port = properties.get("application-properties").get("atlas.server.https.port");
-        } else {
-          scheme = "http";
-          port = properties.get("application-properties").get("atlas.server.http.port");
+      public String updateForClusterCreate(String propertyName,
+                                           String origValue,
+                                           Map<String, Map<String, String>> properties,
+                                           ClusterTopology topology) {
+        if (topology.getBlueprint().getServices().contains("ATLAS")) {
+          String host = topology.getHostAssignmentsForComponent("ATLAS_SERVER").iterator().next();
+          
+          boolean tlsEnabled = Boolean.parseBoolean(properties.get("application-properties").get("atlas.enableTLS"));
+          String scheme;
+          String port;
+          if (tlsEnabled) {
+            scheme = "https";
+            port = properties.get("application-properties").get("atlas.server.https.port");
+          } else {
+            scheme = "http";
+            port = properties.get("application-properties").get("atlas.server.http.port");
+          }
+  
+          return String.format("%s://%s:%s", scheme, host, port);
         }
-
-        return String.format("%s://%s:%s", scheme, host, port);
+        return origValue;
       }
     });
 

@@ -5396,6 +5396,38 @@ public class BlueprintConfigurationProcessorTest {
   }
 
   @Test
+  public void testHiveWithoutAtlas() throws Exception {
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+
+    Map<String, String> hiveProperties = new HashMap<String, String>();
+    hiveProperties.put("hive.exec.post.hooks", "");
+    hiveProperties.put("atlas.cluster.name", "primary");
+    hiveProperties.put("atlas.rest.address", "http://localhost:21000");
+    properties.put("hive-site", hiveProperties);
+
+
+    Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
+    Configuration parentClusterConfig = new Configuration(parentProperties,
+        Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties,
+        Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+
+
+    Collection<String> hgComponents1 = new HashSet<String>();
+    hgComponents1.add("HIVE_SERVER");
+    TestHostGroup group1 = new TestHostGroup("group1", hgComponents1, Collections.singleton("host1"));
+
+    Collection<TestHostGroup> hostGroups = Collections.singletonList(group1);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+
+    configProcessor.doUpdateForClusterCreate();
+
+    assertEquals("http://localhost:21000", clusterConfig.getPropertyValue("hive-site", "atlas.rest.address"));
+  }
+  
+  @Test
   public void testAtlasHiveProperties() throws Exception {
     Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
     Map<String, String> atlasProperties = new HashMap<String, String>();
