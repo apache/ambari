@@ -101,7 +101,7 @@ class HDP21StackAdvisor(HDP206StackAdvisor):
         webHcatSiteProperty("webhcat.proxyuser.{0}.groups".format(ambari_user), "*")
         old_ambari_user = self.getOldAmbariUser(services)
         if old_ambari_user is not None:
-            webHcatSitePropertyAttributes = self.putPropertyAttribute(configurations, "webhcat-site", services)
+            webHcatSitePropertyAttributes = self.putPropertyAttribute(configurations, "webhcat-site")
             webHcatSitePropertyAttributes("webhcat.proxyuser.{0}.hosts".format(old_ambari_user), 'delete', 'true')
             webHcatSitePropertyAttributes("webhcat.proxyuser.{0}.groups".format(old_ambari_user), 'delete', 'true')
 
