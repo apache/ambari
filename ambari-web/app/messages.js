@@ -796,6 +796,7 @@ Em.I18n.translations = {
   'installer.step5.hiveGroup':'HiveServer2, WebHCat Server, MySQL Server',
   'installer.step5.validationIssuesAttention.header': 'Validation Issues',
   'installer.step5.validationIssuesAttention': 'Master component assignments have issues that need attention.',
+  'installer.step5.error.host.invalid': 'The host you choose could (1) have an invalid host name; (2) be conflicting with another selection; or (3) be in maintenance mode',
 
   'installer.step6.header':'Assign Slaves and Clients',
   'installer.step6.body':'Assign slave and client components to hosts you want to run them on.<br/>Hosts that are assigned master components are shown with <i class=icon-asterisks>&#10037;</i>.',

@@ -69,10 +69,12 @@ App.InputHostView = Em.TextField.extend(App.SelectHost, {
     var host = this.get('controller.hosts').findProperty('host_name', this.get('value'));
     if (Em.isNone(host)) {
       this.get('controller').updateIsHostNameValidFlag(this.get("component.component_name"), this.get("component.serviceComponentId"), false);
+      this.get('controller').updateIsSubmitDisabled();
       return;
     }
     this.get('controller').assignHostToMaster(this.get("component.component_name"), host.get('host_name'), this.get("component.serviceComponentId"));
     this.tryTriggerRebalanceForMultipleComponents();
+    this.get('controller').updateIsSubmitDisabled();
   }.observes('controller.hostNameCheckTrigger'),
 
   didInsertElement: function () {
@@ -92,6 +94,7 @@ App.InputHostView = Em.TextField.extend(App.SelectHost, {
       self.change();
     });
     this.set('typeahead', typeahead);
+    App.popover($("[rel=popover]"), {'placement': 'right', 'trigger': 'hover'});
   },
 
   /**

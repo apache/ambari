@@ -997,9 +997,12 @@ App.AssignMasterComponents = Em.Mixin.create({
     if (componentName) {
       if (serviceComponentId) {
         component = this.get('selectedServicesMasters').filterProperty('component_name', componentName).findProperty("serviceComponentId", serviceComponentId);
-        if (component) component.set("isHostNameValid", flag);
       } else {
-        this.get('selectedServicesMasters').findProperty("component_name", componentName).set("isHostNameValid", flag);
+        component = this.get('selectedServicesMasters').findProperty("component_name", componentName);
+      }
+      if (component) {
+        component.set("isHostNameValid", flag);
+        component.set("errorMessage", flag ? '' : Em.I18n.t('installer.step5.error.host.invalid'));
       }
     }
   },
@@ -1143,6 +1146,9 @@ App.AssignMasterComponents = Em.Mixin.create({
    */
   submit: function () {
     var self = this;
+    if (this.get('submitDisabled')) {
+      return;
+    }
     if (!this.get('submitButtonClicked') && !App.router.get('nextBtnClickInProgress')) {
       this.set('submitButtonClicked', true);
       App.router.set('nextBtnClickInProgress', true);
