@@ -349,7 +349,7 @@ var hdp2properties = [
         hidden: false
       },
       {
-        displayName: 'Existing MySQL Database',
+        displayName: 'Existing MySQL / MariaDB Database',
         hidden: false
       },
       {
@@ -445,7 +445,7 @@ var hdp2properties = [
         hidden: false
       },
       {
-        displayName: 'Existing MySQL Database',
+        displayName: 'Existing MySQL / MariaDB Database',
         hidden: false
       },
       {
