@@ -130,4 +130,14 @@
         <name>files</name>
         <service-class>org.apache.ambari.view.filebrowser.FileBrowserService</service-class>
     </resource>
+
+    <auto-instance>
+        <name>AUTO_FILES_INSTANCE</name>
+        <label>Files View</label>
+        <description>This view instance is auto created when the HDFS service is added to a cluster.</description>
+        <stack-id>HDP-2.*</stack-id>
+        <services>
+          <service>HDFS</service>
+        </services>
+    </auto-instance>
 </view>
