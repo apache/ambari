@@ -34,6 +34,7 @@ from resource_management.libraries.functions.curl_krb_request import curl_krb_re
 from resource_management.core.exceptions import Fail
 from resource_management.libraries.functions.namenode_ha_utils import get_namenode_states
 from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions.show_logs import show_logs
 
 from zkfc_slave import ZkfcSlave
 
@@ -265,9 +266,18 @@ def service(action=None, name=None, user=None, options="", create_pid_dir=False,
   if action == "start":
     # remove pid file from dead process
     File(pid_file, action="delete", not_if=process_id_exists_command)
-    Execute(daemon_cmd, not_if=process_id_exists_command, environment=hadoop_env_exports)
+    
+    try:
+      Execute(daemon_cmd, not_if=process_id_exists_command, environment=hadoop_env_exports)
+    except:
+      show_logs(params.hdfs_log_dir, user)
+      raise
   elif action == "stop":
-    Execute(daemon_cmd, only_if=process_id_exists_command, environment=hadoop_env_exports)
+    try:
+      Execute(daemon_cmd, only_if=process_id_exists_command, environment=hadoop_env_exports)
+    except:
+      show_logs(params.hdfs_log_dir, user)
+      raise
     File(pid_file, action="delete")
 
 def get_jmx_data(nn_address, modeler_type, metric, encrypted=False, security_enabled=False):

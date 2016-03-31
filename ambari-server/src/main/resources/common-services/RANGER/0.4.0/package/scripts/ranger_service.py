@@ -28,17 +28,25 @@ def ranger_service(name, action=None):
   
   if name == 'ranger_admin':
     no_op_test = format('ps -ef | grep proc_rangeradmin | grep -v grep')
-    Execute(params.ranger_start, environment=env_dict, user=params.unix_user, not_if=no_op_test)
+    try:
+      Execute(params.ranger_start, environment=env_dict, user=params.unix_user, not_if=no_op_test)
+    except:
+      show_logs(params.admin_log_dir, params.unix_user)
+      raise
   elif name == 'ranger_usersync':
     no_op_test = format('ps -ef | grep proc_rangerusersync | grep -v grep')
 
 
     if params.stack_supports_usersync_non_root:
-      Execute(params.usersync_start,
-              environment=env_dict,
-              not_if=no_op_test,
-              user=params.unix_user,
-      )
+      try:
+        Execute(params.usersync_start,
+                environment=env_dict,
+                not_if=no_op_test,
+                user=params.unix_user,
+        )
+      except:
+        show_logs(params.usersync_log_dir, params.unix_user)
+        raise
     else:
       # Usersync requires to be run as root for 2.2
       Execute((params.usersync_start,),

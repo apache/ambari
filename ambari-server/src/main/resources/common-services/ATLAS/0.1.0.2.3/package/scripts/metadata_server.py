@@ -19,12 +19,13 @@ limitations under the License.
 from metadata import metadata
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
-from resource_management import Execute, check_process_status, Script
+from resource_management import Execute, File, check_process_status, Script
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.version import compare_versions, format_stack_version
 from resource_management.libraries.functions.security_commons import build_expectations, \
   get_params_from_filesystem, validate_security_config_properties, \
   FILE_TYPE_PROPERTIES
+from resource_management.libraries.functions.show_logs import show_logs
 
 class MetadataServer(Script):
 
@@ -54,19 +55,30 @@ class MetadataServer(Script):
 
     daemon_cmd = format('source {params.conf_dir}/atlas-env.sh ; {params.metadata_start_script}')
     no_op_test = format('ls {params.pid_file} >/dev/null 2>&1 && ps -p `cat {params.pid_file}` >/dev/null 2>&1')
-    Execute(daemon_cmd,
-            user=params.metadata_user,
-            not_if=no_op_test
-    )
+    
+    try:
+      Execute(daemon_cmd,
+              user=params.metadata_user,
+              not_if=no_op_test
+      )
+    except:
+      show_logs(params.log_dir, params.metadata_user)
+      raise
 
   def stop(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     daemon_cmd = format('source {params.conf_dir}/atlas-env.sh; {params.metadata_stop_script}')
-    Execute(daemon_cmd,
-            user=params.metadata_user,
-    )
-    Execute (format("rm -f {params.pid_file}"))
+    
+    try:
+      Execute(daemon_cmd,
+              user=params.metadata_user,
+      )
+    except:
+      show_logs(params.log_dir, params.metadata_user)
+      raise
+    
+    File(params.pid_file, action="delete")
 
   def status(self, env):
     import status_params

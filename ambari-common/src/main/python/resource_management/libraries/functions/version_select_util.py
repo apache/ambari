@@ -55,7 +55,7 @@ def get_component_version(stack_name, component_name):
       # This is necessary because Ubuntu returns "stdin: is not a tty", see AMBARI-8088
       with open(tmpfile.name, 'r') as file:
         get_stack_comp_version_cmd = '%s status %s > %s' % (stack_selector_path, component_name, tmpfile.name)
-        code, stdoutdata = shell.call(get_stack_comp_version_cmd)
+        code, stdoutdata = shell.call(get_stack_comp_version_cmd, quiet=True)
         out = file.read()
 
       if code != 0 or out is None:

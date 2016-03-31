@@ -67,7 +67,9 @@ class TestZookeeperServer(RMFTestCase):
     self.assertResourceCalled('Execute', 'source /etc/zookeeper/conf/zookeeper-env.sh ; env ZOOCFGDIR=/etc/zookeeper/conf ZOOCFG=zoo.cfg /usr/lib/zookeeper/bin/zkServer.sh stop',
       user = 'zookeeper',
     )
-    self.assertResourceCalled('Execute', 'rm -f /var/run/zookeeper/zookeeper_server.pid')
+    self.assertResourceCalled('File', '/var/run/zookeeper/zookeeper_server.pid',
+        action = ['delete'],
+    )
     self.assertNoMoreResources()
 
   def test_configure_secured(self):
@@ -112,7 +114,9 @@ class TestZookeeperServer(RMFTestCase):
                   user = 'zookeeper',
     )
 
-    self.assertResourceCalled('Execute', 'rm -f /var/run/zookeeper/zookeeper_server.pid')
+    self.assertResourceCalled('File', '/var/run/zookeeper/zookeeper_server.pid',
+        action = ['delete'],
+    )
     self.assertNoMoreResources()
 
   def assert_configure_default(self):

@@ -26,6 +26,7 @@ from resource_management.libraries.functions.flume_agent_helper import find_expe
 from resource_management.libraries.functions.flume_agent_helper import await_flume_process_termination
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from resource_management.libraries.functions.show_logs import show_logs
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def flume(action = None):
@@ -184,10 +185,15 @@ def flume(action = None):
         # sometimes startup spawns a couple of threads - so only the first line may count
         pid_cmd = as_sudo(('pgrep', '-o', '-u', params.flume_user, '-f', format('^{java_home}.*{agent}.*'))) + \
         " | " + as_sudo(('tee', flume_agent_pid_file)) + "  && test ${PIPESTATUS[0]} -eq 0"
-        Execute(pid_cmd,
-                logoutput=True,
-                tries=20,
-                try_sleep=10)
+        
+        try:
+          Execute(pid_cmd,
+                  logoutput=True,
+                  tries=20,
+                  try_sleep=10)
+        except:
+          show_logs(params.flume_log_dir, None)
+          raise
 
     pass
   elif action == 'stop':
@@ -211,6 +217,7 @@ def flume(action = None):
         Execute(("kill", "-15", pid), sudo=True)    # kill command has to be a tuple
       
       if not await_flume_process_termination(pid_file):
+        show_logs(params.flume_log_dir, None)
         raise Fail("Can't stop flume agent: {0}".format(agent))
         
       File(pid_file, action = 'delete')

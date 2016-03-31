@@ -31,6 +31,7 @@ from resource_management.core.exceptions import Fail
 from resource_management.core.shell import as_user
 from resource_management.libraries.functions.hive_check import check_thrift_port_sasl
 from resource_management.libraries.functions import get_user_call_output
+from resource_management.libraries.functions.show_logs import show_logs
 
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
@@ -100,8 +101,13 @@ def hive_service(name, action='start', upgrade_type=None):
       db_connection_check_command = format(
         "{java64_home}/bin/java -cp {check_db_connection_jar}:{target} org.apache.ambari.server.DBConnectionVerification '{hive_jdbc_connection_url}' {hive_metastore_user_name} {hive_metastore_user_passwd!p} {hive_jdbc_driver}")
       
-      Execute(db_connection_check_command,
+      try:
+        Execute(db_connection_check_command,
               path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin', tries=5, try_sleep=10)
+      except:
+        show_logs(params.hive_log_dir, user)
+        raise
+        
   elif action == 'stop':
 
     daemon_kill_cmd = format("{sudo} kill {pid}")
@@ -116,11 +122,15 @@ def hive_service(name, action='start', upgrade_type=None):
       not_if = format("! ({process_id_exists_command}) || ( sleep {wait_time} && ! ({process_id_exists_command}) )")
     )
 
-    # check if stopped the process, else fail the task
-    Execute(format("! ({process_id_exists_command})"),
-      tries=20,
-      try_sleep=3,
-    )
+    try:
+      # check if stopped the process, else fail the task
+      Execute(format("! ({process_id_exists_command})"),
+        tries=20,
+        try_sleep=3,
+      )
+    except:
+      show_logs(params.hive_log_dir, user)
+      raise
 
     File(pid_file,
          action = "delete"

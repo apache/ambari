@@ -148,5 +148,6 @@ class TestMetadataServer(RMFTestCase):
     self.assertResourceCalled('Execute', 'source /etc/atlas/conf/atlas-env.sh; /usr/hdp/current/atlas-server/bin/atlas_stop.py',
                               user = 'atlas',
     )
-    self.assertResourceCalled('Execute', 'rm -f /var/run/atlas/atlas.pid',
+    self.assertResourceCalled('File', '/var/run/atlas/atlas.pid',
+        action = ['delete'],
     )

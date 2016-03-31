@@ -23,6 +23,7 @@ from resource_management.core import shell
 from resource_management.libraries.functions.format import format
 from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.logger import Logger
+from resource_management.libraries.functions.show_logs import show_logs
 
 def kms_service(action='start'):
   import params
@@ -34,7 +35,15 @@ def kms_service(action='start'):
   if action == 'start':
     no_op_test = format('ps -ef | grep proc_rangerkms | grep -v grep')
     cmd = format('{kms_home}/ranger-kms start')
-    Execute(cmd, not_if=no_op_test, environment=env_dict, user=format('{kms_user}'))
+    try:
+      Execute(cmd, not_if=no_op_test, environment=env_dict, user=format('{kms_user}'))
+    except:
+      show_logs(params.kms_log_dir, params.kms_user)
+      raise
   elif action == 'stop':
     cmd = format('{kms_home}/ranger-kms stop')
-    Execute(cmd, environment=env_dict, user=format('{kms_user}'))
+    try:
+      Execute(cmd, environment=env_dict, user=format('{kms_user}'))
+    except:
+      show_logs(params.kms_log_dir, params.kms_user)
+      raise

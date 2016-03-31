@@ -31,6 +31,7 @@ from resource_management.core.resources.system import Link
 from resource_management.libraries.script import Script
 from resource_management.libraries.resources import PropertiesFile
 from resource_management.libraries.functions import format
+from resource_management.libraries.functions.show_logs import show_logs
 
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
@@ -179,10 +180,14 @@ def falcon(type, action = None, upgrade_type=None):
     environment_dictionary = { "HADOOP_HOME" : params.hadoop_home_dir }
 
     if action == 'start':
-      Execute(format('{falcon_home}/bin/falcon-start -port {falcon_port}'),
-        user = params.falcon_user,
-        path = params.hadoop_bin_dir,
-        environment=environment_dictionary)
+      try:
+        Execute(format('{falcon_home}/bin/falcon-start -port {falcon_port}'),
+          user = params.falcon_user,
+          path = params.hadoop_bin_dir,
+          environment=environment_dictionary)
+      except:
+        show_logs(params.falcon_log_dir, params.falcon_user)
+        raise
 
       if params.has_atlas:
         atlas_falcon_hook_dir = os.path.join(params.atlas_home_dir, "hook", "falcon")
@@ -195,11 +200,15 @@ def falcon(type, action = None, upgrade_type=None):
               Link(falcon_lib_file_name, to = atlas_falcon_hook_file_name)
 
     if action == 'stop':
-      Execute(format('{falcon_home}/bin/falcon-stop'),
-        user = params.falcon_user,
-        path = params.hadoop_bin_dir,
-        environment=environment_dictionary)
-
+      try:
+        Execute(format('{falcon_home}/bin/falcon-stop'),
+          user = params.falcon_user,
+          path = params.hadoop_bin_dir,
+          environment=environment_dictionary)
+      except:
+        show_logs(params.falcon_log_dir, params.falcon_user)
+        raise
+      
       File(params.server_pid_file, action = 'delete')
 
 

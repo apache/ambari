@@ -19,6 +19,7 @@ limitations under the License.
 """
 
 from resource_management import *
+from resource_management.libraries.functions.show_logs import show_logs
 import time
 import os
 
@@ -48,10 +49,14 @@ def accumulo_service( name,
       if name == 'monitor' and params.accumulo_monitor_bind_all:
         address = '0.0.0.0'
       daemon_cmd = format("{daemon_script} {role} --address {address} > {log_dir}/accumulo-{role}.out 2>{log_dir}/accumulo-{role}.err & echo $! > {pid_file}")
-      Execute ( daemon_cmd,
-        not_if=as_user(pid_exists, params.accumulo_user),
-        user=params.accumulo_user
-      )
+      try:
+        Execute ( daemon_cmd,
+          not_if=as_user(pid_exists, params.accumulo_user),
+          user=params.accumulo_user
+        )
+      except:
+        show_logs(params.log_dir, params.accumulo_user)
+        raise
 
     elif action == 'stop':
       no_pid_exists = format("! ({pid_exists})")

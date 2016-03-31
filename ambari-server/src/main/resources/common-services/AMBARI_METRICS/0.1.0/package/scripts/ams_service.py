@@ -19,6 +19,7 @@ limitations under the License.
 """
 
 from resource_management import *
+from resource_management.libraries.functions.show_logs import show_logs
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from hbase_service import hbase_service
@@ -77,9 +78,13 @@ def ams_service(name, action):
       else:
         daemon_cmd = format("{cmd} start")
 
-      Execute(daemon_cmd,
-              user=params.ams_user
-      )
+      try:
+        Execute(daemon_cmd,
+                user=params.ams_user
+        )
+      except:
+        show_logs(params.ams_collector_log_dir, params.ams_user)
+        raise
 
       pass
     elif action == 'stop':
@@ -97,9 +102,14 @@ def ams_service(name, action):
 
     if action == 'start':
       daemon_cmd = format("{cmd} start")
-      Execute(daemon_cmd,
-              user=params.ams_user
-      )
+      
+      try:
+        Execute(daemon_cmd,
+                user=params.ams_user
+        )
+      except:
+        show_logs(params.ams_monitor_log_dir, params.ams_user)
+        raise      
 
       pass
     elif action == 'stop':

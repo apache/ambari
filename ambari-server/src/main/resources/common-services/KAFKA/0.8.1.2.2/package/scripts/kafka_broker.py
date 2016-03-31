@@ -27,6 +27,7 @@ from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions.show_logs import show_logs
 from kafka import ensure_base_directories
 
 import upgrade
@@ -82,10 +83,14 @@ class KafkaBroker(Script):
       setup_ranger_kafka() #Ranger Kafka Plugin related call 
     daemon_cmd = format('source {params.conf_dir}/kafka-env.sh ; {params.kafka_bin} start')
     no_op_test = format('ls {params.kafka_pid_file} >/dev/null 2>&1 && ps -p `cat {params.kafka_pid_file}` >/dev/null 2>&1')
-    Execute(daemon_cmd,
-            user=params.kafka_user,
-            not_if=no_op_test
-    )
+    try:
+      Execute(daemon_cmd,
+              user=params.kafka_user,
+              not_if=no_op_test
+      )
+    except:
+      show_logs(params.kafka_log_dir, params.kafka_user)
+      raise
 
   def stop(self, env, upgrade_type=None):
     import params
@@ -95,9 +100,13 @@ class KafkaBroker(Script):
     # before attempting to stop Kafka Broker
     ensure_base_directories()
     daemon_cmd = format('source {params.conf_dir}/kafka-env.sh; {params.kafka_bin} stop')
-    Execute(daemon_cmd,
-            user=params.kafka_user,
-    )
+    try:
+      Execute(daemon_cmd,
+              user=params.kafka_user,
+      )
+    except:
+      show_logs(params.kafka_log_dir, params.kafka_user)
+      raise
     File(params.kafka_pid_file,
           action = "delete"
     )

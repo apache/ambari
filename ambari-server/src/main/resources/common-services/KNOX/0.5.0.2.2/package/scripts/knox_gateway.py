@@ -35,6 +35,7 @@ from resource_management.libraries.functions.security_commons import build_expec
 from resource_management.core.resources.system import File, Execute, Directory, Link
 from resource_management.core.resources.service import Service
 from resource_management.core.logger import Logger
+from resource_management.libraries.functions.show_logs import show_logs
 
 from ambari_commons import OSConst, OSCheck
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
@@ -157,11 +158,15 @@ class KnoxGatewayDefault(KnoxGateway):
 
     update_knox_logfolder_permissions()
 
-    Execute(daemon_cmd,
-            user=params.knox_user,
-            environment={'JAVA_HOME': params.java_home},
-            not_if=no_op_test
-    )
+    try:
+      Execute(daemon_cmd,
+              user=params.knox_user,
+              environment={'JAVA_HOME': params.java_home},
+              not_if=no_op_test
+      )
+    except:
+      show_logs(params.knox_logs_dir, params.knox_user)
+      raise
 
   def stop(self, env, upgrade_type=None):
     import params
@@ -170,10 +175,15 @@ class KnoxGatewayDefault(KnoxGateway):
 
     update_knox_logfolder_permissions()
 
-    Execute(daemon_cmd,
-            environment={'JAVA_HOME': params.java_home},
-            user=params.knox_user,
-    )
+    try:
+      Execute(daemon_cmd,
+              environment={'JAVA_HOME': params.java_home},
+              user=params.knox_user,
+      )
+    except:
+      show_logs(params.knox_logs_dir, params.knox_user)
+      raise
+    
     File(params.knox_pid_file,
          action="delete",
     )

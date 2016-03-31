@@ -46,15 +46,23 @@ def webhcat_service(action='start', upgrade_type=None):
 
     daemon_cmd = format('cd {hcat_pid_dir} ; {cmd} start')
     no_op_test = as_user(format('ls {webhcat_pid_file} >/dev/null 2>&1 && ps -p `cat {webhcat_pid_file}` >/dev/null 2>&1'), user=params.webhcat_user)
-    Execute(daemon_cmd,
-            user=params.webhcat_user,
-            not_if=no_op_test,
-            environment = environ)
+    try:
+      Execute(daemon_cmd,
+              user=params.webhcat_user,
+              not_if=no_op_test,
+              environment = environ)
+    except:
+      show_logs(params.hcat_log_dir, params.webhcat_user)
+      raise
   elif action == 'stop':
     daemon_cmd = format('{cmd} stop')
-    Execute(daemon_cmd,
-            user = params.webhcat_user,
-            environment = environ)
+    try:
+      Execute(daemon_cmd,
+              user = params.webhcat_user,
+              environment = environ)
+    except:
+      show_logs(params.hcat_log_dir, params.webhcat_user)
+      raise
 
     pid_expression = "`" + as_user(format("cat {webhcat_pid_file}"), user=params.webhcat_user) + "`"
     process_id_exists_command = format("ls {webhcat_pid_file} >/dev/null 2>&1 && ps -p {pid_expression} >/dev/null 2>&1")
@@ -64,11 +72,15 @@ def webhcat_service(action='start', upgrade_type=None):
             not_if = format("! ({process_id_exists_command}) || ( sleep {wait_time} && ! ({process_id_exists_command}) )")
     )
 
-    # check if stopped the process, else fail the task
-    Execute(format("! ({process_id_exists_command})"),
-            tries=20,
-            try_sleep=3,
-    )
+    try:
+      # check if stopped the process, else fail the task
+      Execute(format("! ({process_id_exists_command})"),
+              tries=20,
+              try_sleep=3,
+      )
+    except:
+      show_logs(params.hcat_log_dir, params.webhcat_user)
+      raise
 
     File(params.webhcat_pid_file,
          action="delete",

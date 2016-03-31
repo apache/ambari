@@ -25,6 +25,7 @@ from resource_management.core.resources import File
 from resource_management.core.shell import as_user
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions import get_user_call_output
+from resource_management.libraries.functions.show_logs import show_logs
 import time
 
 
@@ -65,12 +66,16 @@ def service(name, action = 'start'):
       wait_for_finish = False,
       path = params.storm_bin_dir)
 
-    Execute(crt_pid_cmd,
-      user = params.storm_user,
-      logoutput = True,
-      tries = tries_count,
-      try_sleep = 10,
-      path = params.storm_bin_dir)
+    try:
+      Execute(crt_pid_cmd,
+        user = params.storm_user,
+        logoutput = True,
+        tries = tries_count,
+        try_sleep = 10,
+        path = params.storm_bin_dir)
+    except:
+      show_logs(params.log_dir, params.storm_user)
+      raise
 
   elif action == "stop":
     process_dont_exist = format("! ({no_op_test})")

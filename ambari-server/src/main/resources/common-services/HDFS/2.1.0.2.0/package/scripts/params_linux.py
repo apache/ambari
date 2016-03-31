@@ -223,7 +223,8 @@ jn_edits_dir = config['configurations']['hdfs-site']['dfs.journalnode.edits.dir'
 
 dfs_name_dir = config['configurations']['hdfs-site']['dfs.namenode.name.dir']
 
-namenode_dirs_created_stub_dir = format("{hdfs_log_dir_prefix}/{hdfs_user}")
+hdfs_log_dir = format("{hdfs_log_dir_prefix}/{hdfs_user}")
+namenode_dirs_created_stub_dir = hdfs_log_dir
 namenode_dirs_stub_filename = "namenode_dirs_created"
 
 smoke_hdfs_user_dir = format("/user/{smoke_user}")
