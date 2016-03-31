@@ -44,6 +44,7 @@ import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
+import org.apache.ambari.server.state.AlertState;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.inject.Inject;
@@ -72,6 +73,10 @@ public class AlertResourceProvider extends ReadOnlyResourceProvider implements
   protected static final String ALERT_INSTANCE = "Alert/instance";
   protected static final String ALERT_LABEL = "Alert/label";
   protected static final String ALERT_SCOPE = "Alert/scope";
+
+  protected static final String ALERT_REPEAT_TOLERANCE = "Alert/repeat_tolerance";
+  protected static final String ALERT_OCCURRENCES = "Alert/occurrences";
+  protected static final String ALERT_REPEAT_TOLERANCE_REMAINING = "Alert/repeat_tolerance_remaining";
 
   private static Set<String> pkPropertyIds = new HashSet<String>(
       Arrays.asList(ALERT_ID, ALERT_DEFINITION_NAME));
@@ -109,6 +114,9 @@ public class AlertResourceProvider extends ReadOnlyResourceProvider implements
     PROPERTY_IDS.add(ALERT_HOST);
     PROPERTY_IDS.add(ALERT_SERVICE);
     PROPERTY_IDS.add(ALERT_SCOPE);
+    PROPERTY_IDS.add(ALERT_REPEAT_TOLERANCE);
+    PROPERTY_IDS.add(ALERT_OCCURRENCES);
+    PROPERTY_IDS.add(ALERT_REPEAT_TOLERANCE_REMAINING);
 
     // keys
     KEY_PROPERTY_IDS.put(Resource.Type.Alert, ALERT_ID);
@@ -250,10 +258,23 @@ public class AlertResourceProvider extends ReadOnlyResourceProvider implements
     setResourceProperty(resource, ALERT_HOST, history.getHostName(), requestedIds);
     setResourceProperty(resource, ALERT_SERVICE, history.getServiceName(), requestedIds);
 
-
     setResourceProperty(resource, ALERT_DEFINITION_ID, definition.getDefinitionId(),requestedIds);
     setResourceProperty(resource, ALERT_DEFINITION_NAME, definition.getDefinitionName(), requestedIds);
     setResourceProperty(resource, ALERT_SCOPE, definition.getScope(), requestedIds);
+
+    // repeat tolerance values
+    int repeatTolerance = definition.getRepeatTolerance();
+    int occurrences = entity.getOccurrences();
+    int remaining = (occurrences > repeatTolerance) ? 0 : (repeatTolerance - occurrences);
+
+    // the OK state is special; when received, we ignore tolerance and notify
+    if (history.getAlertState() == AlertState.OK) {
+      remaining = 0;
+    }
+
+    setResourceProperty(resource, ALERT_REPEAT_TOLERANCE, repeatTolerance, requestedIds);
+    setResourceProperty(resource, ALERT_OCCURRENCES, occurrences, requestedIds);
+    setResourceProperty(resource, ALERT_REPEAT_TOLERANCE_REMAINING, remaining, requestedIds);
 
     if (isCollection) {
       // !!! want name/id to be populated as if it were a PK when requesting the

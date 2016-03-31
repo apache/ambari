@@ -33,6 +33,7 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
+import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.MaintenanceState;
 
 /**
@@ -81,6 +82,17 @@ public class AlertCurrentEntity {
   @Lob
   @Column(name = "latest_text")
   private String latestText = null;
+
+  /**
+   * The number of occurrences of this alert in its current state. States which
+   * are not {@link AlertState#OK} are aggregated such that transitioning
+   * between these states should not reset this value. For example, if an alert
+   * bounces between {@link AlertState#WARNING} and {@link AlertState#CRITICAL},
+   * then it will not reset this value.
+   *
+   */
+  @Column(name="occurrences", nullable=false)
+  private Integer occurrences = Integer.valueOf(1);
 
   /**
    * Unidirectional one-to-one association to {@link AlertHistoryEntity}
@@ -198,6 +210,39 @@ public class AlertCurrentEntity {
    */
   public void setLatestText(String text) {
     latestText = text;
+  }
+
+  /**
+   * Gets the number of occurrences of this alert in its current state. States
+   * which are not {@link AlertState#OK} are aggregated such that transitioning
+   * between these states should not reset this value. For example, if an alert
+   * bounces between {@link AlertState#WARNING} and {@link AlertState#CRITICAL},
+   * then it will not reset this value.
+   *
+   * @return the number of occurrences.
+   */
+  public Integer getOccurrences() {
+    return occurrences;
+  }
+
+  /**
+   * Sets the number of occurrences for this alert instance.
+   *
+   * @param occurrences
+   *          the occurrences.
+   * @see #getOccurrences()
+   *
+   */
+  public void setOccurrences(int occurrences) {
+    this.occurrences = occurrences;
+  }
+
+  /**
+   * @param occurrences
+   *          the occurrences to set
+   */
+  public void setOccurrences(Integer occurrences) {
+    this.occurrences = occurrences;
   }
 
   /**

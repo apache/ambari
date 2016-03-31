@@ -921,6 +921,7 @@ CREATE TABLE alert_current (
   original_timestamp NUMBER(19) NOT NULL,
   latest_timestamp NUMBER(19) NOT NULL,
   latest_text CLOB,
+  occurrences INTEGER DEFAULT 1 NOT NULL
   PRIMARY KEY (alert_id),
   FOREIGN KEY (definition_id) REFERENCES alert_definition(definition_id),
   FOREIGN KEY (history_id) REFERENCES alert_history(alert_id)

@@ -500,4 +500,57 @@ public class AlertReceivedListenerTest {
     assertEquals(2L, (long) allCurrent.get(0).getLatestTimestamp());
     assertEquals(text, allCurrent.get(0).getLatestText());
   }
+
+  /**
+   * Tests that we correctly record alert occurance information.
+   */
+  @Test
+  public void testAlertOccurrences() {
+    String definitionName = ALERT_DEFINITION + "1";
+    String serviceName = "HDFS";
+    String componentName = "NAMENODE";
+    String text = serviceName + " " + componentName + " is OK";
+
+    Alert alert = new Alert(definitionName, null, serviceName, componentName, HOST1, AlertState.OK);
+
+    alert.setCluster(m_cluster.getClusterName());
+    alert.setLabel(ALERT_LABEL);
+    alert.setText(text);
+    alert.setTimestamp(1L);
+
+    // fire the alert, and check that the new entry was created with the right
+    // timestamp
+    AlertReceivedListener listener = m_injector.getInstance(AlertReceivedListener.class);
+    AlertReceivedEvent event = new AlertReceivedEvent(m_cluster.getClusterId(), alert);
+    listener.onAlertEvent(event);
+
+    List<AlertCurrentEntity> allCurrent = m_dao.findCurrent();
+    assertEquals(1, allCurrent.size());
+
+    // check occurrences (should be 1 since it's the first)
+    assertEquals(1, (int) allCurrent.get(0).getOccurrences());
+
+    // send OK again, then check that the value incremented
+    listener.onAlertEvent(event);
+    allCurrent = m_dao.findCurrent();
+    assertEquals(2, (int) allCurrent.get(0).getOccurrences());
+
+    // now change to WARNING and check that it reset the counter
+    alert.setState(AlertState.WARNING);
+    listener.onAlertEvent(event);
+    allCurrent = m_dao.findCurrent();
+    assertEquals(1, (int) allCurrent.get(0).getOccurrences());
+
+    // send another WARNING
+    listener.onAlertEvent(event);
+    allCurrent = m_dao.findCurrent();
+    assertEquals(2, (int) allCurrent.get(0).getOccurrences());
+
+    // now change from WARNING to CRITICAL; because they are both non-OK states,
+    // the counter should continue
+    alert.setState(AlertState.CRITICAL);
+    listener.onAlertEvent(event);
+    allCurrent = m_dao.findCurrent();
+    assertEquals(3, (int) allCurrent.get(0).getOccurrences());
+  }
 }

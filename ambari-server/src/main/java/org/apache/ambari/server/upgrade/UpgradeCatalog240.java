@@ -70,6 +70,8 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
 
   protected static final String ADMIN_PERMISSION_TABLE = "adminpermission";
   protected static final String ALERT_DEFINITION_TABLE = "alert_definition";
+  protected static final String ALERT_CURRENT_TABLE = "alert_current";
+  protected static final String ALERT_CURRENT_OCCURRENCES_COLUMN = "occurrences";
   protected static final String HELP_URL_COLUMN = "help_url";
   protected static final String REPEAT_TOLERANCE_COLUMN = "repeat_tolerance";
   protected static final String REPEAT_TOLERANCE_ENABLED_COLUMN = "repeat_tolerance_enabled";
@@ -153,6 +155,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     createServiceComponentHistoryTable();
     updateClusterTableDDL();
     updateAlertDefinitionTable();
+    updateAlertCurrentTable();
     createBlueprintSettingTable();
   }
 
@@ -572,6 +575,19 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
 
     dbAccessor.addColumn(ALERT_DEFINITION_TABLE,
         new DBColumnInfo(REPEAT_TOLERANCE_ENABLED_COLUMN, Short.class, null, 0, false));
+  }
+
+  /**
+   * Updates the {@value #ALERT_CURRENT_TABLE} in the following ways:
+   * <ul>
+   * <li>Craetes the {@value #ALERT_CURRENT_OCCURRENCES_COLUMN} column</li>
+   * </ul>
+   *
+   * @throws SQLException
+   */
+  protected void updateAlertCurrentTable() throws SQLException {
+    dbAccessor.addColumn(ALERT_CURRENT_TABLE,
+        new DBColumnInfo(ALERT_CURRENT_OCCURRENCES_COLUMN, Integer.class, null, 1, false));
   }
 
   protected void setRoleSortOrder() throws SQLException {

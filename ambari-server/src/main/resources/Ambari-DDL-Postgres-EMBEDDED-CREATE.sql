@@ -1012,6 +1012,7 @@ CREATE TABLE ambari.alert_current (
   original_timestamp BIGINT NOT NULL,
   latest_timestamp BIGINT NOT NULL,
   latest_text TEXT,
+  occurrences INTEGER NOT NULL DEFAULT 1,
   PRIMARY KEY (alert_id),
   FOREIGN KEY (definition_id) REFERENCES ambari.alert_definition(definition_id),
   FOREIGN KEY (history_id) REFERENCES ambari.alert_history(alert_id)

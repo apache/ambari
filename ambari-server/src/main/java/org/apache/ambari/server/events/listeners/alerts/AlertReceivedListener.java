@@ -207,9 +207,10 @@ public class AlertReceivedListener {
         // update the timestamp
         current.setLatestTimestamp(alert.getTimestamp());
 
-        // only update the text if the alert isn't being skipped
+        // only update some fields if the alert isn't being skipped
         if (alertState != AlertState.SKIPPED) {
           current.setLatestText(alert.getText());
+          current.setOccurrences(current.getOccurrences() + 1);
         }
 
         toMerge.put(alert, current);
@@ -235,6 +236,28 @@ public class AlertReceivedListener {
 
         current.setAlertHistory(history);
 
+        // figure out how to set the occurrences correctly
+        switch (alertState) {
+          // an OK state always resets, regardless of what the old one was
+          case OK:
+            current.setOccurrences(1);
+            break;
+          case CRITICAL:
+          case SKIPPED:
+          case UNKNOWN:
+          case WARNING:
+            // OK -> non-OK is a reset
+            if (oldState == AlertState.OK) {
+              current.setOccurrences(1);
+            } else {
+              // non-OK -> non-OK is a continuation
+              current.setOccurrences(current.getOccurrences() + 1);
+            }
+            break;
+          default:
+            break;
+        }
+
         toCreateHistoryAndMerge.put(alert, current);
         oldStates.put(alert, oldState);
       }
@@ -244,7 +267,7 @@ public class AlertReceivedListener {
     // transaction
     saveEntities(toCreate, toMerge, toCreateHistoryAndMerge);
 
-    //broadcast events
+    // broadcast events
     for (Map.Entry<Alert, AlertCurrentEntity> entry : toCreate.entrySet()) {
       Alert alert = entry.getKey();
       AlertCurrentEntity entity = entry.getValue();
@@ -260,7 +283,6 @@ public class AlertReceivedListener {
         clusterId, alert, entity);
 
       m_alertEventPublisher.publish(initialAlertEvent);
-
     }
 
     for (Map.Entry<Alert, AlertCurrentEntity> entry : toCreateHistoryAndMerge.entrySet()) {
@@ -279,7 +301,6 @@ public class AlertReceivedListener {
 
       m_alertEventPublisher.publish(alertChangedEvent);
     }
-
   }
 
   /**
