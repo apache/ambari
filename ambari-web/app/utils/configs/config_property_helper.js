@@ -17,7 +17,7 @@
  */
 
 var App = require('app');
-var stringUtils = require('utils/string_utils')
+var stringUtils = require('utils/string_utils');
 
 module.exports = {
 
@@ -415,7 +415,7 @@ module.exports = {
       mountPointsPerHost = mountPointsPerHost.filter(function (mPoint) {
         return !(['/', '/home'].contains(mPoint.mountpoint)
           || ['/etc/resolv.conf', '/etc/hostname', '/etc/hosts'].contains(mPoint.mountpoint) // docker specific mount points
-          || mPoint.mountpoint && (mPoint.mountpoint.startsWith('/boot') || mPoint.mountpoint.startsWith('/mnt'))
+          || mPoint.mountpoint && (mPoint.mountpoint.startsWith('/boot') || mPoint.mountpoint.startsWith('/mnt') || mPoint.mountpoint.startsWith('/tmp'))
           || ['devtmpfs', 'tmpfs', 'vboxsf', 'CDFS'].contains(mPoint.type)
           || mPoint.available == 0);
       });
