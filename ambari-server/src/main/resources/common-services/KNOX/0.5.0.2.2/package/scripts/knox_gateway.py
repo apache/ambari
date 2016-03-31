@@ -25,7 +25,6 @@ from resource_management.libraries.functions import conf_select, tar_archive
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.functions import format
-from resource_management.libraries.functions.version import compare_versions, format_stack_version
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import Direction
@@ -47,11 +46,14 @@ import upgrade
 from knox import knox, update_knox_logfolder_permissions
 from knox_ldap import ldap
 from setup_ranger_knox import setup_ranger_knox
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions import StackFeature
 
 
 class KnoxGateway(Script):
   def get_stack_to_component(self):
-    return {"HDP": "knox-server"}
+    import params
+    return {params.stack_name: "knox-server"}
 
   def install(self, env):
     import params
@@ -113,8 +115,7 @@ class KnoxGatewayDefault(KnoxGateway):
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
     env.set_params(params)
-    if params.version and compare_versions(format_stack_version(params.version), '2.2.0.0') >= 0:
-
+    if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
       absolute_backup_dir = None
       if params.upgrade_direction and params.upgrade_direction == Direction.UPGRADE:
         Logger.info("Backing up directories. Initial conf folder: %s" % os.path.realpath(params.knox_conf_dir))

@@ -138,6 +138,16 @@ _DEFAULT_STACK_FEATURES = {
       "name": "accumulo_kerberos_user_auth",
       "description": "Accumulo Kerberos User Auth (AMBARI-10163)",
       "min_version": "2.3.0.0"
+    },
+    {
+      "name": "knox_versioned_data_dir",
+      "description": "Use versioned data dir for Knox (AMBARI-13164)",
+      "min_version": "2.3.2.0"
+    },
+    {
+      "name": "knox_sso_topology",
+      "description": "Knox SSO Topology support (AMBARI-13975)",
+      "min_version": "2.3.8.0"
     }
   ]
 }
@@ -151,7 +161,10 @@ def check_stack_feature(stack_feature, stack_version):
   """
   stack_features_config = default("/configurations/cluster-env/stack_features", None)
   data = _DEFAULT_STACK_FEATURES
-  
+
+  if not stack_version:
+    return False
+
   if stack_features_config:
     data = json.loads(stack_features_config)
   

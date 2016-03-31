@@ -31,6 +31,8 @@ from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
 from resource_management.core.logger import Logger
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions import StackFeature
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def knox():
@@ -66,7 +68,7 @@ def knox():
      content=InlineTemplate(params.admin_topology_template)
   )
 
-  if Script.is_stack_greater_or_equal_to(params.version_formatted, "2.3.8.0"):
+  if params.version_formatted and check_stack_feature(StackFeature.KNOX_SSO_TOPOLOGY, params.version_formatted):
       File(os.path.join(params.knox_conf_dir, "topologies", "knoxsso.xml"),
          group=params.knox_group,
          owner=params.knox_user,
@@ -123,7 +125,7 @@ def knox():
          content=InlineTemplate(params.admin_topology_template)
     )
 
-    if Script.is_stack_greater_or_equal_to(params.version_formatted, "2.3.8.0"):
+    if params.version_formatted and check_stack_feature(StackFeature.KNOX_SSO_TOPOLOGY, params.version_formatted):
         File(os.path.join(params.knox_conf_dir, "topologies", "knoxsso.xml"),
             group=params.knox_group,
             owner=params.knox_user,
