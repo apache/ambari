@@ -20,6 +20,7 @@ limitations under the License.
 
 from resource_management.core.exceptions import ClientComponentHasNoStatus
 from resource_management.core.resources.system import Execute
+from resource_management.libraries.functions.default import default
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
@@ -46,8 +47,7 @@ class SqoopClient(Script):
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class SqoopClientDefault(SqoopClient):
   def get_stack_to_component(self):
-    import params
-    return {params.stack_name: "sqoop-client"}
+    return {default("/hostLevelParams/stack_name", None): "sqoop-client"}
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params

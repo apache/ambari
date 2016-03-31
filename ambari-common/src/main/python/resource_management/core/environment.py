@@ -171,6 +171,11 @@ class Environment(object):
         self.run_action(resource, action)
 
   @classmethod
+  def has_instance(cls):
+    instance = getattr(_local_data, _instance_name, None)
+    return not instance is None
+  
+  @classmethod
   def get_instance(cls):
     instance = getattr(_local_data, _instance_name, None)
     if instance is None:
