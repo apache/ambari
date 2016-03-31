@@ -33,6 +33,8 @@ from resource_management.libraries.functions.security_commons import FILE_TYPE_P
 from falcon import falcon
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions import StackFeature
 
 class FalconServer(Script):
   def configure(self, env, upgrade_type=None):
@@ -58,7 +60,8 @@ class FalconServer(Script):
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class FalconServerLinux(FalconServer):
   def get_stack_to_component(self):
-    return {"HDP": "falcon-server"}
+    import params
+    return {params.stack_name: "falcon-server"}
 
   def install(self, env):
     import params
@@ -76,8 +79,8 @@ class FalconServerLinux(FalconServer):
     env.set_params(params)
 
     # this function should not execute if the version can't be determined or
-    # is not at least HDP 2.2.0.0
-    if Script.is_stack_less_than("2.2"):
+    # the stack does not support rolling upgrade
+    if not (params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version)):
       return
 
     Logger.info("Executing Falcon Server Stack Upgrade pre-restart")

@@ -23,6 +23,9 @@ from resource_management.libraries.functions import format
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions.version import format_stack_version
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions import StackFeature
 
 # a map of the Ambari role to the component name
 # for use with <stack-root>/current/<component>
@@ -34,6 +37,10 @@ SERVER_ROLE_DIRECTORY_MAP = {
 component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, "FALCON_CLIENT")
 
 config = Script.get_config()
+stack_root = Script.get_stack_root()
+
+stack_version_unformatted = config['hostLevelParams']['stack_version']
+stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 if OSCheck.is_windows_family():
   falcon_win_service_name = "falcon"
@@ -46,8 +53,8 @@ else:
   hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 
   falcon_conf_dir = "/etc/falcon/conf"
-  if Script.is_stack_greater_or_equal("2.2"):
-    falcon_conf_dir = format("/usr/hdp/current/{component_directory}/conf")
+  if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
+    falcon_conf_dir = format("{stack_root}/current/{component_directory}/conf")
 
   # Security related/required params
   hostname = config['hostname']
