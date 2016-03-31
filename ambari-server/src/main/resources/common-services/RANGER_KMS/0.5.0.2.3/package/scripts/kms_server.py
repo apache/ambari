@@ -24,7 +24,7 @@ from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.libraries.functions.format import format
 from resource_management.core.logger import Logger
 from resource_management.core import shell
-from kms import kms, setup_kms_db, setup_java_patch, enable_kms_plugin
+from kms import kms, setup_kms_db, setup_java_patch, enable_kms_plugin, setup_kms_jce
 from kms_service import kms_service
 import upgrade
 
@@ -55,6 +55,7 @@ class KmsServer(Script):
     env.set_params(params)
     self.configure(env)
     enable_kms_plugin()
+    setup_kms_jce()
     kms_service(action = 'start')
 
   def status(self, env):    

@@ -411,6 +411,36 @@ def enable_kms_plugin():
       group = params.kms_group,
       mode = 0640
       )
+
+def setup_kms_jce():
+  import params
+
+  if params.jce_name is not None:
+    Directory(params.jce_source_dir,
+      create_parents = True
+    )
+
+    jce_target = format('{jce_source_dir}/{jce_name}')
+
+    File(jce_target,
+      content = DownloadSource(format('{jdk_location}/{jce_name}')),
+      mode = 0644,
+    )
+
+    File([format("{java_home}/jre/lib/security/local_policy.jar"), format("{java_home}/jre/lib/security/US_export_policy.jar")],
+      action = "delete",
+    )
+
+    unzip_cmd = ("unzip", "-o", "-j", "-q", jce_target, "-d", format("{java_home}/jre/lib/security"))
+
+    Execute(unzip_cmd,
+      only_if = format("test -e {java_home}/jre/lib/security && test -f {jce_target}"),
+      path = ['/bin/','/usr/bin'],
+      sudo = True
+    )
+  else:
+    Logger.warning("Required jce policy zip is not available, need to setup manually")
+
   
 def check_ranger_service():
   import params
