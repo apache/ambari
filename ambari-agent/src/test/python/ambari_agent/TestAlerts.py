@@ -700,13 +700,16 @@ class TestAlerts(TestCase):
     alert.set_helpers(collector, cluster_configuration )
     alert.set_cluster("c1", "c6401.ambari.apache.org")
 
+    alert.collect()
+
     self.assertEquals(definition_json['source']['path'], alert.path)
     self.assertEquals(definition_json['source']['stacks_directory'], alert.stacks_dir)
     self.assertEquals(definition_json['source']['common_services_directory'], alert.common_services_dir)
     self.assertEquals(definition_json['source']['host_scripts_directory'], alert.host_scripts_dir)
 
-    # ensure that it was skipped
-    self.assertEquals(0,len(collector.alerts()))
+    # ensure that the skipped alert was still placed into the collector; it's up to
+    # the server to decide how to handle skipped alerts
+    self.assertEquals(1,len(collector.alerts()))
 
 
   def test_default_reporting_text(self):

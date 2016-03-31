@@ -25,17 +25,26 @@ public enum AlertState {
    * Alert does not need to be distributed.  Normal Operation.
    */
   OK,
+
   /**
    * Alert indicates there may be an issue.  The component may be operating
    * normally but may be in danger of becoming <code>CRITICAL</code>.
    */
   WARNING,
+
   /**
    * Indicates there is a critical situation that needs to be addressed.
    */
   CRITICAL,
+
   /**
    * The state of the alert is not known.
    */
-  UNKNOWN
+  UNKNOWN,
+
+  /**
+   * Indicates that the state of the alert should be discarded, but the alert
+   * timestamps should be updated so that it is not considered stale.
+   */
+  SKIPPED;
 }

@@ -113,15 +113,6 @@ class BaseAlert(object):
       result_state = res[0]
       reporting_state = result_state.lower()
 
-      # if the alert reports that it should be SKIPPED, then skip it
-      # this is useful for cases where the alert might run on multiple hosts
-      # but only 1 host should report the data
-      if result_state == BaseAlert.RESULT_SKIPPED:
-        logger.debug('[Alert][{0}] Skipping UUID {1}.'.format(self.get_name(),
-          self.get_uuid()))
-
-        return
-
       # it's possible that the alert definition doesn't have reporting; safely
       # check for it and fallback to default text if it doesn't exist
       if ('reporting' in self.alert_source_meta) and \
