@@ -677,7 +677,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     LogicalRequest logicalRequest = topologyManager.getRequest(entity.getRequestId());
 
     CalculatedStatus status = CalculatedStatus.statusFromStageSummary(summary, summary.keySet());
-    if (summary.isEmpty() && (logicalRequest == null || logicalRequest.hasCompleted())) {
+    if (summary.isEmpty() && logicalRequest == null) {
 
       // summary might be empty due to delete host have cleared all HostRoleCommands
       // or due to hosts haven't registered yet with the cluster when the cluster is provisioned
