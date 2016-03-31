@@ -221,7 +221,9 @@ App.MountPointsBasedInitializerMixin = Em.Mixin.create({
 
     var notHome = !['/', '/home'].contains(mPoint.mountpoint);
     var notDocker = !['/etc/resolv.conf', '/etc/hostname', '/etc/hosts'].contains(mPoint.mountpoint);
-    var notBoot = mPoint.mountpoint && !(mPoint.mountpoint.startsWith('/boot') || mPoint.mountpoint.startsWith('/mnt'));
+    var notBoot = mPoint.mountpoint && !(mPoint.mountpoint.startsWith('/boot')
+                                        || mPoint.mountpoint.startsWith('/mnt')
+                                        || mPoint.mountpoint.startsWith('/tmp'));
     var notDev = !(['devtmpfs', 'tmpfs', 'vboxsf', 'CDFS'].contains(mPoint.type));
 
     return notHome && notDocker && notBoot && notDev;
