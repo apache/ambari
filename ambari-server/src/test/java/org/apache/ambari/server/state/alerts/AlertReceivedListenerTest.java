@@ -169,25 +169,24 @@ public class AlertReceivedListenerTest {
     String definitionName = ALERT_DEFINITION + "1";
     String componentName = "DATANODE";
 
-    Alert alert1 = new Alert(definitionName, null, "HDFS", componentName,
+    Alert alert = new Alert(definitionName, null, "HDFS", componentName,
         HOST1, AlertState.OK);
 
-    alert1.setCluster(m_cluster.getClusterName());
-    alert1.setLabel(ALERT_LABEL);
-    alert1.setText("HDFS " + componentName + " is OK");
-    alert1.setTimestamp(1L);
+    alert.setCluster(m_cluster.getClusterName());
+    alert.setLabel(ALERT_LABEL);
+    alert.setText("HDFS " + componentName + " is OK");
+    alert.setTimestamp(1L);
 
     // verify that the listener works with a regular alert
     AlertReceivedListener listener = m_injector.getInstance(AlertReceivedListener.class);
-    AlertReceivedEvent event1 = new AlertReceivedEvent(
-        m_cluster.getClusterId(), alert1);
-    listener.onAlertEvent(event1);
+    AlertReceivedEvent event = new AlertReceivedEvent(m_cluster.getClusterId(), alert);
+    listener.onAlertEvent(event);
 
     List<AlertCurrentEntity> allCurrent = m_dao.findCurrent();
     assertEquals(1, allCurrent.size());
 
     // invalid host
-    alert1.setHostName("INVALID");
+    alert.setHostName("INVALID");
 
     // remove all
     m_dao.removeCurrentByHost(HOST1);
@@ -195,7 +194,7 @@ public class AlertReceivedListenerTest {
     assertEquals(0, allCurrent.size());
 
     // verify no new alerts for disabled
-    listener.onAlertEvent(event1);
+    listener.onAlertEvent(event);
     allCurrent = m_dao.findCurrent();
     assertEquals(0, allCurrent.size());
   }
@@ -207,17 +206,17 @@ public class AlertReceivedListenerTest {
   public void testInvalidAlertDefinition() {
     String componentName = "DATANODE";
 
-    Alert alert1 = new Alert("missing_alert_definition_name", null, "HDFS",
+    Alert alert = new Alert("missing_alert_definition_name", null, "HDFS",
         componentName, HOST1, AlertState.OK);
 
-    alert1.setLabel(ALERT_LABEL);
-    alert1.setText("HDFS " + componentName + " is OK");
-    alert1.setTimestamp(1L);
+    alert.setLabel(ALERT_LABEL);
+    alert.setText("HDFS " + componentName + " is OK");
+    alert.setTimestamp(1L);
 
     // bad alert definition name means no current alerts
     AlertReceivedListener listener = m_injector.getInstance(AlertReceivedListener.class);
     AlertReceivedEvent event1 = new AlertReceivedEvent(
-        m_cluster.getClusterId(), alert1);
+        m_cluster.getClusterId(), alert);
     listener.onAlertEvent(event1);
 
     List<AlertCurrentEntity> allCurrent = m_dao.findCurrent();
@@ -232,25 +231,25 @@ public class AlertReceivedListenerTest {
     String definitionName = ALERT_DEFINITION + "1";
     String componentName = "DATANODE";
 
-    Alert alert1 = new Alert(definitionName, null, "HDFS", componentName,
+    Alert alert = new Alert(definitionName, null, "HDFS", componentName,
         HOST1, AlertState.OK);
 
-    alert1.setCluster(m_cluster.getClusterName());
-    alert1.setLabel(ALERT_LABEL);
-    alert1.setText("HDFS " + componentName + " is OK");
-    alert1.setTimestamp(1L);
+    alert.setCluster(m_cluster.getClusterName());
+    alert.setLabel(ALERT_LABEL);
+    alert.setText("HDFS " + componentName + " is OK");
+    alert.setTimestamp(1L);
 
     // verify that the listener works with a regular alert
     AlertReceivedListener listener = m_injector.getInstance(AlertReceivedListener.class);
     AlertReceivedEvent event1 = new AlertReceivedEvent(
-        m_cluster.getClusterId(), alert1);
+        m_cluster.getClusterId(), alert);
     listener.onAlertEvent(event1);
 
     List<AlertCurrentEntity> allCurrent = m_dao.findCurrent();
     assertEquals(1, allCurrent.size());
 
     // invalid host
-    alert1.setComponent("INVALID");
+    alert.setComponent("INVALID");
 
     // remove all
     m_dao.removeCurrentByHost(HOST1);
@@ -318,24 +317,24 @@ public class AlertReceivedListenerTest {
     String serviceName = Services.AMBARI.name();
     String componentName = Components.AMBARI_AGENT.name();
 
-    Alert alert1 = new Alert(definitionName, null, serviceName, componentName, HOST1,
+    Alert alert = new Alert(definitionName, null, serviceName, componentName, HOST1,
         AlertState.OK);
 
-    alert1.setCluster(m_cluster.getClusterName());
-    alert1.setLabel(ALERT_LABEL);
-    alert1.setText(serviceName + " " + componentName + " is OK");
-    alert1.setTimestamp(1L);
+    alert.setCluster(m_cluster.getClusterName());
+    alert.setLabel(ALERT_LABEL);
+    alert.setText(serviceName + " " + componentName + " is OK");
+    alert.setTimestamp(1L);
 
     // verify that the listener works with a regular alert
     AlertReceivedListener listener = m_injector.getInstance(AlertReceivedListener.class);
-    AlertReceivedEvent event1 = new AlertReceivedEvent(m_cluster.getClusterId(), alert1);
-    listener.onAlertEvent(event1);
+    AlertReceivedEvent event = new AlertReceivedEvent(m_cluster.getClusterId(), alert);
+    listener.onAlertEvent(event);
 
     List<AlertCurrentEntity> allCurrent = m_dao.findCurrent();
     assertEquals(1, allCurrent.size());
 
     // invalid host
-    alert1.setHostName("INVALID");
+    alert.setHostName("INVALID");
 
     // remove all
     m_dao.removeCurrentByHost(HOST1);
@@ -343,7 +342,7 @@ public class AlertReceivedListenerTest {
     assertEquals(0, allCurrent.size());
 
     // verify no new alerts received
-    listener.onAlertEvent(event1);
+    listener.onAlertEvent(event);
     allCurrent = m_dao.findCurrent();
     assertEquals(0, allCurrent.size());
   }
@@ -357,25 +356,25 @@ public class AlertReceivedListenerTest {
     String serviceName = Services.AMBARI.name();
     String componentName = Components.AMBARI_SERVER.name();
 
-    Alert alert1 = new Alert(definitionName, null, serviceName, componentName, HOST1,
+    Alert alert = new Alert(definitionName, null, serviceName, componentName, HOST1,
         AlertState.OK);
 
-    alert1.setCluster(m_cluster.getClusterName());
-    alert1.setLabel(ALERT_LABEL);
-    alert1.setText(serviceName + " " + componentName + " is OK");
-    alert1.setTimestamp(1L);
+    alert.setCluster(m_cluster.getClusterName());
+    alert.setLabel(ALERT_LABEL);
+    alert.setText(serviceName + " " + componentName + " is OK");
+    alert.setTimestamp(1L);
 
     // verify that the listener works with a regular alert
     AlertReceivedListener listener = m_injector.getInstance(AlertReceivedListener.class);
-    AlertReceivedEvent event1 = new AlertReceivedEvent(m_cluster.getClusterId(), alert1);
-    listener.onAlertEvent(event1);
+    AlertReceivedEvent event = new AlertReceivedEvent(m_cluster.getClusterId(), alert);
+    listener.onAlertEvent(event);
 
     List<AlertCurrentEntity> allCurrent = m_dao.findCurrent();
     assertEquals(1, allCurrent.size());
 
     // invalid host, invalid cluster
-    alert1.setHostName("INVALID");
-    alert1.setCluster("INVALID");
+    alert.setHostName("INVALID");
+    alert.setCluster("INVALID");
 
     // remove all
     m_dao.removeCurrentByHost(HOST1);
@@ -383,7 +382,7 @@ public class AlertReceivedListenerTest {
     assertEquals(0, allCurrent.size());
 
     // verify that the alert was still received
-    listener.onAlertEvent(event1);
+    listener.onAlertEvent(event);
     allCurrent = m_dao.findCurrent();
     assertEquals(1, allCurrent.size());
   }
@@ -408,8 +407,8 @@ public class AlertReceivedListenerTest {
 
     // verify that the listener works with a regular alert
     AlertReceivedListener listener = m_injector.getInstance(AlertReceivedListener.class);
-    AlertReceivedEvent event1 = new AlertReceivedEvent(m_cluster.getClusterId(), alert1);
-    listener.onAlertEvent(event1);
+    AlertReceivedEvent event = new AlertReceivedEvent(m_cluster.getClusterId(), alert1);
+    listener.onAlertEvent(event);
 
     List<AlertCurrentEntity> allCurrent = m_dao.findCurrent();
     assertEquals(1, allCurrent.size());
@@ -424,8 +423,81 @@ public class AlertReceivedListenerTest {
     assertEquals(0, allCurrent.size());
 
     // verify no new alerts received
-    listener.onAlertEvent(event1);
+    listener.onAlertEvent(event);
     allCurrent = m_dao.findCurrent();
     assertEquals(0, allCurrent.size());
+  }
+
+  /**
+   * Tests that receiving and alert with {@link AlertState#SKIPPED} does not create an entry
+   * if there is currently no current alert.
+   */
+  @Test
+  public void testSkippedAlertWithNoCurrentAlert() {
+    String definitionName = ALERT_DEFINITION + "1";
+    String serviceName = "HDFS";
+    String componentName = "NAMENODE";
+
+    Alert alert = new Alert(definitionName, null, serviceName, componentName, HOST1, AlertState.SKIPPED);
+
+    alert.setCluster(m_cluster.getClusterName());
+    alert.setLabel(ALERT_LABEL);
+    alert.setText(serviceName + " " + componentName + " is OK");
+    alert.setTimestamp(1L);
+
+    // fire the alert, and check that nothing gets created
+    AlertReceivedListener listener = m_injector.getInstance(AlertReceivedListener.class);
+    AlertReceivedEvent event = new AlertReceivedEvent(m_cluster.getClusterId(), alert);
+    listener.onAlertEvent(event);
+
+    List<AlertCurrentEntity> allCurrent = m_dao.findCurrent();
+    assertEquals(0, allCurrent.size());
+  }
+
+  /**
+   * Tests that receiving and alert with {@link AlertState#SKIPPED} does not
+   * create an entry if there is currently no current alert.
+   */
+  @Test
+  public void testSkippedAlertUpdatesTimestamp() {
+    String definitionName = ALERT_DEFINITION + "1";
+    String serviceName = "HDFS";
+    String componentName = "NAMENODE";
+    String text = serviceName + " " + componentName + " is OK";
+
+    Alert alert = new Alert(definitionName, null, serviceName, componentName, HOST1, AlertState.OK);
+
+    alert.setCluster(m_cluster.getClusterName());
+    alert.setLabel(ALERT_LABEL);
+    alert.setText(text);
+    alert.setTimestamp(1L);
+
+    // fire the alert, and check that the new entry was created with the right
+    // timestamp
+    AlertReceivedListener listener = m_injector.getInstance(AlertReceivedListener.class);
+    AlertReceivedEvent event = new AlertReceivedEvent(m_cluster.getClusterId(), alert);
+    listener.onAlertEvent(event);
+
+    List<AlertCurrentEntity> allCurrent = m_dao.findCurrent();
+    assertEquals(1, allCurrent.size());
+
+    // check timestamp
+    assertEquals(1L, (long) allCurrent.get(0).getOriginalTimestamp());
+    assertEquals(1L, (long) allCurrent.get(0).getLatestTimestamp());
+
+    // update the timestamp and the state
+    alert.setState(AlertState.SKIPPED);
+    alert.setTimestamp(2L);
+
+    // the logic we have does NOT update the text, so make sure this does not
+    // change
+    alert.setText("INVALID");
+
+    // get the current make sure the fields were updated
+    listener.onAlertEvent(event);
+    allCurrent = m_dao.findCurrent();
+    assertEquals(1L, (long) allCurrent.get(0).getOriginalTimestamp());
+    assertEquals(2L, (long) allCurrent.get(0).getLatestTimestamp());
+    assertEquals(text, allCurrent.get(0).getLatestText());
   }
 }

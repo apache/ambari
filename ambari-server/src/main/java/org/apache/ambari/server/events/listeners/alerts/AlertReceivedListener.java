@@ -165,6 +165,7 @@ public class AlertReceivedListener {
       }
 
       AlertCurrentEntity current;
+      AlertState alertState = alert.getState();
 
       if (StringUtils.isBlank(alert.getHostName()) || definition.isHostIgnored()) {
         current = m_alertsDao.findCurrentByNameNoHost(clusterId, alert.getName());
@@ -174,6 +175,12 @@ public class AlertReceivedListener {
       }
 
       if (null == current) {
+        // if there is no current alert and the state is skipped, then simple
+        // skip over this one as there is nothing to update in the databse
+        if (alertState == AlertState.SKIPPED) {
+          continue;
+        }
+
         AlertHistoryEntity history = createHistory(clusterId, definition, alert);
 
         // this new alert must reflect the correct MM state for the
@@ -194,11 +201,18 @@ public class AlertReceivedListener {
 
         toCreate.put(alert, current);
 
-      } else if (alert.getState() == current.getAlertHistory().getAlertState()) {
-        current.setLatestTimestamp(alert.getTimestamp());
-        current.setLatestText(alert.getText());
-        toMerge.put(alert, current);
+      } else if (alertState == current.getAlertHistory().getAlertState()
+          || alertState == AlertState.SKIPPED) {
 
+        // update the timestamp
+        current.setLatestTimestamp(alert.getTimestamp());
+
+        // only update the text if the alert isn't being skipped
+        if (alertState != AlertState.SKIPPED) {
+          current.setLatestText(alert.getText());
+        }
+
+        toMerge.put(alert, current);
       } else {
         if (LOG.isDebugEnabled()) {
           LOG.debug(
