@@ -148,6 +148,11 @@ _DEFAULT_STACK_FEATURES = {
       "name": "knox_sso_topology",
       "description": "Knox SSO Topology support (AMBARI-13975)",
       "min_version": "2.3.8.0"
+    },
+    {
+      "name": "atlas_rolling_upgrade",
+      "description": "Rolling upgrade support for Atlas",
+      "min_version": "2.3.0.0"
     }
   ]
 }

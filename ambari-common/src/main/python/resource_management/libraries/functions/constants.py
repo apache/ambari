@@ -63,3 +63,4 @@ class StackFeature:
   ACCUMULO_KERBEROS_USER_AUTH = "accumulo_kerberos_user_auth"
   KNOX_VERSIONED_DATA_DIR = "knox_versioned_data_dir"
   KNOX_SSO_TOPOLOGY = "knox_sso_topology"
+  ATLAS_ROLLING_UPGRADE = "atlas_rolling_upgrade"

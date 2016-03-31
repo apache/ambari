@@ -27,6 +27,7 @@ import status_params
 
 # server configurations
 config = Script.get_config()
+stack_root = Script.get_stack_root()
 
 cluster_name = config['clusterName']
 
@@ -44,11 +45,11 @@ stack_name = default("/hostLevelParams/stack_name", None)
 # New Cluster Stack Version that is defined during the RESTART of a Stack Upgrade
 version = default("/commandParams/version", None)
 
-# hdp version
+# stack version
 stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
-metadata_home = os.environ['METADATA_HOME_DIR'] if 'METADATA_HOME_DIR' in os.environ else '/usr/hdp/current/atlas-server'
+metadata_home = os.environ['METADATA_HOME_DIR'] if 'METADATA_HOME_DIR' in os.environ else format('{stack_root}/current/atlas-server')
 metadata_bin = format("{metadata_home}/bin")
 
 python_binary = os.environ['PYTHON_EXE'] if 'PYTHON_EXE' in os.environ else sys.executable

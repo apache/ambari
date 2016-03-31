@@ -21,16 +21,18 @@ from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management import Execute, File, check_process_status, Script
 from resource_management.libraries.functions import format
-from resource_management.libraries.functions.version import compare_versions, format_stack_version
 from resource_management.libraries.functions.security_commons import build_expectations, \
   get_params_from_filesystem, validate_security_config_properties, \
   FILE_TYPE_PROPERTIES
 from resource_management.libraries.functions.show_logs import show_logs
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions import StackFeature
 
 class MetadataServer(Script):
 
   def get_stack_to_component(self):
-    return {"HDP": "atlas-server"}
+    import params
+    return {params.stack_name: "atlas-server"}
 
   def install(self, env):
     self.install_packages(env)
@@ -44,8 +46,11 @@ class MetadataServer(Script):
     import params
     env.set_params(params)
 
-    if params.version and compare_versions(format_stack_version(params.version), '2.3.0.0') >= 0:
-      # conf_select.select(params.stack_name, "atlas", params.version)
+    # TODO: Add ATLAS_CONFIG_VERSIONING stack feature and uncomment this code when config versioning for Atlas is supported
+    #if params.version and check_stack_feature(StackFeature.ATLAS_CONFIG_VERSIONING, params.version):
+    #  conf_select.select(params.stack_name, "atlas", params.version)
+
+    if params.version and check_stack_feature(StackFeature.ATLAS_ROLLING_UPGRADE, params.version):
       stack_select.select("atlas-server", params.version)
 
   def start(self, env, upgrade_type=None):

@@ -22,6 +22,8 @@ import sys
 from resource_management import *
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions import StackFeature
 
 from metadata import metadata
 
@@ -29,7 +31,8 @@ from metadata import metadata
 class AtlasClient(Script):
 
   def get_stack_to_component(self):
-    return {"HDP": "atlas-client"}
+    import params
+    return {params.stack_name: "atlas-client"}
 
   # ToDo: currently <stack-selector-tool> doesn't contain atlas-client, uncomment this block when
   # ToDo: atlas-client will be available
@@ -37,8 +40,11 @@ class AtlasClient(Script):
   #   import params
   #   env.set_params(params)
   #
-  #   if params.version and compare_versions(format_stack_version(params.version), '2.3.0.0') >= 0:
+  # TODO: Add ATLAS_CONFIG_VERSIONING stack feature and uncomment this code when config versioning for Atlas is supported
+  #   if params.version and check_stack_feature(StackFeature.ATLAS_CONFIG_VERSIONING, params.version):
   #     conf_select.select(params.stack_name, "atlas", params.version)
+  # TODO: Add ATLAS_CLIENT_ROLLING_UPGRADE stack feature and uncomment this code when rolling upgrade for Atlas client is supported
+  #   if params.version and check_stack_feature(StackFeature.ATLAS_CLIENT_ROLLING_UPGRADE, params.version):
   #     stack_select.select("atlas-client", params.version)
 
   def install(self, env):
