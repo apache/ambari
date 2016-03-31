@@ -60,3 +60,4 @@ class StackFeature:
   KAFKA_KERBEROS = "kafka_kerberos"
   PIG_ON_TEZ = "pig_on_tez"
   RANGER_USERSYNC_NON_ROOT = "ranger_usersync_non_root"
+  ACCUMULO_KERBEROS_USER_AUTH = "accumulo_kerberos_user_auth"

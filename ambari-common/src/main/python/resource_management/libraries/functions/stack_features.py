@@ -133,6 +133,11 @@ _DEFAULT_STACK_FEATURES = {
       "name": "ranger_usersync_non_root",
       "description": "Ranger Usersync as non-root user (AMBARI-10416)",
       "min_version": "2.3.0.0"
+    },
+    {
+      "name": "accumulo_kerberos_user_auth",
+      "description": "Accumulo Kerberos User Auth (AMBARI-10163)",
+      "min_version": "2.3.0.0"
     }
   ]
 }

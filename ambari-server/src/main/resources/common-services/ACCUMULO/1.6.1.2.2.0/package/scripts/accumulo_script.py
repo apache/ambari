@@ -29,6 +29,8 @@ from resource_management.libraries.functions.security_commons import get_params_
 from resource_management.libraries.functions.security_commons import validate_security_config_properties
 from resource_management.libraries.functions.security_commons import FILE_TYPE_XML
 from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions import StackFeature
 
 from accumulo_configuration import setup_conf_dir
 from accumulo_service import accumulo_service
@@ -52,14 +54,15 @@ class AccumuloScript(Script):
   def get_stack_to_component(self):
     """
     Gets the <stack-selector-tool> component name given the script component
-    :return:  the name of the component on the HDP stack which is used by
+    :return:  the name of the component on the stack which is used by
               <stack-selector-tool>
     """
+    import params
     if self.component not in self.COMPONENT_TO_STACK_SELECT_MAPPING:
       return None
 
     stack_component = self.COMPONENT_TO_STACK_SELECT_MAPPING[self.component]
-    return {"HDP": stack_component}
+    return {params.stack_name: stack_component}
 
 
   def install(self, env):
@@ -101,8 +104,8 @@ class AccumuloScript(Script):
     env.set_params(params)
 
     # this function should not execute if the version can't be determined or
-    # is not at least HDP 2.2.0.0
-    if Script.is_stack_less_than("2.2"):
+    # the stack does not support rolling upgrade
+    if not (params.stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.stack_version_formatted)):
       return
 
     if self.component not in self.COMPONENT_TO_STACK_SELECT_MAPPING:

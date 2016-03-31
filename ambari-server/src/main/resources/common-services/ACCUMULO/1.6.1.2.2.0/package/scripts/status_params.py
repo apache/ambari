@@ -36,8 +36,9 @@ SERVER_ROLE_DIRECTORY_MAP = {
 component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, "ACCUMULO_CLIENT")
 
 config = Script.get_config()
+stack_root = Script.get_stack_root()
 
-conf_dir = format('/usr/hdp/current/{component_directory}/conf')
+conf_dir = format('{stack_root}/current/{component_directory}/conf')
 server_conf_dir = format('{conf_dir}/server')
 pid_dir = config['configurations']['accumulo-env']['accumulo_pid_dir']
 accumulo_user = config['configurations']['accumulo-env']['accumulo_user']
