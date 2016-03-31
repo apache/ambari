@@ -151,6 +151,9 @@
               </commandScript>
             </customCommand>
           </customCommands>
+          <bulkCommands>
+            <displayName>HAWQ Segments</displayName>
+          </bulkCommands>
         </component>
       </components>
 

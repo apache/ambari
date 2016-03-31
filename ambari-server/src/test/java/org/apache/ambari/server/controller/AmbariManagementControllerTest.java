@@ -172,6 +172,9 @@ public class AmbariManagementControllerTest {
 
   private static final String STACK_NAME = "HDP";
 
+  private static final String SERVICE_NAME_HBASE = "HBASE";
+  private static final String COMPONENT_NAME_REGIONSERVER = "HBASE_REGIONSERVER";
+  private static final String COMPONENT_NAME_DATANODE = "DATANODE";
   private static final String STACK_VERSION = "0.2";
   private static final String NEW_STACK_VERSION = "2.0.6";
   private static final String OS_TYPE = "centos5";
@@ -7382,6 +7385,39 @@ public class AmbariManagementControllerTest {
     response = responses.iterator().next();
     assertNotNull(response.getCustomCommands());
     assertEquals(0, response.getCustomCommands().size());
+  }
+
+  @Test
+  public void testBulkCommandsInheritence() throws Exception{
+    //HDP 2.0.6 inherit HDFS configurations from HDP 2.0.5
+    StackServiceComponentRequest requestWithParams = new StackServiceComponentRequest(STACK_NAME, NEW_STACK_VERSION, SERVICE_NAME, COMPONENT_NAME_DATANODE);
+    Set<StackServiceComponentResponse> responsesWithParams = controller.getStackComponents(Collections.singleton(requestWithParams));
+    Assert.assertEquals(1, responsesWithParams.size());
+    for (StackServiceComponentResponse responseWithParams: responsesWithParams) {
+      Assert.assertEquals(responseWithParams.getComponentName(), COMPONENT_NAME_DATANODE);
+      Assert.assertEquals(responseWithParams.getBulkCommandsDisplayName(), "DataNodes");
+      Assert.assertEquals(responseWithParams.getBulkCommandsMasterComponentName(), "NAMENODE");
+    }
+  }
+
+  @Test
+  public void testBulkCommandsChildStackOverride() throws Exception{
+    //Both HDP 2.0.6 and HDP 2.0.5 has HBase configurations
+    StackServiceComponentRequest requestWithParams = new StackServiceComponentRequest(STACK_NAME, "2.0.5", SERVICE_NAME_HBASE, COMPONENT_NAME_REGIONSERVER);
+    Set<StackServiceComponentResponse> responsesWithParams = controller.getStackComponents(Collections.singleton(requestWithParams));
+    Assert.assertEquals(1, responsesWithParams.size());
+    for (StackServiceComponentResponse responseWithParams: responsesWithParams) {
+      Assert.assertEquals(responseWithParams.getBulkCommandsDisplayName(), "Region Servers");
+      Assert.assertEquals(responseWithParams.getBulkCommandsMasterComponentName(), "HBASE_MASTER");
+    }
+
+    requestWithParams = new StackServiceComponentRequest(STACK_NAME, NEW_STACK_VERSION, SERVICE_NAME_HBASE, COMPONENT_NAME_REGIONSERVER);
+    responsesWithParams = controller.getStackComponents(Collections.singleton(requestWithParams));
+    Assert.assertEquals(1, responsesWithParams.size());
+    for (StackServiceComponentResponse responseWithParams: responsesWithParams) {
+      Assert.assertEquals(responseWithParams.getBulkCommandsDisplayName(), "HBase Region Servers");
+      Assert.assertEquals(responseWithParams.getBulkCommandsMasterComponentName(), "HBASE_MASTER");
+    }
   }
 
   // disabled as upgrade feature is disabled

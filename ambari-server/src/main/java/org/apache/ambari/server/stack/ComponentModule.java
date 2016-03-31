@@ -90,6 +90,10 @@ public class ComponentModule extends BaseModule<ComponentModule, ComponentInfo> 
 
       componentInfo.setRecoveryEnabled(parentInfo.isRecoveryEnabled());
 
+      if(componentInfo.getBulkCommandDefinition() == null){
+        componentInfo.setBulkCommands(parentInfo.getBulkCommandDefinition());
+      }
+
       mergeComponentDependencies(parentInfo.getDependencies(),
               componentInfo.getDependencies());
 

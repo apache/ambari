@@ -36,6 +36,9 @@
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
+          <bulkCommands>
+            <displayName>PXF</displayName>
+          </bulkCommands>
         </component>
       </components>
 

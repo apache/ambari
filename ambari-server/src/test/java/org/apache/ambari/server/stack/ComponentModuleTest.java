@@ -19,6 +19,7 @@
 package org.apache.ambari.server.stack;
 
 import org.apache.ambari.server.state.AutoDeployInfo;
+import org.apache.ambari.server.state.BulkCommandDefinition;
 import org.apache.ambari.server.state.ClientConfigFileDefinition;
 import org.apache.ambari.server.state.CommandScriptDefinition;
 import org.apache.ambari.server.state.ComponentInfo;
@@ -385,6 +386,28 @@ public class ComponentModuleTest {
 
     component = new ComponentModule(info);
     assertTrue(component.isDeleted());
+  }
+
+  @Test
+  public void testResolve_BulkCommandsDefinition(){
+    BulkCommandDefinition bulkCommandsDefinition = new BulkCommandDefinition();
+    ComponentInfo info = new ComponentInfo();
+    ComponentInfo parentInfo = new ComponentInfo();
+
+    // parent has value set, child value is null
+    parentInfo.setBulkCommands(bulkCommandsDefinition);
+    assertSame(bulkCommandsDefinition, resolveComponent(info, parentInfo).getModuleInfo().getBulkCommandDefinition());
+
+    // child has value set, parent value is null
+    info.setBulkCommands(bulkCommandsDefinition);
+    parentInfo.setBulkCommands(null);
+    assertSame(bulkCommandsDefinition, resolveComponent(info, parentInfo).getModuleInfo().getBulkCommandDefinition());
+
+    // value set in both parent and child; child overwrites
+    BulkCommandDefinition bulkCommandsDefinition2 = createNiceMock(BulkCommandDefinition.class);
+    info.setBulkCommands(bulkCommandsDefinition);
+    parentInfo.setBulkCommands(bulkCommandsDefinition2);
+    assertSame(bulkCommandsDefinition, resolveComponent(info, parentInfo).getModuleInfo().getBulkCommandDefinition());
   }
 
   private ComponentModule resolveComponent(ComponentInfo info, ComponentInfo parentInfo) {

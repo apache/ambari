@@ -38,46 +38,27 @@ App.HostTableMenuView = Em.View.extend({
 
   components: function () {
     var serviceNames = App.Service.find().mapProperty('serviceName');
-    var menuItems = [
-      O.create({
-        serviceName: 'HDFS',
-        componentName: 'DATANODE',
-        masterComponentName: 'NAMENODE',
-        componentNameFormatted: Em.I18n.t('dashboard.services.hdfs.datanodes')
-      }),
-      O.create({
-        serviceName: 'YARN',
-        componentName: 'NODEMANAGER',
-        masterComponentName: 'RESOURCEMANAGER',
-        componentNameFormatted: Em.I18n.t('dashboard.services.yarn.nodeManagers')
-      }),
-      O.create({
-        serviceName: 'HBASE',
-        componentName: 'HBASE_REGIONSERVER',
-        masterComponentName: 'HBASE_MASTER',
-        componentNameFormatted: Em.I18n.t('dashboard.services.hbase.regionServers')
-      }),
-      O.create({
-        serviceName: 'HAWQ',
-        componentName: 'HAWQSEGMENT',
-        componentNameFormatted: Em.I18n.t('dashboard.services.hawq.hawqSegments')
-      }),
-      O.create({
-        serviceName: 'PXF',
-        componentName: 'PXF',
-        componentNameFormatted: Em.I18n.t('dashboard.services.pxf.pxfHosts')
-      }),
-      O.create({
-        serviceName: 'STORM',
-        componentName: 'SUPERVISOR',
-        masterComponentName: 'SUPERVISOR',
-        componentNameFormatted: Em.I18n.t('dashboard.services.storm.supervisors')
-      })];
-
+    var menuItems = this.getBulkMenuItemsPerServiceComponent();
     return menuItems.filter(function (item) {
       return serviceNames.contains(item.serviceName);
     });
   }.property(),
+
+  getBulkMenuItemsPerServiceComponent: function(){
+    var menuItems = [];
+    App.StackServiceComponent.find().forEach(function (stackComponent) {
+      if(stackComponent.get('hasBulkCommandsDefinition')){
+        var menuItem = O.create({
+          serviceName: stackComponent.get('serviceName'),
+          componentName: stackComponent.get('componentName'),
+          masterComponentName: stackComponent.get('bulkCommandsMasterComponentName'),
+          componentNameFormatted: stackComponent.get('bulkCommandsDisplayName')
+        });
+        menuItems.push(menuItem);
+      }
+    }, this);
+    return menuItems;
+  },
 
   /**
    * slaveItemView build second-level menu

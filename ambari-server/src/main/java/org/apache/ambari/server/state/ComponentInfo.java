@@ -87,6 +87,12 @@ public class ComponentInfo {
   private List<CustomCommandDefinition> customCommands;
 
   /**
+   * bulk commands shown in the Hosts actions
+   * */
+  @XmlElement(name="bulkCommands")
+  private BulkCommandDefinition bulkCommandDefinition;
+
+  /**
    * Component dependencies to other components.
    */
   @XmlElementWrapper(name="dependencies")
@@ -127,6 +133,7 @@ public class ComponentInfo {
     commandScript = prototype.commandScript;
     logs = prototype.logs;
     customCommands = prototype.customCommands;
+    bulkCommandDefinition = prototype.bulkCommandDefinition;
     dependencies = prototype.dependencies;
     autoDeploy = prototype.autoDeploy;
     configDependencies = prototype.configDependencies;
@@ -232,6 +239,14 @@ public class ComponentInfo {
     return null;
   }
 
+  public BulkCommandDefinition getBulkCommandDefinition() {
+    return bulkCommandDefinition;
+  }
+
+  public void setBulkCommands(BulkCommandDefinition bulkCommandDefinition) {
+    this.bulkCommandDefinition = bulkCommandDefinition;
+  }
+
   public List<DependencyInfo> getDependencies() {
     return dependencies;
   }
@@ -319,6 +334,8 @@ public class ComponentInfo {
       return false;
     if (customCommands != null ? !customCommands.equals(that.customCommands) : that.customCommands != null)
       return false;
+    if (bulkCommandDefinition != null ? !bulkCommandDefinition.equals(that.bulkCommandDefinition) : that.bulkCommandDefinition != null)
+      return false;
     if (dependencies != null ? !dependencies.equals(that.dependencies) : that.dependencies != null) return false;
     if (displayName != null ? !displayName.equals(that.displayName) : that.displayName != null) return false;
     if (name != null ? !name.equals(that.name) : that.name != null) return false;
@@ -340,6 +357,7 @@ public class ComponentInfo {
     result = 31 * result + (logs != null ? logs.hashCode() : 0);
     result = 31 * result + (clientConfigFiles != null ? clientConfigFiles.hashCode() : 0);
     result = 31 * result + (customCommands != null ? customCommands.hashCode() : 0);
+    result = 31 * result + (bulkCommandDefinition != null ? bulkCommandDefinition.hashCode(): 0);
     result = 31 * result + (dependencies != null ? dependencies.hashCode() : 0);
     result = 31 * result + (autoDeploy != null ? autoDeploy.hashCode() : 0);
     result = 31 * result + (configDependencies != null ? configDependencies.hashCode() : 0);

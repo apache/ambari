@@ -83,6 +83,11 @@
             <script>scripts/hbase_regionserver.py</script>
             <scriptType>PYTHON</scriptType>
           </commandScript>
+          <bulkCommands>
+            <displayName>RegionServers</displayName>
+            <!-- Used by decommission and recommission -->
+            <masterComponent>HBASE_MASTER</masterComponent>
+          </bulkCommands>
           <logs>
             <log>
               <logId>hbase_regionserver</logId>

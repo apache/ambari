@@ -65,6 +65,11 @@
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
+          <bulkCommands>
+            <displayName>DataNodes</displayName>
+            <!-- Used by decommission and recommission -->
+            <masterComponent>NAMENODE</masterComponent>
+          </bulkCommands>
         </component>
 
         <component>

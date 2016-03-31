@@ -216,6 +216,11 @@
             <scriptType>PYTHON</scriptType>
             <timeout>1200</timeout>
           </commandScript>
+          <bulkCommands>
+            <displayName>NodeManagers</displayName>
+            <!-- Used by decommission and recommission -->
+            <masterComponent>RESOURCEMANAGER</masterComponent>
+          </bulkCommands>
         </component>
 
         <component>

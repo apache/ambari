@@ -244,6 +244,10 @@
         "StackServiceComponents/cardinality",
         "StackServiceComponents/custom_commands",
         "StackServiceComponents/recovery_enabled",
+        "StackServiceComponents/advertise_version",
+        "StackServiceComponents/has_bulk_commands_definition",
+        "StackServiceComponents/bulk_commands_display_name",
+        "StackServiceComponents/bulk_commands_master_component_name",
         "auto_deploy/enabled",
         "auto_deploy/location",
         "_"
