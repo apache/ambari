@@ -22,10 +22,10 @@ module.exports = App.WizardRoute.extend({
   route: '/host/add',
 
   leaveWizard: function (router, context) {
+    App.router.get('wizardWatcherController').resetUser();
     var addHostController = router.get('addHostController');
     App.router.get('updateController').set('isWorking', true);
     addHostController.finish();
-    App.router.get('wizardWatcherController').resetUser();
     App.clusterStatus.setClusterStatus({
       clusterName: App.router.get('content.cluster.name'),
       clusterState: 'DEFAULT',

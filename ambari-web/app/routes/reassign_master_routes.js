@@ -22,10 +22,10 @@ module.exports = App.WizardRoute.extend({
   route: '/service/reassign',
 
   leaveWizard: function (router, context) {
+    App.router.get('wizardWatcherController').resetUser();
     var reassignMasterController = router.get('reassignMasterController');
     App.router.get('updateController').set('isWorking', true);
     reassignMasterController.finish();
-    App.router.get('wizardWatcherController').resetUser();
     App.clusterStatus.setClusterStatus({
       clusterName: App.router.get('content.cluster.name'),
       clusterState: 'DEFAULT',

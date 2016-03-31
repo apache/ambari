@@ -43,7 +43,7 @@ module.exports = App.WizardRoute.extend({
           var rAHighAvailabilityWizardController = router.get('rAHighAvailabilityWizardController'),
               currStep = rAHighAvailabilityWizardController.get('currentStep'),
               self = this;
-
+          App.router.get('wizardWatcherController').resetUser();
           if (parseInt(currStep) === 4) {
             App.showConfirmationPopup(function () {
               router.get('updateController').set('isWorking', true);

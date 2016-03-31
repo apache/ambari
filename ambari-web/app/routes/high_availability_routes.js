@@ -52,6 +52,7 @@ module.exports = App.WizardRoute.extend({
           }.observes('App.router.highAvailabilityWizardController.currentStep'),
 
           onClose: function () {
+            App.router.get('wizardWatcherController').resetUser();
             var self = this;
             var currStep = App.router.get('highAvailabilityWizardController.currentStep');
             var highAvailabilityProgressPageController = App.router.get('highAvailabilityProgressPageController');
@@ -68,7 +69,6 @@ module.exports = App.WizardRoute.extend({
               controller.clearTasksData();
               controller.finish();
               App.router.get('updateController').set('isWorking', true);
-              App.router.get('wizardWatcherController').resetUser();
               App.clusterStatus.setClusterStatus({
                 clusterName: controller.get('content.cluster.name'),
                 clusterState: 'DEFAULT',

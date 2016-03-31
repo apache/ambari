@@ -41,7 +41,7 @@ module.exports = App.WizardRoute.extend({
           var rMHighAvailabilityWizardController = router.get('rMHighAvailabilityWizardController'),
               currStep = rMHighAvailabilityWizardController.get('currentStep'),
               self = this;
-
+          App.router.get('wizardWatcherController').resetUser();
           if (parseInt(currStep) === 4) {
             App.showConfirmationPopup(function () {
               router.get('updateController').set('isWorking', true);
@@ -63,7 +63,6 @@ module.exports = App.WizardRoute.extend({
           } else {
             router.get('updateController').set('isWorking', true);
             rMHighAvailabilityWizardController.finish();
-            App.router.get('wizardWatcherController').resetUser();
             App.clusterStatus.setClusterStatus({
               clusterName: App.router.getClusterName(),
               clusterState: 'DEFAULT',

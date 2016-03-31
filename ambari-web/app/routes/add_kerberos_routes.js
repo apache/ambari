@@ -71,6 +71,7 @@ module.exports = App.WizardRoute.extend({
           var kerberosProgressPageController = App.router.get('kerberosProgressPageController');
           var controller = App.router.get('kerberosWizardController');
           var exitPath = controller.getDBProperty('onClosePath') || 'adminKerberos.index';
+          App.router.get('wizardWatcherController').resetUser();
           controller.clearTasksData();
           controller.finish();
           App.get('router.updateController').set('isWorking', true);
@@ -81,7 +82,6 @@ module.exports = App.WizardRoute.extend({
                 location.reload();
               });
             }
-            App.router.get('wizardWatcherController').resetUser();
             App.clusterStatus.setClusterStatus({
               clusterName: App.router.getClusterName(),
               clusterState: 'DEFAULT',
