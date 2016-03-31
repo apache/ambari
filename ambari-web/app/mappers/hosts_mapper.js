@@ -159,7 +159,7 @@ App.hostsMapper = App.QuickDataMapper.create({
         var alertsSummary = item.alerts_summary;
         item.critical_warning_alerts_count = alertsSummary ? (alertsSummary.CRITICAL || 0) + (alertsSummary.WARNING || 0) : 0;
         item.cluster_id = clusterName;
-        var existingHost = hostsMap[component.host_name];
+        var existingHost = hostsMap[item.Hosts.host_name];
         // There is no need to override existing index in host detail view since old model(already have indexes) will not be cleared.
         item.index = (existingHost && !json.itemTotal)? existingHost.get('index'): index;
 
