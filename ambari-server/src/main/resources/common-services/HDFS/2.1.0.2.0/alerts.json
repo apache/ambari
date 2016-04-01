@@ -537,8 +537,7 @@
               "display_name": "Whether active and stanby NameNodes metrics should be merged",
               "value": "false",
               "type": "STRING",
-              "description": "Whether active and stanby NameNodes metrics should be merged.",
-              "visibility": "HIDDEN"
+              "description": "Whether active and stanby NameNodes metrics should be merged."
             },
             {
               "name": "interval",
@@ -552,16 +551,14 @@
               "display_name": "AMS application id",
               "value": "NAMENODE",
               "type": "STRING",
-              "description": "The application id used to retrieve the metric.",
-              "visibility": "HIDDEN"
+              "description": "The application id used to retrieve the metric."
             },
             {
               "name": "metricName",
               "display_name": "Metric Name",
               "value": "rpc.rpc.datanode.RpcQueueTimeAvgTime",
               "type": "STRING",
-              "description": "The metric to monitor.",
-              "visibility": "HIDDEN"
+              "description": "The metric to monitor."
             },
             {
               "name": "metric.deviation.warning.threshold",
@@ -605,8 +602,7 @@
               "display_name": "Whether active and stanby NameNodes metrics should be merged",
               "value": "false",
               "type": "STRING",
-              "description": "Whether active and stanby NameNodes metrics should be merged.",
-              "visibility": "HIDDEN"
+              "description": "Whether active and stanby NameNodes metrics should be merged."
             },
             {
               "name": "interval",
@@ -620,16 +616,14 @@
               "display_name": "AMS application id",
               "value": "NAMENODE",
               "type": "STRING",
-              "description": "The application id used to retrieve the metric.",
-              "visibility": "HIDDEN"
+              "description": "The application id used to retrieve the metric."
             },
             {
               "name": "metricName",
               "display_name": "Metric Name",
               "value": "rpc.rpc.client.RpcQueueTimeAvgTime",
               "type": "STRING",
-              "description": "The metric to monitor.",
-              "visibility": "HIDDEN"
+              "description": "The metric to monitor."
             },
             {
               "name": "metric.deviation.warning.threshold",
@@ -673,8 +667,7 @@
               "display_name": "Whether active and stanby NameNodes metrics should be merged",
               "value": "false",
               "type": "STRING",
-              "description": "Whether active and stanby NameNodes metrics should be merged.",
-              "visibility": "HIDDEN"
+              "description": "Whether active and stanby NameNodes metrics should be merged."
             },
             {
               "name": "interval",
@@ -688,16 +681,14 @@
               "display_name": "AMS application id",
               "value": "NAMENODE",
               "type": "STRING",
-              "description": "The application id used to retrieve the metric.",
-              "visibility": "HIDDEN"
+              "description": "The application id used to retrieve the metric."
             },
             {
               "name": "metricName",
               "display_name": "Metric Name",
               "value": "rpc.rpc.datanode.RpcProcessingTimeAvgTime",
               "type": "STRING",
-              "description": "The metric to monitor.",
-              "visibility": "HIDDEN"
+              "description": "The metric to monitor."
             },
             {
               "name": "metric.deviation.warning.threshold",
@@ -741,8 +732,7 @@
               "display_name": "Whether active and stanby NameNodes metrics should be merged",
               "value": "false",
               "type": "STRING",
-              "description": "Whether active and stanby NameNodes metrics should be merged.",
-              "visibility": "HIDDEN"
+              "description": "Whether active and stanby NameNodes metrics should be merged."
             },
             {
               "name": "interval",
@@ -756,16 +746,14 @@
               "display_name": "AMS application id",
               "value": "NAMENODE",
               "type": "STRING",
-              "description": "The application id used to retrieve the metric.",
-              "visibility": "HIDDEN"
+              "description": "The application id used to retrieve the metric."
             },
             {
               "name": "metricName",
               "display_name": "Metric Name",
               "value": "rpc.rpc.client.RpcProcessingTimeAvgTime",
               "type": "STRING",
-              "description": "The metric to monitor.",
-              "visibility": "HIDDEN"
+              "description": "The metric to monitor."
             },
             {
               "name": "metric.deviation.warning.threshold",
@@ -809,8 +797,7 @@
               "display_name": "Whether active and stanby NameNodes metrics should be merged",
               "value": "false",
               "type": "STRING",
-              "description": "Whether active and stanby NameNodes metrics should be merged.",
-              "visibility": "HIDDEN"
+              "description": "Whether active and stanby NameNodes metrics should be merged."
             },
             {
               "name": "interval",
@@ -824,16 +811,14 @@
               "display_name": "AMS application id",
               "value": "NAMENODE",
               "type": "STRING",
-              "description": "The application id used to retrieve the metric.",
-              "visibility": "HIDDEN"
+              "description": "The application id used to retrieve the metric."
             },
             {
               "name": "metricName",
               "display_name": "Metric Name",
               "value": "jvm.JvmMetrics.MemHeapUsedM",
               "type": "STRING",
-              "description": "The metric to monitor.",
-              "visibility": "HIDDEN"
+              "description": "The metric to monitor."
             },
             {
               "name": "metric.deviation.warning.threshold",
@@ -870,8 +855,7 @@
               "display_name": "Whether active and stanby NameNodes metrics should be merged",
               "value": "false",
               "type": "STRING",
-              "description": "Whether active and stanby NameNodes metrics should be merged.",
-              "visibility": "HIDDEN"
+              "description": "Whether active and stanby NameNodes metrics should be merged."
             },
             {
               "name": "interval",
@@ -885,16 +869,14 @@
               "display_name": "AMS application id",
               "value": "NAMENODE",
               "type": "STRING",
-              "description": "The application id used to retrieve the metric.",
-              "visibility": "HIDDEN"
+              "description": "The application id used to retrieve the metric."
             },
             {
               "name": "metricName",
               "display_name": "Metric Name",
               "value": "rpc.rpc.datanode.RpcProcessingTimeAvgTime",
               "type": "STRING",
-              "description": "The metric to monitor.",
-              "visibility": "HIDDEN"
+              "description": "The metric to monitor."
             },
             {
               "name": "metric.deviation.warning.threshold",
@@ -938,8 +920,7 @@
               "display_name": "Whether active and stanby NameNodes metrics should be merged",
               "value": "false",
               "type": "STRING",
-              "description": "Whether active and stanby NameNodes metrics should be merged.",
-              "visibility": "HIDDEN"
+              "description": "Whether active and stanby NameNodes metrics should be merged."
             },
             {
               "name": "interval",
@@ -953,16 +934,14 @@
               "display_name": "AMS application id",
               "value": "NAMENODE",
               "type": "STRING",
-              "description": "The application id used to retrieve the metric.",
-              "visibility": "HIDDEN"
+              "description": "The application id used to retrieve the metric."
             },
             {
               "name": "metricName",
               "display_name": "Metric Name",
               "value": "rpc.rpc.client.RpcProcessingTimeAvgTime",
               "type": "STRING",
-              "description": "The metric to monitor.",
-              "visibility": "HIDDEN"
+              "description": "The metric to monitor."
             },
             {
               "name": "metric.deviation.warning.threshold",
@@ -1006,8 +985,7 @@
               "display_name": "Whether active and stanby NameNodes metrics should be merged",
               "value": "false",
               "type": "STRING",
-              "description": "Whether active and stanby NameNodes metrics should be merged.",
-              "visibility": "HIDDEN"
+              "description": "Whether active and stanby NameNodes metrics should be merged."
             },
             {
               "name": "interval",
@@ -1021,16 +999,14 @@
               "display_name": "AMS application id",
               "value": "NAMENODE",
               "type": "STRING",
-              "description": "The application id used to retrieve the metric.",
-              "visibility": "HIDDEN"
+              "description": "The application id used to retrieve the metric."
             },
             {
               "name": "metricName",
               "display_name": "Metric Name",
               "value": "rpc.rpc.datanode.RpcQueueTimeAvgTime",
               "type": "STRING",
-              "description": "The metric to monitor.",
-              "visibility": "HIDDEN"
+              "description": "The metric to monitor."
             },
             {
               "name": "metric.deviation.warning.threshold",
@@ -1074,8 +1050,7 @@
               "display_name": "Whether active and stanby NameNodes metrics should be merged",
               "value": "false",
               "type": "STRING",
-              "description": "Whether active and stanby NameNodes metrics should be merged.",
-              "visibility": "HIDDEN"
+              "description": "Whether active and stanby NameNodes metrics should be merged."
             },
             {
               "name": "interval",
@@ -1089,16 +1064,14 @@
               "display_name": "AMS application id",
               "value": "NAMENODE",
               "type": "STRING",
-              "description": "The application id used to retrieve the metric.",
-              "visibility": "HIDDEN"
+              "description": "The application id used to retrieve the metric."
             },
             {
               "name": "metricName",
               "display_name": "Metric Name",
               "value": "rpc.rpc.client.RpcQueueTimeAvgTime",
               "type": "STRING",
-              "description": "The metric to monitor.",
-              "visibility": "HIDDEN"
+              "description": "The metric to monitor."
             },
             {
               "name": "metric.deviation.warning.threshold",
@@ -1142,8 +1115,7 @@
               "display_name": "Whether active and stanby NameNodes metrics should be merged",
               "value": "false",
               "type": "STRING",
-              "description": "Whether active and stanby NameNodes metrics should be merged.",
-              "visibility": "HIDDEN"
+              "description": "Whether active and stanby NameNodes metrics should be merged."
             },
             {
               "name": "interval",
@@ -1157,16 +1129,14 @@
               "display_name": "AMS application id",
               "value": "NAMENODE",
               "type": "STRING",
-              "description": "The application id used to retrieve the metric.",
-              "visibility": "HIDDEN"
+              "description": "The application id used to retrieve the metric."
             },
             {
               "name": "metricName",
               "display_name": "Metric Name",
               "value": "dfs.FSNamesystem.CapacityUsed",
               "type": "STRING",
-              "description": "The metric to monitor.",
-              "visibility": "HIDDEN"
+              "description": "The metric to monitor."
             },
             {
               "name": "metric.deviation.warning.threshold",
@@ -1203,8 +1173,7 @@
               "display_name": "Whether active and stanby NameNodes metrics should be merged",
               "value": "false",
               "type": "STRING",
-              "description": "Whether active and stanby NameNodes metrics should be merged.",
-              "visibility": "HIDDEN"
+              "description": "Whether active and stanby NameNodes metrics should be merged."
             },
             {
               "name": "interval",
@@ -1218,16 +1187,14 @@
               "display_name": "AMS application id",
               "value": "NAMENODE",
               "type": "STRING",
-              "description": "The application id used to retrieve the metric.",
-              "visibility": "HIDDEN"
+              "description": "The application id used to retrieve the metric."
             },
             {
               "name": "metricName",
               "display_name": "Metric Name",
               "value": "jvm.JvmMetrics.MemHeapUsedM",
               "type": "STRING",
-              "description": "The metric to monitor.",
-              "visibility": "HIDDEN"
+              "description": "The metric to monitor."
             },
             {
               "name": "metric.deviation.warning.threshold",
@@ -1264,8 +1231,7 @@
               "display_name": "Whether active and stanby NameNodes metrics should be merged",
               "value": "false",
               "type": "STRING",
-              "description": "Whether active and stanby NameNodes metrics should be merged.",
-              "visibility": "HIDDEN"
+              "description": "Whether active and stanby NameNodes metrics should be merged."
             },
             {
               "name": "interval",
@@ -1279,16 +1245,14 @@
               "display_name": "AMS application id",
               "value": "NAMENODE",
               "type": "STRING",
-              "description": "The application id used to retrieve the metric.",
-              "visibility": "HIDDEN"
+              "description": "The application id used to retrieve the metric."
             },
             {
               "name": "metricName",
               "display_name": "Metric Name",
               "value": "dfs.FSNamesystem.CapacityUsed",
               "type": "STRING",
-              "description": "The metric to monitor.",
-              "visibility": "HIDDEN"
+              "description": "The metric to monitor."
             },
             {
               "name": "metric.deviation.warning.threshold",

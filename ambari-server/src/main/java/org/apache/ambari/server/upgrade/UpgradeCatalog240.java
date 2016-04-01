@@ -46,9 +46,6 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.State;
-import org.apache.ambari.server.state.alert.AlertDefinition;
-import org.apache.ambari.server.state.alert.ScriptSource;
-import org.apache.ambari.server.state.alert.Source;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.support.JdbcUtils;
@@ -264,52 +261,6 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   }
 
   protected void updateAlerts() {
-    // map of alert_name -> property_name -> visibility_value
-    final Map<String, String> hdfsVisibilityMap = new HashMap<String, String>(){{
-      put("mergeHaMetrics", "HIDDEN");
-      put("appId", "HIDDEN");
-      put("metricName", "HIDDEN");
-    }};
-    final Map<String, String> defaultKeytabVisibilityMap = new HashMap<String, String>(){{
-      put("default.smoke.principal", "HIDDEN");
-      put("default.smoke.keytab", "HIDDEN");
-    }};
-    Map<String, Map<String, String>> visibilityMap = new HashMap<String, Map<String, String>>(){{
-      put("hive_webhcat_server_status", new HashMap<String, String>(){{
-        put("default.smoke.user", "HIDDEN");
-      }});
-      put("hive_metastore_process", defaultKeytabVisibilityMap);
-      put("hive_server_process", defaultKeytabVisibilityMap);
-      put("namenode_service_rpc_queue_latency_hourly", hdfsVisibilityMap);
-      put("namenode_client_rpc_queue_latency_hourly", hdfsVisibilityMap);
-      put("namenode_service_rpc_processing_latency_hourly", hdfsVisibilityMap);
-      put("namenode_client_rpc_processing_latency_hourly", hdfsVisibilityMap);
-      put("increase_nn_heap_usage_daily", hdfsVisibilityMap);
-      put("namenode_service_rpc_processing_latency_daily", hdfsVisibilityMap);
-      put("namenode_client_rpc_processing_latency_daily", hdfsVisibilityMap);
-      put("namenode_service_rpc_queue_latency_daily", hdfsVisibilityMap);
-      put("namenode_client_rpc_queue_latency_daily", hdfsVisibilityMap);
-      put("namenode_increase_in_storage_capacity_usage_daily", hdfsVisibilityMap);
-      put("increase_nn_heap_usage_weekly", hdfsVisibilityMap);
-      put("namenode_increase_in_storage_capacity_usage_weekly", hdfsVisibilityMap);
-    }};
-
-    // list of alerts that need to get property updates
-    List<String> alertNamesForPropertyUpdates = new ArrayList<String>() {{
-      add("namenode_service_rpc_queue_latency_hourly");
-      add("namenode_client_rpc_queue_latency_hourly");
-      add("namenode_service_rpc_processing_latency_hourly");
-      add("namenode_client_rpc_processing_latency_hourly");
-      add("increase_nn_heap_usage_daily");
-      add("namenode_service_rpc_processing_latency_daily");
-      add("namenode_client_rpc_processing_latency_daily");
-      add("namenode_service_rpc_queue_latency_daily");
-      add("namenode_client_rpc_queue_latency_daily");
-      add("namenode_increase_in_storage_capacity_usage_daily");
-      add("increase_nn_heap_usage_weekly");
-      add("namenode_increase_in_storage_capacity_usage_weekly");
-    }};
-
     LOG.info("Updating alert definitions.");
     AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
     AlertDefinitionDAO alertDefinitionDAO = injector.getInstance(AlertDefinitionDAO.class);
@@ -319,7 +270,6 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     for (final Cluster cluster : clusterMap.values()) {
       long clusterID = cluster.getClusterId();
 
-      // here goes alerts that need get new properties
       final AlertDefinitionEntity namenodeLastCheckpointAlertDefinitionEntity = alertDefinitionDAO.findByName(
               clusterID, "namenode_last_checkpoint");
       final AlertDefinitionEntity namenodeHAHealthAlertDefinitionEntity = alertDefinitionDAO.findByName(
@@ -355,40 +305,16 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
       checkedPutToMap(alertDefinitionParams, flumeAgentStatusAlertDefinitionEntity,
               Lists.newArrayList("run.directory"));
 
-      List<AlertDefinitionEntity> definitionsForPropertyUpdates = new ArrayList<>();
-
-      // adding new properties
       for(Map.Entry<AlertDefinitionEntity, List<String>> entry : alertDefinitionParams.entrySet()){
         AlertDefinitionEntity alertDefinition = entry.getKey();
         String source = alertDefinition.getSource();
+
         alertDefinition.setSource(addParam(source, entry.getValue()));
-        definitionsForPropertyUpdates.add(alertDefinition);
-      }
-
-      // here goes alerts that need update for existing properties
-      for(String name : alertNamesForPropertyUpdates) {
-        AlertDefinitionEntity alertDefinition = alertDefinitionDAO.findByName(clusterID, name);
-        if(alertDefinition != null) {
-          definitionsForPropertyUpdates.add(alertDefinition);
-        }
-      }
-
-      // updating old and new properties, best way to use map like visibilityMap.
-      for(AlertDefinitionEntity alertDefinition : definitionsForPropertyUpdates) {
-        // here goes property updates
-        if(visibilityMap.containsKey(alertDefinition.getDefinitionName())) {
-          for(Map.Entry<String, String> entry : visibilityMap.get(alertDefinition.getDefinitionName()).entrySet()){
-            String paramName = entry.getKey();
-            String visibilityValue = entry.getValue();
-            String source = alertDefinition.getSource();
-            alertDefinition.setSource(addParamOption(source, paramName, "visibility", visibilityValue));
-          }
-        }
-
-        // regeneration of hash and writing modified alerts to database, must go after all modifications finished
         alertDefinition.setHash(UUID.randomUUID().toString());
+
         alertDefinitionDAO.merge(alertDefinition);
       }
+
     }
   }
 
@@ -400,30 +326,6 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     if (alertDefinitionEntity != null) {
       alertDefinitionParams.put(alertDefinitionEntity, params);
     }
-  }
-
-  /**
-   * Add option to script parameter.
-   * @param source json string of script source
-   * @param paramName parameter name
-   * @param optionName option name
-   * @param optionValue option value
-   * @return modified source
-   */
-  protected String addParamOption(String source, String paramName, String optionName, String optionValue){
-    JsonObject sourceJson = new JsonParser().parse(source).getAsJsonObject();
-    JsonArray parametersJson = sourceJson.getAsJsonArray("parameters");
-    if(parametersJson != null && !parametersJson.isJsonNull()) {
-      for(JsonElement param : parametersJson) {
-        if(param.isJsonObject()) {
-          JsonObject paramObject = param.getAsJsonObject();
-          if(paramObject.has("name") && paramObject.get("name").getAsString().equals(paramName)){
-            paramObject.add(optionName, new JsonPrimitive(optionValue));
-          }
-        }
-      }
-    }
-    return sourceJson.toString();
   }
 
   protected String addParam(String source, List<String> params) {

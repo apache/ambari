@@ -159,18 +159,6 @@ public class SchemaUpgradeHelper {
    * Extension of main controller module
    */
   public static class UpgradeHelperModule extends ControllerModule {
-    public static class AuditLoggerMock implements AuditLogger {
-
-      @Override
-      public void log(AuditEvent event) {
-
-      }
-
-      @Override
-      public boolean isEnabled() {
-        return false;
-      }
-    }
 
     public UpgradeHelperModule() throws Exception {
     }
@@ -183,7 +171,6 @@ public class SchemaUpgradeHelper {
     protected void configure() {
       super.configure();
       // Add binding to each newly created catalog
-      bind(AuditLogger.class).to(AuditLoggerMock.class);
       Multibinder<UpgradeCatalog> catalogBinder =
         Multibinder.newSetBinder(binder(), UpgradeCatalog.class);
       catalogBinder.addBinding().to(UpgradeCatalog150.class);

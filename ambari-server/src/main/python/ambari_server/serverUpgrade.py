@@ -51,11 +51,11 @@ from ambari_server.serverClassPath import ServerClassPath
 # constants
 STACK_NAME_VER_SEP = "-"
 
-SCHEMA_UPGRADE_HELPER_CMD = "{0} -Xdebug -Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y -cp {1} " + \
+SCHEMA_UPGRADE_HELPER_CMD = "{0} -cp {1} " + \
                             "org.apache.ambari.server.upgrade.SchemaUpgradeHelper" + \
                             " > " + configDefaults.SERVER_OUT_FILE + " 2>&1"
 
-STACK_UPGRADE_HELPER_CMD = "{0} -Xdebug -Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y -cp {1} " + \
+STACK_UPGRADE_HELPER_CMD = "{0} -cp {1} " + \
                            "org.apache.ambari.server.upgrade.StackUpgradeHelper" + \
                            " {2} {3} > " + configDefaults.SERVER_OUT_FILE + " 2>&1"
 
