@@ -132,6 +132,7 @@ public class Configuration {
   public static final String RESOURCES_DIR_KEY = "resources.dir";
   public static final String METADATA_DIR_PATH = "metadata.path";
   public static final String COMMON_SERVICES_DIR_PATH = "common.services.path";
+  public static final String MPACKS_STAGING_DIR_PATH = "mpacks.staging.path";
   public static final String SERVER_VERSION_FILE = "server.version.file";
   public static final String SERVER_VERSION_KEY = "version";
   public static final String JAVA_HOME_KEY = "java.home";
@@ -1355,6 +1356,15 @@ public class Configuration {
   public String getCommonServicesPath() {
     return properties.getProperty(COMMON_SERVICES_DIR_PATH);
   }
+
+  /**
+   * Gets ambari management packs staging directory
+   * @return String
+   */
+  public String getMpacksStagingPath() {
+    return properties.getProperty(MPACKS_STAGING_DIR_PATH);
+  }
+
 
   public String getServerVersionFilePath() {
     return properties.getProperty(SERVER_VERSION_FILE);

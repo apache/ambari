@@ -162,6 +162,14 @@ case "$1" in
         echo -e "Cleanup database..."
         $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
         ;;
+  install-mpack)
+        echo -e "Installing management pack"
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
+        ;;
+  upgrade-mpack)
+        echo -e "Upgrading management pack"
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
+        ;;
   *)
         echo "Usage: $AMBARI_PYTHON_EXECUTABLE
         {start|stop|restart|setup|setup-jce|upgrade|status|upgradestack|setup-ldap|sync-ldap|set-current|setup-security|setup-sso|refresh-stack-hash|backup|restore|update-host-names|enable-stack|check-database|db-cleanup} [options]

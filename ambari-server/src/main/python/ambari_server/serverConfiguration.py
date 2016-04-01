@@ -184,6 +184,7 @@ DEFAULT_DB_NAME = "ambari"
 
 SECURITY_KEYS_DIR = "security.server.keys_dir"
 COMMON_SERVICES_PATH_PROPERTY = 'common.services.path'
+MPACKS_STAGING_PATH_PROPERTY = 'mpacks.staging.path'
 WEBAPP_DIR_PROPERTY = 'webapp.dir'
 SHARED_RESOURCES_DIR = 'shared.resources.dir'
 BOOTSTRAP_SCRIPT = 'bootstrap.script'
@@ -195,7 +196,8 @@ REQUIRED_PROPERTIES = [OS_FAMILY_PROPERTY, OS_TYPE_PROPERTY, COMMON_SERVICES_PAT
                        WEBAPP_DIR_PROPERTY, STACK_LOCATION_KEY, SECURITY_KEYS_DIR, JDBC_DATABASE_NAME_PROPERTY,
                        NR_USER_PROPERTY, JAVA_HOME_PROPERTY, JDBC_PASSWORD_PROPERTY, SHARED_RESOURCES_DIR,
                        JDBC_USER_NAME_PROPERTY, BOOTSTRAP_SCRIPT, RESOURCES_DIR_PROPERTY, CUSTOM_ACTION_DEFINITIONS,
-                       BOOTSTRAP_SETUP_AGENT_SCRIPT, STACKADVISOR_SCRIPT, BOOTSTRAP_DIR_PROPERTY, PID_DIR_PROPERTY]
+                       BOOTSTRAP_SETUP_AGENT_SCRIPT, STACKADVISOR_SCRIPT, BOOTSTRAP_DIR_PROPERTY, PID_DIR_PROPERTY,
+                       MPACKS_STAGING_PATH_PROPERTY]
 
 def get_conf_dir():
   try:
@@ -366,6 +368,8 @@ class ServerConfigDefaults(object):
     self.DEFAULT_DB_NAME = "ambari"
 
     self.STACK_LOCATION_DEFAULT = ""
+    self.COMMON_SERVICES_LOCATION_DEFAULT = ""
+    self.MPACKS_STAGING_LOCATION_DEFAULT = ""
 
     self.DEFAULT_VIEWS_DIR = ""
 
@@ -421,6 +425,8 @@ class ServerConfigDefaultsWindows(ServerConfigDefaults):
 
     self.SERVER_RESOURCES_DIR = "resources"
     self.STACK_LOCATION_DEFAULT = "resources\\stacks"
+    self.COMMON_SERVICES_LOCATION_DEFAULT = "resources\\common-services"
+    self.MPACKS_STAGING_LOCATION_DEFAULT = "resources\\mpacks"
 
     self.DEFAULT_VIEWS_DIR = "resources\\views"
 
@@ -503,6 +509,8 @@ class ServerConfigDefaultsLinux(ServerConfigDefaults):
 
     self.SERVER_RESOURCES_DIR = AmbariPath.get("/var/lib/ambari-server/resources")
     self.STACK_LOCATION_DEFAULT = AmbariPath.get("/var/lib/ambari-server/resources/stacks")
+    self.COMMON_SERVICES_LOCATION_DEFAULT = AmbariPath.get("/var/lib/ambari-server/resources/common-services")
+    self.MPACKS_STAGING_LOCATION_DEFAULT = AmbariPath.get("/var/lib/ambari-server/resources/mpacks")
 
     self.DEFAULT_VIEWS_DIR = AmbariPath.get("/var/lib/ambari-server/resources/views")
 
@@ -1328,13 +1336,31 @@ def get_resources_location(properties):
   return resources_dir
 
 #
-# Stack upgrade
+# Stack location
 #
 def get_stack_location(properties):
   stack_location = properties[STACK_LOCATION_KEY]
   if stack_location is None:
     stack_location = configDefaults.STACK_LOCATION_DEFAULT
   return stack_location
+
+#
+# Common services location
+#
+def get_common_services_location(properties):
+  common_services_location = properties[COMMON_SERVICES_PATH_PROPERTY]
+  if common_services_location is None:
+    common_services_location = configDefaults.COMMON_SERVICES_LOCATION_DEFAULT
+  return common_services_location
+
+#
+# Management packs staging location
+#
+def get_mpacks_staging_location(properties):
+  mpacks_staging_location = properties[MPACKS_STAGING_PATH_PROPERTY]
+  if mpacks_staging_location is None:
+    mpacks_staging_location = configDefaults.MPACKS_STAGING_LOCATION_DEFAULT
+  return mpacks_staging_location
 
 def get_missing_properties(properties):
   missing_propertiers = []

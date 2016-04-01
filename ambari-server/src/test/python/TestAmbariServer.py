@@ -92,7 +92,7 @@ with patch.object(os_utils, "parse_log4j_file", return_value={'ambari.log.dir': 
             get_pass_file_path, GET_FQDN_SERVICE_URL, JDBC_USE_INTEGRATED_AUTH_PROPERTY, SECURITY_KEY_ENV_VAR_NAME, \
             JAVA_HOME_PROPERTY, JDK_NAME_PROPERTY, JCE_NAME_PROPERTY, STACK_LOCATION_KEY, SERVER_VERSION_FILE_PATH, \
             COMMON_SERVICES_PATH_PROPERTY, WEBAPP_DIR_PROPERTY, SHARED_RESOURCES_DIR, BOOTSTRAP_SCRIPT, \
-            CUSTOM_ACTION_DEFINITIONS, BOOTSTRAP_SETUP_AGENT_SCRIPT, STACKADVISOR_SCRIPT, BOOTSTRAP_DIR_PROPERTY
+            CUSTOM_ACTION_DEFINITIONS, BOOTSTRAP_SETUP_AGENT_SCRIPT, STACKADVISOR_SCRIPT, BOOTSTRAP_DIR_PROPERTY, MPACKS_STAGING_PATH_PROPERTY
           from ambari_server.serverUtils import is_server_runing, refresh_stack_hash
           from ambari_server.serverSetup import check_selinux, check_ambari_user, proceedJDBCProperties, SE_STATUS_DISABLED, SE_MODE_ENFORCING, configure_os_settings, \
             download_and_install_jdk, prompt_db_properties, setup, \
@@ -4417,6 +4417,7 @@ class TestAmbariServer(TestCase):
     p.process_pair(BOOTSTRAP_SETUP_AGENT_SCRIPT, 'some_value')
     p.process_pair(STACKADVISOR_SCRIPT, 'some_value')
     p.process_pair(BOOTSTRAP_DIR_PROPERTY, 'some_value')
+    p.process_pair(MPACKS_STAGING_PATH_PROPERTY, 'some_value')
 
     get_ambari_properties_5_mock.return_value = get_ambari_properties_4_mock.return_value = \
       get_ambari_properties_3_mock.return_value = get_ambari_properties_2_mock.return_value = \

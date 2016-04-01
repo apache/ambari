@@ -36,6 +36,7 @@ from ambari_server.serverUtils import is_server_runing, refresh_stack_hash
 from ambari_server.serverSetup import reset, setup, setup_jce_policy
 from ambari_server.serverUpgrade import upgrade, upgrade_stack, set_current
 from ambari_server.setupHttps import setup_https, setup_truststore
+from ambari_server.setupMpacks import install_mpack, upgrade_mpack
 from ambari_server.setupSso import setup_sso
 from ambari_server.dbCleanup import db_cleanup
 from ambari_server.hostUpdate import update_host_names
@@ -45,8 +46,9 @@ from ambari_server.enableStack import enable_stack_version
 from ambari_server.setupActions import BACKUP_ACTION, LDAP_SETUP_ACTION, LDAP_SYNC_ACTION, PSTART_ACTION, \
   REFRESH_STACK_HASH_ACTION, RESET_ACTION, RESTORE_ACTION, UPDATE_HOST_NAMES_ACTION, CHECK_DATABASE_ACTION, \
   SETUP_ACTION, SETUP_SECURITY_ACTION,START_ACTION, STATUS_ACTION, STOP_ACTION, UPGRADE_ACTION, UPGRADE_STACK_ACTION, \
-  SETUP_JCE_ACTION, SET_CURRENT_ACTION, START_ACTION, STATUS_ACTION, STOP_ACTION, UPGRADE_ACTION, UPGRADE_STACK_ACTION, SETUP_JCE_ACTION, \
-  SET_CURRENT_ACTION, ENABLE_STACK_ACTION, SETUP_SSO_ACTION, DB_CLEANUP_ACTION
+  SETUP_JCE_ACTION, SET_CURRENT_ACTION, START_ACTION, STATUS_ACTION, STOP_ACTION, UPGRADE_ACTION, \
+  UPGRADE_STACK_ACTION, SETUP_JCE_ACTION, SET_CURRENT_ACTION, ENABLE_STACK_ACTION, SETUP_SSO_ACTION, \
+  DB_CLEANUP_ACTION, INSTALL_MPACK_ACTION, UPGRADE_MPACK_ACTION
 from ambari_server.setupSecurity import setup_ldap, sync_ldap, setup_master_key, setup_ambari_krb5_jaas
 from ambari_server.userInput import get_validated_string_input
 
@@ -322,6 +324,13 @@ def init_parser_options(parser):
                     help="Specifies the path to the JDBC driver JAR file")
   parser.add_option('--skip-properties-validation', action="store_true", default=False, help="Skip properties file validation", dest="skip_properties_validation")
   parser.add_option('--skip-database-validation', action="store_true", default=False, help="Skip database consistency validation", dest="skip_database_validation")
+  parser.add_option('--mpack', default=None,
+                    help="Specified the path for management pack to be installed/upgraded",
+                    dest="mpack_path")
+  parser.add_option('--purge', action="store_true", default=False,
+                    help="Purge existing stack definitions and previously installed management packs",
+                    dest="purge")
+  parser.add_option('--force', action="store_true", default=False, help="Force install management pack", dest="force")
   # -b and -i the remaining available short options
   # -h reserved for help
 
@@ -390,7 +399,13 @@ def init_parser_options(parser):
   parser.add_option('--stack', dest="stack_name", default=None, type="string",
                     help="Specify stack name for the stack versions that needs to be enabled")
   parser.add_option("-d", "--from-date", dest="cleanup_from_date", default=None, type="string", help="Specify date for the cleanup process in 'yyyy-MM-dd' format")
-
+  parser.add_option('--mpack', default=None,
+                    help="Specified the path for management pack to be installed/upgraded",
+                    dest="mpack_path")
+  parser.add_option('--purge', action="store_true", default=False,
+                    help="Purge existing stack definitions and previously installed management packs",
+                    dest="purge")
+  parser.add_option('--force', action="store_true", default=False, help="Force install management pack", dest="force")
 
 @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
 def are_cmd_line_db_args_blank(options):
@@ -520,7 +535,9 @@ def create_user_action_map(args, options):
     LDAP_SETUP_ACTION: UserAction(setup_ldap),
     SETUP_SECURITY_ACTION: UserActionRestart(setup_security, options),
     REFRESH_STACK_HASH_ACTION: UserAction(refresh_stack_hash_action),
-    SETUP_SSO_ACTION: UserActionRestart(setup_sso, options)
+    SETUP_SSO_ACTION: UserActionRestart(setup_sso, options),
+    INSTALL_MPACK_ACTION: UserAction(install_mpack, options),
+    UPGRADE_MPACK_ACTION: UserAction(upgrade_mpack, options)
   }
   return action_map
 
@@ -546,7 +563,9 @@ def create_user_action_map(args, options):
         CHECK_DATABASE_ACTION: UserAction(check_database, options),
         ENABLE_STACK_ACTION: UserAction(enable_stack, options, args),
         SETUP_SSO_ACTION: UserActionRestart(setup_sso, options),
-        DB_CLEANUP_ACTION: UserAction(db_cleanup, options)
+        DB_CLEANUP_ACTION: UserAction(db_cleanup, options),
+        INSTALL_MPACK_ACTION: UserAction(install_mpack, options),
+        UPGRADE_MPACK_ACTION: UserAction(upgrade_mpack, options)
       }
   return action_map
 
