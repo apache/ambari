@@ -134,7 +134,7 @@ public class ClusterStackVersionResourceProviderTest {
   private HostVersionDAO hostVersionDAO;
   private HostComponentStateDAO hostComponentStateDAO;
 
-  private static final String OS_JSON = "[\n" +
+  public static final String OS_JSON = "[\n" +
           "   {\n" +
           "      \"repositories\":[\n" +
           "         {\n" +

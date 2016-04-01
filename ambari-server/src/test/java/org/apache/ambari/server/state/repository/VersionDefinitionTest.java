@@ -19,6 +19,7 @@ package org.apache.ambari.server.state.repository;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -166,6 +167,45 @@ public class VersionDefinitionTest {
     assertTrue(foundHdfs);
     assertTrue(foundYarn);
     assertTrue(foundHive);
+  }
+
+  @Test
+  public void testSerialization() throws Exception {
+
+    File f = new File("src/test/resources/version_definition_test_all_services.xml");
+
+    VersionDefinitionXml xml = VersionDefinitionXml.load(f.toURI().toURL());
+
+    String xmlString = xml.toXml();
+
+    xml = VersionDefinitionXml.load(xmlString);
+
+    assertNotNull(xml.release.build);
+    assertEquals("1234", xml.release.build);
+  }
+
+
+  @Test
+  public void testMerger() throws Exception {
+    File f = new File("src/test/resources/version_definition_test_all_services.xml");
+
+    VersionDefinitionXml xml1 = VersionDefinitionXml.load(f.toURI().toURL());
+    VersionDefinitionXml xml2 = VersionDefinitionXml.load(f.toURI().toURL());
+    xml2.release.version = "2.3.4.2";
+    xml2.release.build = "2468";
+
+    VersionDefinitionXml.Merger builder = new VersionDefinitionXml.Merger();
+    VersionDefinitionXml xml3 = builder.merge();
+
+    assertNull(xml3);
+
+    builder.add(xml1.release.version, xml1);
+    builder.add("", xml2);
+    xml3 = builder.merge();
+
+    assertNotNull(xml3);
+    assertNull("Merged definition cannot have a build", xml3.release.build);
+    assertEquals(xml3.release.version, "2.3.4.1");
   }
 
   private static ServiceInfo makeService(final String name) {

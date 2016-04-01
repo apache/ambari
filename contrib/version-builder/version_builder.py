@@ -69,10 +69,10 @@ class VersionBuilder:
       raise Exception(stderr)
 
     if len(stdout) > 0:
-      print(stdout)
+      print(stdout.decode("UTF-8"))
 
     if len(stderr) > 0:
-      print(stderr)
+      print(stderr.decode("UTF-8"))
 
   def set_release(self, type=None, stack=None, version=None, build=None, notes=None, display=None,
     compatible=None, package_version=None):

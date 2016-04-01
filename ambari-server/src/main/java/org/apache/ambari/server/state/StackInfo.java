@@ -27,33 +27,18 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.ambari.server.controller.StackVersionResponse;
 import org.apache.ambari.server.stack.Validable;
-import org.apache.ambari.server.state.stack.StackRoleCommandOrder;
+import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.ConfigUpgradePack;
+import org.apache.ambari.server.state.stack.StackRoleCommandOrder;
 import org.apache.ambari.server.state.stack.UpgradePack;
 
 public class StackInfo implements Comparable<StackInfo>, Validable{
   private String minJdk;
   private String maxJdk;
-
-  public String getMinJdk() {
-    return minJdk;
-  }
-
-  public void setMinJdk(String minJdk) {
-    this.minJdk = minJdk;
-  }
-
-  public String getMaxJdk() {
-    return maxJdk;
-  }
-
-  public void setMaxJdk(String maxJdk) {
-    this.maxJdk = maxJdk;
-  }
-
   private String name;
   private String version;
   private String minUpgradeVersion;
@@ -73,42 +58,6 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
   private boolean valid = true;
   private Map<String, Map<PropertyInfo.PropertyType, Set<String>>> propertiesTypesCache =
       Collections.synchronizedMap(new HashMap<String, Map<PropertyInfo.PropertyType, Set<String>>>());
-
-  /**
-   * 
-   * @return valid xml flag
-   */
-  @Override
-  public boolean isValid() {
-    return valid;
-  }
-
-  /**
-   * 
-   * @param valid set validity flag
-   */
-  @Override
-  public void setValid(boolean valid) {
-    this.valid = valid;
-  }    
-
-  private Set<String> errorSet = new HashSet<String>();
-  
-  @Override
-  public void setErrors(String error) {
-    errorSet.add(error);
-  }
-
-  @Override
-  public Collection getErrors() {
-    return errorSet;
-  }   
-  
-  @Override
-  public void setErrors(Collection error) {
-    this.errorSet.addAll(error);
-  }
-  
   /**
    * Meaning: stores subpath from stack root to exact hooks folder for stack. These hooks are
    * applied to all commands for services in current stack.
@@ -118,6 +67,60 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
   private String upgradesFolder = null;
 
   private volatile Map<String, PropertyInfo> requiredProperties;
+
+  private Map<String, VersionDefinitionXml> versionDefinitions = new ConcurrentHashMap<>();
+
+
+  public String getMinJdk() {
+    return minJdk;
+  }
+
+  public void setMinJdk(String minJdk) {
+    this.minJdk = minJdk;
+  }
+
+  public String getMaxJdk() {
+    return maxJdk;
+  }
+
+  public void setMaxJdk(String maxJdk) {
+    this.maxJdk = maxJdk;
+  }
+
+  /**
+   *
+   * @return valid xml flag
+   */
+  @Override
+  public boolean isValid() {
+    return valid;
+  }
+
+  /**
+   *
+   * @param valid set validity flag
+   */
+  @Override
+  public void setValid(boolean valid) {
+    this.valid = valid;
+  }
+
+  private Set<String> errorSet = new HashSet<String>();
+
+  @Override
+  public void setErrors(String error) {
+    errorSet.add(error);
+  }
+
+  @Override
+  public Collection getErrors() {
+    return errorSet;
+  }
+
+  @Override
+  public void setErrors(Collection error) {
+    this.errorSet.addAll(error);
+  }
 
   public String getName() {
     return name;
@@ -458,6 +461,21 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
       propertiesTypesCache.put(configType, propertiesTypes);
     }
     return propertiesTypesCache.get(configType);
+  }
+
+  /**
+   * @param key the version that the xml represents
+   * @param xml the version definition object
+   */
+  public void addVersionDefinition(String key, VersionDefinitionXml xml) {
+    versionDefinitions.put(key, xml);
+  }
+
+  /**
+   * @return the list of available definitions on this stack
+   */
+  public Collection<VersionDefinitionXml> getVersionDefinitions() {
+    return versionDefinitions.values();
   }
 
 }

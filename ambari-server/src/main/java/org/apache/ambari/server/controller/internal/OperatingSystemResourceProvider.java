@@ -38,33 +38,28 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
+import com.google.common.collect.Sets;
+
 public class OperatingSystemResourceProvider extends ReadOnlyResourceProvider {
 
   public static final String OPERATING_SYSTEM_STACK_NAME_PROPERTY_ID            = PropertyHelper.getPropertyId("OperatingSystems", "stack_name");
   public static final String OPERATING_SYSTEM_STACK_VERSION_PROPERTY_ID         = PropertyHelper.getPropertyId("OperatingSystems", "stack_version");
   public static final String OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID               = PropertyHelper.getPropertyId("OperatingSystems", "os_type");
   public static final String OPERATING_SYSTEM_REPOSITORY_VERSION_ID_PROPERTY_ID = PropertyHelper.getPropertyId("OperatingSystems", "repository_version_id");
+  public static final String OPERATING_SYSTEM_VERSION_DEFINITION_ID_PROPERTY_ID = PropertyHelper.getPropertyId("OperatingSystems", "version_definition_id");
 
-  @SuppressWarnings("serial")
-  private static Set<String> pkPropertyIds = new HashSet<String>() {
-    {
-      add(OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID);
-      add(OPERATING_SYSTEM_STACK_NAME_PROPERTY_ID);
-      add(OPERATING_SYSTEM_STACK_VERSION_PROPERTY_ID);
-    }
-  };
+  private static Set<String> pkPropertyIds = Sets.newHashSet(
+      OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID,
+      OPERATING_SYSTEM_STACK_NAME_PROPERTY_ID,
+      OPERATING_SYSTEM_STACK_VERSION_PROPERTY_ID);
 
-  @SuppressWarnings("serial")
-  public static Set<String> propertyIds = new HashSet<String>() {
-    {
-      add(OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID);
-      add(OPERATING_SYSTEM_STACK_NAME_PROPERTY_ID);
-      add(OPERATING_SYSTEM_STACK_VERSION_PROPERTY_ID);
-      add(OPERATING_SYSTEM_REPOSITORY_VERSION_ID_PROPERTY_ID);
-    }
-  };
+  public static Set<String> propertyIds = Sets.newHashSet(
+      OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID,
+      OPERATING_SYSTEM_STACK_NAME_PROPERTY_ID,
+      OPERATING_SYSTEM_STACK_VERSION_PROPERTY_ID,
+      OPERATING_SYSTEM_REPOSITORY_VERSION_ID_PROPERTY_ID,
+      OPERATING_SYSTEM_VERSION_DEFINITION_ID_PROPERTY_ID);
 
-  @SuppressWarnings("serial")
   public static Map<Type, String> keyPropertyIds = new HashMap<Type, String>() {
     {
       put(Resource.Type.OperatingSystem, OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID);
@@ -72,6 +67,7 @@ public class OperatingSystemResourceProvider extends ReadOnlyResourceProvider {
       put(Resource.Type.StackVersion, OPERATING_SYSTEM_STACK_VERSION_PROPERTY_ID);
       put(Resource.Type.RepositoryVersion, OPERATING_SYSTEM_REPOSITORY_VERSION_ID_PROPERTY_ID);
       put(Resource.Type.CompatibleRepositoryVersion, OPERATING_SYSTEM_REPOSITORY_VERSION_ID_PROPERTY_ID);
+      put(Resource.Type.VersionDefinition, OPERATING_SYSTEM_VERSION_DEFINITION_ID_PROPERTY_ID);
     }
   };
 
@@ -122,6 +118,11 @@ public class OperatingSystemResourceProvider extends ReadOnlyResourceProvider {
             response.getRepositoryVersionId(), requestedIds);
       }
 
+      if (response.getVersionDefinitionId() != null) {
+        setResourceProperty(resource, OPERATING_SYSTEM_VERSION_DEFINITION_ID_PROPERTY_ID,
+            response.getVersionDefinitionId(), requestedIds);
+      }
+
       resources.add(resource);
     }
 
@@ -133,9 +134,15 @@ public class OperatingSystemResourceProvider extends ReadOnlyResourceProvider {
         (String) properties.get(OPERATING_SYSTEM_STACK_NAME_PROPERTY_ID),
         (String) properties.get(OPERATING_SYSTEM_STACK_VERSION_PROPERTY_ID),
         (String) properties.get(OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID));
+
     if (properties.containsKey(OPERATING_SYSTEM_REPOSITORY_VERSION_ID_PROPERTY_ID)) {
       request.setRepositoryVersionId(Long.parseLong(properties.get(OPERATING_SYSTEM_REPOSITORY_VERSION_ID_PROPERTY_ID).toString()));
     }
+
+    if (properties.containsKey(OPERATING_SYSTEM_VERSION_DEFINITION_ID_PROPERTY_ID)) {
+      request.setVersionDefinitionId(properties.get(OPERATING_SYSTEM_VERSION_DEFINITION_ID_PROPERTY_ID).toString());
+    }
+
     return request;
   }
 

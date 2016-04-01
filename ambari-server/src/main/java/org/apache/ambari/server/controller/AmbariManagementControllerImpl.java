@@ -160,6 +160,7 @@ import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
+import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.WidgetLayout;
 import org.apache.ambari.server.state.stack.WidgetLayoutInfo;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
@@ -3762,6 +3763,16 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     String osType = request.getOsType();
     String repoId = request.getRepoId();
     Long repositoryVersionId = request.getRepositoryVersionId();
+    String versionDefinitionId = request.getVersionDefinitionId();
+
+    // !!! when asking for Repository responses for a versionDefinition, it is either for
+    // an established repo version (a Long) OR from the in-memory generated ones (a String)
+    if (null == repositoryVersionId && null != versionDefinitionId) {
+
+      if (NumberUtils.isDigits(versionDefinitionId)) {
+        repositoryVersionId = Long.valueOf(versionDefinitionId);
+      }
+    }
 
     Set<RepositoryResponse> responses = new HashSet<RepositoryResponse>();
 
@@ -3772,7 +3783,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           if (operatingSystem.getOsType().equals(osType)) {
             for (RepositoryEntity repository: operatingSystem.getRepositories()) {
               final RepositoryResponse response = new RepositoryResponse(repository.getBaseUrl(), osType, repository.getRepositoryId(), repository.getName(), "", "", "");
-              response.setRepositoryVersionId(repositoryVersionId);
+              if (null != versionDefinitionId) {
+                response.setVersionDefinitionId(versionDefinitionId);
+              } else {
+                response.setRepositoryVersionId(repositoryVersionId);
+              }
               response.setStackName(repositoryVersion.getStackName());
               response.setStackVersion(repositoryVersion.getStackVersion());
               responses.add(response);
@@ -3781,6 +3796,29 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           }
         }
       }
+    } else if (null != versionDefinitionId) {
+      VersionDefinitionXml xml = ambariMetaInfo.getVersionDefinition(versionDefinitionId);
+
+      if (null == xml) {
+        throw new AmbariException(String.format("Version identified by %s does not exist",
+            versionDefinitionId));
+      }
+      StackId stackId = new StackId(xml.release.stackId);
+
+      for (RepositoryXml.Os os : xml.repositoryInfo.getOses()) {
+        for (RepositoryXml.Repo repo : os.getRepos()) {
+          RepositoryResponse resp = new RepositoryResponse(repo.getBaseUrl(), os.getFamily(),
+              repo.getRepoId(), repo.getRepoName(), repo.getMirrorsList(),
+              repo.getBaseUrl(), repo.getLatestUri());
+
+          resp.setVersionDefinitionId(versionDefinitionId);
+          resp.setStackName(stackId.getStackName());
+          resp.setStackVersion(stackId.getStackVersion());
+
+          responses.add(resp);
+        }
+      }
+
     } else {
       if (repoId == null) {
         List<RepositoryInfo> repositories = ambariMetaInfo.getRepositories(stackName, stackVersion, osType);
@@ -4188,18 +4226,49 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     String stackVersion = request.getStackVersion();
     String osType = request.getOsType();
     Long repositoryVersionId = request.getRepositoryVersionId();
+    String versionDefinitionId = request.getVersionDefinitionId();
+
+    // !!! when asking for OperatingSystem responses for a versionDefinition, it is either for
+    // an established repo version (a Long) OR from the in-memory generated ones (a String)
+    if (null == repositoryVersionId && null != versionDefinitionId) {
+      if (NumberUtils.isDigits(versionDefinitionId)) {
+        repositoryVersionId = Long.valueOf(versionDefinitionId);
+      }
+    }
 
     if (repositoryVersionId != null) {
       final RepositoryVersionEntity repositoryVersion = repositoryVersionDAO.findByPK(repositoryVersionId);
       if (repositoryVersion != null) {
         for (OperatingSystemEntity operatingSystem: repositoryVersion.getOperatingSystems()) {
           final OperatingSystemResponse response = new OperatingSystemResponse(operatingSystem.getOsType());
-          response.setRepositoryVersionId(repositoryVersionId);
+          if (null != versionDefinitionId) {
+            response.setVersionDefinitionId(repositoryVersionId.toString());
+          } else {
+            response.setRepositoryVersionId(repositoryVersionId);
+          }
           response.setStackName(repositoryVersion.getStackName());
           response.setStackVersion(repositoryVersion.getStackVersion());
           responses.add(response);
         }
       }
+    } else if (null != versionDefinitionId) {
+      VersionDefinitionXml xml = ambariMetaInfo.getVersionDefinition(versionDefinitionId);
+
+      if (null == xml) {
+        throw new AmbariException(String.format("Version identified by %s does not exist",
+            versionDefinitionId));
+      }
+      StackId stackId = new StackId(xml.release.stackId);
+
+      for (RepositoryXml.Os os : xml.repositoryInfo.getOses()) {
+        OperatingSystemResponse resp = new OperatingSystemResponse(os.getFamily());
+        resp.setVersionDefinitionId(versionDefinitionId);
+        resp.setStackName(stackId.getStackName());
+        resp.setStackVersion(stackId.getStackVersion());
+
+        responses.add(resp);
+      }
+
     } else {
       if (osType != null) {
         OperatingSystemInfo operatingSystem = ambariMetaInfo.getOperatingSystem(stackName, stackVersion, osType);

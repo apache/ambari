@@ -19,6 +19,8 @@
 package org.apache.ambari.server.api.services;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -54,11 +56,26 @@ public class VersionDefinitionService extends BaseService {
   @Path("{versionId}")
   @Produces(MediaType.TEXT_PLAIN)
   public Response getService(@Context HttpHeaders headers, @Context UriInfo ui,
-      @PathParam("versionId") Long versionId) {
+      @PathParam("versionId") String versionId) {
 
     return handleRequest(headers, null, ui, Request.Type.GET,
       createResource(versionId));
   }
+
+  /**
+   * Handles ANY /{versionNumber}/operating_systems requests.
+   *
+   * @param versionNumber the repository version id, whether it be from the DB or available.
+   * @return operating systems service
+   */
+  @Path("{versionNumber}/operating_systems")
+  public OperatingSystemService getOperatingSystemsHandler(@PathParam("versionNumber") String versionNumber) {
+    final Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    mapIds.put(Resource.Type.VersionDefinition, versionNumber);
+    return new OperatingSystemService(mapIds);
+  }
+
+
 
   @POST
   @Produces(MediaType.TEXT_PLAIN)
@@ -92,10 +109,9 @@ public class VersionDefinitionService extends BaseService {
         createResource(null));
   }
 
-  protected ResourceInstance createResource(Long versionId) {
+  protected ResourceInstance createResource(String versionId) {
     return createResource(Resource.Type.VersionDefinition,
-        Collections.singletonMap(Resource.Type.VersionDefinition,
-            null == versionId ? null : versionId.toString()));
+        Collections.singletonMap(Resource.Type.VersionDefinition, versionId));
   }
 
 }

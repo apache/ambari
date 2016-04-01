@@ -74,6 +74,7 @@ import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.internal.ClusterStackVersionResourceProviderTest;
 import org.apache.ambari.server.controller.internal.ComponentResourceProviderTest;
 import org.apache.ambari.server.controller.internal.HostComponentResourceProviderTest;
 import org.apache.ambari.server.controller.internal.HostResourceProviderTest;
@@ -94,12 +95,15 @@ import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.ExecutionCommandDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.dao.TopologyHostInfoDAO;
 import org.apache.ambari.server.orm.dao.WidgetDAO;
 import org.apache.ambari.server.orm.dao.WidgetLayoutDAO;
 import org.apache.ambari.server.orm.entities.ExecutionCommandEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.WidgetEntity;
 import org.apache.ambari.server.orm.entities.WidgetLayoutEntity;
 import org.apache.ambari.server.orm.entities.WidgetLayoutUserWidgetEntity;
@@ -7339,6 +7343,27 @@ public class AmbariManagementControllerTest {
     } catch (StackAccessException e) {
       // do nothing
     }
+  }
+
+  @Test
+  public void testGetStackOperatingSystemsWithRepository() throws Exception {
+    RepositoryVersionDAO dao = injector.getInstance(RepositoryVersionDAO.class);
+    StackDAO stackDAO = injector.getInstance(StackDAO.class);
+    StackEntity stackEntity = stackDAO.find(STACK_NAME, STACK_VERSION);
+    assertNotNull(stackEntity);
+
+    dao.create(stackEntity, "0.2.2", "HDP-0.2", ClusterStackVersionResourceProviderTest.OS_JSON);
+
+    OperatingSystemRequest request = new OperatingSystemRequest(STACK_NAME, STACK_VERSION, null);
+    Set<OperatingSystemResponse> responses = controller.getOperatingSystems(Collections.singleton(request));
+    Assert.assertEquals(OS_CNT, responses.size());
+
+    OperatingSystemRequest requestWithParams = new OperatingSystemRequest(STACK_NAME, STACK_VERSION, OS_TYPE);
+    requestWithParams.setVersionDefinitionId("1");
+
+    Set<OperatingSystemResponse> responsesWithParams = controller.getOperatingSystems(Collections.singleton(requestWithParams));
+    Assert.assertEquals(1, responsesWithParams.size());
+
   }
 
   @Test

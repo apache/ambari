@@ -57,6 +57,7 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
   public static final String REPOSITORY_VERIFY_BASE_URL_PROPERTY_ID       = PropertyHelper.getPropertyId("Repositories", "verify_base_url");
   public static final String REPOSITORY_LATEST_BASE_URL_PROPERTY_ID       = PropertyHelper.getPropertyId("Repositories", "latest_base_url");
   public static final String REPOSITORY_REPOSITORY_VERSION_ID_PROPERTY_ID = PropertyHelper.getPropertyId("Repositories", "repository_version_id");
+  public static final String REPOSITORY_VERSION_DEFINITION_ID_PROPERTY_ID = PropertyHelper.getPropertyId("Repositories", "version_definition_id");
 
   @SuppressWarnings("serial")
   private static Set<String> pkPropertyIds = new HashSet<String>() {
@@ -82,6 +83,7 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
       add(REPOSITORY_VERIFY_BASE_URL_PROPERTY_ID);
       add(REPOSITORY_LATEST_BASE_URL_PROPERTY_ID);
       add(REPOSITORY_REPOSITORY_VERSION_ID_PROPERTY_ID);
+      add(REPOSITORY_VERSION_DEFINITION_ID_PROPERTY_ID);
     }
   };
 
@@ -94,6 +96,7 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
       put(Resource.Type.OperatingSystem, REPOSITORY_OS_TYPE_PROPERTY_ID);
       put(Resource.Type.Repository, REPOSITORY_REPO_ID_PROPERTY_ID);
       put(Resource.Type.RepositoryVersion, REPOSITORY_REPOSITORY_VERSION_ID_PROPERTY_ID);
+      put(Resource.Type.VersionDefinition, REPOSITORY_VERSION_DEFINITION_ID_PROPERTY_ID);
     }
   };
 
@@ -163,8 +166,13 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
         setResourceProperty(resource, REPOSITORY_MIRRORS_LIST_PROPERTY_ID, response.getMirrorsList(), requestedIds);
         setResourceProperty(resource, REPOSITORY_DEFAULT_BASE_URL_PROPERTY_ID, response.getDefaultBaseUrl(), requestedIds);
         setResourceProperty(resource, REPOSITORY_LATEST_BASE_URL_PROPERTY_ID, response.getLatestBaseUrl(), requestedIds);
-        if (response.getRepositoryVersionId() != null) {
+        if (null != response.getRepositoryVersionId()) {
           setResourceProperty(resource, REPOSITORY_REPOSITORY_VERSION_ID_PROPERTY_ID, response.getRepositoryVersionId(), requestedIds);
+        }
+
+        if (null != response.getVersionDefinitionId()) {
+          setResourceProperty(resource, REPOSITORY_VERSION_DEFINITION_ID_PROPERTY_ID,
+              response.getVersionDefinitionId(), requestedIds);
         }
 
         resources.add(resource);
@@ -215,6 +223,10 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
 
     if (properties.containsKey(REPOSITORY_REPOSITORY_VERSION_ID_PROPERTY_ID)) {
       request.setRepositoryVersionId(Long.parseLong(properties.get(REPOSITORY_REPOSITORY_VERSION_ID_PROPERTY_ID).toString()));
+    }
+
+    if (properties.containsKey(REPOSITORY_VERSION_DEFINITION_ID_PROPERTY_ID)) {
+      request.setVersionDefinitionId(properties.get(REPOSITORY_VERSION_DEFINITION_ID_PROPERTY_ID).toString());
     }
 
     if (properties.containsKey(REPOSITORY_BASE_URL_PROPERTY_ID)) {

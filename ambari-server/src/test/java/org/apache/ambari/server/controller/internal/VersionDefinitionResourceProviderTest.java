@@ -17,8 +17,12 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import static org.junit.Assert.fail;
+
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -41,6 +45,7 @@ import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
+import org.apache.ambari.server.stack.StackManager;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
@@ -78,7 +83,6 @@ public class VersionDefinitionResourceProviderTest {
 
     RepositoryVersionDAO dao = injector.getInstance(RepositoryVersionDAO.class);
     dao.create(entity);
-
   }
 
   @After
@@ -237,4 +241,74 @@ public class VersionDefinitionResourceProviderTest {
     Assert.assertEquals("http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.3.4/",
         vals.get("notes"));
   }
+
+  @Test
+  public void testGetAvailable() throws Exception {
+    AmbariMetaInfo ami = injector.getInstance(AmbariMetaInfo.class);
+    // ensure that all of the latest repo retrieval tasks have completed
+    StackManager sm = ami.getStackManager();
+    int maxWait = 15000;
+    int waitTime = 0;
+    while (waitTime < maxWait && ! sm.haveAllRepoUrlsBeenResolved()) {
+      Thread.sleep(5);
+      waitTime += 5;
+    }
+
+    if (waitTime >= maxWait) {
+      fail("Latest Repo tasks did not complete");
+    }
+
+    Authentication authentication = TestAuthenticationFactory.createAdministrator();
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+
+    final ResourceProvider versionProvider = new VersionDefinitionResourceProvider();
+
+    Request getRequest = PropertyHelper.getReadRequest("VersionDefinition");
+
+    Predicate predicate = new PredicateBuilder().property(
+        VersionDefinitionResourceProvider.SHOW_AVAILABLE).equals("true").toPredicate();
+
+    Set<Resource> results = versionProvider.getResources(getRequest, predicate);
+    Assert.assertEquals(1, results.size());
+
+    Resource res = results.iterator().next();
+
+    Assert.assertEquals("HDP-2.2.0-2.2.1.0", res.getPropertyValue("VersionDefinition/id"));
+  }
+
+  @Test
+  public void testCreateByAvailable() throws Exception {
+    AmbariMetaInfo ami = injector.getInstance(AmbariMetaInfo.class);
+    // ensure that all of the latest repo retrieval tasks have completed
+    StackManager sm = ami.getStackManager();
+    int maxWait = 15000;
+    int waitTime = 0;
+    while (waitTime < maxWait && ! sm.haveAllRepoUrlsBeenResolved()) {
+      Thread.sleep(5);
+      waitTime += 5;
+    }
+
+    if (waitTime >= maxWait) {
+      fail("Latest Repo tasks did not complete");
+    }
+
+    Authentication authentication = TestAuthenticationFactory.createAdministrator();
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+
+    final ResourceProvider versionProvider = new VersionDefinitionResourceProvider();
+
+    Request getRequest = PropertyHelper.getReadRequest("VersionDefinition");
+    Set<Resource> results = versionProvider.getResources(getRequest, null);
+    Assert.assertEquals(0, results.size());
+
+    Map<String, Object> createMap = new HashMap<>();
+    createMap.put("VersionDefinition/available", "HDP-2.2.0-2.2.1.0");
+
+    Request createRequest = PropertyHelper.getCreateRequest(Collections.singleton(createMap), null);
+    versionProvider.createResources(createRequest);
+
+    results = versionProvider.getResources(getRequest, null);
+    Assert.assertEquals(1, results.size());
+  }
+
 }

@@ -17,27 +17,16 @@
  */
 package org.apache.ambari.server.api.resources;
 
-import java.util.List;
+import java.util.Collections;
+import java.util.Set;
 
-import org.apache.ambari.server.api.services.Request;
-import org.apache.ambari.server.api.util.TreeNode;
-import org.apache.ambari.server.controller.internal.RepositoryVersionResourceProvider;
-import org.apache.ambari.server.controller.internal.VersionDefinitionResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
-
-import com.google.common.collect.Lists;
+import org.apache.ambari.server.controller.spi.Resource.Type;
 
 /**
  * The Resource Definition used for Version Definition files.
  */
 public class VersionDefinitionResourceDefinition extends BaseResourceDefinition {
-  private static final String STACKS_NAME = new StackResourceDefinition().getPluralName();
-  private static final String STACK_VERSIONS_NAME = new StackVersionResourceDefinition().getPluralName();
-  private static final String REPO_VERSIONS_NAME = new RepositoryVersionResourceDefinition().getPluralName();
-
-  private static final String HREF_TEMPLATE =
-      STACKS_NAME + "/%s/" + STACK_VERSIONS_NAME + "/%s/" + REPO_VERSIONS_NAME;
-
 
   public VersionDefinitionResourceDefinition() {
     super(Resource.Type.VersionDefinition);
@@ -54,40 +43,8 @@ public class VersionDefinitionResourceDefinition extends BaseResourceDefinition 
   }
 
   @Override
-  public List<PostProcessor> getPostProcessors() {
-    List<PostProcessor> list = Lists.newArrayList();
-
-    list.add(new HrefPostProcessor());
-
-    return list;
-  }
-
-
-  class HrefPostProcessor extends BaseHrefPostProcessor {
-    @Override
-    public void process(Request request, TreeNode<Resource> resultNode, String href) {
-      super.process(request, resultNode, href);
-
-      Object stackNameObj = resultNode.getObject().getPropertyValue(
-          VersionDefinitionResourceProvider.VERSION_DEF_STACK_NAME);
-      Object stackVersionObj = resultNode.getObject().getPropertyValue(
-          VersionDefinitionResourceProvider.VERSION_DEF_STACK_VERSION);
-
-      if (resultNode.getObject().getType() == Resource.Type.VersionDefinition &&
-          null != stackNameObj && null != stackVersionObj &&
-          null != resultNode.getProperty("href")) {
-
-        String oldHref = resultNode.getProperty("href").toString();
-
-        String newPath = String.format(HREF_TEMPLATE, stackNameObj, stackVersionObj);
-
-        String newHref = oldHref.replace(getPluralName(), newPath);
-        newHref = newHref.replace(VersionDefinitionResourceProvider.VERSION_DEF,
-            RepositoryVersionResourceProvider.REPOSITORY_VERSION);
-
-        resultNode.setProperty("href", newHref);
-      }
-    }
+  public Set<SubResourceDefinition> getSubResourceDefinitions() {
+    return Collections.singleton(new SubResourceDefinition(Type.OperatingSystem));
   }
 
 }
