@@ -23,6 +23,7 @@ import com.google.inject.Injector;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.persist.PersistService;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.audit.event.AuditEvent;
 import org.apache.ambari.server.configuration.Configuration;
@@ -295,7 +296,7 @@ public class SchemaUpgradeHelper {
         System.exit(1);
       }
 
-      Injector injector = Guice.createInjector(new UpgradeHelperModule());
+      Injector injector = Guice.createInjector(new UpgradeHelperModule(), new AuditLoggerModule());
       SchemaUpgradeHelper schemaUpgradeHelper = injector.getInstance(SchemaUpgradeHelper.class);
 
       String targetVersion = schemaUpgradeHelper.getAmbariServerVersion();
