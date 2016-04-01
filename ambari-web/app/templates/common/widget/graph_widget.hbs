@@ -26,12 +26,14 @@
         <a {{bindAttr class="view.isExportButtonHidden:hidden :corner-icon :pull-right"}} href="#" {{action toggleFormatsList target="view"}}>
           <i class="icon-save"></i>
         </a>
-        <a class="corner-icon pull-right" href="#" {{action editWidget target="view"}}>
-          <i class="icon-edit"></i>
-        </a>
-        <a class="corner-icon pull-right" href="#" {{action cloneWidget target="view"}}>
-          <i class="icon-copy"></i>
-        </a>
+        {{#if controller.isAmbariMetricsInstalled}}
+          <a class="corner-icon pull-right" href="#" {{action editWidget target="view"}}>
+            <i class="icon-edit"></i>
+          </a>
+          <a class="corner-icon pull-right" href="#" {{action cloneWidget target="view"}}>
+            <i class="icon-copy"></i>
+          </a>
+        {{/if}}
         {{view view.exportMetricsMenuView}}
       </div>
     <div class="content"> {{view view.graphView}}</div>
