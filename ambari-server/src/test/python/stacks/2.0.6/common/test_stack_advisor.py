@@ -772,8 +772,7 @@ class TestHDP206StackAdvisor(TestCase):
     expected = {
       "admin-properties": {
         "properties": {
-          "SQL_CONNECTOR_JAR": "/usr/share/java/mysql-connector-java.jar",
-          "policymgr_external_url": "http://host1:7777",
+          "policymgr_external_url": "http://host1:7777"
         }
       }
     }
@@ -800,8 +799,7 @@ class TestHDP206StackAdvisor(TestCase):
     expected = {
       "admin-properties": {
         "properties": {
-          "SQL_CONNECTOR_JAR": "/usr/share/java/postgresql.jar",
-          "policymgr_external_url": "https://host1:7777",
+          "policymgr_external_url": "https://host1:7777"
           }
       }
     }
@@ -827,8 +825,7 @@ class TestHDP206StackAdvisor(TestCase):
     expected = {
       "admin-properties": {
         "properties": {
-          "SQL_CONNECTOR_JAR": "/usr/share/java/ojdbc6.jar",
-          "policymgr_external_url": "https://host1:8888",
+          "policymgr_external_url": "https://host1:8888"
           }
       },
       "ranger-env": {"properties": {}}

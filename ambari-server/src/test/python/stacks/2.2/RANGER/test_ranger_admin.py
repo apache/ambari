@@ -114,7 +114,7 @@ class TestRangerAdmin(RMFTestCase):
     self.assertResourceCalled('Execute', 'mysql -u root --password=aa -h localhost  -s -e "select version();"',logoutput = True,
                               environment = {})
     self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
-        content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-jdbc-driver.jar'),
+        content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar'),
         mode = 0644
     )
     self.assertResourceCalled('Execute', ('cp',
@@ -135,6 +135,9 @@ class TestRangerAdmin(RMFTestCase):
     custom_config['unix_group'] = "ranger"
     self.assertResourceCalled('ModifyPropertiesFile', '/usr/hdp/current/ranger-admin/install.properties',
         properties = custom_config,
+    )
+    self.assertResourceCalled('ModifyPropertiesFile', '/usr/hdp/current/ranger-admin/install.properties',
+        properties = {'SQL_CONNECTOR_JAR': '/usr/share/java/mysql-connector-java.jar'}
     )
     self.assertResourceCalled('Execute', 'cd /usr/hdp/current/ranger-admin && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E /usr/hdp/current/ranger-admin/setup.sh',
         logoutput = True,
@@ -156,7 +159,7 @@ class TestRangerAdmin(RMFTestCase):
     self.assertResourceCalled('Execute', 'mysql -u root --password=rootpassword -h localhost  -s -e "select version();"',logoutput = True,
                               environment = {})
     self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
-        content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-jdbc-driver.jar'),
+        content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar'),
         mode = 0644
     )
     self.assertResourceCalled('Execute', ('cp',
@@ -177,6 +180,9 @@ class TestRangerAdmin(RMFTestCase):
     custom_config['unix_group'] = "ranger"
     self.assertResourceCalled('ModifyPropertiesFile', '/usr/hdp/current/ranger-admin/install.properties',
         properties = custom_config,
+    )
+    self.assertResourceCalled('ModifyPropertiesFile', '/usr/hdp/current/ranger-admin/install.properties',
+        properties = {'SQL_CONNECTOR_JAR': '/usr/share/java/mysql-connector-java.jar'}
     )
     self.assertResourceCalled('Execute', 'cd /usr/hdp/current/ranger-admin && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E /usr/hdp/current/ranger-admin/setup.sh',
         logoutput = True,

@@ -357,20 +357,8 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
 
   def recommendRangerConfigurations(self, configurations, clusterData, services, hosts):
-    ranger_sql_connector_dict = {
-      'MYSQL': '/usr/share/java/mysql-connector-java.jar',
-      'ORACLE': '/usr/share/java/ojdbc6.jar',
-      'POSTGRES': '/usr/share/java/postgresql.jar',
-      'MSSQL': '/usr/share/java/sqljdbc4.jar',
-      'SQLA': '/path_to_driver/sqla-client-jdbc.tar.gz'
-    }
 
     putRangerAdminProperty = self.putProperty(configurations, "admin-properties", services)
-
-    if 'admin-properties' in services['configurations'] and 'DB_FLAVOR' in services['configurations']['admin-properties']['properties']:
-      rangerDbFlavor = services['configurations']["admin-properties"]["properties"]["DB_FLAVOR"]
-      rangerSqlConnectorProperty = ranger_sql_connector_dict.get(rangerDbFlavor, ranger_sql_connector_dict['MYSQL'])
-      putRangerAdminProperty('SQL_CONNECTOR_JAR', rangerSqlConnectorProperty)
 
     # Build policymgr_external_url
     protocol = 'http'

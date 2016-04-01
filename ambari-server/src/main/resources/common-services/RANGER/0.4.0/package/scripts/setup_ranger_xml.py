@@ -65,7 +65,7 @@ def setup_ranger_admin(upgrade_type=None):
 
   cp = format("{check_db_connection_jar}")
   if params.db_flavor.lower() == 'sqla':
-    cp = cp + os.pathsep + format("{ranger_home}/ews/lib/{jdbc_jar_name}")
+    cp = cp + os.pathsep + format("{ranger_home}/ews/lib/sajdbc4.jar")
   else:
     cp = cp + os.pathsep + format("{driver_curl_target}")
   cp = cp + os.pathsep + format("{ranger_home}/ews/lib/*")
@@ -275,19 +275,6 @@ def copy_jdbc_connector(stack_version=None):
     mode = 0644
   )
 
-  Directory(params.java_share_dir,
-    mode=0755,
-    create_parents=True,
-    cd_access="a"
-  )
-
-  if params.db_flavor.lower() != 'sqla':
-    Execute(('cp', '--remove-destination', params.downloaded_custom_connector, params.driver_curl_target),
-      path=["/bin", "/usr/bin/"],
-      sudo=True)
-
-    File(params.driver_curl_target, mode=0644)
-
   ranger_home = params.ranger_home
   if stack_version is not None:
     ranger_home = format("{stack_root}/{stack_version}/ranger-admin")
@@ -298,6 +285,8 @@ def copy_jdbc_connector(stack_version=None):
     Execute(('cp', '--remove-destination', params.jar_path_in_archive, os.path.join(ranger_home, 'ews', 'lib')),
       path=["/bin", "/usr/bin/"],
       sudo=True)
+
+    File(os.path.join(ranger_home, 'ews', 'lib', 'sajdbc4.jar'), mode=0644)
 
     Directory(params.jdbc_libs_dir,
       cd_access="a",
@@ -310,7 +299,7 @@ def copy_jdbc_connector(stack_version=None):
       path=["/bin", "/usr/bin/"],
       sudo=True)
 
-  File(os.path.join(ranger_home, 'ews', 'lib',params.jdbc_jar_name), mode=0644)
+    File(os.path.join(ranger_home, 'ews', 'lib',params.jdbc_jar_name), mode=0644)
 
   ModifyPropertiesFile(format("{ranger_home}/install.properties"),
     properties = params.config['configurations']['admin-properties'],
@@ -319,8 +308,13 @@ def copy_jdbc_connector(stack_version=None):
 
   if params.db_flavor.lower() == 'sqla':
     ModifyPropertiesFile(format("{ranger_home}/install.properties"),
-      properties = {'SQL_CONNECTOR_JAR': format('{ranger_home}/ews/lib/{jdbc_jar_name}')},
+      properties = {'SQL_CONNECTOR_JAR': format('{ranger_home}/ews/lib/sajdbc4.jar')},
       owner = params.unix_user,
+    )
+  else:
+    ModifyPropertiesFile(format("{ranger_home}/install.properties"),
+      properties = {'SQL_CONNECTOR_JAR': format('{driver_curl_target}')},
+       owner = params.unix_user,
     )
  
 def setup_usersync(upgrade_type=None):

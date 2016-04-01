@@ -144,7 +144,10 @@ def kms(upgrade_type=None):
     )
 
     cp = format("{check_db_connection_jar}")
-    cp = cp + os.pathsep + format("{kms_home}/ews/webapp/lib/{jdbc_jar_name}")
+    if params.db_flavor.lower() == 'sqla':
+      cp = cp + os.pathsep + format("{kms_home}/ews/webapp/lib/sajdbc4.jar")
+    else:
+      cp = cp + os.pathsep + format("{kms_home}/ews/webapp/lib/{jdbc_jar_name}")
 
     db_connection_check_command = format(
       "{java_home}/bin/java -cp {cp} org.apache.ambari.server.DBConnectionVerification '{ranger_kms_jdbc_connection_url}' {db_user} {db_password!p} {ranger_kms_jdbc_driver}")
@@ -289,19 +292,6 @@ def copy_jdbc_connector(stack_version=None):
     mode = 0644
   )
 
-  Directory(params.java_share_dir,
-    mode=0755,
-    create_parents=True,
-    cd_access="a"
-  )
-
-  if params.db_flavor.lower() != 'sqla':
-    Execute(('cp', '--remove-destination', params.downloaded_custom_connector, params.driver_curl_target),
-        path=["/bin", "/usr/bin/"],
-        sudo=True)
-
-    File(params.driver_curl_target, mode=0644)
-
   Directory(os.path.join(kms_home, 'ews', 'lib'),
     mode=0755
   )
@@ -319,12 +309,14 @@ def copy_jdbc_connector(stack_version=None):
 
     Execute(as_sudo(['yes', '|', 'cp', params.libs_path_in_archive, params.jdbc_libs_dir], auto_escape=False),
       path=["/bin", "/usr/bin/"])
+
+    File(os.path.join(kms_home, 'ews', 'webapp', 'lib', 'sajdbc4.jar'), mode=0644)
   else:
     Execute(('cp', '--remove-destination', params.downloaded_custom_connector, os.path.join(kms_home, 'ews', 'webapp', 'lib')),
       path=["/bin", "/usr/bin/"],
       sudo=True)
 
-  File(os.path.join(kms_home, 'ews', 'webapp', 'lib', params.jdbc_jar_name), mode=0644)
+    File(os.path.join(kms_home, 'ews', 'webapp', 'lib', params.jdbc_jar_name), mode=0644)
 
   ModifyPropertiesFile(format("{kms_home}/install.properties"),
     properties = params.config['configurations']['kms-properties'],
@@ -333,7 +325,12 @@ def copy_jdbc_connector(stack_version=None):
 
   if params.db_flavor.lower() == 'sqla':
     ModifyPropertiesFile(format("{kms_home}/install.properties"),
-      properties = {'SQL_CONNECTOR_JAR': format('{kms_home}/ews/webapp/lib/{jdbc_jar_name}')},
+      properties = {'SQL_CONNECTOR_JAR': format('{kms_home}/ews/webapp/lib/sajdbc4.jar')},
+      owner = params.kms_user,
+    )
+  else:
+    ModifyPropertiesFile(format("{kms_home}/install.properties"),
+      properties = {'SQL_CONNECTOR_JAR': format('{driver_curl_target}')},
       owner = params.kms_user,
     )
 

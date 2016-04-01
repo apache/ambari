@@ -500,7 +500,6 @@ xml_configurations_supported = config['configurations']['ranger-env']['xml_confi
 
 #ranger hive properties
 policymgr_mgr_url = config['configurations']['admin-properties']['policymgr_external_url']
-sql_connector_jar = config['configurations']['admin-properties']['SQL_CONNECTOR_JAR']
 xa_audit_db_name = config['configurations']['admin-properties']['audit_db_name']
 xa_audit_db_user = config['configurations']['admin-properties']['audit_db_user']
 xa_db_host = config['configurations']['admin-properties']['db_host']
@@ -525,13 +524,11 @@ if has_ranger_admin:
   xa_audit_db_flavor = (config['configurations']['admin-properties']['DB_FLAVOR']).lower()
 
   if xa_audit_db_flavor and xa_audit_db_flavor == 'mysql':
-    ranger_jdbc_symlink_name = "mysql-jdbc-driver.jar"
-    ranger_jdbc_jar_name = "mysql-connector-java.jar"
+    ranger_jdbc_jar_name = default("/hostLevelParams/custom_mysql_jdbc_name", None)
     audit_jdbc_url = format('jdbc:mysql://{xa_db_host}/{xa_audit_db_name}')
     jdbc_driver = "com.mysql.jdbc.Driver"
   elif xa_audit_db_flavor and xa_audit_db_flavor == 'oracle':
-    ranger_jdbc_jar_name = "ojdbc6.jar"
-    ranger_jdbc_symlink_name = "oracle-jdbc-driver.jar"
+    ranger_jdbc_jar_name = default("/hostLevelParams/custom_oracle_jdbc_name", None)
     colon_count = xa_db_host.count(':')
     if colon_count == 2 or colon_count == 0:
       audit_jdbc_url = format('jdbc:oracle:thin:@{xa_db_host}')
@@ -539,25 +536,23 @@ if has_ranger_admin:
       audit_jdbc_url = format('jdbc:oracle:thin:@//{xa_db_host}')
     jdbc_driver = "oracle.jdbc.OracleDriver"
   elif xa_audit_db_flavor and xa_audit_db_flavor == 'postgres':
-    ranger_jdbc_jar_name = "postgresql.jar"
-    ranger_jdbc_symlink_name = "postgres-jdbc-driver.jar"
+    ranger_jdbc_jar_name = default("/hostLevelParams/custom_postgres_jdbc_name", None)
     audit_jdbc_url = format('jdbc:postgresql://{xa_db_host}/{xa_audit_db_name}')
     jdbc_driver = "org.postgresql.Driver"
   elif xa_audit_db_flavor and xa_audit_db_flavor == 'mssql':
-    ranger_jdbc_jar_name = "sqljdbc4.jar"
-    ranger_jdbc_symlink_name = "mssql-jdbc-driver.jar"
+    ranger_jdbc_jar_name = default("/hostLevelParams/custom_mssql_jdbc_name", None)
     audit_jdbc_url = format('jdbc:sqlserver://{xa_db_host};databaseName={xa_audit_db_name}')
     jdbc_driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
   elif xa_audit_db_flavor and xa_audit_db_flavor == 'sqla':
-    ranger_jdbc_jar_name = "sajdbc4.jar"
-    ranger_jdbc_symlink_name = "sqlanywhere-jdbc-driver.tar.gz"
+    ranger_jdbc_jar_name = default("/hostLevelParams/custom_sqlanywhere_jdbc_name", None)
     audit_jdbc_url = format('jdbc:sqlanywhere:database={xa_audit_db_name};host={xa_db_host}')
     jdbc_driver = "sap.jdbc4.sqlanywhere.IDriver"
   
   ranger_downloaded_custom_connector = format("{tmp_dir}/{ranger_jdbc_jar_name}")
   
-  ranger_driver_curl_source = format("{jdk_location}/{ranger_jdbc_symlink_name}")
+  ranger_driver_curl_source = format("{jdk_location}/{ranger_jdbc_jar_name}")
   ranger_driver_curl_target = format("{hive_lib}/{ranger_jdbc_jar_name}")
+  sql_connector_jar = ''
 
   hive_ranger_plugin_config = {
     'username': repo_config_username,

@@ -1892,8 +1892,7 @@ class TestHDP23StackAdvisor(TestCase):
     expected = {
       'admin-properties': {
         'properties': {
-          'policymgr_external_url': 'http://host1:7777',
-          'SQL_CONNECTOR_JAR': '/usr/share/java/mysql-connector-java.jar'
+          'policymgr_external_url': 'http://host1:7777'
         }
       },
       'ranger-ugsync-site': {

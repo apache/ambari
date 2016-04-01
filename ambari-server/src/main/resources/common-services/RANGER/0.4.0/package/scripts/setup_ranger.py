@@ -58,6 +58,10 @@ def setup_ranger_admin(upgrade_type=None):
     properties=custom_config
   )
 
+  ModifyPropertiesFile(format("{ranger_home}/install.properties"),
+    properties = {'SQL_CONNECTOR_JAR': format('{driver_curl_target}')}
+  )
+
   ##if db flavor == oracle - set oracle home env variable
   if params.db_flavor.lower() == 'oracle' and params.oracle_home:
     env_dict = {'JAVA_HOME': params.java_home, 'ORACLE_HOME':params.oracle_home, 'LD_LIBRARY_PATH':params.oracle_home} 

@@ -76,7 +76,12 @@
         "ambari_db_rca_username": "mapred", 
         "db_driver_filename": "mysql-connector-java.jar", 
         "user_list": "[\"root\",\"ambari-qa\",\"hdfs\",\"ranger\",\"spark\",\"mapred\",\"tez\",\"zookeeper\",\"rangerlogger\",\"kafka\",\"yarn\",\"ams\",\"rangeradmin\"]", 
-        "mysql_jdbc_url": "http://c6407.ambari.apache.org:8080/resources//mysql-connector-java.jar"
+        "mysql_jdbc_url": "http://c6407.ambari.apache.org:8080/resources//mysql-connector-java.jar",
+        "custom_mysql_jdbc_name" : "mysql-connector-java.jar",
+        "custom_oracle_jdbc_name" : "oracle-jdbc-driver.jar",
+        "custom_postgres_jdbc_name" : "test-postgres-jdbc.jar",
+        "custom_mssql_jdbc_name" : "mssql-jdbc-driver.jar",
+        "custom_sqlanywhere_jdbc_name" : "sqla-client-jdbc.tar.gz"
     }, 
     "commandType": "EXECUTION_COMMAND", 
     "roleParams": {

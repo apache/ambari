@@ -15,7 +15,12 @@
         "ambari_db_rca_username": "mapred",
         "java_home": "/usr/jdk64/jdk1.7.0_45",
         "java_version": "8",
-        "db_name": "ambari"
+        "db_name": "ambari",
+        "custom_mysql_jdbc_name" : "mysql-connector-java.jar",
+        "custom_oracle_jdbc_name" : "oracle-jdbc-driver.jar",
+        "custom_postgres_jdbc_name" : "test-postgres-jdbc.jar",
+        "custom_mssql_jdbc_name" : "mssql-jdbc-driver.jar",
+        "custom_sqlanywhere_jdbc_name" : "sqla-client-jdbc.tar.gz"
     },
     "commandType": "EXECUTION_COMMAND",
     "roleParams": {},

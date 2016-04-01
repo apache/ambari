@@ -467,16 +467,6 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     if 'kms-properties' in services['configurations'] and ('DB_FLAVOR' in services['configurations']['kms-properties']['properties']):
 
       rangerKmsDbFlavor = services['configurations']["kms-properties"]["properties"]["DB_FLAVOR"]
-      ranger_kms_sql_connector_dict = {
-        'MYSQL': '/usr/share/java/mysql-connector-java.jar',
-        'ORACLE': '/usr/share/java/ojdbc6.jar',
-        'POSTGRES': '/usr/share/java/postgresql.jar',
-        'MSSQL': '/usr/share/java/sqljdbc4.jar',
-        'SQLA': '/path_to_driver/sqla-client-jdbc.tar.gz'
-      }
-
-      rangerKmsSqlConnectorProperty = ranger_kms_sql_connector_dict.get(rangerKmsDbFlavor, ranger_kms_sql_connector_dict['MYSQL'])
-      putRangerKmsProperty('SQL_CONNECTOR_JAR', rangerKmsSqlConnectorProperty)
 
       if ('db_host' in services['configurations']['kms-properties']['properties']) and ('db_name' in services['configurations']['kms-properties']['properties']):
 
