@@ -36,6 +36,7 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
     enabled: 'AlertDefinition.enabled',
     scope: 'AlertDefinition.scope',
     interval: 'AlertDefinition.interval',
+    helpUrl: 'AlertDefinition.help_url',
     type: 'AlertDefinition.source.type',
     reporting_key: 'reporting',
     reporting_type: 'array',

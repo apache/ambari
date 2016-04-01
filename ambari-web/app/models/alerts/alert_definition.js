@@ -38,6 +38,7 @@ App.AlertDefinition = DS.Model.extend({
   scope: DS.attr('string'),
   interval: DS.attr('number'),
   type: DS.attr('string'),
+  helpUrl: DS.attr('string'),
   groups: DS.hasMany('App.AlertGroup'),
   reporting: DS.hasMany('App.AlertReportDefinition'),
   parameters: DS.hasMany('App.AlertDefinitionParameter'),
@@ -211,6 +212,12 @@ App.AlertDefinition = DS.Model.extend({
     }
     return serviceName;
   }.property('serviceName', 'service.displayName'),
+
+  /**
+   * Determines if alert definition has help url
+   * @type {boolean}
+   */
+  hasHelpUrl: Em.computed.bool('helpUrl'),
 
   /**
    * List of css-classes for alert types

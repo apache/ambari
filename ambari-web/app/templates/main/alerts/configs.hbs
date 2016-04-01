@@ -16,6 +16,12 @@
 * limitations under the License.
 }}
 <form class="form-horizontal alert-configs">
+  {{#if controller.content.hasHelpUrl}}
+    <div class="control-group">
+      <label for="" class="control-label"><a {{bindAttr href="controller.content.helpUrl"}} target="_blank">{{t common.details}}</a></label>
+      <div class="controls"></div>
+    </div>
+  {{/if}}
   {{#each property in controller.configs}}
     <div {{bindAttr class=":control-group property.name property.isValid::error"}}>
       {{#if property.isPreLabeled}}
