@@ -1369,12 +1369,17 @@ public class Configuration {
   public String getDatabasePassword() {
     String passwdProp = properties.getProperty(SERVER_JDBC_USER_PASSWD_KEY);
     String dbpasswd = null;
+    boolean isPasswordAlias = false;
     if (CredentialProvider.isAliasString(passwdProp)) {
       dbpasswd = readPasswordFromStore(passwdProp);
+      isPasswordAlias =true;
     }
 
     if (dbpasswd != null) {
       return dbpasswd;
+    } else if (dbpasswd == null && isPasswordAlias) {
+      LOG.error("Can't read db password from keystore. Please, check master key was set correctly.");
+      throw new RuntimeException("Can't read db password from keystore. Please, check master key was set correctly.");
     } else {
       return readPasswordFromFile(passwdProp, SERVER_JDBC_USER_PASSWD_DEFAULT);
     }
