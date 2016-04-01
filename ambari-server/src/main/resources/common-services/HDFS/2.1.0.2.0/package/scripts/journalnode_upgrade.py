@@ -39,7 +39,9 @@ def post_upgrade_check():
   Logger.info("Ensuring Journalnode quorum is established")
 
   if params.security_enabled:
-    Execute(params.jn_kinit_cmd, user=params.hdfs_user)
+    # We establish HDFS identity instead of JN Kerberos identity
+    # since this is an administrative HDFS call that requires the HDFS administrator user to perform.
+    Execute(params.hdfs_kinit_cmd, user=params.hdfs_user)
 
   time.sleep(5)
   hdfs_roll_edits()
