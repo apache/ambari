@@ -321,12 +321,11 @@ if security_enabled:
   if jn_principal_name:
     jn_principal_name = jn_principal_name.replace('_HOST', hostname.lower())
   jn_keytab = default("/configurations/hdfs-site/dfs.journalnode.keytab.file", None)
-  jn_kinit_cmd = format("{kinit_path_local} -kt {jn_keytab} {jn_principal_name};")
+  hdfs_kinit_cmd = format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name};")
 else:
   dn_kinit_cmd = ""
   nn_kinit_cmd = ""
-  jn_kinit_cmd = ""
-  
+  hdfs_kinit_cmd = ""
 
 hdfs_site = config['configurations']['hdfs-site']
 default_fs = config['configurations']['core-site']['fs.defaultFS']
