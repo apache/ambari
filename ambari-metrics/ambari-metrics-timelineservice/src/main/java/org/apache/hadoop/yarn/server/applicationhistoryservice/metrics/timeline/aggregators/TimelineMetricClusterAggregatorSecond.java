@@ -228,13 +228,16 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
 
         // do a sum / count here to get average for all points in a slice
         int count = 1;
-        Double sum;
+        Double sum = 0.0;
         if (!timelineClusterMetricMap.containsKey(clusterMetric)) {
           sum = metric.getValue();
         } else {
-          count++;
-          Double oldValue = timelineClusterMetricMap.get(clusterMetric);
-          sum = oldValue + metric.getValue();
+          Double newValue = metric.getValue();
+          if (newValue > 0.0) {
+            count++;
+            Double oldValue = timelineClusterMetricMap.get(clusterMetric);
+            sum = oldValue + newValue;
+          }
         }
         double metricValue = sum / count;
         timelineClusterMetricMap.put(clusterMetric, metricValue);
