@@ -28,8 +28,6 @@ import org.apache.ambari.server.audit.event.request.AddBlueprintRequestAuditEven
 import org.apache.ambari.server.audit.event.request.DeleteBlueprintRequestAuditEvent;
 import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -79,7 +77,6 @@ public class BlueprintEventCreator implements RequestAuditEventCreator {
    */
   @Override
   public AuditEvent createAuditEvent(Request request, Result result) {
-    String username = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
 
     switch (request.getRequestType()) {
       case POST:
@@ -89,7 +86,6 @@ public class BlueprintEventCreator implements RequestAuditEventCreator {
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
           .withRemoteIp(request.getRemoteAddress())
-          .withUserName(username)
           .withBlueprintName(request.getResource().getKeyValueMap().get(Resource.Type.Blueprint))
           .build();
       case DELETE:
@@ -99,7 +95,6 @@ public class BlueprintEventCreator implements RequestAuditEventCreator {
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
           .withRemoteIp(request.getRemoteAddress())
-          .withUserName(username)
           .withBlueprintName(request.getResource().getKeyValueMap().get(Resource.Type.Blueprint))
           .build();
       default:

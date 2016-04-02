@@ -33,8 +33,6 @@ import org.apache.ambari.server.audit.event.request.PrivilegeChangeRequestAuditE
 import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -84,7 +82,6 @@ public class PrivilegeEventCreator implements RequestAuditEventCreator {
    */
   @Override
   public AuditEvent createAuditEvent(Request request, Result result) {
-    String username = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
 
     Map<String, List<String>> users = getEntities(request, "USER");
     Map<String, List<String>> groups = getEntities(request, "GROUP");
@@ -97,7 +94,6 @@ public class PrivilegeEventCreator implements RequestAuditEventCreator {
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
           .withRemoteIp(request.getRemoteAddress())
-          .withUserName(username)
           .withUsers(users)
           .withGroups(groups)
           .build();
@@ -109,7 +105,6 @@ public class PrivilegeEventCreator implements RequestAuditEventCreator {
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
           .withRemoteIp(request.getRemoteAddress())
-          .withUserName(username)
           .withRole(role)
           .withGroup(groups.get(role) == null ? null : groups.get(role).get(0))
           .withUser(users.get(role) == null ? null : users.get(role).get(0))

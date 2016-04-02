@@ -27,8 +27,6 @@ import org.apache.ambari.server.audit.event.AccessUnauthorizedAuditEvent;
 import org.apache.ambari.server.audit.event.AuditEvent;
 import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -73,12 +71,10 @@ public class UnauthorizedEventCreator implements RequestAuditEventCreator {
   @Override
   public AuditEvent createAuditEvent(Request request, Result result) {
 
-    String username = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
     AccessUnauthorizedAuditEvent ae = AccessUnauthorizedAuditEvent.builder()
       .withRemoteIp(request.getRemoteAddress())
       .withResourcePath(request.getURI())
       .withTimestamp(System.currentTimeMillis())
-      .withUserName(username)
       .build();
 
     return ae;

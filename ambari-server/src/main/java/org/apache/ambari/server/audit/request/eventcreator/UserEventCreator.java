@@ -32,8 +32,6 @@ import org.apache.ambari.server.audit.event.request.UserPasswordChangeRequestAud
 import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -83,7 +81,6 @@ public class UserEventCreator implements RequestAuditEventCreator {
    */
   @Override
   public AuditEvent createAuditEvent(Request request, Result result) {
-    String username = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
 
     switch (request.getRequestType()) {
       case POST:
@@ -93,7 +90,6 @@ public class UserEventCreator implements RequestAuditEventCreator {
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
           .withRemoteIp(request.getRemoteAddress())
-          .withUserName(username)
           .withCreatedUsername(getUsername(request))
           .withActive(isActive(request))
           .withAdmin(isAdmin(request))
@@ -105,7 +101,6 @@ public class UserEventCreator implements RequestAuditEventCreator {
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
           .withRemoteIp(request.getRemoteAddress())
-          .withUserName(username)
           .withDeletedUsername(request.getResource().getKeyValueMap().get(Resource.Type.User))
           .build();
       case PUT:
@@ -116,8 +111,7 @@ public class UserEventCreator implements RequestAuditEventCreator {
             .withResultStatus(result.getStatus())
             .withUrl(request.getURI())
             .withRemoteIp(request.getRemoteAddress())
-            .withUserName(username)
-            .withAffectedUsername(getUsername(request))
+              .withAffectedUsername(getUsername(request))
             .withActive(isActive(request))
             .build();
         }
@@ -128,8 +122,7 @@ public class UserEventCreator implements RequestAuditEventCreator {
             .withResultStatus(result.getStatus())
             .withUrl(request.getURI())
             .withRemoteIp(request.getRemoteAddress())
-            .withUserName(username)
-            .withAffectedUsername(getUsername(request))
+              .withAffectedUsername(getUsername(request))
             .withAdmin(isAdmin(request))
             .build();
         }
@@ -140,8 +133,7 @@ public class UserEventCreator implements RequestAuditEventCreator {
             .withResultStatus(result.getStatus())
             .withUrl(request.getURI())
             .withRemoteIp(request.getRemoteAddress())
-            .withUserName(username)
-            .withAffectedUsername(getUsername(request))
+              .withAffectedUsername(getUsername(request))
             .build();
         }
       default:

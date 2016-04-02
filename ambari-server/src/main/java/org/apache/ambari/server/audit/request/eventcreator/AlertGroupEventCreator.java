@@ -19,7 +19,6 @@
 package org.apache.ambari.server.audit.request.eventcreator;
 
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -33,8 +32,6 @@ import org.apache.ambari.server.audit.event.request.DeleteAlertGroupRequestAudit
 import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -84,7 +81,6 @@ public class AlertGroupEventCreator implements RequestAuditEventCreator {
    */
   @Override
   public AuditEvent createAuditEvent(Request request, Result result) {
-    String username = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
 
     switch (request.getRequestType()) {
       case POST:
@@ -94,7 +90,6 @@ public class AlertGroupEventCreator implements RequestAuditEventCreator {
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
           .withRemoteIp(request.getRemoteAddress())
-          .withUserName(username)
           .withName(getName(request))
           .withDefinitionIds(getDefinitionIds(request))
           .withNotificationIds(getNotificationIds(request))
@@ -106,7 +101,6 @@ public class AlertGroupEventCreator implements RequestAuditEventCreator {
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
           .withRemoteIp(request.getRemoteAddress())
-          .withUserName(username)
           .withName(getName(request))
           .withDefinitionIds(getDefinitionIds(request))
           .withNotificationIds(getNotificationIds(request))
@@ -118,7 +112,6 @@ public class AlertGroupEventCreator implements RequestAuditEventCreator {
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
           .withRemoteIp(request.getRemoteAddress())
-          .withUserName(username)
           .withId(request.getResource().getKeyValueMap().get(Resource.Type.AlertGroup))
           .build();
       default:

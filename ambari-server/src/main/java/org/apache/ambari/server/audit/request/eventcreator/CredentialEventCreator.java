@@ -28,8 +28,6 @@ import org.apache.ambari.server.audit.event.request.AddCredentialRequestAuditEve
 import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -79,7 +77,6 @@ public class CredentialEventCreator implements RequestAuditEventCreator {
    */
   @Override
   public AuditEvent createAuditEvent(Request request, Result result) {
-    String username = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
 
     return AddCredentialRequestAuditEvent.builder()
       .withTimestamp(System.currentTimeMillis())
@@ -87,7 +84,6 @@ public class CredentialEventCreator implements RequestAuditEventCreator {
       .withResultStatus(result.getStatus())
       .withUrl(request.getURI())
       .withRemoteIp(request.getRemoteAddress())
-      .withUserName(username)
       .withClusterName(getProperty(request, "cluster_name"))
       .withType(getProperty(request, "type"))
       .withAlias(getProperty(request, "alias"))

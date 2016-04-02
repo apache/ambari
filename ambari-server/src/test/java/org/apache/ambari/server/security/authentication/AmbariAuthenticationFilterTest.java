@@ -103,6 +103,7 @@ public class AmbariAuthenticationFilterTest {
       .andReturn(roles);
     expect(AuthorizationHelper.getAuthorizationNames(authentication))
       .andReturn(Arrays.asList("perm1", "perm2"));
+    expect(AuthorizationHelper.getAuthenticatedName()).andReturn("perm1");
     expect(request.getHeader("X-Forwarded-For")).andReturn("1.2.3.4");
     expect(authentication.getName()).andReturn("admin");
     mockedAuditLogger.log(anyObject(AuditEvent.class));

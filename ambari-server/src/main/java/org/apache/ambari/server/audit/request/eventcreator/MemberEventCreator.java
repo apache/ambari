@@ -33,8 +33,6 @@ import org.apache.ambari.server.audit.event.request.RemoveUserFromGroupRequestAu
 import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -84,7 +82,6 @@ public class MemberEventCreator implements RequestAuditEventCreator {
    */
   @Override
   public AuditEvent createAuditEvent(Request request, Result result) {
-    String username = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
 
     switch (request.getRequestType()) {
       case POST:
@@ -94,7 +91,6 @@ public class MemberEventCreator implements RequestAuditEventCreator {
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
           .withRemoteIp(request.getRemoteAddress())
-          .withUserName(username)
           .withAffectedUserName(getUserName(request))
           .withGroupName(getGroupName(request))
           .build();
@@ -105,7 +101,6 @@ public class MemberEventCreator implements RequestAuditEventCreator {
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
           .withRemoteIp(request.getRemoteAddress())
-          .withUserName(username)
           .withAffectedUserName(getUserName(request))
           .withGroupName(getGroupName(request))
           .build();
@@ -116,7 +111,6 @@ public class MemberEventCreator implements RequestAuditEventCreator {
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
           .withRemoteIp(request.getRemoteAddress())
-          .withUserName(username)
           .withGroupName(getGroupNameForPut(request))
           .withUserNameList(getUsers(request))
           .build();

@@ -31,8 +31,6 @@ import org.apache.ambari.server.audit.event.request.DeleteHostRequestAuditEvent;
 import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -83,7 +81,6 @@ public class HostEventCreator implements RequestAuditEventCreator {
    */
   @Override
   public AuditEvent createAuditEvent(Request request, Result result) {
-    String username = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
 
     switch (request.getRequestType()) {
       case DELETE:
@@ -93,7 +90,6 @@ public class HostEventCreator implements RequestAuditEventCreator {
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
           .withRemoteIp(request.getRemoteAddress())
-          .withUserName(username)
           .withHostName(request.getResource().getKeyValueMap().get(Resource.Type.Host))
           .build();
       case POST:
@@ -103,7 +99,6 @@ public class HostEventCreator implements RequestAuditEventCreator {
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
           .withRemoteIp(request.getRemoteAddress())
-          .withUserName(username)
           .withHostName(getHostName(request))
           .build();
       case QUERY_POST:
@@ -113,7 +108,6 @@ public class HostEventCreator implements RequestAuditEventCreator {
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
           .withRemoteIp(request.getRemoteAddress())
-          .withUserName(username)
           .withHostName(getHostNameFromQuery(request))
           .withComponent(getHostComponent(request))
           .build();

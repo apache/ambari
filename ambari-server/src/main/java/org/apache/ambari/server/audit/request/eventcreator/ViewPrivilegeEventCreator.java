@@ -32,8 +32,6 @@ import org.apache.ambari.server.audit.event.request.ViewPrivilegeChangeRequestAu
 import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -83,7 +81,6 @@ public class ViewPrivilegeEventCreator implements RequestAuditEventCreator {
    */
   @Override
   public AuditEvent createAuditEvent(Request request, Result result) {
-    String username = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
 
 
     Map<String, List<String>> users = getEntities(request, "USER");
@@ -95,7 +92,6 @@ public class ViewPrivilegeEventCreator implements RequestAuditEventCreator {
       .withResultStatus(result.getStatus())
       .withUrl(request.getURI())
       .withRemoteIp(request.getRemoteAddress())
-      .withUserName(username)
       .withType(getProperty(request, PropertyHelper.getPropertyId("PrivilegeInfo", "view_name")))
       .withVersion(getProperty(request, PropertyHelper.getPropertyId("PrivilegeInfo", "version")))
       .withName(getProperty(request, PropertyHelper.getPropertyId("PrivilegeInfo", "instance_name")))

@@ -31,8 +31,6 @@ import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -83,7 +81,6 @@ public class ServiceEventCreator implements RequestAuditEventCreator {
    */
   @Override
   public AuditEvent createAuditEvent(Request request, Result result) {
-    String username = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
 
     if (request.getRequestType() == Request.Type.DELETE) {
       return DeleteServiceRequestAuditEvent.builder()
@@ -92,8 +89,7 @@ public class ServiceEventCreator implements RequestAuditEventCreator {
         .withResultStatus(result.getStatus())
         .withUrl(request.getURI())
         .withRemoteIp(request.getRemoteAddress())
-        .withUserName(username)
-        .withService(request.getResource().getKeyValueMap().get(Resource.Type.Service))
+          .withService(request.getResource().getKeyValueMap().get(Resource.Type.Service))
         .build();
     }
 
@@ -106,7 +102,6 @@ public class ServiceEventCreator implements RequestAuditEventCreator {
 
     StartOperationRequestAuditEvent.StartOperationAuditEventBuilder auditEventBuilder = StartOperationRequestAuditEvent.builder()
       .withOperation(operation)
-      .withUserName(username)
       .withRemoteIp(request.getRemoteAddress())
       .withTimestamp(System.currentTimeMillis())
       .withRequestId(String.valueOf(requestId));

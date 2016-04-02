@@ -28,8 +28,6 @@ import org.apache.ambari.server.audit.event.request.UpdateUpgradeItemRequestAudi
 import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -79,7 +77,6 @@ public class UpgradeItemEventCreator implements RequestAuditEventCreator {
    */
   @Override
   public AuditEvent createAuditEvent(Request request, Result result) {
-    String username = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
 
     return UpdateUpgradeItemRequestAuditEvent.builder()
       .withTimestamp(System.currentTimeMillis())
@@ -87,7 +84,6 @@ public class UpgradeItemEventCreator implements RequestAuditEventCreator {
       .withResultStatus(result.getStatus())
       .withUrl(request.getURI())
       .withRemoteIp(request.getRemoteAddress())
-      .withUserName(username)
       .withStatus(getProperty(request, "status"))
       .withStageId(getProperty(request, "stage_id"))
       .withRequestId(getProperty(request, "request_id"))

@@ -34,8 +34,6 @@ import org.apache.ambari.server.audit.event.request.DeleteRepositoryVersionReque
 import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -85,7 +83,6 @@ public class RepositoryVersionEventCreator implements RequestAuditEventCreator {
    */
   @Override
   public AuditEvent createAuditEvent(Request request, Result result) {
-    String username = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
 
     switch (request.getRequestType()) {
       case POST:
@@ -95,7 +92,6 @@ public class RepositoryVersionEventCreator implements RequestAuditEventCreator {
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
           .withRemoteIp(request.getRemoteAddress())
-          .withUserName(username)
           .withStackName(getProperty(request, PropertyHelper.getPropertyId("RepositoryVersions", "stack_name")))
           .withStackVersion(getProperty(request, PropertyHelper.getPropertyId("RepositoryVersions", "stack_version")))
           .withDisplayName(getProperty(request, PropertyHelper.getPropertyId("RepositoryVersions", "display_name")))
@@ -109,7 +105,6 @@ public class RepositoryVersionEventCreator implements RequestAuditEventCreator {
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
           .withRemoteIp(request.getRemoteAddress())
-          .withUserName(username)
           .withStackName(getProperty(request, PropertyHelper.getPropertyId("RepositoryVersions", "stack_name")))
           .withStackVersion(getProperty(request, PropertyHelper.getPropertyId("RepositoryVersions", "stack_version")))
           .withDisplayName(getProperty(request, PropertyHelper.getPropertyId("RepositoryVersions", "display_name")))
@@ -123,7 +118,6 @@ public class RepositoryVersionEventCreator implements RequestAuditEventCreator {
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
           .withRemoteIp(request.getRemoteAddress())
-          .withUserName(username)
           .withStackName(request.getResource().getKeyValueMap().get(Resource.Type.Stack))
           .withStackVersion(request.getResource().getKeyValueMap().get(Resource.Type.StackVersion))
           .withRepoVersion(request.getResource().getKeyValueMap().get(Resource.Type.RepositoryVersion))

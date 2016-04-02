@@ -111,7 +111,7 @@ public class DefaultEventCreatorTest {
 
           @Override
           public String getName() {
-            return null;
+            return ((User) getPrincipal()).getUsername();
           }
         };
       }

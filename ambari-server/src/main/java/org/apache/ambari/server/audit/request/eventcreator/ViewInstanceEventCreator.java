@@ -30,8 +30,6 @@ import org.apache.ambari.server.audit.event.request.DeleteViewInstanceRequestAud
 import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -81,7 +79,6 @@ public class ViewInstanceEventCreator implements RequestAuditEventCreator {
    */
   @Override
   public AuditEvent createAuditEvent(Request request, Result result) {
-    String username = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
 
     switch (request.getRequestType()) {
 
@@ -92,7 +89,6 @@ public class ViewInstanceEventCreator implements RequestAuditEventCreator {
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
           .withRemoteIp(request.getRemoteAddress())
-          .withUserName(username)
           .withType(getProperty(request, PropertyHelper.getPropertyId("ViewInstanceInfo", "view_name")))
           .withVersion(getProperty(request, PropertyHelper.getPropertyId("ViewInstanceInfo", "version")))
           .withName(getProperty(request, PropertyHelper.getPropertyId("ViewInstanceInfo", "instance_name")))
@@ -107,7 +103,6 @@ public class ViewInstanceEventCreator implements RequestAuditEventCreator {
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
           .withRemoteIp(request.getRemoteAddress())
-          .withUserName(username)
           .withType(getProperty(request, PropertyHelper.getPropertyId("ViewInstanceInfo", "view_name")))
           .withVersion(getProperty(request, PropertyHelper.getPropertyId("ViewInstanceInfo", "version")))
           .withName(getProperty(request, PropertyHelper.getPropertyId("ViewInstanceInfo", "instance_name")))
@@ -122,7 +117,6 @@ public class ViewInstanceEventCreator implements RequestAuditEventCreator {
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
           .withRemoteIp(request.getRemoteAddress())
-          .withUserName(username)
           .withType(request.getResource().getKeyValueMap().get(Resource.Type.View))
           .withVersion(request.getResource().getKeyValueMap().get(Resource.Type.ViewVersion))
           .withName(request.getResource().getKeyValueMap().get(Resource.Type.ViewInstance))

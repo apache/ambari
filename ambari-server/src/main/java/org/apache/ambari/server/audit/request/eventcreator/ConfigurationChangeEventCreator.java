@@ -30,8 +30,6 @@ import org.apache.ambari.server.audit.event.request.ConfigurationChangeRequestAu
 import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -81,7 +79,6 @@ public class ConfigurationChangeEventCreator implements RequestAuditEventCreator
    */
   @Override
   public AuditEvent createAuditEvent(Request request, Result result) {
-    String username = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
 
     if (!request.getBody().getPropertySets().isEmpty()) {
       Map<String, Object> map = request.getBody().getPropertySets().iterator().next();
@@ -94,7 +91,6 @@ public class ConfigurationChangeEventCreator implements RequestAuditEventCreator
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
           .withRemoteIp(request.getRemoteAddress())
-          .withUserName(username)
           .withOldName(oldName)
           .withNewName(newName)
           .build();
@@ -107,7 +103,6 @@ public class ConfigurationChangeEventCreator implements RequestAuditEventCreator
       .withResultStatus(result.getStatus())
       .withUrl(request.getURI())
       .withRemoteIp(request.getRemoteAddress())
-      .withUserName(username)
       .withVersionNote(getServiceConfigVersionNote(result))
       .withVersionNumber(getServiceConfigVersion(result))
       .build();

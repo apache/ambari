@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.audit.event;
 
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
+
 /**
  * Base class for audit events which are result of user actions. It appends
  * to audit event details the user name and remote ip of the host
@@ -31,7 +33,7 @@ public abstract class AbstractUserAuditEvent extends AbstractAuditEvent {
     /**
      * Name of the user started the operation
      */
-    private String userName;
+    private String userName = AuthorizationHelper.getAuthenticatedName();
 
     /**
      * Ip of the user who started the operation. Note: remote ip might not be the original ip (proxies, routers can modify it)

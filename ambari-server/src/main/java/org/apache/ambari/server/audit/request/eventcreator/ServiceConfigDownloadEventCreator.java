@@ -27,8 +27,6 @@ import org.apache.ambari.server.audit.event.AuditEvent;
 import org.apache.ambari.server.audit.event.request.ClientConfigDownloadRequestAuditEvent;
 import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -77,14 +75,12 @@ public class ServiceConfigDownloadEventCreator implements RequestAuditEventCreat
    */
   @Override
   public AuditEvent createAuditEvent(Request request, Result result) {
-    String username = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
     return ClientConfigDownloadRequestAuditEvent.builder()
       .withTimestamp(System.currentTimeMillis())
       .withRequestType(request.getRequestType())
       .withResultStatus(result.getStatus())
       .withUrl(request.getURI())
       .withRemoteIp(request.getRemoteAddress())
-      .withUserName(username)
       .withService(request.getResource().getKeyValueMap().get(Resource.Type.Service))
       .withComponent(request.getResource().getKeyValueMap().get(Resource.Type.Component))
       .build();

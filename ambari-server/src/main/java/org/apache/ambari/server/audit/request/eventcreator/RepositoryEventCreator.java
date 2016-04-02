@@ -29,8 +29,6 @@ import org.apache.ambari.server.audit.event.request.UpdateRepositoryRequestAudit
 import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -80,7 +78,6 @@ public class RepositoryEventCreator implements RequestAuditEventCreator {
    */
   @Override
   public AuditEvent createAuditEvent(Request request, Result result) {
-    String username = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
 
     switch (request.getRequestType()) {
       case POST:
@@ -90,7 +87,6 @@ public class RepositoryEventCreator implements RequestAuditEventCreator {
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
           .withRemoteIp(request.getRemoteAddress())
-          .withUserName(username)
           .withRepo(getProperty(request, PropertyHelper.getPropertyId("Repositories", "repo_id")))
           .withStackName(getProperty(request, PropertyHelper.getPropertyId("Repositories", "stack_name")))
           .withStackVersion(getProperty(request, PropertyHelper.getPropertyId("Repositories", "stack_version")))
@@ -104,7 +100,6 @@ public class RepositoryEventCreator implements RequestAuditEventCreator {
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
           .withRemoteIp(request.getRemoteAddress())
-          .withUserName(username)
           .withRepo(getProperty(request, PropertyHelper.getPropertyId("Repositories", "repo_id")))
           .withStackName(getProperty(request, PropertyHelper.getPropertyId("Repositories", "stack_name")))
           .withStackVersion(getProperty(request, PropertyHelper.getPropertyId("Repositories", "stack_version")))
