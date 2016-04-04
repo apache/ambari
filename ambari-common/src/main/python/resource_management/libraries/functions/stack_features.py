@@ -20,9 +20,6 @@ limitations under the License.
 
 # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 import ambari_simplejson as json
-from resource_management.libraries.script import Script
-from resource_management.libraries.functions.default import default
-from resource_management.libraries.functions.version import compare_versions
 
 _DEFAULT_STACK_FEATURES = {
   "stack_features": [
@@ -190,6 +187,9 @@ def check_stack_feature(stack_feature, stack_version):
   :param stack_version: Version of the stack
   :return: Will return True if successful, otherwise, False. 
   """
+
+  from resource_management.libraries.functions.default import default
+  from resource_management.libraries.functions.version import compare_versions
   stack_features_config = default("/configurations/cluster-env/stack_features", None)
   data = _DEFAULT_STACK_FEATURES
 

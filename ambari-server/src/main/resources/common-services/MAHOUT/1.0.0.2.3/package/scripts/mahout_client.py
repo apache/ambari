@@ -29,7 +29,8 @@ from mahout import mahout
 class MahoutClient(Script):
 
   def get_stack_to_component(self):
-    return {"HDP": "mahout-client"}
+    import params
+    return {params.stack_name: "mahout-client"}
 
 
   def pre_upgrade_restart(self, env, upgrade_type=None):

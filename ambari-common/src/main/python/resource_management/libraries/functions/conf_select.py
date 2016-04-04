@@ -36,8 +36,9 @@ from resource_management.core.resources.system import Link
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import stack_tools
 from resource_management.core.exceptions import Fail
-from resource_management.libraries.functions.version import compare_versions, format_stack_version
 from resource_management.core.shell import as_sudo
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions import StackFeature
 
 STACK_ROOT_PATTERN = "{{ stack_root }}"
 
@@ -199,13 +200,7 @@ def _get_cmd(command, package, version):
   return ('ambari-python-wrap', conf_selector_path, command, '--package', package, '--stack-version', version, '--conf-version', '0')
 
 def _valid(stack_name, package, ver):
-  if stack_name != "HDP":
-    return False
-
-  if version.compare_versions(version.format_stack_version(ver), "2.3.0.0") < 0:
-    return False
-
-  return True
+  return (ver and check_stack_feature(StackFeature.CONFIG_VERSIONING, ver))
 
 def get_package_dirs():
   """
@@ -332,15 +327,16 @@ def get_hadoop_conf_dir(force_latest_on_upgrade=False):
   hadoop_conf_dir = "/etc/hadoop/conf"
   stack_name = None
   stack_root = Script.get_stack_root()
+  stack_version = Script.get_stack_version()
   version = None
   allow_setting_conf_select_symlink = False
 
   if not Script.in_stack_upgrade():
     # During normal operation, the HDP stack must be 2.3 or higher
-    if Script.is_stack_greater_or_equal("2.2"):
+    if stack_version and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version):
       hadoop_conf_dir = os.path.join(stack_root, "current", "hadoop-client", "conf")
 
-    if Script.is_stack_greater_or_equal("2.3"):
+    if stack_version and check_stack_feature(StackFeature.CONFIG_VERSIONING, stack_version):
       hadoop_conf_dir = os.path.join(stack_root, "current", "hadoop-client", "conf")
       stack_name = default("/hostLevelParams/stack_name", None)
       version = default("/commandParams/version", None)
@@ -365,11 +361,11 @@ def get_hadoop_conf_dir(force_latest_on_upgrade=False):
     EU/RU | 2.3    | 2.3.*  | Any                   | Use <stack-root>/$version/hadoop/conf, which should be a symlink destination
     '''
 
-    # The method "is_stack_greater_or_equal" uses "stack_version" which is the desired stack, e.g., 2.2 or 2.3
+    # The "stack_version" is the desired stack, e.g., 2.2 or 2.3
     # In an RU, it is always the desired stack, and doesn't change even during the Downgrade!
     # In an RU Downgrade from HDP 2.3 to 2.2, the first thing we do is 
     # rm /etc/[component]/conf and then mv /etc/[component]/conf.backup /etc/[component]/conf
-    if Script.is_stack_greater_or_equal("2.2"):
+    if stack_version and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version):
       hadoop_conf_dir = os.path.join(stack_root, "current", "hadoop-client", "conf")
 
       # This contains the "version", including the build number, that is actually used during a stack upgrade and
@@ -384,7 +380,7 @@ def get_hadoop_conf_dir(force_latest_on_upgrade=False):
       
       Logger.info("In the middle of a stack upgrade/downgrade for Stack {0} and destination version {1}, determining which hadoop conf dir to use.".format(stack_name, version))
       # This is the version either upgrading or downgrading to.
-      if compare_versions(format_stack_version(version), "2.3.0.0") >= 0:
+      if version and check_stack_feature(StackFeature.CONFIG_VERSIONING, version):
         # Determine if <stack-selector-tool> has been run and if not, then use the current
         # hdp version until this component is upgraded.
         if not force_latest_on_upgrade:

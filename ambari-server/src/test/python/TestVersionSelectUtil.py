@@ -38,7 +38,8 @@ class TestVersionSelectUtil(TestCase):
 
   @patch('__builtin__.open')
   @patch("resource_management.core.shell.call")
-  def test_get_component_version(self, call_mock, open_mock):
+  @patch('os.path.exists')
+  def test_get_component_version(self, os_path_exists_mock, call_mock, open_mock):
     stack_expected_version = "2.2.1.0-2175"
 
     # Mock classes for reading from a file
@@ -68,21 +69,22 @@ class TestVersionSelectUtil(TestCase):
       def read(self):
         return super(MagicFile3, self).read("hadoop-hdfs-datanode")
 
+    os_path_exists_mock.side_effect = [False, True, True, True]
     open_mock.side_effect = [MagicFile1(), MagicFile2(), MagicFile3()]
     call_mock.side_effect = [(0, "value will come from MagicFile"), ] * 3
 
 
-    # Missing Stack
+    # Missing stack name
     version = self.module.get_component_version(None, "hadoop-hdfs-datanode")
     self.assertEquals(version, None)
-    version = self.module.get_component_version("StackDoesNotExist", "hadoop-hdfs-datanode")
-    self.assertEquals(version, None)
-
-    # Invalid request
+    # Missing component name
     version = self.module.get_component_version("HDP", None)
     self.assertEquals(version, None)
 
-    # Incorrect name
+    # Invalid stack name
+    version = self.module.get_component_version("StackDoesNotExist", "hadoop-hdfs-datanode")
+    self.assertEquals(version, None)
+    # Invalid component name
     version = self.module.get_component_version("HDP", "hadoop-nonexistent-component-name")
     self.assertEquals(version, None)
 

@@ -31,6 +31,7 @@ from resource_management.libraries.script.script import Script
 # server configurations
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
+stack_root = Script.get_stack_root()
 
 stack_name = default("/hostLevelParams/stack_name", None)
 host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
@@ -42,8 +43,8 @@ stack_version_formatted = format_stack_version(stack_version_unformatted)
 version = default("/commandParams/version", None)
 
 #mahout params
-mahout_home = "/usr/hdp/current/mahout-client"
-mahout_conf_dir = "/usr/hdp/current/mahout-client/conf"
+mahout_home = format("{stack_root}/current/mahout-client")
+mahout_conf_dir = format("{stack_root}/current/mahout-client/conf")
 mahout_user = config['configurations']['mahout-env']['mahout_user']
 
 yarn_log_dir_prefix = config['configurations']['yarn-env']['yarn_log_dir_prefix']

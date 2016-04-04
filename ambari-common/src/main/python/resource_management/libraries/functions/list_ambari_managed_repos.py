@@ -26,14 +26,14 @@ import glob
 from ambari_commons.os_check import OSCheck
 from resource_management.core.exceptions import Fail
 
-# TODO : get it dynamically from the server
-repository_names = ["HDP", "HDP-UTILS"]
 
-
-def list_ambari_managed_repos():
+def list_ambari_managed_repos(stack_name):
   """
   Lists all repositories that are present at host
   """
+  stack_name = stack_name.upper()
+  # TODO : get it dynamically from the server
+  repository_names = [stack_name, stack_name + "-UTILS" ]
   if OSCheck.is_ubuntu_family():
     repo_dir = '/etc/apt/sources.list.d/'
   elif OSCheck.is_redhat_family():  # Centos/RHEL 5/6

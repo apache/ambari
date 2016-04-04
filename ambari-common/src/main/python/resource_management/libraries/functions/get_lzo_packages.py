@@ -22,9 +22,10 @@ Ambari Agent
 __all__ = ["get_lzo_packages"]
 
 from ambari_commons.os_check import OSCheck
-from resource_management.libraries.functions.version import compare_versions, format_stack_version
-from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions import StackFeature
 
+# TODO: Make list of lzo packages stack driven
 def get_lzo_packages(stack_version_unformatted):
   lzo_packages = []
  
@@ -32,12 +33,8 @@ def get_lzo_packages(stack_version_unformatted):
     lzo_packages += ["lzo", "hadoop-lzo-native"]
   elif OSCheck.is_ubuntu_family():
     lzo_packages += ["liblzo2-2"]
-    
-  underscored_version = stack_version_unformatted.replace('.', '_')
-  dashed_version = stack_version_unformatted.replace('.', '-')
-  stack_version_formatted = format_stack_version(stack_version_unformatted)
 
-  if stack_version_formatted != "" and compare_versions(stack_version_formatted, '2.2') >= 0:
+  if stack_version_unformatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_unformatted):
     lzo_packages += ["hadooplzo_*"]
   else:
     lzo_packages += ["hadoop-lzo"]

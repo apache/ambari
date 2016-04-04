@@ -128,12 +128,14 @@ class TestRangerUsersync(RMFTestCase):
     self.assertResourceCalled("Execute", ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'ranger-usersync', '2.2.2.0-2399'), sudo=True)
 
   @patch("setup_ranger.setup_usersync")
-  def test_upgrade_23(self, setup_usersync_mock):
+  @patch("os.path.exists")
+  def test_upgrade_23(self, os_path_exists_mock, setup_usersync_mock):
     config_file = self.get_src_folder()+"/test/python/stacks/2.2/configs/ranger-usersync-upgrade.json"
     with open(config_file, "r") as f:
       json_content = json.load(f)
     json_content['commandParams']['version'] = '2.3.0.0-1234'
 
+    os_path_exists_mock.return_value = True
     mocks_dict = {}
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/ranger_usersync.py",
                        classname = "RangerUsersync",

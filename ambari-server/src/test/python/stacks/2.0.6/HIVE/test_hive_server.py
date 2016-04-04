@@ -910,7 +910,6 @@ From source with checksum 150f554beae04f76f814f59549dead8b"""
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
 
-  @patch.object(Script, "is_stack_greater_or_equal", new = MagicMock(return_value=True))
   @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
   def test_pre_upgrade_restart(self, copy_to_hdfs_mock):
     copy_to_hdfs_mock.return_value = True
@@ -920,6 +919,7 @@ From source with checksum 150f554beae04f76f814f59549dead8b"""
       json_content = json.load(f)
     version = '2.2.1.0-3242'
     json_content['commandParams']['version'] = version
+    json_content['hostLevelParams']['stack_version'] = '2.2'
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
                        classname = "HiveServer",
                        command = "pre_upgrade_restart",
@@ -947,7 +947,6 @@ From source with checksum 150f554beae04f76f814f59549dead8b"""
 
   @patch("os.path.exists")
   @patch("resource_management.core.shell.call")
-  @patch.object(Script, "is_stack_greater_or_equal", new = MagicMock(return_value=True))
   @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
   def test_pre_upgrade_restart_23(self, copy_to_hdfs_mock, call_mock, os_path__exists_mock):
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
@@ -956,6 +955,7 @@ From source with checksum 150f554beae04f76f814f59549dead8b"""
       json_content = json.load(f)
     version = '2.3.0.0-1234'
     json_content['commandParams']['version'] = version
+    json_content['hostLevelParams']['stack_version'] = '2.3'
 
     copy_to_hdfs_mock.return_value = True
     mocks_dict = {}

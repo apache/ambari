@@ -200,7 +200,7 @@ class TestFalconServer(RMFTestCase):
   def test_upgrade(self, isfile_mock, exists_mock, isdir_mock):
 
     isdir_mock.return_value = True
-    exists_mock.side_effect = [False,False,True, True]
+    exists_mock.side_effect = [False,False,True, True,True]
     isfile_mock.return_value = True
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/falcon_server.py",

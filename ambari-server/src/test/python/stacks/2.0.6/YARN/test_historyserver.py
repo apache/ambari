@@ -862,7 +862,6 @@ class TestHistoryServer(RMFTestCase):
                               action = ["delete"])
     self.assertResourceCalled("Link", "/etc/hadoop/conf", to="/usr/hdp/current/hadoop-client/conf")
 
-  @patch.object(Script, "is_stack_greater_or_equal", new = MagicMock(return_value="2.3.0"))
   @patch.object(functions, "get_stack_version", new = MagicMock(return_value="2.3.0.0-1234"))
   @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
   def test_pre_upgrade_restart_23(self, copy_to_hdfs_mock):
@@ -871,7 +870,7 @@ class TestHistoryServer(RMFTestCase):
       json_content = json.load(f)
     version = '2.3.0.0-1234'
     json_content['commandParams']['version'] = version
-
+    json_content['hostLevelParams']['stack_version'] = '2.3'
     copy_to_hdfs_mock.return_value = True
     mocks_dict = {}
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/historyserver.py",

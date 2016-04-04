@@ -49,6 +49,8 @@ from resource_management.libraries.functions import packages_analyzer
 from resource_management.libraries.script.config_dictionary import ConfigDictionary, UnknownConfiguration
 from resource_management.core.resources.system import Execute
 from contextlib import closing
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions.constants import StackFeature
 
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 
@@ -179,7 +181,7 @@ class Script(object):
     from resource_management.libraries.functions.default import default
     stack_version_unformatted = str(default("/hostLevelParams/stack_version", ""))
     stack_version_formatted = format_stack_version(stack_version_unformatted)
-    if stack_version_formatted != "" and compare_versions(stack_version_formatted, '2.2') >= 0:
+    if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
       if command_name.lower() == "status":
         request_version = default("/commandParams/request_version", None)
         if request_version is not None:
@@ -360,14 +362,10 @@ class Script(object):
   @staticmethod
   def get_stack_version():
     """
-    Gets the normalized version of the HDP stack in the form #.#.#.# if it is
+    Gets the normalized version of the stack in the form #.#.#.# if it is
     present on the configurations sent.
-    :return: a normalized HDP stack version or None
+    :return: a normalized stack version or None
     """
-    stack_name = Script.get_stack_name()
-    if stack_name is None or stack_name.upper() not in ["HDP", "HDPWIN"]:
-      return None
-
     config = Script.get_config()
     if 'hostLevelParams' not in config or 'stack_version' not in config['hostLevelParams']:
       return None
@@ -378,7 +376,6 @@ class Script(object):
       return None
 
     return format_stack_version(stack_version_unformatted)
-
 
   @staticmethod
   def in_stack_upgrade():

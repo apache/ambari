@@ -129,7 +129,7 @@ class InstallPackages(Script):
         self.current_repo_files.add(repo_file)
         append_to_file = True
 
-      installed_repositories = list_ambari_managed_repos()
+      installed_repositories = list_ambari_managed_repos(stack_name)
     except Exception, err:
       Logger.logger.exception("Cannot distribute repositories. Error: {0}".format(str(err)))
       num_errors += 1

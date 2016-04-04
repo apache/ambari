@@ -32,6 +32,8 @@ from resource_management.libraries.functions import stack_tools
 from resource_management.core.shell import call
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.version_select_util import get_versions_from_stack_root
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions import StackFeature
 
 STACK_SELECT_PREFIX = 'ambari-python-wrap'
 
@@ -198,13 +200,15 @@ def get_hadoop_dir(target, force_latest_on_upgrade=False):
   without the stack version built into the path, such as <stack-root>/current/hadoop-client
   """
   stack_root = Script.get_stack_root()
+  stack_version = Script.get_stack_version()
 
   if not target in HADOOP_DIR_DEFAULTS:
     raise Fail("Target {0} not defined".format(target))
 
   hadoop_dir = HADOOP_DIR_DEFAULTS[target]
 
-  if Script.is_stack_greater_or_equal("2.2"):
+  formatted_stack_version = format_stack_version(stack_version)
+  if formatted_stack_version and  check_stack_feature(StackFeature.ROLLING_UPGRADE, formatted_stack_version):
     # home uses a different template
     if target == "home":
       hadoop_dir = HADOOP_HOME_DIR_TEMPLATE.format(stack_root, "current", "hadoop-client")
@@ -248,7 +252,7 @@ def get_hadoop_dir_for_stack_version(target, stack_version):
   hadoop_dir = HADOOP_DIR_DEFAULTS[target]
 
   formatted_stack_version = format_stack_version(stack_version)
-  if Script.is_stack_greater_or_equal_to(formatted_stack_version, "2.2"):
+  if formatted_stack_version and  check_stack_feature(StackFeature.ROLLING_UPGRADE, formatted_stack_version):
     # home uses a different template
     if target == "home":
       hadoop_dir = HADOOP_HOME_DIR_TEMPLATE.format(stack_root, stack_version, "hadoop")
