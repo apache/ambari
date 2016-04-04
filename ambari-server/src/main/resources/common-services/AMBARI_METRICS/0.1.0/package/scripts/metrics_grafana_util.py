@@ -118,6 +118,12 @@ def perform_grafana_post_call(url, payload, server):
 
       response = conn.getresponse()
       Logger.info("Http response: %s %s" % (response.status, response.reason))
+      if response.status == 401: #Intermittent error thrown from Grafana
+        if i < GRAFANA_CONNECT_TRIES - 1:
+          time.sleep(GRAFANA_CONNECT_TIMEOUT)
+          Logger.info("Connection to Grafana failed. Next retry in %s seconds."
+                  % (GRAFANA_CONNECT_TIMEOUT))
+          continue
       data = response.read()
       Logger.info("Http data: %s" % data)
       conn.close()
