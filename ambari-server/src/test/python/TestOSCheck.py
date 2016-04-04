@@ -50,7 +50,7 @@ with patch("os.path.isdir", return_value = MagicMock(return_value=True)):
       
             from ambari_server.serverConfiguration import update_ambari_properties, configDefaults
 
-
+@patch.object(platform, "linux_distribution", new = MagicMock(return_value=('Redhat', '6.4', 'Final')))
 class TestOSCheck(TestCase):
   @patch.object(OSCheck, "os_distribution")
   @patch("ambari_commons.os_check._is_oracle_linux")
