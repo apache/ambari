@@ -36,11 +36,13 @@ from resource_management.libraries.functions.packages_analyzer import allInstall
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_tools
 from resource_management.libraries.functions.stack_select import get_stack_versions
-from resource_management.libraries.functions.version import compare_versions, format_stack_version
+from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.repo_version_history \
   import read_actual_version_from_history_file, write_actual_version_to_history_file, REPO_VERSION_HISTORY_FILE
 from resource_management.libraries.script.script import Script
 from resource_management.core.resources.system import Execute
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions import StackFeature
 
 from resource_management.core.logger import Logger
 
@@ -54,8 +56,6 @@ class InstallPackages(Script):
   """
 
   UBUNTU_REPO_COMPONENTS_POSTFIX = ["main"]
-  REPO_FILE_NAME_PREFIX = 'HDP-'
-  STACK_TO_ROOT_FOLDER = {"HDP": "/usr/hdp"}
 
   def actionexecute(self, env):
     num_errors = 0
@@ -91,16 +91,12 @@ class InstallPackages(Script):
       self.current_stack_version_formatted = format_stack_version(current_stack_version_unformatted)
 
 
-    stack_name = None
-    self.stack_root_folder = None
-    if stack_id and "-" in stack_id:
-      stack_split = stack_id.split("-")
-      if len(stack_split) == 2:
-        stack_name = stack_split[0].upper()
-        if stack_name in self.STACK_TO_ROOT_FOLDER:
-          self.stack_root_folder = self.STACK_TO_ROOT_FOLDER[stack_name]
+    self.stack_name = Script.get_stack_name()
+    if self.stack_name is None:
+      raise Fail("Cannot determine the stack name")
+    self.stack_root_folder = Script.get_stack_root()
     if self.stack_root_folder is None:
-      raise Fail("Cannot determine the stack's root directory by parsing the stack_id property, {0}".format(str(stack_id)))
+      raise Fail("Cannot determine the stack's root directory")
     if self.repository_version is None:
       raise Fail("Cannot determine the repository version to install")
 
@@ -188,21 +184,19 @@ class InstallPackages(Script):
       Logger.info("Unrecognized stack id {0}, cannot create config links".format(stack_id))
       return
 
-    if args[0] != "HDP":
-      Logger.info("Unrecognized stack name {0}, cannot create config links".format(args[0]))
-
-    if compare_versions(format_stack_version(args[1]), "2.3.0.0") < 0:
-      Logger.info("Configuration symlinks are not needed for {0}, only HDP-2.3+".format(stack_version))
+    target_stack_version = args[1]
+    if not (target_stack_version and check_stack_feature(StackFeature.CONFIG_VERSIONING, target_stack_version)):
+      Logger.info("Configuration symlinks are not needed for {0}".format(stack_version))
       return
 
     for package_name, directories in conf_select.get_package_dirs().iteritems():
       # if already on HDP 2.3, then we should skip making conf.backup folders
-      if self.current_stack_version_formatted and compare_versions(self.current_stack_version_formatted, '2.3') >= 0:
+      if self.current_stack_version_formatted and check_stack_feature(StackFeature.CONFIG_VERSIONING, self.current_stack_version_formatted):
         conf_selector_name = stack_tools.get_stack_tool_name(stack_tools.CONF_SELECTOR_NAME)
         Logger.info("The current cluster stack of {0} does not require backing up configurations; "
                     "only {1} versioned config directories will be created.".format(stack_version, conf_selector_name))
         # only link configs for all known packages
-        conf_select.select("HDP", package_name, stack_version, ignore_errors = True)
+        conf_select.select(self.stack_name, package_name, stack_version, ignore_errors = True)
       else:
         # link configs and create conf.backup folders for all known packages
         # this will also call conf-select select
@@ -413,7 +407,7 @@ class InstallPackages(Script):
       repo['mirrorsList'] = url_info['mirrorsList']
 
     ubuntu_components = [url_info['name']] + self.UBUNTU_REPO_COMPONENTS_POSTFIX
-    file_name = self.REPO_FILE_NAME_PREFIX + self.repository_version
+    file_name = self.stack_name + "-" + self.repository_version
 
     Repository(repo['repoName'],
       action = "create",
