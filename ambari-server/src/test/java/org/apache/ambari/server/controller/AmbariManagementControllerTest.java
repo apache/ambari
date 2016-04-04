@@ -3044,16 +3044,20 @@ public class AmbariManagementControllerTest {
       if (resp.getHostname().equals("h1")) {
         Assert.assertEquals("c1", resp.getClusterName());
         Assert.assertEquals(2, resp.getHostAttributes().size());
+        Assert.assertEquals(MaintenanceState.OFF, resp.getMaintenanceState());
       } else if (resp.getHostname().equals("h2")) {
         Assert.assertEquals("c1", resp.getClusterName());
         Assert.assertEquals(2, resp.getHostAttributes().size());
+        Assert.assertEquals(MaintenanceState.OFF, resp.getMaintenanceState());
       } else if (resp.getHostname().equals("h3")) {
         Assert.assertEquals("c2", resp.getClusterName());
         Assert.assertEquals(3, resp.getHostAttributes().size());
+        Assert.assertEquals(MaintenanceState.OFF, resp.getMaintenanceState());
       } else if (resp.getHostname().equals("h4")) {
         //todo: why wouldn't this be null?
         Assert.assertEquals("", resp.getClusterName());
         Assert.assertEquals(4, resp.getHostAttributes().size());
+        Assert.assertEquals(null, resp.getMaintenanceState());
       } else {
         fail("Found invalid host");
       }
@@ -3067,6 +3071,7 @@ public class AmbariManagementControllerTest {
     HostResponse resp = resps.iterator().next();
     Assert.assertEquals("h1", resp.getHostname());
     Assert.assertEquals("c1", resp.getClusterName());
+    Assert.assertEquals(MaintenanceState.OFF, resp.getMaintenanceState());
     Assert.assertEquals(2, resp.getHostAttributes().size());
 
   }

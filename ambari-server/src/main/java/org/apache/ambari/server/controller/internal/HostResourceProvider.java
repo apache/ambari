@@ -663,8 +663,12 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
         Set<Cluster> clustersForHost = clusters.getClustersForHost(h.getHostName());
         //todo: host can only belong to a single cluster
         if (clustersForHost != null && clustersForHost.size() != 0) {
-          r.setClusterName(clustersForHost.iterator().next().getClusterName());
+          Cluster clusterForHost = clustersForHost.iterator().next();
+          r.setClusterName(clusterForHost.getClusterName());
+          r.setDesiredHostConfigs(h.getDesiredHostConfigs(clusterForHost));
+          r.setMaintenanceState(h.getMaintenanceState(clusterForHost.getClusterId()));
         }
+
         response.add(r);
       }
     }
