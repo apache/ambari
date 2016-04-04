@@ -93,7 +93,7 @@ App.MainHostComboSearchBoxView = Em.View.extend({
           var list = [
             {label: 'Host Name', category: 'Host'},
             {label: 'IP', category: 'Host'},
-            {label: 'Heath Status', category: 'Host'},
+            {label: 'Host Status', category: 'Host'},
             {label: 'Cores', category: 'Host'},
             {label: 'RAM', category: 'Host'},
             {label: 'Stack Version', category: 'Host'},
@@ -104,7 +104,7 @@ App.MainHostComboSearchBoxView = Em.View.extend({
           var map = App.router.get('mainHostController.labelValueMap');
           map['Host Name'] = 'hostName';
           map['IP'] = 'ip';
-          map['Heath Status'] = 'healthClass';
+          map['Host Status'] = 'healthClass';
           map['Cores'] = 'cpu';
           map['RAM'] = 'memoryFormatted';
           map['Stack Version'] = 'version';

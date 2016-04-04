@@ -6200,13 +6200,31 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
 }
 
 #combo_search_box {
-  .VS-search-box {
-    border-radius: 4px;
-    box-shadow: 0 0 1px #fff inset;
-  }
+  .VS-search {
+    .VS-search-box {
+      border-radius: 4px;
+      box-shadow: 0 0 1px #fff inset;
+    }
 
-  .VS-placeholder {
-    color: #ccc;
+    .VS-placeholder {
+      color: #ccc;
+    }
+
+    .search_facet {
+      border-radius: 4px;
+      .category {
+        margin-left: 3px;
+      }
+      .search_facet_remove {
+        left: 3px;
+      }
+      &.not_selected {
+        border: 1px solid #d2d2d2;
+        background-image: -moz-linear-gradient(top, #fdfdfd, #e3e3e3); /* FF3.6 */
+        background-image: -webkit-gradient(linear, left top, left bottom, from(#fdfdfd), to(#e3e3e3)); /* Saf4+, Chrome */
+        background-image: linear-gradient(top, #fdfdfd, #e3e3e3);
+      }
+    }
   }
 }
 
