@@ -32,13 +32,16 @@ shutil.copyfile(project_dir+"/ambari-server/conf/unix/ambari.properties", "/tmp/
 _search_file = os_utils.search_file
 os_utils.search_file = MagicMock(return_value="/tmp/ambari.properties")
 
-with patch.object(os_utils, "parse_log4j_file", return_value={'ambari.log.dir': '/var/log/ambari-server'}):
-  from ambari_server.serverUpgrade import set_current, SetCurrentVersionOptions, upgrade_stack
-  import ambari_server
+with patch("os.path.isdir", return_value = MagicMock(return_value=True)):
+  with patch("os.access", return_value = MagicMock(return_value=True)):
+    with patch.object(os_utils, "parse_log4j_file", return_value={'ambari.log.dir': '/var/log/ambari-server'}):
+      from ambari_server.serverUpgrade import set_current, SetCurrentVersionOptions, upgrade_stack
+      import ambari_server
 
 os_utils.search_file = _search_file
 
-
+@patch("os.path.isdir", new = MagicMock(return_value=True))
+@patch("os.access", new = MagicMock(return_value=True))
 class TestServerUpgrade(TestCase):
 
   @patch("ambari_server.serverUpgrade.is_server_runing")

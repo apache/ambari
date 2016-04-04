@@ -346,6 +346,9 @@ class ServerConfigDefaults(object):
     self.BOOTSTRAP_DIR = properties.get_property(BOOTSTRAP_DIR_PROPERTY)
     self.RECOMMENDATIONS_DIR = properties.get_property(RECOMMENDATIONS_DIR_PROPERTY)
     
+    # this directories should be pre-created by user and be writable.
+    self.check_if_directories_writable([self.OUT_DIR, self.PID_DIR])
+    
     self.DEFAULT_LIBS_DIR = ""
     self.DEFAULT_VLIBS_DIR = ""
 
@@ -382,6 +385,11 @@ class ServerConfigDefaults(object):
     self.MESSAGE_ERROR_RESET_NOT_ROOT = ""
     self.MESSAGE_ERROR_UPGRADE_NOT_ROOT = ""
     self.MESSAGE_CHECK_FIREWALL = ""
+    
+  def check_if_directories_writable(self, directories):
+    for dir in directories:
+      if not os.path.isdir(dir) or not os.access(dir, os.W_OK):
+        raise FatalException(-1, "Please make sure {0} directory is created, and is writable by ambari-server user".format(dir))
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class ServerConfigDefaultsWindows(ServerConfigDefaults):
