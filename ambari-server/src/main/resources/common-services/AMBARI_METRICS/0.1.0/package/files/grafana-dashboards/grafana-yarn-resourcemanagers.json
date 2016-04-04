@@ -12,28 +12,28 @@
   "sharedCrosshair": false,
   "rows": [
     {
-      "title": "New row",
-      "height": "25px",
-      "editable": true,
       "collapse": false,
+      "editable": true,
+      "height": "25px",
       "panels": [
         {
-          "title": "",
-          "error": false,
-          "span": 12,
-          "editable": true,
-          "type": "text",
-          "isNew": true,
-          "id": 12,
-          "mode": "html",
           "content": "<h4 align=\"center\">Metrics to see the status of ResourceManagers on the YARN cluster. Click on each row title to expand on demand to look at various metrics. </h4>\n<h6 style=\"color:red;\" align=\"center\">This dashboard is managed by Ambari.  You may lose any changes made to this dashboard.  If you want to customize, make your own copy.</h6>",
+          "editable": true,
+          "error": false,
+          "id": 12,
+          "isNew": true,
+          "links": [],
+          "mode": "html",
+          "span": 12,
           "style": {},
-          "links": []
+          "title": "",
+          "type": "text"
         }
-      ]
+      ],
+      "title": "New row"
     },
     {
-      "collapse": false,
+      "collapse": true,
       "editable": true,
       "height": "250px",
       "panels": [
@@ -835,7 +835,7 @@
     }
   ],
   "time": {
-    "from": "now-24h",
+    "from": "now-6h",
     "to": "now"
   },
   "timepicker": {
@@ -919,7 +919,7 @@
   },
   "refresh": false,
   "schemaVersion": 8,
-  "version": 39,
+  "version": 9,
   "links": [
     {
       "asDropdown": true,

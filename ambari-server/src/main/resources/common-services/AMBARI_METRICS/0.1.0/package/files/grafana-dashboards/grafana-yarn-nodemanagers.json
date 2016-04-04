@@ -650,7 +650,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -950,7 +950,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -1169,7 +1169,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -1676,7 +1676,7 @@
     "list": []
   },
   "schemaVersion": 8,
-  "version": 57,
+  "version": 3,
   "links": [
     {
       "asDropdown": true,

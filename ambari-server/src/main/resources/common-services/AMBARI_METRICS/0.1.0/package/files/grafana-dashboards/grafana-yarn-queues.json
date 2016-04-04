@@ -12,25 +12,25 @@
   "sharedCrosshair": false,
   "rows": [
     {
-      "title": "New row",
-      "height": "25px",
-      "editable": true,
       "collapse": false,
+      "editable": true,
+      "height": "25px",
       "panels": [
         {
-          "title": "",
-          "error": false,
-          "span": 12,
-          "editable": true,
-          "type": "text",
-          "isNew": true,
-          "id": 25,
-          "mode": "html",
           "content": "<h4 align=\"center\">Metrics to see the status of Queues on the YARN cluster. You can select, one, multiple or all queues using the dropdown on the left(above this message). </h4>\n<h6 style=\"color:red;\" align=\"center\">This dashboard is managed by Ambari.  You may lose any changes made to this dashboard.  If you want to customize, make your own copy.</h6>",
+          "editable": true,
+          "error": false,
+          "id": 25,
+          "isNew": true,
+          "links": [],
+          "mode": "html",
+          "span": 12,
           "style": {},
-          "links": []
+          "title": "",
+          "type": "text"
         }
-      ]
+      ],
+      "title": "New row"
     },
     {
       "collapse": true,
@@ -90,7 +90,9 @@
               "precision": "",
               "qmetric": "root.default",
               "queue": "yarn.QueueMetrics.Queue=root.default.AppsRunning",
-              "refId": "A"
+              "refId": "A",
+              "shouldAddPrecision": false,
+              "shouldComputeRate": false
             }
           ],
           "timeFrom": null,
@@ -152,7 +154,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "avg",
+              "aggregator": "max",
               "alias": "Apps Pending",
               "app": "resourcemanager",
               "downsampleAggregator": "avg",
@@ -232,7 +234,9 @@
               "precision": "",
               "qmetric": "root.default",
               "queue": "yarn.QueueMetrics.Queue=root.default.AppsCompleted",
-              "refId": "A"
+              "refId": "A",
+              "shouldAddPrecision": false,
+              "shouldComputeRate": false
             }
           ],
           "timeFrom": null,
@@ -303,7 +307,8 @@
               "precision": "",
               "qmetric": "root.default",
               "queue": "yarn.QueueMetrics.Queue=root.default.AppsFailed",
-              "refId": "A"
+              "refId": "A",
+              "shouldComputeRate": false
             }
           ],
           "timeFrom": null,
@@ -365,7 +370,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "avg",
+              "aggregator": "max",
               "alias": "Apps Killed",
               "app": "resourcemanager",
               "downsampleAggregator": "avg",
@@ -374,7 +379,8 @@
               "precision": "",
               "qmetric": "root.default",
               "queue": "yarn.QueueMetrics.Queue=root.default.AppsKilled",
-              "refId": "A"
+              "refId": "A",
+              "shouldComputeRate": false
             }
           ],
           "timeFrom": null,
@@ -445,7 +451,8 @@
               "precision": "",
               "qmetric": "root.default",
               "queue": "yarn.QueueMetrics.Queue=root.default.AppsSubmitted",
-              "refId": "A"
+              "refId": "A",
+              "shouldComputeRate": false
             }
           ],
           "timeFrom": null,
@@ -521,10 +528,10 @@
               "app": "resourcemanager",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "yarn.QueueMetrics.Queue=root.AggregateContainersAllocated",
+              "metric": "yarn.QueueMetrics.Queue=root.AllocatedContainers",
               "precision": "",
               "qmetric": "root.default",
-              "queue": "yarn.QueueMetrics.Queue=root.default.AggregateContainersAllocated",
+              "queue": "yarn.QueueMetrics.Queue=root.default.AllocatedContainers",
               "refId": "A"
             }
           ],
@@ -739,7 +746,8 @@
               "precision": "",
               "qmetric": "root.default",
               "queue": "yarn.QueueMetrics.Queue=root.default.AggregateContainersAllocated",
-              "refId": "A"
+              "refId": "A",
+              "shouldComputeRate": false
             }
           ],
           "timeFrom": null,
@@ -796,13 +804,13 @@
           "points": false,
           "renderer": "flot",
           "seriesOverrides": [],
-          "span": 6,
+          "span": 4,
           "stack": false,
           "steppedLine": false,
           "targets": [
             {
               "aggregator": "max",
-              "alias": "Total Node Local Containers Allocated",
+              "alias": "Node Local Containers Allocated",
               "app": "resourcemanager",
               "downsampleAggregator": "avg",
               "errors": {},
@@ -810,7 +818,8 @@
               "precision": "",
               "qmetric": "root.default",
               "queue": "yarn.QueueMetrics.Queue=root.default.AggregateNodeLocalContainersAllocated",
-              "refId": "A"
+              "refId": "A",
+              "shouldComputeRate": false
             }
           ],
           "timeFrom": null,
@@ -867,13 +876,13 @@
           "points": false,
           "renderer": "flot",
           "seriesOverrides": [],
-          "span": 6,
+          "span": 4,
           "stack": false,
           "steppedLine": false,
           "targets": [
             {
               "aggregator": "max",
-              "alias": "Total Rack Local Containers Allocated",
+              "alias": "Rack Local Containers Allocated",
               "app": "resourcemanager",
               "downsampleAggregator": "avg",
               "errors": {},
@@ -881,7 +890,8 @@
               "precision": "",
               "qmetric": "root.default",
               "queue": "yarn.QueueMetrics.Queue=root.default.AggregateRackLocalContainersAllocated",
-              "refId": "A"
+              "refId": "A",
+              "shouldComputeRate": false
             }
           ],
           "timeFrom": null,
@@ -938,13 +948,13 @@
           "points": false,
           "renderer": "flot",
           "seriesOverrides": [],
-          "span": 6,
+          "span": 4,
           "stack": false,
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "avg",
-              "alias": "Total OffSwitch Containers Allocated",
+              "aggregator": "max",
+              "alias": "OffSwitch Containers Allocated",
               "app": "resourcemanager",
               "downsampleAggregator": "avg",
               "errors": {},
@@ -952,7 +962,8 @@
               "precision": "",
               "qmetric": "root.default",
               "queue": "yarn.QueueMetrics.Queue=root.default.AggregateOffSwitchContainersAllocated",
-              "refId": "A"
+              "refId": "A",
+              "shouldComputeRate": false
             }
           ],
           "timeFrom": null,
@@ -1095,7 +1106,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "avg",
+              "aggregator": "max",
               "alias": "Pending Memory",
               "app": "resourcemanager",
               "downsampleAggregator": "avg",
@@ -1326,10 +1337,10 @@
               "app": "resourcemanager",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "yarn.QueueMetrics.Queue=root.default.UsedAMResourceMB",
+              "metric": "yarn.QueueMetrics.Queue=root.UsedAMResourceMB",
               "precision": "",
               "qmetric": "root.default",
-              "queue": "yarn.QueueMetrics.Queue=root.default.default.UsedAMResourceMB",
+              "queue": "yarn.QueueMetrics.Queue=root.default.UsedAMResourceMB",
               "refId": "B"
             }
           ],
@@ -1435,8 +1446,8 @@
     }
   ],
   "time": {
-    "from": "2016-03-16T20:58:21.293Z",
-    "to": "2016-03-16T21:06:23.137Z"
+    "from": "now-6h",
+    "to": "now"
   },
   "timepicker": {
     "now": true,
@@ -1469,15 +1480,15 @@
       {
         "allFormat": "wildcard",
         "current": {
-          "text": "root",
-          "value": "root"
+          "text": "",
+          "value": ""
         },
         "datasource": null,
         "hideLabel": true,
         "includeAll": true,
         "multi": true,
         "multiFormat": "glob",
-        "name": "q",
+        "name": "queue",
         "options": [
           {
             "text": "All",
@@ -1497,7 +1508,7 @@
   },
   "refresh": false,
   "schemaVersion": 8,
-  "version": 81,
+  "version": 36,
   "links": [
     {
       "asDropdown": true,
