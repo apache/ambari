@@ -177,12 +177,11 @@ def setup_java():
   java_exec = format("{java_home}/bin/java")
 
   if not os.path.isfile(java_exec):
+    if not params.jdk_name: # if custom jdk is used.
+      raise Fail(format("Unable to access {java_exec}. Confirm you have copied jdk to this host."))
 
     jdk_curl_target = format("{tmp_dir}/{jdk_name}")
     java_dir = os.path.dirname(params.java_home)
-
-    if not params.jdk_name:
-      return
 
     Directory(params.artifact_dir,
               create_parents = True,
