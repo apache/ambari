@@ -586,7 +586,7 @@
     }
   ],
   "time": {
-    "from": "now-1h",
+    "from": "now-6h",
     "to": "now"
   },
   "timepicker": {
@@ -623,7 +623,7 @@
   },
   "refresh": false,
   "schemaVersion": 8,
-  "version": 96,
+  "version": 5,
   "links": [
     {
       "asDropdown": true,

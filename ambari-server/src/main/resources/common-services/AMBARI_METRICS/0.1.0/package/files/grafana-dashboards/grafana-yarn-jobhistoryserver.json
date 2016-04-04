@@ -237,7 +237,7 @@
               "refId": "B"
             },
             {
-              "aggregator": "avg",
+              "aggregator": "max",
               "alias": "Heap Committed",
               "app": "jobhistoryserver",
               "downsampleAggregator": "avg",
@@ -351,6 +351,7 @@
     "to": "now"
   },
   "timepicker": {
+    "now": true,
     "refresh_intervals": [
       "5s",
       "10s",
@@ -382,7 +383,7 @@
     "list": []
   },
   "schemaVersion": 8,
-  "version": 9,
+  "version": 2,
   "links": [
     {
       "asDropdown": true,
