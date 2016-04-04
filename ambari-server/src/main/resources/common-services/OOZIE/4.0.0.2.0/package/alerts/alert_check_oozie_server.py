@@ -30,6 +30,10 @@ from ambari_commons.os_check import OSConst, OSCheck
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from urlparse import urlparse
 
+import params
+
+stack_root = params.stack_root
+
 RESULT_CODE_OK = 'OK'
 RESULT_CODE_CRITICAL = 'CRITICAL'
 RESULT_CODE_UNKNOWN = 'UNKNOWN'
@@ -45,7 +49,7 @@ KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY = '{{kerberos-env/executable_search_paths}}
 OOZIE_URL_KEY = '{{oozie-site/oozie.base.url}}'
 SECURITY_ENABLED = '{{cluster-env/security_enabled}}'
 OOZIE_USER = '{{oozie-env/oozie_user}}'
-OOZIE_CONF_DIR = '/usr/hdp/current/oozie-server/conf'
+OOZIE_CONF_DIR = format("{stack_root}/current/oozie-server/conf")
 OOZIE_CONF_DIR_LEGACY = '/etc/oozie/conf'
 OOZIE_HTTPS_PORT = '{{oozie-site/oozie.https.port}}'
 OOZIE_ENV_CONTENT = '{{oozie-env/content}}'
@@ -152,7 +156,7 @@ def get_check_command(oozie_url, host_name, configurations, parameters, only_kin
     finally:
       kinit_lock.release()
 
-  # oozie configuration directory uses a symlink when > HDP 2.2
+  # oozie configuration directory using a symlink
   oozie_config_directory = OOZIE_CONF_DIR_LEGACY
   if os.path.exists(OOZIE_CONF_DIR):
     oozie_config_directory = OOZIE_CONF_DIR

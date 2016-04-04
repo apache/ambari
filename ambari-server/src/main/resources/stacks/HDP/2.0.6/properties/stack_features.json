@@ -7,6 +7,11 @@
       "max_version": "2.2.0.0"
     },
     {
+      "name": "lzo",
+      "description": "LZO libraries support",
+      "min_version": "2.2.1.0"
+    },
+    {
       "name": "express_upgrade",
       "description": "Express upgrade support",
       "min_version": "2.1.0.0"
@@ -127,6 +132,27 @@
       "name": "atlas_rolling_upgrade",
       "description": "Rolling upgrade support for Atlas",
       "min_version": "2.3.0.0"
+    },
+    {
+      "name": "oozie_admin_user",
+      "description": "Oozie install user as an Oozie admin user (AMBARI-7976)",
+      "min_version": "2.2.0.0"
+    },
+    {
+      "name": "oozie_create_hive_tez_configs",
+      "description": "Oozie create configs for Ambari Hive and Tez deployments (AMBARI-8074)",
+      "min_version": "2.2.0.0"
+    },
+    {
+      "name": "oozie_setup_shared_lib",
+      "description": "Oozie setup tools used to shared Oozie lib to HDFS (AMBARI-7240)",
+      "min_version": "2.2.0.0"
+    },
+    {
+      "name": "oozie_host_kerberos",
+      "description": "Oozie in secured clusters uses _HOST in Kerberos principal (AMBARI-9775)",
+      "min_version": "2.0.0.0",
+      "max_version": "2.2.0.0"
     }
   ]
 }

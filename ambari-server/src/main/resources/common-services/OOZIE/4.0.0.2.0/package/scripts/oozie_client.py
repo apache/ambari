@@ -22,6 +22,8 @@ import sys
 from resource_management import *
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.stack_features import check_stack_feature
 
 from oozie import oozie
 from oozie_service import oozie_service
@@ -30,7 +32,8 @@ from oozie_service import oozie_service
 class OozieClient(Script):
 
   def get_stack_to_component(self):
-    return {"HDP": "oozie-client"}
+    import params
+    return {params.stack_name: "oozie-client"}
 
   def install(self, env):
     self.install_packages(env)
@@ -52,8 +55,8 @@ class OozieClient(Script):
     env.set_params(params)
 
     # this function should not execute if the version can't be determined or
-    # is not at least HDP 2.2.0.0
-    if not params.version or compare_versions(format_stack_version(params.version), '2.2.0.0') < 0:
+    # the stack does not support rolling upgrade
+    if not (params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version)):
       return
 
     Logger.info("Executing Oozie Client Stack Upgrade pre-restart")

@@ -25,7 +25,8 @@ from resource_management.core.source import DownloadSource
 from resource_management.core.source import InlineTemplate
 from resource_management.core.source import Template
 from resource_management.libraries.functions.format import format
-from resource_management.libraries.functions.version import compare_versions
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.oozie_prepare_war import prepare_war
 from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.libraries.script.script import Script
@@ -144,7 +145,7 @@ def oozie(is_server=False):
       owner=params.oozie_user
     )
 
-  if params.stack_version_formatted != "" and compare_versions(params.stack_version_formatted, '2.2') >= 0:
+  if params.stack_version_formatted and check_stack_feature(StackFeature.OOZIE_ADMIN_USER, params.stack_version_formatted):
     File(format("{params.conf_dir}/adminusers.txt"),
       mode=0644,
       group=params.user_group,
@@ -268,7 +269,7 @@ def oozie_server_specific():
        mode = 0644,
   )
 
-  if params.stack_version_formatted != "" and compare_versions(params.stack_version_formatted, '2.2') >= 0:
+  if params.stack_version_formatted and check_stack_feature(StackFeature.OOZIE_CREATE_HIVE_TEZ_CONFIGS, params.stack_version_formatted):
     # Create hive-site and tez-site configs for oozie
     Directory(params.hive_conf_dir,
         create_parents = True,

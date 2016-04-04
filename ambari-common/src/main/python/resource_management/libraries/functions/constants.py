@@ -40,6 +40,7 @@ class StackFeature:
   Stack Feature supported
   """
   SNAPPY = "snappy"
+  LZO = "lzo"
   EXPRESS_UPGRADE = "express_upgrade"
   ROLLING_UPGRADE = "rolling_upgrade"
   CONFIG_VERSIONING = "config_versioning"
@@ -64,3 +65,7 @@ class StackFeature:
   KNOX_VERSIONED_DATA_DIR = "knox_versioned_data_dir"
   KNOX_SSO_TOPOLOGY = "knox_sso_topology"
   ATLAS_ROLLING_UPGRADE = "atlas_rolling_upgrade"
+  OOZIE_ADMIN_USER = "oozie_admin_user"
+  OOZIE_CREATE_HIVE_TEZ_CONFIGS = "oozie_create_hive_tez_configs"
+  OOZIE_SETUP_SHARED_LIB = "oozie_setup_shared_lib"
+  OOZIE_HOST_KERBEROS = "oozie_host_kerberos"
