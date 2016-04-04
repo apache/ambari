@@ -180,10 +180,13 @@ App.MainHostComboSearchBoxView = Em.View.extend({
               map['All'] = 'ALL';
               var currentComponentFacets = self.getComponentStateFacets(null, true);
               if (currentComponentFacets.length == 0) {
-                list = list.concat(App.HostComponentStatus.getStatusesList().map(function (status) {
-                  map[App.HostComponentStatus.getTextStatus(status)] = status;
-                  return App.HostComponentStatus.getTextStatus(status);
-                })).concat([
+                list = list.concat(App.HostComponentStatus.getStatusesList()
+                .reject(function(status){return status == "UPGRADE_FAILED"}) // take out 'UPGRADE_FAILED'
+                .map(function (status) {
+                    map[App.HostComponentStatus.getTextStatus(status)] = status;
+                    return App.HostComponentStatus.getTextStatus(status);
+                }))
+                .concat([
                     "Inservice",
                     "Decommissioned",
                     "Decommissioning",
