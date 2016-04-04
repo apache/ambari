@@ -27,6 +27,7 @@ import stat
 import string
 import sys
 import tempfile
+import getpass
 import ambari_server.serverClassPath
 
 from ambari_commons.exceptions import FatalException
@@ -387,9 +388,9 @@ class ServerConfigDefaults(object):
     self.MESSAGE_CHECK_FIREWALL = ""
     
   def check_if_directories_writable(self, directories):
-    for dir in directories:
-      if not os.path.isdir(dir) or not os.access(dir, os.W_OK):
-        raise FatalException(-1, "Please make sure {0} directory is created, and is writable by ambari-server user".format(dir))
+    for directory in directories:
+      if not os.path.isdir(directory) or not os.access(directory, os.W_OK):
+        raise FatalException(-1, "Unable to access {0} directory. Confirm the directory is created and is writable by the Ambari Server user account '{1}'".format(directory, getpass.getuser()))
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class ServerConfigDefaultsWindows(ServerConfigDefaults):
