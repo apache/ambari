@@ -2942,40 +2942,6 @@ describe('App.MainHostDetailsController', function () {
     });
   });
 
-  describe("#executeCustomCommandSuccessCallback()", function () {
-
-    var data;
-    var mock;
-
-    beforeEach(function () {
-      data = {
-        Requests: {
-          id: 1
-        }
-      };
-      mock = {
-        showPopup: Em.K
-      };
-      sinon.stub(App.router, 'get').returns(mock);
-      sinon.spy(mock, 'showPopup');
-      controller.executeCustomCommandSuccessCallback(data, {}, {});
-    });
-
-    afterEach(function () {
-      App.router.get.restore();
-      mock.showPopup.restore();
-    });
-
-    it('App.router.get is called with `backgroundOperationsController`', function () {
-      expect(App.router.get.calledWith('backgroundOperationsController')).to.be.true;
-    });
-
-    it('showPopup is called once', function () {
-      expect(mock.showPopup.calledOnce).to.be.true;
-    });
-
-  });
-
   describe("#executeCustomCommandErrorCallback()", function () {
     beforeEach(function () {
       sinon.stub($, 'parseJSON');
