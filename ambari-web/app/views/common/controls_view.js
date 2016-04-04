@@ -769,8 +769,8 @@ App.ServiceConfigRadioButton = Ember.Checkbox.extend(App.SupportsDependentConfig
     // in Service Config page
     if (this.get('clicked')) {
       Em.run.next(this, function() {
-        this.sendRequestRorDependentConfigs(this.get('parentView.serviceConfig'));
         this.set('parentView.serviceConfig.value', this.get('value'));
+        this.sendRequestRorDependentConfigs(this.get('parentView.serviceConfig'));
         this.set('clicked', false);
         this.updateForeignKeys();
       });

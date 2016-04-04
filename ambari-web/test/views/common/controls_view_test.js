@@ -444,6 +444,21 @@ describe('App.ServiceConfigRadioButtons', function () {
 
 describe('App.ServiceConfigRadioButton', function () {
 
+  var view;
+
+  beforeEach(function () {
+    view = App.ServiceConfigRadioButton.create({
+      parentView: Em.Object.create({
+        serviceConfig: Em.Object.create()
+      }),
+      controller: Em.Object.create({
+        wizardController: Em.Object.create({
+          name: null
+        })
+      })
+    })
+  });
+
   describe('#disabled', function () {
 
     var cases = [
@@ -487,31 +502,95 @@ describe('App.ServiceConfigRadioButton', function () {
 
     cases.forEach(function (item) {
       it(item.title, function () {
-        var view = App.ServiceConfigRadioButton.create({
-          parentView: Em.Object.create({
-            serviceConfig: Em.Object.create()
-          }),
-          controller: Em.Object.create({
-            wizardController: Em.Object.create({
-              name: null
-            })
-          })
+        view.setProperties({
+          'value': item.value,
+          'controller.wizardController.name': item.wizardControllerName,
+          'parentView.serviceConfig.isEditable': true
         });
-        view.set('value', item.value);
-        view.set('controller.wizardController.name', item.wizardControllerName);
-        view.set('parentView.serviceConfig.isEditable', true);
         expect(view.get('disabled')).to.equal(item.disabled);
       });
     });
 
     it('parent view is disabled', function () {
-      var view = App.ServiceConfigRadioButton.create({
-        parentView: Em.Object.create({
-          serviceConfig: Em.Object.create()
-        })
-      });
       view.set('parentView.serviceConfig.isEditable', false);
       expect(view.get('disabled')).to.be.true;
+    });
+
+  });
+
+  describe('#onChecked', function () {
+
+    var cases = [
+      {
+        clicked: true,
+        value: 'v1',
+        sendRequestRorDependentConfigsCallCount: 1,
+        updateForeignKeysCallCount: 1,
+        title: 'invoked with click'
+      },
+      {
+        clicked: false,
+        value: 'v0',
+        sendRequestRorDependentConfigsCallCount: 0,
+        updateForeignKeysCallCount: 0,
+        title: 'not invoked with click'
+      }
+    ];
+
+    cases.forEach(function (item) {
+
+      describe(item.title, function () {
+
+        beforeEach(function () {
+          sinon.stub(Em.run, 'next', function (context, callback) {
+            callback.call(context);
+          });
+          sinon.stub(view, 'sendRequestRorDependentConfigs', Em.K);
+          sinon.stub(view, 'updateForeignKeys', Em.K);
+          sinon.stub(view, 'updateCheck', Em.K);
+          view.setProperties({
+            'clicked': item.clicked,
+            'parentView.serviceConfig.value': 'v0',
+            'value': 'v1'
+          });
+          view.propertyDidChange('checked');
+        });
+
+        afterEach(function () {
+          Em.run.next.restore();
+          view.sendRequestRorDependentConfigs.restore();
+          view.updateForeignKeys.restore();
+          view.updateCheck.restore();
+        });
+
+        it('property value', function () {
+          expect(view.get('parentView.serviceConfig.value')).to.equal(item.value);
+        });
+
+        it('dependent configs request', function () {
+          expect(view.sendRequestRorDependentConfigs.callCount).to.equal(item.sendRequestRorDependentConfigsCallCount);
+        });
+
+        if (item.sendRequestRorDependentConfigsCallCount) {
+          it('config object for dependent configs request', function () {
+            expect(view.sendRequestRorDependentConfigs.firstCall.args).to.eql([
+              Em.Object.create({
+                value: item.value
+              })
+            ]);
+          });
+        }
+
+        it('clicked flag reset', function () {
+          expect(view.get('clicked')).to.be.false;
+        });
+
+        it('update foreign keys', function () {
+          expect(view.updateForeignKeys.callCount).to.equal(item.updateForeignKeysCallCount);
+        });
+
+      });
+
     });
 
   });
