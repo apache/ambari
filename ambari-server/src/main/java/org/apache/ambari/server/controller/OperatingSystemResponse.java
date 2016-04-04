@@ -25,6 +25,7 @@ public class OperatingSystemResponse {
   private String osType;
   private Long repositoryVersionId;
   private String versionDefinitionId;
+  private boolean ambariManagedRepos = true;
 
   public OperatingSystemResponse(String osType) {
     setOsType(osType);
@@ -74,5 +75,19 @@ public class OperatingSystemResponse {
    */
   public String getVersionDefinitionId() {
     return versionDefinitionId;
+  }
+
+  /**
+   * @param managed {@code true} if ambari is managing the repositories for the OS
+   */
+  public void setAmbariManagedRepos(boolean managed) {
+    ambariManagedRepos = managed;
+  }
+
+  /**
+   * @return {@code true} if ambari is managing the repositories for the OS
+   */
+  public boolean isAmbariManagedRepos() {
+    return ambariManagedRepos;
   }
 }

@@ -518,6 +518,76 @@ public class RepositoryVersionResourceProviderTest {
   }
 
   @Test
+  public void testUpdateResourcesNoManageRepos() throws Exception {
+    Authentication authentication = TestAuthenticationFactory.createAdministrator();
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+
+    final ResourceProvider provider = injector.getInstance(ResourceProviderFactory.class).getRepositoryVersionResourceProvider();
+
+    Mockito.when(clusterVersionDAO.findByStackAndVersion(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenAnswer(
+        new Answer<List<ClusterVersionEntity>>() {
+          @Override
+          public List<ClusterVersionEntity> answer(InvocationOnMock invocation) throws Throwable {
+            return getNoClusterVersions();
+          }
+        });
+
+    final Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+    final Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID, "name");
+    properties.put(RepositoryVersionResourceProvider.SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID, new Gson().fromJson("[{\"OperatingSystems/os_type\":\"redhat6\",\"repositories\":[{\"Repositories/repo_id\":\"1\",\"Repositories/repo_name\":\"1\",\"Repositories/base_url\":\"http://example.com/repo1\"}]}]", Object.class));
+    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID, "HDP");
+    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID, "1.1");
+    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_REPOSITORY_VERSION_PROPERTY_ID, "1.1.1.1");
+    propertySet.add(properties);
+
+    final Predicate predicateStackName = new PredicateBuilder().property(RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID).equals("HDP").toPredicate();
+    final Predicate predicateStackVersion = new PredicateBuilder().property(RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID).equals("1.1").toPredicate();
+    final Request getRequest = PropertyHelper.getReadRequest(
+      RepositoryVersionResourceProvider.REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID,
+      RepositoryVersionResourceProvider.SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID);
+    Assert.assertEquals(0, provider.getResources(getRequest, new AndPredicate(predicateStackName, predicateStackVersion)).size());
+
+    final Request createRequest = PropertyHelper.getCreateRequest(propertySet, null);
+    provider.createResources(createRequest);
+
+    Assert.assertEquals(1, provider.getResources(getRequest, new AndPredicate(predicateStackName, predicateStackVersion)).size());
+    Assert.assertEquals("name", provider.getResources(getRequest, new AndPredicate(predicateStackName, predicateStackVersion)).iterator().next().getPropertyValue(RepositoryVersionResourceProvider.REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID));
+
+    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_ID_PROPERTY_ID, "1");
+    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID, "name2");
+    properties.put(RepositoryVersionResourceProvider.SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID, new Gson().fromJson("[{\"OperatingSystems/ambari_managed_repositories\":false, \"OperatingSystems/os_type\":\"redhat6\",\"repositories\":[{\"Repositories/repo_id\":\"1\",\"Repositories/repo_name\":\"1\",\"Repositories/base_url\":\"http://example.com/repo1\"}]}]", Object.class));
+    final Request updateRequest = PropertyHelper.getUpdateRequest(properties, null);
+    provider.updateResources(updateRequest, new AndPredicate(predicateStackName, predicateStackVersion));
+
+    Assert.assertEquals("name2", provider.getResources(getRequest, new AndPredicate(predicateStackName, predicateStackVersion)).iterator().next().getPropertyValue(RepositoryVersionResourceProvider.REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID));
+
+    AmbariMetaInfo ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
+    String stackName = properties.get(RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID).toString();
+    String stackVersion = properties.get(RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID).toString();
+    Object operatingSystems = properties.get(RepositoryVersionResourceProvider.SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID);
+    Gson gson = new Gson();
+    String operatingSystemsJson = gson.toJson(operatingSystems);
+    RepositoryVersionHelper repositoryVersionHelper = new RepositoryVersionHelper();
+    List<OperatingSystemEntity> operatingSystemEntities = repositoryVersionHelper.parseOperatingSystems(operatingSystemsJson);
+    for (OperatingSystemEntity operatingSystemEntity : operatingSystemEntities) {
+      Assert.assertFalse(operatingSystemEntity.isAmbariManagedRepos());
+      String osType = operatingSystemEntity.getOsType();
+      List<RepositoryEntity> repositories = operatingSystemEntity.getRepositories();
+      for (RepositoryEntity repository : repositories) {
+        RepositoryInfo repo = ambariMetaInfo.getRepository(stackName, stackVersion, osType, repository.getRepositoryId());
+        if (repo != null) {
+          String baseUrlActual = repo.getBaseUrl();
+          String baseUrlExpected = repository.getBaseUrl();
+          Assert.assertEquals(baseUrlExpected, baseUrlActual);
+        }
+      }
+    }
+
+  }
+
+  @Test
   public void testVersionInStack(){
     StackId sid = new StackId("HDP-2.3");
     StackId sid2 = new StackId("HDP-2.3.NEW");

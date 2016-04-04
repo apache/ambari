@@ -4248,6 +4248,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           }
           response.setStackName(repositoryVersion.getStackName());
           response.setStackVersion(repositoryVersion.getStackVersion());
+          response.setAmbariManagedRepos(operatingSystem.isAmbariManagedRepos());
           responses.add(response);
         }
       }

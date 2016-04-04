@@ -83,7 +83,6 @@ import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.gson.Gson;
@@ -305,7 +304,21 @@ public class UpgradeActionTest {
     clusters.mapHostsToCluster(Collections.singleton(hostName), clusterName);
 
     // Create the starting repo version
-    m_helper.getOrCreateRepositoryVersion(sourceStack, sourceRepo);
+    RepositoryVersionEntity repoEntity = m_helper.getOrCreateRepositoryVersion(sourceStack, sourceRepo);
+    repoEntity.setOperatingSystems("[\n" +
+            "   {\n" +
+            "      \"repositories\":[\n" +
+            "         {\n" +
+            "            \"Repositories/base_url\":\"http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0\",\n" +
+            "            \"Repositories/repo_name\":\"HDP\",\n" +
+            "            \"Repositories/repo_id\":\"HDP-2.2\"\n" +
+            "         }\n" +
+            "      ],\n" +
+            "      \"OperatingSystems/os_type\":\"redhat6\"\n" +
+            "   }\n" +
+            "]");
+    repoVersionDAO.merge(repoEntity);
+
     c.createClusterVersion(sourceStack, sourceRepo, "admin", RepositoryVersionState.INSTALLING);
     c.transitionClusterVersion(sourceStack, sourceRepo, RepositoryVersionState.CURRENT);
 

@@ -356,7 +356,13 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     List<OperatingSystemEntity> operatingSystems = repoVersionEnt.getOperatingSystems();
     Map<String, List<RepositoryEntity>> perOsRepos = new HashMap<String, List<RepositoryEntity>>();
     for (OperatingSystemEntity operatingSystem : operatingSystems) {
-      perOsRepos.put(operatingSystem.getOsType(), operatingSystem.getRepositories());
+
+      if (operatingSystem.isAmbariManagedRepos()) {
+        perOsRepos.put(operatingSystem.getOsType(), operatingSystem.getRepositories());
+      } else {
+        perOsRepos.put(operatingSystem.getOsType(), Collections.<RepositoryEntity>emptyList());
+      }
+
     }
 
     RequestStageContainer req = createRequest();

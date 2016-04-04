@@ -108,6 +108,9 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -785,6 +788,221 @@ public class ClusterStackVersionResourceProviderTest {
     Assert.assertEquals(Float.valueOf(0.85f), successFactor);
 
     Assert.assertTrue(executionCommand.getRoleParams().containsKey(KeyNames.PACKAGE_VERSION));
+  }
+
+  @Test
+  public void testCreateResourcesWithNonManagedOS() throws Exception {
+    JsonArray json = new JsonParser().parse(OS_JSON).getAsJsonArray();
+
+    JsonObject jsonObj = json.get(0).getAsJsonObject();
+    jsonObj.addProperty(OperatingSystemResourceProvider.OPERATING_SYSTEM_AMBARI_MANAGED_REPOS, false);
+
+    String os_json = json.toString();
+
+    Resource.Type type = Resource.Type.ClusterStackVersion;
+
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    StackId stackId = new StackId("HDP", "2.0.1");
+
+    File f = new File("src/test/resources/hbase_version_test.xml");
+
+    RepositoryVersionEntity repoVersion = new RepositoryVersionEntity();
+    repoVersion.setId(1l);
+    repoVersion.setOperatingSystems(os_json);
+    repoVersion.setVersionXml(IOUtils.toString(new FileInputStream(f)));
+    repoVersion.setVersionXsd("version_definition.xsd");
+    repoVersion.setType(RepositoryType.STANDARD);
+
+    ambariMetaInfo.getComponent("HDP", "2.1.1", "HBASE", "HBASE_MASTER").setVersionAdvertised(true);
+
+    Map<String, Host> hostsForCluster = new HashMap<String, Host>();
+    int hostCount = 10;
+    for (int i = 0; i < hostCount; i++) {
+      String hostname = "host" + i;
+      Host host = createNiceMock(hostname, Host.class);
+      expect(host.getHostName()).andReturn(hostname).anyTimes();
+      expect(host.getOsFamily()).andReturn("redhat6").anyTimes();
+      expect(host.getMaintenanceState(EasyMock.anyLong())).andReturn(
+          MaintenanceState.OFF).anyTimes();
+      expect(host.getAllHostVersions()).andReturn(
+          Collections.<HostVersionEntity>emptyList()).anyTimes();
+
+      replay(host);
+      hostsForCluster.put(hostname, host);
+    }
+
+    Service hdfsService = createNiceMock(Service.class);
+    Service hbaseService = createNiceMock(Service.class);
+    expect(hdfsService.getName()).andReturn("HDFS").anyTimes();
+    expect(hbaseService.getName()).andReturn("HBASE").anyTimes();
+
+    expect(hdfsService.getServiceComponents()).andReturn(new HashMap<String, ServiceComponent>());
+    expect(hbaseService.getServiceComponents()).andReturn(new HashMap<String, ServiceComponent>());
+
+    Map<String, Service> serviceMap = new HashMap<>();
+    serviceMap.put("HDFS", hdfsService);
+    serviceMap.put("HBASE", hbaseService);
+
+    final ServiceComponentHost schDatanode = createMock(ServiceComponentHost.class);
+    expect(schDatanode.getServiceName()).andReturn("HDFS").anyTimes();
+    expect(schDatanode.getServiceComponentName()).andReturn("DATANODE").anyTimes();
+
+    final ServiceComponentHost schNamenode = createMock(ServiceComponentHost.class);
+    expect(schNamenode.getServiceName()).andReturn("HDFS").anyTimes();
+    expect(schNamenode.getServiceComponentName()).andReturn("NAMENODE").anyTimes();
+
+    final ServiceComponentHost schHBM = createMock(ServiceComponentHost.class);
+    expect(schHBM.getServiceName()).andReturn("HBASE").anyTimes();
+    expect(schHBM.getServiceComponentName()).andReturn("HBASE_MASTER").anyTimes();
+
+    // First host contains versionable components
+    final List<ServiceComponentHost> schsH1 = Arrays.asList(schDatanode, schNamenode);
+
+    // Second host contains versionable components
+    final List<ServiceComponentHost> schsH2 = Arrays.asList(schDatanode);
+
+    // Third host only has hbase
+    final List<ServiceComponentHost> schsH3 = Arrays.asList(schHBM);
+
+    ServiceOsSpecific.Package hdfsPackage = new ServiceOsSpecific.Package();
+    hdfsPackage.setName("hdfs");
+
+    List<ServiceOsSpecific.Package> packages = Collections.singletonList(hdfsPackage);
+
+    ActionManager actionManager = createNiceMock(ActionManager.class);
+
+    RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
+    ResourceProviderFactory resourceProviderFactory = createNiceMock(ResourceProviderFactory.class);
+    ResourceProvider csvResourceProvider = createNiceMock(ClusterStackVersionResourceProvider.class);
+
+    AbstractControllerResourceProvider.init(resourceProviderFactory);
+
+    Map<String, Map<String, String>> hostConfigTags = new HashMap<String, Map<String, String>>();
+    expect(configHelper.getEffectiveDesiredTags(anyObject(ClusterImpl.class), anyObject(String.class))).andReturn(hostConfigTags);
+
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+    expect(managementController.getAuthName()).andReturn("admin").anyTimes();
+    expect(managementController.getActionManager()).andReturn(actionManager).anyTimes();
+    expect(managementController.getJdkResourceUrl()).andReturn("/JdkResourceUrl").anyTimes();
+    expect(managementController.getPackagesForServiceHost(anyObject(ServiceInfo.class),
+            (Map<String, String>) anyObject(List.class), anyObject(String.class))).
+            andReturn(packages).anyTimes(); // only one host has the versionable component
+
+    expect(resourceProviderFactory.getHostResourceProvider(anyObject(Set.class), anyObject(Map.class),
+            eq(managementController))).andReturn(csvResourceProvider).anyTimes();
+
+    expect(clusters.getCluster(anyObject(String.class))).andReturn(cluster);
+    expect(clusters.getHostsForCluster(anyObject(String.class))).andReturn(
+        hostsForCluster).anyTimes();
+
+    String clusterName = "Cluster100";
+    expect(cluster.getClusterId()).andReturn(1L).anyTimes();
+    expect(cluster.getHosts()).andReturn(hostsForCluster.values()).atLeastOnce();
+    expect(cluster.getServices()).andReturn(serviceMap).anyTimes();
+    expect(cluster.getCurrentStackVersion()).andReturn(stackId);
+    expect(cluster.getServiceComponentHosts(anyObject(String.class))).andAnswer(new IAnswer<List<ServiceComponentHost>>() {
+      @Override
+      public List<ServiceComponentHost> answer() throws Throwable {
+        String hostname = (String) EasyMock.getCurrentArguments()[0];
+        if (hostname.equals("host2")) {
+          return schsH2;
+        } else if (hostname.equals("host3")) {
+          return schsH3;
+        } else {
+          return schsH1;
+        }
+      }
+    }).anyTimes();
+
+//    ExecutionCommand executionCommand = createNiceMock(ExecutionCommand.class);
+    ExecutionCommand executionCommand = new ExecutionCommand();
+    ExecutionCommandWrapper executionCommandWrapper = createNiceMock(ExecutionCommandWrapper.class);
+
+//    expect(executionCommand.getHostLevelParams()).andReturn(new HashMap<String, String>()).atLeastOnce();
+    expect(executionCommandWrapper.getExecutionCommand()).andReturn(executionCommand).anyTimes();
+
+    Stage stage = createNiceMock(Stage.class);
+    expect(stage.getExecutionCommandWrapper(anyObject(String.class), anyObject(String.class))).
+            andReturn(executionCommandWrapper).anyTimes();
+
+    Map<Role, Float> successFactors = new HashMap<>();
+    expect(stage.getSuccessFactors()).andReturn(successFactors).atLeastOnce();
+
+    // Check that we create proper stage count
+    expect(stageFactory.createNew(anyLong(), anyObject(String.class),
+            anyObject(String.class), anyLong(),
+            anyObject(String.class), anyObject(String.class), anyObject(String.class),
+            anyObject(String.class))).andReturn(stage).
+            times((int) Math.ceil(hostCount / MAX_TASKS_PER_STAGE));
+
+    expect(
+            repositoryVersionDAOMock.findByStackAndVersion(
+                    anyObject(StackId.class),
+                    anyObject(String.class))).andReturn(repoVersion);
+
+    Capture<org.apache.ambari.server.actionmanager.Request> c = Capture.newInstance();
+    Capture<ExecuteActionRequest> ear = Capture.newInstance();
+
+    actionManager.sendActions(capture(c), capture(ear));
+    expectLastCall().atLeastOnce();
+    expect(actionManager.getRequestTasks(anyLong())).andReturn(Collections.<HostRoleCommand>emptyList()).anyTimes();
+
+    ClusterEntity clusterEntity = new ClusterEntity();
+    clusterEntity.setClusterId(1l);
+    clusterEntity.setClusterName(clusterName);
+    ClusterVersionEntity cve = new ClusterVersionEntity(clusterEntity,
+            repoVersion, RepositoryVersionState.INSTALL_FAILED, 0, "");
+    expect(clusterVersionDAO.findByClusterAndStackAndVersion(anyObject(String.class),
+            anyObject(StackId.class), anyObject(String.class))).andReturn(cve);
+
+    TopologyManager topologyManager = injector.getInstance(TopologyManager.class);
+    StageUtils.setTopologyManager(topologyManager);
+
+    // replay
+    replay(managementController, response, clusters, hdfsService, hbaseService, resourceProviderFactory, csvResourceProvider,
+            cluster, repositoryVersionDAOMock, configHelper, schDatanode, schNamenode, schHBM, actionManager,
+            executionCommandWrapper,stage, stageFactory, clusterVersionDAO);
+
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+        type,
+        PropertyHelper.getPropertyIds(type),
+        PropertyHelper.getKeyPropertyIds(type),
+        managementController);
+
+    injector.injectMembers(provider);
+
+    // add the property map to a set for the request.  add more maps for multiple creates
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+
+    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+
+    // add properties to the request map
+    properties.put(ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
+    properties.put(ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID, "2.2.0.1-885");
+    properties.put(ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_STACK_PROPERTY_ID, "HDP");
+    properties.put(ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID, "2.1.1");
+
+    propertySet.add(properties);
+
+    // create the request
+    Request request = PropertyHelper.getCreateRequest(propertySet, null);
+
+    RequestStatus status = provider.createResources(request);
+    Assert.assertNotNull(status);
+
+    // verify
+    verify(managementController, response, clusters, stageFactory, stage);
+
+    // check that the success factor was populated in the stage
+    Float successFactor = successFactors.get(Role.INSTALL_PACKAGES);
+    Assert.assertEquals(Float.valueOf(0.85f), successFactor);
+
+    Assert.assertTrue(executionCommand.getRoleParams().containsKey(KeyNames.PACKAGE_VERSION));
+    Assert.assertTrue(executionCommand.getRoleParams().containsKey("base_urls"));
+    Assert.assertEquals("[]", executionCommand.getRoleParams().get("base_urls"));
   }
 
   /**

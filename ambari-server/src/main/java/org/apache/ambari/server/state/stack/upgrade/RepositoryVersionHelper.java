@@ -89,9 +89,18 @@ public class RepositoryVersionHelper {
     final List<OperatingSystemEntity> operatingSystems = new ArrayList<OperatingSystemEntity>();
     final JsonArray rootJson = new JsonParser().parse(repositoriesJson).getAsJsonArray();
     for (JsonElement operatingSystemJson: rootJson) {
+      JsonObject osObj = operatingSystemJson.getAsJsonObject();
+
       final OperatingSystemEntity operatingSystemEntity = new OperatingSystemEntity();
-      operatingSystemEntity.setOsType(operatingSystemJson.getAsJsonObject().get(OperatingSystemResourceProvider.OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID).getAsString());
-      for (JsonElement repositoryJson: operatingSystemJson.getAsJsonObject().get(RepositoryVersionResourceProvider.SUBRESOURCE_REPOSITORIES_PROPERTY_ID).getAsJsonArray()) {
+
+      operatingSystemEntity.setOsType(osObj.get(OperatingSystemResourceProvider.OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID).getAsString());
+
+      if (osObj.has(OperatingSystemResourceProvider.OPERATING_SYSTEM_AMBARI_MANAGED_REPOS)) {
+        operatingSystemEntity.setAmbariManagedRepos(osObj.get(
+            OperatingSystemResourceProvider.OPERATING_SYSTEM_AMBARI_MANAGED_REPOS).getAsBoolean());
+      }
+
+      for (JsonElement repositoryJson: osObj.get(RepositoryVersionResourceProvider.SUBRESOURCE_REPOSITORIES_PROPERTY_ID).getAsJsonArray()) {
         final RepositoryEntity repositoryEntity = new RepositoryEntity();
         repositoryEntity.setBaseUrl(repositoryJson.getAsJsonObject().get(RepositoryResourceProvider.REPOSITORY_BASE_URL_PROPERTY_ID).getAsString());
         repositoryEntity.setName(repositoryJson.getAsJsonObject().get(RepositoryResourceProvider.REPOSITORY_REPO_NAME_PROPERTY_ID).getAsString());

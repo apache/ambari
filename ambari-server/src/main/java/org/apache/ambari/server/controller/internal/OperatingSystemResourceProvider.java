@@ -47,6 +47,7 @@ public class OperatingSystemResourceProvider extends ReadOnlyResourceProvider {
   public static final String OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID               = PropertyHelper.getPropertyId("OperatingSystems", "os_type");
   public static final String OPERATING_SYSTEM_REPOSITORY_VERSION_ID_PROPERTY_ID = PropertyHelper.getPropertyId("OperatingSystems", "repository_version_id");
   public static final String OPERATING_SYSTEM_VERSION_DEFINITION_ID_PROPERTY_ID = PropertyHelper.getPropertyId("OperatingSystems", "version_definition_id");
+  public static final String OPERATING_SYSTEM_AMBARI_MANAGED_REPOS              = "OperatingSystems/ambari_managed_repositories";
 
   private static Set<String> pkPropertyIds = Sets.newHashSet(
       OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID,
@@ -58,7 +59,8 @@ public class OperatingSystemResourceProvider extends ReadOnlyResourceProvider {
       OPERATING_SYSTEM_STACK_NAME_PROPERTY_ID,
       OPERATING_SYSTEM_STACK_VERSION_PROPERTY_ID,
       OPERATING_SYSTEM_REPOSITORY_VERSION_ID_PROPERTY_ID,
-      OPERATING_SYSTEM_VERSION_DEFINITION_ID_PROPERTY_ID);
+      OPERATING_SYSTEM_VERSION_DEFINITION_ID_PROPERTY_ID,
+      OPERATING_SYSTEM_AMBARI_MANAGED_REPOS);
 
   public static Map<Type, String> keyPropertyIds = new HashMap<Type, String>() {
     {
@@ -112,6 +114,9 @@ public class OperatingSystemResourceProvider extends ReadOnlyResourceProvider {
 
       setResourceProperty(resource, OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID,
           response.getOsType(), requestedIds);
+
+      setResourceProperty(resource, OPERATING_SYSTEM_AMBARI_MANAGED_REPOS, response.isAmbariManagedRepos(),
+          requestedIds);
 
       if (response.getRepositoryVersionId() != null) {
         setResourceProperty(resource, OPERATING_SYSTEM_REPOSITORY_VERSION_ID_PROPERTY_ID,

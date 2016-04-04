@@ -1034,7 +1034,7 @@ public class AmbariCustomCommandExecutionHelper {
     }
 
     if (null != gsonList) {
-      updateBaseUrls(cluster, JsonArray.class.cast(gsonList));
+      gsonList = updateBaseUrls(cluster, JsonArray.class.cast(gsonList));
       return gsonList.toString();
     } else {
       return "";
@@ -1047,7 +1047,7 @@ public class AmbariCustomCommandExecutionHelper {
    * @param cluster   the cluster to load the current version
    * @param jsonArray the array containing stack repo data
    */
-  private void updateBaseUrls(Cluster cluster, JsonArray jsonArray) throws AmbariException {
+  private JsonArray updateBaseUrls(Cluster cluster, JsonArray jsonArray) throws AmbariException {
     ClusterVersionEntity cve = cluster.getCurrentClusterVersion();
 
     if (null == cve) {
@@ -1066,10 +1066,12 @@ public class AmbariCustomCommandExecutionHelper {
 
     if (null == cve || null == cve.getRepositoryVersion()) {
       LOG.info("Cluster {} has no specific Repository Versions.  Using stack-defined values", cluster.getClusterName());
-      return;
+      return jsonArray;
     }
 
     RepositoryVersionEntity rve = cve.getRepositoryVersion();
+
+    JsonArray result = new JsonArray();
 
     for (JsonElement e : jsonArray) {
       JsonObject obj = e.getAsJsonObject();
@@ -1084,7 +1086,7 @@ public class AmbariCustomCommandExecutionHelper {
       }
 
       for (OperatingSystemEntity ose : rve.getOperatingSystems()) {
-        if (ose.getOsType().equals(osType)) {
+        if (ose.getOsType().equals(osType) && ose.isAmbariManagedRepos()) {
           for (RepositoryEntity re : ose.getRepositories()) {
             if (re.getName().equals(repoName) &&
                 re.getRepositoryId().equals(repoId) &&
@@ -1092,9 +1094,12 @@ public class AmbariCustomCommandExecutionHelper {
               obj.addProperty("baseUrl", re.getBaseUrl());
             }
           }
+        result.add(e);
         }
       }
     }
+
+    return result;
   }
 
 
