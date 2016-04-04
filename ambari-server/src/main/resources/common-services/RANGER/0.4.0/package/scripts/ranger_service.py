@@ -42,7 +42,7 @@ def ranger_service(name, action=None):
         Execute(params.usersync_start,
                 environment=env_dict,
                 not_if=no_op_test,
-                user=params.unix_user,
+                user=params.unix_user
         )
       except:
         show_logs(params.usersync_log_dir, params.unix_user)
@@ -52,5 +52,13 @@ def ranger_service(name, action=None):
       Execute((params.usersync_start,),
               environment={'JAVA_HOME': params.java_home},
               not_if=no_op_test,
-              sudo=True,
+              sudo=True
       )
+  elif name == 'ranger_tagsync' and params.stack_supports_ranger_tagsync:
+    no_op_test = format('ps -ef | grep proc_rangertagsync | grep -v grep')
+    cmd = format('{tagsync_bin} start')
+    Execute(cmd,
+      environment=env_dict,
+      user=params.unix_user,
+      not_if=no_op_test
+    )
