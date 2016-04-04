@@ -915,7 +915,7 @@ def _setup_database(options):
   factory = DBMSConfigFactory()
 
   dbmsAmbari = factory.create(options, properties, "Ambari")
-  resultA = dbmsAmbari.configure_database(properties)
+  resultA = dbmsAmbari.configure_database(properties, options)
 
   # Now save the properties file
   if resultA:

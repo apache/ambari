@@ -203,49 +203,55 @@ def refresh_stack_hash_action():
 @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
 def create_setup_security_actions(args):
   action_list = [
-      ['Enable HTTPS for Ambari server.', UserActionRestart(setup_https, args)],
-      ['Encrypt passwords stored in ambari.properties file.', UserAction(setup_master_key, args)],
-      ['Setup Ambari kerberos JAAS configuration.', UserAction(setup_ambari_krb5_jaas)],
-      ['Setup truststore.', UserActionRestart(setup_truststore)],
-      ['Import certificate to truststore.', UserActionRestart(setup_truststore, True)],
+      ['setup-https', 'Enable HTTPS for Ambari server.', UserActionRestart(setup_https, args)],
+      ['encrypt-passwords', 'Encrypt passwords stored in ambari.properties file.', UserAction(setup_master_key, args)],
+      ['setup-kerberos-jaas', 'Setup Ambari kerberos JAAS configuration.', UserAction(setup_ambari_krb5_jaas, args)],
+      ['setup-truststore', 'Setup truststore.', UserActionRestart(setup_truststore, args)],
+      ['import-certificate', 'Import certificate to truststore.', UserActionRestart(setup_truststore, True, args)],
     ]
   return action_list
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def create_setup_security_actions(args):
   action_list = [
-      ['Enable HTTPS for Ambari server.', UserActionRestart(setup_https, args)],
-      ['Encrypt passwords stored in ambari.properties file.', UserAction(setup_master_key, args)],
-      ['Setup Ambari kerberos JAAS configuration.', UserAction(setup_ambari_krb5_jaas)],
-      ['Setup truststore.', UserActionRestart(setup_truststore)],
-      ['Import certificate to truststore.', UserActionRestart(setup_truststore, True)],
+      ['setup-https', 'Enable HTTPS for Ambari server.', UserActionRestart(setup_https, args)],
+      ['encrypt-passwords', 'Encrypt passwords stored in ambari.properties file.', UserAction(setup_master_key, args)],
+      ['setup-kerberos-jaas', 'Setup Ambari kerberos JAAS configuration.', UserAction(setup_ambari_krb5_jaas, args)],
+      ['setup-truststore', 'Setup truststore.', UserActionRestart(setup_truststore, args)],
+      ['import-certificate', 'Import certificate to truststore.', UserActionRestart(setup_truststore, args, True)],
     ]
   return action_list
 
 def setup_security(args):
   actions = create_setup_security_actions(args)
+  choice = None
+  if args.security_option is not None:
+    optionCounter = 0
+    for actionDesc in actions:
+      optionCounter += 1
+      if actionDesc[0] == args.security_option:
+        choice = optionCounter
+  if choice is None:
+    # Print menu options
+    print '=' * 75
+    print 'Choose one of the following options: '
+    iAction = 0
+    for actionDesc in actions:
+      iAction += 1
+      print '  [{0}] {1}'.format(iAction, actionDesc[1])
+    print '=' * 75
 
-  #Print menu options
-  print '=' * 75
-  print 'Choose one of the following options: '
-
-  iAction = 0
-  for actionDesc in actions:
-    iAction += 1
-    print '  [{0}] {1}'.format(iAction, actionDesc[0])
-  print '=' * 75
-
-  choice_prompt = 'Enter choice, (1-{0}): '.format(iAction)
-  choice_re = '[1-{0}]'.format(iAction)
-  choice = get_validated_string_input(choice_prompt, '0', choice_re,
-                                      'Invalid choice', False, False)
+    choice_prompt = 'Enter choice, (1-{0}): '.format(iAction)
+    choice_re = '[1-{0}]'.format(iAction)
+    choice = get_validated_string_input(choice_prompt, '0', choice_re,
+                                        'Invalid choice', False, False)
 
   try:
     actionDesc = actions[int(choice) - 1]
   except IndexError:
     raise FatalException(1, 'Unknown option for setup-security command.')
 
-  action = actionDesc[1]
+  action = actionDesc[2]
   action.execute()
 
   return action.need_restart
@@ -407,6 +413,43 @@ def init_parser_options(parser):
                     dest="purge")
   parser.add_option('--force', action="store_true", default=False, help="Force install management pack", dest="force")
 
+  parser.add_option('--ldap-url', default=None, help="Primary url for LDAP", dest="ldap_url")
+  parser.add_option('--ldap-secondary-url', default=None, help="Secondary url for LDAP", dest="ldap_secondary_url")
+  parser.add_option('--ldap-ssl', default=None, help="Use SSL [true/false] for LDAP", dest="ldap_ssl")
+  parser.add_option('--ldap-user-class', default=None, help="User Attribute Object Class for LDAP", dest="ldap_user_class")
+  parser.add_option('--ldap-user-attr', default=None, help="User Attribute Name for LDAP", dest="ldap_user_attr")
+  parser.add_option('--ldap-group-class', default=None, help="Group Attribute Object Class for LDAP", dest="ldap_group_class")
+  parser.add_option('--ldap-group-attr', default=None, help="Group Attribute Name for LDAP", dest="ldap_group_attr")
+  parser.add_option('--ldap-member-attr', default=None, help="Group Membership Attribute Name for LDAP", dest="ldap_member_attr")
+  parser.add_option('--ldap-dn', default=None, help="Distinguished name attribute for LDAP", dest="ldap_dn")
+  parser.add_option('--ldap-base-dn', default=None, help="Base DN for LDAP", dest="ldap_base_dn")
+  parser.add_option('--ldap-manager-dn', default=None, help="Manager DN for LDAP", dest="ldap_manager_dn")
+  parser.add_option('--ldap-manager-password', default=None, help="Manager Password For LDAP", dest="ldap_manager_password")
+  parser.add_option('--ldap-save-settings', action="store_true", default=None, help="Save without review for LDAP", dest="ldap_save_settings")
+  parser.add_option('--ldap-referral', default=None, help="Referral method [follow/ignore] for LDAP", dest="ldap_referral")
+  parser.add_option('--ldap-bind-anonym', default=None, help="Bind anonymously [true/false] for LDAP", dest="ldap_bind_anonym")
+  parser.add_option('--ldap-sync-admin-name', default=None, help="Username for LDAP sync", dest="ldap_sync_admin_name")
+  parser.add_option('--ldap-sync-admin-password', default=None, help="Password for LDAP sync", dest="ldap_sync_admin_password")
+
+  parser.add_option('--truststore-type', default=None, help="Type of TrustStore (jks|jceks|pkcs12)", dest="trust_store_type")
+  parser.add_option('--truststore-path', default=None, help="Path of TrustStore", dest="trust_store_path")
+  parser.add_option('--truststore-password', default=None, help="Password for TrustStore", dest="trust_store_password")
+  parser.add_option('--truststore-reconfigure', action="store_true", default=None, help="Force to reconfigure TrustStore if exits", dest="trust_store_reconfigure")
+
+  parser.add_option('--security-option', default=None,
+                    help="Setup security option (setup-https|encrypt-password|setup-kerberos-jaas|setup-truststore|import-certificate)",
+                    dest="security_option")
+  parser.add_option('--api-ssl', default=None, help="Enable SSL for Ambari API [true/false]", dest="api_ssl")
+  parser.add_option('--api-ssl-port', default=None, help="Client API SSL port", dest="api_ssl_port")
+  parser.add_option('--import-cert-path', default=None, help="Path to Certificate (import)", dest="import_cert_path")
+  parser.add_option('--import-cert-alias', default=None, help="Alias for the imported certificate", dest="import_cert_alias")
+  parser.add_option('--import-key-path', default=None, help="Path to Private Key (import)", dest="import_key_path")
+  parser.add_option('--pem-password', default=None, help="Password for Private Key", dest="pem_password")
+  parser.add_option('--master-key', default=None, help="Master key for encrypting passwords", dest="master_key")
+  parser.add_option('--master-key-persist', default=None, help="Persist master key [true/false]", dest="master_key_persist")
+  parser.add_option('--jaas-principal', default=None, help="Kerberos principal for ambari server", dest="jaas_principal")
+  parser.add_option('--jaas-keytab', default=None, help="Keytab path for Kerberos principal", dest="jaas_keytab")
+
 @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
 def are_cmd_line_db_args_blank(options):
   if (options.database_host is None \
@@ -532,7 +575,7 @@ def create_user_action_map(args, options):
     RESET_ACTION: UserAction(reset, options),
     STATUS_ACTION: UserAction(status, options),
     UPGRADE_ACTION: UserAction(upgrade, options),
-    LDAP_SETUP_ACTION: UserAction(setup_ldap),
+    LDAP_SETUP_ACTION: UserAction(setup_ldap, options),
     SETUP_SECURITY_ACTION: UserActionRestart(setup_security, options),
     REFRESH_STACK_HASH_ACTION: UserAction(refresh_stack_hash_action),
     SETUP_SSO_ACTION: UserActionRestart(setup_sso, options),
@@ -552,7 +595,7 @@ def create_user_action_map(args, options):
         STATUS_ACTION: UserAction(status, options),
         UPGRADE_ACTION: UserAction(upgrade, options),
         UPGRADE_STACK_ACTION: UserActionPossibleArgs(upgrade_stack, [2, 4], args),
-        LDAP_SETUP_ACTION: UserAction(setup_ldap),
+        LDAP_SETUP_ACTION: UserAction(setup_ldap, options),
         LDAP_SYNC_ACTION: UserAction(sync_ldap, options),
         SET_CURRENT_ACTION: UserAction(set_current, options),
         SETUP_SECURITY_ACTION: UserActionRestart(setup_security, options),

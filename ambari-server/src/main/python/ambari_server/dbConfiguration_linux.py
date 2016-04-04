@@ -77,7 +77,7 @@ class LinuxDBMSConfig(DBMSConfig):
                                                                        properties, JDBC_USER_NAME_PROPERTY, DEFAULT_USERNAME)
     self.database_password = getattr(options, "database_password", "")
     if not self.database_password:
-      self.database_password = DBMSConfig._read_password_from_properties(properties)
+      self.database_password = DBMSConfig._read_password_from_properties(properties, options)
 
     self.database_url_pattern = ""
     self.database_url_pattern_alt = ""
@@ -128,8 +128,8 @@ class LinuxDBMSConfig(DBMSConfig):
     return True
 
   # Supporting remote server for all the DB types. Supporting local server only for PostgreSQL.
-  def _setup_remote_server(self, args):
-    self._store_remote_properties(args)
+  def _setup_remote_server(self, args, options):
+    self._store_remote_properties(args, options)
 
   def _setup_remote_database(self):
     properties = get_ambari_properties()
@@ -257,11 +257,11 @@ class LinuxDBMSConfig(DBMSConfig):
 
     return retCode
 
-  def _store_password_property(self, properties, property_name):
+  def _store_password_property(self, properties, property_name, options):
     properties.process_pair(property_name,
                             store_password_file(self.database_password, JDBC_PASSWORD_FILENAME))
     if self.isSecure:
-      encrypted_password = encrypt_password(JDBC_RCA_PASSWORD_ALIAS, self.database_password)
+      encrypted_password = encrypt_password(JDBC_RCA_PASSWORD_ALIAS, self.database_password, options)
       if encrypted_password != self.database_password:
         properties.process_pair(property_name, encrypted_password)
 
@@ -282,7 +282,7 @@ class LinuxDBMSConfig(DBMSConfig):
     return connectionStringFormat.format(jdbc_hostname, self.database_port, self.database_name)
 
   # Store set of properties for remote database connection
-  def _store_remote_properties(self, properties):
+  def _store_remote_properties(self, properties, options):
     properties.process_pair(PERSISTENCE_TYPE_PROPERTY, self.persistence_type)
 
     properties.process_pair(JDBC_DATABASE_PROPERTY, self.dbms)
@@ -296,7 +296,7 @@ class LinuxDBMSConfig(DBMSConfig):
     properties.process_pair(JDBC_URL_PROPERTY, connection_string)
     properties.process_pair(JDBC_USER_NAME_PROPERTY, self.database_username)
 
-    self._store_password_property(properties, JDBC_PASSWORD_PROPERTY)
+    self._store_password_property(properties, JDBC_PASSWORD_PROPERTY, options)
 
     # save any other defined properties to pass to JDBC
     for pair in self.jdbc_extra_params:
@@ -306,7 +306,7 @@ class LinuxDBMSConfig(DBMSConfig):
     properties.process_pair(JDBC_RCA_URL_PROPERTY, connection_string)
     properties.process_pair(JDBC_RCA_USER_NAME_PROPERTY, self.database_username)
 
-    self._store_password_property(properties, JDBC_RCA_PASSWORD_FILE_PROPERTY)
+    self._store_password_property(properties, JDBC_RCA_PASSWORD_FILE_PROPERTY, options)
 
     # connection pooling (internal JPA by default)
     properties.process_pair(JDBC_CONNECTION_POOL_TYPE, "internal")
@@ -413,11 +413,11 @@ class PGConfig(LinuxDBMSConfig):
   # Private implementation
   #
   # Supporting remote server for all the DB types. Supporting local server only for PostgreSQL.
-  def _setup_local_server(self, properties):
+  def _setup_local_server(self, properties, options):
     # check if jdbc user is changed
     self._is_user_changed = PGConfig._is_jdbc_user_changed(self.database_username)
     print 'Default properties detected. Using built-in database.'
-    self._store_local_properties(properties)
+    self._store_local_properties(properties, options)
 
   def _create_postgres_lock_directory(self):
     postgres_user_uid = None
@@ -550,7 +550,7 @@ class PGConfig(LinuxDBMSConfig):
     return None
 
   # Store local database connection properties
-  def _store_local_properties(self, properties):
+  def _store_local_properties(self, properties, options):
     properties.removeOldProp(JDBC_DATABASE_PROPERTY)
     properties.removeOldProp(JDBC_DATABASE_NAME_PROPERTY)
     properties.removeOldProp(JDBC_POSTGRES_SCHEMA_PROPERTY)
@@ -571,7 +571,7 @@ class PGConfig(LinuxDBMSConfig):
     # connection pooling (internal JPA by default)
     properties.process_pair(JDBC_CONNECTION_POOL_TYPE, "internal")
 
-    self._store_password_property(properties, JDBC_PASSWORD_PROPERTY)
+    self._store_password_property(properties, JDBC_PASSWORD_PROPERTY, options)
 
 
   @staticmethod
@@ -730,8 +730,8 @@ class PGConfig(LinuxDBMSConfig):
         return retcode, out, err
     return 0, "", ""
 
-  def _store_remote_properties(self, properties):
-    super(PGConfig, self)._store_remote_properties(properties)
+  def _store_remote_properties(self, properties, options):
+    super(PGConfig, self)._store_remote_properties(properties, options)
 
     properties.process_pair(JDBC_POSTGRES_SCHEMA_PROPERTY, self.postgres_schema)
 
@@ -934,13 +934,13 @@ class MySQLConfig(LinuxDBMSConfig):
       scriptFile
     )
 
-  def _store_remote_properties(self, properties):
+  def _store_remote_properties(self, properties, options):
     """
     Override the remote properties written for MySQL, inheriting those from the parent first.
     :param properties:  the properties object to set MySQL specific properties on
     :return:
     """
-    super(MySQLConfig, self)._store_remote_properties(properties)
+    super(MySQLConfig, self)._store_remote_properties(properties, options)
 
     # connection pooling (c3p0 used by MySQL by default)
     properties.process_pair(JDBC_CONNECTION_POOL_TYPE, "c3p0")
@@ -1074,13 +1074,13 @@ class SQLAConfig(LinuxDBMSConfig):
   def _get_remote_script_line(self, scriptFile):
     return "stub script line" #TODO not used anymore, investigate if it can be removed
 
-  def _store_remote_properties(self, properties):
+  def _store_remote_properties(self, properties, options):
     """
     Override the remote properties written for MySQL, inheriting those from the parent first.
     :param properties:  the properties object to set MySQL specific properties on
     :return:
     """
-    super(SQLAConfig, self)._store_remote_properties(properties)
+    super(SQLAConfig, self)._store_remote_properties(properties, options)
     properties.process_pair(JDBC_SQLA_SERVER_NAME, self.server_name)
 
   def _extract_client_tarball(self, properties):
