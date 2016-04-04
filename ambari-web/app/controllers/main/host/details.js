@@ -2481,7 +2481,11 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
 
   executeCustomCommandSuccessCallback: function (data, ajaxOptions, params) {
     if (data.Requests.id) {
-      App.router.get('backgroundOperationsController').showPopup();
+      App.router.get('userSettingsController').dataLoading('show_bg').done(function (initValue) {
+        if (initValue) {
+          App.router.get('backgroundOperationsController').showPopup();
+        }
+      });
     } else {
       console.warn('Error during execution of ' + params.command + ' custom command on' + params.componentName);
     }
