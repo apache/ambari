@@ -63,6 +63,29 @@ log4j.appender.oozie.RollingPolicy.FileNamePattern=${log4j.appender.oozie.File}-
 # The MaxHistory controls how many log files will be retained (720 hours / 24 hours per day = 30 days); -1 to disable
 log4j.appender.oozie.RollingPolicy.MaxHistory=720
 
+
+
+log4j.appender.oozieError=org.apache.log4j.rolling.RollingFileAppender
+log4j.appender.oozieError.RollingPolicy=org.apache.oozie.util.OozieRollingPolicy
+log4j.appender.oozieError.File=${oozie.log.dir}/oozie-error.log
+log4j.appender.oozieError.Append=true
+log4j.appender.oozieError.layout=org.apache.log4j.PatternLayout
+log4j.appender.oozieError.layout.ConversionPattern=%d{ISO8601} %5p %c{1}:%L - SERVER[${oozie.instance.id}] %m%n
+# The FileNamePattern must end with "-%d{yyyy-MM-dd-HH}.gz" or "-%d{yyyy-MM-dd-HH}" and also start with the
+# value of log4j.appender.oozieError.File
+log4j.appender.oozieError.RollingPolicy.FileNamePattern=${log4j.appender.oozieError.File}-%d{yyyy-MM-dd-HH}
+# The MaxHistory controls how many log files will be retained (720 hours / 24 hours per day = 30 days); -1 to disable
+log4j.appender.oozieError.RollingPolicy.MaxHistory=720
+log4j.appender.oozieError.filter.1 = org.apache.log4j.varia.LevelMatchFilter
+log4j.appender.oozieError.filter.1.levelToMatch = WARN
+log4j.appender.oozieError.filter.2 = org.apache.log4j.varia.LevelMatchFilter
+log4j.appender.oozieError.filter.2.levelToMatch = ERROR
+log4j.appender.oozieError.filter.3 = org.apache.log4j.varia.LevelMatchFilter
+log4j.appender.oozieError.filter.3.levelToMatch = FATAL
+log4j.appender.oozieError.filter.4 = org.apache.log4j.varia.DenyAllFilter
+
+
+
 # Uncomment the below two lines to use the DailyRollingFileAppender instead
 # The DatePattern must end with either "dd" or "HH"
 #log4j.appender.oozie=org.apache.log4j.DailyRollingFileAppender
@@ -100,7 +123,7 @@ log4j.logger.openjpa=INFO, openjpa
 log4j.logger.oozieops=INFO, oozieops
 log4j.logger.oozieinstrumentation=ALL, oozieinstrumentation
 log4j.logger.oozieaudit=ALL, oozieaudit
-log4j.logger.org.apache.oozie=INFO, oozie
+log4j.logger.org.apache.oozie=INFO, oozie, oozieError
 log4j.logger.org.apache.hadoop=WARN, oozie
 log4j.logger.org.mortbay=WARN, oozie
 log4j.logger.org.hsqldb=WARN, oozie
