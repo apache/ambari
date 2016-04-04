@@ -22,7 +22,8 @@ angular.module('ambariAdminConsole')
 function($scope, $location, Cluster, $modal, $rootScope, $routeParams, PermissionSaver, Alert, $translate) {
   var $t = $translate.instant;
   $scope.constants = {
-    usersGroups: $t('common.usersGroups').toLowerCase()
+    users: $t('common.users').toLowerCase(),
+    groups: $t('common.groups').toLowerCase()
   };
   $scope.users = [];
   $scope.usersPerPage = 10;
@@ -181,7 +182,7 @@ function($scope, $location, Cluster, $modal, $rootScope, $routeParams, Permissio
     $scope.currentPage = 1;
     $scope.loadUsers();
   };
-  $scope.currentRoleFilter = { label:$('common.all'), value: '' };
+  $scope.currentRoleFilter = { label:$t('common.all'), value: '' };
 
 
   $scope.typeFilterOptions = [
