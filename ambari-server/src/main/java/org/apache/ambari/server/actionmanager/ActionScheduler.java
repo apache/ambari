@@ -881,10 +881,15 @@ class ActionScheduler implements Runnable {
     return false;
   }
 
-  protected boolean wasAgentRestartedDuringOperation(Host host, Stage stage, String role) {
-    String hostName = (null == host) ? null : host.getHostName();
-    long lastStageAttemptTime = stage.getLastAttemptTime(hostName, role);
-    return lastStageAttemptTime > 0 && lastStageAttemptTime <= host.getLastRegistrationTime();
+  boolean wasAgentRestartedDuringOperation(Host host, Stage stage, String role) {
+    if (host == null) {
+      // null host is valid in case of server action, skip restart detection
+      return false;
+    } else {
+      String hostName = host.getHostName();
+      long lastStageAttemptTime = stage.getLastAttemptTime(hostName, role);
+      return lastStageAttemptTime > 0 && lastStageAttemptTime <= host.getLastRegistrationTime();
+    }
   }
 
   /**
