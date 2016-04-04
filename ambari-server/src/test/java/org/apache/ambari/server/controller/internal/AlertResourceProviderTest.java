@@ -71,6 +71,7 @@ import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.easymock.EasyMock;
 import org.junit.After;
@@ -119,6 +120,7 @@ public class AlertResourceProviderTest {
     expect(clusters.getCluster(capture(EasyMock.<String>newCapture()))).andReturn(cluster).atLeastOnce();
     expect(cluster.getClusterId()).andReturn(1L).anyTimes();
     expect(cluster.getResourceId()).andReturn(4L).anyTimes();
+    expect(cluster.getClusterProperty(ConfigHelper.CLUSTER_ENV_ALERT_REPEAT_TOLERANCE, "1")).andReturn("1").atLeastOnce();
 
     replay(m_amc, clusters, cluster);
   }

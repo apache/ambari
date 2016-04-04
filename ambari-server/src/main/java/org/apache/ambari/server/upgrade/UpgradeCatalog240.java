@@ -45,6 +45,7 @@ import org.apache.ambari.server.state.AlertFirmness;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.alert.AlertDefinition;
@@ -181,6 +182,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     addSettingPermission();
     addManageUserPersistedDataPermission();
     updateAMSConfigs();
+    updateClusterEnv();
   }
 
   private void createSettingTable() throws SQLException {
@@ -850,5 +852,29 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
             BLUEPRINT_NAME_COL, BLUEPRINT_TABLE, BLUEPRINT_NAME_COL, false);
 
     addSequence("blueprint_setting_id_seq", 0L, false);
+  }
+
+  /**
+   * Updates {@code cluster-env} in the following ways:
+   * <ul>
+   * <li>Adds {@link ConfigHelper#CLUSTER_ENV_ALERT_REPEAT_TOLERANCE} = 1</li>
+   * </ul>
+   *
+   * @throws Exception
+   */
+  protected void updateClusterEnv() throws AmbariException {
+    Map<String, String> propertyMap = new HashMap<>();
+    propertyMap.put(ConfigHelper.CLUSTER_ENV_ALERT_REPEAT_TOLERANCE, "1");
+
+    AmbariManagementController ambariManagementController = injector.getInstance(
+        AmbariManagementController.class);
+
+    Clusters clusters = ambariManagementController.getClusters();
+
+    Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
+    for (final Cluster cluster : clusterMap.values()) {
+      updateConfigurationPropertiesForCluster(cluster, ConfigHelper.CLUSTER_ENV, propertyMap, true,
+          true);
+    }
   }
 }

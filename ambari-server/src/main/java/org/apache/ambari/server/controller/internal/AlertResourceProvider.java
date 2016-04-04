@@ -45,9 +45,14 @@ import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.state.AlertState;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.NumberUtils;
 
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 
 /**
  * ResourceProvider for Alert instances
@@ -87,6 +92,9 @@ public class AlertResourceProvider extends ReadOnlyResourceProvider implements
 
   @Inject
   private static AlertDefinitionDAO alertDefinitionDAO = null;
+
+  @Inject
+  private static Provider<Clusters> clusters;
 
   /**
    * The property ids for an alert defintion resource.
@@ -265,11 +273,12 @@ public class AlertResourceProvider extends ReadOnlyResourceProvider implements
     setResourceProperty(resource, ALERT_SCOPE, definition.getScope(), requestedIds);
 
     // repeat tolerance values
-    int repeatTolerance = definition.getRepeatTolerance();
+    int repeatTolerance = getRepeatTolerance(definition, clusterName);
     long occurrences = entity.getOccurrences();
     long remaining = (occurrences > repeatTolerance) ? 0 : (repeatTolerance - occurrences);
 
-    // the OK state is special; when received, we ignore tolerance and notify
+    // the OK state is special; when received, we ignore tolerance and assume
+    // the alert is HARD
     if (history.getAlertState() == AlertState.OK) {
       remaining = 0;
     }
@@ -287,5 +296,38 @@ public class AlertResourceProvider extends ReadOnlyResourceProvider implements
     }
 
     return resource;
+  }
+
+  /**
+   * Gets the repeat tolerance value for the specified definition. This method
+   * will return the override from the definition if
+   * {@link AlertDefinitionEntity#isRepeatToleranceEnabled()} is {@code true}.
+   * Otherwise, it uses {@link ConfigHelper#CLUSTER_ENV_ALERT_REPEAT_TOLERANCE},
+   * defaulting to {@code 1} if not found.
+   *
+   * @param definition
+   *          the definition (not {@code null}).
+   * @param clusterName
+   *          the name of the cluster (not {@code null}).
+   * @return the repeat tolerance for the alert
+   */
+  private int getRepeatTolerance(AlertDefinitionEntity definition, String clusterName ){
+
+    // if the definition overrides the global value, then use that
+    if( definition.isRepeatToleranceEnabled() ){
+      return definition.getRepeatTolerance();
+    }
+
+    int repeatTolerance = 1;
+    try {
+      Cluster cluster = clusters.get().getCluster(clusterName);
+      String value = cluster.getClusterProperty(ConfigHelper.CLUSTER_ENV_ALERT_REPEAT_TOLERANCE, "1");
+      repeatTolerance = NumberUtils.toInt(value, 1);
+    } catch (AmbariException ambariException) {
+      LOG.warn("Unable to read {}/{} from cluster {}, defaulting to 1", ConfigHelper.CLUSTER_ENV,
+          ConfigHelper.CLUSTER_ENV_ALERT_REPEAT_TOLERANCE, clusterName, ambariException);
+    }
+
+    return repeatTolerance;
   }
 }

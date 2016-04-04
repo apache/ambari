@@ -18,10 +18,12 @@
 
 package org.apache.ambari.server.agent;
 
-import com.google.common.eventbus.AllowConcurrentEvents;
-import com.google.common.eventbus.Subscribe;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.events.ClusterConfigChangedEvent;
 import org.apache.ambari.server.events.MaintenanceModeEvent;
@@ -37,11 +39,10 @@ import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import com.google.common.eventbus.AllowConcurrentEvents;
+import com.google.common.eventbus.Subscribe;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 @Singleton
 public class RecoveryConfigHelper {
@@ -227,8 +228,8 @@ public class RecoveryConfigHelper {
   @Subscribe
   @AllowConcurrentEvents
   public void handleClusterEnvConfigChangedEvent(ClusterConfigChangedEvent event) {
-    if (event.getConfigType() == ConfigHelper.CLUSTER_ENV) {
-      invalidateRecoveryTimestamp(event.getclusterName(), null);
+    if (StringUtils.equals(event.getConfigType(), ConfigHelper.CLUSTER_ENV)) {
+      invalidateRecoveryTimestamp(event.getClusterName(), null);
     }
   }
 

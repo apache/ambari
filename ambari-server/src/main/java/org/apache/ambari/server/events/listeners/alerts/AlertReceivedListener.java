@@ -42,9 +42,11 @@ import org.apache.ambari.server.state.AlertFirmness;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.alert.SourceType;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -140,7 +142,8 @@ public class AlertReceivedListener {
         continue;
       }
 
-      Long clusterId = getClusterIdByName(alert.getCluster());
+      String clusterName = alert.getCluster();
+      Long clusterId = getClusterIdByName(clusterName);
       if (clusterId == null) {
         // check event
         clusterId = event.getClusterId();
@@ -285,9 +288,10 @@ public class AlertReceivedListener {
             break;
         }
 
-        // set the firmness of the new alert state based on the state & type
-        AlertFirmness firmness = calculateFirmnessForStateChange(definition, alertState,
-            current.getOccurrences());
+        // set the firmness of the new alert state based on the state, type,
+        // occurrences, and repeat tolerance
+        AlertFirmness firmness = calculateFirmnessForStateChange(clusterName, definition,
+            alertState, current.getOccurrences());
 
         current.setFirmness(firmness);
 
@@ -537,24 +541,60 @@ public class AlertReceivedListener {
    *          calculation firmness when moving between non-OK states)
    * @return
    */
-  private AlertFirmness calculateFirmnessForStateChange(AlertDefinitionEntity definition,
+  private AlertFirmness calculateFirmnessForStateChange(String clusterName, AlertDefinitionEntity definition,
       AlertState state, long occurrences) {
+    // OK is always HARD since the alert has fulfilled the conditions
     if (state == AlertState.OK) {
       return AlertFirmness.HARD;
     }
 
+    // aggregate alerts are always HARD since they only react to HARD alerts
     if (definition.getSourceType() == SourceType.AGGREGATE) {
       return AlertFirmness.HARD;
     }
 
-    if (definition.getRepeatTolerance() <= 1) {
+    int tolerance = getRepeatTolerance(definition, clusterName);
+    if (tolerance <= 1) {
       return AlertFirmness.HARD;
     }
 
-    if (definition.getRepeatTolerance() <= occurrences) {
+    if (tolerance <= occurrences) {
       return AlertFirmness.HARD;
     }
 
     return AlertFirmness.SOFT;
+  }
+
+  /**
+   * Gets the repeat tolerance value for the specified definition. This method
+   * will return the override from the definition if
+   * {@link AlertDefinitionEntity#isRepeatToleranceEnabled()} is {@code true}.
+   * Otherwise, it uses {@link ConfigHelper#CLUSTER_ENV_ALERT_REPEAT_TOLERANCE},
+   * defaulting to {@code 1} if not found.
+   *
+   * @param definition
+   *          the definition (not {@code null}).
+   * @param clusterName
+   *          the name of the cluster (not {@code null}).
+   * @return the repeat tolerance for the alert
+   */
+  private int getRepeatTolerance(AlertDefinitionEntity definition, String clusterName) {
+
+    // if the definition overrides the global value, then use that
+    if (definition.isRepeatToleranceEnabled()) {
+      return definition.getRepeatTolerance();
+    }
+
+    int repeatTolerance = 1;
+    try {
+      Cluster cluster = m_clusters.get().getCluster(clusterName);
+      String value = cluster.getClusterProperty(ConfigHelper.CLUSTER_ENV_ALERT_REPEAT_TOLERANCE, "1");
+      repeatTolerance = NumberUtils.toInt(value, 1);
+    } catch (AmbariException ambariException) {
+      LOG.warn("Unable to read {}/{} from cluster {}, defaulting to 1", ConfigHelper.CLUSTER_ENV,
+          ConfigHelper.CLUSTER_ENV_ALERT_REPEAT_TOLERANCE, clusterName, ambariException);
+    }
+
+    return repeatTolerance;
   }
 }

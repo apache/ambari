@@ -172,7 +172,7 @@ public class UpgradeCatalog240Test {
     Capture<DBAccessor.DBColumnInfo> capturedRepeatToleranceEnabledColumnInfo = newCapture();
     Capture<DBAccessor.DBColumnInfo> capturedOccurrencesColumnInfo = newCapture();
     Capture<DBAccessor.DBColumnInfo> capturedFirmnessColumnInfo = newCapture();
-    
+
     dbAccessor.addColumn(eq(UpgradeCatalog240.ALERT_DEFINITION_TABLE), capture(capturedHelpURLColumnInfo));
     dbAccessor.addColumn(eq(UpgradeCatalog240.ALERT_DEFINITION_TABLE), capture(capturedRepeatToleranceColumnInfo));
     dbAccessor.addColumn(eq(UpgradeCatalog240.ALERT_DEFINITION_TABLE), capture(capturedRepeatToleranceEnabledColumnInfo));
@@ -302,8 +302,8 @@ public class UpgradeCatalog240Test {
     Assert.assertEquals(UpgradeCatalog240.ALERT_CURRENT_FIRMNESS_COLUMN, columnFirmnessInfo.getName());
     Assert.assertEquals(String.class, columnFirmnessInfo.getType());
     Assert.assertEquals(AlertFirmness.HARD.name(), columnFirmnessInfo.getDefaultValue());
-    Assert.assertEquals(false, columnFirmnessInfo.isNullable());    
-    
+    Assert.assertEquals(false, columnFirmnessInfo.isNullable());
+
     assertEquals(expectedCaptures, actualCaptures);
 
     // Verify blueprint_setting columns
@@ -330,6 +330,7 @@ public class UpgradeCatalog240Test {
     Method addManageUserPersistedDataPermission = UpgradeCatalog240.class.getDeclaredMethod("addManageUserPersistedDataPermission");
     Method addSettingPermission = UpgradeCatalog240.class.getDeclaredMethod("addSettingPermission");
     Method updateAmsConfigs = UpgradeCatalog240.class.getDeclaredMethod("updateAMSConfigs");
+    Method updateClusterEnv = UpgradeCatalog240.class.getDeclaredMethod("updateClusterEnv");
 
     Capture<String> capturedStatements = newCapture(CaptureType.ALL);
 
@@ -342,6 +343,7 @@ public class UpgradeCatalog240Test {
             .addMockedMethod(addSettingPermission)
             .addMockedMethod(addManageUserPersistedDataPermission)
             .addMockedMethod(updateAmsConfigs)
+            .addMockedMethod(updateClusterEnv)
             .createMock();
 
     Field field = AbstractUpgradeCatalog.class.getDeclaredField("dbAccessor");
@@ -352,6 +354,7 @@ public class UpgradeCatalog240Test {
     upgradeCatalog240.addSettingPermission();
     upgradeCatalog240.addManageUserPersistedDataPermission();
     upgradeCatalog240.updateAMSConfigs();
+    upgradeCatalog240.updateClusterEnv();
 
     replay(upgradeCatalog240, dbAccessor);
 

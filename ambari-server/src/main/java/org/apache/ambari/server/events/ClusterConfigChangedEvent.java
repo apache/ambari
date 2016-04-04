@@ -41,7 +41,7 @@ public class ClusterConfigChangedEvent extends AmbariEvent {
    *
    * @return
    */
-  public String getclusterName() {
+  public String getClusterName() {
     return m_clusterName;
   }
 
@@ -78,7 +78,7 @@ public class ClusterConfigChangedEvent extends AmbariEvent {
   @Override
   public String toString() {
     StringBuilder buffer = new StringBuilder("ClusterEnvConfigChangedEvent{");
-    buffer.append("clusterName=").append(getclusterName());
+    buffer.append("clusterName=").append(getClusterName());
     buffer.append(", configType=").append(getConfigType());
     buffer.append(", versionTag=").append(getVersionTag());
     buffer.append(", version=").append(getVersion());

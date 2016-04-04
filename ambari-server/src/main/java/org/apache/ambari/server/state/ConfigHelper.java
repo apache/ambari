@@ -17,26 +17,6 @@
  */
 package org.apache.ambari.server.state;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.collect.Maps;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import com.google.inject.persist.Transactional;
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.orm.dao.ClusterDAO;
-import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
-import org.apache.ambari.server.security.authorization.AuthorizationException;
-import org.apache.ambari.server.state.PropertyInfo.PropertyType;
-import org.apache.ambari.server.state.configgroup.ConfigGroup;
-import org.apache.ambari.server.upgrade.UpgradeCatalog170;
-import org.apache.ambari.server.utils.SecretReference;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -50,6 +30,26 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
+import org.apache.ambari.server.state.PropertyInfo.PropertyType;
+import org.apache.ambari.server.state.configgroup.ConfigGroup;
+import org.apache.ambari.server.upgrade.UpgradeCatalog170;
+import org.apache.ambari.server.utils.SecretReference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.Maps;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import com.google.inject.persist.Transactional;
 
 /**
  * Helper class that works with config traversals.
@@ -77,6 +77,7 @@ public class ConfigHelper {
   public static final String HIVE_SITE = "hive-site";
   public static final String YARN_SITE = "yarn-site";
   public static final String CLUSTER_ENV = "cluster-env";
+  public static final String CLUSTER_ENV_ALERT_REPEAT_TOLERANCE = "alerts_repeat_tolerance";
   public static final String CLUSTER_ENV_RETRY_ENABLED = "command_retry_enabled";
   public static final String CLUSTER_ENV_RETRY_COMMANDS = "commands_to_retry";
   public static final String CLUSTER_ENV_RETRY_MAX_TIME_IN_SEC = "command_retry_max_time_in_sec";

@@ -33,6 +33,7 @@ import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -404,13 +405,6 @@ public class ConfigImpl implements Config {
             // newest data
             clusterDAO.merge(clusterEntity, true);
             cluster.refresh();
-
-            // broadcast the change event for cluster-env config type
-            if (getType() == ConfigHelper.CLUSTER_ENV) {
-              ClusterConfigChangedEvent event = new ClusterConfigChangedEvent(
-                      cluster.getClusterName(), getType(), getTag(), getVersion());
-              eventPublisher.publish(event);
-            }
           }
         }
       } finally {
@@ -420,6 +414,12 @@ public class ConfigImpl implements Config {
       cluster.getClusterGlobalLock().writeLock().unlock();
     }
 
-  }
+    // broadcast the change event for cluster-env config type
+    if (StringUtils.equals(getType(), ConfigHelper.CLUSTER_ENV)) {
+      ClusterConfigChangedEvent event = new ClusterConfigChangedEvent(cluster.getClusterName(),
+          getType(), getTag(), getVersion());
 
+      eventPublisher.publish(event);
+    }
+  }
 }

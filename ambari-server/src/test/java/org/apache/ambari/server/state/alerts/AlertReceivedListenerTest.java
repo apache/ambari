@@ -754,4 +754,49 @@ public class AlertReceivedListenerTest {
     assertEquals(1, (long) allCurrent.get(0).getOccurrences());
     assertEquals(AlertFirmness.HARD, allCurrent.get(0).getFirmness());
   }
+
+  /**
+   * Tests that we correctly record alert firmness, using the global value if
+   * the definition does not override it.
+   */
+  @Test
+  public void testAlertFirmnessUsingGlobalValue() throws Exception {
+    String definitionName = ALERT_DEFINITION + "1";
+    String serviceName = "HDFS";
+    String componentName = "NAMENODE";
+    String text = serviceName + " " + componentName + " is OK";
+
+    Alert alert = new Alert(definitionName, null, serviceName, componentName, HOST1, AlertState.OK);
+    alert.setCluster(m_cluster.getClusterName());
+    alert.setLabel(ALERT_LABEL);
+    alert.setText(text);
+    alert.setTimestamp(1L);
+
+    // fire the alert, and check that the new entry was created
+    AlertReceivedListener listener = m_injector.getInstance(AlertReceivedListener.class);
+    AlertReceivedEvent event = new AlertReceivedEvent(m_cluster.getClusterId(), alert);
+    listener.onAlertEvent(event);
+
+    List<AlertCurrentEntity> allCurrent = m_dao.findCurrent();
+    assertEquals(1, allCurrent.size());
+
+    // check occurrences (should be 1 since it's the first)
+    assertEquals(1, (long) allCurrent.get(0).getOccurrences());
+    assertEquals(AlertFirmness.HARD, allCurrent.get(0).getFirmness());
+
+    // move the repeat tolerance to 2 on the definition, but leave it disabled
+    // so that we still use the global
+    AlertDefinitionEntity definition = allCurrent.get(0).getAlertHistory().getAlertDefinition();
+    definition.setRepeatTolerance(2);
+    definition.setRepeatToleranceEnabled(false);
+    m_definitionDao.merge(definition);
+
+    // change state to CRITICAL; this should make a HARD alert since the global
+    // value is in use
+    alert.setState(AlertState.CRITICAL);
+    listener.onAlertEvent(event);
+    allCurrent = m_dao.findCurrent();
+    assertEquals(1, (long) allCurrent.get(0).getOccurrences());
+    assertEquals(AlertFirmness.HARD, allCurrent.get(0).getFirmness());
+  }
 }

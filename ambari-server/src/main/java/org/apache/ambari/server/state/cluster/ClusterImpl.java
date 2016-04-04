@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -48,7 +49,6 @@ import org.apache.ambari.server.ParentObjectNotFoundException;
 import org.apache.ambari.server.ServiceComponentHostNotFoundException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
-import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
@@ -60,6 +60,7 @@ import org.apache.ambari.server.controller.RootServiceResponseFactory.Services;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
 import org.apache.ambari.server.controller.internal.UpgradeResourceProvider;
 import org.apache.ambari.server.events.AmbariEvent.AmbariEventType;
+import org.apache.ambari.server.events.ClusterConfigChangedEvent;
 import org.apache.ambari.server.events.ClusterEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.RequiresSession;
@@ -74,7 +75,6 @@ import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
-import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.dao.TopologyRequestDAO;
@@ -93,7 +93,6 @@ import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
-import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.orm.entities.RequestScheduleEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
@@ -148,6 +147,7 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.assistedinject.Assisted;
@@ -225,9 +225,6 @@ public class ClusterImpl implements Cluster {
   private HostRoleCommandDAO hostRoleCommandDAO;
 
   @Inject
-  private RequestDAO requestDAO;
-
-  @Inject
   private HostDAO hostDAO;
 
   @Inject
@@ -292,15 +289,21 @@ public class ClusterImpl implements Cluster {
   private volatile Multimap<String, String> serviceConfigTypes;
 
   /**
-   * Used to publish events relating to cluster CRUD operations.
+   * Used to publish events relating to cluster CRUD operations and to receive
+   * information about cluster operations.
    */
-  @Inject
   private AmbariEventPublisher eventPublisher;
 
+  /**
+   * A simple cache for looking up {@code cluster-env} properties for a cluster.
+   * This map is changed whenever {{cluster-env}} is changed and we receive a
+   * {@link ClusterConfigChangedEvent}.
+   */
+  private Map<String, String> m_clusterPropertyCache = new ConcurrentHashMap<>();
 
   @Inject
   public ClusterImpl(@Assisted ClusterEntity clusterEntity,
-                     Injector injector) throws AmbariException {
+      Injector injector, AmbariEventPublisher eventPublisher) throws AmbariException {
     injector.injectMembers(this);
 
     clusterId = clusterEntity.getClusterId();
@@ -321,6 +324,10 @@ public class ClusterImpl implements Cluster {
 
     // Load any active stack upgrades.
     loadStackUpgrade();
+
+    // register to receive stuff
+    eventPublisher.register(this);
+    this.eventPublisher = eventPublisher;
   }
 
 
@@ -346,9 +353,9 @@ public class ClusterImpl implements Cluster {
     clusterGlobalLock.writeLock().lock();
 
     try {
-      UpgradeEntity activeUpgrade = this.getUpgradeInProgress();
+      UpgradeEntity activeUpgrade = getUpgradeInProgress();
       if (activeUpgrade != null) {
-        this.setUpgradeEntity(activeUpgrade);
+        setUpgradeEntity(activeUpgrade);
       }
     } catch (AmbariException e) {
       LOG.error("Unable to load active stack upgrade. Error: " + e.getMessage());
@@ -1189,7 +1196,7 @@ public class ClusterImpl implements Cluster {
    * @return
    */
   private UpgradeEntity getUpgradeInProgress() {
-    UpgradeEntity mostRecentUpgrade = upgradeDAO.findLastUpgradeOrDowngradeForCluster(this.getClusterId());
+    UpgradeEntity mostRecentUpgrade = upgradeDAO.findLastUpgradeOrDowngradeForCluster(getClusterId());
     if (mostRecentUpgrade != null) {
       List<HostRoleStatus> UNFINISHED_STATUSES = new ArrayList();
       UNFINISHED_STATUSES.add(HostRoleStatus.PENDING);
@@ -1217,16 +1224,16 @@ public class ClusterImpl implements Cluster {
   @Override
   public ClusterVersionEntity getEffectiveClusterVersion() throws AmbariException {
     // This is not reliable. Need to find the last upgrade request.
-    UpgradeEntity upgradeInProgress = this.getUpgradeEntity();
+    UpgradeEntity upgradeInProgress = getUpgradeEntity();
     if (upgradeInProgress == null) {
-      return this.getCurrentClusterVersion();
+      return getCurrentClusterVersion();
     }
 
     String effectiveVersion = null;
     switch (upgradeInProgress.getUpgradeType()) {
       case NON_ROLLING:
         if (upgradeInProgress.getDirection() == Direction.UPGRADE) {
-          boolean pastChangingStack = this.isNonRollingUpgradePastUpgradingStack(upgradeInProgress);
+          boolean pastChangingStack = isNonRollingUpgradePastUpgradingStack(upgradeInProgress);
           effectiveVersion = pastChangingStack ? upgradeInProgress.getToVersion() : upgradeInProgress.getFromVersion();
         } else {
           // Should be the lower value during a Downgrade.
@@ -2521,6 +2528,7 @@ public class ClusterImpl implements Cluster {
     return serviceName;
   }
 
+  @Override
   public String getServiceByConfigType(String configType) {
     for (Entry<String, String> entry : serviceConfigTypes.entries()) {
       String serviceName = entry.getKey();
@@ -3638,5 +3646,61 @@ public class ClusterImpl implements Cluster {
     }
 
     return false;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String getClusterProperty(String propertyName, String defaultValue) {
+    String cachedValue = m_clusterPropertyCache.get(propertyName);
+    if (null != cachedValue) {
+      return cachedValue;
+    }
+
+    // start with the default
+    cachedValue = defaultValue;
+
+    Config clusterEnv = getDesiredConfigByType(ConfigHelper.CLUSTER_ENV);
+    if (null != clusterEnv) {
+      Map<String, String> clusterEnvProperties = clusterEnv.getProperties();
+      if (clusterEnvProperties.containsKey(propertyName)) {
+        String value = clusterEnvProperties.get(propertyName);
+        if (null != value) {
+          cachedValue = value;
+        }
+      }
+    }
+
+    // cache the value and return it
+    m_clusterPropertyCache.put(propertyName, cachedValue);
+    return cachedValue;
+  }
+
+  /**
+   * Gets whether the specified cluster property is already cached.
+   *
+   * @param propertyName
+   *          the property to check.
+   * @return {@code true} if the property is cached.
+   */
+  boolean isClusterPropertyCached(String propertyName) {
+    return m_clusterPropertyCache.containsKey(propertyName);
+  }
+
+  /**
+   * Handles {@link ClusterConfigChangedEvent} which means that the
+   * {{cluster-env}} may have changed.
+   *
+   * @param event
+   *          the change event.
+   */
+  @Subscribe
+  public void handleClusterEnvConfigChangedEvent(ClusterConfigChangedEvent event) {
+    if (!StringUtils.equals(event.getConfigType(), ConfigHelper.CLUSTER_ENV)) {
+      return;
+    }
+
+    m_clusterPropertyCache.clear();
   }
 }

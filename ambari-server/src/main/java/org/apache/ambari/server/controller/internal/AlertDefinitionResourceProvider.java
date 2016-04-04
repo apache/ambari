@@ -619,14 +619,17 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
       managed = true;
     }
 
-    if (null != repeatTolerance) {
-      entity.setRepeatTolerance(repeatTolerance);
-      managed = true;
-    }
+    // repeat tolerance is only for non-AGGREGATE alerts
+    if (entity.getSourceType() != SourceType.AGGREGATE) {
+      if (null != repeatTolerance) {
+        entity.setRepeatTolerance(repeatTolerance);
+        managed = true;
+      }
 
-    if (null != repeatToleranceEnabled) {
-      entity.setRepeatToleranceEnabled(repeatToleranceEnabled);
-      managed = true;
+      if (null != repeatToleranceEnabled) {
+        entity.setRepeatToleranceEnabled(repeatToleranceEnabled);
+        managed = true;
+      }
     }
 
     if (managed) {

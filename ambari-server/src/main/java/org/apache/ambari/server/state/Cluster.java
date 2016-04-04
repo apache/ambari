@@ -27,6 +27,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ClusterResponse;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
+import org.apache.ambari.server.events.ClusterConfigChangedEvent;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
@@ -677,4 +678,22 @@ public interface Cluster {
    *         otherwise returns null.
    */
   String getServiceByConfigType(String configType);
+
+  /**
+   * Gets the most recent value of {@code cluster-env/propertyName} where
+   * {@code propertyName} is the paramter specified to the method. This will use
+   * the desired configuration for {@code cluster-env}.
+   * <p/>
+   * The value is cached on this {@link Cluster} instance, so subsequent calls
+   * will not inclur a lookup penalty. This class also responds to
+   * {@link ClusterConfigChangedEvent} in order to clear the cache.
+   *
+   * @param propertyName
+   *          the property to lookup in {@code cluster-env} (not {@code null}).
+   * @param defaultValue
+   *          a default value to cache return if none exists (may be
+   *          {@code null}).
+   * @return
+   */
+  String getClusterProperty(String propertyName, String defaultValue);
 }

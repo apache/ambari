@@ -20,6 +20,7 @@ package org.apache.ambari.server.state.cluster;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -55,6 +56,8 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ClusterResponse;
 import org.apache.ambari.server.controller.ConfigurationResponse;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
+import org.apache.ambari.server.events.ClusterConfigChangedEvent;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -70,7 +73,6 @@ import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ClusterConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
-import org.apache.ambari.server.orm.entities.ClusterStateEntity;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
@@ -88,6 +90,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.ConfigImpl;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
@@ -108,10 +111,10 @@ import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.host.HostHealthyHeartbeatEvent;
 import org.apache.ambari.server.state.host.HostRegistrationRequestEvent;
+import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.apache.commons.lang.StringUtils;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -931,24 +934,6 @@ public class ClusterTest {
 
     Assert.assertNotNull("Expect host-level overrides", dc.getHostOverrides());
     Assert.assertEquals("Expect one host-level override", 1, dc.getHostOverrides().size());
-  }
-
-  @Test
-  @Ignore
-  // Test clearly depends on a detached reference used to create
-  // in-memory objects. Based on the timeline this is a very old test with
-  // assertions that are not too meaningful.
-  public void testClusterRecovery() throws AmbariException {
-    ClusterEntity entity = createDummyData();
-    ClusterStateEntity clusterStateEntity = new ClusterStateEntity();
-    clusterStateEntity.setCurrentStack(entity.getDesiredStack());
-    entity.setClusterStateEntity(clusterStateEntity);
-    ClusterImpl cluster = new ClusterImpl(entity, injector);
-    Service service = cluster.getService("HDFS");
-    /* make sure the services are recovered */
-    Assert.assertEquals("HDFS", service.getName());
-    Map<String, Service> services = cluster.getServices();
-    Assert.assertNotNull(services.get("HDFS"));
   }
 
   @Test
@@ -2515,5 +2500,35 @@ public class ClusterTest {
 
     clusterConfigs = clusterDAO.getAllConfigurations(cluster.getClusterId(), newStackId);
     Assert.assertEquals(0, clusterConfigs.size());
+  }
+
+  /**
+   * Tests that properties request from {@code cluster-env} are correctly cached
+   * and invalidated.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testCachedClusterProperties() throws Exception {
+    EventBusSynchronizer.synchronizeAmbariEventPublisher(injector);
+    AmbariEventPublisher publisher = injector.getInstance(AmbariEventPublisher.class);
+
+    createDefaultCluster();
+    Cluster cluster = clusters.getCluster("c1");
+
+    assertFalse(((ClusterImpl) cluster).isClusterPropertyCached("foo"));
+
+    String property = cluster.getClusterProperty("foo", "bar");
+    assertEquals("bar", property);
+
+    assertTrue(((ClusterImpl) cluster).isClusterPropertyCached("foo"));
+
+    // cause a cache invalidation
+    ClusterConfigChangedEvent event = new ClusterConfigChangedEvent(cluster.getClusterName(),
+        ConfigHelper.CLUSTER_ENV, null, 1L);
+
+    publisher.publish(event);
+
+    assertFalse(((ClusterImpl) cluster).isClusterPropertyCached("foo"));
   }
 }
