@@ -53,6 +53,7 @@ import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.StackDAO;
+import org.apache.ambari.server.state.AlertFirmness;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
 import org.easymock.CaptureType;
@@ -170,10 +171,13 @@ public class UpgradeCatalog240Test {
     Capture<DBAccessor.DBColumnInfo> capturedRepeatToleranceColumnInfo = newCapture();
     Capture<DBAccessor.DBColumnInfo> capturedRepeatToleranceEnabledColumnInfo = newCapture();
     Capture<DBAccessor.DBColumnInfo> capturedOccurrencesColumnInfo = newCapture();
+    Capture<DBAccessor.DBColumnInfo> capturedFirmnessColumnInfo = newCapture();
+    
     dbAccessor.addColumn(eq(UpgradeCatalog240.ALERT_DEFINITION_TABLE), capture(capturedHelpURLColumnInfo));
     dbAccessor.addColumn(eq(UpgradeCatalog240.ALERT_DEFINITION_TABLE), capture(capturedRepeatToleranceColumnInfo));
     dbAccessor.addColumn(eq(UpgradeCatalog240.ALERT_DEFINITION_TABLE), capture(capturedRepeatToleranceEnabledColumnInfo));
     dbAccessor.addColumn(eq(UpgradeCatalog240.ALERT_CURRENT_TABLE), capture(capturedOccurrencesColumnInfo));
+    dbAccessor.addColumn(eq(UpgradeCatalog240.ALERT_CURRENT_TABLE), capture(capturedFirmnessColumnInfo));
 
     // Test creation of blueprint_setting table
     Capture<List<DBAccessor.DBColumnInfo>> capturedBlueprintSettingColumns = EasyMock.newCapture();
@@ -289,9 +293,16 @@ public class UpgradeCatalog240Test {
     DBAccessor.DBColumnInfo columnOccurrencesInfo = capturedOccurrencesColumnInfo.getValue();
     Assert.assertNotNull(columnOccurrencesInfo);
     Assert.assertEquals(UpgradeCatalog240.ALERT_CURRENT_OCCURRENCES_COLUMN, columnOccurrencesInfo.getName());
-    Assert.assertEquals(Integer.class, columnOccurrencesInfo.getType());
+    Assert.assertEquals(Long.class, columnOccurrencesInfo.getType());
     Assert.assertEquals(1, columnOccurrencesInfo.getDefaultValue());
-    Assert.assertEquals(false, columnOccurrencesInfo.isNullable());    
+    Assert.assertEquals(false, columnOccurrencesInfo.isNullable());
+
+    DBAccessor.DBColumnInfo columnFirmnessInfo = capturedFirmnessColumnInfo.getValue();
+    Assert.assertNotNull(columnFirmnessInfo);
+    Assert.assertEquals(UpgradeCatalog240.ALERT_CURRENT_FIRMNESS_COLUMN, columnFirmnessInfo.getName());
+    Assert.assertEquals(String.class, columnFirmnessInfo.getType());
+    Assert.assertEquals(AlertFirmness.HARD.name(), columnFirmnessInfo.getDefaultValue());
+    Assert.assertEquals(false, columnFirmnessInfo.isNullable());    
     
     assertEquals(expectedCaptures, actualCaptures);
 

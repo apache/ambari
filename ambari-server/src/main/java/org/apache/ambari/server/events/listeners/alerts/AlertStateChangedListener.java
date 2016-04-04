@@ -33,6 +33,7 @@ import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.orm.entities.AlertNoticeEntity;
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
 import org.apache.ambari.server.state.Alert;
+import org.apache.ambari.server.state.AlertFirmness;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.NotificationState;
@@ -48,6 +49,9 @@ import com.google.inject.Singleton;
  * The {@link AlertStateChangedListener} class response to
  * {@link AlertStateChangeEvent} and updates {@link AlertNoticeEntity} instances
  * in the database.
+ * <p/>
+ * {@link AlertNoticeEntity} instances will only be updated if the firmness of
+ * the alert is {@link AlertFirmness#HARD}.
  */
 @Singleton
 @EagerSingleton
@@ -65,10 +69,10 @@ public class AlertStateChangedListener {
   private static final Logger ALERT_LOG = LoggerFactory.getLogger("alerts");
 
   /**
-   * [CRITICAL] [HDFS] [namenode_hdfs_blocks_health] (NameNode Blocks Health)
-   * Total Blocks:[100], Missing Blocks:[6]
+   * [CRITICAL] [HARD] [HDFS] [namenode_hdfs_blocks_health] (NameNode Blocks
+   * Health) Total Blocks:[100], Missing Blocks:[6]
    */
-  private static final String ALERT_LOG_MESSAGE = "[{}] [{}] [{}] ({}) {}";
+  private static final String ALERT_LOG_MESSAGE = "[{}] [{}] [{}] [{}] ({}) {}";
 
   /**
    * Used for looking up groups and targets.
@@ -100,18 +104,19 @@ public class AlertStateChangedListener {
     LOG.debug("Received event {}", event);
 
     Alert alert = event.getAlert();
+    AlertCurrentEntity current = event.getCurrentAlert();
     AlertHistoryEntity history = event.getNewHistoricalEntry();
     AlertDefinitionEntity definition = history.getAlertDefinition();
 
     // log to the alert audit log so there is physical record even if
     // definitions and historical enties are removed
-    ALERT_LOG.info(ALERT_LOG_MESSAGE, alert.getState(),
+    ALERT_LOG.info(ALERT_LOG_MESSAGE, alert.getState(), current.getFirmness(),
         definition.getServiceName(), definition.getDefinitionName(),
         definition.getLabel(), alert.getText());
 
-    // normal logging for Ambari
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("An alert has changed state: {}", event);
+    // do nothing if the firmness is SOFT
+    if (current.getFirmness() == AlertFirmness.SOFT) {
+      return;
     }
 
     // don't create any outbound alert notices if in MM
@@ -144,6 +149,7 @@ public class AlertStateChangedListener {
         notices.add(notice);
       }
     }
+
     m_alertsDispatchDao.createNotices(notices);
   }
 

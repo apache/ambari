@@ -33,6 +33,7 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
+import org.apache.ambari.server.state.AlertFirmness;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.MaintenanceState;
 
@@ -92,7 +93,11 @@ public class AlertCurrentEntity {
    *
    */
   @Column(name="occurrences", nullable=false)
-  private Integer occurrences = Integer.valueOf(1);
+  private Long occurrences = Long.valueOf(1);
+
+  @Column(name = "firmness", nullable = false)
+  @Enumerated(value = EnumType.STRING)
+  private AlertFirmness firmness = AlertFirmness.HARD;
 
   /**
    * Unidirectional one-to-one association to {@link AlertHistoryEntity}
@@ -221,7 +226,7 @@ public class AlertCurrentEntity {
    *
    * @return the number of occurrences.
    */
-  public Integer getOccurrences() {
+  public Long getOccurrences() {
     return occurrences;
   }
 
@@ -233,7 +238,7 @@ public class AlertCurrentEntity {
    * @see #getOccurrences()
    *
    */
-  public void setOccurrences(int occurrences) {
+  public void setOccurrences(long occurrences) {
     this.occurrences = occurrences;
   }
 
@@ -241,8 +246,29 @@ public class AlertCurrentEntity {
    * @param occurrences
    *          the occurrences to set
    */
-  public void setOccurrences(Integer occurrences) {
+  public void setOccurrences(Long occurrences) {
     this.occurrences = occurrences;
+  }
+
+  /**
+   * Gets the firmness of the alert, indicating whether or not it could be a
+   * potential false positive.
+   *
+   * @return the alert firmness.
+   */
+  public AlertFirmness getFirmness() {
+    return firmness;
+  }
+
+  /**
+   * Sets the firmness of the alert, indicating whether or not it could be a
+   * potential false positive.
+   *
+   * @param firmness
+   *          the firmness (not {@code null}).
+   */
+  public void setFirmness(AlertFirmness firmness) {
+    this.firmness = firmness;
   }
 
   /**

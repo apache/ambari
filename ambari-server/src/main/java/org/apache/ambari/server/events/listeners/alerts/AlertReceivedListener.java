@@ -17,9 +17,8 @@
  */
 package org.apache.ambari.server.events.listeners.alerts;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;
@@ -39,10 +38,12 @@ import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.state.Alert;
+import org.apache.ambari.server.state.AlertFirmness;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.alert.SourceType;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -122,13 +123,15 @@ public class AlertReceivedListener {
       LOG.debug(event.toString());
     }
 
-    //play around too many commits
+    // process the list of alerts inside of a single transaction to prevent too
+    // many transactions/commits
     List<Alert> alerts = event.getAlerts();
 
-    Map<Alert, AlertCurrentEntity> toCreate = new HashMap<Alert, AlertCurrentEntity>();
-    Map<Alert, AlertCurrentEntity> toMerge = new HashMap<Alert, AlertCurrentEntity>();
-    Map<Alert, AlertCurrentEntity> toCreateHistoryAndMerge = new HashMap<Alert, AlertCurrentEntity>();
-    Map<Alert, AlertState> oldStates = new HashMap<Alert, AlertState>();
+    List<AlertCurrentEntity> toCreate = new ArrayList<>();
+    List<AlertCurrentEntity> toMerge = new ArrayList<>();
+    List<AlertCurrentEntity> toCreateHistoryAndMerge = new ArrayList<>();
+
+    List<AlertEvent> alertEvents = new ArrayList<>(20);
 
     for (Alert alert : alerts) {
       // jobs that were running when a service/component/host was changed
@@ -139,7 +142,7 @@ public class AlertReceivedListener {
 
       Long clusterId = getClusterIdByName(alert.getCluster());
       if (clusterId == null) {
-        //check event
+        // check event
         clusterId = event.getClusterId();
       }
 
@@ -199,21 +202,45 @@ public class AlertReceivedListener {
         current.setLatestTimestamp(alert.getTimestamp());
         current.setOriginalTimestamp(alert.getTimestamp());
 
-        toCreate.put(alert, current);
+        // brand new alert instances being received are always HARD
+        current.setFirmness(AlertFirmness.HARD);
+
+        // store the entity for creation later
+        toCreate.add(current);
+
+        // create the event to fire later
+        alertEvents.add(new InitialAlertEvent(clusterId, alert, current));
 
       } else if (alertState == current.getAlertHistory().getAlertState()
           || alertState == AlertState.SKIPPED) {
 
-        // update the timestamp
+        // update the timestamp no matter what
         current.setLatestTimestamp(alert.getTimestamp());
 
-        // only update some fields if the alert isn't being skipped
+        // only update some fields if the alert isn't SKIPPED
         if (alertState != AlertState.SKIPPED) {
           current.setLatestText(alert.getText());
-          current.setOccurrences(current.getOccurrences() + 1);
+
+          // ++ the occurrences (should be safe enough since we should ever only
+          // be handling unique alert events concurrently
+          long occurrences = current.getOccurrences() + 1;
+          current.setOccurrences(occurrences);
+
+          // ensure that if we've met the repeat tolerance and the alert is
+          // still SOFT, then we transition it to HARD - we also need to fire an
+          // event
+          AlertFirmness currentFirmness = current.getFirmness();
+          int repeatTolerance = definition.getRepeatTolerance();
+          if (currentFirmness == AlertFirmness.SOFT && occurrences >= repeatTolerance) {
+            current.setFirmness(AlertFirmness.HARD);
+
+            // create the event to fire later
+            alertEvents.add(new AlertStateChangeEvent(clusterId, alert, current, alertState));
+          }
         }
 
-        toMerge.put(alert, current);
+        // store the entity for merging later
+        toMerge.add(current);
       } else {
         if (LOG.isDebugEnabled()) {
           LOG.debug(
@@ -258,8 +285,17 @@ public class AlertReceivedListener {
             break;
         }
 
-        toCreateHistoryAndMerge.put(alert, current);
-        oldStates.put(alert, oldState);
+        // set the firmness of the new alert state based on the state & type
+        AlertFirmness firmness = calculateFirmnessForStateChange(definition, alertState,
+            current.getOccurrences());
+
+        current.setFirmness(firmness);
+
+        // store the entity for merging later
+        toCreateHistoryAndMerge.add(current);
+
+        // create the event to fire later
+        alertEvents.add(new AlertStateChangeEvent(clusterId, alert, current, oldState));
       }
     }
 
@@ -268,38 +304,8 @@ public class AlertReceivedListener {
     saveEntities(toCreate, toMerge, toCreateHistoryAndMerge);
 
     // broadcast events
-    for (Map.Entry<Alert, AlertCurrentEntity> entry : toCreate.entrySet()) {
-      Alert alert = entry.getKey();
-      AlertCurrentEntity entity = entry.getValue();
-      Long clusterId = getClusterIdByName(alert.getCluster());
-      if (clusterId == null) {
-        //super rare case, cluster was removed after isValid() check
-        LOG.error("Unable to process alert {} for an invalid cluster named {}",
-          alert.getName(), alert.getCluster());
-        continue;
-      }
-
-      InitialAlertEvent initialAlertEvent = new InitialAlertEvent(
-        clusterId, alert, entity);
-
-      m_alertEventPublisher.publish(initialAlertEvent);
-    }
-
-    for (Map.Entry<Alert, AlertCurrentEntity> entry : toCreateHistoryAndMerge.entrySet()) {
-      Alert alert = entry.getKey();
-      AlertCurrentEntity entity = entry.getValue();
-      Long clusterId = getClusterIdByName(alert.getCluster());
-      if (clusterId == null) {
-        //super rare case, cluster was removed after isValid() check
-        LOG.error("Unable to process alert {} for an invalid cluster named {}",
-          alert.getName(), alert.getCluster());
-        continue;
-      }
-
-      AlertStateChangeEvent alertChangedEvent = new AlertStateChangeEvent(clusterId, alert, entity,
-        oldStates.get(alert));
-
-      m_alertEventPublisher.publish(alertChangedEvent);
+    for (AlertEvent eventToFire : alertEvents) {
+      m_alertEventPublisher.publish(eventToFire);
     }
   }
 
@@ -325,20 +331,17 @@ public class AlertReceivedListener {
    * @param toCreateHistoryAndMerge - create new history, merge alert
    */
   @Transactional
-  void saveEntities(Map<Alert, AlertCurrentEntity> toCreate,
-      Map<Alert, AlertCurrentEntity> toMerge,
-      Map<Alert, AlertCurrentEntity> toCreateHistoryAndMerge) {
-    for (Map.Entry<Alert, AlertCurrentEntity> entry : toCreate.entrySet()) {
-      AlertCurrentEntity entity = entry.getValue();
+  void saveEntities(List<AlertCurrentEntity> toCreate, List<AlertCurrentEntity> toMerge,
+      List<AlertCurrentEntity> toCreateHistoryAndMerge) {
+    for (AlertCurrentEntity entity : toCreate) {
       m_alertsDao.create(entity);
     }
 
-    for (AlertCurrentEntity entity : toMerge.values()) {
+    for (AlertCurrentEntity entity : toMerge) {
       m_alertsDao.merge(entity, m_configuration.isAlertCacheEnabled());
     }
 
-    for (Map.Entry<Alert, AlertCurrentEntity> entry : toCreateHistoryAndMerge.entrySet()) {
-      AlertCurrentEntity entity = entry.getValue();
+    for (AlertCurrentEntity entity : toCreateHistoryAndMerge) {
       m_alertsDao.create(entity.getAlertHistory());
       m_alertsDao.merge(entity);
 
@@ -480,7 +483,7 @@ public class AlertReceivedListener {
   }
 
   /**
-   * Convenience to create a new alert.
+   * Convenience method to create a new historical alert.
    *
    * @param clusterId
    *          the cluster id
@@ -511,5 +514,47 @@ public class AlertReceivedListener {
     }
 
     return history;
+  }
+
+  /**
+   * Gets the firmness for an {@link AlertCurrentEntity}. The following rules
+   * apply:
+   * <ul>
+   * <li>If an alert is {@link AlertState#OK}, then the firmness is always
+   * {@link AlertFirmness#HARD}.</li>
+   * <li>If an alert is {@link SourceType#AGGREGATE}, then the firmness is
+   * always {@link AlertFirmness#HARD}.</li>
+   * <li>Otherwise, the firmness will be {@link AlertFirmness#SOFT} unless the
+   * repeat tolerance has been met.</li>
+   * </ul>
+   *
+   * @param definition
+   *          the definition to read any repeat tolerance overrides from.
+   * @param state
+   *          the state of the {@link AlertCurrentEntity}.
+   * @param the
+   *          occurrences of the alert in the current state (used for
+   *          calculation firmness when moving between non-OK states)
+   * @return
+   */
+  private AlertFirmness calculateFirmnessForStateChange(AlertDefinitionEntity definition,
+      AlertState state, long occurrences) {
+    if (state == AlertState.OK) {
+      return AlertFirmness.HARD;
+    }
+
+    if (definition.getSourceType() == SourceType.AGGREGATE) {
+      return AlertFirmness.HARD;
+    }
+
+    if (definition.getRepeatTolerance() <= 1) {
+      return AlertFirmness.HARD;
+    }
+
+    if (definition.getRepeatTolerance() <= occurrences) {
+      return AlertFirmness.HARD;
+    }
+
+    return AlertFirmness.SOFT;
   }
 }

@@ -188,50 +188,96 @@ public class Alert {
     this.cluster = cluster;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public int hashCode() {
-    int result = alertHashCode();
-
-    result += 31 * result + (null != instance ? instance.hashCode() : 0);
-
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((state == null) ? 0 : state.hashCode());
+    result = prime * result + ((name == null) ? 0 : name.hashCode());
+    result = prime * result + ((service == null) ? 0 : service.hashCode());
+    result = prime * result + ((component == null) ? 0 : component.hashCode());
+    result = prime * result + ((hostName == null) ? 0 : hostName.hashCode());
+    result = prime * result + ((cluster == null) ? 0 : cluster.hashCode());
+    result = prime * result + ((instance == null) ? 0 : instance.hashCode());
     return result;
   }
 
   /**
-   * An alert's uniqueness comes from a combination of name, instance, service,
-   * component and host.
+   * {@inheritDoc}
    */
   @Override
-  public boolean equals(Object o) {
-    if (null == o || !Alert.class.isInstance(o)) {
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+
+    if (obj == null) {
       return false;
     }
 
-    return hashCode() == o.hashCode();
-  }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
 
-  /**
-   * @return the hashcode of the alert without instance info
-   */
-  private int alertHashCode() {
-    int result = (null != name) ? name.hashCode() : 0;
-    result += 31 * result + (null != service ? service.hashCode() : 0);
-    result += 31 * result + (null != component ? component.hashCode() : 0);
-    result += 31 * result + (null != hostName ? hostName.hashCode() : 0);
+    Alert other = (Alert) obj;
 
-    return result;
-  }
+    if (state != other.state) {
+      return false;
+    }
 
-  /**
-   * Checks equality with another alert, not taking into account instance info
-   *
-   * @param that
-   *          the other alert to compare against
-   * @return <code>true</code> when the alert is equal in every way except the
-   *         instance info
-   */
-  public boolean almostEquals(Alert that) {
-    return alertHashCode() == that.alertHashCode();
+    if (name == null) {
+      if (other.name != null) {
+        return false;
+      }
+    } else if (!name.equals(other.name)) {
+      return false;
+    }
+
+    if (service == null) {
+      if (other.service != null) {
+        return false;
+      }
+    } else if (!service.equals(other.service)) {
+      return false;
+    }
+
+    if (component == null) {
+      if (other.component != null) {
+        return false;
+      }
+    } else if (!component.equals(other.component)) {
+      return false;
+    }
+
+    if (hostName == null) {
+      if (other.hostName != null) {
+        return false;
+      }
+    } else if (!hostName.equals(other.hostName)) {
+      return false;
+    }
+
+    if (cluster == null) {
+      if (other.cluster != null) {
+        return false;
+      }
+    } else if (!cluster.equals(other.cluster)) {
+      return false;
+    }
+
+    if (instance == null) {
+      if (other.instance != null) {
+        return false;
+      }
+    } else if (!instance.equals(other.instance)) {
+      return false;
+    }
+
+
+    return true;
   }
 
   @Override

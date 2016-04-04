@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.google.inject.Provider;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.events.AggregateAlertRecalculateEvent;
@@ -32,7 +31,9 @@ import org.apache.ambari.server.events.InitialAlertEvent;
 import org.apache.ambari.server.events.publishers.AlertEventPublisher;
 import org.apache.ambari.server.orm.dao.AlertSummaryDTO;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
+import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
 import org.apache.ambari.server.state.Alert;
+import org.apache.ambari.server.state.AlertFirmness;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.alert.AggregateDefinitionMapping;
@@ -47,6 +48,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.eventbus.AllowConcurrentEvents;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
 /**
@@ -56,7 +58,10 @@ import com.google.inject.Singleton;
  * <p/>
  * This listener is only needed on state changes as aggregation of alerts is
  * only performed against the state of an alert and not the values that
- * contributed to that state.
+ * contributed to that state. However, this listener should only be concerned
+ * with {@link AlertFirmness#HARD} events as they represent a true change in the
+ * state of an alert. Calculations should never be performed on
+ * {@link AlertFirmness#SOFT} alerts since they may be false positives.
  */
 @Singleton
 @EagerSingleton
@@ -117,6 +122,12 @@ public class AlertAggregateListener {
   @Subscribe
   public void onAlertStateChangeEvent(AlertStateChangeEvent event) {
     LOG.debug("Received event {}", event);
+
+    // do not recalculate on SOFT events
+    AlertCurrentEntity currentEntity = event.getCurrentAlert();
+    if (currentEntity.getFirmness() == AlertFirmness.SOFT) {
+      return;
+    }
 
     onAlertEvent(event.getClusterId(), event.getAlert().getName());
   }

@@ -25,6 +25,7 @@ import java.util.UUID;
 import org.apache.ambari.server.controller.RootServiceResponseFactory.Components;
 import org.apache.ambari.server.controller.RootServiceResponseFactory.Services;
 import org.apache.ambari.server.events.AlertReceivedEvent;
+import org.apache.ambari.server.events.AlertStateChangeEvent;
 import org.apache.ambari.server.events.listeners.alerts.AlertReceivedListener;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -34,6 +35,7 @@ import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.state.Alert;
+import org.apache.ambari.server.state.AlertFirmness;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -528,29 +530,228 @@ public class AlertReceivedListenerTest {
     assertEquals(1, allCurrent.size());
 
     // check occurrences (should be 1 since it's the first)
-    assertEquals(1, (int) allCurrent.get(0).getOccurrences());
+    assertEquals(1, (long) allCurrent.get(0).getOccurrences());
 
     // send OK again, then check that the value incremented
     listener.onAlertEvent(event);
     allCurrent = m_dao.findCurrent();
-    assertEquals(2, (int) allCurrent.get(0).getOccurrences());
+    assertEquals(2, (long) allCurrent.get(0).getOccurrences());
 
     // now change to WARNING and check that it reset the counter
     alert.setState(AlertState.WARNING);
     listener.onAlertEvent(event);
     allCurrent = m_dao.findCurrent();
-    assertEquals(1, (int) allCurrent.get(0).getOccurrences());
+    assertEquals(1, (long) allCurrent.get(0).getOccurrences());
 
     // send another WARNING
     listener.onAlertEvent(event);
     allCurrent = m_dao.findCurrent();
-    assertEquals(2, (int) allCurrent.get(0).getOccurrences());
+    assertEquals(2, (long) allCurrent.get(0).getOccurrences());
 
     // now change from WARNING to CRITICAL; because they are both non-OK states,
     // the counter should continue
     alert.setState(AlertState.CRITICAL);
     listener.onAlertEvent(event);
     allCurrent = m_dao.findCurrent();
-    assertEquals(3, (int) allCurrent.get(0).getOccurrences());
+    assertEquals(3, (long) allCurrent.get(0).getOccurrences());
+  }
+
+  /**
+   * Tests that we correctly record alert firmness depending on several factors,
+   * such as {@link AlertState} and {@link SourceType}.
+   */
+  @Test
+  public void testAlertFirmness() throws Exception {
+    String definitionName = ALERT_DEFINITION + "1";
+    String serviceName = "HDFS";
+    String componentName = "NAMENODE";
+    String text = serviceName + " " + componentName + " is OK";
+
+    // start out with a critical alert to verify that all new alerts are always
+    // HARD
+    Alert alert = new Alert(definitionName, null, serviceName, componentName, HOST1,
+        AlertState.CRITICAL);
+
+    alert.setCluster(m_cluster.getClusterName());
+    alert.setLabel(ALERT_LABEL);
+    alert.setText(text);
+    alert.setTimestamp(1L);
+
+    // fire the alert, and check that the new entry was created with the right
+    // timestamp
+    AlertReceivedListener listener = m_injector.getInstance(AlertReceivedListener.class);
+    AlertReceivedEvent event = new AlertReceivedEvent(m_cluster.getClusterId(), alert);
+    listener.onAlertEvent(event);
+
+    List<AlertCurrentEntity> allCurrent = m_dao.findCurrent();
+    assertEquals(1, allCurrent.size());
+
+    // check occurrences (should be 1 since it's the first)
+    assertEquals(1, (long) allCurrent.get(0).getOccurrences());
+
+    // check that the state is HARD since it's the first alert
+    assertEquals(AlertFirmness.HARD, allCurrent.get(0).getFirmness());
+
+    // move the repeat tolerance to 2 to test out SOFT alerts
+    AlertDefinitionEntity definition = allCurrent.get(0).getAlertHistory().getAlertDefinition();
+    definition.setRepeatTolerance(2);
+    definition.setRepeatToleranceEnabled(true);
+
+    m_definitionDao.merge(definition);
+
+    // change state to OK, and ensure that all OK alerts are hard
+    alert.setState(AlertState.OK);
+    listener.onAlertEvent(event);
+    allCurrent = m_dao.findCurrent();
+    assertEquals(1, (long) allCurrent.get(0).getOccurrences());
+    assertEquals(AlertFirmness.HARD, allCurrent.get(0).getFirmness());
+
+    // change state to CRITICAL and verify we are soft with 1 occurrence
+    alert.setState(AlertState.CRITICAL);
+    listener.onAlertEvent(event);
+    allCurrent = m_dao.findCurrent();
+    assertEquals(1, (long) allCurrent.get(0).getOccurrences());
+    assertEquals(AlertFirmness.SOFT, allCurrent.get(0).getFirmness());
+
+    // send a 2nd CRITICAL and made sure the occurrences are 2 and the firmness
+    // is HARD
+    listener.onAlertEvent(event);
+    allCurrent = m_dao.findCurrent();
+    assertEquals(2, (long) allCurrent.get(0).getOccurrences());
+    assertEquals(AlertFirmness.HARD, allCurrent.get(0).getFirmness());
+  }
+
+  /**
+   * Tests that we correctly record alert firmness when an alert moves back and
+   * forth between non-OK states (such as between {@link AlertState#WARNING} and
+   * {@link AlertState#CRITICAL}). These are technically alert state changes and
+   * will fire {@link AlertStateChangeEvent}s but we only want to handle them
+   * when they are HARD.
+   */
+  @Test
+  public void testAlertFirmnessWithinNonOKStates() throws Exception {
+    String definitionName = ALERT_DEFINITION + "1";
+    String serviceName = "HDFS";
+    String componentName = "NAMENODE";
+    String text = serviceName + " " + componentName + " is OK";
+
+    Alert alert = new Alert(definitionName, null, serviceName, componentName, HOST1, AlertState.OK);
+    alert.setCluster(m_cluster.getClusterName());
+    alert.setLabel(ALERT_LABEL);
+    alert.setText(text);
+    alert.setTimestamp(1L);
+
+    // fire the alert, and check that the new entry was created correctly
+    AlertReceivedListener listener = m_injector.getInstance(AlertReceivedListener.class);
+    AlertReceivedEvent event = new AlertReceivedEvent(m_cluster.getClusterId(), alert);
+    listener.onAlertEvent(event);
+
+    List<AlertCurrentEntity> allCurrent = m_dao.findCurrent();
+    assertEquals(1, allCurrent.size());
+
+    // check occurrences (should be 1 since it's the first) and state (HARD)
+    assertEquals(1, (long) allCurrent.get(0).getOccurrences());
+    assertEquals(AlertFirmness.HARD, allCurrent.get(0).getFirmness());
+
+    // move the repeat tolerance to 4 to test out SOFT alerts between states
+    AlertDefinitionEntity definition = allCurrent.get(0).getAlertHistory().getAlertDefinition();
+    definition.setRepeatTolerance(4);
+    definition.setRepeatToleranceEnabled(true);
+    m_definitionDao.merge(definition);
+
+    // change state to WARNING, should still be SOFT
+    alert.setState(AlertState.WARNING);
+    listener.onAlertEvent(event);
+    allCurrent = m_dao.findCurrent();
+    assertEquals(1, (long) allCurrent.get(0).getOccurrences());
+    assertEquals(AlertFirmness.SOFT, allCurrent.get(0).getFirmness());
+    assertEquals(AlertState.WARNING, allCurrent.get(0).getAlertHistory().getAlertState());
+
+    // change state to CRITICAL, should still be SOFT, but occurrences of non-OK
+    // increases to 2
+    alert.setState(AlertState.CRITICAL);
+    listener.onAlertEvent(event);
+    allCurrent = m_dao.findCurrent();
+    assertEquals(2, (long) allCurrent.get(0).getOccurrences());
+    assertEquals(AlertFirmness.SOFT, allCurrent.get(0).getFirmness());
+    assertEquals(AlertState.CRITICAL, allCurrent.get(0).getAlertHistory().getAlertState());
+
+    // change state to WARNING, should still be SOFT, but occurrences of non-OK
+    // increases to 3
+    alert.setState(AlertState.WARNING);
+    listener.onAlertEvent(event);
+    allCurrent = m_dao.findCurrent();
+    assertEquals(3, (long) allCurrent.get(0).getOccurrences());
+    assertEquals(AlertFirmness.SOFT, allCurrent.get(0).getFirmness());
+    assertEquals(AlertState.WARNING, allCurrent.get(0).getAlertHistory().getAlertState());
+
+    // change state to CRITICAL, occurrences is not met, should be HARD
+    alert.setState(AlertState.CRITICAL);
+    listener.onAlertEvent(event);
+    allCurrent = m_dao.findCurrent();
+    assertEquals(4, (long) allCurrent.get(0).getOccurrences());
+    assertEquals(AlertFirmness.HARD, allCurrent.get(0).getFirmness());
+    assertEquals(AlertState.CRITICAL, allCurrent.get(0).getAlertHistory().getAlertState());
+  }
+
+  /**
+   * Tests that {@link SourceType#AGGREGATE} alerts are always HARD.
+   */
+  @Test
+  public void testAggregateAlertFirmness() throws Exception {
+    AlertDefinitionEntity definition = new AlertDefinitionEntity();
+    definition.setDefinitionName("aggregate-alert-firmness-test");
+    definition.setServiceName("HDFS");
+    definition.setComponentName("NAMENODE");
+    definition.setClusterId(m_cluster.getClusterId());
+    definition.setHash(UUID.randomUUID().toString());
+    definition.setScheduleInterval(Integer.valueOf(60));
+    definition.setScope(Scope.SERVICE);
+    definition.setSource("{\"type\" : \"AGGREGATE\"}");
+    definition.setSourceType(SourceType.AGGREGATE);
+
+    // turn this up way high to ensure that we correctly short-circuit these
+    // types of alerts and always consider them HARD
+    definition.setRepeatTolerance(100);
+    definition.setRepeatToleranceEnabled(true);
+
+    m_definitionDao.create(definition);
+
+    Alert alert = new Alert(definition.getDefinitionName(), null, definition.getServiceName(),
+        definition.getComponentName(), HOST1, AlertState.OK);
+
+    alert.setCluster(m_cluster.getClusterName());
+    alert.setLabel(ALERT_LABEL);
+    alert.setText("Aggregate alerts are always HARD");
+    alert.setTimestamp(1L);
+
+    // fire the alert, and check that the new entry was created
+    AlertReceivedListener listener = m_injector.getInstance(AlertReceivedListener.class);
+    AlertReceivedEvent event = new AlertReceivedEvent(m_cluster.getClusterId(), alert);
+    listener.onAlertEvent(event);
+
+    List<AlertCurrentEntity> allCurrent = m_dao.findCurrent();
+    assertEquals(AlertFirmness.HARD, allCurrent.get(0).getFirmness());
+
+    // change state
+    alert.setState(AlertState.CRITICAL);
+    listener.onAlertEvent(event);
+    allCurrent = m_dao.findCurrent();
+    assertEquals(1, (long) allCurrent.get(0).getOccurrences());
+    assertEquals(AlertFirmness.HARD, allCurrent.get(0).getFirmness());
+
+    // change state
+    alert.setState(AlertState.WARNING);
+    listener.onAlertEvent(event);
+    allCurrent = m_dao.findCurrent();
+    assertEquals(2, (long) allCurrent.get(0).getOccurrences());
+    assertEquals(AlertFirmness.HARD, allCurrent.get(0).getFirmness());
+
+    // change state
+    alert.setState(AlertState.OK);
+    listener.onAlertEvent(event);
+    allCurrent = m_dao.findCurrent();
+    assertEquals(1, (long) allCurrent.get(0).getOccurrences());
+    assertEquals(AlertFirmness.HARD, allCurrent.get(0).getFirmness());
   }
 }

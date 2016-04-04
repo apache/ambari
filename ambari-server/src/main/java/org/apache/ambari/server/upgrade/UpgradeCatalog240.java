@@ -41,6 +41,7 @@ import org.apache.ambari.server.orm.dao.RoleAuthorizationDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.RoleAuthorizationEntity;
+import org.apache.ambari.server.state.AlertFirmness;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -69,6 +70,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   protected static final String ALERT_DEFINITION_TABLE = "alert_definition";
   protected static final String ALERT_CURRENT_TABLE = "alert_current";
   protected static final String ALERT_CURRENT_OCCURRENCES_COLUMN = "occurrences";
+  protected static final String ALERT_CURRENT_FIRMNESS_COLUMN = "firmness";
   protected static final String HELP_URL_COLUMN = "help_url";
   protected static final String REPEAT_TOLERANCE_COLUMN = "repeat_tolerance";
   protected static final String REPEAT_TOLERANCE_ENABLED_COLUMN = "repeat_tolerance_enabled";
@@ -482,14 +484,18 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   /**
    * Updates the {@value #ALERT_CURRENT_TABLE} in the following ways:
    * <ul>
-   * <li>Craetes the {@value #ALERT_CURRENT_OCCURRENCES_COLUMN} column</li>
+   * <li>Creates the {@value #ALERT_CURRENT_OCCURRENCES_COLUMN} column</li>
+   * <li>Creates the {@value #ALERT_CURRENT_FIRMNESS_COLUMN} column</li>
    * </ul>
    *
    * @throws SQLException
    */
   protected void updateAlertCurrentTable() throws SQLException {
     dbAccessor.addColumn(ALERT_CURRENT_TABLE,
-        new DBColumnInfo(ALERT_CURRENT_OCCURRENCES_COLUMN, Integer.class, null, 1, false));
+        new DBColumnInfo(ALERT_CURRENT_OCCURRENCES_COLUMN, Long.class, null, 1, false));
+
+    dbAccessor.addColumn(ALERT_CURRENT_TABLE, new DBColumnInfo(ALERT_CURRENT_FIRMNESS_COLUMN,
+        String.class, 255, AlertFirmness.HARD.name(), false));
   }
 
   protected void setRoleSortOrder() throws SQLException {

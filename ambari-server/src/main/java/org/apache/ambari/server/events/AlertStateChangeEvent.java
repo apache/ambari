@@ -20,11 +20,15 @@ package org.apache.ambari.server.events;
 import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.state.Alert;
+import org.apache.ambari.server.state.AlertFirmness;
 import org.apache.ambari.server.state.AlertState;
 
 /**
  * The {@link AlertStateChangeEvent} is fired when an {@link Alert} instance has
- * its {@link AlertState} changed.
+ * its {@link AlertState} changed or has it's {@link AlertFirmness} changed.
+ * <p/>
+ * An {@link AlertState} change coupled with a {@link AlertFirmness#HARD}
+ * firmness is what would eventually trigger notifications to be created.
  */
 public class AlertStateChangeEvent extends AlertEvent {
 
@@ -93,6 +97,7 @@ public class AlertStateChangeEvent extends AlertEvent {
     StringBuilder buffer = new StringBuilder("AlertStateChangeEvent{");
     buffer.append("cluserId=").append(m_clusterId);
     buffer.append(", fromState=").append(m_fromState);
+    buffer.append(", firmness=").append(m_currentAlert.getFirmness());
     buffer.append(", alert=").append(m_alert);
 
     buffer.append("}");

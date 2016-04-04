@@ -77,6 +77,7 @@ public class AlertResourceProvider extends ReadOnlyResourceProvider implements
   protected static final String ALERT_REPEAT_TOLERANCE = "Alert/repeat_tolerance";
   protected static final String ALERT_OCCURRENCES = "Alert/occurrences";
   protected static final String ALERT_REPEAT_TOLERANCE_REMAINING = "Alert/repeat_tolerance_remaining";
+  protected static final String ALERT_FIRMNESS = "Alert/firmness";
 
   private static Set<String> pkPropertyIds = new HashSet<String>(
       Arrays.asList(ALERT_ID, ALERT_DEFINITION_NAME));
@@ -117,6 +118,7 @@ public class AlertResourceProvider extends ReadOnlyResourceProvider implements
     PROPERTY_IDS.add(ALERT_REPEAT_TOLERANCE);
     PROPERTY_IDS.add(ALERT_OCCURRENCES);
     PROPERTY_IDS.add(ALERT_REPEAT_TOLERANCE_REMAINING);
+    PROPERTY_IDS.add(ALERT_FIRMNESS);
 
     // keys
     KEY_PROPERTY_IDS.put(Resource.Type.Alert, ALERT_ID);
@@ -264,8 +266,8 @@ public class AlertResourceProvider extends ReadOnlyResourceProvider implements
 
     // repeat tolerance values
     int repeatTolerance = definition.getRepeatTolerance();
-    int occurrences = entity.getOccurrences();
-    int remaining = (occurrences > repeatTolerance) ? 0 : (repeatTolerance - occurrences);
+    long occurrences = entity.getOccurrences();
+    long remaining = (occurrences > repeatTolerance) ? 0 : (repeatTolerance - occurrences);
 
     // the OK state is special; when received, we ignore tolerance and notify
     if (history.getAlertState() == AlertState.OK) {
@@ -275,6 +277,7 @@ public class AlertResourceProvider extends ReadOnlyResourceProvider implements
     setResourceProperty(resource, ALERT_REPEAT_TOLERANCE, repeatTolerance, requestedIds);
     setResourceProperty(resource, ALERT_OCCURRENCES, occurrences, requestedIds);
     setResourceProperty(resource, ALERT_REPEAT_TOLERANCE_REMAINING, remaining, requestedIds);
+    setResourceProperty(resource, ALERT_FIRMNESS, entity.getFirmness(), requestedIds);
 
     if (isCollection) {
       // !!! want name/id to be populated as if it were a PK when requesting the

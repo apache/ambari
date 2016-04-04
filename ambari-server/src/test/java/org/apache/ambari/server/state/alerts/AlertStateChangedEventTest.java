@@ -23,8 +23,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import junit.framework.Assert;
-
 import org.apache.ambari.server.events.AggregateAlertRecalculateEvent;
 import org.apache.ambari.server.events.AlertEvent;
 import org.apache.ambari.server.events.AlertStateChangeEvent;
@@ -34,13 +32,16 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
+import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertGroupEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.orm.entities.AlertNoticeEntity;
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
 import org.apache.ambari.server.state.Alert;
+import org.apache.ambari.server.state.AlertFirmness;
 import org.apache.ambari.server.state.AlertState;
+import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.easymock.EasyMock;
 import org.junit.After;
@@ -54,9 +55,13 @@ import com.google.inject.Module;
 import com.google.inject.persist.PersistService;
 import com.google.inject.util.Modules;
 
+import junit.framework.Assert;
+
 /**
  * Tests that {@link AlertStateChangeEvent} instances cause
- * {@link AlertNoticeEntity} instances to be created.
+ * {@link AlertNoticeEntity} instances to be created. Outbound notifications
+ * should only be created when received alerts which have a firmness of
+ * {@link AlertFirmness#HARD}.
  */
 public class AlertStateChangedEventTest {
 
@@ -123,28 +128,28 @@ public class AlertStateChangedEventTest {
 
     EasyMock.replay(alertTarget, alertGroup, dispatchDao);
 
-    AlertDefinitionEntity definition = EasyMock.createNiceMock(AlertDefinitionEntity.class);
-    EasyMock.expect(definition.getDefinitionId()).andReturn(1L);
-    EasyMock.expect(definition.getServiceName()).andReturn("HDFS");
-    EasyMock.expect(definition.getLabel()).andReturn("hdfs-foo-alert");
-    EasyMock.expect(definition.getDescription()).andReturn("HDFS Foo Alert");
+    AlertDefinitionEntity definition = getMockAlertDefinition();
 
+    AlertCurrentEntity current = getMockedAlertCurrentEntity();
     AlertHistoryEntity history = EasyMock.createNiceMock(AlertHistoryEntity.class);
     AlertStateChangeEvent event = EasyMock.createNiceMock(AlertStateChangeEvent.class);
     Alert alert = EasyMock.createNiceMock(Alert.class);
 
+    EasyMock.expect(current.getAlertHistory()).andReturn(history).anyTimes();
+    EasyMock.expect(current.getFirmness()).andReturn(AlertFirmness.HARD).atLeastOnce();
     EasyMock.expect(history.getAlertState()).andReturn(AlertState.CRITICAL).atLeastOnce();
     EasyMock.expect(history.getAlertDefinition()).andReturn(definition).atLeastOnce();
     EasyMock.expect(alert.getText()).andReturn("The HDFS Foo Alert Is Not Good").atLeastOnce();
     EasyMock.expect(alert.getState()).andReturn(AlertState.CRITICAL).atLeastOnce();
+    EasyMock.expect(event.getCurrentAlert()).andReturn(current).atLeastOnce();
     EasyMock.expect(event.getNewHistoricalEntry()).andReturn(history).atLeastOnce();
     EasyMock.expect(event.getAlert()).andReturn(alert).atLeastOnce();
 
-    EasyMock.replay(definition, history, event, alert);
+    EasyMock.replay(definition, current, history, event, alert);
 
     // async publishing
     eventPublisher.publish(event);
-    EasyMock.verify(dispatchDao, history, event);
+    EasyMock.verify(dispatchDao, current, history, event);
   }
 
   /**
@@ -177,15 +182,15 @@ public class AlertStateChangedEventTest {
     // that the create alert notice method was not called
     EasyMock.replay(alertTarget, alertGroup, dispatchDao);
 
-    AlertDefinitionEntity definition = EasyMock.createNiceMock(AlertDefinitionEntity.class);
-    EasyMock.expect(definition.getDefinitionId()).andReturn(1L);
-    EasyMock.expect(definition.getServiceName()).andReturn("HDFS");
-    EasyMock.expect(definition.getLabel()).andReturn("hdfs-foo-alert");
-    EasyMock.expect(definition.getDescription()).andReturn("HDFS Foo Alert");
+    AlertDefinitionEntity definition = getMockAlertDefinition();
 
+    AlertCurrentEntity current = getMockedAlertCurrentEntity();
     AlertHistoryEntity history = EasyMock.createNiceMock(AlertHistoryEntity.class);
     AlertStateChangeEvent event = EasyMock.createNiceMock(AlertStateChangeEvent.class);
     Alert alert = EasyMock.createNiceMock(Alert.class);
+
+    EasyMock.expect(current.getAlertHistory()).andReturn(history).anyTimes();
+    EasyMock.expect(current.getFirmness()).andReturn(AlertFirmness.HARD).atLeastOnce();
 
     // use WARNING to ensure that the target (which only cares about OK/CRIT)
     // does not receive the alert notice
@@ -194,14 +199,77 @@ public class AlertStateChangedEventTest {
     EasyMock.expect(history.getAlertDefinition()).andReturn(definition).atLeastOnce();
     EasyMock.expect(alert.getText()).andReturn("The HDFS Foo Alert Is Not Good").atLeastOnce();
     EasyMock.expect(alert.getState()).andReturn(AlertState.WARNING).atLeastOnce();
+    EasyMock.expect(event.getCurrentAlert()).andReturn(current).atLeastOnce();
     EasyMock.expect(event.getNewHistoricalEntry()).andReturn(history).atLeastOnce();
     EasyMock.expect(event.getAlert()).andReturn(alert).atLeastOnce();
 
-    EasyMock.replay(definition, history, event, alert);
+    EasyMock.replay(definition, current, history, event, alert);
 
     // async publishing
     eventPublisher.publish(event);
-    EasyMock.verify(dispatchDao, history, event);
+    EasyMock.verify(dispatchDao, current, history, event);
+  }
+
+  /**
+   * Tests that an alert with a firmness of {@link AlertFirmness#SOFT} does not
+   * trigger any notifications.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testSoftAlertDoesNotCreateNotifications() throws Exception {
+    EasyMock.replay(dispatchDao);
+
+    AlertDefinitionEntity definition = getMockAlertDefinition();
+
+    AlertCurrentEntity current = getMockedAlertCurrentEntity();
+    AlertHistoryEntity history = EasyMock.createNiceMock(AlertHistoryEntity.class);
+    AlertStateChangeEvent event = EasyMock.createNiceMock(AlertStateChangeEvent.class);
+    Alert alert = EasyMock.createNiceMock(Alert.class);
+
+    // make the alert SOFT so that no notifications are sent
+    EasyMock.expect(current.getAlertHistory()).andReturn(history).anyTimes();
+    EasyMock.expect(current.getFirmness()).andReturn(AlertFirmness.SOFT).atLeastOnce();
+
+
+    EasyMock.expect(history.getAlertDefinition()).andReturn(definition).atLeastOnce();
+    EasyMock.expect(alert.getText()).andReturn("The HDFS Foo Alert Is Not Good").atLeastOnce();
+    EasyMock.expect(alert.getState()).andReturn(AlertState.CRITICAL).atLeastOnce();
+    EasyMock.expect(event.getCurrentAlert()).andReturn(current).atLeastOnce();
+    EasyMock.expect(event.getNewHistoricalEntry()).andReturn(history).atLeastOnce();
+    EasyMock.expect(event.getAlert()).andReturn(alert).atLeastOnce();
+
+    EasyMock.replay(definition, current, history, event, alert);
+
+    // async publishing
+    eventPublisher.publish(event);
+    EasyMock.verify(dispatchDao, current, history, event);
+  }
+
+  /**
+   * Gets an {@link AlertDefinitionEntity} with some mocked calls expected.
+   *
+   * @return
+   */
+  private AlertDefinitionEntity getMockAlertDefinition() {
+    AlertDefinitionEntity definition = EasyMock.createNiceMock(AlertDefinitionEntity.class);
+    EasyMock.expect(definition.getDefinitionId()).andReturn(1L);
+    EasyMock.expect(definition.getServiceName()).andReturn("HDFS");
+    EasyMock.expect(definition.getLabel()).andReturn("hdfs-foo-alert");
+    EasyMock.expect(definition.getDescription()).andReturn("HDFS Foo Alert");
+
+    return definition;
+  }
+
+  /**
+   * Gets an {@link AlertCurrentEntity} with some mocked calls expected.
+   *
+   * @return
+   */
+  private AlertCurrentEntity getMockedAlertCurrentEntity() {
+    AlertCurrentEntity current = EasyMock.createNiceMock(AlertCurrentEntity.class);
+    EasyMock.expect(current.getMaintenanceState()).andReturn(MaintenanceState.OFF).anyTimes();
+    return current;
   }
 
   /**
