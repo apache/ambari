@@ -999,6 +999,15 @@ Em.I18n.translations = {
   'alerts.actions.manageGroups': 'Manage Alert Groups',
   'alerts.actions.manageNotifications': 'Manage Notifications',
   'alerts.actions.manageNotifications.info': 'You can manage notification methods and recipients.',
+  'alerts.actions.editRepeatTolerance.text': 'Manage global setting for alerts',
+  'alerts.actions.editRepeatTolerance.title': 'Alert Check Retries',
+  'alerts.actions.editRepeatTolerance.description': 'Set the amount of alert check retries to perform before dispatching a notification.' +
+    'If during an alert check a state change occurs, Ambari will retry this number of times before dispatching a notification. Increase this number if your environment experiences temporal issues.',
+  'alerts.actions.editRepeatTolerance.label': 'Retries:',
+  'alerts.actions.editRepeatTolerance.error':'Input should be a positive integer.',
+  'alerts.actions.manageSettings': 'Manage Alert Settings',
+  'alerts.actions.manageGlobalRepeatTolerance.tooltip': 'This value will be overriden, if specific repeat tolerance value is set for individual alert.',
+  'alerts.actions.manageSettings.error':'Error during remote command: ',
 
   'alerts.groups.successPopup.header': 'Alert Groups processing results',
   'alerts.groups.successPopup.body.created': 'New Alert Groups',

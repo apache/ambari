@@ -19,7 +19,11 @@
   <form>
     <div {{bindAttr class=":control-group view.parentView.isInvalid:error"}}>
       <label class="control-label">{{view.text}}</label>
+      <br>
+      <h4>{{view.title}}</h4>
+      <p>{{view.description}}</p>
       <div class="controls">
+        <strong>{{view.label}}&nbsp;&nbsp;</strong>
         {{view Em.TextField class="prompt-input" valueBinding="view.parentView.inputValue"}}
       </div>
       {{#if view.parentView.isInvalid}}
