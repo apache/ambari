@@ -468,32 +468,20 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     if (null != requestStatus) {
       HostRoleStatus status = HostRoleStatus.valueOf(requestStatus);
 
-      // when aborting an upgrade, the suspend flag must be present to indicate
-      // if the upgrade is merely being suspended
+      // When aborting an upgrade, the suspend flag must be present to indicate
+      // if the upgrade is merely being paused (suspended=true) or aborted to initiate a downgrade (suspended=false).
       boolean suspended = false;
-      if( status == HostRoleStatus.ABORTED && !propertyMap.containsKey(UPGRADE_SUSPENDED)){
+      if (status == HostRoleStatus.ABORTED && !propertyMap.containsKey(UPGRADE_SUSPENDED)){
         throw new IllegalArgumentException(String.format(
             "When changing the state of an upgrade to %s, the %s property is required to be either true or false.",
             status, UPGRADE_SUSPENDED ));
-      } else {
+      } else if (status == HostRoleStatus.ABORTED) {
         suspended = Boolean.valueOf((String) propertyMap.get(UPGRADE_SUSPENDED));
-        // If either the status is ABORTED or request to be suspended, then both should be set.
-        if ((status == HostRoleStatus.ABORTED || suspended)) {
-          if (status == HostRoleStatus.ABORTED && !suspended) {
-            throw new IllegalArgumentException(String.format(
-                "If the status is set to ABORTED, must also set property %s to true", UPGRADE_SUSPENDED));
-          }
-          if (status != HostRoleStatus.ABORTED && suspended) {
-            throw new IllegalArgumentException(String.format(
-                "If property %s is set to true, must also set the status to ABORTED", UPGRADE_SUSPENDED));
-          }
-        }
       }
 
       setUpgradeRequestStatus(requestIdProperty, status, propertyMap);
 
-      // when the status of the upgrade's request is changing, we also update
-      // the suspended flag
+      // When the status of the upgrade's request is changing, we also update the suspended flag.
       upgradeEntity.setSuspended(suspended);
       s_upgradeDAO.merge(upgradeEntity);
     }
