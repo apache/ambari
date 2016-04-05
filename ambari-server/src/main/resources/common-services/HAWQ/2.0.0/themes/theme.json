@@ -136,13 +136,13 @@
          {
             "config":"hawq-site/hawq_master_directory",
             "widget":{
-               "type":"text-field"
+               "type":"directory"
             }
          },
          {
             "config":"hawq-site/hawq_segment_directory",
             "widget":{
-               "type":"text-field"
+               "type":"directory"
             }
          },
          {

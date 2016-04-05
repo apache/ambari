@@ -88,7 +88,8 @@
     <display-name>HAWQ Master Directory</display-name>
     <value>/data/hawq/master</value>
     <description>
-      The directory of HAWQ master.
+      The base path for the HAWQ master data directory. Multiple directories are not allowed.
+      The default is /data/hawq/master.
     </description>
     <value-attributes>
       <type>directory</type>
@@ -102,7 +103,7 @@
     <display-name>HAWQ Segment Directory</display-name>
     <value>/data/hawq/segment</value>
     <description>
-      The base path for the HAWQ segment data directory.
+      The base path for the HAWQ segment data directory. Multiple directories are not allowed.
       The default is /data/hawq/segment.
     </description>
     <value-attributes>
