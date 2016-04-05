@@ -1563,7 +1563,7 @@ public class ViewRegistry {
   private void configureViewLogging(ViewEntity viewDefinition,ClassLoader cl) {
     URL resourceURL = cl.getResource(VIEW_LOG_FILE);
     if( null != resourceURL ){
-      LOG.debug("setting up logging for view {} as per property file {}",viewDefinition.getName(), resourceURL);
+      LOG.info("setting up logging for view {} as per property file {}",viewDefinition.getName(), resourceURL);
       PropertyConfigurator.configure(resourceURL);
     }
   }
