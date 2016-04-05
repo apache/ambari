@@ -578,7 +578,7 @@ public class ClustersImpl implements Clusters {
           + " support host's os type" + ", clusterName=" + clusterName
           + ", clusterStackId=" + cluster.getDesiredStackVersion().getStackId()
           + ", hostname=" + hostname + ", hostOsFamily=" + host.getOsFamily();
-      LOG.warn(message);
+      LOG.error(message);
       throw new AmbariException(message);
     }
 
