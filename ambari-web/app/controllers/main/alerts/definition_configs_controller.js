@@ -136,6 +136,7 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
    * @method renderConfigs
    */
   renderConfigs: function () {
+    var self = this;
     var alertDefinitionType = this.get('alertDefinitionType');
     var configs = [];
     switch (alertDefinitionType) {
@@ -163,7 +164,9 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
       default:
     }
 
-    configs.setEach('isDisabled', !this.get('canEdit'));
+    configs.forEach(function (config) {
+      config.set('isDisabled', !self.get('canEdit') || config.get('readonly'));
+    });
 
     this.set('configs', configs);
   },
@@ -346,7 +349,9 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
         label: isWizard ? '' : parameter.get('displayName'),
         threshold: isWizard ? '' : parameter.get('threshold'),
         units: isWizard ? '' : parameter.get('units'),
-        type: isWizard ? '' : parameter.get('type')
+        type: isWizard ? '' : parameter.get('type'),
+        hidden: parameter.get('visibility') === "HIDDEN",
+        readonly: parameter.get('visibility') === "READ_ONLY"
       }));
     });
 
@@ -454,7 +459,9 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
       property.set('previousValue', property.get('value'));
       property.set('previousText', property.get('text'));
     });
-    this.get('configs').setEach('isDisabled', false);
+    this.get('configs').forEach(function (config) {
+      config.set('isDisabled', config.get('readonly'));
+    });
     this.set('canEdit', true);
   },
 

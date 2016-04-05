@@ -124,7 +124,8 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
               value: parameter.value,
               description: parameter.description,
               type: parameter.type,
-              threshold: parameter.threshold
+              threshold: parameter.threshold,
+              visibility: parameter.visibility
             });
           });
         }
