@@ -406,7 +406,8 @@ App.HostComponentActionMap = {
         label: Em.I18n.t('admin.activateHawqStandby.button.enable'),
         cssClass: 'icon-arrow-up',
         isHidden: App.get('isSingleNode') || !HS,
-        disabled: false
+        disabled: false,
+        hideFromComponentView: true
       },
       HAWQ_CLEAR_CACHE: {
         action: 'executeHawqCustomCommand',
