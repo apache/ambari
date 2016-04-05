@@ -209,6 +209,11 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
       timeShift = 0l;
     }
 
+    Long prevTimestamp = -1l;
+    TimelineClusterMetric prevMetric = null;
+    int count = 0;
+    double sum = 0.0;
+
     Map<Long,Double> timeSliceValueMap = new HashMap<>();
     for (Map.Entry<Long, Double> metric : timelineMetric.getMetricValues().entrySet()) {
       // TODO: investigate null values - pre filter
@@ -226,24 +231,31 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
           timestamp,
           timelineMetric.getType());
 
-        // do a sum / count here to get average for all points in a slice
-        int count = 1;
-        Double sum = 0.0;
-        if (!timelineClusterMetricMap.containsKey(clusterMetric)) {
-          sum = metric.getValue();
-        } else {
+        if (prevTimestamp < 0 || timestamp.equals(prevTimestamp)) {
           Double newValue = metric.getValue();
           if (newValue > 0.0) {
+            sum += newValue;
             count++;
-            Double oldValue = timelineClusterMetricMap.get(clusterMetric);
-            sum = oldValue + newValue;
           }
+        } else {
+          double metricValue = (count > 0) ? (sum / count) : 0.0;
+          timelineClusterMetricMap.put(prevMetric, metricValue);
+          timeSliceValueMap.put(timestamp, metricValue);
+          sum = metric.getValue();
+          count = sum > 0.0 ? 1 : 0;
         }
-        double metricValue = sum / count;
-        timelineClusterMetricMap.put(clusterMetric, metricValue);
-        timeSliceValueMap.put(timestamp, metricValue);
+
+        prevTimestamp = timestamp;
+        prevMetric = clusterMetric;
       }
     }
+
+    if (prevTimestamp > 0) {
+      double metricValue = (count > 0) ? (sum / count) : 0.0;
+      timelineClusterMetricMap.put(prevMetric, metricValue);
+      timeSliceValueMap.put(prevTimestamp, metricValue);
+    }
+
     if (interpolationEnabled) {
       interpolateMissingPeriods(timelineClusterMetricMap, timelineMetric, timeSlices, timeSliceValueMap);
     }
