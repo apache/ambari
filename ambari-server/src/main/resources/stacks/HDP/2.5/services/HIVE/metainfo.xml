@@ -91,6 +91,16 @@
             <script>scripts/hive_server_interactive.py</script>
             <scriptType>PYTHON</scriptType>
           </commandScript>
+          <customCommands>
+            <customCommand>
+              <name>RESTART_LLAP</name>
+              <commandScript>
+                <script>scripts/hive_server_interactive.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>600</timeout>
+              </commandScript>
+            </customCommand>
+          </customCommands>
           <configuration-dependencies>
             <config-type>hive-site</config-type>
             <config-type>hive-interactive-site</config-type>

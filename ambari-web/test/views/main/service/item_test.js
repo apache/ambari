@@ -504,6 +504,7 @@ describe('App.MainServiceItemView', function () {
           case 'APP_TIMELINE_SERVER':
           case 'KAFKA_BROKER':
           case 'OOZIE_SERVER':
+          case 'HIVE_SERVER_INTERACTIVE':
           case 'NIMBUS':
             return Em.Object.create({ customCommands: [] });
           default:

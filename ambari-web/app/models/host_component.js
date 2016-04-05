@@ -362,6 +362,13 @@ App.HostComponentActionMap = {
         cssClass: 'icon-stop',
         disabled: false
       },
+      RESTART_LLAP: {
+        action: 'restartLLAP',
+        customCommand: 'RESTART_LLAP',
+        context: Em.I18n.t('services.service.actions.run.restartLLAP'),
+        label: Em.I18n.t('services.service.actions.run.restartLLAP') + ' ∞',
+        cssClass: 'icon-refresh'
+      },
       REBALANCEHDFS: {
         action: 'rebalanceHdfsNodes',
         customCommand: 'REBALANCEHDFS',

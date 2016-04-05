@@ -305,6 +305,10 @@ start_hiveserver2_script = 'startHiveserver2.sh.j2'
 start_metastore_script = 'startMetastore.sh'
 hive_metastore_pid = status_params.hive_metastore_pid
 
+# Hive Server Interactive
+# TODO , not being passed right now
+slider_am_container_mb = default("/configurations/hive-site-interactive/slider-am-container-mb", 341)
+
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 yarn_user = config['configurations']['yarn-env']['yarn_user']
 user_group = config['configurations']['cluster-env']['user_group']

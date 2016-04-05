@@ -28,7 +28,9 @@ App.MainServiceItemView = Em.View.extend({
   isPassive: Em.computed.equal('controller.content.passiveState', 'ON'),
 
   /**
-   * Some custom commands need custom logic to be executed
+   * Some custom commands need custom logic to be execute.
+   * Typically, these services already have Custom Commands, so we must exclude the default ones
+   * in order to make more changes to them like icons and rules.
    */
   mastersExcludedCommands: {
     'NAMENODE': ['DECOMMISSION', 'REBALANCEHDFS'],
@@ -37,7 +39,8 @@ App.MainServiceItemView = Em.View.extend({
     'KNOX_GATEWAY': ['STARTDEMOLDAP','STOPDEMOLDAP'],
     'HAWQMASTER': ['IMMEDIATE_STOP_HAWQ_SERVICE', 'RUN_HAWQ_CHECK', 'HAWQ_CLEAR_CACHE', 'REMOVE_HAWQ_STANDBY'],
     'HAWQSEGMENT': ['IMMEDIATE_STOP_HAWQ_SEGMENT'],
-    'HAWQSTANDBY' : ['RESYNC_HAWQ_STANDBY','ACTIVATE_HAWQ_STANDBY']
+    'HAWQSTANDBY': ['RESYNC_HAWQ_STANDBY','ACTIVATE_HAWQ_STANDBY'],
+    'HIVE_SERVER_INTERACTIVE' : ["RESTART_LLAP"],
   },
 
    addActionMap: function() {
@@ -178,8 +181,8 @@ App.MainServiceItemView = Em.View.extend({
       }
       options.push(actionMap.TOGGLE_PASSIVE);
       var serviceName = service.get('serviceName');
-      var nnComponent = App.StackServiceComponent.find().findProperty('componentName','NAMENODE');
-      var knoxGatewayComponent = App.StackServiceComponent.find().findProperty('componentName','KNOX_GATEWAY');
+      var nnComponent = App.StackServiceComponent.find().findProperty('componentName', 'NAMENODE');
+      var knoxGatewayComponent = App.StackServiceComponent.find().findProperty('componentName', 'KNOX_GATEWAY');
       if (serviceName === 'HDFS' && nnComponent) {
         var namenodeCustomCommands = nnComponent.get('customCommands');
         if (namenodeCustomCommands && namenodeCustomCommands.contains('REBALANCEHDFS')) {
@@ -194,6 +197,18 @@ App.MainServiceItemView = Em.View.extend({
             options.push(actionMap[command]);
           }
         });
+      }
+
+      if (serviceName === 'HIVE') {
+        var hiveServerInteractiveComponent = App.StackServiceComponent.find().findProperty('componentName', 'HIVE_SERVER_INTERACTIVE');
+        if (hiveServerInteractiveComponent) {
+          var LLAPCustomCommands = hiveServerInteractiveComponent.get('customCommands');
+          LLAPCustomCommands.forEach(function (command) {
+            if (actionMap[command]) {
+              options.push(actionMap[command]);
+            }
+          });
+        }
       }
 
       /**

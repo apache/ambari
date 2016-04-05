@@ -599,6 +599,45 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     App.showAlertPopup(Em.I18n.t('services.service.actions.run.yarnRefreshQueues.error'), error);
   },
 
+  restartLLAP: function(event) {
+    var context = Em.I18n.t('services.service.actions.run.restartLLAP');
+    this.manageLLAP('RESTART_LLAP', context);
+  },
+  manageLLAP: function(command, context) {
+    var controller = this;
+    var host = App.HostComponent.find().findProperty('componentName', 'HIVE_SERVER_INTERACTIVE').get('hostName');
+    return App.showConfirmationPopup(function() {
+      App.ajax.send({
+        name: 'service.item.executeCustomCommand',
+        sender: controller,
+        data: {
+          command: command,
+          context: context,
+          hosts: host,
+          serviceName: "HIVE",
+          componentName: "HIVE_SERVER_INTERACTIVE"
+        },
+        success: 'manageLLAPSuccessCallback',
+        error: 'manageLLAPErrorCallback'
+      });
+    });
+  },
+  manageLLAPSuccessCallback : function(data, ajaxOptions, params) {
+    if (data.Requests.id) {
+      App.router.get('backgroundOperationsController').showPopup();
+    }
+  },
+  manageLLAPErrorCallback : function(data) {
+    var error = Em.I18n.t('services.service.actions.run.executeCustomCommand.error');
+    if (data && data.responseText) {
+      try {
+        var json = $.parseJSON(data.responseText);
+        error += json.message;
+      } catch (err) {}
+    }
+    App.showAlertPopup(Em.I18n.t('common.error'), error);
+  },
+
   /**
    * On click handler for rebalance Hdfs command from items menu
    */
