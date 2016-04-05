@@ -266,17 +266,6 @@ App.MainServiceItemView = Em.View.extend({
 
     options.push(actionMap.DELETE_SERVICE);
 
-    /**
-     * When some Wizard is running by another user, "Service Actions" is hidden and there is no sense to calculate its items
-     * Also, when this menu is not empty and becomes visible, there are some JS-errors based on Ember inner logic for adding Listeners
-     * To avoid this behavior it's cleaned while it's not visible
-     */
-    if (App.router.get('wizardWatcherController.isWizardRunning')) {
-      this.set('maintenance', []);
-      this.set('isMaintenanceSet', true);
-      return;
-    }
-
     if (this.get('maintenance.length')) {
       this.get('maintenance').forEach(function(option, index) {
         if (JSON.stringify(option) !== JSON.stringify(options[index])) {
