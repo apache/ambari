@@ -37,6 +37,8 @@ App.AlertInstance = DS.Model.extend({
   instance: DS.attr('string'),
   state: DS.attr('string'),
   text: DS.attr('string'),
+  repeatTolerance: DS.attr('number'),
+  repeatToleranceRemaining: DS.attr('number'),
   notification: DS.hasMany('App.AlertNotification'),
 
   /**
@@ -144,6 +146,14 @@ App.AlertInstance = DS.Model.extend({
   typeIcons: {
     'DISABLED': 'icon-off'
   },
+
+  repeatToleranceReceived: function () {
+    return this.get('repeatTolerance') - this.get('repeatToleranceRemaining');
+  }.property('repeatToleranceRemaining', 'repeatTolerance'),
+
+  retryText: function () {
+    return this.get('state') === 'OK' ? '' : Em.I18n.t('models.alert_definition.check.retry').format(this.get('repeatToleranceReceived'), this.get('repeatTolerance'));
+  }.property('state','repeatToleranceRemaining', 'repeatTolerance'),
 
   /**
    * Define if definition serviceName is Ambari

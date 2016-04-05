@@ -326,6 +326,7 @@ Em.I18n.translations = {
   'models.alert_instance.tiggered.verbose': "Occurred on {0} <br> Checked on {1}",
   'models.alert_definition.triggered.verbose': "Occurred on {0}",
   'models.alert_definition.triggered.checked': "Status Changed: {0}\nLast Checked: {1}",
+  'models.alert_definition.check.retry': "Retried {0} out of {1} alerts before sending notifications",
 
   'passiveState.turnOn':'Turn On Maintenance Mode',
   'passiveState.turnOff':'Turn Off Maintenance Mode',

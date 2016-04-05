@@ -212,11 +212,7 @@
                   {{/if}}
                 </td>
                 <td>
-                  {{template "templates/main/alerts/alert_instance/status"}}
-                  <time class="timeago"
-                        rel="tooltip" {{bindAttr data-original-title="instance.statusChangedAndLastCheckedFormatted"}}>
-                    {{instance.lastTriggeredForFormatted}}
-                  </time>
+                  {{view App.AlertInstanceStateView instanceBinding="instance"}}
                 </td>
                 <td>{{view view.parentView.lastDayCount hostNameBinding="instance.hostName"}}</td>
                 <td>

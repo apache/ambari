@@ -43,10 +43,7 @@
                     </div>
                   </div>
                   <div class="status-col" {{bindAttr title="instance.lastTriggered"}}>
-                    {{template "templates/main/alerts/alert_instance/status"}}
-                    <span>
-                      <time>{{instance.lastTriggeredForFormatted}}</time>
-                    </span>
+                      {{view App.AlertInstanceStateView instanceBinding="instance"}}
                   </div>
               </div>
             </div>

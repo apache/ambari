@@ -22,5 +22,11 @@
   {{#if instance.isMaintenanceStateOn}}
     <span class="icon-medkit"></span>
   {{/if}}
-  {{instance.shortStateMsg}}
+  <span rel="StateTooltip" {{bindAttr data-original-title="instance.retryText"}}>
+    {{instance.shortStateMsg}}
+  </span>
 </div>
+<time class="timeago"
+      rel="tooltip" {{bindAttr data-original-title="instance.statusChangedAndLastCheckedFormatted"}}>
+    {{instance.lastTriggeredForFormatted}}
+</time>
