@@ -35,6 +35,10 @@ from ambari_commons import os_utils
 from ambari_commons import OSCheck, OSConst
 import os_check_type
 
+import shutil
+project_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),os.path.normpath("../../../../"))
+shutil.copyfile(project_dir+"/ambari-server/conf/unix/ambari.properties", "/tmp/ambari.properties")
+
 _search_file = os_utils.search_file
 os_utils.search_file = MagicMock(return_value="/tmp/ambari.properties")
 utils = __import__('ambari_server.utils').utils
