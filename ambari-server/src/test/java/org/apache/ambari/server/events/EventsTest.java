@@ -27,7 +27,9 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
+import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
+import org.apache.ambari.server.orm.entities.AlertGroupEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
@@ -72,6 +74,7 @@ public class EventsTest {
   private MockEventListener m_listener;
   private OrmTestHelper m_helper;
   private AlertDefinitionDAO m_definitionDao;
+  private AlertDispatchDAO m_alertDispatchDao;
 
   /**
    *
@@ -93,6 +96,7 @@ public class EventsTest {
     m_componentFactory = m_injector.getInstance(ServiceComponentFactory.class);
     m_schFactory = m_injector.getInstance(ServiceComponentHostFactory.class);
     m_definitionDao = m_injector.getInstance(AlertDefinitionDAO.class);
+    m_alertDispatchDao = m_injector.getInstance(AlertDispatchDAO.class);
 
     m_clusterName = "foo";
     StackId stackId = new StackId("HDP", "2.0.6");
@@ -156,8 +160,8 @@ public class EventsTest {
   }
 
   /**
-   * Tests that {@link ServiceRemovedEvent}s are fired correctly and alerts are
-   * removed.
+   * Tests that {@link ServiceRemovedEvent}s are fired correctly and alerts and
+   * the default alert group are removed.
    *
    * @throws Exception
    */
@@ -166,6 +170,13 @@ public class EventsTest {
     Class<? extends AmbariEvent> eventClass = ServiceRemovedEvent.class;
     Assert.assertFalse(m_listener.isAmbariEventReceived(eventClass));
     installHdfsService();
+
+    // get the default group for HDFS
+    AlertGroupEntity group = m_alertDispatchDao.findGroupByName(m_cluster.getClusterId(), "HDFS");
+
+    // verify the default group is there
+    Assert.assertNotNull(group);
+    Assert.assertTrue(group.isDefault());
 
     // check that there are alert definitions
     Assert.assertTrue(m_definitionDao.findAll(m_cluster.getClusterId()).size() > 0);
@@ -178,6 +189,107 @@ public class EventsTest {
     Assert.assertTrue(hdfsDefinitions.size() > 0);
 
     AlertDefinitionEntity definition = hdfsDefinitions.get(0);
+
+    // delete HDFS
+    m_cluster.getService("HDFS").delete();
+
+    // verify the event was received
+    Assert.assertTrue(m_listener.isAmbariEventReceived(eventClass));
+
+    // verify that the definitions were removed
+    hdfsDefinitions = m_definitionDao.findByService(m_cluster.getClusterId(), "HDFS");
+
+    Assert.assertEquals(0, hdfsDefinitions.size());
+
+    // verify that the default group was removed
+    group = m_alertDispatchDao.findGroupByName(m_cluster.getClusterId(), "HDFS");
+
+    Assert.assertNull(group);
+  }
+
+  /**
+   * Tests that {@link ServiceRemovedEvent}s are fired correctly and the default alert group
+   * is removed even though alerts were already removed at the time the event is fired.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testServiceRemovedEventForDefaultAlertGroup() throws Exception {
+    Class<? extends AmbariEvent> eventClass = ServiceRemovedEvent.class;
+    Assert.assertFalse(m_listener.isAmbariEventReceived(eventClass));
+    installHdfsService();
+
+    // get the default group for HDFS
+    AlertGroupEntity group = m_alertDispatchDao.findGroupByName(m_cluster.getClusterId(), "HDFS");
+
+    // verify the default group is there
+    Assert.assertNotNull(group);
+    Assert.assertTrue(group.isDefault());
+
+    // get all definitions for HDFS
+    List<AlertDefinitionEntity> hdfsDefinitions = m_definitionDao.findByService(
+        m_cluster.getClusterId(), "HDFS");
+
+    // delete the definitions
+    for (AlertDefinitionEntity definition : hdfsDefinitions) {
+      m_definitionDao.remove(definition);
+    }
+
+    // verify that the definitions were removed
+    hdfsDefinitions = m_definitionDao.findByService(m_cluster.getClusterId(), "HDFS");
+
+    Assert.assertEquals(0, hdfsDefinitions.size());
+
+    // delete HDFS
+    m_cluster.getService("HDFS").delete();
+
+    // verify the event was received
+    Assert.assertTrue(m_listener.isAmbariEventReceived(eventClass));
+
+    // verify that the default group was removed
+    group = m_alertDispatchDao.findGroupByName(m_cluster.getClusterId(), "HDFS");
+
+    Assert.assertNull(group);
+  }
+
+  /**
+   * Tests that {@link ServiceRemovedEvent}s are fired correctly and alerts are removed
+   * even though the default alert group was already removed at the time the event is fired .
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testServiceRemovedEventForAlertDefinitions() throws Exception {
+    Class<? extends AmbariEvent> eventClass = ServiceRemovedEvent.class;
+    Assert.assertFalse(m_listener.isAmbariEventReceived(eventClass));
+    installHdfsService();
+
+    // get the default group for HDFS
+    AlertGroupEntity group = m_alertDispatchDao.findGroupByName(m_cluster.getClusterId(), "HDFS");
+
+    // verify the default group is there
+    Assert.assertNotNull(group);
+    Assert.assertTrue(group.isDefault());
+
+    // check that there are alert definitions
+    Assert.assertTrue(m_definitionDao.findAll(m_cluster.getClusterId()).size() > 0);
+
+    // get all definitions for HDFS
+    List<AlertDefinitionEntity> hdfsDefinitions = m_definitionDao.findByService(
+        m_cluster.getClusterId(), "HDFS");
+
+    // make sure there are at least 1
+    Assert.assertTrue(hdfsDefinitions.size() > 0);
+
+    AlertDefinitionEntity definition = hdfsDefinitions.get(0);
+
+    // delete the default alert group
+    m_alertDispatchDao.remove(group);
+
+    // verify that the default group was removed
+    group = m_alertDispatchDao.findGroupByName(m_cluster.getClusterId(), "HDFS");
+
+    Assert.assertNull(group);
 
     // delete HDFS
     m_cluster.getService("HDFS").delete();
