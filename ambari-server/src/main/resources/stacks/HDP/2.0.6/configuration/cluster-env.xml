@@ -191,4 +191,10 @@ gpgcheck=0</value>
         <description>Stack root folder</description>
     </property>
 
+    <property>
+        <name>alerts_repeat_tolerance</name>
+        <value>1</value>
+        <description>The number of consecutive alerts required to transition an alert from the SOFT to the HARD state.</description>
+    </property>
+
 </configuration>
