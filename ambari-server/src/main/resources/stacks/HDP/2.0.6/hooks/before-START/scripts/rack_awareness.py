@@ -25,6 +25,7 @@ from resource_management.libraries.functions import format
 
 def create_topology_mapping():
   import params
+
   File(params.net_topology_mapping_data_file_path,
        content=Template("topology_mappings.data.j2"),
        owner=params.hdfs_user,
@@ -40,5 +41,7 @@ def create_topology_script():
        only_if=format("test -d {net_topology_script_dir}"))
 
 def create_topology_script_and_mapping():
-  create_topology_mapping()
-  create_topology_script()
+  import params
+  if params.has_hadoop_env:
+    create_topology_mapping()
+    create_topology_script()
