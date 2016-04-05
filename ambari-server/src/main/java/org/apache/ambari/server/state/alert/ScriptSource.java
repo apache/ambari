@@ -112,6 +112,10 @@ public class ScriptSource extends Source {
     @SerializedName("type")
     private ScriptParameterType m_type;
 
+
+    @SerializedName("visibility")
+    private ScriptParameterVisibility m_visibility;
+
     /**
      * If this script parameter controls a threshold, then its specified here,
      * otherwise it's {@code null}.
@@ -165,6 +169,14 @@ public class ScriptSource extends Source {
     }
 
     /**
+     * Gets the visibility of the parameter.
+     * @return the visibility
+     */
+    public ScriptParameterVisibility getVisibility() {
+      return m_visibility;
+    }
+
+    /**
      * Gets the threshold that this parameter directly controls, or {@code null}
      * for none.
      *
@@ -188,6 +200,7 @@ public class ScriptSource extends Source {
       result = prime * result + ((m_type == null) ? 0 : m_type.hashCode());
       result = prime * result + ((m_units == null) ? 0 : m_units.hashCode());
       result = prime * result + ((m_value == null) ? 0 : m_value.hashCode());
+      result = prime * result + ((m_visibility == null) ? 0 : m_visibility.hashCode());
       return result;
     }
 
@@ -247,6 +260,13 @@ public class ScriptSource extends Source {
       } else if (!m_value.equals(other.m_value)) {
         return false;
       }
+      if (m_visibility == null) {
+        if (other.m_visibility != null) {
+          return false;
+        }
+      } else if (!m_visibility.equals(other.m_visibility)) {
+        return false;
+      }
       return true;
     }
 
@@ -269,6 +289,15 @@ public class ScriptSource extends Source {
        * A percent value, expessed as a float.
        */
       PERCENT
+    }
+
+    /**
+     * The {@link ScriptParameterVisibility} enum represents the visibility of script parameter.
+     */
+    public enum ScriptParameterVisibility {
+      VISIBLE,
+      HIDDEN,
+      READ_ONLY
     }
   }
 }
