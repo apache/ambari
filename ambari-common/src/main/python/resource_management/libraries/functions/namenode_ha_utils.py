@@ -75,7 +75,7 @@ def get_namenode_states_noretries(hdfs_site, security_enabled, run_user):
   # ie dfs.namenode.http-address.hacluster.nn1
   nn_unique_ids = hdfs_site[nn_unique_ids_key].split(',')
   for nn_unique_id in nn_unique_ids:
-    is_https_enabled = hdfs_site['dfs.https.enable'] if not is_empty(hdfs_site['dfs.https.enable']) else False
+    is_https_enabled = is_empty(hdfs_site['dfs.http.policy']) and hdfs_site['dfs.http.policy'].upper() == "HTTPS_ONLY"
 
     rpc_key = NAMENODE_RPC_FRAGMENT.format(name_service,nn_unique_id)
     if not is_https_enabled:
