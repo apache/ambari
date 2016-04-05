@@ -40,5 +40,7 @@ def create_topology_script():
        only_if=format("test -d {net_topology_script_dir}"))
 
 def create_topology_script_and_mapping():
+  import params
+  if params.has_hadoop_env:
     create_topology_mapping()
     create_topology_script()
