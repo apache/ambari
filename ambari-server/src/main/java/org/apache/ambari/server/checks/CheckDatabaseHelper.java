@@ -29,6 +29,7 @@ import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.controller.ControllerModule;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.state.ServiceInfo;
@@ -74,9 +75,9 @@ public class CheckDatabaseHelper {
   /**
    * Extension of main controller module
    */
-  public static class CheckHelperModule extends ControllerModule {
+  public static class CheckHelperControllerModule extends ControllerModule {
 
-    public CheckHelperModule() throws Exception {
+    public CheckHelperControllerModule() throws Exception {
     }
 
     @Override
@@ -84,6 +85,21 @@ public class CheckDatabaseHelper {
       super.configure();
       EventBusSynchronizer.synchronizeAmbariEventPublisher(binder());
     }
+  }
+
+  /**
+   * Extension of audit logger module
+   */
+  public static class CheckHelperAuditModule extends AuditLoggerModule {
+
+    public CheckHelperAuditModule() throws Exception {
+    }
+
+    @Override
+    protected void configure() {
+      super.configure();
+    }
+
   }
 
   /*
@@ -520,7 +536,7 @@ public class CheckDatabaseHelper {
     try {
       LOG.info("******************************* Check database started *******************************");
 
-      Injector injector = Guice.createInjector(new CheckHelperModule());
+      Injector injector = Guice.createInjector(new CheckHelperControllerModule(), new CheckHelperAuditModule());
       checkDatabaseHelper = injector.getInstance(CheckDatabaseHelper.class);
 
       checkDatabaseHelper.startPersistenceService();
