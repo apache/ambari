@@ -46,8 +46,8 @@ App.HawqSegmentUpView = App.TextDashboardWidgetView.extend(App.EditableWithLimit
 
   hiddenInfoClass: "hidden-info-three-line",
 
-  thresh1: 40,
-  thresh2: 70,
+  thresh1: 75,
+  thresh2: 90,
   maxValue: 100,
 
   hawqSegmentsStarted: counterOrNA('hawqSegmentsStarted'),
