@@ -42,6 +42,19 @@
         }
       },
       {
+        "name": "hawqsegments_registration_status",
+        "label": "HAWQ Segment Registration Status",
+        "description": "This alert is triggered when a HAWQ Segment node fails to register with the HAWQ Master.",
+        "interval": 1,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "SCRIPT",
+          "path": "HAWQ/2.0.0/package/alerts/alert_segment_registration_status.py",
+          "parameters": []
+        }
+      },
+      {
         "name": "hawq_master_process",
         "label": "HAWQ Master Process",
         "description": "This alert is triggered if the HAWQ Master process cannot be confirmed to be up and listening on the network.",
@@ -108,3 +121,4 @@
     ]
   }
 }
+
