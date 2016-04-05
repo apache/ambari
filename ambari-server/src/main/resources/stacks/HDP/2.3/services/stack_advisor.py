@@ -17,6 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import os
+import re
 import fnmatch
 import socket
 
@@ -942,6 +943,14 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
                               "It is not advisable to have " + display_name + " at " + root_dir +". Consider creating a sub directory for HAWQ")})
 
 
+  def checkForMultipleDirs(self, properties, validationItems, prop_name, display_name):
+    # check for delimiters space, comma, colon and semi-colon
+    if prop_name in properties and len(re.sub(r'[,;:]', ' ', properties[prop_name]).split(' ')) > 1:
+      validationItems.append({"config-name": prop_name,
+                              "item": self.getErrorItem(
+                              "Multiple directories for " + display_name + " are not allowed.")})
+
+
   def validateHAWQSiteConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     hawq_site = properties
     validationItems = []
@@ -964,6 +973,14 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
                   }
     for property_name, display_name in directories.iteritems():
       self.validateIfRootDir(properties, validationItems, property_name, display_name)
+
+    # 2.1 Check if any master or segment directories has multiple values
+    directories = {
+                    'hawq_master_directory': 'HAWQ Master directory',
+                    'hawq_segment_directory': 'HAWQ Segment directory'
+                  }
+    for property_name, display_name in directories.iteritems():
+      self.checkForMultipleDirs(properties, validationItems, property_name, display_name)
 
     # 3. Check YARN RM address properties
     YARN = "YARN"

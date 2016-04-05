@@ -5824,19 +5824,25 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
   }
 }
 
+@warning-background: #fcf8e3;
+@error-background: #f2dede;
+
 .table td.no-borders { border-top: none; }
-.table td.error { background-color: #f2dede; }
-.table td.warning { background-color: #fcf8e3; }
+.table td.error { background-color: @error-background; }
+.table td.warning { background-color: @warning-background; }
 
 #config-validation-warnings {
   table {
     tbody{
       tr {
-        background:#fcf8e3;
+        &.warning {
+          background: @warning-background;
+        }
+        &.error {
+          background: @error-background;
+        }
         border:1px solid #c09853;
-        border-right:none;
         td {
-          min-width: 150px;
           .property-message {
             font-weight: bold;
           }

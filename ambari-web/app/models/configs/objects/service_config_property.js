@@ -351,6 +351,9 @@ App.ServiceConfigProperty = Em.Object.extend({
       case 'directories':
         return App.ServiceConfigTextArea;
         break;
+      case 'directory':
+        return App.ServiceConfigTextField;
+        break;
       case 'content':
         return App.ServiceConfigTextAreaContent;
         break;

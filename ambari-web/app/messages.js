@@ -799,6 +799,7 @@ Em.I18n.translations = {
   'installer.step7.popup.validation.request.failed.body': 'The configuration changes could not be validated for consistency due to an unknown error.  Your changes have not been saved yet.  Would you like to proceed and save the changes?',
   'installer.step7.popup.validation.warning.header': 'Configurations',
   'installer.step7.popup.validation.warning.body': 'Some service configurations are not configured properly. We recommend you review and change the highlighted configuration values. Are you sure you want to proceed without correcting configurations?',
+  'installer.step7.popup.validation.error.body': 'Service configurations resulted in validation errors. Please address them before proceeding.',
   'installer.step7.popup.oozie.derby.warning': 'Derby is not recommended for production use. With Derby, Oozie Server HA and concurrent connection support will not be available.',
   'installer.step7.oozie.database.new': 'New Derby Database',
   'installer.step7.hive.database.new.mysql': 'New MySQL Database',

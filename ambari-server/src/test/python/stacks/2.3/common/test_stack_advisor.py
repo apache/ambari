@@ -2021,6 +2021,42 @@ class TestHDP23StackAdvisor(TestCase):
     self.assertEqual(len(problems), 2)
     self.assertEqual(problems_dict, expected_warnings)
 
+    # Test hawq_master_directory multiple directories validation
+    configurations["hawq-site"] = {"properties": {"hawq_master_directory": "/data/hawq/master",
+                                                  "hawq_segment_directory": "/data/hawq/segment"}}
+    properties = configurations["hawq-site"]["properties"]
+    problems = self.stackAdvisor.validateHAWQSiteConfigurations(properties, defaults, configurations, services, hosts)
+    problems_dict = {}
+    self.assertEqual(len(problems), 0)
+    expected_warnings = {}
+    self.assertEqual(problems_dict, expected_warnings)
+
+    configurations["hawq-site"] = {"properties": {"hawq_master_directory": "/data/hawq/master1,/data/hawq/master2",
+                                                  "hawq_segment_directory": "/data/hawq/segment1 /data/hawq/segment2"}}
+    properties = configurations["hawq-site"]["properties"]
+    problems = self.stackAdvisor.validateHAWQSiteConfigurations(properties, defaults, configurations, services, hosts)
+    problems_dict = {}
+    for problem in problems:
+      problems_dict[problem['config-name']] = problem
+    self.assertEqual(len(problems), 2)
+    expected_warnings = {
+      'hawq_master_directory': {
+        'config-type': 'hawq-site',
+        'message': 'Multiple directories for HAWQ Master directory are not allowed.',
+        'type': 'configuration',
+        'config-name': 'hawq_master_directory',
+        'level': 'ERROR'
+      },
+      'hawq_segment_directory': {
+        'config-type': 'hawq-site',
+        'message': 'Multiple directories for HAWQ Segment directory are not allowed.',
+        'type': 'configuration',
+        'config-name': 'hawq_segment_directory',
+        'level': 'ERROR'
+      }
+    }
+    self.assertEqual(problems_dict, expected_warnings)
+
     # Test hawq_global_rm_type validation
     services = {
                  "services" : [

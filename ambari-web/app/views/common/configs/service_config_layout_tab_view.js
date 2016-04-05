@@ -55,7 +55,7 @@ App.ServiceConfigLayoutTabView = Em.View.extend(App.ConfigOverridable, {
   widgetTypeMap: {
     checkbox: App.CheckboxConfigWidgetView,
     combo: App.ComboConfigWidgetView,
-    directory: App.DirectoryConfigWidgetView,
+    directory: App.TextFieldConfigWidgetView,
     directories: App.DirectoryConfigWidgetView,
     list: App.ListConfigWidgetView,
     password: App.PasswordConfigWidgetView,
