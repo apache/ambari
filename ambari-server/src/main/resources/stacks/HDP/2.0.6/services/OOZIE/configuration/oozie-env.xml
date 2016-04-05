@@ -30,9 +30,9 @@
 #!/bin/bash
 
 if [ -d "/usr/lib/bigtop-tomcat" ]; then
-  export OOZIE_CONFIG=${OOZIE_CONFIG:-{{conf_dir}}}
+  export OOZIE_CONFIG=${OOZIE_CONFIG:-/etc/oozie/conf}
   export CATALINA_BASE=${CATALINA_BASE:-{{oozie_server_dir}}}
-  export CATALINA_TMPDIR=${CATALINA_TMPDIR:-/var/tmp/oozie}
+  export CATALINA_TMPDIR=${CATALINA_TMPDIR:-{{oozie_tmp_dir}}}
   export OOZIE_CATALINA_HOME=/usr/lib/bigtop-tomcat
 fi
 
@@ -91,18 +91,13 @@ export OOZIE_ADMIN_PORT={{oozie_server_admin_port}}
 # export OOZIE_BASE_URL="http://${OOZIE_HTTP_HOSTNAME}:${OOZIE_HTTP_PORT}/oozie"
 export JAVA_LIBRARY_PATH={{hadoop_lib_home}}/native/Linux-amd64-64
 
-# At least 1 minute of retry time to account for server downtime during
-# upgrade/downgrade
-export OOZIE_CLIENT_OPTS="${OOZIE_CLIENT_OPTS} -Doozie.connection.retry.count=5 "
+# Set Hadoop-related properties
+export HADOOP_OPTS="-Dhdp.version=${HDP_VERSION} ${HADOOP_OPTS}"
 
-{% if sqla_db_used or lib_dir_available %}
-export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:{{jdbc_libs_dir}}"
-export JAVA_LIBRARY_PATH="$JAVA_LIBRARY_PATH:{{jdbc_libs_dir}}"
-{% endif %}
-    </value>
-    <value-attributes>
-      <type>content</type>
-    </value-attributes>
+   </value>
+   <value-attributes>
+     <type>content</type>
+   </value-attributes>
   </property>
 
 </configuration>

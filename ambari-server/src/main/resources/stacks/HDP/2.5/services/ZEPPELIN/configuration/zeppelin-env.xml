@@ -20,32 +20,6 @@
 
 <configuration>
 
- <property>
-    <name>zeppelin_pid_dir</name>
-    <value>/var/run/zeppelin-notebook</value>
-    <description>Dir containing process ID file</description>
-  </property>
-
-  <property>
-    <name>zeppelin_user</name>
-    <value>zeppelin</value>
-    <property-type>USER</property-type>
-    <description>User zeppelin daemon runs as</description>
-  </property>
-
-  <property>
-    <name>zeppelin_group</name>
-    <value>zeppelin</value>
-    <property-type>GROUP</property-type>
-    <description>zeppelin group</description>
-  </property>
-
-  <property>
-    <name>zeppelin_log_dir</name>
-    <value>/var/log/zeppelin</value>
-    <description>Zeppelin Log dir</description>
-  </property>
-
   <property>
     <name>content</name>
     <description>This is the jinja template for zeppelin-env.sh file</description>
@@ -65,7 +39,7 @@ export ZEPPELIN_PID_DIR={{zeppelin_pid_dir}}
 export JAVA_HOME={{java64_home}}
 
 # Additional jvm options. for example, export ZEPPELIN_JAVA_OPTS="-Dspark.executor.memory=8g -Dspark.cores.max=16"
-export ZEPPELIN_JAVA_OPTS="-Dspark.executor.memory={{executor_mem}} -Dspark.executor.instances={{executor_instances}} -Dspark.yarn.queue={{spark_queue}}"
+export ZEPPELIN_JAVA_OPTS="-Dhdp.version={{full_stack_version}} -Dspark.executor.memory={{executor_mem}} -Dspark.executor.instances={{executor_instances}} -Dspark.yarn.queue={{spark_queue}}"
 
 
 # Zeppelin jvm mem options Default -Xmx1024m -XX:MaxPermSize=512m
@@ -138,26 +112,6 @@ export SPARK_YARN_USER_ENV="PYTHONPATH=${PYTHONPATH}"
 # export ZEPPELIN_SPARK_MAXRESULT
 
   </value>
-  </property>
-
-  <property>
-    <name>zeppelin.executor.mem</name>
-    <value>512m</value>
-    <description>Executor memory to use (e.g. 512m or 1g)</description>
-  </property>
-
-  <property>
-    <name>zeppelin.executor.instances</name>
-    <value>2</value>
-    <description>Number of executor instances to use (e.g. 2)</description>
-  </property>
-
-  <property>
-    <name>zeppelin.spark.jar.dir</name>
-    <value>/apps/zeppelin</value>
-    <description>Shared location where zeppelin spark jar will be copied to. Should be accesible
-      by all cluster nodes
-    </description>
   </property>
 
 </configuration>

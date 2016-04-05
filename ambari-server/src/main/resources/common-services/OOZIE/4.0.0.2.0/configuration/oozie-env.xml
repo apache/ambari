@@ -187,10 +187,6 @@ export OOZIE_ADMIN_PORT={{oozie_server_admin_port}}
 #
 # export OOZIE_BASE_URL="http://${OOZIE_HTTP_HOSTNAME}:${OOZIE_HTTP_PORT}/oozie"
 export JAVA_LIBRARY_PATH={{hadoop_lib_home}}/native/Linux-amd64-64
-
-# Set Hadoop-related properties
-export HADOOP_OPTS="-Dhdp.version=${HDP_VERSION} ${HADOOP_OPTS}"
-
    </value>
    <value-attributes>
      <type>content</type>
