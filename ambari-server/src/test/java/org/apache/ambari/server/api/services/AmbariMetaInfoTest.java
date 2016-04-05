@@ -645,7 +645,7 @@ public class AmbariMetaInfoTest {
 
   @Test
   public void testGetStacks() {
-    Collection<StackInfo> stacks = metaInfo.getStacks();
+    //Collection<StackInfo> stacks = metaInfo.getStacks();
     //todo: complete test
   }
 
@@ -895,6 +895,7 @@ public class AmbariMetaInfoTest {
 
     List<MetricDefinition> list = metaInfo.getMetrics(STACK_NAME_HDP, "2.0.5", "HDFS", SERVICE_COMPONENT_NAME, Resource.Type.Component.name());
     Assert.assertNotNull(list);
+    checkNoAggregatedFunctionsForJmx(list);
 
     list = metaInfo.getMetrics(STACK_NAME_HDP, "2.0.5", "HDFS", "DATANODE", Resource.Type.Component.name());
     Assert.assertNull(list);
@@ -954,6 +955,8 @@ public class AmbariMetaInfoTest {
             if (list == null) {
               LOG.info("No metrics found for " + currentComponentInfo);
               continue;
+            } else {
+              checkNoAggregatedFunctionsForJmx(list);
             }
             LOG.info("Cross-checking JMX-to-Ganglia metrics for " + currentComponentInfo);
 
@@ -2013,6 +2016,18 @@ public class AmbariMetaInfoTest {
     waitForAllReposToBeResolved(metaInfo);
 
     return metaInfo;
+  }
+
+  private static void checkNoAggregatedFunctionsForJmx(List<MetricDefinition> metricDefinitions) {
+    for (MetricDefinition metricDefinition: metricDefinitions) {
+      if ("jmx".equals(metricDefinition.getType())) {
+        for (String metric: metricDefinition.getMetrics().keySet()) {
+          if (metric.endsWith("._sum")) {
+            Assert.fail("Aggregated functions aren't supported for JMX metrics. " + metric);
+          }
+        }
+      }
+    }
   }
 
   private static void waitForAllReposToBeResolved(AmbariMetaInfo metaInfo) throws Exception {
