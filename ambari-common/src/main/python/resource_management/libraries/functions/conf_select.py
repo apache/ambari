@@ -115,12 +115,6 @@ _PACKAGE_DIRS = {
       "current_dir": "{0}/current/ranger-admin/conf".format(STACK_ROOT_PATTERN)
     }
   ],
-  "ranger-tagsync": [
-    {
-      "conf_dir": "/etc/ranger/tagsync/conf",
-      "current_dir": "{0}/current/ranger-tagsync/conf".format(STACK_ROOT_PATTERN)
-    }
-  ],
   "ranger-kms": [
     {
       "conf_dir": "/etc/ranger/kms/conf",

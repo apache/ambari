@@ -24,7 +24,6 @@ from resource_management.core.resources.system import File, Directory, Execute, 
 from resource_management.core.source import DownloadSource, InlineTemplate
 from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.libraries.resources.modify_properties_file import ModifyPropertiesFile
-from resource_management.libraries.resources.properties_file import PropertiesFile
 from resource_management.core.exceptions import Fail
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.is_empty import is_empty
@@ -43,9 +42,6 @@ def ranger(name=None, upgrade_type=None):
 
   if name == 'ranger_usersync':
     setup_usersync(upgrade_type=upgrade_type)
-
-  if name == 'ranger_tagsync':
-    setup_tagsync(upgrade_type=upgrade_type)
 
 def setup_ranger_admin(upgrade_type=None):
   import params
@@ -353,7 +349,7 @@ def setup_usersync(upgrade_type=None):
   )
   
   Directory(format("{ranger_ugsync_conf}/"),
-    owner = params.unix_user
+       owner = params.unix_user
   )
 
   if upgrade_type is not None:
@@ -428,98 +424,3 @@ def setup_usersync(upgrade_type=None):
         group = params.unix_group,
         mode = 0640
     )
-
-def setup_tagsync(upgrade_type=None):
-  import params
-
-  ranger_tagsync_home = params.ranger_tagsync_home
-  ranger_home = params.ranger_home
-  ranger_tagsync_conf = params.ranger_tagsync_conf
-
-  tagsync_log4j_file = format('{ranger_tagsync_conf}/log4j.xml')
-  tagsync_services_file = format('{ranger_tagsync_home}/ranger-tagsync-services.sh')
-
-  Directory(format("{ranger_tagsync_conf}"),
-    owner = params.unix_user,
-    group = params.unix_group,
-    create_parents = True
-  )
-
-  Directory(params.ranger_pid_dir,
-    mode=0750,
-    create_parents=True,
-    owner = params.unix_user,
-    group = params.unix_group,
-    cd_access = "a",
-  )
-
-  Directory(params.tagsync_log_dir,
-    create_parents = True,
-    owner = params.unix_user,
-    group = params.unix_group,
-    cd_access = "a",
-    mode=0755
-  )
-
-  File(format('{ranger_tagsync_conf}/ranger-tagsync-env-logdir.sh'),
-    content = format("export RANGER_TAGSYNC_LOG_DIR={tagsync_log_dir}"),
-    owner = params.unix_user,
-    group = params.unix_group,
-    mode=0755
-  )
-
-  XmlConfig("ranger-tagsync-site.xml",
-    conf_dir=ranger_tagsync_conf,
-    configurations=params.config['configurations']['ranger-tagsync-site'],
-    configuration_attributes=params.config['configuration_attributes']['ranger-tagsync-site'],
-    owner=params.unix_user,
-    group=params.unix_group,
-    mode=0644)
-
-  PropertiesFile(format('{ranger_tagsync_conf}/application.properties'),
-    properties = params.tagsync_application_properties,
-    mode=0755,
-    owner=params.unix_user,
-    group=params.unix_group
-  )
-
-  if upgrade_type is not None:
-    src_file = format('{ranger_tagsync_home}/ews/webapp/WEB-INF/classes/conf.dist/log4j.xml')
-    dst_file = format('{tagsync_log4j_file}')
-    Execute(('cp', '-f', src_file, dst_file), sudo=True)
-
-  if os.path.isfile(tagsync_log4j_file):
-    File(tagsync_log4j_file, owner=params.unix_user, group=params.unix_group)
-  else:
-    Logger.warning('Required file {0} does not exist, copying the file to {1} path'.format(tagsync_log4j_file, ranger_tagsync_conf))
-    src_file = format('{ranger_tagsync_home}/ews/webapp/WEB-INF/classes/conf.dist/log4j.xml')
-    dst_file = format('{tagsync_log4j_file}')
-    Execute(('cp', '-f', src_file, dst_file), sudo=True)
-    File(tagsync_log4j_file, owner=params.unix_user, group=params.unix_group)
-
-  cred_file = format('{ranger_home}/ranger_credential_helper.py')
-  if os.path.isfile(format('{ranger_tagsync_home}/ranger_credential_helper.py')):
-    cred_file = format('{ranger_tagsync_home}/ranger_credential_helper.py')
-
-  cred_lib = os.path.join(ranger_tagsync_home,"lib","*")
-  cred_setup_prefix = (cred_file, '-l', cred_lib)
-
-  if not is_empty(params.tagsync_jceks_path) and not is_empty(params.ranger_tagsync_tagadmin_password) and params.tagsync_enabled:
-    cred_setup = cred_setup_prefix + ('-f', params.tagsync_jceks_path, '-k', 'tagadmin.user.password', '-v', PasswordString(params.ranger_tagsync_tagadmin_password), '-c', '1')
-    Execute(cred_setup, environment={'JAVA_HOME': params.java_home}, logoutput=True, sudo=True)
-
-    File(params.tagsync_jceks_path,
-         owner = params.unix_user,
-         group = params.unix_group,
-         mode = 0640
-    )
-
-  if os.path.isfile(tagsync_services_file):
-    File(tagsync_services_file,
-      mode = 0755,
-    )
-
-    Execute(('ln','-sf', format('{tagsync_services_file}'),'/usr/bin/ranger-tagsync'),
-      not_if=format("ls /usr/bin/ranger-tagsync"),
-      only_if=format("ls {tagsync_services_file}"),
-      sudo=True)

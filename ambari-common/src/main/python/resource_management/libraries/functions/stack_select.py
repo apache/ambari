@@ -64,8 +64,6 @@ SERVER_ROLE_DIRECTORY_MAP = {
   'OOZIE_SERVER' : 'oozie-server',
   'RANGER_ADMIN' : 'ranger-admin',
   'RANGER_USERSYNC' : 'ranger-usersync',
-  'RANGER_TAGSYNC' : 'ranger-tagsync',
-  'RANGER_KMS' : 'ranger-kms',
   'SPARK_JOBHISTORYSERVER' : 'spark-historyserver',
   'SPARK_THRIFTSERVER' : 'spark-thriftserver',
   'NIMBUS' : 'storm-nimbus',

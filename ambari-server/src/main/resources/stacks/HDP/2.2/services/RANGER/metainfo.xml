@@ -40,10 +40,6 @@
             <package>
               <name>ranger_${stack_version}-usersync</name>
             </package>
-            <package>
-              <name>ranger_${stack_version}-tagsync</name>
-              <condition>should_install_ranger_tagsync</condition>
-            </package>
           </packages>
         </osSpecific>
         <osSpecific>
@@ -54,10 +50,6 @@
             </package>
             <package>
               <name>ranger-${stack_version}-usersync</name>
-            </package>
-            <package>
-              <name>ranger-${stack_version}-tagsync</name>
-              <condition>should_install_ranger_tagsync</condition>
             </package>
           </packages>
         </osSpecific>

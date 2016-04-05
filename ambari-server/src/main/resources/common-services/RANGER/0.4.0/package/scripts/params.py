@@ -31,8 +31,7 @@ from resource_management.libraries.functions import StackFeature
 # for use with <stack-root>/current/<component>
 SERVER_ROLE_DIRECTORY_MAP = {
   'RANGER_ADMIN' : 'ranger-admin',
-  'RANGER_USERSYNC' : 'ranger-usersync',
-  'RANGER_TAGSYNC' : 'ranger-tagsync'
+  'RANGER_USERSYNC' : 'ranger-usersync'
 }
 
 component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, "RANGER_ADMIN")
@@ -57,15 +56,12 @@ create_db_dbuser = config['configurations']['ranger-env']['create_db_dbuser']
 stack_supports_rolling_upgrade = stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted)
 stack_supports_config_versioning =  stack_version_formatted and check_stack_feature(StackFeature.CONFIG_VERSIONING, stack_version_formatted)
 stack_supports_usersync_non_root =  stack_version_formatted and check_stack_feature(StackFeature.RANGER_USERSYNC_NON_ROOT, stack_version_formatted)
-stack_supports_ranger_tagsync =  stack_version_formatted and check_stack_feature(StackFeature.RANGER_TAGSYNC_COMPONENT, stack_version_formatted)
 
 downgrade_from_version = default("/commandParams/downgrade_from_version", None)
 upgrade_direction = default("/commandParams/upgrade_direction", None)
 
 ranger_conf    = '/etc/ranger/admin/conf'
 ranger_ugsync_conf = '/etc/ranger/usersync/conf'
-ranger_tagsync_home  = format('{stack_root}/current/ranger-tagsync')
-ranger_tagsync_conf = format('{stack_root}/current/ranger-tagsync/conf')
 
 if upgrade_direction == Direction.DOWNGRADE and version and not check_stack_feature(StackFeature.CONFIG_VERSIONING, version):
   stack_supports_rolling_upgrade = True
@@ -88,17 +84,12 @@ if stack_supports_config_versioning:
   ranger_conf = format('{stack_root}/current/ranger-admin/conf')
   ranger_ugsync_conf = format('{stack_root}/current/ranger-usersync/conf')
 
-if stack_supports_ranger_tagsync:
-  ranger_tagsync_home  = format('{stack_root}/current/ranger-tagsync')
-  tagsync_bin = '/usr/bin/ranger-tagsync'
-  ranger_tagsync_conf = format('{stack_root}/current/ranger-tagsync/conf')
-
 usersync_services_file = format('{stack_root}/current/ranger-usersync/ranger-usersync-services.sh')
 
 java_home = config['hostLevelParams']['java_home']
 unix_user  = config['configurations']['ranger-env']['ranger_user']
 unix_group = config['configurations']['ranger-env']['ranger_group']
-ranger_pid_dir = default("/configurations/ranger-env/ranger_pid_dir", "/var/run/ranger")
+ranger_pid_dir = config['configurations']['ranger-env']['ranger_pid_dir']
 usersync_log_dir = default("/configurations/ranger-env/ranger_usersync_log_dir", "/var/log/ranger/usersync")
 admin_log_dir = default("/configurations/ranger-env/ranger_admin_log_dir", "/var/log/ranger/admin")
 ranger_admin_default_file = format('{ranger_conf}/ranger-admin-default-site.xml')
@@ -209,14 +200,3 @@ ug_sync_source = config["configurations"]["ranger-ugsync-site"]["ranger.usersync
 current_host = config['hostname']
 if current_host in ranger_admin_hosts:
   ranger_host = current_host
-
-# ranger-tagsync
-ranger_tagsync_hosts = default("/clusterHostInfo/ranger_tagsync_hosts", [])
-has_ranger_tagsync = len(ranger_tagsync_hosts) > 0
-
-tagsync_enabled = config["configurations"]["ranger-tagsync-site"]['ranger.tagsync.enabled']
-tagsync_log_dir = default("/configurations/ranger-tagsync-site/ranger.tagsync.logdir", "/var/log/ranger/tagsync")
-ranger_tagsync_tagadmin_password = unicode(config["configurations"]["ranger-tagsync-site"]["ranger.tagsync.tagadmin.password"]) if has_ranger_tagsync else None
-tagsync_jceks_path = config["configurations"]["ranger-tagsync-site"]["ranger.tagsync.tagadmin.keystore"]
-tagsync_application_properties = dict(config["configurations"]["tagsync-application-properties"]) if has_ranger_tagsync else None
-tagsync_pid_file = format('{ranger_pid_dir}/tagsync.pid')
