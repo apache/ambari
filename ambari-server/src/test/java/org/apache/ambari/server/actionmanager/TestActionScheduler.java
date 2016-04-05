@@ -2418,10 +2418,13 @@ public class TestActionScheduler {
     ActionScheduler scheduler = new ActionScheduler(100, 50, db, aq, fsm, 3,
         new HostsMap((String) null), unitOfWork, null, conf);
 
-    doReturn(STAGE_LAST_ATTEMPT_TIME).when(stageInProgress1).getLastAttemptTime(anyString(), anyString());
-    doReturn(STAGE_LAST_ATTEMPT_TIME).when(stageInProgress2).getLastAttemptTime(anyString(), anyString());
-    doReturn(STAGE_LAST_ATTEMPT_TIME).when(stageInProgress3).getLastAttemptTime(anyString(), anyString());
-    doReturn(STAGE_LAST_ATTEMPT_TIME).when(stageInProgress4).getLastAttemptTime(anyString(), anyString());
+    HostRoleCommand hostRoleCommand = mock(HostRoleCommand.class);
+    doReturn(STAGE_LAST_ATTEMPT_TIME).when(hostRoleCommand).getStartTime();
+    doReturn(hostRoleCommand).when(stageInProgress1).getHostRoleCommand(anyString(), anyString());
+    doReturn(hostRoleCommand).when(stageInProgress2).getHostRoleCommand(anyString(), anyString());
+    doReturn(hostRoleCommand).when(stageInProgress3).getHostRoleCommand(anyString(), anyString());
+    doReturn(hostRoleCommand).when(stageInProgress4).getHostRoleCommand(anyString(), anyString());
+
 
     // Execution of request 1
 
