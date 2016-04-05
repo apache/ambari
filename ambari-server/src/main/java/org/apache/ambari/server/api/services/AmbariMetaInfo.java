@@ -913,24 +913,21 @@ public class AmbariMetaInfo {
               while (iterator.hasNext()) {
                 Map.Entry<String, Metric> metricEntry = iterator.next();
                 // Process Namenode rpc metrics
-                Map<String, Metric> replacementMetrics = PropertyHelper.processRpcMetricDefinition(metricDefinition.getType(),
+                Map<String, Metric> processedMetrics = PropertyHelper.processRpcMetricDefinition(metricDefinition.getType(),
                   componentName, metricEntry.getKey(), metricEntry.getValue());
-                if (replacementMetrics != null) {
+                if (processedMetrics != null) {
                   iterator.remove(); // Remove current metric entry
-                  newMetricsToAdd.putAll(replacementMetrics);
-                  // Add aggregate functions for replacement metrics
-                  if (metricDefEntry.getKey().equals(Component.name())) {
-                    for (Map.Entry<String, Metric> replacementMetric : replacementMetrics.entrySet()) {
-                      newMetricsToAdd.putAll(getAggregateFunctionMetrics(replacementMetric.getKey(),
-                        replacementMetric.getValue()));
-                    }
-                  }
+                  newMetricsToAdd.putAll(processedMetrics);
                 } else {
-                  // NOTE: Only Component aggregates supported for now.
-                  if (metricDefEntry.getKey().equals(Component.name())) {
-                    Map<String, Metric> aggregateFunctionMetrics =
-                      getAggregateFunctionMetrics(metricEntry.getKey(), metricEntry.getValue());
-                    newMetricsToAdd.putAll(aggregateFunctionMetrics);
+                  processedMetrics = Collections.singletonMap(metricEntry.getKey(), metricEntry.getValue());
+                }
+
+                // NOTE: Only Component aggregates for AMS supported for now.
+                if (metricDefinition.getType().equals("ganglia") &&
+                  metricDefEntry.getKey().equals(Component.name())) {
+                  for (Map.Entry<String, Metric> processedMetric : processedMetrics.entrySet()) {
+                    newMetricsToAdd.putAll(getAggregateFunctionMetrics(processedMetric.getKey(),
+                      processedMetric.getValue()));
                   }
                 }
               }

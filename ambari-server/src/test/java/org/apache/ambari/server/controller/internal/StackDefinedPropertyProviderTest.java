@@ -878,10 +878,6 @@ public class StackDefinedPropertyProviderTest {
 
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 
-    List<String> metricsRegexes = new ArrayList<String>();
-
-    metricsRegexes.add("metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/");
-
     Assert.assertTrue(PropertyHelper.getProperties(resource).size() > 2);
     Assert.assertNotNull(resource.getPropertyValue(RM_AVAILABLE_MEMORY_PROPERTY));
   }
