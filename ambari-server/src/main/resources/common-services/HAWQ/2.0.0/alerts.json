@@ -17,12 +17,14 @@
             },
             "warning": {
               "text": "affected: [{1}], total: [{0}]",
-              "value": 0.1
+              "value": 10
             },
             "critical": {
               "text": "affected: [{1}], total: [{0}]",
-              "value": 0.25
-            }
+              "value": 25
+            },
+            "units" : "%",
+            "type": "PERCENT"
           }
         }
       }

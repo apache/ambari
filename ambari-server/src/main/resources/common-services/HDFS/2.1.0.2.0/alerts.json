@@ -17,12 +17,14 @@
             },
             "warning": {
               "text": "affected: [{1}], total: [{0}]",
-              "value": 0.1
+              "value": 10
             },
             "critical": {
               "text": "affected: [{1}], total: [{0}]",
-              "value": 0.3
-            }
+              "value": 30
+            },
+            "units" : "%",
+            "type": "PERCENT"
           }
         }
       },
@@ -42,12 +44,14 @@
             },
             "warning": {
               "text": "affected: [{1}], total: [{0}]",
-              "value": 0.1
+              "value": 10
             },
             "critical": {
               "text": "affected: [{1}], total: [{0}]",
-              "value": 0.3
-            }
+              "value": 30
+            },
+            "units" : "%",
+            "type": "PERCENT"
           }
         }
       },
@@ -67,12 +71,14 @@
             },
             "warning": {
               "text": "affected: [{1}], total: [{0}]",
-              "value": 0.33
+              "value": 33
             },
             "critical": {
               "text": "affected: [{1}], total: [{0}]",
-              "value": 0.50
-            }
+              "value": 50
+            },
+            "units" : "%",
+            "type": "PERCENT"
           }
         }
       }
@@ -164,7 +170,8 @@
               "text": "{1} CPU, load {0:.1%}",
               "value": 250
             },
-            "units" : "%"
+            "units" : "%",
+            "type": "PERCENT"
           },
           "jmx": {
             "property_list": [
@@ -304,7 +311,8 @@
               "text": "Capacity Used:[{2:.0f}%, {0}], Capacity Remaining:[{1}]",
               "value": 80
             },
-            "units" : "%"
+            "units" : "%",
+            "type": "PERCENT"
           },
           "jmx": {
             "property_list": [
@@ -479,7 +487,7 @@
             {
               "name": "checkpoint.time.warning.threshold",
               "display_name": "Checkpoint Warning",
-              "value": 2.0,
+              "value": 200,
               "type": "PERCENT",
               "description": "The percentage of the last checkpoint time greater than the interval in order to trigger a warning alert.",
               "units": "%",
@@ -488,7 +496,7 @@
             {
               "name": "checkpoint.time.critical.threshold",
               "display_name": "Checkpoint Critical",
-              "value": 2.0,
+              "value": 200,
               "type": "PERCENT",
               "description": "The percentage of the last checkpoint time greater than the interval in order to trigger a critical alert.",
               "units": "%",
@@ -1491,7 +1499,8 @@
               "text": "Remaining Capacity:[{0}], Total Capacity:[{2:.0f}% Used, {1}]",
               "value": 80
             },
-            "units" : "%"
+            "units" : "%",
+            "type": "PERCENT"
           },
           "jmx": {
             "property_list": [
@@ -1544,7 +1553,8 @@
               "text": "Used Heap:[{2:.0f}%, {0} MB], Max Heap: {1} MB",
               "value": 90
             },
-            "units" : "%"
+            "units" : "%",
+            "type": "PERCENT"
           },
           "jmx": {
             "property_list": [

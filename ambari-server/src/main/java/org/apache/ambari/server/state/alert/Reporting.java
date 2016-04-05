@@ -53,6 +53,9 @@ public class Reporting {
   @SerializedName("units")
   private String m_units;
 
+  @SerializedName("type")
+  private ReportingType m_type;
+
   /**
    * @return the WARNING structure or {@code null} if none.
    */
@@ -119,6 +122,14 @@ public class Reporting {
     m_units = units;
   }
 
+  public ReportingType getType() {
+    return m_type;
+  }
+
+  public void setType(ReportingType m_type) {
+    this.m_type = m_type;
+  }
+
   /**
    *
    */
@@ -131,7 +142,7 @@ public class Reporting {
         + ((m_critical == null) ? 0 : m_critical.hashCode());
     result = prime * result + ((m_ok == null) ? 0 : m_ok.hashCode());
     result = prime * result + ((m_warning == null) ? 0 : m_warning.hashCode());
-
+    result = prime * result + ((m_type == null) ? 0 : m_type.hashCode());
     return result;
   }
 
@@ -176,6 +187,15 @@ public class Reporting {
     } else if (!m_warning.equals(other.m_warning)) {
       return false;
     }
+
+    if (m_type == null) {
+      if (other.m_type != null) {
+        return false;
+      }
+    } else if (!m_type.equals(other.m_type)) {
+      return false;
+    }
+
     return true;
   }
 
@@ -271,5 +291,17 @@ public class Reporting {
       }
       return true;
     }
+  }
+
+  public enum ReportingType {
+    /**
+     * Integers, longs, floats, etc.
+     */
+    NUMERIC,
+
+    /**
+     * A percent value, expessed as a float.
+     */
+    PERCENT
   }
 }

@@ -204,7 +204,10 @@ public class AlertAggregateListener {
       int numerator = summary.getCriticalCount() + summary.getWarningCount();
       int denominator = totalCount;
 
-      double value = (double) (numerator) / denominator;
+      double value = ((double) (numerator) / denominator);
+      if(Reporting.ReportingType.PERCENT.equals(reporting.getType())) {
+        value *= 100;
+      }
 
       if (value >= reporting.getCritical().getValue()) {
         aggregateAlert.setState(AlertState.CRITICAL);

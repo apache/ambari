@@ -25,9 +25,11 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -48,9 +50,6 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.State;
-import org.apache.ambari.server.state.alert.AlertDefinition;
-import org.apache.ambari.server.state.alert.ScriptSource;
-import org.apache.ambari.server.state.alert.Source;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.support.JdbcUtils;
@@ -278,6 +277,12 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
       put("default.smoke.principal", "HIDDEN");
       put("default.smoke.keytab", "HIDDEN");
     }};
+
+    final Map<String, String> percentParameterMap = new HashMap<String, String>(){{
+      put("units", "%");
+      put("type", "PERCENT");
+    }};
+
     Map<String, Map<String, String>> visibilityMap = new HashMap<String, Map<String, String>>(){{
       put("hive_webhcat_server_status", new HashMap<String, String>(){{
         put("default.smoke.user", "HIDDEN");
@@ -298,8 +303,79 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
       put("namenode_increase_in_storage_capacity_usage_weekly", hdfsVisibilityMap);
     }};
 
+    Map<String, Map<String, String>> reportingPercentMap = new HashMap<String, Map<String, String>>(){{
+      put("hawq_segment_process_percent", percentParameterMap);
+      put("mapreduce_history_server_cpu", percentParameterMap);
+      put("yarn_nodemanager_webui_percent", percentParameterMap);
+      put("yarn_resourcemanager_cpu", percentParameterMap);
+      put("datanode_process_percent", percentParameterMap);
+      put("datanode_storage_percent", percentParameterMap);
+      put("journalnode_process_percent", percentParameterMap);
+      put("namenode_cpu", percentParameterMap);
+      put("namenode_hdfs_capacity_utilization", percentParameterMap);
+      put("datanode_storage", percentParameterMap);
+      put("datanode_heap_usage", percentParameterMap);
+      put("storm_supervisor_process_percent", percentParameterMap);
+      put("hbase_regionserver_process_percent", percentParameterMap);
+      put("hbase_master_cpu", percentParameterMap);
+      put("zookeeper_server_process_percent", percentParameterMap);
+      put("metrics_monitor_process_percent", percentParameterMap);
+      put("ams_metrics_collector_hbase_master_cpu", percentParameterMap);
+    }};
+
+    Map<String, Map<String, Integer>> reportingMultiplierMap = new HashMap<String, Map<String, Integer>>(){{
+      put("hawq_segment_process_percent", new HashMap<String, Integer>() {{
+        put("warning", 100);
+        put("critical", 100);
+      }});
+      put("yarn_nodemanager_webui_percent", new HashMap<String, Integer>() {{
+        put("warning", 100);
+        put("critical", 100);
+      }});
+      put("datanode_process_percent", new HashMap<String, Integer>() {{
+        put("warning", 100);
+        put("critical", 100);
+      }});
+      put("datanode_storage_percent", new HashMap<String, Integer>() {{
+        put("warning", 100);
+        put("critical", 100);
+      }});
+      put("journalnode_process_percent", new HashMap<String, Integer>() {{
+        put("warning", 100);
+        put("critical", 100);
+      }});
+      put("storm_supervisor_process_percent", new HashMap<String, Integer>() {{
+        put("warning", 100);
+        put("critical", 100);
+      }});
+      put("hbase_regionserver_process_percent", new HashMap<String, Integer>() {{
+        put("warning", 100);
+        put("critical", 100);
+      }});
+      put("zookeeper_server_process_percent", new HashMap<String, Integer>() {{
+        put("warning", 100);
+        put("critical", 100);
+      }});
+      put("metrics_monitor_process_percent", new HashMap<String, Integer>() {{
+        put("warning", 100);
+        put("critical", 100);
+      }});
+    }};
+
+    Map<String, Map<String, Integer>> scriptAlertMultiplierMap = new HashMap<String, Map<String, Integer>>(){{
+      put("ambari_agent_disk_usage", new HashMap<String, Integer>() {{
+        put("percent.used.space.warning.threshold", 100);
+        put("percent.free.space.critical.threshold", 100);
+      }});
+      put("namenode_last_checkpoint", new HashMap<String, Integer>() {{
+        put("checkpoint.time.warning.threshold", 100);
+        put("checkpoint.time.critical.threshold", 100);
+      }});
+    }};
+
+
     // list of alerts that need to get property updates
-    List<String> alertNamesForPropertyUpdates = new ArrayList<String>() {{
+    Set<String> alertNamesForPropertyUpdates = new HashSet<String>() {{
       add("namenode_service_rpc_queue_latency_hourly");
       add("namenode_client_rpc_queue_latency_hourly");
       add("namenode_service_rpc_processing_latency_hourly");
@@ -312,6 +388,25 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
       add("namenode_increase_in_storage_capacity_usage_daily");
       add("increase_nn_heap_usage_weekly");
       add("namenode_increase_in_storage_capacity_usage_weekly");
+      add("hawq_segment_process_percent");
+      add("mapreduce_history_server_cpu");
+      add("yarn_nodemanager_webui_percent");
+      add("yarn_resourcemanager_cpu");
+      add("datanode_process_percent");
+      add("datanode_storage_percent");
+      add("journalnode_process_percent");
+      add("namenode_cpu");
+      add("namenode_hdfs_capacity_utilization");
+      add("datanode_storage");
+      add("datanode_heap_usage");
+      add("storm_supervisor_process_percent");
+      add("hbase_regionserver_process_percent");
+      add("hbase_master_cpu");
+      add("zookeeper_server_process_percent");
+      add("metrics_monitor_process_percent");
+      add("ams_metrics_collector_hbase_master_cpu");
+      add("ambari_agent_disk_usage");
+      add("namenode_last_checkpoint");
     }};
 
     LOG.info("Updating alert definitions.");
@@ -388,6 +483,38 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
             alertDefinition.setSource(addParamOption(source, paramName, "visibility", visibilityValue));
           }
         }
+        // update percent script alerts param values from 0.x to 0.x * 100 values
+        if(scriptAlertMultiplierMap.containsKey(alertDefinition.getDefinitionName())) {
+          for(Map.Entry<String, Integer> entry : scriptAlertMultiplierMap.get(alertDefinition.getDefinitionName()).entrySet()){
+            String paramName = entry.getKey();
+            Integer multiplier = entry.getValue();
+            String source = alertDefinition.getSource();
+            Float oldValue = getParamFloatValue(source, paramName);
+            Integer newValue = Math.round(oldValue * multiplier);
+            alertDefinition.setSource(setParamIntegerValue(source, paramName, newValue));
+          }
+        }
+
+        // update reporting alerts(aggregate and metrics) values from 0.x to 0.x * 100 values
+        if(reportingMultiplierMap.containsKey(alertDefinition.getDefinitionName())) {
+          for(Map.Entry<String, Integer> entry : reportingMultiplierMap.get(alertDefinition.getDefinitionName()).entrySet()){
+            String reportingName = entry.getKey();
+            Integer multiplier = entry.getValue();
+            String source = alertDefinition.getSource();
+            Float oldValue = getReportingFloatValue(source, reportingName);
+            Integer newValue = Math.round(oldValue * multiplier);
+            alertDefinition.setSource(setReportingIntegerValue(source, reportingName, newValue));
+          }
+        }
+
+        if(reportingPercentMap.containsKey(alertDefinition.getDefinitionName())) {
+          for(Map.Entry<String, String> entry : reportingPercentMap.get(alertDefinition.getDefinitionName()).entrySet()){
+            String paramName = entry.getKey();
+            String paramValue = entry.getValue();
+            String source = alertDefinition.getSource();
+            alertDefinition.setSource(addReportingOption(source, paramName, paramValue));
+          }
+        }
 
         // regeneration of hash and writing modified alerts to database, must go after all modifications finished
         alertDefinition.setHash(UUID.randomUUID().toString());
@@ -427,6 +554,90 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
         }
       }
     }
+    return sourceJson.toString();
+  }
+
+  /**
+   * Returns param value as float.
+   * @param source source of script alert
+   * @param paramName param name
+   * @return param value as float
+   */
+  protected Float getParamFloatValue(String source, String paramName){
+    JsonObject sourceJson = new JsonParser().parse(source).getAsJsonObject();
+    JsonArray parametersJson = sourceJson.getAsJsonArray("parameters");
+    if(parametersJson != null && !parametersJson.isJsonNull()) {
+      for(JsonElement param : parametersJson) {
+        if(param.isJsonObject()) {
+          JsonObject paramObject = param.getAsJsonObject();
+          if(paramObject.has("name") && paramObject.get("name").getAsString().equals(paramName)){
+            if(paramObject.has("value")) {
+              return paramObject.get("value").getAsFloat();
+            }
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Set integer param value.
+   * @param source source of script alert
+   * @param paramName param name
+   * @param value new param value
+   * @return modified source
+   */
+  protected String setParamIntegerValue(String source, String paramName, Integer value){
+    JsonObject sourceJson = new JsonParser().parse(source).getAsJsonObject();
+    JsonArray parametersJson = sourceJson.getAsJsonArray("parameters");
+    if(parametersJson != null && !parametersJson.isJsonNull()) {
+      for(JsonElement param : parametersJson) {
+        if(param.isJsonObject()) {
+          JsonObject paramObject = param.getAsJsonObject();
+          if(paramObject.has("name") && paramObject.get("name").getAsString().equals(paramName)){
+            paramObject.add("value", new JsonPrimitive(value));
+          }
+        }
+      }
+    }
+    return sourceJson.toString();
+  }
+
+  /**
+   * Returns reporting value as float.
+   * @param source source of aggregate or metric alert
+   * @param reportingName reporting name, must be "warning" or "critical"
+   * @return reporting value as float
+   */
+  protected Float getReportingFloatValue(String source, String reportingName){
+    JsonObject sourceJson = new JsonParser().parse(source).getAsJsonObject();
+    return sourceJson.getAsJsonObject("reporting").getAsJsonObject(reportingName).get("value").getAsFloat();
+  }
+
+  /**
+   * Set integer value of reporting.
+   * @param source source of aggregate or metric alert
+   * @param reportingName reporting name, must be "warning" or "critical"
+   * @param value new value
+   * @return modified source
+   */
+  protected String setReportingIntegerValue(String source, String reportingName, Integer value){
+    JsonObject sourceJson = new JsonParser().parse(source).getAsJsonObject();
+    sourceJson.getAsJsonObject("reporting").getAsJsonObject(reportingName).add("value", new JsonPrimitive(value));
+    return sourceJson.toString();
+  }
+
+  /**
+   * Add option to reporting
+   * @param source source of aggregate or metric alert
+   * @param optionName option name
+   * @param value option value
+   * @return modified source
+   */
+  protected String addReportingOption(String source, String optionName, String value){
+    JsonObject sourceJson = new JsonParser().parse(source).getAsJsonObject();
+    sourceJson.getAsJsonObject("reporting").add(optionName, new JsonPrimitive(value));
     return sourceJson.toString();
   }
 

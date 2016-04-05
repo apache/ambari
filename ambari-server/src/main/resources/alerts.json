@@ -52,7 +52,7 @@
             {
               "name": "percent.used.space.warning.threshold",
               "display_name": "Warning",
-              "value": 0.5,
+              "value": 50,
               "type": "PERCENT",
               "description": "The percent of disk space consumed before a warning is triggered.",
               "units": "%",
@@ -61,7 +61,7 @@
             {
               "name": "percent.free.space.critical.threshold",
               "display_name": "Critical",
-              "value": 0.8,
+              "value": 80,
               "type": "PERCENT",
               "description": "The percent of disk space consumed before a critical alert is triggered.",
               "units": "%",

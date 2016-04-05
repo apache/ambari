@@ -97,10 +97,10 @@ def _get_warnings_for_partition(parameters, disk_usage):
     min_free_space = long(float(parameters[MIN_FREE_SPACE_KEY]))
 
   if PERCENT_USED_WARNING_KEY in parameters:
-    warning_percent = float(parameters[PERCENT_USED_WARNING_KEY]) * 100
+    warning_percent = float(parameters[PERCENT_USED_WARNING_KEY])
 
   if PERCENT_USED_CRITICAL_KEY in parameters:
-    critical_percent = float(parameters[PERCENT_USED_CRITICAL_KEY]) * 100
+    critical_percent = float(parameters[PERCENT_USED_CRITICAL_KEY])
 
 
   if disk_usage is None or disk_usage.total == 0:

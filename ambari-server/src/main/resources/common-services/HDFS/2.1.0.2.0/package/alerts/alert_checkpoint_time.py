@@ -129,11 +129,11 @@ def execute(configurations={}, parameters={}, host_name=None):
 
   percent_warning = PERCENT_WARNING_DEFAULT
   if PERCENT_WARNING_KEY in parameters:
-    percent_warning = float(parameters[PERCENT_WARNING_KEY]) * 100
+    percent_warning = float(parameters[PERCENT_WARNING_KEY])
 
   percent_critical = PERCENT_CRITICAL_DEFAULT
   if PERCENT_CRITICAL_KEY in parameters:
-    percent_critical = float(parameters[PERCENT_CRITICAL_KEY]) * 100
+    percent_critical = float(parameters[PERCENT_CRITICAL_KEY])
 
   kinit_timer_ms = parameters.get(KERBEROS_KINIT_TIMER_PARAMETER, DEFAULT_KERBEROS_KINIT_TIMER_MS)
 
