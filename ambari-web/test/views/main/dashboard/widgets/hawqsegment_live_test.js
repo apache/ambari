@@ -42,7 +42,7 @@ describe('App.HawqSegmentUpView', function() {
       }
     },
     {
-      data: 50,
+      data: 80,
       e: {
         isRed: false,
         isOrange: true,
