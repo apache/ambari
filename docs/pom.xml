@@ -140,6 +140,18 @@
             </organization>
         </developer>
         <developer>
+            <id>ajit</id>
+            <name>Ajit Kumar</name>
+            <email>ajit@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
             <id>alejandro</id>
             <name>Alejandro Fernandez</name>
             <email>alejandro@apache.org</email>
@@ -761,6 +773,18 @@
             </organization>
         </developer>
         <developer>
+            <id>swapan</id>
+            <name>Swapan Shridhar</name>
+            <email>swapan@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
             <id>tbeerbower</id>
             <name>Thomas Beerbower</name>
             <email>tbeerbower@apache.org</email>
@@ -839,6 +863,18 @@
             <timezone>-8</timezone>
             <roles>
                 <role>PMC Chair</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
+            <id>zhewang</id>
+            <name>Joe Wang</name>
+            <email>zhewang@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>Committer</role>
             </roles>
             <organization>
                 Hortonworks
