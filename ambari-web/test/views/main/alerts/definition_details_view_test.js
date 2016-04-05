@@ -155,7 +155,7 @@ describe('App.MainAlertDefinitionDetailsView', function () {
     it("Em.run.next should be called", function () {
       view.tooltipsUpdater();
       expect(Em.run.next.calledOnce).to.be.true;
-      expect(App.tooltip.calledOnce).to.be.true;
+      expect(App.tooltip.calledTwice).to.be.true;
     });
   });
 

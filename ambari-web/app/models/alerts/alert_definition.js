@@ -35,6 +35,8 @@ App.AlertDefinition = DS.Model.extend({
   serviceName: DS.attr('string'),
   componentName: DS.attr('string'),
   enabled: DS.attr('boolean'),
+  repeat_tolerance_enabled: DS.attr('boolean'),
+  repeat_tolerance: DS.attr('number'),
   scope: DS.attr('string'),
   interval: DS.attr('number'),
   type: DS.attr('string'),

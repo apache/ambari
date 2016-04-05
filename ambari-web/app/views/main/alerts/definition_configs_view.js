@@ -40,7 +40,7 @@ App.AlertDefinitionConfigsView = Em.View.extend({
    * List of classes applied to all inputs
    * @type {String}
    */
-  basicClass: 'span9',
+  basicClass: 'span11',
 
   init: function () {
     this.set('controller.canEdit', this.get('canEdit'));

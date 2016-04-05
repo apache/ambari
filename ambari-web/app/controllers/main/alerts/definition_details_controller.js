@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 
+var validator = require('utils/validator');
+
 App.MainAlertDefinitionDetailsController = Em.Controller.extend({
 
   name: 'mainAlertDefinitionDetailsController',
@@ -228,28 +230,112 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
     });
 
     return App.showConfirmationFeedBackPopup(function (query) {
-      self.toggleDefinitionState(alertDefinition);
+      self.toggleDefinitionState(alertDefinition, "enabled");
     }, bodyMessage);
   },
 
   /**
    * Enable/disable alertDefinition
    * @param {object} alertDefinition
+   * @param {string} property
    * @returns {$.ajax}
    * @method toggleDefinitionState
    */
-  toggleDefinitionState: function (alertDefinition) {
-    var newState = !alertDefinition.get('enabled');
-    alertDefinition.set('enabled', newState);
+  toggleDefinitionState: function (alertDefinition, property) {
+    var newState = !alertDefinition.get(property);
+    alertDefinition.set(property, newState);
+    var data = {};
+    data['AlertDefinition/' + property] = newState;
     return App.ajax.send({
       name: 'alerts.update_alert_definition',
       sender: this,
       data: {
         id: alertDefinition.get('id'),
-        data: {
-          "AlertDefinition/enabled": newState
-        }
+        data: data
       }
+    });
+  },
+
+  /**
+   * "Disable / Enable Repeat Tolerance" button handler
+   * @method toggleRepeatTolerance
+   */
+  toggleRepeatTolerance: function () {
+    var alertDefinition = this.get('content');
+    var self = this;
+    var bodyMessage = Em.Object.create({
+      confirmMsg: alertDefinition.get('repeat_tolerance_enabled') ? Em.I18n.t('alerts.table.repeatTolerance.enabled.confirm.msg') : Em.I18n.t('alerts.table.repeatTolerance.disabled.confirm.msg').format(alertDefinition.get('repeat_tolerance') || 1),
+      confirmButton: Em.I18n.t('common.confirm')
+    });
+
+    return App.showConfirmationFeedBackPopup(function (query) {
+      self.toggleDefinitionState(alertDefinition, "repeat_tolerance_enabled");
+    }, bodyMessage);
+  },
+
+  editRepeatTolerance: function () {
+    var self = this;
+    var alertDefinition = this.get('content');
+
+    var loadingPopup = App.ModalPopup.show({
+      header: Em.I18n.t('jobs.loadingTasks'),
+      primary: false,
+      secondary: false,
+      bodyClass: Em.View.extend({
+        template: Em.Handlebars.compile('{{view App.SpinnerView}}')
+      })
+    });
+
+    App.router.get('mainAlertDefinitionActionsController').loadClusterConfig().done(function (data) {
+      var tag = [
+        {
+          siteName: 'cluster-env',
+          tagName: data.Clusters.desired_configs['cluster-env'].tag,
+          newTagName: null
+        }
+      ];
+      App.router.get('configurationController').getConfigsByTags(tag).done(function (config) {
+        var configProperties = config[0].properties;
+
+        loadingPopup.hide();
+        return App.ModalPopup.show({
+          classNames: ['fourty-percent-width-modal'],
+          header: Em.I18n.t('alerts.actions.editRepeatTolerance.header'),
+          primary: Em.I18n.t('common.save'),
+          secondary: Em.I18n.t('common.cancel'),
+          inputValue: self.get('content.repeat_tolerance') || 1,
+          errorMessage: Em.I18n.t('alerts.actions.editRepeatTolerance.error'),
+          isInvalid: function () {
+            var intValue = Number(this.get('inputValue'));
+            return this.get('inputValue') !== 'DEBUG' && (!validator.isValidInt(intValue) || intValue < 1);
+          }.property('inputValue'),
+          disablePrimary: Em.computed.alias('isInvalid'),
+          onPrimary: function () {
+            if (this.get('isInvalid')) {
+              return;
+            }
+            self.set('content.repeat_tolerance', this.get('inputValue'));
+            App.ajax.send({
+              name: 'alerts.update_alert_definition',
+              sender: self,
+              data: {
+                id: alertDefinition.get('id'),
+                data: {
+                  "AlertDefinition/repeat_tolerance": this.get('inputValue')
+                }
+              }
+            });
+            this.hide();
+          },
+          bodyClass: Ember.View.extend({
+            templateName: require('templates/common/modal_popups/prompt_popup'),
+            text: Em.I18n.t('alerts.actions.editRepeatTolerance.body').format(configProperties.alerts_repeat_tolerance || "1"),
+            title: Em.I18n.t('alerts.actions.editRepeatTolerance.title'),
+            description: Em.I18n.t('alerts.actions.editRepeatTolerance.description'),
+            label: Em.I18n.t('alerts.actions.editRepeatTolerance.label')
+          })
+        });
+      });
     });
   },
 

@@ -34,6 +34,8 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
     service_name: 'AlertDefinition.service_name',
     component_name: 'AlertDefinition.component_name',
     enabled: 'AlertDefinition.enabled',
+    repeat_tolerance_enabled: 'AlertDefinition.repeat_tolerance_enabled',
+    repeat_tolerance: 'AlertDefinition.repeat_tolerance',
     scope: 'AlertDefinition.scope',
     interval: 'AlertDefinition.interval',
     helpUrl: 'AlertDefinition.help_url',

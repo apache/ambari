@@ -63,7 +63,7 @@
 
     {{! Left column }}
     {{! Alert Definition Configs }}
-    <div class="box span9">
+    <div class="box span8">
       <div class="box-header">
         <div class="pull-left">
           <h4>{{t common.configuration}}</h4>
@@ -94,11 +94,11 @@
     {{! Left column end }}
 
     {{! Right column }}
-    <div class="span3 right-column">
+    <div class="span4 right-column">
       <div class="properties-list background-text">
         <div class="row-fluid">
-          <div class="span5 property-name">{{t alerts.table.state}}:</div>
-          <div class="span7">
+          <div class="span6 property-name">{{t alerts.table.state}}:</div>
+          <div class="span6">
             {{#if controller.content.enabled}}
               {{#isAuthorized "SERVICE.TOGGLE_ALERTS"}}
                 <a href="#" {{action "toggleState" controller.content target="controller"}} {{bindAttr class="controller.content.enabled:alert-definition-enable:alert-definition-disable"}}>
@@ -126,26 +126,26 @@
         </div>
         {{#if controller.content.serviceDisplayName}}
           <div class="row-fluid">
-            <div class="span5 property-name">{{t common.service}}:</div>
-            <div class="span7"><span>{{controller.content.serviceDisplayName}}</span></div>
+            <div class="span6 property-name">{{t common.service}}:</div>
+            <div class="span6"><span>{{controller.content.serviceDisplayName}}</span></div>
           </div>
         {{/if}}
         {{#if controller.content.componentNameFormatted}}
           <div class="row-fluid">
-            <div class="span5 property-name">{{t common.component}}:</div>
-            <div class="span7">{{controller.content.componentNameFormatted}}</div>
+            <div class="span6 property-name">{{t common.component}}:</div>
+            <div class="span6">{{controller.content.componentNameFormatted}}</div>
           </div>
         {{/if}}
         <div class="row-fluid">
-          <div class="span5 property-name">{{t common.type}}:</div>
-          <div class="span7">
+          <div class="span6 property-name">{{t common.type}}:</div>
+          <div class="span6">
             <span {{bindAttr class=":type-icon  controller.content.typeIconClass"}}></span> {{controller.content.type}}
           </div>
         </div>
         {{#if controller.groupsList.length}}
           <div class="row-fluid">
-            <div class="span5 property-name">{{t alerts.definition.details.groups}}:</div>
-            <div class="span7">
+            <div class="span6 property-name">{{t alerts.definition.details.groups}}:</div>
+            <div class="span6">
               <ul>
                 {{#each groupName in controller.groupsList}}
                   <li>{{groupName}}</li>
@@ -155,9 +155,50 @@
           </div>
         {{/if}}
         <div class="row-fluid">
-          <div class="span5 property-name">{{t alerts.table.header.lastTrigger}}:</div>
-          <div class="span7">{{controller.content.lastTriggeredFormatted}}</div>
+          <div class="span6 property-name">{{t alerts.table.header.lastTrigger}}:</div>
+          <div class="span6">{{controller.content.lastTriggeredFormatted}}</div>
         </div>
+        <div class="row-fluid">
+          <div class="span6 property-name">{{t alerts.table.header.repeatToleranceEnabled}}:</div>
+          <div class="span6">
+            {{#if controller.content.repeat_tolerance_enabled}}
+              {{#isAuthorized "SERVICE.TOGGLE_ALERTS"}}
+                <a href="#" {{action toggleRepeatTolerance target="controller"}} {{bindAttr class="controller.content.repeat_tolerance_enabled:alert-definition-enable:alert-definition-disable"}}>
+                  <span class="repeat-tolerance-button" {{translateAttr data-original-title="alerts.table.repeatTolerance.enabled.tooltip"}}>
+                    {{view.enabledDisplay}}
+                  </span>
+                </a>
+              {{else}}
+                {{view.enabledDisplay}}
+              {{/isAuthorized}}
+            {{else}}
+              {{#isAuthorized "SERVICE.TOGGLE_ALERTS"}}
+                <a href="#" {{action toggleRepeatTolerance target="controller"}} {{bindAttr class="controller.content.repeat_tolerance_enabled:alert-definition-enable:alert-definition-disable"}}>
+                  <span class="repeat-tolerance-button" {{translateAttr data-original-title="alerts.table.repeatTolerance.disabled.tooltip"}}>
+                    {{view.disabledDisplay}}
+                  </span>
+                </a>
+              {{else}}
+                {{view.disabledDisplay}}
+              {{/isAuthorized}}
+            {{/if}}
+          </div>
+        </div>
+        {{#if controller.content.repeat_tolerance_enabled}}
+          <div class="row-fluid">
+            <div class="span6 property-name">{{t alerts.table.header.repeatTolerance}}:</div>
+            <div class="span6">
+              <span>
+                {{controller.content.repeat_tolerance}}
+              </span>
+              {{#isAuthorized "SERVICE.TOGGLE_ALERTS"}}
+                <a {{action editRepeatTolerance target="controller"}} class="edit-description-button">
+                  <i class="icon-pencil"></i>
+                </a>
+              {{/isAuthorized}}
+            </div>
+          </div>
+        {{/if}}
       </div>
     </div>
   </div>

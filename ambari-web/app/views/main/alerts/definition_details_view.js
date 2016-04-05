@@ -93,6 +93,7 @@ App.MainAlertDefinitionDetailsView = App.TableView.extend({
   tooltipsUpdater: function () {
     Em.run.next(function () {
       App.tooltip($(".enable-disable-button"));
+      App.tooltip($(".repeat-tolerance-button"));
     });
   }.observes('controller.content.enabled'),
 
