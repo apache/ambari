@@ -317,7 +317,9 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, Ap
     } else {
       // called when first load/refresh/jump back page
       this.getUserPref(this.get('persistKey')).complete(function () {
-        self.setOnLoadVisibleWidgetsComplete.apply(self);
+        if (self.get('state') === 'inDOM') {
+          self.setOnLoadVisibleWidgetsComplete.apply(self);
+        }
       });
     }
   },
