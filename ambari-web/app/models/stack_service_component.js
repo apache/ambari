@@ -27,6 +27,7 @@ App.StackServiceComponent = DS.Model.extend({
   displayName: DS.attr('string'),
   cardinality: DS.attr('string'),
   customCommands: DS.attr('array'),
+  decommissionAllowed: DS.attr('boolean'),
   hasBulkCommandsDefinition: DS.attr('boolean'),
   bulkCommandsDisplayName: DS.attr('string'),
   bulkCommandsMasterComponentName: DS.attr('string'),
@@ -85,7 +86,9 @@ App.StackServiceComponent = DS.Model.extend({
   }.property('componentName'),
 
   /** @property {Boolean} isDecommissionAllowed - component supports decommission action **/
-  isDecommissionAllowed: Em.computed.existsIn('componentName', ['DATANODE', 'TASKTRACKER', 'NODEMANAGER', 'HBASE_REGIONSERVER']),
+  isDecommissionAllowed: function() {
+   return this.get('decommissionAllowed');
+  }.property('decommissionAllowed'),
 
   /** @property {Boolean} isRefreshConfigsAllowed - component supports refresh configs action **/
   isRefreshConfigsAllowed: Em.computed.existsIn('componentName', ['FLUME_HANDLER']),

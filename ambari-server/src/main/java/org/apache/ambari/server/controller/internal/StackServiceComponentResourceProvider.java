@@ -62,6 +62,9 @@ public class StackServiceComponentResourceProvider extends
   private static final String ADVERTISE_VERSION_ID = PropertyHelper.getPropertyId(
       "StackServiceComponents", "advertise_version");
 
+  private static final String DECOMISSION_ALLOWED_ID = PropertyHelper.getPropertyId(
+      "StackServiceComponents", "decommission_allowed");
+
   private static final String CUSTOM_COMMANDS_PROPERTY_ID = PropertyHelper.getPropertyId(
       "StackServiceComponents", "custom_commands");
 
@@ -152,6 +155,9 @@ public class StackServiceComponentResourceProvider extends
 
       setResourceProperty(resource, ADVERTISE_VERSION_ID,
           response.isVersionAdvertised(), requestedIds);
+
+      setResourceProperty(resource, DECOMISSION_ALLOWED_ID,
+          response.isDecommissionAlllowed(), requestedIds);
 
       setResourceProperty(resource, RECOVERY_ENABLED,
           response.isRecoveryEnabled(), requestedIds);

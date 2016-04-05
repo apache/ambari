@@ -410,6 +410,50 @@ public class ComponentModuleTest {
     assertSame(bulkCommandsDefinition, resolveComponent(info, parentInfo).getModuleInfo().getBulkCommandDefinition());
   }
 
+  @Test
+  public void testResolve_DecommissionAllowedInheritance(){
+    List<ComponentInfo> components = createComponentInfo(2);
+    ComponentInfo info = components.get(0);
+    ComponentInfo parentInfo = components.get(1);
+
+    //parent has it, child doesn't
+    parentInfo.setDecommissionAllowed("true");
+    assertSame("true", resolveComponent(info, parentInfo).getModuleInfo().getDecommissionAllowed());
+  }
+
+  @Test
+  public void testResolve_DecommissionAllowed(){
+    List<ComponentInfo> components = createComponentInfo(2);
+    ComponentInfo info = components.get(0);
+    ComponentInfo parentInfo = components.get(1);
+
+    //parent doesn't have it, child has it
+    info.setDecommissionAllowed("false");
+    assertSame("false", resolveComponent(info, parentInfo).getModuleInfo().getDecommissionAllowed());
+  }
+
+  @Test
+  public void testResolve_DecommissionAllowedOverwrite(){
+    List<ComponentInfo> components = createComponentInfo(2);
+    ComponentInfo info = components.get(0);
+    ComponentInfo parentInfo = components.get(1);
+
+    //parent has it, child overwrites it
+    parentInfo.setDecommissionAllowed("false");
+    info.setDecommissionAllowed("true");
+    assertSame("true", resolveComponent(info, parentInfo).getModuleInfo().getDecommissionAllowed());
+  }
+
+  private List<ComponentInfo> createComponentInfo(int count){
+    List<ComponentInfo> result = new ArrayList<ComponentInfo>();
+    if(count > 0) {
+      for(int i = 0; i < count; i++){
+        result.add(new ComponentInfo());
+      }
+    }
+    return result;
+  }
+
   private ComponentModule resolveComponent(ComponentInfo info, ComponentInfo parentInfo) {
     info.setName("FOO");
     parentInfo.setName("FOO");

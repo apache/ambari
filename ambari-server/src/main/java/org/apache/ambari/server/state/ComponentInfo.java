@@ -51,6 +51,12 @@ public class ComponentInfo {
   private boolean versionAdvertised = false;
 
   /**
+   * Used to determine if decommission is allowed
+   * */
+  @XmlElements(@XmlElement(name = "decommissionAllowed"))
+  private String decommissionAllowed;
+
+  /**
   * Added at schema ver 2
   */
   private CommandScriptDefinition commandScript;
@@ -129,6 +135,7 @@ public class ComponentInfo {
     deleted = prototype.deleted;
     cardinality = prototype.cardinality;
     versionAdvertised = prototype.versionAdvertised;
+    decommissionAllowed = prototype.decommissionAllowed;
     clientsToUpdateConfigs = prototype.clientsToUpdateConfigs;
     commandScript = prototype.commandScript;
     logs = prototype.logs;
@@ -290,6 +297,14 @@ public class ComponentInfo {
     return versionAdvertised;
   }
 
+  public String getDecommissionAllowed() {
+    return decommissionAllowed;
+  }
+
+  public void setDecommissionAllowed(String decommissionAllowed) {
+    this.decommissionAllowed = decommissionAllowed;
+  }
+
   public void setRecoveryEnabled(boolean recoveryEnabled) {
     this.recoveryEnabled = recoveryEnabled;
   }
@@ -325,6 +340,7 @@ public class ComponentInfo {
     if (autoDeploy != null ? !autoDeploy.equals(that.autoDeploy) : that.autoDeploy != null) return false;
     if (cardinality != null ? !cardinality.equals(that.cardinality) : that.cardinality != null) return false;
     if (versionAdvertised != that.versionAdvertised) return false;
+    if (decommissionAllowed != that.decommissionAllowed) return false;
     if (category != null ? !category.equals(that.category) : that.category != null) return false;
     if (clientConfigFiles != null ? !clientConfigFiles.equals(that.clientConfigFiles) : that.clientConfigFiles != null)
       return false;
@@ -353,6 +369,7 @@ public class ComponentInfo {
     result = 31 * result + (deleted ? 1 : 0);
     result = 31 * result + (cardinality != null ? cardinality.hashCode() : 0);
     result = 31 * result + (versionAdvertised ? 1 : 0);
+    result = 31 * result + (decommissionAllowed != null ? decommissionAllowed.hashCode() : 0);
     result = 31 * result + (commandScript != null ? commandScript.hashCode() : 0);
     result = 31 * result + (logs != null ? logs.hashCode() : 0);
     result = 31 * result + (clientConfigFiles != null ? clientConfigFiles.hashCode() : 0);

@@ -82,6 +82,11 @@ public class StackServiceComponentResponse {
   private boolean versionAdvertised;
 
   /**
+   * Whether the component can be decommissioned.
+   * */
+  private String decommissionAllowed;
+
+  /**
    * auto deploy information
    */
   private AutoDeployInfo autoDeploy;
@@ -114,6 +119,7 @@ public class StackServiceComponentResponse {
     isMaster = component.isMaster();
     cardinality = component.getCardinality();
     versionAdvertised = component.isVersionAdvertised();
+    decommissionAllowed = component.getDecommissionAllowed();
     autoDeploy = component.getAutoDeploy();
     recoveryEnabled = component.isRecoveryEnabled();
     hasBulkCommands = componentHasBulkCommands(component);
@@ -360,6 +366,28 @@ public class StackServiceComponentResponse {
    */
   public void setVersionAdvertised(boolean versionAdvertised) {
     this.versionAdvertised = versionAdvertised;
+  }
+
+  /**
+   * Get whether the components can be decommissioned.
+   *
+   * @return Whether the components can be decommissioned
+   */
+  public boolean isDecommissionAlllowed() {
+    if (decommissionAllowed != null && decommissionAllowed.equals("true")) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  /**
+   * Set whether the component can be decommissioned.
+   *
+   * @param decommissionAllowed whether the component can be decommissioned
+   */
+  public void setDecommissionAllowed(String decommissionAllowed) {
+    this.decommissionAllowed = decommissionAllowed;
   }
 
   /**

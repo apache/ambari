@@ -125,6 +125,7 @@ describe('App.stackServiceMapper', function () {
                   "component_category" : "SLAVE",
                   "component_name" : "DATANODE",
                   "custom_commands" : [ ],
+                  "decommission_allowed" : true,
                   "bulk_commands_display_name" : "DataNodes",
                   "bulk_commands_master_component_name" : "NAMENODE",
                   "has_bulk_commands_definition" : true,
@@ -250,6 +251,7 @@ describe('App.stackServiceMapper', function () {
       expect(components.findProperty('componentName', 'DATANODE').get('hasBulkCommandsDefinition')).to.be.true;
       expect(components.findProperty('componentName', 'DATANODE').get('bulkCommandsDisplayName')).to.eql("DataNodes");
       expect(components.findProperty('componentName', 'DATANODE').get('bulkCommandsMasterComponentName')).to.eql("NAMENODE");
+      expect(components.findProperty('componentName', 'DATANODE').get('decommissionAllowed')).to.be.true;
     });
 
   });

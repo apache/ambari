@@ -66,6 +66,7 @@
           <name>HBASE_REGIONSERVER</name>
           <category>SLAVE</category>
           <cardinality>1+</cardinality>
+          <decommissionAllowed>true</decommissionAllowed>
           <commandScript>
             <script>scripts/hbase_regionserver.py</script>
             <scriptType>PYTHON</scriptType>

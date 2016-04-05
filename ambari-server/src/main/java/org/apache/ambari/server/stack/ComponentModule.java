@@ -84,6 +84,11 @@ public class ComponentModule extends BaseModule<ComponentModule, ComponentInfo> 
         componentInfo.setCardinality(parentInfo.getCardinality());
       }
       componentInfo.setVersionAdvertised(parentInfo.isVersionAdvertised());
+
+      if(componentInfo.getDecommissionAllowed() == null) {
+        componentInfo.setDecommissionAllowed(parentInfo.getDecommissionAllowed());
+      }
+
       if (componentInfo.getAutoDeploy() == null) {
         componentInfo.setAutoDeploy(parentInfo.getAutoDeploy());
       }

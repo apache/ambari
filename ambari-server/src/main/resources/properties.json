@@ -245,6 +245,7 @@
         "StackServiceComponents/custom_commands",
         "StackServiceComponents/recovery_enabled",
         "StackServiceComponents/advertise_version",
+        "StackServiceComponents/decommission_allowed",
         "StackServiceComponents/has_bulk_commands_definition",
         "StackServiceComponents/bulk_commands_display_name",
         "StackServiceComponents/bulk_commands_master_component_name",

@@ -176,6 +176,8 @@ public class AmbariManagementControllerTest {
 
   private static final String STACK_NAME = "HDP";
 
+  private static final String SERVICE_NAME_YARN = "YARN";
+  private static final String COMPONENT_NAME_NODEMANAGER = "NODEMANAGER";
   private static final String SERVICE_NAME_HBASE = "HBASE";
   private static final String COMPONENT_NAME_REGIONSERVER = "HBASE_REGIONSERVER";
   private static final String COMPONENT_NAME_DATANODE = "DATANODE";
@@ -7415,6 +7417,47 @@ public class AmbariManagementControllerTest {
     response = responses.iterator().next();
     assertNotNull(response.getCustomCommands());
     assertEquals(0, response.getCustomCommands().size());
+  }
+
+  @Test
+  public void testDecommissionAllowed() throws Exception{
+    StackServiceComponentRequest requestWithParams = new StackServiceComponentRequest(STACK_NAME, NEW_STACK_VERSION, SERVICE_NAME_HBASE, COMPONENT_NAME_REGIONSERVER);
+    Set<StackServiceComponentResponse> responsesWithParams = controller.getStackComponents(Collections.singleton(requestWithParams));
+    for (StackServiceComponentResponse responseWithParams: responsesWithParams) {
+      Assert.assertEquals(responseWithParams.getComponentName(), COMPONENT_NAME_REGIONSERVER);
+      Assert.assertTrue(responseWithParams.isDecommissionAlllowed());
+    }
+  }
+
+  @Test
+  public void testDecommissionAllowedInheritance() throws Exception{
+    //parent has it, child doesn't
+    StackServiceComponentRequest requestWithParams = new StackServiceComponentRequest(STACK_NAME, NEW_STACK_VERSION, SERVICE_NAME, COMPONENT_NAME_DATANODE);
+    Set<StackServiceComponentResponse> responsesWithParams = controller.getStackComponents(Collections.singleton(requestWithParams));
+    for (StackServiceComponentResponse responseWithParams: responsesWithParams) {
+      Assert.assertEquals(responseWithParams.getComponentName(), COMPONENT_NAME_DATANODE);
+      Assert.assertTrue(responseWithParams.isDecommissionAlllowed());
+    }
+  }
+
+  @Test
+  public void testDecommissionAllowedOverwrite() throws Exception{
+    StackServiceComponentRequest requestWithParams = new StackServiceComponentRequest(STACK_NAME, "2.0.5", SERVICE_NAME_YARN, COMPONENT_NAME_NODEMANAGER);
+    Set<StackServiceComponentResponse> responsesWithParams = controller.getStackComponents(Collections.singleton(requestWithParams));
+
+    //parent has it
+    for (StackServiceComponentResponse responseWithParams: responsesWithParams) {
+      Assert.assertEquals(responseWithParams.getComponentName(), COMPONENT_NAME_NODEMANAGER);
+      Assert.assertFalse(responseWithParams.isDecommissionAlllowed());
+    }
+
+    requestWithParams = new StackServiceComponentRequest(STACK_NAME, NEW_STACK_VERSION, SERVICE_NAME_YARN, COMPONENT_NAME_NODEMANAGER);
+    responsesWithParams = controller.getStackComponents(Collections.singleton(requestWithParams));
+    //parent has it, child overwrites it
+    for (StackServiceComponentResponse responseWithParams: responsesWithParams) {
+      Assert.assertEquals(responseWithParams.getComponentName(), COMPONENT_NAME_NODEMANAGER);
+      Assert.assertTrue(responseWithParams.isDecommissionAlllowed());
+    }
   }
 
   @Test

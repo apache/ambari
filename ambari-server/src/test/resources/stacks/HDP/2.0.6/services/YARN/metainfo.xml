@@ -64,6 +64,7 @@
           <displayName>NodeManager</displayName>
           <category>SLAVE</category>
           <cardinality>1+</cardinality>
+          <decommissionAllowed>true</decommissionAllowed>
           <commandScript>
             <script>scripts/nodemanager.py</script>
             <scriptType>PYTHON</scriptType>

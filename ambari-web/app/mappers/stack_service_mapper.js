@@ -51,6 +51,7 @@ App.stackServiceMapper = App.QuickDataMapper.create({
     display_name: 'display_name',
     cardinality: 'cardinality',
     custom_commands: 'custom_commands',
+    decommission_allowed: 'decommission_allowed',
     has_bulk_commands_definition: 'has_bulk_commands_definition',
     bulk_commands_display_name: 'bulk_commands_display_name',
     bulk_commands_master_component_name: 'bulk_commands_master_component_name',
