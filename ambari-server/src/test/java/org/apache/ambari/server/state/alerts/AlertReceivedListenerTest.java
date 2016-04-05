@@ -19,7 +19,10 @@ package org.apache.ambari.server.state.alerts;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.apache.ambari.server.controller.RootServiceResponseFactory.Components;
@@ -39,6 +42,9 @@ import org.apache.ambari.server.state.AlertFirmness;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigFactory;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
@@ -797,6 +803,70 @@ public class AlertReceivedListenerTest {
     listener.onAlertEvent(event);
     allCurrent = m_dao.findCurrent();
     assertEquals(1, (long) allCurrent.get(0).getOccurrences());
+    assertEquals(AlertFirmness.HARD, allCurrent.get(0).getFirmness());
+  }
+
+  /**
+   * Tests that we correctly record alert firmness, using the global value if
+   * the definition does not override it.
+   */
+  @Test
+  @SuppressWarnings("serial")
+  public void testAlertFirmnessUsingGlobalValueHigherThanOverride() throws Exception {
+    ConfigFactory cf = m_injector.getInstance(ConfigFactory.class);
+    Config config = cf.createNew(m_cluster, ConfigHelper.CLUSTER_ENV,
+        new HashMap<String, String>() {
+          {
+            put(ConfigHelper.CLUSTER_ENV_ALERT_REPEAT_TOLERANCE, "3");
+          }
+        }, new HashMap<String, Map<String, String>>());
+
+    config.setTag("version2");
+    config.persist();
+
+    m_cluster.addConfig(config);
+    m_cluster.addDesiredConfig("user", Collections.singleton(config));
+
+    String definitionName = ALERT_DEFINITION + "1";
+    String serviceName = "HDFS";
+    String componentName = "NAMENODE";
+    String text = serviceName + " " + componentName + " is OK";
+
+    Alert alert = new Alert(definitionName, null, serviceName, componentName, HOST1, AlertState.OK);
+    alert.setCluster(m_cluster.getClusterName());
+    alert.setLabel(ALERT_LABEL);
+    alert.setText(text);
+    alert.setTimestamp(1L);
+
+    // fire the alert, and check that the new entry was created
+    AlertReceivedListener listener = m_injector.getInstance(AlertReceivedListener.class);
+    AlertReceivedEvent event = new AlertReceivedEvent(m_cluster.getClusterId(), alert);
+    listener.onAlertEvent(event);
+
+    List<AlertCurrentEntity> allCurrent = m_dao.findCurrent();
+    assertEquals(1, allCurrent.size());
+
+    // check occurrences (should be 1 since it's the first)
+    assertEquals(1, (long) allCurrent.get(0).getOccurrences());
+    assertEquals(AlertFirmness.HARD, allCurrent.get(0).getFirmness());
+
+    // change state to CRITICAL; this should make a SOFT alert since the global
+    // value is 3
+    alert.setState(AlertState.CRITICAL);
+    listener.onAlertEvent(event);
+    allCurrent = m_dao.findCurrent();
+    assertEquals(1, (long) allCurrent.get(0).getOccurrences());
+    assertEquals(AlertFirmness.SOFT, allCurrent.get(0).getFirmness());
+
+    listener.onAlertEvent(event);
+    allCurrent = m_dao.findCurrent();
+    assertEquals(2, (long) allCurrent.get(0).getOccurrences());
+    assertEquals(AlertFirmness.SOFT, allCurrent.get(0).getFirmness());
+
+    // on the 3rd time, we transition to HARD
+    listener.onAlertEvent(event);
+    allCurrent = m_dao.findCurrent();
+    assertEquals(3, (long) allCurrent.get(0).getOccurrences());
     assertEquals(AlertFirmness.HARD, allCurrent.get(0).getFirmness());
   }
 }

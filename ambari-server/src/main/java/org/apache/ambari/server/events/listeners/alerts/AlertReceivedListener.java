@@ -233,7 +233,7 @@ public class AlertReceivedListener {
           // still SOFT, then we transition it to HARD - we also need to fire an
           // event
           AlertFirmness currentFirmness = current.getFirmness();
-          int repeatTolerance = definition.getRepeatTolerance();
+          int repeatTolerance = getRepeatTolerance(definition, clusterName);
           if (currentFirmness == AlertFirmness.SOFT && occurrences >= repeatTolerance) {
             current.setFirmness(AlertFirmness.HARD);
 
