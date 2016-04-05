@@ -63,8 +63,8 @@
         <artifactId>frontend-maven-plugin</artifactId>
         <version>0.0.16</version>
         <configuration>
-          <nodeVersion>v0.10.26</nodeVersion>
-          <npmVersion>1.4.3</npmVersion>
+          <nodeVersion>v0.10.44</nodeVersion>
+          <npmVersion>2.15.0</npmVersion>
           <workingDirectory>src/main/resources/ui/admin-web/</workingDirectory>
         </configuration>
         <executions>
