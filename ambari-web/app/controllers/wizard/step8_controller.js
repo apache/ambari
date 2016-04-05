@@ -219,7 +219,8 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    */
   formatProperties: function () {
     this.get('content.serviceConfigProperties').forEach(function (_configProperty) {
-      _configProperty.value = App.config.trimProperty(_configProperty, false);
+      _configProperty.value = (typeof _configProperty.value === "boolean")
+        ? _configProperty.value.toString() : App.config.trimProperty(_configProperty, false);
     });
   },
 
@@ -228,22 +229,9 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    * @method loadConfigs
    */
   loadConfigs: function () {
-    //storedConfigs contains custom configs as well
-    var configs = this.get('content.serviceConfigProperties');
-    configs.forEach(function (_config) {
-      _config.value = (typeof _config.value === "boolean") ? _config.value.toString() : _config.value;
-    });
-    var customGroupConfigs = [];
-    var allConfigs = configs.filter(function (config) {
-      if (config.group) {
-        customGroupConfigs.push(config);
-        return false;
-      } else {
-        return true;
-      }
-    });
-    this.set('customNonDefaultGroupConfigs', customGroupConfigs);
-    this.set('configs', allConfigs);
+    this.set('configs', this.get('content.serviceConfigProperties').filter(function (config) {
+      return !config.group;
+    }));
   },
 
   /**
@@ -1454,113 +1442,47 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    */
   createConfigurationGroups: function () {
     var configGroups = this.get('content.configGroups').filterProperty('is_default', false);
-    var clusterName = this.get('clusterName');
-    var sendData = [];
-    var updateData = [];
-    var timeTag = (new Date).getTime();
     var groupsToDelete = App.router.get(this.get('content.controllerName')).getDBProperty('groupsToDelete');
     if (groupsToDelete && groupsToDelete.length > 0) {
       this.removeInstalledServicesConfigurationGroups(groupsToDelete);
     }
     configGroups.forEach(function (configGroup) {
-      var groupConfigs = [];
-      var groupData = {
-        "cluster_name": clusterName,
-        "group_name": configGroup.name,
-        "tag": configGroup.service_id,
-        "description": configGroup.description,
-        "hosts": [],
-        "desired_configs": []
-      };
-      configGroup.hosts.forEach(function (hostName) {
-        groupData.hosts.push({"host_name": hostName});
-      });
-      // get properties that was created for non-default config group
-      configGroup.properties = configGroup.properties.concat(this.get('customNonDefaultGroupConfigs').filterProperty('group', configGroup.name));
-      //wrap properties into Em.Object to make them compatible with buildGroupDesiredConfigs method
-      configGroup.properties.forEach(function (property) {
-        groupConfigs.push(Em.Object.create(property));
-      });
-      groupData.desired_configs = this.buildGroupDesiredConfigs(groupConfigs, timeTag);
-      // check for group from installed service
-      if (configGroup.is_for_installed_service === true) {
-        // if group is a new one, create it
-        if (!configGroup.id) {
-          sendData.push({"ConfigGroup": groupData});
-        } else if (configGroup.is_for_update){
-          // update an existing group
-          groupData.id = configGroup.id;
-          updateData.push({"ConfigGroup": groupData});
-        }
-      } else {
-        sendData.push({"ConfigGroup": groupData});
+      if (configGroup.is_for_update || !configGroup.config_group_id) {
+        this.saveGroup(configGroup.properties, configGroup, this.getServiceConfigNote('', configGroup.service_id));
       }
-      //each group should have unique tag to prevent overriding configs from common sites
-      timeTag++;
-    }, this);
-    if (sendData.length > 0) {
-      this.applyConfigurationGroups(sendData);
-    }
-    if (updateData.length > 0) {
-      this.applyInstalledServicesConfigurationGroup(updateData);
-    }
-  },
-
-  /**
-   * construct desired_configs for config groups from overriden properties
-   * @param configs
-   * @param timeTag
-   * @return {Array}
-   * @private
-   * @method buildGroupDesiredConfigs
-   */
-  buildGroupDesiredConfigs: function (configs, timeTag) {
-    var sites = [];
-    var time = timeTag || (new Date).getTime();
-    var siteFileNames = configs.mapProperty('filename').uniq();
-    sites = siteFileNames.map(function (filename) {
-      return {
-        type: filename.replace('.xml', ''),
-        tag: 'version' + time,
-        properties: []
-      };
-    });
-
-    configs.forEach(function (config) {
-      var type = config.get('filename').replace('.xml', '');
-      var site = sites.findProperty('type', type);
-      site.properties.push(config);
-    });
-
-    return sites.map(function (site) {
-      return this.createDesiredConfig(site.type, site.tag, site.properties, null, true);
     }, this);
   },
 
   /**
-   * Create new config groups request
-   * Queued request
-   * @param {Object[]} sendData
-   * @method applyConfigurationGroups
+   * add request to create config group to queue
+   *
+   * @param data
+   * @method createConfigGroup
    */
-  applyConfigurationGroups: function (sendData) {
+  createConfigGroup: function(data) {
     this.addRequestToAjaxQueue({
       name: 'wizard.step8.apply_configuration_groups',
+      sender: this,
       data: {
-        data: JSON.stringify(sendData)
+        data: JSON.stringify(data)
       }
     });
   },
 
   /**
-   * Update existed config groups
-   * Separated request for each group
-   * @param {Object[]} updateData
-   * @method applyInstalledServicesConfigurationGroup
+   * add request to update config group to queue
+   *
+   * @param data {Object}
+   * @method updateConfigGroup
    */
-  applyInstalledServicesConfigurationGroup: function (updateData) {
-    updateData.forEach(function (item) {
-      App.router.get('mainServiceInfoConfigsController').putConfigGroupChanges(item);
+  updateConfigGroup: function (data) {
+    this.addRequestToAjaxQueue({
+      name: 'config_groups.update_config_group',
+      sender: this,
+      data: {
+        id: data.ConfigGroup.id,
+        configGroup: data
+      }
     });
   },
 

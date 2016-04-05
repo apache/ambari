@@ -440,7 +440,13 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
               }
             } else {
               var isEditable = self.get('canEdit') && configGroup.get('name') == self.get('selectedConfigGroup.name');
-              allConfigs.push(App.config.createCustomGroupConfig(prop, fileName, config.properties[prop], configGroup, isEditable));
+              allConfigs.push(App.config.createCustomGroupConfig({
+                propertyName: prop,
+                filename: fileName,
+                value: config.properties[prop],
+                savedValue: config.properties[prop],
+                isEditable: isEditable
+              }, configGroup));
             }
           }
         });

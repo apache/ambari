@@ -943,16 +943,14 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
    */
   saveServiceConfigGroups: function (stepController, isAddService) {
     var serviceConfigGroups = [],
-      isForInstalledService = false,
       hosts = isAddService ? App.router.get('addServiceController').getDBProperty('hosts') : this.getDBProperty('hosts');
     stepController.get('stepConfigs').forEach(function (service) {
       // mark group of installed service
-      if (service.get('selected') === false) isForInstalledService = true;
+      var isForInstalledService = service.get('selected') === false;
       service.get('configGroups').forEach(function (configGroup) {
         var properties = [];
         configGroup.get('properties').forEach(function (property) {
           properties.push({
-            isRequiredByAgent: property.get('isRequiredByAgent'),
             name: property.get('name'),
             value: property.get('value'),
             isFinal: property.get('isFinal'),

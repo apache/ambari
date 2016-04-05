@@ -145,22 +145,13 @@ App.ConfigsSaverMixin = Em.Mixin.create({
         var serviceName = stepConfig.get('serviceName');
         var configs = stepConfig.get('configs');
         var configGroup = this.getGroupFromModel(serviceName);
-        if (configGroup) {
-          if (configGroup.get('isDefault')) {
+        if (configGroup && !configGroup.get('isDefault')) {
 
-            var configsToSave = this.getServiceConfigToSave(serviceName, configs);
+          var overriddenConfigs = this.getConfigsForGroup(configs, configGroup.get('name'));
 
-            if (configsToSave) {
-              this.putChangedConfigurations([configsToSave]);
-            }
-
-          } else {
-
-            var overridenConfigs = this.getConfigsForGroup(configs, configGroup.get('name'));
-
-            if (Em.isArray(overridenConfigs)) {
-              this.saveGroup(overridenConfigs, configGroup, this.get('content.serviceName') === serviceName);
-            }
+          if (Em.isArray(overriddenConfigs)) {
+            var successCallback = this.get('content.serviceName') === serviceName ? 'putConfigGroupChangesSuccess' : null;
+            this.saveGroup(overriddenConfigs, configGroup, this.get('serviceConfigVersionNote'), successCallback);
           }
         }
       }, this);
@@ -319,7 +310,7 @@ App.ConfigsSaverMixin = Em.Mixin.create({
 
     //generates list of properties that was changed
     var modifiedConfigs = this.getModifiedConfigs(configs);
-    var serviceFilenames = Object.keys(App.StackService.find(serviceName).get('configTypes')).map(function (type) {
+    var serviceFileNames = Object.keys(App.StackService.find(serviceName).get('configTypes')).map(function (type) {
       return App.config.getOriginalFileName(type);
     });
 
@@ -331,7 +322,7 @@ App.ConfigsSaverMixin = Em.Mixin.create({
     if (!Em.isArray(modifiedConfigs) || modifiedConfigs.length == 0) return null;
 
     var fileNamesToSave = modifiedConfigs.mapProperty('filename').concat(this.get('modifiedFileNames')).filter(function(filename) {
-      return serviceFilenames.contains(filename);
+      return serviceFileNames.contains(filename);
     }).uniq();
 
     var configsToSave = this.generateDesiredConfigsJSON(modifiedConfigs, fileNamesToSave, this.get('serviceConfigVersionNote'));
@@ -451,7 +442,7 @@ App.ConfigsSaverMixin = Em.Mixin.create({
     if (Em.isArray(properties)) {
       properties.forEach(function(property) {
 
-        if (Em.get(property, 'isRequiredByAgent')) {
+        if (Em.get(property, 'isRequiredByAgent') !== false) {
           desired_config.properties[Em.get(property, 'name')] = this.formatValueBeforeSave(property);
           /**
            * add is final value
@@ -521,40 +512,64 @@ App.ConfigsSaverMixin = Em.Mixin.create({
 
   /**
    * save config group
-   * @param overridenConfigs
+   * @param overriddenConfigs
    * @param selectedConfigGroup
-   * @param showPopup
+   * @param configVersionNote
+   * @param successCallback
    */
-  saveGroup: function(overridenConfigs, selectedConfigGroup, showPopup) {
-    var groupHosts = [];
-    var fileNamesToSave = overridenConfigs.mapProperty('filename').uniq();
-    selectedConfigGroup.get('hosts').forEach(function (hostName) {
-      groupHosts.push({"host_name": hostName});
-    });
-    var id = selectedConfigGroup.get('configGroupId');
-    id = Em.isNone(id) ? selectedConfigGroup.get('id') : id;
-    this.putConfigGroupChanges({
+  saveGroup: function(overriddenConfigs, selectedConfigGroup, configVersionNote, successCallback) {
+    var fileNamesToSave = overriddenConfigs.mapProperty('filename').uniq();
+    var group = Ember.typeOf(selectedConfigGroup) === "instance" ? selectedConfigGroup.toJSON() : selectedConfigGroup;
+    var groupHosts = group.hosts.map(function (hostName) { return { "host_name": hostName }; });
+
+    var groupData = {
       ConfigGroup: {
-        "id": id,
-        "cluster_name": App.get('clusterName'),
-        "group_name": selectedConfigGroup.get('name'),
-        "tag": selectedConfigGroup.get('service.id'),
-        "description": selectedConfigGroup.get('description'),
+        "cluster_name": App.get('clusterName') || this.get('clusterName'),
+        "group_name": group.name,
+        "tag": group.service_id,
+        "description": group.description,
         "hosts": groupHosts,
-        "service_config_version_note": this.get('serviceConfigVersionNote'),
-        "desired_configs": this.generateDesiredConfigsJSON(overridenConfigs, fileNamesToSave, null, true)
+        "service_config_version_note": configVersionNote || "",
+        "desired_configs": this.generateDesiredConfigsJSON(overriddenConfigs, fileNamesToSave, null, true)
       }
-    }, showPopup);
+    };
+
+    if (group.config_group_id) {
+      groupData.ConfigGroup.id = group.config_group_id;
+      this.updateConfigGroup(groupData, successCallback);
+    } else {
+      this.createConfigGroup(groupData, successCallback);
+    }
+  },
+
+  /**
+   *
+   * @param data
+   * @param successCallback
+   * @returns {*|$.ajax}
+   */
+  createConfigGroup: function(data, successCallback) {
+    var ajaxOptions = {
+      name: 'wizard.step8.apply_configuration_groups',
+      sender: this,
+      data: {
+        data: JSON.stringify(data)
+      }
+    };
+    if (successCallback) {
+      ajaxOptions.success = successCallback;
+    }
+    return App.ajax.send(ajaxOptions);
   },
 
   /**
    * persist properties of config groups to server
    * show result popup if <code>showPopup</code> is true
    * @param data {Object}
-   * @param showPopup {Boolean}
+   * @param [successCallback] {String}
    * @method putConfigGroupChanges
    */
-  putConfigGroupChanges: function (data, showPopup) {
+  updateConfigGroup: function (data, successCallback) {
     var ajaxOptions = {
       name: 'config_groups.update_config_group',
       sender: this,
@@ -563,8 +578,8 @@ App.ConfigsSaverMixin = Em.Mixin.create({
         configGroup: data
       }
     };
-    if (showPopup) {
-      ajaxOptions.success = "putConfigGroupChangesSuccess";
+    if (successCallback) {
+      ajaxOptions.success = successCallback;
     }
     return App.ajax.send(ajaxOptions);
   },

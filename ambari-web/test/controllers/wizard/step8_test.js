@@ -209,104 +209,6 @@ describe('App.WizardStep8Controller', function () {
 
   });
 
-  describe('#createConfigurationGroups', function () {
-    var content;
-    beforeEach(function() {
-      sinon.stub(App.router,'get').returns(Em.Object.create({
-        getDBProperty: function() {
-          return Em.A([
-            Em.Object.create({
-              value: 1
-            })
-          ]);
-        },
-        getConfigAttributes: function() {
-          return Em.A(['atr']);
-        }
-      }));
-      content = Em.Object.create({
-        configGroups: Em.A([
-          Em.Object.create({
-            is_default: true,
-            service: Em.Object.create({
-              id: 1
-            }),
-            name: 'n1',
-            description: 'describe',
-            hosts: ['h1', 'h2'],
-            properties: Em.A([
-              Em.Object.create({
-                value: 'p1',
-                filename: 'file.xml'
-              }),
-              Em.Object.create({
-                value: 'p2',
-                filename: 'file1.xml'
-              })
-            ])
-          }),
-          Em.Object.create({
-            is_default: false,
-            service: Em.Object.create({
-              id: 2
-            }),
-            name: 'n2',
-            hosts: ['h3', 'h4'],
-            description: 'describe1',
-            properties: Em.A([
-              Em.Object.create({
-                value: 'p3',
-                filename: 'file2.xml'
-              }),
-              Em.Object.create({
-                value: 'p4',
-                filename: 'file3.xml'
-              })
-            ])
-          })
-        ])
-      });
-      var defaultGroups = Em.A([
-        Em.Object.create({
-          group: 'n2',
-          filename: 'file5.xml'
-        }),
-        Em.Object.create({
-          group: 'n1',
-          filename: 'file4.xml'
-        })
-      ]);
-      installerStep8Controller.set('content', content);
-      installerStep8Controller.set('clusterName', 'name');
-      installerStep8Controller.set('customNonDefaultGroupConfigs', defaultGroups);
-      installerStep8Controller.set('ajaxRequestsQueue', App.ajaxQueue.create());
-      installerStep8Controller.get('ajaxRequestsQueue').clear();
-      installerStep8Controller.createConfigurationGroups();
-    });
-    afterEach(function() {
-      App.router.get.restore();
-    });
-
-    it('should push group in properties', function () {
-      var expected = [
-        {
-          "value": "p3",
-          "filename": "file2.xml"
-        },
-        {
-          "value": "p4",
-          "filename": "file3.xml"
-        },
-        {
-          "group": "n2",
-          "filename": "file5.xml"
-        }
-      ];
-      var result = JSON.parse(JSON.stringify(content.configGroups[1].properties));
-      expect(result).to.eql(expected);
-    });
-  });
-
   describe('#loadServices', function () {
 
     beforeEach(function () {
@@ -1154,23 +1056,6 @@ describe('App.WizardStep8Controller', function () {
     });
   });
 
-  describe('#applyInstalledServicesConfigurationGroup', function() {
-    beforeEach(function() {
-      sinon.stub(App.router, 'get', function() {
-        return configurationController;
-      });
-    });
-    afterEach(function() {
-      App.router.get.restore();
-    });
-    it('should do ajax request for each config group', function() {
-      var configGroups = [{ConfigGroup: {id:''}}, {ConfigGroup: {id:''}}];
-      installerStep8Controller.applyInstalledServicesConfigurationGroup(configGroups);
-      var args = testHelpers.filterAjaxRequests('name', 'config_groups.update_config_group');
-      expect(args).to.have.property('length').equal(configGroups.length);
-    });
-  });
-
   describe('#getExistingClusterNames', function() {
 
     it('should do ajax request', function() {
@@ -1325,14 +1210,6 @@ describe('App.WizardStep8Controller', function () {
         });
         installerStep8Controller.applyConfigurationsToCluster(serviceConfigTags);
         expect(installerStep8Controller.addRequestToAjaxQueue.args[0][0].data.data).to.equal(data);
-      });
-    });
-
-    describe('#applyConfigurationGroups', function() {
-      it('should call addRequestToAjaxQueue', function() {
-        var data = [{}, {}];
-        installerStep8Controller.applyConfigurationGroups(data);
-        expect(installerStep8Controller.addRequestToAjaxQueue.args[0][0].data.data).to.equal(JSON.stringify(data));
       });
     });
 

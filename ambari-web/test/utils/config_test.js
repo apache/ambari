@@ -425,7 +425,7 @@ describe('App.config', function () {
 
     var configProperty = App.ServiceConfigProperty.create(template);
 
-    var group = Em.Object.create({name: "group1"});
+    var group = Em.Object.create({name: "group1", properties: []});
 
     Object.keys(template).forEach(function (key) {
       it(key, function () {
@@ -470,11 +470,11 @@ describe('App.config', function () {
     });
 
     it('throws error due to undefined configGroup', function() {
-      expect(App.config.createOverride.bind(App.config, configProperty, {}, null)).to.throw(Error, 'configGroup can\' be null');
+      expect(App.config.createOverride.bind(App.config, configProperty, {}, null)).to.throw(App.EmberObjectTypeError);
     });
 
     it('throws error due to undefined originalSCP', function() {
-      expect(App.config.createOverride.bind(App.config, null, {}, group)).to.throw(Error, 'serviceConfigProperty can\' be null');
+      expect(App.config.createOverride.bind(App.config, null, {}, group)).to.throw(App.ObjectTypeError);
     });
 
     describe('updates originalSCP object ', function() {

@@ -88,7 +88,6 @@ App.ConfigWithOverrideRecommendationParser = Em.Mixin.create(App.ConfigRecommend
 			"isEditable": true
 		};
 		var override = App.config.createOverride(config, coreObject, configGroup);
-		configGroup.get('properties').pushObject(override);
 
 		this.applyRecommendation(Em.get(config, 'name'), Em.get(config, 'filename'), configGroup.get('name'),
 			recommendedValue, this._getInitialValue(override), parentProperties);

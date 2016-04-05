@@ -458,19 +458,19 @@ describe('App.InstallerStep7Controller', function () {
     });
     it('should add new groups to groupsToDelete', function () {
       var groupsToDelete = [
-          {id: '1'},
-          {id: '2'}
+          {configGroupId: '1'},
+          {configGroupId: '2'}
         ],
         groups = [
-          Em.Object.create({id: '3'}),
+          Em.Object.create({configGroupId: '3'}),
           Em.Object.create(),
-          Em.Object.create({id: '5'})
+          Em.Object.create({configGroupId: '5'})
         ],
         expected = [
-          {id: "1"},
-          {id: "2"},
-          {id: "3"},
-          {id: "5"}
+          {configGroupId: "1"},
+          {configGroupId: "2"},
+          {configGroupId: "3"},
+          {configGroupId: "5"}
         ];
       installerStep7Controller.set('groupsToDelete', groupsToDelete);
       installerStep7Controller.setGroupsToDelete(groups);
@@ -2333,10 +2333,12 @@ describe('App.InstallerStep7Controller', function () {
         serviceConfigs: [],
         typeTagToGroupMap: {
           'type1///tag1': Em.Object.create({
-            name: 't1t1'
+            name: 't1t1',
+            properties: []
           }),
           'type2///tag1': Em.Object.create({
-            name: 't2t1'
+            name: 't2t1',
+            properties: []
           })
         },
         configKeyToConfigMap: {

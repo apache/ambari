@@ -609,30 +609,6 @@ describe("App.MainServiceInfoConfigsController", function () {
 
   });
 
-  describe("#putConfigGroupChanges", function() {
-
-    var t = {
-      data: {
-        ConfigGroup: {
-          id: "id"
-        }
-      },
-      request: [{
-        ConfigGroup: {
-          id: "id"
-        }
-      }]
-    };
-
-    it("updates configs groups", function() {
-      mainServiceInfoConfigsController.putConfigGroupChanges(t.data);
-      var args = testHelpers.findAjaxRequest('name', 'config_groups.update_config_group');
-      expect(args[0]).exists;
-      var data = JSON.parse(App.ajax.fakeGetUrl('config_groups.update_config_group').format(args[0].data).data);
-      expect(data).to.deep.equal(t.request);
-    });
-  });
-
   describe("#checkOverrideProperty", function () {
     var tests = [{
       overrideToAdd: {

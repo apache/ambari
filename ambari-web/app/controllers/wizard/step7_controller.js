@@ -207,6 +207,12 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   filter: '',
 
   /**
+   * Defines if configs can be editable
+   * @type {boolean}
+   */
+  canEdit: true,
+
+  /**
    * list of dependencies that are user to set init value of config
    *
    * @type {Object}
@@ -399,7 +405,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         if (item.tag === serviceName) {
           var groupHosts = item.hosts.mapProperty('host_name');
           configGroups.push({
-            id: serviceName + item.id,
+            id: App.ServiceConfigGroup.groupId(serviceName, item.group_name),
             config_group_id: item.id,
             name: item.group_name,
             description: item.description,
@@ -494,9 +500,14 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
             "isFinal": hostOverrideIsFinal,
             "savedIsFinal": hostOverrideIsFinal,
             "isEditable": false
-          }, group, true);
+          }, group);
         } else {
-          params.serviceConfigs.push(App.config.createCustomGroupConfig(prop, fileName, config.properties[prop], group));
+          params.serviceConfigs.push(App.config.createCustomGroupConfig({
+            propertyName: prop,
+            filename: fileName,
+            value: config.properties[prop],
+            savedValue: config.properties[prop]
+          }, group));
         }
       }
     });
@@ -1121,9 +1132,9 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   setGroupsToDelete: function (groups) {
     var groupsToDelete = this.get('groupsToDelete');
     groups.forEach(function (group) {
-      if (group.get('id'))
+      if (group.get('configGroupId'))
         groupsToDelete.push({
-          id: group.get('id')
+          configGroupId: group.get('configGroupId')
         });
     });
     this.get('wizardController').setDBProperty('groupsToDelete', groupsToDelete);
@@ -1181,7 +1192,13 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
               overriddenSCP = App.ServiceConfigProperty.create(parentSCP);
               overriddenSCP.set('parentSCP', parentSCP);
             } else {
-              overriddenSCP = App.config.createCustomGroupConfig(propertyData.name, propertyData.filename, propertyData.value, modelGroup, true, false);
+              overriddenSCP = App.config.createCustomGroupConfig({
+                propertyName: propertyData.name,
+                filename: propertyData.filename,
+                value: propertyData.value,
+                savedValue: propertyData.value,
+                isEditable: false
+              }, modelGroup);
               this.get('stepConfigs').findProperty('serviceName', service.serviceName).get('configs').pushObject(overriddenSCP);
             }
               overriddenSCP.set('isOriginalSCP', false);
@@ -1284,7 +1301,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       var group = this.get('selectedService.configGroups').findProperty('name', selectedGroup.get('name'));
       var newSCP = App.config.createOverride(config, {value: valueForOverride, recommendedValue: valueForOverride}, group);
       configOverrides.push(newSCP);
-      group.get('properties').pushObject(newSCP);
       this.set('overrideToAdd', null);
     }
     configOverrides.setEach('isEditable', !selectedGroup.get('isDefault'));

@@ -338,27 +338,23 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
   },
 
   createProperty: function (propertyObj) {
-    var selectedConfigGroup = this.get('controller.selectedConfigGroup'),
-      isSecureConfig = this.isSecureConfig(propertyObj.name, propertyObj.filename);
-    this.get('serviceConfigs').pushObject(App.ServiceConfigProperty.create({
-      name: propertyObj.name,
-      displayName: propertyObj.displayName || propertyObj.name,
-      value: propertyObj.value,
-      displayType: stringUtils.isSingleLine(propertyObj.value) ? 'string' : 'multiLine',
-      isSecureConfig: isSecureConfig,
-      category: propertyObj.categoryName,
-      serviceName: propertyObj.serviceName,
-      savedValue: null,
-      recommendedValue: null,
-      supportsFinal: App.config.shouldSupportFinal(propertyObj.serviceName, propertyObj.filename),
-      supportsAddingForbidden: false, //Can add a new property implies the given categrary allows adding new properties...
-      filename: propertyObj.filename || '',
-      isUserProperty: true,
-      isNotSaved: true,
-      isRequired: false,
-      group: selectedConfigGroup.get('isDefault') ? null : selectedConfigGroup,
-      isOverridable: selectedConfigGroup.get('isDefault')
-    }));
+    var selectedConfigGroup = this.get('controller.selectedConfigGroup');
+    if (selectedConfigGroup.get('isDefault')) {
+      var config = App.config.createDefaultConfig(propertyObj.name, propertyObj.filename, false, {
+        value: propertyObj.value,
+        category: propertyObj.categoryName,
+        isNotSaved: true
+      });
+    } else {
+      var config = App.config.createCustomGroupConfig({
+        name: propertyObj.name,
+        filename: propertyObj.filename,
+        value: propertyObj.value,
+        category: propertyObj.categoryName,
+        isNotSaved: true
+      }, selectedConfigGroup);
+    }
+    this.get('serviceConfigs').pushObject(App.ServiceConfigProperty.create(config));
   },
 
   /**

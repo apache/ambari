@@ -590,31 +590,6 @@ App.config = Em.Object.create({
   },
 
   /**
-   * Create config with non default config group. Some custom config properties
-   * can be created and assigned to non-default config group.
-   *
-   * @param {String} propertyName - name of the property
-   * @param {String} fileName - file name of the property
-   * @param {String} value - config value
-   * @param {Em.Object} group - config group to set
-   * @param {Boolean} [isEditable]
-   * @param {Boolean} [isInstaller]
-   * @return {Object}
-   **/
-  createCustomGroupConfig: function (propertyName, fileName, value, group, isEditable, isInstaller) {
-    var propertyObject = this.createDefaultConfig(propertyName, this.getOriginalFileName(fileName), false, {
-      savedValue: isInstaller ? null : value,
-      value: value,
-      group: group,
-      isEditable: !!isEditable,
-      isOverridable: false
-    });
-    group.set('switchGroupTextShort', Em.I18n.t('services.service.config_groups.switchGroupTextShort').format(group.get('name')));
-    group.set('switchGroupTextFull', Em.I18n.t('services.service.config_groups.switchGroupTextFull').format(group.get('name')));
-    return App.ServiceConfigProperty.create(propertyObject);
-  },
-
-  /**
    *
    * @param configs
    */
@@ -888,15 +863,44 @@ App.config = Em.Object.create({
   },
 
   /**
+   * Create config with non default config group. Some custom config properties
+   * can be created and assigned to non-default config group.
+   *
+   * @param {Em.Object} override - config value
+   * @param {Em.Object} configGroup - config group to set
+   * @return {Object}
+   **/
+  createCustomGroupConfig: function (override, configGroup) {
+    App.assertObject(override);
+    App.assertEmberObject(configGroup);
+
+    var newOverride = App.ServiceConfigProperty.create(this.createDefaultConfig(override.propertyName, override.filename, false, override));
+
+    newOverride.setProperties({
+      'isOriginalSCP': false,
+      'overrides': null,
+      'group': configGroup,
+      'parentSCP': null
+    });
+
+    if (!configGroup.get('properties.length')) {
+      configGroup.set('properties', Em.A([]));
+    }
+    configGroup.set('properties', configGroup.get('properties').concat(newOverride));
+
+    return newOverride;
+  },
+
+
+  /**
    * @param {App.ServiceConfigProperty} serviceConfigProperty
    * @param {Object} override - plain object with properties that is different from parent SCP
    * @param {App.ServiceConfigGroup} configGroup
-   * @param {boolean} [updateGroup]
    * @returns {App.ServiceConfigProperty}
    */
-  createOverride: function(serviceConfigProperty, override, configGroup, updateGroup) {
-    Em.assert('serviceConfigProperty can\' be null', serviceConfigProperty);
-    Em.assert('configGroup can\' be null', configGroup);
+  createOverride: function(serviceConfigProperty, override, configGroup) {
+    App.assertObject(serviceConfigProperty);
+    App.assertEmberObject(configGroup);
 
     if (Em.isNone(serviceConfigProperty.get('overrides'))) serviceConfigProperty.set('overrides', []);
 
@@ -915,12 +919,10 @@ App.config = Em.Object.create({
       'parentSCP': serviceConfigProperty
     });
 
-    if (updateGroup) {
-      if (!configGroup.get('properties.length')) {
-        configGroup.set('properties', Em.A([]));
-      }
-      configGroup.get('properties').push(newOverride);
+    if (!configGroup.get('properties.length')) {
+      configGroup.set('properties', Em.A([]));
     }
+    configGroup.set('properties', configGroup.get('properties').concat(newOverride));
 
     serviceConfigProperty.get('overrides').pushObject(newOverride);
     serviceConfigProperty.set('overrideValues', serviceConfigProperty.get('overrides').mapProperty('value'));

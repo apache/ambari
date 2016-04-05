@@ -63,10 +63,7 @@ App.ConfigOverridable = Em.Mixin.create({
     }
     else {
       var valueForOverride = (serviceConfigProperty.get('widget') || serviceConfigProperty.get('displayType') == 'checkbox') ? serviceConfigProperty.get('value') : '';
-      var override = App.config.createOverride(serviceConfigProperty, { "value": valueForOverride, "isEditable": true }, selectedConfigGroup);
-      if (isInstaller) {
-        selectedConfigGroup.get('properties').pushObject(override);
-      }
+      App.config.createOverride(serviceConfigProperty, { "value": valueForOverride, "isEditable": true }, selectedConfigGroup);
     }
     Em.$('body>.tooltip').remove();
   },
