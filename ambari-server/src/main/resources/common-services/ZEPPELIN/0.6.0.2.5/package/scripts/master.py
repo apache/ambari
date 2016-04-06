@@ -44,8 +44,8 @@ class Master(Script):
 
     Execute('chown -R ' + params.zeppelin_user + ':' + params.zeppelin_group + ' ' + params.zeppelin_dir)
 
-    # create the log, pid, zeppelin dirs
-    Directory([params.zeppelin_pid_dir, params.zeppelin_log_dir, params.zeppelin_dir],
+    # create the pid and zeppelin dirs
+    Directory([params.zeppelin_pid_dir, params.zeppelin_dir],
               owner=params.zeppelin_user,
               group=params.zeppelin_group,
               cd_access="a",
@@ -113,11 +113,22 @@ class Master(Script):
 
     params.HdfsResource(None, action="execute")
 
+  def create_zeppelin_log_dir(self, env):
+    import params
+    env.set_params(params)
+    Directory([params.zeppelin_log_dir],
+              owner=params.zeppelin_user,
+              group=params.zeppelin_group,
+              cd_access="a",
+              mode=0755
+              )
+
   def configure(self, env):
     import params
     import status_params
     env.set_params(params)
     env.set_params(status_params)
+    self.create_zeppelin_log_dir(env)
 
     # write out zeppelin-site.xml
     XmlConfig("zeppelin-site.xml",
@@ -133,6 +144,7 @@ class Master(Script):
 
   def stop(self, env):
     import params
+    self.create_zeppelin_log_dir(env)
     Execute(params.zeppelin_dir + '/bin/zeppelin-daemon.sh stop >> ' + params.zeppelin_log_file,
             user=params.zeppelin_user)
 
