@@ -318,36 +318,65 @@ App.WizardStep2Controller = Em.Controller.extend({
    */
   parseHostNamesAsPatternExpression: function () {
     this.set('isPattern', false);
-    var self = this;
     var hostNames = [];
-    $.each(this.get('hostNameArr'), function (e, a) {
-      var start, end, extra = {0: ""};
-      if (/\[\d*\-\d*\]/.test(a)) {
-        start = a.match(/\[\d*/);
-        end = a.match(/\-\d*]/);
 
-        start = start[0].substr(1);
-        end = end[0].substr(1);
+    this.get('hostNameArr').forEach(function (a) {
+      var hn,
+          allPatterns = a.match(/\[\d*\-\d*\]/g),
+          patternsNumber = allPatterns ? allPatterns.length : 0;
 
-        if (parseInt(start) <= parseInt(end, 10) && parseInt(start, 10) >= 0) {
-          self.set('isPattern', true);
-
-          if (start[0] == "0" && start.length > 1) {
-            extra = start.match(/0*/);
-          }
-
-          for (var i = parseInt(start, 10); i < parseInt(end, 10) + 1; i++) {
-            hostNames.push(a.replace(/\[\d*\-\d*\]/, extra[0].substring(0, start.length - i.toString().length) + i))
-          }
-
-        } else {
-          hostNames.push(a);
+      if (patternsNumber) {
+        hn = [a];
+        for (var i = 0; i < patternsNumber; i++) {
+          hn = this._replacePatternInHosts(hn);
         }
+        hostNames = hostNames.concat(hn);
       } else {
         hostNames.push(a);
       }
-    });
+    }, this);
+
     this.set('hostNameArr', hostNames.uniq());
+  },
+
+  /**
+   * return an array of results with pattern replacement for each host
+   * replace only first pattern in each host
+   * designed to be called recursively in <code>parseHostNamesAsPatternExpression</code>
+   *
+   * @param {Array} rawHostNames
+   * @private
+   * @return {Array}
+   */
+  _replacePatternInHosts: function (rawHostNames) {
+    var start, end, extra, allHostNames = [];
+    rawHostNames.forEach(function (rawHostName) {
+      var hostNames = [];
+      start = rawHostName.match(/\[\d*/);
+      end = rawHostName.match(/\-\d*]/);
+      extra = {0: ""};
+
+      start = start[0].substr(1);
+      end = end[0].substr(1);
+
+      if (parseInt(start) <= parseInt(end, 10) && parseInt(start, 10) >= 0) {
+        this.set('isPattern', true);
+
+        if (start[0] == "0" && start.length > 1) {
+          extra = start.match(/0*/);
+        }
+
+        for (var i = parseInt(start, 10); i < parseInt(end, 10) + 1; i++) {
+          hostNames.push(rawHostName.replace(/\[\d*\-\d*\]/, extra[0].substring(0, start.length - i.toString().length) + i))
+        }
+
+      } else {
+        hostNames.push(rawHostName);
+      }
+      allHostNames = allHostNames.concat(hostNames);
+    }, this);
+
+    return allHostNames;
   },
 
   /**

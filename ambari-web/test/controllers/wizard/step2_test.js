@@ -420,6 +420,26 @@ describe('App.WizardStep2Controller', function () {
       expect(result).to.equal(true);
     });
 
+    it('should parse hosts from multiple pattern expression to hostNameArr', function () {
+      var controller = App.WizardStep2Controller.create({
+        hostNameArr: ['test[1-2]host[01-05]']
+      });
+      controller.parseHostNamesAsPatternExpression();
+      var hosts = controller.get('hostNameArr');
+      expect(hosts).eql([
+          'test1host01',
+          'test1host02',
+          'test1host03',
+          'test1host04',
+          'test1host05',
+          'test2host01',
+          'test2host02',
+          'test2host03',
+          'test2host04',
+          'test2host05'
+      ]);
+    });
+
     it('should skip duplicates', function () {
       var controller = App.WizardStep2Controller.create({
         hostNameArr: ['host[1-3]', 'host2']
