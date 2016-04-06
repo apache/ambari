@@ -83,7 +83,7 @@ App.ModalPopup = Ember.View.extend({
     this.$().find('#modal').off('enter-key-pressed').off('escape-key-pressed');
   },
 
-  escapeKeyPressed: function() {
+  escapeKeyPressed: function (event) {
     var closeButton = this.$().find('.modal-header > .close').last();
     if (closeButton.length > 0) {
       event.preventDefault();
@@ -93,7 +93,7 @@ App.ModalPopup = Ember.View.extend({
     }
   },
 
-  enterKeyPressed: function() {
+  enterKeyPressed: function (event) {
     var primaryButton = this.$().find('.modal-footer > .btn-success').last();
     if ((!$("*:focus").is("textarea")) && primaryButton.length > 0 && primaryButton.attr('disabled') !== 'disabled') {
       event.preventDefault();
