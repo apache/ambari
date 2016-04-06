@@ -57,6 +57,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.powermock.api.easymock.PowerMock.createNiceMock;
 import static org.powermock.api.easymock.PowerMock.replay;
 import static org.powermock.api.easymock.PowerMock.verifyAll;
@@ -312,6 +313,68 @@ public class StackTest {
 
     assertTrue(allServiceConfigTypes.containsAll(ImmutableSet.of(testSiteConfigType, testEmptyConfigType)));
     assertEquals(2, allServiceConfigTypes.size());
+
+    verifyAll();
+  }
+
+  // Test that getServiceForConfigType skips excluded config types.
+  @Test
+  public void testGetServiceForConfigTypeWithExcludedConfigs() throws Exception {
+    // Given
+    AmbariManagementController controller = createNiceMock(AmbariManagementController.class);
+    AmbariMetaInfo metaInfo = createNiceMock(AmbariMetaInfo.class);
+    StackServiceResponse stackServiceResponse = createNiceMock(StackServiceResponse.class);
+    StackServiceComponentResponse stackComponentResponse = createNiceMock(StackServiceComponentResponse.class);
+    StackConfigurationResponse stackConfigurationResponse1 = createNiceMock(StackConfigurationResponse.class);
+
+    String testServiceName = "service1";
+    String testEmptyConfigType = "test-empty-config-type";
+    String testSiteConfigFile = "test-site.xml";
+    String testSiteConfigType = "test-site";
+
+    expect(controller.getAmbariMetaInfo()).andReturn(metaInfo).anyTimes();
+
+    expect(controller.getStackServices(anyObject(Set.class))).andReturn(Collections.singleton(stackServiceResponse)).anyTimes();
+    expect(stackServiceResponse.getServiceName()).andReturn(testServiceName).anyTimes();
+
+    // Config type test-site is excluded for the service service1
+    expect(stackServiceResponse.getExcludedConfigTypes()).andReturn(Collections.<String>singleton(testSiteConfigType));
+
+    // stack components
+    expect(stackComponentResponse.getComponentName()).andReturn("component1").anyTimes();
+    expect(stackComponentResponse.getComponentCategory()).andReturn(testSiteConfigFile).anyTimes();
+    expect(controller.getStackComponents(anyObject(Set.class))).andReturn(Collections.singleton(stackComponentResponse)).anyTimes();
+
+    expect(stackConfigurationResponse1.getPropertyName()).andReturn("prop1").anyTimes();
+    expect(stackConfigurationResponse1.getPropertyValue()).andReturn(null).anyTimes();
+    expect(stackConfigurationResponse1.getType()).andReturn(testSiteConfigFile).anyTimes();
+    expect(stackConfigurationResponse1.getPropertyType()).andReturn(Collections.singleton(PropertyInfo.PropertyType.TEXT)).anyTimes();
+    expect(stackConfigurationResponse1.getPropertyAttributes()).andReturn(Collections.<String, String>emptyMap()).anyTimes();
+    expect(stackConfigurationResponse1.isRequired()).andReturn(true).anyTimes();
+
+    expect(controller.getStackConfigurations(anyObject(Set.class))).andReturn(Collections.singleton(stackConfigurationResponse1)).anyTimes();
+
+    // empty stack service config type
+    expect(stackServiceResponse.getConfigTypes()).andReturn(Collections.singletonMap(testEmptyConfigType, Collections.<String, Map<String, String>>emptyMap()));
+
+    // no stack level configs for this test
+    expect(controller.getStackLevelConfigurations(anyObject(Set.class))).andReturn(Collections.<StackConfigurationResponse>emptySet()).anyTimes();
+    expect(metaInfo.getComponentDependencies("test", "1.0", "service1", "component1")).andReturn(Collections.<DependencyInfo>emptyList()).anyTimes();
+
+    replay(controller, stackServiceResponse, stackComponentResponse, stackConfigurationResponse1, metaInfo);
+
+    Stack stack = new Stack("test", "1.0", controller);
+
+    // When
+    try {
+      stack.getServiceForConfigType(testSiteConfigType);
+      fail("Exception not thrown");
+    } catch (IllegalArgumentException e) {
+      // Expected
+    }
+
+    // Not excluded config type
+    assertEquals(testServiceName, stack.getServiceForConfigType(testEmptyConfigType));
 
     verifyAll();
   }
