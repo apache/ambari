@@ -330,7 +330,7 @@ class ServerConfigDefaults(object):
   
     self.JAVA_SHARE_PATH = "/usr/share/java"
     self.SHARE_PATH = "/usr/share"
-    self.OUT_DIR = parse_log4j_file(AmbariPath.get("/etc/ambari-server/conf/log4j.properties"))['ambari.log.dir'].replace("//", "/")
+    self.OUT_DIR = parse_log4j_file(get_conf_dir() + "/log4j.properties")['ambari.log.dir'].replace("//", "/")
     self.SERVER_OUT_FILE = os.path.join(self.OUT_DIR, "ambari-server.out")
     self.SERVER_LOG_FILE = os.path.join(self.OUT_DIR, "ambari-server.log")
     self.ROOT_FS_PATH = os.sep
