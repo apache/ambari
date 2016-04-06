@@ -34,9 +34,21 @@ App.ClientComponent = DS.Model.extend({
    *
    * @type {boolean}
    */
-  allStopped: function() {
-    return this.get('installedCount') === this.get('totalCount');
-  }.property('installedCount', 'totalCount'),
+  allStopped: Em.computed.equalProperties('installedCount', 'totalCount'),
+
+  /**
+   * No stated and no installed component
+   *
+   * @type {boolean}
+   */
+  noOneInstalled: Em.computed.and('!installedCount', '!startedCount'),
+
+  /**
+   * Determines if component may be deleted
+   *
+   * @type {boolean}
+   */
+  allowToDelete: Em.computed.or('allStopped', 'noOneInstalled'),
 
   summaryLabelClassName:function(){
     return 'label_for_'+this.get('componentName').toLowerCase();

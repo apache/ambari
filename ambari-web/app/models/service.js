@@ -47,10 +47,11 @@ App.Service = DS.Model.extend({
    * @type {boolean}
    */
   allowToDelete: function() {
-    return App.Service.allowUninstallStates.contains(this.get('workStatus'))
-      && this.get('slaveComponents').everyProperty('allStopped')
-      && this.get('masterComponents').everyProperty('allStopped');
-  }.property('slaveComponents.@each.allStopped', 'masterComponents.@each.allStopped', 'workStatus'),
+    var workStatus = this.get('workStatus');
+    return App.Service.allowUninstallStates.contains(workStatus)
+      && this.get('slaveComponents').everyProperty('allowToDelete')
+      && this.get('masterComponents').everyProperty('allowToDelete');
+  }.property('slaveComponents.@each.allowToDelete', 'masterComponents.@each.allowToDelete', 'workStatus'),
 
   /**
    * @type {bool}

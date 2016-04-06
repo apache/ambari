@@ -20,7 +20,7 @@ var App = require('app');
 require('utils/ajax/ajax_queue');
 require('controllers/main/service/info/configs');
 require('controllers/wizard/step8_controller');
-var installerStep8Controller, configurationController;
+var installerStep8Controller;
 var testHelpers = require('test/helpers');
 
 var configs = Em.A([
@@ -64,7 +64,6 @@ describe('App.WizardStep8Controller', function () {
 
   beforeEach(function () {
     installerStep8Controller = getController();
-    configurationController = App.MainServiceInfoConfigsController.create({});
   });
 
   App.TestAliases.testAsComputedFilterBy(getController(), 'installedServices', 'content.services', 'isInstalled', true);
