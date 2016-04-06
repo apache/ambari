@@ -108,7 +108,16 @@ public class ClusterControllerImpl implements ClusterController {
   }
 
 
+
   // ----- ClusterController -------------------------------------------------
+
+  @Override
+  public Predicate getAmendedPredicate(Type type, Predicate predicate) {
+    ExtendedResourceProviderWrapper provider = ensureResourceProviderWrapper(type);
+    ensurePropertyProviders(type);
+
+    return provider.getAmendedPredicate(predicate);
+  }
 
   @Override
   public QueryResponse getResources(Type type, Request request, Predicate predicate)
@@ -934,6 +943,18 @@ public class ClusterControllerImpl implements ClusterController {
 
       evaluator = resourceProvider instanceof ResourcePredicateEvaluator ?
           (ResourcePredicateEvaluator) resourceProvider : DEFAULT_RESOURCE_PREDICATE_EVALUATOR;
+    }
+
+
+    /**
+     * @return the amended predicate, or {@code null} to use the provided one
+     */
+    public Predicate getAmendedPredicate(Predicate predicate) {
+      if (ReadOnlyResourceProvider.class.isInstance(resourceProvider)) {
+        return ((ReadOnlyResourceProvider) resourceProvider).amendPredicate(predicate);
+      } else {
+        return null;
+      }
     }
 
 

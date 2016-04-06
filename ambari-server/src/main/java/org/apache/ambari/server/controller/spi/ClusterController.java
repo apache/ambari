@@ -19,6 +19,8 @@ package org.apache.ambari.server.controller.spi;
 
 import java.util.Set;
 
+import org.apache.ambari.server.controller.spi.Resource.Type;
+
 /**
  * The cluster controller is the main access point for accessing resources
  * from the backend sources.  A cluster controller maintains a mapping of
@@ -132,6 +134,7 @@ public interface ClusterController extends SchemaFactory {
    * @param type the resource type
    * @return the schema object for the given resource
    */
+  @Override
   public Schema getSchema(Resource.Type type);
 
   /**
@@ -207,4 +210,12 @@ public interface ClusterController extends SchemaFactory {
              SystemException,
              NoSuchResourceException,
              NoSuchParentResourceException ;
+
+  /**
+   * Gets the amended predicate for a resource.
+   * @param type      the type of the resource
+   * @param predicate the predicate object to use for filtering
+   * @return the new predicate used for filtering
+   */
+  Predicate getAmendedPredicate(Type type, Predicate predicate);
 }

@@ -367,6 +367,11 @@ public class QueryImpl implements Query, ResourceInstance {
     Resource.Type resourceType    = getResourceDefinition().getType();
     Predicate     queryPredicate  = createPredicate(getKeyValueMap(), processUserPredicate(userPredicate));
 
+    Predicate updated = clusterController.getAmendedPredicate(resourceType, queryPredicate);
+    if (null != updated) {
+      queryPredicate = updated;
+    }
+
     // must occur after processing user predicate and prior to creating request
     finalizeProperties();
 
@@ -408,16 +413,16 @@ public class QueryImpl implements Query, ResourceInstance {
     }
 
     // Optimization:
-    // Currently the steps executed when sub-resources are requested are: 
+    // Currently the steps executed when sub-resources are requested are:
     //   (1) Get *all* top-level resources
     //   (2) Populate all top-level resources
-    //   (3) Query for and populate sub-resources of *all* top-level resources 
+    //   (3) Query for and populate sub-resources of *all* top-level resources
     //   (4) Apply pagination and predicate on resources from above
     //
     // Though this works, it is very inefficient when either:
     //   (a) Predicate does not apply to sub-resources
     //   (b) Page request is present
-    // It is inefficient because we needlessly populate sub-resources that might not get 
+    // It is inefficient because we needlessly populate sub-resources that might not get
     // used due to their top-level resources being filtered out by the predicate and paging
     //
     // The optimization is to apply the predicate and paging request on the top-level resources
@@ -551,22 +556,22 @@ public class QueryImpl implements Query, ResourceInstance {
    *          │
    *          └── CResource2
    *                p3:2
-   * 
+   *
    * Given the following query ...
-   * 
+   *
    *     api/v1/a_resources?b_resources/p1>3&b_resources/p2=5&c_resources/p3=1
-   * 
+   *
    * The caller should pass the following property ids ...
-   * 
+   *
    *     b_resources/p1
    *     b_resources/p2
    *     c_resources/p3
-   * 
+   *
    * getJoinedResourceProperties should produce the following map of property sets
    * by making recursive calls on the sub-resources of each of this query's resources,
    * joining the resulting property sets, and adding them to the map keyed by the
    * resource ...
-   * 
+   *
    *  {
    *    AResource1=[{b_resources/p1=1, b_resources/p2=5, c_resources/p3=1},
    *                {b_resources/p1=2, b_resources/p2=0, c_resources/p3=1},
