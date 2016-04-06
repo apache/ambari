@@ -158,47 +158,49 @@
           <div class="span6 property-name">{{t alerts.table.header.lastTrigger}}:</div>
           <div class="span6">{{controller.content.lastTriggeredFormatted}}</div>
         </div>
-        <div class="row-fluid">
-          <div class="span6 property-name">{{t alerts.table.header.repeatToleranceEnabled}}:</div>
-          <div class="span6">
-            {{#if controller.content.repeat_tolerance_enabled}}
-              {{#isAuthorized "SERVICE.TOGGLE_ALERTS"}}
-                <a href="#" {{action toggleRepeatTolerance target="controller"}} {{bindAttr class="controller.content.repeat_tolerance_enabled:alert-definition-enable:alert-definition-disable"}}>
-                  <span class="repeat-tolerance-button" {{translateAttr data-original-title="alerts.table.repeatTolerance.enabled.tooltip"}}>
-                    {{view.enabledDisplay}}
-                  </span>
-                </a>
-              {{else}}
-                {{view.enabledDisplay}}
-              {{/isAuthorized}}
-            {{else}}
-              {{#isAuthorized "SERVICE.TOGGLE_ALERTS"}}
-                <a href="#" {{action toggleRepeatTolerance target="controller"}} {{bindAttr class="controller.content.repeat_tolerance_enabled:alert-definition-enable:alert-definition-disable"}}>
-                  <span class="repeat-tolerance-button" {{translateAttr data-original-title="alerts.table.repeatTolerance.disabled.tooltip"}}>
-                    {{view.disabledDisplay}}
-                  </span>
-                </a>
-              {{else}}
-                {{view.disabledDisplay}}
-              {{/isAuthorized}}
-            {{/if}}
-          </div>
-        </div>
-        {{#if controller.content.repeat_tolerance_enabled}}
+        {{#unless controller.content.isTypeAggregate}}
           <div class="row-fluid">
-            <div class="span6 property-name">{{t alerts.table.header.repeatTolerance}}:</div>
+            <div class="span6 property-name">{{t alerts.table.header.repeatToleranceEnabled}}:</div>
             <div class="span6">
-              <span>
-                {{controller.content.repeat_tolerance}}
-              </span>
-              {{#isAuthorized "SERVICE.TOGGLE_ALERTS"}}
-                <a {{action editRepeatTolerance target="controller"}} class="edit-description-button">
-                  <i class="icon-pencil"></i>
-                </a>
-              {{/isAuthorized}}
+              {{#if controller.content.repeat_tolerance_enabled}}
+                {{#isAuthorized "SERVICE.TOGGLE_ALERTS"}}
+                  <a href="#" {{action toggleRepeatTolerance target="controller"}} {{bindAttr class="controller.content.repeat_tolerance_enabled:alert-definition-enable:alert-definition-disable"}}>
+                    <span class="repeat-tolerance-button" {{translateAttr data-original-title="alerts.table.repeatTolerance.enabled.tooltip"}}>
+                      {{view.enabledDisplay}}
+                    </span>
+                  </a>
+                {{else}}
+                  {{view.enabledDisplay}}
+                {{/isAuthorized}}
+              {{else}}
+                {{#isAuthorized "SERVICE.TOGGLE_ALERTS"}}
+                  <a href="#" {{action toggleRepeatTolerance target="controller"}} {{bindAttr class="controller.content.repeat_tolerance_enabled:alert-definition-enable:alert-definition-disable"}}>
+                    <span class="repeat-tolerance-button" {{translateAttr data-original-title="alerts.table.repeatTolerance.disabled.tooltip"}}>
+                      {{view.disabledDisplay}}
+                    </span>
+                  </a>
+                {{else}}
+                  {{view.disabledDisplay}}
+                {{/isAuthorized}}
+              {{/if}}
             </div>
           </div>
-        {{/if}}
+          {{#if controller.content.repeat_tolerance_enabled}}
+            <div class="row-fluid">
+              <div class="span6 property-name">{{t alerts.table.header.repeatTolerance}}:</div>
+              <div class="span6">
+                <span>
+                  {{controller.content.repeat_tolerance}}
+                </span>
+                {{#isAuthorized "SERVICE.TOGGLE_ALERTS"}}
+                  <a {{action editRepeatTolerance target="controller"}} class="edit-description-button">
+                    <i class="icon-pencil"></i>
+                  </a>
+                {{/isAuthorized}}
+              </div>
+            </div>
+          {{/if}}
+        {{/unless}}
       </div>
     </div>
   </div>

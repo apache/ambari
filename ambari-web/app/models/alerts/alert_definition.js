@@ -167,6 +167,8 @@ App.AlertDefinition = DS.Model.extend({
 
   typeIconClass: Em.computed.getByKey('typeIcons', 'type'),
 
+  isTypeAggregate: Em.computed.equal('type', 'AGGREGATE'),
+
   /**
    * if this definition is in state: CRITICAL / WARNING, if true, will show up in alerts fast access popup
    * instances with maintenance mode ON are ignored
