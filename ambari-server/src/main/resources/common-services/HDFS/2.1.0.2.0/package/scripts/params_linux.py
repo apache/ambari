@@ -210,6 +210,7 @@ proxyuser_group =  config['configurations']['hadoop-env']['proxyuser_group']
 #hadoop params
 hdfs_log_dir_prefix = config['configurations']['hadoop-env']['hdfs_log_dir_prefix']
 hadoop_root_logger = config['configurations']['hadoop-env']['hadoop_root_logger']
+nfs_file_dump_dir = config['configurations']['hdfs-site']['nfs.file.dump.dir']
 
 dfs_domain_socket_path = config['configurations']['hdfs-site']['dfs.domain.socket.path']
 dfs_domain_socket_dir = os.path.dirname(dfs_domain_socket_path)

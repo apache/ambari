@@ -265,6 +265,7 @@
             "dfs.namenode.handler.count": "100",
             "dfs.namenode.checkpoint.dir": "/hadoop/hdfs/namesecondary,/hadoop/hdfs/namesecondary2",
             "fs.permissions.umask-mode": "022",
+            "nfs.file.dump.dir": "/tmp/.hdfs-nfs",
             "dfs.datanode.http.address": "0.0.0.0:50075",
             "dfs.datanode.ipc.address": "0.0.0.0:8010",
             "dfs.datanode.data.dir": "/hadoop/hdfs/data",

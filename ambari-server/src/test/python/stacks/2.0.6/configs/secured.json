@@ -297,6 +297,7 @@
             "dfs.client.read.shortcircuit": "true", 
             "dfs.journalnode.keytab.file": "/etc/security/keytabs/jn.service.keytab", 
             "dfs.datanode.http.address": "0.0.0.0:1022",
+            "nfs.file.dump.dir": "/tmp/.hdfs-nfs",
             "dfs.datanode.du.reserved": "1073741824", 
             "dfs.client.read.shortcircuit.streams.cache.size": "4096", 
             "dfs.secondary.namenode.keytab.file": "/etc/security/keytabs/nn.service.keytab", 
