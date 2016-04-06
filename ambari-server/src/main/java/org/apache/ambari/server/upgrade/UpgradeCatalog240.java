@@ -1034,7 +1034,6 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
         for (final Cluster cluster : clusterMap.values()) {
 
           Config amsEnv = cluster.getDesiredConfigByType("ams-env");
-
           if (amsEnv != null) {
             String content = amsEnv.getProperties().get("content");
             if (content != null && !content.contains("AMS_INSTANCE_NAME")) {
@@ -1043,6 +1042,20 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
 
               updateConfigurationProperties("ams-env", Collections.singletonMap("content", newContent), true, true);
             }
+          }
+
+          Config amsHBaseEnv = cluster.getDesiredConfigByType("ams-hbase-env");
+          if (amsHBaseEnv != null) {
+            String content = amsHBaseEnv.getProperties().get("content");
+            Map<String, String> newProperties = new HashMap<>();
+
+            if (content != null && !content.contains("HBASE_HOME=")) {
+              String newContent = content + "\n # Explicitly Setting HBASE_HOME for AMS HBase so that there is no conflict\n" +
+                "export HBASE_HOME={{ams_hbase_home_dir}}\n";
+              newProperties.put("content", newContent);
+            }
+
+            updateConfigurationPropertiesForCluster(cluster, "ams-hbase-env", newProperties, true, true);
           }
         }
       }
