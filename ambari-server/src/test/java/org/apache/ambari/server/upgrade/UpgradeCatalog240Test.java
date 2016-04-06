@@ -192,6 +192,10 @@ public class UpgradeCatalog240Test {
     expect(connection.createStatement()).andReturn(statement);
     expect(statement.executeQuery(anyObject(String.class))).andReturn(resultSet);
 
+    // Test host_role_command adds a column called original_start_time
+    Capture<DBAccessor.DBColumnInfo> hostRoleCommandOriginalStartTimeColumnInfo = newCapture();
+    dbAccessor.addColumn(eq(UpgradeCatalog240.HOST_ROLE_COMMAND_TABLE), capture(hostRoleCommandOriginalStartTimeColumnInfo));
+
     replay(dbAccessor, configuration, connection, statement, resultSet);
 
     Module module = new Module() {
@@ -320,6 +324,13 @@ public class UpgradeCatalog240Test {
 
     assertEquals(expectedCaptures, actualCaptures);
 
+    // Verify host_role_command column
+    DBAccessor.DBColumnInfo originalStartTimeInfo = hostRoleCommandOriginalStartTimeColumnInfo.getValue();
+    Assert.assertNotNull(originalStartTimeInfo);
+    Assert.assertEquals("original_start_time", originalStartTimeInfo.getName());
+    Assert.assertEquals(Long.class, originalStartTimeInfo.getType());
+    Assert.assertEquals(-1L, originalStartTimeInfo.getDefaultValue());
+
     verify(dbAccessor);
   }
 
@@ -331,6 +342,7 @@ public class UpgradeCatalog240Test {
     Method addSettingPermission = UpgradeCatalog240.class.getDeclaredMethod("addSettingPermission");
     Method updateAmsConfigs = UpgradeCatalog240.class.getDeclaredMethod("updateAMSConfigs");
     Method updateClusterEnv = UpgradeCatalog240.class.getDeclaredMethod("updateClusterEnv");
+    Method updateHostRoleCommandTableDML = UpgradeCatalog240.class.getDeclaredMethod("updateHostRoleCommandTableDML");
 
     Capture<String> capturedStatements = newCapture(CaptureType.ALL);
 
@@ -344,6 +356,7 @@ public class UpgradeCatalog240Test {
             .addMockedMethod(addManageUserPersistedDataPermission)
             .addMockedMethod(updateAmsConfigs)
             .addMockedMethod(updateClusterEnv)
+            .addMockedMethod(updateHostRoleCommandTableDML)
             .createMock();
 
     Field field = AbstractUpgradeCatalog.class.getDeclaredField("dbAccessor");
@@ -355,6 +368,7 @@ public class UpgradeCatalog240Test {
     upgradeCatalog240.addManageUserPersistedDataPermission();
     upgradeCatalog240.updateAMSConfigs();
     upgradeCatalog240.updateClusterEnv();
+    upgradeCatalog240.updateHostRoleCommandTableDML();
 
     replay(upgradeCatalog240, dbAccessor);
 

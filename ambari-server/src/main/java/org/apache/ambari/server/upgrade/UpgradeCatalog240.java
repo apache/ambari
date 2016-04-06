@@ -159,6 +159,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     updateAlertDefinitionTable();
     updateAlertCurrentTable();
     createBlueprintSettingTable();
+    updateHostRoleCommandTableDDL();
   }
 
   private void updateClusterTableDDL() throws SQLException {
@@ -182,6 +183,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     addManageUserPersistedDataPermission();
     updateAMSConfigs();
     updateClusterEnv();
+    updateHostRoleCommandTableDML();
   }
 
   private void createSettingTable() throws SQLException {
@@ -861,7 +863,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
    * <ul>
    * <li>id BIGINT NOT NULL</li>
    * <li>Drops FKs on {@value #HOST_COMPONENT_DS_TABLE} and {@value #HOST_COMPONENT_STATE_TABLE}</li>
-   * <li>Populates {@value #SQLException#ID} in {@value #SERVICE_COMPONENT_DS_TABLE}</li>
+   * <li>Populates ID in {@value #SERVICE_COMPONENT_DS_TABLE}</li>
    * <li>Creates {@code UNIQUE} constraint on {@value #HOST_COMPONENT_DS_TABLE}</li>
    * <li>Adds FKs on {@value #HOST_COMPONENT_DS_TABLE} and {@value #HOST_COMPONENT_STATE_TABLE}</li>
    * <li>Adds new sequence value of {@code servicecomponentdesiredstate_id_seq}</li>
@@ -1004,10 +1006,18 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
    * allows overriding the value in ActionScheduler.java
    * @throws SQLException
    */
-  private void updateHostRoleCommandTable() throws SQLException {
+  private void updateHostRoleCommandTableDDL() throws SQLException {
     final String columnName = "original_start_time";
     DBColumnInfo originalStartTimeColumn = new DBColumnInfo(columnName, Long.class, null, -1L, true);
     dbAccessor.addColumn(HOST_ROLE_COMMAND_TABLE, originalStartTimeColumn);
+  }
+
+  /**
+   * Alter host_role_command table to update original_start_time with values and make it non-nullable
+   * @throws SQLException
+   */
+  protected void updateHostRoleCommandTableDML() throws SQLException {
+    final String columnName = "original_start_time";
     dbAccessor.executeQuery("UPDATE " + HOST_ROLE_COMMAND_TABLE + " SET original_start_time = start_time", false);
     dbAccessor.executeQuery("UPDATE " + HOST_ROLE_COMMAND_TABLE + " SET original_start_time=-1 WHERE original_start_time IS NULL");
     dbAccessor.setColumnNullable(HOST_ROLE_COMMAND_TABLE, columnName, false);
