@@ -26,6 +26,56 @@
           "type": "SERVER",
           "class": "org.apache.ambari.server.alerts.StaleAlertRunnable"
         }
+      },
+      {
+        "name": "ambari_server_performance",
+        "label": "Ambari Server Performance",
+        "description": "This alert is triggered if the server detects that there is a potential performance problem with Ambari. This type of issue can arise for many reasons, but is typically attributed to slow database queries and host resource exhaustion.",
+        "interval": 5,
+        "scope": "SERVICE",
+        "enabled": true,
+        "source": {
+          "type": "SERVER",
+          "class": "org.apache.ambari.server.alerts.AmbariPerformanceRunnable",
+          "parameters": [
+            {
+              "name": "request.by.status.warning.threshold",
+              "display_name": "Warning",
+              "value": 3000,
+              "type": "NUMERIC",
+              "description": "The time to find requests in progress before a warning alert is triggered.",
+              "units": "ms",
+              "threshold": "WARNING"
+            },
+            {
+              "name": "request.by.status.critical.threshold",
+              "display_name": "Critical",
+              "value": 5000,
+              "type": "NUMERIC",
+              "description": "The time to find requests in progress before a critical alert is triggered.",
+              "units": "ms",
+              "threshold": "CRITICAL"
+            },
+            {
+              "name": "rest.api.cluster.warning.threshold",
+              "display_name": "Warning",
+              "value": 5000,
+              "type": "NUMERIC",
+              "description": "The time to get a cluster via the REST API before a warning alert is triggered.",
+              "units": "ms",
+              "threshold": "WARNING"
+            },
+            {
+              "name": "rest.api.cluster.critical.threshold",
+              "display_name": "Critical",
+              "value": 7000,
+              "type": "NUMERIC",
+              "description": "The time to get a cluster via the REST API before a critical alert is triggered.",
+              "units": "ms",
+              "threshold": "CRITICAL"
+            }
+          ]
+        }
       }
     ],
     "AMBARI_AGENT" : [

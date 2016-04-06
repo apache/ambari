@@ -19,8 +19,6 @@ package org.apache.ambari.server.metadata;
 
 import java.util.List;
 
-import junit.framework.Assert;
-
 import org.apache.ambari.server.controller.RootServiceResponseFactory.Components;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.alert.AlertDefinition;
@@ -29,6 +27,8 @@ import org.junit.Test;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+
+import junit.framework.Assert;
 
 /**
  * Tets {@link AmbariServiceAlertDefinitions}.
@@ -66,7 +66,7 @@ public class AgentAlertDefinitionsTest {
   public void testLoadingServertAlerts() {
     AmbariServiceAlertDefinitions ambariServiceAlertDefinitions = m_injector.getInstance(AmbariServiceAlertDefinitions.class);
     List<AlertDefinition> definitions = ambariServiceAlertDefinitions.getServerDefinitions();
-    Assert.assertEquals(2, definitions.size());
+    Assert.assertEquals(3, definitions.size());
 
     for (AlertDefinition definition : definitions) {
       Assert.assertEquals(Components.AMBARI_SERVER.name(),

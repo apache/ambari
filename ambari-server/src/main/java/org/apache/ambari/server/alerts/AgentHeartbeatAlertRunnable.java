@@ -18,45 +18,25 @@
 package org.apache.ambari.server.alerts;
 
 import java.text.MessageFormat;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
-import org.apache.ambari.server.events.AlertEvent;
-import org.apache.ambari.server.events.AlertReceivedEvent;
-import org.apache.ambari.server.events.publishers.AlertEventPublisher;
-import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.services.AmbariServerAlertService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.inject.Inject;
-import com.google.inject.Provider;
 
 /**
  * The {@link AgentHeartbeatAlertRunnable} is used by the
  * {@link AmbariServerAlertService} to check agent heartbeats and fire alert
  * events when agents are not reachable.
  */
-public class AgentHeartbeatAlertRunnable implements Runnable {
-
-  /**
-   * Logger.
-   */
-  private final static Logger LOG = LoggerFactory.getLogger(AgentHeartbeatAlertRunnable.class);
-
-  /**
-   * The unique name for the alert definition that governs this service.
-   */
-  private static final String HEARTBEAT_DEFINITION_NAME = "ambari_server_agent_heartbeat";
-
+public class AgentHeartbeatAlertRunnable extends AlertRunnable {
   /**
    * Agent initializing message.
    */
@@ -88,99 +68,66 @@ public class AgentHeartbeatAlertRunnable implements Runnable {
   private static final String UNKNOWN_MSG = "{0} has an unknown state of {1}";
 
   /**
-   * Used for looking up alert definitions.
+   * Constructor.
+   *
+   * @param definitionName
    */
-  @Inject
-  private AlertDefinitionDAO m_dao;
-
-  /**
-   * Used to get alert definitions to use when generating alert instances.
-   */
-  @Inject
-  private Provider<Clusters> m_clustersProvider;
-
-  /**
-   * Publishes {@link AlertEvent} instances.
-   */
-  @Inject
-  private AlertEventPublisher m_alertEventPublisher;
-
-  /**
-   * Constructor. Required for type introspection by
-   * {@link AmbariServerAlertService}.
-   */
-  public AgentHeartbeatAlertRunnable() {
+  public AgentHeartbeatAlertRunnable(String definitionName) {
+    super(definitionName);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  public void run() {
-    try {
-      Map<String, Cluster> clusterMap = m_clustersProvider.get().getClusters();
-      for (Cluster cluster : clusterMap.values()) {
-        AlertDefinitionEntity entity = m_dao.findByName(cluster.getClusterId(),
-            HEARTBEAT_DEFINITION_NAME);
+  List<Alert> execute(Cluster cluster, AlertDefinitionEntity definition)
+      throws AmbariException {
+    long alertTimestamp = System.currentTimeMillis();
 
-        // skip this cluster if the runnable's alert definition is missing or
-        // disabled
-        if (null == entity || !entity.getEnabled()) {
-          continue;
-        }
+    Collection<Host> hosts = cluster.getHosts();
 
-        long alertTimestamp = System.currentTimeMillis();
+    List<Alert> alerts = new ArrayList<>(hosts.size());
+    for (Host host : hosts) {
+      String hostName = host.getHostName();
 
-        Map<String, Host> hostMap = m_clustersProvider.get().getHostsForCluster(
-            cluster.getClusterName());
+      String alertText;
+      AlertState alertState = AlertState.OK;
+      HostState hostState = host.getState();
 
-        Set<Entry<String, Host>> entries = hostMap.entrySet();
-        for (Entry<String, Host> entry : entries) {
-          String hostName = entry.getKey();
-          Host host = entry.getValue();
-
-          String alertText;
-          AlertState alertState = AlertState.OK;
-          HostState hostState = host.getState();
-
-          switch (hostState) {
-            case INIT:
-              alertText = MessageFormat.format(INIT_MSG, hostName);
-              break;
-            case HEALTHY:
-              alertText = MessageFormat.format(HEALTHY_MSG, hostName);
-              break;
-            case WAITING_FOR_HOST_STATUS_UPDATES:
-              alertText = MessageFormat.format(STATUS_UPDATE_MSG, hostName);
-              break;
-            case HEARTBEAT_LOST:
-              alertState = AlertState.CRITICAL;
-              alertText = MessageFormat.format(HEARTBEAT_LOST_MSG, hostName);
-              break;
-            case UNHEALTHY:
-              alertState = AlertState.CRITICAL;
-              alertText = MessageFormat.format(UNHEALTHY_MSG, hostName);
-            default:
-              alertState = AlertState.UNKNOWN;
-              alertText = MessageFormat.format(UNKNOWN_MSG, hostName, hostState);
-              break;
-          }
-
-          Alert alert = new Alert(entity.getDefinitionName(), null,
-              entity.getServiceName(), entity.getComponentName(), hostName,
-              alertState);
-
-          alert.setLabel(entity.getLabel());
-          alert.setText(alertText);
-          alert.setTimestamp(alertTimestamp);
-          alert.setCluster(cluster.getClusterName());
-
-          AlertReceivedEvent event = new AlertReceivedEvent(
-              cluster.getClusterId(), alert);
-
-          m_alertEventPublisher.publish(event);
-        }
+      switch (hostState) {
+        case INIT:
+          alertText = MessageFormat.format(INIT_MSG, hostName);
+          break;
+        case HEALTHY:
+          alertText = MessageFormat.format(HEALTHY_MSG, hostName);
+          break;
+        case WAITING_FOR_HOST_STATUS_UPDATES:
+          alertText = MessageFormat.format(STATUS_UPDATE_MSG, hostName);
+          break;
+        case HEARTBEAT_LOST:
+          alertState = AlertState.CRITICAL;
+          alertText = MessageFormat.format(HEARTBEAT_LOST_MSG, hostName);
+          break;
+        case UNHEALTHY:
+          alertState = AlertState.CRITICAL;
+          alertText = MessageFormat.format(UNHEALTHY_MSG, hostName);
+        default:
+          alertState = AlertState.UNKNOWN;
+          alertText = MessageFormat.format(UNKNOWN_MSG, hostName, hostState);
+          break;
       }
-    } catch (Exception exception) {
-      LOG.error("Unable to run the {} alert", HEARTBEAT_DEFINITION_NAME,
-          exception);
+
+      Alert alert = new Alert(definition.getDefinitionName(), null, definition.getServiceName(),
+          definition.getComponentName(), hostName, alertState);
+
+      alert.setLabel(definition.getLabel());
+      alert.setText(alertText);
+      alert.setTimestamp(alertTimestamp);
+      alert.setCluster(cluster.getClusterName());
+
+      alerts.add(alert);
     }
+
+    return alerts;
   }
 }

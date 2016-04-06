@@ -23,7 +23,7 @@ import com.google.gson.annotations.SerializedName;
 /**
  * Alert when the source type is defined as {@link SourceType#SERVER}
  */
-public class ServerSource extends Source {
+public class ServerSource extends ParameterizedSource {
 
   @SerializedName("class")
   private String m_class;
