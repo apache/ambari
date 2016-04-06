@@ -349,8 +349,8 @@ App.ConfigOverridable = Em.Mixin.create({
       configGroups: configGroups,
       selectedConfigGroup: selectedGroup,
       disablePrimary: function () {
-        return !(this.get('selectedConfigGroup.name') !== selectedGroup.get('name'));
-      }.property('selectedConfigGroup'),
+        return this.get('selectedConfigGroup.name') === selectedGroup.get('name');
+      }.property('selectedConfigGroup.name'),
       onPrimary: function () {
         var newGroup = this.get('selectedConfigGroup');
         if (selectedGroup.get('isDefault')) {

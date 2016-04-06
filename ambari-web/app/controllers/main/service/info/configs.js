@@ -46,7 +46,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
    */
   configGroups: function() {
     return this.get('groupsStore').filterProperty('serviceName', this.get('content.serviceName'));
-  }.property('content.serviceName', 'groupsStore'),
+  }.property('content.serviceName', 'groupsStore.@each.serviceName'),
 
   dependentConfigGroups: function() {
     if (this.get('dependentServiceNames.length') === 0) return [];
