@@ -848,6 +848,9 @@ App.ServiceConfigMasterHostView = Ember.View.extend(App.ServiceConfigHostPopover
 App.checkConnectionView = App.ServiceConfigTextField.extend({
   didInsertElement: function() {
     this._super();
+    if (this.get('controller.isHostsConfigsPage')) {
+      return;
+    }
     var kdc = this.get('categoryConfigsAll').findProperty('name', 'kdc_type');
     var propertyAppendTo = this.get('categoryConfigsAll').findProperty('name', 'domains');
     if (propertyAppendTo) {
