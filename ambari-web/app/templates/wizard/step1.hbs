@@ -98,13 +98,11 @@
               <i class="icon-question-sign" rel="skip-validation-tooltip"
                  data-toggle="tooltip" {{translateAttr title="installer.step1.advancedRepo.skipValidation.tooltip"}}></i></label>
           </div>
-          {{#if App.supports.redhatSatellite}}
-            <div id="use-redhat">
-              <label>{{view Ember.Checkbox classNames="align-checkbox" checkedBinding="useRedhatSatellite"}}{{t installer.step1.advancedRepo.useRedhatSatellite.message}}
-                <i class="icon-question-sign" rel="use-redhat-tooltip"
-                   data-toggle="tooltip" {{translateAttr title="installer.step1.advancedRepo.useRedhatSatellite.tooltip"}}></i></label>
-            </div>
-          {{/if}}
+          <div id="use-redhat">
+            <label>{{view Ember.Checkbox classNames="align-checkbox" checkedBinding="useRedhatSatellite"}}{{t installer.step1.advancedRepo.useRedhatSatellite.message}}
+              <i class="icon-question-sign" rel="use-redhat-tooltip"
+                 data-toggle="tooltip" {{translateAttr title="installer.step1.advancedRepo.useRedhatSatellite.tooltip"}}></i></label>
+          </div>
           {{#if view.invalidFormatUrlExist}}
             <div class="alert">{{t installer.step1.attentionNeeded}}</div>
           {{/if}}
