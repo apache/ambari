@@ -1505,9 +1505,6 @@ thead.view-permission-header > tr > th {
 .pull-up {
   margin-top: -2px;
 }
-.role-select {
-  font-size: 20px;
-}
 
 .role-name-column {
   width: 40%;
@@ -1523,4 +1520,29 @@ thead.view-permission-header > tr > th {
 
 .cursor-pointer {
   cursor: pointer;
+}
+
+.role-details-modal table {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.role-details-modal .fixed-header {
+  font-weight: bold;
+  margin: 0px;
+}
+
+.role-details-modal .first-column{
+  width: 28%;
+}
+
+.role-details-modal .not-first-column{
+  width: 12%;
+}
+
+.role-details-modal .role-detail-content-wrapper {
+  height: 500px;
+  overflow-y: auto;
+  border: 0px;
+  margin:0px;
 }

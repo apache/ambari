@@ -19,19 +19,25 @@
 <div class="modal-header text-center">
     <h4 class="modal-title">{{'common.rbac' | translate}}</h4>
 </div>
-<div class="modal-body">
-    <table class="table table-hover table-bordered">
-        <tr>
-            <th></th>
-            <th ng-repeat="role in roles">{{role.permission_label}}</th>
-        </tr>
-        <tr ng-repeat="auth in orderedAuthorizations">
-            <td>{{authHash[auth]}}</td>
-            <td ng-repeat="role in roles" class="text-center">
-                <i class="glyphicon glyphicon-ok green-icon" ng-show="role.authHash[auth]"></i>
-            </td>
-        </tr>
+<div class="modal-body role-details-modal">
+    <table class="table table-hover table-bordered fixed-header">
+        <tbody>
+            <tr>
+                <td class="first-column"></td>
+                <td class="not-first-column" ng-repeat="role in roles">{{role.permission_label}}</td>
+            </tr>
+        </tbody>
     </table>
+    <div class="role-detail-content-wrapper">
+        <table class="table table-hover table-bordered">
+            <tr ng-repeat="auth in orderedAuthorizations">
+                <td class="first-column">{{authHash[auth]}}</td>
+                <td class="not-first-column" ng-repeat="role in roles" class="text-center">
+                    <i class="glyphicon glyphicon-ok green-icon" ng-show="role.authHash[auth]"></i>
+                </td>
+            </tr>
+        </table>
+    </div>
 </div>
 <div class="modal-footer text-center">
     <button class="btn btn-primary" ng-click="ok()">{{'common.controls.close' | translate}}</button>
