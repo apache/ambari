@@ -477,8 +477,9 @@ public class Stack {
   public String getServiceForConfigType(String config) {
     for (Map.Entry<String, Map<String, Map<String, ConfigProperty>>> entry : serviceConfigurations.entrySet()) {
       Map<String, Map<String, ConfigProperty>> typeMap = entry.getValue();
-      if (typeMap.containsKey(config)) {
-        return entry.getKey();
+      String serviceName = entry.getKey();
+      if (typeMap.containsKey(config) && !getExcludedConfigurationTypes(serviceName).contains(config)) {
+        return serviceName;
       }
     }
     throw new IllegalArgumentException(
