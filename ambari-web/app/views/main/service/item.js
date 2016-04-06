@@ -40,7 +40,7 @@ App.MainServiceItemView = Em.View.extend({
     'HAWQMASTER': ['IMMEDIATE_STOP_HAWQ_SERVICE', 'RUN_HAWQ_CHECK', 'HAWQ_CLEAR_CACHE', 'REMOVE_HAWQ_STANDBY'],
     'HAWQSEGMENT': ['IMMEDIATE_STOP_HAWQ_SEGMENT'],
     'HAWQSTANDBY': ['RESYNC_HAWQ_STANDBY','ACTIVATE_HAWQ_STANDBY'],
-    'HIVE_SERVER_INTERACTIVE' : ["RESTART_LLAP"],
+    'HIVE_SERVER_INTERACTIVE' : ["RESTART_LLAP"]
   },
 
    addActionMap: function() {
@@ -201,7 +201,8 @@ App.MainServiceItemView = Em.View.extend({
 
       if (serviceName === 'HIVE') {
         var hiveServerInteractiveComponent = App.StackServiceComponent.find().findProperty('componentName', 'HIVE_SERVER_INTERACTIVE');
-        if (hiveServerInteractiveComponent) {
+        var isHiveInteractiveServerPresent = allMasters.contains('HIVE_SERVER_INTERACTIVE');
+        if (hiveServerInteractiveComponent && isHiveInteractiveServerPresent) {
           var LLAPCustomCommands = hiveServerInteractiveComponent.get('customCommands');
           LLAPCustomCommands.forEach(function (command) {
             if (actionMap[command]) {
