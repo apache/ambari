@@ -145,7 +145,7 @@ case "$1" in
 
     echo "Starting ${METRIC_MONITOR}"
 
-    nohup ${PYTHON} ${METRIC_MONITOR_PY_SCRIPT} "$@" > ${OUTFILE} 2>&1 &
+    nohup ${PYTHON} ${METRIC_MONITOR_PY_SCRIPT} "$@" >> ${OUTFILE} 2>&1 &
     PID=$!
     write_pidfile ${PIDFILE}
 
