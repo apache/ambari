@@ -585,7 +585,7 @@ public class UpgradeCatalog222Test {
   @Test
   public void testUpdateHostRoleCommands() throws Exception {
     final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
-    dbAccessor.createIndex(eq("idx_hrc_status"), eq("host_role_command"), eq("status"), eq("role"));
+    dbAccessor.createIndex(eq("idx_hrc_status_role"), eq("host_role_command"), eq("status"), eq("role"));
     expectLastCall().once();
 
     replay(dbAccessor);
