@@ -43,9 +43,11 @@ public class AggregatorUtils {
             min = value;
           }
           sum += value;
+          if (value > 0.0) {
+            metricCount++;
+          }
         }
       }
-      metricCount = metricValues.values().size();
     }
     // BR: WHY ZERO is a good idea?
     values[0] = sum;
