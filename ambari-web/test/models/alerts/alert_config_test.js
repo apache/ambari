@@ -152,36 +152,6 @@ describe('App.AlertConfigProperties', function () {
 
     });
 
-    describe('#valueWasChanged', function () {
-
-      it('value change should effect displayValue for AGGREGATE type', function () {
-
-        model = App.AlertConfigProperties.Threshold.create(App.AlertConfigProperties.Thresholds.PercentageMixin, {
-          value: '0.4',
-          valueMetric: '%',
-          text: 'text',
-          showInputForValue: false,
-          showInputForText: false
-        });
-
-        expect(model.get('displayValue')).to.be.equal('40');
-      });
-
-      it('value change should not effect displayValue for not AGGREGATE type', function () {
-
-        model = App.AlertConfigProperties.Threshold.create({
-          value: '0.4',
-          valueMetric: '%',
-          text: 'text',
-          showInputForValue: false,
-          showInputForText: false
-        });
-
-        expect(model.get('displayValue')).to.be.equal('0.4');
-      });
-
-    });
-
     describe('#badgeCssClass', function () {
 
       it ('should be based on badge', function () {

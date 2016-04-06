@@ -366,6 +366,8 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
   renderAggregateConfigs: function () {
     var isWizard = this.get('isWizard');
     var alertDefinition = this.get('content');
+    var units = this.get('content.reporting').findProperty('type','units') ?
+        this.get('content.reporting').findProperty('type','units').get('text'): null;
     return [
       App.AlertConfigProperties.Description.create({
         value: isWizard ? '' : alertDefinition.get('description')
@@ -382,12 +384,12 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
       App.AlertConfigProperties.Thresholds.WarningThreshold.create(App.AlertConfigProperties.Thresholds.PercentageMixin, {
         text: isWizard ? '' : this.getThresholdsProperty('warning', 'text'),
         value: isWizard ? '' : this.getThresholdsProperty('warning', 'value'),
-        valueMetric: '%'
+        valueMetric: units
       }),
       App.AlertConfigProperties.Thresholds.CriticalThreshold.create(App.AlertConfigProperties.Thresholds.PercentageMixin, {
         text: isWizard ? '' : this.getThresholdsProperty('critical', 'text'),
         value: isWizard ? '' : this.getThresholdsProperty('critical', 'value'),
-        valueMetric: '%'
+        valueMetric: units
       })
     ];
   },

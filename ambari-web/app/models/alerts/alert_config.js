@@ -612,25 +612,7 @@ App.AlertConfigProperties.Thresholds = {
       }
 
       return this.get('showInputForValue') ? !isNaN(value) && value > 0 : true;
-    }.property('displayValue', 'showInputForValue'),
-
-    /**
-     * Return <code>value * 100</code>
-     * @returns {string}
-     */
-    getNewValue: function () {
-      var value = this.get('value');
-      return value && !isNaN(value) ? Number(value) * 100 + '' : value;
-    },
-
-    /**
-     * Return <code>displayValue / 100</code>
-     * @returns {string}
-     */
-    getNewDisplayValue: function () {
-      var displayValue = this.get('displayValue');
-      return displayValue && !isNaN(displayValue) ? Number(displayValue) / 100 + '' : displayValue;
-    }
+    }.property('displayValue', 'showInputForValue')
 
   }),
 
