@@ -41,44 +41,13 @@ module.exports = App.WizardRoute.extend({
 
         onClose: function () {
           var rAHighAvailabilityWizardController = router.get('rAHighAvailabilityWizardController'),
-              currStep = rAHighAvailabilityWizardController.get('currentStep'),
-              self = this;
-          App.router.get('wizardWatcherController').resetUser();
+              currStep = rAHighAvailabilityWizardController.get('currentStep');
           if (parseInt(currStep) === 4) {
             App.showConfirmationPopup(function () {
-              router.get('updateController').set('isWorking', true);
-              rAHighAvailabilityWizardController.finish();
-              App.clusterStatus.setClusterStatus({
-                clusterName: App.router.getClusterName(),
-                clusterState: 'DEFAULT',
-                localdb: App.db.data
-              }, {
-                alwaysCallback: function () {
-                  self.hide();
-                  router.transitionTo('main.services.index');
-                  Em.run.next(function() {
-                    location.reload();
-                  });
-                }
-              });
+              rAHighAvailabilityWizardController.resetOnClose(rAHighAvailabilityWizardController, 'main.services.index');
             }, Em.I18n.t('admin.ra_highAvailability.closePopup'));
           } else {
-            router.get('updateController').set('isWorking', true);
-            rAHighAvailabilityWizardController.finish();
-            App.router.get('wizardWatcherController').resetUser();
-            App.clusterStatus.setClusterStatus({
-              clusterName: App.router.getClusterName(),
-              clusterState: 'DEFAULT',
-              localdb: App.db.data
-            }, {
-              alwaysCallback: function () {
-                self.hide();
-                router.transitionTo('main.services.index');
-                Em.run.next(function() {
-                  location.reload();
-                });
-              }
-            });
+            rAHighAvailabilityWizardController.resetOnClose(rAHighAvailabilityWizardController, 'main.services.index');
           }
         },
         didInsertElement: function () {

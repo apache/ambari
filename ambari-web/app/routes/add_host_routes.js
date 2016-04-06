@@ -22,23 +22,8 @@ module.exports = App.WizardRoute.extend({
   route: '/host/add',
 
   leaveWizard: function (router, context) {
-    App.router.get('wizardWatcherController').resetUser();
     var addHostController = router.get('addHostController');
-    App.router.get('updateController').set('isWorking', true);
-    addHostController.finish();
-    App.clusterStatus.setClusterStatus({
-      clusterName: App.router.get('content.cluster.name'),
-      clusterState: 'DEFAULT',
-      localdb: App.db.data
-    }, {
-      alwaysCallback: function () {
-        context.hide();
-        App.router.transitionTo('hosts.index');
-        Em.run.next(function() {
-          location.reload();
-        });
-      }
-    });
+    addHostController.resetOnClose(addHostController, 'hosts.index');
   },
 
   enter: function (router) {
@@ -47,7 +32,7 @@ module.exports = App.WizardRoute.extend({
       Ember.run.next(function () {
         var addHostController = router.get('addHostController');
         App.router.get('updateController').set('isWorking', false);
-        App.ModalPopup.show({
+        var popup = App.ModalPopup.show({
           classNames: ['full-width-modal'],
           header: Em.I18n.t('hosts.add.header'),
           bodyClass: App.AddHostView.extend({
@@ -98,6 +83,7 @@ module.exports = App.WizardRoute.extend({
           }
         }
 
+        addHostController.set('popup', popup);
         App.router.get('wizardWatcherController').setUser(addHostController.get('name'));
         router.transitionTo('step' + addHostController.get('currentStep'));
       });

@@ -52,7 +52,6 @@ module.exports = App.WizardRoute.extend({
           }.observes('App.router.highAvailabilityWizardController.currentStep'),
 
           onClose: function () {
-            App.router.get('wizardWatcherController').resetUser();
             var self = this;
             var currStep = App.router.get('highAvailabilityWizardController.currentStep');
             var highAvailabilityProgressPageController = App.router.get('highAvailabilityProgressPageController');
@@ -67,21 +66,7 @@ module.exports = App.WizardRoute.extend({
             } else {
               var controller = App.router.get('highAvailabilityWizardController');
               controller.clearTasksData();
-              controller.finish();
-              App.router.get('updateController').set('isWorking', true);
-              App.clusterStatus.setClusterStatus({
-                clusterName: controller.get('content.cluster.name'),
-                clusterState: 'DEFAULT',
-                localdb: App.db.data
-              }, {
-                alwaysCallback: function () {
-                  self.hide();
-                  App.router.transitionTo('main.services.index');
-                  Em.run.next(function() {
-                    location.reload();
-                  });
-                }
-              });
+              controller.resetOnClose(controller, self, 'main.services.index');
             }
           },
           didInsertElement: function () {
@@ -326,20 +311,7 @@ module.exports = App.WizardRoute.extend({
       var proceed = function() {
         var controller = router.get('highAvailabilityWizardController');
         controller.clearTasksData();
-        controller.finish();
-        App.clusterStatus.setClusterStatus({
-          clusterName: controller.get('content.cluster.name'),
-          clusterState: 'DEFAULT',
-          localdb: App.db.data
-        }, {
-          alwaysCallback: function () {
-            controller.get('popup').hide();
-            router.transitionTo('main.services.index');
-            Em.run.next(function() {
-              location.reload();
-            });
-          }
-        });
+        controller.resetOnClose(controller, 'main.services.index');
       };
       if (App.Service.find().someProperty('serviceName', 'HAWQ')) {
         App.showAlertPopup(

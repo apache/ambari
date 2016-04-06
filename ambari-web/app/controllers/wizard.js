@@ -1348,5 +1348,30 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
 
   loadRecommendations: function () {
     this.set("content.recommendations", this.getDBProperty('recommendations'));
+  },
+
+  /**
+   * reset stored wizard data and reload App
+   * @param {App.WizardController} controller - wizard controller
+   * @param {string} route - preferable path to go after wizard finished
+   */
+  resetOnClose: function(controller, route) {
+    App.router.get('wizardWatcherController').resetUser();
+    controller.finish();
+    App.router.get('updateController').set('isWorking', true);
+    App.clusterStatus.setClusterStatus({
+      clusterName: App.get('clusterName'),
+      clusterState: 'DEFAULT',
+      localdb: App.db.data
+    },
+    {
+      alwaysCallback: function () {
+        controller.get('popup').hide();
+        App.router.transitionTo(route);
+        Em.run.next(function() {
+          location.reload();
+        });
+      }
+    });
   }
 });

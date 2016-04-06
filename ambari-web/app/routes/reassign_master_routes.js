@@ -22,21 +22,8 @@ module.exports = App.WizardRoute.extend({
   route: '/service/reassign',
 
   leaveWizard: function (router, context) {
-    App.router.get('wizardWatcherController').resetUser();
     var reassignMasterController = router.get('reassignMasterController');
-    App.router.get('updateController').set('isWorking', true);
-    reassignMasterController.finish();
-    App.clusterStatus.setClusterStatus({
-      clusterName: App.router.get('content.cluster.name'),
-      clusterState: 'DEFAULT',
-      localdb: App.db.data
-    }, {alwaysCallback: function () {
-      context.hide();
-      router.transitionTo('main.index');
-      Em.run.next(function() {
-        location.reload();
-      });
-    }});
+    reassignMasterController.resetOnClose(reassignMasterController, 'main.index');
   },
 
   enter: function (router) {
@@ -362,21 +349,7 @@ module.exports = App.WizardRoute.extend({
       var controller = router.get('reassignMasterController');
       var reassignMasterWizardStep7 = router.get('reassignMasterWizardStep7Controller');
       if (!reassignMasterWizardStep7.get('isSubmitDisabled')) {
-        controller.finish();
-        controller.get('popup').hide();
-        App.clusterStatus.setClusterStatus({
-          clusterName: router.get('reassignMasterController.content.cluster.name'),
-          clusterState: 'DEFAULT',
-          localdb: App.db.data
-        }, {
-          alwaysCallback: function () {
-            controller.get('popup').hide();
-            router.transitionTo('main.index');
-            Em.run.next(function() {
-              location.reload();
-            });
-          }
-        });
+        controller.resetOnClose(controller, 'main.index');
       }
     },
 

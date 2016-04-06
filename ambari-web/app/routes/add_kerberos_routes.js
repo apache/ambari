@@ -67,14 +67,10 @@ module.exports = App.WizardRoute.extend({
         },
 
         exitWizard: function () {
-          var self = this;
           var kerberosProgressPageController = App.router.get('kerberosProgressPageController');
           var controller = App.router.get('kerberosWizardController');
           var exitPath = controller.getDBProperty('onClosePath') || 'adminKerberos.index';
-          App.router.get('wizardWatcherController').resetUser();
           controller.clearTasksData();
-          controller.finish();
-          App.get('router.updateController').set('isWorking', true);
           controller.discardChanges().then(function() {
             if (App.get('testMode')) {
               App.get('router').transitionTo('adminKerberos.index');
@@ -82,19 +78,7 @@ module.exports = App.WizardRoute.extend({
                 location.reload();
               });
             }
-            App.clusterStatus.setClusterStatus({
-              clusterName: App.router.getClusterName(),
-              clusterState: 'DEFAULT',
-              localdb: App.db.data
-            }, {
-              alwaysCallback: function () {
-                self.hide();
-                App.get('router').transitionTo(exitPath);
-                Em.run.next(function() {
-                  location.reload();
-                });
-              }
-            });
+            controller.resetOnClose(controller, exitPath);
           });
         }
       });
@@ -364,21 +348,7 @@ module.exports = App.WizardRoute.extend({
     back: Em.Router.transitionTo('step7'),
     next: function (router) {
       var controller = router.get('kerberosWizardController');
-      controller.finish();
-      App.clusterStatus.setClusterStatus({
-        clusterName: App.get('router').getClusterName(),
-        clusterState: 'DEFAULT',
-        localdb: App.db.data
-      }, {
-        alwaysCallback: function () {
-          controller.get('popup').hide();
-          App.get('router').transitionTo('adminKerberos.index');
-          Em.run.next(function() {
-            location.reload();
-          });
-        }
-      });
-
+      controller.resetOnClose(controller, 'adminKerberos.index');
     }
   })
 });

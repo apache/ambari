@@ -18,7 +18,7 @@
 
 var App = require('app');
 
-App.MainAdminHighAvailabilityController = Em.Controller.extend({
+App.MainAdminHighAvailabilityController = App.WizardController.extend({
   name: 'mainAdminHighAvailabilityController',
 
   tag: null,

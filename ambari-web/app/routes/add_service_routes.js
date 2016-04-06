@@ -45,7 +45,6 @@ module.exports = App.WizardRoute.extend({
                 App.router.transitionTo('main.services.index');
               },
               onClose: function () {
-                App.router.get('wizardWatcherController').resetUser();
                 this.set('showCloseButton', false); // prevent user to click "Close" many times
                 App.router.get('updateController').set('isWorking', true);
                 var self = this;
@@ -53,21 +52,7 @@ module.exports = App.WizardRoute.extend({
                   App.router.get('updateController').updateServiceMetric();
                 });
                 var exitPath = addServiceController.getDBProperty('onClosePath') || 'main.services.index';
-                addServiceController.finish();
-                // We need to do recovery based on whether we are in Add Host or Installer wizard
-                App.clusterStatus.setClusterStatus({
-                  clusterName: App.router.get('content.cluster.name'),
-                  clusterState: 'DEFAULT'
-                }, {
-                  alwaysCallback: function () {
-                    self.hide();
-                    App.router.transitionTo(exitPath);
-                    Em.run.next(function() {
-                      location.reload();
-                    });
-                  }
-                });
-
+                addServiceController.resetOnClose(addServiceController, exitPath);
               },
               didInsertElement: function () {
                 this.fitHeight();

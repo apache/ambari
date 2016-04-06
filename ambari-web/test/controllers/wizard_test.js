@@ -1639,4 +1639,69 @@ describe('App.WizardController', function () {
 
   });
 
+  describe("#resetOnClose()", function () {
+    var ctrl = Em.Object.create({
+      finish: Em.K,
+      popup: {
+        hide: Em.K
+      }
+    });
+
+    var mock = Em.Object.create({
+      resetUser: Em.K
+    });
+
+    beforeEach(function () {
+      sinon.stub(ctrl, 'finish');
+      sinon.stub(ctrl.popup, 'hide');
+      sinon.stub(App.router, 'get').returns(mock);
+      sinon.stub(App.clusterStatus, 'setClusterStatus', function (arg1, arg2) {
+        arg2.alwaysCallback();
+      });
+      sinon.stub(Em.run, 'next');
+      sinon.stub(mock, 'resetUser');
+      sinon.stub(App.router, 'transitionTo');
+
+      c.resetOnClose(ctrl, 'path');
+    });
+
+    afterEach(function () {
+      ctrl.finish.restore();
+      ctrl.popup.hide.restore();
+      App.router.get.restore();
+      App.clusterStatus.setClusterStatus.restore();
+      Em.run.next.restore();
+      mock.resetUser.restore();
+      App.router.transitionTo.restore();
+    });
+
+    it("resetUser should be called", function () {
+      expect(mock.resetUser.calledOnce).to.be.true;
+    });
+
+    it("finish should be called", function () {
+      expect(ctrl.finish.calledOnce).to.be.true;
+    });
+
+    it("isWorking should be true", function () {
+      expect(mock.get('isWorking')).to.be.true;
+    });
+
+    it("App.clusterStatus.setClusterStatus should be called", function () {
+      expect(App.clusterStatus.setClusterStatus.calledOnce).to.be.true;
+    });
+
+    it("popup should be hidden", function () {
+      expect(ctrl.get('popup').hide.calledOnce).to.be.true;
+    });
+
+    it("App.router.transitionTo should be called", function () {
+      expect(App.router.transitionTo.calledOnce).to.be.true;
+    });
+
+    it("Em.run.next should be called", function () {
+      expect(Em.run.next.calledOnce).to.be.true;
+    });
+  });
+
 });
