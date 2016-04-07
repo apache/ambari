@@ -574,10 +574,10 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       }
       this._updateIsEditableFlagForConfig(serviceConfigProperty, defaultGroupSelected);
 
-      componentConfig.get('configs').pushObject(serviceConfigProperty);
       serviceConfigProperty.validate();
 
     }, this);
+    componentConfig.get('configs').pushObjects(configs);
     component.get('configGroups').filterProperty('isDefault', false).forEach(function (configGroup) {
       configGroup.set('hash', this.get('wizardController').getConfigGroupHash(configGroup));
     }, this);
