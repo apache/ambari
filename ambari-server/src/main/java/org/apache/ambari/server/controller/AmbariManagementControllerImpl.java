@@ -3743,6 +3743,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           if (repositoryResponse.getStackVersion() == null) {
             repositoryResponse.setStackVersion(stackVersion);
           }
+
+          repositoryResponse.setClusterVersionId(request.getClusterVersionId());
         }
         response.addAll(repositories);
       } catch (StackAccessException e) {

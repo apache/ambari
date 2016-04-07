@@ -19,6 +19,9 @@
 package org.apache.ambari.server.controller.internal;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNull;
+import static junit.framework.Assert.assertTrue;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 
@@ -50,6 +53,9 @@ import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.repository.AvailableService;
+import org.apache.ambari.server.state.repository.ManifestServiceInfo;
+import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.easymock.EasyMock;
@@ -70,6 +76,8 @@ public class CompatibleRepositoryVersionResourceProviderTest {
   private static Injector injector;
 
   private static String jsonStringRedhat6 = "[{\"OperatingSystems\":{\"os_type\":\"redhat6\"},\"repositories\":[]}]";
+  private static StackId stackId11 = new StackId("HDP", "1.1");
+  private static StackId stackId22 = new StackId("HDP", "2.2");
 
   @Before
   public void before() throws Exception {
@@ -91,7 +99,7 @@ public class CompatibleRepositoryVersionResourceProviderTest {
     hdp22Stack.setStackName("HDP");
     hdp22Stack.setStackVersion("2.2");
 
-    RepositoryVersionEntity entity2 = new RepositoryVersionEntity();
+    RepositoryVersionEntity entity2 = new ExtendedRepositoryVersionEntity();
     entity2.setDisplayName("name2");
     entity2.setOperatingSystems(jsonStringRedhat6);
     entity2.setStack(hdp22Stack);
@@ -99,9 +107,6 @@ public class CompatibleRepositoryVersionResourceProviderTest {
     entity2.setId(2L);
 
     final RepositoryVersionDAO repoVersionDAO = EasyMock.createMock(RepositoryVersionDAO.class);
-
-    StackId stackId11 = new StackId("HDP", "1.1");
-    StackId stackId22 = new StackId("HDP", "2.2");
 
     expect(repoVersionDAO.findByStack(stackId11)).andReturn(Collections.singletonList(entity1)).atLeastOnce();
     expect(repoVersionDAO.findByStack(stackId22)).andReturn(Collections.singletonList(entity2)).atLeastOnce();
@@ -277,6 +282,46 @@ public class CompatibleRepositoryVersionResourceProviderTest {
     versionToUpgradeTypesMap.put("1.1", Arrays.asList(UpgradeType.ROLLING));
     versionToUpgradeTypesMap.put("2.2", Arrays.asList(UpgradeType.NON_ROLLING, UpgradeType.ROLLING));
     assertEquals(versionToUpgradeTypesMap.size(), checkUpgradeTypes(resources, versionToUpgradeTypesMap));
+
+    // !!! verify we can get services
+    RepositoryVersionDAO dao = injector.getInstance(RepositoryVersionDAO.class);
+    List<RepositoryVersionEntity> entities = dao.findByStack(stackId22);
+    assertEquals(1, entities.size());
+    RepositoryVersionEntity entity = entities.get(0);
+    assertTrue(ExtendedRepositoryVersionEntity.class.isInstance(entity));
+
+    VersionDefinitionXml mockXml = EasyMock.createMock(VersionDefinitionXml.class);
+    AvailableService mockAvailable = EasyMock.createMock(AvailableService.class);
+    ManifestServiceInfo mockStackService = EasyMock.createMock(ManifestServiceInfo.class);
+
+    expect(mockXml.getAvailableServices((StackInfo)EasyMock.anyObject())).andReturn(Collections.singletonList(mockAvailable)).atLeastOnce();
+    expect(mockXml.getStackServices((StackInfo)EasyMock.anyObject())).andReturn(Collections.singletonList(mockStackService)).atLeastOnce();
+
+    replay(mockXml);
+
+    ((ExtendedRepositoryVersionEntity) entity).m_xml = mockXml;
+
+    getRequest = PropertyHelper.getReadRequest(
+        CompatibleRepositoryVersionResourceProvider.REPOSITORY_VERSION_ID_PROPERTY_ID,
+        CompatibleRepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID,
+        CompatibleRepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID,
+        CompatibleRepositoryVersionResourceProvider.REPOSITORY_UPGRADES_SUPPORTED_TYPES_ID,
+        CompatibleRepositoryVersionResourceProvider.REPOSITORY_VERSION_SERVICES);
+    predicateStackName = new PredicateBuilder().property(CompatibleRepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID).equals("HDP").toPredicate();
+    predicateStackVersion = new PredicateBuilder().property(CompatibleRepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID).equals("1.1").toPredicate();
+
+    resources = compatibleProvider.getResources(getRequest, new AndPredicate(predicateStackName, predicateStackVersion));
+    assertEquals(2, resources.size());
+
+    for (Resource r : resources) {
+      Object stackId = r.getPropertyValue(CompatibleRepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID);
+      assertNotNull(stackId);
+      if (stackId.toString().equals("2.2")) {
+        assertNotNull(r.getPropertyValue(CompatibleRepositoryVersionResourceProvider.REPOSITORY_VERSION_SERVICES));
+      } else {
+        assertNull(r.getPropertyValue(CompatibleRepositoryVersionResourceProvider.REPOSITORY_VERSION_SERVICES));
+      }
+    }
   }
 
   @Test
@@ -349,6 +394,16 @@ public class CompatibleRepositoryVersionResourceProviderTest {
       }
     }
     return count;
+  }
+
+  private static class ExtendedRepositoryVersionEntity extends RepositoryVersionEntity {
+    private VersionDefinitionXml m_xml = null;
+
+    @Override
+    public VersionDefinitionXml getRepositoryXml() throws Exception {
+      return m_xml;
+    }
+
   }
 
 }

@@ -7232,11 +7232,12 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(REPOS_CNT, responses.size());
 
     RepositoryRequest requestWithParams = new RepositoryRequest(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID);
+    requestWithParams.setClusterVersionId(525L);
     Set<RepositoryResponse> responsesWithParams = controller.getRepositories(Collections.singleton(requestWithParams));
     Assert.assertEquals(1, responsesWithParams.size());
     for (RepositoryResponse responseWithParams: responsesWithParams) {
       Assert.assertEquals(responseWithParams.getRepoId(), REPO_ID);
-
+      Assert.assertEquals(525L, responseWithParams.getClusterVersionId().longValue());
     }
 
     RepositoryRequest invalidRequest = new RepositoryRequest(STACK_NAME, STACK_VERSION, OS_TYPE, NON_EXT_VALUE);

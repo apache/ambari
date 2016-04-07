@@ -367,11 +367,6 @@ public class QueryImpl implements Query, ResourceInstance {
     Resource.Type resourceType    = getResourceDefinition().getType();
     Predicate     queryPredicate  = createPredicate(getKeyValueMap(), processUserPredicate(userPredicate));
 
-    Predicate updated = clusterController.getAmendedPredicate(resourceType, queryPredicate);
-    if (null != updated) {
-      queryPredicate = updated;
-    }
-
     // must occur after processing user predicate and prior to creating request
     finalizeProperties();
 
@@ -900,13 +895,23 @@ public class QueryImpl implements Query, ResourceInstance {
       }
     }
 
+    Predicate p = null;
+
     if (setPredicates.size() == 1) {
-      return setPredicates.iterator().next();
+      p = setPredicates.iterator().next();
     } else if (setPredicates.size() > 1) {
-      return new AndPredicate(setPredicates.toArray(new Predicate[setPredicates.size()]));
+      p = new AndPredicate(setPredicates.toArray(new Predicate[setPredicates.size()]));
     } else {
       return null;
     }
+
+    Resource.Type type = getResourceDefinition().getType();
+    Predicate override = clusterController.getAmendedPredicate(type, p);
+    if (null != override) {
+      p = override;
+    }
+
+    return p;
   }
 
   private Predicate createPredicate() {

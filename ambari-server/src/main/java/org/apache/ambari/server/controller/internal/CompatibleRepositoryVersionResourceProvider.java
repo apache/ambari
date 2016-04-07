@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.api.resources.OperatingSystemResourceDefinition;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -44,7 +45,11 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.repository.ManifestServiceInfo;
+import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.UpgradePack;
 
 import com.google.common.collect.Sets;
@@ -66,6 +71,8 @@ public class CompatibleRepositoryVersionResourceProvider extends ReadOnlyResourc
   public static final String REPOSITORY_VERSION_REPOSITORY_VERSION_PROPERTY_ID = "CompatibleRepositoryVersions/repository_version";
   public static final String REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID       = "CompatibleRepositoryVersions/display_name";
   public static final String REPOSITORY_UPGRADES_SUPPORTED_TYPES_ID            = "CompatibleRepositoryVersions/upgrade_types";
+  public static final String REPOSITORY_VERSION_SERVICES                       = "CompatibleRepositoryVersions/services";
+  public static final String REPOSITORY_VERSION_STACK_SERVICES                 = "CompatibleRepositoryVersions/stack_services";
   public static final String SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID         = new OperatingSystemResourceDefinition().getPluralName();
   private static final String REPOSITORY_STACK_VALUE                           = "stack_value";
 
@@ -79,7 +86,9 @@ public class CompatibleRepositoryVersionResourceProvider extends ReadOnlyResourc
     REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID,
     REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID,
     SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID,
-    REPOSITORY_UPGRADES_SUPPORTED_TYPES_ID);
+    REPOSITORY_UPGRADES_SUPPORTED_TYPES_ID,
+    REPOSITORY_VERSION_SERVICES,
+    REPOSITORY_VERSION_STACK_SERVICES);
 
   static Map<Type, String> keyPropertyIds = new HashMap<Type, String>() {
     {
@@ -192,6 +201,38 @@ public class CompatibleRepositoryVersionResourceProvider extends ReadOnlyResourc
       setResourceProperty(resource, REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID, repositoryVersionEntity.getDisplayName(), requestedIds);
       setResourceProperty(resource, REPOSITORY_VERSION_REPOSITORY_VERSION_PROPERTY_ID, repositoryVersionEntity.getVersion(), requestedIds);
       setResourceProperty(resource, REPOSITORY_UPGRADES_SUPPORTED_TYPES_ID, entity.getSupportedTypes(), requestedIds);
+
+      final VersionDefinitionXml xml;
+      try {
+        xml = repositoryVersionEntity.getRepositoryXml();
+      } catch (Exception e) {
+        throw new SystemException(String.format("Could not load xml for Repository %s", repositoryVersionEntity.getId()), e);
+      }
+
+      final StackInfo stack;
+      try {
+        stack = s_ambariMetaInfo.get().getStack(repositoryVersionEntity.getStackName(), repositoryVersionEntity.getStackVersion());
+      } catch (AmbariException e) {
+        throw new SystemException(String.format("Could not load stack %s for Repository %s",
+            repositoryVersionEntity.getStackId().toString(), repositoryVersionEntity.getId()));
+      }
+
+      final List<ManifestServiceInfo> stackServices;
+
+      if (null != xml) {
+        setResourceProperty(resource, REPOSITORY_VERSION_SERVICES, xml.getAvailableServices(stack), requestedIds);
+        stackServices = xml.getStackServices(stack);
+      } else {
+        stackServices = new ArrayList<>();
+
+        for (ServiceInfo si : stack.getServices()) {
+          stackServices.add(new ManifestServiceInfo(si.getName(), si.getDisplayName(), si.getComment(),
+              Collections.singleton(si.getVersion())));
+        }
+      }
+
+      setResourceProperty(resource, REPOSITORY_VERSION_STACK_SERVICES, stackServices, requestedIds);
+
       resources.add(resource);
     }
     return resources;

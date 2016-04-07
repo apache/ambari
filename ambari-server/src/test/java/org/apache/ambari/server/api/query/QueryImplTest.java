@@ -977,7 +977,6 @@ public class QueryImplTest {
     expect(mockClusterController.getResources(eq(Resource.Type.Configuration), isA(Request.class), (Predicate)eq(null))).andReturn(mockSubQueryResponse).atLeastOnce();
     expect(mockClusterController.getIterable(eq(Resource.Type.Host), isA(QueryResponse.class), isA(Request.class),(Predicate)eq(null), (PageRequest)eq(null), (SortRequest)eq(null))).andReturn(Collections.singleton(mockResource)).atLeastOnce();
     expect(mockClusterController.getIterable(eq(Resource.Type.Configuration), isA(QueryResponse.class), isA(Request.class),(Predicate)eq(null), (PageRequest)eq(null), (SortRequest)eq(null))).andReturn(Collections.singleton(mockResource)).atLeastOnce();
-    expect(mockClusterController.getAmendedPredicate(eq(Resource.Type.Host), (Predicate)eq(null))).andReturn((Predicate)null).atLeastOnce();
 
     expect(mockQueryResponse.getResources()).andReturn(Collections.singleton(mockResource)).atLeastOnce();
     expect(mockSubQueryResponse.getResources()).andReturn(Collections.singleton(mockResource)).atLeastOnce();
@@ -1058,7 +1057,6 @@ public class QueryImplTest {
     expect(mockClusterController.populateResources(eq(Resource.Type.Host), eq(Collections.singleton(mockResource)), isA(Request.class), (Predicate)eq(null))).andReturn(Collections.<Resource>emptySet()).times(1);
     // expect call to activate property providers for Configuration sub-resource
     expect(mockClusterController.populateResources(eq(Resource.Type.Configuration), eq(Collections.singleton(mockResource)), isA(Request.class), (Predicate)eq(null))).andReturn(Collections.<Resource>emptySet()).times(1);
-    expect(mockClusterController.getAmendedPredicate(eq(Resource.Type.Host), (Predicate)eq(null))).andReturn((Predicate)null).atLeastOnce();
 
     expect(mockQueryResponse.getResources()).andReturn(Collections.singleton(mockResource)).atLeastOnce();
     expect(mockSubQueryResponse.getResources()).andReturn(Collections.singleton(mockResource)).atLeastOnce();
