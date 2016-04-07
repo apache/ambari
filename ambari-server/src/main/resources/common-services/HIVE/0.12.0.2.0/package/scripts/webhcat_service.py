@@ -55,14 +55,10 @@ def webhcat_service(action='start', upgrade_type=None):
       show_logs(params.hcat_log_dir, params.webhcat_user)
       raise
   elif action == 'stop':
-    daemon_cmd = format('{cmd} stop')
     try:
-      Execute(daemon_cmd,
-              user = params.webhcat_user,
-              environment = environ)
+      graceful_stop(cmd, environ)
     except:
       show_logs(params.hcat_log_dir, params.webhcat_user)
-      raise
 
     pid_expression = "`" + as_user(format("cat {webhcat_pid_file}"), user=params.webhcat_user) + "`"
     process_id_exists_command = format("ls {webhcat_pid_file} >/dev/null 2>&1 && ps -p {pid_expression} >/dev/null 2>&1")
@@ -85,3 +81,11 @@ def webhcat_service(action='start', upgrade_type=None):
     File(params.webhcat_pid_file,
          action="delete",
     )
+
+def graceful_stop(cmd, environ):
+  import params
+  daemon_cmd = format('{cmd} stop')
+
+  Execute(daemon_cmd,
+          user = params.webhcat_user,
+          environment = environ)
