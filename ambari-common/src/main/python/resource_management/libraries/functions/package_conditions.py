@@ -20,7 +20,7 @@ Ambari Agent
 
 """
 __all__ = ["is_lzo_enabled", "should_install_phoenix", "should_install_ams_collector", "should_install_ams_grafana",
-           "should_install_mysql", "should_install_mysl_connector"]
+           "should_install_mysql", "should_install_mysl_connector", "should_install_ranger_tagsync"]
 
 import os
 from resource_management.libraries.script import Script
@@ -67,3 +67,10 @@ def should_install_hive_atlas():
 def should_install_kerberos_server():
   config = Script.get_config()
   return 'role' in config and config['role'] != "KERBEROS_CLIENT"
+
+def should_install_ranger_tagsync():
+  config = Script.get_config()
+  ranger_tagsync_hosts = default("/clusterHostInfo/ranger_tagsync_hosts", [])
+  has_ranger_tagsync = len(ranger_tagsync_hosts) > 0
+
+  return has_ranger_tagsync

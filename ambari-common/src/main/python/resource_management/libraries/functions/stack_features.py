@@ -65,6 +65,11 @@ _DEFAULT_STACK_FEATURES = {
       "min_version": "2.2.0.0"
     },
     {
+      "name": "ranger_tagsync_component",
+      "description": "Ranger Tagsync component support (AMBARI-14383)",
+      "min_version": "2.5.0.0"
+    },
+    {
       "name": "phoenix",
       "description": "Phoenix Service support",
       "min_version": "2.3.0.0"

@@ -220,6 +220,32 @@
     },
     "ranger-env": {
       "xml_configurations_supported" : "true"
+    },
+    "tagsync-application-properties": {
+            "atlas.kafka.hook.group.id": "atlas",
+            "atlas.kafka.zookeeper.connect": "os-mv-31-dev-4.novalocal:2181",
+            "atlas.kafka.acks": "1",
+            "atlas.kafka.entities.group.id": "ranger_entities_consumer",
+            "atlas.kafka.data": "/usr/hdp/current/atlas-server/data/kafka",
+            "atlas.kafka.bootstrap.servers": "localhost:2181",
+            "atlas.notification.embedded": "false"
+    },
+    "ranger-tagsync-site": {
+            "ranger.tagsync.sink.impl.class": "org.apache.ranger.tagsync.sink.tagadmin.TagAdminRESTSink",
+            "ranger.tagsync.atlasrestsource.endpoint": "",
+            "ranger.tagsync.tagadmin.rest.ssl.config.file": "/usr/hdp/current/ranger-tagsync/conf/mytruststore.jks",
+            "ranger.tagsync.logdir": "/var/log/ranger/tagsync",
+            "ranger.tagsync.filesource.filename": "/usr/hdp/current/ranger-tagsync/conf/etc/ranger/data/tags.json",
+            "ranger.tagsync.enabled": "true",
+            "ranger.tagsync.tagadmin.rest.url": "{{ranger_external_url}}",
+            "ranger.tagsync.atlasrestsource.download.interval": "",
+            "ranger.tagsync.filesource.modtime.check.interval": "60000",
+            "ranger.tagsync.tagadmin.password": "rangertagsync",
+            "ranger.tagsync.source.impl.class": "file",
+            "ranger.tagsync.source.atlas.custom.resource.mappers": "",
+            "ranger.tagsync.tagadmin.alias": "tagsync.tagadmin",
+            "ranger.tagsync.tagadmin.keystore": "/usr/hdp/current/ranger-tagsync/conf/rangertagsync.jceks",
+            "ranger.tagsync.atlas.to.service.mapping": ""
     }
   },
   "configuration_attributes": {
@@ -256,7 +282,9 @@
     "kafka-env": {},
     "kafka-log4j": {},
     "kafka-broker": {},
-    "metadata-env": {}
+    "metadata-env": {},
+    "tagsync-application-properties": {},
+    "ranger-tagsync-site": {}
   },
   "configurationTags": {
     "slider-client": {
@@ -297,6 +325,12 @@
     },
     "metadata-env": {
       "tag": "version1"
+    },
+    "tagsync-application-properties": {
+      "tag": "version1"
+    },
+    "ranger-tagsync-site": {
+      "tag": "version1"
     }
   },
   "commandId": "7-1",
@@ -322,6 +356,9 @@
       "c6401.ambari.apache.org"
     ],
     "zookeeper_hosts": [
+      "c6401.ambari.apache.org"
+    ],
+    "ranger_tagsync_hosts": [
       "c6401.ambari.apache.org"
     ]
 

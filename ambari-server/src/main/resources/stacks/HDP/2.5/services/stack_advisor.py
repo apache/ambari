@@ -19,4 +19,38 @@ limitations under the License.
 
 
 class HDP25StackAdvisor(HDP24StackAdvisor):
-  pass
+
+  def getServiceConfigurationRecommenderDict(self):
+    parentRecommendConfDict = super(HDP25StackAdvisor, self).getServiceConfigurationRecommenderDict()
+    childRecommendConfDict = {
+      "RANGER": self.recommendRangerConfigurations
+    }
+    parentRecommendConfDict.update(childRecommendConfDict)
+    return parentRecommendConfDict
+
+  def recommendRangerConfigurations(self, configurations, clusterData, services, hosts):
+    super(HDP25StackAdvisor, self).recommendRangerConfigurations(configurations, clusterData, services, hosts)
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+
+    putTagsyncAppProperty = self.putProperty(configurations, "tagsync-application-properties", services)
+
+    zookeeper_host_port = self.getZKHostPortString(services)
+    if zookeeper_host_port:
+      zookeeper_host_list = zookeeper_host_port.split(',')
+      putTagsyncAppProperty('atlas.kafka.zookeeper.connect', zookeeper_host_list[0])
+    else:
+      putTagsyncAppProperty('atlas.kafka.zookeeper.connect', 'localhost:6667')
+
+    if 'KAFKA' in servicesList:
+      kafka_hosts = self.getHostNamesWithComponent("KAFKA", "KAFKA_BROKER", services)
+      kafka_port = '6667'
+      if 'kafka-broker' in services['configurations'] and ('port' in services['configurations']['kafka-broker']['properties']):
+        kafka_port = services['configurations']['kafka-broker']['properties']['port']
+      kafka_host_port = []
+      for i in range(len(kafka_hosts)):
+        kafka_host_port.append(kafka_hosts[i] + ':' + kafka_port)
+
+      final_kafka_host = ",".join(kafka_host_port)
+      putTagsyncAppProperty('atlas.kafka.bootstrap.servers', final_kafka_host)
+    else:
+      putTagsyncAppProperty('atlas.kafka.bootstrap.servers', 'localhost:2181')
