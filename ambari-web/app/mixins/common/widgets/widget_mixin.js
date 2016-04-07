@@ -289,6 +289,8 @@ App.WidgetMixin = Ember.Mixin.create({
    */
   getMetricsSuccessCallback: function (data) {
     var metrics = [];
+    var atLeastOneMetricPresent = false;
+
     if (this.get('content.metrics')) {
       this.get('content.metrics').forEach(function (_metric) {
         var metric_path = _metric.metric_path;
@@ -312,20 +314,32 @@ App.WidgetMixin = Ember.Mixin.create({
           }, this);
         }
         if (!Em.isNone(metric_data)) {
+          atLeastOneMetricPresent = true;
           _metric.data = metric_data;
           this.get('metrics').pushObject(_metric);
-        } else if (this.get('graphView')) {
-          var graph = this.get('childViews') && this.get('childViews').findProperty('_showMessage');
-          if (graph) {
-            graph.set('hasData', false);
-            this.set('isExportButtonHidden', true);
-            graph._showMessage('info', this.t('graphs.noData.title'), this.t('graphs.noDataAtTime.message'));
-            this.set('metrics', this.get('metrics').reject(function (item) {
-              return this.get('content.metrics').someProperty('name', item.name);
-            }, this));
-          }
         }
       }, this);
+
+      if (!atLeastOneMetricPresent) {
+        this.disableGraph();
+      }
+    }
+  },
+
+  /**
+   * if no metrics were received from server then disable graph
+   */
+  disableGraph: function() {
+    if (this.get('graphView')) {
+      var graph = this.get('childViews') && this.get('childViews').findProperty('_showMessage');
+      if (graph) {
+        graph.set('hasData', false);
+        this.set('isExportButtonHidden', true);
+        graph._showMessage('info', this.t('graphs.noData.title'), this.t('graphs.noDataAtTime.message'));
+        this.set('metrics', this.get('metrics').reject(function (item) {
+          return this.get('content.metrics').someProperty('name', item.name);
+        }, this));
+      }
     }
   },
 
