@@ -30,6 +30,7 @@ from tempfile import gettempdir
 from alerts.base_alert import BaseAlert
 from collections import namedtuple
 from resource_management.libraries.functions.get_port_from_url import get_port_from_url
+from resource_management.libraries.functions.get_path_from_url import get_path_from_url
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request
 from ambari_commons import OSCheck
 from ambari_commons.inet_utils import resolve_address
@@ -129,6 +130,10 @@ class WebAlert(BaseAlert):
     if string_uri.startswith('http://') or string_uri.startswith('https://'):
       return alert_uri.uri
 
+    uri_path = None
+    if string_uri and string_uri != str(None):
+      uri_path = get_path_from_url(string_uri)
+
     # start building the URL manually
     host = BaseAlert.get_host_from_url(alert_uri.uri)
     if host is None:
@@ -153,8 +158,10 @@ class WebAlert(BaseAlert):
       # on windows 0.0.0.0 is invalid address to connect but on linux it resolved to 127.0.0.1
       host = resolve_address(host)
 
-    return "{0}://{1}:{2}".format(scheme, host, str(port))
-
+    if uri_path:
+      return "{0}://{1}:{2}/{3}".format(scheme, host, str(port), uri_path)
+    else:
+      return "{0}://{1}:{2}".format(scheme, host, str(port))
 
   def _make_web_request(self, url):
     """

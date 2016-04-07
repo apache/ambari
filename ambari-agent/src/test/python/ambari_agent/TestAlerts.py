@@ -548,7 +548,7 @@ class TestAlerts(TestCase):
     configuration = {'hdfs-site' :
       { 'dfs.http.policy' : 'HTTPS_ONLY',
         'dfs.datanode.http.address' : 'c6401.ambari.apache.org:80',
-        'dfs.datanode.https.address' : 'c6401.ambari.apache.org:443' }
+        'dfs.datanode.https.address' : 'c6401.ambari.apache.org:443/test/path' }
     }
 
     self.__update_cluster_configuration(cluster_configuration, configuration)
@@ -565,7 +565,7 @@ class TestAlerts(TestCase):
     
     # SSL assertion
     self.assertEquals('CRITICAL', alerts[0]['state'])
-    self.assertEquals('(Unit Tests) critical: https://c6401.ambari.apache.org:443. error message', alerts[0]['text'])
+    self.assertEquals('(Unit Tests) critical: https://c6401.ambari.apache.org:443/test/path. error message', alerts[0]['text'])
 
   def test_reschedule(self):
     test_file_path = os.path.join('ambari_agent', 'dummy_files')
