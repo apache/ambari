@@ -177,7 +177,7 @@ public class Aggregator {
         viewJobResourceManager.update(viewJob, viewJob.getId());
       }
     }
-    if ((tezDagId.status.compareToIgnoreCase(Job.JOB_STATE_UNKNOWN) != 0) &&
+    if (tezDagId.status != null && (tezDagId.status.compareToIgnoreCase(Job.JOB_STATE_UNKNOWN) != 0) &&
         !viewJob.getStatus().equals(tezDagId.status)) {
       viewJob.setDagId(tezDagId.entity);
       viewJob.setStatus(tezDagId.status);
