@@ -136,8 +136,10 @@ if has_metric_collector:
   pass
 # Security-related params
 security_enabled = config['configurations']['cluster-env']['security_enabled']
-kafka_kerberos_enabled = ('security.inter.broker.protocol' in config['configurations']['kafka-broker'] and
-                          config['configurations']['kafka-broker']['security.inter.broker.protocol'] == "PLAINTEXTSASL")
+kafka_kerberos_enabled = (('security.inter.broker.protocol' in config['configurations']['kafka-broker']) and
+                         ((config['configurations']['kafka-broker']['security.inter.broker.protocol'] == "PLAINTEXTSASL") or
+                          (config['configurations']['kafka-broker']['security.inter.broker.protocol'] == "SASL_PLAINTEXT")))
+
 
 if security_enabled and hdp_stack_version != "" and 'kafka_principal_name' in config['configurations']['kafka-env'] and compare_versions(hdp_stack_version, '2.3') >= 0:
     _hostname_lowercase = config['hostname'].lower()
@@ -177,7 +179,7 @@ if has_ranger_admin and is_supported_kafka_ranger:
 
   ranger_env = config['configurations']['ranger-env']
   ranger_plugin_properties = config['configurations']['ranger-kafka-plugin-properties']
-  
+
   ranger_kafka_audit = config['configurations']['ranger-kafka-audit']
   ranger_kafka_audit_attrs = config['configuration_attributes']['ranger-kafka-audit']
   ranger_kafka_security = config['configurations']['ranger-kafka-security']
@@ -186,7 +188,7 @@ if has_ranger_admin and is_supported_kafka_ranger:
   ranger_kafka_policymgr_ssl_attrs = config['configuration_attributes']['ranger-kafka-policymgr-ssl']
 
   policy_user = config['configurations']['ranger-kafka-plugin-properties']['policy_user']
-  
+
   ranger_plugin_config = {
     'username' : config['configurations']['ranger-kafka-plugin-properties']['REPOSITORY_CONFIG_USERNAME'],
     'password' : unicode(config['configurations']['ranger-kafka-plugin-properties']['REPOSITORY_CONFIG_PASSWORD']),
