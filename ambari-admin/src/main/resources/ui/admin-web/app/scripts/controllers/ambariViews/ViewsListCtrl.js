@@ -125,9 +125,4 @@ angular.module('ambariAdminConsole')
       $location.path('/views/'+viewName+'/new');
     }
   };
-
-  $scope.reloadViews = function () {
-    loadViews();
-  }
-
 }]);
