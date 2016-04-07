@@ -840,6 +840,10 @@ public class ClustersImpl implements Clusters {
     // a copy of this to ensure that we can pass in the original set of
     // clusters that the host belonged to to the host removal event
     Set<Cluster> clusters = hostClusterMap.get(hostname);
+    if (clusters == null) {
+      throw new HostNotFoundException(hostname);
+    }
+
     Set<Cluster> hostsClusters = new HashSet<>(clusters);
 
     deleteHostEntityRelationships(hostname);
