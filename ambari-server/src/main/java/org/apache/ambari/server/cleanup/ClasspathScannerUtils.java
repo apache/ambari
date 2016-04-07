@@ -20,11 +20,11 @@ package org.apache.ambari.server.cleanup;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang.ClassUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -113,7 +113,7 @@ public class ClasspathScannerUtils {
   private static boolean checkSubClasses(Class candidate, List<Class> selectors) {
     boolean ret = false;
     LOGGER.debug("Checking interfaces for: [{}]", candidate);
-    List<Class> interfaces = Arrays.asList(candidate.getInterfaces());
+    List interfaces = ClassUtils.getAllInterfaces(candidate);
 
     for (Class selectorItf : selectors) {
       if (interfaces.contains(selectorItf)) {

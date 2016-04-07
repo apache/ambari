@@ -137,12 +137,14 @@ public class AmbariAuthorizationFilter implements Filter {
       if (token != null) {
         InternalAuthenticationToken internalAuthenticationToken = new InternalAuthenticationToken(token);
         context.setAuthentication(internalAuthenticationToken);
-        LoginAuditEvent loginAuditEvent = LoginAuditEvent.builder()
-          .withUserName(internalAuthenticationToken.getName())
-          .withRemoteIp(RequestUtils.getRemoteAddress(httpRequest))
-          .withRoles(permissionHelper.getPermissionLabels(authentication))
-          .withTimestamp(System.currentTimeMillis()).build();
-        auditLogger.log(loginAuditEvent);
+        if(auditLogger.isEnabled()) {
+          LoginAuditEvent loginAuditEvent = LoginAuditEvent.builder()
+            .withUserName(internalAuthenticationToken.getName())
+            .withRemoteIp(RequestUtils.getRemoteAddress(httpRequest))
+            .withRoles(permissionHelper.getPermissionLabels(authentication))
+            .withTimestamp(System.currentTimeMillis()).build();
+          auditLogger.log(loginAuditEvent);
+        }
       } else {
         // for view access, we should redirect to the Ambari login
         if (requestURI.matches(VIEWS_CONTEXT_ALL_PATTERN)) {
@@ -207,14 +209,17 @@ public class AmbariAuthorizationFilter implements Filter {
       if (!authorized &&
           (!httpRequest.getMethod().equals("GET")
               || requestURI.matches(API_LDAP_SYNC_EVENTS_ALL_PATTERN))) {
-        auditEvent = AccessUnauthorizedAuditEvent.builder()
-          .withHttpMethodName(httpRequest.getMethod())
-          .withRemoteIp(RequestUtils.getRemoteAddress(httpRequest))
-          .withResourcePath(httpRequest.getRequestURI())
-          .withUserName(AuthorizationHelper.getAuthenticatedName())
-          .withTimestamp(System.currentTimeMillis())
-          .build();
-        auditLogger.log(auditEvent);
+
+        if(auditLogger.isEnabled()) {
+          auditEvent = AccessUnauthorizedAuditEvent.builder()
+            .withHttpMethodName(httpRequest.getMethod())
+            .withRemoteIp(RequestUtils.getRemoteAddress(httpRequest))
+            .withResourcePath(httpRequest.getRequestURI())
+            .withUserName(AuthorizationHelper.getAuthenticatedName())
+            .withTimestamp(System.currentTimeMillis())
+            .build();
+          auditLogger.log(auditEvent);
+        }
 
         httpResponse.setHeader("WWW-Authenticate", "Basic realm=\"" + realm + "\"");
         httpResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "You do not have permissions to access this resource.");
@@ -224,7 +229,7 @@ public class AmbariAuthorizationFilter implements Filter {
     }
     if (AuthorizationHelper.getAuthenticatedName() != null) {
       httpResponse.setHeader("User", AuthorizationHelper.getAuthenticatedName());
-      if (httpResponse.getStatus() == HttpServletResponse.SC_FORBIDDEN) {
+      if (auditLogger.isEnabled() && httpResponse.getStatus() == HttpServletResponse.SC_FORBIDDEN) {
         auditEvent = AccessUnauthorizedAuditEvent.builder()
           .withHttpMethodName(httpRequest.getMethod())
           .withRemoteIp(RequestUtils.getRemoteAddress(httpRequest))

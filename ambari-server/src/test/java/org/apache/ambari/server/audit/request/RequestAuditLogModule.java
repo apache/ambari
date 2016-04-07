@@ -20,6 +20,7 @@ package org.apache.ambari.server.audit.request;
 
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.audit.AuditLoggerDefaultImpl;
+import org.apache.ambari.server.audit.request.eventcreator.RequestAuditEventCreator;
 import org.easymock.EasyMock;
 
 import com.google.inject.AbstractModule;

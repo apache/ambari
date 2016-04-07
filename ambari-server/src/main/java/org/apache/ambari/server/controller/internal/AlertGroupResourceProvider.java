@@ -61,13 +61,13 @@ import com.google.inject.Inject;
 public class AlertGroupResourceProvider extends
     AbstractControllerResourceProvider {
 
-  protected static final String ALERT_GROUP = "AlertGroup";
-  protected static final String ALERT_GROUP_ID = "AlertGroup/id";
-  protected static final String ALERT_GROUP_CLUSTER_NAME = "AlertGroup/cluster_name";
-  protected static final String ALERT_GROUP_NAME = "AlertGroup/name";
-  protected static final String ALERT_GROUP_DEFAULT = "AlertGroup/default";
-  protected static final String ALERT_GROUP_DEFINITIONS = "AlertGroup/definitions";
-  protected static final String ALERT_GROUP_TARGETS = "AlertGroup/targets";
+  public static final String ALERT_GROUP = "AlertGroup";
+  public static final String ALERT_GROUP_ID = "AlertGroup/id";
+  public static final String ALERT_GROUP_CLUSTER_NAME = "AlertGroup/cluster_name";
+  public static final String ALERT_GROUP_NAME = "AlertGroup/name";
+  public static final String ALERT_GROUP_DEFAULT = "AlertGroup/default";
+  public static final String ALERT_GROUP_DEFINITIONS = "AlertGroup/definitions";
+  public static final String ALERT_GROUP_TARGETS = "AlertGroup/targets";
 
   private static final Set<String> PK_PROPERTY_IDS = new HashSet<String>(
       Arrays.asList(ALERT_GROUP_ID, ALERT_GROUP_CLUSTER_NAME));

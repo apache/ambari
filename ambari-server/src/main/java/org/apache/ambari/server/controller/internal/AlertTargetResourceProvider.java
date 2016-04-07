@@ -67,15 +67,15 @@ import com.google.inject.Inject;
 public class AlertTargetResourceProvider extends
  AbstractAuthorizedResourceProvider {
 
-  protected static final String ALERT_TARGET = "AlertTarget";
-  protected static final String ALERT_TARGET_ID = "AlertTarget/id";
-  protected static final String ALERT_TARGET_NAME = "AlertTarget/name";
-  protected static final String ALERT_TARGET_DESCRIPTION = "AlertTarget/description";
-  protected static final String ALERT_TARGET_NOTIFICATION_TYPE = "AlertTarget/notification_type";
-  protected static final String ALERT_TARGET_PROPERTIES = "AlertTarget/properties";
-  protected static final String ALERT_TARGET_GROUPS = "AlertTarget/groups";
-  protected static final String ALERT_TARGET_STATES = "AlertTarget/alert_states";
-  protected static final String ALERT_TARGET_GLOBAL = "AlertTarget/global";
+  public static final String ALERT_TARGET = "AlertTarget";
+  public static final String ALERT_TARGET_ID = "AlertTarget/id";
+  public static final String ALERT_TARGET_NAME = "AlertTarget/name";
+  public static final String ALERT_TARGET_DESCRIPTION = "AlertTarget/description";
+  public static final String ALERT_TARGET_NOTIFICATION_TYPE = "AlertTarget/notification_type";
+  public static final String ALERT_TARGET_PROPERTIES = "AlertTarget/properties";
+  public static final String ALERT_TARGET_GROUPS = "AlertTarget/groups";
+  public static final String ALERT_TARGET_STATES = "AlertTarget/alert_states";
+  public static final String ALERT_TARGET_GLOBAL = "AlertTarget/global";
 
   private static final Set<String> PK_PROPERTY_IDS = new HashSet<String>(
       Arrays.asList(ALERT_TARGET_ID, ALERT_TARGET_NAME));

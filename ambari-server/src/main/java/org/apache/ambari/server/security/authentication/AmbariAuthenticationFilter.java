@@ -76,7 +76,7 @@ public class AmbariAuthenticationFilter extends BasicAuthenticationFilter {
   public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
     HttpServletRequest request = (HttpServletRequest) req;
     String header = request.getHeader("Authorization");
-    if (AuthorizationHelper.getAuthenticatedName() == null && (header == null || !header.startsWith("Basic "))) {
+    if (auditLogger.isEnabled() && AuthorizationHelper.getAuthenticatedName() == null && (header == null || !header.startsWith("Basic "))) {
       AuditEvent loginFailedAuditEvent = LoginAuditEvent.builder()
         .withRemoteIp(RequestUtils.getRemoteAddress(request))
         .withTimestamp(System.currentTimeMillis())
@@ -97,6 +97,9 @@ public class AmbariAuthenticationFilter extends BasicAuthenticationFilter {
    */
   @Override
   protected void onSuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, Authentication authResult) throws IOException {
+    if(!auditLogger.isEnabled()) {
+      return;
+    }
     AuditEvent loginSucceededAuditEvent = LoginAuditEvent.builder()
       .withRemoteIp(RequestUtils.getRemoteAddress(request))
       .withUserName(authResult.getName())
@@ -123,13 +126,15 @@ public class AmbariAuthenticationFilter extends BasicAuthenticationFilter {
     } catch (Exception e) {
       LOG.warn("Error occurred during decoding authorization header.",e);
     }
-    AuditEvent loginFailedAuditEvent = LoginAuditEvent.builder()
-      .withRemoteIp(RequestUtils.getRemoteAddress(request))
-      .withTimestamp(System.currentTimeMillis())
-      .withReasonOfFailure("Invalid username/password combination")
-      .withUserName(username)
-      .build();
-    auditLogger.log(loginFailedAuditEvent);
+    if(auditLogger.isEnabled()) {
+      AuditEvent loginFailedAuditEvent = LoginAuditEvent.builder()
+        .withRemoteIp(RequestUtils.getRemoteAddress(request))
+        .withTimestamp(System.currentTimeMillis())
+        .withReasonOfFailure("Invalid username/password combination")
+        .withUserName(username)
+        .build();
+      auditLogger.log(loginFailedAuditEvent);
+    }
   }
 
   /**

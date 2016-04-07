@@ -27,10 +27,9 @@ import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.audit.event.AuditEvent;
 import org.apache.ambari.server.audit.event.request.DeleteServiceRequestAuditEvent;
 import org.apache.ambari.server.audit.event.request.StartOperationRequestAuditEvent;
-import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
+import org.apache.ambari.server.controller.internal.ServiceResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -120,12 +119,12 @@ public class ServiceEventCreator implements RequestAuditEventCreator {
    * @return
    */
   private String getOperation(Request request) {
-    if (request.getBody().getRequestInfoProperties().containsKey(RequestOperationLevel.OPERATION_LEVEL_ID)) {
+    if (request.getBody().getRequestInfoProperties() != null && request.getBody().getRequestInfoProperties().containsKey(RequestOperationLevel.OPERATION_LEVEL_ID)) {
       String operation = "";
       if ("CLUSTER".equals(request.getBody().getRequestInfoProperties().get(RequestOperationLevel.OPERATION_LEVEL_ID))) {
         for (Map<String, Object> map : request.getBody().getPropertySets()) {
-          if (map.containsKey(PropertyHelper.getPropertyId("ServiceInfo", "state"))) {
-            operation = String.valueOf(map.get(PropertyHelper.getPropertyId("ServiceInfo", "state"))) + ": all services"
+          if (map.containsKey(ServiceResourceProvider.SERVICE_SERVICE_STATE_PROPERTY_ID)) {
+            operation = String.valueOf(map.get(ServiceResourceProvider.SERVICE_SERVICE_STATE_PROPERTY_ID)) + ": all services"
               + " (" + request.getBody().getRequestInfoProperties().get(RequestOperationLevel.OPERATION_CLUSTER_ID) + ")";
             break;
           }
@@ -133,8 +132,8 @@ public class ServiceEventCreator implements RequestAuditEventCreator {
       }
       if ("SERVICE".equals(request.getBody().getRequestInfoProperties().get(RequestOperationLevel.OPERATION_LEVEL_ID))) {
         for (Map<String, Object> map : request.getBody().getPropertySets()) {
-          if (map.containsKey(PropertyHelper.getPropertyId("ServiceInfo", "state"))) {
-            operation = String.valueOf(map.get(PropertyHelper.getPropertyId("ServiceInfo", "state"))) + ": " + map.get(PropertyHelper.getPropertyId("ServiceInfo", "service_name"))
+          if (map.containsKey(ServiceResourceProvider.SERVICE_SERVICE_STATE_PROPERTY_ID)) {
+            operation = String.valueOf(map.get(ServiceResourceProvider.SERVICE_SERVICE_STATE_PROPERTY_ID)) + ": " + map.get(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID)
               + " (" + request.getBody().getRequestInfoProperties().get(RequestOperationLevel.OPERATION_CLUSTER_ID) + ")";
             break;
           }
@@ -144,8 +143,8 @@ public class ServiceEventCreator implements RequestAuditEventCreator {
     }
 
     for (Map<String, Object> map : request.getBody().getPropertySets()) {
-      if (map.containsKey(PropertyHelper.getPropertyId("ServiceInfo", "maintenance_state"))) {
-        return "Turn " + map.get(PropertyHelper.getPropertyId("ServiceInfo", "maintenance_state")) + " Maintenance Mode for " + map.get(PropertyHelper.getPropertyId("ServiceInfo", "service_name"));
+      if (map.containsKey(ServiceResourceProvider.SERVICE_MAINTENANCE_STATE_PROPERTY_ID)) {
+        return "Turn " + map.get(ServiceResourceProvider.SERVICE_MAINTENANCE_STATE_PROPERTY_ID) + " Maintenance Mode for " + map.get(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID);
       }
     }
     return null;

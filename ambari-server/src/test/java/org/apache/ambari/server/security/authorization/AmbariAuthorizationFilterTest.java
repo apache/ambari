@@ -363,6 +363,8 @@ public class AmbariAuthorizationFilterTest {
   private void injectMembers(AmbariAuthorizationFilter filter) {
     final Configuration configuration = EasyMock.createMock(Configuration.class);
     expect(configuration.getDefaultApiAuthenticatedUser()).andReturn(null).anyTimes();
+    final AuditLogger auditLogger = EasyMock.createNiceMock(AuditLogger.class);
+    expect(auditLogger.isEnabled()).andReturn(false).anyTimes();
     Injector injector = Guice.createInjector(new AbstractModule() {
       @Override
       protected void configure() {
@@ -373,10 +375,10 @@ public class AmbariAuthorizationFilterTest {
         bind(DBAccessor.class).toInstance(EasyMock.createMock(DBAccessor.class));
         bind(PasswordEncoder.class).toInstance(EasyMock.createMock(PasswordEncoder.class));
         bind(OsFamily.class).toInstance(EasyMock.createMock(OsFamily.class));
-        bind(AuditLogger.class).toInstance(EasyMock.createNiceMock(AuditLogger.class));
+        bind(AuditLogger.class).toInstance(auditLogger);
       }
     });
     injector.injectMembers(filter);
-    replay(configuration);
+    replay(configuration, auditLogger);
   }
 }

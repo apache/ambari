@@ -56,11 +56,11 @@ import com.google.inject.Inject;
 @StaticallyInject
 public class UpgradeItemResourceProvider extends ReadOnlyResourceProvider {
 
-  protected static final String UPGRADE_CLUSTER_NAME = "UpgradeItem/cluster_name";
-  protected static final String UPGRADE_REQUEST_ID = "UpgradeItem/request_id";
-  protected static final String UPGRADE_GROUP_ID = "UpgradeItem/group_id";
-  protected static final String UPGRADE_ITEM_STAGE_ID = "UpgradeItem/stage_id";
-  protected static final String UPGRADE_ITEM_TEXT = "UpgradeItem/text";
+  public static final String UPGRADE_CLUSTER_NAME = "UpgradeItem/cluster_name";
+  public static final String UPGRADE_REQUEST_ID = "UpgradeItem/request_id";
+  public static final String UPGRADE_GROUP_ID = "UpgradeItem/group_id";
+  public static final String UPGRADE_ITEM_STAGE_ID = "UpgradeItem/stage_id";
+  public static final String UPGRADE_ITEM_TEXT = "UpgradeItem/text";
 
   private static final Set<String> PK_PROPERTY_IDS = new HashSet<String>(
       Arrays.asList(UPGRADE_REQUEST_ID, UPGRADE_ITEM_STAGE_ID));

@@ -80,7 +80,9 @@ public class InMemoryDefaultTestModule extends AbstractModule {
 
     try {
       install(new BeanDefinitionsCachingTestControllerModule(properties));
-      bind(AuditLogger.class).toInstance(EasyMock.createNiceMock(AuditLoggerDefaultImpl.class));
+      AuditLogger al = EasyMock.createNiceMock(AuditLogger.class);
+      EasyMock.expect(al.isEnabled()).andReturn(false).anyTimes();
+      bind(AuditLogger.class).toInstance(al);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }

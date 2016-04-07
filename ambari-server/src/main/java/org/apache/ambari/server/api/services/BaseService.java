@@ -117,7 +117,10 @@ public abstract class BaseService {
             headers, requestBody, uriInfo, requestType, resource);
 
         result  = request.process();
-        requestAuditLogger.log(request, result);
+        // if it is not OK, then it is logged below
+        if(ResultStatus.STATUS.OK.equals(result.getStatus().getStatus())) {
+          requestAuditLogger.log(request, result);
+        }
       }
 
       if(requestBodySet.isEmpty() || !ResultStatus.STATUS.OK.equals(result.getStatus().getStatus())) {

@@ -59,6 +59,11 @@ public class TaskStatusAuditEvent extends AbstractAuditEvent {
      */
     private String details;
 
+    /**
+     * User name
+     */
+    private String userName;
+
     private TaskStatusAuditEventBuilder() {
     }
 
@@ -75,7 +80,9 @@ public class TaskStatusAuditEvent extends AbstractAuditEvent {
     @Override
     protected void buildAuditMessage(StringBuilder builder) {
       builder
-        .append("Operation(")
+        .append("User(")
+        .append(this.userName)
+        .append("), Operation(")
         .append(this.operation);
 
       if (details != null) {
@@ -122,6 +129,10 @@ public class TaskStatusAuditEvent extends AbstractAuditEvent {
 
     public TaskStatusAuditEventBuilder withDetails(String details) {
       this.details = details;
+      return this;
+    }
+    public TaskStatusAuditEventBuilder withUserName(String userName) {
+      this.userName = userName;
       return this;
     }
   }

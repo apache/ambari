@@ -47,6 +47,11 @@ public class StartOperationRequestAuditEvent extends AbstractUserAuditEvent {
      */
     private String operation;
 
+    /**
+     * Target host of the request
+     */
+    private String hostname;
+
     private StartOperationAuditEventBuilder() {
     }
 
@@ -62,8 +67,11 @@ public class StartOperationRequestAuditEvent extends AbstractUserAuditEvent {
 
       builder
         .append(", Operation(")
-        .append(operation)
-        .append("), RequestId(")
+        .append(operation);
+      if(hostname != null) {
+        builder.append("), Host name(").append(hostname);
+      }
+      builder.append("), RequestId(")
         .append(requestId)
         .append("), Status(")
         .append(reasonOfFailure == null ? "Successfully queued" : "Failed to queue");
@@ -101,6 +109,11 @@ public class StartOperationRequestAuditEvent extends AbstractUserAuditEvent {
 
     public StartOperationAuditEventBuilder withOperation(String operation) {
       this.operation = operation;
+      return this;
+    }
+
+    public StartOperationAuditEventBuilder withHostname(String hostname) {
+      this.hostname = hostname;
       return this;
     }
   }

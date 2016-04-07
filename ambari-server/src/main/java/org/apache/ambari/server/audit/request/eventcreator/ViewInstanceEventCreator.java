@@ -27,9 +27,8 @@ import org.apache.ambari.server.audit.event.AuditEvent;
 import org.apache.ambari.server.audit.event.request.AddViewInstanceRequestAuditEvent;
 import org.apache.ambari.server.audit.event.request.ChangeViewInstanceRequestAuditEvent;
 import org.apache.ambari.server.audit.event.request.DeleteViewInstanceRequestAuditEvent;
-import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
+import org.apache.ambari.server.controller.internal.ViewInstanceResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -89,11 +88,11 @@ public class ViewInstanceEventCreator implements RequestAuditEventCreator {
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
           .withRemoteIp(request.getRemoteAddress())
-          .withType(getProperty(request, PropertyHelper.getPropertyId("ViewInstanceInfo", "view_name")))
-          .withVersion(getProperty(request, PropertyHelper.getPropertyId("ViewInstanceInfo", "version")))
-          .withName(getProperty(request, PropertyHelper.getPropertyId("ViewInstanceInfo", "instance_name")))
-          .withDisplayName(getProperty(request, PropertyHelper.getPropertyId("ViewInstanceInfo", "label")))
-          .withDescription(getProperty(request, PropertyHelper.getPropertyId("ViewInstanceInfo", "description")))
+          .withType(RequestAuditEventCreatorHelper.getProperty(request, ViewInstanceResourceProvider.VIEW_NAME_PROPERTY_ID))
+          .withVersion(RequestAuditEventCreatorHelper.getProperty(request, ViewInstanceResourceProvider.VIEW_VERSION_PROPERTY_ID))
+          .withName(RequestAuditEventCreatorHelper.getProperty(request, ViewInstanceResourceProvider.INSTANCE_NAME_PROPERTY_ID))
+          .withDisplayName(RequestAuditEventCreatorHelper.getProperty(request, ViewInstanceResourceProvider.LABEL_PROPERTY_ID))
+          .withDescription(RequestAuditEventCreatorHelper.getProperty(request, ViewInstanceResourceProvider.DESCRIPTION_PROPERTY_ID))
           .build();
 
       case PUT:
@@ -103,11 +102,11 @@ public class ViewInstanceEventCreator implements RequestAuditEventCreator {
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
           .withRemoteIp(request.getRemoteAddress())
-          .withType(getProperty(request, PropertyHelper.getPropertyId("ViewInstanceInfo", "view_name")))
-          .withVersion(getProperty(request, PropertyHelper.getPropertyId("ViewInstanceInfo", "version")))
-          .withName(getProperty(request, PropertyHelper.getPropertyId("ViewInstanceInfo", "instance_name")))
-          .withDisplayName(getProperty(request, PropertyHelper.getPropertyId("ViewInstanceInfo", "label")))
-          .withDescription(getProperty(request, PropertyHelper.getPropertyId("ViewInstanceInfo", "description")))
+          .withType(RequestAuditEventCreatorHelper.getProperty(request, ViewInstanceResourceProvider.VIEW_NAME_PROPERTY_ID))
+          .withVersion(RequestAuditEventCreatorHelper.getProperty(request, ViewInstanceResourceProvider.VIEW_VERSION_PROPERTY_ID))
+          .withName(RequestAuditEventCreatorHelper.getProperty(request, ViewInstanceResourceProvider.INSTANCE_NAME_PROPERTY_ID))
+          .withDisplayName(RequestAuditEventCreatorHelper.getProperty(request, ViewInstanceResourceProvider.LABEL_PROPERTY_ID))
+          .withDescription(RequestAuditEventCreatorHelper.getProperty(request, ViewInstanceResourceProvider.DESCRIPTION_PROPERTY_ID))
           .build();
 
       case DELETE:
@@ -126,18 +125,4 @@ public class ViewInstanceEventCreator implements RequestAuditEventCreator {
         return null;
     }
   }
-
-  /**
-   * Returns property from the requet based on the propertyId parameter
-   * @param request
-   * @param properyId
-   * @return
-   */
-  private String getProperty(Request request, String properyId) {
-    if (!request.getBody().getPropertySets().isEmpty()) {
-      return String.valueOf(request.getBody().getPropertySets().iterator().next().get(properyId));
-    }
-    return null;
-  }
-
 }

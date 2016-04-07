@@ -18,8 +18,6 @@
 
 package org.apache.ambari.server.audit.request.eventcreator;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 
 import org.apache.ambari.server.api.services.Request;
@@ -29,9 +27,8 @@ import org.apache.ambari.server.audit.event.AuditEvent;
 import org.apache.ambari.server.audit.event.request.AddAlertGroupRequestAuditEvent;
 import org.apache.ambari.server.audit.event.request.ChangeAlertGroupRequestAuditEvent;
 import org.apache.ambari.server.audit.event.request.DeleteAlertGroupRequestAuditEvent;
-import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
+import org.apache.ambari.server.controller.internal.AlertGroupResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -90,9 +87,9 @@ public class AlertGroupEventCreator implements RequestAuditEventCreator {
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
           .withRemoteIp(request.getRemoteAddress())
-          .withName(getName(request))
-          .withDefinitionIds(getDefinitionIds(request))
-          .withNotificationIds(getNotificationIds(request))
+          .withName(RequestAuditEventCreatorHelper.getNamedProperty(request, AlertGroupResourceProvider.ALERT_GROUP_NAME))
+          .withDefinitionIds(RequestAuditEventCreatorHelper.getNamedPropertyList(request, AlertGroupResourceProvider.ALERT_GROUP_DEFINITIONS))
+          .withNotificationIds(RequestAuditEventCreatorHelper.getNamedPropertyList(request, AlertGroupResourceProvider.ALERT_GROUP_TARGETS))
           .build();
       case PUT:
         return ChangeAlertGroupRequestAuditEvent.builder()
@@ -101,9 +98,9 @@ public class AlertGroupEventCreator implements RequestAuditEventCreator {
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
           .withRemoteIp(request.getRemoteAddress())
-          .withName(getName(request))
-          .withDefinitionIds(getDefinitionIds(request))
-          .withNotificationIds(getNotificationIds(request))
+          .withName(RequestAuditEventCreatorHelper.getNamedProperty(request, AlertGroupResourceProvider.ALERT_GROUP_NAME))
+          .withDefinitionIds(RequestAuditEventCreatorHelper.getNamedPropertyList(request, AlertGroupResourceProvider.ALERT_GROUP_DEFINITIONS))
+          .withNotificationIds(RequestAuditEventCreatorHelper.getNamedPropertyList(request, AlertGroupResourceProvider.ALERT_GROUP_TARGETS))
           .build();
       case DELETE:
         return DeleteAlertGroupRequestAuditEvent.builder()
@@ -117,47 +114,5 @@ public class AlertGroupEventCreator implements RequestAuditEventCreator {
       default:
         return null;
     }
-  }
-
-  /**
-   * Returns the alert group name from the request
-   * @param request
-   * @return
-   */
-  private String getName(Request request) {
-    if (!request.getBody().getNamedPropertySets().isEmpty()) {
-      return String.valueOf(request.getBody().getNamedPropertySets().iterator().next().getProperties().get(PropertyHelper.getPropertyId("AlertGroup", "name")));
-    }
-    return null;
-  }
-
-  /**
-   * Returns definition ids from the request
-   * @param request
-   * @return
-   */
-  private List<String> getDefinitionIds(Request request) {
-    if (!request.getBody().getNamedPropertySets().isEmpty()) {
-      List<String> list = (List<String>) request.getBody().getNamedPropertySets().iterator().next().getProperties().get(PropertyHelper.getPropertyId("AlertGroup", "definitions"));
-      if (list != null) {
-        return list;
-      }
-    }
-    return Collections.emptyList();
-  }
-
-  /**
-   * Returns notification ids from the request
-   * @param request
-   * @return
-   */
-  private List<String> getNotificationIds(Request request) {
-    if (!request.getBody().getNamedPropertySets().isEmpty()) {
-      List<String> list = (List<String>) request.getBody().getNamedPropertySets().iterator().next().getProperties().get(PropertyHelper.getPropertyId("AlertGroup", "targets"));
-      if (list != null) {
-        return list;
-      }
-    }
-    return Collections.emptyList();
   }
 }

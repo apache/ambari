@@ -29,9 +29,8 @@ import org.apache.ambari.server.audit.event.request.AdminUserRequestAuditEvent;
 import org.apache.ambari.server.audit.event.request.CreateUserRequestAuditEvent;
 import org.apache.ambari.server.audit.event.request.DeleteUserRequestAuditEvent;
 import org.apache.ambari.server.audit.event.request.UserPasswordChangeRequestAuditEvent;
-import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
+import org.apache.ambari.server.controller.internal.UserResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -149,7 +148,7 @@ public class UserEventCreator implements RequestAuditEventCreator {
    * @return
    */
   private boolean isAdmin(Request request) {
-    return hasAdmin(request) && "true".equals(request.getBody().getPropertySets().iterator().next().get(PropertyHelper.getPropertyId("Users", "admin")));
+    return hasAdmin(request) && "true".equals(RequestAuditEventCreatorHelper.getProperty(request, UserResourceProvider.USER_ADMIN_PROPERTY_ID));
   }
 
   /**
@@ -158,7 +157,7 @@ public class UserEventCreator implements RequestAuditEventCreator {
    * @return
    */
   private boolean isActive(Request request) {
-    return hasActive(request) && "true".equals(request.getBody().getPropertySets().iterator().next().get(PropertyHelper.getPropertyId("Users", "active")));
+    return hasActive(request) && "true".equals(RequestAuditEventCreatorHelper.getProperty(request, UserResourceProvider.USER_ACTIVE_PROPERTY_ID));
   }
 
   /**
@@ -167,7 +166,7 @@ public class UserEventCreator implements RequestAuditEventCreator {
    * @return
    */
   private boolean hasAdmin(Request request) {
-    return !request.getBody().getPropertySets().isEmpty() && request.getBody().getPropertySets().iterator().next().containsKey(PropertyHelper.getPropertyId("Users", "admin"));
+    return !request.getBody().getPropertySets().isEmpty() && request.getBody().getPropertySets().iterator().next().containsKey(UserResourceProvider.USER_ADMIN_PROPERTY_ID);
   }
 
   /**
@@ -176,7 +175,7 @@ public class UserEventCreator implements RequestAuditEventCreator {
    * @return
    */
   private boolean hasActive(Request request) {
-    return !request.getBody().getPropertySets().isEmpty() && request.getBody().getPropertySets().iterator().next().containsKey(PropertyHelper.getPropertyId("Users", "active"));
+    return !request.getBody().getPropertySets().isEmpty() && request.getBody().getPropertySets().iterator().next().containsKey(UserResourceProvider.USER_ACTIVE_PROPERTY_ID);
   }
 
   /**
@@ -185,7 +184,7 @@ public class UserEventCreator implements RequestAuditEventCreator {
    * @return
    */
   private boolean hasOldPassword(Request request) {
-    return !request.getBody().getPropertySets().isEmpty() && request.getBody().getPropertySets().iterator().next().containsKey(PropertyHelper.getPropertyId("Users", "old_password"));
+    return !request.getBody().getPropertySets().isEmpty() && request.getBody().getPropertySets().iterator().next().containsKey(UserResourceProvider.USER_OLD_PASSWORD_PROPERTY_ID);
   }
 
   /**
@@ -195,7 +194,7 @@ public class UserEventCreator implements RequestAuditEventCreator {
    */
   private String getUsername(Request request) {
     if (!request.getBody().getPropertySets().isEmpty()) {
-      return String.valueOf(request.getBody().getPropertySets().iterator().next().get(PropertyHelper.getPropertyId("Users", "user_name")));
+      return String.valueOf(request.getBody().getPropertySets().iterator().next().get(UserResourceProvider.USER_USERNAME_PROPERTY_ID));
     }
     return null;
   }

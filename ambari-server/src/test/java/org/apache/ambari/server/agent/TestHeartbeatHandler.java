@@ -68,6 +68,7 @@ import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.agent.HostStatus.Status;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -92,6 +93,7 @@ import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.codehaus.jackson.JsonGenerationException;
+import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -135,6 +137,9 @@ public class TestHeartbeatHandler {
   @Inject
   HeartbeatTestHelper heartbeatTestHelper;
 
+  @Inject
+  AuditLogger auditLogger;
+
   private UnitOfWork unitOfWork;
 
   @Rule
@@ -152,11 +157,13 @@ public class TestHeartbeatHandler {
     injector.injectMembers(this);
     log.debug("Using server os type=" + config.getServerOsType());
     unitOfWork = injector.getInstance(UnitOfWork.class);
+    EasyMock.replay(auditLogger);
   }
 
   @After
   public void teardown() throws AmbariException {
     injector.getInstance(PersistService.class).stop();
+    EasyMock.reset(auditLogger);
   }
 
   @Test

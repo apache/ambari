@@ -25,9 +25,8 @@ import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.audit.event.AuditEvent;
 import org.apache.ambari.server.audit.event.request.AddUpgradeRequestAuditEvent;
-import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
+import org.apache.ambari.server.controller.internal.UpgradeResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -84,23 +83,10 @@ public class UpgradeEventCreator implements RequestAuditEventCreator {
       .withResultStatus(result.getStatus())
       .withUrl(request.getURI())
       .withRemoteIp(request.getRemoteAddress())
-      .withRepositoryVersion(getProperty(request, "repository_version"))
-      .withUpgradeType(getProperty(request, "upgrade_type"))
-      .withClusterName(getProperty(request, "cluster_name"))
+      .withRepositoryVersion(RequestAuditEventCreatorHelper.getProperty(request, UpgradeResourceProvider.UPGRADE_VERSION))
+      .withUpgradeType(RequestAuditEventCreatorHelper.getProperty(request, UpgradeResourceProvider.UPGRADE_TYPE))
+      .withClusterName(RequestAuditEventCreatorHelper.getProperty(request, UpgradeResourceProvider.UPGRADE_CLUSTER_NAME))
       .build();
 
-  }
-
-  /**
-   * Returns property from the request based on the propertyName parameter
-   * @param request
-   * @param propertyName
-   * @return
-   */
-  private String getProperty(Request request, String propertyName) {
-    if (!request.getBody().getPropertySets().isEmpty()) {
-      return String.valueOf(request.getBody().getPropertySets().iterator().next().get(PropertyHelper.getPropertyId("Upgrade", propertyName)));
-    }
-    return null;
   }
 }

@@ -26,9 +26,8 @@ import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.audit.event.AuditEvent;
 import org.apache.ambari.server.audit.event.request.AddRepositoryRequestAuditEvent;
 import org.apache.ambari.server.audit.event.request.UpdateRepositoryRequestAuditEvent;
-import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
+import org.apache.ambari.server.controller.internal.RepositoryResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -87,11 +86,11 @@ public class RepositoryEventCreator implements RequestAuditEventCreator {
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
           .withRemoteIp(request.getRemoteAddress())
-          .withRepo(getProperty(request, PropertyHelper.getPropertyId("Repositories", "repo_id")))
-          .withStackName(getProperty(request, PropertyHelper.getPropertyId("Repositories", "stack_name")))
-          .withStackVersion(getProperty(request, PropertyHelper.getPropertyId("Repositories", "stack_version")))
-          .withOsType(getProperty(request, PropertyHelper.getPropertyId("Repositories", "os_type")))
-          .withBaseUrl(getProperty(request, PropertyHelper.getPropertyId("Repositories", "base_url")))
+          .withRepo(RequestAuditEventCreatorHelper.getProperty(request, RepositoryResourceProvider.REPOSITORY_REPO_ID_PROPERTY_ID))
+          .withStackName(RequestAuditEventCreatorHelper.getProperty(request, RepositoryResourceProvider.REPOSITORY_STACK_NAME_PROPERTY_ID))
+          .withStackVersion(RequestAuditEventCreatorHelper.getProperty(request, RepositoryResourceProvider.REPOSITORY_STACK_VERSION_PROPERTY_ID))
+          .withOsType(RequestAuditEventCreatorHelper.getProperty(request, RepositoryResourceProvider.REPOSITORY_OS_TYPE_PROPERTY_ID))
+          .withBaseUrl(RequestAuditEventCreatorHelper.getProperty(request, RepositoryResourceProvider.REPOSITORY_BASE_URL_PROPERTY_ID))
           .build();
       case PUT:
         return UpdateRepositoryRequestAuditEvent.builder()
@@ -100,28 +99,14 @@ public class RepositoryEventCreator implements RequestAuditEventCreator {
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
           .withRemoteIp(request.getRemoteAddress())
-          .withRepo(getProperty(request, PropertyHelper.getPropertyId("Repositories", "repo_id")))
-          .withStackName(getProperty(request, PropertyHelper.getPropertyId("Repositories", "stack_name")))
-          .withStackVersion(getProperty(request, PropertyHelper.getPropertyId("Repositories", "stack_version")))
-          .withOsType(getProperty(request, PropertyHelper.getPropertyId("Repositories", "os_type")))
-          .withBaseUrl(getProperty(request, PropertyHelper.getPropertyId("Repositories", "base_url")))
+          .withRepo(RequestAuditEventCreatorHelper.getProperty(request, RepositoryResourceProvider.REPOSITORY_REPO_ID_PROPERTY_ID))
+          .withStackName(RequestAuditEventCreatorHelper.getProperty(request, RepositoryResourceProvider.REPOSITORY_STACK_NAME_PROPERTY_ID))
+          .withStackVersion(RequestAuditEventCreatorHelper.getProperty(request, RepositoryResourceProvider.REPOSITORY_STACK_VERSION_PROPERTY_ID))
+          .withOsType(RequestAuditEventCreatorHelper.getProperty(request, RepositoryResourceProvider.REPOSITORY_OS_TYPE_PROPERTY_ID))
+          .withBaseUrl(RequestAuditEventCreatorHelper.getProperty(request, RepositoryResourceProvider.REPOSITORY_BASE_URL_PROPERTY_ID))
           .build();
       default:
         return null;
     }
   }
-
-  /**
-   * Returns a property from the request based on the propertyId parameter
-   * @param request
-   * @param properyId
-   * @return
-   */
-  private String getProperty(Request request, String properyId) {
-    if (!request.getBody().getPropertySets().isEmpty()) {
-      return String.valueOf(request.getBody().getPropertySets().iterator().next().get(properyId));
-    }
-    return null;
-  }
-
 }

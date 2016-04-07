@@ -78,6 +78,7 @@ public class AmbariAuthenticationFilterTest {
     FilterChain filterChain = createMock(FilterChain.class);
     expect(request.getHeader("Authorization")).andReturn("header").andReturn(null);
     expect(request.getHeader("X-Forwarded-For")).andReturn("1.2.3.4");
+    expect(mockedAuditLogger.isEnabled()).andReturn(true);
     mockedAuditLogger.log(anyObject(AuditEvent.class));
     expectLastCall().times(1);
     filterChain.doFilter(request, response);
@@ -106,6 +107,7 @@ public class AmbariAuthenticationFilterTest {
     expect(AuthorizationHelper.getAuthenticatedName()).andReturn("perm1");
     expect(request.getHeader("X-Forwarded-For")).andReturn("1.2.3.4");
     expect(authentication.getName()).andReturn("admin");
+    expect(mockedAuditLogger.isEnabled()).andReturn(true);
     mockedAuditLogger.log(anyObject(AuditEvent.class));
     expectLastCall().times(1);
     replay(mockedAuditLogger, request, authentication, permissionHelper);
@@ -125,6 +127,7 @@ public class AmbariAuthenticationFilterTest {
     expect(request.getHeader("X-Forwarded-For")).andReturn("1.2.3.4");
     expect(request.getHeader("Authorization")).andReturn(
       "Basic " + new String(Base64.encode("admin:admin".getBytes("UTF-8"))));
+    expect(mockedAuditLogger.isEnabled()).andReturn(true);
     mockedAuditLogger.log(anyObject(AuditEvent.class));
     expectLastCall().times(1);
     replay(mockedAuditLogger, request, authEx);

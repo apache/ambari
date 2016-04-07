@@ -52,8 +52,8 @@ public class MemberResourceProvider extends AbstractControllerResourceProvider {
   // ----- Property ID constants ---------------------------------------------
 
   // Members
-  protected static final String MEMBER_GROUP_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("MemberInfo", "group_name");
-  protected static final String MEMBER_USER_NAME_PROPERTY_ID  = PropertyHelper.getPropertyId("MemberInfo", "user_name");
+  public static final String MEMBER_GROUP_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("MemberInfo", "group_name");
+  public static final String MEMBER_USER_NAME_PROPERTY_ID  = PropertyHelper.getPropertyId("MemberInfo", "user_name");
 
   private static Set<String> pkPropertyIds =
       new HashSet<String>(Arrays.asList(new String[]{

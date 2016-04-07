@@ -27,9 +27,9 @@ import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.audit.event.AuditEvent;
 import org.apache.ambari.server.audit.event.request.ClusterNameChangeRequestAuditEvent;
 import org.apache.ambari.server.audit.event.request.ConfigurationChangeRequestAuditEvent;
-import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
+import org.apache.ambari.server.controller.internal.ClusterResourceProvider;
+import org.apache.ambari.server.controller.internal.ServiceConfigVersionResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -82,8 +82,8 @@ public class ConfigurationChangeEventCreator implements RequestAuditEventCreator
 
     if (!request.getBody().getPropertySets().isEmpty()) {
       Map<String, Object> map = request.getBody().getPropertySets().iterator().next();
-      if (map.size() == 1 && map.containsKey(PropertyHelper.getPropertyId("Clusters", "cluster_name"))) {
-        String newName = String.valueOf(map.get(PropertyHelper.getPropertyId("Clusters", "cluster_name")));
+      if (map.size() == 1 && map.containsKey(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID)) {
+        String newName = String.valueOf(map.get(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID));
         String oldName = request.getResource().getKeyValueMap().get(Resource.Type.Cluster);
         return ClusterNameChangeRequestAuditEvent.builder()
           .withTimestamp(System.currentTimeMillis())
@@ -115,7 +115,7 @@ public class ConfigurationChangeEventCreator implements RequestAuditEventCreator
    */
   private String getServiceConfigVersion(Result result) {
     Map<String, Object> map = getServiceConfigMap(result);
-    return map == null ? null : String.valueOf(map.get("service_config_version"));
+    return map == null ? null : String.valueOf(map.get(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_PROPERTY_ID));
   }
 
   /**
@@ -125,7 +125,7 @@ public class ConfigurationChangeEventCreator implements RequestAuditEventCreator
    */
   private String getServiceConfigVersionNote(Result result) {
     Map<String, Object> map = getServiceConfigMap(result);
-    return map == null ? null : String.valueOf(map.get("service_config_version_note"));
+    return map == null ? null : String.valueOf(map.get(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_NOTE_PROPERTY_ID));
   }
 
   /**

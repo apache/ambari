@@ -18,9 +18,6 @@
 
 package org.apache.ambari.server.audit.request.eventcreator;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.api.services.Request;
@@ -30,9 +27,8 @@ import org.apache.ambari.server.audit.event.AuditEvent;
 import org.apache.ambari.server.audit.event.request.AddUserToGroupRequestAuditEvent;
 import org.apache.ambari.server.audit.event.request.MembershipChangeRequestAuditEvent;
 import org.apache.ambari.server.audit.event.request.RemoveUserFromGroupRequestAuditEvent;
-import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
+import org.apache.ambari.server.controller.internal.MemberResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -111,40 +107,12 @@ public class MemberEventCreator implements RequestAuditEventCreator {
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
           .withRemoteIp(request.getRemoteAddress())
-          .withGroupName(getGroupNameForPut(request))
-          .withUserNameList(getUsers(request))
+          .withGroupName(RequestAuditEventCreatorHelper.getProperty(request, MemberResourceProvider.MEMBER_GROUP_NAME_PROPERTY_ID))
+          .withUserNameList(RequestAuditEventCreatorHelper.getPropertyList(request, MemberResourceProvider.MEMBER_USER_NAME_PROPERTY_ID))
           .build();
       default:
         return null;
     }
-  }
-
-  /**
-   * Returns users from the request
-   * @param request
-   * @return
-   */
-  private List<String> getUsers(Request request) {
-    List<String> users = new LinkedList<String>();
-
-    for (Map<String, Object> propertyMap : request.getBody().getPropertySets()) {
-      String userName = String.valueOf(propertyMap.get(PropertyHelper.getPropertyId("MemberInfo", "user_name")));
-      users.add(userName);
-    }
-    return users;
-  }
-
-  /**
-   * Returns target group name from the request. This is called when PUT request type is used.
-   * @param request
-   * @return
-   */
-  private String getGroupNameForPut(Request request) {
-
-    for (Map<String, Object> propertyMap : request.getBody().getPropertySets()) {
-      return String.valueOf(propertyMap.get(PropertyHelper.getPropertyId("MemberInfo", "group_name")));
-    }
-    return null;
   }
 
   /**

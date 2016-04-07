@@ -28,9 +28,9 @@ import org.apache.ambari.server.audit.event.AuditEvent;
 import org.apache.ambari.server.audit.event.request.AddComponentToHostRequestAuditEvent;
 import org.apache.ambari.server.audit.event.request.AddHostRequestAuditEvent;
 import org.apache.ambari.server.audit.event.request.DeleteHostRequestAuditEvent;
-import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
+import org.apache.ambari.server.controller.internal.HostComponentResourceProvider;
+import org.apache.ambari.server.controller.internal.HostResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -99,7 +99,7 @@ public class HostEventCreator implements RequestAuditEventCreator {
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
           .withRemoteIp(request.getRemoteAddress())
-          .withHostName(getHostName(request))
+          .withHostName(RequestAuditEventCreatorHelper.getNamedProperty(request, HostResourceProvider.HOST_NAME_PROPERTY_ID))
           .build();
       case QUERY_POST:
         return AddComponentToHostRequestAuditEvent.builder()
@@ -117,18 +117,6 @@ public class HostEventCreator implements RequestAuditEventCreator {
   }
 
   /**
-   * Returns hostname from the request
-   * @param request
-   * @return
-   */
-  private String getHostName(Request request) {
-    if (!request.getBody().getNamedPropertySets().isEmpty()) {
-      return String.valueOf(request.getBody().getNamedPropertySets().iterator().next().getProperties().get(PropertyHelper.getPropertyId("Hosts", "host_name")));
-    }
-    return null;
-  }
-
-  /**
    * Returns component name from the request
    * @param request
    * @return
@@ -137,7 +125,7 @@ public class HostEventCreator implements RequestAuditEventCreator {
     if (!request.getBody().getNamedPropertySets().isEmpty()) {
       Set<Map<String, String>> set = (Set<Map<String, String>>) request.getBody().getNamedPropertySets().iterator().next().getProperties().get("host_components");
       if (set != null && !set.isEmpty()) {
-        return set.iterator().next().get(PropertyHelper.getPropertyId("HostRoles", "component_name"));
+        return set.iterator().next().get(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID);
       }
     }
     return null;
@@ -149,7 +137,7 @@ public class HostEventCreator implements RequestAuditEventCreator {
    * @return
    */
   private String getHostNameFromQuery(Request request) {
-    final String key = PropertyHelper.getPropertyId("Hosts", "host_name");
+    final String key = HostResourceProvider.HOST_NAME_PROPERTY_ID;
     if (request.getBody().getQueryString().contains(key)) {
       String q = request.getBody().getQueryString();
       int startIndex = q.indexOf(key) + key.length() + 1;

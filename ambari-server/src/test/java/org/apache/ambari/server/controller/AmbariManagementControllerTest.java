@@ -72,6 +72,7 @@ import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.actionmanager.TargetHostType;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.ClusterStackVersionResourceProviderTest;
@@ -263,12 +264,14 @@ public class AmbariManagementControllerTest {
     topologyManager = injector.getInstance(TopologyManager.class);
     StageUtils.setTopologyManager(topologyManager);
     ActionManager.setTopologyManager(topologyManager);
+    EasyMock.replay(injector.getInstance(AuditLogger.class));
   }
 
   @After
   public void teardown() {
     injector.getInstance(PersistService.class).stop();
     actionDB = null;
+    EasyMock.reset(injector.getInstance(AuditLogger.class));
   }
 
   private void setOsFamily(Host host, String osFamily, String osVersion) {

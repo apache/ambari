@@ -129,7 +129,7 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
   /**
    * The property containing the dispatch recipients
    */
-  private static final String AMBARI_DISPATCH_RECIPIENTS = "ambari.dispatch.recipients";
+  public static final String AMBARI_DISPATCH_RECIPIENTS = "ambari.dispatch.recipients";
 
   /**
    * The context key for Ambari information to be passed to Velocity.

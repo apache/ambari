@@ -26,10 +26,9 @@ import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.audit.event.AuditEvent;
 import org.apache.ambari.server.audit.event.request.StartOperationRequestAuditEvent;
-import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
+import org.apache.ambari.server.controller.internal.HostComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -92,6 +91,7 @@ public class ComponentEventCreator implements RequestAuditEventCreator {
       .withOperation(operation)
       .withRemoteIp(request.getRemoteAddress())
       .withTimestamp(System.currentTimeMillis())
+      .withHostname(RequestAuditEventCreatorHelper.getProperty(request, HostComponentResourceProvider.HOST_COMPONENT_HOST_NAME_PROPERTY_ID))
       .withRequestId(String.valueOf(requestId));
 
     if (result.getStatus().isErrorState()) {
@@ -112,15 +112,15 @@ public class ComponentEventCreator implements RequestAuditEventCreator {
       return "Delete component " + request.getResource().getKeyValueMap().get(Resource.Type.HostComponent);
     }
 
-    if (request.getBody().getRequestInfoProperties().containsKey(RequestOperationLevel.OPERATION_LEVEL_ID)) {
+    if (request.getBody().getRequestInfoProperties() != null && request.getBody().getRequestInfoProperties().containsKey(RequestOperationLevel.OPERATION_LEVEL_ID)) {
       String operation = "";
       switch (request.getBody().getRequestInfoProperties().get(RequestOperationLevel.OPERATION_LEVEL_ID)) {
         case "CLUSTER":
           for (Map<String, Object> map : request.getBody().getPropertySets()) {
-            if (map.containsKey(PropertyHelper.getPropertyId("HostRoles", "cluster_name"))) {
-              operation = String.valueOf(map.get(PropertyHelper.getPropertyId("HostRoles", "state"))) + ": all services"
+            if (map.containsKey(HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID)) {
+              operation = String.valueOf(map.get(HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID)) + ": all services"
                 + " on all hosts"
-                + (request.getBody().getQueryString().length() > 0 ? " that matches " + request.getBody().getQueryString() : "")
+                + (request.getBody().getQueryString() != null && request.getBody().getQueryString().length() > 0 ? " that matches " + request.getBody().getQueryString() : "")
                 + " (" + request.getBody().getRequestInfoProperties().get(RequestOperationLevel.OPERATION_CLUSTER_ID) + ")";
               break;
             }
@@ -128,10 +128,10 @@ public class ComponentEventCreator implements RequestAuditEventCreator {
           break;
         case "HOST":
           for (Map<String, Object> map : request.getBody().getPropertySets()) {
-            if (map.containsKey(PropertyHelper.getPropertyId("HostRoles", "cluster_name"))) {
+            if (map.containsKey(HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID)) {
               String query = request.getBody().getRequestInfoProperties().get("query");
-              operation = String.valueOf(map.get(PropertyHelper.getPropertyId("HostRoles", "state"))) + ": " + query.substring(query.indexOf("(") + 1, query.length() - 1)
-                + " on " + request.getBody().getRequestInfoProperties().get("operation_level/host_names")
+              operation = String.valueOf(map.get(HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID)) + ": " + query.substring(query.indexOf("(") + 1, query.length() - 1)
+                + " on " + request.getBody().getRequestInfoProperties().get(RequestOperationLevel.OPERATION_HOST_NAME)
                 + " (" + request.getBody().getRequestInfoProperties().get(RequestOperationLevel.OPERATION_CLUSTER_ID) + ")";
               break;
             }
@@ -139,10 +139,10 @@ public class ComponentEventCreator implements RequestAuditEventCreator {
           break;
         case "HOST_COMPONENT":
           for (Map<String, Object> map : request.getBody().getPropertySets()) {
-            if (map.containsKey(PropertyHelper.getPropertyId("HostRoles", "component_name"))) {
-              operation = String.valueOf(map.get(PropertyHelper.getPropertyId("HostRoles", "state"))) + ": " + String.valueOf(map.get(PropertyHelper.getPropertyId("HostRoles", "component_name")))
+            if (map.containsKey(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID)) {
+              operation = String.valueOf(map.get(HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID)) + ": " + String.valueOf(map.get(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID))
                 + "/" + request.getBody().getRequestInfoProperties().get(RequestOperationLevel.OPERATION_SERVICE_ID)
-                + " on " + request.getBody().getRequestInfoProperties().get("operation_level/host_name")
+                + " on " + request.getBody().getRequestInfoProperties().get(RequestOperationLevel.OPERATION_HOST_NAME)
                 + " (" + request.getBody().getRequestInfoProperties().get(RequestOperationLevel.OPERATION_CLUSTER_ID) + ")";
               break;
             }
@@ -153,8 +153,8 @@ public class ComponentEventCreator implements RequestAuditEventCreator {
     }
 
     for (Map<String, Object> map : request.getBody().getPropertySets()) {
-      if (map.containsKey(PropertyHelper.getPropertyId("HostRoles", "maintenance_state"))) {
-        return "Turn " + map.get(PropertyHelper.getPropertyId("HostRoles", "maintenance_state")) + " Maintenance Mode for " + map.get(PropertyHelper.getPropertyId("HostRoles", "component_name"));
+      if (map.containsKey(HostComponentResourceProvider.HOST_COMPONENT_MAINTENANCE_STATE_PROPERTY_ID)) {
+        return "Turn " + map.get(HostComponentResourceProvider.HOST_COMPONENT_MAINTENANCE_STATE_PROPERTY_ID) + " Maintenance Mode for " + map.get(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID);
       }
     }
 

@@ -128,20 +128,20 @@ import com.google.inject.persist.Transactional;
 @StaticallyInject
 public class UpgradeResourceProvider extends AbstractControllerResourceProvider {
 
-  protected static final String UPGRADE_CLUSTER_NAME = "Upgrade/cluster_name";
-  protected static final String UPGRADE_VERSION = "Upgrade/repository_version";
-  protected static final String UPGRADE_TYPE = "Upgrade/upgrade_type";
-  protected static final String UPGRADE_PACK = "Upgrade/pack";
-  protected static final String UPGRADE_REQUEST_ID = "Upgrade/request_id";
-  protected static final String UPGRADE_FROM_VERSION = "Upgrade/from_version";
-  protected static final String UPGRADE_TO_VERSION = "Upgrade/to_version";
-  protected static final String UPGRADE_DIRECTION = "Upgrade/direction";
-  protected static final String UPGRADE_DOWNGRADE_ALLOWED = "Upgrade/downgrade_allowed";
-  protected static final String UPGRADE_REQUEST_STATUS = "Upgrade/request_status";
-  protected static final String UPGRADE_SUSPENDED = "Upgrade/suspended";
-  protected static final String UPGRADE_ABORT_REASON = "Upgrade/abort_reason";
-  protected static final String UPGRADE_SKIP_PREREQUISITE_CHECKS = "Upgrade/skip_prerequisite_checks";
-  protected static final String UPGRADE_FAIL_ON_CHECK_WARNINGS = "Upgrade/fail_on_check_warnings";
+  public static final String UPGRADE_CLUSTER_NAME = "Upgrade/cluster_name";
+  public static final String UPGRADE_VERSION = "Upgrade/repository_version";
+  public static final String UPGRADE_TYPE = "Upgrade/upgrade_type";
+  public static final String UPGRADE_PACK = "Upgrade/pack";
+  public static final String UPGRADE_REQUEST_ID = "Upgrade/request_id";
+  public static final String UPGRADE_FROM_VERSION = "Upgrade/from_version";
+  public static final String UPGRADE_TO_VERSION = "Upgrade/to_version";
+  public static final String UPGRADE_DIRECTION = "Upgrade/direction";
+  public static final String UPGRADE_DOWNGRADE_ALLOWED = "Upgrade/downgrade_allowed";
+  public static final String UPGRADE_REQUEST_STATUS = "Upgrade/request_status";
+  public static final String UPGRADE_SUSPENDED = "Upgrade/suspended";
+  public static final String UPGRADE_ABORT_REASON = "Upgrade/abort_reason";
+  public static final String UPGRADE_SKIP_PREREQUISITE_CHECKS = "Upgrade/skip_prerequisite_checks";
+  public static final String UPGRADE_FAIL_ON_CHECK_WARNINGS = "Upgrade/fail_on_check_warnings";
 
 
   /**

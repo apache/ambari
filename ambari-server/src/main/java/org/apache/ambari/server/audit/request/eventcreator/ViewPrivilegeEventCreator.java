@@ -29,9 +29,11 @@ import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.audit.event.AuditEvent;
 import org.apache.ambari.server.audit.event.request.ViewPrivilegeChangeRequestAuditEvent;
-import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
+import org.apache.ambari.server.controller.internal.ViewPrivilegeResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -83,8 +85,8 @@ public class ViewPrivilegeEventCreator implements RequestAuditEventCreator {
   public AuditEvent createAuditEvent(Request request, Result result) {
 
 
-    Map<String, List<String>> users = getEntities(request, "USER");
-    Map<String, List<String>> groups = getEntities(request, "GROUP");
+    Map<String, List<String>> users = getEntities(request, PrincipalTypeEntity.USER_PRINCIPAL_TYPE_NAME);
+    Map<String, List<String>> groups = getEntities(request, PrincipalTypeEntity.GROUP_PRINCIPAL_TYPE_NAME);
 
     return ViewPrivilegeChangeRequestAuditEvent.builder()
       .withTimestamp(System.currentTimeMillis())
@@ -92,26 +94,13 @@ public class ViewPrivilegeEventCreator implements RequestAuditEventCreator {
       .withResultStatus(result.getStatus())
       .withUrl(request.getURI())
       .withRemoteIp(request.getRemoteAddress())
-      .withType(getProperty(request, PropertyHelper.getPropertyId("PrivilegeInfo", "view_name")))
-      .withVersion(getProperty(request, PropertyHelper.getPropertyId("PrivilegeInfo", "version")))
-      .withName(getProperty(request, PropertyHelper.getPropertyId("PrivilegeInfo", "instance_name")))
+      .withType(RequestAuditEventCreatorHelper.getProperty(request, ViewPrivilegeResourceProvider.PRIVILEGE_VIEW_NAME_PROPERTY_ID))
+      .withVersion(RequestAuditEventCreatorHelper.getProperty(request, ViewPrivilegeResourceProvider.PRIVILEGE_VIEW_VERSION_PROPERTY_ID))
+      .withName(RequestAuditEventCreatorHelper.getProperty(request, ViewPrivilegeResourceProvider.PRIVILEGE_INSTANCE_NAME_PROPERTY_ID))
       .withUsers(users)
       .withGroups(groups)
       .build();
 
-  }
-
-  /**
-   * Returns property from the request based on the propertyId parameter
-   * @param request
-   * @param properyId
-   * @return
-   */
-  private String getProperty(Request request, String properyId) {
-    if (!request.getBody().getPropertySets().isEmpty()) {
-      return String.valueOf(request.getBody().getPropertySets().iterator().next().get(properyId));
-    }
-    return null;
   }
 
   /**
@@ -124,10 +113,10 @@ public class ViewPrivilegeEventCreator implements RequestAuditEventCreator {
     Map<String, List<String>> entities = new HashMap<String, List<String>>();
 
     for (Map<String, Object> propertyMap : request.getBody().getPropertySets()) {
-      String ptype = String.valueOf(propertyMap.get(PropertyHelper.getPropertyId("PrivilegeInfo", "principal_type")));
+      String ptype = String.valueOf(propertyMap.get(ViewPrivilegeResourceProvider.PRINCIPAL_TYPE_PROPERTY_ID));
       if (type.equals(ptype)) {
-        String role = String.valueOf(propertyMap.get(PropertyHelper.getPropertyId("PrivilegeInfo", "permission_name")));
-        String name = String.valueOf(propertyMap.get(PropertyHelper.getPropertyId("PrivilegeInfo", "principal_name")));
+        String role = String.valueOf(propertyMap.get(ViewPrivilegeResourceProvider.PERMISSION_NAME_PROPERTY_ID));
+        String name = String.valueOf(propertyMap.get(ViewPrivilegeResourceProvider.PRINCIPAL_NAME_PROPERTY_ID));
         if (!entities.containsKey(role)) {
           entities.put(role, new LinkedList<String>());
         }

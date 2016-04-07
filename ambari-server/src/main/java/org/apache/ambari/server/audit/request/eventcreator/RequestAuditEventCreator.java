@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.audit.request;
+package org.apache.ambari.server.audit.request.eventcreator;
 
 import java.util.Set;
 

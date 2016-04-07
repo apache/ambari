@@ -57,6 +57,9 @@ public class LogoutService {
    * @param servletRequest
    */
   private void auditLog(HttpServletRequest servletRequest) {
+    if(!auditLogger.isEnabled()) {
+      return;
+    }
     LogoutAuditEvent logoutEvent = LogoutAuditEvent.builder()
       .withTimestamp(System.currentTimeMillis())
       .withRemoteIp(RequestUtils.getRemoteAddress(servletRequest))

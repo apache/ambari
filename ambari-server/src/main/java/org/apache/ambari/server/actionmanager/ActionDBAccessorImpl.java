@@ -23,13 +23,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.ambari.annotations.Experimental;
@@ -38,9 +35,9 @@ import org.apache.ambari.annotations.TransactionalLock;
 import org.apache.ambari.annotations.TransactionalLock.LockArea;
 import org.apache.ambari.annotations.TransactionalLock.LockType;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.Role;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
-import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.audit.event.AuditEvent;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.audit.event.OperationStatusAuditEvent;
@@ -48,6 +45,7 @@ import org.apache.ambari.server.audit.event.TaskStatusAuditEvent;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.CalculatedStatus;
 import org.apache.ambari.server.events.HostRemovedEvent;
+import org.apache.ambari.server.events.ServiceComponentUninstalledEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ExecutionCommandDAO;
@@ -65,6 +63,7 @@ import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.orm.entities.RequestScheduleEntity;
 import org.apache.ambari.server.orm.entities.RoleSuccessCriteriaEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.utils.LoopBody;
@@ -132,17 +131,12 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   AuditLogger auditLogger;
 
   /**
-   * Caches to store current request and task statuses.
-   * It is used for avoiding audit log entry duplication
+   * Cache for auditlog. It stores a {@link RequestDetails} object for every requests.
+   * {@link RequestDetails} contains the previous status of the request and a map for tasks.
+   * A task has a {@link RequestDetails.Component} key and the value of that is the previous status of the task.
+   * {@link RequestDetails.Component} contains the component name and the host name
    */
-  private Map<Long, HostRoleStatus> temporaryStatusCache = new HashMap<Long, HostRoleStatus>();
-  private Map<Long, HostRoleStatus> temporaryTaskStatusCache = new HashMap<Long, HostRoleStatus>();
-
-  /**
-   * Stores the host role command entities that are not completed for a request id
-   * It is used to calculate the summary state of the request for audit logging
-   */
-  private Map<Long, Map<Long, HostRoleStatus>> tasksForRequest = new HashMap<>();
+  private Cache<Long,RequestDetails> auditlogRequestCache = CacheBuilder.newBuilder().expireAfterAccess(60, TimeUnit.MINUTES).concurrencyLevel(4).build();
 
   private Cache<Long, HostRoleCommand> hostRoleCommandCache;
   private long cacheLimit; //may be exceeded to store tasks from one request
@@ -333,6 +327,8 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     //TODO wire request to cluster
     List<StageEntity> stageEntities = new ArrayList<StageEntity>(request.getStages().size());
 
+    addRequestToAuditlogCache(request);
+
     for (Stage stage : request.getStages()) {
       StageEntity stageEntity = stage.constructNewPersistenceEntity();
       stageEntities.add(stageEntity);
@@ -517,11 +513,11 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
         long[] requestStageIds = StageUtils.getRequestStage(actionId);
         long requestId = requestStageIds[0];
         long stageId = requestStageIds[1];
+        if(statusChanged) {
+          auditLog(commandEntity, requestId);
+        }
         if (requestDAO.getLastStageId(requestId).equals(stageId)) {
           requestsToCheck.add(requestId);
-          if(statusChanged) {
-            auditLog(commandEntity, requestId); // wrong requestId !!!
-          }
         }
       }
     }
@@ -810,6 +806,49 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   }
 
   /**
+   * Updates auditlog cache and returns the status of the latest task for the given component on the given host.
+   * @param commandEntity new entity with the new status. It also holds the component and the hostname
+   * @param requestId
+   * @return
+   */
+  private HostRoleStatus updateAuditlogCache(HostRoleCommandEntity commandEntity, Long requestId) {
+
+    RequestDetails details = auditlogRequestCache.getIfPresent(requestId);
+    if(details == null) {
+      return null;
+    }
+
+    RequestDetails.Component component = new RequestDetails.Component(commandEntity.getRole(), commandEntity.getHostName());
+
+    HostRoleStatus lastTaskStatus = null;
+    if(details.getTasks().containsKey(component)) {
+      lastTaskStatus = details.getTasks().get(component);
+    }
+    details.getTasks().put(component, commandEntity.getStatus());
+    return lastTaskStatus;
+  }
+
+  /**
+   * Adds request to auditlog cache
+   * @param request
+   */
+  private void addRequestToAuditlogCache(Request request) {
+    if(!auditLogger.isEnabled()) {
+      return;
+    }
+    if(auditlogRequestCache.getIfPresent(request.getRequestId()) == null) {
+      int numberOfTasks = 0;
+      for (Stage stage : request.getStages()) {
+        numberOfTasks += stage.getOrderedHostRoleCommands().size();
+      }
+      RequestDetails requestDetails = new RequestDetails();
+      requestDetails.setNumberOfTasks(numberOfTasks);
+      requestDetails.setUserName(AuthorizationHelper.getAuthenticatedName());
+      auditlogRequestCache.put(request.getRequestId(), requestDetails);
+    }
+  }
+
+  /**
    * AuditLog operation status change
    * @param requestId
    */
@@ -819,65 +858,67 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     }
 
     if(requestId != null) {
+      HostRoleStatus lastTaskStatus = updateAuditlogCache(commandEntity, requestId);
 
-      HostRoleStatus calculatedStatus = calculateStatus(commandEntity, requestId);
+      // details must not be null
+      RequestDetails details = auditlogRequestCache.getIfPresent(requestId);
+      if (details != null) {
+        HostRoleStatus calculatedStatus = calculateStatus(requestId, details.getNumberOfTasks());
 
-      if (!temporaryStatusCache.containsKey(requestId) || temporaryStatusCache.get(requestId) != calculatedStatus) {
-        RequestEntity request = requestDAO.findByPK(requestId);
-        String context = request != null ? request.getRequestContext() : null;
-        AuditEvent auditEvent = OperationStatusAuditEvent.builder()
-          .withRequestId(String.valueOf(requestId))
-          .withStatus(String.valueOf(calculatedStatus))
-          .withRequestContext(context)
-          .withTimestamp(System.currentTimeMillis())
-          .build();
-        auditLogger.log(auditEvent);
+        if (details.getLastStatus() != calculatedStatus) {
+          RequestEntity request = requestDAO.findByPK(requestId);
+          String context = request != null ? request.getRequestContext() : null;
+          AuditEvent auditEvent = OperationStatusAuditEvent.builder()
+            .withRequestId(String.valueOf(requestId))
+            .withStatus(String.valueOf(calculatedStatus))
+            .withRequestContext(context)
+            .withUserName(details.getUserName())
+            .withTimestamp(System.currentTimeMillis())
+            .build();
+          auditLogger.log(auditEvent);
 
-        temporaryStatusCache.put(requestId, calculatedStatus);
+          details.setLastStatus(calculatedStatus);
+        }
       }
+      logTask(commandEntity, requestId, lastTaskStatus);
     }
-    logTask(commandEntity, requestId);
   }
 
   /**
-   * Calculates summary status for the given request id for the new command entity status
-   * @param commandEntity
+   * Calculates summary status for the given request
    * @param requestId
    * @return
    */
-  private HostRoleStatus calculateStatus(HostRoleCommandEntity commandEntity, Long requestId) {
-    if(!tasksForRequest.containsKey(requestId)) {
-      tasksForRequest.put(requestId, new HashMap<Long, HostRoleStatus>());
+  private HostRoleStatus calculateStatus(Long requestId, int numberOfTasks) {
+    RequestDetails details = auditlogRequestCache.getIfPresent(requestId);
+    if(details == null) {
+      return HostRoleStatus.QUEUED;
     }
-
-    tasksForRequest.get(requestId).put(commandEntity.getTaskId(), commandEntity.getStatus());
-
-    HostRoleStatus calculatedStatus = CalculatedStatus.calculateSummaryStatusOfStage(CalculatedStatus.calculateStatusCounts(tasksForRequest.get(requestId).values()), tasksForRequest.get(requestId).size(), false);
-
-    // if all task status is completed, we can remove it from the container
-    boolean hasInProgress = false;
-    for(HostRoleStatus hrcs : tasksForRequest.get(requestId).values()) {
-      if(!hrcs.isCompletedState()) {
-        hasInProgress = true;
-        break;
-      }
-    }
-    if(!hasInProgress) {
-      tasksForRequest.remove(requestId);
-    }
-    return calculatedStatus;
+    Collection<HostRoleStatus> taskStatuses = details.getTaskStatuses();
+    return CalculatedStatus.calculateSummaryStatusOfStage(CalculatedStatus.calculateStatusCounts(taskStatuses), numberOfTasks, false);
   }
 
   /**
    * Logs task status change
    * @param commandEntity
    * @param requestId
+   * @param lastTaskStatus
    */
-  private void logTask(HostRoleCommandEntity commandEntity, Long requestId) {
-    if(!temporaryTaskStatusCache.containsKey(commandEntity.getTaskId()) || temporaryTaskStatusCache.get(commandEntity.getTaskId()) != commandEntity.getStatus() ) {
+  private void logTask(HostRoleCommandEntity commandEntity, Long requestId, HostRoleStatus lastTaskStatus) {
+
+    RequestDetails.Component component = new RequestDetails.Component(commandEntity.getRole(), commandEntity.getHostName());
+    RequestDetails details = auditlogRequestCache.getIfPresent(requestId);
+    if(details == null) {
+      return;
+    }
+
+    HostRoleStatus cachedStatus = details.getTasks().get(component);
+
+    if(lastTaskStatus == null || cachedStatus != lastTaskStatus ) {
       AuditEvent taskEvent = TaskStatusAuditEvent.builder()
         .withTaskId(String.valueOf(commandEntity.getTaskId()))
         .withHostName(commandEntity.getHostName())
+        .withUserName(details.getUserName())
         .withOperation(commandEntity.getRoleCommand().toString() + " " + commandEntity.getRole().toString())
         .withDetails(commandEntity.getCommandDetail())
         .withStatus(commandEntity.getStatus().toString())
@@ -886,7 +927,125 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
         .build();
 
       auditLogger.log(taskEvent);
-      temporaryTaskStatusCache.put(commandEntity.getTaskId(), commandEntity.getStatus());
+    }
+  }
+
+  /**
+   * The purpose of this nested class is to store details about the request: lastStatus and the list of tasks
+   */
+  private static class RequestDetails {
+    /**
+     * Last summary status of the request
+     */
+    HostRoleStatus lastStatus = null;
+
+    /**
+     * The number of tasks that can be found in the request
+     */
+    int numberOfTasks = 0;
+
+    /**
+     * The user who issued the request
+     */
+    String userName;
+
+    /**
+     * Component and the status of the belonging task
+     * Size of this container might be less than {@link RequestDetails#numberOfTasks}
+     */
+    Map<Component, HostRoleStatus> tasks = new HashMap<>();
+
+    public HostRoleStatus getLastStatus() {
+      return lastStatus;
+    }
+
+    public void setLastStatus(HostRoleStatus lastStatus) {
+      this.lastStatus = lastStatus;
+    }
+
+    public int getNumberOfTasks() {
+      return numberOfTasks;
+    }
+
+    public void setNumberOfTasks(int numberOfTasks) {
+      this.numberOfTasks = numberOfTasks;
+    }
+
+    public String getUserName() {
+      return userName;
+    }
+
+    public void setUserName(String userName) {
+      this.userName = userName;
+    }
+
+    public Map<Component, HostRoleStatus> getTasks() {
+      return tasks;
+    }
+
+    /**
+     * Returns the list of statuses from {@link RequestDetails#tasks}
+     * @return
+     */
+    public Collection<HostRoleStatus> getTaskStatuses() {
+      return getTasks().values();
+    }
+
+    /**
+     * This nested class is the key for the {@link RequestDetails#tasks} map
+     */
+    static class Component {
+      /**
+       * Component name
+       */
+      private final Role role;
+      /**
+       * Host name
+       */
+      private final String hostName;
+      Component(Role role, String hostName) {
+        this.role = role;
+        this.hostName = hostName;
+      }
+
+      public Role getRole() {
+        return role;
+      }
+
+      public String getHostName() {
+        return hostName;
+      }
+
+      /**
+       * Hash code generation
+       * @return
+       */
+      @Override
+      public final int hashCode() {
+        int hash = 7;
+        String roleStr = role == null ? "null" : role.toString();
+        String hostNameStr = hostName == null ? "null" : hostName;
+        String str = roleStr.concat(hostNameStr);
+        for (int i = 0; i < str.length(); i++) {
+          hash = hash*31 + str.charAt(i);
+        }
+        return hash;
+      }
+
+      /**
+       * Two components are equal if their component name and host name are the same
+       * @param other
+       * @return
+       */
+      @Override
+      public final boolean equals(final Object other) {
+        if(other instanceof Component) {
+          Component comp = (Component) other;
+          return Objects.equals(comp.role, role) && Objects.equals(comp.hostName, hostName);
+        }
+
+        return false;
+      }
     }
   }
 }

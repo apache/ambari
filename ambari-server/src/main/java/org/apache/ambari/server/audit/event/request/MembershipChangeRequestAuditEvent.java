@@ -67,9 +67,9 @@ public class MembershipChangeRequestAuditEvent extends RequestAuditEvent {
 
       if (userNameList.isEmpty()) {
         builder.append("<empty>");
+      } else {
+        builder.append(StringUtils.join(userNameList, ", "));
       }
-
-      StringUtils.join(userNameList, ", ");
 
       builder.append(")");
     }

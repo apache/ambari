@@ -18,8 +18,6 @@
 
 package org.apache.ambari.server.audit.request.eventcreator;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 
 import org.apache.ambari.server.api.services.Request;
@@ -29,9 +27,12 @@ import org.apache.ambari.server.audit.event.AuditEvent;
 import org.apache.ambari.server.audit.event.request.AddAlertTargetRequestAuditEvent;
 import org.apache.ambari.server.audit.event.request.ChangeAlertTargetRequestAuditEvent;
 import org.apache.ambari.server.audit.event.request.DeleteAlertTargetRequestAuditEvent;
-import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
+import org.apache.ambari.server.controller.internal.AlertTargetResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.notifications.dispatchers.EmailDispatcher;
+import org.apache.ambari.server.state.services.AlertNoticeDispatchService;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -90,13 +91,13 @@ public class AlertTargetEventCreator implements RequestAuditEventCreator {
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
           .withRemoteIp(request.getRemoteAddress())
-          .withName(getProperty(request, "name"))
-          .withDescription(getProperty(request, "description"))
-          .withAlertStates(getPropertyList(request, "alert_states"))
-          .withGroupIds(getPropertyList(request, "groups"))
-          .withNotificationType(getProperty(request, "notification_type"))
-          .withEmailFrom(getProperty(request, "properties/mail.smtp.from"))
-          .withEmailRecipients(getPropertyList(request, "properties/ambari.dispatch.recipients"))
+          .withName(RequestAuditEventCreatorHelper.getProperty(request, AlertTargetResourceProvider.ALERT_TARGET_NAME))
+          .withDescription(RequestAuditEventCreatorHelper.getProperty(request, AlertTargetResourceProvider.ALERT_TARGET_DESCRIPTION))
+          .withAlertStates(RequestAuditEventCreatorHelper.getNamedPropertyList(request, AlertTargetResourceProvider.ALERT_TARGET_STATES))
+          .withGroupIds(RequestAuditEventCreatorHelper.getNamedPropertyList(request, AlertTargetResourceProvider.ALERT_TARGET_GROUPS))
+          .withNotificationType(RequestAuditEventCreatorHelper.getProperty(request, AlertTargetResourceProvider.ALERT_TARGET_NOTIFICATION_TYPE))
+          .withEmailFrom(RequestAuditEventCreatorHelper.getProperty(request, AlertTargetResourceProvider.ALERT_TARGET_PROPERTIES + "/" + EmailDispatcher.JAVAMAIL_FROM_PROPERTY))
+          .withEmailRecipients(RequestAuditEventCreatorHelper.getNamedPropertyList(request, AlertTargetResourceProvider.ALERT_TARGET_PROPERTIES + "/" + AlertNoticeDispatchService.AMBARI_DISPATCH_RECIPIENTS))
           .build();
       case PUT:
         return ChangeAlertTargetRequestAuditEvent.builder()
@@ -105,13 +106,13 @@ public class AlertTargetEventCreator implements RequestAuditEventCreator {
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
           .withRemoteIp(request.getRemoteAddress())
-          .withName(getProperty(request, "name"))
-          .withDescription(getProperty(request, "description"))
-          .withAlertStates(getPropertyList(request, "alert_states"))
-          .withGroupIds(getPropertyList(request, "groups"))
-          .withNotificationType(getProperty(request, "notification_type"))
-          .withEmailFrom(getProperty(request, "properties/mail.smtp.from"))
-          .withEmailRecipients(getPropertyList(request, "properties/ambari.dispatch.recipients"))
+          .withName(RequestAuditEventCreatorHelper.getProperty(request, AlertTargetResourceProvider.ALERT_TARGET_NAME))
+          .withDescription(RequestAuditEventCreatorHelper.getProperty(request, AlertTargetResourceProvider.ALERT_TARGET_DESCRIPTION))
+          .withAlertStates(RequestAuditEventCreatorHelper.getNamedPropertyList(request, AlertTargetResourceProvider.ALERT_TARGET_STATES))
+          .withGroupIds(RequestAuditEventCreatorHelper.getNamedPropertyList(request, AlertTargetResourceProvider.ALERT_TARGET_GROUPS))
+          .withNotificationType(RequestAuditEventCreatorHelper.getProperty(request, AlertTargetResourceProvider.ALERT_TARGET_NOTIFICATION_TYPE))
+          .withEmailFrom(RequestAuditEventCreatorHelper.getProperty(request, AlertTargetResourceProvider.ALERT_TARGET_PROPERTIES + "/" + EmailDispatcher.JAVAMAIL_FROM_PROPERTY))
+          .withEmailRecipients(RequestAuditEventCreatorHelper.getNamedPropertyList(request, AlertTargetResourceProvider.ALERT_TARGET_PROPERTIES + "/" + AlertNoticeDispatchService.AMBARI_DISPATCH_RECIPIENTS))
           .build();
       case DELETE:
         return DeleteAlertTargetRequestAuditEvent.builder()
@@ -125,34 +126,5 @@ public class AlertTargetEventCreator implements RequestAuditEventCreator {
       default:
         return null;
     }
-  }
-
-  /**
-   * Returns a property list from the request, named by the parameter propertyName
-   * @param request
-   * @param propertyName
-   * @return
-   */
-  private List<String> getPropertyList(Request request, String propertyName) {
-    if (!request.getBody().getNamedPropertySets().isEmpty()) {
-      List<String> list = (List<String>) request.getBody().getNamedPropertySets().iterator().next().getProperties().get(PropertyHelper.getPropertyId("AlertTarget", propertyName));
-      if (list != null) {
-        return list;
-      }
-    }
-    return Collections.emptyList();
-  }
-
-  /**
-   * Returns a property from the request, named by the parameter propertyName
-   * @param request
-   * @param propertyName
-   * @return
-   */
-  private String getProperty(Request request, String propertyName) {
-    if (!request.getBody().getPropertySets().isEmpty()) {
-      return String.valueOf(request.getBody().getPropertySets().iterator().next().get(PropertyHelper.getPropertyId("AlertTarget", propertyName)));
-    }
-    return null;
   }
 }

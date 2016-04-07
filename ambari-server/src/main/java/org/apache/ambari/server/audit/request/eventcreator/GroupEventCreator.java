@@ -26,9 +26,8 @@ import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.audit.event.AuditEvent;
 import org.apache.ambari.server.audit.event.request.CreateGroupRequestAuditEvent;
 import org.apache.ambari.server.audit.event.request.DeleteGroupRequestAuditEvent;
-import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
+import org.apache.ambari.server.controller.internal.GroupResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -87,7 +86,7 @@ public class GroupEventCreator implements RequestAuditEventCreator {
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
           .withRemoteIp(request.getRemoteAddress())
-          .withGroupName(getGroupName(request))
+          .withGroupName(RequestAuditEventCreatorHelper.getProperty(request, GroupResourceProvider.GROUP_GROUPNAME_PROPERTY_ID))
           .build();
       case DELETE:
         return DeleteGroupRequestAuditEvent.builder()
@@ -103,17 +102,4 @@ public class GroupEventCreator implements RequestAuditEventCreator {
     }
     return null;
   }
-
-  /**
-   * Returns group name from request
-   * @param request
-   * @return
-   */
-  private String getGroupName(Request request) {
-    if (!request.getBody().getPropertySets().isEmpty()) {
-      return String.valueOf(request.getBody().getPropertySets().iterator().next().get(PropertyHelper.getPropertyId("Groups", "group_name")));
-    }
-    return null;
-  }
-
 }

@@ -54,6 +54,9 @@ public class PermissionHelper {
     Map<String,List<String>> permissionLabels = new HashMap<>();
     if (authentication.getAuthorities() != null) {
       for (GrantedAuthority grantedAuthority : authentication.getAuthorities()) {
+        if(!(grantedAuthority instanceof AmbariGrantedAuthority)) {
+          continue;
+        }
         AmbariGrantedAuthority ambariGrantedAuthority = (AmbariGrantedAuthority) grantedAuthority;
 
         PrivilegeEntity privilegeEntity = ambariGrantedAuthority.getPrivilegeEntity();

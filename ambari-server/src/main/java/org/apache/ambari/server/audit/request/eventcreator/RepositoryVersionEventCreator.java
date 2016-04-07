@@ -31,9 +31,10 @@ import org.apache.ambari.server.audit.event.AuditEvent;
 import org.apache.ambari.server.audit.event.request.AddRepositoryVersionRequestAuditEvent;
 import org.apache.ambari.server.audit.event.request.ChangeRepositoryVersionRequestAuditEvent;
 import org.apache.ambari.server.audit.event.request.DeleteRepositoryVersionRequestAuditEvent;
-import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
+import org.apache.ambari.server.controller.internal.OperatingSystemResourceProvider;
+import org.apache.ambari.server.controller.internal.RepositoryResourceProvider;
+import org.apache.ambari.server.controller.internal.RepositoryVersionResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -92,10 +93,10 @@ public class RepositoryVersionEventCreator implements RequestAuditEventCreator {
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
           .withRemoteIp(request.getRemoteAddress())
-          .withStackName(getProperty(request, PropertyHelper.getPropertyId("RepositoryVersions", "stack_name")))
-          .withStackVersion(getProperty(request, PropertyHelper.getPropertyId("RepositoryVersions", "stack_version")))
-          .withDisplayName(getProperty(request, PropertyHelper.getPropertyId("RepositoryVersions", "display_name")))
-          .withRepoVersion(getProperty(request, PropertyHelper.getPropertyId("RepositoryVersions", "repository_version")))
+          .withStackName(RequestAuditEventCreatorHelper.getProperty(request, RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID))
+          .withStackVersion(RequestAuditEventCreatorHelper.getProperty(request, RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID))
+          .withDisplayName(RequestAuditEventCreatorHelper.getProperty(request, RepositoryVersionResourceProvider.REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID))
+          .withRepoVersion(RequestAuditEventCreatorHelper.getProperty(request, RepositoryVersionResourceProvider.REPOSITORY_VERSION_REPOSITORY_VERSION_PROPERTY_ID))
           .withRepos(getRepos(request))
           .build();
       case PUT:
@@ -105,10 +106,10 @@ public class RepositoryVersionEventCreator implements RequestAuditEventCreator {
           .withResultStatus(result.getStatus())
           .withUrl(request.getURI())
           .withRemoteIp(request.getRemoteAddress())
-          .withStackName(getProperty(request, PropertyHelper.getPropertyId("RepositoryVersions", "stack_name")))
-          .withStackVersion(getProperty(request, PropertyHelper.getPropertyId("RepositoryVersions", "stack_version")))
-          .withDisplayName(getProperty(request, PropertyHelper.getPropertyId("RepositoryVersions", "display_name")))
-          .withRepoVersion(getProperty(request, PropertyHelper.getPropertyId("RepositoryVersions", "repository_version")))
+          .withStackName(RequestAuditEventCreatorHelper.getProperty(request, RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID))
+          .withStackVersion(RequestAuditEventCreatorHelper.getProperty(request, RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID))
+          .withDisplayName(RequestAuditEventCreatorHelper.getProperty(request, RepositoryVersionResourceProvider.REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID))
+          .withRepoVersion(RequestAuditEventCreatorHelper.getProperty(request, RepositoryVersionResourceProvider.REPOSITORY_VERSION_REPOSITORY_VERSION_PROPERTY_ID))
           .withRepos(getRepos(request))
           .build();
       case DELETE:
@@ -157,7 +158,7 @@ public class RepositoryVersionEventCreator implements RequestAuditEventCreator {
     for (Object entry : set) {
       if (entry instanceof Map) {
         Map<String, Object> map = (Map<String, Object>) entry;
-        String osType = (String) map.get(PropertyHelper.getPropertyId("OperatingSystems", "os_type"));
+        String osType = (String) map.get(OperatingSystemResourceProvider.OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID);
         if (!result.containsKey(osType)) {
           result.put(osType, new LinkedList<Map<String, String>>());
         }
@@ -182,28 +183,13 @@ public class RepositoryVersionEventCreator implements RequestAuditEventCreator {
    */
   private Map<String, String> buildResultRepo(Map<String, String> repo) {
     Map<String, String> m = repo;
-    String repoId = m.get(PropertyHelper.getPropertyId("Repositories", "repo_id"));
-    String repo_name = m.get(PropertyHelper.getPropertyId("Repositories", "repo_name"));
-    String baseUrl = m.get(PropertyHelper.getPropertyId("Repositories", "base_url"));
+    String repoId = m.get(RepositoryResourceProvider.REPOSITORY_REPO_ID_PROPERTY_ID);
+    String repo_name = m.get(RepositoryResourceProvider.REPOSITORY_REPO_NAME_PROPERTY_ID);
+    String baseUrl = m.get(RepositoryResourceProvider.REPOSITORY_BASE_URL_PROPERTY_ID);
     Map<String, String> resultMap = new HashMap<>();
     resultMap.put("repo_id", repoId);
     resultMap.put("repo_name", repo_name);
     resultMap.put("base_url", baseUrl);
     return resultMap;
   }
-
-  /**
-   * Returns property from the request based on the propertyId parameter
-   * @param request
-   * @param properyId
-   * @return
-   */
-  private String getProperty(Request request, String properyId) {
-    if (!request.getBody().getPropertySets().isEmpty()) {
-      return String.valueOf(request.getBody().getPropertySets().iterator().next().get(properyId));
-    }
-    return null;
-  }
-
-
 }

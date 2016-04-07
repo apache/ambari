@@ -25,9 +25,8 @@ import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.audit.event.AuditEvent;
 import org.apache.ambari.server.audit.event.request.AddCredentialRequestAuditEvent;
-import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
+import org.apache.ambari.server.controller.internal.CredentialResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -84,24 +83,11 @@ public class CredentialEventCreator implements RequestAuditEventCreator {
       .withResultStatus(result.getStatus())
       .withUrl(request.getURI())
       .withRemoteIp(request.getRemoteAddress())
-      .withClusterName(getProperty(request, "cluster_name"))
-      .withType(getProperty(request, "type"))
-      .withAlias(getProperty(request, "alias"))
-      .withPrincipal(getProperty(request, "principal"))
+      .withClusterName(RequestAuditEventCreatorHelper.getProperty(request, CredentialResourceProvider.CREDENTIAL_CLUSTER_NAME_PROPERTY_ID))
+      .withType(RequestAuditEventCreatorHelper.getProperty(request, CredentialResourceProvider.CREDENTIAL_TYPE_PROPERTY_ID))
+      .withAlias(RequestAuditEventCreatorHelper.getProperty(request, CredentialResourceProvider.CREDENTIAL_ALIAS_PROPERTY_ID))
+      .withPrincipal(RequestAuditEventCreatorHelper.getProperty(request, CredentialResourceProvider.CREDENTIAL_PRINCIPAL_PROPERTY_ID))
       .build();
 
-  }
-
-  /**
-   * Returns a property from the resquest
-   * @param request
-   * @param propertyName
-   * @return
-   */
-  private String getProperty(Request request, String propertyName) {
-    if (!request.getBody().getPropertySets().isEmpty()) {
-      return String.valueOf(request.getBody().getPropertySets().iterator().next().get(PropertyHelper.getPropertyId("Credential", propertyName)));
-    }
-    return null;
   }
 }

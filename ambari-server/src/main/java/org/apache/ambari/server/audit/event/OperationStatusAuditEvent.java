@@ -44,6 +44,11 @@ public class OperationStatusAuditEvent extends AbstractAuditEvent {
      */
     private String operation;
 
+    /**
+     * Name of the logged in user who sent the request
+     */
+    private String userName;
+
     private OperationStatusAuditEventBuilder() {
     }
 
@@ -60,7 +65,9 @@ public class OperationStatusAuditEvent extends AbstractAuditEvent {
     @Override
     protected void buildAuditMessage(StringBuilder builder) {
       builder
-        .append("Operation(")
+        .append("User(")
+        .append(this.userName)
+        .append("), Operation(")
         .append(this.operation)
         .append("), Status(")
         .append(this.status)
@@ -82,6 +89,11 @@ public class OperationStatusAuditEvent extends AbstractAuditEvent {
 
     public OperationStatusAuditEventBuilder withRequestContext(String operation) {
       this.operation = operation;
+      return this;
+    }
+
+    public OperationStatusAuditEventBuilder withUserName(String userName) {
+      this.userName = userName;
       return this;
     }
   }

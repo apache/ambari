@@ -30,9 +30,11 @@ import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.audit.event.AuditEvent;
 import org.apache.ambari.server.audit.event.request.ClusterPrivilegeChangeRequestAuditEvent;
 import org.apache.ambari.server.audit.event.request.PrivilegeChangeRequestAuditEvent;
-import org.apache.ambari.server.audit.request.RequestAuditEventCreator;
+import org.apache.ambari.server.controller.internal.PrivilegeResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -83,8 +85,8 @@ public class PrivilegeEventCreator implements RequestAuditEventCreator {
   @Override
   public AuditEvent createAuditEvent(Request request, Result result) {
 
-    Map<String, List<String>> users = getEntities(request, "USER");
-    Map<String, List<String>> groups = getEntities(request, "GROUP");
+    Map<String, List<String>> users = getEntities(request, PrincipalTypeEntity.USER_PRINCIPAL_TYPE_NAME);
+    Map<String, List<String>> groups = getEntities(request, PrincipalTypeEntity.GROUP_PRINCIPAL_TYPE_NAME);
 
     switch (request.getRequestType()) {
       case PUT:
@@ -125,10 +127,10 @@ public class PrivilegeEventCreator implements RequestAuditEventCreator {
     Map<String, List<String>> entities = new HashMap<String, List<String>>();
 
     for (Map<String, Object> propertyMap : request.getBody().getPropertySets()) {
-      String ptype = String.valueOf(propertyMap.get(PropertyHelper.getPropertyId("PrivilegeInfo", "principal_type")));
+      String ptype = String.valueOf(propertyMap.get(PrivilegeResourceProvider.PRINCIPAL_TYPE_PROPERTY_ID));
       if (type.equals(ptype)) {
-        String role = String.valueOf(propertyMap.get(PropertyHelper.getPropertyId("PrivilegeInfo", "permission_name")));
-        String name = String.valueOf(propertyMap.get(PropertyHelper.getPropertyId("PrivilegeInfo", "principal_name")));
+        String role = String.valueOf(propertyMap.get(PrivilegeResourceProvider.PERMISSION_NAME_PROPERTY_ID));
+        String name = String.valueOf(propertyMap.get(PrivilegeResourceProvider.PRINCIPAL_NAME_PROPERTY_ID));
         if (!entities.containsKey(role)) {
           entities.put(role, new LinkedList<String>());
         }

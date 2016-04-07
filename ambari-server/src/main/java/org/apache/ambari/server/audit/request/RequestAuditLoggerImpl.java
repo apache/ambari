@@ -26,6 +26,7 @@ import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.audit.event.AuditEvent;
+import org.apache.ambari.server.audit.request.eventcreator.RequestAuditEventCreator;
 import org.apache.ambari.server.controller.spi.Resource;
 
 import com.google.inject.Inject;
