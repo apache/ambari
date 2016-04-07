@@ -36,5 +36,14 @@ module.exports = [
     "filename": "krb5-conf.xml",
     "category": "Kadmin",
     "index": 2
+  },
+  {
+    "name": "dfs.ha.fencing.methods",
+    "displayName": "dfs.ha.fencing.methods",
+    "serviceName": "HDFS",
+    "filename": "hdfs-site.xml",
+    "category": "Advanced hdfs-site",
+    "displayType": "multiLine",
+    "index": 1
   }
 ];

@@ -192,6 +192,7 @@ module.exports =
         "description": "A list of scripts or Java classes which will be used to fence the Active NameNode during a failover.",
         "isReconfigurable": false,
         "recommendedValue": "shell(/bin/true)",
+        "displayType": "multiLine",
         "value": "shell(/bin/true)",
         "category": "HDFS",
         "filename": "hdfs-site",
