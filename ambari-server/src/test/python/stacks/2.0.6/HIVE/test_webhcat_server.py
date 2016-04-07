@@ -95,6 +95,30 @@ class TestWebHCatServer(RMFTestCase):
       self.assert_configure_secured()
       self.assertNoMoreResources()
 
+  @patch("webhcat_service.graceful_stop", new = MagicMock(side_effect=Exception))
+  def test_stop_graceful_stop_failed(self):
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/webhcat_server.py",
+                       classname = "WebHCatServer",
+                       command = "stop",
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+                       )
+
+    self.assertResourceCalled('Execute', 'ambari-sudo.sh kill -9 `ambari-sudo.sh su hcat -l -s /bin/bash -c \'[RMF_EXPORT_PLACEHOLDER]cat /var/run/webhcat/webhcat.pid\'`',
+                              not_if = "! (ls /var/run/webhcat/webhcat.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hcat -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/webhcat/webhcat.pid'` >/dev/null 2>&1) || ( sleep 10 && ! (ls /var/run/webhcat/webhcat.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hcat -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/webhcat/webhcat.pid'` >/dev/null 2>&1) )"
+                              )
+
+    self.assertResourceCalled('Execute', "! (ls /var/run/webhcat/webhcat.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hcat -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/webhcat/webhcat.pid'` >/dev/null 2>&1)",
+                              tries=20,
+                              try_sleep=3,
+                              )
+
+    self.assertResourceCalled('File', '/var/run/webhcat/webhcat.pid',
+                              action = ['delete'],
+                              )
+    self.assertNoMoreResources()
+
   def test_start_secured(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/webhcat_server.py",
                        classname = "WebHCatServer",
@@ -137,6 +161,29 @@ class TestWebHCatServer(RMFTestCase):
     self.assertResourceCalled('File', '/var/run/webhcat/webhcat.pid',
         action = ['delete'],
     )
+    self.assertNoMoreResources()
+
+  @patch("webhcat_service.graceful_stop", new = MagicMock(side_effect=Exception))
+  def test_stop_secured_graceful_stop_failed(self):
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/webhcat_server.py",
+                       classname = "WebHCatServer",
+                       command = "stop",
+                       config_file="secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+                       )
+
+    self.assertResourceCalled('Execute', 'ambari-sudo.sh kill -9 `ambari-sudo.sh su hcat -l -s /bin/bash -c \'[RMF_EXPORT_PLACEHOLDER]cat /var/run/webhcat/webhcat.pid\'`',
+                              not_if = "! (ls /var/run/webhcat/webhcat.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hcat -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/webhcat/webhcat.pid'` >/dev/null 2>&1) || ( sleep 10 && ! (ls /var/run/webhcat/webhcat.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hcat -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/webhcat/webhcat.pid'` >/dev/null 2>&1) )"
+                              )
+
+    self.assertResourceCalled('Execute', "! (ls /var/run/webhcat/webhcat.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hcat -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/webhcat/webhcat.pid'` >/dev/null 2>&1)",
+                              tries=20,
+                              try_sleep=3,
+                              )
+    self.assertResourceCalled('File', '/var/run/webhcat/webhcat.pid',
+                              action = ['delete'],
+                              )
     self.assertNoMoreResources()
 
   def assert_configure_default(self):
