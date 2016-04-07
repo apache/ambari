@@ -30,6 +30,7 @@ import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Provider;
 
+import com.google.common.collect.Sets;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -51,6 +52,8 @@ import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.topology.TopologyManager;
+import org.apache.ambari.server.utils.SecretReference;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * ResourceProvider for Stage
@@ -127,6 +130,11 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
     KEY_PROPERTY_IDS.put(Resource.Type.Cluster, STAGE_CLUSTER_NAME);
     KEY_PROPERTY_IDS.put(Resource.Type.Request, STAGE_REQUEST_ID);
   }
+
+  /**
+   * These fields may contain password in them, so have to mask with.
+   */
+  static final Set<String> PROPERTIES_TO_MASK_PASSWORD_IN = Sets.newHashSet(STAGE_COMMAND_PARAMS, STAGE_HOST_PARAMS);
 
   // ----- Constructors ------------------------------------------------------
 
@@ -276,12 +284,20 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
 
     // this property is lazy loaded in JPA; don't use it unless requested
     if (isPropertyRequested(STAGE_COMMAND_PARAMS, requestedIds)) {
-      resource.setProperty(STAGE_COMMAND_PARAMS, entity.getCommandParamsStage());
+      String value = entity.getCommandParamsStage();
+      if (!StringUtils.isBlank(value)) {
+        value = SecretReference.maskPasswordInPropertyMap(value);
+      }
+      resource.setProperty(STAGE_COMMAND_PARAMS, value);
     }
 
     // this property is lazy loaded in JPA; don't use it unless requested
     if (isPropertyRequested(STAGE_HOST_PARAMS, requestedIds)) {
-      resource.setProperty(STAGE_HOST_PARAMS, entity.getHostParamsStage());
+      String value = entity.getHostParamsStage();
+      if (!StringUtils.isBlank(value)) {
+        value = SecretReference.maskPasswordInPropertyMap(value);
+      }
+      resource.setProperty(STAGE_HOST_PARAMS, value);
     }
 
     setResourceProperty(resource, STAGE_SKIPPABLE, entity.isSkippable(), requestedIds);

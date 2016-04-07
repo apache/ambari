@@ -311,7 +311,6 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
       hostLevelParams.put(ORACLE_JDBC_URL, managementController.getOjdbcUrl());
       hostLevelParams.put(HOST_SYS_PREPPED, configs.areHostsSysPrepped());
       hostLevelParams.putAll(managementController.getRcaParameters());
-      hostLevelParams.putAll(managementController.getRcaParameters());
       hostLevelParams.put(AGENT_STACK_RETRY_ON_UNAVAILABILITY, configs.isAgentStackRetryOnInstallEnabled());
       hostLevelParams.put(AGENT_STACK_RETRY_COUNT, configs.getAgentStackRetryOnInstallCount());
 
