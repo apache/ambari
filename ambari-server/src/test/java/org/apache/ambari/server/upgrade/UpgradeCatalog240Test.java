@@ -353,6 +353,7 @@ public class UpgradeCatalog240Test {
     Method updateAlerts = UpgradeCatalog240.class.getDeclaredMethod("updateAlerts");
     Method addManageUserPersistedDataPermission = UpgradeCatalog240.class.getDeclaredMethod("addManageUserPersistedDataPermission");
     Method addSettingPermission = UpgradeCatalog240.class.getDeclaredMethod("addSettingPermission");
+    Method updateHDFSConfigs = UpgradeCatalog240.class.getDeclaredMethod("updateHDFSConfigs");
     Method updateAmsConfigs = UpgradeCatalog240.class.getDeclaredMethod("updateAMSConfigs");
     Method updateClusterEnv = UpgradeCatalog240.class.getDeclaredMethod("updateClusterEnv");
     Method updateHostRoleCommandTableDML = UpgradeCatalog240.class.getDeclaredMethod("updateHostRoleCommandTableDML");
@@ -367,6 +368,7 @@ public class UpgradeCatalog240Test {
             .addMockedMethod(updateAlerts)
             .addMockedMethod(addSettingPermission)
             .addMockedMethod(addManageUserPersistedDataPermission)
+            .addMockedMethod(updateHDFSConfigs)
             .addMockedMethod(updateAmsConfigs)
             .addMockedMethod(updateClusterEnv)
             .addMockedMethod(updateHostRoleCommandTableDML)
@@ -379,6 +381,7 @@ public class UpgradeCatalog240Test {
     upgradeCatalog240.updateAlerts();
     upgradeCatalog240.addSettingPermission();
     upgradeCatalog240.addManageUserPersistedDataPermission();
+    upgradeCatalog240.updateHDFSConfigs();
     upgradeCatalog240.updateAMSConfigs();
     upgradeCatalog240.updateClusterEnv();
     upgradeCatalog240.updateHostRoleCommandTableDML();

@@ -181,6 +181,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     setRoleSortOrder();
     addSettingPermission();
     addManageUserPersistedDataPermission();
+    updateHDFSConfigs();
     updateAMSConfigs();
     updateClusterEnv();
     updateHostRoleCommandTableDML();
@@ -1021,6 +1022,37 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     dbAccessor.executeQuery("UPDATE " + HOST_ROLE_COMMAND_TABLE + " SET original_start_time = start_time", false);
     dbAccessor.executeQuery("UPDATE " + HOST_ROLE_COMMAND_TABLE + " SET original_start_time=-1 WHERE original_start_time IS NULL");
     dbAccessor.setColumnNullable(HOST_ROLE_COMMAND_TABLE, columnName, false);
+  }
+
+  /**
+   * In hdfs-site, set dfs.client.retry.policy.enabled=false
+   * This is needed for Rolling/Express upgrade so that clients don't keep retrying, which exhausts the retries and
+   * doesn't allow for a graceful failover, which is expected.
+   * @throws AmbariException
+   */
+  protected void updateHDFSConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        for (final Cluster cluster : clusterMap.values()) {
+          Set<String> installedServices = cluster.getServices().keySet();
+
+          if (installedServices.contains("HDFS")) {
+            Config hdfsSite = cluster.getDesiredConfigByType("hdfs-site");
+            if (hdfsSite != null) {
+              String clientRetryPolicyEnabled = hdfsSite.getProperties().get("dfs.client.retry.policy.enabled");
+              if (null != clientRetryPolicyEnabled && Boolean.parseBoolean(clientRetryPolicyEnabled)) {
+                updateConfigurationProperties("hdfs-site", Collections.singletonMap("dfs.client.retry.policy.enabled", "false"), true, false);
+              }
+            }
+          }
+        }
+      }
+    }
   }
 
   protected void updateAMSConfigs() throws AmbariException {

@@ -78,7 +78,7 @@ public class ClientRetryPropertyCheckTest {
     // nothing installed
     Assert.assertFalse(m_check.isApplicable(request));
 
-    // YARN installed
+    // HDFS installed
     services.put("HDFS", Mockito.mock(Service.class));
     Assert.assertTrue(m_check.isApplicable(request));
 
@@ -97,8 +97,6 @@ public class ClientRetryPropertyCheckTest {
     Map<String, Service> services = new HashMap<String, Service>();
     Mockito.when(cluster.getServices()).thenReturn(services);
 
-    services.put("HDFS", Mockito.mock(Service.class));
-
     final DesiredConfig desiredConfig = Mockito.mock(DesiredConfig.class);
     Mockito.when(desiredConfig.getTag()).thenReturn("tag");
     Map<String, DesiredConfig> configMap = new HashMap<String, DesiredConfig>();
@@ -112,40 +110,52 @@ public class ClientRetryPropertyCheckTest {
     final Map<String, String> properties = new HashMap<String, String>();
     Mockito.when(config.getProperties()).thenReturn(properties);
 
+    // Add HDFS
+    services.put("HDFS", Mockito.mock(Service.class));
+
+    // Add property that will fail
+    properties.put("dfs.client.retry.policy.enabled", "true");
+
     PrerequisiteCheck check = new PrerequisiteCheck(null, null);
+    m_check.perform(check, new PrereqCheckRequest("cluster"));
+    Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
+
+    // Change property to pass
+    properties.put("dfs.client.retry.policy.enabled", "false");
+    check = new PrerequisiteCheck(null, null);
     m_check.perform(check, new PrereqCheckRequest("cluster"));
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
 
-    // add hive
+    // Add HIVE
     services.put("HIVE", Mockito.mock(Service.class));
 
-    // fail with bad property
+    // Fail with bad property
     properties.put("hive.metastore.failure.retries", "0");
     check = new PrerequisiteCheck(null, null);
     m_check.perform(check, new PrereqCheckRequest("cluster"));
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
 
-    // add hive retry
+    // Add hive retry in order to pass
     properties.put("hive.metastore.failure.retries", "5");
     check = new PrerequisiteCheck(null, null);
     m_check.perform(check, new PrereqCheckRequest("cluster"));
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
 
-    // add oozie
+    // Add OOZIE
     services.put("OOZIE", Mockito.mock(Service.class));
 
-    // fail without property
+    // Fail without property
     check = new PrerequisiteCheck(null, null);
     m_check.perform(check, new PrereqCheckRequest("cluster"));
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
 
-    // fail without right property
+    // Fail without right property
     properties.put("template", "foo bar baz");
     check = new PrerequisiteCheck(null, null);
     m_check.perform(check, new PrereqCheckRequest("cluster"));
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
 
-    // pass with right property
+    // Pass with right property
     properties.put("content", "foo bar baz -Doozie.connection.retry.count=5 foobarbaz");
     check = new PrerequisiteCheck(null, null);
     m_check.perform(check, new PrereqCheckRequest("cluster"));
