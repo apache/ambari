@@ -20,7 +20,6 @@ package org.apache.ambari.server.orm;
 import javax.activation.DataSource;
 
 import org.eclipse.persistence.config.SessionCustomizer;
-import org.eclipse.persistence.platform.database.MySQLPlatform;
 import org.eclipse.persistence.sessions.DatabaseLogin;
 import org.eclipse.persistence.sessions.JNDIConnector;
 import org.eclipse.persistence.sessions.Session;
@@ -55,10 +54,8 @@ public class EclipseLinkSessionCustomizer implements SessionCustomizer {
    */
   @Override
   public void customize(Session session) throws Exception {
-    //Override transaction isolation level for MySQL to match EclipseLink shared cache behavior
+    // ensure db behavior is same as shared cache
     DatabaseLogin databaseLogin = (DatabaseLogin) session.getDatasourceLogin();
-    if (databaseLogin.getDatasourcePlatform() instanceof MySQLPlatform) {
-      databaseLogin.setTransactionIsolation(DatabaseLogin.TRANSACTION_READ_COMMITTED);
-    }
+    databaseLogin.setTransactionIsolation(DatabaseLogin.TRANSACTION_READ_COMMITTED);
   }
 }
