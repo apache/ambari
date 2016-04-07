@@ -305,7 +305,6 @@
         <includes>
           <include>META-INF/**/*</include>
           <include>view.xml</include>
-          <include>view.log4j.properties</include>
         </includes>
       </resource>
       <resource>
