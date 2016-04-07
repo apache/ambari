@@ -1776,7 +1776,7 @@ Em.I18n.translations = {
   'services.service.delete.popup.mustBeStopped.dependent': ' Along with dependent service <b>{0}</b>.',
   'services.service.delete.popup.warning': 'The <b>{0} service will be removed from Ambari and all configurations' +
   ' and configuration history will be lost.</b>',
-  'services.service.delete.popup.warning.dependent': '<b>Note! {0} will be deleted too.</b>',
+  'services.service.delete.popup.warning.dependent': '<b> Note: The dependent {0} service will be removed too.</b>',
   'services.service.confirmDelete.popup.header': 'Confirm Delete',
   'services.service.confirmDelete.popup.body': 'You must confirm delete of <b>{0}</b> by typing "{1}"' +
   ' in the confirmation box. <b>This operation is not reversible and all configuration history will be lost.</b>',
