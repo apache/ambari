@@ -2621,6 +2621,10 @@ var urls = {
     real: '/clusters/{clusterName}/configurations/service_config_versions?service_name.in({serviceNames})&is_current=true&fields=*',
     mock: '/data/configurations/service_versions.json'
   },
+  'service.serviceConfigVersions.get.current.not.default': {
+    real: '/clusters/{clusterName}/configurations/service_config_versions?is_current=true&group_id>0&fields=*',
+    mock: '/data/configurations/service_versions.json'
+  },
   'service.serviceConfigVersions.get.total': {
     real: '/clusters/{clusterName}/configurations/service_config_versions?page_size=1&minimal_response=true',
     mock: '/data/configurations/service_versions_total.json'
