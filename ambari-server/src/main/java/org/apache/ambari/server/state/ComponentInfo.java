@@ -340,7 +340,7 @@ public class ComponentInfo {
     if (autoDeploy != null ? !autoDeploy.equals(that.autoDeploy) : that.autoDeploy != null) return false;
     if (cardinality != null ? !cardinality.equals(that.cardinality) : that.cardinality != null) return false;
     if (versionAdvertised != that.versionAdvertised) return false;
-    if (decommissionAllowed != that.decommissionAllowed) return false;
+    if (decommissionAllowed != null ? !decommissionAllowed.equals(that.decommissionAllowed) : that.decommissionAllowed != null) return false;
     if (category != null ? !category.equals(that.category) : that.category != null) return false;
     if (clientConfigFiles != null ? !clientConfigFiles.equals(that.clientConfigFiles) : that.clientConfigFiles != null)
       return false;
