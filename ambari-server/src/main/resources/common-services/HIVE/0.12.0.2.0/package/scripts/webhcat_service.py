@@ -22,6 +22,9 @@ from resource_management import *
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
 from resource_management.core.shell import as_user
+from resource_management.core.logger import Logger
+import traceback
+
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def webhcat_service(action='start', rolling_restart=False):
@@ -57,8 +60,9 @@ def webhcat_service(action='start', upgrade_type=None):
   elif action == 'stop':
     try:
       graceful_stop(cmd, environ)
-    except:
+    except Fail:
       show_logs(params.hcat_log_dir, params.webhcat_user)
+      Logger.info(traceback.format_exc())
 
     pid_expression = "`" + as_user(format("cat {webhcat_pid_file}"), user=params.webhcat_user) + "`"
     process_id_exists_command = format("ls {webhcat_pid_file} >/dev/null 2>&1 && ps -p {pid_expression} >/dev/null 2>&1")

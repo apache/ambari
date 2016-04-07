@@ -20,6 +20,7 @@ limitations under the License.
 import json
 from mock.mock import MagicMock, patch
 from stacks.utils.RMFTestCase import *
+from resource_management.core.exceptions import Fail
 
 @patch("os.path.isfile", new = MagicMock(return_value=True))
 @patch("glob.glob", new = MagicMock(return_value=["one", "two"]))
@@ -95,7 +96,7 @@ class TestWebHCatServer(RMFTestCase):
       self.assert_configure_secured()
       self.assertNoMoreResources()
 
-  @patch("webhcat_service.graceful_stop", new = MagicMock(side_effect=Exception))
+  @patch("webhcat_service.graceful_stop", new = MagicMock(side_effect=Fail))
   def test_stop_graceful_stop_failed(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/webhcat_server.py",
                        classname = "WebHCatServer",
@@ -169,7 +170,7 @@ class TestWebHCatServer(RMFTestCase):
     )
     self.assertNoMoreResources()
 
-  @patch("webhcat_service.graceful_stop", new = MagicMock(side_effect=Exception))
+  @patch("webhcat_service.graceful_stop", new = MagicMock(side_effect=Fail))
   def test_stop_secured_graceful_stop_failed(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/webhcat_server.py",
                        classname = "WebHCatServer",
