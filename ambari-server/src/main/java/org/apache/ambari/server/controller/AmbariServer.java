@@ -118,6 +118,7 @@ import org.apache.ambari.server.utils.AmbariPath;
 import org.apache.ambari.server.utils.RetryHelper;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.ambari.server.utils.VersionUtils;
+import org.apache.ambari.server.view.ViewDirectoryWatcher;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.apache.velocity.app.Velocity;
 import org.eclipse.jetty.http.HttpVersion;
@@ -259,6 +260,9 @@ public class AmbariServer {
 
   @Inject
   DelegatingFilterProxy springSecurityFilter;
+
+  @Inject
+  ViewDirectoryWatcher viewDirectoryWatcher;
 
   public String getServerOsType() {
     return configs.getServerOsType();
@@ -484,6 +488,7 @@ public class AmbariServer {
       SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
 
       viewRegistry.readViewArchives();
+      viewDirectoryWatcher.start();
 
       handlerList.addHandler(root);
       server.setHandler(handlerList);

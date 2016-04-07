@@ -102,6 +102,7 @@ import javax.inject.Singleton;
 import java.beans.IntrospectionException;
 import java.io.File;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -1424,12 +1425,43 @@ public class ViewRegistry {
     privilegeDAO.remove(privilegeEntity);
   }
 
+
+  /**
+   * Extract a view archive at the specified path
+   * @param path
+   */
+  public void readViewArchive(Path path) {
+
+    File viewDir = configuration.getViewsDir();
+    String extractedArchivesPath = viewDir.getAbsolutePath() +
+            File.separator + EXTRACTED_ARCHIVES_DIR;
+
+    File archiveFile = path.toAbsolutePath().toFile();
+    if (extractor.ensureExtractedArchiveDirectory(extractedArchivesPath)) {
+        try {
+          final ViewConfig viewConfig = archiveUtility.getViewConfigFromArchive(archiveFile);
+          String viewName = ViewEntity.getViewName(viewConfig.getName(), viewConfig.getVersion());
+          final String extractedArchiveDirPath = extractedArchivesPath + File.separator + viewName;
+          final File extractedArchiveDirFile = archiveUtility.getFile(extractedArchiveDirPath);
+          final ViewEntity viewDefinition = new ViewEntity(viewConfig, configuration, extractedArchiveDirPath);
+          addDefinition(viewDefinition);
+          readViewArchive(viewDefinition, archiveFile, extractedArchiveDirFile, ambariMetaInfoProvider.get().getServerVersion());
+        } catch (Exception e){
+          LOG.error("Could not process archive at path "+path, e);
+        }
+    }
+
+  }
+
+
+
+
   // read the view archives.
   private void readViewArchives(boolean systemOnly, boolean useExecutor,
                                 String viewNameRegExp) {
     try {
-      File viewDir = configuration.getViewsDir();
 
+      File viewDir = configuration.getViewsDir();
       String extractedArchivesPath = viewDir.getAbsolutePath() +
           File.separator + EXTRACTED_ARCHIVES_DIR;
 
@@ -1766,6 +1798,8 @@ public class ViewRegistry {
             sslConfiguration.getTruststoreType());
     return new ViewAmbariStreamProvider(streamProvider, ambariSessionManager, AmbariServer.getController());
   }
+
+
 
   /**
    * Module for stand alone view registry.
