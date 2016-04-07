@@ -125,6 +125,27 @@ def resolve_ambari_config():
   except Exception, err:
     logger.warn(err)
 
+def check_sudo():
+  # don't need to check sudo for root.
+  if os.geteuid() == 0:
+    return
+  
+  runner = shellRunner()
+  test_command = [AMBARI_SUDO_BINARY, '/usr/bin/test', '/']
+  test_command_str = ' '.join(test_command)
+  
+  start_time = time.time()
+  res = runner.run(test_command)
+  end_time = time.time()
+  run_time = end_time - start_time
+  
+  if res['exitCode'] != 0:
+    raise Exception("Please check your sudo configurations.\n" + test_command_str + " failed with " + res['error'] + res['output']) # bad sudo configurations
+  
+  if run_time > 2:
+    logger.warn(("Sudo commands on this host are running slowly ('{0}' took {1} seconds).\n" +
+                "This will create a significant slow down for ambari-agent service tasks.").format(test_command_str, run_time))
+    
 
 def perform_prestart_checks(expected_hostname):
   # Check if current hostname is equal to expected one (got from the server
@@ -158,6 +179,8 @@ def perform_prestart_checks(expected_hostname):
     logger.error(msg)
     print(msg)
     sys.exit(1)
+    
+  check_sudo()
 
 
 def daemonize():

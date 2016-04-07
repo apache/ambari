@@ -155,12 +155,14 @@ class TestMain(unittest.TestCase):
 
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
+  @patch("ambari_commons.shell.shellRunnerLinux.run")
   @patch("sys.exit")
   @patch("os.path.isfile")
   @patch("os.path.isdir")
   @patch("hostname.hostname")
-  def test_perform_prestart_checks(self, hostname_mock, isdir_mock, isfile_mock, exit_mock):
+  def test_perform_prestart_checks(self, hostname_mock, isdir_mock, isfile_mock, exit_mock, shell_mock):
     main.config = AmbariConfig().getConfig()
+    shell_mock.return_value = {"exitCode": 0}
 
     # Check expected hostname test
     hostname_mock.return_value = "test.hst"
