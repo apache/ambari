@@ -121,6 +121,9 @@ security_enabled = config['configurations']['cluster-env']['security_enabled']
 
 storm_ui_host = default("/clusterHostInfo/storm_ui_server_hosts", [])
 
+storm_user_nofile_limit = default('/configurations/storm-env/storm_user_nofile_limit', 128000)
+storm_user_nproc_limit = default('/configurations/storm-env/storm_user_noproc_limit', 65536)
+
 if security_enabled:
   _hostname_lowercase = config['hostname'].lower()
   _storm_principal_name = config['configurations']['storm-env']['storm_principal_name']

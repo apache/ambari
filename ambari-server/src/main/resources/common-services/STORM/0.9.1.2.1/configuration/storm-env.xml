@@ -89,7 +89,18 @@
     <name>nimbus_principal_name</name>
     <description>Nimbus principal name</description>
   </property>
-  
+
+  <property>
+    <name>storm_user_nofile_limit</name>
+    <value>128000</value>
+    <description>Max open files limit setting for STORM user.</description>
+  </property>
+  <property>
+    <name>storm_user_nproc_limit</name>
+    <value>65536</value>
+    <description>Max number of processes limit setting for STORM user.</description>
+  </property>
+
   <!-- storm-env.sh -->
   <property>
     <name>content</name>
