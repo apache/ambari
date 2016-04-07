@@ -216,7 +216,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    */
   realRepoUrl: function () {
     return App.get('apiPrefix') + App.get('stackVersionURL') +
-      '/repository_versions?fields=*,RepositoryVersions/*,operating_systems/*,operating_systems/repositories/*';
+      '/compatible_repository_versions?fields=*,operating_systems/*,operating_systems/repositories/*';
   }.property('App.stackVersionURL'),
 
   /**

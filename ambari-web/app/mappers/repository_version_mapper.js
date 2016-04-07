@@ -24,7 +24,7 @@ App.repoVersionMapper = App.QuickDataMapper.create({
   modelServices: App.ServiceSimple,
 
   modelRepoVersion: function (isCurrentStackOnly) {
-    var repoVersionsKey = 'RepositoryVersions';
+    var repoVersionsKey = isCurrentStackOnly ? 'RepositoryVersions' : 'CompatibleRepositoryVersions';
     return {
       id: repoVersionsKey + '.id',
       stack_version_id: repoVersionsKey + '.stackVersionId',
@@ -91,7 +91,7 @@ App.repoVersionMapper = App.QuickDataMapper.create({
     var resultOS = [];
     var resultRepo = [];
     var resultService = [];
-    var repoVersionsKey = 'RepositoryVersions';
+    var repoVersionsKey = isCurrentStackOnly ? 'RepositoryVersions' : 'CompatibleRepositoryVersions';
 
     if (json && json.items) {
       json.items.forEach(function (item) {
