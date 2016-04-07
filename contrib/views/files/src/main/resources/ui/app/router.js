@@ -28,6 +28,7 @@ Router.map(function() {
   this.route('messages', function() {
     this.route('message', {path: '/:message_id'});
   });
+  this.route('splash');
 });
 
 export default Router;

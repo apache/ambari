@@ -31,6 +31,7 @@ import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.filebrowser.utils.NotFoundFormattedException;
 import org.apache.ambari.view.filebrowser.utils.ServiceFormattedException;
 import org.apache.ambari.view.utils.hdfs.HdfsApi;
+import org.json.simple.JSONObject;
 
 /**
  * Help service
@@ -77,6 +78,26 @@ public class HelpService extends HdfsService {
   public Response filesystem() {
     return Response.ok(
         context.getProperties().get("webhdfs.url")).build();
+  }
+
+  /**
+   * HDFS Status
+   * @return status
+   */
+  @GET
+  @Path("/hdfsStatus")
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response hdfsStatus(){
+    HdfsService.hdfsSmokeTest(context);
+    return getOKResponse();
+  }
+
+  private Response getOKResponse() {
+    JSONObject response = new JSONObject();
+    response.put("message", "OK");
+    response.put("trace", null);
+    response.put("status", "200");
+    return Response.ok().entity(response).type(MediaType.APPLICATION_JSON).build();
   }
 
   /**

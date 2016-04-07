@@ -18,6 +18,7 @@
 
 package org.apache.ambari.view.filebrowser;
 
+import javax.ws.rs.WebApplicationException;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.apache.ambari.view.ViewContext;
@@ -124,6 +125,21 @@ public abstract class HdfsService {
     if (username == null || username.isEmpty())
       username = context.getUsername();
     return username;
+  }
+
+  /**
+   * Checks connection to HDFS
+   * @param context View Context
+   */
+  public static void hdfsSmokeTest(ViewContext context) {
+    try {
+      HdfsApi api = HdfsUtil.connectToHDFSApi(context);
+      api.getStatus();
+    } catch (WebApplicationException ex) {
+      throw ex;
+    } catch (Exception ex) {
+      throw new ServiceFormattedException(ex.getMessage(), ex);
+    }
   }
 
   /**

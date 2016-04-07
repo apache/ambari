@@ -19,7 +19,38 @@
 import Ember from 'ember';
 
 export default Ember.Route.extend({
-  beforeModel: function(transition) {
-    this.transitionTo('splash');
+
+  model: function() {
+    return Ember.Object.create({
+      hdfsTest: null,
+      hdfsTestDone: null,
+      percent: 0
+    });
+  },
+
+  setupController: function(controller, model) {
+
+    if (!model) {
+      return;
+    }
+
+    controller.set('model', model);
+    var self = this;
+    controller.startTests().then(function() {
+
+      if (model.get("hdfsTest")) {
+        Ember.run.later(this, function() {
+          self.send('transition');
+        }, 3000);
+      }
+    });
+  },
+
+  actions: {
+    transition: function() {
+      this.transitionTo('files');
+    }
   }
+
 });
+
