@@ -101,6 +101,7 @@ import org.junit.Test;
 
 import javax.persistence.EntityManager;
 import java.lang.reflect.Field;
+import java.net.InetAddress;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -567,7 +568,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     Map<String, Collection<KerberosIdentityDescriptor>> identities = testGetActiveIdentities("c1", null, "SERVICE1", null, true, SecurityType.KERBEROS);
 
     Assert.assertNotNull(identities);
-    Assert.assertEquals(2, identities.size());
+    Assert.assertEquals(3, identities.size());
 
     Collection<KerberosIdentityDescriptor> hostIdentities;
 
@@ -701,7 +702,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     Map<String, Collection<KerberosIdentityDescriptor>> identities = testGetActiveIdentities("c1", null, null, "COMPONENT2", true, SecurityType.KERBEROS);
 
     Assert.assertNotNull(identities);
-    Assert.assertEquals(2, identities.size());
+    Assert.assertEquals(3, identities.size());
 
     Collection<KerberosIdentityDescriptor> hostIdentities;
 
@@ -754,7 +755,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     Map<String, Collection<KerberosIdentityDescriptor>> identities = testGetActiveIdentities("c1", null, null, null, true, clusterSecurityType);
 
     Assert.assertNotNull(identities);
-    Assert.assertEquals(2, identities.size());
+    Assert.assertEquals(3, identities.size());
 
     Collection<KerberosIdentityDescriptor> hostIdentities;
 
@@ -3673,6 +3674,35 @@ public class KerberosHelperTest extends EasyMockSupport {
           }
         })
         .anyTimes();
+    expect(cluster.getServiceComponentHosts(InetAddress.getLocalHost().getCanonicalHostName().toLowerCase()))
+      .andReturn(new ArrayList<ServiceComponentHost>())
+      .anyTimes();
+
+    final Map<String, String> kerberosEnvProperties = new HashMap<String, String>() {
+      {
+        put("kdc_type", "mit-kdc");
+        put("realm", "FOOBAR.COM");
+        put("case_insensitive_username_rules", "false");
+        put("create_ambari_principal", "false");
+      }
+    };
+
+    final Config kerberosEnvConfig = createMock(Config.class);
+    expect(kerberosEnvConfig.getProperties()).andReturn(kerberosEnvProperties).anyTimes();
+
+    final Map<String, String> krb5ConfProperties = createMock(Map.class);
+
+    final Config krb5ConfConfig = createMock(Config.class);
+    expect(krb5ConfConfig.getProperties()).andReturn(krb5ConfProperties).anyTimes();
+
+    expect(cluster.getDesiredConfigByType("krb5-conf"))
+      .andReturn(krb5ConfConfig)
+      .anyTimes();
+
+    expect(cluster.getDesiredConfigByType("kerberos-env"))
+      .andReturn(kerberosEnvConfig)
+      .anyTimes();
+
     expect(cluster.getCurrentStackVersion())
         .andReturn(new StackId("HDP", "2.2"))
         .anyTimes();

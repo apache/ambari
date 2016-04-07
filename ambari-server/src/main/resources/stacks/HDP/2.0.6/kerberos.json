@@ -47,7 +47,7 @@
     {
       "name": "ambari-server",
       "principal": {
-        "value": "ambari-server-${cluster_name}@${realm}",
+        "value": "ambari-server-${cluster_name|toLower()}@${realm}",
         "type" : "user",
         "configuration": "cluster-env/ambari_principal_name"
       },

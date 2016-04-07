@@ -198,28 +198,36 @@ public class ConfigureAmbariIndetityServerAction extends KerberosServerAction {
 
   private void configureJAAS(String evaluatedPrincipal, String keytabFilePath, ActionLog actionLog) {
     String jaasConfPath = System.getProperty(KerberosChecker.JAVA_SECURITY_AUTH_LOGIN_CONFIG);
-    File jaasConfigFile = new File(jaasConfPath);
-    try {
-      String jaasConfig = FileUtils.readFileToString(jaasConfigFile);
-      File oldJaasConfigFile = new File(jaasConfPath + ".bak");
-      FileUtils.writeStringToFile(oldJaasConfigFile, jaasConfig);
-      jaasConfig = jaasConfig.replaceFirst(KEYTAB_PATTERN, "keyTab=\"" + keytabFilePath + "\"");
-      jaasConfig = jaasConfig.replaceFirst(PRINCIPAL_PATTERN, "principal=\"" + evaluatedPrincipal + "\"");
-      FileUtils.writeStringToFile(jaasConfigFile, jaasConfig);
-      String message = String.format("JAAS config file %s modified successfully for principal %s.", jaasConfigFile
-        .getName(), evaluatedPrincipal);
-      if (actionLog != null) {
-        actionLog.writeStdOut(message);
+    if (jaasConfPath != null) {
+      File jaasConfigFile = new File(jaasConfPath);
+      try {
+        String jaasConfig = FileUtils.readFileToString(jaasConfigFile);
+        File oldJaasConfigFile = new File(jaasConfPath + ".bak");
+        FileUtils.writeStringToFile(oldJaasConfigFile, jaasConfig);
+        jaasConfig = jaasConfig.replaceFirst(KEYTAB_PATTERN, "keyTab=\"" + keytabFilePath + "\"");
+        jaasConfig = jaasConfig.replaceFirst(PRINCIPAL_PATTERN, "principal=\"" + evaluatedPrincipal + "\"");
+        FileUtils.writeStringToFile(jaasConfigFile, jaasConfig);
+        String message = String.format("JAAS config file %s modified successfully for principal %s.", jaasConfigFile
+          .getName(), evaluatedPrincipal);
+        if (actionLog != null) {
+          actionLog.writeStdOut(message);
+        }
+      } catch (IOException e) {
+        String message = String.format("Failed to configure JAAS file %s for %s - %s", jaasConfigFile,
+          evaluatedPrincipal, e.getMessage());
+        if (actionLog != null) {
+          actionLog.writeStdErr(message);
+        }
+        LOG.error(message, e);
       }
-    } catch (IOException e) {
-      String message = String.format("Failed to configure JAAS file %s for %s - %s", jaasConfigFile,
-        evaluatedPrincipal, e.getMessage());
+    } else {
+      String message = String.format("Failed to configure JAAS, config file should be passed to Ambari server as: " +
+        "%s.", KerberosChecker.JAVA_SECURITY_AUTH_LOGIN_CONFIG);
       if (actionLog != null) {
         actionLog.writeStdErr(message);
       }
-      LOG.error(message, e);
+      LOG.error(message);
     }
-
   }
 
   /**

@@ -1248,6 +1248,7 @@ public class KerberosHelperImpl implements KerberosHelper {
     Map<String, Collection<KerberosIdentityDescriptor>> activeIdentities = new HashMap<String, Collection<KerberosIdentityDescriptor>>();
 
     Collection<String> hosts;
+    String ambariServerHostname = StageUtils.getHostName();
 
     if (hostName == null) {
       Map<String, Host> hostMap = clusters.getHostsForCluster(clusterName);
@@ -1256,24 +1257,39 @@ public class KerberosHelperImpl implements KerberosHelper {
       } else {
         hosts = hostMap.keySet();
       }
+
+      if (!hosts.contains(ambariServerHostname)) {
+        Collection<String> extendedHosts = new ArrayList<>(hosts.size() + 1);
+        extendedHosts.addAll(hosts);
+        extendedHosts.add(ambariServerHostname);
+        hosts = extendedHosts;
+      }
     } else {
       hosts = Collections.singleton(hostName);
     }
 
+    KerberosDescriptor kerberosDescriptor = getKerberosDescriptor(cluster);
+
     if ((hosts != null) && !hosts.isEmpty()) {
-      KerberosDescriptor kerberosDescriptor = getKerberosDescriptor(cluster);
 
       if (kerberosDescriptor != null) {
         Map<String, String> kerberosDescriptorProperties = kerberosDescriptor.getProperties();
 
         for (String hostname : hosts) {
           Map<String, KerberosIdentityDescriptor> hostActiveIdentities = new HashMap<String, KerberosIdentityDescriptor>();
-          List<KerberosIdentityDescriptor> identities = getActiveIdentities(cluster, hostname, serviceName, componentName, kerberosDescriptor);
+          List<KerberosIdentityDescriptor> identities = getActiveIdentities(cluster, hostname,
+            serviceName, componentName, kerberosDescriptor);
+
+          if (hostname.equals(ambariServerHostname)) {
+            addAmbariServerIdentity(cluster, kerberosDescriptor, identities);
+          }
 
           if (!identities.isEmpty()) {
             // Calculate the current host-specific configurations. These will be used to replace
             // variables within the Kerberos descriptor data
-            Map<String, Map<String, String>> configurations = calculateConfigurations(cluster, hostname, kerberosDescriptorProperties);
+            Map<String, Map<String, String>> configurations = calculateConfigurations(cluster, hostname.equals
+                (ambariServerHostname) ? null : hostname,
+              kerberosDescriptorProperties);
 
             for (KerberosIdentityDescriptor identity : identities) {
               KerberosPrincipalDescriptor principalDescriptor = identity.getPrincipalDescriptor();
@@ -1342,6 +1358,21 @@ public class KerberosHelperImpl implements KerberosHelper {
     }
 
     return activeIdentities;
+  }
+
+  private void addAmbariServerIdentity(Cluster cluster, KerberosDescriptor kerberosDescriptor, List<KerberosIdentityDescriptor> identities) throws AmbariException {
+    try {
+      KerberosDetails kerberosDetails = getKerberosDetails(cluster, null);
+      // append Ambari server principal
+      if (kerberosDetails.createAmbariPrincipal()) {
+        KerberosIdentityDescriptor ambariServerIdentity = kerberosDescriptor.getIdentity(KerberosHelper.AMBARI_IDENTITY_NAME);
+        if (ambariServerIdentity != null) {
+          identities.add(ambariServerIdentity);
+        }
+      }
+    } catch (KerberosInvalidConfigurationException e) {
+      LOG.warn("Unable to append Ambari server principal: {}", e);
+    }
   }
 
   /**
@@ -2255,8 +2286,7 @@ public class KerberosHelperImpl implements KerberosHelper {
    *                           services
    * @param componentName      the name of a component for which to find results, null indicates all
    *                           components
-   * @param kerberosDescriptor the relevant Kerberos Descriptor
-   * @return a list of KerberosIdentityDescriptors representing the active identities for the
+   * @param kerberosDescriptor the relevant Kerberos Descriptor     @return a list of KerberosIdentityDescriptors representing the active identities for the
    * requested service component
    * @throws AmbariException if an error occurs processing the cluster's active identities
    */
