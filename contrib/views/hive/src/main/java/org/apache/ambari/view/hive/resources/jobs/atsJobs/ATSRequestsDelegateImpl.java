@@ -107,6 +107,14 @@ public class ATSRequestsDelegateImpl implements ATSRequestsDelegate {
     return atsUrl + "/ws/v1/timeline/TEZ_DAG_ID?primaryFilter=callerId:" + entity;
   }
 
+  public boolean checkATSStatus() throws IOException {
+    String url = atsUrl + "/ws/v1/timeline/";
+    InputStream responseInputStream = context.getURLStreamProvider().readAsCurrent(url, "GET",
+            (String)null, new HashMap<String, String>());
+     IOUtils.toString(responseInputStream);
+    return true;
+  }
+
   @Override
   public JSONObject tezVerticesListForDAG(String dagId) {
     String response = readFromWithDefault(tezVerticesListForDAGUrl(dagId), "{ \"entities\" : [  ] }");

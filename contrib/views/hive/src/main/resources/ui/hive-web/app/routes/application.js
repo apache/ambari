@@ -20,6 +20,11 @@ import Ember from 'ember';
 import constants from 'hive/utils/constants';
 
 export default Ember.Route.extend({
+
+  beforeModel: function () {
+    this.transitionTo('splash');
+  },
+
   notifyService: Ember.inject.service(constants.namingConventions.notify),
 
   setupController: function (controller, model) {
