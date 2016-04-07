@@ -21,7 +21,7 @@
     <value>1000000000</value>
     <description>
       The maximum size, in bytes, of a single shared memory segment that a Linux process can allocate in its virtual address space.
-      The default is 500000000.
+      The default is 1000000000.
     </description>
     <value-attributes>
       <type>int</type>
@@ -229,7 +229,7 @@
     <value>1025 65535</value>
     <description>
       The local port range, specified by two values separated by a space, used by TCP and UDP traffic when choosing the local port.
-      The default is 1281 65535.
+      The default is 1025 65535.
     </description>
     <value-attributes>
       <type>string</type>
