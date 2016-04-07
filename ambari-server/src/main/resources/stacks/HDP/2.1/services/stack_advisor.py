@@ -160,6 +160,7 @@ class HDP21StackAdvisor(HDP206StackAdvisor):
       'NEW MYSQL DATABASE': 'com.mysql.jdbc.Driver',
       'NEW DERBY DATABASE': 'org.apache.derby.jdbc.EmbeddedDriver',
       'EXISTING MYSQL DATABASE': 'com.mysql.jdbc.Driver',
+      'EXISTING MYSQL / MARIADB DATABASE': 'com.mysql.jdbc.Driver',
       'EXISTING POSTGRESQL DATABASE': 'org.postgresql.Driver',
       'EXISTING ORACLE DATABASE': 'oracle.jdbc.driver.OracleDriver',
       'EXISTING SQL ANYWHERE DATABASE': 'sap.jdbc4.sqlanywhere.IDriver'
@@ -171,6 +172,7 @@ class HDP21StackAdvisor(HDP206StackAdvisor):
       'NEW MYSQL DATABASE': 'jdbc:mysql://{0}/{1}?createDatabaseIfNotExist=true',
       'NEW DERBY DATABASE': 'jdbc:derby:${{oozie.data.dir}}/${{oozie.db.schema.name}}-db;create=true',
       'EXISTING MYSQL DATABASE': 'jdbc:mysql://{0}/{1}',
+      'EXISTING MYSQL / MARIADB DATABASE': 'jdbc:mysql://{0}/{1}',
       'EXISTING POSTGRESQL DATABASE': 'jdbc:postgresql://{0}:5432/{1}',
       'EXISTING ORACLE DATABASE': 'jdbc:oracle:thin:@//{0}:1521/{1}',
       'EXISTING SQL ANYWHERE DATABASE': 'jdbc:sqlanywhere:host={0};database={1}'
@@ -181,6 +183,7 @@ class HDP21StackAdvisor(HDP206StackAdvisor):
     driverDict = {
       'NEW MYSQL DATABASE': 'mysql',
       'NEW DERBY DATABASE': 'derby',
+      'EXISTING MYSQL / MARIADB DATABASE': 'mysql',
       'EXISTING MYSQL DATABASE': 'mysql',
       'EXISTING POSTGRESQL DATABASE': 'postgres',
       'EXISTING ORACLE DATABASE': 'oracle',

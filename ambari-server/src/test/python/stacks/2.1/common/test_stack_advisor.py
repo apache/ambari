@@ -255,6 +255,12 @@ class TestHDP21StackAdvisor(TestCase):
     self.assertEquals(configurations['hive-site']['properties']['javax.jdo.option.ConnectionURL'], "jdbc:sqlanywhere:host=example.com;database=hive_name")
     self.assertEquals(configurations['hive-site']['properties']['javax.jdo.option.ConnectionDriverName'], "sap.jdbc4.sqlanywhere.IDriver")
 
+    # existing Mysql / MariaDB
+    services['configurations']['hive-env']['properties']['hive_database'] = 'Existing MySQL / MariaDB Database'
+    self.stackAdvisor.recommendHiveConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations['hive-site']['properties']['javax.jdo.option.ConnectionURL'], "jdbc:mysql://example.com/hive_name")
+    self.assertEquals(configurations['hive-site']['properties']['javax.jdo.option.ConnectionDriverName'], "com.mysql.jdbc.Driver")
+
   def test_recommendHiveConfigurations_containersRamIsLess(self):
     configurations = {}
     clusterData = {
