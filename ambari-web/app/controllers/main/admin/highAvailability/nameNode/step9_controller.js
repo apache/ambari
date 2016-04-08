@@ -118,19 +118,16 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
 
   reconfigureHawq: function () {
     var data = this.get('content.serviceConfigProperties');
-    var reconfigureFiles = ['hawq-site', 'hdfs-client'];
-    reconfigureFiles.forEach(function (fileName) {
-      var configData = this.reconfigureSites([fileName], data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('NAMENODE', false)));
-      App.ajax.send({
-        name: 'common.service.configurations',
-        sender: this,
-        data: {
-          desired_config: configData
-        },
-        success: 'saveConfigTag',
-        error: 'onTaskError'
-      });
-    }, this);
+    var configData = this.reconfigureSites(['hawq-site', 'hdfs-client'], data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('NAMENODE', false)));
+    App.ajax.send({
+      name: 'common.service.configurations',
+      sender: this,
+      data: {
+        desired_config: configData
+      },
+      success: 'saveConfigTag',
+      error: 'onTaskError'
+    });
   },
 
   saveConfigTag: function () {
