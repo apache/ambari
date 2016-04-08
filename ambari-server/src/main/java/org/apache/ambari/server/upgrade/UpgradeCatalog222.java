@@ -57,6 +57,7 @@ import com.google.gson.JsonParser;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
+
 /**
  * Upgrade catalog for version 2.2.2.
  */
@@ -182,6 +183,7 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
     updateCorruptedReplicaWidget();
     updateZookeeperConfigs();
     createNewSliderConfigVersion();
+    initializeStromAndKafkaWidgets();
   }
 
   protected void createNewSliderConfigVersion() {
@@ -563,6 +565,34 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
   protected void updateUpgradeTable() throws AmbariException, SQLException {
     dbAccessor.addColumn(UPGRADE_TABLE,
       new DBAccessor.DBColumnInfo(UPGRADE_SUSPENDED_COLUMN, Short.class, 1, 0, false));
+  }
+
+  /**
+   * Copy cluster & service widgets for Storm and Kafka from stack to DB.
+   */
+  protected void initializeStromAndKafkaWidgets() throws AmbariException {
+    AmbariManagementController controller = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = controller.getClusters();
+    if (clusters == null) {
+      return;
+    }
+
+    Map<String, Cluster> clusterMap = clusters.getClusters();
+
+    if (clusterMap != null && !clusterMap.isEmpty()) {
+      for (Cluster cluster : clusterMap.values()) {
+        controller.initializeWidgetsAndLayouts(cluster, null);
+
+        Map<String, Service> serviceMap = cluster.getServices();
+        if (serviceMap != null && !serviceMap.isEmpty()) {
+          for (Service service : serviceMap.values()) {
+            if ("STORM".equals(service.getName()) || "KAFKA".equals(service.getName())) {
+              controller.initializeWidgetsAndLayouts(cluster, service);
+            }
+          }
+        }
+      }
+    }
   }
 
 }
