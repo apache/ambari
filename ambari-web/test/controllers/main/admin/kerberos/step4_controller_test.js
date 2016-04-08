@@ -213,8 +213,8 @@ describe('App.KerberosWizardStep4Controller', function() {
           })
         });
         sinon.stub(App.router, 'get').withArgs('mainAdminKerberosController.isManualKerberos').returns(false);
-        controller.setStepConfigs(properties);
-        res = controller.get('stepConfigs')[0].get('configs').concat(controller.get('stepConfigs')[1].get('configs'));
+        var stepConfigs = controller.setStepConfigs(properties);
+        res = stepConfigs[0].get('configs').concat(stepConfigs[1].get('configs'));
       });
 
       Em.A([
@@ -290,7 +290,7 @@ describe('App.KerberosWizardStep4Controller', function() {
         this.wizardController = App.AddServiceController.create({});
         controller.set('wizardController', this.wizardController);
         sinon.stub(controller, 'clearStep').returns(true);
-
+        sinon.stub(controller, 'getDescriptor').returns({ then: function() { return { always: function() {}}}});
         sinon.stub(controller, 'setStepConfigs').returns(true);
         sinon.stub(App.router, 'send').withArgs('next');
       });
@@ -338,6 +338,202 @@ describe('App.KerberosWizardStep4Controller', function() {
         controller.set('wizardController', App.KerberosWizardController.create({}));
         controller.loadStep();
         expect(App.router.send.calledWith('next')).to.be.false;
+      });
+    });
+  });
+
+  describe('#mergeDescriptorToConfigurations', function() {
+    var genAppConfigProperty = function(name, fileName, value) {
+      return App.ServiceConfigProperty.create({
+        name: name,
+        filename: fileName,
+        value: value
+      });
+    };
+
+    var genPropertyCollection = function(configsList) {
+      return configsList.map(function(i) {
+        return genAppConfigProperty.apply(undefined, i);
+      });
+    };
+
+    var genConfigType = function(fileName, properties) {
+      var configTypeObj = {};
+      configTypeObj.type = fileName;
+      configTypeObj.properties = properties.reduce(function(p,c) {
+        p[c[0]] = c[1];
+        return p;
+      }, {});
+      return configTypeObj;
+    };
+
+    var genConfigTypeCollection = function(coll) {
+      return coll.map(function(i) {
+        return genConfigType(i[0], i[1]);
+      });
+    };
+
+    var cases = [
+      {
+        kerberosDescriptor: genPropertyCollection([]),
+        configurations: [],
+        e: [],
+        m: 'should return empty array'
+      },
+      {
+        kerberosDescriptor: genPropertyCollection([
+          ['hadoop.proxy.group', 'hadoop-env', 'val1']
+        ]),
+        configurations: genConfigTypeCollection([
+          ['hadoop-env', [
+           ['hadoop.proxy.group', 'change_me'],
+           ['hadoop.proxy', 'val2']
+          ]],
+          ['core-site', [
+            ['hadoop.proxyuser.hcat.groups', '*']
+          ]]
+        ]),
+        e: [
+          {
+            type: 'hadoop-env',
+            properties: {
+              'hadoop.proxy.group': 'val1',
+              'hadoop.proxy': 'val2'
+            }
+          },
+          {
+            type: 'core-site',
+            properties: {
+              'hadoop.proxyuser.hcat.groups': '*'
+            }
+          }
+        ],
+        m: 'should change value of `hadoop.proxy.group`, rest object should not be changed.'
+      },
+      {
+        kerberosDescriptor: genPropertyCollection([
+          ['hadoop.proxy.group', 'hadoop-env', 'val1'],
+          ['new_site_prop', 'core-site', 'new_val']
+        ]),
+        configurations: genConfigTypeCollection([
+          ['hadoop-env', [
+            ['hadoop.proxy.group', 'val1'],
+            ['hadoop.proxy', 'val2']
+          ]],
+          ['core-site', [
+            ['hadoop.proxyuser.hcat.groups', '*']
+          ]]
+        ]),
+        e: [
+          {
+            type: 'hadoop-env',
+            properties: {
+              'hadoop.proxy.group': 'val1',
+              'hadoop.proxy': 'val2'
+            }
+          },
+          {
+            type: 'core-site',
+            properties: {
+              'hadoop.proxyuser.hcat.groups': '*',
+              'new_site_prop': 'new_val'
+            }
+          }
+        ],
+        m: 'should add property `new_site_prop` value to `core-site` file type, rest object should not be changed.'
+      }
+    ];
+
+    cases.forEach(function(test) {
+      it(test.m, function() {
+        var toObj = function(res) {
+          return JSON.parse(JSON.stringify(res));
+        };
+        expect(toObj(c.mergeDescriptorToConfigurations(test.configurations, test.kerberosDescriptor))).to.be.eql(test.e);
+      });
+    });
+  });
+
+  describe('#groupRecommendationProperties', function() {
+    var cases, controller;
+    beforeEach(function() {
+      controller = App.KerberosWizardStep4Controller.create({});
+    });
+
+    afterEach(function() {
+      controller.destroy();
+      controller = null;
+    });
+
+    cases = [
+      {
+        recommendedConfigurations: {},
+        servicesConfigurations: [],
+        allConfigs: [],
+        m: 'empty objects should not fail the code',
+        e: {
+          add: {},
+          update: {},
+          delete: {}
+        }
+      },
+      {
+        recommendedConfigurations: {
+          'some-site': {
+            properties: {
+              // property absent from servicesConfigurations and allConfigs
+              // should be added
+              'new_prop1': 'val1',
+              // property present in servicesConfigurations but absent in  allConfigs
+              // should be skipped
+              'new_prop2': 'val2',
+              'existing-prop': 'updated_val2'
+            },
+            property_attributes: {
+              'delete_prop1': {
+                'delete': true
+              }
+            }
+          }
+        },
+        servicesConfigurations: [
+          {
+            type: 'some-site',
+            properties: {
+              'existing-prop': 'val2',
+              'new_prop2': 'val2'
+            }
+          }
+        ],
+        allConfigs: [
+          Em.Object.create({ name: 'existing-prop', value: 'val3', filename: 'some-site'}),
+          Em.Object.create({ name: 'delete_prop1', value: 'val', filename: 'some-site'})
+        ],
+        m: 'should add "new_prop1", remove "delete_prop1", skip adding "new_prop2" and update value for "existing-prop"',
+        e: {
+          update: {
+            'some-site': {
+              'existing-prop': 'updated_val2'
+            }
+          },
+          add: {
+            'some-site': {
+              'new_prop1': 'val1'
+            }
+          },
+          delete: {
+            'some-site': {
+              'delete_prop1': ''
+            }
+          }
+        }
+      }
+    ];
+
+    cases.forEach(function(test) {
+      it(test.m, function() {
+        expect(controller.groupRecommendationProperties(test.recommendedConfigurations, test.servicesConfigurations, test.allConfigs))
+          .to.be.eql(test.e);
       });
     });
   });

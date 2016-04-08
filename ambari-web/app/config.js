@@ -81,7 +81,8 @@ App.supports = {
   logSearch: false,
   redhatSatellite: false,
   enableIpa: false,
-  addingNewRepository: false
+  addingNewRepository: false,
+  kerberosStackAdvisor: true
 };
 
 if (App.enableExperimental) {

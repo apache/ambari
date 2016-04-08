@@ -17,7 +17,6 @@
  */
 
 var App = require('app');
-var objectUtils = require('utils/object_utils');
 
 /**
  * Mixin for loading and setting secure configs
@@ -167,7 +166,12 @@ App.AddSecurityConfigs = Em.Mixin.create({
         configObject.referenceProperty = name.substring(1) + ':' + item;
         configObject.isEditable = false;
       }
-      configObject.defaultValue = configObject.savedValue = configObject.value = itemValue;
+      Em.setProperties(configObject, {
+        recommendedValue: itemValue,
+        initialValue: itemValue,
+        defaultValue: itemValue,
+        value: itemValue
+      });
       configObject.filename = prop.configuration ? prop.configuration.split('/')[0] : 'cluster-env';
       configObject.name = prop.configuration ? prop.configuration.split('/')[1] : name + '_' + item;
       predefinedProperty = self.get('kerberosDescriptorProperties').findProperty('name', configObject.name);
@@ -207,17 +211,20 @@ App.AddSecurityConfigs = Em.Mixin.create({
 
     for (var propertyName in kerberosProperties) {
       var predefinedProperty = this.get('kerberosDescriptorProperties').findProperty('name', propertyName);
+      var value = kerberosProperties[propertyName];
+      var isRequired = propertyName == 'additional_realms' ? false : value !== "";
       var propertyObject = {
         name: propertyName,
-        value: kerberosProperties[propertyName],
-        defaultValue: kerberosProperties[propertyName],
-        savedValue: kerberosProperties[propertyName],
+        value: value,
+        defaultValue: value,
+        recommendedValue: value,
+        initialValue: value,
         serviceName: serviceName,
         filename: filename,
         displayName: serviceName == "Cluster" ? App.format.normalizeName(propertyName) : propertyName,
         isOverridable: false,
         isEditable: propertyName != 'realm',
-        isRequired: propertyName != 'additional_realms',
+        isRequired: isRequired,
         isSecureConfig: true,
         placeholderText: predefinedProperty && !Em.isNone(predefinedProperty.index) ? predefinedProperty.placeholderText : '',
         index: predefinedProperty && !Em.isNone(predefinedProperty.index) ? predefinedProperty.index : Infinity
