@@ -24,7 +24,6 @@ from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import hdp_select
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.version import compare_versions
-from resource_management.libraries.functions.file_based_process_lock import FileBasedProcessLock
 from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.libraries.script import Script
 
@@ -86,7 +85,6 @@ def link_configs(struct_out_file):
   """
   Links configs, only on a fresh install of HDP-2.3 and higher
   """
-  import params
 
   if not Script.is_hdp_stack_greater_or_equal("2.3"):
     Logger.info("Can only link configs for HDP-2.3 and higher.")
@@ -98,7 +96,5 @@ def link_configs(struct_out_file):
     Logger.info("Could not load 'version' from {0}".format(struct_out_file))
     return
 
-  # On parallel command execution this should be executed by a single process at a time.
-  with FileBasedProcessLock(params.link_configs_lock_file):
-    for k, v in conf_select.PACKAGE_DIRS.iteritems():
-      conf_select.convert_conf_directories_to_symlinks(k, json_version, v)
+  for k, v in conf_select.PACKAGE_DIRS.iteritems():
+    conf_select.convert_conf_directories_to_symlinks(k, json_version, v)
