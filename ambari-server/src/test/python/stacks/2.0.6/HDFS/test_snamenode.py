@@ -62,10 +62,12 @@ class TestSNamenode(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
+                              group = 'hadoop',
                               create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
                               owner = 'hdfs',
+                              group = 'hadoop',
                               create_parents = True,
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-secondarynamenode.pid',
@@ -130,10 +132,12 @@ class TestSNamenode(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
+                              group = 'hadoop',
                               create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
                               owner = 'hdfs',
+                              group = 'hadoop',
                               create_parents = True,
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-secondarynamenode.pid',

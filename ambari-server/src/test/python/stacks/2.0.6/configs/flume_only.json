@@ -52,6 +52,14 @@
         },
         "flume-log4j": {
           "content": "log4jproperties\nline2"
+        },
+        "cluster-env": {
+          "managed_hdfs_resource_property_names": "",
+          "security_enabled": "false",
+          "ignore_groupsusers_create": "false",
+          "smokeuser": "ambari-qa",
+          "kerberos_domain": "EXAMPLE.COM",
+          "user_group": "hadoop"
         }
     },
     "configuration_attributes": {

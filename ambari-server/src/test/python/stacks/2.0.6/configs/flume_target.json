@@ -104,7 +104,15 @@
             "oozie.authentication.type": "simple", 
             "oozie.service.JPAService.jdbc.driver": "org.apache.derby.jdbc.EmbeddedDriver", 
             "oozie.system.id": "oozie-${user.name}"
-        }, 
+        },
+        "cluster-env": {
+            "managed_hdfs_resource_property_names": "",
+            "security_enabled": "false",
+            "ignore_groupsusers_create": "false",
+            "smokeuser": "ambari-qa",
+            "kerberos_domain": "EXAMPLE.COM",
+            "user_group": "hadoop"
+        },
         "storm-site": {
             "topology.tuple.serializer": "backtype.storm.serialization.types.ListDelegateSerializer", 
             "topology.workers": "1", 

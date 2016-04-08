@@ -55,10 +55,12 @@ class TestJournalnode(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
+                              group = 'hadoop',
                               create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
                               owner = 'hdfs',
+                              group = 'hadoop',
                               create_parents = True,
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-journalnode.pid',
@@ -113,10 +115,12 @@ class TestJournalnode(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
+                              group = 'hadoop',
                               create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
                               owner = 'hdfs',
+                              group = 'hadoop',
                               create_parents = True,
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-journalnode.pid',

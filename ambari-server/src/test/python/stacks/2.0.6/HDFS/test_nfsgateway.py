@@ -61,6 +61,7 @@ class TestNFSGateway(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop/root',
                               owner = 'root',
+                              group = 'hadoop',
                               create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop/root',
@@ -128,6 +129,7 @@ class TestNFSGateway(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop/root',
                               owner = 'root',
+                              group = 'hadoop',
                               create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop/root',

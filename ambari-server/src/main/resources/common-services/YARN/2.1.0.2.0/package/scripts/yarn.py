@@ -181,6 +181,7 @@ def yarn(name = None):
   )
   Directory([params.yarn_log_dir_prefix],
             owner=params.yarn_user,
+            group=params.user_group,
             create_parents = True,
             ignore_failures=True,
             cd_access = 'a',

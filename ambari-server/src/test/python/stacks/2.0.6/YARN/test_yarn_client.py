@@ -87,6 +87,7 @@ class TestYarnClient(RMFTestCase):
     )
     self.assertResourceCalled('Directory', '/var/log/hadoop-yarn',
       owner = 'yarn',
+      group = 'hadoop',
       create_parents = True,
       ignore_failures = True,
       cd_access = 'a',
@@ -254,6 +255,7 @@ class TestYarnClient(RMFTestCase):
     )
     self.assertResourceCalled('Directory', '/var/log/hadoop-yarn',
       owner = 'yarn',
+      group = 'hadoop',
       create_parents = True,
       ignore_failures = True,
       cd_access = 'a',
@@ -429,6 +431,7 @@ class TestYarnClient(RMFTestCase):
     )
     self.assertResourceCalled('Directory', '/var/log/hadoop-yarn',
       owner = 'yarn',
+      group = 'hadoop',
       create_parents = True,
       ignore_failures = True,
       cd_access = 'a',

@@ -94,13 +94,16 @@ def flume(action = None):
       )
       
     Directory(params.flume_run_dir,
+              group=params.user_group,
+              owner=params.flume_user,
     )
 
     Directory(params.flume_conf_dir,
               create_parents = True,
               owner=params.flume_user,
               )
-    Directory(params.flume_log_dir, 
+    Directory(params.flume_log_dir,
+              group=params.user_group,
               owner=params.flume_user,
               cd_access="a",
               mode=0755,

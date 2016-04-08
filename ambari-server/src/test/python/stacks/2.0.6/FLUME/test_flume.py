@@ -227,7 +227,9 @@ class TestFlumeHandler(RMFTestCase):
     self.assertNoMoreResources()
 
   def assert_configure_default(self, check_mc=True):
-    self.assertResourceCalled('Directory', '/var/run/flume',)
+    self.assertResourceCalled('Directory', '/var/run/flume',
+                              owner = 'flume',
+                              group = 'hadoop')
     self.assertResourceCalled('Directory',
                               '/etc/flume/conf',
                               owner='flume',
@@ -236,6 +238,7 @@ class TestFlumeHandler(RMFTestCase):
     self.assertResourceCalled('Directory',
                               '/var/log/flume',
                               owner = 'flume',
+                              group = 'hadoop',
                               cd_access = 'a', 
                               mode=0755
     )
@@ -275,13 +278,22 @@ class TestFlumeHandler(RMFTestCase):
       )
 
   def assert_configure_many(self):
-    self.assertResourceCalled('Directory', '/var/run/flume')
+    self.assertResourceCalled('Directory',
+                              '/var/run/flume',
+                              owner='flume',
+                              group = 'hadoop'
+                              )
     self.assertResourceCalled('Directory',
                               '/etc/flume/conf',
                               owner='flume',
                               create_parents = True)
 
-    self.assertResourceCalled('Directory', '/var/log/flume', owner = 'flume', cd_access = 'a', mode=0755)
+    self.assertResourceCalled('Directory',
+                              '/var/log/flume',
+                              owner = 'flume',
+                              group = 'hadoop',
+                              cd_access = 'a',
+                              mode=0755)
 
     top = build_flume(self.getConfig()['configurations']['flume-conf']['content'])
 
@@ -438,7 +450,9 @@ class TestFlumeHandler(RMFTestCase):
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
-    self.assertResourceCalled('Directory', '/var/run/flume',)
+    self.assertResourceCalled('Directory', '/var/run/flume',
+                              group = 'hadoop',
+                              owner='flume',)
     self.assertResourceCalled('Directory',
                               '/etc/flume/conf',
                               owner='flume',
@@ -448,6 +462,7 @@ class TestFlumeHandler(RMFTestCase):
                               '/var/log/flume',
                               owner = 'flume',
                               cd_access = 'a',
+                              group = 'hadoop',
                               mode=0755)
 
     self.assertResourceCalled('Directory',
@@ -489,7 +504,9 @@ class TestFlumeHandler(RMFTestCase):
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
-    self.assertResourceCalled('Directory', '/var/run/flume',)
+    self.assertResourceCalled('Directory', '/var/run/flume',
+                              group = 'hadoop',
+                              owner='flume')
     self.assertResourceCalled('Directory',
                               '/usr/hdp/current/flume-server/conf',
                               owner='flume',
@@ -497,7 +514,8 @@ class TestFlumeHandler(RMFTestCase):
 
     self.assertResourceCalled('Directory',
                               '/var/log/flume',
-                              owner = 'flume', 
+                              owner = 'flume',
+                              group = 'hadoop',
                               cd_access = 'a', 
                               mode=0755)
 

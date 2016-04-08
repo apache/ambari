@@ -94,6 +94,7 @@ class TestAts(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop-yarn',
                               owner = 'yarn',
+                              group = 'hadoop',
                               ignore_failures = True,
                               create_parents = True,
                               cd_access = 'a',
