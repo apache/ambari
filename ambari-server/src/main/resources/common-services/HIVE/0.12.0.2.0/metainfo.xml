@@ -31,6 +31,7 @@
           <category>MASTER</category>
           <cardinality>1</cardinality>
           <versionAdvertised>true</versionAdvertised>
+          <reassignAllowed>true</reassignAllowed>
           <clientsToUpdateConfigs></clientsToUpdateConfigs>
           <auto-deploy>
             <enabled>true</enabled>
@@ -57,6 +58,7 @@
           <category>MASTER</category>
           <cardinality>1</cardinality>
           <versionAdvertised>true</versionAdvertised>
+          <reassignAllowed>true</reassignAllowed>
           <clientsToUpdateConfigs></clientsToUpdateConfigs>
           <dependencies>
             <dependency>
@@ -101,6 +103,7 @@
           <category>MASTER</category>
           <cardinality>1</cardinality>
           <versionAdvertised>true</versionAdvertised>
+          <reassignAllowed>true</reassignAllowed>
           <clientsToUpdateConfigs>
             <client>HCAT</client>
           </clientsToUpdateConfigs>
@@ -171,6 +174,7 @@
           <category>MASTER</category>
           <cardinality>0-1</cardinality>
           <versionAdvertised>false</versionAdvertised>
+          <reassignAllowed>true</reassignAllowed>
           <clientsToUpdateConfigs></clientsToUpdateConfigs>
           <commandScript>
             <script>scripts/mysql_server.py</script>

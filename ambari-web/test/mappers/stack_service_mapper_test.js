@@ -129,6 +129,7 @@ describe('App.stackServiceMapper', function () {
                   "bulk_commands_display_name" : "DataNodes",
                   "bulk_commands_master_component_name" : "NAMENODE",
                   "has_bulk_commands_definition" : true,
+                  "reassign_allowed" : true,
                   "cardinality" : "1+",
                   "display_name" : "DataNode",
                   "is_client" : false,
@@ -252,6 +253,7 @@ describe('App.stackServiceMapper', function () {
       expect(components.findProperty('componentName', 'DATANODE').get('bulkCommandsDisplayName')).to.eql("DataNodes");
       expect(components.findProperty('componentName', 'DATANODE').get('bulkCommandsMasterComponentName')).to.eql("NAMENODE");
       expect(components.findProperty('componentName', 'DATANODE').get('decommissionAllowed')).to.be.true;
+      expect(components.findProperty('componentName', 'DATANODE').get('reassignAllowed')).to.be.true;
     });
 
   });

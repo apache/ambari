@@ -120,6 +120,11 @@ public class ComponentInfo {
   @XmlElements(@XmlElement(name = "recovery_enabled"))
   private boolean recoveryEnabled = false;
 
+  /**
+   * Used to determine if reassign is allowed
+   * */
+  @XmlElements(@XmlElement(name = "reassignAllowed"))
+  private String reassignAllowed;
 
   private String timelineAppid;
 
@@ -146,6 +151,7 @@ public class ComponentInfo {
     configDependencies = prototype.configDependencies;
     clientConfigFiles = prototype.clientConfigFiles;
     timelineAppid = prototype.timelineAppid;
+    reassignAllowed = prototype.reassignAllowed;
   }
 
   public String getName() {
@@ -329,6 +335,14 @@ public class ComponentInfo {
     this.timelineAppid = timelineAppid;
   }
 
+  public String getReassignAllowed() {
+    return reassignAllowed;
+  }
+
+  public void setReassignAllowed(String reassignAllowed) {
+    this.reassignAllowed = reassignAllowed;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -341,6 +355,7 @@ public class ComponentInfo {
     if (cardinality != null ? !cardinality.equals(that.cardinality) : that.cardinality != null) return false;
     if (versionAdvertised != that.versionAdvertised) return false;
     if (decommissionAllowed != null ? !decommissionAllowed.equals(that.decommissionAllowed) : that.decommissionAllowed != null) return false;
+    if (reassignAllowed != null ? !reassignAllowed.equals(that.reassignAllowed) : that.reassignAllowed != null) return false;
     if (category != null ? !category.equals(that.category) : that.category != null) return false;
     if (clientConfigFiles != null ? !clientConfigFiles.equals(that.clientConfigFiles) : that.clientConfigFiles != null)
       return false;
@@ -370,6 +385,7 @@ public class ComponentInfo {
     result = 31 * result + (cardinality != null ? cardinality.hashCode() : 0);
     result = 31 * result + (versionAdvertised ? 1 : 0);
     result = 31 * result + (decommissionAllowed != null ? decommissionAllowed.hashCode() : 0);
+    result = 31 * result + (reassignAllowed != null ? reassignAllowed.hashCode() : 0);
     result = 31 * result + (commandScript != null ? commandScript.hashCode() : 0);
     result = 31 * result + (logs != null ? logs.hashCode() : 0);
     result = 31 * result + (clientConfigFiles != null ? clientConfigFiles.hashCode() : 0);

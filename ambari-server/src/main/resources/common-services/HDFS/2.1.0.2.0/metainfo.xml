@@ -31,6 +31,7 @@
           <category>MASTER</category>
           <cardinality>1-2</cardinality>
           <versionAdvertised>true</versionAdvertised>
+          <reassignAllowed>true</reassignAllowed>
           <commandScript>
             <script>scripts/namenode.py</script>
             <scriptType>PYTHON</scriptType>
@@ -94,6 +95,7 @@
           <!-- TODO:  cardinality is conditional on HA usage -->
           <cardinality>1</cardinality>
           <versionAdvertised>true</versionAdvertised>
+          <reassignAllowed>true</reassignAllowed>
           <category>MASTER</category>
           <commandScript>
             <script>scripts/snamenode.py</script>

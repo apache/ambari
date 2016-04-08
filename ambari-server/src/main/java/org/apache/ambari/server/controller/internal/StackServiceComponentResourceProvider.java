@@ -65,6 +65,9 @@ public class StackServiceComponentResourceProvider extends
   private static final String DECOMISSION_ALLOWED_ID = PropertyHelper.getPropertyId(
       "StackServiceComponents", "decommission_allowed");
 
+  private static final String REASSIGN_ALLOWED_ID = PropertyHelper.getPropertyId(
+      "StackServiceComponents", "reassign_allowed");
+
   private static final String CUSTOM_COMMANDS_PROPERTY_ID = PropertyHelper.getPropertyId(
       "StackServiceComponents", "custom_commands");
 
@@ -161,6 +164,9 @@ public class StackServiceComponentResourceProvider extends
 
       setResourceProperty(resource, RECOVERY_ENABLED,
           response.isRecoveryEnabled(), requestedIds);
+
+      setResourceProperty(resource, REASSIGN_ALLOWED_ID,
+          response.isReassignAlllowed(), requestedIds);
 
       setResourceProperty(resource, CUSTOM_COMMANDS_PROPERTY_ID,
           response.getCustomCommands(), requestedIds);

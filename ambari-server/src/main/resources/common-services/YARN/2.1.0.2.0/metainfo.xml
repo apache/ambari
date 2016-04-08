@@ -32,6 +32,7 @@
           <category>MASTER</category>
           <cardinality>1</cardinality>
           <versionAdvertised>true</versionAdvertised>
+          <reassignAllowed>true</reassignAllowed>
           <commandScript>
             <script>scripts/resourcemanager.py</script>
             <scriptType>PYTHON</scriptType>
@@ -197,6 +198,7 @@
           <category>MASTER</category>
           <cardinality>1</cardinality>
           <versionAdvertised>true</versionAdvertised>
+          <reassignAllowed>true</reassignAllowed>
           <auto-deploy>
             <enabled>true</enabled>
             <co-locate>YARN/RESOURCEMANAGER</co-locate>

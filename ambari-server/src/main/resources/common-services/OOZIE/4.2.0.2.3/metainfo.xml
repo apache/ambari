@@ -32,6 +32,7 @@
           <category>MASTER</category>
           <cardinality>1+</cardinality>
           <versionAdvertised>true</versionAdvertised>
+          <reassignAllowed>true</reassignAllowed>
           <dependencies>
             <dependency>
               <name>HDFS/HDFS_CLIENT</name>

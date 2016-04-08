@@ -557,6 +557,7 @@ module.exports = {
             "custom_commands" : [ ],
             "is_client" : false,
             "is_master" : true,
+            "reassign_allowed" : true,
             "service_name" : "HIVE",
             "stack_name" : "HDP",
             "stack_version" : "2.1"
@@ -577,6 +578,7 @@ module.exports = {
             "custom_commands" : [ ],
             "is_client" : false,
             "is_master" : true,
+            "reassign_allowed" : true,
             "service_name" : "HIVE",
             "stack_name" : "HDP",
             "stack_version" : "2.1"
@@ -1284,6 +1286,7 @@ module.exports = {
             "custom_commands" : [ ],
             "is_client" : false,
             "is_master" : true,
+            "reassign_allowed" : true,
             "service_name" : "YARN",
             "stack_name" : "HDP",
             "stack_version" : "2.1"

@@ -182,6 +182,9 @@ public class AmbariManagementControllerTest {
   private static final String SERVICE_NAME_HBASE = "HBASE";
   private static final String COMPONENT_NAME_REGIONSERVER = "HBASE_REGIONSERVER";
   private static final String COMPONENT_NAME_DATANODE = "DATANODE";
+  private static final String SERVICE_NAME_HIVE = "HIVE";
+  private static final String COMPONENT_NAME_HIVE_METASTORE = "HIVE_METASTORE";
+  private static final String COMPONENT_NAME_HIVE_SERVER = "HIVE_SERVER";
   private static final String STACK_VERSION = "0.2";
   private static final String NEW_STACK_VERSION = "2.0.6";
   private static final String OS_TYPE = "centos5";
@@ -7461,6 +7464,54 @@ public class AmbariManagementControllerTest {
     for (StackServiceComponentResponse responseWithParams: responsesWithParams) {
       Assert.assertEquals(responseWithParams.getComponentName(), COMPONENT_NAME_NODEMANAGER);
       Assert.assertTrue(responseWithParams.isDecommissionAlllowed());
+    }
+  }
+
+  @Test
+  public void testRassignAllowed() throws Exception{
+    StackServiceComponentRequest requestWithParams = new StackServiceComponentRequest(STACK_NAME, "2.0.5", SERVICE_NAME, COMPONENT_NAME);
+    Set<StackServiceComponentResponse> responsesWithParams = controller.getStackComponents(Collections.singleton(requestWithParams));
+    for (StackServiceComponentResponse responseWithParams: responsesWithParams) {
+      Assert.assertEquals(responseWithParams.getComponentName(), COMPONENT_NAME);
+      Assert.assertTrue(responseWithParams.isReassignAlllowed());
+    }
+
+    requestWithParams = new StackServiceComponentRequest(STACK_NAME, "2.0.5", SERVICE_NAME, COMPONENT_NAME_DATANODE);
+    responsesWithParams = controller.getStackComponents(Collections.singleton(requestWithParams));
+    for (StackServiceComponentResponse responseWithParams: responsesWithParams) {
+      Assert.assertEquals(responseWithParams.getComponentName(), COMPONENT_NAME_DATANODE);
+      Assert.assertFalse(responseWithParams.isReassignAlllowed());
+    }
+  }
+
+  @Test
+  public void testReassignAllowedInheritance() throws Exception{
+    //parent has it, child doesn't
+    StackServiceComponentRequest requestWithParams = new StackServiceComponentRequest(STACK_NAME, NEW_STACK_VERSION, SERVICE_NAME_HIVE, COMPONENT_NAME_HIVE_METASTORE);
+    Set<StackServiceComponentResponse> responsesWithParams = controller.getStackComponents(Collections.singleton(requestWithParams));
+    for (StackServiceComponentResponse responseWithParams: responsesWithParams) {
+      Assert.assertEquals(responseWithParams.getComponentName(), COMPONENT_NAME_HIVE_METASTORE);
+      Assert.assertTrue(responseWithParams.isReassignAlllowed());
+    }
+  }
+
+  @Test
+  public void testReassignAllowedOverwrite() throws Exception{
+    StackServiceComponentRequest requestWithParams = new StackServiceComponentRequest(STACK_NAME, "2.0.5", SERVICE_NAME_HIVE, COMPONENT_NAME_HIVE_SERVER);
+    Set<StackServiceComponentResponse> responsesWithParams = controller.getStackComponents(Collections.singleton(requestWithParams));
+
+    //parent has it
+    for (StackServiceComponentResponse responseWithParams: responsesWithParams) {
+      Assert.assertEquals(responseWithParams.getComponentName(), COMPONENT_NAME_HIVE_SERVER);
+      Assert.assertTrue(responseWithParams.isReassignAlllowed());
+    }
+
+    requestWithParams = new StackServiceComponentRequest(STACK_NAME, NEW_STACK_VERSION, SERVICE_NAME_HIVE, COMPONENT_NAME_HIVE_SERVER);
+    responsesWithParams = controller.getStackComponents(Collections.singleton(requestWithParams));
+    //parent has it, child overwrites it
+    for (StackServiceComponentResponse responseWithParams: responsesWithParams) {
+      Assert.assertEquals(responseWithParams.getComponentName(), COMPONENT_NAME_HIVE_SERVER);
+      Assert.assertFalse(responseWithParams.isReassignAlllowed());
     }
   }
 

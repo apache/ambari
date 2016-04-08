@@ -27,6 +27,7 @@ App.StackServiceComponent = DS.Model.extend({
   displayName: DS.attr('string'),
   cardinality: DS.attr('string'),
   customCommands: DS.attr('array'),
+  reassignAllowed: DS.attr('boolean'),
   decommissionAllowed: DS.attr('boolean'),
   hasBulkCommandsDefinition: DS.attr('boolean'),
   bulkCommandsDisplayName: DS.attr('string'),
@@ -72,8 +73,9 @@ App.StackServiceComponent = DS.Model.extend({
   isRestartable: Em.computed.not('isClient'),
 
   /** @property {Boolean} isReassignable - component supports reassign action **/
-  isReassignable: Em.computed.existsIn('componentName', ['NAMENODE', 'SECONDARY_NAMENODE', 'JOBTRACKER', 'RESOURCEMANAGER', 'APP_TIMELINE_SERVER', 'OOZIE_SERVER',
-    'WEBHCAT_SERVER', 'HIVE_SERVER', 'HIVE_METASTORE', 'MYSQL_SERVER', 'METRICS_COLLECTOR', 'HISTORYSERVER']),
+  isReassignable: function(){
+    return this.get('reassignAllowed');
+  }.property('reassignAllowed'),
 
   /** @property {Boolean} isNonHDPComponent - component not belongs to HDP services **/
   isNonHDPComponent: function() {

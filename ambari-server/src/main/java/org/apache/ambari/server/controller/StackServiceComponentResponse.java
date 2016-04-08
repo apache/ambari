@@ -106,6 +106,11 @@ public class StackServiceComponentResponse {
   private boolean hasBulkCommands;
 
   /**
+   * Whether the component can be reassigned to a different node.
+   * */
+  private String reassignAllowed;
+
+  /**
    * Constructor.
    *
    * @param component
@@ -125,6 +130,7 @@ public class StackServiceComponentResponse {
     hasBulkCommands = componentHasBulkCommands(component);
     bulkCommandsDisplayName = getBulkCommandsDisplayName(component);
     bulkCommandMasterComponentName = getBulkCommandsMasterComponentName(component);
+    reassignAllowed = component.getReassignAllowed();
 
     // the custom command names defined for this component
     List<CustomCommandDefinition> definitions = component.getCustomCommands();
@@ -388,6 +394,28 @@ public class StackServiceComponentResponse {
    */
   public void setDecommissionAllowed(String decommissionAllowed) {
     this.decommissionAllowed = decommissionAllowed;
+  }
+
+  /**
+   * Get whether the components can be reassigned.
+   *
+   * @return Whether the components can be reassigned
+   */
+  public boolean isReassignAlllowed() {
+    if (reassignAllowed != null && reassignAllowed.equals("true")) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  /**
+   * Set whether the component can be reassigned.
+   *
+   * @param reassignAllowed whether the component can be reassigned
+   */
+  public void setReassignAllowed(String reassignAllowed) {
+    this.reassignAllowed = reassignAllowed;
   }
 
   /**

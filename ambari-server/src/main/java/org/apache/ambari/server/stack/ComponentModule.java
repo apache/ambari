@@ -99,6 +99,10 @@ public class ComponentModule extends BaseModule<ComponentModule, ComponentInfo> 
         componentInfo.setBulkCommands(parentInfo.getBulkCommandDefinition());
       }
 
+      if(componentInfo.getReassignAllowed() == null) {
+        componentInfo.setReassignAllowed(parentInfo.getReassignAllowed());
+      }
+
       mergeComponentDependencies(parentInfo.getDependencies(),
               componentInfo.getDependencies());
 

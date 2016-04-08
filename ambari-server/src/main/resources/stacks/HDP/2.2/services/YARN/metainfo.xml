@@ -27,6 +27,7 @@
         <component>
           <name>APP_TIMELINE_SERVER</name>
           <cardinality>1</cardinality>
+          <reassignAllowed>true</reassignAllowed>
         </component>
       </components>
       

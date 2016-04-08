@@ -444,6 +444,40 @@ public class ComponentModuleTest {
     assertSame("true", resolveComponent(info, parentInfo).getModuleInfo().getDecommissionAllowed());
   }
 
+  @Test
+  public void testResolve_Reassignable(){
+    List<ComponentInfo> components = createComponentInfo(2);
+    ComponentInfo info = components.get(0);
+    ComponentInfo parentInfo = components.get(1);
+
+    //parent doesn't have it, child has it
+    info.setReassignAllowed("false");
+    assertSame("false", resolveComponent(info, parentInfo).getModuleInfo().getReassignAllowed());
+  }
+
+  @Test
+  public void testResolve_ReassignableInheritance(){
+    List<ComponentInfo> components = createComponentInfo(2);
+    ComponentInfo info = components.get(0);
+    ComponentInfo parentInfo = components.get(1);
+
+    //parent has it, child doesn't
+    parentInfo.setReassignAllowed("true");
+    assertSame("true", resolveComponent(info, parentInfo).getModuleInfo().getReassignAllowed());
+  }
+
+  @Test
+  public void testResolve_ReassignableOverwrite(){
+    List<ComponentInfo> components = createComponentInfo(2);
+    ComponentInfo info = components.get(0);
+    ComponentInfo parentInfo = components.get(1);
+
+    //parent has it, child overwrites it
+    parentInfo.setReassignAllowed("false");
+    info.setReassignAllowed("true");
+    assertSame("true", resolveComponent(info, parentInfo).getModuleInfo().getReassignAllowed());
+  }
+
   private List<ComponentInfo> createComponentInfo(int count){
     List<ComponentInfo> result = new ArrayList<ComponentInfo>();
     if(count > 0) {
