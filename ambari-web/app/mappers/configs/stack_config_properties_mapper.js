@@ -206,6 +206,8 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
    */
   addUIOnlyProperties: function(configs) {
     require('data/HDP2/ui_properties').concat(require('data/HDP2/alert_notification')).forEach(function(p) {
+      if(p.name == "dfs.ha.fencing.methods" && !App.get('isHaEnabled')) return;
+
       configs.push({
         id: App.config.configId(p.name, p.filename),
         name: p.name,
