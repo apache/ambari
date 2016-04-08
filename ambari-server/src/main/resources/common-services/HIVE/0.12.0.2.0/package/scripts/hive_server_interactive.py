@@ -66,7 +66,8 @@ class HiveServerWindows(HiveServerInteractive):
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class HiveServerDefault(HiveServerInteractive):
     def get_stack_to_component(self):
-      return {"HDP": "hive-server2-hive2"}
+      import params
+      return {params.stack_name: "hive-server2-hive2"}
 
     def start(self, env, upgrade_type=None):
       import params
@@ -158,14 +159,10 @@ class HiveServerDefault(HiveServerInteractive):
       Logger.info("Starting LLAP")
 
       # TODO, start only if not already running.
-
-      # TODO, remove this prop after Hive is parametrized
-      stack_home = "/usr/hdp"
-
       # TODO : Currently hardcoded the params. Need to read the suggested values from hive2/hive-site.xml.
       # TODO, ensure that script works as hive from cmd when not cd'ed in /homve/hive
       # Needs permission to write to hive home dir.
-      cmd = format("{stack_home}/current/hive-server2-hive2/bin/hive --service llap --instances 1 -slider-am-container-mb {slider_am_container_mb} --loglevel INFO")
+      cmd = format("{stack_root}/current/hive-server2-hive2/bin/hive --service llap --instances 1 -slider-am-container-mb {slider_am_container_mb} --loglevel INFO")
 
       run_file_path = None
       try:

@@ -25,7 +25,8 @@ from urlparse import urlparse
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions.copy_tarball import copy_to_hdfs
-from resource_management.libraries.functions.version import compare_versions
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.core.resources.service import ServiceConfig
 from resource_management.core.resources.system import File, Execute, Directory
 from resource_management.core.source import StaticFile, Template, DownloadSource, InlineTemplate
@@ -106,8 +107,8 @@ def hive(name=None):
   import params
 
   if name == 'hiveserver2':
-    # HDP 2.1.* or lower
-    if params.stack_version_formatted_major != "" and compare_versions(params.stack_version_formatted_major, "2.2.0.0") < 0:
+    # copy tarball to HDFS feature not supported
+    if not (params.stack_version_formatted_major and check_stack_feature(StackFeature.COPY_TARBALL_TO_HDFS, params.stack_version_formatted_major)):  
       params.HdfsResource(params.webhcat_apps_dir,
                             type="directory",
                             action="create_on_execute",
@@ -133,13 +134,13 @@ def hive(name=None):
 
     # ****** Begin Copy Tarballs ******
     # *********************************
-    # HDP 2.2 or higher, copy mapreduce.tar.gz to HDFS
-    if params.stack_version_formatted_major != "" and compare_versions(params.stack_version_formatted_major, '2.2') >= 0:
+    #  if copy tarball to HDFS feature  supported copy mapreduce.tar.gz and tez.tar.gz to HDFS
+    if params.stack_version_formatted_major and check_stack_feature(StackFeature.COPY_TARBALL_TO_HDFS, params.stack_version_formatted_major):
       copy_to_hdfs("mapreduce", params.user_group, params.hdfs_user, host_sys_prepped=params.host_sys_prepped)
       copy_to_hdfs("tez", params.user_group, params.hdfs_user, host_sys_prepped=params.host_sys_prepped)
 
     # Always copy pig.tar.gz and hive.tar.gz using the appropriate mode.
-    # This can use a different source and dest location to account for both HDP 2.1 and 2.2
+    # This can use a different source and dest location to account
     copy_to_hdfs("pig",
                  params.user_group,
                  params.hdfs_user,

@@ -32,6 +32,8 @@ from resource_management.core.shell import as_user
 from resource_management.libraries.functions.hive_check import check_thrift_port_sasl
 from resource_management.libraries.functions import get_user_call_output
 from resource_management.libraries.functions.show_logs import show_logs
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.stack_features import check_stack_feature
 
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
@@ -61,8 +63,8 @@ def hive_service(name, action='start', upgrade_type=None):
     pid_file = format("{hive_pid_dir}/{hive_pid}")
     cmd = format("{start_hiveserver2_path} {hive_log_dir}/hive-server2.out {hive_log_dir}/hive-server2.err {pid_file} {hive_server_conf_dir} {hive_log_dir}")
 
-    if params.security_enabled and params.current_version != None and (params.current_version.startswith("2.2.4") or
-          params.current_version.startswith("2.2.3")):
+
+    if params.security_enabled and params.current_version and check_stack_feature(StackFeature.HIVE_SERVER2_KERBERIZED_ENV, params.current_version):
       hive_kinit_cmd = format("{kinit_path_local} -kt {hive_server2_keytab} {hive_principal}; ")
       Execute(hive_kinit_cmd, user=params.hive_user)
 
@@ -83,9 +85,9 @@ def hive_service(name, action='start', upgrade_type=None):
     if upgrade_type == UPGRADE_TYPE_ROLLING:
       process_id_exists_command = None
 
-      if params.version:
+      if params.version and params.stack_root:
         import os
-        hadoop_home = format("/usr/hdp/{version}/hadoop")
+        hadoop_home = format("{stack_root}/{version}/hadoop")
         hive_bin = os.path.join(params.hive_bin, hive_bin)
       
     Execute(daemon_cmd, 

@@ -31,11 +31,12 @@ from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.is_empty import is_empty
-from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.copy_tarball import STACK_VERSION_PATTERN
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
 from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.get_port_from_url import get_port_from_url
 from resource_management.libraries.functions.expect import expect
 from resource_management.libraries import functions
@@ -45,7 +46,9 @@ config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 sudo = AMBARI_SUDO_BINARY
 
+stack_root = status_params.stack_root
 stack_name = default("/hostLevelParams/stack_name", None)
+stack_name_uppercase = stack_name.upper()
 agent_stack_retry_on_unavailability = config['hostLevelParams']['agent_stack_retry_on_unavailability']
 agent_stack_retry_count = expect("/hostLevelParams/agent_stack_retry_count", int)
 
@@ -53,9 +56,8 @@ agent_stack_retry_count = expect("/hostLevelParams/agent_stack_retry_count", int
 hostname = config["hostname"]
 
 # This is expected to be of the form #.#.#.#
-stack_version_unformatted = config['hostLevelParams']['stack_version']
-stack_version_formatted_major = format_stack_version(stack_version_unformatted)
-stack_is_hdp21 = Script.is_stack_less_than("2.2")
+stack_version_unformatted = status_params.stack_version_unformatted
+stack_version_formatted_major = status_params.stack_version_formatted_major
 
 # this is not available on INSTALL action because <stack-selector-tool> is not available
 stack_version_formatted = functions.get_stack_version('hive-server2')
@@ -86,11 +88,11 @@ hive_interactive_bin = '/usr/lib/hive2/bin'
 hive_interactive_lib = '/usr/lib/hive2/lib/'
 hive_interactive_var_lib = '/var/lib/hive2'
 
-# These tar folders were used in HDP 2.1
+# These tar folders were used in previous stack versions
 hadoop_streaming_jars = '/usr/lib/hadoop-mapreduce/hadoop-streaming-*.jar'
-pig_tar_file = '/usr/share/HDP-webhcat/pig.tar.gz'
-hive_tar_file = '/usr/share/HDP-webhcat/hive.tar.gz'
-sqoop_tar_file = '/usr/share/HDP-webhcat/sqoop*.tar.gz'
+pig_tar_file = format('/usr/share/{stack_name_uppercase}-webhcat/pig.tar.gz')
+hive_tar_file = format('/usr/share/{stack_name_uppercase}-webhcat/hive.tar.gz')
+sqoop_tar_file = format('/usr/share/{stack_name_uppercase}-webhcat/sqoop*.tar.gz')
 
 hive_specific_configs_supported = False
 hive_etc_dir_prefix = "/etc/hive"
@@ -101,7 +103,7 @@ hive_user_nofile_limit = default("/configurations/hive-env/hive_user_nofile_limi
 hive_user_nproc_limit = default("/configurations/hive-env/hive_user_nproc_limit", "16000")
 
 # use the directories from status_params as they are already calculated for
-# the correct version of HDP
+# the correct stack version
 hadoop_conf_dir = status_params.hadoop_conf_dir
 hadoop_bin_dir = status_params.hadoop_bin_dir
 webhcat_conf_dir = status_params.webhcat_conf_dir
@@ -117,50 +119,51 @@ config_dir = '/etc/hive-webhcat/conf'
 hcat_lib = '/usr/lib/hive-hcatalog/share/hcatalog'
 webhcat_bin_dir = '/usr/lib/hive-hcatalog/sbin'
 
-# Starting from HDP2.3 drop should be executed with purge suffix
 purge_tables = "false"
-if Script.is_stack_greater_or_equal("2.3"):
+# Starting from stack version for feature hive_purge_table drop should be executed with purge
+if stack_version_formatted_major and check_stack_feature(StackFeature.HIVE_PURGE_TABLE, stack_version_formatted_major):
   purge_tables = 'true'
 
-  # this is NOT a typo.  HDP-2.3 configs for hcatalog/webhcat point to a
+if stack_version_formatted_major and check_stack_feature(StackFeature.HIVE_WEBHCAT_SPECIFIC_CONFIGS, stack_version_formatted_major):
+  # this is NOT a typo.  Configs for hcatalog/webhcat point to a
   # specific directory which is NOT called 'conf'
-  hcat_conf_dir = '/usr/hdp/current/hive-webhcat/etc/hcatalog'
-  config_dir = '/usr/hdp/current/hive-webhcat/etc/webhcat'
+  hcat_conf_dir = format('{stack_root}/current/hive-webhcat/etc/hcatalog')
+  config_dir = format('{stack_root}/current/hive-webhcat/etc/webhcat')
 
-if Script.is_stack_greater_or_equal("2.2"):
+if stack_version_formatted_major and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted_major):
   hive_specific_configs_supported = True
 
   component_directory = status_params.component_directory
   component_directory_interactive = status_params.component_directory_interactive
-  hadoop_home = '/usr/hdp/current/hadoop-client'
-  hive_bin = format('/usr/hdp/current/{component_directory}/bin')
-  hive_interactive_bin = format('/usr/hdp/current/{component_directory_interactive}/bin')
-  hive_lib = format('/usr/hdp/current/{component_directory}/lib')
-  hive_interactive_lib = format('/usr/hdp/current/{component_directory_interactive}/lib')
+  hadoop_home = format('{stack_root}/current/hadoop-client')
+  hive_bin = format('{stack_root}/current/{component_directory}/bin')
+  hive_interactive_bin = format('{stack_root}/current/{component_directory_interactive}/bin')
+  hive_lib = format('{stack_root}/current/{component_directory}/lib')
+  hive_interactive_lib = format('{stack_root}/current/{component_directory_interactive}/lib')
 
   # there are no client versions of these, use server versions directly
-  hcat_lib = '/usr/hdp/current/hive-webhcat/share/hcatalog'
-  webhcat_bin_dir = '/usr/hdp/current/hive-webhcat/sbin'
+  hcat_lib = format('{stack_root}/current/hive-webhcat/share/hcatalog')
+  webhcat_bin_dir = format('{stack_root}/current/hive-webhcat/sbin')
 
   # --- Tarballs ---
   # DON'T CHANGE THESE VARIABLE NAMES
   # Values don't change from those in copy_tarball.py
-  hive_tar_source = "/usr/hdp/{0}/hive/hive.tar.gz".format(STACK_VERSION_PATTERN)
-  pig_tar_source = "/usr/hdp/{0}/pig/pig.tar.gz".format(STACK_VERSION_PATTERN)
-  hive_tar_dest_file = "/hdp/apps/{0}/hive/hive.tar.gz".format(STACK_VERSION_PATTERN)
-  pig_tar_dest_file = "/hdp/apps/{0}/pig/pig.tar.gz".format(STACK_VERSION_PATTERN)
+  hive_tar_source = "{0}/{1}/hive/hive.tar.gz".format(stack_root, STACK_VERSION_PATTERN)
+  pig_tar_source = "{0}/{1}/pig/pig.tar.gz".format(stack_root, STACK_VERSION_PATTERN)
+  hive_tar_dest_file = "/{0}/apps/{1}/hive/hive.tar.gz".format(stack_name, STACK_VERSION_PATTERN)
+  pig_tar_dest_file = "/{0}/apps/{1}/pig/pig.tar.gz".format(stack_name, STACK_VERSION_PATTERN)
 
-  hadoop_streaming_tar_source = "/usr/hdp/{0}/hadoop-mapreduce/hadoop-streaming.jar".format(STACK_VERSION_PATTERN)
-  sqoop_tar_source = "/usr/hdp/{0}/sqoop/sqoop.tar.gz".format(STACK_VERSION_PATTERN)
-  hadoop_streaming_tar_dest_dir = "/hdp/apps/{0}/mapreduce/".format(STACK_VERSION_PATTERN)
-  sqoop_tar_dest_dir = "/hdp/apps/{0}/sqoop/".format(STACK_VERSION_PATTERN)
+  hadoop_streaming_tar_source = "{0}/{1}/hadoop-mapreduce/hadoop-streaming.jar".format(stack_root, STACK_VERSION_PATTERN)
+  sqoop_tar_source = "{0}/{1}/sqoop/sqoop.tar.gz".format(stack_root, STACK_VERSION_PATTERN)
+  hadoop_streaming_tar_dest_dir = "/{0}/apps/{1}/mapreduce/".format(stack_name, STACK_VERSION_PATTERN)
+  sqoop_tar_dest_dir = "/{0}/apps/{1}/sqoop/".format(stack_name, STACK_VERSION_PATTERN)
 
   tarballs_mode = 0444
 else:
   # --- Tarballs ---
   webhcat_apps_dir = "/apps/webhcat"
 
-  # In HDP 2.1, the tarballs were copied from and to different locations.
+  # In previous versions, the tarballs were copied from and to different locations.
   # DON'T CHANGE THESE VARIABLE NAMES
   hive_tar_source = hive_tar_file
   pig_tar_source = pig_tar_file
@@ -221,13 +224,13 @@ downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
 target = format("{hive_lib}/{jdbc_jar_name}")
 driver_curl_source = format("{jdk_location}/{jdbc_jar_name}")
 
-if Script.is_stack_less_than("2.2"):
+if not (stack_version_formatted_major and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted_major)):
   source_jdbc_file = target
 else:
   # normally, the JDBC driver would be referenced by <stack-root>/current/.../foo.jar
   # but in RU if <stack-selector-tool> is called and the restart fails, then this means that current pointer
   # is now pointing to the upgraded version location; that's bad for the cp command
-  source_jdbc_file = format("/usr/hdp/{current_version}/hive/lib/{jdbc_jar_name}")
+  source_jdbc_file = format("{stack_root}/{current_version}/hive/lib/{jdbc_jar_name}")
 
 check_db_connection_jar_name = "DBConnectionVerification.jar"
 check_db_connection_jar = format("/usr/lib/ambari-agent/{check_db_connection_jar_name}")
@@ -326,10 +329,10 @@ start_metastore_path = format("{tmp_dir}/start_metastore_script")
 hadoop_heapsize = config['configurations']['hadoop-env']['hadoop_heapsize']
 
 if 'role' in config and config['role'] in ["HIVE_SERVER", "HIVE_METASTORE"]:
-  if Script.is_stack_less_than("2.2"):
-    hive_heapsize = config['configurations']['hive-site']['hive.heapsize']
-  else:
+  if stack_version_formatted_major and check_stack_feature(StackFeature.HIVE_ENV_HEAPSIZE, stack_version_formatted_major): 
     hive_heapsize = config['configurations']['hive-env']['hive.heapsize']
+  else:
+    hive_heapsize = config['configurations']['hive-site']['hive.heapsize']
 else:
   hive_heapsize = config['configurations']['hive-env']['hive.client.heapsize']
 
@@ -425,7 +428,7 @@ atlas_plugin_package = "atlas-metadata*-hive-plugin"
 atlas_ubuntu_plugin_package = "atlas-metadata.*-hive-plugin"
 
 if has_atlas:
-  atlas_home_dir = os.environ['METADATA_HOME_DIR'] if 'METADATA_HOME_DIR' in os.environ else '/usr/hdp/current/atlas-server'
+  atlas_home_dir = os.environ['METADATA_HOME_DIR'] if 'METADATA_HOME_DIR' in os.environ else format('{stack_root}/current/atlas-server')
   atlas_conf_dir = os.environ['METADATA_CONF'] if 'METADATA_CONF' in os.environ else '/etc/atlas/conf'
   # client.properties
   atlas_client_props = {}

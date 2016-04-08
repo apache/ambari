@@ -181,7 +181,38 @@ _DEFAULT_STACK_FEATURES = {
       "description": "Oozie in secured clusters uses _HOST in Kerberos principal (AMBARI-9775)",
       "min_version": "2.0.0.0",
       "max_version": "2.2.0.0"
-    }
+    },
+    {
+      "name": "hive_metastore_upgrade_schema",
+      "description": "Hive metastore upgrade schema support (AMBARI-11176)",
+      "min_version": "2.3.0.0"
+     },
+    {
+      "name": "hive_server_interactive",
+      "description": "Hive server interactive support (AMBARI-15573)",
+      "min_version": "2.5.0.0"
+     },
+    {
+      "name": "hive_webhcat_specific_configs",
+      "description": "Hive webhcat specific configurations support (AMBARI-12364)",
+      "min_version": "2.3.0.0"
+     },
+    {
+      "name": "hive_purge_table",
+      "description": "Hive purge table support (AMBARI-12260)",
+      "min_version": "2.3.0.0"
+     },
+    {
+      "name": "hive_server2_kerberized_env",
+      "description": "Hive server2 working on kerberized environment (AMBARI-13749)",
+      "min_version": "2.2.3.0",
+      "max_version": "2.2.5.0"
+     },
+    {
+      "name": "hive_env_heapsize",
+      "description": "Hive heapsize property defined in hive-env (AMBARI-12801)",
+      "min_version": "2.2.0.0"
+     }
   ]
 }
 

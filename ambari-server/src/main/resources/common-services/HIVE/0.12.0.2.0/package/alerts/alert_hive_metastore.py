@@ -31,6 +31,10 @@ from resource_management.core.resources import Execute
 from ambari_commons.os_check import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
+import params
+
+stack_root = params.stack_root
+
 OK_MESSAGE = "Metastore OK - Hive command took {0:.3f}s"
 CRITICAL_MESSAGE = "Metastore on {0} failed ({1})"
 SECURITY_ENABLED_KEY = '{{cluster-env/security_enabled}}'
@@ -54,10 +58,10 @@ SMOKEUSER_PRINCIPAL_DEFAULT = 'ambari-qa@EXAMPLE.COM'
 SMOKEUSER_SCRIPT_PARAM_KEY = 'default.smoke.user'
 SMOKEUSER_DEFAULT = 'ambari-qa'
 
-HIVE_CONF_DIR = '/usr/hdp/current/hive-metastore/conf/conf.server'
+HIVE_CONF_DIR = format("{stack_root}/current/hive-metastore/conf/conf.server")
 HIVE_CONF_DIR_LEGACY = '/etc/hive/conf.server'
 
-HIVE_BIN_DIR = '/usr/hdp/current/hive-metastore/bin'
+HIVE_BIN_DIR = format("{stack_root}/current/hive-metastore/bin")
 HIVE_BIN_DIR_LEGACY = '/usr/lib/hive/bin'
 
 CHECK_COMMAND_TIMEOUT_KEY = 'check.command.timeout'

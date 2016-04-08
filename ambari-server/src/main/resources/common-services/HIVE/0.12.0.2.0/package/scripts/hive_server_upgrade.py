@@ -25,8 +25,9 @@ from resource_management.core.resources.system import Execute
 from resource_management.core import shell
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.version import format_stack_version
-from resource_management.libraries.functions.version import compare_versions
 
 
 def post_upgrade_deregister():
@@ -79,15 +80,15 @@ def _get_hive_execute_path(stack_version_formatted):
   Returns the exact execute path to use for the given stack-version.
   This method does not return the "current" path
   :param stack_version_formatted: Exact stack-version to use in the new path
-  :return: Hive execute path for the exact hdp stack-version
+  :return: Hive execute path for the exact stack-version
   """
   import params
 
   hive_execute_path = params.execute_path
   formatted_stack_version = format_stack_version(stack_version_formatted)
-  if formatted_stack_version and compare_versions(formatted_stack_version, "2.2") >= 0:
+  if formatted_stack_version and check_stack_feature(StackFeature.ROLLING_UPGRADE, formatted_stack_version):
     # hive_bin
-    new_hive_bin = format('/usr/hdp/{stack_version_formatted}/hive/bin')
+    new_hive_bin = format('{stack_root}/{stack_version_formatted}/hive/bin')
     if (os.pathsep + params.hive_bin) in hive_execute_path:
       hive_execute_path = hive_execute_path.replace(os.pathsep + params.hive_bin, os.pathsep + new_hive_bin)
     # hadoop_bin_dir
@@ -118,8 +119,8 @@ def _get_current_hiveserver_version():
     hive_execute_path = _get_hive_execute_path(source_version)
     version_hive_bin = params.hive_bin
     formatted_source_version = format_stack_version(source_version)
-    if formatted_source_version and compare_versions(formatted_source_version, "2.2") >= 0:
-      version_hive_bin = format('/usr/hdp/{source_version}/hive/bin')
+    if formatted_source_version and check_stack_feature(StackFeature.ROLLING_UPGRADE, formatted_source_version):
+      version_hive_bin = format('{stack_root}/{source_version}/hive/bin')
     command = format('{version_hive_bin}/hive --version')
     return_code, output = shell.call(command, user=params.hive_user, path=hive_execute_path)
   except Exception, e:

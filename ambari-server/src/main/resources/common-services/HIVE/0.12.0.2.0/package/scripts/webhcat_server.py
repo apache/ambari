@@ -21,6 +21,8 @@ Ambari Agent
 from resource_management import *
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
   FILE_TYPE_XML
@@ -63,7 +65,8 @@ class WebHCatServerWindows(WebHCatServer):
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class WebHCatServerDefault(WebHCatServer):
   def get_stack_to_component(self):
-    return {"HDP": "hive-webhcat"}
+    import params
+    return {params.stack_name: "hive-webhcat"}
 
   def status(self, env):
     import status_params
@@ -75,7 +78,7 @@ class WebHCatServerDefault(WebHCatServer):
     import params
     env.set_params(params)
 
-    if params.version and compare_versions(format_stack_version(params.version), '2.2.0.0') >= 0:
+    if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version): 
       # webhcat has no conf, but uses hadoop home, so verify that regular hadoop conf is set
       conf_select.select(params.stack_name, "hive-hcatalog", params.version)
       conf_select.select(params.stack_name, "hadoop", params.version)

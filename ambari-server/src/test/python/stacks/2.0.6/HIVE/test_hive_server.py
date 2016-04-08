@@ -44,7 +44,6 @@ class TestHiveServer(RMFTestCase):
     Logger.logger = MagicMock()
 
   @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
-  @patch.object(Script, "is_stack_greater_or_equal", new = MagicMock(return_value=False))
   def test_configure_default(self, copy_to_hdfs_mock):
     copy_to_hdfs_mock.return_value = True
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
@@ -59,7 +58,6 @@ class TestHiveServer(RMFTestCase):
 
   @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
   @patch("socket.socket")
-  @patch.object(Script, "is_stack_greater_or_equal", new = MagicMock(return_value=False))
   def test_start_default(self, socket_mock, copy_to_hfds_mock):
     copy_to_hfds_mock.return_value = None
     s = socket_mock.return_value
@@ -96,7 +94,6 @@ class TestHiveServer(RMFTestCase):
 
   @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
   @patch("socket.socket")
-  @patch.object(Script, "is_stack_greater_or_equal", new = MagicMock(return_value=False))
   def test_start_default_non_hdfs(self, socket_mock, copy_to_hfds_mock):
     copy_to_hfds_mock.return_value = None
     s = socket_mock.return_value
@@ -126,7 +123,6 @@ class TestHiveServer(RMFTestCase):
     )
     self.assertNoMoreResources()
 
-  @patch.object(Script, "is_stack_greater_or_equal", new = MagicMock(return_value=False))
   def test_start_default_no_copy(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
                        classname = "HiveServer",
@@ -157,7 +153,6 @@ class TestHiveServer(RMFTestCase):
     self.assertNoMoreResources()
 
   @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
-  @patch.object(Script, "is_stack_greater_or_equal", new = MagicMock(return_value=False))
   def test_start_default_alt_tmp(self, copy_to_hfds_mock):
     copy_to_hfds_mock.return_value = None
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
@@ -189,7 +184,6 @@ class TestHiveServer(RMFTestCase):
     self.assertNoMoreResources()
 
   @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
-  @patch.object(Script, "is_stack_greater_or_equal", new = MagicMock(return_value=False))
   def test_start_default_alt_nn_ha_tmp(self, copy_to_hfds_mock):
     copy_to_hfds_mock.return_value = None
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
@@ -220,7 +214,6 @@ class TestHiveServer(RMFTestCase):
     )
     self.assertNoMoreResources()
 
-  @patch.object(Script, "is_stack_greater_or_equal", new = MagicMock(return_value=False))
   def test_stop_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
                        classname = "HiveServer",
@@ -246,7 +239,6 @@ class TestHiveServer(RMFTestCase):
     
     self.assertNoMoreResources()
 
-  @patch.object(Script, "is_stack_greater_or_equal", new = MagicMock(return_value=False))
   def test_configure_secured(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
                        classname = "HiveServer",
@@ -261,7 +253,6 @@ class TestHiveServer(RMFTestCase):
   @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
   @patch("hive_service.check_fs_root")
   @patch("socket.socket")
-  @patch.object(Script, "is_stack_greater_or_equal", new = MagicMock(return_value=False))
   def test_start_secured(self, socket_mock, check_fs_root_mock, copy_to_hfds_mock):
     s = socket_mock.return_value
     copy_to_hfds_mock.return_value = None
@@ -299,7 +290,6 @@ class TestHiveServer(RMFTestCase):
 
 
   @patch("socket.socket")
-  @patch.object(Script, "is_stack_greater_or_equal", new = MagicMock(return_value=False))
   def test_stop_secured(self, socket_mock):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
                        classname = "HiveServer",
@@ -735,7 +725,6 @@ class TestHiveServer(RMFTestCase):
       self.assert_configure_default()
 
   @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
-  @patch.object(Script, "is_stack_greater_or_equal", new = MagicMock(return_value=True))
   @patch("os.path.exists", new = MagicMock(return_value=True))
   @patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
   def test_stop_during_upgrade(self, copy_to_hdfs_mock):
@@ -756,13 +745,12 @@ From source with checksum 150f554beae04f76f814f59549dead8b"""
     )
 
     self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hive-server2', '2.2.1.0-2065'), sudo=True,)
-    self.assertResourceCalledByIndex(31, 'Execute', 'hive --config /usr/hdp/current/hive-server2/conf/conf.server --service hiveserver2 --deregister 1.2.1.2.3.0.0-2434',
+    self.assertResourceCalledByIndex(31, 'Execute', 'hive --config /etc/hive/conf.server --service hiveserver2 --deregister 1.2.1.2.3.0.0-2434',
       path=['/bin:/usr/hdp/current/hive-server2/bin:/usr/hdp/current/hadoop-client/bin'],
       tries=1, user='hive')
 
 
   @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
-  @patch.object(Script, "is_stack_greater_or_equal", new = MagicMock(return_value=True))
   def test_stop_during_upgrade_with_default_conf_server(self, copy_to_hdfs_mock):
     hiveServerVersionOutput = """WARNING: Use "yarn jar" to launch YARN applications.
 Hive 1.2.1.2.3.0.0-2434
