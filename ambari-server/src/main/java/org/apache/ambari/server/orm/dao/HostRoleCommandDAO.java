@@ -23,7 +23,6 @@ import static org.apache.ambari.server.orm.dao.DaoUtils.ORACLE_LIST_LIMIT;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -318,7 +317,7 @@ public class HostRoleCommandDAO {
         "HostRoleCommandEntity.findByRequestIdAndStatuses", HostRoleCommandEntity.class);
     query.setParameter("requestId", requestId);
     query.setParameter("statuses", statuses);
-    List results = query.getResultList();
+    List<HostRoleCommandEntity> results = query.getResultList();
     return results;
   }
 
@@ -675,6 +674,7 @@ public class HostRoleCommandDAO {
    *          the request id
    * @return the map of stage-to-summary objects
    */
+  @RequiresSession
   public Map<Long, HostRoleCommandStatusSummaryDTO> findAggregateCounts(Long requestId) {
     if (!hostRoleCommandStatusSummaryCacheEnabled) {
       return loadAggregateCounts(requestId);
@@ -706,16 +706,17 @@ public class HostRoleCommandDAO {
    * @param requestId upgrade request id
    * @return Most recent task failure during stack upgrade, or null if one doesn't exist.
    */
+  @RequiresSession
   public HostRoleCommandEntity findMostRecentFailure(Long requestId) {
     TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createNamedQuery(
         "HostRoleCommandEntity.findTasksByStatusesOrderByIdDesc", HostRoleCommandEntity.class);
 
     query.setParameter("requestId", requestId);
     query.setParameter("statuses", HostRoleStatus.STACK_UPGRADE_FAILED_STATUSES);
-    List results = query.getResultList();
+    List<HostRoleCommandEntity> results = query.getResultList();
 
     if (!results.isEmpty()) {
-      HostRoleCommandEntity candidate = (HostRoleCommandEntity) results.get(0);
+      HostRoleCommandEntity candidate = results.get(0);
 
       // Ensure that there are no other completed tasks in a future stage to avoid returning an old error.
       // During Express Upgrade, we can run multiple commands in the same stage, so it's possible to have

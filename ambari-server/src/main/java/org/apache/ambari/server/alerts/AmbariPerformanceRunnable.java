@@ -20,25 +20,25 @@ package org.apache.ambari.server.alerts;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.RequestStatus;
+import org.apache.ambari.server.api.query.Query;
+import org.apache.ambari.server.api.query.QueryImpl;
+import org.apache.ambari.server.api.query.render.DefaultRenderer;
+import org.apache.ambari.server.api.resources.ClusterResourceDefinition;
 import org.apache.ambari.server.api.services.BaseRequest;
-import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.internal.AbstractControllerResourceProvider;
-import org.apache.ambari.server.controller.internal.ClusterResourceProvider;
-import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.Request;
-import org.apache.ambari.server.controller.spi.Resource.Type;
-import org.apache.ambari.server.controller.spi.ResourceProvider;
-import org.apache.ambari.server.controller.utilities.PredicateBuilder;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.controller.spi.ClusterController;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
+import org.apache.ambari.server.security.authorization.internal.InternalAuthenticationToken;
 import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
@@ -51,9 +51,9 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.google.inject.Inject;
-import com.google.inject.Provider;
 
 /**
  * The {@link AmbariPerformanceRunnable} is used by the
@@ -104,7 +104,7 @@ public class AmbariPerformanceRunnable extends AlertRunnable {
    * The {@link PerformanceArea} enumeration represents logical areas of
    * functionality to test for performance.
    */
-  private enum PerformanceArea {
+   enum PerformanceArea {
 
     /**
      * Query for requests by {@link RequestStatus#IN_PROGRESS}.
@@ -116,8 +116,28 @@ public class AmbariPerformanceRunnable extends AlertRunnable {
        */
       @Override
       void execute(AmbariPerformanceRunnable runnable, Cluster cluster) throws Exception {
-        runnable.m_actionManager.get().getRequestsByStatus(RequestStatus.IN_PROGRESS,
+        runnable.m_actionManager.getRequestsByStatus(RequestStatus.IN_PROGRESS,
             BaseRequest.DEFAULT_PAGE_SIZE, false);
+      }
+    },
+
+    /**
+     * Query for requests by {@link RequestStatus#IN_PROGRESS}.
+     */
+    HRC_SUMMARY_STATUS("Database Access (Task Status Aggregation)",
+        "task.status.aggregation.warning.threshold", 3000,
+        "task.status.aggregation.critical.threshold", 5000) {
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      void execute(AmbariPerformanceRunnable runnable, Cluster cluster) throws Exception {
+        List<Long> requestIds = runnable.m_requestDAO.findAllRequestIds(
+            BaseRequest.DEFAULT_PAGE_SIZE, false);
+
+        for (long requestId : requestIds) {
+          runnable.m_hostRoleCommandDAO.findAggregateCounts(requestId);
+        }
       }
     },
 
@@ -132,25 +152,19 @@ public class AmbariPerformanceRunnable extends AlertRunnable {
        */
       @Override
       void execute(AmbariPerformanceRunnable runnable, Cluster cluster) throws Exception {
-        Type type = Type.Cluster;
-        ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
-            type, PropertyHelper.getPropertyIds(type), PropertyHelper.getKeyPropertyIds(type),
-            runnable.m_amc.get());
-
-        Set<String> propertyIds = new HashSet<String>();
-
-        propertyIds.add(ClusterResourceProvider.CLUSTER_ID_PROPERTY_ID);
-        propertyIds.add(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID);
+        // Set authenticated user so that authorization checks will pass
+        InternalAuthenticationToken authenticationToken = new InternalAuthenticationToken("admin");
+        authenticationToken.setAuthenticated(true);
+        SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 
         // create the request
-        Request request = PropertyHelper.getReadRequest(propertyIds);
+        Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+        mapIds.put(Resource.Type.Cluster, cluster.getClusterName());
 
-        // build the predicate for this cluster
-        Predicate predicate = new PredicateBuilder().property(
-            ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID).equals(
-                cluster.getClusterName()).toPredicate();
-
-        provider.getResources(request, predicate);
+        ClusterController clusterController = ClusterControllerHelper.getClusterController();
+        Query query = new QueryImpl(mapIds, new ClusterResourceDefinition(), clusterController);
+        query.setRenderer(new DefaultRenderer());
+        query.execute();
       }
     };
 
@@ -222,13 +236,22 @@ public class AmbariPerformanceRunnable extends AlertRunnable {
   }
 
   /**
+   * Used for getting the most recent requests.
+   */
+  @Inject
+  private RequestDAO m_requestDAO;
+
+  /**
+   * Used for executing queries which are known to potentially take a long time.
+   */
+  @Inject
+  private HostRoleCommandDAO m_hostRoleCommandDAO;
+
+  /**
    * Used for querying for requests by status.
    */
   @Inject
-  private Provider<ActionManager> m_actionManager;
-
-  @Inject
-  private Provider<AmbariManagementController> m_amc;
+  private ActionManager m_actionManager;
 
   /**
    * Constructor.

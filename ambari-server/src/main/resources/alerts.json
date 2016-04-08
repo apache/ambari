@@ -57,6 +57,24 @@
               "threshold": "CRITICAL"
             },
             {
+              "name": "task.status.aggregation.warning.threshold",
+              "display_name": "Warning",
+              "value": 3000,
+              "type": "NUMERIC",
+              "description": "The time to calculate a request's status from its tasks before a warning alert is triggered.",
+              "units": "ms",
+              "threshold": "WARNING"
+            },
+            {
+              "name": "task.status.aggregation.critical.threshold",
+              "display_name": "Critical",
+              "value": 5000,
+              "type": "NUMERIC",
+              "description": "The time to calculate a request's status from its tasks before a critical alert is triggered.",
+              "units": "ms",
+              "threshold": "CRITICAL"
+            },
+            {
               "name": "rest.api.cluster.warning.threshold",
               "display_name": "Warning",
               "value": 5000,

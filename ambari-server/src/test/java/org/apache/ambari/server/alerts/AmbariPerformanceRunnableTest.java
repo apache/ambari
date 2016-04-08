@@ -19,6 +19,7 @@
 package org.apache.ambari.server.alerts;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertTrue;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
@@ -33,8 +34,11 @@ import java.util.Map;
 import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.alerts.AmbariPerformanceRunnable.PerformanceArea;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.internal.ClusterResourceProvider;
+import org.apache.ambari.server.controller.spi.ClusterController;
+import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.server.events.AlertEvent;
 import org.apache.ambari.server.events.AlertReceivedEvent;
 import org.apache.ambari.server.events.MockEventListener;
@@ -43,6 +47,7 @@ import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.state.Alert;
@@ -57,6 +62,10 @@ import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.easymock.PowerMock;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.google.common.eventbus.EventBus;
 import com.google.inject.Binder;
@@ -67,6 +76,9 @@ import com.google.inject.Module;
 /**
  * Tests {@link AmbariPerformanceRunnable}.
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({ ClusterControllerHelper.class, AmbariPerformanceRunnable.class,
+    PerformanceArea.class })
 public class AmbariPerformanceRunnableTest {
 
   private final static long CLUSTER_ID = 1;
@@ -148,7 +160,13 @@ public class AmbariPerformanceRunnableTest {
     AlertDefinitionFactory factory = m_injector.getInstance(AlertDefinitionFactory.class);
     expect(factory.coerce(EasyMock.anyObject(AlertDefinitionEntity.class))).andReturn(definition).atLeastOnce();
 
-    replay(m_definition, m_cluster, m_clusters, m_definitionDao, m_alertsDao, factory);
+    ClusterController clusterController = m_injector.getInstance(ClusterController.class);
+    PowerMock.mockStatic(ClusterControllerHelper.class);
+    expect(ClusterControllerHelper.getClusterController()).andReturn(clusterController);
+    PowerMock.replay(ClusterControllerHelper.class);
+
+    replay(m_definition, m_cluster, m_clusters, m_definitionDao, m_alertsDao, factory,
+        clusterController);
     }
 
   /**
@@ -159,10 +177,52 @@ public class AmbariPerformanceRunnableTest {
   }
 
   /**
+   * Tests that the event is triggerd with a status of OK if all performance
+   * areas pass.
+   */
+  @Test
+  public void testAlertFiresOKEvent() {
+    // mock the entire enum so that no problems are reported
+    PowerMock.mockStatic(PerformanceArea.class);
+    expect(PerformanceArea.values()).andReturn(new PerformanceArea[0]);
+    PowerMock.replay(PerformanceArea.class);
+
+    // instantiate and inject mocks
+    AmbariPerformanceRunnable runnable = new AmbariPerformanceRunnable(
+        m_definition.getDefinitionName());
+
+    m_injector.injectMembers(runnable);
+
+    // run the alert
+    runnable.run();
+
+    assertEquals(1, m_listener.getAlertEventReceivedCount(AlertReceivedEvent.class));
+
+    List<AlertEvent> events = m_listener.getAlertEventInstances(AlertReceivedEvent.class);
+    assertEquals(1, events.size());
+
+    AlertReceivedEvent event = (AlertReceivedEvent) events.get(0);
+    Alert alert = event.getAlert();
+    assertEquals("AMBARI", alert.getService());
+    assertEquals("AMBARI_SERVER", alert.getComponent());
+    assertEquals(AlertState.OK, alert.getState());
+    assertEquals(DEFINITION_NAME, alert.getName());
+
+    verify(m_cluster, m_clusters, m_definitionDao);
+  }
+
+  /**
    * Tests that the event is triggerd with a status of UNKNOWN.
    */
   @Test
-  public void testAlertFiresEvents() {
+  public void testAlertFiresUnknownEvent() {
+    // mock one area, leaving others to fail
+    RequestDAO requestDAO = m_injector.getInstance(RequestDAO.class);
+    expect(requestDAO.findAllRequestIds(EasyMock.anyInt(), EasyMock.anyBoolean())).andReturn(
+        new ArrayList<Long>());
+
+    replay(requestDAO);
+
     // instantiate and inject mocks
     AmbariPerformanceRunnable runnable = new AmbariPerformanceRunnable(
         m_definition.getDefinitionName());
@@ -184,6 +244,10 @@ public class AmbariPerformanceRunnableTest {
     assertEquals("AMBARI_SERVER", alert.getComponent());
     assertEquals(AlertState.UNKNOWN, alert.getState());
     assertEquals(DEFINITION_NAME, alert.getName());
+
+    // verify that even though there is 1 UNKNOWN, there should also be 1 OK as
+    // well
+    assertTrue(alert.getText().contains("(OK)"));
 
     verify(m_cluster, m_clusters, m_definitionDao);
   }
@@ -227,6 +291,8 @@ public class AmbariPerformanceRunnableTest {
       binder.bind(AmbariManagementController.class).toInstance(createNiceMock(AmbariManagementController.class));
       binder.bind(AlertDefinitionFactory.class).toInstance(createNiceMock(AlertDefinitionFactory.class));
       binder.bind(ClusterResourceProvider.class).toInstance(createNiceMock(ClusterResourceProvider.class));
+      binder.bind(ClusterController.class).toInstance(createNiceMock(ClusterController.class));
+      binder.bind(RequestDAO.class).toInstance(createNiceMock(RequestDAO.class));
     }
   }
 }
