@@ -22,10 +22,7 @@ from resource_management.core.logger import Logger
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.functions.default import default
 from resource_management.core.source import InlineTemplate
-try:
-    from resource_management.libraries.functions import hdp_select as hadoop_select
-except ImportError:
-    from resource_management.libraries.functions import phd_select as hadoop_select
+from resource_management.libraries.functions import stack_select
 
 import master_helper
 import common
@@ -82,7 +79,10 @@ class HawqMaster(Script):
     import params
     Logger.info("Executing HAWQ Check ...")
     params.File(hawq_constants.hawq_hosts_file, content=InlineTemplate("{% for host in hawq_all_hosts %}{{host}}\n{% endfor %}"))
-    Execute("source {0} && hawq check -f {1} --hadoop {2} --config {3}".format(hawq_constants.hawq_greenplum_path_file, hawq_constants.hawq_hosts_file, hadoop_select.get_hadoop_dir('home'), hawq_constants.hawq_check_file),
+    Execute("source {0} && hawq check -f {1} --hadoop {2} --config {3}".format(hawq_constants.hawq_greenplum_path_file,
+                                                                               hawq_constants.hawq_hosts_file,
+                                                                               stack_select.get_hadoop_dir('home'),
+                                                                               hawq_constants.hawq_check_file),
             user=hawq_constants.hawq_user,
             timeout=hawq_constants.default_exec_timeout)
 
