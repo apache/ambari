@@ -96,7 +96,7 @@ public abstract class AbstractPrepareKerberosServerAction extends KerberosServer
       }
 
       try {
-        Set<String> services = new HashSet<String>();
+        Set<String> services = cluster.getServices().keySet();
         Map<String, Set<String>> propertiesToIgnore = null;
 
         // Iterate over the components installed on the current host to get the service and
@@ -135,8 +135,6 @@ public abstract class AbstractPrepareKerberosServerAction extends KerberosServer
                   propertiesToIgnore = gatherPropertiesToIgnore(componentIdentities, propertiesToIgnore);
                 }
               }
-
-              services.add(serviceName);
           } catch (IOException e) {
             String message = String.format("Failed to write index file - %s", identityDataFile.getAbsolutePath());
             LOG.error(message, e);

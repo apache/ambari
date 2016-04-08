@@ -352,19 +352,3 @@ if has_ranger_admin:
   #For SQLA explicitly disable audit to DB for Ranger
   if xa_audit_db_flavor == 'sqla':
     xa_audit_db_is_enabled = False
-
-# Used to dynamically set the hbase-site props that are referenced during Kerberization
-if security_enabled:
-  if not enable_ranger_hbase: # Default props, no ranger plugin
-    hbase_coprocessor_master_classes = "org.apache.hadoop.hbase.security.access.AccessController"
-    hbase_coprocessor_regionserver_classes = "org.apache.hadoop.hbase.security.access.AccessController"
-    hbase_coprocessor_region_classes = "org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint,org.apache.hadoop.hbase.security.access.AccessController"
-  elif xml_configurations_supported: # HDP stack 2.3+ ranger plugin enabled
-    hbase_coprocessor_master_classes = "org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor "
-    hbase_coprocessor_regionserver_classes = "org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor"
-    hbase_coprocessor_region_classes = "org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint,org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor"
-  else: # HDP Stack 2.2 and less / ranger plugin enabled
-    hbase_coprocessor_master_classes = "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor"
-    hbase_coprocessor_regionserver_classes = "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor"
-    hbase_coprocessor_region_classes = "org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint,com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor"
-
