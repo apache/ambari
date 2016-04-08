@@ -27,6 +27,7 @@ class TestHawqMaster(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = 'HAWQ/2.0.0/package'
   STACK_VERSION = '2.3'
   GPADMIN = 'gpadmin'
+  POSTGRES = 'postgres'
   DEFAULT_IMMUTABLE_PATHS = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp']
 
   def __asserts_for_configure(self):
@@ -40,6 +41,16 @@ class TestHawqMaster(RMFTestCase):
         groups = ['gpadmin', u'hadoop'],
         ignore_failures = True,
         password = 'saNIJ3hOyqasU'
+        )
+
+    self.assertResourceCalled('Group', self.POSTGRES,
+        ignore_failures = True
+        )
+
+    self.assertResourceCalled('User', self.POSTGRES,
+        gid = self.POSTGRES,
+        groups = [self.POSTGRES, u'hadoop'],
+        ignore_failures = True
         )
 
     self.assertResourceCalled('Execute', 'chown -R gpadmin:gpadmin /usr/local/hawq/',

@@ -35,6 +35,17 @@
           "hdfs-client": {
             "hadoop.security.authentication": "kerberos"
           }
+        },
+        {
+          "yarn-client": {
+            "hadoop.security.authentication": "kerberos"
+          }
+        },
+        {
+          "core-site": {
+            "hadoop.proxyuser.postgres.hosts": "*",
+            "hadoop.proxyuser.postgres.groups": "${cluster-env/user_group}"
+          }
         }
       ],
       "components" : [
