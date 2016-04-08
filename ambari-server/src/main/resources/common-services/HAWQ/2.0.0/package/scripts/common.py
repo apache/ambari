@@ -38,6 +38,7 @@ def setup_user():
   Creates HAWQ user home directory and sets up the correct ownership.
   """
   __create_hawq_user()
+  __create_hawq_user_secured()
   __set_home_dir_ownership()
 
 
@@ -52,6 +53,18 @@ def __create_hawq_user():
        gid=hawq_constants.hawq_group,
        password=crypt.crypt(params.hawq_password, "salt"),
        groups=[hawq_constants.hawq_group, params.user_group],
+       ignore_failures=True)
+
+def __create_hawq_user_secured():
+  """
+  Creates HAWQ secured headless user belonging to hadoop group.
+  """
+  import params
+  Group(hawq_constants.hawq_group_secured, ignore_failures=True)
+
+  User(hawq_constants.hawq_user_secured,
+       gid=hawq_constants.hawq_group_secured,
+       groups=[hawq_constants.hawq_group_secured, params.user_group],
        ignore_failures=True)
 
 def create_master_dir(dir_path):

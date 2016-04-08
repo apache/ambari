@@ -34,6 +34,7 @@ root_user = "root"
 hawq_user = "gpadmin"
 hawq_user_secured = "postgres"
 hawq_group = hawq_user
+hawq_group_secured = hawq_user_secured
 
 # Directories
 hawq_home_dir = "/usr/local/hawq/"
