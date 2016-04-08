@@ -127,3 +127,23 @@ if not len(kafka_broker_hosts) == 0:
   kafka_bootstrap_servers = kafka_broker_hosts[0] + ":" + str(kafka_broker_port)
 
 kafka_zookeeper_connect = default("/configurations/kafka-broker/zookeeper.connect", None)
+
+# atlas HA
+atlas_hosts = sorted(default('/clusterHostInfo/atlas_server_hosts', []))
+
+id = 1
+server_ids = ""
+server_hosts = ""
+first_id = True
+for host in atlas_hosts:
+  server_id = "id" + str(id)
+  server_host = host + ":" + metadata_port
+  if first_id:
+    server_ids = server_id
+    server_hosts = server_host
+  else:
+    server_ids += "," + server_id
+    server_hosts += "\n" + "atlas.server.host." + server_id + "=" + server_host
+
+  id += 1
+  first_id = False

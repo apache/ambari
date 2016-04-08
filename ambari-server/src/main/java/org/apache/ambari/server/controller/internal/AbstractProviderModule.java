@@ -93,6 +93,8 @@ public abstract class AbstractProviderModule implements ProviderModule,
   private static final Map<Service.Type, Map<String, String[]>> serviceDesiredProperties = new EnumMap<Service.Type, Map<String, String[]>>(Service.Type.class);
   private static final Map<String, Service.Type> componentServiceMap = new HashMap<String, Service.Type>();
 
+  private static final Map<String, List<HttpPropertyProvider.HttpPropertyRequest>> HTTP_PROPERTY_REQUESTS = new HashMap<>();
+
   private static final String PROPERTY_HDFS_HTTP_POLICY_VALUE_HTTPS_ONLY = "HTTPS_ONLY";
 
   private static final String COLLECTOR_DEFAULT_PORT = "6188";
@@ -171,6 +173,12 @@ public abstract class AbstractProviderModule implements ProviderModule,
     initPropMap.put("datanode", new String[]{"dfs.namenode.servicerpc-address.%s.%s"});
     initPropMap.put("healthcheck", new String[]{"dfs.namenode.lifeline.rpc-address.%s.%s"});
     jmxDesiredRpcSuffixProperties.put("NAMENODE-HA", initPropMap);
+
+    HTTP_PROPERTY_REQUESTS.put("RESOURCEMANAGER",
+        Collections.<HttpPropertyProvider.HttpPropertyRequest>singletonList(new ResourceManagerHttpPropertyRequest()));
+
+    HTTP_PROPERTY_REQUESTS.put("ATLAS_SERVER",
+        Collections.<HttpPropertyProvider.HttpPropertyRequest>singletonList(new AtlasServerHttpPropertyRequest()));
   }
 
   /**
@@ -790,6 +798,13 @@ public abstract class AbstractProviderModule implements ProviderModule,
               PropertyHelper.getPropertyId("HostRoles", "state"),
               jpp,
               gpp));
+
+          providers.add(new HttpPropertyProvider(streamProvider,
+              managementController.getClusters(),
+              PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
+              PropertyHelper.getPropertyId("HostRoles", "host_name"),
+              PropertyHelper.getPropertyId("HostRoles", "component_name"),
+              HTTP_PROPERTY_REQUESTS));
         }
         break;
         case RootServiceComponent:
