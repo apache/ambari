@@ -42,6 +42,7 @@ angular.module('ambariAdminConsole')
       $scope.displayName = response.displayName || $t('common.NA');
       $scope.version = response.version || $t('common.NA');
       $scope.actualVersion = response.actualVersion || $t('common.NA');
+      $scope.useRedhatSatellite = !response.ambari_managed_repositories;
       $scope.updateObj = response.updateObj;
       $scope.upgradeStack = {
         stack_name: response.stackName,
@@ -134,6 +135,7 @@ angular.module('ambariAdminConsole')
     var updateRepoUrl = false;
     angular.forEach($scope.osList, function (os) {
       var savedUrls = $scope.defaulfOSRepos[os.OperatingSystems.os_type];
+      os.OperatingSystems.ambari_managed_repositories = !$scope.useRedhatSatellite;
       if (os.selected) {
         var currentRepos = os.repositories;
         if (!savedUrls || currentRepos[0].Repositories.base_url != savedUrls.defaultBaseUrl

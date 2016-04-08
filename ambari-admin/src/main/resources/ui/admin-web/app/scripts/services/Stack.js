@@ -150,6 +150,7 @@ angular.module('ambariAdminConsole')
         // get repo by stack version(2.3) and id (112)
         var url = Settings.baseUrl + '/stacks/' + stack_name + '/versions?' +
           'fields=repository_versions/operating_systems/repositories/*' +
+          ',repository_versions/operating_systems/OperatingSystems/*' +
           ',repository_versions/RepositoryVersions/*' +
           '&repository_versions/RepositoryVersions/id=' + repoVersion +
           '&Versions/stack_version=' + stack_version;
@@ -157,6 +158,7 @@ angular.module('ambariAdminConsole')
         // get repo by repoVersion (2.3.6.0-2345)
         var url = Settings.baseUrl + '/stacks/' + stack_name + '/versions?' +
           'fields=repository_versions/operating_systems/repositories/*' +
+          ',repository_versions/operating_systems/OperatingSystems/*' +
           ',repository_versions/RepositoryVersions/*' +
           '&repository_versions/RepositoryVersions/repository_version=' + repoVersion;
       }
@@ -176,6 +178,7 @@ angular.module('ambariAdminConsole')
           displayName: data.repository_versions[0].RepositoryVersions.release ? data.Versions.stack_name + '-' + data.repository_versions[0].RepositoryVersions.release.version :
             data.Versions.stack_name + '-' + data.repository_versions[0].RepositoryVersions.repository_version.split('-')[0], //HDP-2.3.4.0
           repoVersionFullName : data.Versions.stack_name + '-' + data.repository_versions[0].RepositoryVersions.repository_version,
+          ambari_managed_repositories: data.repository_versions[0].operating_systems[0].OperatingSystems.ambari_managed_repositories !== false,
           osList: data.repository_versions[0].operating_systems,
           updateObj: data.repository_versions[0]
         };
