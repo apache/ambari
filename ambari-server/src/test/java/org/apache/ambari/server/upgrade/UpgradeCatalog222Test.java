@@ -134,6 +134,7 @@ public class UpgradeCatalog222Test {
     Method updateCorruptedReplicaWidget = UpgradeCatalog222.class.getDeclaredMethod("updateCorruptedReplicaWidget");
     Method createNewSliderConfigVersion = UpgradeCatalog222.class.getDeclaredMethod("createNewSliderConfigVersion");
     Method updateZookeeperConfigs = UpgradeCatalog222.class.getDeclaredMethod("updateZookeeperConfigs");
+    Method initializeStromAnsKafkaWidgets = UpgradeCatalog222.class.getDeclaredMethod("initializeStromAndKafkaWidgets");
 
     UpgradeCatalog222 upgradeCatalog222 = createMockBuilder(UpgradeCatalog222.class)
       .addMockedMethod(addNewConfigurationsFromXml)
@@ -146,6 +147,7 @@ public class UpgradeCatalog222Test {
       .addMockedMethod(updateCorruptedReplicaWidget)
       .addMockedMethod(createNewSliderConfigVersion)
       .addMockedMethod(updateZookeeperConfigs)
+      .addMockedMethod(initializeStromAnsKafkaWidgets)
       .createMock();
 
     upgradeCatalog222.addNewConfigurationsFromXml();
@@ -167,6 +169,8 @@ public class UpgradeCatalog222Test {
     upgradeCatalog222.updateZookeeperConfigs();
     expectLastCall().once();
     upgradeCatalog222.createNewSliderConfigVersion();
+    expectLastCall().once();
+    upgradeCatalog222.initializeStromAndKafkaWidgets();
     expectLastCall().once();
 
     replay(upgradeCatalog222);
@@ -715,5 +719,58 @@ public class UpgradeCatalog222Test {
     easyMockSupport.verifyAll();
   }
 
+  @Test
+  public void testInitializeStromAndKafkaWidgets() throws AmbariException {
+
+    String stormServiceName = "STORM";
+    String kafkaServiceName = "KAFKA";
+    String hbaseServiceName = "HBASE";
+
+    final AmbariManagementController controller = createStrictMock(AmbariManagementController.class);
+    final Clusters clusters = createStrictMock(Clusters.class);
+    final Cluster cluster = createStrictMock(Cluster.class);
+    final Service stormService = createStrictMock(Service.class);
+    final Service kafkaService = createStrictMock(Service.class);
+    final Service hbaseService = createStrictMock(Service.class);
+    final Map<String, Cluster> clusterMap = Collections.singletonMap("c1", cluster);
+    final Map<String, Service> services = new HashMap<>();
+    services.put(stormServiceName, stormService);
+    services.put(kafkaServiceName, kafkaService);
+    services.put(hbaseServiceName, hbaseService);
+
+
+    Module module = new Module() {
+      @Override
+      public void configure(Binder binder) {
+        binder.bind(AmbariManagementController.class).toInstance(controller);
+        binder.bind(Clusters.class).toInstance(clusters);
+        binder.bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        binder.bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    };
+
+    expect(controller.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getClusters()).andReturn(clusterMap).anyTimes();
+    controller.initializeWidgetsAndLayouts(cluster, null);
+    expectLastCall().once();
+
+    expect(cluster.getServices()).andReturn(services).once();
+    expect(stormService.getName()).andReturn(stormServiceName).atLeastOnce();
+    expect(kafkaService.getName()).andReturn(kafkaServiceName).atLeastOnce();
+    expect(hbaseService.getName()).andReturn(hbaseServiceName).atLeastOnce();
+
+    controller.initializeWidgetsAndLayouts(cluster, kafkaService);
+    expectLastCall().once();
+    controller.initializeWidgetsAndLayouts(cluster, stormService);
+    expectLastCall().once();
+    // but no controller call for HBase
+
+    replay(controller, clusters, cluster, stormService, kafkaService, hbaseService);
+
+    Injector injector = Guice.createInjector(module);
+    injector.getInstance(UpgradeCatalog222.class).initializeStromAndKafkaWidgets();
+
+    verify(controller, clusters, cluster, stormService, kafkaService, hbaseService);
+  }
 
 }
