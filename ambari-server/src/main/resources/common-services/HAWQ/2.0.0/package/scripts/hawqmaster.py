@@ -22,7 +22,7 @@ from resource_management.core.logger import Logger
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.functions.default import default
 from resource_management.core.source import InlineTemplate
-from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions import hdp_select as stack_select
 
 import master_helper
 import common
