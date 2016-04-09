@@ -1,0 +1,34 @@
+/*
+ backgrid-orderable-columns
+ https://github.com/WRidder/backgrid-orderable-columns
+
+ Copyright (c) 2014 Wilbert van de Ridder
+ Licensed under the MIT @license.
+ */
+.backgrid .orderable-indicator {
+    width: 3px;
+    top: 0;
+    position: absolute;
+    z-index: 1;
+}
+
+.backgrid .orderable-indicator-active {
+    background-color: #000; /* IE8 fallback */
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)"; /* IE8 fallback */
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.backgrid thead th.orderable-ordering {
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)"; /* IE8 fallback */
+    opacity: 0.3;
+}
+
+.backgrid .orderable-draggable {
+    position: absolute;
+    display: block;
+    background-color: #000; /* IE8 fallback */
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=10)"; /* IE8 fallback */
+    background-color: rgba(0, 0, 0, 0.1);
+    z-index: 3;
+    cursor: move;
+}

@@ -1,0 +1,70 @@
+<!-- 
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<div class="form-horizontal">
+    <form onsubmit="return false;">
+        <div class="form-group" style="margin-top: 20px;">
+            <label class="col-md-2 control-label">Time: </label>
+            <div class="col-sm-3" data-id="absolute">
+                <div class="radio">
+                    <label>
+                        <input type="radio" name="radio" checked="" > Absolute <i class="fa fa-circle-o small"></i></label>
+                </div>
+            </div>
+            <div class="col-sm-2" data-id="relative">
+                <div class="radio">
+                    <label> <input type="radio" name="radio" >Relative<i class="fa fa-circle-o small"></i></label>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-md-2 control-label">* Name: </label>
+            <div class="col-sm-4">
+                <input type="text" data-id="name" class="form-control" required >
+            </div>
+        </div>
+    </form>
+    <div class="panel panel-primary">
+        <div class="panel-heading" data-id="panelHeading">Filter Parameter</div>
+        <div class="panel-body">
+            <table class="table saveFilterTable" data-id="panelBody"></table>
+        </div>
+    </div>
+    <!--     <div class="form-group">
+        <label class="col-md-2 control-label">Share: </label>
+        <div class="col-sm-2">
+            <div class="radio">
+                <label>
+                    <input type="radio" name="radio" checked=""> Only Me <i class="fa fa-circle-o small"></i></label>
+            </div>
+        </div>
+        <div class="col-sm-2">
+            <div class="radio">
+                <label>
+                    <input type="radio" name="radio"> Others <i class="fa fa-circle-o small"></i></label>
+            </div>
+        </div>
+    </div> -->
+    <!--   <div class="form-group">
+        <label class="col-md-2 control-label">Read Only: </label>
+        <div class="col-sm-2">
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" checked=""><i class="fa fa-square-o small"></i></label>
+            </div>
+        </div>
+    </div> -->
+</div>

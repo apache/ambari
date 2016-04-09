@@ -1,0 +1,42 @@
+{
+	"input": {
+		"file": {
+			"klass": "org.apache.ambari.logfeeder.input.InputFile"
+		}
+
+	},
+	"filter": {
+		"json": {
+			"klass": "org.apache.ambari.logfeeder.filter.JSONFilterCode"
+		},
+		"keyvalue": {
+			"klass": "org.apache.ambari.logfeeder.filter.FilterKeyValue"
+		},
+		"grok": {
+			"klass": "org.apache.ambari.logfeeder.filter.FilterGrok"
+		}
+	},
+	  
+	 "mapper": {
+		"map_date": {
+			"klass": "org.apache.ambari.logfeeder.mapper.MapperDate"
+		},
+		"map_fieldname": {
+			"klass": "org.apache.ambari.logfeeder.mapper.MapperFieldName"
+		},
+		"map_fieldvalue": {
+			"klass": "org.apache.ambari.logfeeder.mapper.MapperFieldValue"
+		}
+	},
+	  "output": {
+		"solr": {
+			"klass": "org.apache.ambari.logfeeder.output.OutputSolr"
+		},
+		"file": {
+			"klass": "org.apache.ambari.logfeeder.output.OutputFile"
+		},
+		"kafka": {
+			"klass": "org.apache.ambari.logfeeder.output.OutputKafka"
+		}
+	}
+}

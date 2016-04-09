@@ -1,0 +1,995 @@
+{#
+ # Licensed to the Apache Software Foundation (ASF) under one
+ # or more contributor license agreements.  See the NOTICE file
+ # distributed with this work for additional information
+ # regarding copyright ownership.  The ASF licenses this file
+ # to you under the Apache License, Version 2.0 (the
+ # "License"); you may not use this file except in compliance
+ # with the License.  You may obtain a copy of the License at
+ #
+ #   http://www.apache.org/licenses/LICENSE-2.0
+ #
+ # Unless required by applicable law or agreed to in writing, software
+ # distributed under the License is distributed on an "AS IS" BASIS,
+ # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
+ #}
+{
+	"global":{
+		"add_fields":{
+			"cluster":"{{cluster_name}}"
+		},
+		"source":"file",
+		"tail":"true",
+		"gen_event_md5":"true",
+		"start_position":"beginning"
+	},
+	"input":[
+		{
+			"type":"accumulo_gc",
+			"rowtype":"service",
+			"path":"{{accumulo_log_dir}}/gc_*.log"
+		},
+		{
+			"type":"accumulo_master",
+			"rowtype":"service",
+			"path":"{{accumulo_log_dir}}/master_*.log"
+		},
+		{
+			"type":"accumulo_monitor",
+			"rowtype":"service",
+			"path":"{{accumulo_log_dir}}/monitor_*.log"
+		},
+		{
+			"type":"accumulo_tracer",
+			"rowtype":"service",
+			"path":"{{accumulo_log_dir}}/tracer_*.log"
+		},
+		{
+			"type":"accumulo_tserver",
+			"rowtype":"service",
+			"path":"{{accumulo_log_dir}}/tserver_*.log"
+		},
+		{
+			"type":"atlas_app",
+			"rowtype":"service",
+			"path":"{{atlas_log_dir}}/application.log"
+		},
+		{
+			"type":"ambari_agent",
+			"rowtype":"service",
+			"path":"{{ambari_agent_log_dir}}/ambari-agent.log"
+		},
+		{
+			"type":"ambari_server",
+			"rowtype":"service",
+			"path":"{{ambari_server_log_dir}}/ambari-server.log"
+		},
+		{
+			"type":"ams_hbase_master",
+			"rowtype":"service",
+			"path":"{{metrics_collector_log_dir}}/hbase-ams-master-*.log"
+		},
+		{
+			"type":"ams_hbase_regionserver",
+			"rowtype":"service",
+			"path":"{{metrics_collector_log_dir}}/hbase-ams-regionserver-*.log"
+		},
+		{
+			"type":"ams_collector",
+			"rowtype":"service",
+			"path":"{{metrics_collector_log_dir}}/ambari-metrics-collector.log"
+		},
+		{
+			"type":"falcon_app",
+			"rowtype":"service",
+			"path":"{{falcon_log_dir}}/falcon.application.log"
+		},
+		{
+			"type":"hbase_master",
+			"rowtype":"service",
+			"path":"{{hbase_log_dir}}/hbase-hbase-master-*.log"
+		},
+		{
+			"type":"hbase_regionserver",
+			"rowtype":"service",
+			"path":"{{hbase_log_dir}}/hbase-hbase-regionserver-*.log"
+		},
+		{
+			"type":"hdfs_datanode",
+			"rowtype":"service",
+			"path":"{{hdfs_log_dir_prefix}}/hdfs/hadoop-hdfs-datanode-*.log"
+		},
+		{
+			"type":"hdfs_namenode",
+			"rowtype":"service",
+			"path":"{{hdfs_log_dir_prefix}}/hdfs/hadoop-hdfs-namenode-*.log"
+		},
+		{
+			"type":"hdfs_journalnode",
+			"rowtype":"service",
+			"path":"{{hdfs_log_dir_prefix}}/hdfs/hadoop-hdfs-journalnode-*.log"
+		},
+		{
+			"type":"hdfs_secondarynamenode",
+			"rowtype":"service",
+			"path":"{{hdfs_log_dir_prefix}}/hdfs/hadoop-hdfs-secondarynamenode-*.log"
+		},
+		{
+			"type":"hdfs_zkfc",
+			"rowtype":"service",
+			"path":"{{hdfs_log_dir_prefix}}/hdfs/hadoop-hdfs-zkfc-*.log"
+		},
+		{
+			"type":"hive_hiveserver2",
+			"rowtype":"service",
+			"path":"{{hive_log_dir}}/hiveserver2.log"
+		},
+		{
+			"type":"hive_metastore",
+			"rowtype":"service",
+			"path":"{{hive_log_dir}}/hivemetastore.log"
+		},
+		{
+			"type":"kafka_controller",
+			"rowtype":"service",
+			"path":"{{kafka_log_dir}}/controller.log"
+		},
+		{
+			"type":"kafka_request",
+			"rowtype":"service",
+			"path":"{{kafka_log_dir}}/kafka-request.log"
+		},
+		{
+			"type":"kafka_logcleaner",
+			"rowtype":"service",
+			"path":"{{kafka_log_dir}}/log-cleaner.log"
+		},
+		{
+			"type":"kafka_server",
+			"rowtype":"service",
+			"path":"{{kafka_log_dir}}/server.log"
+		},
+		{
+			"type":"kafka_statechange",
+			"rowtype":"service",
+			"path":"{{kafka_log_dir}}/state-change.log"
+		},
+		{
+			"type":"knox_gateway",
+			"rowtype":"service",
+			"path":"{{knox_log_dir}}/gateway.log"
+		},
+		{
+			"type":"knox_cli",
+			"rowtype":"service",
+			"path":"{{knox_log_dir}}/knoxcli.log"
+		},
+		{
+			"type":"knox_ldap",
+			"rowtype":"service",
+			"path":"{{knox_log_dir}}/ldap.log"
+		},
+		{
+			"type":"mapred_historyserver",
+			"rowtype":"service",
+			"path":"{{mapred_log_dir_prefix}}/mapred/mapred-mapred-historyserver*.log"
+		},
+		{
+			"type":"logsearch_app",
+			"rowtype":"service",
+			"path":"{{logsearch_log_dir}}/logsearch.log"
+		},
+		{
+			"type":"logsearch_feeder",
+			"rowtype":"service",
+			"path":"{{logfeeder_log_dir}}/logfeeder.log"
+		},
+		{
+			"type":"logsearch_perf",
+			"rowtype":"service",
+			"path":"{{logsearch_log_dir}}/logsearch-performance.log"
+		},
+		{
+			"type":"ranger_admin",
+			"rowtype":"service",
+			"path":"{{ranger_admin_log_dir}}/xa_portal.log"
+		},
+		{
+			"type":"ranger_dbpatch",
+			"is_enabled":"true",
+			"path":"{{ranger_admin_log_dir}}/ranger_db_patch.log"
+		},
+		{
+			"type":"ranger_kms",
+			"rowtype":"service",
+			"path":"{{ranger_kms_log_dir}}/kms.log"
+		},
+		{
+			"type":"ranger_usersync",
+			"rowtype":"service",
+			"path":"{{ranger_usersync_log_dir}}/usersync.log"
+		},
+		{
+			"type":"oozie_app",
+			"rowtype":"service",
+			"path":"{{oozie_log_dir}}/oozie.log"
+		},
+		{
+			"type":"yarn_nodemanager",
+			"rowtype":"service",
+			"path":"{{yarn_log_dir_prefix}}/yarn/yarn-yarn-nodemanager-*.log"
+		},
+		{
+			"type":"yarn_resourcemanager",
+			"rowtype":"service",
+			"path":"{{yarn_log_dir_prefix}}/yarn/yarn-yarn-resourcemanager-*.log"
+		},
+		{
+			"type":"yarn_timelineserver",
+			"rowtype":"service",
+			"path":"{{yarn_log_dir_prefix}}/yarn/yarn-yarn-timelineserver-*.log"
+		},
+		{
+			"type":"yarn_historyserver",
+			"rowtype":"service",
+			"path":"{{yarn_log_dir_prefix}}/yarn/yarn-yarn-historyserver-*.log"
+		},
+		{
+			"type":"yarn_jobsummary",
+			"rowtype":"service",
+			"path":"{{yarn_log_dir_prefix}}/yarn/hadoop-mapreduce.jobsummary.log"
+		},
+		{
+			"type":"storm_drpc",
+			"rowtype":"service",
+			"path":"{{storm_log_dir}}/drpc.log"
+		},
+		{
+			"type":"storm_logviewer",
+			"rowtype":"service",
+			"path":"{{storm_log_dir}}/logviewer.log"
+		},
+		{
+			"type":"storm_nimbus",
+			"rowtype":"service",
+			"path":"{{storm_log_dir}}/nimbus.log"
+		},
+		{
+			"type":"storm_supervisor",
+			"rowtype":"service",
+			"path":"{{storm_log_dir}}/supervisor.log"
+		},
+		{
+			"type":"storm_ui",
+			"rowtype":"service",
+			"path":"{{storm_log_dir}}/ui.log"
+		},
+		{
+			"type":"storm_worker",
+			"rowtype":"service",
+			"path":"{{storm_log_dir}}/*worker*.log"
+		},
+		{
+			"type":"zookeeper",
+			"rowtype":"service",
+			"path":"{{zk_log_dir}}/zookeeper/zookeeper*.out"
+		},
+		{
+			"type":"hdfs_audit",
+			"rowtype":"audit",
+			"is_enabled":"true",
+			"add_fields":{
+				"logType":"HDFSAudit",
+				"enforcer":"hadoop-acl",
+				"repoType":"1",
+				"repo":"hdfs"
+			},
+			"path":"{{hdfs_log_dir_prefix}}/hdfs/hdfs-audit.log"
+		}
+		
+	],
+	"filter":[
+		{
+			"filter":"grok",
+			"conditions":{
+				"fields":{
+					"type":[
+						"accumulo_master"
+					]
+					
+				}
+				
+			},
+			"log4j_format":"%d{ISO8601} [%-8c{2}] %-5p: %m%n",
+			"multiline_pattern":"^(%{TIMESTAMP_ISO8601:logtime})",
+			"message_pattern":"(?m)^%{TIMESTAMP_ISO8601:logtime}%{SPACE}\\[%{JAVACLASS:logger_name}\\]%{SPACE}%{LOGLEVEL:level}:%{SPACE}%{GREEDYDATA:log_message}",
+			"post_map_values":{
+				"logtime":{
+					"map_date":{
+						"date_pattern":"yyyy-MM-dd HH:mm:ss,SSS"
+					}
+					
+				}
+				
+			}
+			
+		},
+		{
+			"filter":"grok",
+			"comment":"This one has one extra space after LEVEL",
+			"conditions":{
+				"fields":{
+					"type":[
+						"accumulo_gc",
+						"accumulo_monitor",
+						"accumulo_tracer",
+						"accumulo_tserver"
+					]
+					
+				}
+				
+			},
+			"log4j_format":"%d{ISO8601} [%-8c{2}] %-5p: %X{application} %m%n",
+			"multiline_pattern":"^(%{TIMESTAMP_ISO8601:logtime})",
+			"message_pattern":"(?m)^%{TIMESTAMP_ISO8601:logtime}%{SPACE}\\[%{JAVACLASS:logger_name}\\]%{SPACE}%{LOGLEVEL:level}%{SPACE}:%{SPACE}%{GREEDYDATA:log_message}",
+			"post_map_values":{
+				"logtime":{
+					"map_date":{
+						"date_pattern":"yyyy-MM-dd HH:mm:ss,SSS"
+					}
+					
+				}
+				
+			}
+			
+		},
+		{
+			"filter":"grok",
+			"conditions":{
+				"fields":{
+					"type":[
+						"atlas_app",
+						"falcon_app"
+					]
+					
+				}
+				
+			},
+			"log4j_format":"%d %-5p - [%t:%x] ~ %m (%c{1}:%L)%n",
+			"multiline_pattern":"^(%{TIMESTAMP_ISO8601:logtime})",
+			"message_pattern":"(?m)^%{TIMESTAMP_ISO8601:logtime}%{SPACE}%{LOGLEVEL:level}%{SPACE}%{SPACE}-%{SPACE}\\[%{DATA:thread_name}\\]%{SPACE}~%{SPACE}%{GREEDYDATA:log_message}",
+			"post_map_values":{
+				"logtime":{
+					"map_date":{
+						"date_pattern":"yyyy-MM-dd HH:mm:ss,SSS"
+					}
+					
+				}
+				
+			}
+			
+		},
+		{
+			"filter":"grok",
+			"conditions":{
+				"fields":{
+					"type":[
+						"ams_collector"
+					]
+					
+				}
+				
+			},
+			"log4j_format":"%d{ISO8601} %p %c: %m%n",
+			"multiline_pattern":"^(%{TIMESTAMP_ISO8601:logtime})",
+			"message_pattern":"(?m)^%{TIMESTAMP_ISO8601:logtime}%{SPACE}%{LOGLEVEL:level}%{SPACE}%{JAVACLASS:logger_name}:%{SPACE}%{GREEDYDATA:log_message}",
+			"post_map_values":{
+				"logtime":{
+					"map_date":{
+						"date_pattern":"yyyy-MM-dd HH:mm:ss,SSS"
+					}
+					
+				}
+				
+			}
+			
+		},
+		{
+			"filter":"grok",
+			"conditions":{
+				"fields":{
+					"type":[
+						"ams_hbase_master",
+						"ams_hbase_regionserver",
+						"hbase_master",
+						"hbase_regionserver"
+					]
+					
+				}
+				
+			},
+			"log4j_format":"%d{ISO8601} %-5p [%t] %c{2}: %m%n",
+			"multiline_pattern":"^(%{TIMESTAMP_ISO8601:logtime})",
+			"message_pattern":"(?m)^%{TIMESTAMP_ISO8601:logtime}%{SPACE}%{LOGLEVEL:level}%{SPACE}\\[%{DATA:thread_name}\\]%{SPACE}%{JAVACLASS:logger_name}:%{SPACE}%{GREEDYDATA:log_message}",
+			"post_map_values":{
+				"logtime":{
+					"map_date":{
+						"date_pattern":"yyyy-MM-dd HH:mm:ss,SSS"
+					}
+					
+				}
+				
+			}
+			
+		},
+		{
+			"filter":"grok",
+			"conditions":{
+				"fields":{
+					"type":[
+						"ambari_agent"
+					]
+					
+				}
+				
+			},
+			"log4j_format":"",
+			"multiline_pattern":"^(%{LOGLEVEL:level} %{TIMESTAMP_ISO8601:logtime})",
+			"message_pattern":"(?m)^%{LOGLEVEL:level} %{TIMESTAMP_ISO8601:logtime} %{JAVAFILE:file}:%{INT:line_number} - %{GREEDYDATA:log_message}",
+			"post_map_values":{
+				"logtime":{
+					"map_date":{
+						"date_pattern":"yyyy-MM-dd HH:mm:ss,SSS"
+					}
+					
+				},
+				"level":{
+					"map_fieldvalue":{
+						"pre_value":"WARNING",
+						"post_value":"WARN"
+					}
+					
+				}
+				
+			}
+			
+		},
+		{
+			"filter":"grok",
+			"conditions":{
+				"fields":{
+					"type":[
+						"ambari_server"
+					]
+					
+				}
+				
+			},
+			"log4j_format":"%d{DATE} %5p [%t] %c{1}:%L - %m%n",
+			"multiline_pattern":"^(%{USER_SYNC_DATE:logtime})",
+			"message_pattern":"(?m)^%{USER_SYNC_DATE:logtime}%{SPACE}%{LOGLEVEL:level}%{SPACE}\\[%{DATA:thread_name}\\]%{SPACE}%{JAVACLASS:logger_name}:%{INT:line_number}%{SPACE}-%{SPACE}%{GREEDYDATA:log_message}",
+			"post_map_values":{
+				"logtime":{
+					"map_date":{
+						"date_pattern":"dd MMM yyyy HH:mm:ss"
+					}
+					
+				}
+				
+			}
+			
+		},
+		{
+			"filter":"grok",
+			"conditions":{
+				"fields":{
+					"type":[
+						"hdfs_datanode",
+						"hdfs_journalnode",
+						"hdfs_secondarynamenode",
+						"hdfs_namenode",
+						"hdfs_zkfc",
+						"knox_gateway",
+						"knox_cli",
+						"knox_ldap",
+						"mapred_historyserver",
+						"yarn_historyserver",
+						"yarn_jobsummary",
+						"yarn_nodemanager",
+						"yarn_resourcemanager",
+						"yarn_timelineserver"
+					]
+					
+				}
+				
+			},
+			"log4j_format":"%d{ISO8601} %-5p %c{2} (%F:%M(%L)) - %m%n",
+			"multiline_pattern":"^(%{TIMESTAMP_ISO8601:logtime})",
+			"message_pattern":"(?m)^%{TIMESTAMP_ISO8601:logtime}%{SPACE}%{LOGLEVEL:level}%{SPACE}%{JAVACLASS:logger_name}%{SPACE}\\(%{JAVAFILE:file}:%{JAVAMETHOD:method}\\(%{INT:line_number}\\)\\)%{SPACE}-%{SPACE}%{GREEDYDATA:log_message}",
+			"post_map_values":{
+				"logtime":{
+					"map_date":{
+						"date_pattern":"yyyy-MM-dd HH:mm:ss,SSS"
+					}
+					
+				}
+				
+			}
+			
+		},
+		{
+			"filter":"grok",
+			"conditions":{
+				"fields":{
+					"type":[
+						"hive_hiveserver2",
+						"hive_metastore"
+					]
+					
+				}
+				
+			},
+			"log4j_format":"%d{ISO8601} %-5p [%t]: %c{2} (%F:%M(%L)) - %m%n",
+			"multiline_pattern":"^(%{TIMESTAMP_ISO8601:logtime})",
+			"message_pattern":"(?m)^%{TIMESTAMP_ISO8601:logtime}%{SPACE}%{LOGLEVEL:level}%{SPACE}\\[%{DATA:thread_name}\\]:%{SPACE}%{JAVACLASS:logger_name}%{SPACE}\\(%{JAVAFILE:file}:%{JAVAMETHOD:method}\\(%{INT:line_number}\\)\\)%{SPACE}-%{SPACE}%{GREEDYDATA:log_message}",
+			"post_map_values":{
+				"logtime":{
+					"map_date":{
+						"date_pattern":"yyyy-MM-dd HH:mm:ss,SSS"
+					}
+					
+				}
+				
+			}
+			
+		},
+		{
+			"filter":"grok",
+			"conditions":{
+				"fields":{
+					"type":[
+						"kafka_controller",
+						"kafka_request",
+						"kafka_logcleaner"
+					]
+					
+				}
+				
+			},
+			"log4j_format":"[%d] %p %m (%c)%n",
+			"multiline_pattern":"^(\\[%{TIMESTAMP_ISO8601:logtime}\\])",
+			"message_pattern":"(?m)^\\[%{TIMESTAMP_ISO8601:logtime}\\]%{SPACE}%{LOGLEVEL:level}%{SPACE}\\[%{DATA:thread_name}\\]%{SPACE}%{GREEDYDATA:log_message}",
+			"post_map_values":{
+				"logtime":{
+					"map_date":{
+						"date_pattern":"yyyy-MM-dd HH:mm:ss,SSS"
+					}
+					
+				}
+				
+			}
+			
+		},
+		{
+			"filter":"grok",
+			"comment":"Suppose to be same log4j pattern as other kafka processes, but some reason thread is not printed",
+			"conditions":{
+				"fields":{
+					"type":[
+						"kafka_server",
+						"kafka_statechange"
+					]
+					
+				}
+				
+			},
+			"log4j_format":"[%d] %p %m (%c)%n",
+			"multiline_pattern":"^(\\[%{TIMESTAMP_ISO8601:logtime}\\])",
+			"message_pattern":"(?m)^\\[%{TIMESTAMP_ISO8601:logtime}\\]%{SPACE}%{LOGLEVEL:level}%{SPACE}%{GREEDYDATA:log_message}",
+			"post_map_values":{
+				"logtime":{
+					"map_date":{
+						"date_pattern":"yyyy-MM-dd HH:mm:ss,SSS"
+					}
+					
+				}
+				
+			}
+			
+		},
+		{
+			"filter":"grok",
+			"conditions":{
+				"fields":{
+					"type":[
+						"oozie_app"
+					]
+					
+				}
+				
+			},
+			"log4j_format":"%d{ISO8601} %5p %c{1}:%L - SERVER[${oozie.instance.id}] %m%n",
+			"multiline_pattern":"^(%{TIMESTAMP_ISO8601:logtime})",
+			"message_pattern":"(?m)^%{TIMESTAMP_ISO8601:logtime}%{SPACE}%{LOGLEVEL:level}%{SPACE}%{DATA:logger_name}:%{INT:line_number}%{SPACE}-%{SPACE}%{GREEDYDATA:log_message}",
+			"post_map_values":{
+				"logtime":{
+					"map_date":{
+						"date_pattern":"yyyy-MM-dd HH:mm:ss,SSS"
+					}
+					
+				}
+				
+			}
+			
+		},
+		{
+			"filter":"grok",
+			"conditions":{
+				"fields":{
+					"type":[
+						"logsearch_app",
+						"logsearch_feeder",
+						"logsearch_perf",
+						"ranger_admin",
+						"ranger_dbpatch"
+					]
+					
+				}
+				
+			},
+			"log4j_format":"%d [%t] %-5p %C{6} (%F:%L) - %m%n",
+			"multiline_pattern":"^(%{TIMESTAMP_ISO8601:logtime})",
+			"message_pattern":"(?m)^%{TIMESTAMP_ISO8601:logtime}%{SPACE}\\[%{DATA:thread_name}\\]%{SPACE}%{LOGLEVEL:level}%{SPACE}%{JAVACLASS:logger_name}%{SPACE}\\(%{JAVAFILE:file}:%{INT:line_number}\\)%{SPACE}-%{SPACE}%{GREEDYDATA:log_message}",
+			"post_map_values":{
+				"logtime":{
+					"map_date":{
+						"date_pattern":"yyyy-MM-dd HH:mm:ss,SSS"
+					}
+					
+				}
+				
+			}
+			
+		},
+		{
+			"filter":"grok",
+			"conditions":{
+				"fields":{
+					"type":[
+						"ranger_kms"
+					]
+					
+				}
+				
+			},
+			"log4j_format":"%d{ISO8601} %-5p %c{1} - %m%n",
+			"multiline_pattern":"^(%{TIMESTAMP_ISO8601:logtime})",
+			"message_pattern":"(?m)^%{TIMESTAMP_ISO8601:logtime}%{SPACE}%{LOGLEVEL:level}%{SPACE}%{JAVACLASS:logger_name}%{SPACE}-%{SPACE}%{GREEDYDATA:log_message}",
+			"post_map_values":{
+				"logtime":{
+					"map_date":{
+						"date_pattern":"yyyy-MM-dd HH:mm:ss,SSS"
+					}
+					
+				}
+				
+			}
+			
+		},
+		{
+			"filter":"grok",
+			"conditions":{
+				"fields":{
+					"type":[
+						"ranger_usersync"
+					]
+					
+				}
+				
+			},
+			"log4j_format":"%d{dd MMM yyyy HH:mm:ss} %5p %c{1} [%t] - %m%n",
+			"multiline_pattern":"^(%{USER_SYNC_DATE:logtime})",
+			"message_pattern":"(?m)^%{USER_SYNC_DATE:logtime}%{SPACE}%{LOGLEVEL:level}%{SPACE}%{JAVACLASS:logger_name}%{SPACE}\\[%{DATA:thread_name}\\]%{SPACE}-%{SPACE}%{GREEDYDATA:log_message}",
+			"post_map_values":{
+				"logtime":{
+					"map_date":{
+						"date_pattern":"dd MMM yyyy HH:mm:ss"
+					}
+					
+				}
+				
+			}
+			
+		},
+		{
+			"filter":"grok",
+			"conditions":{
+				"fields":{
+					"type":[
+						"storm_drpc",
+						"storm_logviewer",
+						"storm_nimbus",
+						"storm_supervisor",
+						"storm_ui",
+						"storm_worker"
+					]
+					
+				}
+				
+			},
+			"log4j_format":"",
+			"multiline_pattern":"^(%{TIMESTAMP_ISO8601:logtime})",
+			"message_pattern":"(?m)^%{TIMESTAMP_ISO8601:logtime}%{SPACE}%{JAVACLASS:logger_name}%{SPACE}\\[%{LOGLEVEL:level}\\]%{SPACE}%{SPACE}%{GREEDYDATA:log_message}",
+			"post_map_values":{
+				"logtime":{
+					"map_date":{
+						"date_pattern":"yyyy-MM-dd HH:mm:ss.SSS"
+					}
+					
+				}
+				
+			}
+			
+		},
+		{
+			"filter":"grok",
+			"conditions":{
+				"fields":{
+					"type":[
+						"zookeeper"
+					]
+					
+				}
+				
+			},
+			"log4j_format":"%d{ISO8601} - %-5p [%t:%C{1}@%L] - %m%n",
+			"multiline_pattern":"^(%{TIMESTAMP_ISO8601:logtime})",
+			"message_pattern":"(?m)^%{TIMESTAMP_ISO8601:logtime}%{SPACE}-%{SPACE}%{LOGLEVEL:level}%{SPACE}\\[%{DATA:thread_name}\\@%{INT:line_number}\\]%{SPACE}-%{SPACE}%{GREEDYDATA:log_message}",
+			"post_map_values":{
+				"logtime":{
+					"map_date":{
+						"date_pattern":"yyyy-MM-dd HH:mm:ss,SSS"
+					}
+					
+				}
+				
+			}
+			
+		},
+		{
+			"filter":"grok",
+			"conditions":{
+				"fields":{
+					"type":[
+						"hdfs_audit"
+					]
+					
+				}
+				
+			},
+			"log4j_format":"%d{ISO8601} %-5p %c{2} (%F:%M(%L)) - %m%n",
+			"multiline_pattern":"^(%{TIMESTAMP_ISO8601:evtTime})",
+			"message_pattern":"(?m)^%{TIMESTAMP_ISO8601:evtTime}%{SPACE}%{LOGLEVEL:level}%{SPACE}%{JAVACLASS:logger_name}:%{SPACE}%{GREEDYDATA:log_message}",
+			"post_map_values":{
+				"evtTime":{
+					"map_date":{
+						"date_pattern":"yyyy-MM-dd HH:mm:ss,SSS"
+					}
+					
+				}
+				
+			}
+			
+		},
+		{
+			"filter":"keyvalue",
+			"sort_order":1,
+			"conditions":{
+				"fields":{
+					"type":[
+						"hdfs_audit"
+					]
+					
+				}
+				
+			},
+			"source_field":"log_message",
+			"value_split":"=",
+			"field_split":"\t",
+			"post_map_values":{
+				"src":{
+					"map_fieldname":{
+						"new_fieldname":"resource"
+					}
+					
+				},
+				"ip":{
+					"map_fieldname":{
+						"new_fieldname":"cliIP"
+					}
+					
+				},
+				"allowed":[
+					{
+						"map_fieldvalue":{
+							"pre_value":"true",
+							"post_value":"1"
+						}
+						
+					},
+					{
+						"map_fieldvalue":{
+							"pre_value":"false",
+							"post_value":"0"
+						}
+						
+					},
+					{
+						"map_fieldname":{
+							"new_fieldname":"result"
+						}
+						
+					}
+					
+				],
+				"cmd":{
+					"map_fieldname":{
+						"new_fieldname":"action"
+					}
+					
+				},
+				"proto":{
+					"map_fieldname":{
+						"new_fieldname":"cliType"
+					}
+					
+				},
+				"callerContext":{
+					"map_fieldname":{
+						"new_fieldname":"req_caller_id"
+					}
+					
+				}
+				
+			}
+			
+		},
+		{
+			"filter":"grok",
+			"sort_order":2,
+			"source_field":"ugi",
+			"remove_source_field":"false",
+			"conditions":{
+				"fields":{
+					"type":[
+						"hdfs_audit"
+					]
+					
+				}
+				
+			},
+			"message_pattern":"%{USERNAME:p_user}.+auth:%{USERNAME:p_authType}.+via %{USERNAME:k_user}.+auth:%{USERNAME:k_authType}|%{USERNAME:user}.+auth:%{USERNAME:authType}|%{USERNAME:x_user}",
+			"post_map_values":{
+				"user":{
+					"map_fieldname":{
+						"new_fieldname":"reqUser"
+					}
+					
+				},
+				"x_user":{
+					"map_fieldname":{
+						"new_fieldname":"reqUser"
+					}
+					
+				},
+				"p_user":{
+					"map_fieldname":{
+						"new_fieldname":"reqUser"
+					}
+					
+				},
+				"k_user":{
+					"map_fieldname":{
+						"new_fieldname":"proxyUsers"
+					}
+					
+				},
+				"p_authType":{
+					"map_fieldname":{
+						"new_fieldname":"authType"
+					}
+					
+				},
+				"k_authType":{
+					"map_fieldname":{
+						"new_fieldname":"proxyAuthType"
+					}
+					
+				}
+				
+			}
+			
+		}
+		
+	],
+	"output":[
+		{
+			"is_enabled":"{{solr_service_logs_enable}}",
+			"comment":"Output to solr for service logs",
+			"destination":"solr",
+			"zk_hosts":"{{zookeeper_quorum}}{{solr_znode}}",
+			"collection":"{{solr_collection_service_logs}}",
+			"number_of_shards": "{{logsearch_numshards}}",
+			"splits_interval_mins": "{{service_logs_collection_splits_interval_mins}}",
+			"conditions":{
+				"fields":{
+					"rowtype":[
+						"service"
+					]
+					
+				}
+				
+			}
+			
+		},
+		{
+			"comment":"Output to solr for audit records",
+			"is_enabled":"{{solr_audit_logs_enable}}",
+			"destination":"solr",
+			"zk_hosts":"{{zookeeper_quorum}}{{solr_znode}}",
+			"collection":"{{solr_collection_audit_logs}}",
+			"number_of_shards": "{{logsearch_numshards}}",
+			"splits_interval_mins": "{{audit_logs_collection_splits_interval_mins}}",
+			"conditions":{
+				"fields":{
+					"rowtype":[
+						"audit"
+					]
+					
+				}
+				
+			}
+			
+		},
+		{
+			"is_enabled":"{{kafka_service_logs_enable}}",
+			"destination":"kafka",
+			"broker_list":"{{kafka_broker_list}}",
+			"topic":"{{kafka_topic_service_logs}}",
+			"kafka.security.protocol":"{{kafka_security_protocol}}",
+			"kafka.sasl.kerberos.service.name":"{{kafka_kerberos_service_name}}",
+			"conditions":{
+				"fields":{
+					"rowtype":[
+						"service"
+					]
+					
+				}
+				
+			}
+			
+		},
+		{
+			"is_enabled":"{{kafka_topic_service_logs}}",
+			"destination":"kafka",
+			"broker_list":"{{kafka_broker_list}}",
+			"topic":"{{kafka_topic_audit_logs}}",
+			"kafka.security.protocol":"{{kafka_security_protocol}}",
+			"kafka.sasl.kerberos.service.name":"{{kafka_kerberos_service_name}}",
+			"conditions":{
+				"fields":{
+					"rowtype":[
+						"audit"
+					]
+					
+				}
+				
+			}
+			
+		}
+		
+	]
+	
+}

@@ -1,0 +1,9 @@
+<% if (model.has('category')) { %>
+  <div class="category"><%- model.get('category') %>:</div>
+<% } %>
+
+<div class="search_facet_input_container">
+  <input type="text" class="search_facet_input ui-menu VS-interface" value="" <% if (readOnly) { %>disabled="disabled"<% } %> />
+</div>
+
+<div class="search_facet_remove VS-icon VS-icon-cancel"></div>

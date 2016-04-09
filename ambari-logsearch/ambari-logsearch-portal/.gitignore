@@ -1,0 +1,9 @@
+target
+.settings
+.classpath
+.project
+/bin/
+node_modules/
+logs/
+node/
+

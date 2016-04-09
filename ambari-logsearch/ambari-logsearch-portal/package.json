@@ -1,0 +1,21 @@
+{
+  "name": "logsearch-portal",
+  "version": "1.0.0",
+  "description": "<!-- {% comment %} Licensed to the Apache Software Foundation (ASF) under one or more contributor license agreements.  See the NOTICE file distributed with this work for additional information regarding copyright ownership. The ASF licenses this file to you under the Apache License, Version 2.0 (the \"License\"); you may not use this file except in compliance with the License.  You may obtain a copy of the License at",
+  "main": "gulpfile.js",
+  "dependencies": {
+    "del": "^2.2.0",
+    "gulp": "^3.9.0",
+    "gulp-minify-css": "^1.2.3",
+    "gulp-minify-html": "^1.0.5",
+    "gulp-shell": "^0.5.2",
+    "run-sequence": "^1.1.5",
+    "yargs": "^3.32.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}

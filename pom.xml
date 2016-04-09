@@ -435,6 +435,7 @@
         <module>ambari-agent</module>
         <module>ambari-client</module>
         <module>ambari-shell</module>
+        <module>ambari-logsearch</module>
       </modules>
     </profile>
     <profile>
@@ -449,6 +450,7 @@
         <module>ambari-agent</module>
         <module>ambari-client</module>
         <module>ambari-shell</module>
+        <module>ambari-logsearch</module>
       </modules>
     </profile>
     <profile>
@@ -469,6 +471,7 @@
         <module>ambari-agent</module>
         <module>ambari-client</module>
         <module>ambari-shell</module>
+        <module>ambari-logsearch</module>
       </modules>
     </profile>
     <profile>

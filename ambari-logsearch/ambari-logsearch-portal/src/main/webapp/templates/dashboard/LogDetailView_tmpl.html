@@ -1,0 +1,75 @@
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+		<!--div class="col-md-12"-->
+		<div>
+                	<!--Record Begin-->
+                    <div class="record">
+                        <div class="record-header">
+                            <table class="table table-condensed">
+                                <tr>
+                                    <td rowspan="2" align="center">
+                                    	<button type="button" class="btn btn-default btn-app-sm btn-circle btn-pin unpin"><i class="fa fa-thumb-tack"></i></button>
+                                    </td>
+                                    <td>HDFS</td>
+                                    <td>host</td>
+                                    <td rowspan="2" align="right">
+                                        <button class="btn btn-xs btn-primary">Download</button>
+                                        <button class="btn btn-xs btn-primary">Open</button>
+                                    </td>
+                                    <td rowspan="2" align="right">
+                                    	<button class="btn btn-xs btn-default btn-minimize">
+                                        	<i class="fa fa-chevron-up"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Name Node</td>
+                                    <td>Path: /var/log/hadoop-yarn/nodemanager/hadoop-yarn-nodemanager-</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="record-content">
+                        	<div class="row row-margin-bottom">
+                            	<div class="col-md-12">
+                                	<!-- <select multiple="multiple" class="populate placeholder col-md-12">
+                                        <option>Linux</option>
+                                        <option>Windows</option>
+                                        <option>OpenSolaris</option>
+                                        <option>FirefoxOS</option>
+                                        <option>MeeGo</option>
+                                        <option>Android</option>
+                                        <option>Sailfish OS</option>
+                                        <option>Plan9</option>
+                                        <option>DOS</option>
+                                        <option>AIX</option>
+                                        <option>HP/UP</option>
+                                    </select> -->
+                                    <input type="hidden" id="tags" placeholder="Manual Search" title="tags" />
+                                </div>
+                            </div>
+                            <div class="row row-margin-bottom">
+                            	<div id="logLines" class="col-md-12 position-relative record-panel">
+                            		
+                            	</div>
+                            </div>
+                        </div>
+                        <div class="record-footer">
+                        	<p align="center"><strong id="recFetched"></strong> of <strong id="recTotal"></strong></p>
+                        </div>
+                    </div>
+                    <!--Record End-->
+                </div>
