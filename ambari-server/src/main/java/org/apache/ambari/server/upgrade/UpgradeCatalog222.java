@@ -581,7 +581,6 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
 
     if (clusterMap != null && !clusterMap.isEmpty()) {
       for (Cluster cluster : clusterMap.values()) {
-        controller.initializeWidgetsAndLayouts(cluster, null);
 
         Map<String, Service> serviceMap = cluster.getServices();
         if (serviceMap != null && !serviceMap.isEmpty()) {
