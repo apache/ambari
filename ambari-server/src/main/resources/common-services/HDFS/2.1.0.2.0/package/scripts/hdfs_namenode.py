@@ -325,11 +325,20 @@ def format_namenode(force=None):
                       bin_dir=params.hadoop_bin_dir,
                       conf_dir=hadoop_conf_dir)
       else:
+        nn_name_dirs = params.dfs_name_dir.split(',')
         if not is_namenode_formatted(params):
-          Execute(format("yes Y | hdfs --config {hadoop_conf_dir} namenode -format"),
-                  user = params.hdfs_user,
-                  path = [params.hadoop_bin_dir]
-          )
+          try:
+            Execute(format("yes Y | hdfs --config {hadoop_conf_dir} namenode -format"),
+                    user = params.hdfs_user,
+                    path = [params.hadoop_bin_dir]
+            )
+          except Fail:
+            # We need to clean-up mark directories, so we can re-run format next time.
+            for nn_name_dir in nn_name_dirs:
+              Execute(format("rm -rf {nn_name_dir}/*"),
+                      user = params.hdfs_user,
+              )
+            raise
           for m_dir in mark_dir:
             Directory(m_dir,
               recursive = True
@@ -344,7 +353,7 @@ def is_namenode_formatted(params):
   for mark_dir in mark_dirs:
     if os.path.isdir(mark_dir):
       marked = True
-      print format("{mark_dir} exists. Namenode DFS already formatted")
+      Logger.info(format("{mark_dir} exists. Namenode DFS already formatted"))
     
   # Ensure that all mark dirs created for all name directories
   if marked:
@@ -381,9 +390,9 @@ def is_namenode_formatted(params):
       Execute(format("ls {name_dir} | wc -l  | grep -q ^0$"),
       )
       marked = False
-    except Exception:
+    except Fail:
       marked = True
-      print format("ERROR: Namenode directory(s) is non empty. Will not format the namenode. List of non-empty namenode dirs {nn_name_dirs}")
+      Logger.info(format("ERROR: Namenode directory(s) is non empty. Will not format the namenode. List of non-empty namenode dirs {nn_name_dirs}"))
       break
        
   return marked
