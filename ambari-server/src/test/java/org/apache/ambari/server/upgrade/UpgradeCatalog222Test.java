@@ -751,8 +751,6 @@ public class UpgradeCatalog222Test {
 
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getClusters()).andReturn(clusterMap).anyTimes();
-    controller.initializeWidgetsAndLayouts(cluster, null);
-    expectLastCall().once();
 
     expect(cluster.getServices()).andReturn(services).once();
     expect(stormService.getName()).andReturn(stormServiceName).atLeastOnce();
