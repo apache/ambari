@@ -52,6 +52,7 @@ def storm(name=None):
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def storm(name=None):
   import params
+  import os
 
   Directory(params.log_dir,
             owner=params.storm_user,
@@ -93,6 +94,18 @@ def storm(name=None):
        content=InlineTemplate(params.storm_env_sh_template)
   )
 
+  if params.has_atlas:
+    atlas_storm_hook_dir = os.path.join(params.atlas_home_dir, "hook", "storm")
+    if os.path.exists(atlas_storm_hook_dir):
+      storm_extlib_dir = os.path.join(params.storm_component_home_dir, "extlib")
+      if os.path.exists(storm_extlib_dir):
+        src_files = os.listdir(atlas_storm_hook_dir)
+        for file_name in src_files:
+          atlas_storm_hook_file_name = os.path.join(atlas_storm_hook_dir, file_name)
+          storm_lib_file_name = os.path.join(storm_extlib_dir, file_name)
+          if (os.path.isfile(atlas_storm_hook_file_name)):
+            Link(storm_lib_file_name, to = atlas_storm_hook_file_name)
+
   if params.has_metric_collector:
     File(format("{conf_dir}/storm-metrics2.properties"),
         owner=params.storm_user,
@@ -127,7 +140,7 @@ def storm(name=None):
       owner=params.storm_user,
       content=InlineTemplate(params.storm_worker_log4j_content)
     )
-  
+
   if params.security_enabled:
     TemplateConfig(format("{conf_dir}/storm_jaas.conf"),
                    owner=params.storm_user

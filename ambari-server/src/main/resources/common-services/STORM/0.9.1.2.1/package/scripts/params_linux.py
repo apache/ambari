@@ -17,6 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+import os
 import re
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 
@@ -42,6 +43,8 @@ config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 stack_root = status_params.stack_root
 sudo = AMBARI_SUDO_BINARY
+
+cluster_name = config['clusterName']
 
 stack_name = default("/hostLevelParams/stack_name", None)
 upgrade_direction = default("/commandParams/upgrade_direction", Direction.UPGRADE)
@@ -181,6 +184,17 @@ if has_metric_collector:
 metrics_report_interval = default("/configurations/ams-site/timeline.metrics.sink.report.interval", 60)
 metrics_collection_period = default("/configurations/ams-site/timeline.metrics.sink.collection.period", 10)
 metric_collector_sink_jar = "/usr/lib/storm/lib/ambari-metrics-storm-sink*.jar"
+
+jar_jvm_opts = ''
+
+# Atlas related params
+atlas_hosts = default('/clusterHostInfo/atlas_server_hosts', [])
+has_atlas = len(atlas_hosts) > 0
+
+if has_atlas:
+  atlas_home_dir = os.environ['METADATA_HOME_DIR'] if 'METADATA_HOME_DIR' in os.environ else stack_root + '/current/atlas-server'
+  atlas_conf_dir = os.environ['METADATA_CONF'] if 'METADATA_CONF' in os.environ else '/etc/atlas/conf'
+  jar_jvm_opts = '-Datlas.conf=' + atlas_conf_dir
 
 # ranger host
 ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
