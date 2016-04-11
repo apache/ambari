@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('ClustersManageAccessCtrl', ['$scope', '$location', 'Cluster', '$routeParams', 'Alert', 'PermissionLoader', 'PermissionSaver', '$translate', 'RoleDetailsModal', function($scope, $location, Cluster, $routeParams, Alert, PermissionLoader, PermissionSaver, $translate, RoleDetailsModal) {
+.controller('ClustersManageAccessCtrl', ['$scope', '$location', 'Cluster', '$routeParams', 'Alert', 'PermissionLoader', 'PermissionSaver', '$translate', 'RoleDetailsModal', '$timeout', function($scope, $location, Cluster, $routeParams, Alert, PermissionLoader, PermissionSaver, $translate, RoleDetailsModal, $timeout) {
   var $t = $translate.instant;
   $scope.getConstant = function (key) {
     return $t('common.' + key).toLowerCase();
@@ -31,6 +31,10 @@ angular.module('ambariAdminConsole')
       // Refresh data for rendering
       $scope.permissionsEdit = permissions;
       $scope.permissions = angular.copy(permissions);
+      //"$scope.isDataLoaded" should be set to true on initial load after "$scope.permissionsEdit" watcher
+      $timeout(function() {
+        $scope.isDataLoaded = true;
+      });
       var orderedRoles = Cluster.orderedRoles;
       var pms = [];
       for (var key in orderedRoles) {
@@ -42,12 +46,13 @@ angular.module('ambariAdminConsole')
       Alert.error($t('clusters.alerts.cannotLoadClusterData'), data.data.message);
     });
   }
- 
+
+  $scope.isDataLoaded = false;
   reloadClusterData();
   $scope.isEditMode = false;
   $scope.permissions = {};
   $scope.clusterName = $routeParams.id;
-  
+
 
   $scope.toggleEditMode = function() {
     $scope.isEditMode = !$scope.isEditMode;
@@ -75,14 +80,14 @@ angular.module('ambariAdminConsole')
   $scope.$watch(function() {
     return $scope.permissionsEdit;
   }, function(newValue) {
-    if(newValue){
+    if (newValue && $scope.isDataloaded) {
       $scope.save();
     }
   }, true);
 
   $scope.switchToList = function() {
     $location.url('/clusters/' + $routeParams.id + '/userAccessList');
-  },
+  };
 
   $scope.showHelpPage = function() {
     Cluster.getRolesWithAuthorizations().then(function(roles) {
