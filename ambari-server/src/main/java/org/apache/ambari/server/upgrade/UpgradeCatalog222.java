@@ -22,6 +22,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.lang.reflect.Type;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -105,9 +107,6 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
   public static final String AMS_SERVICE_NAME = "AMBARI_METRICS";
   public static final String AMS_COLLECTOR_COMPONENT_NAME = "METRICS_COLLECTOR";
 
-  private static final String[] HDFS_WIDGETS_TO_UPDATE = new String[] {
-    "NameNode RPC", "NN Connection Load" };
-
   protected static final String WIDGET_TABLE = "widget";
   protected static final String WIDGET_DESCRIPTION = "description";
   protected static final String WIDGET_NAME = "widget_name";
@@ -180,6 +179,8 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
     updateHiveConfig();
     updateHostRoleCommands();
     updateHDFSWidgetDefinition();
+    updateYARNWidgetDefinition();
+    updateHBASEWidgetDefinition();
     updateCorruptedReplicaWidget();
     updateZookeeperConfigs();
     createNewSliderConfigVersion();
@@ -428,6 +429,57 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
 
   protected void updateHDFSWidgetDefinition() throws AmbariException {
     LOG.info("Updating HDFS widget definition.");
+
+    Map<String, List<String>> widgetMap = new HashMap<>();
+    Map<String, String> sectionLayoutMap = new HashMap<>();
+
+    List<String> hdfsSummaryWidgets = new ArrayList<>(Arrays.asList("NameNode RPC", "NN Connection Load",
+      "NameNode GC count", "NameNode GC time"));
+    widgetMap.put("HDFS_SUMMARY", hdfsSummaryWidgets);
+    sectionLayoutMap.put("HDFS_SUMMARY", "default_hdfs_dashboard");
+
+    List<String> hdfsHeatmapWidgets = new ArrayList<>(Arrays.asList("HDFS Bytes Read", "HDFS Bytes Written",
+      "DataNode Process Disk I/O Utilization", "DataNode Process Network I/O Utilization"));
+    widgetMap.put("HDFS_HEATMAPS", hdfsHeatmapWidgets);
+    sectionLayoutMap.put("HDFS_HEATMAPS", "default_hdfs_heatmap");
+
+    updateWidgetDefinitionsForService("HDFS", widgetMap, sectionLayoutMap);
+  }
+
+  protected void updateYARNWidgetDefinition() throws AmbariException {
+    LOG.info("Updating YARN widget definition.");
+
+    Map<String, List<String>> widgetMap = new HashMap<>();
+    Map<String, String> sectionLayoutMap = new HashMap<>();
+
+    List<String> yarnSummaryWidgets = new ArrayList<>(Arrays.asList("Container Failures", "App Failures"));
+    widgetMap.put("YARN_SUMMARY", yarnSummaryWidgets);
+    sectionLayoutMap.put("YARN_SUMMARY", "default_yarn_dashboard");
+
+    List<String> yarnHeatmapWidgets = new ArrayList<>(Arrays.asList("Container Failures"));
+    widgetMap.put("YARN_HEATMAPS", yarnHeatmapWidgets);
+    sectionLayoutMap.put("YARN_HEATMAPS", "default_yarn_heatmap");
+
+    updateWidgetDefinitionsForService("YARN", widgetMap, sectionLayoutMap);
+
+  }
+
+  protected void updateHBASEWidgetDefinition() throws AmbariException {
+
+    LOG.info("Updating HBASE widget definition.");
+
+    Map<String, List<String>> widgetMap = new HashMap<>();
+    Map<String, String> sectionLayoutMap = new HashMap<>();
+
+    List<String> hbaseSummaryWidgets = new ArrayList<>(Arrays.asList("Reads and Writes", "Blocked Updates"));
+    widgetMap.put("HBASE_SUMMARY", hbaseSummaryWidgets);
+    sectionLayoutMap.put("HBASE_SUMMARY", "default_hbase_dashboard");
+
+    updateWidgetDefinitionsForService("HBASE", widgetMap, sectionLayoutMap);
+  }
+
+  private void updateWidgetDefinitionsForService(String serviceName, Map<String, List<String>> widgetMap,
+                                                 Map<String, String> sectionLayoutMap) throws AmbariException {
     AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
     AmbariMetaInfo ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
     Type widgetLayoutType = new TypeToken<Map<String, List<WidgetLayout>>>(){}.getType();
@@ -443,61 +495,64 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
       StackId stackId = cluster.getDesiredStackVersion();
       Map<String, Object> widgetDescriptor = null;
       StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
-      ServiceInfo serviceInfo = stackInfo.getService("HDFS");
+      ServiceInfo serviceInfo = stackInfo.getService(serviceName);
       if (serviceInfo == null) {
-        LOG.info("Skipping updating HDFS widget definition, because HDFS service is not present in cluster " +
+        LOG.info("Skipping updating widget definition, because " + serviceName +  " service is not present in cluster " +
           "cluster_name= " + cluster.getClusterName());
         continue;
       }
 
-      for (String widgetName : HDFS_WIDGETS_TO_UPDATE) {
-        List<WidgetEntity> widgetEntities = widgetDAO.findByName(clusterID,
-          widgetName, "ambari", "HDFS_SUMMARY");
+      for (String section : widgetMap.keySet()) {
+        List<String> widgets = widgetMap.get(section);
+        for (String widgetName : widgets) {
+          List<WidgetEntity> widgetEntities = widgetDAO.findByName(clusterID,
+            widgetName, "ambari", section);
 
-        if (widgetEntities != null && widgetEntities.size() > 0) {
-          WidgetEntity entityToUpdate = null;
-          if (widgetEntities.size() > 1) {
-            LOG.info("Found more that 1 entity with name = "+ widgetName +
-              " for cluster = " + cluster.getClusterName() + ", skipping update.");
-          } else {
-            entityToUpdate = widgetEntities.iterator().next();
-          }
-          if (entityToUpdate != null) {
-            LOG.info("Updating widget: " + entityToUpdate.getWidgetName());
-            // Get the definition from widgets.json file
-            WidgetLayoutInfo targetWidgetLayoutInfo = null;
-            File widgetDescriptorFile = serviceInfo.getWidgetsDescriptorFile();
-            if (widgetDescriptorFile != null && widgetDescriptorFile.exists()) {
-              try {
-                widgetDescriptor = gson.fromJson(new FileReader(widgetDescriptorFile), widgetLayoutType);
-              } catch (Exception ex) {
-                String msg = "Error loading widgets from file: " + widgetDescriptorFile;
-                LOG.error(msg, ex);
-                widgetDescriptor = null;
-              }
+          if (widgetEntities != null && widgetEntities.size() > 0) {
+            WidgetEntity entityToUpdate = null;
+            if (widgetEntities.size() > 1) {
+              LOG.info("Found more that 1 entity with name = "+ widgetName +
+                " for cluster = " + cluster.getClusterName() + ", skipping update.");
+            } else {
+              entityToUpdate = widgetEntities.iterator().next();
             }
-            if (widgetDescriptor != null) {
-              LOG.debug("Loaded widget descriptor: " + widgetDescriptor);
-              for (Object artifact : widgetDescriptor.values()) {
-                List<WidgetLayout> widgetLayouts = (List<WidgetLayout>) artifact;
-                for (WidgetLayout widgetLayout : widgetLayouts) {
-                  if (widgetLayout.getLayoutName().equals("default_hdfs_dashboard")) {
-                    for (WidgetLayoutInfo layoutInfo : widgetLayout.getWidgetLayoutInfoList()) {
-                      if (layoutInfo.getWidgetName().equals(widgetName)) {
-                        targetWidgetLayoutInfo = layoutInfo;
+            if (entityToUpdate != null) {
+              LOG.info("Updating widget: " + entityToUpdate.getWidgetName());
+              // Get the definition from widgets.json file
+              WidgetLayoutInfo targetWidgetLayoutInfo = null;
+              File widgetDescriptorFile = serviceInfo.getWidgetsDescriptorFile();
+              if (widgetDescriptorFile != null && widgetDescriptorFile.exists()) {
+                try {
+                  widgetDescriptor = gson.fromJson(new FileReader(widgetDescriptorFile), widgetLayoutType);
+                } catch (Exception ex) {
+                  String msg = "Error loading widgets from file: " + widgetDescriptorFile;
+                  LOG.error(msg, ex);
+                  widgetDescriptor = null;
+                }
+              }
+              if (widgetDescriptor != null) {
+                LOG.debug("Loaded widget descriptor: " + widgetDescriptor);
+                for (Object artifact : widgetDescriptor.values()) {
+                  List<WidgetLayout> widgetLayouts = (List<WidgetLayout>) artifact;
+                  for (WidgetLayout widgetLayout : widgetLayouts) {
+                    if (widgetLayout.getLayoutName().equals(sectionLayoutMap.get(section))) {
+                      for (WidgetLayoutInfo layoutInfo : widgetLayout.getWidgetLayoutInfoList()) {
+                        if (layoutInfo.getWidgetName().equals(widgetName)) {
+                          targetWidgetLayoutInfo = layoutInfo;
+                        }
                       }
                     }
                   }
                 }
               }
-            }
-            if (targetWidgetLayoutInfo != null) {
-              entityToUpdate.setMetrics(gson.toJson(targetWidgetLayoutInfo.getMetricsInfo()));
-              entityToUpdate.setWidgetValues(gson.toJson(targetWidgetLayoutInfo.getValues()));
-              widgetDAO.merge(entityToUpdate);
-            } else {
-              LOG.warn("Unable to find widget layout info for " + widgetName +
-                " in the stack: " + stackId);
+              if (targetWidgetLayoutInfo != null) {
+                entityToUpdate.setMetrics(gson.toJson(targetWidgetLayoutInfo.getMetricsInfo()));
+                entityToUpdate.setWidgetValues(gson.toJson(targetWidgetLayoutInfo.getValues()));
+                widgetDAO.merge(entityToUpdate);
+              } else {
+                LOG.warn("Unable to find widget layout info for " + widgetName +
+                  " in the stack: " + stackId);
+              }
             }
           }
         }
