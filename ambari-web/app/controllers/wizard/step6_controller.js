@@ -842,6 +842,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
         primary: Em.I18n.t('common.continueAnyway'),
         header: Em.I18n.t('installer.step6.validationIssuesAttention.header'),
         body: Em.I18n.t('installer.step6.validationIssuesAttention'),
+        primaryClass: 'btn-danger',
         onPrimary: function () {
           this.hide();
           callback();
