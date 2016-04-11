@@ -107,6 +107,7 @@ App.StackServiceComponent = DS.Model.extend({
   }.property('componentName'),
 
   /** @property {Boolean} isShownOnInstallerAssignMasterPage - component visible on "Assign Masters" step of Install Wizard **/
+  // Note: Components that are not visible on Assign Master Page are not saved as part of host component recommendation/validation layout
   isShownOnInstallerAssignMasterPage: function() {
     var component = this.get('componentName');
     var mastersNotShown = ['MYSQL_SERVER', 'POSTGRESQL_SERVER', 'HIVE_SERVER_INTERACTIVE'];
@@ -114,6 +115,7 @@ App.StackServiceComponent = DS.Model.extend({
   }.property('isMaster','componentName'),
 
   /** @property {Boolean} isShownOnInstallerSlaveClientPage - component visible on "Assign Slaves and Clients" step of Install Wizard**/
+  // Note: Components that are not visible on Assign Slaves and Clients Page are saved as part of host component recommendation/validation layout
   isShownOnInstallerSlaveClientPage: function() {
     var component = this.get('componentName');
     var slavesNotShown = ['JOURNALNODE','ZKFC','APP_TIMELINE_SERVER'];
@@ -121,6 +123,7 @@ App.StackServiceComponent = DS.Model.extend({
   }.property('isSlave','componentName', 'isRequiredOnAllHosts'),
 
   /** @property {Boolean} isShownOnAddServiceAssignMasterPage - component visible on "Assign Masters" step of Add Service Wizard **/
+  // Note: Components that are not visible on Assign Master Page are not saved as part of host component recommendation/validation layout
   isShownOnAddServiceAssignMasterPage: function() {
     var isVisible = this.get('isShownOnInstallerAssignMasterPage');
     if (App.get('isHaEnabled')) {

@@ -592,31 +592,19 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
     }).mapProperty("componentName");
     if (this.get('isInstallerWizard') || this.get('isAddServiceWizard')) {
       masterBlueprint = self.getCurrentMastersBlueprint();
-
-      var invisibleMasters = [];
-      if (this.get('isInstallerWizard')) {
-        invisibleMasters = App.StackServiceComponent.find().filterProperty("isMaster").filterProperty("isShownOnInstallerAssignMasterPage", false).mapProperty("componentName");
-      }
-      else
-        if (this.get('isAddServiceWizard')) {
-          invisibleMasters = App.StackServiceComponent.find().filterProperty("isMaster").filterProperty("isShownOnAddServiceAssignMasterPage", false).mapProperty("componentName");
-        }
-
       var selectedClientComponents = self.get('content.clients').mapProperty('component_name');
       var alreadyInstalledClients = App.get('components.clients').reject(function (c) {
         return selectedClientComponents.contains(c);
       });
 
-      var invisibleComponents = invisibleMasters.concat(invisibleSlavesAndClients).concat(alreadyInstalledClients);
+      var invisibleComponents = invisibleSlavesAndClients.concat(alreadyInstalledClients);
 
       var invisibleBlueprint = blueprintUtils.filterByComponents(this.get('content.recommendations'), invisibleComponents);
       masterBlueprint = blueprintUtils.mergeBlueprints(masterBlueprint, invisibleBlueprint);
-    }
-    else
-      if (this.get('isAddHostWizard')) {
-        masterBlueprint = self.getCurrentMasterSlaveBlueprint();
-        hostNames = hostNames.concat(App.Host.find().mapProperty("hostName")).uniq();
-        slaveBlueprint = blueprintUtils.addComponentsToBlueprint(slaveBlueprint, invisibleSlavesAndClients);
+    } else if (this.get('isAddHostWizard')) {
+      masterBlueprint = self.getCurrentMasterSlaveBlueprint();
+      hostNames = hostNames.concat(App.Host.find().mapProperty("hostName")).uniq();
+      slaveBlueprint = blueprintUtils.addComponentsToBlueprint(slaveBlueprint, invisibleSlavesAndClients);
       }
 
     var bluePrintsForValidation = blueprintUtils.mergeBlueprints(masterBlueprint, slaveBlueprint);
