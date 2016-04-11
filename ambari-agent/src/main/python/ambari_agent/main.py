@@ -359,9 +359,9 @@ if __name__ == "__main__":
     heartbeat_stop_callback = bind_signal_handlers(agentPid)
   
     main(heartbeat_stop_callback)
-  except SystemExit as e:
-    raise e
-  except BaseException as e:
+  except SystemExit:
+    raise
+  except BaseException:
     if is_logger_setup:
-      logger.exception("Exiting with exception:" + e)
-  raise
+      logger.exception("Exiting with exception:")
+    raise
