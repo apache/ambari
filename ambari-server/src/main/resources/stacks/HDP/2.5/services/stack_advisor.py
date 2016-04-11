@@ -37,7 +37,6 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
         message = "Only one host can install HIVE_SERVER_INTERACTIVE. "
         childItems.append(
           {"type": 'host-component', "level": 'ERROR', "message": message, "component-name": 'HIVE_SERVER_INTERACTIVE'})
-        print '3329'
 
     parentItems.extend(childItems)
     return parentItems
