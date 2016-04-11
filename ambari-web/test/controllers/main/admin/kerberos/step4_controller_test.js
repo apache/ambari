@@ -360,8 +360,8 @@ describe('App.KerberosWizardStep4Controller', function() {
     var genConfigType = function(fileName, properties) {
       var configTypeObj = {};
       configTypeObj.type = fileName;
-      configTypeObj.properties = properties.reduce(function(p,c) {
-        p[c[0]] = c[1];
+      configTypeObj.properties = properties.reduce(function(p, _c) {
+        p[_c[0]] = _c[1];
         return p;
       }, {});
       return configTypeObj;

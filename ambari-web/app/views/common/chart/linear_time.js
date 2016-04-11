@@ -608,6 +608,7 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
       }
     }
     else {
+      this.set('isPopupReady', true);
       this.set('isReady', true);
       //if Axis X time interval is default(60 minutes)
       if (this.get('timeUnitSeconds') === 3600) {
