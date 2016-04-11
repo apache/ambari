@@ -514,12 +514,11 @@ def setup_tagsync(upgrade_type=None):
          mode = 0640
     )
 
-  if os.path.isfile(tagsync_services_file):
-    File(tagsync_services_file,
-      mode = 0755,
-    )
+  File(tagsync_services_file,
+    mode = 0755,
+  )
 
-    Execute(('ln','-sf', format('{tagsync_services_file}'),'/usr/bin/ranger-tagsync'),
-      not_if=format("ls /usr/bin/ranger-tagsync"),
-      only_if=format("ls {tagsync_services_file}"),
-      sudo=True)
+  Execute(('ln','-sf', format('{tagsync_services_file}'),'/usr/bin/ranger-tagsync'),
+    not_if=format("ls /usr/bin/ranger-tagsync"),
+    only_if=format("ls {tagsync_services_file}"),
+    sudo=True)

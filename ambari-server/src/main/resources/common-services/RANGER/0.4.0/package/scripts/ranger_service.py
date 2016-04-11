@@ -35,8 +35,6 @@ def ranger_service(name, action=None):
       raise
   elif name == 'ranger_usersync':
     no_op_test = format('ps -ef | grep proc_rangerusersync | grep -v grep')
-
-
     if params.stack_supports_usersync_non_root:
       try:
         Execute(params.usersync_start,
@@ -57,8 +55,12 @@ def ranger_service(name, action=None):
   elif name == 'ranger_tagsync' and params.stack_supports_ranger_tagsync:
     no_op_test = format('ps -ef | grep proc_rangertagsync | grep -v grep')
     cmd = format('{tagsync_bin} start')
-    Execute(cmd,
-      environment=env_dict,
-      user=params.unix_user,
-      not_if=no_op_test
-    )
+    try:
+      Execute(cmd,
+        environment=env_dict,
+        user=params.unix_user,
+        not_if=no_op_test
+      )
+    except:
+      show_logs(params.tagsync_log_dir, params.unix_user)
+      raise
