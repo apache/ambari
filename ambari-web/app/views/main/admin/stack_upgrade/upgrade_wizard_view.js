@@ -415,8 +415,10 @@ App.upgradeWizardView = Em.View.extend({
   },
 
   pauseUpgrade: function() {
-    this.get('controller').suspendUpgrade();
-    this.get('parentView').closeWizard();
+    var self = this;
+    this.get('controller').suspendUpgrade().done(function() {
+      self.get('parentView').closeWizard();
+    });
   },
 
   /**
