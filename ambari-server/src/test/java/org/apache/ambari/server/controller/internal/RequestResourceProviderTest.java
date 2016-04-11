@@ -19,6 +19,18 @@
 package org.apache.ambari.server.controller.internal;
 
 
+import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.newCapture;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
+
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collection;
@@ -79,18 +91,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-
-import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID;
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.newCapture;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
 
 /**
  * RequestResourceProvider tests.
@@ -187,7 +187,6 @@ public class RequestResourceProviderTest {
     Resource.Type type = Resource.Type.Request;
 
     expect(requestDAO.findByPks(Collections.<Long> emptyList(), true)).andReturn(Collections.<RequestEntity>emptyList()).anyTimes();
-    replay(requestDAO);
 
     ActionManager actionManager = createNiceMock(ActionManager.class);
 
@@ -198,12 +197,9 @@ public class RequestResourceProviderTest {
     Clusters clusters = createNiceMock(Clusters.class);
     expect(clusters.getCluster("foo_cluster")).andReturn(cluster).anyTimes();
 
-    AmbariManagementController managementController =
-      createMock(AmbariManagementController.class);
-    expect(managementController.getActionManager()).andReturn(actionManager)
-      .anyTimes();
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    expect(managementController.getActionManager()).andReturn(actionManager).anyTimes();
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
-
     replay(managementController, clusters, cluster);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(type,
@@ -224,33 +220,29 @@ public class RequestResourceProviderTest {
     request = PropertyHelper.getReadRequest(new HashSet<String>(),
       requestInfoProperties, null, null, null);
 
-    expect(actionManager.getRequestsByStatus(null, BaseRequest.DEFAULT_PAGE_SIZE, false))
-      .andReturn(Collections.<Long> emptyList());
+    expect(requestDAO.findAllRequestIds(BaseRequest.DEFAULT_PAGE_SIZE, false, 1L)).andReturn(Collections.<Long> emptyList()).anyTimes();
+    replay(requestDAO);
 
-    replay(actionManager);
     provider.getResources(request, predicate);
-    verify(actionManager);
-    reset(actionManager);
+    verify(requestDAO);
 
     requestInfoProperties.put(BaseRequest.PAGE_SIZE_PROPERTY_KEY, "20");
     request = PropertyHelper.getReadRequest(new HashSet<String>(),
       requestInfoProperties, null, null, null);
-    expect(actionManager.getRequestsByStatus(null, 20, false))
-      .andReturn(Collections.<Long> emptyList());
-    replay(actionManager);
     provider.getResources(request, predicate);
-    verify(actionManager);
-    reset(actionManager);
+    verify(requestDAO);
+
+    reset(requestDAO);
 
     requestInfoProperties.put(BaseRequest.ASC_ORDER_PROPERTY_KEY, "true");
     request = PropertyHelper.getReadRequest(new HashSet<String>(),
       requestInfoProperties, null, null, null);
-    expect(actionManager.getRequestsByStatus(null, 20, true))
-      .andReturn(Collections.<Long> emptyList());
-    replay(actionManager);
+    expect(requestDAO.findByPks(Collections.<Long> emptyList(), true)).andReturn(Collections.<RequestEntity>emptyList()).anyTimes();
+    expect(requestDAO.findAllRequestIds(BaseRequest.DEFAULT_PAGE_SIZE, true, 1L)).andReturn(Collections.<Long> emptyList()).anyTimes();
+    replay(requestDAO);
+
     provider.getResources(request, predicate);
-    verify(actionManager);
-    reset(actionManager);
+    verify(requestDAO);
   }
 
   @Test

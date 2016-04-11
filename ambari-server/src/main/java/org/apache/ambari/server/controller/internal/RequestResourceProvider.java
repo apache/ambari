@@ -17,7 +17,22 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import com.google.inject.Inject;
+import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID;
+import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID;
+import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_COMPONENT_HOST_NAME_PROPERTY_ID;
+import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.actionmanager.ActionManager;
@@ -51,24 +66,11 @@ import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.topology.LogicalRequest;
+import org.apache.ambari.server.topology.TopologyManager;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID;
-import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID;
-import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_COMPONENT_HOST_NAME_PROPERTY_ID;
-import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID;
+import com.google.common.collect.Sets;
+import com.google.inject.Inject;
 
 /**
  * Resource provider for request resources.
@@ -88,6 +90,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
   // ----- Property ID constants ---------------------------------------------
   // Requests
   public static final String REQUEST_CLUSTER_NAME_PROPERTY_ID = "Requests/cluster_name";
+  public static final String REQUEST_CLUSTER_ID_PROPERTY_ID = "Requests/cluster_id";
   public static final String REQUEST_ID_PROPERTY_ID = "Requests/id";
   protected static final String REQUEST_STATUS_PROPERTY_ID = "Requests/request_status";
   protected static final String REQUEST_ABORT_REASON_PROPERTY_ID = "Requests/abort_reason";
@@ -124,32 +127,30 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
 
   private PredicateCompiler predicateCompiler = new PredicateCompiler();
 
-  static Set<String> PROPERTY_IDS = new HashSet<String>();
-
-  static {
-    PROPERTY_IDS.add(REQUEST_CLUSTER_NAME_PROPERTY_ID);
-    PROPERTY_IDS.add(REQUEST_STATUS_PROPERTY_ID);
-    PROPERTY_IDS.add(REQUEST_ABORT_REASON_PROPERTY_ID);
-    PROPERTY_IDS.add(REQUEST_CONTEXT_ID);
-    PROPERTY_IDS.add(REQUEST_SOURCE_SCHEDULE);
-    PROPERTY_IDS.add(REQUEST_SOURCE_SCHEDULE_ID);
-    PROPERTY_IDS.add(REQUEST_SOURCE_SCHEDULE_HREF);
-    PROPERTY_IDS.add(REQUEST_TYPE_ID);
-    PROPERTY_IDS.add(REQUEST_INPUTS_ID);
-    PROPERTY_IDS.add(REQUEST_RESOURCE_FILTER_ID);
-    PROPERTY_IDS.add(REQUEST_OPERATION_LEVEL_ID);
-    PROPERTY_IDS.add(REQUEST_CREATE_TIME_ID);
-    PROPERTY_IDS.add(REQUEST_START_TIME_ID);
-    PROPERTY_IDS.add(REQUEST_END_TIME_ID);
-    PROPERTY_IDS.add(REQUEST_EXCLUSIVE_ID);
-    PROPERTY_IDS.add(REQUEST_TASK_CNT_ID);
-    PROPERTY_IDS.add(REQUEST_FAILED_TASK_CNT_ID);
-    PROPERTY_IDS.add(REQUEST_ABORTED_TASK_CNT_ID);
-    PROPERTY_IDS.add(REQUEST_TIMED_OUT_TASK_CNT_ID);
-    PROPERTY_IDS.add(REQUEST_COMPLETED_TASK_CNT_ID);
-    PROPERTY_IDS.add(REQUEST_QUEUED_TASK_CNT_ID);
-    PROPERTY_IDS.add(REQUEST_PROGRESS_PERCENT_ID);
-  }
+  static Set<String> PROPERTY_IDS = Sets.newHashSet(
+    REQUEST_CLUSTER_NAME_PROPERTY_ID,
+    REQUEST_CLUSTER_ID_PROPERTY_ID,
+    REQUEST_STATUS_PROPERTY_ID,
+    REQUEST_ABORT_REASON_PROPERTY_ID,
+    REQUEST_CONTEXT_ID,
+    REQUEST_SOURCE_SCHEDULE,
+    REQUEST_SOURCE_SCHEDULE_ID,
+    REQUEST_SOURCE_SCHEDULE_HREF,
+    REQUEST_TYPE_ID,
+    REQUEST_INPUTS_ID,
+    REQUEST_RESOURCE_FILTER_ID,
+    REQUEST_OPERATION_LEVEL_ID,
+    REQUEST_CREATE_TIME_ID,
+    REQUEST_START_TIME_ID,
+    REQUEST_END_TIME_ID,
+    REQUEST_EXCLUSIVE_ID,
+    REQUEST_TASK_CNT_ID,
+    REQUEST_FAILED_TASK_CNT_ID,
+    REQUEST_ABORTED_TASK_CNT_ID,
+    REQUEST_TIMED_OUT_TASK_CNT_ID,
+    REQUEST_COMPLETED_TASK_CNT_ID,
+    REQUEST_QUEUED_TASK_CNT_ID,
+    REQUEST_PROGRESS_PERCENT_ID);
 
   // ----- Constructors ----------------------------------------------------
 
@@ -228,9 +229,14 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     Boolean ascOrder = (ascOrderRaw == null ? null : Boolean.parseBoolean(ascOrderRaw));
 
     if (null == predicate) {
+      // the no-arg call to /requests is here
       resources.addAll(
           getRequestResources(null, null, null, maxResults, ascOrder, requestedIds));
     } else {
+      // process /requests with a predicate
+      // process /clusters/[cluster]/requests
+      // process /clusters/[cluster]/requests with a predicate
+
       for (Map<String, Object> properties : getPropertyMaps(predicate)) {
         String clusterName = (String) properties.get(REQUEST_CLUSTER_NAME_PROPERTY_ID);
 
@@ -544,7 +550,9 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     }
   }
 
-  // Get all of the request resources for the given properties
+  /**
+   * Gets all of the request resources for the given properties.
+   */
   private Set<Resource> getRequestResources(String clusterName,
                                             Long requestId,
                                             String requestStatus,
@@ -569,6 +577,8 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
       }
     }
 
+    List<Long> requestIds = Collections.emptyList();
+
     if (requestId == null) {
       org.apache.ambari.server.actionmanager.RequestStatus status = null;
       if (requestStatus != null) {
@@ -580,9 +590,26 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
             + ", requestStatus=" + status);
       }
 
-      List<Long> requestIds = actionManager.getRequestsByStatus(status,
-        maxResults != null ? maxResults : BaseRequest.DEFAULT_PAGE_SIZE,
-        ascOrder != null ? ascOrder : false);
+      maxResults = (maxResults != null) ? maxResults : BaseRequest.DEFAULT_PAGE_SIZE;
+      ascOrder = (ascOrder != null) ? ascOrder : false;
+
+      if (null == status) {
+        if (null != clusterId) {
+          // !!! don't mix results of cluster vs non-cluster
+          requestIds = s_requestDAO.findAllRequestIds(maxResults, ascOrder, clusterId);
+        } else {
+          // !!! not a cluster, so get all requests NOT affiliated with a cluster
+          requestIds = s_requestDAO.findAllRequestIds(maxResults, ascOrder, null);
+        }
+      } else {
+        // !!! this call will result in mixed results of cluster and non-cluster.  this
+        // will get fixed in a future iteration, as the host_role_command table does not
+        // currently have direct cluster affinity, and changing that is a tad destructive.
+        requestIds = actionManager.getRequestsByStatus(status,
+          maxResults != null ? maxResults : BaseRequest.DEFAULT_PAGE_SIZE,
+                ascOrder != null ? ascOrder : false);
+      }
+
       LOG.debug("List<Long> requestIds = actionManager.getRequestsByStatus = {}", requestIds.size());
 
       response.addAll(getRequestResources(clusterId, clusterName, requestIds,
@@ -624,8 +651,8 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     requests.addAll(topologyRequestEntities);
 
     for (RequestEntity re : requests) {
-      if ((null == clusterId && (null == re.getClusterId() || -1L == re.getClusterId())) ||
-          (null != clusterId && null != re.getRequestId() && re.getClusterId().equals(clusterId))) {
+      if ((null == clusterId && (null == re.getClusterId() || -1L == re.getClusterId())) ||          // if cluster IS NOT requested AND the db request is not for a cluster
+          (null != clusterId && null != re.getRequestId() && re.getClusterId().equals(clusterId))) { // if cluster IS requested and the request has a cluster id equal to the one requested
         Resource r = getRequestResource(re, clusterName, requestedPropertyIds);
         resourceMap.put(re.getRequestId(), r);
       }
@@ -638,8 +665,11 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
       Set<String> requestedPropertyIds) {
     Resource resource = new ResourceImpl(Resource.Type.Request);
 
-    if (null != clusterName)
+    if (null != clusterName) {
       setResourceProperty(resource, REQUEST_CLUSTER_NAME_PROPERTY_ID, clusterName, requestedPropertyIds);
+    } else if (null != entity.getClusterId() && -1L != entity.getClusterId()) {
+      setResourceProperty(resource, REQUEST_CLUSTER_ID_PROPERTY_ID, entity.getClusterId(), requestedPropertyIds);
+    }
 
     setResourceProperty(resource, REQUEST_ID_PROPERTY_ID, entity.getRequestId(), requestedPropertyIds);
     setResourceProperty(resource, REQUEST_CONTEXT_ID, entity.getRequestContext(), requestedPropertyIds);

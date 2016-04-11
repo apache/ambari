@@ -45,6 +45,19 @@ public class RequestDAO {
    */
   private final static String REQUEST_IDS_SORTED_SQL = "SELECT request.requestId FROM RequestEntity request ORDER BY request.requestId {0}";
 
+  /**
+   * Requests by cluster.  Cannot be a NamedQuery due to the ORDER BY clause.
+   */
+  private final static String REQUESTS_WITH_CLUSTER_SQL =
+      "SELECT request.requestId FROM RequestEntity request WHERE request.clusterId = %s ORDER BY request.requestId %s";
+  /**
+   * Requests by cluster.  Cannot be a NamedQuery due to the ORDER BY clause.
+   */
+  private final static String REQUESTS_WITH_NO_CLUSTER_SQL =
+      "SELECT request.requestId FROM RequestEntity request WHERE request.clusterId = -1 OR request.clusterId IS NULL ORDER BY request.requestId %s";
+
+
+
   @Inject
   Provider<EntityManager> entityManagerProvider;
 
@@ -148,5 +161,32 @@ public class RequestDAO {
   @Transactional
   public void removeByPK(Long requestId) {
     remove(findByPK(requestId));
+  }
+
+  /**
+   * Retrieves from the database for a cluster, or specifically for non-cluster requests.
+   * This method should be considered temporary until Request/Stage/Task cleanup is achieved.
+   *
+   * @param maxResults  the max number to return
+   * @param ascOrder    {@code true} to sort by requestId ascending, {@code false} for descending
+   * @param clusterId   the cluster to find, or {@code null} to search for requests without cluster
+   */
+  @RequiresSession
+  public List<Long> findAllRequestIds(int limit, boolean sortAscending, Long clusterId) {
+
+    final String sql;
+
+    if (null == clusterId) {
+      sql = String.format(REQUESTS_WITH_NO_CLUSTER_SQL, sortAscending ? "ASC" : "DESC");
+    } else {
+      sql = String.format(REQUESTS_WITH_CLUSTER_SQL, clusterId, sortAscending ? "ASC" : "DESC");
+    }
+
+    TypedQuery<Long> query = entityManagerProvider.get().createQuery(sql,
+        Long.class);
+
+    query.setMaxResults(limit);
+
+    return daoUtils.selectList(query);
   }
 }
