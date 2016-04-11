@@ -310,7 +310,7 @@ def execute(configurations={}, parameters={}, host_name=None):
   pass
 
   if not metrics or len(metrics) < 2:
-    return (RESULT_STATE_UNKNOWN, ["Unable to calculate the standard deviation for {0} datapoints".format(len(metrics))])
+    return (RESULT_STATE_SKIPPED, ["Unable to calculate the standard deviation for {0} datapoints".format(len(metrics))])
 
   if minimum_value_threshold:
     # Filter out points below min threshold
@@ -326,7 +326,7 @@ def execute(configurations={}, parameters={}, host_name=None):
     deviation_percent = stddev / mean * 100
   except ZeroDivisionError:
     # should not be a case for this alert
-    return (RESULT_STATE_UNKNOWN, ["Unable to calculate the standard deviation percentage. The mean value is 0"])
+    return (RESULT_STATE_SKIPPED, ["Unable to calculate the standard deviation percentage. The mean value is 0"])
 
   logger.debug("""
   AMS request parameters - {0}
