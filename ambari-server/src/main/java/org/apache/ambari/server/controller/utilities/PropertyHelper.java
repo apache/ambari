@@ -58,7 +58,7 @@ public class PropertyHelper {
    * Aggregate functions implicitly supported by the Metrics Service
    */
   public static final List<String> AGGREGATE_FUNCTION_IDENTIFIERS =
-    Arrays.asList("._sum", "._max", "._min", "._avg");
+    Arrays.asList("._sum", "._max", "._min", "._avg", "._rate");
 
   private static final List<Resource.InternalType> REPORT_METRIC_RESOURCES =
     Arrays.asList(Resource.InternalType.Cluster, Resource.InternalType.Host);

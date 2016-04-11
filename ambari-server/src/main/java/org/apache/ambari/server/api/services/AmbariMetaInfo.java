@@ -84,6 +84,7 @@ import java.util.Scanner;
 import java.util.Set;
 
 import static org.apache.ambari.server.controller.spi.Resource.InternalType.Component;
+import static org.apache.ambari.server.controller.spi.Resource.InternalType.HostComponent;
 import static org.apache.ambari.server.controller.utilities.PropertyHelper.AGGREGATE_FUNCTION_IDENTIFIERS;
 
 
@@ -924,7 +925,8 @@ public class AmbariMetaInfo {
 
                 // NOTE: Only Component aggregates for AMS supported for now.
                 if (metricDefinition.getType().equals("ganglia") &&
-                  metricDefEntry.getKey().equals(Component.name())) {
+                  (metricDefEntry.getKey().equals(Component.name()) ||
+                    metricDefEntry.getKey().equals(HostComponent.name()))) {
                   for (Map.Entry<String, Metric> processedMetric : processedMetrics.entrySet()) {
                     newMetricsToAdd.putAll(getAggregateFunctionMetrics(processedMetric.getKey(),
                       processedMetric.getValue()));

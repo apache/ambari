@@ -638,7 +638,7 @@ public class PhoenixHBaseAccessor {
       }
       for (Function f : functions) {
         if (f.getReadFunction() == Function.ReadFunction.VALUE) {
-          getTimelineMetricsFromResultSet(metrics, condition, rs);
+          getTimelineMetricsFromResultSet(metrics, f, condition, rs);
         } else {
           SingleValuedTimelineMetric metric =
             TIMELINE_METRIC_READ_HELPER.getAggregatedTimelineMetricFromResultSet(rs, f);
@@ -653,13 +653,16 @@ public class PhoenixHBaseAccessor {
     } else {
       // No aggregation requested
       // Execution never goes here, function always contain at least 1 element
-      getTimelineMetricsFromResultSet(metrics, condition, rs);
+      getTimelineMetricsFromResultSet(metrics, null, condition, rs);
     }
   }
 
-  private void getTimelineMetricsFromResultSet(TimelineMetrics metrics, Condition condition, ResultSet rs) throws SQLException, IOException {
+  private void getTimelineMetricsFromResultSet(TimelineMetrics metrics, Function f, Condition condition, ResultSet rs) throws SQLException, IOException {
     if (condition.getPrecision().equals(Precision.SECONDS)) {
       TimelineMetric metric = TIMELINE_METRIC_READ_HELPER.getTimelineMetricFromResultSet(rs);
+      if (f != null && f.getSuffix() != null) { //Case : Requesting "._rate" for precision data
+        metric.setMetricName(metric.getMetricName() + f.getSuffix());
+      }
       if (condition.isGrouped()) {
         metrics.addOrMergeTimelineMetric(metric);
       } else {
