@@ -603,6 +603,7 @@ public class AlertResourceProviderTest {
   private List<AlertCurrentEntity> getClusterMockEntities() throws Exception {
     AlertCurrentEntity current = new AlertCurrentEntity();
     current.setAlertId(Long.valueOf(1000L));
+    current.setHistoryId(ALERT_VALUE_ID);
     current.setLatestTimestamp(Long.valueOf(1L));
     current.setOriginalTimestamp(Long.valueOf(2L));
 

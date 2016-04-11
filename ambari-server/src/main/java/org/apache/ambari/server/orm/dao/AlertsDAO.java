@@ -151,6 +151,11 @@ public class AlertsDAO implements Cleanable {
   private LoadingCache<AlertCacheKey, AlertCurrentEntity> m_currentAlertCache = null;
 
   /**
+   * Batch size to query the DB and use the results in an IN clause.
+   */
+  private static final int BATCH_SIZE = 999;
+
+  /**
    * Constructor.
    *
    */
@@ -526,7 +531,7 @@ public class AlertsDAO implements Cleanable {
   @RequiresSession
   public AlertSummaryDTO findCurrentCounts(long clusterId, String serviceName, String hostName) {
     String sql = String.format(ALERT_COUNT_SQL_TEMPLATE,
-        AlertSummaryDTO.class.getName());
+      AlertSummaryDTO.class.getName());
 
     StringBuilder sb = new StringBuilder(sql);
 
@@ -539,7 +544,7 @@ public class AlertsDAO implements Cleanable {
     }
 
     TypedQuery<AlertSummaryDTO> query = m_entityManagerProvider.get().createQuery(
-        sb.toString(), AlertSummaryDTO.class);
+      sb.toString(), AlertSummaryDTO.class);
 
     query.setParameter("clusterId", Long.valueOf(clusterId));
     query.setParameter("okState", AlertState.OK);
@@ -655,7 +660,7 @@ public class AlertsDAO implements Cleanable {
   public List<AlertCurrentEntity> findCurrentByService(long clusterId,
       String serviceName) {
     TypedQuery<AlertCurrentEntity> query = m_entityManagerProvider.get().createNamedQuery(
-        "AlertCurrentEntity.findByService", AlertCurrentEntity.class);
+      "AlertCurrentEntity.findByService", AlertCurrentEntity.class);
 
     query.setParameter("clusterId", clusterId);
     query.setParameter("serviceName", serviceName);
@@ -718,7 +723,7 @@ public class AlertsDAO implements Cleanable {
   private AlertCurrentEntity findCurrentByHostAndNameInJPA(long clusterId, String hostName,
       String alertName) {
     TypedQuery<AlertCurrentEntity> query = m_entityManagerProvider.get().createNamedQuery(
-        "AlertCurrentEntity.findByHostAndName", AlertCurrentEntity.class);
+      "AlertCurrentEntity.findByHostAndName", AlertCurrentEntity.class);
 
     query.setParameter("clusterId", Long.valueOf(clusterId));
     query.setParameter("hostName", hostName);
@@ -768,7 +773,7 @@ public class AlertsDAO implements Cleanable {
   @Transactional
   public int removeCurrentByHistoryId(long historyId) {
     TypedQuery<AlertCurrentEntity> query = m_entityManagerProvider.get().createNamedQuery(
-        "AlertCurrentEntity.removeByHistoryId", AlertCurrentEntity.class);
+      "AlertCurrentEntity.removeByHistoryId", AlertCurrentEntity.class);
 
     query.setParameter("historyId", historyId);
     int rowsRemoved = query.executeUpdate();
@@ -790,9 +795,16 @@ public class AlertsDAO implements Cleanable {
   @Transactional
   public int removeCurrentDisabledAlerts() {
     TypedQuery<AlertCurrentEntity> query = m_entityManagerProvider.get().createNamedQuery(
-        "AlertCurrentEntity.removeDisabled", AlertCurrentEntity.class);
+      "AlertCurrentEntity.findDisabled", AlertCurrentEntity.class);
 
-    int rowsRemoved = query.executeUpdate();
+    int rowsRemoved = 0;
+    List<AlertCurrentEntity> currentEntities = m_daoUtils.selectList(query);
+    if (currentEntities != null) {
+      for (AlertCurrentEntity currentEntity : currentEntities) {
+        remove(currentEntity);
+        rowsRemoved++;
+      }
+    }
 
     // if caching is enabled, invalidate the cache to force the latest values
     // back from the DB
@@ -820,11 +832,18 @@ public class AlertsDAO implements Cleanable {
   @Transactional
   public int removeCurrentByService(long clusterId, String serviceName) {
     TypedQuery<AlertCurrentEntity> query = m_entityManagerProvider.get().createNamedQuery(
-        "AlertCurrentEntity.removeByService", AlertCurrentEntity.class);
+      "AlertCurrentEntity.findByServiceName", AlertCurrentEntity.class);
 
     query.setParameter("serviceName", serviceName);
 
-    int removedItems = query.executeUpdate();
+    int removedItems = 0;
+    List<AlertCurrentEntity> currentEntities = m_daoUtils.selectList(query);
+    if (currentEntities != null) {
+      for (AlertCurrentEntity currentEntity : currentEntities) {
+        remove(currentEntity);
+        removedItems++;
+      }
+    }
 
     // if caching is enabled, invalidate the cache to force the latest values
     // back from the DB
@@ -852,10 +871,17 @@ public class AlertsDAO implements Cleanable {
   @Transactional
   public int removeCurrentByHost(String hostName) {
     TypedQuery<AlertCurrentEntity> query = m_entityManagerProvider.get().createNamedQuery(
-        "AlertCurrentEntity.removeByHost", AlertCurrentEntity.class);
+      "AlertCurrentEntity.findByHost", AlertCurrentEntity.class);
 
     query.setParameter("hostName", hostName);
-    int removedItems = query.executeUpdate();
+    List<AlertCurrentEntity> currentEntities = m_daoUtils.selectList(query);
+    int removedItems = 0;
+    if (currentEntities != null) {
+      for (AlertCurrentEntity currentEntity : currentEntities) {
+        remove(currentEntity);
+        removedItems++;
+      }
+    }
 
     // if caching is enabled, invalidate the cache to force the latest values
     // back from the DB
@@ -903,13 +929,20 @@ public class AlertsDAO implements Cleanable {
       String componentName, String hostName) {
 
     TypedQuery<AlertCurrentEntity> query = m_entityManagerProvider.get().createNamedQuery(
-        "AlertCurrentEntity.removeByHostComponent", AlertCurrentEntity.class);
+      "AlertCurrentEntity.findByHostComponent", AlertCurrentEntity.class);
 
     query.setParameter("serviceName", serviceName);
     query.setParameter("componentName", componentName);
     query.setParameter("hostName", hostName);
 
-    int removedItems = query.executeUpdate();
+    List<AlertCurrentEntity> currentEntities = m_daoUtils.selectList(query);
+    int removedItems = 0;
+    if (currentEntities != null) {
+      for (AlertCurrentEntity currentEntity : currentEntities) {
+        remove(currentEntity);
+        removedItems++;
+      }
+    }
 
     // if caching is enabled, invalidate the cache to force the latest values
     // back from the DB
@@ -1433,6 +1466,23 @@ public class AlertsDAO implements Cleanable {
   private static final class AlertNotYetCreatedException extends Exception {
   }
 
+  /**
+   * Find all @AlertHistoryEntity with date before provided date.
+   * @param clusterId cluster id
+   * @param beforeDateMillis timestamp in millis
+   * @return List<Integer> ids
+   */
+  private List<Integer> findAllAlertHistoryIdsBeforeDate(Long clusterId, long  beforeDateMillis) {
+
+    EntityManager entityManager = m_entityManagerProvider.get();
+    TypedQuery<Integer> alertHistoryQuery =
+      entityManager.createNamedQuery("AlertHistoryEntity.findAllIdsInClusterBeforeDate", Integer.class);
+
+    alertHistoryQuery.setParameter("clusterId", clusterId);
+    alertHistoryQuery.setParameter("beforeDate", beforeDateMillis);
+
+    return m_daoUtils.selectList(alertHistoryQuery);
+  }
 
   /**
    * Deletes AlertNotice records in relation with AlertHistory entries older than the given date.
@@ -1443,7 +1493,25 @@ public class AlertsDAO implements Cleanable {
    */
   @Transactional
   private int cleanAlertNoticesForClusterBeforeDate(Long clusterId, long beforeDateMillis) {
-    return executeQuery("AlertNoticeEntity.removeByAlertHistoryBeforeDate", AlertNoticeEntity.class, clusterId, beforeDateMillis);
+    LOG.info("Deleting AlertNotice entities before date " + new Date(beforeDateMillis));
+    EntityManager entityManager = m_entityManagerProvider.get();
+    List<Integer> ids = findAllAlertHistoryIdsBeforeDate(clusterId, beforeDateMillis);
+    int affectedRows = 0;
+    // Batch delete
+    TypedQuery<AlertNoticeEntity> noticeQuery =
+      entityManager.createNamedQuery("AlertNoticeEntity.removeByHistoryIds", AlertNoticeEntity.class);
+    if (ids != null && !ids.isEmpty()) {
+      for (int i = 0; i < ids.size(); i += BATCH_SIZE) {
+        int endIndex = (i + BATCH_SIZE) > ids.size() ? ids.size() : (i + BATCH_SIZE);
+        List<Integer> idsSubList = ids.subList(i, endIndex);
+        LOG.info("Deleting AlertNotice entity batch with history ids: " +
+          idsSubList.get(0) + " - " + idsSubList.get(idsSubList.size() - 1));
+        noticeQuery.setParameter("historyIds", idsSubList);
+        affectedRows += noticeQuery.executeUpdate();
+      }
+    }
+
+    return affectedRows;
   }
 
 
@@ -1456,7 +1524,24 @@ public class AlertsDAO implements Cleanable {
    */
   @Transactional
   private int cleanAlertCurrentsForClusterBeforeDate(long clusterId, long beforeDateMillis) {
-    return executeQuery("AlertCurrentEntity.removeByAlertHistoryBeforeDate", AlertCurrentEntity.class, clusterId, beforeDateMillis);
+    LOG.info("Deleting AlertCurrent entities before date " + new Date(beforeDateMillis));
+    EntityManager entityManager = m_entityManagerProvider.get();
+    List<Integer> ids = findAllAlertHistoryIdsBeforeDate(clusterId, beforeDateMillis);
+    int affectedRows = 0;
+    TypedQuery<AlertCurrentEntity> currentQuery =
+      entityManager.createNamedQuery("AlertCurrentEntity.removeByHistoryIds", AlertCurrentEntity.class);
+    if (ids != null && !ids.isEmpty()) {
+      for (int i = 0; i < ids.size(); i += BATCH_SIZE) {
+        int endIndex = (i + BATCH_SIZE) > ids.size() ? ids.size() : (i + BATCH_SIZE);
+        List<Integer> idsSubList = ids.subList(i, endIndex);
+        LOG.info("Deleting AlertCurrent entity batch with history ids: " +
+          idsSubList.get(0) + " - " + idsSubList.get(idsSubList.size() - 1));
+        currentQuery.setParameter("historyIds", ids.subList(i, endIndex));
+        affectedRows += currentQuery.executeUpdate();
+      }
+    }
+
+    return affectedRows;
   }
 
   /**

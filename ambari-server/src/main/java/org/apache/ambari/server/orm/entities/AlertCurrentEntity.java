@@ -49,19 +49,22 @@ import org.apache.ambari.server.state.MaintenanceState;
 @Table(name = "alert_current")
 @TableGenerator(name = "alert_current_id_generator", table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value", pkColumnValue = "alert_current_id_seq", initialValue = 0)
 @NamedQueries({
-    @NamedQuery(name = "AlertCurrentEntity.findAll", query = "SELECT alert FROM AlertCurrentEntity alert"),
-    @NamedQuery(name = "AlertCurrentEntity.findByCluster", query = "SELECT alert FROM AlertCurrentEntity alert WHERE alert.alertHistory.clusterId = :clusterId"),
-    @NamedQuery(name = "AlertCurrentEntity.findByDefinitionId", query = "SELECT alert FROM AlertCurrentEntity alert WHERE alert.alertDefinition.definitionId = :definitionId"),
-    @NamedQuery(name = "AlertCurrentEntity.findByService", query = "SELECT alert FROM AlertCurrentEntity alert WHERE alert.alertHistory.clusterId = :clusterId AND alert.alertHistory.serviceName = :serviceName AND alert.alertHistory.alertDefinition.scope IN :inlist"),
-    @NamedQuery(name = "AlertCurrentEntity.findByHostAndName", query = "SELECT alert FROM AlertCurrentEntity alert WHERE alert.alertHistory.clusterId = :clusterId AND alert.alertHistory.alertDefinition.definitionName = :definitionName AND alert.alertHistory.hostName = :hostName"),
-    @NamedQuery(name = "AlertCurrentEntity.findByNameAndNoHost", query = "SELECT alert FROM AlertCurrentEntity alert WHERE alert.alertHistory.clusterId = :clusterId AND alert.alertHistory.alertDefinition.definitionName = :definitionName AND alert.alertHistory.hostName IS NULL"),
-    @NamedQuery(name = "AlertCurrentEntity.removeByHistoryId", query = "DELETE FROM AlertCurrentEntity alert WHERE alert.alertHistory.alertId = :historyId"),
-    @NamedQuery(name = "AlertCurrentEntity.removeByDefinitionId", query = "DELETE FROM AlertCurrentEntity alert WHERE alert.alertDefinition.definitionId = :definitionId"),
-    @NamedQuery(name = "AlertCurrentEntity.removeDisabled", query = "DELETE FROM AlertCurrentEntity alert WHERE alert.alertDefinition.enabled = 0"),
-    @NamedQuery(name = "AlertCurrentEntity.removeByService", query = "DELETE FROM AlertCurrentEntity alert WHERE alert.alertHistory.serviceName = :serviceName"),
-    @NamedQuery(name = "AlertCurrentEntity.removeByHost", query = "DELETE FROM AlertCurrentEntity alert WHERE alert.alertHistory.hostName = :hostName"),
-    @NamedQuery(name = "AlertCurrentEntity.removeByHostComponent", query = "DELETE FROM AlertCurrentEntity alert WHERE alert.alertHistory.serviceName = :serviceName AND alert.alertHistory.componentName = :componentName AND alert.alertHistory.hostName = :hostName"),
-    @NamedQuery(name = "AlertCurrentEntity.removeByAlertHistoryBeforeDate", query = "DELETE FROM AlertCurrentEntity alert WHERE alert.alertHistory.clusterId = :clusterId AND alert.alertHistory.alertTimestamp <= :beforeDate")
+  @NamedQuery(name = "AlertCurrentEntity.findAll", query = "SELECT alert FROM AlertCurrentEntity alert"),
+  @NamedQuery(name = "AlertCurrentEntity.findByCluster", query = "SELECT alert FROM AlertCurrentEntity alert WHERE alert.alertHistory.clusterId = :clusterId"),
+  @NamedQuery(name = "AlertCurrentEntity.findByDefinitionId", query = "SELECT alert FROM AlertCurrentEntity alert WHERE alert.alertDefinition.definitionId = :definitionId"),
+  @NamedQuery(name = "AlertCurrentEntity.findByService", query = "SELECT alert FROM AlertCurrentEntity alert WHERE alert.alertHistory.clusterId = :clusterId AND alert.alertHistory.serviceName = :serviceName AND alert.alertHistory.alertDefinition.scope IN :inlist"),
+  @NamedQuery(name = "AlertCurrentEntity.findByHostAndName", query = "SELECT alert FROM AlertCurrentEntity alert WHERE alert.alertHistory.clusterId = :clusterId AND alert.alertHistory.alertDefinition.definitionName = :definitionName AND alert.alertHistory.hostName = :hostName"),
+  @NamedQuery(name = "AlertCurrentEntity.findByNameAndNoHost", query = "SELECT alert FROM AlertCurrentEntity alert WHERE alert.alertHistory.clusterId = :clusterId AND alert.alertHistory.alertDefinition.definitionName = :definitionName AND alert.alertHistory.hostName IS NULL"),
+  @NamedQuery(name = "AlertCurrentEntity.findByHostComponent", query = "SELECT alert FROM AlertCurrentEntity alert WHERE alert.alertHistory.serviceName = :serviceName AND alert.alertHistory.componentName = :componentName AND alert.alertHistory.hostName = :hostName"),
+  @NamedQuery(name = "AlertCurrentEntity.findByHost", query = "SELECT alert FROM AlertCurrentEntity alert WHERE alert.alertHistory.hostName = :hostName"),
+  @NamedQuery(name = "AlertCurrentEntity.findByServiceName", query = "SELECT alert FROM AlertCurrentEntity alert WHERE alert.alertHistory.serviceName = :serviceName"),
+  @NamedQuery(name = "AlertCurrentEntity.findDisabled", query = "SELECT alert FROM AlertCurrentEntity alert WHERE alert.alertDefinition.enabled = 0"),
+  @NamedQuery(name = "AlertCurrentEntity.removeByHistoryId", query = "DELETE FROM AlertCurrentEntity alert WHERE alert.historyId = :historyId"),
+  // The remove queries can be handled by a simpler JPQL query,
+  // however, MySQL gtid enforce policy gets violated due to creation and
+  // deletion of TEMP table in the same transaction
+  @NamedQuery(name = "AlertCurrentEntity.removeByHistoryIds", query = "DELETE FROM AlertCurrentEntity alert WHERE alert.historyId IN :historyIds"),
+  @NamedQuery(name = "AlertCurrentEntity.removeByDefinitionId", query = "DELETE FROM AlertCurrentEntity alert WHERE alert.definitionId = :definitionId")
 })
 public class AlertCurrentEntity {
 
@@ -69,6 +72,12 @@ public class AlertCurrentEntity {
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "alert_current_id_generator")
   @Column(name = "alert_id", nullable = false, updatable = false)
   private Long alertId;
+
+  @Column(name = "history_id", nullable = false, insertable = false, updatable = false, length = 10)
+  private Long historyId;
+
+  @Column(name = "definition_id", nullable = false, insertable = false, updatable = false, length = 10)
+  private Long definitionId;
 
   @Column(name = "latest_timestamp", nullable = false)
   private Long latestTimestamp;
@@ -136,6 +145,38 @@ public class AlertCurrentEntity {
    */
   public void setAlertId(Long alertId) {
     this.alertId = alertId;
+  }
+
+  /**
+   * Get the related alert history id.
+   * @return history id
+   */
+  public Long getHistoryId() {
+    return historyId;
+  }
+
+  /**
+   * Set the related history id.
+   * @param historyId historyId
+   */
+  public void setHistoryId(Long historyId) {
+    this.historyId = historyId;
+  }
+
+  /**
+   * Get parent alert definition id
+   * @return definition id
+   */
+  public Long getDefinitionId() {
+    return definitionId;
+  }
+
+  /**
+   * Set the parent alert definition id
+   * @param definitionId definition id
+   */
+  public void setDefinitionId(Long definitionId) {
+    this.definitionId = definitionId;
   }
 
   /**
@@ -291,7 +332,9 @@ public class AlertCurrentEntity {
    */
   public void setAlertHistory(AlertHistoryEntity alertHistory) {
     this.alertHistory = alertHistory;
+    historyId = alertHistory.getAlertId();
     alertDefinition = alertHistory.getAlertDefinition();
+    definitionId = alertHistory.getAlertDefinitionId();
     latestText = alertHistory.getAlertText();
   }
 

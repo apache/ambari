@@ -372,8 +372,7 @@ public class AlertDefinitionDAO {
    */
   @Transactional
   public AlertDefinitionEntity merge(AlertDefinitionEntity alertDefinition) {
-    AlertDefinitionEntity entity = entityManagerProvider.get().merge(
-        alertDefinition);
+    AlertDefinitionEntity entity = entityManagerProvider.get().merge(alertDefinition);
 
     AlertDefinition definition = alertDefinitionFactory.coerce(entity);
 

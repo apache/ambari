@@ -17,18 +17,10 @@
  */
 package org.apache.ambari.server.orm.dao;
 
-import java.text.MessageFormat;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Order;
-import javax.persistence.metamodel.SingularAttribute;
-
+import com.google.inject.Inject;
+import com.google.inject.Provider;
+import com.google.inject.Singleton;
+import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.query.JpaPredicateVisitor;
 import org.apache.ambari.server.api.query.JpaSortBuilder;
@@ -48,11 +40,19 @@ import org.apache.ambari.server.state.NotificationState;
 import org.apache.ambari.server.state.Service;
 import org.eclipse.persistence.config.HintValues;
 import org.eclipse.persistence.config.QueryHints;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
-import com.google.inject.Singleton;
-import com.google.inject.persist.Transactional;
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Order;
+import javax.persistence.metamodel.SingularAttribute;
+import java.text.MessageFormat;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * The {@link AlertDispatchDAO} class manages the {@link AlertTargetEntity},
@@ -85,13 +85,16 @@ public class AlertDispatchDAO {
    */
   private final Lock m_groupLock = new ReentrantLock();
 
-  /**
-   * Gets an alert group with the specified ID.
-   *
-   * @param groupId
-   *          the ID of the group to retrieve.
-   * @return the group or {@code null} if none exists.
-   */
+  private static final Logger LOG = LoggerFactory.getLogger(AlertDispatchDAO.class);
+
+    /**
+     * Gets an alert group with the specified ID.
+     *
+     * @param groupId
+     *          the ID of the group to retrieve.
+     * @return the group or {@code null} if none exists.
+     */
+
   @RequiresSession
   public AlertGroupEntity findGroupById(long groupId) {
     return entityManagerProvider.get().find(AlertGroupEntity.class, groupId);
@@ -683,12 +686,27 @@ public class AlertDispatchDAO {
    */
   @Transactional
   public void removeNoticeByDefinitionId(long definitionId) {
+    LOG.info("Deleting AlertNotice entities by definition id.");
     EntityManager entityManager = entityManagerProvider.get();
-    TypedQuery<AlertNoticeEntity> currentQuery = entityManager.createNamedQuery(
-        "AlertNoticeEntity.removeByDefinitionId", AlertNoticeEntity.class);
+    TypedQuery<Integer> historyIdQuery = entityManager.createNamedQuery(
+      "AlertHistoryEntity.findHistoryIdsByDefinitionId", Integer.class);
+    historyIdQuery.setParameter("definitionId", definitionId);
+    List<Integer> ids = daoUtils.selectList(historyIdQuery);
+    // Batch delete notice
+    int BATCH_SIZE = 999;
+    TypedQuery<AlertNoticeEntity> noticeQuery = entityManager.createNamedQuery(
+      "AlertNoticeEntity.removeByHistoryIds", AlertNoticeEntity.class);
+    if (ids != null && !ids.isEmpty()) {
+      for (int i = 0; i < ids.size(); i += BATCH_SIZE) {
+        int endIndex = (i + BATCH_SIZE) > ids.size() ? ids.size() : (i + BATCH_SIZE);
+        List<Integer> idsSubList = ids.subList(i, endIndex);
+        LOG.info("Deleting AlertNotice entity batch with history ids: " +
+          idsSubList.get(0) + " - " + idsSubList.get(idsSubList.size() - 1));
+        noticeQuery.setParameter("historyIds", idsSubList);
+        noticeQuery.executeUpdate();
+      }
+    }
 
-    currentQuery.setParameter("definitionId", definitionId);
-    currentQuery.executeUpdate();
     entityManager.clear();
   }
 
