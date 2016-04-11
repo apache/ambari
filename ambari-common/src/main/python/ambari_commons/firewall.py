@@ -18,8 +18,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import subprocess
-import shlex
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.logging_utils import print_warning_msg
 from ambari_commons.os_family_impl import OsFamilyImpl

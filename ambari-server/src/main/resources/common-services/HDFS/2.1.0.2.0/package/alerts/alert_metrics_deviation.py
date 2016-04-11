@@ -21,11 +21,11 @@ import httplib
 
 import json
 import logging
-from math import sqrt
 import urllib
 import time
 import urllib2
 from resource_management import Environment
+from ambari_commons.aggregate_functions import sample_standard_deviation, mean
 
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request
 from resource_management.libraries.functions.curl_krb_request import DEFAULT_KERBEROS_KINIT_TIMER_MS
@@ -318,12 +318,12 @@ def execute(configurations={}, parameters={}, host_name=None):
     if len(metrics) < 2:
       return (RESULT_STATE_OK, ['No datapoints found above the minimum threshold of {0} seconds'.format(minimum_value_threshold)])
 
-  mean = calculate_mean(metrics)
-  stddev = calulate_sample_std_deviation(metrics)
+  mean_value = mean(metrics)
+  stddev = sample_standard_deviation(metrics)
   max_value = max(metrics) / 1000
 
   try:
-    deviation_percent = stddev / mean * 100
+    deviation_percent = stddev / mean_value * 100
   except ZeroDivisionError:
     # should not be a case for this alert
     return (RESULT_STATE_SKIPPED, ["Unable to calculate the standard deviation percentage. The mean value is 0"])
@@ -334,23 +334,13 @@ def execute(configurations={}, parameters={}, host_name=None):
   Mean - {2}
   Standard deviation - {3}
   Percentage standard deviation - {4}
-  """.format(encoded_get_metrics_parameters, data_json, mean, stddev, deviation_percent))
+  """.format(encoded_get_metrics_parameters, data_json, mean_value, stddev, deviation_percent))
 
   if deviation_percent > critical_threshold:
     return (RESULT_STATE_CRITICAL,['CRITICAL. Percentage standard deviation value {0}% is beyond the critical threshold of {1}% (growing {2} seconds to {3} seconds)'.format("%.2f" % deviation_percent, "%.2f" % critical_threshold, minimum_value_threshold, "%.2f" % max_value)])
   if deviation_percent > warning_threshold:
     return (RESULT_STATE_WARNING,['WARNING. Percentage standard deviation value {0}% is beyond the warning threshold of {1}% (growing {2} seconds to {3} seconds)'.format("%.2f" % deviation_percent, "%.2f" % warning_threshold, minimum_value_threshold, "%.2f" % max_value)])
   return (RESULT_STATE_OK,['OK. Percentage standard deviation value is {0}%'.format("%.2f" % deviation_percent)])
-
-def calulate_sample_std_deviation(lst):
-  """calculates standard deviation"""
-  mean = calculate_mean(lst)
-  variance = sum([(element-mean)**2 for element in lst]) / (len(lst) - 1)
-  return sqrt(variance)
-
-def calculate_mean(lst):
-  """calculates mean"""
-  return sum(lst) / len(lst)
 
 def valid_collector_webapp_address(webapp_address):
   if len(webapp_address) == 2 \

@@ -30,6 +30,7 @@ import time
 from apscheduler.scheduler import Scheduler
 from alerts.collector import AlertCollector
 from alerts.metric_alert import MetricAlert
+from alerts.ams_alert import AmsAlert
 from alerts.port_alert import PortAlert
 from alerts.script_alert import ScriptAlert
 from alerts.web_alert import WebAlert
@@ -42,6 +43,7 @@ class AlertSchedulerHandler():
   FILENAME = 'definitions.json'
   TYPE_PORT = 'PORT'
   TYPE_METRIC = 'METRIC'
+  TYPE_AMS = 'AMS'
   TYPE_SCRIPT = 'SCRIPT'
   TYPE_WEB = 'WEB'
   TYPE_RECOVERY = 'RECOVERY'
@@ -299,6 +301,8 @@ class AlertSchedulerHandler():
 
       if source_type == AlertSchedulerHandler.TYPE_METRIC:
         alert = MetricAlert(json_definition, source, self.config)
+      elif source_type == AlertSchedulerHandler.TYPE_AMS:
+        alert = AmsAlert(json_definition, source, self.config)
       elif source_type == AlertSchedulerHandler.TYPE_PORT:
         alert = PortAlert(json_definition, source, self.config)
       elif source_type == AlertSchedulerHandler.TYPE_SCRIPT:
@@ -314,7 +318,7 @@ class AlertSchedulerHandler():
       if alert is not None:
         alert.set_cluster(clusterName, hostName)
 
-    except Exception,exception:
+    except Exception, exception:
       logger.exception("[AlertScheduler] Unable to load an invalid alert definition. It will be skipped.")
 
     return alert

@@ -105,14 +105,14 @@ class MetricAlert(BaseAlert):
         check_value = self.metric_info.calculate(value_list)
         value_list.append(check_value)
       
-        collect_result = self.__get_result(value_list[0] if check_value is None else check_value)
+        collect_result = self._get_result(value_list[0] if check_value is None else check_value)
 
         logger.debug("[Alert][{0}] Resolved values = {1}".format(self.get_name(), str(value_list)))
     
     return (collect_result, value_list)
 
   
-  def __get_result(self, value):
+  def _get_result(self, value):
     ok_value = self.__find_threshold('ok')
     warn_value = self.__find_threshold('warning')
     crit_value = self.__find_threshold('critical')
@@ -149,8 +149,6 @@ class MetricAlert(BaseAlert):
         else:
           return self.RESULT_OK
 
-    return None
-
     
   def __find_threshold(self, reporting_type):
     """ find the defined thresholds for alert values """
@@ -166,7 +164,7 @@ class MetricAlert(BaseAlert):
       
     return self.alert_source_meta['reporting'][reporting_type]['value']
 
-    
+
   def _load_jmx(self, ssl, host, port, jmx_metric):
     """ creates a JmxMetric object that holds info about jmx-based metrics """
     value_list = []
@@ -286,7 +284,7 @@ def f(args):
     self.custom_module = None
     self.property_list = jmx_info['property_list']
     self.property_map = {}
-    
+
     if 'value' in jmx_info:
       realcode = re.sub('(\{(\d+)\})', 'args[\g<2>]', jmx_info['value'])
       

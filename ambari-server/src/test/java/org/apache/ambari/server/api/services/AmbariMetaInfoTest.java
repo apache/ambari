@@ -1818,7 +1818,7 @@ public class AmbariMetaInfoTest {
     assertNotNull( metricSource.getUri().getHttpsUri() );
     assertNotNull( metricSource.getUri().getHttpUri() );
     assertEquals(12345, metricSource.getUri().getDefaultPort());
-
+//
     // ignore host
     assertTrue(ignoreHost.isHostIgnored());
   }

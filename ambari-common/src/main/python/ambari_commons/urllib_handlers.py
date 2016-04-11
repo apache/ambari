@@ -48,7 +48,7 @@ class RefreshHeaderProcessor(BaseHandler):
 
   def http_response(self, request, response):
     """
-    Inspect the http response from urllib2 and see if thers is a refresh
+    Inspect the http response from urllib2 and see if there is a refresh
     response header. If there is, then attempt to follow it and re-execute
     the query using the new host.
     :param request:

@@ -23,12 +23,13 @@ import os
 
 from ambari_agent.AlertSchedulerHandler import AlertSchedulerHandler
 from ambari_agent.alerts.metric_alert import MetricAlert
+from ambari_agent.alerts.ams_alert import AmsAlert
 from ambari_agent.alerts.port_alert import PortAlert
 from ambari_agent.alerts.web_alert import WebAlert
 
 from AmbariConfig import AmbariConfig
 
-from mock.mock import patch, Mock, MagicMock
+from mock.mock import Mock, MagicMock
 from unittest import TestCase
 
 TEST_PATH = os.path.join('ambari_agent', 'dummy_files')
@@ -57,6 +58,21 @@ class TestAlertSchedulerHandler(TestCase):
 
     self.assertTrue(callable_result is not None)
     self.assertTrue(isinstance(callable_result, MetricAlert))
+    self.assertEquals(callable_result.alert_meta, json_definition)
+    self.assertEquals(callable_result.alert_source_meta, json_definition['source'])
+
+  def test_json_to_callable_ams(self):
+    scheduler = AlertSchedulerHandler(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, None, self.config, None)
+    json_definition = {
+      'source': {
+        'type': 'AMS'
+      }
+    }
+
+    callable_result = scheduler._AlertSchedulerHandler__json_to_callable('cluster', 'host', copy.deepcopy(json_definition))
+
+    self.assertTrue(callable_result is not None)
+    self.assertTrue(isinstance(callable_result, AmsAlert))
     self.assertEquals(callable_result.alert_meta, json_definition)
     self.assertEquals(callable_result.alert_source_meta, json_definition['source'])
 

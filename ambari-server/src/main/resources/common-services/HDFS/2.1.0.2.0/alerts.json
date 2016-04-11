@@ -435,9 +435,9 @@
             "connection_timeout": 5.0,
             "high_availability": {
               "nameservice": "{{hdfs-site/dfs.nameservices}}",
-              "alias_key" : "{{hdfs-site/dfs.ha.namenodes.{{ha-nameservice}}}}",
-              "http_pattern" : "{{hdfs-site/dfs.namenode.http-address.{{ha-nameservice}}.{{alias}}}}",
-              "https_pattern" : "{{hdfs-site/dfs.namenode.https-address.{{ha-nameservice}}.{{alias}}}}"
+              "alias_key": "{{hdfs-site/dfs.ha.namenodes.{{ha-nameservice}}}}",
+              "http_pattern": "{{hdfs-site/dfs.namenode.http-address.{{ha-nameservice}}.{{alias}}}}",
+              "https_pattern": "{{hdfs-site/dfs.namenode.https-address.{{ha-nameservice}}.{{alias}}}}"
             }
           },
           "reporting": {
@@ -452,7 +452,7 @@
               "text": "DataNode Health: [Live={2}, Stale={1}, Dead={0}]",
               "value": 1
             },
-            "units" : "DNs"
+            "units": "DNs"
           },
           "jmx": {
             "property_list": [
@@ -461,6 +461,91 @@
               "Hadoop:service=NameNode,name=FSNamesystemState/NumLiveDataNodes"
             ],
             "value": "{0} + {1}"
+          }
+        }
+      },
+      {
+        "name": "namenode_free_heap_size_deviation_percentage",
+        "label": "NameNode Heap Usage (Hourly)",
+        "description": "This service-level alert is triggered if the NN heap usage deviation has grown beyond the specified threshold within a given time interval.",
+        "interval": 1,
+        "scope": "SERVICE",
+        "enabled": false,
+        "source": {
+          "type": "AMS",
+          "uri": {
+            "http": "{{ams-site/timeline.metrics.service.webapp.address}}",
+            "https": "{{ams-site/timeline.metrics.service.webapp.address}}",
+            "https_property": "{{ams-site/timeline.metrics.service.http.policy}}",
+            "https_property_value": "HTTPS_ONLY",
+            "connection_timeout": 5.0
+          },
+          "reporting": {
+            "ok": {
+              "text": "The sample standard deviation percentage is {0}%"
+            },
+            "warning": {
+              "text": "The sample standard deviation percentage is {0}%",
+              "value": 20
+            },
+            "critical": {
+              "text": "The sample standard deviation percentage is {0}%",
+              "value": 50
+            },
+            "units" : "%"
+          },
+          "ams": {
+            "app_id": "NAMENODE",
+            "interval": 60,
+            "metric_list": [
+              "jvm.JvmMetrics.MemHeapUsedM",
+              "jvm.JvmMetrics.MemHeapMaxM"
+            ],
+            "minimum_value": 1,
+            "value": "{1} - {0}",
+            "compute": "sample_standard_deviation_percentage"
+          }
+        }
+      },
+      {
+        "name": "namenode_mean_heapsize_used",
+        "label": "NameNode Mean Used Heap Size (Hourly)",
+        "description": "This service-level alert is triggered if the mean NN heap size is beyond the specified threshold within a given time interval.",
+        "interval": 1,
+        "scope": "SERVICE",
+        "enabled": false,
+        "source": {
+          "type": "AMS",
+          "uri": {
+            "http": "{{ams-site/timeline.metrics.service.webapp.address}}",
+            "https": "{{ams-site/timeline.metrics.service.webapp.address}}",
+            "https_property": "{{ams-site/timeline.metrics.service.http.policy}}",
+            "https_property_value": "HTTPS_ONLY",
+            "connection_timeout": 5.0
+          },
+          "reporting": {
+            "ok": {
+              "text": "OK: the mean used heap size is {0} MB."
+            },
+            "warning": {
+              "text": "Warning: the mean used heap size is {0} MB.",
+              "value": 768
+            },
+            "critical": {
+              "text": "Critical: the mean used heap size is {0} MB.",
+              "value": 1024
+            },
+            "units" : "MB"
+          },
+          "ams": {
+            "app_id": "NAMENODE",
+            "interval": 30,
+            "metric_list": [
+              "jvm.JvmMetrics.MemHeapUsedM"
+            ],
+            "minimum_value": -1,
+            "value": "{0}",
+            "compute": "mean"
           }
         }
       },
