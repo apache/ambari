@@ -28,6 +28,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -484,17 +485,23 @@ public class PhoenixTransactSQL {
         rowsPerMetric = TimeUnit.MILLISECONDS.toHours(range);
         break;
       case MINUTES:
-        rowsPerMetric = TimeUnit.MILLISECONDS.toMinutes(range)/2; //2 minute data in METRIC_AGGREGATE_MINUTE table.
+        rowsPerMetric = TimeUnit.MILLISECONDS.toMinutes(range)/5; //5 minute data in METRIC_AGGREGATE_MINUTE table.
         break;
       default:
         rowsPerMetric = TimeUnit.MILLISECONDS.toSeconds(range)/10; //10 second data in METRIC_AGGREGATE table
     }
 
-    long totalRowsRequested = rowsPerMetric * condition.getMetricNames().size();
+    List<String> hostNames = condition.getHostnames();
+    int numHosts = (hostNames == null || hostNames.isEmpty()) ? 1 : condition.getHostnames().size();
+
+    long totalRowsRequested = rowsPerMetric * condition.getMetricNames().size() * numHosts;
+
     if (totalRowsRequested > PhoenixHBaseAccessor.RESULTSET_LIMIT) {
-      throw new PrecisionLimitExceededException("Requested precision (" + precision + ") for given time range causes " +
-        "result set size of " + totalRowsRequested + ", which exceeds the limit - "
-        + PhoenixHBaseAccessor.RESULTSET_LIMIT + ". Please request higher precision.");
+      throw new PrecisionLimitExceededException("Requested " +  condition.getMetricNames().size() + " metrics for "
+        + numHosts + " hosts in " + precision +  " precision for the time range of " + range/1000
+        + " seconds. Estimated resultset size of " + totalRowsRequested + " is greater than the limit of "
+        + PhoenixHBaseAccessor.RESULTSET_LIMIT + ". Request lower precision or fewer number of metrics or hosts." +
+        " Alternatively, increase the limit value through ams-site:timeline.metrics.service.default.result.limit config");
     }
   }
 

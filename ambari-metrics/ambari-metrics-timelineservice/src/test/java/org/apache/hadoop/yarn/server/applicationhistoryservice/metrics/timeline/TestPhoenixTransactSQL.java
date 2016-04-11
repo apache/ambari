@@ -18,6 +18,7 @@
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
 
 import org.apache.hadoop.metrics2.sink.timeline.Precision;
+import org.apache.hadoop.metrics2.sink.timeline.PrecisionLimitExceededException;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.DefaultCondition;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL;
@@ -29,8 +30,11 @@ import java.sql.Connection;
 import java.sql.ParameterMetaData;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
+
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
@@ -421,5 +425,133 @@ public class TestPhoenixTransactSQL {
     String stmt = stmtCapture.getValue();
     Assert.assertTrue(stmt.contains("FROM METRIC_RECORD_HOURLY"));
     verify(connection, preparedStatement);
+  }
+
+  @Test
+  public void testResultSetLimitCheck() throws SQLException {
+
+    List<String> metrics = new ArrayList<String>();
+    List<String> hosts = new ArrayList<String>();
+    int numMetrics = 0;
+    int numHosts = 0;
+    int limit = PhoenixHBaseAccessor.RESULTSET_LIMIT;
+
+    // 22 Metrics x 2 Hosts x 1 hour with requested SECONDS precision = 15840 points. Should be OK!
+    numMetrics = 22;
+    numHosts = 2;
+    for (int i = 0; i < numMetrics; i++) {
+      metrics.add("TestMetric"+i);
+    }
+    for (int i = 0; i < numHosts; i++) {
+      hosts.add("TestHost"+i);
+    }
+
+    Condition condition = new DefaultCondition(
+      metrics, hosts,
+      "a1", "i1", 1407950000L, 1407953600L, Precision.SECONDS, null, false);
+    Connection connection = createNiceMock(Connection.class);
+    PreparedStatement preparedStatement = createNiceMock(PreparedStatement.class);
+    Capture<String> stmtCapture = new Capture<String>();
+    expect(connection.prepareStatement(EasyMock.and(EasyMock.anyString(), EasyMock.capture(stmtCapture))))
+      .andReturn(preparedStatement);
+
+    replay(connection, preparedStatement);
+    PhoenixTransactSQL.prepareGetMetricsSqlStmt(connection, condition);
+    String stmt = stmtCapture.getValue();
+    Assert.assertTrue(stmt.contains("FROM METRIC_RECORD"));
+    verify(connection, preparedStatement);
+
+    //Check without passing precision. Should be OK!
+    condition = new DefaultCondition(
+      metrics, hosts,
+      "a1", "i1", 1407950000L, 1407953600L, null, null, false);
+    connection = createNiceMock(Connection.class);
+    preparedStatement = createNiceMock(PreparedStatement.class);
+    stmtCapture = new Capture<String>();
+    expect(connection.prepareStatement(EasyMock.and(EasyMock.anyString(), EasyMock.capture(stmtCapture))))
+      .andReturn(preparedStatement);
+
+    replay(connection, preparedStatement);
+    PhoenixTransactSQL.prepareGetMetricsSqlStmt(connection, condition);
+    stmt = stmtCapture.getValue();
+    Assert.assertTrue(stmt.contains("FROM METRIC_RECORD"));
+    verify(connection, preparedStatement);
+
+    //Check with more hosts and lesser metrics for 1 day data = 11520 points Should be OK!
+    metrics.clear();
+    hosts.clear();
+    numMetrics = 2;
+    numHosts = 20;
+    for (int i = 0; i < numMetrics; i++) {
+      metrics.add("TestMetric"+i);
+    }
+    for (int i = 0; i < numHosts; i++) {
+      hosts.add("TestHost"+i);
+    }
+    condition = new DefaultCondition(
+      metrics, hosts,
+      "a1", "i1", 1407867200L, 1407953600L, null, null, false);
+    connection = createNiceMock(Connection.class);
+    preparedStatement = createNiceMock(PreparedStatement.class);
+    stmtCapture = new Capture<String>();
+    expect(connection.prepareStatement(EasyMock.and(EasyMock.anyString(), EasyMock.capture(stmtCapture))))
+      .andReturn(preparedStatement);
+
+    replay(connection, preparedStatement);
+    PhoenixTransactSQL.prepareGetMetricsSqlStmt(connection, condition);
+    stmt = stmtCapture.getValue();
+    Assert.assertTrue(stmt.contains("FROM METRIC_RECORD_MINUTE"));
+    verify(connection, preparedStatement);
+
+    //Check with 20 metrics, NO hosts and 1 day data = 5760 points. Should be OK!
+    metrics.clear();
+    hosts.clear();
+    numMetrics = 20;
+    for (int i = 0; i < numMetrics; i++) {
+      metrics.add("TestMetric"+i);
+    }
+    condition = new DefaultCondition(
+      metrics, hosts,
+      "a1", "i1", 1407867200L, 1407953600L, null, null, false);
+    connection = createNiceMock(Connection.class);
+    preparedStatement = createNiceMock(PreparedStatement.class);
+    stmtCapture = new Capture<String>();
+    expect(connection.prepareStatement(EasyMock.and(EasyMock.anyString(), EasyMock.capture(stmtCapture))))
+      .andReturn(preparedStatement);
+
+    replay(connection, preparedStatement);
+    PhoenixTransactSQL.prepareGetAggregateSqlStmt(connection, condition);
+    stmt = stmtCapture.getValue();
+    Assert.assertTrue(stmt.contains("FROM METRIC_AGGREGATE_MINUTE"));
+    verify(connection, preparedStatement);
+
+    //Check with 5 hosts and 10 metrics for 1 hour data = 18000 points. Should throw out Exception!
+    metrics.clear();
+    hosts.clear();
+    numMetrics = 10;
+    numHosts = 5;
+    for (int i = 0; i < numMetrics; i++) {
+      metrics.add("TestMetric"+i);
+    }
+    for (int i = 0; i < numHosts; i++) {
+      hosts.add("TestHost"+i);
+    }
+    condition = new DefaultCondition(
+      metrics, hosts,
+      "a1", "i1", 1407950000L, 1407953600L, null, null, false);
+    boolean exceptionThrown = false;
+    boolean requestedSizeFoundInMessage = false;
+
+    try {
+      PhoenixTransactSQL.prepareGetMetricsSqlStmt(connection, condition);
+    } catch (PrecisionLimitExceededException pe) {
+      exceptionThrown = true;
+      String message = pe.getMessage();
+      if (message !=null && message.contains("18000")) {
+        requestedSizeFoundInMessage = true;
+      }
+    }
+    Assert.assertTrue(exceptionThrown);
+    Assert.assertTrue(requestedSizeFoundInMessage);
   }
 }
