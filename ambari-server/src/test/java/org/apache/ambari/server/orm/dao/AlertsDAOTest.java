@@ -252,6 +252,7 @@ public class AlertsDAOTest {
     history.setAlertTimestamp(Long.valueOf(1L));
     history.setHostName("h1");
     history.setAlertState(AlertState.OK);
+    m_dao.create(history);
 
     // current for the history
     AlertCurrentEntity current = new AlertCurrentEntity();
@@ -273,6 +274,7 @@ public class AlertsDAOTest {
     history2.setAlertTimestamp(Long.valueOf(1L));
     history2.setHostName("h2");
     history2.setAlertState(AlertState.OK);
+    m_dao.create(history);
 
     // current for the history
     AlertCurrentEntity current2 = new AlertCurrentEntity();
@@ -339,6 +341,7 @@ public class AlertsDAOTest {
     history.setAlertTimestamp(Long.valueOf(1L));
     history.setHostName(HOSTNAME);
     history.setAlertState(AlertState.OK);
+    m_dao.create(history);
 
     // current for the history
     AlertCurrentEntity current = new AlertCurrentEntity();
@@ -479,6 +482,7 @@ public class AlertsDAOTest {
     history.setAlertTimestamp(Long.valueOf(1L));
     history.setHostName("h2");
     history.setAlertState(AlertState.OK);
+    m_dao.create(history);
 
     // current for the history
     AlertCurrentEntity current = new AlertCurrentEntity();
@@ -922,6 +926,7 @@ public class AlertsDAOTest {
     history.setComponentName("");
     history.setHostName("h2");
     history.setServiceName("ServiceName");
+    m_dao.create(history);
 
     current = new AlertCurrentEntity();
     current.setAlertHistory(history);

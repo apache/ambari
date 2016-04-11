@@ -473,6 +473,7 @@ public class AlertReceivedListener {
       AlertDefinitionEntity definition, Alert alert) {
     AlertHistoryEntity history = new AlertHistoryEntity();
     history.setAlertDefinition(definition);
+    history.setAlertDefinitionId(definition.getDefinitionId());
     history.setAlertLabel(definition.getLabel());
     history.setAlertInstance(alert.getInstance());
     history.setAlertState(alert.getState());
