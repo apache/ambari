@@ -632,7 +632,7 @@ public class TopologyManager {
 
     if (null != rackInfoFromTemplate) {
       host.setRackInfo(rackInfoFromTemplate);
-      host.persist();
+      host.persist(); //todo this is required only if host is not persisted to database yet, is it really so?
       try {
         // todo: do we need this in case of blueprints?
         ambariContext.getController().registerRackChange(ambariContext.getClusterName(topology.getClusterId()));
