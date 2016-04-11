@@ -472,4 +472,20 @@ limitations under the License.
     <value>true</value>
   </property>
 
+  <property>
+    <name>hive.llap.daemon.work.dirs</name>
+    <value>${yarn.nodemanager.local-dirs}</value>
+  </property>
+
+  <property>
+    <name>hive.llap.zk.sm.connectionString</name>
+    <value>localhost:2181</value>
+    <depends-on>
+      <property>
+        <type>zoo.cfg</type>
+        <name>clientPort</name>
+      </property>
+    </depends-on>
+  </property>
+
 </configuration>

@@ -121,6 +121,15 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       pass
     pass
 
+    if 'hive-interactive-site' in services['configurations'] and \
+      services['configurations']['hive-interactive-site']['properties']['hive.llap.zk.sm.connectionString']:
+
+      # Fill the property 'hive.llap.zk.sm.connectionString' required by Hive Server Interactive (HiveServer2)
+      zookeeper_host_port = self.getZKHostPortString(services)
+      if zookeeper_host_port:
+        putHiveInteractiveSiteProperty = self.putProperty(configurations, "hive-interactive-site", services)
+        putHiveInteractiveSiteProperty("hive.llap.zk.sm.connectionString", zookeeper_host_port)
+
 
   def recommendRangerConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP25StackAdvisor, self).recommendRangerConfigurations(configurations, clusterData, services, hosts)

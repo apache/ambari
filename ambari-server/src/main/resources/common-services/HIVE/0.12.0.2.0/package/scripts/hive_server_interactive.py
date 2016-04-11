@@ -34,11 +34,13 @@ from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
+from pwd import getpwnam
 
 # Local Imports
 from setup_ranger_hive import setup_ranger_hive
 from hive_service_interactive import hive_service_interactive
 from hive_interactive import hive_interactive
+from hive_server import HiveServerDefault
 
 
 class HiveServerInteractive(Script):
@@ -74,6 +76,10 @@ class HiveServerDefault(HiveServerInteractive):
       env.set_params(params)
       self.configure(env)
 
+      if params.security_enabled:
+        # Do the security setup, internally calls do_kinit()
+        self.setup_security()
+
       # TODO : We need have conditional [re]start of LLAP once "status check command" for LLAP is ready.
       # Check status and based on that decide on [re]starting.
 
@@ -87,10 +93,14 @@ class HiveServerDefault(HiveServerInteractive):
         hive_service_interactive('hiveserver2', action='start', upgrade_type=upgrade_type)
       else:
         Logger.info("Skipping start of Hive Server Interactive due to LLAP start issue.")
+        raise Exception("Problem starting HiveServer2")
 
     def stop(self, env, upgrade_type=None):
       import params
       env.set_params(params)
+
+      if params.security_enabled:
+        self.do_kinit()
 
       # TODO, why must Hive Server Interactive be stopped before LLAP???
 
@@ -114,7 +124,7 @@ class HiveServerDefault(HiveServerInteractive):
       pass
 
     def security_status(self, env):
-      pass
+      HiveServerDefault.security_status(env)
 
     def restart_llap(self, env):
       """
@@ -123,6 +133,10 @@ class HiveServerDefault(HiveServerInteractive):
       Logger.info("Custom Command to retart LLAP")
       import params
       env.set_params(params)
+
+      if params.security_enabled:
+        self.do_kinit();
+
       self._llap_stop(env)
       self._llap_start(env)
 
@@ -153,6 +167,9 @@ class HiveServerDefault(HiveServerInteractive):
           message += " " + error
         raise Fail(message)
 
+    """
+    Controls the start of LLAP.
+    """
     def _llap_start(self, env, cleanup=False):
       import params
       env.set_params(params)
@@ -162,7 +179,14 @@ class HiveServerDefault(HiveServerInteractive):
       # TODO : Currently hardcoded the params. Need to read the suggested values from hive2/hive-site.xml.
       # TODO, ensure that script works as hive from cmd when not cd'ed in /homve/hive
       # Needs permission to write to hive home dir.
-      cmd = format("{stack_root}/current/hive-server2-hive2/bin/hive --service llap --instances 1 -slider-am-container-mb {slider_am_container_mb} --loglevel INFO")
+
+      cmd = ''
+      if params.security_enabled:
+        cmd = format("{stack_root}/current/hive-server2-hive2/bin/hive --service llap --instances 1 -slider-am-container-mb "
+                     "{slider_am_container_mb} --slider-keytab-dir .slider/keytabs/{params.hive_user}/ --slider-keytab "
+                     "{hive_llap_keytab_file} --slider-principal {hive_headless_keytab} --loglevel INFO")
+      else:
+        cmd = format("{stack_root}/current/hive-server2-hive2/bin/hive --service llap --instances 1 -slider-am-container-mb {slider_am_container_mb} --loglevel INFO")
 
       run_file_path = None
       try:
@@ -184,7 +208,6 @@ class HiveServerDefault(HiveServerInteractive):
           raise Fail("Did not find run.sh file in output: " + str(output))
 
         Logger.info(format("Run file path: {run_file_path}"))
-
         if os.path.isfile(run_file_path):
           Execute(run_file_path, user=params.hive_user)
 
@@ -193,6 +216,7 @@ class HiveServerDefault(HiveServerInteractive):
           Logger.info("Sleeping for 30 secs")
           time.sleep(30)
           Logger.info("LLAP app deployed successfully.")
+          return True
         else:
           raise Fail(format("Did not find run file {run_file_path}"))
       except:
@@ -207,7 +231,25 @@ class HiveServerDefault(HiveServerInteractive):
 
         # throw the original exception
         raise
+      return False
 
+    """
+    Does kinit and copies keytab for Hive/LLAP to HDFS.
+    """
+    def setup_security(self):
+      import params
+
+      self.do_kinit();
+
+      # Copy params.hive_llap_keytab_file to hdfs://<host>:<port>/user/<hive_user>/.slider/keytabs/<hive_user> , required by LLAP
+      slider_keytab_install_cmd = format("slider install-keytab --keytab {params.hive_llap_keytab_file} --folder {params.hive_user} --overwrite")
+      Execute(slider_keytab_install_cmd, user=params.hive_user)
+
+    def do_kinit(self):
+      import params
+
+      hive_interactive_kinit_cmd = format("{kinit_path_local} -kt {hive_server2_keytab} {hive_principal}; ")
+      Execute(hive_interactive_kinit_cmd, user=params.hive_user)
 
 if __name__ == "__main__":
     HiveServerInteractive().execute()
