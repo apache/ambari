@@ -31,8 +31,8 @@ class HDPWIN21StackAdvisor(DefaultStackAdvisor):
     items = []
 
     # Validating NAMENODE and SECONDARY_NAMENODE are on different hosts if possible
-    hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
-    hostsCount = len(hostsList)
+    hostsSet =  set(super(HDPWIN21StackAdvisor, self).getActiveHosts([host["Hosts"] for host in hosts["items"]]))
+    hostsCount = len(hostsSet)
 
     componentsListList = [service["components"] for service in services["services"]]
     componentsList = [item for sublist in componentsListList for item in sublist]
@@ -44,9 +44,10 @@ class HDPWIN21StackAdvisor(DefaultStackAdvisor):
       if component["StackServiceComponents"]["cardinality"] is not None:
          componentName = component["StackServiceComponents"]["component_name"]
          componentDisplayName = component["StackServiceComponents"]["display_name"]
-         componentHostsCount = 0
+         componentHosts = []
          if component["StackServiceComponents"]["hostnames"] is not None:
-           componentHostsCount = len(component["StackServiceComponents"]["hostnames"])
+           componentHosts = [componentHost for componentHost in component["StackServiceComponents"]["hostnames"] if componentHost in hostsSet]
+         componentHostsCount = len(componentHosts)
          cardinality = str(component["StackServiceComponents"]["cardinality"])
          # cardinality types: null, 1+, 1-2, 1, ALL
          message = None
@@ -73,7 +74,7 @@ class HDPWIN21StackAdvisor(DefaultStackAdvisor):
     # Validating host-usage
     usedHostsListList = [component["StackServiceComponents"]["hostnames"] for component in componentsList if not self.isComponentNotValuable(component)]
     usedHostsList = [item for sublist in usedHostsListList for item in sublist]
-    nonUsedHostsList = [item for item in hostsList if item not in usedHostsList]
+    nonUsedHostsList = [item for item in hostsSet if item not in usedHostsList]
     for host in nonUsedHostsList:
       items.append( { "type": 'host-component', "level": 'ERROR', "message": 'Host is not used', "host": str(host) } )
 

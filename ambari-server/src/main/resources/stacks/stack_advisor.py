@@ -309,12 +309,25 @@ class DefaultStackAdvisor(StackAdvisor):
   implement
   """
 
+  """
+  Filters the list of specified hosts object and returns
+  a list of hosts which are not in maintenance mode.
+  """
+  def getActiveHosts(self, hosts):
+    hostsList = []
+
+    if (hosts is not None):
+      hostsList = [host['host_name'] for host in hosts
+                   if host.get('maintenance_state') is None or host.get('maintenance_state') == "OFF"]
+
+    return hostsList
+
   def recommendComponentLayout(self, services, hosts):
     """Returns Services object with hostnames array populated for components"""
 
     stackName = services["Versions"]["stack_name"]
     stackVersion = services["Versions"]["stack_version"]
-    hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
+    hostsList = self.getActiveHosts([host["Hosts"] for host in hosts["items"]])
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
 
     layoutRecommendations = self.createComponentLayoutRecommendations(services, hosts)
@@ -339,14 +352,17 @@ class DefaultStackAdvisor(StackAdvisor):
       }
     }
 
-    hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
+    hostsList = self.getActiveHosts([host["Hosts"] for host in hosts["items"]])
+
+    # for fast lookup
+    hostsSet = set(hostsList)
 
     hostsComponentsMap = {}
     for hostName in hostsList:
       if hostName not in hostsComponentsMap:
         hostsComponentsMap[hostName] = []
 
-    #extend 'hostsComponentsMap' with MASTER components
+    #extend hostsComponentsMap' with MASTER components
     for service in services["services"]:
       masterComponents = [component for component in service["components"] if self.isMasterComponent(component)]
       for component in masterComponents:
@@ -373,7 +389,9 @@ class DefaultStackAdvisor(StackAdvisor):
 
         #extend 'hostsComponentsMap' with 'hostsForComponent'
         for hostName in hostsForComponent:
-          hostsComponentsMap[hostName].append( { "name":componentName } )
+          if hostName in hostsSet:
+            hostsComponentsMap[hostName].append( { "name":componentName } )
+
     #extend 'hostsComponentsMap' with Slave and Client Components
     componentsListList = [service["components"] for service in services["services"]]
     componentsList = [item for sublist in componentsListList for item in sublist]
@@ -422,9 +440,10 @@ class DefaultStackAdvisor(StackAdvisor):
 
         #extend 'hostsComponentsMap' with 'hostsForComponent'
         for hostName in hostsForComponent:
-          if hostName not in hostsComponentsMap:
+          if hostName not in hostsComponentsMap and hostName in hostsSet:
             hostsComponentsMap[hostName] = []
-          hostsComponentsMap[hostName].append( { "name": componentName } )
+          if hostName in hostsSet:
+            hostsComponentsMap[hostName].append( { "name": componentName } )
 
     #prepare 'host-group's from 'hostsComponentsMap'
     host_groups = recommendations["blueprint"]["host_groups"]
@@ -621,6 +640,9 @@ class DefaultStackAdvisor(StackAdvisor):
     return self.getCardinalitiesDict().get(componentName, {"min": 1, "max": 1})
 
   def getHostForComponent(self, component, hostsList):
+    if (len(hostsList) == 0):
+      return None
+
     componentName = self.getComponentName(component)
 
     if len(hostsList) != 1:
