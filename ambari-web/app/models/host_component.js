@@ -259,6 +259,7 @@ App.HostComponentActionMap = {
     var HM = ctx.get('controller.content.hostComponents').findProperty('componentName', 'HAWQMASTER');
     var HS = ctx.get('controller.content.hostComponents').findProperty('componentName', 'HAWQSTANDBY');
     var HMComponent = App.MasterComponent.find('HAWQMASTER');
+    var HSComponent = App.MasterComponent.find('HAWQSTANDBY');
     return {
       RESTART_ALL: {
         action: 'restartAllHostComponents',
@@ -382,7 +383,7 @@ App.HostComponentActionMap = {
         label: Em.I18n.t('services.service.actions.run.resyncHawqStandby.label'),
         cssClass: 'icon-refresh',
         isHidden : App.get('isSingleNode') || !HS ,
-        disabled: !((!!HMComponent && HMComponent.get('startedCount') === 1) && (!!HS && HS.get('workStatus') === App.HostComponentStatus.started))
+        disabled: !((!!HMComponent && HMComponent.get('startedCount') === 1) && (!!HSComponent && HSComponent.get('startedCount') === 1))
       },
       TOGGLE_ADD_HAWQ_STANDBY: {
         action: 'addHawqStandby',

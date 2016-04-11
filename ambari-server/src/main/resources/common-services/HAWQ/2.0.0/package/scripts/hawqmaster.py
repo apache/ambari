@@ -86,6 +86,10 @@ class HawqMaster(Script):
             user=hawq_constants.hawq_user,
             timeout=hawq_constants.default_exec_timeout)
 
+  def resync_hawq_standby(self,env):
+    Logger.info("HAWQ Standby Master Re-Sync started in fast mode...")
+    utils.exec_hawq_operation(hawq_constants.INIT, "{0} -n -a -v -M {1}".format(hawq_constants.STANDBY, hawq_constants.FAST))
+
   def remove_hawq_standby(self, env):
     Logger.info("Removing HAWQ Standby Master ...")
     utils.exec_hawq_operation(hawq_constants.INIT, "{0} -a -v -r".format(hawq_constants.STANDBY))
