@@ -63,6 +63,7 @@ App.CodeMirrorComponent = Ember.Component.extend({
         }.bind(this),
         "Esc": function(cm) {
           if (this.get("fullscreen")) this.set("fullscreen", false);
+
         }.bind(this)
       }
     });
@@ -71,6 +72,13 @@ App.CodeMirrorComponent = Ember.Component.extend({
       var addMargin = $('.CodeMirror-vscrollbar').css('display') === "block";
       var margin = $('.CodeMirror-vscrollbar').width();
       $('.fullscreen-toggle').css('right',((addMargin)?3+margin:3));
+
+      $('#scriptDetails pre.CodeMirror-line').each(function( index ) {
+        $(this).css('margin-left', '30px');
+      });
+
+      $('.CodeMirror-gutters').css('width', '29px');
+
     };
 
     cm.on('viewportChange',updateToggle);
@@ -99,6 +107,7 @@ App.CodeMirrorComponent = Ember.Component.extend({
       cm.focus();
       cm.on('change', Em.run.bind(this,this.editorDidChange));
     }
+
   },
   editorDidChange:function () {
     var pig_script = this.get('content');
