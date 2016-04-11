@@ -442,10 +442,13 @@ export default Ember.View.extend({
       g.setDefaultEdgeLabel(function () { return {}; });
 
       this.setNodes(vertices)
-        .setEdges(edges)
-        .setTableNodesAndEdges(vertices)
-        .createNodeGroups()
-        .renderEdges();
+          .setEdges(edges)
+          .setTableNodesAndEdges(vertices)
+          .createNodeGroups()
+          .renderEdges();
+
+      this.set('controller.showSpinner', true);
+
     } else {
 
       if(!this.get('controller.noquery')) {
