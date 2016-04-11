@@ -50,9 +50,10 @@ class ConfigurationFormatter(Formatter):
       # the environment parameters and add in any locally declared variables to
       # override existing env parameters
       all_params = params.copy()
-      all_params.update(variables)
     else:
       all_params = {}
+      
+    all_params.update(variables)
 
     self.convert_field = self.convert_field_protected
     result_protected = self.vformat(format_string, args, all_params)
