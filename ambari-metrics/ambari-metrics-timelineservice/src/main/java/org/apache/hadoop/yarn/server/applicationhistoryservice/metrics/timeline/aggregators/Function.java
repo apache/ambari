@@ -125,7 +125,8 @@ public class Function {
 
   public enum PostProcessingFunction {
     NONE(""),
-    RATE("._rate");
+    RATE("._rate"),
+    DIFF("._diff");
 
     PostProcessingFunction(String suffix){
       this.suffix = suffix;

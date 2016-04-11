@@ -42,6 +42,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -211,30 +212,33 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
     for (TimelineMetric metric : metricsList){
       String name = metric.getMetricName();
       if (name.contains("._rate")){
-        updateValuesAsRate(metric.getMetricValues());
+        updateValuesAsRate(metric.getMetricValues(), false);
+      } else if (name.contains("._diff")) {
+        updateValuesAsRate(metric.getMetricValues(), true);
       }
     }
 
     return metrics;
   }
 
-  static Map<Long, Double> updateValuesAsRate(Map<Long, Double> metricValues) {
+  static Map<Long, Double> updateValuesAsRate(Map<Long, Double> metricValues, boolean isDiff) {
     Long prevTime = null;
     Double prevVal = null;
     long step;
     Double diff;
 
-    for (Map.Entry<Long, Double> timeValueEntry : metricValues.entrySet()) {
+    for(Iterator<Map.Entry<Long, Double>> it = metricValues.entrySet().iterator(); it.hasNext(); ) {
+      Map.Entry<Long, Double> timeValueEntry = it.next();
       Long currTime = timeValueEntry.getKey();
       Double currVal = timeValueEntry.getValue();
 
       if (prevTime != null) {
         step = currTime - prevTime;
         diff = currVal - prevVal;
-        Double rate = diff / TimeUnit.MILLISECONDS.toSeconds(step);
+        Double rate = isDiff ? diff : (diff / TimeUnit.MILLISECONDS.toSeconds(step));
         timeValueEntry.setValue(rate);
       } else {
-        timeValueEntry.setValue(0.0);
+        it.remove();
       }
 
       prevTime = currTime;
