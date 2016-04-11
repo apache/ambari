@@ -255,7 +255,7 @@ public class HostImpl implements Host {
       hostEntity.setHostStateEntity(hostStateEntity);
       hostStateEntity.setHealthStatus(gson.toJson(new HostHealthStatus(HealthStatus.UNKNOWN, "")));
       if (persisted) {
-        persist();
+        hostStateDAO.create(hostStateEntity);
       }
     } else {
       stateMachine.setCurrentState(hostStateEntity.getCurrentState());
@@ -1218,6 +1218,9 @@ public class HostImpl implements Host {
         }
         persisted = true;
       } else {
+        //refresh entities from active session
+        getHostEntity();
+        getHostStateEntity();
         saveIfPersisted();
       }
     } finally {

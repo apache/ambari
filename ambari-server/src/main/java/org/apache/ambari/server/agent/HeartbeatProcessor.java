@@ -335,14 +335,12 @@ public class HeartbeatProcessor extends AbstractService{
         }
 
         host.setStatus(healthStatus.name());
-        host.persist();
       }
 
       //If host doesn't belong to any cluster
       if ((clusterFsm.getClustersForHost(host.getHostName())).size() == 0) {
         healthStatus = HostHealthStatus.HealthStatus.HEALTHY;
         host.setStatus(healthStatus.name());
-        host.persist();
       }
     }
   }
