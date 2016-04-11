@@ -306,6 +306,8 @@ public class HeartBeatHandler {
           case BACKGROUND_EXECUTION_COMMAND:
           case EXECUTION_COMMAND: {
             ExecutionCommand ec = (ExecutionCommand)ac;
+            LOG.info("HeartBeatHandler.sendCommands: sending ExecutionCommand for host {}, role {}, roleCommand {}, and command ID {}, task ID {}",
+                     ec.getHostname(), ec.getRole(), ec.getRoleCommand(), ec.getCommandId(), ec.getTaskId());
             Map<String, String> hlp = ec.getHostLevelParams();
             if (hlp != null) {
               String customCommand = hlp.get("custom_command");

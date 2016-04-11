@@ -227,10 +227,10 @@ class ActionQueue(threading.Thread):
     commandId = command['commandId']
     isCommandBackground = command['commandType'] == self.BACKGROUND_EXECUTION_COMMAND
     isAutoExecuteCommand = command['commandType'] == self.AUTO_EXECUTION_COMMAND
-    message = "Executing command with id = {commandId} for role = {role} of " \
+    message = "Executing command with id = {commandId}, taskId = {taskId} for role = {role} of " \
               "cluster {cluster}.".format(
-              commandId = str(commandId), role=command['role'],
-              cluster=clusterName)
+              commandId = str(commandId), taskId = str(command['taskId']),
+              role=command['role'], cluster=clusterName)
     logger.info(message)
 
     taskId = command['taskId']
@@ -350,11 +350,13 @@ class ActionQueue(threading.Thread):
         if command['roleCommand'] == self.ROLE_COMMAND_START:
           self.controller.recovery_manager.update_current_status(command['role'], LiveStatus.LIVE_STATUS)
           self.controller.recovery_manager.update_config_staleness(command['role'], False)
-          logger.info("After EXECUTION_COMMAND (START), current state of " + command['role'] + " to " +
+          logger.info("After EXECUTION_COMMAND (START), with taskId=" + str(command['taskId']) +
+                      ", current state of " + command['role'] + " to " +
                        self.controller.recovery_manager.get_current_status(command['role']) )
         elif command['roleCommand'] == self.ROLE_COMMAND_STOP or command['roleCommand'] == self.ROLE_COMMAND_INSTALL:
           self.controller.recovery_manager.update_current_status(command['role'], LiveStatus.DEAD_STATUS)
-          logger.info("After EXECUTION_COMMAND (STOP/INSTALL), current state of " + command['role'] + " to " +
+          logger.info("After EXECUTION_COMMAND (STOP/INSTALL), with taskId=" + str(command['taskId']) +
+                      ", current state of " + command['role'] + " to " +
                        self.controller.recovery_manager.get_current_status(command['role']) )
         elif command['roleCommand'] == self.ROLE_COMMAND_CUSTOM_COMMAND:
           if command['hostLevelParams'].has_key('custom_command') and \
