@@ -71,6 +71,14 @@
                 <timeout>1200</timeout>
               </commandScript>
             </customCommand>
+            <customCommand>
+              <name>RESYNC_HAWQ_STANDBY</name>
+              <commandScript>
+                <script>scripts/hawqmaster.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>1200</timeout>
+              </commandScript>
+            </customCommand>
           </customCommands>
           <dependencies>
             <dependency>
@@ -104,14 +112,6 @@
           <customCommands>
             <customCommand>
               <name>ACTIVATE_HAWQ_STANDBY</name>
-              <commandScript>
-                <script>scripts/hawqstandby.py</script>
-                <scriptType>PYTHON</scriptType>
-                <timeout>1200</timeout>
-              </commandScript>
-            </customCommand>
-            <customCommand>
-              <name>RESYNC_HAWQ_STANDBY</name>
               <commandScript>
                 <script>scripts/hawqstandby.py</script>
                 <scriptType>PYTHON</scriptType>

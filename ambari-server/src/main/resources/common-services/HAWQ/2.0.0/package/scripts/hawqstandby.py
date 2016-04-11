@@ -16,13 +16,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from resource_management import Script
-from resource_management.libraries.functions.check_process_status import check_process_status
-from resource_management.core.logger import Logger
 
-import master_helper
+from resource_management import Script
+from resource_management.core.logger import Logger
+from resource_management.libraries.functions.check_process_status import check_process_status
+
 import common
 import hawq_constants
+import master_helper
 
 class HawqStandby(Script):
   """
@@ -56,14 +57,8 @@ class HawqStandby(Script):
 
   def activate_hawq_standby(self, env):
     import utils
+    Logger.info("Activating HAWQ standby...")
     utils.exec_hawq_operation(hawq_constants.ACTIVATE, "{0} -a -M {1} -v --ignore-bad-hosts".format(hawq_constants.STANDBY, hawq_constants.FAST))
-
-  def resync_hawq_standby(self,env):
-    import params
-    import utils
-    Logger.info("Re-synchronizing HAWQ Standby..")
-    utils.exec_hawq_operation(hawq_constants.INIT, "{0} -n -a -v -M {1}".format(hawq_constants.STANDBY, hawq_constants.FAST))
-    Logger.info("HAWQ Standby host {0} Re-Sync successful".format(params.hostname))
 
 if __name__ == "__main__":
     HawqStandby().execute()
