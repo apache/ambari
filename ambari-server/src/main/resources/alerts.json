@@ -40,7 +40,7 @@
           "parameters": [
             {
               "name": "request.by.status.warning.threshold",
-              "display_name": "Warning",
+              "display_name": "Warning Request Time",
               "value": 3000,
               "type": "NUMERIC",
               "description": "The time to find requests in progress before a warning alert is triggered.",
@@ -49,7 +49,7 @@
             },
             {
               "name": "request.by.status.critical.threshold",
-              "display_name": "Critical",
+              "display_name": "Critical Request Time",
               "value": 5000,
               "type": "NUMERIC",
               "description": "The time to find requests in progress before a critical alert is triggered.",
@@ -58,7 +58,7 @@
             },
             {
               "name": "task.status.aggregation.warning.threshold",
-              "display_name": "Warning",
+              "display_name": "Warning Process Time",
               "value": 3000,
               "type": "NUMERIC",
               "description": "The time to calculate a request's status from its tasks before a warning alert is triggered.",
@@ -67,7 +67,7 @@
             },
             {
               "name": "task.status.aggregation.critical.threshold",
-              "display_name": "Critical",
+              "display_name": "Critical Process Time",
               "value": 5000,
               "type": "NUMERIC",
               "description": "The time to calculate a request's status from its tasks before a critical alert is triggered.",
@@ -76,7 +76,7 @@
             },
             {
               "name": "rest.api.cluster.warning.threshold",
-              "display_name": "Warning",
+              "display_name": "Warning Response Time",
               "value": 5000,
               "type": "NUMERIC",
               "description": "The time to get a cluster via the REST API before a warning alert is triggered.",
@@ -85,7 +85,7 @@
             },
             {
               "name": "rest.api.cluster.critical.threshold",
-              "display_name": "Critical",
+              "display_name": "Critical Response Time",
               "value": 7000,
               "type": "NUMERIC",
               "description": "The time to get a cluster via the REST API before a critical alert is triggered.",
