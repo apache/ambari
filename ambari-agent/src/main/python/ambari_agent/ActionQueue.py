@@ -156,23 +156,11 @@ class ActionQueue(threading.Thread):
           # commands using separate threads
           while (True):
             command = self.commandQueue.get(True, self.EXECUTION_COMMAND_WAIT_TIME)
-            # If command is not retry_enabled then do not start them in parallel
-            # checking just one command is enough as all commands for a stage is sent
-            # at the same time and retry is only enabled for initial start/install
-            retryAble = False
-            if 'command_retry_enabled' in command['commandParams']:
-              retryAble = command['commandParams']['command_retry_enabled'] == "true"
-            if retryAble:
-              logger.info("Kicking off a thread for the command, id=" +
-                          str(command['commandId']) + " taskId=" + str(command['taskId']))
-              t = threading.Thread(target=self.process_command, args=(command,))
-              t.daemon = True
-              t.start()
-            else:
-              self.process_command(command)
-              break;
-            pass
-          pass
+            logger.info("Kicking off a thread for the command, id=" +
+                        str(command['commandId']) + " taskId=" + str(command['taskId']))
+            t = threading.Thread(target=self.process_command, args=(command,))
+            t.daemon = True
+            t.start()
       except (Queue.Empty):
         pass
 
