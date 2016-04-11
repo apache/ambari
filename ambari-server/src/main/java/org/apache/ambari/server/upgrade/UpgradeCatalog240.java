@@ -185,6 +185,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     updateAMSConfigs();
     updateClusterEnv();
     updateHostRoleCommandTableDML();
+    updateKerberosConfigs();
   }
 
   private void createSettingTable() throws SQLException {
@@ -1143,4 +1144,52 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
           true);
     }
   }
+
+  /**
+   * Updates the Kerberos-related configurations for the clusters managed by this Ambari
+   * <p/>
+   * Performs the following updates:
+   * <ul>
+   * <li>Rename <code>kerberos-env/kdc_host</code> to
+   * <code>kerberos-env/kdc_hosts</li>
+   * <li>If krb5-conf/content was not changed from the original stack default, update it to the new
+   * stack default</li>
+   * </ul>
+   *
+   * @throws AmbariException if an error occurs while updating the configurations
+   */
+  protected void updateKerberosConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+    Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
+
+    for (final Cluster cluster : clusterMap.values()) {
+      Config config;
+
+      config = cluster.getDesiredConfigByType("kerberos-env");
+      if (config != null) {
+        // Rename kdc_host to kdc_hosts
+        String value = config.getProperties().get("kdc_host");
+        Map<String, String> updates = Collections.singletonMap("kdc_hosts", value);
+        Set<String> removes = Collections.singleton("kdc_host");
+
+        updateConfigurationPropertiesForCluster(cluster, "kerberos-env", updates, removes, true, false);
+      }
+
+      config = cluster.getDesiredConfigByType("krb5-conf");
+      if (config != null) {
+        String value = config.getProperties().get("content");
+        String oldDefault = "\n[libdefaults]\n  renew_lifetime \u003d 7d\n  forwardable \u003d true\n  default_realm \u003d {{realm}}\n  ticket_lifetime \u003d 24h\n  dns_lookup_realm \u003d false\n  dns_lookup_kdc \u003d false\n  #default_tgs_enctypes \u003d {{encryption_types}}\n  #default_tkt_enctypes \u003d {{encryption_types}}\n\n{% if domains %}\n[domain_realm]\n{% for domain in domains.split(\u0027,\u0027) %}\n  {{domain|trim}} \u003d {{realm}}\n{% endfor %}\n{% endif %}\n\n[logging]\n  default \u003d FILE:/var/log/krb5kdc.log\n  admin_server \u003d FILE:/var/log/kadmind.log\n  kdc \u003d FILE:/var/log/krb5kdc.log\n\n[realms]\n  {{realm}} \u003d {\n    admin_server \u003d {{admin_server_host|default(kdc_host, True)}}\n    kdc \u003d {{kdc_host}}\n  }\n\n{# Append additional realm declarations below #}";
+
+        // if the content is the same as the old stack default, update to the new stack default;
+        // else leave it alone since the user may have changed it for a reason.
+        if(oldDefault.equalsIgnoreCase(value)) {
+          String newDefault ="[libdefaults]\n  renew_lifetime = 7d\n  forwardable = true\n  default_realm = {{realm}}\n  ticket_lifetime = 24h\n  dns_lookup_realm = false\n  dns_lookup_kdc = false\n  #default_tgs_enctypes = {{encryption_types}}\n  #default_tkt_enctypes = {{encryption_types}}\n{% if domains %}\n[domain_realm]\n{%- for domain in domains.split(',') %}\n  {{domain|trim()}} = {{realm}}\n{%- endfor %}\n{% endif %}\n[logging]\n  default = FILE:/var/log/krb5kdc.log\n  admin_server = FILE:/var/log/kadmind.log\n  kdc = FILE:/var/log/krb5kdc.log\n\n[realms]\n  {{realm}} = {\n{%- if kdc_hosts > 0 -%}\n{%- set kdc_host_list = kdc_hosts.split(',')  -%}\n{%- if kdc_host_list and kdc_host_list|length > 0 %}\n    admin_server = {{admin_server_host|default(kdc_host_list[0]|trim(), True)}}\n{%- if kdc_host_list -%}\n{% for kdc_host in kdc_host_list %}\n    kdc = {{kdc_host|trim()}}\n{%- endfor -%}\n{% endif %}\n{%- endif %}\n{%- endif %}\n  }\n\n{# Append additional realm declarations below #}";
+          Map<String, String> updates = Collections.singletonMap("content", newDefault);
+          updateConfigurationPropertiesForCluster(cluster, "krb5-conf", updates, null, true, false);
+        }
+      }
+    }
+  }
+
 }

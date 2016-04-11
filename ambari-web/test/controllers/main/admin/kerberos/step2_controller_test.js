@@ -65,13 +65,13 @@ describe('App.KerberosWizardStep2Controller', function() {
         stepConfigs: [
           ['realm', ' SPACES ', 'host'],
           ['admin_server_host', ' space_left', 'host'],
-          ['kdc_host', ' space_left_and_right ', 'host'],
+          ['kdc_hosts', ' space_left_and_right ', 'host'],
           ['ldap_url', 'space_right ', 'host']
         ],
         e: {
           realm: 'SPACES',
           admin_server_host: 'space_left',
-          kdc_host: 'space_left_and_right',
+          kdc_hosts: 'space_left_and_right',
           ldap_url: 'space_right'
         }
       }

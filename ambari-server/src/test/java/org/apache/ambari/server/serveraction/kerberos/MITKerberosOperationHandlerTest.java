@@ -58,7 +58,7 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
   private static final Map<String, String> KERBEROS_ENV_MAP = new HashMap<String, String>() {
     {
       put(MITKerberosOperationHandler.KERBEROS_ENV_ENCRYPTION_TYPES, null);
-      put(MITKerberosOperationHandler.KERBEROS_ENV_KDC_HOST, "localhost");
+      put(MITKerberosOperationHandler.KERBEROS_ENV_KDC_HOSTS, "localhost");
       put(MITKerberosOperationHandler.KERBEROS_ENV_ADMIN_SERVER_HOST, "localhost");
       put(MITKerberosOperationHandler.KERBEROS_ENV_AD_CREATE_ATTRIBUTES_TEMPLATE, "AD Create Template");
       put(MITKerberosOperationHandler.KERBEROS_ENV_KDC_CREATE_ATTRIBUTES, "-attr1 -attr2 foo=345");

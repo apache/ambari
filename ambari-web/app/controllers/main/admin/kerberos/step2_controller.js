@@ -211,7 +211,7 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend(App.KDCCred
     var content = this.get('stepConfigs')[0].get('configs');
     var configs = content.filterProperty('filename', site + '.xml');
     // properties that should be formated as hosts
-    var hostProperties = ['kdc_host', 'realm'];
+    var hostProperties = ['kdc_hosts', 'realm'];
     configs.forEach(function (_configProperty) {
       // do not pass any globals whose name ends with _host or _hosts
       if (_configProperty.isRequiredByAgent !== false) {

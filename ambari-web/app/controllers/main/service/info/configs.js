@@ -362,7 +362,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
     if (this.get('content.serviceName') === 'KERBEROS') {
       var kdc_type = configs.findProperty('name', 'kdc_type');
       if (kdc_type.get('value') === 'none') {
-        configs.findProperty('name', 'kdc_host').set('isVisible', false);
+        configs.findProperty('name', 'kdc_hosts').set('isVisible', false);
         configs.findProperty('name', 'admin_server_host').set('isVisible', false);
         configs.findProperty('name', 'domains').set('isVisible', false);
       } else if (kdc_type.get('value') === 'active-directory') {

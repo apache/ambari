@@ -29,7 +29,7 @@ describe('#_overrideConfigIsRequired', function () {
     instanceObject = mixinObject.create({});
 
     configs = Em.A([
-      App.ServiceConfigProperty.create({ name: 'kdc_host', value: '', category: 'KDC', serviceName: 'KERBEROS', isRequired: true}),
+      App.ServiceConfigProperty.create({ name: 'kdc_hosts', value: '', category: 'KDC', serviceName: 'KERBEROS', isRequired: true}),
       App.ServiceConfigProperty.create({ name: 'admin_server_host', value: '', category: 'KDC', serviceName: 'KERBEROS', isRequired: true}),
       App.ServiceConfigProperty.create({ name: 'admin_principal', value: '', category: 'KDC', serviceName: 'KERBEROS', isRequired: true}),
       App.ServiceConfigProperty.create({ name: 'admin_password', value: '', category: 'KDC', serviceName: 'KERBEROS', isRequired: true})

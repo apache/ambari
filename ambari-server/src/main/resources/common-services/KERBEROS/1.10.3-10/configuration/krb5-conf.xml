@@ -71,14 +71,12 @@
   dns_lookup_kdc = false
   #default_tgs_enctypes = {{encryption_types}}
   #default_tkt_enctypes = {{encryption_types}}
-
 {% if domains %}
 [domain_realm]
-{% for domain in domains.split(',') %}
-  {{domain}} = {{realm}}
-{% endfor %}
+{%- for domain in domains.split(',') %}
+  {{domain|trim()}} = {{realm}}
+{%- endfor %}
 {% endif %}
-
 [logging]
   default = FILE:/var/log/krb5kdc.log
   admin_server = FILE:/var/log/kadmind.log
@@ -86,8 +84,17 @@
 
 [realms]
   {{realm}} = {
-    admin_server = {{admin_server_host|default(kdc_host, True)}}
-    kdc = {{kdc_host}}
+{%- if kdc_hosts > 0 -%}
+{%- set kdc_host_list = kdc_hosts.split(',')  -%}
+{%- if kdc_host_list and kdc_host_list|length > 0 %}
+    admin_server = {{admin_server_host|default(kdc_host_list[0]|trim(), True)}}
+{%- if kdc_host_list -%}
+{% for kdc_host in kdc_host_list %}
+    kdc = {{kdc_host|trim()}}
+{%- endfor -%}
+{% endif %}
+{%- endif %}
+{%- endif %}
   }
 
 {# Append additional realm declarations below #}

@@ -27,11 +27,11 @@ App.ToggleIsRequiredMixin = Em.Mixin.create({
     var excludeProperties = [
       {
         name: 'KERBEROS',                                                                // affected service
-        exclude: ['kdc_host', 'admin_server_host', 'admin_principal', 'admin_password'] // affected properties
+        exclude: ['kdc_hosts', 'admin_server_host', 'admin_principal', 'admin_password'] // affected properties
       },
       {
         name: 'KERBEROS_GENERAL',                                                                // affected service
-        exclude: ['kdc_host', 'admin_server_host', 'admin_principal', 'admin_password'] // affected properties
+        exclude: ['kdc_hosts', 'admin_server_host', 'admin_principal', 'admin_password'] // affected properties
       }
     ];
     var serviceName = serviceConfigs.get('serviceName'),

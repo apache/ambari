@@ -133,11 +133,13 @@
   </property>
 
   <property require-input="true">
-    <name>kdc_host</name>
+    <name>kdc_hosts</name>
     <description>
-      The IP address or FQDN for the KDC host. Optionally a port number may be included.
+      A comma-delimited list of IP addresses or FQDNs declaring the KDC hosts.
+      Optionally a port number may be included in each entry by separating each host and port by a
+      colon (:). Example:  kdc1.example.com:88, kdc2.example.com:88
     </description>
-    <display-name>KDC host</display-name>
+    <display-name>KDC hosts</display-name>
     <value/>
     <value-attributes>
       <overridable>false</overridable>

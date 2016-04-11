@@ -625,7 +625,7 @@ describe('App.CheckDBConnectionView', function () {
           value: 'h0'
         }),
         Em.Object.create({
-          name: 'kdc_host',
+          name: 'kdc_hosts',
           value: 'h1'
         }),
         Em.Object.create({

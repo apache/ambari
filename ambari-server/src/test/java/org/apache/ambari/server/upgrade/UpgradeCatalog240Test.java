@@ -42,6 +42,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +51,7 @@ import javax.persistence.EntityManager;
 
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
+import com.google.inject.AbstractModule;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -357,6 +359,7 @@ public class UpgradeCatalog240Test {
     Method updateAmsConfigs = UpgradeCatalog240.class.getDeclaredMethod("updateAMSConfigs");
     Method updateClusterEnv = UpgradeCatalog240.class.getDeclaredMethod("updateClusterEnv");
     Method updateHostRoleCommandTableDML = UpgradeCatalog240.class.getDeclaredMethod("updateHostRoleCommandTableDML");
+    Method updateKerberosEnv = UpgradeCatalog240.class.getDeclaredMethod("updateKerberosConfigs");
 
     Capture<String> capturedStatements = newCapture(CaptureType.ALL);
 
@@ -372,6 +375,7 @@ public class UpgradeCatalog240Test {
             .addMockedMethod(updateAmsConfigs)
             .addMockedMethod(updateClusterEnv)
             .addMockedMethod(updateHostRoleCommandTableDML)
+            .addMockedMethod(updateKerberosEnv)
             .createMock();
 
     Field field = AbstractUpgradeCatalog.class.getDeclaredField("dbAccessor");
@@ -385,6 +389,7 @@ public class UpgradeCatalog240Test {
     upgradeCatalog240.updateAMSConfigs();
     upgradeCatalog240.updateClusterEnv();
     upgradeCatalog240.updateHostRoleCommandTableDML();
+    upgradeCatalog240.updateKerberosConfigs();
 
     replay(upgradeCatalog240, dbAccessor);
 
@@ -483,4 +488,284 @@ public class UpgradeCatalog240Test {
     Map<String, String> updatedProperties = propertiesCapture.getValue();
     assertTrue(Maps.difference(newPropertiesAmsHbaseEnv, updatedProperties).areEqual());
   }
+
+  @Test
+  public void testUpdateKerberosConfiguration() throws Exception {
+    final AmbariManagementController controller = createNiceMock(AmbariManagementController.class);
+    final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
+    final OsFamily osFamily = createNiceMock(OsFamily.class);
+
+    final Map<String, String> propertiesKerberosEnv = new HashMap<String, String>() {
+      {
+        put("realm", "EXAMPLE.COM");
+        put("encryption_types", "aes des3-cbc-sha1 rc4 des-cbc-md5");
+        put("kdc_host", "c6407.ambari.apache.org");
+        put("admin_server_host", "c6407.ambari.apache.org");
+        put("kdc_type", "mit-kdc");
+      }
+    };
+
+    final Map<String, String> propertiesKrb5Conf = new HashMap<String, String>() {
+      {
+        put("content", "\n" +
+            "[libdefaults]\n" +
+            "  renew_lifetime = 7d\n" +
+            "  forwardable = true\n" +
+            "  default_realm = {{realm}}\n" +
+            "  ticket_lifetime = 24h\n" +
+            "  dns_lookup_realm = false\n" +
+            "  dns_lookup_kdc = false\n" +
+            "  #default_tgs_enctypes = {{encryption_types}}\n" +
+            "  #default_tkt_enctypes = {{encryption_types}}\n" +
+            "\n" +
+            "{% if domains %}\n" +
+            "[domain_realm]\n" +
+            "{% for domain in domains.split(',') %}\n" +
+            "  {{domain|trim}} = {{realm}}\n" +
+            "{% endfor %}\n" +
+            "{% endif %}\n" +
+            "\n" +
+            "[logging]\n" +
+            "  default = FILE:/var/log/krb5kdc.log\n" +
+            "  admin_server = FILE:/var/log/kadmind.log\n" +
+            "  kdc = FILE:/var/log/krb5kdc.log\n" +
+            "\n" +
+            "[realms]\n" +
+            "  {{realm}} = {\n" +
+            "    admin_server = {{admin_server_host|default(kdc_host, True)}}\n" +
+            "    kdc = {{kdc_host}}\n" +
+            "  }\n" +
+            "\n" +
+            "{# Append additional realm declarations below #}");
+      }
+    };
+
+    final Config configKerberosEnv = createNiceMock(Config.class);
+    expect(configKerberosEnv.getProperties()).andReturn(propertiesKerberosEnv).anyTimes();
+    expect(configKerberosEnv.getTag()).andReturn("tag1").anyTimes();
+
+    final Config configKrb5Conf = createNiceMock(Config.class);
+    expect(configKrb5Conf.getProperties()).andReturn(propertiesKrb5Conf).anyTimes();
+    expect(configKrb5Conf.getTag()).andReturn("tag1").anyTimes();
+
+    final Cluster cluster = createNiceMock(Cluster.class);
+    expect(cluster.getDesiredConfigByType("kerberos-env")).andReturn(configKerberosEnv).once();
+    expect(cluster.getDesiredConfigByType("krb5-conf")).andReturn(configKrb5Conf).once();
+
+    final Clusters clusters = createNiceMock(Clusters.class);
+    expect(clusters.getClusters()).andReturn(Collections.singletonMap("c1", cluster));
+
+    expect(controller.getClusters()).andReturn(clusters).once();
+
+    expect(cluster.getConfigsByType("kerberos-env"))
+        .andReturn(Collections.singletonMap("tag1", configKerberosEnv))
+        .once();
+    expect(cluster.getConfigsByType("krb5-conf"))
+        .andReturn(Collections.singletonMap("tag1", configKerberosEnv))
+        .once();
+
+    expect(cluster.getDesiredConfigByType("kerberos-env"))
+        .andReturn(configKerberosEnv)
+        .once();
+    expect(cluster.getDesiredConfigByType("krb5-conf"))
+        .andReturn(configKerberosEnv)
+        .once();
+
+    Capture<Cluster> clusterCapture = newCapture(CaptureType.ALL);
+    Capture<String> typeCapture = newCapture(CaptureType.ALL);
+    Capture<Map> propertiesCapture = newCapture(CaptureType.ALL);
+    Capture<String> tagCapture = newCapture(CaptureType.ALL);
+    Capture<Map> attributesCapture = newCapture(CaptureType.ALL);
+
+
+    expect(controller.createConfig(capture(clusterCapture), capture(typeCapture),
+        capture(propertiesCapture), capture(tagCapture), capture(attributesCapture) ))
+        .andReturn(createNiceMock(Config.class))
+        .anyTimes();
+
+    replay(controller, dbAccessor, osFamily, cluster, configKerberosEnv, configKrb5Conf, clusters);
+
+    final Injector injector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(controller);
+        bind(DBAccessor.class).toInstance(dbAccessor);
+        bind(OsFamily.class).toInstance(osFamily);
+        bind(EntityManager.class).toInstance(entityManager);
+      }
+    });
+
+    injector.getInstance(UpgradeCatalog240.class).updateKerberosConfigs();
+
+    verify(controller, dbAccessor, osFamily, cluster, configKerberosEnv, configKrb5Conf, clusters);
+
+    List<String> typeCaptureValues = typeCapture.getValues();
+    Assert.assertEquals(2, typeCaptureValues.size());
+    Assert.assertEquals("kerberos-env", typeCaptureValues.get(0));
+    Assert.assertEquals("krb5-conf", typeCaptureValues.get(1));
+
+    List<Map> propertiesCaptureValues = propertiesCapture.getValues();
+    Assert.assertEquals(2, propertiesCaptureValues.size());
+
+    Map<String, String> capturedCRProperties;
+
+    capturedCRProperties = propertiesCaptureValues.get(0);
+    Assert.assertNotNull(capturedCRProperties);
+    Assert.assertFalse(capturedCRProperties.containsKey("kdc_host"));
+    Assert.assertTrue(capturedCRProperties.containsKey("kdc_hosts"));
+
+    for (String property : propertiesKerberosEnv.keySet()) {
+      if ("kdc_host".equals(property)) {
+        Assert.assertEquals(property, propertiesKerberosEnv.get(property), capturedCRProperties.get("kdc_hosts"));
+      } else {
+        Assert.assertEquals(property, propertiesKerberosEnv.get(property), capturedCRProperties.get(property));
+      }
+    }
+
+    capturedCRProperties = propertiesCaptureValues.get(1);
+    Assert.assertNotNull(capturedCRProperties);
+    Assert.assertTrue(capturedCRProperties.containsKey("content"));
+
+    for (String property : propertiesKerberosEnv.keySet()) {
+      if ("content".equals(property)) {
+        Assert.assertEquals(property, "[libdefaults]\n" +
+            "  renew_lifetime = 7d\n" +
+            "  forwardable = true\n" +
+            "  default_realm = {{realm}}\n" +
+            "  ticket_lifetime = 24h\n" +
+            "  dns_lookup_realm = false\n" +
+            "  dns_lookup_kdc = false\n" +
+            "  #default_tgs_enctypes = {{encryption_types}}\n" +
+            "  #default_tkt_enctypes = {{encryption_types}}\n" +
+            "{% if domains %}\n" +
+            "[domain_realm]\n" +
+            "{%- for domain in domains.split(',') %}\n" +
+            "  {{domain|trim()}} = {{realm}}\n" +
+            "{%- endfor %}\n" +
+            "{% endif %}\n" +
+            "[logging]\n" +
+            "  default = FILE:/var/log/krb5kdc.log\n" +
+            "  admin_server = FILE:/var/log/kadmind.log\n" +
+            "  kdc = FILE:/var/log/krb5kdc.log\n" +
+            "\n" +
+            "[realms]\n" +
+            "  {{realm}} = {\n" +
+            "{%- if kdc_hosts > 0 -%}\n" +
+            "{%- set kdc_host_list = kdc_hosts.split(',')  -%}\n" +
+            "{%- if kdc_host_list and kdc_host_list|length > 0 %}\n" +
+            "    admin_server = {{admin_server_host|default(kdc_host_list[0]|trim(), True)}}\n" +
+            "{%- if kdc_host_list -%}\n" +
+            "{% for kdc_host in kdc_host_list %}\n" +
+            "    kdc = {{kdc_host|trim()}}\n" +
+            "{%- endfor -%}\n" +
+            "{% endif %}\n" +
+            "{%- endif %}\n" +
+            "{%- endif %}\n" +
+            "  }\n" +
+            "\n" +
+            "{# Append additional realm declarations below #}", capturedCRProperties.get("content"));
+      } else {
+        Assert.assertEquals(property, propertiesKerberosEnv.get(property), capturedCRProperties.get(property));
+      }
+    }
+  }
+
+  @Test
+  public void testUpdateKerberosConfigurationWithChangedKrb5ConfContent() throws Exception {
+    final AmbariManagementController controller = createNiceMock(AmbariManagementController.class);
+    final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
+    final OsFamily osFamily = createNiceMock(OsFamily.class);
+
+    final Map<String, String> propertiesKerberosEnv = new HashMap<String, String>() {
+      {
+        put("realm", "EXAMPLE.COM");
+        put("encryption_types", "aes des3-cbc-sha1 rc4 des-cbc-md5");
+        put("kdc_host", "c6407.ambari.apache.org");
+        put("admin_server_host", "c6407.ambari.apache.org");
+        put("kdc_type", "mit-kdc");
+      }
+    };
+
+    final Map<String, String> propertiesKrb5Conf = new HashMap<String, String>() {
+      {
+        put("content", "CHANGED CONTENT");
+      }
+    };
+
+    final Config configKerberosEnv = createNiceMock(Config.class);
+    expect(configKerberosEnv.getProperties()).andReturn(propertiesKerberosEnv).anyTimes();
+    expect(configKerberosEnv.getTag()).andReturn("tag1").anyTimes();
+
+    final Config configKrb5Conf = createNiceMock(Config.class);
+    expect(configKrb5Conf.getProperties()).andReturn(propertiesKrb5Conf).anyTimes();
+    expect(configKrb5Conf.getTag()).andReturn("tag1").anyTimes();
+
+    final Cluster cluster = createNiceMock(Cluster.class);
+    expect(cluster.getDesiredConfigByType("kerberos-env")).andReturn(configKerberosEnv).once();
+    expect(cluster.getDesiredConfigByType("krb5-conf")).andReturn(configKrb5Conf).once();
+
+    final Clusters clusters = createNiceMock(Clusters.class);
+    expect(clusters.getClusters()).andReturn(Collections.singletonMap("c1", cluster));
+
+    expect(controller.getClusters()).andReturn(clusters).once();
+
+    expect(cluster.getConfigsByType("kerberos-env"))
+        .andReturn(Collections.singletonMap("tag1", configKerberosEnv))
+        .once();
+
+    expect(cluster.getDesiredConfigByType("kerberos-env"))
+        .andReturn(configKerberosEnv)
+        .once();
+
+    Capture<Cluster> clusterCapture = newCapture(CaptureType.ALL);
+    Capture<String> typeCapture = newCapture(CaptureType.ALL);
+    Capture<Map> propertiesCapture = newCapture(CaptureType.ALL);
+    Capture<String> tagCapture = newCapture(CaptureType.ALL);
+    Capture<Map> attributesCapture = newCapture(CaptureType.ALL);
+
+
+    expect(controller.createConfig(capture(clusterCapture), capture(typeCapture),
+        capture(propertiesCapture), capture(tagCapture), capture(attributesCapture)))
+        .andReturn(createNiceMock(Config.class))
+        .anyTimes();
+
+    replay(controller, dbAccessor, osFamily, cluster, configKerberosEnv, configKrb5Conf, clusters);
+
+    final Injector injector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(controller);
+        bind(DBAccessor.class).toInstance(dbAccessor);
+        bind(OsFamily.class).toInstance(osFamily);
+        bind(EntityManager.class).toInstance(entityManager);
+      }
+    });
+
+    injector.getInstance(UpgradeCatalog240.class).updateKerberosConfigs();
+
+    verify(controller, dbAccessor, osFamily, cluster, configKerberosEnv, configKrb5Conf, clusters);
+
+    List<String> typeCaptureValues = typeCapture.getValues();
+    Assert.assertEquals(1, typeCaptureValues.size());
+    Assert.assertEquals("kerberos-env", typeCaptureValues.get(0));
+
+    List<Map> propertiesCaptureValues = propertiesCapture.getValues();
+    Assert.assertEquals(1, propertiesCaptureValues.size());
+
+    Map<String, String> capturedCRProperties;
+
+    capturedCRProperties = propertiesCaptureValues.get(0);
+    Assert.assertNotNull(capturedCRProperties);
+    Assert.assertFalse(capturedCRProperties.containsKey("kdc_host"));
+    Assert.assertTrue(capturedCRProperties.containsKey("kdc_hosts"));
+
+    for (String property : propertiesKerberosEnv.keySet()) {
+      if ("kdc_host".equals(property)) {
+        Assert.assertEquals(property, propertiesKerberosEnv.get(property), capturedCRProperties.get("kdc_hosts"));
+      } else {
+        Assert.assertEquals(property, propertiesKerberosEnv.get(property), capturedCRProperties.get(property));
+      }
+    }
+  }
 }
+

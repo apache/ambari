@@ -50,7 +50,7 @@ public class IPAKerberosOperationHandlerTest extends KerberosOperationHandlerTes
   private static final Map<String, String> KERBEROS_ENV_MAP = new HashMap<String, String>() {
     {
       put(IPAKerberosOperationHandler.KERBEROS_ENV_ENCRYPTION_TYPES, null);
-      put(IPAKerberosOperationHandler.KERBEROS_ENV_KDC_HOST, "localhost");
+      put(IPAKerberosOperationHandler.KERBEROS_ENV_KDC_HOSTS, "localhost");
       put(IPAKerberosOperationHandler.KERBEROS_ENV_ADMIN_SERVER_HOST, "localhost");
       put(IPAKerberosOperationHandler.KERBEROS_ENV_USER_PRINCIPAL_GROUP, "");
     }

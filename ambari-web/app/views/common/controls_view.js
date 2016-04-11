@@ -1014,7 +1014,7 @@ App.CheckDBConnectionView = Ember.View.extend({
     if (!/wizard/i.test(this.get('controller.name')) && this.get('parentView.service.serviceName') === 'HIVE') {
       return this.get('parentView.service.serviceName').toLowerCase() + '_hostname';
     } else if (this.get('parentView.service.serviceName') === 'KERBEROS') {
-      return 'kdc_host';
+      return 'kdc_hosts';
     } else if (this.get('parentView.service.serviceName') === 'RANGER') {
       return '{0}_{1}_host'.format(this.get('parentView.service.serviceName').toLowerCase(), this.get('databaseName').toLowerCase());
     }
@@ -1027,7 +1027,7 @@ App.CheckDBConnectionView = Ember.View.extend({
     var propertiesMap = {
       OOZIE: ['oozie.db.schema.name', 'oozie.service.JPAService.jdbc.username', 'oozie.service.JPAService.jdbc.password', 'oozie.service.JPAService.jdbc.driver', 'oozie.service.JPAService.jdbc.url'],
       HIVE: ['ambari.hive.db.schema.name', 'javax.jdo.option.ConnectionUserName', 'javax.jdo.option.ConnectionPassword', 'javax.jdo.option.ConnectionDriverName', 'javax.jdo.option.ConnectionURL'],
-      KERBEROS: ['kdc_host'],
+      KERBEROS: ['kdc_hosts'],
       RANGER: App.get('isHadoop23Stack') ? ['db_user', 'db_password', 'db_name', 'ranger.jpa.jdbc.url', 'ranger.jpa.jdbc.driver'] :
           ['db_user', 'db_password', 'db_name', 'ranger_jdbc_connection_url', 'ranger_jdbc_driver']
     };
@@ -1036,7 +1036,7 @@ App.CheckDBConnectionView = Ember.View.extend({
   /** @property {Object} propertiesPattern - check pattern according to type of connection properties **/
   propertiesPattern: function() {
     var patterns = {
-      db_connection_url: /jdbc\.url|connection_url|connectionurl|kdc_host/ig
+      db_connection_url: /jdbc\.url|connection_url|connectionurl|kdc_hosts/ig
     };
     if (this.get('parentView.service.serviceName') != "KERBEROS") {
       patterns.user_name = /(username|dblogin|db_user)$/ig;
@@ -1050,7 +1050,7 @@ App.CheckDBConnectionView = Ember.View.extend({
       'OOZIE': 'oozie_server_hosts',
       'HDFS': 'hadoop_host',
       'HIVE': 'hive_metastore_hosts',
-      'KERBEROS': 'kdc_host',
+      'KERBEROS': 'kdc_hosts',
       'RANGER': 'ranger_server_hosts'
     };
     return this.get('parentView.categoryConfigsAll').findProperty('name', serviceMasterMap[this.get('parentView.service.serviceName')]).get('value');

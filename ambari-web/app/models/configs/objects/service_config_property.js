@@ -429,7 +429,7 @@ App.ServiceConfigProperty = Em.Object.extend({
           break;
         case 'supportTextConnection':
         case 'host':
-          var connectionProperties = ['kdc_host'];
+          var connectionProperties = ['kdc_hosts'];
           if ((validator.isNotTrimmed(value) && connectionProperties.contains(this.get('name')) || validator.isNotTrimmed(value))) {
             this.set('errorMessage', Em.I18n.t('host.trimspacesValidation'));
             isError = true;

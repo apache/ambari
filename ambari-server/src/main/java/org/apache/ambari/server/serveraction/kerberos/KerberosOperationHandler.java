@@ -101,9 +101,9 @@ public abstract class KerberosOperationHandler {
   public final static String KERBEROS_ENV_ENCRYPTION_TYPES = "encryption_types";
 
   /**
-   * Kerberos-env configuration property name: kdc_host
+   * Kerberos-env configuration property name: kdc_hosts
    */
-  public final static String KERBEROS_ENV_KDC_HOST = "kdc_host";
+  public final static String KERBEROS_ENV_KDC_HOSTS = "kdc_hosts";
 
   /**
    * Kerberos-env configuration property name: admin_server_host

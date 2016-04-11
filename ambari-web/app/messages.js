@@ -1165,7 +1165,7 @@ Em.I18n.translations = {
   'admin.kerberos.wizard.step5.moreInfoNonManual.body': 'Using the <b>Download CSV button</b>, you can download a csv file which contains a list of the principals and keytabs that will automatically be created by Ambari.',
   'admin.kerberos.wizard.step5.moreInfoManual.body': 'Important: Use the <b>Download CSV</b> button to obtain a list of the <b>required</b> principals and keytabs that are needed by Ambari to enable Kerberos in the cluster. <b>Do not proceed</b> until you have manually created and distributed the principals and keytabs to the cluster hosts.',
   'admin.kerberos.wizard.step5.kdc_type.label': 'KDC Type',
-  'admin.kerberos.wizard.step5.kdc_host.label': 'KDC Host',
+  'admin.kerberos.wizard.step5.kdc_hosts.label': 'KDC Hosts',
   'admin.kerberos.wizard.step5.realm.label': 'Realm Name',
   'admin.kerberos.wizard.step5.ldap_url.label': 'LDAP URL',
   'admin.kerberos.wizard.step5.container_dn.label': 'Container DN',

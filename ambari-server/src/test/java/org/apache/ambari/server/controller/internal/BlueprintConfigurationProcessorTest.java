@@ -222,7 +222,7 @@ public class BlueprintConfigurationProcessorTest {
 
     Map<String, String> kerberosEnvProps = new HashMap<String, String>();
     kerberosEnvProps.put("admin_server_host", "test");
-    kerberosEnvProps.put("kdc_host", "test");
+    kerberosEnvProps.put("kdc_hosts", "test");
     kerberosEnvProps.put("realm", "test");
     kerberosEnvProps.put("kdc_type", "test");
     kerberosEnvProps.put("ldap-url", "test");
@@ -877,7 +877,7 @@ public class BlueprintConfigurationProcessorTest {
     // simulate the case of a Kerberized cluster, including config
     // added by the Kerberos service
     kerberosEnvProperties.put("admin_server_host", expectedHostName);
-    kerberosEnvProperties.put("kdc_host", expectedHostName);
+    kerberosEnvProperties.put("kdc_hosts", expectedHostName);
     coreSiteProperties.put("hadoop.proxyuser.yarn.hosts", expectedHostName);
 
     Configuration clusterConfig = new Configuration(configProperties,
@@ -904,8 +904,8 @@ public class BlueprintConfigurationProcessorTest {
     // verify that these properties are filtered out of the exported configuration
     assertFalse("admin_server_host should not be present in exported blueprint in kerberos-env",
       kerberosEnvProperties.containsKey("admin_server_host"));
-    assertFalse("kdc_host should not be present in exported blueprint in kerberos-env",
-      kerberosEnvProperties.containsKey("kdc_host"));
+    assertFalse("kdc_hosts should not be present in exported blueprint in kerberos-env",
+      kerberosEnvProperties.containsKey("kdc_hosts"));
     assertEquals("hadoop.proxyuser.yarn.hosts was not exported correctly",
       createExportedHostName("host_group_1"), coreSiteProperties.get("hadoop.proxyuser.yarn.hosts"));
   }

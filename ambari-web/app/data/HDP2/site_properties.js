@@ -1357,7 +1357,7 @@ var hdp2properties = [
     "index": 0
   },
   {
-    "name": "kdc_host",
+    "name": "kdc_hosts",
     "displayType": "supportTextConnection",
     "serviceName": "KERBEROS",
     "filename": "kerberos-env.xml",

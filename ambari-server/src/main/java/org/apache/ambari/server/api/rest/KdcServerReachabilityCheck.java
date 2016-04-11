@@ -45,26 +45,39 @@ public class KdcServerReachabilityCheck {
   private static KdcServerConnectionVerification kdcConnectionChecker;
 
 
-
   /**
-   * Handles: GET /kdc_check/{hostname}
-   * Checks the reachability of given KDC server
+   * Handles: GET /kdc_check/{hosts}
+   * Checks the reachability of the given KDC server(s). If a list of hosts is sent, checks will be
+   * performs until the first one succeeds, else a failure will be returned.
    *
-   * @param headers             http headers
-   * @param ui                  uri info
-   * @param kdcServerHostName   HostName of KDC server. May contain port separate by a colon (:)
-   *
+   * @param headers      http headers
+   * @param ui           uri info
+   * @param hosts A comma-delimited list of host names to check for a KDC server.
+   *                     Each entry may contain port separate by a colon (:)
    * @return status whether KDC server is reachable or not
    */
   @GET
-  @Path("{hostname}")
+  @Path("{hosts}")
   @Produces(MediaType.TEXT_PLAIN)
   public String plainTextCheck(@Context HttpHeaders headers, @Context UriInfo ui,
-      @PathParam("hostname") String kdcServerHostName) {
+                               @PathParam("hosts") String hosts) {
     String status = UNREACHABLE;
-    if (kdcConnectionChecker.isKdcReachable(kdcServerHostName)) {
-      status = REACHABLE;
-    }   	
+    if(hosts != null) {
+      String[] kdcHosts = hosts.split(",");
+      for(String kdcHost : kdcHosts) {
+        kdcHost = kdcHost.trim();
+
+        if (!kdcHost.isEmpty()) {
+          if (kdcConnectionChecker.isKdcReachable(kdcHost)) {
+            status = REACHABLE;
+
+            // We found a success, so break since we only care about at least one successful connection
+            break;
+          }
+        }
+      }
+    }
+
     return status;
   }
 

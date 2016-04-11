@@ -277,7 +277,7 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     final Map<String, String> kerberosEnvProperties = createMock(Map.class);
     expect(kerberosEnvProperties.get("realm")).andReturn("EXAMPLE.COM").once();
-    expect(kerberosEnvProperties.get("kdc_host")).andReturn("10.0.100.1").once();
+    expect(kerberosEnvProperties.get("kdc_hosts")).andReturn("10.0.100.1").once();
 
     final Map<String, String> krb5ConfProperties = createMock(Map.class);
     expect(krb5ConfProperties.get("kadmin_host")).andReturn("10.0.100.1").once();
