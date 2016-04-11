@@ -56,7 +56,7 @@ class HawqStandby(Script):
 
   def activate_hawq_standby(self, env):
     import utils
-    utils.exec_hawq_operation(hawq_constants.ACTIVATE, "{0} -a -M {1} -v".format(hawq_constants.STANDBY, hawq_constants.FAST))
+    utils.exec_hawq_operation(hawq_constants.ACTIVATE, "{0} -a -M {1} -v --ignore-bad-hosts".format(hawq_constants.STANDBY, hawq_constants.FAST))
     
   def resync_hawq_standby(self,env):
     import params
