@@ -17,6 +17,8 @@ limitations under the License.
 
 """
 
+import os
+
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from resource_management.libraries.script import Script
 from resource_management.libraries.functions import default
@@ -26,8 +28,11 @@ from resource_management.libraries.functions import format_jvm_option
 from resource_management.libraries.functions.version import format_hdp_stack_version
 
 config = Script.get_config()
+tmp_dir = Script.get_tmp_dir()
 
 dfs_type = default("/commandParams/dfs_type", "")
+
+is_parallel_execution_enabled = int(default("/agentConfigParams/agent/parallel_execution", 0)) == 1
 
 sudo = AMBARI_SUDO_BINARY
 
@@ -89,3 +94,6 @@ has_namenode = not len(namenode_host) == 0
 
 if has_namenode or dfs_type == 'HCFS':
   hadoop_conf_dir = conf_select.get_hadoop_conf_dir(force_latest_on_upgrade=True)
+
+link_configs_lock_file = os.path.join(tmp_dir, "link_configs_lock_file")
+hdp_select_lock_file = os.path.join(tmp_dir, "hdp_select_lock_file")
