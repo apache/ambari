@@ -214,16 +214,14 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    * @type {Object}
    */
   configDependencies: function() {
-    var dependencies = {
-      'sliderSelected': this.get('allSelectedServiceNames').contains('SLIDER')
-    };
+    var dependencies = {};
     var hiveMetastore = App.configsCollection.getConfigByName('hive.metastore.uris', 'hive-site.xml');
     var clientPort = App.configsCollection.getConfigByName('clientPort', 'zoo.cfg.xml');
 
     if (hiveMetastore) dependencies['hive.metastore.uris'] = hiveMetastore.recommendedValue;
     if (clientPort) dependencies['clientPort']  = clientPort.recommendedValue;
     return dependencies
-  }.property('allSelectedServiceNames'),
+  }.property(),
 
   /**
    * List of filters for config properties to populate filter combobox

@@ -1498,7 +1498,6 @@ var hdp2properties = [
     "index" : 14
   },
   {
-    "id": "puppet var",
     "name": "group",
     "serviceName": "KERBEROS",
     "filename": "kerberos-env.xml",
@@ -1513,7 +1512,6 @@ var hdp2properties = [
     "index": 0
   },
   {
-    "id": "puppet var",
     "name": "manage_krb5_conf",
     "dependentConfigPattern": "CATEGORY",
     "serviceName": "KERBEROS",

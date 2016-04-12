@@ -142,7 +142,7 @@ describe('App.themeMapper', function () {
     describe('should map theme data', function () {
 
       beforeEach(function () {
-        App.themesMapper.map(json);
+        App.themesMapper.map(json, []);
       });
 
       it('1 Tab is mapped', function () {

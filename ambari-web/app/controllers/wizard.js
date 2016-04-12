@@ -1270,7 +1270,6 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
         App.config.loadConfigsFromStack(serviceNames).done(function () {
           self.loadConfigThemeForServices(serviceNames).always(function () {
             self.set('stackConfigsLoaded', true);
-            App.themesMapper.generateAdvancedTabs(serviceNames);
             dfd.resolve();
           });
         });

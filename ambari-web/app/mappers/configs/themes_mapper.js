@@ -70,7 +70,13 @@ App.themesMapper = App.QuickDataMapper.create({
     "sub_section_id": "sub_section_id"
   },
 
-  map: function (json) {
+  /**
+   * Mapper function for tabs
+   *
+   * @param json
+   * @param [serviceNames]
+   */
+  map: function (json, serviceNames) {
     console.time('App.themesMapper execution time');
     var tabs = [];
     json.items.forEach(function(item) {
@@ -81,7 +87,7 @@ App.themesMapper = App.QuickDataMapper.create({
 
     App.store.commit();
     App.store.loadMany(this.get("tabModel"), tabs);
-    App.store.commit();
+    this.generateAdvancedTabs(serviceNames);
     console.timeEnd('App.themesMapper execution time');
   },
 

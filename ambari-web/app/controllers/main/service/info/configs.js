@@ -289,16 +289,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
    * @method loadStep
    */
   loadStep: function () {
-    var self = this;
     var serviceName = this.get('content.serviceName');
     this.clearStep();
     this.set('dependentServiceNames', App.StackService.find(serviceName).get('dependentServiceNames'));
-    this.loadConfigTheme(serviceName).always(function() {
-      if (!$.mocho) { App.themesMapper.generateAdvancedTabs([serviceName]); }
-      // Theme mapper has UI only configs that needs to be merged with current service version configs
-      // This requires calling  `loadCurrentVersions` after theme has loaded
-      self.loadCurrentVersions();
-    });
+    this.loadConfigTheme(serviceName).always(this.loadCurrentVersions.bind(this));
     this.loadServiceConfigVersions();
   },
 
@@ -358,6 +352,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
       configs = App.config.addYarnCapacityScheduler(configs);
     }
 
+    this.setPropertyIsVisible(configs);
+    this.setPropertyIsEditable(configs);
+    this.set('allConfigs', configs);
+  },
+
+  setPropertyIsVisible: function (configs) {
     if (this.get('content.serviceName') === 'KERBEROS') {
       var kdc_type = configs.findProperty('name', 'kdc_type');
       if (kdc_type.get('value') === 'none') {
@@ -369,15 +369,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
         configs.findProperty('name', 'ldap_url').set('isVisible', true);
       } else if (kdc_type.get('value') === 'ipa') {
         configs.findProperty('name', 'group').set('isVisible', true);
-        configs.findProperty('name', 'manage_krb5_conf').set('value', false);
-        configs.findProperty('name', 'install_packages').set('value', false);
+        configs.findProperty('name', 'manage_krb5_conf').set('value', false);//TODO
+        configs.findProperty('name', 'install_packages').set('value', false);//TODO
         configs.findProperty('name', 'admin_server_host').set('isVisible', false);
         configs.findProperty('name', 'domains').set('isVisible', false);
       }
     }
-
-    this.setPropertyIsEditable(configs);
-    this.set('allConfigs', configs);
   },
 
   /**

@@ -47,11 +47,13 @@ App.ThemesMappingMixin = Em.Mixin.create({
    * Success-callback for <code>loadConfigTheme</code>
    * runs <code>themeMapper<code>
    * @param {object} data
+   * @param opt
+   * @param params
    * @private
    * @method saveThemeToModel
    */
-  _saveThemeToModel: function(data) {
-    App.themesMapper.map(data);
+  _saveThemeToModel: function(data, opt, params) {
+    App.themesMapper.map(data, [params.serviceName]);
   },
 
   /**
@@ -77,16 +79,18 @@ App.ThemesMappingMixin = Em.Mixin.create({
   /**
    * Success-callback for <code>loadConfigThemeForServices</code>
    * @param {object} data
+   * @param opt
+   * @param params
    * @private
    * @method _loadConfigThemeForServicesSuccess
    */
-  _loadConfigThemeForServicesSuccess: function(data) {
+  _loadConfigThemeForServicesSuccess: function(data, opt, params) {
     if (!data.items.length) return;
     App.themesMapper.map({
       items: data.items.mapProperty('themes').reduce(function(p,c) {
         return p.concat(c);
       })
-    });
+    }, params.serviceNames.split(','));
   },
 
   /**
