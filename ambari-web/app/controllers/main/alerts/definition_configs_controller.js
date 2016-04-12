@@ -417,6 +417,26 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
       })
     ]);
 
+    var mixins = {
+      STRING: App.AlertConfigProperties.Parameters.StringMixin,
+      NUMERIC: App.AlertConfigProperties.Parameters.NumericMixin,
+      PERCENT: App.AlertConfigProperties.Parameters.PercentageMixin
+    };
+    alertDefinition.get('parameters').forEach(function (parameter) {
+      var mixin = mixins[parameter.get('type')] || {}; // validation depends on parameter-type
+      result.push(App.AlertConfigProperties.Parameter.create(mixin, {
+        value: isWizard ? '' : parameter.get('value'),
+        apiProperty: parameter.get('name'),
+        description: parameter.get('description'),
+        label: isWizard ? '' : parameter.get('displayName'),
+        threshold: isWizard ? '' : parameter.get('threshold'),
+        units: isWizard ? '' : parameter.get('units'),
+        type: isWizard ? '' : parameter.get('type'),
+        hidden: parameter.get('visibility') === "HIDDEN",
+        readonly: parameter.get('visibility') === "READ_ONLY"
+      }));
+    });
+
     return result;
   },  
 
