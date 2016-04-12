@@ -57,6 +57,11 @@ public class HostEventCreator implements RequestAuditEventCreator {
   private Set<Resource.Type> resourceTypes = ImmutableSet.<Resource.Type>builder().add(Resource.Type.Host).build();
 
   /**
+   * Pattern to retrieve hostname from url
+   */
+  private static final Pattern HOSTNAME_PATTERN = Pattern.compile(".*" + HostResourceProvider.HOST_NAME_PROPERTY_ID + "\\s*=\\s*([^&\\s]+).*");
+
+  /**
    * {@inheritDoc}
    */
   @Override
@@ -146,13 +151,9 @@ public class HostEventCreator implements RequestAuditEventCreator {
    * @return
    */
   private String getHostNameFromQuery(Request request) {
-    final String key = HostResourceProvider.HOST_NAME_PROPERTY_ID;
-    if (request.getURI().contains(key)) {
-      Pattern pattern = Pattern.compile(".*" + key + "\\s*=\\s*([^&\\s]+).*");
-      Matcher matcher = pattern.matcher(request.getURI());
-      if(matcher.find()) {
-        return matcher.group(1);
-      }
+    Matcher matcher = HOSTNAME_PATTERN.matcher(request.getURI());
+    if(matcher.find()) {
+      return matcher.group(1);
     }
     return null;
   }
