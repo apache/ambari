@@ -96,11 +96,11 @@ class TestAlertMetricsDeviation(RMFTestCase):
 
   @patch("httplib.HTTPConnection")
   def test_alert(self, conn_mock):
-    ca_connection = MagicMock()
+    connection = MagicMock()
     response = MagicMock()
     response.status = 200
-    ca_connection.getresponse.return_value = response
-    conn_mock.return_value = ca_connection
+    connection.getresponse.return_value = response
+    conn_mock.return_value = connection
     response.read.return_value = '{"metrics":[{"metricname":"metric1","metrics":{"1459966360838":1,"1459966370838":3}}]}'
 
     # OK, but no datapoints above the minimum threshold
@@ -133,6 +133,13 @@ class TestAlertMetricsDeviation(RMFTestCase):
     # HTTP request to AMS failed
     response.read.return_value = ''
     response.status = 501
+    [status, messages] = alert.execute(configurations=configs, parameters=parameters)
+    self.assertEqual(status, RESULT_STATE_UNKNOWN)
+    self.assertTrue(messages is not None and len(messages) == 1)
+    self.assertEquals('Unable to retrieve metrics from AMS.', messages[0])
+
+    # Unable to connect to AMS
+    conn_mock.side_effect = Exception('Unable to connect to AMS')
     [status, messages] = alert.execute(configurations=configs, parameters=parameters)
     self.assertEqual(status, RESULT_STATE_UNKNOWN)
     self.assertTrue(messages is not None and len(messages) == 1)
