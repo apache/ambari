@@ -41,9 +41,9 @@ log = logging.getLogger()
 
 
 def run_os_command(cmd):
-  if type(cmd) == str:
-    cmd = shlex.split(cmd)
+  shell = (type(cmd) == str)
   process = subprocess.Popen(cmd,
+                             shell=shell,
                              stdout=subprocess.PIPE,
                              stdin=subprocess.PIPE,
                              stderr=subprocess.PIPE
@@ -95,8 +95,12 @@ class Facter(object):
   # Returns the CPU hardware architecture
   def getArchitecture(self):
     result = platform.processor()
-    if result == '':
-      return 'OS NOT SUPPORTED'
+    if not result:
+      retcode, out, err = run_os_command("lscpu | grep Architecture: | awk '{ print $2 }'")
+      out = out.strip()
+      if out:
+        return out
+      return 'unknown cpu arch'
     else:
       return result
 
