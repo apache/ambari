@@ -79,7 +79,8 @@ class TestHDP206StackAdvisor(TestCase):
     }
     self.assertHostLayout(expectedComponentsHostsMap, result)
 
-  def test_recommendationAssignmentNotChanged(self):
+  def test_recommendOnAllHosts(self):
+    """ Recommend on all hosts for cardinality ALL even if the component has been installed in the cluster before """
     servicesInfo = [
       {
         "name": "GANGLIA",
@@ -91,7 +92,7 @@ class TestHDP206StackAdvisor(TestCase):
     result = self.stackAdvisor.recommendComponentLayout(services, hosts)
 
     expectedComponentsHostsMap = {
-      "GANGLIA_MONITOR": ["host1"]
+      "GANGLIA_MONITOR": ["host1", "host2"]
     }
     self.assertHostLayout(expectedComponentsHostsMap, result)
 
