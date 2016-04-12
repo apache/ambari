@@ -347,8 +347,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
      */
     configs = this.mergeWithStackProperties(configs);
 
+    var filenames = configs.mapProperty('fileName').uniq();
     //put properties from capacity-scheduler.xml into one config with textarea view
-    if (this.get('content.serviceName') === 'YARN') {
+    if (filenames.contains('capacity-scheduler.xml')) {
       configs = App.config.addYarnCapacityScheduler(configs);
     }
 

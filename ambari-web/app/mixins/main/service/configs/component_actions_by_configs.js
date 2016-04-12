@@ -58,7 +58,7 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
         var displayName = App.StackServiceComponent.find().findProperty('componentName',  _componentToDelete.componentName).get('displayName');
         var context = Em.I18n.t('requestInfo.stop').format(displayName);
         self.refreshYarnQueues().done(function(data) {
-          self.isRequestCompleted(data).done(function() {
+          self.isRequestCompleted(data).always(function() {
             self.installHostComponents( _componentToDelete.hostName, _componentToDelete.componentName, context).done(function(data){
               self.isRequestCompleted(data).done(function() {
                 self.deleteHostComponent(_componentToDelete.hostName, _componentToDelete.componentName);
@@ -107,7 +107,7 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
         var hostComponents = allComponentsToAdd.filterProperty('hostName', _hostName).mapProperty('componentName').uniq();
         var masterHostComponents =  allComponentsToAdd.filterProperty('hostName', _hostName).filterProperty('isClient', false).mapProperty('componentName').uniq();
         self.refreshYarnQueues().done(function(data) {
-          self.isRequestCompleted(data).done(function() {
+          self.isRequestCompleted(data).always(function() {
             self.createHostComponents(_hostName, hostComponents).done(function() {
               self.installHostComponents(_hostName, hostComponents).done(function(data){
                 self.isRequestCompleted(data).done(function() {
@@ -306,7 +306,7 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
       } else if (data.Requests.request_status === 'COMPLETED') {
         requestCompletedDfd.resolve();
       } else {
-        requestCompletedDfd.fail();
+        requestCompletedDfd.reject();
       }
     };
 
