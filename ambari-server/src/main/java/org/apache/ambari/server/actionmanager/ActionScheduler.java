@@ -888,8 +888,8 @@ class ActionScheduler implements Runnable {
       return false;
     } else {
       String hostName = host.getHostName();
-      long taskStartTime = stage.getHostRoleCommand(hostName, role).getStartTime();
-      return taskStartTime > 0 && taskStartTime <= host.getLastRegistrationTime();
+      long lastStageAttemptTime = stage.getLastAttemptTime(hostName, role);
+      return lastStageAttemptTime > 0 && lastStageAttemptTime <= host.getLastRegistrationTime();
     }
   }
 
