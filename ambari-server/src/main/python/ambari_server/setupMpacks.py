@@ -22,6 +22,7 @@ import os
 import shutil
 import tempfile
 import json
+import ast
 
 from ambari_commons.exceptions import FatalException
 from ambari_commons.inet_utils import download_file
@@ -33,6 +34,10 @@ from ambari_server.serverConfiguration import get_ambari_properties, get_ambari_
 from resource_management.core import sudo
 from resource_management.libraries.functions.tar_archive import extract_archive, get_archive_root_dir
 from resource_management.libraries.functions.version import compare_versions
+from ambari_server.setupActions import INSTALL_MPACK_ACTION, UPGRADE_MPACK_ACTION
+
+MPACKS_REPLAY_LOG_FILENAME = "mpacks_replay.log"
+MPACKS_CACHE_DIRNAME = "cache"
 
 class _named_dict(dict):
   """
@@ -175,9 +180,10 @@ def remove_symlinks(stack_location, service_definitions_location, staged_mpack_d
           print_info_msg("Removing symlink {0}".format(dir))
           sudo.unlink(dir)
 
-def purge_stacks_and_mpacks():
+def purge_stacks_and_mpacks(replay_mode=False):
   """
   Purge all stacks and management packs
+  :param replay_mode: Flag to indicate if purging in replay mode
   """
   # Get ambari mpacks config properties
   stack_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
@@ -192,7 +198,8 @@ def purge_stacks_and_mpacks():
     print_info_msg("Purging service definitions location: " + service_definitions_location)
     sudo.rmtree(service_definitions_location)
 
-  if os.path.exists(mpacks_staging_location):
+  # Don't purge mpacks staging directory in replay mode
+  if os.path.exists(mpacks_staging_location) and not replay_mode:
     print_info_msg("Purging mpacks staging location: " + mpacks_staging_location)
     sudo.rmtree(mpacks_staging_location)
     sudo.makedir(mpacks_staging_location, 0755)
@@ -206,7 +213,7 @@ def process_stack_definitions_artifact(artifact, artifact_source_dir, options):
   """
   # Get ambari mpack properties
   stack_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
-  for file in os.listdir(artifact_source_dir):
+  for file in sorted(os.listdir(artifact_source_dir)):
     if os.path.isfile(os.path.join(artifact_source_dir, file)):
       # Example: /var/lib/ambari-server/resources/stacks/stack_advisor.py
       create_symlink(artifact_source_dir, stack_location, file, options.force)
@@ -215,7 +222,7 @@ def process_stack_definitions_artifact(artifact, artifact_source_dir, options):
       dest_stack_dir = os.path.join(stack_location, file)
       if not os.path.exists(dest_stack_dir):
         sudo.makedir(dest_stack_dir, 0755)
-      for file in os.listdir(src_stack_dir):
+      for file in sorted(os.listdir(src_stack_dir)):
         if os.path.isfile(os.path.join(src_stack_dir, file)):
           create_symlink(src_stack_dir, dest_stack_dir, file, options.force)
         else:
@@ -223,13 +230,13 @@ def process_stack_definitions_artifact(artifact, artifact_source_dir, options):
           dest_stack_version_dir = os.path.join(dest_stack_dir, file)
           if not os.path.exists(dest_stack_version_dir):
             sudo.makedir(dest_stack_version_dir, 0755)
-          for file in os.listdir(src_stack_version_dir):
+          for file in sorted(os.listdir(src_stack_version_dir)):
             if file == "services":
               src_stack_services_dir = os.path.join(src_stack_version_dir, file)
               dest_stack_services_dir = os.path.join(dest_stack_version_dir, file)
               if not os.path.exists(dest_stack_services_dir):
                 sudo.makedir(dest_stack_services_dir, 0755)
-              for file in os.listdir(src_stack_services_dir):
+              for file in sorted(os.listdir(src_stack_services_dir)):
                 create_symlink(src_stack_services_dir, dest_stack_services_dir, file, options.force)
             else:
               create_symlink(src_stack_version_dir, dest_stack_version_dir, file, options.force)
@@ -269,12 +276,12 @@ def process_service_definitions_artifact(artifact, artifact_source_dir, options)
   """
   # Get ambari mpack properties
   stack_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
-  for file in os.listdir(artifact_source_dir):
+  for file in sorted(os.listdir(artifact_source_dir)):
     src_service_definitions_dir = os.path.join(artifact_source_dir, file)
     dest_service_definitions_dir = os.path.join(service_definitions_location, file)
     if not os.path.exists(dest_service_definitions_dir):
       sudo.makedir(dest_service_definitions_dir, 0755)
-    for file in os.listdir(src_service_definitions_dir):
+    for file in sorted(os.listdir(src_service_definitions_dir)):
       create_symlink(src_service_definitions_dir, dest_service_definitions_dir, file, options.force)
 
 def process_service_definition_artifact(artifact, artifact_source_dir, options):
@@ -321,9 +328,9 @@ def process_stack_extension_definitions_artifact(artifact, artifact_source_dir, 
   if not service_versions_map:
     print_error_msg("Must provide service versions map for stack-extension-definitions artifact!")
     raise FatalException(-1, 'Must provide service versions map for stack-extension-definition artifact!')
-  for service_name in os.listdir(artifact_source_dir):
+  for service_name in sorted(os.listdir(artifact_source_dir)):
     source_service_path = os.path.join(artifact_source_dir, service_name)
-    for service_version in os.listdir(source_service_path):
+    for service_version in sorted(os.listdir(source_service_path)):
       source_service_version_path = os.path.join(source_service_path, service_version)
       for service_version_entry in service_versions_map:
         if service_name == service_version_entry.service_name and service_version == service_version_entry.service_version:
@@ -389,14 +396,15 @@ def search_mpacks(mpack_name, max_mpack_version=None):
   stack_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
   results = []
   if os.path.exists(mpacks_staging_location) and os.path.isdir(mpacks_staging_location):
-    staged_mpack_dirs = os.listdir(mpacks_staging_location)
+    staged_mpack_dirs = sorted(os.listdir(mpacks_staging_location))
     for dir in staged_mpack_dirs:
+      if dir == MPACKS_CACHE_DIRNAME:
+        continue
       staged_mpack_dir = os.path.join(mpacks_staging_location, dir)
       if os.path.isdir(staged_mpack_dir):
         staged_mpack_metadata = read_mpack_metadata(staged_mpack_dir)
         if not staged_mpack_metadata:
-          print_error_msg("Skipping malformed management pack {0}-{1}. Metadata file missing!".format(
-                  staged_mpack_name, staged_mpack_version))
+          print_error_msg("Skipping malformed management pack in directory {0}.".format(staged_mpack_dir))
           continue
         staged_mpack_name = staged_mpack_metadata.name
         staged_mpack_version = staged_mpack_metadata.version
@@ -427,8 +435,10 @@ def uninstall_mpack(mpack_name, mpack_version):
   stack_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
   found = False
   if os.path.exists(mpacks_staging_location) and os.path.isdir(mpacks_staging_location):
-    staged_mpack_dirs = os.listdir(mpacks_staging_location)
+    staged_mpack_dirs = sorted(os.listdir(mpacks_staging_location))
     for dir in staged_mpack_dirs:
+      if dir == MPACKS_CACHE_DIRNAME:
+        continue
       staged_mpack_dir = os.path.join(mpacks_staging_location, dir)
       if os.path.isdir(staged_mpack_dir):
         staged_mpack_metadata = read_mpack_metadata(staged_mpack_dir)
@@ -493,10 +503,11 @@ def validate_mpack_prerequisites(mpack_metadata):
     raise FatalException(-1, "Prerequisites for management pack {0}-{1} failed!".format(
             mpack_metadata.name, mpack_metadata.version))
 
-def install_mpack(options):
+def _install_mpack(options, replay_mode=False):
   """
   Install management pack
   :param options: Command line options
+  :param replay_mode: Flag to indicate if executing command in replay mode
   """
 
   mpack_path = options.mpack_path
@@ -508,6 +519,9 @@ def install_mpack(options):
 
   # Download management pack to a temp location
   tmp_archive_path = download_mpack(mpack_path)
+  if not (tmp_archive_path and os.path.exists(tmp_archive_path)):
+    print_error_msg("Management pack could not be downloaded!")
+    raise FatalException(-1, 'Management pack could not be downloaded!')
 
   # Expand management pack in temp directory
   tmp_root_dir = expand_mpack(tmp_archive_path)
@@ -518,14 +532,17 @@ def install_mpack(options):
     raise FatalException(-1, 'Malformed management pack {0}. Metadata file missing!'.format(mpack_path))
 
   # Validate management pack prerequisites
-  validate_mpack_prerequisites(mpack_metadata)
+  # Skip validation in replay mode
+  if not replay_mode:
+    validate_mpack_prerequisites(mpack_metadata)
 
   # Purge previously installed stacks and management packs
   if options.purge:
-    purge_stacks_and_mpacks()
+    purge_stacks_and_mpacks(replay_mode)
 
   # Get ambari mpack properties
   stack_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
+  mpacks_cache_location = os.path.join(mpacks_staging_location, MPACKS_CACHE_DIRNAME)
   # Create directories
   if not os.path.exists(stack_location):
     sudo.makedir(stack_location, 0755)
@@ -533,12 +550,15 @@ def install_mpack(options):
     sudo.makedir(service_definitions_location, 0755)
   if not os.path.exists(mpacks_staging_location):
     sudo.makedir(mpacks_staging_location, 0755)
+  if not os.path.exists(mpacks_cache_location):
+    sudo.makedir(mpacks_cache_location, 0755)
 
   # Stage management pack (Stage at /var/lib/ambari-server/resources/mpacks/mpack_name-mpack_version)
   mpack_name = mpack_metadata.name
   mpack_version = mpack_metadata.version
   mpack_dirname = mpack_name + "-" + mpack_version
   mpack_staging_dir = os.path.join(mpacks_staging_location, mpack_dirname)
+  mpack_archive_path = os.path.join(mpacks_cache_location, os.path.basename(tmp_archive_path))
 
   print_info_msg("Stage management pack {0}-{1} to staging location {2}".format(
           mpack_name, mpack_version, mpack_staging_dir))
@@ -551,6 +571,7 @@ def install_mpack(options):
       print_error_msg(error_msg)
       raise FatalException(-1, error_msg)
   shutil.move(tmp_root_dir, mpack_staging_dir)
+  shutil.move(tmp_archive_path, mpack_archive_path)
 
   # Process setup steps for all artifacts (stack-definitions, service-definitions, stack-extension-definitions)
   # in the management pack
@@ -580,12 +601,49 @@ def install_mpack(options):
       print_info_msg("Unknown artifact {0} of type {1}".format(artifact_name, artifact_type))
 
   print_info_msg("Management pack {0}-{1} successfully installed!".format(mpack_name, mpack_version))
-  return mpack_name, mpack_version, mpack_staging_dir
+  return mpack_name, mpack_version, mpack_staging_dir, mpack_archive_path
 
-def upgrade_mpack(options):
+def get_replay_log_file():
+  """
+  Helper function to get mpack replay log file path
+  :return: mpack replay log file path
+  """
+  stack_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
+  replay_log_file = os.path.join(mpacks_staging_location, MPACKS_REPLAY_LOG_FILENAME)
+  return replay_log_file
+
+def add_replay_log(mpack_command, mpack_archive_path, purge, force, verbose):
+  """
+  Helper function to add mpack replay log entry
+  :param mpack_command: mpack command
+  :param mpack_archive_path: mpack archive path (/var/lib/ambari-server/resources/mpacks/mpack.tar.gz)
+  :param purge: purge command line option
+  :param force: force command line option
+  :param verbose: verbose command line option
+  """
+  replay_log_file = get_replay_log_file()
+  log = { 'mpack_command' : mpack_command, 'mpack_path' : mpack_archive_path, 'purge' : purge, 'force' : force, 'verbose' : verbose }
+  with open(replay_log_file, "a") as replay_log:
+    replay_log.write("{0}\n".format(log))
+
+def install_mpack(options, replay_mode=False):
+  """
+  Install management pack
+  :param options: Command line options
+  :param replay_mode: Flag to indicate if executing command in replay mode
+  """
+  # Force install when replaying logs
+  if replay_mode:
+    options.force = True
+  (mpack_name, mpack_version, mpack_staging_dir, mpack_archive_path) = _install_mpack(options, replay_mode)
+  if not replay_mode:
+    add_replay_log(INSTALL_MPACK_ACTION, mpack_archive_path, options.purge, options.force, options.verbose)
+
+def upgrade_mpack(options, replay_mode=False):
   """
   Upgrade management pack
   :param options: command line options
+  :param replay_mode: Flag to indicate if executing command in replay mode
   """
   mpack_path = options.mpack_path
   if options.purge:
@@ -600,12 +658,39 @@ def upgrade_mpack(options):
 
   # Force install new management pack version
   options.force = True
-  (mpack_name, mpack_version, mpack_staging_dir) = install_mpack(options)
+  (mpack_name, mpack_version, mpack_staging_dir, mpack_archive_path) = _install_mpack(options, replay_mode)
 
   # Uninstall old management packs
   uninstall_mpacks(mpack_name, mpack_version)
 
+  print_info_msg("Management pack {0}-{1} successfully upgraded!".format(mpack_name, mpack_version))
+  if not replay_mode:
+    add_replay_log(UPGRADE_MPACK_ACTION, mpack_archive_path, options.purge, options.force, options.verbose)
 
+def replay_mpack_logs():
+  """
+  Replay mpack logs during ambari-server upgrade
+  """
+  replay_log_file = get_replay_log_file()
+  if os.path.exists(replay_log_file):
+    with open(replay_log_file, "r") as f:
+      for replay_log in f:
+        replay_log = replay_log.strip()
+        print_info_msg("===========================================================================================")
+        print_info_msg("Executing Mpack Replay Log :")
+        print_info_msg(replay_log)
+        print_info_msg("===========================================================================================")
+        replay_options = _named_dict(ast.literal_eval(replay_log))
+        if replay_options.mpack_command == INSTALL_MPACK_ACTION:
+          install_mpack(replay_options, replay_mode=True)
+        elif replay_options.mpack_command == UPGRADE_MPACK_ACTION:
+          upgrade_mpack(replay_options, replay_mode=True)
+        else:
+          error_msg = "Invalid mpack command {0} in mpack replay log {1}!".format(replay_options.mpack_command, replay_log_file)
+          print_error_msg(error_msg)
+          raise FatalException(-1, error_msg)
+  else:
+    print_info_msg("No mpack replay logs found. Skipping replaying mpack commands")
 
 
 

@@ -1354,7 +1354,7 @@ def get_resources_location(properties):
 #
 def get_stack_location(properties):
   stack_location = properties[STACK_LOCATION_KEY]
-  if stack_location is None:
+  if not stack_location:
     stack_location = configDefaults.STACK_LOCATION_DEFAULT
   return stack_location
 
@@ -1363,7 +1363,7 @@ def get_stack_location(properties):
 #
 def get_common_services_location(properties):
   common_services_location = properties[COMMON_SERVICES_PATH_PROPERTY]
-  if common_services_location is None:
+  if not common_services_location:
     common_services_location = configDefaults.COMMON_SERVICES_LOCATION_DEFAULT
   return common_services_location
 
@@ -1372,7 +1372,7 @@ def get_common_services_location(properties):
 #
 def get_mpacks_staging_location(properties):
   mpacks_staging_location = properties[MPACKS_STAGING_PATH_PROPERTY]
-  if mpacks_staging_location is None:
+  if not mpacks_staging_location:
     mpacks_staging_location = configDefaults.MPACKS_STAGING_LOCATION_DEFAULT
   return mpacks_staging_location
 

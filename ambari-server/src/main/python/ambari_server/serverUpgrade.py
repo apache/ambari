@@ -47,6 +47,7 @@ from ambari_server.utils import compare_versions
 from ambari_server.serverUtils import is_server_runing, get_ambari_server_api_base
 from ambari_server.userInput import get_validated_string_input, get_prompt_default, read_password, get_YN_input
 from ambari_server.serverClassPath import ServerClassPath
+from ambari_server.setupMpacks import replay_mpack_logs
 
 # constants
 STACK_NAME_VER_SEP = "-"
@@ -336,6 +337,7 @@ def upgrade(args):
     raise FatalException(retcode, err)
 
   restore_custom_services()
+  replay_mpack_logs()
   try:
     update_database_name_property(upgrade=True)
   except FatalException:

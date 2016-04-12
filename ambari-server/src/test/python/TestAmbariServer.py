@@ -5151,7 +5151,8 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.serverUpgrade.move_user_custom_actions")
   @patch("ambari_server.serverUpgrade.update_krb_jaas_login_properties")
   @patch("ambari_server.serverUpgrade.update_ambari_env")
-  def test_upgrade_from_161(self, update_ambari_env_mock, update_krb_jaas_login_properties_mock, move_user_custom_actions_mock, upgrade_local_repo_mock, get_ambari_properties_mock,
+  @patch("ambari_server.setupMpacks.get_replay_log_file")
+  def test_upgrade_from_161(self, get_replay_log_file_mock, update_ambari_env_mock, update_krb_jaas_login_properties_mock, move_user_custom_actions_mock, upgrade_local_repo_mock, get_ambari_properties_mock,
                             get_ambari_properties_2_mock, get_ambari_properties_3_mock, get_ambari_version_mock, write_property_mock,
                             is_root_mock, update_ambari_properties_mock, find_properties_file_mock, run_os_command_mock,
                             run_schema_upgrade_mock, read_ambari_user_mock, print_warning_msg_mock,
@@ -5215,6 +5216,7 @@ class TestAmbariServer(TestCase):
     properties2.process_pair(JDBC_DATABASE_NAME_PROPERTY, "ambari")
     properties2.process_pair(JDBC_DATABASE_PROPERTY, "postgres")
     get_ambari_properties_3_mock.side_effect = get_ambari_properties_2_mock.side_effect = [properties, properties2, properties2]
+    get_replay_log_file_mock.return_value = "/invalid_path/mpacks_replay.log"
 
     run_schema_upgrade_mock.return_value = 0
     read_ambari_user_mock.return_value = "custom_user"
