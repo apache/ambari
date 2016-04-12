@@ -96,6 +96,18 @@ describe('#wrapperView', function () {
             b: Em.Object.create({serviceName: 's2'}),
             order: false,
             e: -1
+          },
+          {
+            a: Em.Object.create({serviceName: 's1'}),
+            b: Em.Object.create({serviceName: 'S2'}),
+            order: true,
+            e: 1
+          },
+          {
+            a: Em.Object.create({serviceName: 's1'}),
+            b: Em.Object.create({serviceName: 'S2'}),
+            order: false,
+            e: -1
           }
         ]).forEach(function (test, i) {
           it('test #' + (i + 1), function () {

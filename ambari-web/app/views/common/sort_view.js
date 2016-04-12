@@ -177,8 +177,8 @@ var wrapperView = Em.View.extend({
         func = function (a, b) {
           var a_p = a.get(property.get('name'));
           var b_p = b.get(property.get('name'));
-          a_p = Em.isNone(a_p) ? '' : '' + a_p;
-          b_p = Em.isNone(b_p) ? '' : '' + b_p;
+          a_p = Em.isNone(a_p) ? '' : ('' + a_p).toLowerCase();
+          b_p = Em.isNone(b_p) ? '' : ('' + b_p).toLowerCase();
           return order ? b_p.localeCompare(a_p) : a_p.localeCompare(b_p);
         };
     }
@@ -239,7 +239,7 @@ var serverWrapperView = Em.View.extend({
     var childViews = this.get('childViews');
     var statuses = App.db.getSortingStatuses(this.get('controller.name'));
     if (statuses) {
-      var sortingColumn = App.db.getSortingStatuses(this.get('controller.name')).find(function(column){ return column.status != 'sorting'})
+      var sortingColumn = App.db.getSortingStatuses(this.get('controller.name')).find(function(column){ return column.status != 'sorting'});
       if (sortingColumn) {
         var sortingColumnView = childViews.findProperty('name', sortingColumn.name);
         sortingColumnView.set('status', sortingColumn.status);
