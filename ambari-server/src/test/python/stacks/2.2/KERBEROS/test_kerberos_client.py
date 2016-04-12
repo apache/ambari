@@ -356,3 +356,21 @@ class TestKerberosClient(RMFTestCase):
                               action=['delete'])
     self.assertResourceCalled('File', "/etc/security/keytabs/smokeuser.headless.keytab",
                               action=['delete'])
+
+  def test_kdc_host_backwards_compatibility(self):
+    json_data = use_cases.get_unmanged_kdc_use_case()
+
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/kerberos_client.py",
+                       classname="KerberosClient",
+                       command="configure",
+                       config_dict=json_data,
+                       stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+                       )
+
+    # The kdc_hosts is expected to be taken from the JSON configuration data as-is
+    self.assertEquals('c6401.ambari.apache.org, c6402.ambari.apache.org', sys.modules['params'].kdc_hosts)
+
+    # The kdc_host is expected to generated using kdc_hosts, but only the first host is used since
+    # previous versions only knew how to handle a single KDC host
+    self.assertEquals('c6401.ambari.apache.org', sys.modules['params'].kdc_host)

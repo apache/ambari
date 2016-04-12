@@ -145,6 +145,15 @@ if config is not None:
 
       manage_krb5_conf = get_property_value(krb5_conf_data, 'manage_krb5_conf', "true")
 
+    # For backward compatibility, ensure that kdc_host exists. This may be needed if the krb5.conf
+    # template in krb5-conf/content had not be updated during the Ambari upgrade to 2.4.0 - which
+    # will happen if the template was altered from its stack-default value.
+    kdc_host_parts = kdc_hosts.split(',')
+    if kdc_host_parts:
+      kdc_host = kdc_host_parts[0]
+    else:
+      kdc_host = kdc_hosts
+
     # ##############################################################################################
     # Get kdc.conf template data
     # ##############################################################################################
