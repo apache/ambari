@@ -245,13 +245,49 @@ App.AddSecurityConfigs = Em.Mixin.create({
    */
   processConfigReferences: function (kerberosDescriptor, configs) {
     var identities = kerberosDescriptor.identities;
-    identities = identities.concat(kerberosDescriptor.services.map(function (service) {
-      if (service.components && !!service.components.length) {
-        identities = identities.concat(service.components.mapProperty('identities').reduce(function (p, c) {
-          return p.concat(c);
-        }, []));
-        return identities;
+
+    /**
+     * Returns indentity object with additional attribute `referencePath`.
+     * Reference path depends on how deep identity is. Each level separated by `/` sign.
+     *
+     * @param {object} identity
+     * @param {string} [prefix=false] prefix to append e.g. 'SERVICE_NAME'
+     * @returns {object} identity object
+     */
+    var setReferencePath = function(identity, prefix) {
+      var name = Em.getWithDefault(identity, 'name', false);
+      if (name) {
+        if (prefix) {
+          name = prefix + '/' + name;
+        }
+        identity.referencePath = name;
       }
+      return identity;
+    };
+
+    // map all identities and add attribute `referencePath`
+    // `referencePath` is a path to identity it can be 1-3 levels
+    // 1 for "/global" identity e.g. `/spnego`
+    // 2 for "/SERVICE/identity"
+    // 3 for "/SERVICE/COMPONENT/identity"
+    identities = identities.map(function(i) {
+      return setReferencePath(i);
+    })
+    .concat(kerberosDescriptor.services.map(function (service) {
+      var serviceName = Em.getWithDefault(service, 'name', false);
+      var serviceIdentities = Em.getWithDefault(service, 'identities', []).map(function(i) {
+        return setReferencePath(i, serviceName);
+      });
+      var componentIdentities = Em.getWithDefault(service || {}, 'components', []).map(function(i) {
+        var componentName = Em.getWithDefault(i, 'name', false);
+        return Em.getWithDefault(i, 'identities', []).map(function(componentIdentity) {
+          return setReferencePath(componentIdentity, serviceName + '/' + componentName);
+        });
+      }).reduce(function(p, c) {
+        return p.concat(c);
+      }, []);
+      serviceIdentities.pushObjects(componentIdentities);
+      return serviceIdentities;
     }).reduce(function (p, c) {
       return p.concat(c);
     }, []));
@@ -260,7 +296,10 @@ App.AddSecurityConfigs = Em.Mixin.create({
     configs.forEach(function (item) {
       var reference = item.get('referenceProperty');
       if (!!reference) {
-        var identity = identities.findProperty('name', reference.split(':')[0])[reference.split(':')[1]];
+        // first find identity by `name`
+        // if not found try to find by `referencePath`
+        var identity = Em.getWithDefault(identities.findProperty('name', reference.split(':')[0]) || {}, reference.split(':')[1], false) ||
+              Em.getWithDefault(identities.findProperty('referencePath', reference.split(':')[0]) || {}, reference.split(':')[1], false);
         if (identity && !!identity.configuration) {
           item.set('observesValueFrom', identity.configuration.split('/')[1]);
         } else {
