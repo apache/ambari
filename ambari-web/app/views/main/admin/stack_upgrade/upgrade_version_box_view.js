@@ -69,6 +69,8 @@ App.UpgradeVersionBoxView = Em.View.extend({
     return this.get('content.status') === 'CURRENT' ? 'current-version-box' : '';
   }.property('content.status'),
 
+  isPatch: Em.computed.equal('content.type', 'PATCH'),
+
   /**
    * @type {boolean}
    */
@@ -240,6 +242,9 @@ App.UpgradeVersionBoxView = Em.View.extend({
     App.tooltip($('.hosts-tooltip'));
     App.tooltip($('.out-of-sync-badge'), {title: Em.I18n.t('hosts.host.stackVersions.status.out_of_sync')});
     Em.run.later(this, function () {
+      if (this.get('state') !== 'inDOM') {
+        return;
+      }
       if (this.get('maintenanceHosts').length + this.get('notRequiredHosts').length) {
         App.tooltip(this.$('.hosts-section'), {placement: 'bottom', title: Em.I18n.t('admin.stackVersions.version.hostsInfoTooltip').format(
           this.get('maintenanceHosts').length + this.get('notRequiredHosts').length, this.get('maintenanceHosts').length, this.get('notRequiredHosts').length
@@ -248,9 +253,11 @@ App.UpgradeVersionBoxView = Em.View.extend({
     }, 1000);
   },
 
-  isPatch: function() {
-    return this.get('content.type') == "PATCH";
-  }.property('content.type'),
+  willDestroyElement: function () {
+    $('.link-tooltip').tooltip('destroy');
+    $('.hosts-tooltip').tooltip('destroy');
+    $('.out-of-sync-badge').tooltip('destroy');
+  },
 
   /**
    * run custom action of controller
