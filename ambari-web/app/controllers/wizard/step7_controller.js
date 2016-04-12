@@ -992,9 +992,9 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   setGroupsToDelete: function (groups) {
     var groupsToDelete = this.get('groupsToDelete');
     groups.forEach(function (group) {
-      if (group.get('configGroupId'))
+      if (!group.get('isTemporary'))
         groupsToDelete.push({
-          configGroupId: group.get('configGroupId')
+          id: group.get('id')
         });
     });
     this.get('wizardController').setDBProperty('groupsToDelete', groupsToDelete);

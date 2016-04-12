@@ -1447,10 +1447,11 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
       this.removeInstalledServicesConfigurationGroups(groupsToDelete);
     }
     configGroups.forEach(function (configGroup) {
-      if (configGroup.is_for_update || !configGroup.config_group_id) {
+      if (configGroup.is_for_update || configGroup.is_temporary) {
         this.saveGroup(configGroup.properties, configGroup, this.getServiceConfigNote('', configGroup.service_id));
       }
     }, this);
+    App.ServiceConfigGroup.deleteTemporaryRecords();
   },
 
   /**

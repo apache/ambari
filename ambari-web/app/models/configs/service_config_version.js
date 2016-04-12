@@ -26,7 +26,7 @@ App.ServiceConfigVersion = DS.Model.extend({
   serviceName: DS.attr('string'),
   displayName: Em.computed.formatRole('serviceName', true),
   groupName: DS.attr('string'),
-  groupId: DS.attr('number'),
+  groupId: DS.attr('string'),
   version: DS.attr('number'),
   createTime: DS.attr('number'),
   rawCreateTime: DS.attr('number'),

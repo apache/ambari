@@ -36,7 +36,6 @@ require('mixins/main/host/details/actions/install_new_version');
 require('mixins/main/host/details/support_client_configs_download');
 require('mixins/main/service/groups_mapping');
 require('mixins/main/service/themes_mapping');
-require('mixins/main/service/versions_mapping');
 require('mixins/main/service/configs/config_overridable');
 require('mixins/main/service/configs/widget_popover_support');
 require('mixins/main/service/configs/component_actions_by_configs');

@@ -534,11 +534,11 @@ App.ConfigsSaverMixin = Em.Mixin.create({
       }
     };
 
-    if (group.config_group_id) {
-      groupData.ConfigGroup.id = group.config_group_id;
-      this.updateConfigGroup(groupData, successCallback);
-    } else {
+    if (group.is_temporary) {
       this.createConfigGroup(groupData, successCallback);
+    } else {
+      groupData.ConfigGroup.id = group.id;
+      this.updateConfigGroup(groupData, successCallback);
     }
   },
 

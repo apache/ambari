@@ -971,9 +971,9 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
           service_name: configGroup.get('serviceName'),
           service_id: configGroup.get('serviceName'),
           desired_configs: configGroup.get('desiredConfigs'),
-          config_group_id: configGroup.get('configGroupId'),
           child_config_groups: configGroup.get('childConfigGroups') ? configGroup.get('childConfigGroups').mapProperty('id') : [],
-          parent_config_group_id: configGroup.get('parentConfigGroup.id')
+          parent_config_group_id: configGroup.get('parentConfigGroup.id'),
+          is_temporary: configGroup.get('isTemporary')
         });
       }, this)
     }, this);

@@ -424,19 +424,19 @@ describe('App.InstallerStep7Controller', function () {
     });
     it('should add new groups to groupsToDelete', function () {
       var groupsToDelete = [
-          {configGroupId: '1'},
-          {configGroupId: '2'}
+          {id: '1'},
+          {id: '2'}
         ],
         groups = [
-          Em.Object.create({configGroupId: '3'}),
-          Em.Object.create(),
-          Em.Object.create({configGroupId: '5'})
+          Em.Object.create({id: '3', isTemporary: false}),
+          Em.Object.create({id: '4', isTemporary: true}),
+          Em.Object.create({id: '5', isTemporary: false})
         ],
         expected = [
-          {configGroupId: "1"},
-          {configGroupId: "2"},
-          {configGroupId: "3"},
-          {configGroupId: "5"}
+          {id: "1"},
+          {id: "2"},
+          {id: "3"},
+          {id: "5"}
         ];
       installerStep7Controller.set('groupsToDelete', groupsToDelete);
       installerStep7Controller.setGroupsToDelete(groups);

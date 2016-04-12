@@ -18,9 +18,8 @@
 
 var App = require('app');
 var batchUtils = require('utils/batch_scheduled_requests');
-var databaseUtils = require('utils/configs/database');
 
-App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, App.ServerValidatorMixin, App.EnhancedConfigsMixin, App.ThemesMappingMixin, App.VersionsMappingMixin, App.ConfigsSaverMixin, App.ConfigsComparator, App.ComponentActionsByConfigs, {
+App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, App.ServerValidatorMixin, App.EnhancedConfigsMixin, App.ThemesMappingMixin, App.ConfigsSaverMixin, App.ConfigsComparator, App.ComponentActionsByConfigs, {
 
   name: 'mainServiceInfoConfigsController',
 
@@ -221,7 +220,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
    * @method isVersionDefault
    */
   isVersionDefault: function(version) {
-    return (App.ServiceConfigVersion.find(this.get('content.serviceName') + "_" + version).get('groupId') == -1);
+    return (App.ServiceConfigVersion.find(this.get('content.serviceName') + "_" + version).get('groupName') === 'default');
   },
 
   /**
@@ -735,9 +734,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
    */
   doSelectConfigGroup: function (event) {
     App.loadTimer.start('Service Configs Page');
-    var configGroupVersions = App.ServiceConfigVersion.find().filterProperty('groupId', event.context.get('configGroupId'));
+    var configGroupVersions = App.ServiceConfigVersion.find().filterProperty('groupId', event.context.get('id'));
     //check whether config group has config versions
-    if (event.context.get('configGroupId') == -1) {
+    if (event.context.get('isDefault')) {
       this.loadCurrentVersions();
     } else if (configGroupVersions.length > 0) {
       this.loadSelectedVersion(configGroupVersions.findProperty('isCurrent').get('version'), event.context);

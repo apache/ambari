@@ -187,7 +187,6 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
         } else {
           groupsToCreate.push({
             id: groupRecord.get('id'),
-            config_group_id: groupRecord.get('configGroupId'),
             name: groupRecord.get('name'),
             description: groupRecord.get('description'),
             hosts: groupRecord.get('hosts').slice(0),
@@ -419,7 +418,6 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
   createOriginalRecord: function (configGroup) {
     return {
       id: configGroup.get('id'),
-      config_group_id: configGroup.get('configGroupId'),
       name: configGroup.get('name'),
       service_name: configGroup.get('serviceName'),
       description: configGroup.get('description'),
@@ -638,12 +636,10 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
       }.property('warningMessage', 'configGroupName', 'configGroupDesc'),
 
       onPrimary: function () {
-        var renamedGroup = self.createOriginalRecord(self.get('selectedConfigGroup'));
-        renamedGroup.name = this.get('configGroupName');
-        renamedGroup.description = this.get('configGroupDesc');
-        App.store.load(App.ServiceConfigGroup, renamedGroup);
-        App.store.commit();
-        App.configGroupsMapper.deleteRecord(self.get('selectedConfigGroup'));
+        self.get('selectedConfigGroup').setProperties({
+          name: this.get('configGroupName'),
+          description: this.get('configGroupDesc')
+        });
         this.hide();
       }
     });
@@ -699,7 +695,7 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
         var defaultConfigGroup = self.get('configGroups').findProperty('isDefault'),
           properties = [], serviceName = self.get('serviceName'),
           groupName = this.get('configGroupName').trim(),
-          newGroupId = App.ServiceConfigGroup.groupId(serviceName, groupName);
+          newGroupId = (new Date()).getTime();
 
         if (duplicated) {
           self.get('selectedConfigGroup.properties').forEach(function (item) {
@@ -711,15 +707,16 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
 
         App.store.load(App.ServiceConfigGroup, {
           id: newGroupId,
-          name: this.get('configGroupName').trim(),
+          name: groupName,
           description: this.get('configGroupDesc'),
           isDefault: false,
-          parent_config_group_id: App.ServiceConfigGroup.getParentConfigGroupId(serviceName),
+          parent_config_group_id: serviceName + '_default',
           service_id: serviceName,
           service_name: serviceName,
           hosts: [],
           desired_configs: duplicated ? self.get('selectedConfigGroup.desiredConfigs') : [],
-          properties: duplicated ? properties : []
+          properties: duplicated ? properties : [],
+          is_temporary: true
         });
         App.store.commit();
         var childConfigGroups = defaultConfigGroup.get('childConfigGroups').mapProperty('id');

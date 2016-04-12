@@ -33,8 +33,6 @@ describe('App.ServiceConfigGroup', function () {
     model = getModel();
   });
 
-  App.TestAliases.testAsComputedEqual(getModel(), 'isDefault', 'configGroupId', -1);
-
   describe("#displayName", function() {
 
     before(function () {

@@ -20,18 +20,9 @@ var App = require('app');
 
 App.ServiceConfigGroup = DS.Model.extend({
   /**
-   * unique id generated as <code>serviceName<code><code>configGroupId<code>
-   * in case default configGroup <code>serviceName<code><code>0<code>
    * @property {string}
    */
   id: DS.attr('string'),
-
-  /**
-   * original id for config group that is get from server
-   * for default groups -1
-   * @property {number}
-   */
-  configGroupId: DS.attr('number'),
 
   name: DS.attr('string'),
   serviceName: DS.attr('string'),
@@ -41,6 +32,18 @@ App.ServiceConfigGroup = DS.Model.extend({
   service: DS.belongsTo('App.Service'),
   desiredConfigs: DS.attr('array', {defaultValue: []}),
 
+  /**
+   * define if group is persisted on server or is just UI representation
+   * temporary groups are deleted from store after persisting on server by <code>App.ServiceConfigGroup.deleteTemporaryRecords</code> method
+   * @property {boolean}
+   */
+  isTemporary: DS.attr('boolean', {defaultValue: false}),
+
+  /**
+   * define if group is default
+   * @type {boolean}
+   */
+  isDefault: DS.attr('boolean', {defaultValue: false}),
   /**
    * this flag is used for installed services' config groups
    * if user make changes to them - mark this flag to true
@@ -58,12 +61,6 @@ App.ServiceConfigGroup = DS.Model.extend({
    * all hosts that belong to cluster
    */
   clusterHostsBinding: 'App.router.manageConfigGroupsController.clusterHosts',
-
-  /**
-   * defines if group is default
-   * @type {boolean}
-   */
-  isDefault: Em.computed.equal('configGroupId', -1),
 
   /**
    * list of group names that shows which config
@@ -159,4 +156,14 @@ App.ServiceConfigGroup.getParentConfigGroupId = function(serviceName) {
 
 App.ServiceConfigGroup.groupId = function(serviceName, groupName) {
   return serviceName + "_" + groupName;
+};
+
+/**
+ * Delete all records with isTemporary:true
+ * @method
+ */
+App.ServiceConfigGroup.deleteTemporaryRecords = function () {
+  App.ServiceConfigGroup.find().filterProperty('isTemporary').forEach(function(record){
+    App.configGroupsMapper.deleteRecord(record);
+  }, this);
 };

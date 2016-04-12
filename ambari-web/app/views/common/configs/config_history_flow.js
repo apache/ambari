@@ -84,7 +84,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
   serviceVersions: function () {
     var groupName = this.get('controller.selectedConfigGroup.isDefault') ? 'default'
         : this.get('controller.selectedConfigGroup.name');
-    var groupId = this.get('controller.selectedConfigGroup.configGroupId');
+    var groupId = this.get('controller.selectedConfigGroup.id');
     var self = this;
 
     this.get('allServiceVersions').forEach(function (version) {

@@ -118,9 +118,10 @@ App.ConfigOverridable = Em.Mixin.create({
         return !(this.get('optionSelectConfigGroup') || (this.get('newConfigGroupName').trim().length > 0 && !this.get('isWarning')));
       }.property('newConfigGroupName', 'optionSelectConfigGroup', 'warningMessage'),
       onPrimary: function () {
+        var popup = this;
         if (this.get('optionSelectConfigGroup')) {
           var selectedConfigGroup = this.get('selectedConfigGroup');
-          this.hide();
+          popup.hide();
           callback(selectedConfigGroup);
           if (!isInstaller) {
             App.get('router.mainServiceInfoConfigsController').doSelectConfigGroup({context: selectedConfigGroup});
@@ -128,10 +129,10 @@ App.ConfigOverridable = Em.Mixin.create({
         } else {
           var newConfigGroupName = this.get('newConfigGroupName').trim();
           var newConfigGroup = {
-            id: App.ServiceConfigGroup.groupId(serviceId, newConfigGroupName),
+            id: (new Date()).getTime(),
             name: newConfigGroupName,
             is_default: false,
-            parent_config_group_id: App.ServiceConfigGroup.getParentConfigGroupId(serviceId),
+            parent_config_group_id: serviceId + '_default',
             description: Em.I18n.t('config.group.description.default').format(new Date().toDateString()),
             service_id: serviceId,
             service_name: serviceId,
@@ -139,20 +140,22 @@ App.ConfigOverridable = Em.Mixin.create({
             desired_configs: [],
             properties: []
           };
-          App.store.load(App.ServiceConfigGroup, newConfigGroup);
-          App.store.commit();
           if (!isInstaller) {
-            self.postNewConfigurationGroup(newConfigGroup);
-          }
-          newConfigGroup = App.ServiceConfigGroup.find(newConfigGroup.id);
-          configGroups.pushObject(newConfigGroup);
-          if (isInstaller) {
-            self.persistConfigGroups();
+            self.postNewConfigurationGroup(newConfigGroup, function () {
+              newConfigGroup = App.ServiceConfigGroup.find().filterProperty('serviceName', serviceId).findProperty('name', newConfigGroupName);
+              self.saveGroupConfirmationPopup(newConfigGroupName);
+              callback(newConfigGroup);
+              popup.hide();
+            });
           } else {
-            self.saveGroupConfirmationPopup(newConfigGroupName);
+            App.store.load(App.ServiceConfigGroup, newConfigGroup);
+            App.store.commit();
+            newConfigGroup = App.ServiceConfigGroup.find(newConfigGroup.id);
+            configGroups.pushObject(newConfigGroup);
+            self.persistConfigGroups();
+            callback(newConfigGroup);
+            popup.hide();
           }
-          this.hide();
-          callback(newConfigGroup);
         }
       },
       onSecondary: function () {
@@ -253,12 +256,17 @@ App.ConfigOverridable = Em.Mixin.create({
     var sendData = {
       name: 'config_groups.create',
       data: {
-        data: [newGroupData]
+        data: [newGroupData],
+        modelData: newConfigGroupData
       },
       success: 'successFunction',
       error: 'errorFunction',
       successFunction: function (response, opt, params) {
-        App.configGroupsMapper.map(response, false, [params.service_id]);
+        var modelData = params.modelData;
+        modelData.id = response.resources[0].ConfigGroup.id;
+        App.store.load(App.ServiceConfigGroup, modelData);
+        App.store.commit();
+        App.ServiceConfigGroup.deleteTemporaryRecords();
         if (callback) {
           callback();
         }
@@ -305,15 +313,10 @@ App.ConfigOverridable = Em.Mixin.create({
       }
     };
 
-    if (Em.isNone(configGroup.get('configGroupId'))) {
-      Em.assert('Config Group missing server side "id"', false);
-      return null;
-    }
-
     var sendData = {
       name: 'config_groups.update',
       data: {
-        id: configGroup.get('configGroupId'),
+        id: configGroup.get('id'),
         data: putConfigGroup
       },
       success: 'successFunction',
@@ -392,12 +395,12 @@ App.ConfigOverridable = Em.Mixin.create({
       name: 'common.delete.config_group',
       sender: this,
       data: {
-        id: configGroup.get('configGroupId')
+        id: configGroup.get('id')
       },
       success: 'successFunction',
       error: 'errorFunction',
       successFunction: function (data, xhr, params) {
-        var groupFromModel = App.ServiceConfigGroup.find().findProperty('configGroupId', params.id);
+        var groupFromModel = App.ServiceConfigGroup.find().findProperty('id', params.id);
         if (groupFromModel) {
           App.configGroupsMapper.deleteRecord(groupFromModel);
         }

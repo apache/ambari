@@ -25,8 +25,7 @@ var App = require('app');
 App.configGroupsMapper = App.QuickDataMapper.create({
   model: App.ServiceConfigGroup,
   config: {
-    id: 'id',
-    config_group_id: 'ConfigGroup.id',
+    id: 'ConfigGroup.id',
     name: 'ConfigGroup.group_name',
     service_name: 'ConfigGroup.tag',
     description: 'ConfigGroup.description',
@@ -39,8 +38,7 @@ App.configGroupsMapper = App.QuickDataMapper.create({
    * using this config when saving group from config_version api
    */
   config2: {
-    id: 'id',
-    config_group_id: 'group_id',
+    id: 'group_id',
     name: 'group_name',
     service_name: 'service_name',
     hosts: 'hosts',
@@ -93,7 +91,7 @@ App.configGroupsMapper = App.QuickDataMapper.create({
               hostNamesForService[configGroup.service_name].splice(hostNamesForService[configGroup.service_name].indexOf(host), 1);
             });
             configGroup = this.parseIt(configGroup, (mapFromVersions ? this.get('config2') : this.get('config')));
-            configGroup.parent_config_group_id = App.ServiceConfigGroup.getParentConfigGroupId(configGroup.service_name);
+            configGroup.parent_config_group_id = configGroup.service_name + '_default';
             configGroups.push(configGroup);
           }
         }, this);
@@ -108,7 +106,7 @@ App.configGroupsMapper = App.QuickDataMapper.create({
 
 
       configGroups.sort(function (configGroupA, configGroupB) {
-        return configGroupA.config_group_id == -1 || (configGroupA.name > configGroupB.name);
+        return configGroupA.is_default || (configGroupA.name > configGroupB.name);
       });
       App.store.loadMany(this.get('model'), configGroups);
       App.store.commit();
@@ -121,12 +119,11 @@ App.configGroupsMapper = App.QuickDataMapper.create({
    * @param {string} serviceName
    * @param {string[]} [hostNames=null]
    * @param {Array} childConfigGroups
-   * @returns {{id: string, config_group_id: string, name: string, service_name: string, description: string, host_names: [string], service_id: string}}
+   * @returns {{id: string, name: string, service_name: string, description: string, host_names: [string], service_id: string, is_default: boolean}}
    */
   generateDefaultGroup: function (serviceName, hostNames, childConfigGroups) {
     return {
-      id: App.ServiceConfigGroup.getParentConfigGroupId(serviceName),
-      config_group_id: -1,
+      id: serviceName + '_' + 'default',
       name: 'Default',
       service_name: serviceName,
       description: 'Default cluster level ' + App.format.role(serviceName, true) + ' configuration',
@@ -134,7 +131,8 @@ App.configGroupsMapper = App.QuickDataMapper.create({
       child_config_groups: childConfigGroups ? childConfigGroups.uniq() : [],
       service_id: serviceName,
       desired_configs: [],
-      properties: []
+      properties: [],
+      is_default: true
     }
   }
 });

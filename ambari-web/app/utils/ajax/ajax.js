@@ -722,7 +722,7 @@ var urls = {
   },
 
   'configs.config_versions.load.group': {
-    'real': '/clusters/{clusterName}/configurations/service_config_versions?service_name={serviceName}&group_id={configGroupId}&fields=*',
+    'real': '/clusters/{clusterName}/configurations/service_config_versions?service_name={serviceName}&group_id={id}&fields=*',
     'mock': '/data/configurations/config_versions.json'
   },
 
