@@ -134,7 +134,7 @@ describe('App.ReloadPopupMixin', function () {
       sinon.stub(App.ajax, 'defaultErrorHandler', Em.K);
       sinon.stub(obj, 'showReloadPopup', Em.K);
       sinon.stub(App, 'get').withArgs('maxRetries').returns(3);
-      sinon.stub(window, 'setTimeout', Em.K);
+      sinon.spy(window, 'setTimeout');
     });
 
     afterEach(function () {

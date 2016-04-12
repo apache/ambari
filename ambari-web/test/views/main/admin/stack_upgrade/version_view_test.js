@@ -388,7 +388,7 @@ describe('App.mainAdminStackVersionsView', function () {
       request = {
         abort: Em.K
       };
-      sinon.stub(window, 'clearTimeout', Em.K);
+      sinon.spy(window, 'clearTimeout');
       sinon.spy(request, 'abort');
       view.set('controller.runningCheckRequests', [request, request]);
       view.willDestroyElement();
@@ -410,7 +410,7 @@ describe('App.mainAdminStackVersionsView', function () {
 
   describe("#doPolling()", function() {
     before(function () {
-      sinon.stub(window, 'setTimeout', Em.K);
+      sinon.spy(window, 'setTimeout');
     });
     after(function () {
       window.setTimeout.restore();

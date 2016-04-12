@@ -591,7 +591,7 @@ describe('App.WidgetLoadAggregator', function () {
 
   describe("#add()", function () {
     beforeEach(function () {
-      sinon.stub(window, 'setTimeout').returns('timeId');
+      sinon.spy(window, 'setTimeout');
     });
     afterEach(function () {
       window.setTimeout.restore();
@@ -609,7 +609,6 @@ describe('App.WidgetLoadAggregator', function () {
       aggregator.add({});
       expect(aggregator.get('requests')).to.not.be.empty;
       expect(window.setTimeout.calledOnce).to.be.true;
-      expect(aggregator.get('timeoutId')).to.equal('timeId');
     });
   });
 

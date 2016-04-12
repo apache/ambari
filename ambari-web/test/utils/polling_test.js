@@ -580,52 +580,6 @@ describe('App.Poll', function () {
 
   });
 
-  describe('#reloadSuccessCallback', function () {
-
-    var cases = [
-      {
-        parseInfo: false,
-        startPollingCallCount: 1,
-        title: 'no parsed data'
-      },
-      {
-        parseInfo: true,
-        startPollingCallCount: 0,
-        title: 'data parsed'
-      }
-    ];
-
-    cases.forEach(function (item) {
-
-      describe(item.title, function () {
-
-        beforeEach(function () {
-          sinon.stub(poll, 'parseInfo').returns(item.parseInfo);
-          sinon.stub(window, 'setTimeout', Em.clb);
-          sinon.stub(poll, 'startPolling', Em.K);
-          poll.reloadSuccessCallback(null);
-        });
-
-        afterEach(function () {
-          poll.parseInfo.restore();
-          window.setTimeout.restore();
-          poll.startPolling.restore();
-        });
-
-        it('set timeout', function () {
-          expect(window.setTimeout.callCount).to.equal(item.startPollingCallCount);
-        });
-
-        it('timeout callback', function () {
-          expect(poll.startPolling.callCount).to.equal(item.startPollingCallCount);
-        });
-
-      });
-
-    });
-
-  });
-
   describe('#reloadErrorCallback', function () {
 
     var cases = [

@@ -524,30 +524,6 @@ describe('App.ChartLinearTimeView.LoadAggregator', function () {
 
   var aggregator = App.ChartLinearTimeView.LoadAggregator;
 
-  describe("#add()", function () {
-    beforeEach(function () {
-      sinon.stub(window, 'setTimeout').returns('timeId');
-    });
-    afterEach(function () {
-      window.setTimeout.restore();
-    });
-    it("timeout started", function () {
-      aggregator.set('timeoutId', 'timeId');
-      aggregator.get('requests').clear();
-      aggregator.add({}, {});
-      expect(aggregator.get('requests')).to.not.be.empty;
-      expect(window.setTimeout.called).to.be.false;
-    });
-    it("timeout started (2)", function () {
-      aggregator.set('timeoutId', null);
-      aggregator.get('requests').clear();
-      aggregator.add({}, {});
-      expect(aggregator.get('requests')).to.not.be.empty;
-      expect(window.setTimeout.calledOnce).to.be.true;
-      expect(aggregator.get('timeoutId')).to.equal('timeId');
-    });
-  });
-
   describe("#groupRequests()", function () {
     var result;
     beforeEach(function () {
