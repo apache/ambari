@@ -23,7 +23,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.ambari.server.api.services.NamedPropertySet;
 import org.apache.ambari.server.api.services.Request;
+
+import com.google.common.collect.Iterables;
 
 /**
  * The purpose of this class is to retrieve information from {@link Request} objects.
@@ -38,8 +41,9 @@ public class RequestAuditEventCreatorHelper {
    * @return
    */
   public static String getNamedProperty(Request request, String propertyName) {
-    if (isValid(request, propertyName)) {
-      return String.valueOf(request.getBody().getNamedPropertySets().iterator().next().getProperties().get(propertyName));
+    NamedPropertySet first = Iterables.getFirst(request.getBody().getNamedPropertySets(), null);
+    if (first != null && first.getProperties().get(propertyName) instanceof String) {
+      return String.valueOf(first.getProperties().get(propertyName));
     }
     return null;
   }
@@ -51,37 +55,14 @@ public class RequestAuditEventCreatorHelper {
    * @return
    */
   public static List<String> getNamedPropertyList(Request request, String propertyName) {
-    if (isValidList(request, propertyName)) {
-      List<String> list = (List<String>) request.getBody().getNamedPropertySets().iterator().next().getProperties().get(propertyName);
+    NamedPropertySet first = Iterables.getFirst(request.getBody().getNamedPropertySets(), null);
+    if (first != null && first.getProperties().get(propertyName) instanceof List) {
+      List<String> list = (List<String>) first.getProperties().get(propertyName);
       if (list != null) {
         return list;
       }
     }
     return Collections.emptyList();
-  }
-
-  /**
-   * Checks if the property is valid: can be found and has correct type
-   * @param request
-   * @param propertyName
-   * @return
-   */
-  private static boolean isValid(Request request, String propertyName) {
-    return !request.getBody().getNamedPropertySets().isEmpty() &&
-      request.getBody().getNamedPropertySets().iterator().next().getProperties() != null &&
-      request.getBody().getNamedPropertySets().iterator().next().getProperties().get(propertyName) instanceof String;
-  }
-
-  /**
-   * Checks if the property is a valid list: can be found and has correct type
-   * @param request
-   * @param propertyName
-   * @return
-   */
-  private static boolean isValidList(Request request, String propertyName) {
-    return !request.getBody().getNamedPropertySets().isEmpty() &&
-      request.getBody().getNamedPropertySets().iterator().next().getProperties() != null &&
-      request.getBody().getNamedPropertySets().iterator().next().getProperties().get(propertyName) instanceof List;
   }
 
   /**

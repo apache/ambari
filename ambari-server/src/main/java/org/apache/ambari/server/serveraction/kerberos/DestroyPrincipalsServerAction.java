@@ -93,6 +93,8 @@ public class DestroyPrincipalsServerAction extends KerberosServerAction {
     actionLog.writeStdOut(message);
     DestroyPrincipalKerberosAuditEvent.DestroyPrincipalKerberosAuditEventBuilder auditEventBuilder = DestroyPrincipalKerberosAuditEvent.builder()
       .withTimestamp(System.currentTimeMillis())
+      .withRequestId(getHostRoleCommand().getRequestId())
+      .withTaskId(getHostRoleCommand().getTaskId())
       .withPrincipal(evaluatedPrincipal);
 
     try {

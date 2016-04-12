@@ -42,7 +42,8 @@ public class DestroyPrincipalKerberosAuditEvent extends AbstractKerberosAuditEve
       super.buildAuditMessage(builder);
 
       builder.append(", Principal(")
-        .append(principal);
+        .append(principal)
+        .append(")");
     }
 
     /**

@@ -18,9 +18,13 @@
 
 package org.apache.ambari.server.audit.request.eventcreator;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import org.apache.ambari.server.api.services.NamedPropertySet;
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultStatus;
@@ -33,6 +37,7 @@ import org.apache.ambari.server.controller.internal.HostResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 
 /**
  * This creator handles host requests (add, delete, add component)
@@ -109,7 +114,7 @@ public class HostEventCreator implements RequestAuditEventCreator {
           .withUrl(request.getURI())
           .withRemoteIp(request.getRemoteAddress())
           .withHostName(getHostNameFromQuery(request))
-          .withComponent(getHostComponent(request))
+          .withComponents(getHostComponents(request))
           .build();
       default:
         return null;
@@ -121,14 +126,18 @@ public class HostEventCreator implements RequestAuditEventCreator {
    * @param request
    * @return
    */
-  private String getHostComponent(Request request) {
-    if (!request.getBody().getNamedPropertySets().isEmpty()) {
-      Set<Map<String, String>> set = (Set<Map<String, String>>) request.getBody().getNamedPropertySets().iterator().next().getProperties().get("host_components");
+  private Set<String> getHostComponents(Request request) {
+    Set<String> components = new HashSet<>();
+    NamedPropertySet propertySet = Iterables.getFirst(request.getBody().getNamedPropertySets(), null);
+    if (propertySet != null && propertySet.getProperties().get("host_components") instanceof Set) {
+      Set<Map<String, String>> set = (Set<Map<String, String>>) propertySet.getProperties().get("host_components");
       if (set != null && !set.isEmpty()) {
-        return set.iterator().next().get(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID);
+        for(Map<String, String> element : set) {
+          components.add(element.get(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID));
+        }
       }
     }
-    return null;
+    return components;
   }
 
   /**
@@ -138,11 +147,12 @@ public class HostEventCreator implements RequestAuditEventCreator {
    */
   private String getHostNameFromQuery(Request request) {
     final String key = HostResourceProvider.HOST_NAME_PROPERTY_ID;
-    if (request.getBody().getQueryString().contains(key)) {
-      String q = request.getBody().getQueryString();
-      int startIndex = q.indexOf(key) + key.length() + 1;
-      int endIndex = q.indexOf("&", startIndex) == -1 ? q.length() : q.indexOf("&", startIndex);
-      return q.substring(startIndex, endIndex);
+    if (request.getURI().contains(key)) {
+      Pattern pattern = Pattern.compile(".*" + key + "\\s*=\\s*([^&\\s]+).*");
+      Matcher matcher = pattern.matcher(request.getURI());
+      if(matcher.find()) {
+        return matcher.group(1);
+      }
     }
     return null;
   }

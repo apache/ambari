@@ -37,6 +37,7 @@ import org.apache.ambari.server.controller.internal.RepositoryVersionResourcePro
 import org.apache.ambari.server.controller.spi.Resource;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 
 /**
  * This creator handles privilege requests
@@ -138,12 +139,11 @@ public class RepositoryVersionEventCreator implements RequestAuditEventCreator {
 
     Map<String, List<Map<String, String>>> result = new HashMap<String, List<Map<String, String>>>();
 
-    if (!request.getBody().getPropertySets().isEmpty()) {
-      if (request.getBody().getPropertySets().iterator().next().get("operating_systems") instanceof Set) {
-        Set<Object> set = (Set<Object>) request.getBody().getPropertySets().iterator().next().get("operating_systems");
+    Map<String, Object> first = Iterables.getFirst(request.getBody().getPropertySets(), null);
 
-        result = createResultForOperationSystems(set);
-      }
+    if (first != null && first.get("operating_systems") instanceof Set) {
+      Set<Object> set = (Set<Object>) first.get("operating_systems");
+      result = createResultForOperationSystems(set);
     }
     return result;
   }

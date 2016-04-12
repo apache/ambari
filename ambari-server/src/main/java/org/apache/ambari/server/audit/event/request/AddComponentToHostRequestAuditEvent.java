@@ -18,12 +18,15 @@
 
 package org.apache.ambari.server.audit.event.request;
 
+import java.util.Set;
+
 import javax.annotation.concurrent.Immutable;
 
 import org.apache.ambari.server.audit.request.RequestAuditEvent;
+import org.apache.commons.lang.StringUtils;
 
 /**
- * Audit event for adding component to a host
+ * Audit event for adding components to a host
  */
 @Immutable
 public class AddComponentToHostRequestAuditEvent extends RequestAuditEvent {
@@ -38,7 +41,7 @@ public class AddComponentToHostRequestAuditEvent extends RequestAuditEvent {
     /**
      * Component name
      */
-    private String component;
+    private Set<String> components;
 
     public AddComponentToHostRequestAuditEventBuilder() {
       super.withOperation("Component addition to host");
@@ -60,8 +63,8 @@ public class AddComponentToHostRequestAuditEvent extends RequestAuditEvent {
 
       builder.append(", Hostname(")
         .append(hostName)
-        .append(", Component(")
-        .append(component)
+        .append("), Component(")
+        .append(components == null ? "" : StringUtils.join(components, ", "))
         .append(")");
     }
 
@@ -70,8 +73,8 @@ public class AddComponentToHostRequestAuditEvent extends RequestAuditEvent {
       return this;
     }
 
-    public AddComponentToHostRequestAuditEventBuilder withComponent(String component) {
-      this.component = component;
+    public AddComponentToHostRequestAuditEventBuilder withComponents(Set<String> component) {
+      this.components = component;
       return this;
     }
   }

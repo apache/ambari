@@ -24,6 +24,7 @@ import java.util.Set;
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultStatus;
+import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.audit.event.AuditEvent;
 import org.apache.ambari.server.audit.event.request.ClusterNameChangeRequestAuditEvent;
 import org.apache.ambari.server.audit.event.request.ConfigurationChangeRequestAuditEvent;
@@ -32,6 +33,7 @@ import org.apache.ambari.server.controller.internal.ServiceConfigVersionResource
 import org.apache.ambari.server.controller.spi.Resource;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 
 /**
  * This creator handles operation requests (start, stop, install, etc)
@@ -81,8 +83,8 @@ public class ConfigurationChangeEventCreator implements RequestAuditEventCreator
   public AuditEvent createAuditEvent(Request request, Result result) {
 
     if (!request.getBody().getPropertySets().isEmpty()) {
-      Map<String, Object> map = request.getBody().getPropertySets().iterator().next();
-      if (map.size() == 1 && map.containsKey(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID)) {
+      Map<String, Object> map = Iterables.getFirst(request.getBody().getPropertySets(), null);
+      if (map != null && map.size() == 1 && map.containsKey(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID)) {
         String newName = String.valueOf(map.get(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID));
         String oldName = request.getResource().getKeyValueMap().get(Resource.Type.Cluster);
         return ClusterNameChangeRequestAuditEvent.builder()
@@ -134,10 +136,11 @@ public class ConfigurationChangeEventCreator implements RequestAuditEventCreator
    * @return
    */
   private Map<String, Object> getServiceConfigMap(Result result) {
-    if (result.getResultTree().getChild("resources") != null &&
-      !result.getResultTree().getChild("resources").getChildren().isEmpty() &&
-      result.getResultTree().getChild("resources").getChildren().iterator().next().getObject() != null) {
-      return result.getResultTree().getChild("resources").getChildren().iterator().next().getObject().getPropertiesMap().get("");
+    if (result.getResultTree().getChild("resources") != null) {
+      TreeNode<Resource> first = Iterables.getFirst(result.getResultTree().getChild("resources").getChildren(), null);
+      if(first != null && first.getObject() != null) {
+        return first.getObject().getPropertiesMap().get("");
+      }
     }
     return null;
   }

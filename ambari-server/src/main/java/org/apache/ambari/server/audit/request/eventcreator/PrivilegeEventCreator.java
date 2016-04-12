@@ -37,6 +37,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 
 /**
  * This creator handles privilege requests
@@ -100,7 +101,7 @@ public class PrivilegeEventCreator implements RequestAuditEventCreator {
           .withGroups(groups)
           .build();
       case POST:
-        String role = users.isEmpty() ? (groups.isEmpty() ? null : groups.keySet().iterator().next()) : users.keySet().iterator().next();
+        String role = users.isEmpty() ? Iterables.getFirst(groups.keySet(), null) : Iterables.getFirst(users.keySet(), null);
         return PrivilegeChangeRequestAuditEvent.builder()
           .withTimestamp(System.currentTimeMillis())
           .withRequestType(request.getRequestType())

@@ -176,6 +176,8 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
                                                ActionLog actionLog) {
     CreatePrincipalKerberosAuditEvent.CreatePrincipalKerberosAuditEventBuilder auditEventBuilder = CreatePrincipalKerberosAuditEvent.builder()
       .withTimestamp(System.currentTimeMillis())
+      .withRequestId(getHostRoleCommand().getRequestId())
+      .withTaskId(getHostRoleCommand().getTaskId())
       .withPrincipal(principal);
     CreatePrincipalResult result = null;
     String message = null;

@@ -42,6 +42,16 @@ public class AbstractKerberosAuditEvent extends AbstractAuditEvent {
     protected String reasonOfFailure;
 
     /**
+     * ID of the related request
+     */
+    protected Long requestId;
+
+    /**
+     * ID of the related task
+     */
+    protected Long taskId;
+
+    /**
      * Builds and audit log message based on the member variables
      *
      * @param builder builder for the audit event details.
@@ -60,7 +70,11 @@ public class AbstractKerberosAuditEvent extends AbstractAuditEvent {
           .append(reasonOfFailure);
       }
 
-      builder.append(")");
+      builder.append("), RequestId(")
+        .append(requestId)
+        .append("), TaskId(")
+        .append(taskId)
+        .append(")");
     }
 
     public TBuilder withOperation(String operation) {
@@ -70,6 +84,16 @@ public class AbstractKerberosAuditEvent extends AbstractAuditEvent {
 
     public TBuilder withReasonOfFailure(String reasonOfFailure) {
       this.reasonOfFailure = reasonOfFailure;
+      return (TBuilder) this;
+    }
+
+    public TBuilder withRequestId(Long requestId) {
+      this.requestId = requestId;
+      return (TBuilder) this;
+    }
+
+    public TBuilder withTaskId(Long taskId) {
+      this.taskId = taskId;
       return (TBuilder) this;
     }
   }

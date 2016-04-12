@@ -98,6 +98,8 @@ public class FinalizeKerberosServerAction extends KerberosServerAction {
               .withComponent(sch.getServiceComponentName())
               .withHostName(sch.getHostName())
               .withState(sch.getDesiredSecurityState().toString())
+              .withRequestId(getHostRoleCommand().getRequestId())
+              .withTaskId(getHostRoleCommand().getTaskId())
               .build();
             auditLog(auditEvent);
           }

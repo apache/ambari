@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.audit.request.eventcreator;
 
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.api.services.Request;
@@ -33,6 +34,7 @@ import org.apache.ambari.server.controller.internal.UserResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 
 /**
  * This creator handles user requests
@@ -166,7 +168,8 @@ public class UserEventCreator implements RequestAuditEventCreator {
    * @return
    */
   private boolean hasAdmin(Request request) {
-    return !request.getBody().getPropertySets().isEmpty() && request.getBody().getPropertySets().iterator().next().containsKey(UserResourceProvider.USER_ADMIN_PROPERTY_ID);
+    Map<String, Object> first = Iterables.getFirst(request.getBody().getPropertySets(), null);
+    return first != null && first.containsKey(UserResourceProvider.USER_ADMIN_PROPERTY_ID);
   }
 
   /**
@@ -175,7 +178,8 @@ public class UserEventCreator implements RequestAuditEventCreator {
    * @return
    */
   private boolean hasActive(Request request) {
-    return !request.getBody().getPropertySets().isEmpty() && request.getBody().getPropertySets().iterator().next().containsKey(UserResourceProvider.USER_ACTIVE_PROPERTY_ID);
+    Map<String, Object> first = Iterables.getFirst(request.getBody().getPropertySets(), null);
+    return first != null && first.containsKey(UserResourceProvider.USER_ACTIVE_PROPERTY_ID);
   }
 
   /**
@@ -184,7 +188,8 @@ public class UserEventCreator implements RequestAuditEventCreator {
    * @return
    */
   private boolean hasOldPassword(Request request) {
-    return !request.getBody().getPropertySets().isEmpty() && request.getBody().getPropertySets().iterator().next().containsKey(UserResourceProvider.USER_OLD_PASSWORD_PROPERTY_ID);
+    Map<String, Object> first = Iterables.getFirst(request.getBody().getPropertySets(), null);
+    return first != null && first.containsKey(UserResourceProvider.USER_OLD_PASSWORD_PROPERTY_ID);
   }
 
   /**
@@ -193,8 +198,9 @@ public class UserEventCreator implements RequestAuditEventCreator {
    * @return
    */
   private String getUsername(Request request) {
-    if (!request.getBody().getPropertySets().isEmpty()) {
-      return String.valueOf(request.getBody().getPropertySets().iterator().next().get(UserResourceProvider.USER_USERNAME_PROPERTY_ID));
+    Map<String, Object> first = Iterables.getFirst(request.getBody().getPropertySets(), null);
+    if (first != null) {
+      return String.valueOf(first.get(UserResourceProvider.USER_USERNAME_PROPERTY_ID));
     }
     return null;
   }

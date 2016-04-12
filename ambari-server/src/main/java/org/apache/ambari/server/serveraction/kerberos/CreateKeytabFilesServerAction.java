@@ -151,7 +151,11 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
       throws AmbariException {
 
 
-    CreateKeyTabKerberosAuditEvent.CreateKeyTabKerberosAuditEventBuilder auditEventBuilder = CreateKeyTabKerberosAuditEvent.builder().withTimestamp(System.currentTimeMillis());
+    CreateKeyTabKerberosAuditEvent.CreateKeyTabKerberosAuditEventBuilder auditEventBuilder = CreateKeyTabKerberosAuditEvent.builder();
+    auditEventBuilder.withTimestamp(System.currentTimeMillis());
+    auditEventBuilder.withRequestId(getHostRoleCommand().getRequestId());
+    auditEventBuilder.withTaskId(getHostRoleCommand().getTaskId());
+
     CommandReport commandReport = null;
     String message = null;
     try {
