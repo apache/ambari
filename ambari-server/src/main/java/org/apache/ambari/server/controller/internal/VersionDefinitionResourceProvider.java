@@ -33,6 +33,7 @@ import java.util.Set;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.api.resources.OperatingSystemResourceDefinition;
+import org.apache.ambari.server.api.resources.RepositoryResourceDefinition;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.configuration.Configuration;
@@ -48,6 +49,8 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
+import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
+import org.apache.ambari.server.orm.entities.RepositoryEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.security.authorization.ResourceType;
@@ -61,6 +64,9 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
+import org.codehaus.jackson.node.ArrayNode;
+import org.codehaus.jackson.node.JsonNodeFactory;
+import org.codehaus.jackson.node.ObjectNode;
 
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
@@ -92,6 +98,8 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
   protected static final String VERSION_DEF_AVAILABLE_SERVICES       = "VersionDefinition/services";
   protected static final String VERSION_DEF_STACK_SERVICES           = "VersionDefinition/stack_services";
   protected static final String SHOW_AVAILABLE                       = "VersionDefinition/show_available";
+
+  public static final String DIRECTIVE_DRY_RUN                       = "dry_run";
 
   public static final String SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID  = new OperatingSystemResourceDefinition().getPluralName();
 
@@ -156,9 +164,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
     super(PROPERTY_IDS, KEY_PROPERTY_IDS);
 
     setRequiredCreateAuthorizations(EnumSet.of(RoleAuthorization.AMBARI_MANAGE_STACK_VERSIONS));
-
-    setRequiredGetAuthorizations(EnumSet.of(
-        RoleAuthorization.AMBARI_MANAGE_STACK_VERSIONS));
+    setRequiredGetAuthorizations(EnumSet.of(RoleAuthorization.AMBARI_MANAGE_STACK_VERSIONS));
   }
 
   @Override
@@ -187,9 +193,18 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
           VERSION_DEF_DEFINITION_URL));
     }
 
-    RepositoryVersionEntity entity = createResources(new Command<RepositoryVersionEntity>() {
+    Map<String, String> requestInfo = request.getRequestInfoProperties();
+
+    final boolean dryRun;
+    if (requestInfo.containsKey(DIRECTIVE_DRY_RUN)) {
+      dryRun = Boolean.parseBoolean(requestInfo.get(DIRECTIVE_DRY_RUN));
+    } else {
+      dryRun = false;
+    }
+
+    XmlHolder xmlHolder = createResources(new Command<XmlHolder>() {
       @Override
-      public RepositoryVersionEntity invoke() throws AmbariException {
+      public XmlHolder invoke() throws AmbariException {
 
         String definitionUrl = (String) properties.get(VERSION_DEF_DEFINITION_URL);
         String definitionBase64 = (String) properties.get(VERSION_DEF_DEFINITION_BASE64);
@@ -218,24 +233,49 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
           throw new AmbariException("Cannot determine creation method");
         }
 
+        toRepositoryVersionEntity(holder);
 
-        RepositoryVersionEntity entity = toRepositoryVersionEntity(holder);
+        if (!dryRun) {
+          RepositoryVersionResourceProvider.validateRepositoryVersion(s_repoVersionDAO,
+              s_metaInfo.get(), holder.entity);
+        }
 
-        RepositoryVersionResourceProvider.validateRepositoryVersion(s_repoVersionDAO,
-            s_metaInfo.get(), entity);
+        checkForParent(holder);
 
-        checkForParent(holder, entity);
+        if (!dryRun) {
+          s_repoVersionDAO.create(holder.entity);
+        }
 
-        s_repoVersionDAO.create(entity);
-
-        return entity;
+        return holder;
       }
     });
 
-    notifyCreate(Resource.Type.VersionDefinition, request);
+    final Resource res;
+
+    if (dryRun) {
+      // !!! dry runs imply that the whole entity should be provided.  this is usually
+      // done via sub-resources, but that model breaks down since we don't have a saved
+      // entity yet
+      Set<String> ids = Sets.newHashSet(
+        VERSION_DEF_TYPE_PROPERTY_ID,
+        VERSION_DEF_FULL_VERSION,
+        VERSION_DEF_RELEASE_BUILD,
+        VERSION_DEF_RELEASE_COMPATIBLE_WITH,
+        VERSION_DEF_RELEASE_NOTES,
+        VERSION_DEF_RELEASE_VERSION,
+        VERSION_DEF_AVAILABLE_SERVICES,
+        VERSION_DEF_STACK_SERVICES);
+
+      res = toResource(null, xmlHolder.xml, ids, false);
+
+      addSubresources(res, xmlHolder.entity);
+    } else {
+      res = toResource(xmlHolder.entity, Collections.<String>emptySet());
+      notifyCreate(Resource.Type.VersionDefinition, request);
+    }
 
     RequestStatusImpl status = new RequestStatusImpl(null,
-        Collections.singleton(toResource(entity, Collections.<String>emptySet())));
+        Collections.singleton(res));
 
     return status;
   }
@@ -263,7 +303,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
             Boolean.parseBoolean(propertyMap.get(SHOW_AVAILABLE).toString())) {
 
           for (Entry<String, VersionDefinitionXml> entry : s_metaInfo.get().getVersionDefinitions().entrySet()) {
-            results.add(toResource(entry.getKey(), entry.getValue(), requestPropertyIds));
+            results.add(toResource(entry.getKey(), entry.getValue(), requestPropertyIds, true));
           }
 
         } else {
@@ -283,7 +323,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
                 throw new NoSuchResourceException(String.format("Could not find version %s",
                     id));
               }
-              results.add(toResource(id, xml, requestPropertyIds));
+              results.add(toResource(id, xml, requestPropertyIds, true));
 
             }
           } else {
@@ -319,7 +359,8 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
    * In the case of a patch, check if there is a parent repo.
    * @param entity the entity to check
    */
-  private void checkForParent(XmlHolder holder, RepositoryVersionEntity entity) throws AmbariException {
+  private void checkForParent(XmlHolder holder) throws AmbariException {
+    RepositoryVersionEntity entity = holder.entity;
     if (entity.getType() != RepositoryType.PATCH) {
       return;
     }
@@ -449,7 +490,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
    * @return constructed entity
    * @throws AmbariException if some properties are missing or json has incorrect structure
    */
-  protected RepositoryVersionEntity toRepositoryVersionEntity(XmlHolder holder) throws AmbariException {
+  protected void toRepositoryVersionEntity(XmlHolder holder) throws AmbariException {
 
     // !!! TODO validate parsed object graph
 
@@ -469,14 +510,17 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
     entity.setVersionXml(holder.xmlString);
     entity.setVersionXsd(holder.xml.xsdLocation);
 
-    return entity;
+    holder.entity = entity;
   }
 
-  private Resource toResource(String id, VersionDefinitionXml xml, Set<String> requestedIds) throws SystemException {
+  private Resource toResource(String id, VersionDefinitionXml xml, Set<String> requestedIds, boolean fromAvailable) throws SystemException {
 
     Resource resource = new ResourceImpl(Resource.Type.VersionDefinition);
     resource.setProperty(VERSION_DEF_ID, id);
-    resource.setProperty(SHOW_AVAILABLE, Boolean.TRUE);
+    if (fromAvailable) {
+      resource.setProperty(SHOW_AVAILABLE, Boolean.TRUE);
+    }
+
     StackId stackId = new StackId(xml.release.stackId);
 
     // !!! these are needed for href
@@ -501,7 +545,6 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
     setResourceProperty(resource, VERSION_DEF_STACK_SERVICES, xml.getStackServices(stack), requestedIds);
 
     return resource;
-
   }
 
   /**
@@ -561,12 +604,72 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
   }
 
   /**
+   * Provide the dry-run entity with fake sub-resources.  These are not queryable by normal API.
+   */
+  private void addSubresources(Resource res, RepositoryVersionEntity entity) {
+    JsonNodeFactory factory = JsonNodeFactory.instance;
+
+    ArrayNode subs = factory.arrayNode();
+
+    for (OperatingSystemEntity os : entity.getOperatingSystems()) {
+      ObjectNode osBase = factory.objectNode();
+
+      ObjectNode osElement = factory.objectNode();
+      osElement.put(PropertyHelper.getPropertyName(OperatingSystemResourceProvider.OPERATING_SYSTEM_AMBARI_MANAGED_REPOS),
+          os.isAmbariManagedRepos());
+      osElement.put(PropertyHelper.getPropertyName(OperatingSystemResourceProvider.OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID),
+          os.getOsType());
+
+      osElement.put(PropertyHelper.getPropertyName(OperatingSystemResourceProvider.OPERATING_SYSTEM_STACK_NAME_PROPERTY_ID),
+          entity.getStackName());
+      osElement.put(PropertyHelper.getPropertyName(OperatingSystemResourceProvider.OPERATING_SYSTEM_STACK_VERSION_PROPERTY_ID),
+          entity.getStackVersion());
+
+      osBase.put(PropertyHelper.getPropertyCategory(OperatingSystemResourceProvider.OPERATING_SYSTEM_AMBARI_MANAGED_REPOS),
+          osElement);
+
+      ArrayNode reposArray = factory.arrayNode();
+      for (RepositoryEntity repo : os.getRepositories()) {
+        ObjectNode repoBase = factory.objectNode();
+
+        ObjectNode repoElement = factory.objectNode();
+
+        repoElement.put(PropertyHelper.getPropertyName(RepositoryResourceProvider.REPOSITORY_BASE_URL_PROPERTY_ID),
+            repo.getBaseUrl());
+        repoElement.put(PropertyHelper.getPropertyName(RepositoryResourceProvider.REPOSITORY_OS_TYPE_PROPERTY_ID),
+            os.getOsType());
+        repoElement.put(PropertyHelper.getPropertyName(RepositoryResourceProvider.REPOSITORY_REPO_ID_PROPERTY_ID),
+            repo.getRepositoryId());
+        repoElement.put(PropertyHelper.getPropertyName(RepositoryResourceProvider.REPOSITORY_REPO_NAME_PROPERTY_ID),
+            repo.getName());
+        repoElement.put(PropertyHelper.getPropertyName(RepositoryResourceProvider.REPOSITORY_STACK_NAME_PROPERTY_ID),
+            entity.getStackName());
+        repoElement.put(PropertyHelper.getPropertyName(RepositoryResourceProvider.REPOSITORY_STACK_VERSION_PROPERTY_ID),
+            entity.getStackVersion());
+
+        repoBase.put(PropertyHelper.getPropertyCategory(RepositoryResourceProvider.REPOSITORY_BASE_URL_PROPERTY_ID),
+            repoElement);
+
+        reposArray.add(repoBase);
+      }
+
+      osBase.put(new RepositoryResourceDefinition().getPluralName(), reposArray);
+
+      subs.add(osBase);
+    }
+
+    res.setProperty(new OperatingSystemResourceDefinition().getPluralName(), subs);
+  }
+
+
+  /**
    * Convenience class to hold the xml String representation, the url, and the parsed object.
    */
   private static class XmlHolder {
     String url = null;
     String xmlString = null;
     VersionDefinitionXml xml = null;
+    RepositoryVersionEntity entity = null;
   }
 
 

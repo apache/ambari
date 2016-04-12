@@ -311,4 +311,38 @@ public class VersionDefinitionResourceProviderTest {
     Assert.assertEquals(1, results.size());
   }
 
+  @Test
+  public void testCreateDryRun() throws Exception {
+    Authentication authentication = TestAuthenticationFactory.createAdministrator();
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+
+    File file = new File("src/test/resources/version_definition_resource_provider.xml");
+
+    final ResourceProvider versionProvider = new VersionDefinitionResourceProvider();
+    final ResourceProvider provider = injector.getInstance(ResourceProviderFactory.class)
+        .getRepositoryVersionResourceProvider();
+
+    final Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+    final Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    properties.put(VersionDefinitionResourceProvider.VERSION_DEF_DEFINITION_URL,
+        file.toURI().toURL().toString());
+    propertySet.add(properties);
+
+    Map<String, String> info = Collections.singletonMap(VersionDefinitionResourceProvider.DIRECTIVE_DRY_RUN, "true");
+
+    final Request createRequest = PropertyHelper.getCreateRequest(propertySet, info);
+    RequestStatus status = versionProvider.createResources(createRequest);
+    Assert.assertEquals(1, status.getAssociatedResources().size());
+
+    Resource res = status.getAssociatedResources().iterator().next();
+    System.out.println(res.getPropertiesMap().keySet());
+    // because we aren't using subresources, but return subresource-like properties, the key is an empty string
+    Assert.assertTrue(res.getPropertiesMap().containsKey(""));
+    Map<String, Object> resMap = res.getPropertiesMap().get("");
+    Assert.assertTrue(resMap.containsKey("operating_systems"));
+
+    Request getRequest = PropertyHelper.getReadRequest("VersionDefinition");
+    Set<Resource> results = versionProvider.getResources(getRequest, null);
+    Assert.assertEquals(0, results.size());
+  }
 }
