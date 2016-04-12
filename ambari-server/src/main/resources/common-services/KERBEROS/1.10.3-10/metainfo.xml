@@ -117,7 +117,7 @@
         </osSpecific>
 
         <osSpecific>
-          <osFamily>suse11</osFamily>
+          <osFamily>suse11,suse12</osFamily>
           <packages>
             <package>
               <name>krb5</name>

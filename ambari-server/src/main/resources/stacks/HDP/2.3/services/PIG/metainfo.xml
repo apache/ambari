@@ -23,7 +23,7 @@
       <version>0.15.0.2.3</version>
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat7,amazon2015,redhat6,suse11</osFamily>
+          <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
           <packages>
             <package>
               <name>pig_${stack_version}</name>

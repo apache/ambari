@@ -23,7 +23,7 @@
       <version>3.4.6.2.3</version>
       <osSpecifics>
         <osSpecific>
-          <osFamily>amazon2015,redhat6,suse11</osFamily>
+          <osFamily>amazon2015,redhat6,suse11,suse12</osFamily>
           <packages>
             <package>
               <name>zookeeper_${stack_version}</name>

@@ -33,7 +33,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>redhat7,amazon2015,redhat6,suse11</osFamily>
+          <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
           <packages>
             <package>
               <name>sqoop_${stack_version}</name>

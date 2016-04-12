@@ -23,7 +23,7 @@
       <extends>common-services/SLIDER/0.60.0.2.2</extends>
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat7,amazon2015,redhat6,suse11</osFamily>
+          <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
           <packages>
             <package>
               <name>slider_${stack_version}</name>

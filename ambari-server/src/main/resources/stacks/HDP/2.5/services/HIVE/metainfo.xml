@@ -134,7 +134,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>redhat7,amazon2015,redhat6,suse11</osFamily>
+          <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
           <packages>
             <package>
               <name>hive_${stack_version}</name>
@@ -158,7 +158,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>amazon2015,redhat6,suse11</osFamily>
+          <osFamily>amazon2015,redhat6,suse11,suse12</osFamily>
           <packages>
             <package>
               <name>mysql</name>
@@ -217,7 +217,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>suse11</osFamily>
+          <osFamily>suse11,suse12</osFamily>
           <packages>
             <package>
               <name>mysql-client</name>

@@ -207,7 +207,7 @@
         </osSpecific>
         
         <osSpecific>
-          <osFamily>amazon2015,redhat6,suse11</osFamily>
+          <osFamily>amazon2015,redhat6,suse11,suse12</osFamily>
           <packages>
             <package>
               <name>snappy</name>

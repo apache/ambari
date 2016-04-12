@@ -172,7 +172,7 @@ public interface Host extends Comparable {
    * redhat6: for centos6, rhel6, oraclelinux6 ..
    * ubuntu12 : for ubuntu12
    * suse11: for sles11, suse11 ..
-   *
+   * suse12: for suse12, sles12 ..
    * @return the osFamily
    */
   String getOsFamily();

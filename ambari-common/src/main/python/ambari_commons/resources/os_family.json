@@ -48,7 +48,8 @@
           "suse"
         ],
         "versions": [
-          11
+          11,
+          12
         ]
       },
       "winsrv": {

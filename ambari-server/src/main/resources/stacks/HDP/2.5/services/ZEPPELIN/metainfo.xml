@@ -25,7 +25,7 @@
             <extends>common-services/ZEPPELIN/0.6.0.2.5</extends>
             <osSpecifics>
                 <osSpecific>
-                    <osFamily>redhat7,amazon2015,redhat6,suse11</osFamily>
+                    <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
                     <packages>
                         <package>
                             <name>zeppelin_${stack_version}</name>
