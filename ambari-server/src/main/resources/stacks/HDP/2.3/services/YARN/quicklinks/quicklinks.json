@@ -21,9 +21,9 @@
         "requires_user_name": "false",
         "url": "%@://%@:%@",
         "port":{
-          "http_property": "yarn.timeline-service.webapp.address",
+          "http_property": "yarn.resourcemanager.webapp.address",
           "http_default_port": "8088",
-          "https_property": "yarn.timeline-service.webapp.https.address",
+          "https_property": "yarn.resourcemanager.webapp.https.address",
           "https_default_port": "8090",
           "regex": "\\w*:(\\d+)",
           "site": "yarn-site"
