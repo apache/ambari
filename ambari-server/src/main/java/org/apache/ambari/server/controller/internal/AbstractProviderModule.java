@@ -30,6 +30,7 @@ import org.apache.ambari.server.controller.ServiceComponentHostRequest;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.controller.jmx.JMXHostProvider;
 import org.apache.ambari.server.controller.jmx.JMXPropertyProvider;
+import org.apache.ambari.server.controller.logging.LoggingSearchPropertyProvider;
 import org.apache.ambari.server.controller.metrics.MetricHostProvider;
 import org.apache.ambari.server.controller.metrics.MetricsPropertyProvider;
 import org.apache.ambari.server.controller.metrics.MetricsReportPropertyProvider;
@@ -800,11 +801,14 @@ public abstract class AbstractProviderModule implements ProviderModule,
               gpp));
 
           providers.add(new HttpPropertyProvider(streamProvider,
-              managementController.getClusters(),
-              PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
-              PropertyHelper.getPropertyId("HostRoles", "host_name"),
-              PropertyHelper.getPropertyId("HostRoles", "component_name"),
-              HTTP_PROPERTY_REQUESTS));
+            managementController.getClusters(),
+            PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
+            PropertyHelper.getPropertyId("HostRoles", "host_name"),
+            PropertyHelper.getPropertyId("HostRoles", "component_name"),
+            HTTP_PROPERTY_REQUESTS));
+
+          //TODO, this may need to be conditional based on the presence/absence of LogSearch
+          providers.add(new LoggingSearchPropertyProvider());
         }
         break;
         case RootServiceComponent:

@@ -223,6 +223,8 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
         return new VersionDefinitionResourceProvider();
       case ClusterKerberosDescriptor:
         return new ClusterKerberosDescriptorResourceProvider(managementController);
+      case LoggingQuery:
+        return new LoggingResourceProvider(propertyIds, keyPropertyIds, managementController);
       default:
         throw new IllegalArgumentException("Unknown type " + type);
     }

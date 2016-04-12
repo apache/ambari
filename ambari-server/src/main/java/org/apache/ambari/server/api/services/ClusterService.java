@@ -651,6 +651,20 @@ public class ClusterService extends BaseService {
     return new ClusterKerberosDescriptorService(clusterName);
   }
 
+  /**
+   * Gets the Logging Service
+   *
+   * @param request the request
+   * @param clusterName the cluster name
+   *
+   * @return a new instance of the LoggingService
+   */
+  @Path("{clusterName}/logging")
+  public LoggingService getLogging(@Context javax.ws.rs.core.Request request,
+                                   @PathParam("clusterName") String clusterName) {
+    return new LoggingService(clusterName);
+  }
+
   // ----- helper methods ----------------------------------------------------
 
   /**

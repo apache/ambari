@@ -429,6 +429,10 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new SimpleResourceDefinition(Resource.Type.ClusterKerberosDescriptor, "kerberos_descriptor", "kerberos_descriptors");
         break;
 
+      case LoggingQuery:
+        resourceDefinition = new LoggingResourceDefinition();
+        break;
+
       default:
         throw new IllegalArgumentException("Unsupported resource type: " + type);
     }

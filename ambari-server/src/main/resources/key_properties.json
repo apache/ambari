@@ -150,5 +150,8 @@
   },
   "KerberosDescriptor": {
     "KerberosDescriptor": "KerberosDescriptors/kerberos_descriptor_name"
+  },
+  "LoggingQuery": {
+      "Cluster" : "logging/cluster_name"
   }
 }
