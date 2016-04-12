@@ -106,7 +106,7 @@ class TestCustomServiceOrchestrator(TestCase):
                          'all_hosts'     : ['h1.hortonworks.com', 'h2.hortonworks.com'],
                          'all_ping_ports': ['8670', '8670']}
     
-    config = AmbariConfig().getConfig()
+    config = AmbariConfig()
     tempdir = tempfile.gettempdir()
     config.set('agent', 'prefix', tempdir)
     dummy_controller = MagicMock()
@@ -134,6 +134,7 @@ class TestCustomServiceOrchestrator(TestCase):
     os.unlink(json_file)
     # Testing side effect of dump_command_to_json
     self.assertEquals(command['public_hostname'], "test.hst")
+    self.assertEquals(command['agentConfigParams']['agent']['parallel_execution'], 0)
     self.assertTrue(unlink_mock.called)
 
 
@@ -166,7 +167,7 @@ class TestCustomServiceOrchestrator(TestCase):
       'hostLevelParams':{}
     }
 
-    config = AmbariConfig().getConfig()
+    config = AmbariConfig()
     tempdir = tempfile.gettempdir()
     config.set('agent', 'prefix', tempdir)
     dummy_controller = MagicMock()
@@ -190,6 +191,7 @@ class TestCustomServiceOrchestrator(TestCase):
     os.unlink(json_file)
     # Testing side effect of dump_command_to_json
     self.assertEquals(command['public_hostname'], "test.hst")
+    self.assertEquals(command['agentConfigParams']['agent']['parallel_execution'], 0)
     self.assertTrue(unlink_mock.called)
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))

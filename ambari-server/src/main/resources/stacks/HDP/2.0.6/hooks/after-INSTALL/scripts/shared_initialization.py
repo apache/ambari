@@ -24,6 +24,7 @@ from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.version import compare_versions
+from resource_management.libraries.functions.fcntl_based_process_lock import FcntlBasedProcessLock
 from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.libraries.script import Script
 
@@ -41,8 +42,10 @@ def setup_stack_symlinks():
     # try using the exact version first, falling back in just the stack if it's not defined
     # which would only be during an intial cluster installation
     version = params.current_version if params.current_version is not None else params.stack_version_unformatted
-    stack_select.select_all(version)
 
+    # On parallel command execution this should be executed by a single process at a time.
+    with FcntlBasedProcessLock(params.stack_select_lock_file, enabled = params.is_parallel_execution_enabled, skip_fcntl_failures = True):
+      stack_select.select_all(version)
 
 def setup_config():
   import params
@@ -86,6 +89,7 @@ def link_configs(struct_out_file):
   """
   Links configs, only on a fresh install of HDP-2.3 and higher
   """
+  import params
 
   if not Script.is_stack_greater_or_equal("2.3"):
     Logger.info("Can only link configs for HDP-2.3 and higher.")
@@ -97,5 +101,7 @@ def link_configs(struct_out_file):
     Logger.info("Could not load 'version' from {0}".format(struct_out_file))
     return
 
-  for k, v in conf_select.get_package_dirs().iteritems():
-    conf_select.convert_conf_directories_to_symlinks(k, json_version, v)
+  # On parallel command execution this should be executed by a single process at a time.
+  with FcntlBasedProcessLock(params.link_configs_lock_file, enabled = params.is_parallel_execution_enabled, skip_fcntl_failures = True):
+    for k, v in conf_select.get_package_dirs().iteritems():
+      conf_select.convert_conf_directories_to_symlinks(k, json_version, v)

@@ -55,6 +55,10 @@ class Logger:
     Logger.logger = logger
 
   @staticmethod
+  def exception(text):
+    Logger.logger.exception(Logger.filter_text(text))
+
+  @staticmethod
   def error(text):
     Logger.logger.error(Logger.filter_text(text))
 
