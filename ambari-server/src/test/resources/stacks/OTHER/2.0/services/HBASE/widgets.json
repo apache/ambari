@@ -57,11 +57,11 @@
           "values": [
             {
               "name": "Read Requests",
-              "value": "`${regionserver.Server.Get_num_ops + regionserver.Server.Scan_num_ops}`"
+              "value": "`${regionserver.Server.Get_num_ops._rate + regionserver.Server.Scan_num_ops._rate}`"
             },
             {
               "name": "Write Requests",
-              "value": "`${metrics.hbase.regionserver.Server.Append_num_ops + metrics.hbase.regionserver.Server.Delete_num_ops + metrics.hbase.regionserver.Server.Increment_num_ops + metrics.hbase.regionserver.Server.Mutate_num_ops}`"
+              "value": "`${metrics.hbase.regionserver.Server.Append_num_ops._rate + metrics.hbase.regionserver.Server.Delete_num_ops._rate + metrics.hbase.regionserver.Server.Increment_num_ops._rate + metrics.hbase.regionserver.Server.Mutate_num_ops._rate}`"
             }
           ],
           "properties": {
@@ -175,7 +175,7 @@
           "values": [
             {
               "name": "Updated Blocked Time",
-              "value": "`${regionserver.Server.updatesBlockedTime}`"
+              "value": "`${regionserver.Server.updatesBlockedTime._rate}`"
             }
           ],
           "properties": {

@@ -46,11 +46,11 @@
           "values": [
             {
               "name": "Read Requests",
-              "value": "${regionserver.Server.Get_num_ops._sum}"
+              "value": "${regionserver.Server.Get_num_ops._rate}"
             },
             {
               "name": "Write Requests",
-              "value": "${regionserver.Server.Append_num_ops._sum + regionserver.Server.Delete_num_ops._sum + regionserver.Server.Increment_num_ops._sum + regionserver.Server.Mutate_num_ops._sum}"
+              "value": "${regionserver.Server.Append_num_ops._rate + regionserver.Server.Delete_num_ops._rate + regionserver.Server.Increment_num_ops._rate + regionserver.Server.Mutate_num_ops._rate}"
             }
           ],
           "properties": {
@@ -244,7 +244,7 @@
           "values": [
             {
               "name": "Updates Blocked Time",
-              "value": "${regionserver.Server.updatesBlockedTime._sum}"
+              "value": "${regionserver.Server.updatesBlockedTime._rate}"
             }
           ],
           "properties": {

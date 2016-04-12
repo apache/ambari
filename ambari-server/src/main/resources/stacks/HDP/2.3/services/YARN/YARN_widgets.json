@@ -146,7 +146,7 @@
           "values": [
             {
               "name": "Container Failures",
-              "value": "${(yarn.NodeManagerMetrics.ContainersFailed._sum/(yarn.NodeManagerMetrics.ContainersFailed._sum + yarn.NodeManagerMetrics.ContainersCompleted._sum + yarn.NodeManagerMetrics.ContainersLaunched._sum + yarn.NodeManagerMetrics.ContainersIniting._sum + yarn.NodeManagerMetrics.ContainersKilled._sum + yarn.NodeManagerMetrics.ContainersRunning._sum)) * 100}"
+              "value": "${(yarn.NodeManagerMetrics.ContainersFailed._rate/(yarn.NodeManagerMetrics.ContainersFailed._rate + yarn.NodeManagerMetrics.ContainersCompleted._rate + yarn.NodeManagerMetrics.ContainersLaunched._rate + yarn.NodeManagerMetrics.ContainersIniting._sum + yarn.NodeManagerMetrics.ContainersKilled._rate + yarn.NodeManagerMetrics.ContainersRunning._sum)) * 100}"
             }
           ],
           "properties": {
@@ -207,7 +207,7 @@
           "values": [
             {
               "name": "App Failures",
-              "value": "${(yarn.QueueMetrics.Queue=root.AppsFailed/(yarn.QueueMetrics.Queue=root.AppsFailed + yarn.QueueMetrics.Queue=root.AppsKilled + yarn.QueueMetrics.Queue=root.AppsPending + yarn.QueueMetrics.Queue=root.AppsRunning + yarn.QueueMetrics.Queue=root.AppsSubmitted + yarn.QueueMetrics.Queue=root.AppsCompleted)) * 100}"
+              "value": "${(yarn.QueueMetrics.Queue=root.AppsFailed._rate/(yarn.QueueMetrics.Queue=root.AppsFailed._rate + yarn.QueueMetrics.Queue=root.AppsKilled._rate + yarn.QueueMetrics.Queue=root.AppsPending + yarn.QueueMetrics.Queue=root.AppsRunning + yarn.QueueMetrics.Queue=root.AppsSubmitted._rate + yarn.QueueMetrics.Queue=root.AppsCompleted._rate)) * 100}"
             }
           ],
           "properties": {
@@ -542,7 +542,7 @@
           "values": [
             {
               "name": "Container Failures",
-              "value": "${(yarn.NodeManagerMetrics.ContainersFailed/(yarn.NodeManagerMetrics.ContainersFailed + yarn.NodeManagerMetrics.ContainersCompleted + yarn.NodeManagerMetrics.ContainersLaunched + yarn.NodeManagerMetrics.ContainersIniting + yarn.NodeManagerMetrics.ContainersKilled + yarn.NodeManagerMetrics.ContainersRunning)) * 100}"
+              "value": "${(yarn.NodeManagerMetrics.ContainersFailed._rate/(yarn.NodeManagerMetrics.ContainersFailed._rate + yarn.NodeManagerMetrics.ContainersCompleted._rate + yarn.NodeManagerMetrics.ContainersLaunched._rate + yarn.NodeManagerMetrics.ContainersIniting + yarn.NodeManagerMetrics.ContainersKilled._rate + yarn.NodeManagerMetrics.ContainersRunning)) * 100}"
             }
           ],
           "properties": {
