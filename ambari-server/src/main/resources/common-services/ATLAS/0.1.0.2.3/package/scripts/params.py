@@ -105,6 +105,11 @@ metadata_classpath = config['configurations']['atlas-env']['metadata_classpath']
 data_dir = config['configurations']['atlas-env']['metadata_data_dir']
 expanded_war_dir = os.environ['METADATA_EXPANDED_WEBAPP_DIR'] if 'METADATA_EXPANDED_WEBAPP_DIR' in os.environ else '/var/lib/atlas/server/webapp'
 
+metadata_log4j_content = config['configurations']['atlas-log4j']['content']
+
+atlas_log_level = config['configurations']['atlas-log4j']['atlas_log_level']
+audit_log_level = config['configurations']['atlas-log4j']['audit_log_level']
+
 # smoke test
 smoke_test_user = config['configurations']['cluster-env']['smokeuser']
 smoke_test_password = 'smoke'

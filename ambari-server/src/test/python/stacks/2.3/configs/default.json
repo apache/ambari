@@ -212,6 +212,11 @@
         "metadata_expanded_war_dir": "/var/lib/atlas/server/webapp",
         "metadata_conf_file": "application.properties"
       },
+      "atlas-log4j": {
+        "content": "<property><name>content</name><description>Custom log4j.properties</description><value></value></property>",
+        "atlas_log_level": "debug",
+        "audit_log_level": "OFF"
+      },
       "ranger-hbase-plugin-properties": {
             "ranger-hbase-plugin-enabled":"yes"
       },

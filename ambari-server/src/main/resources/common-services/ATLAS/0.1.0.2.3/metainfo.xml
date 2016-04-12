@@ -53,6 +53,11 @@
             <fileName>atlas-env.sh</fileName>
             <dictionaryName>atlas-env</dictionaryName>
           </configFile>
+          <configFile>
+            <type>env</type>
+            <fileName>atlas-log4j.xml</fileName>
+            <dictionaryName>atlas-log4j</dictionaryName>
+          </configFile>
         </component>
 
         <component>
@@ -76,6 +81,11 @@
             <type>env</type>
             <fileName>atlas-env.sh</fileName>
             <dictionaryName>atlas-env</dictionaryName>
+          </configFile>
+          <configFile>
+            <type>env</type>
+            <fileName>atlas-log4j.xml</fileName>
+            <dictionaryName>atlas-log4j</dictionaryName>
           </configFile>
         </component>
       </components>
@@ -104,6 +114,7 @@
       <configuration-dependencies>
         <config-type>application-properties</config-type>
         <config-type>atlas-env</config-type>
+        <config-type>atlas-log4j</config-type>
       </configuration-dependencies>
 
     </service>

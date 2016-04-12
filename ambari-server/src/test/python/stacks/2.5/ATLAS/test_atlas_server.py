@@ -87,7 +87,9 @@ class TestAtlasServer(RMFTestCase):
                               mode=0755,
                               )
     self.assertResourceCalled('File', '/etc/atlas/conf/atlas-log4j.xml',
-                              content=StaticFile('atlas-log4j.xml'),
+                              content=InlineTemplate(
+                                  self.getConfig()['configurations'][
+                                    'atlas-log4j']['content']),
                               owner='atlas',
                               group='hadoop',
                               mode=0644,

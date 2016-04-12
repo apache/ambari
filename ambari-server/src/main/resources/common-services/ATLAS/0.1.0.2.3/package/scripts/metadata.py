@@ -88,7 +88,7 @@ def metadata():
          mode=0644,
          owner=params.metadata_user,
          group=params.user_group,
-         content=StaticFile('atlas-log4j.xml')
+         content=InlineTemplate(params.metadata_log4j_content)
     )
 
     if params.security_enabled:
