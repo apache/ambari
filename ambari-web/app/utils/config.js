@@ -347,6 +347,18 @@ App.config = Em.Object.create({
   },
 
   /**
+   * Get component name from config name string
+   *
+   * @param configName
+   * @returns {string}
+   */
+  getComponentName: function(configName) {
+    var match = configName.match(/^(.*)_host[s]?$/) || [],
+      component = match[1];
+    return component ? component.toUpperCase() : "";
+  },
+
+  /**
    * This method merge properties form <code>stackConfigProperty<code> which are taken from stack
    * with <code>UIConfigProperty<code> which are hardcoded on UI
    * @param coreObject

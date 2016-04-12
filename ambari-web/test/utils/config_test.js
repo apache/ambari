@@ -874,4 +874,17 @@ describe('App.config', function () {
     });
   });
 
+  describe('#getComponentName', function () {
+    [
+      { configName: 'somename_host', componentName: 'SOMENAME' },
+      { configName: 'somename_hosts', componentName: 'SOMENAME' },
+      { configName: 'somenamehost', componentName: '' },
+      { configName: 'somenamehosts', componentName: '' }
+    ].forEach(function (t) {
+      it('format config name ' + t.configName + ' to component ', function() {
+        expect(App.config.getComponentName(t.configName)).to.equal(t.componentName);
+      });
+    });
+  });
+
 });

@@ -78,7 +78,20 @@ App.TestDbConnectionWidgetView = App.ConfigWidgetView.extend({
       var split = requiredProperties[key].split('/');
       var fileName =  split[0] + '.xml';
       var configName = split[1];
-      return serviceConfigs.filterProperty('filename',fileName).findProperty('name', configName);
+      var requiredConfig = serviceConfigs.filterProperty('filename',fileName).findProperty('name', configName);
+      if (!requiredConfig) {
+        var componentName = App.config.getComponentName(configName);
+        var stackComponent = App.StackServiceComponent.find(componentName);
+        if (stackComponent && stackComponent.get('componentName')) {
+          var value = this.get('controller').getComponentHostValue(componentName,
+            this.get('controller.wizardController.content.masterComponentHosts'),
+            this.get('controller.wizardController.content.slaveComponentHosts'));
+          var hProperty = App.config.createHostNameProperty(serviceName, componentName, value, stackComponent);
+          return App.ServiceConfigProperty.create(hProperty);
+        }
+      } else {
+        return requiredConfig;
+      }
     }, this);
 
     this.set('requiredProperties', requiredServiceConfigs);

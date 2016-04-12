@@ -556,9 +556,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
   addHostNamesToConfigs: function(serviceConfig) {
     serviceConfig.get('configCategories').forEach(function(c) {
       if (c.showHost) {
-        var stackComponent = App.StackServiceComponent.find(c.name);
-        var component = stackComponent.get('isMaster') ? App.MasterComponent.find(c.name) : App.SlaveComponent.find(c.name);
-        var hProperty = App.config.createHostNameProperty(serviceConfig.get('serviceName'), c.name, component.get('hostNames') || [], stackComponent);
+        var stackComponent = App.StackServiceComponent.find(c.name),
+          value = this.getComponentHostValue(c.name);
+        var hProperty = App.config.createHostNameProperty(serviceConfig.get('serviceName'), c.name, value, stackComponent);
         serviceConfig.get('configs').push(App.ServiceConfigProperty.create(hProperty));
       }
     }, this);
@@ -577,6 +577,18 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
         }
       }
     }, this);
+  },
+
+  /**
+   * Method to get host for master or slave component
+   *
+   * @param componentName
+   * @returns {Array}
+   */
+  getComponentHostValue: function(componentName) {
+    var stackComponent = App.StackServiceComponent.find(componentName);
+    var component = stackComponent.get('isMaster') ? App.MasterComponent.find(componentName) : App.SlaveComponent.find(componentName);
+    return component.get('hostNames') || []
   },
 
   /**

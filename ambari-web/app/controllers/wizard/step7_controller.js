@@ -774,17 +774,8 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   addHostNamesToConfigs: function(serviceConfig, masterComponents, slaveComponents) {
     serviceConfig.get('configCategories').forEach(function(c) {
       if (c.showHost) {
-        var value = [];
         var componentName = c.name;
-        var masters = masterComponents && masterComponents.filterProperty('component', componentName);
-        if (masters.length) {
-          value = masters.mapProperty('hostName');
-        } else {
-          var slaves = slaveComponents && slaveComponents.findProperty('componentName', componentName);
-          if (slaves) {
-            value = slaves.hosts.mapProperty('hostName');
-          }
-        }
+        var value = this.getComponentHostValue(componentName, masterComponents, slaveComponents);
         var stackComponent = App.StackServiceComponent.find(componentName);
         var hProperty = App.config.createHostNameProperty(serviceConfig.get('serviceName'), componentName, value, stackComponent);
         var newConfigName = Em.get(hProperty, 'name');
@@ -793,6 +784,28 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         }
       }
     }, this);
+  },
+
+  /**
+   * Method to get host for master or slave component
+   *
+   * @param componentName
+   * @param masterComponents
+   * @param slaveComponents
+   * @returns {Array}
+   */
+  getComponentHostValue: function(componentName, masterComponents, slaveComponents) {
+    var value = [];
+    var masters = masterComponents && masterComponents.filterProperty('component', componentName);
+    if (masters.length) {
+      value = masters.mapProperty('hostName');
+    } else {
+      var slaves = slaveComponents && slaveComponents.findProperty('componentName', componentName);
+      if (slaves) {
+        value = slaves.hosts.mapProperty('hostName');
+      }
+    }
+    return value || [];
   },
 
   /**

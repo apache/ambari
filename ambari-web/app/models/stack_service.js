@@ -346,11 +346,6 @@ App.StackService.configCategories = function () {
         App.ServiceConfigCategory.create({ name: 'KnoxSSOSettings', displayName: 'Knox SSO Settings'})
       ]);
       break;
-    case 'RANGER_KMS':
-      serviceConfigCategories.pushObjects([
-        App.ServiceConfigCategory.create({ name: 'RANGER_KMS_SERVER', displayName: 'Ranger KMS Server', showHost: true})
-      ]);
-      break;
     case 'ACCUMULO':
       serviceConfigCategories.pushObjects([
         App.ServiceConfigCategory.create({ name: 'General', displayName: 'General'})
