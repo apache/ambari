@@ -113,11 +113,6 @@ public class TestActionScheduler {
       + " c6402.ambari.apache.org], slave_hosts=[c6401.ambari.apache.org,"
       + " c6402.ambari.apache.org]}";
 
-  // HOST_LAST_REGISTRATION_TIME should be less than STAGE_LAST_ATTEMPT_TIME
-  // This means that there was not ambari-agent restart during stage execution
-  public static final long HOST_LAST_REGISTRATION_TIME = 99L;
-  public static final long STAGE_LAST_ATTEMPT_TIME = 100L;
-
   private static Injector injector;
 
   private final String hostname = "ahost.ambari.apache.org";
@@ -964,8 +959,10 @@ public class TestActionScheduler {
 
     Properties properties = new Properties();
     Configuration conf = new Configuration(properties);
-    ActionScheduler scheduler = new ActionScheduler(100, 50, db, aq, fsm, 3,
-            new HostsMap((String) null), unitOfWork, null, conf);
+    ActionScheduler scheduler = spy(new ActionScheduler(100, 50, db, aq, fsm, 3,
+            new HostsMap((String) null), unitOfWork, null, conf));
+
+    doReturn(false).when(scheduler).wasAgentRestartedDuringOperation(any(Host.class), any(Stage.class), anyString());
 
     scheduler.doWork();
 
@@ -1052,9 +1049,12 @@ public class TestActionScheduler {
     Properties properties = new Properties();
     properties.put(Configuration.PARALLEL_STAGE_EXECUTION_KEY, "false");
     Configuration conf = new Configuration(properties);
-    ActionScheduler scheduler = new ActionScheduler(100, 50, db, aq, fsm, 3,
+    ActionScheduler scheduler = spy(new ActionScheduler(100, 50, db, aq, fsm, 3,
             new HostsMap((String) null),
-            unitOfWork, null, conf);
+            unitOfWork, null, conf));
+
+
+    doReturn(false).when(scheduler).wasAgentRestartedDuringOperation(any(Host.class), any(Stage.class), anyString());
 
     scheduler.doWork();
 
@@ -1123,9 +1123,11 @@ public class TestActionScheduler {
     Properties properties = new Properties();
     properties.put(Configuration.PARALLEL_STAGE_EXECUTION_KEY, "true");
     Configuration conf = new Configuration(properties);
-    ActionScheduler scheduler = new ActionScheduler(100, 50, db, aq, fsm, 3,
+    ActionScheduler scheduler = spy(new ActionScheduler(100, 50, db, aq, fsm, 3,
         new HostsMap((String) null),
-        unitOfWork, null, conf);
+        unitOfWork, null, conf));
+
+    doReturn(false).when(scheduler).wasAgentRestartedDuringOperation(any(Host.class), any(Stage.class), anyString());
 
     scheduler.doWork();
 
@@ -2305,41 +2307,39 @@ public class TestActionScheduler {
 
     final List<Stage> stagesInProgress = new ArrayList<Stage>();
     int namenodeCmdTaskId = 1;
-    Stage stageInProgress1 = spy(getStageWithSingleTask(
-      hostname1, "cluster1", Role.NAMENODE, RoleCommand.START,
-      Service.Type.HDFS, namenodeCmdTaskId, 1, (int) requestId1));
-    Stage stageInProgress2 = spy(getStageWithSingleTask(
-      hostname1, "cluster1", Role.DATANODE, RoleCommand.START,
-      Service.Type.HDFS, 2, 2, (int) requestId1));
-    Stage stageInProgress3 = spy(getStageWithSingleTask(
-      hostname2, "cluster1", Role.DATANODE, RoleCommand.STOP, //Exclusive
-      Service.Type.HDFS, 3, 3, (int) requestId2));
-    Stage stageInProgress4 = spy(getStageWithSingleTask(
-      hostname3, "cluster1", Role.DATANODE, RoleCommand.START,
-      Service.Type.HDFS, 4, 4, (int) requestId3));
-    stagesInProgress.add(stageInProgress1);
-    stagesInProgress.add(stageInProgress2);
-    stagesInProgress.add(stageInProgress3);
-    stagesInProgress.add(stageInProgress4);
+    stagesInProgress.add(
+            getStageWithSingleTask(
+                    hostname1, "cluster1", Role.NAMENODE, RoleCommand.START,
+                    Service.Type.HDFS, namenodeCmdTaskId, 1, (int) requestId1));
+    stagesInProgress.add(
+            getStageWithSingleTask(
+                    hostname1, "cluster1", Role.DATANODE, RoleCommand.START,
+                    Service.Type.HDFS, 2, 2, (int) requestId1));
+    stagesInProgress.add(
+            getStageWithSingleTask(
+                    hostname2, "cluster1", Role.DATANODE, RoleCommand.STOP, //Exclusive
+                    Service.Type.HDFS, 3, 3, (int) requestId2));
+
+    stagesInProgress.add(
+            getStageWithSingleTask(
+                    hostname3, "cluster1", Role.DATANODE, RoleCommand.START,
+                    Service.Type.HDFS, 4, 4, (int) requestId3));
 
 
     Host host1 = mock(Host.class);
     when(fsm.getHost(anyString())).thenReturn(host1);
     when(host1.getState()).thenReturn(HostState.HEALTHY);
     when(host1.getHostName()).thenReturn(hostname);
-    when(host1.getLastRegistrationTime()).thenReturn(HOST_LAST_REGISTRATION_TIME);
 
     Host host2 = mock(Host.class);
     when(fsm.getHost(anyString())).thenReturn(host2);
     when(host2.getState()).thenReturn(HostState.HEALTHY);
     when(host2.getHostName()).thenReturn(hostname);
-    when(host2.getLastRegistrationTime()).thenReturn(HOST_LAST_REGISTRATION_TIME);
 
     Host host3 = mock(Host.class);
     when(fsm.getHost(anyString())).thenReturn(host3);
     when(host3.getState()).thenReturn(HostState.HEALTHY);
     when(host3.getHostName()).thenReturn(hostname);
-    when(host3.getLastRegistrationTime()).thenReturn(HOST_LAST_REGISTRATION_TIME);
 
     ActionDBAccessor db = mock(ActionDBAccessor.class);
     when(db.getCommandsInProgressCount()).thenReturn(stagesInProgress.size());
@@ -2415,13 +2415,10 @@ public class TestActionScheduler {
     Properties properties = new Properties();
     Configuration conf = new Configuration(properties);
 
-    ActionScheduler scheduler = new ActionScheduler(100, 50, db, aq, fsm, 3,
-        new HostsMap((String) null), unitOfWork, null, conf);
+    ActionScheduler scheduler = spy(new ActionScheduler(100, 50, db, aq, fsm, 3,
+        new HostsMap((String) null), unitOfWork, null, conf));
 
-    doReturn(STAGE_LAST_ATTEMPT_TIME).when(stageInProgress1).getLastAttemptTime(anyString(), anyString());
-    doReturn(STAGE_LAST_ATTEMPT_TIME).when(stageInProgress2).getLastAttemptTime(anyString(), anyString());
-    doReturn(STAGE_LAST_ATTEMPT_TIME).when(stageInProgress3).getLastAttemptTime(anyString(), anyString());
-    doReturn(STAGE_LAST_ATTEMPT_TIME).when(stageInProgress4).getLastAttemptTime(anyString(), anyString());
+    doReturn(false).when(scheduler).wasAgentRestartedDuringOperation(any(Host.class), any(Stage.class), anyString());
 
     // Execution of request 1
 
@@ -2618,8 +2615,10 @@ public class TestActionScheduler {
       }
     }).when(db).abortOperation(anyLong());
 
-    ActionScheduler scheduler = new ActionScheduler(100, 50, db, aq, fsm, 3,
-        new HostsMap((String) null), unitOfWork, null, conf);
+    ActionScheduler scheduler = spy(new ActionScheduler(100, 50, db, aq, fsm, 3,
+        new HostsMap((String) null), unitOfWork, null, conf));
+
+    doReturn(false).when(scheduler).wasAgentRestartedDuringOperation(any(Host.class), any(Stage.class), anyString());
 
     scheduler.doWork();
 
