@@ -182,7 +182,8 @@ App.ConfigHistoryFlowView = Em.View.extend({
       Em.get(this.get('serviceVersionsReferences'), key).destroy();
     }, this);
     this.$('.version-info-bar-wrapper').trigger('sticky_kit:detach').off();
-    this.$('[data-toggle=tooltip], [data-toggle=arrow-tooltip]').remove();
+    this.$('[data-toggle=tooltip]').tooltip('destroy');
+    this.$('[data-toggle=arrow-tooltip]').tooltip('destroy');
   },
 
   willInsertElement: function () {
@@ -521,6 +522,11 @@ App.ConfigHistoryFlowView = Em.View.extend({
 
 App.ConfigsServiceVersionBoxView = Em.View.extend({
 
+  /**
+   * bound from template
+   */
+  serviceVersion: null,
+
   actionTypesBinding: 'parentView.actionTypes',
 
   disabledActionAttr: Em.computed.alias('serviceVersion.disabledActionAttr'),
@@ -548,6 +554,7 @@ App.ConfigsServiceVersionBoxView = Em.View.extend({
 
   willDestroyElement: function() {
     this.$('.version-box').off();
-    this.$('[data-toggle=tooltip], [data-toggle=arrow-tooltip]').remove();
+    this.$('[data-toggle=tooltip]').tooltip('destroy');
+    this.$('[data-toggle=arrow-tooltip]').tooltip('destroy');
   }
 });

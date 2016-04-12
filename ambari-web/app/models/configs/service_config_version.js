@@ -53,7 +53,7 @@ App.ServiceConfigVersion = DS.Model.extend({
   /**
    * @type {string}
    */
-  authorFormatted: Em.computed.truncate('author', 20, 20),
+  authorFormatted: Em.computed.truncate('author', 15, 15),
 
   /**
    * @type {string}

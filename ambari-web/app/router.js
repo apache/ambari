@@ -147,6 +147,8 @@ App.Router = Em.Router.extend({
     return this.getLoginName();
   }.property('loggedIn'),
 
+  displayLoginName: Em.computed.truncate('loginName', 10, 10),
+
   getAuthenticated: function () {
     var dfd = $.Deferred();
     var self = this;

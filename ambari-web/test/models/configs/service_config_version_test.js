@@ -33,7 +33,7 @@ describe('App.ServiceConfigVersion', function () {
 
   App.TestAliases.testAsComputedAnd(getModel(), 'canBeMadeCurrent', ['isCompatible', '!isCurrent']);
 
-  App.TestAliases.testAsComputedTruncate(getModel(), 'authorFormatted', 'author', 20, 20);
+  App.TestAliases.testAsComputedTruncate(getModel(), 'authorFormatted', 'author', 15, 15);
 
   App.TestAliases.testAsComputedTruncate(getModel(), 'briefNotes', 'fullNotes', 81, 81, '');
 

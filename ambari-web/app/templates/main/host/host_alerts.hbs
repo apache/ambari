@@ -51,8 +51,8 @@
             <td>
               <a href="#" {{action routeToAlertDefinition instance.definitionId target="controller"}}>{{instance.label}}</a>
             </td>
-            <td>{{template "templates/main/alerts/alert_instance/status"}}
-              <time class="timeago" {{bindAttr data-original-title="instance.statusChangedAndLastCheckedFormatted"}}>{{instance.lastTriggeredForFormatted}}</time>
+            <td>
+              {{template "templates/main/alerts/alert_instance/status"}}
             </td>
             <td><span
                     class="alert-text" {{bindAttr data-original-title="instance.escapeSpecialCharactersFromTooltip"}}

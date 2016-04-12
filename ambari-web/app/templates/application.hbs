@@ -57,7 +57,7 @@
           {{#if App.router.loggedIn}}
             <div class="top-nav-user btn-group">
               <button class="btn dropdown-toggle" data-toggle="dropdown">
-                <i class="icon-user"></i>&nbsp;{{App.router.loginName}}&nbsp;<span class="caret"></span>
+                <i class="icon-user"></i>&nbsp;{{App.router.displayLoginName}}&nbsp;<span class="caret"></span>
               </button>
               <ul class="dropdown-menu">
                 <li><a href="" id="about" {{action showAboutPopup target="controller"}}>{{t app.aboutAmbari}}</a></li>
