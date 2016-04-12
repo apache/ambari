@@ -25,8 +25,11 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicLong;
+
+import javax.annotation.Nullable;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
@@ -40,11 +43,17 @@ import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.orm.entities.TopologyHostGroupEntity;
+import org.apache.ambari.server.orm.entities.TopologyHostInfoEntity;
 import org.apache.ambari.server.orm.entities.TopologyHostRequestEntity;
 import org.apache.ambari.server.orm.entities.TopologyLogicalRequestEntity;
 import org.apache.ambari.server.state.host.HostImpl;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
 
 /**
  * Logical Request implementation.
@@ -393,6 +402,25 @@ public class LogicalRequest extends Request {
   private void createHostRequests(ClusterTopology topology,
                                   TopologyLogicalRequestEntity requestEntity) {
 
+    Collection<TopologyHostGroupEntity> hostGroupEntities = requestEntity.getTopologyRequestEntity().getTopologyHostGroupEntities();
+    Map<String, Set<String>> allReservedHostNamesByHostGroups = getReservedHostNamesByHostGroupName(hostGroupEntities);
+    Map<String, Set<String>> pendingReservedHostNamesByHostGroups = new HashMap<>(allReservedHostNamesByHostGroups);
+
+    for (TopologyHostRequestEntity hostRequestEntity : requestEntity.getTopologyHostRequestEntities()) {
+      TopologyHostGroupEntity hostGroupEntity = hostRequestEntity.getTopologyHostGroupEntity();
+      String hostGroupName = hostGroupEntity.getName();
+      String hostName = hostRequestEntity.getHostName();
+
+      if (hostName != null && pendingReservedHostNamesByHostGroups.containsKey(hostGroupName)) {
+        Set<String> pendingReservedHostNamesInHostGroup = pendingReservedHostNamesByHostGroups.get(hostGroupName);
+
+        if (pendingReservedHostNamesInHostGroup != null) {
+          pendingReservedHostNamesInHostGroup.remove(hostName);
+        }
+      }
+    }
+
+
     for (TopologyHostRequestEntity hostRequestEntity : requestEntity.getTopologyHostRequestEntities()) {
       Long hostRequestId = hostRequestEntity.getId();
       synchronized (hostIdCounter) {
@@ -401,9 +429,11 @@ public class LogicalRequest extends Request {
         }
       }
       TopologyHostGroupEntity hostGroupEntity = hostRequestEntity.getTopologyHostGroupEntity();
+      Set<String> pendingReservedHostsInGroup = pendingReservedHostNamesByHostGroups.get(hostGroupEntity.getName());
 
-      String reservedHostName = hostGroupEntity.
-          getTopologyHostInfoEntities().iterator().next().getFqdn();
+      // get next host name from pending host names
+      String reservedHostName = Iterables.getFirst(pendingReservedHostsInGroup, null);
+
 
       //todo: move predicate processing to host request
       HostRequest hostRequest = new HostRequest(getRequestId(), hostRequestId,
@@ -413,6 +443,7 @@ public class LogicalRequest extends Request {
       if (! hostRequest.isCompleted()) {
         if (reservedHostName != null) {
           requestsWithReservedHosts.put(reservedHostName, hostRequest);
+          pendingReservedHostsInGroup.remove(reservedHostName);
           LOG.info("LogicalRequest.createHostRequests: created new request for a reserved request ID = {} for host name = {}",
             hostRequest.getId(), reservedHostName);
         } else {
@@ -421,6 +452,30 @@ public class LogicalRequest extends Request {
         }
       }
     }
+  }
+
+  /**
+   * Returns a map where the keys are the host group names and the values the
+   * collection of FQDNs the hosts in the host group
+   * @param hostGroups
+   * @return
+   */
+  private Map<String, Set<String>> getReservedHostNamesByHostGroupName(Collection<TopologyHostGroupEntity> hostGroups) {
+    Map<String, Set<String>> reservedHostNamesByHostGroups = new HashMap<>();
+
+    for (TopologyHostGroupEntity hostGroupEntity: hostGroups) {
+      String hostGroupName = hostGroupEntity.getName();
+
+      if ( !reservedHostNamesByHostGroups.containsKey(hostGroupName) )
+        reservedHostNamesByHostGroups.put(hostGroupName, new HashSet<String>());
+
+      for (TopologyHostInfoEntity hostInfoEntity: hostGroupEntity.getTopologyHostInfoEntities()) {
+        if (StringUtils.isNotEmpty(hostInfoEntity.getFqdn())) {
+          reservedHostNamesByHostGroups.get(hostGroupName).add(hostInfoEntity.getFqdn());
+        }
+      }
+    }
+    return reservedHostNamesByHostGroups;
   }
 
   private synchronized static AmbariManagementController getController() {
