@@ -56,6 +56,7 @@ App.AlertDefinition = DS.Model.extend({
   //relates only METRIC-type alert definition
   jmx: DS.belongsTo('App.AlertMetricsSourceDefinition'),
   ganglia: DS.belongsTo('App.AlertMetricsSourceDefinition'),
+  ams: DS.belongsTo('App.AlertMetricsAmsDefinition'),
   //relates only PORT-type alert definition
   defaultPort: DS.attr('number'),
   portUri: DS.attr('string'),
@@ -234,7 +235,8 @@ App.AlertDefinition = DS.Model.extend({
     'PORT': 'icon-signin',
     'AGGREGATE': 'icon-plus',
     'SERVER': 'icon-desktop',
-    'RECOVERY': 'icon-desktop'
+    'RECOVERY': 'icon-desktop',
+    'AMS': 'icon-rocket'
   },
 
   /**
@@ -311,8 +313,15 @@ App.AlertMetricsUriDefinition = DS.Model.extend({
   connectionTimeout: DS.attr('number')
 });
 
+App.AlertMetricsAmsDefinition = DS.Model.extend({
+  value: DS.attr('string'),
+  minimalValue: DS.attr('number'),
+  interval: DS.attr('number')
+});
+
 App.AlertDefinition.FIXTURES = [];
 App.AlertReportDefinition.FIXTURES = [];
 App.AlertMetricsSourceDefinition.FIXTURES = [];
 App.AlertMetricsUriDefinition.FIXTURES = [];
+App.AlertMetricsAmsDefinition.FIXTURES = [];
 App.AlertDefinitionParameter.FIXTURES = [];

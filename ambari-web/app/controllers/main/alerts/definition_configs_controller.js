@@ -161,6 +161,9 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
       case 'RECOVERY':
       	configs = this.renderWebConfigs();
       	break;
+      case 'AMS':
+      	configs = this.renderAmsConfigs();
+      	break;
       default:
     }
 
@@ -309,6 +312,74 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
       })
     ]);
 
+    return result;
+  },
+
+  renderAmsConfigs: function () {
+    var result = [];
+    var alertDefinition = this.get('content');
+    var isWizard = this.get('isWizard');
+    var units = this.get('content.reporting').findProperty('type','units') ?
+      this.get('content.reporting').findProperty('type','units').get('text'): null;
+    if (this.get('isWizard')) {
+      result = result.concat(this.renderCommonWizardConfigs());
+    }
+
+    result = result.concat([
+      App.AlertConfigProperties.Description.create({
+        value: isWizard ? '' : alertDefinition.get('description')
+      }),
+      App.AlertConfigProperties.Interval.create({
+        value: isWizard ? '' : alertDefinition.get('interval')
+      }),
+      App.AlertConfigProperties.Interval.create({
+        value: isWizard ? '' : alertDefinition.get('ams.interval'),
+        label: 'AMS Interval',
+        apiProperty: 'source.ams.interval'
+      }),
+      App.AlertConfigProperty.create({
+        value: isWizard ? '' : alertDefinition.get('ams.value'),
+        label: 'AMS Value',
+        displayType: 'textField',
+        apiProperty: 'source.ams.value',
+        isValid: function () {
+          return (this.get('value') || '').trim().length > 0;
+        }.property('value')
+      }),
+      App.AlertConfigProperties.Parameter.create({
+        value: isWizard ? '' : alertDefinition.get('ams.minimalValue'),
+        label: 'AMS Minimal Value',
+        apiProperty: 'source.ams.minimal_value'
+      }),
+      App.AlertConfigProperties.Thresholds.OkThreshold.create({
+        label: 'Thresholds',
+        showInputForValue: false,
+        text: isWizard ? '' : this.getThresholdsProperty('ok', 'text'),
+        value: isWizard ? '' : this.getThresholdsProperty('ok', 'value')
+      }),
+      App.AlertConfigProperties.Thresholds.WarningThreshold.create(App.AlertConfigProperties.Thresholds.PercentageMixin, {
+        text: isWizard ? '' : this.getThresholdsProperty('warning', 'text'),
+        value: isWizard ? '' : this.getThresholdsProperty('warning', 'value'),
+        valueMetric: units
+      }),
+      App.AlertConfigProperties.Thresholds.CriticalThreshold.create(App.AlertConfigProperties.Thresholds.PercentageMixin, {
+        text: isWizard ? '' : this.getThresholdsProperty('critical', 'text'),
+        value: isWizard ? '' : this.getThresholdsProperty('critical', 'value'),
+        valueMetric: units
+      }),
+      App.AlertConfigProperties.Parameter.create({
+        value: alertDefinition.get('uri.connectionTimeout'),
+        name: 'connection_timeout',
+        label: 'Connection Timeout',
+        displayType: 'parameter',
+        apiProperty: 'source.uri.connection_timeout',
+        units: 'Seconds',
+        isValid: function () {
+          var value = this.get('value');
+          return numericUtils.isPositiveNumber(value);
+        }.property('value')
+      })
+    ]);
     return result;
   },
 
@@ -580,6 +651,9 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
 
     if (Em.get(propertiesToUpdate, 'AlertDefinition/source.uri.id')) {
       delete propertiesToUpdate['AlertDefinition/source'].uri.id;
+    }
+    if (Em.get(propertiesToUpdate, 'AlertDefinition/source.ams.id')) {
+      delete propertiesToUpdate['AlertDefinition/source'].ams.id;
     }
 
     // `source.parameters` is an array and should be updated separately from other configs

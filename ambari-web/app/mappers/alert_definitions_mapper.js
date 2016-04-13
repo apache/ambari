@@ -23,6 +23,7 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
   reportModel: App.AlertReportDefinition,
   metricsSourceModel: App.AlertMetricsSourceDefinition,
   metricsUriModel: App.AlertMetricsUriDefinition,
+  metricsAmsModel: App.AlertMetricsAmsDefinition,
   parameterModel: App.AlertDefinitionParameter,
 
   config: {
@@ -77,6 +78,13 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
     connection_timeout: 'AlertDefinition.source.uri.connection_timeout'
   },
 
+  amsConfig: {
+    id: 'AlertDefinition.source.ams.id',
+    value: 'AlertDefinition.source.ams.value',
+    minimal_value: 'AlertDefinition.source.ams.minimum_value',
+    interval: 'AlertDefinition.source.ams.interval'
+  },
+
   map: function (json) {
     console.time('App.alertDefinitionsMapper execution time');
     if (json && json.items) {
@@ -86,6 +94,7 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
           alertReportDefinitions = [],
           alertMetricsSourceDefinitions = [],
           alertMetricsUriDefinitions = [],
+          alertMetricsAmsDefinitions = [],
           alertGroupsMap = App.cache.previousAlertGroupsMap,
           existingAlertDefinitions = App.AlertDefinition.find(),
           existingAlertDefinitionsMap = existingAlertDefinitions.toArray().toMapByProperty('id'),
@@ -207,6 +216,16 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
           case 'RECOVERY':
             alertDefinitions.push($.extend(alertDefinition, this.parseIt(item, this.get('uriConfig'))));
             break;
+          case 'AMS':
+            // map App.AlertMetricsUriDefinition
+            alertDefinition.uri_id = item.AlertDefinition.id + 'uri';
+            alertDefinition.ams_id = item.AlertDefinition.id + 'ams';
+            item.AlertDefinition.source.uri.id = alertDefinition.uri_id;
+            item.AlertDefinition.source.ams.id = alertDefinition.ams_id;
+            alertMetricsUriDefinitions.push(this.parseIt(item, this.get('uriConfig')));
+            alertMetricsAmsDefinitions.push(this.parseIt(item, this.get('amsConfig')));
+            alertDefinitions.push(alertDefinition);
+            break;
           default:
             console.error('Incorrect Alert Definition type:', item.AlertDefinition);
         }
@@ -222,6 +241,7 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
       App.store.loadMany(this.get('metricsSourceModel'), alertMetricsSourceDefinitions);
       this.setMetricsSourcePropertyLists(this.get('metricsSourceModel'), alertMetricsSourceDefinitions);
       App.store.loadMany(this.get('metricsUriModel'), alertMetricsUriDefinitions);
+      App.store.loadMany(this.get('metricsAmsModel'), alertMetricsAmsDefinitions);
       // this loadMany takes too much time
       App.store.loadMany(this.get('model'), alertDefinitions);
       this.setAlertDefinitionsRawSourceData(rawSourceData);
