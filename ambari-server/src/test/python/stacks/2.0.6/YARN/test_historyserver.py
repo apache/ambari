@@ -854,6 +854,15 @@ class TestHistoryServer(RMFTestCase):
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
 
+  def assert_call_to_get_hadoop_conf_dir(self):
+    # From call to conf_select.get_hadoop_conf_dir()
+    self.assertResourceCalled("Execute", ("cp", "-R", "-p", "/etc/hadoop/conf", "/etc/hadoop/conf.backup"),
+                              not_if = "test -e /etc/hadoop/conf.backup",
+                              sudo = True)
+    self.assertResourceCalled("Directory", "/etc/hadoop/conf",
+                              action = ["delete"])
+    self.assertResourceCalled("Link", "/etc/hadoop/conf", to="/etc/hadoop/conf.backup")
+
   @patch.object(Script, "is_hdp_stack_greater_or_equal", new = MagicMock(return_value="2.3.0"))
   @patch.object(functions, "get_hdp_version", new = MagicMock(return_value="2.3.0.0-1234"))
   @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
@@ -885,14 +894,14 @@ class TestHistoryServer(RMFTestCase):
                               sudo = True)
     self.assertResourceCalled("Directory", "/etc/hadoop/conf",
                               action = ["delete"])
-    self.assertResourceCalled("Link", "/etc/hadoop/conf", to="/usr/hdp/current/hadoop-client/conf")
+    self.assertResourceCalled("Link", "/etc/hadoop/conf", to="/etc/hadoop/conf.backup")
 
     self.assertResourceCalled("Execute", ("cp", "-R", "-p", "/etc/hadoop/conf", "/etc/hadoop/conf.backup"),
                               not_if = "test -e /etc/hadoop/conf.backup",
                               sudo = True)
     self.assertResourceCalled("Directory", "/etc/hadoop/conf",
                               action = ["delete"])
-    self.assertResourceCalled("Link", "/etc/hadoop/conf", to="/usr/hdp/current/hadoop-client/conf")
+    self.assertResourceCalled("Link", "/etc/hadoop/conf", to="/etc/hadoop/conf.backup")
 
     self.assertResourceCalled('HdfsResource', None,
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,

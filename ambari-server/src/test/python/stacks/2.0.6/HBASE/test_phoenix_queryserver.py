@@ -222,7 +222,7 @@ class TestPhoenixQueryServer(RMFTestCase):
                               sudo = True)
     self.assertResourceCalled("Directory", "/etc/hadoop/conf",
                               action = ["delete"])
-    self.assertResourceCalled("Link", "/etc/hadoop/conf", to="/usr/hdp/current/hadoop-client/conf")
+    self.assertResourceCalled("Link", "/etc/hadoop/conf", to="/etc/hadoop/conf.backup")
 
   def assert_configure_default(self):
     self.assert_call_to_get_hadoop_conf_dir()
@@ -479,5 +479,5 @@ class TestPhoenixQueryServer(RMFTestCase):
                               not_if = "test -e /etc/hadoop/conf.backup",
                               sudo = True)
     self.assertResourceCalled("Directory", "/etc/hadoop/conf", action = ["delete"])
-    self.assertResourceCalled("Link", "/etc/hadoop/conf", to="/usr/hdp/current/hadoop-client/conf")
+    self.assertResourceCalled("Link", "/etc/hadoop/conf", to="/etc/hadoop/conf.backup")
     self.assertNoMoreResources()
