@@ -264,7 +264,11 @@ def create(stack_name, package, version, dry_run = False):
 
 def select(stack_name, package, version, try_create=True, ignore_errors=False):
   """
-  Selects a config version for the specified package.
+  Selects a config version for the specified package. If this detects that
+  the stack supports configuration versioning but /etc/<component>/conf is a
+  directory, then it will attempt to bootstrap the conf.backup directory and change
+  /etc/<component>/conf into a symlink.
+
   :param stack_name: the name of the stack
   :param package: the name of the package, as-used by <conf-selector-tool>
   :param version: the version number to create
@@ -272,6 +276,7 @@ def select(stack_name, package, version, try_create=True, ignore_errors=False):
   :param ignore_errors: optional argument to ignore any error and simply log a warning
   """
   try:
+    # do nothing if the stack does not support versioned configurations
     if not _valid(stack_name, package, version):
       return
 
@@ -292,19 +297,25 @@ def select(stack_name, package, version, try_create=True, ignore_errors=False):
         conf_dir = directory_structure["conf_dir"]
         current_dir = directory_structure["current_dir"]
 
-        # if /etc/<component>/conf is not a symlink, we need to change it
+        # if /etc/<component>/conf is missing or is not a symlink
         if not os.path.islink(conf_dir):
-          # if it exists, try to back it up
+          # if /etc/<component>/conf is not a link and it exists, convert it to a symlink
           if os.path.exists(conf_dir):
             parent_directory = os.path.dirname(conf_dir)
-            conf_install_dir = os.path.join(parent_directory, "conf.backup")
+            conf_backup_dir = os.path.join(parent_directory, "conf.backup")
 
-            Execute(("cp", "-R", "-p", conf_dir, conf_install_dir),
-              not_if = format("test -e {conf_install_dir}"), sudo = True)
+            # create conf.backup and copy files to it (if it doesn't exist)
+            Execute(("cp", "-R", "-p", conf_dir, conf_backup_dir),
+              not_if = format("test -e {conf_backup_dir}"), sudo = True)
 
+            # delete the old /etc/<component>/conf directory and link to the backup
             Directory(conf_dir, action="delete")
+            Link(conf_dir, to = conf_backup_dir)
+          else:
+            # missing entirely
+            # /etc/<component>/conf -> <stack-root>/current/<component>/conf
+            Link(conf_dir, to = current_dir)
 
-          Link(conf_dir, to = current_dir)
   except Exception, exception:
     if ignore_errors is True:
       Logger.warning("Could not select the directory for package {0}. Error: {1}".format(package,

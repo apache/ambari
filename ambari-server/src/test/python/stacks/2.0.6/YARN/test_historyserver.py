@@ -862,7 +862,7 @@ class TestHistoryServer(RMFTestCase):
                               sudo = True)
     self.assertResourceCalled("Directory", "/etc/hadoop/conf",
                               action = ["delete"])
-    self.assertResourceCalled("Link", "/etc/hadoop/conf", to="/usr/hdp/current/hadoop-client/conf")
+    self.assertResourceCalled("Link", "/etc/hadoop/conf", to="/etc/hadoop/conf.backup")
 
   @patch.object(functions, "get_stack_version", new = MagicMock(return_value="2.3.0.0-1234"))
   @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
