@@ -338,16 +338,17 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
   },
 
   createProperty: function (propertyObj) {
+    var config;
     var selectedConfigGroup = this.get('controller.selectedConfigGroup');
     if (selectedConfigGroup.get('isDefault')) {
-      var config = App.config.createDefaultConfig(propertyObj.name, propertyObj.filename, false, {
+      config = App.config.createDefaultConfig(propertyObj.name, propertyObj.filename, false, {
         value: propertyObj.value,
         category: propertyObj.categoryName,
         isNotSaved: true
       });
     } else {
-      var config = App.config.createCustomGroupConfig({
-        name: propertyObj.name,
+      config = App.config.createCustomGroupConfig({
+        propertyName: propertyObj.name,
         filename: propertyObj.filename,
         value: propertyObj.value,
         category: propertyObj.categoryName,
@@ -501,9 +502,9 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
 
         App.ModalPopup.show({
           classNames: ['sixty-percent-width-modal'],
-          header: 'Add Property',
-          primary: 'Add',
-          secondary: 'Cancel',
+          header: Em.I18n.t('installer.step7.config.addProperty'),
+          primary: Em.I18n.t('add'),
+          secondary: Em.I18n.t('common.cancel'),
           onPrimary: function () {
             var propertyObj = {
               filename: siteFileName,
