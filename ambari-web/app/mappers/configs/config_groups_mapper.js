@@ -115,6 +115,16 @@ App.configGroupsMapper = App.QuickDataMapper.create({
   },
 
   /**
+   * Get array with all hosts
+   *
+   * @returns {String[]}
+   * @private
+   */
+  _getAllHosts: function() {
+    return App.get('allHostNames.length') ? App.get('allHostNames') : Object.keys(App.get('router.installerController.content.hosts'));
+  },
+
+  /**
    * generate mock object for default config group
    * @param {string} serviceName
    * @param {string[]} [hostNames=null]
@@ -127,7 +137,7 @@ App.configGroupsMapper = App.QuickDataMapper.create({
       name: 'Default',
       service_name: serviceName,
       description: 'Default cluster level ' + App.format.role(serviceName, true) + ' configuration',
-      hosts: hostNames ? hostNames.slice() : App.get('allHostNames').slice(),
+      hosts: hostNames ? hostNames.slice() : this._getAllHosts().slice(),
       child_config_groups: childConfigGroups ? childConfigGroups.uniq() : [],
       service_id: serviceName,
       desired_configs: [],
