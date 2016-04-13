@@ -185,6 +185,7 @@ angular.module('ambariAdminConsole')
       'advanced': 'Advanced',
       'visible': 'Visible',
       'description': 'Description',
+      'shortUrl':'Short URL',
       'instanceDescription': 'Instance Description',
       'clusterConfiguration': 'Cluster Configuration',
       'localCluster': 'Local Ambari Managed Cluster',

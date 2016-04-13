@@ -37,7 +37,8 @@ angular.module('ambariAdminConsole')
       $scope.settings = {
         'visible': $scope.instance.ViewInstanceInfo.visible,
         'label': $scope.instance.ViewInstanceInfo.label,
-        'description': $scope.instance.ViewInstanceInfo.description
+        'description': $scope.instance.ViewInstanceInfo.description,
+        'shortUrl': $scope.instance.ViewInstanceInfo.short_url
       };
       switch (section) {
         case "details" :
@@ -243,7 +244,8 @@ angular.module('ambariAdminConsole')
         'ViewInstanceInfo':{
           'visible': $scope.settings.visible,
           'label': $scope.settings.label,
-          'description': $scope.settings.description
+          'description': $scope.settings.description,
+          'short_url': $scope.settings.shortUrl
         }
       };
       return View.updateInstance($routeParams.viewId, $routeParams.version, $routeParams.instanceId, data)
@@ -266,7 +268,8 @@ angular.module('ambariAdminConsole')
     $scope.settings = {
       'visible': $scope.instance.ViewInstanceInfo.visible,
       'label': $scope.instance.ViewInstanceInfo.label,
-      'description': $scope.instance.ViewInstanceInfo.description
+      'description': $scope.instance.ViewInstanceInfo.description,
+      'shortUrl': $scope.instance.ViewInstanceInfo.short_url
     };
     $scope.editDetailsSettingsDisabled = true;
     $scope.settingsForm.$setPristine();

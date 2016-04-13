@@ -85,6 +85,7 @@ App.MainViewsController = Em.Controller.extend({
             version: instance.ViewInstanceInfo.version,
             description: instance.ViewInstanceInfo.description || Em.I18n.t('views.main.instance.noDescription'),
             viewName: instance.ViewInstanceInfo.view_name,
+            shortUrl:instance.ViewInstanceInfo.short_url,
             instanceName: instance.ViewInstanceInfo.instance_name,
             href: instance.ViewInstanceInfo.context_path + "/"
           });
@@ -105,7 +106,10 @@ App.MainViewsController = Em.Controller.extend({
 
   setView: function (event) {
     if (event.context) {
+      if(event.context.shortUrl){
+        App.router.route('main/view/' + event.context.viewName + '/' + event.context.shortUrl);
+      } else {
       App.router.route('main/views/' + event.context.viewName + '/' + event.context.version + '/' + event.context.instanceName);
-    }
+    }}
   }
 });

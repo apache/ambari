@@ -19,7 +19,7 @@
 var App = require('app');
 
 module.exports = Em.Route.extend({
-  route: '/views',
+  route: '/view',
   enter: function (router) {
     router.get('mainViewsController').loadAmbariViews();
   },
@@ -32,39 +32,36 @@ module.exports = Em.Route.extend({
     }
   }),
 
-
-  viewDetails: Em.Route.extend({
-
-    route: '/:viewName/:version/:instanceName',
+  shortViewDetails: Em.Route.extend({
+    route: '/:viewName/:shortName',
     connectOutlets: function (router, params) {
-      // find and set content for `mainViewsDetails` and associated controller
-      var href = ['/views', params.viewName, params.version, params.instanceName + "/"].join('/');
       var viewPath = this.parseViewPath(window.location.href.slice(window.location.href.indexOf('?')));
+      var slicedShortName = params.shortName;
       if (viewPath) {
-        var slicedInstanceName = this._getSlicedInstanceName(params.instanceName);
-        if (slicedInstanceName === params.instanceName) {
+        slicedShortName = this._getSlicedShortName(params.shortName);
+        if (slicedShortName === params.shortName) {
           viewPath = '';
         }
-        href = ['/views', params.viewName, params.version, slicedInstanceName + "/"].join('/');
-        //remove slash from viewPath since href already contains it at the end
+
         if (viewPath.charAt(0) === '/') viewPath = viewPath.slice(1);
       }
 
       router.get('mainViewsController').dataLoading().done(function() {
-        var content = App.router.get('mainViewsController.ambariViews').findProperty('href', href);
+        var content = App.router.get('mainViewsController.ambariViews').filterProperty('viewName', params.viewName).findProperty('shortUrl', slicedShortName)
         if (content) content.set('viewPath', viewPath);
         router.get('mainController').connectOutlet('mainViewsDetails', content);
       });
+
     },
 
     /**
-     * parse the instance name and slice if needed
+     * parse the short name and slice if needed
      *
      * @param {string}
      * @returns {string}
      * @private
      */
-    _getSlicedInstanceName: function (instanceName) {
+    _getSlicedShortName: function (instanceName) {
       if (instanceName.lastIndexOf('?') > -1) {
         return instanceName.slice(0, instanceName.lastIndexOf('?'));
       }
@@ -93,5 +90,6 @@ module.exports = Em.Route.extend({
       }
       return path;
     }
+
   })
 });
