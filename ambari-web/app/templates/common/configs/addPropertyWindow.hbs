@@ -54,12 +54,23 @@
   {{else}}
     <div {{bindAttr class="view.serviceConfigObj.isKeyError:error :each-row :control-group"}}>
       <label class="control-label">{{t common.key}}</label>
-
       <div class="controls">
         {{view Ember.TextField valueBinding="view.serviceConfigObj.name" class="input-block-level"}}
+
         {{#if view.serviceConfigObj.isKeyError}}
-          <span class="help-inline">{{view.serviceConfigObj.errorMessage}}</span>
+          <span class="help-inline">
+            <i class="icon-exclamation-sign"></i>
+            {{view.serviceConfigObj.errorMessage}}
+          </span>
+        {{else}}
+          {{#if view.serviceConfigObj.isKeyWarning}}
+            <span class="help-inline">
+              <i class="icon-warning-sign"></i>
+              {{view.serviceConfigObj.warningMessage}}
+            </span>
+          {{/if}}
         {{/if}}
+
         {{#if view.serviceConfigObj.showFilterLink}}
           {{#if view.notMisc}}
           <a href="#" class="btn-padding" {{action filterByKey target="view" }}>

@@ -380,8 +380,28 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
 
         var configsOfFile = service.get('configs').filterProperty('filename', siteFileName);
 
+        /**
+         * Find duplications within the same confType
+         * Result in error, as no duplicated property keys are allowed in the same configType
+         * */
         function isDuplicatedConfigKey(name) {
           return configsOfFile.findProperty('name', name);
+        }
+
+        /**
+         * find duplications in all confTypes of the service
+         * Result in warning, to remind user the existence of a same-named property
+         * */
+        function isDuplicatedConfigKeyinConfigs(name) {
+          var files = [];
+          var configFiles = service.get('configs').mapProperty('filename').uniq();
+          configFiles.forEach(function(configFile){
+            var configsOfFile = service.get('configs').filterProperty('filename', configFile);
+            if(configsOfFile.findProperty('name', name)){
+              files.push(configFile);
+            }
+          }, this);
+          return files;
         }
 
         var serviceConfigObj = Ember.Object.create({
@@ -399,23 +419,36 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
             var name = this.get('name');
             if (name.trim() != '') {
               if (validator.isValidConfigKey(name)) {
-                if (!isDuplicatedConfigKey(name)) {
-                  this.set('showFilterLink', false);
-                  this.set('isKeyError', false);
-                  this.set('errorMessage', '');
+                if (!isDuplicatedConfigKey(name)) { //no duplication within the same confType
+                  var files = isDuplicatedConfigKeyinConfigs(name);
+                  if (files.length > 0) {
+                    //still check for a warning, if there are duplications across confTypes
+                    this.set('showFilterLink', true);
+                    this.set('isKeyWarning', true);
+                    this.set('isKeyError', false);
+                    this.set('warningMessage', Em.I18n.t('services.service.config.addPropertyWindow.error.derivedKey.location').format(files.join(" ")));
+                  } else {
+                    this.set('showFilterLink', false);
+                    this.set('isKeyError', false);
+                    this.set('isKeyWarning', false);
+                    this.set('errorMessage', '');
+                  }
                 } else {
                   this.set('showFilterLink', true);
                   this.set('isKeyError', true);
-                  this.set('errorMessage', Em.I18n.t('services.service.config.addPropertyWindow.error.derivedKey'));
+                  this.set('isKeyWarning', false);
+                  this.set('errorMessage', Em.I18n.t('services.service.config.addPropertyWindow.error.derivedKey.infile'));
                 }
               } else {
                 this.set('showFilterLink', false);
                 this.set('isKeyError', true);
+                this.set('isKeyWarning', false);
                 this.set('errorMessage', Em.I18n.t('form.validator.configKey'));
               }
             } else {
               this.set('showFilterLink', false);
               this.set('isKeyError', true);
+              this.set('isKeyWarning', false);
               this.set('errorMessage', Em.I18n.t('services.service.config.addPropertyWindow.error.required'));
             }
           }.observes('name')
