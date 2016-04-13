@@ -88,7 +88,7 @@ hive_interactive_bin = '/usr/lib/hive2/bin'
 hive_interactive_lib = '/usr/lib/hive2/lib/'
 hive_interactive_var_lib = '/var/lib/hive2'
 
-# These tar folders were used in previous stack versions
+# These tar folders were used in previous stack versions, e.g., HDP 2.1
 hadoop_streaming_jars = '/usr/lib/hadoop-mapreduce/hadoop-streaming-*.jar'
 pig_tar_file = format('/usr/share/{stack_name_uppercase}-webhcat/pig.tar.gz')
 hive_tar_file = format('/usr/share/{stack_name_uppercase}-webhcat/hive.tar.gz')

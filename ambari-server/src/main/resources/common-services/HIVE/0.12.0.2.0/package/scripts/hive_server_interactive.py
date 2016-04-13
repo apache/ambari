@@ -29,6 +29,14 @@ from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.core.resources.system import Execute
+
+# Imports needed for Rolling/Express Upgrade
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions.copy_tarball import copy_to_hdfs
+
 from resource_management.core import shell
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
@@ -44,6 +52,16 @@ from hive_server import HiveServerDefault
 
 
 class HiveServerInteractive(Script):
+  pass
+
+
+@OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
+class HiveServerInteractiveDefault(HiveServerInteractive):
+
+    def get_stack_to_component(self):
+      import params
+      return {params.stack_name: "hive-server2-hive2"}
+
     def install(self, env):
       import params
       self.install_packages(env)
@@ -53,23 +71,30 @@ class HiveServerInteractive(Script):
       env.set_params(params)
       hive_interactive(name='hiveserver2')
 
-@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
-class HiveServerWindows(HiveServerInteractive):
-    def start(self, env):
-      pass
-
-    def stop(self, env):
-      pass
-
-    def status(self, env):
-      pass
-
-
-@OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
-class HiveServerDefault(HiveServerInteractive):
-    def get_stack_to_component(self):
+    def pre_upgrade_restart(self, env, upgrade_type=None):
+      Logger.info("Executing Hive Server Interactive Stack Upgrade pre-restart")
       import params
-      return {params.stack_name: "hive-server2-hive2"}
+      env.set_params(params)
+
+      if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
+        stack_select.select("hive-server2-hive2", params.version)
+        conf_select.select(params.stack_name, "hive2", params.version)
+
+        # Copy hive.tar.gz and tez.tar.gz used by Hive Interactive to HDFS
+        resource_created = copy_to_hdfs(
+          "hive2",
+          params.user_group,
+          params.hdfs_user,
+          host_sys_prepped=params.host_sys_prepped)
+
+        resource_created = copy_to_hdfs(
+          "tez_hive2",
+          params.user_group,
+          params.hdfs_user,
+          host_sys_prepped=params.host_sys_prepped) or resource_created
+
+        if resource_created:
+          params.HdfsResource(None, action="execute")
 
     def start(self, env, upgrade_type=None):
       import params
@@ -86,14 +111,13 @@ class HiveServerDefault(HiveServerInteractive):
       # Start LLAP before Hive Server Interactive start.
       # TODO, why does LLAP have to be started before Hive Server Interactive???
       status = self._llap_start(env)
-      if status:
-        # TODO : test the workability of Ranger and Hive2 during upgrade
-        # setup_ranger_hive(upgrade_type=upgrade_type)
+      if not status:
+        raise Fail("Skipping start of Hive Server Interactive since could not start LLAP.")
 
-        hive_service_interactive('hiveserver2', action='start', upgrade_type=upgrade_type)
-      else:
-        Logger.info("Skipping start of Hive Server Interactive due to LLAP start issue.")
-        raise Exception("Problem starting HiveServer2")
+      # TODO : test the workability of Ranger and Hive2 during upgrade
+      # setup_ranger_hive(upgrade_type=upgrade_type)
+      hive_service_interactive('hiveserver2', action='start', upgrade_type=upgrade_type)
+
 
     def stop(self, env, upgrade_type=None):
       import params
@@ -119,10 +143,6 @@ class HiveServerDefault(HiveServerInteractive):
       check_process_status(pid_file)
       # TODO : Check the LLAP app status as well.
 
-    def pre_upgrade_restart(self, env, upgrade_type=None):
-      # TODO: Make sure, the tez_hive2 is upgraded, while writing the upgrade code.
-      pass
-
     def security_status(self, env):
       HiveServerDefault.security_status(env)
 
@@ -135,7 +155,7 @@ class HiveServerDefault(HiveServerInteractive):
       env.set_params(params)
 
       if params.security_enabled:
-        self.do_kinit();
+        self.do_kinit()
 
       self._llap_stop(env)
       self._llap_start(env)
@@ -162,7 +182,7 @@ class HiveServerDefault(HiveServerInteractive):
       if code == 0:
         Logger.info(format("Successfully removed slider app {SLIDER_APP_NAME}."))
       else:
-        message = format("Could not remove slider app {SLIDER_APP_NAME}.")
+        message = format("Could not remove slider app {SLIDER_APP_NAME}. Please retry this task.")
         if error is not None:
           message += " " + error
         raise Fail(message)
@@ -239,7 +259,7 @@ class HiveServerDefault(HiveServerInteractive):
     def setup_security(self):
       import params
 
-      self.do_kinit();
+      self.do_kinit()
 
       # Copy params.hive_llap_keytab_file to hdfs://<host>:<port>/user/<hive_user>/.slider/keytabs/<hive_user> , required by LLAP
       slider_keytab_install_cmd = format("slider install-keytab --keytab {params.hive_llap_keytab_file} --folder {params.hive_user} --overwrite")
@@ -251,5 +271,12 @@ class HiveServerDefault(HiveServerInteractive):
       hive_interactive_kinit_cmd = format("{kinit_path_local} -kt {hive_server2_keytab} {hive_principal}; ")
       Execute(hive_interactive_kinit_cmd, user=params.hive_user)
 
+
+@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
+class HiveServerInteractiveWindows(HiveServerInteractive):
+
+  def status(self, env):
+    pass
+
 if __name__ == "__main__":
-    HiveServerInteractive().execute()
+  HiveServerInteractive().execute()

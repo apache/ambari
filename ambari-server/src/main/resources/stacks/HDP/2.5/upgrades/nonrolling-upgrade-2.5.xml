@@ -117,6 +117,7 @@
       <service name="HIVE">
         <component>WEBHCAT_SERVER</component>
         <component>HIVE_SERVER</component>
+        <component>HIVE_SERVER_INTERACTIVE</component>
         <component>HIVE_METASTORE</component>
       </service>
 
@@ -435,6 +436,16 @@
       </priority>
     </group>
 
+    <!-- Slider must be upgraded before higher-level apps that need to run apps on Slider, such as Hive. -->
+    <group xsi:type="restart" name="SLIDER" title="Slider">
+      <service-check>false</service-check>
+      <skippable>true</skippable>
+      <parallel-scheduler/>
+      <service name="SLIDER">
+        <component>SLIDER</component>
+      </service>
+    </group>
+
     <group xsi:type="restart" name="HIVE_MASTERS" title="Hive Masters">
       <service-check>false</service-check>
       <skippable>true</skippable>
@@ -446,6 +457,7 @@
       <service name="HIVE">
         <component>HIVE_METASTORE</component>
         <component>HIVE_SERVER</component>
+        <component>HIVE_SERVER_INTERACTIVE</component>
         <component>WEBHCAT_SERVER</component>
       </service>
     </group>
@@ -564,15 +576,6 @@
           <message>Please rebuild your topology using the new Storm version dependencies and resubmit it using the newly created jar.</message>
         </task>
       </execute-stage>
-    </group>
-
-    <group xsi:type="restart" name="SLIDER" title="Slider">
-      <service-check>false</service-check>
-      <skippable>true</skippable>
-      <parallel-scheduler/>
-      <service name="SLIDER">
-        <component>SLIDER</component>
-      </service>
     </group>
 
     <group xsi:type="restart" name="FLUME" title="Flume">
@@ -871,6 +874,12 @@
       </component>
 
       <component name="HIVE_SERVER">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+
+      <component name="HIVE_SERVER_INTERACTIVE">
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>

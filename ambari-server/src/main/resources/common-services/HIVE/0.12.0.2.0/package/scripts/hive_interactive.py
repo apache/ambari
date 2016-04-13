@@ -56,7 +56,7 @@ def hive_interactive(name=None):
   import params
 
   # Copy Tarballs in HDFS.
-  copy_to_hdfs("tez_hive2",
+  resource_created = copy_to_hdfs("tez_hive2",
                params.user_group,
                params.hdfs_user,
                file_mode=params.tarballs_mode,
@@ -66,9 +66,10 @@ def hive_interactive(name=None):
                params.user_group,
                params.hdfs_user,
                file_mode=params.tarballs_mode,
-               host_sys_prepped=params.host_sys_prepped)
+               host_sys_prepped=params.host_sys_prepped) or resource_created
 
-  params.HdfsResource(None, action="execute")
+  if resource_created:
+    params.HdfsResource(None, action="execute")
 
   Directory(params.hive_interactive_etc_dir_prefix,
             mode=0755

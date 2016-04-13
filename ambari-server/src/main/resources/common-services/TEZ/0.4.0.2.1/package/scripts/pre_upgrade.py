@@ -47,7 +47,7 @@ class TezPreUpgrade(Script):
         "tez",
         params.user_group,
         params.hdfs_user,
-        use_upgrading_version_during_uprade=False,
+        use_upgrading_version_during_upgrade=False,
         host_sys_prepped=params.host_sys_prepped)
       if resource_created:
         params.HdfsResource(None, action="execute")

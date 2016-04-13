@@ -216,12 +216,21 @@
       </exclude>
     </group>
 
+    <!-- Slider must be upgraded before higher-level apps that need to run apps on Slider, such as Hive. -->
+    <group name="SLIDER" title="Slider">
+      <skippable>true</skippable>
+      <service name="SLIDER">
+        <component>SLIDER</component>
+      </service>
+    </group>
+
     <group name="HIVE" title="Hive">
       <skippable>true</skippable>
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
       <service name="HIVE">
         <component>HIVE_METASTORE</component>
         <component>HIVE_SERVER</component>
+        <component>HIVE_SERVER_INTERACTIVE</component>
         <component>WEBHCAT_SERVER</component>
       </service>
     </group>
@@ -364,13 +373,6 @@
         <component>SUPERVISOR</component>
         <component>STORM_UI_SERVER</component>
         <component>DRPC_SERVER</component>
-      </service>
-    </group>
-
-    <group name="SLIDER" title="Slider">
-      <skippable>true</skippable>
-      <service name="SLIDER">
-        <component>SLIDER</component>
       </service>
     </group>
 
@@ -694,6 +696,12 @@
           <task xsi:type="configure" id="hdp_2_5_0_0_hive_server_restore_transport_mode_on_downgrade" />
         </pre-downgrade>
 
+        <upgrade>
+          <task xsi:type="restart-task" />
+        </upgrade>
+      </component>
+
+      <component name="HIVE_SERVER_INTERACTIVE">
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
