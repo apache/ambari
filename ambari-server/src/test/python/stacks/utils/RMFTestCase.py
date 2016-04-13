@@ -252,7 +252,19 @@ class RMFTestCase(TestCase):
       self.assertEquals(resource_type, resource.__class__.__name__)
       self.assertEquals(name, resource.name)
       self.assertEquals(kwargs, resource.arguments)
-    
+
+  def assertResourceCalledRegexp(self, resource_type, name, **kwargs):
+    with patch.object(UnknownConfiguration, '__getattr__', return_value=lambda: "UnknownConfiguration()"):
+      self.assertNotEqual(len(RMFTestCase.env.resource_list), 0, "There were no more resources executed!")
+      resource = RMFTestCase.env.resource_list.pop(0)
+      
+      self.assertRegexpMatches(resource.__class__.__name__, resource_type)
+      self.assertRegexpMatches(resource.name, name)
+      for key in set(resource.arguments.keys()) | set(kwargs.keys()):
+        resource_value = resource.arguments.get(key, '')
+        actual_value = kwargs.get(key, '')
+        self.assertRegexpMatches(resource_value, actual_value, msg="Key " + key + " doesn't match")
+
   def assertNoMoreResources(self):
     self.assertEquals(len(RMFTestCase.env.resource_list), 0, "There were other resources executed!")
     

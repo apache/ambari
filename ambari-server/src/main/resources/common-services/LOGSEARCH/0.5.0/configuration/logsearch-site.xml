@@ -1,0 +1,81 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration>
+
+  <property>
+    <name>logsearch.ui.port</name>
+    <value>61888</value>
+    <description>Default port for LogSearch UI</description>
+    <display-name>Logsearch UI Port</display-name>
+  </property>
+
+  <property>
+    <name>logsearch.collection.numshards</name>
+    <value>5</value>
+    <display-name>Logsearch Solr Shards</display-name>
+    <description>Number of shards for Solr collections</description>
+  </property>
+
+  <property>
+    <name>logsearch.collection.replication.factor</name>
+    <value>1</value>
+    <display-name>Logsearch Solr Replication Factor</display-name>
+    <description>Replication factor for Solr collections</description>
+  </property>
+
+  <property>
+    <name>logsearch.solr.collection.service.logs</name>
+    <value>hadoop_logs</value>
+    <display-name>Logsearch Solr Service Logs Collection</display-name>
+    <description>Name for the service logs collection</description>
+  </property>
+
+  <property>
+    <name>logsearch.solr.collection.audit.logs</name>
+    <value>audit_logs</value>
+    <display-name>Logsearch Solr Audit Logs Collection</display-name>
+    <description>Name for the audit logs collection</description>
+  </property>
+
+  <property>
+    <name>logsearch.service.logs.fields</name>
+    <value>logtime,level,event_count,ip,type,seq_num,path,file,line_number,host,log_message,id</value>
+    <display-name>Logsearch Solr Service Logs Fields</display-name>
+    <description>Solr fields for service logs</description>
+  </property>
+
+  <property>
+    <name>logsearch.service.logs.split.interval.mins</name>
+    <value>15</value>
+    <display-name>Logsearch Service Logs split interval</display-name>
+    <description>Will create multiple collections and use alias. Valid values are single,hour_week</description>
+  </property>
+
+  <property>
+    <name>logsearch.audit.logs.split.interval.mins</name>
+    <value>15</value>
+    <display-name>Logsearch Audit Logs split interval</display-name>
+    <description>Will switch the shard after the interval specified. Valid values are none and greater than 1
+    </description>
+  </property>
+
+</configuration>

@@ -1,0 +1,26 @@
+{
+  "name": "default",
+  "description": "default quick links configuration",
+  "configuration": {
+    "protocol": {
+      "type": "http"
+    },
+    "links": [
+      {
+        "name": "logsearch_ui",
+        "label": "Logsearch UI",
+        "url": "%@://%@:%@",
+        "requires_user_name": "false",
+        "port": {
+          "http_property": "logsearch.ui.port",
+          "http_default_port": "8888",
+          "https_property": "logsearch.ui.port",
+          "https_default_port": "8888",
+          "regex": "^(\\d+)$",
+          "site": "logsearch-site"
+        }
+      }
+    ]
+  }
+}
+

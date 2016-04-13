@@ -1,0 +1,17 @@
+{
+  "services": [
+    {
+      "name": "LOGSEARCH",
+      "identities": [
+        {
+          "name": "/smokeuser"
+        }
+      ],
+      "components": [
+        {
+          "name": "LOGSEARCH_SERVER"
+        }
+      ]
+    }
+  ]
+}

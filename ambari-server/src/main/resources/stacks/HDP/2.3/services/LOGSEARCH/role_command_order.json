@@ -1,0 +1,8 @@
+{
+  "general_deps" : {
+    "_comment" : "dependencies for all logsearch",
+    "LOGSEARCH_SOLR-START" : ["ZOOKEEPER_SERVER-START"],
+    "LOGSEARCH_SERVER-START": ["LOGSEARCH_SOLR-START"],
+    "LOGSEARCH_LOGFEEDER-START": ["LOGSEARCH_SOLR-START", "LOGSEARCH_SERVER-START"]
+  }
+}

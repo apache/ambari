@@ -43,7 +43,8 @@ App.QuickViewLinks = Em.View.extend({
     'ACCUMULO',
     'ATLAS',
     'RANGER',
-    'AMBARI_METRICS'
+    'AMBARI_METRICS',
+    'LOGSEARCH'
   ],
 
   /**
@@ -552,6 +553,9 @@ App.QuickViewLinks = Em.View.extend({
         break;
       case "AMBARI_METRICS":
         hosts = this.findHosts('METRICS_GRAFANA', response);
+        break;
+      case "LOGSEARCH":
+        hosts = this.findHosts('LOGSEARCH_SERVER', response);
         break;
       default:
         if (this.getWithDefault('content.hostComponents', []).someProperty('isMaster')) {

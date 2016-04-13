@@ -794,4 +794,66 @@ public class StackManagerTest {
     assertTrue(rangerUserSyncRoleCommand + " should be dependent of " + kmsRoleCommand, rangerUserSyncBlockers.contains(kmsRoleCommand));
   }
   //todo: component override assertions
+
+  @Test
+  public void testServicesWithLogsearchRoleCommandOrder() throws AmbariException {
+    URL rootDirectoryURL = StackManagerTest.class.getResource("/");
+    Assert.notNull(rootDirectoryURL);
+
+    File resourcesDirectory = new File(new File(rootDirectoryURL.getFile()).getParentFile().getParentFile(), "src/main/resources");
+
+    File stackRoot = new File(resourcesDirectory, "stacks");
+    File commonServices = new File(resourcesDirectory, "common-services");
+
+    MetainfoDAO metaInfoDao = createNiceMock(MetainfoDAO.class);
+    StackDAO stackDao = createNiceMock(StackDAO.class);
+    ActionMetadata actionMetadata = createNiceMock(ActionMetadata.class);
+    Configuration config = createNiceMock(Configuration.class);
+
+    expect(config.getSharedResourcesDirPath()).andReturn(
+      ClassLoader.getSystemClassLoader().getResource("").getPath()).anyTimes();
+
+    replay(config, metaInfoDao, stackDao, actionMetadata);
+
+    OsFamily osFamily = new OsFamily(config);
+
+    StackManager stackManager = new StackManager(stackRoot, commonServices, osFamily, metaInfoDao, actionMetadata, stackDao);
+
+    String zookeeperServerRoleCommand = Role.ZOOKEEPER_SERVER + "-" + RoleCommand.START;
+    String logsearchServerRoleCommand = Role.LOGSEARCH_SERVER + "-" + RoleCommand.START;
+    String logsearchSolrRoleCommand = Role.LOGSEARCH_SOLR + "-" + RoleCommand.START;
+    String logsearchLogfeederRoleCommand = Role.LOGSEARCH_LOGFEEDER + "-" + RoleCommand.START;
+
+    StackInfo hdp = stackManager.getStack("HDP", "2.3");
+    Map<String, Object> rco = hdp.getRoleCommandOrder().getContent();
+
+    Map<String, Object> generalDeps = (Map<String, Object>) rco.get("general_deps");
+    Map<String, Object> optionalNoGlusterfs = (Map<String, Object>) rco.get("optional_no_glusterfs");
+
+    // HDFS/YARN - verify that the stack level rco still works as expected
+    String nameNodeRoleCommand = Role.NAMENODE + "-" + RoleCommand.START;
+    String rangerUserSyncRoleCommand = Role.RANGER_USERSYNC + "-" + RoleCommand.START;
+    ArrayList<String> nameNodeBlockers = (ArrayList<String>) optionalNoGlusterfs.get(nameNodeRoleCommand);
+
+    assertTrue(nameNodeRoleCommand + " should be dependent of " + rangerUserSyncRoleCommand, nameNodeBlockers.contains(rangerUserSyncRoleCommand));
+
+    String resourceManagerCommandRoleCommand = Role.RESOURCEMANAGER +  "-" + RoleCommand.START;
+    ArrayList<String> resourceManagerBlockers = (ArrayList<String>)generalDeps.get(resourceManagerCommandRoleCommand);
+
+    assertTrue(resourceManagerCommandRoleCommand + " should be dependent of " + rangerUserSyncRoleCommand, resourceManagerBlockers.contains(rangerUserSyncRoleCommand));
+
+    // verify logsearch rco
+    // LogSearch Solr
+    ArrayList<String> logsearchSolrBlockers = (ArrayList<String>) generalDeps.get(logsearchSolrRoleCommand);
+    assertTrue(logsearchSolrRoleCommand + " should be dependent of " + zookeeperServerRoleCommand, logsearchSolrBlockers.contains(zookeeperServerRoleCommand));
+
+    // LogSearch Server
+    ArrayList<String> logsearchServerBlockers = (ArrayList<String>) generalDeps.get(logsearchServerRoleCommand);
+    assertTrue(logsearchServerRoleCommand + " should be dependent of " + logsearchSolrRoleCommand, logsearchServerBlockers.contains(logsearchSolrRoleCommand));
+
+    // LogSearch LogFeeder
+    ArrayList<String> logsearchLogfeederBlockers = (ArrayList<String>) generalDeps.get(logsearchLogfeederRoleCommand);
+    assertTrue(logsearchLogfeederRoleCommand + " should be dependent of " + logsearchSolrRoleCommand, logsearchLogfeederBlockers.contains(logsearchSolrRoleCommand));
+    assertTrue(logsearchLogfeederRoleCommand + " should be dependent of " + logsearchServerRoleCommand, logsearchLogfeederBlockers.contains(logsearchServerRoleCommand));
+  }
 }

@@ -964,6 +964,11 @@ describe('App.QuickViewLinks', function () {
       expect(quickViewLinks.findHosts.calledWith('METRICS_GRAFANA', {})).to.be.true;
     });
 
+    it("LOGSEARCH service", function() {
+      expect(quickViewLinks.getHosts({}, 'LOGSEARCH')).to.eql(['host1']);
+      expect(quickViewLinks.findHosts.calledWith('LOGSEARCH_SERVER', {})).to.be.true;
+    });
+
     it("custom service without master", function() {
       expect(quickViewLinks.getHosts({}, 'S1')).to.be.empty;
     });

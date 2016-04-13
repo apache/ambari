@@ -1,0 +1,123 @@
+<?xml version="1.0"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<metainfo>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>LOGSEARCH</name>
+      <displayName>Log Search</displayName>
+      <comment>Log aggregation, analysis, and visualization for Ambari managed services</comment>
+      <version>0.5.0</version>
+
+      <components>
+
+        <component>
+          <name>LOGSEARCH_SERVER</name>
+          <timelineAppid>logsearch</timelineAppid>
+          <displayName>Log Search Server</displayName>
+          <category>MASTER</category>
+          <cardinality>1</cardinality>
+          <versionAdvertised>false</versionAdvertised>
+          <commandScript>
+            <script>scripts/logsearch.py</script>
+            <scriptType>PYTHON</scriptType>
+          </commandScript>
+          <logs>
+            <log>
+              <logId>logsearch_app</logId>
+            </log>
+            <log>
+              <logId>logsearch_perf</logId>
+            </log>
+          </logs>
+        </component>
+
+        <component>
+          <name>LOGSEARCH_SOLR</name>
+          <displayName>Solr Instance</displayName>
+          <category>MASTER</category>
+          <cardinality>1+</cardinality>
+          <versionAdvertised>false</versionAdvertised>
+          <commandScript>
+            <script>scripts/solr.py</script>
+            <scriptType>PYTHON</scriptType>
+          </commandScript>
+        </component>
+
+        <component>
+          <name>LOGSEARCH_LOGFEEDER</name>
+          <timelineAppid>logfeeder</timelineAppid>
+          <displayName>Log Feeder</displayName>
+          <category>SLAVE</category>
+          <cardinality>ALL</cardinality>
+          <versionAdvertised>false</versionAdvertised>
+          <commandScript>
+            <script>scripts/logfeeder.py</script>
+            <scriptType>PYTHON</scriptType>
+          </commandScript>
+          <logs>
+            <log>
+              <logId>logsearch_feeder</logId>
+            </log>
+          </logs>
+        </component>
+
+      </components>
+
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>redhat6</osFamily>
+          <packages>
+            <package>
+              <name>ambari-logsearch-logfeeder</name>
+              <skipUpgrade>true</skipUpgrade>
+            </package>
+            <package>
+              <name>ambari-logsearch-portal</name>
+              <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_logsearch_portal</condition>
+            </package>
+            <package>
+              <name>ambari-logsearch-solr</name>
+              <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_logsearch_solr</condition>
+            </package>
+          </packages>
+        </osSpecific>
+      </osSpecifics>
+
+      <requiredServices>
+        <service>ZOOKEEPER</service>
+      </requiredServices>
+
+      <configuration-dependencies>
+        <config-type>logsearch-site</config-type>
+        <config-type>solr-site</config-type>
+        <config-type>logfeeder-site</config-type>
+      </configuration-dependencies>
+      <restartRequiredAfterChange>false</restartRequiredAfterChange>
+
+      <quickLinksConfigurations>
+        <quickLinksConfiguration>
+          <fileName>quicklinks.json</fileName>
+          <default>true</default>
+        </quickLinksConfiguration>
+      </quickLinksConfigurations>
+    </service>
+  </services>
+</metainfo>

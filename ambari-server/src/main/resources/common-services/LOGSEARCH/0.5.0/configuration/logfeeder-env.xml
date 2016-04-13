@@ -1,0 +1,118 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+
+
+<!-- This is a special config file for properties used to monitor status of the service -->
+<configuration supports_adding_forbidden="true">
+
+  <property>
+    <name>logfeeder_pid_dir</name>
+    <value>/var/run/ambari-logsearch-logfeeder</value>
+    <description>logfeeder Process ID Directory</description>
+    <display-name>Logfeeder pid dir</display-name>
+  </property>
+
+  <property>
+    <name>logfeeder_log_dir</name>
+    <value>/var/log/ambari-logsearch-logfeeder</value>
+    <description>Log dir for logfeeder</description>
+    <display-name>Logfeeder log dir</display-name>
+  </property>
+
+  <property>
+    <name>logfeeder_checkpoint_folder</name>
+    <value>/etc/ambari-logsearch-logfeeder/conf/checkpoints</value>
+    <description>Checkpoint folder for logfeeder</description>
+    <display-name>Logfeeder checkpoint dir</display-name>
+  </property>
+
+  <property>
+    <name>logfeeder_config_files</name>
+    <value>{{logfeeder_config_files}}</value>
+    <description>Comma separated config files in grok format</description>
+    <display-name>Logfeeder config files</display-name>
+  </property>
+
+  <property>
+    <name>logfeeder_user</name>
+    <value>logfeeder</value>
+    <property-type>USER</property-type>
+    <description>logfeeder user</description>
+    <display-name>Logsfeeder User</display-name>
+  </property>
+
+  <property>
+    <name>logfeeder_group</name>
+    <value>logfeeder</value>
+    <property-type>GROUP</property-type>
+    <description>logfeeder group</description>
+    <display-name>Logsfeeder Group</display-name>
+  </property>
+
+  <property>
+    <name>logfeeder_max_mem</name>
+    <value>512m</value>
+    <description>Max memory for LogFeeder</description>
+    <display-name>Logsfeeder max memory</display-name>
+  </property>
+
+  <property>
+    <name>content</name>
+    <description>This is the jinja template for config.json file</description>
+    <value>#!/bin/bash
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+set -e
+
+export LOGFEEDER_PATH={{logfeeder_dir}}
+
+export LOGFEEDER_CONF_DIR={{logsearch_logfeeder_conf}}
+
+#Logfile e.g. /var/log/logfeeder.log
+export LOGFILE={{logfeeder_log}}
+
+#pid file e.g. /var/run/logfeeder.pid
+export PID_FILE={{logfeeder_pid_file}}
+
+export JAVA_HOME={{java64_home}}
+
+if [ "$LOGFEEDER_JAVA_MEM" = "" ]; then
+  export LOGFEEDER_JAVA_MEM=-Xmx{{logfeeder_max_mem}}
+fi
+    </value>
+  </property>
+
+
+</configuration>  

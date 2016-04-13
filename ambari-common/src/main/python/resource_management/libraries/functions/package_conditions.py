@@ -46,11 +46,19 @@ def should_install_ams_grafana():
   config = Script.get_config()
   return 'role' in config and config['role'] == "METRICS_GRAFANA"
 
+def should_install_logsearch_solr():
+  config = Script.get_config()
+  return 'role' in config and config['role'] != "LOGSEARCH_LOGFEEDER"
+
+def should_install_logsearch_portal():
+  config = Script.get_config()
+  return 'role' in config and config['role'] == "LOGSEARCH_SERVER"
+
 def should_install_mysql():
   config = Script.get_config()
   hive_database = config['configurations']['hive-env']['hive_database']
   hive_use_existing_db = hive_database.startswith('Existing')
-  
+
   if hive_use_existing_db or 'role' in config and config['role'] != "MYSQL_SERVER":
     return False
   return True
