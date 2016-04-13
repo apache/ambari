@@ -120,7 +120,7 @@ App.ActivateHawqStandbyWizardStep3Controller = App.HighAvailabilityProgressPageC
   },
 
   startRequiredServices: function () {
-    this.startServices(true, [this.hawqServiceName], true);
+    this.startServices(false, [this.hawqServiceName], true);
   }
 
 });

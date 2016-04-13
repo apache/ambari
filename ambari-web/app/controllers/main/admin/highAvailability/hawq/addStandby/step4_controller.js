@@ -84,7 +84,7 @@ App.AddHawqStandbyWizardStep4Controller = App.HighAvailabilityProgressPageContro
   },
 
   startRequiredServices: function () {
-    this.startServices(true, ["HAWQ"], true);
+    this.startServices(false, ["HAWQ"], true);
   }
 });
 

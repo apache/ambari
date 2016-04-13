@@ -272,11 +272,14 @@ def validate_configuration():
                "hawq_global_rm_type property in hawq-site is set to 'yarn' but YARN is not configured. " + 
                "Please deploy YARN before starting HAWQ or change the value of hawq_global_rm_type property to 'none'")
 
-def __init_component(component_name):
+def start_component(component_name, port, data_dir):
   """
-  Initializes the HAWQ component and creates hdfs data directory if master is being initialized
+  If data directory exists start the component, else initialize the component.
+  Initialization starts the component
   """
   import params
+
+  __check_dfs_truncate_enforced()
   if component_name == hawq_constants.MASTER:
     data_dir_owner = hawq_constants.hawq_user_secured if params.security_enabled else hawq_constants.hawq_user
     params.HdfsResource(params.hawq_hdfs_data_dir,
@@ -284,22 +287,15 @@ def __init_component(component_name):
                         action="create_on_execute",
                         owner=data_dir_owner,
                         group=hawq_constants.hawq_group,
-                        recursive_chown = True,
+                        recursive_chown=True,
                         mode=0755)
     params.HdfsResource(None, action="execute")
-  utils.exec_hawq_operation(hawq_constants.INIT, "{0} -a -v".format(component_name))
 
-
-def start_component(component_name, port, data_dir):
-  """
-  If data directory exists start the component, else initialize the component
-  """
-  __check_dfs_truncate_enforced()
   if os.path.exists(os.path.join(data_dir, hawq_constants.postmaster_opts_filename)):
     return utils.exec_hawq_operation(hawq_constants.START,
                                      "{0} -a -v".format(component_name),
                                      not_if=utils.chk_hawq_process_status_cmd(port))
-  __init_component(component_name)
+  utils.exec_hawq_operation(hawq_constants.INIT, "{0} -a -v".format(component_name))
 
 def stop_component(component_name, port, mode):
   """

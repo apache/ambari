@@ -73,20 +73,4 @@ def configure_master():
   common.create_master_dir(params.hawq_master_dir)
   common.create_temp_dirs(params.hawq_master_temp_dirs)
 
-def __setup_hdfs_dirs():
-  """
-  Creates the required HDFS directories for HAWQ if they don't exist
-  or sets proper owner/mode if directory exists
-  """
-  import params
 
-  data_dir_owner = hawq_constants.hawq_user_secured if params.security_enabled else hawq_constants.hawq_user
-
-  params.HdfsResource(params.hawq_hdfs_data_dir,
-                        type="directory",
-                        action="create_on_execute",
-                        owner=data_dir_owner,
-                        group=hawq_constants.hawq_group,
-                        recursive_chown = True,
-                        mode=0755)
-  params.HdfsResource(None, action="execute")
