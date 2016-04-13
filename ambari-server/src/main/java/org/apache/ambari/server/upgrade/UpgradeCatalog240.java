@@ -96,8 +96,6 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   public static final String SETTING_DATA_COL = "setting_data";
   public static final String ID = "id";
   public static final String BLUEPRINT_TABLE = "blueprint";
-  public static final String VIEWINSTANCEENTITY_TABLE = "viewinstanceentity";
-  public static final String SHORT_URL_COLUMN = "short_url";
 
   @Inject
   PermissionDAO permissionDAO;
@@ -162,13 +160,6 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     updateAlertCurrentTable();
     createBlueprintSettingTable();
     updateHostRoleCommandTableDDL();
-    updateViewInstanceEntityTable();
-
-  }
-
-  private void updateViewInstanceEntityTable() throws SQLException {
-    dbAccessor.addColumn(VIEWINSTANCEENTITY_TABLE,
-            new DBColumnInfo(SHORT_URL_COLUMN, String.class, 255, null, true));
   }
 
   private void updateClusterTableDDL() throws SQLException {

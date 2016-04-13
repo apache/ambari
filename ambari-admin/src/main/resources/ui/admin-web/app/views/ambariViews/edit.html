@@ -77,17 +77,6 @@
             </div>
           </div>
         </div>
-
-
-        <div class="form-group" ng-class="{'has-error' : form.instanceCreateForm.submitted }">
-          <label for="" class="control-label col-sm-3">{{'views.shortUrl' | translate}}</label>
-          <div class="col-sm-9">
-            <input type="text" class="form-control" name="short_url" ng-model="settings.shortUrl" maxlength="200">
-
-          </div>
-        </div>
-
-
         <div class="form-group">
           <div class="col-sm-offset-3 col-sm-10">
             <div class="checkbox">
@@ -209,7 +198,7 @@
     <p>&nbsp</p>
     <div class="checkbox">
       <label>
-        <input type="radio"
+        <input type="radio" 
          ng-model="$parent.isLocalCluster"
          ng-disabled="editConfigurationDisabled"
          ng-value="false"

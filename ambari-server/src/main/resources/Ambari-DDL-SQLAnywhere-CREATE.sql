@@ -472,7 +472,6 @@ CREATE TABLE viewinstance (
   xml_driven CHAR(1),
   alter_names BIT NOT NULL DEFAULT 1,
   cluster_handle VARCHAR(255),
-  short_url VARCHAR (255),
   PRIMARY KEY(view_instance_id));
 
 CREATE TABLE viewinstanceproperty (

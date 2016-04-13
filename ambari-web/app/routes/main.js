@@ -52,7 +52,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
                   Em.run.next(function () {
                     App.clusterStatus.updateFromServer().complete(function () {
                       var currentClusterStatus = App.clusterStatus.get('value');
-                      if (router.get('currentState.parentState.name') !== 'views' && router.get('currentState.parentState.name') !== 'view'
+                      if (router.get('currentState.parentState.name') !== 'views'
                           && currentClusterStatus && self.get('installerStatuses').contains(currentClusterStatus.clusterState)) {
                         if (App.isAuthorized('AMBARI.ADD_DELETE_CLUSTERS')) {
                           self.redirectToInstaller(router, currentClusterStatus, false);
@@ -185,8 +185,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
   }),
 
   views: require('routes/views'),
-  view: require('routes/view'),
-
 
   hosts: Em.Route.extend({
     route: '/hosts',

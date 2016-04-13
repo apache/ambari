@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.view;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import com.google.common.eventbus.AllowConcurrentEvents;
 import com.google.common.eventbus.Subscribe;
@@ -26,6 +25,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.Transactional;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.resources.ResourceInstanceFactoryImpl;
 import org.apache.ambari.server.api.resources.SubResourceDefinition;
@@ -80,17 +80,17 @@ import org.apache.ambari.server.view.configuration.PropertyConfig;
 import org.apache.ambari.server.view.configuration.ResourceConfig;
 import org.apache.ambari.server.view.configuration.ViewConfig;
 import org.apache.ambari.server.view.validation.ValidationException;
+import org.apache.ambari.view.ViewInstanceDefinition;
+import org.apache.ambari.view.cluster.Cluster;
+import org.apache.ambari.view.validation.Validator;
 import org.apache.ambari.view.Masker;
 import org.apache.ambari.view.SystemException;
 import org.apache.ambari.view.View;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.ViewDefinition;
-import org.apache.ambari.view.ViewInstanceDefinition;
 import org.apache.ambari.view.ViewResourceHandler;
-import org.apache.ambari.view.cluster.Cluster;
 import org.apache.ambari.view.events.Event;
 import org.apache.ambari.view.events.Listener;
-import org.apache.ambari.view.validation.Validator;
 import org.apache.log4j.PropertyConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,6 +98,7 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.inject.Singleton;
+
 import java.beans.IntrospectionException;
 import java.io.File;
 import java.net.URL;
@@ -460,7 +461,6 @@ public class ViewRegistry {
   public Set<SubResourceDefinition> getSubResourceDefinitions(
       String viewName, String version) {
 
-
     viewName = ViewEntity.getViewName(viewName, version);
 
     return subResourceDefinitionsMap.get(viewName);
@@ -495,25 +495,6 @@ public class ViewRegistry {
     return viewEntity != null &&
         (getInstanceDefinition(viewEntity.getCommonName(), viewEntity.getVersion(), instanceEntity.getName()) != null);
   }
-
-
-  public boolean duplicatedShortUrl(ViewInstanceEntity instanceEntity) {
-    ViewEntity viewEntity = getDefinition(instanceEntity.getViewName());
-    Map<String, ViewInstanceEntity> viewInstanceDefinitionMap =
-            viewInstanceDefinitions.get(getDefinition(viewEntity.getCommonName(), viewEntity.getVersion()));
-
-    if(viewInstanceDefinitionMap != null){
-      for (ViewInstanceEntity viewInstanceEntity : viewInstanceDefinitionMap.values()) {
-        String shortUrl = viewInstanceEntity.getShortUrl();
-        // check if there is a view for the same version with the same shortUrl
-        if (!Strings.isNullOrEmpty(shortUrl) && shortUrl.equals(instanceEntity.getShortUrl()))
-          return true;
-      }
-    }
-
-    return false;
-  }
-
 
   /**
    * Install the given view instance with its associated view.
@@ -1379,7 +1360,6 @@ public class ViewRegistry {
   private void syncViewInstance(ViewInstanceEntity instance1, ViewInstanceEntity instance2) {
     instance1.setLabel(instance2.getLabel());
     instance1.setDescription(instance2.getDescription());
-    instance1.setShortUrl(instance2.getShortUrl());
     instance1.setVisible(instance2.isVisible());
     instance1.setResource(instance2.getResource());
     instance1.setViewInstanceId(instance2.getViewInstanceId());
@@ -1818,7 +1798,6 @@ public class ViewRegistry {
             sslConfiguration.getTruststoreType());
     return new ViewAmbariStreamProvider(streamProvider, ambariSessionManager, AmbariServer.getController());
   }
-
 
 
 

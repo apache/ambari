@@ -130,11 +130,6 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   @Basic
   private String icon;
 
-
-  @Column(name = "short_url")
-  @Basic
-  private String shortUrl;
-
   /**
    * The big icon path.
    */
@@ -239,7 +234,6 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
     this.clusterHandle = null;
     this.visible = instanceConfig.isVisible() ? 'Y' : 'N';
     this.alterNames = 1;
-    this.shortUrl = instanceConfig.getShortUrl();
 
     String label = instanceConfig.getLabel();
     this.label = (label == null || label.length() == 0) ? view.getLabel() : label;
@@ -278,7 +272,6 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
     this.visible = 'Y';
     this.alterNames = 1;
     this.label = label;
-    this.shortUrl = null;
   }
 
 
@@ -344,14 +337,6 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
     return clusterHandle;
   }
 
-
-  @Override
-  public String getShortUrl() {
-    return shortUrl;
-  }
-
-
-
   @Override
   public boolean isVisible() {
     return visible == 'y' || visible == 'Y';
@@ -385,15 +370,6 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
    */
   public void setViewName(String viewName) {
     this.viewName = viewName;
-  }
-
-
-  /**
-   *  Set the short URL
-   * @param shortUrl
-   */
-  public void setShortUrl(String shortUrl) {
-    this.shortUrl = shortUrl;
   }
 
   /**

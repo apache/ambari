@@ -473,7 +473,7 @@ CREATE TABLE ambari.blueprint_setting (
   id BIGINT NOT NULL,
   blueprint_name varchar(255) NOT NULL,
   setting_name varchar(255) NOT NULL,
-  setting_data TEXT NOT NULL,
+  setting_data TEXT NOT NULL, 
   CONSTRAINT PK_blueprint_setting PRIMARY KEY (id),
   CONSTRAINT UQ_blueprint_setting_name UNIQUE(blueprint_name,setting_name),
   CONSTRAINT FK_blueprint_setting_name FOREIGN KEY (blueprint_name) REFERENCES ambari.blueprint(blueprint_name));
@@ -529,7 +529,6 @@ CREATE TABLE ambari.viewinstance (
   xml_driven CHAR(1),
   alter_names SMALLINT NOT NULL DEFAULT 1,
   cluster_handle VARCHAR(255),
-  short_url VARCHAR (255),
   PRIMARY KEY(view_instance_id));
 
 CREATE TABLE ambari.viewinstanceproperty (

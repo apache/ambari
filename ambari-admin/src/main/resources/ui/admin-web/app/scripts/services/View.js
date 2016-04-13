@@ -63,7 +63,7 @@ angular.module('ambariAdminConsole')
       if(version.ViewVersionInfo.status === 'DEPLOYED'){ // if atelast one version is deployed
         self.canCreateInstance = true;
       }
-
+      
       angular.forEach(version.instances, function(instance) {
         instance.label = instance.ViewInstanceInfo.label || version.ViewVersionInfo.label || instance.ViewInstanceInfo.view_name;
       });
@@ -137,7 +137,7 @@ angular.module('ambariAdminConsole')
     return deferred.promise;
   };
 
-
+  
 
   View.getVersions = function(viewName) {
     var deferred = $q.defer();
@@ -168,8 +168,7 @@ angular.module('ambariAdminConsole')
         visible: instanceInfo.visible,
         icon_path: instanceInfo.icon_path,
         icon64_path: instanceInfo.icon64_path,
-        description: instanceInfo.description,
-        short_url:instanceInfo.shortUrl
+        description: instanceInfo.description
       };
 
     angular.forEach(instanceInfo.properties, function(property) {
@@ -190,8 +189,7 @@ angular.module('ambariAdminConsole')
 
     $http({
       method: 'POST',
-      url: Settings.baseUrl + '/views/' + instanceInfo.view_name
-      +'/versions/'+instanceInfo.version + '/instances/'+instanceInfo.instance_name,
+      url: Settings.baseUrl + '/views/' + instanceInfo.view_name +'/versions/'+instanceInfo.version + '/instances/'+instanceInfo.instance_name,
       data:{
         'ViewInstanceInfo' : data
       }

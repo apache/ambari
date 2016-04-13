@@ -62,12 +62,6 @@ public interface ViewInstanceDefinition {
   public String getClusterHandle();
 
   /**
-   * Get the short URL
-   * @return
-     */
-  public String getShortUrl();
-
-  /**
    * Indicates whether or not the view instance should be visible.
    *
    * @return true if the view instance should be visible; false otherwise

@@ -31,13 +31,11 @@ module.exports = Em.Route.extend({
       });
     }
   }),
-
-
   viewDetails: Em.Route.extend({
-
     route: '/:viewName/:version/:instanceName',
     connectOutlets: function (router, params) {
       // find and set content for `mainViewsDetails` and associated controller
+
       var href = ['/views', params.viewName, params.version, params.instanceName + "/"].join('/');
       var viewPath = this.parseViewPath(window.location.href.slice(window.location.href.indexOf('?')));
       if (viewPath) {
