@@ -118,7 +118,7 @@ public class DataStoreImpl implements DataStore {
   /**
    * Max length of entity string field.
    */
-  protected static final int MAX_ENTITY_STRING_FIELD_LENGTH = 3200;
+  protected static final int MAX_ENTITY_STRING_FIELD_LENGTH = 3000;
 
   /**
    * Max total length of all the fields of an entity.
