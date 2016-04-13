@@ -44,7 +44,7 @@
         {
           "core-site": {
             "hadoop.proxyuser.postgres.hosts": "*",
-            "hadoop.proxyuser.postgres.groups": "${cluster-env/user_group}"
+            "hadoop.proxyuser.postgres.groups": "*"
           }
         }
       ],
