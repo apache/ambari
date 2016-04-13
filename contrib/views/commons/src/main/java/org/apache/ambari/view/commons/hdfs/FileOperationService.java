@@ -16,30 +16,25 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.view.filebrowser;
+package org.apache.ambari.view.commons.hdfs;
 
+import org.apache.ambari.view.ViewContext;
+import org.apache.ambari.view.commons.exceptions.NotFoundFormattedException;
+import org.apache.ambari.view.commons.exceptions.ServiceFormattedException;
+import org.apache.ambari.view.utils.hdfs.HdfsApi;
+import org.apache.ambari.view.utils.hdfs.HdfsApiException;
+import org.json.simple.JSONObject;
+
+import javax.ws.rs.*;
+import javax.ws.rs.core.*;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
-
-import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.UriInfo;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-
-import org.apache.ambari.view.ViewContext;
-import org.apache.ambari.view.filebrowser.utils.NotFoundFormattedException;
-import org.apache.ambari.view.filebrowser.utils.ServiceFormattedException;
-import org.apache.ambari.view.utils.hdfs.HdfsApi;
-import org.apache.ambari.view.utils.hdfs.HdfsApiException;
-import org.json.simple.JSONObject;
 
 /**
  * File operations service

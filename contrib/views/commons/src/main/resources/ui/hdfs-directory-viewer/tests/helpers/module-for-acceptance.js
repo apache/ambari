@@ -16,12 +16,26 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.view.filebrowser.utils;
+import { module } from 'qunit';
+import startApp from '../helpers/start-app';
+import destroyApp from '../helpers/destroy-app';
 
-public class NotFoundFormattedException extends ServiceFormattedException {
-  private final static int STATUS = 404;
+export default function(name, options = {}) {
+  module(name, {
+    beforeEach() {
+      this.application = startApp();
 
-  public NotFoundFormattedException(String message, Throwable exception) {
-    super(message, exception, STATUS);
-  }
+      if (options.beforeEach) {
+        options.beforeEach.apply(this, arguments);
+      }
+    },
+
+    afterEach() {
+      destroyApp(this.application);
+
+      if (options.afterEach) {
+        options.afterEach.apply(this, arguments);
+      }
+    }
+  });
 }

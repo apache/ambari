@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.view.filebrowser;
+package org.apache.ambari.view.commons.hdfs;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,7 +28,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.apache.ambari.view.ViewContext;
-import org.apache.ambari.view.filebrowser.utils.ServiceFormattedException;
+import org.apache.ambari.view.commons.exceptions.ServiceFormattedException;
+import org.apache.ambari.view.commons.hdfs.HdfsService;
 import org.apache.ambari.view.utils.hdfs.HdfsApi;
 import org.apache.hadoop.fs.FSDataOutputStream;
 
