@@ -160,7 +160,7 @@ class ActionQueue(threading.Thread):
             # checking just one command is enough as all commands for a stage is sent
             # at the same time and retry is only enabled for initial start/install
             retryAble = False
-            if 'command_retry_enabled' in command['commandParams']:
+            if 'commandParams' in command and 'command_retry_enabled' in command['commandParams']:
               retryAble = command['commandParams']['command_retry_enabled'] == "true"
             if retryAble:
               logger.info("Kicking off a thread for the command, id=" +

@@ -924,7 +924,7 @@ class TestActionQueue(TestCase):
     actionQueue.stop()
     actionQueue.join()
     self.assertEqual(actionQueue.stopped(), True, 'Action queue is not stopped.')
-    self.assertEqual(1, process_command_mock.call_count)
+    self.assertEqual(2, process_command_mock.call_count)
     self.assertEqual(0, threading_mock.call_count)
     process_command_mock.assert_any_calls([call(self.datanode_install_command), call(self.hbase_install_command)])
 
