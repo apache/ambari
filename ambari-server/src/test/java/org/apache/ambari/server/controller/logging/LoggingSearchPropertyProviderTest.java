@@ -167,4 +167,93 @@ public class LoggingSearchPropertyProviderTest {
     mockSupport.verifyAll();
   }
 
+  @Test
+  public void testCheckWhenLogSearchNotAvailable() throws Exception {
+
+    final String expectedStackName = "HDP";
+    final String expectedStackVersion = "2.4";
+    final String expectedComponentName = "NAMENODE";
+    final String expectedServiceName = "HDFS";
+    final String expectedLogSearchComponentName = "hdfs_namenode";
+
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    Resource resourceMock =
+      mockSupport.createMock(Resource.class);
+    expect(resourceMock.getPropertyValue(PropertyHelper.getPropertyId("HostRoles", "component_name"))).andReturn(expectedComponentName).atLeastOnce();
+    expect(resourceMock.getPropertyValue(PropertyHelper.getPropertyId("HostRoles", "host_name"))).andReturn("c6401.ambari.apache.org").atLeastOnce();
+    expect(resourceMock.getPropertyValue(PropertyHelper.getPropertyId("HostRoles", "cluster_name"))).andReturn("clusterone").atLeastOnce();
+
+    LoggingRequestHelperFactory helperFactoryMock =
+      mockSupport.createMock(LoggingRequestHelperFactory.class);
+
+    Request requestMock =
+      mockSupport.createMock(Request.class);
+
+    Predicate predicateMock =
+      mockSupport.createMock(Predicate.class);
+
+    LoggingSearchPropertyProvider.ControllerFactory factoryMock =
+      mockSupport.createMock(LoggingSearchPropertyProvider.ControllerFactory.class);
+
+    AmbariManagementController controllerMock =
+      mockSupport.createMock(AmbariManagementController.class);
+
+    AmbariMetaInfo metaInfoMock =
+      mockSupport.createMock(AmbariMetaInfo.class);
+
+    Clusters clustersMock =
+      mockSupport.createMock(Clusters.class);
+
+    Cluster clusterMock =
+      mockSupport.createMock(Cluster.class);
+
+    StackId stackIdMock =
+      mockSupport.createMock(StackId.class);
+
+    ComponentInfo componentInfoMock =
+      mockSupport.createMock(ComponentInfo.class);
+
+    LogDefinition logDefinitionMock =
+      mockSupport.createMock(LogDefinition.class);
+
+    expect(factoryMock.getAmbariManagementController()).andReturn(controllerMock);
+    expect(controllerMock.getAmbariMetaInfo()).andReturn(metaInfoMock).atLeastOnce();
+    expect(controllerMock.getClusters()).andReturn(clustersMock).atLeastOnce();
+    expect(clustersMock.getCluster("clusterone")).andReturn(clusterMock).atLeastOnce();
+    expect(stackIdMock.getStackName()).andReturn(expectedStackName).atLeastOnce();
+    expect(stackIdMock.getStackVersion()).andReturn(expectedStackVersion).atLeastOnce();
+    expect(clusterMock.getCurrentStackVersion()).andReturn(stackIdMock).atLeastOnce();
+
+    expect(metaInfoMock.getComponentToService(expectedStackName, expectedStackVersion, expectedComponentName)).andReturn(expectedServiceName).atLeastOnce();
+    expect(metaInfoMock.getComponent(expectedStackName, expectedStackVersion, expectedServiceName, expectedComponentName)).andReturn(componentInfoMock).atLeastOnce();
+
+    // simulate the case when LogSearch is not deployed, or is not available for some reason
+    expect(helperFactoryMock.getHelper(controllerMock, "clusterone")).andReturn(null).atLeastOnce();
+
+    expect(componentInfoMock.getLogs()).andReturn(Collections.singletonList(logDefinitionMock)).atLeastOnce();
+    expect(logDefinitionMock.getLogId()).andReturn(expectedLogSearchComponentName).atLeastOnce();
+
+    mockSupport.replayAll();
+
+    PropertyProvider propertyProvider =
+      new LoggingSearchPropertyProvider(helperFactoryMock, factoryMock);
+
+
+    // execute the populate resources method, verify that no exceptions occur, due to
+    // the LogSearch helper not being available
+    Set<Resource> returnedResources =
+      propertyProvider.populateResources(Collections.singleton(resourceMock), requestMock, predicateMock);
+
+    // verify that the set of resources has not changed in size
+    assertEquals("Returned resource set was of an incorrect size",
+      1, returnedResources.size());
+
+    // verify that the single resource passed in was returned
+    assertSame("Returned resource was not the expected instance.",
+      resourceMock, returnedResources.iterator().next());
+
+    mockSupport.verifyAll();
+  }
+
 }
