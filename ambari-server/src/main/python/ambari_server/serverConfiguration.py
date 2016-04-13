@@ -889,7 +889,8 @@ def store_password_file(password, filename):
     passFile.write(password)
   print_info_msg("Adjusting filesystem permissions")
   ambari_user = read_ambari_user()
-  set_file_permissions(passFilePath, "660", ambari_user, False)
+  if ambari_user: # at the first install ambari_user can be None. Which is fine since later on password.dat is chowned with the correct ownership.
+    set_file_permissions(passFilePath, "660", ambari_user, False)
 
   #Windows paths need double backslashes, otherwise the Ambari server deserializer will think the single \ are escape markers
   return passFilePath.replace('\\', '\\\\')

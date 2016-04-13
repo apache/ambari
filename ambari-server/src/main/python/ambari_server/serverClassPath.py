@@ -33,7 +33,9 @@ AMBARI_SERVER_LIB = "AMBARI_SERVER_LIB"
 JDBC_DRIVER_PATH_PROPERTY = "server.jdbc.driver.path"
 JAR_FILE_PATTERN = re.compile(r'^(.*)(-\d.*\.jar$)')
 AMBARI_SERVER_JAR_FILE_PATTERN = re.compile(r'^ambari-server(-\d.*\.jar$)')
-
+JAR_DUPLICATES_TO_IGNORE = [
+  'javax.servlet.jsp.jstl', # org.eclipse.jetty dependency requires two different libraries with this name
+]
 
 class ServerClassPath():
 
@@ -126,6 +128,9 @@ class ServerClassPath():
       match = JAR_FILE_PATTERN.match(os.path.basename(jar))
       if match:
         for group in match.groups():
+          if group in JAR_DUPLICATES_TO_IGNORE:
+            break
+          
           if group in jar_names:
             err = "Multiple versions of {0}.jar found in java class path " \
                   "({1} and {2}). \n Make sure that you include only one " \
