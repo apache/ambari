@@ -50,8 +50,9 @@ public class TimelineMetricReadHelper {
   public SingleValuedTimelineMetric getAggregatedTimelineMetricFromResultSet(ResultSet rs,
       Function f) throws SQLException, IOException {
 
+    Function function = (f != null) ? f : Function.DEFAULT_VALUE_FUNCTION;
     SingleValuedTimelineMetric metric = new SingleValuedTimelineMetric(
-      rs.getString("METRIC_NAME") + f.getSuffix(),
+      rs.getString("METRIC_NAME") + function.getSuffix(),
       rs.getString("APP_ID"),
       rs.getString("INSTANCE_ID"),
       rs.getString("HOSTNAME"),
@@ -61,7 +62,7 @@ public class TimelineMetricReadHelper {
     );
 
     double value;
-    switch(f.getReadFunction()){
+    switch(function.getReadFunction()){
       case AVG:
         value = rs.getDouble("METRIC_SUM") / rs.getInt("METRIC_COUNT");
         break;
