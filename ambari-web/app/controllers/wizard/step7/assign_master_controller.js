@@ -17,10 +17,11 @@
  */
 
 var stringUtils = require('utils/string_utils');
+var numberUtils = require('utils/number_utils');
 
 App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App.AssignMasterComponents, {
 
-  name:"assignMasterOnStep7Controller",
+  name: "assignMasterOnStep7Controller",
 
   useServerValidation: false,
 
@@ -30,7 +31,7 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
 
   configActionComponent: {},
 
-  content: function() {
+  content: function () {
     return (this.get('configWidgetContext.controller.content') || {});
   }.property('configWidgetContext.controller.content'),
 
@@ -48,14 +49,14 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
    * @public
    * @method {execute}
    */
-  execute: function(context, action, hostComponent) {
+  execute: function (context, action, hostComponent) {
     this.set('configWidgetContext', context);
     this.set('content', context.get('controller.content'));
-    this.set('configActionComponent',hostComponent);
+    this.set('configActionComponent', hostComponent);
     this.set('mastersToCreate', [hostComponent.componentName]);
     var missingDependentServices = this.getAllMissingDependentServices();
     var isNonWizardPage = !this.get('content.controllerName');
-    switch(action) {
+    switch (action) {
       case 'ADD':
         if (missingDependentServices.length && isNonWizardPage) {
           this.showInstallServicesPopup(missingDependentServices);
@@ -74,7 +75,7 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
    * @private
    * @method
    */
-  showAssignComponentPopup: function() {
+  showAssignComponentPopup: function () {
     var self = this;
     // Master component hosts should be loaded only when content.controller name is not defined i.e non-wizard pages
     if (!this.get('content.controllerName')) {
@@ -103,13 +104,12 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
    * Displays the popup to install required service dependencies for being added component with this config change
    * @param missingDependentServices {String[]}   Array of service display names
    */
-  showInstallServicesPopup: function(missingDependentServices) {
-    var self = this;
-    var displayServices =  stringUtils.getFormattedStringFromArray(missingDependentServices);
+  showInstallServicesPopup: function (missingDependentServices) {
+    var displayServices = stringUtils.getFormattedStringFromArray(missingDependentServices);
     var configWidgetContext = this.get('configWidgetContext');
-    var config =  self.get('configWidgetContext.config');
-    var configDisplayName =  config.get('displayName').toLowerCase();
-    App.ModalPopup.show({
+    var config = this.get('configWidgetContext.config');
+    var configDisplayName = config.get('displayName').toLowerCase();
+    return App.ModalPopup.show({
       header: Em.I18n.t('installer.step7.missing.service.header'),
       body: Em.I18n.t('installer.step7.missing.service.body').format(displayServices, configDisplayName),
       primaryClass: 'btn-danger',
@@ -134,7 +134,7 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
    * @private
    * @method {removeMasterComponent}
    */
-  removeMasterComponent: function() {
+  removeMasterComponent: function () {
     var componentsToDelete = this.get('mastersToCreate');
     if (this.get('content.controllerName')) {
       var parentController = App.router.get(this.get('content.controllerName'));
@@ -155,7 +155,6 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
    * @method renderHostInfo
    */
   renderHostInfo: function () {
-    var numberUtils = require('utils/number_utils');
     var parentController = this.get('content.controllerName');
     if (parentController) {
       this._super();
@@ -173,7 +172,7 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
       }
 
       this.set("hosts", result);
-      this.sortHosts(this.get('hosts'));
+      this.sortHosts(result);
       this.set('isLoaded', true);
     }
   },
@@ -187,7 +186,7 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
   loadMasterComponentHosts: function () {
     var stackMasterComponents = App.get('components.masters').uniq();
     var masterComponentHosts = [];
-    App.HostComponent.find().filter(function(component) {
+    App.HostComponent.find().filter(function (component) {
       return stackMasterComponents.contains(component.get('componentName'));
     }).forEach(function (item) {
       masterComponentHosts.push({
@@ -207,17 +206,16 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
    * @method getAllMissingDependentServices
    * @return  missingDependentServices {Array}
    */
-  getAllMissingDependentServices: function() {
-    var context = this.get('configWidgetContext');
+  getAllMissingDependentServices: function () {
     var configActionComponentName = this.get('configActionComponent').componentName;
     var componentStackService = App.StackServiceComponent.find(configActionComponentName).get('stackService');
     var dependentServices = componentStackService.get('requiredServices');
-    var missingDependentServices =  dependentServices.filter(function(item) {
+
+    return dependentServices.filter(function (item) {
       return !App.Service.find().findProperty('serviceName', item);
-    }).map(function(item){
-       return  App.StackService.find(item).get('displayName');
+    }).map(function (item) {
+      return App.StackService.find(item).get('displayName');
     });
-    return missingDependentServices;
   },
 
 
@@ -234,14 +232,14 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
     var selectedServicesMasters = this.get('selectedServicesMasters');
     var context = this.get('configWidgetContext');
     var configActionComponent = this.get('configActionComponent');
-    var componentHostName = selectedServicesMasters.findProperty('component_name',configActionComponent.componentName).selectedHost;
+    var componentHostName = selectedServicesMasters.findProperty('component_name', configActionComponent.componentName).selectedHost;
 
     var hostComponentConfig = context.get('config.configAction.hostComponentConfig');
     var serviceConfigs = context.get('controller.stepConfigs').findProperty('serviceName', context.get('config.serviceName')).get('configs');
-    var config =  serviceConfigs.filterProperty('filename', hostComponentConfig.fileName).findProperty('name', hostComponentConfig.configName);
+    var config = serviceConfigs.filterProperty('filename', hostComponentConfig.fileName).findProperty('name', hostComponentConfig.configName);
     config.set('value', componentHostName);
     config.set('recommendedValue', componentHostName);
-    configActionComponent.hostName =  componentHostName;
+    configActionComponent.hostName = componentHostName;
     this.get('configWidgetContext.config').set('configActionComponent', configActionComponent);
   }
 });

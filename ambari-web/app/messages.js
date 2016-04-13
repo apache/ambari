@@ -79,6 +79,8 @@ Em.I18n.translations = {
   'op': 'op',
   'ops': 'ops',
   'or': 'or',
+  'then': 'then',
+  'it': 'it',
 
 
   'common.access':'Access',

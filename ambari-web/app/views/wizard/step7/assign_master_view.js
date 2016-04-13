@@ -34,29 +34,50 @@ App.AssignMasterOnStep7View = App.AssignMasterComponentsView.extend({
 
   willInsertElement: function() {
     this._super();
-    var mastersToCreate = this.get('controller.mastersToCreate');
-    var mastersToCreateDisplayName =  mastersToCreate.map(function(item){
-      return App.StackServiceComponent.find().findProperty('componentName', item).get('displayName');
-    });
-    var stringText1 =  mastersToCreate.length > 1 ? 'hosts' : 'host';
-    var stringText2 =  mastersToCreate.length > 1 ? 'them' : 'it';
-    var alertMessage = Em.I18n.t('installer.step7.assign.master.body').format(mastersToCreateDisplayName.join(), stringText1, stringText2);
+    this.setAlertMessage();
+  },
+
+  /**
+   * @method setAlertMessage
+   */
+  setAlertMessage: function() {
+    var mastersToCreate = this.get('controller.mastersToCreate'),
+        mastersToCreateDisplayName = mastersToCreate.map(function (item) {
+          return App.format.role(item);
+        }),
+        stringText1 = mastersToCreate.length > 1 ? Em.I18n.t('common.hosts').toLowerCase() : Em.I18n.t('common.host').toLowerCase(),
+        stringText2 = mastersToCreate.length > 1 ? Em.I18n.t('then') : Em.I18n.t('it'),
+        alertMessage = Em.I18n.t('installer.step7.assign.master.body').format(mastersToCreateDisplayName.join(), stringText1, stringText2),
+        dependentComponents = this.getDependentComponents(mastersToCreate),
+        isManualKerberos = App.get('router.mainAdminKerberosController.isManualKerberos');
+
+    if (dependentComponents.length) {
+      alertMessage += '<br/>' + Em.I18n.t('installer.step7.assign.master.dependent.component.body')
+                                .format(stringUtils.getFormattedStringFromArray(dependentComponents));
+    }
+
+    if (isManualKerberos) {
+      var warnMessage = Em.I18n.t('common.important') + ': ' + Em.I18n.t('installer.step8.kerberors.warning');
+      alertMessage += '<br/>' + Em.I18n.t('common.warn.message').format(warnMessage);
+    }
+    this.set('alertMessage', alertMessage);
+  },
+
+  /**
+   * @method getDependentComponents
+   * @param {Array} mastersToCreate
+   * @returns {Array}
+   */
+  getDependentComponents: function(mastersToCreate) {
     var dependentComponents = [];
-    mastersToCreate.forEach(function(_component){
-      var dependencies = App.StackServiceComponent.find(_component).get('dependencies').filterProperty('scope', 'host').map(function(item){
-        return App.StackServiceComponent.find().findProperty('componentName', item.componentName).get('displayName');
+
+    mastersToCreate.forEach(function(_component) {
+      var dependencies = App.StackServiceComponent.find(_component).get('dependencies').filterProperty('scope', 'host').map(function (item) {
+        return App.format.role(item.componentName);
       });
       dependentComponents = dependentComponents.concat(dependencies).uniq();
     }, this);
-    if (dependentComponents.length) {
-      alertMessage += '<br/>' + Em.I18n.t('installer.step7.assign.master.dependent.component.body').format(stringUtils.getFormattedStringFromArray(dependentComponents));
-    }
-    var isManualKerberos = App.get('router.mainAdminKerberosController.isManualKerberos');
-    if (isManualKerberos) {
-      var warnMessage =  Em.I18n.t('common.important') + ': ' + Em.I18n.t('installer.step8.kerberors.warning');
-      alertMessage += '<br/>' + Em.I18n.t('common.warn.message').format(warnMessage);
-    }
-    this.set('alertMessage', alertMessage)
+    return dependentComponents;
   }
 
 });

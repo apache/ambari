@@ -81,7 +81,7 @@ App.HighAvailabilityProgressPopupController = Ember.Controller.extend({
    * @param stageId {Number}
    */
   initPopup: function (popupTitle, requestIds, progressController, showSpinner, stageId) {
-    if(showSpinner){
+    if (showSpinner) {
       var loadingPopup = App.ModalPopup.show({
         header: Em.I18n.t('jobs.loadingTasks'),
         primary: false,
@@ -92,11 +92,13 @@ App.HighAvailabilityProgressPopupController = Ember.Controller.extend({
       });
       this.set('spinnerPopup', loadingPopup);
     }
-    this.set('progressController', progressController);
-    this.set('popupTitle', popupTitle);
-    this.set('requestIds', requestIds);
-    this.set('hostsData', []);
-    this.set('stageId', stageId);
+    this.setProperties({
+      progressController: progressController,
+      popupTitle: popupTitle,
+      requestIds: requestIds,
+      hostsData: [],
+      stageId: stageId
+    });
     this.getHosts();
   },
 
@@ -141,7 +143,7 @@ App.HighAvailabilityProgressPopupController = Ember.Controller.extend({
         this.addObserver('progressController.logs.length', this, 'getDataFromProgressController');
       }
     }
-    if(this.get('spinnerPopup')){
+    if (this.get('spinnerPopup')) {
       this.get('spinnerPopup').hide();
       this.set('spinnerPopup', null);
     }
@@ -155,6 +157,7 @@ App.HighAvailabilityProgressPopupController = Ember.Controller.extend({
     var hosts = [];
     var hostsMap = {};
     var popupTitle = this.get('popupTitle');
+
     data.forEach(function (request) {
       request.tasks.forEach(function (task) {
         var host = task.Tasks.host_name;
@@ -190,7 +193,7 @@ App.HighAvailabilityProgressPopupController = Ember.Controller.extend({
     var stageId = this.get('stageId');
     // If the progress page is broken into stages then update host with only stage's tasks
     if (!!stageId) {
-      tasksData = this.get('progressController.logs').filterProperty('Tasks.stage_id',stageId);
+      tasksData = this.get('progressController.logs').filterProperty('Tasks.stage_id', stageId);
     } else {
       tasksData = this.get('progressController.logs');
     }
@@ -216,8 +219,11 @@ App.HighAvailabilityProgressPopupController = Ember.Controller.extend({
     var result = false;
     requests.forEach(function (request) {
       if ((request.Requests.task_count -
-          (request.Requests.aborted_task_count + request.Requests.completed_task_count + request.Requests.failed_task_count
-              + request.Requests.timed_out_task_count - request.Requests.queued_task_count)) > 0) {
+          (request.Requests.aborted_task_count +
+           request.Requests.completed_task_count +
+           request.Requests.failed_task_count +
+           request.Requests.timed_out_task_count -
+           request.Requests.queued_task_count)) > 0) {
         result = true;
       }
     });
