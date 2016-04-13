@@ -671,8 +671,7 @@ public class PhoenixHBaseAccessor {
 
     } else {
       SingleValuedTimelineMetric metric =
-        TIMELINE_METRIC_READ_HELPER.getAggregatedTimelineMetricFromResultSet(rs,
-          Function.DEFAULT_VALUE_FUNCTION);
+        TIMELINE_METRIC_READ_HELPER.getAggregatedTimelineMetricFromResultSet(rs, f);
       if (condition.isGrouped()) {
         metrics.addOrMergeTimelineMetric(metric);
       } else {
