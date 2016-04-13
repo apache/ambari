@@ -73,7 +73,7 @@
 
   <property>
     <name>KNOX_HOME</name>
-    <value>{{stack_root}}/current/knox-server</value>
+    <value>/usr/local/knox-server</value>
     <display-name>Knox Home</display-name>
     <description>Knox home folder</description>
   </property>

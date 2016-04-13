@@ -84,7 +84,7 @@
   </property>
   <property>
     <name>accumulo_instance_name</name>
-    <value>{{stack_name}}-accumulo-instance</value>
+    <value>accumulo</value>
     <display-name>Instance Name</display-name>
     <description>Accumulo Instance Name.</description>
     <value-attributes>

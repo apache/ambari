@@ -176,13 +176,12 @@ $ACCUMULO_HOME/lib/accumulo-proxy.jar,
 $ACCUMULO_HOME/lib/[^.].*.jar,
 $ZOOKEEPER_HOME/zookeeper[^.].*.jar,
 $HADOOP_CONF_DIR,
-{{stack_root}}/current/hadoop-client/[^.].*.jar,
-{{stack_root}}/current/hadoop-client/lib/(?!slf4j)[^.].*.jar,
-{{stack_root}}/current/hadoop-hdfs-client/[^.].*.jar,
-{{stack_root}}/current/hadoop-mapreduce-client/[^.].*.jar,
-{{stack_root}}/current/hadoop-yarn-client/[^.].*.jar,
-{{stack_root}}/current/hadoop-yarn-client/lib/jersey.*.jar,
-{{stack_root}}/current/hive-client/lib/hive-accumulo-handler.jar,
+$HADOOP_PREFIX/share/hadoop/common/[^.].*.jar,
+$HADOOP_PREFIX/share/hadoop/common/lib/(?!slf4j)[^.].*.jar,
+$HADOOP_PREFIX/share/hadoop/hdfs/[^.].*.jar,
+$HADOOP_PREFIX/share/hadoop/mapreduce/[^.].*.jar,
+$HADOOP_PREFIX/share/hadoop/yarn/[^.].*.jar,
+$HADOOP_PREFIX/share/hadoop/yarn/lib/jersey.*.jar
     </value>
     <description>List of jars and directories that will be added to
       Accumulo's classpath.  Ordering matters, as the entries will be
