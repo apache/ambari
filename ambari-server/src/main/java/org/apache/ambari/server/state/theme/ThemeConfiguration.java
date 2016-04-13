@@ -24,7 +24,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -90,7 +90,7 @@ public class ThemeConfiguration{
   }
 
   private List<Layout> mergeLayouts(List<Layout> parentLayouts, List<Layout> childLayouts) {
-    Map<String, Layout> mergedLayouts = new HashMap<String, Layout>();
+    Map<String, Layout> mergedLayouts = new LinkedHashMap<String, Layout>();
 
     for (Layout parentLayout : parentLayouts) {
       mergedLayouts.put(parentLayout.getName(), parentLayout);
@@ -113,7 +113,7 @@ public class ThemeConfiguration{
   }
 
   private List<WidgetEntry> mergeWidgets(List<WidgetEntry> parentWidgets, List<WidgetEntry> childWidgets) {
-    Map<String, WidgetEntry> mergedWidgets = new HashMap<String, WidgetEntry>();
+    Map<String, WidgetEntry> mergedWidgets = new LinkedHashMap<String, WidgetEntry>();
     for (WidgetEntry widgetEntry : parentWidgets) {
       mergedWidgets.put(widgetEntry.getConfig(), widgetEntry);
     }
