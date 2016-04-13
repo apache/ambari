@@ -170,12 +170,12 @@ export default Ember.Service.extend(FileOperationMixin, {
 
   getHome: function () {
     var adapter = this.get('store').adapterFor('file');
-    return adapter.ajax(this._getMiscUrl("/user/home"), "GET");
+    return adapter.ajax(this._getMiscUrl("/help/home"), "GET");
   },
 
   getTrash: function () {
     var adapter = this.get('store').adapterFor('file');
-    return adapter.ajax(this._getMiscUrl("/user/trashDir"), "GET");
+    return adapter.ajax(this._getMiscUrl("/help/trashDir"), "GET");
   },
 
   _getMiscUrl: function (segment) {

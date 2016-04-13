@@ -38,7 +38,6 @@ import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.ViewResourceHandler;
-import org.apache.ambari.view.commons.hdfs.FileOperationService;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.hdfs.MiniDFSCluster;

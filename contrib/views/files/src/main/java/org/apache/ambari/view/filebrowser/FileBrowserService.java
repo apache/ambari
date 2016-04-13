@@ -23,9 +23,6 @@ import javax.ws.rs.Path;
 import org.apache.ambari.view.ViewContext;
 
 import com.google.inject.Inject;
-import org.apache.ambari.view.commons.hdfs.FileOperationService;
-import org.apache.ambari.view.commons.hdfs.UploadService;
-import org.apache.ambari.view.commons.hdfs.UserService;
 
 /**
  * Root files service
@@ -45,7 +42,7 @@ public class FileBrowserService {
   }
 
   /**
-   * @see UploadService
+   * @see org.apache.ambari.view.filebrowser.UploadService
    * @return service
    */
   @Path("/upload")
@@ -54,7 +51,7 @@ public class FileBrowserService {
   }
 
   /**
-   * @see org.apache.ambari.view.commons.hdfs.FileOperationService
+   * @see org.apache.ambari.view.filebrowser.FileOperationService
    * @return service
    */
   @Path("/fileops")
@@ -71,12 +68,6 @@ public class FileBrowserService {
     return new HelpService(context);
   }
 
-  /**
-   * @see org.apache.ambari.view.commons.hdfs.UserService
-   * @return service
-   */
-  @Path("/user")
-  public UserService userService() { return new UserService(context); }
 
   /**
    * @see org.apache.ambari.view.filebrowser.FilePreviewService

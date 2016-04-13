@@ -20,11 +20,6 @@
   },
   "author": "",
   "license": "MIT",
-  "ember-addon": {
-    "paths": [
-      "../../../../../commons/src/main/resources/ui/hdfs-directory-viewer"
-    ]
-  },
   "devDependencies": {
     "bower": "1.7.2",
     "broccoli-asset-rev": "^2.2.0",

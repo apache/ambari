@@ -19,9 +19,8 @@
 package org.apache.ambari.view.filebrowser;
 
 import org.apache.ambari.view.ViewContext;
-import org.apache.ambari.view.commons.exceptions.NotFoundFormattedException;
-import org.apache.ambari.view.commons.exceptions.ServiceFormattedException;
-import org.apache.ambari.view.commons.hdfs.HdfsService;
+import org.apache.ambari.view.filebrowser.utils.NotFoundFormattedException;
+import org.apache.ambari.view.filebrowser.utils.ServiceFormattedException;
 import org.apache.ambari.view.utils.hdfs.HdfsApi;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
@@ -38,7 +37,7 @@ import java.io.InputStream;
 /**
  * File Preview Service
  */
-public class FilePreviewService extends HdfsService {
+public class FilePreviewService extends HdfsService{
 
   private CompressionCodecFactory compressionCodecFactory;
 

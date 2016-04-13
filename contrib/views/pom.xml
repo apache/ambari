@@ -43,7 +43,6 @@
     <module>tez</module>
     <module>storm</module>
     <module>zeppelin</module>
-    <module>commons</module>
   </modules>
   <build>
     <pluginManagement>
