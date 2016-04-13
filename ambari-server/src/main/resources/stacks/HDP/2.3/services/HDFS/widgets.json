@@ -29,11 +29,11 @@
           "values": [
             {
               "name": "GC total count",
-              "value": "${jvm.JvmMetrics.GcCount}"
+              "value": "${jvm.JvmMetrics.GcCount._rate}"
             },
             {
               "name": "GC count of type major collection",
-              "value": "${jvm.JvmMetrics.GcCountConcurrentMarkSweep}"
+              "value": "${jvm.JvmMetrics.GcCountConcurrentMarkSweep._rate}"
             }
           ],
           "properties": {
@@ -58,7 +58,7 @@
           "values": [
             {
               "name": "GC time in major collection",
-              "value": "${jvm.JvmMetrics.GcTimeMillisConcurrentMarkSweep}"
+              "value": "${jvm.JvmMetrics.GcTimeMillisConcurrentMarkSweep._rate}"
             }
           ],
           "properties": {
@@ -432,7 +432,7 @@
           "values": [
             {
               "name": "HDFS Bytes Read",
-              "value": "${dfs.datanode.BytesRead}"
+              "value": "${dfs.datanode.BytesRead._rate}"
             }
           ],
           "properties": {
@@ -456,7 +456,7 @@
           "values": [
             {
               "name": "HDFS Bytes Written",
-              "value": "${dfs.datanode.BytesWritten}"
+              "value": "${dfs.datanode.BytesWritten._rate}"
             }
           ],
           "properties": {
@@ -571,7 +571,7 @@
           "values": [
             {
               "name": "DataNode Process Disk I/O Utilization",
-              "value": "${((dfs.datanode.BytesRead/dfs.datanode.TotalReadTime)+(dfs.datanode.BytesWritten/dfs.datanode.TotalWriteTime))*50}"
+              "value": "${((dfs.datanode.BytesRead._rate/dfs.datanode.TotalReadTime._rate)+(dfs.datanode.BytesWritten._rate/dfs.datanode.TotalWriteTime._rate))*50}"
             }
           ],
           "properties": {
@@ -613,7 +613,7 @@
           "values": [
             {
               "name": "DataNode Process Network I/O Utilization",
-              "value": "${((dfs.datanode.RemoteBytesRead/dfs.datanode.ReadsFromRemoteClient)+(dfs.datanode.RemoteBytesWritten/dfs.datanode.WritesFromRemoteClient))*50}"
+              "value": "${((dfs.datanode.RemoteBytesRead._rate/dfs.datanode.ReadsFromRemoteClient._rate)+(dfs.datanode.RemoteBytesWritten._rate/dfs.datanode.WritesFromRemoteClient._rate))*50}"
             }
           ],
           "properties": {

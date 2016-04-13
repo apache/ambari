@@ -29,11 +29,11 @@
           "values": [
             {
               "name": "GC total count",
-              "value": "${jvm.JvmMetrics.GcCount}"
+              "value": "${jvm.JvmMetrics.GcCount._rate}"
             },
             {
               "name": "GC count of type major collection",
-              "value": "${jvm.JvmMetrics.GcCountConcurrentMarkSweep}"
+              "value": "${jvm.JvmMetrics.GcCountConcurrentMarkSweep._rate}"
             }
           ],
           "properties": {
@@ -58,7 +58,7 @@
           "values": [
             {
               "name": "GC time in major collection",
-              "value": "${jvm.JvmMetrics.GcTimeMillisConcurrentMarkSweep}"
+              "value": "${jvm.JvmMetrics.GcTimeMillisConcurrentMarkSweep._rate}"
             }
           ],
           "properties": {
@@ -352,7 +352,7 @@
           "values": [
             {
               "name": "HDFS Bytes Read",
-              "value": "${dfs.datanode.BytesRead}"
+              "value": "${dfs.datanode.BytesRead._rate}"
             }
           ],
           "properties": {
@@ -376,7 +376,7 @@
           "values": [
             {
               "name": "HDFS Bytes Written",
-              "value": "${dfs.datanode.BytesWritten}"
+              "value": "${dfs.datanode.BytesWritten._rate}"
             }
           ],
           "properties": {

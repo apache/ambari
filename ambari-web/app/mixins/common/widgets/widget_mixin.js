@@ -64,7 +64,7 @@ App.WidgetMixin = Ember.Mixin.create({
   /**
    *
    */
-  aggregatorFunc: ['._sum', '._avg', '._min', '._max'],
+  aggregatorFunc: ['._sum', '._avg', '._min', '._max', '._rate'],
 
   /**
    * @type {boolean}
