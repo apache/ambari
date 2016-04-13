@@ -106,7 +106,7 @@ public class VersionDefinitionXml {
   /**
    * @param stack the stack info needed to lookup service and component display names
    * @return a collection of AvailableServices used for web service consumption.  This
-   * collection is either the subset of the manifest, or the manifest if no services
+   * collection is either the subset of the manifest, or the manifest itself if no services
    * are specified as "available".
    */
   public Collection<AvailableService> getAvailableServices(StackInfo stack) {
@@ -158,7 +158,8 @@ public class VersionDefinitionXml {
 
     for (ServiceInfo si : stack.getServices()) {
       Set<String> versions = manifestVersions.containsKey(si.getName()) ?
-          manifestVersions.get(si.getName()) : Collections.singleton("");
+          manifestVersions.get(si.getName()) : Collections.singleton(
+              null == si.getVersion() ? "" : si.getVersion());
 
       m_manifest.add(new ManifestServiceInfo(si.getName(), si.getDisplayName(),
           si.getComment(), versions));

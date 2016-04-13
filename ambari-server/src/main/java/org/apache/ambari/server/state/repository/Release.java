@@ -20,7 +20,6 @@ package org.apache.ambari.server.state.repository;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
 
 import org.apache.ambari.server.state.RepositoryType;
 import org.apache.commons.lang.StringUtils;
@@ -28,7 +27,6 @@ import org.apache.commons.lang.StringUtils;
 /**
  * Release information for a repository.
  */
-@XmlRootElement(name="release")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class Release {
 

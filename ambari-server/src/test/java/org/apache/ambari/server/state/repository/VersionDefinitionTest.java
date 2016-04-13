@@ -155,7 +155,7 @@ public class VersionDefinitionTest {
       } else if ("YARN".equals(msi.m_name)) {
         foundYarn = true;
         assertEquals(1, msi.m_versions.size());
-        assertEquals("", msi.m_versions.iterator().next());
+        assertEquals("1.1.1", msi.m_versions.iterator().next());
       } else if ("HIVE".equals(msi.m_name)) {
         foundHive = true;
         assertEquals(2, msi.m_versions.size());
@@ -207,6 +207,39 @@ public class VersionDefinitionTest {
     assertNull("Merged definition cannot have a build", xml3.release.build);
     assertEquals(xml3.release.version, "2.3.4.1");
   }
+
+  @Test
+  public void testLoadingBadNewLine() throws Exception {
+    List<?> lines = FileUtils.readLines(file);
+
+    // crude
+    StringBuilder builder = new StringBuilder();
+    for (Object line : lines) {
+      String lineString = line.toString().trim();
+      if (lineString.startsWith("<baseurl>")) {
+        lineString = lineString.replace("<baseurl>", "");
+        lineString = lineString.replace("</baseurl>", "");
+
+        builder.append("<baseurl>\n");
+        builder.append(lineString).append('\n');
+        builder.append("</baseurl>\n");
+      } else if (lineString.startsWith("<version>")) {
+        lineString = lineString.replace("<version>", "");
+        lineString = lineString.replace("</version>", "");
+
+        builder.append("<version>\n");
+        builder.append(lineString).append('\n');
+        builder.append("</version>\n");
+      } else {
+        builder.append(line.toString().trim()).append('\n');
+      }
+    }
+
+    VersionDefinitionXml xml = VersionDefinitionXml.load(builder.toString());
+
+    validateXml(xml);
+  }
+
 
   private static ServiceInfo makeService(final String name) {
     return new ServiceInfo() {

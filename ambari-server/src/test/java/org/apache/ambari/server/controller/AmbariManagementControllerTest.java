@@ -8519,6 +8519,7 @@ public class AmbariManagementControllerTest {
     requests.clear();
     request = new RepositoryRequest(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID);
     request.setBaseUrl("https://hortonworks.com");
+    request.setVerifyBaseUrl(false);
     requests.add(request);
     // test https url
     controller.updateRepositories(requests);
