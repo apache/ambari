@@ -24,6 +24,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.DoNotRetryIOException;
 import org.apache.hadoop.hbase.HColumnDescriptor;
 import org.apache.hadoop.hbase.HTableDescriptor;
+import org.apache.hadoop.hbase.client.Durability;
 import org.apache.hadoop.hbase.client.HBaseAdmin;
 import org.apache.hadoop.hbase.util.RetryCounter;
 import org.apache.hadoop.hbase.util.RetryCounterFactory;
@@ -68,6 +69,7 @@ import java.util.concurrent.TimeUnit;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.AGGREGATE_TABLE_SPLIT_POINTS;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_TABLES_DURABILITY;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.AGGREGATORS_SKIP_BLOCK_CACHE;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.CLUSTER_DAILY_TABLE_TTL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.CLUSTER_HOUR_TABLE_TTL;
@@ -139,6 +141,7 @@ public class PhoenixHBaseAccessor {
   private final PhoenixConnectionProvider dataSource;
   private final long outOfBandTimeAllowance;
   private final boolean skipBlockCacheForAggregatorsEnabled;
+  private final String timelineMetricsTablesDurability;
 
   static final String HSTORE_COMPACTION_CLASS_KEY =
     "hbase.hstore.defaultengine.compactionpolicy.class";
@@ -174,6 +177,7 @@ public class PhoenixHBaseAccessor {
     this.outOfBandTimeAllowance = metricsConf.getLong(OUT_OFF_BAND_DATA_TIME_ALLOWANCE,
       DEFAULT_OUT_OF_BAND_TIME_ALLOWANCE);
     this.skipBlockCacheForAggregatorsEnabled = metricsConf.getBoolean(AGGREGATORS_SKIP_BLOCK_CACHE, false);
+    this.timelineMetricsTablesDurability = metricsConf.get(TIMELINE_METRICS_TABLES_DURABILITY, "");
 
     tableTTL.put(METRICS_RECORD_TABLE_NAME, metricsConf.get(PRECISION_TABLE_TTL, String.valueOf(1 * 86400)));  // 1 day
     tableTTL.put(METRICS_AGGREGATE_MINUTE_TABLE_NAME, metricsConf.get(HOST_MINUTE_TABLE_TTL, String.valueOf(7 * 86400))); //7 days
@@ -358,6 +362,26 @@ public class PhoenixHBaseAccessor {
             tableDescriptor.setNormalizationEnabled(true);
             LOG.info("Enabling normalizer for " + tableName);
             modifyTable = true;
+          }
+
+          if (!timelineMetricsTablesDurability.isEmpty()) {
+            LOG.info("Setting WAL option " + timelineMetricsTablesDurability + " for table : " + tableName);
+            boolean validDurability = true;
+            if ("SKIP_WAL".equals(timelineMetricsTablesDurability)) {
+              tableDescriptor.setDurability(Durability.SKIP_WAL);
+            } else if ("SYNC_WAL".equals(timelineMetricsTablesDurability)) {
+              tableDescriptor.setDurability(Durability.SYNC_WAL);
+            } else if ("ASYNC_WAL".equals(timelineMetricsTablesDurability)) {
+              tableDescriptor.setDurability(Durability.ASYNC_WAL);
+            } else if ("FSYNC_WAL".equals(timelineMetricsTablesDurability)) {
+              tableDescriptor.setDurability(Durability.FSYNC_WAL);
+            } else {
+              LOG.info("Unknown value for " + TIMELINE_METRICS_TABLES_DURABILITY + " : " + timelineMetricsTablesDurability);
+              validDurability = false;
+            }
+            if (validDurability) {
+              modifyTable = true;
+            }
           }
 
           Map<String, String> config = tableDescriptor.getConfiguration();
@@ -1342,8 +1366,4 @@ public class PhoenixHBaseAccessor {
     return metadataMap;
   }
 
-  String getDaysInSeconds(String daysString) {
-    double days = Double.valueOf(daysString.trim());
-    return String.valueOf((int) (days * 86400));
-  }
 }
