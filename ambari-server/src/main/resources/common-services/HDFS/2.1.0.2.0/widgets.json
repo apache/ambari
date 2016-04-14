@@ -196,13 +196,6 @@
               "service_name": "HDFS",
               "component_name": "NAMENODE",
               "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
-            },
-            {
-              "name": "mem_cached",
-              "metric_path": "metrics/memory/mem_cached",
-              "service_name": "HDFS",
-              "component_name": "NAMENODE",
-              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
             }
           ],
           "values": [
@@ -212,7 +205,7 @@
             },
             {
               "name": "Memory utilization",
-              "value": "${((mem_total - mem_free - mem_cached)/mem_total) * 100}"
+              "value": "${((mem_total - mem_free)/mem_total) * 100}"
             }
           ],
           "properties": {

@@ -434,7 +434,7 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
     Map<String, String> sectionLayoutMap = new HashMap<>();
 
     List<String> hdfsSummaryWidgets = new ArrayList<>(Arrays.asList("NameNode RPC", "NN Connection Load",
-      "NameNode GC count", "NameNode GC time"));
+      "NameNode GC count", "NameNode GC time", "NameNode Host Load"));
     widgetMap.put("HDFS_SUMMARY", hdfsSummaryWidgets);
     sectionLayoutMap.put("HDFS_SUMMARY", "default_hdfs_dashboard");
 
