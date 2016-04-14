@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.Set;
 
 import org.apache.ambari.server.controller.internal.VersionDefinitionResourceProvider;
+import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.Resource.Type;
 
@@ -51,7 +52,7 @@ public class VersionDefinitionResourceDefinition extends BaseResourceDefinition 
 
   @Override
   public Collection<String> getCreateDirectives() {
-    return Collections.singleton(VersionDefinitionResourceProvider.DIRECTIVE_DRY_RUN);
+    return Collections.singleton(Request.DIRECTIVE_DRY_RUN);
   }
 
 }

@@ -99,8 +99,6 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
   protected static final String VERSION_DEF_STACK_SERVICES           = "VersionDefinition/stack_services";
   protected static final String SHOW_AVAILABLE                       = "VersionDefinition/show_available";
 
-  public static final String DIRECTIVE_DRY_RUN                       = "dry_run";
-
   public static final String SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID  = new OperatingSystemResourceDefinition().getPluralName();
 
   @Inject
@@ -193,14 +191,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
           VERSION_DEF_DEFINITION_URL));
     }
 
-    Map<String, String> requestInfo = request.getRequestInfoProperties();
-
-    final boolean dryRun;
-    if (requestInfo.containsKey(DIRECTIVE_DRY_RUN)) {
-      dryRun = Boolean.parseBoolean(requestInfo.get(DIRECTIVE_DRY_RUN));
-    } else {
-      dryRun = false;
-    }
+    final boolean dryRun = request.isDryRunRequest();
 
     XmlHolder xmlHolder = createResources(new Command<XmlHolder>() {
       @Override
@@ -357,7 +348,6 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
 
   /**
    * In the case of a patch, check if there is a parent repo.
-   * @param entity the entity to check
    */
   private void checkForParent(XmlHolder holder) throws AmbariException {
     RepositoryVersionEntity entity = holder.entity;
@@ -486,8 +476,6 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
   /**
    * Transforms a XML version defintion to an entity
    *
-   * @param definitionUrl the String URL for loading
-   * @return constructed entity
    * @throws AmbariException if some properties are missing or json has incorrect structure
    */
   protected void toRepositoryVersionEntity(XmlHolder holder) throws AmbariException {

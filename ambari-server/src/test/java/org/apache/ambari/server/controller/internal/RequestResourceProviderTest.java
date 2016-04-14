@@ -1085,12 +1085,14 @@ public class RequestResourceProviderTest {
     // Both action and command are specified
     requestInfoProperties.put(RequestResourceProvider.COMMAND_ID, "HDFS_SERVICE_CHECK");
     requestInfoProperties.put(RequestResourceProvider.ACTION_ID, "a1");
+    request = PropertyHelper.getCreateRequest(propertySet, requestInfoProperties);
     try {
       provider.createResources(request);
     } catch (UnsupportedOperationException ex) {
       Assert.assertTrue(ex.getMessage().contains("Both command and action cannot be specified"));
     }
     requestInfoProperties.remove(RequestResourceProvider.ACTION_ID);
+    request = PropertyHelper.getCreateRequest(propertySet, requestInfoProperties);
 
     provider.createResources(request);
     Assert.assertTrue(actionRequest.hasCaptured());

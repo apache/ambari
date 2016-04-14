@@ -29,7 +29,9 @@ public interface Request {
   /**
    * Constant for request info property which contains the raw request body.
    */
-  public static final String REQUEST_INFO_BODY_PROPERTY = "RAW_REQUEST_BODY";
+  String REQUEST_INFO_BODY_PROPERTY = "RAW_REQUEST_BODY";
+
+  String DIRECTIVE_DRY_RUN = "dry_run";
 
   /**
    * Get the set of property ids being requested.  Used for requests to get
@@ -38,7 +40,7 @@ public interface Request {
    *
    * @return the set of property ids being requested
    */
-  public Set<String> getPropertyIds();
+  Set<String> getPropertyIds();
 
   /**
    * Get the property values of the request.  Used
@@ -49,13 +51,13 @@ public interface Request {
    *
    * @return the set of properties being requested
    */
-  public Set<Map<String, Object>> getProperties();
+  Set<Map<String, Object>> getProperties();
 
   /**
    * Get any request info properties of the request.  These are optional properties
    * that are specific to the request but not related to any resource.
    */
-  public Map<String, String> getRequestInfoProperties();
+  Map<String, String> getRequestInfoProperties();
 
   /**
    * Get the {@link TemporalInfo temporal information} for the given property
@@ -64,7 +66,7 @@ public interface Request {
    * @param id the property id
    * @return the temporal information for the given property id; null if noe exists
    */
-  public TemporalInfo getTemporalInfo(String id);
+  TemporalInfo getTemporalInfo(String id);
 
   /**
    * Obtain the pagination request information. This structure can be used for
@@ -73,7 +75,7 @@ public interface Request {
    *
    * @return the page request information.
    */
-  public PageRequest getPageRequest();
+  PageRequest getPageRequest();
 
   /**
    * Obtain information to order the results by. This structure can be used for
@@ -82,5 +84,11 @@ public interface Request {
    *
    * @return the sort request information.
    */
-  public SortRequest getSortRequest();
+  SortRequest getSortRequest();
+
+  /**
+   * Is this a dry run request.
+   * @return true - if request is dry run request, false otherwise.
+   */
+  boolean isDryRunRequest();
 }

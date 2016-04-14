@@ -18,7 +18,9 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import junit.framework.Assert;
@@ -33,7 +35,7 @@ import org.junit.Test;
  */
 public class RequestImplTest {
 
-  private static final Set<String> propertyIds = new HashSet<String>();
+  private static final Set<String> propertyIds = new HashSet<>();
 
   static {
     propertyIds.add(PropertyHelper.getPropertyId("c1", "p1"));
@@ -257,5 +259,16 @@ public class RequestImplTest {
     Assert.assertTrue(validPropertyIds.contains("StackServiceComponents/component_category"));
     Assert.assertTrue(validPropertyIds.contains("StackServiceComponents/is_master"));
     Assert.assertTrue(validPropertyIds.contains("StackServiceComponents/is_client"));
+  }
+
+  @Test
+  public void testDryRunRequest() {
+    Request dryRunRequest = PropertyHelper.getCreateRequest(Collections.<Map<String,Object>>emptySet(), Collections.singletonMap(Request.DIRECTIVE_DRY_RUN, "true"));
+    Request nonDryRunReqest1 = PropertyHelper.getCreateRequest(Collections.<Map<String,Object>>emptySet(), Collections.singletonMap(Request.DIRECTIVE_DRY_RUN, "false"));
+    Request nonDryRunReqest2 = PropertyHelper.getCreateRequest(Collections.<Map<String,Object>>emptySet(), Collections.<String, String>emptyMap());
+
+    Assert.assertTrue(dryRunRequest.isDryRunRequest());
+    Assert.assertFalse(nonDryRunReqest1.isDryRunRequest());
+    Assert.assertFalse(nonDryRunReqest2.isDryRunRequest());
   }
 }

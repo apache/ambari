@@ -328,7 +328,7 @@ public class VersionDefinitionResourceProviderTest {
         file.toURI().toURL().toString());
     propertySet.add(properties);
 
-    Map<String, String> info = Collections.singletonMap(VersionDefinitionResourceProvider.DIRECTIVE_DRY_RUN, "true");
+    Map<String, String> info = Collections.singletonMap(Request.DIRECTIVE_DRY_RUN, "true");
 
     final Request createRequest = PropertyHelper.getCreateRequest(propertySet, info);
     RequestStatus status = versionProvider.createResources(createRequest);
