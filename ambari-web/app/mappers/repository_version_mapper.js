@@ -128,17 +128,6 @@ App.repoVersionMapper = App.QuickDataMapper.create({
               serviceArray.pushObject(serviceObj);
               resultService.push(this.parseIt(serviceObj, this.get('modelService')));
             }, this);
-          } else if (item[repoVersionsKey].stack_services) {
-            item[repoVersionsKey].stack_services.forEach(function (service) {
-              var serviceObj = {
-                id: service.name,
-                name: service.name,
-                display_name: service.display_name,
-                latest_version: service.versions[0] ? service.versions[0]: ''
-              };
-              serviceArray.pushObject(serviceObj);
-              resultService.push(this.parseIt(serviceObj, this.get('modelService')));
-            }, this);
           }
           repo.operating_systems = osArray;
           repo.services = serviceArray;

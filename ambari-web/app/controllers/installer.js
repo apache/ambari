@@ -138,13 +138,8 @@ App.InstallerController = App.WizardController.extend({
     var stackServices = App.StackService.find().mapProperty('serviceName');
     if (!(stackServices && !!stackServices.length && App.StackService.find().objectAt(0).get('stackVersion') == App.get('currentStackVersionNumber'))) {
       this.loadServiceComponents().complete(function () {
-        self.loadServiceVersionFromVersionDefinitions().complete(function () {
-          self.set('content.services', App.StackService.find().forEach(function (item) {
-            // user the service version from VersionDefinition
-            item.serviceVersionDisplay = self.get('serviceVersionsMap')[item.get('serviceName')];
-          }));
-          dfd.resolve();
-        });
+        self.set('content.services', App.StackService.find());
+        dfd.resolve();
       });
     } else {
       dfd.resolve();
@@ -245,7 +240,7 @@ App.InstallerController = App.WizardController.extend({
     App.Tab.find().clear();
     this.set('stackConfigsLoaded', false);
     if (stacks && stacks.get('length')) {
-      App.set('currentStackVersion', App.Stack.find().findProperty('isSelected').get('stackNameVersion'));
+      App.set('currentStackVersion', App.Stack.find().findProperty('isSelected').get('id'));
       dfd.resolve(true);
     } else {
       App.ajax.send({
@@ -282,12 +277,12 @@ App.InstallerController = App.WizardController.extend({
     var requests = [];
     this.get('stackNames').forEach(function (stackName) {
       requests.push(App.ajax.send({
-        name: 'wizard.stacks_versions_definitions',
+        name: 'wizard.stacks_versions',
         sender: this,
         data: {
           stackName: stackName
         },
-        success: 'loadStacksVersionsDefinitionsSuccessCallback',
+        success: 'loadStacksVersionsSuccessCallback',
         error: 'loadStacksVersionsErrorCallback'
       }));
     }, this);
@@ -303,21 +298,21 @@ App.InstallerController = App.WizardController.extend({
   /**
    * Parse loaded data and create array of stacks objects
    */
-  loadStacksVersionsDefinitionsSuccessCallback: function (data) {
+  loadStacksVersionsSuccessCallback: function (data) {
     var stacks = App.db.getStacks();
     var isStacksExistInDb = stacks && stacks.length;
     if (isStacksExistInDb) {
       stacks.forEach(function (_stack) {
-        var stack = data.items.findProperty('VersionDefinition.repository_version', _stack.repository_version);
+        var stack = data.items.filterProperty('Versions.stack_name', _stack.stack_name).findProperty('Versions.stack_version', _stack.stack_version);
         if (stack) {
-          stack.VersionDefinition.is_selected = _stack.is_selected;
+          stack.Versions.is_selected = _stack.is_selected;
         }
       }, this);
     }
-    App.stackMapper.map(data.items, "VersionDefinition");
+    App.stackMapper.map(data);
     if (!this.decrementProperty('loadStacksRequestsCounter')) {
       if (!isStacksExistInDb) {
-        var defaultStackVersion = App.Stack.find().findProperty('stackNameVersion', App.defaultStackVersion);
+        var defaultStackVersion = App.Stack.find().findProperty('id', App.defaultStackVersion);
         if (defaultStackVersion) {
           defaultStackVersion.set('isSelected', true)
         } else {
@@ -325,7 +320,7 @@ App.InstallerController = App.WizardController.extend({
         }
       }
       this.set('content.stacks', App.Stack.find());
-      App.set('currentStackVersion', App.Stack.find().findProperty('isSelected').get('stackNameVersion'));
+      App.set('currentStackVersion', App.Stack.find().findProperty('isSelected').get('id'));
     }
   },
 
@@ -409,6 +404,7 @@ App.InstallerController = App.WizardController.extend({
    * @param stepController App.WizardStep5Controller
    */
   saveMasterComponentHosts: function (stepController) {
+
     var obj = stepController.get('selectedServicesMasters'),
       hosts = this.getDBProperty('hosts');
 
@@ -509,174 +505,13 @@ App.InstallerController = App.WizardController.extend({
     this.set('content.clients', clients);
   },
 
-  /*
-   * Post version definition file (.xml) to server
-   */
-  postVersionDefinitionFile: function (isXMLdata, data) {
-    var dfd = $.Deferred();
-    var name = isXMLdata? 'wizard.step1.post_version_definition_file.xml' : 'wizard.step1.post_version_definition_file.url';
-
-    App.ajax.send({
-      name: name,
-      sender: this,
-      data: {
-        dfd: dfd,
-        data: data
-      },
-      success: 'postVersionDefinitionFileSuccessCallback',
-      error: 'postVersionDefinitionFileErrorCallback'
-    });
-    return dfd.promise();
-  },
-
-  /**
-   * onSuccess callback for postVersionDefinitionFile.
-   */
-  postVersionDefinitionFileSuccessCallback: function (response, request, data) {
-    if (response.resources.length && response.resources[0].VersionDefinition) {
-      data.dfd.resolve(
-        {
-          stackName: response.resources[0].VersionDefinition.stack_name,
-          id: response.resources[0].VersionDefinition.id,
-          stackVersion: response.resources[0].VersionDefinition.stack_version
-        });
-    }
-  },
-
-  /**
-   * onError callback for postVersionDefinitionFile.
-   */
-  postVersionDefinitionFileErrorCallback: function (request, ajaxOptions, error, data, params) {
-    params.dfd.reject(data);
-    var header = Em.I18n.t('installer.step1.useLocalRepo.uploadFile.error.title');
-    var body = "";
-    if(request && request.responseText){
-      try {
-        var json = $.parseJSON(request.responseText);
-        body = json.message;
-      } catch (err) {}
-    }
-    App.showAlertPopup(header, body);
-  },
-
-  getSupportedOSList: function (stackName, stackVersion) {
-    return  App.ajax.send({
-      name: 'wizard.step1.get_supported_os_types',
-      sender: this,
-      data: {
-        stackName: stackName,
-        stackVersion: stackVersion
-      },
-      success: 'getSupportedOSListSuccessCallback',
-      error: 'getSupportedOSListErrorCallback'
-    });
-  },
-
-  /**
-   * onSuccess callback for getSupportedOSList.
-   */
-  getSupportedOSListSuccessCallback: function (response, request, data) {
-    if (response.operating_systems) {
-      this.set('allSupportedOS', response.operating_systems);
-    }
-  },
-
-  /**
-   * onError callback for getSupportedOSList
-   */
-  getSupportedOSListErrorCallback: function (request, ajaxOptions, error, data, params) {
-    var header = Em.I18n.t('installer.step1.useLocalRepo.getSurpottedOs.error.title');
-    var body = "";
-    if(request && request.responseText){
-      try {
-        var json = $.parseJSON(request.responseText);
-        body = json.message;
-      } catch (err) {}
-    }
-    App.showAlertPopup(header, body);
-  },
-
-  /*
-   * Get the specific repo by stack name, version and id
-   */
-  getRepoById: function (repo_id, stack_name, stack_version) {
-    var dfd = $.Deferred();
-    App.ajax.send({
-      name: 'wizard.step1.get_repo_version_by_id',
-      sender: this,
-      data: {
-        dfd: dfd,
-        stackName: stack_name,
-        stackVersion: stack_version,
-        repoId: repo_id
-      },
-      success: 'getRepoByIdSuccessCallback',
-      error: 'getRepoByIdErrorCallback'
-    });
-    return dfd.promise();
-  },
-
-  /**
-   * onSuccess callback for getRepoById.
-   */
-  getRepoByIdSuccessCallback: function (data, request, dataInfo) {
-    data = data.items[0];
-    var self = this;
-    // load the data info to display for details and contents panel
-    var response = {
-      id : data.repository_versions[0].RepositoryVersions.id,
-      stackVersion : data.Versions.stack_version,
-      stackName: data.Versions.stack_name,
-      type: data.repository_versions[0].RepositoryVersions.release? data.repository_versions[0].RepositoryVersions.release.type: null,
-      stackNameVersion: data.Versions.stack_name + '-' + data.Versions.stack_version, /// HDP-2.3
-      actualVersion: data.repository_versions[0].RepositoryVersions.repository_version, /// 2.3.4.0-3846
-      version: data.repository_versions[0].RepositoryVersions.release ? data.repository_versions[0].RepositoryVersions.release.version: null, /// 2.3.4.0
-      releaseNotes: data.repository_versions[0].RepositoryVersions.release ? data.repository_versions[0].RepositoryVersions.release.release_notes: null,
-      displayName: data.repository_versions[0].RepositoryVersions.release ? data.Versions.stack_name + '-' + data.repository_versions[0].RepositoryVersions.release.version :
-      data.Versions.stack_name + '-' + data.repository_versions[0].RepositoryVersions.repository_version.split('-')[0], //HDP-2.3.4.0
-      repoVersionFullName : data.Versions.stack_name + '-' + data.repository_versions[0].RepositoryVersions.repository_version,
-      osList: data.repository_versions[0].operating_systems,
-      updateObj: data.repository_versions[0]
-    };
-    var services = [];
-    data.repository_versions[0].RepositoryVersions.services.forEach(function (service) {
-      services.push({
-        name: service.name,
-        version: service.versions[0].version,
-        components: service.versions[0].components
-      });
-    });
-    response.services = services;
-
-    // to diaplay repos panel, should map all available operating systems including empty ones
-    this.getSupportedOSList(response.stackName, response.stackVersion).complete(function () {
-      var existedOS = data.repository_versions[0].operating_systems;
-      var existedMap = {};
-      existedOS.map(function (existedOS) {
-        existedOS.isSelected = true;
-        existedMap[existedOS.OperatingSystems.os_type] = existedOS;
-      });
-      self.get('allSupportedOS').forEach(function(supportedOS) {
-        if(!existedMap[supportedOS.OperatingSystems.os_type]) {
-          supportedOS.isSelected = false;
-          supportedOS.repositories.forEach(function(repo) {
-            repo.Repositories.base_url = '';
-          });
-          existedOS.push(supportedOS);
-        }
-      });
-      App.stackMapper.map(data.repository_versions, "RepositoryVersions");
-      dataInfo.dfd.resolve(response);
-    });
-  },
-
   /**
    * Check validation of the customized local urls
    */
   checkRepoURL: function (wizardStep1Controller) {
     var selectedStack = this.get('content.stacks').findProperty('isSelected', true);
     selectedStack.set('reload', true);
-    var nameVersionCombo = selectedStack.get('stackNameVersion');
+    var nameVersionCombo = selectedStack.get('id');
     var stackName = nameVersionCombo.split('-')[0];
     var stackVersion = nameVersionCombo.split('-')[1];
     var dfd = $.Deferred();
