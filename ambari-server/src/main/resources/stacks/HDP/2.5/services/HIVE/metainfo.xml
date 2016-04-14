@@ -109,7 +109,7 @@
       </components>
       <themes>
         <theme>
-          <fileName>theme_version_2.json</fileName>
+          <fileName>theme.json</fileName>
           <default>true</default>
         </theme>
       </themes>
