@@ -16,11 +16,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import os
-from resource_management import Script
-from resource_management.libraries.functions.check_process_status import check_process_status
 
-import utils
+from resource_management import Script
+
 import common
 import hawq_constants
 
@@ -55,12 +53,11 @@ class HawqSegment(Script):
     common.stop_component(hawq_constants.SEGMENT, params.hawq_segment_address_port, mode)
 
   def status(self, env):
-    from hawqstatus import get_pid_file
-    check_process_status(get_pid_file())
+    from hawqstatus import assert_component_running
+    assert_component_running(hawq_constants.SEGMENT)
 
   def immediate_stop_hawq_segment(self, env):
     self.stop(env, hawq_constants.IMMEDIATE)
-
 
 if __name__ == "__main__":
   HawqSegment().execute()

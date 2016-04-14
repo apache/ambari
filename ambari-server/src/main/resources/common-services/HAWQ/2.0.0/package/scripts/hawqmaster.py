@@ -16,10 +16,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 from resource_management import Script
 from resource_management.core.resources.system import Execute
 from resource_management.core.logger import Logger
-from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.functions.default import default
 from resource_management.core.source import InlineTemplate
 from resource_management.libraries.functions import stack_select
@@ -61,8 +61,8 @@ class HawqMaster(Script):
     common.stop_component(hawq_constants.MASTER, params.hawq_master_address_port, hawq_constants.FAST)
 
   def status(self, env):
-    from hawqstatus import get_pid_file
-    check_process_status(get_pid_file())
+    from hawqstatus import assert_component_running
+    assert_component_running(hawq_constants.MASTER)
 
   def immediate_stop_hawq_service(self, env):
     import params
