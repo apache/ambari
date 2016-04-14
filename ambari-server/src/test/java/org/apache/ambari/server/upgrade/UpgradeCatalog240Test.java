@@ -371,6 +371,7 @@ public class UpgradeCatalog240Test {
     Method updateClusterEnv = UpgradeCatalog240.class.getDeclaredMethod("updateClusterEnv");
     Method updateHostRoleCommandTableDML = UpgradeCatalog240.class.getDeclaredMethod("updateHostRoleCommandTableDML");
     Method updateKerberosEnv = UpgradeCatalog240.class.getDeclaredMethod("updateKerberosConfigs");
+    Method updateYarnEnv = UpgradeCatalog240.class.getDeclaredMethod("updateYarnEnv");
 
     Capture<String> capturedStatements = newCapture(CaptureType.ALL);
 
@@ -387,6 +388,7 @@ public class UpgradeCatalog240Test {
             .addMockedMethod(updateClusterEnv)
             .addMockedMethod(updateHostRoleCommandTableDML)
             .addMockedMethod(updateKerberosEnv)
+            .addMockedMethod(updateYarnEnv)
             .createMock();
 
     Field field = AbstractUpgradeCatalog.class.getDeclaredField("dbAccessor");
@@ -401,6 +403,7 @@ public class UpgradeCatalog240Test {
     upgradeCatalog240.updateClusterEnv();
     upgradeCatalog240.updateHostRoleCommandTableDML();
     upgradeCatalog240.updateKerberosConfigs();
+    upgradeCatalog240.updateYarnEnv();
 
     replay(upgradeCatalog240, dbAccessor);
 
@@ -566,6 +569,69 @@ public class UpgradeCatalog240Test {
 
     Map<String, String> updatedProperties = propertiesCapture.getValue();
     assertTrue(Maps.difference(newPropertiesHdfsSite, updatedProperties).areEqual());
+  }
+
+  @Test
+  public void testYarnEnvUpdateConfigs() throws Exception{
+
+    Map<String, String> oldPropertiesYarnEnv = new HashMap<String, String>() {
+      {
+        put("content", "export YARN_HISTORYSERVER_HEAPSIZE={{apptimelineserver_heapsize}}");
+      }
+    };
+    Map<String, String> newPropertiesYarnEnv = new HashMap<String, String>() {
+      {
+        put("content", "# export YARN_HISTORYSERVER_HEAPSIZE={{apptimelineserver_heapsize}}" +
+                "\n\n      # Specify the max Heapsize for the timeline server using a numerical value\n" +
+                "      # in the scale of MB. For example, to specify an jvm option of -Xmx1000m, set\n" +
+                "      # the value to 1024.\n" +
+                "      # This value will be overridden by an Xmx setting specified in either YARN_OPTS\n" +
+                "      # and/or YARN_TIMELINESERVER_OPTS.\n" +
+                "      # If not specified, the default value will be picked from either YARN_HEAPMAX\n" +
+                "      # or JAVA_HEAP_MAX with YARN_HEAPMAX as the preferred option of the two.\n" +
+                "      export YARN_TIMELINESERVER_HEAPSIZE={{apptimelineserver_heapsize}}");
+      }
+    };
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+
+    Clusters clusters = easyMockSupport.createNiceMock(Clusters.class);
+    final Cluster cluster = easyMockSupport.createNiceMock(Cluster.class);
+    Config mockYarnEnv = easyMockSupport.createNiceMock(Config.class);
+
+    expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", cluster);
+    }}).once();
+    expect(cluster.getDesiredConfigByType("yarn-env")).andReturn(mockYarnEnv).atLeastOnce();
+    expect(mockYarnEnv.getProperties()).andReturn(oldPropertiesYarnEnv).anyTimes();
+
+    Injector injector = easyMockSupport.createNiceMock(Injector.class);
+    expect(injector.getInstance(Gson.class)).andReturn(null).anyTimes();
+    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).anyTimes();
+    expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class)).anyTimes();
+
+    replay(injector, clusters, mockYarnEnv, cluster);
+
+    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
+            .addMockedMethod("createConfiguration")
+            .addMockedMethod("getClusters", new Class[] { })
+            .addMockedMethod("createConfig")
+            .withConstructor(createNiceMock(ActionManager.class), clusters, injector)
+            .createNiceMock();
+
+    Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
+    Capture<Map> propertiesCapture = EasyMock.newCapture();
+
+    expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
+    expect(controller.getClusters()).andReturn(clusters).anyTimes();
+    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
+            anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
+
+    replay(controller, injector2);
+    new UpgradeCatalog240(injector2).updateYarnEnv();
+    easyMockSupport.verifyAll();
+
+    Map<String, String> updatedProperties = propertiesCapture.getValue();
+    assertTrue(Maps.difference(newPropertiesYarnEnv, updatedProperties).areEqual());
   }
 
   @Test

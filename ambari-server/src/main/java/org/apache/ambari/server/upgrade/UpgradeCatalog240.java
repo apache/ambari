@@ -89,6 +89,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   protected static final String STACK_TABLE = "stack";
   protected static final String CLUSTER_TABLE = "clusters";
   protected static final String CLUSTER_UPGRADE_ID_COLUMN = "upgrade_id";
+  protected static final String YARN_ENV_CONFIG = "yarn-env";
   public static final String DESIRED_VERSION_COLUMN_NAME = "desired_version";
   public static final String BLUEPRINT_SETTING_TABLE = "blueprint_setting";
   public static final String BLUEPRINT_NAME_COL = "blueprint_name";
@@ -195,6 +196,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     updateClusterEnv();
     updateHostRoleCommandTableDML();
     updateKerberosConfigs();
+    updateYarnEnv();
   }
 
   private void createSettingTable() throws SQLException {
@@ -816,10 +818,10 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
    */
   protected void updateAlertCurrentTable() throws SQLException {
     dbAccessor.addColumn(ALERT_CURRENT_TABLE,
-        new DBColumnInfo(ALERT_CURRENT_OCCURRENCES_COLUMN, Long.class, null, 1, false));
+            new DBColumnInfo(ALERT_CURRENT_OCCURRENCES_COLUMN, Long.class, null, 1, false));
 
     dbAccessor.addColumn(ALERT_CURRENT_TABLE, new DBColumnInfo(ALERT_CURRENT_FIRMNESS_COLUMN,
-        String.class, 255, AlertFirmness.HARD.name(), false));
+            String.class, 255, AlertFirmness.HARD.name(), false));
   }
 
   protected void setRoleSortOrder() throws SQLException {
@@ -1160,6 +1162,50 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
           true);
     }
   }
+
+
+  /**
+   * Updates {@code yarn-env} in the following ways:
+   * <ul>
+   * <li>Replays export YARN_HISTORYSERVER_HEAPSIZE={{apptimelineserver_heapsize}} to export
+   * YARN_TIMELINESERVER_HEAPSIZE={{apptimelineserver_heapsize}}</li>
+   * </ul>
+   *
+   * @throws Exception
+   */
+  protected void updateYarnEnv() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(
+            AmbariManagementController.class);
+
+    Clusters clusters = ambariManagementController.getClusters();
+
+    Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
+    for (final Cluster cluster : clusterMap.values()) {
+      Config yarnEnvConfig = cluster.getDesiredConfigByType(YARN_ENV_CONFIG);
+      Map<String, String> yarnEnvProps = new HashMap<String, String>();
+      if (yarnEnvConfig != null) {
+        String content = yarnEnvConfig.getProperties().get("content");
+        // comment old property
+        content = content.replaceAll("export YARN_HISTORYSERVER_HEAPSIZE=\\{\\{apptimelineserver_heapsize\\}\\}",
+                "# export YARN_HISTORYSERVER_HEAPSIZE=\\{\\{apptimelineserver_heapsize\\}\\}");
+        // add new correct property
+        content = content + "\n\n      # Specify the max Heapsize for the timeline server using a numerical value\n" +
+                "      # in the scale of MB. For example, to specify an jvm option of -Xmx1000m, set\n" +
+                "      # the value to 1024.\n" +
+                "      # This value will be overridden by an Xmx setting specified in either YARN_OPTS\n" +
+                "      # and/or YARN_TIMELINESERVER_OPTS.\n" +
+                "      # If not specified, the default value will be picked from either YARN_HEAPMAX\n" +
+                "      # or JAVA_HEAP_MAX with YARN_HEAPMAX as the preferred option of the two.\n" +
+                "      export YARN_TIMELINESERVER_HEAPSIZE={{apptimelineserver_heapsize}}";
+
+        yarnEnvProps.put("content", content);
+        updateConfigurationPropertiesForCluster(cluster, YARN_ENV_CONFIG, yarnEnvProps, true, true);
+      }
+
+    }
+
+  }
+
 
   /**
    * Updates the Kerberos-related configurations for the clusters managed by this Ambari
