@@ -216,6 +216,9 @@ public class TimelineMetricConfiguration {
   public static final String TIMELINE_METRICS_CLUSTER_AGGREGATOR_INTERPOLATION_ENABLED =
     "timeline.metrics.cluster.aggregator.interpolation.enabled";
 
+  public static final String TIMELINE_METRICS_TABLES_DURABILITY =
+    "timeline.metrics.tables.durability";
+
   public static final String HOST_APP_ID = "HOST";
 
   private Configuration hbaseConf;
