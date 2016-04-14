@@ -225,6 +225,9 @@ public class TimelineMetricConfiguration {
   public static final String TIMELINE_METRICS_TABLES_DURABILITY =
     "timeline.metrics.tables.durability";
 
+  public static final String TIMELINE_METRIC_METADATA_FILTERS =
+    "timeline.metrics.service.metadata.filters";
+
   public static final String HOST_APP_ID = "HOST";
 
   public static final String DEFAULT_INSTANCE_PORT = "12001";

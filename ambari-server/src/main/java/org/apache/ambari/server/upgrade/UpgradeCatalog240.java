@@ -50,6 +50,7 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.State;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.support.JdbcUtils;
@@ -169,7 +170,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
 
   private void updateViewInstanceEntityTable() throws SQLException {
     dbAccessor.addColumn(VIEWINSTANCE_TABLE,
-            new DBColumnInfo(SHORT_URL_COLUMN, String.class, 255, null, true));
+      new DBColumnInfo(SHORT_URL_COLUMN, String.class, 255, null, true));
   }
 
   private void updateClusterTableDDL() throws SQLException {
@@ -266,8 +267,8 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
 
     permissionId = permissionDAO.findPermissionByNameAndType("CLUSTER.OPERATOR",
       resourceTypeDAO.findByName("CLUSTER")).getId().toString();
-    dbAccessor.insertRowIfMissing("permission_roleauthorization", new String[]{"permission_id", "authorization_id"},
-            new String[]{"'" + permissionId + "'", "'CLUSTER.MANAGE_USER_PERSISTED_DATA'"}, false);
+    dbAccessor.insertRowIfMissing("permission_roleauthorization", new String[]{"permission_id", "authorization_id" },
+      new String[]{"'" + permissionId + "'", "'CLUSTER.MANAGE_USER_PERSISTED_DATA'" }, false);
 
     permissionId = permissionDAO.findPermissionByNameAndType("AMBARI.ADMINISTRATOR",
       resourceTypeDAO.findByName("AMBARI")).getId().toString();
@@ -818,10 +819,10 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
    */
   protected void updateAlertCurrentTable() throws SQLException {
     dbAccessor.addColumn(ALERT_CURRENT_TABLE,
-            new DBColumnInfo(ALERT_CURRENT_OCCURRENCES_COLUMN, Long.class, null, 1, false));
+      new DBColumnInfo(ALERT_CURRENT_OCCURRENCES_COLUMN, Long.class, null, 1, false));
 
     dbAccessor.addColumn(ALERT_CURRENT_TABLE, new DBColumnInfo(ALERT_CURRENT_FIRMNESS_COLUMN,
-            String.class, 255, AlertFirmness.HARD.name(), false));
+      String.class, 255, AlertFirmness.HARD.name(), false));
   }
 
   protected void setRoleSortOrder() throws SQLException {
@@ -833,15 +834,15 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     dbAccessor.executeUpdate(String.format(updateStatement,
         2, PermissionEntity.CLUSTER_ADMINISTRATOR_PERMISSION_NAME));
     dbAccessor.executeUpdate(String.format(updateStatement,
-            3, PermissionEntity.CLUSTER_OPERATOR_PERMISSION_NAME));
+      3, PermissionEntity.CLUSTER_OPERATOR_PERMISSION_NAME));
     dbAccessor.executeUpdate(String.format(updateStatement,
-            4, PermissionEntity.SERVICE_ADMINISTRATOR_PERMISSION_NAME));
+      4, PermissionEntity.SERVICE_ADMINISTRATOR_PERMISSION_NAME));
     dbAccessor.executeUpdate(String.format(updateStatement,
-            5, PermissionEntity.SERVICE_OPERATOR_PERMISSION_NAME));
+      5, PermissionEntity.SERVICE_OPERATOR_PERMISSION_NAME));
     dbAccessor.executeUpdate(String.format(updateStatement,
-            6, PermissionEntity.CLUSTER_USER_PERMISSION_NAME));
+      6, PermissionEntity.CLUSTER_USER_PERMISSION_NAME));
     dbAccessor.executeUpdate(String.format(updateStatement,
-            7, PermissionEntity.VIEW_USER_PERMISSION_NAME));
+      7, PermissionEntity.VIEW_USER_PERMISSION_NAME));
   }
 
   /**
@@ -995,7 +996,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
         "from_stack_id", STACK_TABLE, "stack_id", false);
 
     dbAccessor.addFKConstraint(SERVICE_COMPONENT_HISTORY_TABLE, "FK_sc_history_to_stack_id",
-            "to_stack_id", STACK_TABLE, "stack_id", false);
+      "to_stack_id", STACK_TABLE, "stack_id", false);
 
     addSequence("servicecomponent_history_id_seq", 0L, false);
   }
@@ -1107,6 +1108,16 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
             }
 
             updateConfigurationPropertiesForCluster(cluster, "ams-hbase-env", newProperties, true, true);
+          }
+
+          Config amsSite = cluster.getDesiredConfigByType("ams-site");
+          if (amsSite != null) {
+            String metadataFilters = amsSite.getProperties().get("timeline.metrics.service.metadata.filters");
+            if (StringUtils.isEmpty(metadataFilters) ||
+                !metadataFilters.contains("ContainerResource")) {
+              updateConfigurationProperties("ams-site",
+                Collections.singletonMap("timeline.metrics.service.metadata.filters", "ContainerResource"), true, false);
+            }
           }
         }
       }
