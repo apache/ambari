@@ -169,6 +169,8 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
   def recommendTezConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP23StackAdvisor, self).recommendTezConfigurations(configurations, clusterData, services, hosts)
 
+    if "hive-site" in services["configurations"] and "hive.tez.container.size" in services["configurations"]["hive-site"]["properties"]:
+      putTezProperty("tez.task.resource.memory.mb", services["configurations"]["hive-site"]["properties"]["hive.tez.container.size"])
     putTezProperty = self.putProperty(configurations, "tez-site")
     # remove 2gb limit for tez.runtime.io.sort.mb
     # in HDP 2.3 "tez.runtime.sorter.class" is set by default to PIPELINED, in other case comment calculation code below
@@ -178,7 +180,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     if "tez-site" in services["configurations"] and "tez.runtime.sorter.class" in services["configurations"]["tez-site"]["properties"]:
       if services["configurations"]["tez-site"]["properties"]["tez.runtime.sorter.class"] == "LEGACY":
         putTezAttribute = self.putPropertyAttribute(configurations, "tez-site")
-        putTezAttribute("tez.runtime.io.sort.mb", "maximum", 2047)
+        putTezAttribute("tez.runtime.io.sort.mb", "maximum", 1800)
     pass
 
     serverProperties = services["ambari-server-properties"]
