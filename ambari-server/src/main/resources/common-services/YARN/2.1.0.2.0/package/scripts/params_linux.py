@@ -129,6 +129,7 @@ ulimit_cmd = "ulimit -c unlimited;"
 mapred_user = status_params.mapred_user
 yarn_user = status_params.yarn_user
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
+hdfs_tmp_dir = config['configurations']['hadoop-env']['hdfs_tmp_dir']
 
 smokeuser = config['configurations']['cluster-env']['smokeuser']
 smokeuser_principal = config['configurations']['cluster-env']['smokeuser_principal_name']
