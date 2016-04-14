@@ -400,11 +400,11 @@ public class ClustersImpl implements Clusters {
   public Host getHostById(Long hostId) throws AmbariException {
     checkLoaded();
 
-    if (!hosts.containsKey(hostId)) {
+    if (!hostsById.containsKey(hostId)) {
       throw new HostNotFoundException("Host Id = " + hostId);
     }
 
-    return hosts.get(hostId);
+    return hostsById.get(hostId);
   }
 
   /**
