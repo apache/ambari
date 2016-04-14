@@ -21,6 +21,7 @@ import junit.framework.Assert;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HColumnDescriptor;
 import org.apache.hadoop.hbase.HTableDescriptor;
+import org.apache.hadoop.hbase.client.Durability;
 import org.apache.hadoop.hbase.client.HBaseAdmin;
 import org.apache.hadoop.metrics2.sink.timeline.Precision;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
@@ -60,6 +61,8 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_AGGREGATE_MINUTE_TABLE_NAME;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_RECORD_TABLE_NAME;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.PHOENIX_TABLES;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_TABLES_DURABILITY;
+
 
 
 public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
@@ -362,16 +365,22 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
     precisionValues.put(METRICS_RECORD_TABLE_NAME, String.valueOf(2 * 86400));
     f.set(hdb, precisionValues);
 
+    Field f2 = PhoenixHBaseAccessor.class.getDeclaredField("timelineMetricsTablesDurability");
+    f2.setAccessible(true);
+    f2.set(hdb, "ASYNC_WAL");
+
     hdb.initPoliciesAndTTL();
 
     // Verify expected policies are set
     boolean normalizerEnabled = false;
     String compactionPolicy = null;
+    boolean tableDurabilitySet  = false;
     for (int i = 0; i < 10; i++) {
       LOG.warn("Policy check retry : " + i);
       for (String tableName : PHOENIX_TABLES) {
         HTableDescriptor tableDescriptor = hBaseAdmin.getTableDescriptor(tableName.getBytes());
         normalizerEnabled = tableDescriptor.isNormalizationEnabled();
+        tableDurabilitySet = (Durability.ASYNC_WAL.equals(tableDescriptor.getDurability()));
         compactionPolicy = tableDescriptor.getConfigurationValue(HSTORE_COMPACTION_CLASS_KEY);
         LOG.debug("Table: " + tableName + ", normalizerEnabled = " + normalizerEnabled);
         LOG.debug("Table: " + tableName + ", compactionPolicy = " + compactionPolicy);
@@ -388,6 +397,7 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
     }
 
     Assert.assertTrue("Normalizer enabled.", normalizerEnabled);
+    Assert.assertTrue("Durability Set.", tableDurabilitySet);
     Assert.assertEquals("FIFO compaction policy is set.", FIFO_COMPACTION_POLICY_CLASS, compactionPolicy);
     Assert.assertEquals("Precision TTL value not changed.", String.valueOf(2 * 86400), precisionTtl);
 
