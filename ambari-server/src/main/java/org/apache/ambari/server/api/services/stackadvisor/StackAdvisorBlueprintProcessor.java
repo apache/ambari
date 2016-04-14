@@ -69,12 +69,13 @@ public class StackAdvisorBlueprintProcessor {
   /**
    * Recommend configurations by the stack advisor, then store the results in cluster topology.
    * @param clusterTopology cluster topology instance
+   * @param existingConfigurations Existing configurations of cluster
    */
-  public void adviseConfiguration(ClusterTopology clusterTopology) throws ConfigurationTopologyException {
+  public void adviseConfiguration(ClusterTopology clusterTopology, Map<String, Map<String, String>> existingConfigurations) throws ConfigurationTopologyException {
     StackAdvisorRequest request = createStackAdvisorRequest(clusterTopology, StackAdvisorRequestType.CONFIGURATIONS);
     try {
       RecommendationResponse response = stackAdvisorHelper.recommend(request);
-      addAdvisedConfigurationsToTopology(response, clusterTopology);
+      addAdvisedConfigurationsToTopology(response, clusterTopology, existingConfigurations);
     } catch (StackAdvisorException e) {
       throw new ConfigurationTopologyException(RECOMMENDATION_FAILED, e);
     } catch (IllegalArgumentException e) {
@@ -159,7 +160,7 @@ public class StackAdvisorBlueprintProcessor {
   }
 
   private void addAdvisedConfigurationsToTopology(RecommendationResponse response,
-                                                  ClusterTopology topology) {
+                                                  ClusterTopology topology, Map<String, Map<String, String>> existingConfigurations) {
     Preconditions.checkArgument(response.getRecommendations() != null,
       "Recommendation response is empty.");
     Preconditions.checkArgument(response.getRecommendations().getBlueprint() != null,
@@ -167,7 +168,7 @@ public class StackAdvisorBlueprintProcessor {
     Preconditions.checkArgument(response.getRecommendations().getBlueprint().getConfigurations() != null,
       "Configurations are missing from the recommendation blueprint response.");
 
-    Map<String, Map<String, String>> userProvidedProperties = getUserProvidedProperties(topology);
+    Map<String, Map<String, String>> userProvidedProperties = getUserProvidedProperties(topology, existingConfigurations);
     Map<String, BlueprintConfigurations> recommendedConfigurations =
       response.getRecommendations().getBlueprint().getConfigurations();
     for (Map.Entry<String, BlueprintConfigurations> configEntry : recommendedConfigurations.entrySet()) {
@@ -182,15 +183,13 @@ public class StackAdvisorBlueprintProcessor {
   /**
    * Gather user defined properties. (keep that only which is not included in the stack defaults or it overrides the stack default value)
    */
-  private Map<String, Map<String, String>> getUserProvidedProperties(ClusterTopology topology) {
+  private Map<String, Map<String, String>> getUserProvidedProperties(ClusterTopology topology, Map<String, Map<String, String>> existingConfigurations) {
     Map<String, Map<String, String>> userProvidedProperties = Maps.newHashMap();
     Blueprint blueprint = topology.getBlueprint();
     Configuration stackDefaults = blueprint.getStack().getConfiguration(blueprint.getServices());
-
     Map<String, Map<String, String>> stackDefaultProps = stackDefaults.getProperties();
-    Map<String, Map<String, String>> fullConfig = topology.getConfiguration().getFullProperties();
 
-    for (Map.Entry<String, Map<String, String>> configGroup : fullConfig.entrySet()) {
+    for (Map.Entry<String, Map<String, String>> configGroup : existingConfigurations.entrySet()) {
       String configType = configGroup.getKey();
       Map<String, String> configsToAdd = Maps.newHashMap();
       for (Map.Entry<String, String> configProp : configGroup.getValue().entrySet()) {
@@ -212,12 +211,15 @@ public class StackAdvisorBlueprintProcessor {
   }
 
   /**
-   * Remove user defined properties from stack advisor output in case of it applies only on the stack defaults
+   * Remove user defined properties from stack advisor output in case of ONLY_STACK_DEFAULTS_APPLY or
+   * ALWAYS_APPLY_DONT_OVERRIDE_CUSTOM_VALUES.
    */
   private BlueprintConfigurations filterBlueprintConfig(String configType, BlueprintConfigurations config,
                                                         Map<String, Map<String, String>> userProvidedProperties,
                                                         ClusterTopology topology) {
-    if (topology.getConfigRecommendationStrategy() == ConfigRecommendationStrategy.ONLY_STACK_DEFAULTS_APPLY) {
+    if (topology.getConfigRecommendationStrategy() == ConfigRecommendationStrategy.ONLY_STACK_DEFAULTS_APPLY ||
+      topology.getConfigRecommendationStrategy() == ConfigRecommendationStrategy
+        .ALWAYS_APPLY_DONT_OVERRIDE_CUSTOM_VALUES) {
       if (userProvidedProperties.containsKey(configType)) {
         BlueprintConfigurations newConfig = new BlueprintConfigurations();
         Map<String, String> filteredProps = Maps.filterKeys(config.getProperties(),

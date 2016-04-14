@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
+import com.google.common.base.Optional;
 import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
@@ -174,10 +175,12 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
                                                Map<String, String> kerberosConfiguration,
                                                KerberosOperationHandler kerberosOperationHandler,
                                                ActionLog actionLog) {
+
+    // in case this is called directly from TopologyManager there's no HostRoleCommand
     CreatePrincipalKerberosAuditEvent.CreatePrincipalKerberosAuditEventBuilder auditEventBuilder = CreatePrincipalKerberosAuditEvent.builder()
       .withTimestamp(System.currentTimeMillis())
-      .withRequestId(getHostRoleCommand().getRequestId())
-      .withTaskId(getHostRoleCommand().getTaskId())
+      .withRequestId(getHostRoleCommand() != null ? getHostRoleCommand().getRequestId() : -1)
+      .withTaskId(getHostRoleCommand() != null ? getHostRoleCommand().getTaskId() : -1)
       .withPrincipal(principal);
     CreatePrincipalResult result = null;
     String message = null;

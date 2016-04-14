@@ -137,14 +137,17 @@ public class ClusterConfigurationRequest {
     // this will update the topo cluster config and all host group configs in the cluster topology
     Set<String> updatedConfigTypes = new HashSet<>();
 
+    Configuration clusterConfiguration = clusterTopology.getConfiguration();
+    Map<String, Map<String, String>> existingConfigurations = clusterConfiguration.getFullProperties();
+
     try {
       if (configureSecurity) {
-        updatedConfigTypes.addAll(configureKerberos());
+        updatedConfigTypes.addAll(configureKerberos(clusterConfiguration, existingConfigurations));
       }
 
       // obtain recommended configurations before config updates
       if (!ConfigRecommendationStrategy.NEVER_APPLY.equals(this.clusterTopology.getConfigRecommendationStrategy())) {
-        stackAdvisorBlueprintProcessor.adviseConfiguration(this.clusterTopology);
+        stackAdvisorBlueprintProcessor.adviseConfiguration(this.clusterTopology, existingConfigurations);
       }
 
       updatedConfigTypes.addAll(configurationProcessor.doUpdateForClusterCreate());
@@ -156,7 +159,7 @@ public class ClusterConfigurationRequest {
     setConfigurationsOnCluster(clusterTopology, TopologyManager.TOPOLOGY_RESOLVED_TAG, updatedConfigTypes);
   }
 
-  private Set<String> configureKerberos() throws AmbariException {
+  private Set<String> configureKerberos(Configuration clusterConfiguration, Map<String, Map<String, String>> existingConfigurations) throws AmbariException {
     Set<String> updatedConfigTypes = new HashSet<>();
 
     Cluster cluster = getCluster();
@@ -164,8 +167,7 @@ public class ClusterConfigurationRequest {
 
     Configuration stackDefaults = blueprint.getStack().getConfiguration(blueprint.getServices());
     Map<String, Map<String, String>> stackDefaultProps = stackDefaults.getProperties();
-    Configuration clusterConfiguration = clusterTopology.getConfiguration();
-    Map<String, Map<String, String>> existingConfigurations = clusterConfiguration.getFullProperties();
+
     // add clusterHostInfo containing components to hosts map, based on Topology, to use this one instead of
     // StageUtils.getClusterInfo()
     Map<String, String> componentHostsMap = createComponentHostMap(blueprint);

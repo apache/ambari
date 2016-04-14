@@ -153,8 +153,9 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
 
     CreateKeyTabKerberosAuditEvent.CreateKeyTabKerberosAuditEventBuilder auditEventBuilder = CreateKeyTabKerberosAuditEvent.builder();
     auditEventBuilder.withTimestamp(System.currentTimeMillis());
-    auditEventBuilder.withRequestId(getHostRoleCommand().getRequestId());
-    auditEventBuilder.withTaskId(getHostRoleCommand().getTaskId());
+    // in case this is called directly from TopologyManager there's no HostRoleCommand
+    auditEventBuilder.withRequestId(getHostRoleCommand() != null ? getHostRoleCommand().getRequestId() : -1);
+    auditEventBuilder.withTaskId(getHostRoleCommand() != null ? getHostRoleCommand().getTaskId() : -1);
 
     CommandReport commandReport = null;
     String message = null;
