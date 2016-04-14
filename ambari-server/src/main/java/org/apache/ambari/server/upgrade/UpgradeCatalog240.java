@@ -1038,6 +1038,8 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
    * In hdfs-site, set dfs.client.retry.policy.enabled=false
    * This is needed for Rolling/Express upgrade so that clients don't keep retrying, which exhausts the retries and
    * doesn't allow for a graceful failover, which is expected.
+   *
+   * Rely on dfs.internal.nameservices after upgrade. Copy the value from dfs.services
    * @throws AmbariException
    */
   protected void updateHDFSConfigs() throws AmbariException {
@@ -1057,6 +1059,11 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
               String clientRetryPolicyEnabled = hdfsSite.getProperties().get("dfs.client.retry.policy.enabled");
               if (null != clientRetryPolicyEnabled && Boolean.parseBoolean(clientRetryPolicyEnabled)) {
                 updateConfigurationProperties("hdfs-site", Collections.singletonMap("dfs.client.retry.policy.enabled", "false"), true, false);
+              }
+              String nameservices = hdfsSite.getProperties().get("dfs.nameservices");
+              String int_nameservices = hdfsSite.getProperties().get("dfs.internal.nameservices");
+              if(int_nameservices == null && nameservices != null) {
+                updateConfigurationProperties("hdfs-site", Collections.singletonMap("dfs.internal.nameservices", nameservices), true, false);
               }
             }
           }

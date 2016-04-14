@@ -68,6 +68,7 @@ import org.apache.ambari.server.state.AlertFirmness;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
 import org.easymock.CaptureType;
@@ -441,6 +442,130 @@ public class UpgradeCatalog240Test {
 
     String result = upgradeCatalog240.addParam(inputSource, params);
     Assert.assertEquals(result, expectedSource);
+  }
+
+  /**
+   * Test that dfs.internal.nameservices is not affected
+   * Also, dfs.client.retry.policy.enabled is reset
+   * @throws Exception
+   */
+  @Test
+  public void testHdfsSiteUpdateConfigs2() throws Exception{
+    Map<String, String> oldPropertiesHdfsSite = new HashMap<String, String>() {
+      {
+        put("dfs.client.retry.policy.enabled", "true");
+      }
+    };
+    Map<String, String> newPropertiesHdfsSite = new HashMap<String, String>() {
+      {
+        put("dfs.client.retry.policy.enabled", "false");
+      }
+    };
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+
+    Clusters clusters = easyMockSupport.createNiceMock(Clusters.class);
+    final Cluster cluster = easyMockSupport.createNiceMock(Cluster.class);
+    final Service service = createStrictMock(Service.class);
+    final Map<String, Service> services = Collections.singletonMap("HDFS", service);
+    Config mockHdfsSite = easyMockSupport.createNiceMock(Config.class);
+
+    expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", cluster);
+    }}).anyTimes();
+    expect(cluster.getDesiredConfigByType("hdfs-site")).andReturn(mockHdfsSite).atLeastOnce();
+    expect(mockHdfsSite.getProperties()).andReturn(oldPropertiesHdfsSite).anyTimes();
+    expect(cluster.getServices()).andReturn(services).once();
+
+    Injector injector = easyMockSupport.createNiceMock(Injector.class);
+    expect(injector.getInstance(Gson.class)).andReturn(null).anyTimes();
+    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).anyTimes();
+    expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class)).anyTimes();
+
+    replay(injector, clusters, mockHdfsSite, cluster);
+
+    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
+        .addMockedMethod("createConfiguration")
+        .addMockedMethod("getClusters", new Class[] { })
+        .addMockedMethod("createConfig")
+        .withConstructor(createNiceMock(ActionManager.class), clusters, injector)
+        .createNiceMock();
+
+    Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
+    Capture<Map> propertiesCapture = EasyMock.newCapture();
+
+    expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
+    expect(controller.getClusters()).andReturn(clusters).anyTimes();
+    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
+                                   anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
+
+    replay(controller, injector2);
+    new UpgradeCatalog240(injector2).updateHDFSConfigs();
+    easyMockSupport.verifyAll();
+
+    Map<String, String> updatedProperties = propertiesCapture.getValue();
+    assertTrue(Maps.difference(newPropertiesHdfsSite, updatedProperties).areEqual());
+  }
+
+  /**
+   * Test that dfs.nameservices is copied over to dfs.internal.nameservices
+   * @throws Exception
+   */
+  @Test
+  public void testHdfsSiteUpdateConfigs() throws Exception{
+    Map<String, String> oldPropertiesHdfsSite = new HashMap<String, String>() {
+      {
+        put("dfs.nameservices", "nnha");
+      }
+    };
+    Map<String, String> newPropertiesHdfsSite = new HashMap<String, String>() {
+      {
+        put("dfs.nameservices", "nnha");
+        put("dfs.internal.nameservices", "nnha");
+      }
+    };
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+
+    Clusters clusters = easyMockSupport.createNiceMock(Clusters.class);
+    final Cluster cluster = easyMockSupport.createNiceMock(Cluster.class);
+    final Service service = createStrictMock(Service.class);
+    final Map<String, Service> services = Collections.singletonMap("HDFS", service);
+    Config mockHdfsSite = easyMockSupport.createNiceMock(Config.class);
+
+    expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", cluster);
+    }}).anyTimes();
+    expect(cluster.getDesiredConfigByType("hdfs-site")).andReturn(mockHdfsSite).atLeastOnce();
+    expect(mockHdfsSite.getProperties()).andReturn(oldPropertiesHdfsSite).anyTimes();
+    expect(cluster.getServices()).andReturn(services).once();
+
+    Injector injector = easyMockSupport.createNiceMock(Injector.class);
+    expect(injector.getInstance(Gson.class)).andReturn(null).anyTimes();
+    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).anyTimes();
+    expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class)).anyTimes();
+
+    replay(injector, clusters, mockHdfsSite, cluster);
+
+    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
+        .addMockedMethod("createConfiguration")
+        .addMockedMethod("getClusters", new Class[] { })
+        .addMockedMethod("createConfig")
+        .withConstructor(createNiceMock(ActionManager.class), clusters, injector)
+        .createNiceMock();
+
+    Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
+    Capture<Map> propertiesCapture = EasyMock.newCapture();
+
+    expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
+    expect(controller.getClusters()).andReturn(clusters).anyTimes();
+    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
+                                   anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
+
+    replay(controller, injector2);
+    new UpgradeCatalog240(injector2).updateHDFSConfigs();
+    easyMockSupport.verifyAll();
+
+    Map<String, String> updatedProperties = propertiesCapture.getValue();
+    assertTrue(Maps.difference(newPropertiesHdfsSite, updatedProperties).areEqual());
   }
 
   @Test
