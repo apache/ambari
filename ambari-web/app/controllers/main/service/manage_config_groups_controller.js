@@ -710,7 +710,7 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
           name: groupName,
           description: this.get('configGroupDesc'),
           isDefault: false,
-          parent_config_group_id: serviceName + '_default',
+          parent_config_group_id: App.ServiceConfigGroup.getParentConfigGroupId(serviceName),
           service_id: serviceName,
           service_name: serviceName,
           hosts: [],

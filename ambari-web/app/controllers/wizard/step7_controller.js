@@ -413,7 +413,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    */
   _updateIsEditableFlagForConfig: function (serviceConfigProperty, defaultGroupSelected) {
     if (App.isAuthorized('AMBARI.ADD_DELETE_CLUSTERS')) {
-      if (defaultGroupSelected && !this.get('isHostsConfigsPage') && !Em.get(serviceConfigProperty, 'group')) {
+      if (defaultGroupSelected && !Em.get(serviceConfigProperty, 'group')) {
         if (serviceConfigProperty.get('serviceName') === 'MISC') {
           var service = App.config.get('serviceByConfigTypeMap')[App.config.getConfigTagFromFileName(serviceConfigProperty.get('filename'))];
           serviceConfigProperty.set('isEditable', service && !this.get('installedServiceNames').contains(service.get('serviceName')));
@@ -649,7 +649,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    * @returns {Object[]} existing configs + additional config parameters in hdfs-client.xml
    */
   addHawqConfigsOnNnHa: function(configs) {
-    var nameService = configs.findProperty('id', 'dfs.nameservices__hdfs-site').value;
+    var nameService = configs.findProperty('id', App.config.configId('dfs.nameservices', 'hdfs-site')).value;
     var propertyNames = [
       'dfs.nameservices',
       'dfs.ha.namenodes.' + nameService,

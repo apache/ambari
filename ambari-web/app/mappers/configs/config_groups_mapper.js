@@ -91,7 +91,7 @@ App.configGroupsMapper = App.QuickDataMapper.create({
               hostNamesForService[configGroup.service_name].splice(hostNamesForService[configGroup.service_name].indexOf(host), 1);
             });
             configGroup = this.parseIt(configGroup, (mapFromVersions ? this.get('config2') : this.get('config')));
-            configGroup.parent_config_group_id = configGroup.service_name + '_default';
+            configGroup.parent_config_group_id = App.ServiceConfigGroup.getParentConfigGroupId(configGroup.service_name);
             configGroups.push(configGroup);
           }
         }, this);
@@ -133,7 +133,7 @@ App.configGroupsMapper = App.QuickDataMapper.create({
    */
   generateDefaultGroup: function (serviceName, hostNames, childConfigGroups) {
     return {
-      id: serviceName + '_' + 'default',
+      id: App.ServiceConfigGroup.getParentConfigGroupId(serviceName),
       name: 'Default',
       service_name: serviceName,
       description: 'Default cluster level ' + App.format.role(serviceName, true) + ' configuration',

@@ -365,6 +365,16 @@ App.ConfigsSaverMixin = Em.Mixin.create({
   /*********************************** 3. GENERATING JSON TO SAVE *****************************/
 
   /**
+   * Map that contains last used timestamp per filename.
+   * There is a case when two config groups can update same filename almost simultaneously
+   * so they have equal timestamp only and this causes collision. So to prevent this we need to check
+   * if specific filename with specific timestamp is not saved yet
+   *
+   * @type {Object}
+   */
+  _timeStamps: {},
+
+  /**
    * generating common JSON object for desired configs
    * @param configsToSave
    * @param fileNamesToSave
@@ -377,8 +387,12 @@ App.ConfigsSaverMixin = Em.Mixin.create({
     if (Em.isArray(configsToSave) && Em.isArray(fileNamesToSave) && fileNamesToSave.length && configsToSave.length) {
       serviceConfigNote = serviceConfigNote || "";
       var tagVersion = "version" + (new Date).getTime();
-
       fileNamesToSave.forEach(function(fName) {
+
+        /** @see <code>_timeStamps<code> **/
+        if (this.get('_timeStamps')[fName] === tagVersion) tagVersion++;
+        this.get('_timeStamps')[fName] = tagVersion;
+
         if (this.allowSaveSite(fName)) {
           var properties = configsToSave.filterProperty('filename', fName);
           var type = App.config.getConfigTagFromFileName(fName);
