@@ -211,6 +211,10 @@ public class UpgradeCatalog240Test {
     Capture<DBAccessor.DBColumnInfo> hostRoleCommandOriginalStartTimeColumnInfo = newCapture();
     dbAccessor.addColumn(eq(UpgradeCatalog240.HOST_ROLE_COMMAND_TABLE), capture(hostRoleCommandOriginalStartTimeColumnInfo));
 
+    Capture<DBAccessor.DBColumnInfo> viewInstanceShortUrlInfo = newCapture();
+    dbAccessor.addColumn(eq(UpgradeCatalog240.VIEWINSTANCE_TABLE), capture(viewInstanceShortUrlInfo));
+
+
     replay(dbAccessor, configuration, connection, statement, resultSet);
 
     Module module = new Module() {
@@ -220,7 +224,7 @@ public class UpgradeCatalog240Test {
         binder.bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
         binder.bind(EntityManager.class).toInstance(entityManager);
       }
-    };
+      };
 
     Injector injector = Guice.createInjector(module);
     UpgradeCatalog240 upgradeCatalog240 = injector.getInstance(UpgradeCatalog240.class);
@@ -345,6 +349,12 @@ public class UpgradeCatalog240Test {
     Assert.assertEquals("original_start_time", originalStartTimeInfo.getName());
     Assert.assertEquals(Long.class, originalStartTimeInfo.getType());
     Assert.assertEquals(-1L, originalStartTimeInfo.getDefaultValue());
+
+    // Verify host_role_command column
+    DBAccessor.DBColumnInfo viewInstanceEntityUrlColInfoValue = viewInstanceShortUrlInfo.getValue();
+    Assert.assertNotNull(viewInstanceEntityUrlColInfoValue);
+    Assert.assertEquals("short_url", viewInstanceEntityUrlColInfoValue.getName());
+    Assert.assertEquals(String.class, viewInstanceEntityUrlColInfoValue.getType());
 
     verify(dbAccessor);
   }
