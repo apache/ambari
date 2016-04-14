@@ -73,12 +73,11 @@ def yarn(name = None):
 
     # create the /tmp folder with proper permissions if it doesn't exist yet
     if params.entity_file_history_directory.startswith('/tmp'):
-        params.HdfsResource('/tmp',
+        params.HdfsResource(params.hdfs_tmp_dir,
                             action="create_on_execute",
                             type="directory",
-                            owner=params.yarn_user,
-                            group=params.user_group,
-                            mode=0777
+                            owner=params.hdfs_user,
+                            mode=0777,
         )
 
     params.HdfsResource(params.entity_file_history_directory,
