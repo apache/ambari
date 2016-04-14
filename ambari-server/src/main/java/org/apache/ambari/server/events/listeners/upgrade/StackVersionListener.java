@@ -80,16 +80,18 @@ public class StackVersionListener {
     Cluster cluster = event.getCluster();
 
     ServiceComponentHost sch = event.getServiceComponentHost();
+
     String newVersion = event.getVersion();
+    if (StringUtils.isEmpty(newVersion)) {
+      return;
+    }
 
     m_stackVersionLock.lock();
 
     // Update host component version value if needed
     try {
       ServiceComponent sc = cluster.getService(sch.getServiceName()).getServiceComponent(sch.getServiceComponentName());
-      if (newVersion == null) {
-        processComponentVersionNotAdvertised(sc, sch);
-      } else if (UNKNOWN_VERSION.equals(sc.getDesiredVersion())) {
+      if (UNKNOWN_VERSION.equals(sc.getDesiredVersion())) {
         processUnknownDesiredVersion(cluster, sc, sch, newVersion);
       } else if (StringUtils.isNotBlank(newVersion)) {
         String previousVersion = sch.getVersion();
@@ -174,18 +176,5 @@ public class StackVersionListener {
       sch.setUpgradeState(UpgradeState.VERSION_MISMATCH);
     }
     sch.setVersion(newVersion);
-  }
-
-  /**
-   * Focuses on cases when component does not advertise it's version
-   */
-  private void processComponentVersionNotAdvertised(ServiceComponent sc, ServiceComponentHost sch) {
-    if (UpgradeState.ONGOING_UPGRADE_STATES.contains(sch.getUpgradeState())) {
-      sch.setUpgradeState(UpgradeState.FAILED);
-    } else if (!sc.isVersionAdvertised()) {
-      sch.setUpgradeState(UpgradeState.NONE);
-    } else {
-      sch.setUpgradeState(UpgradeState.VERSION_MISMATCH);
-    }
   }
 }

@@ -31,7 +31,6 @@ import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.UpgradeState;
 import org.easymock.EasyMockSupport;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -158,55 +157,9 @@ public class StackVersionListenerTest extends EasyMockSupport {
   }
 
   @Test
-  public void testSetUpgradeStateToFailedWhenNewVersionIsNullAndUpgradeIsInProgress() {
-    expect(sch.getUpgradeState()).andReturn(UpgradeState.IN_PROGRESS);
-    sch.setUpgradeState(UpgradeState.FAILED);
-    expectLastCall().once();
-
-    replayAll();
-
-    sendEventAndVerify(null);
-  }
-
-  @Test
-  public void testSetUpgradeStateToFailedWhenNewVersionIsNullAndUpgradeHasComplete() {
-    expect(sch.getUpgradeState()).andReturn(UpgradeState.COMPLETE);
-    sch.setUpgradeState(UpgradeState.FAILED);
-    expectLastCall().once();
-
-    replayAll();
-
-    sendEventAndVerify(null);
-  }
-
-  @Test
-  public void testSetUpgradeStateToFailedWhenNewVersionIsNullAndUpgradeHasFailed() {
-    expect(sch.getUpgradeState()).andReturn(UpgradeState.FAILED);
-    sch.setUpgradeState(UpgradeState.FAILED);
-    expectLastCall().once();
-
-    replayAll();
-
-    sendEventAndVerify(null);
-  }
-
-  @Test
-  public void testSetUpgradeStateToNoneWhenNewVersionIsNullAndComponentVersionIsNotAdvertised() {
-    expect(serviceComponent.isVersionAdvertised()).andReturn(false);
-    sch.setUpgradeState(UpgradeState.NONE);
-    expectLastCall().once();
-
-    replayAll();
-
-    sendEventAndVerify(null);
-  }
-
-  @Test
-  public void testSetUpgradeStateToVersionMismatchByDefaultWhenNewVersionIsNull() {
+  public void testNoActionTakenOnNullVersion() {
     expect(serviceComponent.isVersionAdvertised()).andReturn(true);
-    sch.setUpgradeState(UpgradeState.VERSION_MISMATCH);
-    expectLastCall().once();
-
+    resetAll();
     replayAll();
 
     sendEventAndVerify(null);

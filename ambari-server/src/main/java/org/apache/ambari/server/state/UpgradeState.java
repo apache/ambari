@@ -48,10 +48,4 @@ public enum UpgradeState {
    * States when new/correct version has not been yet advertised
    */
   public static final EnumSet<UpgradeState> VERSION_NON_ADVERTISED_STATES = EnumSet.of(IN_PROGRESS, FAILED, VERSION_MISMATCH);
-
-  /**
-   * States when component is believed to participate in upgrade
-   */
-  public static final EnumSet<UpgradeState> ONGOING_UPGRADE_STATES = EnumSet.of(IN_PROGRESS, FAILED, COMPLETE);
-
 }
