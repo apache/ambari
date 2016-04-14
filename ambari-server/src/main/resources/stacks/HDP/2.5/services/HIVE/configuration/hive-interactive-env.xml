@@ -62,6 +62,12 @@
       <maximum>100</maximum>
       <increment-step>1</increment-step>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-interactive-env</type>
+        <name>enable_hive_interactive</name>
+      </property>
+    </depends-on>
   </property>
   <property>
     <name>num_llap_nodes</name>
