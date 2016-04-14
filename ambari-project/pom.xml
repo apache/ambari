@@ -507,8 +507,9 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <redirectTestOutputToFile>true</redirectTestOutputToFile>
-          <forkMode>always</forkMode>
           <forkedProcessTimeoutInSeconds>900</forkedProcessTimeoutInSeconds>
+          <reuseForks>false</reuseForks>
+          <forkCount>1</forkCount>
         </configuration>
       </plugin>
       <plugin>

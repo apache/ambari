@@ -50,6 +50,7 @@ import org.junit.Test;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
+import com.google.inject.persist.UnitOfWork;
 
 /**
  * Tests the {@link AlertReceivedListener}.
@@ -75,6 +76,7 @@ public class AlertReceivedListenerTest {
   public void setup() throws Exception {
     m_injector = Guice.createInjector(new InMemoryDefaultTestModule());
     m_injector.getInstance(GuiceJpaInitializer.class);
+    m_injector.getInstance(UnitOfWork.class).begin();
 
     m_helper = m_injector.getInstance(OrmTestHelper.class);
     m_clusters = m_injector.getInstance(Clusters.class);
@@ -115,6 +117,7 @@ public class AlertReceivedListenerTest {
 
   @After
   public void teardown() {
+    m_injector.getInstance(UnitOfWork.class).end();
     m_injector.getInstance(PersistService.class).stop();
     m_injector = null;
   }
