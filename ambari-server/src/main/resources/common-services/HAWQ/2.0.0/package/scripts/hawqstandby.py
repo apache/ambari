@@ -19,7 +19,6 @@ limitations under the License.
 
 from resource_management import Script
 from resource_management.core.logger import Logger
-from resource_management.libraries.functions.check_process_status import check_process_status
 
 import common
 import hawq_constants
@@ -52,8 +51,8 @@ class HawqStandby(Script):
     common.stop_component(hawq_constants.STANDBY, params.hawq_master_address_port, hawq_constants.FAST)
 
   def status(self, env):
-    from hawqstatus import get_pid_file
-    check_process_status(get_pid_file())
+    from hawqstatus import assert_component_running
+    assert_component_running(hawq_constants.STANDBY)
 
   def activate_hawq_standby(self, env):
     import utils
@@ -61,4 +60,4 @@ class HawqStandby(Script):
     utils.exec_hawq_operation(hawq_constants.ACTIVATE, "{0} -a -M {1} -v --ignore-bad-hosts".format(hawq_constants.STANDBY, hawq_constants.FAST))
     
 if __name__ == "__main__":
-    HawqStandby().execute()
+  HawqStandby().execute()
