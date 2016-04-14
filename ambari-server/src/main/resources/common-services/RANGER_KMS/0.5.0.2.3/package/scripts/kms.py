@@ -111,8 +111,10 @@ def do_keystore_setup(cred_provider_path, credential_alias, credential_password)
   import params
 
   if cred_provider_path is not None:
-    cred_setup = params.cred_setup_prefix + ('-f', cred_provider_path, '-k', credential_alias, '-v', PasswordString(credential_password), '-c', '1')
-    Execute(cred_setup, 
+    java_bin = format('{java_home}/bin/java')
+    file_path = format('jceks://file{cred_provider_path}')
+    cmd = (java_bin, '-cp', params.cred_lib_path, 'org.apache.ranger.credentialapi.buildks', 'create', credential_alias, '-value', PasswordString(credential_password), '-provider', file_path)
+    Execute(cmd,
             environment={'JAVA_HOME': params.java_home}, 
             logoutput=True, 
             sudo=True,

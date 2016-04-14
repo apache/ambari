@@ -230,17 +230,10 @@ def do_keystore_setup(upgrade_type=None):
 
   ranger_home = params.ranger_home
   cred_lib_path = params.cred_lib_path
-  cred_setup_prefix = params.cred_setup_prefix
 
-  if not is_empty(params.ranger_credential_provider_path):    
-    jceks_path = params.ranger_credential_provider_path
-    cred_setup = cred_setup_prefix + ('-f', jceks_path, '-k', params.ranger_jpa_jdbc_credential_alias, '-v', PasswordString(params.ranger_ambari_db_password), '-c', '1')
+  if not is_empty(params.ranger_credential_provider_path):
+    ranger_credential_helper(cred_lib_path, params.ranger_jpa_jdbc_credential_alias, params.ranger_ambari_db_password, params.ranger_credential_provider_path)
 
-    Execute(cred_setup, 
-            environment={'RANGER_ADMIN_HOME':ranger_home, 'JAVA_HOME': params.java_home}, 
-            logoutput=True, 
-            sudo=True
-    )
     File(params.ranger_credential_provider_path,
       owner = params.unix_user,
       group = params.unix_group,
@@ -248,13 +241,7 @@ def do_keystore_setup(upgrade_type=None):
     )
 
   if not is_empty(params.ranger_credential_provider_path) and (params.ranger_audit_source_type).lower() == 'db' and not is_empty(params.ranger_ambari_audit_db_password):
-    jceks_path = params.ranger_credential_provider_path
-    cred_setup = cred_setup_prefix + ('-f', jceks_path, '-k', params.ranger_jpa_audit_jdbc_credential_alias, '-v', PasswordString(params.ranger_ambari_audit_db_password), '-c', '1')
-    Execute(cred_setup, 
-            environment={'RANGER_ADMIN_HOME':ranger_home, 'JAVA_HOME': params.java_home}, 
-            logoutput=True, 
-            sudo=True
-    )
+    ranger_credential_helper(cred_lib_path, params.ranger_jpa_audit_jdbc_credential_alias, params.ranger_ambari_audit_db_password, params.ranger_credential_provider_path)
 
     File(params.ranger_credential_provider_path,
       owner = params.unix_user,
@@ -382,21 +369,14 @@ def setup_usersync(upgrade_type=None):
   if os.path.isfile(params.cred_validator_file):
     File(params.cred_validator_file, group=params.unix_group, mode=04555)
 
-  cred_file = format('{ranger_home}/ranger_credential_helper.py')
-  if os.path.isfile(format('{usersync_home}/ranger_credential_helper.py')):
-    cred_file = format('{usersync_home}/ranger_credential_helper.py')
-
   cred_lib = os.path.join(usersync_home,"lib","*")
-  cred_setup_prefix = (cred_file, '-l', cred_lib)
 
-  cred_setup = cred_setup_prefix + ('-f', params.ugsync_jceks_path, '-k', 'usersync.ssl.key.password', '-v', PasswordString(params.ranger_usersync_keystore_password), '-c', '1')
-  Execute(cred_setup, environment={'JAVA_HOME': params.java_home}, logoutput=True, sudo=True)
+  ranger_credential_helper(cred_lib, 'usersync.ssl.key.password', params.ranger_usersync_keystore_password, params.ugsync_jceks_path)
 
-  cred_setup = cred_setup_prefix + ('-f', params.ugsync_jceks_path, '-k', 'ranger.usersync.ldap.bindalias', '-v', PasswordString(params.ranger_usersync_ldap_ldapbindpassword), '-c', '1')
-  Execute(cred_setup, environment={'JAVA_HOME': params.java_home}, logoutput=True, sudo=True)
+  if not is_empty(params.ranger_usersync_ldap_ldapbindpassword) and params.ug_sync_source == 'org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder':
+    ranger_credential_helper(cred_lib, 'ranger.usersync.ldap.bindalias', params.ranger_usersync_ldap_ldapbindpassword, params.ugsync_jceks_path)
 
-  cred_setup = cred_setup_prefix + ('-f', params.ugsync_jceks_path, '-k', 'usersync.ssl.truststore.password', '-v', PasswordString(params.ranger_usersync_truststore_password), '-c', '1')
-  Execute(cred_setup, environment={'JAVA_HOME': params.java_home}, logoutput=True, sudo=True)
+  ranger_credential_helper(cred_lib, 'usersync.ssl.truststore.password', params.ranger_usersync_truststore_password, params.ugsync_jceks_path)
 
   File(params.ugsync_jceks_path,
        owner = params.unix_user,
@@ -497,17 +477,10 @@ def setup_tagsync(upgrade_type=None):
     Execute(('cp', '-f', src_file, dst_file), sudo=True)
     File(tagsync_log4j_file, owner=params.unix_user, group=params.unix_group)
 
-  cred_file = format('{ranger_home}/ranger_credential_helper.py')
-  if os.path.isfile(format('{ranger_tagsync_home}/ranger_credential_helper.py')):
-    cred_file = format('{ranger_tagsync_home}/ranger_credential_helper.py')
-
   cred_lib = os.path.join(ranger_tagsync_home,"lib","*")
-  cred_setup_prefix = (cred_file, '-l', cred_lib)
 
   if not is_empty(params.tagsync_jceks_path) and not is_empty(params.ranger_tagsync_tagadmin_password) and params.tagsync_enabled:
-    cred_setup = cred_setup_prefix + ('-f', params.tagsync_jceks_path, '-k', 'tagadmin.user.password', '-v', PasswordString(params.ranger_tagsync_tagadmin_password), '-c', '1')
-    Execute(cred_setup, environment={'JAVA_HOME': params.java_home}, logoutput=True, sudo=True)
-
+    ranger_credential_helper(cred_lib, 'tagadmin.user.password', params.ranger_tagsync_tagadmin_password, params.tagsync_jceks_path)
     File(params.tagsync_jceks_path,
          owner = params.unix_user,
          group = params.unix_group,
@@ -522,3 +495,11 @@ def setup_tagsync(upgrade_type=None):
     not_if=format("ls /usr/bin/ranger-tagsync"),
     only_if=format("ls {tagsync_services_file}"),
     sudo=True)
+
+def ranger_credential_helper(lib_path, alias_key, alias_value, file_path):
+  import params
+
+  java_bin = format('{java_home}/bin/java')
+  file_path = format('jceks://file{file_path}')
+  cmd = (java_bin, '-cp', lib_path, 'org.apache.ranger.credentialapi.buildks', 'create', alias_key, '-value', PasswordString(alias_value), '-provider', file_path)
+  Execute(cmd, environment={'JAVA_HOME': params.java_home}, logoutput=True, sudo=True)
