@@ -906,7 +906,7 @@ public class ClustersImpl implements Clusters {
           TopologyLogicalRequestEntity topologyLogicalRequestEntity = topologyRequestEntity.getTopologyLogicalRequestEntity();
 
           for (TopologyHostRequestEntity topologyHostRequestEntity: topologyLogicalRequestEntity.getTopologyHostRequestEntities()) {
-            if (topologyHostRequestEntity.getHostName().equals(hostname)) {
+            if (hostname.equals(topologyHostRequestEntity.getHostName())) {
               topologyHostRequestDAO.remove(topologyHostRequestEntity);
             }
           }
