@@ -57,6 +57,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
@@ -89,6 +90,7 @@ import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
+import org.easymock.CaptureType;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.junit.After;
@@ -465,6 +467,81 @@ public class UpgradeCatalog210Test {
         convertedProperties.get(newKey).equals(properties.get(oldKey)));
       assertTrue(String.format("Old property %s doesn't removed after renaming", oldKey), removedProperties.contains(oldKey));
     }
+  }
+
+  @Test
+  public void testUpdateHiveConfigsWithKerberos() throws Exception {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final ConfigHelper mockConfigHelper = easyMockSupport.createMock(ConfigHelper.class);
+    final AmbariManagementController  mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+    final Config mockHiveEnv = easyMockSupport.createNiceMock(Config.class);
+    final Config mockHiveSite = easyMockSupport.createNiceMock(Config.class);
+    final Config mockHiveServerSite = easyMockSupport.createNiceMock(Config.class);
+
+    final Map<String, String> propertiesExpectedHiveEnv = new HashMap<String, String>();
+    final Map<String, String> propertiesExpectedHiveSite = new HashMap<String, String>() {{
+      put("hive.server2.authentication", "kerberos");
+    }};
+    final Map<String, String> propertiesExpectedHiveServerSite = new HashMap<String, String>() {{
+    }};
+    final Map<String, Service> servicesExpected = new HashMap<String, Service>(){{
+      put("KERBEROS", null);
+    }};
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(ConfigHelper.class).toInstance(mockConfigHelper);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+      }
+    });
+
+    final UpgradeCatalog210 upgradeCatalog210 =  mockInjector.getInstance(UpgradeCatalog210.class);
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockClusterExpected);
+    }}).once();
+
+    Capture<Map<String,String>> configCreation = Capture.newInstance(CaptureType.ALL);
+
+    expect(mockClusterExpected.getDesiredConfigByType("hive-env")).andReturn(mockHiveEnv).atLeastOnce();
+    expect(mockClusterExpected.getDesiredConfigByType("hiveserver2-site")).andReturn(mockHiveServerSite).atLeastOnce();
+    expect(mockHiveEnv.getProperties()).andReturn(propertiesExpectedHiveEnv).anyTimes();
+    expect(mockHiveServerSite.getProperties()).andReturn(propertiesExpectedHiveServerSite).anyTimes();
+
+    expect(mockClusterExpected.getDesiredConfigByType("hive-site")).andReturn(mockHiveSite).atLeastOnce();
+    expect(mockHiveSite.getProperties()).andReturn(propertiesExpectedHiveSite).anyTimes();
+    expect(mockClusterExpected.getServices()).andReturn(servicesExpected).atLeastOnce();
+    expect(mockAmbariManagementController.createConfig((Cluster)anyObject(),
+      anyString(),
+      capture(configCreation),
+      anyString(),
+      (Map<String, Map<String, String>>)anyObject())).andReturn(null).atLeastOnce();
+
+    easyMockSupport.replayAll();
+    upgradeCatalog210.updateHiveConfigs();
+    easyMockSupport.verifyAll();
+
+    Assert.assertEquals(2, configCreation.getValues().size());
+
+    boolean hiveSecFound = false;
+
+    for (Map<String, String> cfg: configCreation.getValues()){
+      if (cfg.containsKey("hive_security_authorization")) {
+        hiveSecFound = true;
+        Assert.assertTrue("sqlstdauth".equalsIgnoreCase(cfg.get("hive_security_authorization")));
+        break;
+      }
+    }
+
+    Assert.assertTrue(hiveSecFound);
   }
 
   @Test

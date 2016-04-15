@@ -1408,14 +1408,11 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
                     && RangerHiveConfig.getProperties().get("ranger-hive-plugin-enabled").equalsIgnoreCase("yes")) {
               newHiveEnvProperties.put("hive_security_authorization", "Ranger");
               newHiveServerProperties.put("hive.security.authorization.enabled", "true");
-            } else {
-              newHiveEnvProperties.put("hive_security_authorization", "None");
             }
             boolean updateProperty = cluster.getDesiredConfigByType("hive-env").getProperties().containsKey("hive_security_authorization");
             updateConfigurationPropertiesForCluster(cluster, "hive-env", newHiveEnvProperties, updateProperty, true);
             updateConfigurationPropertiesForCluster(cluster, "hiveserver2-site", newHiveServerProperties, updateProperty, true);
-            updateConfigurationPropertiesForCluster(cluster, "ranger-hive-plugin-properties", new HashMap<String, String>(),
-                    removeRangerHiveProperties, false, true);
+            removeConfigurationPropertiesFromCluster(cluster, "ranger-hive-plugin-properties", removeRangerHiveProperties);
           }
         }
       }
@@ -1524,6 +1521,13 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
       if (clusterMap != null && !clusterMap.isEmpty()) {
         for (final Cluster cluster : clusterMap.values()) {
           String content = null;
+          String hive_server2_auth = "";
+          if (cluster.getDesiredConfigByType("hive-site") != null &&
+              cluster.getDesiredConfigByType("hive-site").getProperties().containsKey("hive.server2.authentication")) {
+
+            hive_server2_auth = cluster.getDesiredConfigByType("hive-site").getProperties().get("hive.server2.authentication");
+          }
+
           if(cluster.getDesiredConfigByType("hive-env") != null) {
             Map<String, String> hiveEnvProps = new HashMap<String, String>();
             Set<String> hiveServerSiteRemoveProps = new HashSet<String>();
@@ -1540,22 +1544,32 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
             if (!cluster.getDesiredConfigByType("hive-env").getProperties().containsKey("hive.metastore.heapsize")) {
               hiveEnvProps.put("hive.metastore.heapsize", "1024");
             }
-            if (cluster.getDesiredConfigByType("hive-env").getProperties().containsKey("hive_security_authorization") &&
-                    "none".equalsIgnoreCase(cluster.getDesiredConfigByType("hive-env").getProperties().get("hive_security_authorization"))) {
+
+            boolean isHiveSecurityAuthPresent = cluster.getDesiredConfigByType("hive-env").getProperties().containsKey("hive_security_authorization");
+            String hiveSecurityAuth="";
+
+            if ("kerberos".equalsIgnoreCase(hive_server2_auth) && cluster.getServices().containsKey("KERBEROS")){
+              hiveSecurityAuth = "SQLStdAuth";
+              isHiveSecurityAuthPresent = true;
+              hiveEnvProps.put("hive_security_authorization", hiveSecurityAuth);
+            } else {
+              if (isHiveSecurityAuthPresent) {
+                hiveSecurityAuth = cluster.getDesiredConfigByType("hive-env").getProperties().get("hive_security_authorization");
+              }
+            }
+
+            if (isHiveSecurityAuthPresent && "none".equalsIgnoreCase(hiveSecurityAuth)) {
               hiveServerSiteRemoveProps.add("hive.security.authorization.manager");
               hiveServerSiteRemoveProps.add("hive.security.authenticator.manager");
             }
             updateConfigurationPropertiesForCluster(cluster, "hive-env", hiveEnvProps, true, true);
-            updateConfigurationPropertiesForCluster(cluster, "hiveserver2-site", new HashMap<String, String>(), hiveServerSiteRemoveProps, false, true);
+            removeConfigurationPropertiesFromCluster(cluster, "hiveserver2-site", hiveServerSiteRemoveProps);
           }
 
           if(cluster.getDesiredConfigByType("hive-site") != null) {
             Set<String> hiveSiteRemoveProps = new HashSet<String>();
             Map<String, String> hiveSiteAddProps = new HashMap<String, String>();
-            String hive_server2_auth = "";
-            if (cluster.getDesiredConfigByType("hive-site").getProperties().containsKey("hive.server2.authentication")) {
-              hive_server2_auth = cluster.getDesiredConfigByType("hive-site").getProperties().get("hive.server2.authentication");
-            }
+
             if (!"pam".equalsIgnoreCase(hive_server2_auth)) {
               hiveSiteRemoveProps.add("hive.server2.authentication.pam.services");
             } else {
