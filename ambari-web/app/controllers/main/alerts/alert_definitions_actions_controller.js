@@ -218,73 +218,42 @@ App.MainAlertDefinitionActionsController = Em.ArrayController.extend({
    */
   manageSettings: function () {
     var controller = this;
-    var loadingPopup = App.ModalPopup.show({
-      header: Em.I18n.t('jobs.loadingTasks'),
-      primary: false,
-      secondary: false,
-      bodyClass: Em.View.extend({
-        template: Em.Handlebars.compile('{{view App.SpinnerView}}')
-      })
-    });
-    this.loadClusterConfig().done(function (data) {
-      var tag = [
-        {
-          siteName: 'cluster-env',
-          tagName: data.Clusters.desired_configs['cluster-env'].tag,
-          newTagName: null
+    var configProperties = App.router.get('clusterController.clusterEnv.properties');
+
+    return App.ModalPopup.show({
+      classNames: ['fourty-percent-width-modal'],
+      header: Em.I18n.t('alerts.actions.manageSettings'),
+      primary: Em.I18n.t('common.save'),
+      secondary: Em.I18n.t('common.cancel'),
+      inputValue: configProperties.alerts_repeat_tolerance || '1',
+      errorMessage: Em.I18n.t('alerts.actions.editRepeatTolerance.error'),
+      isInvalid: function () {
+        var intValue = Number(this.get('inputValue'));
+      return this.get('inputValue') !== 'DEBUG' && (!validator.isValidInt(intValue) || intValue < 1 || intValue > 99);
+      }.property('inputValue'),
+      disablePrimary: Em.computed.alias('isInvalid'),
+      onPrimary: function () {
+        if (this.get('isInvalid')) {
+          return;
         }
-      ];
-      App.router.get('configurationController').getConfigsByTags(tag).done(function (config) {
-        var configProperties = config[0].properties;
-
-        loadingPopup.hide();
-        return App.ModalPopup.show({
-          classNames: ['fourty-percent-width-modal'],
-          header: Em.I18n.t('alerts.actions.manageSettings'),
-          primary: Em.I18n.t('common.save'),
-          secondary: Em.I18n.t('common.cancel'),
-          inputValue: configProperties.alerts_repeat_tolerance || '1',
-          errorMessage: Em.I18n.t('alerts.actions.editRepeatTolerance.error'),
-          isInvalid: function () {
-            var intValue = Number(this.get('inputValue'));
-            return this.get('inputValue') !== 'DEBUG' && (!validator.isValidInt(intValue) || intValue < 1);
-          }.property('inputValue'),
-          disablePrimary: Em.computed.alias('isInvalid'),
-          onPrimary: function () {
-            if (this.get('isInvalid')) {
-              return;
-            }
-            configProperties.alerts_repeat_tolerance = this.get('inputValue');
-            App.ajax.send({
-              name: 'admin.save_configs',
-              sender: controller,
-              data: {
-                siteName: 'cluster-env',
-                properties: configProperties
-              },
-              error: 'manageSettingsErrorCallback'
-            });
-            this.hide();
+        configProperties.alerts_repeat_tolerance = this.get('inputValue');
+        App.ajax.send({
+          name: 'admin.save_configs',
+          sender: controller,
+          data: {
+            siteName: 'cluster-env',
+            properties: configProperties
           },
-          bodyClass: Ember.View.extend({
-            templateName: require('templates/common/modal_popups/prompt_popup'),
-            text: Em.I18n.t('alerts.actions.editRepeatTolerance.text'),
-            title: Em.I18n.t('alerts.actions.editRepeatTolerance.title'),
-            description: Em.I18n.t('alerts.actions.editRepeatTolerance.description'),
-            label: Em.I18n.t('alerts.actions.editRepeatTolerance.label')
-          })
+          error: 'manageSettingsErrorCallback'
         });
-      });
-    });
-  },
-
-  loadClusterConfig: function () {
-    return App.ajax.send({
-      name: 'config.tags.site',
-      sender: this,
-      data: {
-        site: 'cluster-env'
-      }
+        this.hide();
+      },
+      bodyClass: Ember.View.extend({
+        templateName: require('templates/common/modal_popups/prompt_popup'),
+        title: Em.I18n.t('alerts.actions.editRepeatTolerance.title'),
+        description: Em.I18n.t('alerts.actions.editRepeatTolerance.description'),
+        label: Em.I18n.t('alerts.actions.editRepeatTolerance.label')
+      })
     });
   },
 

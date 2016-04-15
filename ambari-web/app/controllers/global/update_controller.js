@@ -205,6 +205,7 @@ App.UpdateController = Em.Controller.extend({
       if (!App.get('router.mainAlertInstancesController.isUpdating')) {
         App.updater.run(this, 'updateUnhealthyAlertInstances', 'updateAlertInstances', App.alertInstancesUpdateInterval, '\/main\/alerts.*');
       }
+      App.updater.run(this, 'updateClusterEnv', 'isWorking', App.clusterEnvUpdateInterval);
       App.updater.run(this, 'updateUpgradeState', 'isWorking', App.bgOperationsUpdateInterval);
       App.updater.run(this, 'updateWizardWatcher', 'isWorking', App.bgOperationsUpdateInterval);
     }
@@ -605,6 +606,33 @@ App.UpdateController = Em.Controller.extend({
     } else {
       callback();
     }
+  },
+
+  //TODO - update service auto-start to use this
+  updateClusterEnv: function (callback) {
+    this.loadClusterConfig(callback).done(function (data) {
+      var tag = [
+        {
+          siteName: 'cluster-env',
+          tagName: data.Clusters.desired_configs['cluster-env'].tag,
+          newTagName: null
+        }
+      ];
+      App.router.get('configurationController').getConfigsByTags(tag).done(function (config) {
+        App.router.get('clusterController').set('clusterEnv', config[0]);
+      });
+    });
+  },
+
+  loadClusterConfig: function (callback) {
+    return App.ajax.send({
+      name: 'config.tags.site',
+      sender: this,
+      data: {
+        site: 'cluster-env'
+      },
+      callback: callback
+    });
   },
 
   updateWizardWatcher: function(callback) {

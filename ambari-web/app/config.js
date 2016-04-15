@@ -41,6 +41,7 @@ App.hostStatusCountersUpdateInterval = 10000;
 App.alertDefinitionsUpdateInterval = 10000;
 App.alertInstancesUpdateInterval = 10000;
 App.alertGroupsUpdateInterval = 10000;
+App.clusterEnvUpdateInterval = 10000;
 App.pageReloadTime = 3600000;
 App.nnCheckpointAgeAlertThreshold = 12; // in hours
 App.singleNodeInstall = false;

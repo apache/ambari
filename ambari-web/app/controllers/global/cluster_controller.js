@@ -24,6 +24,7 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
   name: 'clusterController',
   isLoaded: false,
   ambariProperties: null,
+  clusterEnv: null,
   clusterDataLoadedPercent: 'width:0', // 0 to 1
 
   isClusterNameLoaded: false,
@@ -275,6 +276,9 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
         });
       });
     });
+
+    //load cluster-env, used by alert check tolerance // TODO services auto-start
+    updater.updateClusterEnv();
 
     /*  Root service mapper maps all the data exposed under Ambari root service which includes ambari configurations i.e ambari-properties
      ** This is useful information but its not being used in the code anywhere as of now
