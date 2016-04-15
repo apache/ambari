@@ -22,6 +22,7 @@
   ticket_lifetime = 24h
   dns_lookup_realm = false
   dns_lookup_kdc = false
+  default_ccache_name = /tmp/krb5cc_%{uid}
   #default_tgs_enctypes = {{encryption_types}}
   #default_tkt_enctypes = {{encryption_types}}
 {% if domains %}
