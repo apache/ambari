@@ -546,7 +546,7 @@ App.UpdateController = Em.Controller.extend({
     var realUrl = '/alert_definitions?fields=' +
       'AlertDefinition/component_name,AlertDefinition/description,AlertDefinition/enabled,AlertDefinition/repeat_tolerance,AlertDefinition/repeat_tolerance_enabled,' +
       'AlertDefinition/id,AlertDefinition/ignore_host,AlertDefinition/interval,AlertDefinition/label,AlertDefinition/name,' +
-      'AlertDefinition/scope,AlertDefinition/service_name,AlertDefinition/source';
+      'AlertDefinition/scope,AlertDefinition/service_name,AlertDefinition/source,AlertDefinition/help_url';
     var url = this.getUrl(testUrl, realUrl);
 
     App.HttpClient.get(url, App.alertDefinitionsMapper, {

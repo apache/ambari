@@ -39,7 +39,7 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
     repeat_tolerance: 'AlertDefinition.repeat_tolerance',
     scope: 'AlertDefinition.scope',
     interval: 'AlertDefinition.interval',
-    helpUrl: 'AlertDefinition.help_url',
+    help_url: 'AlertDefinition.help_url',
     type: 'AlertDefinition.source.type',
     reporting_key: 'reporting',
     reporting_type: 'array',

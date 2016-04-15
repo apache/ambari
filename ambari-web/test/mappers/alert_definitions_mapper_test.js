@@ -198,7 +198,7 @@ describe('App.alertDefinitionsMapper', function () {
             "component_name" : "NAMENODE",
             "description" : "This service-level alert is triggered if the NN heap usage deviation has grown beyond the specified threshold within a given time interval.",
             "enabled" : true,
-            "help_url" : null,
+            "help_url" : "http://test.test",
             "id" : 6,
             "ignore_host" : false,
             "interval" : 1,
@@ -504,6 +504,7 @@ describe('App.alertDefinitionsMapper', function () {
           "scope" : "SERVICE",
           "service_name" : "HDFS",
           "component_name" : "NAMENODE",
+          "help_url" : "http://test.test"
         }
       ];
 
