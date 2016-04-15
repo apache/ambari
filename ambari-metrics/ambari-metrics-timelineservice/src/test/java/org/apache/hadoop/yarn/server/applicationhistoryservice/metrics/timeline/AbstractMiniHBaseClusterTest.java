@@ -99,40 +99,58 @@ public abstract class AbstractMiniHBaseClusterTest extends BaseTest {
     hdb.initMetricSchema();
   }
 
+  private void deleteTableIgnoringExceptions(Statement stmt, String tableName) {
+    try {
+      stmt.execute("delete from " + tableName);
+    } catch (Exception e) {
+      LOG.warn("Exception on delete table " + tableName, e);
+    }
+  }
+
   @After
-  public void tearDown() throws Exception {
+  public void tearDown() {
     Connection conn = null;
     Statement stmt = null;
     try {
       conn = getConnection(getUrl());
       stmt = conn.createStatement();
 
-      stmt.execute("delete from METRIC_AGGREGATE");
-      stmt.execute("delete from METRIC_AGGREGATE_MINUTE");
-      stmt.execute("delete from METRIC_AGGREGATE_HOURLY");
-      stmt.execute("delete from METRIC_AGGREGATE_DAILY");
-      stmt.execute("delete from METRIC_RECORD");
-      stmt.execute("delete from METRIC_RECORD_MINUTE");
-      stmt.execute("delete from METRIC_RECORD_HOURLY");
-      stmt.execute("delete from METRIC_RECORD_DAILY");
-      stmt.execute("delete from METRICS_METADATA");
-      stmt.execute("delete from HOSTED_APPS_METADATA");
+      deleteTableIgnoringExceptions(stmt, "METRIC_AGGREGATE");
+      deleteTableIgnoringExceptions(stmt, "METRIC_AGGREGATE_MINUTE");
+      deleteTableIgnoringExceptions(stmt, "METRIC_AGGREGATE_HOURLY");
+      deleteTableIgnoringExceptions(stmt, "METRIC_AGGREGATE_DAILY");
+      deleteTableIgnoringExceptions(stmt, "METRIC_RECORD");
+      deleteTableIgnoringExceptions(stmt, "METRIC_RECORD_MINUTE");
+      deleteTableIgnoringExceptions(stmt, "METRIC_RECORD_HOURLY");
+      deleteTableIgnoringExceptions(stmt, "METRIC_RECORD_DAILY");
+      deleteTableIgnoringExceptions(stmt, "METRICS_METADATA");
+      deleteTableIgnoringExceptions(stmt, "HOSTED_APPS_METADATA");
 
       conn.commit();
-    } finally {
+    } catch (Exception e) {
+      LOG.warn("Error on deleting HBase schema.", e);
+    }  finally {
       if (stmt != null) {
-        stmt.close();
+        try {
+          stmt.close();
+        } catch (SQLException e) {
+          // Ignore
+        }
       }
 
       if (conn != null) {
-        conn.close();
+        try {
+          conn.close();
+        } catch (SQLException e) {
+          // Ignore
+        }
       }
     }
-  }
-
-  @After
-  public void cleanUpAfterTest() throws Exception {
-    deletePriorTables(HConstants.LATEST_TIMESTAMP, getUrl());
+    try {
+      deletePriorTables(HConstants.LATEST_TIMESTAMP, getUrl());
+    } catch (Exception e) {
+      LOG.warn("Failed in delete prior tables.", e);
+    }
   }
 
   public static Map<String, String> getDefaultProps() {

@@ -72,7 +72,7 @@ public class TestMetadataManager extends AbstractMiniHBaseClusterTest {
     hdb.insertMetricRecordsWithMetadata(metadataManager, timelineMetrics);
   }
 
-  @Test
+  @Test(timeout = 180000)
   public void testSaveMetricsMetadata() throws Exception {
     Map<TimelineMetricMetadataKey, TimelineMetricMetadata> cachedData = metadataManager.getMetadataCache();
 
