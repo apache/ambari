@@ -192,18 +192,18 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
     return doc;
   }
 
-  protected static boolean isRangerPluginEnabled(Cluster cluster) {
-    boolean isRangerPluginEnabled = false;
+  protected static boolean isRangerKnoxPluginEnabled(Cluster cluster) {
+    boolean isRangerKnoxPluginEnabled = false;
     if (cluster != null) {
       Config rangerKnoxPluginProperties = cluster.getDesiredConfigByType(CONFIGURATION_TYPE_RANGER_KNOX_PLUGIN_PROPERTIES);
       if (rangerKnoxPluginProperties != null) {
         String rangerKnoxPluginEnabled = rangerKnoxPluginProperties.getProperties().get(PROPERTY_RANGER_KNOX_PLUGIN_ENABLED);
         if (StringUtils.isNotEmpty(rangerKnoxPluginEnabled)) {
-          isRangerPluginEnabled = rangerKnoxPluginEnabled.toLowerCase().equals("yes");
+          isRangerKnoxPluginEnabled =  "yes".equalsIgnoreCase(rangerKnoxPluginEnabled);
         }
       }
     }
-    return isRangerPluginEnabled;
+    return isRangerKnoxPluginEnabled;
   }
 
   protected static class VersionComparator implements Comparator<UpgradeCatalog> {
