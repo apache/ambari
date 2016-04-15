@@ -1,4 +1,6 @@
-"""
+#!/usr/bin/env python
+
+'''
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -14,20 +16,14 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-"""
+'''
 
-from resource_management.core.shell import call
-from resource_management.core.exceptions import ComponentIsNotRunning
+from stacks.utils.RMFTestCase import *
 
-import common
-import hawq_constants
 import utils
 
-def assert_component_running(component_name):
-  """
-  Based on the port and process identifies the status of the component
-  """
-  port_number = common.get_local_hawq_site_property_value(hawq_constants.COMPONENT_ATTRIBUTES_MAP[component_name]['port_property'])
-  return_code, _ = call(utils.generate_hawq_process_status_cmd(component_name, port_number))
-  if return_code:
-    raise ComponentIsNotRunning()
+class TestUtils(RMFTestCase):
+
+  def test_generate_hawq_process_status_cmd(self):
+    cmd = utils.generate_hawq_process_status_cmd("master", 12345)
+    self.assertEqual(cmd, "netstat -tupln | egrep ':12345\s' | egrep postgres")

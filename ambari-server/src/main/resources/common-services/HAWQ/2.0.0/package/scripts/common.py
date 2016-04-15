@@ -31,6 +31,7 @@ import xml.etree.ElementTree as ET
 import utils
 import hawq_constants
 import custom_params
+import hawqstatus
 
 def setup_user():
   """
@@ -234,7 +235,7 @@ def __update_sysctl_file_suse():
     raise Fail("Failed to update sysctl.conf file ")
 
 
-def get_local_hawq_site_property(property_name):
+def get_local_hawq_site_property_value(property_name):
   """
   Fetches the value of the property specified, from the local hawq-site.xml.
   """
@@ -293,17 +294,20 @@ def start_component(component_name, port, data_dir):
   if os.path.exists(os.path.join(data_dir, hawq_constants.postmaster_opts_filename)):
     return utils.exec_hawq_operation(hawq_constants.START,
                                      "{0} -a -v".format(component_name),
-                                     not_if=utils.chk_hawq_process_status_cmd(port))
+                                     not_if=utils.generate_hawq_process_status_cmd(component_name, port))
 
   utils.exec_hawq_operation(hawq_constants.INIT, "{0} -a -v".format(component_name))
 
-def stop_component(component_name, port, mode):
+def stop_component(component_name, mode):
   """
   Stops the component
+  Unlike start_component, port is obtained from local hawq-site.xml as Ambari pontentially have a new value through UI.
   """
+  port_property_name = hawq_constants.COMPONENT_ATTRIBUTES_MAP[component_name]['port_property']
+  port_number = get_local_hawq_site_property_value(port_property_name)
   utils.exec_hawq_operation(hawq_constants.STOP,
                             "{0} -M {1} -a -v".format(component_name, mode),
-                            only_if=utils.chk_hawq_process_status_cmd(port, component_name))
+                            only_if=utils.generate_hawq_process_status_cmd(component_name, port_number))
 
 def __check_dfs_truncate_enforced():
   """
