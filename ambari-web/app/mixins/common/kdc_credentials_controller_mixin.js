@@ -104,23 +104,12 @@ App.KDCCredentialsControllerMixin = Em.Mixin.create({
   },
 
   /**
-   * Generate additional properties regarding KDC credential storage
-   *
+   * initialize additional properties regarding KDC credential storage
+   * @method initializeKDCStoreProperties
    * @param {App.ServiceConfigProperty[]} configs list of configs
    */
-  initilizeKDCStoreProperties: function(configs) {
-    var self = this;
-    this.get('credentialsStoreConfigs').forEach(function(item) {
-      var configObject = App.config.createDefaultConfig(item.name, 'krb5-conf.xml', false);
-      $.extend(configObject, item);
-      if (item.name === 'persist_credentials') {
-        if (self.get('isStorePersisted')) {
-          configObject.hintMessage = Em.I18n.t('admin.kerberos.credentials.store.hint.supported');
-        } else {
-          configObject.hintMessage = Em.I18n.t('admin.kerberos.credentials.store.hint.not.supported');
-          configObject.isEditable = false;
-        }
-      }
+  initializeKDCStoreProperties: function(configs) {
+    this.generateKDCStoreProperties().forEach(function(configObject) {
       var configProperty = configs.findProperty('name', configObject.name);
       if (!Em.isNone(configProperty)) {
         Em.setProperties(configProperty, configObject);
@@ -128,6 +117,44 @@ App.KDCCredentialsControllerMixin = Em.Mixin.create({
         configs.pushObject(configObject);
       }
     });
+  },
+
+  /**
+   * Generate additional properties regarding KDC credential storage
+   * @method updateKDCStoreProperties
+   * @param {App.ServiceConfigProperty[]} configs list of configs
+   */
+  updateKDCStoreProperties: function(configs) {
+    this.generateKDCStoreProperties().forEach(function(configObject) {
+      var configProperty = configs.findProperty('name', configObject.name);
+      if (!Em.isNone(configProperty)) {
+        Em.setProperties(configProperty, configObject);
+      }
+    });
+  },
+
+  /**
+   * generate additional properties regarding KDC credential storage
+   * @method generateKDCStoreProperties
+   * @returns {Array} properties
+   */
+  generateKDCStoreProperties: function() {
+    var properties = [];
+
+    this.get('credentialsStoreConfigs').forEach(function(item) {
+      var configObject = App.config.createDefaultConfig(item.name, 'krb5-conf.xml', false);
+      $.extend(configObject, item);
+      if (item.name === 'persist_credentials') {
+        if (this.get('isStorePersisted')) {
+          configObject.hintMessage = Em.I18n.t('admin.kerberos.credentials.store.hint.supported');
+        } else {
+          configObject.hintMessage = Em.I18n.t('admin.kerberos.credentials.store.hint.not.supported');
+          configObject.isEditable = false;
+        }
+      }
+      properties.push(configObject);
+    }, this);
+    return properties;
   },
 
   /**

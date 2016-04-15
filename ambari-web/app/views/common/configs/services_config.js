@@ -23,9 +23,7 @@ App.ServicesConfigView = Em.View.extend({
   templateName: require('templates/common/configs/services_config'),
 
   didInsertElement: function () {
-    Em.run.next(this, function() {
-      this.get('controller') && this.get('controller').loadStep();
-    });
+    this.get('controller').loadStep();
   }
 
 });

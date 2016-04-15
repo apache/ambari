@@ -33,7 +33,7 @@ describe('App.KDCCredentialsControllerMixin', function() {
     mixedObject.destroy();
   });
 
-  describe('#initilizeKDCStoreProperties', function() {
+  describe('#initializeKDCStoreProperties', function() {
     [
       {
         isStorePersisted: true,
@@ -63,7 +63,7 @@ describe('App.KDCCredentialsControllerMixin', function() {
               return test.isStorePersisted;
             }.property()
           });
-          mixedObject.initilizeKDCStoreProperties(configs);
+          mixedObject.initializeKDCStoreProperties(configs);
           config = configs.findProperty('name', 'persist_credentials');
         });
 
@@ -74,6 +74,63 @@ describe('App.KDCCredentialsControllerMixin', function() {
         });
       });
     });
+  });
+
+  describe('#updateKDCStoreProperties', function() {
+    [
+      {
+        isStorePersisted: true,
+        e: {
+          isEditable: true,
+          hintMessage: Em.I18n.t('admin.kerberos.credentials.store.hint.supported')
+        },
+        message: 'Persistent store available, config should be editable, and appropriate hint shown',
+        configs: [
+          Em.Object.create({
+            name: 'persist_credentials',
+            isEditable: false,
+            hintMessage: ''
+          })
+        ]
+      },
+      {
+        isStorePersisted: false,
+        e: {
+          isEditable: false,
+          hintMessage: Em.I18n.t('admin.kerberos.credentials.store.hint.not.supported')
+        },
+        message: 'Only temporary store available, config should be disabled, and appropriate hint shown',
+        configs: [
+          Em.Object.create({
+            name: 'persist_credentials',
+            isEditable: true,
+            hintMessage: ''
+          })
+        ]
+      }
+    ].forEach(function(test) {
+        describe(test.message, function() {
+
+          var config;
+
+          beforeEach(function () {
+            var configs = test.configs;
+            mixedObject.reopen({
+              isStorePersisted: function() {
+                return test.isStorePersisted;
+              }.property()
+            });
+            mixedObject.updateKDCStoreProperties(configs);
+            config = configs.findProperty('name', 'persist_credentials');
+          });
+
+          Object.keys(test.e).forEach(function(key) {
+            it(key, function () {
+              assert.equal(Em.get(config, key), test.e[key], 'validate attribute: ' + key);
+            });
+          });
+        });
+      });
   });
 
   describe('#createKDCCredentials', function() {

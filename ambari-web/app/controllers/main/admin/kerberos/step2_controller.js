@@ -93,9 +93,12 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend(App.KDCCred
 
     this.filterConfigs(this.get('configs'));
     if (!this.get('wizardController.skipClientInstall')) {
-      this.initilizeKDCStoreProperties(this.get('configs'));
+      this.initializeKDCStoreProperties(this.get('configs'));
     }
     this.applyServicesConfigs(this.get('configs'));
+    if (!this.get('wizardController.skipClientInstall')) {
+      this.updateKDCStoreProperties(this.get('stepConfigs').findProperty('serviceName', 'KERBEROS').get('configs'));
+    }
   },
 
   /**

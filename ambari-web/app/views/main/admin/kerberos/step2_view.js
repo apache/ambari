@@ -20,12 +20,10 @@ var App = require('app');
 
 require('views/wizard/step7_view');
 
+/**
+ * controller.loadStep() called from internal view App.ServicesConfigView
+ */
 App.KerberosWizardStep2View = App.WizardStep7View.extend({
 
-  templateName: require('templates/main/admin/kerberos/step2'),
-
-  didInsertElement: function() {
-    var controller =  this.get('controller');
-    controller.loadStep();
-  }
+  templateName: require('templates/main/admin/kerberos/step2')
 });
