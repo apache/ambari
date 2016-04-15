@@ -92,7 +92,7 @@ class HawqMaster(Script):
 
   def remove_hawq_standby(self, env):
     Logger.info("Removing HAWQ Standby Master ...")
-    utils.exec_hawq_operation(hawq_constants.INIT, "{0} -a -v -r".format(hawq_constants.STANDBY))
+    utils.exec_hawq_operation(hawq_constants.INIT, "{0} -a -v -r --ignore-bad-hosts".format(hawq_constants.STANDBY))
 
 if __name__ == "__main__":
   HawqMaster().execute()
