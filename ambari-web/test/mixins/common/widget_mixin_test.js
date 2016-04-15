@@ -590,25 +590,17 @@ describe('App.WidgetLoadAggregator', function () {
   var aggregator = App.WidgetLoadAggregator;
 
   describe("#add()", function () {
-    beforeEach(function () {
-      sinon.spy(window, 'setTimeout');
-    });
-    afterEach(function () {
-      window.setTimeout.restore();
-    });
     it("timeout started", function () {
       aggregator.set('timeoutId', 'timeId');
       aggregator.get('requests').clear();
       aggregator.add({});
       expect(aggregator.get('requests')).to.not.be.empty;
-      expect(window.setTimeout.called).to.be.false;
     });
     it("timeout started (2)", function () {
       aggregator.set('timeoutId', null);
       aggregator.get('requests').clear();
       aggregator.add({});
       expect(aggregator.get('requests')).to.not.be.empty;
-      expect(window.setTimeout.calledOnce).to.be.true;
     });
   });
 

@@ -27,23 +27,23 @@ function getView() {
   });
 }
 
-describe('App.AssignMasterOnStep7View', function() {
+describe('App.AssignMasterOnStep7View', function () {
 
-  beforeEach(function() {
+  beforeEach(function () {
     view = getView();
   });
 
   describe("#willInsertElement()", function () {
 
-    beforeEach(function() {
+    beforeEach(function () {
       sinon.stub(view, 'setAlertMessage');
     });
 
-    afterEach(function() {
+    afterEach(function () {
       view.setAlertMessage.restore();
     });
 
-    it("setAlertMessage should be called", function() {
+    it("setAlertMessage should be called", function () {
       view.willInsertElement();
       expect(view.setAlertMessage.calledOnce).to.be.true;
     });
@@ -51,32 +51,32 @@ describe('App.AssignMasterOnStep7View', function() {
 
   describe("#getDependentComponents()", function () {
 
-    beforeEach(function() {
+    beforeEach(function () {
       sinon.stub(App.StackServiceComponent, 'find').returns(Em.Object.create({
         dependencies: [{
           scope: 'host',
           componentName: 'C1'
         }]
       }));
-      sinon.stub(App.format, 'role', function(arg) {
+      sinon.stub(App.format, 'role', function (arg) {
         return arg;
       });
     });
 
-    afterEach(function() {
+    afterEach(function () {
       App.StackServiceComponent.find.restore();
       App.format.role.restore();
     });
 
-    it("should return dependent components", function() {
+    it("should return dependent components", function () {
       expect(view.getDependentComponents([{}])).to.be.eql(['C1']);
     });
   });
 
   describe("#setAlertMessage()", function () {
 
-    beforeEach(function() {
-      sinon.stub(App.format, 'role', function(arg) {
+    beforeEach(function () {
+      sinon.stub(App.format, 'role', function (arg) {
         return arg;
       });
       sinon.stub(view, 'getDependentComponents').returns(['c1']);
@@ -84,17 +84,20 @@ describe('App.AssignMasterOnStep7View', function() {
       this.mock = sinon.stub(App, 'get');
     });
 
-    afterEach(function() {
+    afterEach(function () {
       App.format.role.restore();
       view.getDependentComponents.restore();
       stringUtils.getFormattedStringFromArray.restore();
       this.mock.restore();
     });
 
-    it("isManualKerberos false, single master", function() {
-      var expected = Em.I18n.t('installer.step7.assign.master.body')
-        .format('c1', Em.I18n.t('common.host').toLowerCase(), Em.I18n.t('it')) +
-        '<br/>' + Em.I18n.t('installer.step7.assign.master.dependent.component.body').format('');
+    it("isManualKerberos false, single master", function () {
+
+      var expected = [
+        Em.I18n.t('installer.step7.assign.master.body').format('c1', Em.I18n.t('common.host').toLowerCase(), Em.I18n.t('it')),
+        Em.I18n.t('installer.step7.assign.master.dependent.component.body').format('')
+      ].join('<br/>');
+
       view.set('controller.mastersToCreate', ['c1']);
       this.mock.returns(false);
 
@@ -102,10 +105,13 @@ describe('App.AssignMasterOnStep7View', function() {
       expect(view.get('alertMessage')).to.be.equal(expected);
     });
 
-    it("isManualKerberos false, multiple masters", function() {
-      var expected = Em.I18n.t('installer.step7.assign.master.body')
-          .format('c1,c2', Em.I18n.t('common.hosts').toLowerCase(), Em.I18n.t('then')) +
-        '<br/>' + Em.I18n.t('installer.step7.assign.master.dependent.component.body').format('');
+    it("isManualKerberos false, multiple masters", function () {
+
+      var expected = [
+        Em.I18n.t('installer.step7.assign.master.body').format('c1,c2', Em.I18n.t('common.hosts').toLowerCase(), Em.I18n.t('then')),
+        Em.I18n.t('installer.step7.assign.master.dependent.component.body').format('')
+      ].join('<br/>');
+
       view.set('controller.mastersToCreate', ['c1', 'c2']);
       this.mock.returns(false);
 
@@ -113,11 +119,13 @@ describe('App.AssignMasterOnStep7View', function() {
       expect(view.get('alertMessage')).to.be.equal(expected);
     });
 
-    it("isManualKerberos true, single master", function() {
-      var expected = Em.I18n.t('installer.step7.assign.master.body')
-          .format('c1', Em.I18n.t('common.host').toLowerCase(), Em.I18n.t('it')) +
-        '<br/>' + Em.I18n.t('installer.step7.assign.master.dependent.component.body').format('') +
-        '<br/>' + Em.I18n.t('common.warn.message').format(Em.I18n.t('common.important') + ': ' + Em.I18n.t('installer.step8.kerberors.warning'));
+    it("isManualKerberos true, single master", function () {
+
+      var expected = [
+        Em.I18n.t('installer.step7.assign.master.body').format('c1', Em.I18n.t('common.host').toLowerCase(), Em.I18n.t('it')),
+        Em.I18n.t('installer.step7.assign.master.dependent.component.body').format(''),
+        Em.I18n.t('common.warn.message').format(Em.I18n.t('common.important') + ': ' + Em.I18n.t('installer.step8.kerberors.warning'))
+      ].join('<br/>');
 
       view.set('controller.mastersToCreate', ['c1']);
       this.mock.returns(true);

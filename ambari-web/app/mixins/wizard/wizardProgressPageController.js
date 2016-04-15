@@ -377,7 +377,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
   },
 
   onSingleRequestError: function (jqXHR, ajaxOptions, error, opt) {
-    App.ajax.defaultErrorHandler(jqXHR, opt.url, opt.method, jqXHR.status);
+    App.ajax.defaultErrorHandler(jqXHR, opt.url, opt.type, jqXHR.status);
     this.set('status', 'FAILED');
     this.set('isLoaded', true);
     this.set('showRetry', true);

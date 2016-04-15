@@ -1233,7 +1233,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
   },
 
   loadHostsErrorCallback: function (jqXHR, ajaxOptions, error, opt) {
-    App.ajax.defaultErrorHandler(jqXHR, opt.url, opt.method, jqXHR.status);
+    App.ajax.defaultErrorHandler(jqXHR, opt.url, opt.type, jqXHR.status);
   },
 
   /**

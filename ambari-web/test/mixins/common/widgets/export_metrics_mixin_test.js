@@ -243,7 +243,7 @@ describe('App.ExportMetricsMixin', function () {
           status: 404
         }, null, '', {
           url: 'url',
-          method: 'GET'
+          type: 'GET'
         });
       expect(App.ajax.defaultErrorHandler.calledOnce).to.be.true;
       expect(App.ajax.defaultErrorHandler.calledWith({

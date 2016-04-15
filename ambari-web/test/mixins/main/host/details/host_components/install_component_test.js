@@ -108,7 +108,7 @@ describe('App.InstallComponent', function () {
     });
 
     it("App.ajax.defaultErrorHandler should be called", function() {
-      installComponent.ajaxErrorCallback({}, {}, 'error', {method: 'method1', url: 'url1'}, {});
+      installComponent.ajaxErrorCallback({}, {}, 'error', {type: 'method1', url: 'url1'}, {});
       expect(App.ajax.defaultErrorHandler.calledWith({}, 'url1', 'method1')).to.be.true;
     });
   });

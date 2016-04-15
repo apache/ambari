@@ -408,19 +408,6 @@ describe('App.mainAdminStackVersionsView', function () {
     });
   });
 
-  describe("#doPolling()", function() {
-    before(function () {
-      sinon.spy(window, 'setTimeout');
-    });
-    after(function () {
-      window.setTimeout.restore();
-    });
-    it("setTimeout is called once", function() {
-      view.doPolling();
-      expect(window.setTimeout.calledOnce).to.be.true;
-    });
-  });
-
   describe("#poll()", function() {
     beforeEach(function () {
       this.mock = sinon.stub(App.router, 'get');

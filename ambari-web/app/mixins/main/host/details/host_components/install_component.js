@@ -90,7 +90,7 @@ App.InstallComponent = Em.Mixin.create({
    * @method ajaxErrorCallback
    */
   ajaxErrorCallback: function (request, ajaxOptions, error, opt, params) {
-    App.ajax.defaultErrorHandler(request, opt.url, opt.method);
+    App.ajax.defaultErrorHandler(request, opt.url, opt.type);
   },
 
   /**

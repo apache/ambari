@@ -134,7 +134,6 @@ describe('App.ReloadPopupMixin', function () {
       sinon.stub(App.ajax, 'defaultErrorHandler', Em.K);
       sinon.stub(obj, 'showReloadPopup', Em.K);
       sinon.stub(App, 'get').withArgs('maxRetries').returns(3);
-      sinon.spy(window, 'setTimeout');
     });
 
     afterEach(function () {
@@ -142,7 +141,6 @@ describe('App.ReloadPopupMixin', function () {
       App.ajax.defaultErrorHandler.restore();
       obj.showReloadPopup.restore();
       App.get.restore();
-      window.setTimeout.restore();
     });
 
     cases.forEach(function (item) {
@@ -169,9 +167,6 @@ describe('App.ReloadPopupMixin', function () {
         });
         it('showReloadPopup is called needed number of times', function () {
           expect(obj.showReloadPopup.callCount).to.equal(item.showReloadPopupCallCount);
-        });
-        it('setTimeout is called needed number of times', function () {
-          expect(window.setTimeout.callCount).to.equal(item.setTimeoutCount);
         });
       });
     });

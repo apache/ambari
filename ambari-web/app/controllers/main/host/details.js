@@ -2261,7 +2261,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       else {
         completeCallback();
         deleteError.xhr.responseText = "{\"message\": \"" + deleteError.xhr.statusText + "\"}";
-        App.ajax.defaultErrorHandler(deleteError.xhr, deleteError.url, deleteError.method, deleteError.xhr.status);
+        App.ajax.defaultErrorHandler(deleteError.xhr, deleteError.url, deleteError.type, deleteError.xhr.status);
       }
     });
   },

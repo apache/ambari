@@ -32,7 +32,7 @@ App.ReloadPopupMixin = Em.Mixin.create({
     if (jqXHR.status) {
       this.closeReloadPopup();
       if (params.shouldUseDefaultHandler) {
-        App.ajax.defaultErrorHandler(jqXHR, opt.url, opt.method, jqXHR.status);
+        App.ajax.defaultErrorHandler(jqXHR, opt.url, opt.type, jqXHR.status);
       }
     } else {
       var times = Em.isNone(params.times) ? App.get('maxRetries') : params.times,
