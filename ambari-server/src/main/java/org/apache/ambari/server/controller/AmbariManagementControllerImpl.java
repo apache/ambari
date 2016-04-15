@@ -82,6 +82,7 @@ import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.configuration.Configuration.DatabaseType;
@@ -2252,6 +2253,14 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     execCmd.setHostLevelParams(hostParams);
 
     Map<String, String> roleParams = new TreeMap<String, String>();
+
+    // !!! consistent with where custom commands put variables
+    // !!! after-INSTALL hook checks this such that the stack selection tool won't
+    // select-all to a version that is not being upgraded, breaking RU
+    if (cluster.isUpgradeSuspended()) {
+      roleParams.put(KeyNames.UPGRADE_SUSPENDED, Boolean.TRUE.toString().toLowerCase());
+    }
+
     execCmd.setRoleParams(roleParams);
 
     if ((execCmd != null) && (execCmd.getConfigurationTags().containsKey("cluster-env"))) {

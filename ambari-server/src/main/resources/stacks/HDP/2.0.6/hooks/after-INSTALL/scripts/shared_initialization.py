@@ -43,9 +43,10 @@ def setup_stack_symlinks():
     # which would only be during an intial cluster installation
     version = params.current_version if params.current_version is not None else params.stack_version_unformatted
 
-    # On parallel command execution this should be executed by a single process at a time.
-    with FcntlBasedProcessLock(params.stack_select_lock_file, enabled = params.is_parallel_execution_enabled, skip_fcntl_failures = True):
-      stack_select.select_all(version)
+    if not params.upgrade_suspended:
+      # On parallel command execution this should be executed by a single process at a time.
+      with FcntlBasedProcessLock(params.stack_select_lock_file, enabled = params.is_parallel_execution_enabled, skip_fcntl_failures = True):
+        stack_select.select_all(version)
 
 def setup_config():
   import params
