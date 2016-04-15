@@ -119,6 +119,12 @@
       "min_version": "2.3.0.0"
     },
     {
+      "name": "ranger_audit_db_support",
+      "description": "Ranger Audit to DB support",
+      "min_version": "2.2.0.0",
+      "max_version": "2.5.0.0"
+    },
+    {
       "name": "accumulo_kerberos_user_auth",
       "description": "Accumulo Kerberos User Auth (AMBARI-10163)",
       "min_version": "2.3.0.0"

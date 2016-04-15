@@ -501,6 +501,7 @@ if has_hive_interactive:
     hive_headless_keytab = config['configurations']['hive-interactive-site']['hive.llap.zk.sm.principal']
 
 # ranger host
+stack_supports_ranger_audit_db = stack_version_formatted_major and check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, stack_version_formatted_major)
 ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
 has_ranger_admin = not len(ranger_admin_hosts) == 0
 xml_configurations_supported = config['configurations']['ranger-env']['xml_configurations_supported']
@@ -530,35 +531,35 @@ if has_ranger_admin:
   repo_config_password = unicode(config['configurations']['ranger-hive-plugin-properties']['REPOSITORY_CONFIG_PASSWORD'])
   xa_audit_db_flavor = (config['configurations']['admin-properties']['DB_FLAVOR']).lower()
 
-  if xa_audit_db_flavor and xa_audit_db_flavor == 'mysql':
-    ranger_jdbc_jar_name = default("/hostLevelParams/custom_mysql_jdbc_name", None)
-    audit_jdbc_url = format('jdbc:mysql://{xa_db_host}/{xa_audit_db_name}')
-    jdbc_driver = "com.mysql.jdbc.Driver"
-  elif xa_audit_db_flavor and xa_audit_db_flavor == 'oracle':
-    ranger_jdbc_jar_name = default("/hostLevelParams/custom_oracle_jdbc_name", None)
-    colon_count = xa_db_host.count(':')
-    if colon_count == 2 or colon_count == 0:
-      audit_jdbc_url = format('jdbc:oracle:thin:@{xa_db_host}')
-    else:
-      audit_jdbc_url = format('jdbc:oracle:thin:@//{xa_db_host}')
-    jdbc_driver = "oracle.jdbc.OracleDriver"
-  elif xa_audit_db_flavor and xa_audit_db_flavor == 'postgres':
-    ranger_jdbc_jar_name = default("/hostLevelParams/custom_postgres_jdbc_name", None)
-    audit_jdbc_url = format('jdbc:postgresql://{xa_db_host}/{xa_audit_db_name}')
-    jdbc_driver = "org.postgresql.Driver"
-  elif xa_audit_db_flavor and xa_audit_db_flavor == 'mssql':
-    ranger_jdbc_jar_name = default("/hostLevelParams/custom_mssql_jdbc_name", None)
-    audit_jdbc_url = format('jdbc:sqlserver://{xa_db_host};databaseName={xa_audit_db_name}')
-    jdbc_driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
-  elif xa_audit_db_flavor and xa_audit_db_flavor == 'sqla':
-    ranger_jdbc_jar_name = default("/hostLevelParams/custom_sqlanywhere_jdbc_name", None)
-    audit_jdbc_url = format('jdbc:sqlanywhere:database={xa_audit_db_name};host={xa_db_host}')
-    jdbc_driver = "sap.jdbc4.sqlanywhere.IDriver"
+  if stack_supports_ranger_audit_db:
+    if xa_audit_db_flavor and xa_audit_db_flavor == 'mysql':
+      ranger_jdbc_jar_name = default("/hostLevelParams/custom_mysql_jdbc_name", None)
+      audit_jdbc_url = format('jdbc:mysql://{xa_db_host}/{xa_audit_db_name}')
+      jdbc_driver = "com.mysql.jdbc.Driver"
+    elif xa_audit_db_flavor and xa_audit_db_flavor == 'oracle':
+      ranger_jdbc_jar_name = default("/hostLevelParams/custom_oracle_jdbc_name", None)
+      colon_count = xa_db_host.count(':')
+      if colon_count == 2 or colon_count == 0:
+        audit_jdbc_url = format('jdbc:oracle:thin:@{xa_db_host}')
+      else:
+        audit_jdbc_url = format('jdbc:oracle:thin:@//{xa_db_host}')
+      jdbc_driver = "oracle.jdbc.OracleDriver"
+    elif xa_audit_db_flavor and xa_audit_db_flavor == 'postgres':
+      ranger_jdbc_jar_name = default("/hostLevelParams/custom_postgres_jdbc_name", None)
+      audit_jdbc_url = format('jdbc:postgresql://{xa_db_host}/{xa_audit_db_name}')
+      jdbc_driver = "org.postgresql.Driver"
+    elif xa_audit_db_flavor and xa_audit_db_flavor == 'mssql':
+      ranger_jdbc_jar_name = default("/hostLevelParams/custom_mssql_jdbc_name", None)
+      audit_jdbc_url = format('jdbc:sqlserver://{xa_db_host};databaseName={xa_audit_db_name}')
+      jdbc_driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
+    elif xa_audit_db_flavor and xa_audit_db_flavor == 'sqla':
+      ranger_jdbc_jar_name = default("/hostLevelParams/custom_sqlanywhere_jdbc_name", None)
+      audit_jdbc_url = format('jdbc:sqlanywhere:database={xa_audit_db_name};host={xa_db_host}')
+      jdbc_driver = "sap.jdbc4.sqlanywhere.IDriver"
   
-  ranger_downloaded_custom_connector = format("{tmp_dir}/{ranger_jdbc_jar_name}")
-  
-  ranger_driver_curl_source = format("{jdk_location}/{ranger_jdbc_jar_name}")
-  ranger_driver_curl_target = format("{hive_lib}/{ranger_jdbc_jar_name}")
+  ranger_downloaded_custom_connector = format("{tmp_dir}/{ranger_jdbc_jar_name}") if stack_supports_ranger_audit_db else None
+  ranger_driver_curl_source = format("{jdk_location}/{ranger_jdbc_jar_name}") if stack_supports_ranger_audit_db else None
+  ranger_driver_curl_target = format("{hive_lib}/{ranger_jdbc_jar_name}") if stack_supports_ranger_audit_db else None
   sql_connector_jar = ''
 
   hive_ranger_plugin_config = {
@@ -578,9 +579,11 @@ if has_ranger_admin:
     'assetType': '3'
   }
 
-  xa_audit_db_password = unicode(config['configurations']['admin-properties']['audit_db_password'])
+  xa_audit_db_is_enabled = False
+  xa_audit_db_password = unicode(config['configurations']['admin-properties']['audit_db_password']) if stack_supports_ranger_audit_db else None
   ranger_audit_solr_urls = config['configurations']['ranger-admin-site']['ranger.audit.solr.urls']
-  xa_audit_db_is_enabled = config['configurations']['ranger-hive-audit']['xasecure.audit.destination.db'] if xml_configurations_supported else None
+  if xml_configurations_supported and stack_supports_ranger_audit_db:
+    xa_audit_db_is_enabled = config['configurations']['ranger-hive-audit']['xasecure.audit.destination.db']
   xa_audit_hdfs_is_enabled = config['configurations']['ranger-hive-audit']['xasecure.audit.destination.hdfs'] if xml_configurations_supported else None
   ssl_keystore_password = unicode(config['configurations']['ranger-hive-policymgr-ssl']['xasecure.policymgr.clientssl.keystore.password']) if xml_configurations_supported else None
   ssl_truststore_password = unicode(config['configurations']['ranger-hive-policymgr-ssl']['xasecure.policymgr.clientssl.truststore.password']) if xml_configurations_supported else None

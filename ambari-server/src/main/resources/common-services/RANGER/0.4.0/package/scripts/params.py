@@ -58,6 +58,7 @@ stack_supports_rolling_upgrade = stack_version_formatted and check_stack_feature
 stack_supports_config_versioning =  stack_version_formatted and check_stack_feature(StackFeature.CONFIG_VERSIONING, stack_version_formatted)
 stack_supports_usersync_non_root =  stack_version_formatted and check_stack_feature(StackFeature.RANGER_USERSYNC_NON_ROOT, stack_version_formatted)
 stack_supports_ranger_tagsync =  stack_version_formatted and check_stack_feature(StackFeature.RANGER_TAGSYNC_COMPONENT, stack_version_formatted)
+stack_supports_ranger_audit_db = stack_version_formatted and check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, stack_version_formatted)
 
 downgrade_from_version = default("/commandParams/downgrade_from_version", None)
 upgrade_direction = default("/commandParams/upgrade_direction", None)
@@ -136,27 +137,27 @@ jdk_location = config['hostLevelParams']['jdk_location']
 java_share_dir = '/usr/share/java'
 if db_flavor.lower() == 'mysql':
   jdbc_jar_name = default("/hostLevelParams/custom_mysql_jdbc_name", None)
-  audit_jdbc_url = format('jdbc:mysql://{db_host}/{ranger_auditdb_name}')
+  audit_jdbc_url = format('jdbc:mysql://{db_host}/{ranger_auditdb_name}') if stack_supports_ranger_audit_db else None
   jdbc_dialect = "org.eclipse.persistence.platform.database.MySQLPlatform"
 elif db_flavor.lower() == 'oracle':
   jdbc_jar_name = default("/hostLevelParams/custom_oracle_jdbc_name", None)
   jdbc_dialect = "org.eclipse.persistence.platform.database.OraclePlatform"
   colon_count = db_host.count(':')
   if colon_count == 2 or colon_count == 0:
-    audit_jdbc_url = format('jdbc:oracle:thin:@{db_host}')
+    audit_jdbc_url = format('jdbc:oracle:thin:@{db_host}') if stack_supports_ranger_audit_db else None
   else:
-    audit_jdbc_url = format('jdbc:oracle:thin:@//{db_host}')
+    audit_jdbc_url = format('jdbc:oracle:thin:@//{db_host}') if stack_supports_ranger_audit_db else None
 elif db_flavor.lower() == 'postgres':
   jdbc_jar_name = default("/hostLevelParams/custom_postgres_jdbc_name", None)
-  audit_jdbc_url = format('jdbc:postgresql://{db_host}/{ranger_auditdb_name}')
+  audit_jdbc_url = format('jdbc:postgresql://{db_host}/{ranger_auditdb_name}') if stack_supports_ranger_audit_db else None
   jdbc_dialect = "org.eclipse.persistence.platform.database.PostgreSQLPlatform"
 elif db_flavor.lower() == 'mssql':
   jdbc_jar_name = default("/hostLevelParams/custom_mssql_jdbc_name", None)
-  audit_jdbc_url = format('jdbc:sqlserver://{db_host};databaseName={ranger_auditdb_name}')
+  audit_jdbc_url = format('jdbc:sqlserver://{db_host};databaseName={ranger_auditdb_name}') if stack_supports_ranger_audit_db else None
   jdbc_dialect = "org.eclipse.persistence.platform.database.SQLServerPlatform"
 elif db_flavor.lower() == 'sqla':
   jdbc_jar_name = default("/hostLevelParams/custom_sqlanywhere_jdbc_name", None)
-  audit_jdbc_url = format('jdbc:sqlanywhere:database={ranger_auditdb_name};host={db_host}')
+  audit_jdbc_url = format('jdbc:sqlanywhere:database={ranger_auditdb_name};host={db_host}') if stack_supports_ranger_audit_db else None
   jdbc_dialect = "org.eclipse.persistence.platform.database.SQLAnywherePlatform"
 
 downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
@@ -183,8 +184,8 @@ ranger_credential_provider_path = config["configurations"]["ranger-admin-site"][
 ranger_jpa_jdbc_credential_alias = config["configurations"]["ranger-admin-site"]["ranger.jpa.jdbc.credential.alias"]
 ranger_ambari_db_password = unicode(config["configurations"]["admin-properties"]["db_password"])
 
-ranger_jpa_audit_jdbc_credential_alias = config["configurations"]["ranger-admin-site"]["ranger.jpa.audit.jdbc.credential.alias"]
-ranger_ambari_audit_db_password = unicode(config["configurations"]["admin-properties"]["audit_db_password"])
+ranger_jpa_audit_jdbc_credential_alias = config["configurations"]["ranger-admin-site"]["ranger.jpa.audit.jdbc.credential.alias"] if stack_supports_ranger_audit_db else None
+ranger_ambari_audit_db_password = unicode(config["configurations"]["admin-properties"]["audit_db_password"]) if stack_supports_ranger_audit_db else None
 
 ugsync_jceks_path = config["configurations"]["ranger-ugsync-site"]["ranger.usersync.credstore.filename"]
 cred_lib_path = os.path.join(ranger_home,"cred","lib","*")

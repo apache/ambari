@@ -37,6 +37,7 @@ stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 stack_supports_config_versioning =  stack_version_formatted and check_stack_feature(StackFeature.CONFIG_VERSIONING, stack_version_formatted)
+stack_support_kms_hsm = stack_version_formatted and check_stack_feature(StackFeature.RANGER_KMS_HSM_SUPPORT, stack_version_formatted)
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 
@@ -53,6 +54,7 @@ jdk_location = config['hostLevelParams']['jdk_location']
 kms_log4j = config['configurations']['kms-log4j']['content']
 
 # ranger host
+stack_supports_ranger_audit_db = stack_version_formatted and check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, stack_version_formatted)
 ranger_admin_hosts = config['clusterHostInfo']['ranger_admin_hosts'][0]
 has_ranger_admin = len(ranger_admin_hosts) > 0
 kms_host = config['clusterHostInfo']['ranger_kms_server_hosts'][0]
@@ -136,35 +138,35 @@ if db_flavor == 'sqla':
   ld_library_path = format("{jdbc_libs_dir}")
 
 if has_ranger_admin:
-  if xa_audit_db_flavor == 'mysql':
-    jdbc_jar = default("/hostLevelParams/custom_mysql_jdbc_name", None)
-    audit_jdbc_url = format('jdbc:mysql://{xa_db_host}/{xa_audit_db_name}')
-    jdbc_driver = "com.mysql.jdbc.Driver"
-  elif xa_audit_db_flavor == 'oracle':
-    jdbc_jar = default("/hostLevelParams/custom_oracle_jdbc_name", None)
-    colon_count = xa_db_host.count(':')
-    if colon_count == 2 or colon_count == 0:
-      audit_jdbc_url = format('jdbc:oracle:thin:@{xa_db_host}')
-    else:
-      audit_jdbc_url = format('jdbc:oracle:thin:@//{xa_db_host}')
-    jdbc_driver = "oracle.jdbc.OracleDriver"
-  elif xa_audit_db_flavor == 'postgres':
-    jdbc_jar = default("/hostLevelParams/custom_postgres_jdbc_name", None)
-    audit_jdbc_url = format('jdbc:postgresql://{xa_db_host}/{xa_audit_db_name}')
-    jdbc_driver = "org.postgresql.Driver"
-  elif xa_audit_db_flavor == 'mssql':
-    jdbc_jar = default("/hostLevelParams/custom_mssql_jdbc_name", None)
-    audit_jdbc_url = format('jdbc:sqlserver://{xa_db_host};databaseName={xa_audit_db_name}')
-    jdbc_driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
-  elif xa_audit_db_flavor == 'sqla':
-    jdbc_jar = default("/hostLevelParams/custom_sqlanywhere_jdbc_name", None)
-    audit_jdbc_url = format('jdbc:sqlanywhere:database={xa_audit_db_name};host={xa_db_host}')
-    jdbc_driver = "sap.jdbc4.sqlanywhere.IDriver"
+  if stack_supports_ranger_audit_db:
+    if xa_audit_db_flavor == 'mysql':
+      jdbc_jar = default("/hostLevelParams/custom_mysql_jdbc_name", None)
+      audit_jdbc_url = format('jdbc:mysql://{xa_db_host}/{xa_audit_db_name}')
+      jdbc_driver = "com.mysql.jdbc.Driver"
+    elif xa_audit_db_flavor == 'oracle':
+      jdbc_jar = default("/hostLevelParams/custom_oracle_jdbc_name", None)
+      colon_count = xa_db_host.count(':')
+      if colon_count == 2 or colon_count == 0:
+        audit_jdbc_url = format('jdbc:oracle:thin:@{xa_db_host}')
+      else:
+        audit_jdbc_url = format('jdbc:oracle:thin:@//{xa_db_host}')
+      jdbc_driver = "oracle.jdbc.OracleDriver"
+    elif xa_audit_db_flavor == 'postgres':
+      jdbc_jar = default("/hostLevelParams/custom_postgres_jdbc_name", None)
+      audit_jdbc_url = format('jdbc:postgresql://{xa_db_host}/{xa_audit_db_name}')
+      jdbc_driver = "org.postgresql.Driver"
+    elif xa_audit_db_flavor == 'mssql':
+      jdbc_jar = default("/hostLevelParams/custom_mssql_jdbc_name", None)
+      audit_jdbc_url = format('jdbc:sqlserver://{xa_db_host};databaseName={xa_audit_db_name}')
+      jdbc_driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
+    elif xa_audit_db_flavor == 'sqla':
+      jdbc_jar = default("/hostLevelParams/custom_sqlanywhere_jdbc_name", None)
+      audit_jdbc_url = format('jdbc:sqlanywhere:database={xa_audit_db_name};host={xa_db_host}')
+      jdbc_driver = "sap.jdbc4.sqlanywhere.IDriver"
 
-  downloaded_connector_path = format("{tmp_dir}/{jdbc_jar}")
-
-  driver_source = format("{jdk_location}/{jdbc_jar}")
-  driver_target = format("{kms_home}/ews/webapp/lib/{jdbc_jar}")
+  downloaded_connector_path = format("{tmp_dir}/{jdbc_jar}") if stack_supports_ranger_audit_db else None
+  driver_source = format("{jdk_location}/{jdbc_jar}") if stack_supports_ranger_audit_db else None
+  driver_target = format("{kms_home}/ews/webapp/lib/{jdbc_jar}") if stack_supports_ranger_audit_db else None
 
 repo_config_username = config['configurations']['kms-properties']['REPOSITORY_CONFIG_USERNAME']
 repo_config_password = unicode(config['configurations']['kms-properties']['REPOSITORY_CONFIG_PASSWORD'])
@@ -183,7 +185,9 @@ kms_ranger_plugin_repo = {
   'type' : 'kms'
 }
 
-xa_audit_db_is_enabled = config['configurations']['ranger-kms-audit']['xasecure.audit.destination.db']
+xa_audit_db_is_enabled = False
+if stack_supports_ranger_audit_db:
+  xa_audit_db_is_enabled = config['configurations']['ranger-kms-audit']['xasecure.audit.destination.db']
 ssl_keystore_password = unicode(config['configurations']['ranger-kms-policymgr-ssl']['xasecure.policymgr.clientssl.keystore.password'])
 ssl_truststore_password = unicode(config['configurations']['ranger-kms-policymgr-ssl']['xasecure.policymgr.clientssl.truststore.password'])
 

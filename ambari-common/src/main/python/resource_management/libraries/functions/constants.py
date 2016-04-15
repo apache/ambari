@@ -62,6 +62,7 @@ class StackFeature:
   KAFKA_KERBEROS = "kafka_kerberos"
   PIG_ON_TEZ = "pig_on_tez"
   RANGER_USERSYNC_NON_ROOT = "ranger_usersync_non_root"
+  RANGER_AUDIT_DB_SUPPORT = "ranger_audit_db_support"
   ACCUMULO_KERBEROS_USER_AUTH = "accumulo_kerberos_user_auth"
   KNOX_VERSIONED_DATA_DIR = "knox_versioned_data_dir"
   KNOX_SSO_TOPOLOGY = "knox_sso_topology"
