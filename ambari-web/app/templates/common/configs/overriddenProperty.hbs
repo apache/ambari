@@ -15,42 +15,40 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-{{#each overriddenSCP in view.serviceConfigProperty.overrides}}
-  {{! Here serviceConfigBinding should ideally be serviceConfigPropertyBinding }}
-  <div {{bindAttr class="overriddenSCP.errorMessage:error: :control-group :overrideField"}}>
-    {{view overriddenSCP.viewClass serviceConfigBinding="overriddenSCP" categoryConfigsBinding="view.categoryConfigs"}}
-    {{#if overriddenSCP.supportsFinal}}
-      <a href="#" data-toggle="tooltip"
-        {{bindAttr class=":btn-small :btn-final overriddenSCP.isFinal:active overriddenSCP.hideFinalIcon:hidden" disabled="overriddenSCP.isNotEditable"}}
-        {{action "toggleFinalFlag" overriddenSCP target="view"}}
-        {{translateAttr data-original-title="services.service.config.final"}}>
-        <i class="icon-lock"></i>
-      </a>
+{{! Here serviceConfigBinding should ideally be serviceConfigPropertyBinding }}
+<div {{bindAttr class="view.overriddenSCP.errorMessage:error: :control-group :overrideField"}}>
+  {{view view.overriddenSCP.viewClass serviceConfigBinding="view.overriddenSCP" categoryConfigsBinding="view.parentView.categoryConfigs"}}
+  {{#if view.overriddenSCP.supportsFinal}}
+    <a href="#" data-toggle="tooltip"
+      {{bindAttr class=":btn-small :btn-final view.overriddenSCP.isFinal:active view.overriddenSCP.hideFinalIcon:hidden" disabled="view.overriddenSCP.isNotEditable"}}
+      {{action "toggleFinalFlag" view.overriddenSCP target="view.parentView"}}
+      {{translateAttr data-original-title="services.service.config.final"}}>
+      <i class="icon-lock"></i>
+    </a>
+  {{/if}}
+  {{#if view.parentView.isDefaultGroupSelected}}
+    {{#if view.overriddenSCP.group}}
+      {{view App.SwitchToGroupView controllerBinding="controller" groupBinding="view.overriddenSCP.group"}}
     {{/if}}
-    {{#if view.isDefaultGroupSelected}}
-      {{#if overriddenSCP.group}}
-        {{view App.SwitchToGroupView controllerBinding="controller" groupBinding="overriddenSCP.group"}}
+  {{else}}
+    {{#if view.overriddenSCP.isEditable}}
+      {{#if isNotDefaultValue}}
+        <a class="btn-small" href="#" data-toggle="tooltip"
+          {{action "doRestoreDefaultValue" view.overriddenSCP target="view.parentView"}}
+          {{translateAttr data-original-title="common.undo"}}>
+          <i class="icon-undo"></i>
+        </a>
       {{/if}}
+      {{#isAuthorized "SERVICE.MODIFY_CONFIGS"}}
+        <a class="btn-small" href="#" data-toggle="tooltip"
+          {{action "removeOverride" view.overriddenSCP target="view.parentView"}}
+          {{translateAttr data-original-title="common.remove"}}>
+          <i class="icon-minus-sign"></i>
+        </a>
+      {{/isAuthorized}}
+      <span class="help-inline">{{view.overriddenSCP.errorMessage}}</span>
     {{else}}
-      {{#if overriddenSCP.isEditable}}
-        {{#if isNotDefaultValue}}
-          <a class="btn-small" href="#" data-toggle="tooltip"
-            {{action "doRestoreDefaultValue" overriddenSCP target="view"}}
-            {{translateAttr data-original-title="common.undo"}}>
-            <i class="icon-undo"></i>
-          </a>
-        {{/if}}
-        {{#isAuthorized "SERVICE.MODIFY_CONFIGS"}}
-          <a class="btn-small" href="#" data-toggle="tooltip"
-            {{action "removeOverride" overriddenSCP target="view"}}
-            {{translateAttr data-original-title="common.remove"}}>
-            <i class="icon-minus-sign"></i>
-          </a>
-        {{/isAuthorized}}
-          <span class="help-inline">{{overriddenSCP.errorMessage}}</span>
-      {{else}}
-        <a class="action">{{overriddenSCP.group.switchGroupTextShort}}</a> <i class="icon-spinner"></i>
-      {{/if}}
+      <a class="action">{{view.overriddenSCP.group.switchGroupTextShort}}</a> <i class="icon-spinner"></i>
     {{/if}}
-  </div>
-{{/each}}
+  {{/if}}
+</div>

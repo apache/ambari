@@ -49,32 +49,34 @@
             {{/if}}
             <div {{bindAttr class="showLabel:controls"}}>
               {{! Here serviceConfigBinding should ideally be serviceConfigPropertyBinding }}
-              <div {{bindAttr class="errorMessage:error: warnMessage:warning: :control-group"}}>
-                {{view viewClass serviceConfigBinding="this" categoryConfigsAllBinding="view.categoryConfigsAll" }}
-                {{#if rightSideLabel}}
-                  <span {{bindAttr class="isEditable::muted"}}>{{formatWordBreak displayName}}</span>
-                {{/if}}
-                {{#if hintMessage}}
-                  <a class="icon-question-sign icon-blue" href="#" data-toggle="tooltip" {{bindAttr data-original-title="hintMessage"}}></a>
-                {{/if}}
-                {{#if this.isComparison}}
-                  {{#if controller.selectedConfigGroup.isDefault}}
-                    <span
-                        class="label label-info">{{t dashboard.configHistory.table.version.prefix}}{{controller.selectedVersion}}</span>
-                    {{#if controller.isCurrentSelected}}
-                      <span class="label label-success">{{t common.current}}</span>
-                    {{/if}}
-                  {{else}}
-                    <span class="label label-info">{{t common.default}}
-                      &nbsp;{{t services.service.config.configHistory.configGroup}}</span>
+              {{#if this.isOriginalSCP}}
+                <div {{bindAttr class="errorMessage:error: warnMessage:warning: :control-group"}}>
+                  {{view viewClass serviceConfigBinding="this" categoryConfigsAllBinding="view.categoryConfigsAll" }}
+                  {{#if rightSideLabel}}
+                    <span {{bindAttr class="isEditable::muted"}}>{{formatWordBreak displayName}}</span>
                   {{/if}}
-                {{/if}}
-                {{#if controller.canEdit}}
-                  {{view App.ControlsView serviceConfigPropertyBinding="this"}}
-                {{/if}}
-                <span class="help-inline">{{errorMessage}}</span>
-                <span class="help-inline">{{warnMessage}}</span>
-              </div>
+                  {{#if hintMessage}}
+                    <a class="icon-question-sign icon-blue" href="#" data-toggle="tooltip" {{bindAttr data-original-title="hintMessage"}}></a>
+                  {{/if}}
+                  {{#if this.isComparison}}
+                    {{#if controller.selectedConfigGroup.isDefault}}
+                      <span
+                          class="label label-info">{{t dashboard.configHistory.table.version.prefix}}{{controller.selectedVersion}}</span>
+                      {{#if controller.isCurrentSelected}}
+                        <span class="label label-success">{{t common.current}}</span>
+                      {{/if}}
+                    {{else}}
+                      <span class="label label-info">{{t common.default}}
+                        &nbsp;{{t services.service.config.configHistory.configGroup}}</span>
+                    {{/if}}
+                  {{/if}}
+                  {{#if controller.canEdit}}
+                    {{view App.ControlsView serviceConfigPropertyBinding="this"}}
+                  {{/if}}
+                  <span class="help-inline">{{errorMessage}}</span>
+                  <span class="help-inline">{{warnMessage}}</span>
+                </div>
+              {{/if}}
               {{#if this.isComparison}}
                 {{view App.ServiceConfigView.SCPComparisonRowsView serviceConfigPropertyBinding="this"}}
               {{else}}
