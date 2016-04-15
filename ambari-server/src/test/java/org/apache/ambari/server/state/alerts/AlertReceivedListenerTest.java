@@ -51,6 +51,7 @@ import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.alert.Scope;
 import org.apache.ambari.server.state.alert.SourceType;
+import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -92,13 +93,16 @@ public class AlertReceivedListenerTest {
     m_componentFactory = m_injector.getInstance(ServiceComponentFactory.class);
     m_schFactory = m_injector.getInstance(ServiceComponentHostFactory.class);
 
-    // install YARN so there is at least 1 service installed and no
-    // unexpected alerts since the test YARN service doesn't have any alerts
-    m_cluster = m_helper.buildNewCluster(m_clusters, m_serviceFactory,
-        m_componentFactory, m_schFactory, HOST1);
-
     m_dao = m_injector.getInstance(AlertsDAO.class);
     m_definitionDao = m_injector.getInstance(AlertDefinitionDAO.class);
+
+    EventBusSynchronizer.synchronizeAlertEventPublisher(m_injector);
+    EventBusSynchronizer.synchronizeAmbariEventPublisher(m_injector);
+
+    // install YARN so there is at least 1 service installed and no
+    // unexpected alerts since the test YARN service doesn't have any alerts
+    m_cluster = m_helper.buildNewCluster(m_clusters, m_serviceFactory, m_componentFactory,
+        m_schFactory, HOST1);
 
     // create 5 definitions, some with HDFS and some with YARN
     for (int i = 0; i < 5; i++) {
