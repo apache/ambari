@@ -97,3 +97,5 @@ if has_namenode or dfs_type == 'HCFS':
 
 link_configs_lock_file = os.path.join(tmp_dir, "link_configs_lock_file")
 hdp_select_lock_file = os.path.join(tmp_dir, "hdp_select_lock_file")
+
+upgrade_suspended = default("/roleParams/upgrade_suspended", False)
