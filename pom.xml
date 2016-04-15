@@ -305,6 +305,14 @@
             <exclude>contrib/ambari-scom/*/rat.txt</exclude>
             <exclude>contrib/ambari-scom/metrics-sink/target/**</exclude>
             <exclude>contrib/views/*/target/**</exclude>
+            <exclude>contrib/views/commons/src/main/resources/ui/*/.bowerrc</exclude>
+            <exclude>contrib/views/commons/src/main/resources/ui/*/bower_components/**</exclude>
+            <exclude>contrib/views/commons/src/main/resources/ui/*/node/**</exclude>
+            <exclude>contrib/views/commons/src/main/resources/ui/*/node_modules/**</exclude>
+            <exclude>contrib/views/commons/src/main/resources/ui/*/public/**</exclude>
+            <exclude>contrib/views/commons/src/main/resources/ui/*/vendor/**</exclude>
+            <exclude>contrib/views/commons/src/main/resources/ui/*/tests/**/public/**</exclude>
+            <exclude>contrib/views/commons/src/main/resources/ui/*/tests/**/vendor/**</exclude>
             <exclude>contrib/views/hive/src/main/resources/ui/hive-web/vendor/codemirror/**</exclude>
             <exclude>contrib/views/hive/src/main/resources/ui/hive-web/.bowerrc</exclude>
             <exclude>contrib/views/files/src/main/resources/ui/.bowerrc</exclude>

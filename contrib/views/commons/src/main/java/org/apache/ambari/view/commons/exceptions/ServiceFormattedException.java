@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.view.filebrowser.utils;
+package org.apache.ambari.view.commons.exceptions;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.json.simple.JSONObject;

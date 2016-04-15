@@ -16,13 +16,13 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.view.filebrowser;
+package org.apache.ambari.view.commons.hdfs;
 
 import javax.ws.rs.WebApplicationException;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.apache.ambari.view.ViewContext;
-import org.apache.ambari.view.filebrowser.utils.ServiceFormattedException;
+import org.apache.ambari.view.commons.exceptions.ServiceFormattedException;
 import org.apache.ambari.view.utils.hdfs.HdfsApi;
 import org.apache.ambari.view.utils.hdfs.HdfsUtil;
 import org.apache.hadoop.security.UserGroupInformation;
