@@ -8,6 +8,7 @@
         "label": "Ambari Agent Heartbeat",
         "description": "This alert is triggered if the server has lost contact with an agent.",
         "interval": 2,
+        "help_url": "https://cwiki.apache.org/confluence/display/AMBARI/Ambari+Alerts#AmbariAlerts-ambari_agent_heartbeat",
         "scope": "HOST",
         "enabled": true,
         "source": {
