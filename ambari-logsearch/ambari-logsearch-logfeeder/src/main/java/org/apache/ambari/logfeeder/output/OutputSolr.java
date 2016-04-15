@@ -20,6 +20,7 @@
 package org.apache.ambari.logfeeder.output;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -37,6 +38,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.client.solrj.impl.LBHttpSolrClient;
@@ -45,154 +47,171 @@ import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrInputDocument;
 
 public class OutputSolr extends Output {
-  static private Logger logger = Logger.getLogger(OutputSolr.class);
+  private static final Logger LOG = Logger.getLogger(OutputSolr.class);
 
-  private static final String ROUTER_FIELD = "_router_field_";
+  private static final int DEFAULT_MAX_BUFFER_SIZE = 5000;
+  private static final int DEFAULT_MAX_INTERVAL_MS = 3000;
+  private static final int DEFAULT_NUMBER_OF_SHARDS = 1;
+  private static final int DEFAULT_SPLIT_INTERVAL = 30;
+  private static final int DEFAULT_NUMBER_OF_WORKERS = 1;
 
-  String solrUrl = null;
-  String zkHosts = null;
-  String collection = null;
-  String splitMode = "none";
-  int splitInterval = 0;
-  int numberOfShards = 1;
-  boolean isComputeCurrentCollection = false;
+  private String collection;
+  private String splitMode;
+  private int splitInterval;
+  private int numberOfShards;
+  private int maxIntervalMS;
+  private int workers;
+  private int maxBufferSize;
+  private boolean isComputeCurrentCollection = false;
+  private int lastSlotByMin = -1;
 
-  int maxBufferSize = 5000;
-  int maxIntervalMS = 3000;
-  int workers = 1;
-
-  BlockingQueue<OutputData> outgoingBuffer = null;
-  List<SolrWorkerThread> writerThreadList = new ArrayList<SolrWorkerThread>();
-  private static final int RETRY_INTERVAL = 30;
-
-  int lastSlotByMin = -1;
+  private BlockingQueue<OutputData> outgoingBuffer = null;
+  private List<SolrWorkerThread> workerThreadList = new ArrayList<>();
 
   @Override
   public void init() throws Exception {
     super.init();
+    initParams();
+    createOutgoingBuffer();
+    createSolrWorkers();
+  }
+
+  private void initParams() {
     statMetric.metricsName = "output.solr.write_logs";
     writeBytesMetric.metricsName = "output.solr.write_bytes";
 
-    solrUrl = getStringValue("url");
-    zkHosts = getStringValue("zk_hosts");
-    splitMode = getStringValue("splits_interval_mins", splitMode);
+    splitMode = getStringValue("splits_interval_mins", "none");
     if (!splitMode.equalsIgnoreCase("none")) {
-      splitInterval = getIntValue("split_interval_mins", 30);
+      splitInterval = getIntValue("split_interval_mins", DEFAULT_SPLIT_INTERVAL);
     }
-    numberOfShards = getIntValue("number_of_shards", numberOfShards);
+    numberOfShards = getIntValue("number_of_shards", DEFAULT_NUMBER_OF_SHARDS);
 
-    maxBufferSize = getIntValue("flush_size", maxBufferSize);
+    maxIntervalMS = getIntValue("idle_flush_time_ms", DEFAULT_MAX_INTERVAL_MS);
+    workers = getIntValue("workers", DEFAULT_NUMBER_OF_WORKERS);
+
+    maxBufferSize = getIntValue("flush_size", DEFAULT_MAX_BUFFER_SIZE);
     if (maxBufferSize < 1) {
-      logger.warn("maxBufferSize is less than 1. Making it 1");
-    }
-    maxIntervalMS = getIntValue("idle_flush_time_ms", maxIntervalMS);
-    workers = getIntValue("workers", workers);
-
-    logger.info("Config: Number of workers=" + workers + ", splitMode="
-        + splitMode + ", splitInterval=" + splitInterval
-        + ", numberOfShards=" + numberOfShards + ". "
-        + getShortDescription());
-
-    if (StringUtils.isEmpty(solrUrl) && StringUtils.isEmpty(zkHosts)) {
-      throw new Exception(
-          "For solr output, either url or zk_hosts property need to be set");
+      LOG.warn("maxBufferSize is less than 1. Making it 1");
+      maxBufferSize = 1;
     }
 
+    LOG.info(String.format("Config: Number of workers=%d, splitMode=%s, splitInterval=%d, " + "numberOfShards=%d. "
+        + getShortDescription(), workers, splitMode, splitInterval, numberOfShards));
+  }
+
+  private void createOutgoingBuffer() {
     int bufferSize = maxBufferSize * (workers + 3);
-    logger.info("Creating blocking queue with bufferSize=" + bufferSize);
-    // outgoingBuffer = new ArrayBlockingQueue<OutputData>(bufferSize);
+    LOG.info("Creating blocking queue with bufferSize=" + bufferSize);
     outgoingBuffer = new LinkedBlockingQueue<OutputData>(bufferSize);
+  }
+
+  private void createSolrWorkers() throws Exception, MalformedURLException {
+    String solrUrl = getStringValue("url");
+    String zkHosts = getStringValue("zk_hosts");
+    if (StringUtils.isEmpty(solrUrl) && StringUtils.isEmpty(zkHosts)) {
+      throw new Exception("For solr output, either url or zk_hosts property need to be set");
+    }
 
     for (int count = 0; count < workers; count++) {
-      SolrClient solrClient = null;
-      CloudSolrClient solrClouldClient = null;
-      if (zkHosts != null) {
-        logger.info("Using zookeepr. zkHosts=" + zkHosts);
-        collection = getStringValue("collection");
-        if (StringUtils.isEmpty(collection)) {
-          throw new Exception(
-              "For solr cloud property collection is mandatory");
-        }
-        logger.info("Using collection=" + collection);
-        solrClouldClient = new CloudSolrClient(zkHosts);
-        solrClouldClient.setDefaultCollection(collection);
-        solrClient = solrClouldClient;
-        if (splitMode.equalsIgnoreCase("none")) {
-          isComputeCurrentCollection = false;
-        } else {
-          isComputeCurrentCollection = true;
-        }
-      } else {
-        String[] solrUrls = StringUtils.split(solrUrl, ",");
-        if (solrUrls.length == 1) {
-          logger.info("Using SolrURL=" + solrUrl);
-          solrClient = new HttpSolrClient(solrUrl);
-        } else {
-          logger.info("Using load balance solr client. solrUrls="
-              + solrUrl);
-          logger.info("Initial URL for LB solr=" + solrUrls[0]);
-          @SuppressWarnings("resource")
-          LBHttpSolrClient lbSolrClient = new LBHttpSolrClient(
-              solrUrls[0]);
-          for (int i = 1; i < solrUrls.length; i++) {
-            logger.info("Adding URL for LB solr=" + solrUrls[i]);
-            lbSolrClient.addSolrServer(solrUrls[i]);
-          }
-          solrClient = lbSolrClient;
-        }
-      }
-      try {
-        logger.info("Pinging Solr server. zkHosts=" + zkHosts
-            + ", urls=" + solrUrl);
-        SolrPingResponse response = solrClient.ping();
-        if (response.getStatus() == 0) {
-          logger.info("Ping to Solr server is successful for writer="
-              + count);
-        } else {
-          logger.warn("Ping to Solr server failed. It would check again. writer="
-              + count
-              + ", solrUrl="
-              + solrUrl
-              + ", zkHosts="
-              + zkHosts
-              + ", collection="
-              + collection
-              + ", response=" + response);
-        }
-      } catch (Throwable t) {
-        logger.warn(
-            "Ping to Solr server failed. It would check again. writer="
-                + count + ", solrUrl=" + solrUrl + ", zkHosts="
-                + zkHosts + ", collection=" + collection, t);
-      }
-
-      // Let's start the thread
-      SolrWorkerThread solrWriterThread = new SolrWorkerThread(solrClient);
-      solrWriterThread.setName(getNameForThread() + "," + collection
-          + ",writer=" + count);
-      solrWriterThread.setDaemon(true);
-      solrWriterThread.start();
-      writerThreadList.add(solrWriterThread);
+      SolrClient solrClient = getSolrClient(solrUrl, zkHosts, count);
+      createSolrWorkerThread(count, solrClient);
     }
   }
 
+  SolrClient getSolrClient(String solrUrl, String zkHosts, int count) throws Exception, MalformedURLException {
+    SolrClient solrClient = null;
+
+    if (zkHosts != null) {
+      solrClient = createCloudSolrClient(zkHosts);
+    } else {
+      solrClient = createHttpSolarClient(solrUrl);
+    }
+
+    pingSolr(solrUrl, zkHosts, count, solrClient);
+
+    return solrClient;
+  }
+
+  private SolrClient createCloudSolrClient(String zkHosts) throws Exception {
+    LOG.info("Using zookeepr. zkHosts=" + zkHosts);
+    collection = getStringValue("collection");
+    if (StringUtils.isEmpty(collection)) {
+      throw new Exception("For solr cloud property collection is mandatory");
+    }
+    LOG.info("Using collection=" + collection);
+
+    CloudSolrClient solrClient = new CloudSolrClient(zkHosts);
+    solrClient.setDefaultCollection(collection);
+    isComputeCurrentCollection = !splitMode.equalsIgnoreCase("none");
+    return solrClient;
+  }
+
+  private SolrClient createHttpSolarClient(String solrUrl) throws MalformedURLException {
+    String[] solrUrls = StringUtils.split(solrUrl, ",");
+    if (solrUrls.length == 1) {
+      LOG.info("Using SolrURL=" + solrUrl);
+      return new HttpSolrClient(solrUrl);
+    } else {
+      LOG.info("Using load balance solr client. solrUrls=" + solrUrl);
+      LOG.info("Initial URL for LB solr=" + solrUrls[0]);
+      LBHttpSolrClient lbSolrClient = new LBHttpSolrClient(solrUrls[0]);
+      for (int i = 1; i < solrUrls.length; i++) {
+        LOG.info("Adding URL for LB solr=" + solrUrls[i]);
+        lbSolrClient.addSolrServer(solrUrls[i]);
+      }
+      return lbSolrClient;
+    }
+  }
+
+  private void pingSolr(String solrUrl, String zkHosts, int count, SolrClient solrClient) {
+    try {
+      LOG.info("Pinging Solr server. zkHosts=" + zkHosts + ", urls=" + solrUrl);
+      SolrPingResponse response = solrClient.ping();
+      if (response.getStatus() == 0) {
+        LOG.info("Ping to Solr server is successful for worker=" + count);
+      } else {
+        LOG.warn(
+            String.format(
+                "Ping to Solr server failed. It would check again. worker=%d, "
+                    + "solrUrl=%s, zkHosts=%s, collection=%s, response=%s",
+                count, solrUrl, zkHosts, collection, response));
+      }
+    } catch (Throwable t) {
+      LOG.warn(String.format(
+          "Ping to Solr server failed. It would check again. worker=%d, " + "solrUrl=%s, zkHosts=%s, collection=%s",
+          count, solrUrl, zkHosts, collection), t);
+    }
+  }
+
+  private void createSolrWorkerThread(int count, SolrClient solrClient) {
+    SolrWorkerThread solrWorkerThread = new SolrWorkerThread(solrClient);
+    solrWorkerThread.setName(getNameForThread() + "," + collection + ",worker=" + count);
+    solrWorkerThread.setDaemon(true);
+    solrWorkerThread.start();
+    workerThreadList.add(solrWorkerThread);
+  }
+
   @Override
-  public void setDrain(boolean drain) {
-    super.setDrain(drain);
+  public void write(Map<String, Object> jsonObj, InputMarker inputMarker) throws Exception {
+    try {
+      outgoingBuffer.put(new OutputData(jsonObj, inputMarker));
+    } catch (InterruptedException e) {
+      // ignore
+    }
   }
 
   /**
    * Flush document buffer
    */
   public void flush() {
-    logger.info("Flush called...");
+    LOG.info("Flush called...");
     setDrain(true);
 
     int wrapUpTimeSecs = 30;
     // Give wrapUpTimeSecs seconds to wrap up
     boolean isPending = false;
     for (int i = 0; i < wrapUpTimeSecs; i++) {
-      for (SolrWorkerThread solrWorkerThread : writerThreadList) {
+      for (SolrWorkerThread solrWorkerThread : workerThreadList) {
         if (solrWorkerThread.isDone()) {
           try {
             solrWorkerThread.interrupt();
@@ -205,8 +224,7 @@ public class OutputSolr extends Output {
       }
       if (isPending) {
         try {
-          logger.info("Will give " + (wrapUpTimeSecs - i)
-              + " seconds to wrap up");
+          LOG.info("Will give " + (wrapUpTimeSecs - i) + " seconds to wrap up");
           Thread.sleep(1000);
         } catch (InterruptedException e) {
           // ignore
@@ -217,238 +235,194 @@ public class OutputSolr extends Output {
   }
 
   @Override
+  public void setDrain(boolean drain) {
+    super.setDrain(drain);
+  }
+
+  @Override
   public long getPendingCount() {
-    long totalCount = 0;
-    for (SolrWorkerThread solrWorkerThread : writerThreadList) {
-      totalCount += solrWorkerThread.localBuffer.size();
+    long pendingCount = 0;
+    for (SolrWorkerThread solrWorkerThread : workerThreadList) {
+      pendingCount += solrWorkerThread.localBuffer.size();
     }
-    return totalCount;
+    return pendingCount;
   }
 
   @Override
   public void close() {
-    logger.info("Closing Solr client...");
+    LOG.info("Closing Solr client...");
     flush();
 
-    logger.info("Closed Solr client");
+    LOG.info("Closed Solr client");
     super.close();
   }
 
-  @Override
-  public void write(Map<String, Object> jsonObj, InputMarker inputMarker)
-      throws Exception {
-    try {
-      outgoingBuffer.put(new OutputData(jsonObj, inputMarker));
-    } catch (InterruptedException e) {
-      // ignore
-    }
-  }
-
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.apache.ambari.logfeeder.ConfigBlock#getShortDescription()
-   */
   @Override
   public String getShortDescription() {
     return "output:destination=solr,collection=" + collection;
   }
 
   class SolrWorkerThread extends Thread {
-    /**
-     * 
-     */
-    SolrClient solrClient = null;
-    Collection<SolrInputDocument> localBuffer = new ArrayList<SolrInputDocument>();
-    long localBufferBytesSize = 0;
-    Map<String, InputMarker> latestInputMarkerList = new HashMap<String, InputMarker>();
+    private static final String ROUTER_FIELD = "_router_field_";
+    private static final int RETRY_INTERVAL = 30;
 
-    /**
-     * 
-     */
+    private final SolrClient solrClient;
+    private final Collection<SolrInputDocument> localBuffer = new ArrayList<>();
+    private final Map<String, InputMarker> latestInputMarkerList = new HashMap<>();
+
+    private long localBufferBytesSize = 0;
+
     public SolrWorkerThread(SolrClient solrClient) {
       this.solrClient = solrClient;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Runnable#run()
-     */
     @Override
     public void run() {
-      logger.info("SolrWriter thread started");
+      LOG.info("SolrWorker thread started");
       long lastDispatchTime = System.currentTimeMillis();
 
-      //long totalWaitTimeMS = 0;
       while (true) {
         long currTimeMS = System.currentTimeMillis();
         OutputData outputData = null;
         try {
-          long nextDispatchDuration = maxIntervalMS
-              - (currTimeMS - lastDispatchTime);
-          outputData = outgoingBuffer.poll();
-          if (outputData == null && !isDrain()
-              && nextDispatchDuration > 0) {
-            outputData = outgoingBuffer.poll(nextDispatchDuration,
-                TimeUnit.MILLISECONDS);
-//            long diffTimeMS = System.currentTimeMillis()
-//                - currTimeMS;
-            // logger.info("Waited for " + diffTimeMS +
-            // " ms, planned for "
-            // + nextDispatchDuration + " ms, localBuffer.size="
-            // + localBuffer.size() + ", timedOut="
-            // + (outputData == null ? "true" : "false"));
-          }
+          long nextDispatchDuration = maxIntervalMS - (currTimeMS - lastDispatchTime);
+          outputData = getOutputData(nextDispatchDuration);
 
-          if (isDrain() && outputData == null
-              && outgoingBuffer.size() == 0) {
-            break;
-          }
           if (outputData != null) {
-            if (outputData.jsonObj.get("id") == null) {
-              outputData.jsonObj.put("id", UUID.randomUUID()
-                  .toString());
+            createSolrDocument(outputData);
+          } else {
+            if (isDrain() && outgoingBuffer.size() == 0) {
+              break;
             }
-            SolrInputDocument document = new SolrInputDocument();
-            for (String name : outputData.jsonObj.keySet()) {
-              Object obj = outputData.jsonObj.get(name);
-              document.addField(name, obj);
-              try {
-                localBufferBytesSize += obj.toString().length();
-              } catch (Throwable t) {
-                final String LOG_MESSAGE_KEY = this.getClass()
-                    .getSimpleName() + "_BYTE_COUNT_ERROR";
-                LogFeederUtil.logErrorMessageByInterval(
-                    LOG_MESSAGE_KEY,
-                    "Error calculating byte size. object="
-                        + obj, t, logger, Level.ERROR);
-
-              }
-            }
-            latestInputMarkerList.put(
-                outputData.inputMarker.base64FileKey,
-                outputData.inputMarker);
-            localBuffer.add(document);
           }
 
-          if (localBuffer.size() > 0
-              && ((outputData == null && isDrain()) || (nextDispatchDuration <= 0 || localBuffer
-                  .size() >= maxBufferSize))) {
+          if (localBuffer.size() > 0 && ((outputData == null && isDrain())
+              || (nextDispatchDuration <= 0 || localBuffer.size() >= maxBufferSize))) {
             try {
               if (isComputeCurrentCollection) {
                 // Compute the current router value
-
-                int weekDay = Calendar.getInstance().get(
-                    Calendar.DAY_OF_WEEK);
-                int currHour = Calendar.getInstance().get(
-                    Calendar.HOUR_OF_DAY);
-                int currMin = Calendar.getInstance().get(
-                    Calendar.MINUTE);
-
-                int minOfWeek = (weekDay - 1) * 24 * 60
-                    + currHour * 60 + currMin;
-                int slotByMin = minOfWeek / splitInterval
-                    % numberOfShards;
-
-                String shard = "shard" + slotByMin;
-
-                if (lastSlotByMin != slotByMin) {
-                  logger.info("Switching to shard " + shard
-                      + ", output="
-                      + getShortDescription());
-                  lastSlotByMin = slotByMin;
-                }
-
-                for (SolrInputDocument solrInputDocument : localBuffer) {
-                  solrInputDocument.addField(ROUTER_FIELD,
-                      shard);
-                }
+                addRouterField();
               }
 
-//              long beginTime = System.currentTimeMillis();
-              UpdateResponse response = solrClient
-                  .add(localBuffer);
-//              long endTime = System.currentTimeMillis();
-//              logger.info("Adding to Solr. Document count="
-//                  + localBuffer.size() + ". Took "
-//                  + (endTime - beginTime) + " ms");
-
-              if (response.getStatus() != 0) {
-                final String LOG_MESSAGE_KEY = this.getClass()
-                    .getSimpleName() + "_SOLR_UPDATE_ERROR";
-                LogFeederUtil
-                    .logErrorMessageByInterval(
-                        LOG_MESSAGE_KEY,
-                        "Error writing to Solr. response="
-                            + response.toString()
-                            + ", log="
-                            + (outputData == null ? null
-                                : outputData
-                                    .toString()),
-                        null, logger, Level.ERROR);
-              }
-              statMetric.count += localBuffer.size();
-              writeBytesMetric.count += localBufferBytesSize;
-              for (InputMarker inputMarker : latestInputMarkerList
-                  .values()) {
-                inputMarker.input.checkIn(inputMarker);
-              }
+              addToSolr(outputData);
 
               resetLocalBuffer();
               lastDispatchTime = System.currentTimeMillis();
             } catch (IOException ioException) {
               // Transient error, lets block till it is available
-              while (!isDrain()) {
-                try {
-                  logger.warn("Solr is down. Going to sleep for "
-                      + RETRY_INTERVAL
-                      + " seconds. output="
-                      + getShortDescription());
-                  Thread.sleep(RETRY_INTERVAL * 1000);
-                } catch (Throwable t) {
-                  // ignore
-                  break;
-                }
-                if (isDrain()) {
-                  break;
-                }
-                try {
-                  SolrPingResponse pingResponse = solrClient
-                      .ping();
-                  if (pingResponse.getStatus() == 0) {
-                    logger.info("Solr seems to be up now. Resuming... output="
-                        + getShortDescription());
-                    break;
-                  }
-                } catch (Throwable t) {
-                  // Ignore
-                }
-              }
+              waitForSolr();
             } catch (Throwable serverException) {
               // Clear the buffer
               resetLocalBuffer();
-              final String LOG_MESSAGE_KEY = this.getClass()
-                  .getSimpleName() + "_SOLR_UPDATE_EXCEPTION";
-              LogFeederUtil.logErrorMessageByInterval(
-                  LOG_MESSAGE_KEY,
-                  "Error sending log message to server. "
-                      + (outputData == null ? null
-                          : outputData.toString()),
-                  serverException, logger, Level.ERROR);
+              String logMessageKey = this.getClass().getSimpleName() + "_SOLR_UPDATE_EXCEPTION";
+              LogFeederUtil.logErrorMessageByInterval(logMessageKey,
+                  "Error sending log message to server. " + outputData, serverException, LOG, Level.ERROR);
             }
           }
         } catch (InterruptedException e) {
           // Handle thread exiting
         } catch (Throwable t) {
-          final String LOG_MESSAGE_KEY = this.getClass()
-              .getSimpleName() + "_SOLR_MAINLOOP_EXCEPTION";
-          LogFeederUtil.logErrorMessageByInterval(LOG_MESSAGE_KEY,
-              "Caught exception in main loop. " + outputData, t,
-              logger, Level.ERROR);
+          String logMessageKey = this.getClass().getSimpleName() + "_SOLR_MAINLOOP_EXCEPTION";
+          LogFeederUtil.logErrorMessageByInterval(logMessageKey, "Caught exception in main loop. " + outputData, t, LOG,
+              Level.ERROR);
         }
       }
 
+      closeSolrClient();
+
+      resetLocalBuffer();
+      LOG.info("Exiting Solr worker thread. output=" + getShortDescription());
+    }
+
+    private OutputData getOutputData(long nextDispatchDuration) throws InterruptedException {
+      OutputData outputData = outgoingBuffer.poll();
+      if (outputData == null && !isDrain() && nextDispatchDuration > 0) {
+        outputData = outgoingBuffer.poll(nextDispatchDuration, TimeUnit.MILLISECONDS);
+      }
+      if (outputData != null && outputData.jsonObj.get("id") == null) {
+        outputData.jsonObj.put("id", UUID.randomUUID().toString());
+      }
+      return outputData;
+    }
+
+    private void createSolrDocument(OutputData outputData) {
+      SolrInputDocument document = new SolrInputDocument();
+      for (String name : outputData.jsonObj.keySet()) {
+        Object obj = outputData.jsonObj.get(name);
+        document.addField(name, obj);
+        try {
+          localBufferBytesSize += obj.toString().length();
+        } catch (Throwable t) {
+          String logMessageKey = this.getClass().getSimpleName() + "_BYTE_COUNT_ERROR";
+          LogFeederUtil.logErrorMessageByInterval(logMessageKey, "Error calculating byte size. object=" + obj, t, LOG,
+              Level.ERROR);
+        }
+      }
+      latestInputMarkerList.put(outputData.inputMarker.base64FileKey, outputData.inputMarker);
+      localBuffer.add(document);
+    }
+
+    private void addRouterField() {
+      Calendar cal = Calendar.getInstance();
+      int weekDay = cal.get(Calendar.DAY_OF_WEEK);
+      int currHour = cal.get(Calendar.HOUR_OF_DAY);
+      int currMin = cal.get(Calendar.MINUTE);
+
+      int minOfWeek = (weekDay - 1) * 24 * 60 + currHour * 60 + currMin;
+      int slotByMin = minOfWeek / splitInterval % numberOfShards;
+
+      String shard = "shard" + slotByMin;
+
+      if (lastSlotByMin != slotByMin) {
+        LOG.info("Switching to shard " + shard + ", output=" + getShortDescription());
+        lastSlotByMin = slotByMin;
+      }
+
+      for (SolrInputDocument solrInputDocument : localBuffer) {
+        solrInputDocument.addField(ROUTER_FIELD, shard);
+      }
+    }
+
+    private void addToSolr(OutputData outputData) throws SolrServerException, IOException {
+      UpdateResponse response = solrClient.add(localBuffer);
+      if (response.getStatus() != 0) {
+        String logMessageKey = this.getClass().getSimpleName() + "_SOLR_UPDATE_ERROR";
+        LogFeederUtil.logErrorMessageByInterval(logMessageKey,
+            String.format("Error writing to Solr. response=%s, log=%s", response, outputData), null, LOG, Level.ERROR);
+      }
+      statMetric.count += localBuffer.size();
+      writeBytesMetric.count += localBufferBytesSize;
+      for (InputMarker inputMarker : latestInputMarkerList.values()) {
+        inputMarker.input.checkIn(inputMarker);
+      }
+    }
+
+    private void waitForSolr() {
+      while (!isDrain()) {
+        try {
+          LOG.warn(
+              "Solr is down. Going to sleep for " + RETRY_INTERVAL + " seconds. " + "output=" + getShortDescription());
+          Thread.sleep(RETRY_INTERVAL * 1000);
+        } catch (Throwable t) {
+          // ignore
+          break;
+        }
+        if (isDrain()) {
+          break;
+        }
+        try {
+          SolrPingResponse pingResponse = solrClient.ping();
+          if (pingResponse.getStatus() == 0) {
+            LOG.info("Solr seems to be up now. Resuming... output=" + getShortDescription());
+            break;
+          }
+        } catch (Throwable t) {
+          // Ignore
+        }
+      }
+    }
+
+    private void closeSolrClient() {
       if (solrClient != null) {
         try {
           solrClient.close();
@@ -456,20 +430,16 @@ public class OutputSolr extends Output {
           // Ignore
         }
       }
-
-      resetLocalBuffer();
-      logger.info("Exiting Solr writer thread. output="
-          + getShortDescription());
-    }
-
-    public boolean isDone() {
-      return localBuffer.size() == 0;
     }
 
     public void resetLocalBuffer() {
       localBuffer.clear();
       localBufferBytesSize = 0;
       latestInputMarkerList.clear();
+    }
+
+    public boolean isDone() {
+      return localBuffer.isEmpty();
     }
   }
 }

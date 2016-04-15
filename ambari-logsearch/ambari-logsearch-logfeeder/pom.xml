@@ -41,7 +41,12 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.11</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.easymock</groupId>
+      <artifactId>easymock</artifactId>
+      <version>3.4</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -74,7 +79,6 @@
       <artifactId>commons-logging</artifactId>
       <version>1.1.1</version>
     </dependency>
-
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
@@ -105,8 +109,8 @@
       <artifactId>jackson-xc</artifactId>
       <version>1.9.13</version>
     </dependency>
-
   </dependencies>
+
   <build>
     <finalName>LogFeeder</finalName>
     <pluginManagement>
