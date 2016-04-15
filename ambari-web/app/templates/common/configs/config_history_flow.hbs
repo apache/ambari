@@ -47,9 +47,11 @@
                   <strong>{{view.compareServiceVersion.authorFormatted}}</strong>&nbsp;{{t dashboard.configHistory.info-bar.authoredOn}}
                   &nbsp;<strong>{{view.compareServiceVersion.createdDate}}</strong>
               </div>
+            {{#isAuthorized "SERVICE.MODIFY_CONFIGS"}}
               <div class="pull-right operations-button">
                   <button class="btn btn-success"  {{action doAction view.serviceVersionsReferences.compare view.actionTypes.REVERT target="view"}} {{bindAttr disabled="view.versionActionsDisabled" class="view.compareServiceVersion.canBeMadeCurrent::hidden"}}>{{view.compareServiceVersion.makeCurrentButtonText}}</button>
               </div>
+            {{/isAuthorized}}
           </div>
       </div>
     {{/isAuthorized}}
@@ -81,6 +83,8 @@
                         <button {{bindAttr disabled="serviceVersion.disabledActionAttr.view" class=":btn serviceVersion.isDisplayed:not-allowed-cursor" title="serviceVersion.disabledActionMessages.view"}} {{action doAction serviceVersion view.actionTypes.SWITCH target="view"}}><i class="icon-search"></i>&nbsp;{{t common.view}}</button>
                         {{#isAuthorized "SERVICE.COMPARE_CONFIGS"}}
                           <button {{bindAttr disabled="serviceVersion.disabledActionAttr.compare" class=":btn serviceVersion.isDisplayed:not-allowed-cursor" title="serviceVersion.disabledActionMessages.compare"}} {{action doAction serviceVersion view.actionTypes.COMPARE target="view"}}><i class="icon-copy"></i>&nbsp;{{t common.compare}}</button>
+                        {{/isAuthorized}}
+                        {{#isAuthorized "SERVICE.MODIFY_CONFIGS"}}
                           <button {{bindAttr disabled="serviceVersion.disabledActionAttr.revert" class=":btn serviceVersion.isCurrent:not-allowed-cursor serviceVersion.isCompatible::hidden" title="serviceVersion.disabledActionMessages.revert"}} {{action doAction serviceVersion view.actionTypes.REVERT target="view"}}>{{t dashboard.configHistory.info-bar.revert.button}}</button>
                         {{/isAuthorized}}
                       </div>
