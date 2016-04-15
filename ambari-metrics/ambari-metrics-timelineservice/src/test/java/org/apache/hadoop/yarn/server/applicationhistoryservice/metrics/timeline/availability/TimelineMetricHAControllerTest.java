@@ -58,7 +58,7 @@ public class TimelineMetricHAControllerTest extends AbstractMiniHBaseClusterTest
     replay(configuration);
   }
 
-  @Test(timeout = 150000)
+  @Test(timeout = 180000)
   public void testHAControllerDistributedAggregation() throws Exception {
     TimelineMetricHAController haController = new TimelineMetricHAController(configuration);
     haController.initializeHAController();

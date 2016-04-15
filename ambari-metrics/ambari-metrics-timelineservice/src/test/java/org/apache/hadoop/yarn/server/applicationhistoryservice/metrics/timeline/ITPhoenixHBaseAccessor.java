@@ -35,15 +35,11 @@ import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataManager;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.DefaultCondition;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.sql.Connection;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -61,38 +57,10 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_AGGREGATE_MINUTE_TABLE_NAME;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_RECORD_TABLE_NAME;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.PHOENIX_TABLES;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_TABLES_DURABILITY;
 
 
 
 public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
-  private Connection conn;
-  private PhoenixHBaseAccessor hdb;
-
-  @Before
-  public void setUp() throws Exception {
-    hdb = createTestableHBaseAccessor();
-    // inits connection, starts mini cluster
-    conn = getConnection(getUrl());
-
-    hdb.initMetricSchema();
-  }
-
-  @After
-  public void tearDown() throws Exception {
-    Connection conn = getConnection(getUrl());
-    Statement stmt = conn.createStatement();
-
-    stmt.execute("delete from METRIC_AGGREGATE");
-    stmt.execute("delete from METRIC_AGGREGATE_HOURLY");
-    stmt.execute("delete from METRIC_RECORD");
-    stmt.execute("delete from METRIC_RECORD_HOURLY");
-    stmt.execute("delete from METRIC_RECORD_MINUTE");
-    conn.commit();
-
-    stmt.close();
-    conn.close();
-  }
 
   @Test
   public void testGetMetricRecordsSeconds() throws IOException, SQLException {

@@ -50,9 +50,6 @@ import static org.easymock.EasyMock.verify;
 public class TestMetadataManager extends AbstractMiniHBaseClusterTest {
   TimelineMetricMetadataManager metadataManager;
 
-
-
-
   @Before
   public void insertDummyRecords() throws IOException, SQLException {
     // Initialize new manager
@@ -90,7 +87,7 @@ public class TestMetadataManager extends AbstractMiniHBaseClusterTest {
     hdb.insertMetricRecordsWithMetadata(metadataManager, timelineMetrics);
   }
 
-  @Test
+  @Test(timeout = 180000)
   public void testSaveMetricsMetadata() throws Exception {
     Map<TimelineMetricMetadataKey, TimelineMetricMetadata> cachedData = metadataManager.getMetadataCache();
 
