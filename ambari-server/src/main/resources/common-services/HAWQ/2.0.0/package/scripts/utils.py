@@ -23,12 +23,12 @@ from resource_management.core.logger import Logger
 
 import hawq_constants
 
-def chk_hawq_process_status_cmd(port, component_name=None):
+def generate_hawq_process_status_cmd(component_name, port):
   """
-  Check if hawq postgres / gpsyncmaster process is running
+  Generate a string of command to check if hawq postgres / gpsyncmaster process is running
   """
-  process = "gpsyncmaster" if component_name == hawq_constants.STANDBY else "postgres"
-  return "netstat -tupln | egrep ':{0}\s' | egrep {1}".format(port, process)
+  process_name = hawq_constants.COMPONENT_ATTRIBUTES_MAP[component_name]['process_name']
+  return "netstat -tupln | egrep ':{0}\s' | egrep {1}".format(port, process_name)
 
 
 def create_dir_as_hawq_user(directory):
