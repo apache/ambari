@@ -332,25 +332,6 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
       App.AlertConfigProperties.Interval.create({
         value: isWizard ? '' : alertDefinition.get('interval')
       }),
-      App.AlertConfigProperties.Interval.create({
-        value: isWizard ? '' : alertDefinition.get('ams.interval'),
-        label: 'AMS Interval',
-        apiProperty: 'source.ams.interval'
-      }),
-      App.AlertConfigProperty.create({
-        value: isWizard ? '' : alertDefinition.get('ams.value'),
-        label: 'AMS Value',
-        displayType: 'textField',
-        apiProperty: 'source.ams.value',
-        isValid: function () {
-          return (this.get('value') || '').trim().length > 0;
-        }.property('value')
-      }),
-      App.AlertConfigProperties.Parameter.create({
-        value: isWizard ? '' : alertDefinition.get('ams.minimalValue'),
-        label: 'AMS Minimal Value',
-        apiProperty: 'source.ams.minimal_value'
-      }),
       App.AlertConfigProperties.Thresholds.OkThreshold.create({
         label: 'Thresholds',
         showInputForValue: false,

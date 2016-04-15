@@ -467,7 +467,7 @@
       {
         "name": "namenode_free_heap_size_deviation_percentage",
         "label": "NameNode Heap Usage (Hourly)",
-        "description": "This service-level alert is triggered if the NN heap usage deviation has grown beyond the specified threshold within a given time interval.",
+        "description": "This service-level alert is triggered if the NameNode heap usage deviation has grown beyond the specified threshold within an hour period.",
         "interval": 1,
         "scope": "SERVICE",
         "enabled": false,
@@ -617,7 +617,7 @@
       {
         "name": "namenode_service_rpc_queue_latency_hourly",
         "label": "NameNode Service RPC Queue Latency (Hourly)",
-        "description": "This service-level alert is triggered if the deviation of RPC queue latency on datanode port has grown beyond the specified threshold within a given time interval.",
+        "description": "This service-level alert is triggered if the deviation of RPC queue latency on datanode port has grown beyond the specified threshold within an hour period.",
         "interval": 5,
         "scope": "ANY",
         "enabled": true,
@@ -638,7 +638,8 @@
               "display_name": "Time interval in minutes",
               "value": 60,
               "type": "NUMERIC",
-              "description": "Time interval in minutes."
+              "description": "Time interval in minutes.",
+              "visibility": "HIDDEN"
             },
             {
               "name": "appId",
@@ -658,26 +659,29 @@
             },
             {
               "name": "metric.deviation.warning.threshold",
-              "display_name": "The standard deviation threshold above which a warning is produced.",
+              "display_name": "Growth Rate",
               "type": "PERCENT",
               "units": "%",
               "value": 100,
+              "description": "The percentage of RPC queue latency growth.",
               "threshold": "WARNING"
             },
             {
               "name": "metric.deviation.critical.threshold",
-              "display_name": "The standard deviation threshold above which a critical alert is produced.",
+              "display_name": "Growth Rate",
               "type": "PERCENT",
               "units": "%",
               "value": 200,
+              "description": "The percentage of RPC queue latency growth.",
               "threshold": "CRITICAL"
             },
             {
               "name": "minimumValue",
-              "display_name": "Minimum Latency (in seconds)",
+              "display_name": "Minimum Latency",
               "value": 30,
               "type": "NUMERIC",
-              "description": "Minimum latency time to measure (in seconds)."
+              "units": "seconds",
+              "description": "The minimum latency to measure growth."
             }
           ]
         }
@@ -685,7 +689,7 @@
       {
         "name": "namenode_client_rpc_queue_latency_hourly",
         "label": "NameNode Client RPC Queue Latency (Hourly)",
-        "description": "This service-level alert is triggered if the deviation of RPC queue latency on client port has grown beyond the specified threshold within a given time interval.",
+        "description": "This service-level alert is triggered if the deviation of RPC queue latency on client port has grown beyond the specified threshold within an hour period.",
         "interval": 5,
         "scope": "ANY",
         "enabled": true,
@@ -706,7 +710,8 @@
               "display_name": "Time interval in minutes",
               "value": 60,
               "type": "NUMERIC",
-              "description": "Time interval in minutes."
+              "description": "Time interval in minutes.",
+              "visibility": "HIDDEN"
             },
             {
               "name": "appId",
@@ -726,26 +731,29 @@
             },
             {
               "name": "metric.deviation.warning.threshold",
-              "display_name": "The standard deviation threshold above which a warning is produced.",
+              "display_name": "Growth Rate",
               "type": "PERCENT",
               "units": "%",
               "value": 100,
+              "description": "The percentage of RPC queue latency growth.",
               "threshold": "WARNING"
             },
             {
               "name": "metric.deviation.critical.threshold",
-              "display_name": "The standard deviation threshold above which a critical alert is produced.",
+              "display_name": "Growth Rate",
               "type": "PERCENT",
               "units": "%",
               "value": 200,
+              "description": "The percentage of RPC queue latency growth.",
               "threshold": "CRITICAL"
             },
             {
               "name": "minimumValue",
-              "display_name": "Minimum Latency (in seconds)",
+              "display_name": "Minimum Latency",
               "value": 30,
               "type": "NUMERIC",
-              "description": "Minimum latency time to measure (in seconds)."
+              "units": "seconds",
+              "description": "The minimum latency to measure growth."
             }
           ]
         }
@@ -753,7 +761,7 @@
       {
         "name": "namenode_service_rpc_processing_latency_hourly",
         "label": "NameNode Service RPC Processing Latency (Hourly)",
-        "description": "This service-level alert is triggered if the deviation of RPC latency on datanode port has grown beyond the specified threshold within a given time interval.",
+        "description": "This service-level alert is triggered if the deviation of RPC latency on datanode port has grown beyond the specified threshold within an hour period.",
         "interval": 5,
         "scope": "ANY",
         "enabled": true,
@@ -774,7 +782,8 @@
               "display_name": "Time interval in minutes",
               "value": 60,
               "type": "NUMERIC",
-              "description": "Time interval in minutes."
+              "description": "Time interval in minutes.",
+              "visibility": "HIDDEN"
             },
             {
               "name": "appId",
@@ -794,26 +803,29 @@
             },
             {
               "name": "metric.deviation.warning.threshold",
-              "display_name": "The standard deviation threshold above which a warning is produced.",
+              "display_name": "Growth Rate",
               "type": "PERCENT",
               "units": "%",
               "value": 100,
+              "description": "The percentage of RPC processing latency growth.",
               "threshold": "WARNING"
             },
             {
               "name": "metric.deviation.critical.threshold",
-              "display_name": "The standard deviation threshold above which a critical alert is produced.",
+              "display_name": "Growth Rate",
               "type": "PERCENT",
               "units": "%",
               "value": 200,
+              "description": "The percentage of RPC processing latency growth.",
               "threshold": "CRITICAL"
             },
             {
               "name": "minimumValue",
-              "display_name": "Minimum Latency (in seconds)",
+              "display_name": "Minimum Latency",
               "value": 30,
               "type": "NUMERIC",
-              "description": "Minimum latency time to measure (in seconds)."
+              "units": "seconds",
+              "description": "The minimum latency to measure growth."
             }
           ]
         }
@@ -821,7 +833,7 @@
       {
         "name": "namenode_client_rpc_processing_latency_hourly",
         "label": "NameNode Client RPC Processing Latency (Hourly)",
-        "description": "This service-level alert is triggered if the deviation of RPC latency on client port has grown beyond the specified threshold within a given time interval.",
+        "description": "This service-level alert is triggered if the deviation of RPC latency on client port has grown beyond the specified threshold within an hour period.",
         "interval": 5,
         "scope": "ANY",
         "enabled": true,
@@ -842,7 +854,8 @@
               "display_name": "Time interval in minutes",
               "value": 60,
               "type": "NUMERIC",
-              "description": "Time interval in minutes."
+              "description": "Time interval in minutes.",
+              "visibility": "HIDDEN"
             },
             {
               "name": "appId",
@@ -862,26 +875,29 @@
             },
             {
               "name": "metric.deviation.warning.threshold",
-              "display_name": "The standard deviation threshold above which a warning is produced.",
+              "display_name": "Growth Rate",
               "type": "PERCENT",
               "units": "%",
               "value": 100,
+              "description": "The percentage of RPC processing latency growth.",
               "threshold": "WARNING"
             },
             {
               "name": "metric.deviation.critical.threshold",
-              "display_name": "The standard deviation threshold above which a critical alert is produced.",
+              "display_name": "Growth Rate",
               "type": "PERCENT",
               "units": "%",
               "value": 200,
+              "description": "The percentage of RPC processing latency growth.",
               "threshold": "CRITICAL"
             },
             {
               "name": "minimumValue",
-              "display_name": "Minimum Latency (in seconds)",
+              "display_name": "Minimum Latency",
               "value": 30,
               "type": "NUMERIC",
-              "description": "Minimum latency time to measure (in seconds)."
+              "units": "seconds",
+              "description": "The minimum latency to measure growth."
             }
           ]
         }
@@ -889,7 +905,7 @@
       {
         "name": "increase_nn_heap_usage_daily",
         "label": "NameNode Heap Usage (Daily)",
-        "description": "This service-level alert is triggered if the NN heap usage deviation has grown beyond the specified threshold within a given time interval.",
+        "description": "This service-level alert is triggered if the NameNode heap usage deviation has grown beyond the specified threshold within a day period.",
         "interval": 480,
         "scope": "ANY",
         "enabled": true,
@@ -910,7 +926,8 @@
               "display_name": "Time interval in minutes",
               "value": 1440,
               "type": "NUMERIC",
-              "description": "Time interval in minutes."
+              "description": "Time interval in minutes.",
+              "visibility": "HIDDEN"
             },
             {
               "name": "appId",
@@ -930,18 +947,20 @@
             },
             {
               "name": "metric.deviation.warning.threshold",
-              "display_name": "The standard deviation threshold above which a warning is produced.",
+              "display_name": "Growth Rate",
               "type": "PERCENT",
               "units": "%",
               "value": 20,
+              "description": "The percentage of NameNode heap usage growth.",
               "threshold": "WARNING"
             },
             {
               "name": "metric.deviation.critical.threshold",
-              "display_name": "The standard deviation threshold above which a critical alert is produced.",
+              "display_name": "Growth Rate",
               "type": "PERCENT",
               "units": "%",
               "value": 50,
+              "description": "The percentage of NameNode heap usage growth.",
               "threshold": "CRITICAL"
             }
           ]
@@ -950,7 +969,7 @@
       {
         "name": "namenode_service_rpc_processing_latency_daily",
         "label": "NameNode Service RPC Processing Latency (Daily)",
-        "description": "This service-level alert is triggered if the deviation of RPC latency on datanode port has grown beyond the specified threshold within a given time interval.",
+        "description": "This service-level alert is triggered if the deviation of RPC latency on datanode port has grown beyond the specified threshold within a day period.",
         "interval": 480,
         "scope": "ANY",
         "enabled": true,
@@ -971,7 +990,8 @@
               "display_name": "Time interval in minutes",
               "value": 1440,
               "type": "NUMERIC",
-              "description": "Time interval in minutes."
+              "description": "Time interval in minutes.",
+              "visibility": "HIDDEN"
             },
             {
               "name": "appId",
@@ -991,26 +1011,29 @@
             },
             {
               "name": "metric.deviation.warning.threshold",
-              "display_name": "The standard deviation threshold above which a warning is produced.",
+              "display_name": "Growth Rate",
               "type": "PERCENT",
               "units": "%",
               "value": 100,
+              "description": "The percentage of RPC processing latency growth.",
               "threshold": "WARNING"
             },
             {
               "name": "metric.deviation.critical.threshold",
-              "display_name": "The standard deviation threshold above which a critical alert is produced.",
+              "display_name": "Growth Rate",
               "type": "PERCENT",
               "units": "%",
               "value": 200,
+              "description": "The percentage of RPC processing latency growth.",
               "threshold": "CRITICAL"
             },
             {
               "name": "minimumValue",
-              "display_name": "Minimum Latency (in seconds)",
+              "display_name": "Minimum Latency",
               "value": 30,
               "type": "NUMERIC",
-              "description": "Minimum latency time to measure (in seconds)."
+              "units": "seconds",
+              "description": "The minimum latency to measure growth."
             }
           ]
         }
@@ -1018,7 +1041,7 @@
       {
         "name": "namenode_client_rpc_processing_latency_daily",
         "label": "NameNode Client RPC Processing Latency (Daily)",
-        "description": "This service-level alert is triggered if the deviation of RPC latency on client port has grown beyond the specified threshold within a given time interval.",
+        "description": "This service-level alert is triggered if the deviation of RPC latency on client port has grown beyond the specified threshold within a day period.",
         "interval": 480,
         "scope": "ANY",
         "enabled": true,
@@ -1039,7 +1062,8 @@
               "display_name": "Time interval in minutes",
               "value": 1440,
               "type": "NUMERIC",
-              "description": "Time interval in minutes."
+              "description": "Time interval in minutes.",
+              "visibility": "HIDDEN"
             },
             {
               "name": "appId",
@@ -1059,26 +1083,29 @@
             },
             {
               "name": "metric.deviation.warning.threshold",
-              "display_name": "The standard deviation threshold above which a warning is produced.",
+              "display_name": "Growth Rate",
               "type": "PERCENT",
               "units": "%",
               "value": 100,
+              "description": "The percentage of RPC processing latency growth.",
               "threshold": "WARNING"
             },
             {
               "name": "metric.deviation.critical.threshold",
-              "display_name": "The standard deviation threshold above which a critical alert is produced.",
+              "display_name": "Growth Rate",
               "type": "PERCENT",
               "units": "%",
               "value": 200,
+              "description": "The percentage of RPC processing latency growth.",
               "threshold": "CRITICAL"
             },
             {
               "name": "minimumValue",
-              "display_name": "Minimum Latency (in seconds)",
+              "display_name": "Minimum Latency",
               "value": 30,
               "type": "NUMERIC",
-              "description": "Minimum latency time to measure (in seconds)."
+              "units": "seconds",
+              "description": "The minimum latency to measure growth."
             }
           ]
         }
@@ -1086,7 +1113,7 @@
       {
         "name": "namenode_service_rpc_queue_latency_daily",
         "label": "NameNode Service RPC Queue Latency (Daily)",
-        "description": "This service-level alert is triggered if the deviation of RPC latency on datanode port has grown beyond the specified threshold within a given time interval.",
+        "description": "This service-level alert is triggered if the deviation of RPC latency on datanode port has grown beyond the specified threshold within a day period.",
         "interval": 480,
         "scope": "ANY",
         "enabled": true,
@@ -1107,7 +1134,8 @@
               "display_name": "Time interval in minutes",
               "value": 1440,
               "type": "NUMERIC",
-              "description": "Time interval in minutes."
+              "description": "Time interval in minutes.",
+              "visibility": "HIDDEN"
             },
             {
               "name": "appId",
@@ -1127,26 +1155,29 @@
             },
             {
               "name": "metric.deviation.warning.threshold",
-              "display_name": "The standard deviation threshold above which a warning is produced.",
+              "display_name": "Growth Rate",
               "type": "PERCENT",
               "units": "%",
               "value": 100,
+              "description": "The percentage of RPC queue latency growth.",
               "threshold": "WARNING"
             },
             {
               "name": "metric.deviation.critical.threshold",
-              "display_name": "The standard deviation threshold above which a critical alert is produced.",
+              "display_name": "Growth Rate",
               "type": "PERCENT",
               "units": "%",
               "value": 200,
+              "description": "The percentage of RPC queue latency growth.",
               "threshold": "CRITICAL"
             },
             {
               "name": "minimumValue",
-              "display_name": "Minimum Latency (in seconds)",
+              "display_name": "Minimum Latency",
               "value": 30,
               "type": "NUMERIC",
-              "description": "Minimum latency time to measure (in seconds)."
+              "units": "seconds",
+              "description": "The minimum latency to measure growth."
             }
           ]
         }
@@ -1154,7 +1185,7 @@
       {
         "name": "namenode_client_rpc_queue_latency_daily",
         "label": "NameNode Client RPC Queue Latency (Daily)",
-        "description": "This service-level alert is triggered if the deviation of RPC latency on client port has grown beyond the specified threshold within a given time interval.",
+        "description": "This service-level alert is triggered if the deviation of RPC latency on client port has grown beyond the specified threshold within a day period.",
         "interval": 480,
         "scope": "ANY",
         "enabled": true,
@@ -1175,7 +1206,8 @@
               "display_name": "Time interval in minutes",
               "value": 1440,
               "type": "NUMERIC",
-              "description": "Time interval in minutes."
+              "description": "Time interval in minutes.",
+              "visibility": "HIDDEN"
             },
             {
               "name": "appId",
@@ -1195,26 +1227,29 @@
             },
             {
               "name": "metric.deviation.warning.threshold",
-              "display_name": "The standard deviation threshold above which a warning is produced.",
+              "display_name": "Growth Rate",
               "type": "PERCENT",
               "units": "%",
               "value": 100,
+              "description": "The percentage of RPC queue latency growth.",
               "threshold": "WARNING"
             },
             {
               "name": "metric.deviation.critical.threshold",
-              "display_name": "The standard deviation threshold above which a critical alert is produced.",
+              "display_name": "Growth Rate",
               "type": "PERCENT",
               "units": "%",
               "value": 200,
+              "description": "The percentage of RPC queue latency growth.",
               "threshold": "CRITICAL"
             },
             {
               "name": "minimumValue",
-              "display_name": "Minimum Latency (in seconds)",
+              "display_name": "Minimum Latency",
               "value": 30,
               "type": "NUMERIC",
-              "description": "Minimum latency time to measure (in seconds)."
+              "units": "seconds",
+              "description": "The minimum latency to measure growth."
             }
           ]
         }
@@ -1222,7 +1257,7 @@
       {
         "name": "namenode_increase_in_storage_capacity_usage_daily",
         "label": "HDFS Storage Capacity Usage (Daily)",
-        "description": "This service-level alert is triggered if the increase in storage capacity usage deviation has grown beyond the specified threshold within a given time interval.",
+        "description": "This service-level alert is triggered if the increase in storage capacity usage deviation has grown beyond the specified threshold within a day period.",
         "interval": 480,
         "scope": "ANY",
         "enabled": true,
@@ -1243,7 +1278,8 @@
               "display_name": "Time interval in minutes",
               "value": 1440,
               "type": "NUMERIC",
-              "description": "Time interval in minutes."
+              "description": "Time interval in minutes.",
+              "visibility": "HIDDEN"
             },
             {
               "name": "appId",
@@ -1263,18 +1299,20 @@
             },
             {
               "name": "metric.deviation.warning.threshold",
-              "display_name": "The standard deviation threshold above which a warning is produced.",
+              "display_name": "Growth Rate",
               "type": "PERCENT",
               "units": "%",
               "value": 30,
+              "description": "The percentage of storage capacity usage growth.",
               "threshold": "WARNING"
             },
             {
               "name": "metric.deviation.critical.threshold",
-              "display_name": "The standard deviation threshold above which a critical alert is produced.",
+              "display_name": "Growth Rate",
               "type": "PERCENT",
               "units": "%",
               "value": 50,
+              "description": "The percentage of storage capacity usage growth.",
               "threshold": "CRITICAL"
             }
           ]
@@ -1283,7 +1321,7 @@
       {
         "name": "increase_nn_heap_usage_weekly",
         "label": "NameNode Heap Usage (Weekly)",
-        "description": "This service-level alert is triggered if the NN heap usage deviation has grown beyond the specified threshold within a given time interval.",
+        "description": "This service-level alert is triggered if the NameNode heap usage deviation has grown beyond the specified threshold within a week period.",
         "interval": 1440,
         "scope": "ANY",
         "enabled": true,
@@ -1304,7 +1342,8 @@
               "display_name": "Time interval in minutes",
               "value": 10080,
               "type": "NUMERIC",
-              "description": "Time interval in minutes."
+              "description": "Time interval in minutes.",
+              "visibility": "HIDDEN"
             },
             {
               "name": "appId",
@@ -1324,18 +1363,20 @@
             },
             {
               "name": "metric.deviation.warning.threshold",
-              "display_name": "The standard deviation threshold above which a warning is produced.",
+              "display_name": "Growth Rate",
               "type": "PERCENT",
               "units": "%",
               "value": 20,
+              "description": "The percentage of NameNode heap usage growth.",
               "threshold": "WARNING"
             },
             {
               "name": "metric.deviation.critical.threshold",
-              "display_name": "The standard deviation threshold above which a critical alert is produced.",
+              "display_name": "Growth Rate",
               "type": "PERCENT",
               "units": "%",
               "value": 50,
+              "description": "The percentage of NameNode heap usage growth.",
               "threshold": "CRITICAL"
             }
           ]
@@ -1344,7 +1385,7 @@
       {
         "name": "namenode_increase_in_storage_capacity_usage_weekly",
         "label": "HDFS Storage Capacity Usage (Weekly)",
-        "description": "This service-level alert is triggered if the increase in storage capacity usage deviation has grown beyond the specified threshold within a given time interval.",
+        "description": "This service-level alert is triggered if the increase in storage capacity usage deviation has grown beyond the specified threshold within a week period.",
         "interval": 1440,
         "scope": "ANY",
         "enabled": true,
@@ -1365,7 +1406,8 @@
               "display_name": "Time interval in minutes",
               "value": 10080,
               "type": "NUMERIC",
-              "description": "Time interval in minutes."
+              "description": "Time interval in minutes.",
+              "visibility": "HIDDEN"
             },
             {
               "name": "appId",
@@ -1385,18 +1427,20 @@
             },
             {
               "name": "metric.deviation.warning.threshold",
-              "display_name": "The standard deviation threshold above which a warning is produced.",
+              "display_name": "Growth Rate",
               "type": "PERCENT",
               "units": "%",
               "value": 10,
+              "description": "The percentage of storage capacity usage growth.",
               "threshold": "WARNING"
             },
             {
               "name": "metric.deviation.critical.threshold",
-              "display_name": "The standard deviation threshold above which a critical alert is produced.",
+              "display_name": "Growth Rate",
               "type": "PERCENT",
               "units": "%",
               "value": 20,
+              "description": "The percentage of storage capacity usage growth.",
               "threshold": "CRITICAL"
             }
           ]
