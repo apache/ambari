@@ -46,10 +46,32 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
   def getServiceConfigurationValidators(self):
     parentValidators = super(HDP25StackAdvisor, self).getServiceConfigurationValidators()
     childValidators = {
-      "HIVE": {"hive-interactive-env": self.validateHiveInteractiveEnvConfigurations}
+      "HIVE": {"hive-interactive-env": self.validateHiveInteractiveEnvConfigurations},
+      "YARN": {"yarn-site": self.validateYarnConfigurations}
     }
     self.mergeValidators(parentValidators, childValidators)
     return parentValidators
+
+  def validateYarnConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+    parentValidationProblems = super(HDP25StackAdvisor, self).validateYARNConfigurations(properties, recommendedDefaults, configurations, services, hosts)
+    yarn_site_properties = getSiteProperties(configurations, "yarn-site")
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    componentsListList = [service["components"] for service in services["services"]]
+    componentsList = [item["StackServiceComponents"] for sublist in componentsListList for item in sublist]
+    validationItems = []
+
+    hsi_hosts = self.__getHostsForComponent(services, "HIVE", "HIVE_SERVER_INTERACTIVE")
+    if len(hsi_hosts) > 0:
+      # HIVE_SERVER_INTERACTIVE is mapped to a host
+      if 'yarn.resourcemanager.work-preserving-recovery.enabled' not in yarn_site_properties or \
+              'true' != yarn_site_properties['yarn.resourcemanager.work-preserving-recovery.enabled']:
+        validationItems.append({"config-name": "yarn.resourcemanager.work-preserving-recovery.enabled",
+                                    "item": self.getWarnItem(
+                                      "While enabling HIVE_SERVER_INTERACTIVE it is recommended that you enable work preserving restart in YARN.")})
+
+    validationProblems = self.toConfigurationValidationProblems(validationItems, "yarn-site")
+    validationProblems.extend(parentValidationProblems)
+    return validationProblems
 
   def validateHiveInteractiveEnvConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     hive_site_env_properties = getSiteProperties(configurations, "hive-interactive-env")
@@ -61,18 +83,18 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
             'enable_hive_interactive' in hive_site_env_properties and hive_site_env_properties[
           'enable_hive_interactive'].lower() != 'true'):
         validationItems.append({"config-name": "enable_hive_interactive",
-                                "item": self.getWarnItem(
+                                "item": self.getErrorItem(
                                   "HIVE_SERVER_INTERACTIVE requires enable_hive_interactive in hive-interactive-env set to true.")})
       if 'hive_server_interactive_host' in hive_site_env_properties:
         hsi_host = hsi_hosts[0]
         if hive_site_env_properties['hive_server_interactive_host'].lower() != hsi_host.lower():
           validationItems.append({"config-name": "hive_server_interactive_host",
-                                  "item": self.getWarnItem(
+                                  "item": self.getErrorItem(
                                     "HIVE_SERVER_INTERACTIVE requires hive_server_interactive_host in hive-interactive-env set to its host name.")})
         pass
       if 'hive_server_interactive_host' not in hive_site_env_properties:
         validationItems.append({"config-name": "hive_server_interactive_host",
-                                "item": self.getWarnItem(
+                                "item": self.getErrorItem(
                                   "HIVE_SERVER_INTERACTIVE requires hive_server_interactive_host in hive-interactive-env set to its host name.")})
         pass
 
@@ -81,12 +103,12 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       if 'enable_hive_interactive' in hive_site_env_properties and hive_site_env_properties[
         'enable_hive_interactive'].lower() != 'false':
         validationItems.append({"config-name": "enable_hive_interactive",
-                                "item": self.getWarnItem(
+                                "item": self.getErrorItem(
                                   "enable_hive_interactive in hive-interactive-env should be set to false.")})
         pass
       pass
 
-    validationProblems = self.toConfigurationValidationProblems(validationItems, "hdfs-site")
+    validationProblems = self.toConfigurationValidationProblems(validationItems, "hive-interactive-env")
     return validationProblems
 
   def getServiceConfigurationRecommenderDict(self):

@@ -47,9 +47,9 @@ class TestHDP25StackAdvisor(TestCase):
     with open(hdp22StackAdvisorPath, 'rb') as fp:
       imp.load_module('stack_advisor_impl', fp, hdp22StackAdvisorPath, ('.py', 'rb', imp.PY_SOURCE))
     with open(hdp23StackAdvisorPath, 'rb') as fp:
-      stack_advisor_impl = imp.load_module('stack_advisor_impl', fp, hdp23StackAdvisorPath, ('.py', 'rb', imp.PY_SOURCE))
+      imp.load_module('stack_advisor_impl', fp, hdp23StackAdvisorPath, ('.py', 'rb', imp.PY_SOURCE))
     with open(hdp24StackAdvisorPath, 'rb') as fp:
-      stack_advisor_impl = imp.load_module('stack_advisor_impl', fp, hdp24StackAdvisorPath, ('.py', 'rb', imp.PY_SOURCE))
+      imp.load_module('stack_advisor_impl', fp, hdp24StackAdvisorPath, ('.py', 'rb', imp.PY_SOURCE))
     with open(hdp25StackAdvisorPath, 'rb') as fp:
       stack_advisor_impl = imp.load_module('stack_advisor_impl', fp, hdp25StackAdvisorPath, ('.py', 'rb', imp.PY_SOURCE))
     clazz = getattr(stack_advisor_impl, hdp25StackAdvisorClassName)
@@ -107,6 +107,35 @@ class TestHDP25StackAdvisor(TestCase):
     self.assertEquals(validations[0], expected)
 
 
+  def test_validateYarnConfigurations(self):
+    properties = {'enable_hive_interactive': 'true',
+                  'hive_server_interactive_host': 'c6401.ambari.apache.org',
+                  'hive.tez.container.size': '2048'}
+    recommendedDefaults = {'enable_hive_interactive': 'true',
+                           "hive_server_interactive_host": "c6401.ambari.apache.org"}
+    configurations = {
+      "hive-interactive-env": {
+        "properties": {'enable_hive_interactive': 'true', "hive_server_interactive_host": "c6401.ambari.apache.org"}
+      },
+      "hive-site": {
+        "properties": {"hive.security.authorization.enabled": "true", 'hive.tez.java.opts': '-server -Djava.net.preferIPv4Stack=true'}
+      },
+      "hive-env": {
+        "properties": {"hive_security_authorization": "None"}
+      },
+      "yarn-site": {
+        "properties": {"yarn.resourcemanager.work-preserving-recovery.enabled": "false"}
+      }
+    }
+    services = self.load_json("services-normal-his-valid.json")
+
+    res_expected = [
+      {'config-type': 'yarn-site', 'message': 'While enabling HIVE_SERVER_INTERACTIVE it is recommended that you enable work preserving restart in YARN.', 'type': 'configuration', 'config-name': 'yarn.resourcemanager.work-preserving-recovery.enabled', 'level': 'WARN'}
+    ]
+    res = self.stackAdvisor.validateYarnConfigurations(properties, recommendedDefaults, configurations, services, {})
+    self.assertEquals(res, res_expected)
+    pass
+
   def test_validateHiveConfigurations(self):
     properties = {'enable_hive_interactive': 'true',
                   'hive_server_interactive_host': 'c6401.ambari.apache.org',
@@ -122,6 +151,9 @@ class TestHDP25StackAdvisor(TestCase):
       },
       "hive-env": {
         "properties": {"hive_security_authorization": "None"}
+      },
+      "yarn-site": {
+        "properties": {"yarn.resourcemanager.work-preserving-recovery.enabled": "true"}
       }
     }
     configurations2 = {
@@ -133,6 +165,9 @@ class TestHDP25StackAdvisor(TestCase):
       },
       "hive-env": {
         "properties": {"hive_security_authorization": "None"}
+      },
+      "yarn-site": {
+        "properties": {"yarn.resourcemanager.work-preserving-recovery.enabled": "true"}
       }
     }
     configurations3 = {
@@ -144,6 +179,9 @@ class TestHDP25StackAdvisor(TestCase):
       },
       "hive-env": {
         "properties": {"hive_security_authorization": "None"}
+      },
+      "yarn-site": {
+        "properties": {"yarn.resourcemanager.work-preserving-recovery.enabled": "true"}
       }
     }
     services = self.load_json("services-normal-his-valid.json")
@@ -155,17 +193,18 @@ class TestHDP25StackAdvisor(TestCase):
     self.assertEquals(res, res_expected)
 
     res_expected = [
-      {'config-type': 'hdfs-site', 'message': 'HIVE_SERVER_INTERACTIVE requires enable_hive_interactive in hive-interactive-env set to true.', 'type': 'configuration', 'config-name': 'enable_hive_interactive', 'level': 'WARN'},
-      {'config-type': 'hdfs-site', 'message': 'HIVE_SERVER_INTERACTIVE requires hive_server_interactive_host in hive-interactive-env set to its host name.', 'type': 'configuration', 'config-name': 'hive_server_interactive_host', 'level': 'WARN'}
+      {'config-type': 'hive-interactive-env', 'message': 'HIVE_SERVER_INTERACTIVE requires enable_hive_interactive in hive-interactive-env set to true.', 'type': 'configuration', 'config-name': 'enable_hive_interactive', 'level': 'ERROR'},
+      {'config-type': 'hive-interactive-env', 'message': 'HIVE_SERVER_INTERACTIVE requires hive_server_interactive_host in hive-interactive-env set to its host name.', 'type': 'configuration', 'config-name': 'hive_server_interactive_host', 'level': 'ERROR'}
     ]
     res = self.stackAdvisor.validateHiveInteractiveEnvConfigurations(properties, recommendedDefaults, configurations2, services, {})
     self.assertEquals(res, res_expected)
 
     res_expected = [
-      {'config-type': 'hdfs-site', 'message': 'HIVE_SERVER_INTERACTIVE requires hive_server_interactive_host in hive-interactive-env set to its host name.', 'type': 'configuration', 'config-name': 'hive_server_interactive_host', 'level': 'WARN'}
+      {'config-type': 'hive-interactive-env', 'message': 'HIVE_SERVER_INTERACTIVE requires hive_server_interactive_host in hive-interactive-env set to its host name.', 'type': 'configuration', 'config-name': 'hive_server_interactive_host', 'level': 'ERROR'}
     ]
     res = self.stackAdvisor.validateHiveInteractiveEnvConfigurations(properties, recommendedDefaults, configurations3, services, {})
     self.assertEquals(res, res_expected)
+    pass
 
   def test_recommendYARNConfigurations(self):
     ################ Setting up Inputs. #########################
