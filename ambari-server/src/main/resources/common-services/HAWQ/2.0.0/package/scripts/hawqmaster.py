@@ -58,7 +58,7 @@ class HawqMaster(Script):
 
   def stop(self, env):
     import params
-    common.stop_component(hawq_constants.MASTER, params.hawq_master_address_port, hawq_constants.FAST)
+    common.stop_component(hawq_constants.MASTER, hawq_constants.FAST)
 
   def status(self, env):
     from hawqstatus import assert_component_running
@@ -66,7 +66,7 @@ class HawqMaster(Script):
 
   def immediate_stop_hawq_service(self, env):
     import params
-    common.stop_component(hawq_constants.CLUSTER, params.hawq_master_address_port, hawq_constants.IMMEDIATE)
+    common.stop_component(hawq_constants.CLUSTER, hawq_constants.IMMEDIATE)
 
   def hawq_clear_cache(self, env):
     import params

@@ -169,7 +169,9 @@ class TestHawqStandby(RMFTestCase):
 
 
   @patch ('hawqstandby.common.__set_osparams')
-  def test_stop_default(self, set_osparams_mock):
+  @patch ('common.get_local_hawq_site_property_value')
+  def test_stop_default(self, get_local_hawq_site_property_value_mock, set_osparams_mock):
+    get_local_hawq_site_property_value_mock.return_value = 5432
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + '/scripts/hawqstandby.py',
         classname = 'HawqStandby',

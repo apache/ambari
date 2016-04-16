@@ -48,7 +48,7 @@ class HawqStandby(Script):
 
   def stop(self, env):
     import params
-    common.stop_component(hawq_constants.STANDBY, params.hawq_master_address_port, hawq_constants.FAST)
+    common.stop_component(hawq_constants.STANDBY, hawq_constants.FAST)
 
   def status(self, env):
     from hawqstatus import assert_component_running

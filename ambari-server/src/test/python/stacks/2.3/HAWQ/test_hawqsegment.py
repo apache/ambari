@@ -154,7 +154,9 @@ class TestHawqSegment(RMFTestCase):
     self.assertNoMoreResources()
 
 
-  def test_stop_default(self):
+  @patch ('common.get_local_hawq_site_property_value')
+  def test_stop_default(self, get_local_hawq_site_property_value_mock):
+    get_local_hawq_site_property_value_mock.return_value = 40000
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + '/scripts/hawqsegment.py',
         classname = 'HawqSegment',
@@ -173,4 +175,3 @@ class TestHawqSegment(RMFTestCase):
         )
 
     self.assertNoMoreResources()
-

@@ -66,3 +66,18 @@ pxf_hdfs_test_dir = "/user/{0}/hawq_pxf_hdfs_service_check".format(hawq_user)
 # Timeouts
 default_exec_timeout = 600
 hawq_operation_exec_timeout = 900
+
+COMPONENT_ATTRIBUTES_MAP = {
+  MASTER: {
+    'port_property': 'hawq_master_address_port',
+    'process_name': 'postgres'
+  },
+  STANDBY: {
+    'port_property': 'hawq_master_address_port',
+    'process_name': 'gpsyncmaster'
+  },
+  SEGMENT: {
+    'port_property': 'hawq_segment_address_port',
+    'process_name': 'postgres'
+  }
+}

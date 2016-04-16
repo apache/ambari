@@ -50,7 +50,7 @@ class HawqSegment(Script):
 
   def stop(self, env, mode=hawq_constants.FAST):
     import params
-    common.stop_component(hawq_constants.SEGMENT, params.hawq_segment_address_port, mode)
+    common.stop_component(hawq_constants.SEGMENT, mode)
 
   def status(self, env):
     from hawqstatus import assert_component_running
