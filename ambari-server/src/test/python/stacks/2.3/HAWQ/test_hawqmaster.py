@@ -187,7 +187,7 @@ class TestHawqMaster(RMFTestCase):
         principal_name = UnknownConfigurationMock()
         )
 
-    self.assertResourceCalled('Execute', 'source /usr/local/hawq/greenplum_path.sh && hawq init master -a -v',
+    self.assertResourceCalled('Execute', 'source /usr/local/hawq/greenplum_path.sh && hawq init master -a -v --ignore-bad-hosts',
         logoutput = True, 
         not_if = None, 
         only_if = None, 

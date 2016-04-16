@@ -295,7 +295,11 @@ def start_component(component_name, port, data_dir):
     return utils.exec_hawq_operation(hawq_constants.START,
                                      "{0} -a -v".format(component_name),
                                      not_if=utils.generate_hawq_process_status_cmd(component_name, port))
-  utils.exec_hawq_operation(hawq_constants.INIT, "{0} -a -v".format(component_name))
+
+  options_str = "{0} -a -v".format(component_name)
+  if component_name == hawq_constants.MASTER:
+    options_str+=" --ignore-bad-hosts"
+  utils.exec_hawq_operation(hawq_constants.INIT, options_str)
 
 def stop_component(component_name, mode):
   """
