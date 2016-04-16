@@ -81,7 +81,26 @@
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat6</osFamily>
+          <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
+          <packages>
+            <package>
+              <name>ambari-logsearch-logfeeder</name>
+              <skipUpgrade>true</skipUpgrade>
+            </package>
+            <package>
+              <name>ambari-logsearch-portal</name>
+              <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_logsearch_portal</condition>
+            </package>
+            <package>
+              <name>ambari-logsearch-solr</name>
+              <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_logsearch_solr</condition>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
           <packages>
             <package>
               <name>ambari-logsearch-logfeeder</name>
