@@ -23,6 +23,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -506,8 +507,12 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
             Integer multiplier = entry.getValue();
             String source = alertDefinition.getSource();
             Float oldValue = getParamFloatValue(source, paramName);
-            Integer newValue = Math.round(oldValue * multiplier);
-            alertDefinition.setSource(setParamIntegerValue(source, paramName, newValue));
+            if (oldValue == null) {
+              alertDefinition.setSource(addParam(source, Arrays.asList(paramName)));
+            } else {
+              Integer newValue = Math.round(oldValue * multiplier);
+              alertDefinition.setSource(setParamIntegerValue(source, paramName, newValue));
+            }
           }
         }
 
@@ -762,7 +767,114 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
       paramsToAdd.add(param);
 
     }
+    if (params.contains("minimum.free.space")) {
+      JsonObject param = new JsonObject();
+      param.add("name", new JsonPrimitive("minimum.free.space"));
+      param.add("display_name", new JsonPrimitive("Minimum Free Space"));
+      param.add("value", new JsonPrimitive("5000000000"));
+      param.add("type", new JsonPrimitive("NUMERIC"));
+      param.add("description", new JsonPrimitive("The overall amount of free disk space left before an alert is triggered."));
+      param.add("units", new JsonPrimitive("bytes"));
+      param.add("threshold", new JsonPrimitive("WARNING"));
+      paramsToAdd.add(param);
 
+    }
+    if (params.contains("percent.used.space.warning.threshold")) {
+      JsonObject param = new JsonObject();
+      param.add("name", new JsonPrimitive("percent.used.space.warning.threshold"));
+      param.add("display_name", new JsonPrimitive("Warning"));
+      param.add("value", new JsonPrimitive("50"));
+      param.add("type", new JsonPrimitive("PERCENT"));
+      param.add("description", new JsonPrimitive("The percent of disk space consumed before a warning is triggered."));
+      param.add("units", new JsonPrimitive("%"));
+      param.add("threshold", new JsonPrimitive("WARNING"));
+      paramsToAdd.add(param);
+
+    }
+    if (params.contains("percent.free.space.critical.threshold")) {
+      JsonObject param = new JsonObject();
+      param.add("name", new JsonPrimitive("percent.free.space.critical.threshold"));
+      param.add("display_name", new JsonPrimitive("Critical"));
+      param.add("value", new JsonPrimitive("80"));
+      param.add("type", new JsonPrimitive("PERCENT"));
+      param.add("description", new JsonPrimitive("The percent of disk space consumed before a critical alert is triggered."));
+      param.add("units", new JsonPrimitive("%"));
+      param.add("threshold", new JsonPrimitive("CRITICAL"));
+      paramsToAdd.add(param);
+
+    }
+    if (params.contains("request.by.status.warning.threshold")) {
+      JsonObject param = new JsonObject();
+      param.add("name", new JsonPrimitive("request.by.status.warning.threshold"));
+      param.add("display_name", new JsonPrimitive("Warning Request Time"));
+      param.add("value", new JsonPrimitive("3000"));
+      param.add("type", new JsonPrimitive("NUMERIC"));
+      param.add("description", new JsonPrimitive("The time to find requests in progress before a warning alert is triggered."));
+      param.add("units", new JsonPrimitive("ms"));
+      param.add("threshold", new JsonPrimitive("WARNING"));
+      paramsToAdd.add(param);
+
+    }
+    if (params.contains("request.by.status.critical.threshold")) {
+      JsonObject param = new JsonObject();
+      param.add("name", new JsonPrimitive("request.by.status.critical.threshold"));
+      param.add("display_name", new JsonPrimitive("Critical Request Time"));
+      param.add("value", new JsonPrimitive("5000"));
+      param.add("type", new JsonPrimitive("NUMERIC"));
+      param.add("description", new JsonPrimitive("The time to find requests in progress before a critical alert is triggered."));
+      param.add("units", new JsonPrimitive("ms"));
+      param.add("threshold", new JsonPrimitive("CRITICAL"));
+      paramsToAdd.add(param);
+
+    }
+    if (params.contains("task.status.aggregation.warning.threshold")) {
+      JsonObject param = new JsonObject();
+      param.add("name", new JsonPrimitive("task.status.aggregation.warning.threshold"));
+      param.add("display_name", new JsonPrimitive("Warning Process Time"));
+      param.add("value", new JsonPrimitive("3000"));
+      param.add("type", new JsonPrimitive("NUMERIC"));
+      param.add("description", new JsonPrimitive("The time to calculate a request's status from its tasks before a warning alert is triggered."));
+      param.add("units", new JsonPrimitive("ms"));
+      param.add("threshold", new JsonPrimitive("WARNING"));
+      paramsToAdd.add(param);
+
+    }
+    if (params.contains("task.status.aggregation.critical.threshold")) {
+      JsonObject param = new JsonObject();
+      param.add("name", new JsonPrimitive("task.status.aggregation.critical.threshold"));
+      param.add("display_name", new JsonPrimitive("Critical Process Time"));
+      param.add("value", new JsonPrimitive("5000"));
+      param.add("type", new JsonPrimitive("NUMERIC"));
+      param.add("description", new JsonPrimitive("The time to calculate a request's status from its tasks before a critical alert is triggered."));
+      param.add("units", new JsonPrimitive("ms"));
+      param.add("threshold", new JsonPrimitive("CRITICAL"));
+      paramsToAdd.add(param);
+
+    }
+    if (params.contains("rest.api.cluster.warning.threshold")) {
+      JsonObject param = new JsonObject();
+      param.add("name", new JsonPrimitive("rest.api.cluster.warning.threshold"));
+      param.add("display_name", new JsonPrimitive("Warning Response Time"));
+      param.add("value", new JsonPrimitive("5000"));
+      param.add("type", new JsonPrimitive("NUMERIC"));
+      param.add("description", new JsonPrimitive("The time to get a cluster via the REST API before a warning alert is triggered."));
+      param.add("units", new JsonPrimitive("ms"));
+      param.add("threshold", new JsonPrimitive("WARNING"));
+      paramsToAdd.add(param);
+
+    }
+    if (params.contains("rest.api.cluster.critical.threshold")) {
+      JsonObject param = new JsonObject();
+      param.add("name", new JsonPrimitive("rest.api.cluster.critical.threshold"));
+      param.add("display_name", new JsonPrimitive("Critical Response Time"));
+      param.add("value", new JsonPrimitive("7000"));
+      param.add("type", new JsonPrimitive("NUMERIC"));
+      param.add("description", new JsonPrimitive("The time to get a cluster via the REST API before a critical alert is triggered."));
+      param.add("units", new JsonPrimitive("ms"));
+      param.add("threshold", new JsonPrimitive("CRITICAL"));
+      paramsToAdd.add(param);
+
+    }
 
     if (!parameterExists) {
       parametersJson = new JsonArray();
