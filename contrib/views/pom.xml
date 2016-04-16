@@ -35,6 +35,7 @@
   </properties>
   <modules>
     <module>utils</module>
+    <module>commons</module>
     <module>files</module>
     <module>jobs</module>
     <module>pig</module>
@@ -43,7 +44,6 @@
     <module>tez</module>
     <module>storm</module>
     <module>zeppelin</module>
-    <module>commons</module>
   </modules>
   <build>
     <pluginManagement>
