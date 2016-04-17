@@ -39,6 +39,7 @@
     <python.ver>python &gt;= 2.6</python.ver>
     <deb.python.ver>python (&gt;= 2.6)</deb.python.ver>
     <deb.architecture>amd64</deb.architecture>
+    <deb.dependency.list>${deb.python.ver}</deb.dependency.list>
     <solr.version>5.5.0</solr.version>
   </properties>
   <build>
