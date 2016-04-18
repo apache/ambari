@@ -30,15 +30,18 @@ public class SetServiceComponentStateWebRequest extends AmbariHttpWebRequest {
     private String componentName;
     private State componentState;
     private String requestContext;
-    private static String pathFormat = "/api/v1/clusters/%s/services/%s";
+    private boolean recoveryEnabled;
+    private static String pathFormat = "/api/v1/clusters/%s/services/%s/components/%s";
 
     public SetServiceComponentStateWebRequest(ConnectionParams params, String clusterName, String serviceName,
-                                              String componentName, State componentState, String requestContext) {
+                                              String componentName, State componentState, boolean recoveryEnabled,
+                                              String requestContext) {
         super(params);
         this.clusterName = clusterName;
         this.serviceName = serviceName;
         this.componentName = componentName;
         this.componentState = componentState;
+        this.recoveryEnabled = recoveryEnabled;
         this.requestContext = requestContext;
     }
 
@@ -47,6 +50,10 @@ public class SetServiceComponentStateWebRequest extends AmbariHttpWebRequest {
     public String getServiceName() { return this.serviceName; }
 
     public State getComponentState() { return this.componentState; }
+
+    public boolean isRecoveryEnabled() {
+        return this.recoveryEnabled;
+    }
 
     public String getRequestContext() { return this.requestContext; }
 
@@ -75,12 +82,15 @@ public class SetServiceComponentStateWebRequest extends AmbariHttpWebRequest {
         /**
          * {
          * "RequestInfo" : {"context" : requestContext},
-         * "Body" : {"ServiceComponentInfo" : {"state" : componentState}}
+         * "Body" : {"ServiceComponentInfo" : {"state" : componentState, "recovery_enabled": recoveryEnabled}}
          * }
          */
         JsonObject jsonObject = new JsonObject();
         jsonObject.add("RequestInfo", createJsonObject("context", requestContext));
-        jsonObject.add("Body", createJsonObject("ServiceComponentInfo", createJsonObject("state", componentState.toString())));
+        JsonObject jsonScInfoObj = new JsonObject();
+        jsonScInfoObj.addProperty("state", String.valueOf(componentState));
+        jsonScInfoObj.addProperty("recovery_enabled", String.valueOf(recoveryEnabled));
+        jsonObject.add("Body", createJsonObject("ServiceComponentInfo", jsonScInfoObj));
         Gson gson = new Gson();
         return gson.toJson(jsonObject);
     }
