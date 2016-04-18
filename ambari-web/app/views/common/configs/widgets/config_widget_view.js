@@ -167,6 +167,7 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
     },
 
     willDestroyElement: function() {
+      $(this.get('element')).tooltip('destroy');
       this.removeObserver('issuedConfig.warnMessage', this, this.errorLevelObserver);
       this.removeObserver('issuedConfig.errorMessage', this, this.errorLevelObserver);
       this.removeObserver('parentView.isPropertyUndefined', this, this.errorLevelObserver);
@@ -354,6 +355,7 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
   }.property('controller.selectedConfigGroup.name', 'controller.selectedConfigGroup.isDefault'),
 
   didInsertElement: function () {
+    App.tooltip(this.$('[data-toggle=tooltip]'), {placement: 'top'});
     App.tooltip($(this.get('element')).find('span'));
     var self = this;
     var element = this.$();
@@ -387,6 +389,8 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
   },
 
   willDestroyElement: function() {
+    this.$('[data-toggle=tooltip]').tooltip('destroy');
+    $(this.get('element')).find('span').tooltip('destroy');
     if (this.get('config.configConditions')) {
       this.removeObserver('config.value', this, this.configValueObserverForAttributes);
     }

@@ -44,10 +44,7 @@ App.ServiceConfigPopoverSupport = Ember.Mixin.create({
   popoverPlacement: 'right',
 
   didInsertElement: function () {
-    App.tooltip($('body'), {
-      selector: '[data-toggle=tooltip]',
-      placement: 'top'
-    });
+    App.tooltip(this.$('[data-toggle=tooltip]'), {placement: 'top'});
     // if description for this serviceConfig not exist, then no need to show popover
     if (this.get('isPopoverEnabled') !== 'false' && this.get('serviceConfig.description')) {
       this.addPopover();

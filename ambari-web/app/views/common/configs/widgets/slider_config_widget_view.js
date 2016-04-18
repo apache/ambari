@@ -234,6 +234,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
   },
 
   willDestroyElement: function() {
+    this.$('[data-toggle=tooltip]').tooltip('destroy');
     var self = this;
     this.get('changeBoundariesProperties').forEach(function(property) {
       self.removeObserver(property, self, self.changeBoundaries);

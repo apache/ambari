@@ -19,5 +19,10 @@
 var App = require('app');
 
 App.ServiceConfigView.SCPOverriddenPropertyView = Ember.View.extend({
-  templateName: require('templates/common/configs/overriddenProperty')
+  templateName: require('templates/common/configs/overriddenProperty'),
+
+  willDestroyElement: function () {
+    this.$('[data-toggle=tooltip]').tooltip('destroy');
+  }
+
 });
