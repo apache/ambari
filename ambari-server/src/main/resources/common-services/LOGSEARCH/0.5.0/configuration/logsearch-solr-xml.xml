@@ -24,18 +24,12 @@
   <property>
     <name>content</name>
     <description>This is the jinja template for logsearch solr.xml file</description>
-    <value>
-      &lt;solr&gt;
-        &lt;solrcloud&gt;
-          &lt;str name="host"&gt;${host:}&lt;/str&gt;
-          &lt;int name="hostPort"&gt;${jetty.port:}&lt;/int&gt;
-          &lt;str name="hostContext"&gt;${hostContext:solr}&lt;/str&gt;
-          &lt;int name="zkClientTimeout"&gt;${zkClientTimeout:15000}&lt;/int&gt;
-          &lt;bool name="genericCoreNodeNames"&gt;${genericCoreNodeNames:true}&lt;/bool&gt;
-        &lt;/solrcloud&gt;
-      &lt;/solr&gt;
-    </value>
+    <value></value>
+    <property-type>VALUE_FROM_PROPERTY_FILE</property-type>
+    <value-attributes>
+      <property-file-name>solr.xml.j2</property-file-name>
+      <property-file-type>xml</property-file-type>
+    </value-attributes>
   </property>
-
 
 </configuration>

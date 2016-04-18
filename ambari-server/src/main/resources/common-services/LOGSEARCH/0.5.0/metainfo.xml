@@ -49,7 +49,7 @@
 
         <component>
           <name>LOGSEARCH_SOLR</name>
-          <displayName>Solr Instance</displayName>
+          <displayName>Log Search Solr Instance</displayName>
           <category>MASTER</category>
           <cardinality>1+</cardinality>
           <versionAdvertised>false</versionAdvertised>

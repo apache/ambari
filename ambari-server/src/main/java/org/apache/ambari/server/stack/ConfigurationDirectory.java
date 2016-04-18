@@ -23,6 +23,7 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.stack.ConfigurationXml;
 import org.apache.ambari.server.utils.JsonUtils;
+import org.apache.ambari.server.utils.XmlUtils;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
@@ -148,6 +149,13 @@ public class ConfigurationDirectory extends StackDefinitionDirectory {
           try {
             String propertyValue = FileUtils.readFileToString(propertyFile);
             switch (propertyFileType.toLowerCase()) {
+              case "xml" :
+                if (!XmlUtils.isValidXml(propertyValue)) {
+                  LOG.error("Failed to load value from property file. Property file {} is not a valid XML file", propertyFilePath);
+                  break;
+                }
+                pi.setValue(propertyValue);
+                break;
               case "json":
                 if(!JsonUtils.isValidJson(propertyValue)) {
                   LOG.error("Failed to load value from property file. Property file {} is not a valid JSON file", propertyFilePath);

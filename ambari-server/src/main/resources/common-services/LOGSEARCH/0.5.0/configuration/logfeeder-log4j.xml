@@ -23,57 +23,15 @@
 <configuration supports_adding_forbidden="true">
 
   <!-- solrconfig.xml -->
-
   <property>
     <name>content</name>
-    <description>This is the jinja template for solrconfig.xml file for service logs</description>
-    <value>&lt;?xml version="1.0" encoding="UTF-8" ?&gt;
-&lt;!--
-  Licensed to the Apache Software Foundation (ASF) under one or more
-  contributor license agreements.  See the NOTICE file distributed with
-  this work for additional information regarding copyright ownership.
-  The ASF licenses this file to You under the Apache License, Version 2.0
-  (the "License"); you may not use this file except in compliance with
-  the License.  You may obtain a copy of the License at
-
-      http://www.apache.org/licenses/LICENSE-2.0
-
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
---&gt;
-&lt;!DOCTYPE log4j:configuration SYSTEM "log4j.dtd"&gt;
-&lt;log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/"&gt;
-  &lt;appender name="console" class="org.apache.log4j.ConsoleAppender"&gt;
-    &lt;param name="Target" value="System.out" /&gt;
-    &lt;layout class="org.apache.log4j.PatternLayout"&gt;
-      &lt;param name="ConversionPattern" value="%d [%t] %-5p %C{6} (%F:%L) - %m%n" /&gt;
-    &lt;/layout&gt;
-  &lt;/appender&gt;
-
-  &lt;appender name="rolling_file" class="org.apache.log4j.RollingFileAppender"&gt; 
-    &lt;param name="file" value="{{logfeeder_log_dir}}/logfeeder.log" /&gt;
-    &lt;param name="append" value="true" /&gt; 
-    &lt;param name="maxFileSize" value="10MB" /&gt; 
-    &lt;param name="maxBackupIndex" value="10" /&gt; 
-    &lt;layout class="org.apache.log4j.PatternLayout"&gt; 
-      &lt;param name="ConversionPattern" value="%d [%t] %-5p %C{6} (%F:%L) - %m%n"/&gt; 
-    &lt;/layout&gt; 
-  &lt;/appender&gt; 
-
-  &lt;category name="org.apache.ambari.logfeeder" additivity="false"&gt;
-    &lt;priority value="info" /&gt;
-    &lt;appender-ref ref="rolling_file" /&gt;
-  &lt;/category&gt;
-
-  &lt;root&gt;
-    &lt;priority value="warn" /&gt;
-    &lt;appender-ref ref="rolling_file" /&gt;
-  &lt;/root&gt;
-&lt;/log4j:configuration&gt;
-    </value>
+    <description>This is the jinja template for log4j.xml file for logfeeder</description>
+    <value></value>
+    <property-type>VALUE_FROM_PROPERTY_FILE</property-type>
+    <value-attributes>
+      <property-file-name>logfeeder-log4j.xml.j2</property-file-name>
+      <property-file-type>xml</property-file-type>
+    </value-attributes>
   </property>
 
 </configuration>
