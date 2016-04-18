@@ -178,9 +178,6 @@ App.ConfigHistoryFlowView = Em.View.extend({
   },
 
   willDestroyElement: function() {
-    Em.keys(this.get('serviceVersionsReferences')).forEach(function(key) {
-      Em.get(this.get('serviceVersionsReferences'), key).destroy();
-    }, this);
     this.$('.version-info-bar-wrapper').trigger('sticky_kit:detach').off();
     this.$('[data-toggle=tooltip]').tooltip('destroy');
     this.$('[data-toggle=arrow-tooltip]').tooltip('destroy');
