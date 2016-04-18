@@ -26,7 +26,8 @@ from resource_management.core.source import InlineTemplate, Template
 def setup_logsearch():
   import params
 
-  Directory([params.logsearch_log_dir, params.logsearch_pid_dir, params.logsearch_dir, params.logsearch_server_conf],
+  Directory([params.logsearch_log_dir, params.logsearch_pid_dir, params.logsearch_dir,
+             params.logsearch_server_conf, params.logsearch_config_set_dir],
             mode=0755,
             cd_access='a',
             owner=params.logsearch_user,
@@ -57,12 +58,17 @@ def setup_logsearch():
        owner=params.logsearch_user
        )
 
-  File(format("{logsearch_server_conf}/solr_configsets/hadoop_logs/conf/solrconfig.xml"),
+  File(format("{logsearch_server_conf}/user_pass.json"),
+       content=InlineTemplate(params.logsearch_admin_content),
+       owner=params.logsearch_user
+       )
+
+  File(format("{logsearch_config_set_dir}/hadoop_logs/conf/solrconfig.xml"),
        content=InlineTemplate(params.logsearch_service_logs_solrconfig_content),
        owner=params.logsearch_user
        )
 
-  File(format("{logsearch_server_conf}/solr_configsets/audit_logs/conf/solrconfig.xml"),
+  File(format("{logsearch_config_set_dir}/audit_logs/conf/solrconfig.xml"),
        content=InlineTemplate(params.logsearch_audit_logs_solrconfig_content),
        owner=params.logsearch_user
        )

@@ -56,6 +56,13 @@ class TestLogSearch(RMFTestCase):
                               cd_access = 'a',
                               mode = 0755
     )
+    self.assertResourceCalled('Directory', '/etc/ambari-logsearch-portal/conf/solr_configsets',
+                              owner = 'logsearch',
+                              group = 'logsearch',
+                              create_parents = True,
+                              cd_access = 'a',
+                              mode = 0755
+                              )
     
     self.assertResourceCalled('File', '/var/log/ambari-logsearch-portal/logsearch.out',
                               owner = 'logsearch',
@@ -76,6 +83,11 @@ class TestLogSearch(RMFTestCase):
                               mode = 0755,
                               owner = "logsearch"
     )
+
+    self.assertResourceCalled('File', '/etc/ambari-logsearch-portal/conf/user_pass.json',
+                              owner = 'logsearch',
+                              content = InlineTemplate(self.getConfig()['configurations']['logsearch-admin-properties']['content'])
+                              )
     self.assertResourceCalled('File', '/etc/ambari-logsearch-portal/conf/solr_configsets/hadoop_logs/conf/solrconfig.xml',
                               owner = 'logsearch',
                               content = InlineTemplate(self.getConfig()['configurations']['logsearch-service_logs-solrconfig']['content'])

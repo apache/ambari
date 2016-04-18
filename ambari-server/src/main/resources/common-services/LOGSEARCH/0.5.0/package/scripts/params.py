@@ -45,6 +45,8 @@ logsearch_solr_conf = "/etc/ambari-logsearch-solr/conf"
 logsearch_server_conf = "/etc/ambari-logsearch-portal/conf"
 logsearch_logfeeder_conf = "/etc/ambari-logsearch-logfeeder/conf"
 
+logsearch_config_set_dir = format("{logsearch_server_conf}/solr_configsets")
+
 logsearch_solr_port = status_params.logsearch_solr_port
 logsearch_solr_piddir = status_params.logsearch_solr_piddir
 logsearch_solr_pidfile = status_params.logsearch_solr_pidfile
@@ -201,6 +203,14 @@ storm_log_dir = default('/configurations/storm-env/storm_log_dir', '/var/log/sto
 yarn_log_dir_prefix = default('/configurations/yarn-env/yarn_log_dir_prefix', '/var/log/hadoop')
 mapred_log_dir_prefix = default('/configurations/mapred-env/mapred_log_dir_prefix', '/var/log/hadoop')
 zk_log_dir = default('/configurations/zookeeper-env/zk_log_dir', '/var/log/zookeeper')
+
+#####################################
+# Logsearch admin configs
+#####################################
+
+logsearch_admin_username = default('/configurations/logsearch-admin-properties/logsearch_admin_username', "admin")
+logsearch_admin_password = default('/configurations/logsearch-admin-properties/logsearch_admin_password', "admin")
+logsearch_admin_content = config['configurations']['logsearch-admin-properties']['content']
 
 #####################################
 # Logfeeder configs

@@ -221,6 +221,11 @@
       "ranger-env": {
             "xml_configurations_supported" : "true"
       },
+      "logsearch-admin-properties" : {
+        "logsearch_admin_username" : "admin",
+        "logsearch_admin_password" : "admin",
+        "content": "admin json content"
+      },
       "logsearch-solr-env": {
         "logsearch_solr_user": "solr",
         "logsearch_solr_group": "solr",
