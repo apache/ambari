@@ -93,17 +93,19 @@ App.MainServiceManageConfigGroupView = Em.View.extend({
     this.get('controller').loadHosts();
   },
 
-  didInsertElement: function () {
-    this.selectDefaultGroup();
-    App.tooltip($('.properties-link'));
-    App.tooltip($("[rel='button-info']"));
-    App.tooltip($("[rel='button-info-dropdown']"), {placement: 'left'});
-  },
-
   willDestroyElement: function () {
     this.get('controller.configGroups').clear();
     this.get('controller.originalConfigGroups').clear();
   },
+
+  showTooltip: function () {
+    if (!this.get('controller.isLoaded')) return false;
+    Em.run.next(function(){
+      App.tooltip($('.properties-link'));
+      App.tooltip($("[rel='button-info']"));
+      App.tooltip($("[rel='button-info-dropdown']"), {placement: 'left'});
+    });
+  }.observes('controller.isLoaded'),
 
   /**
    * Disable actions remove and rename for Default config group
