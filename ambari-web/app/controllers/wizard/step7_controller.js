@@ -1034,7 +1034,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   /**
    * load default groups for each service in case of initial load
    * @param serviceConfigGroups
-   * @method loadConfigGroups
+   * @method restoreConfigGroups
    */
   restoreConfigGroups: function (serviceConfigGroups) {
     var services = this.get('stepConfigs');

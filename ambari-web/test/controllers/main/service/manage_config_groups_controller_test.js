@@ -177,6 +177,12 @@ describe('App.ManageConfigGroupsController', function() {
         configGroups: [defaultGroup, selectedGroup],
         selectedConfigGroup: selectedGroup
       });
+
+      sinon.stub(App.configGroupsMapper, 'deleteRecord', Em.K);
+    });
+
+    afterEach(function(){
+      App.configGroupsMapper.deleteRecord.restore();
     });
 
     it('after deleting some config group, Default should be selected', function () {

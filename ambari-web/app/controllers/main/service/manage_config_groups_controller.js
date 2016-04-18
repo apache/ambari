@@ -579,6 +579,7 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
     this.set('selectedHosts', selectedConfigGroup.get('hosts'));
     this.deleteHosts();
     this.get('configGroups').removeObject(selectedConfigGroup);
+    App.configGroupsMapper.deleteRecord(selectedConfigGroup);
     this.set('selectedConfigGroup', this.get('configGroups').findProperty('isDefault'));
     this.propertyDidChange('groupDeleteTrigger');
   },
