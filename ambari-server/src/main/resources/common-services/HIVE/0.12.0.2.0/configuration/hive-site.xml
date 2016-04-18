@@ -214,6 +214,12 @@ limitations under the License.
   </property>
 
   <property>
+    <name>hive.server2.max.start.attempts</name>
+    <description>This number of times HiveServer2 will attempt to start before exiting, sleeping 60 seconds between retries.</description>
+    <value>5</value>
+  </property>
+
+  <property>
     <name>hive.server2.authentication</name>
     <description>Authentication mode, default NONE. Options are NONE, NOSASL, KERBEROS, LDAP, PAM and CUSTOM</description>
     <value>NONE</value>
