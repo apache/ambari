@@ -298,6 +298,15 @@ public class BlueprintConfigurationProcessor {
 
     //todo: lots of hard coded HA rules included here
     if (clusterTopology.isNameNodeHAEnabled()) {
+
+      // add "dfs.internal.nameservices" if it's not specified
+      Map<String, String> hdfsSiteConfig = clusterConfig.getFullProperties().get("hdfs-site");
+      String nameservices = hdfsSiteConfig.get("dfs.nameservices");
+      String int_nameservices = hdfsSiteConfig.get("dfs.internal.nameservices");
+      if(int_nameservices == null && nameservices != null) {
+        clusterConfig.setProperty("hdfs-site", "dfs.internal.nameservices", nameservices);
+      }
+
       // if the active/stanbdy namenodes are not specified, assign them automatically
       if (! isNameNodeHAInitialActiveNodeSet(clusterProps) && ! isNameNodeHAInitialStandbyNodeSet(clusterProps)) {
         Collection<String> nnHosts = clusterTopology.getHostAssignmentsForComponent("NAMENODE");
@@ -847,7 +856,10 @@ public class BlueprintConfigurationProcessor {
    * @return array of Strings that indicate the nameservices for this cluster
    */
   static String[] parseNameServices(Map<String, String> properties) {
-    final String nameServices = properties.get("dfs.nameservices");
+    String nameServices = properties.get("dfs.internal.nameservices");
+    if (nameServices == null) {
+      nameServices = properties.get("dfs.nameservices");
+    }
     return splitAndTrimStrings(nameServices);
   }
 

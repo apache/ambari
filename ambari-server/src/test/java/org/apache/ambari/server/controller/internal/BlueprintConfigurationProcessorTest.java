@@ -933,6 +933,7 @@ public class BlueprintConfigurationProcessorTest {
     configProperties.put("hbase-site", hbaseSiteProperties);
 
     // setup hdfs config for test
+    hdfsSiteProperties.put("dfs.internal.nameservices", expectedNameService);
     hdfsSiteProperties.put("dfs.nameservices", expectedNameService);
     hdfsSiteProperties.put("dfs.ha.namenodes.mynameservice", expectedNodeOne + ", " + expectedNodeTwo);
 
@@ -1078,6 +1079,7 @@ public class BlueprintConfigurationProcessorTest {
     configProperties.put("hdfs-site", hdfsSiteProperties);
 
     // setup hdfs config for test
+    hdfsSiteProperties.put("dfs.internal.nameservices", expectedNameServiceOne + "," + expectedNameServiceTwo);
     hdfsSiteProperties.put("dfs.nameservices", expectedNameServiceOne + "," + expectedNameServiceTwo);
     hdfsSiteProperties.put("dfs.ha.namenodes." + expectedNameServiceOne, expectedNodeOne + ", " + expectedNodeTwo);
     hdfsSiteProperties.put("dfs.ha.namenodes." + expectedNameServiceTwo, expectedNodeOne + ", " + expectedNodeTwo);
@@ -2625,6 +2627,9 @@ public class BlueprintConfigurationProcessorTest {
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
     updater.doUpdateForClusterCreate();
+
+    // verify that dfs.internal.nameservices was added
+    assertEquals("dfs.internal.nameservices wasn't added", expectedNameService, hdfsSiteProperties.get("dfs.internal.nameservices"));
 
     // verify that the expected hostname was substituted for the host group name in the config
     assertEquals("HTTPS address HA property not properly exported",
@@ -4832,6 +4837,9 @@ public class BlueprintConfigurationProcessorTest {
     Set<String> updatedConfigTypes =
       updater.doUpdateForClusterCreate();
 
+    // verify that dfs.internal.nameservices was added
+    assertEquals("dfs.internal.nameservices wasn't added", expectedNameService, hdfsSiteProperties.get("dfs.internal.nameservices"));
+
     // verify that the expected hostname was substituted for the host group name in the config
     assertEquals("HTTPS address HA property not properly exported",
       expectedHostName + ":" + expectedPortNum, hdfsSiteProperties.get("dfs.namenode.https-address." + expectedNameService + "." + expectedNodeOne));
@@ -5053,7 +5061,7 @@ public class BlueprintConfigurationProcessorTest {
       new HashMap<String, String>();
     hdfsSiteConfigMap.put("dfs.nameservices", "serviceOne");
 
-    // verify that a single service is parsed correctly
+    // verify that a dfs.internal.nameservices parsing falls back to dfs.nameservices
     String[] result = BlueprintConfigurationProcessor.parseNameServices(hdfsSiteConfigMap);
 
     assertNotNull("Resulting array was null",
@@ -5063,8 +5071,20 @@ public class BlueprintConfigurationProcessorTest {
     assertEquals("Incorrect value for returned name service",
       "serviceOne", result[0]);
 
+    hdfsSiteConfigMap.put("dfs.internal.nameservices", "serviceTwo");
+
+    // verify that a single service is parsed correctly
+    result = BlueprintConfigurationProcessor.parseNameServices(hdfsSiteConfigMap);
+
+    assertNotNull("Resulting array was null",
+      result);
+    assertEquals("Incorrect array size",
+      1, result.length);
+    assertEquals("Incorrect value for returned name service",
+      "serviceTwo", result[0]);
+
     // verify that multiple services are parsed correctly
-    hdfsSiteConfigMap.put("dfs.nameservices", " serviceTwo, serviceThree, serviceFour");
+    hdfsSiteConfigMap.put("dfs.internal.nameservices", " serviceTwo, serviceThree, serviceFour");
 
     String[] resultTwo = BlueprintConfigurationProcessor.parseNameServices(hdfsSiteConfigMap);
 
