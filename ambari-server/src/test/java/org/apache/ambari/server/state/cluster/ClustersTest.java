@@ -18,17 +18,31 @@
 
 package org.apache.ambari.server.state.cluster;
 
-import com.google.common.collect.Maps;
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
-import junit.framework.Assert;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.junit.Assert.fail;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+
+import javax.persistence.EntityManager;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.HostNotFoundException;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.agent.AgentEnv;
+import org.apache.ambari.server.agent.HostInfo;
+import org.apache.ambari.server.events.HostRegisteredEvent;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -41,6 +55,7 @@ import org.apache.ambari.server.orm.dao.TopologyRequestDAO;
 import org.apache.ambari.server.orm.entities.ClusterStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -53,6 +68,7 @@ import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.state.host.HostRegistrationRequestEvent;
 import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.HostGroupInfo;
@@ -61,33 +77,23 @@ import org.apache.ambari.server.topology.LogicalRequest;
 import org.apache.ambari.server.topology.PersistedState;
 import org.apache.ambari.server.topology.TopologyRequest;
 import org.apache.ambari.server.topology.TopologyTask;
+import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.persistence.EntityManager;
+import com.google.common.collect.Maps;
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.junit.Assert.fail;
+import junit.framework.Assert;
 
 public class ClustersTest {
 
   private Clusters clusters;
   private Injector injector;
-  @Inject
-  private AmbariMetaInfo metaInfo;
   @Inject
   private OrmTestHelper helper;
   @Inject
@@ -591,6 +597,40 @@ public class ClustersTest {
         Assert.fail("Host is expected to be deleted");
       }
     }
+  }
+
+  /**
+   * Tests that {@link HostRegisteredEvent} properly updates the
+   * {@link Clusters} in-memory mapping of hostIds to hosts.
+   *
+   * @throws AmbariException
+   */
+  @Test
+  public void testHostRegistrationPopulatesIdMapping() throws Exception {
+    String clusterName = UUID.randomUUID().toString();
+    String hostName = UUID.randomUUID().toString();
+
+    // required so that the event which does the work is executed synchornously
+    EventBusSynchronizer.synchronizeAmbariEventPublisher(injector);
+
+    Cluster cluster = createCluster(clusterName);
+    Assert.assertNotNull(cluster);
+
+    addHostToCluster(hostName, clusterName);
+    Host host = clusters.getHost(hostName);
+    Assert.assertNotNull(host);
+
+    HostRegistrationRequestEvent registrationEvent = new HostRegistrationRequestEvent(
+        host.getHostName(),
+        new AgentVersion(""), System.currentTimeMillis(), new HostInfo(), new AgentEnv());
+
+    host.handleEvent(registrationEvent);
+
+    Long hostId = host.getHostId();
+    Assert.assertNotNull(hostId);
+
+    host = clusters.getHostById(hostId);
+    Assert.assertNotNull(host);
   }
 
   private void createTopologyRequest(Cluster cluster, String hostName) {

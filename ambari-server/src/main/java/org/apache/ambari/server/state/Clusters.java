@@ -119,6 +119,14 @@ public interface Clusters {
   Host getHostById(Long hostId) throws AmbariException;
 
   /**
+   * Updates the internal mappings of hosts using the specified host.
+   *
+   * @param host
+   *          the host to update the internal mappings for.
+   */
+  void updateHostMappings(Host host);
+
+  /**
    * Add a Host object to be managed by this server
    * @param hostname Host to be added
    * @throws AmbariException
