@@ -36,6 +36,7 @@ import static org.junit.Assert.fail;
 
 import java.io.StringReader;
 import java.lang.reflect.Type;
+import java.net.UnknownHostException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -48,6 +49,9 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLSession;
 import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.AmbariException;
@@ -157,6 +161,7 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.powermock.api.mockito.PowerMockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -8495,7 +8500,7 @@ public class AmbariManagementControllerTest {
 
   @Test
   public void testUpdateRepoUrlController() throws Exception {
-    String badUrl = "http://hortonworks.com";
+    String badUrl = "http://some_custom.url";
     RepositoryInfo repo = ambariMetaInfo.getRepository(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID);
     RepositoryRequest request = new RepositoryRequest(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID);
     request.setBaseUrl(badUrl);
@@ -8518,11 +8523,23 @@ public class AmbariManagementControllerTest {
 
     requests.clear();
     request = new RepositoryRequest(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID);
-    request.setBaseUrl("https://hortonworks.com");
+    request.setBaseUrl("https://some_custom.url");
     request.setVerifyBaseUrl(false);
     requests.add(request);
+    HostnameVerifier defaultHostnameVerifier = HttpsURLConnection.getDefaultHostnameVerifier();
+    HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier() {
+      public boolean verify(String hostName, SSLSession session) {
+        return true;
+      }
+    });
     // test https url
-    controller.updateRepositories(requests);
+    try {
+      controller.updateRepositories(requests);
+    } catch(Exception e) {
+      // verification passed, but unable to connect to https://some_custom.url
+      assertTrue(e.getCause() instanceof UnknownHostException);
+    }
+    HttpsURLConnection.setDefaultHostnameVerifier(defaultHostnameVerifier);
 
     requests.clear();
     request = new RepositoryRequest(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID);

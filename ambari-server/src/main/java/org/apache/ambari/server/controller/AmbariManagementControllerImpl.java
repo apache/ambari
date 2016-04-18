@@ -41,6 +41,7 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_LIST
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.VERSION;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -3902,6 +3903,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     String repoName = repositoryInfo.getRepoName();
 
     String errorMessage = null;
+    Exception e = null;
 
     String[] suffixes = configs.getRepoValidationSuffixes(request.getOsType());
     for (String suffix : suffixes) {
@@ -3926,6 +3928,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         File f = new File(filePath);
         if(!f.exists()){
           errorMessage = "Could not access base url . " + spec + " . ";
+          e = new FileNotFoundException(errorMessage);
           break;
         }
 
@@ -3933,6 +3936,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         try {
           IOUtils.readLines(usp.readFrom(spec));
         } catch (IOException ioe) {
+          e = ioe;
           errorMessage = "Could not access base url . " + request.getBaseUrl() + " . ";
           if (LOG.isDebugEnabled()) {
             errorMessage += ioe;
@@ -3944,9 +3948,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
     }
 
-    if (errorMessage != null) {
+    if (e != null) {
       LOG.error(errorMessage);
-      throw new IllegalArgumentException(errorMessage);
+      throw new IllegalArgumentException(errorMessage, e);
     }
   }
 
