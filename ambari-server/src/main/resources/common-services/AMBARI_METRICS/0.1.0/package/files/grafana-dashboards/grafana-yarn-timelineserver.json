@@ -87,7 +87,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "yarn.TimelineDataManagerMetrics.GetEntitiesTotal",
-              "precision": "",
+              "precision": "default",
               "refId": "A"
             }
           ],
@@ -155,7 +155,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "yarn.TimelineDataManagerMetrics.GetEntitiesTimeAvgTime",
-              "precision": "",
+              "precision": "default",
               "refId": "A"
             }
           ],
@@ -232,7 +232,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "yarn.TimelineDataManagerMetrics.PostEntitiesTotal",
-              "precision": "",
+              "precision": "default",
               "refId": "A"
             }
           ],
@@ -300,7 +300,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "yarn.TimelineDataManagerMetrics.PostEntitiesTimeAvgTime",
-              "precision": "",
+              "precision": "default",
               "refId": "A"
             }
           ],
@@ -378,7 +378,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "jvm.JvmMetrics.GcCount",
-              "precision": "",
+              "precision": "default",
               "refId": "A"
             }
           ],
@@ -447,7 +447,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "jvm.JvmMetrics.GcTimeMillis",
-              "precision": "",
+              "precision": "default",
               "refId": "A"
             }
           ],
@@ -517,7 +517,7 @@
               "errors": {},
               "hosts": "",
               "metric": "jvm.JvmMetrics.MemHeapMaxM",
-              "precision": "",
+              "precision": "default",
               "refId": "A"
             },
             {
@@ -527,7 +527,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "jvm.JvmMetrics.MemHeapUsedM",
-              "precision": "",
+              "precision": "default",
               "refId": "B"
             },
             {
@@ -537,7 +537,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "jvm.JvmMetrics.MemHeapCommittedM",
-              "precision": "",
+              "precision": "default",
               "refId": "C"
             }
           ],
@@ -606,7 +606,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "jvm.JvmMetrics.MemNonHeapCommittedM",
-              "precision": "",
+              "precision": "default",
               "refId": "A"
             },
             {
@@ -616,7 +616,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "jvm.JvmMetrics.MemNonHeapUsedM",
-              "precision": "",
+              "precision": "default",
               "refId": "B"
             }
           ],

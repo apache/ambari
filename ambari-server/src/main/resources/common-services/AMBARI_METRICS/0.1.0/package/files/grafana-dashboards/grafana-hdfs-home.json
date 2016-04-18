@@ -87,7 +87,7 @@
               "errors": {},
               "hosts": "",
               "metric": "dfs.FSNamesystem.NumFilesUnderConstruction",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }
@@ -156,7 +156,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "rpc.rpc.client.NumOpenConnections",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }
@@ -234,9 +234,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "dfs.namenode.TotalFileOps",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
-              "shouldComputeRate": true,
+              "transform": "rate",
               "templatedHost": ""
             }
           ],
@@ -310,7 +310,7 @@
               "errors": {},
               "hosts": "",
               "metric": "dfs.FSNamesystem.CapacityUsedGB",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             },
@@ -320,7 +320,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "dfs.FSNamesystem.CapacityTotalGB",
-              "precision": "",
+              "precision": "default",
               "refId": "B",
               "templatedHost": ""
             }
@@ -398,7 +398,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "rpc.rpc.client.RpcSlowCalls",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }
@@ -467,7 +467,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "dfs.FSNamesystem.TotalLoad",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }
@@ -545,7 +545,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "rpcdetailed.rpcdetailed.client.AddBlockAvgTime",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }
@@ -614,9 +614,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "rpcdetailed.rpcdetailed.client.AddBlockNumOps",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
-              "shouldComputeRate": true,
+              "transform": "rate",
               "templatedHost": ""
             }
           ],

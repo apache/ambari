@@ -147,11 +147,12 @@ define([
             };
           };
           var getHostAppIdData = function(target) {
-            var precision = target.shouldAddPrecision && target.precision !== '' ? '&precision=' + target.precision : '';
-            var rate = target.shouldComputeRate ? '._rate._' : '._';
-            target.aggregator = target.precision !== "seconds" ? target.aggregator : '';
+            var precision = target.precision === 'default' || typeof target.precision == 'undefined'  ? '' : '&precision=' 
+            + target.precision;
+            var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
+            var rate = target.transform === "rate" ? '._rate' : '';
             return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.metric + rate +
-                target.aggregator + "&hostname=" + target.hosts + '&appId=' + target.app + '&startTime=' + from +
+                metricAggregator + "&hostname=" + target.hosts + '&appId=' + target.app + '&startTime=' + from +
                 '&endTime=' + to + precision).then(
                 getMetricsData(target)
             );
@@ -167,30 +168,36 @@ define([
 
           var getServiceAppIdData = function(target) {
             var tHost = (_.isEmpty(templateSrv.variables)) ? templatedHost : target.templatedHost;
-            var precision = target.shouldAddPrecision && target.precision !== '' ? '&precision=' + target.precision : '';
-            var rate = target.shouldComputeRate ? '._rate._' : '._';
+            var precision = target.precision === 'default' || typeof target.precision == 'undefined'  ? '' : '&precision=' 
+            + target.precision;
+            var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
+            var rate = target.transform === "rate" ? '._rate' : '';
             return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.metric + rate
-              + target.aggregator + '&hostname=' + tHost + '&appId=' + target.app + '&startTime=' + from +
+              + metricAggregator + '&hostname=' + tHost + '&appId=' + target.app + '&startTime=' + from +
               '&endTime=' + to + precision).then(
               getMetricsData(target)
             );
           };
           // To speed up querying on templatized dashboards.
           var getAllHostData = function(target) {
-            var precision = target.shouldAddPrecision && target.precision !== '' ? '&precision=' + target.precision : '';
-            var rate = target.shouldComputeRate ? '._rate._' : '._';
+            var precision = target.precision === 'default' || typeof target.precision == 'undefined'  ? '' : '&precision=' 
+            + target.precision;
+            var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
+            var rate = target.transform === "rate" ? '._rate' : '';
             var templatedComponent = (_.isEmpty(tComponent)) ? target.app : tComponent;
             return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.metric + rate
-              + target.aggregator + '&hostname=' + target.templatedHost + '&appId=' + templatedComponent + '&startTime=' + from +
+              + metricAggregator + '&hostname=' + target.templatedHost + '&appId=' + templatedComponent + '&startTime=' + from +
               '&endTime=' + to + precision).then(
               allHostMetricsData(target)
             );
           };
           var getYarnAppIdData = function(target) {
-            var precision = target.shouldAddPrecision && target.precision !== '' ? '&precision=' + target.precision : '';
-            var rate = target.shouldComputeRate ? '._rate._' : '._';
+            var precision = target.precision === 'default' || typeof target.precision == 'undefined'  ? '' : '&precision=' 
+            + target.precision;
+            var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
+            var rate = target.transform === "rate" ? '._rate' : '';
             return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.queue + rate
-              + target.aggregator + '&appId=resourcemanager&startTime=' + from +
+              + metricAggregator + '&appId=resourcemanager&startTime=' + from +
               '&endTime=' + to + precision).then(
               getMetricsData(target)
             );
@@ -466,7 +473,7 @@ define([
             return aggregatorsPromise;
           }
           aggregatorsPromise = $q.when([
-            'avg', 'sum', 'min', 'max'
+            'default','avg', 'sum', 'min', 'max'
           ]);
           return aggregatorsPromise;
         };

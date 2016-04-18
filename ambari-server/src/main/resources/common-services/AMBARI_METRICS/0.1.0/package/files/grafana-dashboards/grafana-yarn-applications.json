@@ -89,7 +89,7 @@
               "hide": false,
               "hosts": "",
               "metric": "yarn.QueueMetrics.Queue=root.running_1440",
-              "precision": "",
+              "precision": "default",
               "refId": "A"
             },
             {
@@ -99,7 +99,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "yarn.QueueMetrics.Queue=root.running_300",
-              "precision": "",
+              "precision": "default",
               "refId": "B"
             },
             {
@@ -109,7 +109,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "yarn.QueueMetrics.Queue=root.running_60",
-              "precision": "",
+              "precision": "default",
               "refId": "C"
             },
             {
@@ -119,7 +119,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "yarn.QueueMetrics.Queue=root.running_0",
-              "precision": "",
+              "precision": "default",
               "refId": "D"
             }
           ],
@@ -199,7 +199,7 @@
               "hide": false,
               "hosts": "",
               "metric": "yarn.QueueMetrics.Queue=root.AppsRunning",
-              "precision": "",
+              "precision": "default",
               "refId": "A"
             },
             {
@@ -209,7 +209,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "yarn.QueueMetrics.Queue=root.AppsPending",
-              "precision": "",
+              "precision": "default",
               "refId": "B"
             }
           ],
@@ -280,10 +280,8 @@
               "hide": false,
               "hosts": "",
               "metric": "yarn.QueueMetrics.Queue=root.AppsSubmitted",
-              "precision": "",
-              "refId": "A",
-              "shouldAddPrecision": false,
-              "shouldComputeRate": false
+              "precision": "default",
+              "refId": "A"
             },
             {
               "aggregator": "max",
@@ -292,9 +290,8 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "yarn.QueueMetrics.Queue=root.AppsCompleted",
-              "precision": "",
-              "refId": "B",
-              "shouldComputeRate": false
+              "precision": "default",
+              "refId": "B"
             }
           ],
           "timeFrom": null,
@@ -370,10 +367,8 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "yarn.ClusterMetrics.AMLaunchDelayAvgTime",
-              "precision": "",
-              "refId": "A",
-              "shouldAddPrecision": false,
-              "shouldComputeRate": false
+              "precision": "default",
+              "refId": "A"
             }
           ],
           "timeFrom": null,
@@ -441,10 +436,8 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "yarn.ClusterMetrics.AMRegisterDelayAvgTime",
-              "precision": "",
-              "refId": "A",
-              "shouldAddPrecision": false,
-              "shouldComputeRate": false
+              "precision": "default",
+              "refId": "A"
             }
           ],
           "timeFrom": null,

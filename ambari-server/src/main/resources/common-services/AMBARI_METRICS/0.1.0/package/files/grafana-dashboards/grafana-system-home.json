@@ -76,7 +76,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "cpu_num",
-              "precision": "",
+              "precision": "default",
               "refId": "A"
             }
           ],
@@ -131,7 +131,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "mem_total",
-              "precision": "",
+              "precision": "default",
               "refId": "A"
             }
           ],
@@ -186,7 +186,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "disk_total",
-              "precision": "",
+              "precision": "default",
               "refId": "A"
             }
           ],
@@ -249,7 +249,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "cpu_num",
-              "precision": "",
+              "precision": "default",
               "refId": "A"
             }
           ],
@@ -304,7 +304,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "mem_total",
-              "precision": "",
+              "precision": "default",
               "refId": "A"
             }
           ],
@@ -359,7 +359,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "disk_total",
-              "precision": "",
+              "precision": "default",
               "refId": "A"
             }
           ],
@@ -433,7 +433,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "cpu_user",
-              "precision": "",
+              "precision": "default",
               "refId": "B"
             },
             {
@@ -444,7 +444,7 @@
               "hide": false,
               "hosts": "",
               "metric": "cpu_system",
-              "precision": "",
+              "precision": "default",
               "refId": "A"
             },
             {
@@ -453,7 +453,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "cpu_nice",
-              "precision": "",
+              "precision": "default",
               "refId": "F"
             },
             {
@@ -462,7 +462,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "cpu_idle",
-              "precision": "",
+              "precision": "default",
               "refId": "C"
             },
             {
@@ -471,7 +471,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "cpu_wio",
-              "precision": "",
+              "precision": "default",
               "refId": "E"
             },
             {
@@ -480,7 +480,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "cpu_intr",
-              "precision": "",
+              "precision": "default",
               "refId": "D"
             },
             {
@@ -489,7 +489,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "cpu_sintr",
-              "precision": "",
+              "precision": "default",
               "refId": "G"
             },
             {
@@ -498,7 +498,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "cpu_steal",
-              "precision": "",
+              "precision": "default",
               "refId": "H"
             }
           ],
@@ -576,7 +576,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "load_one",
-              "precision": "",
+              "precision": "default",
               "refId": "A"
             },
             {
@@ -586,7 +586,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "load_five",
-              "precision": "",
+              "precision": "default",
               "refId": "B"
             },
             {
@@ -596,7 +596,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "load_fifteen",
-              "precision": "",
+              "precision": "default",
               "refId": "C"
             }
           ],
@@ -686,7 +686,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "mem_used",
-              "precision": "",
+              "precision": "default",
               "refId": "A"
             },
             {
@@ -695,7 +695,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "mem_free",
-              "precision": "",
+              "precision": "default",
               "refId": "B"
             },
             {
@@ -704,7 +704,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "mem_cached",
-              "precision": "",
+              "precision": "default",
               "refId": "C"
             },
             {
@@ -713,7 +713,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "mem_buffered",
-              "precision": "",
+              "precision": "default",
               "refId": "D"
             },
             {
@@ -722,7 +722,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "mem_shared",
-              "precision": "",
+              "precision": "default",
               "refId": "E"
             }
           ],
@@ -803,7 +803,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "mem_used",
-              "precision": "",
+              "precision": "default",
               "refId": "A"
             },
             {
@@ -812,7 +812,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "mem_free",
-              "precision": "",
+              "precision": "default",
               "refId": "B"
             },
             {
@@ -821,7 +821,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "mem_cached",
-              "precision": "",
+              "precision": "default",
               "refId": "C"
             },
             {
@@ -830,7 +830,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "mem_buffered",
-              "precision": "",
+              "precision": "default",
               "refId": "D"
             },
             {
@@ -839,7 +839,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "mem_shared",
-              "precision": "",
+              "precision": "default",
               "refId": "E"
             }
           ],
@@ -916,7 +916,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "disk_used",
-              "precision": "",
+              "precision": "default",
               "refId": "B"
             },
             {
@@ -925,7 +925,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "disk_free",
-              "precision": "",
+              "precision": "default",
               "refId": "C"
             }
           ],
@@ -993,7 +993,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "disk_used",
-              "precision": "",
+              "precision": "default",
               "refId": "B"
             },
             {
@@ -1002,7 +1002,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "disk_free",
-              "precision": "",
+              "precision": "default",
               "refId": "C"
             }
           ],
@@ -1080,9 +1080,9 @@
               "errors": {},
               "hosts": "",
               "metric": "read_count",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
-              "shouldComputeRate": true
+              "transform": "rate"
             },
             {
               "aggregator": "avg",
@@ -1091,9 +1091,9 @@
               "errors": {},
               "hosts": "",
               "metric": "write_count",
-              "precision": "",
+              "precision": "default",
               "refId": "B",
-              "shouldComputeRate": true
+              "transform": "rate"
             },
             {
               "aggregator": "avg",
@@ -1102,9 +1102,9 @@
               "errors": {},
               "hosts": "",
               "metric": "read_bytes",
-              "precision": "",
+              "precision": "default",
               "refId": "C",
-              "shouldComputeRate": true
+              "transform": "rate"
             },
             {
               "aggregator": "avg",
@@ -1113,9 +1113,9 @@
               "errors": {},
               "hosts": "",
               "metric": "write_bytes",
-              "precision": "",
+              "precision": "default",
               "refId": "D",
-              "shouldComputeRate": true
+              "transform": "rate"
             }
           ],
           "timeFrom": null,
@@ -1183,9 +1183,9 @@
               "errors": {},
               "hosts": "",
               "metric": "read_bytes",
-              "precision": "",
+              "precision": "default",
               "refId": "C",
-              "shouldComputeRate": true
+              "transform": "rate"
             },
             {
               "aggregator": "avg",
@@ -1194,9 +1194,9 @@
               "errors": {},
               "hosts": "",
               "metric": "write_bytes",
-              "precision": "",
+              "precision": "default",
               "refId": "D",
-              "shouldComputeRate": true
+              "transform": "rate"
             }
           ],
           "timeFrom": null,
@@ -1264,9 +1264,9 @@
               "errors": {},
               "hosts": "",
               "metric": "read_bytes",
-              "precision": "",
+              "precision": "default",
               "refId": "C",
-              "shouldComputeRate": true
+              "transform": "rate"
             },
             {
               "aggregator": "sum",
@@ -1275,9 +1275,9 @@
               "errors": {},
               "hosts": "",
               "metric": "write_bytes",
-              "precision": "",
+              "precision": "default",
               "refId": "D",
-              "shouldComputeRate": true
+              "transform": "rate"
             }
           ],
           "timeFrom": null,
@@ -1353,7 +1353,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "bytes_in",
-              "precision": "",
+              "precision": "default",
               "refId": "A"
             },
             {
@@ -1362,7 +1362,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "bytes_out",
-              "precision": "",
+              "precision": "default",
               "refId": "B"
             }
           ],
@@ -1439,7 +1439,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "bytes_in",
-              "precision": "",
+              "precision": "default",
               "refId": "A"
             },
             {
@@ -1448,7 +1448,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "bytes_out",
-              "precision": "",
+              "precision": "default",
               "refId": "B"
             }
           ],
@@ -1517,9 +1517,8 @@
               "errors": {},
               "hosts": "",
               "metric": "pkts_in",
-              "precision": "",
-              "refId": "A",
-              "shouldComputeRate": false
+              "precision": "default",
+              "refId": "A"
             },
             {
               "aggregator": "avg",
@@ -1528,7 +1527,7 @@
               "errors": {},
               "hosts": "",
               "metric": "pkts_out",
-              "precision": "",
+              "precision": "default",
               "refId": "B"
             }
           ],
@@ -1605,7 +1604,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "swap_free",
-              "precision": "",
+              "precision": "default",
               "refId": "A"
             },
             {
@@ -1614,7 +1613,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "swap_total",
-              "precision": "",
+              "precision": "default",
               "refId": "B"
             }
           ],
@@ -1682,7 +1681,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "proc_run",
-              "precision": "",
+              "precision": "default",
               "refId": "A"
             },
             {
@@ -1691,7 +1690,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "proc_total",
-              "precision": "",
+              "precision": "default",
               "refId": "B"
             }
           ],

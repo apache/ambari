@@ -87,7 +87,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "master.AssignmentManger.ritCount",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }
@@ -156,7 +156,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "master.AssignmentManger.ritCountOverThreshold",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }
@@ -225,7 +225,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "master.AssignmentManger.ritOldestAge",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }
@@ -303,7 +303,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "jvm.Master.JvmMetrics.ThreadsRunnable",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }
@@ -372,7 +372,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "jvm.RegionServer.JvmMetrics.ThreadsRunnable",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }
@@ -450,7 +450,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "jvm.Master.JvmMetrics.ThreadsBlocked",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }
@@ -519,7 +519,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "jvm.RegionServer.JvmMetrics.ThreadsBlocked",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }
@@ -597,7 +597,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "jvm.Master.JvmMetrics.ThreadsWaiting",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }
@@ -666,7 +666,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "jvm.RegionServer.JvmMetrics.ThreadsWaiting",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }
@@ -744,7 +744,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "jvm.Master.JvmMetrics.ThreadsTimedWaiting",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }
@@ -813,7 +813,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "jvm.RegionServer.JvmMetrics.ThreadsTimedWaiting",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }
@@ -891,7 +891,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "jvm.Master.JvmMetrics.ThreadsNew",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }
@@ -960,7 +960,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "jvm.RegionServer.JvmMetrics.ThreadsNew",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }
@@ -1038,7 +1038,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "jvm.Master.JvmMetrics.ThreadsTerminated",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }
@@ -1107,7 +1107,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "jvm.RegionServer.JvmMetrics.ThreadsTerminated",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }
@@ -1185,9 +1185,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.RegionServer.authenticationSuccesses",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
-              "shouldComputeRate": true,
+              "transform": "rate",
               "templatedHost": ""
             }
           ],
@@ -1255,9 +1255,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.RegionServer.authenticationFailures",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
-              "shouldComputeRate": true,
+              "transform": "rate",
               "templatedHost": ""
             }
           ],
@@ -1334,9 +1334,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.RegionServer.authorizationSuccesses",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
-              "shouldComputeRate": true,
+              "transform": "rate",
               "templatedHost": ""
             }
           ],
@@ -1404,9 +1404,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.RegionServer.authorizationFailures",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
-              "shouldComputeRate": true,
+              "transform": "rate",
               "templatedHost": ""
             }
           ],
@@ -1483,9 +1483,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "master.Master.exceptions",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
-              "shouldComputeRate": true,
+              "transform": "rate",
               "templatedHost": ""
             }
           ],
@@ -1553,9 +1553,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.RegionServer.exceptions",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
-              "shouldComputeRate": true,
+              "transform": "rate",
               "templatedHost": ""
             }
           ],

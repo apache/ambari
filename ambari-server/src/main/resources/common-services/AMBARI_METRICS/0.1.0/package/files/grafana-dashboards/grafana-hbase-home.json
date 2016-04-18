@@ -78,10 +78,8 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "master.Server.numRegionServers",
-              "precision": "",
-              "refId": "A",
-              "shouldAddPrecision": false,
-              "shouldComputeRate": false
+              "precision": "default",
+              "refId": "A"
             }
           ],
           "thresholds": "",
@@ -138,7 +136,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "master.Server.numDeadRegionServers",
-              "precision": "",
+              "precision": "default",
               "refId": "A"
             }
           ],
@@ -196,7 +194,7 @@
               "errors": {},
               "hosts": "",
               "metric": "regionserver.Server.regionCount",
-              "precision": "",
+              "precision": "default",
               "refId": "A"
             }
           ],
@@ -257,7 +255,7 @@
               "hosts": "",
               "metric": "master.Server.averageLoad",
               "refId": "A",
-              "shouldComputeRate": false
+              "precision": "default"
             }
           ],
           "thresholds": "",
@@ -334,7 +332,7 @@
               "errors": {},
               "hosts": "",
               "metric": "regionserver.Server.regionCount",
-              "precision": "",
+              "precision": "default",
               "refId": "A"
             },
             {
@@ -344,7 +342,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.storeCount",
-              "precision": "",
+              "precision": "default",
               "refId": "B"
             }
           ],
@@ -418,7 +416,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.storeFileSize",
-              "precision": "",
+              "precision": "default",
               "refId": "A"
             },
             {
@@ -428,7 +426,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.storeFileCount",
-              "precision": "",
+              "precision": "default",
               "refId": "B"
             },
             {
@@ -438,7 +436,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.storeFileIndexSize",
-              "precision": "",
+              "precision": "default",
               "refId": "C"
             },
             {
@@ -448,7 +446,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.staticIndexSize",
-              "precision": "",
+              "precision": "default",
               "refId": "D"
             },
             {
@@ -458,7 +456,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.staticBloomSize",
-              "precision": "",
+              "precision": "default",
               "refId": "E"
             }
           ],
@@ -536,9 +534,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.totalRequestCount",
-              "precision": "",
+              "precision": "default",
               "refId": "B",
-              "shouldComputeRate": true
+              "transform": "rate"
             },
             {
               "aggregator": "avg",
@@ -547,9 +545,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.readRequestCount",
-              "precision": "",
+              "precision": "default",
               "refId": "C",
-              "shouldComputeRate": true
+              "transform": "rate"
             },
             {
               "aggregator": "avg",
@@ -558,9 +556,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.writeRequestCount",
-              "precision": "",
+              "precision": "default",
               "refId": "D",
-              "shouldComputeRate": true
+              "transform": "rate"
             },
             {
               "aggregator": "avg",
@@ -569,9 +567,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.RegionServer.TotalCallTime_num_ops",
-              "precision": "",
+              "precision": "default",
               "refId": "E",
-              "shouldComputeRate": true
+              "transform": "rate"
             }
           ],
           "timeFrom": null,
@@ -642,9 +640,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Get_num_ops",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
-              "shouldComputeRate": true
+              "transform": "rate"
             },
             {
               "aggregator": "avg",
@@ -653,9 +651,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.ScanNext_num_ops",
-              "precision": "",
+              "precision": "default",
               "refId": "B",
-              "shouldComputeRate": true
+              "transform": "rate"
             },
             {
               "aggregator": "avg",
@@ -664,9 +662,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Mutate_num_ops",
-              "precision": "",
+              "precision": "default",
               "refId": "C",
-              "shouldComputeRate": true
+              "transform": "rate"
             },
             {
               "aggregator": "avg",
@@ -675,9 +673,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Delete_num_ops",
-              "precision": "",
+              "precision": "default",
               "refId": "D",
-              "shouldComputeRate": true
+              "transform": "rate"
             },
             {
               "aggregator": "avg",
@@ -686,9 +684,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Increment_num_ops",
-              "precision": "",
+              "precision": "default",
               "refId": "E",
-              "shouldComputeRate": true
+              "transform": "rate"
             },
             {
               "aggregator": "avg",
@@ -697,9 +695,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Append_num_ops",
-              "precision": "",
+              "precision": "default",
               "refId": "F",
-              "shouldComputeRate": true
+              "transform": "rate"
             },
             {
               "aggregator": "avg",
@@ -708,9 +706,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Replay_num_ops",
-              "precision": "",
+              "precision": "default",
               "refId": "H",
-              "shouldComputeRate": true
+              "transform": "rate"
             }
           ],
           "timeFrom": null,
@@ -789,7 +787,7 @@
               "errors": {},
               "hosts": "",
               "metric": "jvm.RegionServer.JvmMetrics.MemHeapMaxM",
-              "precision": "",
+              "precision": "default",
               "refId": "A"
             },
             {
@@ -800,7 +798,7 @@
               "errors": {},
               "hosts": "",
               "metric": "jvm.RegionServer.JvmMetrics.MemHeapUsedM",
-              "precision": "",
+              "precision": "default",
               "refId": "B"
             },
             {
@@ -811,7 +809,7 @@
               "errors": {},
               "hosts": "",
               "metric": "jvm.RegionServer.JvmMetrics.MemHeapCommittedM",
-              "precision": "",
+              "precision": "default",
               "refId": "C"
             },
             {
@@ -822,7 +820,7 @@
               "errors": {},
               "hosts": "",
               "metric": "jvm.RegionServer.JvmMetrics.MemNonHeapMaxM",
-              "precision": "",
+              "precision": "default",
               "refId": "D"
             },
             {
@@ -833,7 +831,7 @@
               "errors": {},
               "hosts": "",
               "metric": "jvm.RegionServer.JvmMetrics.MemNonHeapUsedM",
-              "precision": "",
+              "precision": "default",
               "refId": "E"
             },
             {
@@ -843,7 +841,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "jvm.RegionServer.JvmMetrics.MemNonHeapCommittedM",
-              "precision": "",
+              "precision": "default",
               "refId": "F"
             }
           ],
@@ -912,7 +910,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "jvm.RegionServer.JvmMetrics.MemNonHeapMaxM",
-              "precision": "",
+              "precision": "default",
               "refId": "A"
             },
             {
@@ -922,7 +920,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "jvm.RegionServer.JvmMetrics.MemNonHeapUsedM",
-              "precision": "",
+              "precision": "default",
               "refId": "B"
             },
             {
@@ -932,7 +930,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "jvm.RegionServer.JvmMetrics.MemNonHeapCommittedM",
-              "precision": "",
+              "precision": "default",
               "refId": "C"
             }
           ],
@@ -1010,7 +1008,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.memStoreSize",
-              "precision": "",
+              "precision": "default",
               "refId": "A"
             },
             {
@@ -1021,7 +1019,7 @@
               "errors": {},
               "hosts": "",
               "metric": "regionserver.Server.blockCacheSize",
-              "precision": "",
+              "precision": "default",
               "refId": "B"
             },
             {
@@ -1032,7 +1030,7 @@
               "errors": {},
               "hosts": "",
               "metric": "regionserver.Server.blockCacheFreeSize",
-              "precision": "",
+              "precision": "default",
               "refId": "C"
             }
           ],
@@ -1101,7 +1099,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.blockCacheCount",
-              "precision": "",
+              "precision": "default",
               "refId": "A"
             }
           ],
@@ -1179,9 +1177,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.blockCacheHitCount",
-              "precision": "",
+              "precision": "default",
               "refId": "D",
-              "shouldComputeRate": true
+              "transform": "rate"
             },
             {
               "aggregator": "sum",
@@ -1190,9 +1188,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.blockCacheMissCount",
-              "precision": "",
+              "precision": "default",
               "refId": "E",
-              "shouldComputeRate": true
+              "transform": "rate"
             },
             {
               "aggregator": "sum",
@@ -1201,9 +1199,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.blockCacheEvictionCount",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
-              "shouldComputeRate": true
+              "transform": "rate"
             }
           ],
           "timeFrom": null,
@@ -1271,7 +1269,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.blockCacheExpressHitPercent",
-              "precision": "",
+              "precision": "default",
               "refId": "C"
             },
             {
@@ -1281,7 +1279,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.blockCacheCountHitPercent",
-              "precision": "",
+              "precision": "default",
               "refId": "B"
             }
           ],
@@ -1364,7 +1362,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Get_mean",
-              "precision": "",
+              "precision": "default",
               "refId": "A"
             },
             {
@@ -1374,7 +1372,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Get_median",
-              "precision": "",
+              "precision": "default",
               "refId": "B"
             },
             {
@@ -1384,7 +1382,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Get_75th_percentile",
-              "precision": "",
+              "precision": "default",
               "refId": "E"
             },
             {
@@ -1394,7 +1392,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Get_95th_percentile",
-              "precision": "",
+              "precision": "default",
               "refId": "D"
             },
             {
@@ -1404,7 +1402,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Get_99th_percentile",
-              "precision": "",
+              "precision": "default",
               "refId": "C"
             },
             {
@@ -1414,7 +1412,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Get_max",
-              "precision": "",
+              "precision": "default",
               "refId": "G"
             },
             {
@@ -1424,7 +1422,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Get_min",
-              "precision": "",
+              "precision": "default",
               "refId": "F"
             },
             {
@@ -1435,9 +1433,9 @@
               "errors": {},
               "hosts": "",
               "metric": "regionserver.Server.Get_num_ops",
-              "precision": "",
+              "precision": "default",
               "refId": "H",
-              "shouldComputeRate": true
+              "transform": "rate"
             }
           ],
           "timeFrom": null,
@@ -1510,7 +1508,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Mutate_mean",
-              "precision": "",
+              "precision": "default",
               "refId": "A"
             },
             {
@@ -1520,7 +1518,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Mutate_median",
-              "precision": "",
+              "precision": "default",
               "refId": "B"
             },
             {
@@ -1530,7 +1528,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Mutate_75th_percentile",
-              "precision": "",
+              "precision": "default",
               "refId": "E"
             },
             {
@@ -1540,7 +1538,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Mutate_95th_percentile",
-              "precision": "",
+              "precision": "default",
               "refId": "D"
             },
             {
@@ -1550,7 +1548,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Mutate_99th_percentile",
-              "precision": "",
+              "precision": "default",
               "refId": "C"
             },
             {
@@ -1560,7 +1558,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Mutate_max",
-              "precision": "",
+              "precision": "default",
               "refId": "G"
             },
             {
@@ -1570,7 +1568,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Mutate_min",
-              "precision": "",
+              "precision": "default",
               "refId": "F"
             },
             {
@@ -1580,9 +1578,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Mutate_num_ops",
-              "precision": "",
+              "precision": "default",
               "refId": "H",
-              "shouldComputeRate": true
+              "transform": "rate"
             }
           ],
           "timeFrom": null,
@@ -1664,7 +1662,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Delete_mean",
-              "precision": "",
+              "precision": "default",
               "refId": "A"
             },
             {
@@ -1674,7 +1672,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Delete_median",
-              "precision": "",
+              "precision": "default",
               "refId": "B"
             },
             {
@@ -1684,7 +1682,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Delete_75th_percentile",
-              "precision": "",
+              "precision": "default",
               "refId": "E"
             },
             {
@@ -1694,7 +1692,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Delete_95th_percentile",
-              "precision": "",
+              "precision": "default",
               "refId": "D"
             },
             {
@@ -1704,7 +1702,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Delete_99th_percentile",
-              "precision": "",
+              "precision": "default",
               "refId": "C"
             },
             {
@@ -1714,7 +1712,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Delete_max",
-              "precision": "",
+              "precision": "default",
               "refId": "G"
             },
             {
@@ -1724,7 +1722,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Delete_min",
-              "precision": "",
+              "precision": "default",
               "refId": "F"
             },
             {
@@ -1734,9 +1732,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Delete_num_ops",
-              "precision": "",
+              "precision": "default",
               "refId": "H",
-              "shouldComputeRate": true
+              "transform": "rate"
             }
           ],
           "timeFrom": null,
@@ -1809,7 +1807,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Increment_mean",
-              "precision": "",
+              "precision": "default",
               "refId": "A"
             },
             {
@@ -1819,7 +1817,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Increment_median",
-              "precision": "",
+              "precision": "default",
               "refId": "B"
             },
             {
@@ -1829,7 +1827,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Increment_75th_percentile",
-              "precision": "",
+              "precision": "default",
               "refId": "E"
             },
             {
@@ -1839,7 +1837,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Increment_95th_percentile",
-              "precision": "",
+              "precision": "default",
               "refId": "D"
             },
             {
@@ -1849,7 +1847,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Increment_99th_percentile",
-              "precision": "",
+              "precision": "default",
               "refId": "C"
             },
             {
@@ -1859,7 +1857,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Increment_max",
-              "precision": "",
+              "precision": "default",
               "refId": "G"
             },
             {
@@ -1869,7 +1867,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Increment_min",
-              "precision": "",
+              "precision": "default",
               "refId": "F"
             },
             {
@@ -1879,9 +1877,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Increment_num_ops",
-              "precision": "",
+              "precision": "default",
               "refId": "H",
-              "shouldComputeRate": true
+              "transform": "rate"
             }
           ],
           "timeFrom": null,
@@ -1963,7 +1961,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Append_mean",
-              "precision": "",
+              "precision": "default",
               "refId": "A"
             },
             {
@@ -1973,7 +1971,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Append_median",
-              "precision": "",
+              "precision": "default",
               "refId": "B"
             },
             {
@@ -1983,7 +1981,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Append_75th_percentile",
-              "precision": "",
+              "precision": "default",
               "refId": "E"
             },
             {
@@ -1993,7 +1991,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Append_95th_percentile",
-              "precision": "",
+              "precision": "default",
               "refId": "D"
             },
             {
@@ -2003,7 +2001,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Append_99th_percentile",
-              "precision": "",
+              "precision": "default",
               "refId": "C"
             },
             {
@@ -2013,7 +2011,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Append_max",
-              "precision": "",
+              "precision": "default",
               "refId": "G"
             },
             {
@@ -2023,7 +2021,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Append_min",
-              "precision": "",
+              "precision": "default",
               "refId": "F"
             },
             {
@@ -2033,9 +2031,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Append_num_ops",
-              "precision": "",
+              "precision": "default",
               "refId": "H",
-              "shouldComputeRate": true
+              "transform": "rate"
             }
           ],
           "timeFrom": null,
@@ -2108,7 +2106,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Replay_mean",
-              "precision": "",
+              "precision": "default",
               "refId": "A"
             },
             {
@@ -2118,7 +2116,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Replay_median",
-              "precision": "",
+              "precision": "default",
               "refId": "B"
             },
             {
@@ -2128,7 +2126,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Replay_75th_percentile",
-              "precision": "",
+              "precision": "default",
               "refId": "E"
             },
             {
@@ -2138,7 +2136,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Replay_95th_percentile",
-              "precision": "",
+              "precision": "default",
               "refId": "D"
             },
             {
@@ -2148,7 +2146,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Replay_99th_percentile",
-              "precision": "",
+              "precision": "default",
               "refId": "C"
             },
             {
@@ -2158,7 +2156,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Replay_max",
-              "precision": "",
+              "precision": "default",
               "refId": "G"
             },
             {
@@ -2168,7 +2166,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Replay_min",
-              "precision": "",
+              "precision": "default",
               "refId": "F"
             },
             {
@@ -2178,9 +2176,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.Server.Replay_num_ops",
-              "precision": "",
+              "precision": "default",
               "refId": "H",
-              "shouldComputeRate": true
+              "transform": "rate"
             }
           ],
           "timeFrom": null,
@@ -2263,9 +2261,9 @@
               "errors": {},
               "hide": false,
               "metric": "master.Master.TotalCallTime_num_ops",
-              "precision": "",
+              "precision": "default",
               "refId": "C",
-              "shouldComputeRate": true
+              "transform": "rate"
             },
             {
               "aggregator": "avg",
@@ -2274,7 +2272,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.RegionServer.numActiveHandler",
-              "precision": "",
+              "precision": "default",
               "refId": "A"
             },
             {
@@ -2284,7 +2282,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.RegionServer.numOpenConnections",
-              "precision": "",
+              "precision": "default",
               "refId": "B"
             }
           ],
@@ -2358,7 +2356,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.RegionServer.numCallsInGeneralQueue",
-              "precision": "",
+              "precision": "default",
               "refId": "C"
             },
             {
@@ -2369,7 +2367,7 @@
               "errors": {},
               "hide": false,
               "metric": "regionserver.RegionServer.numCallsInPriorityQueue",
-              "precision": "",
+              "precision": "default",
               "refId": "D"
             },
             {
@@ -2379,7 +2377,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.RegionServer.numCallsInReplicationQueue",
-              "precision": "",
+              "precision": "default",
               "refId": "E"
             },
             {
@@ -2389,9 +2387,8 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.RegionServer.queueSize",
-              "precision": "",
-              "refId": "G",
-              "shouldComputeRate": false
+              "precision": "default",
+              "refId": "G"
             }
           ],
           "timeFrom": null,
@@ -2473,9 +2470,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.RegionServer.receivedBytes",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
-              "shouldComputeRate": true
+              "transform": "rate"
             },
             {
               "aggregator": "avg",
@@ -2484,9 +2481,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "regionserver.RegionServer.sentBytes",
-              "precision": "",
+              "precision": "default",
               "refId": "B",
-              "shouldComputeRate": true
+              "transform": "rate"
             }
           ],
           "timeFrom": null,

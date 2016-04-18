@@ -87,9 +87,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "dfs.datanode.BlocksWritten",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
-              "shouldComputeRate": true,
+              "transform": "rate",
               "templatedHost": ""
             }
           ],
@@ -158,9 +158,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "dfs.datanode.BlocksRead",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
-              "shouldComputeRate": true,
+              "transform": "rate",
               "templatedHost": ""
             }
           ],
@@ -238,7 +238,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "dfs.datanode.FsyncNanosAvgTime",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }
@@ -308,9 +308,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "dfs.datanode.FsyncNanosNumOps",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
-              "shouldComputeRate": true,
+              "transform": "rate",
               "templatedHost": ""
             }
           ],
@@ -388,7 +388,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "dfs.datanode.SendDataPacketBlockedOnNetworkNanosAvgTime",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }
@@ -458,9 +458,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "dfs.datanode.SendDataPacketBlockedOnNetworkNanosNumOps",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
-              "shouldComputeRate": true,
+              "transform": "rate",
               "templatedHost": ""
             }
           ],
@@ -538,7 +538,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "dfs.datanode.SendDataPacketTransferNanosAvgTime",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }
@@ -608,9 +608,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "dfs.datanode.SendDataPacketTransferNanosNumOps",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
-              "shouldComputeRate": true,
+              "transform": "rate",
               "templatedHost": ""
             }
           ],
@@ -688,9 +688,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "dfs.datanode.DatanodeNetworkErrors",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
-              "shouldComputeRate": true,
+              "transform": "rate",
               "templatedHost": ""
             }
           ],
@@ -759,9 +759,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "jvm.JvmMetrics.GcCount",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
-              "shouldComputeRate": true,
+              "transform": "rate",
               "templatedHost": ""
             }
           ],
@@ -839,9 +839,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "jvm.JvmMetrics.GcTimeMillis",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
-              "shouldComputeRate": true,
+              "transform": "rate",
               "templatedHost": ""
             }
           ],
@@ -910,9 +910,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "jvm.JvmMetrics.GcTimeMillisParNew",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
-              "shouldComputeRate": true,
+              "transform": "rate",
               "templatedHost": ""
             }
           ],

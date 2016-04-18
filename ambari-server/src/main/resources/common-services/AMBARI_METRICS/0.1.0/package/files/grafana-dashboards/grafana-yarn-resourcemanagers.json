@@ -88,7 +88,7 @@
               "errors": {},
               "hosts": "",
               "metric": "rpc.rpc.RpcProcessingTimeAvgTime",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             },
@@ -99,7 +99,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "rpc.rpc.RpcQueueTimeAvgTime",
-              "precision": "",
+              "precision": "default",
               "refId": "B",
               "templatedHost": ""
             }
@@ -169,7 +169,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "rpc.rpc.CallQueueLength",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }
@@ -239,7 +239,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "rpc.rpc.RpcSlowCalls",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }
@@ -318,7 +318,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "jvm.JvmMetrics.MemHeapMaxM",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             },
@@ -329,7 +329,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "jvm.JvmMetrics.MemHeapUsedM",
-              "precision": "",
+              "precision": "default",
               "refId": "B",
               "templatedHost": ""
             },
@@ -340,7 +340,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "jvm.JvmMetrics.MemHeapCommittedM",
-              "precision": "",
+              "precision": "default",
               "refId": "C",
               "templatedHost": ""
             }
@@ -410,7 +410,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "jvm.JvmMetrics.MemNonHeapUsedM",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             },
@@ -421,7 +421,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "jvm.JvmMetrics.MemNonHeapCommittedM",
-              "precision": "",
+              "precision": "default",
               "refId": "B",
               "templatedHost": ""
             }
@@ -500,7 +500,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "jvm.JvmMetrics.GcCount",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }
@@ -570,7 +570,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "jvm.JvmMetrics.GcTimeMillis",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }
@@ -649,7 +649,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "jvm.JvmMetrics.LogError",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             },
@@ -660,7 +660,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "jvm.JvmMetrics.LogFatal",
-              "precision": "",
+              "precision": "default",
               "refId": "B",
               "templatedHost": ""
             }
@@ -739,7 +739,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "rpc.rpc.RpcAuthorizationFailures",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }
@@ -809,7 +809,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "rpc.rpc.RpcAuthenticationFailures",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }

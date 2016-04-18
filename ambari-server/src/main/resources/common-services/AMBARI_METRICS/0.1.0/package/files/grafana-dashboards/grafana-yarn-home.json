@@ -75,7 +75,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "yarn.ClusterMetrics.NumActiveNMs",
-              "precision": "",
+              "precision": "default",
               "refId": "A"
             }
           ],
@@ -130,10 +130,8 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "yarn.QueueMetrics.Queue=root.AvailableMB",
-              "precision": "",
-              "refId": "A",
-              "shouldAddPrecision": false,
-              "shouldComputeRate": false
+              "precision": "default",
+              "refId": "A"
             }
           ],
           "thresholds": "",
@@ -187,9 +185,8 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "yarn.QueueMetrics.Queue=root.AppsRunning",
-              "precision": "",
-              "refId": "A",
-              "shouldAddPrecision": false
+              "precision": "default",
+              "refId": "A"
             }
           ],
           "thresholds": "",
@@ -250,7 +247,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "jvm.JvmMetrics.MemHeapUsedM",
-              "precision": "",
+              "precision": "default",
               "refId": "C"
             }
           ],
@@ -339,7 +336,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "yarn.ClusterMetrics.NumActiveNMs",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "shouldAddPrecision": false
             },
@@ -350,7 +347,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "yarn.ClusterMetrics.NumUnhealthyNMs",
-              "precision": "",
+              "precision": "default",
               "refId": "B"
             },
             {
@@ -360,7 +357,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "yarn.ClusterMetrics.NumLostNMs",
-              "precision": "",
+              "precision": "default",
               "refId": "C"
             }
           ],
@@ -438,7 +435,7 @@
               "errors": {},
               "hosts": "",
               "metric": "yarn.QueueMetrics.Queue=root.AppsRunning",
-              "precision": "",
+              "precision": "default",
               "refId": "A"
             },
             {
@@ -449,7 +446,7 @@
               "errors": {},
               "hosts": "",
               "metric": "yarn.QueueMetrics.Queue=root.AppsPending",
-              "precision": "",
+              "precision": "default",
               "refId": "B"
             },
             {
@@ -460,7 +457,7 @@
               "errors": {},
               "hosts": "",
               "metric": "yarn.QueueMetrics.Queue=root.AppsFailed",
-              "precision": "",
+              "precision": "default",
               "refId": "C"
             },
             {
@@ -471,7 +468,7 @@
               "errors": {},
               "hosts": "",
               "metric": "yarn.QueueMetrics.Queue=root.AppsCompleted",
-              "precision": "",
+              "precision": "default",
               "refId": "D"
             }
           ],
@@ -562,7 +559,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "yarn.QueueMetrics.Queue=root.AvailableMB",
-              "precision": "",
+              "precision": "default",
               "refId": "A"
             }
           ],

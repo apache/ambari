@@ -88,7 +88,7 @@
               "errors": {},
               "hosts": "",
               "metric": "rpc.rpc.client.RpcQueueTimeAvgTime",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }
@@ -158,9 +158,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "rpc.rpc.client.RpcQueueTimeNumOps",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
-              "shouldComputeRate": true,
+              "transform": "rate",
               "templatedHost": ""
             }
           ],
@@ -238,7 +238,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "rpc.rpc.client.RpcProcessingTimeAvgTime",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }
@@ -308,9 +308,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "rpc.rpc.client.RpcProcessingTimeNumOps",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
-              "shouldComputeRate": true,
+              "transform": "rate",
               "templatedHost": ""
             }
           ],
@@ -388,9 +388,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "jvm.JvmMetrics.GcCount",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
-              "shouldComputeRate": true,
+              "transform": "rate",
               "templatedHost": ""
             }
           ],
@@ -459,9 +459,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "jvm.JvmMetrics.GcTimeMillis",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
-              "shouldComputeRate": true,
+              "transform": "rate",
               "templatedHost": ""
             }
           ],
@@ -539,9 +539,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "jvm.JvmMetrics.GcCountParNew",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
-              "shouldComputeRate": true,
+              "transform": "rate",
               "templatedHost": ""
             }
           ],
@@ -610,9 +610,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "jvm.JvmMetrics.GcTimeMillisParNew",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
-              "shouldComputeRate": true,
+              "transform": "rate",
               "templatedHost": ""
             }
           ],
@@ -690,9 +690,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "jvm.JvmMetrics.GcTotalExtraSleepTime",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
-              "shouldComputeRate": true,
+              "transform": "rate",
               "templatedHost": ""
             }
           ],
@@ -761,9 +761,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "jvm.JvmMetrics.GcNumWarnThresholdExceeded",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
-              "shouldComputeRate": true,
+              "transform": "rate",
               "templatedHost": ""
             }
           ],
@@ -841,9 +841,8 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "rpc.rpc.client.CallQueueLength",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
-              "shouldComputeRate": false,
               "templatedHost": ""
             }
           ],
@@ -912,9 +911,8 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "rpc.rpc.client.RpcClientBackoff",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
-              "shouldComputeRate": false,
               "templatedHost": ""
             }
           ],
@@ -992,7 +990,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "rpc.rpc.datanode.RpcQueueTimeAvgTime",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }
@@ -1062,9 +1060,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "rpc.rpc.datanode.RpcQueueTimeNumOps",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
-              "shouldComputeRate": true,
+              "transform": "rate",
               "templatedHost": ""
             }
           ],
@@ -1142,7 +1140,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "rpc.rpc.datanode.RpcProcessingTimeAvgTime",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }
@@ -1212,9 +1210,9 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "rpc.rpc.datanode.RpcProcessingTimeNumOps",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
-              "shouldComputeRate": true,
+              "transform": "rate",
               "templatedHost": ""
             }
           ],
@@ -1292,7 +1290,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "rpc.rpc.datanode.CallQueueLength",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }
@@ -1362,7 +1360,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "rpc.rpc.datanode.RpcSlowCalls",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }
@@ -1441,7 +1439,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "dfs.FSNamesystem.TransactionsSinceLastLogRoll",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }
@@ -1511,7 +1509,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "dfs.FSNamesystem.TransactionsSinceLastCheckpoint",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }
@@ -1590,7 +1588,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "dfs.FSNamesystem.LockQueueLength",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }
@@ -1660,7 +1658,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "dfs.FSNamesystem.ExpiredHeartbeats",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }
@@ -1738,7 +1736,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "jvm.JvmMetrics.ThreadsBlocked",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }
@@ -1807,7 +1805,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "jvm.JvmMetrics.ThreadsWaiting",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }

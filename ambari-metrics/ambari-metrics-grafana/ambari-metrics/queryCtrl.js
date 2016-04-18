@@ -28,30 +28,29 @@ define([
 
         $scope.init = function() {
           $scope.target.errors = validateTarget($scope.target);
-          $scope.aggregators = ['avg', 'sum', 'min', 'max'];
-          $scope.precisions = ['seconds', 'minutes', 'hours', 'days'];
+          $scope.aggregators = ['none','avg', 'sum', 'min', 'max'];
+          $scope.precisions = ['default','seconds', 'minutes', 'hours', 'days'];
+          $scope.transforms = ['none','rate'];
 
           if (!$scope.target.aggregator) {
             $scope.target.aggregator = 'avg';
           }
-
-          if (!$scope.target.shouldAddPrecision) {
-            $scope.target.precision = '';
-          }
-
-          
-          $scope.$watch('target.precision', function() {
-            if ($scope.target.precision !== "seconds") {
-              $scope.target.aggregator = $scope.target.aggregator;
-            }
-          });
+          $scope.precisionInit = function () {
+           if (typeof $scope.target.precision == 'undefined') {
+                $scope.target.precision = "default";
+           }
+          };
+          $scope.transform = function () {
+           if (typeof $scope.target.transform == 'undefined') {
+                $scope.target.transform = "none";
+           }
+          };
           $scope.$watch('target.app', function (newValue) {
             if (newValue === '') {
               $scope.target.metric = '';
               $scope.target.hosts = '';
             }
           });
-
           if (!$scope.target.downsampleAggregator) {
             $scope.target.downsampleAggregator = 'avg';
           }

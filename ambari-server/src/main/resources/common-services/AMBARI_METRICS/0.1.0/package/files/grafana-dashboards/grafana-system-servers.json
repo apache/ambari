@@ -87,7 +87,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "cpu_user",
-              "precision": "",
+              "precision": "default",
               "refId": "B",
               "templatedHost": ""
             }
@@ -158,7 +158,7 @@
               "hide": false,
               "hosts": "",
               "metric": "cpu_system",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }
@@ -236,7 +236,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "cpu_nice",
-              "precision": "",
+              "precision": "default",
               "refId": "F",
               "templatedHost": ""
             }
@@ -305,7 +305,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "cpu_idle",
-              "precision": "",
+              "precision": "default",
               "refId": "C",
               "templatedHost": ""
             }
@@ -383,7 +383,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "cpu_wio",
-              "precision": "",
+              "precision": "default",
               "refId": "E",
               "templatedHost": ""
             }
@@ -452,7 +452,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "cpu_intr",
-              "precision": "",
+              "precision": "default",
               "refId": "D",
               "templatedHost": ""
             }
@@ -530,7 +530,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "cpu_sintr",
-              "precision": "",
+              "precision": "default",
               "refId": "G",
               "templatedHost": ""
             }
@@ -599,7 +599,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "cpu_steal",
-              "precision": "",
+              "precision": "default",
               "refId": "H",
               "templatedHost": ""
             }
@@ -678,7 +678,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "load_one",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }
@@ -757,7 +757,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "load_five",
-              "precision": "",
+              "precision": "default",
               "refId": "B",
               "templatedHost": ""
             }
@@ -836,7 +836,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "load_fifteen",
-              "precision": "",
+              "precision": "default",
               "refId": "C",
               "templatedHost": ""
             }
@@ -914,7 +914,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "mem_total",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }
@@ -983,7 +983,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "mem_used",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }
@@ -1061,7 +1061,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "mem_free",
-              "precision": "",
+              "precision": "default",
               "refId": "B",
               "templatedHost": ""
             }
@@ -1143,7 +1143,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "mem_cached",
-              "precision": "",
+              "precision": "default",
               "refId": "C",
               "templatedHost": ""
             }
@@ -1234,7 +1234,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "mem_buffered",
-              "precision": "",
+              "precision": "default",
               "refId": "D",
               "templatedHost": ""
             }
@@ -1316,7 +1316,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "mem_shared",
-              "precision": "",
+              "precision": "default",
               "refId": "E",
               "templatedHost": ""
             }
@@ -1394,7 +1394,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "disk_used",
-              "precision": "",
+              "precision": "default",
               "refId": "C",
               "templatedHost": ""
             }
@@ -1463,7 +1463,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "disk_free",
-              "precision": "",
+              "precision": "default",
               "refId": "C",
               "templatedHost": ""
             }
@@ -1542,9 +1542,9 @@
               "errors": {},
               "hosts": "",
               "metric": "read_bytes",
-              "precision": "",
+              "precision": "default",
               "refId": "C",
-              "shouldComputeRate": true,
+              "transform": "rate",
               "templatedHost": ""
             }
           ],
@@ -1613,9 +1613,9 @@
               "errors": {},
               "hosts": "",
               "metric": "write_bytes",
-              "precision": "",
+              "precision": "default",
               "refId": "D",
-              "shouldComputeRate": true,
+              "transform": "rate",
               "templatedHost": ""
             }
           ],
@@ -1693,9 +1693,9 @@
               "errors": {},
               "hosts": "",
               "metric": "read_count",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
-              "shouldComputeRate": true,
+              "transform": "rate",
               "templatedHost": ""
             }
           ],
@@ -1764,9 +1764,9 @@
               "errors": {},
               "hosts": "",
               "metric": "write_count",
-              "precision": "",
+              "precision": "default",
               "refId": "B",
-              "shouldComputeRate": true,
+              "transform": "rate",
               "templatedHost": ""
             }
           ],
@@ -1843,7 +1843,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "bytes_in",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }
@@ -1912,7 +1912,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "bytes_out",
-              "precision": "",
+              "precision": "default",
               "refId": "B",
               "templatedHost": ""
             }
@@ -1991,9 +1991,8 @@
               "errors": {},
               "hosts": "",
               "metric": "pkts_in",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
-              "shouldComputeRate": false,
               "templatedHost": ""
             }
           ],
@@ -2062,7 +2061,7 @@
               "errors": {},
               "hosts": "",
               "metric": "pkts_out",
-              "precision": "",
+              "precision": "default",
               "refId": "B",
               "templatedHost": ""
             }
@@ -2140,7 +2139,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "swap_total",
-              "precision": "",
+              "precision": "default",
               "refId": "B",
               "templatedHost": ""
             }
@@ -2209,7 +2208,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "swap_free",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }
@@ -2287,7 +2286,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "proc_total",
-              "precision": "",
+              "precision": "default",
               "refId": "B",
               "templatedHost": ""
             }
@@ -2356,7 +2355,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "proc_run",
-              "precision": "",
+              "precision": "default",
               "refId": "A",
               "templatedHost": ""
             }

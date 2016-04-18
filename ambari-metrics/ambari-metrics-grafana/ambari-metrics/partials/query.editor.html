@@ -131,15 +131,22 @@
             </a>
         </li>
         <li class="tight-form-item tight-form-align">
-            <editor-checkbox text="Rate (/sec)" model="target.shouldComputeRate" change="targetBlur()"></editor-checkbox>
+           Transform
+        </li>
+        <li>
+            <select ng-model="target.transform" class="tight-form-input input-small"
+                    ng-options="transform for transform in transforms"
+                    ng-init="transform()"
+                    ng-change="targetBlur()"></select>
         </li>
 
         <li class="tight-form-item tight-form-align">
-            <editor-checkbox text="Precision" model="target.shouldAddPrecision" change="targetBlur()"></editor-checkbox>
+            Precision
         </li>
-        <li ng-show="target.shouldAddPrecision">
+        <li>
             <select ng-model="target.precision" class="tight-form-input input-small"
                     ng-options="precision for precision in precisions"
+                    ng-init="precisionInit()"
                     ng-change="targetBlur()">
             </select>
         </li>
