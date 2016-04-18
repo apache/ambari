@@ -17,6 +17,7 @@ limitations under the License.
 '''
 
 import pprint
+import os
 from mock.mock import patch, MagicMock
 from stacks.utils.RMFTestCase import *
 from resource_management.core.logger import Logger
@@ -73,3 +74,93 @@ class TestConfSelect(RMFTestCase):
     self.assertEqual(pprint.pformat(self.env.resource_list),
       "[Directory['/etc/foo/conf'],\n "
       "Execute['ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E cp -R -p -v /usr/hdp/current/oozie-client/conf/* /etc/foo/conf']]")
+
+
+  def test_symlink_conversion_bad_linkto(self):
+    """
+    Tests that a bad enum throws an exception.
+    :return:
+    """
+    try:
+      conf_select.convert_conf_directories_to_symlinks("hadoop", "2.3.0.0-1234",
+        conf_select._PACKAGE_DIRS["hadoop"], link_to = "INVALID")
+      raise Exception("Expected failure when supplying a bad enum for link_to")
+    except:
+      pass
+
+
+  @patch("resource_management.core.shell.call")
+  @patch.object(os.path, "exists")
+  @patch.object(os.path, "islink")
+  @patch("resource_management.libraries.functions.conf_select._valid", new = MagicMock(return_value = True))
+  @patch("resource_management.libraries.functions.conf_select.create", new = MagicMock(return_value = ["/etc/hadoop/2.3.0.0-1234/0"]))
+  @patch("resource_management.libraries.functions.conf_select.select", new = MagicMock())
+  def test_symlink_conversion_to_current(self, islink_mock, path_mock, shell_call_mock):
+    """
+    Tests that conf-select creates the correct symlink directories.
+    :return:
+    """
+
+    def mock_call(command, **kwargs):
+      """
+      Instead of shell.call, call a command whose output equals the command.
+      :param command: Command that will be echoed.
+      :return: Returns a tuple of (process output code, stdout, stderr)
+      """
+      return (0, "/etc/hadoop/conf", None)
+
+    def path_mock_call(path):
+      if path == "/etc/hadoop/conf":
+        return True
+
+      if path == "/etc/hadoop/2.3.0.0-1234/0":
+        return True
+
+      return False
+
+    def islink_mock_call(path):
+      if path == "/etc/hadoop/conf":
+        return False
+
+      return False
+
+    path_mock.side_effect = path_mock_call
+    islink_mock.side_effect = islink_mock_call
+    shell_call_mock.side_effect = mock_call
+    conf_select.convert_conf_directories_to_symlinks("hadoop", "2.3.0.0-1234", conf_select._PACKAGE_DIRS["hadoop"])
+
+    self.assertEqual(pprint.pformat(self.env.resource_list),
+      "[Execute[('cp', '-R', '-p', '/etc/hadoop/conf', '/etc/hadoop/conf.backup')],\n "
+      "Directory['/etc/hadoop/conf'],\n "
+      "Link['/etc/hadoop/conf']]")
+
+
+  @patch.object(os.path, "exists", new = MagicMock(return_value = True))
+  @patch.object(os.path, "islink", new = MagicMock(return_value = True))
+  @patch.object(os, "readlink", new = MagicMock(return_value = "/etc/component/invalid"))
+  @patch("resource_management.libraries.functions.conf_select._valid", new = MagicMock(return_value = True))
+  @patch("resource_management.libraries.functions.conf_select.create", new = MagicMock(return_value = ["/etc/hadoop/2.3.0.0-1234/0"]))
+  @patch("resource_management.libraries.functions.conf_select.select", new = MagicMock())
+  def test_symlink_conversion_relinks_wrong_link(self):
+    """
+    Tests that conf-select symlinking can detect a wrong directory
+    :return:
+    """
+    conf_select.convert_conf_directories_to_symlinks("hadoop", "2.3.0.0-1234",
+      conf_select._PACKAGE_DIRS["hadoop"])
+
+    self.assertEqual(pprint.pformat(self.env.resource_list),
+      "[Link['/etc/hadoop/conf'], Link['/etc/hadoop/conf']]")
+
+
+  @patch.object(os.path, "exists", new = MagicMock(return_value = False))
+  @patch("resource_management.libraries.functions.conf_select._valid", new = MagicMock(return_value = True))
+  def test_symlink_noop(self):
+    """
+    Tests that conf-select symlinking does nothing if the directory doesn't exist
+    :return:
+    """
+    conf_select.convert_conf_directories_to_symlinks("hadoop", "2.3.0.0-1234",
+      conf_select._PACKAGE_DIRS["hadoop"], link_to = conf_select.DIRECTORY_TYPE_BACKUP)
+
+    self.assertEqual(pprint.pformat(self.env.resource_list), "[]")

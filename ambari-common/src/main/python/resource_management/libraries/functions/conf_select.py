@@ -201,6 +201,9 @@ _PACKAGE_DIRS = {
   ]
 }
 
+DIRECTORY_TYPE_BACKUP = "backup"
+DIRECTORY_TYPE_CURRENT = "current"
+
 def _get_cmd(command, package, version):
   conf_selector_path = stack_tools.get_stack_tool_path(stack_tools.CONF_SELECTOR_NAME)
   return ('ambari-python-wrap', conf_selector_path, command, '--package', package, '--stack-version', version, '--conf-version', '0')
@@ -431,7 +434,8 @@ def get_hadoop_conf_dir(force_latest_on_upgrade=False):
   return hadoop_conf_dir
 
 
-def convert_conf_directories_to_symlinks(package, version, dirs, skip_existing_links=True, link_to="current"):
+def convert_conf_directories_to_symlinks(package, version, dirs, skip_existing_links=True,
+    link_to=DIRECTORY_TYPE_CURRENT):
   """
   Assumes HDP 2.3+, moves around directories and creates the conf symlink for the given package.
   If the package does not exist, then no work is performed.
@@ -451,6 +455,10 @@ def convert_conf_directories_to_symlinks(package, version, dirs, skip_existing_l
   :param skip_existing_links: True to not do any work if already a symlink
   :param link_to: link to "current" or "backup"
   """
+  # lack of enums makes this possible - we need to know what to link to
+  if link_to not in [DIRECTORY_TYPE_CURRENT, DIRECTORY_TYPE_BACKUP]:
+    raise Fail("Unsupported 'link_to' argument. Could not link package {0}".format(package))
+
   stack_name = Script.get_stack_name()
   bad_dirs = []
   for dir_def in dirs:
@@ -462,13 +470,28 @@ def convert_conf_directories_to_symlinks(package, version, dirs, skip_existing_l
     return
 
   # existing links should be skipped since we assume there's no work to do
+  # they should be checked against the correct target though
   if skip_existing_links:
     bad_dirs = []
     for dir_def in dirs:
       # check if conf is a link already
       old_conf = dir_def['conf_dir']
       if os.path.islink(old_conf):
-        Logger.info("{0} is already linked to {1}".format(old_conf, os.path.realpath(old_conf)))
+        # it's already a link; make sure it's a link to where we want it
+        if link_to == DIRECTORY_TYPE_BACKUP:
+          target_conf_dir = _get_backup_conf_directory(old_conf)
+        else:
+          target_conf_dir = dir_def['current_dir']
+
+        # the link isn't to the right spot; re-link it
+        if os.readlink(old_conf) != target_conf_dir:
+          Logger.info("Re-linking symlink {0} to {1}".format(old_conf, target_conf_dir))
+
+          Link(old_conf, action = "delete")
+          Link(old_conf, to = target_conf_dir)
+        else:
+          Logger.info("{0} is already linked to {1}".format(old_conf, os.path.realpath(old_conf)))
+
         bad_dirs.append(old_conf)
 
   if len(bad_dirs) > 0:
@@ -478,8 +501,7 @@ def convert_conf_directories_to_symlinks(package, version, dirs, skip_existing_l
   backup_dir = None
   for dir_def in dirs:
     old_conf = dir_def['conf_dir']
-    old_parent = os.path.abspath(os.path.join(old_conf, os.pardir))
-    backup_dir = os.path.join(old_parent, "conf.backup")
+    backup_dir = _get_backup_conf_directory(old_conf)
     Logger.info("Backing up {0} to {1} if destination doesn't exist already.".format(old_conf, backup_dir))
     Execute(("cp", "-R", "-p", old_conf, backup_dir),
       not_if = format("test -e {backup_dir}"), sudo = True)
@@ -526,18 +548,19 @@ def convert_conf_directories_to_symlinks(package, version, dirs, skip_existing_l
       # E.g., /etc/[component]/conf
       new_symlink = dir_def['conf_dir']
 
-      # Remove new_symlink to pave the way, but only if it's a directory
+      # Delete the existing directory/link so that linking will work
       if not os.path.islink(new_symlink):
-        Directory(new_symlink, action="delete")
-
-      if link_to in ["current", "backup"]:
-        # link /etc/[component]/conf -> <stack-root>/current/[component]-client/conf
-        if link_to == "backup":
-          Link(new_symlink, to = backup_dir)
-        else:
-          Link(new_symlink, to = dir_def['current_dir'])
+        Directory(new_symlink, action = "delete")
       else:
-        Logger.error("Unsupported 'link_to' argument. Could not link package {0}".format(package))
+        Link(new_symlink, action = "delete")
+
+      # link /etc/[component]/conf -> /etc/[component]/conf.backup
+      # or
+      # link /etc/[component]/conf -> <stack-root>/current/[component]-client/conf
+      if link_to == DIRECTORY_TYPE_BACKUP:
+        Link(new_symlink, to = backup_dir)
+      else:
+        Link(new_symlink, to = dir_def['current_dir'])
   except Exception, e:
     Logger.warning("Could not change symlink for package {0} to point to {1} directory. Error: {2}".format(package, link_to, e))
 
@@ -610,3 +633,13 @@ def _copy_configurations(source_directory, target_directory):
   source_directory = os.path.join(source_directory, "*")
   Execute(as_sudo(["cp", "-R", "-p", "-v", source_directory, target_directory], auto_escape = False),
     logoutput = True)
+
+def _get_backup_conf_directory(old_conf):
+  """
+  Calculates the conf.backup absolute directory given the /etc/<component>/conf location.
+  :param old_conf:  the old conf directory (ie /etc/<component>/conf)
+  :return:  the conf.backup absolute directory
+  """
+  old_parent = os.path.abspath(os.path.join(old_conf, os.pardir))
+  backup_dir = os.path.join(old_parent, "conf.backup")
+  return backup_dir
