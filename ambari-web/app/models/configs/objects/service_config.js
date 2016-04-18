@@ -38,17 +38,23 @@ App.ServiceConfig = Ember.Object.extend({
 
   errorCount: Em.computed.alias('configsWithErrors.length'),
 
-  visibleProperties: function() {
+  /**
+   * Properties for which some aggregations should be calculated
+   * like <code>configsWithErrors<code>, <code>changedConfigProperties<code> etc.
+   *
+   * @type {Object[]}
+   */
+  activeProperties: function() {
     return this.get('configs').filter(function(c) {
-      return c.get('isVisible') && !c.get('hiddenBySection');
+      return c.get('isVisible') && !c.get('hiddenBySection') && c.get('isRequiredByAgent');
     });
-  }.property('configs.@each.isVisible', 'configs.@each.hiddenBySection'),
+  }.property('configs.@each.isVisible', 'configs.@each.hiddenBySection', 'configs.@each.isRequiredByAgent'),
 
   configsWithErrors: function() {
-    return this.get('visibleProperties').filter(function(c) {
+    return this.get('activeProperties').filter(function(c) {
       return !c.get('isValid') || !c.get('isValidOverride');
     });
-  }.property('visibleProperties.@each.isValid', 'visibleProperties.@each.isValidOverride'),
+  }.property('activeProperties.@each.isValid', 'activeProperties.@each.isValidOverride'),
 
   observeErrors: function() {
     this.get('configCategories').setEach('errorCount', 0);
@@ -83,29 +89,6 @@ App.ServiceConfig = Ember.Object.extend({
       }
     });
   }.observes('configs.@each.isVisible'),
-  /**
-   * checks if for example for kdc_type, the value isn't just the pretty version of the saved value, for example mit-kdc
-   * and Existing MIT KDC are the same value, but they are interpreted as being changed. This function fixes that
-   * @param configs
-   * @returns {boolean} - checks
-   */
-  checkDefaultValues: function (configs) {
-    var kdcType = configs.findProperty('name', 'kdc_type');
-
-    if (!kdcType) {
-      return configs.someProperty('isNotDefaultValue')
-    }
-
-    // if there is only one value changed and that value is for kdc_type, check if the value has really changed or just
-    // the string shown to the user is different
-    if (configs.filterProperty('isNotDefaultValue').length === 1) {
-      if (configs.findProperty('isNotDefaultValue', true) === kdcType) {
-        return App.router.get('mainAdminKerberosController.kdcTypesValues')[kdcType.get('savedValue')] !== kdcType.get('value');
-      }
-    }
-
-    return configs.someProperty('isNotDefaultValue');
-  },
 
   /**
    * Collection of properties that were changed:
@@ -113,22 +96,34 @@ App.ServiceConfig = Ember.Object.extend({
    * for not saved properties (on wizards, for new services) use
    *    - <code>isNotInitialValue<code>
    * for added properties use - <code>isNotSaved<code>
+   * @type {Object[]}
    */
   changedConfigProperties: function() {
-    return this.get('configs').filter(function(c) {
+    return this.get('activeProperties').filter(function(c) {
       return c.get('isNotDefaultValue') || c.get('isNotSaved') || c.get('isNotInitialValue');
     }, this);
-  }.property('configs.@each.isNotDefaultValue', 'configs.@each.isNotSaved', 'configs.@each.isNotInitialValue'),
+  }.property('activeProperties.@each.isNotDefaultValue', 'activeProperties.@each.isNotSaved', 'activeProperties.@each.isNotInitialValue'),
 
-  isPropertiesChanged: function() {
-    var requiredByAgent = this.get('configs').filterProperty('isRequiredByAgent');
-    var isNotSaved = requiredByAgent.someProperty('isNotSaved');
-    var isNotDefaultValue = this.checkDefaultValues(requiredByAgent);
-    var isOverrideChanged = requiredByAgent.someProperty('isOverrideChanged');
-    var differentConfigLengths = this.get('configs.length') !== this.get('initConfigsLength');
+  /**
+   * Config with overrides that has values that differs from saved
+   *
+   * @type {Object[]}
+   */
+  configsWithChangedOverrides: Em.computed.filterBy('activeProperties', 'isOverrideChanged', true),
 
-    return  isNotSaved || isNotDefaultValue || isOverrideChanged || differentConfigLengths;
-  }.property('configs.@each.isNotDefaultValue', 'configs.@each.isOverrideChanged', 'configs.length', 'configs.@each.isNotSaved', 'initConfigsLength'),
+  /**
+   * Defines if some configs were added/removed
+   * @type {boolean}
+   */
+  configsLengthWasChanged: Em.computed.notEqualProperties('configs.length', 'initConfigsLength'),
+
+  /**
+   * @type {boolean}
+   */
+  isPropertiesChanged: Em.computed.or(
+    'configsLengthWasChanged',
+    'changedConfigProperties.length',
+    'configsWithChangedOverrides.length'),
 
   init: function() {
     this._super();

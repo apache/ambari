@@ -918,6 +918,8 @@ App.config = Em.Object.create({
 
     var newOverride = App.ServiceConfigProperty.create(serviceConfigProperty);
 
+    newOverride.setProperties({ 'savedValue': null, 'savedIsFinal': null });
+
     if (!Em.isNone(override)) {
       for (var key in override) {
         newOverride.set(key, override[key]);
@@ -937,8 +939,10 @@ App.config = Em.Object.create({
     configGroup.set('properties', configGroup.get('properties').concat(newOverride));
 
     serviceConfigProperty.get('overrides').pushObject(newOverride);
-    serviceConfigProperty.set('overrideValues', serviceConfigProperty.get('overrides').mapProperty('value'));
-    serviceConfigProperty.set('overrideIsFinalValues', serviceConfigProperty.get('overrides').mapProperty('isFinal'));
+
+    var savedOverrides = serviceConfigProperty.get('overrides').filterProperty('savedValue');
+    serviceConfigProperty.set('overrideValues', savedOverrides.mapProperty('savedValue'));
+    serviceConfigProperty.set('overrideIsFinalValues', savedOverrides.mapProperty('savedIsFinal'));
 
     newOverride.validate();
     return newOverride;

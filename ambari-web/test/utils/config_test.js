@@ -430,7 +430,11 @@ describe('App.config', function () {
     Object.keys(template).forEach(function (key) {
       it(key, function () {
         var override = App.config.createOverride(configProperty, {}, group);
-        expect(override.get(key)).to.equal(template[key]);
+        if (['savedValue', 'savedIsFinal'].contains(key)) {
+          expect(override.get(key)).to.equal(null);
+        } else {
+          expect(override.get(key)).to.equal(template[key]);
+        }
       });
     });
 
@@ -501,10 +505,10 @@ describe('App.config', function () {
         expect(configProperty.get('overrides')[0]).to.be.eql(override);
       });
       it('overrideValues is valid', function () {
-        expect(configProperty.get('overrideValues')).to.be.eql([overridenTemplate2.value]);
+        expect(configProperty.get('overrideValues')).to.be.eql([overridenTemplate2.savedValue]);
       });
       it('overrideIsFinalValues is valid', function () {
-        expect(configProperty.get('overrideIsFinalValues')).to.be.eql([overridenTemplate2.isFinal]);
+        expect(configProperty.get('overrideIsFinalValues')).to.be.eql([overridenTemplate2.savedIsFinal]);
       });
 
     });

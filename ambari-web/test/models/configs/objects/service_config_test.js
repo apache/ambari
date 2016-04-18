@@ -26,6 +26,7 @@ var serviceConfig,
         'name': 'p1',
         'isVisible': true,
         'hiddenBySection': false,
+        'isRequiredByAgent': true,
         'isValid': true,
         'isValidOverride': true
       }),
@@ -33,6 +34,7 @@ var serviceConfig,
         'name': 'p2',
         'isVisible': false,
         'hiddenBySection': false,
+        'isRequiredByAgent': true,
         'isValid': true,
         'isValidOverride': true
       }),
@@ -40,6 +42,7 @@ var serviceConfig,
         'name': 'p3',
         'isVisible': true,
         'hiddenBySection': true,
+        'isRequiredByAgent': true,
         'isValid': true,
         'isValidOverride': true
       }),
@@ -47,6 +50,7 @@ var serviceConfig,
         'name': 'p4',
         'isVisible': true,
         'hiddenBySection': false,
+        'isRequiredByAgent': true,
         'isValid': false,
         'isValidOverride': true
       }),
@@ -54,9 +58,18 @@ var serviceConfig,
         'name': 'p5',
         'isVisible': true,
         'hiddenBySection': false,
+        'isRequiredByAgent': true,
         'isValid': true,
         'isValidOverride': false
-      })
+      }),
+    Em.Object.create({
+      'name': 'p6',
+      'isVisible': true,
+      'hiddenBySection': false,
+      'isRequiredByAgent': false,
+      'isValid': true,
+      'isValidOverride': false
+    })
   ];
 
 describe('App.ServiceConfig', function () {
@@ -67,9 +80,9 @@ describe('App.ServiceConfig', function () {
     });
   });
 
-  describe('#visibleProperties', function() {
+  describe('#activeProperties', function() {
     it('returns collection of properties that should be shown', function() {
-      expect(serviceConfig.get('visibleProperties').mapProperty('name')).to.be.eql(['p1','p4','p5']);
+      expect(serviceConfig.get('activeProperties').mapProperty('name')).to.be.eql(['p1','p4','p5']);
     });
   });
 

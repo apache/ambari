@@ -245,7 +245,7 @@ App.ServiceConfigProperty = Em.Object.extend({
     if (Em.isNone(this.get('overrides')) && this.get('overrideValues.length') === 0) return false;
     return JSON.stringify(this.get('overrides').mapProperty('isFinal')) !== JSON.stringify(this.get('overrideIsFinalValues'))
       || JSON.stringify(this.get('overrides').mapProperty('value')) !== JSON.stringify(this.get('overrideValues'));
-  }.property('isOverridden', 'overrides.@each.isNotDefaultValue', 'overrideValues.length'),
+  }.property('overrides.@each.isNotDefaultValue', 'overrides.@each.overrideIsFinalValues', 'overrideValues.length'),
 
   isRemovable: function() {
     return this.get('isEditable') && this.get('isRequiredByAgent') && !(this.get('overrides.length') > 0)
@@ -271,13 +271,19 @@ App.ServiceConfigProperty = Em.Object.extend({
   /**
    * Indicates when value is not the default value.
    * Returns false when there is no default value.
+   *
+   * @type {boolean}
    */
   isNotDefaultValue: function () {
-    var value = this.get('value');
-    var savedValue = this.get('savedValue');
-    var supportsFinal = this.get('supportsFinal');
-    var isFinal = this.get('isFinal');
-    var savedIsFinal = this.get('savedIsFinal');
+    var value = this.get('value'),
+      savedValue = this.get('savedValue'),
+      supportsFinal = this.get('supportsFinal'),
+      isFinal = this.get('isFinal'),
+      savedIsFinal = this.get('savedIsFinal');
+
+    if (this.get('name') === 'kdc_type') {
+      return App.router.get('mainAdminKerberosController.kdcTypesValues')[savedValue] !== value;
+    }
     // ignore precision difference for configs with type of `float` which value may ends with 0
     // e.g. between 0.4 and 0.40
     if (this.get('stackConfigProperty') && this.get('stackConfigProperty.valueAttributes.type') == 'float') {
