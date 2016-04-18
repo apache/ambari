@@ -23,6 +23,7 @@ import os
 import re
 import time
 import shutil
+from datetime import datetime
 
 # Ambari Commons & Resource Management imports
 from resource_management.libraries.script.script import Script
@@ -197,16 +198,17 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
 
       # TODO, start only if not already running.
       # TODO : Currently hardcoded the params. Need to read the suggested values from hive2/hive-site.xml.
-      # TODO, ensure that script works as hive from cmd when not cd'ed in /homve/hive
+      # TODO, ensure that script works as hive from cmd when not cd'ed in /home/hive
       # Needs permission to write to hive home dir.
 
-      cmd = ''
+      unique_name = "llap-slider%s" % datetime.utcnow().strftime('%Y-%m-%d_%H-%M-%S')
+
+      cmd = format("{stack_root}/current/hive-server2-hive2/bin/hive --service llap --instances 1 "
+                   "-slider-am-container-mb {slider_am_container_mb} --loglevel INFO --output {unique_name}")
+
       if params.security_enabled:
-        cmd = format("{stack_root}/current/hive-server2-hive2/bin/hive --service llap --instances 1 -slider-am-container-mb "
-                     "{slider_am_container_mb} --slider-keytab-dir .slider/keytabs/{params.hive_user}/ --slider-keytab "
-                     "{hive_llap_keytab_file} --slider-principal {hive_headless_keytab} --loglevel INFO")
-      else:
-        cmd = format("{stack_root}/current/hive-server2-hive2/bin/hive --service llap --instances 1 -slider-am-container-mb {slider_am_container_mb} --loglevel INFO")
+        cmd += format(" --slider-keytab-dir .slider/keytabs/{params.hive_user}/ --slider-keytab "
+                      "{hive_llap_keytab_file} --slider-principal {hive_headless_keytab}")
 
       run_file_path = None
       try:
@@ -234,6 +236,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
           # TODO : Sleep below is not a good idea. We need to check the status of LLAP app to figure out it got
           # launched properly and is in running state. Then go ahead with Hive Interactive Server start.
           Logger.info("Sleeping for 30 secs")
+          # Important to mock this sleep call during unit tests.
           time.sleep(30)
           Logger.info("LLAP app deployed successfully.")
           return True

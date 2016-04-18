@@ -101,13 +101,13 @@ def hive_service(name, action='start', upgrade_type=None):
        params.hive_jdbc_driver == "oracle.jdbc.driver.OracleDriver":
       
       db_connection_check_command = format(
-        "{java64_home}/bin/java -cp {check_db_connection_jar}:{target} org.apache.ambari.server.DBConnectionVerification '{hive_jdbc_connection_url}' {hive_metastore_user_name} {hive_metastore_user_passwd!p} {hive_jdbc_driver}")
+        "{java64_home}/bin/java -cp {check_db_connection_jar}:{target_hive} org.apache.ambari.server.DBConnectionVerification '{hive_jdbc_connection_url}' {hive_metastore_user_name} {hive_metastore_user_passwd!p} {hive_jdbc_driver}")
       
       try:
         Execute(db_connection_check_command,
               path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin', tries=5, try_sleep=10)
       except:
-        show_logs(params.hive_log_dir, user)
+        show_logs(params.hive_log_dir, params.hive_user)
         raise
         
   elif action == 'stop':
@@ -131,7 +131,7 @@ def hive_service(name, action='start', upgrade_type=None):
         try_sleep=3,
       )
     except:
-      show_logs(params.hive_log_dir, user)
+      show_logs(params.hive_log_dir, params.hive_user)
       raise
 
     File(pid_file,

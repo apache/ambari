@@ -200,7 +200,7 @@ class HiveMetastoreDefault(HiveMetastore):
 
       # download it if it does not exist
       if not os.path.exists(params.source_jdbc_file):
-        jdbc_connector()
+        jdbc_connector(params.target_hive)
 
       target_directory_and_filename = os.path.join(target_directory, os.path.basename(params.source_jdbc_file))
 

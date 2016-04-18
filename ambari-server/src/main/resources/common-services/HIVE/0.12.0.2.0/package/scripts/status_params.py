@@ -42,6 +42,9 @@ SERVER_ROLE_DIRECTORY_MAP = {
   'HIVE_SERVER_INTERACTIVE' : 'hive-server2-hive2'
 }
 
+
+# Either HIVE_METASTORE, HIVE_SERVER, WEBHCAT_SERVER, HIVE_CLIENT, HCAT, HIVE_SERVER_INTERACTIVE
+role = default("/role", None)
 component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, "HIVE_CLIENT")
 component_directory_interactive = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, "HIVE_SERVER_INTERACTIVE")
 
@@ -90,9 +93,8 @@ else:
   hive_client_conf_dir = "/etc/hive/conf"
 
   hive_server_conf_dir = "/etc/hive/conf.server"
-  
   hive_server_interactive_conf_dir = "/etc/hive2/conf.server"
-     
+
   if stack_version_formatted_major and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted_major):
     webhcat_conf_dir = format("{stack_root}/current/hive-webhcat/conf")
     hive_conf_dir = format("{stack_root}/current/{component_directory}/conf")
@@ -109,7 +111,7 @@ else:
 
   # if stack version supports hive serve interactive
   if stack_version_formatted_major and check_stack_feature(StackFeature.HIVE_SERVER_INTERACTIVE, stack_version_formatted_major):
-    hive_server_interactive_conf_dir = format("{stack_root}/current/{component_directory_interactive}/conf")
+    hive_server_interactive_conf_dir = format("{stack_root}/current/{component_directory_interactive}/conf/conf.server")
 
   hive_config_dir = hive_client_conf_dir
 

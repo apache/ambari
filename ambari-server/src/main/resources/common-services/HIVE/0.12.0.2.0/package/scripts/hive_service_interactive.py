@@ -67,7 +67,7 @@ def hive_service_interactive(name, action='start', upgrade_type=None):
         params.hive_jdbc_driver == "org.postgresql.Driver" or \
         params.hive_jdbc_driver == "oracle.jdbc.driver.OracleDriver":
       db_connection_check_command = format(
-        "{java64_home}/bin/java -cp {check_db_connection_jar}:{target} org.apache.ambari.server.DBConnectionVerification '{hive_jdbc_connection_url}' {hive_metastore_user_name} {hive_metastore_user_passwd!p} {hive_jdbc_driver}")
+        "{java64_home}/bin/java -cp {check_db_connection_jar}:{target_hive_interactive} org.apache.ambari.server.DBConnectionVerification '{hive_jdbc_connection_url}' {hive_metastore_user_name} {hive_metastore_user_passwd!p} {hive_jdbc_driver}")
       Execute(db_connection_check_command,
               path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin', tries=5, try_sleep=10)
   elif action == 'stop':

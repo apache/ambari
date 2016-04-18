@@ -50,8 +50,6 @@ TARBALL_MAP = {
           "/{0}/apps/{1}/tez_hive2/tez.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
   "hive": ("{0}/{1}/hive/hive.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN),
            "/{0}/apps/{1}/hive/hive.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
-  "hive2": ("{0}/{1}/hive2/hive.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN),
-           "/{0}/apps/{1}/hive2/hive.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
   "pig": ("{0}/{1}/pig/pig.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN),
           "/{0}/apps/{1}/pig/pig.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
   "hadoop_streaming": ("{0}/{1}/hadoop-mapreduce/hadoop-streaming.jar".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN),

@@ -18,13 +18,17 @@ limitations under the License.
 
 """
 
+# Python Imports
 import os
 import glob
 from urlparse import urlparse
 
+# Resource Management and Common Imports
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions.copy_tarball import copy_to_hdfs
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.version import compare_versions
 from resource_management.core.resources.service import ServiceConfig
 from resource_management.core.resources.system import File, Execute, Directory
@@ -63,26 +67,23 @@ def hive_interactive(name=None):
                   'hive.enforce.sorting']
 
   # Copy Tarballs in HDFS.
-  resource_created = copy_to_hdfs("tez_hive2",
-               params.user_group,
-               params.hdfs_user,
-               file_mode=params.tarballs_mode,
-               host_sys_prepped=params.host_sys_prepped)
+  if params.stack_version_formatted_major and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.stack_version_formatted_major):
+    resource_created = copy_to_hdfs("tez_hive2",
+                 params.user_group,
+                 params.hdfs_user,
+                 file_mode=params.tarballs_mode,
+                 host_sys_prepped=params.host_sys_prepped)
 
-  copy_to_hdfs("hive2",
-               params.user_group,
-               params.hdfs_user,
-               file_mode=params.tarballs_mode,
-               host_sys_prepped=params.host_sys_prepped) or resource_created
-
-  if resource_created:
-    params.HdfsResource(None, action="execute")
+    if resource_created:
+      params.HdfsResource(None, action="execute")
 
   Directory(params.hive_interactive_etc_dir_prefix,
             mode=0755
             )
 
-  fill_conf_dir(params.hive_server_interactive_conf_dir)
+  Logger.info("Directories to fill with configs: %s" % str(params.hive_conf_dirs_list))
+  for conf_dir in params.hive_conf_dirs_list:
+    fill_conf_dir(conf_dir)
 
   '''
   As hive2/hive-site.xml only contains the new + the changed props compared to hive/hive-site.xml,
@@ -99,6 +100,14 @@ def hive_interactive(name=None):
 
   XmlConfig("hive-site.xml",
             conf_dir=params.hive_server_interactive_conf_dir,
+            configurations=merged_hive_interactive_site,
+            configuration_attributes=params.config['configuration_attributes']['hive-interactive-site'],
+            owner=params.hive_user,
+            group=params.user_group,
+            mode=0644)
+
+  XmlConfig("hive-site.xml",
+            conf_dir=os.path.dirname(params.hive_server_interactive_conf_dir),
             configurations=merged_hive_interactive_site,
             configuration_attributes=params.config['configuration_attributes']['hive-interactive-site'],
             owner=params.hive_user,
@@ -135,7 +144,7 @@ def hive_interactive(name=None):
   )
 
   if not os.path.exists(params.target_hive_interactive):
-    jdbc_connector()
+    jdbc_connector(params.target_hive_interactive)
 
   File(format("/usr/lib/ambari-agent/{check_db_connection_jar_name}"),
        content = DownloadSource(format("{jdk_location}{check_db_connection_jar_name}")),

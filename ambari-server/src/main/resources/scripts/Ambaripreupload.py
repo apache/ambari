@@ -341,8 +341,7 @@ with Environment() as env:
   copy_tarballs_to_hdfs(format("/usr/hdp/{stack_version}/tez/lib/tez.tar.gz"), hdfs_path_prefix+"/hdp/apps/{{ stack_version_formatted }}/tez/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
   copy_tarballs_to_hdfs(format("/usr/hdp/{stack_version}/hive/hive.tar.gz"), hdfs_path_prefix+"/hdp/apps/{{ stack_version_formatted }}/hive/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
 
-  # These 2 are needed by Hive Interactive
-  copy_tarballs_to_hdfs(format("/usr/hdp/{stack_version}/hive2/hive.tar.gz"), hdfs_path_prefix+"/hdp/apps/{{ stack_version_formatted }}/hive2/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
+  # Needed by Hive Interactive
   copy_tarballs_to_hdfs(format("/usr/hdp/{stack_version}/tez_hive2/lib/tez.tar.gz"), hdfs_path_prefix+"/hdp/apps/{{ stack_version_formatted }}/tez_hive2/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
 
   copy_tarballs_to_hdfs(format("/usr/hdp/{stack_version}/pig/pig.tar.gz"), hdfs_path_prefix+"/hdp/apps/{{ stack_version_formatted }}/pig/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)

@@ -215,6 +215,7 @@ def hive(name=None):
 
   # We should change configurations for client as well as for server.
   # The reason is that stale-configs are service-level, not component.
+  Logger.info("Directories to fill with configs: %s" % str(params.hive_conf_dirs_list))
   for conf_dir in params.hive_conf_dirs_list:
     fill_conf_dir(conf_dir)
 
@@ -257,8 +258,8 @@ def hive(name=None):
        content=Template("hive.conf.j2")
        )
 
-  if (name == 'metastore' or name == 'hiveserver2') and params.target != None and not os.path.exists(params.target):
-    jdbc_connector()
+  if (name == 'metastore' or name == 'hiveserver2') and params.target_hive is not None and not os.path.exists(params.target_hive):
+    jdbc_connector(params.target_hive)
 
   File(format("/usr/lib/ambari-agent/{check_db_connection_jar_name}"),
        content = DownloadSource(format("{jdk_location}{check_db_connection_jar_name}")),
@@ -386,7 +387,11 @@ def fill_conf_dir(component_conf_dir):
     )
 
 
-def jdbc_connector():
+def jdbc_connector(target):
+  """
+  Shared by Hive Batch, Hive Metastore, and Hive Interactive
+  :param target: Target of jdbc jar name, which could be for any of the components above.
+  """
   import params
 
   if params.hive_jdbc_driver in params.hive_jdbc_drivers_list and params.hive_use_existing_db:
@@ -418,19 +423,20 @@ def jdbc_connector():
       Execute(format("{sudo} chown -R {hive_user}:{user_group} {hive_lib}/*"))
 
     else:
-      Execute(('cp', '--remove-destination', params.downloaded_custom_connector, params.target),
-            #creates=params.target, TODO: uncomment after ranger_hive_plugin will not provide jdbc
+      Execute(('cp', '--remove-destination', params.downloaded_custom_connector, target),
+            #creates=target, TODO: uncomment after ranger_hive_plugin will not provide jdbc
             path=["/bin", "/usr/bin/"],
             sudo = True)
 
   else:
     #for default hive db (Mysql)
-    Execute(('cp', '--remove-destination', format('/usr/share/java/{jdbc_jar_name}'), params.target),
-            #creates=params.target, TODO: uncomment after ranger_hive_plugin will not provide jdbc
+    Execute(('cp', '--remove-destination', format('/usr/share/java/{jdbc_jar_name}'), target),
+            #creates=target, TODO: uncomment after ranger_hive_plugin will not provide jdbc
             path=["/bin", "/usr/bin/"],
             sudo=True
     )
+  pass
 
-  File(params.target,
+  File(target,
        mode = 0644,
   )

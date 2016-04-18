@@ -199,7 +199,7 @@ hive_use_existing_db = hive_database.startswith('Existing')
 # NOT SURE THAT IT'S A GOOD IDEA TO USE PATH TO CLASS IN DRIVER, MAYBE IT WILL BE BETTER TO USE DB TYPE.
 # BECAUSE PATH TO CLASSES COULD BE CHANGED
 sqla_db_used = False
-target = None
+target_hive = None
 if hive_jdbc_driver == "com.microsoft.sqlserver.jdbc.SQLServerDriver":
   jdbc_jar_name = default("/hostLevelParams/custom_mssql_jdbc_name", None)
 elif hive_jdbc_driver == "com.mysql.jdbc.Driver":
@@ -219,11 +219,11 @@ if not hive_use_existing_db:
 
 
 downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
-target = format("{hive_lib}/{jdbc_jar_name}")
+target_hive = format("{hive_lib}/{jdbc_jar_name}")
 driver_curl_source = format("{jdk_location}/{jdbc_jar_name}")
 
 if not (stack_version_formatted_major and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted_major)):
-  source_jdbc_file = target
+  source_jdbc_file = target_hive
 else:
   # normally, the JDBC driver would be referenced by <stack-root>/current/.../foo.jar
   # but in RU if <stack-selector-tool> is called and the restart fails, then this means that current pointer
@@ -248,13 +248,21 @@ if sqla_db_used:
   downloaded_custom_connector = format("{tmp_dir}/sqla-client-jdbc.tar.gz")
   libs_in_hive_lib = format("{jdbc_libs_dir}/*")
 
-#common
-hive_metastore_hosts = config['clusterHostInfo']['hive_metastore_host']
-hive_metastore_host = hive_metastore_hosts[0]
-hive_metastore_port = get_port_from_url(config['configurations']['hive-site']['hive.metastore.uris']) #"9083"
+
+# Start, Common Hosts and Ports
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
-hive_server_host = config['clusterHostInfo']['hive_server_host'][0]
-hive_server_hosts = config['clusterHostInfo']['hive_server_host']
+
+hive_metastore_hosts = default('/clusterHostInfo/hive_metastore_host', [])
+hive_metastore_host = hive_metastore_hosts[0] if len(hive_metastore_hosts) > 0 else None
+hive_metastore_port = get_port_from_url(config['configurations']['hive-site']['hive.metastore.uris'])
+
+hive_server_hosts = default("/clusterHostInfo/hive_server_host", [])
+hive_server_host = hive_server_hosts[0] if len(hive_server_hosts) > 0 else None
+
+hive_server_interactive_hosts = default('/clusterHostInfo/hive_server_interactive_hosts', [])
+hive_server_interactive_host = hive_server_interactive_hosts[0] if len(hive_server_interactive_hosts) > 0 else None
+# End, Common Hosts and Ports
+
 hive_transport_mode = config['configurations']['hive-site']['hive.server2.transport.mode']
 
 if hive_transport_mode.lower() == "http":
@@ -295,8 +303,13 @@ hive_interactive_pid = status_params.hive_interactive_pid
 #Default conf dir for client
 hive_conf_dirs_list = [hive_client_conf_dir]
 
-if hostname in hive_metastore_hosts or hostname in hive_server_hosts:
+# These are the folders to which the configs will be written to.
+if status_params.role == "HIVE_METASTORE" and hive_metastore_hosts is not None and hostname in hive_metastore_hosts:
   hive_conf_dirs_list.append(hive_server_conf_dir)
+elif status_params.role == "HIVE_SERVER" and hive_server_hosts is not None and hostname in hive_server_host:
+  hive_conf_dirs_list.append(hive_server_conf_dir)
+elif status_params.role == "HIVE_SERVER_INTERACTIVE" and hive_server_interactive_hosts is not None and hostname in hive_server_interactive_hosts:
+  hive_conf_dirs_list.append(status_params.hive_server_interactive_conf_dir)
 
 
 #Starting hiveserver2
@@ -317,7 +330,7 @@ artifact_dir = format("{tmp_dir}/AMBARI-artifacts/")
 # Need this for yarn.nodemanager.recovery.dir in yarn-site
 yarn_log_dir_prefix = config['configurations']['yarn-env']['yarn_log_dir_prefix']
 
-target = format("{hive_lib}/{jdbc_jar_name}")
+target_hive = format("{hive_lib}/{jdbc_jar_name}")
 target_hive_interactive = format("{hive_interactive_lib}/{jdbc_jar_name}")
 jars_in_hive_lib = format("{hive_lib}/*.jar")
 
