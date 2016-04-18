@@ -1,0 +1,26 @@
+{
+  "name": "default",
+  "description": "default quick links configuration",
+  "configuration": {
+    "protocol": {
+      "type":"HTTP_ONLY"
+    },
+
+    "links": [
+      {
+        "name": "hiveserver2_ui",
+        "label": "HiveServer2 Interactive UI",
+        "requires_user_name": "false",
+        "url": "%@://%@:%@/llap/llap0",
+        "port":{
+          "http_property": "hive.server2.webui.port",
+          "http_default_port": "10502",
+          "https_property": "hive.server2.webui.port",
+          "https_default_port": "10502",
+          "regex": "\\w*:(\\d+)",
+          "site": "hive-interactive-site"
+        }
+      }
+    ]
+  }
+}

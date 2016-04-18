@@ -113,6 +113,12 @@
           <default>true</default>
         </theme>
       </themes>
+      <quickLinksConfigurations>
+        <quickLinksConfiguration>
+          <fileName>quicklinks.json</fileName>
+          <default>true</default>
+        </quickLinksConfiguration>
+      </quickLinksConfigurations>
 
       <requiredServices>
         <service>ZOOKEEPER</service>

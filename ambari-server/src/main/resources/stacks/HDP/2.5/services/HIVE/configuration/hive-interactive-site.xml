@@ -262,7 +262,7 @@ limitations under the License.
   </property>
 
   <property>
-    <name>hive.server2.webui.port </name>
+    <name>hive.server2.webui.port</name>
     <value>10502</value>
     <description>Web UI port address</description>
   </property>

@@ -26,19 +26,6 @@ describe('App.QuickViewLinks', function () {
     content: Em.Object.create()
   });
 
-  describe("#linkTarget", function () {
-    it("blank link", function () {
-      quickViewLinks.set('content.serviceName', 'HDFS');
-      quickViewLinks.propertyDidChange('linkTarget');
-      expect(quickViewLinks.get('linkTarget')).to.equal('_blank');
-    });
-    it("non-blank link", function () {
-      quickViewLinks.set('content.serviceName', 'S1');
-      quickViewLinks.propertyDidChange('linkTarget');
-      expect(quickViewLinks.get('linkTarget')).to.be.empty;
-    });
-  });
-
   describe("#ambariProperties", function () {
     beforeEach(function () {
       sinon.stub(App.router, 'get').returns({p: 1});

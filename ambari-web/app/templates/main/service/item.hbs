@@ -19,7 +19,7 @@
 {{view App.MainServiceInfoMenuView configTabBinding="view.hasConfigTab" heatmapTabBinding="view.hasHeatmapTab"}}
   <div class="span3 quick-links-wrapper">
     {{#view App.QuickViewLinks contentBinding="view.service"}}
-      {{#if view.hasQuickLinksConfiged}}
+      {{#if view.showQuickLinks}}
         <ul class="nav nav-pills move">
           <li class="dropdown quick-links-dropdown">
             <a class="dropdown-toggle" id="quick-links-dropdown-btn" data-toggle="dropdown" href="#">{{t common.quickLinks}}<b class="caret"></b></a>
@@ -32,7 +32,7 @@
                       <a href="javascript:void(null)">{{quickLinks.publicHostNameLabel}} &nbsp;</a>
                       <ul class="dropdown-menu">
                         {{#each quickLinks}}
-                          <li><a {{bindAttr href="url"}} {{bindAttr target="view.linkTarget"}}>{{label}}</a></li>
+                          <li><a {{bindAttr href="url"}} target="_blank">{{label}}</a></li>
                         {{/each}}
                       </ul>
                     </li>
@@ -40,7 +40,7 @@
                 {{else}}
                   {{#if view.quickLinks}}
                     {{#each view.quickLinks}}
-                      <li><a {{bindAttr href="url"}} {{bindAttr target="view.linkTarget"}}>{{label}}</a></li>
+                      <li><a {{bindAttr href="url"}} target="_blank">{{label}}</a></li>
                     {{/each}}
                   {{else}}
                     <div class="alert alert-danger"><small>{{t quick.links.error.quicklinks.unavailable.label}}</small></div>

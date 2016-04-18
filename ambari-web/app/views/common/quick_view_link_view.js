@@ -23,29 +23,9 @@ App.QuickViewLinks = Em.View.extend({
 
   isLoaded: false,
 
-  hasQuickLinksConfiged: false,
+  showQuickLinks: false,
 
   quickLinksErrorMessage: '',
-
-  /**
-   * service which has blank target of link
-   * @type {Array}
-   */
-  servicesHasBlankTarget: [
-    'HDFS',
-    'YARN',
-    'MAPREDUCE2',
-    'HBASE',
-    'OOZIE',
-    'STORM',
-    'SPARK',
-    'FALCON',
-    'ACCUMULO',
-    'ATLAS',
-    'RANGER',
-    'AMBARI_METRICS',
-    'LOGSEARCH'
-  ],
 
   /**
    * Updated quick links. Here we put correct hostname to url
@@ -61,17 +41,6 @@ App.QuickViewLinks = Em.View.extend({
    * list of files that contains properties for enabling/disabling ssl
    */
   requiredSiteNames: [],
-
-  /**
-   * @type {string}
-   */
-  linkTarget: function () {
-    if (this.get('servicesHasBlankTarget').contains(this.get('content.serviceName'))) {
-      return "_blank";
-    }
-    return "";
-  }.property('content.serviceName'),
-
   /**
    * @type {object}
    */
@@ -213,8 +182,17 @@ App.QuickViewLinks = Em.View.extend({
   setQuickLinksSuccessCallback: function (response) {
     var serviceName = this.get('content.serviceName');
     var hosts = this.getHosts(response, serviceName);
-    var hasQuickLinks = this.hasQuickLinksConfig(serviceName);
-    this.set('hasQuickLinksConfiged', hasQuickLinks); // no need to set quicklinks if current service does not have quick links configured...
+    var hasQuickLinks = this.hasQuickLinksConfig(serviceName, hosts);
+    var componentName = App.QuickLinksConfig.ServiceComponentMap[serviceName];
+    var masterComponent =  App.MasterComponent.find().findProperty('componentName', componentName);
+    var hasHosts = false;
+    if (masterComponent) {
+      hasHosts = !!masterComponent.get('totalCount');
+    }
+    // no need to set quicklinks if
+    // 1)current service does not have quick links configured
+    // 2)No host component present for the configured quicklink
+    this.set('showQuickLinks', hasQuickLinks && hasHosts);
 
     if (hosts.length === 0){
       this.setEmptyLinks();
@@ -253,9 +231,8 @@ App.QuickViewLinks = Em.View.extend({
   getQuickLinksConfiguration: function(){
     var serviceName =  this.get('content.serviceName');
     var self = this;
-    if(self.hasQuickLinksConfig(serviceName)){
-      var quickLinksConfiguration = App.QuickLinksConfig.find().findProperty("id", serviceName);
-      return quickLinksConfiguration;
+    if (self.hasQuickLinksConfig(serviceName)) {
+      return App.QuickLinksConfig.find().findProperty("id", serviceName);
     }
     return null;
   },
@@ -539,26 +516,11 @@ App.QuickViewLinks = Em.View.extend({
       case "YARN":
         hosts = this.processYarnHosts(this.findHosts('RESOURCEMANAGER', response));
         break;
-      case "STORM":
-        hosts = this.findHosts('STORM_UI_SERVER', response);
-        break;
-      case "ACCUMULO":
-        hosts = this.findHosts('ACCUMULO_MONITOR', response);
-        break;
-      case "ATLAS":
-        hosts = this.findHosts('ATLAS_SERVER', response);
-        break;
-      case "MAPREDUCE2":
-        hosts = this.findHosts('HISTORYSERVER', response);
-        break;
-      case "AMBARI_METRICS":
-        hosts = this.findHosts('METRICS_GRAFANA', response);
-        break;
-      case "LOGSEARCH":
-        hosts = this.findHosts('LOGSEARCH_SERVER', response);
-        break;
       default:
-        if (this.getWithDefault('content.hostComponents', []).someProperty('isMaster')) {
+        var componentName =  App.QuickLinksConfig.ServiceComponentMap[serviceName];
+        if (componentName) {
+          hosts = this.findHosts(componentName, response);
+        } else if (this.getWithDefault('content.hostComponents', []).someProperty('isMaster')) {
           hosts = this.findHosts(this.get('content.hostComponents').findProperty('isMaster').get('componentName'), response);
         }
         break;
