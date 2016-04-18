@@ -23,8 +23,8 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Scanner;
 import java.util.Map;
+import java.util.Scanner;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -290,8 +290,7 @@ public class DatabaseChecker {
       String error = "Current database store version is not compatible with " +
         "current server version"
         + ", serverVersion=" + serverVersion
-        + ", schemaVersion=" + schemaVersion
-        + " Run \"ambari-server start --skip-database-validation\" to skip validation";
+        + ", schemaVersion=" + schemaVersion;
       LOG.warn(error);
       throw new AmbariException(error);
     }
