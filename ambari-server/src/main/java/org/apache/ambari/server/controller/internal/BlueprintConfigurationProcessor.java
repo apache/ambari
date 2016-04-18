@@ -19,22 +19,6 @@
 package org.apache.ambari.server.controller.internal;
 
 
-import com.google.common.base.Predicates;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import org.apache.ambari.server.state.PropertyDependencyInfo;
-import org.apache.ambari.server.state.ValueAttributesInfo;
-import org.apache.ambari.server.topology.AdvisedConfiguration;
-import org.apache.ambari.server.topology.Blueprint;
-import org.apache.ambari.server.topology.Cardinality;
-import org.apache.ambari.server.topology.ClusterTopology;
-import org.apache.ambari.server.topology.ConfigRecommendationStrategy;
-import org.apache.ambari.server.topology.Configuration;
-import org.apache.ambari.server.topology.HostGroupInfo;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -49,6 +33,23 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.apache.ambari.server.state.PropertyDependencyInfo;
+import org.apache.ambari.server.state.ValueAttributesInfo;
+import org.apache.ambari.server.topology.AdvisedConfiguration;
+import org.apache.ambari.server.topology.Blueprint;
+import org.apache.ambari.server.topology.Cardinality;
+import org.apache.ambari.server.topology.ClusterTopology;
+import org.apache.ambari.server.topology.ConfigRecommendationStrategy;
+import org.apache.ambari.server.topology.Configuration;
+import org.apache.ambari.server.topology.HostGroupInfo;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Predicates;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
  * Updates configuration properties based on cluster topology.  This is done when exporting
@@ -2619,6 +2620,31 @@ public class BlueprintConfigurationProcessor {
                   ".  This may be caused by an error in the blueprint configuration.");
       }
 
+    }
+
+    addExcludedConfigProperties(configuration, configTypesUpdated, services);
+
+  }
+
+  /**
+   * Adds properties from excluded config files (marked as excluded in service metainfo.xml) like Falcon related properties
+   * from oozie-site.xml defined in FALCON/configuration. (AMBARI-13017)
+   * @param configuration
+   * @param configTypesUpdated
+   * @param services
+   */
+  private void addExcludedConfigProperties(Configuration configuration, Set<String> configTypesUpdated, Collection<String> services) {
+    Stack stack = clusterTopology.getBlueprint().getStack();
+
+    for(String service: services){
+      Set<String> excludedConfigTypes = stack.getExcludedConfigurationTypes(service);
+      for(String configType: excludedConfigTypes) {
+        Map<String, String> configProperties = stack.getConfigurationProperties(service, configType);
+        for(Map.Entry<String, String> entry: configProperties.entrySet()) {
+          LOG.debug("ADD property " + configType + " " + entry.getKey() + " " + entry.getValue());
+          ensureProperty(configuration, configType, entry.getKey(), entry.getValue(), configTypesUpdated);
+        }
+      }
     }
   }
 
