@@ -48,6 +48,7 @@ from ambari_server.serverUtils import is_server_runing, get_ambari_server_api_ba
 from ambari_server.userInput import get_validated_string_input, get_prompt_default, read_password, get_YN_input
 from ambari_server.serverClassPath import ServerClassPath
 from ambari_server.setupMpacks import replay_mpack_logs
+from ambari_commons.logging_utils import get_debug_mode,   set_debug_mode_from_options
 
 # constants
 STACK_NAME_VER_SEP = "-"
@@ -60,6 +61,18 @@ STACK_UPGRADE_HELPER_CMD = "{0} -cp {1} " + \
                            "org.apache.ambari.server.upgrade.StackUpgradeHelper" + \
                            " {2} {3} > " + configDefaults.SERVER_OUT_FILE + " 2>&1"
 
+SCHEMA_UPGRADE_HELPER_CMD_DEBUG = "{0} " \
+                         "-server -XX:NewRatio=2 " \
+                         "-XX:+UseConcMarkSweepGC " + \
+                         " -Xdebug -Xrunjdwp:transport=dt_socket,address=5005," \
+                         "server=y,suspend={2} " \
+                         "-cp {1} " + \
+                         "org.apache.ambari.server.upgrade.SchemaUpgradeHelper" + \
+                         " > " + configDefaults.SERVER_OUT_FILE + " 2>&1"
+
+SCHEMA_UPGRADE_DEBUG = False
+
+SUSPEND_START_MODE = False
 
 #
 # Stack upgrade
@@ -255,7 +268,12 @@ def run_schema_upgrade(args):
   serverClassPath = ServerClassPath(get_ambari_properties(), args)
   class_path = serverClassPath.get_full_ambari_classpath_escaped_for_shell(validate_classpath=True)
 
-  command = SCHEMA_UPGRADE_HELPER_CMD.format(jdk_path, class_path)
+  set_debug_mode_from_options(args)
+  debug_mode = get_debug_mode()
+  debug_start = (debug_mode & 1) or SCHEMA_UPGRADE_DEBUG
+  suspend_start = (debug_mode & 2) or SUSPEND_START_MODE
+  suspend_mode = 'y' if suspend_start else 'n'
+  command = SCHEMA_UPGRADE_HELPER_CMD_DEBUG.format(jdk_path, class_path, suspend_mode) if debug_start else SCHEMA_UPGRADE_HELPER_CMD.format(jdk_path, class_path)
 
   ambari_user = read_ambari_user()
   current_user = ensure_can_start_under_current_user(ambari_user)
