@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.state.cluster;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -408,6 +409,18 @@ public class ClustersImpl implements Clusters {
   }
 
   /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void updateHostMappings(Host host) {
+    Long hostId = host.getHostId();
+
+    if (null != hostId) {
+      hostsById.put(hostId, host);
+    }
+  }
+
+  /**
    * Register a host by creating a {@link HostEntity} object in the database and setting its state to
    * {@link HostState#INIT}. This does not add the host the cluster.
    * @param hostname Host to be added
@@ -417,11 +430,8 @@ public class ClustersImpl implements Clusters {
   public void addHost(String hostname) throws AmbariException {
     checkLoaded();
 
-    String duplicateMessage = "Duplicate entry for Host"
-        + ", hostName= " + hostname;
-
     if (hosts.containsKey(hostname)) {
-      throw new AmbariException(duplicateMessage);
+      throw new AmbariException(MessageFormat.format("Duplicate entry for Host {0}", hostname));
     }
 
     w.lock();
@@ -439,7 +449,11 @@ public class ClustersImpl implements Clusters {
       host.setHealthStatus(new HostHealthStatus(HealthStatus.UNKNOWN, ""));
       host.setHostAttributes(new HashMap<String, String>());
       host.setState(HostState.INIT);
+
+      // the hosts by ID map is updated separately since the host has not yet
+      // been persisted yet - the below event is what causes the persist
       hosts.put(hostname, host);
+
       hostClusterMap.put(hostname, Collections.newSetFromMap(new ConcurrentHashMap<Cluster, Boolean>()));
 
       if (LOG.isDebugEnabled()) {
@@ -751,9 +765,7 @@ public class ClustersImpl implements Clusters {
   @Override
   public void unmapHostFromCluster(String hostname, String clusterName) throws AmbariException {
     final Cluster cluster = getCluster(clusterName);
-    unmapHostFromClusters(hostname, new HashSet<Cluster>() {{
-      add(cluster);
-    }});
+    unmapHostFromClusters(hostname, Sets.newHashSet(cluster));
   }
 
   @Transactional

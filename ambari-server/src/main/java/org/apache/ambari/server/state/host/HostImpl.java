@@ -286,7 +286,10 @@ public class HostImpl implements Host {
         + e.hostInfo.toString()
         + ", registrationTime=" + e.registrationTime
         + ", agentVersion=" + agentVersion);
+
       host.persist();
+      host.clusters.updateHostMappings(host);
+
       //todo: proper host joined notification
       boolean associatedWithCluster = false;
       try {
@@ -1351,11 +1354,12 @@ public class HostImpl implements Host {
             hostConfigMap.put(configType, hostConfig);
             if (cluster != null) {
               Config conf = cluster.getDesiredConfigByType(configType);
-              if(conf == null)
+              if(conf == null) {
                 LOG.error("Config inconsistency exists:"+
                     " unknown configType="+configType);
-              else
+              } else {
                 hostConfig.setDefaultVersionTag(conf.getTag());
+              }
             }
           }
           Config config = configEntry.getValue();
