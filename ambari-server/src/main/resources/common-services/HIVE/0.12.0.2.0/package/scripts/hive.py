@@ -303,16 +303,31 @@ def hive(name=None):
     )
 
   if name != "client":
-    create_directory(params.hive_pid_dir)
-    create_directory(params.hive_log_dir)
-    create_directory(params.hive_var_lib)
+    Directory(params.hive_pid_dir,
+              create_parents = True,
+              cd_access='a',
+              owner=params.hive_user,
+              group=params.user_group,
+              mode=0755)
+    Directory(params.hive_log_dir,
+              create_parents = True,
+              cd_access='a',
+              owner=params.hive_user,
+              group=params.user_group,
+              mode=0755)
+    Directory(params.hive_var_lib,
+              create_parents = True,
+              cd_access='a',
+              owner=params.hive_user,
+              group=params.user_group,
+              mode=0755)
 
 """
 Writes configuration files required by Hive.
 """
 def fill_conf_dir(component_conf_dir):
   import params
-  
+
   Directory(component_conf_dir,
             owner=params.hive_user,
             group=params.user_group,
@@ -328,8 +343,15 @@ def fill_conf_dir(component_conf_dir):
             mode=0644)
 
 
-  crt_file(format("{component_conf_dir}/hive-default.xml.template"))
-  crt_file(format("{component_conf_dir}/hive-env.sh.template"))
+  File(format("{component_conf_dir}/hive-default.xml.template"),
+       owner=params.hive_user,
+       group=params.user_group
+  )
+
+  File(format("{component_conf_dir}/hive-env.sh.template"),
+       owner=params.hive_user,
+       group=params.user_group
+  )
 
   log4j_exec_filename = 'hive-exec-log4j.properties'
   if (params.log4j_exec_props != None):
@@ -363,23 +385,6 @@ def fill_conf_dir(component_conf_dir):
          content=StaticFile(format("{component_conf_dir}/{log4j_filename}.template"))
     )
 
-def create_directory(name):
-  import params
-
-  Directory(name,
-            create_parents = True,
-            cd_access='a',
-            owner=params.hive_user,
-            group=params.user_group,
-            mode=0755)
-
-def crt_file(name):
-  import params
-
-  File(name,
-       owner=params.hive_user,
-       group=params.user_group
-  )
 
 def jdbc_connector():
   import params

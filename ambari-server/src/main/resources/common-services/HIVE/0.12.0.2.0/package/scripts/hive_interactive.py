@@ -41,7 +41,7 @@ from resource_management.core import utils
 
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
-from hive import fill_conf_dir, create_directory, jdbc_connector
+from hive import fill_conf_dir, jdbc_connector
 
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
@@ -54,6 +54,13 @@ Sets up the configs, jdbc connection and tarball copy to HDFS for Hive Server In
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def hive_interactive(name=None):
   import params
+
+  # list of properties that should be excluded from the config
+  # this approach is a compromise against adding a dedicated config
+  # type for hive_server_interactive or needed config groups on a
+  # per component basis
+  exclude_list = ['hive.enforce.bucketing',
+                  'hive.enforce.sorting']
 
   # Copy Tarballs in HDFS.
   resource_created = copy_to_hdfs("tez_hive2",
@@ -75,8 +82,7 @@ def hive_interactive(name=None):
             mode=0755
             )
 
-  for conf_dir in params.hive_interactive_conf_dir:
-    fill_conf_dir(conf_dir)
+  fill_conf_dir(params.hive_server_interactive_conf_dir)
 
   '''
   As hive2/hive-site.xml only contains the new + the changed props compared to hive/hive-site.xml,
@@ -85,6 +91,11 @@ def hive_interactive(name=None):
   merged_hive_interactive_site = {}
   merged_hive_interactive_site.update(params.config['configurations']['hive-site'])
   merged_hive_interactive_site.update(params.config['configurations']['hive-interactive-site'])
+  for item in exclude_list:
+    if item in merged_hive_interactive_site.keys():
+      del merged_hive_interactive_site[item]
+
+  # Anything TODO for attributes
 
   XmlConfig("hive-site.xml",
             conf_dir=params.hive_server_interactive_conf_dir,
@@ -94,6 +105,7 @@ def hive_interactive(name=None):
             group=params.user_group,
             mode=0644)
 
+  # Merge tez-interactive with tez-site
   XmlConfig("tez-site.xml",
              conf_dir = params.tez_interactive_config_dir,
              configurations = params.config['configurations']['tez-interactive-site'],
@@ -108,6 +120,20 @@ def hive_interactive(name=None):
        content=InlineTemplate(params.hive_interactive_env_sh_template)
        )
 
+  # On some OS this folder could be not exists, so we will create it before pushing there files
+  Directory(params.limits_conf_dir,
+            create_parents = True,
+            owner='root',
+            group='root'
+  )
+
+  File(os.path.join(params.limits_conf_dir, 'hive.conf'),
+       owner='root',
+       group='root',
+       mode=0644,
+       content=Template("hive.conf.j2")
+  )
+
   if not os.path.exists(params.target_hive_interactive):
     jdbc_connector()
 
@@ -120,6 +146,21 @@ def hive_interactive(name=None):
        content=Template(format('{start_hiveserver2_interactive_script}'))
        )
 
-  create_directory(params.hive_pid_dir)
-  create_directory(params.hive_log_dir)
-  create_directory(params.hive_interactive_var_lib)
+  Directory(params.hive_pid_dir,
+            create_parents=True,
+            cd_access='a',
+            owner=params.hive_user,
+            group=params.user_group,
+            mode=0755)
+  Directory(params.hive_log_dir,
+            create_parents=True,
+            cd_access='a',
+            owner=params.hive_user,
+            group=params.user_group,
+            mode=0755)
+  Directory(params.hive_interactive_var_lib,
+            create_parents=True,
+            cd_access='a',
+            owner=params.hive_user,
+            group=params.user_group,
+            mode=0755)
