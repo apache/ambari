@@ -1388,7 +1388,6 @@ public class BlueprintConfigurationProcessorTest {
     hiveSiteProperties.put("javax.jdo.option.ConnectionURL", expectedHostName + ":" + expectedPortNum);
     hiveSiteProperties.put("hive.zookeeper.quorum", expectedHostName + ":" + expectedPortNum + "," + expectedHostNameTwo + ":" + expectedPortNum);
     hiveSiteProperties.put("hive.cluster.delegation.token.store.zookeeper.connectString", expectedHostName + ":" + expectedPortNum + "," + expectedHostNameTwo + ":" + expectedPortNum);
-    hiveEnvProperties.put("hive_hostname", expectedHostName);
 
     webHCatSiteProperties.put("templeton.hive.properties", expectedHostName + "," + expectedHostNameTwo);
     webHCatSiteProperties.put("templeton.kerberos.principal", expectedHostName);
@@ -1431,9 +1430,6 @@ public class BlueprintConfigurationProcessorTest {
         "thrift://" + createExportedAddress(expectedPortNum, expectedHostGroupName), hiveSiteProperties.get("hive.metastore.uris"));
     assertEquals("hive property not properly exported",
         createExportedAddress(expectedPortNum, expectedHostGroupName), hiveSiteProperties.get("javax.jdo.option.ConnectionURL"));
-    assertEquals("hive property not properly exported",
-        createExportedHostName(expectedHostGroupName), hiveEnvProperties.get("hive_hostname"));
-
     assertEquals("hive property not properly exported",
         createExportedHostName(expectedHostGroupName) + "," + createExportedHostName(expectedHostGroupNameTwo),
         webHCatSiteProperties.get("templeton.hive.properties"));
@@ -1489,7 +1485,6 @@ public class BlueprintConfigurationProcessorTest {
     hiveSiteProperties.put("javax.jdo.option.ConnectionURL", expectedHostName + ":" + expectedPortNum);
     hiveSiteProperties.put("hive.zookeeper.quorum", expectedHostName + ":" + expectedPortNum + "," + expectedHostNameTwo + ":" + expectedPortNum);
     hiveSiteProperties.put("hive.cluster.delegation.token.store.zookeeper.connectString", expectedHostName + ":" + expectedPortNum + "," + expectedHostNameTwo + ":" + expectedPortNum);
-    hiveEnvProperties.put("hive_hostname", expectedHostName);
 
     webHCatSiteProperties.put("templeton.hive.properties", expectedHostName + "," + expectedHostNameTwo);
     webHCatSiteProperties.put("templeton.kerberos.principal", expectedHostName);
@@ -1531,9 +1526,6 @@ public class BlueprintConfigurationProcessorTest {
       "thrift://" + createExportedAddress(expectedPortNum, expectedHostGroupName) + "," + "thrift://" + createExportedAddress(expectedPortNum, expectedHostGroupNameTwo), hiveSiteProperties.get("hive.metastore.uris"));
     assertEquals("hive property not properly exported",
         createExportedAddress(expectedPortNum, expectedHostGroupName), hiveSiteProperties.get("javax.jdo.option.ConnectionURL"));
-    assertEquals("hive property not properly exported",
-        createExportedHostName(expectedHostGroupName), hiveEnvProperties.get("hive_hostname"));
-
     assertEquals("hive property not properly exported",
         createExportedHostName(expectedHostGroupName) + "," + createExportedHostName(expectedHostGroupNameTwo),
         webHCatSiteProperties.get("templeton.hive.properties"));
@@ -1581,7 +1573,6 @@ public class BlueprintConfigurationProcessorTest {
     oozieSiteProperties.put("oozie.service.HadoopAccessorService.kerberos.principal", expectedHostName);
     oozieSiteProperties.put("oozie.service.JPAService.jdbc.url", "jdbc:mysql://" + expectedExternalHost + "/ooziedb");
 
-    oozieEnvProperties.put("oozie_hostname", expectedHostName);
     oozieEnvProperties.put("oozie_existing_mysql_host", expectedExternalHost);
     oozieEnvProperties.put("oozie_heapsize", "1024m");
     oozieEnvProperties.put("oozie_permsize", "2048m");
@@ -1624,8 +1615,6 @@ public class BlueprintConfigurationProcessorTest {
       createExportedHostName(expectedHostGroupName), oozieSiteProperties.get("oozie.authentication.kerberos.principal"));
     assertEquals("oozie property not exported correctly",
         createExportedHostName(expectedHostGroupName), oozieSiteProperties.get("oozie.service.HadoopAccessorService.kerberos.principal"));
-    assertEquals("oozie property not exported correctly",
-        createExportedHostName(expectedHostGroupName), oozieEnvProperties.get("oozie_hostname"));
     assertEquals("oozie property not exported correctly",
         createExportedHostName(expectedHostGroupName) + "," + createExportedHostName(expectedHostGroupNameTwo), coreSiteProperties.get("hadoop.proxyuser.oozie.hosts"));
 
@@ -2712,9 +2701,6 @@ public class BlueprintConfigurationProcessorTest {
   public void testHiveConfigClusterUpdateSpecifyingHostNamesHiveServer2HA() throws Exception {
     final String expectedHostGroupName = "host_group_1";
 
-    final String expectedPropertyValue =
-        "c6401.ambari.apache.org";
-
     final String expectedMetaStoreURIs = "thrift://c6401.ambari.apache.org:9083,thrift://c6402.ambari.apache.org:9083";
 
     Map<String, Map<String, String>> configProperties =
@@ -2727,10 +2713,6 @@ public class BlueprintConfigurationProcessorTest {
 
     configProperties.put("hive-env", hiveEnvProperties);
     configProperties.put("hive-site", hiveSiteProperties);
-
-    // setup properties that include host information
-    hiveEnvProperties.put("hive_hostname",
-        expectedPropertyValue);
 
     // simulate HA mode, since this property must be present in HiveServer2 HA
     hiveSiteProperties.put("hive.server2.support.dynamic.service.discovery", "true");
@@ -2758,10 +2740,6 @@ public class BlueprintConfigurationProcessorTest {
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
     updater.doUpdateForClusterCreate();
-
-    assertEquals("Unexpected config update for hive_hostname",
-      expectedPropertyValue,
-      hiveEnvProperties.get("hive_hostname"));
 
     assertEquals("Unexpected config update for hive.metastore.uris",
         expectedMetaStoreURIs,
@@ -2798,10 +2776,6 @@ public class BlueprintConfigurationProcessorTest {
     configProperties.put("hive-env", hiveEnvProperties);
     configProperties.put("hive-site", hiveSiteProperties);
 
-    // setup properties that include host information
-    hiveEnvProperties.put("hive_hostname",
-        expectedHostNameOne);
-
     // simulate HA mode, since this property must be present in HiveServer2 HA
     hiveSiteProperties.put("hive.server2.support.dynamic.service.discovery", "true");
 
@@ -2830,10 +2804,6 @@ public class BlueprintConfigurationProcessorTest {
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
     updater.doUpdateForClusterCreate();
-
-    assertEquals("Unexpected config update for hive_hostname",
-        expectedHostNameOne,
-        hiveEnvProperties.get("hive_hostname"));
 
     assertEquals("Unexpected config update for hive.metastore.uris",
         expectedMetaStoreURIs,
@@ -2920,8 +2890,6 @@ public class BlueprintConfigurationProcessorTest {
     oozieSiteProperties.put("oozie.services.ext",
         "org.apache.oozie.service.ZKLocksService,org.apache.oozie.service.ZKXLogStreamingService,org.apache.oozie.service.ZKJobsConcurrencyService,org.apache.oozie.service.ZKUUIDService");
 
-
-    oozieEnvProperties.put("oozie_hostname", expectedHostName);
     oozieEnvProperties.put("oozie_existing_mysql_host", expectedExternalHost);
 
     coreSiteProperties.put("hadoop.proxyuser.oozie.hosts", expectedHostName + "," + expectedHostNameTwo);
@@ -2951,8 +2919,6 @@ public class BlueprintConfigurationProcessorTest {
         expectedHostName, oozieSiteProperties.get("oozie.authentication.kerberos.principal"));
     assertEquals("oozie property not updated correctly",
         expectedHostName, oozieSiteProperties.get("oozie.service.HadoopAccessorService.kerberos.principal"));
-    assertEquals("oozie property not updated correctly",
-        expectedHostName, oozieEnvProperties.get("oozie_hostname"));
     assertEquals("oozie property not updated correctly",
         expectedHostName + "," + expectedHostNameTwo, coreSiteProperties.get("hadoop.proxyuser.oozie.hosts"));
   }
@@ -2988,7 +2954,6 @@ public class BlueprintConfigurationProcessorTest {
     oozieSiteProperties.put("oozie.zookeeper.connection.string", createHostAddress(expectedHostName, "2181") + "," + createHostAddress(expectedHostNameTwo, "2181"));
 
 
-    oozieEnvProperties.put("oozie_hostname", expectedHostName);
     oozieEnvProperties.put("oozie_existing_mysql_host", expectedExternalHost);
 
     coreSiteProperties.put("hadoop.proxyuser.oozie.hosts", expectedHostName + "," + expectedHostNameTwo);
@@ -3020,8 +2985,6 @@ public class BlueprintConfigurationProcessorTest {
       createExportedHostName(expectedHostGroupName), oozieSiteProperties.get("oozie.authentication.kerberos.principal"));
     assertEquals("oozie property not updated correctly",
       createExportedHostName(expectedHostGroupName), oozieSiteProperties.get("oozie.service.HadoopAccessorService.kerberos.principal"));
-    assertEquals("oozie property not updated correctly",
-      createExportedHostName(expectedHostGroupName), oozieEnvProperties.get("oozie_hostname"));
     assertEquals("oozie property not updated correctly",
       createExportedHostName(expectedHostGroupName) + "," + createExportedHostName(expectedHostGroupNameTwo), coreSiteProperties.get("hadoop.proxyuser.oozie.hosts"));
     assertEquals("oozie property not updated correctly",

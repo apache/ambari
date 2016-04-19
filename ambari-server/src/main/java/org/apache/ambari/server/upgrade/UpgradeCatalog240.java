@@ -102,6 +102,9 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   public static final String VIEWINSTANCE_TABLE = "viewinstance";
   public static final String SHORT_URL_COLUMN = "short_url";
 
+  private static final String OOZIE_ENV_CONFIG = "oozie-env";
+  private static final String HIVE_ENV_CONFIG = "hive-env";
+
   @Inject
   PermissionDAO permissionDAO;
 
@@ -199,6 +202,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     updateHostRoleCommandTableDML();
     updateKerberosConfigs();
     updateYarnEnv();
+    removeHiveOozieDBConnectionConfigs();
   }
 
   private void createSettingTable() throws SQLException {
@@ -281,6 +285,39 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     dbAccessor.insertRowIfMissing("permission_roleauthorization", new String[]{"permission_id", "authorization_id"},
       new String[]{"'" + permissionId + "'", "'CLUSTER.MANAGE_USER_PERSISTED_DATA'"}, false);
 
+  }
+
+  protected void removeHiveOozieDBConnectionConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Map<String, Cluster> clusterMap = getCheckedClusterMap(ambariManagementController.getClusters());
+
+    for (final Cluster cluster : clusterMap.values()) {
+      Config oozieEnv = cluster.getDesiredConfigByType(OOZIE_ENV_CONFIG);
+      if(oozieEnv != null) {
+        Map<String, String> oozieEnvProperties = oozieEnv.getProperties();
+        Set<String> removePropertiesSet = new HashSet<>();
+        if (oozieEnvProperties.containsKey("oozie_derby_database")) {
+          LOG.info("Removing property oozie_derby_database from " + OOZIE_ENV_CONFIG);
+          removePropertiesSet.add("oozie_derby_database");
+        }
+        if (oozieEnvProperties.containsKey("oozie_hostname")) {
+          LOG.info("Removing property oozie_hostname from " + OOZIE_ENV_CONFIG);
+          removePropertiesSet.add("oozie_hostname");
+        }
+        if (!removePropertiesSet.isEmpty()) {
+          removeConfigurationPropertiesFromCluster(cluster, OOZIE_ENV_CONFIG, removePropertiesSet);
+        }
+      }
+
+      Config hiveEnv = cluster.getDesiredConfigByType(HIVE_ENV_CONFIG);
+      if(hiveEnv != null) {
+        Map<String, String> hiveEnvProperties = hiveEnv.getProperties();
+        if (hiveEnvProperties.containsKey("hive_hostname")) {
+          LOG.info("Removing property hive_hostname from " + HIVE_ENV_CONFIG);
+          removeConfigurationPropertiesFromCluster(cluster, HIVE_ENV_CONFIG, Collections.singleton("hive_hostname"));
+        }
+      }
+    }
   }
 
   protected void updateAlerts() {

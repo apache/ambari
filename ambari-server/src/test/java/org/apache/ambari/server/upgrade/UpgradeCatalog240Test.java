@@ -19,6 +19,9 @@
 package org.apache.ambari.server.upgrade;
 
 
+import javax.persistence.EntityManager;
+
+import junit.framework.Assert;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.capture;
@@ -33,6 +36,7 @@ import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNull;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -68,6 +72,7 @@ import org.apache.ambari.server.state.AlertFirmness;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
@@ -372,6 +377,7 @@ public class UpgradeCatalog240Test {
     Method updateHostRoleCommandTableDML = UpgradeCatalog240.class.getDeclaredMethod("updateHostRoleCommandTableDML");
     Method updateKerberosEnv = UpgradeCatalog240.class.getDeclaredMethod("updateKerberosConfigs");
     Method updateYarnEnv = UpgradeCatalog240.class.getDeclaredMethod("updateYarnEnv");
+    Method removeHiveOozieDBConnectionConfigs = UpgradeCatalog240.class.getDeclaredMethod("removeHiveOozieDBConnectionConfigs");
 
     Capture<String> capturedStatements = newCapture(CaptureType.ALL);
 
@@ -389,6 +395,7 @@ public class UpgradeCatalog240Test {
             .addMockedMethod(updateHostRoleCommandTableDML)
             .addMockedMethod(updateKerberosEnv)
             .addMockedMethod(updateYarnEnv)
+            .addMockedMethod(removeHiveOozieDBConnectionConfigs)
             .createMock();
 
     Field field = AbstractUpgradeCatalog.class.getDeclaredField("dbAccessor");
@@ -404,6 +411,7 @@ public class UpgradeCatalog240Test {
     upgradeCatalog240.updateHostRoleCommandTableDML();
     upgradeCatalog240.updateKerberosConfigs();
     upgradeCatalog240.updateYarnEnv();
+    upgradeCatalog240.removeHiveOozieDBConnectionConfigs();
 
     replay(upgradeCatalog240, dbAccessor);
 
@@ -421,6 +429,66 @@ public class UpgradeCatalog240Test {
     Assert.assertTrue(statements.contains("UPDATE adminpermission SET sort_order=5 WHERE permission_name='SERVICE.OPERATOR'"));
     Assert.assertTrue(statements.contains("UPDATE adminpermission SET sort_order=6 WHERE permission_name='CLUSTER.USER'"));
     Assert.assertTrue(statements.contains("UPDATE adminpermission SET sort_order=7 WHERE permission_name='VIEW.USER'"));
+  }
+
+  @Test
+  public void testRemoveHiveOozieDBConnectionConfigs() throws Exception{
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(
+            AmbariManagementController.class);
+    final ConfigHelper mockConfigHelper = easyMockSupport.createMock(ConfigHelper.class);
+
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+
+    final Config mockOozieEnv = easyMockSupport.createNiceMock(Config.class);
+    final Config mockHiveEnv = easyMockSupport.createNiceMock(Config.class);
+
+    final Map<String, String> propertiesExpectedOozieEnv = new HashMap<String, String>();
+    propertiesExpectedOozieEnv.put("oozie_derby_database", "Derby");
+    propertiesExpectedOozieEnv.put("property", "value");
+    // Imitate missing property
+    // propertiesExpectedOozieEnv.put("oozie_hostname", "hostname");
+    final Map<String, String> propertiesExpectedHiveEnv = new HashMap<String, String>();
+    propertiesExpectedHiveEnv.put("hive_hostname", "hostname");
+
+    final Injector mockInjector = Guice.createInjector(new Module() {
+      @Override
+      public void configure(Binder binder) {
+        binder.bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        binder.bind(ConfigHelper.class).toInstance(mockConfigHelper);
+        binder.bind(Clusters.class).toInstance(mockClusters);
+        binder.bind(EntityManager.class).toInstance(entityManager);
+        binder.bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        binder.bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    });
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockClusterExpected);
+    }}).once();
+
+    expect(mockClusterExpected.getDesiredConfigByType("oozie-env")).andReturn(mockOozieEnv).atLeastOnce();
+    expect(mockClusterExpected.getDesiredConfigByType("hive-env")).andReturn(mockHiveEnv).atLeastOnce();
+    expect(mockOozieEnv.getProperties()).andReturn(propertiesExpectedOozieEnv).anyTimes();
+    expect(mockHiveEnv.getProperties()).andReturn(propertiesExpectedHiveEnv).anyTimes();
+
+    Capture<Map<String, String>> oozieCapture =  newCapture();
+    Capture<Map<String, String>> hiveCapture =  newCapture();
+    expect(mockAmbariManagementController.createConfig(eq(mockClusterExpected), eq("oozie-env"),
+        capture(oozieCapture), anyString(), (Map<String, Map<String, String>>)anyObject())).andReturn(null).once();
+    expect(mockAmbariManagementController.createConfig(eq(mockClusterExpected), eq("hive-env"),
+            capture(hiveCapture), anyString(), (Map<String, Map<String, String>>)anyObject())).andReturn(null).once();
+
+    easyMockSupport.replayAll();
+    mockInjector.getInstance(UpgradeCatalog240.class).removeHiveOozieDBConnectionConfigs();
+    easyMockSupport.verifyAll();
+
+    assertEquals("value", oozieCapture.getValue().get("property"));
+    assertNull(oozieCapture.getValue().get("oozie_derby_database"));
+    assertNull(oozieCapture.getValue().get("oozie_hostname"));
+    assertNull(hiveCapture.getValue().get("hive_hostname"));
   }
 
   @Test
