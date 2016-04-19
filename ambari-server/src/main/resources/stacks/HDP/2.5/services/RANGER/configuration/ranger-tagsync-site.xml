@@ -24,7 +24,7 @@
   <property>
     <name>ranger.tagsync.enabled</name>
     <display-name>Enable Tagsync</display-name>
-    <value>true</value>
+    <value>false</value>
     <description>Enable/Disable Ranger Tagsync</description>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>

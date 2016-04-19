@@ -47,7 +47,8 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     parentValidators = super(HDP25StackAdvisor, self).getServiceConfigurationValidators()
     childValidators = {
       "HIVE": {"hive-interactive-env": self.validateHiveInteractiveEnvConfigurations},
-      "YARN": {"yarn-site": self.validateYarnConfigurations}
+      "YARN": {"yarn-site": self.validateYarnConfigurations},
+      "RANGER": {"ranger-tagsync-site": self.validateRangerTagsyncConfigurations}
     }
     self.mergeValidators(parentValidators, childValidators)
     return parentValidators
@@ -420,15 +421,19 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
 
     putTagsyncAppProperty = self.putProperty(configurations, "tagsync-application-properties", services)
+    has_ranger_tagsync = False
+    if 'RANGER' in servicesList:
+      ranger_tagsync_host = self.__getHostsForComponent(services, "RANGER", "RANGER_TAGSYNC")
+      has_ranger_tagsync = len(ranger_tagsync_host) > 0
 
     zookeeper_host_port = self.getZKHostPortString(services)
-    if zookeeper_host_port:
+    if zookeeper_host_port and has_ranger_tagsync:
       zookeeper_host_list = zookeeper_host_port.split(',')
       putTagsyncAppProperty('atlas.kafka.zookeeper.connect', zookeeper_host_list[0])
     else:
       putTagsyncAppProperty('atlas.kafka.zookeeper.connect', 'localhost:6667')
 
-    if 'KAFKA' in servicesList:
+    if 'KAFKA' in servicesList and has_ranger_tagsync:
       kafka_hosts = self.getHostNamesWithComponent("KAFKA", "KAFKA_BROKER", services)
       kafka_port = '6667'
       if 'kafka-broker' in services['configurations'] and (
@@ -442,6 +447,23 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       putTagsyncAppProperty('atlas.kafka.bootstrap.servers', final_kafka_host)
     else:
       putTagsyncAppProperty('atlas.kafka.bootstrap.servers', 'localhost:2181')
+
+  def validateRangerTagsyncConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+    ranger_tagsync_properties = getSiteProperties(configurations, "ranger-tagsync-site")
+    validationItems = []
+
+    has_ranger_tagsync = False
+    if "RANGER" in servicesList:
+      ranger_tagsync_host = self.__getHostsForComponent(services, "RANGER", "RANGER_TAGSYNC")
+      has_ranger_tagsync = len(ranger_tagsync_host) == 0
+
+      if has_ranger_tagsync and 'ranger.tagsync.enabled' in ranger_tagsync_properties and \
+        ranger_tagsync_properties['ranger.tagsync.enabled'].lower() == 'true':
+        validationItems.append({"config-name": "ranger.tagsync.enabled",
+                                  "item": self.getWarnItem(
+                                    "Need to Install RANGER TAGSYNC component to set ranger.tagsync.enabled as true.")})
+
+    return self.toConfigurationValidationProblems(validationItems, "ranger-tagsync-site")
 
   """
   Returns the host(s) on which a requested service's component is hosted.

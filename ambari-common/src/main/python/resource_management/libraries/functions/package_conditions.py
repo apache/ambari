@@ -79,6 +79,7 @@ def should_install_kerberos_server():
 def should_install_ranger_tagsync():
   config = Script.get_config()
   ranger_tagsync_hosts = default("/clusterHostInfo/ranger_tagsync_hosts", [])
+  ranger_tagsync_enabled = default('/configurations/ranger-tagsync-site/ranger.tagsync.enabled', False)
   has_ranger_tagsync = len(ranger_tagsync_hosts) > 0
 
-  return has_ranger_tagsync
+  return has_ranger_tagsync or ranger_tagsync_enabled
