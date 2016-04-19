@@ -33,6 +33,7 @@ import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetric
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.security.ldap.LdapBatchDto;
 import org.apache.ambari.server.security.ldap.LdapSyncDto;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
@@ -800,5 +801,13 @@ public interface AmbariManagementController {
    * @return
    */
   KerberosHelper getKerberosHelper();
+
+  /**
+   * Returns the CredentialStoreService implementation associated with this
+   * controller
+   * @return CredentialStoreService
+   */
+  CredentialStoreService getCredentialStoreService();
+
 }
 

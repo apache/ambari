@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.api.services;
 
-import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
@@ -29,7 +28,6 @@ import org.apache.ambari.server.controller.logging.LoggingRequestHelperFactory;
 import org.apache.ambari.server.controller.logging.LoggingRequestHelperFactoryImpl;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.utils.RetryHelper;
-import org.apache.log4j.Logger;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -40,7 +38,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,14 +50,6 @@ import java.util.Map;
  *
  */
 public class LoggingService extends BaseService {
-
-  private static final Logger LOG = Logger.getLogger(LoggingService.class);
-
-  public static final String LOGSEARCH_SITE_CONFIG_TYPE_NAME = "logsearch-site";
-
-  public static final String LOGSEARCH_SERVICE_NAME = "LOGSEARCH";
-
-  public static final String LOGSEARCH_SERVER_COMPONENT_NAME = "LOGSEARCH_SERVER";
 
   private final ControllerFactory controllerFactory;
 
@@ -80,39 +69,12 @@ public class LoggingService extends BaseService {
   }
 
   @GET
-  @Produces("text/plain")
-  public Response getLogSearchResource(String body, @Context HttpHeaders headers, @Context UriInfo uri) {
-    return handleRequest(headers, body, uri,  Request.Type.GET, createLoggingResource());
-  }
-
-  @GET
   @Path("searchEngine")
   @Produces("text/plain")
   public Response getSearchEngine(String body, @Context HttpHeaders headers, @Context UriInfo uri) {
     //TODO, fix this cast after testing,RWN
-    return handleDirectRequest(headers, body, uri,  Request.Type.GET, (MediaType)null);
+    return handleDirectRequest(uri, MediaType.TEXT_PLAIN_TYPE);
   }
-
-  @GET
-  @Path("levelCount")
-  @Produces("text/plain")
-  public Response getLevelCountForCluster(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
-    throw new IllegalStateException("not implemented yet");
-  }
-
-  @GET
-  @Path("graphing")
-  @Produces("text/plain")
-  public Response getGraphData(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
-    throw new IllegalStateException("not implemented yet");
-  }
-
-
-  private ResourceInstance createLoggingResource() {
-    return createResource(Resource.Type.LoggingQuery,
-      Collections.singletonMap(Resource.Type.LoggingQuery, "logging"));
-  }
-
 
   /**
    * Handling method for REST services that don't require the QueryParameter and
@@ -121,14 +83,12 @@ public class LoggingService extends BaseService {
    * In the case of the LoggingService, the query parameters passed to the search engine must
    * be preserved, since they are passed to the LogSearch REST API.
    *
-   * @param headers
-   * @param body
-   * @param uriInfo
-   * @param requestType
-   * @param mediaType
-   * @return
+   * @param uriInfo URI information for this request
+   * @param mediaType media type for this request
+   *
+   * @return a Response for the request associated with this UriInfo
    */
-  protected Response handleDirectRequest(HttpHeaders headers, String body, UriInfo uriInfo, Request.Type requestType, MediaType mediaType) {
+  protected Response handleDirectRequest(UriInfo uriInfo, MediaType mediaType) {
 
     MultivaluedMap<String, String> queryParameters =
       uriInfo.getQueryParameters();
@@ -208,25 +168,5 @@ public class LoggingService extends BaseService {
     public AmbariManagementController getController() {
       return AmbariServer.getController();
     }
-  }
-
-  private static class LogSearchConnectionInfo {
-
-    private final String hostName;
-    private final String portNumber;
-
-    public LogSearchConnectionInfo(String hostName, String portNumber) {
-      this.hostName = hostName;
-      this.portNumber = portNumber;
-    }
-
-    public String getHostName() {
-      return this.hostName;
-    }
-
-    public String getPortNumber() {
-      return this.portNumber;
-    }
-
   }
 }

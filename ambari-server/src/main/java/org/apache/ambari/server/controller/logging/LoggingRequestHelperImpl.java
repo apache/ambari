@@ -19,6 +19,10 @@
 package org.apache.ambari.server.controller.logging;
 
 
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.security.credential.Credential;
+import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
+import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.log4j.Logger;
@@ -34,7 +38,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
@@ -48,73 +51,76 @@ import java.util.Set;
  */
 public class LoggingRequestHelperImpl implements LoggingRequestHelper {
 
-  private Logger LOG = Logger.getLogger(LoggingRequestHelperImpl.class);
+  private static Logger LOG = Logger.getLogger(LoggingRequestHelperImpl.class);
 
-  //TODO, hardcoded localhost for LogSearch service for dev purposes, will switch to config after POC finished
+  public static String LOGSEARCH_QUERY_PATH = "/service/dashboard/solr/logs_search";
 
-
-  private static String DEFAULT_HOSTNAME = "localhost";
-
-  private static String DEFAULT_PORT = "61888";
-
-  private static String LOGSEARCH_QUERY_PATH = "/service/dashboard/solr/logs_search";
+  public static String LOGSEARCH_GET_LOG_LEVELS_PATH = "/service/dashboard/getLogLevelCounts";
 
   private static String DEFAULT_LOGSEARCH_USER = "admin";
 
   private static String DEFAULT_LOGSEARCH_PWD = "admin";
 
+  public static final String LOGSEARCH_ADMIN_CREDENTIAL_NAME = "logsearch.admin.credential";
+
   private final String hostName;
 
   private final String portNumber;
 
+  private final CredentialStoreService credentialStoreService;
 
-  public LoggingRequestHelperImpl() {
-    this(DEFAULT_HOSTNAME, DEFAULT_PORT);
-  }
+  private final String clusterName;
 
-  public LoggingRequestHelperImpl(String hostName, String portNumber) {
+  public LoggingRequestHelperImpl(String hostName, String portNumber, CredentialStoreService credentialStoreService, String clusterName) {
     this.hostName = hostName;
     this.portNumber = portNumber;
+    this.credentialStoreService = credentialStoreService;
+    this.clusterName = clusterName;
   }
 
   public LogQueryResponse sendQueryRequest(Map<String, String> queryParameters) {
     try {
       // use the Apache builder to create the correct URI
-      URI logSearchURI = createLogSearchQueryURI(queryParameters);
-      LOG.info("Attempting to connect to LogSearch server at " + logSearchURI);
+      URI logSearchURI = createLogSearchQueryURI("http", queryParameters);
+      LOG.debug("Attempting to connect to LogSearch server at " + logSearchURI);
 
       HttpURLConnection httpURLConnection  = (HttpURLConnection)logSearchURI.toURL().openConnection();
       httpURLConnection.setRequestMethod("GET");
-      setupBasicAuthentication(httpURLConnection);
+
+      setupCredentials(httpURLConnection);
+
       StringBuffer buffer = readQueryResponseFromServer(httpURLConnection);
 
       // setup a reader for the JSON response
       StringReader stringReader =
         new StringReader(buffer.toString());
 
-      // setup the Jackson mapper/reader to read in the data structure
-      ObjectMapper mapper = createJSONObjectMapper();
-
       ObjectReader logQueryResponseReader =
-        mapper.reader(LogQueryResponse.class);
+        createObjectReader(LogQueryResponse.class);
 
-      LogQueryResponse queryResult =
-        logQueryResponseReader.readValue(stringReader);
+      return logQueryResponseReader.readValue(stringReader);
 
-      LOG.debug("DEBUG: response from LogSearch was: " + buffer);
-
-      return queryResult;
-
-    } catch (MalformedURLException e) {
-      // TODO, need better error handling here
-      e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-    } catch (IOException e) {
-      e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-    } catch (URISyntaxException e) {
-      e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+    } catch (Exception e) {
+      LOG.error("Error occurred while trying to connect to the LogSearch service...", e);
     }
 
     return null;
+  }
+
+  private void setupCredentials(HttpURLConnection httpURLConnection) {
+    PrincipalKeyCredential principalKeyCredential =
+      getLogSearchCredentials();
+
+    // determine the credential to use for connecting to LogSearch
+    if (principalKeyCredential != null) {
+      // setup credential stored in credential service
+      LOG.debug("Credential found in CredentialStore, will be used to connect to LogSearch");
+      setupBasicAuthentication(httpURLConnection, createEncodedCredentials(principalKeyCredential));
+    } else {
+      // fall back to hard-coded credential for now
+      LOG.debug("No credential found in CredentialStore, defaulting to fall-back credential for now");
+      setupBasicAuthentication(httpURLConnection, createDefaultEncodedCredentials());
+    }
   }
 
   public Set<String> sendGetLogFileNamesRequest(String componentName, String hostName) {
@@ -135,7 +141,7 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
       LogLineResult lineOne = response.getListOfResults().get(0);
       // this assumes that each component has only one associated log file,
       // which may not always hold true
-      LOG.info("For componentName = " + componentName + ", log file name is = " + lineOne.getLogFilePath());
+      LOG.debug("For componentName = " + componentName + ", log file name is = " + lineOne.getLogFilePath());
       return Collections.singleton(lineOne.getLogFilePath());
 
     }
@@ -143,11 +149,47 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
     return Collections.emptySet();
   }
 
-  private URI createLogSearchQueryURI(Map<String, String> queryParameters) throws URISyntaxException {
-    URIBuilder uriBuilder = new URIBuilder();
-    uriBuilder.setScheme("http");
-    uriBuilder.setHost(hostName);
-    uriBuilder.setPort(Integer.valueOf(portNumber));
+  @Override
+  public LogLevelQueryResponse sendLogLevelQueryRequest(String componentName, String hostName) {
+    try {
+      // use the Apache builder to create the correct URI
+      URI logLevelQueryURI = createLogLevelQueryURI("http", componentName, hostName);
+      LOG.debug("Attempting to connect to LogSearch server at " + logLevelQueryURI);
+
+      HttpURLConnection httpURLConnection = (HttpURLConnection) logLevelQueryURI.toURL().openConnection();
+      httpURLConnection.setRequestMethod("GET");
+
+      setupCredentials(httpURLConnection);
+
+      StringBuffer buffer = readQueryResponseFromServer(httpURLConnection);
+
+      // setup a reader for the JSON response
+      StringReader stringReader =
+        new StringReader(buffer.toString());
+
+      ObjectReader logQueryResponseReader = createObjectReader(LogLevelQueryResponse.class);
+
+      return logQueryResponseReader.readValue(stringReader);
+
+    } catch (Exception e) {
+      LOG.error("Error occurred while trying to connect to the LogSearch service...", e);
+    }
+
+    return null;
+  }
+
+  private static ObjectReader createObjectReader(Class type) {
+    // setup the Jackson mapper/reader to read in the data structure
+    ObjectMapper mapper = createJSONObjectMapper();
+
+    return mapper.reader(type);
+  }
+
+
+
+
+  private URI createLogSearchQueryURI(String scheme, Map<String, String> queryParameters) throws URISyntaxException {
+    URIBuilder uriBuilder = createBasicURI(scheme);
     uriBuilder.setPath(LOGSEARCH_QUERY_PATH);
 
     // add any query strings specified
@@ -158,7 +200,35 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
     return uriBuilder.build();
   }
 
-  protected ObjectMapper createJSONObjectMapper() {
+  private URIBuilder createBasicURI(String scheme) {
+    URIBuilder uriBuilder = new URIBuilder();
+    uriBuilder.setScheme(scheme);
+    uriBuilder.setHost(hostName);
+    uriBuilder.setPort(Integer.valueOf(portNumber));
+    return uriBuilder;
+  }
+
+  private URI createLogLevelQueryURI(String scheme, String componentName, String hostName) throws URISyntaxException {
+    URIBuilder uriBuilder = createBasicURI(scheme);
+    uriBuilder.setPath(LOGSEARCH_GET_LOG_LEVELS_PATH);
+
+    Map<String, String> queryParameters = new HashMap<String, String>();
+    // set the query parameters to limit this level count
+    // request to the specific component on the specified host
+    queryParameters.put("host", hostName);
+    queryParameters.put("components_name",componentName);
+
+    // add any query strings specified
+    for (String key : queryParameters.keySet()) {
+      uriBuilder.addParameter(key, queryParameters.get(key));
+    }
+
+    return uriBuilder.build();
+  }
+
+
+
+  protected static ObjectMapper createJSONObjectMapper() {
     ObjectMapper mapper =
       new ObjectMapper();
     AnnotationIntrospector introspector =
@@ -174,7 +244,7 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
       // read in the response from LogSearch
       resultStream = httpURLConnection.getInputStream();
       BufferedReader reader = new BufferedReader(new InputStreamReader(resultStream));
-      LOG.info("Response code from LogSearch Service is = " + httpURLConnection.getResponseCode());
+      LOG.debug("Response code from LogSearch Service is = " + httpURLConnection.getResponseCode());
 
       String line = reader.readLine();
       StringBuffer buffer = new StringBuffer();
@@ -182,6 +252,9 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
         buffer.append(line);
         line = reader.readLine();
       }
+
+      LOG.debug("Sucessfully retrieved response from server, response = " + buffer);
+
       return buffer;
     } finally {
       // make sure to close the stream after request is completed
@@ -191,11 +264,42 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
     }
   }
 
-  private static void setupBasicAuthentication(HttpURLConnection httpURLConnection) {
-    //TODO, using hard-coded Base64 auth for now, need to revisit this
-    String encodedCredentials =
-      Base64.encodeBase64String((DEFAULT_LOGSEARCH_USER + ":" + DEFAULT_LOGSEARCH_PWD).getBytes());
+  private PrincipalKeyCredential getLogSearchCredentials() {
+    try {
+      Credential credential =
+        credentialStoreService.getCredential(clusterName, LOGSEARCH_ADMIN_CREDENTIAL_NAME);
+      if ((credential != null)  && (credential instanceof PrincipalKeyCredential)) {
+        return (PrincipalKeyCredential)credential;
+      }
+
+      if (credential == null) {
+        LOG.debug("LogSearch credentials could not be obtained from store.");
+      } else {
+        LOG.error("LogSearch credentials were not of the correct type, this is likely an error in configuration, credential type is = " + credential.getClass().getName());
+      }
+    } catch (AmbariException ambariException) {
+      LOG.error("Error encountered while trying to obtain LogSearch admin credentials.", ambariException);
+    }
+
+
+    return null;
+  }
+
+  private static void setupBasicAuthentication(HttpURLConnection httpURLConnection, String encodedCredentials) {
     httpURLConnection.setRequestProperty("Authorization", "Basic " + encodedCredentials);
+  }
+
+  // might need to remove this once the credential integration is in place
+  private static String createDefaultEncodedCredentials() {
+    return createEncodedCredentials(DEFAULT_LOGSEARCH_USER, DEFAULT_LOGSEARCH_PWD);
+  }
+
+  private static String createEncodedCredentials(PrincipalKeyCredential principalKeyCredential) {
+    return createEncodedCredentials(principalKeyCredential.getPrincipal(), new String(principalKeyCredential.getKey()));
+  }
+
+  private static String createEncodedCredentials(String userName, String password) {
+    return Base64.encodeBase64String((userName + ":" + password).getBytes());
   }
 
 

@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.controller.logging;
 
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 import java.util.HashMap;
@@ -27,6 +28,10 @@ import java.util.Map;
  * This class represents a single entry from a LogSearch query.
  *
  */
+// annotate this class, so that Jackson will
+// ignore any extra properties in the response that
+// the integration code does not need at this time
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class LogLineResult {
 
   private final Map<String, String> mapOfLogLineProperties =

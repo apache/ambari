@@ -29,6 +29,8 @@ public class HostComponentLoggingInfo {
 
   private List<LogFileDefinitionInfo> listOfLogFileDefinitions;
 
+  private List<NameValuePair> listOfLogLevels;
+
 
   public HostComponentLoggingInfo() {
   }
@@ -51,5 +53,15 @@ public class HostComponentLoggingInfo {
   @JsonProperty("logs")
   public void setListOfLogFileDefinitions(List<LogFileDefinitionInfo> listOfLogFileDefinitions) {
     this.listOfLogFileDefinitions = listOfLogFileDefinitions;
+  }
+
+  @JsonProperty("log_level_counts")
+  public List<NameValuePair> getListOfLogLevels() {
+    return listOfLogLevels;
+  }
+
+  @JsonProperty("log_level_counts")
+  public void setListOfLogLevels(List<NameValuePair> listOfLogLevels) {
+    this.listOfLogLevels = listOfLogLevels;
   }
 }

@@ -20,7 +20,11 @@ package org.apache.ambari.server.controller.internal;
 
 
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.logging.LogQueryResponse;
+import org.apache.ambari.server.controller.logging.LoggingRequestHelper;
+import org.apache.ambari.server.controller.logging.LoggingRequestHelperFactory;
+import org.apache.ambari.server.controller.logging.LoggingRequestHelperFactoryImpl;
 import org.apache.ambari.server.controller.logging.LoggingRequestHelperImpl;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
@@ -86,8 +90,9 @@ public class LoggingResourceProvider extends AbstractControllerResourceProvider 
     Resource resource = new ResourceImpl(Resource.Type.LoggingQuery);
     setResourceProperty(resource, LOGGING_SEARCH_SERVICE_PROPERTY_ID, "logging", getRequestPropertyIds(request, predicate));
 
-    LoggingRequestHelperImpl requestHelper =
-      new LoggingRequestHelperImpl();
+    // TODO, fix this during refactoring
+    LoggingRequestHelper requestHelper =
+      new LoggingRequestHelperFactoryImpl().getHelper(AmbariServer.getController(), "");
 
     Map<String, String> queryParameters =
       new HashMap<String, String>();

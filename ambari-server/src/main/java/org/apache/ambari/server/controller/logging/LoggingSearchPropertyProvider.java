@@ -99,6 +99,9 @@ public class LoggingSearchPropertyProvider implements PropertyProvider {
           Set<String> logFileNames =
             requestHelper.sendGetLogFileNamesRequest(mappedComponentNameForLogSearch, hostName);
 
+          LogLevelQueryResponse levelQueryResponse =
+            requestHelper.sendLogLevelQueryRequest(mappedComponentNameForLogSearch, hostName);
+
           if ((logFileNames != null) && (!logFileNames.isEmpty())) {
             loggingInfo.setComponentName(mappedComponentNameForLogSearch);
             List<LogFileDefinitionInfo> listOfFileDefinitions =
@@ -114,7 +117,12 @@ public class LoggingSearchPropertyProvider implements PropertyProvider {
 
             loggingInfo.setListOfLogFileDefinitions(listOfFileDefinitions);
 
-            LOG.info("Adding logging info for component name = " + componentName + " on host name = " + hostName);
+            // add the log levels for this host component to the logging structure
+            if (levelQueryResponse != null) {
+              loggingInfo.setListOfLogLevels(levelQueryResponse.getNameValueList());
+            }
+
+            LOG.debug("Adding logging info for component name = " + componentName + " on host name = " + hostName);
             // add the logging metadata for this host component
             resource.setProperty("logging", loggingInfo);
           } else {

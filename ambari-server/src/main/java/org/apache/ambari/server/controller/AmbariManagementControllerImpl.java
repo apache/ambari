@@ -4700,6 +4700,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     return kerberosHelper;
   }
 
+  @Override
+  public CredentialStoreService getCredentialStoreService() {
+    return credentialStoreService;
+  }
+
   /**
    * Queries the CredentialStoreService to gather properties about it.
    * <p/>

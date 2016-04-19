@@ -34,13 +34,44 @@ import org.easymock.EasyMockSupport;
 import org.junit.Test;
 
 import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
-import static org.junit.Assert.*;
-import static org.easymock.EasyMock.*;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
+
+/**
+ * This test case verifies the basic behavior of the
+ * LoggingSearchPropertyProvider.
+ *
+ * Specifically, it verifies that this PropertyProvider
+ * implementation uses the output from LogSearch queries
+ * to attach the correct logging-related output to the
+ * HostComponent resources in Ambari.
+ *
+ */
 public class LoggingSearchPropertyProviderTest {
 
+  /**
+   * Verifies the following:
+   *
+   *   1. That this PropertyProvider implementation uses
+   *      the expected interfaces to make queries to the LogSearch
+   *      service.
+   *   2. That the PropertyProvider queries the current HostComponent
+   *      resource in order to obtain the correct information to send to
+   *      LogSearch.
+   *   3. That the output of the LogSearch query is properly set on the
+   *      HostComponent resource in the expected structure.
+   *
+   * @throws Exception
+   */
   @Test
   public void testBasicCall() throws Exception {
     final String expectedLogFilePath =
@@ -76,7 +107,22 @@ public class LoggingSearchPropertyProviderTest {
     LoggingRequestHelper helperMock =
       mockSupport.createMock(LoggingRequestHelper.class);
 
+    LogLevelQueryResponse levelQueryResponse =
+      new LogLevelQueryResponse();
+
+    levelQueryResponse.setTotalCount("3");
+    // setup test data for log levels
+    List<NameValuePair> testListOfLogLevels =
+      new LinkedList<NameValuePair>();
+    testListOfLogLevels.add(new NameValuePair("ERROR", "150"));
+    testListOfLogLevels.add(new NameValuePair("WARN", "500"));
+    testListOfLogLevels.add(new NameValuePair("INFO", "2200"));
+
+    levelQueryResponse.setNameValueList(testListOfLogLevels);
+
+
     expect(helperMock.sendGetLogFileNamesRequest(expectedLogSearchComponentName, "c6401.ambari.apache.org")).andReturn(Collections.singleton(expectedLogFilePath));
+    expect(helperMock.sendLogLevelQueryRequest(expectedLogSearchComponentName,"c6401.ambari.apache.org")).andReturn(levelQueryResponse).atLeastOnce();
 
     Request requestMock =
       mockSupport.createMock(Request.class);
@@ -135,6 +181,9 @@ public class LoggingSearchPropertyProviderTest {
     Set<Resource> returnedResources =
       propertyProvider.populateResources(Collections.singleton(resourceMock), requestMock, predicateMock);
 
+    // verify that the property provider attached
+    // the expected logging structure to the associated resource
+
     assertEquals("Returned resource set was of an incorrect size",
       1, returnedResources.size());
 
@@ -163,10 +212,42 @@ public class LoggingSearchPropertyProviderTest {
       expectedAmbariURL + expectedSearchEnginePath + expectedTailFileQueryString, definitionInfo.getLogFileTailURL());
 
 
+    // verify that the log level count information
+    // was properly added to the HostComponent resource
+    assertNotNull("LogLevel counts should not be null",
+      returnedLogInfo.getListOfLogLevels());
+    assertEquals("LogLevel counts were of an incorrect size",
+      3, returnedLogInfo.getListOfLogLevels().size());
+
+    List<NameValuePair> returnedLevelList =
+      returnedLogInfo.getListOfLogLevels();
+
+    assertEquals("NameValue name for log level was incorrect",
+      "ERROR", returnedLevelList.get(0).getName());
+    assertEquals("NameValue name for log level was incorrect",
+      "150", returnedLevelList.get(0).getValue());
+
+    assertEquals("NameValue name for log level was incorrect",
+      "WARN", returnedLevelList.get(1).getName());
+    assertEquals("NameValue name for log level was incorrect",
+      "500", returnedLevelList.get(1).getValue());
+
+    assertEquals("NameValue name for log level was incorrect",
+      "INFO", returnedLevelList.get(2).getName());
+    assertEquals("NameValue name for log level was incorrect",
+      "2200", returnedLevelList.get(2).getValue());
+
 
     mockSupport.verifyAll();
   }
 
+  /**
+   * Verifies that this property provider implementation will
+   * properly handle the case of LogSearch not being deployed in
+   * the cluster or available.
+   *
+   * @throws Exception
+   */
   @Test
   public void testCheckWhenLogSearchNotAvailable() throws Exception {
 
@@ -238,7 +319,6 @@ public class LoggingSearchPropertyProviderTest {
 
     PropertyProvider propertyProvider =
       new LoggingSearchPropertyProvider(helperFactoryMock, factoryMock);
-
 
     // execute the populate resources method, verify that no exceptions occur, due to
     // the LogSearch helper not being available

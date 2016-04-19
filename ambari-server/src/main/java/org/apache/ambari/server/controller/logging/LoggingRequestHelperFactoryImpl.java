@@ -23,6 +23,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.State;
 import org.apache.log4j.Logger;
 
 import java.util.List;
@@ -48,14 +49,24 @@ public class LoggingRequestHelperFactoryImpl implements LoggingRequestHelperFact
     try {
       Cluster cluster = clusters.getCluster(clusterName);
       if (cluster != null) {
+
+        boolean isLogSearchEnabled =
+          cluster.getServices().containsKey(LOGSEARCH_SERVICE_NAME);
+
+        if (!isLogSearchEnabled) {
+          // log search not enabled, just return null, since no helper impl is necessary
+          return null;
+        }
+
         Config logSearchSiteConfig =
           cluster.getDesiredConfigByType(LOGSEARCH_SITE_CONFIG_TYPE_NAME);
 
         List<ServiceComponentHost> listOfMatchingHosts =
           cluster.getServiceComponentHosts(LOGSEARCH_SERVICE_NAME, LOGSEARCH_SERVER_COMPONENT_NAME);
 
+
         if (listOfMatchingHosts.size() == 0) {
-          LOG.info("No matching LOGSEARCH_SERVER instances found, this may indicate a deployment problem.  Please verify that LogSearch is deployed and running.");
+          LOG.warn("No matching LOGSEARCH_SERVER instances found, this may indicate a deployment problem.  Please verify that LogSearch is deployed and running.");
           return null;
         }
 
@@ -66,11 +77,16 @@ public class LoggingRequestHelperFactoryImpl implements LoggingRequestHelperFact
         ServiceComponentHost serviceComponentHost =
           listOfMatchingHosts.get(0);
 
+        if (serviceComponentHost.getState() != State.STARTED) {
+          // if the LOGSEARCH_SERVER is not started, don't attempt to connect
+          return null;
+        }
+
         final String logSearchHostName = serviceComponentHost.getHostName();
         final String logSearchPortNumber =
           logSearchSiteConfig.getProperties().get(LOGSEARCH_UI_PORT_PROPERTY_NAME);
 
-        return new LoggingRequestHelperImpl(logSearchHostName, logSearchPortNumber);
+        return new LoggingRequestHelperImpl(logSearchHostName, logSearchPortNumber, ambariManagementController.getCredentialStoreService(), clusterName);
       }
     } catch (AmbariException ambariException) {
       LOG.error("Error occurred while trying to obtain the cluster, cluster name = " + clusterName, ambariException);
