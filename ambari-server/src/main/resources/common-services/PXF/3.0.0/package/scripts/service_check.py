@@ -142,6 +142,14 @@ class PXFServiceCheck(Script):
     Logger.error(error_msg)
     self.checks_failed += 1
 
+  def __check_yarn_installed(self):
+    """
+    Checks if any YARN/MAPREDUCE2 component is installed on this host
+    """
+    component_list = default("/localComponents", [])
+    Logger.info("Checking for YARN/MAPREDUCE2 components in {0}".format(str(component_list)))
+    return any([component in ["RESOURCEMANAGER", "NODEMANAGER", "HISTORYSERVER", "YARN_CLIENT", "MAPREDUCE2_CLIENT"] for component in component_list])
+
   # HDFS Routines
   def run_hdfs_tests(self):
     """
@@ -151,9 +159,9 @@ class PXFServiceCheck(Script):
     Logger.info("Running PXF HDFS service checks")
 
     # YARN is required to access HDFS through PXF if security is enabled
-    if params.security_enabled and not params.is_yarn_installed:
+    if params.security_enabled and not self.__check_yarn_installed():
       self.checks_failed += 1
-      Logger.error("HDFS test prerequisite Failed: PXF in a Kerberos-secured cluster requires YARN to be installed due to a dependency on YARN libraries.")
+      Logger.error("HDFS test prerequisite Failed: PXF in a Kerberos-secured cluster requires a YARN component to be installed on this host due to a dependency on YARN libraries.")
       return
 
     try:
