@@ -451,6 +451,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
   def validateRangerTagsyncConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     ranger_tagsync_properties = getSiteProperties(configurations, "ranger-tagsync-site")
     validationItems = []
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
 
     has_ranger_tagsync = False
     if "RANGER" in servicesList:
