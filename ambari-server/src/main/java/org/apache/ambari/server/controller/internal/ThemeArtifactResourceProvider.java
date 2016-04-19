@@ -123,7 +123,7 @@ public class ThemeArtifactResourceProvider extends AbstractControllerResourcePro
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate) throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+  public RequestStatus deleteResources(Request request, Predicate predicate) throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     throw new UnsupportedOperationException("Deleting of themes is not supported");
   }
 

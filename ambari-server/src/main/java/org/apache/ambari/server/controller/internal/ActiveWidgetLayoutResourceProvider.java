@@ -241,7 +241,7 @@ public class ActiveWidgetLayoutResourceProvider extends AbstractControllerResour
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate)
+  public RequestStatus deleteResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     throw new SystemException("The request is not supported");
   }

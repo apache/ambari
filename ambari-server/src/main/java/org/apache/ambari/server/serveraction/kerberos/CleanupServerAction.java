@@ -21,6 +21,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.controller.internal.ArtifactResourceProvider;
+import org.apache.ambari.server.controller.internal.RequestImpl;
 import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
@@ -101,7 +102,7 @@ public class CleanupServerAction extends KerberosServerAction {
       clusterController.ensureResourceProvider(Resource.Type.Artifact);
 
     try {
-      artifactProvider.deleteResources(predicate);
+      artifactProvider.deleteResources(new RequestImpl(null, null, null, null), predicate);
       LOG.info("Kerberos descriptor removed successfully.");
       actionLog.writeStdOut("Kerberos descriptor removed successfully.");
     } catch (NoSuchResourceException e) {

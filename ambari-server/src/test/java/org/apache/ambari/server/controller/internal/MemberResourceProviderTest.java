@@ -252,7 +252,7 @@ public class MemberResourceProviderTest {
     PredicateBuilder builder = new PredicateBuilder();
     builder.property(MemberResourceProvider.MEMBER_GROUP_NAME_PROPERTY_ID).equals("engineering");
     Predicate predicate = builder.toPredicate();
-    provider.deleteResources(predicate);
+    provider.deleteResources(new RequestImpl(null, null, null, null), predicate);
 
     // verify
     verify(managementController, response);

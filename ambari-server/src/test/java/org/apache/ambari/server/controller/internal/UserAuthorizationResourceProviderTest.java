@@ -146,7 +146,7 @@ public class UserAuthorizationResourceProviderTest extends EasyMockSupport {
     SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createClusterAdministrator("user1", 2L));
     AmbariManagementController managementController = injector.getInstance(AmbariManagementController.class);
     UserAuthorizationResourceProvider provider = new UserAuthorizationResourceProvider(managementController);
-    provider.deleteResources(null);
+    provider.deleteResources(createNiceMock(Request.class), null);
     verifyAll();
   }
 

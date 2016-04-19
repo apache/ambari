@@ -30,7 +30,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.RequestStatusResponse;
@@ -42,7 +41,6 @@ import org.apache.ambari.server.controller.predicate.NotPredicate;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -293,7 +291,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
   }
 
   @Override
-  protected RequestStatus deleteResourcesAuthorized(Predicate predicate)
+  protected RequestStatus deleteResourcesAuthorized(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     final Set<ServiceComponentHostRequest> requests = new HashSet<ServiceComponentHostRequest>();
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {

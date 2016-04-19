@@ -213,7 +213,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   }
 
   @Override
-  protected RequestStatus deleteResourcesAuthorized(Predicate predicate)
+  protected RequestStatus deleteResourcesAuthorized(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
     final Set<ServiceComponentRequest> requests = new HashSet<>();

@@ -241,7 +241,7 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractAuthorizedRes
   }
 
   @Override
-  public RequestStatus deleteResourcesAuthorized(Predicate predicate)
+  public RequestStatus deleteResourcesAuthorized(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     modifyResources(getDeleteCommand(predicate));
     notifyDelete(resourceType, predicate);

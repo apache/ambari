@@ -229,7 +229,7 @@ public class ConfigurationResourceProvider extends
    * Throws an exception, as Configurations cannot be deleted.
    */
   @Override
-  public RequestStatus deleteResources(Predicate predicate) throws SystemException,
+  public RequestStatus deleteResources(Request request, Predicate predicate) throws SystemException,
       UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     throw new UnsupportedOperationException("Cannot delete a Configuration resource.");
   }

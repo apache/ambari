@@ -720,7 +720,7 @@ public class ConfigGroupResourceProviderTest {
       .equals("Cluster100").and().property(ConfigGroupResourceProvider
         .CONFIGGROUP_ID_PROPERTY_ID).equals(1L).toPredicate();
 
-    resourceProvider.deleteResources(predicate);
+    resourceProvider.deleteResources(new RequestImpl(null, null, null, null), predicate);
 
     ResourceProviderEvent lastEvent = observer.getLastEvent();
     Assert.assertNotNull(lastEvent);

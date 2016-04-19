@@ -99,7 +99,7 @@ public abstract class GSInstallerResourceProvider implements ResourceProvider {
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate)
+  public RequestStatus deleteResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     throw new UnsupportedOperationException("Management operations are not supported");
   }

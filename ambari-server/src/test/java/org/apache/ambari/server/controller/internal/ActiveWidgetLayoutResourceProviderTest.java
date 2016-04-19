@@ -316,7 +316,7 @@ public class ActiveWidgetLayoutResourceProviderTest extends EasyMockSupport {
 
     ResourceProvider provider = getResourceProvider(injector, managementController);
 
-    provider.deleteResources(createPredicate(requestedUsername));
+    provider.deleteResources(new RequestImpl(null, null, null, null), createPredicate(requestedUsername));
 
     verifyAll();
   }

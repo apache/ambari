@@ -525,7 +525,7 @@ public class ComponentResourceProviderTest {
                 .property(ComponentResourceProvider.COMPONENT_COMPONENT_NAME_PROPERTY_ID)
                 .equals("Component100").toPredicate();
 
-    provider.deleteResources(predicate);
+    provider.deleteResources(new RequestImpl(null, null, null, null), predicate);
 
     // verify
     verify(managementController, service);
@@ -579,7 +579,7 @@ public class ComponentResourceProviderTest {
                 .equals("Component100").toPredicate();
 
     try {
-      provider.deleteResources(predicate1);
+      provider.deleteResources(new RequestImpl(null, null, null, null), predicate1);
       Assert.fail("Expected IllegalArgumentException exception.");
     } catch (IllegalArgumentException e) {
       //expected
@@ -594,7 +594,7 @@ public class ComponentResourceProviderTest {
                 .and().toPredicate();
 
     try {
-      provider.deleteResources(predicate2);
+      provider.deleteResources(new RequestImpl(null, null, null, null), predicate2);
       Assert.fail("Expected IllegalArgumentException exception.");
     } catch (IllegalArgumentException e) {
       //expected

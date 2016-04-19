@@ -515,7 +515,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate) throws SystemException,
+  public RequestStatus deleteResources(Request request, Predicate predicate) throws SystemException,
       UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     throw new SystemException("Cannot delete Upgrades");
   }

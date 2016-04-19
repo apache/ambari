@@ -391,7 +391,7 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
   }
 
   @Override
-  protected RequestStatus deleteResourcesAuthorized(Predicate predicate)
+  protected RequestStatus deleteResourcesAuthorized(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     final Set<Map<String, Object>> propertyMaps = getPropertyMaps(predicate);
 

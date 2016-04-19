@@ -160,7 +160,7 @@ public class GroupResourceProvider extends AbstractControllerResourceProvider {
   }
 
   @Override
-  protected RequestStatus deleteResourcesAuthorized(Predicate predicate)
+  protected RequestStatus deleteResourcesAuthorized(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     final Set<GroupRequest> requests = new HashSet<GroupRequest>();
 

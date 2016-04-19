@@ -215,7 +215,7 @@ public class ConfigGroupResourceProvider extends
   }
 
   @Override
-  public RequestStatus deleteResourcesAuthorized(Predicate predicate) throws
+  public RequestStatus deleteResourcesAuthorized(Request request, Predicate predicate) throws
        SystemException, UnsupportedPropertyException, NoSuchResourceException,
        NoSuchParentResourceException {
 

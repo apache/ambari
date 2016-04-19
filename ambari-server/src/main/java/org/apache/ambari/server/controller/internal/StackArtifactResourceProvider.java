@@ -38,7 +38,6 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackInfo;
-import org.apache.ambari.server.state.ThemeInfo;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
@@ -232,7 +231,7 @@ public class StackArtifactResourceProvider extends AbstractControllerResourcePro
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate)
+  public RequestStatus deleteResources(Request request, Predicate predicate)
       throws SystemException,
              UnsupportedPropertyException,
              NoSuchResourceException,

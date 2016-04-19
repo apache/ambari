@@ -190,7 +190,7 @@ public class UpgradeSummaryResourceProvider extends AbstractControllerResourcePr
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate) throws SystemException,
+  public RequestStatus deleteResources(Request request, Predicate predicate) throws SystemException,
       UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     throw new UnsupportedOperationException("Resource only supports GET operation.");
   }

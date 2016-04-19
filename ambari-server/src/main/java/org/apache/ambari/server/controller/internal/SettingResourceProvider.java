@@ -157,7 +157,7 @@ public class SettingResourceProvider extends AbstractAuthorizedResourceProvider 
   }
 
   @Override
-  public RequestStatus deleteResourcesAuthorized(Predicate predicate) {
+  public RequestStatus deleteResourcesAuthorized(Request request, Predicate predicate) {
     final Set<Map<String, Object>> propertyMaps = getPropertyMaps(predicate);
     for (Map<String, Object> propertyMap : propertyMaps) {
       if (propertyMap.containsKey(SETTING_NAME_PROPERTY_ID)) {

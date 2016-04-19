@@ -882,7 +882,7 @@ public class RequestResourceProviderTest {
     Predicate predicate = new PredicateBuilder().property(RequestResourceProvider.REQUEST_ID_PROPERTY_ID).
       equals("Request100").toPredicate();
     try {
-      provider.deleteResources(predicate);
+      provider.deleteResources(new RequestImpl(null, null, null, null), predicate);
       Assert.fail("Expected an UnsupportedOperationException");
     } catch (UnsupportedOperationException e) {
       // expected

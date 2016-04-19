@@ -347,7 +347,7 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
    * {@inheritDoc}
    */
   @Override
-  public RequestStatus deleteResources(Predicate predicate)
+  public RequestStatus deleteResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 

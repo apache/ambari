@@ -135,7 +135,7 @@ public class TargetClusterResourceProvider extends AbstractDRResourceProvider {
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate) throws SystemException, UnsupportedPropertyException,
+  public RequestStatus deleteResources(Request request, Predicate predicate) throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
     IvoryService service = getService();
 

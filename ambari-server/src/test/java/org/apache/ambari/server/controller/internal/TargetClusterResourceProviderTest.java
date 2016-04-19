@@ -225,7 +225,7 @@ public class TargetClusterResourceProviderTest {
 
     Predicate predicate = new PredicateBuilder().property(TargetClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID).equals("Cluster1").toPredicate();
 
-    provider.deleteResources(predicate);
+    provider.deleteResources(new RequestImpl(null, null, null, null), predicate);
 
     // verify
     verify(service);

@@ -67,10 +67,10 @@ public interface ClusterController extends SchemaFactory {
    *
    * @throws SystemException if unable to populate the resources
    */
-  public Set<Resource> populateResources(Resource.Type type,
-                                            Set<Resource> resources,
-                                            Request request,
-                                            Predicate predicate) throws SystemException;
+  Set<Resource> populateResources(Resource.Type type,
+                                  Set<Resource> resources,
+                                  Request request,
+                                  Predicate predicate) throws SystemException;
 
   /**
    * Get an iterable set of resources from the given set of resources filtered by the
@@ -135,7 +135,7 @@ public interface ClusterController extends SchemaFactory {
    * @return the schema object for the given resource
    */
   @Override
-  public Schema getSchema(Resource.Type type);
+  Schema getSchema(Resource.Type type);
 
   /**
    * Get the resource provider for the given type, creating it if required.
@@ -144,7 +144,7 @@ public interface ClusterController extends SchemaFactory {
    *
    * @return the resource provider
    */
-  public ResourceProvider ensureResourceProvider(Resource.Type type);
+  ResourceProvider ensureResourceProvider(Resource.Type type);
 
   // ----- Management -------------------------------------------------------
 
@@ -161,7 +161,7 @@ public interface ClusterController extends SchemaFactory {
    * @throws ResourceAlreadyExistsException attempted to create a resource that already exists
    * @throws NoSuchParentResourceException a specified parent resource doesn't exist
    */
-  public RequestStatus createResources(Resource.Type type, Request request)
+  RequestStatus createResources(Resource.Type type, Request request)
       throws UnsupportedPropertyException,
              SystemException,
              ResourceAlreadyExistsException,
@@ -184,9 +184,9 @@ public interface ClusterController extends SchemaFactory {
    * @throws NoSuchResourceException no matching resource(s) found
    * @throws NoSuchParentResourceException a specified parent resource doesn't exist
    */
-  public RequestStatus updateResources(Resource.Type type,
-                                       Request request,
-                                       Predicate predicate)
+  RequestStatus updateResources(Resource.Type type,
+                                Request request,
+                                Predicate predicate)
       throws UnsupportedPropertyException,
              SystemException,
              NoSuchResourceException,
@@ -196,16 +196,19 @@ public interface ClusterController extends SchemaFactory {
    * Delete the resources selected by the given predicate.
    *
    * @param type      the type of the resources
+   * @param request   the request object which defines the set of properties
+   *                  for the resources to be deleted
    * @param predicate the predicate object which can be used to filter which
    *                  resources are deleted
-   *
-   * @throws UnsupportedPropertyException thrown if the predicate contains
+   *  @throws UnsupportedPropertyException thrown if the predicate contains
    *                                      unsupported property ids
    * @throws SystemException an internal exception occurred
    * @throws NoSuchResourceException no matching resource(s) found
    * @throws NoSuchParentResourceException a specified parent resource doesn't exist
    */
-  public RequestStatus deleteResources(Resource.Type type, Predicate predicate)
+  RequestStatus deleteResources(Resource.Type type,
+                                Request request,
+                                Predicate predicate)
       throws UnsupportedPropertyException,
              SystemException,
              NoSuchResourceException,

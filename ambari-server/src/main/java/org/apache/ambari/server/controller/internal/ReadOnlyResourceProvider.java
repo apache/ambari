@@ -65,7 +65,7 @@ public abstract class ReadOnlyResourceProvider extends AbstractControllerResourc
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate)
+  public RequestStatus deleteResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
     throw new SystemException(READ_ONLY_MSG, null);

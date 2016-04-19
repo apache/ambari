@@ -57,18 +57,11 @@ public class PermissionResourceProviderTest {
     reset(dao);
   }
 
-  @Test
+  @Test (expected = UnsupportedOperationException.class)
   public void testCreateResources() throws Exception {
     PermissionResourceProvider provider = new PermissionResourceProvider();
-
     Request request = createNiceMock(Request.class);
-
-    try {
-      provider.createResources(request);
-      Assert.fail("expected UnsupportedOperationException");
-    } catch (UnsupportedOperationException e) {
-      // expected
-    }
+    provider.createResources(request);
   }
 
   @Test
@@ -103,29 +96,16 @@ public class PermissionResourceProviderTest {
     verify(dao, permissionEntity, resourceTypeEntity);
   }
 
-  @Test
+  @Test (expected = UnsupportedOperationException.class)
   public void testUpdateResources() throws Exception {
     PermissionResourceProvider provider = new PermissionResourceProvider();
-
     Request request = createNiceMock(Request.class);
-
-    try {
-      provider.updateResources(request, null);
-      Assert.fail("expected UnsupportedOperationException");
-    } catch (UnsupportedOperationException e) {
-      // expected
-    }
+    provider.updateResources(request, null);
   }
 
-  @Test
+  @Test (expected = UnsupportedOperationException.class)
   public void testDeleteResources() throws Exception {
     PermissionResourceProvider provider = new PermissionResourceProvider();
-
-    try {
-      provider.deleteResources(null);
-      Assert.fail("expected UnsupportedOperationException");
-    } catch (UnsupportedOperationException e) {
-      // expected
-    }
+    provider.deleteResources(new RequestImpl(null, null, null, null), null);
   }
 }

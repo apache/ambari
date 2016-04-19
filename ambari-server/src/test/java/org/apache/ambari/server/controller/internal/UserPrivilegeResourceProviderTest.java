@@ -94,7 +94,7 @@ public class UserPrivilegeResourceProviderTest extends EasyMockSupport {
   public void testDeleteResources() throws Exception {
     SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createClusterAdministrator("user1", 2L));
     UserPrivilegeResourceProvider resourceProvider = new UserPrivilegeResourceProvider();
-    resourceProvider.deleteResources(createNiceMock(Predicate.class));
+    resourceProvider.deleteResources(createNiceMock(Request.class), createNiceMock(Predicate.class));
   }
 
   @Test

@@ -167,7 +167,7 @@ public class UserResourceProvider extends AbstractControllerResourceProvider {
   }
 
   @Override
-  public RequestStatus deleteResourcesAuthorized(Predicate predicate)
+  public RequestStatus deleteResourcesAuthorized(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     final Set<UserRequest> requests = new HashSet<UserRequest>();
 

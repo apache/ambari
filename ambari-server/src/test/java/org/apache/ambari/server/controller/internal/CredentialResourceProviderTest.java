@@ -818,7 +818,7 @@ public class CredentialResourceProviderTest {
       }
     }
 
-    provider.deleteResources(predicate);
+    provider.deleteResources(new RequestImpl(null, null, null, null), predicate);
 
     try {
       provider.getResources(request, predicate);

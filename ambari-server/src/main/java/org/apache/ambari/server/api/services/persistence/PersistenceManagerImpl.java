@@ -130,7 +130,7 @@ public class PersistenceManagerImpl implements PersistenceManager {
       throws UnsupportedPropertyException, SystemException, NoSuchParentResourceException, NoSuchResourceException {
     //todo: need to account for multiple resources and user predicate
     return m_controller.deleteResources(resource.getResourceDefinition().getType(),
-        resource.getQuery().getPredicate());
+        createControllerRequest(requestBody), resource.getQuery().getPredicate());
 
   }
 

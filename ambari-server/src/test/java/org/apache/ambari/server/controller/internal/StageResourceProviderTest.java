@@ -136,17 +136,11 @@ public class StageResourceProviderTest {
     verify(clusters, cluster);
   }
 
-  @Test
+  @Test(expected = UnsupportedOperationException.class)
   public void testDeleteResources() throws Exception {
     StageResourceProvider provider = new StageResourceProvider(managementController);
-
     Predicate predicate = createNiceMock(Predicate.class);
-    try {
-      provider.deleteResources(predicate);
-      fail("Expected UnsupportedOperationException");
-    } catch (UnsupportedOperationException e) {
-      // expected
-    }
+    provider.deleteResources(new RequestImpl(null, null, null, null), predicate);
   }
 
   @Test

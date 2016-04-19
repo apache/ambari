@@ -177,7 +177,7 @@ public class InstanceResourceProviderTest {
 
     Predicate predicate = new PredicateBuilder().property(InstanceResourceProvider.INSTANCE_ID_PROPERTY_ID).equals("Instance1").toPredicate();
 
-    provider.deleteResources(predicate);
+    provider.deleteResources(new RequestImpl(null, null, null, null), predicate);
 
     // verify
     verify(service);

@@ -761,12 +761,12 @@ public class ClusterResourceProviderTest {
     // delete the cluster named Cluster102
     Predicate  predicate = new PredicateBuilder().property(
         ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID).equals("Cluster102").toPredicate();
-    provider.deleteResources(predicate);
+    provider.deleteResources(new RequestImpl(null, null, null, null), predicate);
 
     // delete the cluster where id == 103
     predicate = new PredicateBuilder().property(
         ClusterResourceProvider.CLUSTER_ID_PROPERTY_ID).equals(103L).toPredicate();
-    provider.deleteResources(predicate);
+    provider.deleteResources(new RequestImpl(null, null, null, null), predicate);
 
     ResourceProviderEvent lastEvent = observer.getLastEvent();
     Assert.assertNotNull(lastEvent);

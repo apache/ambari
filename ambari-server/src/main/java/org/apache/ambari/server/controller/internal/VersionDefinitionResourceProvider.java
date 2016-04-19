@@ -341,7 +341,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
   }
 
   @Override
-  protected RequestStatus deleteResourcesAuthorized(Predicate predicate)
+  protected RequestStatus deleteResourcesAuthorized(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
     throw new SystemException("Cannot delete Version Definitions");

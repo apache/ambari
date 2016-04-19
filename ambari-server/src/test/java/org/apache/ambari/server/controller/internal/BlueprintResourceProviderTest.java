@@ -478,7 +478,7 @@ public class BlueprintResourceProviderTest {
     AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
     provider.addObserver(observer);
 
-    provider.deleteResources(predicate);
+    provider.deleteResources(new RequestImpl(null, null, null, null), predicate);
 
     ResourceProviderEvent lastEvent = observer.getLastEvent();
     assertNotNull(lastEvent);

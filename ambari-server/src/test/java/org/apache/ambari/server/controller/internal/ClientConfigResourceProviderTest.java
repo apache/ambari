@@ -553,7 +553,7 @@ public class ClientConfigResourceProviderTest {
     Predicate predicate = new PredicateBuilder().property(
             ClientConfigResourceProvider.COMPONENT_COMPONENT_NAME_PROPERTY_ID).equals("HDFS_CLIENT").toPredicate();
     try {
-      provider.deleteResources(predicate);
+      provider.deleteResources(new RequestImpl(null, null, null, null), predicate);
       Assert.fail("Expected an UnsupportedOperationException");
     } catch (SystemException e) {
       // expected

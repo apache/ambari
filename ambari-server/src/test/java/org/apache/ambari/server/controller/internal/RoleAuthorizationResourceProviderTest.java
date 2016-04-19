@@ -31,7 +31,6 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.PermissionDAO;
-import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.RoleAuthorizationDAO;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.RoleAuthorizationEntity;
@@ -197,6 +196,6 @@ public class RoleAuthorizationResourceProviderTest extends EasyMockSupport {
     replayAll();
     AmbariManagementController managementController = injector.getInstance(AmbariManagementController.class);
     RoleAuthorizationResourceProvider provider = new RoleAuthorizationResourceProvider(managementController);
-    provider.deleteResources(null);
+    provider.deleteResources(new RequestImpl(null, null, null, null), null);
   }
 }

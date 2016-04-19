@@ -214,7 +214,7 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate)
+  public RequestStatus deleteResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
     throw new SystemException("Cannot delete repositories.", null);

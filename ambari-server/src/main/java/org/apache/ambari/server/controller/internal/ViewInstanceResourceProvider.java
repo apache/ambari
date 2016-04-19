@@ -201,7 +201,7 @@ public class ViewInstanceResourceProvider extends AbstractAuthorizedResourceProv
   }
 
   @Override
-  protected RequestStatus deleteResourcesAuthorized(Predicate predicate)
+  protected RequestStatus deleteResourcesAuthorized(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
     modifyResources(getDeleteCommand(predicate));

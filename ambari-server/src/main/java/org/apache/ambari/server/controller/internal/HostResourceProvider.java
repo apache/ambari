@@ -330,7 +330,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   }
 
   @Override
-  protected RequestStatus deleteResourcesAuthorized(Predicate predicate)
+  protected RequestStatus deleteResourcesAuthorized(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
     final Set<HostRequest> requests = new HashSet<HostRequest>();

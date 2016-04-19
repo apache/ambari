@@ -18,7 +18,6 @@
 package org.apache.ambari.server.controller.internal;
 
 import java.util.Arrays;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -48,11 +47,7 @@ import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 
 import com.google.inject.Inject;
-import org.apache.ambari.server.security.authorization.AuthorizationHelper;
-import org.apache.ambari.server.security.authorization.ResourceType;
-import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.commons.lang.StringUtils;
-import sun.net.www.protocol.http.AuthenticationHeader;
 
 /**
  * ResourceProvider for Alert History
@@ -158,7 +153,7 @@ public class AlertHistoryResourceProvider extends ReadOnlyResourceProvider imple
    * {@inheritDoc}
    */
   @Override
-  public RequestStatus deleteResources(Predicate predicate)
+  public RequestStatus deleteResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
     throw new UnsupportedOperationException();

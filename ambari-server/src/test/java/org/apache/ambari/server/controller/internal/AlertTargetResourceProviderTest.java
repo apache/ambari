@@ -819,7 +819,7 @@ public class AlertTargetResourceProviderTest {
     expectLastCall();
     replay(m_dao);
 
-    provider.deleteResources(p);
+    provider.deleteResources(new RequestImpl(null, null, null, null), p);
 
     AlertTargetEntity entity1 = entityCapture.getValue();
     Assert.assertEquals(ALERT_TARGET_ID, entity1.getTargetId());

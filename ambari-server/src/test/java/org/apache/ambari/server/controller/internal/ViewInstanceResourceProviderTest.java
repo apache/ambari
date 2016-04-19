@@ -397,7 +397,7 @@ public class ViewInstanceResourceProviderTest {
     replay(viewregistry);
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
-    provider.deleteResources(predicate);
+    provider.deleteResources(new RequestImpl(null, null, null, null), predicate);
 
     verify(viewregistry);
   }

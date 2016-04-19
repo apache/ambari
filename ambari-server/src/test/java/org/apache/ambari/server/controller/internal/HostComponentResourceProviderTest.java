@@ -453,7 +453,7 @@ public class HostComponentResourceProviderTest {
     Predicate predicate = new PredicateBuilder().
         property(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID).equals("Component100").and().
         property(HostComponentResourceProvider.HOST_COMPONENT_HOST_NAME_PROPERTY_ID).equals("Host100").toPredicate();
-    provider.deleteResources(predicate);
+    provider.deleteResources(new RequestImpl(null, null, null, null), predicate);
 
 
     ResourceProviderEvent lastEvent = observer.getLastEvent();

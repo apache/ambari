@@ -58,7 +58,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -853,7 +852,7 @@ public class ServiceResourceProviderTest {
     // delete the service named Service100
     Predicate  predicate = new PredicateBuilder().property(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").and()
         .property(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID).equals(serviceName).toPredicate();
-    provider.deleteResources(predicate);
+    provider.deleteResources(new RequestImpl(null, null, null, null), predicate);
 
 
     ResourceProviderEvent lastEvent = observer.getLastEvent();
@@ -901,7 +900,7 @@ public class ServiceResourceProviderTest {
     // delete the service named Service100
     Predicate  predicate = new PredicateBuilder().property(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").and()
         .property(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID).equals(serviceName).toPredicate();
-    provider.deleteResources(predicate);
+    provider.deleteResources(new RequestImpl(null, null, null, null), predicate);
 
 
     ResourceProviderEvent lastEvent = observer.getLastEvent();
@@ -962,7 +961,7 @@ public class ServiceResourceProviderTest {
         .property(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID).equals(serviceName).toPredicate();
 
     try {
-      provider.deleteResources(predicate);
+      provider.deleteResources(new RequestImpl(null, null, null, null), predicate);
       Assert.fail("Expected exception deleting a service in a non-removable state.");
     } catch (SystemException e) {
       // expected
@@ -1070,7 +1069,7 @@ public class ServiceResourceProviderTest {
     // delete the service named Service100
     Predicate  predicate = new PredicateBuilder().property(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID).equals(clusterName).and()
             .property(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID).equals(serviceName).toPredicate();
-    provider.deleteResources(predicate);
+    provider.deleteResources(new RequestImpl(null, null, null, null), predicate);
 
 
     ResourceProviderEvent lastEvent = observer.getLastEvent();

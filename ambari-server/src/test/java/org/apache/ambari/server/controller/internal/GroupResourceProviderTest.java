@@ -233,7 +233,7 @@ public class GroupResourceProviderTest {
 
     Predicate predicate = new PredicateBuilder().property(GroupResourceProvider.GROUP_GROUPNAME_PROPERTY_ID).
         equals("engineering").toPredicate();
-    provider.deleteResources(predicate);
+    provider.deleteResources(new RequestImpl(null, null, null, null), predicate);
 
     // verify
     verify(managementController, response);

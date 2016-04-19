@@ -322,7 +322,7 @@ public class ClusterControllerImpl implements ClusterController {
   }
 
   @Override
-  public RequestStatus deleteResources(Type type, Predicate predicate)
+  public RequestStatus deleteResources(Type type, Request request, Predicate predicate)
       throws UnsupportedPropertyException,
              SystemException,
              NoSuchResourceException,
@@ -336,7 +336,7 @@ public class ClusterControllerImpl implements ClusterController {
           return null;
         }
       }
-        return provider.deleteResources(predicate);
+      return provider.deleteResources(request, predicate);
     }
     return null;
   }
@@ -991,9 +991,9 @@ public class ClusterControllerImpl implements ClusterController {
     }
 
     @Override
-    public RequestStatus deleteResources(Predicate predicate)
+    public RequestStatus deleteResources(Request request, Predicate predicate)
         throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
-      return resourceProvider.deleteResources(predicate);
+      return resourceProvider.deleteResources(request, predicate);
     }
 
     @Override

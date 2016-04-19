@@ -338,7 +338,7 @@ public class ConfigurationResourceProviderTest {
     Predicate predicate = new PredicateBuilder().property(
         ConfigurationResourceProvider.CONFIGURATION_CONFIG_TAG_PROPERTY_ID).equals("Configuration100").toPredicate();
     try {
-      provider.deleteResources(predicate);
+      provider.deleteResources(new RequestImpl(null, null, null, null), predicate);
       Assert.fail("Expected an UnsupportedOperationException");
     } catch (UnsupportedOperationException e) {
       // expected

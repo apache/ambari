@@ -789,7 +789,7 @@ public class AlertGroupResourceProviderTest {
     expectLastCall();
     replay(m_dao);
 
-    provider.deleteResources(predicate);
+    provider.deleteResources(new RequestImpl(null, null, null, null), predicate);
 
     AlertGroupEntity entity1 = entityCapture.getValue();
     assertEquals(ALERT_GROUP_ID, entity1.getGroupId());
@@ -850,7 +850,7 @@ public class AlertGroupResourceProviderTest {
         AlertGroupResourceProvider.ALERT_GROUP_ID).equals(
         ALERT_GROUP_ID.toString()).toPredicate();
 
-    provider.deleteResources(predicate);
+    provider.deleteResources(new RequestImpl(null, null, null, null), predicate);
     verify(m_dao, m_amc);
   }
 

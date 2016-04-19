@@ -412,7 +412,7 @@ public class ClusterPrivilegeResourceProviderTest extends EasyMockSupport {
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
     ResourceProvider provider = getResourceProvider(injector);
-    provider.deleteResources(createPredicate(1L));
+    provider.deleteResources(new RequestImpl(null, null, null, null), createPredicate(1L));
 
     verifyAll();
   }

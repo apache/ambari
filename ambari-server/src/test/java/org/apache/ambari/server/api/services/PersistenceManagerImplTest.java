@@ -23,6 +23,7 @@ import org.apache.ambari.server.api.query.Query;
 import org.apache.ambari.server.api.resources.ResourceDefinition;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.persistence.PersistenceManagerImpl;
+import org.apache.ambari.server.controller.internal.RequestImpl;
 import org.apache.ambari.server.controller.internal.RequestStatusImpl;
 import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -307,11 +308,11 @@ public class PersistenceManagerImplTest {
     expect(resource.getQuery()).andReturn(query).anyTimes();
     expect(query.getPredicate()).andReturn(predicate).anyTimes();
 
-    expect(controller.deleteResources(Resource.Type.Component, predicate)).andReturn(new RequestStatusImpl(null));
+    expect(controller.deleteResources(Resource.Type.Component, new RequestImpl(null, null, null, null), predicate)).andReturn(new RequestStatusImpl(null));
 
     replay(resource, resourceDefinition, controller, query, predicate);
 
-    new TestPersistenceManager(controller, null, null).delete(resource, body);
+    new PersistenceManagerImpl(controller).delete(resource, body);
 
     verify(resource, resourceDefinition, controller, query, predicate);
   }

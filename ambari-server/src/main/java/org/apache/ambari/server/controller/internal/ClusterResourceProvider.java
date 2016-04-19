@@ -351,7 +351,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
   }
 
   @Override
-  protected RequestStatus deleteResourcesAuthorized(Predicate predicate)
+  protected RequestStatus deleteResourcesAuthorized(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {

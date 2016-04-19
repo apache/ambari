@@ -63,7 +63,7 @@ public class SchemaImplTest {
     }
 
     @Override
-    public RequestStatus deleteResources(Predicate predicate) throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+    public RequestStatus deleteResources(Request request, Predicate predicate) throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
       return new RequestStatusImpl(null);
     }
 

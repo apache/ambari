@@ -122,7 +122,7 @@ public class LdapSyncEventResourceProviderTest {
     Set<Resource> resources = provider.getResources(PropertyHelper.getReadRequest(), null);
     Assert.assertEquals(1, resources.size());
 
-    provider.deleteResources(null);
+    provider.deleteResources(new RequestImpl(null, null, null, null), null);
 
     resources = provider.getResources(PropertyHelper.getReadRequest(), null);
     Assert.assertEquals(0, resources.size());

@@ -168,7 +168,7 @@ public class MemberResourceProvider extends AbstractControllerResourceProvider {
   }
 
   @Override
-  protected RequestStatus deleteResourcesAuthorized(Predicate predicate)
+  protected RequestStatus deleteResourcesAuthorized(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
     final Set<MemberRequest> requests = new HashSet<MemberRequest>();

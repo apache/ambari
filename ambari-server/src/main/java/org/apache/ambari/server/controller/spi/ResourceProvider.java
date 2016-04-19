@@ -44,7 +44,7 @@ public interface ResourceProvider {
    * @throws ResourceAlreadyExistsException attempted to create a resource which already exists
    * @throws NoSuchParentResourceException a parent resource of the resource to create doesn't exist
    */
-  public RequestStatus createResources(Request request)
+  RequestStatus createResources(Request request)
       throws SystemException,
       UnsupportedPropertyException,
       ResourceAlreadyExistsException,
@@ -77,7 +77,7 @@ public interface ResourceProvider {
    * @throws NoSuchResourceException the requested resource instance doesn't exist
    * @throws NoSuchParentResourceException a parent resource of the requested resource doesn't exist
    */
-  public Set<Resource> getResources(Request request, Predicate predicate)
+  Set<Resource> getResources(Request request, Predicate predicate)
       throws SystemException,
       UnsupportedPropertyException,
       NoSuchResourceException,
@@ -101,7 +101,7 @@ public interface ResourceProvider {
    * @throws NoSuchResourceException the resource instance to be updated doesn't exist
    * @throws NoSuchParentResourceException a parent resource of the resource doesn't exist
    */
-  public RequestStatus updateResources(Request request, Predicate predicate)
+  RequestStatus updateResources(Request request, Predicate predicate)
       throws SystemException,
       UnsupportedPropertyException,
       NoSuchResourceException,
@@ -110,8 +110,8 @@ public interface ResourceProvider {
   /**
    * Delete the resources selected by the given predicate.
    *
-   *
-   *
+   * @param request   the request object which defines the set of properties
+   *                  for the resources to be updated
    * @param predicate the predicate object which can be used to filter which
    *                  resources are deleted
    *
@@ -122,7 +122,7 @@ public interface ResourceProvider {
    * @throws NoSuchResourceException the resource instance to be deleted doesn't exist
    * @throws NoSuchParentResourceException a parent resource of the resource doesn't exist
    */
-  public RequestStatus deleteResources(Predicate predicate)
+  RequestStatus deleteResources(Request request, Predicate predicate)
       throws SystemException,
       UnsupportedPropertyException,
       NoSuchResourceException,
@@ -139,7 +139,7 @@ public interface ResourceProvider {
    *
    * @return a map of key property ids
    */
-  public Map<Resource.Type, String> getKeyPropertyIds();
+  Map<Resource.Type, String> getKeyPropertyIds();
 
   /**
    * Check whether the set of given property ids is supported by this resource
@@ -149,5 +149,5 @@ public interface ResourceProvider {
    *         supported by this resource provider.  An empty return set indicates
    *         that all of the given property ids are supported.
    */
-  public Set<String> checkPropertyIds(Set<String> propertyIds);
+  Set<String> checkPropertyIds(Set<String> propertyIds);
 }

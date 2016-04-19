@@ -191,7 +191,7 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate)
+  public RequestStatus deleteResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
     throw new UnsupportedOperationException();

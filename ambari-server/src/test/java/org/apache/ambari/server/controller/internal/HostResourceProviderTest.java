@@ -1102,7 +1102,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
 
     Predicate predicate = new PredicateBuilder().property(HostResourceProvider.HOST_NAME_PROPERTY_ID).equals("Host100").
         toPredicate();
-    provider.deleteResources(predicate);
+    provider.deleteResources(new RequestImpl(null, null, null, null), predicate);
 
 
     ResourceProviderEvent lastEvent = observer.getLastEvent();

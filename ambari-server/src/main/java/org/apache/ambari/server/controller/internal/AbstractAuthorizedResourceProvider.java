@@ -26,6 +26,7 @@ import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
+import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
@@ -309,6 +310,8 @@ public abstract class AbstractAuthorizedResourceProvider extends AbstractResourc
    * This method may be overwritten by implementing classes to avoid performing authorization checks
    * to delete resources.
    *
+   *
+   * @param request
    * @param predicate the predicate object which can be used to filter which
    *                  resources are deleted
    * @return the request status
@@ -319,7 +322,7 @@ public abstract class AbstractAuthorizedResourceProvider extends AbstractResourc
    * @throws AuthorizationException        if the authenticated user is not authorized to perform this operation
    */
   @Override
-  public RequestStatus deleteResources(Predicate predicate)
+  public RequestStatus deleteResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     Authentication authentication = AuthorizationHelper.getAuthentication();
 
@@ -329,7 +332,7 @@ public abstract class AbstractAuthorizedResourceProvider extends AbstractResourc
       throw new AuthorizationException("The authenticated user does not have the appropriate authorizations to delete the requested resource(s)");
     }
 
-    return deleteResourcesAuthorized(predicate);
+    return deleteResourcesAuthorized(request, predicate);
   }
 
   // ----- ResourceProvider (end) --------------------------------------------
@@ -450,8 +453,10 @@ public abstract class AbstractAuthorizedResourceProvider extends AbstractResourc
    * Delete the resources selected by the given predicate if the authenticated user is authorized
    * to do so.
    * <p/>
-   * This method must be overwritten if {@link #deleteResources(Predicate)} is not overwritten.
+   * This method must be overwritten if {@link ResourceProvider#deleteResources(Request, Predicate)} is not overwritten.
    *
+   *
+   * @param request
    * @param predicate the predicate object which can be used to filter which resources are deleted
    * @return the request status
    * @throws SystemException               an internal system exception occurred
@@ -459,9 +464,9 @@ public abstract class AbstractAuthorizedResourceProvider extends AbstractResourc
    * @throws NoSuchResourceException       the resource instance to be deleted doesn't exist
    * @throws NoSuchParentResourceException a parent resource of the resource doesn't exist
    * @throws AuthorizationException        if the authenticated user is not authorized to perform this operation
-   * @see #deleteResources(Predicate)
+   * @see ResourceProvider#deleteResources(Request, Predicate)
    */
-  protected RequestStatus deleteResourcesAuthorized(Predicate predicate)
+  protected RequestStatus deleteResourcesAuthorized(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     throw new UnsupportedOperationException("If deleteResources is not overwritten, then deleteResourcesAuthorized must be overwritten");
   }

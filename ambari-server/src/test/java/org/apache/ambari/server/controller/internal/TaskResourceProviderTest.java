@@ -27,6 +27,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -49,7 +50,6 @@ import org.apache.ambari.server.orm.dao.ExecutionCommandDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
-import org.apache.ambari.server.topology.LogicalRequest;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.easymock.EasyMock;
 import org.junit.Assert;
@@ -260,7 +260,7 @@ public class TaskResourceProviderTest {
     verify(managementController, response);
   }
 
-  @Test
+  @Test(expected = UnsupportedOperationException.class)
   public void testDeleteResources() throws Exception {
     Resource.Type type = Resource.Type.Task;
 
@@ -275,15 +275,8 @@ public class TaskResourceProviderTest {
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
-    Predicate predicate = new PredicateBuilder().property(TaskResourceProvider.TASK_ID_PROPERTY_ID).equals("Task100").
-        toPredicate();
-    try {
-      provider.deleteResources(predicate);
-      Assert.fail("Expected an UnsupportedOperationException");
-    } catch (UnsupportedOperationException e) {
-      // expected
-    }
-
+    Predicate predicate = new PredicateBuilder().property(TaskResourceProvider.TASK_ID_PROPERTY_ID).equals("Task100").toPredicate();
+    provider.deleteResources(new RequestImpl(null, null, null, null), predicate);
     // verify
     verify(managementController);
   }

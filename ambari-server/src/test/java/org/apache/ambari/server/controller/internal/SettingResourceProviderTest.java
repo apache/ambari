@@ -260,7 +260,7 @@ public class SettingResourceProviderTest {
   @Test(expected = AuthorizationException.class)
   public void testDeleteResources_noAuth() throws Exception {
     mockControl.replay();
-    resourceProvider.deleteResources(null);
+    resourceProvider.deleteResources(new RequestImpl(null, null, null, null), null);
   }
 
 
@@ -268,7 +268,7 @@ public class SettingResourceProviderTest {
   public void testDeleteResources_clusterUser() throws Exception {
     setupAuthenticationForClusterUser();
     mockControl.replay();
-    resourceProvider.deleteResources(null);
+    resourceProvider.deleteResources(new RequestImpl(null, null, null, null), null);
   }
 
   @Test
@@ -280,7 +280,7 @@ public class SettingResourceProviderTest {
     Predicate predicate = pb.begin().property(SETTING_NAME_PROPERTY_ID).equals(name).end().toPredicate();
     dao.removeByName(name);
     mockControl.replay();
-    resourceProvider.deleteResources(predicate);
+    resourceProvider.deleteResources(new RequestImpl(null, null, null, null), predicate);
   }
 
   private Set<Resource> getResources_instance(SettingEntity entity, Request request) throws Exception {

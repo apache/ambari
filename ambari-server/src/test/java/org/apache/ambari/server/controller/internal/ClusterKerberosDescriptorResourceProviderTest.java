@@ -626,7 +626,7 @@ public class ClusterKerberosDescriptorResourceProviderTest extends EasyMockSuppo
         .toPredicate();
     Predicate predicate = new AndPredicate(predicate1, predicate2);
 
-    provider.deleteResources(predicate);
+    provider.deleteResources(new RequestImpl(null, null, null, null), predicate);
 
     verifyAll();
   }

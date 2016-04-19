@@ -450,7 +450,7 @@ public class ArtifactResourceProviderTest {
     PredicateBuilder pb = new PredicateBuilder();
     Predicate predicate = pb.begin().property("Artifacts/cluster_name").equals("test-cluster").end().toPredicate();
 
-    RequestStatus response = resourceProvider.deleteResources(predicate);
+    RequestStatus response = resourceProvider.deleteResources(new RequestImpl(null, null, null, null), predicate);
     ArtifactEntity deleteEntity = deleteEntityCapture.getValue();
     ArtifactEntity deleteEntity2 = deleteEntityCapture2.getValue();
 
