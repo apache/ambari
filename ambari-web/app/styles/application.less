@@ -6206,6 +6206,7 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
 #combo_search_box {
   .VS-search {
     .VS-search-box {
+      border: 1px solid #ccc;
       border-radius: 4px;
       box-shadow: 0 0 1px #fff inset;
     }
@@ -6227,6 +6228,9 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
         background-image: -moz-linear-gradient(top, #fdfdfd, #e3e3e3); /* FF3.6 */
         background-image: -webkit-gradient(linear, left top, left bottom, from(#fdfdfd), to(#e3e3e3)); /* Saf4+, Chrome */
         background-image: linear-gradient(top, #fdfdfd, #e3e3e3);
+      }
+      &.is_selected {
+        margin-left: 0px;
       }
     }
   }
