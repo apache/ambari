@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.controller.metrics;
 
+import com.google.common.base.Throwables;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.apache.ambari.server.configuration.Configuration;
@@ -224,6 +225,20 @@ public abstract class ThreadPoolEnabledPropertyProvider extends AbstractProperty
     return request.getPropertyIds().isEmpty() || propertyId.startsWith(requestedPropertyId);
   }
 
+  protected static String getCacheKeyForException(final Throwable throwable) {
+    if (throwable == null) {
+      return "";
+    }
+    StringBuilder sb = new StringBuilder();
+    for (Throwable t : Throwables.getCausalChain(throwable)) {
+      if (t != null) {
+        sb.append(t.getClass().getName());
+      }
+      sb.append('\n');
+    }
+    return sb.toString();
+  }
+
   /**
    * Log an error for the given exception.
    *
@@ -234,11 +249,15 @@ public abstract class ThreadPoolEnabledPropertyProvider extends AbstractProperty
   protected static String logException(final Throwable throwable) {
     final String msg = "Caught exception getting JMX metrics : " + throwable.getLocalizedMessage();
 
+    // JsonParseException includes InputStream's hash code into the message.
+    // getMessage and printStackTrace returns a different String every time.
+    String cacheKey = getCacheKeyForException(throwable);
+
     if (LOG.isDebugEnabled()) {
       LOG.debug(msg, throwable);
     } else {
       try {
-        exceptionsCache.get(msg, new Callable<Throwable>() {
+        exceptionsCache.get(cacheKey, new Callable<Throwable>() {
           @Override
           public Throwable call() {
             LOG.error(msg + ", skipping same exceptions for next 5 minutes", throwable);
