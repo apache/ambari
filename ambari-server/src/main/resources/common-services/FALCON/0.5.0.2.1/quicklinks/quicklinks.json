@@ -4,7 +4,14 @@
   "configuration": {
     "protocol":
     {
-      "type":"HTTP_ONLY"
+      "type":"https",
+      "checks":[
+        {
+          "property":"*.falcon.enableTLS",
+          "desired":"true",
+          "site":"falcon-startup.properties"
+        }
+      ]
     },
 
     "links": [
@@ -17,7 +24,7 @@
           "http_property": "falcon_port",
           "http_default_port": "15000",
           "https_property": "falcon_port",
-          "https_default_port": "15000",
+          "https_default_port": "15443",
           "regex": "^(\\d+)$",
           "site": "falcon-env"
         }
