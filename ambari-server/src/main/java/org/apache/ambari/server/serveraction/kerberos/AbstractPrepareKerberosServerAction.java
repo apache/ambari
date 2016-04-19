@@ -101,7 +101,7 @@ public abstract class AbstractPrepareKerberosServerAction extends KerberosServer
       }
 
       try {
-        Set<String> services = new HashSet<String>();
+        Set<String> services = cluster.getServices().keySet();
         Map<String, Set<String>> propertiesToIgnore = null;
 
         try {
@@ -141,8 +141,6 @@ public abstract class AbstractPrepareKerberosServerAction extends KerberosServer
                 propertiesToIgnore = gatherPropertiesToIgnore(componentIdentities, propertiesToIgnore);
               }
             }
-
-            services.add(serviceName);
           }
 
           // Add ambari-server principal (and keytab) only if 'kerberos-env.create_ambari_principal = true'
