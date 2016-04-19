@@ -130,6 +130,7 @@
                   <fileset dir="${contrib-views-dir}">
                     <include name="*/target/*jar" />
                     <exclude name="**/ambari-views-utils*jar" />
+                    <exclude name="**/ambari-views-commons*jar" />
                   </fileset>
                 </copy>
               </target>
