@@ -32,12 +32,5 @@
   </property>
   <property>
     <name>sqoop.job.data.publish.class</name>
-    <value>{{job_data_publish_class}}</value>
-    <depends-on>
-      <property>
-        <type>application-properties</type>
-        <name>atlas.cluster.name</name>
-      </property>
-    </depends-on>
   </property>
 </configuration>

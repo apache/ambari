@@ -26,12 +26,16 @@ from resource_management.libraries.functions.get_not_managed_resources import ge
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.script.script import Script
 import os
+from resource_management.libraries.functions.expect import expect
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions import StackFeature
 
 config = Script.get_config()
 stack_root = status_params.stack_root
 stack_name = default("/hostLevelParams/stack_name", None)
+
+agent_stack_retry_on_unavailability = config['hostLevelParams']['agent_stack_retry_on_unavailability']
+agent_stack_retry_count = expect("/hostLevelParams/agent_stack_retry_count", int)
 
 # New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
 version = default("/commandParams/version", None)
@@ -112,30 +116,13 @@ dfs_data_mirroring_dir = "/apps/data-mirroring"
 
 atlas_hosts = default('/clusterHostInfo/atlas_server_hosts', [])
 has_atlas = len(atlas_hosts) > 0
+atlas_plugin_package = "atlas-metadata*-hive-plugin"
+atlas_ubuntu_plugin_package = "atlas-metadata.*-hive-plugin"
 
 if has_atlas:
   atlas_conf_file = config['configurations']['atlas-env']['metadata_conf_file']
   atlas_conf_dir = os.environ['METADATA_CONF'] if 'METADATA_CONF' in os.environ else '/etc/atlas/conf'
   atlas_home_dir = os.environ['METADATA_HOME_DIR'] if 'METADATA_HOME_DIR' in os.environ else format('{stack_root}/current/atlas-server')
-
-  application_services = "org.apache.falcon.security.AuthenticationInitializationService,\
-      org.apache.falcon.workflow.WorkflowJobEndNotificationService, \
-      org.apache.falcon.service.ProcessSubscriberService,\
-      org.apache.falcon.entity.store.ConfigurationStore,\
-      org.apache.falcon.rerun.service.RetryService,\
-      org.apache.falcon.rerun.service.LateRunService,\
-      org.apache.falcon.service.LogCleanupService,\
-      org.apache.falcon.metadata.MetadataMappingService,\
-      org.apache.falcon.atlas.service.AtlasService"
-else:
-  application_services = "org.apache.falcon.security.AuthenticationInitializationService,\
-      org.apache.falcon.workflow.WorkflowJobEndNotificationService, \
-      org.apache.falcon.service.ProcessSubscriberService,\
-      org.apache.falcon.entity.store.ConfigurationStore,\
-      org.apache.falcon.rerun.service.RetryService,\
-      org.apache.falcon.rerun.service.LateRunService,\
-      org.apache.falcon.service.LogCleanupService,\
-      org.apache.falcon.metadata.MetadataMappingService"
 
 hdfs_site = config['configurations']['hdfs-site']
 default_fs = config['configurations']['core-site']['fs.defaultFS']

@@ -739,12 +739,5 @@
   </property>
   <property>
     <name>storm.topology.submission.notifier.plugin.class</name>
-    <value>org.apache.atlas.storm.hook.StormAtlasHook</value>
-    <depends-on>
-      <property>
-        <type>application-properties</type>
-        <name>atlas.cluster.name</name>
-      </property>
-    </depends-on>
   </property>
 </configuration>

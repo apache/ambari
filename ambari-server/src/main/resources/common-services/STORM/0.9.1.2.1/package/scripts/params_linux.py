@@ -37,6 +37,7 @@ from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.expect import expect
 
 # server configurations
 config = Script.get_config()
@@ -49,6 +50,9 @@ cluster_name = config['clusterName']
 stack_name = default("/hostLevelParams/stack_name", None)
 upgrade_direction = default("/commandParams/upgrade_direction", Direction.UPGRADE)
 version = default("/commandParams/version", None)
+
+agent_stack_retry_on_unavailability = config['hostLevelParams']['agent_stack_retry_on_unavailability']
+agent_stack_retry_count = expect("/hostLevelParams/agent_stack_retry_count", int)
 
 storm_component_home_dir = status_params.storm_component_home_dir
 conf_dir = status_params.conf_dir
@@ -190,6 +194,8 @@ jar_jvm_opts = ''
 # Atlas related params
 atlas_hosts = default('/clusterHostInfo/atlas_server_hosts', [])
 has_atlas = len(atlas_hosts) > 0
+atlas_plugin_package = "atlas-metadata*-hive-plugin"
+atlas_ubuntu_plugin_package = "atlas-metadata.*-hive-plugin"
 
 if has_atlas:
   atlas_home_dir = os.environ['METADATA_HOME_DIR'] if 'METADATA_HOME_DIR' in os.environ else stack_root + '/current/atlas-server'

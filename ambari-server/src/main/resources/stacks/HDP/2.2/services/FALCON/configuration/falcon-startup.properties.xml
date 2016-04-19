@@ -27,7 +27,15 @@
   </property>
   <property>
     <name>*.application.services</name>
-    <value>{{application_services}}</value>
+    <value>org.apache.falcon.security.AuthenticationInitializationService,\
+      org.apache.falcon.workflow.WorkflowJobEndNotificationService, \
+      org.apache.falcon.service.ProcessSubscriberService,\
+      org.apache.falcon.entity.store.ConfigurationStore,\
+      org.apache.falcon.rerun.service.RetryService,\
+      org.apache.falcon.rerun.service.LateRunService,\
+      org.apache.falcon.service.LogCleanupService,\
+      org.apache.falcon.metadata.MetadataMappingService
+    </value>
     <description>Falcon Services</description>
   </property>
   <property>

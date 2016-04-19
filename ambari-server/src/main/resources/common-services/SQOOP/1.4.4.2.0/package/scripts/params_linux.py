@@ -24,6 +24,7 @@ from resource_management.libraries.script import Script
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions.expect import expect
 import os
 
 # a map of the Ambari role to the component name
@@ -45,6 +46,9 @@ stack_name = default("/hostLevelParams/stack_name", None)
 
 stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
+
+agent_stack_retry_on_unavailability = config['hostLevelParams']['agent_stack_retry_on_unavailability']
+agent_stack_retry_count = expect("/hostLevelParams/agent_stack_retry_count", int)
 
 # New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
 version = default("/commandParams/version", None)
@@ -116,6 +120,8 @@ job_data_publish_class = ''
 
 atlas_hosts = default('/clusterHostInfo/atlas_server_hosts', [])
 has_atlas = len(atlas_hosts) > 0
+atlas_plugin_package = "atlas-metadata*-hive-plugin"
+atlas_ubuntu_plugin_package = "atlas-metadata.*-hive-plugin"
 
 if has_atlas:
   atlas_conf_file = config['configurations']['atlas-env']['metadata_conf_file']

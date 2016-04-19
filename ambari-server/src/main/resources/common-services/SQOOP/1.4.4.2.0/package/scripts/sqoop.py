@@ -23,6 +23,8 @@ from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.core.resources.system import File, Link, Directory
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
+from setup_atlas_sqoop import setup_atlas_sqoop
+
 import os
 
 
@@ -59,19 +61,7 @@ def sqoop(type=None):
             group = params.user_group
             )
 
-  if params.has_atlas:
-    atlas_sqoop_hook_dir = os.path.join(params.atlas_home_dir, "hook", "sqoop")
-    if os.path.exists(atlas_sqoop_hook_dir):
-      Link(os.path.join(params.sqoop_conf_dir, params.atlas_conf_file),
-           to = os.path.join(params.atlas_conf_dir, params.atlas_conf_file)
-           )
-
-      src_files = os.listdir(atlas_sqoop_hook_dir)
-      for file_name in src_files:
-        atlas_sqoop_hook_file_name = os.path.join(atlas_sqoop_hook_dir, file_name)
-        sqoop_lib_file_name = os.path.join(params.sqoop_lib, file_name)
-        if (os.path.isfile(atlas_sqoop_hook_file_name)):
-          Link(sqoop_lib_file_name, to = atlas_sqoop_hook_file_name)
+  setup_atlas_sqoop()
 
   File(format("{sqoop_conf_dir}/sqoop-env.sh"),
     owner=params.sqoop_user,

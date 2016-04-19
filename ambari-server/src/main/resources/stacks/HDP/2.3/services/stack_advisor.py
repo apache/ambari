@@ -161,7 +161,10 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       "KAFKA": self.recommendKAFKAConfigurations,
       "RANGER": self.recommendRangerConfigurations,
       "RANGER_KMS": self.recommendRangerKMSConfigurations,
-      "HAWQ": self.recommendHAWQConfigurations
+      "HAWQ": self.recommendHAWQConfigurations,
+      "FALCON": self.recommendFalconConfigurations,
+      "STORM": self.recommendStormConfigurations,
+      "SQOOP": self.recommendSqoopConfigurations
     }
     parentRecommendConfDict.update(childRecommendConfDict)
     return parentRecommendConfDict
@@ -730,6 +733,71 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
         putHdfsClientProperty = self.putProperty(configurations, "hdfs-client", services)
         putHdfsClientProperty("output.replace-datanode-on-failure", propertyValue)
 
+  def recommendSqoopConfigurations(self, configurations, clusterData, services, hosts):
+    putSqoopSiteProperty = self.putProperty(configurations, "sqoop-site", services)
+
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    if "ATLAS" in servicesList:
+      putSqoopSiteProperty('sqoop.job.data.publish.class', 'org.apache.atlas.sqoop.hook.SqoopHook')
+
+  def recommendStormConfigurations(self, configurations, clusterData, services, hosts):
+    putStormStartupProperty = self.putProperty(configurations, "storm-site", services)
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+
+    # atlas
+    notifier_plugin_property = "storm.topology.submission.notifier.plugin.class"
+    if notifier_plugin_property in services["configurations"]["storm-site"]["properties"]:
+      notifier_plugin_value = services["configurations"]["storm-site"]["properties"][notifier_plugin_property]
+    else:
+      notifier_plugin_value = " "
+
+    include_atlas = "ATLAS" in servicesList
+    atlas_hook_class = "org.apache.atlas.storm.hook.StormAtlasHook"
+    if include_atlas and atlas_hook_class not in notifier_plugin_value:
+      if notifier_plugin_value == " ":
+        notifier_plugin_value = atlas_hook_class
+      else:
+        notifier_plugin_value = notifier_plugin_value + "," + atlas_hook_class
+    if not include_atlas and atlas_hook_class in notifier_plugin_value:
+      application_classes = []
+      for application_class in notifier_plugin_value.split(","):
+        if application_class != atlas_hook_class and application_class != " ":
+          application_classes.append(application_class)
+      if application_classes:
+        notifier_plugin_value = ",".join(application_classes)
+      else:
+        notifier_plugin_value = " "
+    putStormStartupProperty(notifier_plugin_property, notifier_plugin_value)
+
+  def recommendFalconConfigurations(self, configurations, clusterData, services, hosts):
+
+    putFalconStartupProperty = self.putProperty(configurations, "falcon-startup.properties", services)
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+
+    # atlas
+    application_services_property = "*.application.services"
+    if application_services_property in services["configurations"]["falcon-startup.properties"]["properties"]:
+      application_services_value = services["configurations"]["falcon-startup.properties"]["properties"][application_services_property]
+    else:
+      application_services_value = " "
+
+    include_atlas = "ATLAS" in servicesList
+    atlas_application_class = "org.apache.falcon.atlas.service.AtlasService"
+    if include_atlas and atlas_application_class not in application_services_value:
+      if application_services_value == " ":
+        application_services_value = atlas_application_class
+      else:
+        application_services_value = application_services_value + "," + atlas_application_class
+    if not include_atlas and atlas_application_class in application_services_value:
+      application_classes = []
+      for application_class in application_services_value.split(","):
+        if application_class != atlas_application_class and application_class != " ":
+          application_classes.append(application_class)
+      if application_classes:
+        application_services_value = ",".join(application_classes)
+      else:
+        application_services_value = " "
+    putFalconStartupProperty(application_services_property, application_services_value)
 
   def getServiceConfigurationValidators(self):
     parentValidators = super(HDP23StackAdvisor, self).getServiceConfigurationValidators()

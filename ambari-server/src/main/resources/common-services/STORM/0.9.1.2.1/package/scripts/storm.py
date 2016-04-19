@@ -31,6 +31,7 @@ from resource_management.libraries.functions import StackFeature
 from storm_yaml_utils import yaml_config_template, yaml_config
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
+from setup_atlas_storm import setup_atlas_storm
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def storm(name=None):
@@ -94,17 +95,7 @@ def storm(name=None):
        content=InlineTemplate(params.storm_env_sh_template)
   )
 
-  if params.has_atlas:
-    atlas_storm_hook_dir = os.path.join(params.atlas_home_dir, "hook", "storm")
-    if os.path.exists(atlas_storm_hook_dir):
-      storm_extlib_dir = os.path.join(params.storm_component_home_dir, "extlib")
-      if os.path.exists(storm_extlib_dir):
-        src_files = os.listdir(atlas_storm_hook_dir)
-        for file_name in src_files:
-          atlas_storm_hook_file_name = os.path.join(atlas_storm_hook_dir, file_name)
-          storm_lib_file_name = os.path.join(storm_extlib_dir, file_name)
-          if (os.path.isfile(atlas_storm_hook_file_name)):
-            Link(storm_lib_file_name, to = atlas_storm_hook_file_name)
+  setup_atlas_storm()
 
   if params.has_metric_collector:
     File(format("{conf_dir}/storm-metrics2.properties"),

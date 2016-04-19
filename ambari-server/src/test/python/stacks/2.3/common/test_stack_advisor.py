@@ -2355,3 +2355,261 @@ class TestHDP23StackAdvisor(TestCase):
     # kms_user was changed, old property should be removed
     self.stackAdvisor.recommendRangerKMSConfigurations(recommendedConfigurations, clusterData, services, None)
     self.assertEquals(recommendedConfigurations, expected)
+
+  def test_recommendStormConfigurations(self):
+    self.maxDiff = None
+    configurations = {
+      "storm-site": {
+        "properties": {
+          "storm.topology.submission.notifier.plugin.class": "foo"
+        }
+      }
+    }
+    clusterData = {
+      "cpu": 4,
+      "mapMemory": 3000,
+      "amMemory": 2000,
+      "reduceMemory": 2056,
+      "containers": 3,
+      "ramPerContainer": 256
+    }
+    expected = {
+      'storm-site': {
+        'properties': {
+          'storm.topology.submission.notifier.plugin.class': 'foo,org.apache.atlas.storm.hook.StormAtlasHook',
+        }
+      }
+    }
+    services = {
+      "services": [
+        {
+          "href": "/api/v1/stacks/HDP/versions/2.2/services/ATLAS",
+          "StackServices": {
+            "service_name": "ATLAS",
+            "service_version": "2.6.0.2.2",
+            "stack_name": "HDP",
+            "stack_version": "2.3"
+          },
+          "components": [
+            {
+              "StackServiceComponents": {
+                "advertise_version": "false",
+                "cardinality": "1",
+                "component_category": "MASTER",
+                "component_name": "ATLAS_SERVER",
+                "display_name": "Atlas Server",
+                "is_client": "false",
+                "is_master": "true",
+                "hostnames": []
+              },
+              "dependencies": []
+            }
+          ]
+        },
+      ],
+      "configurations": {
+        "storm-site": {
+          "properties": {
+            "storm.topology.submission.notifier.plugin.class": "foo"
+          }
+        }
+      },
+      "changed-configurations": [ ]
+
+    }
+    hosts = {
+      "items" : [
+        {
+          "href" : "/api/v1/hosts/c6401.ambari.apache.org",
+          "Hosts" : {
+            "cpu_count" : 1,
+            "host_name" : "c6401.ambari.apache.org",
+            "os_arch" : "x86_64",
+            "os_type" : "centos6",
+            "ph_cpu_count" : 1,
+            "public_host_name" : "c6401.ambari.apache.org",
+            "rack_info" : "/default-rack",
+            "total_mem" : 1922680
+          }
+        }
+      ]
+    }
+
+    self.stackAdvisor.recommendStormConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations, expected)
+
+    services['ambari-server-properties'] = {'java.home': '/usr/jdk64/jdk1.7.3_23'}
+    self.stackAdvisor.recommendStormConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations, expected)
+
+  def test_recommendFalconConfigurations(self):
+    self.maxDiff = None
+    configurations = {
+      "falcon-startup.properties": {
+        "properties": {
+          "*.application.services": "foo"
+        }
+      }
+    }
+    clusterData = {
+      "cpu": 4,
+      "mapMemory": 3000,
+      "amMemory": 2000,
+      "reduceMemory": 2056,
+      "containers": 3,
+      "ramPerContainer": 256
+    }
+    expected = {
+      'falcon-startup.properties': {
+        'properties': {
+          '*.application.services': 'foo,org.apache.falcon.atlas.service.AtlasService',
+        }
+      }
+    }
+    services = {
+      "services": [
+        {
+          "href": "/api/v1/stacks/HDP/versions/2.2/services/ATLAS",
+          "StackServices": {
+            "service_name": "ATLAS",
+            "service_version": "2.6.0.2.2",
+            "stack_name": "HDP",
+            "stack_version": "2.3"
+          },
+          "components": [
+            {
+              "StackServiceComponents": {
+                "advertise_version": "false",
+                "cardinality": "1",
+                "component_category": "MASTER",
+                "component_name": "ATLAS_SERVER",
+                "display_name": "Atlas Server",
+                "is_client": "false",
+                "is_master": "true",
+                "hostnames": []
+              },
+              "dependencies": []
+            }
+          ]
+        },
+      ],
+      "configurations": {
+        "falcon-startup.properties": {
+          "properties": {
+            "*.application.services": "foo"
+          }
+        }
+      },
+      "changed-configurations": [ ]
+
+    }
+    hosts = {
+      "items" : [
+        {
+          "href" : "/api/v1/hosts/c6401.ambari.apache.org",
+          "Hosts" : {
+            "cpu_count" : 1,
+            "host_name" : "c6401.ambari.apache.org",
+            "os_arch" : "x86_64",
+            "os_type" : "centos6",
+            "ph_cpu_count" : 1,
+            "public_host_name" : "c6401.ambari.apache.org",
+            "rack_info" : "/default-rack",
+            "total_mem" : 1922680
+          }
+        }
+      ]
+    }
+
+    self.stackAdvisor.recommendFalconConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations, expected)
+
+    services['ambari-server-properties'] = {'java.home': '/usr/jdk64/jdk1.7.3_23'}
+    self.stackAdvisor.recommendFalconConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations, expected)
+
+  def test_recommendSqoopConfigurations(self):
+    self.maxDiff = None
+    configurations = {
+      "sqoop-site": {
+        "properties": {
+          "sqoop.job.data.publish.class": "foo"
+        }
+      }
+    }
+    clusterData = {
+      "cpu": 4,
+      "mapMemory": 3000,
+      "amMemory": 2000,
+      "reduceMemory": 2056,
+      "containers": 3,
+      "ramPerContainer": 256
+    }
+    expected = {
+      'sqoop-site': {
+        'properties': {
+          'sqoop.job.data.publish.class': 'org.apache.atlas.sqoop.hook.SqoopHook',
+        }
+      }
+    }
+    services = {
+      "services": [
+        {
+          "href": "/api/v1/stacks/HDP/versions/2.2/services/ATLAS",
+          "StackServices": {
+            "service_name": "ATLAS",
+            "service_version": "2.6.0.2.2",
+            "stack_name": "HDP",
+            "stack_version": "2.3"
+          },
+          "components": [
+            {
+              "StackServiceComponents": {
+                "advertise_version": "false",
+                "cardinality": "1",
+                "component_category": "MASTER",
+                "component_name": "ATLAS_SERVER",
+                "display_name": "Atlas Server",
+                "is_client": "false",
+                "is_master": "true",
+                "hostnames": []
+              },
+              "dependencies": []
+            }
+          ]
+        },
+      ],
+      "configurations": {
+        "sqoop-site": {
+          "properties": {
+            "sqoop.job.data.publish.class": "foo"
+          }
+        }
+      },
+      "changed-configurations": [ ]
+
+    }
+    hosts = {
+      "items" : [
+        {
+          "href" : "/api/v1/hosts/c6401.ambari.apache.org",
+          "Hosts" : {
+            "cpu_count" : 1,
+            "host_name" : "c6401.ambari.apache.org",
+            "os_arch" : "x86_64",
+            "os_type" : "centos6",
+            "ph_cpu_count" : 1,
+            "public_host_name" : "c6401.ambari.apache.org",
+            "rack_info" : "/default-rack",
+            "total_mem" : 1922680
+          }
+        }
+      ]
+    }
+
+    self.stackAdvisor.recommendSqoopConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations, expected)
+
+    services['ambari-server-properties'] = {'java.home': '/usr/jdk64/jdk1.7.3_23'}
+    self.stackAdvisor.recommendSqoopConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations, expected)

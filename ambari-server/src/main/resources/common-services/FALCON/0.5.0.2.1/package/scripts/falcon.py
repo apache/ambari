@@ -27,7 +27,6 @@ from resource_management.core.resources.service import Service
 from resource_management.core.resources.service import ServiceConfig
 from resource_management.core.resources.system import Directory
 from resource_management.core.resources.system import File
-from resource_management.core.resources.system import Link
 from resource_management.libraries.script import Script
 from resource_management.libraries.resources import PropertiesFile
 from resource_management.libraries.functions import format
@@ -35,6 +34,7 @@ from resource_management.libraries.functions.show_logs import show_logs
 
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from setup_atlas_falcon import setup_atlas_falcon
 
 @OsFamilyFuncImpl(os_family = OsFamilyImpl.DEFAULT)
 def falcon(type, action = None, upgrade_type=None):
@@ -108,12 +108,7 @@ def falcon(type, action = None, upgrade_type=None):
         create_parents = True,
         cd_access = "a")
 
-    if params.has_atlas:
-      atlas_falcon_hook_dir = os.path.join(params.atlas_home_dir, "hook", "falcon")
-      if os.path.exists(atlas_falcon_hook_dir):
-        Link(os.path.join(params.falcon_conf_dir, params.atlas_conf_file),
-          to = os.path.join(params.atlas_conf_dir, params.atlas_conf_file)
-          )
+    setup_atlas_falcon()
 
   if type == 'server':
     if action == 'config':
@@ -188,16 +183,6 @@ def falcon(type, action = None, upgrade_type=None):
       except:
         show_logs(params.falcon_log_dir, params.falcon_user)
         raise
-
-      if params.has_atlas:
-        atlas_falcon_hook_dir = os.path.join(params.atlas_home_dir, "hook", "falcon")
-        if os.path.exists(atlas_falcon_hook_dir):
-          src_files = os.listdir(atlas_falcon_hook_dir)
-          for file_name in src_files:
-            atlas_falcon_hook_file_name = os.path.join(atlas_falcon_hook_dir, file_name)
-            falcon_lib_file_name = os.path.join(params.falcon_webinf_lib, file_name)
-            if (os.path.isfile(atlas_falcon_hook_file_name)):
-              Link(falcon_lib_file_name, to = atlas_falcon_hook_file_name)
 
     if action == 'stop':
       try:
