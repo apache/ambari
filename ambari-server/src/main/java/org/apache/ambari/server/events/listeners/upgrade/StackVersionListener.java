@@ -24,6 +24,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.events.HostComponentVersionAdvertisedEvent;
 import org.apache.ambari.server.events.publishers.VersionEventPublisher;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -62,6 +63,9 @@ public class StackVersionListener {
    */
   private Lock m_stackVersionLock = new ReentrantLock();
 
+  @Inject
+  private RepositoryVersionDAO repositoryVersionDAO;
+
   /**
    * Constructor.
    *
@@ -87,6 +91,17 @@ public class StackVersionListener {
     }
 
     m_stackVersionLock.lock();
+
+    if (null != event.getRepositoryVersionId()) {
+      // !!! make sure the repo_version record actually has the same version.
+      // This is NOT true when installing a cluster using a public repo where the
+      // exact version is not known in advance.
+      RepositoryVersionEntity rve = repositoryVersionDAO.findByPK(event.getRepositoryVersionId());
+      if (null != rve && !rve.getVersion().equals(newVersion)) {
+        rve.setVersion(newVersion);
+        repositoryVersionDAO.merge(rve);
+      }
+    }
 
     // Update host component version value if needed
     try {

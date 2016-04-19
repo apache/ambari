@@ -71,18 +71,24 @@ class InstallPackages(Script):
     signal.signal(signal.SIGTERM, self.abort_handler)
     signal.signal(signal.SIGINT, self.abort_handler)
 
+    self.repository_version_id = None
+
     # Select dict that contains parameters
     try:
       self.repository_version = config['roleParams']['repository_version']
       base_urls = json.loads(config['roleParams']['base_urls'])
       package_list = json.loads(config['roleParams']['package_list'])
       stack_id = config['roleParams']['stack_id']
+      if 'repository_version_id' in config['roleParams']:
+        self.repository_version_id = config['roleParams']['repository_version_id']
     except KeyError:
       # Last try
       self.repository_version = config['commandParams']['repository_version']
       base_urls = json.loads(config['commandParams']['base_urls'])
       package_list = json.loads(config['commandParams']['package_list'])
       stack_id = config['commandParams']['stack_id']
+      if 'repository_version_id' in config['commandParams']:
+        self.repository_version_id = config['commandParams']['repository_version_id']
 
     # current stack information
     self.current_stack_version_formatted = None
@@ -94,9 +100,11 @@ class InstallPackages(Script):
     self.stack_name = Script.get_stack_name()
     if self.stack_name is None:
       raise Fail("Cannot determine the stack name")
+
     self.stack_root_folder = Script.get_stack_root()
     if self.stack_root_folder is None:
       raise Fail("Cannot determine the stack's root directory")
+
     if self.repository_version is None:
       raise Fail("Cannot determine the repository version to install")
 
@@ -141,6 +149,10 @@ class InstallPackages(Script):
       'stack_id': stack_id,
       'package_installation_result': 'FAIL'
     }
+
+    if self.repository_version_id is not None:
+      self.structured_output['repository_version_id'] = self.repository_version_id
+
     self.put_structured_out(self.structured_output)
 
     if num_errors > 0:

@@ -29,6 +29,19 @@ public class HostComponentVersionAdvertisedEvent extends ClusterEvent {
   protected Cluster cluster;
   protected ServiceComponentHost sch;
   protected String version;
+  protected Long repoVersionId;
+
+  /**
+   * Constructor.
+   *
+   * @param cluster: cluster.
+   * @param sch: the service component host
+   */
+  public HostComponentVersionAdvertisedEvent(Cluster cluster, ServiceComponentHost sch,
+      String version, Long repoVersionId) {
+    this(cluster, sch, version);
+    this.repoVersionId = repoVersionId;
+  }
 
   /**
    * Constructor.
@@ -56,6 +69,10 @@ public class HostComponentVersionAdvertisedEvent extends ClusterEvent {
     return version;
   }
 
+  public Long getRepositoryVersionId() {
+    return repoVersionId;
+  }
+
   /**
    * {@inheritDoc}
    */
@@ -67,6 +84,7 @@ public class HostComponentVersionAdvertisedEvent extends ClusterEvent {
     buffer.append(", componentName=").append(sch.getServiceComponentName());
     buffer.append(", hostName=").append(sch.getHostName());
     buffer.append(", version=").append(version);
+    buffer.append(", repo_version_id=").append(repoVersionId);
     buffer.append("}");
     return buffer.toString();
   }

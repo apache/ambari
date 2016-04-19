@@ -19,14 +19,13 @@
 
 package org.apache.ambari.server.view;
 
-import com.google.common.base.Function;
-import org.apache.ambari.server.configuration.Configuration;
-import org.apache.commons.io.FileDeleteStrategy;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -37,8 +36,15 @@ import java.util.concurrent.CountDownLatch;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.easymock.EasyMock.*;
+import javax.annotation.Nullable;
+
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.commons.io.FileDeleteStrategy;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+
+import com.google.common.base.Function;
 
 public class ViewDirectoryWatcherTest {
 
@@ -105,7 +111,7 @@ public class ViewDirectoryWatcherTest {
     viewDirectoryWatcher.start();
     // Create a new File at destination
     createZipFile();
-    countDownLatch.await(7, SECONDS);
+    countDownLatch.await(30, SECONDS);
 
     // Expect watcher to respond
     verify(configuration, viewRegistry);

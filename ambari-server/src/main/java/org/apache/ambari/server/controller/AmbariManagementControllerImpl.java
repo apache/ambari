@@ -261,6 +261,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private ClusterDAO clusterDAO;
   @Inject
   private CredentialStoreService credentialStoreService;
+  @Inject
+  private ClusterVersionDAO clusterVersionDAO;
 
   private MaintenanceStateHelper maintenanceStateHelper;
 
@@ -2205,8 +2207,18 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     hostParams.put(REPO_INFO, repoInfo);
     hostParams.putAll(getRcaParameters());
 
-    RepositoryVersionEntity repoVersion = (null == cluster.getCurrentClusterVersion()) ? null :
-        cluster.getCurrentClusterVersion().getRepositoryVersion();
+    RepositoryVersionEntity repoVersion = null;
+    if (null != cluster.getCurrentClusterVersion()) {
+      repoVersion = cluster.getCurrentClusterVersion().getRepositoryVersion();
+    } else {
+      List<ClusterVersionEntity> list = clusterVersionDAO.findByClusterAndState(cluster.getClusterName(),
+          RepositoryVersionState.INIT);
+      if (1 == list.size()) {
+        repoVersion = list.get(0).getRepositoryVersion();
+      }
+
+    }
+
     if (null != repoVersion) {
       try {
         VersionDefinitionXml xml = repoVersion.getRepositoryXml();
@@ -2217,6 +2229,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         throw new AmbariException(String.format("Could not load version xml from repo version %s",
             repoVersion.getVersion()), e);
       }
+
+      hostParams.put(KeyNames.REPO_VERSION_ID, repoVersion.getId().toString());
     }
 
     List<ServiceOsSpecific.Package> packages =

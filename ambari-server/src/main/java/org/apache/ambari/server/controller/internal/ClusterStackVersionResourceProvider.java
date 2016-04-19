@@ -559,6 +559,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     params.put("repository_version", repoVersion.getVersion());
     params.put("base_urls", repoList);
     params.put(KeyNames.PACKAGE_LIST, packageList);
+    params.put(KeyNames.REPO_VERSION_ID, repoVersion.getId().toString());
 
     VersionDefinitionXml xml = null;
     try {

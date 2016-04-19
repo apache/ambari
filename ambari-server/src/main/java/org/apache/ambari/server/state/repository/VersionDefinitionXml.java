@@ -290,22 +290,22 @@ public class VersionDefinitionXml {
     xmlReader.nextTag();
     String xsdName = xmlReader.getAttributeValue(XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI, "noNamespaceSchemaLocation");
 
+    if (null == xsdName) {
+      throw new IllegalArgumentException("Provided XML does not have a Schema defined using 'noNamespaceSchemaLocation'");
+    }
+
+    InputStream xsdStream = VersionDefinitionXml.class.getClassLoader().getResourceAsStream(xsdName);
+
+    if (null == xsdStream) {
+      throw new Exception(String.format("Could not load XSD identified by '%s'", xsdName));
+    }
+
     JAXBContext ctx = JAXBContext.newInstance(VersionDefinitionXml.class);
     Unmarshaller unmarshaller = ctx.createUnmarshaller();
 
-    InputStream xsdStream = null;
-
-    if (null != xsdName) {
-      xsdStream = VersionDefinitionXml.class.getClassLoader().getResourceAsStream(xsdName);
-
-      if (null == xsdStream) {
-        throw new Exception(String.format("Could not load XSD identified by '%s'", xsdName));
-      }
-
-      SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-      Schema schema = factory.newSchema(new StreamSource(xsdStream));
-      unmarshaller.setSchema(schema);
-    }
+    SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+    Schema schema = factory.newSchema(new StreamSource(xsdStream));
+    unmarshaller.setSchema(schema);
 
     try {
       VersionDefinitionXml xml = (VersionDefinitionXml) unmarshaller.unmarshal(xmlReader);

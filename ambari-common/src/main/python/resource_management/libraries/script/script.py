@@ -171,6 +171,13 @@ class Script(object):
       if component_version:
         self.put_structured_out({"version": component_version})
 
+        # if repository_version_id is passed, pass it back with the version
+        from resource_management.libraries.functions.default import default
+        repo_version_id = default("/hostLevelParams/repository_version_id", None)
+        if repo_version_id:
+          self.put_structured_out({"repository_version_id": repo_version_id})
+
+
   def should_expose_component_version(self, command_name):
     """
     Analyzes config and given command to determine if stack version should be written

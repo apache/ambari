@@ -524,7 +524,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
     }
 
     setResourceProperty(resource, VERSION_DEF_TYPE_PROPERTY_ID, xml.release.repositoryType, requestedIds);
-    setResourceProperty(resource, VERSION_DEF_FULL_VERSION, xml.release.version, requestedIds);
+    setResourceProperty(resource, VERSION_DEF_FULL_VERSION, xml.release.getFullVersion(), requestedIds);
     setResourceProperty(resource, VERSION_DEF_RELEASE_BUILD, xml.release.build, requestedIds);
     setResourceProperty(resource, VERSION_DEF_RELEASE_COMPATIBLE_WITH, xml.release.compatibleWith, requestedIds);
     setResourceProperty(resource, VERSION_DEF_RELEASE_NOTES, xml.release.releaseNotes, requestedIds);

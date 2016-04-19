@@ -392,6 +392,11 @@ public class ExecutionCommand extends AgentCommand {
      * The key indicating that there is an un-finalized upgrade which is suspended.
      */
     String UPGRADE_SUSPENDED = "upgrade_suspended";
+    /**
+     * When installing packages, optionally provide the row id the version is for in
+     * order to precisely match response data.
+     */
+    String REPO_VERSION_ID = "repository_version_id";
   }
 
 }

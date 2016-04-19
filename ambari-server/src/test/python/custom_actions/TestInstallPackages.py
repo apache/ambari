@@ -973,3 +973,83 @@ class TestInstallPackages(RMFTestCase):
 
     self.assertFalse(write_actual_version_to_history_file_mock.called)
 
+  @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
+  @patch("resource_management.libraries.functions.packages_analyzer.allInstalledPackages")
+  @patch("resource_management.libraries.script.Script.put_structured_out")
+  @patch("resource_management.libraries.functions.stack_select.get_stack_versions")
+  @patch("resource_management.libraries.functions.repo_version_history.read_actual_version_from_history_file")
+  @patch("resource_management.libraries.functions.repo_version_history.write_actual_version_to_history_file")
+  def test_version_reporting_with_repository_version(self,
+                                                                                   write_actual_version_to_history_file_mock,
+                                                                                   read_actual_version_from_history_file_mock,
+                                                                                   stack_versions_mock,
+                                                                                   put_structured_out_mock, allInstalledPackages_mock, list_ambari_managed_repos_mock):
+    stack_versions_mock.side_effect = [
+      [OLD_VERSION_STUB],  # before installation attempt
+      [OLD_VERSION_STUB, VERSION_STUB]
+    ]
+
+    config_file = self.get_src_folder() + "/test/python/custom_actions/configs/install_packages_config.json"
+    with open(config_file, "r") as f:
+      command_json = json.load(f)
+
+    command_json['roleParams']['repository_version'] = VERSION_STUB
+    command_json['roleParams']['repository_version_id'] = '2'
+
+    allInstalledPackages_mock.side_effect = TestInstallPackages._add_packages
+    list_ambari_managed_repos_mock.return_value = []
+    self.executeScript("scripts/install_packages.py",
+                       classname="InstallPackages",
+                       command="actionexecute",
+                       config_dict=command_json,
+                       target=RMFTestCase.TARGET_CUSTOM_ACTIONS,
+                       os_type=('Redhat', '6.4', 'Final'),
+                       )
+    self.assertTrue(put_structured_out_mock.called)
+    self.assertEquals(put_structured_out_mock.call_args[0][0],
+                      {'package_installation_result': 'SUCCESS',
+                       'installed_repository_version': VERSION_STUB,
+                       'stack_id': 'HDP-2.2',
+                       'repository_version_id': '2',
+                       'actual_version': VERSION_STUB,
+                       'ambari_repositories': []})
+    self.assertTrue(write_actual_version_to_history_file_mock.called)
+    self.assertEquals(write_actual_version_to_history_file_mock.call_args[0], (VERSION_STUB_WITHOUT_BUILD_NUMBER, VERSION_STUB))
+
+    stack_versions_mock.reset_mock()
+    write_actual_version_to_history_file_mock.reset_mock()
+    put_structured_out_mock.reset_mock()
+
+    # Test retrying install again
+    stack_versions_mock.side_effect = [
+      [OLD_VERSION_STUB, VERSION_STUB],
+      [OLD_VERSION_STUB, VERSION_STUB]
+    ]
+    read_actual_version_from_history_file_mock.return_value = VERSION_STUB
+
+    config_file = self.get_src_folder() + "/test/python/custom_actions/configs/install_packages_config.json"
+    with open(config_file, "r") as f:
+      command_json = json.load(f)
+
+    command_json['roleParams']['repository_version'] = VERSION_STUB
+    command_json['roleParams']['repository_version_id'] = '2'
+
+    allInstalledPackages_mock.side_effect = TestInstallPackages._add_packages
+    list_ambari_managed_repos_mock.return_value = []
+    self.executeScript("scripts/install_packages.py",
+                       classname="InstallPackages",
+                       command="actionexecute",
+                       config_dict=command_json,
+                       target=RMFTestCase.TARGET_CUSTOM_ACTIONS,
+                       os_type=('Redhat', '6.4', 'Final'),
+                       )
+    self.assertTrue(put_structured_out_mock.called)
+    self.assertEquals(put_structured_out_mock.call_args[0][0],
+                      {'package_installation_result': 'SUCCESS',
+                       'installed_repository_version': VERSION_STUB,
+                       'stack_id': 'HDP-2.2',
+                       'repository_version_id': '2',
+                       'actual_version': VERSION_STUB,
+                       'ambari_repositories': []})
+
+    self.assertFalse(write_actual_version_to_history_file_mock.called)

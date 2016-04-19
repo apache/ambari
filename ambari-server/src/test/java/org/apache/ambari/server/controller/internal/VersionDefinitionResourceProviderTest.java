@@ -335,11 +335,13 @@ public class VersionDefinitionResourceProviderTest {
     Assert.assertEquals(1, status.getAssociatedResources().size());
 
     Resource res = status.getAssociatedResources().iterator().next();
-    System.out.println(res.getPropertiesMap().keySet());
     // because we aren't using subresources, but return subresource-like properties, the key is an empty string
     Assert.assertTrue(res.getPropertiesMap().containsKey(""));
     Map<String, Object> resMap = res.getPropertiesMap().get("");
     Assert.assertTrue(resMap.containsKey("operating_systems"));
+
+    Assert.assertTrue(res.getPropertiesMap().containsKey("VersionDefinition"));
+    Assert.assertEquals("2.2.0.8-5678", res.getPropertyValue("VersionDefinition/repository_version"));
 
     Request getRequest = PropertyHelper.getReadRequest("VersionDefinition");
     Set<Resource> results = versionProvider.getResources(getRequest, null);

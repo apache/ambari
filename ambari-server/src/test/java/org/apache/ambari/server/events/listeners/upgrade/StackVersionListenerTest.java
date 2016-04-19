@@ -20,9 +20,12 @@ package org.apache.ambari.server.events.listeners.upgrade;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 
+import java.lang.reflect.Field;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.events.HostComponentVersionAdvertisedEvent;
 import org.apache.ambari.server.events.publishers.VersionEventPublisher;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.state.Cluster;
@@ -227,6 +230,32 @@ public class StackVersionListenerTest extends EasyMockSupport {
     replayAll();
 
     sendEventAndVerify(VALID_NEW_VERSION);
+  }
+
+  @Test
+  public void testSetRepositoryVersion() throws Exception {
+    expect(sch.getVersion()).andReturn(UNKNOWN_VERSION);
+
+    RepositoryVersionDAO dao = createNiceMock(RepositoryVersionDAO.class);
+    RepositoryVersionEntity entity = createNiceMock(RepositoryVersionEntity.class);
+    expect(entity.getVersion()).andReturn("2.4.0.0").once();
+    expect(dao.findByPK(1L)).andReturn(entity).once();
+    expect(dao.merge(entity)).andReturn(entity).once();
+
+    replayAll();
+
+    String newVersion = VALID_NEW_VERSION;
+
+    HostComponentVersionAdvertisedEvent event = new HostComponentVersionAdvertisedEvent(cluster, sch, newVersion, 1L);
+    StackVersionListener listener = new StackVersionListener(publisher);
+    // !!! avoid injector for test class
+    Field field = StackVersionListener.class.getDeclaredField("repositoryVersionDAO");
+    field.setAccessible(true);
+    field.set(listener, dao);
+
+    listener.onAmbariEvent(event);
+
+    verifyAll();
   }
 
   private void sendEventAndVerify(String newVersion) {
