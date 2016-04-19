@@ -62,15 +62,11 @@ public class RangerPasswordCheck extends AbstractCheckDescriptor {
   static final String KEY_RANGER_OTHER_ISSUE = "invalid_response";
   static final String KEY_RANGER_CONFIG_MISSING = "missing_config";
 
-  // !!! package protected for testing
-  URLStreamProvider m_streamProvider;
-
   /**
    * Constructor.
    */
   public RangerPasswordCheck() {
     super(CheckDescription.SERVICES_RANGER_PASSWORD_VERIFY);
-    m_streamProvider = new URLStreamProvider(2000, 2000, ComponentSSLConfiguration.instance());
   }
 
   /**
@@ -97,6 +93,12 @@ public class RangerPasswordCheck extends AbstractCheckDescriptor {
 
   @Override
   public void perform(PrerequisiteCheck check, PrereqCheckRequest request) throws AmbariException {
+    // !!! ComponentSSLConfiguration is an old-school singleton which doesn't
+    // get initialized until after Guice is done - because this check is bound
+    // as a singleton via Guice, we can't initialize the stream provider in the
+    // constructor since the SSL configuration instance hasn't been initialized
+    URLStreamProvider streamProvider = new URLStreamProvider(2000, 2000,
+        ComponentSSLConfiguration.instance());
 
     String rangerUrl = checkEmpty("admin-properties", "policymgr_external_url", check, request);
     if (null == rangerUrl) {
@@ -138,7 +140,7 @@ public class RangerPasswordCheck extends AbstractCheckDescriptor {
 
     // !!! first, just try the service with the admin credentials
     try {
-      int response = checkLogin(rangerAuthUrl, adminUsername, adminPassword);
+      int response = checkLogin(streamProvider, rangerAuthUrl, adminUsername, adminPassword);
 
       switch (response) {
         case 401: {
@@ -178,14 +180,14 @@ public class RangerPasswordCheck extends AbstractCheckDescriptor {
     }
 
     // !!! Check for the user, capture exceptions as a warning.
-    boolean hasUser = checkRangerUser(rangerUserUrl, adminUsername, adminPassword,
+    boolean hasUser = checkRangerUser(streamProvider, rangerUserUrl, adminUsername, adminPassword,
         rangerAdminUsername, check, request, warnReasons);
 
     if (hasUser) {
-
       // !!! try credentials for specific user
       try {
-        int response = checkLogin(rangerAuthUrl, rangerAdminUsername, rangerAdminPassword);
+        int response = checkLogin(streamProvider, rangerAuthUrl, rangerAdminUsername,
+            rangerAdminPassword);
 
         switch (response) {
           case 401: {
@@ -227,22 +229,29 @@ public class RangerPasswordCheck extends AbstractCheckDescriptor {
   }
 
   /**
-   * Checks the credentials.  From the Ranger team, bad credentials result in a
-   * successful call, but the Ranger admin server will redirect to the home page.  They
-   * recommend parsing the result.  If it parses, the credentials are good, otherwise
-   * consider the user as unverified.
+   * Checks the credentials. From the Ranger team, bad credentials result in a
+   * successful call, but the Ranger admin server will redirect to the home
+   * page. They recommend parsing the result. If it parses, the credentials are
+   * good, otherwise consider the user as unverified.
    *
-   * @param url       the url to check
-   * @param username  the user to check
-   * @param password  the password to check
-   * @return  the http response code
-   * @throws IOException if there was an error reading the response
+   * @param streamProvider
+   *          the stream provider to use when making requests
+   * @param url
+   *          the url to check
+   * @param username
+   *          the user to check
+   * @param password
+   *          the password to check
+   * @return the http response code
+   * @throws IOException
+   *           if there was an error reading the response
    */
-  private int checkLogin(String url, String username, String password) throws IOException {
+  private int checkLogin(URLStreamProvider streamProvider, String url, String username,
+      String password) throws IOException {
 
     Map<String, List<String>> headers = getHeaders(username, password);
 
-    HttpURLConnection conn = m_streamProvider.processURL(url, "GET", (InputStream) null, headers);
+    HttpURLConnection conn = streamProvider.processURL(url, "GET", (InputStream) null, headers);
 
     int result = conn.getResponseCode();
 
@@ -260,24 +269,34 @@ public class RangerPasswordCheck extends AbstractCheckDescriptor {
   }
 
   /**
-   * @param rangerUserUrl the url to use when looking for the user
-   * @param username      the username to use when loading the url
-   * @param password      the password for the user url
-   * @param userToSearch  the user to look for
-   * @param check         the check instance for loading failure reasons
-   * @param request       the request instance for loading failure reasons
-   * @param warnReasons   the list of warn reasons to fill
+   * @param streamProvider
+   *          the stream provider to use when making requests
+   * @param rangerUserUrl
+   *          the url to use when looking for the user
+   * @param username
+   *          the username to use when loading the url
+   * @param password
+   *          the password for the user url
+   * @param userToSearch
+   *          the user to look for
+   * @param check
+   *          the check instance for loading failure reasons
+   * @param request
+   *          the request instance for loading failure reasons
+   * @param warnReasons
+   *          the list of warn reasons to fill
    * @return {@code true} if the user was found
    */
-  private boolean checkRangerUser(String rangerUserUrl, String username, String password,
-      String userToSearch, PrerequisiteCheck check, PrereqCheckRequest request, List<String> warnReasons) {
+  private boolean checkRangerUser(URLStreamProvider streamProvider, String rangerUserUrl,
+      String username, String password, String userToSearch, PrerequisiteCheck check,
+      PrereqCheckRequest request, List<String> warnReasons) {
 
     String url = String.format("%s?name=%s", rangerUserUrl, userToSearch);
 
     Map<String, List<String>> headers = getHeaders(username, password);
 
     try {
-      HttpURLConnection conn = m_streamProvider.processURL(url, "GET", (InputStream) null, headers);
+      HttpURLConnection conn = streamProvider.processURL(url, "GET", (InputStream) null, headers);
 
       int result = conn.getResponseCode();
 
