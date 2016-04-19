@@ -203,6 +203,7 @@ describe('App.ConfigInitializer', function () {
         dependencies: {
           'hive.metastore.uris': 'thrift://localhost:9083'
         },
+        filename: 'hive-site.xml',
         recommendedValue: 'thrift://localhost:9083',
         value: 'thrift://h0:9083,thrift://h1:9083',
         title: 'comma separated list of Metastore hosts with thrift prefix and port'
@@ -348,7 +349,8 @@ describe('App.ConfigInitializer', function () {
     it(cases['hive.metastore.uris'].title, function () {
       serviceConfigProperty.setProperties({
         name: 'hive.metastore.uris',
-        recommendedValue: cases['hive.metastore.uris'].recommendedValue
+        recommendedValue: cases['hive.metastore.uris'].recommendedValue,
+        filename: 'hive-site.xml'
       });
       App.ConfigInitializer.initialValue(serviceConfigProperty, cases['hive.metastore.uris'].localDB, {'hive.metastore.uris': cases['hive.metastore.uris'].recommendedValue});
       expect(serviceConfigProperty.get('value')).to.equal(cases['hive.metastore.uris'].value);
@@ -727,6 +729,7 @@ describe('App.ConfigInitializer', function () {
       },
       {
         config: 'hive.metastore.uris',
+        filename: 'hive-site.xml',
         localDB: getLocalDBForMultipleComponents('HIVE_METASTORE', 2),
         dependencies: {
           'hive.metastore.uris': 'thrift://localhost:9083'

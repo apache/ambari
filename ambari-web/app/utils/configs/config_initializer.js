@@ -303,9 +303,11 @@ App.ConfigInitializer = App.ConfigInitializerClass.create(App.MountPointsBasedIn
    * @private
    */
   _initHiveMetastoreUris: function (configProperty, localDB, dependencies) {
-    var hiveMSUris = this.getHiveMetastoreUris(localDB.masterComponentHosts, dependencies['hive.metastore.uris']);
-    if (hiveMSUris) {
-      this.setRecommendedValue(configProperty, "(.*)", hiveMSUris);
+    if (App.config.getConfigTagFromFileName(Em.get(configProperty, 'filename')) === 'hive-site') {
+      var hiveMSUris = this.getHiveMetastoreUris(localDB.masterComponentHosts, dependencies['hive.metastore.uris']);
+      if (hiveMSUris) {
+        this.setRecommendedValue(configProperty, "(.*)", hiveMSUris);
+      }
     }
     return configProperty;
   },
