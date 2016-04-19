@@ -43,6 +43,12 @@ PERCENT_WARNING_DEFAULT = 200
 PERCENT_CRITICAL_KEY = 'checkpoint.time.critical.threshold'
 PERCENT_CRITICAL_DEFAULT = 200
 
+CHECKPOINT_TX_MULTIPLIER_WARNING_KEY = 'checkpoint.txns.multiplier.warning.threshold'
+CHECKPOINT_TX_MULTIPLIER_WARNING_DEFAULT = 2
+
+CHECKPOINT_TX_MULTIPLIER_CRITICAL_KEY = 'checkpoint.txns.multiplier.critical.threshold'
+CHECKPOINT_TX_MULTIPLIER_CRITICAL_DEFAULT = 4
+
 CHECKPOINT_TX_DEFAULT = 1000000
 CHECKPOINT_PERIOD_DEFAULT = 21600
 
@@ -135,6 +141,14 @@ def execute(configurations={}, parameters={}, host_name=None):
   if PERCENT_CRITICAL_KEY in parameters:
     percent_critical = float(parameters[PERCENT_CRITICAL_KEY])
 
+  checkpoint_txn_multiplier_warning = CHECKPOINT_TX_MULTIPLIER_WARNING_DEFAULT
+  if CHECKPOINT_TX_MULTIPLIER_WARNING_KEY in parameters:
+    checkpoint_txn_multiplier_warning = float(parameters[CHECKPOINT_TX_MULTIPLIER_WARNING_KEY])
+
+  checkpoint_txn_multiplier_critical = CHECKPOINT_TX_MULTIPLIER_CRITICAL_DEFAULT
+  if CHECKPOINT_TX_MULTIPLIER_CRITICAL_KEY in parameters:
+    checkpoint_txn_multiplier_critical = float(parameters[CHECKPOINT_TX_MULTIPLIER_CRITICAL_KEY])
+
   kinit_timer_ms = parameters.get(KERBEROS_KINIT_TIMER_PARAMETER, DEFAULT_KERBEROS_KINIT_TIMER_MS)
 
   # determine the right URI and whether to use SSL
@@ -192,10 +206,17 @@ def execute(configurations={}, parameters={}, host_name=None):
     delta = (current_time - last_checkpoint_time)/1000
 
     label = LABEL.format(h=get_time(delta)['h'], m=get_time(delta)['m'], tx=transaction_difference)
-    
-    if (transaction_difference > int(checkpoint_tx)) and (float(delta) / int(checkpoint_period)*100 >= int(percent_critical)):
+
+    is_checkpoint_txn_warning = transaction_difference > checkpoint_txn_multiplier_warning * int(checkpoint_tx)
+    is_checkpoint_txn_critical = transaction_difference > checkpoint_txn_multiplier_critical * int(checkpoint_tx)
+
+    # Either too many uncommitted transactions or missed check-pointing for
+    # long time decided by the thresholds
+    if is_checkpoint_txn_critical or (float(delta) / int(checkpoint_period)*100 >= int(percent_critical)):
+      logger.debug('Raising critical alert: transaction_difference = {0}, checkpoint_tx = {1}'.format(transaction_difference, checkpoint_tx))
       result_code = 'CRITICAL'
-    elif (transaction_difference > int(checkpoint_tx)) and (float(delta) / int(checkpoint_period)*100 >= int(percent_warning)):
+    elif is_checkpoint_txn_warning or (float(delta) / int(checkpoint_period)*100 >= int(percent_warning)):
+      logger.debug('Raising warning alert: transaction_difference = {0}, checkpoint_tx = {1}'.format(transaction_difference, checkpoint_tx))
       result_code = 'WARNING'
 
   except:
@@ -216,7 +237,6 @@ def get_value_from_jmx(query, jmx_property, connection_timeout):
   try:
     response = urllib2.urlopen(query, timeout=connection_timeout)
     data = response.read()
-
     data_dict = json.loads(data)
     return data_dict["beans"][0][jmx_property]
   finally:

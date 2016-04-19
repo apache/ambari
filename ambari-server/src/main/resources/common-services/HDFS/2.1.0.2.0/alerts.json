@@ -586,8 +586,24 @@
               "description": "The percentage of the last checkpoint time greater than the interval in order to trigger a critical alert.",
               "units": "%",
               "threshold": "CRITICAL"
+            },
+            {
+              "name": "checkpoint.txns.multiplier.warning.threshold",
+              "display_name": "Uncommitted transactions Warning",
+              "value": 2.0,
+              "type": "NUMERIC",
+              "description": "The multiplier to use against dfs.namenode.checkpoint.period compared to the difference between last transaction id and most recent transaction id beyond which to trigger a warning alert.",
+              "threshold": "WARNING"
+            },
+            {
+              "name": "checkpoint.txns.multiplier.critical.threshold",
+              "display_name": "Uncommitted transactions Critical",
+              "value": 4.0,
+              "type": "NUMERIC",
+              "description": "The multiplier to use against dfs.namenode.checkpoint.period compared to the difference between last transaction id and most recent transaction id beyond which to trigger a critical alert.",
+              "threshold": "CRITICAL"
             }
-	        ]
+          ]
         }
       },
       {

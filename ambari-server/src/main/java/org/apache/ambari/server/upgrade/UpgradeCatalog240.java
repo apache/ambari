@@ -18,22 +18,15 @@
 
 package org.apache.ambari.server.upgrade;
 
-import java.sql.Clob;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicLong;
-
+import com.google.common.collect.Lists;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
@@ -56,15 +49,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.support.JdbcUtils;
 
-import com.google.common.collect.Lists;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.persist.Transactional;
+import java.sql.Clob;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Upgrade catalog for version 2.4.0.
@@ -492,9 +491,11 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
 
       Map<AlertDefinitionEntity, List<String>> alertDefinitionParams = new HashMap<>();
       checkedPutToMap(alertDefinitionParams, namenodeLastCheckpointAlertDefinitionEntity,
-              Lists.newArrayList("connection.timeout", "checkpoint.time.warning.threshold", "checkpoint.time.critical.threshold"));
+              Lists.newArrayList("connection.timeout", "checkpoint.time.warning.threshold",
+                "checkpoint.time.critical.threshold", "checkpoint.txns.multiplier.warning.threshold",
+                "checkpoint.txns.multiplier.critical.threshold"));
       checkedPutToMap(alertDefinitionParams, namenodeHAHealthAlertDefinitionEntity,
-              Lists.newArrayList("connection.timeout"));
+        Lists.newArrayList("connection.timeout"));
       checkedPutToMap(alertDefinitionParams, nodemanagerHealthAlertDefinitionEntity,
               Lists.newArrayList("connection.timeout"));
       checkedPutToMap(alertDefinitionParams, nodemanagerHealthSummaryAlertDefinitionEntity,
@@ -508,29 +509,29 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
       checkedPutToMap(alertDefinitionParams, flumeAgentStatusAlertDefinitionEntity,
               Lists.newArrayList("run.directory"));
 
-      List<AlertDefinitionEntity> definitionsForPropertyUpdates = new ArrayList<>();
+      Map<Long, AlertDefinitionEntity> definitionsForPropertyUpdates = new HashMap<>();
 
       // adding new properties
-      for(Map.Entry<AlertDefinitionEntity, List<String>> entry : alertDefinitionParams.entrySet()){
+      for (Map.Entry<AlertDefinitionEntity, List<String>> entry : alertDefinitionParams.entrySet()){
         AlertDefinitionEntity alertDefinition = entry.getKey();
         String source = alertDefinition.getSource();
         alertDefinition.setSource(addParam(source, entry.getValue()));
-        definitionsForPropertyUpdates.add(alertDefinition);
+        definitionsForPropertyUpdates.put(alertDefinition.getDefinitionId(), alertDefinition);
       }
 
       // here goes alerts that need update for existing properties
-      for(String name : alertNamesForPropertyUpdates) {
+      for (String name : alertNamesForPropertyUpdates) {
         AlertDefinitionEntity alertDefinition = alertDefinitionDAO.findByName(clusterID, name);
-        if(alertDefinition != null) {
-          definitionsForPropertyUpdates.add(alertDefinition);
+        if (alertDefinition != null && !definitionsForPropertyUpdates.containsKey(alertDefinition.getDefinitionId())) {
+          definitionsForPropertyUpdates.put(alertDefinition.getDefinitionId(), alertDefinition);
         }
       }
 
       // updating old and new properties, best way to use map like visibilityMap.
-      for(AlertDefinitionEntity alertDefinition : definitionsForPropertyUpdates) {
+      for (AlertDefinitionEntity alertDefinition : definitionsForPropertyUpdates.values()) {
         // here goes property updates
-        if(visibilityMap.containsKey(alertDefinition.getDefinitionName())) {
-          for(Map.Entry<String, String> entry : visibilityMap.get(alertDefinition.getDefinitionName()).entrySet()){
+        if (visibilityMap.containsKey(alertDefinition.getDefinitionName())) {
+          for (Map.Entry<String, String> entry : visibilityMap.get(alertDefinition.getDefinitionName()).entrySet()){
             String paramName = entry.getKey();
             String visibilityValue = entry.getValue();
             String source = alertDefinition.getSource();
@@ -538,8 +539,8 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
           }
         }
         // update percent script alerts param values from 0.x to 0.x * 100 values
-        if(scriptAlertMultiplierMap.containsKey(alertDefinition.getDefinitionName())) {
-          for(Map.Entry<String, Integer> entry : scriptAlertMultiplierMap.get(alertDefinition.getDefinitionName()).entrySet()){
+        if (scriptAlertMultiplierMap.containsKey(alertDefinition.getDefinitionName())) {
+          for (Map.Entry<String, Integer> entry : scriptAlertMultiplierMap.get(alertDefinition.getDefinitionName()).entrySet()){
             String paramName = entry.getKey();
             Integer multiplier = entry.getValue();
             String source = alertDefinition.getSource();
@@ -554,8 +555,8 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
         }
 
         // update reporting alerts(aggregate and metrics) values from 0.x to 0.x * 100 values
-        if(reportingMultiplierMap.containsKey(alertDefinition.getDefinitionName())) {
-          for(Map.Entry<String, Integer> entry : reportingMultiplierMap.get(alertDefinition.getDefinitionName()).entrySet()){
+        if (reportingMultiplierMap.containsKey(alertDefinition.getDefinitionName())) {
+          for (Map.Entry<String, Integer> entry : reportingMultiplierMap.get(alertDefinition.getDefinitionName()).entrySet()){
             String reportingName = entry.getKey();
             Integer multiplier = entry.getValue();
             String source = alertDefinition.getSource();
@@ -565,8 +566,8 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
           }
         }
 
-        if(reportingPercentMap.containsKey(alertDefinition.getDefinitionName())) {
-          for(Map.Entry<String, String> entry : reportingPercentMap.get(alertDefinition.getDefinitionName()).entrySet()){
+        if (reportingPercentMap.containsKey(alertDefinition.getDefinitionName())) {
+          for (Map.Entry<String, String> entry : reportingPercentMap.get(alertDefinition.getDefinitionName()).entrySet()){
             String paramName = entry.getKey();
             String paramValue = entry.getValue();
             String source = alertDefinition.getSource();
@@ -707,7 +708,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
 
     if (parameterExists) {
       Iterator<JsonElement> jsonElementIterator = parametersJson.iterator();
-      while(jsonElementIterator.hasNext()) {
+      while (jsonElementIterator.hasNext()) {
         JsonElement element = jsonElementIterator.next();
         JsonElement name = element.getAsJsonObject().get("name");
         if (name != null && !name.isJsonNull() && params.contains(name.getAsString())) {
@@ -751,7 +752,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
       JsonObject param = new JsonObject();
       param.add("name", new JsonPrimitive("checkpoint.time.critical.threshold"));
       param.add("display_name", new JsonPrimitive("Checkpoint Critical"));
-      param.add("value", new JsonPrimitive(2.0));
+      param.add("value", new JsonPrimitive(4.0));
       param.add("type", new JsonPrimitive("PERCENT"));
       param.add("description", new JsonPrimitive("The percentage of the last checkpoint time greater than the interval in order to trigger a critical alert."));
       param.add("units", new JsonPrimitive("%"));
@@ -759,6 +760,28 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
 
       paramsToAdd.add(param);
 
+    }
+    if (params.contains("checkpoint.txns.multiplier.warning.threshold")) {
+      JsonObject param = new JsonObject();
+      param.add("name", new JsonPrimitive("checkpoint.txns.multiplier.warning.threshold"));
+      param.add("display_name", new JsonPrimitive("Uncommitted transactions Warning"));
+      param.add("value", new JsonPrimitive(2.0));
+      param.add("type", new JsonPrimitive("NUMERIC"));
+      param.add("description", new JsonPrimitive("The multiplier to use against dfs.namenode.checkpoint.period compared to the difference between last transaction id and most recent transaction id beyond which to trigger a warning alert."));
+      param.add("threshold", new JsonPrimitive("WARNING"));
+
+      paramsToAdd.add(param);
+    }
+    if (params.contains("checkpoint.txns.multiplier.critical.threshold")) {
+      JsonObject param = new JsonObject();
+      param.add("name", new JsonPrimitive("checkpoint.txns.multiplier.critical.threshold"));
+      param.add("display_name", new JsonPrimitive("Uncommitted transactions Critical"));
+      param.add("value", new JsonPrimitive(4.0));
+      param.add("type", new JsonPrimitive("NUMERIC"));
+      param.add("description", new JsonPrimitive("The multiplier to use against dfs.namenode.checkpoint.period compared to the difference between last transaction id and most recent transaction id beyond which to trigger a critical alert."));
+      param.add("threshold", new JsonPrimitive("CRITICAL"));
+
+      paramsToAdd.add(param);
     }
     if (params.contains("default.smoke.user")) {
       JsonObject param = new JsonObject();
