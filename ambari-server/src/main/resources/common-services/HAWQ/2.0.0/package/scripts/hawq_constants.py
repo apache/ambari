@@ -68,6 +68,10 @@ default_exec_timeout = 600
 hawq_operation_exec_timeout = 900
 
 COMPONENT_ATTRIBUTES_MAP = {
+  CLUSTER: {
+    'port_property': 'hawq_master_address_port',
+    'process_name': 'postgres'
+  },
   MASTER: {
     'port_property': 'hawq_master_address_port',
     'process_name': 'postgres'
