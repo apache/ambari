@@ -40,7 +40,7 @@
           "name": "HIVE_METASTORE",
           "identities": [
             {
-              "name": "/HIVE/HIVE_SEVER/hive_server_hive",
+              "name": "/HIVE/HIVE_SERVER/hive_server_hive",
               "principal": {
                 "configuration": "hive-site/hive.metastore.kerberos.principal"
               },
