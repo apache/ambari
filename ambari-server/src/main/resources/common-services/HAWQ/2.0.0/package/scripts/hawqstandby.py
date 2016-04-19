@@ -59,5 +59,9 @@ class HawqStandby(Script):
     Logger.info("Activating HAWQ standby...")
     utils.exec_hawq_operation(hawq_constants.ACTIVATE, "{0} -a -M {1} -v --ignore-bad-hosts".format(hawq_constants.STANDBY, hawq_constants.FAST))
 
+    # Stop the newly become master as the process might be running with an old port,
+    # which would cause a failure Start HAWQ Service step in Activate HAWQ Standby Master Wizard
+    common.stop_component(hawq_constants.MASTER, hawq_constants.FAST)
+
 if __name__ == "__main__":
   HawqStandby().execute()
