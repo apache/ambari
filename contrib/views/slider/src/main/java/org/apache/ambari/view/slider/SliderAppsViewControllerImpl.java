@@ -53,6 +53,7 @@ import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.RegexFileFilter;
+import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -1189,6 +1190,8 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
       final boolean securityEnabled = Boolean.valueOf(getHadoopConfigs().get("security_enabled"));
       final boolean twoWaySSlEnabled = json.has("twoWaySSLEnabled") ? Boolean.valueOf(json.get("twoWaySSLEnabled").getAsString()) : false;
       JsonObject configs = json.get("typeConfigs").getAsJsonObject();
+      final String hdpVersion = configs.has("env.HDP_VERSION") ? configs.get(
+          "env.HDP_VERSION").getAsString() : null;
       JsonObject resourcesObj = json.get("resources").getAsJsonObject();
       JsonArray componentsArray = resourcesObj.get("components").getAsJsonArray();
       String appsCreateFolderPath = getAppsCreateFolderPath();
@@ -1267,6 +1270,10 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
               }
               sliderClient.actionInstallKeytab(keytabArgs);
             }
+          }
+          if (StringUtils.isNotEmpty(hdpVersion)) {
+            System.setProperty("HDP_VERSION", hdpVersion);
+            logger.info("Setting system property HDP_VERSION=" + hdpVersion);
           }
           sliderClient.actionInstallPkg(installArgs);
           sliderClient.actionCreate(appName, createArgs);
