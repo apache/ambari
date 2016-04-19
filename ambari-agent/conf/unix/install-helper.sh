@@ -28,8 +28,18 @@ COMMON_DIR_AGENT="/usr/lib/ambari-agent/lib/ambari_commons"
 RESOURCE_MANAGEMENT_DIR_AGENT="/usr/lib/ambari-agent/lib/resource_management"
 JINJA_AGENT_DIR="/usr/lib/ambari-agent/lib/ambari_jinja2"
 SIMPLEJSON_AGENT_DIR="/usr/lib/ambari-agent/lib/ambari_simplejson"
-
+AMBARI_AGENT="/usr/lib/python2.6/site-packages/ambari_agent"
 PYTHON_WRAPER_TARGET="/usr/bin/ambari-python-wrap"
+AMBARI_AGENT_VAR="/var/lib/ambari-agent"
+
+clean_pyc_files(){
+  # cleaning old *.pyc files
+  find $RESOURCE_MANAGEMENT_DIR/ -name *.pyc -exec rm {} \;
+  find $COMMON_DIR/ -name *.pyc -exec rm {} \;
+  find $AMBARI_AGENT/ -name *.pyc -exec rm {} \;
+  find $AMBARI_AGENT_VAR/ -name *.pyc -exec rm {} \;
+}
+
 
 do_install(){
   if [ -d "/etc/ambari-agent/conf.save" ]; then
@@ -57,10 +67,14 @@ do_install(){
   
   # on nano Ubuntu, when umask=027 those folders are created without 'x' bit for 'others'.
   # which causes failures when hadoop users try to access tmp_dir
-  chmod a+x /var/lib/ambari-agent
+  chmod a+x $AMBARI_AGENT_VAR
   
-  chmod 777 /var/lib/ambari-agent/tmp
-  chmod 700 /var/lib/ambari-agent/data
+  chmod 777 $AMBARI_AGENT_VAR/tmp
+  chmod 700 $AMBARI_AGENT_VAR/data
+
+  #TODO we need this when upgrading from pre 2.4 versions to 2.4, remove this when upgrade from pre 2.4 versions will be
+  #TODO unsupported
+  clean_pyc_files
 
   which chkconfig > /dev/null 2>&1
   if [ "$?" -eq 0 ] ; then
@@ -105,6 +119,9 @@ do_install(){
 
 do_remove(){
   /usr/sbin/ambari-agent stop > /dev/null 2>&1
+
+  clean_pyc_files
+
   if [ -d "/etc/ambari-agent/conf.save" ]; then
     mv /etc/ambari-agent/conf.save /etc/ambari-agent/conf_$(date '+%d_%m_%y_%H_%M').save
   fi

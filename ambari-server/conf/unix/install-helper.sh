@@ -44,6 +44,14 @@ AMBARI_CONFIGS_DIR_SAVE="${ROOT}/etc/ambari-server/conf.save"
 AMBARI_CONFIGS_DIR_SAVE_BACKUP="${ROOT}/etc/ambari-server/conf_$(date '+%d_%m_%y_%H_%M').save"
 AMBARI_LOG4J="${AMBARI_CONFIGS_DIR}/log4j.properties"
 
+clean_pyc_files(){
+  # cleaning old *.pyc files
+  find $RESOURCE_MANAGEMENT_DIR/ -name *.pyc -exec rm {} \;
+  find $COMMON_DIR/ -name *.pyc -exec rm {} \;
+  find $AMBARI_SEVER/ -name *.pyc -exec rm {} \;
+}
+
+
 do_install(){
   rm -f "$AMBARI_SERVER_EXECUTABLE_LINK"
   ln -s "$AMBARI_SERVER_EXECUTABLE" "$AMBARI_SERVER_EXECUTABLE_LINK"
@@ -65,6 +73,10 @@ do_install(){
   if [ ! -d "$SIMPLEJSON_DIR" ]; then
     ln -s "$SIMPLEJSON_SERVER_DIR" "$SIMPLEJSON_DIR"
   fi
+
+  #TODO we need this when upgrading from pre 2.4 versions to 2.4, remove this when upgrade from pre 2.4 versions will be
+  #TODO unsupported
+  clean_pyc_files
 
   # remove old python wrapper
   rm -f "$PYTHON_WRAPER_TARGET"
@@ -123,6 +135,9 @@ do_install(){
 
 do_remove(){
   $AMBARI_SERVER_EXECUTABLE stop > /dev/null 2>&1
+
+  clean_pyc_files
+
   if [ -d "$AMBARI_CONFIGS_DIR_SAVE" ]; then
     mv "$AMBARI_CONFIGS_DIR_SAVE" "$AMBARI_CONFIGS_DIR_SAVE_BACKUP"
   fi
