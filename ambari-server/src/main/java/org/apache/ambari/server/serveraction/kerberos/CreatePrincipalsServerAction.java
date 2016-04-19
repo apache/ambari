@@ -33,7 +33,9 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
 /**
@@ -64,6 +66,12 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
    */
   @Inject
   private SecurePasswordHelper securePasswordHelper;
+
+  /**
+   * A set of visited principal names used to prevent unnecessary processing on already processed
+   * principal names
+   */
+  private Set<String> seenPrincipals = new HashSet<String>();
 
   /**
    * Called to execute this action.  Upon invocation, calls
@@ -115,44 +123,50 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
       throws AmbariException {
     CommandReport commandReport = null;
 
-    boolean processPrincipal;
-    boolean regenerateKeytabs = "true".equalsIgnoreCase(getCommandParameterValue(getCommandParameters(), REGENERATE_ALL));
+    //  Only process this principal name if we haven't already processed it
+    if (!seenPrincipals.contains(evaluatedPrincipal)) {
+      seenPrincipals.add(evaluatedPrincipal);
 
-    if (regenerateKeytabs) {
-      processPrincipal = true;
-    } else {
-      KerberosPrincipalEntity kerberosPrincipalEntity = kerberosPrincipalDAO.find(evaluatedPrincipal);
+      boolean processPrincipal;
+      boolean regenerateKeytabs = "true".equalsIgnoreCase(getCommandParameterValue(getCommandParameters(), REGENERATE_ALL));
 
-      if (kerberosPrincipalEntity == null) {
-        // This principal has not been processed before, process it.
+      if (regenerateKeytabs) {
         processPrincipal = true;
-      } else if (!StringUtils.isEmpty(kerberosPrincipalEntity.getCachedKeytabPath())) {
-        // This principal has been processed and a keytab file has been cached for it... do not process it.
-        processPrincipal = false;
-      } else if (kerberosPrincipalHostDAO.exists(evaluatedPrincipal)) {
-        // This principal has been processed and a keytab file has been distributed... do not process it.
-        processPrincipal = false;
       } else {
-        // This principal has been processed but a keytab file for it has been distributed... process it.
-        processPrincipal = true;
-      }
-    }
+        KerberosPrincipalEntity kerberosPrincipalEntity = kerberosPrincipalDAO.find(evaluatedPrincipal);
 
-    if (processPrincipal) {
-      Map<String, String> principalPasswordMap = getPrincipalPasswordMap(requestSharedDataContext);
-      Map<String, Integer> principalKeyNumberMap = getPrincipalKeyNumberMap(requestSharedDataContext);
-
-      String password = principalPasswordMap.get(evaluatedPrincipal);
-
-      if (password == null) {
-        boolean servicePrincipal = "service".equalsIgnoreCase(identityRecord.get(KerberosIdentityDataFileReader.PRINCIPAL_TYPE));
-        CreatePrincipalResult result = createPrincipal(evaluatedPrincipal, servicePrincipal, kerberosConfiguration, operationHandler, actionLog);
-
-        if (result == null) {
-          commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
+        if (kerberosPrincipalEntity == null) {
+          // This principal has not been processed before, process it.
+          processPrincipal = true;
+        } else if (!StringUtils.isEmpty(kerberosPrincipalEntity.getCachedKeytabPath())) {
+          // This principal has been processed and a keytab file has been cached for it... do not process it.
+          processPrincipal = false;
+        } else if (kerberosPrincipalHostDAO.exists(evaluatedPrincipal)) {
+          // This principal has been processed and a keytab file has been distributed... do not process it.
+          processPrincipal = false;
         } else {
-          principalPasswordMap.put(evaluatedPrincipal, result.getPassword());
-          principalKeyNumberMap.put(evaluatedPrincipal, result.getKeyNumber());
+          // This principal has been processed but a keytab file for it has been distributed... process it.
+          processPrincipal = true;
+        }
+      }
+
+      if (processPrincipal) {
+        Map<String, String> principalPasswordMap = getPrincipalPasswordMap(requestSharedDataContext);
+
+        String password = principalPasswordMap.get(evaluatedPrincipal);
+
+        if (password == null) {
+          boolean servicePrincipal = "service".equalsIgnoreCase(identityRecord.get(KerberosIdentityDataFileReader.PRINCIPAL_TYPE));
+          CreatePrincipalResult result = createPrincipal(evaluatedPrincipal, servicePrincipal, kerberosConfiguration, operationHandler, regenerateKeytabs, actionLog);
+
+          if (result == null) {
+            commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
+          } else {
+            Map<String, Integer> principalKeyNumberMap = getPrincipalKeyNumberMap(requestSharedDataContext);
+
+            principalPasswordMap.put(evaluatedPrincipal, result.getPassword());
+            principalKeyNumberMap.put(evaluatedPrincipal, result.getKeyNumber());
+          }
         }
       }
     }
@@ -168,25 +182,25 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
    *                                 principal is a user principal
    * @param kerberosConfiguration    the kerberos-env configuration properties
    * @param kerberosOperationHandler the KerberosOperationHandler for the relevant KDC
-   * @param actionLog                the logger (may be null if no logging is desired)
-   * @return a CreatePrincipalResult containing the generated password and key number value
+   * @param regenerateKeytabs        true if this was triggered in response to regenerating keytab files; false otherwise
+   * @param actionLog                the logger (may be null if no logging is desired)  @return a CreatePrincipalResult containing the generated password and key number value
    */
   public CreatePrincipalResult createPrincipal(String principal, boolean isServicePrincipal,
                                                Map<String, String> kerberosConfiguration,
                                                KerberosOperationHandler kerberosOperationHandler,
-                                               ActionLog actionLog) {
+                                               boolean regenerateKeytabs, ActionLog actionLog) {
 
     // in case this is called directly from TopologyManager there's no HostRoleCommand
     CreatePrincipalKerberosAuditEvent.CreatePrincipalKerberosAuditEventBuilder auditEventBuilder = CreatePrincipalKerberosAuditEvent.builder()
-      .withTimestamp(System.currentTimeMillis())
-      .withRequestId(getHostRoleCommand() != null ? getHostRoleCommand().getRequestId() : -1)
-      .withTaskId(getHostRoleCommand() != null ? getHostRoleCommand().getTaskId() : -1)
-      .withPrincipal(principal);
+        .withTimestamp(System.currentTimeMillis())
+        .withRequestId(getHostRoleCommand() != null ? getHostRoleCommand().getRequestId() : -1)
+        .withTaskId(getHostRoleCommand() != null ? getHostRoleCommand().getTaskId() : -1)
+        .withPrincipal(principal);
     CreatePrincipalResult result = null;
     String message = null;
-    try {
 
-      message = String.format("Creating principal, %s", principal);
+    try {
+      message = String.format("Processing principal, %s", principal);
       LOG.info(message);
       if (actionLog != null) {
         actionLog.writeStdOut(message);
@@ -218,45 +232,60 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
       String password = securePasswordHelper.createSecurePassword(length, minLowercaseLetters, minUppercaseLetters, minDigits, minPunctuation, minWhitespace);
 
       try {
+        /**
+         * true indicates a new principal was created, false indicates an existing principal was updated
+         */
+        boolean created;
+        Integer keyNumber;
 
-        if (kerberosOperationHandler.principalExists(principal)) {
-          // Create a new password since we need to know what it is.
-          // A new password/key would have been generated after exporting the keytab anyways.
-          message = String.format("Principal, %s, already exists, setting new password", principal);
-          LOG.warn(message);
-          if (actionLog != null) {
-            actionLog.writeStdOut(message);
-          }
-
-          Integer keyNumber = kerberosOperationHandler.setPrincipalPassword(principal, password);
-
-          if (keyNumber != null) {
-            result = new CreatePrincipalResult(principal, password, keyNumber);
-            message = String.format("Successfully set password for %s", principal);
-            LOG.debug(message);
-          } else {
-            message = String.format("Failed to set password for %s - unknown reason", principal);
-            LOG.error(message);
+        if (regenerateKeytabs) {
+          try {
+            keyNumber = kerberosOperationHandler.setPrincipalPassword(principal, password);
+            created = false;
+          } catch (KerberosPrincipalDoesNotExistException e) {
+            message = String.format("Principal, %s, does not exist, creating new principal", principal);
+            LOG.warn(message);
             if (actionLog != null) {
-              actionLog.writeStdErr(message);
+              actionLog.writeStdOut(message);
             }
+
+            keyNumber = kerberosOperationHandler.createPrincipal(principal, password, isServicePrincipal);
+            created = true;
           }
         } else {
-          message = String.format("Creating new principal, %s", principal);
-          LOG.debug(message);
-
-          Integer keyNumber = kerberosOperationHandler.createPrincipal(principal, password, isServicePrincipal);
-
-          if (keyNumber != null) {
-            result = new CreatePrincipalResult(principal, password, keyNumber);
-            message = String.format("Successfully created new principal, %s", principal);
-            LOG.debug(message);
-          } else {
-            message = String.format("Failed to create principal, %s - unknown reason", principal);
-            LOG.error(message);
+          try {
+            keyNumber = kerberosOperationHandler.createPrincipal(principal, password, isServicePrincipal);
+            created = true;
+          } catch (KerberosPrincipalAlreadyExistsException e) {
+            message = String.format("Principal, %s, already exists, setting new password", principal);
+            LOG.warn(message);
             if (actionLog != null) {
-              actionLog.writeStdErr(message);
+              actionLog.writeStdOut(message);
             }
+
+            keyNumber = kerberosOperationHandler.setPrincipalPassword(principal, password);
+            created = false;
+          }
+        }
+
+        if (keyNumber != null) {
+          result = new CreatePrincipalResult(principal, password, keyNumber);
+
+          if (created) {
+            message = String.format("Successfully created new principal, %s", principal);
+          } else {
+            message = String.format("Successfully set password for %s", principal);
+          }
+          LOG.debug(message);
+        } else {
+          if (created) {
+            message = String.format("Failed to create principal, %s - unknown reason", principal);
+          } else {
+            message = String.format("Failed to set password for %s - unknown reason", principal);
+          }
+          LOG.error(message);
+          if (actionLog != null) {
+            actionLog.writeStdErr(message);
           }
         }
 
@@ -272,7 +301,7 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
         }
       }
     } finally {
-      if(result == null) {
+      if (result == null) {
         auditEventBuilder.withReasonOfFailure(message == null ? "Unknown error" : message);
       }
       auditLog(auditEventBuilder.build());

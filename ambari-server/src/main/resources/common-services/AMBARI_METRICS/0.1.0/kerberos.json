@@ -12,6 +12,9 @@
           "name": "METRICS_COLLECTOR",
           "identities": [
             {
+              "name": "/HDFS/NAMENODE/hdfs"
+            },
+            {
               "name": "ams_hbase_master_hbase",
               "principal": {
                 "value": "amshbase/_HOST@${realm}",

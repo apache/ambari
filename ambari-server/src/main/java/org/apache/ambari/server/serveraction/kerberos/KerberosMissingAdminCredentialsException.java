@@ -23,6 +23,25 @@ package org.apache.ambari.server.serveraction.kerberos;
  */
 public class KerberosMissingAdminCredentialsException extends KerberosOperationException {
   /**
+   * The default error message to use when handling this exception
+   */
+  private static final String DEFAULT_MESSAGE = "Missing KDC administrator credentials.\n" +
+      "The KDC administrator credentials must be set as a persisted or temporary credential resource." +
+      "This may be done by issuing a POST to the /api/v1/clusters/:clusterName/credentials/kdc.admin.credential API entry point with the following payload:\n" +
+      "{\n" +
+      "  \"Credential\" : {\n" +
+      "    \"principal\" : \"(PRINCIPAL)\", \"key\" : \"(PASSWORD)\", \"type\" : \"(persisted|temporary)\"}\n" +
+      "  }\n" +
+      "}";
+
+  /**
+   * Constructor using the default missing credentials message.
+   */
+  public KerberosMissingAdminCredentialsException() {
+    this(DEFAULT_MESSAGE);
+  }
+
+  /**
    * Constructor.
    *
    * @param message error message
@@ -32,10 +51,19 @@ public class KerberosMissingAdminCredentialsException extends KerberosOperationE
   }
 
   /**
+   * Constructor using the default message.
+   *
+   * @param cause   root cause
+   */
+  public KerberosMissingAdminCredentialsException(Throwable cause) {
+    this(DEFAULT_MESSAGE, cause);
+  }
+
+  /**
    * Constructor.
    *
-   * @param message  error message
-   * @param cause    root cause
+   * @param message error message
+   * @param cause   root cause
    */
   public KerberosMissingAdminCredentialsException(String message, Throwable cause) {
     super(message, cause);
