@@ -246,6 +246,7 @@ public abstract class KerberosOperationHandler {
    * @param service   a boolean value indicating whether the principal is to be created as a service principal or not
    * @return an Integer declaring the generated key number
    * @throws KerberosOperationException
+   * @throws KerberosPrincipalAlreadyExistsException if the principal already exists
    */
   public abstract Integer createPrincipal(String principal, String password, boolean service)
       throws KerberosOperationException;
@@ -259,6 +260,7 @@ public abstract class KerberosOperationHandler {
    * @param password  a String containing the password to set
    * @return an Integer declaring the new key number
    * @throws KerberosOperationException
+   * @throws KerberosPrincipalDoesNotExistException if the principal does not exist
    */
   public abstract Integer setPrincipalPassword(String principal, String password)
       throws KerberosOperationException;
