@@ -90,18 +90,23 @@ public class JwtAuthenticationFilterTest {
   }
 
   private SignedJWT getSignedToken() throws JOSEException {
+    Calendar calendar = Calendar.getInstance();
+    calendar.setTimeInMillis(System.currentTimeMillis());
+    calendar.add(Calendar.DATE, 1); //add one day
+    return getSignedToken(calendar.getTime());
+  }
+  
+  private SignedJWT getSignedToken(Date expirationTime) throws JOSEException {
     RSASSASigner signer = new RSASSASigner(privateKey);
 
     Calendar calendar = Calendar.getInstance();
     calendar.setTimeInMillis(System.currentTimeMillis());
-
     JWTClaimsSet claimsSet = new JWTClaimsSet();
     claimsSet.setSubject("test-user");
     claimsSet.setIssuer("unit-test");
     claimsSet.setIssueTime(calendar.getTime());
 
-    calendar.add(Calendar.DATE, 1); //add one day
-    claimsSet.setExpirationTime(calendar.getTime());
+    claimsSet.setExpirationTime(expirationTime);
 
     claimsSet.setAudience("test-audience");
 
@@ -233,6 +238,21 @@ public class JwtAuthenticationFilterTest {
     JwtAuthenticationFilter filter = new JwtAuthenticationFilter(properties, null, null);
 
     boolean isValid = filter.validateExpiration(getSignedToken());
+
+    assertEquals(true, isValid);
+
+    isValid = filter.validateExpiration(getInvalidToken());
+
+    assertEquals(false, isValid);
+
+  }
+
+  @Test
+  public void testValidateNoExpiration() throws Exception {
+    JwtAuthenticationProperties properties = createTestProperties();
+    JwtAuthenticationFilter filter = new JwtAuthenticationFilter(properties, null, null);
+
+    boolean isValid = filter.validateExpiration(getSignedToken(null));
 
     assertEquals(true, isValid);
 
