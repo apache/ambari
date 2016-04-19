@@ -45,7 +45,7 @@ def service(componentName, action='start', serviceName='yarn'):
     daemon = format("{mapred_bin}/mr-jobhistory-daemon.sh")
     pid_file = format("{mapred_pid_dir}/mapred-{mapred_user}-{componentName}.pid")
     usr = params.mapred_user
-    log_dir = params.yarn_log_dir
+    log_dir = params.mapred_log_dir
   else:
     # !!! yarn-daemon.sh deletes the PID for us; if we remove it the script
     # may not work correctly when stopping the service
@@ -53,7 +53,7 @@ def service(componentName, action='start', serviceName='yarn'):
     daemon = format("{yarn_bin}/yarn-daemon.sh")
     pid_file = format("{yarn_pid_dir}/yarn-{yarn_user}-{componentName}.pid")
     usr = params.yarn_user
-    log_dir = params.mapred_log_dir
+    log_dir = params.yarn_log_dir
 
   cmd = format("export HADOOP_LIBEXEC_DIR={hadoop_libexec_dir} && {daemon} --config {hadoop_conf_dir}")
 

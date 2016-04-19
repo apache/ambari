@@ -539,18 +539,18 @@ class TestNodeManager(RMFTestCase):
       config_file = "default.json",
       stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES,
-      call_mocks = [(0, process_output)],
+      checked_call_mocks = [(0, process_output)],
       mocks_dict = mocks_dict
     )
 
-    self.assertTrue(mocks_dict['call'].called)
-    self.assertEqual(mocks_dict['call'].call_count,1)
+    self.assertTrue(mocks_dict['checked_call'].called)
+    self.assertEqual(mocks_dict['checked_call'].call_count,1)
 
     self.assertEquals(
       "yarn node -list -states=RUNNING",
-       mocks_dict['call'].call_args_list[0][0][0])
+       mocks_dict['checked_call'].call_args_list[0][0][0])
 
-    self.assertEquals( {'user': u'yarn'}, mocks_dict['call'].call_args_list[0][1])
+    self.assertEquals( {'user': u'yarn'}, mocks_dict['checked_call'].call_args_list[0][1])
 
 
   @patch('time.sleep')
