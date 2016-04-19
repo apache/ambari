@@ -103,6 +103,9 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
 
   private static final String OOZIE_ENV_CONFIG = "oozie-env";
   private static final String HIVE_ENV_CONFIG = "hive-env";
+  private static final String AMS_SITE = "ams-site";
+  public static final String TIMELINE_METRICS_SINK_COLLECTION_PERIOD = "timeline.metrics.sink.collection.period";
+
 
   @Inject
   PermissionDAO permissionDAO;
@@ -1282,7 +1285,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
             updateConfigurationPropertiesForCluster(cluster, "ams-hbase-env", newProperties, true, true);
           }
 
-          Config amsSite = cluster.getDesiredConfigByType("ams-site");
+          Config amsSite = cluster.getDesiredConfigByType(AMS_SITE);
           if (amsSite != null) {
             String metadataFilters = amsSite.getProperties().get("timeline.metrics.service.metadata.filters");
             if (StringUtils.isEmpty(metadataFilters) ||
@@ -1290,6 +1293,17 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
               updateConfigurationProperties("ams-site",
                 Collections.singletonMap("timeline.metrics.service.metadata.filters", "ContainerResource"), true, false);
             }
+
+            Map<String, String> amsSiteProperties = amsSite.getProperties();
+            Map<String, String> newProperties = new HashMap<>();
+
+            if (!amsSiteProperties.containsKey(TIMELINE_METRICS_SINK_COLLECTION_PERIOD) ||
+              "60".equals(amsSiteProperties.get(TIMELINE_METRICS_SINK_COLLECTION_PERIOD))) {
+
+              newProperties.put(TIMELINE_METRICS_SINK_COLLECTION_PERIOD, "10");
+              LOG.info("Setting value of " + TIMELINE_METRICS_SINK_COLLECTION_PERIOD + " : 10");
+            }
+            updateConfigurationPropertiesForCluster(cluster, AMS_SITE, newProperties, true, true);
           }
         }
       }
