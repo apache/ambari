@@ -307,7 +307,8 @@
               "name": "Hadoop:service=NameNode,name=FSNamesystem.UnderReplicatedBlocks",
               "metric_path": "metrics/dfs/FSNamesystem/UnderReplicatedBlocks",
               "service_name": "HDFS",
-              "component_name": "NAMENODE"
+              "component_name": "NAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
             }
           ],
           "values": [
