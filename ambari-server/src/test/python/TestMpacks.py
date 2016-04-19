@@ -18,7 +18,8 @@ limitations under the License.
 import os
 from mock.mock import patch, MagicMock, call
 from ambari_commons.exceptions import FatalException
-from ambari_server.setupMpacks import install_mpack, upgrade_mpack, replay_mpack_logs
+from ambari_server.setupMpacks import install_mpack, upgrade_mpack, replay_mpack_logs, purge_stacks_and_mpacks, \
+  STACK_DEFINITIONS_RESOURCE_NAME, SERVICE_DEFINITIONS_RESOURCE_NAME, MPACKS_RESOURCE_NAME
 from unittest import TestCase
 from ambari_server.serverConfiguration import STACK_LOCATION_KEY, COMMON_SERVICES_PATH_PROPERTY, MPACKS_STAGING_PATH_PROPERTY
 
@@ -63,6 +64,45 @@ class TestMpacks(TestCase):
       self.assertEquals("Management pack could not be downloaded!", e.reason)
       fail = True
     self.assertTrue(fail)
+
+  @patch("os.path.exists")
+  @patch("ambari_server.setupMpacks.get_ambari_properties")
+  def test_purge_stacks_and_mpacks(self, get_ambari_version_mock, os_path_exists_mock):
+    options = self._create_empty_options_mock()
+    get_ambari_version_mock.return_value = configs
+    stacks_directory = configs[STACK_LOCATION_KEY]
+    common_services_directory = configs[COMMON_SERVICES_PATH_PROPERTY]
+    mpacks_directory = configs[MPACKS_STAGING_PATH_PROPERTY]
+    os_path_exists_mock.return_value = False
+
+    purge_stacks_and_mpacks(None)
+    os_path_exists_calls = []
+    os_path_exists_mock.assert_has_calls(os_path_exists_calls)
+
+    purge_stacks_and_mpacks(options.purge_list.split(","))
+    os_path_exists_calls = [
+      call(stacks_directory),
+      call(mpacks_directory)
+    ]
+    os_path_exists_mock.assert_has_calls(os_path_exists_calls)
+
+    options.purge_list = ",".join([STACK_DEFINITIONS_RESOURCE_NAME, SERVICE_DEFINITIONS_RESOURCE_NAME, MPACKS_RESOURCE_NAME])
+    purge_stacks_and_mpacks(options.purge_list.split(","))
+    os_path_exists_calls = [
+      call(stacks_directory),
+      call(common_services_directory),
+      call(mpacks_directory)
+    ]
+    os_path_exists_mock.assert_has_calls(os_path_exists_calls)
+
+    options.purge_list = ",".join([STACK_DEFINITIONS_RESOURCE_NAME, SERVICE_DEFINITIONS_RESOURCE_NAME, MPACKS_RESOURCE_NAME])
+    options.replay_mode = True
+    purge_stacks_and_mpacks(options.purge_list.split(","))
+    os_path_exists_calls = [
+      call(stacks_directory),
+      call(common_services_directory)
+    ]
+    os_path_exists_mock.assert_has_calls(os_path_exists_calls)
 
   @patch("os.path.exists")
   @patch("ambari_server.setupMpacks.extract_archive")
@@ -443,6 +483,8 @@ class TestMpacks(TestCase):
     options = MagicMock()
     options.mpack_path = None
     options.purge = None
+    options.purge_list = ",".join([STACK_DEFINITIONS_RESOURCE_NAME, MPACKS_RESOURCE_NAME])
     options.force = None
     options.verbose = None
+    options.replay_mode = False
     return options

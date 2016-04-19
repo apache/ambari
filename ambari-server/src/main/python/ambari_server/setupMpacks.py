@@ -38,6 +38,9 @@ from ambari_server.setupActions import INSTALL_MPACK_ACTION, UPGRADE_MPACK_ACTIO
 
 MPACKS_REPLAY_LOG_FILENAME = "mpacks_replay.log"
 MPACKS_CACHE_DIRNAME = "cache"
+STACK_DEFINITIONS_RESOURCE_NAME = "stack-definitions"
+SERVICE_DEFINITIONS_RESOURCE_NAME = "service-definitions"
+MPACKS_RESOURCE_NAME = "mpacks"
 
 class _named_dict(dict):
   """
@@ -180,7 +183,7 @@ def remove_symlinks(stack_location, service_definitions_location, staged_mpack_d
           print_info_msg("Removing symlink {0}".format(dir))
           sudo.unlink(dir)
 
-def purge_stacks_and_mpacks(replay_mode=False):
+def purge_stacks_and_mpacks(purge_list, replay_mode=False):
   """
   Purge all stacks and management packs
   :param replay_mode: Flag to indicate if purging in replay mode
@@ -190,16 +193,24 @@ def purge_stacks_and_mpacks(replay_mode=False):
 
   print_info_msg("Purging existing stack definitions and management packs")
 
-  if os.path.exists(stack_location):
-    print_info_msg("Purging stack location: " + stack_location)
-    sudo.rmtree(stack_location)
+  if not purge_list:
+    print_info_msg("Nothing to purge")
+    return
 
-  if os.path.exists(service_definitions_location):
+  # Don't delete default stack_advisor.py (stacks/stack_advisor.py)
+  if STACK_DEFINITIONS_RESOURCE_NAME in purge_list and os.path.exists(stack_location):
+    print_info_msg("Purging stack location: " + stack_location)
+    for file in sorted(os.listdir(stack_location)):
+      path = os.path.join(stack_location, file)
+      if(os.path.isdir(path)):
+        sudo.rmtree(path)
+
+  if SERVICE_DEFINITIONS_RESOURCE_NAME in purge_list and os.path.exists(service_definitions_location):
     print_info_msg("Purging service definitions location: " + service_definitions_location)
     sudo.rmtree(service_definitions_location)
 
   # Don't purge mpacks staging directory in replay mode
-  if os.path.exists(mpacks_staging_location) and not replay_mode:
+  if MPACKS_RESOURCE_NAME in purge_list and not replay_mode and os.path.exists(mpacks_staging_location):
     print_info_msg("Purging mpacks staging location: " + mpacks_staging_location)
     sudo.rmtree(mpacks_staging_location)
     sudo.makedir(mpacks_staging_location, 0755)
@@ -537,8 +548,8 @@ def _install_mpack(options, replay_mode=False):
     validate_mpack_prerequisites(mpack_metadata)
 
   # Purge previously installed stacks and management packs
-  if options.purge:
-    purge_stacks_and_mpacks(replay_mode)
+  if options.purge and options.purge_list:
+    purge_stacks_and_mpacks(options.purge_list.split(","), replay_mode)
 
   # Get ambari mpack properties
   stack_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()

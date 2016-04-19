@@ -36,7 +36,8 @@ from ambari_server.serverUtils import is_server_runing, refresh_stack_hash
 from ambari_server.serverSetup import reset, setup, setup_jce_policy
 from ambari_server.serverUpgrade import upgrade, upgrade_stack, set_current
 from ambari_server.setupHttps import setup_https, setup_truststore
-from ambari_server.setupMpacks import install_mpack, upgrade_mpack
+from ambari_server.setupMpacks import install_mpack, upgrade_mpack, STACK_DEFINITIONS_RESOURCE_NAME, \
+  SERVICE_DEFINITIONS_RESOURCE_NAME, MPACKS_RESOURCE_NAME
 from ambari_server.setupSso import setup_sso
 from ambari_server.dbCleanup import db_cleanup
 from ambari_server.hostUpdate import update_host_names
@@ -334,8 +335,13 @@ def init_parser_options(parser):
                     help="Specified the path for management pack to be installed/upgraded",
                     dest="mpack_path")
   parser.add_option('--purge', action="store_true", default=False,
-                    help="Purge existing stack definitions and previously installed management packs",
+                    help="Purge existing resources specified in purge-list",
                     dest="purge")
+  purge_resources = ",".join([STACK_DEFINITIONS_RESOURCE_NAME, SERVICE_DEFINITIONS_RESOURCE_NAME, MPACKS_RESOURCE_NAME])
+  default_purge_resources = ",".join([STACK_DEFINITIONS_RESOURCE_NAME, MPACKS_RESOURCE_NAME])
+  parser.add_option('--purge-list', default=default_purge_resources,
+                    help="Comma separated list of resources to purge ({0}). By default ({1}) will be purged.".format(purge_resources, default_purge_resources),
+                    dest="purge_list")
   parser.add_option('--force', action="store_true", default=False, help="Force install management pack", dest="force")
   # -b and -i the remaining available short options
   # -h reserved for help
@@ -409,8 +415,13 @@ def init_parser_options(parser):
                     help="Specified the path for management pack to be installed/upgraded",
                     dest="mpack_path")
   parser.add_option('--purge', action="store_true", default=False,
-                    help="Purge existing stack definitions and previously installed management packs",
+                    help="Purge existing resources specified in purge-list",
                     dest="purge")
+  purge_resources = ",".join([STACK_DEFINITIONS_RESOURCE_NAME, SERVICE_DEFINITIONS_RESOURCE_NAME, MPACKS_RESOURCE_NAME])
+  default_purge_resources = ",".join([STACK_DEFINITIONS_RESOURCE_NAME, MPACKS_RESOURCE_NAME])
+  parser.add_option('--purge-list', default=default_purge_resources,
+                    help="Comma separated list of resources to purge ({0}). By default ({1}) will be purged.".format(purge_resources, default_purge_resources),
+                    dest="purge_list")
   parser.add_option('--force', action="store_true", default=False, help="Force install management pack", dest="force")
 
   parser.add_option('--ldap-url', default=None, help="Primary url for LDAP", dest="ldap_url")
