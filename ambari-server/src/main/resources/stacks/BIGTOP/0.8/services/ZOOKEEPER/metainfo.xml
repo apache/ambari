@@ -35,6 +35,12 @@
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
+          <logs>
+            <log>
+              <logId>zookeeper</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
         </component>
 
         <component>
@@ -56,7 +62,7 @@
               <type>env</type>
               <fileName>log4j.properties</fileName>
               <dictionaryName>zookeeper-log4j</dictionaryName>
-            </configFile>            
+            </configFile>
           </configFiles>
         </component>
       </components>

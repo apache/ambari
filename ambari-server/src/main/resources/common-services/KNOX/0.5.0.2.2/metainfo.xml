@@ -38,6 +38,7 @@
           <logs>
             <log>
               <logId>knox_gateway</logId>
+              <primary>true</primary>
             </log>
             <log>
               <logId>knox_cli</logId>

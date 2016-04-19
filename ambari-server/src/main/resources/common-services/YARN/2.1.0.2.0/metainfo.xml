@@ -40,13 +40,8 @@
           </commandScript>
           <logs>
             <log>
-              <logId>mapred_historyserver</logId>
-            </log>
-            <log>
               <logId>yarn_resourcemanager</logId>
-            </log>
-            <log>
-              <logId>yarn_timelineserver</logId>
+              <primary>true</primary>h
             </log>
             <log>
               <logId>yarn_historyserver</logId>
@@ -224,6 +219,12 @@
             <scriptType>PYTHON</scriptType>
             <timeout>1200</timeout>
           </commandScript>
+          <logs>
+            <log>
+              <logId>mapred_historyserver</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
         </component>
 
         <component>

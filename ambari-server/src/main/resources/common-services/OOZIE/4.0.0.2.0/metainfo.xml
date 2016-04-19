@@ -63,6 +63,7 @@
           <logs>
             <log>
               <logId>oozie_app</logId>
+              <primary>true</primary>
             </log>
           </logs>
         </component>

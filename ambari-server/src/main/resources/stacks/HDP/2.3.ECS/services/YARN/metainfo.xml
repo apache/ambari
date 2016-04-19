@@ -34,6 +34,12 @@
           <category>SLAVE</category>
           <cardinality>1+</cardinality>
           <versionAdvertised>true</versionAdvertised>
+          <logs>
+            <log>
+              <logId>yarn_nodemanager</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
           <dependencies>
             <dependency>
               <name>ECS/ECS_CLIENT</name>
@@ -56,6 +62,12 @@
           <displayName>App Timeline Server</displayName>
           <category>MASTER</category>
           <cardinality>0-1</cardinality>
+          <logs>
+            <log>
+              <logId>yarn_timelineserver</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
           <dependencies>
             <dependency>
               <name>ECS/ECS_CLIENT</name>
@@ -66,18 +78,30 @@
             </dependency>
           </dependencies>
         </component>
-       <component>
-         <name>RESOURCEMANAGER</name>
-         <category>MASTER</category>
-         <cardinality>1-2</cardinality>
-         <dependencies>
-           <dependency>
-              <name>TEZ/TEZ_CLIENT</name>
-              <scope>host</scope>
-              <auto-deploy>
-                <enabled>true</enabled>
-              </auto-deploy>
-           </dependency>
+        <component>
+          <name>RESOURCEMANAGER</name>
+          <category>MASTER</category>
+          <cardinality>1-2</cardinality>
+          <logs>
+            <log>
+              <logId>yarn_resourcemanager</logId>
+              <primary>true</primary>
+            </log>
+            <log>
+              <logId>yarn_historyserver</logId>
+            </log>
+            <log>
+              <logId>yarn_jobsummary</logId>
+            </log>
+          </logs>
+          <dependencies>
+            <dependency>
+               <name>TEZ/TEZ_CLIENT</name>
+               <scope>host</scope>
+               <auto-deploy>
+                 <enabled>true</enabled>
+               </auto-deploy>
+            </dependency>
             <dependency>
               <name>ECS/ECS_CLIENT</name>
               <scope>host</scope>
@@ -85,7 +109,7 @@
                 <enabled>true</enabled>
               </auto-deploy>
             </dependency>
-         </dependencies>
+          </dependencies>
           <configuration-dependencies>
             <config-type>capacity-scheduler</config-type>
           </configuration-dependencies>
@@ -107,6 +131,12 @@
             <enabled>true</enabled>
             <co-locate>YARN/RESOURCEMANAGER</co-locate>
           </auto-deploy>
+          <logs>
+            <log>
+              <logId>mapred_historyserver</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
           <dependencies>
             <dependency>
               <name>ECS/ECS_CLIENT</name>

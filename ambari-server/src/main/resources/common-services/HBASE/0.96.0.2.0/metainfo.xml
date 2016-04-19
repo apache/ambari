@@ -58,6 +58,7 @@
           <logs>
             <log>
               <logId>hbase_master</logId>
+              <primary>true</primary>
             </log>
           </logs>
           <customCommands>
@@ -92,6 +93,7 @@
           <logs>
             <log>
               <logId>hbase_regionserver</logId>
+              <primary>true</primary>
             </log>
           </logs>
         </component>

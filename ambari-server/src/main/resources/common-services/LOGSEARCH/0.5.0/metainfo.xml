@@ -40,6 +40,7 @@
           <logs>
             <log>
               <logId>logsearch_app</logId>
+              <primary>true</primary>
             </log>
             <log>
               <logId>logsearch_perf</logId>
@@ -73,6 +74,7 @@
           <logs>
             <log>
               <logId>logsearch_feeder</logId>
+              <primary>true</primary>
             </log>
           </logs>
         </component>

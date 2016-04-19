@@ -29,6 +29,12 @@
           <cardinality>1+</cardinality>
           <versionAdvertised>true</versionAdvertised>
           <timelineAppid>HBASE</timelineAppid>
+          <logs>
+            <log>
+              <logId>hbase_master</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
           <dependencies>
             <dependency>
               <name>ECS/ECS_CLIENT</name>

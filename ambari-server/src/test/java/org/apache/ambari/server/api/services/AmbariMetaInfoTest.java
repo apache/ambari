@@ -195,16 +195,20 @@ public class AmbariMetaInfoTest {
     assertTrue(component.getLogs().size() == 2);
     assertEquals(component.getLogs().get(0).getLogId(), "hdfs_namenode");
     assertEquals(component.getLogs().get(1).getLogId(), "hdfs_audit");
+    assertTrue(component.getLogs().get(0).isPrimary());
+    assertFalse(component.getLogs().get(1).isPrimary());
 
     component = metaInfo.getComponent(STACK_NAME_HDP, "2.1.1", SERVICE_NAME_HDFS, "DATANODE");
     assertNotNull(component);
     assertNotNull(component.getLogs());
     assertTrue(component.getLogs().size() == 1);
     assertEquals(component.getLogs().get(0).getLogId(), "hdfs_datanode");
+    assertTrue(component.getLogs().get(0).isPrimary());
 
     component = metaInfo.getComponent(STACK_NAME_HDP, "2.1.1", SERVICE_NAME_HDFS, "HDFS_CLIENT");
     assertNotNull(component);
-    assertNull(component.getLogs());
+    assertNotNull(component.getLogs());
+    assertTrue(component.getLogs().isEmpty());
   }
 
   @Test

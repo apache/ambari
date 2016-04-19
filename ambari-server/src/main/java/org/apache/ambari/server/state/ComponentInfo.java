@@ -207,7 +207,21 @@ public class ComponentInfo {
   }
 
   public List<LogDefinition> getLogs() {
+    if (logs == null) {
+      logs = new ArrayList<LogDefinition>();
+    }
+    
     return logs;
+  }
+
+  public LogDefinition getPrimaryLog() {
+    for (LogDefinition log : getLogs()) {
+      if (log.isPrimary()) {
+        return log;
+      }
+    }
+    
+    return null;
   }
 
   public void setLogs(List<LogDefinition> logs) {

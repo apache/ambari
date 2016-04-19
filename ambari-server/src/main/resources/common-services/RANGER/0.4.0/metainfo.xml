@@ -42,6 +42,7 @@
           <logs>
             <log>
               <logId>ranger_admin</logId>
+              <primary>true</primary>
             </log>
             <log>
               <logId>ranger_dbpatch</logId>
@@ -63,6 +64,7 @@
           <logs>
             <log>
               <logId>ranger_usersync</logId>
+              <primary>true</primary>
             </log>
           </logs>
         </component>

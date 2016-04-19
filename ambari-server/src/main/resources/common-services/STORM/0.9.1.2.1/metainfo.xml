@@ -49,6 +49,7 @@
           <logs>
             <log>
               <logId>storm_nimbus</logId>
+              <primary>true</primary>
             </log>
           </logs>
         </component>
@@ -64,14 +65,6 @@
             <scriptType>PYTHON</scriptType>
             <timeout>1200</timeout>
           </commandScript>
-          <logs>
-            <log>
-              <logId>storm_logviewer</logId>
-            </log>
-            <log>
-              <logId>storm_worker</logId>
-            </log>
-          </logs>
         </component>
 
         <component>
@@ -92,6 +85,13 @@
           <logs>
             <log>
               <logId>storm_supervisor</logId>
+              <primary>true</primary>
+            </log>
+            <log>
+              <logId>storm_worker</logId>
+            </log>
+            <log>
+              <logId>storm_logviewer</logId>
             </log>
           </logs>
         </component>
@@ -110,6 +110,7 @@
           <logs>
             <log>
               <logId>storm_ui</logId>
+              <primary>true</primary>
             </log>
           </logs>
         </component>
@@ -128,6 +129,7 @@
           <logs>
             <log>
               <logId>storm_drpc</logId>
+              <primary>true</primary>
             </log>
           </logs>
         </component>

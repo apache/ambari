@@ -46,6 +46,10 @@
           </commandScript>
           <logs>
             <log>
+              <logId>kafka_server</logId>
+              <primary>true</primary>
+            </log>
+            <log>
               <logId>kafka_controller</logId>
             </log>
             <log>
@@ -53,9 +57,6 @@
             </log>
             <log>
               <logId>kafka_logcleaner</logId>
-            </log>
-            <log>
-              <logId>kafka_server</logId>
             </log>
             <log>
               <logId>kafka_statechange</logId>

@@ -41,6 +41,7 @@
           <logs>
             <log>
               <logId>atlas_app</logId>
+              <primary>true</primary>
             </log>
           </logs>
           <configFile>

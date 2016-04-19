@@ -35,6 +35,7 @@
           <logs>
             <log>
               <logId>hdfs_namenode</logId>
+              <primary>true</primary>
             </log>
             <log>
               <logId>hdfs_audit</logId>
@@ -71,6 +72,7 @@
           <logs>
             <log>
               <logId>hdfs_datanode</logId>
+              <primary>true</primary>
             </log>
           </logs>
         </component>
@@ -86,6 +88,7 @@
           <logs>
             <log>
               <logId>hdfs_secondarynamenode</logId>
+              <primary>true</primary>
             </log>
           </logs>
         </component>
@@ -111,6 +114,7 @@
           <logs>
             <log>
               <logId>hdfs_journalnode</logId>
+              <primary>true</primary>
             </log>
           </logs>
         </component>
@@ -126,6 +130,7 @@
           <logs>
             <log>
               <logId>hdfs_zkfc</logId>
+              <primary>true</primary>
             </log>
           </logs>
         </component>

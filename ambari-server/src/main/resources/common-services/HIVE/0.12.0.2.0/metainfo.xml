@@ -45,6 +45,7 @@
           <logs>
             <log>
               <logId>hive_metastore</logId>
+              <primary>true</primary>
             </log>
           </logs>
           <configuration-dependencies>
@@ -91,6 +92,7 @@
           <logs>
             <log>
               <logId>hive_hiveserver2</logId>
+              <primary>true</primary>
             </log>
           </logs>
           <configuration-dependencies>

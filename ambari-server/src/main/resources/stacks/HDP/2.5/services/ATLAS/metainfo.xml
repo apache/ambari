@@ -30,7 +30,13 @@
             <fileName>atlas-application.properties</fileName>
             <dictionaryName>application-properties</dictionaryName>
           </configFile>
-        </component>
+          <logs>
+            <log>
+              <logId>atlas_app</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
+         </component>
 
         <component>
           <name>ATLAS_CLIENT</name>

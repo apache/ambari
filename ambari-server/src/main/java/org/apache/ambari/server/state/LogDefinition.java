@@ -32,9 +32,14 @@ import org.apache.commons.lang.builder.ToStringStyle;
 public class LogDefinition
 {
   private String logId;
+  private boolean primary;
 
   public String getLogId() {
     return logId;
+  }
+
+  public boolean isPrimary() {
+    return primary;
   }
 
   @Override
@@ -52,6 +57,7 @@ public class LogDefinition
     LogDefinition other = (LogDefinition) obj;
     return new EqualsBuilder()
         .append(logId, other.logId)
+        .append(primary, other.primary)
         .isEquals();
   }
 
@@ -60,6 +66,7 @@ public class LogDefinition
   {
     return new HashCodeBuilder(17, 31)
         .append(logId)
+        .append(primary)
         .toHashCode();
   }
 

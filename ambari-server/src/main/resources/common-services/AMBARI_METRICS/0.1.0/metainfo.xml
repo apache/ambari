@@ -50,13 +50,14 @@
           </commandScript>
           <logs>
             <log>
+              <logId>ams_collector</logId>
+              <primary>true</primary>
+            </log>
+            <log>
               <logId>ams_hbase_master</logId>
             </log>
             <log>
               <logId>ams_hbase_regionserver</logId>
-            </log>
-            <log>
-              <logId>ams_collector</logId>
             </log>
           </logs>
           <configuration-dependencies>

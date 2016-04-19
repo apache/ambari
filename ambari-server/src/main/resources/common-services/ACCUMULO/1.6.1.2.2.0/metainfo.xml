@@ -57,6 +57,7 @@
           <logs>
             <log>
               <logId>accumulo_master</logId>
+              <primary>true</primary>
             </log>
           </logs>
         </component>
@@ -76,6 +77,7 @@
           <logs>
             <log>
               <logId>accumulo_monitor</logId>
+              <primary>true</primary>
             </log>
           </logs>
         </component>
@@ -95,6 +97,7 @@
           <logs>
             <log>
               <logId>accumulo_gc</logId>
+              <primary>true</primary>
             </log>
           </logs>
         </component>
@@ -114,6 +117,7 @@
           <logs>
             <log>
               <logId>accumulo_tracer</logId>
+              <primary>true</primary>
             </log>
           </logs>
         </component>
@@ -132,6 +136,7 @@
           <logs>
             <log>
               <logId>accumulo_tserver</logId>
+              <primary>true</primary>
             </log>
           </logs>
         </component>

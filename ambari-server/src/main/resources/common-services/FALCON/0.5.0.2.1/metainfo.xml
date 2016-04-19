@@ -83,6 +83,7 @@
           <logs>
             <log>
               <logId>falcon_app</logId>
+              <primary>true</primary>
             </log>
           </logs>
         </component>

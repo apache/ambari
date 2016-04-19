@@ -902,6 +902,18 @@ public String getVersion() {
         setErrors("Duplicate service property with name '" + propertyName + "' found in " + getName() + ":" + getVersion() + " service definition !");
       }
     }
+
+    for (ComponentInfo component : getComponents()) {
+      int primaryLogs = 0;
+      for (LogDefinition log : component.getLogs()) {
+        primaryLogs += log.isPrimary() ? 1 : 0;
+      }
+
+      if (primaryLogs > 1) {
+        setValid(false);
+        setErrors("More than one primary log exists for the component " + component.getName());
+      }
+    }
   }
 
 }
