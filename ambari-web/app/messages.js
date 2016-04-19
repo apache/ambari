@@ -325,6 +325,7 @@ Em.I18n.translations = {
   'common.extension': 'Extension',
   'common.logs': 'Logs',
   'common.warn.message': '<div class="alert alert-warn">{0}</div>',
+  'common.link': 'Link',
 
   'models.alert_instance.tiggered.verbose': "Occurred on {0} <br> Checked on {1}",
   'models.alert_definition.triggered.verbose': "Occurred on {0}",
@@ -1028,6 +1029,7 @@ Em.I18n.translations = {
   'alerts.table.header.notification': 'Notification',
   'alerts.table.header.repeatTolerance': 'Check Count',
   'alerts.table.header.default': '(default)',
+  'alerts.table.header.helpUrl': 'Alert Context',
   'alerts.table.state': 'State',
   'alerts.table.state.enabled': 'Enabled',
   'alerts.table.state.disabled': 'Disabled',

@@ -180,6 +180,12 @@
             </div>
           </div>
         {{/unless}}
+        {{#if controller.content.hasHelpUrl}}
+          <div class="row-fluid">
+            <div class="span6 property-name">{{t alerts.table.header.helpUrl}}:</div>
+            <div class="span6"><label for=""><a {{bindAttr href="controller.content.helpUrl"}} target="_blank">{{t common.link}}</a></label></div>
+          </div>
+        {{/if}}
       </div>
     </div>
   </div>
