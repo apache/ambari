@@ -59,6 +59,33 @@ public class PhoenixTransactSQL {
     "INSTANCE_ID)) DATA_BLOCK_ENCODING='%s', IMMUTABLE_ROWS=true, " +
     "TTL=%s, COMPRESSION='%s'";
 
+  public static final String CREATE_CONTAINER_METRICS_TABLE_SQL =
+      "CREATE TABLE IF NOT EXISTS CONTAINER_METRICS "
+      + "(APP_ID VARCHAR, "
+      + " CONTAINER_ID VARCHAR,"
+      + " START_TIME TIMESTAMP,"
+      + " FINISH_TIME TIMESTAMP, "
+      + " DURATION BIGINT,"
+      + " HOSTNAME VARCHAR,"
+      + " EXIT_CODE INTEGER,"
+      + " LOCALIZATION_DURATION BIGINT,"
+      + " LAUNCH_DURATION BIGINT,"
+      + " MEM_REQUESTED_GB DOUBLE,"
+      + " MEM_REQUESTED_GB_MILLIS DOUBLE,"
+      + " MEM_VIRTUAL_GB DOUBLE,"
+      + " MEM_USED_GB_MIN DOUBLE,"
+      + " MEM_USED_GB_MAX DOUBLE,"
+      + " MEM_USED_GB_AVG DOUBLE,"
+      + " MEM_USED_GB_50_PCT DOUBLE,"
+      + " MEM_USED_GB_75_PCT DOUBLE,"
+      + " MEM_USED_GB_90_PCT DOUBLE,"
+      + " MEM_USED_GB_95_PCT DOUBLE,"
+      + " MEM_USED_GB_99_PCT DOUBLE,"
+      + " MEM_UNUSED_GB DOUBLE,"
+      + " MEM_UNUSED_GB_MILLIS DOUBLE "
+      + " CONSTRAINT pk PRIMARY KEY(APP_ID, CONTAINER_ID)) DATA_BLOCK_ENCODING='%s',"
+      + " IMMUTABLE_ROWS=true, TTL=%s, COMPRESSION='%s'";
+
   public static final String CREATE_METRICS_AGGREGATE_TABLE_SQL =
     "CREATE TABLE IF NOT EXISTS %s " +
       "(METRIC_NAME VARCHAR, " +
@@ -140,6 +167,31 @@ public class PhoenixTransactSQL {
     "METRIC_COUNT, " +
     "METRICS) VALUES " +
     "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+  public static final String UPSERT_CONTAINER_METRICS_SQL = "UPSERT INTO %s " +
+      "(APP_ID,"
+      + " CONTAINER_ID,"
+      + " START_TIME,"
+      + " FINISH_TIME,"
+      + " DURATION,"
+      + " HOSTNAME,"
+      + " EXIT_CODE,"
+      + " LOCALIZATION_DURATION,"
+      + " LAUNCH_DURATION,"
+      + " MEM_REQUESTED_GB,"
+      + " MEM_REQUESTED_GB_MILLIS,"
+      + " MEM_VIRTUAL_GB,"
+      + " MEM_USED_GB_MIN,"
+      + " MEM_USED_GB_MAX,"
+      + " MEM_USED_GB_AVG,"
+      + " MEM_USED_GB_50_PCT,"
+      + " MEM_USED_GB_75_PCT,"
+      + " MEM_USED_GB_90_PCT,"
+      + " MEM_USED_GB_95_PCT,"
+      + " MEM_USED_GB_99_PCT,"
+      + " MEM_UNUSED_GB,"
+      + " MEM_UNUSED_GB_MILLIS) VALUES " +
+      "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
   public static final String UPSERT_CLUSTER_AGGREGATE_SQL = "UPSERT INTO " +
     "%s (METRIC_NAME, APP_ID, INSTANCE_ID, SERVER_TIME, " +
@@ -277,6 +329,9 @@ public class PhoenixTransactSQL {
     "SERVER_TIME <= %s GROUP BY METRIC_NAME, APP_ID, INSTANCE_ID, UNITS";
 
   public static final String METRICS_RECORD_TABLE_NAME = "METRIC_RECORD";
+
+  public static final String CONTAINER_METRICS_TABLE_NAME = "CONTAINER_METRICS";
+
   public static final String METRICS_AGGREGATE_MINUTE_TABLE_NAME =
     "METRIC_RECORD_MINUTE";
   public static final String METRICS_AGGREGATE_HOURLY_TABLE_NAME =

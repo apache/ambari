@@ -24,6 +24,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience.Public;
 import org.apache.hadoop.classification.InterfaceStability.Unstable;
+import org.apache.hadoop.metrics2.annotation.Metric;
+import org.apache.hadoop.metrics2.sink.timeline.ContainerMetric;
 import org.apache.hadoop.metrics2.sink.timeline.PrecisionLimitExceededException;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata;
 import org.apache.hadoop.yarn.api.records.timeline.TimelineEntities;
@@ -275,6 +277,32 @@ public class TimelineWebServices {
       }
 
       return timelineMetricStore.putMetrics(metrics);
+
+    } catch (Exception e) {
+      LOG.error("Error saving metrics.", e);
+      throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @Path("/containermetrics")
+  @POST
+  @Consumes({ MediaType.APPLICATION_JSON /* , MediaType.APPLICATION_XML */})
+  public TimelinePutResponse postContainerMetrics(
+      @Context HttpServletRequest req,
+      @Context HttpServletResponse res,
+      List<ContainerMetric> metrics) {
+    init(res);
+    if (metrics == null || metrics.isEmpty()) {
+      return new TimelinePutResponse();
+    }
+
+    try {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Storing container metrics: " + TimelineUtils
+            .dumpTimelineRecordtoJSON(metrics, true));
+      }
+
+      return timelineMetricStore.putContainerMetrics(metrics);
 
     } catch (Exception e) {
       LOG.error("Error saving metrics.", e);

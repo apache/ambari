@@ -17,6 +17,7 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
 
+import org.apache.hadoop.metrics2.sink.timeline.ContainerMetric;
 import org.apache.hadoop.metrics2.sink.timeline.Precision;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata;
@@ -82,6 +83,12 @@ public class TestTimelineMetricStore implements TimelineMetricStore {
   public TimelinePutResponse putMetrics(TimelineMetrics metrics)
       throws SQLException, IOException {
 
+    return new TimelinePutResponse();
+  }
+
+  @Override
+  public TimelinePutResponse putContainerMetrics(List<ContainerMetric> metrics)
+      throws SQLException, IOException {
     return new TimelinePutResponse();
   }
 

@@ -21,6 +21,7 @@ package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.metrics2.sink.timeline.ContainerMetric;
 import org.apache.hadoop.metrics2.sink.timeline.Precision;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata;
@@ -333,6 +334,13 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
     hBaseAccessor.insertMetricRecordsWithMetadata(metricMetadataManager, metrics);
 
     return response;
+  }
+
+  @Override
+  public TimelinePutResponse putContainerMetrics(List<ContainerMetric> metrics)
+      throws SQLException, IOException {
+    hBaseAccessor.insertContainerMetrics(metrics);
+    return new TimelinePutResponse();
   }
 
   @Override

@@ -23,6 +23,7 @@ import org.apache.hadoop.hbase.HColumnDescriptor;
 import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.client.Durability;
 import org.apache.hadoop.hbase.client.HBaseAdmin;
+import org.apache.hadoop.metrics2.sink.timeline.ContainerMetric;
 import org.apache.hadoop.metrics2.sink.timeline.Precision;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
@@ -38,8 +39,15 @@ import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.
 import org.junit.Test;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.sql.SQLException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -374,5 +382,51 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
 
   private Map<String, List<Function>> singletonValueFunctionMap(String metricName) {
     return Collections.singletonMap(metricName, Collections.singletonList(new Function()));
+  }
+
+  @Test
+  public void testInsertContainerMetrics() throws Exception {
+    ContainerMetric metric = new ContainerMetric();
+    metric.setContainerId("container_1450744875949_0001_01_000001");
+    metric.setHostName("host1");
+    metric.setPmemLimit(2048);
+    metric.setVmemLimit(2048);
+    metric.setPmemUsedAvg(1024);
+    metric.setPmemUsedMin(1024);
+    metric.setPmemUsedMax(1024);
+    metric.setLaunchDuration(2000);
+    metric.setLocalizationDuration(3000);
+    long startTime = System.currentTimeMillis();
+    long finishTime = startTime + 5000;
+    metric.setStartTime(startTime);
+    metric.setFinishTime(finishTime);
+    metric.setExitCode(0);
+    List<ContainerMetric> list = Arrays.asList(metric);
+    hdb.insertContainerMetrics(list);
+    PreparedStatement stmt = conn.prepareStatement("SELECT * FROM CONTAINER_METRICS");
+    ResultSet set = stmt.executeQuery();
+    // check each filed is set properly when read back.
+    boolean foundRecord = false;
+    while (set.next()) {
+      assertEquals("application_1450744875949_0001", set.getString("APP_ID"));
+      assertEquals("container_1450744875949_0001_01_000001", set.getString("CONTAINER_ID"));
+      assertEquals(new java.sql.Timestamp(startTime), set.getTimestamp("START_TIME"));
+      assertEquals(new java.sql.Timestamp(finishTime), set.getTimestamp("FINISH_TIME"));
+      assertEquals(5000, set.getLong("DURATION"));
+      assertEquals("host1", set.getString("HOSTNAME"));
+      assertEquals(0, set.getInt("EXIT_CODE"));
+      assertEquals(3000, set.getLong("LOCALIZATION_DURATION"));
+      assertEquals(2000, set.getLong("LAUNCH_DURATION"));
+      assertEquals((double)2, set.getDouble("MEM_REQUESTED_GB"));
+      assertEquals((double)2 * 5000, set.getDouble("MEM_REQUESTED_GB_MILLIS"));
+      assertEquals((double)2, set.getDouble("MEM_VIRTUAL_GB"));
+      assertEquals((double)1, set.getDouble("MEM_USED_GB_MIN"));
+      assertEquals((double)1, set.getDouble("MEM_USED_GB_MAX"));
+      assertEquals((double)1, set.getDouble("MEM_USED_GB_AVG"));
+      assertEquals((double)(2 - 1), set.getDouble("MEM_UNUSED_GB"));
+      assertEquals((double)(2-1) * 5000, set.getDouble("MEM_UNUSED_GB_MILLIS"));
+      foundRecord = true;
+    }
+    assertTrue(foundRecord);
   }
 }

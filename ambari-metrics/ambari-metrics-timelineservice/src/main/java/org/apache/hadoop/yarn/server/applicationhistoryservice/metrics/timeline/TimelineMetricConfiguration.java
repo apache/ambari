@@ -54,6 +54,9 @@ public class TimelineMetricConfiguration {
   public static final String HBASE_COMPRESSION_SCHEME =
     "timeline.metrics.hbase.compression.scheme";
 
+  public static final String CONTAINER_METRICS_TTL =
+    "timeline.container-metrics.ttl";
+
   public static final String PRECISION_TABLE_TTL =
     "timeline.metrics.host.aggregator.ttl";
 

@@ -31,6 +31,9 @@ import org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCache;
 import org.apache.hadoop.metrics2.util.Servers;
 import org.apache.hadoop.net.DNS;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
 import java.net.SocketAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -51,6 +54,9 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
   private String serviceName = "";
   private List<? extends SocketAddress> metricsServers;
   private String collectorUri;
+  private String containerMetricsUri;
+  public static final String WS_V1_CONTAINER_METRICS = "/ws/v1/timeline/containermetrics";
+
   private static final String SERVICE_NAME_PREFIX = "serviceName-prefix";
   private static final String SERVICE_NAME = "serviceName";
   private int timeoutSeconds = 10;
@@ -88,6 +94,7 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
       LOG.error("No Metric collector configured.");
     } else {
       collectorUri = conf.getString(COLLECTOR_PROPERTY).trim() + WS_V1_TIMELINE_METRICS;
+      containerMetricsUri = conf.getString(COLLECTOR_PROPERTY).trim() + WS_V1_CONTAINER_METRICS;
       if (collectorUri.toLowerCase().startsWith("https://")) {
         String trustStorePath = conf.getString(SSL_KEYSTORE_PATH_PROPERTY).trim();
         String trustStoreType = conf.getString(SSL_KEYSTORE_TYPE_PROPERTY).trim();
@@ -220,6 +227,11 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
         }
       }
 
+      if (record.context().equals("container")) {
+        emitContainerMetrics(record);
+        return;
+      }
+
       int sbBaseLen = sb.length();
 
       Collection<AbstractMetric> metrics = (Collection<AbstractMetric>) record.metrics();
@@ -260,6 +272,89 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
       }
     } catch (UnableToConnectException uce) {
       LOG.warn("Unable to send metrics to collector by address:" + uce.getConnectUrl());
+    }
+  }
+
+  private void parseContainerMetrics(MetricsRecord record,
+      ContainerMetric containerMetric) {
+    for (AbstractMetric metric : record.metrics() ) {
+      switch (metric.name()) {
+      case "PMemUsageMBsAvgMBs":
+        containerMetric.setPmemUsedAvg(metric.value().intValue());
+        break;
+      case "PMemUsageMBsMinMBs":
+        containerMetric.setPmemUsedMin(metric.value().intValue());
+        break;
+      case "PMemUsageMBsMaxMBs":
+        containerMetric.setPmemUsedMax(metric.value().intValue());
+        break;
+      case "PMemUsageMBHistogram50thPercentileMBs":
+        containerMetric.setPmem50Pct(metric.value().intValue());
+        break;
+      case "PMemUsageMBHistogram75thPercentileMBs":
+        containerMetric.setPmem75Pct(metric.value().intValue());
+        break;
+      case "PMemUsageMBHistogram90thPercentileMBs":
+        containerMetric.setPmem90Pct(metric.value().intValue());
+        break;
+      case "PMemUsageMBHistogram95thPercentileMBs":
+        containerMetric.setPmem95Pct(metric.value().intValue());
+        break;
+      case "PMemUsageMBHistogram99thPercentileMBs":
+        containerMetric.setPmem99Pct(metric.value().intValue());
+        break;
+      case "pMemLimitMBs":
+        containerMetric.setPmemLimit(metric.value().intValue());
+        break;
+      case "vMemLimitMBs":
+        containerMetric.setVmemLimit(metric.value().intValue());
+        break;
+      case "launchDurationMs":
+        containerMetric.setLaunchDuration(metric.value().longValue());
+        break;
+      case "localizationDurationMs":
+        containerMetric.setLocalizationDuration(metric.value().longValue());
+        break;
+      case "StartTime":
+        containerMetric.setStartTime(metric.value().longValue());
+        break;
+      case "FinishTime":
+        containerMetric.setFinishTime(metric.value().longValue());
+        break;
+      case "ExitCode":
+        containerMetric.setExitCode((metric.value().intValue()));
+        break;
+      default:
+        break;
+      }
+    }
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(containerMetric);
+    }
+  }
+
+  private void emitContainerMetrics(MetricsRecord record) {
+
+    ContainerMetric containerMetric = new ContainerMetric();
+    containerMetric.setHostName(hostName);
+
+    for (MetricsTag tag : record.tags()) {
+      if (tag.name().equals("ContainerResource")) {
+        containerMetric.setContainerId(tag.value());
+      }
+    }
+
+    parseContainerMetrics(record, containerMetric);
+    List<ContainerMetric> list = new ArrayList<>();
+    list.add(containerMetric);
+    String jsonData = null;
+    try {
+      jsonData = mapper.writeValueAsString(list);
+    } catch (IOException e) {
+      LOG.error("Unable to parse container metrics ", e);
+    }
+    if (jsonData != null) {
+      emitMetricsJson(containerMetricsUri, jsonData);
     }
   }
 
