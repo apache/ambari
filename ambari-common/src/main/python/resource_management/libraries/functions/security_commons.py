@@ -136,7 +136,7 @@ def get_params_from_filesystem(conf_dir, config_files):
     elif file_type == FILE_TYPE_PROPERTIES:
       with open(conf_dir + os.sep + config_file, 'r') as f:
         config_string = '[root]\n' + f.read()
-      ini_fp = StringIO.StringIO(config_string)
+      ini_fp = StringIO.StringIO(re.sub(r'\\\s*\n', '\\\n ', config_string))
       config = ConfigParser.RawConfigParser()
       config.readfp(ini_fp)
       props = config.items('root')

@@ -80,7 +80,6 @@ metadata_host = config['hostname']
 
 # application properties
 application_properties = dict(config['configurations']['application-properties'])
-application_properties['atlas.http.authentication.kerberos.name.rules'] = ' \\ \n'.join(application_properties['atlas.http.authentication.kerberos.name.rules'].splitlines())
 application_properties['atlas.server.bind.address'] = metadata_host
 
 metadata_env_content = config['configurations']['atlas-env']['content']

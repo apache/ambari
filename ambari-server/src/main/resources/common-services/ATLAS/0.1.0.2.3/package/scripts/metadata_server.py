@@ -87,7 +87,7 @@ class MetadataServer(Script):
                          'atlas.http.authentication.kerberos.keytab']
     props_read_check = ['atlas.authentication.keytab',
                         'atlas.http.authentication.kerberos.keytab']
-    atlas_site_expectations = build_expectations('application-properties',
+    atlas_site_expectations = build_expectations('application',
                                                     props_value_check,
                                                     props_empty_check,
                                                     props_read_check)
@@ -101,17 +101,17 @@ class MetadataServer(Script):
     if not result_issues:  # If all validations passed successfully
       try:
         # Double check the dict before calling execute
-        if ( 'application-properties' not in security_params
-             or 'atlas.authentication.keytab' not in security_params['application-properties']
-             or 'atlas.authentication.principal' not in security_params['application-properties']):
+        if ( 'application' not in security_params
+             or 'atlas.authentication.keytab' not in security_params['application']
+             or 'atlas.authentication.principal' not in security_params['application']):
           self.put_structured_out({"securityState": "UNSECURED"})
           self.put_structured_out(
             {"securityIssuesFound": "Atlas service keytab file or principal are not set property."})
           return
 
-        if ( 'application-properties' not in security_params
-             or 'atlas.http.authentication.kerberos.keytab' not in security_params['application-properties']
-             or 'atlas.http.authentication.kerberos.principal' not in security_params['application-properties']):
+        if ( 'application' not in security_params
+             or 'atlas.http.authentication.kerberos.keytab' not in security_params['application']
+             or 'atlas.http.authentication.kerberos.principal' not in security_params['application']):
           self.put_structured_out({"securityState": "UNSECURED"})
           self.put_structured_out(
             {"securityIssuesFound": "HTTP Authentication keytab file or principal are not set property."})

@@ -12,7 +12,7 @@
         }
       ],
       "auth_to_local_properties" : [
-        "application-properties/atlas.http.authentication.kerberos.name.rules"
+        "application-properties/atlas.http.authentication.kerberos.name.rules|new_lines_escaped"
       ],
       "components": [
         {
