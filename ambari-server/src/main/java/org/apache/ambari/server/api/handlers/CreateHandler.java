@@ -73,4 +73,13 @@ public class CreateHandler extends BaseManagementHandler {
     }
     return result;
   }
+
+  @Override
+  protected ResultMetadata convert(RequestStatusMetaData requestStatusMetaData) {
+    if (requestStatusMetaData == null) {
+      return null;
+    }
+
+    throw new UnsupportedOperationException();
+  }
 }

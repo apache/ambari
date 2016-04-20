@@ -18,11 +18,13 @@
 
 package org.apache.ambari.server.api.services.serializers;
 
+import org.apache.ambari.server.api.services.DeleteResultMetadata;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultImpl;
 import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.junit.Test;
 
 import javax.ws.rs.core.UriInfo;
@@ -37,6 +39,7 @@ import static org.junit.Assert.assertEquals;
  * JSONSerializer unit tests
  */
 public class JsonSerializerTest {
+
   @Test
   public void testSerialize() throws Exception {
     UriInfo uriInfo = createMock(UriInfo.class);
@@ -207,6 +210,36 @@ public class JsonSerializerTest {
 
     verify(uriInfo, resource/*, resource2*/);
   }
-    
+
+  @Test
+  public void testDeleteResultMetadata() throws Exception {
+    Result result = new ResultImpl(true);
+    result.setResultStatus(new ResultStatus(ResultStatus.STATUS.OK));
+    DeleteResultMetadata metadata = new DeleteResultMetadata();
+    metadata.addDeletedKey("key1");
+    metadata.addException("key2", new AuthorizationException());
+    result.setResultMetadata(metadata);
+
+    String expected =
+        "{\n" +
+        "  \"deleteResult\" : [\n"+
+        "    {\n" +
+        "      \"deleted\" : {\n" +
+        "        \"key\" : \"key1\"\n" +
+        "      }\n" +
+        "    },\n" +
+        "    {\n" +
+        "      \"error\" : {\n" +
+        "        \"key\" : \"key2\",\n" +
+        "        \"code\" : 403,\n" +
+        "        \"message\" : \"org.apache.ambari.server.security.authorization.AuthorizationException:"+
+                              " The authenticated user is not authorized to perform the requested operation\"\n" +
+        "      }\n" +
+        "    }\n" +
+        "  ]\n" +
+        "}";
+    String  json = new JsonSerializer().serialize(result).toString().replace("\r", "");
+    assertEquals(expected, json);
+  }
   
 }

@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.api.services.serializers;
 
+import org.apache.ambari.server.api.services.DeleteResultMetadata;
+import org.apache.ambari.server.api.services.ResultMetadata;
 import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.util.TreeNodeImpl;
@@ -63,7 +65,7 @@ public class JsonSerializer implements ResultSerializer {
 
       TreeNode<Resource> treeNode = result.getResultTree();
       processNode(treeNode);
-
+      processResultMetadata(result.getResultMetadata());
       m_generator.close();
       return bytesOut.toString("UTF-8");
     } catch (IOException e) {
@@ -99,6 +101,45 @@ public class JsonSerializer implements ResultSerializer {
     m_generator.setPrettyPrinter(p);
 
     return bytesOut;
+  }
+
+  private void processResultMetadata(ResultMetadata resultMetadata) throws IOException {
+    if (resultMetadata == null) {
+      return;
+    }
+
+    if (resultMetadata.getClass() == DeleteResultMetadata.class) {
+      processResultMetadata((DeleteResultMetadata) resultMetadata);
+    } else {
+      throw new IllegalArgumentException("ResultDetails is not of type DeleteResultDetails, cannot parse");
+    }
+  }
+
+  private void processResultMetadata(DeleteResultMetadata deleteResultMetadata) throws IOException {
+    m_generator.writeStartObject();
+    m_generator.writeArrayFieldStart("deleteResult");
+    //write successfully deleted keys
+    for (String key : deleteResultMetadata.getDeletedKeys()) {
+      m_generator.writeStartObject();
+      m_generator.writeObjectFieldStart("deleted");
+      m_generator.writeStringField("key", key);
+      m_generator.writeEndObject();
+      m_generator.writeEndObject();
+    }
+
+    //write exceptions
+    for (Map.Entry<String, ResultStatus> entry : deleteResultMetadata.getExcptions().entrySet()) {
+      ResultStatus resultStatus = entry.getValue();
+      m_generator.writeStartObject();
+      m_generator.writeObjectFieldStart("error");
+      m_generator.writeStringField("key", entry.getKey());
+      m_generator.writeNumberField("code", resultStatus.getStatusCode());
+      m_generator.writeStringField("message", resultStatus.getMessage());
+      m_generator.writeEndObject();
+      m_generator.writeEndObject();
+    }
+    m_generator.writeEndArray();
+    m_generator.writeEndObject();
   }
 
   private void processNode(TreeNode<Resource> node) throws IOException {

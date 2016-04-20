@@ -21,11 +21,13 @@ package org.apache.ambari.server.api.handlers;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.RequestBody;
 import org.apache.ambari.server.api.services.Result;
+import org.apache.ambari.server.api.services.ResultMetadata;
 import org.apache.ambari.server.api.services.ResultImpl;
 import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.RequestStatus;
+import org.apache.ambari.server.controller.spi.RequestStatusMetaData;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
@@ -71,5 +73,14 @@ public class UpdateHandler extends BaseManagementHandler {
     }
 
     return result;
+  }
+
+  @Override
+  protected ResultMetadata convert(RequestStatusMetaData requestStatusMetaData) {
+    if (requestStatusMetaData == null) {
+      return null;
+    }
+
+    throw new UnsupportedOperationException();
   }
 }

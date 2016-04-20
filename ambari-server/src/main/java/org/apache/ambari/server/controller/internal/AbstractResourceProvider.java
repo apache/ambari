@@ -205,6 +205,10 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
    * @return the request status
    */
   protected RequestStatus getRequestStatus(RequestStatusResponse response, Set<Resource> associatedResources) {
+    return getRequestStatus(response, associatedResources, null);
+  }
+
+  protected RequestStatus getRequestStatus(RequestStatusResponse response, Set<Resource> associatedResources, RequestStatusMetaData requestStatusMetaData) {
     if (response != null){
       Resource requestResource = new ResourceImpl(Resource.Type.Request);
       if (response.getMessage() != null){
@@ -212,9 +216,9 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
       }
       requestResource.setProperty(PropertyHelper.getPropertyId("Requests", "id"), response.getRequestId());
       requestResource.setProperty(PropertyHelper.getPropertyId("Requests", "status"), "Accepted");
-      return new RequestStatusImpl(requestResource, associatedResources);
+      return new RequestStatusImpl(requestResource, associatedResources, requestStatusMetaData);
     }
-    return new RequestStatusImpl(null, associatedResources);
+    return new RequestStatusImpl(null, associatedResources, requestStatusMetaData);
   }
 
   /**

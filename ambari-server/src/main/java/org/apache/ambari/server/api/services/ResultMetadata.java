@@ -18,35 +18,8 @@
 
 package org.apache.ambari.server.api.services;
 
-
-import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.api.util.TreeNode;
-
 /**
- * Represents a result from a request handler invocation.
+ * Marker interface for Metadata object for API result.
  */
-public interface Result {
-
-  /**
-   * Obtain the results of the request invocation as a Tree structure.
-   *
-   * @return the results of the request a a Tree structure
-   */
-  TreeNode<Resource> getResultTree();
-
-  /**
-   * Determine whether the request was handled synchronously.
-   * If the request is synchronous, all work was completed prior to returning.
-   *
-   * @return true if the request was synchronous, false if it was asynchronous
-   */
-  boolean isSynchronous();
-
-  ResultStatus getStatus();
-
-  void setResultStatus(ResultStatus status);
-
-  void setResultMetadata(ResultMetadata resultMetadata);
-
-  ResultMetadata getResultMetadata();
+public interface ResultMetadata {
 }
