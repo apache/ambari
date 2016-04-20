@@ -209,7 +209,13 @@ class HostInfoLinux(HostInfo):
     try:
       pids = [pid for pid in os.listdir('/proc') if pid.isdigit()]
       for pid in pids:
-        cmd = open(os.path.join('/proc', pid, 'cmdline'), 'rb').read()
+        try:
+          fp = open(os.path.join('/proc', pid, 'cmdline'), 'rb')
+        except IOError:
+          continue # avoid race condition if this process already died, since the moment we got pids list.
+
+        cmd = fp.read()
+        fp.close()
         cmd = cmd.replace('\0', ' ')
         if not 'AmbariServer' in cmd:
           if 'java' in cmd:
