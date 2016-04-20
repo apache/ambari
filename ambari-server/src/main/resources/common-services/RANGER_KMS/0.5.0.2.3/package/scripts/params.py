@@ -207,3 +207,8 @@ ranger_kms_jdbc_driver = config['configurations']['dbks-site']['ranger.ks.jpa.jd
 
 jce_name = default("/hostLevelParams/jce_name", None)
 jce_source_dir = format('{tmp_dir}/jce_dir')
+
+#kms hsm support
+enable_kms_hsm = default("/configurations/dbks-site/ranger.ks.hsm.enabled", False)
+hms_partition_alias = default("/configurations/dbks-site/ranger.ks.hsm.partition.password.alias", "ranger.kms.hsm.partition.password")
+hms_partition_passwd = default("/configurations/kms-env/hsm_partition_password", None)

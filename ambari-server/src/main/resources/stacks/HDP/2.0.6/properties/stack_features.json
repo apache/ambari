@@ -195,6 +195,11 @@
       "name": "hive_env_heapsize",
       "description": "Hive heapsize property defined in hive-env (AMBARI-12801)",
       "min_version": "2.2.0.0"
-     }
+    },
+    {
+      "name": "ranger_kms_hsm_support",
+      "description": "Ranger KMS HSM support (AMBARI-15752)",
+      "min_version": "2.5.0.0"
+    }
   ]
 }

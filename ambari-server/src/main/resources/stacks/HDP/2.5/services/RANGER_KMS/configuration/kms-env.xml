@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -18,20 +18,17 @@
  * limitations under the License.
  */
 -->
-<metainfo>
-  <schemaVersion>2.0</schemaVersion>
-  <services>
-    <service>
-      <name>RANGER_KMS</name>
-      <version>0.6.0.2.5</version>
+<configuration supports_adding_forbidden="true">
 
-      <themes>
-        <theme>
-          <fileName>theme_version_2.json</fileName>
-          <default>true</default>
-        </theme>
-      </themes>
+  <property>
+    <name>hsm_partition_password</name>
+    <display-name>HSM partition password</display-name>
+    <value></value>
+    <property-type>PASSWORD</property-type>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
+    <description>HSM partition password</description>
+  </property>
 
-    </service>
-  </services>
-</metainfo>
+</configuration>

@@ -77,3 +77,4 @@ class StackFeature:
   HIVE_PURGE_TABLE = "hive_purge_table"
   HIVE_SERVER2_KERBERIZED_ENV = "hive_server2_kerberized_env"
   HIVE_ENV_HEAPSIZE = "hive_env_heapsize"
+  RANGER_KMS_HSM_SUPPORT = "ranger_kms_hsm_support"

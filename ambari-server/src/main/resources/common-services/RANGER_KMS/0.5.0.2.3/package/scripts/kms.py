@@ -237,6 +237,8 @@ def kms(upgrade_type=None):
 
     do_keystore_setup(params.credential_provider_path, params.jdbc_alias, params.db_password)
     do_keystore_setup(params.credential_provider_path, params.masterkey_alias, params.kms_master_key_password)
+    if params.stack_support_kms_hsm and params.enable_kms_hsm:
+      do_keystore_setup(params.credential_provider_path, params.hms_partition_alias, unicode(params.hms_partition_passwd))
 
     XmlConfig("dbks-site.xml",
       conf_dir=params.kms_conf_dir,
