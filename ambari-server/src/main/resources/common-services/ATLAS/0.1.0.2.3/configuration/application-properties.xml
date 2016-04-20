@@ -127,8 +127,7 @@
   </property>
   <property>
     <name>atlas.http.authentication.kerberos.name.rules</name>
-    <value>RULE:[1:$1@$0](.*@EXAMPLE.COM)s/@.*//
-      DEFAULT</value>
+    <value>DEFAULT</value>
     <description></description>
   </property>
   <property>

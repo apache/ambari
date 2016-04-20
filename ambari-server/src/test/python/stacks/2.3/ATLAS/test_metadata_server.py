@@ -69,7 +69,6 @@ class TestMetadataServer(RMFTestCase):
       )
       appprops =  dict(self.getConfig()['configurations'][
           'application-properties'])
-      appprops['atlas.http.authentication.kerberos.name.rules'] = ' \\ \n'.join(appprops['atlas.http.authentication.kerberos.name.rules'].splitlines())
       appprops['atlas.server.bind.address'] = 'c6401.ambari.apache.org'
 
       self.assertResourceCalled('PropertiesFile',
