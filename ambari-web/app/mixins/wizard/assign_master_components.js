@@ -589,6 +589,7 @@ App.AssignMasterComponents = Em.Mixin.create({
           cpu: _host.cpu,
           memory: _host.memory,
           disk_info: _host.disk_info,
+          maintenance_state: _host.maintenance_state,
           host_info: Em.I18n.t('installer.step5.hostInfo').fmt(_host.name, numberUtils.bytesToSize(_host.memory, 1, 'parseFloat', 1024), _host.cpu)
         }));
       }
@@ -975,6 +976,7 @@ App.AssignMasterComponents = Em.Mixin.create({
   isHostNameValid: function (componentName, selectedHost) {
     return (selectedHost.trim() !== '') &&
     this.get('hosts').mapProperty('host_name').contains(selectedHost) &&
+    (this.get('hosts').filterProperty('host_name', selectedHost).filterProperty('maintenance_state', 'OFF').length > 0) &&
     (this.get('selectedServicesMasters').
         filterProperty('component_name', componentName).
         mapProperty('selectedHost').

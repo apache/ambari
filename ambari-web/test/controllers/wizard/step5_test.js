@@ -915,9 +915,9 @@ describe('App.WizardStep5Controller', function () {
     beforeEach(function () {
       c.setProperties({
         hosts: [
-          {host_name: 'h1'},
-          {host_name: 'h2'},
-          {host_name: 'h3'}
+          {host_name: 'h1', maintenance_state: 'OFF'},
+          {host_name: 'h2', maintenance_state: 'ON'},
+          {host_name: 'h3', maintenance_state: 'OFF'},
         ],
         selectedServicesMasters: [
           {component_name: 'c1', selectedHost: 'h1'},
@@ -939,6 +939,12 @@ describe('App.WizardStep5Controller', function () {
           componentName: 'c1',
           selectedHost: 'h4',
           m: 'hostName not exists',
+          e: false
+        },
+        {
+          componentName: 'c1',
+          selectedHost: 'h2',
+          m: 'host maintainenance on',
           e: false
         },
         {

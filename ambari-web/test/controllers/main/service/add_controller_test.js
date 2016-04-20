@@ -227,7 +227,8 @@ describe('App.AddServiceController', function() {
                 ip: '10.1.1.0',
                 os_arch: 'x86_64',
                 os_type: 'centos6',
-                total_mem: 4194304
+                total_mem: 4194304,
+                maintenance_state: 'ON'
               },
               host_components: hostComponents[0]
             },
@@ -241,7 +242,8 @@ describe('App.AddServiceController', function() {
                 ip: '10.1.1.1',
                 os_arch: 'x86',
                 os_type: 'centos5',
-                total_mem: 3145728
+                total_mem: 3145728,
+                maintenance_state: 'OFF'
               },
               host_components: hostComponents[1]
             }
@@ -258,6 +260,7 @@ describe('App.AddServiceController', function() {
             ip: '10.1.1.0',
             bootStatus: 'REGISTERED',
             isInstalled: true,
+            maintenance_state: 'ON',
             hostComponents: hostComponents[0],
             id: 0
           },
@@ -271,6 +274,7 @@ describe('App.AddServiceController', function() {
             ip: '10.1.1.1',
             bootStatus: 'REGISTERED',
             isInstalled: true,
+            maintenance_state: 'OFF',
             hostComponents: hostComponents[1],
             id: 1
           }

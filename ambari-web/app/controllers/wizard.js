@@ -1222,6 +1222,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
         osType: item.Hosts.os_type,
         osArch: item.Hosts.os_arch,
         ip: item.Hosts.ip,
+        maintenance_state: item.Hosts.maintenance_state,
         bootStatus: "REGISTERED",
         isInstalled: true,
         hostComponents: item.host_components,
