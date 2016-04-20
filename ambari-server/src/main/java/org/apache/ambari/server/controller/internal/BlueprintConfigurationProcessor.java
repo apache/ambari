@@ -48,6 +48,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Predicates;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
@@ -148,7 +149,7 @@ public class BlueprintConfigurationProcessor {
    *   expected hostname information is not found.
    */
   private static Set<String> configPropertiesWithHASupport =
-    new HashSet<String>(Arrays.asList("fs.defaultFS", "hbase.rootdir", "instance.volumes", "policymgr_external_url"));
+    new HashSet<String>(Arrays.asList("fs.defaultFS", "hbase.rootdir", "instance.volumes", "policymgr_external_url", "xasecure.audit.destination.hdfs.dir"));
 
   /**
    * Statically-defined list of filters to apply on property exports.
@@ -2250,6 +2251,14 @@ public class BlueprintConfigurationProcessor {
     Map<String, PropertyUpdater> multiRangerKmsSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> dbHiveSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> rangerAdminPropsMap = new HashMap<String, PropertyUpdater>();
+    Map<String, PropertyUpdater> rangerEnvPropsMap = new HashMap<String, PropertyUpdater>();
+    Map<String, PropertyUpdater> rangerYarnAuditPropsMap = new HashMap<String, PropertyUpdater>();
+    Map<String, PropertyUpdater> rangerHdfsAuditPropsMap = new HashMap<String, PropertyUpdater>();
+    Map<String, PropertyUpdater> rangerHbaseAuditPropsMap = new HashMap<String, PropertyUpdater>();
+    Map<String, PropertyUpdater> rangerHiveAuditPropsMap = new HashMap<String, PropertyUpdater>();
+    Map<String, PropertyUpdater> rangerKnoxAuditPropsMap = new HashMap<String, PropertyUpdater>();
+    Map<String, PropertyUpdater> rangerKafkaAuditPropsMap = new HashMap<String, PropertyUpdater>();
+    Map<String, PropertyUpdater> rangerStormAuditPropsMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> hawqSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> zookeeperEnvMap = new HashMap<String, PropertyUpdater>();
 
@@ -2271,6 +2280,15 @@ public class BlueprintConfigurationProcessor {
     singleHostTopologyUpdaters.put("kafka-broker", kafkaBrokerMap);
     singleHostTopologyUpdaters.put("application-properties", atlasPropsMap);
     singleHostTopologyUpdaters.put("admin-properties", rangerAdminPropsMap);
+    singleHostTopologyUpdaters.put("ranger-env", rangerEnvPropsMap);
+    singleHostTopologyUpdaters.put("ranger-yarn-audit", rangerYarnAuditPropsMap);
+    singleHostTopologyUpdaters.put("ranger-hdfs-audit", rangerHdfsAuditPropsMap);
+    singleHostTopologyUpdaters.put("ranger-hbase-audit", rangerHbaseAuditPropsMap);
+    singleHostTopologyUpdaters.put("ranger-hive-audit", rangerHiveAuditPropsMap);
+    singleHostTopologyUpdaters.put("ranger-knox-audit", rangerKnoxAuditPropsMap);
+    singleHostTopologyUpdaters.put("ranger-kafka-audit", rangerKafkaAuditPropsMap);
+    singleHostTopologyUpdaters.put("ranger-storm-audit", rangerStormAuditPropsMap);
+
     singleHostTopologyUpdaters.put("hawq-site", hawqSiteMap);
     singleHostTopologyUpdaters.put("zookeeper-env", zookeeperEnvMap);
 
@@ -2430,7 +2448,7 @@ public class BlueprintConfigurationProcessor {
                                            ClusterTopology topology) {
         if (topology.getBlueprint().getServices().contains("ATLAS")) {
           String host = topology.getHostAssignmentsForComponent("ATLAS_SERVER").iterator().next();
-          
+
           boolean tlsEnabled = Boolean.parseBoolean(properties.get("application-properties").get("atlas.enableTLS"));
           String scheme;
           String port;
@@ -2441,7 +2459,7 @@ public class BlueprintConfigurationProcessor {
             scheme = "http";
             port = properties.get("application-properties").get("atlas.server.http.port");
           }
-  
+
           return String.format("%s://%s:%s", scheme, host, port);
         }
         return origValue;
@@ -2542,6 +2560,21 @@ public class BlueprintConfigurationProcessor {
 
     // RANGER_ADMIN
     rangerAdminPropsMap.put("policymgr_external_url", new SingleHostTopologyUpdater("RANGER_ADMIN"));
+
+    // RANGER ENV
+    List<Map<String, PropertyUpdater>> configsWithRangerHdfsAuditDirProperty = ImmutableList.of(
+      rangerEnvPropsMap,
+      rangerYarnAuditPropsMap,
+      rangerHdfsAuditPropsMap,
+      rangerHbaseAuditPropsMap,
+      rangerHiveAuditPropsMap,
+      rangerKnoxAuditPropsMap,
+      rangerKafkaAuditPropsMap,
+      rangerStormAuditPropsMap
+    );
+    for (Map<String, PropertyUpdater> rangerAuditPropsMap: configsWithRangerHdfsAuditDirProperty) {
+      rangerAuditPropsMap.put("xasecure.audit.destination.hdfs.dir", new SingleHostTopologyUpdater("NAMENODE")); // the same prop updater must be used as for fs.defaultFS in core-site
+    }
 
     // RANGER KMS
     multiRangerKmsSiteMap.put("hadoop.kms.authentication.signer.secret.provider.zookeeper.connection.string",

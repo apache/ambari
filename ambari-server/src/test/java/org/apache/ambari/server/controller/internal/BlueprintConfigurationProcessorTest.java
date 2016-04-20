@@ -6058,6 +6058,340 @@ public class BlueprintConfigurationProcessorTest {
   }
 
   @Test
+  public void testRangerEnv_defaults() throws Exception {
+    // Given
+    List<String> configTypesWithRangerHdfsAuditDir = ImmutableList.of(
+      "ranger-env",
+      "ranger-yarn-audit",
+      "ranger-hdfs-audit",
+      "ranger-hbase-audit",
+      "ranger-hive-audit",
+      "ranger-knox-audit",
+      "ranger-kafka-audit",
+      "ranger-storm-audit"
+    );
+    Map<String, Map<String, String>> clusterConfigProperties = new HashMap<>();
+
+    for (String configType: configTypesWithRangerHdfsAuditDir) {
+      Map<String, String> configProperties = new HashMap<>();
+      configProperties.put("xasecure.audit.destination.hdfs.dir", "hdfs://localhost:100");
+
+      clusterConfigProperties.put(configType, configProperties);
+    }
+
+
+
+    Map<String, Map<String, String>> parentProperties = new HashMap<>();
+    Configuration parentClusterConfig = new Configuration(parentProperties, new HashMap<String, Map<String, Map<String, String>>>());
+    Configuration clusterConfig = new Configuration(clusterConfigProperties, new HashMap<String, Map<String, Map<String, String>>>(), parentClusterConfig);
+
+    Collection<String> rangerComponents = new HashSet<>();
+    rangerComponents.add("RANGER_ADMIN");
+    rangerComponents.add("RANGER_USERSYNC");
+
+    Collection<String> hdfsComponents = new HashSet<String>();
+    hdfsComponents.add("NAMENODE");
+    hdfsComponents.add("DATANODE");
+
+    TestHostGroup group1 = new TestHostGroup("group1", rangerComponents, Collections.singleton("host1"));
+    group1.components.add("DATANODE");
+
+
+    TestHostGroup group2 = new TestHostGroup("group2", hdfsComponents, Collections.singleton("nn_host"));
+
+
+    Collection<TestHostGroup> hostGroups = Lists.newArrayList(group1, group2);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+
+    // When
+    configProcessor.doUpdateForClusterCreate();
+
+    // Then
+    String expectedAuditHdfsDir = "hdfs://nn_host:100";
+
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-env", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-yarn-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-hdfs-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-hbase-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-hive-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-knox-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-kafka-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-storm-audit", "xasecure.audit.destination.hdfs.dir"));
+  }
+
+
+  @Test
+  public void testRangerEnv() throws Exception {
+    // Given
+    List<String> configTypesWithRangerHdfsAuditDir = ImmutableList.of(
+      "ranger-env",
+      "ranger-yarn-audit",
+      "ranger-hdfs-audit",
+      "ranger-hbase-audit",
+      "ranger-hive-audit",
+      "ranger-knox-audit",
+      "ranger-kafka-audit",
+      "ranger-storm-audit"
+    );
+    Map<String, Map<String, String>> clusterConfigProperties = new HashMap<>();
+
+    for (String configType: configTypesWithRangerHdfsAuditDir) {
+      Map<String, String> configProperties = new HashMap<>();
+      configProperties.put("xasecure.audit.destination.hdfs.dir", "hdfs://%HOSTGROUP::group2%:100");
+
+      clusterConfigProperties.put(configType, configProperties);
+    }
+
+
+    Map<String, Map<String, String>> parentProperties = new HashMap<>();
+    Configuration parentClusterConfig = new Configuration(parentProperties, new HashMap<String, Map<String, Map<String, String>>>());
+    Configuration clusterConfig = new Configuration(clusterConfigProperties, new HashMap<String, Map<String, Map<String, String>>>(), parentClusterConfig);
+
+    Collection<String> rangerComponents = new HashSet<>();
+    rangerComponents.add("RANGER_ADMIN");
+    rangerComponents.add("RANGER_USERSYNC");
+
+    Collection<String> hdfsComponents = new HashSet<String>();
+    hdfsComponents.add("NAMENODE");
+    hdfsComponents.add("DATANODE");
+
+    TestHostGroup group1 = new TestHostGroup("group1", rangerComponents, Collections.singleton("host1"));
+    group1.components.add("DATANODE");
+
+
+    TestHostGroup group2 = new TestHostGroup("group2", hdfsComponents, Collections.singleton("nn_host"));
+
+
+    Collection<TestHostGroup> hostGroups = Lists.newArrayList(group1, group2);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+
+    // When
+    configProcessor.doUpdateForClusterCreate();
+
+    // Then
+    String expectedAuditHdfsDir = "hdfs://nn_host:100";
+
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-env", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-yarn-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-hdfs-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-hbase-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-hive-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-knox-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-kafka-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-storm-audit", "xasecure.audit.destination.hdfs.dir"));
+  }
+
+
+  @Test
+  public void testRangerEnvWithHdfsHA() throws Exception {
+    // Given
+    List<String> configTypesWithRangerHdfsAuditDir = ImmutableList.of(
+      "ranger-env",
+      "ranger-yarn-audit",
+      "ranger-hdfs-audit",
+      "ranger-hbase-audit",
+      "ranger-hive-audit",
+      "ranger-knox-audit",
+      "ranger-kafka-audit",
+      "ranger-storm-audit"
+    );
+    Map<String, Map<String, String>> clusterConfigProperties = new HashMap<>();
+
+    for (String configType: configTypesWithRangerHdfsAuditDir) {
+      Map<String, String> configProperties = new HashMap<>();
+      configProperties.put("xasecure.audit.destination.hdfs.dir", "hdfs://my_name_service:100");
+
+      clusterConfigProperties.put(configType, configProperties);
+    }
+
+
+    // DFS name service
+    final String hdfsSiteConfigType = "hdfs-site";
+    Map<String, String> hdfsSiteProperties = new HashMap<>();
+    clusterConfigProperties.put(hdfsSiteConfigType, hdfsSiteProperties);
+    hdfsSiteProperties.put("dfs.nameservices", "my_name_service");
+    hdfsSiteProperties.put("dfs.ha.namenodes.my_name_service", "nn1,nn2");
+
+
+    Map<String, Map<String, String>> parentProperties = new HashMap<>();
+    Configuration parentClusterConfig = new Configuration(parentProperties, new HashMap<String, Map<String, Map<String, String>>>());
+    Configuration clusterConfig = new Configuration(clusterConfigProperties, new HashMap<String, Map<String, Map<String, String>>>(), parentClusterConfig);
+
+    Collection<String> rangerComponents = new HashSet<>();
+    rangerComponents.add("RANGER_ADMIN");
+    rangerComponents.add("RANGER_USERSYNC");
+
+    Collection<String> hdfsComponents = new HashSet<String>();
+    hdfsComponents.add("NAMENODE");
+    hdfsComponents.add("DATANODE");
+
+    TestHostGroup group1 = new TestHostGroup("group1", rangerComponents, Collections.singleton("host1"));
+    group1.components.addAll(hdfsComponents);
+
+
+    TestHostGroup group2 = new TestHostGroup("group2", hdfsComponents, Collections.singleton("host2"));
+
+
+    Collection<TestHostGroup> hostGroups = Lists.newArrayList(group1, group2);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+
+    // When
+    configProcessor.doUpdateForClusterCreate();
+
+    // Then
+    String expectedAuditHdfsDir = "hdfs://my_name_service:100";
+
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-env", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-yarn-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-hdfs-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-hbase-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-hive-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-knox-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-kafka-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-storm-audit", "xasecure.audit.destination.hdfs.dir"));
+  }
+
+
+  @Test
+  public void testRangerEnvBlueprintExport() throws Exception {
+    // Given
+    List<String> configTypesWithRangerHdfsAuditDir = ImmutableList.of(
+      "ranger-env",
+      "ranger-yarn-audit",
+      "ranger-hdfs-audit",
+      "ranger-hbase-audit",
+      "ranger-hive-audit",
+      "ranger-knox-audit",
+      "ranger-kafka-audit",
+      "ranger-storm-audit"
+    );
+    Map<String, Map<String, String>> clusterConfigProperties = new HashMap<>();
+
+    for (String configType: configTypesWithRangerHdfsAuditDir) {
+      Map<String, String> configProperties = new HashMap<>();
+      configProperties.put("xasecure.audit.destination.hdfs.dir", "hdfs://nn_host:100");
+
+      clusterConfigProperties.put(configType, configProperties);
+    }
+
+
+    Map<String, Map<String, String>> parentProperties = new HashMap<>();
+    Configuration parentClusterConfig = new Configuration(parentProperties, new HashMap<String, Map<String, Map<String, String>>>());
+    Configuration clusterConfig = new Configuration(clusterConfigProperties, new HashMap<String, Map<String, Map<String, String>>>(), parentClusterConfig);
+
+    Collection<String> rangerComponents = new HashSet<>();
+    rangerComponents.add("RANGER_ADMIN");
+    rangerComponents.add("RANGER_USERSYNC");
+
+    Collection<String> hdfsComponents = new HashSet<String>();
+    hdfsComponents.add("NAMENODE");
+    hdfsComponents.add("DATANODE");
+
+    TestHostGroup group1 = new TestHostGroup("group1", rangerComponents, Collections.singleton("host1"));
+    group1.components.add("DATANODE");
+
+
+    TestHostGroup group2 = new TestHostGroup("group2", hdfsComponents, Collections.singleton("nn_host"));
+
+
+    Collection<TestHostGroup> hostGroups = Lists.newArrayList(group1, group2);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+
+    // When
+    configProcessor.doUpdateForBlueprintExport();
+
+    // Then
+    String expectedAuditHdfsDir = "hdfs://%HOSTGROUP::group2%:100";
+
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-env", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-yarn-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-hdfs-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-hbase-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-hive-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-knox-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-kafka-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-storm-audit", "xasecure.audit.destination.hdfs.dir"));
+  }
+
+  @Test
+  public void testRangerEnvExportBlueprintWithHdfsHA() throws Exception {
+    // Given
+    List<String> configTypesWithRangerHdfsAuditDir = ImmutableList.of(
+      "ranger-env",
+      "ranger-yarn-audit",
+      "ranger-hdfs-audit",
+      "ranger-hbase-audit",
+      "ranger-hive-audit",
+      "ranger-knox-audit",
+      "ranger-kafka-audit",
+      "ranger-storm-audit"
+    );
+    Map<String, Map<String, String>> clusterConfigProperties = new HashMap<>();
+
+    for (String configType: configTypesWithRangerHdfsAuditDir) {
+      Map<String, String> configProperties = new HashMap<>();
+      configProperties.put("xasecure.audit.destination.hdfs.dir", "hdfs://my_name_service:100");
+
+      clusterConfigProperties.put(configType, configProperties);
+    }
+
+    // DFS name service
+    final String hdfsSiteConfigType = "hdfs-site";
+    Map<String, String> hdfsSiteProperties = new HashMap<>();
+    clusterConfigProperties.put(hdfsSiteConfigType, hdfsSiteProperties);
+    hdfsSiteProperties.put("dfs.nameservices", "my_name_service");
+    hdfsSiteProperties.put("dfs.ha.namenodes.my_name_service", "nn1,nn2");
+
+
+    Map<String, Map<String, String>> parentProperties = new HashMap<>();
+    Configuration parentClusterConfig = new Configuration(parentProperties, new HashMap<String, Map<String, Map<String, String>>>());
+    Configuration clusterConfig = new Configuration(clusterConfigProperties, new HashMap<String, Map<String, Map<String, String>>>(), parentClusterConfig);
+
+    Collection<String> rangerComponents = new HashSet<>();
+    rangerComponents.add("RANGER_ADMIN");
+    rangerComponents.add("RANGER_USERSYNC");
+
+    Collection<String> hdfsComponents = new HashSet<String>();
+    hdfsComponents.add("NAMENODE");
+    hdfsComponents.add("DATANODE");
+
+    TestHostGroup group1 = new TestHostGroup("group1", rangerComponents, Collections.singleton("host1"));
+    group1.components.addAll(hdfsComponents);
+
+
+    TestHostGroup group2 = new TestHostGroup("group2", hdfsComponents, Collections.singleton("host2"));
+
+
+    Collection<TestHostGroup> hostGroups = Lists.newArrayList(group1, group2);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+
+    // When
+    configProcessor.doUpdateForBlueprintExport();
+
+    // Then
+    String expectedAuditHdfsDir = "hdfs://my_name_service:100";
+
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-env", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-yarn-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-hdfs-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-hbase-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-hive-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-knox-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-kafka-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-storm-audit", "xasecure.audit.destination.hdfs.dir"));
+  }
+
+  @Test
   public void testRangerKmsServerProperties() throws Exception {
     // Given
 
