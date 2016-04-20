@@ -27,6 +27,10 @@ from mock.mock import patch, MagicMock
 # Local imports
 from stacks.utils.RMFTestCase import *
 
+# set locale for formatted strings from this alert
+import locale
+locale.setlocale(locale.LC_ALL, 'en_US')
+
 COMMON_SERVICES_ALERTS_DIR = "HDFS/2.1.0.2.0/package/alerts"
 
 file_path = os.path.dirname(os.path.abspath(__file__))
@@ -81,7 +85,8 @@ class TestAlertMetricsDeviation(RMFTestCase):
       'appId': 'NAMENODE',
       'minimumValue': 30.0,
       'kerberos.kinit.timer': 14400000L,
-      'metricName': 'metric1'
+      'metricName': 'metric1',
+      'metric.units': 'ms'
     }
   
   def test_missing_configs(self):
@@ -107,28 +112,28 @@ class TestAlertMetricsDeviation(RMFTestCase):
     [status, messages] = alert.execute(configurations=configs, parameters=parameters)
     self.assertEqual(status, RESULT_STATE_OK)
     self.assertTrue(messages is not None and len(messages) == 1)
-    self.assertEquals('No datapoints found above the minimum threshold of 30 seconds',messages[0])
+    self.assertEquals('There were no data points above the minimum threshold of 30 seconds',messages[0])
 
     # Unable to calculate the standard deviation for 1 data point
     response.read.return_value = '{"metrics":[{"metricname":"metric1","metrics":{"1459966360838":40000}}]}'
     [status, messages] = alert.execute(configurations=configs, parameters=parameters)
     self.assertEqual(status, RESULT_STATE_SKIPPED)
     self.assertTrue(messages is not None and len(messages) == 1)
-    self.assertEquals('Unable to calculate the standard deviation for 1 datapoints', messages[0])
+    self.assertEquals('There are not enough data points to calculate the standard deviation (1 sampled)', messages[0])
 
     # OK
     response.read.return_value = '{"metrics":[{"metricname":"metric1","metrics":{"1459966360838":40000,"1459966370838":50000}}]}'
     [status, messages] = alert.execute(configurations=configs, parameters=parameters)
     self.assertEqual(status, RESULT_STATE_OK)
     self.assertTrue(messages is not None and len(messages) == 1)
-    self.assertTrue('OK. Percentage standard deviation value is' in messages[0])
+    self.assertEquals('The variance for this alert is 7,071ms which is within 100% of the 45,000ms average (45,000ms is the limit)', messages[0])
 
     # Warning
     response.read.return_value = '{"metrics":[{"metricname":"metric1","metrics":{"1459966360838":40000,"1459966370838":1000000}}]}'
     [status, messages] = alert.execute(configurations=configs, parameters=parameters)
     self.assertEqual(status, RESULT_STATE_WARNING)
     self.assertTrue(messages is not None and len(messages) == 1)
-    self.assertTrue('WARNING. Percentage standard deviation' in messages[0])
+    self.assertEquals('The variance for this alert is 678,823ms which is 131% of the 520,000ms average (520,000ms is the limit)', messages[0])
 
     # HTTP request to AMS failed
     response.read.return_value = ''
@@ -136,11 +141,11 @@ class TestAlertMetricsDeviation(RMFTestCase):
     [status, messages] = alert.execute(configurations=configs, parameters=parameters)
     self.assertEqual(status, RESULT_STATE_UNKNOWN)
     self.assertTrue(messages is not None and len(messages) == 1)
-    self.assertEquals('Unable to retrieve metrics from AMS.', messages[0])
+    self.assertEquals('Unable to retrieve metrics from the Ambari Metrics service.', messages[0])
 
     # Unable to connect to AMS
     conn_mock.side_effect = Exception('Unable to connect to AMS')
     [status, messages] = alert.execute(configurations=configs, parameters=parameters)
     self.assertEqual(status, RESULT_STATE_UNKNOWN)
     self.assertTrue(messages is not None and len(messages) == 1)
-    self.assertEquals('Unable to retrieve metrics from AMS.', messages[0])
+    self.assertEquals('Unable to retrieve metrics from the Ambari Metrics service.', messages[0])

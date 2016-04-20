@@ -474,7 +474,7 @@ public class AlertReceivedListenerTest {
    * create an entry if there is currently no current alert.
    */
   @Test
-  public void testSkippedAlertUpdatesTimestamp() {
+  public void testSkippedAlertUpdatesTimestampAndText() {
     String definitionName = ALERT_DEFINITION + "1";
     String serviceName = "HDFS";
     String componentName = "NAMENODE";
@@ -504,15 +504,26 @@ public class AlertReceivedListenerTest {
     alert.setState(AlertState.SKIPPED);
     alert.setTimestamp(2L);
 
-    // the logic we have does NOT update the text, so make sure this does not
-    // change
-    alert.setText("INVALID");
+    // we should allow updating the text if the text is provided
+    text = text + " Updated";
+    alert.setText(text);
 
     // get the current make sure the fields were updated
     listener.onAlertEvent(event);
     allCurrent = m_dao.findCurrent();
     assertEquals(1L, (long) allCurrent.get(0).getOriginalTimestamp());
     assertEquals(2L, (long) allCurrent.get(0).getLatestTimestamp());
+    assertEquals(text, allCurrent.get(0).getLatestText());
+
+    // verify that blank text does not update
+    alert.setText("");
+    alert.setTimestamp(3L);
+
+    // get the current make sure the text was not updated
+    listener.onAlertEvent(event);
+    allCurrent = m_dao.findCurrent();
+    assertEquals(1L, (long) allCurrent.get(0).getOriginalTimestamp());
+    assertEquals(3L, (long) allCurrent.get(0).getLatestTimestamp());
     assertEquals(text, allCurrent.get(0).getLatestText());
   }
 

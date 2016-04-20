@@ -371,6 +371,7 @@ public class UpgradeCatalog240Test {
     Method updateYarnEnv = UpgradeCatalog240.class.getDeclaredMethod("updateYarnEnv");
     Method removeHiveOozieDBConnectionConfigs = UpgradeCatalog240.class.getDeclaredMethod("removeHiveOozieDBConnectionConfigs");
     Method updateClustersAndHostsVersionStateTableDML = UpgradeCatalog240.class.getDeclaredMethod("updateClustersAndHostsVersionStateTableDML");
+    Method removeStandardDeviationAlerts = UpgradeCatalog240.class.getDeclaredMethod("removeStandardDeviationAlerts");
 
     Capture<String> capturedStatements = newCapture(CaptureType.ALL);
 
@@ -390,6 +391,7 @@ public class UpgradeCatalog240Test {
             .addMockedMethod(updateYarnEnv)
             .addMockedMethod(removeHiveOozieDBConnectionConfigs)
             .addMockedMethod(updateClustersAndHostsVersionStateTableDML)
+            .addMockedMethod(removeStandardDeviationAlerts)
             .createMock();
 
     Field field = AbstractUpgradeCatalog.class.getDeclaredField("dbAccessor");
@@ -407,6 +409,7 @@ public class UpgradeCatalog240Test {
     upgradeCatalog240.updateYarnEnv();
     upgradeCatalog240.removeHiveOozieDBConnectionConfigs();
     upgradeCatalog240.updateClustersAndHostsVersionStateTableDML();
+    upgradeCatalog240.removeStandardDeviationAlerts();
 
     replay(upgradeCatalog240, dbAccessor);
 

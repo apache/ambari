@@ -232,13 +232,26 @@ public class AlertReceivedListener {
           // ensure that if we've met the repeat tolerance and the alert is
           // still SOFT, then we transition it to HARD - we also need to fire an
           // event
-          AlertFirmness currentFirmness = current.getFirmness();
+          AlertFirmness firmness = current.getFirmness();
           int repeatTolerance = getRepeatTolerance(definition, clusterName);
-          if (currentFirmness == AlertFirmness.SOFT && occurrences >= repeatTolerance) {
+          if (firmness == AlertFirmness.SOFT && occurrences >= repeatTolerance) {
             current.setFirmness(AlertFirmness.HARD);
 
             // create the event to fire later
-            alertEvents.add(new AlertStateChangeEvent(clusterId, alert, current, alertState));
+            AlertStateChangeEvent stateChangedEvent = new AlertStateChangeEvent(clusterId, alert,
+                current, alertState, firmness);
+
+            alertEvents.add(stateChangedEvent);
+          }
+        }
+
+        // some special cases for SKIPPED alerts
+        if (alertState == AlertState.SKIPPED) {
+          // set the text on a SKIPPED alert IFF it's not blank; a blank text
+          // field means that the alert doesn't want to change the existing text
+          String alertText = alert.getText();
+          if (StringUtils.isNotBlank(alertText)) {
+            current.setLatestText(alertText);
           }
         }
 
@@ -255,6 +268,7 @@ public class AlertReceivedListener {
 
         AlertHistoryEntity oldHistory = current.getAlertHistory();
         AlertState oldState = oldHistory.getAlertState();
+        AlertFirmness oldFirmness = current.getFirmness();
 
         // insert history, update current
         AlertHistoryEntity history = createHistory(clusterId,
@@ -299,7 +313,7 @@ public class AlertReceivedListener {
         toCreateHistoryAndMerge.add(current);
 
         // create the event to fire later
-        alertEvents.add(new AlertStateChangeEvent(clusterId, alert, current, oldState));
+        alertEvents.add(new AlertStateChangeEvent(clusterId, alert, current, oldState, oldFirmness));
       }
     }
 

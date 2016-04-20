@@ -18,15 +18,22 @@
 
 package org.apache.ambari.server.upgrade;
 
-import com.google.common.collect.Lists;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.persist.Transactional;
+import java.sql.Clob;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
@@ -49,21 +56,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.support.JdbcUtils;
 
-import java.sql.Clob;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicLong;
+import com.google.common.collect.Lists;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.persist.Transactional;
 
 /**
  * Upgrade catalog for version 2.4.0.
@@ -208,6 +209,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     updateYarnEnv();
     removeHiveOozieDBConnectionConfigs();
     updateClustersAndHostsVersionStateTableDML();
+    removeStandardDeviationAlerts();
   }
 
   private void createSettingTable() throws SQLException {
@@ -348,18 +350,6 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
       }});
       put("hive_metastore_process", defaultKeytabVisibilityMap);
       put("hive_server_process", defaultKeytabVisibilityMap);
-      put("namenode_service_rpc_queue_latency_hourly", hdfsVisibilityMap);
-      put("namenode_client_rpc_queue_latency_hourly", hdfsVisibilityMap);
-      put("namenode_service_rpc_processing_latency_hourly", hdfsVisibilityMap);
-      put("namenode_client_rpc_processing_latency_hourly", hdfsVisibilityMap);
-      put("increase_nn_heap_usage_daily", hdfsVisibilityMap);
-      put("namenode_service_rpc_processing_latency_daily", hdfsVisibilityMap);
-      put("namenode_client_rpc_processing_latency_daily", hdfsVisibilityMap);
-      put("namenode_service_rpc_queue_latency_daily", hdfsVisibilityMap);
-      put("namenode_client_rpc_queue_latency_daily", hdfsVisibilityMap);
-      put("namenode_increase_in_storage_capacity_usage_daily", hdfsVisibilityMap);
-      put("increase_nn_heap_usage_weekly", hdfsVisibilityMap);
-      put("namenode_increase_in_storage_capacity_usage_weekly", hdfsVisibilityMap);
     }};
 
     Map<String, Map<String, String>> reportingPercentMap = new HashMap<String, Map<String, String>>(){{
@@ -446,18 +436,6 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
 
     // list of alerts that need to get property updates
     Set<String> alertNamesForPropertyUpdates = new HashSet<String>() {{
-      add("namenode_service_rpc_queue_latency_hourly");
-      add("namenode_client_rpc_queue_latency_hourly");
-      add("namenode_service_rpc_processing_latency_hourly");
-      add("namenode_client_rpc_processing_latency_hourly");
-      add("increase_nn_heap_usage_daily");
-      add("namenode_service_rpc_processing_latency_daily");
-      add("namenode_client_rpc_processing_latency_daily");
-      add("namenode_service_rpc_queue_latency_daily");
-      add("namenode_client_rpc_queue_latency_daily");
-      add("namenode_increase_in_storage_capacity_usage_daily");
-      add("increase_nn_heap_usage_weekly");
-      add("namenode_increase_in_storage_capacity_usage_weekly");
       add("hawq_segment_process_percent");
       add("mapreduce_history_server_cpu");
       add("yarn_nodemanager_webui_percent");
@@ -1527,4 +1505,43 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     }
   }
 
+  /**
+   * Removes the HDFS/AMS alert definitions for the standard deviation alerts,
+   * including all history, notifications and groupings.
+   * <p/>
+   * These alerts shipped disabled and were not functional in prior versions of
+   * Ambari. This is the cleanest and simplest way to update them all as they
+   * will be read back into Ambari on server startup.
+   *
+   * @throws SQLException
+   */
+  void removeStandardDeviationAlerts() throws SQLException {
+    List<String> deviationAlertNames = Lists.newArrayList(
+        "namenode_service_rpc_queue_latency_hourly",
+        "namenode_client_rpc_queue_latency_hourly",
+        "namenode_service_rpc_processing_latency_hourly",
+        "namenode_client_rpc_processing_latency_hourly",
+        "increase_nn_heap_usage_daily",
+        "namenode_service_rpc_processing_latency_daily",
+        "namenode_client_rpc_processing_latency_daily",
+        "namenode_service_rpc_queue_latency_daily",
+        "namenode_client_rpc_queue_latency_daily",
+        "namenode_increase_in_storage_capacity_usage_daily",
+        "increase_nn_heap_usage_weekly",
+        "namenode_increase_in_storage_capacity_usage_weekly");
+
+    AlertDefinitionDAO alertDefinitionDAO = injector.getInstance(AlertDefinitionDAO.class);
+    Clusters clusters = injector.getInstance(Clusters.class);
+    Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
+    for (final Cluster cluster : clusterMap.values()) {
+      long clusterId = cluster.getClusterId();
+
+      for (String alertName : deviationAlertNames) {
+        AlertDefinitionEntity definition = alertDefinitionDAO.findByName(clusterId, alertName);
+        if (null != definition) {
+          alertDefinitionDAO.remove(definition);
+        }
+      }
+    }
+  }
 }

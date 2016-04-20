@@ -117,7 +117,8 @@ public class AggregateAlertListenerTest {
     // trigger an alert which will trigger the aggregate
     Alert alert = new Alert("mock-alert", null, null, null, null, null);
     AlertAggregateListener aggregateListener = m_injector.getInstance(AlertAggregateListener.class);
-    AlertStateChangeEvent event = new AlertStateChangeEvent(0, alert, currentEntityMock, null);
+    AlertStateChangeEvent event = new AlertStateChangeEvent(0, alert, currentEntityMock, null,
+        AlertFirmness.HARD);
     aggregateListener.onAlertStateChangeEvent(event);
 
     // verify that one AlertReceivedEvent was fired (it's the one the listener
@@ -169,7 +170,8 @@ public class AggregateAlertListenerTest {
     // the alert will be SOFT and should not cause a recalculation
     Alert alert = new Alert("mock-alert", null, null, null, null, null);
     AlertAggregateListener aggregateListener = m_injector.getInstance(AlertAggregateListener.class);
-    AlertStateChangeEvent event = new AlertStateChangeEvent(0, alert, currentEntityMock, null);
+    AlertStateChangeEvent event = new AlertStateChangeEvent(0, alert, currentEntityMock, null,
+        AlertFirmness.HARD);
     aggregateListener.onAlertStateChangeEvent(event);
 
     // ensure that the aggregate listener did not trigger an alert in response

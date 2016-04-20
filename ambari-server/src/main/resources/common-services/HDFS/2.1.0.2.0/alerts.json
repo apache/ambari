@@ -613,6 +613,14 @@
               "type": "NUMERIC",
               "units": "seconds",
               "description": "The minimum latency to measure growth."
+            },
+            {
+              "name": "metric.units",
+              "display_name": "Metric Units",
+              "type": "STRING",
+              "value": "ms",
+              "description": "The units that the metric data points are reported in.",
+              "visibility": "HIDDEN"
             }
           ]
         }
@@ -685,6 +693,14 @@
               "type": "NUMERIC",
               "units": "seconds",
               "description": "The minimum latency to measure growth."
+            },
+            {
+              "name": "metric.units",
+              "display_name": "Metric Units",
+              "type": "STRING",
+              "value": "ms",
+              "description": "The units that the metric data points are reported in.",
+              "visibility": "HIDDEN"
             }
           ]
         }
@@ -757,6 +773,14 @@
               "type": "NUMERIC",
               "units": "seconds",
               "description": "The minimum latency to measure growth."
+            },
+            {
+              "name": "metric.units",
+              "display_name": "Metric Units",
+              "type": "STRING",
+              "value": "ms",
+              "description": "The units that the metric data points are reported in.",
+              "visibility": "HIDDEN"
             }
           ]
         }
@@ -829,6 +853,14 @@
               "type": "NUMERIC",
               "units": "seconds",
               "description": "The minimum latency to measure growth."
+            },
+            {
+              "name": "metric.units",
+              "display_name": "Metric Units",
+              "type": "STRING",
+              "value": "ms",
+              "description": "The units that the metric data points are reported in.",
+              "visibility": "HIDDEN"
             }
           ]
         }
@@ -893,6 +925,14 @@
               "value": 50,
               "description": "The percentage of NameNode heap usage growth.",
               "threshold": "CRITICAL"
+            },
+            {
+              "name": "metric.units",
+              "display_name": "Metric Units",
+              "type": "STRING",
+              "value": "MB",
+              "description": "The units that the metric data points are reported in.",
+              "visibility": "HIDDEN"
             }
           ]
         }
@@ -965,6 +1005,14 @@
               "type": "NUMERIC",
               "units": "seconds",
               "description": "The minimum latency to measure growth."
+            },
+            {
+              "name": "metric.units",
+              "display_name": "Metric Units",
+              "type": "STRING",
+              "value": "ms",
+              "description": "The units that the metric data points are reported in.",
+              "visibility": "HIDDEN"
             }
           ]
         }
@@ -1037,6 +1085,14 @@
               "type": "NUMERIC",
               "units": "seconds",
               "description": "The minimum latency to measure growth."
+            },
+            {
+              "name": "metric.units",
+              "display_name": "Metric Units",
+              "type": "STRING",
+              "value": "ms",
+              "description": "The units that the metric data points are reported in.",
+              "visibility": "HIDDEN"
             }
           ]
         }
@@ -1109,6 +1165,14 @@
               "type": "NUMERIC",
               "units": "seconds",
               "description": "The minimum latency to measure growth."
+            },
+            {
+              "name": "metric.units",
+              "display_name": "Metric Units",
+              "type": "STRING",
+              "value": "MB",
+              "description": "The units that the metric data points are reported in.",
+              "visibility": "HIDDEN"
             }
           ]
         }
@@ -1181,6 +1245,14 @@
               "type": "NUMERIC",
               "units": "seconds",
               "description": "The minimum latency to measure growth."
+            },
+            {
+              "name": "metric.units",
+              "display_name": "Metric Units",
+              "type": "STRING",
+              "value": "ms",
+              "description": "The units that the metric data points are reported in.",
+              "visibility": "HIDDEN"
             }
           ]
         }
@@ -1245,6 +1317,14 @@
               "value": 50,
               "description": "The percentage of storage capacity usage growth.",
               "threshold": "CRITICAL"
+            },
+            {
+              "name": "metric.units",
+              "display_name": "Metric Units",
+              "type": "STRING",
+              "value": "B",
+              "description": "The units that the metric data points are reported in.",
+              "visibility": "HIDDEN"
             }
           ]
         }
@@ -1309,6 +1389,14 @@
               "value": 50,
               "description": "The percentage of NameNode heap usage growth.",
               "threshold": "CRITICAL"
+            },
+            {
+              "name": "metric.units",
+              "display_name": "Metric Units",
+              "type": "STRING",
+              "value": "MB",
+              "description": "The units that the metric data points are reported in.",
+              "visibility": "HIDDEN"
             }
           ]
         }
@@ -1373,6 +1461,14 @@
               "value": 20,
               "description": "The percentage of storage capacity usage growth.",
               "threshold": "CRITICAL"
+            },
+            {
+              "name": "metric.units",
+              "display_name": "Metric Units",
+              "type": "STRING",
+              "value": "B",
+              "description": "The units that the metric data points are reported in.",
+              "visibility": "HIDDEN"
             }
           ]
         }

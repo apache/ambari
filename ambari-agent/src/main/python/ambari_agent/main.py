@@ -49,6 +49,10 @@ from resource_management.core.logger import Logger
 logger = logging.getLogger()
 alerts_logger = logging.getLogger('ambari_alerts')
 
+# use the host's locale for numeric formatting
+import locale
+locale.setlocale(locale.LC_ALL, '')
+
 formatstr = "%(levelname)s %(asctime)s %(filename)s:%(lineno)d - %(message)s"
 agentPid = os.getpid()
 config = AmbariConfig.AmbariConfig()

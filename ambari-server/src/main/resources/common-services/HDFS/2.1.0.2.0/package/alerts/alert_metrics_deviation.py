@@ -18,12 +18,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import httplib
-
+import locale
 import json
 import logging
 import urllib
 import time
 import urllib2
+
 from resource_management import Environment
 from ambari_commons.aggregate_functions import sample_standard_deviation, mean
 
@@ -62,6 +63,8 @@ MERGE_HA_METRICS_PARAM_KEY = 'mergeHaMetrics'
 MERGE_HA_METRICS_PARAM_DEFAULT = False
 METRIC_NAME_PARAM_KEY = 'metricName'
 METRIC_NAME_PARAM_DEFAULT = ''
+METRIC_UNITS_PARAM_KEY = 'metric.units'
+METRIC_UNITS_DEFAULT = ''
 APP_ID_PARAM_KEY = 'appId'
 APP_ID_PARAM_DEFAULT = 'NAMENODE'
 
@@ -81,6 +84,12 @@ NAMENODE_SERVICE_RPC_PORT_KEY = ''
 MINIMUM_VALUE_THRESHOLD_KEY = 'minimumValue'
 
 AMS_METRICS_GET_URL = "/ws/v1/timeline/metrics?%s"
+
+# The variance for this alert is 27MB which is 27% of the 100MB average (20MB is the limit)
+DEVIATION_THRESHOLD_MESSAGE = "The variance for this alert is {0}{1} which is {2:.0f}% of the {3}{4} average ({5}{6} is the limit)"
+
+# The variance for this alert is 15MB which is within 20% of the 904ms average (20MB is the limit)
+DEVIATION_OK_MESSAGE = "The variance for this alert is {0}{1} which is within {2:.0f}% of the {3}{4} average ({5}{6} is the limit)"
 
 logger = logging.getLogger()
 
@@ -123,6 +132,10 @@ def execute(configurations={}, parameters={}, host_name=None):
   if METRIC_NAME_PARAM_KEY in parameters:
     metric_name = parameters[METRIC_NAME_PARAM_KEY]
 
+  metric_units = METRIC_UNITS_DEFAULT
+  if METRIC_UNITS_PARAM_KEY in parameters:
+    metric_units = parameters[METRIC_UNITS_PARAM_KEY]
+
   app_id = APP_ID_PARAM_DEFAULT
   if APP_ID_PARAM_KEY in parameters:
     app_id = parameters[APP_ID_PARAM_KEY]
@@ -160,7 +173,8 @@ def execute(configurations={}, parameters={}, host_name=None):
       collector_host = collector_webapp_address[0]
       collector_port = int(collector_webapp_address[1])
     else:
-      return (RESULT_STATE_UNKNOWN, ['{0} value should be set as "fqdn_hostname:port", but set to {1}'.format(METRICS_COLLECTOR_WEBAPP_ADDRESS_KEY, configurations[METRICS_COLLECTOR_WEBAPP_ADDRESS_KEY])])
+      return (RESULT_STATE_UNKNOWN, ['{0} value should be set as "fqdn_hostname:port", but set to {1}'.format(
+        METRICS_COLLECTOR_WEBAPP_ADDRESS_KEY, configurations[METRICS_COLLECTOR_WEBAPP_ADDRESS_KEY])])
 
   namenode_service_rpc_address = None
   # hdfs-site is required
@@ -263,14 +277,14 @@ def execute(configurations={}, parameters={}, host_name=None):
               namenode_service_rpc_address = hdfs_site[nn_service_rpc_address_key]
           pass
         except:
-          logger.exception("Unable to determine active NameNode")
+          logger.exception("Unable to determine the active NameNode")
     pass
 
     if merge_ha_metrics:
       hostnames = ",".join(namenodes)
       # run only on active NN, no need to run the same requests from the standby
       if host_name not in active_namenodes:
-        return (RESULT_STATE_SKIPPED, ['Another host will report this alert'])
+        return (RESULT_STATE_SKIPPED, ['This alert will be reported by another host.'])
     pass
 
   # Skip service rpc alert if port is not enabled
@@ -296,10 +310,10 @@ def execute(configurations={}, parameters={}, host_name=None):
     data = response.read()
     conn.close()
   except Exception:
-    return (RESULT_STATE_UNKNOWN, ["Unable to retrieve metrics from AMS."])
+    return (RESULT_STATE_UNKNOWN, ["Unable to retrieve metrics from the Ambari Metrics service."])
 
   if response.status != 200:
-    return (RESULT_STATE_UNKNOWN, ["Unable to retrieve metrics from AMS."])
+    return (RESULT_STATE_UNKNOWN, ["Unable to retrieve metrics from the Ambari Metrics service."])
 
   data_json = json.loads(data)
   metrics = []
@@ -310,37 +324,69 @@ def execute(configurations={}, parameters={}, host_name=None):
   pass
 
   if not metrics or len(metrics) < 2:
-    return (RESULT_STATE_SKIPPED, ["Unable to calculate the standard deviation for {0} datapoints".format(len(metrics))])
+    number_of_data_points = len(metrics) if metrics else 0
+    return (RESULT_STATE_SKIPPED, ["There are not enough data points to calculate the standard deviation ({0} sampled)".format(
+      number_of_data_points)])
 
   if minimum_value_threshold:
     # Filter out points below min threshold
     metrics = [metric for metric in metrics if metric > (minimum_value_threshold * 1000)]
     if len(metrics) < 2:
-      return (RESULT_STATE_OK, ['No datapoints found above the minimum threshold of {0} seconds'.format(minimum_value_threshold)])
+      return (RESULT_STATE_OK, ['There were no data points above the minimum threshold of {0} seconds'.format(minimum_value_threshold)])
 
   mean_value = mean(metrics)
   stddev = sample_standard_deviation(metrics)
-  max_value = max(metrics) / 1000
 
   try:
-    deviation_percent = stddev / mean_value * 100
+    deviation_percent = stddev / float(mean_value) * 100
   except ZeroDivisionError:
     # should not be a case for this alert
-    return (RESULT_STATE_SKIPPED, ["Unable to calculate the standard deviation percentage. The mean value is 0"])
+    return (RESULT_STATE_SKIPPED, ["Unable to calculate the standard deviation because the mean value is 0"])
 
-  logger.debug("""
-  AMS request parameters - {0}
-  AMS response - {1}
-  Mean - {2}
-  Standard deviation - {3}
-  Percentage standard deviation - {4}
-  """.format(encoded_get_metrics_parameters, data_json, mean_value, stddev, deviation_percent))
+  # log the AMS request
+  if logger.isEnabledFor(logging.DEBUG):
+    logger.debug("""
+    AMS request parameters - {0}
+    AMS response - {1}
+    Mean - {2}
+    Standard deviation - {3}
+    Percentage standard deviation - {4}
+    """.format(encoded_get_metrics_parameters, data_json, mean_value, stddev, deviation_percent))
 
+  mean_value_localized = locale.format("%.0f", mean_value, grouping=True)
+
+  variance_value = (deviation_percent / 100.0) * mean_value
+  variance_value_localized = locale.format("%.0f", variance_value, grouping=True)
+
+  # check for CRITICAL status
   if deviation_percent > critical_threshold:
-    return (RESULT_STATE_CRITICAL,['CRITICAL. Percentage standard deviation value {0}% is beyond the critical threshold of {1}% (growing {2} seconds to {3} seconds)'.format("%.2f" % deviation_percent, "%.2f" % critical_threshold, minimum_value_threshold, "%.2f" % max_value)])
+    threshold_value = ((critical_threshold / 100.0) * mean_value)
+    threshold_value_localized = locale.format("%.0f", threshold_value, grouping=True)
+
+    message = DEVIATION_THRESHOLD_MESSAGE.format(variance_value_localized, metric_units, deviation_percent,
+      mean_value_localized, metric_units, threshold_value_localized, metric_units)
+
+    return (RESULT_STATE_CRITICAL,[message])
+
+  # check for WARNING status
   if deviation_percent > warning_threshold:
-    return (RESULT_STATE_WARNING,['WARNING. Percentage standard deviation value {0}% is beyond the warning threshold of {1}% (growing {2} seconds to {3} seconds)'.format("%.2f" % deviation_percent, "%.2f" % warning_threshold, minimum_value_threshold, "%.2f" % max_value)])
-  return (RESULT_STATE_OK,['OK. Percentage standard deviation value is {0}%'.format("%.2f" % deviation_percent)])
+    threshold_value = ((warning_threshold / 100.0) * mean_value)
+    threshold_value_localized = locale.format("%.0f", threshold_value, grouping = True)
+
+    message = DEVIATION_THRESHOLD_MESSAGE.format(variance_value_localized, metric_units, deviation_percent,
+      mean_value_localized, metric_units, threshold_value_localized, metric_units)
+
+    return (RESULT_STATE_WARNING, [message])
+
+  # return OK status; use the warning threshold as the value to compare against
+  threshold_value = ((warning_threshold / 100.0) * mean_value)
+  threshold_value_localized = locale.format("%.0f", threshold_value, grouping = True)
+
+  message = DEVIATION_OK_MESSAGE.format(variance_value_localized, metric_units, warning_threshold,
+    mean_value_localized, metric_units, threshold_value_localized, metric_units)
+
+  return (RESULT_STATE_OK,[message])
+
 
 def valid_collector_webapp_address(webapp_address):
   if len(webapp_address) == 2 \
@@ -350,6 +396,7 @@ def valid_collector_webapp_address(webapp_address):
     return True
 
   return False
+
 
 def get_jmx(query, connection_timeout):
   response = None

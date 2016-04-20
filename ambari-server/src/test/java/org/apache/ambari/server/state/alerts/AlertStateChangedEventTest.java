@@ -231,10 +231,50 @@ public class AlertStateChangedEventTest {
     EasyMock.expect(current.getAlertHistory()).andReturn(history).anyTimes();
     EasyMock.expect(current.getFirmness()).andReturn(AlertFirmness.SOFT).atLeastOnce();
 
-
     EasyMock.expect(history.getAlertDefinition()).andReturn(definition).atLeastOnce();
     EasyMock.expect(alert.getText()).andReturn("The HDFS Foo Alert Is Not Good").atLeastOnce();
     EasyMock.expect(alert.getState()).andReturn(AlertState.CRITICAL).atLeastOnce();
+    EasyMock.expect(event.getCurrentAlert()).andReturn(current).atLeastOnce();
+    EasyMock.expect(event.getNewHistoricalEntry()).andReturn(history).atLeastOnce();
+    EasyMock.expect(event.getAlert()).andReturn(alert).atLeastOnce();
+
+    EasyMock.replay(definition, current, history, event, alert);
+
+    // async publishing
+    eventPublisher.publish(event);
+    EasyMock.verify(dispatchDao, current, history, event);
+  }
+
+  /**
+   * Tests that an alert with a firmness of {@link AlertFirmness#HARD} and state
+   * of {@link AlertState#OK} does not trigger any notifications when coming
+   * from a {@link AlertFirmness#SOFT} non-OK alert.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testSoftAlertTransitionToHardOKDoesNotCreateNotification() throws Exception {
+    EasyMock.replay(dispatchDao);
+
+    AlertDefinitionEntity definition = getMockAlertDefinition();
+
+    AlertCurrentEntity current = getMockedAlertCurrentEntity();
+    AlertHistoryEntity history = EasyMock.createNiceMock(AlertHistoryEntity.class);
+    AlertStateChangeEvent event = EasyMock.createNiceMock(AlertStateChangeEvent.class);
+    Alert alert = EasyMock.createNiceMock(Alert.class);
+
+    // register a HARD/OK for the brand new alert coming in
+    EasyMock.expect(current.getAlertHistory()).andReturn(history).anyTimes();
+    EasyMock.expect(current.getFirmness()).andReturn(AlertFirmness.HARD).atLeastOnce();
+    EasyMock.expect(history.getAlertDefinition()).andReturn(definition).atLeastOnce();
+    EasyMock.expect(history.getAlertState()).andReturn(AlertState.OK).atLeastOnce();
+    EasyMock.expect(alert.getText()).andReturn("The HDFS Foo Alert Is Good").atLeastOnce();
+    EasyMock.expect(alert.getState()).andReturn(AlertState.OK).atLeastOnce();
+
+    // set the old state as being a SOFT/CRITICAL
+    EasyMock.expect(event.getFromState()).andReturn(AlertState.CRITICAL).anyTimes();
+    EasyMock.expect(event.getFromFirmness()).andReturn(AlertFirmness.SOFT).atLeastOnce();
+
     EasyMock.expect(event.getCurrentAlert()).andReturn(current).atLeastOnce();
     EasyMock.expect(event.getNewHistoricalEntry()).andReturn(history).atLeastOnce();
     EasyMock.expect(event.getAlert()).andReturn(alert).atLeastOnce();

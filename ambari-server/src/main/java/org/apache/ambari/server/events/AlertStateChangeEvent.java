@@ -38,6 +38,11 @@ public class AlertStateChangeEvent extends AlertEvent {
   private final AlertState m_fromState;
 
   /**
+   * The prior alert firmness.
+   */
+  private final AlertFirmness m_fromFirmness;
+
+  /**
    * The current alert, including state and history.
    */
   private final AlertCurrentEntity m_currentAlert;
@@ -52,14 +57,18 @@ public class AlertStateChangeEvent extends AlertEvent {
    *
    * @param clusterId
    * @param alert
+   * @param currentAlert
+   * @param fromState
+   * @param fromFirmness
    */
   public AlertStateChangeEvent(long clusterId, Alert alert,
-      AlertCurrentEntity currentAlert, AlertState fromState) {
+      AlertCurrentEntity currentAlert, AlertState fromState, AlertFirmness fromFirmness) {
     super(clusterId, alert);
 
     m_currentAlert = currentAlert;
     m_history = currentAlert.getAlertHistory();
     m_fromState = fromState;
+    m_fromFirmness = fromFirmness;
   }
 
   /**
@@ -87,6 +96,15 @@ public class AlertStateChangeEvent extends AlertEvent {
    */
   public AlertState getFromState() {
     return m_fromState;
+  }
+
+  /**
+   * Gets the prior firmness of the alert.
+   *
+   * @return the prior firmness of the alert.
+   */
+  public AlertFirmness getFromFirmness() {
+    return m_fromFirmness;
   }
 
   /**

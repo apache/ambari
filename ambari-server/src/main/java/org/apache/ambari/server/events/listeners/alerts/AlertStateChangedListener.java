@@ -47,11 +47,15 @@ import com.google.inject.Singleton;
 
 /**
  * The {@link AlertStateChangedListener} class response to
- * {@link AlertStateChangeEvent} and updates {@link AlertNoticeEntity} instances
+ * {@link AlertStateChangeEvent} and creates {@link AlertNoticeEntity} instances
  * in the database.
  * <p/>
  * {@link AlertNoticeEntity} instances will only be updated if the firmness of
- * the alert is {@link AlertFirmness#HARD}.
+ * the alert is {@link AlertFirmness#HARD}. In the case of {@link AlertState#OK}
+ * (which is always {@link AlertFirmness#HARD}), then the prior alert must be
+ * {@link AlertFirmness#HARD} for any notifications to be created. This is
+ * because a SOFT non-OK alert (such as CRITICAL) would not have caused a
+ * notification, so changing back from this SOFT state should not either.
  */
 @Singleton
 @EagerSingleton
@@ -116,6 +120,15 @@ public class AlertStateChangedListener {
 
     // do nothing if the firmness is SOFT
     if (current.getFirmness() == AlertFirmness.SOFT) {
+      return;
+    }
+
+    // OK alerts are always HARD, so we need to catch the case where we are
+    // coming from a SOFT non-OK to an OK; in these cases we should not alert
+    //
+    // New State = OK
+    // Old Firmness = SOFT
+    if (history.getAlertState() == AlertState.OK && event.getFromFirmness() == AlertFirmness.SOFT) {
       return;
     }
 

@@ -29,8 +29,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
-import junit.framework.Assert;
-
 import org.apache.ambari.server.events.AlertEvent;
 import org.apache.ambari.server.events.AlertReceivedEvent;
 import org.apache.ambari.server.events.AlertStateChangeEvent;
@@ -51,6 +49,7 @@ import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.orm.entities.AlertNoticeEntity;
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
 import org.apache.ambari.server.state.Alert;
+import org.apache.ambari.server.state.AlertFirmness;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -78,6 +77,8 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
 import com.google.inject.persist.UnitOfWork;
+
+import junit.framework.Assert;
 
 
 /**
@@ -318,7 +319,7 @@ public class AlertDataManagerTest {
 
     AlertStateChangeEvent event = new AlertStateChangeEvent(
         m_cluster.getClusterId(), alert1,
-        currentAlert, AlertState.CRITICAL);
+        currentAlert, AlertState.CRITICAL, AlertFirmness.HARD);
 
     AlertStateChangedListener listener = m_injector.getInstance(AlertStateChangedListener.class);
     listener.onAlertEvent(event);
@@ -457,7 +458,7 @@ public class AlertDataManagerTest {
         m_cluster.getClusterId(), "h1", definition.getDefinitionName());
 
     AlertStateChangeEvent event = new AlertStateChangeEvent(
-        m_cluster.getClusterId(), alert, current, AlertState.OK);
+        m_cluster.getClusterId(), alert, current, AlertState.OK, AlertFirmness.HARD);
 
     listener.onAlertStateChangeEvent(event);
     assertNotNull(ref.get());
