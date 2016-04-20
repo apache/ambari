@@ -442,6 +442,10 @@
     <service name="RANGER">
       <component name="RANGER_ADMIN">
         <pre-upgrade>
+          <task xsi:type="configure" id="hdp_2_5_0_0_remove_audit_db_flag" />
+          <task xsi:type="configure" id="hdp_2_5_0_0_remove_audit_db_admin_properties" />
+          <task xsi:type="configure" id="hdp_2_5_0_0_remove_audit_db_ranger_admin_site" />
+
           <task xsi:type="execute" hosts="any" sequential="true" summary="Upgrading Ranger database schema">
             <script>scripts/ranger_admin.py</script>
             <function>setup_ranger_database</function>
@@ -484,6 +488,8 @@
     <service name="RANGER_KMS">
       <component name="RANGER_KMS_SERVER">
         <pre-upgrade>
+          <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_kms_audit_db" />
+
           <task xsi:type="execute" hosts="any" sequential="true" summary="Upgrading Ranger KMS database schema">
             <script>scripts/kms_server.py</script>
             <function>setup_ranger_kms_database</function>
@@ -509,6 +515,7 @@
 
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_4_0_0_namenode_ha_adjustments"/>
+          <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_hdfs_audit_db" />
         </pre-upgrade>
 
         <upgrade>
@@ -573,6 +580,7 @@
       <component name="RESOURCEMANAGER">
         <pre-upgrade>
           <task xsi:type="server_action" summary="Calculating Yarn Properties for Spark Shuffle" class="org.apache.ambari.server.serveraction.upgrades.SparkShufflePropertyConfig" />
+          <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_yarn_audit_db" />
         </pre-upgrade>
         <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
 
@@ -599,6 +607,7 @@
         <pre-upgrade>
           <!-- These HBASE configs changed in HDP 2.3.4.0, but Ambari can't distinguish HDP 2.3.2.0 vs HDP 2.3.4.0, so easier to always do them. -->
           <task xsi:type="configure" id="hdp_2_4_0_0_hbase_remove_local_indexing"/>
+          <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_hbase_audit_db" />
         </pre-upgrade>
 
         <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
@@ -680,6 +689,7 @@
 
           <task xsi:type="configure" id="hdp_2_5_0_0_hive_server_set_transport_mode"/>
           <task xsi:type="configure" id="hdp_2_4_0_0_hive_server_configure_authentication"/>
+          <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_hive_audit_db" />
         </pre-upgrade>
 
         <pre-downgrade>
@@ -815,6 +825,7 @@
       <component name="KAFKA_BROKER">
         <pre-upgrade>
           <task xsi:type="configure" id ="hdp_2_4_0_0_kafka_broker_deprecate_port"/>
+          <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_kafka_audit_db" />
         </pre-upgrade>
 
         <upgrade>
@@ -826,6 +837,9 @@
     <service name="KNOX">
       <component name="KNOX_GATEWAY">
         <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
+        <pre-upgrade>
+          <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_knox_audit_db" />
+        </pre-upgrade>
 
         <upgrade>
           <task xsi:type="restart-task" />
@@ -835,6 +849,9 @@
 
     <service name="STORM">
       <component name="NIMBUS">
+        <pre-upgrade>
+          <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_storm_audit_db" />
+        </pre-upgrade>
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>

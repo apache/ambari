@@ -276,6 +276,11 @@
         <task xsi:type="server_action" summary="Verifying LZO codec path for mapreduce" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath"/>
       </execute-stage>
 
+      <!-- YARN -->
+      <execute-stage service="YARN" component="RESOURCEMANAGER" title="Apply config changes for Yarn Resourcemanager">
+        <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_yarn_audit_db"/>
+      </execute-stage>
+
       <!--TEZ-->
       <execute-stage service="TEZ" component="TEZ_CLIENT" title="Verify LZO codec path for Tez">
         <task xsi:type="server_action" summary="Verifying LZO codec path for Tez" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath"/>
@@ -288,6 +293,54 @@
       <!--OOZIE-->
       <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Apply config changes for Oozie Server">
         <task xsi:type="server_action" summary="Adjusting Oozie properties" class="org.apache.ambari.server.serveraction.upgrades.OozieConfigCalculation"/>
+      </execute-stage>
+
+      <!-- RANGER -->
+      <execute-stage service="RANGER" component="RANGER_ADMIN" title="Apply config changes for Ranger Admin">
+        <task xsi:type="configure" id="hdp_2_5_0_0_remove_audit_db_flag"/>
+      </execute-stage>
+
+      <execute-stage service="RANGER" component="RANGER_ADMIN" title="Apply config changes for Ranger Admin">
+        <task xsi:type="configure" id="hdp_2_5_0_0_remove_audit_db_admin_properties"/>
+      </execute-stage>
+
+      <execute-stage service="RANGER" component="RANGER_ADMIN" title="Apply config changes for Ranger Admin">
+        <task xsi:type="configure" id="hdp_2_5_0_0_remove_audit_db_ranger_admin_site"/>
+      </execute-stage>
+
+      <!-- HDFS -->
+      <execute-stage service="HDFS" component="NAMENODE" title="Apply config changes for Hdfs Namenode">
+        <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_hdfs_audit_db"/>
+      </execute-stage>
+
+      <!-- HIVE -->
+      <execute-stage service="HIVE" component="HIVE_SERVER" title="Apply config changes for Hive Server">
+        <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_hive_audit_db"/>
+      </execute-stage>
+
+      <!-- HBASE -->
+      <execute-stage service="HBASE" component="HBASE_MASTER" title="Apply config changes for Hbase Master">
+        <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_hbase_audit_db"/>
+      </execute-stage>
+
+      <!-- KNOX -->
+      <execute-stage service="KNOX" component="KNOX_GATEWAY" title="Apply config changes for Knox Gateway">
+        <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_knox_audit_db"/>
+      </execute-stage>
+
+      <!-- STORM -->
+      <execute-stage service="STORM" component="NIMBUS" title="Apply config changes for Storm Nimbus">
+        <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_storm_audit_db"/>
+      </execute-stage>
+
+      <!-- KAFKA -->
+      <execute-stage service="KAFKA" component="KAFKA_BROKER" title="Apply config changes for Kafka Broker">
+        <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_kafka_audit_db"/>
+      </execute-stage>
+
+      <!-- RANGER KMS -->
+      <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Apply config changes for Ranger KMS Server">
+        <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_kms_audit_db"/>
       </execute-stage>
     </group>
 
