@@ -19,10 +19,24 @@ Ambari Agent
 
 """
 
-from resource_management import *
+# Python Imports
 import os
+
+# Ambari Common and Resource Management Imports
+from resource_management.libraries.script.script import Script
+from resource_management.core.resources.service import ServiceConfig
+from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions.is_empty import is_empty
+from resource_management.core.resources.system import Directory
+from resource_management.core.resources.system import File
+from resource_management.libraries.resources.xml_config import XmlConfig
+from resource_management.core.source import InlineTemplate
+from resource_management.core.source import Template
+from resource_management.core.logger import Logger
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
+
+# Local Imports
 
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
@@ -113,6 +127,7 @@ def yarn(name = None):
               recursive_ownership = True,
               )
 
+  #<editor-fold desc="Node Manager Section">
   if name == "nodemanager":
 
     # First start after enabling/disabling security
@@ -155,6 +170,9 @@ def yarn(name = None):
                 mode=0775,
                 recursive_mode_flags = {'f': 'a+rw', 'd': 'a+rwx'},
                 )
+
+    create_hive_llap_work_dir(params)
+  #</editor-fold>
 
   if params.yarn_nodemanager_recovery_dir:
     Directory(InlineTemplate(params.yarn_nodemanager_recovery_dir).get_content(),
@@ -445,3 +463,32 @@ def yarn(name = None):
          owner=params.mapred_user,
          group=params.user_group
     )
+
+
+def create_hive_llap_work_dir(params):
+  """
+  Create the work directory needed by LLAP, which is required on all NodeManagers.
+  This needs to be whenever NodeManagers are restarted, or after Hive Server Interactive and LLAP are added and started
+  via a custom command
+  :param params: Command parameters dictionary.
+  """
+  if params.hive_llap_work_dirs_list is None or params.hive_server_interactive_host is None or not params.security_enabled:
+    Logger.info("Skip creating any Hive LLAP work dir since either it's empty, Hive Interactive is not present, "
+                "or cluster is not kerberized.")
+    return
+
+  # If we already created this dir list because it has the same value as NM Local Dirs, then skip it
+  skip = False
+  if params.nm_local_dirs_list is not None and set(params.nm_local_dirs_list) == set(params.hive_llap_work_dirs_list):
+    skip = True
+
+  if skip:
+    Logger.info(format("Skip creating Hive LLAP Work Dirs since it is equivalent to NM Local Dirs: {nm_local_dirs_list}"))
+  else:
+    Logger.info(format("Hive Server Interactive is present on the cluster, ensure that the Hive LLAP work dirs exist: {hive_llap_work_dirs_list}"))
+    Directory(params.hive_llap_work_dirs_list,
+              owner=params.yarn_user,
+              group=params.user_group,
+              create_parents=True,
+              ignore_failures=False,
+              mode=0775)

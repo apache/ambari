@@ -1752,9 +1752,12 @@ Em.I18n.translations = {
   'services.service.actions.run.stopLdapKnox.context':'Stop Demo LDAP',
   'services.service.actions.run.startStopLdapKnox.error': 'Error during remote command: ',
 
-  // LLAP Custom Command
+  // Hive Server Interactive custom command to restart LLAP
   'services.service.actions.run.restartLLAP':'Restart LLAP',
-
+  // Node Manager custom command to refresh YARN Apps on Slider
+  'services.service.actions.run.createYARNDirectories':'Create YARN Directories',
+  'services.service.actions.run.createYARNDirectories.confirmation':'Please confirm. This will create necessary folders on the NodeManagers required for running YARN Apps on Slider, such as LLAP. This does not need to restart NodeManagers.',
+  
   'services.service.actions.run.immediateStopHawqService.context':'Stop HAWQ Service (Immediate Mode)',
   'services.service.actions.run.immediateStopHawqService.label':'Stop HAWQ Service (Immediate Mode)',
   'services.service.actions.run.immediateStopHawqSegment.label':'Stop (Immediate Mode)',
