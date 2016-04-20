@@ -63,14 +63,6 @@ class Params:
         .format(Params.AMS_HOSTNAME, Params.AMS_PORT, metricNames, Params.AMS_APP_ID, Params.START_TIME,
                 Params.END_TIME, Params.PRECISION)
 
-  @staticmethod
-  def get_collector_metadata_uri():
-    return 'http://{0}:{1}/ws/v1/timeline/metrics/metadata'.format(Params.AMS_HOSTNAME, Params.AMS_PORT)
-  @staticmethod
-  def get_hosts_components_uri():
-    return 'http://{0}:{1}/ws/v1/timeline/metrics/hosts'.format(Params.AMS_HOSTNAME, Params.AMS_PORT)
-
-
 class Utils:
 
   @staticmethod
@@ -143,34 +135,19 @@ class AmsMetricsProcessor:
 
   @staticmethod
   def get_metrics_metadata():
-    url = Params.get_collector_metadata_uri()
-    all_metrics_metadata = Utils.get_data_from_url(url)
-
-    app_id = Params.AMS_APP_ID
-    if Params.AMS_APP_ID != "HOST":
-      app_id = Params.AMS_APP_ID.lower()
 
     app_metrics_metadata = []
-    if app_id in all_metrics_metadata:
-      for app_metric in all_metrics_metadata[app_id]:
-        for metric in Params.METRICS:
-          if metric == app_metric["metricname"]:
-            app_metrics_metadata.append(app_metric)
-            logger.debug("Adding {0} to metadata".format(app_metric["metricname"]))
-      return {app_id.lower() : app_metrics_metadata}
-    else:
-      logger.error("AMS App_id={0} not found in AMS metadata".format(app_id))
-      sys.exit(1)
+    for metric in Params.METRICS:
+      app_metrics_metadata.append({"metricname": metric, "seriesStartTime": Params.START_TIME, "supportsAggregation": "true", "type": "UNDEFINED"})
+      logger.debug("Adding {0} to metadata".format(metric))
+
+    return {Params.AMS_APP_ID : app_metrics_metadata}
 
   @staticmethod
   def get_hosts_with_components():
-    url = Params.get_hosts_components_uri()
-    all_hosts_with_components = Utils.get_data_from_url(url)
     hosts_with_components = {}
     for host in Params.HOSTS:
-      if host in all_hosts_with_components:
-        hosts_with_components[host] = all_hosts_with_components[host]
-
+      hosts_with_components[host] = [Params.AMS_APP_ID]
     return hosts_with_components
 
   @staticmethod
@@ -327,6 +304,9 @@ def main():
   Params.AMS_PORT = options.server_port
 
   Params.AMS_APP_ID = options.app_id
+
+  if Params.AMS_APP_ID != "HOST":
+    Params.AMS_APP_ID = Params.AMS_APP_ID.lower()
 
   Params.METRICS_FILE = options.metrics_file
 
