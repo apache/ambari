@@ -506,6 +506,12 @@ if has_hive_interactive:
   start_hiveserver2_interactive_script = 'startHiveserver2Interactive.sh.j2'
   start_hiveserver2_interactive_path = format("{tmp_dir}/start_hiveserver2_interactive_script")
   hive_interactive_env_sh_template = config['configurations']['hive-interactive-env']['content']
+  hive_interactive_enabled = default('/configurations/hive-interactive-env/enable_hive_interactive', False)
+  # Service check related
+  if hive_transport_mode.lower() == "http":
+    hive_server_interactive_port = config['configurations']['hive-interactive-site']['hive.server2.thrift.http.port']
+  else:
+    hive_server_interactive_port = default('/configurations/hive-interactive-site/hive.server2.thrift.port',"10500")
   # Tez for Hive interactive related
   tez_interactive_config_dir = "/etc/tez_hive2/conf"
   tez_interactive_user = config['configurations']['tez-env']['tez_user']
