@@ -195,6 +195,14 @@ public class HostService extends BaseService {
         createHostResource(m_clusterName, hostName, ui));
   }
 
+  @DELETE
+  @Produces("text/plain")
+  public Response deleteHosts(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
+
+    return handleRequest(headers, body, ui, Request.Type.DELETE,
+            createHostResource(m_clusterName, null, ui));
+  }
+
   /**
    * Get the host_components sub-resource.
    *

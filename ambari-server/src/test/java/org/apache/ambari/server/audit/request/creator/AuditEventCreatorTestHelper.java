@@ -33,6 +33,7 @@ import org.apache.ambari.server.api.services.NamedPropertySet;
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.RequestBody;
 import org.apache.ambari.server.api.services.Result;
+import org.apache.ambari.server.api.services.ResultMetadata;
 import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.audit.AuditLogger;
@@ -247,6 +248,16 @@ public class AuditEventCreatorTestHelper {
       @Override
       public void setResultStatus(ResultStatus status) {
 
+      }
+
+      @Override
+      public void setResultMetadata(ResultMetadata resultMetadata) {
+
+      }
+
+      @Override
+      public ResultMetadata getResultMetadata() {
+        return null;
       }
     };
   }
