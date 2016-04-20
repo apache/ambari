@@ -235,6 +235,9 @@ App.HostProgressPopupBodyView = App.TableView.extend({
       Em.I18n.t("common.abort");
   }.property('sourceRequestScheduleCommand'),
 
+  didInsertElement: function () {
+    this.updateHostInfo();
+  },
 
   willDestroyElement: function () {
     if (this.get('controller.dataSourceController.name') == 'highAvailabilityProgressPopupController') {

@@ -107,4 +107,21 @@ describe('App.HostProgressPopupBodyView', function () {
       });
     });
   });
+
+  describe('#didInsertElement', function () {
+
+    beforeEach(function () {
+      sinon.stub(view, 'updateHostInfo', Em.K);
+      view.didInsertElement();
+    });
+
+    afterEach(function () {
+      view.updateHostInfo.restore();
+    });
+
+    it('should display relevant info', function () {
+      expect(view.updateHostInfo.calledOnce).to.be.true;
+    });
+
+  });
 });
