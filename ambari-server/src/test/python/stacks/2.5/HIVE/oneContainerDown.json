@@ -1,0 +1,33 @@
+{
+  "amInfo" : {
+    "appName" : "llap",
+    "appType" : "org-apache-slider",
+    "appId" : "application_1455662455106_10882",
+    "containerId" : "container_e14_1455662455106_10882_01_000001",
+    "hostname" : "HOST_REPLACED",
+    "amWebUrl" : "http://HOST_REPLACED:1025/"
+  },
+  "state" : "RUNNING_PARTIAL",
+  "originalConfigurationPath" : "hdfs://HOST_REPLACED:8020/user/USER_REPLACED/.slider/cluster/llap/snapshot",
+  "generatedConfigurationPath" : "hdfs://HOST_REPLACED:8020/user/USER_REPLACED/.slider/cluster/llap/generated",
+  "desiredInstances" : 3,
+  "liveInstances" : 2,
+  "appStartTime" : 1459625802169,
+  "llapInstances" : [ {
+    "hostname" : "HOST_REPLACED",
+    "containerId" : "container_e14_1455662455106_10882_01_000003",
+    "statusUrl" : "http://HOST_REPLACED:15002/status",
+    "webUrl" : "http://HOST_REPLACED:15002",
+    "rpcPort" : 15001,
+    "mgmtPort" : 15004,
+    "shufflePort" : 15551
+  }, {
+    "hostname" : "HOST_REPLACED",
+    "containerId" : "container_e14_1455662455106_10882_01_000002",
+    "statusUrl" : "http://HOST_REPLACED:15002/status",
+    "webUrl" : "http://HOST_REPLACED:15002",
+    "rpcPort" : 15001,
+    "mgmtPort" : 15004,
+    "shufflePort" : 15551
+  } ]
+}

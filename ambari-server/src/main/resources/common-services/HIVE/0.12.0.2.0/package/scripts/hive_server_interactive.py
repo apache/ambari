@@ -24,6 +24,7 @@ import re
 import time
 import shutil
 from datetime import datetime
+import json
 
 # Ambari Commons & Resource Management imports
 from resource_management.libraries.script.script import Script
@@ -43,7 +44,9 @@ from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
-from pwd import getpwnam
+
+from resource_management.core.exceptions import ComponentIsNotRunning
+from resource_management.libraries.functions.decorator import retry
 
 # Local Imports
 from setup_ranger_hive import setup_ranger_hive
@@ -135,14 +138,23 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
 
       self._llap_stop(env)
 
+    """
+    Checks the status of Hive Server Interactive and LLAP app.
+    If any of them is down, status is shown STOPPED.
+    """
     def status(self, env):
       import status_params
       env.set_params(status_params)
+
+      status = self.check_llap_app_status("llap0", 0)
+      if not status:
+        Logger.error("Slider app 'llap' not in running state.")
+        raise ComponentIsNotRunning()
+
       pid_file = format("{hive_pid_dir}/{hive_interactive_pid}")
 
       # Recursively check all existing gmetad pid files
       check_process_status(pid_file)
-      # TODO : Check the LLAP app status as well.
 
     def security_status(self, env):
       HiveServerDefault.security_status(env)
@@ -195,6 +207,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       import params
       env.set_params(params)
       Logger.info("Starting LLAP")
+      LLAP_APP_NAME = 'llap0'
 
       # TODO, start only if not already running.
       # TODO : Currently hardcoded the params. Need to read the suggested values from hive2/hive-site.xml.
@@ -204,7 +217,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       unique_name = "llap-slider%s" % datetime.utcnow().strftime('%Y-%m-%d_%H-%M-%S')
 
       cmd = format("{stack_root}/current/hive-server2-hive2/bin/hive --service llap --instances 1 "
-                   "-slider-am-container-mb {slider_am_container_mb} --loglevel INFO --output {unique_name}")
+                   "--slider-am-container-mb {slider_am_container_mb} --loglevel INFO --output {unique_name}")
 
       if params.security_enabled:
         cmd += format(" --slider-keytab-dir .slider/keytabs/{params.hive_user}/ --slider-keytab "
@@ -238,8 +251,14 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
           Logger.info("Sleeping for 30 secs")
           # Important to mock this sleep call during unit tests.
           time.sleep(30)
-          Logger.info("LLAP app deployed successfully.")
-          return True
+          Logger.info("Submitted LLAP app name : {0}".format(LLAP_APP_NAME))
+
+          status = self.check_llap_app_status(LLAP_APP_NAME, params.num_retries_for_checking_llap_status)
+          if status:
+            Logger.info("LLAP app '{0}' deployed successfully.".format(LLAP_APP_NAME))
+            return True
+          else:
+            return False
         else:
           raise Fail(format("Did not find run file {run_file_path}"))
       except:
@@ -254,7 +273,6 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
 
         # throw the original exception
         raise
-      return False
 
     """
     Does kinit and copies keytab for Hive/LLAP to HDFS.
@@ -274,6 +292,101 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       hive_interactive_kinit_cmd = format("{kinit_path_local} -kt {hive_server2_keytab} {hive_principal}; ")
       Execute(hive_interactive_kinit_cmd, user=params.hive_user)
 
+    """
+    Get llap app status data.
+    """
+    def _get_llap_app_status_info(self, app_name):
+      import status_params
+
+      llap_status_cmd = format("{stack_root}/current/hive-server2-hive2/bin/hive --service llapstatus --name {app_name}")
+      code, output, error = shell.checked_call(llap_status_cmd, user=status_params.hive_user, stderr=subprocess.PIPE,
+                                               logoutput=False)
+      llap_app_info = json.loads(output)
+      return llap_app_info
+
+
+    """
+    Checks llap app status. The states can be : 'COMPLETE', 'APP_NOT_FOUND', 'RUNNING_PARTIAL', 'RUNNING_ALL' & 'LAUNCHING'.
+
+    If app is in 'APP_NOT_FOUND', 'RUNNING_PARTIAL' and 'LAUNCHING' state, we wait for 'num_times_to_wait' to have app
+    in (1). 'RUNNING_ALL' (2). 'LAUNCHING' or (3). 'RUNNING_PARTIAL' state with 80% or more 'desiredInstances' running.
+
+    Parameters: llap_app_name : deployed llap app name.
+                num_retries :   Number of retries to check the LLAP app status.
+    """
+    def check_llap_app_status(self, llap_app_name, num_retries):
+      # counters based on various states.
+      curr_time = time.time()
+
+      if num_retries <= 0:
+        num_retries = 2
+      if num_retries > 20:
+        num_retries = 20
+
+      @retry(times=num_retries, sleep_time=15, err_class=Fail)
+      def do_retries():
+        live_instances = 0
+        desired_instances = 0
+
+        percent_desired_instances_to_be_up = 80 # Used in 'RUNNING_PARTIAL' state.
+        llap_app_info = self._get_llap_app_status_info(llap_app_name)
+
+        if llap_app_info is None or 'state' not in llap_app_info:
+          Logger.error("Malformed JSON data received for LLAP app. Exiting ....")
+          return False
+
+        if llap_app_info['state'].upper() in ['RUNNING_ALL', 'LAUNCHING']:
+          Logger.info(
+            "LLAP app '{0}' in '{1}' state.".format(llap_app_name, llap_app_info['state']))
+          return True
+        elif llap_app_info['state'].upper() == 'RUNNING_PARTIAL':
+          # Check how many instances were up.
+          if 'liveInstances' in llap_app_info and 'desiredInstances' in llap_app_info:
+            live_instances = llap_app_info['liveInstances']
+            desired_instances = llap_app_info['desiredInstances']
+          else:
+            Logger.info(
+              "LLAP app '{0}' is in '{1}' state, but 'instances' information not available in JSON received. " \
+              "Exiting ....".format(llap_app_name, llap_app_info['state']))
+            Logger.info(llap_app_info)
+            return False
+          if desired_instances == 0:
+            Logger.info("LLAP app '{0}' desired instance are set to 0. Exiting ....".format(llap_app_name))
+            return False
+
+          percentInstancesUp = 0
+          if live_instances > 0:
+            percentInstancesUp = float(live_instances) / desired_instances * 100
+          if percentInstancesUp >= percent_desired_instances_to_be_up:
+            Logger.info("Slider app '{0}' in '{1}' state. Live Instances : '{2}'  >= {3}% of Desired Instances : " \
+                        "'{4}'".format(llap_app_name, llap_app_info['state'],
+                                       llap_app_info['liveInstances'],
+                                       percent_desired_instances_to_be_up,
+                                       llap_app_info['desiredInstances']))
+            return True
+          else:
+            Logger.info("Slider app '{0}' in '{1}' state. Live Instances : '{2}'. Desired Instances : " \
+                        "'{3}' after {4} secs.".format(llap_app_name, llap_app_info['state'],
+                                                       llap_app_info['liveInstances'],
+                                                       llap_app_info['desiredInstances'],
+                                                       time.time() - curr_time))
+            raise Fail('App state is RUNNING_PARTIAL.')
+        elif llap_app_info['state'].upper() == 'APP_NOT_FOUND':
+          status_str = format("Slider app '{0}' current state is {1}.".format(llap_app_name, llap_app_info['state']))
+          Logger.info(status_str)
+          raise Fail(status_str)
+        else:  # Covers state "COMPLETE" and any unknown that we get.
+          Logger.info(
+            "Slider app '{0}' current state is '{1}'. Expected : 'RUNNING'".format(llap_app_name, llap_app_info['state']))
+          return False
+
+      try:
+        status = do_retries()
+        return status
+      except Exception, e:
+        Logger.info("App '{0}' did not come up after a wait of {1} seconds".format(llap_app_name,
+                                                                                          time.time() - curr_time))
+        return False
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class HiveServerInteractiveWindows(HiveServerInteractive):

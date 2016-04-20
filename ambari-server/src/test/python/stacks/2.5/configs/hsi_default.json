@@ -395,7 +395,8 @@
           "enable_hive_interactive" : "true",
           "hive_server_interactive_host" : "c6401.ambari.apache.org",
           "llap_queue_capacity" : "0",
-          "num_llap_nodes" : "1"
+          "num_llap_nodes" : "1",
+          "num_retries_for_checking_llap_status" : 2
         },
         "hive-interactive-site": {
             "hive.enforce.sorting": "true",

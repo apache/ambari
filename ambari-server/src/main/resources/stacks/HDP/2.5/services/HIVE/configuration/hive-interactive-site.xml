@@ -357,7 +357,7 @@ limitations under the License.
 
   <property>
     <name>hive.llap.daemon.service.hosts</name>
-    <value>@{cluster_name}</value>
+    <value>@llap0</value>
   </property>
 
   <property>

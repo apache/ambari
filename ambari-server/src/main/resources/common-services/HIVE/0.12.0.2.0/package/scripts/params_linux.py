@@ -509,6 +509,7 @@ if has_hive_interactive:
   # Tez for Hive interactive related
   tez_interactive_config_dir = "/etc/tez_hive2/conf"
   tez_interactive_user = config['configurations']['tez-env']['tez_user']
+  num_retries_for_checking_llap_status = default('/configurations/hive-interactive-env/num_retries_for_checking_llap_status', 10)
   if security_enabled:
     hive_llap_keytab_file = config['configurations']['hive-interactive-site']['hive.llap.zk.sm.keytab.file']
     hive_headless_keytab = config['configurations']['hive-interactive-site']['hive.llap.zk.sm.principal']
