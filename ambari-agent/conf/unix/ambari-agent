@@ -75,8 +75,8 @@ fi
 cd $AGENT_WORKING_DIR
 
 change_files_permissions() {
-    if [ ! -z "$keysdir" ]; then
-        ambari-sudo.sh chown -R $current_user "$keysdir"
+    if [ ! -z "$KEYSDIR" ]; then
+        ambari-sudo.sh chown -R $current_user "$KEYSDIR"
     fi
 	ambari-sudo.sh mkdir -p "$AMBARI_PID_DIR"
 	ambari-sudo.sh chown -R $current_user "$AMBARI_PID_DIR"
