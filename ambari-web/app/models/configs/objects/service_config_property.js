@@ -269,6 +269,21 @@ App.ServiceConfigProperty = Em.Object.extend({
   },
 
   /**
+   * updates configs list that belongs to config group
+   */
+  updateGroupConfigs: function() {
+    if (this.get('group')) {
+      var o = this.get('group.properties').find(function(c) {
+        return Em.get(c, 'name') === this.get('name') && Em.get(c, 'filename') === this.get('filename');
+      }, this);
+
+      if (o) {
+        Em.set(o, 'value', this.get('value'));
+      }
+    }
+  }.observes('value'),
+
+  /**
    * Indicates when value is not the default value.
    * Returns false when there is no default value.
    *
