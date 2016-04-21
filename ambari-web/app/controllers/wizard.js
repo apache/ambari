@@ -681,35 +681,6 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
   },
 
   /**
-   * load version for services to display on Choose Servoces page
-   * should load from VersionDefinition endpoint
-   */
-  loadServiceVersionFromVersionDefinitions: function () {
-    return App.ajax.send({
-      name: 'cluster.load_current_repo_stack_services',
-      sender: this,
-      data: {
-        clusterName: App.clusterName
-      },
-      success: 'loadServiceVersionFromVersionDefinitionsSuccessCallback',
-      error: 'loadServiceVersionFromVersionDefinitionsErrorCallback'
-      });
-  },
-
-  serviceVersionsMap: {},
-  loadServiceVersionFromVersionDefinitionsSuccessCallback: function (jsonData) {
-    var rv = jsonData.items[0].repository_versions[0].RepositoryVersions;
-    var map = this.get('serviceVersionsMap');
-    if (rv) {
-      rv.stack_services.forEach(function (item) {
-        map[item.name] = item.versions[0];
-      });
-    }
-  },
-  loadServiceVersionFromVersionDefinitionsErrorCallback: function (request, ajaxOptions, error) {
-  },
-
-  /**
    * Load config groups from local DB
    */
   loadServiceConfigGroups: function () {

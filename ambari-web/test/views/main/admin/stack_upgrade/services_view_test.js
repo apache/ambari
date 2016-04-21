@@ -1,4 +1,4 @@
- /**
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -22,6 +22,29 @@ require('views/main/admin/stack_upgrade/services_view');
 
 describe('App.MainAdminStackServicesView', function () {
   var view = App.MainAdminStackServicesView.create();
+
+  describe("#services", function () {
+    before(function () {
+      sinon.stub(App.StackService, 'find').returns([
+        Em.Object.create({serviceName: 'S1', isInstalled: false}),
+        Em.Object.create({serviceName: 'S2', isInstalled: false})
+      ]);
+      sinon.stub(App.Service, 'find').returns([
+        Em.Object.create({serviceName: 'S1'})
+      ]);
+    });
+    after(function () {
+      App.StackService.find.restore();
+      App.Service.find.restore();
+    });
+    it("`isInstalled`-flag depends on App.Service", function () {
+      view.propertyDidChange('services');
+      expect(view.get('services')).to.eql([
+        Em.Object.create({serviceName: 'S1', isInstalled: true}),
+        Em.Object.create({serviceName: 'S2', isInstalled: false})
+      ]);
+    });
+  });
 
   describe("#goToAddService()" , function() {
     var mock = Em.Object.create({

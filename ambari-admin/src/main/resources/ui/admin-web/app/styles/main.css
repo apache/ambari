@@ -1470,33 +1470,17 @@ thead.view-permission-header > tr > th {
   color: #ff4500;
 }
 .register-version-form .deregister-button {
-  margin-top: -23px;
+    margin-top: -23px;
 }
 .register-version-form .version-info {
-  padding-top: 7px;
-  margin-top: 0;
-  margin-bottom: 0;
-}
-.register-version-form .details-panel .version-info-section {
-  margin-top: 10px;
-}
-.register-version-form .details-panel .version-contents-section {
-  max-height: 200px;
-  overflow: auto;
-  border: 1px solid #ddd;
-  padding: 8px 25px;
-  margin: 8px;
+    padding-top: 7px;
+    margin-top: 0;
+    margin-bottom: 0;
 }
 
-.register-version-form .details-panel .control-label {
-  text-align: left;
-  padding: 7px 2px;
-  font-weight: normal;
-}
-
-.register-version-form .details-panel .version-info {
-  font-weight: bold;
-  padding: 7px 2px;
+.register-version-form .contents-panel .version-contents-body {
+    max-height: 150px;
+    overflow: auto;
 }
 
 .register-version-form .repos-panel .remove-icon {
@@ -1512,9 +1496,6 @@ thead.view-permission-header > tr > th {
 
 .register-version-form .repos-panel .os-type-label {
   margin-top: 27px;;
-}
-.register-version-form .repos-panel .checkbox {
-  margin: 0px 5px;
 }
 
 #stack-versions .no-version-alert {

@@ -18,7 +18,6 @@
 
 var App = require('app');
 var stringUtils = require('utils/string_utils');
-var validator = require('utils/validator');
 
 App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wizardDeployProgressControllerMixin, App.ConfigOverridable, App.ConfigsSaverMixin, {
 
@@ -828,67 +827,11 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
       this.addRequestToAjaxQueue(ajaxOpts);
     }
   },
-
-  /**
-   * Get the the repo version (to install) info, this data will be POST
-   * @method startDeploy
-   */
-  getSelectedRepoVersionData: function () {
-    if (this.get('content.controllerName') !== 'installerController') return;
-    var vdfData = App.db.getLocalRepoVDFData();
-    var selectedStack = App.Stack.find().findProperty('isSelected', true);
-    var isXMLdata = false;
-    var data = {};
-    if (selectedStack && selectedStack.get('showAvailable')) {
-      //meaning user selected a public repo
-      data = {
-        "VersionDefinition": {
-          "available": selectedStack.get('id')
-        }
-      };
-      isXMLdata = false;
-    } else if (vdfData && validator.isValidURL(vdfData)) {
-      // meaning user uploaded a VDF via entering URL
-      data = {
-        "VersionDefinition": {
-          "version_url": vdfData
-        }
-      };
-      isXMLdata = false;
-    } else if (vdfData) {
-      // meaning user uploaded a local VDF.xml file
-      isXMLdata = true;
-      data = vdfData;
-    }
-    return {
-      isXMLdata: isXMLdata,
-      data: data
-    };
-  },
-
-  /**
-   * To Start deploy process
-   * @method startDeploy
-   */
-  startDeploy: function () {
-    var versionData = this.getSelectedRepoVersionData();
-    var installerController = App.router.get('installerController');
-    var self = this;
-    installerController.postVersionDefinitionFileStep8(versionData.isXMLdata, versionData.data).done(function (versionInfo) {
-      if (versionInfo.id && versionInfo.stackName && versionInfo.stackVersion) {
-        var selectedStack = App.Stack.find().findProperty('isSelected', true);
-        installerController.updateRepoOSInfo(versionInfo, selectedStack).done(function() {
-          self._startDeploy();
-        });
-      }
-    });
-  },
-
   /**
    * Start deploy process
    * @method startDeploy
    */
-  _startDeploy: function () {
+  startDeploy: function () {
     this.createCluster();
     this.createSelectedServices();
     if (this.get('content.controllerName') !== 'addHostController') {
@@ -932,12 +875,12 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    * @method createCluster
    */
   createCluster: function () {
+    if (this.get('content.controllerName') !== 'installerController') return;
     var stackVersion = (this.get('content.installOptions.localRepo')) ? App.currentStackVersion.replace(/(-\d+(\.\d)*)/ig, "Local$&") : App.currentStackVersion;
-    var selectedStack = App.Stack.find().findProperty('isSelected', true);
     this.addRequestToAjaxQueue({
       name: 'wizard.step8.create_cluster',
       data: {
-        data: JSON.stringify({ "Clusters": {"version": stackVersion, "repository_version": selectedStack.get('repositoryVersion')}})
+        data: JSON.stringify({ "Clusters": {"version": stackVersion }})
       },
       success: 'createClusterSuccess'
     });
@@ -1331,6 +1274,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     var masterHosts = this.get('content.masterComponentHosts');
 
     // add all components with cardinality == ALL of selected services
+
     var registeredHosts = this.getRegisteredHosts();
     var notInstalledHosts = registeredHosts.filterProperty('isInstalled', false);
     this.get('content.services').filterProperty('isSelected').forEach(function (service) {

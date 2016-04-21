@@ -30,7 +30,7 @@
     {{#each service in view.services}}
     <tr>
       <td class="service-display-name">{{service.displayName}}</td>
-      <td class="service-stack-version">{{service.serviceVersionDisplay}}</td>
+      <td class="service-stack-version">{{service.serviceVersion}}</td>
       <td class="stack-version-state">
         {{#if service.isInstalled}}
           <span class="label label-success">{{t common.installed}}</span>

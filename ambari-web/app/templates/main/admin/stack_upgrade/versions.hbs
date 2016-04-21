@@ -17,11 +17,6 @@
 }}
 
 <div id="versions-filter-section">
-  {{#isAuthorized "AMBARI.MANAGE_STACK_VERSIONS"}}
-    <button class="btn btn-primary" {{action goToVersions target="view"}} id="manage-versions-link">
-        <i class="icon-external-link"></i>&nbsp;{{t admin.stackVersions.manageVersions}}
-    </button>
-  {{/isAuthorized}}
   <div class="btn-group display-inline-block">
     <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
       <span class="filters-label">{{t common.filter}}: </span>
@@ -40,6 +35,11 @@
       {{/each}}
     </ul>
   </div>
+  {{#isAuthorized "AMBARI.MANAGE_STACK_VERSIONS"}}
+    <button class="btn btn-primary pull-right" {{action goToVersions target="view"}} id="manage-versions-link">
+      <i class="icon-external-link"></i>&nbsp;{{t admin.stackVersions.manageVersions}}
+    </button>
+  {{/isAuthorized}}
 </div>
 <div id="versions-section" class="row-fluid">
   <div class="span2 left-menu-table">

@@ -95,26 +95,34 @@
         </div>
     </div>
     <div class="panel-body">
-      <div class="col-sm-5 version-info-section">
-        <div class="clearfix">
-          <label class="control-label col-sm-7">{{'versions.details.stackName' | translate}}</label>
-          <div class="version-info col-sm-3">{{stackNameVersion}}</div>
-          <div class="col-sm-2 patch-icon" ng-if="isPatch"><span class="glyphicon glyphicon-tree-deciduous"></span>{{'versions.patch' | translate}}</div>
-        </div>
-        <div class="clearfix">
-          <label class="control-label col-sm-7">{{'versions.details.displayName' | translate}}</label>
-          <div class="version-info col-sm-5">{{displayName}}</div>
-        </div>
-        <div class="clearfix">
-          <label class="control-label col-sm-7">{{'versions.details.version' | translate}}</label>
-          <div class="version-info col-sm-5">{{actualVersion}}</div>
-        </div>
+      <div class="clearfix">
+        <label class="control-label col-sm-3">{{'versions.details.stackName' | translate}}</label>
+        <div class="version-info col-sm-7">{{stackNameVersion}}</div>
+        <div class="col-sm-2 patch-icon" ng-if="isPatch"><span class="glyphicon glyphicon-tree-deciduous"></span>{{'versions.patch' | translate}}</div>
       </div>
-      <div class="col-sm-6 version-contents-section">
-        <div class="alert alert-info hide-soft" ng-class="{'visible' : !services || !services.length}" role="alert">{{'versions.contents.empty' | translate}}</div>
-        <div class="clearfix" ng-repeat="service in services">
-          <div class="version-info col-sm-9">{{service.name}} ({{service.version}})</div>
-        </div>
+      <div class="clearfix">
+        <label class="control-label col-sm-3">{{'versions.details.displayName' | translate}}</label>
+        <div class="version-info col-sm-9">{{displayName}}</div>
+      </div>
+      <div class="clearfix">
+        <label class="control-label col-sm-3">{{'versions.details.version' | translate}}</label>
+        <div class="version-info col-sm-9">{{version}}</div>
+      </div>
+      <div class="clearfix">
+        <label class="control-label col-sm-3">{{'versions.details.actualVersion' | translate}}</label>
+        <div class="version-info col-sm-9">{{actualVersion}}</div>
+      </div>
+    </div>
+  </div>
+  <div class="panel panel-default contents-panel">
+    <div class="panel-heading">
+      <h3 class="panel-title">{{'versions.contents.title' | translate}}</h3>
+    </div>
+    <div class="panel-body version-contents-body">
+      <div class="alert alert-info hide-soft" ng-class="{'visible' : !services || !services.length}" role="alert">{{'versions.contents.empty' | translate}}</div>
+      <div class="clearfix" ng-repeat="service in services">
+        <label class="control-label col-sm-3">{{service.name}}</label>
+        <div class="version-info col-sm-9">{{service.version}}</div>
       </div>
     </div>
   </div>
@@ -156,14 +164,14 @@
         </div>
       </div>
         <div class="btn-group pull-right" dropdown>
-          <button class="btn dropdown-toggle" ng-disabled="isAddOsButtonDisabled()">
+          <button class="btn dropdown-toggle">
             <span class="glyphicon glyphicon-plus"></span> {{'common.add' | translate: '{term: constants.os}'}} &nbsp;<span class="caret"></span></button>
           <ul class="dropdown-menu" ng-class="{'hidden': hasNotDeletedRepo()}">
             <li ng-repeat="os in osList"><a ng-if="os.selected==false" ng-click="addOS()">{{os.OperatingSystems.os_type}}</a></li>
           </ul>
         </div>
       <div class="clearfix">
-        <div class="col-sm-9" id="skip-validation">
+        <div class="col-sm-12" id="skip-validation">
           <div class="checkbox">
             <label>
               <input type="checkbox" ng-model="skipValidation" ng-change="clearErrors()">
@@ -171,7 +179,7 @@
             </label>
           </div>
         </div>
-        <div class="col-sm-9" id="use-redhat">
+        <div class="col-sm-12" id="use-redhat">
           <div class="checkbox">
             <label>
               <input type="checkbox" ng-model="useRedhatSatellite" ng-change="clearErrors()">

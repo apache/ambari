@@ -192,13 +192,7 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
       this.setSkipSlavesStep(App.StackService.find().filterProperty('isSelected').filterProperty('isInstalled', false), 3);
     }
     this.set('serviceToInstall', null);
-    var self = this;
-    this.loadServiceVersionFromVersionDefinitions().complete(function () {
-      self.set('content.services', App.StackService.find().forEach(function (item) {
-        // user the service version from VersionDefinition
-        Ember.set(item, 'serviceVersionDisplay', self.get('serviceVersionsMap')[item.get('serviceName')]);
-      }));
-    });
+    this.set('content.services', App.StackService.find());
   },
 
   /**

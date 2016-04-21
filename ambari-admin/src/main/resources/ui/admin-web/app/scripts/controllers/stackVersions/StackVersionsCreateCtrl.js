@@ -66,15 +66,6 @@ angular.module('ambariAdminConsole')
   $scope.readInfoButtonDisabled = function () {
     return $scope.option1.index == $scope.selectedOption.index ? !$scope.option1.file : !$scope.option2.url;
   };
-  $scope.isAddOsButtonDisabled = function () {
-    var selectedCnt = 0;
-    angular.forEach($scope.osList, function (os) {
-      if (os.selected) {
-        selectedCnt ++;
-      }
-    });
-    return $scope.osList.length == selectedCnt;
-  };
 
   $scope.allInfoCategoriesBlank = function () {
     return !$scope.upgradeStack.stack_name;
