@@ -26,6 +26,7 @@ import subprocess
 from ambari_commons import inet_utils, OSCheck
 from resource_management import Script, ConfigDictionary
 from resource_management.core.exceptions import Fail
+from resource_management.core.logger import Logger
 from mock.mock import patch
 from mock.mock import MagicMock
 from unittest import TestCase
@@ -38,6 +39,7 @@ from ambari_agent.HostCheckReportFileHandler import HostCheckReportFileHandler
 
 
 @patch.object(HostCheckReportFileHandler, "writeHostChecksCustomActionsFile", new=MagicMock())
+@patch.object(Logger, 'logger', new=MagicMock())
 class TestCheckHost(TestCase):
   current_dir = os.path.dirname(os.path.realpath(__file__))
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))

@@ -39,6 +39,7 @@ from resource_management.core.resources import Directory, File
 from resource_management.core.exceptions import Fail
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from resource_management.core import shell
+from resource_management.core.logger import Logger
 
 # WARNING. If you are adding a new host check that is used by cleanup, add it to BEFORE_CLEANUP_HOST_CHECKS
 # It is used by HostCleanup.py
@@ -114,6 +115,7 @@ class CheckHost(Script):
     self.reportFileHandler = HostCheckReportFileHandler()
   
   def actionexecute(self, env):
+    Logger.info("Host checks started.")
     config = Script.get_config()
     tmp_dir = Script.get_tmp_dir()
     report_file_handler_dict = {}
@@ -125,6 +127,8 @@ class CheckHost(Script):
       check_execute_list = BEFORE_CLEANUP_HOST_CHECKS
     structured_output = {}
 
+    Logger.info("Check execute list: " + str(check_execute_list))
+
     # check each of the commands; if an unknown exception wasn't handled
     # by the functions, then produce a generic exit_code : 1
     if CHECK_JAVA_HOME in check_execute_list:
@@ -132,7 +136,7 @@ class CheckHost(Script):
         java_home_check_structured_output = self.execute_java_home_available_check(config)
         structured_output[CHECK_JAVA_HOME] = java_home_check_structured_output
       except Exception, exception:
-        print "There was an unexpected error while checking for the Java home location: " + str(exception)
+        Logger.exception("There was an unexpected error while checking for the Java home location: " + str(exception))
         structured_output[CHECK_JAVA_HOME] = {"exit_code" : 1, "message": str(exception)}
 
     if CHECK_DB_CONNECTION in check_execute_list:
@@ -140,7 +144,7 @@ class CheckHost(Script):
         db_connection_check_structured_output = self.execute_db_connection_check(config, tmp_dir)
         structured_output[CHECK_DB_CONNECTION] = db_connection_check_structured_output
       except Exception, exception:
-        print "There was an unknown error while checking database connectivity: " + str(exception)
+        Logger.exception("There was an unknown error while checking database connectivity: " + str(exception))
         structured_output[CHECK_DB_CONNECTION] = {"exit_code" : 1, "message": str(exception)}
 
     if CHECK_HOST_RESOLUTION in check_execute_list:
@@ -148,14 +152,14 @@ class CheckHost(Script):
         host_resolution_structured_output = self.execute_host_resolution_check(config)
         structured_output[CHECK_HOST_RESOLUTION] = host_resolution_structured_output
       except Exception, exception :
-        print "There was an unknown error while checking IP address lookups: " + str(exception)
+        Logger.exception("There was an unknown error while checking IP address lookups: " + str(exception))
         structured_output[CHECK_HOST_RESOLUTION] = {"exit_code" : 1, "message": str(exception)}
     if CHECK_LAST_AGENT_ENV in check_execute_list:
       try :
         last_agent_env_structured_output = self.execute_last_agent_env_check()
         structured_output[CHECK_LAST_AGENT_ENV] = last_agent_env_structured_output
       except Exception, exception :
-        print "There was an unknown error while checking last host environment details: " + str(exception)
+        Logger.exception("There was an unknown error while checking last host environment details: " + str(exception))
         structured_output[CHECK_LAST_AGENT_ENV] = {"exit_code" : 1, "message": str(exception)}
         
     # CHECK_INSTALLED_PACKAGES and CHECK_EXISTING_REPOS required to run together for
@@ -166,28 +170,17 @@ class CheckHost(Script):
         structured_output[CHECK_INSTALLED_PACKAGES] = installed_packages
         structured_output[CHECK_EXISTING_REPOS] = repos
       except Exception, exception :
-        print "There was an unknown error while checking installed packages and existing repositories: " + str(exception)
+        Logger.exception("There was an unknown error while checking installed packages and existing repositories: " + str(exception))
         structured_output[CHECK_INSTALLED_PACKAGES] = {"exit_code" : 1, "message": str(exception)}
         structured_output[CHECK_EXISTING_REPOS] = {"exit_code" : 1, "message": str(exception)}
 
     # Here we are checking transparent huge page if CHECK_TRANSPARENT_HUGE_PAGE is in check_execute_list
     if CHECK_TRANSPARENT_HUGE_PAGE in check_execute_list:
       try :
-        thp_regex = "\[(.+)\]"
-        file_name = None
-        if OSCheck.is_ubuntu_family():
-          file_name = THP_FILE_UBUNTU
-        elif OSCheck.is_redhat_family():
-          file_name = THP_FILE_REDHAT
-        if file_name and os.path.isfile(file_name):
-          with open(file_name) as f:
-            file_content = f.read()
-            structured_output[CHECK_TRANSPARENT_HUGE_PAGE] = {"exit_code" : 0, "message": str(re.search(thp_regex,
-                                                                                            file_content).groups()[0])}
-        else:
-          structured_output[CHECK_TRANSPARENT_HUGE_PAGE] = {"exit_code" : 0, "message": ""}
+        transparent_huge_page_structured_output = self.execute_transparent_huge_page_check(config)
+        structured_output[CHECK_TRANSPARENT_HUGE_PAGE] = transparent_huge_page_structured_output
       except Exception, exception :
-        print "There was an unknown error while getting transparent huge page data: " + str(exception)
+        Logger.exception("There was an unknown error while getting transparent huge page data: " + str(exception))
         structured_output[CHECK_TRANSPARENT_HUGE_PAGE] = {"exit_code" : 1, "message": str(exception)}
 
     # this is necessary for HostCleanup to know later what were the results.
@@ -205,10 +198,37 @@ class CheckHost(Script):
           error_message += " Message: {0}".format(structured_output[check_name]["message"])
         error_message += "\n"
 
+    Logger.info("Host checks completed.")
+    Logger.debug("Structured output: " + str(structured_output))
+
     if error_message:
+      Logger.error(error_message)
       raise Fail(error_message)
 
+
+  def execute_transparent_huge_page_check(self, config):
+    Logger.info("Transparent huge page check started.")
+
+    thp_regex = "\[(.+)\]"
+    file_name = None
+    if OSCheck.is_ubuntu_family():
+      file_name = THP_FILE_UBUNTU
+    elif OSCheck.is_redhat_family():
+      file_name = THP_FILE_REDHAT
+    if file_name and os.path.isfile(file_name):
+      with open(file_name) as f:
+        file_content = f.read()
+        transparent_huge_page_check_structured_output = {"exit_code" : 0, "message": str(re.search(thp_regex,
+                                                                                                    file_content).groups()[0])}
+    else:
+      transparent_huge_page_check_structured_output = {"exit_code" : 0, "message": ""}
+
+    Logger.info("Transparent huge page check completed.")
+    return transparent_huge_page_check_structured_output
+
   def execute_existing_repos_and_installed_packages_check(self, config):
+      Logger.info("Installed packages and existing repos checks started.")
+
       installedPackages = []
       availablePackages = []
       packages_analyzer.allInstalledPackages(installedPackages)
@@ -225,30 +245,32 @@ class CheckHost(Script):
       installedPackages = packages_analyzer.getPackageDetails(installedPackages, allPackages)
       repos = packages_analyzer.getReposToRemove(repos, self.IGNORE_REPOS)
 
+      Logger.info("Installed packages and existing repos checks completed.")
       return installedPackages, repos
 
 
   def execute_java_home_available_check(self, config):
-    print "Java home check started."
+    Logger.info("Java home check started.")
     java_home = config['commandParams']['java_home']
 
-    print "Java home to check: " + java_home
+    Logger.info("Java home to check: " + java_home)
     java_bin = "java"
     if OSCheck.is_windows_family():
       java_bin = "java.exe"
   
     if not os.path.isfile(os.path.join(java_home, "bin", java_bin)):
-      print "Java home doesn't exist!"
+      Logger.warning("Java home doesn't exist!")
       java_home_check_structured_output = {"exit_code" : 1, "message": "Java home doesn't exist!"}
     else:
-      print "Java home exists!"
+      Logger.info("Java home exists!")
       java_home_check_structured_output = {"exit_code" : 0, "message": "Java home exists!"}
-  
+
+    Logger.info("Java home check completed.")
     return java_home_check_structured_output
 
 
   def execute_db_connection_check(self, config, tmp_dir):
-    print "DB connection check started."
+    Logger.info("DB connection check started.")
   
     # initialize needed data
   
@@ -312,7 +334,7 @@ class CheckHost(Script):
         or config['commandParams']['jdk_name'] == '') and not os.path.isfile(java_exec):
       message = "Custom java is not available on host. Please install it. Java home should be the same as on server. " \
                 "\n"
-      print message
+      Logger.warning(message)
       db_connection_check_structured_output = {"exit_code" : 1, "message": message}
       return db_connection_check_structured_output
 
@@ -328,7 +350,7 @@ class CheckHost(Script):
       except Exception, e:
         message = "Error downloading JDK from Ambari Server resources. Check network access to " \
                   "Ambari Server.\n" + str(e)
-        print message
+        Logger.exception(message)
         db_connection_check_structured_output = {"exit_code" : 1, "message": message}
         return db_connection_check_structured_output
 
@@ -341,7 +363,7 @@ class CheckHost(Script):
           Execute(install_cmd, path = install_path)
         except Exception, e:
           message = "Error installing java.\n" + str(e)
-          print message
+          Logger.exception(message)
           db_connection_check_structured_output = {"exit_code" : 1, "message": message}
           return db_connection_check_structured_output
       else:
@@ -362,7 +384,7 @@ class CheckHost(Script):
           Execute(('chmod', '-R', '755', java_home), sudo = True)
         except Exception, e:
           message = "Error installing java.\n" + str(e)
-          print message
+          Logger.exception(message)
           db_connection_check_structured_output = {"exit_code" : 1, "message": message}
           return db_connection_check_structured_output
         finally:
@@ -375,7 +397,7 @@ class CheckHost(Script):
     except Exception, e:
       message = "Error downloading DBConnectionVerification.jar from Ambari Server resources. Check network access to " \
                 "Ambari Server.\n" + str(e)
-      print message
+      Logger.exception(message)
       db_connection_check_structured_output = {"exit_code" : 1, "message": message}
       return db_connection_check_structured_output
   
@@ -395,7 +417,7 @@ class CheckHost(Script):
                 "database connection. You must run ambari-server setup --jdbc-db={db_name} " \
                 "--jdbc-driver=/path/to/your/{db_name}/driver.jar on the Ambari Server host to make the JDBC " \
                 "driver available for download and to enable testing the database connection.\n") + str(e)
-      print message
+      Logger.exception(message)
       db_connection_check_structured_output = {"exit_code" : 1, "message": message}
       return db_connection_check_structured_output
 
@@ -418,12 +440,13 @@ class CheckHost(Script):
       db_connection_check_structured_output = {"exit_code" : 0, "message": "DB connection check completed successfully!" }
     else:
       db_connection_check_structured_output = {"exit_code" : 1, "message":  out }
-  
+
+    Logger.info("DB connection check completed.")
     return db_connection_check_structured_output
 
   # check whether each host in the command can be resolved to an IP address
   def execute_host_resolution_check(self, config):
-    print "IP address forward resolution check started."
+    Logger.info("IP address forward resolution check started.")
     
     FORWARD_LOOKUP_REASON = "FORWARD_LOOKUP"
     
@@ -454,9 +477,9 @@ class CheckHost(Script):
     if failedCount > 0 :
       message = "There were " + str(failedCount) + " host(s) that could not resolve to an IP address."
     else :
-      message = "All hosts resolved to an IP address." 
-        
-    print message
+      message = "All hosts resolved to an IP address."
+
+    Logger.info(message)
         
     host_resolution_check_structured_output = {
       "exit_code" : 0,
@@ -465,16 +488,17 @@ class CheckHost(Script):
       "success_count" : successCount,
       "failures" : failures
       }
-    
+
+    Logger.info("IP address forward resolution check completed.")
     return host_resolution_check_structured_output
 
   # computes and returns the host information of the agent
   def execute_last_agent_env_check(self):
-    print "Last Agent Env check started."
+    Logger.info("Last Agent Env check started.")
     hostInfo = HostInfo()
     last_agent_env_check_structured_output = { }
     hostInfo.register(last_agent_env_check_structured_output, False, False)
-    print "Last Agent Env check completed successfully."
+    Logger.info("Last Agent Env check completed successfully.")
 
     return last_agent_env_check_structured_output
 
