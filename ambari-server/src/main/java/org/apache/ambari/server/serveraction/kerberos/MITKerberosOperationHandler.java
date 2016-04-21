@@ -192,9 +192,10 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
       // If there is data from STDOUT, see if the following string exists:
       //    Principal "<principal>" created
       String stdOut = result.getStdout();
+      String stdErr = result.getStderr();
       if ((stdOut != null) && stdOut.contains(String.format("Principal \"%s\" created", principal))) {
         return getKeyNumber(principal);
-      } else if ((stdOut != null) && stdOut.contains(String.format("Principal or policy already exists while creating \"%s\"", principal))) {
+      } else if ((stdErr != null) && stdErr.contains(String.format("Principal or policy already exists while creating \"%s\"", principal))) {
         throw new KerberosPrincipalAlreadyExistsException(principal);
       } else {
         LOG.error("Failed to execute kadmin query: add_principal -pw \"********\" {} {}\nSTDOUT: {}\nSTDERR: {}",
@@ -235,9 +236,10 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
       ShellCommandUtil.Result result = invokeKAdmin(String.format("change_password -pw \"%s\" %s", password, principal));
 
       String stdOut = result.getStdout();
+      String stdErr = result.getStderr();
       if ((stdOut != null) && stdOut.contains(String.format("Password for \"%s\" changed", principal))) {
         return getKeyNumber(principal);
-      } else if ((stdOut != null) && stdOut.contains("Principal does not exist")) {
+      } else if ((stdErr != null) && stdErr.contains("Principal does not exist")) {
         throw new KerberosPrincipalDoesNotExistException(principal);
       } else {
         LOG.error("Failed to execute kadmin query: change_password -pw \"********\" {} \nSTDOUT: {}\nSTDERR: {}",
