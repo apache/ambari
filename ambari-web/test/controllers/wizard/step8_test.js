@@ -1314,11 +1314,15 @@ describe('App.WizardStep8Controller', function () {
       });
 
       var newDatabases = [
-        {name: 'New MySQL Database',
-         component: 'MYSQL_SERVER'
+        {
+          name: 'New MySQL Database',
+          component: 'MYSQL_SERVER',
+          expectedHosts: ['h1']
         },
-        {name: 'New PostgreSQL Database',
-          component: 'POSTGRESQL_SERVER'
+        {
+          name: 'New PostgreSQL Database',
+          component: 'POSTGRESQL_SERVER',
+          expectedHosts: ['h2']
         }
       ];
 
@@ -1332,7 +1336,7 @@ describe('App.WizardStep8Controller', function () {
               },
               content: {
                 masterComponentHosts: [
-                  {component: 'HIVE_SERVER', hostName: 'h1'},
+                  {component: 'HIVE_METASTORE', hostName: 'h1'},
                   {component: 'HIVE_SERVER', hostName: 'h2'}
                 ],
                 services: [
@@ -1349,8 +1353,8 @@ describe('App.WizardStep8Controller', function () {
           it('registerHostsToComponent is called once', function () {
             expect(installerStep8Controller.registerHostsToComponent.calledOnce).to.equal(true);
           });
-          it('hosts are ["h1", "h2"]', function () {
-            expect(installerStep8Controller.registerHostsToComponent.args[0][0]).to.eql(['h1', 'h2']);
+          it('hosts are ' + db.expectedHosts, function () {
+            expect(installerStep8Controller.registerHostsToComponent.args[0][0]).to.eql(db.expectedHosts);
           });
           it('component is ' + db.component, function () {
             expect(installerStep8Controller.registerHostsToComponent.args[0][1]).to.equal(db.component);
