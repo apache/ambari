@@ -53,6 +53,7 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.orm.entities.StageEntity;
+import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.host.HostImpl;
 import org.apache.ambari.server.utils.RetryHelper;
@@ -373,6 +374,19 @@ public class TopologyManager {
           availableHosts.add(host);
         }
       }
+    }
+  }
+
+  /**
+   * Through this method {@see TopologyManager} gets notified when a connection to a host in the cluster is lost.
+   * The passed host will be excluded from scheduling any tasks onto it as it can't be reached.
+   * @param host
+   */
+  public void onHostHeartBeatLost(Host host) {
+    ensureInitialized();
+    synchronized (availableHosts) {
+      LOG.info("Hearbeat for host {} lost thus removing it from available hosts.", host.getHostName());
+      availableHosts.remove(host);
     }
   }
 
