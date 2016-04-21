@@ -605,7 +605,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
       masterBlueprint = self.getCurrentMasterSlaveBlueprint();
       hostNames = hostNames.concat(App.Host.find().mapProperty("hostName")).uniq();
       slaveBlueprint = blueprintUtils.addComponentsToBlueprint(slaveBlueprint, invisibleSlavesAndClients);
-      }
+    }
 
     var bluePrintsForValidation = blueprintUtils.mergeBlueprints(masterBlueprint, slaveBlueprint);
     this.set('content.recommendationsHostGroups', bluePrintsForValidation);

@@ -94,7 +94,7 @@ App.ServerValidatorMixin = Em.Mixin.create({
    */
   hostGroups: function() {
     return this.get('content.recommendationsHostGroups') || blueprintUtils.generateHostGroups(App.get('allHostNames'));
-  }.property('content.recommendationsHostGroups', 'App.allHostNames'),
+  }.property('content.recommendationsHostGroups', 'App.allHostNames', 'App.componentToBeAdded', 'App.componentToBeDeleted'),
 
   /**
    * controller that is child of this mixin has to contain stepConfigs

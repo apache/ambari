@@ -468,6 +468,8 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
         if (isComponentToBeInstalled) {
           this.set('controller.saveInProgress', true);
           assignMasterOnStep7Controller.execute(this, 'ADD', hostComponent);
+        } else {
+          assignMasterOnStep7Controller.clearComponentsToBeDeleted(hostComponent.componentName);
         }
         break;
       case 'delete':

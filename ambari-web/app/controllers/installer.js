@@ -46,7 +46,8 @@ App.InstallerController = App.WizardController.extend({
      */
     recommendations: null,
     /**
-     * recommendationsHostGroups - current component assignment after 5 and 6 steps
+     * recommendationsHostGroups - current component assignment after 5 and 6 steps, 
+     * or adding hiveserver2 interactive on "configure services" page
      * (uses for host groups validation and to load recommended configs)
      */
     recommendationsHostGroups: null,

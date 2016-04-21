@@ -187,6 +187,21 @@ module.exports = Em.Application.create({
 
   allHostNames: [],
 
+  /**
+   * This object is populated to keep track of uninstalled components to be included in the layout for recommendation/validation call
+   * @type {object}
+   * keys = componentName, hostName
+   */
+  componentToBeAdded: {},
+
+
+  /**
+   * This object is populated to keep track of installed components to be excluded in the layout for recommendation/validation call
+   * @type {object}
+   * keys = componentName, hostName
+   */
+  componentToBeDeleted: {},
+
   uiOnlyConfigDerivedFromTheme: [],
 
   currentStackVersionNumber: function () {

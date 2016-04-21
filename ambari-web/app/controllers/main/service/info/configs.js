@@ -243,6 +243,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
       }
     });
     this.get('requestsInProgress').clear();
+    App.set('componentToBeAdded', {});
+    App.set('componentToBeDeleted', {});
     this.clearLoadInfo();
     this.clearSaveInfo();
     this.clearRecommendationsInfo();

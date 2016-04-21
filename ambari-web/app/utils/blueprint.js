@@ -423,15 +423,33 @@ module.exports = {
    */
   getComponentForHosts: function() {
     var hostsMap = {};
-    App.ClientComponent.find().forEach(function(c) {
-      hostsMap = this._generateHostMap(hostsMap, c.get('hostNames'), c.get('componentName'));
+    var componentModels = [App.ClientComponent, App.SlaveComponent, App.MasterComponent];
+    componentModels.forEach(function(_model){
+      _model.find().forEach(function(c) {
+        hostsMap = this._generateHostMap(hostsMap, c.get('hostNames'), c.get('componentName'));
+      }, this);  
     }, this);
-    App.SlaveComponent.find().forEach(function (c) {
-      hostsMap = this._generateHostMap(hostsMap, c.get('hostNames'), c.get('componentName'));
-    }, this);
-    App.MasterComponent.find().forEach(function (c) {
-      hostsMap = this._generateHostMap(hostsMap, c.get('hostNames'), c.get('componentName'));
-    }, this);
+
+    this.changeHostsMapForConfigActions(hostsMap);
     return hostsMap;
+  },
+
+  /**
+   * Adds or removes the component name entry as saved in App.componentToBeAdded and App.componentToBeDeleted from the 'hostsMap'
+   * @param hostsMap {object}
+   * @private
+   * @method {changeHostsMapForConfigActions}
+   */
+  changeHostsMapForConfigActions: function(hostsMap) {
+    var componentToBeAdded =  App.get('componentToBeAdded');
+    var componentToBeDeleted =  App.get('componentToBeDeleted');
+    if (!App.isEmptyObject(componentToBeAdded)) {
+      hostsMap = this._generateHostMap(hostsMap, componentToBeAdded.get('hostNames'), componentToBeAdded.get('componentName'));
+    } else if (!App.isEmptyObject(componentToBeDeleted) && hostsMap[componentToBeDeleted.hostName]) {
+      var index = hostsMap[componentToBeDeleted.hostName].indexOf(componentToBeDeleted.componentName);
+      if (index > -1) {
+        hostsMap[componentToBeDeleted.hostName].splice(index, 1);
+      }
+    }
   }
 };

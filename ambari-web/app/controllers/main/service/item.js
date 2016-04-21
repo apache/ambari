@@ -1287,7 +1287,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   hostGroups: function() {
     var hostGroup = blueprintUtils.generateHostGroups(App.get('allHostNames'));
     return blueprintUtils.removeDeletedComponents(hostGroup, [this.get('serviceNamesToDelete')]);
-  }.property('serviceNamesToDelete', 'App.allHostNames'),
+  }.property('serviceNamesToDelete', 'App.allHostNames', 'App.componentToBeAdded', 'App.componentToBeDeleted'),
 
   /**
    * List of services without removed

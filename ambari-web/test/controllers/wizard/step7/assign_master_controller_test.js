@@ -194,7 +194,11 @@ describe('App.AssignMasterOnStep7Controller', function () {
           masterComponentHosts: [
             {component: 'C1'},
             {component: 'C2'}
-          ]
+          ],
+          recommendationsHostGroups: {
+            blueprint: {host_groups: [{name: 'host-group-1', components: [{name: 'C1'}, {name: 'C2'}]}]},
+            blueprint_cluster_binding: {host_groups: [{name: 'host-group-1', hosts: [{fqdn: 'localhost'}]}]}
+          }
         }),
         configWidgetContext: {
           config: Em.Object.create()
@@ -203,6 +207,7 @@ describe('App.AssignMasterOnStep7Controller', function () {
       view.set('mastersToCreate', ['C2']);
       view.removeMasterComponent();
       expect(view.get('content.masterComponentHosts')).to.be.eql([{component: 'C1'}]);
+      expect(view.get('content.recommendationsHostGroups').blueprint).to.be.eql({host_groups: [{name: 'host-group-1', components: [{name: 'C1'}]}]});
       expect(mock.setDBProperty.calledWith('masterComponentHosts', [{component: 'C1'}])).to.be.true;
     });
   });
@@ -311,8 +316,9 @@ describe('App.AssignMasterOnStep7Controller', function () {
     var popup = {
       hide: Em.K
       },
-      router = {
-        saveMasterComponentHosts: Em.K
+      mock = {
+        saveMasterComponentHosts: Em.K,
+        setDBProperty: Em.K
       },
       config = Em.Object.create({
         filename: 'file1',
@@ -321,8 +327,9 @@ describe('App.AssignMasterOnStep7Controller', function () {
 
     beforeEach(function() {
       sinon.stub(popup, 'hide');
-      sinon.stub(App.router, 'get').returns(router);
-      sinon.stub(router, 'saveMasterComponentHosts');
+      sinon.stub(App.router, 'get').returns(mock);
+      sinon.stub(mock, 'saveMasterComponentHosts');
+      sinon.stub(mock, 'setDBProperty');
       view.reopen({
         content: Em.Object.create({
           controllerName: 'ctrl1'
@@ -365,11 +372,12 @@ describe('App.AssignMasterOnStep7Controller', function () {
     afterEach(function() {
       App.router.get.restore();
       popup.hide.restore();
-      router.saveMasterComponentHosts.restore();
+      mock.saveMasterComponentHosts.restore();
+      mock.setDBProperty.restore();
     });
 
     it("saveMasterComponentHosts should be called", function() {
-      expect(router.saveMasterComponentHosts.calledOnce).to.be.true;
+      expect(mock.saveMasterComponentHosts.calledOnce).to.be.true;
     });
 
     it("configActionComponent should be set", function() {
