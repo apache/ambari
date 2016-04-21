@@ -1151,7 +1151,7 @@ class TestHDP206StackAdvisor(TestCase):
     self.assertEquals(configurations, expected)
 
     # Verify dfs.namenode.rpc-address is recommended to be deleted when NN HA
-    configurations["hdfs-site"]["properties"]['dfs.nameservices'] = "mycluster"
+    configurations["hdfs-site"]["properties"]['dfs.internal.nameservices'] = "mycluster"
     configurations["hdfs-site"]["properties"]['dfs.ha.namenodes.mycluster'] = "nn1,nn2"
     services['configurations'] = configurations
 
@@ -1159,7 +1159,7 @@ class TestHDP206StackAdvisor(TestCase):
       'properties': {
         'dfs.datanode.data.dir': '/hadoop/hdfs/data',
         'dfs.datanode.du.reserved': '1024',
-        'dfs.nameservices': 'mycluster',
+        'dfs.internal.nameservices': 'mycluster',
         'dfs.ha.namenodes.mycluster': 'nn1,nn2'
       },
       'property_attributes': {

@@ -843,7 +843,7 @@ class TestAlerts(TestCase):
       "https_property": "{{hdfs-site/dfs.http.policy}}",
       "https_property_value": "HTTPS_ONLY",
       "high_availability": {
-        "nameservice": "{{hdfs-site/dfs.nameservices}}",
+        "nameservice": "{{hdfs-site/dfs.internal.nameservices}}",
         "alias_key" : "{{hdfs-site/dfs.ha.namenodes.{{ha-nameservice}}}}",
         "http_pattern" : "{{hdfs-site/dfs.namenode.http-address.{{ha-nameservice}}.{{alias}}}}",
         "https_pattern" : "{{hdfs-site/dfs.namenode.https-address.{{ha-nameservice}}.{{alias}}}}"
@@ -903,7 +903,7 @@ class TestAlerts(TestCase):
       { 'dfs.http.policy' : 'HTTP_ONLY',
         'dfs.namenode.http.address' : 'c6401.ambari.apache.org:80',
         'dfs.namenode.https.address' : 'c6401.ambari.apache.org:443',
-        'dfs.nameservices' : 'c1ha',
+        'dfs.internal.nameservices' : 'c1ha',
         'dfs.ha.namenodes.c1ha' : 'nn1, nn2',
         'dfs.namenode.http-address.c1ha.nn1' : 'c6401.ambari.apache.org:8080',
         'dfs.namenode.http-address.c1ha.nn2' : 'c6402.ambari.apache.org:8080',
@@ -923,7 +923,7 @@ class TestAlerts(TestCase):
       { 'dfs.http.policy' : 'HTTPS_ONLY',
         'dfs.namenode.http.address' : 'c6401.ambari.apache.org:80',
         'dfs.namenode.https.address' : 'c6401.ambari.apache.org:443',
-        'dfs.nameservices' : 'c1ha',
+        'dfs.internal.nameservices' : 'c1ha',
         'dfs.ha.namenodes.c1ha' : 'nn1, nn2',
         'dfs.namenode.http-address.c1ha.nn1' : 'c6401.ambari.apache.org:8080',
         'dfs.namenode.http-address.c1ha.nn2' : 'c6402.ambari.apache.org:8080',

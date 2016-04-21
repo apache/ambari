@@ -102,7 +102,7 @@
             "kerberos_principal": "{{hdfs-site/dfs.web.authentication.kerberos.principal}}",
             "connection_timeout": 5.0,
             "high_availability": {
-              "nameservice": "{{hdfs-site/dfs.nameservices}}",
+              "nameservice": "{{hdfs-site/dfs.internal.nameservices}}",
               "alias_key" : "{{hdfs-site/dfs.ha.namenodes.{{ha-nameservice}}}}",
               "http_pattern" : "{{hdfs-site/dfs.namenode.http-address.{{ha-nameservice}}.{{alias}}}}",
               "https_pattern" : "{{hdfs-site/dfs.namenode.https-address.{{ha-nameservice}}.{{alias}}}}"
@@ -152,7 +152,7 @@
             "https_property_value": "HTTPS_ONLY",
             "connection_timeout": 5.0,
             "high_availability": {
-              "nameservice": "{{hdfs-site/dfs.nameservices}}",
+              "nameservice": "{{hdfs-site/dfs.internal.nameservices}}",
               "alias_key" : "{{hdfs-site/dfs.ha.namenodes.{{ha-nameservice}}}}",
               "http_pattern" : "{{hdfs-site/dfs.namenode.http-address.{{ha-nameservice}}.{{alias}}}}",
               "https_pattern" : "{{hdfs-site/dfs.namenode.https-address.{{ha-nameservice}}.{{alias}}}}"
@@ -200,7 +200,7 @@
             "https_property_value": "HTTPS_ONLY",
             "connection_timeout": 5.0,
             "high_availability": {
-              "nameservice": "{{hdfs-site/dfs.nameservices}}",
+              "nameservice": "{{hdfs-site/dfs.internal.nameservices}}",
               "alias_key" : "{{hdfs-site/dfs.ha.namenodes.{{ha-nameservice}}}}",
               "http_pattern" : "{{hdfs-site/dfs.namenode.http-address.{{ha-nameservice}}.{{alias}}}}",
               "https_pattern" : "{{hdfs-site/dfs.namenode.https-address.{{ha-nameservice}}.{{alias}}}}"
@@ -247,7 +247,7 @@
             "https_property_value": "HTTPS_ONLY",
             "connection_timeout": 5.0,
             "high_availability": {
-              "nameservice": "{{hdfs-site/dfs.nameservices}}",
+              "nameservice": "{{hdfs-site/dfs.internal.nameservices}}",
               "alias_key" : "{{hdfs-site/dfs.ha.namenodes.{{ha-nameservice}}}}",
               "http_pattern" : "{{hdfs-site/dfs.namenode.http-address.{{ha-nameservice}}.{{alias}}}}",
               "https_pattern" : "{{hdfs-site/dfs.namenode.https-address.{{ha-nameservice}}.{{alias}}}}"
@@ -293,7 +293,7 @@
             "https_property_value": "HTTPS_ONLY",
             "connection_timeout": 5.0,
             "high_availability": {
-              "nameservice": "{{hdfs-site/dfs.nameservices}}",
+              "nameservice": "{{hdfs-site/dfs.internal.nameservices}}",
               "alias_key" : "{{hdfs-site/dfs.ha.namenodes.{{ha-nameservice}}}}",
               "http_pattern" : "{{hdfs-site/dfs.namenode.http-address.{{ha-nameservice}}.{{alias}}}}",
               "https_pattern" : "{{hdfs-site/dfs.namenode.https-address.{{ha-nameservice}}.{{alias}}}}"
@@ -341,7 +341,7 @@
             "https_property_value": "HTTPS_ONLY",
             "connection_timeout": 5.0,
             "high_availability": {
-              "nameservice": "{{hdfs-site/dfs.nameservices}}",
+              "nameservice": "{{hdfs-site/dfs.internal.nameservices}}",
               "alias_key" : "{{hdfs-site/dfs.ha.namenodes.{{ha-nameservice}}}}",
               "http_pattern" : "{{hdfs-site/dfs.namenode.http-address.{{ha-nameservice}}.{{alias}}}}",
               "https_pattern" : "{{hdfs-site/dfs.namenode.https-address.{{ha-nameservice}}.{{alias}}}}"
@@ -388,7 +388,7 @@
             "https_property_value": "HTTPS_ONLY",
             "connection_timeout": 5.0,
             "high_availability": {
-              "nameservice": "{{hdfs-site/dfs.nameservices}}",
+              "nameservice": "{{hdfs-site/dfs.internal.nameservices}}",
               "alias_key" : "{{hdfs-site/dfs.ha.namenodes.{{ha-nameservice}}}}",
               "http_pattern" : "{{hdfs-site/dfs.namenode.http-address.{{ha-nameservice}}.{{alias}}}}",
               "https_pattern" : "{{hdfs-site/dfs.namenode.https-address.{{ha-nameservice}}.{{alias}}}}"
@@ -434,7 +434,7 @@
             "https_property_value": "HTTPS_ONLY",
             "connection_timeout": 5.0,
             "high_availability": {
-              "nameservice": "{{hdfs-site/dfs.nameservices}}",
+              "nameservice": "{{hdfs-site/dfs.internal.nameservices}}",
               "alias_key": "{{hdfs-site/dfs.ha.namenodes.{{ha-nameservice}}}}",
               "http_pattern": "{{hdfs-site/dfs.namenode.http-address.{{ha-nameservice}}.{{alias}}}}",
               "https_pattern": "{{hdfs-site/dfs.namenode.https-address.{{ha-nameservice}}.{{alias}}}}"
