@@ -373,6 +373,15 @@ public interface Host extends Comparable {
   Map<String, HostConfig> getDesiredHostConfigs(Cluster cluster) throws AmbariException;
 
   /**
+   * Get the desired configurations for the host including overrides
+   * @param cluster
+   * @param bypassCache
+   * @return
+   * @throws AmbariException
+   */
+  Map<String, HostConfig> getDesiredHostConfigs(Cluster cluster, boolean bypassCache) throws AmbariException;
+
+  /**
    * Sets the maintenance state for the host.
    * @param clusterId the cluster id
    * @param state the state

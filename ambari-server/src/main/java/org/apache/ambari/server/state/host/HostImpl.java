@@ -1336,12 +1336,25 @@ public class HostImpl implements Host {
    */
   @Override
   public Map<String, HostConfig> getDesiredHostConfigs(Cluster cluster) throws AmbariException {
+    return getDesiredHostConfigs(cluster, false);
+  }
+
+  /**
+   * Get a map of configType with all applicable config tags.
+   *
+   * @param cluster  the cluster
+   * @param bypassCache don't use cached values
+   *
+   * @return Map of configType -> HostConfig
+   */
+  @Override
+  public Map<String, HostConfig> getDesiredHostConfigs(Cluster cluster, boolean bypassCache) throws AmbariException {
     Map<String, HostConfig> hostConfigMap = new HashMap<String, HostConfig>();
-    Map<String, DesiredConfig> clusterDesiredConfigs = (cluster == null) ? new HashMap<String, DesiredConfig>() : cluster.getDesiredConfigs();
+    Map<String, DesiredConfig> clusterDesiredConfigs = (cluster == null) ? new HashMap<String, DesiredConfig>() : cluster.getDesiredConfigs(bypassCache);
 
     if (clusterDesiredConfigs != null) {
       for (Map.Entry<String, DesiredConfig> desiredConfigEntry
-              : clusterDesiredConfigs.entrySet()) {
+          : clusterDesiredConfigs.entrySet()) {
         HostConfig hostConfig = new HostConfig();
         hostConfig.setDefaultVersionTag(desiredConfigEntry.getValue().getTag());
         hostConfigMap.put(desiredConfigEntry.getKey(), hostConfig);
@@ -1353,7 +1366,7 @@ public class HostImpl implements Host {
     if (configGroups != null && !configGroups.isEmpty()) {
       for (ConfigGroup configGroup : configGroups.values()) {
         for (Map.Entry<String, Config> configEntry : configGroup
-                .getConfigurations().entrySet()) {
+            .getConfigurations().entrySet()) {
 
           String configType = configEntry.getKey();
           // HostConfig config holds configType -> versionTag, per config group
@@ -1373,7 +1386,7 @@ public class HostImpl implements Host {
           }
           Config config = configEntry.getValue();
           hostConfig.getConfigGroupOverrides().put(configGroup.getId(),
-                  config.getTag());
+              config.getTag());
         }
       }
     }
