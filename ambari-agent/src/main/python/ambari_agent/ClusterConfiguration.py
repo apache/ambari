@@ -129,7 +129,7 @@ class ClusterConfiguration():
 
     self.__file_lock.acquire()
     try:
-      with open(self.__config_json_file, 'w') as f:
+      with os.fdopen(os.open(self.__config_json_file, os.O_WRONLY | os.O_CREAT, 0o600), "w") as f:
         json.dump(self.__configurations, f, indent=2)
     except Exception, exception :
       logger.exception("Unable to update configurations for cluster {0}".format(cluster_name))

@@ -28,6 +28,9 @@ from unittest import TestCase
 
 class TestClusterConfigurationCache(TestCase):
 
+  o_flags = os.O_WRONLY | os.O_CREAT
+  perms = 0o600
+
   def setUp(self):
     # save original open() method for later use
     self.original_open = open
@@ -64,8 +67,11 @@ class TestClusterConfigurationCache(TestCase):
       { 'bar': 'rendered-bar', 'baz' : 'rendered-baz' }
     }
 
-    file_mock = self.__update_cluster_configuration(cluster_configuration, configuration)
-    file_mock.assert_called_with(os.sep + "foo" + os.sep + "bar" + os.sep + "baz" + os.sep + "configurations.json", 'w')
+    osopen_mock, osfdopen_mock = self.__update_cluster_configuration(cluster_configuration, configuration)
+    osopen_mock.assert_called_with(os.sep + "foo" + os.sep + "bar" + os.sep + "baz" + os.sep + "configurations.json",
+                                   TestClusterConfigurationCache.o_flags,
+                                   TestClusterConfigurationCache.perms);
+    osfdopen_mock.assert_called_with(11, "w")
 
     json_dump_mock.assert_called_with({'c1': {'foo-site': {'baz': 'rendered-baz', 'bar': 'rendered-bar'}}}, ANY, indent=2)
     pass
@@ -82,18 +88,18 @@ class TestClusterConfigurationCache(TestCase):
       return cluster_configuration
 
 
-  def __update_cluster_configuration(self, cluster_configuration, configuration):
+  @patch("os.open")
+  @patch("os.fdopen")
+  def __update_cluster_configuration(self, cluster_configuration, configuration, osfdopen_mock, osopen_mock):
     """
     Updates the configuration cache, using as mock file as the disk based
     cache so that a file is not created during tests
     :return:
     """
-    with patch("__builtin__.open") as open_mock:
-      open_mock.side_effect = self.open_side_effect
-      cluster_configuration._update_configurations("c1", configuration)
+    osopen_mock.return_value = 11
+    cluster_configuration._update_configurations("c1", configuration)
 
-    return open_mock
-
+    return osopen_mock, osfdopen_mock
 
   def open_side_effect(self, file, mode):
     if mode == 'w':

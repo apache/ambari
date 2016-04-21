@@ -49,6 +49,7 @@ class TestAlerts(TestCase):
   def setUp(self):
     # save original open() method for later use
     self.original_open = open
+    self.original_osfdopen = os.fdopen
     self.config = AmbariConfig()
 
   def tearDown(self):
@@ -1280,18 +1281,26 @@ class TestAlerts(TestCase):
       return cluster_configuration
 
 
-  def __update_cluster_configuration(self, cluster_configuration, configuration):
+  @patch("os.open")
+  @patch("os.fdopen")
+  def __update_cluster_configuration(self, cluster_configuration, configuration, osfdopen_mock, osopen_mock):
     """
     Updates the configuration cache, using as mock file as the disk based
     cache so that a file is not created during tests
     :return:
     """
-    with patch("__builtin__.open") as open_mock:
-      open_mock.side_effect = self.open_side_effect
-      cluster_configuration._update_configurations("c1", configuration)
+    osfdopen_mock.side_effect = self.osfdopen_side_effect
+    cluster_configuration._update_configurations("c1", configuration)
 
 
   def open_side_effect(self, file, mode):
+    if mode == 'w':
+      file_mock = MagicMock()
+      return file_mock
+    else:
+      return self.original_open(file, mode)
+
+  def osfdopen_side_effect(self, fd, mode):
     if mode == 'w':
       file_mock = MagicMock()
       return file_mock
