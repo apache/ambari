@@ -22,18 +22,8 @@ package org.apache.ambari.server.upgrade;
 import javax.persistence.EntityManager;
 
 import junit.framework.Assert;
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.anyString;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMockBuilder;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.newCapture;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
+
+import static org.easymock.EasyMock.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNull;
@@ -67,7 +57,9 @@ import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
+import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.state.AlertFirmness;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -1093,6 +1085,48 @@ public class UpgradeCatalog240Test {
         Assert.assertEquals(property, propertiesKerberosEnv.get(property), capturedCRProperties.get(property));
       }
     }
+  }
+
+  @Test
+  public void testNameserviceAlertsUpdate() {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    long clusterId = 1;
+
+    final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final AlertDefinitionDAO mockAlertDefinitionDAO = easyMockSupport.createNiceMock(AlertDefinitionDAO.class);
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+    final AlertDefinitionEntity namenodeWebUiAlertDefinitionEntity = new AlertDefinitionEntity();
+    namenodeWebUiAlertDefinitionEntity.setDefinitionName("namenode_webui");
+    namenodeWebUiAlertDefinitionEntity.setSource("{\"uri\": {\"high_availability\": {\"nameservice\": \"{{hdfs-site/dfs.nameservices}}\",\"alias_key\" : \"{{hdfs-site/dfs.ha.namenodes.{{ha-nameservice}}}}\",\"http_pattern\" : \"{{hdfs-site/dfs.namenode.http-address.{{ha-nameservice}}.{{alias}}}}\",\"https_pattern\" : \"{{hdfs-site/dfs.namenode.https-address.{{ha-nameservice}}.{{alias}}}}\"}}}");
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(EntityManager.class).toInstance(entityManager);
+        bind(AlertDefinitionDAO.class).toInstance(mockAlertDefinitionDAO);
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    });
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockClusterExpected);
+    }}).atLeastOnce();
+
+    expect(mockClusterExpected.getClusterId()).andReturn(clusterId).anyTimes();
+
+    expect(mockAlertDefinitionDAO.findByName(eq(clusterId), eq("namenode_webui")))
+        .andReturn(namenodeWebUiAlertDefinitionEntity).atLeastOnce();
+
+    easyMockSupport.replayAll();
+    mockInjector.getInstance(UpgradeCatalog240.class).updateAlerts();
+
+    assertTrue(namenodeWebUiAlertDefinitionEntity.getSource().contains("{{hdfs-site/dfs.internal.nameservices}}"));
+    easyMockSupport.verifyAll();
   }
 }
 

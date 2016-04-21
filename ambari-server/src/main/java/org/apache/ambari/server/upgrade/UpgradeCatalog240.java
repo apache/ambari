@@ -432,6 +432,17 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
       }});
     }};
 
+    String newNameservicePropertyValue = "{{hdfs-site/dfs.internal.nameservices}}";
+    final Set<String> alertNamesForNameserviceUpdate = new HashSet<String>() {{
+      add("namenode_webui");
+      add("namenode_hdfs_blocks_health");
+      add("namenode_hdfs_pending_deletion_blocks");
+      add("namenode_rpc_latency");
+      add("namenode_directory_status");
+      add("datanode_health_summary");
+      add("namenode_cpu");
+      add("namenode_hdfs_capacity_utilization");
+    }};
 
     // list of alerts that need to get property updates
     Set<String> alertNamesForPropertyUpdates = new HashSet<String>() {{
@@ -466,6 +477,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
       add("ams_metrics_collector_hbase_master_cpu");
       add("ambari_agent_disk_usage");
       add("namenode_last_checkpoint");
+      addAll(alertNamesForNameserviceUpdate);
     }};
 
     LOG.info("Updating alert definitions.");
@@ -581,11 +593,25 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
           }
         }
 
+        if (alertNamesForNameserviceUpdate.contains(alertDefinition.getDefinitionName())) {
+          String source = alertDefinition.getSource();
+          alertDefinition.setSource(setNameservice(source, newNameservicePropertyValue));
+        }
         // regeneration of hash and writing modified alerts to database, must go after all modifications finished
         alertDefinition.setHash(UUID.randomUUID().toString());
         alertDefinitionDAO.merge(alertDefinition);
       }
     }
+  }
+
+  protected String setNameservice(String source, String paramValue) {
+    final String nameservicePropertyName = "nameservice";
+    JsonObject sourceJson = new JsonParser().parse(source).getAsJsonObject();
+    JsonObject highAvailability = sourceJson.getAsJsonObject("uri").getAsJsonObject("high_availability");
+    if (highAvailability.has(nameservicePropertyName)) {
+      highAvailability.addProperty(nameservicePropertyName, paramValue);
+    }
+    return sourceJson.toString();
   }
 
   /*
