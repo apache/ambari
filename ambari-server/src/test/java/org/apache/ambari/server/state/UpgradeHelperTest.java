@@ -1575,7 +1575,7 @@ public class UpgradeHelperTest {
     assertEquals(2, schs.size());
 
     setConfigMocks();
-    expect(m_configHelper.getValueFromDesiredConfigurations(c, "hdfs-site", "dfs.nameservices")).andReturn("ha").anyTimes();
+    expect(m_configHelper.getValueFromDesiredConfigurations(c, "hdfs-site", "dfs.internal.nameservices")).andReturn("ha").anyTimes();
     expect(m_configHelper.getValueFromDesiredConfigurations(c, "hdfs-site", "dfs.ha.namenodes.ha")).andReturn("nn1,nn2").anyTimes();
     expect(m_configHelper.getValueFromDesiredConfigurations(c, "hdfs-site", "dfs.http.policy")).andReturn("HTTP_ONLY").anyTimes();
 
