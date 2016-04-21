@@ -138,21 +138,13 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
 
       self._llap_stop(env)
 
-    """
-    Checks the status of Hive Server Interactive and LLAP app.
-    If any of them is down, status is shown STOPPED.
-    """
     def status(self, env):
       import status_params
       env.set_params(status_params)
 
-      status = self.check_llap_app_status("llap0", 0)
-      if not status:
-        Logger.error("Slider app 'llap' not in running state.")
-        raise ComponentIsNotRunning()
+      # TODO : LLAP app status check
 
       pid_file = format("{hive_pid_dir}/{hive_interactive_pid}")
-
       # Recursively check all existing gmetad pid files
       check_process_status(pid_file)
 
