@@ -187,7 +187,7 @@ public class AlertUri {
    *
    * <pre>
    * high_availability": {
-   *   "nameservice": "{{hdfs-site/dfs.nameservices}}",
+   *   "nameservice": "{{hdfs-site/dfs.internal.nameservices}}",
    *   "alias_key" : "dfs.ha.namenodes.{{ha-nameservice}}",
    *   "http_pattern" : "dfs.namenode.http-address.{{ha-nameservice}}.{{alias}}",
    *   "https_pattern" : "dfs.namenode.https-address.{{ha-nameservice}}.{{alias}}"

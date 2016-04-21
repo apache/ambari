@@ -362,7 +362,7 @@ public class JMXHostProviderTest {
 
     // Create configs
     Map<String, String> configs = new HashMap<String, String>();
-    configs.put("dfs.nameservices", "ns");
+    configs.put("dfs.internal.nameservices", "ns");
     configs.put("dfs.namenode.http-address", "h1:50070");
     configs.put("dfs.namenode.http-address.ns.nn1", "h1:50071");
     configs.put("dfs.namenode.http-address.ns.nn2", "h2:50072");

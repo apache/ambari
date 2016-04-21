@@ -96,7 +96,7 @@ public class ServicesNamenodeHighAvailabilityCheckTest {
     servicesNamenodeHighAvailabilityCheck.perform(check, new PrereqCheckRequest("cluster"));
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
 
-    properties.put("dfs.nameservices", "anything");
+    properties.put("dfs.internal.nameservices", "anything");
     check = new PrerequisiteCheck(null, null);
     servicesNamenodeHighAvailabilityCheck.perform(check, new PrereqCheckRequest("cluster"));
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());

@@ -115,7 +115,7 @@ public enum CheckDescription {
       "NameNode High Availability must be enabled",
       new HashMap<String, String>() {{
         put(AbstractCheckDescriptor.DEFAULT,
-          "NameNode High Availability is not enabled. Verify that dfs.nameservices property is present in hdfs-site.xml.");
+          "NameNode High Availability is not enabled. Verify that dfs.internal.nameservices property is present in hdfs-site.xml.");
       }}),
 
   SERVICES_NAMENODE_TRUNCATE(PrereqCheckType.SERVICE,

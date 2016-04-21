@@ -65,7 +65,10 @@ is_hive_installed = default("/clusterHostInfo/hive_server_host", None) is not No
 hdfs_site = config['configurations']['hdfs-site']
 default_fs = config['configurations']['core-site']['fs.defaultFS']
 namenode_path =  default('/configurations/hdfs-site/dfs.namenode.http-address', None)
-dfs_nameservice = default('/configurations/hdfs-site/dfs.nameservices', None)
+dfs_nameservice = default('/configurations/hdfs-site/dfs.internal.nameservices', None)
+if dfs_nameservice is None:
+  dfs_nameservice = default('/configurations/hdfs-site/dfs.nameservices', None)
+
 if dfs_nameservice:
   namenode_path =  get_active_namenode(hdfs_site, security_enabled, hdfs_user)[1]
 

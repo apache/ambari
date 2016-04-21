@@ -258,7 +258,7 @@ public class MasterHostResolver {
     Map<Status, String> stateToHost = new HashMap<Status, String>();
     Cluster cluster = getCluster();
 
-    String nameService = m_configHelper.getValueFromDesiredConfigurations(cluster, ConfigHelper.HDFS_SITE, "dfs.nameservices");
+    String nameService = m_configHelper.getValueFromDesiredConfigurations(cluster, ConfigHelper.HDFS_SITE, "dfs.internal.nameservices");
     if (nameService == null || nameService.isEmpty()) {
       return null;
     }

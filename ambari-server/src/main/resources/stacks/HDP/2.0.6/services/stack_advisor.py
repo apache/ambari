@@ -294,7 +294,9 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     # Check if NN HA is enabled and recommend removing dfs.namenode.rpc-address
     hdfsSiteProperties = getServicesSiteProperties(services, "hdfs-site")
     nameServices = None
-    if hdfsSiteProperties and 'dfs.nameservices' in hdfsSiteProperties:
+    if hdfsSiteProperties and 'dfs.internal.nameservices' in hdfsSiteProperties:
+      nameServices = hdfsSiteProperties['dfs.internal.nameservices']
+    if nameServices is None and hdfsSiteProperties and 'dfs.nameservices' in hdfsSiteProperties:
       nameServices = hdfsSiteProperties['dfs.nameservices']
     if nameServices and "dfs.ha.namenodes.%s" % nameServices in hdfsSiteProperties:
       namenodes = hdfsSiteProperties["dfs.ha.namenodes.%s" % nameServices]

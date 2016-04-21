@@ -190,7 +190,8 @@ public class ClusterTopologyImpl implements ClusterTopology {
 
   public static boolean isNameNodeHAEnabled(Map<String, Map<String, String>> configurationProperties) {
     return configurationProperties.containsKey("hdfs-site") &&
-        configurationProperties.get("hdfs-site").containsKey("dfs.nameservices");
+           (configurationProperties.get("hdfs-site").containsKey("dfs.nameservices") ||
+            configurationProperties.get("hdfs-site").containsKey("dfs.internal.nameservices"));
   }
 
   @Override

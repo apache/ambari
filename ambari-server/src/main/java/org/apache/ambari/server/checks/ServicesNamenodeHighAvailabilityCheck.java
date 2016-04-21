@@ -58,7 +58,7 @@ public class ServicesNamenodeHighAvailabilityCheck extends AbstractCheckDescript
     final Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
     final DesiredConfig desiredConfig = desiredConfigs.get(configType);
     final Config config = cluster.getConfig(configType, desiredConfig.getTag());
-    if (!config.getProperties().containsKey("dfs.nameservices")) {
+    if (!config.getProperties().containsKey("dfs.internal.nameservices")) {
       prerequisiteCheck.getFailedOn().add("HDFS");
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
       prerequisiteCheck.setFailReason(getFailReason(prerequisiteCheck, request));

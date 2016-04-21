@@ -602,7 +602,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
    */
   String[] getPortProperties(Service.Type service, String componentName, String hostName, Map<String, Object> properties, boolean httpsEnabled) {
     componentName = httpsEnabled ? componentName + "-HTTPS" : componentName;
-    if(componentName.startsWith("NAMENODE") && properties.containsKey("dfs.nameservices")) {
+    if(componentName.startsWith("NAMENODE") && properties.containsKey("dfs.internal.nameservices")) {
       componentName += "-HA";
       return getNamenodeHaProperty(properties, serviceDesiredProperties.get(service).get(componentName), hostName);
     }
@@ -611,7 +611,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
 
   private String[] getNamenodeHaProperty(Map<String, Object> properties, String pattern[], String hostName) {
     // iterate over nameservices and namenodes, to find out namenode http(s) property for concrete host
-    for(String nameserviceId : ((String)properties.get("dfs.nameservices")).split(",")) {
+    for(String nameserviceId : ((String)properties.get("dfs.internal.nameservices")).split(",")) {
       if(properties.containsKey("dfs.ha.namenodes."+nameserviceId)) {
         for (String namenodeId : ((String)properties.get("dfs.ha.namenodes." + nameserviceId)).split(",")) {
           String propertyName = String.format(
@@ -1235,7 +1235,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
           configVersion,
           serviceConfigTypes.get(componentServiceMap.get(componentName))
         );
-        if (configProperties.containsKey("dfs.nameservices")) {
+        if (configProperties.containsKey("dfs.internal.nameservices")) {
           componentName += "-HA";
           keys = jmxDesiredRpcSuffixProperties.get(componentName);
           Map<String, String[]> stringMap = jmxDesiredRpcSuffixProperties.get(componentName);

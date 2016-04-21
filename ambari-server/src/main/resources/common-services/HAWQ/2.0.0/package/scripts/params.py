@@ -65,7 +65,9 @@ security_enabled = config['configurations']['cluster-env']['security_enabled']
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
-dfs_nameservice = default('/configurations/hdfs-site/dfs.nameservices', None)
+dfs_nameservice = default('/configurations/hdfs-site/dfs.internal.nameservices', None)
+if dfs_nameservice is None:
+ dfs_nameservice = default('/configurations/hdfs-site/dfs.nameservices', None)
 
 # HDFSResource partial function
 HdfsResource = functools.partial(HdfsResource,

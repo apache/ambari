@@ -36,7 +36,7 @@ HDFS_NN_STATE_ACTIVE = 'active'
 HDFS_NN_STATE_STANDBY = 'standby'
 
 HDFS_SITE_KEY = '{{hdfs-site}}'
-NAMESERVICE_KEY = '{{hdfs-site/dfs.nameservices}}'
+NAMESERVICE_KEY = '{{hdfs-site/dfs.internal.nameservices}}'
 NN_HTTP_ADDRESS_KEY = '{{hdfs-site/dfs.namenode.http-address}}'
 NN_HTTPS_ADDRESS_KEY = '{{hdfs-site/dfs.namenode.https-address}}'
 DFS_POLICY_KEY = '{{hdfs-site/dfs.http.policy}}'

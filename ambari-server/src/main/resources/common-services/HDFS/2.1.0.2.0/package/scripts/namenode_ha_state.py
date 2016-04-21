@@ -41,9 +41,12 @@ class NamenodeHAState:
     """
     import params
 
-    self.name_service = default("/configurations/hdfs-site/dfs.nameservices", None)
+    self.name_service = default('/configurations/hdfs-site/dfs.internal.nameservices', None)
+    if self.name_service is None:
+      self.name_service = default('/configurations/hdfs-site/dfs.nameservices', None)
+
     if not self.name_service:
-      raise ValueError("Could not retrieve property dfs.nameservices")
+      raise ValueError("Could not retrieve property dfs.nameservices or dfs.internal.nameservices")
 
     nn_unique_ids_key = "dfs.ha.namenodes." + str(self.name_service)
     # List of the nn unique ids
