@@ -35,8 +35,8 @@ class PhoenixQueryServer(Script):
 
 
   def get_stack_to_component(self):
-    import params
-    return {params.stack_name: "phoenix-server"}
+    import status_params
+    return {status_params.stack_name: "phoenix-server"}
 
 
   def configure(self, env):

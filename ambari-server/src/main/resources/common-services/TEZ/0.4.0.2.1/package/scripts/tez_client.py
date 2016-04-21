@@ -34,6 +34,7 @@ from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.get_stack_version import get_stack_version
 from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions.default import default
 
 from tez import tez
 
@@ -50,8 +51,7 @@ class TezClient(Script):
 class TezClientLinux(TezClient):
 
   def get_stack_to_component(self):
-    import params
-    return {params.stack_name : "hadoop-client"}
+    return {default("/hostLevelParams/stack_name", None) : "hadoop-client"}
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params

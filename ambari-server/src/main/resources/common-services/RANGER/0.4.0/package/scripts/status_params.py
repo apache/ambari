@@ -20,6 +20,7 @@ limitations under the License.
 
 from resource_management.libraries.script import Script
 from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions.default import default
 
 config  = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
@@ -27,3 +28,4 @@ tmp_dir = Script.get_tmp_dir()
 upgrade_marker_file = format("{tmp_dir}/rangeradmin_ru.inprogress")
 ranger_pid_dir = config['configurations']['ranger-env']['ranger_pid_dir']
 tagsync_pid_file = format('{ranger_pid_dir}/tagsync.pid')
+stack_name = default("/hostLevelParams/stack_name", None)

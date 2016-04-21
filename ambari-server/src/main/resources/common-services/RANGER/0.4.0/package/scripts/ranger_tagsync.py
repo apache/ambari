@@ -73,8 +73,8 @@ class RangerTagsync(Script):
       stack_select.select("ranger-tagsync", params.version)
 
   def get_stack_to_component(self):
-    import params
-    return {params.stack_name: "ranger-tagsync"}
+    import status_params
+    return {status_params.stack_name: "ranger-tagsync"}
 
 
 if __name__ == "__main__":

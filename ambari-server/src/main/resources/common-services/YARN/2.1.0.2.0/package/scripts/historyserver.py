@@ -71,8 +71,8 @@ class HistoryserverWindows(HistoryServer):
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class HistoryServerDefault(HistoryServer):
   def get_stack_to_component(self):
-    import params
-    return {params.stack_name: "hadoop-mapreduce-historyserver"}
+    import status_params
+    return {status_params.stack_name: "hadoop-mapreduce-historyserver"}
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     Logger.info("Executing Stack Upgrade pre-restart")

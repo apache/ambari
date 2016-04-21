@@ -24,6 +24,7 @@ from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.libraries.functions.format import format
 from resource_management.core.logger import Logger
 from resource_management.core import shell
+from resource_management.libraries.functions.default import default
 from kms import kms, setup_kms_db, setup_java_patch, enable_kms_plugin, setup_kms_jce
 from kms_service import kms_service
 import upgrade
@@ -31,8 +32,7 @@ import upgrade
 class KmsServer(Script):
 
   def get_stack_to_component(self):
-    import params
-    return {params.stack_name: "ranger-kms"}
+    return {default("/hostLevelParams/stack_name", None): "ranger-kms"}
 
   def install(self, env):
     self.install_packages(env)

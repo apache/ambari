@@ -57,12 +57,12 @@ class AccumuloScript(Script):
     :return:  the name of the component on the stack which is used by
               <stack-selector-tool>
     """
-    import params
+    import status_params
     if self.component not in self.COMPONENT_TO_STACK_SELECT_MAPPING:
       return None
 
     stack_component = self.COMPONENT_TO_STACK_SELECT_MAPPING[self.component]
-    return {params.stack_name: stack_component}
+    return {status_params.stack_name: stack_component}
 
 
   def install(self, env):

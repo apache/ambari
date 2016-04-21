@@ -60,3 +60,5 @@ else:
   limits_conf_dir = "/etc/security/limits.d"
   if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
     hbase_conf_dir = format("{stack_root}/current/{component_directory}/conf")
+    
+stack_name = default("/hostLevelParams/stack_name", None)

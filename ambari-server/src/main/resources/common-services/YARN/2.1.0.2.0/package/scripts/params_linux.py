@@ -53,7 +53,7 @@ YARN_SERVER_ROLE_DIRECTORY_MAP = {
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
-stack_name = default("/hostLevelParams/stack_name", None)
+stack_name = status_params.stack_name
 stack_root = Script.get_stack_root()
 tarball_map = default("/configurations/cluster-env/tarball_map", None)
 

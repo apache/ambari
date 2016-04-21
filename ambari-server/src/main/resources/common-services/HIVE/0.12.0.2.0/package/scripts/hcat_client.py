@@ -55,8 +55,8 @@ class HCatClientDefault(HCatClient):
     # HCat client doesn't have a first-class entry in <stack-selector-tool>. Since clients always
     # update after daemons, this ensures that the hcat directories are correct on hosts
     # which do not include the WebHCat daemon
-    import params
-    return {params.stack_name: "hive-webhcat"}
+    import status_params
+    return {status_params.stack_name: "hive-webhcat"}
 
 
   def pre_upgrade_restart(self, env, upgrade_type=None):

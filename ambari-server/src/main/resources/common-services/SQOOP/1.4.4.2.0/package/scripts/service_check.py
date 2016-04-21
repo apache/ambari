@@ -21,6 +21,7 @@ limitations under the License.
 
 from resource_management.libraries.script.script import Script
 from resource_management.core.resources import Execute
+from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import format
 from ambari_commons.os_family_impl import OsFamilyImpl
 from ambari_commons import OSConst
@@ -33,8 +34,7 @@ class SqoopServiceCheck(Script):
 class SqoopServiceCheckDefault(SqoopServiceCheck):
 
   def get_stack_to_component(self):
-    import params
-    return {params.stack_name: "sqoop-server"}
+    return {default("/hostLevelParams/stack_name", None): "sqoop-server"}
 
   def service_check(self, env):
     import params

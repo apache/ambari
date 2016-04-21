@@ -57,3 +57,4 @@ else:
   config_dir = "/etc/zookeeper/conf"
   if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
     config_dir = format("{stack_root}/current/{component_directory}/conf")
+stack_name = default("/hostLevelParams/stack_name", None)

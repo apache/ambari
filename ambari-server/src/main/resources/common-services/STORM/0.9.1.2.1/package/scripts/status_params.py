@@ -79,3 +79,5 @@ else:
   storm_user = config['configurations']['storm-env']['storm_user']
   storm_ui_principal = default('/configurations/storm-env/storm_ui_principal_name', None)
   storm_ui_keytab = default('/configurations/storm-env/storm_ui_keytab', None)
+
+stack_name = default("/hostLevelParams/stack_name", None)

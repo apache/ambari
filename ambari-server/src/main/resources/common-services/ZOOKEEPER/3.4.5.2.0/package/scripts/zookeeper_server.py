@@ -65,8 +65,8 @@ class ZookeeperServer(Script):
 class ZookeeperServerLinux(ZookeeperServer):
 
   def get_stack_to_component(self):
-    import params
-    return {params.stack_name : "zookeeper-server"}
+    import status_params
+    return {status_params.stack_name : "zookeeper-server"}
 
   def install(self, env):
     self.install_packages(env)

@@ -53,8 +53,8 @@ class HbaseClientWindows(HbaseClient):
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class HbaseClientDefault(HbaseClient):
   def get_stack_to_component(self):
-    import params
-    return {params.stack_name: "hbase-client"}
+    import status_params
+    return {status_params.stack_name: "hbase-client"}
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params

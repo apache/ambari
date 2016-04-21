@@ -39,8 +39,8 @@ from resource_management.core.resources.service import Service
 
 class Nimbus(Script):
   def get_stack_to_component(self):
-    import params
-    return {params.stack_name : "storm-nimbus"}
+    import status_params
+    return {status_params.stack_name : "storm-nimbus"}
 
   def install(self, env):
     self.install_packages(env)

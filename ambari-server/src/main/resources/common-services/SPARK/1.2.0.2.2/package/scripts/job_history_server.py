@@ -69,8 +69,8 @@ class JobHistoryServer(Script):
     
 
   def get_stack_to_component(self):
-    import params
-    return {params.stack_name : "spark-historyserver"}
+    import status_params
+    return {status_params.stack_name : "spark-historyserver"}
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params

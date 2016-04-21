@@ -48,7 +48,7 @@ from resource_management.libraries.functions.expect import expect
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
-stack_name = default("/hostLevelParams/stack_name", None)
+stack_name = status_params.stack_name
 stack_root = Script.get_stack_root()
 upgrade_direction = default("/commandParams/upgrade_direction", None)
 stack_version_unformatted = config['hostLevelParams']['stack_version']

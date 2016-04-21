@@ -52,8 +52,8 @@ class YarnClientWindows(YarnClient):
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class YarnClientDefault(YarnClient):
   def get_stack_to_component(self):
-    import params
-    return {params.stack_name: "hadoop-client"}
+    import status_params
+    return {status_params.stack_name: "hadoop-client"}
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params

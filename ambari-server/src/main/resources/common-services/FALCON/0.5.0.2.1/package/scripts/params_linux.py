@@ -32,7 +32,7 @@ from resource_management.libraries.functions import StackFeature
 
 config = Script.get_config()
 stack_root = status_params.stack_root
-stack_name = default("/hostLevelParams/stack_name", None)
+stack_name = status_params.stack_name
 
 agent_stack_retry_on_unavailability = config['hostLevelParams']['agent_stack_retry_on_unavailability']
 agent_stack_retry_count = expect("/hostLevelParams/agent_stack_retry_count", int)

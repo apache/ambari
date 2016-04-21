@@ -69,8 +69,8 @@ class HbaseRegionServerWindows(HbaseRegionServer):
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class HbaseRegionServerDefault(HbaseRegionServer):
   def get_stack_to_component(self):
-    import params
-    return {params.stack_name: "hbase-regionserver"}
+    import status_params
+    return {status_params.stack_name: "hbase-regionserver"}
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params

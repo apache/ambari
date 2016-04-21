@@ -44,7 +44,7 @@ config = Script.get_config()
 exec_tmp_dir = Script.get_tmp_dir()
 sudo = AMBARI_SUDO_BINARY
 
-stack_name = default("/hostLevelParams/stack_name", None)
+stack_name = status_params.stack_name
 agent_stack_retry_on_unavailability = config['hostLevelParams']['agent_stack_retry_on_unavailability']
 agent_stack_retry_count = expect("/hostLevelParams/agent_stack_retry_count", int)
 

@@ -17,6 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+
 import os
 from resource_management.libraries.script import Script
 from resource_management.libraries.functions.version import format_stack_version

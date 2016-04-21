@@ -20,6 +20,7 @@ limitations under the License.
 
 from resource_management.libraries.functions import format
 from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions.default import default
 
 config = Script.get_config()
 
@@ -35,3 +36,4 @@ else:
 spark_pid_dir = config['configurations']['spark-env']['spark_pid_dir']
 spark_history_server_pid_file = format("{spark_pid_dir}/spark-{spark_user}-org.apache.spark.deploy.history.HistoryServer-1.pid")
 spark_thrift_server_pid_file = format("{spark_pid_dir}/spark-{hive_user}-org.apache.spark.sql.hive.thriftserver.HiveThriftServer2-1.pid")
+stack_name = default("/hostLevelParams/stack_name", None)

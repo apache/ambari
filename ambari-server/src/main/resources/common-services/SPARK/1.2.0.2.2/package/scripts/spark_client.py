@@ -45,8 +45,8 @@ class SparkClient(Script):
     raise ClientComponentHasNoStatus()
   
   def get_stack_to_component(self):
-    import params
-    return {params.stack_name : "spark-client"}
+    import status_params
+    return {status_params.stack_name : "spark-client"}
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params

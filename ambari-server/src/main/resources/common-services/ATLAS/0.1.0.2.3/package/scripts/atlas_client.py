@@ -31,8 +31,8 @@ from metadata import metadata
 class AtlasClient(Script):
 
   def get_stack_to_component(self):
-    import params
-    return {params.stack_name: "atlas-client"}
+    import status_params
+    return {status_params.stack_name: "atlas-client"}
 
   # ToDo: currently <stack-selector-tool> doesn't contain atlas-client, uncomment this block when
   # ToDo: atlas-client will be available

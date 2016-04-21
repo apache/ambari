@@ -117,3 +117,5 @@ else:
 
   if 'role' in config and config['role'] in ["HIVE_SERVER", "HIVE_METASTORE", "HIVE_SERVER_INTERACTIVE"]:
     hive_config_dir = hive_server_conf_dir
+    
+stack_name = default("/hostLevelParams/stack_name", None)

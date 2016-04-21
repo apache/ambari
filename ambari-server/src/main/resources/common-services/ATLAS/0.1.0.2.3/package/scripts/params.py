@@ -40,7 +40,7 @@ if security_enabled:
   atlas_jaas_principal = _atlas_principal_name.replace('_HOST',_hostname_lowercase)
   atlas_keytab_path = config['configurations']['application-properties']['atlas.authentication.keytab']
 
-stack_name = default("/hostLevelParams/stack_name", None)
+stack_name = status_params.stack_name
 
 # New Cluster Stack Version that is defined during the RESTART of a Stack Upgrade
 version = default("/commandParams/version", None)

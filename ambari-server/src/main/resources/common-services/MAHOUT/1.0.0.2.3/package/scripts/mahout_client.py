@@ -24,13 +24,13 @@ from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.script import Script
 from mahout import mahout
+from resource_management.libraries.functions.default import default
 
 
 class MahoutClient(Script):
 
   def get_stack_to_component(self):
-    import params
-    return {params.stack_name: "mahout-client"}
+    return {default("/hostLevelParams/stack_name", None): "mahout-client"}
 
 
   def pre_upgrade_restart(self, env, upgrade_type=None):

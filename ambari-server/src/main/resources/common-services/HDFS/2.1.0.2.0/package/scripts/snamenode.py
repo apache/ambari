@@ -65,8 +65,8 @@ class SNameNode(Script):
 class SNameNodeDefault(SNameNode):
 
   def get_stack_to_component(self):
-    import params
-    return { params.stack_name : "hadoop-hdfs-secondarynamenode"}
+    import status_params
+    return { status_params.stack_name : "hadoop-hdfs-secondarynamenode"}
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     Logger.info("Executing Stack Upgrade pre-restart")

@@ -47,7 +47,7 @@ hostname = config["hostname"]
 
 # New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
 version = default("/commandParams/version", None)
-stack_name = default("/hostLevelParams/stack_name", None)
+stack_name = status_params.stack_name
 stack_name_uppercase = stack_name.upper()
 upgrade_direction = default("/commandParams/upgrade_direction", None)
 agent_stack_retry_on_unavailability = config['hostLevelParams']['agent_stack_retry_on_unavailability']

@@ -69,8 +69,8 @@ except ImportError:
 class NameNode(Script):
 
   def get_stack_to_component(self):
-    import params
-    return {params.stack_name : "hadoop-hdfs-namenode"}
+    import status_params
+    return {status_params.stack_name : "hadoop-hdfs-namenode"}
 
   def get_hdfs_binary(self):
     """

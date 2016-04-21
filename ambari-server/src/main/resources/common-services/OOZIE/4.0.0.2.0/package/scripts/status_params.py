@@ -61,3 +61,5 @@ else:
   tmp_dir = Script.get_tmp_dir()
   oozie_user = config['configurations']['oozie-env']['oozie_user']
   hostname = config["hostname"]
+
+stack_name = default("/hostLevelParams/stack_name", None)

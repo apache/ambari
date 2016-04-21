@@ -18,6 +18,8 @@ limitations under the License.
 Ambari Agent
 
 """
+import status_params
+
 from resource_management.core.logger import Logger
 
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
@@ -41,7 +43,7 @@ config = Script.get_config()
 stack_root = Script.get_stack_root()
 
 tmp_dir = Script.get_tmp_dir()
-stack_name = default("/hostLevelParams/stack_name", None)
+stack_name = status_params.stack_name
 upgrade_direction = default("/commandParams/upgrade_direction", None)
 version = default("/commandParams/version", None)
 # E.g., 2.3.2.0

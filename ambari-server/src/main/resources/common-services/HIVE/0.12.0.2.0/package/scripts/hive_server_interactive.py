@@ -63,8 +63,8 @@ class HiveServerInteractive(Script):
 class HiveServerInteractiveDefault(HiveServerInteractive):
 
     def get_stack_to_component(self):
-      import params
-      return {params.stack_name: "hive-server2-hive2"}
+      import status_params
+      return {status_params.stack_name: "hive-server2-hive2"}
 
     def install(self, env):
       import params

@@ -29,6 +29,7 @@ from resource_management.libraries.functions.stack_features import check_stack_f
 from pig import pig
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from resource_management.libraries.functions.default import default
 
 class PigClient(Script):
   def configure(self, env):
@@ -42,8 +43,7 @@ class PigClient(Script):
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class PigClientLinux(PigClient):
   def get_stack_to_component(self):
-    import params
-    return {params.stack_name: "hadoop-client"}
+    return {default("/hostLevelParams/stack_name", None): "hadoop-client"}
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params

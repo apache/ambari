@@ -31,8 +31,8 @@ from accumulo_configuration import setup_conf_dir
 
 class AccumuloClient(Script):
   def get_stack_to_component(self):
-    import params
-    return {params.stack_name: "accumulo-client"}
+    import status_params
+    return {status_params.stack_name: "accumulo-client"}
 
 
   def install(self, env):

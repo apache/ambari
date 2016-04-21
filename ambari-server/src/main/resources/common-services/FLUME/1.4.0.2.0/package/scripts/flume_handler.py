@@ -27,6 +27,7 @@ from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.flume_agent_helper import find_expected_agent_names
 from resource_management.libraries.functions.flume_agent_helper import get_flume_status
+from resource_management.libraries.functions.default import default
 
 import service_mapping
 from ambari_commons import OSConst
@@ -43,8 +44,7 @@ class FlumeHandler(Script):
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class FlumeHandlerLinux(FlumeHandler):
   def get_stack_to_component(self):
-    import params
-    return {params.stack_name: "flume-server"}
+    return {default("/hostLevelParams/stack_name", None): "flume-server"}
 
   def install(self, env):
     import params

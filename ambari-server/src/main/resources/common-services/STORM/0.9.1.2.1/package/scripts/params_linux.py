@@ -47,7 +47,7 @@ sudo = AMBARI_SUDO_BINARY
 
 cluster_name = config['clusterName']
 
-stack_name = default("/hostLevelParams/stack_name", None)
+stack_name = status_params.stack_name
 upgrade_direction = default("/commandParams/upgrade_direction", Direction.UPGRADE)
 version = default("/commandParams/version", None)
 

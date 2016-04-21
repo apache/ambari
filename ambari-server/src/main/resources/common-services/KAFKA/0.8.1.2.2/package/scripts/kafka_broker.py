@@ -28,6 +28,7 @@ from resource_management.libraries.functions.check_process_status import check_p
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.show_logs import show_logs
+from resource_management.libraries.functions.default import default
 from kafka import ensure_base_directories
 
 import upgrade
@@ -37,8 +38,7 @@ from setup_ranger_kafka import setup_ranger_kafka
 class KafkaBroker(Script):
 
   def get_stack_to_component(self):
-    import params
-    return {params.stack_name : "kafka-broker"}
+    return {default("/hostLevelParams/stack_name", None) : "kafka-broker"}
 
   def install(self, env):
     self.install_packages(env)

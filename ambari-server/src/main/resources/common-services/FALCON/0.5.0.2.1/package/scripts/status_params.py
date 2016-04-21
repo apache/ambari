@@ -63,3 +63,5 @@ else:
   tmp_dir = Script.get_tmp_dir()
   hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
   falcon_user = config['configurations']['falcon-env']['falcon_user']
+  
+stack_name = default("/hostLevelParams/stack_name", None)

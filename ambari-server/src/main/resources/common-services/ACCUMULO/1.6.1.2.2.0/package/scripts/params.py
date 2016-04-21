@@ -40,7 +40,8 @@ exec_tmp_dir = status_params.tmp_dir
 security_enabled = status_params.security_enabled
 
 # stack name
-stack_name = default("/hostLevelParams/stack_name", None)
+stack_name = status_params.stack_name
+
 # stack version
 version = default("/commandParams/version", None)
 stack_version_unformatted = config['hostLevelParams']['stack_version']

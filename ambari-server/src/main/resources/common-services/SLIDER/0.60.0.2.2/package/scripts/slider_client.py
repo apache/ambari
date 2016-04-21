@@ -23,6 +23,7 @@ from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions.default import default
 from slider import slider
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
@@ -34,8 +35,7 @@ class SliderClient(Script):
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class SliderClientLinux(SliderClient):
   def get_stack_to_component(self):
-    import params
-    return {params.stack_name: "slider-client"}
+    return {default("/hostLevelParams/stack_name", None): "slider-client"}
 
   def pre_upgrade_restart(self, env,  upgrade_type=None):
     import params
