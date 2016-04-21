@@ -974,4 +974,63 @@ describe('App.QuickViewLinks', function () {
     });
   });
 
+  describe('#reverseType', function () {
+
+    Em.A([
+      {
+        input: 'https',
+        output: 'http'
+      },
+      {
+        input: 'http',
+        output: 'https'
+      },
+      {
+        input: 'some',
+        output: ''
+      }
+    ]).forEach(function (test) {
+      it(JSON.stringify(test.input) + ' -> ' + JSON.stringify(test.output), function () {
+        expect(quickViewLinks.reverseType(test.input)).to.be.equal(test.output)
+      });
+    });
+
+  });
+
+  describe('#meetDesired', function () {
+
+    var configProperties = [
+      {type: 't1', properties: {p1: 1234, p2: null, p3: 'CUSTOM'}}
+    ];
+
+    it('no needed config property', function () {
+      expect(quickViewLinks.meetDesired([], '', '', '')).to.be.false;
+    });
+
+    it('desiredState is `NOT_EXIST` and currentPropertyValue is null', function () {
+      expect(quickViewLinks.meetDesired(configProperties, 't1', 'p2', 'NOT_EXIST')).to.be.true;
+    });
+
+    it('desiredState is `NOT_EXIST` and currentPropertyValue is not null', function () {
+      expect(quickViewLinks.meetDesired(configProperties, 't1', 'p1', 'NOT_EXIST')).to.be.false;
+    });
+
+    it('desiredState is `EXIST` and currentPropertyValue is null', function () {
+      expect(quickViewLinks.meetDesired(configProperties, 't1', 'p2', 'EXIST')).to.be.false;
+    });
+
+    it('desiredState is `EXIST` and currentPropertyValue is not null', function () {
+      expect(quickViewLinks.meetDesired(configProperties, 't1', 'p1', 'EXIST')).to.be.true;
+    });
+
+    it('desiredState is `CUSTOM` and currentPropertyValue is `CUSTOM`', function () {
+      expect(quickViewLinks.meetDesired(configProperties, 't1', 'p3', 'CUSTOM')).to.be.true;
+    });
+
+    it('desiredState is `CUSTOM` and currentPropertyValue is not `CUSTOM`', function () {
+      expect(quickViewLinks.meetDesired(configProperties, 't1', 'p2', 'CUSTOM')).to.be.false;
+    });
+
+  });
+
 });

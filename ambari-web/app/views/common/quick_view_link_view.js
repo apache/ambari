@@ -17,30 +17,62 @@
  */
 
 var App = require('app');
-var stringUtils = require('utils/string_utils');
+
+/**
+ * @typedef {object} hostForQuickLink
+ * @property {string} hostName
+ * @property {string} publicHostName
+ * @property {?string} status
+ */
 
 App.QuickViewLinks = Em.View.extend({
 
+  /**
+   * @type {boolean}
+   */
   isLoaded: false,
 
+  /**
+   * @type {boolean}
+   */
   showQuickLinks: false,
 
+  /**
+   * @type {string}
+   */
   quickLinksErrorMessage: '',
 
   /**
    * Updated quick links. Here we put correct hostname to url
-   * @type {Array}
+   *
+   * @type {object[]}
    */
   quickLinks: [],
 
+  /**
+   * @type {string[]}
+   */
   actualTags: [],
 
+  /**
+   * @type {object[]}
+   */
   configProperties: [],
 
   /**
    * list of files that contains properties for enabling/disabling ssl
+   *
+   * @type {string[]}
    */
   requiredSiteNames: [],
+
+  /**
+   * services that supports security. this array is used to find out protocol.
+   * besides GANGLIA, YARN, MAPREDUCE2, ACCUMULO. These services use
+   * their properties to know protocol
+   */
+  servicesSupportsHttps: ["HDFS", "HBASE"],
+
   /**
    * @type {object}
    */
@@ -81,6 +113,7 @@ App.QuickViewLinks = Em.View.extend({
 
   /**
    * call for configuration tags
+   *
    * @returns {$.ajax}
    */
   loadTags: function () {
@@ -92,30 +125,45 @@ App.QuickViewLinks = Em.View.extend({
     });
   },
 
+  /**
+   * Success-callback for load-tags request
+   *
+   * @param {object} data
+   * @method loadTagsSuccess
+   */
   loadTagsSuccess: function (data) {
     this.get('actualTags').clear();
-    var tags = [];
     var self = this;
-    for (var prop in data.Clusters.desired_configs) {
-      tags.push(Em.Object.create({
+    var tags = Object.keys(data.Clusters.desired_configs).map(function (prop) {
+      return Em.Object.create({
         siteName: prop,
-        tagName: data.Clusters.desired_configs[prop]['tag']
-      }));
-    }
+        tagName: data.Clusters.desired_configs[prop].tag
+      });
+    });
     this.get('actualTags').pushObjects(tags);
-    this.setConfigProperties().done(function (data) {
-      self.get('configProperties').pushObjects(data);
+    this.setConfigProperties().done(function (configProperties) {
+      self.get('configProperties').pushObjects(configProperties);
       self.getQuickLinksHosts();
     });
   },
 
+  /**
+   * Error-callback for load-tags request
+   *
+   * @method loadTagsError
+   */
   loadTagsError: function () {
     this.getQuickLinksHosts();
   },
 
-  loadQuickLinksConfigurations: function(){
+  /**
+   * Request for quick-links config
+   *
+   * @returns {$.ajax}
+   * @method loadQuickLinksConfigurations
+   */
+  loadQuickLinksConfigurations: function () {
     var serviceName = this.get('content.serviceName');
-    console.info("Loading quicklinks configurations for " + serviceName);
     return App.ajax.send({
       name: 'configs.quicklinksconfig',
       sender: this,
@@ -127,29 +175,35 @@ App.QuickViewLinks = Em.View.extend({
     });
   },
 
-  loadQuickLinksConfigSuccessCallback: function(data){
+  /**
+   * Sucess-callback for quick-links config request
+   *
+   * @param {object} data
+   * @method loadQuickLinksConfigSuccessCallback
+   */
+  loadQuickLinksConfigSuccessCallback: function (data) {
     App.quicklinksMapper.map(data);
     var quickLinksConfig = this.getQuickLinksConfiguration();
-    if(quickLinksConfig != null){
+    if (!Em.isNone(quickLinksConfig)) {
       var protocolConfig = Em.get(quickLinksConfig, 'protocol');
       var checks = Em.get(protocolConfig, 'checks');
       var sites = ['core-site', 'hdfs-site'];
-      if(checks){
-        checks.forEach(function(check){
+      if (checks) {
+        checks.forEach(function (check) {
           var protocolConfigSiteProp = Em.get(check, 'site');
-          if (sites.indexOf(protocolConfigSiteProp) < 0){
+          if (sites.indexOf(protocolConfigSiteProp) < 0) {
             sites.push(protocolConfigSiteProp);
           }
         }, this);
       }
 
       var links = Em.get(quickLinksConfig, 'links');
-      if(links && links.length > 0){
-        links.forEach(function(link){
-          if(!link.remove){
+      if (!Em.isEmpty(links)) {
+        links.forEach(function (link) {
+          if (!link.remove) {
             var portConfig = Em.get(link, 'port');
             var portConfigSiteProp = Em.get(portConfig, 'site');
-            if(sites.indexOf(portConfigSiteProp) < 0){
+            if (!sites.contains(portConfigSiteProp)) {
               sites.push(portConfigSiteProp);
             }
           }
@@ -162,7 +216,9 @@ App.QuickViewLinks = Em.View.extend({
 
   /**
    * call for public host names
+   *
    * @returns {$.ajax}
+   * @method getQuickLinksHosts
    */
   getQuickLinksHosts: function () {
     var masterHosts = App.HostComponent.find().filterProperty('isMaster').mapProperty('hostName').uniq();
@@ -173,18 +229,24 @@ App.QuickViewLinks = Em.View.extend({
       data: {
         clusterName: App.get('clusterName'),
         masterHosts: masterHosts.join(','),
-        urlParams: (this.get('content.serviceName') === 'HBASE') ? ',host_components/metrics/hbase/master/IsActiveMaster' : ''
+        urlParams: this.get('content.serviceName') === 'HBASE' ? ',host_components/metrics/hbase/master/IsActiveMaster' : ''
       },
       success: 'setQuickLinksSuccessCallback'
     });
   },
 
+  /**
+   * Success-callback for quick-links hosts request
+   *
+   * @param {object} response
+   * @method setQuickLinksSuccessCallback
+   */
   setQuickLinksSuccessCallback: function (response) {
     var serviceName = this.get('content.serviceName');
     var hosts = this.getHosts(response, serviceName);
     var hasQuickLinks = this.hasQuickLinksConfig(serviceName, hosts);
     var componentName = App.QuickLinksConfig.ServiceComponentMap[serviceName];
-    var masterComponent =  App.MasterComponent.find().findProperty('componentName', componentName);
+    var masterComponent = App.MasterComponent.find().findProperty('componentName', componentName);
     var hasHosts = false;
     if (masterComponent) {
       hasHosts = !!masterComponent.get('totalCount');
@@ -194,7 +256,7 @@ App.QuickViewLinks = Em.View.extend({
     // 2)No host component present for the configured quicklink
     this.set('showQuickLinks', hasQuickLinks && hasHosts);
 
-    if (hosts.length === 0){
+    if (hosts.length === 0) {
       this.setEmptyLinks();
     } else if (hosts.length === 1) {
       this.setSingleHostLinks(hosts, response);
@@ -209,16 +271,19 @@ App.QuickViewLinks = Em.View.extend({
    * @method getPublicHostName
    * @param {Object[]} hosts - list of hosts from response
    * @param {string} hostName
-   * @return {string|null}
+   * @return {?string}
    **/
   getPublicHostName: function (hosts, hostName) {
     var host = hosts.findProperty('Hosts.host_name', hostName);
-    if (host) {
-      return Em.get(host, 'Hosts.public_host_name');
-    }
-    return null;
+    return host ? Em.get(host, 'Hosts.public_host_name') : null;
   },
 
+  /**
+   * Get configs from `configurationController` for provided list of the tags
+   *
+   * @returns {$.Deferred}
+   * @method setConfigProperties
+   */
   setConfigProperties: function () {
     this.get('configProperties').clear();
     var requiredSiteNames = this.get('requiredSiteNames');
@@ -228,74 +293,83 @@ App.QuickViewLinks = Em.View.extend({
     return App.router.get('configurationController').getConfigsByTags(tags);
   },
 
-  getQuickLinksConfiguration: function(){
-    var serviceName =  this.get('content.serviceName');
+  /**
+   * Get quick links config for <code>content.serviceName</code>
+   *
+   * @returns {?App.QuickLinksConfig}
+   * @method getQuickLinksConfiguration
+   */
+  getQuickLinksConfiguration: function () {
+    var serviceName = this.get('content.serviceName');
     var self = this;
     if (self.hasQuickLinksConfig(serviceName)) {
-      return App.QuickLinksConfig.find().findProperty("id", serviceName);
+      return App.QuickLinksConfig.find().findProperty('id', serviceName);
     }
     return null;
   },
 
-  hasQuickLinksConfig: function(serviceName) {
+  /**
+   * Check if <code>serviceName</code> has quick-links config
+   *
+   * @param {string} serviceName
+   * @returns {boolean}
+   * @method hasQuickLinksConfig
+   */
+  hasQuickLinksConfig: function (serviceName) {
     var result = App.QuickLinksConfig.find().findProperty('id', serviceName);
-    if(!result)
-      return false;
-
-    var links = result.get("links");
-    if(links && links.length > 0){
-      var toBeRemoved = 0;
-      links.forEach(function(link){
-        if(link.remove)
-          toBeRemoved++;
-      });
-      return !(links.length  === toBeRemoved);
-    } else {
+    if (!result) {
       return false;
     }
+    var links = result.get('links');
+    return Em.isEmpty(links) ? false : links.length !== links.filterProperty('remove').length;
   },
 
-  toAddLink: function(link){
-    var linkRemoved = Em.get(link, 'removed');
-    var url = Em.get(link, 'url');
-    return (url && !linkRemoved);
-  },
-
-  getHostLink: function(link, host, protocol, configProperties, response){
+  /**
+   *
+   * @param {object} link
+   * @param {string} host
+   * @param {string} protocol
+   * @param {object[]} configProperties
+   * @param {object} response
+   * @returns {?object}
+   * @method getHostLink
+   */
+  getHostLink: function (link, host, protocol, configProperties, response) {
     var serviceName = this.get('content.serviceName');
     if (serviceName === 'MAPREDUCE2' && response) {
       var portConfig = Em.get(link, 'port');
       var siteName = Em.get(portConfig, 'site');
       var siteConfigs = this.get('configProperties').findProperty('type', siteName).properties;
       var hostPortConfigValue = siteConfigs[Em.get(portConfig, protocol + '_config')];
-      if (hostPortConfigValue != null) {
-        var hostPortValue = hostPortConfigValue.match(new RegExp("([\\w\\d.-]*):(\\d+)"));
+      if (!Em.isNone(hostPortConfigValue)) {
+        var hostPortValue = hostPortConfigValue.match(new RegExp('([\\w\\d.-]*):(\\d+)'));
         var hostObj = response.items.findProperty('Hosts.host_name', hostPortValue[1]);
-        if (hostObj != null) {
+        if (!Em.isNone(hostObj)) {
           host = hostObj.Hosts.public_host_name;
         }
       }
     }
 
     var linkPort = this.setPort(Em.get(link, 'port'), protocol, configProperties);
-    if (this.toAddLink(link)) {
+    if (Em.get(link, 'url') && !Em.get(link, 'removed')) {
       var newItem = {};
       var requiresUserName = Em.get(link, 'requires_user_name');
       var template = Em.get(link, 'url');
-        if('true' === requiresUserName){
-          newItem.url = template.fmt(protocol, host, linkPort, App.router.get('loginName'));
-        } else {
-          newItem.url = template.fmt(protocol, host, linkPort);
-        }
-        newItem.label = link.label;
-        return newItem;
-    } else {
-      return null;
+      if ('true' === requiresUserName) {
+        newItem.url = template.fmt(protocol, host, linkPort, App.router.get('loginName'));
+      } else {
+        newItem.url = template.fmt(protocol, host, linkPort);
+      }
+      newItem.label = link.label;
+      return newItem;
     }
+    return null;
   },
 
   /**
    * set empty links
+   *
+   * @method setEmptyLinks
    */
   setEmptyLinks: function () {
     //display an error message
@@ -308,26 +382,30 @@ App.QuickViewLinks = Em.View.extend({
 
   /**
    * set links that contain only one host
-   * @param {Array} hosts
+   *
+   * @param {hostForQuickLink[]} hosts
+   * @param {object} response
+   * @method setSingleHostLinks
    */
   setSingleHostLinks: function (hosts, response) {
     var quickLinksConfig = this.getQuickLinksConfiguration();
-    if(quickLinksConfig != null){
+    if (!Em.isNone(quickLinksConfig)) {
       var quickLinks = [];
       var configProperties = this.get('configProperties');
       var protocol = this.setProtocol(configProperties, quickLinksConfig);
       var publicHostName = hosts[0].publicHostName;
 
       var links = Em.get(quickLinksConfig, 'links');
-      links.forEach(function(link){
+      links.forEach(function (link) {
         var newItem = this.getHostLink(link, publicHostName, protocol, configProperties, response); //quicklink generated for the hbs template
-        if(newItem != null){
+        if (!Em.isNone(newItem)) {
           quickLinks.push(newItem);
         }
       }, this);
       this.set('quickLinks', quickLinks);
       this.set('isLoaded', true);
-    } else {
+    }
+    else {
       this.set('quickLinks', []);
       this.set('isLoaded', false);
     }
@@ -335,11 +413,13 @@ App.QuickViewLinks = Em.View.extend({
 
   /**
    * set links that contain multiple hosts
-   * @param {Array} hosts
+   *
+   * @param {hostForQuickLink[]} hosts
+   * @method setMultipleHostLinks
    */
   setMultipleHostLinks: function (hosts) {
     var quickLinksConfig = this.getQuickLinksConfiguration();
-    if(quickLinksConfig == null){
+    if (Em.isNone(quickLinksConfig)) {
       this.set('quickLinksArray', []);
       this.set('isLoaded', false);
       return;
@@ -354,11 +434,10 @@ App.QuickViewLinks = Em.View.extend({
       var protocol = this.setProtocol(configProperties, quickLinksConfig);
       var serviceName = Em.get(quickLinksConfig, 'serviceName');
       var links = Em.get(quickLinksConfig, 'links');
-      links.forEach(function(link){
+      links.forEach(function (link) {
         var linkRemoved = Em.get(link, 'removed');
         var url = Em.get(link, 'url');
         if (url && !linkRemoved) {
-          var port;
           var hostNameRegExp = new RegExp('([\\w\\W]*):\\d+');
           if (serviceName === 'HDFS') {
             var config;
@@ -366,9 +445,7 @@ App.QuickViewLinks = Em.View.extend({
             if (configPropertiesObject && configPropertiesObject.properties) {
               var properties = configPropertiesObject.properties;
               var nameServiceId = properties['dfs.nameservices'];
-              var nnProperties = ['dfs.namenode.{0}-address.{1}.nn1', 'dfs.namenode.{0}-address.{1}.nn2'].map(function (c) {
-                return c.format(protocol, nameServiceId);
-              });
+              var nnProperties = ['dfs.namenode.{0}-address.{1}.nn1', 'dfs.namenode.{0}-address.{1}.nn2'].invoke('format', protocol, nameServiceId);
               var nnPropertiesLength = nnProperties.length;
               for (var i = nnPropertiesLength; i--;) {
                 var propertyName = nnProperties[i];
@@ -380,12 +457,12 @@ App.QuickViewLinks = Em.View.extend({
               }
             }
             var portConfig = Em.get(link, 'port');
-            Em.set(portConfig, protocol +'_property', config);
+            Em.set(portConfig, protocol + '_property', config);
             Em.set(link, 'port', portConfig)
           }
 
           var newItem = this.getHostLink(link, publicHostName, protocol, configProperties); //quicklink generated for the hbs template
-          if(newItem != null){
+          if (!Em.isNone(newItem)) {
             quickLinks.push(newItem);
           }
         }
@@ -404,8 +481,10 @@ App.QuickViewLinks = Em.View.extend({
 
   /**
    * set status to hosts with OOZIE_SERVER
-   * @param {Array} hosts
-   * @returns {Array}
+   *
+   * @param {object[]} hosts
+   * @returns {object[]}
+   * @method processOozieHosts
    */
   processOozieHosts: function (hosts) {
     var activeOozieServers = this.get('content.hostComponents')
@@ -418,34 +497,43 @@ App.QuickViewLinks = Em.View.extend({
       return activeOozieServers.contains(host.hostName);
     }, this);
 
-    if (oozieHostsArray.length == 0)
+    if (!oozieHostsArray.length) {
       this.set('quickLinksErrorMessage', Em.I18n.t('quick.links.error.oozie.label'));
+    }
     return oozieHostsArray;
   },
 
   /**
    * set status to hosts with NAMENODE
-   * @param {Array} hosts
-   * @returns {Array}
+   *
+   * @param {hostForQuickLink[]} hosts
+   * @returns {object[]}
+   * @method hostForQuickLink
    */
   processHdfsHosts: function (hosts) {
     return hosts.map(function (host) {
       if (host.hostName === Em.get(this, 'content.activeNameNode.hostName')) {
         host.status = Em.I18n.t('quick.links.label.active');
-      } else if (host.hostName === Em.get(this, 'content.standbyNameNode.hostName')) {
-        host.status = Em.I18n.t('quick.links.label.standby');
-      } else if (host.hostName === Em.get(this, 'content.standbyNameNode2.hostName')) {
-        host.status = Em.I18n.t('quick.links.label.standby');
       }
+      else
+        if (host.hostName === Em.get(this, 'content.standbyNameNode.hostName')) {
+          host.status = Em.I18n.t('quick.links.label.standby');
+        }
+        else
+          if (host.hostName === Em.get(this, 'content.standbyNameNode2.hostName')) {
+            host.status = Em.I18n.t('quick.links.label.standby');
+          }
       return host;
     }, this);
   },
 
   /**
    * set status to hosts with HBASE_MASTER
-   * @param {Array} hosts
+   *
+   * @param {hostForQuickLink[]} hosts
    * @param {object} response
-   * @returns {Array}
+   * @returns {hostForQuickLink[]}
+   * @method processHbaseHosts
    */
   processHbaseHosts: function (hosts, response) {
     return hosts.map(function (host) {
@@ -456,17 +544,21 @@ App.QuickViewLinks = Em.View.extend({
       });
       if (isActiveMaster === 'true') {
         host.status = Em.I18n.t('quick.links.label.active');
-      } else if (isActiveMaster === 'false') {
-        host.status = Em.I18n.t('quick.links.label.standby');
       }
+      else
+        if (isActiveMaster === 'false') {
+          host.status = Em.I18n.t('quick.links.label.standby');
+        }
       return host;
     }, this);
   },
 
   /**
    * set status to hosts with RESOURCEMANAGER
-   * @param {Array} hosts
-   * @returns {Array}
+   *
+   * @param {hostForQuickLink[]} hosts
+   * @returns {hostForQuickLink[]}
+   * @method processYarnHosts
    */
   processYarnHosts: function (hosts) {
     return hosts.map(function (host) {
@@ -476,18 +568,21 @@ App.QuickViewLinks = Em.View.extend({
       var haStatus = resourceManager && resourceManager.get('haStatus');
       if (haStatus === 'ACTIVE') {
         host.status = Em.I18n.t('quick.links.label.active');
-      } else if (haStatus === 'STANDBY') {
-        host.status = Em.I18n.t('quick.links.label.standby');
       }
+      else
+        if (haStatus === 'STANDBY') {
+          host.status = Em.I18n.t('quick.links.label.standby');
+        }
       return host;
     }, this);
   },
 
   /**
    * sets public host names for required masters of current service
+   *
+   * @param {object} response
    * @param {string} serviceName - selected serviceName
-   * @param {JSON} response
-   * @returns {Array} containing hostName(s)
+   * @returns {hostForQuickLink[]} containing hostName(s)
    * @method getHosts
    */
   getHosts: function (response, serviceName) {
@@ -502,37 +597,33 @@ App.QuickViewLinks = Em.View.extend({
     if (Em.isNone(this.get('content.hostComponents'))) {
       return [];
     }
-    var hosts = [];
     switch (serviceName) {
       case 'OOZIE':
-        hosts = this.processOozieHosts(this.findHosts('OOZIE_SERVER', response));
-        break;
+        return this.processOozieHosts(this.findHosts('OOZIE_SERVER', response));
       case "HDFS":
-        hosts = this.processHdfsHosts(this.findHosts('NAMENODE', response));
-        break;
+        return this.processHdfsHosts(this.findHosts('NAMENODE', response));
       case "HBASE":
-        hosts = this.processHbaseHosts(this.findHosts('HBASE_MASTER', response), response);
-        break;
+        return this.processHbaseHosts(this.findHosts('HBASE_MASTER', response), response);
       case "YARN":
-        hosts = this.processYarnHosts(this.findHosts('RESOURCEMANAGER', response));
-        break;
+        return this.processYarnHosts(this.findHosts('RESOURCEMANAGER', response));
       default:
-        var componentName =  App.QuickLinksConfig.ServiceComponentMap[serviceName];
+        var componentName = App.QuickLinksConfig.ServiceComponentMap[serviceName];
         if (componentName) {
-          hosts = this.findHosts(componentName, response);
-        } else if (this.getWithDefault('content.hostComponents', []).someProperty('isMaster')) {
-          hosts = this.findHosts(this.get('content.hostComponents').findProperty('isMaster').get('componentName'), response);
+          return this.findHosts(componentName, response);
         }
-        break;
+        if (this.getWithDefault('content.hostComponents', []).someProperty('isMaster')) {
+          return this.findHosts(this.get('content.hostComponents').findProperty('isMaster').get('componentName'), response);
+        }
     }
-    return hosts;
+    return [];
   },
 
   /**
    * find host public names
+   *
    * @param {string} componentName
    * @param {object} response
-   * @returns {Array}
+   * @returns {hostForQuickLink[]}
    */
   findHosts: function (componentName, response) {
     var hosts = [];
@@ -551,121 +642,123 @@ App.QuickViewLinks = Em.View.extend({
   },
 
   /**
-   * services that supports security. this array is used to find out protocol.
-   * besides GANGLIA, YARN, MAPREDUCE2, ACCUMULO. These services use
-   * their properties to know protocol
+   * 'http' for 'https'
+   * 'https' for 'https'
+   * empty string otherwise
+   *
+   * @param {string} type
+   * @returns {string}
+   * @method reverseType
    */
-  servicesSupportsHttps: ["HDFS", "HBASE"],
-
-  reverseType: function(type){
-    if("https" === type)
-      return "http";
-    else if("http" === type)
-      return "https"
+  reverseType: function (type) {
+    if ('https' === type) {
+      return 'http';
+    }
+    if ('http' === type) {
+      return 'https';
+    }
+    return '';
   },
 
-  meetDesired: function(configProperties, configType, property, desiredState){
+  /**
+   *
+   * @param {object[]} configProperties
+   * @param {string} configType
+   * @param {string} property
+   * @param {string} desiredState
+   * @returns {boolean}
+   * @method meetDesired
+   */
+  meetDesired: function (configProperties, configType, property, desiredState) {
     var currentConfig = configProperties.findProperty('type', configType);
-    var currentPropertyValue = currentConfig.properties[property];
-    if("NOT_EXIST" === desiredState){
-      if(currentPropertyValue == null)
-        return true;
-      else
-        return false
-    } else if("EXIST" === desiredState){
-      if(currentPropertyValue == null)
-        return false;
-      else
-        return true;
-    } else {
-      return (desiredState === currentPropertyValue)
+    if (!currentConfig) {
+      return false;
     }
+    var currentPropertyValue = currentConfig.properties[property];
+    if ('NOT_EXIST' === desiredState) {
+      return Em.isNone(currentPropertyValue);
+    }
+    if ('EXIST' === desiredState) {
+      return !Em.isNone(currentPropertyValue);
+    }
+    return desiredState === currentPropertyValue;
   },
 
   /**
    * setProtocol - if cluster is secure for some services (GANGLIA, MAPREDUCE2, YARN and servicesSupportsHttps)
    * protocol becomes "https" otherwise "http" (by default)
-   * @param {String} serviceName - service name
+   *
    * @param {Object} configProperties
-   * @param {Object} ambariProperties
+   * @param {Object} item
    * @returns {string} "https" or "http" only!
    * @method setProtocol
-   * @param item
    */
   setProtocol: function (configProperties, item) {
     var hadoopSslEnabled = false;
 
-    if (configProperties && configProperties.length > 0) {
+    if (!Em.isEmpty(configProperties)) {
       var hdfsSite = configProperties.findProperty('type', 'hdfs-site');
-      hadoopSslEnabled = (hdfsSite && Em.get(hdfsSite, 'properties') && hdfsSite.properties['dfs.http.policy'] === 'HTTPS_ONLY');
+      hadoopSslEnabled = hdfsSite && Em.get(hdfsSite, 'properties') && hdfsSite.properties['dfs.http.policy'] === 'HTTPS_ONLY';
     }
 
     var protocolConfig = Em.get(item, 'protocol');
-    if(!protocolConfig){
-      if(hadoopSslEnabled)
-        return "https";
-      else
-        return "http";
+    if (!protocolConfig) {
+      return hadoopSslEnabled ? 'https' : 'http';
     }
 
     var protocolType = Em.get(protocolConfig, 'type');
 
-    if ("HTTPS_ONLY" === protocolType)
-      return "https";
-    else if ("HTTP_ONLY" === protocolType)
-      return "http";
-    else {
-      var count = 0;
-      var checks = Em.get(protocolConfig, 'checks');
-      if(!checks){
-        if(hadoopSslEnabled)
-          return 'https';
-        else
-          return 'http';
-      }
-      checks.forEach(function(check){
-        var configType = Em.get(check, 'site');
-        var property = Em.get(check, 'property');
-        var desiredState = Em.get(check, 'desired');
-        var checkMeet = this.meetDesired(configProperties, configType, property, desiredState)
-        if(!checkMeet){
-          count++;
-        }
-      }, this);
-
-      if(count > 0)
-        return this.reverseType(protocolType);
-      else
-        return protocolType;
+    if ('HTTPS_ONLY' === protocolType) {
+      return 'https';
     }
+    if ('HTTP_ONLY' === protocolType) {
+      return 'http';
+    }
+    var count = 0;
+    var checks = Em.get(protocolConfig, 'checks');
+    if (!checks) {
+      return hadoopSslEnabled ? 'https' : 'http';
+    }
+    checks.forEach(function (check) {
+      var configType = Em.get(check, 'site');
+      var property = Em.get(check, 'property');
+      var desiredState = Em.get(check, 'desired');
+      var checkMeet = this.meetDesired(configProperties, configType, property, desiredState)
+      if (!checkMeet) {
+        count++;
+      }
+    }, this);
+    return count ? this.reverseType(protocolType) : protocolType;
   },
 
   /**
    * sets the port of quick link
-   * @param item
-   * @param protocol
-   * @param config
+   *
+   * @param {object} portConfigs
+   * @param {string} protocol
+   * @param {object[]} configProperties
    * @returns {string}
    * @method setPort
    */
-  setPort: function (portConfigs, protocol, configProperties, configPropertyKey) {
+  setPort: function (portConfigs, protocol, configProperties) {
 
-    var defaultPort = Em.get(portConfigs, protocol+'_default_port');
-    var portProperty = Em.get(portConfigs,  protocol+'_property');
+    var defaultPort = Em.get(portConfigs, protocol + '_default_port');
+    var portProperty = Em.get(portConfigs, protocol + '_property');
     var site = configProperties.findProperty('type', Em.get(portConfigs, 'site'));
     var propertyValue = site && site.properties && site.properties[portProperty];
 
-    if (!propertyValue)
+    if (!propertyValue) {
       return defaultPort;
+    }
 
     var regexValue = Em.get(portConfigs, 'regex');
     regexValue = regexValue.trim();
-    if(regexValue){
+    if (regexValue) {
       var re = new RegExp(regexValue);
       var portValue = propertyValue.match(re);
       try {
         return portValue[1];
-      }catch(err) {
+      } catch (err) {
         return defaultPort;
       }
     } else {
