@@ -69,9 +69,49 @@ App.MainHostComboSearchBoxView = Em.View.extend({
     return currentComponentFacets;
   },
 
+  getFacetsByName: function(name) {
+    var facets = visualSearch.searchQuery.toJSON().filter(function(facet) {
+      return facet.category === name;
+    });
+    return facets;
+  },
+
+  filterOutOneFacetOnlyOptions: function(options) {
+    var self = this;
+    var oneFacetOnlyLables = ['Cores', 'RAM'];
+    oneFacetOnlyLables.forEach(function(label) {
+      var facets = self.getFacetsByName(label);
+      if (facets.length > 0) {
+        options = options.rejectProperty('label', label);
+      }
+    });
+    return options;
+  },
+
+  setupLabelMap: function() {
+    var map = App.router.get('mainHostController.labelValueMap');
+    map['Host Name'] = 'hostName';
+    map['IP'] = 'ip';
+    map['Host Status'] = 'healthClass';
+    map['Cores'] = 'cpu';
+    map['RAM'] = 'memoryFormatted';
+    map['Stack Version'] = 'version';
+    map['Version State'] = 'versionState';
+    map['Rack'] = 'rack';
+    map['Service'] = 'services';
+
+    map['Inservice'] = 'INSERVICE';
+    map['Decommissioned'] = 'DECOMMISSIONED';
+    map['Decommissioning'] = 'DECOMMISSIONING';
+    map['RS Decommissioned'] = 'RS_DECOMMISSIONED';
+    map['Maintenance Mode On'] = 'ON';
+    map['Maintenance Mode Off'] = 'OFF';
+  },
+
   initVS: function() {
     var self = this;
     var controller = App.router.get('mainHostComboSearchBoxController');
+    this.setupLabelMap();
     window.visualSearch = VS.init({
       container: $('#combo_search_box'),
       query: '',
@@ -101,17 +141,6 @@ App.MainHostComboSearchBoxView = Em.View.extend({
             {label: 'Rack', category: 'Host'},
             {label: 'Service', category: 'Service'}
           ];
-          var map = App.router.get('mainHostController.labelValueMap');
-          map['Host Name'] = 'hostName';
-          map['IP'] = 'ip';
-          map['Host Status'] = 'healthClass';
-          map['Cores'] = 'cpu';
-          map['RAM'] = 'memoryFormatted';
-          map['Stack Version'] = 'version';
-          map['Version State'] = 'versionState';
-          map['Rack'] = 'rack';
-          map['Service'] = 'services';
-
           var hostComponentList = self.getHostComponentList();
           // Add host component facets only when there isn't any component filter
           // with value other than ALL yet
@@ -119,6 +148,7 @@ App.MainHostComboSearchBoxView = Em.View.extend({
           if (currentComponentFacets.length == 0) {
             list = list.concat(hostComponentList);
           }
+          list = self.filterOutOneFacetOnlyOptions(list);
           // Append host components
           callback(list, {preserveOrder: true});
         },
@@ -194,12 +224,6 @@ App.MainHostComboSearchBoxView = Em.View.extend({
                     "Maintenance Mode On",
                     "Maintenance Mode Off"
                 ]);
-                map['Inservice'] = 'INSERVICE';
-                map['Decommissioned'] = 'DECOMMISSIONED';
-                map['Decommissioning'] = 'DECOMMISSIONING';
-                map['RS Decommissioned'] = 'RS_DECOMMISSIONED';
-                map['Maintenance Mode On'] = 'ON';
-                map['Maintenance Mode Off'] = 'OFF';
               }
               callback(list, {preserveOrder: true});
               break;
