@@ -185,6 +185,7 @@ public class Configuration {
   public static final String SERVER_HRC_STATUS_SUMMARY_CACHE_SIZE = "server.hrcStatusSummary.cache.size";
   public static final String SERVER_HRC_STATUS_SUMMARY_CACHE_EXPIRY_DURATION = "server.hrcStatusSummary.cache.expiryDuration";
   public static final String SERVER_STALE_CONFIG_CACHE_ENABLED_KEY = "server.cache.isStale.enabled";
+  public static final String SERVER_STALE_CONFIG_CACHE_EXPIRATION_KEY = "server.cache.isStale.expiration";
   public static final String SERVER_PERSISTENCE_TYPE_KEY = "server.persistence.type";
   public static final String SERVER_JDBC_USER_NAME_KEY = "server.jdbc.user.name";
   public static final String SERVER_JDBC_USER_PASSWD_KEY = "server.jdbc.user.passwd";
@@ -382,6 +383,7 @@ public class Configuration {
 
   private static final long SERVER_EC_CACHE_SIZE_DEFAULT = 10000L;
   private static final String SERVER_STALE_CONFIG_CACHE_ENABLED_DEFAULT = "true";
+  private static final String SERVER_STALE_CONFIG_CACHE_EXPIRATION_DEFAULT = "60";
   private static final String SERVER_JDBC_USER_NAME_DEFAULT = "ambari";
   private static final String SERVER_JDBC_USER_PASSWD_DEFAULT = "bigdata";
   private static final String SERVER_JDBC_RCA_USER_NAME_DEFAULT = "mapred";
@@ -1872,6 +1874,14 @@ public class Configuration {
       properties.getProperty(SERVER_STALE_CONFIG_CACHE_ENABLED_KEY,
         SERVER_STALE_CONFIG_CACHE_ENABLED_DEFAULT);
     return "true".equalsIgnoreCase(stringValue);
+  }
+
+  /**
+   * @return expiration time of stale config cache
+   */
+  public Integer staleConfigCacheExpiration() {
+    return Integer.parseInt(properties.getProperty(SERVER_STALE_CONFIG_CACHE_EXPIRATION_KEY,
+        SERVER_STALE_CONFIG_CACHE_EXPIRATION_DEFAULT));
   }
 
   /**
