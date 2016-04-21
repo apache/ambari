@@ -135,7 +135,7 @@ class TestServiceCheck(RMFTestCase):
         action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         hadoop_conf_dir = '/etc/hadoop/conf',
     )
-    self.assertResourceCalled('Execute', '/tmp/templetonSmoke.sh c6402.ambari.apache.org ambari-qa 50111 idtest.ambari-qa.1431110511.43.pig no_keytab false /usr/bin/kinit no_principal',
+    self.assertResourceCalled('Execute', '/tmp/templetonSmoke.sh c6402.ambari.apache.org ambari-qa 50111 idtest.ambari-qa.1431110511.43.pig no_keytab false /usr/bin/kinit no_principal /tmp',
         logoutput = True,
         path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
         tries = 3,
@@ -250,7 +250,7 @@ class TestServiceCheck(RMFTestCase):
         action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         hadoop_conf_dir = '/etc/hadoop/conf',
     )
-    self.assertResourceCalled('Execute', '/tmp/templetonSmoke.sh c6402.ambari.apache.org ambari-qa 50111 idtest.ambari-qa.1431110511.43.pig /etc/security/keytabs/smokeuser.headless.keytab true /usr/bin/kinit ambari-qa@EXAMPLE.COM',
+    self.assertResourceCalled('Execute', '/tmp/templetonSmoke.sh c6402.ambari.apache.org ambari-qa 50111 idtest.ambari-qa.1431110511.43.pig /etc/security/keytabs/smokeuser.headless.keytab true /usr/bin/kinit ambari-qa@EXAMPLE.COM /tmp',
         logoutput = True,
         path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
         tries = 3,

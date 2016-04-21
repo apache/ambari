@@ -115,7 +115,8 @@ def webhcat_service_check():
   params.HdfsResource(None, action = "execute")
 
   cmd = format("{tmp_dir}/templetonSmoke.sh {webhcat_server_host[0]} {smokeuser} {templeton_port} {templeton_test_script} {smokeuser_keytab}"
-               " {security_param} {kinit_path_local} {smoke_user_principal}")
+               " {security_param} {kinit_path_local} {smoke_user_principal}"
+               " {tmp_dir}")
 
   Execute(cmd,
           tries=3,
