@@ -23,6 +23,8 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.security.credential.Credential;
 import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Config;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.log4j.Logger;
@@ -53,15 +55,17 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
 
   private static Logger LOG = Logger.getLogger(LoggingRequestHelperImpl.class);
 
-  public static String LOGSEARCH_QUERY_PATH = "/service/dashboard/solr/logs_search";
+  private static final String LOGSEARCH_ADMIN_PROPERTIES_CONFIG_TYPE_NAME = "logsearch-admin-properties";
 
-  public static String LOGSEARCH_GET_LOG_LEVELS_PATH = "/service/dashboard/getLogLevelCounts";
+  private static final String LOGSEARCH_ADMIN_USERNAME_PROPERTY_NAME = "logsearch_admin_username";
 
-  private static String DEFAULT_LOGSEARCH_USER = "admin";
+  private static final String LOGSEARCH_ADMIN_PASSWORD_PROPERTY_NAME = "logsearch_admin_password";
 
-  private static String DEFAULT_LOGSEARCH_PWD = "admin";
+  private static final String LOGSEARCH_QUERY_PATH = "/service/dashboard/solr/logs_search";
 
-  public static final String LOGSEARCH_ADMIN_CREDENTIAL_NAME = "logsearch.admin.credential";
+  private static final String LOGSEARCH_GET_LOG_LEVELS_PATH = "/service/dashboard/getLogLevelCounts";
+
+  private static final String LOGSEARCH_ADMIN_CREDENTIAL_NAME = "logsearch.admin.credential";
 
   private final String hostName;
 
@@ -69,13 +73,20 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
 
   private final CredentialStoreService credentialStoreService;
 
-  private final String clusterName;
+  private final Cluster cluster;
 
-  public LoggingRequestHelperImpl(String hostName, String portNumber, CredentialStoreService credentialStoreService, String clusterName) {
+  private final NetworkConnection networkConnection;
+
+  public LoggingRequestHelperImpl(String hostName, String portNumber, CredentialStoreService credentialStoreService, Cluster cluster) {
+    this(hostName, portNumber, credentialStoreService, cluster, new DefaultNetworkConnection());
+  }
+
+  protected LoggingRequestHelperImpl(String hostName, String portNumber, CredentialStoreService credentialStoreService, Cluster cluster, NetworkConnection networkConnection) {
     this.hostName = hostName;
     this.portNumber = portNumber;
     this.credentialStoreService = credentialStoreService;
-    this.clusterName = clusterName;
+    this.cluster = cluster;
+    this.networkConnection = networkConnection;
   }
 
   public LogQueryResponse sendQueryRequest(Map<String, String> queryParameters) {
@@ -89,7 +100,7 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
 
       setupCredentials(httpURLConnection);
 
-      StringBuffer buffer = readQueryResponseFromServer(httpURLConnection);
+      StringBuffer buffer = networkConnection.readQueryResponseFromServer(httpURLConnection);
 
       // setup a reader for the JSON response
       StringReader stringReader =
@@ -108,19 +119,53 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
   }
 
   private void setupCredentials(HttpURLConnection httpURLConnection) {
-    PrincipalKeyCredential principalKeyCredential =
-      getLogSearchCredentials();
+    final String logSearchAdminUser =
+      getLogSearchAdminUser();
+    final String logSearchAdminPassword =
+      getLogSearchAdminPassword();
 
-    // determine the credential to use for connecting to LogSearch
-    if (principalKeyCredential != null) {
-      // setup credential stored in credential service
-      LOG.debug("Credential found in CredentialStore, will be used to connect to LogSearch");
-      setupBasicAuthentication(httpURLConnection, createEncodedCredentials(principalKeyCredential));
+    // first attempt to use the LogSearch admin configuration to
+    // obtain the LogSearch server credential
+    if ((logSearchAdminUser != null) && (logSearchAdminPassword != null)) {
+      LOG.debug("Credential found in config, will be used to connect to LogSearch");
+      networkConnection.setupBasicAuthentication(httpURLConnection, createEncodedCredentials(logSearchAdminUser, logSearchAdminPassword));
     } else {
-      // fall back to hard-coded credential for now
-      LOG.debug("No credential found in CredentialStore, defaulting to fall-back credential for now");
-      setupBasicAuthentication(httpURLConnection, createDefaultEncodedCredentials());
+      // if no credential found in config, attempt to locate the credential using
+      // the Ambari CredentialStoreService
+      PrincipalKeyCredential principalKeyCredential =
+        getLogSearchCredentials();
+
+      // determine the credential to use for connecting to LogSearch
+      if (principalKeyCredential != null) {
+        // setup credential stored in credential service
+        LOG.debug("Credential found in CredentialStore, will be used to connect to LogSearch");
+        networkConnection.setupBasicAuthentication(httpURLConnection, createEncodedCredentials(principalKeyCredential));
+      } else {
+        LOG.debug("No LogSearch credential could be found, this is probably an error in configuration");
+      }
     }
+  }
+
+  private String getLogSearchAdminUser() {
+    Config logSearchAdminConfig =
+      cluster.getDesiredConfigByType(LOGSEARCH_ADMIN_PROPERTIES_CONFIG_TYPE_NAME);
+
+    if (logSearchAdminConfig != null) {
+      return logSearchAdminConfig.getProperties().get(LOGSEARCH_ADMIN_USERNAME_PROPERTY_NAME);
+    }
+
+    return null;
+  }
+
+  private String getLogSearchAdminPassword() {
+    Config logSearchAdminConfig =
+      cluster.getDesiredConfigByType(LOGSEARCH_ADMIN_PROPERTIES_CONFIG_TYPE_NAME);
+
+    if (logSearchAdminConfig != null) {
+      return logSearchAdminConfig.getProperties().get(LOGSEARCH_ADMIN_PASSWORD_PROPERTY_NAME);
+    }
+
+    return null;
   }
 
   public Set<String> sendGetLogFileNamesRequest(String componentName, String hostName) {
@@ -161,7 +206,7 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
 
       setupCredentials(httpURLConnection);
 
-      StringBuffer buffer = readQueryResponseFromServer(httpURLConnection);
+      StringBuffer buffer = networkConnection.readQueryResponseFromServer(httpURLConnection);
 
       // setup a reader for the JSON response
       StringReader stringReader =
@@ -184,9 +229,6 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
 
     return mapper.reader(type);
   }
-
-
-
 
   private URI createLogSearchQueryURI(String scheme, Map<String, String> queryParameters) throws URISyntaxException {
     URIBuilder uriBuilder = createBasicURI(scheme);
@@ -238,36 +280,10 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
     return mapper;
   }
 
-  private StringBuffer readQueryResponseFromServer(HttpURLConnection httpURLConnection) throws IOException {
-    InputStream resultStream = null;
-    try {
-      // read in the response from LogSearch
-      resultStream = httpURLConnection.getInputStream();
-      BufferedReader reader = new BufferedReader(new InputStreamReader(resultStream));
-      LOG.debug("Response code from LogSearch Service is = " + httpURLConnection.getResponseCode());
-
-      String line = reader.readLine();
-      StringBuffer buffer = new StringBuffer();
-      while (line != null) {
-        buffer.append(line);
-        line = reader.readLine();
-      }
-
-      LOG.debug("Sucessfully retrieved response from server, response = " + buffer);
-
-      return buffer;
-    } finally {
-      // make sure to close the stream after request is completed
-      if (resultStream != null) {
-        resultStream.close();
-      }
-    }
-  }
-
   private PrincipalKeyCredential getLogSearchCredentials() {
     try {
       Credential credential =
-        credentialStoreService.getCredential(clusterName, LOGSEARCH_ADMIN_CREDENTIAL_NAME);
+        credentialStoreService.getCredential(cluster.getClusterName(), LOGSEARCH_ADMIN_CREDENTIAL_NAME);
       if ((credential != null)  && (credential instanceof PrincipalKeyCredential)) {
         return (PrincipalKeyCredential)credential;
       }
@@ -281,17 +297,7 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
       LOG.error("Error encountered while trying to obtain LogSearch admin credentials.", ambariException);
     }
 
-
     return null;
-  }
-
-  private static void setupBasicAuthentication(HttpURLConnection httpURLConnection, String encodedCredentials) {
-    httpURLConnection.setRequestProperty("Authorization", "Basic " + encodedCredentials);
-  }
-
-  // might need to remove this once the credential integration is in place
-  private static String createDefaultEncodedCredentials() {
-    return createEncodedCredentials(DEFAULT_LOGSEARCH_USER, DEFAULT_LOGSEARCH_PWD);
   }
 
   private static String createEncodedCredentials(PrincipalKeyCredential principalKeyCredential) {
@@ -300,6 +306,59 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
 
   private static String createEncodedCredentials(String userName, String password) {
     return Base64.encodeBase64String((userName + ":" + password).getBytes());
+  }
+
+  /**
+   * Interface used to abstract out the network access needed to
+   * connect to the LogSearch Server.
+   *
+   * This abstraction is useful for unit testing this class, and simulating
+   * different output and error conditions.
+   */
+  interface NetworkConnection {
+    StringBuffer readQueryResponseFromServer(HttpURLConnection httpURLConnection) throws IOException;
+
+    void setupBasicAuthentication(HttpURLConnection httpURLConnection, String encodedCredentials);
+  }
+
+  /**
+   * The default implementation of NetworkConnection, that reads
+   * the InputStream associated with the HttpURL connection passed in.
+   */
+  private static class DefaultNetworkConnection implements NetworkConnection {
+    @Override
+    public StringBuffer readQueryResponseFromServer(HttpURLConnection httpURLConnection) throws IOException {
+      InputStream resultStream = null;
+      try {
+        // read in the response from LogSearch
+        resultStream = httpURLConnection.getInputStream();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(resultStream));
+        LOG.debug("Response code from LogSearch Service is = " + httpURLConnection.getResponseCode());
+
+        String line = reader.readLine();
+        StringBuffer buffer = new StringBuffer();
+        while (line != null) {
+          buffer.append(line);
+          line = reader.readLine();
+        }
+
+        LOG.debug("Sucessfully retrieved response from server, response = " + buffer);
+
+        return buffer;
+      } finally {
+        // make sure to close the stream after request is completed
+        if (resultStream != null) {
+          resultStream.close();
+        }
+      }
+    }
+
+    @Override
+    public void setupBasicAuthentication(HttpURLConnection httpURLConnection, String encodedCredentials) {
+      // default implementation for this method should just set the Authorization header
+      // required for Basic Authentication to the LogSearch Server
+      httpURLConnection.setRequestProperty("Authorization", "Basic " + encodedCredentials);
+    }
   }
 
 

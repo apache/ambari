@@ -86,7 +86,7 @@ public class LoggingRequestHelperFactoryImpl implements LoggingRequestHelperFact
         final String logSearchPortNumber =
           logSearchSiteConfig.getProperties().get(LOGSEARCH_UI_PORT_PROPERTY_NAME);
 
-        return new LoggingRequestHelperImpl(logSearchHostName, logSearchPortNumber, ambariManagementController.getCredentialStoreService(), clusterName);
+        return new LoggingRequestHelperImpl(logSearchHostName, logSearchPortNumber, ambariManagementController.getCredentialStoreService(), cluster);
       }
     } catch (AmbariException ambariException) {
       LOG.error("Error occurred while trying to obtain the cluster, cluster name = " + clusterName, ambariException);
