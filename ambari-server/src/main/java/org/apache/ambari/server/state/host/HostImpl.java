@@ -395,6 +395,8 @@ public class HostImpl implements Host {
           + ", host=" + e.getHostName()
           + ", lastHeartbeatTime=" + host.getLastHeartbeatTime());
       host.setHealthStatus(new HostHealthStatus(HealthStatus.UNKNOWN, host.getHealthStatus().getHealthReport()));
+
+      topologyManager.onHostHeartBeatLost(host);
     }
   }
 
