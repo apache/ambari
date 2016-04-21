@@ -311,8 +311,6 @@ App.ServerValidatorMixin = Em.Mixin.create({
           primary: Em.I18n.t('common.proceedAnyway'),
           primaryClass: 'btn-danger',
           marginBottom: 200,
-          // Do not allow "Proceed Anyway" for validation errors
-          disablePrimary: self.get('configValidationError'),
           onPrimary: function () {
             this.hide();
             deferred.resolve();
