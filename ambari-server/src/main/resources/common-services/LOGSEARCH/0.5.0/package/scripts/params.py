@@ -209,7 +209,7 @@ zk_log_dir = default('/configurations/zookeeper-env/zk_log_dir', '/var/log/zooke
 #####################################
 
 logsearch_admin_username = default('/configurations/logsearch-admin-properties/logsearch_admin_username', "admin")
-logsearch_admin_password = default('/configurations/logsearch-admin-properties/logsearch_admin_password', "admin")
+logsearch_admin_password = default('/configurations/logsearch-admin-properties/logsearch_admin_password', "")
 logsearch_admin_content = config['configurations']['logsearch-admin-properties']['content']
 
 #####################################

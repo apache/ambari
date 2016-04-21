@@ -52,7 +52,7 @@
   <property>
     <name>logfeeder.kafka.audit.logs.enable</name>
     <value>false</value>
-    <display-name>Audit Logs enabled</display-name>
+    <display-name>Kafka Audit Logs enabled</display-name>
     <description>Enable audit logs to Kafka</description>
   </property>
 
