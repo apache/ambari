@@ -117,6 +117,39 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
     }
   }
 
+  @Test(expected = KerberosPrincipalDoesNotExistException.class)
+  public void testSetPrincipalPasswordPrincipalDoesNotExist() throws Exception {
+    MITKerberosOperationHandler handler = createMockBuilder(MITKerberosOperationHandler.class)
+        .addMockedMethod(KerberosOperationHandler.class.getDeclaredMethod("executeCommand", String[].class))
+        .createNiceMock();
+
+    expect(handler.executeCommand(anyObject(String[].class)))
+        .andAnswer(new IAnswer<ShellCommandUtil.Result>() {
+          @Override
+          public ShellCommandUtil.Result answer() throws Throwable {
+            ShellCommandUtil.Result result = createMock(ShellCommandUtil.Result.class);
+
+            expect(result.getExitCode()).andReturn(0).anyTimes();
+            expect(result.isSuccessful()).andReturn(true).anyTimes();
+            expect(result.getStderr())
+                .andReturn("change_password: Principal does not exist while changing password for \"nonexistant@EXAMPLE.COM\".")
+                .anyTimes();
+            expect(result.getStdout())
+                .andReturn("Authenticating as principal admin/admin with password.")
+                .anyTimes();
+
+            replay(result);
+            return result;
+          }
+        });
+
+    replayAll();
+
+    handler.open(new PrincipalKeyCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD), DEFAULT_REALM, KERBEROS_ENV_MAP);
+    handler.setPrincipalPassword("nonexistant@EXAMPLE.COM", "password");
+    handler.close();
+  }
+
   @Test
   public void testCreateServicePrincipal_AdditionalAttributes() throws Exception {
     Method invokeKAdmin = MITKerberosOperationHandler.class.getDeclaredMethod("invokeKAdmin", String.class);
@@ -146,6 +179,39 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
     verify(handler, result1, result2);
 
     Assert.assertTrue(query.getValue().contains(" " + KERBEROS_ENV_MAP.get(MITKerberosOperationHandler.KERBEROS_ENV_KDC_CREATE_ATTRIBUTES) + " "));
+  }
+
+  @Test(expected = KerberosPrincipalAlreadyExistsException.class)
+  public void testCreatePrincipalPrincipalAlreadyNotExists() throws Exception {
+    MITKerberosOperationHandler handler = createMockBuilder(MITKerberosOperationHandler.class)
+        .addMockedMethod(KerberosOperationHandler.class.getDeclaredMethod("executeCommand", String[].class))
+        .createNiceMock();
+
+    expect(handler.executeCommand(anyObject(String[].class)))
+        .andAnswer(new IAnswer<ShellCommandUtil.Result>() {
+          @Override
+          public ShellCommandUtil.Result answer() throws Throwable {
+            ShellCommandUtil.Result result = createMock(ShellCommandUtil.Result.class);
+
+            expect(result.getExitCode()).andReturn(0).anyTimes();
+            expect(result.isSuccessful()).andReturn(true).anyTimes();
+            expect(result.getStderr())
+                .andReturn("add_principal: Principal or policy already exists while creating \"existing@EXAMPLE.COM\".")
+                .anyTimes();
+            expect(result.getStdout())
+                .andReturn("Authenticating as principal admin/admin with password.")
+                .anyTimes();
+
+            replay(result);
+            return result;
+          }
+        });
+
+    replayAll();
+
+    handler.open(new PrincipalKeyCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD), DEFAULT_REALM, KERBEROS_ENV_MAP);
+    handler.createPrincipal("existing@EXAMPLE.COM", "password", false);
+    handler.close();
   }
 
   @Test
