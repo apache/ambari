@@ -24,6 +24,7 @@ import java.lang.reflect.Type;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -83,6 +84,8 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
   private static final String ATLAS_SERVER_HTTP_PORT_PROPERTY = "atlas.server.http.port";
   private static final String ATLAS_SERVER_HTTPS_PORT_PROPERTY = "atlas.server.https.port";
   private static final String ATLAS_REST_ADDRESS_PROPERTY = "atlas.rest.address";
+  private static final String HBASE_ENV_CONFIG = "hbase-env";
+  private static final String CONTENT_PROPERTY = "content";
 
   private static final String UPGRADE_TABLE = "upgrade";
   private static final String UPGRADE_SUSPENDED_COLUMN = "suspended";
@@ -99,6 +102,7 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
   public static final String AMS_WEBAPP_ADDRESS_PROPERTY = "timeline.metrics.service.webapp.address";
   public static final String HBASE_CLIENT_SCANNER_TIMEOUT_PERIOD_PROPERTY = "hbase.client.scanner.timeout.period";
   public static final String HBASE_RPC_TIMEOUT_PROPERTY = "hbase.rpc.timeout";
+
   public static final String PHOENIX_QUERY_TIMEOUT_PROPERTY = "phoenix.query.timeoutMs";
   public static final String PHOENIX_QUERY_KEEPALIVE_PROPERTY = "phoenix.query.keepAliveMs";
   public static final String TIMELINE_METRICS_CLUSTER_AGGREGATOR_INTERPOLATION_ENABLED
@@ -181,6 +185,7 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
     updateHDFSWidgetDefinition();
     updateYARNWidgetDefinition();
     updateHBASEWidgetDefinition();
+    updateHbaseEnvConfig();
     updateCorruptedReplicaWidget();
     updateZookeeperConfigs();
     createNewSliderConfigVersion();
@@ -476,6 +481,35 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
     sectionLayoutMap.put("HBASE_SUMMARY", "default_hbase_dashboard");
 
     updateWidgetDefinitionsForService("HBASE", widgetMap, sectionLayoutMap);
+  }
+
+
+  protected void updateHbaseEnvConfig() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    for (final Cluster cluster : getCheckedClusterMap(ambariManagementController.getClusters()).values()) {
+      Config hbaseEnvConfig = cluster.getDesiredConfigByType(HBASE_ENV_CONFIG);
+      if (hbaseEnvConfig != null) {
+        Map<String, String> updates = getUpdatedHbaseEnvProperties(hbaseEnvConfig.getProperties().get(CONTENT_PROPERTY));
+        if (!updates.isEmpty()) {
+          updateConfigurationPropertiesForCluster(cluster, HBASE_ENV_CONFIG, updates, true, false);
+        }
+
+      }
+    }
+  }
+
+  protected Map<String, String> getUpdatedHbaseEnvProperties(String content) {
+    if (content != null) {
+      //Fix bad config added in Upgrade 2.2.0.
+      String badConfig = "export HBASE_OPTS=\"-Djava.io.tmpdir={{java_io_tmpdir}}\"";
+      String correctConfig = "export HBASE_OPTS=\"${HBASE_OPTS} -Djava.io.tmpdir={{java_io_tmpdir}}\"";
+
+      if (content.contains(badConfig)) {
+        content = content.replace(badConfig, correctConfig);
+        return Collections.singletonMap(CONTENT_PROPERTY, content);
+      }
+    }
+    return Collections.emptyMap();
   }
 
   private void updateWidgetDefinitionsForService(String serviceName, Map<String, List<String>> widgetMap,

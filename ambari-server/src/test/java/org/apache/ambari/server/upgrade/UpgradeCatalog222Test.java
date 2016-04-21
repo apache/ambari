@@ -32,6 +32,7 @@ import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -133,6 +134,7 @@ public class UpgradeCatalog222Test {
     Method updateHDFSWidget = UpgradeCatalog222.class.getDeclaredMethod("updateHDFSWidgetDefinition");
     Method updateYARNWidget = UpgradeCatalog222.class.getDeclaredMethod("updateYARNWidgetDefinition");
     Method updateHBASEWidget = UpgradeCatalog222.class.getDeclaredMethod("updateHBASEWidgetDefinition");
+    Method updateHbaseEnvConfig = UpgradeCatalog222.class.getDeclaredMethod("updateHbaseEnvConfig");
     Method updateCorruptedReplicaWidget = UpgradeCatalog222.class.getDeclaredMethod("updateCorruptedReplicaWidget");
     Method createNewSliderConfigVersion = UpgradeCatalog222.class.getDeclaredMethod("createNewSliderConfigVersion");
     Method updateZookeeperConfigs = UpgradeCatalog222.class.getDeclaredMethod("updateZookeeperConfigs");
@@ -148,6 +150,7 @@ public class UpgradeCatalog222Test {
       .addMockedMethod(updateHDFSWidget)
       .addMockedMethod(updateYARNWidget)
       .addMockedMethod(updateHBASEWidget)
+      .addMockedMethod(updateHbaseEnvConfig)
       .addMockedMethod(updateCorruptedReplicaWidget)
       .addMockedMethod(createNewSliderConfigVersion)
       .addMockedMethod(updateZookeeperConfigs)
@@ -155,31 +158,19 @@ public class UpgradeCatalog222Test {
       .createMock();
 
     upgradeCatalog222.addNewConfigurationsFromXml();
-    expectLastCall().once();
     upgradeCatalog222.updateAlerts();
-    expectLastCall().once();
     upgradeCatalog222.updateStormConfigs();
-    expectLastCall().once();
     upgradeCatalog222.updateAMSConfigs();
-    expectLastCall().once();
     upgradeCatalog222.updateHostRoleCommands();
-    expectLastCall().once();
     upgradeCatalog222.updateHiveConfig();
-    expectLastCall().once();
     upgradeCatalog222.updateHDFSWidgetDefinition();
-    expectLastCall().once();
+    upgradeCatalog222.updateHbaseEnvConfig();
     upgradeCatalog222.updateYARNWidgetDefinition();
-    expectLastCall().once();
     upgradeCatalog222.updateHBASEWidgetDefinition();
-    expectLastCall().once();
     upgradeCatalog222.updateCorruptedReplicaWidget();
-    expectLastCall().once();
     upgradeCatalog222.updateZookeeperConfigs();
-    expectLastCall().once();
     upgradeCatalog222.createNewSliderConfigVersion();
-    expectLastCall().once();
     upgradeCatalog222.initializeStromAndKafkaWidgets();
-    expectLastCall().once();
 
     replay(upgradeCatalog222);
 
@@ -785,6 +776,48 @@ public class UpgradeCatalog222Test {
     mockInjector.getInstance(UpgradeCatalog222.class).updateHBASEWidgetDefinition();
 
     verify(clusters, cluster, controller, widgetDAO, widgetEntity, stackInfo, serviceInfo);
+  }
+
+  @Test
+  public void testGetUpdatedHbaseEnvProperties_BadConfig() {
+    String badContent = "export HBASE_HEAPSIZE=1000;\n\n" +
+            "export HBASE_OPTS=\"-Djava.io.tmpdir={{java_io_tmpdir}}\"\n\n" +
+            "export HBASE_LOG_DIR={{log_dir}}";
+    String expectedContent = "export HBASE_HEAPSIZE=1000;\n\n" +
+            "export HBASE_OPTS=\"${HBASE_OPTS} -Djava.io.tmpdir={{java_io_tmpdir}}\"\n\n" +
+            "export HBASE_LOG_DIR={{log_dir}}";
+    testGetUpdatedHbaseEnvProperties(badContent, expectedContent);
+  }
+
+  @Test
+  public void testGetUpdatedHbaseEnvProperties_GoodConfig() {
+
+    String goodContent = "export HBASE_HEAPSIZE=1000;\n\n" +
+            "export HBASE_OPTS=\"${HBASE_OPTS} -Djava.io.tmpdir={{java_io_tmpdir}}\"\n\n" +
+            "export HBASE_LOG_DIR={{log_dir}}";
+    testGetUpdatedHbaseEnvProperties(goodContent, null);
+  }
+
+  @Test
+  public void testGetUpdatedHbaseEnvProperties_NoConfig() {
+    String content = "export HBASE_HEAPSIZE=1000;\n\n" +
+            "export HBASE_LOG_DIR={{log_dir}}";
+    testGetUpdatedHbaseEnvProperties(content, null);
+  }
+
+  private void testGetUpdatedHbaseEnvProperties(String content, String expectedContent) {
+    Module module = new Module() {
+      @Override
+      public void configure(Binder binder) {
+        binder.bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        binder.bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    };
+
+    Injector injector = Guice.createInjector(module);
+    UpgradeCatalog222 upgradeCatalog222 = injector.getInstance(UpgradeCatalog222.class);
+    Map<String, String> update = upgradeCatalog222.getUpdatedHbaseEnvProperties(content);
+    assertEquals(expectedContent, update.get("content"));
   }
 
   @Test
