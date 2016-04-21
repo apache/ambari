@@ -80,7 +80,7 @@ angular.module('ambariAdminConsole')
   $scope.$watch(function() {
     return $scope.permissionsEdit;
   }, function(newValue) {
-    if (newValue && $scope.isDataloaded) {
+    if (newValue && $scope.isDataLoaded) {
       $scope.save();
     }
   }, true);
