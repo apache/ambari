@@ -378,6 +378,7 @@ public class UpgradeCatalog240Test {
     Method updateKerberosEnv = UpgradeCatalog240.class.getDeclaredMethod("updateKerberosConfigs");
     Method updateYarnEnv = UpgradeCatalog240.class.getDeclaredMethod("updateYarnEnv");
     Method removeHiveOozieDBConnectionConfigs = UpgradeCatalog240.class.getDeclaredMethod("removeHiveOozieDBConnectionConfigs");
+    Method updateClustersAndHostsVersionStateTableDML = UpgradeCatalog240.class.getDeclaredMethod("updateClustersAndHostsVersionStateTableDML");
 
     Capture<String> capturedStatements = newCapture(CaptureType.ALL);
 
@@ -396,6 +397,7 @@ public class UpgradeCatalog240Test {
             .addMockedMethod(updateKerberosEnv)
             .addMockedMethod(updateYarnEnv)
             .addMockedMethod(removeHiveOozieDBConnectionConfigs)
+            .addMockedMethod(updateClustersAndHostsVersionStateTableDML)
             .createMock();
 
     Field field = AbstractUpgradeCatalog.class.getDeclaredField("dbAccessor");
@@ -412,6 +414,7 @@ public class UpgradeCatalog240Test {
     upgradeCatalog240.updateKerberosConfigs();
     upgradeCatalog240.updateYarnEnv();
     upgradeCatalog240.removeHiveOozieDBConnectionConfigs();
+    upgradeCatalog240.updateClustersAndHostsVersionStateTableDML();
 
     replay(upgradeCatalog240, dbAccessor);
 

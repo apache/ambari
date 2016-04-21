@@ -100,6 +100,8 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   public static final String BLUEPRINT_TABLE = "blueprint";
   public static final String VIEWINSTANCE_TABLE = "viewinstance";
   public static final String SHORT_URL_COLUMN = "short_url";
+  protected static final String CLUSTER_VERSION_TABLE = "cluster_version";
+  protected static final String HOST_VERSION_TABLE = "host_version";
 
   private static final String OOZIE_ENV_CONFIG = "oozie-env";
   private static final String HIVE_ENV_CONFIG = "hive-env";
@@ -205,6 +207,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     updateKerberosConfigs();
     updateYarnEnv();
     removeHiveOozieDBConnectionConfigs();
+    updateClustersAndHostsVersionStateTableDML();
   }
 
   private void createSettingTable() throws SQLException {
@@ -1210,6 +1213,53 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     dbAccessor.executeQuery("UPDATE " + HOST_ROLE_COMMAND_TABLE + " SET original_start_time = start_time", false);
     dbAccessor.executeQuery("UPDATE " + HOST_ROLE_COMMAND_TABLE + " SET original_start_time=-1 WHERE original_start_time IS NULL");
     dbAccessor.setColumnNullable(HOST_ROLE_COMMAND_TABLE, columnName, false);
+  }
+
+  /**
+   * Update Clusters and Hosts Version State from UPGRADING, UPGRADE_FAILED to INSTALLED
+   * and UPGRADED to CURRENT if repo_version_id from cluster_version equals repo_version_id of Clusters and Hosts Version State
+   *
+   * @throws SQLException
+   */
+
+  @Transactional
+  protected void updateClustersAndHostsVersionStateTableDML() throws SQLException, AmbariException {
+
+    dbAccessor.executeQuery("UPDATE " + HOST_VERSION_TABLE + " SET state = 'INSTALLED' WHERE state IN ('UPGRADING', 'UPGRADE_FAILED', 'UPGRADED')");
+    dbAccessor.executeQuery("UPDATE " + CLUSTER_VERSION_TABLE + " SET state = 'INSTALLED' WHERE state IN ('UPGRADING', 'UPGRADE_FAILED', 'UPGRADED')");
+
+    Statement statement = null;
+    ResultSet resultSet = null;
+    try {
+      statement = dbAccessor.getConnection().createStatement();
+      if (statement != null) {
+        String selectSQL = String.format("SELECT repo_version_id, cluster_id FROM %s WHERE state = 'CURRENT'",
+                CLUSTER_VERSION_TABLE);
+
+        resultSet = statement.executeQuery(selectSQL);
+        Set<Long> clusterIds = new HashSet<>();
+        while (null != resultSet && resultSet.next()) {
+          Long clusterId = resultSet.getLong("cluster_id");
+          if (clusterIds.contains(clusterId)) {
+            throw new AmbariException(String.format("Database is in a bad state. Cluster %s contains multiple CURRENT version", clusterId));
+          }
+          clusterIds.add(clusterId);
+          Long repoVersionId = resultSet.getLong("repo_version_id");
+
+          String updateHostVersionSQL = String.format(
+                  "UPDATE %s SET state = 'CURRENT' WHERE repo_version_id = %s", HOST_VERSION_TABLE, repoVersionId);
+          String updateClusterVersionSQL = String.format(
+                  "UPDATE %s SET state = 'CURRENT' WHERE repo_version_id = %s", CLUSTER_VERSION_TABLE, repoVersionId);
+
+          dbAccessor.executeQuery(updateHostVersionSQL);
+          dbAccessor.executeQuery(updateClusterVersionSQL);
+        }
+      }
+
+    } finally {
+      JdbcUtils.closeResultSet(resultSet);
+      JdbcUtils.closeStatement(statement);
+    }
   }
 
   /**
