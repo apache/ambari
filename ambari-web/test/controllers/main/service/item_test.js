@@ -1400,13 +1400,22 @@ describe('App.MainServiceItemController', function () {
 
   describe("#deleteServiceCall()", function() {
     var mainServiceItemController;
+    var service;
 
     beforeEach(function() {
       mainServiceItemController = App.MainServiceItemController.create({});
+      service = Em.Object.create({serviceName: 'S1', deleteInProgress: false});
+      sinon.stub( App.Service, 'find', function () {
+        return [service];
+      });
+      mainServiceItemController.deleteServiceCall(['S1', 'S2']);
+    });
+
+    afterEach(function () {
+      App.Service.find.restore();
     });
 
     it("App.ajax.send should be called", function() {
-      mainServiceItemController.deleteServiceCall(['S1', 'S2']);
       var args = testHelpers.findAjaxRequest('name', 'common.delete.service');
       expect(args[0]).exists;
       expect(args[0].sender).to.be.eql(mainServiceItemController);
@@ -1415,6 +1424,11 @@ describe('App.MainServiceItemController', function () {
         servicesToDeleteNext: ['S2']
       });
     });
+
+    it('service is marked as deleted', function () {
+      expect(service.get('deleteInProgress')).to.be.true;
+    });
+
   });
 
   describe("#deleteServiceCallSuccessCallback()", function() {
@@ -1423,7 +1437,7 @@ describe('App.MainServiceItemController', function () {
     beforeEach(function() {
       mainServiceItemController = App.MainServiceItemController.create({});
       sinon.spy(mainServiceItemController, 'loadConfigRecommendations');
-      sinon.spy(mainServiceItemController, 'deleteServiceCall');
+      sinon.stub(mainServiceItemController, 'deleteServiceCall', Em.K);
       mainServiceItemController.reopen({
         interDependentServices: []
       })

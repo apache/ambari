@@ -96,6 +96,7 @@ require('views/common/widget/heatmap_widget_view');
 require('views/common/assign_master_components_view');
 require('views/common/helpers/format_word_break_view');
 require('views/common/helpers/format_null_view');
+require('views/common/helpers/format_role_view');
 require('views/common/helpers/pluralize_view');
 require('views/common/helpers/status_icon_view');
 require('views/common/chosen_plugin');

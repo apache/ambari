@@ -80,6 +80,15 @@ App.Service = DS.Model.extend({
   isStarted: Em.computed.equal('workStatus', 'STARTED'),
 
   /**
+   * Indicates when service deleting is in progress
+   * Used to stop update service's data and topology
+   *
+   * @type {boolean}
+   * @default false
+   */
+  deleteInProgress: false,
+
+  /**
    * Service Tagging by their type.
    * @type {String[]}
    **/

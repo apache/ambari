@@ -95,3 +95,9 @@ App.registerBoundHelper('formatWordBreak', App.FormatWordBreakView);
  *
  */
 App.registerBoundHelper('statusIcon', App.StatusIconView);
+
+/**
+ * Return `span` with formatted service name
+ * @param {string} content - serviceName
+ */
+App.registerBoundHelper('formatRole', App.FormatRoleView);

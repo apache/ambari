@@ -162,7 +162,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   sitesToLoad: function() {
     var services = this.get('dependentServiceNames'), configTypeList = [];
     if (services.length) {
-      var configTypeList = App.StackService.find().filter(function(s) {
+      configTypeList = App.StackService.find().filter(function(s) {
         return services.contains(s.get('serviceName'));
       }).mapProperty('configTypeList').reduce(function(p, v) {
         return p.concat(v);
@@ -429,11 +429,8 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
       var names = servicesAffectedDisplayNames.join();
       if(names){
         //only display this line with a non-empty dependency list
-        var dependenciesMsg = Em.I18n.t('services.service.stop.warningMsg.dependent.services').format(serviceDisplayName,names);
-        if(msg)
-          msg = msg + " " + dependenciesMsg;
-        else
-          msg = dependenciesMsg;
+        var dependenciesMsg = Em.I18n.t('services.service.stop.warningMsg.dependent.services').format(serviceDisplayName, names);
+        msg = msg ? msg + " " + dependenciesMsg : dependenciesMsg;
       }
     }
 
@@ -1176,23 +1173,17 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   /**
    * warning that show dependent services which must be deleted prior to chosen service deletion
    * @param {string} origin
-   * @param {Array.<string>} dependent
+   * @param {string[]} dependent
    * @returns {App.ModalPopup}
    */
   dependentServicesWarning: function(origin, dependent) {
-    var body = Em.I18n.t('services.service.delete.popup.dependentServices').format(App.format.role(origin, true));
-
-    body += '<ul>';
-    dependent.forEach(function(serviceName) {
-      body += '<li>' + App.format.role(serviceName, true) + '</li>';
-    });
-    body += '</ul>';
-
     return App.ModalPopup.show({
       secondary: null,
       header: Em.I18n.t('services.service.delete.popup.header'),
+      dependentMessage: Em.I18n.t('services.service.delete.popup.dependentServices').format(App.format.role(origin, true)),
+      dependentServices: dependent,
       bodyClass: Em.View.extend({
-        template: Em.Handlebars.compile(body)
+        templateName: require('templates/main/service/info/dependent_services_warning')
       })
     });
   },
@@ -1248,20 +1239,18 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
        */
       disablePrimary: Em.computed.notEqual('confirmInput', confirmKey),
 
+      message: message,
+
       /**
        * @type {Em.View}
        */
       bodyClass: Em.View.extend({
         confirmKey: confirmKey,
         typeMessage: Em.I18n.t('services.service.confirmDelete.popup.body.type').format(confirmKey),
-        template: Em.Handlebars.compile(message +
-        '<div class="form-inline align-center"></br>' +
-        '<label><b>{{view.typeMessage}}</b></label>&nbsp;' +
-        '{{view Ember.TextField valueBinding="view.parentView.confirmInput" class="input-small"}}</br>' +
-        '</div>')
+        templateName: require('templates/main/service/info/confirm_delete_service')
       }),
 
-      enterKeyPressed: function(e) {
+      enterKeyPressed: function() {
         if (this.get('disablePrimary')) return;
         this.onPrimary();
       }
@@ -1373,6 +1362,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     if (serviceNames.length > 1) {
       var servicesToDeleteNext = serviceNames.slice(1);
     }
+    App.Service.find().findProperty('serviceName', serviceToDeleteNow).set('deleteInProgress', true);
     return App.ajax.send({
       name : 'common.delete.service',
       sender: this,
