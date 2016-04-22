@@ -336,6 +336,7 @@ class Controller(threading.Thread):
       except ssl.SSLError:
         self.repeatRegistration=False
         self.isRegistered = False
+        logger.exception("SSLError while trying to heartbeat.")
         return
       except Exception, err:
         if "code" in err:
@@ -373,19 +374,26 @@ class Controller(threading.Thread):
         self.DEBUG_STOP_HEARTBEATING=True
 
   def run(self):
-    self.actionQueue = ActionQueue(self.config, controller=self)
-    self.actionQueue.start()
-    self.register = Register(self.config)
-    self.heartbeat = Heartbeat(self.actionQueue, self.config, self.alert_scheduler_handler.collector())
-
-    opener = urllib2.build_opener()
-    urllib2.install_opener(opener)
-
-    while True:
-      self.repeatRegistration = False
-      self.registerAndHeartbeat()
-      if not self.repeatRegistration:
-        break
+    try:
+      self.actionQueue = ActionQueue(self.config, controller=self)
+      self.actionQueue.start()
+      self.register = Register(self.config)
+      self.heartbeat = Heartbeat(self.actionQueue, self.config, self.alert_scheduler_handler.collector())
+  
+      opener = urllib2.build_opener()
+      urllib2.install_opener(opener)
+  
+      while True:
+        self.repeatRegistration = False
+        self.registerAndHeartbeat()
+        if not self.repeatRegistration:
+          logger.info("Finished heartbeating and registering cycle")
+          break
+    except:
+      logger.exception("Controller thread failed with exception:")
+      raise
+    
+    logger.info("Controller thread has successfully finished")
 
   def registerAndHeartbeat(self):
     registerResponse = self.registerWithServer()
@@ -406,6 +414,8 @@ class Controller(threading.Thread):
 
         time.sleep(self.netutil.HEARTBEAT_IDDLE_INTERVAL_SEC)
         self.heartbeatWithServer()
+      else:
+        logger.info("Registration response from %s didn't contain 'response' as a key".format(self.serverHostname))
 
   def restartAgent(self):
     ExitHelper().exit(AGENT_AUTO_RESTART_EXIT_CODE)

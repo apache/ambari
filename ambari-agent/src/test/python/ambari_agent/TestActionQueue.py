@@ -279,11 +279,11 @@ class TestActionQueue(TestCase):
 
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
-  @patch("traceback.print_exc")
+  @patch("logging.RootLogger.exception")
   @patch.object(ActionQueue, "execute_command")
   @patch.object(ActionQueue, "execute_status_command")
   def test_process_command(self, execute_status_command_mock,
-                           execute_command_mock, print_exc_mock):
+                           execute_command_mock, log_exc_mock):
     dummy_controller = MagicMock()
     config = AmbariConfig()
     config.set('agent', 'tolerate_download_failures', "true")
@@ -301,42 +301,42 @@ class TestActionQueue(TestCase):
     actionQueue.process_command(wrong_command)
     self.assertFalse(execute_command_mock.called)
     self.assertFalse(execute_status_command_mock.called)
-    self.assertFalse(print_exc_mock.called)
+    self.assertFalse(log_exc_mock.called)
 
     execute_command_mock.reset_mock()
     execute_status_command_mock.reset_mock()
-    print_exc_mock.reset_mock()
+    log_exc_mock.reset_mock()
     # Try normal execution
     actionQueue.process_command(execution_command)
     self.assertTrue(execute_command_mock.called)
     self.assertFalse(execute_status_command_mock.called)
-    self.assertFalse(print_exc_mock.called)
+    self.assertFalse(log_exc_mock.called)
 
     execute_command_mock.reset_mock()
     execute_status_command_mock.reset_mock()
-    print_exc_mock.reset_mock()
+    log_exc_mock.reset_mock()
 
     actionQueue.process_command(status_command)
     self.assertFalse(execute_command_mock.called)
     self.assertTrue(execute_status_command_mock.called)
-    self.assertFalse(print_exc_mock.called)
+    self.assertFalse(log_exc_mock.called)
 
     execute_command_mock.reset_mock()
     execute_status_command_mock.reset_mock()
-    print_exc_mock.reset_mock()
+    log_exc_mock.reset_mock()
 
     # Try exception to check proper logging
     def side_effect(self):
       raise Exception("TerribleException")
     execute_command_mock.side_effect = side_effect
     actionQueue.process_command(execution_command)
-    self.assertTrue(print_exc_mock.called)
+    self.assertTrue(log_exc_mock.called)
 
-    print_exc_mock.reset_mock()
+    log_exc_mock.reset_mock()
 
     execute_status_command_mock.side_effect = side_effect
     actionQueue.process_command(execution_command)
-    self.assertTrue(print_exc_mock.called)
+    self.assertTrue(log_exc_mock.called)
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(CustomServiceOrchestrator, "runCommand")
