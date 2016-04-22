@@ -1110,7 +1110,7 @@ var urls = {
     'testInProduction': true
   },
   'service.metrics.hdfs.rpc': {
-    'real': '/clusters/{clusterName}/hosts/{nameNodeName}/host_components/NAMENODE?fields=metrics/rpc/RpcQueueTime_avg_time[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'real': '/clusters/{clusterName}/hosts/{nameNodeName}/host_components/NAMENODE?fields=metrics/rpc/client/RpcQueueTime_avg_time[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': '/data/services/metrics/hdfs/rpc.json',
     'testInProduction': true
   },

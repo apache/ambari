@@ -48,7 +48,7 @@ App.UpdateController = Em.Controller.extend({
     'host_components/metrics/jvm/memHeapCommittedM',
     'host_components/metrics/mapred/jobtracker/trackers_decommissioned',
     'host_components/metrics/cpu/cpu_wio',
-    'host_components/metrics/rpc/RpcQueueTime_avg_time',
+    'host_components/metrics/rpc/client/RpcQueueTime_avg_time',
     'host_components/metrics/dfs/FSNamesystem/*',
     'host_components/metrics/dfs/namenode/Version',
     'host_components/metrics/dfs/namenode/LiveNodes',
