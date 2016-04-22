@@ -116,7 +116,6 @@ class ServiceCheckDefault(ServiceCheck):
       if "application" in item:
         application_name = item
 
-    json_response_received = False
     for rm_webapp_address in params.rm_webapp_addresses_list:
       info_app_url = params.scheme + "://" + rm_webapp_address + "/ws/v1/cluster/apps/" + application_name
 
@@ -129,16 +128,16 @@ class ServiceCheckDefault(ServiceCheck):
 
       try:
         json_response = json.loads(stdout)
-
-        json_response_received = True
-
-        if json_response['app']['state'] != "FINISHED" or json_response['app']['finalStatus'] != "SUCCEEDED":
-          raise Exception("Application " + app_url + " state/status is not valid. Should be FINISHED/SUCCEEDED.")
       except Exception as e:
-        pass
+        raise Exception("Could not get json response from YARN API")
+      
+      if json_response is None or 'app' not in json_response or \
+              'state' not in json_response['app'] or 'finalStatus' not in json_response['app']:
+        raise Exception("Application " + app_url + " returns invalid data.")
 
-    if not json_response_received:
-      raise Exception("Could not get json response from YARN API")
+      if json_response['app']['state'] != "FINISHED" or json_response['app']['finalStatus'] != "SUCCEEDED":
+        raise Exception("Application " + app_url + " state/status is not valid. Should be FINISHED/SUCCEEDED.")
+
 
 
 if __name__ == "__main__":
