@@ -56,6 +56,101 @@
             }
           }
         }
+      },
+      {
+        "name": "logsearch_solr_index_size",
+        "label": "LogSearch Solr Index Size",
+        "description": "This host-level alert is triggered if the Solr index size is over a limit.",
+        "interval": 1,
+        "scope": "ANY",
+        "source": {
+          "parameters" : [
+            {
+              "name" : "solr.index.size.warning",
+              "display_name" : "Solr index size warning threshold",
+              "units" : "GB",
+              "value" : 50,
+              "description" : "The maximum size of the Solr index before this alert is considered to be WARNING",
+              "type" : "NUMERIC",
+              "threshold" : "WARNING"
+            },
+            {
+              "name" : "solr.index.size.critical",
+              "display_name" : "Solr index size critical threshold",
+              "units" : "GB",
+              "value" : 100,
+              "description" : "The maximum size of the Solr index before this alert is considered to be CRITICAL",
+              "type" : "NUMERIC",
+              "threshold" : "CRITICAL"
+            }
+          ],
+          "path" : "LOGSEARCH/0.5.0/package/alerts/alert_solr_index_size.py",
+          "type" : "SCRIPT"
+        }
+      },
+      {
+        "name": "logsearch_solr_cpu",
+        "label": "LogSearch Solr CPU Utilization",
+        "description": "This host-level alert is triggered if CPU utilization of the LogSearch Solr exceeds certain warning and critical thresholds. It checks the LogSearch Solr JMX Servlet for the SystemCPULoad property. The threshold values are in percent.",
+        "interval": 5,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "parameters" : [
+            {
+              "name" : "solr.cpu.usage.warning",
+              "display_name" : "Solr cpu usage warning threshold",
+              "units" : "%",
+              "value" : 200,
+              "description" : "The maximum cpu usage of Solr before this alert is considered to be WARNING",
+              "type" : "NUMERIC",
+              "threshold" : "WARNING"
+            },
+            {
+              "name" : "solr.cpu.usage.critical",
+              "display_name" : "Solr cpu usage critical threshold",
+              "units" : "%",
+              "value" : 250,
+              "description" : "The maximum cpu usage of Solr index before this alert is considered to be CRITICAL",
+              "type" : "NUMERIC",
+              "threshold" : "CRITICAL"
+            }
+          ],
+          "path" : "LOGSEARCH/0.5.0/package/alerts/alert_solr_cpu_usage.py",
+          "type" : "SCRIPT"
+        }
+      },
+      {
+        "name": "logsearch_solr_memory",
+        "label": "LogSearch Solr Memory Utilization",
+        "description": "This host-level alert is triggered if CPU utilization of the LogSearch Solr exceeds certain warning and critical thresholds. It checks the LogSearch Solr JMX Servlet for the SystemCPULoad property. The threshold values are in percent.",
+        "interval": 5,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "parameters" : [
+            {
+              "name" : "solr.memory.usage.warning",
+              "display_name" : "Solr memory usage warning threshold",
+              "units" : "%",
+              "value" : 200,
+              "description" : "The maximum memory usage of Solr before this alert is considered to be WARNING",
+              "type" : "NUMERIC",
+              "threshold" : "WARNING"
+            },
+            {
+              "name" : "solr.memory.usage.critical",
+              "display_name" : "Solr memory usage critical threshold",
+              "units" : "%",
+              "value" : 250,
+              "description" : "The maximum memory usage of Solr index before this alert is considered to be CRITICAL",
+              "type" : "NUMERIC",
+              "threshold" : "CRITICAL"
+            }
+          ],
+          "path" : "LOGSEARCH/0.5.0/package/alerts/alert_solr_memory_usage.py",
+          "type" : "SCRIPT"
+        }
       }
     ]
   }
