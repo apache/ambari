@@ -102,7 +102,7 @@
       export ATLAS_PID_DIR={{pid_dir}}
 
       # hbase conf dir
-      export HBASE_CONF_DIR=/etc/hbase/conf
+      export HBASE_CONF_DIR={{atlas_hbase_conf_dir}}
 
       # Where do you want to expand the war file. By Default it is in /server/webapp dir under the base install dir.
       export ATLAS_EXPANDED_WEBAPP_DIR={{expanded_war_dir}}

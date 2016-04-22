@@ -52,6 +52,20 @@ class TestMetadataServer(RMFTestCase):
                                 cd_access='a',
                                 mode=0755
       )
+      self.assertResourceCalled('Directory', '/usr/hdp/current/atlas-server/hbase/logs',
+                                owner='atlas',
+                                group='hadoop',
+                                create_parents = True,
+                                cd_access='a',
+                                mode=0755
+                                )
+      self.assertResourceCalled('Directory', '/usr/hdp/current/atlas-server/data',
+                                owner='atlas',
+                                group='hadoop',
+                                create_parents = True,
+                                cd_access='a',
+                                mode=0755
+                                )
       self.assertResourceCalled('Directory', '/var/lib/atlas/data',
                                 owner='atlas',
                                 group='hadoop',
@@ -96,6 +110,13 @@ class TestMetadataServer(RMFTestCase):
                                 group='hadoop',
                                 mode=0644,
       )
+      self.assertResourceCalled('XmlConfig', 'hbase-site.xml',
+                            owner = 'atlas',
+                            group = 'hadoop',
+                            conf_dir = '/usr/hdp/current/atlas-server/hbase/conf',
+                            configurations = self.getConfig()['configurations']['atlas-hbase-site'],
+                            configuration_attributes = self.getConfig()['configuration_attributes']['atlas-hbase-site']
+                            )
 
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/metadata_server.py",

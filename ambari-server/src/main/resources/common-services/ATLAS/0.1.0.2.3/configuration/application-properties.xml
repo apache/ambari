@@ -21,12 +21,12 @@
 <configuration supports_final="false">
   <property>
     <name>atlas.graph.storage.backend</name>
-    <value>berkeleyje</value>
+    <value>hbase</value>
     <description></description>
   </property>
   <property>
-    <name>atlas.graph.storage.directory</name>
-    <value>/var/lib/atlas/data/berkeley</value>
+    <name>atlas.graph.storage.hostname</name>
+    <value>localhost:{{atlas_hbase_zk_port}}</value>
     <description></description>
   </property>
   <property>
@@ -208,6 +208,21 @@
   <property>
     <name>atlas.hook.falcon.queueSize</name>
     <value>1000</value>
+    <description></description>
+  </property>
+  <property>
+    <name>atlas.audit.hbase.tablename</name>
+    <value>ATLAS_ENTITY_AUDIT_EVENTS</value>
+    <description></description>
+  </property>
+  <property>
+    <name>atlas.audit.zookeeper.session.timeout.ms</name>
+    <value>1000</value>
+    <description></description>
+  </property>
+  <property>
+    <name>atlas.audit.hbase.zookeeper.quorum</name>
+    <value>localhost:{{atlas_hbase_zk_port}}</value>
     <description></description>
   </property>
 </configuration>

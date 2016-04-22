@@ -18,7 +18,7 @@ limitations under the License.
 
 """
 from resource_management import Directory, Fail, Logger, File, \
-    InlineTemplate, PropertiesFile, StaticFile
+    InlineTemplate, PropertiesFile, StaticFile, XmlConfig
 from resource_management.libraries.functions import format
 from resource_management.libraries.resources.template_config import TemplateConfig
 
@@ -49,6 +49,22 @@ def metadata():
               group=params.user_group,
               create_parents = True
     )
+
+    Directory(params.atlas_hbase_log_dir,
+              mode=0755,
+              cd_access='a',
+              owner=params.metadata_user,
+              group=params.user_group,
+              create_parents = True
+              )
+
+    Directory(params.atlas_hbase_data_dir,
+              mode=0755,
+              cd_access='a',
+              owner=params.metadata_user,
+              group=params.user_group,
+              create_parents = True
+              )
 
     Directory(params.data_dir,
               mode=0644,
@@ -90,6 +106,15 @@ def metadata():
          group=params.user_group,
          content=InlineTemplate(params.metadata_log4j_content)
     )
+
+    # hbase-site for embedded hbase used by Atlas
+    XmlConfig( "hbase-site.xml",
+           conf_dir = params.atlas_hbase_conf_dir,
+           configurations = params.config['configurations']['atlas-hbase-site'],
+           configuration_attributes=params.config['configuration_attributes']['atlas-hbase-site'],
+           owner = params.metadata_user,
+           group = params.user_group
+           )
 
     if params.security_enabled:
         TemplateConfig(format(params.atlas_jaas_file),

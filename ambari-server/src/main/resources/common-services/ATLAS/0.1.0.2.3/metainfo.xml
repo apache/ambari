@@ -46,7 +46,7 @@
           </logs>
           <configFile>
             <type>properties</type>
-            <fileName>application.properties</fileName>
+            <fileName>application.properties.xml</fileName>
             <dictionaryName>application-properties</dictionaryName>
           </configFile>
           <configFile>
@@ -58,6 +58,11 @@
             <type>env</type>
             <fileName>atlas-log4j.xml</fileName>
             <dictionaryName>atlas-log4j</dictionaryName>
+          </configFile>
+          <configFile>
+            <type>xml</type>
+            <fileName>atlas-hbase-site.xml</fileName>
+            <dictionaryName>atlas-hbase-site</dictionaryName>
           </configFile>
         </component>
 
@@ -75,7 +80,7 @@
           </commandScript>
           <configFile>
             <type>properties</type>
-            <fileName>application.properties</fileName>
+            <fileName>application.properties.xml</fileName>
             <dictionaryName>application-properties</dictionaryName>
           </configFile>
           <configFile>
@@ -87,6 +92,11 @@
             <type>env</type>
             <fileName>atlas-log4j.xml</fileName>
             <dictionaryName>atlas-log4j</dictionaryName>
+          </configFile>
+          <configFile>
+            <type>xml</type>
+            <fileName>atlas-hbase-site.xml</fileName>
+            <dictionaryName>atlas-hbase-site</dictionaryName>
           </configFile>
         </component>
       </components>
@@ -116,6 +126,7 @@
         <config-type>application-properties</config-type>
         <config-type>atlas-env</config-type>
         <config-type>atlas-log4j</config-type>
+        <config-type>atlas-hbase-site</config-type>
       </configuration-dependencies>
 
     </service>

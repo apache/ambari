@@ -27,7 +27,7 @@
           <cardinality>1+</cardinality>
           <configFile>
             <type>properties</type>
-            <fileName>atlas-application.properties</fileName>
+            <fileName>application.properties.xml</fileName>
             <dictionaryName>application-properties</dictionaryName>
           </configFile>
           <logs>
@@ -42,7 +42,7 @@
           <name>ATLAS_CLIENT</name>
           <configFile>
             <type>properties</type>
-            <fileName>atlas-application.properties</fileName>
+            <fileName>application.properties.xml</fileName>
             <dictionaryName>application-properties</dictionaryName>
           </configFile>
         </component>

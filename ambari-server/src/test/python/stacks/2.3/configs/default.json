@@ -217,6 +217,9 @@
         "atlas_log_level": "debug",
         "audit_log_level": "OFF"
       },
+      "atlas-hbase-site": {
+        "hbase.master.info.port": "61510"
+      },
       "ranger-hbase-plugin-properties": {
             "ranger-hbase-plugin-enabled":"yes"
       },
@@ -261,6 +264,7 @@
       "kafka-env": {},
       "kafka-log4j": {},
       "kafka-broker": {},
+      "atlas-hbase-site": {},
       "metadata-env": {}
     },
     "configurationTags": {
