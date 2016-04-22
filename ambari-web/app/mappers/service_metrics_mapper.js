@@ -65,7 +65,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     upgrade_status: 'nameNodeComponent.host_components[0].metrics.dfs.namenode.UpgradeFinalized',
     safe_mode_status: 'nameNodeComponent.host_components[0].metrics.dfs.namenode.Safemode',
     name_node_cpu: 'nameNodeComponent.host_components[0].metrics.cpu.cpu_wio',
-    name_node_rpc: 'nameNodeComponent.host_components[0].metrics.rpc.RpcQueueTime_avg_time',
+    name_node_rpc: 'nameNodeComponent.host_components[0].metrics.rpc.client.RpcQueueTime_avg_time',
     data_nodes_started: 'data_nodes_started',
     data_nodes_installed: 'data_nodes_installed',
     data_nodes_total: 'data_nodes_total',
