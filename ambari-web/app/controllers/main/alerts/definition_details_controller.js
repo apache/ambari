@@ -293,9 +293,7 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
         return this.get('inputValue') !== 'DEBUG' && (!validator.isValidInt(intValue) || intValue < 1 || intValue > 99);
       }.property('inputValue'),
       isChanged: function () {
-        var intValue = Number(this.get('inputValue'));
-        var isValueChanged = intValue != alertsRepeatTolerance;
-        return isValueChanged;
+        return Number(this.get('inputValue')) != alertsRepeatTolerance;
       }.property('inputValue'),
       doRestoreDefaultValue: function () {
         this.set('inputValue', alertsRepeatTolerance);
@@ -308,11 +306,7 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
         }
         var input = this.get('inputValue');
         self.set('content.repeat_tolerance', input);
-        if (input == alertsRepeatTolerance) {
-          self.enableRepeatTolerance(false);
-        } else {
-          self.enableRepeatTolerance(true);
-        }
+        self.enableRepeatTolerance(input != alertsRepeatTolerance);
         App.ajax.send({
           name: 'alerts.update_alert_definition',
           sender: self,
@@ -326,6 +320,7 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
         this.hide();
       },
       didInsertElement: function () {
+        this._super();
         App.tooltip(this.$('[data-toggle=tooltip]'));
       },
       bodyClass: Ember.View.extend({

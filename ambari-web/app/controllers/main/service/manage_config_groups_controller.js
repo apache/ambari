@@ -671,9 +671,9 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
       warningMessage: '',
 
       didInsertElement: function(){
+        this._super();
         this.validate();
         this.$('input').focus();
-        this.fitZIndex();
       },
 
       validate: function () {
@@ -772,6 +772,8 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
       classNames: ['sixty-percent-width-modal', 'manage-configuration-group-popup'],
 
       primary: Em.I18n.t('common.save'),
+
+      autoHeight: false,
 
       subViewController: configsController,
 
@@ -955,11 +957,7 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
       updateButtons: function () {
         var modified = this.get('subViewController.isHostsModified');
         this.set('disablePrimary', !modified);
-      }.observes('subViewController.isHostsModified'),
-
-      didInsertElement: function () {
-        this.fitZIndex();
-      }
+      }.observes('subViewController.isHostsModified')
     });
   }
 

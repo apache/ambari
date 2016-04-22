@@ -352,6 +352,7 @@ App.BulkOperationsController = Em.Controller.extend({
         }.property(),
 
         didInsertElement: function() {
+          this._super();
           this.set('expanded', hostsWithOutComponent.length <= minShown);
         },
 
@@ -807,6 +808,7 @@ App.BulkOperationsController = Em.Controller.extend({
       }.property(),
 
       didInsertElement: function() {
+        this._super();
         this.set('expanded', hostNames.length <= 3);
       },
       onPrimary: function() {

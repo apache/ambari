@@ -97,6 +97,7 @@ App.EditableWidgetMixin = Em.Mixin.create({
       },
 
       didInsertElement: function () {
+        this._super();
         var colors = [App.healthStatusGreen, App.healthStatusOrange, App.healthStatusRed]; //color green, orange ,red
         var handlers = [33, 66]; //fixed value
 

@@ -48,6 +48,7 @@ module.exports = App.WizardRoute.extend({
             this.hide();
           },
           didInsertElement: function () {
+            this._super();
             this.fitHeight();
           }
         });

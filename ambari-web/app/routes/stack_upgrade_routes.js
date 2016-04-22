@@ -46,12 +46,13 @@ module.exports = App.WizardRoute.extend({
           primary: Em.I18n.t('common.dismiss'),
           secondary: null,
           didInsertElement: function () {
+            this._super();
             this.fitHeight();
             this.fitInnerHeight();
           },
 
           /**
-           * fir height of scrollable block inside of modal body
+           * fit height of scrollable block inside of modal body
            */
           fitInnerHeight: function () {
             var block = this.$().find('#modal > .modal-body');

@@ -256,6 +256,7 @@ App.DashboardWidgetView = Em.View.extend({
       },
 
       didInsertElement: function () {
+        this._super();
         var browserVersion = self.getInternetExplorerVersion();
         var handlers = [configObj.get('thresh1'), configObj.get('thresh2')];
         var colors = [App.healthStatusGreen, App.healthStatusOrange, App.healthStatusRed]; //color green, orange ,red

@@ -104,6 +104,7 @@ App.EditableWithLimitWidgetMixin = Em.Mixin.create({
       },
 
       didInsertElement: function () {
+        this._super();
         var handlers = [configObj.get('thresh1'), configObj.get('thresh2')];
         var colors = [App.healthStatusRed, App.healthStatusOrange, App.healthStatusGreen]; //color red, orange, green
 

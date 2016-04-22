@@ -455,6 +455,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
                 });
               },
               didInsertElement: function () {
+                this._super();
                 this.fitHeight();
               }
             });

@@ -55,6 +55,7 @@ module.exports = App.WizardRoute.extend({
                 addServiceController.resetOnClose(addServiceController, exitPath);
               },
               didInsertElement: function () {
+                this._super();
                 this.fitHeight();
               }
             });

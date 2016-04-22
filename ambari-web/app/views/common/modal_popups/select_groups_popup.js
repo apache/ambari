@@ -36,6 +36,7 @@ App.showSelectGroupsPopup = function (selectedServiceName, selectedConfigGroup, 
     dependentStepConfigs: dependentStepConfigs,
     selectedGroups: {},
     didInsertElement: function() {
+      this._super();
       this.set('selectedGroups', $.extend({},selectedConfigGroup.get('dependentConfigGroups')));
     },
     bodyClass: Em.CollectionView.extend({
