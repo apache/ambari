@@ -349,14 +349,10 @@ public class UpgradeCatalog222Test {
         put("timeline.metrics.cluster.aggregator.daily.checkpointCutOffMultiplier", String.valueOf(1));
         put("timeline.metrics.service.operation.mode", "distributed");
         put("timeline.metrics.host.aggregator.ttl", String.valueOf(86400));
-        put("timeline.metrics.host.aggregator.minute.ttl", String.valueOf(604800));
-        put("timeline.metrics.host.aggregator.hourly.ttl", String.valueOf(2592000));
-        put("timeline.metrics.host.aggregator.daily.ttl", String.valueOf(31536000));
         put("timeline.metrics.cluster.aggregator.second.ttl", String.valueOf(21600)); //Less than 1 day
         put("timeline.metrics.cluster.aggregator.minute.ttl", String.valueOf(7776000));
-        put("timeline.metrics.cluster.aggregator.hourly.ttl", String.valueOf(31536000));
-        put("timeline.metrics.cluster.aggregator.daily.ttl", String.valueOf(63072000));
         put("timeline.metrics.service.webapp.address", "0.0.0.0:6188");
+        put("timeline.metrics.sink.collection.period", "60");
       }
     };
     Map<String, String> newPropertiesAmsSite = new HashMap<String, String>() {
@@ -365,16 +361,12 @@ public class UpgradeCatalog222Test {
         put("timeline.metrics.cluster.aggregator.daily.checkpointCutOffMultiplier", String.valueOf(2));
         put("timeline.metrics.service.watcher.disabled", String.valueOf(false));
         put("timeline.metrics.host.aggregator.ttl", String.valueOf(3 * 86400));
-        put("timeline.metrics.host.aggregator.minute.ttl", String.valueOf(7 * 86400));
-        put("timeline.metrics.host.aggregator.hourly.ttl", String.valueOf(30 * 86400));
-        put("timeline.metrics.host.aggregator.daily.ttl", String.valueOf(365 * 86400));
         put("timeline.metrics.cluster.aggregator.second.ttl", String.valueOf(21600));
         put("timeline.metrics.cluster.aggregator.minute.ttl", String.valueOf(30 * 86400));
-        put("timeline.metrics.cluster.aggregator.hourly.ttl", String.valueOf(365 * 86400));
-        put("timeline.metrics.cluster.aggregator.daily.ttl", String.valueOf(730 * 86400));
         put("timeline.metrics.service.operation.mode", "distributed");
         put("timeline.metrics.service.webapp.address", "host1:6188");
         put("timeline.metrics.cluster.aggregator.interpolation.enabled", String.valueOf(true));
+        put("timeline.metrics.sink.collection.period", "10");
       }
     };
     EasyMockSupport easyMockSupport = new EasyMockSupport();
