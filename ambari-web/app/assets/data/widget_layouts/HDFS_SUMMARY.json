@@ -79,7 +79,7 @@
           {
             "WidgetInfo" : {
               "id" : 8,
-              "metrics" : "[{\"name\":\"Hadoop:service\\u003dNameNode,name\\u003dRpcActivity.RpcQueueTimeAvgTime\",\"metric_path\":\"metrics/rpc/RpcQueueTime_avg_time\",\"service_name\":\"HDFS\",\"component_name\":\"NAMENODE\",\"host_component_criteria\":\"host_components/metrics/dfs/FSNamesystem/HAState\\u003dactive\"}]",
+              "metrics" : "[{\"name\":\"Hadoop:service\\u003dNameNode,name\\u003dRpcActivity.RpcQueueTimeAvgTime\",\"metric_path\":\"metrics/rpc/client/RpcQueueTime_avg_time\",\"service_name\":\"HDFS\",\"component_name\":\"NAMENODE\",\"host_component_criteria\":\"host_components/metrics/dfs/FSNamesystem/HAState\\u003dactive\"}]",
               "author" : "ambari",
               "description" : null,
               "scope" : "CLUSTER",
