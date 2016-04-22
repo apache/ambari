@@ -473,7 +473,7 @@ define([
             return aggregatorsPromise;
           }
           aggregatorsPromise = $q.when([
-            'default','avg', 'sum', 'min', 'max'
+            'none','avg', 'sum', 'min', 'max'
           ]);
           return aggregatorsPromise;
         };
