@@ -18,8 +18,8 @@
         "name": "metrics_ui_server",
         "label": "Grafana",
         "requires_user_name": "false",
+        "component_name": "METRICS_GRAFANA",
         "url":"%@://%@:%@",
-        "template":"%@://%@:%@",
         "port":{
           "http_property": "port",
           "http_default_port": "3000",

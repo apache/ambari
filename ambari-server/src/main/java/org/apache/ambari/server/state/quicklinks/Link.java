@@ -31,6 +31,9 @@ public class Link{
   @JsonProperty("label")
   private String label;
 
+  @JsonProperty("component_name")
+  private String componentName;
+
   @JsonProperty("requires_user_name")
   private String requiresUserName;
 
@@ -39,6 +42,9 @@ public class Link{
 
   @JsonProperty("port")
   private Port port;
+
+  @JsonProperty("protocol")
+  private Protocol protocol;
 
   public String getName() {
     return name;
@@ -54,6 +60,14 @@ public class Link{
 
   public void setLabel(String label) {
     this.label = label;
+  }
+
+  public String getComponentName() {
+    return componentName;
+  }
+
+  public void setComponentName(String componentName) {
+    this.componentName = componentName;
   }
 
   public String getUrl() {
@@ -80,6 +94,15 @@ public class Link{
     this.port = port;
   }
 
+  public Protocol getProtocol() {
+    return protocol;
+  }
+
+  public void setProtocol(Protocol protocol) {
+    this.protocol = protocol;
+  }
+
+
   public boolean isRemoved(){
     //treat a link as removed if the section only contains a name
     return (null == port && null == url && null == label && null == requiresUserName);
@@ -94,6 +117,9 @@ public class Link{
      */
     if(null == label && null != parentLink.getLabel())
       label = parentLink.getLabel();
+
+    if(null == componentName && null != parentLink.getComponentName())
+      componentName = parentLink.getComponentName();
 
     if(null == url && null != parentLink.getUrl())
       url = parentLink.getUrl();

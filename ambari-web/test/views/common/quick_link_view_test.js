@@ -491,19 +491,30 @@ describe('App.QuickViewLinks', function () {
   describe("#findHosts()", function () {
     beforeEach(function () {
       sinon.stub(quickViewLinks, 'getPublicHostName').returns('public_name');
+      sinon.stub(App.MasterComponent, 'find').returns([
+        Em.Object.create({
+          componentName: "C1",
+          hostNames: ["host1", "host2"]
+        })
+      ]);
     });
     afterEach(function () {
       quickViewLinks.getPublicHostName.restore();
+      App.MasterComponent.find.restore();
     });
     it("public_name from getPublicHostName", function () {
-      quickViewLinks.set('content.hostComponents', [Em.Object.create({
-        componentName: 'C1',
-        hostName: 'host1'
-      })]);
-      expect(quickViewLinks.findHosts('C1', {})).to.eql([{
-        hostName: 'host1',
-        publicHostName: 'public_name'
-      }]);
+      expect(quickViewLinks.findHosts('C1', {})).to.eql([
+        {
+          hostName: 'host1',
+          publicHostName: 'public_name',
+          componentName: 'C1'
+        },
+        {
+          hostName: 'host2',
+          publicHostName: 'public_name',
+          componentName: 'C1'
+        }
+      ]);
     });
   });
 
@@ -748,7 +759,7 @@ describe('App.QuickViewLinks', function () {
             {
               type: 'ranger-admin-site',
               properties: {'ranger.service.http.enabled': 'false', 'ranger.service.https.attrib.ssl.enabled': 'true'}
-            },
+            }
           ],
         quickLinksConfig: {
           protocol:{
@@ -779,7 +790,7 @@ describe('App.QuickViewLinks', function () {
             {
               type: 'ranger-admin-site',
               properties: {'ranger.service.http.enabled': 'true', 'ranger.service.https.attrib.ssl.enabled': 'false'}
-            },
+            }
           ],
         quickLinksConfig: {
           protocol:{
@@ -807,7 +818,7 @@ describe('App.QuickViewLinks', function () {
     tests.forEach(function (t) {
       it(t.m, function () {
         quickViewLinks.set('servicesSupportsHttps', t.servicesSupportsHttps);
-        expect(quickViewLinks.setProtocol(t.configProperties, t.quickLinksConfig)).to.equal(t.result);
+        expect(quickViewLinks.setProtocol(t.configProperties, t.quickLinksConfig.protocol)).to.equal(t.result);
       });
     });
   });
@@ -829,7 +840,7 @@ describe('App.QuickViewLinks', function () {
             {
               'type': 'yarn-site',
               'properties': {'yarn.timeline-service.webapp.address': 'c6401.ambari.apache.org:8188'}
-            },
+            }
           ],
         'result': '8188'
       }),
@@ -876,9 +887,99 @@ describe('App.QuickViewLinks', function () {
       sinon.stub(quickViewLinks, 'processYarnHosts').returns(['yarnHost']);
       sinon.stub(quickViewLinks, 'findHosts').returns(['host1']);
       App.set('singleNodeInstall', false);
-      quickViewLinks.set('content', Em.Object.create({
-        hostComponents: []
-      }));
+      sinon.stub(App.QuickLinksConfig, 'find').returns([
+        Em.Object.create({
+          id: 'OOZIE',
+          links: [
+            {
+              component_name: 'OOZIE_SERVER'
+            }
+          ]
+        }),
+        Em.Object.create({
+          id: 'HDFS',
+          links: [
+            {
+              component_name: 'NAMENODE'
+            }
+          ]
+        }),
+        Em.Object.create({
+          id: 'HBASE',
+          links: [
+            {
+              component_name: 'HBASE_MASTER'
+            }
+          ]
+        }),
+        Em.Object.create({
+          id: 'YARN',
+          links: [
+            {
+              component_name: 'RESOURCEMANAGER'
+            }
+          ]
+        }),
+        Em.Object.create({
+          id: 'STORM',
+          links: [
+            {
+              component_name: 'STORM_UI_SERVER'
+            }
+          ]
+        }),
+        Em.Object.create({
+          id: 'ACCUMULO',
+          links: [
+            {
+              component_name: 'ACCUMULO_MONITOR'
+            }
+          ]
+        }),
+        Em.Object.create({
+          id: 'ATLAS',
+          links: [
+            {
+              component_name: 'ATLAS_SERVER'
+            }
+          ]
+        }),
+        Em.Object.create({
+          id: 'MAPREDUCE2',
+          links: [
+            {
+              component_name: 'HISTORYSERVER'
+            }
+          ]
+        }),
+        Em.Object.create({
+          id: 'AMBARI_METRICS',
+          links: [
+            {
+              component_name: 'METRICS_GRAFANA'
+            }
+          ]
+        }),
+        Em.Object.create({
+          id: 'LOGSEARCH',
+          links: [
+            {
+              component_name: 'LOGSEARCH_SERVER'
+            }
+          ]
+        }),
+        Em.Object.create({
+          id: 'HIVE',
+          links: [
+            {
+              component_name: 'METRICS_GRAFANA'
+            },
+            {
+              component_name: 'HIVE_SERVER_INTERACTIVE'
+            }
+          ]
+        })
+      ]);
     });
     afterEach(function() {
       quickViewLinks.processOozieHosts.restore();
@@ -886,6 +987,7 @@ describe('App.QuickViewLinks', function () {
       quickViewLinks.processHbaseHosts.restore();
       quickViewLinks.findHosts.restore();
       quickViewLinks.processYarnHosts.restore();
+      App.QuickLinksConfig.find.restore();
     });
 
     it("singleNodeInstall is true", function() {
@@ -897,80 +999,67 @@ describe('App.QuickViewLinks', function () {
       }])
     });
 
-    it("content is null", function() {
-      quickViewLinks.set('content', null);
-      expect(quickViewLinks.getHosts({}, 'S1')).to.be.empty;
-    });
+    var tests = [
+      {
+        serviceName: 'OOZIE',
+        callback: 'processOozieHosts',
+        result: ['oozieHost']
+      },
+      {
+        serviceName: 'HDFS',
+        callback: 'processHdfsHosts',
+        result: ['hdfsHost']
+      },
+      {
+        serviceName: 'HBASE',
+        callback: 'processHbaseHosts',
+        result: ['hbaseHost']
+      },
+      {
+        serviceName: 'YARN',
+        callback: 'processYarnHosts',
+        result: ['yarnHost']
+      },
+      {
+        serviceName: 'STORM'
+      },
+      {
+        serviceName: 'ACCUMULO'
+      },
+      {
+        serviceName: 'ATLAS'
+      },
+      {
+        serviceName: 'MAPREDUCE2'
+      },
+      {
+        serviceName: 'AMBARI_METRICS'
+      },
+      {
+        serviceName: 'LOGSEARCH'
+      },
+      {
+        serviceName: 'HIVE',
+        result: ['host1', 'host1']
+      }
+    ];
 
-    it("OOZIE service", function() {
-      expect(quickViewLinks.getHosts({}, 'OOZIE')).to.eql(['oozieHost']);
-      expect(quickViewLinks.findHosts.calledWith('OOZIE_SERVER', {})).to.be.true;
-      expect(quickViewLinks.processOozieHosts.calledOnce).to.be.true;
-    });
-
-    it("HDFS service", function() {
-      expect(quickViewLinks.getHosts({}, 'HDFS')).to.eql(['hdfsHost']);
-      expect(quickViewLinks.findHosts.calledWith('NAMENODE', {})).to.be.true;
-      expect(quickViewLinks.processHdfsHosts.calledOnce).to.be.true;
-    });
-
-    it("HBASE service", function() {
-      expect(quickViewLinks.getHosts({}, 'HBASE')).to.eql(['hbaseHost']);
-      expect(quickViewLinks.findHosts.calledWith('HBASE_MASTER', {})).to.be.true;
-      expect(quickViewLinks.processHbaseHosts.calledOnce).to.be.true;
-    });
-
-    it("YARN service", function() {
-      expect(quickViewLinks.getHosts({}, 'YARN')).to.eql(['yarnHost']);
-      expect(quickViewLinks.findHosts.calledWith('RESOURCEMANAGER', {})).to.be.true;
-      expect(quickViewLinks.processYarnHosts.calledOnce).to.be.true;
-    });
-
-    it("STORM service", function() {
-      expect(quickViewLinks.getHosts({}, 'STORM')).to.eql(['host1']);
-      expect(quickViewLinks.findHosts.calledWith('STORM_UI_SERVER', {})).to.be.true;
-    });
-
-    it("ACCUMULO service", function() {
-      expect(quickViewLinks.getHosts({}, 'ACCUMULO')).to.eql(['host1']);
-      expect(quickViewLinks.findHosts.calledWith('ACCUMULO_MONITOR', {})).to.be.true;
-    });
-
-    it("ATLAS service", function() {
-      expect(quickViewLinks.getHosts({}, 'ATLAS')).to.eql(['host1']);
-      expect(quickViewLinks.findHosts.calledWith('ATLAS_SERVER', {})).to.be.true;
-    });
-
-    it("MAPREDUCE2 service", function() {
-      expect(quickViewLinks.getHosts({}, 'MAPREDUCE2')).to.eql(['host1']);
-      expect(quickViewLinks.findHosts.calledWith('HISTORYSERVER', {})).to.be.true;
-    });
-
-    it("AMBARI_METRICS service", function() {
-      expect(quickViewLinks.getHosts({}, 'AMBARI_METRICS')).to.eql(['host1']);
-      expect(quickViewLinks.findHosts.calledWith('METRICS_GRAFANA', {})).to.be.true;
-    });
-
-    it("LOGSEARCH service", function() {
-      expect(quickViewLinks.getHosts({}, 'LOGSEARCH')).to.eql(['host1']);
-      expect(quickViewLinks.findHosts.calledWith('LOGSEARCH_SERVER', {})).to.be.true;
+    tests.forEach(function(_test){
+      var serviceName =_test.serviceName;
+      it(serviceName, function() {
+        var componentNames = App.QuickLinksConfig.find().findProperty('id', serviceName).get('links').mapProperty('component_name');
+        expect(quickViewLinks.getHosts({}, serviceName)).to.eql(_test.result || ['host1']);
+        componentNames.forEach(function(_componentName){
+          expect(quickViewLinks.findHosts.calledWith(_componentName, {})).to.be.true;
+        });
+        if (_test.callback) {
+          expect(quickViewLinks[_test.callback].calledOnce).to.be.true;
+        }
+      });
     });
 
     it("custom service without master", function() {
       expect(quickViewLinks.getHosts({}, 'S1')).to.be.empty;
-    });
-
-    it("custom service with master", function() {
-      quickViewLinks.set('content', Em.Object.create({
-        hostComponents: [
-          Em.Object.create({
-            isMaster: true,
-            componentName: 'C1'
-          })
-        ]
-      }));
-      expect(quickViewLinks.getHosts({}, 'S1')).to.eql(['host1']);
-      expect(quickViewLinks.findHosts.calledWith('C1', {})).to.be.true;
     });
   });
 

@@ -12,6 +12,7 @@
         "name": "storm_ui",
         "label": "Storm UI",
         "requires_user_name": "false",
+        "component_name": "STORM_UI_SERVER",
         "url":"%@://%@:%@/",
         "port":{
           "http_property": "ui.port",

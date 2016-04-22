@@ -33,21 +33,3 @@ App.QuickLinksConfig = DS.Model.extend({
 });
 
 App.QuickLinksConfig.FIXTURES = [];
-
-/**
- *  key = service name and value = master component name
- * @type {{OOZIE: string, HDFS: string, HBASE: string, YARN: string, HIVE: string, STORM: string, ACCUMULO: string, ATLAS: string, MAPREDUCE2: string, AMBARI_METRICS: string, LOGSEARCH: string}}
- */
-App.QuickLinksConfig.ServiceComponentMap = {
-  'OOZIE': 'OOZIE_SERVER',
-  'HDFS': 'NAMENODE',
-  'HBASE':'HBASE_MASTER',
-  'YARN' : 'RESOURCEMANAGER',
-  'HIVE' : 'HIVE_SERVER_INTERACTIVE',
-  'STORM': 'STORM_UI_SERVER',
-  'ACCUMULO': 'ACCUMULO_MONITOR',
-  'ATLAS': 'ATLAS_SERVER',
-  'MAPREDUCE2': 'HISTORYSERVER',
-  'AMBARI_METRICS': 'METRICS_GRAFANA',
-  'LOGSEARCH': 'LOGSEARCH_SERVER'
-};

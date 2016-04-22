@@ -24,6 +24,7 @@
         "name": "accumulo_monitor_ui",
         "label": "Accumulo Monitor UI",
         "requires_user_name": "false",
+        "component_name": "ACCUMULO_MONITOR",
         "url": "%@://%@:%@/",
         "port":{
           "http_property": "monitor.port.client",

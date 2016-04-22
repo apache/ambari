@@ -545,8 +545,8 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         if (isServiceInstalled) {
           var serviceConfigs = stepConfigs.findProperty('serviceName', config.serviceName).get('configs');
           var serviceConfig =  serviceConfigs.filterProperty('filename', fileName).findProperty('name', configName);
-          serviceConfig.set('isEditable', false);
-          config.isEditable = false;
+          serviceConfig.set('isReconfigurable', false);
+          config.isReconfigurable = false;
         }
       }
     }, this);

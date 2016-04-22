@@ -9,6 +9,7 @@
       {
         "name": "logsearch_ui",
         "label": "Logsearch UI",
+        "component_name": "LOGSEARCH_SERVER",
         "url": "%@://%@:%@",
         "requires_user_name": "false",
         "port": {

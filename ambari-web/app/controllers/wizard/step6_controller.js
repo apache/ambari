@@ -586,6 +586,15 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
     var hostNames = self.get('hosts').mapProperty('hostName');
     var slaveBlueprint = self.getCurrentBlueprint();
     var masterBlueprint = null;
+    //Existing Installed but invisible masters on `Assign Masters page` should be included in host component layout for recommnedation/validation call
+    var invisibleInstalledMasters = [];
+    if (this.get('isAddServiceWizard')) {
+      var invisibleMasters = App.StackServiceComponent.find().filterProperty("isMaster").filterProperty("isShownOnAddServiceAssignMasterPage", false);
+      invisibleInstalledMasters = invisibleMasters.filter(function(item){
+        var masterComponent = App.MasterComponent.find().findProperty('componentName', item.get('componentName'));
+        return masterComponent && !!masterComponent.get('totalCount');
+      }).mapProperty("componentName");
+    }
     var invisibleSlavesAndClients = App.StackServiceComponent.find().filter(function (component) {
       return component.get("isSlave") && component.get("isShownOnInstallerSlaveClientPage") === false ||
         component.get("isClient") && component.get("isRequiredOnAllHosts");
@@ -597,7 +606,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
         return selectedClientComponents.contains(c);
       });
 
-      var invisibleComponents = invisibleSlavesAndClients.concat(alreadyInstalledClients);
+      var invisibleComponents = invisibleInstalledMasters.concat(invisibleSlavesAndClients).concat(alreadyInstalledClients);
 
       var invisibleBlueprint = blueprintUtils.filterByComponents(this.get('content.recommendations'), invisibleComponents);
       masterBlueprint = blueprintUtils.mergeBlueprints(masterBlueprint, invisibleBlueprint);
