@@ -233,14 +233,18 @@ smoke_hdfs_user_mode = 0770
 
 hdfs_namenode_format_disabled = default("/configurations/cluster-env/hdfs_namenode_format_disabled", False)
 hdfs_namenode_formatted_mark_suffix = "/namenode-formatted/"
+hdfs_namenode_bootstrapped_mark_suffix = "/namenode-bootstrapped/"
 namenode_formatted_old_mark_dirs = ["/var/run/hadoop/hdfs/namenode-formatted", 
   format("{hadoop_pid_dir_prefix}/hdfs/namenode/formatted"),
   "/var/lib/hdfs/namenode/formatted"]
 dfs_name_dirs = dfs_name_dir.split(",")
 namenode_formatted_mark_dirs = []
+namenode_bootstrapped_mark_dirs = []
 for dn_dir in dfs_name_dirs:
- tmp_mark_dir = format("{dn_dir}{hdfs_namenode_formatted_mark_suffix}")
- namenode_formatted_mark_dirs.append(tmp_mark_dir)
+ tmp_format_mark_dir = format("{dn_dir}{hdfs_namenode_formatted_mark_suffix}")
+ tmp_bootstrap_mark_dir = format("{dn_dir}{hdfs_namenode_bootstrapped_mark_suffix}")
+ namenode_formatted_mark_dirs.append(tmp_format_mark_dir)
+ namenode_bootstrapped_mark_dirs.append(tmp_bootstrap_mark_dir)
 
 # Use the namenode RPC address if configured, otherwise, fallback to the default file system
 namenode_address = None
