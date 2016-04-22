@@ -45,7 +45,7 @@ export default Ember.Route.extend({
     if (model.get("hiveserverTest") && model.get("hdfsTest") && model.get("atsTest")) {
       Ember.run.later(this, function() {
         self.send('transition');
-      }, 5000);
+      }, 2000);
     }
     });
   },

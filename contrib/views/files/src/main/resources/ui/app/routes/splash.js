@@ -41,7 +41,7 @@ export default Ember.Route.extend({
       if (model.get("hdfsTest")) {
         Ember.run.later(this, function() {
           self.send('transition');
-        }, 3000);
+        }, 2000);
       }
     });
   },

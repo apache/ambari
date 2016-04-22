@@ -33,10 +33,14 @@ export default Ember.Controller.extend({
 
     var processResponse = function(name, data) {
 
-      if(data.databases){
-        data = Ember.Object.create( {trace: null, message: "OK", status: "200"});
+      if( data != undefined ){
+        if(data.databases){
+          data = Ember.Object.create( {trace: null, message: "OK", status: "200"});
+        } else {
+          data = data;
+        }
       } else {
-        data = data;
+        data = Ember.Object.create( {trace: null, message: "Server Error", status: "500"});
       }
 
       model.set(name + 'Test', data.status == 200);
@@ -82,6 +86,10 @@ export default Ember.Controller.extend({
   progressBarStyle: function() {
     return 'width: ' + this.get("model").get("percent") +  '%;';
   }.property("model.percent"),
+
+  allTestsCompleted: function(){
+    return this.get('modelhdfsTestDone') && this.get('modelhiveserverTestDone') && this.get('modelatsTestDone');
+  }.property('modelhdfsTestDone', 'modelhiveserverTestDone', 'modelatsTestDone'),
 
   modelhdfsTestDone: function() {
     return this.get('model.hdfsTestDone');

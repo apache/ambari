@@ -33,6 +33,13 @@ App.SplashController = Ember.ObjectController.extend({
     var url = App.getNamespaceUrl() + '/resources/pig/help/';
     var self = this;
     var processResponse = function(name, data) {
+
+      if( data != undefined ){
+          data = data;
+      } else {
+        data = Ember.Object.create( {trace: null, message: "Server Error", status: "500"});
+      }
+
       model.set(name + 'Test', data.status == 200);
 
       if (data.status != 200) {
@@ -68,5 +75,10 @@ App.SplashController = Ember.ObjectController.extend({
   },
   progressBarStyle: function() {
     return 'width: ' + this.get("model").get("percent") + '%;';
-  }.property("model.percent")
+  }.property("model.percent"),
+
+  allTestsCompleted: function(){
+    return this.get("model").get("hdfsTestDone") && this.get("model").get("webhcatTestDone") && this.get("model").get("storageTestDone");
+  }.property('model.hdfsTestDone', 'model.webhcatTestDone', 'model.storageTestDone')
+
 });

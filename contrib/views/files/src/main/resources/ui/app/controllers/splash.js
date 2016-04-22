@@ -40,6 +40,12 @@ export default Ember.Controller.extend({
 
     var processResponse = function(name, data) {
 
+      if( data != undefined ){
+        data = data;
+      } else {
+        data = Ember.Object.create( {trace: null, message: "Server Error", status: "500"});
+      }
+
       model.set(name + 'Test', data.status == 200);
 
       if (data.status != 200) {
@@ -81,6 +87,10 @@ export default Ember.Controller.extend({
   progressBarStyle: function() {
     return 'width: ' + this.get("model").get("percent") +  '%;';
   }.property("model.percent"),
+
+  allTestsCompleted: function(){
+  return this.get("model").get("hdfsTestDone");
+  }.property('model.hdfsTestDone'),
 
   modelhdfsTestDone: function() {
     return this.get('model.hdfsTestDone');

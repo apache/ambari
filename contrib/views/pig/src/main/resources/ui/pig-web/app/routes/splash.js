@@ -45,7 +45,7 @@ App.SplashRoute = Em.Route.extend({
           } else {
             self.transitionTo('pig.scripts');
           }
-        }, 1000);
+        }, 2000);
       }
     });
   }
