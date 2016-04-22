@@ -74,6 +74,7 @@ root_user = "root"
 hadoop_pid_dir_prefix = status_params.hadoop_pid_dir_prefix
 namenode_pid_file = status_params.namenode_pid_file
 zkfc_pid_file = status_params.zkfc_pid_file
+datanode_pid_file = status_params.datanode_pid_file
 
 # Some datanode settings
 dfs_dn_addr = default('/configurations/hdfs-site/dfs.datanode.address', None)

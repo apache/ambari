@@ -25,7 +25,7 @@ from resource_management.core import shell
 from resource_management.core.exceptions import Fail
 import resource_management.libraries.functions.dfs_datanode_helper
 
-
+@patch.object(resource_management.libraries.functions, 'check_process_status', new = MagicMock())
 class TestDatanode(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "HDFS/2.1.0.2.0/package"
   STACK_VERSION = "2.0.6"
@@ -515,10 +515,10 @@ class TestDatanode(RMFTestCase):
                        config_file = "default.json",
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
-                       call_mocks = [(0, shell_call_output)],
+                       call_mocks = [(0, shell_call_output)] * 3,
                        mocks_dict = mocks_dict
     )
-    
+
     self.assertTrue(mocks_dict['call'].called)
     self.assertEqual(mocks_dict['call'].call_count,1)
 
@@ -535,13 +535,13 @@ class TestDatanode(RMFTestCase):
                          config_file = "default.json",
                          stack_version = self.STACK_VERSION,
                          target = RMFTestCase.TARGET_COMMON_SERVICES,
-                         call_mocks = [(0, 'There are no DataNodes here!')],
+                         call_mocks = [(0, 'There are no DataNodes here!')] * 36,
                          mocks_dict = mocks_dict
       )
       self.fail('Missing DataNode should have caused a failure')
     except Fail,fail:
       self.assertTrue(mocks_dict['call'].called)
-      self.assertEqual(mocks_dict['call'].call_count,12)
+      self.assertEqual(mocks_dict['call'].call_count,36)
 
 
   @patch("socket.gethostbyname")
@@ -556,13 +556,13 @@ class TestDatanode(RMFTestCase):
                          config_file = "default.json",
                          stack_version = self.STACK_VERSION,
                          target = RMFTestCase.TARGET_COMMON_SERVICES,
-                         call_mocks = [(0, 'some')],
+                         call_mocks = [(1, 'some')] * 36,
                          mocks_dict = mocks_dict
       )
       self.fail('Invalid return code should cause a failure')
     except Fail,fail:
       self.assertTrue(mocks_dict['call'].called)
-      self.assertEqual(mocks_dict['call'].call_count,12)
+      self.assertEqual(mocks_dict['call'].call_count,36)
 
 
   @patch("resource_management.core.shell.call")

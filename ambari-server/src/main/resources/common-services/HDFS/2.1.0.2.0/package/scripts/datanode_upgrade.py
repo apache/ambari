@@ -24,6 +24,8 @@ from resource_management.core.resources.system import Execute
 from resource_management.core import shell
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.decorator import retry
+from resource_management.libraries.functions import check_process_status
+from resource_management.core import ComponentIsNotRunning
 from utils import get_dfsadmin_base_command
 
 
@@ -71,8 +73,23 @@ def post_upgrade_check(hdfs_binary):
     Execute(params.dn_kinit_cmd, user=params.hdfs_user)
 
   # verify that the datanode has started and rejoined the HDFS cluster
+  _wait_for_datanode_to_join(hdfs_binary)
+
+@retry(times=3, sleep_time=300, err_class=Fail)
+def _wait_for_datanode_to_join(hdfs_binary):
+  if not is_datanode_process_running():
+    Logger.info("DataNode process is not running")
+    raise Fail("DataNode process is not running")
   _check_datanode_startup(hdfs_binary)
 
+
+def is_datanode_process_running():
+  import params
+  try:
+    check_process_status(params.datanode_pid_file)
+    return True
+  except ComponentIsNotRunning:
+    return False
 
 @retry(times=24, sleep_time=5, err_class=Fail)
 def _check_datanode_shutdown(hdfs_binary):

@@ -18,9 +18,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 import json
+import upgrade
 from mock.mock import MagicMock, patch
 from stacks.utils.RMFTestCase import *
 
+@patch.object(upgrade, 'check_process_status', new = MagicMock())
 @patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
 @patch("os.path.exists", new = MagicMock(return_value=True))
 class TestHbaseRegionServer(RMFTestCase):
@@ -36,10 +38,10 @@ class TestHbaseRegionServer(RMFTestCase):
                    stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-    
+
     self.assert_configure_default()
     self.assertNoMoreResources()
-    
+
   def test_start_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hbase_regionserver.py",
                    classname = "HbaseRegionServer",
@@ -48,14 +50,14 @@ class TestHbaseRegionServer(RMFTestCase):
                    stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-    
+
     self.assert_configure_default()
     self.assertResourceCalled('Execute', '/usr/lib/hbase/bin/hbase-daemon.sh --config /etc/hbase/conf start regionserver',
       not_if = 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hbase/hbase-hbase-regionserver.pid && ps -p `ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E cat /var/run/hbase/hbase-hbase-regionserver.pid` >/dev/null 2>&1',
       user = 'hbase'
     )
     self.assertNoMoreResources()
-    
+
   def test_stop_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hbase_regionserver.py",
                    classname = "HbaseRegionServer",
@@ -64,19 +66,19 @@ class TestHbaseRegionServer(RMFTestCase):
                    stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-    
+
     self.assertResourceCalled('Execute', '/usr/lib/hbase/bin/hbase-daemon.sh --config /etc/hbase/conf stop regionserver',
         only_if = 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hbase/hbase-hbase-regionserver.pid && ps -p `ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E cat /var/run/hbase/hbase-hbase-regionserver.pid` >/dev/null 2>&1',
         on_timeout = '! ( ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hbase/hbase-hbase-regionserver.pid && ps -p `ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E cat /var/run/hbase/hbase-hbase-regionserver.pid` >/dev/null 2>&1 ) || ambari-sudo.sh -H -E kill -9 `ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E cat /var/run/hbase/hbase-hbase-regionserver.pid`',
         timeout = 30,
         user = 'hbase',
     )
-    
+
     self.assertResourceCalled('File', '/var/run/hbase/hbase-hbase-regionserver.pid',
         action = ['delete'],
     )
     self.assertNoMoreResources()
-    
+
   def test_configure_secured(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hbase_regionserver.py",
                    classname = "HbaseRegionServer",
@@ -85,10 +87,10 @@ class TestHbaseRegionServer(RMFTestCase):
                    stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-    
+
     self.assert_configure_secured()
     self.assertNoMoreResources()
-    
+
   def test_start_secured(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hbase_regionserver.py",
                    classname = "HbaseRegionServer",
@@ -97,14 +99,14 @@ class TestHbaseRegionServer(RMFTestCase):
                    stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-    
+
     self.assert_configure_secured()
     self.assertResourceCalled('Execute', '/usr/lib/hbase/bin/hbase-daemon.sh --config /etc/hbase/conf start regionserver',
       not_if = 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hbase/hbase-hbase-regionserver.pid && ps -p `ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E cat /var/run/hbase/hbase-hbase-regionserver.pid` >/dev/null 2>&1',
       user = 'hbase',
     )
     self.assertNoMoreResources()
-    
+
   def test_stop_secured(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hbase_regionserver.py",
                    classname = "HbaseRegionServer",
@@ -120,7 +122,7 @@ class TestHbaseRegionServer(RMFTestCase):
         timeout = 30,
         user = 'hbase',
     )
-    
+
     self.assertResourceCalled('File', '/var/run/hbase/hbase-hbase-regionserver.pid',
         action = ['delete'],
     )
@@ -329,7 +331,7 @@ class TestHbaseRegionServer(RMFTestCase):
                    config_file="hbase-rs-2.2.json",
                    stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES)
-    
+
     self.assertResourceCalled('Directory', '/etc/hbase',
       mode = 0755)
 
@@ -675,8 +677,8 @@ class TestHbaseRegionServer(RMFTestCase):
                               ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hbase-regionserver', version), sudo=True,)
     self.assertNoMoreResources()
 
-
-  def test_post_rolling_restart(self):
+  @patch('time.sleep')
+  def test_post_rolling_restart(self, sleep_mock):
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
     with open(config_file, "r") as f:
       json_content = json.load(f)
