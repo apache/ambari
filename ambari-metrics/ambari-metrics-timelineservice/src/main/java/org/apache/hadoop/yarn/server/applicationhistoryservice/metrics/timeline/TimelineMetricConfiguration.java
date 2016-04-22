@@ -219,6 +219,9 @@ public class TimelineMetricConfiguration {
   public static final String TIMELINE_METRICS_TABLES_DURABILITY =
     "timeline.metrics.tables.durability";
 
+  public static final String HBASE_BLOCKING_STORE_FILES =
+    "hbase.hstore.blockingStoreFiles";
+
   public static final String HOST_APP_ID = "HOST";
 
   private Configuration hbaseConf;

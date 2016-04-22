@@ -7,7 +7,7 @@
       "widgetLayoutInfo": [
         {
           "widget_name": "Reads and Writes",
-          "description": "Count of read and write requests on all regions in the cluster.",
+          "description": "Rate (per second) of read and write requests on all regions in the cluster.",
           "default_section_name": "HBASE_SUMMARY",
           "widget_type": "GRAPH",
           "is_visible": true,

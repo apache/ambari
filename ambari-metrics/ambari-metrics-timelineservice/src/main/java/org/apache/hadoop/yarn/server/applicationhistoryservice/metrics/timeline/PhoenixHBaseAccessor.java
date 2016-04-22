@@ -69,6 +69,7 @@ import java.util.concurrent.TimeUnit;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.AGGREGATE_TABLE_SPLIT_POINTS;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.HBASE_BLOCKING_STORE_FILES;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_TABLES_DURABILITY;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.CLUSTER_DAILY_TABLE_TTL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.CLUSTER_HOUR_TABLE_TTL;
@@ -390,9 +391,13 @@ public class PhoenixHBaseAccessor {
             LOG.info("Setting config property " + HSTORE_COMPACTION_CLASS_KEY +
               " = " + FIFO_COMPACTION_POLICY_CLASS + " for " + tableName);
             // Need to set blockingStoreFiles to 1000 for FIFO
-            tableDescriptor.setConfiguration(BLOCKING_STORE_FILES_KEY, "1000");
+            int blockingStoreFiles = hbaseConf.getInt(HBASE_BLOCKING_STORE_FILES, 1000);
+            if (blockingStoreFiles < 1000) {
+              blockingStoreFiles = 1000;
+            }
+            tableDescriptor.setConfiguration(BLOCKING_STORE_FILES_KEY, String.valueOf(blockingStoreFiles));
             LOG.info("Setting config property " + BLOCKING_STORE_FILES_KEY +
-              " = " + 1000 + " for " + tableName);
+              " = " + blockingStoreFiles + " for " + tableName);
             modifyTable = true;
           }
           // Set back original policy if fifo disabled
@@ -402,9 +407,16 @@ public class PhoenixHBaseAccessor {
               DEFAULT_COMPACTION_POLICY_CLASS);
             LOG.info("Setting config property " + HSTORE_COMPACTION_CLASS_KEY +
               " = " + DEFAULT_COMPACTION_POLICY_CLASS + " for " + tableName);
-            tableDescriptor.setConfiguration(BLOCKING_STORE_FILES_KEY, "300");
+
+            int blockingStoreFiles = hbaseConf.getInt(HBASE_BLOCKING_STORE_FILES, 300);
+            if (blockingStoreFiles > 300) {
+              LOG.warn("HBase blocking store file set too high without FIFO " +
+                "Compaction policy enabled, restoring low value = 300.");
+              blockingStoreFiles = 300;
+            }
+            tableDescriptor.setConfiguration(BLOCKING_STORE_FILES_KEY, String.valueOf(blockingStoreFiles));
             LOG.info("Setting config property " + BLOCKING_STORE_FILES_KEY +
-              " = " + 300 + " for " + tableName);
+              " = " + blockingStoreFiles + " for " + tableName);
             modifyTable = true;
           }
           // Change TTL setting to match user configuration
