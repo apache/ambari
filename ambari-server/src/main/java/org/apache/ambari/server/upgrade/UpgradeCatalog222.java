@@ -107,6 +107,7 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
   public static final String PHOENIX_QUERY_KEEPALIVE_PROPERTY = "phoenix.query.keepAliveMs";
   public static final String TIMELINE_METRICS_CLUSTER_AGGREGATOR_INTERPOLATION_ENABLED
     = "timeline.metrics.cluster.aggregator.interpolation.enabled";
+  public static final String TIMELINE_METRICS_SINK_COLLECTION_PERIOD = "timeline.metrics.sink.collection.period";
 
   public static final String AMS_SERVICE_NAME = "AMBARI_METRICS";
   public static final String AMS_COLLECTOR_COMPONENT_NAME = "METRICS_COLLECTOR";
@@ -399,6 +400,13 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
               newProperties.put(TIMELINE_METRICS_CLUSTER_AGGREGATOR_INTERPOLATION_ENABLED, String.valueOf(true));
             }
 
+            if (!amsSiteProperties.containsKey(TIMELINE_METRICS_SINK_COLLECTION_PERIOD) ||
+              "60".equals(amsSiteProperties.get(TIMELINE_METRICS_SINK_COLLECTION_PERIOD))) {
+
+              newProperties.put(TIMELINE_METRICS_SINK_COLLECTION_PERIOD, "10");
+              LOG.info("Setting value of " + TIMELINE_METRICS_SINK_COLLECTION_PERIOD + " : 10");
+            }
+
             updateConfigurationPropertiesForCluster(cluster, AMS_SITE, newProperties, true, true);
           }
 
@@ -457,7 +465,7 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
     Map<String, List<String>> widgetMap = new HashMap<>();
     Map<String, String> sectionLayoutMap = new HashMap<>();
 
-    List<String> yarnSummaryWidgets = new ArrayList<>(Arrays.asList("Container Failures", "App Failures"));
+    List<String> yarnSummaryWidgets = new ArrayList<>(Arrays.asList("Container Failures", "App Failures", "Cluster Memory"));
     widgetMap.put("YARN_SUMMARY", yarnSummaryWidgets);
     sectionLayoutMap.put("YARN_SUMMARY", "default_yarn_dashboard");
 
@@ -582,6 +590,10 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
               if (targetWidgetLayoutInfo != null) {
                 entityToUpdate.setMetrics(gson.toJson(targetWidgetLayoutInfo.getMetricsInfo()));
                 entityToUpdate.setWidgetValues(gson.toJson(targetWidgetLayoutInfo.getValues()));
+                if ("HBASE".equals(serviceName) && "Reads and Writes".equals(widgetName)) {
+                  entityToUpdate.setDescription(targetWidgetLayoutInfo.getDescription());
+                  LOG.info("Update description for HBase Reads and Writes widget");
+                }
                 widgetDAO.merge(entityToUpdate);
               } else {
                 LOG.warn("Unable to find widget layout info for " + widgetName +

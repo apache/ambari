@@ -230,18 +230,12 @@
               "metric_path": "metrics/memory/mem_free._avg",
               "service_name": "YARN",
               "component_name": "NODEMANAGER"
-            },
-            {
-              "name": "mem_cached._sum",
-              "metric_path": "metrics/memory/mem_cached._avg",
-              "service_name": "YARN",
-              "component_name": "NODEMANAGER"
             }
           ],
           "values": [
             {
               "name": "Memory utilization",
-              "value": "${((mem_total._sum - mem_free._sum - mem_cached._sum)/mem_total._sum) * 100}"
+              "value": "${((mem_total._sum - mem_free._sum)/mem_total._sum) * 100}"
             }
           ],
           "properties": {
