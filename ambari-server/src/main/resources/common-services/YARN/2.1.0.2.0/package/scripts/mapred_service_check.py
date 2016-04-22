@@ -23,6 +23,7 @@ import sys
 from resource_management import *
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
+from resource_management.libraries.functions.security_commons import cached_kinit_executor
 
 
 class MapReduce2ServiceCheck(Script):
@@ -133,27 +134,28 @@ class MapReduce2ServiceCheckDefault(MapReduce2ServiceCheck):
     )
     params.HdfsResource(None, action="execute")
 
+    # initialize the ticket
     if params.security_enabled:
-      kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal};")
+      cached_kinit_executor(params.kinit_path_local, params.smokeuser, params.smoke_user_keytab,
+                            params.smokeuser_principal, params.hostname, params.tmp_dir)
 
-      Execute(kinit_cmd,
-              user=params.smokeuser
-      )
-      
     ExecuteHadoop(run_wordcount_job,
                   tries=1,
                   try_sleep=5,
                   user=params.smokeuser,
                   bin_dir=params.execute_path,
                   conf_dir=params.hadoop_conf_dir,
-                  logoutput=True
-    )
+                  logoutput=True)
+
+    # the ticket may have expired, so re-initialize if needed
+    if params.security_enabled:
+      cached_kinit_executor(params.kinit_path_local, params.smokeuser, params.smoke_user_keytab,
+                            params.smokeuser_principal, params.hostname, params.tmp_dir)
 
     ExecuteHadoop(test_cmd,
                   user=params.smokeuser,
                   bin_dir=params.execute_path,
-                  conf_dir=params.hadoop_conf_dir
-    )
+                  conf_dir=params.hadoop_conf_dir)
 
 
 if __name__ == "__main__":

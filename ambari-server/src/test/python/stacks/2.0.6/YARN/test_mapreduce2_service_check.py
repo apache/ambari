@@ -91,7 +91,8 @@ class TestServiceCheck(RMFTestCase):
     )
     self.assertNoMoreResources()
 
-  def test_service_check_secured(self):
+  @patch("resource_management.libraries.functions.security_commons.cached_kinit_executor")
+  def test_service_check_secured(self, cached_kinit_mock):
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/mapred_service_check.py",
                       classname="MapReduce2ServiceCheck",
@@ -136,9 +137,12 @@ class TestServiceCheck(RMFTestCase):
         action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='hdfs', default_fs='hdfs://c6401.ambari.apache.org:8020',
         hadoop_conf_dir = '/etc/hadoop/conf',
     )
-    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa@EXAMPLE.COM;',
-        user = 'ambari-qa',
-    )
+
+    self.assertTrue(2, cached_kinit_mock.call_count)
+    cached_kinit_mock.assert_called_with('/usr/bin/kinit', 'ambari-qa',
+                                         '/etc/security/keytabs/smokeuser.headless.keytab',
+                                         'ambari-qa@EXAMPLE.COM', 'c6401.ambari.apache.org', '/tmp')
+
     self.assertResourceCalled('ExecuteHadoop', 'jar /usr/lib/hadoop-mapreduce/hadoop-mapreduce-examples-2.*.jar wordcount /user/ambari-qa/mapredsmokeinput /user/ambari-qa/mapredsmokeoutput',
                       logoutput = True,
                       try_sleep = 5,
