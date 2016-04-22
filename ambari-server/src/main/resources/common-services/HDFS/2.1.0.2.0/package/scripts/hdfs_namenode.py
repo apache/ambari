@@ -450,11 +450,11 @@ def decommission():
 
 
 def bootstrap_standby_namenode(params, use_path=False):
-
+  mark_dirs = params.namenode_bootstrapped_mark_dirs
   bin_path = os.path.join(params.hadoop_bin_dir, '') if use_path else ""
-
   try:
     iterations = 50
+    bootstrapped = False
     bootstrap_cmd = format("{bin_path}hdfs namenode -bootstrapStandby -nonInteractive")
     # Blue print based deployments start both NN in parallel and occasionally
     # the first attempt to bootstrap may fail. Depending on how it fails the
@@ -462,22 +462,53 @@ def bootstrap_standby_namenode(params, use_path=False):
     # bootstrap succeeded). The solution is to call with -force option but only
     # during initial start
     if params.command_phase == "INITIAL_START":
+      # force bootstrap in INITIAL_START phase
       bootstrap_cmd = format("{bin_path}hdfs namenode -bootstrapStandby -nonInteractive -force")
+    elif is_namenode_bootstrapped(params):
+      # Once out of INITIAL_START phase bootstrap only if we couldnt bootstrap during cluster deployment
+      return True
     Logger.info("Boostrapping standby namenode: %s" % (bootstrap_cmd))
     for i in range(iterations):
       Logger.info('Try %d out of %d' % (i+1, iterations))
       code, out = shell.call(bootstrap_cmd, logoutput=False, user=params.hdfs_user)
       if code == 0:
         Logger.info("Standby namenode bootstrapped successfully")
-        return True
+        bootstrapped = True
+        break
       elif code == 5:
         Logger.info("Standby namenode already bootstrapped")
-        return True
+        bootstrapped = True
+        break
       else:
         Logger.warning('Bootstrap standby namenode failed with %d error code. Will retry' % (code))
   except Exception as ex:
     Logger.error('Bootstrap standby namenode threw an exception. Reason %s' %(str(ex)))
-  return False
+  if bootstrapped:
+    for mark_dir in mark_dirs:
+      Directory(mark_dir,
+                recursive = True
+                )
+  return bootstrapped
+
+def is_namenode_bootstrapped(params):
+  mark_dirs = params.namenode_bootstrapped_mark_dirs
+  nn_name_dirs = params.dfs_name_dir.split(',')
+  marked = False
+  # Check if name directories have been marked as formatted
+  for mark_dir in mark_dirs:
+    if os.path.isdir(mark_dir):
+      marked = True
+      Logger.info(format("{mark_dir} exists. Standby Namenode already bootstrapped"))
+      break
+
+  # Ensure that all mark dirs created for all name directories
+  if marked:
+    for mark_dir in mark_dirs:
+      Directory(mark_dir,
+                recursive = True
+                )
+
+  return marked
 
 
 def is_active_namenode(hdfs_binary):
