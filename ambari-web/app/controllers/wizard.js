@@ -745,7 +745,8 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
           ip: _host.ip,
           bootStatus: _host.bootStatus,
           isInstalled: false,
-          id: indx++
+          id: indx++,
+          maintenance_state: "OFF"
         };
       }
     });

@@ -966,6 +966,7 @@ App.AssignMasterComponents = Em.Mixin.create({
    * <ul>
    *  <li>host name shouldn't be empty</li>
    *  <li>host should exist</li>
+   *  <li>host shouldn't be in maintainenance mode. If it's in Installer we set it to 'OFF'</li>
    *  <li>host should have only one component with <code>componentName</code></li>
    * </ul>
    * @param {string} componentName
@@ -975,7 +976,6 @@ App.AssignMasterComponents = Em.Mixin.create({
    */
   isHostNameValid: function (componentName, selectedHost) {
     return (selectedHost.trim() !== '') &&
-    this.get('hosts').mapProperty('host_name').contains(selectedHost) &&
     (this.get('hosts').filterProperty('host_name', selectedHost).filterProperty('maintenance_state', 'OFF').length > 0) &&
     (this.get('selectedServicesMasters').
         filterProperty('component_name', componentName).
