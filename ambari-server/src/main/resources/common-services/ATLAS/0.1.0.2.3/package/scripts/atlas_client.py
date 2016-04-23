@@ -30,9 +30,8 @@ from metadata import metadata
 # todo: support rolling upgrade
 class AtlasClient(Script):
 
-  def get_stack_to_component(self):
-    import status_params
-    return {status_params.stack_name: "atlas-client"}
+  def get_component_name(self):
+    return "atlas-client"
 
   # ToDo: currently <stack-selector-tool> doesn't contain atlas-client, uncomment this block when
   # ToDo: atlas-client will be available

@@ -98,9 +98,8 @@ class ResourcemanagerWindows(Resourcemanager):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class ResourcemanagerDefault(Resourcemanager):
-  def get_stack_to_component(self):
-    import status_params
-    return {status_params.stack_name: "hadoop-yarn-resourcemanager"}
+  def get_component_name(self):
+    return "hadoop-yarn-resourcemanager"
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     Logger.info("Executing Stack Upgrade post-restart")

@@ -37,8 +37,8 @@ from setup_ranger_kafka import setup_ranger_kafka
 
 class KafkaBroker(Script):
 
-  def get_stack_to_component(self):
-    return {default("/hostLevelParams/stack_name", None) : "kafka-broker"}
+  def get_component_name(self):
+    return "kafka-broker"
 
   def install(self, env):
     self.install_packages(env)

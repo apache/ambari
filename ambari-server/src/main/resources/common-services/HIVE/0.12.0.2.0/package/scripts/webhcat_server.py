@@ -64,9 +64,8 @@ class WebHCatServerWindows(WebHCatServer):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class WebHCatServerDefault(WebHCatServer):
-  def get_stack_to_component(self):
-    import status_params
-    return {status_params.stack_name: "hive-webhcat"}
+  def get_component_name(self):
+    return "hive-webhcat"
 
   def status(self, env):
     import status_params

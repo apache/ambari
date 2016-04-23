@@ -62,9 +62,8 @@ class HiveServerInteractive(Script):
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class HiveServerInteractiveDefault(HiveServerInteractive):
 
-    def get_stack_to_component(self):
-      import status_params
-      return {status_params.stack_name: "hive-server2-hive2"}
+    def get_component_name(self):
+      return "hive-server2-hive2"
 
     def install(self, env):
       import params

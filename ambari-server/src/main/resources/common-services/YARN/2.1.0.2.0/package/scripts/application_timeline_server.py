@@ -63,9 +63,8 @@ class ApplicationTimelineServerWindows(ApplicationTimelineServer):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class ApplicationTimelineServerDefault(ApplicationTimelineServer):
-  def get_stack_to_component(self):
-    import status_params
-    return {status_params.stack_name: "hadoop-yarn-timelineserver"}
+  def get_component_name(self):
+    return "hadoop-yarn-timelineserver"
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     Logger.info("Executing Stack Upgrade pre-restart")

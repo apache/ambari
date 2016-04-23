@@ -76,9 +76,8 @@ class HiveServerWindows(HiveServer):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class HiveServerDefault(HiveServer):
-  def get_stack_to_component(self):
-    import status_params
-    return {status_params.stack_name: "hive-server2"}
+  def get_component_name(self):
+    return "hive-server2"
 
   def start(self, env, upgrade_type=None):
     import params

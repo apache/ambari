@@ -42,8 +42,8 @@ class PigClient(Script):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class PigClientLinux(PigClient):
-  def get_stack_to_component(self):
-    return {default("/hostLevelParams/stack_name", None): "hadoop-client"}
+  def get_component_name(self):
+    return "hadoop-client"
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params

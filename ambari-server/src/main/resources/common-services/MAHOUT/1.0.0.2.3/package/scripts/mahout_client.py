@@ -29,8 +29,8 @@ from resource_management.libraries.functions.default import default
 
 class MahoutClient(Script):
 
-  def get_stack_to_component(self):
-    return {default("/hostLevelParams/stack_name", None): "mahout-client"}
+  def get_component_name(self):
+    return "mahout-client"
 
 
   def pre_upgrade_restart(self, env, upgrade_type=None):

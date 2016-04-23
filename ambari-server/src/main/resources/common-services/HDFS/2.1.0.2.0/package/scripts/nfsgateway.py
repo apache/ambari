@@ -32,9 +32,8 @@ from resource_management.libraries.functions.stack_features import check_stack_f
 
 class NFSGateway(Script):
 
-  def get_stack_to_component(self):
-    import status_params
-    return {status_params.stack_name : "hadoop-hdfs-nfs3"}
+  def get_component_name(self):
+    return "hadoop-hdfs-nfs3"
 
   def install(self, env):
     import params

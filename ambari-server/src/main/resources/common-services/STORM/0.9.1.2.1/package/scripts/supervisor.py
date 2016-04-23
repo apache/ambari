@@ -35,9 +35,8 @@ from resource_management.core.resources.service import Service
 
 
 class Supervisor(Script):
-  def get_stack_to_component(self):
-    import status_params
-    return {status_params.stack_name : "storm-supervisor"}
+  def get_component_name(self):
+    return "storm-supervisor"
 
   def install(self, env):
     self.install_packages(env)

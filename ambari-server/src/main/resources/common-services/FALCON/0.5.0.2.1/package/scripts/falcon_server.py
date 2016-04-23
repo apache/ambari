@@ -59,9 +59,8 @@ class FalconServer(Script):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class FalconServerLinux(FalconServer):
-  def get_stack_to_component(self):
-    import status_params
-    return {status_params.stack_name: "falcon-server"}
+  def get_component_name(self):
+    return "falcon-server"
 
   def install(self, env):
     import params

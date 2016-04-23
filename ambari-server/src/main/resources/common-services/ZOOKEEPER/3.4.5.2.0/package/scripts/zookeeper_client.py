@@ -55,9 +55,8 @@ class ZookeeperClient(Script):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class ZookeeperClientLinux(ZookeeperClient):
-  def get_stack_to_component(self):
-    import status_params
-    return {status_params.stack_name : "zookeeper-client"}
+  def get_component_name(self):
+    return "zookeeper-client"
 
   def install(self, env):
     self.install_packages(env)

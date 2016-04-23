@@ -42,9 +42,8 @@ class JournalNode(Script):
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class JournalNodeDefault(JournalNode):
 
-  def get_stack_to_component(self):
-    import status_params
-    return {status_params.stack_name : "hadoop-hdfs-journalnode"}
+  def get_component_name(self):
+    return "hadoop-hdfs-journalnode"
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     Logger.info("Executing Stack Upgrade pre-restart")

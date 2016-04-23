@@ -31,9 +31,8 @@ from oozie_service import oozie_service
 
 class OozieClient(Script):
 
-  def get_stack_to_component(self):
-    import status_params
-    return {status_params.stack_name: "oozie-client"}
+  def get_component_name(self):
+    return "oozie-client"
 
   def install(self, env):
     self.install_packages(env)

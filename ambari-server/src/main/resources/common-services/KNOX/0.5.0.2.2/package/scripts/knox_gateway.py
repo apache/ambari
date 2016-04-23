@@ -51,9 +51,8 @@ from resource_management.libraries.functions import StackFeature
 
 
 class KnoxGateway(Script):
-  def get_stack_to_component(self):
-    import status_params
-    return {status_params.stack_name: "knox-server"}
+  def get_component_name(self):
+    return "knox-server"
 
   def install(self, env):
     import params

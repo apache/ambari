@@ -110,14 +110,7 @@ class Script(object):
 
   # Class variable
   tmp_dir = ""
-
-  def get_stack_to_component(self):
-    """
-    To be overridden by subclasses.
-    Returns a dictionary where the key is a stack name, and the value is the component name used in selecting the version.
-    """
-    return {}
-    
+ 
   def load_structured_out(self):
     Script.structuredOut = {}
     if os.path.exists(self.stroutfile):
@@ -148,14 +141,11 @@ class Script(object):
       Script.structuredOut.update({"errMsg" : "Unable to write to " + self.stroutfile})
       
   def get_component_name(self):
-    stack_name = Script.get_stack_name()
-    stack_to_component = self.get_stack_to_component()
-    
-    if stack_to_component and stack_name:
-      component_name = stack_to_component[stack_name] if stack_name in stack_to_component else None
-      return component_name
-    
-    return None
+    """
+    To be overridden by subclasses.
+     Returns a string with the component name used in selecting the version.
+    """
+    pass
 
   def save_component_version_to_structured_out(self):
     """

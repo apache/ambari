@@ -30,9 +30,8 @@ import os, errno
 
 class RangerAdmin(Script):
 
-  def get_stack_to_component(self):
-    import status_params
-    return {status_params.stack_name: "ranger-admin"}
+  def get_component_name(self):
+    return "ranger-admin"
 
   def install(self, env):
     self.install_packages(env)

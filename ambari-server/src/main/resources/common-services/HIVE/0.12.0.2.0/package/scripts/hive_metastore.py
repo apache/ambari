@@ -83,9 +83,8 @@ class HiveMetastoreWindows(HiveMetastore):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class HiveMetastoreDefault(HiveMetastore):
-  def get_stack_to_component(self):
-    import status_params
-    return {status_params.stack_name: "hive-metastore"}
+  def get_component_name(self):
+    return "hive-metastore"
 
 
   def status(self, env):

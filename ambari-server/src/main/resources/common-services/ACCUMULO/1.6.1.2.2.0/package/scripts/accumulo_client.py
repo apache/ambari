@@ -30,10 +30,8 @@ from accumulo_configuration import setup_conf_dir
 
 
 class AccumuloClient(Script):
-  def get_stack_to_component(self):
-    import status_params
-    return {status_params.stack_name: "accumulo-client"}
-
+  def get_component_name(self):
+    return "accumulo-client"
 
   def install(self, env):
     self.install_packages(env)

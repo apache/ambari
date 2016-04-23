@@ -46,9 +46,8 @@ from check_oozie_server_status import check_oozie_server_status
 
 class OozieServer(Script):
 
-  def get_stack_to_component(self):
-    import status_params
-    return {status_params.stack_name: "oozie-server"}
+  def get_component_name(self):
+    return "oozie-server"
 
   def install(self, env):
     self.install_packages(env)

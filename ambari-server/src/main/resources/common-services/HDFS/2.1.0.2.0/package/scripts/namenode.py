@@ -68,19 +68,15 @@ except ImportError:
 
 class NameNode(Script):
 
-  def get_stack_to_component(self):
-    import status_params
-    return {status_params.stack_name : "hadoop-hdfs-namenode"}
+  def get_component_name(self):
+    return "hadoop-hdfs-namenode"
 
   def get_hdfs_binary(self):
     """
-    Get the name or path to the hdfs binary depending on the stack and version.
+    Get the name or path to the hdfs binary depending on the component name.
     """
-    import params
-    stack_to_comp = self.get_stack_to_component()
-    if params.stack_name in stack_to_comp:
-      return get_hdfs_binary(stack_to_comp[params.stack_name])
-    return "hdfs"
+    component_name = self.get_component_name()
+    return get_hdfs_binary(component_name)
 
   def install(self, env):
     import params

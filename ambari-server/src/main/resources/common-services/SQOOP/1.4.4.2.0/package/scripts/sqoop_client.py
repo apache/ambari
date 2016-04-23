@@ -46,8 +46,8 @@ class SqoopClient(Script):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class SqoopClientDefault(SqoopClient):
-  def get_stack_to_component(self):
-    return {default("/hostLevelParams/stack_name", None): "sqoop-client"}
+  def get_component_name(self):
+    return "sqoop-client"
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params

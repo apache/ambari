@@ -43,8 +43,8 @@ class FlumeHandler(Script):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class FlumeHandlerLinux(FlumeHandler):
-  def get_stack_to_component(self):
-    return {default("/hostLevelParams/stack_name", None): "flume-server"}
+  def get_component_name(self):
+    return "flume-server"
 
   def install(self, env):
     import params

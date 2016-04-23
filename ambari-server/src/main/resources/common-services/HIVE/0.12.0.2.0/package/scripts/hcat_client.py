@@ -51,12 +51,11 @@ class HCatClientWindows(HCatClient):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class HCatClientDefault(HCatClient):
-  def get_stack_to_component(self):
+  def get_component_name(self):
     # HCat client doesn't have a first-class entry in <stack-selector-tool>. Since clients always
     # update after daemons, this ensures that the hcat directories are correct on hosts
     # which do not include the WebHCat daemon
-    import status_params
-    return {status_params.stack_name: "hive-webhcat"}
+    return "hive-webhcat"
 
 
   def pre_upgrade_restart(self, env, upgrade_type=None):

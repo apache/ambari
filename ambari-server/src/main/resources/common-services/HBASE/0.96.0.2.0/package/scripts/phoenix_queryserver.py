@@ -34,9 +34,8 @@ class PhoenixQueryServer(Script):
     self.install_packages(env)
 
 
-  def get_stack_to_component(self):
-    import status_params
-    return {status_params.stack_name: "phoenix-server"}
+  def get_component_name(self):
+    return "phoenix-server"
 
 
   def configure(self, env):

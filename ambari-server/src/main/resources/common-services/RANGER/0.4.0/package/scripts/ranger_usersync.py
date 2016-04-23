@@ -70,9 +70,8 @@ class RangerUsersync(Script):
     env.set_params(params)
     upgrade.prestart(env, "ranger-usersync")
 
-  def get_stack_to_component(self):
-    import status_params
-    return {status_params.stack_name: "ranger-usersync"}
+  def get_component_name(self):
+    return "ranger-usersync"
 
 
 if __name__ == "__main__":

@@ -31,8 +31,8 @@ import upgrade
 
 class KmsServer(Script):
 
-  def get_stack_to_component(self):
-    return {default("/hostLevelParams/stack_name", None): "ranger-kms"}
+  def get_component_name(self):
+    return "ranger-kms"
 
   def install(self, env):
     self.install_packages(env)

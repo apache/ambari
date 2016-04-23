@@ -63,9 +63,8 @@ class SparkThriftServer(Script):
     env.set_params(status_params)
     check_process_status(status_params.spark_thrift_server_pid_file)
 
-  def get_stack_to_component(self):
-    import status_params
-    return { status_params.stack_name : "spark-thriftserver"}
+  def get_component_name(self):
+    return "spark-thriftserver"
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params

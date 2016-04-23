@@ -34,8 +34,8 @@ class SliderClient(Script):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class SliderClientLinux(SliderClient):
-  def get_stack_to_component(self):
-    return {default("/hostLevelParams/stack_name", None): "slider-client"}
+  def get_component_name(self):
+    return "slider-client"
 
   def pre_upgrade_restart(self, env,  upgrade_type=None):
     import params

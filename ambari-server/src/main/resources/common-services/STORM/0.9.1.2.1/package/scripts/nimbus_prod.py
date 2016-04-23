@@ -31,9 +31,8 @@ from resource_management.libraries.functions import StackFeature
 
 class Nimbus(Script):
 
-  def get_stack_to_component(self):
-    import status_params
-    return {status_params.stack_name : "storm-nimbus"}
+  def get_component_name(self):
+    return "storm-nimbus"
 
   def install(self, env):
     self.install_packages(env)

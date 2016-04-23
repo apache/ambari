@@ -33,8 +33,8 @@ class SqoopServiceCheck(Script):
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class SqoopServiceCheckDefault(SqoopServiceCheck):
 
-  def get_stack_to_component(self):
-    return {default("/hostLevelParams/stack_name", None): "sqoop-server"}
+  def get_component_name(self):
+    return "sqoop-server"
 
   def service_check(self, env):
     import params

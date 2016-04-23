@@ -49,9 +49,8 @@ class HiveClientWindows(HiveClient):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class HiveClientDefault(HiveClient):
-  def get_stack_to_component(self):
-    import status_params
-    return {status_params.stack_name: "hadoop-client"}
+  def get_component_name(self):
+    return "hadoop-client"
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     Logger.info("Executing Hive client Stack Upgrade pre-restart")
