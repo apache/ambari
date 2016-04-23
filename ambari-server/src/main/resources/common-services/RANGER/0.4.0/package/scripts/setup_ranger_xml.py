@@ -417,7 +417,6 @@ def setup_tagsync(upgrade_type=None):
   ranger_tagsync_conf = params.ranger_tagsync_conf
 
   tagsync_log4j_file = format('{ranger_tagsync_conf}/log4j.xml')
-  tagsync_services_file = format('{ranger_tagsync_home}/ranger-tagsync-services.sh')
 
   Directory(format("{ranger_tagsync_conf}"),
     owner = params.unix_user,
@@ -464,7 +463,7 @@ def setup_tagsync(upgrade_type=None):
   )
 
   if upgrade_type is not None:
-    src_file = format('{ranger_tagsync_home}/ews/webapp/WEB-INF/classes/conf.dist/log4j.xml')
+    src_file = format('{ranger_tagsync_home}/conf.dist/log4j.xml')
     dst_file = format('{tagsync_log4j_file}')
     Execute(('cp', '-f', src_file, dst_file), sudo=True)
 
@@ -472,7 +471,7 @@ def setup_tagsync(upgrade_type=None):
     File(tagsync_log4j_file, owner=params.unix_user, group=params.unix_group)
   else:
     Logger.warning('Required file {0} does not exist, copying the file to {1} path'.format(tagsync_log4j_file, ranger_tagsync_conf))
-    src_file = format('{ranger_tagsync_home}/ews/webapp/WEB-INF/classes/conf.dist/log4j.xml')
+    src_file = format('{ranger_tagsync_home}/conf.dist/log4j.xml')
     dst_file = format('{tagsync_log4j_file}')
     Execute(('cp', '-f', src_file, dst_file), sudo=True)
     File(tagsync_log4j_file, owner=params.unix_user, group=params.unix_group)
@@ -487,7 +486,7 @@ def setup_tagsync(upgrade_type=None):
          mode = 0640
     )
 
-  File(tagsync_services_file,
+  File(params.tagsync_services_file,
     mode = 0755,
   )
 

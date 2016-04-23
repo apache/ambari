@@ -54,7 +54,7 @@ def ranger_service(name, action=None):
       )
   elif name == 'ranger_tagsync' and params.stack_supports_ranger_tagsync:
     no_op_test = format('ps -ef | grep proc_rangertagsync | grep -v grep')
-    cmd = format('{tagsync_bin} start')
+    cmd = format('{tagsync_services_file} start')
     try:
       Execute(cmd,
         environment=env_dict,

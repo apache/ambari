@@ -421,6 +421,8 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
 
     putTagsyncAppProperty = self.putProperty(configurations, "tagsync-application-properties", services)
+    putTagsyncSiteProperty = self.putProperty(configurations, "ranger-tagsync-site", services)
+
     has_ranger_tagsync = False
     if 'RANGER' in servicesList:
       ranger_tagsync_host = self.__getHostsForComponent(services, "RANGER", "RANGER_TAGSYNC")

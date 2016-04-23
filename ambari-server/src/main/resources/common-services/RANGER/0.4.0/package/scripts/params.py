@@ -68,6 +68,8 @@ ranger_conf    = '/etc/ranger/admin/conf'
 ranger_ugsync_conf = '/etc/ranger/usersync/conf'
 ranger_tagsync_home  = format('{stack_root}/current/ranger-tagsync')
 ranger_tagsync_conf = format('{stack_root}/current/ranger-tagsync/conf')
+tagsync_bin = '/usr/bin/ranger-tagsync'
+tagsync_services_file = format('{stack_root}/current/ranger-tagsync/ranger-tagsync-services.sh')
 
 if upgrade_direction == Direction.DOWNGRADE and version and not check_stack_feature(StackFeature.CONFIG_VERSIONING, version):
   stack_supports_rolling_upgrade = True
@@ -94,6 +96,7 @@ if stack_supports_ranger_tagsync:
   ranger_tagsync_home  = format('{stack_root}/current/ranger-tagsync')
   tagsync_bin = '/usr/bin/ranger-tagsync'
   ranger_tagsync_conf = format('{stack_root}/current/ranger-tagsync/conf')
+  tagsync_services_file = format('{stack_root}/current/ranger-tagsync/ranger-tagsync-services.sh')
 
 usersync_services_file = format('{stack_root}/current/ranger-usersync/ranger-usersync-services.sh')
 

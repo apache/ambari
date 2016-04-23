@@ -210,6 +210,7 @@
       <service name="RANGER">
         <component>RANGER_USERSYNC</component>
         <component>RANGER_ADMIN</component>
+        <component>RANGER_TAGSYNC</component>
       </service>
 
       <service name="RANGER_KMS">
@@ -313,6 +314,7 @@
       <service name="RANGER">
         <component>RANGER_ADMIN</component>
         <component>RANGER_USERSYNC</component>
+        <component>RANGER_TAGSYNC</component>
       </service>
     </group>
 
@@ -702,6 +704,12 @@
       </component>
 
       <component name="RANGER_USERSYNC">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+
+      <component name="RANGER_TAGSYNC">
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>

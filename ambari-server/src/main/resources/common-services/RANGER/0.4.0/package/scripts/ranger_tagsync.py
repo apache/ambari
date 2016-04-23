@@ -52,7 +52,7 @@ class RangerTagsync(Script):
     import params
     env.set_params(params)
 
-    Execute(format('{tagsync_bin} stop'), environment={'JAVA_HOME': params.java_home}, user=params.unix_user)
+    Execute(format('{tagsync_services_file} stop'), environment={'JAVA_HOME': params.java_home}, user=params.unix_user)
     File(params.tagsync_pid_file,
       action = "delete"
     )
