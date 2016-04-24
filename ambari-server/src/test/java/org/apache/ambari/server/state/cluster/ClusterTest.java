@@ -838,6 +838,229 @@ public class ClusterTest {
   }
 
   @Test
+  public void testGetServiceComponentHostMap() throws Exception {
+    createDefaultCluster();
+
+    Service s = serviceFactory.createNew(c1, "HDFS");
+    c1.addService(s);
+    s.persist();
+
+    ServiceComponent scNN = serviceComponentFactory.createNew(s, "NAMENODE");
+    s.addServiceComponent(scNN);
+    scNN.persist();
+    ServiceComponentHost schNNH1 = serviceComponentHostFactory.createNew(scNN, "h1");
+    scNN.addServiceComponentHost(schNNH1);
+    schNNH1.persist();
+
+    ServiceComponent scDN = serviceComponentFactory.createNew(s, "DATANODE");
+    s.addServiceComponent(scDN);
+    scDN.persist();
+    ServiceComponentHost scDNH1 = serviceComponentHostFactory.createNew(scDN, "h1");
+    scDN.addServiceComponentHost(scDNH1);
+    scDNH1.persist();
+    ServiceComponentHost scDNH2 = serviceComponentHostFactory.createNew(scDN, "h2");
+    scDN.addServiceComponentHost(scDNH2);
+    scDNH2.persist();
+
+    Map<String, Set<String>> componentHostMap;
+
+    componentHostMap = c1.getServiceComponentHostMap(null, null);
+    Assert.assertEquals(2, componentHostMap.size());
+
+    Assert.assertEquals(1, componentHostMap.get("NAMENODE").size());
+    Assert.assertTrue(componentHostMap.get("NAMENODE").contains("h1"));
+
+    Assert.assertEquals(2, componentHostMap.get("DATANODE").size());
+    Assert.assertTrue(componentHostMap.get("DATANODE").contains("h1"));
+    Assert.assertTrue(componentHostMap.get("DATANODE").contains("h2"));
+  }
+
+  @Test
+  public void testGetServiceComponentHostMap_ForService() throws Exception {
+    createDefaultCluster();
+
+    Service sfHDFS = serviceFactory.createNew(c1, "HDFS");
+    c1.addService(sfHDFS);
+    sfHDFS.persist();
+
+    Service sfMR = serviceFactory.createNew(c1, "MAPREDUCE");
+    c1.addService(sfMR);
+    sfMR.persist();
+
+    ServiceComponent scNN = serviceComponentFactory.createNew(sfHDFS, "NAMENODE");
+    sfHDFS.addServiceComponent(scNN);
+    scNN.persist();
+    ServiceComponentHost schNNH1 = serviceComponentHostFactory.createNew(scNN, "h1");
+    scNN.addServiceComponentHost(schNNH1);
+    schNNH1.persist();
+
+    ServiceComponent scDN = serviceComponentFactory.createNew(sfHDFS, "DATANODE");
+    sfHDFS.addServiceComponent(scDN);
+    scDN.persist();
+    ServiceComponentHost scDNH1 = serviceComponentHostFactory.createNew(scDN, "h1");
+    scDN.addServiceComponentHost(scDNH1);
+    scDNH1.persist();
+    ServiceComponentHost scDNH2 = serviceComponentHostFactory.createNew(scDN, "h2");
+    scDN.addServiceComponentHost(scDNH2);
+    scDNH2.persist();
+
+    ServiceComponent scJT = serviceComponentFactory.createNew(sfMR, "JOBTRACKER");
+    sfMR.addServiceComponent(scJT);
+    scJT.persist();
+    ServiceComponentHost schJTH1 = serviceComponentHostFactory.createNew(scJT, "h1");
+    scJT.addServiceComponentHost(schJTH1);
+    schJTH1.persist();
+
+    Map<String, Set<String>> componentHostMap;
+
+    componentHostMap = c1.getServiceComponentHostMap(null, Collections.singleton("HDFS"));
+    Assert.assertEquals(2, componentHostMap.size());
+    Assert.assertEquals(1, componentHostMap.get("NAMENODE").size());
+    Assert.assertTrue(componentHostMap.get("NAMENODE").contains("h1"));
+    Assert.assertEquals(2, componentHostMap.get("DATANODE").size());
+    Assert.assertTrue(componentHostMap.get("DATANODE").contains("h1"));
+    Assert.assertTrue(componentHostMap.get("DATANODE").contains("h2"));
+
+    componentHostMap = c1.getServiceComponentHostMap(null, Collections.singleton("MAPREDUCE"));
+    Assert.assertEquals(1, componentHostMap.size());
+    Assert.assertEquals(1, componentHostMap.get("JOBTRACKER").size());
+    Assert.assertTrue(componentHostMap.get("JOBTRACKER").contains("h1"));
+
+    componentHostMap = c1.getServiceComponentHostMap(null, new HashSet<String>(Arrays.asList("HDFS", "MAPREDUCE")));
+    Assert.assertEquals(3, componentHostMap.size());
+    Assert.assertEquals(1, componentHostMap.get("NAMENODE").size());
+    Assert.assertTrue(componentHostMap.get("NAMENODE").contains("h1"));
+    Assert.assertEquals(2, componentHostMap.get("DATANODE").size());
+    Assert.assertTrue(componentHostMap.get("DATANODE").contains("h1"));
+    Assert.assertTrue(componentHostMap.get("DATANODE").contains("h2"));
+    Assert.assertEquals(1, componentHostMap.get("JOBTRACKER").size());
+    Assert.assertTrue(componentHostMap.get("JOBTRACKER").contains("h1"));
+
+    componentHostMap = c1.getServiceComponentHostMap(null, Collections.singleton("UNKNOWN"));
+    Assert.assertEquals(0, componentHostMap.size());
+  }
+
+  @Test
+  public void testGetServiceComponentHostMap_ForHost() throws Exception {
+    createDefaultCluster();
+
+    Service sfHDFS = serviceFactory.createNew(c1, "HDFS");
+    c1.addService(sfHDFS);
+    sfHDFS.persist();
+
+    Service sfMR = serviceFactory.createNew(c1, "MAPREDUCE");
+    c1.addService(sfMR);
+    sfMR.persist();
+
+    ServiceComponent scNN = serviceComponentFactory.createNew(sfHDFS, "NAMENODE");
+    sfHDFS.addServiceComponent(scNN);
+    scNN.persist();
+    ServiceComponentHost schNNH1 = serviceComponentHostFactory.createNew(scNN, "h1");
+    scNN.addServiceComponentHost(schNNH1);
+    schNNH1.persist();
+
+    ServiceComponent scDN = serviceComponentFactory.createNew(sfHDFS, "DATANODE");
+    sfHDFS.addServiceComponent(scDN);
+    scDN.persist();
+    ServiceComponentHost scDNH1 = serviceComponentHostFactory.createNew(scDN, "h1");
+    scDN.addServiceComponentHost(scDNH1);
+    scDNH1.persist();
+    ServiceComponentHost scDNH2 = serviceComponentHostFactory.createNew(scDN, "h2");
+    scDN.addServiceComponentHost(scDNH2);
+    scDNH2.persist();
+
+    ServiceComponent scJT = serviceComponentFactory.createNew(sfMR, "JOBTRACKER");
+    sfMR.addServiceComponent(scJT);
+    scJT.persist();
+    ServiceComponentHost schJTH1 = serviceComponentHostFactory.createNew(scJT, "h1");
+    scJT.addServiceComponentHost(schJTH1);
+    schJTH1.persist();
+
+    Map<String, Set<String>> componentHostMap;
+
+    componentHostMap = c1.getServiceComponentHostMap(Collections.singleton("h1"), null);
+    Assert.assertEquals(3, componentHostMap.size());
+    Assert.assertEquals(1, componentHostMap.get("NAMENODE").size());
+    Assert.assertTrue(componentHostMap.get("NAMENODE").contains("h1"));
+    Assert.assertEquals(1, componentHostMap.get("DATANODE").size());
+    Assert.assertTrue(componentHostMap.get("DATANODE").contains("h1"));
+    Assert.assertEquals(1, componentHostMap.get("JOBTRACKER").size());
+    Assert.assertTrue(componentHostMap.get("JOBTRACKER").contains("h1"));
+
+    componentHostMap = c1.getServiceComponentHostMap(Collections.singleton("h2"), null);
+    Assert.assertEquals(1, componentHostMap.size());
+    Assert.assertEquals(1, componentHostMap.get("DATANODE").size());
+    Assert.assertTrue(componentHostMap.get("DATANODE").contains("h2"));
+
+    componentHostMap = c1.getServiceComponentHostMap(new HashSet<String>(Arrays.asList("h1", "h2", "h3")), null);
+    Assert.assertEquals(3, componentHostMap.size());
+    Assert.assertEquals(1, componentHostMap.get("NAMENODE").size());
+    Assert.assertTrue(componentHostMap.get("NAMENODE").contains("h1"));
+    Assert.assertEquals(2, componentHostMap.get("DATANODE").size());
+    Assert.assertTrue(componentHostMap.get("DATANODE").contains("h1"));
+    Assert.assertTrue(componentHostMap.get("DATANODE").contains("h2"));
+    Assert.assertEquals(1, componentHostMap.get("JOBTRACKER").size());
+    Assert.assertTrue(componentHostMap.get("JOBTRACKER").contains("h1"));
+
+    componentHostMap = c1.getServiceComponentHostMap(Collections.singleton("unknown"), null);
+    Assert.assertEquals(0, componentHostMap.size());
+  }
+
+  @Test
+  public void testGetServiceComponentHostMap_ForHostAndService() throws Exception {
+    createDefaultCluster();
+
+    Service sfHDFS = serviceFactory.createNew(c1, "HDFS");
+    c1.addService(sfHDFS);
+    sfHDFS.persist();
+
+    Service sfMR = serviceFactory.createNew(c1, "MAPREDUCE");
+    c1.addService(sfMR);
+    sfMR.persist();
+
+    ServiceComponent scNN = serviceComponentFactory.createNew(sfHDFS, "NAMENODE");
+    sfHDFS.addServiceComponent(scNN);
+    scNN.persist();
+    ServiceComponentHost schNNH1 = serviceComponentHostFactory.createNew(scNN, "h1");
+    scNN.addServiceComponentHost(schNNH1);
+    schNNH1.persist();
+
+    ServiceComponent scDN = serviceComponentFactory.createNew(sfHDFS, "DATANODE");
+    sfHDFS.addServiceComponent(scDN);
+    scDN.persist();
+    ServiceComponentHost scDNH1 = serviceComponentHostFactory.createNew(scDN, "h1");
+    scDN.addServiceComponentHost(scDNH1);
+    scDNH1.persist();
+    ServiceComponentHost scDNH2 = serviceComponentHostFactory.createNew(scDN, "h2");
+    scDN.addServiceComponentHost(scDNH2);
+    scDNH2.persist();
+
+    ServiceComponent scJT = serviceComponentFactory.createNew(sfMR, "JOBTRACKER");
+    sfMR.addServiceComponent(scJT);
+    scJT.persist();
+    ServiceComponentHost schJTH1 = serviceComponentHostFactory.createNew(scJT, "h1");
+    scJT.addServiceComponentHost(schJTH1);
+    schJTH1.persist();
+
+    Map<String, Set<String>> componentHostMap;
+
+    componentHostMap = c1.getServiceComponentHostMap(Collections.singleton("h1"), Collections.singleton("HDFS"));
+    Assert.assertEquals(2, componentHostMap.size());
+    Assert.assertEquals(1, componentHostMap.get("DATANODE").size());
+    Assert.assertTrue(componentHostMap.get("DATANODE").contains("h1"));
+    Assert.assertEquals(1, componentHostMap.get("NAMENODE").size());
+    Assert.assertTrue(componentHostMap.get("NAMENODE").contains("h1"));
+
+    componentHostMap = c1.getServiceComponentHostMap(Collections.singleton("h2"), Collections.singleton("HDFS"));
+    Assert.assertEquals(1, componentHostMap.size());
+    Assert.assertEquals(1, componentHostMap.get("DATANODE").size());
+    Assert.assertTrue(componentHostMap.get("DATANODE").contains("h2"));
+
+    componentHostMap = c1.getServiceComponentHostMap(Collections.singleton("h3"), Collections.singleton("HDFS"));
+    Assert.assertEquals(0, componentHostMap.size());
+  }
+
+  @Test
   public void testGetAndSetConfigs() throws Exception {
     createDefaultCluster();
 
