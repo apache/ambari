@@ -403,7 +403,7 @@ public class KerberosHelperImpl implements KerberosHelper {
 
     setAuthToLocalRules(kerberosDescriptor, cluster, kerberosDetails.getDefaultRealm(), configurations, kerberosConfigurations);
 
-    return applyStackAdvisorUpdates(cluster, services, configurations, kerberosConfigurations, propertiesToIgnore, kerberosEnabled);
+    return applyStackAdvisorUpdates(cluster, cluster.getServices().keySet(), configurations, kerberosConfigurations, propertiesToIgnore, kerberosEnabled);
   }
 
   public Map<String, Map<String, String>> applyStackAdvisorUpdates(Cluster cluster, Set<String> services,
@@ -479,6 +479,7 @@ public class KerberosHelperImpl implements KerberosHelper {
           .forStack(stackVersion.getStackName(), stackVersion.getStackVersion())
           .forServices(new ArrayList<String>(services))
           .forHosts(hostNames)
+          .withComponentHostsMap(cluster.getServiceComponentHostMap(null, services))
           .withConfigurations(requestConfigurations)
           .ofType(StackAdvisorRequest.StackAdvisorRequestType.CONFIGURATIONS)
           .build();
