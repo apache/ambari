@@ -254,6 +254,21 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
           if not webhcat_user in users and webhcat_user is not None:
             users[webhcat_user] = {"propertyHosts" : webHcatServerHostsNames,"propertyGroups" : "*", "config" : "hive-env", "propertyName" : "webhcat_user"}
 
+    if "YARN" in servicesList:
+      yarn_user = None
+      if "yarn-env" in services["configurations"] and "yarn_user" in services["configurations"]["yarn-env"]["properties"]:
+        yarn_user = services["configurations"]["yarn-env"]["properties"]["yarn_user"]
+        rmHosts = self.getHostsWithComponent("YARN", "RESOURCEMANAGER", services, hosts)
+
+        if len(rmHosts) > 1:
+          rmHostsNameList = []
+          for rmHost in rmHosts:
+            rmHostsNameList.append(rmHost["Hosts"]["public_host_name"])
+          rmHostsNames = ",".join(rmHostsNameList)
+          if not yarn_user in users and yarn_user is not None:
+            users[yarn_user] = {"propertyHosts" : rmHostsNames, "config" : "yarn-env", "propertyName" : "yarn_user"}
+
+
     if "FALCON" in servicesList:
       falconUser = None
       if "falcon-env" in services["configurations"] and "falcon_user" in services["configurations"]["falcon-env"]["properties"]:
@@ -267,17 +282,20 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     for user_name, user_properties in users.iteritems():
       # Add properties "hadoop.proxyuser.*.hosts", "hadoop.proxyuser.*.groups" to core-site for all users
       putCoreSiteProperty("hadoop.proxyuser.{0}.hosts".format(user_name) , user_properties["propertyHosts"])
-      putCoreSiteProperty("hadoop.proxyuser.{0}.groups".format(user_name) , user_properties["propertyGroups"])
+      if "propertyGroups" in user_properties:
+        putCoreSiteProperty("hadoop.proxyuser.{0}.groups".format(user_name) , user_properties["propertyGroups"])
 
       # Remove old properties if user was renamed
       userOldValue = getOldValue(self, services, user_properties["config"], user_properties["propertyName"])
       if userOldValue is not None and userOldValue != user_name:
         putCoreSitePropertyAttribute("hadoop.proxyuser.{0}.hosts".format(userOldValue), 'delete', 'true')
-        putCoreSitePropertyAttribute("hadoop.proxyuser.{0}.groups".format(userOldValue), 'delete', 'true')
         services["forced-configurations"].append({"type" : "core-site", "name" : "hadoop.proxyuser.{0}.hosts".format(userOldValue)})
-        services["forced-configurations"].append({"type" : "core-site", "name" : "hadoop.proxyuser.{0}.groups".format(userOldValue)})
         services["forced-configurations"].append({"type" : "core-site", "name" : "hadoop.proxyuser.{0}.hosts".format(user_name)})
-        services["forced-configurations"].append({"type" : "core-site", "name" : "hadoop.proxyuser.{0}.groups".format(user_name)})
+
+        if "propertyGroups" in user_properties:
+          putCoreSitePropertyAttribute("hadoop.proxyuser.{0}.groups".format(userOldValue), 'delete', 'true')
+          services["forced-configurations"].append({"type" : "core-site", "name" : "hadoop.proxyuser.{0}.groups".format(userOldValue)})
+          services["forced-configurations"].append({"type" : "core-site", "name" : "hadoop.proxyuser.{0}.groups".format(user_name)})
 
     self.recommendAmbariProxyUsersForHDFS(services, servicesList, putCoreSiteProperty, putCoreSitePropertyAttribute)
 
