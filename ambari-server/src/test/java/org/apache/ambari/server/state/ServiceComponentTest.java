@@ -341,19 +341,26 @@ public class ServiceComponentTest {
   }
 
   @Test
-  public void testCanBeRemoved() throws Exception{
+  public void testCanBeRemoved() throws Exception {
     String componentName = "NAMENODE";
     ServiceComponent component = serviceComponentFactory.createNew(service,
-        componentName);
+                                                                   componentName);
+    addHostToCluster("h1", service.getCluster().getClusterName());
+    ServiceComponentHost sch = serviceComponentHostFactory.createNew(component, "h1");
+    component.addServiceComponentHost(sch);
 
     for (State state : State.values()) {
       component.setDesiredState(state);
 
-      if (state.isRemovableState()) {
-        org.junit.Assert.assertTrue(component.canBeRemoved());
-      }
-      else {
-        org.junit.Assert.assertFalse(component.canBeRemoved());
+      for (State hcState : State.values()) {
+        sch.setDesiredState(hcState);
+        sch.setState(hcState);
+
+        if (hcState.isRemovableState()) {
+          org.junit.Assert.assertTrue(component.canBeRemoved());
+        } else {
+          org.junit.Assert.assertFalse(component.canBeRemoved());
+        }
       }
     }
   }
@@ -398,6 +405,69 @@ public class ServiceComponentTest {
 
     Assert.assertEquals(history, serviceComponentDesiredStateEntity.getHistory().iterator().next());
   }
+
+
+  @Test
+  public void testServiceComponentRemove() throws AmbariException {
+    ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO = injector.getInstance(
+        ServiceComponentDesiredStateDAO.class);
+
+    String componentName = "NAMENODE";
+    ServiceComponent component = serviceComponentFactory.createNew(service, componentName);
+    service.addServiceComponent(component);
+    component.persist();
+
+    ServiceComponent sc = service.getServiceComponent(componentName);
+    Assert.assertNotNull(sc);
+
+    sc.setDesiredState(State.STARTED);
+    Assert.assertEquals(State.STARTED, sc.getDesiredState());
+
+    ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
+        cluster.getClusterId(), serviceName, componentName);
+
+    Assert.assertNotNull(serviceComponentDesiredStateEntity);
+
+    Assert.assertTrue(sc.getServiceComponentHosts().isEmpty());
+
+    addHostToCluster("h1", service.getCluster().getClusterName());
+    addHostToCluster("h2", service.getCluster().getClusterName());
+
+    HostEntity hostEntity1 = hostDAO.findByName("h1");
+    assertNotNull(hostEntity1);
+
+    ServiceComponentHost sch1 =
+        serviceComponentHostFactory.createNew(sc, "h1");
+    ServiceComponentHost sch2 =
+        serviceComponentHostFactory.createNew(sc, "h2");
+
+    Map<String, ServiceComponentHost> compHosts =
+        new HashMap<String, ServiceComponentHost>();
+    compHosts.put("h1", sch1);
+    compHosts.put("h2", sch2);
+    sc.addServiceComponentHosts(compHosts);
+
+    sch1.setState(State.STARTED);
+    sch2.setState(State.STARTED);
+
+    try {
+      // delete the SC
+      sc.delete();
+      Assert.assertTrue("Delete must fail as some SCH are in STARTED state", false);
+    }catch(AmbariException e) {
+      // expected
+    }
+
+    sch1.setState(State.INSTALLED);
+    sch2.setState(State.INSTALL_FAILED);
+    sc.delete();
+
+    // verify history is gone, too
+    serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
+        cluster.getClusterId(), serviceName, componentName);
+
+    Assert.assertNull(serviceComponentDesiredStateEntity);
+ }
 
   /**
    * Tests the CASCADE nature of removing a service component also removes the

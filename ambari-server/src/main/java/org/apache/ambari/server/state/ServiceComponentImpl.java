@@ -678,10 +678,9 @@ public class ServiceComponentImpl implements ServiceComponent {
     try {
       readWriteLock.readLock().lock();
       try {
-        if (!getDesiredState().isRemovableState()) {
-          return false;
-        }
-
+        // A component can be deleted if all it's host components
+        // can be removed, irrespective of the state of
+        // the component itself
         for (ServiceComponentHost sch : hostComponents.values()) {
           if (!sch.canBeRemoved()) {
             LOG.warn("Found non removable hostcomponent when trying to"
@@ -689,7 +688,7 @@ public class ServiceComponentImpl implements ServiceComponent {
                 + ", clusterName=" + getClusterName()
                 + ", serviceName=" + getServiceName()
                 + ", componentName=" + getName()
-                + ", recoveryEnabled=" + isRecoveryEnabled()
+                + ", state=" + sch.getState()
                 + ", hostname=" + sch.getHostName());
             return false;
           }
