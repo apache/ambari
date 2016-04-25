@@ -173,6 +173,7 @@ def setup_ranger_admin(upgrade_type=None):
 
   do_keystore_setup(upgrade_type=upgrade_type)
 
+  create_core_site_xml(ranger_conf)
 
 def setup_ranger_db(stack_version=None):
   import params
@@ -425,6 +426,8 @@ def setup_usersync(upgrade_type=None):
         mode = 0640
     )
 
+  create_core_site_xml(ranger_ugsync_conf)
+
 def setup_tagsync(upgrade_type=None):
   import params
 
@@ -517,6 +520,8 @@ def setup_tagsync(upgrade_type=None):
     only_if=format("ls {tagsync_services_file}"),
     sudo=True)
 
+  create_core_site_xml(ranger_tagsync_conf)
+
 def ranger_credential_helper(lib_path, alias_key, alias_value, file_path):
   import params
 
@@ -524,3 +529,16 @@ def ranger_credential_helper(lib_path, alias_key, alias_value, file_path):
   file_path = format('jceks://file{file_path}')
   cmd = (java_bin, '-cp', lib_path, 'org.apache.ranger.credentialapi.buildks', 'create', alias_key, '-value', PasswordString(alias_value), '-provider', file_path)
   Execute(cmd, environment={'JAVA_HOME': params.java_home}, logoutput=True, sudo=True)
+
+def create_core_site_xml(conf_dir):
+  import params
+
+  if params.stack_supports_ranger_kerberos and params.security_enabled and params.has_namenode:
+    XmlConfig("core-site.xml",
+      conf_dir=conf_dir,
+      configurations=params.config['configurations']['core-site'],
+      configuration_attributes=params.config['configuration_attributes']['core-site'],
+      owner=params.unix_user,
+      group=params.unix_group,
+      mode=0644
+    )

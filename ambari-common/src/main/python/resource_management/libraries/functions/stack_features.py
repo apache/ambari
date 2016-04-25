@@ -228,6 +228,11 @@ _DEFAULT_STACK_FEATURES = {
       "name": "ranger_log4j_support",
       "description": "Ranger supporting log-4j properties (AMBARI-15681)",
       "min_version": "2.5.0.0"
+    },
+    {
+      "name": "ranger_kerberos_support",
+      "description": "Ranger Kerberos support",
+      "min_version": "2.5.0.0"
     }
   ]
 }

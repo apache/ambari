@@ -48,4 +48,79 @@
     <deleted>true</deleted>
   </property>
 
+  <property>
+    <name>ranger.admin.kerberos.token.valid</name>
+    <value>30</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>ranger.admin.kerberos.cookie.domain</name>
+    <value></value>
+    <description></description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>ranger.admin.kerberos.cookie.path</name>
+    <value>/</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>ranger.spnego.kerberos.principal</name>
+    <value></value>
+    <description></description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>ranger.spnego.kerberos.keytab</name>
+    <value></value>
+    <description></description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>ranger.admin.kerberos.principal</name>
+    <value></value>
+    <description></description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>ranger.admin.kerberos.keytab</name>
+    <value></value>
+    <description></description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>ranger.lookup.kerberos.principal</name>
+    <value></value>
+    <description></description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>ranger.lookup.kerberos.keytab</name>
+    <value></value>
+    <description></description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+  </property>
+
 </configuration>

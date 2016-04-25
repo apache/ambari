@@ -61,6 +61,7 @@ stack_supports_usersync_non_root =  stack_version_formatted and check_stack_feat
 stack_supports_ranger_tagsync =  stack_version_formatted and check_stack_feature(StackFeature.RANGER_TAGSYNC_COMPONENT, stack_version_formatted)
 stack_supports_ranger_audit_db = stack_version_formatted and check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, stack_version_formatted)
 stack_supports_ranger_log4j =  stack_version_formatted and check_stack_feature(StackFeature.RANGER_LOG4J_SUPPORT, stack_version_formatted)
+stack_supports_ranger_kerberos = stack_version_formatted and check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, stack_version_formatted)
 
 downgrade_from_version = default("/commandParams/downgrade_from_version", None)
 upgrade_direction = default("/commandParams/upgrade_direction", None)
@@ -233,3 +234,8 @@ tagsync_pid_file = format('{ranger_pid_dir}/tagsync.pid')
 admin_log4j = config['configurations']['admin-log4j']['content']
 usersync_log4j = config['configurations']['usersync-log4j']['content']
 tagsync_log4j = config['configurations']['tagsync-log4j']['content']
+
+# ranger kerberos
+security_enabled = config['configurations']['cluster-env']['security_enabled']
+namenode_hosts = default("/clusterHostInfo/namenode_host", [])
+has_namenode = len(namenode_hosts) > 0
