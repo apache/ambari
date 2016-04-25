@@ -73,13 +73,6 @@ def post_upgrade_check(hdfs_binary):
     Execute(params.dn_kinit_cmd, user=params.hdfs_user)
 
   # verify that the datanode has started and rejoined the HDFS cluster
-  _wait_for_datanode_to_join(hdfs_binary)
-
-@retry(times=3, sleep_time=300, err_class=Fail)
-def _wait_for_datanode_to_join(hdfs_binary):
-  if not is_datanode_process_running():
-    Logger.info("DataNode process is not running")
-    raise Fail("DataNode process is not running")
   _check_datanode_startup(hdfs_binary)
 
 
@@ -125,16 +118,21 @@ def _check_datanode_shutdown(hdfs_binary):
   raise Fail('DataNode has not shutdown.')
 
 
-@retry(times=12, sleep_time=10, err_class=Fail)
+@retry(times=30, sleep_time=30, err_class=Fail) # keep trying for 15 mins
 def _check_datanode_startup(hdfs_binary):
   """
-  Checks that a DataNode is reported as being alive via the
+  Checks that a DataNode process is running and DataNode is reported as being alive via the
   "hdfs dfsadmin -fs {namenode_address} -report -live" command. Once the DataNode is found to be
   alive this method will return, otherwise it will raise a Fail(...) and retry
   automatically.
   :param hdfs_binary: name/path of the HDFS binary to use
   :return:
   """
+
+  if not is_datanode_process_running():
+    Logger.info("DataNode process is not running")
+    raise Fail("DataNode process is not running")
+
   import params
   import socket
 

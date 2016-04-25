@@ -515,7 +515,7 @@ class TestDatanode(RMFTestCase):
                        config_file = "default.json",
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
-                       call_mocks = [(0, shell_call_output)] * 3,
+                       call_mocks = [(0, shell_call_output)],
                        mocks_dict = mocks_dict
     )
 
@@ -535,13 +535,13 @@ class TestDatanode(RMFTestCase):
                          config_file = "default.json",
                          stack_version = self.STACK_VERSION,
                          target = RMFTestCase.TARGET_COMMON_SERVICES,
-                         call_mocks = [(0, 'There are no DataNodes here!')] * 36,
+                         call_mocks = [(0, 'There are no DataNodes here!')] * 30,
                          mocks_dict = mocks_dict
       )
       self.fail('Missing DataNode should have caused a failure')
     except Fail,fail:
       self.assertTrue(mocks_dict['call'].called)
-      self.assertEqual(mocks_dict['call'].call_count,36)
+      self.assertEqual(mocks_dict['call'].call_count,30)
 
 
   @patch("socket.gethostbyname")
@@ -556,13 +556,13 @@ class TestDatanode(RMFTestCase):
                          config_file = "default.json",
                          stack_version = self.STACK_VERSION,
                          target = RMFTestCase.TARGET_COMMON_SERVICES,
-                         call_mocks = [(1, 'some')] * 36,
+                         call_mocks = [(1, 'some')] * 30,
                          mocks_dict = mocks_dict
       )
       self.fail('Invalid return code should cause a failure')
     except Fail,fail:
       self.assertTrue(mocks_dict['call'].called)
-      self.assertEqual(mocks_dict['call'].call_count,36)
+      self.assertEqual(mocks_dict['call'].call_count,30)
 
 
   @patch("resource_management.core.shell.call")

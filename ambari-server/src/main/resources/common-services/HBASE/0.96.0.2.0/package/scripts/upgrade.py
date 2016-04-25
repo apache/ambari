@@ -41,14 +41,8 @@ def post_regionserver(env):
   check_cmd = "echo 'status \"simple\"' | {0} shell".format(params.hbase_cmd)
 
   exec_cmd = "{0} {1}".format(params.kinit_cmd, check_cmd)
-  _wait_for_region_server_to_start(exec_cmd, params.hbase_user, params.hostname + ":", re.IGNORECASE)
+  call_and_match(exec_cmd, params.hbase_user, params.hostname + ":", re.IGNORECASE)
 
-@retry(times=3, sleep_time=300, err_class=Fail)
-def _wait_for_region_server_to_start(cmd, user, regex, regex_search_flags):
-  if not is_region_server_process_running():
-    Logger.info("RegionServer process is not running")
-    raise Fail("RegionServer process is not running")
-  call_and_match(cmd, user, regex, regex_search_flags)
 
 def is_region_server_process_running():
   try:
@@ -58,8 +52,12 @@ def is_region_server_process_running():
   except ComponentIsNotRunning:
     return False
 
-@retry(times=15, sleep_time=2, err_class=Fail)
+@retry(times=30, sleep_time=30, err_class=Fail) # keep trying for 15 mins
 def call_and_match(cmd, user, regex, regex_search_flags):
+
+  if not is_region_server_process_running():
+    Logger.info("RegionServer process is not running")
+    raise Fail("RegionServer process is not running")
 
   code, out = shell.call(cmd, user=user)
 
