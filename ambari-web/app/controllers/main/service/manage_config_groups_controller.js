@@ -641,6 +641,7 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
           name: this.get('configGroupName'),
           description: this.get('configGroupDesc')
         });
+        App.store.commit();
         this.hide();
       }
     });
