@@ -207,9 +207,10 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
 
       unique_name = "llap-slider%s" % datetime.utcnow().strftime('%Y-%m-%d_%H-%M-%S')
 
-      cmd = format("{stack_root}/current/hive-server2-hive2/bin/hive --service llap --instances 1 "
-                   "--slider-am-container-mb {slider_am_container_mb} --loglevel INFO --output {unique_name}")
-
+      cmd = format("{stack_root}/current/hive-server2-hive2/bin/hive --service llap --instances {params.num_llap_nodes}"
+                   " --slider-am-container-mb {params.slider_am_container_mb} --size {params.llap_daemon_container_size}m "
+                   " --cache {params.hive_llap_io_mem_size}m --xmx {params.llap_heap_size}m --loglevel {params.llap_log_level}"
+                   " --output {unique_name}")
       if params.security_enabled:
         cmd += format(" --slider-keytab-dir .slider/keytabs/{params.hive_user}/ --slider-keytab "
                       "{hive_llap_keytab_file} --slider-principal {hive_headless_keytab}")
@@ -299,8 +300,11 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
     """
     Checks llap app status. The states can be : 'COMPLETE', 'APP_NOT_FOUND', 'RUNNING_PARTIAL', 'RUNNING_ALL' & 'LAUNCHING'.
 
-    If app is in 'APP_NOT_FOUND', 'RUNNING_PARTIAL' and 'LAUNCHING' state, we wait for 'num_times_to_wait' to have app
-    in (1). 'RUNNING_ALL' (2). 'LAUNCHING' or (3). 'RUNNING_PARTIAL' state with 80% or more 'desiredInstances' running.
+    if app is in 'APP_NOT_FOUND', 'RUNNING_PARTIAL' and 'LAUNCHING' state:
+       we wait for 'num_times_to_wait' to have app in (1). 'RUNNING_ALL' or (2). 'RUNNING_PARTIAL'
+       state with 80% or more 'desiredInstances' running and Return True
+    else :
+       Return False
 
     Parameters: llap_app_name : deployed llap app name.
                 num_retries :   Number of retries to check the LLAP app status.
@@ -326,7 +330,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
           Logger.error("Malformed JSON data received for LLAP app. Exiting ....")
           return False
 
-        if llap_app_info['state'].upper() in ['RUNNING_ALL', 'LAUNCHING']:
+        if llap_app_info['state'].upper() == 'RUNNING_ALL':
           Logger.info(
             "LLAP app '{0}' in '{1}' state.".format(llap_app_name, llap_app_info['state']))
           return True
@@ -361,8 +365,9 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
                                                        llap_app_info['liveInstances'],
                                                        llap_app_info['desiredInstances'],
                                                        time.time() - curr_time))
-            raise Fail('App state is RUNNING_PARTIAL.')
-        elif llap_app_info['state'].upper() == 'APP_NOT_FOUND':
+            raise Fail("App state is RUNNING_PARTIAL. Live Instances : '{0}', Desired Instance : '{1}'".format(llap_app_info['liveInstances'],
+                                                                                                           llap_app_info['desiredInstances']))
+        elif llap_app_info['state'].upper() in ['APP_NOT_FOUND', 'LAUNCHING']:
           status_str = format("Slider app '{0}' current state is {1}.".format(llap_app_name, llap_app_info['state']))
           Logger.info(status_str)
           raise Fail(status_str)

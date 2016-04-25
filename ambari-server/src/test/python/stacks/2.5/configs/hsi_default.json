@@ -396,7 +396,9 @@
           "hive_server_interactive_host" : "c6401.ambari.apache.org",
           "llap_queue_capacity" : "0",
           "num_llap_nodes" : "1",
-          "num_retries_for_checking_llap_status" : 2
+          "num_retries_for_checking_llap_status" : 2,
+          "llap_heap_size":"280",
+          "llap_log_level":"INFO"
         },
         "hive-interactive-site": {
             "hive.enforce.sorting": "true",
@@ -435,7 +437,9 @@
             "hive.server2.authentication": "NOSASL",
             "hive.server2.transport.mode": "binary",
             "hive.optimize.mapjoin.mapreduce": "true",
-            "hive.exec.scratchdir" : "/custompath/tmp/hive"
+            "hive.exec.scratchdir" : "/custompath/tmp/hive",
+            "hive.llap.daemon.yarn.container.mb" : "341",
+            "hive.llap.io.memory.size" : "341"
         },
 		"ranger-hive-plugin-properties": {
             "XAAUDIT.HDFS.DESTINTATION_FLUSH_INTERVAL_SECONDS": "900",

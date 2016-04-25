@@ -70,7 +70,7 @@ version = default("/commandParams/version", None)
 current_version = default("/hostLevelParams/current_version", None)
 
 # When downgrading the 'version' and 'current_version' are both pointing to the downgrade-target version
-# downgrade_from_version provides the source-version the downgrade is happening from 
+# downgrade_from_version provides the source-version the downgrade is happening from
 downgrade_from_version = default("/commandParams/downgrade_from_version", None)
 
 # Upgrade direction
@@ -320,8 +320,7 @@ start_metastore_script = 'startMetastore.sh'
 hive_metastore_pid = status_params.hive_metastore_pid
 
 # Hive Server Interactive
-# TODO , not being passed right now
-slider_am_container_mb = default("/configurations/hive-site-interactive/slider-am-container-mb", 341)
+slider_am_container_mb = default("/configurations/hive-interactive-env/slider_am_container_mb", 341)
 
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 yarn_user = config['configurations']['yarn-env']['yarn_user']
@@ -340,7 +339,7 @@ start_metastore_path = format("{tmp_dir}/start_metastore_script")
 hadoop_heapsize = config['configurations']['hadoop-env']['hadoop_heapsize']
 
 if 'role' in config and config['role'] in ["HIVE_SERVER", "HIVE_METASTORE"]:
-  if stack_version_formatted_major and check_stack_feature(StackFeature.HIVE_ENV_HEAPSIZE, stack_version_formatted_major): 
+  if stack_version_formatted_major and check_stack_feature(StackFeature.HIVE_ENV_HEAPSIZE, stack_version_formatted_major):
     hive_heapsize = config['configurations']['hive-env']['hive.heapsize']
   else:
     hive_heapsize = config['configurations']['hive-site']['hive.heapsize']
@@ -418,7 +417,7 @@ if OSCheck.is_ubuntu_family():
   mysql_configname = '/etc/mysql/my.cnf'
 else:
   mysql_configname = '/etc/my.cnf'
-  
+
 mysql_user = 'mysql'
 
 # Hive security
@@ -516,6 +515,12 @@ if has_hive_interactive:
   tez_interactive_config_dir = "/etc/tez_hive2/conf"
   tez_interactive_user = config['configurations']['tez-env']['tez_user']
   num_retries_for_checking_llap_status = default('/configurations/hive-interactive-env/num_retries_for_checking_llap_status', 10)
+  # Used in LLAP slider package creation
+  num_llap_nodes = config['configurations']['hive-interactive-env']['num_llap_nodes']
+  llap_daemon_container_size = config['configurations']['hive-interactive-site']['hive.llap.daemon.yarn.container.mb']
+  llap_log_level = config['configurations']['hive-interactive-env']['llap_log_level']
+  hive_llap_io_mem_size = config['configurations']['hive-interactive-site']['hive.llap.io.memory.size']
+  llap_heap_size = config['configurations']['hive-interactive-env']['llap_heap_size']
   if security_enabled:
     hive_llap_keytab_file = config['configurations']['hive-interactive-site']['hive.llap.zk.sm.keytab.file']
     hive_headless_keytab = config['configurations']['hive-interactive-site']['hive.llap.zk.sm.principal']
@@ -576,7 +581,7 @@ if has_ranger_admin:
       ranger_jdbc_jar_name = default("/hostLevelParams/custom_sqlanywhere_jdbc_name", None)
       audit_jdbc_url = format('jdbc:sqlanywhere:database={xa_audit_db_name};host={xa_db_host}')
       jdbc_driver = "sap.jdbc4.sqlanywhere.IDriver"
-  
+
   ranger_downloaded_custom_connector = format("{tmp_dir}/{ranger_jdbc_jar_name}") if stack_supports_ranger_audit_db else None
   ranger_driver_curl_source = format("{jdk_location}/{ranger_jdbc_jar_name}") if stack_supports_ranger_audit_db else None
   ranger_driver_curl_target = format("{hive_lib}/{ranger_jdbc_jar_name}") if stack_supports_ranger_audit_db else None
@@ -589,7 +594,7 @@ if has_ranger_admin:
     'jdbc.url': format("{hive_url}/default;principal={hive_principal}") if security_enabled else hive_url,
     'commonNameForCertificate': common_name_for_certificate
   }
-  
+
   hive_ranger_plugin_repo = {
     'isActive': 'true',
     'config': json.dumps(hive_ranger_plugin_config),

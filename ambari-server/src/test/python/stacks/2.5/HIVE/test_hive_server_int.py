@@ -439,7 +439,7 @@ class TestHiveServerInteractive(RMFTestCase):
     mock_get_llap_app_status_data.return_value = llap_app_json
 
     status = self.hsi.check_llap_app_status(self.llap_app_name, -1)
-    self.assertEqual(status, True)
+    self.assertEqual(status, False)
 
   @patch("time.sleep")
   @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info')
@@ -450,7 +450,7 @@ class TestHiveServerInteractive(RMFTestCase):
     mock_get_llap_app_status_data.return_value = llap_app_json
 
     status = self.hsi.check_llap_app_status(self.llap_app_name, 0)
-    self.assertEqual(status, True)
+    self.assertEqual(status, False)
 
   @patch("time.sleep")
   @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info')
@@ -461,7 +461,7 @@ class TestHiveServerInteractive(RMFTestCase):
     mock_get_llap_app_status_data.return_value = llap_app_json
 
     status = self.hsi.check_llap_app_status(self.llap_app_name, 2)
-    self.assertEqual(status, True)
+    self.assertEqual(status, False)
 
 
 

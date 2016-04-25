@@ -22,7 +22,6 @@ import socket
 from unittest import TestCase
 from mock.mock import patch, MagicMock
 
-
 class TestHDP25StackAdvisor(TestCase):
 
   def setUp(self):
@@ -206,6 +205,8 @@ class TestHDP25StackAdvisor(TestCase):
     self.assertEquals(res, res_expected)
     pass
 
+
+
   def test_recommendYARNConfigurations(self):
     ################ Setting up Inputs. #########################
     hosts = {
@@ -292,6 +293,13 @@ class TestHDP25StackAdvisor(TestCase):
           ]
         }
       ],
+      "changed-configurations": [
+        {
+          u'old_value': u'',
+          u'type': u'',
+          u'name': u''
+        }
+      ],
       "configurations": {
         "capacity-scheduler": {
           "properties": {
@@ -317,6 +325,12 @@ class TestHDP25StackAdvisor(TestCase):
               'llap_queue_capacity':'0'
             }
         },
+        "hive-interactive-site":
+          {
+            'properties': {
+              'hive.llap.daemon.queue.name':'default'
+            }
+          },
         "hive-env":
           {
             'properties': {
@@ -379,6 +393,13 @@ class TestHDP25StackAdvisor(TestCase):
           }
         ]
       }
+      ],
+      "changed-configurations": [
+        {
+          u'old_value': u'',
+          u'type': u'',
+          u'name': u''
+        }
       ],
       "configurations": {
         "capacity-scheduler": {
@@ -468,6 +489,13 @@ class TestHDP25StackAdvisor(TestCase):
         ]
       }
       ],
+      "changed-configurations": [
+        {
+          u'old_value': u'',
+          u'type': u'',
+          u'name': u''
+        }
+      ],
       "configurations": {
         "capacity-scheduler": {
           "properties": {
@@ -491,6 +519,12 @@ class TestHDP25StackAdvisor(TestCase):
             'properties': {
               'enable_hive_interactive': 'true',
               'llap_queue_capacity':'40'
+            }
+          },
+        "hive-interactive-site":
+          {
+            'properties': {
+              'hive.llap.daemon.queue.name':'default'
             }
           },
         "hive-env":
@@ -556,6 +590,13 @@ class TestHDP25StackAdvisor(TestCase):
         ]
       }
       ],
+      "changed-configurations": [
+        {
+          u'old_value': u'',
+          u'type': u'',
+          u'name': u''
+        }
+      ],
       "configurations": {
         "capacity-scheduler": {
           "properties": {
@@ -587,6 +628,12 @@ class TestHDP25StackAdvisor(TestCase):
           {
             'properties': {
               'enable_hive_interactive': 'false'
+            }
+          },
+        "hive-interactive-site":
+          {
+            'properties': {
+              'hive.llap.daemon.queue.name':'default'
             }
           },
         "hive-env":
@@ -652,6 +699,13 @@ class TestHDP25StackAdvisor(TestCase):
         ]
       }
       ],
+      "changed-configurations": [
+        {
+          u'old_value': u'0',
+          u'type': u'hive-interactive-env',
+          u'name': u'llap_queue_capacity'
+        }
+      ],
       "configurations": {
         "capacity-scheduler": {
           "properties": {
@@ -687,12 +741,24 @@ class TestHDP25StackAdvisor(TestCase):
               'llap_queue_capacity':'0'
             }
           },
+        "hive-interactive-site":
+          {
+            'properties': {
+              'hive.llap.daemon.queue.name': 'llap'
+            }
+          },
         "hive-env":
           {
             'properties': {
               'hive_user': 'hive'
             }
+          },
+        "yarn-site": {
+          "properties": {
+            "yarn.scheduler.minimum-allocation-mb": "682",
+            "yarn.nodemanager.resource.memory-mb": "2048"
           }
+        }
       }
     }
 
@@ -749,6 +815,13 @@ class TestHDP25StackAdvisor(TestCase):
           }
         ]
       }
+      ],
+      "changed-configurations": [
+        {
+          u'old_value': u'',
+          u'type': u'',
+          u'name': u''
+        }
       ],
       "configurations": {
         "capacity-scheduler": {
@@ -872,6 +945,13 @@ class TestHDP25StackAdvisor(TestCase):
         ]
       }
       ],
+      "changed-configurations": [
+        {
+          u'old_value': u'',
+          u'type': u'',
+          u'name': u''
+        }
+      ],
       "configurations": {
         "capacity-scheduler": {
           "properties": {
@@ -945,6 +1025,13 @@ class TestHDP25StackAdvisor(TestCase):
           }
         ]
       }
+      ],
+      "changed-configurations": [
+        {
+          u'old_value': u'',
+          u'type': u'',
+          u'name': u''
+        }
       ],
       "configurations": {
         "capacity-scheduler": {
@@ -1023,6 +1110,13 @@ class TestHDP25StackAdvisor(TestCase):
           }
         ]
       }
+      ],
+      "changed-configurations": [
+        {
+          u'old_value': u'',
+          u'type': u'',
+          u'name': u''
+        }
       ],
       "configurations": {
         "capacity-scheduler": {
@@ -1120,6 +1214,13 @@ class TestHDP25StackAdvisor(TestCase):
         ]
       }
       ],
+      "changed-configurations": [
+        {
+          u'old_value': u'off',
+          u'type': u'hive-interactive-env',
+          u'name': u'enable_hive_interactive'
+        }
+      ],
       "configurations": {
         "capacity-scheduler": {
           "properties": {
@@ -1154,6 +1255,26 @@ class TestHDP25StackAdvisor(TestCase):
               'llap_queue_capacity':'0'
             }
           },
+        "yarn-site": {
+          "properties": {
+            "yarn.scheduler.minimum-allocation-mb": "341",
+            "yarn.nodemanager.resource.memory-mb": "20000",
+            "yarn.nodemanager.resource.cpu-vcores": '1'
+          }
+        },
+        "hive-interactive-site":
+          {
+            'properties': {
+              'hive.llap.daemon.queue.name':'llap',
+              'hive.server2.tez.sessions.per.default.queue' : '1',
+              'hive.tez.container.size': '341'
+            }
+          },
+        "tez-interactive-site": {
+          "properties": {
+            "tez.am.resource.memory.mb": "341"
+          }
+        },
         "hive-env":
           {
             'properties': {
@@ -1216,6 +1337,13 @@ class TestHDP25StackAdvisor(TestCase):
         ]
       }
       ],
+      "changed-configurations": [
+        {
+          u'old_value': u'',
+          u'type': u'',
+          u'name': u''
+        }
+      ],
       "configurations": {
         "capacity-scheduler": {
           "properties": {
@@ -1248,6 +1376,12 @@ class TestHDP25StackAdvisor(TestCase):
             'properties': {
               'enable_hive_interactive': 'true',
               'llap_queue_capacity':'40'
+            }
+          },
+        "hive-interactive-site":
+          {
+            'properties': {
+              'hive.llap.daemon.queue.name':'llap'
             }
           },
         "hive-env":
@@ -1314,6 +1448,13 @@ class TestHDP25StackAdvisor(TestCase):
           }
         ]
       }
+      ],
+      "changed-configurations": [
+        {
+          u'old_value': u'',
+          u'type': u'',
+          u'name': u''
+        }
       ],
       "configurations": {
         "capacity-scheduler": {
@@ -1383,6 +1524,1168 @@ class TestHDP25StackAdvisor(TestCase):
           }
       }
     }
+
+
+    # Services 13: YARN service with : (1). 'capacity scheduler' having 'llap' and 'default' queue at root level and
+    # (2). 'enable_hive_interactive' is ON and (3). configuration change detected for 'llap_queue_capacity'
+    services_13 = {
+      "services": [{
+        "StackServices": {
+          "service_name": "YARN",
+        },
+        "Versions": {
+          "stack_version": "2.5"
+        },
+        "components": [
+          {
+            "StackServiceComponents": {
+              "component_name": "NODEMANAGER",
+              "hostnames": ["c6401.ambari.apache.org"]
+            }
+          }
+        ]
+      }, {
+        "href": "/api/v1/stacks/HDP/versions/2.5/services/HIVE",
+        "StackServices": {
+          "service_name": "HIVE",
+          "service_version": "1.2.1.2.5",
+          "stack_name": "HDP",
+          "stack_version": "2.5"
+        },
+        "components": [
+          {
+            "href": "/api/v1/stacks/HDP/versions/2.5/services/HIVE/components/HIVE_SERVER_INTERACTIVE",
+            "StackServiceComponents": {
+              "advertise_version": "true",
+              "bulk_commands_display_name": "",
+              "bulk_commands_master_component_name": "",
+              "cardinality": "0-1",
+              "component_category": "MASTER",
+              "component_name": "HIVE_SERVER_INTERACTIVE",
+              "custom_commands": ["RESTART_LLAP"],
+              "decommission_allowed": "false",
+              "display_name": "HiveServer2 Interactive",
+              "has_bulk_commands_definition": "false",
+              "is_client": "false",
+              "is_master": "true",
+              "reassign_allowed": "false",
+              "recovery_enabled": "false",
+              "service_name": "HIVE",
+              "stack_name": "HDP",
+              "stack_version": "2.5",
+              "hostnames": ["c6401.ambari.apache.org"]
+            },
+            "dependencies": []
+          },
+          {
+            "StackServiceComponents": {
+              "advertise_version": "true",
+              "cardinality": "1+",
+              "component_category": "SLAVE",
+              "component_name": "NODEMANAGER",
+              "display_name": "NodeManager",
+              "is_client": "false",
+              "is_master": "false",
+              "hostnames": [
+                "c6403.ambari.apache.org"
+              ]
+            },
+            "dependencies": []
+          },
+        ]
+      }
+      ],
+      "changed-configurations": [
+        {
+          u'old_value': u'0',
+          u'type': u'hive-interactive-env',
+          u'name': u'llap_queue_capacity'
+        }
+      ],
+      "configurations": {
+        "capacity-scheduler": {
+          "properties": {
+            "capacity-scheduler": 'yarn.scheduler.capacity.root.default.maximum-capacity=60\n'
+                                  'yarn.scheduler.capacity.root.accessible-node-labels=*\n'
+                                  'yarn.scheduler.capacity.root.capacity=100\n'
+                                  'yarn.scheduler.capacity.root.queues=default,llap\n'
+                                  'yarn.scheduler.capacity.maximum-applications=10000\n'
+                                  'yarn.scheduler.capacity.root.default.user-limit-factor=1\n'
+                                  'yarn.scheduler.capacity.root.default.state=RUNNING\n'
+                                  'yarn.scheduler.capacity.maximum-am-resource-percent=1\n'
+                                  'yarn.scheduler.capacity.root.default.acl_submit_applications=*\n'
+                                  'yarn.scheduler.capacity.root.default.capacity=60\n'
+                                  'yarn.scheduler.capacity.root.acl_administer_queue=*\n'
+                                  'yarn.scheduler.capacity.node-locality-delay=40\n'
+                                  'yarn.scheduler.capacity.queue-mappings-override.enable=false\n'
+                                  'yarn.scheduler.capacity.root.llap.user-limit-factor=1\n'
+                                  'yarn.scheduler.capacity.root.llap.state=RUNNING\n'
+                                  'yarn.scheduler.capacity.root.llap.ordering-policy=fifo\n'
+                                  'yarn.scheduler.capacity.root.llap.minimum-user-limit-percent=100\n'
+                                  'yarn.scheduler.capacity.root.llap.maximum-capacity=40\n'
+                                  'yarn.scheduler.capacity.root.llap.capacity=40\n'
+                                  'yarn.scheduler.capacity.root.llap.acl_submit_applications=hive\n'
+                                  'yarn.scheduler.capacity.root.llap.acl_administer_queue=hive\n'
+                                  'yarn.scheduler.capacity.root.llap.maximum-am-resource-percent=1'
+
+          }
+        },
+        "hive-interactive-env":
+          {
+            'properties': {
+              'enable_hive_interactive': 'true',
+              'llap_queue_capacity':'40'
+            }
+          },
+        "hive-interactive-site":
+          {
+            'properties': {
+              'hive.llap.daemon.queue.name': 'llap',
+              'hive.server2.tez.sessions.per.default.queue': '1',
+              'hive.tez.container.size': '341'
+
+            }
+          },
+        "hive-env":
+          {
+            'properties': {
+              'hive_user': 'hive'
+            }
+          },
+        "yarn-site": {
+          "properties": {
+            "yarn.scheduler.minimum-allocation-mb": "341",
+            "yarn.nodemanager.resource.memory-mb": "4096",
+            "yarn.nodemanager.resource.cpu-vcores": '1'
+          }
+        },
+        "tez-interactive-site": {
+          "properties": {
+            "tez.am.resource.memory.mb": "341"
+          }
+        }
+      }
+    }
+
+
+    # Services 14: YARN service with : (1). 'capacity scheduler' having more than 2 queues and
+    # (2). 'enable_hive_interactive' is ON and (3). configuration change detected for 'llap_queue_capacity'
+    services_14 = {
+      "services": [{
+        "StackServices": {
+          "service_name": "YARN",
+        },
+        "Versions": {
+          "stack_version": "2.5"
+        },
+        "components": [
+          {
+            "StackServiceComponents": {
+              "component_name": "NODEMANAGER",
+              "hostnames": ["c6401.ambari.apache.org"]
+            }
+          }
+        ]
+      }, {
+        "href": "/api/v1/stacks/HDP/versions/2.5/services/HIVE",
+        "StackServices": {
+          "service_name": "HIVE",
+          "service_version": "1.2.1.2.5",
+          "stack_name": "HDP",
+          "stack_version": "2.5"
+        },
+        "components": [
+          {
+            "href": "/api/v1/stacks/HDP/versions/2.5/services/HIVE/components/HIVE_SERVER_INTERACTIVE",
+            "StackServiceComponents": {
+              "advertise_version": "true",
+              "bulk_commands_display_name": "",
+              "bulk_commands_master_component_name": "",
+              "cardinality": "0-1",
+              "component_category": "MASTER",
+              "component_name": "HIVE_SERVER_INTERACTIVE",
+              "custom_commands": ["RESTART_LLAP"],
+              "decommission_allowed": "false",
+              "display_name": "HiveServer2 Interactive",
+              "has_bulk_commands_definition": "false",
+              "is_client": "false",
+              "is_master": "true",
+              "reassign_allowed": "false",
+              "recovery_enabled": "false",
+              "service_name": "HIVE",
+              "stack_name": "HDP",
+              "stack_version": "2.5",
+              "hostnames": ["c6401.ambari.apache.org"]
+            },
+            "dependencies": []
+          },
+          {
+            "StackServiceComponents": {
+              "advertise_version": "true",
+              "cardinality": "1+",
+              "component_category": "SLAVE",
+              "component_name": "NODEMANAGER",
+              "display_name": "NodeManager",
+              "is_client": "false",
+              "is_master": "false",
+              "hostnames": [
+                "c6403.ambari.apache.org"
+              ]
+            },
+            "dependencies": []
+          },
+        ]
+      }
+      ],
+      "changed-configurations": [
+        {
+          u'old_value': u'0',
+          u'type': u'hive-interactive-env',
+          u'name': u'llap_queue_capacity'
+        }
+      ],
+      "configurations": {
+        "capacity-scheduler": {
+          "properties": {
+            "capacity-scheduler": "yarn.scheduler.capacity.maximum-am-resource-percent=0.2\n"
+                                  "yarn.scheduler.capacity.maximum-applications=10000\n"
+                                  "yarn.scheduler.capacity.node-locality-delay=40\n"
+                                  "yarn.scheduler.capacity.queue-mappings-override.enable=false\n"
+                                  "yarn.scheduler.capacity.resource-calculator=org.apache.hadoop.yarn.util.resource.DefaultResourceCalculator\n"
+                                  "yarn.scheduler.capacity.root.accessible-node-labels=*\n"
+                                  "yarn.scheduler.capacity.root.acl_administer_queue=*\n"
+                                  "yarn.scheduler.capacity.root.capacity=100\n"
+                                  "yarn.scheduler.capacity.root.default.a.a1.acl_administer_queue=*\n"
+                                  "yarn.scheduler.capacity.root.default.a.a1.acl_submit_applications=*\n"
+                                  "yarn.scheduler.capacity.root.default.a.a1.capacity=75\n"
+                                  "yarn.scheduler.capacity.root.default.a.a1.maximum-capacity=100\n"
+                                  "yarn.scheduler.capacity.root.default.a.a1.minimum-user-limit-percent=100\n"
+                                  "yarn.scheduler.capacity.root.default.a.a1.ordering-policy=fifo\n"
+                                  "yarn.scheduler.capacity.root.default.a.a1.state=RUNNING\n"
+                                  "yarn.scheduler.capacity.root.default.a.a1.user-limit-factor=1\n"
+                                  "yarn.scheduler.capacity.root.default.a.llap.acl_administer_queue=*\n"
+                                  "yarn.scheduler.capacity.root.default.a.llap.acl_submit_applications=*\n"
+                                  "yarn.scheduler.capacity.root.default.a.llap.capacity=25\n"
+                                  "yarn.scheduler.capacity.root.default.a.llap.maximum-capacity=25\n"
+                                  "yarn.scheduler.capacity.root.default.a.llap.minimum-user-limit-percent=100\n"
+                                  "yarn.scheduler.capacity.root.default.a.llap.ordering-policy=fifo\n"
+                                  "yarn.scheduler.capacity.root.default.a.llap.state=RUNNING\n"
+                                  "yarn.scheduler.capacity.root.default.a.llap.user-limit-factor=1\n"
+                                  "yarn.scheduler.capacity.root.default.a.acl_administer_queue=*\n"
+                                  "yarn.scheduler.capacity.root.default.a.acl_submit_applications=*\n"
+                                  "yarn.scheduler.capacity.root.default.a.capacity=50\n"
+                                  "yarn.scheduler.capacity.root.default.a.maximum-capacity=100\n"
+                                  "yarn.scheduler.capacity.root.default.a.minimum-user-limit-percent=100\n"
+                                  "yarn.scheduler.capacity.root.default.a.ordering-policy=fifo\n"
+                                  "yarn.scheduler.capacity.root.default.a.queues=a1,llap\n"
+                                  "yarn.scheduler.capacity.root.default.a.state=RUNNING\n"
+                                  "yarn.scheduler.capacity.root.default.a.user-limit-factor=1\n"
+                                  "yarn.scheduler.capacity.root.default.acl_submit_applications=*\n"
+                                  "yarn.scheduler.capacity.root.default.b.acl_administer_queue=*\n"
+                                  "yarn.scheduler.capacity.root.default.b.acl_submit_applications=*\n"
+                                  "yarn.scheduler.capacity.root.default.b.capacity=50\n"
+                                  "yarn.scheduler.capacity.root.default.b.maximum-capacity=50\n"
+                                  "yarn.scheduler.capacity.root.default.b.minimum-user-limit-percent=100\n"
+                                  "yarn.scheduler.capacity.root.default.b.ordering-policy=fifo\n"
+                                  "yarn.scheduler.capacity.root.default.b.state=RUNNING\n"
+                                  "yarn.scheduler.capacity.root.default.b.user-limit-factor=1\n"
+                                  "yarn.scheduler.capacity.root.default.capacity=100\n"
+                                  "yarn.scheduler.capacity.root.default.maximum-capacity=100\n"
+                                  "yarn.scheduler.capacity.root.default.queues=a,b\n"
+                                  "yarn.scheduler.capacity.root.default.state=RUNNING\n"
+                                  "yarn.scheduler.capacity.root.default.user-limit-factor=1\n"
+                                  "yarn.scheduler.capacity.root.queues=default"
+
+          }
+        },
+        "hive-interactive-env":
+          {
+            'properties': {
+              'enable_hive_interactive': 'true',
+              'llap_queue_capacity':'40'
+            }
+          },
+        "hive-interactive-site":
+          {
+            'properties': {
+              'hive.llap.daemon.queue.name': 'llap',
+              'hive.server2.tez.sessions.per.default.queue': '1',
+              'hive.tez.container.size': '341'
+
+            }
+          },
+        "hive-env":
+          {
+            'properties': {
+              'hive_user': 'hive'
+            }
+          },
+        "yarn-site": {
+          "properties": {
+            "yarn.scheduler.minimum-allocation-mb": "341",
+            "yarn.nodemanager.resource.memory-mb": "4096",
+            "yarn.nodemanager.resource.cpu-vcores": '1'
+          }
+        },
+        "tez-interactive-site": {
+          "properties": {
+            "tez.am.resource.memory.mb": "341"
+          }
+        }
+      }
+    }
+
+
+
+    # Services 15: YARN service with : (1). 'capacity scheduler' having 'llap' (state:stopped) and 'default' queue at
+    # root level and (2). 'enable_hive_interactive' is ON and (3). 'hive.llap.daemon.queue.name' == 'default'
+    services_15 = {
+      "services": [{
+        "StackServices": {
+          "service_name": "YARN",
+        },
+        "Versions": {
+          "stack_version": "2.5"
+        },
+        "components": [
+          {
+            "StackServiceComponents": {
+              "component_name": "NODEMANAGER",
+              "hostnames": ["c6401.ambari.apache.org"]
+            }
+          }
+        ]
+      }, {
+        "href": "/api/v1/stacks/HDP/versions/2.5/services/HIVE",
+        "StackServices": {
+          "service_name": "HIVE",
+          "service_version": "1.2.1.2.5",
+          "stack_name": "HDP",
+          "stack_version": "2.5"
+        },
+        "components": [
+          {
+            "href": "/api/v1/stacks/HDP/versions/2.5/services/HIVE/components/HIVE_SERVER_INTERACTIVE",
+            "StackServiceComponents": {
+              "advertise_version": "true",
+              "bulk_commands_display_name": "",
+              "bulk_commands_master_component_name": "",
+              "cardinality": "0-1",
+              "component_category": "MASTER",
+              "component_name": "HIVE_SERVER_INTERACTIVE",
+              "custom_commands": ["RESTART_LLAP"],
+              "decommission_allowed": "false",
+              "display_name": "HiveServer2 Interactive",
+              "has_bulk_commands_definition": "false",
+              "is_client": "false",
+              "is_master": "true",
+              "reassign_allowed": "false",
+              "recovery_enabled": "false",
+              "service_name": "HIVE",
+              "stack_name": "HDP",
+              "stack_version": "2.5",
+              "hostnames": ["c6401.ambari.apache.org"]
+            },
+            "dependencies": []
+          },
+          {
+            "StackServiceComponents": {
+              "advertise_version": "true",
+              "cardinality": "1+",
+              "component_category": "SLAVE",
+              "component_name": "NODEMANAGER",
+              "display_name": "NodeManager",
+              "is_client": "false",
+              "is_master": "false",
+              "hostnames": [
+                "c6403.ambari.apache.org"
+              ]
+            },
+            "dependencies": []
+          },
+        ]
+      }
+      ],
+      "changed-configurations": [
+        {
+          u'old_value': u'0',
+          u'type': u'hive-interactive-env',
+          u'name': u'llap_queue_capacity'
+        }
+      ],
+      "configurations": {
+        "capacity-scheduler": {
+          "properties": {
+            "capacity-scheduler": 'yarn.scheduler.capacity.root.default.maximum-capacity=60\n'
+                                  'yarn.scheduler.capacity.root.accessible-node-labels=*\n'
+                                  'yarn.scheduler.capacity.root.capacity=100\n'
+                                  'yarn.scheduler.capacity.root.queues=default,llap\n'
+                                  'yarn.scheduler.capacity.maximum-applications=10000\n'
+                                  'yarn.scheduler.capacity.root.default.user-limit-factor=1\n'
+                                  'yarn.scheduler.capacity.root.default.state=RUNNING\n'
+                                  'yarn.scheduler.capacity.maximum-am-resource-percent=1\n'
+                                  'yarn.scheduler.capacity.root.default.acl_submit_applications=*\n'
+                                  'yarn.scheduler.capacity.root.default.capacity=60\n'
+                                  'yarn.scheduler.capacity.root.acl_administer_queue=*\n'
+                                  'yarn.scheduler.capacity.node-locality-delay=40\n'
+                                  'yarn.scheduler.capacity.queue-mappings-override.enable=false\n'
+                                  'yarn.scheduler.capacity.root.llap.user-limit-factor=1\n'
+                                  'yarn.scheduler.capacity.root.llap.state=STOPPED\n'
+                                  'yarn.scheduler.capacity.root.llap.ordering-policy=fifo\n'
+                                  'yarn.scheduler.capacity.root.llap.minimum-user-limit-percent=100\n'
+                                  'yarn.scheduler.capacity.root.llap.maximum-capacity=40\n'
+                                  'yarn.scheduler.capacity.root.llap.capacity=40\n'
+                                  'yarn.scheduler.capacity.root.llap.acl_submit_applications=hive\n'
+                                  'yarn.scheduler.capacity.root.llap.acl_administer_queue=hive\n'
+                                  'yarn.scheduler.capacity.root.llap.maximum-am-resource-percent=1'
+
+          }
+        },
+        "hive-interactive-env":
+          {
+            'properties': {
+              'enable_hive_interactive': 'true',
+              'llap_queue_capacity':'40'
+            }
+          },
+        "hive-interactive-site":
+          {
+            'properties': {
+              'hive.llap.daemon.queue.name': 'default',
+              'hive.server2.tez.sessions.per.default.queue': '1',
+              'hive.tez.container.size': '341'
+
+            }
+          },
+        "hive-env":
+          {
+            'properties': {
+              'hive_user': 'hive'
+            }
+          },
+        "yarn-site": {
+          "properties": {
+            "yarn.scheduler.minimum-allocation-mb": "341",
+            "yarn.nodemanager.resource.memory-mb": "4096",
+            "yarn.nodemanager.resource.cpu-vcores": '1'
+          }
+        },
+        "tez-interactive-site": {
+          "properties": {
+            "tez.am.resource.memory.mb": "341"
+          }
+        }
+      }
+    }
+
+
+
+    # Services 16: YARN service with : (1). 'capacity scheduler' having 'llap' and 'default' queue at root level and
+    # (2). 'enable_hive_interactive' is ON and (3). configuration change detected for 'enable_hive_interactive'
+    services_16 = {
+      "services": [{
+        "StackServices": {
+          "service_name": "YARN",
+        },
+        "Versions": {
+          "stack_version": "2.5"
+        },
+        "components": [
+          {
+            "StackServiceComponents": {
+              "component_name": "NODEMANAGER",
+              "hostnames": ["c6401.ambari.apache.org"]
+            }
+          }
+        ]
+      }, {
+        "href": "/api/v1/stacks/HDP/versions/2.5/services/HIVE",
+        "StackServices": {
+          "service_name": "HIVE",
+          "service_version": "1.2.1.2.5",
+          "stack_name": "HDP",
+          "stack_version": "2.5"
+        },
+        "components": [
+          {
+            "href": "/api/v1/stacks/HDP/versions/2.5/services/HIVE/components/HIVE_SERVER_INTERACTIVE",
+            "StackServiceComponents": {
+              "advertise_version": "true",
+              "bulk_commands_display_name": "",
+              "bulk_commands_master_component_name": "",
+              "cardinality": "0-1",
+              "component_category": "MASTER",
+              "component_name": "HIVE_SERVER_INTERACTIVE",
+              "custom_commands": ["RESTART_LLAP"],
+              "decommission_allowed": "false",
+              "display_name": "HiveServer2 Interactive",
+              "has_bulk_commands_definition": "false",
+              "is_client": "false",
+              "is_master": "true",
+              "reassign_allowed": "false",
+              "recovery_enabled": "false",
+              "service_name": "HIVE",
+              "stack_name": "HDP",
+              "stack_version": "2.5",
+              "hostnames": ["c6401.ambari.apache.org"]
+            },
+            "dependencies": []
+          },
+          {
+            "StackServiceComponents": {
+              "advertise_version": "true",
+              "cardinality": "1+",
+              "component_category": "SLAVE",
+              "component_name": "NODEMANAGER",
+              "display_name": "NodeManager",
+              "is_client": "false",
+              "is_master": "false",
+              "hostnames": [
+                "c6403.ambari.apache.org"
+              ]
+            },
+            "dependencies": []
+          },
+        ]
+      }
+      ],
+      "changed-configurations": [
+        {
+          u'old_value': u'true',
+          u'type': u'hive-interactive-env',
+          u'name': u'enable_hive_interactive'
+        }
+      ],
+      "configurations": {
+        "capacity-scheduler": {
+          "properties": {
+            "capacity-scheduler": 'yarn.scheduler.capacity.root.default.maximum-capacity=60\n'
+                                  'yarn.scheduler.capacity.root.accessible-node-labels=*\n'
+                                  'yarn.scheduler.capacity.root.capacity=100\n'
+                                  'yarn.scheduler.capacity.root.queues=default,llap\n'
+                                  'yarn.scheduler.capacity.maximum-applications=10000\n'
+                                  'yarn.scheduler.capacity.root.default.user-limit-factor=1\n'
+                                  'yarn.scheduler.capacity.root.default.state=RUNNING\n'
+                                  'yarn.scheduler.capacity.maximum-am-resource-percent=1\n'
+                                  'yarn.scheduler.capacity.root.default.acl_submit_applications=*\n'
+                                  'yarn.scheduler.capacity.root.default.capacity=60\n'
+                                  'yarn.scheduler.capacity.root.acl_administer_queue=*\n'
+                                  'yarn.scheduler.capacity.node-locality-delay=40\n'
+                                  'yarn.scheduler.capacity.queue-mappings-override.enable=false\n'
+                                  'yarn.scheduler.capacity.root.llap.user-limit-factor=1\n'
+                                  'yarn.scheduler.capacity.root.llap.state=RUNNING\n'
+                                  'yarn.scheduler.capacity.root.llap.ordering-policy=fifo\n'
+                                  'yarn.scheduler.capacity.root.llap.minimum-user-limit-percent=100\n'
+                                  'yarn.scheduler.capacity.root.llap.maximum-capacity=40\n'
+                                  'yarn.scheduler.capacity.root.llap.capacity=40\n'
+                                  'yarn.scheduler.capacity.root.llap.acl_submit_applications=hive\n'
+                                  'yarn.scheduler.capacity.root.llap.acl_administer_queue=hive\n'
+                                  'yarn.scheduler.capacity.root.llap.maximum-am-resource-percent=1'
+
+          }
+        },
+        "hive-interactive-env":
+          {
+            'properties': {
+              'enable_hive_interactive': 'true',
+              'llap_queue_capacity':'40'
+            }
+          },
+        "hive-interactive-site":
+          {
+            'properties': {
+              'hive.llap.daemon.queue.name': 'llap',
+              'hive.server2.tez.sessions.per.default.queue': '1',
+              'hive.tez.container.size': '341'
+
+            }
+          },
+        "hive-env":
+          {
+            'properties': {
+              'hive_user': 'hive'
+            }
+          },
+        "yarn-site": {
+          "properties": {
+            "yarn.scheduler.minimum-allocation-mb": "341",
+            "yarn.nodemanager.resource.memory-mb": "4096",
+            "yarn.nodemanager.resource.cpu-vcores": '1'
+          }
+        },
+        "tez-interactive-site": {
+          "properties": {
+            "tez.am.resource.memory.mb": "341"
+          }
+        }
+      }
+    }
+
+
+    # Services 17: YARN service with : (1). 'capacity scheduler' having 'llap' and 'default' queue at root level and
+    # (2). 'enable_hive_interactive' is OFF and (3). configuration change detected for 'enable_hive_interactive'
+    services_17 = {
+      "services": [{
+        "StackServices": {
+          "service_name": "YARN",
+        },
+        "Versions": {
+          "stack_version": "2.5"
+        },
+        "components": [
+          {
+            "StackServiceComponents": {
+              "component_name": "NODEMANAGER",
+              "hostnames": ["c6401.ambari.apache.org"]
+            }
+          }
+        ]
+      }, {
+        "href": "/api/v1/stacks/HDP/versions/2.5/services/HIVE",
+        "StackServices": {
+          "service_name": "HIVE",
+          "service_version": "1.2.1.2.5",
+          "stack_name": "HDP",
+          "stack_version": "2.5"
+        },
+        "components": [
+          {
+            "href": "/api/v1/stacks/HDP/versions/2.5/services/HIVE/components/HIVE_SERVER_INTERACTIVE",
+            "StackServiceComponents": {
+              "advertise_version": "true",
+              "bulk_commands_display_name": "",
+              "bulk_commands_master_component_name": "",
+              "cardinality": "0-1",
+              "component_category": "MASTER",
+              "component_name": "HIVE_SERVER_INTERACTIVE",
+              "custom_commands": ["RESTART_LLAP"],
+              "decommission_allowed": "false",
+              "display_name": "HiveServer2 Interactive",
+              "has_bulk_commands_definition": "false",
+              "is_client": "false",
+              "is_master": "true",
+              "reassign_allowed": "false",
+              "recovery_enabled": "false",
+              "service_name": "HIVE",
+              "stack_name": "HDP",
+              "stack_version": "2.5",
+              "hostnames": ["c6401.ambari.apache.org"]
+            },
+            "dependencies": []
+          },
+          {
+            "StackServiceComponents": {
+              "advertise_version": "true",
+              "cardinality": "1+",
+              "component_category": "SLAVE",
+              "component_name": "NODEMANAGER",
+              "display_name": "NodeManager",
+              "is_client": "false",
+              "is_master": "false",
+              "hostnames": [
+                "c6403.ambari.apache.org"
+              ]
+            },
+            "dependencies": []
+          },
+        ]
+      }
+      ],
+      "changed-configurations": [
+        {
+          u'old_value': u'false',
+          u'type': u'hive-interactive-env',
+          u'name': u'enable_hive_interactive'
+        }
+      ],
+      "configurations": {
+        "capacity-scheduler": {
+          "properties": {
+            "capacity-scheduler": 'yarn.scheduler.capacity.root.default.maximum-capacity=60\n'
+                                  'yarn.scheduler.capacity.root.accessible-node-labels=*\n'
+                                  'yarn.scheduler.capacity.root.capacity=100\n'
+                                  'yarn.scheduler.capacity.root.queues=default,llap\n'
+                                  'yarn.scheduler.capacity.maximum-applications=10000\n'
+                                  'yarn.scheduler.capacity.root.default.user-limit-factor=1\n'
+                                  'yarn.scheduler.capacity.root.default.state=RUNNING\n'
+                                  'yarn.scheduler.capacity.maximum-am-resource-percent=1\n'
+                                  'yarn.scheduler.capacity.root.default.acl_submit_applications=*\n'
+                                  'yarn.scheduler.capacity.root.default.capacity=60\n'
+                                  'yarn.scheduler.capacity.root.acl_administer_queue=*\n'
+                                  'yarn.scheduler.capacity.node-locality-delay=40\n'
+                                  'yarn.scheduler.capacity.queue-mappings-override.enable=false\n'
+                                  'yarn.scheduler.capacity.root.llap.user-limit-factor=1\n'
+                                  'yarn.scheduler.capacity.root.llap.state=RUNNING\n'
+                                  'yarn.scheduler.capacity.root.llap.ordering-policy=fifo\n'
+                                  'yarn.scheduler.capacity.root.llap.minimum-user-limit-percent=100\n'
+                                  'yarn.scheduler.capacity.root.llap.maximum-capacity=40\n'
+                                  'yarn.scheduler.capacity.root.llap.capacity=40\n'
+                                  'yarn.scheduler.capacity.root.llap.acl_submit_applications=hive\n'
+                                  'yarn.scheduler.capacity.root.llap.acl_administer_queue=hive\n'
+                                  'yarn.scheduler.capacity.root.llap.maximum-am-resource-percent=1'
+
+          }
+        },
+        "hive-interactive-env":
+          {
+            'properties': {
+              'enable_hive_interactive': 'false',
+              'llap_queue_capacity':'40'
+            }
+          },
+        "hive-interactive-site":
+          {
+            'properties': {
+              'hive.llap.daemon.queue.name': 'llap',
+              'hive.server2.tez.sessions.per.default.queue': '1',
+              'hive.tez.container.size': '341'
+
+            }
+          },
+        "hive-env":
+          {
+            'properties': {
+              'hive_user': 'hive'
+            }
+          },
+        "yarn-site": {
+          "properties": {
+            "yarn.scheduler.minimum-allocation-mb": "341",
+            "yarn.nodemanager.resource.memory-mb": "4096",
+            "yarn.nodemanager.resource.cpu-vcores": '1'
+          }
+        },
+        "tez-interactive-site": {
+          "properties": {
+            "tez.am.resource.memory.mb": "341"
+          }
+        }
+      }
+    }
+
+
+
+    # Services 18: YARN service with : (1). 'capacity scheduler' having 'llap' and 'default' queue at root level and
+    # (2). 'enable_hive_interactive' is OFF and (3). configuration change NOT detected for 'enable_hive_interactive'
+    services_18 = {
+      "services": [{
+        "StackServices": {
+          "service_name": "YARN",
+        },
+        "Versions": {
+          "stack_version": "2.5"
+        },
+        "components": [
+          {
+            "StackServiceComponents": {
+              "component_name": "NODEMANAGER",
+              "hostnames": ["c6401.ambari.apache.org"]
+            }
+          }
+        ]
+      }, {
+        "href": "/api/v1/stacks/HDP/versions/2.5/services/HIVE",
+        "StackServices": {
+          "service_name": "HIVE",
+          "service_version": "1.2.1.2.5",
+          "stack_name": "HDP",
+          "stack_version": "2.5"
+        },
+        "components": [
+          {
+            "href": "/api/v1/stacks/HDP/versions/2.5/services/HIVE/components/HIVE_SERVER_INTERACTIVE",
+            "StackServiceComponents": {
+              "advertise_version": "true",
+              "bulk_commands_display_name": "",
+              "bulk_commands_master_component_name": "",
+              "cardinality": "0-1",
+              "component_category": "MASTER",
+              "component_name": "HIVE_SERVER_INTERACTIVE",
+              "custom_commands": ["RESTART_LLAP"],
+              "decommission_allowed": "false",
+              "display_name": "HiveServer2 Interactive",
+              "has_bulk_commands_definition": "false",
+              "is_client": "false",
+              "is_master": "true",
+              "reassign_allowed": "false",
+              "recovery_enabled": "false",
+              "service_name": "HIVE",
+              "stack_name": "HDP",
+              "stack_version": "2.5",
+              "hostnames": ["c6401.ambari.apache.org"]
+            },
+            "dependencies": []
+          },
+          {
+            "StackServiceComponents": {
+              "advertise_version": "true",
+              "cardinality": "1+",
+              "component_category": "SLAVE",
+              "component_name": "NODEMANAGER",
+              "display_name": "NodeManager",
+              "is_client": "false",
+              "is_master": "false",
+              "hostnames": [
+                "c6403.ambari.apache.org"
+              ]
+            },
+            "dependencies": []
+          },
+        ]
+      }
+      ],
+      "configurations": {
+        "capacity-scheduler": {
+          "properties": {
+            "capacity-scheduler": 'yarn.scheduler.capacity.root.default.maximum-capacity=60\n'
+                                  'yarn.scheduler.capacity.root.accessible-node-labels=*\n'
+                                  'yarn.scheduler.capacity.root.capacity=100\n'
+                                  'yarn.scheduler.capacity.root.queues=default,llap\n'
+                                  'yarn.scheduler.capacity.maximum-applications=10000\n'
+                                  'yarn.scheduler.capacity.root.default.user-limit-factor=1\n'
+                                  'yarn.scheduler.capacity.root.default.state=RUNNING\n'
+                                  'yarn.scheduler.capacity.maximum-am-resource-percent=1\n'
+                                  'yarn.scheduler.capacity.root.default.acl_submit_applications=*\n'
+                                  'yarn.scheduler.capacity.root.default.capacity=60\n'
+                                  'yarn.scheduler.capacity.root.acl_administer_queue=*\n'
+                                  'yarn.scheduler.capacity.node-locality-delay=40\n'
+                                  'yarn.scheduler.capacity.queue-mappings-override.enable=false\n'
+                                  'yarn.scheduler.capacity.root.llap.user-limit-factor=1\n'
+                                  'yarn.scheduler.capacity.root.llap.state=STOPPED\n'
+                                  'yarn.scheduler.capacity.root.llap.ordering-policy=fifo\n'
+                                  'yarn.scheduler.capacity.root.llap.minimum-user-limit-percent=100\n'
+                                  'yarn.scheduler.capacity.root.llap.maximum-capacity=40\n'
+                                  'yarn.scheduler.capacity.root.llap.capacity=40\n'
+                                  'yarn.scheduler.capacity.root.llap.acl_submit_applications=hive\n'
+                                  'yarn.scheduler.capacity.root.llap.acl_administer_queue=hive\n'
+                                  'yarn.scheduler.capacity.root.llap.maximum-am-resource-percent=1'
+
+          }
+        },
+        "hive-interactive-env":
+          {
+            'properties': {
+              'enable_hive_interactive': 'false',
+              'llap_queue_capacity':'40'
+            }
+          },
+        "hive-interactive-site":
+          {
+            'properties': {
+              'hive.llap.daemon.queue.name': 'llap',
+              'hive.server2.tez.sessions.per.default.queue': '1',
+              'hive.tez.container.size': '341'
+
+            }
+          },
+        "hive-env":
+          {
+            'properties': {
+              'hive_user': 'hive'
+            }
+          },
+        "yarn-site": {
+          "properties": {
+            "yarn.scheduler.minimum-allocation-mb": "341",
+            "yarn.nodemanager.resource.memory-mb": "4096",
+            "yarn.nodemanager.resource.cpu-vcores": '1'
+          }
+        },
+        "tez-interactive-site": {
+          "properties": {
+            "tez.am.resource.memory.mb": "341"
+          }
+        }
+      }
+    }
+
+
+    # Services 19: YARN service with : (1). 'capacity scheduler' having 'llap' and 'default' queue at root level and
+    # (2). 'enable_hive_interactive' is ON and (3). configuration change detected for 'enable_hive_interactive'
+    services_19 = {
+      "services": [{
+        "StackServices": {
+          "service_name": "YARN",
+        },
+        "Versions": {
+          "stack_version": "2.5"
+        },
+        "components": [
+          {
+            "StackServiceComponents": {
+              "component_name": "NODEMANAGER",
+              "hostnames": ["c6401.ambari.apache.org"]
+            }
+          }
+        ]
+      }, {
+        "href": "/api/v1/stacks/HDP/versions/2.5/services/HIVE",
+        "StackServices": {
+          "service_name": "HIVE",
+          "service_version": "1.2.1.2.5",
+          "stack_name": "HDP",
+          "stack_version": "2.5"
+        },
+        "components": [
+          {
+            "href": "/api/v1/stacks/HDP/versions/2.5/services/HIVE/components/HIVE_SERVER_INTERACTIVE",
+            "StackServiceComponents": {
+              "advertise_version": "true",
+              "bulk_commands_display_name": "",
+              "bulk_commands_master_component_name": "",
+              "cardinality": "0-1",
+              "component_category": "MASTER",
+              "component_name": "HIVE_SERVER_INTERACTIVE",
+              "custom_commands": ["RESTART_LLAP"],
+              "decommission_allowed": "false",
+              "display_name": "HiveServer2 Interactive",
+              "has_bulk_commands_definition": "false",
+              "is_client": "false",
+              "is_master": "true",
+              "reassign_allowed": "false",
+              "recovery_enabled": "false",
+              "service_name": "HIVE",
+              "stack_name": "HDP",
+              "stack_version": "2.5",
+              "hostnames": ["c6401.ambari.apache.org"]
+            },
+            "dependencies": []
+          },
+          {
+            "StackServiceComponents": {
+              "advertise_version": "true",
+              "cardinality": "1+",
+              "component_category": "SLAVE",
+              "component_name": "NODEMANAGER",
+              "display_name": "NodeManager",
+              "is_client": "false",
+              "is_master": "false",
+              "hostnames": [
+                "c6403.ambari.apache.org"
+              ]
+            },
+            "dependencies": []
+          },
+        ]
+      }
+      ],
+      "changed-configurations": [
+        {
+          u'old_value': u'2',
+          u'type': u'hive-interactive-env',
+          u'name': u'num_llap_nodes'
+        }
+      ],
+      "configurations": {
+        "capacity-scheduler": {
+          "properties": {
+            "capacity-scheduler": 'yarn.scheduler.capacity.root.default.maximum-capacity=60\n'
+                                  'yarn.scheduler.capacity.root.accessible-node-labels=*\n'
+                                  'yarn.scheduler.capacity.root.capacity=100\n'
+                                  'yarn.scheduler.capacity.root.queues=default,llap\n'
+                                  'yarn.scheduler.capacity.maximum-applications=10000\n'
+                                  'yarn.scheduler.capacity.root.default.user-limit-factor=1\n'
+                                  'yarn.scheduler.capacity.root.default.state=RUNNING\n'
+                                  'yarn.scheduler.capacity.maximum-am-resource-percent=1\n'
+                                  'yarn.scheduler.capacity.root.default.acl_submit_applications=*\n'
+                                  'yarn.scheduler.capacity.root.default.capacity=60\n'
+                                  'yarn.scheduler.capacity.root.acl_administer_queue=*\n'
+                                  'yarn.scheduler.capacity.node-locality-delay=40\n'
+                                  'yarn.scheduler.capacity.queue-mappings-override.enable=false\n'
+                                  'yarn.scheduler.capacity.root.llap.user-limit-factor=1\n'
+                                  'yarn.scheduler.capacity.root.llap.state=RUNNING\n'
+                                  'yarn.scheduler.capacity.root.llap.ordering-policy=fifo\n'
+                                  'yarn.scheduler.capacity.root.llap.minimum-user-limit-percent=100\n'
+                                  'yarn.scheduler.capacity.root.llap.maximum-capacity=40\n'
+                                  'yarn.scheduler.capacity.root.llap.capacity=40\n'
+                                  'yarn.scheduler.capacity.root.llap.acl_submit_applications=hive\n'
+                                  'yarn.scheduler.capacity.root.llap.acl_administer_queue=hive\n'
+                                  'yarn.scheduler.capacity.root.llap.maximum-am-resource-percent=1'
+
+          }
+        },
+        "hive-interactive-env":
+          {
+            'properties': {
+              'enable_hive_interactive': 'true',
+              'llap_queue_capacity':'40',
+              'num_llap_nodes': 1
+            }
+          },
+        "hive-interactive-site":
+          {
+            'properties': {
+              'hive.llap.daemon.queue.name': 'llap',
+              'hive.server2.tez.sessions.per.default.queue': '1',
+              'hive.tez.container.size': '341'
+
+            }
+          },
+        "hive-env":
+          {
+            'properties': {
+              'hive_user': 'hive'
+            }
+          },
+        "yarn-site": {
+          "properties": {
+            "yarn.scheduler.minimum-allocation-mb": "341",
+            "yarn.nodemanager.resource.memory-mb": "4096",
+            "yarn.nodemanager.resource.cpu-vcores": '1'
+          }
+        },
+        "tez-interactive-site": {
+          "properties": {
+            "tez.am.resource.memory.mb": "341"
+          }
+        }
+      }
+    }
+
+
+    # Services 20: YARN service with : (1). 'capacity scheduler' having 'llap' and 'default' queue at root level and
+    # (2). 'enable_hive_interactive' is ON and (3). configuration change detected for 'llap_queue_capacity'
+    # yarn.nodemanager.resource.memory-mb": "24576"
+    services_20 = {
+      "services": [{
+        "StackServices": {
+          "service_name": "YARN",
+        },
+        "Versions": {
+          "stack_version": "2.5"
+        },
+        "components": [
+          {
+            "StackServiceComponents": {
+              "component_name": "NODEMANAGER",
+              "hostnames": ["c6401.ambari.apache.org"]
+            }
+          }
+        ]
+      }, {
+        "href": "/api/v1/stacks/HDP/versions/2.5/services/HIVE",
+        "StackServices": {
+          "service_name": "HIVE",
+          "service_version": "1.2.1.2.5",
+          "stack_name": "HDP",
+          "stack_version": "2.5"
+        },
+        "components": [
+          {
+            "href": "/api/v1/stacks/HDP/versions/2.5/services/HIVE/components/HIVE_SERVER_INTERACTIVE",
+            "StackServiceComponents": {
+              "advertise_version": "true",
+              "bulk_commands_display_name": "",
+              "bulk_commands_master_component_name": "",
+              "cardinality": "0-1",
+              "component_category": "MASTER",
+              "component_name": "HIVE_SERVER_INTERACTIVE",
+              "custom_commands": ["RESTART_LLAP"],
+              "decommission_allowed": "false",
+              "display_name": "HiveServer2 Interactive",
+              "has_bulk_commands_definition": "false",
+              "is_client": "false",
+              "is_master": "true",
+              "reassign_allowed": "false",
+              "recovery_enabled": "false",
+              "service_name": "HIVE",
+              "stack_name": "HDP",
+              "stack_version": "2.5",
+              "hostnames": ["c6401.ambari.apache.org"]
+            },
+            "dependencies": []
+          },
+          {
+            "StackServiceComponents": {
+              "advertise_version": "true",
+              "cardinality": "1+",
+              "component_category": "SLAVE",
+              "component_name": "NODEMANAGER",
+              "display_name": "NodeManager",
+              "is_client": "false",
+              "is_master": "false",
+              "hostnames": [
+                "c6403.ambari.apache.org"
+              ]
+            },
+            "dependencies": []
+          },
+        ]
+      }
+      ],
+      "changed-configurations": [
+        {
+          u'old_value': u'25',
+          u'type': u'hive-interactive-env',
+          u'name': u'llap_queue_capacity'
+        }
+      ],
+      "configurations": {
+        "capacity-scheduler": {
+          "properties": {
+            "capacity-scheduler": 'yarn.scheduler.capacity.root.default.maximum-capacity=60\n'
+                                  'yarn.scheduler.capacity.root.accessible-node-labels=*\n'
+                                  'yarn.scheduler.capacity.root.capacity=100\n'
+                                  'yarn.scheduler.capacity.root.queues=default,llap\n'
+                                  'yarn.scheduler.capacity.maximum-applications=10000\n'
+                                  'yarn.scheduler.capacity.root.default.user-limit-factor=1\n'
+                                  'yarn.scheduler.capacity.root.default.state=RUNNING\n'
+                                  'yarn.scheduler.capacity.maximum-am-resource-percent=1\n'
+                                  'yarn.scheduler.capacity.root.default.acl_submit_applications=*\n'
+                                  'yarn.scheduler.capacity.root.default.capacity=60\n'
+                                  'yarn.scheduler.capacity.root.acl_administer_queue=*\n'
+                                  'yarn.scheduler.capacity.node-locality-delay=40\n'
+                                  'yarn.scheduler.capacity.queue-mappings-override.enable=false\n'
+                                  'yarn.scheduler.capacity.root.llap.user-limit-factor=1\n'
+                                  'yarn.scheduler.capacity.root.llap.state=RUNNING\n'
+                                  'yarn.scheduler.capacity.root.llap.ordering-policy=fifo\n'
+                                  'yarn.scheduler.capacity.root.llap.minimum-user-limit-percent=100\n'
+                                  'yarn.scheduler.capacity.root.llap.maximum-capacity=40\n'
+                                  'yarn.scheduler.capacity.root.llap.capacity=40\n'
+                                  'yarn.scheduler.capacity.root.llap.acl_submit_applications=hive\n'
+                                  'yarn.scheduler.capacity.root.llap.acl_administer_queue=hive\n'
+                                  'yarn.scheduler.capacity.root.llap.maximum-am-resource-percent=1'
+
+          }
+        },
+        "hive-interactive-env":
+          {
+            'properties': {
+              'enable_hive_interactive': 'true',
+              'llap_queue_capacity':'60'
+            }
+          },
+        "hive-interactive-site":
+          {
+            'properties': {
+              'hive.llap.daemon.queue.name': 'llap',
+              'hive.server2.tez.sessions.per.default.queue': '1',
+              'hive.tez.container.size': '341'
+
+            }
+          },
+        "hive-env":
+          {
+            'properties': {
+              'hive_user': 'hive'
+            }
+          },
+        "yarn-site": {
+          "properties": {
+            "yarn.scheduler.minimum-allocation-mb": "682",
+            "yarn.nodemanager.resource.memory-mb": "24576",
+            "yarn.nodemanager.resource.cpu-vcores": '2'
+          }
+        },
+        "tez-interactive-site": {
+          "properties": {
+            "tez.am.resource.memory.mb": "341"
+          }
+        }
+      }
+    }
+
+
 
 
 
@@ -1553,6 +2856,14 @@ class TestHDP25StackAdvisor(TestCase):
       }
     }
 
+    # Expected 'hive_interactive_site' when no modifications are done.
+    expected_hive_interactive_env_empty = {
+      "hive-interactive-env": {
+        "properties": {
+        }
+      }
+    }
+
     # Expected 'hive_interactive_env' with 'llap_queue_capacity' set to 20.
     expected_llap_queue_capacity_20 = '20'
 
@@ -1560,9 +2871,14 @@ class TestHDP25StackAdvisor(TestCase):
     expected_llap_queue_capacity_40 = '40'
 
 
+    # expected vals.
+    expected_visibility_false = {'visible': 'false'}
+    expected_visibility_true = {'visible': 'true'}
+
 
 
     #################### Tests #####################
+
 
 
     # Test 1 : (1). Only default queue exists in capacity-scheduler (2). enable_hive_interactive' is 'On' and
@@ -1570,7 +2886,6 @@ class TestHDP25StackAdvisor(TestCase):
     configurations = {
     }
     self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services_1, hosts)
-
     # Check output
     self.assertEquals(configurations['hive-interactive-site']['properties']['hive.llap.daemon.queue.name'],
                       expected_hive_interactive_site_llap['hive-interactive-site']['properties']['hive.llap.daemon.queue.name'])
@@ -1886,6 +3201,222 @@ class TestHDP25StackAdvisor(TestCase):
     services['ambari-server-properties'] = {'java.home': '/usr/jdk64/jdk1.7.3_23'}
     self.stackAdvisor.recommendAtlasConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
+
+
+    # Test 13: (1). 'default' and 'llap' (State : RUNNING) queue exists at root level in capacity-scheduler, and
+    #         (2). enable_hive_interactive' is 'on' and (3). configuration change detected for 'llap_queue_capacity'
+    #         Expected : Configurations values recommended for llap related configs.
+    configurations = {
+    }
+
+    # expected vals.
+    yarn_cont_mb_visibility = {'minimum': '682', 'maximum': '682'}
+    llap_io_mem_size_visibility = {'minimum': '0', 'maximum': '341'}
+    llap_num_executors_visibility = {'minimum': '1', 'maximum': '1'}
+    num_llap_nodes_visibility = {'minimum': '1', 'maximum': '1'}
+
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services_13, hosts)
+
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '682')
+    self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.llap.daemon.yarn.container.mb'], yarn_cont_mb_visibility)
+
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors'], '1')
+    self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.llap.daemon.num.executors'], llap_num_executors_visibility)
+
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size'], '341')
+    self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.llap.io.memory.size'], llap_io_mem_size_visibility)
+
+    self.assertEqual(configurations['hive-interactive-env']['properties']['num_llap_nodes'], '1')
+    self.assertEquals(configurations['hive-interactive-env']['property_attributes']['num_llap_nodes'], num_llap_nodes_visibility)
+
+    self.assertEqual(configurations['hive-interactive-env']['properties']['llap_heap_size'], '272')
+
+    self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_mb'], '341')
+    self.assertEquals(configurations['hive-interactive-env']['property_attributes']['llap_queue_capacity'], expected_visibility_true)
+
+
+
+    # Test 14: (1). 'default' and 'llap' (State : RUNNING) queue exists at root level in capacity-scheduler, and
+    #         (2). enable_hive_interactive' is 'on' and (3). configuration change detected for 'enable_hive_interactive'
+    #         Expected : Configurations values recommended for llap related configs.
+    configurations = {
+    }
+
+    # expected vals.
+    yarn_cont_mb_visibility = {'minimum': '682', 'maximum': '682'}
+    llap_io_mem_size_visibility = {'minimum': '0', 'maximum': '341'}
+    llap_num_executors_visibility = {'minimum': '1', 'maximum': '1'}
+    num_llap_nodes_visibility = {'minimum': '1', 'maximum': '1'}
+
+
+
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services_16, hosts)
+
+
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '682')
+    self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.llap.daemon.yarn.container.mb'], yarn_cont_mb_visibility)
+
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors'], '1')
+    self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.llap.daemon.num.executors'], llap_num_executors_visibility)
+
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size'], '341')
+    self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.llap.io.memory.size'], llap_io_mem_size_visibility)
+
+    self.assertEqual(configurations['hive-interactive-env']['properties']['num_llap_nodes'], '1')
+    self.assertEquals(configurations['hive-interactive-env']['property_attributes']['num_llap_nodes'], num_llap_nodes_visibility)
+
+    self.assertEqual(configurations['hive-interactive-env']['properties']['llap_heap_size'], '272')
+
+    self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_mb'], '341')
+    self.assertEquals(configurations['hive-interactive-env']['property_attributes']['llap_queue_capacity'], expected_visibility_true)
+
+
+
+    # Test 15: (1). 'default' and 'llap' (State : RUNNING) queue exists at root level in capacity-scheduler, and
+    #         (2). enable_hive_interactive' is 'OFF' and (3). configuration change detected for 'enable_hive_interactive'
+    #         Expected : Configurations values recommended for llap related configs.
+    configurations = {
+    }
+
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services_17, hosts)
+
+    cap_sched_output_dict = convertToDict(configurations['capacity-scheduler']['properties']['capacity-scheduler'])
+    cap_sched_expected_dict = convertToDict(expected_capacity_scheduler_llap_Stopped_size_0['properties']['capacity-scheduler'])
+    self.assertEqual(cap_sched_output_dict, cap_sched_expected_dict)
+
+    self.assertEquals(configurations['hive-interactive-site']['properties'],
+                      expected_hive_interactive_site_default['hive-interactive-site']['properties'])
+    self.assertTrue('hive-interactive-env' not in configurations)
+
+    self.assertTrue('property_attributes' not in configurations)
+
+
+    # Test 16: (1). 'default' and 'llap' (State : RUNNING) queue exists at root level in capacity-scheduler, and
+    #         (2). enable_hive_interactive' is 'OFF' and (3). configuration change NOT detected for 'enable_hive_interactive'
+    #         Expected : No changes.
+    configurations = {
+    }
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services_18, hosts)
+
+    self.assertEquals(configurations['capacity-scheduler']['properties'],
+                      expected_capacity_scheduler_empty['properties'])
+    self.assertEquals(configurations['hive-interactive-site']['properties'],
+                      expected_hive_interactive_site_empty['hive-interactive-site']['properties'])
+    self.assertTrue('hive-interactive-env' not in configurations)
+
+    self.assertTrue('property_attributes' not in configurations)
+
+
+    # Test 17: (1). 'default' and 'llap' (State : RUNNING) queue exists at root level in capacity-scheduler, and
+    #         (2). enable_hive_interactive' is 'on' and (3). configuration change detected for 'enable_hive_interactive'
+    #         Expected : Configurations values recommended for llap related configs.
+    configurations = {
+    }
+
+    # expected vals.
+    yarn_cont_mb_visibility = {'minimum': '682', 'maximum': '682'}
+    llap_io_mem_size_visibility = {'minimum': '0', 'maximum': '341'}
+    llap_num_executors_visibility = {'minimum': '1', 'maximum': '1'}
+
+
+
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services_19, hosts)
+
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '682')
+    self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.llap.daemon.yarn.container.mb'], yarn_cont_mb_visibility)
+
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors'], '1')
+    self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.llap.daemon.num.executors'], llap_num_executors_visibility)
+
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size'], '341')
+    self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.llap.io.memory.size'], llap_io_mem_size_visibility)
+
+    self.assertTrue('num_llap_nodes' not in configurations['hive-interactive-env']['properties'])
+
+    self.assertEqual(configurations['hive-interactive-env']['properties']['llap_heap_size'], '272')
+
+    self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_mb'], '341')
+
+    self.assertEquals(configurations['hive-interactive-env']['property_attributes']['llap_queue_capacity'], expected_visibility_true)
+
+
+
+
+
+    # Test 18: (1). 'default' and 'llap' (State : RUNNING) queue exists at root level in capacity-scheduler, and
+    #         (2). enable_hive_interactive' is 'on' and (3). configuration change detected for 'llap_queue_capacity'
+    #         Expected : Configurations values recommended for llap related configs.
+    configurations = {
+    }
+
+    # expected vals.
+    yarn_cont_mb_visibility = {'minimum': '12958', 'maximum': '12958'}
+    llap_io_mem_size_visibility = {'minimum': '0', 'maximum': '12617'}
+    llap_num_executors_visibility = {'minimum': '1', 'maximum': '8'}
+    num_llap_nodes_visibility = {'minimum': '1', 'maximum': '1'}
+
+
+
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services_20, hosts)
+
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '12958')
+    self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.llap.daemon.yarn.container.mb'], yarn_cont_mb_visibility)
+
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors'], '2')
+    self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.llap.daemon.num.executors'], llap_num_executors_visibility)
+
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size'], '12276')
+    self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.llap.io.memory.size'], llap_io_mem_size_visibility)
+
+    self.assertEqual(configurations['hive-interactive-env']['properties']['num_llap_nodes'], '1')
+    self.assertEquals(configurations['hive-interactive-env']['property_attributes']['num_llap_nodes'], num_llap_nodes_visibility)
+
+    self.assertEqual(configurations['hive-interactive-env']['properties']['llap_heap_size'], '545')
+
+    self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_mb'], '682')
+
+    self.assertEquals(configurations['hive-interactive-env']['property_attributes']['llap_queue_capacity'], expected_visibility_true)
+
+
+
+
+    # Test 19: (1). 'default' and 'llap' (State : RUNNING) queue exists at root level in capacity-scheduler, and
+    #         (2). enable_hive_interactive' is 'on' and (3). More than 2 queues exist.
+    #
+    configurations = {
+    }
+
+
+
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services_14, hosts)
+
+    self.assertEquals(configurations['capacity-scheduler']['properties'],
+                      expected_capacity_scheduler_empty['properties'])
+    self.assertEquals(configurations['hive-interactive-site']['properties'],
+                      expected_hive_interactive_site_empty['hive-interactive-site']['properties'])
+    self.assertEquals(configurations['hive-interactive-env']['properties'],
+                      expected_hive_interactive_env_empty['hive-interactive-env']['properties'])
+    self.assertEquals(configurations['hive-interactive-env']['property_attributes']['llap_queue_capacity'], expected_visibility_true)
+
+
+
+    # Test 20: YARN service with : (1). 'capacity scheduler' having 'llap' (state:stopped) and 'default' queue at
+    # root level and (2). 'enable_hive_interactive' is ON and (3). 'hive.llap.daemon.queue.name' == 'default'
+    #
+    configurations = {
+    }
+
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services_15, hosts)
+    self.assertEquals(configurations['capacity-scheduler']['properties'],
+                      expected_capacity_scheduler_empty['properties'])
+
+    self.assertEquals(configurations['hive-interactive-site']['properties'],
+                      expected_hive_interactive_site_empty['hive-interactive-site']['properties'])
+
+    self.assertEquals(configurations['hive-interactive-env']['properties'],
+                      expected_hive_interactive_env_empty['hive-interactive-env']['properties'])
+
+    self.assertEquals(configurations['hive-interactive-env']['property_attributes']['llap_queue_capacity'], expected_visibility_false)
 
 
 """
