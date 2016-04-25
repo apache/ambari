@@ -915,9 +915,9 @@ describe('App.WizardStep5Controller', function () {
     beforeEach(function () {
       c.setProperties({
         hosts: [
-          {host_name: 'h1', maintenance_state: 'OFF'},
-          {host_name: 'h2', maintenance_state: 'ON'},
-          {host_name: 'h3', maintenance_state: 'OFF'},
+          {host_name: 'h1', isInstalled: false},
+          {host_name: 'h2', isInstalled: true, maintenance_state: 'ON'},
+          {host_name: 'h3', isInstalled: true, maintenance_state: 'OFF'}
         ],
         selectedServicesMasters: [
           {component_name: 'c1', selectedHost: 'h1'},
@@ -929,35 +929,47 @@ describe('App.WizardStep5Controller', function () {
     });
 
     Em.A([
-        {
-          componentName: 'c1',
-          selectedHost: '   ',
-          m: 'empty hostName is invalid',
-          e: false
-        },
-        {
-          componentName: 'c1',
-          selectedHost: 'h4',
-          m: 'hostName not exists',
-          e: false
-        },
-        {
-          componentName: 'c1',
-          selectedHost: 'h2',
-          m: 'host maintainenance on',
-          e: false
-        },
-        {
-          componentName: 'c4',
-          selectedHost: 'h3',
-          m: 'component not exists on host',
-          e: true
-        }
-      ]).forEach(function (test) {
-        it(test.m, function () {
-          expect(c.isHostNameValid(test.componentName, test.selectedHost)).to.equal(test.e);
-        });
+      {
+        componentName: 'c1',
+        selectedHost: '   ',
+        m: 'empty hostName is invalid',
+        e: false
+      },
+      {
+        componentName: 'c1',
+        selectedHost: 'h4',
+        m: 'hostName not exists',
+        e: false
+      },
+      {
+        componentName: 'c1',
+        selectedHost: 'h1',
+        m: 'not installed host',
+        e: true
+      },
+      {
+        componentName: 'c1',
+        selectedHost: 'h2',
+        m: 'installed host with maintenance ON',
+        e: false
+      },
+      {
+        componentName: 'c1',
+        selectedHost: 'h3',
+        m: 'installed host with maintenance OFF',
+        e: true
+      },
+      {
+        componentName: 'c4',
+        selectedHost: 'h3',
+        m: 'component not exists on host',
+        e: true
+      }
+    ]).forEach(function (test) {
+      it(test.m, function () {
+        expect(c.isHostNameValid(test.componentName, test.selectedHost)).to.equal(test.e);
       });
+    });
 
   });
 

@@ -590,6 +590,7 @@ App.AssignMasterComponents = Em.Mixin.create({
           memory: _host.memory,
           disk_info: _host.disk_info,
           maintenance_state: _host.maintenance_state,
+          isInstalled: _host.isInstalled,
           host_info: Em.I18n.t('installer.step5.hostInfo').fmt(_host.name, numberUtils.bytesToSize(_host.memory, 1, 'parseFloat', 1024), _host.cpu)
         }));
       }
@@ -966,7 +967,7 @@ App.AssignMasterComponents = Em.Mixin.create({
    * <ul>
    *  <li>host name shouldn't be empty</li>
    *  <li>host should exist</li>
-   *  <li>host shouldn't be in maintainenance mode. If it's in Installer we set it to 'OFF'</li>
+   *  <li>if host installed maintenance state should be 'OFF'</li>
    *  <li>host should have only one component with <code>componentName</code></li>
    * </ul>
    * @param {string} componentName
@@ -976,8 +977,10 @@ App.AssignMasterComponents = Em.Mixin.create({
    */
   isHostNameValid: function (componentName, selectedHost) {
     return (selectedHost.trim() !== '') &&
-    (this.get('hosts').filterProperty('host_name', selectedHost).filterProperty('maintenance_state', 'OFF').length > 0) &&
-    (this.get('selectedServicesMasters').
+      (this.get('hosts').filter(function(host) {
+        return host.host_name === selectedHost && (!host.isInstalled || host.maintenance_state === 'OFF');
+      }).length > 0) &&
+      (this.get('selectedServicesMasters').
         filterProperty('component_name', componentName).
         mapProperty('selectedHost').
         filter(function (h) {
@@ -1004,7 +1007,7 @@ App.AssignMasterComponents = Em.Mixin.create({
       }
       if (component) {
         component.set("isHostNameValid", flag);
-        component.set("errorMessage", flag ? '' : Em.I18n.t('installer.step5.error.host.invalid'));
+        component.set("errorMessage", flag ? null : Em.I18n.t('installer.step5.error.host.invalid'));
       }
     }
   },
