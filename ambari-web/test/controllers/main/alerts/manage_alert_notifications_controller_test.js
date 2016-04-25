@@ -674,6 +674,13 @@ describe('App.ManageAlertNotificationsController', function () {
           view.set('controller.inputFields.name.value', 'test');
           expect(view.get('controller.inputFields.name.errorMsg')).to.equal('');
         });
+        
+        it('should check inputFields.name.value (5)', function () {
+         view.set('isEdit', true);
+         view.set('controller.inputFields.name.errorMsg', 'error');
+         view.set('controller.inputFields.name.value', 'test%');
+         expect(view.get('controller.inputFields.name.errorMsg')).to.equal(Em.I18n.t('form.validator.alertNotificationName'));
+       });
 
       });
 

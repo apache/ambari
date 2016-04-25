@@ -483,6 +483,9 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
             } else if (newName && newName !== this.get('currentName') && self.get('alertNotifications').mapProperty('name').contains(newName)) {
               this.set('nameError', true);
               errorMessage = Em.I18n.t('alerts.actions.manage_alert_notifications_popup.error.name.existed');
+            } else if (newName && !validator.isValidAlertNotificationName(newName)){
+              this.set('nameError', true);
+              errorMessage = Em.I18n.t('form.validator.alertNotificationName');
             } else {
               this.set('nameError', false);
             }
@@ -494,6 +497,9 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
             } else if (newName && self.get('alertNotifications').mapProperty('name').contains(newName)) {
               this.set('nameError', true);
               errorMessage = Em.I18n.t('alerts.actions.manage_alert_notifications_popup.error.name.existed');
+            } else if (newName && !validator.isValidAlertNotificationName(newName)){
+              this.set('nameError', true);
+              errorMessage = Em.I18n.t('form.validator.alertNotificationName');
             } else {
               this.set('nameError', false);
             }
