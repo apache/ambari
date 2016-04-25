@@ -119,7 +119,7 @@ class VersionBuilder:
     if manifest_element is None:
       raise Exception("Element 'manifest' is not found")
 
-    service_element = manifest_element.find("./service[@id='{0}']".format(id))
+    service_element = self.findByAttributeValue(manifest_element, "./service", "id", id)
 
     if service_element is None:
       service_element = ET.SubElement(manifest_element, "service")
@@ -138,7 +138,7 @@ class VersionBuilder:
     if manifest_element is None:
       raise Exception("'manifest' element is not found")
 
-    service_element = manifest_element.find("./service[@id='{0}']".format(manifest_id))
+    service_element = self.findByAttributeValue(manifest_element, "./service", "id", manifest_id)
     if service_element is None:
       raise Exception("Cannot add an available service for {0}; it's not on the manifest".format(manifest_id))
 
@@ -146,7 +146,7 @@ class VersionBuilder:
     if available_element is None:
       raise Exception("'available-services' is not found")
 
-    service_element = available_element.find("./service[@idref='{0}']".format(manifest_id))
+    service_element = self.findByAttributeValue(available_element, "./service", "idref", manifest_id)
 
     if service_element is not None:
       available_element.remove(service_element)
@@ -168,12 +168,15 @@ class VersionBuilder:
     if repo_parent is None:
       raise Exception("'repository-info' element is not found")
 
-    os_element = repo_parent.find("./os[@family='{0}']".format(os_family))
+    os_element = self.findByAttributeValue(repo_parent, "./os", "family", os_family)
     if os_element is None:
       os_element = ET.SubElement(repo_parent, 'os')
       os_element.set('family', os_family)
 
-    repo_element = os_element.find("./repo/[reponame='{0}']".format(repo_name))
+    if self.useNewSyntax():
+      repo_element = os_element.find("./repo/[reponame='{0}']".format(repo_name))
+    else:
+      repo_element = self.findByValue(os_element, "./repo/reponame", repo_name)
 
     if repo_element is not None:
       os_element.remove(repo_element)
@@ -202,7 +205,32 @@ class VersionBuilder:
 
     except:
       raise Exception("xmllint command does not appear to be available")
+
+  def findByAttributeValue(self, root, element, attribute, value):
+    if self.useNewSyntax():
+      return root.find("./{0}[@{1}='{2}']".format(element, attribute, value))
+    else:
+      for node in root.findall("{0}".format(element)):
+        if node.attrib[attribute] == value:
+          return node
+      return None;
   
+  def findByValue(self, root, element, value):
+    for node in root.findall("{0}".format(element)):
+      if node.text == value:
+        return node
+    return None
+
+  def useNewSyntax(self):
+     #Python2.7 and newer shipps with ElementTree that supports a different syntax for XPath queries
+     major=sys.version_info[0]
+     minor=sys.version_info[1]
+     if major > 3 :
+       return True
+     elif major == 2:
+       return (minor > 6)
+     else:
+       return False;
 
 def update_simple(parent, name, value):
   """
