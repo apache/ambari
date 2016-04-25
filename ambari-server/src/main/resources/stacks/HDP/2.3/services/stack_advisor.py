@@ -748,6 +748,8 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     notifier_plugin_property = "storm.topology.submission.notifier.plugin.class"
     if notifier_plugin_property in services["configurations"]["storm-site"]["properties"]:
       notifier_plugin_value = services["configurations"]["storm-site"]["properties"][notifier_plugin_property]
+      if notifier_plugin_value is None:
+        notifier_plugin_value = " "
     else:
       notifier_plugin_value = " "
 
