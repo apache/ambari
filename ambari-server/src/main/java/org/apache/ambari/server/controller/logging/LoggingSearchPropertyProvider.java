@@ -36,6 +36,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class LoggingSearchPropertyProvider implements PropertyProvider {
 
@@ -52,6 +53,8 @@ public class LoggingSearchPropertyProvider implements PropertyProvider {
   private static final String HOST_QUERY_PARAMETER_NAME = "host";
 
   private static final String PAGE_SIZE_QUERY_PARAMETER_NAME = "pageSize";
+
+  private static AtomicInteger errorLogCounterForLogSearchConnectionExceptions = new AtomicInteger(0);
 
   private final LoggingRequestHelperFactory requestHelperFactory;
 
@@ -126,7 +129,8 @@ public class LoggingSearchPropertyProvider implements PropertyProvider {
             // add the logging metadata for this host component
             resource.setProperty("logging", loggingInfo);
           } else {
-            LOG.error("Error occurred while making request to LogSearch service, unable to populate logging properties on this resource");
+            Utils.logErrorMessageWithCounter(LOG, errorLogCounterForLogSearchConnectionExceptions,
+              "Error occurred while making request to LogSearch service, unable to populate logging properties on this resource");
           }
         }
       }

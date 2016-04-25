@@ -46,6 +46,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Convenience class to handle the connection details of a LogSearch query request.
@@ -66,6 +67,8 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
   private static final String LOGSEARCH_GET_LOG_LEVELS_PATH = "/service/dashboard/getLogLevelCounts";
 
   private static final String LOGSEARCH_ADMIN_CREDENTIAL_NAME = "logsearch.admin.credential";
+
+  private static AtomicInteger errorLogCounterForLogSearchConnectionExceptions = new AtomicInteger(0);
 
   private final String hostName;
 
@@ -112,11 +115,13 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
       return logQueryResponseReader.readValue(stringReader);
 
     } catch (Exception e) {
-      LOG.error("Error occurred while trying to connect to the LogSearch service...", e);
+      Utils.logErrorMessageWithThrowableWithCounter(LOG, errorLogCounterForLogSearchConnectionExceptions,
+        "Error occurred while trying to connect to the LogSearch service...", e);
     }
 
     return null;
   }
+
 
   private void setupCredentials(HttpURLConnection httpURLConnection) {
     final String logSearchAdminUser =
@@ -217,7 +222,8 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
       return logQueryResponseReader.readValue(stringReader);
 
     } catch (Exception e) {
-      LOG.error("Error occurred while trying to connect to the LogSearch service...", e);
+      Utils.logErrorMessageWithThrowableWithCounter(LOG, errorLogCounterForLogSearchConnectionExceptions,
+        "Error occurred while trying to connect to the LogSearch service...", e);
     }
 
     return null;
@@ -291,10 +297,10 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
       if (credential == null) {
         LOG.debug("LogSearch credentials could not be obtained from store.");
       } else {
-        LOG.error("LogSearch credentials were not of the correct type, this is likely an error in configuration, credential type is = " + credential.getClass().getName());
+        LOG.debug("LogSearch credentials were not of the correct type, this is likely an error in configuration, credential type is = " + credential.getClass().getName());
       }
     } catch (AmbariException ambariException) {
-      LOG.error("Error encountered while trying to obtain LogSearch admin credentials.", ambariException);
+      LOG.debug("Error encountered while trying to obtain LogSearch admin credentials.", ambariException);
     }
 
     return null;
