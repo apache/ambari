@@ -241,6 +241,7 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
   saveMasterComponentHosts: function() {
     var controller = App.router.get(this.get('content.controllerName'));
     controller.saveMasterComponentHosts(this);
+    controller.loadMasterComponentHosts();
   },
 
   /**

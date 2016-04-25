@@ -318,6 +318,7 @@ describe('App.AssignMasterOnStep7Controller', function () {
       },
       mock = {
         saveMasterComponentHosts: Em.K,
+        loadMasterComponentHosts: Em.K,
         setDBProperty: Em.K
       },
       config = Em.Object.create({
@@ -329,6 +330,7 @@ describe('App.AssignMasterOnStep7Controller', function () {
       sinon.stub(popup, 'hide');
       sinon.stub(App.router, 'get').returns(mock);
       sinon.stub(mock, 'saveMasterComponentHosts');
+      sinon.stub(mock, 'loadMasterComponentHosts');
       sinon.stub(mock, 'setDBProperty');
       view.reopen({
         content: Em.Object.create({
@@ -373,11 +375,16 @@ describe('App.AssignMasterOnStep7Controller', function () {
       App.router.get.restore();
       popup.hide.restore();
       mock.saveMasterComponentHosts.restore();
+      mock.loadMasterComponentHosts.restore();
       mock.setDBProperty.restore();
     });
 
     it("saveMasterComponentHosts should be called", function() {
       expect(mock.saveMasterComponentHosts.calledOnce).to.be.true;
+    });
+
+    it("saveMasterComponentHosts should be called", function() {
+      expect(mock.loadMasterComponentHosts.calledOnce).to.be.true;
     });
 
     it("configActionComponent should be set", function() {
