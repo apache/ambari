@@ -60,7 +60,6 @@ import com.google.gson.JsonParser;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
-
 /**
  * Upgrade catalog for version 2.2.2.
  */
@@ -124,6 +123,10 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
     "${Hadoop:service\\" +
     "\\u003dNameNode,name\\" +
     "\\u003dFSNamesystem.CorruptBlocks}";
+
+  public final static String HBASE_SITE_HBASE_COPROCESSOR_MASTER_CLASSES = "hbase.coprocessor.master.classes";
+  public final static String HBASE_SITE_HBASE_COPROCESSOR_REGION_CLASSES = "hbase.coprocessor.region.classes";
+  public final static String HBASE_SITE_HBASE_COPROCESSOR_REGIONSERVER_CLASSES = "hbase.coprocessor.regionserver.classes";
 
 
   // ----- Constructors ------------------------------------------------------
@@ -189,6 +192,7 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
     updateHbaseEnvConfig();
     updateCorruptedReplicaWidget();
     updateZookeeperConfigs();
+    updateHBASEConfigs();
     createNewSliderConfigVersion();
     initializeStromAndKafkaWidgets();
   }
@@ -227,6 +231,54 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
           updateConfigurationPropertiesForCluster(cluster, "zookeeper-env", updates, true, false);
         }
 
+      }
+    }
+  }
+
+  protected void updateHBASEConfigs() throws  AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Map<String, Cluster> clusterMap = getCheckedClusterMap(ambariManagementController.getClusters());
+
+    for (final Cluster cluster : clusterMap.values()) {
+      Config hbaseSite = cluster.getDesiredConfigByType("hbase-site");
+      boolean rangerHbasePluginEnabled = isConfigEnabled(cluster,
+        AbstractUpgradeCatalog.CONFIGURATION_TYPE_RANGER_HBASE_PLUGIN_PROPERTIES,
+        AbstractUpgradeCatalog.PROPERTY_RANGER_HBASE_PLUGIN_ENABLED);
+      if (hbaseSite != null && rangerHbasePluginEnabled) {
+        Map<String, String> updates = new HashMap<>();
+        String stackVersion = cluster.getCurrentStackVersion().getStackVersion();
+        if (VersionUtils.compareVersions(stackVersion, "2.2") == 0) {
+          if (hbaseSite.getProperties().containsKey(HBASE_SITE_HBASE_COPROCESSOR_MASTER_CLASSES)) {
+            updates.put(HBASE_SITE_HBASE_COPROCESSOR_MASTER_CLASSES,
+              "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor");
+          }
+          if (hbaseSite.getProperties().containsKey(HBASE_SITE_HBASE_COPROCESSOR_REGION_CLASSES)) {
+            updates.put(HBASE_SITE_HBASE_COPROCESSOR_REGION_CLASSES,
+              "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor");
+          }
+          if (hbaseSite.getProperties().containsKey(HBASE_SITE_HBASE_COPROCESSOR_REGIONSERVER_CLASSES)) {
+            updates.put(HBASE_SITE_HBASE_COPROCESSOR_REGIONSERVER_CLASSES,
+              "org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint," +
+                "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor");
+          }
+        } else if (VersionUtils.compareVersions(stackVersion, "2.3") == 0) {
+          if (hbaseSite.getProperties().containsKey(HBASE_SITE_HBASE_COPROCESSOR_MASTER_CLASSES)) {
+            updates.put(HBASE_SITE_HBASE_COPROCESSOR_MASTER_CLASSES,
+              "org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor ");
+          }
+          if (hbaseSite.getProperties().containsKey(HBASE_SITE_HBASE_COPROCESSOR_REGION_CLASSES)) {
+            updates.put(HBASE_SITE_HBASE_COPROCESSOR_REGION_CLASSES,
+              "org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor");
+          }
+          if (hbaseSite.getProperties().containsKey(HBASE_SITE_HBASE_COPROCESSOR_REGIONSERVER_CLASSES)) {
+            updates.put(HBASE_SITE_HBASE_COPROCESSOR_REGIONSERVER_CLASSES,
+              "org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint," +
+                "org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor");
+          }
+        }
+        if (! updates.isEmpty()) {
+          updateConfigurationPropertiesForCluster(cluster, "hbase-site", updates, true, false);
+        }
       }
     }
   }

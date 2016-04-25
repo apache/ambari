@@ -91,11 +91,13 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
 
   private static final String CONFIGURATION_TYPE_HIVE_SITE = "hive-site";
   private static final String CONFIGURATION_TYPE_HDFS_SITE = "hdfs-site";
-  private static final String CONFIGURATION_TYPE_RANGER_KNOX_PLUGIN_PROPERTIES = "ranger-knox-plugin-properties";
+  public static final String CONFIGURATION_TYPE_RANGER_HBASE_PLUGIN_PROPERTIES = "ranger-hbase-plugin-properties";
+  public static final String CONFIGURATION_TYPE_RANGER_KNOX_PLUGIN_PROPERTIES = "ranger-knox-plugin-properties";
 
   private static final String PROPERTY_DFS_NAMESERVICES = "dfs.nameservices";
   private static final String PROPERTY_HIVE_SERVER2_AUTHENTICATION = "hive.server2.authentication";
-  private static final String PROPERTY_RANGER_KNOX_PLUGIN_ENABLED = "ranger-knox-plugin-enabled";
+  public static final String PROPERTY_RANGER_HBASE_PLUGIN_ENABLED = "ranger-hbase-plugin-enabled";
+  public static final String PROPERTY_RANGER_KNOX_PLUGIN_ENABLED = "ranger-knox-plugin-enabled";
 
   private static final Logger LOG = LoggerFactory.getLogger
     (AbstractUpgradeCatalog.class);
@@ -192,18 +194,18 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
     return doc;
   }
 
-  protected static boolean isRangerKnoxPluginEnabled(Cluster cluster) {
-    boolean isRangerKnoxPluginEnabled = false;
+  protected static boolean isConfigEnabled(Cluster cluster, String configType, String propertyName) {
+    boolean isRangerPluginEnabled = false;
     if (cluster != null) {
-      Config rangerKnoxPluginProperties = cluster.getDesiredConfigByType(CONFIGURATION_TYPE_RANGER_KNOX_PLUGIN_PROPERTIES);
-      if (rangerKnoxPluginProperties != null) {
-        String rangerKnoxPluginEnabled = rangerKnoxPluginProperties.getProperties().get(PROPERTY_RANGER_KNOX_PLUGIN_ENABLED);
-        if (StringUtils.isNotEmpty(rangerKnoxPluginEnabled)) {
-          isRangerKnoxPluginEnabled =  "yes".equalsIgnoreCase(rangerKnoxPluginEnabled);
+      Config rangerPluginProperties = cluster.getDesiredConfigByType(configType);
+      if (rangerPluginProperties != null) {
+        String rangerPluginEnabled = rangerPluginProperties.getProperties().get(propertyName);
+        if (StringUtils.isNotEmpty(rangerPluginEnabled)) {
+          isRangerPluginEnabled =  "yes".equalsIgnoreCase(rangerPluginEnabled);
         }
       }
     }
-    return isRangerKnoxPluginEnabled;
+    return isRangerPluginEnabled;
   }
 
   protected static class VersionComparator implements Comparator<UpgradeCatalog> {
