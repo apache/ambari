@@ -24,8 +24,8 @@ limitations under the License.
     </layout>
   </appender>
 
-  <appender name="rolling_file_json" class="org.apache.log4j.RollingFileAppender">
-    <param name="file" value="{{logsearch_log_dir}}/logsearch.json"/>
+  <appender name="rolling_file" class="org.apache.log4j.RollingFileAppender">
+    <param name="file" value="{{logsearch_log_dir}}/logsearch.log"/>
     <param name="append" value="true"/>
     <param name="maxFileSize" value="10MB"/>
     <param name="maxBackupIndex" value="10"/>
@@ -34,8 +34,8 @@ limitations under the License.
     </layout>
   </appender>
 
-  <appender name="audit_rolling_file_json" class="org.apache.log4j.RollingFileAppender">
-    <param name="file" value="{{logsearch_log_dir}}/logsearch-audit.json"/>
+  <appender name="audit_rolling_file" class="org.apache.log4j.RollingFileAppender">
+    <param name="file" value="{{logsearch_log_dir}}/logsearch-audit.log"/>
     <param name="append" value="true"/>
     <param name="maxFileSize" value="10MB"/>
     <param name="maxBackupIndex" value="10"/>
@@ -44,8 +44,8 @@ limitations under the License.
     </layout>
   </appender>
 
-  <appender name="performance_analyzer_json" class="org.apache.log4j.RollingFileAppender">
-    <param name="file" value="{{logsearch_log_dir}}/logsearch-performance.json"/>
+  <appender name="performance_analyzer" class="org.apache.log4j.RollingFileAppender">
+    <param name="file" value="{{logsearch_log_dir}}/logsearch-performance.log"/>
     <param name="Threshold" value="info"/>
     <param name="append" value="true"/>
     <param name="maxFileSize" value="10MB"/>
@@ -56,22 +56,20 @@ limitations under the License.
   </appender>
 
   <logger name="org.apache.ambari.logsearch.audit" additivity="true">
-    <appender-ref ref="audit_rolling_file_json"/>
+    <appender-ref ref="audit_rolling_file"/>
   </logger>
 
   <logger name="org.apache.ambari.logsearch.performance" additivity="false">
-    <appender-ref ref="performance_analyzer_json"/>
+    <appender-ref ref="performance_analyzer"/>
   </logger>
 
   <category name="org.apache.ambari.logsearch" additivity="false">
     <priority value="info"/>
-    <appender-ref ref="rolling_file_json"/>
+    <appender-ref ref="rolling_file"/>
   </category>
 
   <root>
     <priority value="warn"/>
-    <!-- <appender-ref ref="console" /> -->
-    <!--<appender-ref ref="rolling_file" /> -->
-    <appender-ref ref="rolling_file_json"/>
+    <appender-ref ref="rolling_file"/>
   </root>
 </log4j:configuration>

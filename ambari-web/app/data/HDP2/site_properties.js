@@ -2171,13 +2171,6 @@ var hdp2properties = [
     "category": "Advanced logsearch-site",
     "index": 8
   },
-  {
-    "name": "logsearch.logfeeder.include.default.level",
-    "serviceName": "LOGSEARCH",
-    "filename": "logsearch-site.xml",
-    "category": "Advanced logsearch-site",
-    "index": 9
-  }
   /*logsearch-solr-env*/
   {
     "name": "logsearch_solr_datadir",
