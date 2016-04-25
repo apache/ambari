@@ -22,12 +22,17 @@ package org.apache.ambari.logsearch.util;
 import java.util.Collection;
 import java.util.Locale;
 
+import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class SolrUtil {
   static final Logger logger = Logger.getLogger("org.apache.ambari.logsearch");
+  
+  @Autowired
+  StringUtil stringUtil;
 
   public String setField(String fieldName, String value) {
     if (value == null || value.trim().length() == 0) {
@@ -79,107 +84,199 @@ public class SolrUtil {
   }
 
   /**
-   * @param fuzzyStr
+   * @param wildCard
    * @param string
    * @param searchList
    * @return
    */
-  public String orList(String fieldName, String[] valueList, String fuzzyStr) {
+  public String orList(String fieldName, String[] valueList, String wildCard) {
     if (valueList == null || valueList.length == 0) {
       return "";
     }
-    String expr = "";
+    
+    if(stringUtil.isEmpty(wildCard)){
+      wildCard = "";
+    }
+    
+    StringBuilder expr = new StringBuilder();
     int count = -1;
     for (String value : valueList) {
       count++;
       if (count > 0) {
-        expr += " OR ";
+        expr.append(" OR ");
       }
-      expr += fieldName + ":*" + value + "*";
+      
+      expr.append( fieldName + ":"+ wildCard + value + wildCard);
 
     }
     if (valueList.length == 0) {
-      return expr;
+      return expr.toString();
     } else {
       return "(" + expr + ")";
     }
 
   }
-  
+
   /**
-   * @param fuzzyStr
+   * @param wildCard
    * @param string
    * @param searchList
    * @return
    */
-  public String orList(String fieldName, String[] valueList) {
+  public String andList(String fieldName, String[] valueList, String wildCard) {
     if (valueList == null || valueList.length == 0) {
       return "";
     }
-    String expr = "";
+    
+    if(stringUtil.isEmpty(wildCard)){
+      wildCard = "";
+    }
+    
+    StringBuilder expr = new StringBuilder();
     int count = -1;
     for (String value : valueList) {
       count++;
       if (count > 0) {
-        expr += " OR ";
+        expr.append(" AND ");
       }
-      expr += fieldName + ":" + value;
+      
+      expr.append( fieldName + ":"+ wildCard + value + wildCard);
 
     }
     if (valueList.length == 0) {
-      return expr;
+      return expr.toString();
     } else {
       return "(" + expr + ")";
     }
 
   }
-  
-  
 
   /**
-   * @param fuzzyStr
-   * @param string
-   * @param searchList
+   * Copied from Solr ClientUtils.escapeQueryChars and removed escaping *
+   * 
+   * @param s
    * @return
    */
-  public String andList(String fieldName, String[] valueList, String fuzzyStr) {
-    if (valueList == null || valueList.length == 0) {
-      return "";
-    }
-    String expr = "";
-    int count = -1;
-    for (String value : valueList) {
-      count++;
-      if (count > 0) {
-        expr += " AND ";
+  public String escapeQueryChars(String s) {
+    StringBuilder sb = new StringBuilder();
+    int prev = 0;
+    if (s != null) {
+      for (int i = 0; i < s.length(); i++) {
+        char c = s.charAt(i);
+        int ic = (int)c;
+        if( ic == 10 ) {
+          if( prev != 13) {
+            //Let's insert \r
+            sb.append('\\');
+            sb.append((char)13);
+          }
+        }
+        // Note: Remove || c == '*'
+        // These characters are part of the query syntax and must be escaped
+        if (c == '\\' || c == '+' || c == '-' || c == '!' || c == '('
+            || c == ')' || c == ':' || c == '^' || c == '[' || c == ']'
+            || c == '\"' || c == '{' || c == '}' || c == '~' || c == '?'
+            || c == '|' || c == '&' || c == ';' || c == '/'
+            || Character.isWhitespace(c)) {
+          sb.append('\\');
+        }
+        sb.append(c);
       }
-      expr += fieldName + ":*" + value + "*";
     }
-    if (valueList.length == 0) {
-      return expr;
-    } else {
-      return "(" + expr + ")";
+    return sb.toString();
+  }
+
+  public String escapeForWhiteSpaceTokenizer(String search) {
+    if (search == null) {
+      return null;
+    }
+    String newString = search.trim();
+    String newSearch = escapeQueryChars(newString);
+    boolean isSingleWord = true;
+    for (int i = 0; i < search.length(); i++) {
+      if (Character.isWhitespace(search.charAt(i))) {
+        isSingleWord = false;
+      }
+    }
+    if (!isSingleWord) {
+      newSearch = "\"" + newSearch + "\"";
     }
 
+    return newSearch;
+  }
+
+  public String escapeForStandardTokenizer(String search) {
+    if (search == null) {
+      return null;
+    }
+    String newString = search.trim();
+    String newSearch = escapeQueryChars(newString);
+    boolean isSingleWord = true;
+    for (int i = 0; i < search.length(); i++) {
+      if (Character.isWhitespace(search.charAt(i))) {
+        isSingleWord = false;
+      }
+    }
+    if (!isSingleWord) {
+      newSearch = "\"" + newSearch + "\"";
+    }
+
+    return newSearch;
+  }
+
+  public String escapeForKeyTokenizer(String search) {
+    if (search.startsWith("*") && search.endsWith("*")
+        && !stringUtil.isEmpty(search)) {
+      // Remove the * from both the sides
+      if (search.length() > 1) {
+        search = search.substring(1, search.length() - 1);
+      }else{
+        //search string have only * 
+        search="";
+      }
+    }
+    // Escape the string
+    search = escapeQueryChars(search);
+
+    // Add the *
+    return "*" + search + "*";
+  }
+
+  /**
+   * This is a special case scenario to handle log_message for wild card
+   * scenarios
+   * 
+   * @param search
+   * @return
+   */
+  public String escapeForLogMessage(String field, String search) {
+    if (search.startsWith("*") && search.endsWith("*")) {
+      field = LogSearchConstants.SOLR_KEY_LOG_MESSAGE;
+      search = escapeForKeyTokenizer(search);
+    } else {
+      // Use whitespace index
+      field = LogSearchConstants.SOLR_LOG_MESSAGE;
+      search = escapeForWhiteSpaceTokenizer(search);
+    }
+    return field + ":" + search;
   }
 
   public String makeSolrSearchString(String search) {
     String newString = search.trim();
     String newSearch = newString.replaceAll(
-        "(?=[]\\[+&|!(){}^~*=$@%?:.\\\\])", "\\\\");
+        "(?=[]\\[+&|!(){},:\"^~/=$@%?:.\\\\])", "\\\\");
     newSearch = newSearch.replace("\n", "*");
     newSearch = newSearch.replace("\t", "*");
     newSearch = newSearch.replace("\r", "*");
-    newSearch = newSearch.replace(" ", "\\ ");
     newSearch = newSearch.replace("**", "*");
     newSearch = newSearch.replace("***", "*");
     return "*" + newSearch + "*";
   }
-  
+
   public String makeSolrSearchStringWithoutAsterisk(String search) {
     String newString = search.trim();
     String newSearch = newString.replaceAll(
-        "(?=[]\\[+&|!(){}^\"~=$@%?:.\\\\])", "\\\\");
+        "(?=[]\\[+&|!(){}^\"~=/$@%?:.\\\\])", "\\\\");
     newSearch = newSearch.replace("\n", "*");
     newSearch = newSearch.replace("\t", "*");
     newSearch = newSearch.replace("\r", "*");
@@ -190,13 +287,13 @@ public class SolrUtil {
   }
 
   public String makeSearcableString(String search) {
-    if(search == null || search.isEmpty())
+    if (search == null || search.isEmpty()){
       return "";
+    }
     String newSearch = search.replaceAll("[\\t\\n\\r]", " ");
-    newSearch = newSearch.replaceAll(
-        "(?=[]\\[+&|!(){}^~*=$/@%?:.\\\\-])", "\\\\");
+    newSearch = newSearch.replaceAll("(?=[]\\[+&|!(){}^~*=$/@%?:.\\\\-])",
+        "\\\\");
 
     return newSearch.replace(" ", "\\ ");
   }
-
 }

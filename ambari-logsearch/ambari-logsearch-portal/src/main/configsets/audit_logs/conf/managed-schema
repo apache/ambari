@@ -47,6 +47,7 @@
   <fieldType name="text_ws" class="solr.TextField" positionIncrementGap="100">
     <analyzer>
       <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+      <filter class="solr.LowerCaseFilterFactory"/>
     </analyzer>
   </fieldType>
   <fieldType name="n_gram" class="solr.TextField" sortMissingLast="true" omitNorms="true">
@@ -103,17 +104,13 @@
   <field name="req_self_id" type="key_lower_case" multiValued="false"/>
   <field name="event_md5" type="string" multiValued="false"/>
   <field name="file" type="key_lower_case" multiValued="false"/>
-  <field name="log_message" type="key_lower_case" multiValued="false" omitNorms="false"/>
+  <field name="log_message" type="text_std_token_lower_case" multiValued="false" omitNorms="false"/>
   <field name="logfile_line_number" type="tint" omitNorms="false"/>
-  <field name="message" type="text_std_token_lower_case" indexed="true" stored="true"/>
+  <!-- <field name="message" type="text_std_token_lower_case" indexed="true" stored="true"/> -->
   <field name="message_md5" type="string" multiValued="false"/>
   <field name="type" type="key_lower_case" multiValued="false"/>
   
   <dynamicField name='ngram_*' type="n_gram" multiValued="false" stored="false"/>
   <dynamicField name='std_*' type="text_std_token_lower_case" multiValued="false" stored="false"/>
-  
-  <!-- Copying everything text -->
-  <copyField source="*" dest="text" maxChars="25000" />
-  
   
 </schema>

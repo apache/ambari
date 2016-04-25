@@ -37,10 +37,11 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
 public class VCountList extends VList {
   private static final long serialVersionUID = 1L;
 
-  List<VCount> vCounts = new ArrayList<VCount>();
+  protected List<VCount> vCounts;
 
   public VCountList() {
     super();
+    vCounts = new ArrayList<VCount>();
   }
 
   public VCountList(List<VCount> logList) {

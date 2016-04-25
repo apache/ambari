@@ -50,6 +50,10 @@ public class LogsearchFileAuthenticationProvider extends LogsearchAbstractAuthen
 
   @Override
   public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+    if (!this.isEnable()) {
+      logger.debug("File auth is disabled.");
+      return authentication;
+    }
     String username = authentication.getName();
     String password = (String) authentication.getCredentials();
     if (stringUtil.isEmpty(username)) {

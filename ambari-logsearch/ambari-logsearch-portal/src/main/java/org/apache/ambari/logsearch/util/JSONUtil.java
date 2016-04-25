@@ -131,6 +131,9 @@ public class JSONUtil {
 
   @SuppressWarnings("unchecked")
   public List<HashMap<String, Object>> jsonToMapObjectList(String jsonStr) {
+    if (stringUtil.isEmpty(jsonStr)) {
+      return null;
+    }
     ObjectMapper mapper = new ObjectMapper();
     try {
       Object tempObject = mapper.readValue(jsonStr,
@@ -211,7 +214,7 @@ public class JSONUtil {
    * @param outputFile
    * @param beautify
    */
-  public void writeJSONInFile(String jsonStr, File outputFile,
+  public synchronized void writeJSONInFile(String jsonStr, File outputFile,
                               boolean beautify) {
     FileWriter fileWriter = null;
     if (outputFile == null) {

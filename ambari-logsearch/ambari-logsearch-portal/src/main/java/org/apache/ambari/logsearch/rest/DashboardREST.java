@@ -114,7 +114,7 @@ public class DashboardREST {
     searchCriteria
       .addParam("startDate", request.getParameter("start_time"));
     searchCriteria.addParam("endDate", request.getParameter("end_time"));
-    return logMgr.getComponenetsCount(searchCriteria);
+    return logMgr.getComponentsCount(searchCriteria);
   }
 
   @GET
@@ -188,7 +188,6 @@ public class DashboardREST {
     searchCriteria.addParam("hostLogFile", request.getParameter("host"));
     searchCriteria.addParam("compLogFile",
       request.getParameter("component"));
-    searchCriteria.addParam("unit", request.getParameter("unit"));
     searchCriteria.addParam("format", request.getParameter("format"));
     searchCriteria.addParam("utcOffset", request.getParameter("utcOffset"));
     return logMgr.exportToTextFile(searchCriteria);
@@ -250,14 +249,6 @@ public class DashboardREST {
   }
 
   @GET
-  @Path("/getCurrentPageOfKeywordSearch")
-  @Produces({"application/json"})
-  public String getCurrentPageOfKeywordSearch(@Context HttpServletRequest request) {
-    String requestDate = (String) request.getParameter("requestDate");
-    return logMgr.getCurrentPageOfKeywordSearch(requestDate);
-  }
-
-  @GET
   @Path("/getAnyGraphData")
   @Produces({"application/json"})
   public String getAnyGraphData(@Context HttpServletRequest request) {
@@ -287,17 +278,6 @@ public class DashboardREST {
     searchCriteria.addParam("numberRows",
       request.getParameter("numberRows"));
     return logMgr.getAfterBeforeLogs(searchCriteria);
-  }
-
-  @GET
-  @Path("/getSuggestoins")
-  @Produces({"application/json"})
-  public String getSuggestions(@Context HttpServletRequest request) {
-    SearchCriteria searchCriteria = new SearchCriteria();
-    searchCriteria.addParam("fieldName", request.getParameter("fieldName"));
-    searchCriteria.addParam("valueToSuggest",
-      request.getParameter("valueToSuggest"));
-    return logMgr.getSuggestions(searchCriteria);
   }
 
   @GET

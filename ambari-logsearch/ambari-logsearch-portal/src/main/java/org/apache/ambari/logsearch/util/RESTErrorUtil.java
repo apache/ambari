@@ -34,9 +34,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class RESTErrorUtil {
 
-  static final Logger logger = Logger.getLogger("org.apache.ambari.logsearch");
-
-  public static final String TRUE = "true";
+  private static Logger logger = Logger.getLogger(RESTErrorUtil.class);
 
   public WebApplicationException createRESTException(VResponse response) {
     return createRESTException(response, HttpServletResponse.SC_BAD_REQUEST);

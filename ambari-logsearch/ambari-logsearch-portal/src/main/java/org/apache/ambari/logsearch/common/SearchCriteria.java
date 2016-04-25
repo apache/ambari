@@ -181,13 +181,12 @@ public class SearchCriteria {
         .getParameter("eMessage")));
     this.addParam(LogSearchConstants.BUNDLE_ID, request.getParameter(LogSearchConstants.BUNDLE_ID));
     this.addParam("host_name", request.getParameter("host_name"));
-    this.addParam("components_name", request.getParameter("components_name"));
+    this.addParam("component_name", request.getParameter("component_name"));
+    this.addParam("file_name", request.getParameter("file_name"));
     this.addParam("startDate", request.getParameter("start_time"));
     this.addParam("endDate", request.getParameter("end_time"));
     this.addParam("excludeQuery", StringEscapeUtils.unescapeXml(
       request.getParameter("excludeQuery")));
-    this.addParam("includeQuery", StringEscapeUtils.unescapeXml(
-      request.getParameter("includeQuery")));
     this.addParam("includeQuery", StringEscapeUtils.unescapeXml(
       request.getParameter("includeQuery")));
   }
@@ -221,9 +220,9 @@ public class SearchCriteria {
    */
   public void addParam(String name, Object value) {
     String solrValue = PropertiesUtil.getProperty(name);
-    if (solrValue == null || solrValue.isEmpty())
+    if (solrValue == null || solrValue.isEmpty()){
       paramList.put(name, value);
-    else {
+    }else {
       try {
         String propertyFieldMappings[] = solrValue.split(",");
         HashMap<String, String> propertyFieldValue = new HashMap<String, String>();

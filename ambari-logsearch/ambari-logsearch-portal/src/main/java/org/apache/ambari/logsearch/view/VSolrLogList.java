@@ -35,10 +35,11 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
 public class VSolrLogList extends VList {
   private static final long serialVersionUID = 1L;
 
-  SolrDocumentList logList = new SolrDocumentList();
+  protected SolrDocumentList logList;
 
   public VSolrLogList() {
     super();
+    logList = new SolrDocumentList();
   }
 
   public VSolrLogList(SolrDocumentList logList) {
@@ -52,8 +53,9 @@ public class VSolrLogList extends VList {
 
   @Override
   public int getListSize() {
-    if (logList != null)
+    if (logList != null){
       return logList.size();
+    }
     return 0;
   }
 

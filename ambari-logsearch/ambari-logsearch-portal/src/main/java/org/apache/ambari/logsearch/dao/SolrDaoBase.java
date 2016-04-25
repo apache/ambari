@@ -27,8 +27,11 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.ambari.logsearch.common.LogsearchContextUtil;
+import org.apache.ambari.logsearch.common.MessageEnums;
+import org.apache.ambari.logsearch.manager.MgrBase.LOG_TYPE;
 import org.apache.ambari.logsearch.util.ConfigUtil;
 import org.apache.ambari.logsearch.util.JSONUtil;
+import org.apache.ambari.logsearch.util.RESTErrorUtil;
 import org.apache.ambari.logsearch.util.StringUtil;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrClient;
@@ -55,16 +58,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 public abstract class SolrDaoBase {
   static private Logger logger = Logger.getLogger(SolrDaoBase.class);
 
-  static Logger logPerfomance = Logger
+  private static Logger logPerformance = Logger
     .getLogger("org.apache.ambari.logsearch.performance");
 
   private static final String ROUTER_FIELD = "_router_field_";
+ 
+  protected LOG_TYPE logType;
 
   @Autowired
   StringUtil stringUtil;
 
   @Autowired
   JSONUtil jsonUtil;
+  
+  @Autowired
+  RESTErrorUtil restErrorUtil;
 
   String collectionName = null;
   // List<String> collectionList = new ArrayList<String>();
@@ -81,6 +89,13 @@ public abstract class SolrDaoBase {
   private boolean populateFieldsThreadActive = false;
 
   int SETUP_RETRY_SECOND = 30;
+  
+  private boolean isZkhost=false;//by default its false
+  
+  //set logtype
+  public SolrDaoBase(LOG_TYPE logType) {
+    this.logType = logType;
+  }
 
   public SolrClient connectToSolr(String url, String zkHosts,
                                   String collection) throws Exception {
@@ -94,6 +109,7 @@ public abstract class SolrDaoBase {
         + solrDetail);
     }
     if (!stringUtil.isEmpty(zkHosts)) {
+      isZkhost=true;
       solrDetail = "zkHosts=" + zkHosts + ", collection=" + collection;
       logger.info("Using zookeepr. " + solrDetail);
       solrClouldClient = new CloudSolrClient(zkHosts);
@@ -170,51 +186,48 @@ public abstract class SolrDaoBase {
     return status;
   }
 
-  public void setupCollections(final String splitMode,
-                               final String configName, final int numberOfShards,
-                               final int replicationFactor) throws Exception {
-    setup_status = createCollectionsIfNeeded(splitMode, configName,
-      numberOfShards, replicationFactor);
-    logger.info("Setup status for " + collectionName + " is "
-      + setup_status);
-    if (!setup_status) {
-      // Start a background thread to do setup
-      Thread setupThread = new Thread("setup_collection_"
-        + collectionName) {
-        @Override
-        public void run() {
-          logger.info("Started monitoring thread to check availability of Solr server. collection="
-            + collectionName);
-          int retryCount = 0;
-          while (true) {
-            try {
-              Thread.sleep(SETUP_RETRY_SECOND);
-              retryCount++;
-              setup_status = createCollectionsIfNeeded(splitMode,
-                configName, numberOfShards,
-                replicationFactor);
-              if (setup_status) {
-                logger.info("Setup for collection "
-                  + collectionName
-                  + " is successful. Exiting setup retry thread");
+  public void setupCollections(final String splitMode, final String configName,
+      final int numberOfShards, final int replicationFactor) throws Exception {
+    if (isZkhost) {
+      setup_status = createCollectionsIfNeeded(splitMode, configName,
+          numberOfShards, replicationFactor);
+      logger.info("Setup status for " + collectionName + " is " + setup_status);
+      if (!setup_status) {
+        // Start a background thread to do setup
+        Thread setupThread = new Thread("setup_collection_" + collectionName) {
+          @Override
+          public void run() {
+            logger
+                .info("Started monitoring thread to check availability of Solr server. collection="
+                    + collectionName);
+            int retryCount = 0;
+            while (true) {
+              try {
+                Thread.sleep(SETUP_RETRY_SECOND);
+                retryCount++;
+                setup_status = createCollectionsIfNeeded(splitMode, configName,
+                    numberOfShards, replicationFactor);
+                if (setup_status) {
+                  logger.info("Setup for collection " + collectionName
+                      + " is successful. Exiting setup retry thread");
+                  break;
+                }
+              } catch (InterruptedException sleepInterrupted) {
+                logger.info("Sleep interrupted while setting up collection "
+                    + collectionName);
                 break;
+              } catch (Exception e) {
+                logger
+                    .error("Error setting up collection=" + collectionName, e);
               }
-            } catch (InterruptedException sleepInterrupted) {
-              logger.info("Sleep interrupted while setting up collection "
-                + collectionName);
-              break;
-            } catch (Exception e) {
-              logger.error("Error setting up collection="
-                + collectionName, e);
+              logger.error("Error setting collection. collection="
+                  + collectionName + ", retryCount=" + retryCount);
             }
-            logger.error("Error setting collection. collection="
-              + collectionName + ", retryCount=" + retryCount);
           }
-        }
-
-      };
-      setupThread.setDaemon(true);
-      setupThread.start();
+        };
+        setupThread.setDaemon(true);
+        setupThread.start();
+      }
     }
     populateSchemaFields();
   }
@@ -257,7 +270,7 @@ public abstract class SolrDaoBase {
       return allCollectionList;
     } catch (SolrException e) {
       logger.error(e);
-      return null;
+      return new ArrayList<String>();
     }
   }
 
@@ -420,7 +433,7 @@ public abstract class SolrDaoBase {
   }
 
   public QueryResponse process(SolrQuery solrQuery)
-    throws SolrServerException, IOException, SolrException {
+    throws SolrServerException, IOException {
     if (solrClient != null) {
       String event = solrQuery.get("event");
       solrQuery.remove("event");
@@ -428,7 +441,7 @@ public abstract class SolrDaoBase {
         METHOD.POST);
 
       if (event != null && !"/getLiveLogsCount".equalsIgnoreCase(event)) {
-        logPerfomance.info("\n Username :- "
+        logPerformance.info("\n Username :- "
           + LogsearchContextUtil.getCurrentUsername()
           + " Event :- " + event + " SolrQuery :- " + solrQuery
           + "\nQuery Time Execution :- "
@@ -438,14 +451,16 @@ public abstract class SolrDaoBase {
       }
       return queryResponse;
     } else {
-      return null;
+      throw restErrorUtil.createRESTException(
+          "Solr configuration improper for " + logType.getLabel() +" logs",
+          MessageEnums.ERROR_SYSTEM);
     }
   }
 
   public UpdateResponse addDocs(SolrInputDocument doc)
     throws SolrServerException, IOException, SolrException {
     UpdateResponse updateResoponse = solrClient.add(doc);
-    logPerfomance.info("\n Username :- "
+    logPerformance.info("\n Username :- "
       + LogsearchContextUtil.getCurrentUsername()
       + " Update Time Execution :- " + updateResoponse.getQTime()
       + " Total Time Elapsed is :- "
@@ -458,7 +473,7 @@ public abstract class SolrDaoBase {
     IOException, SolrException {
     UpdateResponse updateResoponse = solrClient.deleteByQuery(query);
     solrClient.commit();
-    logPerfomance.info("\n Username :- "
+    logPerformance.info("\n Username :- "
       + LogsearchContextUtil.getCurrentUsername()
       + " Remove Time Execution :- " + updateResoponse.getQTime()
       + " Total Time Elapsed is :- "
@@ -481,7 +496,7 @@ public abstract class SolrDaoBase {
           int retryCount = 0;
           while (true) {
             try {
-              Thread.sleep(SETUP_RETRY_SECOND);
+              Thread.sleep(SETUP_RETRY_SECOND * 1000);
               retryCount++;
               boolean _result = _populateSchemaFields();
               if (_result) {

@@ -22,14 +22,14 @@ import java.util.List;
 
 public class VSummary {
 
-  List<VHost> hosts;
-  String levels;
-  String format;
-  String numberLogs;
-  String from;
-  String to;
-  String includeString;
-  String excludeString;
+  protected List<VHost> hosts;
+  protected String levels;
+  protected String format;
+  protected String numberLogs;
+  protected String from;
+  protected String to;
+  protected String includeString;
+  protected String excludeString;
   
   public VSummary(){
     includeString = "-";

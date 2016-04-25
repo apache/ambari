@@ -35,7 +35,7 @@ public class LogsearchLogoutSuccessHandler extends SimpleUrlLogoutSuccessHandler
     @Override
     public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
       throws IOException, ServletException {
-  logger.debug("AtlasLogoutSuccessHandler ::: onLogoutSuccess");
+  logger.debug("LogsearchLogoutSuccessHandler ::: onLogoutSuccess");
 //  super.onLogoutSuccess(request, response, authentication);
   response.sendRedirect("/login.jsp");
     }

@@ -31,3 +31,8 @@ solr.audit_logs.split_interval_mins={{audit_logs_collection_splits_interval_mins
 solr.audit_logs.shards={{logsearch_numshards}}
 solr.audit_logs.replication_factor={{logsearch_repfactor}}
 
+#Authentication settings
+#Note: Simple will be supported only if both file and ldap is disabled.
+logsearch.auth.file.enable={{logsearch_auth_file_enable}}
+logsearch.auth.ldap.enable={{logsearch_auth_ldap_enable}}
+logsearch.auth.simple.enable={{logsearch_auth_simple_enable}}

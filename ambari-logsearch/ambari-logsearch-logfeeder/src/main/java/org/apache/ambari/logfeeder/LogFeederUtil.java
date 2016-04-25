@@ -33,9 +33,11 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.TimeZone;
 
 import org.apache.ambari.logfeeder.filter.Filter;
 import org.apache.ambari.logfeeder.input.Input;
+import org.apache.ambari.logfeeder.logconfig.LogFeederConstants;
 import org.apache.ambari.logfeeder.mapper.Mapper;
 import org.apache.ambari.logfeeder.output.Output;
 import org.apache.commons.lang3.StringUtils;
@@ -58,6 +60,7 @@ public class LogFeederUtil {
 
   final static int HASH_SEED = 31174077;
   public final static String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS";
+  public final static String SOLR_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
   static Gson gson = new GsonBuilder().setDateFormat(DATE_FORMAT).create();
 
   static Properties props;
@@ -324,6 +327,9 @@ public class LogFeederUtil {
   }
 
   public static Map<String, Object> toJSONObject(String jsonStr) {
+    if(jsonStr==null || jsonStr.trim().isEmpty()){
+      return new HashMap<String, Object>();
+    }
     Type type = new TypeToken<Map<String, Object>>() {
     }.getType();
     return gson.fromJson(jsonStr, type);
@@ -380,7 +386,8 @@ public class LogFeederUtil {
 
   public static String getDate(String timeStampStr) {
     try {
-      DateFormat sdf = new SimpleDateFormat(DATE_FORMAT);
+      DateFormat sdf = new SimpleDateFormat(SOLR_DATE_FORMAT);
+      sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
       Date netDate = (new Date(Long.parseLong(timeStampStr)));
       return sdf.format(netDate);
     } catch (Exception ex) {
@@ -468,7 +475,7 @@ public class LogFeederUtil {
               return true;
             }
           }
-          if (value.equalsIgnoreCase("ALL")) {
+          if (value.equalsIgnoreCase(LogFeederConstants.ALL)) {
             return true;
           }
         }

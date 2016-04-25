@@ -279,8 +279,7 @@ define(['require',
 				
 			}
 			var data = this.getCheckedHierarchyData();
-			console.log(data);
-			this.vent.trigger("tree:search",{treeParams : JSON.stringify(data)});
+			this.vent.trigger("tree:search",{treeParams : JSON.stringify(_.pluck(data,"h"))});
 		},
 		getCheckedHierarchyData : function(){
 			var data=[];
@@ -305,7 +304,7 @@ define(['require',
 				this.$('.tree  input[type="checkbox"]').prop({"checked":false,"indeterminate":false});
 			var data = this.getCheckedHierarchyData();
 			this.params.treeParams = _.extend({},data);
-			this.vent.trigger("tree:search",{treeParams : JSON.stringify(data)});
+			this.vent.trigger("tree:search",{treeParams : JSON.stringify(_.pluck(data,"h"))});
 			
 		},
 		onSearchHostClick : function(e){

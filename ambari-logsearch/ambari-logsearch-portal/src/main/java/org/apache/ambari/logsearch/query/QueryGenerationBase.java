@@ -31,10 +31,9 @@ import org.apache.ambari.logsearch.util.StringUtil;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrQuery.ORDER;
-import org.codehaus.jettison.json.JSONArray;
-import org.codehaus.jettison.json.JSONException;
-import org.codehaus.jettison.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import com.google.gson.Gson;
 
 public abstract class QueryGenerationBase extends QueryBase {
 
@@ -49,76 +48,92 @@ public abstract class QueryGenerationBase extends QueryBase {
   @Autowired
   JSONUtil jsonUtil;
 
+  public static enum CONDITION {
+    OR, AND
+  }
+
   // SetMethods to apply to the query
   public void setFilterClauseForSolrSearchableString(SolrQuery solrQuery,
-                                                     String commaSepratedString, String booleanOperator, String opr,
-                                                     String messageField) {
-    String operator = opr;
+      String commaSepratedString, CONDITION condition, String operator,
+      String messageField) {
     String filterQuery = "";
-    if (commaSepratedString != null && !commaSepratedString.isEmpty()) {
-
-      String queryMsg = "";
-      operator = operator == null ? "" : operator;
+    if (!stringUtil.isEmpty(commaSepratedString)) {
+      StringBuilder queryMsg = new StringBuilder();
+      operator = (operator == null ? LogSearchConstants.NO_OPERATOR : operator);
       String[] msgList = commaSepratedString
-        .split(LogSearchConstants.I_E_SEPRATOR);
+          .split(LogSearchConstants.I_E_SEPRATOR);
       int count = 0;
       for (String temp : msgList) {
         count += 1;
-
-        queryMsg = queryMsg + " " + operator + messageField + ":"
-          + solrUtil.makeSolrSearchString(temp);
-        if (msgList.length > count)
-          queryMsg = queryMsg + " " + booleanOperator + " ";
+        if (LogSearchConstants.SOLR_LOG_MESSAGE.equalsIgnoreCase(messageField)) {
+          queryMsg.append(" " + operator
+              + solrUtil.escapeForLogMessage(messageField, temp));
+        } else {
+          temp = solrUtil.escapeForStandardTokenizer(temp);
+          if(temp.startsWith("\"") && temp.endsWith("\"")){
+            temp = temp.substring(1);
+            temp = temp.substring(0, temp.length()-1);
+          }
+          temp = "*" + temp + "*";
+          queryMsg.append(" " + operator + messageField + ":"
+              + temp);
+        }
+        if (msgList.length > count){
+          queryMsg.append(" " + condition.name() + " ");
+        }
       }
-      filterQuery = queryMsg;
+      filterQuery = queryMsg.toString();
       solrQuery.addFilterQuery(filterQuery);
       logger.debug("Filter added :- " + filterQuery);
     }
   }
 
   public void setFilterClauseWithFieldName(SolrQuery solrQuery,
-                                           String commaSepratedString, String field, String operator,
-                                           String condition) {
-    if (commaSepratedString != null && !commaSepratedString.isEmpty()) {
-      String[] arrayOfSepratedString = commaSepratedString.split(",");
-      String filterQuery;
-      if ("OR".equals(condition))
-        filterQuery = solrUtil.orList(operator + field,
-          arrayOfSepratedString, "");
-      else
-        filterQuery = solrUtil.andList(operator + field,
-          arrayOfSepratedString, "");
-      solrQuery.addFilterQuery(filterQuery);
-      logger.debug("Filter added :- " + filterQuery);
+      String commaSepratedString, String field, String operator,
+      CONDITION condition) {
+    if (!stringUtil.isEmpty(commaSepratedString)) {
+      String[] arrayOfSepratedString = commaSepratedString.split(LogSearchConstants.LIST_SEPARATOR);
+      String filterQuery = null;
+      if (CONDITION.OR.equals(condition)) {
+        filterQuery = solrUtil.orList(operator + field, arrayOfSepratedString,"");
+      } else if (CONDITION.AND.equals(condition)) {
+        filterQuery = solrUtil.andList(operator + field, arrayOfSepratedString,"");
+      }else{
+        logger.warn("Not a valid condition :" + condition.name());
+      }
+      //add
+      if(!stringUtil.isEmpty(filterQuery)){
+        solrQuery.addFilterQuery(filterQuery);
+        logger.debug("Filter added :- " + filterQuery);
+      }
+
     }
   }
 
   public void setSortOrderDefaultServiceLog(SolrQuery solrQuery,
-                                            SearchCriteria searchCriteria) {
+      SearchCriteria searchCriteria) {
     List<SolrQuery.SortClause> defaultSort = new ArrayList<SolrQuery.SortClause>();
     if (searchCriteria.getSortBy() != null
-      && (!searchCriteria.getSortBy().isEmpty())) {
+        && (!searchCriteria.getSortBy().isEmpty())) {
       ORDER order = SolrQuery.ORDER.asc;
       if (searchCriteria.getSortType() != null
-        && (!searchCriteria.getSortType().isEmpty())
-        && !searchCriteria.getSortType().equalsIgnoreCase(
-        order.toString())) {
+          && (!searchCriteria.getSortType().isEmpty())
+          && !searchCriteria.getSortType().equalsIgnoreCase(order.toString())) {
         order = SolrQuery.ORDER.desc;
       }
-      SolrQuery.SortClause logtimeSortClause = SolrQuery.SortClause
-        .create(searchCriteria.getSortBy(), order);
+      SolrQuery.SortClause logtimeSortClause = SolrQuery.SortClause.create(
+          searchCriteria.getSortBy(), order);
       defaultSort.add(logtimeSortClause);
     } else {
       // by default sorting by logtime and sequence number in
       // Descending order
-      SolrQuery.SortClause logtimeSortClause = SolrQuery.SortClause
-        .create(LogSearchConstants.LOGTIME, SolrQuery.ORDER.desc);
-
+      SolrQuery.SortClause logtimeSortClause = SolrQuery.SortClause.create(
+          LogSearchConstants.LOGTIME, SolrQuery.ORDER.desc);
       defaultSort.add(logtimeSortClause);
 
     }
     SolrQuery.SortClause sequenceNumberSortClause = SolrQuery.SortClause
-      .create(LogSearchConstants.SEQUNCE_ID, SolrQuery.ORDER.desc);
+        .create(LogSearchConstants.SEQUNCE_ID, SolrQuery.ORDER.desc);
     defaultSort.add(sequenceNumberSortClause);
     solrQuery.setSorts(defaultSort);
     logger.debug("Sort Order :-" + defaultSort);
@@ -157,20 +172,28 @@ public abstract class QueryGenerationBase extends QueryBase {
   // Example of list can be [logtime desc,seq_num desc]
   @SuppressWarnings("unchecked")
   public void setMultipleSortOrder(SolrQuery solrQuery,
-                                   SearchCriteria searchCriteria) {
+      SearchCriteria searchCriteria) {
     List<SolrQuery.SortClause> sort = new ArrayList<SolrQuery.SortClause>();
-    List<String> sortList = (List<String>) searchCriteria
-      .getParamValue("sort");
-    for (String sortOrder : sortList) {
-      String sortByAndOrder[] = sortOrder.split(" ");
-      ORDER order = sortByAndOrder[1].contains("asc") ? SolrQuery.ORDER.asc
-        : SolrQuery.ORDER.desc;
-      SolrQuery.SortClause sortOrder2 = SolrQuery.SortClause.create(
-        sortByAndOrder[0], order);
-      sort.add(sortOrder2);
-      logger.debug("Sort Order :-" + sort);
+    List<String> sortList = (List<String>) searchCriteria.getParamValue("sort");
+    if (sortList != null) {
+      for (String sortOrder : sortList) {
+        if (!stringUtil.isEmpty(sortOrder)) {
+          String sortByAndOrder[] = sortOrder.split(" ");
+          if (sortByAndOrder.length > 1) {
+            ORDER order = sortByAndOrder[1].contains("asc") ? SolrQuery.ORDER.asc
+                : SolrQuery.ORDER.desc;
+            SolrQuery.SortClause solrSortClause = SolrQuery.SortClause.create(
+                sortByAndOrder[0], order);
+            sort.add(solrSortClause);
+            logger.debug("Sort Order :-" + sort);
+          } else {
+            // log warn
+            logger.warn("Not a valid sort Clause " + sortOrder);
+          }
+        }
+      }
+      solrQuery.setSorts(sort);
     }
-    solrQuery.setSorts(sort);
   }
 
   public void setSingleIncludeFilter(SolrQuery solrQuery, String filterType,
@@ -184,25 +207,26 @@ public abstract class QueryGenerationBase extends QueryBase {
   }
 
   public void setSingleExcludeFilter(SolrQuery solrQuery, String filterType,
-                                     String filterValue) {
-    if (filterType != null && !filterType.isEmpty() && filterValue != null
-      && !filterValue.isEmpty()) {
-      String filterQuery = "-"
-        + buildFilterQuery(filterType, filterValue);
+      String filterValue) {
+    if (!stringUtil.isEmpty(filterValue) && !stringUtil.isEmpty(filterType)) {
+      String filterQuery = LogSearchConstants.MINUS_OPERATOR
+          + buildFilterQuery(filterType, filterValue);
       solrQuery.addFilterQuery(filterQuery);
       logger.debug("Filter added :- " + filterQuery);
     }
   }
 
   public void setSingleRangeFilter(SolrQuery solrQuery, String filterType,
-                                   String filterFromValue, String filterToValue) {
-    if (filterType != null && !filterType.isEmpty()
-      && filterFromValue != null && !filterFromValue.isEmpty()
-      && filterToValue != null && !filterToValue.isEmpty()) {
+      String filterFromValue, String filterToValue) {
+    if (!stringUtil.isEmpty(filterToValue)
+        && !stringUtil.isEmpty(filterType)
+        && !stringUtil.isEmpty(filterFromValue)) {
       String filterQuery = buildInclusiveRangeFilterQuery(filterType,
-        filterFromValue, filterToValue);
-      solrQuery.addFilterQuery(filterQuery);
-      logger.debug("Filter added :- " + filterQuery);
+          filterFromValue, filterToValue);
+      if (!stringUtil.isEmpty(filterQuery)) {
+        solrQuery.addFilterQuery(filterQuery);
+        logger.debug("Filter added :- " + filterQuery);
+      }
     }
   }
 
@@ -227,8 +251,10 @@ public abstract class QueryGenerationBase extends QueryBase {
         + " to " + maxRows.intValue());
   }
 
-  public void setSingleORFilter(SolrQuery solrQuery, String filterName1, String value1, String filterName2, String value2) {
-    String filterQuery = filterName1 + ":" + value1 + " OR " + filterName2 + ":" + value2;
+  public void setSingleORFilter(SolrQuery solrQuery, String filterName1,
+      String value1, String filterName2, String value2) {
+    String filterQuery = filterName1 + ":" + value1 + " " + CONDITION.OR.name()
+        + " " + filterName2 + ":" + value2;
     solrQuery.setFilterQueries(filterQuery);
   }
 
@@ -255,68 +281,66 @@ public abstract class QueryGenerationBase extends QueryBase {
     return filterQuery;
   }
 
-  public String buildQueryFromJSONCompHost(String jsonHCNames,
-                                           String selectedComponent) {
-    String queryHostComponent = "";
-    // Building and adding exclude string to filters
-    String selectedCompQuery = "";
-
-    if (selectedComponent != null && !selectedComponent.equals("")) {
-      String[] selectedComponents = selectedComponent.split(",");
-      selectedCompQuery = solrUtil.orList(LogSearchConstants.SOLR_COMPONENT, selectedComponents);
-
-    }
-
-    // Building Query of Host and Components from given json
-    if (jsonHCNames != null && !jsonHCNames.equals("")
-      && !jsonHCNames.equals("[]")) {
-
-      try {
-        JSONArray jarray = new JSONArray(jsonHCNames);
-        int flagHost = 0;
-        int flagComp;
-        int count;
-        for (int i = 0; i < jarray.length(); i++) {
-          if (flagHost == 1)
-            queryHostComponent = queryHostComponent + " OR ";
-          JSONObject jsonObject = jarray.getJSONObject(i);
-          String host = jsonObject.getString("h");
-          queryHostComponent = queryHostComponent + "( host:" + host;
-          List<String> components = JSONUtil.JSONToList(jsonObject
-            .getJSONArray("c"));
-          if (components.isEmpty())
-            queryHostComponent = queryHostComponent + " AND ";
-
-          flagComp = 0;
-          count = 0;
-          for (String comp : components) {
-            if (flagComp == 0)
-              queryHostComponent = queryHostComponent + " ( ";
-            count += 1;
-            queryHostComponent = queryHostComponent + " "
-              + " type:" + comp;
-            if (components.size() <= count)
-              queryHostComponent = queryHostComponent + " ) ";
-            else
-              queryHostComponent = queryHostComponent + " OR ";
-            flagComp = 1;
-          }
-          queryHostComponent = queryHostComponent + " ) ";
-          flagHost = 1;
-        }
-      } catch (JSONException e) {
-        logger.error(e);
-      }
-    }
-    if (selectedCompQuery != null && !selectedCompQuery.equals("")) {
-      if (queryHostComponent == null || queryHostComponent.equals(""))
-        queryHostComponent = selectedCompQuery;
-      else
-        queryHostComponent = queryHostComponent + " OR "
-          + selectedCompQuery;
-    }
-    return queryHostComponent;
-  }
+//  public String buildQueryFromJSONCompHost(String jsonHCNames,
+//      String selectedComponent) {
+//    String queryHostComponent = "";
+//    // Building and adding exclude string to filters
+//    String selectedCompQuery = "";
+//    if (!stringUtil.isEmpty(selectedComponent)) {
+//      String[] selectedComponents = selectedComponent
+//          .split(LogSearchConstants.LIST_SEPARATOR);
+//      selectedCompQuery = solrUtil.orList(LogSearchConstants.SOLR_COMPONENT,
+//          selectedComponents);
+//    }
+//
+//    // Building Query of Host and Components from given json
+//    if (jsonHCNames != null && !jsonHCNames.equals("")
+//        && !jsonHCNames.equals("[]")) {
+//
+//      try {
+//        JSONArray jarray = new JSONArray(jsonHCNames);
+//        int flagHost = 0;
+//        int flagComp;
+//        int count;
+//        for (int i = 0; i < jarray.length(); i++) {
+//          if (flagHost == 1)
+//            queryHostComponent = queryHostComponent + " OR ";
+//          JSONObject jsonObject = jarray.getJSONObject(i);
+//          String host = jsonObject.getString("h");
+//          queryHostComponent = queryHostComponent + "( host:" + host;
+//          List<String> components = JSONUtil.JSONToList(jsonObject
+//              .getJSONArray("c"));
+//          if (!components.isEmpty())
+//            queryHostComponent = queryHostComponent + " AND ";
+//
+//          flagComp = 0;
+//          count = 0;
+//          for (String comp : components) {
+//            if (flagComp == 0)
+//              queryHostComponent = queryHostComponent + " ( ";
+//            count += 1;
+//            queryHostComponent = queryHostComponent + " " + " type:" + comp;
+//            if (components.size() <= count)
+//              queryHostComponent = queryHostComponent + " ) ";
+//            else
+//              queryHostComponent = queryHostComponent + " OR ";
+//            flagComp = 1;
+//          }
+//          queryHostComponent = queryHostComponent + " ) ";
+//          flagHost = 1;
+//        }
+//      } catch (JSONException e) {
+//        logger.error(e);
+//      }
+//    }
+//    if (selectedCompQuery != null && !selectedCompQuery.equals("")) {
+//      if (queryHostComponent == null || queryHostComponent.equals(""))
+//        queryHostComponent = selectedCompQuery;
+//      else
+//        queryHostComponent = queryHostComponent + " OR " + selectedCompQuery;
+//    }
+//    return queryHostComponent;
+//  }
 
   // JSON BuildMethods
 
@@ -385,5 +409,61 @@ public abstract class QueryGenerationBase extends QueryBase {
       + originalFieldName + "}}}}";
     logger.info("Build JSONQuery is :- " + jsonQuery);
     return jsonQuery;
+  }
+
+  public String buildListQuery(String paramValue, String solrFieldName,
+      CONDITION condition) {
+    if (!stringUtil.isEmpty(paramValue)) {
+      String[] values = paramValue.split(LogSearchConstants.LIST_SEPARATOR);
+      switch (condition) {
+      case OR:
+        return solrUtil.orList(solrFieldName, values,"*");
+      case AND:
+        return solrUtil.andList(solrFieldName, values, "");
+      default:
+        logger.error("Invalid condition " + condition.name());
+      }
+    }
+    return "";
+  }
+
+
+  public void addFilterQueryFromArray(SolrQuery solrQuery, String jsonArrStr,
+      String solrFieldName, CONDITION condition) {
+    if (!stringUtil.isEmpty(jsonArrStr) && condition != null && solrQuery!=null) {
+      Gson gson = new Gson();
+      String[] arr = null;
+      try {
+        arr = gson.fromJson(jsonArrStr, String[].class);
+      } catch (Exception exception) {
+        logger.error("Invaild json array:" + jsonArrStr);
+        return;
+      }
+      String query;;
+      switch (condition) {
+      case OR:
+        query = solrUtil.orList(solrFieldName, arr,"");
+        break;
+      case AND:
+        query = solrUtil.andList(solrFieldName, arr, "");
+        break;
+      default:
+        query=null;
+        logger.error("Invalid condition :" + condition.name());
+      }
+      if (!stringUtil.isEmpty(query)) {
+        solrQuery.addFilterQuery(query);
+      }
+    }
+  }
+
+  public void addFilter(SolrQuery solrQuery, String paramValue,
+      String solrFieldName, CONDITION condition) {
+    String filterQuery = buildListQuery(paramValue, solrFieldName, condition);
+    if (!stringUtil.isEmpty(filterQuery)) {
+      if (solrQuery != null) {
+        solrQuery.addFilterQuery(filterQuery);
+      }
+    }
   }
 }

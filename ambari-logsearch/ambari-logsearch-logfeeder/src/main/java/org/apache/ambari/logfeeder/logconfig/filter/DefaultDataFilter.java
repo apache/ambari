@@ -18,7 +18,6 @@
  */
 package org.apache.ambari.logfeeder.logconfig.filter;
 
-import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
@@ -28,9 +27,7 @@ import org.apache.log4j.Logger;
  */
 public class DefaultDataFilter {
   private static Logger logger = Logger.getLogger(DefaultDataFilter.class);
-
-  protected static final boolean CASE_SENSITIVE = false;
-
+  
   public boolean applyFilter(Map<String, Object> outputJsonObj, boolean defaultValue) {
     return defaultValue;
   }

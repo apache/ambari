@@ -29,7 +29,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.apache.ambari.logsearch.common.MessageEnums;
-import org.apache.ambari.logsearch.manager.UserConfigMgr;
 import org.apache.ambari.logsearch.view.VHost;
 import org.apache.ambari.logsearch.view.VSummary;
 import org.apache.log4j.Logger;
@@ -58,7 +57,7 @@ public class FileUtil {
         + vsummary.getTo() + "\n";
 
       List<VHost> hosts = vsummary.getHosts();
-      String blankCharacterForHost = "        ";
+      String blankCharacterForHost = String.format("%-8s", "");
       int numberHost = 0;
       for (VHost host : hosts) {
         numberHost += 1;
@@ -66,24 +65,27 @@ public class FileUtil {
         String c = "";
         Set<String> comp = host.getComponents();
         boolean zonetar = true;
-        for (String component : comp) {
-          if (zonetar) {
-            c = component;
-            zonetar = false;
-          } else {
-            c = c + ", " + component;
+        if (comp != null) {
+          for (String component : comp) {
+            if (zonetar) {
+              c = component;
+              zonetar = false;
+            } else {
+              c = c + ", " + component;
+            }
           }
         }
-        if (numberHost > 9)
-          blankCharacterForHost = "       ";
-        else if (numberHost > 99)
-          blankCharacterForHost = "      ";
-        else if (numberHost > 999)
-          blankCharacterForHost = "     ";
-        else if (numberHost > 9999)
-          blankCharacterForHost = "    ";
-        else if (numberHost > 99999)
-          blankCharacterForHost = "   ";
+        if (numberHost > 9){
+          blankCharacterForHost = String.format("%-7s", blankCharacterForHost);
+        }else if (numberHost > 99){
+          blankCharacterForHost = String.format("%-6s", blankCharacterForHost);
+        }else if (numberHost > 999){
+          blankCharacterForHost = String.format("%-5s", blankCharacterForHost);
+        }else if (numberHost > 9999){
+          blankCharacterForHost = String.format("%-4s", blankCharacterForHost);
+        }else if (numberHost > 99999){
+          blankCharacterForHost = String.format("%-3s", blankCharacterForHost);
+        }
         if (numberHost == 1) {
           mainExportedFile = mainExportedFile + "Host"
             + blankCharacterForHost + "   : " + h + " [" + c
@@ -95,9 +97,9 @@ public class FileUtil {
         }
 
       }
-      mainExportedFile = mainExportedFile + "Levels         : "
+      mainExportedFile = mainExportedFile + "Levels"+String.format("%-9s", blankCharacterForHost)+": "
         + vsummary.getLevels() + "\n";
-      mainExportedFile = mainExportedFile + "Format         : "
+      mainExportedFile = mainExportedFile + "Format"+String.format("%-9s", blankCharacterForHost)+": "
         + vsummary.getFormat() + "\n";
       mainExportedFile = mainExportedFile + "\n";
 

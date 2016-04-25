@@ -26,7 +26,7 @@ public class UserSessionInfo implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
-  User user;
+  private User user;
 
   public User getUser() {
     return user;

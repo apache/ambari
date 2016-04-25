@@ -21,13 +21,19 @@ package org.apache.ambari.logsearch.dao;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.ambari.logsearch.manager.MgrBase.LOG_TYPE;
 import org.apache.ambari.logsearch.util.PropertiesUtil;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ServiceLogsSolrDao extends SolrDaoBase {
+
   static private Logger logger = Logger.getLogger(ServiceLogsSolrDao.class);
+  
+  public ServiceLogsSolrDao() {
+    super(LOG_TYPE.SERVICE);
+  }
 
   @PostConstruct
   public void postConstructor() {

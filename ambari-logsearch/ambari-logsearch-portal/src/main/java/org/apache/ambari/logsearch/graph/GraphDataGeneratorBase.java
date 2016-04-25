@@ -18,167 +18,263 @@
  */
 package org.apache.ambari.logsearch.graph;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.ambari.logsearch.manager.MgrBase;
 import org.apache.ambari.logsearch.util.DateUtil;
+import org.apache.ambari.logsearch.util.StringUtil;
 import org.apache.ambari.logsearch.view.VBarGraphData;
 import org.apache.ambari.logsearch.view.VNameValue;
 import org.apache.solr.client.solrj.response.RangeFacet;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.common.util.SimpleOrderedMap;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.ObjectWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class GraphDataGeneratorBase {
+public class GraphDataGeneratorBase extends MgrBase {
+
 
   @Autowired
   DateUtil dateUtil;
 
+  @Autowired
+  StringUtil stringUtil;
+
+  private static String BUCKETS = "buckets";
+  
+  public static enum DATA_TYPE {
+    LONG {
+      @Override
+      String getType() {
+        return "long";
+      }
+    },
+    DOUBLE {
+      @Override
+      String getType() {
+        return "double";
+      }
+    },
+    FLOAT {
+      @Override
+      String getType() {
+        return "long";
+      }
+    },
+    INT {
+      @Override
+      String getType() {
+        return "long";
+      }
+
+    };
+    abstract String getType();
+  }
+
+  public static enum GRAPH_TYPE {
+    UNKNOWN {
+      @Override
+      int getType() {
+        return 0;
+      }
+    },
+    NORMAL_GRAPH {
+      @Override
+      int getType() {
+        return 1;
+      }
+    },
+    RANGE_NON_STACK_GRAPH {
+      @Override
+      int getType() {
+        return 2;
+      }
+    },
+    NON_RANGE_STACK_GRAPH {
+      @Override
+      int getType() {
+        return 3;
+      }
+    },
+    RANGE_STACK_GRAPH {
+      @Override
+      int getType() {
+        return 4;
+      }
+    };
+    abstract int getType();
+  }
+
   @SuppressWarnings("unchecked")
   protected void extractRangeStackValuesFromBucket(
-    SimpleOrderedMap<Object> jsonFacetResponse, String outerField,
-    String innerField, List<VBarGraphData> histogramData) {
-    NamedList<Object> stack = (NamedList<Object>) jsonFacetResponse
-      .get(outerField);
-    ArrayList<Object> stackBuckets = (ArrayList<Object>) stack
-      .get("buckets");
-    for (Object temp : stackBuckets) {
-      VBarGraphData vBarGraphData = new VBarGraphData();
-
-      SimpleOrderedMap<Object> level = (SimpleOrderedMap<Object>) temp;
-      String name = ((String) level.getVal(0)).toUpperCase();
-      vBarGraphData.setName(name);
-
-      Collection<VNameValue> vNameValues = new ArrayList<VNameValue>();
-      vBarGraphData.setDataCounts(vNameValues);
-      ArrayList<Object> levelBuckets = (ArrayList<Object>) ((NamedList<Object>) level
-        .get(innerField)).get("buckets");
-      for (Object temp1 : levelBuckets) {
-        SimpleOrderedMap<Object> countValue = (SimpleOrderedMap<Object>) temp1;
-        String value = dateUtil
-          .convertDateWithMillisecondsToSolrDate((Date) countValue
-            .getVal(0));
-
-        String count = "" + countValue.getVal(1);
-        VNameValue vNameValue = new VNameValue();
-        vNameValue.setName(value);
-        vNameValue.setValue(count);
-        vNameValues.add(vNameValue);
+      SimpleOrderedMap<Object> jsonFacetResponse, String outerField,
+      String innerField, List<VBarGraphData> histogramData) {
+    if (jsonFacetResponse != null) {
+      NamedList<Object> stack = (NamedList<Object>) jsonFacetResponse
+          .get(outerField);
+      if (stack != null) {
+        ArrayList<Object> stackBuckets = (ArrayList<Object>) stack.get(BUCKETS);
+        if (stackBuckets != null) {
+          for (Object stackBucket : stackBuckets) {
+            VBarGraphData vBarGraphData = new VBarGraphData();
+            SimpleOrderedMap<Object> level = (SimpleOrderedMap<Object>) stackBucket;
+            if (level != null) {
+              String name = level.getVal(0) != null ? level.getVal(0)
+                  .toString().toUpperCase() : "";
+              vBarGraphData.setName(name);
+              Collection<VNameValue> vNameValues = new ArrayList<VNameValue>();
+              NamedList<Object> innerFiledValue = (NamedList<Object>) level
+                  .get(innerField);
+              if (innerFiledValue != null) {
+                ArrayList<Object> levelBuckets = (ArrayList<Object>) innerFiledValue
+                    .get(BUCKETS);
+                if (levelBuckets != null) {
+                  for (Object levelBucket : levelBuckets) {
+                    SimpleOrderedMap<Object> countValue = (SimpleOrderedMap<Object>) levelBucket;
+                    if (countValue != null) {
+                      String innerName = dateUtil
+                          .convertDateWithMillisecondsToSolrDate((Date) countValue
+                              .getVal(0));
+                      String innerValue = countValue.getVal(1) != null ? countValue
+                          .getVal(1).toString() : "";
+                      VNameValue vNameValue = new VNameValue(innerName,
+                          innerValue);
+                      vNameValues.add(vNameValue);
+                    }
+                  }
+                }
+              }
+              vBarGraphData.setDataCounts(vNameValues);
+            }
+            histogramData.add(vBarGraphData);
+          }
+        }
       }
-      histogramData.add(vBarGraphData);
     }
   }
 
   @SuppressWarnings("unchecked")
   protected boolean extractNonRangeStackValuesFromBucket(
-    SimpleOrderedMap<Object> jsonFacetResponse, String level,
-    Collection<VBarGraphData> vGraphDatas, String typeXAxis) {
-
+      SimpleOrderedMap<Object> jsonFacetResponse, String level,
+      Collection<VBarGraphData> vGraphDatas, String typeXAxis) {
     boolean zeroFlag = true;
-    if (jsonFacetResponse.get(level).toString().equals("{count=0}")) {
+    if (jsonFacetResponse == null || jsonFacetResponse.get(level) == null
+        || jsonFacetResponse.get(level).toString().equals("{count=0}")) {
       return false;
     }
-
-    NamedList<Object> list = (NamedList<Object>) jsonFacetResponse
-      .get(level);
-
-    ArrayList<Object> list3 = (ArrayList<Object>) list.get("buckets");
-    int i = 0;
-    for (i = 0; i < list3.size(); i++) {
-      VBarGraphData vGraphData = new VBarGraphData();
-
-
-      Collection<VNameValue> levelCounts = new ArrayList<VNameValue>();
-      vGraphData.setDataCounts(levelCounts);
-
-      SimpleOrderedMap<Object> valueCount = (SimpleOrderedMap<Object>) list3
-        .get(i);
-      String name = ("" + valueCount.getVal(0)).trim();
-      if (isTypeNumber(typeXAxis)) {
-        VNameValue nameValue = new VNameValue();
-        String value = ("" + valueCount.getVal(2)).trim().substring(0, ("" + valueCount.getVal(2)).indexOf("."));
-        nameValue.setName(name);
-        nameValue.setValue(value);
-        levelCounts.add(nameValue);
-      } else {
-        SimpleOrderedMap<Object> l1 = (SimpleOrderedMap<Object>) valueCount
-          .getVal(2);
-        ArrayList<Object> l2 = (ArrayList<Object>) l1.get("buckets");
-        for (int j = 0; l2 != null && j < l2.size(); j++) {
-          VNameValue nameValue = new VNameValue();
-          SimpleOrderedMap<Object> innerValueCount = (SimpleOrderedMap<Object>) l2
-            .get(j);
-          nameValue.setName(("" + innerValueCount.getVal(0)).trim());
-          nameValue.setValue(("" + innerValueCount.getVal(1)).trim());
-          levelCounts.add(nameValue);
+    NamedList<Object> levelList = (NamedList<Object>) jsonFacetResponse
+        .get(level);
+    if (levelList != null) {
+      ArrayList<Object> bucketList = (ArrayList<Object>) levelList.get(BUCKETS);
+      if (bucketList != null) {
+        for (int index = 0; index < bucketList.size(); index++) {
+          SimpleOrderedMap<Object> valueCount = (SimpleOrderedMap<Object>) bucketList
+              .get(index);
+          if (valueCount != null && valueCount.size() > 2) {
+            VBarGraphData vGraphData = new VBarGraphData();
+            Collection<VNameValue> levelCounts = new ArrayList<VNameValue>();
+            String name = valueCount.getVal(0) != null ? valueCount.getVal(0)
+                .toString().trim() : "";
+            if (isTypeNumber(typeXAxis)) {
+              VNameValue nameValue = new VNameValue();
+              Double sumValue = (Double) valueCount.getVal(2);
+              String value = "0";// default is zero
+              if (sumValue != null) {
+                value = "" + sumValue.longValue();
+              }
+              nameValue.setName(name);
+              nameValue.setValue(value);
+              levelCounts.add(nameValue);
+            } else {
+              SimpleOrderedMap<Object> valueCountMap = (SimpleOrderedMap<Object>) valueCount
+                  .getVal(2);
+              if (valueCountMap != null) {
+                ArrayList<Object> buckets = (ArrayList<Object>) valueCountMap
+                    .get(BUCKETS);
+                if (buckets != null) {
+                  for (int innerIndex = 0; innerIndex < buckets.size(); innerIndex++) {
+                    SimpleOrderedMap<Object> innerValueCount = (SimpleOrderedMap<Object>) buckets
+                        .get(innerIndex);
+                    if (innerValueCount != null) {
+                      String innerName = innerValueCount.getVal(0) != null ? innerValueCount
+                          .getVal(0).toString().trim()
+                          : "";
+                      String innerValue = innerValueCount.getVal(1) != null ? innerValueCount
+                          .getVal(1).toString().trim()
+                          : "";
+                      VNameValue nameValue = new VNameValue(innerName,
+                          innerValue);
+                      levelCounts.add(nameValue);
+                    }
+                  }
+                }
+              }
+            }
+            vGraphData.setName(name);
+            vGraphData.setDataCounts(levelCounts);
+            vGraphDatas.add(vGraphData);
+          }
         }
       }
-
-      vGraphData.setName(name);
-      vGraphDatas.add(vGraphData);
     }
     return zeroFlag;
   }
 
   @SuppressWarnings("unchecked")
   protected boolean extractValuesFromJson(
-    SimpleOrderedMap<Object> jsonFacetResponse, String level,
-    VBarGraphData histogramData, List<RangeFacet.Count> counts) {
+      SimpleOrderedMap<Object> jsonFacetResponse, String level,
+      VBarGraphData histogramData, List<RangeFacet.Count> counts) {
     histogramData.setName(level);
     Collection<VNameValue> levelCounts = new ArrayList<VNameValue>();
     histogramData.setDataCounts(levelCounts);
     boolean zeroFlag = true;
     if (jsonFacetResponse.get(level).toString().equals("{count=0}")) {
-      for (RangeFacet.Count date : counts) {
-        VNameValue nameValue = new VNameValue();
-
-        nameValue.setName(date.getValue());
-        nameValue.setValue("0");
-
-        levelCounts.add(nameValue);
+      if (counts != null) {
+        for (RangeFacet.Count date : counts) {
+          VNameValue nameValue = new VNameValue();
+          nameValue.setName(date.getValue());
+          nameValue.setValue("0");
+          levelCounts.add(nameValue);
+        }
       }
       return false;
     }
-    NamedList<Object> list = (NamedList<Object>) jsonFacetResponse
-      .get(level);
-    NamedList<Object> list2 = (NamedList<Object>) list.getVal(1);
-    ArrayList<Object> list3 = (ArrayList<Object>) list2.get("buckets");
-    int i = 0;
-    for (RangeFacet.Count date : counts) {
-      VNameValue nameValue = new VNameValue();
-      SimpleOrderedMap<Object> valueCount = (SimpleOrderedMap<Object>) list3
-        .get(i);
-      String count = ("" + valueCount.getVal(1)).trim();
-      if (!"0".equals(count)) {
-        zeroFlag = false;
+    NamedList<Object> levelList = (NamedList<Object>) jsonFacetResponse
+        .get(level);
+    if (levelList != null && counts != null && levelList.size() > 1) {
+      NamedList<Object> levelValues = (NamedList<Object>) levelList.getVal(1);
+      if (levelValues != null) {
+        ArrayList<Object> bucketList = (ArrayList<Object>) levelValues
+            .get(BUCKETS);
+        int i = 0;
+        for (RangeFacet.Count date : counts) {
+          SimpleOrderedMap<Object> valueCount = (SimpleOrderedMap<Object>) bucketList
+              .get(i);
+          if (valueCount != null) {
+            Double count = (Double) valueCount.getVal(1);
+            if (count != null && !count.equals(0D)) {
+              zeroFlag = false;
+            }
+            String name = date.getValue();
+            String value = count != null ? "" + count.longValue() : "0";
+            VNameValue nameValue = new VNameValue(name, value);
+            levelCounts.add(nameValue);
+          }
+          i++;
+        }
       }
-      nameValue.setName(date.getValue());
-      nameValue.setValue(count);
-
-      levelCounts.add(nameValue);
-      i++;
     }
-
     return zeroFlag;
   }
 
   protected boolean isTypeNumber(String typeXAxis) {
-    return "long".contains(typeXAxis) || "int".contains(typeXAxis)
-      || "float".contains(typeXAxis) || "double".contains(typeXAxis);
-  }
-
-  public String convertObjToString(Object obj) throws IOException {
-    if (obj == null) {
-      return "";
+    if (stringUtil.isEmpty(typeXAxis)) {
+      return false;
+    } else {
+      return typeXAxis.contains(DATA_TYPE.LONG.getType()) || typeXAxis.contains(DATA_TYPE.INT.getType())
+          || typeXAxis.contains(DATA_TYPE.FLOAT.getType()) || typeXAxis.contains(DATA_TYPE.DOUBLE.getType());
     }
-    ObjectMapper mapper = new ObjectMapper();
-    ObjectWriter w = mapper.writerWithDefaultPrettyPrinter();
-    return w.writeValueAsString(obj);
   }
-
 }

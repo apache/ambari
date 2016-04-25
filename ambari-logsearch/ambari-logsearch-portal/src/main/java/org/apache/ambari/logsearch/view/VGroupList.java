@@ -35,10 +35,11 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
 public class VGroupList extends VList {
   private static final long serialVersionUID = 1L;
 
-  SolrDocumentList groupList = new SolrDocumentList();
+  protected SolrDocumentList groupList;
 
   public VGroupList() {
     super();
+    groupList = new SolrDocumentList();
   }
 
   public VGroupList(SolrDocumentList logList) {

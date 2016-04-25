@@ -30,7 +30,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class VNameValueList extends VList {
   private static final long serialVersionUID = 1L;
-  List<VNameValue> vNameValues = new ArrayList<VNameValue>();
+  protected List<VNameValue> vNameValues = new ArrayList<VNameValue>();
 
   public VNameValueList() {
     super();

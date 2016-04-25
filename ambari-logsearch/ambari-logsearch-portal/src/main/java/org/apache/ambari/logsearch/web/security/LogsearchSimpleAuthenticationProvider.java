@@ -39,6 +39,10 @@ public class LogsearchSimpleAuthenticationProvider extends LogsearchAbstractAuth
 
   @Override
   public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+    if (!this.isEnable()) {
+      logger.debug("Simple auth is disabled");
+      return authentication;
+    }
     String username = authentication.getName();
     String password = (String) authentication.getCredentials();
     username = StringEscapeUtils.unescapeHtml(username);

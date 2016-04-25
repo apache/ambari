@@ -118,7 +118,7 @@ define(['require',
                 require(['views/filter/CreateLogfeederFilterView'],function(CreateLogfeederFilter){
                     var view = new CreateLogfeederFilter({});
                     var options = {
-                        title: "Create Filter",
+                        title: "Logfeeder Filter",
                         content: view,
                         viewType: 'Filter',
                         resizable: false,
@@ -154,7 +154,7 @@ define(['require',
                         width: 650,
                         height: 350,
                         beforeClose: function(event, ui) {
-                            that.onDialogClosed();
+                            //that.onDialogClosed();
                         }
                     },options);
 
@@ -166,6 +166,9 @@ define(['require',
                             // dialog.trigger("toggle:okBtn",false);
                         });
                     }
+                    options.content.on("closeDialog",function(){
+                    	that.onDialogClosed();
+                    });
                     dialog.open();
                 });
             },

@@ -34,8 +34,12 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 public class VUserConfigList extends VList {
-  String name;
-  Collection<VUserConfig> userConfigList;
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 1L;
+  protected String name;
+  protected Collection<VUserConfig> userConfigList;
 
   public String getName() {
     return name;

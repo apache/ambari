@@ -17,6 +17,8 @@ echo "
 ███████╗╚██████╔╝╚██████╔╝    ███████║███████╗██║  ██║██║  ██║╚██████╗██║  ██║
 ╚══════╝ ╚═════╝  ╚═════╝     ╚══════╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝
 "
-mvn clean compile -Pdev
-mvn exec:java -Pdev
-
+cd ..
+mvn clean compile package -Pdev
+cd ambari-logsearch-portal
+#mvn exec:java -Pdev
+java -cp target/libs/*:target/classes/ org.apache.ambari.logsearch.LogSearch

@@ -32,9 +32,6 @@
     <copy todir="target/package/libs" includeEmptyDirs="no">
       <fileset dir="target/libs"/>
     </copy>
-    <copy todir="target/package/" includeEmptyDirs="no">
-      <fileset file="target/LogFeeder.jar"/>
-    </copy>
     <copy todir="target/package/classes" includeEmptyDirs="no">
       <fileset dir="target/classes"/>
     </copy>

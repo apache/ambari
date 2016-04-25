@@ -127,11 +127,11 @@ public class LogsearchAuthenticationProvider extends
    * @return
    */
   public Authentication doAuth(Authentication authentication, AUTH_METHOD authMethod) {
-    if (authMethod.equals(AUTH_METHOD.LDAP) && ldapAuthenticationProvider.isEnable()) {
+    if (authMethod.equals(AUTH_METHOD.LDAP)) {
       authentication = ldapAuthenticationProvider.authenticate(authentication);
-    } else if (authMethod.equals(AUTH_METHOD.FILE) && fileAuthenticationProvider.isEnable()) {
+    } else if (authMethod.equals(AUTH_METHOD.FILE)) {
       authentication = fileAuthenticationProvider.authenticate(authentication);
-    } else if (authMethod.equals(AUTH_METHOD.SIMPLE) && simpleAuthenticationProvider.isEnable()) {
+    } else if (authMethod.equals(AUTH_METHOD.SIMPLE)) {
       authentication = simpleAuthenticationProvider.authenticate(authentication);
     } else {
       logger.error("Invalid authentication method :" + authMethod.name());

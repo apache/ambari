@@ -18,10 +18,12 @@
 
 package org.apache.ambari.logfeeder.filter;
 
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TimeZone;
 
 import org.apache.ambari.logfeeder.LogFeederUtil;
 import org.apache.ambari.logfeeder.OutputMgr;
@@ -64,7 +66,9 @@ public class JSONFilterCodeTest {
     EasyMock.replay(mockOutputMgr);
 
     Date d = new Date();
-    String dateString = new SimpleDateFormat(LogFeederUtil.DATE_FORMAT).format(d);
+    DateFormat sdf = new SimpleDateFormat(LogFeederUtil.SOLR_DATE_FORMAT);
+    sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+    String dateString = sdf.format(d);
     jsonFilterCode.apply("{ logtime: '" + d.getTime() + "', line_number: 100 }", new InputMarker());
 
     EasyMock.verify(mockOutputMgr);
@@ -86,7 +90,9 @@ public class JSONFilterCodeTest {
     EasyMock.replay(mockOutputMgr);
 
     Date d = new Date();
-    String dateString = new SimpleDateFormat(LogFeederUtil.DATE_FORMAT).format(d);
+    DateFormat sdf = new SimpleDateFormat(LogFeederUtil.SOLR_DATE_FORMAT);
+    sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+    String dateString = sdf.format(d);
     jsonFilterCode.apply("{ logtime: '" + d.getTime() + "', some_field: 'abc' }", new InputMarker());
 
     EasyMock.verify(mockOutputMgr);

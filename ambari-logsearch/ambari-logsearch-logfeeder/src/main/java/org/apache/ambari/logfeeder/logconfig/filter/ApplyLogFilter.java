@@ -50,7 +50,12 @@ public class ApplyLogFilter extends DefaultDataFilter {
             //return default value if there is no filter found for particular component
             return defaultValue;
           }
-          List<String> allowedLevels = FetchConfigFromSolr.getAllowedLevels(hostName, componentFilter);
+          List<String> allowedLevels = FetchConfigFromSolr.getAllowedLevels(
+              hostName, componentFilter);
+          if (allowedLevels == null || allowedLevels.isEmpty()) {
+            // if allowedlevels list is empty then allow everything
+            allowedLevels.add(LogFeederConstants.ALL);
+          }
           return LogFeederUtil.isListContains(allowedLevels, level, false);
         }
       }

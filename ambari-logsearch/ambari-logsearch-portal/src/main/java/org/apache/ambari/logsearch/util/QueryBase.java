@@ -19,22 +19,27 @@
 
 package org.apache.ambari.logsearch.util;
 
+import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.solr.client.solrj.SolrQuery;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class QueryBase {
+  
+  @Autowired
+  StringUtil stringUtil;
 
   //Solr Facet Methods
   public void setFacetField(SolrQuery solrQuery, String facetField) {
     solrQuery.setFacet(true);
     setRowCount(solrQuery, 0);
-    solrQuery.set("facet.field", facetField);
+    solrQuery.set(LogSearchConstants.FACET_FIELD, facetField);
     setFacetLimit(solrQuery, -1);
   }
 
   public void setJSONFacet(SolrQuery solrQuery, String jsonQuery) {
     solrQuery.setFacet(true);
     setRowCount(solrQuery, 0);
-    solrQuery.set("json.facet", jsonQuery);
+    solrQuery.set(LogSearchConstants.FACET_JSON_FIELD, jsonQuery);
     setFacetLimit(solrQuery, -1);
   }
 
@@ -47,8 +52,8 @@ public class QueryBase {
                             String... hirarchy) {
     solrQuery.setFacet(true);
     setRowCount(solrQuery, 0);
-    solrQuery.set("facet.pivot", hirarchy);
-    solrQuery.set("facet.pivot.mincount", mincount);
+    solrQuery.set(LogSearchConstants.FACET_PIVOT, hirarchy);
+    solrQuery.set(LogSearchConstants.FACET_PIVOT_MINCOUNT, mincount);
     setFacetLimit(solrQuery, -1);
   }
 
@@ -56,11 +61,11 @@ public class QueryBase {
                            String from, String to, String unit) {
     solrQuery.setFacet(true);
     setRowCount(solrQuery, 0);
-    solrQuery.set("facet.date", facetField);
-    solrQuery.set("facet.date.start", from);
-    solrQuery.set("facet.date.end", to);
-    solrQuery.set("facet.date.gap", unit);
-    solrQuery.set("facet.mincount", 0);
+    solrQuery.set(LogSearchConstants.FACET_DATE, facetField);
+    solrQuery.set(LogSearchConstants.FACET_DATE_START, from);
+    solrQuery.set(LogSearchConstants.FACET_DATE_END, to);
+    solrQuery.set(LogSearchConstants.FACET_DATE_GAP, unit);
+    solrQuery.set(LogSearchConstants.FACET_MINCOUNT, 0);
     setFacetLimit(solrQuery, -1);
   }
 
@@ -68,11 +73,11 @@ public class QueryBase {
                             String from, String to, String unit) {
     solrQuery.setFacet(true);
     setRowCount(solrQuery, 0);
-    solrQuery.set("facet.range", facetField);
-    solrQuery.set("facet.range.start", from);
-    solrQuery.set("facet.range.end", to);
-    solrQuery.set("facet.range.gap", unit);
-    solrQuery.set("facet.mincount", 0);
+    solrQuery.set(LogSearchConstants.FACET_RANGE, facetField);
+    solrQuery.set(LogSearchConstants.FACET_RANGE_START, from);
+    solrQuery.set(LogSearchConstants.FACET_RANGE_END, to);
+    solrQuery.set(LogSearchConstants.FACET_RANGE_GAP, unit);
+    solrQuery.set(LogSearchConstants.FACET_MINCOUNT, 0);
     setFacetLimit(solrQuery, -1);
   }
 
@@ -82,26 +87,28 @@ public class QueryBase {
 
   //Solr Group Mehtods
   public void setGroupField(SolrQuery solrQuery, String groupField, int rows) {
-    solrQuery.set("group", true);
-    solrQuery.set("group.field", groupField);
-    solrQuery.set("group.main", true);
+    solrQuery.set(LogSearchConstants.FACET_GROUP, true);
+    solrQuery.set(LogSearchConstants.FACET_GROUP_FIELD, groupField);
+    solrQuery.set(LogSearchConstants.FACET_GROUP_MAIN, true);
     setRowCount(solrQuery, rows);
   }
 
   //Main Query
   public void setMainQuery(SolrQuery solrQuery, String query) {
     String defalultQuery = "*:*";
-    if (query == null || query.isEmpty())
+    if (stringUtil.isEmpty(query)){
       solrQuery.setQuery(defalultQuery);
-    else
+    }else{
       solrQuery.setQuery(query);
+    }
   }
 
   public void setStart(SolrQuery solrQuery, int start) {
-    if (start > 0) {
+    int defaultStart = 0;
+    if (start > defaultStart) {
       solrQuery.setStart(start);
     } else {
-      solrQuery.setStart(0);
+      solrQuery.setStart(defaultStart);
     }
   }
 
@@ -111,17 +118,21 @@ public class QueryBase {
       solrQuery.setRows(rows);
     } else {
       solrQuery.setRows(0);
-      solrQuery.remove("sort");
+      solrQuery.remove(LogSearchConstants.SORT);
     }
   }
 
   //Solr Facet Methods
-  public void setFacetField(SolrQuery solrQuery, String facetField, int minCount) {
+  public void setFacetFieldWithMincount(SolrQuery solrQuery, String facetField, int minCount) {
     solrQuery.setFacet(true);
     setRowCount(solrQuery, 0);
-    solrQuery.set("facet.field", facetField);
-    solrQuery.set("facet.mincount", minCount);
+    solrQuery.set(LogSearchConstants.FACET_FIELD, facetField);
+    solrQuery.set(LogSearchConstants.FACET_MINCOUNT, minCount);
     setFacetLimit(solrQuery, -1);
+  }
+  
+  public void setFl(SolrQuery solrQuery,String field){
+    solrQuery.set(LogSearchConstants.FL, field);
   }
 
 }

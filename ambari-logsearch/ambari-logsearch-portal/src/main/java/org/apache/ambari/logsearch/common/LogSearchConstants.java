@@ -52,6 +52,7 @@ public class LogSearchConstants {
   public static final String SEQUNCE_ID = "seq_num";
   public static final String SOLR_COMPONENT = "type";
   public static final String SOLR_LOG_MESSAGE = "log_message";
+  public static final String SOLR_KEY_LOG_MESSAGE = "key_log_message";
   public static final String SOLR_HOST = "host";
   public static final String SOLR_LEVEL = "level";
   public static final String SOLR_THREAD_NAME = "thread_name";
@@ -102,5 +103,29 @@ public class LogSearchConstants {
 
   // logfeeder 
   public static final String LOGFEEDER_FILTER_NAME = "log_feeder_config";
+  public static final String LIST_SEPARATOR = ",";
+  
+  public static final String SORT = "sort";
+  public static final String FL = "fl";
+  
+  //Facet Constant
+  public static final String FACET_FIELD = "facet.field";
+  public static final String FACET_MINCOUNT = "facet.mincount";
+  public static final String FACET_JSON_FIELD = "json.facet";
+  public static final String FACET_PIVOT = "facet.pivot";
+  public static final String FACET_PIVOT_MINCOUNT = "facet.pivot.mincount";
+  public static final String FACET_DATE = "facet.date";
+  public static final String FACET_DATE_START = "facet.date.start";
+  public static final String FACET_DATE_END = "facet.date.end";
+  public static final String FACET_DATE_GAP = "facet.date.gap";
+  public static final String FACET_RANGE = "facet.range";
+  public static final String FACET_RANGE_START = "facet.range.start";
+  public static final String FACET_RANGE_END = "facet.range.end";
+  public static final String FACET_RANGE_GAP = "facet.range.gap";
+  public static final String FACET_GROUP = "group";
+  public static final String FACET_GROUP_MAIN = "group.main";
+  public static final String FACET_GROUP_FIELD = "group.field"; 
+  public static final String FACET_LIMIT = "facet.limit";
+  
 
 }

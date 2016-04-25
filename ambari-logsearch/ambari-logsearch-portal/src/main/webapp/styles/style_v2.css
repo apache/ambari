@@ -1313,7 +1313,7 @@ ul.DTTT_dropdown.dropdown-menu > li:hover > a {
   min-height: 26px;
   display: block;
   height: 26px;
-  padding: 0 0 0 8px;
+  padding: 0 0 0 4px;
   overflow: hidden;
   position: relative;
   border: 1px solid #aaa;

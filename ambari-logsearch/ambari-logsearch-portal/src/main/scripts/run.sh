@@ -73,6 +73,11 @@ fi
 
 if [ -z "$LOGSEARCH_CONF_DIR" ]; then
   LOGSEARCH_CONF_DIR="/etc/logsearch/conf"
+  if [ ! -d $LOGSEARCH_CONF_DIR ]; then
+      if [ -d $script_dir/classes ]; then
+	  LOGSEARCH_CONF_DIR=$script_dir/classes
+      fi
+  fi
   echo "LOGSEARCH_CONF_DIR not found. Use default: $LOGSEARCH_CONF_DIR"
 fi
 

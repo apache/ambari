@@ -80,7 +80,9 @@ define(['require',
                     that = this;
 
                 _.each(this.params, function(value, key) {
-                    if ((key != "from" && value != "" && key != "to" && key != "bundleId" && key != "start_time" && key != "end_time" && key != "q" && key != "unit" && key != "query" && key != "type" && key != "time" && key != "dateRangeLabel" && key != "advanceSearch")) {
+                    if ((key != "from" && value != "" && key != "to" && key != "bundleId" && key != "start_time" && 
+                    		key != "end_time" && key != "q" && key != "unit" && key != "query" && key != "type" && 
+                    		key != "time" && key != "dateRangeLabel" && key != "advanceSearch" && !_.isUndefined(Globals.paramsNameMapping[key]) )) {
                         tableSting += '<tr class="' + key + '"><td>' + Globals.paramsNameMapping[key].label + '</td><td>' + (that.createInnerSpan(key)) + '</td><tr>'
                     }
                 })

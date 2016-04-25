@@ -47,6 +47,12 @@ fi
 
 if [ "$LOGFEEDER_CONF_DIR" = "" ]; then
     LOGFEEDER_CONF_DIR="/etc/logfeeder/conf"
+    if [ ! -d $LOGFEEDER_CONF_DIR ]; then
+      if [ -d $script_dir/classes ]; then
+	  LOGFEEDER_CONF_DIR=$script_dir/classes
+      fi
+  fi
+
 fi
 
 LOGFEEDER_GC_LOGFILE=`dirname $LOGFILE`/logfeeder_gc.log

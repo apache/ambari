@@ -53,6 +53,10 @@ public class LogsearchLdapAuthenticationProvider extends
   @Override
   public Authentication authenticate(Authentication authentication)
     throws AuthenticationException {
+    if (!this.isEnable()) {
+      logger.debug("Ldap auth is disabled");
+      return authentication;
+    }
     try {
       LdapAuthenticationProvider authProvider = loadLdapAuthenticationProvider();
       if (authProvider != null) {

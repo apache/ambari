@@ -70,4 +70,10 @@ public class LogsearchConversion extends EnhancedPatternLayout {
     e.printStackTrace(pw);
     return sw.toString();
   }
+  
+  @Override
+  public boolean ignoresThrowable() {
+    //set false to ignore exception stacktrace
+    return false;
+  }
 }

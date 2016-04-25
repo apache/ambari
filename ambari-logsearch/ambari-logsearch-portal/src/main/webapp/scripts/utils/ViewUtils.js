@@ -91,8 +91,11 @@ define(['require',
         if (params.host_name) {
             this.defaultParams['host_name'] = params.host_name;
         }
-        if (params.components_name) {
-            this.defaultParams['components_name'] = params.components_name;
+        if (params.component_name) {
+            this.defaultParams['component_name'] = params.component_name;
+        }
+        if (params.file_name) {
+            this.defaultParams['file_name'] = params.file_name;
         }
         if (startDateString && endDateString) {
             if (params.timezone) {

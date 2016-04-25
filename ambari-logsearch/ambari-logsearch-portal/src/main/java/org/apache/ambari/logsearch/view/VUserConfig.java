@@ -29,11 +29,11 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 public class VUserConfig {
-  String id;
-  String userName;
 
-  String filterName;
-  String values;
+  protected String id;
+  protected String userName;
+  protected String filterName;
+  protected String values;
   
   List<String> shareNameList;
   String rowType;

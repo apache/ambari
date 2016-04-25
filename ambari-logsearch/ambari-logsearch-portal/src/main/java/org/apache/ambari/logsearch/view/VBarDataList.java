@@ -29,7 +29,11 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 public class VBarDataList {
-  Collection<VBarGraphData> graphData = new ArrayList<VBarGraphData>();
+  protected  Collection<VBarGraphData> graphData;
+
+  public VBarDataList() {
+    graphData = new ArrayList<VBarGraphData>();
+  }
 
   public Collection<VBarGraphData> getGraphData() {
     return graphData;

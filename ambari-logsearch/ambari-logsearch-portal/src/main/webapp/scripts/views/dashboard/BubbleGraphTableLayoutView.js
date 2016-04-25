@@ -93,7 +93,7 @@ define(['require',
 			this.collection = new VLogList([], {
                 state: {
                     firstPage: 0,
-                    pageSize: 50
+                    pageSize: 25
                 }
             });
 			this.collection.url = Globals.baseURL + "dashboard/solr/logs_search";
@@ -108,7 +108,7 @@ define(['require',
 			this.listenTo(this.collection, "backgrid:refresh",function(){
 				$(".contextMenuBody [data-id='F']").show();
             	$(".contextMenuBody").hide();
-            	this.$("#loaderGraph").hide();
+            	//this.$("#loaderGraph").hide();
 				this.$(".loader").hide();
             	//this.ui.find.trigger("keyup");
 //            	if (this.quickHelp)
@@ -170,7 +170,7 @@ define(['require',
             },this);
 		},
 		fetchAllTogether : function(value){
-			this.$("#loaderGraph").show();
+			//this.$("#loaderGraph").show();
 			this.fetchTableData(value);
         	_.extend(this.graphParams,value);
         	//this.fetchGraphData(this.graphParams);
@@ -431,7 +431,17 @@ define(['require',
 		fetchTableData : function(params){
 			var that = this;
 			$.extend(this.collection.queryParams,params);
-			this.collection.getFirstPage({reset:true});
+			this.collection.getFirstPage({
+				reset:true,
+				beforeSend : function(){
+        			that.$("#loaderGraph").show();
+        			that.$(".loader").show();
+        		},
+        		complete : function(){
+					that.$("#loaderGraph").hide();
+					that.$(".loader").hide();
+				}
+			});
 		},
 		fetchTableCollection : function(queryParams, param){
 			var that = this;
@@ -440,12 +450,17 @@ define(['require',
 				reset:true,
 				beforeSend : function(){
         			that.$("#loaderGraph").show();
-        		}
+        			that.$(".loader").show();
+        		},
+        		complete : function(){
+					that.$("#loaderGraph").hide();
+					that.$(".loader").hide();
+				}
 			},param));
 		},
 		fetchGraphData : function(params){
 			var that = this;
-			that.$("#loaderGraph").show();
+			//that.$("#loaderGraph").show();
 			that.$(".loader").show();
 			this.graphModel.fetch({
 				dataType:"json",
@@ -456,7 +471,7 @@ define(['require',
 				error : function(){
 				},
 				complete : function(){
-					that.$("#loaderGraph").hide();
+					//that.$("#loaderGraph").hide();
 					that.$(".loader").hide();
 				}
 			});

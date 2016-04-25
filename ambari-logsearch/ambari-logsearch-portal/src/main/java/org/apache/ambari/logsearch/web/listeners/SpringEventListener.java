@@ -27,6 +27,6 @@ public class SpringEventListener implements ApplicationListener<AbstractAuthenti
 
   @Override
   public void onApplicationEvent(AbstractAuthenticationEvent event) {
-    logger.info(" On Application onApplicationEvent  SpringEventListener");
+    logger.trace(" Inside onApplicationEvent  SpringEventListener");
   }
 }

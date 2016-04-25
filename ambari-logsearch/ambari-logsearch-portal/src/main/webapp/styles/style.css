@@ -185,6 +185,12 @@ p.log-line:before {
 .btn-search {
 	padding: 2px 6px 3px;
 	line-height: 1.42857143;
+  margin:0 0;
+}
+
+.btn-searchCompare {
+  padding: 2px 6px 3px;
+  line-height: 1.42857143;
   margin:3px 0;
 }
 
@@ -1346,6 +1352,10 @@ img.quickLinkNav{
   right: -1px;
   top: -2px;
 }
+.hostNodes{
+  height: 450px;
+  overflow: auto;
+}
 .hostNodes li{
   cursor: pointer;
 }
@@ -1981,37 +1991,99 @@ input:-webkit-autofill:active{
 }
 
 
-/*
-.table-fixed thead {
-  width: 97%;
+
+.logFeederTable{
+  border-collapse: separate; border-spacing: 0;
+  position: fixed;
 }
-.table-fixed tbody {
-  height: 230px;
+
+.logFeederTable{
+  width: 906px;
+  display : block;
+}
+
+.logFeederTable tbody {
+  height: 365px;
   overflow-y: auto;
-  width: 100%;
+  width: 906px;
+  display : block;
 }
-.table-fixed thead > tr> th {
-  display: table-cell;
-  border-bottom:1px solid #CCC;
+
+.logFeederTable th {
+  width: 90px;
+  border-left:1px solid #CCC;
+  border-right:1px solid #CCC;
+  border-top:1px solid #CCC !important;
+  border-bottom:1px solid #CCC !important;
+  background-color: #FFF;
 }
-.table-fixed thead, .table-fixed tbody {
-  display: block;
+.logFeederTable th:first-of-type {
+  width: 312px;
+  border-right:1px solid #CCC;
+  border-top:1px solid #CCC !important;
+  border-bottom:1px solid #CCC !important;
 }
-.table-fixed thead > tr> th{
-  width:13%;
-}
-.table-fixed thead > tr> th:first-of-type{
-  width:28%;
-}
-.table-fixed thead > tr> th:last-of-type{
-  border-right-width:0;
-}*/
-.logFeederTabel th {
-	width : 12%;
-}
-.logFeederTabel th:first-of-type {
-	width : 28%;
+.logFeederTable th:nth-child(2) {
+  width : 190px;
+  border-top:1px solid #CCC !important;
+  border-bottom:1px solid #CCC !important; 
 }
 .datepickerFilter {
-	width:100%;
+  width:100%;
 }
+.logFeederTable td {
+  width :90px;
+  padding:0 10px;
+}
+.logFeederTable td:first-of-type {
+  width: 269px;
+  padding:0 10px;
+}
+.logFeederTable td:nth-child(2) {
+   width: 178px;
+   padding: 0 10px;
+}
+.logFeederTable tr.componentRow td{
+  border-top: solid 1px #CCC!important;
+}
+.logFeederTable tr.overrideRow td{
+  border-bottom: solid 1px #CCC!important; 
+}
+.logFeederTable tr.borderShow td{
+  border-bottom: solid 1px #CCC!important; 
+}
+
+.logFeederTable tr.componentRow td:first-child {border-left: solid 1px #CCC; }
+.logFeederTable tr.componentRow td:last-child { border-right: solid 1px #CCC;}
+
+
+.logFeederTable tr.overrideRow td:first-child { border-left: solid 1px #CCC;  }
+.logFeederTable tr.overrideRow td:last-child { border-right: solid 1px #CCC; }
+
+.logFeederTable tr.bgHighlight{
+  background-color: rgba(255, 238, 0, 0.19) !important;
+}
+
+.overrideSpacer{
+  height:13px !important;
+}
+.hostDown{
+  color: #333;
+  margin-right:5px;
+}
+input.filterInput{
+  height: 20px;
+}
+.logFeederTable a{
+  border-bottom:1px dotted;
+}
+.logFeederTable a:hover{
+  text-decoration: none;
+}
+.VS-search .search_input{
+  width: 2px !important;
+}
+.VS-search .search_input input{
+  margin-top: 0 !important;
+}
+

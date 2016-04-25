@@ -23,6 +23,7 @@ import java.util.HashMap;
 
 import org.apache.ambari.logfeeder.LogFeederUtil;
 import org.apache.ambari.logfeeder.logconfig.LogFeederConstants;
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -64,7 +65,12 @@ public class SolrUtil {
           try {
             instance = new SolrUtil();
           } catch (Exception e) {
-            logger.error(e);
+            final String LOG_MESSAGE_KEY = SolrUtil.class
+                .getSimpleName() + "_SOLR_UTIL";
+              LogFeederUtil.logErrorMessageByInterval(
+                LOG_MESSAGE_KEY,
+                "Error constructing solrUtil", e, logger,
+                Level.WARN);
           }
         }
       }
@@ -162,6 +168,7 @@ public class SolrUtil {
       QueryResponse queryResponse = solrClient.query(solrQuery, METHOD.POST);
       return queryResponse;
     } else {
+      logger.error("solrClient can't be null");
       return null;
     }
   }
@@ -176,15 +183,18 @@ public class SolrUtil {
     String fq = LogFeederConstants.ROW_TYPE + ":" + LogFeederConstants.NAME;
     solrQuery.setFilterQueries(fq);
     try {
-      QueryResponse response = SolrUtil.getInstance().process(solrQuery);
-      SolrDocumentList documentList = response.getResults();
-      if (documentList != null && documentList.size() > 0) {
-        SolrDocument configDoc = documentList.get(0);
-        String configJson = LogFeederUtil.getGson().toJson(configDoc);
-        configMap = (HashMap<String, Object>) LogFeederUtil.toJSONObject(configJson);
+      QueryResponse response = process(solrQuery);
+      if (response != null) {
+        SolrDocumentList documentList = response.getResults();
+        if (documentList != null && documentList.size() > 0) {
+          SolrDocument configDoc = documentList.get(0);
+          String configJson = LogFeederUtil.getGson().toJson(configDoc);
+          configMap = (HashMap<String, Object>) LogFeederUtil
+              .toJSONObject(configJson);
+        }
       }
-    } catch (SolrException | SolrServerException | IOException e) {
-      logger.error(e);
+    } catch (Exception e) {
+      logger.error("Error getting config", e);
     }
     return configMap;
   }

@@ -28,8 +28,6 @@ import javax.ws.rs.core.Response;
 
 import org.apache.ambari.logsearch.common.SearchCriteria;
 import org.apache.ambari.logsearch.manager.AuditMgr;
-import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;

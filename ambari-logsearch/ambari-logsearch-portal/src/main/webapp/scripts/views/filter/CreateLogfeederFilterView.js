@@ -49,6 +49,10 @@ define(['require',
             events: function() {
                 var events = {};
                 events["click [data-override]"] = 'onDataOverrideClick';
+                events["click [data-value]"] = 'onLogLevelHeaderClick';
+                events["click #filterContent input[type='checkbox']"] = 'onAnyCheckboxClick';
+                events["click .overrideRow a"] = 'onEditHost';
+                
                 return events;
             },
 
@@ -97,8 +101,7 @@ define(['require',
                 var that = this;
                 // this.setupSelect2Fields(this.levelCollection, "type", "type", "levelSelect2", 'Select Level');
                 
-                $.when(this.hostList.fetch({ reset: true }), this.componentsList.fetch({ reset: true }), this.model.fetch({})).done(function(c1, c2, m1) {
-                    
+                $.when(this.hostList.fetch({ reset: true }), this.componentsList.fetch({ reset: true }), this.model.fetch({})).then(function(c1, c2, m1) {
                     // if (!_.isUndefined(that.model.get('components'))) {
                     //     that.ui.componentSelect2.select2('val', that.model.get('components'));
                     // }
@@ -108,7 +111,7 @@ define(['require',
                     // if (!_.isUndefined(that.model.get('levels'))) {
                     //     that.ui.levelSelect2.select2('val', that.model.get('levels'));
                     // }
-                    that.ui.loader.hide();
+                    that.hideLoading();
                     that.trigger("toggle:okBtn",true);
 
                     //that.dataLevels = [];
@@ -118,14 +121,24 @@ define(['require',
                     //that.dataList = _.pluck(that.componentsList.models, 'attributes');
                     that.renderComponents();
                     that.populateValues();
+                },function(error){
+                	that.hideLoading();
+                	Utils.notifyError({
+                        content: "There is some issues on server, Please try again later."
+                    });
+                	that.trigger("closeDialog");
                 });
+            },
+            hideLoading : function(){
+            	this.ui.loader.hide();
             },
             renderComponents : function(){
             	var that =this;
             	_.each(that.componentsList.models, function(model){
-                    var levels='<td align="left">'+model.get("type")+'<span class="pull-right"><small><i>Override</i></small> <input data-override type="checkbox" data-name='+model.get("type")+'></span></td>';
-                    levels += that.getLevelForComponent(model.get("type"),true);
-                    var html = '<tr data-component="'+model.get("type")+'">'+levels+'</tr>';
+                    var levels='<td align="left">'+model.get("type")+'</td>';
+                    var override = '<td class="text-left"><span class="pull-left"><!--small><i>Override</i></small--> <input data-override type="checkbox" data-name='+model.get("type")+'></span></td>';
+                    levels +=  override + that.getLevelForComponent(model.get("type"),false);
+                    var html = '<tr class="overrideSpacer"></tr><tr class="componentRow borderShow" data-component="'+model.get("type")+'">'+levels+'</tr><tr></tr>';
                     that.ui.filterContent.append(html);
                 });
             },
@@ -135,6 +148,7 @@ define(['require',
             		var components = this.model.get("filter");
             		_.each(components,function(value,key){
             			var obj = components[key];
+            			
             			if((_.isArray(obj.overrideLevels) && obj.overrideLevels.length) || 
             					(_.isArray(obj.hosts) && obj.hosts.length) || obj.expiryTime){
             				var $el = that.$("input[data-name='"+key+"']").filter("[data-override]");
@@ -150,6 +164,7 @@ define(['require',
             							var $checkbox = $override.find("input[data-id='"+obj.overrideLevels[z]+"']");
             							if(! $checkbox.is(":checked")){
             								$checkbox.prop("checked",true);
+            								// that.showHostSelect2(key);
             							}
             						}
             					}
@@ -160,15 +175,75 @@ define(['require',
             				var dateObj = Utils.dateUtil.getMomentObject(obj.expiryTime);
             				that.$("[data-date='"+key+"']").data('daterangepicker').setStartDate(dateObj);
             				that.$("[data-date='"+key+"']").val(dateObj.format("MM/DD/YYYY HH:mm"));
+            				that.showExpiry(key)
             			}
             			//setting hosts
             			if(_.isArray(obj.hosts)){
             				if(obj.hosts.length){
             					that.$("[data-host='"+key+"']").select2("val",obj.hosts);
+                                that.showHostSelect2(key);
             				}
+            			}
+            			//setting default values
+            			if(obj.defaultLevels && _.isArray(obj.defaultLevels) && obj.defaultLevels.length){
+            				var $default = that.$("tr[data-component='"+key+"']");
+        					if($default.length){
+        						for(var z=0; z<obj.defaultLevels.length; z++){
+        							var $checkbox = $default.find("input[data-id='"+obj.defaultLevels[z]+"']");
+        							if(! $checkbox.is(":checked")){
+        								$checkbox.prop("checked",true);
+        							}
+        						}
+        					}
             			}
             		});
             	}
+            	//set check all value
+            	_.each(this.levelCollection.models,function(model){
+            		that.setCheckAllValue(model.get("type"));
+            	});
+            	
+            },
+            onAnyCheckboxClick : function(e){
+            	var $el = $(e.currentTarget);
+            	this.setCheckAllValue($el.data("id"));
+            },
+            onEditHost : function(e){
+            	var $el = $(e.currentTarget);
+            	$el.hide();
+            	if($el.data("type") == "host"){
+            		this.showHostSelect2($el.data("component"));
+                }else{
+            		this.showExpiry($el.data("component"));
+                }
+            },
+            hideHostSelect2 : function(forComponent){
+            	this.ui[forComponent].siblings(".select2-container").hide();
+            	this.$("a[data-component='"+forComponent+"'][data-type='host']").show();
+                this.$('i.hostDown[data-component="'+forComponent+'"]').show();
+            },
+            showHostSelect2 : function(forComponent){
+            	this.ui[forComponent].siblings(".select2-container").show();
+            	this.$("a[data-component='"+forComponent+"'][data-type='host']").hide();
+                this.$('i.hostDown[data-component="'+forComponent+'"]').hide();
+            },
+            showExpiry : function(forComponent){
+            	this.$("[data-date='"+forComponent+"']").show();
+            	this.$("a[data-component='"+forComponent+"'][data-type='expiry']").hide();
+            },
+            hideExpiry : function(forComponent){
+            	this.$("[data-date='"+forComponent+"']").hide();
+            	this.$("a[data-component='"+forComponent+"'][data-type='expiry']").show();
+            },
+            setCheckAllValue : function(type){
+            	var that = this;
+            	if(! type)
+            		return
+            	if(that.$("[data-id='"+type+"']:checked").length == that.$("[data-id='"+type+"']").length){
+        			that.$("[data-value='"+type+"']").prop("checked",true);
+        		}else{
+        			that.$("[data-value='"+type+"']").prop("checked",false);
+        		}
             },
             getLevelForComponent : function(type,checked){
             	var html="";
@@ -181,19 +256,35 @@ define(['require',
             	var $el = $(e.currentTarget);
             	if(e.currentTarget.checked){
             		this.addOverrideRow($el.data("name"));
+                    this.$('tr[data-component="'+$el.data("name")+'"]').removeClass('borderShow ');
+                    this.$('tr[data-component="'+$el.data("name")+'"]').addClass('bgHighlight ');
             	}else{
             		this.removeOverrideRow($el.data("name"));
+                    this.$('tr[data-component="'+$el.data("name")+'"]').addClass('bgHighlight borderShow ');
+                    this.$('tr[data-component="'+$el.data("name")+'"]').removeClass('bgHighlight ');
+            	}
+            },
+            onLogLevelHeaderClick : function(e){
+            	var $el = $(e.currentTarget);
+            	if(e.currentTarget.checked){
+            		this.$("[data-id='"+$el.data("value")+"']").prop("checked",true);
+            	}else{
+            		this.$("[data-id='"+$el.data("value")+"']").prop("checked",false);
             	}
             },
             addOverrideRow : function(forComponent){
-            	var $el = this.ui.filterContent.find("tr[data-component='"+forComponent+"']");
+            	var $el = this.ui.filterContent.find("tr[data-component='"+forComponent+"']"),textForHost = "Click here to apply on specific host",
+            	textForExpiry="Select Expiry Date";
             	if($el.length){
-            		var html = "<tr class='overrideRow "+forComponent+"'><td>&nbsp;</td>"+this.getLevelForComponent($el.data("component"),false)+"</tr>";
-            		html += "<tr class='overrideRow "+forComponent+"'><td>&nbsp;</td><td colspan='3'><input class='datepickerFilter' data-date='"+forComponent+"'></td>" +
-            				"<td colspan='3'><div ><input data-host='"+forComponent+"' type='hidden' /></div></td></tr>"
+            		var html = "<tr class='overrideRow bgHighlight "+forComponent+"'><td class='text-left'><i data-component='"+forComponent+"' class='fa fa-level-down hostDown' aria-hidden='true'></i><a href='javascript:void(0);' data-type='host' data-component='"+forComponent+"'>"+textForHost+"</a><input data-host='"+forComponent+"' type='hidden' /></td>" +
+            				"<td  class='text-left'><a href='javascript:void(0);' data-type='expiry' data-component='"+forComponent+"'>"+textForExpiry+"</a>" +
+            				"<input class='datepickerFilter' data-date='"+forComponent+"'></td>"+this.getLevelForComponent($el.data("component"),false)+"</tr>";
+            		//html += "<tr class='overrideRow "+forComponent+"'><td>&nbsp;</td><td>&nbsp;</td><td colspan='3'><input class='datepickerFilter' data-date='"+forComponent+"'></td>" +
+            			//	"<td colspan='3'><div ><input data-host='"+forComponent+"' type='hidden' /></div></td></tr>"
             		$el.after(html);
             		this.ui[forComponent] = this.$("[data-host='"+forComponent+"']");
             		this.setupSelect2Fields(this.hostList, "host", 'host', forComponent, 'Select Host', 'hostBoolean');
+            		this.hideHostSelect2(forComponent);
             		this.$("[data-date='"+forComponent+"']").daterangepicker({
             	        singleDatePicker: true,
             	        showDropdowns: true,
@@ -208,6 +299,7 @@ define(['require',
 //                        "timePickerIncrement": 1,
                         "timePicker24Hour": true,
             	    });
+            		this.hideExpiry(forComponent);
             	}
             },
             removeOverrideRow : function(foComponent){
@@ -252,7 +344,6 @@ define(['require',
             				expiryTime : (date && date.startDate) ? date.startDate.toJSON() : ""
             		};
             	});
-            	console.log(obj);
             	return (obj);
             },
             getOverideValues : function(ofComponent){

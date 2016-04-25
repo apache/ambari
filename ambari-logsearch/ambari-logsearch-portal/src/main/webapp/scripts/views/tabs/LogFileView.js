@@ -96,7 +96,7 @@ define(['require',
                 this.logFileCollection = new VLogList([], {
                     state: {
                         firstPage: 0,
-                        pageSize: 50
+                        pageSize: 25
                     }
                 });
                 this.logFileCollection.url = Globals.baseURL + "dashboard/solr/logs_search";
@@ -620,7 +620,7 @@ define(['require',
                     this.RLogFileTable.currentView.$el.find(".logMessage").highlight(selection.toString().trim(), true, e.currentTarget);
                     this.ui.contextMenu.show();
                     this.ui.contextMenu.css({
-                        'top': e.pageY - 88,
+                        'top': e.pageY - 140,
                         'left': e.pageX
                     });
                 } else {
@@ -636,7 +636,11 @@ define(['require',
                         this.ui.find.val(this.selectionText);
                         this.ui.find.trigger("keyup");
                         this.ui.find.focus();
-                    } else {
+                    }else if(type === "IA" || type === "EA"){
+    					this.vent.trigger("toggle:facet",{viewName:((type === "IA") ? "include" : "exclude") +"ServiceColumns",
+    						key:Globals.serviceLogsColumns["log_message"],value:"*"+this.selectionText+"*"});
+    				} 
+                    else {
                         //this.vent.trigger("add:include:exclude",{type:type,value:this.selectionText});
                         this.vent.trigger("toggle:facet", { viewName: ((type === "I") ? "include" : "exclude") + "ServiceColumns", key: Globals.serviceLogsColumns["log_message"], value: this.selectionText });
                     }
@@ -778,7 +782,8 @@ define(['require',
                         error: function(col, response, errorThrown) {
                             that.resetFindParams();
                             if (!!errorThrown.xhr.getAllResponseHeaders()) {
-                                Utils.notifyInfo({ content: "Keyword '" + val + "' not found in " + (keywordType == 1 ? "next" : "previous") + " page !" });
+                              //  Utils.notifyInfo({ content: "Keyword '" + val + "' not found in " + (keywordType == 1 ? "next" : "previous") + " page !" });
+                                that.ui.clearSearch.css({ 'right': 82 + 'px' });
                             }
                         },
                         complete: function() {

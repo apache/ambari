@@ -22,6 +22,7 @@ package org.apache.ambari.logfeeder.output;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.ambari.logfeeder.ConfigBlock;
 import org.apache.ambari.logfeeder.LogFeederUtil;
@@ -114,6 +115,19 @@ public abstract class Output extends ConfigBlock {
     //Printing stat for writeBytesMetric
     logStatForMetric(writeBytesMetric, "Stat: Bytes Written");
 
+  }
+  
+  public void trimStrValue(Map<String, Object> jsonObj) {
+    if (jsonObj != null) {
+      for (Entry<String, Object> entry : jsonObj.entrySet()) {
+        String key = entry.getKey();
+        Object value = entry.getValue();
+        if (value != null && value instanceof String) {
+          String valueStr = value.toString().trim();
+          jsonObj.put(key, valueStr);
+        }
+      }
+    }
   }
 
 }

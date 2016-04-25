@@ -52,7 +52,8 @@ public enum LogfeederScheduler {
 
   private List<Thread> getThreadList() {
     List<Thread> tasks = new ArrayList<Thread>();
-    tasks.add(new FetchConfigFromSolr());
+    Thread configMonitor = new FetchConfigFromSolr(true);
+    tasks.add(configMonitor);
     return tasks;
   }
 }

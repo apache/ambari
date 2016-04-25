@@ -24,7 +24,7 @@ import java.util.Collection;
 
 public class VSummaryCountList {
 
-  Collection<VSummaryCount> countList = new ArrayList<VSummaryCount>();
+  protected Collection<VSummaryCount> countList = new ArrayList<VSummaryCount>();
 
   public Collection<VSummaryCount> getCountList() {
     return countList;

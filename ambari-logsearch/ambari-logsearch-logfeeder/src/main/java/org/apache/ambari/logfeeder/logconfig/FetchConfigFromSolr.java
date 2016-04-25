@@ -40,12 +40,18 @@ public class FetchConfigFromSolr extends Thread {
   private static String endTimeDateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS";//2016-04-05T04:30:00.000Z
   private static String sysTimeZone = "GMT";
 
-  public FetchConfigFromSolr() {
+  public FetchConfigFromSolr(boolean isDaemon) {
     this.setName(this.getClass().getSimpleName());
+    this.setDaemon(isDaemon);
   }
 
   @Override
   public void run() {
+    String zkHosts = LogFeederUtil.getStringProperty("logfeeder.solr.zkhosts");
+    if( zkHosts == null || zkHosts.trim().length() == 0 ) {
+      logger.warn("Solr ZKHosts for UserConfig/History is not set. Won't look for level configuration from Solr.");
+      return;
+    }
     solrConfigInterval = LogFeederUtil.getIntProperty("logfeeder.solr.config.internal", solrConfigInterval);
     delay = 1000 * solrConfigInterval;
     do {
@@ -60,11 +66,14 @@ public class FetchConfigFromSolr extends Thread {
   }
 
   private synchronized void pullConfigFromSolr() {
-    HashMap<String, Object> configDocMap = SolrUtil.getInstance().getConfigDoc();
-    if (configDocMap != null) {
-      String configJson = (String) configDocMap.get(LogFeederConstants.VALUES);
-      if (configJson != null) {
-        logfeederFilterWrapper = LogFeederUtil.getGson().fromJson(configJson, VLogfeederFilterWrapper.class);
+    SolrUtil solrUtil = SolrUtil.getInstance();
+    if(solrUtil!=null){
+      HashMap<String, Object> configDocMap = solrUtil.getConfigDoc();
+      if (configDocMap != null) {
+        String configJson = (String) configDocMap.get(LogFeederConstants.VALUES);
+        if (configJson != null) {
+          logfeederFilterWrapper = LogFeederUtil.getGson().fromJson(configJson, VLogfeederFilterWrapper.class);
+        }
       }
     }
   }
@@ -117,19 +126,28 @@ public class FetchConfigFromSolr extends Thread {
     List<String> hosts = componentFilter.getHosts();
     List<String> defaultLevels = componentFilter.getDefaultLevels();
     List<String> overrideLevels = componentFilter.getOverrideLevels();
-    if (LogFeederUtil.isListContains(hosts, hostName, false)) {
-      if (isFilterExpired(componentFilter)) {
-        // pick default
-        logger.debug("Filter for component " + componentName + " and host :" + hostName + " is expired at "
-          + componentFilter.getExpiryTime());
-        return defaultLevels;
-      } else {
-        // return tmp filter levels
-        return overrideLevels;
+    String expiryTime=componentFilter.getExpiryTime();
+    //check is user override or not
+    if ((expiryTime != null && !expiryTime.isEmpty())
+        || (overrideLevels != null && !overrideLevels.isEmpty())
+        || (hosts != null && !hosts.isEmpty())) {
+      if (hosts == null || hosts.isEmpty()) {
+        // hosts list is empty or null consider it apply on all hosts
+        hosts.add(LogFeederConstants.ALL);
       }
-    } else {
-      return defaultLevels;
+      if (LogFeederUtil.isListContains(hosts, hostName, false)) {
+        if (isFilterExpired(componentFilter)) {
+          // pick default
+          logger.debug("Filter for component " + componentName + " and host :"
+              + hostName + " is expired at " + componentFilter.getExpiryTime());
+          return defaultLevels;
+        } else {
+          // return tmp filter levels
+          return overrideLevels;
+        }
+      }
     }
+    return defaultLevels;
   }
 
   public static VLogfeederFilter findComponentFilter(String componentName) {

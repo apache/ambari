@@ -154,6 +154,7 @@
           <excludes>
             <exclude>README.md</exclude>
             <exclude>**/*.json</exclude>
+            <exclude>**/*.log</exclude>
           </excludes>
         </configuration>
         <executions>

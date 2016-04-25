@@ -21,12 +21,14 @@ package org.apache.ambari.logsearch.manager;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.Date;
 import java.util.Scanner;
 
 import org.apache.ambari.logsearch.common.MessageEnums;
 import org.apache.ambari.logsearch.dao.SolrDaoBase;
 import org.apache.ambari.logsearch.query.QueryGeneration;
+import org.apache.ambari.logsearch.util.DateUtil;
 import org.apache.ambari.logsearch.util.JSONUtil;
 import org.apache.ambari.logsearch.util.RESTErrorUtil;
 import org.apache.ambari.logsearch.util.SolrUtil;
@@ -60,7 +62,7 @@ public class MgrBase {
   JSONUtil jsonUtil;
 
   @Autowired
-  QueryGeneration queryGenrator;
+  QueryGeneration queryGenerator;
 
   @Autowired
   StringUtil stringUtil;
@@ -68,16 +70,35 @@ public class MgrBase {
   @Autowired
   RESTErrorUtil restErrorUtil;
 
+  @Autowired
+  DateUtil dateUtil;
+
   JsonSerializer<Date> jsonDateSerialiazer = null;
   JsonDeserializer<Date> jsonDateDeserialiazer = null;
+
+  public enum LOG_TYPE {
+    SERVICE {
+      @Override
+      public String getLabel() {
+        return "Service";
+      }
+    },
+    AUDIT {
+      @Override
+      public String getLabel() {
+        return "Audit";
+      }
+    };
+    public abstract String getLabel();
+  }
 
   public MgrBase() {
     jsonDateSerialiazer = new JsonSerializer<Date>() {
 
       @Override
       public JsonElement serialize(Date paramT,
-                                   java.lang.reflect.Type paramType,
-                                   JsonSerializationContext paramJsonSerializationContext) {
+          java.lang.reflect.Type paramType,
+          JsonSerializationContext paramJsonSerializationContext) {
 
         return paramT == null ? null : new JsonPrimitive(paramT.getTime());
       }
@@ -86,38 +107,33 @@ public class MgrBase {
     jsonDateDeserialiazer = new JsonDeserializer<Date>() {
 
       @Override
-      public Date deserialize(JsonElement json,
-                              java.lang.reflect.Type typeOfT,
-                              JsonDeserializationContext context) throws JsonParseException {
+      public Date deserialize(JsonElement json, java.lang.reflect.Type typeOfT,
+          JsonDeserializationContext context) throws JsonParseException {
         return json == null ? null : new Date(json.getAsLong());
       }
 
     };
   }
 
-  public String convertObjToString(Object obj) throws IOException {
+  public String convertObjToString(Object obj) {
     if (obj == null) {
       return "";
     }
-    /*ObjectMapper mapper = new ObjectMapper();
-    ObjectWriter w = mapper.writerWithDefaultPrettyPrinter();
-    return mapper.writeValueAsString(obj);*/
 
     Gson gson = new GsonBuilder()
-      .registerTypeAdapter(Date.class, jsonDateSerialiazer)
-      .registerTypeAdapter(Date.class, jsonDateDeserialiazer).create();
+        .registerTypeAdapter(Date.class, jsonDateSerialiazer)
+        .registerTypeAdapter(Date.class, jsonDateDeserialiazer).create();
 
     return gson.toJson(obj);
   }
-
 
   public String getHadoopServiceConfigJSON() {
     StringBuilder result = new StringBuilder("");
 
     // Get file from resources folder
     ClassLoader classLoader = getClass().getClassLoader();
-    File file = new File(classLoader
-      .getResource("HadoopServiceConfig.json").getFile());
+    File file = new File(classLoader.getResource("HadoopServiceConfig.json")
+        .getFile());
 
     try (Scanner scanner = new Scanner(file)) {
 
@@ -131,37 +147,67 @@ public class MgrBase {
     } catch (IOException e) {
       logger.error("Unable to read HadoopServiceConfig.json", e);
       throw restErrorUtil.createRESTException(e.getMessage(),
-        MessageEnums.ERROR_SYSTEM);
+          MessageEnums.ERROR_SYSTEM);
     }
 
     String hadoopServiceConfig = result.toString();
-    if (jsonUtil.isJSONValid(hadoopServiceConfig))
+    if (jsonUtil.isJSONValid(hadoopServiceConfig)) {
       return hadoopServiceConfig;
+    }
     throw restErrorUtil.createRESTException("Improper JSON",
-      MessageEnums.ERROR_SYSTEM);
+        MessageEnums.ERROR_SYSTEM);
 
   }
 
-  public VSolrLogList getLogAsPaginationProvided(SolrQuery solrQuery, SolrDaoBase solrDaoBase) {
+  public VSolrLogList getLogAsPaginationProvided(SolrQuery solrQuery,
+      SolrDaoBase solrDaoBase) {
     try {
       QueryResponse response = solrDaoBase.process(solrQuery);
+      VSolrLogList collection = new VSolrLogList();
       SolrDocumentList docList = response.getResults();
-      VSolrLogList collection = new VSolrLogList(docList);
-      collection.setStartIndex((int) docList.getStart());
-      collection.setTotalCount(docList.getNumFound());
-      Integer rowNumber = solrQuery.getRows();
-      if (rowNumber == null) {
-        logger.error("No RowNumber was set in solrQuery");
-        return new VSolrLogList();
+      if (docList != null && !docList.isEmpty()) {
+        collection.setSolrDocuments(docList);
+        collection.setStartIndex((int) docList.getStart());
+        collection.setTotalCount(docList.getNumFound());
+        Integer rowNumber = solrQuery.getRows();
+        if (rowNumber == null) {
+          logger.error("No RowNumber was set in solrQuery");
+          return new VSolrLogList();
+        }
+        collection.setPageSize(rowNumber);
       }
-      collection.setPageSize(rowNumber);
       return collection;
     } catch (SolrException | SolrServerException | IOException e) {
       logger.error("Error during solrQuery=" + solrQuery, e);
-      throw restErrorUtil.createRESTException(e.getMessage(),
-        MessageEnums.ERROR_SYSTEM);
+      throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
+          .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
     }
 
   }
 
+  protected String getUnit(String unit) {
+    if (stringUtil.isEmpty(unit)) {
+      unit = "+1HOUR";
+    }
+    return unit;
+  }
+
+  protected String getFrom(String from) {
+    if (stringUtil.isEmpty(from)) {
+      Date date =  dateUtil.getTodayFromDate();
+      try {
+        from = dateUtil.convertGivenDateFormatToSolrDateFormat(date);
+      } catch (ParseException e) {
+        from = "NOW";
+      }
+    }
+    return from;
+  }
+
+  protected String getTo(String to) {
+    if (stringUtil.isEmpty(to)) {
+      to = "NOW";
+    }
+    return to;
+  }
 }

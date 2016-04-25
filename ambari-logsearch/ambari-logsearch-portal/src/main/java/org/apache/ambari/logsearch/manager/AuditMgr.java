@@ -37,8 +37,7 @@ import org.apache.ambari.logsearch.common.ManageStartEndTime;
 import org.apache.ambari.logsearch.common.MessageEnums;
 import org.apache.ambari.logsearch.common.SearchCriteria;
 import org.apache.ambari.logsearch.dao.AuditSolrDao;
-import org.apache.ambari.logsearch.graph.GraphDataGnerator;
-import org.apache.ambari.logsearch.query.QueryGeneration;
+import org.apache.ambari.logsearch.graph.GraphDataGenerator;
 import org.apache.ambari.logsearch.util.BizUtil;
 import org.apache.ambari.logsearch.util.ConfigUtil;
 import org.apache.ambari.logsearch.util.DateUtil;
@@ -51,6 +50,7 @@ import org.apache.ambari.logsearch.view.VBarGraphData;
 import org.apache.ambari.logsearch.view.VGroupList;
 import org.apache.ambari.logsearch.view.VNameValue;
 import org.apache.ambari.logsearch.view.VNameValueList;
+import org.apache.ambari.logsearch.view.VResponse;
 import org.apache.ambari.logsearch.view.VSolrLogList;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -72,9 +72,6 @@ public class AuditMgr extends MgrBase {
   static Logger logger = Logger.getLogger(AuditMgr.class);
 
   @Autowired
-  QueryGeneration queryGenerator;
-
-  @Autowired
   AuditSolrDao auditSolrDao;
 
   @Autowired
@@ -93,69 +90,20 @@ public class AuditMgr extends MgrBase {
   DateUtil dateUtil;
 
   @Autowired
-  GraphDataGnerator graphDataGnerator;
-
-  public String getAllSolrFields() {
-
-    Collection<String> fieldNames = new ArrayList<String>();
-    SolrQuery solrQuery = new SolrQuery();
-
-    int numberDocument = 0;
-    int size = 0;
-
-    try {
-      queryGenerator.setMainQuery(solrQuery, null);
-      queryGenerator.setRowCount(solrQuery, 10);
-
-      SearchCriteria searchCriteria = new SearchCriteria();
-      searchCriteria.setSortBy(LogSearchConstants.AUDIT_EVTTIME);
-      searchCriteria.setSortType(SolrQuery.ORDER.asc.toString());
-
-      queryGenerator.setSortOrderDefaultServiceLog(solrQuery,
-        searchCriteria);
-      SolrDocumentList docList = auditSolrDao.process(solrQuery)
-        .getResults();
-
-      if (docList.size() > 0) {
-        for (int i = 0; i < 10; i++) {
-          if (docList.get(i).size() > size) {
-            size = docList.get(i).size();
-            numberDocument = i;
-          }
-        }
-        fieldNames = docList.get(numberDocument).getFieldNames();
-        return convertObjToString(fieldNames);
-      }
-      return convertObjToString(fieldNames);
-
-    } catch (SolrException | SolrServerException | IOException e) {
-      logger.error(e);
-      throw restErrorUtil.createRESTException(e.getMessage(),
-        MessageEnums.ERROR_SYSTEM);
-    }
-  }
+  GraphDataGenerator graphDataGenerator;
 
   public String getLogs(SearchCriteria searchCriteria) {
-    SolrQuery solrQuery = queryGenerator
-      .commonAuditFilterQuery(searchCriteria);
-    try {
-      QueryResponse response = auditSolrDao.process(solrQuery);
-      SolrDocumentList docList = response.getResults();
-      VSolrLogList collection = new VSolrLogList(docList);
-      collection.setStartIndex((int) docList.getStart());
-      collection.setTotalCount(docList.getNumFound());
-      collection.setPageSize(searchCriteria.getMaxRows());
-      return convertObjToString(collection);
-    } catch (SolrException | SolrServerException | IOException e) {
-      logger.error("Error during solrQuery=" + solrQuery, e);
-      throw restErrorUtil.createRESTException(e.getMessage(),
-        MessageEnums.ERROR_SYSTEM);
-    }
+    SolrQuery solrQuery = queryGenerator.commonAuditFilterQuery(searchCriteria);
+    VSolrLogList collection = getLogAsPaginationProvided(solrQuery,
+        auditSolrDao);
+    return convertObjToString(collection);
+
   }
 
   public SolrDocumentList getComponents(SearchCriteria searchCriteria) {
     SolrQuery solrQuery = queryGenerator
       .commonAuditFilterQuery(searchCriteria);
+    SolrDocumentList docList = new SolrDocumentList();
     try {
       queryGenerator.setFacetField(solrQuery,
         LogSearchConstants.AUDIT_COMPONENT);
@@ -166,12 +114,12 @@ public class AuditMgr extends MgrBase {
 
       QueryResponse queryResponse = auditSolrDao.process(solrQuery);
       if (queryResponse == null) {
-        queryResponse = new QueryResponse();
+        return docList;
       }
 
       facetFields = queryResponse.getFacetFields();
       if (facetFields == null) {
-        return new SolrDocumentList();
+        return docList;
       }
       if (!facetFields.isEmpty()) {
         facetField = facetFields.get(0);
@@ -179,7 +127,7 @@ public class AuditMgr extends MgrBase {
       if (facetField != null) {
         componentsCount = facetField.getValues();
       }
-      SolrDocumentList docList = new SolrDocumentList();
+    
       for (Count compnonet : componentsCount) {
         SolrDocument solrDocument = new SolrDocument();
         solrDocument.addField("type", compnonet.getName());
@@ -188,25 +136,17 @@ public class AuditMgr extends MgrBase {
       return docList;
     } catch (SolrException | SolrServerException | IOException e) {
       logger.error("Error during solrQuery=" + solrQuery, e);
-      throw restErrorUtil.createRESTException(e.getMessage(),
-        MessageEnums.ERROR_SYSTEM);
+      throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
+          .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
     }
   }
 
   public String getAuditComponents(SearchCriteria searchCriteria) {
     VGroupList vGroupList = new VGroupList();
+    SolrDocumentList docList = getComponents(searchCriteria);
 
-    try {
-
-      SolrDocumentList docList = getComponents(searchCriteria);
-
-      vGroupList.setGroupDocuments(docList);
-      return convertObjToString(vGroupList);
-    } catch (SolrException | IOException e) {
-      logger.error("Error", e);
-      throw restErrorUtil.createRESTException(e.getMessage(),
-        MessageEnums.ERROR_SYSTEM);
-    }
+    vGroupList.setGroupDocuments(docList);
+    return convertObjToString(vGroupList);
   }
 
   @SuppressWarnings("unchecked")
@@ -214,9 +154,11 @@ public class AuditMgr extends MgrBase {
     VBarDataList dataList = new VBarDataList();
     SolrQuery solrQuery = queryGenerator.commonAuditFilterQuery(searchCriteria);
 
-    String from = (String) searchCriteria.getParamValue("startTime");
-    String to = (String) searchCriteria.getParamValue("endTime");
-    String unit = (String) searchCriteria.getParamValue("unit");
+    String from = getFrom((String) searchCriteria.getParamValue("startTime"));
+    String to = getTo((String) searchCriteria.getParamValue("endTime"));
+    String unit = getUnit((String) searchCriteria.getParamValue("unit"));
+    
+    
 
     List<VBarGraphData> histogramData = new ArrayList<VBarGraphData>();
     String jsonHistogramQuery = queryGenerator.buildJSONFacetTermTimeRangeQuery(
@@ -228,15 +170,16 @@ public class AuditMgr extends MgrBase {
       queryGenerator.setJSONFacet(solrQuery, jsonHistogramQuery);
       queryGenerator.setRowCount(solrQuery, 0);
       QueryResponse response = auditSolrDao.process(solrQuery);
-      if (response == null)
-        response = new QueryResponse();
-
+      if (response == null){
+        return convertObjToString(dataList);
+      }
       SimpleOrderedMap<Object> jsonFacetResponse = (SimpleOrderedMap<Object>) response
         .getResponse().get("facets");
 
       if (jsonFacetResponse == null
-        || jsonFacetResponse.toString().equals("{count=0}"))
+        || jsonFacetResponse.toString().equals("{count=0}")){
         return convertObjToString(dataList);
+      }
 
       extractValuesFromBucket(jsonFacetResponse, "x", "y",
         histogramData);
@@ -246,17 +189,19 @@ public class AuditMgr extends MgrBase {
 
     } catch (SolrServerException | SolrException | IOException e) {
       logger.error(e);
-      throw restErrorUtil.createRESTException("No Request Parameter",
-        MessageEnums.ERROR_SYSTEM);
+      throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
+          .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
 
     }
   }
 
   public String getTopAuditFieldCount(SearchCriteria searchCriteria) {
+    int topCounts = 10;
     Integer top = (Integer) searchCriteria.getParamValue("top");
     String facetField = (String) searchCriteria.getParamValue("field");
-    if (top == null)
-      top = new Integer(10);
+    if (top == null){
+      top = new Integer(topCounts);
+    }
     SolrQuery solrQuery = queryGenerator
       .commonAuditFilterQuery(searchCriteria);
     try {
@@ -266,11 +211,15 @@ public class AuditMgr extends MgrBase {
       VNameValueList nameValueList = new VNameValueList(nameValues);
 
       queryGenerator.setFacetField(solrQuery, facetField);
-      queryGenerator.setFacetSort(solrQuery, "count");
+      queryGenerator.setFacetSort(solrQuery, LogSearchConstants.FACET_COUNT);
       queryGenerator.setFacetLimit(solrQuery, top.intValue());
 
       List<Count> countList = new ArrayList<FacetField.Count>();
       QueryResponse queryResponse = auditSolrDao.process(solrQuery);
+      if(queryResponse == null){
+        return convertObjToString(nameValueList);
+      }
+      
       if (queryResponse.getFacetField(facetField) != null) {
         FacetField queryFacetField = queryResponse
           .getFacetField(facetField);
@@ -290,13 +239,14 @@ public class AuditMgr extends MgrBase {
 
     } catch (SolrException | IOException | SolrServerException e) {
       logger.error("Error during solrQuery=" + solrQuery, e);
-      throw restErrorUtil.createRESTException(e.getMessage(),
-        MessageEnums.ERROR_SYSTEM);
+      throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
+          .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
     }
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings({ "unchecked", "rawtypes" })
   public String getLiveLogCounts() {
+    VNameValueList nameValueList = new VNameValueList();
     SolrQuery solrQuery = new SolrQuery();
     solrQuery.setParam("event", "/getLiveLogsCount");
     try {
@@ -313,11 +263,18 @@ public class AuditMgr extends MgrBase {
       List<RangeFacet.Count> listCount;
 
       QueryResponse response = auditSolrDao.process(solrQuery);
-      @SuppressWarnings("rawtypes")
+ 
       List<RangeFacet> rangeFacet = response.getFacetRanges();
-      if (rangeFacet == null)
-        return convertObjToString(new VNameValueList());
-      listCount = rangeFacet.get(0).getCounts();
+      if (rangeFacet == null){
+        return convertObjToString(nameValueList);
+      }
+      RangeFacet range=rangeFacet.get(0);
+      
+      if(range == null){
+        return convertObjToString(nameValueList);
+      }
+      
+      listCount = range.getCounts();
 
       List<VNameValue> nameValues = new ArrayList<VNameValue>();
       int count = 0;
@@ -328,15 +285,14 @@ public class AuditMgr extends MgrBase {
         nameValues.add(nameValue);
         count++;
       }
-      VNameValueList nameValueList = new VNameValueList(nameValues);
-
+      nameValueList.setVNameValues(nameValues);
       return convertObjToString(nameValueList);
 
     } catch (SolrException | SolrServerException | ParseException
       | IOException e) {
       logger.error("Error during solrQuery=" + solrQuery, e);
-      throw restErrorUtil.createRESTException(e.getMessage(),
-        MessageEnums.ERROR_SYSTEM);
+      throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
+          .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
     }
   }
 
@@ -345,13 +301,17 @@ public class AuditMgr extends MgrBase {
     String jsonUserQuery = "{Users:{type:terms, field:reqUser, facet:{ Repo:{ type:terms, field:repo, facet:{eventCount:\"sum(event_count)\"}}}}}";
     SolrQuery solrQuery = queryGenerator
       .commonAuditFilterQuery(searchCriteria);
-    solrQuery.set("json.facet", jsonUserQuery);
+    queryGenerator.setJSONFacet(solrQuery, jsonUserQuery);
     queryGenerator.setRowCount(solrQuery, 0);
     try {
+      VBarDataList vBarDataList = new VBarDataList();
       QueryResponse queryResponse = auditSolrDao.process(solrQuery);
+      if(queryResponse == null){
+        return convertObjToString(vBarDataList);
+      }
 
       NamedList<Object> namedList = queryResponse.getResponse();
-      VBarDataList vBarDataList = new VBarDataList();
+      
       if (namedList == null) {
         return convertObjToString(vBarDataList);
       }
@@ -359,13 +319,19 @@ public class AuditMgr extends MgrBase {
       @SuppressWarnings("unchecked")
       SimpleOrderedMap<Object> jsonFacetResponse = (SimpleOrderedMap<Object>) namedList
         .get("facets");
-      vBarDataList = bizUtil.buildSummaryForTopCounts(jsonFacetResponse);
+      if(jsonFacetResponse == null){
+        return convertObjToString(vBarDataList);
+      }
+      if(jsonFacetResponse.toString().equals("{count=0}")){
+        return convertObjToString(vBarDataList);
+      }
+      vBarDataList = bizUtil.buildSummaryForTopCounts(jsonFacetResponse,"Repo","Users");
       return convertObjToString(vBarDataList);
 
     } catch (SolrServerException | SolrException | IOException e) {
       logger.error("Error during solrQuery=" + e);
-      throw restErrorUtil.createRESTException(e.getMessage(),
-        MessageEnums.ERROR_SYSTEM);
+      throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
+          .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
     }
   }
 
@@ -374,13 +340,16 @@ public class AuditMgr extends MgrBase {
     String jsonUserQuery = "{Users:{type:terms,field:resource,facet:{Repo:{type:terms,field:repo,facet:{eventCount:\"sum(event_count)\"}}}}}";
     SolrQuery solrQuery = queryGenerator
       .commonAuditFilterQuery(searchCriteria);
-    solrQuery.set("json.facet", jsonUserQuery);
+    queryGenerator.setJSONFacet(solrQuery, jsonUserQuery);
     queryGenerator.setRowCount(solrQuery, 0);
     try {
+      VBarDataList vBarDataList = new VBarDataList();
       QueryResponse queryResponse = auditSolrDao.process(solrQuery);
+      if(queryResponse == null){
+        return convertObjToString(vBarDataList);
+      }
 
       NamedList<Object> namedList = queryResponse.getResponse();
-      VBarDataList vBarDataList = new VBarDataList();
       if (namedList == null) {
         return convertObjToString(vBarDataList);
       }
@@ -389,22 +358,23 @@ public class AuditMgr extends MgrBase {
       SimpleOrderedMap<Object> jsonFacetResponse = (SimpleOrderedMap<Object>) namedList
         .get("facets");
 
-      vBarDataList = bizUtil.buildSummaryForTopCounts(jsonFacetResponse);
+      vBarDataList = bizUtil.buildSummaryForTopCounts(jsonFacetResponse,"Repo","Users");
       return convertObjToString(vBarDataList);
 
     } catch (SolrServerException | SolrException | IOException e) {
       logger.error("Error during solrQuery=" + solrQuery, e);
-      throw restErrorUtil.createRESTException(e.getMessage(),
-        MessageEnums.ERROR_SYSTEM);
+      throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
+          .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
     }
   }
 
   @SuppressWarnings("unchecked")
   public String getRequestUserLineGraph(SearchCriteria searchCriteria) {
 
-    String from = (String) searchCriteria.getParamValue("startTime");
-    String to = (String) searchCriteria.getParamValue("endTime");
-    String unit = (String) searchCriteria.getParamValue("unit");
+    String from = getFrom((String) searchCriteria.getParamValue("startTime"));
+    String to = getTo((String) searchCriteria.getParamValue("endTime"));
+    String unit = getUnit((String) searchCriteria.getParamValue("unit"));
+    
     SolrQuery solrQuery = queryGenerator
       .commonAuditFilterQuery(searchCriteria);
 
@@ -420,19 +390,19 @@ public class AuditMgr extends MgrBase {
       .replace("\\", "");
 
     try {
-      solrQuery.set("json.facet", jsonHistogramQuery);
+      queryGenerator.setJSONFacet(solrQuery, jsonHistogramQuery);
       queryGenerator.setRowCount(solrQuery, 0);
       QueryResponse response = auditSolrDao.process(solrQuery);
-      if (response == null)
-        response = new QueryResponse();
-
+      if (response == null){
+        return convertObjToString(dataList);
+      }
       SimpleOrderedMap<Object> jsonFacetResponse = (SimpleOrderedMap<Object>) response
         .getResponse().get("facets");
 
       if (jsonFacetResponse == null
-        || jsonFacetResponse.toString().equals("{count=0}"))
+        || jsonFacetResponse.toString().equals("{count=0}")){
         return convertObjToString(dataList);
-
+      }
       extractValuesFromBucket(jsonFacetResponse, "x", "y", histogramData);
 
       dataList.setGraphData(histogramData);
@@ -440,13 +410,14 @@ public class AuditMgr extends MgrBase {
 
     } catch (SolrException | IOException | SolrServerException e) {
       logger.error("Error during solrQuery=" + solrQuery, e);
-      throw restErrorUtil.createRESTException(e.getMessage(),
-        MessageEnums.ERROR_SYSTEM);
+      throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
+          .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
     }
 
   }
 
   public SolrDocumentList getRequestUser(SearchCriteria searchCriteria) {
+    SolrDocumentList docList = new SolrDocumentList();
     SolrQuery solrQuery = queryGenerator
       .commonAuditFilterQuery(searchCriteria);
     try {
@@ -459,12 +430,12 @@ public class AuditMgr extends MgrBase {
 
       QueryResponse queryResponse = auditSolrDao.process(solrQuery);
       if (queryResponse == null) {
-        queryResponse = new QueryResponse();
+        return docList;
       }
 
       facetFields = queryResponse.getFacetFields();
       if (facetFields == null) {
-        return new SolrDocumentList();
+        return docList;
       }
       if (!facetFields.isEmpty()) {
         facetField = facetFields.get(0);
@@ -472,7 +443,7 @@ public class AuditMgr extends MgrBase {
       if (facetField != null) {
         componentsCount = facetField.getValues();
       }
-      SolrDocumentList docList = new SolrDocumentList();
+     
       for (Count compnonet : componentsCount) {
         SolrDocument solrDocument = new SolrDocument();
         solrDocument.addField("type", compnonet.getName());
@@ -481,22 +452,22 @@ public class AuditMgr extends MgrBase {
       return docList;
     } catch (SolrException | SolrServerException | IOException e) {
       logger.error("Error during solrQuery=" + solrQuery, e);
-      throw restErrorUtil.createRESTException(e.getMessage(),
-        MessageEnums.ERROR_SYSTEM);
+      throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
+          .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
     }
   }
 
   public String getAuditLogsSchemaFieldsName() {
     String suffix = PropertiesUtil.getProperty("auditlog.solr.core.logs");
     String excludeArray[] = PropertiesUtil
-      .getPropertyStringList("auditlog.exclude.columnlist");
+        .getPropertyStringList("auditlog.exclude.columnlist");
     List<String> fieldNames = new ArrayList<String>();
     HashMap<String, String> uiFieldColumnMapping = new HashMap<String, String>();
     ConfigUtil.getSchemaFieldsName(suffix, excludeArray, fieldNames);
 
     for (String fieldName : fieldNames) {
       String uiField = ConfigUtil.auditLogsColumnMapping.get(fieldName
-        + LogSearchConstants.SOLR_SUFFIX);
+          + LogSearchConstants.SOLR_SUFFIX);
       if (uiField == null) {
         uiFieldColumnMapping.put(fieldName, fieldName);
       } else {
@@ -504,33 +475,24 @@ public class AuditMgr extends MgrBase {
       }
     }
 
-    try {
-      uiFieldColumnMapping = bizUtil
-        .sortHashMapByValuesD(uiFieldColumnMapping);
-      return convertObjToString(uiFieldColumnMapping);
-    } catch (IOException e) {
-      logger.error(e);
-    }
-    throw restErrorUtil.createRESTException(
-      "Cache is Empty for FieldsName", MessageEnums.DATA_NOT_FOUND);
+    uiFieldColumnMapping = bizUtil.sortHashMapByValues(uiFieldColumnMapping);
+    return convertObjToString(uiFieldColumnMapping);
+
   }
 
   public String getAnyGraphData(SearchCriteria searchCriteria) {
-    searchCriteria.addParam("feildTime", LogSearchConstants.AUDIT_EVTTIME);
+    searchCriteria.addParam("fieldTime", LogSearchConstants.AUDIT_EVTTIME);
     String suffix = PropertiesUtil.getProperty("auditlog.solr.core.logs");
     searchCriteria.addParam("suffix", suffix);
-    SolrQuery solrQuery = queryGenerator
-      .commonAuditFilterQuery(searchCriteria);
-    String result = graphDataGnerator.getAnyGraphData(searchCriteria,
-      auditSolrDao, solrQuery);
-    if (result != null)
-      return result;
-    try {
-      return convertObjToString(new VBarDataList());
-    } catch (IOException e) {
-      throw restErrorUtil.createRESTException(e.getMessage(),
-        MessageEnums.ERROR_SYSTEM);
+    SolrQuery solrQuery = queryGenerator.commonAuditFilterQuery(searchCriteria);
+    VBarDataList result = graphDataGenerator.getAnyGraphData(searchCriteria,
+        auditSolrDao, solrQuery);
+    if (result == null) {
+      result = new VBarDataList();
     }
+
+    return convertObjToString(result);
+
   }
 
   @SuppressWarnings("unchecked")
@@ -586,20 +548,27 @@ public class AuditMgr extends MgrBase {
     String dataFormat = (String) searchCriteria.getParamValue("format");
     try {
       QueryResponse queryResponse = auditSolrDao.process(solrQuery);
+      if(queryResponse == null){
+        VResponse response = new VResponse();
+        response.setMsgDesc("Query was not able to execute "+solrQuery);
+        throw restErrorUtil.createRESTException(response);
+      }
 
       NamedList<Object> namedList = queryResponse.getResponse();
+      if(namedList == null){
+        VResponse response = new VResponse();
+        response.setMsgDesc("Query was not able to execute "+solrQuery);
+        throw restErrorUtil.createRESTException(response);
+      }
       VBarDataList vBarUserDataList = new VBarDataList();
       VBarDataList vBarResourceDataList = new VBarDataList();
-      if (namedList == null) {
-
-      }
 
       SimpleOrderedMap<Object> jsonFacetResponse = (SimpleOrderedMap<Object>) namedList
         .get("facets");
       vBarUserDataList = bizUtil
-        .buildSummaryForTopCounts(jsonFacetResponse);
+        .buildSummaryForTopCounts(jsonFacetResponse,"Repo","Users");
       vBarResourceDataList = bizUtil
-        .buildSummaryForResourceCounts(jsonFacetResponse);
+        .buildSummaryForTopCounts(jsonFacetResponse,"y","x");
       String data = "";
       String summary = "";
       if ("text".equals(dataFormat)) {
@@ -698,8 +667,8 @@ public class AuditMgr extends MgrBase {
 
     } catch (SolrServerException | SolrException | IOException e) {
       logger.error("Error during solrQuery=" + e);
-      throw restErrorUtil.createRESTException(e.getMessage(),
-        MessageEnums.ERROR_SYSTEM);
+      throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
+          .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
     }
   }
 
@@ -725,10 +694,19 @@ public class AuditMgr extends MgrBase {
         LogSearchConstants.AUDIT_COMPONENT);
       QueryResponse serviceLoadResponse = auditSolrDao
         .process(serivceLoadQuery);
-      if (serviceLoadResponse == null)
-        return "[]";
-      List<Count> serviceLoadFacets = serviceLoadResponse.getFacetField(
-        LogSearchConstants.AUDIT_COMPONENT).getValues();
+      if (serviceLoadResponse == null){
+        return convertObjToString(dataList);
+      }
+      FacetField serviceFacetField =serviceLoadResponse.getFacetField(
+          LogSearchConstants.AUDIT_COMPONENT);
+      if(serviceFacetField == null){
+        return convertObjToString(dataList);
+      }
+      
+      List<Count> serviceLoadFacets = serviceFacetField.getValues();
+      if(serviceLoadFacets == null){
+        return convertObjToString(dataList);
+      }
       for (Count cnt : serviceLoadFacets) {
         List<VNameValue> valueList = new ArrayList<VNameValue>();
         VBarGraphData vBarGraphData = new VBarGraphData();
@@ -746,8 +724,8 @@ public class AuditMgr extends MgrBase {
 
     } catch (SolrException | SolrServerException | IOException e) {
       logger.error("Error during solrQuery=" + e);
-      throw restErrorUtil.createRESTException(e.getMessage(),
-        MessageEnums.ERROR_SYSTEM);
+      throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
+          .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
     }
     
   /*  

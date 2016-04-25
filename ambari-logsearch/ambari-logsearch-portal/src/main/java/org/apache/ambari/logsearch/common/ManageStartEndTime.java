@@ -23,7 +23,6 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.TimerTask;
 
-import org.apache.ambari.logsearch.util.ConfigUtil;
 import org.apache.log4j.Logger;
 
 public class ManageStartEndTime extends TimerTask {
@@ -39,10 +38,11 @@ public class ManageStartEndTime extends TimerTask {
 
   @Override
   public void run() {
-    if (startDate == null)
+    if (startDate == null){
       intailizeStartEndTime();
-    else
+    }else{
       adjustStartEndTime();
+    }
   }
 
   private void adjustStartEndTime() {

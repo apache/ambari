@@ -36,9 +36,7 @@ public abstract class LogsearchAbstractAuthenticationProvider implements Authent
 
   protected enum AUTH_METHOD {
     LDAP, FILE, SIMPLE
-  }
-
-  ;
+  };
 
 
   @Override

@@ -70,7 +70,7 @@ define(['require',
 			// the number of page handles to show. The sliding window
 			// will automatically show the next set of page handles when
 			// you click next at the end of a window.
-			windowSize: 5, // Default is 10
+			windowSize: 10, // Default is 10
 
 			// Used to multiple windowSize to yield a number of pages to slide,
 			// in the case the number is 5

@@ -55,14 +55,16 @@ public class ConfigUtil {
     if (columnMappingArray != null && columnMappingArray.length > 0) {
       for (String columnMapping : columnMappingArray) {
         String mapping[] = columnMapping.split(":");
-        String solrField = mapping[0];
-        String uiField = mapping[1];
-        String modifiedUIField = getModifiedUIField(uiField);
-        columnMappingMap.put(
-          solrField + LogSearchConstants.SOLR_SUFFIX,
-          modifiedUIField);
-        columnMappingMap.put(modifiedUIField
-          + LogSearchConstants.UI_SUFFIX, solrField);
+        if (mapping.length > 1) {
+          String solrField = mapping[0];
+          String uiField = mapping[1];
+
+          String modifiedUIField = getModifiedUIField(uiField);
+          columnMappingMap.put(solrField + LogSearchConstants.SOLR_SUFFIX,
+              modifiedUIField);
+          columnMappingMap.put(modifiedUIField + LogSearchConstants.UI_SUFFIX,
+              solrField);
+        }
       }
     }
   }
@@ -71,9 +73,9 @@ public class ConfigUtil {
     String modifiedUIField = "";
     String temp = serviceLogsColumnMapping.get(uiField
       + LogSearchConstants.UI_SUFFIX);
-    if (temp == null)
+    if (temp == null){
       return uiField;
-    else {
+    }else {
       String lastChar = uiField.substring(uiField.length() - 1,
         uiField.length());
       int k = 1;
@@ -118,6 +120,10 @@ public class ConfigUtil {
     try {
       JSONObject jsonObject = new JSONObject(responseString);
       JSONArray jsonArrayList = jsonObject.getJSONArray("fields");
+      
+      if(jsonArrayList == null){
+        return;
+      }
 
       for (int i = 0; i < jsonArrayList.length(); i++) {
         JSONObject explrObject = jsonArrayList.getJSONObject(i);
@@ -167,8 +173,9 @@ public class ConfigUtil {
   private static boolean isExclude(String name, String excludeArray[]) {
     if (excludeArray != null && excludeArray.length > 0) {
       for (String exclude : excludeArray) {
-        if (name.equals(exclude))
+        if (name.equals(exclude)){
           return true;
+        }
       }
     }
     return false;

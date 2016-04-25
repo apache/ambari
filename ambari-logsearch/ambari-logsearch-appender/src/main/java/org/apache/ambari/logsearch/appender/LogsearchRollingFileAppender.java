@@ -19,16 +19,16 @@
 
 package org.apache.ambari.logsearch.appender;
 
-import org.apache.log4j.DailyRollingFileAppender;
 import org.apache.log4j.Layout;
 import org.apache.log4j.Logger;
+import org.apache.log4j.RollingFileAppender;
 import org.apache.log4j.spi.LoggingEvent;
 
-public class LogsearchAppender extends DailyRollingFileAppender {
-  private static Logger logger = Logger.getLogger(LogsearchAppender.class);
+public class LogsearchRollingFileAppender extends RollingFileAppender {
+  private static Logger logger = Logger.getLogger(LogsearchRollingFileAppender.class);
 
-  public LogsearchAppender() {
-    logger.debug("Initializing LogsearchAppender........... ");
+  public LogsearchRollingFileAppender() {
+    logger.trace("Initializing LogsearchRollingFileAppender........... ");
   }
 
   @Override
@@ -39,12 +39,5 @@ public class LogsearchAppender extends DailyRollingFileAppender {
   @Override
   public void setLayout(Layout layout) {
     super.setLayout(layout);
-  }
-
-  protected void subAppend(LoggingEvent event) {
-    this.qw.write(this.layout.format(event));
-    if (shouldFlush(event)) {
-      this.qw.flush();
-    }
   }
 }

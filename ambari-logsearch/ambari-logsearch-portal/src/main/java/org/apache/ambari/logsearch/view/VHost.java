@@ -22,8 +22,8 @@ package org.apache.ambari.logsearch.view;
 import java.util.Set;
 
 public class VHost {
-  String name;
-  Set<String> components;
+  protected String name;
+  protected Set<String> components;
 
   public String getName() {
     return name;

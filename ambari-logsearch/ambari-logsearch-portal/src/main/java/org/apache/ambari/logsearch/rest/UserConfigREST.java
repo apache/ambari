@@ -33,8 +33,6 @@ import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.common.SearchCriteria;
 import org.apache.ambari.logsearch.manager.UserConfigMgr;
 import org.apache.ambari.logsearch.util.RESTErrorUtil;
-import org.apache.ambari.logsearch.view.VLogfeederFilter;
-import org.apache.ambari.logsearch.view.VLogfeederFilterWrapper;
 import org.apache.ambari.logsearch.view.VUserConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;

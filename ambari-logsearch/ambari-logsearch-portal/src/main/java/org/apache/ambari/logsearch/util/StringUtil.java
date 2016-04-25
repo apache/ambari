@@ -20,16 +20,12 @@
 package org.apache.ambari.logsearch.util;
 
 import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class StringUtil {
   
-  static Logger logger = Logger.getLogger(StringUtil.class);
-  
-  @Autowired
-  RESTErrorUtil restErrorUtil;
+  private static  Logger logger = Logger.getLogger(StringUtil.class);
   
   public boolean isEmpty(String str) {
     return str == null || str.trim().length() == 0;

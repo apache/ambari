@@ -80,10 +80,11 @@ public class VNameValue implements java.io.Serializable {
    *            Value to set member attribute <b>value</b>
    */
   public void setValue(String value) {
-    if(value.contains(".") && (value.contains("e") || value.contains("E")))
+    if(value.contains(".") && (value.contains("e") || value.contains("E"))){
       this.value=getExponentialValueReplaced(value);
-    else
+    }else{
       this.value = value;
+    }
   }
 
   /**

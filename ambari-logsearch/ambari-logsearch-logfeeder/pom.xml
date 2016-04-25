@@ -39,6 +39,11 @@
 
   <dependencies>
     <dependency>
+      <groupId>org.apache.ambari</groupId>
+      <artifactId>ambari-logsearch-appender</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <scope>test</scope>
@@ -79,6 +84,7 @@
       <artifactId>commons-logging</artifactId>
       <version>1.1.1</version>
     </dependency>
+
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
@@ -109,8 +115,8 @@
       <artifactId>jackson-xc</artifactId>
       <version>1.9.13</version>
     </dependency>
-  </dependencies>
 
+  </dependencies>
   <build>
     <finalName>LogFeeder</finalName>
     <pluginManagement>

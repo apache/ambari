@@ -40,11 +40,9 @@ import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.common.MessageEnums;
 import org.apache.ambari.logsearch.common.SearchCriteria;
 import org.apache.ambari.logsearch.dao.ServiceLogsSolrDao;
-import org.apache.ambari.logsearch.graph.GraphDataGnerator;
-import org.apache.ambari.logsearch.query.QueryGeneration;
+import org.apache.ambari.logsearch.graph.GraphDataGenerator;
 import org.apache.ambari.logsearch.util.BizUtil;
 import org.apache.ambari.logsearch.util.ConfigUtil;
-import org.apache.ambari.logsearch.util.DateUtil;
 import org.apache.ambari.logsearch.util.FileUtil;
 import org.apache.ambari.logsearch.util.PropertiesUtil;
 import org.apache.ambari.logsearch.view.VBarDataList;
@@ -85,6 +83,10 @@ public class LogsMgr extends MgrBase {
   public static List<String> cancelByDate = new CopyOnWriteArrayList<String>();
 
   public static Map<String, String> mapUniqueId = new ConcurrentHashMap<String, String>();
+  
+  public static enum CONDITION {
+    OR, AND
+  }
 
   @Autowired
   ServiceLogsSolrDao serviceLogsSolrDao;
@@ -93,141 +95,110 @@ public class LogsMgr extends MgrBase {
   BizUtil bizUtil;
 
   @Autowired
-  QueryGeneration queryGenerator;
-
-  @Autowired
   FileUtil fileUtil;
 
-  @Autowired
-  DateUtil dateUtil;
-
 
   @Autowired
-  GraphDataGnerator graphDataGnerator;
+  GraphDataGenerator graphDataGenerator;
 
 
   public String searchLogs(SearchCriteria searchCriteria) {
     String keyword = (String) searchCriteria.getParamValue("keyword");
-    if (!stringUtil.isEmpty(keyword))
+    String logId = (String) searchCriteria.getParamValue("sourceLogId");
+    if (!stringUtil.isEmpty(keyword)) {
       try {
         return getPageByKeyword(searchCriteria);
       } catch (SolrException | SolrServerException e) {
         logger.error("Error while getting keyword=" + keyword, e);
+        throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
+            .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
       }
-    String logId = (String) searchCriteria.getParamValue("sourceLogId");
-    if (!stringUtil.isEmpty(logId))
+    } else if (!stringUtil.isEmpty(logId)) {
       try {
         return getPageByLogId(searchCriteria);
       } catch (SolrException e) {
         logger.error("Error while getting keyword=" + keyword, e);
+        throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
+            .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
       }
-    SolrQuery solrQuery = queryGenerator.commonFilterQuery(searchCriteria);
+    } else {
+      SolrQuery solrQuery = queryGenerator.commonServiceFilterQuery(searchCriteria);
 
-    solrQuery.setParam("event", "/solr/logs_search");
-    try {
-      VSolrLogList collection = getLogAsPaginationProvided(solrQuery, serviceLogsSolrDao);
+      solrQuery.setParam("event", "/solr/logs_search");
+
+      VSolrLogList collection = getLogAsPaginationProvided(solrQuery,
+          serviceLogsSolrDao);
       return convertObjToString(collection);
-    } catch (SolrException | IOException e) {
-      logger.error("Error during solrQuery=" + solrQuery, e);
-      throw restErrorUtil.createRESTException(e.getMessage(),
-        MessageEnums.ERROR_SYSTEM);
     }
   }
 
   public String getHosts(SearchCriteria searchCriteria) {
-    SolrQuery solrQuery = new SolrQuery();
-    queryGenerator.setMainQuery(solrQuery, null);
-    queryGenerator.setFacetField(solrQuery, LogSearchConstants.SOLR_HOST);
-    try {
-      QueryResponse response = serviceLogsSolrDao.process(solrQuery);
-      FacetField hostFacetField = response
-        .getFacetField(LogSearchConstants.SOLR_HOST);
-      if (hostFacetField == null)
-        return convertObjToString(new SolrDocumentList());
-      List<Count> hostList = hostFacetField.getValues();
-      if (hostList == null)
-        return convertObjToString(new SolrDocumentList());
-      SolrDocumentList docList = response.getResults();
-      String hostName = "";
-      for (Count host : hostList) {
-        SolrDocument solrDoc = new SolrDocument();
-        hostName = host.getName();
-        solrDoc.put(LogSearchConstants.SOLR_HOST, hostName);
-        docList.add(solrDoc);
-      }
-
-      VGroupList collection = new VGroupList(docList);
-      collection.setStartIndex((int) docList.getStart());
-      collection.setTotalCount(docList.getNumFound());
-      return convertObjToString(collection);
-    } catch (IOException | SolrServerException | SolrException e) {
-      logger.error(e);
-      throw restErrorUtil.createRESTException(e.getMessage(),
-        MessageEnums.ERROR_SYSTEM);
-    }
+    return getFields(searchCriteria, LogSearchConstants.SOLR_HOST);
   }
+  
+  public String getFields(SearchCriteria searchCriteria,String field){
 
-  public VGroupList getComponentList(SearchCriteria searchCriteria) {
-    SolrQuery query = new SolrQuery();
-    query.setParam("event", "/audit/getLiveLogsCount");
-    queryGenerator.setMainQuery(query, null);
-
-    queryGenerator.setGroupField(query, LogSearchConstants.SOLR_COMPONENT,
-      searchCriteria.getMaxRows());
-
-    searchCriteria.setSortBy(LogSearchConstants.SOLR_COMPONENT);
-    queryGenerator.setSortOrderDefaultServiceLog(query, searchCriteria);
-    try {
-      return this.getSolrGroupList(query);
-    } catch (SolrException | SolrServerException | IOException e) {
-      logger.error("Error during solrQuery=" + query, e);
-      throw restErrorUtil.createRESTException(e.getMessage(),
-        MessageEnums.ERROR_SYSTEM);
-    }
-  }
-
-  public String getComponents(SearchCriteria searchCriteria) {
     SolrQuery solrQuery = new SolrQuery();
+    VGroupList collection = new VGroupList();
     queryGenerator.setMainQuery(solrQuery, null);
     queryGenerator.setFacetField(solrQuery,
-      LogSearchConstants.SOLR_COMPONENT);
+        field);
     queryGenerator.setFacetSort(solrQuery, LogSearchConstants.FACET_INDEX);
     try {
       QueryResponse response = serviceLogsSolrDao.process(solrQuery);
-      FacetField hostFacetField = response
-        .getFacetField(LogSearchConstants.SOLR_COMPONENT);
-      if (hostFacetField == null)
-        return convertObjToString(new SolrDocumentList());
-      List<Count> componenttList = hostFacetField.getValues();
-      if (componenttList == null)
-        return convertObjToString(new SolrDocumentList());
+      if(response == null){
+        return convertObjToString(collection);
+      }
+      FacetField facetField = response
+        .getFacetField(field);
+      if (facetField == null){
+        return convertObjToString(collection);
+      }
+      List<Count> fieldList = facetField.getValues();
+      if (fieldList == null){
+        return convertObjToString(collection);
+      }
       SolrDocumentList docList = response.getResults();
-      String hostName = "";
-      for (Count component : componenttList) {
+      if(docList == null){
+        return convertObjToString(collection);
+      }
+      String temp = "";
+      for (Count cnt : fieldList) {
         SolrDocument solrDoc = new SolrDocument();
-        hostName = component.getName();
-        solrDoc.put(LogSearchConstants.SOLR_COMPONENT, hostName);
+        temp = cnt.getName();
+        solrDoc.put(field, temp);
         docList.add(solrDoc);
       }
-
-      VGroupList collection = new VGroupList(docList);
-      collection.setStartIndex((int) docList.getStart());
-      collection.setTotalCount(docList.getNumFound());
+      
+      collection.setGroupDocuments(docList);
+      if(!docList.isEmpty()){
+        collection.setStartIndex((int) docList.getStart());
+        collection.setTotalCount(docList.getNumFound());
+      }
       return convertObjToString(collection);
     } catch (IOException | SolrServerException | SolrException e) {
       logger.error(e);
-      throw restErrorUtil.createRESTException(e.getMessage(),
-        MessageEnums.ERROR_SYSTEM);
+      throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
+          .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
     }
+  
+  }
+
+  public String getComponents(SearchCriteria searchCriteria) {
+    return getFields(searchCriteria, LogSearchConstants.SOLR_COMPONENT);
   }
 
   public String getAggregatedInfo(SearchCriteria searchCriteria) {
-    SolrQuery solrQuery = queryGenerator.commonFilterQuery(searchCriteria);
+    SolrQuery solrQuery = queryGenerator.commonServiceFilterQuery(searchCriteria);
     String hierarchy = "host,type,level";
+    VGraphInfo graphInfo = new VGraphInfo();
     try {
       queryGenerator.setMainQuery(solrQuery, null);
       queryGenerator.setFacetPivot(solrQuery, 1, hierarchy);
       QueryResponse response = serviceLogsSolrDao.process(solrQuery);
+      if (response == null) {
+        return convertObjToString(graphInfo);
+      }
 
       List<List<PivotField>> hirarchicalPivotField = new ArrayList<List<PivotField>>();
       List<VGraphData> dataList = new ArrayList<VGraphData>();
@@ -235,15 +206,18 @@ public class LogsMgr extends MgrBase {
       if (namedList != null) {
         hirarchicalPivotField = namedList.getAll(hierarchy);
       }
-      if (!hirarchicalPivotField.isEmpty())
+      if (!hirarchicalPivotField.isEmpty()) {
         dataList = buidGraphData(hirarchicalPivotField.get(0));
-      VGraphInfo graphInfo = new VGraphInfo();
-      graphInfo.setGraphData(dataList);
+      }
+      if (!dataList.isEmpty()) {
+        graphInfo.setGraphData(dataList);
+      }
+
       return convertObjToString(graphInfo);
     } catch (SolrException | SolrServerException | IOException e) {
       logger.error("Error during solrQuery=" + solrQuery, e);
-      throw restErrorUtil.createRESTException(e.getMessage(),
-        MessageEnums.ERROR_SYSTEM);
+      throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
+          .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
     }
   }
 
@@ -251,109 +225,73 @@ public class LogsMgr extends MgrBase {
     List<VGraphData> logList = new ArrayList<VGraphData>();
     if (pivotFields != null) {
       for (PivotField pivotField : pivotFields) {
-        VGraphData logLevel = new VGraphData();
-        logLevel.setName("" + pivotField.getValue());
-        logLevel.setCount(Long.valueOf(pivotField.getCount()));
-        if (pivotField.getPivot() != null)
-          logLevel.setDataList(buidGraphData(pivotField.getPivot()));
-        logList.add(logLevel);
+        if (pivotField != null) {
+          VGraphData logLevel = new VGraphData();
+          logLevel.setName("" + pivotField.getValue());
+          logLevel.setCount(Long.valueOf(pivotField.getCount()));
+          if (pivotField.getPivot() != null) {
+            logLevel.setDataList(buidGraphData(pivotField.getPivot()));
+          }
+          logList.add(logLevel);
+        }
       }
     }
     return logList;
   }
 
-  public VCountList getLogLevelCount(SearchCriteria searchCriteria) {
+  public VCountList getFieldCount(SearchCriteria searchCriteria, String field){
     VCountList collection = new VCountList();
     List<VCount> vCounts = new ArrayList<VCount>();
     SolrQuery solrQuery = new SolrQuery();
     queryGenerator.setMainQuery(solrQuery, null);
-    queryGenerator.setFacetField(solrQuery, LogSearchConstants.SOLR_LEVEL);
+    if(field == null){
+      return collection;
+    }
+    queryGenerator.setFacetField(solrQuery, field);
     try {
       QueryResponse response = serviceLogsSolrDao.process(solrQuery);
-      FacetField hostFacetField = response
-        .getFacetField(LogSearchConstants.SOLR_LEVEL);
-      if (hostFacetField == null)
+      if (response == null){
         return collection;
-      List<Count> levelList = hostFacetField.getValues();
-
-      for (Count level : levelList) {
-        VCount vCount = new VCount();
-        vCount.setName(level.getName());
-        vCount.setCount(level.getCount());
-        vCounts.add(vCount);
+      }
+      FacetField facetFields = response.getFacetField(field);
+      if (facetFields == null){
+        return collection;
+      }
+      List<Count> fieldList = facetFields.getValues();
+      
+      if(fieldList == null){
+        return collection;
+      }
+      
+      for (Count cnt : fieldList) {
+        if (cnt != null) {
+          VCount vCount = new VCount();
+          vCount.setName(cnt.getName());
+          vCount.setCount(cnt.getCount());
+          vCounts.add(vCount);
+        }
       }
 
     } catch (SolrException | SolrServerException | IOException e) {
       logger.error("Error during solrQuery=" + solrQuery, e);
-      throw restErrorUtil.createRESTException(e.getMessage(),
-        MessageEnums.ERROR_SYSTEM);
+      throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
+          .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
     }
-
+    
     collection.setCounts(vCounts);
     return collection;
   }
+  
+  public VCountList getLogLevelCount(SearchCriteria searchCriteria) {
+    return getFieldCount(searchCriteria, LogSearchConstants.SOLR_LEVEL);
+  }
 
-  public VCountList getComponenetsCount(SearchCriteria searchCriteria) {
-    VCountList collection = new VCountList();
-    List<VCount> vCounts = new ArrayList<VCount>();
-    SolrQuery solrQuery = new SolrQuery();
-    queryGenerator.setMainQuery(solrQuery, null);
-    queryGenerator.setFacetField(solrQuery,
-      LogSearchConstants.SOLR_COMPONENT);
-    try {
-      QueryResponse response = serviceLogsSolrDao.process(solrQuery);
-      FacetField hostFacetField = response
-        .getFacetField(LogSearchConstants.SOLR_COMPONENT);
-      if (hostFacetField == null)
-        return collection;
-      List<Count> componentList = hostFacetField.getValues();
-
-      for (Count component : componentList) {
-        VCount vCount = new VCount();
-        vCount.setName(component.getName());
-        vCount.setCount(component.getCount());
-        vCounts.add(vCount);
-      }
-
-    } catch (SolrException | SolrServerException | IOException e) {
-      logger.error("Error during solrQuery=" + solrQuery, e);
-      throw restErrorUtil.createRESTException(e.getMessage(),
-        MessageEnums.ERROR_SYSTEM);
-    }
-
-    collection.setCounts(vCounts);
-    return collection;
+  public VCountList getComponentsCount(SearchCriteria searchCriteria) {
+    return getFieldCount(searchCriteria, LogSearchConstants.SOLR_COMPONENT);
   }
 
   public VCountList getHostsCount(SearchCriteria searchCriteria) {
-    VCountList collection = new VCountList();
-    List<VCount> vCounts = new ArrayList<VCount>();
-    SolrQuery solrQuery = new SolrQuery();
-    queryGenerator.setMainQuery(solrQuery, null);
-    queryGenerator.setFacetField(solrQuery, LogSearchConstants.SOLR_HOST);
-    try {
-      QueryResponse response = serviceLogsSolrDao.process(solrQuery);
-      FacetField hostFacetField = response
-        .getFacetField(LogSearchConstants.SOLR_HOST);
-      if (hostFacetField == null)
-        return collection;
-      List<Count> hostList = hostFacetField.getValues();
-
-      for (Count host : hostList) {
-        VCount vCount = new VCount();
-        vCount.setName(host.getName());
-        vCount.setCount(host.getCount());
-        vCounts.add(vCount);
-      }
-
-    } catch (SolrException | SolrServerException | IOException e) {
-      logger.error("Error during solrQuery=" + solrQuery, e);
-      throw restErrorUtil.createRESTException(e.getMessage(),
-        MessageEnums.ERROR_SYSTEM);
-    }
-
-    collection.setCounts(vCounts);
-    return collection;
+    return getFieldCount(searchCriteria, LogSearchConstants.SOLR_HOST);
   }
 
   public List<VNode> buidTreeData(List<PivotField> pivotFields,
@@ -364,73 +302,92 @@ public class LogsMgr extends MgrBase {
     if (pivotFields != null) {
       // For Host
       for (PivotField pivotHost : pivotFields) {
-        VNode hostNode = new VNode();
-        hostNode.setName("" + pivotHost.getValue());
-        hostNode.setValue("" + pivotHost.getCount());
-        hostNode.setType(firstPriority);
-        hostNode.setParent(true);
-        hostNode.setRoot(true);
-        PivotField hostPivot = null;
-        for (PivotField searchHost : pivotFieldHost) {
-          if (hostNode.getName().equals(searchHost.getValue())) {
-            hostPivot = searchHost;
-            break;
+        if (pivotHost != null) {
+          VNode hostNode = new VNode();
+          String name = (pivotHost.getValue() == null ? "" : ""+ pivotHost.getValue());
+          String value = "" + pivotHost.getCount();
+          if(!stringUtil.isEmpty(name)){
+            hostNode.setName(name);
           }
-        }
-        List<PivotField> pivotLevelHost = hostPivot.getPivot();
-        if (pivotLevelHost != null) {
-          Collection<VNameValue> logLevelCount = new ArrayList<VNameValue>();
-          for (PivotField pivotLevel : pivotLevelHost) {
-            VNameValue vnameValue = new VNameValue();
-            vnameValue.setName(((String) pivotLevel.getValue())
-              .toUpperCase());
-
-            vnameValue.setValue("" + pivotLevel.getCount());
-            logLevelCount.add(vnameValue);
-
+          if(!stringUtil.isEmpty(value)){
+            hostNode.setValue(value);
           }
-          hostNode.setLogLevelCount(logLevelCount);
-        }
-
-        query.addFilterQuery(hostQuery);
-        List<PivotField> pivotComponents = pivotHost.getPivot();
-        // For Components
-        if (pivotComponents != null) {
-          Collection<VNode> componentNodes = new ArrayList<VNode>();
-          for (PivotField pivotComp : pivotComponents) {
-            VNode compNode = new VNode();
-            compNode.setName("" + pivotComp.getValue());
-            compNode.setType(secondPriority);
-            compNode.setValue("" + pivotComp.getCount());
-            compNode.setParent(false);
-            compNode.setRoot(false);
-            List<PivotField> pivotLevels = pivotComp.getPivot();
-            if (pivotLevels != null) {
-              Collection<VNameValue> logLevelCount = new ArrayList<VNameValue>();
-              for (PivotField pivotLevel : pivotLevels) {
+          if(!stringUtil.isEmpty(firstPriority)){
+            hostNode.setType(firstPriority);
+          }
+          
+          hostNode.setParent(true);
+          hostNode.setRoot(true);
+          PivotField hostPivot = null;
+          for (PivotField searchHost : pivotFieldHost) {
+            if (!stringUtil.isEmpty(hostNode.getName())
+                && hostNode.getName().equals(searchHost.getValue())) {
+              hostPivot = searchHost;
+              break;
+            }
+          }
+          List<PivotField> pivotLevelHost = hostPivot.getPivot();
+          if (pivotLevelHost != null) {
+            Collection<VNameValue> logLevelCount = new ArrayList<VNameValue>();
+            for (PivotField pivotLevel : pivotLevelHost) {
+              if (pivotLevel != null) {
                 VNameValue vnameValue = new VNameValue();
-                vnameValue.setName(((String) pivotLevel
-                  .getValue()).toUpperCase());
-
+                String levelName = (pivotLevel.getValue() == null ? "" : ""
+                    + pivotLevel.getValue());
+                vnameValue.setName(levelName.toUpperCase());
                 vnameValue.setValue("" + pivotLevel.getCount());
                 logLevelCount.add(vnameValue);
-
               }
-              compNode.setLogLevelCount(logLevelCount);
             }
-            componentNodes.add(compNode);
+            hostNode.setLogLevelCount(logLevelCount);
           }
-          hostNode.setChilds(componentNodes);
-        }
-        extensionTree.add(hostNode);
-      }
+
+          query.addFilterQuery(hostQuery);
+          List<PivotField> pivotComponents = pivotHost.getPivot();
+          // For Components
+          if (pivotComponents != null) {
+            Collection<VNode> componentNodes = new ArrayList<VNode>();
+            for (PivotField pivotComp : pivotComponents) {
+              if (pivotComp != null) {
+                VNode compNode = new VNode();
+                String compName = (pivotComp.getValue() == null ? "" : ""
+                    + pivotComp.getValue());
+                compNode.setName(compName);
+                if (!stringUtil.isEmpty(secondPriority)) {
+                  compNode.setType(secondPriority);
+                }
+                compNode.setValue("" + pivotComp.getCount());
+                compNode.setParent(false);
+                compNode.setRoot(false);
+                List<PivotField> pivotLevels = pivotComp.getPivot();
+                if (pivotLevels != null) {
+                  Collection<VNameValue> logLevelCount = new ArrayList<VNameValue>();
+                  for (PivotField pivotLevel : pivotLevels) {
+                    if (pivotLevel != null) {
+                      VNameValue vnameValue = new VNameValue();
+                      String compLevel = pivotLevel.getValue() == null ? ""
+                          : "" + pivotLevel.getValue();
+                      vnameValue.setName((compLevel).toUpperCase());
+
+                      vnameValue.setValue("" + pivotLevel.getCount());
+                      logLevelCount.add(vnameValue);
+                    }
+                  }
+                  compNode.setLogLevelCount(logLevelCount);
+                }
+                componentNodes.add(compNode);
+              }}
+            hostNode.setChilds(componentNodes);
+          }
+          extensionTree.add(hostNode);
+        }}
     }
 
     return extensionTree;
   }
 
   public VNodeList getTreeExtension(SearchCriteria searchCriteria) {
-    SolrQuery solrQuery = queryGenerator.commonFilterQuery(searchCriteria);
+    SolrQuery solrQuery = queryGenerator.commonServiceFilterQuery(searchCriteria);
     solrQuery.setParam("event", "/getTreeExtension");
 
     if (searchCriteria.getSortBy() == null) {
@@ -441,9 +398,10 @@ public class LogsMgr extends MgrBase {
     String hostName = ""
       + ((searchCriteria.getParamValue("hostName") == null) ? ""
       : searchCriteria.getParamValue("hostName"));
-    if (!"".equals(hostName))
+    if (!stringUtil.isEmpty(hostName)){
       solrQuery.addFilterQuery(LogSearchConstants.SOLR_HOST + ":*"
         + hostName + "*");
+    }
     String firstHirarchy = "host,type,level";
     String secondHirarchy = "host,level";
     VNodeList list = new VNodeList();
@@ -484,15 +442,18 @@ public class LogsMgr extends MgrBase {
       list.setvNodeList(dataList);
     } catch (SolrException | SolrServerException | IOException e) {
       logger.error("Error during solrQuery=" + solrQuery, e);
+      throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
+          .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
     }
 
     return list;
   }
 
   public String getHostListByComponent(SearchCriteria searchCriteria) {
-    SolrQuery solrQuery = queryGenerator.commonFilterQuery(searchCriteria);
+    SolrQuery solrQuery = queryGenerator.commonServiceFilterQuery(searchCriteria);
     solrQuery.setParam("event", "/getHostListByComponent");
 
+    VNodeList list = new VNodeList();
     if (searchCriteria.getSortBy() == null) {
       searchCriteria.setSortBy(LogSearchConstants.SOLR_HOST);
       searchCriteria.setSortType(SolrQuery.ORDER.asc.toString());
@@ -501,18 +462,16 @@ public class LogsMgr extends MgrBase {
     String componentName = ""
       + ((searchCriteria.getParamValue("componentName") == null) ? ""
       : searchCriteria.getParamValue("componentName"));
-    if (!"".equals(componentName))
+    if (!stringUtil.isEmpty(componentName)){
       solrQuery.addFilterQuery(LogSearchConstants.SOLR_COMPONENT + ":"
         + componentName);
-    else
-      try {
-        return convertObjToString(new VNodeList());
-      } catch (IOException e1) {
-        logger.error(e1);
-      }
+    } else {
+      return convertObjToString(list);
+    }
+    
     String firstHirarchy = "type,host,level";
     String secondHirarchy = "type,level";
-    VNodeList list = new VNodeList();
+   
     try {
       queryGenerator.setFacetPivot(solrQuery, 1, firstHirarchy,
         secondHirarchy);
@@ -530,26 +489,29 @@ public class LogsMgr extends MgrBase {
 
       if (firstHirarchicalPivotFields == null
         || secondHirarchicalPivotFields == null) {
-        return convertObjToString(new ArrayList<VNode>());
+        return convertObjToString(list);
       }
 
       List<VNode> dataList = buidTreeData(
         firstHirarchicalPivotFields.get(0),
         secondHirarchicalPivotFields.get(0), solrQuery,
         LogSearchConstants.COMPONENT, LogSearchConstants.HOST);
+      if(dataList == null){
+        return convertObjToString(list);
+      }
 
       list.setvNodeList(dataList);
       return convertObjToString(list);
     } catch (SolrException | SolrServerException | IOException e) {
       logger.error("Error during solrQuery=" + solrQuery, e);
-      throw restErrorUtil.createRESTException(e.getMessage(),
-        MessageEnums.ERROR_SYSTEM);
+      throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
+          .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
     }
   }
 
   public VNameValueList getLogsLevelCount(SearchCriteria sc) {
     VNameValueList nameValueList = new VNameValueList();
-    SolrQuery query = queryGenerator.commonFilterQuery(sc);
+    SolrQuery query = queryGenerator.commonServiceFilterQuery(sc);
     query.setParam("event", "/getLogLevelCounts");
     List<VNameValue> logsCounts = getLogLevelFacets(query);
     nameValueList.setVNameValues(logsCounts);
@@ -558,6 +520,7 @@ public class LogsMgr extends MgrBase {
   }
 
   public List<VNameValue> getLogLevelFacets(SolrQuery query) {
+    String defalutValue = "0";
     HashMap<String, String> map = new HashMap<String, String>();
     List<VNameValue> logsCounts = new ArrayList<VNameValue>();
     try {
@@ -566,6 +529,9 @@ public class LogsMgr extends MgrBase {
 
       List<Count> logLevelCounts = getFacetCounts(query,
         LogSearchConstants.SOLR_LEVEL);
+      if(logLevelCounts == null){
+        return logsCounts;
+      }
       for (Count count : logLevelCounts) {
         map.put(count.getName().toUpperCase(), "" + count.getCount());
       }
@@ -573,8 +539,9 @@ public class LogsMgr extends MgrBase {
       VNameValue nameValue = null;
 
       String value = map.get(level);
-      if (value == null || value.equals(""))
-        value = "0";
+      if (stringUtil.isEmpty(value)){
+        value = defalutValue;
+      }
       nameValue = new VNameValue();
       nameValue.setName(level);
       nameValue.setValue(value);
@@ -583,8 +550,9 @@ public class LogsMgr extends MgrBase {
       level = LogSearchConstants.ERROR;
 
       value = map.get(level);
-      if (value == null || value.equals(""))
-        value = "0";
+      if (stringUtil.isEmpty(value)){
+        value = defalutValue;
+      }
       nameValue = new VNameValue();
       nameValue.setName(level);
       nameValue.setValue(value);
@@ -593,8 +561,9 @@ public class LogsMgr extends MgrBase {
       level = LogSearchConstants.WARN;
 
       value = map.get(level);
-      if (value == null || value.equals(""))
-        value = "0";
+      if (stringUtil.isEmpty(value)){
+        value = defalutValue;
+      }
       nameValue = new VNameValue();
       nameValue.setName(level);
       nameValue.setValue(value);
@@ -603,8 +572,9 @@ public class LogsMgr extends MgrBase {
       level = LogSearchConstants.INFO;
 
       value = map.get(level);
-      if (value == null || value.equals(""))
-        value = "0";
+      if (stringUtil.isEmpty(value)){
+        value = defalutValue;
+      }
       nameValue = new VNameValue();
       nameValue.setName(level);
       nameValue.setValue(value);
@@ -613,8 +583,9 @@ public class LogsMgr extends MgrBase {
       level = LogSearchConstants.DEBUG;
 
       value = map.get(level);
-      if (value == null || value.equals(""))
-        value = "0";
+      if (stringUtil.isEmpty(value)){
+        value = defalutValue;
+      }
       nameValue = new VNameValue();
       nameValue.setName(level);
       nameValue.setValue(value);
@@ -623,8 +594,9 @@ public class LogsMgr extends MgrBase {
       level = LogSearchConstants.TRACE;
 
       value = map.get(level);
-      if (value == null || value.equals(""))
-        value = "0";
+      if (stringUtil.isEmpty(value)){
+        value = defalutValue;
+      }
       nameValue = new VNameValue();
       nameValue.setName(level);
       nameValue.setValue(value);
@@ -639,25 +611,46 @@ public class LogsMgr extends MgrBase {
   // Get Facet Count According to FacetFeild
   public List<Count> getFacetCounts(SolrQuery solrQuery, String facetField)
     throws SolrServerException, IOException, SolrException {
-
+    List<Count> list = new ArrayList<FacetField.Count>();
+    
     QueryResponse response = serviceLogsSolrDao.process(solrQuery);
-
+    if(response == null){
+      return list;
+    }
+    
     FacetField field = response.getFacetField(facetField);
     if (field == null) {
-      return new ArrayList<FacetField.Count>();
+      return list;
     }
-    return field.getValues();
+    list = field.getValues();
+    
+    
+    return list;
   }
 
   public String getPageByKeyword(SearchCriteria searchCriteria)
     throws SolrServerException {
-
-    String keyword = solrUtil.makeSolrSearchString((String) searchCriteria
-      .getParamValue("keyword"));
+    String defaultChoice = "0";
+    
+    String key = (String) searchCriteria.getParamValue("keyword");
+    if(stringUtil.isEmpty(key)){
+      throw restErrorUtil.createRESTException("Keyword was not given",
+          MessageEnums.DATA_NOT_FOUND);
+    }
+    
+    String keyword = solrUtil.escapeForStandardTokenizer(key);
+    
+    if(keyword.startsWith("\"") && keyword.endsWith("\"")){
+      keyword = keyword.substring(1);
+      keyword = keyword.substring(0, keyword.length()-1);
+    }
+    keyword = "*" + keyword + "*";
+   
 
     String keyType = (String) searchCriteria.getParamValue("keywordType");
+    QueryResponse queryResponse = null;
 
-    if (!(boolean) "0".equals(keyType)) {
+    if (!defaultChoice.equals(keyType)) {
       try {
         int currentPageNumber = searchCriteria.getPage();
         int maxRows = searchCriteria.getMaxRows();
@@ -670,46 +663,72 @@ public class LogsMgr extends MgrBase {
 
         // Next Page Start Time Calculation
         SolrQuery nextPageLogTimeQuery = queryGenerator
-          .commonFilterQuery(searchCriteria);
+          .commonServiceFilterQuery(searchCriteria);
         nextPageLogTimeQuery.remove("start");
         nextPageLogTimeQuery.remove("rows");
         nextPageLogTimeQuery.setStart(lastLogIndexNumber);
         nextPageLogTimeQuery.setRows(1);
+        
+        queryResponse = serviceLogsSolrDao.process(
+            nextPageLogTimeQuery);
+        if(queryResponse == null){
+          throw restErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
+              MessageEnums.ERROR_SYSTEM);
+        }
 
-        SolrDocumentList docList = serviceLogsSolrDao.process(
-          nextPageLogTimeQuery).getResults();
+        SolrDocumentList docList = queryResponse.getResults();
+        if(docList ==null){
+          throw restErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
+              MessageEnums.ERROR_SYSTEM);
+        }
+        
         SolrDocument solrDoc = docList.get(0);
 
         Date logDate = (Date) solrDoc.get(LogSearchConstants.LOGTIME);
+        if(logDate == null){
+          throw restErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
+              MessageEnums.ERROR_SYSTEM);
+        }
         nextPageLogTime = dateUtil
           .convertDateWithMillisecondsToSolrDate(logDate);
         nextPageLogID = ""
           + solrDoc.get(LogSearchConstants.ID);
 
-        if (stringUtil.isEmpty(nextPageLogID))
+        if (stringUtil.isEmpty(nextPageLogID)){
           nextPageLogID = "0";
+        }
 
         String filterQueryListIds = "";
         // Remove the same Time Ids
         SolrQuery listRemoveIds = queryGenerator
-          .commonFilterQuery(searchCriteria);
+          .commonServiceFilterQuery(searchCriteria);
         listRemoveIds.remove("start");
         listRemoveIds.remove("rows");
         queryGenerator.setSingleIncludeFilter(listRemoveIds,
           LogSearchConstants.LOGTIME, "\"" + nextPageLogTime + "\"");
         queryGenerator.setSingleExcludeFilter(listRemoveIds,
           LogSearchConstants.ID, nextPageLogID);
-        listRemoveIds.set("fl", LogSearchConstants.ID);
-        SolrDocumentList docListIds = serviceLogsSolrDao.process(
-          listRemoveIds).getResults();
+        queryGenerator.setFl(listRemoveIds, LogSearchConstants.ID);
+        queryResponse = serviceLogsSolrDao.process(
+            listRemoveIds);
+        if(queryResponse == null){
+          throw restErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
+              MessageEnums.ERROR_SYSTEM);
+        }
+
+        SolrDocumentList docListIds = queryResponse.getResults();
+        if(docListIds ==null){
+          throw restErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
+              MessageEnums.ERROR_SYSTEM);
+        }
         boolean isFirst = true;
-        for (SolrDocument solrDocId : docListIds) {
+        for (SolrDocument solrDocId :  docListIds ) {
           String id = "" + solrDocId.get(LogSearchConstants.ID);
           if (isFirst) {
-            filterQueryListIds += "-" + LogSearchConstants.ID + ":" + id;
+            filterQueryListIds += LogSearchConstants.MINUS_OPERATOR + LogSearchConstants.ID + ":" + id;
             isFirst = false;
           } else {
-            filterQueryListIds += " AND " + "-" + LogSearchConstants.ID + ":" + id;
+            filterQueryListIds += " "+CONDITION.AND+" " + LogSearchConstants.MINUS_OPERATOR + LogSearchConstants.ID + ":" + id;
           }
         }
 
@@ -718,54 +737,62 @@ public class LogsMgr extends MgrBase {
         String startTime = (String) searchCriteria
           .getParamValue("from");
         SolrQuery logTimeThroughRangeQuery = queryGenerator
-          .commonFilterQuery(searchCriteria);
+          .commonServiceFilterQuery(searchCriteria);
         logTimeThroughRangeQuery.remove("start");
         logTimeThroughRangeQuery.remove("rows");
         logTimeThroughRangeQuery.setRows(1);
-        if (!stringUtil.isEmpty(filterQueryListIds))
+        if (!stringUtil.isEmpty(filterQueryListIds)){
           logTimeThroughRangeQuery.setFilterQueries(filterQueryListIds);
-
+        }
 
         String sortByType = searchCriteria.getSortType();
 
         if (!stringUtil.isEmpty(sortByType) && sortByType
           .equalsIgnoreCase(LogSearchConstants.ASCENDING_ORDER)) {
           
-          /*sequenceNumber =""+( Integer.parseInt(sequenceNumber) - 1);*/
-          /*queryGenerator.setSingleRangeFilter(
-              logTimeThroughRangeQuery,
-              LogSearchConstants.SEQUNCE_ID, "*",sequenceNumber);*/
           queryGenerator.setSingleRangeFilter(logTimeThroughRangeQuery,
             LogSearchConstants.LOGTIME, nextPageLogTime,
             endTime);
-          logTimeThroughRangeQuery.set("sort",
+          logTimeThroughRangeQuery.set(LogSearchConstants.SORT,
             LogSearchConstants.LOGTIME + " "
               + LogSearchConstants.ASCENDING_ORDER);
 
         } else {
-          /*sequenceNumber =""+( Integer.parseInt(sequenceNumber) + 1);*/
-          /*queryGenerator.setSingleRangeFilter(
-              logTimeThroughRangeQuery,
-              LogSearchConstants.SEQUNCE_ID, sequenceNumber, "*");*/
+          
           queryGenerator.setSingleRangeFilter(logTimeThroughRangeQuery,
             LogSearchConstants.LOGTIME, startTime,
             nextPageLogTime);
-          logTimeThroughRangeQuery.set("sort",
+          logTimeThroughRangeQuery.set(LogSearchConstants.SORT,
             LogSearchConstants.LOGTIME + " "
               + LogSearchConstants.DESCENDING_ORDER);
         }
         queryGenerator.setSingleIncludeFilter(logTimeThroughRangeQuery,
-          LogSearchConstants.SOLR_LOG_MESSAGE, keyword);
+          LogSearchConstants.SOLR_KEY_LOG_MESSAGE, keyword);
 
 
-        SolrDocumentList documentList = serviceLogsSolrDao.process(
-          logTimeThroughRangeQuery).getResults();
+        queryResponse = serviceLogsSolrDao.process(
+            logTimeThroughRangeQuery);
+        if(queryResponse == null){
+          throw restErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
+              MessageEnums.ERROR_SYSTEM);
+        }
+
+        SolrDocumentList documentList = queryResponse.getResults();
+        if(documentList ==null){
+          throw restErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
+              MessageEnums.ERROR_SYSTEM);
+        }
 
         SolrDocument solrDocument = new SolrDocument();
-        if (!documentList.isEmpty())
+        if (!documentList.isEmpty()){
           solrDocument = documentList.get(0);
-        /*String keywordLogSequenceNumber = ""+ solrDocument.get(LogSearchConstants.SEQUNCE_ID);*/
+        }
+        
         Date keywordLogDate = (Date) solrDocument.get(LogSearchConstants.LOGTIME);
+        if(keywordLogDate == null){
+          throw restErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
+              MessageEnums.ERROR_SYSTEM);
+        }
         String originalKeywordDate = dateUtil
           .convertDateWithMillisecondsToSolrDate(keywordLogDate);
         String keywordId = "" + solrDocument.get(LogSearchConstants.ID);
@@ -783,16 +810,7 @@ public class LogsMgr extends MgrBase {
           queryGenerator.setSingleRangeFilter(rangeLogQuery,
             LogSearchConstants.LOGTIME, startTime,
             keywordDateTime);
-          /*queryGenerator
-          .setSingleRangeFilter(rangeLogQuery,
-              LogSearchConstants.SEQUNCE_ID,"*", keywordLogSequenceNumber);*/
-
-
         } else {
-          /*queryGenerator
-          .setSingleRangeFilter(rangeLogQuery,
-              LogSearchConstants.SEQUNCE_ID, keywordLogSequenceNumber,
-              "*"); */
           keywordLogDate = dateUtil.addMilliSecondsToDate(keywordLogDate, -1);
           String keywordDateTime = dateUtil
             .convertDateWithMillisecondsToSolrDate(keywordLogDate);
@@ -803,35 +821,27 @@ public class LogsMgr extends MgrBase {
 
 
         long countNumberLogs = countQuery(rangeLogQuery) - 1;
-        
-        /*// Delete Duplicate entries
-        SolrQuery duplicatesLogQuery = nextPageLogTimeQuery.getCopy();
-        duplicatesLogQuery.remove("start");
-        duplicatesLogQuery.remove("rows");
-        queryGenerator.setSingleIncludeFilter(duplicatesLogQuery,
-            LogSearchConstants.LOGTIME, "\"" + keywordLogTime
-                + "\"");
-
-        countNumberLogs = countNumberLogs
-            - countQuery(duplicatesLogQuery);*/
+      
 
         //Adding numbers on 
 
 
         try {
           SolrQuery sameIdQuery = queryGenerator
-            .commonFilterQuery(searchCriteria);
+            .commonServiceFilterQuery(searchCriteria);
           queryGenerator.setSingleIncludeFilter(sameIdQuery,
             LogSearchConstants.LOGTIME, "\"" + originalKeywordDate + "\"");
-          sameIdQuery.set("fl", LogSearchConstants.ID);
+          queryGenerator.setFl(sameIdQuery, LogSearchConstants.ID);
           SolrDocumentList sameQueryDocList = serviceLogsSolrDao.process(sameIdQuery)
             .getResults();
           for (SolrDocument solrDocumenent : sameQueryDocList) {
             String id = (String) solrDocumenent
               .getFieldValue(LogSearchConstants.ID);
             countNumberLogs++;
-            if (id.equals(keywordId))
+           
+            if (stringUtil.isEmpty(id) && id.equals(keywordId)){
               break;
+            }
           }
         } catch (SolrException | SolrServerException | IOException e) {
           logger.error(e);
@@ -854,11 +864,10 @@ public class LogsMgr extends MgrBase {
       try {
         int currentPageNumber = searchCriteria.getPage();
         int maxRows = searchCriteria.getMaxRows();
-        String sequenceNumber = "";
 
         if (currentPageNumber == 0) {
           throw restErrorUtil.createRESTException("This is first Page Not",
-            MessageEnums.ERROR_SYSTEM);
+            MessageEnums.DATA_NOT_FOUND);
         }
 
         int firstLogCurrentPage = (currentPageNumber * maxRows);
@@ -866,15 +875,25 @@ public class LogsMgr extends MgrBase {
 
         // Next Page Start Time Calculation
         SolrQuery lastLogTime = queryGenerator
-          .commonFilterQuery(searchCriteria);
+          .commonServiceFilterQuery(searchCriteria);
         lastLogTime.remove("start");
         lastLogTime.remove("rows");
 
         lastLogTime.setStart(firstLogCurrentPage);
         lastLogTime.setRows(1);
 
-        SolrDocumentList docList = serviceLogsSolrDao.process(
-          lastLogTime).getResults();
+        queryResponse = serviceLogsSolrDao.process(
+            lastLogTime);
+        if(queryResponse == null){
+          throw restErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
+              MessageEnums.ERROR_SYSTEM);
+        }
+
+        SolrDocumentList docList = queryResponse.getResults();
+        if(docList ==null){
+          throw restErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
+              MessageEnums.ERROR_SYSTEM);
+        }
         SolrDocument solrDoc = docList.get(0);
 
         Date logDate = (Date) solrDoc.get(LogSearchConstants.LOGTIME);
@@ -882,32 +901,43 @@ public class LogsMgr extends MgrBase {
         lastLogsLogTime = dateUtil
           .convertDateWithMillisecondsToSolrDate(logDate);
         String lastLogsLogId = ""
-          + solrDoc.get(LogSearchConstants.SEQUNCE_ID);
-        if (stringUtil.isEmpty(sequenceNumber))
-          sequenceNumber = "0";
+          + solrDoc.get(LogSearchConstants.ID);
 
 
         String filterQueryListIds = "";
         // Remove the same Time Ids
         SolrQuery listRemoveIds = queryGenerator
-          .commonFilterQuery(searchCriteria);
+          .commonServiceFilterQuery(searchCriteria);
         listRemoveIds.remove("start");
         listRemoveIds.remove("rows");
         queryGenerator.setSingleIncludeFilter(listRemoveIds,
           LogSearchConstants.LOGTIME, "\"" + lastLogsLogTime + "\"");
         queryGenerator.setSingleExcludeFilter(listRemoveIds,
           LogSearchConstants.ID, lastLogsLogId);
-        listRemoveIds.set("fl", LogSearchConstants.ID);
-        SolrDocumentList docListIds = serviceLogsSolrDao.process(
-          listRemoveIds).getResults();
+        queryGenerator.setFl(listRemoveIds, LogSearchConstants.ID);
+        queryResponse = serviceLogsSolrDao.process(
+            lastLogTime);
+        if(queryResponse == null){
+          throw restErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
+              MessageEnums.ERROR_SYSTEM);
+        }
+
+        SolrDocumentList docListIds = queryResponse.getResults();
+        if(docListIds == null){
+          throw restErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
+              MessageEnums.ERROR_SYSTEM);
+        }
         boolean isFirst = true;
         for (SolrDocument solrDocId : docListIds) {
-          String id = "" + solrDocId.get(LogSearchConstants.ID);
-          if (isFirst) {
-            filterQueryListIds += "-" + LogSearchConstants.ID + ":" + id;
-            isFirst = false;
-          } else {
-            filterQueryListIds += " AND " + "-" + LogSearchConstants.ID + ":" + id;
+          if (solrDocId != null) {
+            String id = "" + solrDocId.get(LogSearchConstants.ID);
+            if (isFirst) {
+              filterQueryListIds += LogSearchConstants.MINUS_OPERATOR + LogSearchConstants.ID + ":" + id;
+              isFirst = false;
+            } else {
+              filterQueryListIds += " "+CONDITION.AND+" " + LogSearchConstants.MINUS_OPERATOR + LogSearchConstants.ID + ":"
+                  + id;
+            }
           }
         }
 
@@ -917,60 +947,67 @@ public class LogsMgr extends MgrBase {
         String startTime = (String) searchCriteria
           .getParamValue("from");
         SolrQuery logTimeThroughRangeQuery = queryGenerator
-          .commonFilterQuery(searchCriteria);
+          .commonServiceFilterQuery(searchCriteria);
         logTimeThroughRangeQuery.remove("start");
         logTimeThroughRangeQuery.remove("rows");
         logTimeThroughRangeQuery.setRows(1);
         queryGenerator.setSingleExcludeFilter(logTimeThroughRangeQuery,
           LogSearchConstants.ID, lastLogsLogId);
-        if (!stringUtil.isEmpty(filterQueryListIds))
+        if (!stringUtil.isEmpty(filterQueryListIds)){
           logTimeThroughRangeQuery.setFilterQueries(filterQueryListIds);
+        }
 
         if (!stringUtil.isEmpty(sortByType) && sortByType
           .equalsIgnoreCase(LogSearchConstants.ASCENDING_ORDER)) {
 
-          sequenceNumber = ""
-            + (Integer.parseInt(sequenceNumber) - 1);
-          logTimeThroughRangeQuery.remove("sort");
-          logTimeThroughRangeQuery.set("sort",
+          logTimeThroughRangeQuery.remove(LogSearchConstants.SORT);
+          logTimeThroughRangeQuery.set(LogSearchConstants.SORT,
             LogSearchConstants.LOGTIME + " "
               + LogSearchConstants.DESCENDING_ORDER);
           
-          /*queryGenerator.setSingleRangeFilter(
-              logTimeThroughRangeQuery,
-              LogSearchConstants.SEQUNCE_ID,"*", sequenceNumber);*/
+          
           queryGenerator.setSingleRangeFilter(
             logTimeThroughRangeQuery,
             LogSearchConstants.LOGTIME, startTime,
             lastLogsLogTime);
 
         } else {
-          sequenceNumber = "" + (Integer.parseInt(sequenceNumber) + 1);
 
-          logTimeThroughRangeQuery.remove("sort");
-          logTimeThroughRangeQuery.set("sort",
+          logTimeThroughRangeQuery.remove(LogSearchConstants.SORT);
+          logTimeThroughRangeQuery.set(LogSearchConstants.SORT,
             LogSearchConstants.LOGTIME + " "
               + LogSearchConstants.ASCENDING_ORDER);
           
-          /*queryGenerator.setSingleRangeFilter(
-              logTimeThroughRangeQuery,
-              LogSearchConstants.SEQUNCE_ID, sequenceNumber,"*");*/
+
           queryGenerator.setSingleRangeFilter(logTimeThroughRangeQuery,
             LogSearchConstants.LOGTIME, lastLogsLogTime, endTime);
         }
         queryGenerator.setSingleIncludeFilter(logTimeThroughRangeQuery,
-          LogSearchConstants.SOLR_LOG_MESSAGE, keyword);
+          LogSearchConstants.SOLR_KEY_LOG_MESSAGE, keyword);
 
 
-        SolrDocumentList documentList = serviceLogsSolrDao.process(
-          logTimeThroughRangeQuery).getResults();
+        queryResponse = serviceLogsSolrDao.process(
+            logTimeThroughRangeQuery);
+        if(queryResponse == null){
+          throw restErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
+              MessageEnums.ERROR_SYSTEM);
+        }
+
+        SolrDocumentList documentList = queryResponse.getResults();
+        if(documentList == null){
+          throw restErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
+              MessageEnums.ERROR_SYSTEM);
+        }
         SolrDocument solrDocument = new SolrDocument();
-        if (!documentList.isEmpty())
+        if (!documentList.isEmpty()){
           solrDocument = documentList.get(0);
+        }
 
-        
-        /*String keywordLogSequenceNumber = ""+ solrDocument.get(LogSearchConstants.SEQUNCE_ID);*/
         Date keywordLogDate = (Date) solrDocument.get(LogSearchConstants.LOGTIME);
+        if(keywordLogDate == null){
+          throw restErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
+              MessageEnums.ERROR_SYSTEM);
+        }
         String originalKeywordDate = dateUtil
           .convertDateWithMillisecondsToSolrDate(keywordLogDate);
         String keywordId = "" + solrDocument.get(LogSearchConstants.ID);
@@ -982,23 +1019,16 @@ public class LogsMgr extends MgrBase {
 
         if (!stringUtil.isEmpty(sortByType) && sortByType
           .equalsIgnoreCase(LogSearchConstants.ASCENDING_ORDER)) {
-          keywordLogDate = dateUtil.addMilliSecondsToDate(keywordLogDate, 1);
+       //   keywordLogDate = dateUtil.addMilliSecondsToDate(keywordLogDate, 1);
           String keywordDateTime = dateUtil
             .convertDateWithMillisecondsToSolrDate(keywordLogDate);
           queryGenerator.setSingleRangeFilter(rangeLogQuery,
             LogSearchConstants.LOGTIME, startTime,
             keywordDateTime);
-          /*queryGenerator
-          .setSingleRangeFilter(rangeLogQuery,
-              LogSearchConstants.SEQUNCE_ID,"*", keywordLogSequenceNumber);*/
 
 
         } else {
-          /*queryGenerator
-          .setSingleRangeFilter(rangeLogQuery,
-              LogSearchConstants.SEQUNCE_ID, keywordLogSequenceNumber,
-              "*"); */
-          keywordLogDate = dateUtil.addMilliSecondsToDate(keywordLogDate, -1);
+     //     keywordLogDate = dateUtil.addMilliSecondsToDate(keywordLogDate, -1);
           String keywordDateTime = dateUtil
             .convertDateWithMillisecondsToSolrDate(keywordLogDate);
           queryGenerator.setSingleRangeFilter(rangeLogQuery,
@@ -1009,34 +1039,24 @@ public class LogsMgr extends MgrBase {
 
         long countNumberLogs = countQuery(rangeLogQuery) - 1;
         
-        /*// Delete Duplicate entries
-        SolrQuery duplicatesLogQuery = nextPageLogTimeQuery.getCopy();
-        duplicatesLogQuery.remove("start");
-        duplicatesLogQuery.remove("rows");
-        queryGenerator.setSingleIncludeFilter(duplicatesLogQuery,
-            LogSearchConstants.LOGTIME, "\"" + keywordLogTime
-                + "\"");
-
-        countNumberLogs = countNumberLogs
-            - countQuery(duplicatesLogQuery);*/
-
-        //Adding numbers on 
-
-
+        //Adding numbers on
         try {
           SolrQuery sameIdQuery = queryGenerator
-            .commonFilterQuery(searchCriteria);
+            .commonServiceFilterQuery(searchCriteria);
           queryGenerator.setSingleIncludeFilter(sameIdQuery,
             LogSearchConstants.LOGTIME, "\"" + originalKeywordDate + "\"");
-          sameIdQuery.set("fl", LogSearchConstants.ID);
+          queryGenerator.setFl(sameIdQuery, LogSearchConstants.ID);
           SolrDocumentList sameQueryDocList = serviceLogsSolrDao.process(sameIdQuery)
             .getResults();
           for (SolrDocument solrDocumenent : sameQueryDocList) {
-            String id = (String) solrDocumenent
-              .getFieldValue(LogSearchConstants.ID);
-            countNumberLogs++;
-            if (id.equals(keywordId))
-              break;
+            if (solrDocumenent != null) {
+              String id = (String) solrDocumenent
+                  .getFieldValue(LogSearchConstants.ID);
+              countNumberLogs++;
+              if ( stringUtil.isEmpty(id) && id.equals(keywordId)) {
+                break;
+              }
+            }
           }
         } catch (SolrException | SolrServerException | IOException e) {
           logger.error(e);
@@ -1055,92 +1075,23 @@ public class LogsMgr extends MgrBase {
       }
 
     }
-    throw restErrorUtil.createRESTException("keyword not found",
-      MessageEnums.ERROR_SYSTEM);
-  }
-
-  public String getPageByKeyword1(SearchCriteria searchCriteria)
-    throws SolrServerException {
-
-    SolrQuery query = queryGenerator.commonFilterQuery(searchCriteria);
-    String keyword = solrUtil.makeSearcableString((String) searchCriteria
-      .getParamValue("keyword"));
-    String uniqueId = (String) searchCriteria.getParamValue("token");
-    if (uniqueId != null && !uniqueId.equals(""))
-      cancelByDate.add(uniqueId);
-    Long numberPages = 0l;
-    int currentPageNumber = searchCriteria.getPage();
-    try {
-      numberPages = countQuery(query) / searchCriteria.getMaxRows();
-    } catch (SolrException | SolrServerException | IOException e) {
-      logger.error(e);
-    }
-    if ((boolean) searchCriteria.getParamValue("keywordType").equals("0")) {
-      for (int i = currentPageNumber - 1; i >= 0
-        && !cancelRequest(uniqueId); i--) {
-        mapUniqueId.put(uniqueId, "" + i);
-        query.remove("rows");
-        query.remove("start");
-        query.setStart(i * searchCriteria.getMaxRows());
-        query.setRows(searchCriteria.getMaxRows());
-        VSolrLogList vSolrLogList = getLogAsPaginationProvided(query, serviceLogsSolrDao);
-        SolrDocumentList documentList = vSolrLogList.getList();
-        for (SolrDocument solrDoc : documentList) {
-          String log_message = solrUtil
-            .makeSearcableString((String) solrDoc
-              .getFieldValue(LogSearchConstants.SOLR_LOG_MESSAGE));
-          if (log_message != null
-            && log_message
-            .toLowerCase(Locale.ENGLISH)
-            .contains(
-              keyword.toLowerCase(Locale.ENGLISH))) {
-            cancelByDate.remove(uniqueId);
-            try {
-              return convertObjToString(vSolrLogList);
-            } catch (IOException e) {
-              logger.error(e);
-            }
-          }
-        }
-      }
-
-    } else {
-      for (int i = currentPageNumber + 1; i <= numberPages
-        && !cancelRequest(uniqueId); i++) {
-        mapUniqueId.put(uniqueId, "" + i);
-        query.remove("rows");
-        query.remove("start");
-        query.setStart(i * searchCriteria.getMaxRows());
-        query.setRows(searchCriteria.getMaxRows());
-        VSolrLogList vSolrLogList = getLogAsPaginationProvided(query, serviceLogsSolrDao);
-        SolrDocumentList solrDocumentList = vSolrLogList.getList();
-        for (SolrDocument solrDocument : solrDocumentList) {
-          String logMessage = solrUtil
-            .makeSearcableString((String) solrDocument
-              .getFieldValue(LogSearchConstants.SOLR_LOG_MESSAGE));
-          if (logMessage != null
-            && logMessage.toLowerCase(Locale.ENGLISH).contains(
-            keyword.toLowerCase(Locale.ENGLISH))) {
-            cancelByDate.remove(uniqueId);
-            try {
-              return convertObjToString(vSolrLogList);
-            } catch (SolrException | IOException e) {
-              logger.error(e);
-            }
-          }
-        }
-      }
-    }
-    throw restErrorUtil.createRESTException("keyword not found",
-      MessageEnums.ERROR_SYSTEM);
+    throw restErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
+        MessageEnums.ERROR_SYSTEM);
   }
 
   private String getPageByLogId(SearchCriteria searchCriteria) {
+    VSolrLogList vSolrLogList = new VSolrLogList();
     String endLogTime = (String) searchCriteria.getParamValue("to");
+    if(stringUtil.isEmpty(endLogTime)){
+      return convertObjToString(vSolrLogList);
+    }
     long startIndex = 0l;
 
     String logId = (String) searchCriteria.getParamValue("sourceLogId");
-    SolrQuery solrQuery = queryGenerator.commonFilterQuery(searchCriteria);
+    if(stringUtil.isEmpty(logId)){
+      return convertObjToString(vSolrLogList);
+    }
+    SolrQuery solrQuery = queryGenerator.commonServiceFilterQuery(searchCriteria);
 
     String endTimeMinusOneMilli = "";
     String logTime = "";
@@ -1149,19 +1100,32 @@ public class LogsMgr extends MgrBase {
       SolrQuery logTimeByIdQuery = new SolrQuery();
       queryGenerator.setMainQuery(logTimeByIdQuery, null);
       queryGenerator.setSingleIncludeFilter(logTimeByIdQuery,
-        LogSearchConstants.ID, logId);
+          LogSearchConstants.ID, logId);
       queryGenerator.setRowCount(solrQuery, 1);
 
-      SolrDocumentList docList = serviceLogsSolrDao.process(
-        logTimeByIdQuery).getResults();
-      Date dateOfLogId = (Date) docList.get(0).get(
-        LogSearchConstants.LOGTIME);
+      QueryResponse queryResponse = serviceLogsSolrDao
+          .process(logTimeByIdQuery);
 
-      logTime = dateUtil
-        .convertDateWithMillisecondsToSolrDate(dateOfLogId);
-      Date endDate = dateUtil.addMilliSecondsToDate(dateOfLogId, 1);
-      endTimeMinusOneMilli = (String) dateUtil
-        .convertDateWithMillisecondsToSolrDate(endDate);
+      if(queryResponse == null){
+        return convertObjToString(new VSolrLogList()); 
+      }
+      
+      SolrDocumentList docList = queryResponse.getResults();
+      Date dateOfLogId = null;
+      if (docList != null && !docList.isEmpty()) {
+        SolrDocument dateLogIdDoc = docList.get(0);
+        if(dateLogIdDoc != null){
+          dateOfLogId = (Date) dateLogIdDoc.get(LogSearchConstants.LOGTIME);
+        }
+      }
+
+      if (dateOfLogId != null) {
+        logTime = dateUtil.convertDateWithMillisecondsToSolrDate(dateOfLogId);
+        Date endDate = dateUtil.addMilliSecondsToDate(dateOfLogId, 1);
+        endTimeMinusOneMilli = (String) dateUtil
+            .convertDateWithMillisecondsToSolrDate(endDate);
+      }
+
     } catch (SolrException | SolrServerException | IOException e) {
       logger.error(e);
     }
@@ -1170,8 +1134,7 @@ public class LogsMgr extends MgrBase {
       solrQuery.remove(LogSearchConstants.ID);
       solrQuery.remove(LogSearchConstants.LOGTIME);
       queryGenerator.setSingleRangeFilter(solrQuery,
-        LogSearchConstants.LOGTIME, endTimeMinusOneMilli,
-        endLogTime);
+          LogSearchConstants.LOGTIME, endTimeMinusOneMilli, endLogTime);
       queryGenerator.setRowCount(solrQuery, 0);
       startIndex = countQuery(solrQuery);
     } catch (SolrException | SolrServerException | IOException e) {
@@ -1179,37 +1142,41 @@ public class LogsMgr extends MgrBase {
     }
 
     try {
-      SolrQuery sameIdQuery = queryGenerator
-        .commonFilterQuery(searchCriteria);
+      SolrQuery sameIdQuery = queryGenerator.commonServiceFilterQuery(searchCriteria);
       queryGenerator.setSingleIncludeFilter(sameIdQuery,
-        LogSearchConstants.LOGTIME, "\"" + logTime + "\"");
+          LogSearchConstants.LOGTIME, "\"" + logTime + "\"");
       sameIdQuery.set("fl", LogSearchConstants.ID);
-      SolrDocumentList docList = serviceLogsSolrDao.process(sameIdQuery)
-        .getResults();
+      
+      QueryResponse sameIdResponse = serviceLogsSolrDao.process(sameIdQuery);
+      SolrDocumentList docList = sameIdResponse.getResults();
+      
       for (SolrDocument solrDocumenent : docList) {
         String id = (String) solrDocumenent
-          .getFieldValue(LogSearchConstants.ID);
+            .getFieldValue(LogSearchConstants.ID);
         startIndex++;
-        if (id.equals(logId))
-          break;
+        if (!stringUtil.isEmpty(id)) {
+          if (id.equals(logId)) {
+            break;
+          }
+        }
       }
 
-      SolrQuery logIdQuery = queryGenerator
-        .commonFilterQuery(searchCriteria);
+      SolrQuery logIdQuery = queryGenerator.commonServiceFilterQuery(searchCriteria);
       logIdQuery.remove("rows");
       logIdQuery.remove("start");
       int start = (int) ((startIndex / searchCriteria.getMaxRows()) * searchCriteria
-        .getMaxRows());
+          .getMaxRows());
       logIdQuery.setStart(start);
       logIdQuery.setRows(searchCriteria.getMaxRows());
-      VSolrLogList vSolrLogList = getLogAsPaginationProvided(logIdQuery, serviceLogsSolrDao);
+      vSolrLogList = getLogAsPaginationProvided(logIdQuery,
+          serviceLogsSolrDao);
       return convertObjToString(vSolrLogList);
     } catch (SolrException | SolrServerException | IOException e) {
       logger.error(e);
     }
 
     throw restErrorUtil.createRESTException("LogId not Found",
-      MessageEnums.ERROR_SYSTEM);
+        MessageEnums.ERROR_SYSTEM);
   }
 
   @SuppressWarnings("unchecked")
@@ -1221,17 +1188,29 @@ public class LogsMgr extends MgrBase {
       queryGenerator.setFacetRange(solrQuery, LogSearchConstants.LOGTIME,
         from, to, unit);
 
-      List<RangeFacet.Count> logLevelCounts;
+      List<RangeFacet.Count> logLevelCounts = null;
 
       QueryResponse response = serviceLogsSolrDao.process(solrQuery);
+      if(response == null){
+        return logsCounts;
+      }
       @SuppressWarnings("rawtypes")
-      List<RangeFacet> rangeFacet = response.getFacetRanges();
-
-      if (rangeFacet == null) {
-        return new ArrayList<VNameValue>();
+      List<RangeFacet> rangeFacetList = response.getFacetRanges();
+      if (rangeFacetList == null) {
+        return logsCounts;
 
       }
-      logLevelCounts = rangeFacet.get(0).getCounts();
+      
+      @SuppressWarnings("rawtypes")
+      RangeFacet rangeFacet=rangeFacetList.get(0);
+      if (rangeFacet == null) {
+        return logsCounts;
+      }
+      logLevelCounts = rangeFacet.getCounts();
+      
+      if(logLevelCounts == null){
+        return logsCounts;
+      }
       for (RangeFacet.Count logCount : logLevelCounts) {
         VNameValue nameValue = new VNameValue();
         nameValue.setName(logCount.getValue());
@@ -1256,12 +1235,13 @@ public class LogsMgr extends MgrBase {
 
   @SuppressWarnings("unchecked")
   public String getHistogramData(SearchCriteria searchCriteria) {
+    String deafalutValue = "0";
     VBarDataList dataList = new VBarDataList();
-    SolrQuery solrQuery = queryGenerator.commonFilterQuery(searchCriteria);
+    SolrQuery solrQuery = queryGenerator.commonServiceFilterQuery(searchCriteria);
     solrQuery.set("event", "/getHistogramData");
-    String from = (String) searchCriteria.getParamValue("from");
-    String to = (String) searchCriteria.getParamValue("to");
-    String unit = (String) searchCriteria.getParamValue("unit");
+    String from = getFrom((String) searchCriteria.getParamValue("from"));
+    String to = getTo((String) searchCriteria.getParamValue("to"));
+    String unit = getUnit((String) searchCriteria.getParamValue("unit"));
 
     List<VBarGraphData> histogramData = new ArrayList<VBarGraphData>();
     List<String> logLevels = ConfigUtil.logLevels;
@@ -1274,17 +1254,18 @@ public class LogsMgr extends MgrBase {
 
     try {
       queryGenerator.setJSONFacet(solrQuery, jsonHistogramQuery);
-      queryGenerator.setRowCount(solrQuery, 0);
+      queryGenerator.setRowCount(solrQuery,Integer.parseInt(deafalutValue));
       QueryResponse response = serviceLogsSolrDao.process(solrQuery);
-      if (response == null)
-        response = new QueryResponse();
-
+      if (response == null){
+        return convertObjToString(dataList);
+      }
       SimpleOrderedMap<Object> jsonFacetResponse = (SimpleOrderedMap<Object>) response
         .getResponse().get("facets");
 
       if (jsonFacetResponse == null
-        || jsonFacetResponse.toString().equals("{count=0}"))
+        || jsonFacetResponse.toString().equals("{count=0}")){
         return convertObjToString(dataList);
+      }
 
       extractValuesFromBuckets(jsonFacetResponse, "x", "y", histogramData);
 
@@ -1305,7 +1286,7 @@ public class LogsMgr extends MgrBase {
               .getDataCount();
             for (VNameValue value : vNameValues2) {
               VNameValue value2 = new VNameValue();
-              value2.setValue("0");
+              value2.setValue(deafalutValue);
               value2.setName(value.getName());
               vNameValues.add(value2);
             }
@@ -1326,8 +1307,8 @@ public class LogsMgr extends MgrBase {
 
     } catch (SolrServerException | SolrException | IOException e) {
       logger.error(e);
-      throw restErrorUtil.createRESTException(e.getMessage(),
-        MessageEnums.ERROR_SYSTEM);
+      throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
+          .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
 
     }
   }
@@ -1360,27 +1341,53 @@ public class LogsMgr extends MgrBase {
   }
 
   public boolean cancelRequest(String uniqueId) {
+    if (stringUtil.isEmpty(uniqueId)) {
+      logger.error("Unique id is Empty");
+      throw restErrorUtil.createRESTException("Unique id is Empty",
+        MessageEnums.DATA_NOT_FOUND);
+    }
     for (String date : cancelByDate) {
-      if (uniqueId.equalsIgnoreCase(date))
+      if (uniqueId.equalsIgnoreCase(date)){
         return false;
+      }
     }
     return true;
   }
 
   public Response exportToTextFile(SearchCriteria searchCriteria) {
-    SolrQuery solrQuery = queryGenerator.commonFilterQuery(searchCriteria);
+    String defaultFormat = "text";
+    SolrQuery solrQuery = queryGenerator.commonServiceFilterQuery(searchCriteria);
     String from = (String) searchCriteria.getParamValue("from");
-    from = from.replace("T", " ");
-    from = from.replace(".", ",");
     String to = (String) searchCriteria.getParamValue("to");
-    to = to.replace("T", " ");
-    to = to.replace(".", ",");
-
     String utcOffset = (String) searchCriteria.getParamValue("utcOffset");
-    to = dateUtil.addOffsetToDate(to, Long.parseLong(utcOffset),
-      "yyyy-MM-dd HH:mm:ss,SSS");
-    from = dateUtil.addOffsetToDate(from, Long.parseLong(utcOffset),
-      "yyyy-MM-dd HH:mm:ss,SSS");
+    String format = (String) searchCriteria.getParamValue("format");
+    
+    format = defaultFormat.equalsIgnoreCase(format) && format != null ? ".txt"
+        : ".json";
+    
+    if(stringUtil.isEmpty(utcOffset)){
+      utcOffset = "0";
+    }
+    
+    if (!dateUtil.isDateValid(from) || !dateUtil.isDateValid(to)) {
+      logger.error("Not valid date format. Valid format should be"
+          + LogSearchConstants.SOLR_DATE_FORMAT_PREFIX_Z);
+      throw restErrorUtil.createRESTException("Not valid date format. Valid format should be"
+          + LogSearchConstants.SOLR_DATE_FORMAT_PREFIX_Z,
+          MessageEnums.INVALID_INPUT_DATA);
+      
+    } else {
+      from = from.replace("T", " ");
+      from = from.replace(".", ",");
+
+      to = to.replace("T", " ");
+      to = to.replace(".", ",");
+
+      to = dateUtil.addOffsetToDate(to, Long.parseLong(utcOffset),
+          "yyyy-MM-dd HH:mm:ss,SSS");
+      from = dateUtil.addOffsetToDate(from, Long.parseLong(utcOffset),
+          "yyyy-MM-dd HH:mm:ss,SSS");
+    }
 
     String fileName = dateUtil.getCurrentDateInString();
     if (searchCriteria.getParamValue("hostLogFile") != null
@@ -1388,79 +1395,88 @@ public class LogsMgr extends MgrBase {
       fileName = searchCriteria.getParamValue("hostLogFile") + "_"
         + searchCriteria.getParamValue("compLogFile");
     }
-    String format = (String) searchCriteria.getParamValue("format");
-    format = "text".equalsIgnoreCase(format) && format != null ? ".txt"
-      : ".json";
+    
     String textToSave = "";
     try {
       QueryResponse response = serviceLogsSolrDao.process(solrQuery);
+      if (response == null) {
+        throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
+            .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
+      }
       SolrDocumentList docList = response.getResults();
+      if (docList == null) {
+        throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
+            .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
+      }
+
       VSummary vsummary = bizUtil.buildSummaryForLogFile(docList);
       vsummary.setFormat(format);
       vsummary.setFrom(from);
       vsummary.setTo(to);
 
-      try {
-        String include[] = ((String) searchCriteria
-          .getParamValue("iMessage"))
-          .split(LogSearchConstants.I_E_SEPRATOR);
-        String includeString = "";
-        for (String inc : include) {
-          includeString = includeString + ",\"" + inc + "\"";
-        }
-        includeString = includeString.replaceFirst(",", "");
-        if (!stringUtil.isEmpty(includeString)) {
-          vsummary.setIncludeString(includeString);
-        }
-      } catch (Exception e) {
-        // do nothing
+      String includeString = (String) searchCriteria.getParamValue("iMessage");
+      if (stringUtil.isEmpty(includeString)) {
+        includeString = "";
       }
 
-      String excludeString = "";
+      String include[] = includeString.split(LogSearchConstants.I_E_SEPRATOR);
+
+      for (String inc : include) {
+        includeString = includeString + ",\"" + inc + "\"";
+      }
+      includeString = includeString.replaceFirst(",", "");
+      if (!stringUtil.isEmpty(includeString)) {
+        vsummary.setIncludeString(includeString);
+      }
+
+      String excludeString = null;
       boolean isNormalExcluded = false;
-      try {
-        String exclude[] = ((String) searchCriteria
-          .getParamValue("eMessage"))
-          .split(LogSearchConstants.I_E_SEPRATOR);
-        for (String exc : exclude) {
-          excludeString = excludeString + ",\"" + exc + "\"";
-        }
-        excludeString = excludeString.replaceFirst(",", "");
-        if (!stringUtil.isEmpty(excludeString)) {
-          vsummary.setExcludeString(excludeString);
-          isNormalExcluded = true;
-        }
-      } catch (Exception ne) {
-        // do nothing
+
+      excludeString = (String) searchCriteria.getParamValue("eMessage");
+      if (stringUtil.isEmpty(excludeString)) {
+        excludeString = "";
       }
-      try {
 
-        String globalExclude[] = ((String) searchCriteria
-          .getParamValue("gEMessage"))
+      String exclude[] = excludeString.split(LogSearchConstants.I_E_SEPRATOR);
+      for (String exc : exclude) {
+        excludeString = excludeString + ",\"" + exc + "\"";
+      }
+
+      excludeString = excludeString.replaceFirst(",", "");
+      if (!stringUtil.isEmpty(excludeString)) {
+        vsummary.setExcludeString(excludeString);
+        isNormalExcluded = true;
+      }
+
+      String globalExcludeString = (String) searchCriteria
+          .getParamValue("gEMessage");
+      if (stringUtil.isEmpty(globalExcludeString)) {
+        globalExcludeString = "";
+      }
+
+      String globalExclude[] = globalExcludeString
           .split(LogSearchConstants.I_E_SEPRATOR);
 
-        for (String exc : globalExclude) {
-          excludeString = excludeString + ",\"" + exc + "\"";
-        }
+      for (String exc : globalExclude) {
+        excludeString = excludeString + ",\"" + exc + "\"";
+      }
 
-        if (!stringUtil.isEmpty(excludeString)) {
-          if (!isNormalExcluded)
-            excludeString = excludeString.replaceFirst(",", "");
-          vsummary.setExcludeString(excludeString);
+      if (!stringUtil.isEmpty(excludeString)) {
+        if (!isNormalExcluded) {
+          excludeString = excludeString.replaceFirst(",", "");
         }
-      } catch (Exception ne) {
-        // do nothing
+        vsummary.setExcludeString(excludeString);
       }
 
       for (SolrDocument solrDoc : docList) {
 
-        Date logTimeDateObj = (Date) solrDoc
-          .get(LogSearchConstants.LOGTIME);
-
+        Date logTimeDateObj = (Date) solrDoc.get(LogSearchConstants.LOGTIME);
+        if(logTimeDateObj != null){
         String logTime = dateUtil.convertSolrDateToNormalDateFormat(
-          logTimeDateObj.getTime(), Long.parseLong(utcOffset));
+            logTimeDateObj.getTime(), Long.parseLong(utcOffset));
         solrDoc.remove(LogSearchConstants.LOGTIME);
         solrDoc.addField(LogSearchConstants.LOGTIME, logTime);
+        }
       }
 
       if (format.toLowerCase(Locale.ENGLISH).equals(".txt")) {
@@ -1469,21 +1485,21 @@ public class LogsMgr extends MgrBase {
         textToSave = convertObjToString(docList);
       } else {
         throw restErrorUtil.createRESTException(
-          "unsoported format either should be json or text",
-          MessageEnums.ERROR_SYSTEM);
+            "unsoported format either should be json or text",
+            MessageEnums.ERROR_SYSTEM);
       }
       return fileUtil.saveToFile(textToSave, fileName, vsummary);
 
     } catch (SolrException | SolrServerException | IOException
       | ParseException e) {
       logger.error("Error during solrQuery=" + solrQuery, e);
-      throw restErrorUtil.createRESTException(e.getMessage(),
-        MessageEnums.ERROR_SYSTEM);
+      throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
+          .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
     }
   }
 
   public String getComponentListWithLevelCounts(SearchCriteria searchCriteria) {
-    SolrQuery solrQuery = queryGenerator.commonFilterQuery(searchCriteria);
+    SolrQuery solrQuery = queryGenerator.commonServiceFilterQuery(searchCriteria);
     solrQuery.setParam("event", "/getComponentListWithLevelCounts");
 
     if (searchCriteria.getSortBy() == null) {
@@ -1512,33 +1528,39 @@ public class LogsMgr extends MgrBase {
       }
       List<VNode> datatList = new ArrayList<VNode>();
       for (PivotField singlePivotField : secondHirarchicalPivotFields) {
-        VNode comp = new VNode();
-        comp.setName("" + singlePivotField.getValue());
-        List<PivotField> levelList = singlePivotField.getPivot();
-        List<VNameValue> levelCountList = new ArrayList<VNameValue>();
-        comp.setLogLevelCount(levelCountList);
-        for (PivotField levelPivot : levelList) {
-          VNameValue level = new VNameValue();
-          level.setName(("" + levelPivot.getValue()).toUpperCase());
-          level.setValue("" + levelPivot.getCount());
-          levelCountList.add(level);
+        if (singlePivotField != null) {
+          VNode comp = new VNode();
+          comp.setName("" + singlePivotField.getValue());
+          List<PivotField> levelList = singlePivotField.getPivot();
+          List<VNameValue> levelCountList = new ArrayList<VNameValue>();
+          comp.setLogLevelCount(levelCountList);
+          for (PivotField levelPivot : levelList) {
+            VNameValue level = new VNameValue();
+            level.setName(("" + levelPivot.getValue()).toUpperCase());
+            level.setValue("" + levelPivot.getCount());
+            levelCountList.add(level);
+          }
+          datatList.add(comp);
         }
-        datatList.add(comp);
       }
       list.setvNodeList(datatList);
       return convertObjToString(list);
     } catch (SolrException | SolrServerException | IOException e) {
-      logger.error(e);
-      throw restErrorUtil.createRESTException(e.getMessage(),
-        MessageEnums.ERROR_SYSTEM);
+      logger.error(e.getMessage() + "SolrQuery"+solrQuery);
+      throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
+          .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
     }
   }
 
   public String getExtremeDatesForBundelId(SearchCriteria searchCriteria) {
     SolrQuery solrQuery = new SolrQuery();
+    VNameValueList nameValueList = new VNameValueList();
     try {
       String bundelId = (String) searchCriteria
         .getParamValue(LogSearchConstants.BUNDLE_ID);
+      if(stringUtil.isEmpty(bundelId)){
+        bundelId = "";
+      }
 
       queryGenerator.setSingleIncludeFilter(solrQuery,
         LogSearchConstants.BUNDLE_ID, bundelId);
@@ -1546,11 +1568,18 @@ public class LogsMgr extends MgrBase {
       queryGenerator.setMainQuery(solrQuery, null);
       solrQuery.setSort(LogSearchConstants.LOGTIME, SolrQuery.ORDER.asc);
       queryGenerator.setRowCount(solrQuery, 1);
-      VNameValueList nameValueList = new VNameValueList();
+     
       List<VNameValue> vNameValues = new ArrayList<VNameValue>();
       QueryResponse response = serviceLogsSolrDao.process(solrQuery);
+      
+      if(response == null){
+        return convertObjToString(nameValueList);
+      }
 
       SolrDocumentList solrDocList = response.getResults();
+      if(solrDocList == null){
+        return convertObjToString(nameValueList);
+      }
       for (SolrDocument solrDoc : solrDocList) {
 
         Date logTimeAsc = (Date) solrDoc
@@ -1575,37 +1604,42 @@ public class LogsMgr extends MgrBase {
 
       solrDocList = response.getResults();
       for (SolrDocument solrDoc : solrDocList) {
-        Date logTimeDesc = (Date) solrDoc
-          .getFieldValue(LogSearchConstants.LOGTIME);
+        if (solrDoc != null) {
+          Date logTimeDesc = (Date) solrDoc
+              .getFieldValue(LogSearchConstants.LOGTIME);
 
-        if (logTimeDesc != null) {
-          VNameValue nameValue = new VNameValue();
-          nameValue.setName("To");
-          nameValue.setValue("" + logTimeDesc.getTime());
-          vNameValues.add(nameValue);
+          if (logTimeDesc != null) {
+            VNameValue nameValue = new VNameValue();
+            nameValue.setName("To");
+            nameValue.setValue("" + logTimeDesc.getTime());
+            vNameValues.add(nameValue);
+          }
         }
       }
       nameValueList.setVNameValues(vNameValues);
-      return convertObjToString(nameValueList);
+      
 
     } catch (SolrServerException | SolrException | IOException e) {
-      logger.error(e);
-      try {
-        return convertObjToString(new VNameValueList());
-      } catch (IOException e1) {
-        throw restErrorUtil.createRESTException(e1.getMessage(),
-          MessageEnums.DATA_NOT_FOUND);
-      }
+      logger.error(e.getMessage() + "SolrQuery"+solrQuery);
+      nameValueList=new VNameValueList();
     }
+    return convertObjToString(nameValueList);
   }
 
   protected VGroupList getSolrGroupList(SolrQuery query)
-    throws SolrServerException, IOException, SolrException {
+      throws SolrServerException, IOException, SolrException {
+    VGroupList collection = new VGroupList();
     QueryResponse response = serviceLogsSolrDao.process(query);
+    if (response == null) {
+      return collection;
+    }
     SolrDocumentList docList = response.getResults();
-    VGroupList collection = new VGroupList(docList);
-    collection.setStartIndex((int) docList.getStart());
-    collection.setTotalCount(docList.getNumFound());
+    if (docList != null) {
+      collection.setGroupDocuments(docList);
+      collection.setStartIndex((int) docList.getStart());
+      collection.setTotalCount(docList.getNumFound());
+    }
+
     return collection;
   }
 
@@ -1613,7 +1647,13 @@ public class LogsMgr extends MgrBase {
     SolrServerException, IOException {
     query.setRows(0);
     QueryResponse response = serviceLogsSolrDao.process(query);
+    if(response == null){
+      return 0l;
+    }
     SolrDocumentList docList = response.getResults();
+    if(docList == null){
+      return 0l;
+    }
     return docList.getNumFound();
   }
 
@@ -1621,21 +1661,20 @@ public class LogsMgr extends MgrBase {
     String fieldsNameStrArry[] = PropertiesUtil
       .getPropertyStringList("solr.servicelogs.fields");
     if (fieldsNameStrArry.length > 0) {
-      try {
-        List<String> uiFieldNames = new ArrayList<String>();
-        String temp = null;
-        for (String field : fieldsNameStrArry) {
-          temp = ConfigUtil.serviceLogsColumnMapping.get(field
+
+      List<String> uiFieldNames = new ArrayList<String>();
+      String temp = null;
+      for (String field : fieldsNameStrArry) {
+        temp = ConfigUtil.serviceLogsColumnMapping.get(field
             + LogSearchConstants.SOLR_SUFFIX);
-          if (temp == null)
-            uiFieldNames.add(field);
-          else
-            uiFieldNames.add(temp);
+        if (temp == null){
+          uiFieldNames.add(field);
+        }else{
+          uiFieldNames.add(temp);
         }
-        return convertObjToString(uiFieldNames);
-      } catch (IOException e) {
-        logger.error("converting object to json failed", e);
       }
+      return convertObjToString(uiFieldNames);
+
     }
     throw restErrorUtil.createRESTException(
       "No field name found in property file",
@@ -1648,14 +1687,14 @@ public class LogsMgr extends MgrBase {
     List<String> fieldNames = new ArrayList<String>();
     String suffix = PropertiesUtil.getProperty("solr.core.logs");
     String excludeArray[] = PropertiesUtil
-      .getPropertyStringList("servicelogs.exclude.columnlist");
+        .getPropertyStringList("servicelogs.exclude.columnlist");
 
     HashMap<String, String> uiFieldColumnMapping = new LinkedHashMap<String, String>();
     ConfigUtil.getSchemaFieldsName(suffix, excludeArray, fieldNames);
 
     for (String fieldName : fieldNames) {
       String uiField = ConfigUtil.serviceLogsColumnMapping.get(fieldName
-        + LogSearchConstants.SOLR_SUFFIX);
+          + LogSearchConstants.SOLR_SUFFIX);
       if (uiField != null) {
         uiFieldColumnMapping.put(fieldName, uiField);
       } else {
@@ -1663,28 +1702,19 @@ public class LogsMgr extends MgrBase {
       }
     }
 
-    try {
-      HashMap<String, String> uiFieldColumnMappingSorted = new LinkedHashMap<String, String>();
-      uiFieldColumnMappingSorted.put(LogSearchConstants.SOLR_LOG_MESSAGE,
-        "");
+    HashMap<String, String> uiFieldColumnMappingSorted = new LinkedHashMap<String, String>();
+    uiFieldColumnMappingSorted.put(LogSearchConstants.SOLR_LOG_MESSAGE, "");
 
-      Iterator<Entry<String, String>> it = bizUtil
-        .sortHashMapByValuesD(uiFieldColumnMapping).entrySet()
-        .iterator();
-      while (it.hasNext()) {
-        @SuppressWarnings("rawtypes")
-        Map.Entry pair = (Map.Entry) it.next();
-        uiFieldColumnMappingSorted.put("" + pair.getKey(),
-          "" + pair.getValue());
-        it.remove();
-      }
-
-      return convertObjToString(uiFieldColumnMappingSorted);
-    } catch (IOException e) {
-      logger.error(e);
+    Iterator<Entry<String, String>> it = bizUtil
+        .sortHashMapByValues(uiFieldColumnMapping).entrySet().iterator();
+    while (it.hasNext()) {
+      @SuppressWarnings("rawtypes")
+      Map.Entry pair = (Map.Entry) it.next();
+      uiFieldColumnMappingSorted.put("" + pair.getKey(), "" + pair.getValue());
     }
-    throw restErrorUtil.createRESTException(
-      "Cache is Empty for FieldsName", MessageEnums.DATA_NOT_FOUND);
+
+    return convertObjToString(uiFieldColumnMappingSorted);
+
   }
 
   @SuppressWarnings("unchecked")
@@ -1722,56 +1752,40 @@ public class LogsMgr extends MgrBase {
     }
   }
 
-  public String getCurrentPageOfKeywordSearch(String requestDate) {
-    if (stringUtil.isEmpty(requestDate)) {
-      logger.error("Unique id is Empty");
-      throw restErrorUtil.createRESTException("Unique id is Empty",
-        MessageEnums.DATA_NOT_FOUND);
-    }
-    String pageNumber = mapUniqueId.get(requestDate);
-    if (stringUtil.isEmpty(pageNumber)) {
-      logger.error("Not able to find Page Number");
-      throw restErrorUtil.createRESTException("Page Number not found",
-        MessageEnums.DATA_NOT_FOUND);
-    }
-    return pageNumber;
-  }
-
   public String getAnyGraphData(SearchCriteria searchCriteria) {
-    searchCriteria.addParam("feildTime", LogSearchConstants.LOGTIME);
+    searchCriteria.addParam("fieldTime", LogSearchConstants.LOGTIME);
     String suffix = PropertiesUtil.getProperty("solr.core.logs");
     searchCriteria.addParam("suffix", suffix);
-    SolrQuery solrQuery = queryGenerator.commonFilterQuery(searchCriteria);
-    String result = graphDataGnerator.getAnyGraphData(searchCriteria,
-      serviceLogsSolrDao, solrQuery);
-    if (result != null)
-      return result;
-    try {
-      return convertObjToString(new VBarDataList());
-    } catch (IOException e) {
-      throw restErrorUtil.createRESTException(e.getMessage(),
-        MessageEnums.ERROR_SYSTEM);
+    SolrQuery solrQuery = queryGenerator.commonServiceFilterQuery(searchCriteria);
+    VBarDataList result = graphDataGenerator.getAnyGraphData(searchCriteria,
+        serviceLogsSolrDao, solrQuery);
+    if (result == null) {
+      result = new VBarDataList();
     }
+    return convertObjToString(result);
+
   }
 
   public String getAfterBeforeLogs(SearchCriteria searchCriteria) {
+    VSolrLogList vSolrLogList = new VSolrLogList();
     SolrDocumentList docList = null;
     String id = (String) searchCriteria
       .getParamValue(LogSearchConstants.ID);
     if (stringUtil.isEmpty(id)) {
-      try {
-        return convertObjToString(new VSolrLogList());
-      } catch (IOException e) {
-        throw restErrorUtil.createRESTException(e.getMessage(),
-          MessageEnums.ERROR_SYSTEM);
-      }
+      return convertObjToString(vSolrLogList);
+
     }
     String maxRows = "";
 
     maxRows = (String) searchCriteria.getParamValue("numberRows");
-    if (stringUtil.isEmpty(maxRows))
-      maxRows = "10";
+    if (stringUtil.isEmpty(maxRows)){
+      maxRows = ""+maxRows;
+    }
     String scrollType = (String) searchCriteria.getParamValue("scrollType");
+    if(stringUtil.isEmpty(scrollType)){
+      scrollType = "";
+    }
+    
     String logTime = null;
     String sequenceId = null;
     try {
@@ -1780,6 +1794,9 @@ public class LogsMgr extends MgrBase {
         queryGenerator.buildFilterQuery(LogSearchConstants.ID, id));
       queryGenerator.setRowCount(solrQuery, 1);
       QueryResponse response = serviceLogsSolrDao.process(solrQuery);
+      if(response == null){
+        return convertObjToString(vSolrLogList);
+      }
       docList = response.getResults();
       if (docList != null && !docList.isEmpty()) {
         Date date = (Date) docList.get(0).getFieldValue(
@@ -1790,14 +1807,14 @@ public class LogsMgr extends MgrBase {
           LogSearchConstants.SEQUNCE_ID);
       }
       if (stringUtil.isEmpty(logTime)) {
-        return convertObjToString(new VSolrLogList());
+        return convertObjToString(vSolrLogList);
       }
     } catch (SolrServerException | SolrException | IOException e) {
-      throw restErrorUtil.createRESTException(e.getMessage(),
-        MessageEnums.DATA_NOT_FOUND);
+      throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
+          .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
     }
     if (LogSearchConstants.SCROLL_TYPE_BEFORE.equals(scrollType)) {
-      VSolrLogList vSolrLogList = whenScrollUp(searchCriteria, logTime,
+      vSolrLogList = whenScrollUp(searchCriteria, logTime,
         sequenceId, maxRows);
 
       SolrDocumentList solrDocList = new SolrDocumentList();
@@ -1805,55 +1822,42 @@ public class LogsMgr extends MgrBase {
         solrDocList.add(solrDoc);
       }
       vSolrLogList.setSolrDocuments(solrDocList);
-      try {
         return convertObjToString(vSolrLogList);
-      } catch (IOException e) {
-        // do nothing
-      }
+     
     } else if (LogSearchConstants.SCROLL_TYPE_AFTER.equals(scrollType)) {
       SolrDocumentList solrDocList = new SolrDocumentList();
-      VSolrLogList vSolrLogList = new VSolrLogList();
+      vSolrLogList = new VSolrLogList();
       for (SolrDocument solrDoc : whenScrollDown(searchCriteria, logTime,
-        sequenceId, maxRows).getList()) {
+          sequenceId, maxRows).getList()) {
         solrDocList.add(solrDoc);
       }
       vSolrLogList.setSolrDocuments(solrDocList);
-      try {
-        return convertObjToString(vSolrLogList);
-      } catch (IOException e) {
-        // do nothing
-      }
+      return convertObjToString(vSolrLogList);
 
     } else {
-      VSolrLogList vSolrLogList = new VSolrLogList();
+      vSolrLogList = new VSolrLogList();
       SolrDocumentList initial = new SolrDocumentList();
       SolrDocumentList before = whenScrollUp(searchCriteria, logTime,
         sequenceId, maxRows).getList();
       SolrDocumentList after = whenScrollDown(searchCriteria, logTime,
         sequenceId, maxRows).getList();
-      if (before == null || before.isEmpty())
-        before = new SolrDocumentList();
+      if (before == null || before.isEmpty()){
+        return convertObjToString(vSolrLogList);
+      }
       for (SolrDocument solrDoc : Lists.reverse(before)) {
         initial.add(solrDoc);
       }
       initial.add(docList.get(0));
-      if (after == null || after.isEmpty())
-        after = new SolrDocumentList();
+      if (after == null || after.isEmpty()){
+        return convertObjToString(vSolrLogList);
+      }
       for (SolrDocument solrDoc : after) {
         initial.add(solrDoc);
       }
       vSolrLogList.setSolrDocuments(initial);
-      try {
+     
         return convertObjToString(vSolrLogList);
-      } catch (IOException e) {
-        // do nothing
-      }
-    }
-    try {
-      return convertObjToString(new VSolrLogList());
-    } catch (IOException e) {
-      throw restErrorUtil.createRESTException(e.getMessage(),
-        MessageEnums.DATA_NOT_FOUND);
+      
     }
   }
 
@@ -1885,7 +1889,7 @@ public class LogsMgr extends MgrBase {
     List<String> sortOrder = new ArrayList<String>();
     sortOrder.add(order1);
     sortOrder.add(order2);
-    searchCriteria.addParam("sort", sortOrder);
+    searchCriteria.addParam(LogSearchConstants.SORT, sortOrder);
     queryGenerator.setMultipleSortOrder(solrQuery, searchCriteria);
 
     return getLogAsPaginationProvided(solrQuery, serviceLogsSolrDao);
@@ -1919,59 +1923,9 @@ public class LogsMgr extends MgrBase {
     List<String> sortOrder = new ArrayList<String>();
     sortOrder.add(order1);
     sortOrder.add(order2);
-    searchCriteria.addParam("sort", sortOrder);
+    searchCriteria.addParam(LogSearchConstants.SORT, sortOrder);
     queryGenerator.setMultipleSortOrder(solrQuery, searchCriteria);
 
     return getLogAsPaginationProvided(solrQuery, serviceLogsSolrDao);
-  }
-
-  @SuppressWarnings("unchecked")
-  public String getSuggestions(SearchCriteria searchCriteria) {
-    SolrQuery solrQuery = new SolrQuery();
-    queryGenerator.setMainQuery(solrQuery, null);
-    String field = "" + searchCriteria.getParamValue("fieldName");
-    String originalFieldName = ConfigUtil.serviceLogsColumnMapping
-      .get(field + LogSearchConstants.UI_SUFFIX);
-    if (originalFieldName == null)
-      originalFieldName = field;
-    originalFieldName = LogSearchConstants.NGRAM_SUFFIX + originalFieldName;
-    String value = "" + searchCriteria.getParamValue("valueToSuggest");
-    String jsonQuery = queryGenerator
-      .buidlJSONFacetRangeQueryForSuggestion(originalFieldName, value);
-    try {
-      List<String> valueList = new ArrayList<String>();
-      queryGenerator.setJSONFacet(solrQuery, jsonQuery);
-      QueryResponse queryResponse = serviceLogsSolrDao.process(solrQuery);
-      if (queryResponse == null)
-        return convertObjToString(valueList);
-      SimpleOrderedMap<Object> jsonFacetResponse = (SimpleOrderedMap<Object>) queryResponse
-        .getResponse().get("facets");
-      if (jsonFacetResponse == null
-        || jsonFacetResponse.equals("{count=0}"))
-        return convertObjToString(valueList);
-      SimpleOrderedMap<Object> stack = (SimpleOrderedMap<Object>) jsonFacetResponse
-        .get("y");
-      if (stack == null || stack.equals("{count=0}"))
-        return convertObjToString(valueList);
-      SimpleOrderedMap<Object> buckets = (SimpleOrderedMap<Object>) stack
-        .get("x");
-      if (buckets == null || buckets.equals("{count=0}"))
-        return convertObjToString(valueList);
-      ArrayList<Object> bucketList = (ArrayList<Object>) buckets
-        .get("buckets");
-      for (Object object : bucketList) {
-        SimpleOrderedMap<Object> simpleOrderdMap = (SimpleOrderedMap<Object>) object;
-        String val = "" + simpleOrderdMap.getVal(0);
-        valueList.add(val);
-      }
-      return convertObjToString(valueList);
-    } catch (SolrException | SolrServerException | IOException e) {
-      try {
-        return convertObjToString(new ArrayList<String>());
-      } catch (IOException e1) {
-        throw restErrorUtil.createRESTException(e.getMessage(),
-          MessageEnums.ERROR_SYSTEM);
-      }
-    }
   }
 }

@@ -19,22 +19,17 @@
 
 package org.apache.ambari.logsearch.manager;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.ambari.logsearch.common.MessageEnums;
 import org.apache.ambari.logsearch.view.VNameValue;
 import org.apache.ambari.logsearch.view.VNameValueList;
 import org.apache.ambari.logsearch.web.security.LogsearchSimpleAuthenticationProvider;
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class PublicMgr extends MgrBase {
-  private static Logger logger = Logger.getLogger(PublicMgr.class);
-
   @Autowired
   LogsearchSimpleAuthenticationProvider simpleAuthenticationProvider;
 
@@ -46,10 +41,6 @@ public class PublicMgr extends MgrBase {
     nameValue.setValue("" + simpleAuthenticationProvider.isEnable());
     nameValues.add(nameValue);
     nameValueList.setVNameValues(nameValues);
-    try {
-      return convertObjToString(nameValueList);
-    } catch (IOException e) {
-      throw restErrorUtil.createRESTException(e.getMessage(), MessageEnums.ERROR_SYSTEM);
-    }
+    return convertObjToString(nameValueList);
   }
 }

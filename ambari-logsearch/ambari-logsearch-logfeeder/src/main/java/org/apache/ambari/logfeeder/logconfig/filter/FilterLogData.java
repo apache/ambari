@@ -40,7 +40,7 @@ public enum FilterLogData {
       return defaultValue;
     }
     Map<String, Object> jsonObj = LogFeederUtil.toJSONObject(jsonBlock);
-    return applyLogFilter.applyFilter(jsonObj, defaultValue);
+    return isAllowed(jsonObj);
   }
 
   public boolean isAllowed(Map<String, Object> jsonObj) {

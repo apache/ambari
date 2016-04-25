@@ -389,33 +389,53 @@ define(['require',
 		options = _.isUndefined(options) ? Opt : options;
 		$.msg(options);
 	};
-
+	var errorShown = false;
 	Utils.defaultErrorHandler = function(model, error) {
-		if (error.status == 404) {
-				// App.rContent.show(new vError({
-				// 	status : error.status
-				// }));
-			} else if (error.status == 401) {
+		if (error.status == 500) {
+			try {
+		        if (!errorShown) {
+		            errorShown = true;
+		            Utils.notifyError({
+		                content: "Some issue on server, Please try again later."
+		            });
+		            setTimeout(function() {
+		                errorShown = false;
+		            }, 3000);
+		        }
+		    } catch (e) {}
+		}
+		else if (error.status == 400) {
+		    try {
+		        if (!errorShown) {
+		            errorShown = true;
+		            Utils.notifyError({
+		                content: JSON.parse(error.responseText).msgDesc
+		            });
+		            setTimeout(function() {
+		                errorShown = false;
+		            }, 3000);
+		        }
+		    } catch (e) {}
+		} else if (error.status == 401) {
+		    window.location = 'login.jsp' + window.location.search;
+		    // App.rContent.show(new vError({
+		    // 	status : error.status
+		    // }));
 
-				window.location = 'login.jsp'+window.location.search;
-				// App.rContent.show(new vError({
-				// 	status : error.status
-				// }));
-				
-			}else if (error.status == 419) {
-				window.location = 'login.jsp'+window.location.search;
+		} else if (error.status == 419) {
+		    window.location = 'login.jsp' + window.location.search;
 
-			}else if (error.status == "0") {
-				var diffTime = (new Date().getTime() - prevNetworkErrorTime);
-				if (diffTime > 3000) {
-					prevNetworkErrorTime = new Date().getTime();
-					Utils.notifyError({
-						content : "Network Connection Failure : "+
-						"It seems you are not connected to the internet. Please check your internet connection and try again" 
-					})
-					
-				}
-			}
+		} else if (error.status == "0") {
+		    var diffTime = (new Date().getTime() - prevNetworkErrorTime);
+		    if (diffTime > 3000) {
+		        prevNetworkErrorTime = new Date().getTime();
+		        Utils.notifyError({
+		            content: "Network Connection Failure : " +
+		                "It seems you are not connected to the internet. Please check your internet connection and try again"
+		        })
+
+		    }
+		}
 		// require(['views/common/ErrorView','App'],function(vError,App){
 
 		// });

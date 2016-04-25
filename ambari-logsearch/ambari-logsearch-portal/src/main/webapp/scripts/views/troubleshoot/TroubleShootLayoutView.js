@@ -71,7 +71,7 @@ define(['backbone',
                 this.vent = new Backbone.Wreqr.EventAggregator();
                 //this.servicesData = {services:{ranger:{label:"Ranger",components:[{name:"ranger_admin"}],dealsWithServices:[{name:"hdfs"},{name:"kms"}],dealsWithComponents:[{name:"security_admin"},{name:"portal"}],},ambari:{label:"Ambari",dealsWithServices:[{name:"ranger"},{name:"hive"}]},hdfs:{label:"Hdfs",components:[{name:"hdfs_namenode"},{name:"hdfs_datanode"}],dealsWithServices:[],dealsWithComponents:[],}}};
                 var todayRange = Utils.dateUtil.getTodayRange();
-                this.params = _.pick(ViewUtils.getDefaultParamsForHierarchy(),"from","to","bundle_id");
+                this.params = _.pick(ViewUtils.getDefaultParamsForHierarchy(),"from","to","bundle_id","host_name","component_name","file_name");
                 this.initializeCollection();
                 this.bindEvents();
             },
@@ -107,6 +107,7 @@ define(['backbone',
             },
             bindEvents : function(){
             	this.listenTo(this.serviceLogsCollection,"reset",function(){
+            		this.renderBarGraph();
             		this.renderLogLevelTable();
             	},this);
             	this.listenTo(this.serviceLogsCollection, 'request', function() {
@@ -126,7 +127,8 @@ define(['backbone',
             	this.listenTo(this.vent,"logtime:filter",function(params){
             		//this.fetchServiceLogsData(params);
             		//this.vent.trigger("graph:data:update",params,this.graphPropModel.attributes);
-            		this.renderGraph(params);
+            		//this.renderGraph(params);
+            		this.fetchLevelCollection(params);
             		this.fetchTopUsers(params);
             	},this);
             },
@@ -141,7 +143,8 @@ define(['backbone',
                 	}
                 });
             	this.renderDateRange();
-            	this.renderGraph(this.params);
+            	//this.renderGraph(this.params);
+            	this.fetchLevelCollection(this.params);
             },
             fetchTopUsers : function(params){
     			var that = this;
@@ -218,9 +221,10 @@ define(['backbone',
             	}
             	this.ui.components.select2("val",selectedComponents);
             	var params = this.getParams();
-            	this.renderGraph(params);
+            	//this.renderGraph(params);
             	//this.fetchServiceLogsData(params);
             	//this.fetchTopUsers(params);
+            	this.fetchLevelCollection(params);
             },
             renderServices : function(data){
             	var that = this;
@@ -255,9 +259,10 @@ define(['backbone',
     				}
     			}).on("change",function(e){
     				var params = that.getParams();
-    				that.renderGraph(params);
+    				//that.renderGraph(params);
                 	//that.fetchServiceLogsData(params);
                 	//that.fetchTopUsers(params);
+    				that.fetchLevelCollection(params);
     			});
             },
             renderDateRange : function(){
@@ -315,6 +320,13 @@ define(['backbone',
             	}
             	return params;
             },
+            fetchLevelCollection : function(params){
+            	_.extend(this.serviceLogsCollection.queryParams, params,{"yAxis":"count",
+        			"xAxis":"level"});
+                this.serviceLogsCollection.fetch({
+                    reset: true
+                });
+            },
             renderGraph : function(params){
             	//var that=this,model = new Backbone.Model({"id":"grid_histo0","title":"test","showX":"showX","xAxis":"access","xTimeFormat":"","xNormalFormat":"","showY":"showY","yAxis":"count","yAxisFormat":"","showLegend":"showLegend","stackOrGroup":"Normal","params":{"from":"2016-03-08T18:30:01.000Z","to":"2016-03-09T18:29:59.999Z","unit":"+1HOUR","yAxis":"count","xAxis":"access"},"myData":{"type":2,"dataId":"grid_histo0"},"col":1,"row":1,"size_x":3,"size_y":2});
             	var that=this,model = new Backbone.Model({
@@ -340,6 +352,53 @@ define(['backbone',
     					showHeader : false
     				}));
                 });
+            },
+            renderBarGraph : function(){
+            	var data=[],that=this;
+            	this.serviceLogsCollection.each(function(model){
+            		var d = {
+            				key : "Levels",
+            				values : []
+            		}
+            		for(var z=0; z<model.get("dataCount").length; z++){
+            			var name = model.get("dataCount")[z].name;
+            			d.values.push({
+            				label : (""+name).toUpperCase(),
+            				value : parseInt(model.get("dataCount")[z].value,10),
+            				color : (((""+name).toUpperCase() === 'ERROR') ? ("#E81D1D") :
+                                ( (""+name).toUpperCase() === 'INFO') ? ("#2577B5") :
+                                ( (""+name).toUpperCase() === 'WARN') ? ("#FF8916") :
+                                ( (""+name).toUpperCase() === 'FATAL') ? ("#830A0A") :
+                                ( (""+name).toUpperCase() === 'DEBUG') ? ("#65E8FF") :
+                                ( (""+name).toUpperCase() === 'TRACE') ? ("#888888") : "")
+            			});
+            			
+            		}
+            		data.push(d);
+            	});
+            	nv.addGraph(function() {
+            		  var chart = nv.models.discreteBarChart()
+            		    .x(function(d) { return d.label })
+            		    .y(function(d) { return d.value })
+            		    .staggerLabels(true)
+            		    .width(700)
+            		    .showValues(false)
+            		    chart.tooltip.enabled();
+            		  chart.yAxis
+				      .tickFormat(d3.format('d'));
+            		  
+            		  chart.margin({
+                          right: 100,
+                          left: 120,
+                      });
+            		  d3.select(that.$("[data-id='serviceGraph'] svg")[0])
+            		    .datum(data)
+            		    .transition().duration(500)
+            		    .call(chart)
+            		    ;
+            		  d3.selectAll
+            		  return chart;
+            	});
             },
             renderLogLevelTable : function(){
             	var that = this;
@@ -439,7 +498,6 @@ define(['backbone',
     			$el.siblings().removeClass("active");
     			$el.toggleClass("active");
         		if(serviceSelected.length){
-        			console.log(this.servicesData.service);
 //        			var serviceObj = this.servicesData.service[serviceSelected.data("name")];
 //        			if(serviceObj){
         				var found = getDependentServices(serviceSelected.data("name"),service);

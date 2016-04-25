@@ -302,7 +302,6 @@ define(['require',
 				
 			}
 			var data = this.getCheckedHierarchyData();
-			console.log(data);
 			this.vent.trigger("tree:search",{treeParams : JSON.stringify(data)});
 		},
 		onNewTabIconClick : function(e){

@@ -23,13 +23,13 @@ import java.util.List;
 
 public class VSummaryCount {
 
-  String level;
+  protected String level;
 
-  List<String> cricticalMsg;
+  protected List<String> cricticalMsg;
 
-  List<String> compName;
+  protected List<String> compName;
 
-  List<Long> countMsg;
+  protected List<Long> countMsg;
 
   public String getLevel() {
     return level;

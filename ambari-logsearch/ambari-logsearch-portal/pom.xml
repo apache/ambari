@@ -163,6 +163,7 @@
                 <exclude>src/main/webapp/styles/animate.css</exclude>
                 <exclude>**/*.json</exclude>
                 <exclude>src/main/webapp/styles/visualsearch.css</exclude>
+                <exclude>**/*.log</exclude>
               </excludes>
             </configuration>
             <executions>
@@ -542,6 +543,10 @@
       <artifactId>commons-io</artifactId>
       <version>2.4</version>
     </dependency>
-
+    <dependency>
+      <groupId>org.apache.ambari</groupId>
+      <artifactId>ambari-logsearch-appender</artifactId>
+      <version>${project.version}</version>
+    </dependency>
   </dependencies>
 </project>

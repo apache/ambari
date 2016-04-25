@@ -46,29 +46,34 @@ public class DateUtil {
 
   }
 
-  public String addOffsetToDate(String date, Long utcOffset,
-                                String dateFormate) {
-    if (date == null || date.equals("")) {
+  public String addOffsetToDate(String date, Long utcOffset, String dateFormat) {
+    if (stringUtil.isEmpty(date)) {
+      logger.debug("input date is empty or null.");
       return null;
     }
     if (utcOffset == null) {
+      logger
+          .debug("Utc offset is null, Return input date without adding offset.");
+      return date;
+    }
+    if (stringUtil.isEmpty(dateFormat)) {
+      logger
+          .debug("dateFormat is null or empty, Return input date without adding offset.");
       return date;
     }
     String retDate = "";
-
     try {
       String modifiedDate = date;
       if (date.contains(".")) {
         modifiedDate = date.replace(".", ",");
       }
-      SimpleDateFormat formatter = new SimpleDateFormat(dateFormate, Locale.ENGLISH);
-      Date startDate = (Date) formatter.parse(modifiedDate);
-      long toWithOffset = getTimeWithOffset(startDate, utcOffset,
-        dateFormate);
+      SimpleDateFormat formatter = new SimpleDateFormat(dateFormat,
+          Locale.ENGLISH);
+      Date startDate = formatter.parse(modifiedDate);
+      long toWithOffset = getTimeWithOffset(startDate, utcOffset, dateFormat);
       Calendar calendar = Calendar.getInstance();
       calendar.setTimeInMillis(toWithOffset);
       retDate = formatter.format(calendar.getTime());
-
     } catch (Exception e) {
       logger.error(e);
     }
@@ -90,7 +95,6 @@ public class DateUtil {
       GregorianCalendar utc = new GregorianCalendar(gmtTimeZone);
       utc.setTimeInMillis(epoh);
       utc.add(Calendar.MILLISECOND, -offset);
-
       return utc.getTime();
     } catch (Exception ex) {
       return null;
@@ -123,6 +127,14 @@ public class DateUtil {
     time = time + "Z";
 
     return time;
+  }
+  
+  public Date getTodayFromDate() {
+    Calendar c = new GregorianCalendar();
+    c.set(Calendar.HOUR_OF_DAY, 0); 
+    c.set(Calendar.MINUTE, 0);
+    c.set(Calendar.SECOND, 0);
+    return c.getTime();
   }
 
   public Date addHoursToDate(Date date, int hours) {
@@ -168,6 +180,9 @@ public class DateUtil {
   }
 
   public String convertDateWithMillisecondsToSolrDate(Date date) {
+    if (date == null) {
+      return "";
+    }
     SimpleDateFormat formatter = new SimpleDateFormat(
       LogSearchConstants.SOLR_DATE_FORMAT_PREFIX_Z, Locale.ENGLISH);
     TimeZone timeZone = TimeZone.getTimeZone("GMT");
@@ -190,17 +205,32 @@ public class DateUtil {
   }
 
   public Date convertStringToDate(String dateString) {
-
     SimpleDateFormat formatter = new SimpleDateFormat(
       LogSearchConstants.SOLR_DATE_FORMAT_PREFIX_Z, Locale.ENGLISH);
     TimeZone timeZone = TimeZone.getTimeZone("GMT");
     formatter.setTimeZone(timeZone);
-
     try {
       return formatter.parse(dateString);
     } catch (ParseException e) {
       //do nothing
     }
     return null;
+  }
+  
+  public boolean isDateValid(String value) {
+    if(stringUtil.isEmpty(value)){
+      return false;
+    }
+    Date date = null;
+    try {
+        SimpleDateFormat sdf = new SimpleDateFormat(LogSearchConstants.SOLR_DATE_FORMAT_PREFIX_Z);
+        date = sdf.parse(value);
+        if (!value.equals(sdf.format(date))) {
+            date = null;
+        }
+    } catch (Exception ex) {
+      //do nothing
+    }
+    return date != null;
   }
 }

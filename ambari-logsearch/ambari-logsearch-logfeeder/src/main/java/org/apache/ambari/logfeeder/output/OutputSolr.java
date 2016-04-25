@@ -194,6 +194,7 @@ public class OutputSolr extends Output {
   @Override
   public void write(Map<String, Object> jsonObj, InputMarker inputMarker) throws Exception {
     try {
+      trimStrValue(jsonObj);
       outgoingBuffer.put(new OutputData(jsonObj, inputMarker));
     } catch (InterruptedException e) {
       // ignore
