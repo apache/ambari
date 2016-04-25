@@ -174,8 +174,7 @@ class Rangeradmin:
           policiesUpdateCount = 0
           for policy in policyList:
             updatedPolicyObj = self.get_policy_params(typeOfPolicy, policy, policy_user)
-            policyResCode, policyResponse = self.update_ranger_policy(updatedPolicyObj['id'],
-                                                                      json.dumps(updatedPolicyObj), usernamepassword)
+            policyResCode = self.update_ranger_policy(updatedPolicyObj['id'], json.dumps(updatedPolicyObj), usernamepassword)
             if policyResCode == 200:
               policiesUpdateCount = policiesUpdateCount + 1
             else:
@@ -248,13 +247,11 @@ class Rangeradmin:
         return None
     except urllib2.URLError, e:
       if isinstance(e, urllib2.HTTPError):
-        Logger.error("Error getting policy from repository {0} for component {1}. Http status code - {2}. \n {3}".format(name, component, e.code, e.read()))
+        raise Fail("Error getting policy from repository {0} for component {1}. Http status code - {2}. \n {3}".format(name, component, e.code, e.read()))
       else:
-        Logger.error("Error getting policy from repository {0} for component {1}. Reason - {2}.".format(name, component, e.reason))
-      return None
+        raise Fail("Error getting policy from repository {0} for component {1}. Reason - {2}.".format(name, component, e.reason))
     except httplib.BadStatusLine:
-      Logger.error("Ranger Admin service is not reachable, please restart the service and then try again")
-      return None
+      raise Fail("Ranger Admin service is not reachable, please restart the service and then try again")
     except TimeoutError:
       raise Fail("Connection to Ranger Admin failed. Reason - timeout")
 
@@ -281,19 +278,17 @@ class Rangeradmin:
       response = json.loads(json.JSONEncoder().encode(result.read()))
       if response_code == 200:
         Logger.info('Policy updated Successfully')
-        return response_code, response
+        return response_code
       else:
         Logger.error('Update Policy failed')
-        return None, None
+        return None
     except urllib2.URLError, e:
       if isinstance(e, urllib2.HTTPError):
-        Logger.error("Error updating policy. Http status code - {0}. \n {1}".format(e.code, e.read()))
+        raise Fail("Error updating policy. Http status code - {0}. \n {1}".format(e.code, e.read()))
       else:
-        Logger.error("Error updating policy. Reason - {0}.".format(e.reason))
-      return None, None
+        raise Fail("Error updating policy. Reason - {0}.".format(e.reason))
     except httplib.BadStatusLine:
-      Logger.error("Ranger Admin service is not reachable, please restart the service and then try again")
-      return None, None
+      raise Fail("Ranger Admin service is not reachable, please restart the service and then try again")
     except TimeoutError:
       raise Fail("Connection to Ranger Admin failed. Reason - timeout")
 
