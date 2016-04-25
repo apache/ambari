@@ -291,7 +291,8 @@ angular.module('ambariAdminConsole')
         'serviceOperator': 'Service Operator',
         'ambariAdmin': 'Administrator',
         'viewUser': 'View User',
-        'none': 'None'
+        'none': 'None',
+        'oneRolePerUser': 'Only 1 role allowed per user'
       },
 
       'alerts': {
