@@ -126,6 +126,13 @@ class NimbusDefault(Nimbus):
     else:
       self.put_structured_out({"securityState": "UNSECURED"})
 
+  def get_log_folder(self):
+    import params
+    return params.log_dir
+  
+  def get_user(self):
+    import params
+    return params.storm_user
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class NimbusWindows(Nimbus):

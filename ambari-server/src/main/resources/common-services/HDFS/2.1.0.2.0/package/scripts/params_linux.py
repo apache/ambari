@@ -209,6 +209,7 @@ proxyuser_group =  config['configurations']['hadoop-env']['proxyuser_group']
 
 #hadoop params
 hdfs_log_dir_prefix = config['configurations']['hadoop-env']['hdfs_log_dir_prefix']
+hdfs_log_dir = format('{hdfs_log_dir_prefix}/{hdfs_user}')
 hadoop_root_logger = config['configurations']['hadoop-env']['hadoop_root_logger']
 nfs_file_dump_dir = config['configurations']['hdfs-site']['nfs.file.dump.dir']
 

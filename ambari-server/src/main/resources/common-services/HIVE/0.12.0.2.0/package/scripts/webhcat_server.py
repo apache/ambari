@@ -150,6 +150,13 @@ class WebHCatServerDefault(WebHCatServer):
     else:
       self.put_structured_out({"securityState": "UNSECURED"})
 
+  def get_log_folder(self):
+    import params
+    return params.hcat_log_dir
+  
+  def get_user(self):
+    import params
+    return params.webhcat_user
 
 if __name__ == "__main__":
   WebHCatServer().execute()

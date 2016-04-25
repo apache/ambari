@@ -74,6 +74,14 @@ class SparkThriftServer(Script):
       Logger.info("Executing Spark Thrift Server Stack Upgrade pre-restart")
       conf_select.select(params.stack_name, "spark", params.version)
       hdp_select.select("spark-thriftserver", params.version)
+          
+  def get_log_folder(self):
+    import params
+    return params.spark_log_dir
+  
+  def get_user(self):
+    import params
+    return params.hive_user
 
 if __name__ == "__main__":
   SparkThriftServer().execute()

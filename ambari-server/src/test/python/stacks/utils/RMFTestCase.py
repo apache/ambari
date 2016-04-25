@@ -70,7 +70,8 @@ class RMFTestCase(TestCase):
                     target=TARGET_STACKS,
                     mocks_dict={},
                     try_install=False,
-                    command_args=[]):
+                    command_args=[],
+                    log_out_files=False):
     norm_path = os.path.normpath(path)
     src_dir = RMFTestCase.get_src_folder()
     if target == self.TARGET_STACKS:
@@ -114,6 +115,7 @@ class RMFTestCase(TestCase):
       with patch.object(platform, 'linux_distribution', return_value=os_type):
         script_module = imp.load_source(classname, script_path)
         script_class_inst = RMFTestCase._get_attr(script_module, classname)()
+        script_class_inst.log_out_files = log_out_files
         method = RMFTestCase._get_attr(script_class_inst, command)
     except IOError, err:
       raise RuntimeError("Cannot load class %s from %s: %s" % (classname, norm_path, err.message))

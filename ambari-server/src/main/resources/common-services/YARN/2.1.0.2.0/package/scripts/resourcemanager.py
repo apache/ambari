@@ -274,5 +274,13 @@ class ResourcemanagerDefault(Resourcemanager):
       else:
         Logger.info("DFS directory '" + dir_path + "' exists.")
 
+  def get_log_folder(self):
+    import params
+    return params.yarn_log_dir
+  
+  def get_user(self):
+    import params
+    return params.yarn_user
+  
 if __name__ == "__main__":
   Resourcemanager().execute()

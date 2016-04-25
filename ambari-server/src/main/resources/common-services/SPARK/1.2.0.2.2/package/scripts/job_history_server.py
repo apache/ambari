@@ -90,6 +90,14 @@ class JobHistoryServer(Script):
           host_sys_prepped=params.host_sys_prepped)
         if resource_created:
           params.HdfsResource(None, action="execute")
+          
+  def get_log_folder(self):
+    import params
+    return params.spark_log_dir
+  
+  def get_user(self):
+    import params
+    return params.spark_user
 
 if __name__ == "__main__":
   JobHistoryServer().execute()

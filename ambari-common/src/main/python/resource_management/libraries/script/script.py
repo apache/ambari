@@ -45,6 +45,7 @@ from resource_management.libraries.functions.version import format_hdp_stack_ver
 from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.script.config_dictionary import ConfigDictionary, UnknownConfiguration
 from resource_management.core.resources.system import Execute
+from resource_management.libraries.functions.show_logs import show_logs
 from contextlib import closing
 
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
@@ -57,7 +58,7 @@ if OSCheck.is_windows_family():
 else:
   from resource_management.libraries.functions.tar_archive import archive_dir
 
-USAGE = """Usage: {0} <COMMAND> <JSON_CONFIG> <BASEDIR> <STROUTPUT> <LOGGING_LEVEL> <TMP_DIR>
+USAGE = """Usage: {0} <COMMAND> <JSON_CONFIG> <BASEDIR> <STROUTPUT> <LOGGING_LEVEL> <TMP_DIR> <LOG_OUT_FILES>
 
 <COMMAND> command type (INSTALL/CONFIGURE/START/STOP/SERVICE_CHECK...)
 <JSON_CONFIG> path to command json file. Ex: /var/lib/ambari-agent/data/command-2.json
@@ -65,9 +66,13 @@ USAGE = """Usage: {0} <COMMAND> <JSON_CONFIG> <BASEDIR> <STROUTPUT> <LOGGING_LEV
 <STROUTPUT> path to file with structured command output (file will be created). Ex:/tmp/my.txt
 <LOGGING_LEVEL> log level for stdout. Ex:DEBUG,INFO
 <TMP_DIR> temporary directory for executable scripts. Ex: /var/lib/ambari-agent/tmp
+<LOG_OUT_FILES> before start is done, should the service *.out files content be logged. Ex: false 
 """
 
 _PASSWORD_MAP = {"/configurations/cluster-env/hadoop.user.name":"/configurations/cluster-env/hadoop.user.password"}
+COUNT_OF_LAST_LINES_OF_OUT_FILES_LOGGED = 100
+OUT_FILES_MASK = "*.out"
+AGENT_TASKS_LOG_FILE = "/var/log/ambari-agent/agent_tasks.log"
 
 def get_path_from_configuration(name, configuration):
   subdicts = filter(None, name.split('/'))
@@ -175,8 +180,8 @@ class Script(object):
     Parses command parameters and executes method relevant to command type
     """
     # parse arguments
-    if len(sys.argv) < 7:
-     print "Script expects at least 6 arguments"
+    if len(sys.argv) < 8:
+     print "Script expects at least 7 arguments"
      print USAGE.format(os.path.basename(sys.argv[0])) # print to stdout
      sys.exit(1)
 
@@ -187,7 +192,8 @@ class Script(object):
     self.load_structured_out()
     self.logging_level = sys.argv[5]
     Script.tmp_dir = sys.argv[6]
-
+    self.log_out_files = sys.argv[7].lower() == "true"
+    
     logging_level_str = logging._levelNames[self.logging_level]
     Logger.initialize_logger(__name__, logging_level=logging_level_str)
 
@@ -216,10 +222,39 @@ class Script(object):
       method = self.choose_method_to_execute(self.command_name)
       with Environment(self.basedir, tmp_dir=Script.tmp_dir) as env:
         env.config.download_path = Script.tmp_dir
+        
+        if self.command_name == "start" and not self.is_hook():
+          self.pre_start()
+        
         method(env)
     finally:
       if self.should_expose_component_version(self.command_name):
         self.save_component_version_to_structured_out()
+        
+  def is_hook(self):
+    from resource_management.libraries.script.hook import Hook
+    return (Hook in self.__class__.__bases__)
+        
+  def get_log_folder(self):
+    return ""
+  
+  def get_user(self):
+    return ""
+        
+  def pre_start(self):
+    if self.log_out_files:
+      log_folder = self.get_log_folder()
+      user = self.get_user()
+      
+      if log_folder == "":
+        Logger.logger.warn("Log folder for current script is not defined")
+        return
+      
+      if user == "":
+        Logger.logger.warn("User for current script is not defined")
+        return
+      
+      show_logs(log_folder, user, lines_count=COUNT_OF_LAST_LINES_OF_OUT_FILES_LOGGED, mask=OUT_FILES_MASK)
 
   def choose_method_to_execute(self, command_name):
     """
@@ -526,6 +561,7 @@ class Script(object):
 
       # To remain backward compatible with older stacks, only pass upgrade_type if available.
       # TODO, remove checking the argspec for "upgrade_type" once all of the services support that optional param.
+      self.pre_start()
       if "upgrade_type" in inspect.getargspec(self.start).args:
         self.start(env, upgrade_type=upgrade_type)
       else:

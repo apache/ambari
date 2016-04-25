@@ -70,5 +70,13 @@ class StormRestApi(Script):
     env.set_params(status_params)
     check_process_status(status_params.pid_rest_api)
 
+  def get_log_folder(self):
+    import params
+    return params.log_dir
+  
+  def get_user(self):
+    import params
+    return params.storm_user
+  
 if __name__ == "__main__":
   StormRestApi().execute()
