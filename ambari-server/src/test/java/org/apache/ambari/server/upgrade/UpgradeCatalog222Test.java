@@ -138,6 +138,7 @@ public class UpgradeCatalog222Test {
     Method updateCorruptedReplicaWidget = UpgradeCatalog222.class.getDeclaredMethod("updateCorruptedReplicaWidget");
     Method createNewSliderConfigVersion = UpgradeCatalog222.class.getDeclaredMethod("createNewSliderConfigVersion");
     Method updateZookeeperConfigs = UpgradeCatalog222.class.getDeclaredMethod("updateZookeeperConfigs");
+    Method updateHBASEConfigs = UpgradeCatalog222.class.getDeclaredMethod("updateHBASEConfigs");
     Method initializeStromAnsKafkaWidgets = UpgradeCatalog222.class.getDeclaredMethod("initializeStromAndKafkaWidgets");
 
     UpgradeCatalog222 upgradeCatalog222 = createMockBuilder(UpgradeCatalog222.class)
@@ -154,6 +155,7 @@ public class UpgradeCatalog222Test {
       .addMockedMethod(updateCorruptedReplicaWidget)
       .addMockedMethod(createNewSliderConfigVersion)
       .addMockedMethod(updateZookeeperConfigs)
+      .addMockedMethod(updateHBASEConfigs)
       .addMockedMethod(initializeStromAnsKafkaWidgets)
       .createMock();
 
@@ -169,6 +171,7 @@ public class UpgradeCatalog222Test {
     upgradeCatalog222.updateHBASEWidgetDefinition();
     upgradeCatalog222.updateCorruptedReplicaWidget();
     upgradeCatalog222.updateZookeeperConfigs();
+    upgradeCatalog222.updateHBASEConfigs();
     upgradeCatalog222.createNewSliderConfigVersion();
     upgradeCatalog222.initializeStromAndKafkaWidgets();
 
@@ -339,6 +342,115 @@ public class UpgradeCatalog222Test {
     easyMockSupport.verifyAll();
   }
 
+  @Test
+  public void testUpdateHBASEConfigs() throws Exception{
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+
+    final Config hbaseSite = easyMockSupport.createNiceMock(Config.class);
+    expect(hbaseSite.getProperties()).andReturn(new HashMap<String, String>(){{
+                                                     put(UpgradeCatalog222.HBASE_SITE_HBASE_COPROCESSOR_MASTER_CLASSES, "test1");
+                                                     put(UpgradeCatalog222.HBASE_SITE_HBASE_COPROCESSOR_REGION_CLASSES, "test2");
+                                                     put(UpgradeCatalog222.HBASE_SITE_HBASE_COPROCESSOR_REGIONSERVER_CLASSES, "test3");
+                                                   }}
+    ).anyTimes();
+
+    final Config rangerHbasePluginProperties = easyMockSupport.createNiceMock(Config.class);
+    expect(rangerHbasePluginProperties.getProperties()).andReturn(new HashMap<String, String>(){{
+                                                  put(AbstractUpgradeCatalog.PROPERTY_RANGER_HBASE_PLUGIN_ENABLED, "yes");
+                                                }}
+    ).anyTimes();
+
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(EntityManager.class).toInstance(entityManager);
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    });
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).anyTimes();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockClusterExpected);
+    }}).atLeastOnce();
+
+    UpgradeCatalog222 upgradeCatalog222 = createMockBuilder(UpgradeCatalog222.class)
+      .withConstructor(Injector.class)
+      .withArgs(mockInjector)
+      .addMockedMethod("updateConfigurationPropertiesForCluster", Cluster.class, String.class,
+        Map.class, boolean.class, boolean.class)
+      .createStrictMock();
+
+    // CASE 1 - Ranger enabled, Cluster version is 2.2
+    expect(mockClusterExpected.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.2")).atLeastOnce();
+    expect(mockClusterExpected.getDesiredConfigByType("hbase-site")).andReturn(hbaseSite).atLeastOnce();
+    expect(mockClusterExpected.getDesiredConfigByType(AbstractUpgradeCatalog.CONFIGURATION_TYPE_RANGER_HBASE_PLUGIN_PROPERTIES)).
+      andReturn(rangerHbasePluginProperties).once();
+
+    Map<String, String> expectedUpdates = new HashMap<>();
+    expectedUpdates.put(UpgradeCatalog222.HBASE_SITE_HBASE_COPROCESSOR_MASTER_CLASSES, "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor");
+    expectedUpdates.put(UpgradeCatalog222.HBASE_SITE_HBASE_COPROCESSOR_REGION_CLASSES, "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor");
+    expectedUpdates.put(UpgradeCatalog222.HBASE_SITE_HBASE_COPROCESSOR_REGIONSERVER_CLASSES,
+      "org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint," +
+        "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor");
+
+    upgradeCatalog222.updateConfigurationPropertiesForCluster(mockClusterExpected, "hbase-site", expectedUpdates,
+      true, false);
+    expectLastCall().once();
+
+    easyMockSupport.replayAll();
+    upgradeCatalog222.updateHBASEConfigs();
+    easyMockSupport.verifyAll();
+
+    // CASE 2 - Ranger enabled, Cluster version is 2.3
+    reset(mockClusterExpected, upgradeCatalog222);
+    expect(mockClusterExpected.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.3")).atLeastOnce();
+    expect(mockClusterExpected.getDesiredConfigByType("hbase-site")).andReturn(hbaseSite).atLeastOnce();
+    expect(mockClusterExpected.getDesiredConfigByType(AbstractUpgradeCatalog.CONFIGURATION_TYPE_RANGER_HBASE_PLUGIN_PROPERTIES)).
+      andReturn(rangerHbasePluginProperties).once();
+
+    expectedUpdates = new HashMap<>();
+    expectedUpdates.put(UpgradeCatalog222.HBASE_SITE_HBASE_COPROCESSOR_MASTER_CLASSES, "org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor ");
+    expectedUpdates.put(UpgradeCatalog222.HBASE_SITE_HBASE_COPROCESSOR_REGION_CLASSES, "org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor");
+    expectedUpdates.put(UpgradeCatalog222.HBASE_SITE_HBASE_COPROCESSOR_REGIONSERVER_CLASSES,
+      "org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint," +
+        "org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor");
+
+    upgradeCatalog222.updateConfigurationPropertiesForCluster(mockClusterExpected, "hbase-site", expectedUpdates,
+      true, false);
+    expectLastCall().once();
+
+    replay(mockClusterExpected, upgradeCatalog222);
+    upgradeCatalog222.updateHBASEConfigs();
+    easyMockSupport.verifyAll();
+
+    // CASE 3 - Ranger enabled, Cluster version is 2.1
+    reset(mockClusterExpected, upgradeCatalog222);
+    expect(mockClusterExpected.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.1")).atLeastOnce();
+    expect(mockClusterExpected.getDesiredConfigByType("hbase-site")).andReturn(hbaseSite).atLeastOnce();
+    expect(mockClusterExpected.getDesiredConfigByType(AbstractUpgradeCatalog.CONFIGURATION_TYPE_RANGER_HBASE_PLUGIN_PROPERTIES)).
+      andReturn(rangerHbasePluginProperties).once();
+
+    replay(mockClusterExpected, upgradeCatalog222);
+    upgradeCatalog222.updateHBASEConfigs();
+    easyMockSupport.verifyAll();
+
+    // CASE 4 - Ranger disabled
+    reset(mockClusterExpected, upgradeCatalog222);
+    expect(mockClusterExpected.getDesiredConfigByType("hbase-site")).andReturn(hbaseSite).atLeastOnce();
+    expect(mockClusterExpected.getDesiredConfigByType(AbstractUpgradeCatalog.CONFIGURATION_TYPE_RANGER_HBASE_PLUGIN_PROPERTIES)).
+      andReturn(null).once();
+
+    replay(mockClusterExpected, upgradeCatalog222);
+    upgradeCatalog222.updateHBASEConfigs();
+    easyMockSupport.verifyAll();
+  }
 
   @Test
   public void testAmsSiteUpdateConfigs() throws Exception{
