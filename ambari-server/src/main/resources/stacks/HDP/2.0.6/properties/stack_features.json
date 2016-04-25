@@ -200,6 +200,11 @@
       "name": "ranger_kms_hsm_support",
       "description": "Ranger KMS HSM support (AMBARI-15752)",
       "min_version": "2.5.0.0"
+    },
+    {
+      "name": "ranger_log4j_support",
+      "description": "Ranger supporting log-4j properties (AMBARI-15681)",
+      "min_version": "2.5.0.0"
     }
   ]
 }

@@ -163,6 +163,14 @@ def setup_ranger_admin(upgrade_type=None):
     group=params.unix_group,
   )
 
+  if params.stack_supports_ranger_log4j:
+    File(format('{ranger_home}/ews/webapp/WEB-INF/log4j.properties'),
+      owner=params.unix_user,
+      group=params.unix_group,
+      content=params.admin_log4j,
+      mode=0644
+    )
+
   do_keystore_setup(upgrade_type=upgrade_type)
 
 
@@ -348,6 +356,14 @@ def setup_usersync(upgrade_type=None):
     dst_file = format('{usersync_home}/conf/ranger-ugsync-default.xml')
     Execute(('cp', '-f', src_file, dst_file), sudo=True)
 
+  if params.stack_supports_ranger_log4j:
+    File(format('{usersync_home}/conf/log4j.properties'),
+      owner=params.unix_user,
+      group=params.unix_group,
+      content=params.usersync_log4j,
+      mode=0644
+    )
+  elif upgrade_type is not None and not params.stack_supports_ranger_log4j:
     src_file = format('{usersync_home}/conf.dist/log4j.xml')
     dst_file = format('{usersync_home}/conf/log4j.xml')
     Execute(('cp', '-f', src_file, dst_file), sudo=True)
@@ -462,7 +478,13 @@ def setup_tagsync(upgrade_type=None):
     group=params.unix_group
   )
 
-  if upgrade_type is not None:
+  if params.stack_supports_ranger_log4j:
+    File(format('{ranger_tagsync_conf}/log4j.properties'),
+      owner=params.unix_user,
+      group=params.unix_group,
+      content=params.tagsync_log4j,
+      mode=0644
+    )
     src_file = format('{ranger_tagsync_home}/conf.dist/log4j.xml')
     dst_file = format('{tagsync_log4j_file}')
     Execute(('cp', '-f', src_file, dst_file), sudo=True)

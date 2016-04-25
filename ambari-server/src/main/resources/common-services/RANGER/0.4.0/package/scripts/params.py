@@ -60,6 +60,7 @@ stack_supports_config_versioning =  stack_version_formatted and check_stack_feat
 stack_supports_usersync_non_root =  stack_version_formatted and check_stack_feature(StackFeature.RANGER_USERSYNC_NON_ROOT, stack_version_formatted)
 stack_supports_ranger_tagsync =  stack_version_formatted and check_stack_feature(StackFeature.RANGER_TAGSYNC_COMPONENT, stack_version_formatted)
 stack_supports_ranger_audit_db = stack_version_formatted and check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, stack_version_formatted)
+stack_supports_ranger_log4j =  stack_version_formatted and check_stack_feature(StackFeature.RANGER_LOG4J_SUPPORT, stack_version_formatted)
 
 downgrade_from_version = default("/commandParams/downgrade_from_version", None)
 upgrade_direction = default("/commandParams/upgrade_direction", None)
@@ -110,6 +111,8 @@ ranger_admin_default_file = format('{ranger_conf}/ranger-admin-default-site.xml'
 security_app_context_file = format('{ranger_conf}/security-applicationContext.xml')
 ranger_ugsync_default_file = format('{ranger_ugsync_conf}/ranger-ugsync-default.xml')
 usgsync_log4j_file = format('{ranger_ugsync_conf}/log4j.xml')
+if stack_supports_ranger_log4j:
+  usgsync_log4j_file = format('{ranger_ugsync_conf}/log4j.properties')
 cred_validator_file = format('{usersync_home}/native/credValidator.uexe')
 
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
@@ -225,3 +228,8 @@ ranger_tagsync_tagadmin_password = unicode(config["configurations"]["ranger-tags
 tagsync_jceks_path = config["configurations"]["ranger-tagsync-site"]["ranger.tagsync.tagadmin.keystore"]
 tagsync_application_properties = dict(config["configurations"]["tagsync-application-properties"]) if has_ranger_tagsync else None
 tagsync_pid_file = format('{ranger_pid_dir}/tagsync.pid')
+
+# ranger log4j.properties
+admin_log4j = config['configurations']['admin-log4j']['content']
+usersync_log4j = config['configurations']['usersync-log4j']['content']
+tagsync_log4j = config['configurations']['tagsync-log4j']['content']
