@@ -378,6 +378,14 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
         Logger.info("App '{0}' did not come up after a wait of {1} seconds".format(llap_app_name,
                                                                                           time.time() - curr_time))
         return False
+      
+    def get_log_folder(self):
+      import params
+      return params.hive_log_dir
+    
+    def get_user(self):
+      import params
+      return params.hive_user
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class HiveServerInteractiveWindows(HiveServerInteractive):

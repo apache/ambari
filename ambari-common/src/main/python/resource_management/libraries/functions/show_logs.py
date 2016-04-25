@@ -22,17 +22,17 @@ __all__ = ["show_logs"]
 from resource_management.core.resources.system import Execute
 from resource_management.libraries.functions.format import format
 
-LAST_LINES_OUTPUT_COUNT = 40
+LAST_LINES_DEFAULT_OUTPUT_COUNT = 40
 
-def show_logs(log_dir, user):
+def show_logs(log_dir, user, lines_count=LAST_LINES_DEFAULT_OUTPUT_COUNT, mask="*"):
   """
   This should be used in 'except' block of start or stop Execute of services or of command which checks if start was fine.
   It allows to give additional debugging information without need to have access to log files.
   
   Don't forget to call "raise" after using the function or else the original exception will be masked.
   """
-  lines_count = LAST_LINES_OUTPUT_COUNT
-  Execute(format("log_files=`find {log_dir} -maxdepth 1 -type f` ; [ ! -z \"$log_files\" ] && tail -n {lines_count} $log_files"),
+  
+  Execute(format("find {log_dir} -maxdepth 1 -type f -name '{mask}' -exec echo '==> {{}} <==' \; -exec tail -n {lines_count} {{}} \;"),
           logoutput = True,
           ignore_failures = True, # if this fails should not overwrite the actual exception
           user = user, # need to have permissions to read log files

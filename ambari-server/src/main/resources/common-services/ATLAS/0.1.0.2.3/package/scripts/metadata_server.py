@@ -143,6 +143,14 @@ class MetadataServer(Script):
         issues.append("Configuration file %s did not pass the validation. Reason: %s" % (cf, result_issues[cf]))
       self.put_structured_out({"securityIssuesFound": ". ".join(issues)})
       self.put_structured_out({"securityState": "UNSECURED"})
+      
+  def get_log_folder(self):
+    import params
+    return params.log_dir
+  
+  def get_user(self):
+    import params
+    return params.metadata_user
 
 if __name__ == "__main__":
   MetadataServer().execute()

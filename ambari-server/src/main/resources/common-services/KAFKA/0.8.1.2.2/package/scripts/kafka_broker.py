@@ -116,6 +116,14 @@ class KafkaBroker(Script):
     import status_params
     env.set_params(status_params)
     check_process_status(status_params.kafka_pid_file)
+    
+  def get_log_folder(self):
+    import params
+    return params.kafka_log_dir
+  
+  def get_user(self):
+    import params
+    return params.kafka_user
 
 if __name__ == "__main__":
   KafkaBroker().execute()

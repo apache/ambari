@@ -151,6 +151,14 @@ class RangerAdmin(Script):
       from setup_ranger_xml import setup_java_patch
       setup_java_patch(stack_version=stack_version)
 
+  def get_log_folder(self):
+    import params
+    return params.admin_log_dir
+  
+  def get_user(self):
+    import params
+    return params.unix_user
+
 if __name__ == "__main__":
   RangerAdmin().execute()
 

@@ -106,11 +106,11 @@ class TestWebHCatServer(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
                        )
 
-    self.assertResourceCalled('Execute', 'log_files=`find /var/log/webhcat -maxdepth 1 -type f` ; [ ! -z "$log_files" ] && tail -n 40 $log_files',
-                              logoutput = True,
-                              ignore_failures = True,
-                              user = 'hcat'
-                             )
+    self.assertResourceCalled('Execute', "find /var/log/webhcat -maxdepth 1 -type f -name '*' -exec echo '==> {} <==' \\; -exec tail -n 40 {} \\;",
+        logoutput = True,
+        ignore_failures = True,
+        user = 'hcat',
+    )
 
     self.assertResourceCalled('Execute', 'ambari-sudo.sh kill -9 `ambari-sudo.sh su hcat -l -s /bin/bash -c \'[RMF_EXPORT_PLACEHOLDER]cat /var/run/webhcat/webhcat.pid\'`',
                               not_if = "! (ls /var/run/webhcat/webhcat.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hcat -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/webhcat/webhcat.pid'` >/dev/null 2>&1) || ( sleep 10 && ! (ls /var/run/webhcat/webhcat.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hcat -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/webhcat/webhcat.pid'` >/dev/null 2>&1) )"
@@ -180,11 +180,11 @@ class TestWebHCatServer(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
                        )
 
-    self.assertResourceCalled('Execute', 'log_files=`find /var/log/webhcat -maxdepth 1 -type f` ; [ ! -z "$log_files" ] && tail -n 40 $log_files',
-                              logoutput = True,
-                              ignore_failures = True,
-                              user = 'hcat'
-                              )
+    self.assertResourceCalled('Execute', "find /var/log/webhcat -maxdepth 1 -type f -name '*' -exec echo '==> {} <==' \\; -exec tail -n 40 {} \\;",
+        logoutput = True,
+        ignore_failures = True,
+        user = 'hcat',
+    )
     
     self.assertResourceCalled('Execute', 'ambari-sudo.sh kill -9 `ambari-sudo.sh su hcat -l -s /bin/bash -c \'[RMF_EXPORT_PLACEHOLDER]cat /var/run/webhcat/webhcat.pid\'`',
                               not_if = "! (ls /var/run/webhcat/webhcat.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hcat -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/webhcat/webhcat.pid'` >/dev/null 2>&1) || ( sleep 10 && ! (ls /var/run/webhcat/webhcat.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hcat -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/webhcat/webhcat.pid'` >/dev/null 2>&1) )"

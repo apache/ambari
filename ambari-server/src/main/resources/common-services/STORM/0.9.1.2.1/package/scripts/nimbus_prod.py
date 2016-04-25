@@ -68,6 +68,14 @@ class Nimbus(Script):
 
   def status(self, env):
     supervisord_check_status("nimbus")
+    
+  def get_log_folder(self):
+    import params
+    return params.log_dir
+  
+  def get_user(self):
+    import params
+    return params.storm_user
 
 if __name__ == "__main__":
   Nimbus().execute()

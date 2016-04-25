@@ -161,6 +161,14 @@ class ZookeeperServerLinux(ZookeeperServer):
         self.put_structured_out({"securityStateErrorInfo": str(e)})
     else:
       self.put_structured_out({"securityState": "UNSECURED"})
+      
+  def get_log_folder(self):
+    import params
+    return params.zk_log_dir
+  
+  def get_user(self):
+    import params
+    return params.zk_user
 
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)

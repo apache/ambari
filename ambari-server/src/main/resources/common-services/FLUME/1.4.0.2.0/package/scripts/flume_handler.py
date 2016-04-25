@@ -102,6 +102,14 @@ class FlumeHandlerLinux(FlumeHandler):
     # only restore on upgrade, not downgrade
     if params.upgrade_direction == Direction.UPGRADE:
       flume_upgrade.pre_start_restore()
+      
+  def get_log_folder(self):
+    import params
+    return params.flume_log_dir
+  
+  def get_user(self):
+    import params
+    return None # means that is run from the same user as ambari is run
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class FlumeHandlerWindows(FlumeHandler):

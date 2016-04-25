@@ -91,6 +91,14 @@ class KmsServer(Script):
     stack_version = upgrade_stack[1]
     Logger.info(format('Setting Ranger KMS database schema, using version {stack_version}'))
     setup_kms_db(stack_version=stack_version)
+    
+  def get_log_folder(self):
+    import params
+    return params.kms_log_dir
+  
+  def get_user(self):
+    import params
+    return params.kms_user
 
 if __name__ == "__main__":
   KmsServer().execute()

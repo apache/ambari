@@ -75,6 +75,13 @@ class RangerTagsync(Script):
   def get_component_name(self):
     return "ranger-tagsync"
 
+  def get_log_folder(self):
+    import params
+    return params.tagsync_log_dir
+  
+  def get_user(self):
+    import params
+    return params.unix_user
 
 if __name__ == "__main__":
   RangerTagsync().execute()

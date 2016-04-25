@@ -144,7 +144,14 @@ class HbaseMasterDefault(HbaseMaster):
         self.put_structured_out({"securityState": "UNSECURED"})
     else:
       self.put_structured_out({"securityState": "UNSECURED"})
-
+      
+  def get_log_folder(self):
+    import params
+    return params.log_dir
+  
+  def get_user(self):
+    import params
+    return params.hbase_user
 
 if __name__ == "__main__":
   HbaseMaster().execute()

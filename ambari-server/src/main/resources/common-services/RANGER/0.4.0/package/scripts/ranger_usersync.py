@@ -73,6 +73,13 @@ class RangerUsersync(Script):
   def get_component_name(self):
     return "ranger-usersync"
 
+  def get_log_folder(self):
+    import params
+    return params.usersync_log_dir
+  
+  def get_user(self):
+    import params
+    return params.unix_user
 
 if __name__ == "__main__":
   RangerUsersync().execute()

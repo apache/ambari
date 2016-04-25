@@ -347,6 +347,14 @@ class NameNodeDefault(NameNode):
       File(ccache_file_path,
            action = "delete",
       )
+      
+  def get_log_folder(self):
+    import params
+    return params.hdfs_log_dir
+  
+  def get_user(self):
+    import params
+    return params.hdfs_user
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class NameNodeWindows(NameNode):

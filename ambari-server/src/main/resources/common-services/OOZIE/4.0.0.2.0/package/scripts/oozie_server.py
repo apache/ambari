@@ -200,6 +200,14 @@ class OozieServerDefault(OozieServer):
 
     OozieUpgrade.restore_configuration()
     OozieUpgrade.prepare_libext_directory()
+    
+  def get_log_folder(self):
+    import params
+    return params.oozie_log_dir
+  
+  def get_user(self):
+    import params
+    return params.oozie_user
 
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
