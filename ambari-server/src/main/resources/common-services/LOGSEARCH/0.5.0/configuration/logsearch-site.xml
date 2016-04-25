@@ -78,4 +78,11 @@
     </description>
   </property>
 
+  <property>
+    <name>logsearch.logfeeder.include.default.level</name>
+    <value>fatal,error,warn</value>
+    <description>Include default Logfeeder log levels for Logsearch</description>
+    <display-name>Logfeeder log levels</display-name>
+  </property>
+
 </configuration>

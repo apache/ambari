@@ -149,6 +149,7 @@ logsearch_repfactor = str(config['configurations']['logsearch-site']['logsearch.
 
 logsearch_solr_collection_service_logs = default('/configurations/logsearch-site/logsearch.solr.collection.service.logs', 'hadoop_logs')
 logsearch_solr_collection_audit_logs = default('/configurations/logsearch-site/logsearch.solr.collection.audit.logs','audit_logs')
+logsearch_logfeeder_log_level_include = default('/configurations/logsearch-site/logsearch.logfeeder.include.default.level', 'fatal,error,warn')
 
 solr_audit_logs_use_ranger = default('/configurations/logsearch-env/logsearch_solr_audit_logs_use_ranger', False)
 solr_audit_logs_url = ''
