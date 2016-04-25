@@ -29,6 +29,9 @@
     <value>/var/run/ambari-logsearch-logfeeder</value>
     <description>logfeeder Process ID Directory</description>
     <display-name>Logfeeder pid dir</display-name>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -36,6 +39,9 @@
     <value>/var/log/ambari-logsearch-logfeeder</value>
     <description>Log dir for logfeeder</description>
     <display-name>Logfeeder log dir</display-name>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -43,6 +49,9 @@
     <value>/etc/ambari-logsearch-logfeeder/conf/checkpoints</value>
     <description>Checkpoint folder for logfeeder</description>
     <display-name>Logfeeder checkpoint dir</display-name>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -58,6 +67,10 @@
     <property-type>USER</property-type>
     <description>logfeeder user</description>
     <display-name>Logsfeeder User</display-name>
+    <value-attributes>
+      <type>user</type>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>

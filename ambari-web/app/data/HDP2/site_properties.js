@@ -2194,46 +2194,53 @@ var hdp2properties = [
     "index": 2
   },
   {
-    "name": "logsearch_solr_pid_dir",
+    "name": "logsearch_solr_client_log_dir",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-solr-env.xml",
     "category": "Advanced logsearch-solr-env",
     "index": 3
   },
   {
-    "name": "logsearch_solr_znode",
+    "name": "logsearch_solr_pid_dir",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-solr-env.xml",
     "category": "Advanced logsearch-solr-env",
     "index": 4
   },
   {
-    "name": "logsearch_solr_port",
+    "name": "logsearch_solr_znode",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-solr-env.xml",
     "category": "Advanced logsearch-solr-env",
     "index": 5
   },
   {
-    "name": "logsearch_solr_minmem",
+    "name": "logsearch_solr_port",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-solr-env.xml",
     "category": "Advanced logsearch-solr-env",
     "index": 6
   },
   {
-    "name": "logsearch_solr_maxmem",
+    "name": "logsearch_solr_minmem",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-solr-env.xml",
     "category": "Advanced logsearch-solr-env",
     "index": 7
   },
   {
-    "name": "content",
+    "name": "logsearch_solr_maxmem",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-solr-env.xml",
     "category": "Advanced logsearch-solr-env",
     "index": 8
+  },
+  {
+    "name": "content",
+    "serviceName": "LOGSEARCH",
+    "filename": "logsearch-solr-env.xml",
+    "category": "Advanced logsearch-solr-env",
+    "index": 9
   },
   /*logsearch-solr-log4j*/
   {

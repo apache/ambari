@@ -33,6 +33,7 @@
     <module>ambari-logsearch-appender</module>
     <module>ambari-logsearch-portal</module>
     <module>ambari-logsearch-logfeeder</module>
+    <module>ambari-logsearch-solr-client</module>
   </modules>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

@@ -1,3 +1,4 @@
+#!/bin/bash
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -11,12 +12,9 @@
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
-# limitations under the License
-Package: [[logsearch.logfeeder.package.name]]
-Version: [[package-version]]-[[package-release]]
-Section: [[deb.section]]
-Priority: [[deb.priority]]
-Depends: [[deb.dependency.list]]
-Architecture: [[deb.architecture]]
-Description: [[description]]
-Maintainer: [[deb.publisher]]
+# limitations under the License.
+
+JVM="java"
+sdir="`dirname \"$0\"`"
+
+PATH=$JAVA_HOME/bin:$PATH $JVM -classpath "$sdir:$sdir/libs/*" org.apache.ambari.logsearch.solr.AmbariSolrCloudCLI ${1+"$@"}

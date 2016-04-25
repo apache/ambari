@@ -17,55 +17,35 @@ limitations under the License.
 
 """
 
-from resource_management.core.resources.system import Execute, File
-from resource_management.libraries.functions.format import format
-from resource_management.libraries.functions.check_process_status import check_process_status
+from resource_management.core.exceptions import ClientComponentHasNoStatus
 from resource_management.libraries.script.script import Script
-from setup_solr import setup_solr
+from setup_logsearch_solr import setup_logsearch_solr
 
+class LogsearchSolrClient(Script):
 
-class Solr(Script):
   def install(self, env):
     import params
     env.set_params(params)
     self.install_packages(env)
+    self.configure(env)
 
   def configure(self, env, upgrade_type=None):
     import params
     env.set_params(params)
-
-    setup_solr()
+    setup_logsearch_solr(name = 'client')
 
   def start(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     self.configure(env)
 
-    Execute(
-      format('{solr_bindir}/solr start -cloud -noprompt -s {logsearch_solr_datadir} >> {logsearch_solr_log} 2>&1'),
-      environment={'SOLR_INCLUDE': format('{logsearch_solr_conf}/logsearch-solr-env.sh')},
-      user=params.logsearch_solr_user
-    )
-
   def stop(self, env, upgrade_type=None):
     import params
     env.set_params(params)
 
-    Execute(format('{solr_bindir}/solr stop -all >> {logsearch_solr_log}'),
-            environment={'SOLR_INCLUDE': format('{logsearch_solr_conf}/logsearch-solr-env.sh')},
-            user=params.logsearch_solr_user,
-            only_if=format("test -f {logsearch_solr_pidfile}")
-            )
-    File(params.logsearch_solr_pidfile,
-         action="delete"
-         )
-
   def status(self, env):
-    import status_params
-    env.set_params(status_params)
-
-    check_process_status(status_params.logsearch_solr_pidfile)
+    raise ClientComponentHasNoStatus()
 
 
 if __name__ == "__main__":
-  Solr().execute()
+  LogsearchSolrClient().execute()

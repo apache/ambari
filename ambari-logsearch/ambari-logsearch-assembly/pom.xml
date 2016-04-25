@@ -31,15 +31,15 @@
     <solr.tar>http://apache.mirrors.lucidnetworks.net/lucene/solr/${solr.version}/solr-${solr.version}.tgz</solr.tar>
     <solr.mapping.path>${mapping.base.path}/ambari-logsearch-solr</solr.mapping.path>
     <solr.package.name>ambari-logsearch-solr</solr.package.name>
+    <solr.client.package.name>ambari-logsearch-solr-client</solr.client.package.name>
+    <solr.client.mapping.path>${mapping.base.path}/${solr.client.package.name}</solr.client.mapping.path>
+    <solr.client.dir>${project.basedir}/../ambari-logsearch-solr-client</solr.client.dir>
     <logsearch.portal.package.name>ambari-logsearch-portal</logsearch.portal.package.name>
     <logsearch.portal.mapping.path>${mapping.base.path}/ambari-logsearch-portal</logsearch.portal.mapping.path>
     <logsearch.portal.dir>${project.basedir}/../ambari-logsearch-portal</logsearch.portal.dir>
     <logsearch.logfeeder.package.name>ambari-logsearch-logfeeder</logsearch.logfeeder.package.name>
     <logsearch.logfeeder.mapping.path>${mapping.base.path}/ambari-logsearch-logfeeder</logsearch.logfeeder.mapping.path>
     <logsearch.logfeeder.dir>${project.basedir}/../ambari-logsearch-logfeeder</logsearch.logfeeder.dir>
-    <logsearch.appender.package.name>ambari-logsearch-appender</logsearch.appender.package.name>
-    <logsearch.appender.mapping.path>${mapping.base.path}/ambari-logsearch-appender</logsearch.appender.mapping.path>
-    <logsearch.appender.dir>${project.basedir}/../ambari-logsearch-appender</logsearch.appender.dir>
     <logsearch.portal.conf.mapping.path>/etc/${logsearch.portal.package.name}/conf</logsearch.portal.conf.mapping.path>
     <logsearch.logfeeder.conf.mapping.path>/etc/${logsearch.logfeeder.package.name}/conf
     </logsearch.logfeeder.conf.mapping.path>
@@ -93,6 +93,27 @@
                       <sources>
                         <source>
                           <location>${project.build.directory}/solr</location>
+                        </source>
+                      </sources>
+                    </mapping>
+                  </mappings>
+                </configuration>
+              </execution>
+              <execution>
+                <id>logsearch-solr-client</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>rpm</goal>
+                </goals>
+                <configuration>
+                  <group>Development</group>
+                  <name>${solr.client.package.name}</name>
+                  <mappings>
+                    <mapping>
+                      <directory>${solr.client.mapping.path}</directory>
+                      <sources>
+                        <source>
+                          <location>${solr.client.dir}/target/package</location>
                         </source>
                       </sources>
                     </mapping>
@@ -186,27 +207,6 @@
                   </mappings>
                 </configuration>
               </execution>
-              <execution>
-                <id>logsearch-appender</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>rpm</goal>
-                </goals>
-                <configuration>
-                  <group>Development</group>
-                  <name>${logsearch.appender.package.name}</name>
-                  <mappings>
-                    <mapping>
-                      <directory>${logsearch.appender.mapping.path}</directory>
-                      <sources>
-                        <source>
-                          <location>${logsearch.appender.dir}/target/package</location>
-                        </source>
-                      </sources>
-                    </mapping>
-                  </mappings>
-                </configuration>
-              </execution>
             </executions>
           </plugin>
           <plugin>
@@ -273,9 +273,9 @@
                       <directory>${project.basedir}/src/main/package/deb</directory>
                       <excludes>
                         <exclude>solr/postinst</exclude>
+                        <exclude>solr-client/postinst</exclude>
                         <exclude>portal/postinst</exclude>
                         <exclude>logfeeder/postinst</exclude>
-                        <exclude>appender/postinst</exclude>
                       </excludes>
                       <filtering>false</filtering>
                     </resource>
@@ -283,9 +283,9 @@
                       <directory>${project.basedir}/src/main/package/deb</directory>
                       <includes>
                         <include>solr/postinst</include>
+                        <include>solr-client/postinst</include>
                         <include>portal/postinst</include>
                         <include>logfeeder/postinst</include>
-                        <include>appender/postinst</include>
                       </includes>
                       <filtering>true</filtering>
                     </resource>
@@ -319,6 +319,32 @@
                         <user>root</user>
                         <group>root</group>
                         <prefix>${solr.mapping.path}</prefix>
+                      </mapper>
+                    </data>
+                  </dataSet>
+                </configuration>
+              </execution>
+
+              <execution>
+                <phase>package</phase>
+                <id>jdeb-solr-client</id>
+                <goals>
+                  <goal>jdeb</goal>
+                </goals>
+                <configuration>
+                  <controlDir>${basedir}/src/main/package/deb/solr-client</controlDir>
+                  <deb>${basedir}/target/${solr.client.package.name}_${package-version}-${package-release}.deb</deb>
+                  <skip>false</skip>
+                  <skipPOMs>false</skipPOMs>
+                  <dataSet>
+                    <data>
+                      <src>${solr.client.dir}/target/ambari-logsearch-solr-client.tar.gz</src>
+                      <type>archive</type>
+                      <mapper>
+                        <type>perm</type>
+                        <user>root</user>
+                        <group>root</group>
+                        <prefix>${solr.client.mapping.path}</prefix>
                       </mapper>
                     </data>
                   </dataSet>
@@ -422,34 +448,6 @@
                   </dataSet>
                 </configuration>
               </execution>
-
-              <execution>
-                <id>jdeb-appender</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>jdeb</goal>
-                </goals>
-                <configuration>
-                  <controlDir>${basedir}/src/main/package/deb/appender</controlDir>
-                  <deb>${basedir}/target/${logsearch.appender.package.name}_${package-version}-${package-release}.deb
-                  </deb>
-                  <skip>false</skip>
-                  <skipPOMs>false</skipPOMs>
-                  <dataSet>
-                    <data>
-                      <src>${logsearch.appender.dir}/target/ambari-logsearch-appender.tar.gz</src>
-                      <type>archive</type>
-                      <mapper>
-                        <prefix>${logsearch.appender.mapping.path}</prefix>
-                        <type>perm</type>
-                        <user>root</user>
-                        <group>root</group>
-                      </mapper>
-                    </data>
-                  </dataSet>
-                </configuration>
-              </execution>
-
             </executions>
           </plugin>
           <plugin>
@@ -502,7 +500,7 @@
     </dependency>
     <dependency>
       <groupId>org.apache.ambari</groupId>
-      <artifactId>ambari-logsearch-appender</artifactId>
+      <artifactId>ambari-logsearch-solr-client</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>

@@ -83,6 +83,7 @@ else:
 # Only supporting SolrCloud mode - so hardcode those options
 solr_cloudmode = 'true'
 solr_dir = '/usr/lib/ambari-logsearch-solr'
+solr_client_dir = '/usr/lib/ambari-logsearch-solr-client'
 solr_bindir = solr_dir + '/bin'
 cloud_scripts = solr_dir + '/server/scripts/cloud-scripts'
 
@@ -123,6 +124,8 @@ else:
 logsearch_solr_user = config['configurations']['logsearch-solr-env']['logsearch_solr_user']
 logsearch_solr_group = config['configurations']['logsearch-solr-env']['logsearch_solr_group']
 logsearch_solr_log_dir = config['configurations']['logsearch-solr-env']['logsearch_solr_log_dir']
+logsearch_solr_client_log_dir = config['configurations']['logsearch-solr-env']['logsearch_solr_client_log_dir']
+logsearch_solr_client_log = format("{logsearch_solr_client_log_dir}/solr-client.log")
 logsearch_solr_log = format("{logsearch_solr_log_dir}/solr-install.log")
 
 solr_env_content = config['configurations']['logsearch-solr-env']['content']

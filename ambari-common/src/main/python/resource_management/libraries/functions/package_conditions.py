@@ -48,7 +48,11 @@ def should_install_ams_grafana():
 
 def should_install_logsearch_solr():
   config = Script.get_config()
-  return 'role' in config and config['role'] != "LOGSEARCH_LOGFEEDER"
+  return 'role' in config and config['role'] == "LOGSEARCH_SOLR"
+
+def should_install_logsearch_solr_client():
+  config = Script.get_config()
+  return 'role' in config and config['role'] == "LOGSEARCH_SOLR_CLIENT"
 
 def should_install_logsearch_portal():
   config = Script.get_config()

@@ -18,6 +18,7 @@ limitations under the License.
 """
 
 import random
+from resource_management.libraries.functions import solr_cloud_util
 from resource_management.core.resources.system import Directory, Execute, File
 from resource_management.libraries.functions.format import format
 from resource_management.core.source import InlineTemplate, Template
@@ -75,29 +76,27 @@ def setup_logsearch():
 
   random_num = random.random()
 
-  upload_configuration_dir_to_zk('hadoop_logs', random_num)
+  upload_conf_set('hadoop_logs', random_num)
 
-  upload_configuration_dir_to_zk('history', random_num)
+  upload_conf_set('history', random_num)
 
-  upload_configuration_dir_to_zk('audit_logs', random_num)
+  upload_conf_set('audit_logs', random_num)
 
   Execute(("chmod", "-R", "ugo+r", format("{logsearch_server_conf}/solr_configsets")),
           sudo=True
           )
 
 
-def upload_configuration_dir_to_zk(config_set, random_num):
+def upload_conf_set(config_set, random_num):
   import params
-
   tmp_config_set_folder = format('{tmp_dir}/solr_config_{config_set}_{random_num}')
-  zk_cli_prefix = format(
-    'export JAVA_HOME={java64_home} ; {cloud_scripts}/zkcli.sh -zkhost {zookeeper_quorum}{logsearch_solr_znode}')
 
-  Execute(format('{zk_cli_prefix} -cmd downconfig -confdir {tmp_config_set_folder} -confname {config_set}'),
-          only_if=format("{zk_cli_prefix} -cmd get /configs/{config_set}"),
-          )
-
-  Execute(format(
-    '{zk_cli_prefix} -cmd upconfig -confdir {logsearch_server_conf}/solr_configsets/{config_set}/conf -confname {config_set}'),
-    not_if=format("test -d {tmp_config_set_folder}"),
-  )
+  solr_cloud_util.upload_configuration_to_zk(
+    zookeeper_quorum=params.zookeeper_hosts,
+    solr_znode=params.logsearch_solr_znode,
+    config_set_dir=format("{logsearch_server_conf}/solr_configsets/{config_set}/conf"),
+    config_set=config_set,
+    tmp_config_set_dir=tmp_config_set_folder,
+    java64_home=params.java64_home,
+    user=params.logsearch_solr_user,
+    group=params.logsearch_solr_group)

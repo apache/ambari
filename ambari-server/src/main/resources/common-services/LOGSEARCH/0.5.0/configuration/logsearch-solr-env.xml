@@ -34,6 +34,9 @@
     <value>/var/run/ambari-logsearch-solr</value>
     <description>Solr Process ID Directory</description>
     <display-name>Logsearch Solr pid dir</display-name>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -41,6 +44,19 @@
     <value>/var/log/ambari-logsearch-solr</value>
     <description>Directory for Solr logs</description>
     <display-name>Logsearch Solr log dir</display-name>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>logsearch_solr_client_log_dir</name>
+    <value>/var/log/ambari-logsearch-solr-client</value>
+    <description>Directory for Solr client logs</description>
+    <display-name>Logsearch Solr Client log dir</display-name>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -68,6 +84,9 @@
     <value>/opt/logsearch_solr/data</value>
     <display-name>Logsearch Solr data dir</display-name>
     <description>Directory for storting Solr index. Make sure you have enough disk space</description>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
   </property>
 
   <property>

@@ -46,6 +46,15 @@
               <logId>logsearch_perf</logId>
             </log>
           </logs>
+          <dependencies>
+            <dependency>
+              <name>LOGSEARCH/LOGSEARCH_SOLR_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
         </component>
 
         <component>
@@ -55,9 +64,18 @@
           <cardinality>1+</cardinality>
           <versionAdvertised>false</versionAdvertised>
           <commandScript>
-            <script>scripts/solr.py</script>
+            <script>scripts/logsearch_solr.py</script>
             <scriptType>PYTHON</scriptType>
           </commandScript>
+          <dependencies>
+            <dependency>
+              <name>LOGSEARCH/LOGSEARCH_SOLR_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
         </component>
 
         <component>
@@ -79,12 +97,29 @@
           </logs>
         </component>
 
+        <component>
+          <name>LOGSEARCH_SOLR_CLIENT</name>
+          <displayName>Log Search Solr Client</displayName>
+          <category>CLIENT</category>
+          <cardinality>0+</cardinality>
+          <versionAdvertised>false</versionAdvertised>
+          <commandScript>
+            <script>scripts/logsearch_solr_client.py</script>
+            <scriptType>PYTHON</scriptType>
+          </commandScript>
+        </component>
+
       </components>
 
       <osSpecifics>
         <osSpecific>
           <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
           <packages>
+            <package>
+              <name>ambari-logsearch-solr-client</name>
+              <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_logsearch_solr_client</condition>
+            </package>
             <package>
               <name>ambari-logsearch-logfeeder</name>
               <skipUpgrade>true</skipUpgrade>
@@ -104,6 +139,11 @@
         <osSpecific>
           <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
           <packages>
+            <package>
+              <name>ambari-logsearch-solr-client</name>
+              <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_logsearch_solr_client</condition>
+            </package>
             <package>
               <name>ambari-logsearch-logfeeder</name>
               <skipUpgrade>true</skipUpgrade>

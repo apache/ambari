@@ -27,6 +27,9 @@
     <value>/var/run/ambari-logsearch-portal</value>
     <description>Logsearch Process ID Directory</description>
     <display-name>Logsearch pid dir</display-name>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -34,6 +37,9 @@
     <value>/var/log/ambari-logsearch-portal</value>
     <description>Log directory for Logsearch</description>
     <display-name>Logsearch log dir</display-name>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -42,6 +48,10 @@
     <property-type>USER</property-type>
     <description>Logsearch user</description>
     <display-name>Logsearch User</display-name>
+    <value-attributes>
+      <type>user</type>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>

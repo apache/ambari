@@ -97,26 +97,15 @@ class TestLogSearch(RMFTestCase):
                               content = InlineTemplate(self.getConfig()['configurations']['logsearch-audit_logs-solrconfig']['content'])
                               )
     
-    self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr/server/scripts/cloud-scripts/zkcli.sh -zkhost c6401.ambari.apache.org:None/logsearch -cmd downconfig -confdir /tmp/solr_config_hadoop_logs_0.[0-9]* -confname hadoop_logs$',
-                                    only_if = "^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr/server/scripts/cloud-scripts/zkcli.sh -zkhost c6401.ambari.apache.org:None/logsearch -cmd get /configs/hadoop_logs$"
-    )
-    self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr/server/scripts/cloud-scripts/zkcli.sh -zkhost c6401.ambari.apache.org:None/logsearch -cmd upconfig -confdir /etc/ambari-logsearch-portal/conf/solr_configsets/hadoop_logs/conf -confname hadoop_logs$',
-                                    not_if = "^test -d /tmp/solr_config_hadoop_logs_0.[0-9]*$"
-    )
+    self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh -z c6401.ambari.apache.org/logsearch --download-config -d /tmp/solr_config_hadoop_logs_0.[0-9]* -cs hadoop_logs -rt 5 -i 10')
+    self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh -z c6401.ambari.apache.org/logsearch --upload-config -d /etc/ambari-logsearch-portal/conf/solr_configsets/hadoop_logs/conf -cs hadoop_logs -rt 5 -i 10')
 
-    self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr/server/scripts/cloud-scripts/zkcli.sh -zkhost c6401.ambari.apache.org:None/logsearch -cmd downconfig -confdir /tmp/solr_config_history_0.[0-9]* -confname history$',
-                                    only_if = "^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr/server/scripts/cloud-scripts/zkcli.sh -zkhost c6401.ambari.apache.org:None/logsearch -cmd get /configs/history$"
-    )
-    self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr/server/scripts/cloud-scripts/zkcli.sh -zkhost c6401.ambari.apache.org:None/logsearch -cmd upconfig -confdir /etc/ambari-logsearch-portal/conf/solr_configsets/history/conf -confname history$',
-                                  not_if = "^test -d /tmp/solr_config_history_0.[0-9]*$"
-    )
+    self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh -z c6401.ambari.apache.org/logsearch --download-config -d /tmp/solr_config_history_0.[0-9]* -cs history -rt 5 -i 10')
+    self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh -z c6401.ambari.apache.org/logsearch --upload-config -d /etc/ambari-logsearch-portal/conf/solr_configsets/history/conf -cs history -rt 5 -i 10')
 
-    self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr/server/scripts/cloud-scripts/zkcli.sh -zkhost c6401.ambari.apache.org:None/logsearch -cmd downconfig -confdir /tmp/solr_config_audit_logs_0.[0-9]* -confname audit_logs$',
-                                    only_if = "^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr/server/scripts/cloud-scripts/zkcli.sh -zkhost c6401.ambari.apache.org:None/logsearch -cmd get /configs/audit_logs$"
-    )
-    self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr/server/scripts/cloud-scripts/zkcli.sh -zkhost c6401.ambari.apache.org:None/logsearch -cmd upconfig -confdir /etc/ambari-logsearch-portal/conf/solr_configsets/audit_logs/conf -confname audit_logs$',
-                                    not_if = "^test -d /tmp/solr_config_audit_logs_0.[0-9]*$"
-    )
+    self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh -z c6401.ambari.apache.org/logsearch --download-config -d /tmp/solr_config_audit_logs_0.[0-9]* -cs audit_logs -rt 5 -i 10')
+    self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh -z c6401.ambari.apache.org/logsearch --upload-config -d /etc/ambari-logsearch-portal/conf/solr_configsets/audit_logs/conf -cs audit_logs -rt 5 -i 10')
+
     self.assertResourceCalled('Execute', ('chmod', '-R', 'ugo+r', '/etc/ambari-logsearch-portal/conf/solr_configsets'),
                               sudo=True
     )

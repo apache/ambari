@@ -100,8 +100,8 @@ class TestSolr(RMFTestCase):
       )
   
   def test_configure_default(self):
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/solr.py",
-                       classname = "Solr",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/logsearch_solr.py",
+                       classname = "LogsearchSolr",
                        command = "configure",
                        config_file = "default.json",
                        stack_version = self.STACK_VERSION,
@@ -112,8 +112,8 @@ class TestSolr(RMFTestCase):
     self.assertNoMoreResources()
   
   def test_start_default(self):
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/solr.py",
-                       classname = "Solr",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/logsearch_solr.py",
+                       classname = "LogsearchSolr",
                        command = "start",
                        config_file = "default.json",
                        stack_version = self.STACK_VERSION,
@@ -127,8 +127,8 @@ class TestSolr(RMFTestCase):
     )
   
   def test_stop_default(self):
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/solr.py",
-                       classname = "Solr",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/logsearch_solr.py",
+                       classname = "LogsearchSolr",
                        command = "stop",
                        config_file = "default.json",
                        stack_version = self.STACK_VERSION,
