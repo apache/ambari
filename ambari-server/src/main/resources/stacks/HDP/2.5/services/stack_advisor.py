@@ -116,10 +116,21 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     parentRecommendConfDict = super(HDP25StackAdvisor, self).getServiceConfigurationRecommenderDict()
     childRecommendConfDict = {
       "RANGER": self.recommendRangerConfigurations,
-      "HIVE": self.recommendHIVEConfigurations
+      "HIVE": self.recommendHIVEConfigurations,
+      "ATLAS": self.recommendAtlasConfigurations
     }
     parentRecommendConfDict.update(childRecommendConfDict)
     return parentRecommendConfDict
+
+  def recommendAtlasConfigurations(self, configurations, clusterData, services, hosts):
+    putAtlasApplicationProperty = self.putProperty(configurations, "application-properties", services)
+
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+
+    include_logsearch = "LOGSEARCH" in servicesList
+    if include_logsearch:
+      logsearch_solr_znode = services["configurations"]["logsearch-solr-env"]["properties"]['logsearch_solr_znode']
+      putAtlasApplicationProperty('atlas.graph.index.search.solr.zookeeper-url', '{{zookeeper_quorum}}' + logsearch_solr_znode)
 
   def recommendHIVEConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP25StackAdvisor, self).recommendHIVEConfigurations(configurations, clusterData, services, hosts)

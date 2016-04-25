@@ -42,4 +42,18 @@
       <visible>false</visible>
     </value-attributes>
   </property>
+  <property>
+    <name>atlas.graph.index.search.backend</name>
+    <value>solr5</value>
+    <description>The Atlas indexing backend (e.g. solr5).</description>
+  </property>
+  <property>
+    <name>atlas.graph.index.search.solr.mode</name>
+    <value>cloud</value>
+    <description>The Solr mode (e.g. cloud).</description>
+  </property>
+  <property>
+    <name>atlas.graph.index.search.solr.zookeeper-url</name>
+    <description>The ZooKeeper quorum setup for Solr as comma separated value.</description>
+  </property>
 </configuration>
