@@ -319,8 +319,6 @@ public class VersionDefinitionResourceProviderTest {
     File file = new File("src/test/resources/version_definition_resource_provider.xml");
 
     final ResourceProvider versionProvider = new VersionDefinitionResourceProvider();
-    final ResourceProvider provider = injector.getInstance(ResourceProviderFactory.class)
-        .getRepositoryVersionResourceProvider();
 
     final Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
     final Map<String, Object> properties = new LinkedHashMap<String, Object>();
@@ -342,9 +340,61 @@ public class VersionDefinitionResourceProviderTest {
 
     Assert.assertTrue(res.getPropertiesMap().containsKey("VersionDefinition"));
     Assert.assertEquals("2.2.0.8-5678", res.getPropertyValue("VersionDefinition/repository_version"));
+    Assert.assertNull(res.getPropertyValue("VersionDefinition/show_available"));
 
     Request getRequest = PropertyHelper.getReadRequest("VersionDefinition");
     Set<Resource> results = versionProvider.getResources(getRequest, null);
     Assert.assertEquals(0, results.size());
+  }
+
+  @Test
+  public void testCreateDryRunByAvailable() throws Exception {
+    AmbariMetaInfo ami = injector.getInstance(AmbariMetaInfo.class);
+    // ensure that all of the latest repo retrieval tasks have completed
+    StackManager sm = ami.getStackManager();
+    int maxWait = 15000;
+    int waitTime = 0;
+    while (waitTime < maxWait && ! sm.haveAllRepoUrlsBeenResolved()) {
+      Thread.sleep(5);
+      waitTime += 5;
+    }
+
+    if (waitTime >= maxWait) {
+      fail("Latest Repo tasks did not complete");
+    }
+
+    Authentication authentication = TestAuthenticationFactory.createAdministrator();
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+
+    final ResourceProvider versionProvider = new VersionDefinitionResourceProvider();
+
+    Request getRequest = PropertyHelper.getReadRequest("VersionDefinition");
+    Set<Resource> results = versionProvider.getResources(getRequest, null);
+    Assert.assertEquals(0, results.size());
+
+    Map<String, Object> createMap = new HashMap<>();
+    createMap.put("VersionDefinition/available", "HDP-2.2.0-2.2.1.0");
+
+    Map<String, String> infoProps = Collections.singletonMap(Request.DIRECTIVE_DRY_RUN, "true");
+
+    Request createRequest = PropertyHelper.getCreateRequest(Collections.singleton(createMap), infoProps);
+    RequestStatus status = versionProvider.createResources(createRequest);
+
+    Assert.assertEquals(1, status.getAssociatedResources().size());
+
+    Resource res = status.getAssociatedResources().iterator().next();
+    // because we aren't using subresources, but return subresource-like properties, the key is an empty string
+    Assert.assertTrue(res.getPropertiesMap().containsKey(""));
+    Map<String, Object> resMap = res.getPropertiesMap().get("");
+    Assert.assertTrue(resMap.containsKey("operating_systems"));
+
+    Assert.assertTrue(res.getPropertiesMap().containsKey("VersionDefinition"));
+    Assert.assertEquals("2.2.1.0", res.getPropertyValue("VersionDefinition/repository_version"));
+    Assert.assertNotNull(res.getPropertyValue("VersionDefinition/show_available"));
+
+    getRequest = PropertyHelper.getReadRequest("VersionDefinition");
+    results = versionProvider.getResources(getRequest, null);
+    Assert.assertEquals(0, results.size());
+
   }
 }

@@ -192,15 +192,16 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
           VERSION_DEF_DEFINITION_URL));
     }
 
+    final String definitionUrl = (String) properties.get(VERSION_DEF_DEFINITION_URL);
+    final String definitionBase64 = (String) properties.get(VERSION_DEF_DEFINITION_BASE64);
+    final String definitionName = (String) properties.get(VERSION_DEF_AVAILABLE_DEFINITION);
+
     final boolean dryRun = request.isDryRunRequest();
 
     XmlHolder xmlHolder = createResources(new Command<XmlHolder>() {
       @Override
       public XmlHolder invoke() throws AmbariException {
 
-        String definitionUrl = (String) properties.get(VERSION_DEF_DEFINITION_URL);
-        String definitionBase64 = (String) properties.get(VERSION_DEF_DEFINITION_BASE64);
-        String definitionName = (String) properties.get(VERSION_DEF_AVAILABLE_DEFINITION);
 
         XmlHolder holder = null;
         if (null != definitionUrl) {
@@ -258,7 +259,9 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
         VERSION_DEF_AVAILABLE_SERVICES,
         VERSION_DEF_STACK_SERVICES);
 
-      res = toResource(null, xmlHolder.xml, ids, false);
+      boolean fromAvailable = null != definitionName;
+
+      res = toResource(null, xmlHolder.xml, ids, fromAvailable);
 
       addSubresources(res, xmlHolder.entity);
     } else {
@@ -502,6 +505,15 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
     holder.entity = entity;
   }
 
+  /**
+   * Converts a version definition to a resource
+   * @param id            the definition id
+   * @param xml           the version definition xml
+   * @param requestedIds  the requested ids
+   * @param fromAvailable if the resource should include the {@link #SHOW_AVAILABLE} property
+   * @return the resource
+   * @throws SystemException
+   */
   private Resource toResource(String id, VersionDefinitionXml xml, Set<String> requestedIds, boolean fromAvailable) throws SystemException {
 
     Resource resource = new ResourceImpl(Resource.Type.VersionDefinition);
