@@ -2322,18 +2322,6 @@ public class KerberosHelperTest extends EasyMockSupport {
           }
         });
 
-    Map<String, Service> services = new HashMap<String, Service>();
-    services.put("SERVICE1", service1);
-    services.put("SERVICE2", service2);
-    services.put("SERVICE3", service3);
-
-    Map<String, Set<String>> serviceComponentHostMap = new HashMap<String, Set<String>>();
-    serviceComponentHostMap.put("COMPONENT1A", Collections.singleton("hostA"));
-    serviceComponentHostMap.put("COMPONENT1B", new HashSet<String>(Arrays.asList("hostB", "hostC")));
-    serviceComponentHostMap.put("COMPONENT2A", Collections.singleton("hostA"));
-    serviceComponentHostMap.put("COMPONENT2B", new HashSet<String>(Arrays.asList("hostB", "hostC")));
-    serviceComponentHostMap.put("COMPONEN3A", Collections.singleton("hostA"));
-
     final Cluster cluster = createMock(Cluster.class);
     expect(cluster.getDesiredConfigByType("krb5-conf")).andReturn(krb5ConfConfig).atLeastOnce();
     expect(cluster.getDesiredConfigByType("kerberos-env")).andReturn(kerberosEnvConfig).atLeastOnce();
@@ -2341,8 +2329,13 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(cluster.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.2")).atLeastOnce();
     expect(cluster.getClusterName()).andReturn("c1").atLeastOnce();
     expect(cluster.getHosts()).andReturn(hosts).anyTimes();
-    expect(cluster.getServices()).andReturn(services).anyTimes();
-    expect(cluster.getServiceComponentHostMap(null, services.keySet())).andReturn(serviceComponentHostMap).anyTimes();
+    expect(cluster.getServices()).andReturn(new HashMap<String, Service>() {
+      {
+        put("SERVICE1", service1);
+        put("SERVICE2", service2);
+        put("SERVICE3", service3);
+      }
+    }).anyTimes();
     expect(cluster.isBluePrintDeployed()).andReturn(false).atLeastOnce();
 
     final Map<String, Map<String, String>> existingConfigurations = new HashMap<String, Map<String, String>>() {
