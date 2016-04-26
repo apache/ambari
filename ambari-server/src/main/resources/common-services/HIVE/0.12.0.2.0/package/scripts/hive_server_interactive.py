@@ -115,7 +115,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       # TODO, why does LLAP have to be started before Hive Server Interactive???
       status = self._llap_start(env)
       if not status:
-        raise Fail("Skipping start of Hive Server Interactive since could not start LLAP.")
+        raise Fail("Skipping START of Hive Server Interactive since LLAP app couldn't be STARTED.")
 
       # TODO : test the workability of Ranger and Hive2 during upgrade
       # setup_ranger_hive(upgrade_type=upgrade_type)
@@ -212,8 +212,10 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
                    " --cache {params.hive_llap_io_mem_size}m --xmx {params.llap_heap_size}m --loglevel {params.llap_log_level}"
                    " --output {unique_name}")
       if params.security_enabled:
+        llap_keytab_splits = params.hive_llap_keytab_file.split("/")
+        Logger.debug("llap_keytab_splits : {0}".format(llap_keytab_splits))
         cmd += format(" --slider-keytab-dir .slider/keytabs/{params.hive_user}/ --slider-keytab "
-                      "{hive_llap_keytab_file} --slider-principal {hive_headless_keytab}")
+                      "{llap_keytab_splits[4]} --slider-principal {hive_headless_keytab}")
 
       run_file_path = None
       try:
