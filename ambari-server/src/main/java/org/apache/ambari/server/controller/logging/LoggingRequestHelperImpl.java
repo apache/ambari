@@ -56,7 +56,7 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
 
   private static Logger LOG = Logger.getLogger(LoggingRequestHelperImpl.class);
 
-  private static final String LOGSEARCH_ADMIN_PROPERTIES_CONFIG_TYPE_NAME = "logsearch-admin-properties";
+  private static final String LOGSEARCH_ADMIN_JSON_CONFIG_TYPE_NAME = "logsearch-admin-json";
 
   private static final String LOGSEARCH_ADMIN_USERNAME_PROPERTY_NAME = "logsearch_admin_username";
 
@@ -153,7 +153,7 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
 
   private String getLogSearchAdminUser() {
     Config logSearchAdminConfig =
-      cluster.getDesiredConfigByType(LOGSEARCH_ADMIN_PROPERTIES_CONFIG_TYPE_NAME);
+      cluster.getDesiredConfigByType(LOGSEARCH_ADMIN_JSON_CONFIG_TYPE_NAME);
 
     if (logSearchAdminConfig != null) {
       return logSearchAdminConfig.getProperties().get(LOGSEARCH_ADMIN_USERNAME_PROPERTY_NAME);
@@ -164,7 +164,7 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
 
   private String getLogSearchAdminPassword() {
     Config logSearchAdminConfig =
-      cluster.getDesiredConfigByType(LOGSEARCH_ADMIN_PROPERTIES_CONFIG_TYPE_NAME);
+      cluster.getDesiredConfigByType(LOGSEARCH_ADMIN_JSON_CONFIG_TYPE_NAME);
 
     if (logSearchAdminConfig != null) {
       return logSearchAdminConfig.getProperties().get(LOGSEARCH_ADMIN_PASSWORD_PROPERTY_NAME);

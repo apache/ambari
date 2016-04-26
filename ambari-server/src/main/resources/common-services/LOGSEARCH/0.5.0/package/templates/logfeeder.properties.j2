@@ -16,3 +16,8 @@
 logfeeder.checkpoint.folder={{logfeeder_checkpoint_folder}}
 metrics.collector.hosts={{metrics_collector_hosts}}
 config.files={{logfeeder_config_files}}
+
+# Custom properties
+{% for key, value in logfeeder_custom_properties.items() %}
+{{key}}={{value}}
+{% endfor %}

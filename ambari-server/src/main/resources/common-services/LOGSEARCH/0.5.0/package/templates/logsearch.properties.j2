@@ -42,3 +42,11 @@ solr.history.replication_factor={{logsearch_repfactor}}
 #Logfeeder Settings
 
 logfeeder.include.default.level={{logsearch_logfeeder_log_level_include}}
+
+# logsearch-admin.json
+logsearch.login.credentials.file={{logsearch_admin_credential_file}}
+
+# Custom properties
+{% for key, value in logsearch_custom_properties.items() %}
+{{key}}={{value}}
+{% endfor %}

@@ -22,32 +22,19 @@
 <configuration>
 
   <property>
-    <name>logsearch_admin_username</name>
-    <value>admin</value>
-    <display-name>Admin username</display-name>
-    <description>LogSearch admin username</description>
-  </property>
-
-  <property require-input="true">
-    <name>logsearch_admin_password</name>
-    <value></value>
-    <property-type>PASSWORD</property-type>
-    <display-name>Admin password</display-name>
-    <description>LogSearch admin password</description>
-    <value-attributes>
-      <overridable>false</overridable>
-      <type>password</type>
-    </value-attributes>
+    <name>logfeeder.config.files</name>
+    <value>{{logfeeder_config_files}}</value>
+    <description>Comma separated config files in grok format</description>
+    <display-name>Logfeeder config files</display-name>
   </property>
 
   <property>
-    <name>content</name>
-    <description>This is the jinja template for user_pass.json file</description>
-    <value></value>
-    <property-type>VALUE_FROM_PROPERTY_FILE</property-type>
+    <name>logfeeder.checkpoint.folder</name>
+    <value>/etc/ambari-logsearch-logfeeder/conf/checkpoints</value>
+    <description>Checkpoint folder for logfeeder</description>
+    <display-name>Logfeeder checkpoint dir</display-name>
     <value-attributes>
-      <property-file-name>user_pass.json.j2</property-file-name>
-      <property-file-type>text</property-file-type>
+      <type>directory</type>
     </value-attributes>
   </property>
 

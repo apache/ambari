@@ -23,6 +23,13 @@
 <configuration supports_adding_forbidden="true">
 
   <property>
+    <name>logsearch_ui_port</name>
+    <value>61888</value>
+    <description>Default port for LogSearch UI</description>
+    <display-name>Logsearch UI Port</display-name>
+  </property>
+
+  <property>
     <name>logsearch_pid_dir</name>
     <value>/var/run/ambari-logsearch-portal</value>
     <description>Logsearch Process ID Directory</description>

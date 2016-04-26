@@ -147,7 +147,7 @@ public class LoggingRequestHelperImplTest {
     Capture<HttpURLConnection> captureURLConnection = new Capture<HttpURLConnection>();
     Capture<HttpURLConnection> captureURLConnectionForAuthentication = new Capture<HttpURLConnection>();
 
-    expect(clusterMock.getDesiredConfigByType("logsearch-admin-properties")).andReturn(adminPropertiesConfigMock).atLeastOnce();
+    expect(clusterMock.getDesiredConfigByType("logsearch-admin-json")).andReturn(adminPropertiesConfigMock).atLeastOnce();
     expect(adminPropertiesConfigMock.getProperties()).andReturn(testConfigProperties).atLeastOnce();
     expect(networkConnectionMock.readQueryResponseFromServer(capture(captureURLConnection))).andReturn(new StringBuffer(TEST_JSON_INPUT_TWO_LIST_ENTRIES)).atLeastOnce();
 
@@ -325,7 +325,7 @@ public class LoggingRequestHelperImplTest {
     Capture<HttpURLConnection> captureURLConnection = new Capture<HttpURLConnection>();
     Capture<HttpURLConnection> captureURLConnectionForAuthentication = new Capture<HttpURLConnection>();
 
-    expect(clusterMock.getDesiredConfigByType("logsearch-admin-properties")).andReturn(adminPropertiesConfigMock).atLeastOnce();
+    expect(clusterMock.getDesiredConfigByType("logsearch-admin-json")).andReturn(adminPropertiesConfigMock).atLeastOnce();
     expect(adminPropertiesConfigMock.getProperties()).andReturn(testConfigProperties).atLeastOnce();
     expect(networkConnectionMock.readQueryResponseFromServer(capture(captureURLConnection))).andReturn(new StringBuffer(TEST_JSON_INPUT_LOG_LEVEL_QUERY)).atLeastOnce();
 
@@ -417,7 +417,7 @@ public class LoggingRequestHelperImplTest {
     Capture<HttpURLConnection> captureURLConnection = new Capture<HttpURLConnection>();
     Capture<HttpURLConnection> captureURLConnectionForAuthentication = new Capture<HttpURLConnection>();
 
-    expect(clusterMock.getDesiredConfigByType("logsearch-admin-properties")).andReturn(adminPropertiesConfigMock).atLeastOnce();
+    expect(clusterMock.getDesiredConfigByType("logsearch-admin-json")).andReturn(adminPropertiesConfigMock).atLeastOnce();
     expect(adminPropertiesConfigMock.getProperties()).andReturn(testConfigProperties).atLeastOnce();
     expect(networkConnectionMock.readQueryResponseFromServer(capture(captureURLConnection))).andReturn(new StringBuffer(TEST_JSON_INPUT_TWO_LIST_ENTRIES)).atLeastOnce();
 
@@ -498,7 +498,7 @@ public class LoggingRequestHelperImplTest {
     Capture<HttpURLConnection> captureURLConnection = new Capture<HttpURLConnection>();
     Capture<HttpURLConnection> captureURLConnectionForAuthentication = new Capture<HttpURLConnection>();
 
-    expect(clusterMock.getDesiredConfigByType("logsearch-admin-properties")).andReturn(adminPropertiesConfigMock).atLeastOnce();
+    expect(clusterMock.getDesiredConfigByType("logsearch-admin-json")).andReturn(adminPropertiesConfigMock).atLeastOnce();
     expect(clusterMock.getClusterName()).andReturn(expectedClusterName).atLeastOnce();
     expect(adminPropertiesConfigMock.getProperties()).andReturn(Collections.<String, String>emptyMap()).atLeastOnce();
     expect(networkConnectionMock.readQueryResponseFromServer(capture(captureURLConnection))).andReturn(new StringBuffer(TEST_JSON_INPUT_TWO_LIST_ENTRIES)).atLeastOnce();

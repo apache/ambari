@@ -167,8 +167,8 @@
       </requiredServices>
 
       <configuration-dependencies>
-        <config-type>logsearch-site</config-type>
-        <config-type>solr-site</config-type>
+        <config-type>logsearch-properties</config-type>
+        <config-type>solr-xml</config-type>
         <config-type>logfeeder-site</config-type>
       </configuration-dependencies>
       <restartRequiredAfterChange>false</restartRequiredAfterChange>

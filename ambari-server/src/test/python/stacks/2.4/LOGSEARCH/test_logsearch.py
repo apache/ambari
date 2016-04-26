@@ -26,7 +26,7 @@ from resource_management.libraries.script.config_dictionary import UnknownConfig
 class TestLogSearch(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "LOGSEARCH/0.5.0/package"
   STACK_VERSION = "2.4"
-  
+
   def configureResourcesCalled(self):
     self.assertResourceCalled('Directory', '/var/log/ambari-logsearch-portal',
                               owner = 'logsearch',
@@ -63,7 +63,7 @@ class TestLogSearch(RMFTestCase):
                               cd_access = 'a',
                               mode = 0755
                               )
-    
+
     self.assertResourceCalled('File', '/var/log/ambari-logsearch-portal/logsearch.out',
                               owner = 'logsearch',
                               group = 'logsearch',
@@ -84,9 +84,9 @@ class TestLogSearch(RMFTestCase):
                               owner = "logsearch"
     )
 
-    self.assertResourceCalled('File', '/etc/ambari-logsearch-portal/conf/user_pass.json',
+    self.assertResourceCalled('File', '/etc/ambari-logsearch-portal/conf/logsearch-admin.json',
                               owner = 'logsearch',
-                              content = InlineTemplate(self.getConfig()['configurations']['logsearch-admin-properties']['content'])
+                              content = InlineTemplate(self.getConfig()['configurations']['logsearch-admin-json']['content'])
                               )
     self.assertResourceCalled('File', '/etc/ambari-logsearch-portal/conf/solr_configsets/hadoop_logs/conf/solrconfig.xml',
                               owner = 'logsearch',
@@ -96,7 +96,7 @@ class TestLogSearch(RMFTestCase):
                               owner = 'logsearch',
                               content = InlineTemplate(self.getConfig()['configurations']['logsearch-audit_logs-solrconfig']['content'])
                               )
-    
+
     self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh -z c6401.ambari.apache.org/logsearch --download-config -d /tmp/solr_config_hadoop_logs_0.[0-9]* -cs hadoop_logs -rt 5 -i 10')
     self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh -z c6401.ambari.apache.org/logsearch --upload-config -d /etc/ambari-logsearch-portal/conf/solr_configsets/hadoop_logs/conf -cs hadoop_logs -rt 5 -i 10')
 
@@ -109,7 +109,7 @@ class TestLogSearch(RMFTestCase):
     self.assertResourceCalled('Execute', ('chmod', '-R', 'ugo+r', '/etc/ambari-logsearch-portal/conf/solr_configsets'),
                               sudo=True
     )
-  
+
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/logsearch.py",
                        classname = "LogSearch",
@@ -118,10 +118,10 @@ class TestLogSearch(RMFTestCase):
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-    
+
     self.configureResourcesCalled()
     self.assertNoMoreResources()
-  
+
   def test_start_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/logsearch.py",
                        classname = "LogSearch",
@@ -130,9 +130,9 @@ class TestLogSearch(RMFTestCase):
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-    
+
     self.configureResourcesCalled()
-    self.assertResourceCalled('Execute', "/usr/lib/ambari-logsearch-portal/run.sh 61888",
+    self.assertResourceCalled('Execute', "/usr/lib/ambari-logsearch-portal/run.sh",
                               environment = {'LOGSEARCH_INCLUDE': '/etc/ambari-logsearch-portal/conf/logsearch-env.sh'},
                               user = "logsearch"
     )

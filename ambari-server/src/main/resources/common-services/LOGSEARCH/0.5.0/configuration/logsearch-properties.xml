@@ -22,13 +22,6 @@
 <configuration>
 
   <property>
-    <name>logsearch.ui.port</name>
-    <value>61888</value>
-    <description>Default port for LogSearch UI</description>
-    <display-name>Logsearch UI Port</display-name>
-  </property>
-
-  <property>
     <name>logsearch.collection.numshards</name>
     <value>5</value>
     <display-name>Logsearch Solr Shards</display-name>

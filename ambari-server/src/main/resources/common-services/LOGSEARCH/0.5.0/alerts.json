@@ -10,8 +10,8 @@
         "source": {
           "type": "WEB",
           "uri": {
-            "http": "{{logsearch-site/logsearch.ui.port}}",
-            "https": "{{logsearch-site/logsearch.ui.port}}",
+            "http": "{{logsearch-env/logsearch_ui_port}}",
+            "https": "{{logsearch-env/logsearch_ui_port}}",
             "connection_timeout": 5.0,
             "default_port": 61888
           },

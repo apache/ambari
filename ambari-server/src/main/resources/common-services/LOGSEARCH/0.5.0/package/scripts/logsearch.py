@@ -42,7 +42,7 @@ class LogSearch(Script):
     env.set_params(params)
     self.configure(env)
 
-    Execute(format("{logsearch_dir}/run.sh {logsearch_ui_port}"),
+    Execute(format("{logsearch_dir}/run.sh"),
             environment={'LOGSEARCH_INCLUDE': format('{logsearch_server_conf}/logsearch-env.sh')},
             user=params.logsearch_user
             )

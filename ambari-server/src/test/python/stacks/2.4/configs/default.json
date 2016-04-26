@@ -221,7 +221,7 @@
       "ranger-env": {
             "xml_configurations_supported" : "true"
       },
-      "logsearch-admin-properties" : {
+      "logsearch-admin-json" : {
         "logsearch_admin_username" : "admin",
         "logsearch_admin_password" : "admin",
         "content": "admin json content"
@@ -246,12 +246,6 @@
       "logsearch-solr-log4j": {
         "content": "\n#  Logging level\nsolr.log={{solr_log_dir}}\n#log4j.rootLogger=INFO, file, CONSOLE\nlog4j.rootLogger=INFO, file\n\nlog4j.appender.CONSOLE=org.apache.log4j.ConsoleAppender\n\nlog4j.appender.CONSOLE.layout=org.apache.log4j.PatternLayout\nlog4j.appender.CONSOLE.layout.ConversionPattern=%-4r [%t] %-5p %c %x [%X{collection} %X{shard} %X{replica} %X{core}] \\u2013 %m%n\n\n#- size rotation with log cleanup.\nlog4j.appender.file=org.apache.log4j.RollingFileAppender\nlog4j.appender.file.MaxFileSize=10MB\nlog4j.appender.file.MaxBackupIndex=9\n\n#- File to log to and log format\nlog4j.appender.file.File=${solr.log}/solr.log\nlog4j.appender.file.layout=org.apache.log4j.PatternLayout\nlog4j.appender.file.layout.ConversionPattern=%d{ISO8601} [%t] %-5p [%X{collection} %X{shard} %X{replica} %X{core}] %C (%F:%L) - %m%n\n\nlog4j.logger.org.apache.zookeeper=WARN\nlog4j.logger.org.apache.hadoop=WARN\n\n# set to INFO to enable infostream log messages\nlog4j.logger.org.apache.solr.update.LoggingInfoStream=OFF"
       },
-      "solr-zoo-env": {
-        "content": "\n# The number of milliseconds of each tick\ntickTime=2000\n# The number of ticks that the initial\n# synchronization phase can take\ninitLimit=10\n# The number of ticks that can pass between\n# sending a request and getting an acknowledgement\nsyncLimit=5\n\n# the directory where the snapshot is stored.\n# dataDir=/opt/zookeeper/data\n# NOTE: Solr defaults the dataDir to $solrHome/zoo_data\n\n# the port at which the clients will connect\n# clientPort=2181\n# NOTE: Solr sets this based on zkRun / zkHost params"
-      },
-      "solr-sh": {
-        "content": "\n#!/bin/bash\n# Licensed to the Apache Software Foundation (ASF) under one or more\n# contributor license agreements.  See the NOTICE file distributed with\n# this work for additional information regarding copyright ownership.\n# The ASF licenses this file to You under the Apache License, Version 2.0\n# (the \"License\"); you may not use this file except in compliance with\n# the License.  You may obtain a copy of the License at\n#\n#     http://www.apache.org/licenses/LICENSE-2.0\n#\n# Unless required by applicable law or agreed to in writing, software\n# distributed under the License is distributed on an \"AS IS\" BASIS,\n# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n# See the License for the specific language governing permissions and\n# limitations under the License.\n\n#This script is a wrapper for calling bin/solr but using custom properties\nSOLR_INCLUDE={{logsearch_solr_conf}}/solr.in.sh {{solr_bindir}}/solr $*"
-      },
       "logsearch-env": {
         "logsearch_user": "logsearch",
         "logsearch_group": "logsearch",
@@ -271,13 +265,15 @@
       "logsearch-log4j": {
         "content": "&lt;?xml version=\"1.0\" encoding=\"UTF-8\" ?&gt;\n&lt;!--\n  Licensed to the Apache Software Foundation (ASF) under one or more\n  contributor license agreements.  See the NOTICE file distributed with\n  this work for additional information regarding copyright ownership.\n  The ASF licenses this file to You under the Apache License, Version 2.0\n  (the \"License\"); you may not use this file except in compliance with\n  the License.  You may obtain a copy of the License at\n\n      http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n--&gt;\n&lt;!DOCTYPE log4j:configuration SYSTEM \"log4j.dtd\"&gt;\n&lt;log4j:configuration xmlns:log4j=\"http://jakarta.apache.org/log4j/\"&gt;\n  &lt;appender name=\"console\" class=\"org.apache.log4j.ConsoleAppender\"&gt;\n    &lt;param name=\"Target\" value=\"System.out\" /&gt;\n    &lt;layout class=\"org.apache.log4j.PatternLayout\"&gt;\n      &lt;param name=\"ConversionPattern\" value=\"%d [%t] %-5p %C{6} (%F:%L) - %m%n\" /&gt;\n    &lt;/layout&gt;\n  &lt;/appender&gt;\n\n  &lt;appender name=\"rolling_file\" class=\"org.apache.log4j.RollingFileAppender\"&gt; \n    &lt;param name=\"file\" value=\"{{logsearch_log_dir}}/logsearch.log\" /&gt; \n    &lt;param name=\"append\" value=\"true\" /&gt; \n    &lt;param name=\"maxFileSize\" value=\"10MB\" /&gt; \n    &lt;param name=\"maxBackupIndex\" value=\"10\" /&gt; \n    &lt;layout class=\"org.apache.log4j.PatternLayout\"&gt; \n      &lt;param name=\"ConversionPattern\" value=\"%d [%t] %-5p %C{6} (%F:%L) - %m%n\"/&gt; \n    &lt;/layout&gt; \n  &lt;/appender&gt; \n\n  &lt;appender name=\"performance_analyzer\" class=\"org.apache.log4j.RollingFileAppender\"&gt;\n    &lt;param name=\"file\" value=\"{{logsearch_log_dir}}/logsearch-performance.log\" /&gt;\n    &lt;param name=\"Threshold\" value=\"info\" /&gt;\n    &lt;param name=\"append\" value=\"true\" /&gt;\n    &lt;param name=\"maxFileSize\" value=\"10MB\" /&gt; \n    &lt;param name=\"maxBackupIndex\" value=\"10\" /&gt; \n    &lt;layout class=\"org.apache.log4j.PatternLayout\"&gt;\n      &lt;param name=\"ConversionPattern\" value=\"%d [%t] %-5p %C{6} (%F:%L) - %m%n\" /&gt;\n    &lt;/layout&gt;\n  &lt;/appender&gt;\n  \n  &lt;logger name=\"org.apache.ambari.logsearch.perfomance\" additivity=\"false\"&gt;\n   &lt;appender-ref ref=\"performance_analyzer\" /&gt;\n  &lt;/logger&gt;\n\n  &lt;category name=\"org.apache.ambari.logsearch\" additivity=\"false\"&gt;\n    &lt;priority value=\"info\" /&gt;\n    &lt;appender-ref ref=\"rolling_file\" /&gt;\n  &lt;/category&gt;\n\n  &lt;root&gt;\n    &lt;priority value=\"warn\" /&gt;\n    &lt;appender-ref ref=\"rolling_file\" /&gt;\n  &lt;/root&gt;\n&lt;/log4j:configuration&gt;"
       },
-      "logsearch-site": {
-        "logsearch.ui.port": "61888",
+      "logsearch-properties": {
         "logsearch.collection.numshards": "10",
         "logsearch.collection.replication.factor": "1",
         "logsearch.app.max.memory": "1g"
       },
+      "logfeeder-properties": {
+      },
       "logfeeder-env": {
+        "logsearch_ui_port": "61888",
         "logfeeder_user": "logfeeder",
         "logfeeder_group": "logfeeder",
         "logfeeder_pid_dir": "/var/run/ambari-logsearch-logfeeder",

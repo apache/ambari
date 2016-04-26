@@ -45,23 +45,6 @@
   </property>
 
   <property>
-    <name>logfeeder_checkpoint_folder</name>
-    <value>/etc/ambari-logsearch-logfeeder/conf/checkpoints</value>
-    <description>Checkpoint folder for logfeeder</description>
-    <display-name>Logfeeder checkpoint dir</display-name>
-    <value-attributes>
-      <type>directory</type>
-    </value-attributes>
-  </property>
-
-  <property>
-    <name>logfeeder_config_files</name>
-    <value>{{logfeeder_config_files}}</value>
-    <description>Comma separated config files in grok format</description>
-    <display-name>Logfeeder config files</display-name>
-  </property>
-
-  <property>
     <name>logfeeder_user</name>
     <value>logfeeder</value>
     <property-type>USER</property-type>

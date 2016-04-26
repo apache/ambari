@@ -87,5 +87,5 @@ LOGSEARCH_GC_OPTS="-XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:$LOGSEARCH
 echo "Starting logsearch. Output file=$LOGFILE pid_file=$PID_FILE"
 #LOGSEARCH_CLI_CLASSPATH=
 #set -x
-nohup $JAVA -cp "$LOGSEARCH_CLI_CLASSPATH:$LOGSEARCH_CONF_DIR:$script_dir/libs/*:$script_dir/classes:$script_dir/LogProcessor.jar" $LOGSEARCH_GC_OPTS $LOGSEARCH_JAVA_MEM $LOGSEARCH_JAVA_OPTS $JMX org.apache.ambari.logsearch.LogSearch $* > $LOGFILE 2>&1 &
+nohup $JAVA -cp "$LOGSEARCH_CLI_CLASSPATH:$LOGSEARCH_CONF_DIR:$script_dir/libs/*:$script_dir/classes:$script_dir/LogProcessor.jar" $LOGSEARCH_GC_OPTS $LOGSEARCH_JAVA_MEM $LOGSEARCH_JAVA_OPTS $JMX org.apache.ambari.logsearch.LogSearch $LOGSEARCH_PORT $* > $LOGFILE 2>&1 &
 echo $! > $PID_FILE

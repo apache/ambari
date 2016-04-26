@@ -57,7 +57,7 @@ public class LoggingRequestHelperFactoryImplTest {
     Cluster clusterMock =
       mockSupport.createMock(Cluster.class);
 
-    Config logSearchSiteConfig =
+    Config logSearchEnvConfig =
       mockSupport.createMock(Config.class);
 
     ServiceComponentHost serviceComponentHostMock =
@@ -68,15 +68,15 @@ public class LoggingRequestHelperFactoryImplTest {
 
     Map<String, String> testProperties =
       new HashMap<String, String>();
-    testProperties.put("logsearch.ui.port", expectedPortNumber);
+    testProperties.put("logsearch_ui_port", expectedPortNumber);
 
     expect(controllerMock.getClusters()).andReturn(clustersMock).atLeastOnce();
     expect(controllerMock.getCredentialStoreService()).andReturn(credentialStoreServiceMock).atLeastOnce();
     expect(clustersMock.getCluster(expectedClusterName)).andReturn(clusterMock).atLeastOnce();
-    expect(clusterMock.getDesiredConfigByType("logsearch-site")).andReturn(logSearchSiteConfig).atLeastOnce();
+    expect(clusterMock.getDesiredConfigByType("logsearch-env")).andReturn(logSearchEnvConfig).atLeastOnce();
     expect(clusterMock.getServiceComponentHosts("LOGSEARCH", "LOGSEARCH_SERVER")).andReturn(Collections.singletonList(serviceComponentHostMock)).atLeastOnce();
     expect(clusterMock.getServices()).andReturn(Collections.singletonMap("LOGSEARCH", (Service) null)).atLeastOnce();
-    expect(logSearchSiteConfig.getProperties()).andReturn(testProperties).atLeastOnce();
+    expect(logSearchEnvConfig.getProperties()).andReturn(testProperties).atLeastOnce();
     expect(serviceComponentHostMock.getHostName()).andReturn(expectedHostName).atLeastOnce();
     expect(serviceComponentHostMock.getState()).andReturn(State.STARTED).atLeastOnce();
 
@@ -115,7 +115,7 @@ public class LoggingRequestHelperFactoryImplTest {
     Cluster clusterMock =
       mockSupport.createMock(Cluster.class);
 
-    Config logSearchSiteConfig =
+    Config logSearchEnvConfig =
       mockSupport.createMock(Config.class);
 
     ServiceComponentHost serviceComponentHostMock =
@@ -123,11 +123,11 @@ public class LoggingRequestHelperFactoryImplTest {
 
     Map<String, String> testProperties =
       new HashMap<String, String>();
-    testProperties.put("logsearch.ui.port", expectedPortNumber);
+    testProperties.put("logsearch_ui_port", expectedPortNumber);
 
     expect(controllerMock.getClusters()).andReturn(clustersMock).atLeastOnce();
     expect(clustersMock.getCluster(expectedClusterName)).andReturn(clusterMock).atLeastOnce();
-    expect(clusterMock.getDesiredConfigByType("logsearch-site")).andReturn(logSearchSiteConfig).atLeastOnce();
+    expect(clusterMock.getDesiredConfigByType("logsearch-env")).andReturn(logSearchEnvConfig).atLeastOnce();
     expect(clusterMock.getServiceComponentHosts("LOGSEARCH", "LOGSEARCH_SERVER")).andReturn(Collections.singletonList(serviceComponentHostMock)).atLeastOnce();
     expect(clusterMock.getServices()).andReturn(Collections.singletonMap("LOGSEARCH", (Service) null)).atLeastOnce();
 
@@ -165,12 +165,12 @@ public class LoggingRequestHelperFactoryImplTest {
     Cluster clusterMock =
       mockSupport.createMock(Cluster.class);
 
-    Config logSearchSiteConfig =
+    Config logSearchEnvConfig =
       mockSupport.createMock(Config.class);
 
     expect(controllerMock.getClusters()).andReturn(clustersMock).atLeastOnce();
     expect(clustersMock.getCluster(expectedClusterName)).andReturn(clusterMock).atLeastOnce();
-    expect(clusterMock.getDesiredConfigByType("logsearch-site")).andReturn(logSearchSiteConfig).atLeastOnce();
+    expect(clusterMock.getDesiredConfigByType("logsearch-env")).andReturn(logSearchEnvConfig).atLeastOnce();
     expect(clusterMock.getServiceComponentHosts("LOGSEARCH", "LOGSEARCH_SERVER")).andReturn(Collections.<ServiceComponentHost>emptyList()).atLeastOnce();
     expect(clusterMock.getServices()).andReturn(Collections.singletonMap("LOGSEARCH", (Service)null)).atLeastOnce();
 

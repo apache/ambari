@@ -96,15 +96,10 @@ logsearch_solr_data_resources_dir = os.path.join(logsearch_solr_datadir, 'resour
 logsearch_service_logs_max_retention = config['configurations']['logsearch-service_logs-solrconfig']['logsearch_service_logs_max_retention']
 logsearch_audit_logs_max_retention = config['configurations']['logsearch-audit_logs-solrconfig']['logsearch_audit_logs_max_retention']
 
-logsearch_service_logs_fields = config['configurations']['logsearch-site']['logsearch.service.logs.fields']
+logsearch_service_logs_fields = config['configurations']['logsearch-properties']['logsearch.service.logs.fields']
 
-logsearch_ui_port = config['configurations']['logsearch-site']["logsearch.ui.port"]
-logsearch_debug_enabled = str(config['configurations']['logsearch-env']["logsearch_debug_enabled"]).lower()
-logsearch_debug_port = config['configurations']['logsearch-env']["logsearch_debug_port"]
-logsearch_app_max_memory = config['configurations']['logsearch-env']['logsearch_app_max_memory']
-
-audit_logs_collection_splits_interval_mins = config['configurations']['logsearch-site']['logsearch.audit.logs.split.interval.mins']
-service_logs_collection_splits_interval_mins = config['configurations']['logsearch-site']['logsearch.service.logs.split.interval.mins']
+audit_logs_collection_splits_interval_mins = config['configurations']['logsearch-properties']['logsearch.audit.logs.split.interval.mins']
+service_logs_collection_splits_interval_mins = config['configurations']['logsearch-properties']['logsearch.service.logs.split.interval.mins']
 
 zookeeper_port = default('/configurations/zoo.cfg/clientPort', None)
 # get comma separated list of zookeeper hosts from clusterHostInfo
@@ -138,18 +133,19 @@ solr_log4j_content = config['configurations']['logsearch-solr-log4j']['content']
 # Logsearch configs
 #####################################
 logsearch_dir = '/usr/lib/ambari-logsearch-portal'
-logsearch_numshards_config = config['configurations']['logsearch-site']['logsearch.collection.numshards']
+
+logsearch_numshards_config = config['configurations']['logsearch-properties']['logsearch.collection.numshards']
 
 if logsearch_numshards_config > 0:
   logsearch_numshards = str(logsearch_numshards_config)
 else:
   logsearch_numshards = format(str(logsearch_solr_instance_count))
 
-logsearch_repfactor = str(config['configurations']['logsearch-site']['logsearch.collection.replication.factor'])
+logsearch_repfactor = str(config['configurations']['logsearch-properties']['logsearch.collection.replication.factor'])
 
-logsearch_solr_collection_service_logs = default('/configurations/logsearch-site/logsearch.solr.collection.service.logs', 'hadoop_logs')
-logsearch_solr_collection_audit_logs = default('/configurations/logsearch-site/logsearch.solr.collection.audit.logs','audit_logs')
-logsearch_logfeeder_log_level_include = default('/configurations/logsearch-site/logsearch.logfeeder.include.default.level', 'fatal,error,warn')
+logsearch_solr_collection_service_logs = default('/configurations/logsearch-properties/logsearch.solr.collection.service.logs', 'hadoop_logs')
+logsearch_solr_collection_audit_logs = default('/configurations/logsearch-properties/logsearch.solr.collection.audit.logs','audit_logs')
+logsearch_logfeeder_log_level_include = default('/configurations/logsearch-properties/logsearch.logfeeder.include.default.level', 'fatal,error,warn')
 
 solr_audit_logs_use_ranger = default('/configurations/logsearch-env/logsearch_solr_audit_logs_use_ranger', False)
 solr_audit_logs_url = ''
@@ -172,11 +168,26 @@ else:
   solr_audit_logs_zk_node = format(solr_audit_logs_zk_node)
   solr_audit_logs_zk_quorum = format(solr_audit_logs_zk_quorum)
 
+# create custom properties - remove defaults
+logsearch_custom_properties = dict(config['configurations']['logsearch-properties'])
+logsearch_custom_properties.pop("logsearch.collection.numshards", None)
+logsearch_custom_properties.pop("logsearch.collection.replication.factor", None)
+logsearch_custom_properties.pop("logsearch.solr.collection.service.logs", None)
+logsearch_custom_properties.pop("logsearch.solr.collection.audit.logs", None)
+logsearch_custom_properties.pop("logsearch.service.logs.fields", None)
+logsearch_custom_properties.pop("logsearch.service.logs.split.interval.mins", None)
+logsearch_custom_properties.pop("logsearch.audit.logs.split.interval.mins", None)
+logsearch_custom_properties.pop("logsearch.logfeeder.include.default.level", None)
+
 # logsearch-env configs
 logsearch_user = config['configurations']['logsearch-env']['logsearch_user']
 logsearch_group = config['configurations']['logsearch-env']['logsearch_group']
 logsearch_log_dir = config['configurations']['logsearch-env']['logsearch_log_dir']
 logsearch_log = logsearch_log_dir + '/logsearch.out'
+logsearch_ui_port = config['configurations']['logsearch-env']["logsearch_ui_port"]
+logsearch_debug_enabled = str(config['configurations']['logsearch-env']["logsearch_debug_enabled"]).lower()
+logsearch_debug_port = config['configurations']['logsearch-env']["logsearch_debug_port"]
+logsearch_app_max_memory = config['configurations']['logsearch-env']['logsearch_app_max_memory']
 
 # store the log file for the service from the 'solr.log' property of the 'logsearch-env.xml' file
 logsearch_env_content = config['configurations']['logsearch-env']['content']
@@ -212,9 +223,10 @@ zk_log_dir = default('/configurations/zookeeper-env/zk_log_dir', '/var/log/zooke
 # Logsearch admin configs
 #####################################
 
-logsearch_admin_username = default('/configurations/logsearch-admin-properties/logsearch_admin_username', "admin")
-logsearch_admin_password = default('/configurations/logsearch-admin-properties/logsearch_admin_password', "")
-logsearch_admin_content = config['configurations']['logsearch-admin-properties']['content']
+logsearch_admin_credential_file = 'logsearch-admin.json'
+logsearch_admin_username = default('/configurations/logsearch-admin-json/logsearch_admin_username', "admin")
+logsearch_admin_password = default('/configurations/logsearch-admin-json/logsearch_admin_password', "")
+logsearch_admin_content = config['configurations']['logsearch-admin-json']['content']
 
 #####################################
 # Logfeeder configs
@@ -253,3 +265,7 @@ logfeeder_config_file_names = ['global.config.json', 'output.config.json'] + ['i
                                                                               logfeeder_supported_services]
 
 logfeeder_config_files = ','.join(logfeeder_config_file_names)
+
+logfeeder_custom_properties = dict(config['configurations']['logfeeder-properties'])
+logfeeder_custom_properties.pop('logfeeder.config.files', None)
+logfeeder_custom_properties.pop('logfeeder.checkpoint.folder', None)

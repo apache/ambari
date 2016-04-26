@@ -32,13 +32,13 @@ public class LoggingRequestHelperFactoryImpl implements LoggingRequestHelperFact
 
   private static final Logger LOG = Logger.getLogger(LoggingRequestHelperFactoryImpl.class);
 
-  private static final String LOGSEARCH_SITE_CONFIG_TYPE_NAME = "logsearch-site";
+  private static final String LOGSEARCH_ENV_CONFIG_TYPE_NAME = "logsearch-env";
 
   private static final String LOGSEARCH_SERVICE_NAME = "LOGSEARCH";
 
   private static final String LOGSEARCH_SERVER_COMPONENT_NAME = "LOGSEARCH_SERVER";
 
-  private static final String LOGSEARCH_UI_PORT_PROPERTY_NAME = "logsearch.ui.port";
+  private static final String LOGSEARCH_UI_PORT_PROPERTY_NAME = "logsearch_ui_port";
 
 
   @Override
@@ -58,8 +58,8 @@ public class LoggingRequestHelperFactoryImpl implements LoggingRequestHelperFact
           return null;
         }
 
-        Config logSearchSiteConfig =
-          cluster.getDesiredConfigByType(LOGSEARCH_SITE_CONFIG_TYPE_NAME);
+        Config logSearchEnvConfig =
+          cluster.getDesiredConfigByType(LOGSEARCH_ENV_CONFIG_TYPE_NAME);
 
         List<ServiceComponentHost> listOfMatchingHosts =
           cluster.getServiceComponentHosts(LOGSEARCH_SERVICE_NAME, LOGSEARCH_SERVER_COMPONENT_NAME);
@@ -84,7 +84,7 @@ public class LoggingRequestHelperFactoryImpl implements LoggingRequestHelperFact
 
         final String logSearchHostName = serviceComponentHost.getHostName();
         final String logSearchPortNumber =
-          logSearchSiteConfig.getProperties().get(LOGSEARCH_UI_PORT_PROPERTY_NAME);
+          logSearchEnvConfig.getProperties().get(LOGSEARCH_UI_PORT_PROPERTY_NAME);
 
         return new LoggingRequestHelperImpl(logSearchHostName, logSearchPortNumber, ambariManagementController.getCredentialStoreService(), cluster);
       }

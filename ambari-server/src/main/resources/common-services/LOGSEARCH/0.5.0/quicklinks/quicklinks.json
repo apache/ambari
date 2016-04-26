@@ -13,12 +13,12 @@
         "url": "%@://%@:%@",
         "requires_user_name": "false",
         "port": {
-          "http_property": "logsearch.ui.port",
+          "http_property": "logsearch_ui_port",
           "http_default_port": "8888",
-          "https_property": "logsearch.ui.port",
+          "https_property": "logsearch_ui_port",
           "https_default_port": "8888",
           "regex": "^(\\d+)$",
-          "site": "logsearch-site"
+          "site": "logsearch-env"
         }
       }
     ]

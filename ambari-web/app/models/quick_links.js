@@ -362,9 +362,9 @@ App.QuickLinks.FIXTURES = [
     url:'%@://%@:%@',
     service_id: 'LOGSEARCH',
     template:'%@://%@:%@',
-    http_config: 'logsearch.ui.port',
-    https_config: 'logsearch.ui.port',
-    site: 'logsearch-site',
+    http_config: 'logsearch_ui_port',
+    https_config: 'logsearch_ui_port',
+    site: 'logsearch-env',
     regex: '^(\\d+)$',
     default_http_port: 61888,
     default_https_port: 61888
