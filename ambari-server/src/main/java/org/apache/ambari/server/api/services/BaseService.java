@@ -31,6 +31,8 @@ import org.apache.ambari.server.audit.request.RequestAuditLogger;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.utils.RetryHelper;
 import org.eclipse.jetty.util.ajax.JSON;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -47,6 +49,11 @@ import com.google.inject.Inject;
  */
 public abstract class BaseService {
   public final static MediaType MEDIA_TYPE_TEXT_CSV_TYPE = new MediaType("text", "csv");
+
+  /**
+   * Logger instance.
+   */
+  protected final static Logger LOG = LoggerFactory.getLogger(BaseService.class);
 
   /**
    * Factory for creating resource instances.
@@ -128,6 +135,7 @@ public abstract class BaseService {
       }
     } catch (BodyParseException e) {
       result =  new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST, e.getMessage()));
+      LOG.error("Bad request received: " + e.getMessage());
       requestAuditLogger.log(request, result);
     } catch (Throwable t) {
       requestAuditLogger.log(request, new ResultImpl(new ResultStatus(ResultStatus.STATUS.SERVER_ERROR, t.getMessage())));

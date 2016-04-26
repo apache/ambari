@@ -52,6 +52,7 @@ public class CreateHandler extends BaseManagementHandler {
       result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.FORBIDDEN, e.getMessage()));
     } catch (UnsupportedPropertyException e) {
       result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST, e.getMessage()));
+      LOG.error("Bad request received: " + e.getMessage());
     } catch (NoSuchParentResourceException e) {
       //todo: is this the correct status code?
       result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.NOT_FOUND, e.getMessage()));
@@ -63,6 +64,7 @@ public class CreateHandler extends BaseManagementHandler {
     } catch (ResourceAlreadyExistsException e) {
       result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.CONFLICT, e.getMessage()));
     } catch(IllegalArgumentException e) {
+      LOG.error("Bad request received: " + e.getMessage());
       result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST, e.getMessage()));
     } catch (RuntimeException e) {
       if (LOG.isErrorEnabled()) {
