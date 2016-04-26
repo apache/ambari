@@ -522,6 +522,19 @@ public class UpgradeCatalog220Test {
     assertNotNull(serviceDescriptor);
     assertNull(serviceDescriptor.getIdentity("/HDFS/hdfs"));
     assertNotNull(serviceDescriptor.getIdentity("/HDFS/NAMENODE/hdfs"));
+
+    // check execution with empty kerberos descriptor
+    KerberosDescriptor kerberosDescriptor= new KerberosDescriptorFactory().createInstance(kerberosDescriptorOrig.toMap());
+    ArtifactEntity artifactEntityOrig = createNiceMock(ArtifactEntity.class);
+
+    kerberosDescriptor.getService("HDFS").removeIdentity("hdfs");
+
+    expect(artifactEntityOrig.getArtifactData()).andReturn(kerberosDescriptor.toMap()).once();
+   //expect(artifactDAO.merge((ArtifactEntity) anyObject())).andReturn(null).atLeastOnce();
+    replay(artifactEntityOrig);
+
+    upgradeMock.updateKerberosDescriptorArtifact(createNiceMock(ArtifactDAO.class), artifactEntityOrig);
+    verify(artifactEntityOrig);
   }
 
 

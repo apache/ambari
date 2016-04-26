@@ -693,10 +693,12 @@ public class UpgradeCatalog220 extends AbstractUpgradeCatalog {
           if(hdfsService != null) {
             // before 2.2.0 hdfs indentity expected to be in HDFS service
             KerberosIdentityDescriptor hdfsIdentity = hdfsService.getIdentity("hdfs");
-            KerberosComponentDescriptor namenodeComponent = hdfsService.getComponent("NAMENODE");
-            hdfsIdentity.setName("hdfs");
-            hdfsService.removeIdentity("hdfs");
-            namenodeComponent.putIdentity(hdfsIdentity);
+            if (hdfsIdentity != null) {
+              KerberosComponentDescriptor namenodeComponent = hdfsService.getComponent("NAMENODE");
+              hdfsIdentity.setName("hdfs");
+              hdfsService.removeIdentity("hdfs");
+              namenodeComponent.putIdentity(hdfsIdentity);
+            }
           }
           updateKerberosDescriptorIdentityReferences(kerberosDescriptor, "/HDFS/hdfs", "/HDFS/NAMENODE/hdfs");
           updateKerberosDescriptorIdentityReferences(kerberosDescriptor.getServices(), "/HDFS/hdfs", "/HDFS/NAMENODE/hdfs");
