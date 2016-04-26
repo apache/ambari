@@ -165,4 +165,14 @@ public class PrivilegeDAO {
   public void remove(PrivilegeEntity entity) {
     entityManagerProvider.get().remove(merge(entity));
   }
+
+  /**
+   * Detach an instance from manager.
+   *
+   * @param entity  entity to detach
+   */
+  @Transactional
+  public void detach(PrivilegeEntity entity) {
+    entityManagerProvider.get().detach(entity);
+  }
 }

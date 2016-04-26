@@ -19,6 +19,7 @@
 package org.apache.ambari.server.view.configuration;
 
 import org.apache.ambari.server.view.DefaultMasker;
+import org.apache.ambari.view.migration.ViewDataMigrator;
 import org.apache.ambari.view.validation.Validator;
 import org.apache.ambari.view.Masker;
 import org.apache.ambari.view.View;
@@ -108,6 +109,23 @@ public class ViewConfig {
    * The view class.
    */
   private Class<? extends View> viewClass = null;
+
+  /**
+   * The main view class name.
+   */
+  @XmlElement(name="data-migrator-class")
+  private String dataMigrator;
+
+  /**
+   * The main view class name.
+   */
+  @XmlElement(name="data-version")
+  private String dataVersion;
+
+  /**
+   * The view class.
+   */
+  private Class<? extends ViewDataMigrator> dataMigratorClass = null;
 
   /**
    * The main view class name.
@@ -290,6 +308,40 @@ public class ViewConfig {
       viewClass = cl.loadClass(view).asSubclass(View.class);
     }
     return viewClass;
+  }
+
+  /**
+   * Get the view class name.
+   *
+   * @return the view class name
+   */
+  public String getDataMigrator() {
+    return dataMigrator;
+  }
+
+  /**
+   * Get the view class.
+   *
+   * @param cl the class loader
+   *
+   * @return the view class
+   *
+   * @throws ClassNotFoundException if the class can not be loaded
+   */
+  public Class<? extends ViewDataMigrator> getDataMigratorClass(ClassLoader cl) throws ClassNotFoundException {
+    if (dataMigratorClass == null) {
+      dataMigratorClass = cl.loadClass(dataMigrator).asSubclass(ViewDataMigrator.class);
+    }
+    return dataMigratorClass;
+  }
+
+  /**
+   * Get the view data version. If not specified, data version is 0.
+   *
+   * @return the data version
+   */
+  public int getDataVersion() {
+    return (dataVersion == null) ? 0 : Integer.valueOf(dataVersion);
   }
 
   /**

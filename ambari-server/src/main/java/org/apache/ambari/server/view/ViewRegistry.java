@@ -670,6 +670,35 @@ public class ViewRegistry {
   }
 
   /**
+   * Copy all privileges from one view instance to another
+   *
+   * @param sourceInstanceEntity  the source instance entity
+   * @param targetInstanceEntity  the target instance entity
+   */
+  @Transactional
+  public void copyPrivileges(ViewInstanceEntity sourceInstanceEntity,
+                             ViewInstanceEntity targetInstanceEntity) {
+    LOG.debug("Copy all privileges from " + sourceInstanceEntity.getName() + " to " +
+              targetInstanceEntity.getName());
+    List<PrivilegeEntity> targetInstancePrivileges = privilegeDAO.findByResourceId(targetInstanceEntity.getResource().getId());
+    if (targetInstancePrivileges.size() > 0) {
+      LOG.warn("Old privileges will be removed for " + targetInstanceEntity.getName());
+      for (PrivilegeEntity privilegeEntity : targetInstancePrivileges) {
+        removePrivilegeEntity(privilegeEntity);
+      }
+    }
+
+    List<PrivilegeEntity> sourceInstancePrivileges = privilegeDAO.findByResourceId(sourceInstanceEntity.getResource().getId());
+    for (PrivilegeEntity privilegeEntity : sourceInstancePrivileges) {
+      privilegeDAO.detach(privilegeEntity);
+      privilegeEntity.setResource(targetInstanceEntity.getResource());
+      privilegeEntity.setId(null);
+      privilegeDAO.create(privilegeEntity);
+      privilegeEntity.getPrincipal().getPrivileges().add(privilegeEntity);
+    }
+  }
+
+  /**
    * Notify any registered listeners of the given event.
    *
    * @param event  the event

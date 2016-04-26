@@ -43,18 +43,23 @@ import javax.persistence.TableGenerator;
 import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.SecurityHelperImpl;
 import org.apache.ambari.server.security.authorization.AmbariAuthorizationFilter;
+import org.apache.ambari.server.view.ViewContextImpl;
+import org.apache.ambari.server.view.ViewRegistry;
 import org.apache.ambari.server.view.configuration.InstanceConfig;
 import org.apache.ambari.server.view.validation.InstanceValidationResultImpl;
 import org.apache.ambari.server.view.validation.ValidationException;
 import org.apache.ambari.server.view.validation.ValidationResultImpl;
+import org.apache.ambari.view.*;
+import org.apache.ambari.view.migration.ViewDataMigrationContext;
+import org.apache.ambari.view.migration.ViewDataMigrator;
 import org.apache.ambari.view.validation.Validator;
-import org.apache.ambari.view.ResourceProvider;
-import org.apache.ambari.view.ViewDefinition;
-import org.apache.ambari.view.ViewInstanceDefinition;
 import org.apache.ambari.view.validation.ValidationResult;
 
 /**
@@ -216,6 +221,11 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   @Transient
   private SecurityHelper securityHelper = SecurityHelperImpl.getInstance();
 
+  /**
+   * The view data migrator.
+   */
+  @Transient
+  private ViewDataMigrator dataMigrator;
 
   // ----- Constructors ------------------------------------------------------
 
@@ -795,6 +805,42 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
    */
   public void setResource(ResourceEntity resource) {
     this.resource = resource;
+  }
+
+  /**
+   * Get the data migrator instance for view instance.
+   *
+   * @param dataMigrationContext  the data migration context to inject into migrator instance.
+   * @return  the data migrator.
+   * @throws ClassNotFoundException  if class defined in the archive could not be loaded
+   */
+  public ViewDataMigrator getDataMigrator(ViewDataMigrationContext dataMigrationContext)
+      throws ClassNotFoundException {
+    if (view != null) {
+      if (dataMigrator == null && view.getConfiguration().getDataMigrator() != null) {
+        ClassLoader cl = view.getClassLoader();
+        dataMigrator = getDataMigrator(view.getConfiguration().getDataMigratorClass(cl),
+                                       new ViewContextImpl(view, ViewRegistry.getInstance()),
+                                       dataMigrationContext);
+      }
+    }
+    return dataMigrator;
+  }
+
+  // get the data migrator class; inject a migration and view contexts
+  private static ViewDataMigrator getDataMigrator(Class<? extends ViewDataMigrator> clazz,
+                                                  final ViewContext viewContext,
+                                                  final ViewDataMigrationContext dataMigrationContext) {
+    Injector viewInstanceInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(ViewContext.class)
+                .toInstance(viewContext);
+        bind(ViewDataMigrationContext.class)
+            .toInstance(dataMigrationContext);
+      }
+    });
+    return viewInstanceInjector.getInstance(clazz);
   }
 
   /**

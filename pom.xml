@@ -447,6 +447,27 @@
       </modules>
     </profile>
     <profile>
+      <id>example-views</id>
+      <activation>
+        <property>
+          <name>exampleViews</name>
+        </property>
+      </activation>
+      <modules>
+        <module>ambari-web</module>
+        <module>ambari-project</module>
+        <module>ambari-views</module>
+        <module>ambari-admin</module>
+        <module>ambari-views/examples</module>
+        <module>ambari-metrics</module>
+        <module>ambari-server</module>
+        <module>ambari-funtest</module>
+        <module>ambari-agent</module>
+        <module>ambari-client</module>
+        <module>ambari-shell</module>
+      </modules>
+    </profile>
+    <profile>
       <id>static-web</id>
       <modules>
         <module>ambari-project</module>

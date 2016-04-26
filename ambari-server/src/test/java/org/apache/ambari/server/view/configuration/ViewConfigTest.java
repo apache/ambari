@@ -25,6 +25,8 @@ import org.apache.ambari.view.ResourceProvider;
 import org.apache.ambari.view.SystemException;
 import org.apache.ambari.view.UnsupportedPropertyException;
 import org.apache.ambari.view.ViewInstanceDefinition;
+import org.apache.ambari.view.migration.ViewDataMigrationException;
+import org.apache.ambari.view.migration.ViewDataMigrator;
 import org.apache.ambari.view.validation.ValidationResult;
 import org.apache.ambari.view.validation.Validator;
 import org.junit.Assert;
@@ -51,9 +53,11 @@ public class ViewConfigTest {
       "    <description>Description</description>" +
       "    <version>1.0.0</version>\n" +
       "    <build>99</build>\n" +
+      "    <data-version>42</data-version>\n" +
       "    <system>true</system>\n" +
       "    <icon64>/this/is/the/icon/url/icon64.png</icon64>\n" +
       "    <icon>/this/is/the/icon/url/icon.png</icon>\n" +
+      "    <data-migrator-class>org.apache.ambari.server.view.configuration.ViewConfigTest$MyDataMigrator</data-migrator-class>" +
       "    <validator-class>org.apache.ambari.server.view.configuration.ViewConfigTest$MyValidator</validator-class>" +
       "    <masker-class>org.apache.ambari.server.view.DefaultMasker</masker-class>" +
       "    <parameter>\n" +
@@ -207,6 +211,15 @@ public class ViewConfigTest {
   }
 
   @Test
+  public void testGetDataVersion() throws Exception {
+    ViewConfig config = getConfig();
+    Assert.assertEquals(42, config.getDataVersion());
+
+    config = getConfig(minimal_xml);
+    Assert.assertEquals(0, config.getDataVersion());
+  }
+
+  @Test
   public void testGetIcon() throws Exception {
     ViewConfig config = getConfig();
     Assert.assertEquals("/this/is/the/icon/url/icon.png", config.getIcon());
@@ -222,6 +235,19 @@ public class ViewConfigTest {
   public void testGetValidator() throws Exception {
     ViewConfig config = getConfig();
     Assert.assertEquals("org.apache.ambari.server.view.configuration.ViewConfigTest$MyValidator", config.getValidator());
+  }
+
+  @Test
+  public void testGetDataMigrator() throws Exception {
+    ViewConfig config = getConfig();
+    Assert.assertEquals("org.apache.ambari.server.view.configuration.ViewConfigTest$MyDataMigrator", config.getDataMigrator());
+  }
+
+  @Test
+  public void testGetDataMigratorClass() throws Exception {
+    ViewConfig config = getConfig();
+    Class migrator = config.getDataMigratorClass(getClass().getClassLoader());
+    Assert.assertEquals(MyDataMigrator.class, migrator);
   }
 
   @Test
@@ -352,6 +378,25 @@ public class ViewConfigTest {
     @Override
     public ValidationResult validateProperty(String property, ViewInstanceDefinition definition, ValidationContext mode) {
       return result;
+    }
+  }
+
+  public static class MyDataMigrator implements ViewDataMigrator {
+    @Override
+    public boolean beforeMigration() throws ViewDataMigrationException {
+      return true;
+    }
+
+    @Override
+    public void afterMigration() throws ViewDataMigrationException {
+    }
+
+    @Override
+    public void migrateEntity(Class originEntityClass, Class currentEntityClass) throws ViewDataMigrationException {
+    }
+
+    @Override
+    public void migrateInstanceData() throws ViewDataMigrationException {
     }
   }
 

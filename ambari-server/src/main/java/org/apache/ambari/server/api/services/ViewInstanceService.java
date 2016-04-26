@@ -58,7 +58,6 @@ public class ViewInstanceService extends BaseService {
    */
   private final ViewRegistry viewRegistry;
 
-
   // ----- Constructors ------------------------------------------------------
 
   /**
@@ -241,7 +240,11 @@ public class ViewInstanceService extends BaseService {
     return new ViewPrivilegeService(viewName, version, instanceName);
   }
 
-
+  @Path("{instanceName}/migrate")
+  public ViewDataMigrationService migrateData(@Context javax.ws.rs.core.Request request,
+                                              @PathParam ("instanceName") String instanceName) {
+    return new ViewDataMigrationService(viewName, version, instanceName);
+  }
   // ----- helper methods ----------------------------------------------------
 
   /**
