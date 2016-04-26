@@ -192,11 +192,19 @@ public final class AmbariAuthentication implements Authentication {
 
     if (principal instanceof UserDetails) {
       UserDetails user = (UserDetails)principal;
+      String usernameOrig = user.getUsername();
+      String username = AuthorizationHelper.resolveLoginAliasToUserName(usernameOrig);
+
+      if (username.equals(usernameOrig))
+        return null; // create override only original username is a login alias
+
+
+      String userPassword = user.getPassword() != null ? user.getPassword() : "";
 
       principal =
         new User(
-          AuthorizationHelper.resolveLoginAliasToUserName(user.getUsername()),
-          user.getPassword(),
+          username,
+          userPassword,
           user.isEnabled(),
           user.isAccountNonExpired(),
           user.isCredentialsNonExpired(),
