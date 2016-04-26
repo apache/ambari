@@ -30,7 +30,7 @@ define([
           $scope.target.errors = validateTarget($scope.target);
           $scope.aggregators = ['none','avg', 'sum', 'min', 'max'];
           $scope.precisions = ['default','seconds', 'minutes', 'hours', 'days'];
-          $scope.transforms = ['none','rate'];
+          $scope.transforms = ['none','diff','rate'];
 
           if (!$scope.target.aggregator) {
             $scope.target.aggregator = 'avg';

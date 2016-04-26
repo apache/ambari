@@ -150,8 +150,8 @@ define([
             var precision = target.precision === 'default' || typeof target.precision == 'undefined'  ? '' : '&precision=' 
             + target.precision;
             var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
-            var rate = target.transform === "rate" ? '._rate' : '';
-            return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.metric + rate +
+            var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
+            return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.metric + metricTransform +
                 metricAggregator + "&hostname=" + target.hosts + '&appId=' + target.app + '&startTime=' + from +
                 '&endTime=' + to + precision).then(
                 getMetricsData(target)
@@ -171,8 +171,8 @@ define([
             var precision = target.precision === 'default' || typeof target.precision == 'undefined'  ? '' : '&precision=' 
             + target.precision;
             var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
-            var rate = target.transform === "rate" ? '._rate' : '';
-            return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.metric + rate
+            var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
+            return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.metric + metricTransform
               + metricAggregator + '&hostname=' + tHost + '&appId=' + target.app + '&startTime=' + from +
               '&endTime=' + to + precision).then(
               getMetricsData(target)
@@ -183,9 +183,9 @@ define([
             var precision = target.precision === 'default' || typeof target.precision == 'undefined'  ? '' : '&precision=' 
             + target.precision;
             var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
-            var rate = target.transform === "rate" ? '._rate' : '';
+            var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
             var templatedComponent = (_.isEmpty(tComponent)) ? target.app : tComponent;
-            return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.metric + rate
+            return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.metric + metricTransform
               + metricAggregator + '&hostname=' + target.templatedHost + '&appId=' + templatedComponent + '&startTime=' + from +
               '&endTime=' + to + precision).then(
               allHostMetricsData(target)
@@ -195,8 +195,8 @@ define([
             var precision = target.precision === 'default' || typeof target.precision == 'undefined'  ? '' : '&precision=' 
             + target.precision;
             var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
-            var rate = target.transform === "rate" ? '._rate' : '';
-            return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.queue + rate
+            var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
+            return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.queue + metricTransform
               + metricAggregator + '&appId=resourcemanager&startTime=' + from +
               '&endTime=' + to + precision).then(
               getMetricsData(target)
