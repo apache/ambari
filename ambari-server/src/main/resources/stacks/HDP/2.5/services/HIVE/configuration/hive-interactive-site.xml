@@ -376,7 +376,7 @@ limitations under the License.
     <name>hive.llap.io.memory.size</name>
     <display-name>Cache Size</display-name>
     <description>The amount of data reserved for Hive's optimized in-memory cache.</description>
-    <value>20000000</value>
+    <value>0</value>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
