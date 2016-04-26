@@ -402,6 +402,9 @@ App.ConfigOverridable = Em.Mixin.create({
       successFunction: function (data, xhr, params) {
         var groupFromModel = App.ServiceConfigGroup.find().findProperty('id', params.id);
         if (groupFromModel) {
+          if (groupFromModel.get('stateManager.currentState.name') !== 'saved') {
+            groupFromModel.get('stateManager').transitionTo('loaded');
+          }
           App.configGroupsMapper.deleteRecord(groupFromModel);
         }
         if (successCallback) {

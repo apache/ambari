@@ -1044,16 +1044,28 @@ describe('App.QuickViewLinks', function () {
       }
     ];
 
-    tests.forEach(function(_test){
-      var serviceName =_test.serviceName;
-      it(serviceName, function() {
-        var componentNames = App.QuickLinksConfig.find().findProperty('id', serviceName).get('links').mapProperty('component_name');
-        expect(quickViewLinks.getHosts({}, serviceName)).to.eql(_test.result || ['host1']);
-        componentNames.forEach(function(_componentName){
-          expect(quickViewLinks.findHosts.calledWith(_componentName, {})).to.be.true;
+    tests.forEach(function (_test) {
+      var serviceName = _test.serviceName;
+      describe(serviceName, function () {
+        var componentNames;
+
+        beforeEach(function () {
+          componentNames = App.QuickLinksConfig.find().findProperty('id', serviceName).get('links').mapProperty('component_name');
+          this.result = quickViewLinks.getHosts({}, serviceName);
         });
+
+        it('hosts', function () {
+          expect(this.result).to.be.eql(_test.result || ['host1']);
+        });
+
+        it('components', function () {
+          expect(quickViewLinks.findHosts.callCount).to.be.equal(componentNames.length);
+        });
+
         if (_test.callback) {
-          expect(quickViewLinks[_test.callback].calledOnce).to.be.true;
+          it('callback is called once', function () {
+            expect(quickViewLinks[_test.callback].calledOnce).to.be.true;
+          });
         }
       });
     });

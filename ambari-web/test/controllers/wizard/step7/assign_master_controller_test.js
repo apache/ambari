@@ -383,7 +383,7 @@ describe('App.AssignMasterOnStep7Controller', function () {
       expect(mock.saveMasterComponentHosts.calledOnce).to.be.true;
     });
 
-    it("saveMasterComponentHosts should be called", function() {
+    it("loadMasterComponentHosts                           should be called", function() {
       expect(mock.loadMasterComponentHosts.calledOnce).to.be.true;
     });
 
