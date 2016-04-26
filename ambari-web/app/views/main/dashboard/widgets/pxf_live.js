@@ -29,20 +29,20 @@ function counterOrNA(key) {
   });
 }
 
-App.HawqSegmentUpView = App.TextDashboardWidgetView.extend(App.EditableWithLimitWidgetMixin, {
+App.PxfUpView = App.TextDashboardWidgetView.extend(App.EditableWithLimitWidgetMixin, {
 
-  title: Em.I18n.t('dashboard.widgets.HawqSegmentUp'),
-  id: '24',
+  title: Em.I18n.t('dashboard.widgets.PxfUp'),
+  id: '25',
 
-  model_type: 'hawq',
+  model_type: 'pxf',
 
   hiddenInfo: function () {
     return [
-      this.get('hawqSegmentsStarted') + ' ' + Em.I18n.t('dashboard.services.components.started'),
-      this.get('hawqSegmentsInstalled') + ' ' + Em.I18n.t('dashboard.services.components.stopped'),
-      this.get('hawqSegmentsTotal')+ ' ' + Em.I18n.t('dashboard.services.components.total')
+      this.get('pxfsStarted') + ' ' + Em.I18n.t('dashboard.services.components.started'),
+      this.get('pxfsInstalled') + ' ' + Em.I18n.t('dashboard.services.components.stopped'),
+      this.get('pxfsTotal')+ ' ' + Em.I18n.t('dashboard.services.components.total')
     ];
-  }.property('hawqSegmentsStarted', 'hawqSegmentsInstalled', 'hawqSegmentsTotal'),
+  }.property('pxfsStarted', 'pxfsInstalled', 'pxfsTotal'),
 
   hiddenInfoClass: "hidden-info-three-line",
 
@@ -50,11 +50,11 @@ App.HawqSegmentUpView = App.TextDashboardWidgetView.extend(App.EditableWithLimit
   thresh2: 90,
   maxValue: 100,
 
-  hawqSegmentsStarted: counterOrNA('hawqSegmentsStarted'),
+  pxfsStarted: counterOrNA('pxfsStarted'),
 
-  hawqSegmentsInstalled: counterOrNA('hawqSegmentsInstalled'),
+  pxfsInstalled: counterOrNA('pxfsInstalled'),
 
-  hawqSegmentsTotal: counterOrNA('hawqSegmentsTotal'),
+  pxfsTotal: counterOrNA('pxfsTotal'),
 
   /**
    * @type {?number}
@@ -63,8 +63,8 @@ App.HawqSegmentUpView = App.TextDashboardWidgetView.extend(App.EditableWithLimit
     if (this.get('someMetricsNA')) {
       return null;
     }
-    return (this.get('hawqSegmentsStarted') / this.get('model.hawqSegmentsTotal')).toFixed(2) * 100;
-  }.property('model.hawqSegmentsTotal', 'hawqSegmentsStarted', 'someMetricsNA'),
+    return (this.get('pxfsStarted') / this.get('model.pxfsTotal')).toFixed(2) * 100;
+  }.property('model.pxfsTotal', 'pxfsStarted', 'someMetricsNA'),
 
   /**
    * @type {string}
@@ -73,8 +73,8 @@ App.HawqSegmentUpView = App.TextDashboardWidgetView.extend(App.EditableWithLimit
     if (this.get('someMetricsNA')) {
       return Em.I18n.t('services.service.summary.notAvailable');
     }
-    return this.get('hawqSegmentsStarted') + "/" + this.get('model.hawqSegmentsTotal');
-  }.property('model.hawqSegmentsTotal', 'hawqSegmentsStarted', 'someMetricsNA'),
+    return this.get('pxfsStarted') + "/" + this.get('model.pxfsTotal');
+  }.property('model.pxfsTotal', 'pxfsStarted', 'someMetricsNA'),
 
   hintInfo: function () {
     var maxTmp = parseFloat(this.get('maxValue'));
@@ -85,7 +85,7 @@ App.HawqSegmentUpView = App.TextDashboardWidgetView.extend(App.EditableWithLimit
    * @type {boolean}
    */
   someMetricsNA: function() {
-    return Em.isNone(this.get('model.hawqSegmentsStarted')) || Em.isNone(this.get('model.hawqSegmentsTotal'));
-  }.property('model.hawqSegmentsStarted', 'model.hawqSegmentsTotal')
+    return Em.isNone(this.get('model.pxfsStarted')) || Em.isNone(this.get('model.pxfsTotal'));
+  }.property('model.pxfsStarted', 'model.pxfsTotal')
 
 });

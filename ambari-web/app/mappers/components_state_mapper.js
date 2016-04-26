@@ -65,6 +65,11 @@ App.componentsStateMapper = App.QuickDataMapper.create({
       hawq_segments_installed: 'INSTALLED_PATH',
       hawq_segments_total: 'TOTAL_PATH'
     },
+    'PXF': {
+      pxfs_started: 'STARTED_PATH',
+      pxfs_installed: 'INSTALLED_PATH',
+      pxfs_total: 'TOTAL_PATH'
+    },
     'HBASE_REGIONSERVER': {
       region_servers_started: 'STARTED_PATH',
       region_servers_installed: 'INSTALLED_PATH',

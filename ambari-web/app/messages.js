@@ -2615,6 +2615,7 @@ Em.I18n.translations = {
   'dashboard.widgets.error.invalid': 'Invalid! Enter a number between 0 - {0}',
   'dashboard.widgets.error.smaller': 'Threshold 1 should be smaller than threshold 2!',
   'dashboard.widgets.HawqSegmentUp': 'HAWQ Segments Live',
+  'dashboard.widgets.PxfUp': 'PXFs Live',
 
   'dashboard': {
     'widgets': {
@@ -2721,9 +2722,9 @@ Em.I18n.translations = {
   'dashboard.services.hbase.masterStarted':'Master Started',
   'dashboard.services.hbase.masterActivated':'Master Activated',
 
-  'dashboard.services.hawq.segments.started':'started',
-  'dashboard.services.hawq.segments.stopped':'stopped',
-  'dashboard.services.hawq.segments.total':'in total',
+  'dashboard.services.components.started':'started',
+  'dashboard.services.components.stopped':'stopped',
+  'dashboard.services.components.total':'in total',
 
   'dashboard.services.hive.clients':'Hive Clients',
   'dashboard.services.hive.client':'Hive Client',
