@@ -1779,6 +1779,7 @@ public class AmbariManagementControllerTest {
 
   @Test
   public void testCreateHostSimple() throws AmbariException {
+    String cluster1 = getUniqueName();
     String host1 = getUniqueName();
     String host2 = getUniqueName();
 
@@ -1804,7 +1805,8 @@ public class AmbariManagementControllerTest {
     clusters.getHost(host1).persist();
     clusters.getHost(host2).persist();
 
-    requests.add(new HostRequest(host2, "foo", new HashMap<String, String>()));
+    HostRequest request = new HostRequest(host2, "foo", new HashMap<String, String>());
+    requests.add(request);
 
     try {
       HostResourceProviderTest.createHosts(controller, requests);
@@ -1813,8 +1815,10 @@ public class AmbariManagementControllerTest {
       // Expected
     }
 
-    clusters.addCluster("foo", new StackId("HDP-0.1"));
-    Cluster c = clusters.getCluster("foo");
+    request.setClusterName(cluster1);
+
+    clusters.addCluster(cluster1, new StackId("HDP-0.1"));
+    Cluster c = clusters.getCluster(cluster1);
     StackId stackId = new StackId("HDP-0.1");
     c.setDesiredStackVersion(stackId);
     c.setCurrentStackVersion(stackId);
