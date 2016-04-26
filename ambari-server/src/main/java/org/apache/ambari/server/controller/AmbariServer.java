@@ -19,9 +19,6 @@
 package org.apache.ambari.server.controller;
 
 
-import javax.crypto.BadPaddingException;
-import javax.servlet.DispatcherType;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.Authenticator;
@@ -32,6 +29,9 @@ import java.util.EnumSet;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.crypto.BadPaddingException;
+import javax.servlet.DispatcherType;
 
 import org.apache.ambari.eventdb.webservice.WorkflowJsonService;
 import org.apache.ambari.server.AmbariException;
@@ -120,6 +120,7 @@ import org.apache.ambari.server.utils.StageUtils;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.ambari.server.view.ViewDirectoryWatcher;
 import org.apache.ambari.server.view.ViewRegistry;
+import org.apache.ambari.server.view.ViewThrottleFilter;
 import org.apache.velocity.app.Velocity;
 import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.server.HttpConfiguration;
@@ -370,6 +371,12 @@ public class AmbariServer {
       // requests.
       root.addFilter(new FilterHolder(injector.getInstance(AmbariViewsSecurityHeaderFilter.class)), "/api/v1/views/*",
           DISPATCHER_TYPES);
+
+      // since views share the REST API threadpool, a misbehaving view could
+      // consume all of the available threads and effectively cause a loss of
+      // service for Ambari
+      root.addFilter(new FilterHolder(injector.getInstance(ViewThrottleFilter.class)),
+          "/api/v1/views/*", DISPATCHER_TYPES);
 
       // session-per-request strategy for api
       root.addFilter(new FilterHolder(injector.getInstance(AmbariPersistFilter.class)), "/api/*", DISPATCHER_TYPES);

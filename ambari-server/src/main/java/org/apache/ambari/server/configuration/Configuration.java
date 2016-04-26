@@ -17,36 +17,6 @@
  */
 package org.apache.ambari.server.configuration;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import org.apache.ambari.annotations.Experimental;
-import org.apache.ambari.annotations.ExperimentalFeature;
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.actionmanager.Stage;
-import org.apache.ambari.server.events.listeners.alerts.AlertReceivedListener;
-import org.apache.ambari.server.orm.JPATableGenerationStrategy;
-import org.apache.ambari.server.orm.PersistenceType;
-import org.apache.ambari.server.orm.entities.StageEntity;
-import org.apache.ambari.server.security.ClientSecurityType;
-import org.apache.ambari.server.security.authorization.LdapServerProperties;
-import org.apache.ambari.server.security.authorization.jwt.JwtAuthenticationProperties;
-import org.apache.ambari.server.security.encryption.CertificateUtils;
-import org.apache.ambari.server.security.encryption.CredentialProvider;
-import org.apache.ambari.server.state.stack.OsFamily;
-import org.apache.ambari.server.utils.AmbariPath;
-import org.apache.ambari.server.utils.Parallel;
-import org.apache.ambari.server.utils.ShellCommandUtil;
-import org.apache.commons.collections.ListUtils;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.RandomStringUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.math.NumberUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -64,6 +34,36 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
+
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.actionmanager.Stage;
+import org.apache.ambari.server.events.listeners.alerts.AlertReceivedListener;
+import org.apache.ambari.server.orm.JPATableGenerationStrategy;
+import org.apache.ambari.server.orm.PersistenceType;
+import org.apache.ambari.server.orm.entities.StageEntity;
+import org.apache.ambari.server.security.ClientSecurityType;
+import org.apache.ambari.server.security.authorization.LdapServerProperties;
+import org.apache.ambari.server.security.authorization.jwt.JwtAuthenticationProperties;
+import org.apache.ambari.server.security.encryption.CertificateUtils;
+import org.apache.ambari.server.security.encryption.CredentialProvider;
+import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.utils.AmbariPath;
+import org.apache.ambari.server.utils.Parallel;
+import org.apache.ambari.server.utils.ShellCommandUtil;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.NumberUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 
 /**
@@ -537,6 +537,11 @@ public class Configuration {
   private static final int VIEW_EXTRACTION_THREADPOOL_CORE_SIZE_DEFAULT = 10;
   private static final String VIEW_EXTRACTION_THREADPOOL_TIMEOUT_KEY = "view.extraction.threadpool.timeout";
   private static final long VIEW_EXTRACTION_THREADPOOL_TIMEOUT_DEFAULT = 100000L;
+  private static final String VIEW_REQUEST_THREADPOOL_MAX_SIZE_KEY = "view.request.threadpool.size.max";
+  private static final int VIEW_REQUEST_THREADPOOL_MAX_SIZE_DEFAULT = 0;
+  private static final String VIEW_REQUEST_THREADPOOL_TIMEOUT_KEY = "view.request.threadpool.timeout";
+  private static final int VIEW_REQUEST_THREADPOOL_TIMEOUT_DEFAULT = 2000;
+
 
   public static final String PROPERTY_PROVIDER_THREADPOOL_MAX_SIZE_KEY = "server.property-provider.threadpool.size.max";
   public static final int PROPERTY_PROVIDER_THREADPOOL_MAX_SIZE_DEFAULT = 4 * Runtime.getRuntime().availableProcessors();
@@ -1271,7 +1276,9 @@ public class Configuration {
    * @param list
    */
   private void listToLowerCase(List<String> list) {
-    if (list == null) return;
+    if (list == null) {
+      return;
+    }
     for (int i = 0; i < list.size(); i++) {
       list.set(i, list.get(i).toLowerCase());
     }
@@ -2321,6 +2328,32 @@ public class Configuration {
   public int getViewExtractionThreadPoolCoreSize() {
     return Integer.parseInt(properties.getProperty(
       VIEW_EXTRACTION_THREADPOOL_CORE_SIZE_KEY, String.valueOf(VIEW_EXTRACTION_THREADPOOL_CORE_SIZE_DEFAULT)));
+  }
+
+  /**
+   * Get the maximum number of threads that will be allocated to fulfilling view
+   * requests.
+   *
+   * @return the maximum number of threads that will be allocated for requests
+   *         to load views or {@value #VIEW_REQUEST_THREADPOOL_MAX_SIZE_DEFAULT}
+   *         if not specified.
+   */
+  public int getViewRequestThreadPoolMaxSize() {
+    return Integer.parseInt(properties.getProperty(VIEW_REQUEST_THREADPOOL_MAX_SIZE_KEY,
+        String.valueOf(VIEW_REQUEST_THREADPOOL_MAX_SIZE_DEFAULT)));
+  }
+
+  /**
+   * Get the time, in ms, that a request to a view will wait for an available
+   * thread to handle the request before returning an error.
+   *
+   * @return the time that requests for a view should wait for an available
+   *         thread or {@value #VIEW_REQUEST_THREADPOOL_TIMEOUT_DEFAULT} if not
+   *         specified.
+   */
+  public int getViewRequestThreadPoolTimeout() {
+    return Integer.parseInt(properties.getProperty(VIEW_REQUEST_THREADPOOL_TIMEOUT_KEY,
+        String.valueOf(VIEW_REQUEST_THREADPOOL_TIMEOUT_DEFAULT)));
   }
 
   /**

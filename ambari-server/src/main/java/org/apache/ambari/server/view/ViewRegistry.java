@@ -1677,8 +1677,8 @@ public class ViewRegistry {
   protected boolean checkViewVersions(ViewEntity view, String serverVersion) {
     ViewConfig config = view.getConfiguration();
 
-    return checkViewVersion(view, config.getMinAmbariVersion(), serverVersion, "minimum", 1, "less than") &&
-           checkViewVersion(view, config.getMaxAmbariVersion(), serverVersion, "maximum", -1, "greater than");
+    return checkViewVersion(view, config.getMinAmbariVersion(), serverVersion, "minimum", -1, "less than") &&
+           checkViewVersion(view, config.getMaxAmbariVersion(), serverVersion, "maximum", 1, "greater than");
 
   }
 
@@ -1700,8 +1700,8 @@ public class ViewRegistry {
 
       int index = version.indexOf('*');
 
-      int compVal = index == -1 ? VersionUtils.compareVersions(version, serverVersion) :
-                    index > 0 ? VersionUtils.compareVersions(version.substring(0, index), serverVersion, index) : 0;
+      int compVal = index == -1 ? VersionUtils.compareVersions(serverVersion, version) :
+                    index > 0 ? VersionUtils.compareVersions(serverVersion, version.substring(0, index), index) : 0;
 
       if (compVal == errValue) {
         String msg = "The Ambari server version " + serverVersion + " is " + errMsg + " the configured " + label +
