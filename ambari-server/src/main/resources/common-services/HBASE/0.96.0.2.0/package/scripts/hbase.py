@@ -61,6 +61,21 @@ def hbase(name=None):
       mode=0777,
   )
 
+  # If a file location is specified in ioengine parameter,
+  # ensure that directory exists. Otherwise create the
+  # directory with permissions assigned to hbase:hadoop.
+  ioengine_input = params.ioengine_param
+  if ioengine_input != None:
+    if ioengine_input.startswith("file:/"):
+      ioengine_fullpath = ioengine_input[5:]
+      ioengine_dir = os.path.dirname(ioengine_fullpath)
+      Directory(ioengine_dir,
+          owner = params.hbase_user,
+          group = params.user_group,
+          recursive = True,
+          mode = 0755
+      )
+  
   parent_dir = os.path.dirname(params.tmp_dir)
   # In case if we have several placeholders in path
   while ("${" in parent_dir):

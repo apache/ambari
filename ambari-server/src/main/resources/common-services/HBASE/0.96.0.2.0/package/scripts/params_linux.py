@@ -134,6 +134,7 @@ elif OSCheck.is_ubuntu_family():
 pid_dir = status_params.pid_dir
 tmp_dir = config['configurations']['hbase-site']['hbase.tmp.dir']
 local_dir = config['configurations']['hbase-site']['hbase.local.dir']
+ioengine_param = default('/configurations/hbase-site/hbase.bucketcache.ioengine', None)
 
 client_jaas_config_file = format("{hbase_conf_dir}/hbase_client_jaas.conf")
 master_jaas_config_file = format("{hbase_conf_dir}/hbase_master_jaas.conf")
