@@ -167,7 +167,6 @@ public class AuthToLocalBuilder implements Cloneable {
 
       Rule rule = createHostAgnosticRule(p, localUsername);
       setRules.add(rule);
-      addDefaultRealmRule(rule.getPrincipal());
     }
   }
 
@@ -198,12 +197,18 @@ public class AuthToLocalBuilder implements Cloneable {
     StringBuilder builder = new StringBuilder();
     // ensure that a default rule is added for this realm
     if (!StringUtils.isEmpty(defaultRealm)) {
-      setRules.add(createDefaultRealmRule(defaultRealm));
+      // Remove existing default rule.... this is in the event we are switching case sensitivity...
+      setRules.remove(createDefaultRealmRule(defaultRealm, !caseInsensitiveUser));
+      // Add (new) default rule....
+      setRules.add(createDefaultRealmRule(defaultRealm, caseInsensitiveUser));
     }
 
     // ensure that a default realm rule is added for the specified additional realms
     for (String additionalRealm : additionalRealms) {
-      setRules.add(createDefaultRealmRule(additionalRealm));
+      // Remove existing default rule.... this is in the event we are switching case sensitivity...
+      setRules.remove(createDefaultRealmRule(additionalRealm, !caseInsensitiveUser));
+      // Add (new) default rule....
+      setRules.add(createDefaultRealmRule(additionalRealm, caseInsensitiveUser));
     }
 
     if (concatenationType == null) {
@@ -247,19 +252,6 @@ public class AuthToLocalBuilder implements Cloneable {
   }
 
   /**
-   * Add a default realm rule for the realm associated with a principal.
-   * If the realm is null or is a wildcard ".*" then no rule id added.
-   *
-   * @param principal principal which contains the realm
-   */
-  private void addDefaultRealmRule(Principal principal) {
-    String realm = principal.getRealm();
-    if (realm != null && !realm.equals(".*")) {
-      setRules.add(createDefaultRealmRule(realm));
-    }
-  }
-
-  /**
    * Create a rule that expects 2 components in the principal and ignores hostname in the comparison.
    *
    * @param principal principal
@@ -279,10 +271,11 @@ public class AuthToLocalBuilder implements Cloneable {
    * Create a default rule for a realm which matches all principals with 1 component and the same realm.
    *
    * @param realm realm that the rule is being created for
+   * @param caseInsensitive true if the rule should be case-insensitive; otherwise false
    * @return a new default realm rule
    */
-  private Rule createDefaultRealmRule(String realm) {
-    String caseSensitivityRule = caseInsensitiveUser ? "/L" : "";
+  private Rule createDefaultRealmRule(String realm, boolean caseInsensitive) {
+    String caseSensitivityRule = caseInsensitive ? "/L" : "";
 
     return new Rule(new Principal(String.format(".*@%s", realm)),
         1, 1, String.format("RULE:[1:$1@$0](.*@%s)s/@.*//" + caseSensitivityRule, realm));
