@@ -395,8 +395,8 @@ public class UpgradeCatalog222Test {
 
     Map<String, String> expectedUpdates = new HashMap<>();
     expectedUpdates.put(UpgradeCatalog222.HBASE_SITE_HBASE_COPROCESSOR_MASTER_CLASSES, "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor");
-    expectedUpdates.put(UpgradeCatalog222.HBASE_SITE_HBASE_COPROCESSOR_REGION_CLASSES, "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor");
-    expectedUpdates.put(UpgradeCatalog222.HBASE_SITE_HBASE_COPROCESSOR_REGIONSERVER_CLASSES,
+    expectedUpdates.put(UpgradeCatalog222.HBASE_SITE_HBASE_COPROCESSOR_REGIONSERVER_CLASSES, "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor");
+    expectedUpdates.put(UpgradeCatalog222.HBASE_SITE_HBASE_COPROCESSOR_REGION_CLASSES,
       "org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint," +
         "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor");
 
@@ -417,8 +417,8 @@ public class UpgradeCatalog222Test {
 
     expectedUpdates = new HashMap<>();
     expectedUpdates.put(UpgradeCatalog222.HBASE_SITE_HBASE_COPROCESSOR_MASTER_CLASSES, "org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor ");
-    expectedUpdates.put(UpgradeCatalog222.HBASE_SITE_HBASE_COPROCESSOR_REGION_CLASSES, "org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor");
-    expectedUpdates.put(UpgradeCatalog222.HBASE_SITE_HBASE_COPROCESSOR_REGIONSERVER_CLASSES,
+    expectedUpdates.put(UpgradeCatalog222.HBASE_SITE_HBASE_COPROCESSOR_REGIONSERVER_CLASSES, "org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor");
+    expectedUpdates.put(UpgradeCatalog222.HBASE_SITE_HBASE_COPROCESSOR_REGION_CLASSES,
       "org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint," +
         "org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor");
 

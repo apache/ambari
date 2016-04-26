@@ -252,26 +252,26 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
             updates.put(HBASE_SITE_HBASE_COPROCESSOR_MASTER_CLASSES,
               "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor");
           }
-          if (hbaseSite.getProperties().containsKey(HBASE_SITE_HBASE_COPROCESSOR_REGION_CLASSES)) {
-            updates.put(HBASE_SITE_HBASE_COPROCESSOR_REGION_CLASSES,
-              "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor");
-          }
           if (hbaseSite.getProperties().containsKey(HBASE_SITE_HBASE_COPROCESSOR_REGIONSERVER_CLASSES)) {
             updates.put(HBASE_SITE_HBASE_COPROCESSOR_REGIONSERVER_CLASSES,
-              "org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint," +
-                "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor");
+              "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor");
+          }
+          if (hbaseSite.getProperties().containsKey(HBASE_SITE_HBASE_COPROCESSOR_REGION_CLASSES)) {
+            updates.put(HBASE_SITE_HBASE_COPROCESSOR_REGION_CLASSES,
+                "org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint," +
+                    "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor");
           }
         } else if (VersionUtils.compareVersions(stackVersion, "2.3") == 0) {
           if (hbaseSite.getProperties().containsKey(HBASE_SITE_HBASE_COPROCESSOR_MASTER_CLASSES)) {
             updates.put(HBASE_SITE_HBASE_COPROCESSOR_MASTER_CLASSES,
               "org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor ");
           }
-          if (hbaseSite.getProperties().containsKey(HBASE_SITE_HBASE_COPROCESSOR_REGION_CLASSES)) {
-            updates.put(HBASE_SITE_HBASE_COPROCESSOR_REGION_CLASSES,
-              "org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor");
-          }
           if (hbaseSite.getProperties().containsKey(HBASE_SITE_HBASE_COPROCESSOR_REGIONSERVER_CLASSES)) {
             updates.put(HBASE_SITE_HBASE_COPROCESSOR_REGIONSERVER_CLASSES,
+              "org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor");
+          }
+          if (hbaseSite.getProperties().containsKey(HBASE_SITE_HBASE_COPROCESSOR_REGION_CLASSES)) {
+            updates.put(HBASE_SITE_HBASE_COPROCESSOR_REGION_CLASSES,
               "org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint," +
                 "org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor");
           }
