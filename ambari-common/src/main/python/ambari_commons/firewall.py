@@ -21,7 +21,7 @@ limitations under the License.
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.logging_utils import print_warning_msg
 from ambari_commons.os_family_impl import OsFamilyImpl
-from ambari_commons.os_utils import run_os_command
+from ambari_commons.os_utils import run_os_command, run_in_shell
 
 
 class Firewall(object):
@@ -46,6 +46,8 @@ class FirewallLinux(Firewall):
       return UbuntuFirewallChecks()
     elif self.OS_TYPE == OSConst.OS_FEDORA and int(self.OS_VERSION) >= 18:
       return Fedora18FirewallChecks()
+    elif OSCheck.is_redhat_family() and int(self.OS_VERSION) >= 7:
+      return RedHat7FirewallChecks()
     elif OSCheck.is_suse_family():
       return SuseFirewallChecks()
     else:
@@ -109,6 +111,25 @@ class UbuntuFirewallChecks(FirewallChecks):
       elif "Status: active" in self.stdoutdata:
         result = True
     return result
+
+class RedHat7FirewallChecks(FirewallChecks):
+  def __init__(self):
+    super(RedHat7FirewallChecks, self).__init__()
+    self.SERVICE_CMD = "systemctl"
+
+  #firewalld added to support default firewall (started from RHEL7/CentOS7)
+  #script default iptables checked as user can use iptables as known from previous RHEL releases.
+  def get_command(self):
+    return "%(servcmd)s is-active %(fwl1)s || %(servcmd)s is-active %(fwl2)s" % {"servcmd":self.SERVICE_CMD,"fwl1":"iptables", "fwl2":"firewalld"}
+
+  def check_result(self):
+    return self.returncode == 0
+
+  def run_command(self):
+    retcode, out, err = run_in_shell(self.get_command())
+    self.returncode = retcode
+    self.stdoutdata = out
+    self.stderrdata = err
 
 class Fedora18FirewallChecks(FirewallChecks):
   def __init__(self):

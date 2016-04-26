@@ -1917,6 +1917,7 @@ class TestAmbariServer(TestCase):
 
     get_os_type_mock.return_value = ""
     get_os_family_mock.return_value = OSConst.REDHAT_FAMILY
+    get_os_major_version_mock.return_value = 6
 
     firewall_obj = Firewall().getFirewallObject()
     p.communicate.return_value = ("Table: filter", "err")
@@ -1927,6 +1928,19 @@ class TestAmbariServer(TestCase):
     p.returncode = 3
     self.assertFalse(firewall_obj.check_firewall())
     self.assertEqual("err", firewall_obj.stderrdata)
+
+    get_os_major_version_mock.return_value = 7
+    get_os_type_mock.return_value = ""
+    get_os_family_mock.return_value = OSConst.REDHAT_FAMILY
+
+    firewall_obj = Firewall().getFirewallObject()
+    p.returncode = 0
+    self.assertEqual("RedHat7FirewallChecks", firewall_obj.__class__.__name__)
+    self.assertTrue(firewall_obj.check_firewall())
+    p.returncode = 3
+    self.assertFalse(firewall_obj.check_firewall())
+    self.assertEqual("err", firewall_obj.stderrdata)
+
     pass
 
   @patch("ambari_server.setupHttps.get_validated_filepath_input")
