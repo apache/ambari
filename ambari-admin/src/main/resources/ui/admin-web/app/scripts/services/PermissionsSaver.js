@@ -23,7 +23,6 @@ angular.module('ambariAdminConsole')
 
   function savePermissionsFor(resource, permissions, params){
     var arr = [];
-
     angular.forEach(permissions, function(permission) {
       // Sanitaize input
       var users = permission.USER.toString().split(',').filter(function(item) {return item.trim();}).map(function(item) {return item.trim()});
@@ -48,6 +47,19 @@ angular.module('ambariAdminConsole')
           }
         }
       }));
+
+      angular.forEach(View.clusterInheritedPermissionKeys, function(key) {
+        if(permission[key] === true) {
+          arr.push({
+            'PrivilegeInfo': {
+              'permission_name': 'VIEW.USER',
+              'principal_name': '*',
+              'principal_type': key
+            }
+          });
+        }
+      });
+
     });
     if (!passOneRoleCheck(arr)) {
       console.log("CHECK FAILED");
@@ -143,7 +155,7 @@ angular.module('ambariAdminConsole')
     var hash = {};
     for(var i = 0; i < arr.length; i++) {
       var obj = arr[i];
-      if (hash[obj.PrivilegeInfo.principal_name]) {
+      if (hash[obj.PrivilegeInfo.principal_name] && obj.PrivilegeInfo.principal_name !== "*") {
         return false;
       } else {
         hash[obj.PrivilegeInfo.principal_name] = true;

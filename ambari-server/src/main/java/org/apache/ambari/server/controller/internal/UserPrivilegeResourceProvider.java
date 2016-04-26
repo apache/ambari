@@ -17,12 +17,8 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.common.base.Function;
+import com.google.common.collect.FluentIterable;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -32,6 +28,7 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.GroupDAO;
+import org.apache.ambari.server.orm.dao.PrivilegeDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
@@ -39,14 +36,23 @@ import org.apache.ambari.server.orm.entities.GroupEntity;
 import org.apache.ambari.server.orm.entities.MemberEntity;
 import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
+import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
+import org.apache.ambari.server.security.authorization.ClusterInheritedPermissionHelper;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.security.authorization.UserType;
+
+import javax.annotation.Nullable;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Resource provider for user privilege resources.
@@ -86,6 +92,11 @@ public class UserPrivilegeResourceProvider extends ReadOnlyResourceProvider {
   protected static ViewInstanceDAO viewInstanceDAO;
 
   /**
+   * DAO used to obtain privilege entities.
+   */
+  protected static PrivilegeDAO privilegeDAO;
+
+  /**
    * The property ids for a privilege resource.
    */
   private static Set<String> propertyIds = new HashSet<String>();
@@ -105,18 +116,19 @@ public class UserPrivilegeResourceProvider extends ReadOnlyResourceProvider {
 
   /**
    * Static initialization.
-   *
-   * @param userDAO         the user data access object
+   *  @param userDAO         the user data access object
    * @param clusterDAO      the cluster data access object
    * @param groupDAO        the group data access object
    * @param viewInstanceDAO the view instance data access object
+   * @param privilegeDAO
    */
   public static void init(UserDAO userDAO, ClusterDAO clusterDAO, GroupDAO groupDAO,
-                          ViewInstanceDAO viewInstanceDAO) {
+                          ViewInstanceDAO viewInstanceDAO, PrivilegeDAO privilegeDAO) {
     UserPrivilegeResourceProvider.userDAO         = userDAO;
     UserPrivilegeResourceProvider.clusterDAO      = clusterDAO;
     UserPrivilegeResourceProvider.groupDAO        = groupDAO;
     UserPrivilegeResourceProvider.viewInstanceDAO = viewInstanceDAO;
+    UserPrivilegeResourceProvider.privilegeDAO    = privilegeDAO;
   }
 
   @SuppressWarnings("serial")
@@ -163,6 +175,7 @@ public class UserPrivilegeResourceProvider extends ReadOnlyResourceProvider {
     final Set<Resource> resources = new HashSet<Resource>();
     final Set<String> requestedIds = getRequestPropertyIds(request, predicate);
 
+
     boolean isUserAdministrator = AuthorizationHelper.isAuthorized(ResourceType.AMBARI, null,
         RoleAuthorization.AMBARI_MANAGE_USERS);
 
@@ -187,9 +200,14 @@ public class UserPrivilegeResourceProvider extends ReadOnlyResourceProvider {
         }
 
         final Set<PrivilegeEntity> privileges = userEntity.getPrincipal().getPrivileges();
+
         for (MemberEntity membership : userEntity.getMemberEntities()) {
           privileges.addAll(membership.getGroup().getPrincipal().getPrivileges());
         }
+
+        Set<PrivilegeEntity> allViewPrivilegesWithClusterPermission =
+          ClusterInheritedPermissionHelper.getViewPrivilegesWithClusterPermission(viewInstanceDAO, privilegeDAO, privileges);
+        privileges.addAll(allViewPrivilegesWithClusterPermission);
 
         for (PrivilegeEntity privilegeEntity : privileges) {
           resources.add(toResource(privilegeEntity, userName, requestedIds));
@@ -198,6 +216,7 @@ public class UserPrivilegeResourceProvider extends ReadOnlyResourceProvider {
     }
     return resources;
   }
+
 
   /**
    * Translate the found data into a Resource

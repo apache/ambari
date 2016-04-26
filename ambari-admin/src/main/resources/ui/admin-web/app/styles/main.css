@@ -1653,3 +1653,9 @@ thead.view-permission-header > tr > th {
 .role-details-modal .table-head .table-cell:last-of-type {
   visibility: hidden;
 }
+
+.cluster-inherited-permission {
+    border-bottom: 2px solid #ddd;
+    padding-bottom: 10px;
+    margin-top: 5px;
+}

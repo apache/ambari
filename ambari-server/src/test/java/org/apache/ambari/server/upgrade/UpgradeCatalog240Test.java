@@ -384,11 +384,18 @@ public class UpgradeCatalog240Test {
     Method removeHiveOozieDBConnectionConfigs = UpgradeCatalog240.class.getDeclaredMethod("removeHiveOozieDBConnectionConfigs");
     Method updateClustersAndHostsVersionStateTableDML = UpgradeCatalog240.class.getDeclaredMethod("updateClustersAndHostsVersionStateTableDML");
     Method removeStandardDeviationAlerts = UpgradeCatalog240.class.getDeclaredMethod("removeStandardDeviationAlerts");
+    Method getAndIncrementSequence = AbstractUpgradeCatalog.class.getDeclaredMethod("getAndIncrementSequence", String.class);
+
 
     Capture<String> capturedStatements = newCapture(CaptureType.ALL);
+    Capture<String> capturedTablesNames = newCapture(CaptureType.ALL);
+    Capture<String[]> captureColumnNames = newCapture(CaptureType.ALL);
+    Capture<String[]> captureColumnValues = newCapture(CaptureType.ALL);
+
 
     DBAccessor dbAccessor = createStrictMock(DBAccessor.class);
     expect(dbAccessor.executeUpdate(capture(capturedStatements))).andReturn(1).times(7);
+    expect(dbAccessor.insertRow(capture(capturedTablesNames), capture(captureColumnNames), capture(captureColumnValues), anyBoolean())).andReturn(true).times(10);
 
     UpgradeCatalog240 upgradeCatalog240 = createMockBuilder(UpgradeCatalog240.class)
             .addMockedMethod(addNewConfigurationsFromXml)
@@ -405,7 +412,10 @@ public class UpgradeCatalog240Test {
             .addMockedMethod(removeHiveOozieDBConnectionConfigs)
             .addMockedMethod(updateClustersAndHostsVersionStateTableDML)
             .addMockedMethod(removeStandardDeviationAlerts)
+            .addMockedMethod(getAndIncrementSequence)
             .createMock();
+
+    expect(upgradeCatalog240.getAndIncrementSequence(anyString())).andReturn(1).anyTimes();
 
     Field field = AbstractUpgradeCatalog.class.getDeclaredField("dbAccessor");
     field.set(upgradeCatalog240, dbAccessor);
@@ -441,6 +451,47 @@ public class UpgradeCatalog240Test {
     Assert.assertTrue(statements.contains("UPDATE adminpermission SET sort_order=5 WHERE permission_name='SERVICE.OPERATOR'"));
     Assert.assertTrue(statements.contains("UPDATE adminpermission SET sort_order=6 WHERE permission_name='CLUSTER.USER'"));
     Assert.assertTrue(statements.contains("UPDATE adminpermission SET sort_order=7 WHERE permission_name='VIEW.USER'"));
+
+
+    List<String> tableNames = capturedTablesNames.getValues();
+    Assert.assertNotNull(tableNames);
+    Assert.assertEquals(10, tableNames.size());
+    Assert.assertTrue(tableNames.contains("adminprincipaltype"));
+    Assert.assertTrue(tableNames.contains("adminprincipal"));
+
+    List<String[]> tableColumns = captureColumnNames.getValues();
+    Assert.assertNotNull(tableColumns);
+    Assert.assertEquals(10, tableColumns.size());
+    Assert.assertTrue(shouldOnlyHaveValidColumns(tableColumns));
+
+    List<String[]> tableColumnsValue = captureColumnValues.getValues();
+    Assert.assertNotNull(tableColumnsValue);
+    Assert.assertEquals(10, tableColumnsValue.size());
+    isValidValues(tableColumnsValue.get(0), "3", "'ALL.CLUSTER.ADMINISTRATOR'");
+    isValidValues(tableColumnsValue.get(1), "4", "'ALL.CLUSTER.OPERATOR'");
+    isValidValues(tableColumnsValue.get(2), "5", "'ALL.CLUSTER.USER'");
+    isValidValues(tableColumnsValue.get(3), "6", "'ALL.SERVICE.ADMINISTRATOR'");
+    isValidValues(tableColumnsValue.get(4), "7", "'ALL.SERVICE.OPERATOR'");
+    isValidValues(tableColumnsValue.get(5), "1", "3");
+    isValidValues(tableColumnsValue.get(6), "1", "4");
+    isValidValues(tableColumnsValue.get(7), "1", "5");
+    isValidValues(tableColumnsValue.get(8), "1", "6");
+    isValidValues(tableColumnsValue.get(9), "1", "7");
+  }
+
+  private void isValidValues(String[] actual, String expectedFirst, String expectedSecond) {
+    Assert.assertEquals(expectedFirst, actual[0]);
+    Assert.assertEquals(expectedSecond, actual[1]);
+  }
+
+  private boolean shouldOnlyHaveValidColumns(List<String[]> tableColumns) {
+    for(String[] columns: tableColumns) {
+      if (!(("principal_type_id".equalsIgnoreCase(columns[0]) && "principal_type_name".equalsIgnoreCase(columns[1]))
+        || ("principal_id".equalsIgnoreCase(columns[0]) && "principal_type_id".equalsIgnoreCase(columns[1])))) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @Test

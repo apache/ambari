@@ -28,6 +28,7 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.GroupDAO;
+import org.apache.ambari.server.orm.dao.PrivilegeDAO;
 import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.GroupEntity;
@@ -35,10 +36,7 @@ import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
-import org.apache.ambari.server.security.authorization.AuthorizationException;
-import org.apache.ambari.server.security.authorization.AuthorizationHelper;
-import org.apache.ambari.server.security.authorization.ResourceType;
-import org.apache.ambari.server.security.authorization.RoleAuthorization;
+import org.apache.ambari.server.security.authorization.*;
 
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -83,6 +81,12 @@ public class GroupPrivilegeResourceProvider extends ReadOnlyResourceProvider {
   protected static ViewInstanceDAO viewInstanceDAO;
 
   /**
+   * Data access object used to obtain privilege entities.
+   */
+  @Inject
+  protected static PrivilegeDAO privilegeDAO;
+
+  /**
    * The property ids for a privilege resource.
    */
   private static Set<String> propertyIds = new HashSet<String>();
@@ -103,16 +107,17 @@ public class GroupPrivilegeResourceProvider extends ReadOnlyResourceProvider {
 
   /**
    * Static initialization.
-   *
-   * @param clusterDAO      the cluster data access object
+   *  @param clusterDAO      the cluster data access object
    * @param groupDAO        the group data access object
    * @param viewInstanceDAO the view instance data access object
+   * @param privilegeDAO
    */
   public static void init(ClusterDAO clusterDAO, GroupDAO groupDAO,
-                          ViewInstanceDAO viewInstanceDAO) {
+                          ViewInstanceDAO viewInstanceDAO, PrivilegeDAO privilegeDAO) {
     GroupPrivilegeResourceProvider.clusterDAO = clusterDAO;
     GroupPrivilegeResourceProvider.groupDAO = groupDAO;
     GroupPrivilegeResourceProvider.viewInstanceDAO = viewInstanceDAO;
+    GroupPrivilegeResourceProvider.privilegeDAO = privilegeDAO;
   }
 
   @SuppressWarnings("serial")
@@ -176,6 +181,11 @@ public class GroupPrivilegeResourceProvider extends ReadOnlyResourceProvider {
         }
 
         final Set<PrivilegeEntity> privileges = groupEntity.getPrincipal().getPrivileges();
+
+        Set<PrivilegeEntity> allViewPrivilegesWithClusterPermission =
+          ClusterInheritedPermissionHelper.getViewPrivilegesWithClusterPermission(viewInstanceDAO, privilegeDAO, privileges);
+        privileges.addAll(allViewPrivilegesWithClusterPermission);
+
         for (PrivilegeEntity privilegeEntity : privileges) {
           resources.add(toResource(privilegeEntity, groupName, requestedIds));
         }

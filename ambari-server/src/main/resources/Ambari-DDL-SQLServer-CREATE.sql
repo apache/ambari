@@ -1021,8 +1021,8 @@ BEGIN TRANSACTION
     ('view_instance_id_seq', 1),
     ('resource_type_id_seq', 4),
     ('resource_id_seq', 2),
-    ('principal_type_id_seq', 3),
-    ('principal_id_seq', 2),
+    ('principal_type_id_seq', 8),
+    ('principal_id_seq', 7),
     ('permission_id_seq', 5),
     ('privilege_id_seq', 1),
     ('alert_definition_id_seq', 0),
@@ -1067,10 +1067,21 @@ BEGIN TRANSACTION
   insert into adminprincipaltype (principal_type_id, principal_type_name)
   values
     (1, 'USER'),
-    (2, 'GROUP');
+    (2, 'GROUP'),
+    (3, 'ALL.CLUSTER.ADMINISTRATOR'),
+    (4, 'ALL.CLUSTER.OPERATOR'),
+    (5, 'ALL.CLUSTER.USER'),
+    (6, 'ALL.SERVICE.ADMINISTRATOR'),
+    (7, 'ALL.SERVICE.OPERATOR');
 
   insert into adminprincipal (principal_id, principal_type_id)
-    select 1, 1;
+  values
+    (1, 1),
+    (2, 3),
+    (3, 4),
+    (4, 5),
+    (5, 6),
+    (6, 7);
 
   insert into users(user_id, principal_id, user_name, user_password)
     select 1, 1, 'admin','538916f8943ec225d97a9a86a2c6ec0818c1cd400e09e03b660fdaaec4af29ddbb6f2b1033b81b00';

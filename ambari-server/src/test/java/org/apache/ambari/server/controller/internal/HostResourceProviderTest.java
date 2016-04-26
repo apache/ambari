@@ -46,6 +46,7 @@ import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.security.authorization.AuthorizationHelperInitializer;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
@@ -113,6 +114,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
   }
 
   private void testCreateResources(Authentication authentication) throws Exception {
+    AuthorizationHelperInitializer.viewInstanceDAOReturningNull();
     Resource.Type type = Resource.Type.Host;
     Injector injector = createInjector();
 
@@ -185,6 +187,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
   }
 
   private void testGetResources(Authentication authentication) throws Exception {
+    AuthorizationHelperInitializer.viewInstanceDAOReturningNull();
     Resource.Type type = Resource.Type.Host;
     Injector injector = createInjector();
     AmbariManagementController managementController = injector.getInstance(AmbariManagementController.class);

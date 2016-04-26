@@ -110,6 +110,8 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   public static final String TIMELINE_METRICS_SINK_COLLECTION_PERIOD = "timeline.metrics.sink.collection.period";
   public static final String VIEWURL_TABLE = "viewurl";
   public static final String URL_ID_COLUMN = "url_id";
+  private static final String PRINCIPAL_TYPE_TABLE = "adminprincipaltype";
+  private static final String PRINCIPAL_TABLE = "adminprincipal";
 
 
   @Inject
@@ -228,6 +230,31 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     removeHiveOozieDBConnectionConfigs();
     updateClustersAndHostsVersionStateTableDML();
     removeStandardDeviationAlerts();
+    updateClusterInheritedPermissionsConfig();
+  }
+
+  protected void updateClusterInheritedPermissionsConfig() throws SQLException {
+    dbAccessor.insertRow(PRINCIPAL_TYPE_TABLE, new String[]{"principal_type_id", "principal_type_name"}, new String[]{"3", "'ALL.CLUSTER.ADMINISTRATOR'"}, true);
+    dbAccessor.insertRow(PRINCIPAL_TYPE_TABLE, new String[]{"principal_type_id", "principal_type_name"}, new String[]{"4", "'ALL.CLUSTER.OPERATOR'"}, true);
+    dbAccessor.insertRow(PRINCIPAL_TYPE_TABLE, new String[]{"principal_type_id", "principal_type_name"}, new String[]{"5", "'ALL.CLUSTER.USER'"}, true);
+    dbAccessor.insertRow(PRINCIPAL_TYPE_TABLE, new String[]{"principal_type_id", "principal_type_name"}, new String[]{"6", "'ALL.SERVICE.ADMINISTRATOR'"}, true);
+    dbAccessor.insertRow(PRINCIPAL_TYPE_TABLE, new String[]{"principal_type_id", "principal_type_name"}, new String[]{"7", "'ALL.SERVICE.OPERATOR'"}, true);
+    getAndIncrementSequence("principal_type_id_seq");
+    getAndIncrementSequence("principal_type_id_seq");
+    getAndIncrementSequence("principal_type_id_seq");
+    getAndIncrementSequence("principal_type_id_seq");
+    getAndIncrementSequence("principal_type_id_seq");
+
+    int nextPrincipalSeqId = getAndIncrementSequence("principal_id_seq");
+    dbAccessor.insertRow(PRINCIPAL_TABLE, new String[]{"principal_id", "principal_type_id"}, new String[]{Integer.toString(nextPrincipalSeqId), "3"}, true);
+    nextPrincipalSeqId = getAndIncrementSequence("principal_id_seq");
+    dbAccessor.insertRow(PRINCIPAL_TABLE, new String[]{"principal_id", "principal_type_id"}, new String[]{Integer.toString(nextPrincipalSeqId), "4"}, true);
+    nextPrincipalSeqId = getAndIncrementSequence("principal_id_seq");
+    dbAccessor.insertRow(PRINCIPAL_TABLE, new String[]{"principal_id", "principal_type_id"}, new String[]{Integer.toString(nextPrincipalSeqId), "5"}, true);
+    nextPrincipalSeqId = getAndIncrementSequence("principal_id_seq");
+    dbAccessor.insertRow(PRINCIPAL_TABLE, new String[]{"principal_id", "principal_type_id"}, new String[]{Integer.toString(nextPrincipalSeqId), "6"}, true);
+    nextPrincipalSeqId = getAndIncrementSequence("principal_id_seq");
+    dbAccessor.insertRow(PRINCIPAL_TABLE, new String[]{"principal_id", "principal_type_id"}, new String[]{Integer.toString(nextPrincipalSeqId), "7"}, true);
   }
 
   private void createSettingTable() throws SQLException {

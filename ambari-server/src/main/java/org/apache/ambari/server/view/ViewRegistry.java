@@ -18,7 +18,7 @@
 
 package org.apache.ambari.server.view;
 
-import com.google.common.base.Strings;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Sets;
 import com.google.common.eventbus.AllowConcurrentEvents;
 import com.google.common.eventbus.Subscribe;
@@ -42,6 +42,8 @@ import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.events.ServiceInstalledEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.MemberDAO;
+import org.apache.ambari.server.orm.dao.PermissionDAO;
+import org.apache.ambari.server.orm.dao.PrincipalDAO;
 import org.apache.ambari.server.orm.dao.PrivilegeDAO;
 import org.apache.ambari.server.orm.dao.ResourceDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
@@ -64,6 +66,7 @@ import org.apache.ambari.server.orm.entities.ViewParameterEntity;
 import org.apache.ambari.server.orm.entities.ViewResourceEntity;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
+import org.apache.ambari.server.security.authorization.ClusterInheritedPermissionHelper;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.state.Clusters;
@@ -223,6 +226,18 @@ public class ViewRegistry {
    */
   @Inject
   ResourceTypeDAO resourceTypeDAO;
+
+  /**
+   * Principal data access object.
+   */
+  @Inject
+  PrincipalDAO principalDAO;
+
+  /**
+   * Permission data access objects
+   */
+  @Inject
+  PermissionDAO permissionDAO;
 
   /**
    * The Ambari managed clusters.
@@ -1640,6 +1655,7 @@ public class ViewRegistry {
     }
 
     List<String> services = autoInstanceConfig.getServices();
+    List<String> permissions = autoInstanceConfig.getPermissions();
 
     Map<String, org.apache.ambari.server.state.Cluster> allClusters = clustersProvider.get().getClusters();
     for (org.apache.ambari.server.state.Cluster cluster : allClusters.values()) {
@@ -1656,12 +1672,51 @@ public class ViewRegistry {
             ViewInstanceEntity viewInstanceEntity = createViewInstanceEntity(viewEntity, viewConfig, autoInstanceConfig);
             viewInstanceEntity.setClusterHandle(clusterName);
             installViewInstance(viewInstanceEntity);
+            addClusterInheritedPermissions(viewInstanceEntity, permissions);
           }
         } catch (Exception e) {
           LOG.error("Can't auto create instance of view " + viewName + " for cluster " + clusterName +
             ".  Caught exception :" + e.getMessage(), e);
         }
       }
+    }
+  }
+
+  /**
+   * Validates principalTypes and creates privilege entities for each permission type for the view instance entity
+   * resource.
+   * @param viewInstanceEntity - view instance entity for which permission has to be set.
+   * @param principalTypes - list of cluster inherited principal types
+   */
+  @Transactional
+  private void addClusterInheritedPermissions(ViewInstanceEntity viewInstanceEntity, List<String> principalTypes) {
+    List<String> validPermissions = FluentIterable.from(principalTypes)
+      .filter(ClusterInheritedPermissionHelper.validPrincipalTypePredicate)
+      .toList();
+
+    for(String permission: validPermissions) {
+      addClusterInheritedPermission(viewInstanceEntity, permission);
+    }
+  }
+
+  private void addClusterInheritedPermission(ViewInstanceEntity viewInstanceEntity, String principalType) {
+    ResourceEntity resource = viewInstanceEntity.getResource();
+    List<PrincipalEntity> principals = principalDAO.findByPrincipalType(principalType);
+    if (principals.size() == 0) {
+      LOG.error("Failed to find principal for principal type '{}'", principalType);
+      return;
+    }
+
+    PrincipalEntity principal = principals.get(0); // There will be only one principal associated with the principal type
+    PermissionEntity permission = permissionDAO.findViewUsePermission();
+
+    if (!privilegeDAO.exists(principal, resource, permission)) {
+      PrivilegeEntity privilege = new PrivilegeEntity();
+      privilege.setPrincipal(principal);
+      privilege.setResource(resource);
+      privilege.setPermission(permission);
+
+      privilegeDAO.create(privilege);
     }
   }
 

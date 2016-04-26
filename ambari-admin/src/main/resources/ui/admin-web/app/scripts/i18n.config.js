@@ -209,6 +209,15 @@ angular.module('ambariAdminConsole')
       'urlCreate':'Create new URL',
       'urlDelete':'Delete URL',
 
+      'clusterPermissions': {
+        'label': 'Inherit Cluster Permission',
+        'allclusteradministrator': 'All Cluster Administrator',
+        'allclusteroperator': 'All Cluster Operator',
+        'allclusteruser': 'All Cluster User',
+        'allserviceadministrator': 'All Service Administrator',
+        'allserviceoperator': 'All Service Operator'
+      },
+
       'alerts': {
         'noSpecialChars': 'Must not contain any special characters.',
         'noSpecialCharsOrSpaces': 'Must not contain any special characters or spaces.',

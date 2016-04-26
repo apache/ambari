@@ -47,7 +47,8 @@ import javax.persistence.TableGenerator;
     , allocationSize = 500
 )
 @NamedQueries({
-  @NamedQuery(name = "principalByPrivilegeId", query = "SELECT principal FROM PrincipalEntity principal JOIN principal.privileges privilege WHERE privilege.permission.id=:permission_id")
+  @NamedQuery(name = "principalByPrivilegeId", query = "SELECT principal FROM PrincipalEntity principal JOIN principal.privileges privilege WHERE privilege.permission.id=:permission_id"),
+  @NamedQuery(name = "principalByPrincipalType", query = "SELECT principal FROM PrincipalEntity principal WHERE principal.principalType.name = :principal_type")
 })
 public class PrincipalEntity {
 

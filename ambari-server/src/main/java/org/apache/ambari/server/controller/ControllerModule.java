@@ -86,6 +86,7 @@ import org.apache.ambari.server.scheduler.ExecutionSchedulerImpl;
 import org.apache.ambari.server.security.AmbariEntryPoint;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.SecurityHelperImpl;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.security.encryption.CredentialStoreServiceImpl;
 import org.apache.ambari.server.serveraction.kerberos.KerberosOperationHandlerFactory;
@@ -368,6 +369,7 @@ public class ControllerModule extends AbstractModule {
 
     requestStaticInjection(DatabaseChecker.class);
     requestStaticInjection(KerberosChecker.class);
+    requestStaticInjection(AuthorizationHelper.class);
 
     bindByAnnotation(null);
     bindNotificationDispatchers();

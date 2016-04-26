@@ -63,6 +63,7 @@ import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.security.authorization.AuthorizationHelperInitializer;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
@@ -95,6 +96,7 @@ public class ComponentResourceProviderTest {
 
   @Before
   public void clearAuthentication() {
+    AuthorizationHelperInitializer.viewInstanceDAOReturningNull();
     SecurityContextHolder.getContext().setAuthentication(null);
   }
 

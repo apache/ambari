@@ -181,13 +181,11 @@ angular.module('ambariAdminConsole')
   };
 
   Group.getPrivileges = function(groupId) {
-    return $http.get(Settings.baseUrl + '/privileges', {
-        params:{
-          'PrivilegeInfo/principal_type': 'GROUP',
-          'PrivilegeInfo/principal_name': groupId,
-          'fields': '*'
-        }
-      });
+    return $http.get(Settings.baseUrl + '/groups/' + groupId + '/privileges', {
+      params:{
+        'fields': '*'
+      }
+    });
   };
 
   return Group;

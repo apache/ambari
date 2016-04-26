@@ -17,17 +17,20 @@
  */
 package org.apache.ambari.server.security.authorization;
 
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
+import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
-
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.dao.PrivilegeDAO;
 import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.RoleAuthorizationEntity;
-import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
@@ -38,7 +41,11 @@ import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Singleton
 /**
@@ -46,6 +53,12 @@ import java.util.*;
  */
 public class AuthorizationHelper {
   private final static Logger LOG = LoggerFactory.getLogger(AuthorizationHelper.class);
+
+  @Inject
+  static Provider<PrivilegeDAO> privilegeDAOProvider;
+
+  @Inject
+  static Provider<ViewInstanceDAO> viewInstanceDAOProvider;
 
   /**
    * Converts collection of RoleEntities to collection of GrantedAuthorities
@@ -197,8 +210,56 @@ public class AuthorizationHelper {
         }
       }
 
-      return false;
+      // Check if the resourceId is a view.
+      // Get all privileges for the resourceId and the principal associated for them should be of all cluster/service
+      // type.
+      // Now from the authorities check if the user privileges with CLUSTER/SERVICE type permission and has access to
+      // cluster resource with the permission.
+      // Then if the permission type matches the cluster/service type principal(names) then the user should have access
+      // to those views.
+
+      if(resourceId == null) {
+        return false;
+      }
+
+      ViewInstanceDAO viewInstanceDAO = viewInstanceDAOProvider.get();
+
+      ViewInstanceEntity instanceEntity = viewInstanceDAO.findByResourceId(resourceId);
+      if(instanceEntity == null || instanceEntity.getClusterHandle() == null) {
+        return false;
+      }
+
+      PrivilegeDAO privilegeDAO = privilegeDAOProvider.get();
+
+      final Set<String> privilegeNames = FluentIterable.from(privilegeDAO.findByResourceId(resourceId))
+        .filter(ClusterInheritedPermissionHelper.privilegeWithClusterInheritedPermissionTypePredicate)
+        .transform(ClusterInheritedPermissionHelper.permissionNameFromClusterInheritedPrivilege)
+        .toSet();
+
+      return FluentIterable.from(authentication.getAuthorities())
+        .filter(new Predicate<GrantedAuthority>() {
+          @Override
+          public boolean apply(GrantedAuthority grantedAuthority) {
+            AmbariGrantedAuthority authority = (AmbariGrantedAuthority) grantedAuthority;
+            PrivilegeEntity privilege = authority.getPrivilegeEntity();
+            String resourceTypeName = privilege.getResource().getResourceType().getName();
+            return ResourceType.translate(resourceTypeName) == ResourceType.CLUSTER;
+          }
+        }).transform(new Function<GrantedAuthority, PermissionEntity>() {
+          @Override
+          public PermissionEntity apply(GrantedAuthority grantedAuthority) {
+            AmbariGrantedAuthority authority = (AmbariGrantedAuthority) grantedAuthority;
+            PrivilegeEntity privilege = authority.getPrivilegeEntity();
+            return privilege.getPermission();
+          }
+        }).anyMatch(new Predicate<PermissionEntity>() {
+          @Override
+          public boolean apply(PermissionEntity input) {
+            return privilegeNames.contains(input.getPermissionName());
+          }
+        });
     }
+
   }
 
   /**

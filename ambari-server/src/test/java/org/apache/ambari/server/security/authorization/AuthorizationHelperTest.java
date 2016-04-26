@@ -17,14 +17,11 @@
  */
 package org.apache.ambari.server.security.authorization;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.Set;
-
+import com.google.common.collect.Lists;
+import com.google.inject.AbstractModule;
+import com.google.inject.Provider;
+import org.apache.ambari.server.orm.dao.PrivilegeDAO;
+import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
@@ -32,7 +29,9 @@ import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.RoleAuthorizationEntity;
+import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.easymock.EasyMockRule;
+import org.easymock.EasyMockSupport;
 import org.easymock.Mock;
 import org.easymock.MockType;
 import org.junit.Assert;
@@ -47,6 +46,14 @@ import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.Set;
+
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
@@ -57,7 +64,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-public class AuthorizationHelperTest {
+public class AuthorizationHelperTest  extends EasyMockSupport {
 
   @Rule
   public EasyMockRule mocks = new EasyMockRule(this);
@@ -164,6 +171,23 @@ public class AuthorizationHelperTest {
 
   @Test
   public void testIsAuthorized() {
+
+    Provider viewInstanceDAOProvider = createNiceMock(Provider.class);
+    Provider privilegeDAOProvider = createNiceMock(Provider.class);
+
+    ViewInstanceDAO viewInstanceDAO = createNiceMock(ViewInstanceDAO.class);
+    PrivilegeDAO privilegeDAO = createNiceMock(PrivilegeDAO.class);
+
+    expect(viewInstanceDAOProvider.get()).andReturn(viewInstanceDAO).anyTimes();
+    expect(privilegeDAOProvider.get()).andReturn(privilegeDAO).anyTimes();
+
+    replayAll();
+
+    AuthorizationHelper.viewInstanceDAOProvider = viewInstanceDAOProvider;
+    AuthorizationHelper.privilegeDAOProvider = privilegeDAOProvider;
+
+
+
     RoleAuthorizationEntity readOnlyRoleAuthorizationEntity = new RoleAuthorizationEntity();
     readOnlyRoleAuthorizationEntity.setAuthorizationId(RoleAuthorization.CLUSTER_VIEW_METRICS.getId());
 
@@ -295,6 +319,73 @@ public class AuthorizationHelperTest {
     assertTrue(AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, 1L, EnumSet.of(RoleAuthorization.CLUSTER_VIEW_METRICS)));
     assertTrue(AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, 1L, EnumSet.of(RoleAuthorization.CLUSTER_TOGGLE_KERBEROS)));
     assertTrue(AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, 1L, EnumSet.of(RoleAuthorization.AMBARI_MANAGE_USERS)));
+  }
+
+  @Test
+  public void testIsAuthorizedForClusterInheritedPermission() {
+
+    ResourceTypeEntity clusterResourceTypeEntity = new ResourceTypeEntity();
+    clusterResourceTypeEntity.setId(1);
+    clusterResourceTypeEntity.setName(ResourceType.CLUSTER.name());
+
+    ResourceEntity clusterResourceEntity = new ResourceEntity();
+    clusterResourceEntity.setResourceType(clusterResourceTypeEntity);
+    clusterResourceEntity.setId(1L);
+
+    PermissionEntity clusterPermissionEntity = new PermissionEntity();
+    clusterPermissionEntity.setPermissionName("CLUSTER.ADMINISTRATOR");
+
+    RoleAuthorizationEntity readOnlyRoleAuthorizationEntity = new RoleAuthorizationEntity();
+    readOnlyRoleAuthorizationEntity.setAuthorizationId(RoleAuthorization.CLUSTER_VIEW_METRICS.getId());
+
+    RoleAuthorizationEntity privilegedRoleAuthorizationEntity = new RoleAuthorizationEntity();
+    privilegedRoleAuthorizationEntity.setAuthorizationId(RoleAuthorization.CLUSTER_TOGGLE_KERBEROS.getId());
+
+
+    clusterPermissionEntity.setAuthorizations(Arrays.asList(readOnlyRoleAuthorizationEntity,
+      privilegedRoleAuthorizationEntity));
+
+    PrivilegeEntity clusterPrivilegeEntity = new PrivilegeEntity();
+    clusterPrivilegeEntity.setPermission(clusterPermissionEntity);
+    clusterPrivilegeEntity.setResource(clusterResourceEntity);
+
+    GrantedAuthority clusterAuthority = new AmbariGrantedAuthority(clusterPrivilegeEntity);
+    Authentication clusterUser = new TestAuthentication(Collections.singleton(clusterAuthority));
+
+
+    Provider viewInstanceDAOProvider = createNiceMock(Provider.class);
+    Provider privilegeDAOProvider = createNiceMock(Provider.class);
+
+    ViewInstanceDAO viewInstanceDAO = createNiceMock(ViewInstanceDAO.class);
+    PrivilegeDAO privilegeDAO = createNiceMock(PrivilegeDAO.class);
+
+    ViewInstanceEntity viewInstanceEntity = createNiceMock(ViewInstanceEntity.class);
+    expect(viewInstanceEntity.getClusterHandle()).andReturn("c1").anyTimes();
+
+    PrivilegeEntity privilegeEntity = createNiceMock(PrivilegeEntity.class);
+    PrincipalEntity principalEntity = createNiceMock(PrincipalEntity.class);
+    PrincipalTypeEntity principalTypeEntity = createNiceMock(PrincipalTypeEntity.class);
+
+    expect(viewInstanceDAOProvider.get()).andReturn(viewInstanceDAO).anyTimes();
+    expect(privilegeDAOProvider.get()).andReturn(privilegeDAO).anyTimes();
+
+    expect(viewInstanceDAO.findByResourceId(2L)).andReturn(viewInstanceEntity).anyTimes();
+
+    expect(privilegeDAO.findByResourceId(2L)).andReturn(Lists.newArrayList(privilegeEntity)).anyTimes();
+
+    expect(principalTypeEntity.getName()).andReturn("ALL.CLUSTER.ADMINISTRATOR").anyTimes();
+    expect(principalEntity.getPrincipalType()).andReturn(principalTypeEntity).anyTimes();
+    expect(privilegeEntity.getPrincipal()).andReturn(principalEntity).anyTimes();
+
+    replayAll();
+
+    AuthorizationHelper.viewInstanceDAOProvider = viewInstanceDAOProvider;
+    AuthorizationHelper.privilegeDAOProvider = privilegeDAOProvider;
+
+    SecurityContext context = SecurityContextHolder.getContext();
+    context.setAuthentication(clusterUser);
+
+    assertTrue(AuthorizationHelper.isAuthorized(ResourceType.VIEW, 2L, EnumSet.of(RoleAuthorization.VIEW_USE)));
   }
 
   public void testIsAuthorizedForSpecificView() {

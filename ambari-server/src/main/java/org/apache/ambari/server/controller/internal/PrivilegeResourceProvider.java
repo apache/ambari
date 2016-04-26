@@ -51,6 +51,7 @@ import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
+import org.apache.ambari.server.security.authorization.ClusterInheritedPermissionHelper;
 
 /**
  * Abstract resource provider for privilege resources.
@@ -348,6 +349,8 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractAuthorizedRes
       if (userEntity != null) {
         entity.setPrincipal(principalDAO.findById(userEntity.getPrincipal().getId()));
       }
+    } else if (ClusterInheritedPermissionHelper.isValidPrincipalType(principalType)) {
+      entity.setPrincipal(principalDAO.findByPrincipalType(principalType).get(0)); // There will be only one principal for that type
     } else {
       throw new AmbariException("Unknown principal type " + principalType);
     }

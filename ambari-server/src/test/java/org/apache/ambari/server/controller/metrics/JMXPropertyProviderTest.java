@@ -34,6 +34,7 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.security.authorization.AuthorizationHelperInitializer;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.junit.After;
@@ -95,6 +96,7 @@ public class JMXPropertyProviderTest {
     }
 
     replay(amc, clusters, cluster);
+    AuthorizationHelperInitializer.viewInstanceDAOReturningNull();
   }
 
   @After

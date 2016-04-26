@@ -75,6 +75,7 @@ public class AutoInstanceConfigTest {
       "        </property>\n" +
       "        <stack-id>HDP-2.0</stack-id>\n" +
       "        <services><service>HIVE</service><service>HDFS</service></services>\n" +
+      "        <permissions>ALL.CLUSTER.OPERATOR, ALL.CLUSTER.USER</permissions>\n" +
       "    </auto-instance>\n" +
       "</view>";
 
@@ -107,6 +108,15 @@ public class AutoInstanceConfigTest {
     assertEquals(2, serviceNames.size());
     assertTrue(serviceNames.contains("HIVE"));
     assertTrue(serviceNames.contains("HDFS"));
+  }
+
+  @Test
+  public void shouldParseClusterInheritedPermissions() throws Exception {
+    AutoInstanceConfig config = getAutoInstanceConfigs(VIEW_XML);
+    List<String> permissions = config.getPermissions();
+    assertEquals(2, permissions.size());
+    assertTrue(permissions.contains("ALL.CLUSTER.OPERATOR"));
+    assertTrue(permissions.contains("ALL.CLUSTER.USER"));
   }
 
   public static AutoInstanceConfig getAutoInstanceConfigs(String xml) throws JAXBException {

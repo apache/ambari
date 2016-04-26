@@ -54,6 +54,7 @@ import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.security.authorization.AuthorizationHelperInitializer;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.alert.AlertDefinition;
@@ -100,6 +101,7 @@ public class AlertDefinitionResourceProviderTest {
         new InMemoryDefaultTestModule()).with(new MockModule()));
 
     m_injector.injectMembers(m_factory);
+    AuthorizationHelperInitializer.viewInstanceDAOReturningNull();
   }
 
   @After

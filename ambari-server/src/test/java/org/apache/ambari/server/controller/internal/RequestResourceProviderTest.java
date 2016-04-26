@@ -69,6 +69,7 @@ import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.security.authorization.AuthorizationHelperInitializer;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.topology.ClusterTopology;
@@ -134,6 +135,8 @@ public class RequestResourceProviderTest {
     field = RequestResourceProvider.class.getDeclaredField("topologyManager");
     field.setAccessible(true);
     field.set(null, topologyManager);
+
+    AuthorizationHelperInitializer.viewInstanceDAOReturningNull();
   }
 
   @After

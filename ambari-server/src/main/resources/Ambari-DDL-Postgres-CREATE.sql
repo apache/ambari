@@ -1011,9 +1011,9 @@ INSERT INTO ambari_sequences (sequence_name, sequence_value)
   union all
   select 'resource_id_seq', 2
   union all
-  select 'principal_type_id_seq', 3
+  select 'principal_type_id_seq', 8
   union all
-  select 'principal_id_seq', 2
+  select 'principal_id_seq', 7
   union all
   select 'permission_id_seq', 5
   union all
@@ -1091,10 +1091,30 @@ INSERT INTO adminresource (resource_id, resource_type_id)
 INSERT INTO adminprincipaltype (principal_type_id, principal_type_name)
   SELECT 1, 'USER'
   UNION ALL
-  SELECT 2, 'GROUP';
+  SELECT 2, 'GROUP'
+  UNION ALL
+  SELECT 3, 'ALL.CLUSTER.ADMINISTRATOR'
+  UNION ALL
+  SELECT 4, 'ALL.CLUSTER.OPERATOR'
+  UNION ALL
+  SELECT 5, 'ALL.CLUSTER.USER'
+  UNION ALL
+  SELECT 6, 'ALL.SERVICE.ADMINISTRATOR'
+  UNION ALL
+  SELECT 7, 'ALL.SERVICE.OPERATOR';
 
 INSERT INTO adminprincipal (principal_id, principal_type_id)
-  SELECT 1, 1;
+  SELECT 1, 1
+  UNION ALL
+  SELECT 2, 3
+  UNION ALL
+  SELECT 3, 4
+  UNION ALL
+  SELECT 4, 5
+  UNION ALL
+  SELECT 5, 6
+  UNION ALL
+  SELECT 6, 7;
 
 INSERT INTO Users (user_id, principal_id, user_name, user_password)
   SELECT 1, 1, 'admin', '538916f8943ec225d97a9a86a2c6ec0818c1cd400e09e03b660fdaaec4af29ddbb6f2b1033b81b00';

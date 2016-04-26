@@ -997,8 +997,8 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('operation_l
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('view_instance_id_seq', 1);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('resource_type_id_seq', 4);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('resource_id_seq', 2);
-INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('principal_type_id_seq', 3);
-INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('principal_id_seq', 2);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('principal_type_id_seq', 8);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('principal_id_seq', 7);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('permission_id_seq', 5);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('privilege_id_seq', 1);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('config_id_seq', 1);
@@ -1046,10 +1046,30 @@ insert into adminresource (resource_id, resource_type_id)
 insert into adminprincipaltype (principal_type_id, principal_type_name)
   select 1, 'USER' from dual
   union all
-  select 2, 'GROUP' from dual;
+  select 2, 'GROUP' from dual
+  union all
+  select 3, 'ALL.CLUSTER.ADMINISTRATOR' from dual
+  union all
+  select 4, 'ALL.CLUSTER.OPERATOR' from dual
+  union all
+  select 5, 'ALL.CLUSTER.USER' from dual
+  union all
+  select 6, 'ALL.SERVICE.ADMINISTRATOR' from dual
+  union all
+  select 7, 'ALL.SERVICE.OPERATOR' from dual;
 
 insert into adminprincipal (principal_id, principal_type_id)
-  select 1, 1 from dual;
+  select 1, 1 from dual
+  union all
+  select 2, 3 from dual
+  union all
+  select 3, 4 from dual
+  union all
+  select 4, 5 from dual
+  union all
+  select 5, 6 from dual
+  union all
+  select 6, 7 from dual;
 
 insert into users(user_id, principal_id, user_name, user_password)
 select 1,1,'admin','538916f8943ec225d97a9a86a2c6ec0818c1cd400e09e03b660fdaaec4af29ddbb6f2b1033b81b00' from dual;

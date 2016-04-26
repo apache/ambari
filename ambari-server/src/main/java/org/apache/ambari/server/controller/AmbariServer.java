@@ -902,7 +902,7 @@ public class AmbariServer {
         injector.getInstance(GroupDAO.class), injector.getInstance(PrincipalDAO.class),
         injector.getInstance(PermissionDAO.class), injector.getInstance(ResourceDAO.class));
     UserPrivilegeResourceProvider.init(injector.getInstance(UserDAO.class), injector.getInstance(ClusterDAO.class),
-        injector.getInstance(GroupDAO.class), injector.getInstance(ViewInstanceDAO.class));
+        injector.getInstance(GroupDAO.class), injector.getInstance(ViewInstanceDAO.class), injector.getInstance(PrivilegeDAO.class));
     ClusterPrivilegeResourceProvider.init(injector.getInstance(ClusterDAO.class));
     AmbariPrivilegeResourceProvider.init(injector.getInstance(ClusterDAO.class));
     ActionManager.setTopologyManager(injector.getInstance(TopologyManager.class));

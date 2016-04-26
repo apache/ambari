@@ -107,41 +107,6 @@
   </div>
 </div>
 
-<div class="panel panel-default views-permissions-panel" style="">
-  <div class="panel-heading clearfix">
-    <h3 class="panel-title pull-left">{{'views.permissions' | translate}}</h3>
-  </div>
-  <div class="panel-body">
-
-
-    <table class="table" ng-show="!isPermissionsEmpty">
-      <thead>
-        <tr>
-          <th class="col-sm-2"><label>{{'views.permission' | translate}}</label></th>
-          <th><label>{{'views.grantUsers' | translate}}</label></th>
-          <th><label>{{'views.grantGroups' | translate}}</label></th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr ng-repeat="permission in permissions">
-          <td>
-            <label class="" tooltip="{{permission.PermissionInfo.permission_name}}">{{permission.PermissionInfo.permission_name | translate}}</label>
-          </td>
-          <td>
-            <editable-list items-source="permissionsEdit[permission.PermissionInfo.permission_name].USER" editable="true" resource-type="User"></editable-list>
-          </td>
-          <td>
-            <editable-list items-source="permissionsEdit[permission.PermissionInfo.permission_name].GROUP" editable="true" resource-type="Group" ></editable-list>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <div ng-show="isPermissionsEmpty">
-      <div class="alert alert-info">{{'views.alerts.notDefined' | translate: '{term: constants.perms}'}}</div>
-    </div>
-  </div>
-</div>
-
 <div class="panel panel-default" ng-cloak ng-hide="isSettingsEmpty && instance">
   <div class="panel-heading clearfix">
     <h3 class="panel-title pull-left">{{'views.settings' | translate}}</h3>
@@ -248,6 +213,56 @@
     </form>
     <div ng-show="isConfigurationEmpty">
       <div class="alert alert-info">{{'views.alerts.notDefined' | translate: '{term: constants.props}'}}</div>
+    </div>
+  </div>
+</div>
+
+<div class="panel panel-default views-permissions-panel" style="">
+  <div class="panel-heading clearfix">
+    <h3 class="panel-title pull-left">{{'views.permissions' | translate}}</h3>
+  </div>
+  <div class="panel-body">
+
+
+    <table class="table" ng-show="!isPermissionsEmpty">
+      <thead>
+      <tr>
+        <th class="col-sm-2"><label>{{'views.permission' | translate}}</label></th>
+        <th><label>{{'views.grantUsers' | translate}}</label></th>
+        <th><label>{{'views.grantGroups' | translate}}</label></th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr ng-repeat="permission in permissions">
+        <td>
+          <label class="" tooltip="{{permission.PermissionInfo.permission_name}}">{{permission.PermissionInfo.permission_name | translate}}</label>
+        </td>
+        <td>
+          <editable-list items-source="permissionsEdit[permission.PermissionInfo.permission_name].USER" editable="true" resource-type="User"></editable-list>
+        </td>
+        <td>
+          <editable-list items-source="permissionsEdit[permission.PermissionInfo.permission_name].GROUP" editable="true" resource-type="Group" ></editable-list>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+    <div ng-show="!isPermissionsEmpty && isLocalCluster && editConfigurationDisabled">
+      <div class="col-sm-12 cluster-inherited-permission">
+        <strong>{{'views.clusterPermissions.label' | translate}}</strong>
+      </div>
+      <div class="col-sm-offset-3 col-sm-9">
+        <div class="checkbox col-sm-4" ng-repeat="key in clusterInheritedPermissionKeys">
+          <div ng-init="i18nKey = 'views.clusterPermissions.' + key.split('.').join('').toLowerCase()">
+            <label>
+              <input type="checkbox" ng-model="permissionsEdit['VIEW.USER'][key]"> {{i18nKey | translate}}
+            </label>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div ng-show="isPermissionsEmpty">
+      <div class="alert alert-info">{{'views.alerts.notDefined' | translate: '{term: constants.perms}'}}</div>
     </div>
   </div>
 </div>

@@ -1015,9 +1015,9 @@ INSERT INTO ambari_sequences (sequence_name, sequence_value)
   union all
   select 'resource_id_seq', 2 FROM SYSIBM.SYSDUMMY1
   union all
-  select 'principal_type_id_seq', 3 FROM SYSIBM.SYSDUMMY1
+  select 'principal_type_id_seq', 8 FROM SYSIBM.SYSDUMMY1
   union all
-  select 'principal_id_seq', 2 FROM SYSIBM.SYSDUMMY1
+  select 'principal_id_seq', 7 FROM SYSIBM.SYSDUMMY1
   union all
   select 'permission_id_seq', 5 FROM SYSIBM.SYSDUMMY1
   union all
@@ -1095,10 +1095,30 @@ INSERT INTO adminresource (resource_id, resource_type_id)
 INSERT INTO adminprincipaltype (principal_type_id, principal_type_name)
   SELECT 1, 'USER' FROM SYSIBM.SYSDUMMY1
   UNION ALL
-  SELECT 2, 'GROUP' FROM SYSIBM.SYSDUMMY1;
+  SELECT 2, 'GROUP' FROM SYSIBM.SYSDUMMY1
+  UNION ALL
+  SELECT 3, 'ALL.CLUSTER.ADMINISTRATOR' FROM SYSIBM.SYSDUMMY1
+  UNION ALL
+  SELECT 4, 'ALL.CLUSTER.OPERATOR' FROM SYSIBM.SYSDUMMY1
+  UNION ALL
+  SELECT 5, 'ALL.CLUSTER.USER' FROM SYSIBM.SYSDUMMY1
+  UNION ALL
+  SELECT 6, 'ALL.SERVICE.ADMINISTRATOR' FROM SYSIBM.SYSDUMMY1
+  UNION ALL
+  SELECT 7, 'ALL.SERVICE.OPERRATOR' FROM SYSIBM.SYSDUMMY1;
 
 INSERT INTO adminprincipal (principal_id, principal_type_id)
-  SELECT 1, 1 FROM SYSIBM.SYSDUMMY1;
+  SELECT 1, 1 FROM SYSIBM.SYSDUMMY1
+  UNION ALL
+  SELECT 2, 3 FROM SYSIBM.SYSDUMMY1
+  UNION ALL
+  SELECT 3, 4 FROM SYSIBM.SYSDUMMY1
+  UNION ALL
+  SELECT 4, 5 FROM SYSIBM.SYSDUMMY1
+  UNION ALL
+  SELECT 5, 6 FROM SYSIBM.SYSDUMMY1
+  UNION ALL
+  SELECT 6, 7 FROM SYSIBM.SYSDUMMY1;
 
 INSERT INTO Users (user_id, principal_id, user_name, user_password)
   SELECT 1, 1, 'admin', '538916f8943ec225d97a9a86a2c6ec0818c1cd400e09e03b660fdaaec4af29ddbb6f2b1033b81b00' FROM SYSIBM.SYSDUMMY1;

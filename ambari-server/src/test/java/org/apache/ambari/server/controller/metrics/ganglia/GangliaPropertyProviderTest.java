@@ -34,6 +34,7 @@ import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.security.authorization.AuthorizationHelperInitializer;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.utils.CollectionPresentationUtils;
@@ -173,6 +174,7 @@ public class GangliaPropertyProviderTest {
 
   @Test(expected = AuthorizationException.class)
   public void testGangliaPropertyProviderAsViewUser() throws Exception {
+    AuthorizationHelperInitializer.viewInstanceDAOReturningNull();
     // Setup user with 'ViewUser'
     // ViewUser doesn't have the 'CLUSTER_VIEW_METRICS', 'HOST_VIEW_METRICS' and 'SERVICE_VIEW_METRICS', thus
     // can't retrieve the Metrics.

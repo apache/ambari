@@ -56,6 +56,7 @@ import org.apache.ambari.server.orm.entities.AlertGroupEntity;
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.security.authorization.AuthorizationHelperInitializer;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.alert.AlertTarget;
@@ -125,6 +126,7 @@ public class AlertGroupResourceProviderTest {
     expect(m_clusters.getClusterById(1L)).andReturn(m_cluster).anyTimes();
     expect(m_cluster.getClusterId()).andReturn(1L).anyTimes();
     expect(m_cluster.getResourceId()).andReturn(4L).anyTimes();
+    AuthorizationHelperInitializer.viewInstanceDAOReturningNull();
   }
 
   @After
