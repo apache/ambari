@@ -875,43 +875,6 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
-  public Map<String, Set<String>> getServiceComponentHostMap(Set<String> hostNames, Set<String> serviceNames) {
-    Map<String, Set<String>> componentHostMap = new HashMap<String, Set<String>>();
-
-    Collection<Host> hosts = getHosts();
-
-    if(hosts != null) {
-      for (Host host : hosts) {
-        String hostname = host.getHostName();
-
-        // If this host is not filtered out, continue processing
-        if ((hostNames == null) || hostNames.contains(hostname)) {
-          List<ServiceComponentHost> serviceComponentHosts = getServiceComponentHosts(hostname);
-
-          if (serviceComponentHosts != null) {
-            for (ServiceComponentHost sch : serviceComponentHosts) {
-              // If the service for this ServiceComponentHost is not filtered out, continue processing
-              if ((serviceNames == null) || serviceNames.contains(sch.getServiceName())) {
-                String component = sch.getServiceComponentName();
-                Set<String> componentHosts = componentHostMap.get(component);
-
-                if (componentHosts == null) {
-                  componentHosts = new HashSet<String>();
-                  componentHostMap.put(component, componentHosts);
-                }
-
-                componentHosts.add(hostname);
-              }
-            }
-          }
-        }
-      }
-    }
-
-    return componentHostMap;
-  }
-
-  @Override
   public List<ServiceComponentHost> getServiceComponentHosts(String serviceName, String componentName) {
     ArrayList<ServiceComponentHost> foundItems = new ArrayList<ServiceComponentHost>();
 
