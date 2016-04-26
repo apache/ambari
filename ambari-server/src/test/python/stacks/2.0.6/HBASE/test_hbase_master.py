@@ -96,6 +96,24 @@ class TestHBaseMaster(RMFTestCase):
       user = 'hbase'
     )
     self.assertNoMoreResources()
+    pass
+
+  def test_start_default_bucketcache(self):
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hbase_master.py",
+                       classname = "HbaseMaster",
+                       command = "start",
+                       config_file="default_with_bucket.json",
+                       stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
+
+    self.assert_configure_default(bucketcache_ioengine_as_file=True)
+    self.assertResourceCalled('Execute', '/usr/lib/hbase/bin/hbase-daemon.sh --config /etc/hbase/conf start master',
+                              not_if = 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hbase/hbase-hbase-master.pid && ps -p `ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E cat /var/run/hbase/hbase-hbase-master.pid` >/dev/null 2>&1',
+                              user = 'hbase'
+    )
+    self.assertNoMoreResources()
+    pass
     
   def test_stop_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hbase_master.py",
@@ -240,7 +258,7 @@ class TestHBaseMaster(RMFTestCase):
                               )
     self.assertNoMoreResources()
 
-  def assert_configure_default(self):
+  def assert_configure_default(self, bucketcache_ioengine_as_file=False):
     self.assertResourceCalled('Directory', '/etc/hbase',
       mode = 0755
     )
@@ -253,6 +271,14 @@ class TestHBaseMaster(RMFTestCase):
       create_parents = True,
       mode = 0777
     )
+    if bucketcache_ioengine_as_file:
+      self.assertResourceCalled('Directory', '/mnt/bucket',
+                                create_parents = True,
+                                owner = 'hbase',
+                                group = 'hadoop',
+                                mode = 0755
+      )
+      pass
     self.assertResourceCalled('Directory', '/hadoop',
                               create_parents = True,
                               cd_access = 'a',
