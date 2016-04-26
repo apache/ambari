@@ -47,6 +47,13 @@ public enum CheckDescription {
             "There are hosts which are not communicating with Ambari.");
       }}),
 
+  HEALTH(PrereqCheckType.CLUSTER,
+      "Cluster Health",
+      new HashMap<String, String>() {{
+        put(AbstractCheckDescriptor.DEFAULT,
+            "The following issues have been detected on this cluster and should be addressed before upgrading: %s");
+      }}),
+
   HOSTS_MAINTENANCE_MODE(PrereqCheckType.HOST,
       "Hosts in Maintenance Mode will be excluded from the upgrade.",
       new HashMap<String, String>() {{
