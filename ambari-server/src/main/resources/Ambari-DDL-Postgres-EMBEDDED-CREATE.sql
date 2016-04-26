@@ -730,6 +730,7 @@ CREATE TABLE ambari.viewentity (
 );
 GRANT ALL PRIVILEGES ON TABLE ambari.viewmain TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.viewinstancedata TO :username;
+GRANT ALL PRIVILEGES ON TABLE ambari.viewurl TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.viewinstance TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.viewinstanceproperty TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.viewparameter TO :username;
