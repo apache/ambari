@@ -19,7 +19,6 @@ package org.apache.ambari.server.controller.internal;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -56,7 +55,6 @@ import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
-import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.OperatingSystemInfo;
 import org.apache.ambari.server.state.RepositoryVersionState;
@@ -65,7 +63,6 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.repository.ManifestServiceInfo;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
-import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
@@ -214,10 +211,6 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
             throw new AmbariException("Repository version for stack " + entity.getStack() + " and version " + entity.getVersion() + " already exists");
           }
 
-          if (!upgradePackExists(entity.getVersion())) {
-            throw new AmbariException("Stack " + entity.getStackId() + " doesn't have upgrade packages");
-          }
-
           validateRepositoryVersion(repositoryVersionDAO, ambariMetaInfo, entity);
 
           repositoryVersionDAO.create(entity);
@@ -361,10 +354,6 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
             entity.setDisplayName(propertyMap.get(REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID).toString());
           }
 
-          if (!upgradePackExists(entity.getVersion())) {
-            throw new AmbariException("Stack " + entity.getStackId() + " doesn't have upgrade packages");
-          }
-
           validateRepositoryVersion(repositoryVersionDAO, ambariMetaInfo, entity);
 
           repositoryVersionDAO.merge(entity);
@@ -502,35 +491,6 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
           repositoryVersion.getVersion(), repositoryVersion.getStackName() + "-" + repositoryVersion.getStackVersion()));
     }
   }
-
-  /**
-   * Check for required upgrade pack across all stack definitions
-   * @param checkVersion version to check (e.g. 2.2.3.0-1111)
-   * @return existence flag
-   */
-  private boolean upgradePackExists(String checkVersion) throws AmbariException{
-    Collection<StackInfo> stacks = new ArrayList<StackInfo>();
-
-    // Search results only in the installed stacks
-    for (Cluster cluster : clusters.get().getClusters().values()){
-      stacks.add(ambariMetaInfo.getStack(cluster.getCurrentStackVersion().getStackName(),
-                                          cluster.getCurrentStackVersion().getStackVersion()));
-    }
-
-    for (StackInfo si: stacks){
-      Map<String, UpgradePack> upgradePacks = si.getUpgradePacks();
-      if (upgradePacks!=null) {
-        for (UpgradePack upgradePack: upgradePacks.values()){
-          if (upgradePack.canBeApplied(checkVersion)) {
-            // If we found at least one match, the rest could be skipped
-            return true;
-          }
-        }
-      }
-    }
-   return false;
-  }
-
 
   /**
    * Transforms map of json properties to repository version entity.
