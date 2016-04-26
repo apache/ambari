@@ -68,7 +68,8 @@
           "depends-on": [
             {
               "configs":[
-                "hive-interactive-env/enable_hive_interactive"
+                "hive-interactive-env/enable_hive_interactive",
+                "hive-interactive-site/hive.llap.daemon.queue.name"
               ],
               "if": "${hive-interactive-env/enable_hive_interactive} && ${hive-interactive-site/hive.llap.daemon.queue.name} === llap",
               "then": {
