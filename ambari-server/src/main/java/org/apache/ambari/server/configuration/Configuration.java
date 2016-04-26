@@ -17,11 +17,19 @@
  */
 package org.apache.ambari.server.configuration;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Properties;
+
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
@@ -42,18 +50,11 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Properties;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 
 /**
@@ -459,6 +460,11 @@ public class Configuration {
   private static final int VIEW_EXTRACTION_THREADPOOL_CORE_SIZE_DEFAULT = 10;
   private static final String VIEW_EXTRACTION_THREADPOOL_TIMEOUT_KEY = "view.extraction.threadpool.timeout";
   private static final long VIEW_EXTRACTION_THREADPOOL_TIMEOUT_DEFAULT = 100000L;
+  private static final String VIEW_REQUEST_THREADPOOL_MAX_SIZE_KEY = "view.request.threadpool.size.max";
+  private static final int VIEW_REQUEST_THREADPOOL_MAX_SIZE_DEFAULT = 0;
+  private static final String VIEW_REQUEST_THREADPOOL_TIMEOUT_KEY = "view.request.threadpool.timeout";
+  private static final int VIEW_REQUEST_THREADPOOL_TIMEOUT_DEFAULT = 2000;
+
 
   private static final String SERVER_HTTP_SESSION_INACTIVE_TIMEOUT = "server.http.session.inactive_timeout";
 
@@ -2092,6 +2098,32 @@ public class Configuration {
   public long getViewExtractionThreadPoolTimeout() {
     return Long.parseLong(properties.getProperty(
         VIEW_EXTRACTION_THREADPOOL_TIMEOUT_KEY, String.valueOf(VIEW_EXTRACTION_THREADPOOL_TIMEOUT_DEFAULT)));
+  }
+
+  /**
+   * Get the maximum number of threads that will be allocated to fulfilling view
+   * requests.
+   *
+   * @return the maximum number of threads that will be allocated for requests
+   *         to load views or {@value #VIEW_REQUEST_THREADPOOL_MAX_SIZE_DEFAULT}
+   *         if not specified.
+   */
+  public int getViewRequestThreadPoolMaxSize() {
+    return Integer.parseInt(properties.getProperty(VIEW_REQUEST_THREADPOOL_MAX_SIZE_KEY,
+        String.valueOf(VIEW_REQUEST_THREADPOOL_MAX_SIZE_DEFAULT)));
+  }
+
+  /**
+   * Get the time, in ms, that a request to a view will wait for an available
+   * thread to handle the request before returning an error.
+   *
+   * @return the time that requests for a view should wait for an available
+   *         thread or {@value #VIEW_REQUEST_THREADPOOL_TIMEOUT_DEFAULT} if not
+   *         specified.
+   */
+  public int getViewRequestThreadPoolTimeout() {
+    return Integer.parseInt(properties.getProperty(VIEW_REQUEST_THREADPOOL_TIMEOUT_KEY,
+        String.valueOf(VIEW_REQUEST_THREADPOOL_TIMEOUT_DEFAULT)));
   }
 
   /**

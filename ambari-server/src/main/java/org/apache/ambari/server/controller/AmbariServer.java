@@ -108,6 +108,7 @@ import org.apache.ambari.server.utils.RetryHelper;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.ambari.server.view.ViewRegistry;
+import org.apache.ambari.server.view.ViewThrottleFilter;
 import org.apache.velocity.app.Velocity;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.SessionIdManager;
@@ -342,6 +343,12 @@ public class AmbariServer {
       // requests.
       root.addFilter(new FilterHolder(injector.getInstance(AmbariViewsSecurityHeaderFilter.class)), "/api/v1/views/*",
           DISPATCHER_TYPES);
+
+      // since views share the REST API threadpool, a misbehaving view could
+      // consume all of the available threads and effectively cause a loss of
+      // service for Ambari
+      root.addFilter(new FilterHolder(injector.getInstance(ViewThrottleFilter.class)),
+          "/api/v1/views/*", DISPATCHER_TYPES);
 
       // session-per-request strategy for api
       root.addFilter(new FilterHolder(injector.getInstance(AmbariPersistFilter.class)), "/api/*", DISPATCHER_TYPES);
