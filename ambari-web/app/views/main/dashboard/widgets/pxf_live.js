@@ -18,66 +18,66 @@
 
 var App = require('app');
 
-App.HawqSegmentUpView = App.TextDashboardWidgetView.extend({
+App.PxfUpView = App.TextDashboardWidgetView.extend({
 
-  title: Em.I18n.t('dashboard.widgets.HawqSegmentUp'),
-  id: '24',
+  title: Em.I18n.t('dashboard.widgets.PxfUp'),
+  id: '25',
 
   isPieChart: false,
   isText: true,
   isProgressBar: false,
-  model_type: 'hawq',
+  model_type: 'pxf',
 
   hiddenInfo: function () {
     var result = [];
-    result.pushObject(this.get('hawqSegmentsStarted') + ' ' + Em.I18n.t('dashboard.services.components.started'));
-    result.pushObject(this.get('hawqSegmentsInstalled') + ' ' + Em.I18n.t('dashboard.services.components.stopped'));
-    result.pushObject(this.get('hawqSegmentsTotal')+ ' ' + Em.I18n.t('dashboard.services.components.total'));
+    result.pushObject(this.get('pxfsStarted') + ' ' + Em.I18n.t('dashboard.services.components.started'));
+    result.pushObject(this.get('pxfsInstalled') + ' ' + Em.I18n.t('dashboard.services.components.stopped'));
+    result.pushObject(this.get('pxfsTotal')+ ' ' + Em.I18n.t('dashboard.services.components.total'));
     return result;
-  }.property('hawqSegmentsStarted', 'hawqSegmentsInstalled', 'hawqSegmentsTotal'),
+  }.property('pxfsStarted', 'pxfsInstalled', 'pxfsTotal'),
   hiddenInfoClass: "hidden-info-three-line",
 
   thresh1: 75,
   thresh2: 90,
   maxValue: 100,
 
-  hawqSegmentsStarted: function () {
-    if (Em.isNone(this.get('model.hawqSegmentsStarted'))) {
+  pxfsStarted: function () {
+    if (Em.isNone(this.get('model.pxfsStarted'))) {
       return Em.I18n.t('services.service.summary.notAvailable');
     }
-    return this.get('model.hawqSegmentsStarted');
-  }.property('model.hawqSegmentsStarted'),
+    return this.get('model.pxfsStarted');
+  }.property('model.pxfsStarted'),
 
-  hawqSegmentsInstalled: function () {
-    if (Em.isNone(this.get('model.hawqSegmentsInstalled'))) {
+  pxfsInstalled: function () {
+    if (Em.isNone(this.get('model.pxfsInstalled'))) {
       return Em.I18n.t('services.service.summary.notAvailable');
     }
-    return this.get('model.hawqSegmentsInstalled');
-  }.property('model.hawqSegmentsInstalled'),
+    return this.get('model.pxfsInstalled');
+  }.property('model.pxfsInstalled'),
 
 
-  hawqSegmentsTotal: function () {
-    if (Em.isNone(this.get('model.hawqSegmentsTotal'))) {
+  pxfsTotal: function () {
+    if (Em.isNone(this.get('model.pxfsTotal'))) {
       return Em.I18n.t('services.service.summary.notAvailable');
     }
-    return this.get('model.hawqSegmentsTotal');
-  }.property('model.hawqSegmentsTotal'),
+    return this.get('model.pxfsTotal');
+  }.property('model.pxfsTotal'),
 
   data: function () {
-    if (Em.isNone(this.get('model.hawqSegmentsStarted')) || Em.isNone(this.get('model.hawqSegmentsTotal'))) {
+    if (Em.isNone(this.get('model.pxfsStarted')) || Em.isNone(this.get('model.pxfsTotal'))) {
       return null;
     } else {
-      return ((this.get('hawqSegmentsStarted') / this.get('model.hawqSegmentsTotal')).toFixed(2)) * 100;
+      return ((this.get('pxfsStarted') / this.get('model.pxfsTotal')).toFixed(2)) * 100;
     }
-  }.property('model.hawqSegmentsTotal', 'hawqSegmentsStarted'),
+  }.property('model.pxfsTotal', 'pxfsStarted'),
 
   content: function () {
-    if (Em.isNone(this.get('model.hawqSegmentsStarted')) || Em.isNone(this.get('model.hawqSegmentsTotal'))) {
+    if (Em.isNone(this.get('model.pxfsStarted')) || Em.isNone(this.get('model.pxfsTotal'))) {
       return Em.I18n.t('services.service.summary.notAvailable');
     } else {
-      return this.get('hawqSegmentsStarted') + "/" + this.get('model.hawqSegmentsTotal');
+      return this.get('pxfsStarted') + "/" + this.get('model.pxfsTotal');
     }
-  }.property('model.hawqSegmentsTotal', 'hawqSegmentsStarted'),
+  }.property('model.pxfsTotal', 'pxfsStarted'),
 
   editWidget: function (event) {
     var parent = this;
