@@ -24,6 +24,8 @@ angular.module('ambariAdminConsole')
     angular.extend(this, item);
   }
 
+
+
   ViewInstance.find = function(viewName, version, instanceName) {
     var deferred = $q.defer();
     var fields = [
@@ -49,6 +51,114 @@ angular.module('ambariAdminConsole')
 
     return deferred.promise;
   };
+
+
+  function ViewUrl(item) {
+    angular.extend(this, item);
+  }
+
+  function URLStatus(item){
+    angular.element(this,item);
+  }
+
+  ViewUrl.all = function() {
+    var deferred = $q.defer();
+
+    $http({
+      method: 'GET',
+      dataType: "json",
+      url: Settings.baseUrl + '/view/urls',
+
+    })
+        .success(function(data) {
+          deferred.resolve(new ViewUrl(data));
+        })
+        .error(function(data) {
+          deferred.reject(data);
+        });
+
+    return deferred.promise;
+  };
+
+
+  ViewUrl.updateShortUrl = function(payload){
+    var deferred = $q.defer();
+
+    $http({
+      method: 'POST',
+      dataType: "json",
+      url: Settings.baseUrl + '/view/urls/'+payload.ViewUrlInfo.url_name,
+      data:payload
+    })
+        .success(function(data) {
+          deferred.resolve(new URLStatus(data));
+        })
+        .error(function(data) {
+          deferred.reject(data);
+        });
+
+    return deferred.promise;
+  };
+
+  ViewUrl.deleteUrl = function(urlName){
+    var deferred = $q.defer();
+
+    $http({
+      method: 'DELETE',
+      dataType: "json",
+      url: Settings.baseUrl + '/view/urls/'+ urlName,
+    })
+        .success(function(data) {
+          deferred.resolve(new URLStatus(data));
+        })
+        .error(function(data) {
+          deferred.reject(data);
+        });
+
+    return deferred.promise;
+  };
+
+
+  ViewUrl.editShortUrl = function(payload){
+    var deferred = $q.defer();
+
+    $http({
+      method: 'PUT',
+      dataType: "json",
+      url: Settings.baseUrl + '/view/urls/'+payload.ViewUrlInfo.url_name,
+      data:payload
+    })
+        .success(function(data) {
+          deferred.resolve(new URLStatus(data));
+        })
+        .error(function(data) {
+          deferred.reject(data);
+        });
+
+    return deferred.promise;
+  };
+
+
+  ViewUrl.urlInfo =  function(urlName){
+
+    var deferred = $q.defer();
+
+    $http({
+      method: 'GET',
+      dataType: "json",
+      url: Settings.baseUrl + '/view/urls/'+urlName,
+
+    })
+        .success(function(data) {
+          deferred.resolve(new ViewUrl(data));
+        })
+        .error(function(data) {
+          deferred.reject(data);
+        });
+
+    return deferred.promise;
+  };
+
 
 
   function View(item){
@@ -77,6 +187,27 @@ angular.module('ambariAdminConsole')
 
   View.getInstance = function(viewName, version, instanceName) {
     return ViewInstance.find(viewName, version, instanceName);
+  };
+
+  View.allUrls =  function(){
+    return ViewUrl.all()
+  };
+
+  View.getUrlInfo = function(urlName){
+    return ViewUrl.urlInfo(urlName);
+  };
+
+  View.deleteUrl = function(urlName){
+    return ViewUrl.deleteUrl(urlName);
+  };
+
+
+  View.updateShortUrl = function(payload){
+    return ViewUrl.updateShortUrl(payload);
+  };
+
+  View.editShortUrl = function(payload){
+    return ViewUrl.editShortUrl(payload);
   };
 
   View.deleteInstance = function(viewName, version, instanceName) {
@@ -168,8 +299,7 @@ angular.module('ambariAdminConsole')
         visible: instanceInfo.visible,
         icon_path: instanceInfo.icon_path,
         icon64_path: instanceInfo.icon64_path,
-        description: instanceInfo.description,
-        short_url:instanceInfo.shortUrl
+        description: instanceInfo.description
       };
 
     angular.forEach(instanceInfo.properties, function(property) {
@@ -308,7 +438,7 @@ angular.module('ambariAdminConsole')
       url: Settings.baseUrl + '/views',
       params:{
         'fields': fields.join(','),
-        'versions/ViewVersionInfo/system': false
+        'versions/ViewVersionInfo/system' : false
       }
     }).success(function(data) {
       var views = [];

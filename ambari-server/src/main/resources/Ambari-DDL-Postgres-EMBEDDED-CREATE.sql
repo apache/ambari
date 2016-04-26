@@ -645,6 +645,16 @@ CREATE TABLE ambari.viewmain (
   CONSTRAINT PK_viewmain PRIMARY KEY (view_name),
   CONSTRAINT FK_view_resource_type_id FOREIGN KEY (resource_type_id) REFERENCES ambari.adminresourcetype(resource_type_id));
 
+
+
+CREATE table ambari.viewurl(
+  url_id BIGINT ,
+  url_name VARCHAR(255) NOT NULL ,
+  url_suffix VARCHAR(255) NOT NULL,
+  PRIMARY KEY(url_id)
+);
+
+
 CREATE TABLE ambari.viewinstance (
   view_instance_id BIGINT,
   resource_id BIGINT NOT NULL,
@@ -658,8 +668,9 @@ CREATE TABLE ambari.viewinstance (
   xml_driven CHAR(1),
   alter_names SMALLINT NOT NULL DEFAULT 1,
   cluster_handle VARCHAR(255),
-  short_url VARCHAR (255),
+  short_url BIGINT,
   CONSTRAINT PK_viewinstance PRIMARY KEY (view_instance_id),
+  CONSTRAINT FK_instance_url_id FOREIGN KEY (short_url) REFERENCES ambari.viewurl(url_id),
   CONSTRAINT FK_viewinst_view_name FOREIGN KEY (view_name) REFERENCES ambari.viewmain(view_name),
   CONSTRAINT FK_viewinstance_resource_id FOREIGN KEY (resource_id) REFERENCES ambari.adminresource(resource_id),
   CONSTRAINT UQ_viewinstance_name UNIQUE (view_name, name),

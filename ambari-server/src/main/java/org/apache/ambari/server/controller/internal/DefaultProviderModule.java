@@ -68,6 +68,8 @@ public class DefaultProviderModule extends AbstractProviderModule {
         return new ViewVersionResourceProvider();
       case ViewInstance:
         return new ViewInstanceResourceProvider();
+      case ViewURL:
+        return new ViewURLResourceProvider();
       case StackServiceComponentDependency:
         return new StackDependencyResourceProvider(propertyIds, keyPropertyIds);
       case Permission:

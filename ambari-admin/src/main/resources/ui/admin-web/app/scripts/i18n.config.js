@@ -32,6 +32,7 @@ angular.module('ambariAdminConsole')
       'signOut': 'Sign out',
       'clusters': 'Clusters',
       'views': 'Views',
+      'viewUrls': 'View URL\'s',
       'roles': 'Roles',
       'users': 'Users',
       'groups': 'Groups',
@@ -132,7 +133,9 @@ angular.module('ambariAdminConsole')
         'cannotLoadClusterStatus': 'Cannot load cluster status',
         'clusterRenamed': 'The cluster has been renamed to {{clusterName}}.',
         'cannotRenameCluster': 'Cannot rename cluster to {{clusterName}}',
-        'unsavedChanges': 'You have unsaved changes. Save changes or discard?'
+        'tooShort': 'URL is too short',
+        'tooLong': 'URL is too long',
+        'onlyText': 'You can add only text urls in the lower case'
       }
     },
 
@@ -202,6 +205,8 @@ angular.module('ambariAdminConsole')
       'pending': 'Pending...',
       'deploying': 'Deploying...',
       'properties': 'properties',
+      'urlCreate':'Create new URL',
+      'urlDelete':'Delete URL',
 
       'alerts': {
         'noSpecialChars': 'Must not contain any special characters.',
@@ -222,8 +227,25 @@ angular.module('ambariAdminConsole')
         'cannotSaveSettings': 'Cannot save settings',
         'cannotSaveProperties': 'Cannot save properties',
         'cannotDeleteInstance': 'Cannot delete instance',
-        'cannotLoadViews': 'Cannot load views'
+        'cannotLoadViews': 'Cannot load views',
+        'cannotLoadViewUrls': 'Cannot load view URL\'s',
+        'cannotLoadViewUrl': 'Cannot load view URL'
       }
+    },
+
+    'urls':{
+      'name':'Name',
+      'url':'URL',
+      'create':'Create',
+      'edit':'Edit',
+      'view':'View',
+      'viewInstance':'Instance',
+      'step1':'Create URL',
+      'step2':'Select instance',
+      'step3':'Assign URL',
+      'noUrlsToDisplay':'No short URL\'s configured',
+      'urlCreated':'Created short URL <a href="/#/main/view/{{viewName}}/{{shortUrl}}">{{urlName}}</a>',
+      'urlUpdated':'Updated short URL <a href="/#/main/view/{{viewName}}/{{shortUrl}}">{{urlName}}</a>'
     },
 
     'clusters': {

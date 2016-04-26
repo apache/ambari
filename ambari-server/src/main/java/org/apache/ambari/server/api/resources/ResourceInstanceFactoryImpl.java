@@ -237,6 +237,10 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new ViewInstanceResourceDefinition(subResourceDefinitions);
         break;
 
+      case ViewURL:
+        resourceDefinition = new ViewUrlResourceDefinition();
+        break;
+
       case Blueprint:
         resourceDefinition = new BlueprintResourceDefinition();
         break;

@@ -281,55 +281,6 @@ public class ViewInstanceResourceProviderTest {
   }
 
 
-  @Test
-  public void testCreateWithShortUrlValidations() throws Exception {
-
-    ViewInstanceResourceProvider provider = new ViewInstanceResourceProvider();
-
-    Set<Map<String, Object>> properties = new HashSet<Map<String, Object>>();
-
-    Map<String, Object> propertyMap = new HashMap<String, Object>();
-
-    propertyMap.put(ViewInstanceResourceProvider.VIEW_NAME_PROPERTY_ID, "V1");
-    propertyMap.put(ViewInstanceResourceProvider.VIEW_VERSION_PROPERTY_ID, "1.0.0");
-    propertyMap.put(ViewInstanceResourceProvider.INSTANCE_NAME_PROPERTY_ID, "I1");
-    propertyMap.put(ViewInstanceResourceProvider.SHORT_URL_PROPERTY_ID, "testUrl");
-
-    properties.add(propertyMap);
-
-    ViewInstanceEntity viewInstanceEntity = new ViewInstanceEntity();
-    viewInstanceEntity.setViewName("V1{1.0.0}");
-    viewInstanceEntity.setName("I1");
-    viewInstanceEntity.setShortUrl("testUrl");
-
-    ViewEntity viewEntity = new ViewEntity();
-    viewEntity.setStatus(ViewDefinition.ViewStatus.DEPLOYED);
-    viewEntity.setName("V1{1.0.0}");
-
-    viewInstanceEntity.setViewEntity(viewEntity);
-
-    expect(viewregistry.duplicatedShortUrl(viewInstanceEntity)).andReturn(true);
-    expect(viewregistry.getDefinition("V1", "1.0.0")).andReturn(viewEntity).anyTimes();
-    expect(viewregistry.getDefinition("V1", null)).andReturn(viewEntity);
-
-    expect(viewregistry.checkAdmin()).andReturn(true);
-
-    replay(viewregistry);
-
-    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
-
-    try {
-      provider.createResources(PropertyHelper.getCreateRequest(properties, null));
-      fail("Expected ResourceAlreadyExistsException.");
-    } catch (ResourceAlreadyExistsException e) {
-      // expected
-    }
-
-    verify(viewregistry);
-
-
-  }
-
 
   @Test
   public void testUpdateResources_viewNotLoaded() throws Exception {

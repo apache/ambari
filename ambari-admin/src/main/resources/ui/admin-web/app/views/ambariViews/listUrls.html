@@ -1,0 +1,72 @@
+<!--
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+-->
+
+<div class="views-list-table" data-ng-init="listViewUrls()">
+
+
+    <div class="clearfix">
+        <ol class="breadcrumb pull-left">
+            <li class="active">{{'common.viewUrls' | translate}}</li>
+        </ol>
+        <div class="pull-right top-margin-4">
+            <link-to route="views.createViewUrl" class="btn btn-primary createuser-btn"><span class="glyphicon glyphicon-plus"></span> {{'views.urlCreate' | translate}}</link-to>
+        </div>
+    </div>
+    <hr>
+    <table class="table table-striped table-hover">
+        <thead>
+        <tr>
+
+            <th>
+               <span class="padding-bottom-30">{{'urls.name' | translate}}</span>
+            </th>
+            <th>
+                <span class="padding-bottom-30">{{'urls.url' | translate}}</span>
+            </th>
+            <th>
+                <span class="padding-bottom-30">{{'urls.view' | translate}}</span>
+            </th>
+            <th>
+                <span class="padding-bottom-30">{{'urls.viewInstance' | translate}}</span>
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="url in urls.items">
+
+            <td>
+                <a href="#/urls/edit/{{url.ViewUrlInfo.url_name}}">{{url.ViewUrlInfo.url_name}}</a>
+            </td>
+            <td>
+                <a href="/#/main/view/{{url.ViewUrlInfo.view_instance_common_name}}/{{url.ViewUrlInfo.url_suffix}}">/main/view/{{url.ViewUrlInfo.view_instance_common_name}}/{{url.ViewUrlInfo.url_suffix}}</a>
+            </td>
+            <td>
+                <span>{{url.ViewUrlInfo.view_instance_common_name}} {{"{"+url.ViewUrlInfo.view_instance_version+"}"}} </span>
+            </td>
+            <td>
+                <span>{{url.ViewUrlInfo.view_instance_name}}</span>
+            </td>
+
+        </tr>
+        </tbody>
+    </table>
+    <div class="alert alert-info col-sm-12" ng-show="!urls.items.length">
+        {{'urls.noUrlsToDisplay'| translate}}
+    </div>
+
+</div>

@@ -209,8 +209,16 @@ public class UpgradeCatalog240Test {
     Capture<DBAccessor.DBColumnInfo> hostRoleCommandOriginalStartTimeColumnInfo = newCapture();
     dbAccessor.addColumn(eq(UpgradeCatalog240.HOST_ROLE_COMMAND_TABLE), capture(hostRoleCommandOriginalStartTimeColumnInfo));
 
+    Capture<List<DBAccessor.DBColumnInfo>> capturedViewUrlColums = EasyMock.newCapture();
+    dbAccessor.createTable(eq(UpgradeCatalog240.VIEWURL_TABLE), capture(capturedViewUrlColums),eq("url_id"));
+    expect(dbAccessor.getConnection()).andReturn(connection);
+    expect(connection.createStatement()).andReturn(statement);
+
     Capture<DBAccessor.DBColumnInfo> viewInstanceShortUrlInfo = newCapture();
     dbAccessor.addColumn(eq(UpgradeCatalog240.VIEWINSTANCE_TABLE), capture(viewInstanceShortUrlInfo));
+
+    dbAccessor.addFKConstraint(UpgradeCatalog240.VIEWINSTANCE_TABLE, "FK_instance_url_id",
+            UpgradeCatalog240.SHORT_URL_COLUMN, UpgradeCatalog240.VIEWURL_TABLE, "url_id", false);
 
 
     replay(dbAccessor, configuration, connection, statement, resultSet);
@@ -348,11 +356,14 @@ public class UpgradeCatalog240Test {
     Assert.assertEquals(Long.class, originalStartTimeInfo.getType());
     Assert.assertEquals(-1L, originalStartTimeInfo.getDefaultValue());
 
-    // Verify host_role_command column
     DBAccessor.DBColumnInfo viewInstanceEntityUrlColInfoValue = viewInstanceShortUrlInfo.getValue();
     Assert.assertNotNull(viewInstanceEntityUrlColInfoValue);
     Assert.assertEquals("short_url", viewInstanceEntityUrlColInfoValue.getName());
-    Assert.assertEquals(String.class, viewInstanceEntityUrlColInfoValue.getType());
+    Assert.assertEquals(Long.class, viewInstanceEntityUrlColInfoValue.getType());
+
+    List<DBAccessor.DBColumnInfo> capturedViewUrlColumsValue = capturedViewUrlColums.getValue();
+    Assert.assertNotNull(capturedViewUrlColumsValue);
+    Assert.assertEquals(capturedViewUrlColumsValue.size(),3);
 
     verify(dbAccessor);
   }

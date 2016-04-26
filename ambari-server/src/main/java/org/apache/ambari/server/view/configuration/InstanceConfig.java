@@ -138,19 +138,4 @@ public class InstanceConfig {
     return properties == null ? Collections.<PropertyConfig>emptyList() : properties;
   }
 
-  /**
-   * Get the short URL
-   * @return short URL
-   */
-  public String getShortUrl() {
-    return shortUrl;
-  }
-
-  /**
-   * Set the short URL
-   * @param shortUrl
-   */
-  public void setShortUrl(String shortUrl) {
-    this.shortUrl = shortUrl;
-  }
 }

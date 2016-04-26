@@ -22,19 +22,19 @@
       <div class="cluster-section" ng-show="cluster">
         <div id="cluster-name"  ng-switch on="editCluster.editingName">
           <h5 ng-switch-when="false"><div title={{cluster.Clusters.cluster_name}} class="clusterDisplayName">{{clusterDisplayName()}}</div>
-            <i ng-show="cluster.Clusters.provisioning_state == 'INSTALLED'" 
-               ng-click="toggleEditName()" 
+            <i ng-show="cluster.Clusters.provisioning_state == 'INSTALLED'"
+               ng-click="toggleEditName()"
                class="glyphicon glyphicon-edit pull-right edit-cluster-name renameCluster" tooltip="{{'common.renameCluster' | translate}}">
             </i>
           </h5>
 
-          <form ng-keyup="toggleEditName($event)" 
-                tabindex="1" 
-                name="editClusterNameForm" 
-                class="editClusterNameForm" 
+          <form ng-keyup="toggleEditName($event)"
+                tabindex="1"
+                name="editClusterNameForm"
+                class="editClusterNameForm"
                 ng-switch-when="true"
                 ng-submit="editCluster.name !== cluster.Clusters.cluster_name && editClusterNameForm.newClusterName.$valid && confirmClusterNameChange()">
-            <div class="form-group" 
+            <div class="form-group"
                  ng-class="{'has-error': editClusterNameForm.newClusterName.$invalid && !editClusterNameForm.newClusterName.$pristine }">
               <input
                   autofocus
@@ -91,9 +91,11 @@
     <div class="panel-body">
       <ul class="nav nav-pills nav-stacked">
         <li ng-class="{active: isActive('views.list')}"><link-to route="views.list" class="viewslist-link">{{'common.views' | translate}}</link-to></li>
+        <li ng-class="{active: isActive('views.listViewUrls')}"><link-to route="views.listViewUrls" class="viewsUrlList-link">{{'common.viewUrls' | translate}}</link-to></li>
       </ul>
     </div>
   </div>
+
 
   <div class="panel panel-default">
     <div class="panel-heading"><span class="glyphicon glyphicon-user"></span> {{'common.userGroupManagement' | translate}}</div>
@@ -115,4 +117,4 @@
     </div>
   </div>
 </div>
-  
+

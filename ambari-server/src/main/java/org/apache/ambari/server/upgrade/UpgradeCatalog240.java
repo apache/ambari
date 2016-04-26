@@ -108,6 +108,8 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   private static final String HIVE_ENV_CONFIG = "hive-env";
   private static final String AMS_SITE = "ams-site";
   public static final String TIMELINE_METRICS_SINK_COLLECTION_PERIOD = "timeline.metrics.sink.collection.period";
+  public static final String VIEWURL_TABLE = "viewurl";
+  public static final String URL_ID_COLUMN = "url_id";
 
 
   @Inject
@@ -173,13 +175,28 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     updateAlertCurrentTable();
     createBlueprintSettingTable();
     updateHostRoleCommandTableDDL();
+    createViewUrlTableDDL();
     updateViewInstanceEntityTable();
+  }
 
+  private void createViewUrlTableDDL() throws SQLException {
+    List<DBColumnInfo> columns = new ArrayList<>();
+
+    //  Add setting table
+    LOG.info("Creating " + VIEWURL_TABLE + " table");
+
+    columns.add(new DBColumnInfo(URL_ID_COLUMN, Long.class, null, null, false));
+    columns.add(new DBColumnInfo("url_name", String.class, 255, null, false));
+    columns.add(new DBColumnInfo("url_suffix", String.class, 255, null, false));
+    dbAccessor.createTable(VIEWURL_TABLE, columns, URL_ID_COLUMN);
+    addSequence("viewurl_id_seq", 1L, false);
   }
 
   private void updateViewInstanceEntityTable() throws SQLException {
     dbAccessor.addColumn(VIEWINSTANCE_TABLE,
-      new DBColumnInfo(SHORT_URL_COLUMN, String.class, 255, null, true));
+      new DBColumnInfo(SHORT_URL_COLUMN, Long.class, null, null, true));
+    dbAccessor.addFKConstraint(VIEWINSTANCE_TABLE, "FK_instance_url_id",
+            SHORT_URL_COLUMN, VIEWURL_TABLE, URL_ID_COLUMN, false);
   }
 
   private void updateClusterTableDDL() throws SQLException {

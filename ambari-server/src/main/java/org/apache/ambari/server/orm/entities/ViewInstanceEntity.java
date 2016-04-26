@@ -136,9 +136,11 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   private String icon;
 
 
-  @Column(name = "short_url")
-  @Basic
-  private String shortUrl;
+  @OneToOne(cascade = CascadeType.ALL)
+  @JoinColumns({
+          @JoinColumn(name = "short_url", referencedColumnName = "url_id", nullable = true)
+  })
+  private ViewURLEntity viewUrl;
 
   /**
    * The big icon path.
@@ -249,7 +251,6 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
     this.clusterHandle = null;
     this.visible = instanceConfig.isVisible() ? 'Y' : 'N';
     this.alterNames = 1;
-    this.shortUrl = instanceConfig.getShortUrl();
 
     String label = instanceConfig.getLabel();
     this.label = (label == null || label.length() == 0) ? view.getLabel() : label;
@@ -288,7 +289,6 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
     this.visible = 'Y';
     this.alterNames = 1;
     this.label = label;
-    this.shortUrl = null;
   }
 
 
@@ -355,10 +355,6 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   }
 
 
-  @Override
-  public String getShortUrl() {
-    return shortUrl;
-  }
 
 
 
@@ -397,14 +393,6 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
     this.viewName = viewName;
   }
 
-
-  /**
-   *  Set the short URL
-   * @param shortUrl
-   */
-  public void setShortUrl(String shortUrl) {
-    this.shortUrl = shortUrl;
-  }
 
   /**
    * Get the name of this instance.
@@ -954,6 +942,29 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
     int result = viewName.hashCode();
     result = 31 * result + name.hashCode();
     return result;
+  }
+
+  /**
+   * Get the view URL associated with the instance
+   * @return
+     */
+  public ViewURLEntity getViewUrl() {
+    return viewUrl;
+  }
+
+  /**
+   * Set the view URL associated with the instance
+   * @param viewUrl
+     */
+  public void setViewUrl(ViewURLEntity viewUrl) {
+    this.viewUrl = viewUrl;
+  }
+
+  /**
+   * Remove the URL associated with this entity
+   */
+  public void clearUrl() {
+    this.viewUrl = null;
   }
 
   //----- ViewInstanceVersionDTO inner class --------------------------------------------------

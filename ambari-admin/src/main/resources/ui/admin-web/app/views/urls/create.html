@@ -1,0 +1,51 @@
+<!--
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+-->
+<ol class="breadcrumb">
+    <li><a href="#/users">{{'urls.url' | translate}}</a></li>
+    <li class="active">{{'urls.create' | translate}}</li>
+</ol>
+<hr>
+    <div class="row">
+        <div class="col-sm-10">
+
+            <div id="wizard-container" ng-controller="wizardController as wizard">
+
+                <div id="wizard-step-container" class="bottom-margin">
+                    <ul class="nav nav-pills nav-justified">
+                        <li ng-repeat="step in wizard.steps" ng-class="{'active':step.step == wizard.currentStep}"><a ng-click="wizard.gotoStep(step.step)" href="">{{step.name}}</a></li>
+                    </ul>
+                </div>
+
+                <div id="wizard-content-container">
+                    <ng-include src="wizard.getStepTemplate()"></ng-include>
+                </div>
+
+                <div id="wizard-navigation-container">
+                    <div class="pull-right">
+                <span class="btn-group">
+                  <button ng-disabled="wizard.currentStep <= 1" class="btn btn-default" name="previous" type="button" ng-click="wizard.gotoStep(wizard.currentStep - 1)"><i class="fa fa-arrow-left"></i> Previous step</button>
+                  <button ng-disabled="wizard.currentStep >= wizard.steps.length" class="btn btn-primary" name="next" type="button" ng-click="wizard.gotoStep(wizard.currentStep + 1)">Next step <i class="fa fa-arrow-right"></i></button>
+                </span>
+                        <button ng-disabled="wizard.currentStep != wizard.steps.length" class="btn btn-success" name="next" type="button" ng-click="wizard.save()"> <i class="fa fa-floppy-o"></i> Save</button>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+</div>

@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('ViewsListCtrl',['$scope', 'View', '$modal', 'Alert', 'ConfirmationModal', '$location', '$translate', function($scope, View, $modal, Alert, ConfirmationModal, $location, $translate) {
+.controller('ViewsListCtrl',['$scope', 'View','$modal', 'Alert', 'ConfirmationModal', '$location', '$translate', function($scope, View, $modal, Alert, ConfirmationModal, $location, $translate) {
   var deferredList = [],
     $t = $translate.instant;
   $scope.constants = {
@@ -128,6 +128,18 @@ angular.module('ambariAdminConsole')
 
   $scope.reloadViews = function () {
     loadViews();
+  };
+
+
+  $scope.listViewUrls = function(){
+    View.allUrls().then(function(urls) {
+      $scope.urls = urls;
+      $scope.ViewNameFilterOptions = urls.items.map(function(url){
+        return url.ViewUrlInfo.view_instance_common_name;
+      });
+    }).catch(function(data) {
+      Alert.error($t('views.alerts.cannotLoadViewUrls'), data.data.message);
+    });
   }
 
 }]);

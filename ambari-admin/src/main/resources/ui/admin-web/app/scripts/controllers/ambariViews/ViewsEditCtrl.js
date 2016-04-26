@@ -244,8 +244,7 @@ angular.module('ambariAdminConsole')
         'ViewInstanceInfo':{
           'visible': $scope.settings.visible,
           'label': $scope.settings.label,
-          'description': $scope.settings.description,
-          'short_url': $scope.settings.shortUrl
+          'description': $scope.settings.description
         }
       };
       return View.updateInstance($routeParams.viewId, $routeParams.version, $routeParams.instanceId, data)

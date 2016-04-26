@@ -496,25 +496,6 @@ public class ViewRegistry {
         (getInstanceDefinition(viewEntity.getCommonName(), viewEntity.getVersion(), instanceEntity.getName()) != null);
   }
 
-
-  public boolean duplicatedShortUrl(ViewInstanceEntity instanceEntity) {
-    ViewEntity viewEntity = getDefinition(instanceEntity.getViewName());
-    Map<String, ViewInstanceEntity> viewInstanceDefinitionMap =
-            viewInstanceDefinitions.get(getDefinition(viewEntity.getCommonName(), viewEntity.getVersion()));
-
-    if(viewInstanceDefinitionMap != null){
-      for (ViewInstanceEntity viewInstanceEntity : viewInstanceDefinitionMap.values()) {
-        String shortUrl = viewInstanceEntity.getShortUrl();
-        // check if there is a view for the same version with the same shortUrl
-        if (!Strings.isNullOrEmpty(shortUrl) && shortUrl.equals(instanceEntity.getShortUrl()))
-          return true;
-      }
-    }
-
-    return false;
-  }
-
-
   /**
    * Install the given view instance with its associated view.
    *
@@ -1408,7 +1389,7 @@ public class ViewRegistry {
   private void syncViewInstance(ViewInstanceEntity instance1, ViewInstanceEntity instance2) {
     instance1.setLabel(instance2.getLabel());
     instance1.setDescription(instance2.getDescription());
-    instance1.setShortUrl(instance2.getShortUrl());
+    instance1.setViewUrl(instance2.getViewUrl());
     instance1.setVisible(instance2.isVisible());
     instance1.setResource(instance2.getResource());
     instance1.setViewInstanceId(instance2.getViewInstanceId());

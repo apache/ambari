@@ -552,6 +552,15 @@ CREATE TABLE viewmain (
   CONSTRAINT PK_viewmain PRIMARY KEY CLUSTERED (view_name),
   CONSTRAINT FK_view_resource_type_id FOREIGN KEY (resource_type_id) REFERENCES adminresourcetype(resource_type_id));
 
+
+CREATE table viewurl(
+  url_id BIGINT ,
+  url_name VARCHAR(255) NOT NULL ,
+  url_suffix VARCHAR(255) NOT NULL,
+  PRIMARY KEY CLUSTERED (url_id)
+);
+
+
 CREATE TABLE viewinstance (
   view_instance_id BIGINT,
   resource_id BIGINT NOT NULL,
@@ -565,8 +574,9 @@ CREATE TABLE viewinstance (
   xml_driven CHAR(1),
   alter_names BIT NOT NULL DEFAULT 1,
   cluster_handle VARCHAR(255),
-  short_url VARCHAR (255),
+  short_url BIGINT,
   CONSTRAINT PK_viewinstance PRIMARY KEY CLUSTERED (view_instance_id),
+  CONSTRAINT FK_instance_url_id FOREIGN KEY (short_url) REFERENCES viewurl(url_id),
   CONSTRAINT FK_viewinst_view_name FOREIGN KEY (view_name) REFERENCES viewmain(view_name),
   CONSTRAINT FK_viewinstance_resource_id FOREIGN KEY (resource_id) REFERENCES adminresource(resource_id),
   CONSTRAINT UQ_viewinstance_name UNIQUE (view_name, name),
@@ -581,6 +591,7 @@ CREATE TABLE viewinstancedata (
   value VARCHAR(2000) NOT NULL,
   CONSTRAINT PK_viewinstancedata PRIMARY KEY CLUSTERED (view_instance_id, NAME, user_name),
   CONSTRAINT FK_viewinstdata_view_name FOREIGN KEY (view_instance_id, view_name, view_instance_name) REFERENCES viewinstance(view_instance_id, view_name, name));
+
 
 CREATE TABLE viewinstanceproperty (
   view_name VARCHAR(255) NOT NULL,

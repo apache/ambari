@@ -198,4 +198,9 @@ angular.module('ambariAdminConsole')
     }
   });
 
+
+
+
+
+
 }]);

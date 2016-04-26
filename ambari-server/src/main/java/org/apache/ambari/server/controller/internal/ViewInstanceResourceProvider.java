@@ -35,6 +35,7 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceDataEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
+import org.apache.ambari.server.orm.entities.ViewURLEntity;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.apache.ambari.server.view.validation.InstanceValidationResultImpl;
@@ -242,7 +243,10 @@ public class ViewInstanceResourceProvider extends AbstractAuthorizedResourceProv
     setResourceProperty(resource, VISIBLE_PROPERTY_ID, viewInstanceEntity.isVisible(), requestedIds);
     setResourceProperty(resource, STATIC_PROPERTY_ID, viewInstanceEntity.isXmlDriven(), requestedIds);
     setResourceProperty(resource, CLUSTER_HANDLE_PROPERTY_ID, viewInstanceEntity.getClusterHandle(), requestedIds);
-    setResourceProperty(resource, SHORT_URL_PROPERTY_ID, viewInstanceEntity.getShortUrl(), requestedIds);
+    ViewURLEntity viewUrl = viewInstanceEntity.getViewUrl();
+    if(viewUrl != null) {
+      setResourceProperty(resource, SHORT_URL_PROPERTY_ID, viewUrl.getUrlSuffix(), requestedIds);
+    }
 
     // only allow an admin to access the view properties
     if (ViewRegistry.getInstance().checkAdmin()) {
@@ -344,11 +348,6 @@ public class ViewInstanceResourceProvider extends AbstractAuthorizedResourceProv
       viewInstanceEntity.setClusterHandle((String) properties.get(CLUSTER_HANDLE_PROPERTY_ID));
     }
 
-    if (properties.containsKey(SHORT_URL_PROPERTY_ID)) {
-      viewInstanceEntity.setShortUrl((String) properties.get(SHORT_URL_PROPERTY_ID));
-    }
-
-
     Map<String, String> instanceProperties = new HashMap<String, String>();
 
     boolean isUserAdmin = viewRegistry.checkAdmin();
@@ -402,11 +401,6 @@ public class ViewInstanceResourceProvider extends AbstractAuthorizedResourceProv
             throw new IllegalStateException("The view " + viewName + " is not loaded.");
           }
 
-          if(!Strings.isNullOrEmpty(instanceEntity.getShortUrl()) && viewRegistry.duplicatedShortUrl(instanceEntity)){
-            throw new DuplicateResourceException("The short url " + instanceEntity.getShortUrl() + " already exists for "+ instanceEntity.getViewEntity().getCommonName() +
-                    " and version "+instanceEntity.getViewEntity().getVersion());
-          }
-
           if (viewRegistry.instanceExists(instanceEntity)) {
             throw new DuplicateResourceException("The instance " + instanceEntity.getName() + " already exists.");
           }
@@ -428,15 +422,8 @@ public class ViewInstanceResourceProvider extends AbstractAuthorizedResourceProv
       @Transactional
       @Override
       public Void invoke() throws AmbariException {
-        ViewRegistry       viewRegistry   = ViewRegistry.getInstance();
-
         ViewInstanceEntity instance = toEntity(properties, true);
         ViewEntity         view     = instance.getViewEntity();
-
-        if(!Strings.isNullOrEmpty(instance.getShortUrl()) && viewRegistry.duplicatedShortUrl(instance)){
-          throw new DuplicateResourceException("The short url " + instance.getShortUrl() + " already exists for "+ instance.getViewEntity().getCommonName() +
-                  " and version "+instance.getViewEntity().getVersion());
-        }
 
         if (includeInstance(view.getCommonName(), view.getVersion(), instance.getInstanceName(), false)) {
           try {
