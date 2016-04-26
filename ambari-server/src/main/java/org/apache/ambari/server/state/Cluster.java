@@ -81,19 +81,6 @@ public interface Cluster {
   List<ServiceComponentHost> getServiceComponentHosts(String hostname);
 
   /**
-   * Gets a map of components to hosts they are installed on.
-   * <p>
-   * This may may be filtered by host and/or service by optionally providing a set of hostname
-   * and/or service names to use as a filter.  <code>null</code> for either filter indicates no
-   * filter (or all), an empty set indicates a complete filter (or none).
-   *
-   * @param hostNames
-   * @param serviceNames
-   * @return a map of (filtered) components to hosts
-   */
-  Map<String, Set<String>> getServiceComponentHostMap(Set<String> hostNames, Set<String> serviceNames);
-
-  /**
    * Get all ServiceComponentHosts for a given service and optional component
    *
    * If the component name is <code>null</code>, all components for the requested service will be returned.
