@@ -237,6 +237,15 @@ def hive(name=None):
               owner=params.hive_user,
               group=params.user_group,
               mode=0644)
+
+  if params.hive_metastore_site_supported and name == 'metastore':
+    XmlConfig("hivemetastore-site.xml",
+              conf_dir=params.hive_server_conf_dir,
+              configurations=params.config['configurations']['hivemetastore-site'],
+              configuration_attributes=params.config['configuration_attributes']['hivemetastore-site'],
+              owner=params.hive_user,
+              group=params.user_group,
+              mode=0644)
   
   File(format("{hive_config_dir}/hive-env.sh"),
        owner=params.hive_user,
@@ -267,6 +276,12 @@ def hive(name=None):
   )
 
   if name == 'metastore':
+    File(os.path.join(params.hive_server_conf_dir, "hadoop-metrics2-hivemetastore.properties"),
+         owner=params.hive_user,
+         group=params.user_group,
+         content=Template("hadoop-metrics2-hivemetastore.properties.j2")
+    )
+
     File(params.start_metastore_path,
          mode=0755,
          content=StaticFile('startMetastore.sh')
@@ -301,6 +316,12 @@ def hive(name=None):
     File(params.start_hiveserver2_path,
          mode=0755,
          content=Template(format('{start_hiveserver2_script}'))
+    )
+
+    File(os.path.join(params.hive_server_conf_dir, "hadoop-metrics2-hiveserver2.properties"),
+         owner=params.hive_user,
+         group=params.user_group,
+         content=Template("hadoop-metrics2-hiveserver2.properties.j2")
     )
 
   if name != "client":

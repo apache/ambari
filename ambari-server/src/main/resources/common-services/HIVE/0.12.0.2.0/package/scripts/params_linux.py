@@ -95,6 +95,7 @@ hive_tar_file = format('/usr/share/{stack_name_uppercase}-webhcat/hive.tar.gz')
 sqoop_tar_file = format('/usr/share/{stack_name_uppercase}-webhcat/sqoop*.tar.gz')
 
 hive_specific_configs_supported = False
+hive_metastore_site_supported = False
 hive_etc_dir_prefix = "/etc/hive"
 hive_interactive_etc_dir_prefix = "/etc/hive2"
 limits_conf_dir = "/etc/security/limits.d"
@@ -127,6 +128,9 @@ if stack_version_formatted_major and check_stack_feature(StackFeature.HIVE_WEBHC
   # specific directory which is NOT called 'conf'
   hcat_conf_dir = format('{stack_root}/current/hive-webhcat/etc/hcatalog')
   config_dir = format('{stack_root}/current/hive-webhcat/etc/webhcat')
+
+if stack_version_formatted_major and check_stack_feature(StackFeature.HIVE_METASTORE_SITE_SUPPORT, stack_version_formatted_major):
+  hive_metastore_site_supported = True
 
 if stack_version_formatted_major and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted_major):
   hive_specific_configs_supported = True
@@ -426,6 +430,37 @@ hive_authorization_enabled = config['configurations']['hive-site']['hive.securit
 mysql_jdbc_driver_jar = "/usr/share/java/mysql-connector-java.jar"
 
 hive_site_config = dict(config['configurations']['hive-site'])
+
+########################################################
+############# AMS related params #####################
+########################################################
+ams_collector_hosts = default("/clusterHostInfo/metrics_collector_hosts", [])
+has_metric_collector = not len(ams_collector_hosts) == 0
+if has_metric_collector:
+  if 'cluster-env' in config['configurations'] and \
+      'metrics_collector_vip_host' in config['configurations']['cluster-env']:
+    metric_collector_host = config['configurations']['cluster-env']['metrics_collector_vip_host']
+  else:
+    metric_collector_host = ams_collector_hosts[0]
+  if 'cluster-env' in config['configurations'] and \
+      'metrics_collector_vip_port' in config['configurations']['cluster-env']:
+    metric_collector_port = config['configurations']['cluster-env']['metrics_collector_vip_port']
+  else:
+    metric_collector_web_address = default("/configurations/ams-site/timeline.metrics.service.webapp.address", "localhost:6188")
+    if metric_collector_web_address.find(':') != -1:
+      metric_collector_port = metric_collector_web_address.split(':')[1]
+    else:
+      metric_collector_port = '6188'
+  if default("/configurations/ams-site/timeline.metrics.service.http.policy", "HTTP_ONLY") == "HTTPS_ONLY":
+    metric_collector_protocol = 'https'
+  else:
+    metric_collector_protocol = 'http'
+  metric_truststore_path= default("/configurations/ams-ssl-client/ssl.client.truststore.location", "")
+  metric_truststore_type= default("/configurations/ams-ssl-client/ssl.client.truststore.type", "")
+  metric_truststore_password= default("/configurations/ams-ssl-client/ssl.client.truststore.password", "")
+
+metrics_report_interval = default("/configurations/ams-site/timeline.metrics.sink.report.interval", 60)
+metrics_collection_period = default("/configurations/ams-site/timeline.metrics.sink.collection.period", 10)
 
 ########################################################
 ############# Atlas related params #####################

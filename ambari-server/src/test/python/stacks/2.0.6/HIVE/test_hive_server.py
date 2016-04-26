@@ -492,6 +492,11 @@ class TestHiveServer(RMFTestCase):
                               content=Template('startHiveserver2.sh.j2'),
                               mode=0755,
     )
+    self.assertResourceCalled('File', '/etc/hive/conf.server/hadoop-metrics2-hiveserver2.properties',
+                              owner = 'hive',
+                              group = 'hadoop',
+                              content = Template('hadoop-metrics2-hiveserver2.properties.j2')
+                              )
     self.assertResourceCalled('Directory', '/var/run/hive',
                               owner='hive',
                               mode=0755,
@@ -680,6 +685,11 @@ class TestHiveServer(RMFTestCase):
                               content=Template('startHiveserver2.sh.j2'),
                               mode=0755,
     )
+    self.assertResourceCalled('File', '/etc/hive/conf.server/hadoop-metrics2-hiveserver2.properties',
+                              owner = 'hive',
+                              group = 'hadoop',
+                              content = Template('hadoop-metrics2-hiveserver2.properties.j2')
+    )
     self.assertResourceCalled('Directory', '/var/run/hive',
                               owner='hive',
                               group='hadoop',
@@ -745,7 +755,7 @@ From source with checksum 150f554beae04f76f814f59549dead8b"""
     )
 
     self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hive-server2', '2.2.1.0-2065'), sudo=True,)
-    self.assertResourceCalledByIndex(31, 'Execute', 'hive --config /etc/hive/conf.server --service hiveserver2 --deregister 1.2.1.2.3.0.0-2434',
+    self.assertResourceCalledByIndex(32, 'Execute', 'hive --config /etc/hive/conf.server --service hiveserver2 --deregister 1.2.1.2.3.0.0-2434',
       path=['/bin:/usr/hdp/current/hive-server2/bin:/usr/hdp/current/hadoop-client/bin'],
       tries=1, user='hive')
 
@@ -768,7 +778,7 @@ From source with checksum 150f554beae04f76f814f59549dead8b"""
     )
 
     self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hive-server2', '2.2.1.0-2065'), sudo=True,)
-    self.assertResourceCalledByIndex(33, 'Execute', 'hive --config /etc/hive/conf.server --service hiveserver2 --deregister 1.2.1.2.3.0.0-2434',
+    self.assertResourceCalledByIndex(34, 'Execute', 'hive --config /etc/hive/conf.server --service hiveserver2 --deregister 1.2.1.2.3.0.0-2434',
       path=['/bin:/usr/hdp/current/hive-server2/bin:/usr/hdp/current/hadoop-client/bin'],
       tries=1, user='hive')
 

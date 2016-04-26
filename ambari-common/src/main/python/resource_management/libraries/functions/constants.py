@@ -80,3 +80,4 @@ class StackFeature:
   RANGER_KMS_HSM_SUPPORT = "ranger_kms_hsm_support"
   RANGER_LOG4J_SUPPORT = "ranger_log4j_support"
   RANGER_KERBEROS_SUPPORT = "ranger_kerberos_support"
+  HIVE_METASTORE_SITE_SUPPORT = "hive_metastore_site_support"

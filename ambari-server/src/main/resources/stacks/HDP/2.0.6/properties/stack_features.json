@@ -210,6 +210,11 @@
       "name": "ranger_kerberos_support",
       "description": "Ranger Kerberos support",
       "min_version": "2.5.0.0"
+    },
+    {
+      "name": "hive_metastore_site_support",
+      "description": "Hive Metastore site support",
+      "min_version": "2.5.0.0"
     }
   ]
 }
