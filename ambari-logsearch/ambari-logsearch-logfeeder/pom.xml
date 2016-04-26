@@ -115,7 +115,11 @@
       <artifactId>jackson-xc</artifactId>
       <version>1.9.13</version>
     </dependency>
-
+    <dependency>
+      <groupId>org.apache.ambari</groupId>
+      <artifactId>ambari-metrics-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
   </dependencies>
   <build>
     <finalName>LogFeeder</finalName>
