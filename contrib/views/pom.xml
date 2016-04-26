@@ -44,6 +44,7 @@
     <module>tez</module>
     <module>storm</module>
     <module>zeppelin</module>
+    <module>hueambarimigration</module>
   </modules>
   <build>
     <pluginManagement>
