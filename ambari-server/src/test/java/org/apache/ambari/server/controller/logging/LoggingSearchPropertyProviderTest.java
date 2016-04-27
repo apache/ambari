@@ -123,6 +123,7 @@ public class LoggingSearchPropertyProviderTest {
 
     expect(helperMock.sendGetLogFileNamesRequest(expectedLogSearchComponentName, "c6401.ambari.apache.org")).andReturn(Collections.singleton(expectedLogFilePath));
     expect(helperMock.sendLogLevelQueryRequest(expectedLogSearchComponentName,"c6401.ambari.apache.org")).andReturn(levelQueryResponse).atLeastOnce();
+    expect(helperMock.createLogFileTailURI(expectedAmbariURL + expectedSearchEnginePath, expectedLogSearchComponentName, "c6401.ambari.apache.org")).andReturn("").atLeastOnce();
 
     Request requestMock =
       mockSupport.createMock(Request.class);
@@ -208,8 +209,6 @@ public class LoggingSearchPropertyProviderTest {
       expectedLogFilePath, definitionInfo.getLogFileName());
     assertEquals("Incorrect URL path to searchEngine",
       expectedAmbariURL + expectedSearchEnginePath, definitionInfo.getSearchEngineURL());
-    assertEquals("Incorrect URL path to log file tail",
-      expectedAmbariURL + expectedSearchEnginePath + expectedTailFileQueryString, definitionInfo.getLogFileTailURL());
 
 
     // verify that the log level count information

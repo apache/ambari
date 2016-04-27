@@ -68,6 +68,14 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
 
   private static final String LOGSEARCH_ADMIN_CREDENTIAL_NAME = "logsearch.admin.credential";
 
+  private static final String COMPONENT_QUERY_PARAMETER_NAME = "component_name";
+
+  private static final String HOST_QUERY_PARAMETER_NAME = "host_name";
+
+  private static final String DEFAULT_PAGE_SIZE = "50";
+
+  private static final String PAGE_SIZE_QUERY_PARAMETER_NAME = "pageSize";
+
   private static AtomicInteger errorLogCounterForLogSearchConnectionExceptions = new AtomicInteger(0);
 
   private final String hostName;
@@ -180,8 +188,8 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
     // TODO, this current method will be a temporary workaround
     // TODO, until the new LogSearch API method is available to handle this request
 
-    queryParameters.put("host", hostName);
-    queryParameters.put("components_name",componentName);
+    queryParameters.put(HOST_QUERY_PARAMETER_NAME, hostName);
+    queryParameters.put(COMPONENT_QUERY_PARAMETER_NAME,componentName);
     // ask for page size of 1, since we really only want a single entry to
     // get the file path name
     queryParameters.put("pageSize", "1");
@@ -229,6 +237,24 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
     return null;
   }
 
+  /**
+   * Generates the log file tail URI, using the LogSearch server's
+   * query parameters.
+   *
+   * @param baseURI the base URI for this request, typically the URI to the
+   *                Ambari Integration searchEngine component
+   *
+   * @param componentName the component name
+   * @param hostName the host name
+   *
+   * @return
+   */
+  @Override
+  public String createLogFileTailURI(String baseURI, String componentName, String hostName) {
+    return baseURI + "?" + COMPONENT_QUERY_PARAMETER_NAME + "=" + componentName + "&" + HOST_QUERY_PARAMETER_NAME + "=" + hostName
+      + "&" + PAGE_SIZE_QUERY_PARAMETER_NAME + "=" + DEFAULT_PAGE_SIZE;
+  }
+
   private static ObjectReader createObjectReader(Class type) {
     // setup the Jackson mapper/reader to read in the data structure
     ObjectMapper mapper = createJSONObjectMapper();
@@ -263,8 +289,8 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
     Map<String, String> queryParameters = new HashMap<String, String>();
     // set the query parameters to limit this level count
     // request to the specific component on the specified host
-    queryParameters.put("host", hostName);
-    queryParameters.put("components_name",componentName);
+    queryParameters.put(HOST_QUERY_PARAMETER_NAME, hostName);
+    queryParameters.put(COMPONENT_QUERY_PARAMETER_NAME,componentName);
 
     // add any query strings specified
     for (String key : queryParameters.keySet()) {

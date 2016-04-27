@@ -46,14 +46,6 @@ public class LoggingSearchPropertyProvider implements PropertyProvider {
 
   private static final String PATH_TO_SEARCH_ENGINE = "/logging/searchEngine";
 
-  private static final String DEFAULT_PAGE_SIZE = "50";
-
-  private static final String COMPONENT_QUERY_PARAMETER_NAME = "components_name";
-
-  private static final String HOST_QUERY_PARAMETER_NAME = "host";
-
-  private static final String PAGE_SIZE_QUERY_PARAMETER_NAME = "pageSize";
-
   private static AtomicInteger errorLogCounterForLogSearchConnectionExceptions = new AtomicInteger(0);
 
   private final LoggingRequestHelperFactory requestHelperFactory;
@@ -68,8 +60,6 @@ public class LoggingSearchPropertyProvider implements PropertyProvider {
     this.requestHelperFactory = requestHelperFactory;
     this.controllerFactory = controllerFactory;
   }
-
-
 
   @Override
   public Set<Resource> populateResources(Set<Resource> resources, Request request, Predicate predicate) throws SystemException {
@@ -113,7 +103,7 @@ public class LoggingSearchPropertyProvider implements PropertyProvider {
             for (String fileName : logFileNames) {
               // generate the URIs that can be used by clients to obtain search results/tail log results/etc
               final String searchEngineURI = controller.getAmbariServerURI(getFullPathToSearchEngine(clusterName));
-              final String logFileTailURI = createLogFileTailURI(searchEngineURI, mappedComponentNameForLogSearch, hostName);
+              final String logFileTailURI = requestHelper.createLogFileTailURI(searchEngineURI, mappedComponentNameForLogSearch, hostName);
               // all log files are assumed to be service types for now
               listOfFileDefinitions.add(new LogFileDefinitionInfo(fileName, LogFileType.SERVICE, searchEngineURI, logFileTailURI));
             }
@@ -173,11 +163,6 @@ public class LoggingSearchPropertyProvider implements PropertyProvider {
 
   private String getFullPathToSearchEngine(String clusterName) {
     return CLUSTERS_PATH + "/" + clusterName + PATH_TO_SEARCH_ENGINE;
-  }
-
-  protected static String createLogFileTailURI(String searchEngineURI, String componentName, String hostName) {
-    return searchEngineURI + "?" + COMPONENT_QUERY_PARAMETER_NAME + "=" + componentName + "&" + HOST_QUERY_PARAMETER_NAME + "=" + hostName
-      + "&" + PAGE_SIZE_QUERY_PARAMETER_NAME + "=" + DEFAULT_PAGE_SIZE;
   }
 
   @Override

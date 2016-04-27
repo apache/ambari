@@ -22,10 +22,52 @@ import java.util.Set;
  */
 public interface LoggingRequestHelper {
 
+  /**
+   * Sends a search query request to the LogSearch server
+   *
+   * @param queryParameters the query parameters to pass to LogSearch
+   *
+   * @return a LogQueryResponse, containing the results of the search
+   */
   public LogQueryResponse sendQueryRequest(Map<String, String> queryParameters);
 
+  /**
+   * Sends a request to obtain the log file name for a given component, on
+   *   a given host
+   *
+   * @param componentName the component name
+   * @param hostName the host name
+   *
+   * @return a Set of Strings that include the log file names associated
+   *         with this component/host combination
+   */
   public Set<String> sendGetLogFileNamesRequest(String componentName, String hostName);
 
+  /**
+   * Sends a request to obtain the log level counts for a given component on
+   *   a given host
+   *
+   * @param componentName the component name
+   * @param hostName the host name
+   *
+   * @return a LogLevelQueryResponse, containing the log level counts for this
+   *         component/host combination
+   */
   public LogLevelQueryResponse sendLogLevelQueryRequest(String componentName, String hostName);
+
+  /**
+   * Appends the required LogSearch query parameters to a base URI
+   *
+   * @param baseURI the base URI for this request, typically the URI to the
+   *                Ambari Integration searchEngine component
+   *
+   * @param componentName the component name
+   * @param hostName the host name
+   *
+   * @return a URI String that refers to the tail results of
+   *         the log file associated with this component/host
+   *         combination
+   */
+  public String createLogFileTailURI(String baseURI, String componentName, String hostName);
 
 }

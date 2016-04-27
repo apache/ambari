@@ -453,10 +453,10 @@ public class LoggingRequestHelperImplTest {
       httpURLConnection.getURL().getQuery();
 
     // verify that the query contains the three required parameters
-    assertTrue("host parameter was not included in query",
-      resultQuery.contains("host=c6401.ambari.apache.org"));
-    assertTrue("components_name parameter was not included in the query",
-      resultQuery.contains("components_name=" + expectedComponentName));
+    assertTrue("host_name parameter was not included in query",
+      resultQuery.contains("host_name=c6401.ambari.apache.org"));
+    assertTrue("component_name parameter was not included in the query",
+      resultQuery.contains("component_name=" + expectedComponentName));
     assertTrue("pageSize parameter was not included in query",
       resultQuery.contains("pageSize=1"));
 
@@ -650,6 +650,46 @@ public class LoggingRequestHelperImplTest {
       assertEquals("version not parsed properly",
         "1528979784022884357", resultTwo.getVersion());
     }
+
+    mockSupport.verifyAll();
+  }
+
+  @Test
+  public void testCreateLogFileTailURI() throws Exception {
+    final String expectedHostName = "c6401.ambari.apache.org";
+    final String expectedPort = "61888";
+    final String expectedComponentName = "hdfs_namenode";
+
+    final String expectedBaseURI =
+      "http://" + expectedHostName + ":" + expectedPort + "/api/v1/clusters/clusterone/logging/searchEngine";
+
+    final String expectedTailFileURI = expectedBaseURI + "?component_name=" + expectedComponentName
+      + "&host_name=" + expectedHostName + "&pageSize=50";
+
+
+    EasyMockSupport mockSupport =
+      new EasyMockSupport();
+
+    CredentialStoreService credentialStoreServiceMock =
+      mockSupport.createMock(CredentialStoreService.class);
+    Cluster clusterMock =
+      mockSupport.createMock(Cluster.class);
+    LoggingRequestHelperImpl.NetworkConnection networkConnectionMock =
+      mockSupport.createMock(LoggingRequestHelperImpl.NetworkConnection.class);
+
+    mockSupport.replayAll();
+
+    LoggingRequestHelper helper =
+      new LoggingRequestHelperImpl("c6401.ambari.apache.org", "61888", credentialStoreServiceMock, clusterMock, networkConnectionMock);
+
+    String result = helper.createLogFileTailURI(expectedBaseURI, expectedComponentName, expectedHostName);
+
+    // verify that the URI contains the expected LogSearch query parameters,
+    // including the correct default page size
+    assertEquals("LogFile Tail URI was not generated as expected",
+      expectedTailFileURI,
+      result);
+
 
     mockSupport.verifyAll();
   }
