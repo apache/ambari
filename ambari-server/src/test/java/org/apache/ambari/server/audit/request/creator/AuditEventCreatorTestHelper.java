@@ -148,6 +148,11 @@ public class AuditEventCreatorTestHelper {
               public Collection<String> getUpdateDirectives() {
                 return null;
               }
+
+              @Override
+              public Collection<String> getDeleteDirectives() {
+                return null;
+              }
             };
           }
 

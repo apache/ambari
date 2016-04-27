@@ -147,6 +147,16 @@ public abstract class BaseResourceDefinition implements ResourceDefinition {
   }
 
   @Override
+  public Collection<String> getUpdateDirectives() {
+    return new HashSet<>();
+  }
+
+  @Override
+  public Collection<String> getDeleteDirectives() {
+    return new HashSet<>();
+  }
+
+  @Override
   public boolean equals(Object o) {
     boolean result =false;
     if(this == o) result = true;
@@ -214,13 +224,5 @@ public abstract class BaseResourceDefinition implements ResourceDefinition {
         }
       }
     }
-  }
-
-  /**
-   * Returns a collection which can be modified by sub resources
-   */
-  @Override
-  public Collection<String> getUpdateDirectives() {
-    return new HashSet<String>();
   }
 }

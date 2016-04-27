@@ -50,7 +50,7 @@ public class RequestFactory {
       case PUT:
         return createPutRequest(headers, body, uriInfo, resource);
       case DELETE:
-        return new DeleteRequest(headers, body, uriInfo, resource);
+        return createDeleteRequest(headers, body, uriInfo, resource);
       case POST:
         return createPostRequest(headers, body, uriInfo, resource);
       default:
@@ -85,6 +85,13 @@ public class RequestFactory {
     return new PutRequest(headers, body, uriInfo, resource);
   }
 
+  /**
+   * Creates a DELETE request. It will apply any eligible directives supplied in the URI
+   */
+  private DeleteRequest createDeleteRequest(HttpHeaders headers, RequestBody body, UriInfo uriInfo, ResourceInstance resource) {
+    applyDirectives(Request.Type.DELETE, body, uriInfo, resource);
+    return new DeleteRequest(headers, body, uriInfo, resource);
+  }
 
   /**
    * Gather query parameters from uri and body query string.
@@ -144,6 +151,9 @@ public class RequestFactory {
           break;
         case POST:
           directives = resourceDefinition.getCreateDirectives();
+          break;
+        case DELETE:
+          directives = resourceDefinition.getDeleteDirectives();
           break;
         default:
           // not yet implemented for other types

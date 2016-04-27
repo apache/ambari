@@ -329,6 +329,9 @@ public abstract class BaseRequest implements Request {
           case POST:
             ignoredProperties = m_resource.getResourceDefinition().getCreateDirectives();
             break;
+          case DELETE:
+            ignoredProperties = m_resource.getResourceDefinition().getDeleteDirectives();
+            break;
           default:
             break;
         }
