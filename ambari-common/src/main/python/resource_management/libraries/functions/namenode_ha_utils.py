@@ -100,7 +100,7 @@ def get_namenode_states_noretries(hdfs_site, security_enabled, run_user):
       state = get_value_from_jmx(jmx_uri, 'tag.HAState', security_enabled, run_user, is_https_enabled)
       # If JMX parsing failed
       if not state:
-        check_service_cmd = "hdfs haadmin -getServiceState {0}".format(nn_unique_id)
+        check_service_cmd = "hdfs haadmin -ns {0} -getServiceState {1}".format(get_nameservice(hdfs_site), nn_unique_id)
         code, out = shell.call(check_service_cmd, logoutput=True, user=run_user)
         if code == 0 and out:
           if HDFS_NN_STATE_STANDBY in out:

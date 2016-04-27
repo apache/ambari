@@ -89,7 +89,7 @@ class NamenodeHAState:
         # If JMX parsing failed
         if not state:
           run_user = default("/configurations/hadoop-env/hdfs_user", "hdfs")
-          check_service_cmd = "hdfs haadmin -getServiceState {0}".format(nn_unique_id)
+          check_service_cmd = "hdfs haadmin -ns {dfs_ha_nameservices} -getServiceState {0}".format(nn_unique_id)
           code, out = shell.call(check_service_cmd, logoutput=True, user=run_user)
           if code == 0 and out:
             if NAMENODE_STATE.STANDBY in out:

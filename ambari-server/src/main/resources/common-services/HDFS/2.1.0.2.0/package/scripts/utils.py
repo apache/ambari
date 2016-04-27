@@ -98,8 +98,8 @@ def initiate_safe_zkfc_failover():
     # Failover if this NameNode is active and other NameNode is up and in standby (i.e. ready to become active on failover)
     Logger.info(format("NameNode {namenode_id} is active and NameNode {other_namenode_id} is in standby"))
 
-    failover_command = format("hdfs haadmin -failover {namenode_id} {other_namenode_id}")
-    check_standby_cmd = format("hdfs haadmin -getServiceState {namenode_id} | grep standby")
+    failover_command = format("hdfs haadmin -ns {dfs_ha_nameservices} -failover {namenode_id} {other_namenode_id}")
+    check_standby_cmd = format("hdfs haadmin -ns {dfs_ha_nameservices} -getServiceState {namenode_id} | grep standby")
 
     msg = "Rolling Upgrade - Initiating a ZKFC failover on active NameNode host {0}.".format(params.hostname)
     Logger.info(msg)

@@ -45,7 +45,7 @@ def namenode(action=None, do_format=True):
       create_log_dir=True
     )
     if params.dfs_ha_enabled:
-      dfs_check_nn_status_cmd = format("su -s /bin/bash - {hdfs_user} -c 'export PATH=$PATH:{hadoop_bin_dir} ; hdfs --config {hadoop_conf_dir} haadmin -getServiceState {namenode_id} | grep active > /dev/null'")
+      dfs_check_nn_status_cmd = format("su -s /bin/bash - {hdfs_user} -c 'export PATH=$PATH:{hadoop_bin_dir} ; hdfs --config {hadoop_conf_dir} haadmin -ns {dfs_ha_nameservices} -getServiceState {namenode_id} | grep active > /dev/null'")
     else:
       dfs_check_nn_status_cmd = None
 
