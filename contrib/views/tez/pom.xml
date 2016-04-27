@@ -103,10 +103,34 @@
                  <outputDirectory>target/classes</outputDirectory>
                </artifactItem>
              </artifactItems>
-             <includes>fonts/**/*, img/**/*, scripts/**/*, styles/**/*</includes>
+             <includes>fonts/**/*, img/**/*, scripts/**/*, assets/**/*, config/**/*, styles/**/*, index.html</includes>
            </configuration>
          </execution>
        </executions>
+      </plugin>
+
+      <!-- Adds init view script to the UI -->
+      <plugin>
+        <groupId>com.google.code.maven-replacer-plugin</groupId>
+        <artifactId>replacer</artifactId>
+        <version>1.5.3</version>
+        <executions>
+          <execution>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>replace</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <file>target/classes/index.html</file>
+          <replacements>
+            <replacement>
+              <token>&lt;/body&gt;</token>
+              <value>&lt;script src="ambari-scripts/init-view.js"&gt;&lt;/script&gt;&lt;/body&gt;</value>
+            </replacement>
+          </replacements>
+        </configuration>
       </plugin>
 
       <plugin>
@@ -133,8 +157,7 @@
         <directory>src/main/resources/ui</directory>
         <filtering>false</filtering>
         <includes>
-          <include>scripts/*</include>
-          <include>index.html</include>
+          <include>ambari-scripts/*</include>
         </includes>
       </resource>
 

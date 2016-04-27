@@ -16,8 +16,6 @@
  * limitations under the License.
  */
 
-App.deferReadiness();
-
 var PATH_PARAM_NAME = "viewPath";
 
 /**
@@ -128,6 +126,7 @@ function redirectionCheck() {
   }
 }
 
+// Force Ambari iframe to support fullscreen
 function allowFullScreen() {
   if(window.parent) {
     var arrFrames = parent.document.getElementsByTagName("IFRAME"),
@@ -145,6 +144,7 @@ function allowFullScreen() {
   }
 }
 
+// Replace Ambari's url on view URL change
 function onPathChange() {
   var path = window.location.hash.substr(2).trim(),
       pathParts = path.split('?'),
@@ -164,11 +164,14 @@ function onPathChange() {
   );
 }
 
-function scheduleChangeHandler(arguments) {
+function scheduleChangeHandler() {
+  if(typeof this._super === 'function') {
+    this._super.apply(this, arguments);
+  }
   setTimeout(onPathChange, 100);
 }
 
-function setConfigs(parameters) {
+function getConfigs(parameters) {
   var host = window.location.protocol +
       "//" +
       window.location.hostname +
@@ -182,48 +185,103 @@ function setConfigs(parameters) {
 
   parameters = parameters || {};
 
+  return {
+    host: host,
+    yarnProtocol: parameters["yarn.protocol"],
+    resourcesPrefix: resourcesPrefix,
+    namespaces: {
+      webService: {
+        timeline: '%@atsproxy/ws/v1/timeline'.fmt(resourcesPrefix),
+        appHistory: '%@atsproxy/ws/v1/applicationhistory'.fmt(resourcesPrefix),
+        rm: '%@rmproxy/ws/v1/cluster'.fmt(resourcesPrefix),
+        am: '%@rmproxy/proxy/{app_id}/ws/v2/tez'.fmt(resourcesPrefix)
+      },
+      web: {
+        rm: '%@rmredirect/cluster'.fmt(resourcesPrefix)
+      },
+    }
+  };
+}
+
+function setUI1Configs(parameters) {
+  var configs = getConfigs(parameters);
+
   $.extend(true, App.Configs, {
     envDefaults: {
       isStandalone: false,
-      timelineBaseUrl: host,
-      RMWebUrl: host,
-      yarnProtocol: parameters["yarn.protocol"]
+      timelineBaseUrl: configs.host,
+      RMWebUrl: configs.host,
+      yarnProtocol: configs.yarnProtocol,
     },
     restNamespace: {
-      timeline: '%@atsproxy/ws/v1/timeline'.fmt(resourcesPrefix),
-      applicationHistory: '%@atsproxy/ws/v1/applicationhistory'.fmt(resourcesPrefix),
+      timeline: configs.namespaces.webService.timeline,
+      applicationHistory: configs.namespaces.webService.appHistory,
 
-      aminfo: '%@rmproxy/proxy/__app_id__/ws/v1/tez'.fmt(resourcesPrefix),
-      aminfoV2: '%@rmproxy/proxy/__app_id__/ws/v2/tez'.fmt(resourcesPrefix),
-      cluster: '%@rmproxy/ws/v1/cluster'.fmt(resourcesPrefix)
+      aminfo: '%@rmproxy/proxy/__app_id__/ws/v1/tez'.fmt(configs.resourcesPrefix),
+      aminfoV2: '%@rmproxy/proxy/__app_id__/ws/v2/tez'.fmt(configs.resourcesPrefix),
+      cluster: configs.namespaces.webService.rm
     },
     otherNamespace: {
-      cluster: '%@rmredirect/cluster'.fmt(resourcesPrefix)
+      cluster: configs.namespaces.web.rm
     }
   });
 
   App.TimelineRESTAdapter.reopen({
     namespace: App.Configs.restNamespace.timeline
   });
-
-  App.advanceReadiness();
 }
 
-function loadParams() {
-  getStatus().always(function(status) {
-    status = status || {};
-    setConfigs(status.parameters);
+function setUI2Configs(parameters) {
+  var configs = getConfigs(parameters);
+
+  $.extend(true, ENV, {
+    isStandalone: false,
+    yarnProtocol: configs.yarnProtocol,
+    hosts: {
+      timeline: configs.host,
+      rm: configs.host,
+    },
+    namespaces: configs.namespaces
   });
-}
+};
 
-if(!redirectionCheck()) {
-  App.ApplicationRoute.reopen({
+function setAppRoute(AppRoute) {
+  AppRoute.reopen({
     actions: {
       didTransition: scheduleChangeHandler,
       queryParamsDidChange: scheduleChangeHandler
     }
   });
+}
+
+function loadParams(app, callBack) {
+  app.deferReadiness();
+  getStatus().always(function(status) {
+    callBack(status || {});
+    app.advanceReadiness();
+  });
+}
+
+if(!redirectionCheck()) {
+  var initializerOptions = {
+        name: 'configs',
+      },
+      App = window.App;
+
+  if(App) {
+    initializerOptions.initialize = function () {
+      setAppRoute(App.ApplicationRoute);
+      loadParams(App, setUI1Configs);
+    };
+  }
+  else {
+    initializerOptions.before = 'env';
+    initializerOptions.initialize = function (app) {
+      setAppRoute(app.get("__container__").lookup('route:application'));
+      loadParams(app, setUI2Configs);
+    };
+  }
+  Ember.Application.initializer(initializerOptions);
 
   allowFullScreen();
-  loadParams();
 }
