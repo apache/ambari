@@ -1024,8 +1024,8 @@ def update_ambari_env():
 
   # Previous env file does not exist
   if (not prev_env_file) or (prev_env_file is None):
-    print_warning_msg("Can not find %s file from previous version, skipping restore of environment settings" %
-                      configDefaults.AMBARI_ENV_BACKUP_FILE)
+    print ("INFO: Can not find %s file from previous version, skipping restore of environment settings. "
+           "%s may not include any user customization.") % (configDefaults.AMBARI_ENV_BACKUP_FILE, AMBARI_ENV_FILE)
     return 0
 
   try:
