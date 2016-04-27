@@ -219,6 +219,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     addSettingPermission();
     addManageUserPersistedDataPermission();
     updateHDFSConfigs();
+    updateHIVEConfigs();
     updateAMSConfigs();
     updateClusterEnv();
     updateHostRoleCommandTableDML();
@@ -1313,6 +1314,44 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
               String int_nameservices = hdfsSite.getProperties().get("dfs.internal.nameservices");
               if(int_nameservices == null && nameservices != null) {
                 updateConfigurationProperties("hdfs-site", Collections.singletonMap("dfs.internal.nameservices", nameservices), true, false);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+
+  protected void updateHIVEConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        for (final Cluster cluster : clusterMap.values()) {
+          Set<String> installedServices = cluster.getServices().keySet();
+
+          if (installedServices.contains("HIVE")) {
+            Config hiveSite = cluster.getDesiredConfigByType("hive-site");
+            if (hiveSite != null) {
+              Map<String, String> hiveSiteProperties = hiveSite.getProperties();
+              String txn_manager = hiveSiteProperties.get("hive.txn.manager");
+              String concurrency = hiveSiteProperties.get("hive.support.concurrency");
+              String initiator_on = hiveSiteProperties.get("hive.compactor.initiator.on");
+              String partition_mode = hiveSiteProperties.get("hive.exec.dynamic.partition.mode");
+              boolean acid_enabled =
+                  txn_manager != null && txn_manager.equals("org.apache.hadoop.hive.ql.lockmgr.DbTxnManager") &&
+                  concurrency != null && concurrency.toLowerCase().equals("true") &&
+                  initiator_on != null && initiator_on.toLowerCase().equals("true") &&
+                  partition_mode != null && partition_mode.equals("nonstrict");
+
+              Config hiveEnv = cluster.getDesiredConfigByType("hive-env");
+              if(hiveEnv != null){
+                if(acid_enabled)
+                  updateConfigurationProperties("hive-env", Collections.singletonMap("hive_txn_acid", "on"), true, false);
               }
             }
           }
