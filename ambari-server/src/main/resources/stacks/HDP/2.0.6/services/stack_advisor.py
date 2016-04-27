@@ -624,11 +624,14 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     # If no local DN in distributed mode
     if operatingMode == "distributed":
       dn_hosts = self.getComponentHostNames(services, "HDFS", "DATANODE")
-      if set(amsCollectorHosts).intersection(dn_hosts):
-        collector_cohosted_with_dn = "true"
-      else:
-        collector_cohosted_with_dn = "false"
-      putAmsHbaseSiteProperty("dfs.client.read.shortcircuit", collector_cohosted_with_dn)
+      # call by Kerberos wizard sends only the service being affected
+      # so it is possible for dn_hosts to be None but not amsCollectorHosts
+      if dn_hosts and len(dn_hosts) > 0:
+        if set(amsCollectorHosts).intersection(dn_hosts):
+          collector_cohosted_with_dn = "true"
+        else:
+          collector_cohosted_with_dn = "false"
+        putAmsHbaseSiteProperty("dfs.client.read.shortcircuit", collector_cohosted_with_dn)
 
     #split points
     scriptDir = os.path.dirname(os.path.abspath(__file__))
