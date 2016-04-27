@@ -1361,7 +1361,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
 
     HostResourceProvider provider = getHostProvider(controller);
     HostResourceProvider.setTopologyManager(topologyManager);
-    provider.deleteHosts(requests);
+    provider.deleteHosts(requests, false);
   }
 
   public static void updateHosts(AmbariManagementController controller, Set<HostRequest> requests)

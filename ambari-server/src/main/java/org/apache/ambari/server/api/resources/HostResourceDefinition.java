@@ -19,9 +19,12 @@
 package org.apache.ambari.server.api.resources;
 
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
@@ -47,8 +50,13 @@ public class HostResourceDefinition extends BaseResourceDefinition {
   }
 
   @Override
+  public Collection<String> getDeleteDirectives() {
+    return Collections.singleton(Request.DIRECTIVE_DRY_RUN);
+  }
+
+  @Override
   public Set<SubResourceDefinition> getSubResourceDefinitions() {
-    Set<SubResourceDefinition> subs = new HashSet<SubResourceDefinition>();
+    Set<SubResourceDefinition> subs = new HashSet<>();
     subs.add(new SubResourceDefinition(Resource.Type.HostComponent));
     subs.add(new SubResourceDefinition(Resource.Type.Alert));
     subs.add(new SubResourceDefinition(Resource.Type.HostStackVersion));

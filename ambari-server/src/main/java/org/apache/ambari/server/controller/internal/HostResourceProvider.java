@@ -330,7 +330,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   }
 
   @Override
-  protected RequestStatus deleteResourcesAuthorized(Request request, Predicate predicate)
+  protected RequestStatus deleteResourcesAuthorized(final Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
     final Set<HostRequest> requests = new HashSet<>();
@@ -341,7 +341,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     DeleteStatusMetaData deleteStatusMetaData = modifyResources(new Command<DeleteStatusMetaData>() {
       @Override
       public DeleteStatusMetaData invoke() throws AmbariException {
-        return deleteHosts(requests);
+        return deleteHosts(requests, request.isDryRunRequest());
       }
     });
 
@@ -827,13 +827,12 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   }
 
   @Transactional
-  protected DeleteStatusMetaData deleteHosts(Set<HostRequest> requests)
+  protected DeleteStatusMetaData deleteHosts(Set<HostRequest> requests, boolean dryRun)
       throws AmbariException {
 
     AmbariManagementController controller = getManagementController();
     Clusters                   clusters   = controller.getClusters();
     DeleteStatusMetaData deleteStatusMetaData = new DeleteStatusMetaData();
-
     List<HostRequest> okToRemove = new ArrayList<>();
 
     for (HostRequest hostRequest : requests) {
@@ -850,22 +849,13 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       }
     }
 
-    for (HostRequest hostRequest : okToRemove) {
-      // Assume the user also wants to delete it entirely, including all clusters.
-      String hostname = hostRequest.getHostname();
-      try {
-        clusters.deleteHost(hostname);
-        deleteStatusMetaData.addDeletedKey(hostname);
-      } catch (Exception ex) {
-        deleteStatusMetaData.addException(hostname, ex);
+    //If dry run, don't delete. just assume it can be successfully deleted.
+    if (dryRun) {
+      for (HostRequest request : okToRemove) {
+        deleteStatusMetaData.addDeletedKey(request.getHostname());
       }
-      for (LogicalRequest logicalRequest: topologyManager.getRequests(Collections.<Long>emptyList())) {
-        logicalRequest.removeHostRequestByHostName(hostname);
-      }
-
-      if (null != hostRequest.getClusterName()) {
-        clusters.getCluster(hostRequest.getClusterName()).recalculateAllClusterVersionStates();
-      }
+    } else {
+      processDeleteHostRequests(okToRemove, clusters, deleteStatusMetaData);
     }
 
     //Do not break behavior for existing clients where delete request contains only 1 host.
@@ -885,6 +875,26 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     }
 
     return deleteStatusMetaData;
+  }
+
+  private void processDeleteHostRequests(List<HostRequest> requests,  Clusters clusters, DeleteStatusMetaData deleteStatusMetaData) throws AmbariException {
+    for (HostRequest hostRequest : requests) {
+      // Assume the user also wants to delete it entirely, including all clusters.
+      String hostname = hostRequest.getHostname();
+      try {
+        clusters.deleteHost(hostname);
+        deleteStatusMetaData.addDeletedKey(hostname);
+      } catch (Exception ex) {
+        deleteStatusMetaData.addException(hostname, ex);
+      }
+      for (LogicalRequest logicalRequest: topologyManager.getRequests(Collections.<Long>emptyList())) {
+        logicalRequest.removeHostRequestByHostName(hostname);
+      }
+
+      if (null != hostRequest.getClusterName()) {
+        clusters.getCluster(hostRequest.getClusterName()).recalculateAllClusterVersionStates();
+      }
+    }
   }
 
   private void validateHostInDeleteFriendlyState(HostRequest hostRequest, Clusters clusters ) throws AmbariException {
