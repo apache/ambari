@@ -20,8 +20,59 @@ var App = require('app');
 require('views/common/chart/linear_time');
 
 describe('App.ChartLinearTimeView', function () {
+  var chartLinearTimeView;
 
-  var chartLinearTimeView = App.ChartLinearTimeView.create({});
+  beforeEach(function() {
+    chartLinearTimeView = App.ChartLinearTimeView.create();
+  });
+
+  describe("#isRequestRunning", function () {
+
+    it("isPopup true, running request", function() {
+      chartLinearTimeView.setProperties({
+        isPopup: true,
+        runningPopupRequests: [{
+          ajaxIndex: 'req1'
+        }],
+        ajaxIndex: 'req1'
+      });
+      chartLinearTimeView.propertyDidChange('isRequestRunning');
+      expect(chartLinearTimeView.get('isRequestRunning')).to.be.true;
+    });
+
+    it("isPopup false, running request", function() {
+      chartLinearTimeView.setProperties({
+        isPopup: false,
+        runningRequests: [{
+          ajaxIndex: 'req1'
+        }],
+        ajaxIndex: 'req1'
+      });
+      chartLinearTimeView.propertyDidChange('isRequestRunning');
+      expect(chartLinearTimeView.get('isRequestRunning')).to.be.true;
+    });
+
+    it("isPopup false, no running request", function() {
+      chartLinearTimeView.setProperties({
+        isPopup: false,
+        runningRequests: [],
+        ajaxIndex: 'req1'
+      });
+      chartLinearTimeView.propertyDidChange('isRequestRunning');
+      expect(chartLinearTimeView.get('isRequestRunning')).to.be.false;
+    });
+
+    it("isPopup true, no running request", function() {
+      chartLinearTimeView.setProperties({
+        isPopup: true,
+        runningPopupRequests: [],
+        ajaxIndex: 'req1'
+      });
+      chartLinearTimeView.propertyDidChange('isRequestRunning');
+      expect(chartLinearTimeView.get('isRequestRunning')).to.be.false;
+    });
+
+  });
 
   describe('#transformData', function () {
 
