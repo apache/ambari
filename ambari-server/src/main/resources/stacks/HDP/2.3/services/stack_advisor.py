@@ -342,8 +342,6 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
 
     atlas_server_host_info = self.getHostWithComponent("ATLAS", "ATLAS_SERVER", services, hosts)
     if include_atlas and atlas_server_host_info:
-      cluster_name = 'default'
-      putHiveSiteProperty('atlas.cluster.name', cluster_name)
       atlas_rest_host = atlas_server_host_info['Hosts']['host_name']
       scheme = "http"
       metadata_port = "21000"

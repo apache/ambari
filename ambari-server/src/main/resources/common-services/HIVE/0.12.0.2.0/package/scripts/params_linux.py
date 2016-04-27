@@ -52,6 +52,8 @@ stack_name_uppercase = stack_name.upper()
 agent_stack_retry_on_unavailability = config['hostLevelParams']['agent_stack_retry_on_unavailability']
 agent_stack_retry_count = expect("/hostLevelParams/agent_stack_retry_count", int)
 
+cluster_name = config['clusterName']
+
 # node hostname
 hostname = config["hostname"]
 

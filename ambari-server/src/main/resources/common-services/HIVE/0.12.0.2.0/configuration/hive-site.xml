@@ -442,7 +442,7 @@ limitations under the License.
   <property>
     <name>atlas.cluster.name</name>
     <property-type>DONT_ADD_ON_UPGRADE</property-type>
-    <value>primary</value>
+    <value>{{cluster_name}}</value>
     <depends-on>
       <property>
         <type>application-properties</type>

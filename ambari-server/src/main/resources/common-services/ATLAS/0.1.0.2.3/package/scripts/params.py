@@ -61,6 +61,8 @@ log_dir = config['configurations']['atlas-env']['metadata_log_dir']
 conf_dir = status_params.conf_dir # "/etc/metadata/conf"
 conf_file = status_params.conf_file
 
+atlas_login_credentials_file = os.path.join(conf_dir, "users-credentials.properties")
+
 atlas_hbase_conf_dir = os.path.join(metadata_home, "hbase", "conf")
 atlas_hbase_log_dir = os.path.join(metadata_home, "hbase", "logs")
 atlas_hbase_data_dir = os.path.join(metadata_home, "data")
