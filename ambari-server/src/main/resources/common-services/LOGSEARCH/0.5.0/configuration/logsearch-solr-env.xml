@@ -99,15 +99,15 @@
   <property>
     <name>logsearch_solr_minmem</name>
     <value>512m</value>
-    <display-name>Logsearch minimum heap size</display-name>
+    <display-name>Logsearch Solr minimum heap size</display-name>
     <description>Solr minimum heap size e.g.512m</description>
   </property>
 
   <property>
     <name>logsearch_solr_maxmem</name>
     <value>512m</value>
+    <display-name>Logsearch Solr maximum heap size</display-name>
     <description>Solr maximum heap size e.g. 512m</description>
-    <display-name>Logsearch maximum heap size</display-name>
   </property>
 
   <!-- logsearch-solr-env.sh -->

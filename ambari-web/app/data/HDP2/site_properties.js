@@ -1927,11 +1927,25 @@ var hdp2properties = [
     "index": 5
   },
   {
-    "name": "content",
+    "name": "logfeeder_solr_service_logs_enable",
     "serviceName": "LOGSEARCH",
     "filename": "logfeeder-env.xml",
     "category": "Advanced logfeeder-env",
     "index": 6
+  },
+  {
+    "name": "logfeeder_solr_audit_logs_enable",
+    "serviceName": "LOGSEARCH",
+    "filename": "logfeeder-env.xml",
+    "category": "Advanced logfeeder-env",
+    "index": 7
+  },
+  {
+    "name": "content",
+    "serviceName": "LOGSEARCH",
+    "filename": "logfeeder-env.xml",
+    "category": "Advanced logfeeder-env",
+    "index": 8
   },
   /*logfeeder-log4j*/
   {
@@ -1940,70 +1954,6 @@ var hdp2properties = [
     "filename": "logfeeder-log4j.xml",
     "category": "Advanced logfeeder-log4j",
     "index": 1
-  },
-  /*logfeeder-site*/
-  {
-    "name": "logfeeder.solr.service.logs.enable",
-    "serviceName": "LOGSEARCH",
-    "filename": "logfeeder-site.xml",
-    "category": "Advanced logfeeder-site",
-    "index": 1
-  },
-  {
-    "name": "logfeeder.solr.audit.logs.enable",
-    "serviceName": "LOGSEARCH",
-    "filename": "logfeeder-site.xml",
-    "category": "Advanced logfeeder-site",
-    "index": 2
-  },
-  {
-    "name": "logfeeder.kafka.broker.list",
-    "serviceName": "LOGSEARCH",
-    "filename": "logfeeder-site.xml",
-    "category": "Advanced logfeeder-site",
-    "index": 3
-  },
-  {
-    "name": "logfeeder.kafka.security.protocol",
-    "serviceName": "LOGSEARCH",
-    "filename": "logfeeder-site.xml",
-    "category": "Advanced logfeeder-site",
-    "index": 4
-  },
-  {
-    "name": "logfeeder.kafka.kerberos.service.name",
-    "serviceName": "LOGSEARCH",
-    "filename": "logfeeder-site.xml",
-    "category": "Advanced logfeeder-site",
-    "index": 5
-  },
-  {
-    "name": "logfeeder.kafka.service.logs.enable",
-    "serviceName": "LOGSEARCH",
-    "filename": "logfeeder-site.xml",
-    "category": "Advanced logfeeder-site",
-    "index": 6
-  },
-  {
-    "name": "logfeeder.kafka.topic.service.logs",
-    "serviceName": "LOGSEARCH",
-    "filename": "logfeeder-site.xml",
-    "category": "Advanced logfeeder-site",
-    "index": 7
-  },
-  {
-    "name": "logfeeder.kafka.audit.logs.enable",
-    "serviceName": "LOGSEARCH",
-    "filename": "logfeeder-site.xml",
-    "category": "Advanced logfeeder-site",
-    "index": 8
-  },
-  {
-    "name": "logfeeder.kafka.topic.audit.logs",
-    "serviceName": "LOGSEARCH",
-    "filename": "logfeeder-site.xml",
-    "category": "Advanced logfeeder-site",
-    "index": 9
   },
   /*logsearch-admin-json*/
   {
@@ -2156,42 +2106,42 @@ var hdp2properties = [
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-properties.xml",
     "category": "Advanced logsearch-properties",
-    "index": 4
+    "index": 3
   },
   {
     "name": "logsearch.service.logs.fields",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-properties.xml",
     "category": "Advanced logsearch-properties",
-    "index": 5
+    "index": 4
   },
   {
     "name": "logsearch.service.logs.split.interval.mins",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-properties.xml",
     "category": "Advanced logsearch-properties",
-    "index": 6
+    "index": 5
   },
   {
     "name": "logsearch.solr.collection.audit.logs",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-properties.xml",
     "category": "Advanced logsearch-properties",
-    "index": 7
+    "index": 6
   },
   {
     "name": "logsearch.audit.logs.split.interval.mins",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-properties.xml",
     "category": "Advanced logsearch-properties",
-    "index": 8
+    "index": 7
   },
   {
     "name": "logsearch.logfeeder.include.default.level",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-properties.xml",
     "category": "Advanced logsearch-properties",
-    "index": 9
+    "index": 8
   },
   /*logsearch-solr-env*/
   {

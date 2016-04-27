@@ -72,6 +72,20 @@
   </property>
 
   <property>
+    <name>logfeeder_solr_service_logs_enable</name>
+    <value>true</value>
+    <display-name>Service Logs enabled</display-name>
+    <description>Enable service logs to Solr</description>
+  </property>
+
+  <property>
+    <name>logfeeder_solr_audit_logs_enable</name>
+    <value>true</value>
+    <display-name>Audit Logs enabled</display-name>
+    <description>Enable audit logs to Solr</description>
+  </property>
+
+  <property>
     <name>content</name>
     <description>This is the jinja template for logsearch-env.sh file</description>
     <value></value>

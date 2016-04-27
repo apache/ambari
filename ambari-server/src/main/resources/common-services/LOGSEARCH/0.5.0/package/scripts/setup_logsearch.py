@@ -76,11 +76,11 @@ def setup_logsearch():
 
   random_num = random.random()
 
-  upload_conf_set('hadoop_logs', random_num)
+  upload_conf_set(format('{logsearch_solr_collection_service_logs}'), random_num)
 
   upload_conf_set('history', random_num)
 
-  upload_conf_set('audit_logs', random_num)
+  upload_conf_set(format('{logsearch_solr_collection_audit_logs}'), random_num)
 
   Execute(("chmod", "-R", "ugo+r", format("{logsearch_server_conf}/solr_configsets")),
           sudo=True

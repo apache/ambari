@@ -54,42 +54,6 @@
 
       }
 
-    },
-    {
-      "is_enabled":"{{kafka_service_logs_enable}}",
-      "destination":"kafka",
-      "broker_list":"{{kafka_broker_list}}",
-      "topic":"{{kafka_topic_service_logs}}",
-      "kafka.security.protocol":"{{kafka_security_protocol}}",
-      "kafka.sasl.kerberos.service.name":"{{kafka_kerberos_service_name}}",
-      "conditions":{
-        "fields":{
-          "rowtype":[
-            "service"
-          ]
-
-        }
-
-      }
-
-    },
-    {
-      "is_enabled":"{{kafka_audit_logs_enable}}",
-      "destination":"kafka",
-      "broker_list":"{{kafka_broker_list}}",
-      "topic":"{{kafka_topic_audit_logs}}",
-      "kafka.security.protocol":"{{kafka_security_protocol}}",
-      "kafka.sasl.kerberos.service.name":"{{kafka_kerberos_service_name}}",
-      "conditions":{
-        "fields":{
-          "rowtype":[
-            "audit"
-          ]
-
-        }
-
-      }
-
     }
 
   ]

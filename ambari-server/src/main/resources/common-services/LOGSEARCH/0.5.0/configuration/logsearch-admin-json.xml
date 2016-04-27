@@ -42,11 +42,11 @@
 
   <property>
     <name>content</name>
-    <description>This is the jinja template for user_pass.json file</description>
+    <description>This is the jinja template for logsearch-admin.json file</description>
     <value></value>
     <property-type>VALUE_FROM_PROPERTY_FILE</property-type>
     <value-attributes>
-      <property-file-name>user_pass.json.j2</property-file-name>
+      <property-file-name>logsearch-admin.json.j2</property-file-name>
       <property-file-type>text</property-file-type>
     </value-attributes>
   </property>

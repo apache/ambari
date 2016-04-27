@@ -234,25 +234,14 @@ logsearch_admin_content = config['configurations']['logsearch-admin-json']['cont
 
 logfeeder_dir = "/usr/lib/ambari-logsearch-logfeeder"
 
-# logfeeder-site configs
-solr_service_logs_enable = default('/configurations/logfeeder-site/logfeeder.solr.service.logs.enable', True)
-solr_audit_logs_enable = default('/configurations/logfeeder-site/logfeeder.solr.audit.logs_enable', True)
-
-kafka_broker_list = default('/configurations/logfeeder-site/logfeeder.kafka.broker.list', '')
-kafka_security_protocol = default('/configurations/logfeeder-site/logfeeder.kafka.security.protocol', '')
-kafka_kerberos_service_name = default('/configurations/logfeeder-site/logfeeder.kafka.kerberos.service.name', '')
-
-kafka_service_logs_enable = default('/configurations/logfeeder-site/logfeeder.kafka.service.logs.enable', False)
-kafka_audit_logs_enable = default('/configurations/logfeeder-site/logfeeder.kafka.audit.logs.enable', False)
-kafka_topic_service_logs = default('/configurations/logfeeder-site/logfeeder.kafka.topic.service.logs', 'service_logs')
-kafka_topic_audit_logs = default('/configurations/logfeeder-site/logfeeder.kafka.topic.audit.logs', 'audit_logs')
-
 # logfeeder-env configs
 logfeeder_user = config['configurations']['logfeeder-env']['logfeeder_user']
 logfeeder_group = config['configurations']['logfeeder-env']['logfeeder_group']
 logfeeder_log_dir = config['configurations']['logfeeder-env']['logfeeder_log_dir']
 logfeeder_log = logfeeder_log_dir + '/logfeeder.out'
 logfeeder_max_mem = config['configurations']['logfeeder-env']['logfeeder_max_mem']
+solr_service_logs_enable = default('/configurations/logfeeder-env/logfeeder_solr_service_logs_enable', True)
+solr_audit_logs_enable = default('/configurations/logfeeder-env/logfeeder_solr_audit_logs_enable', True)
 logfeeder_env_content = config['configurations']['logfeeder-env']['content']
 logfeeder_log4j_content = config['configurations']['logfeeder-log4j']['content']
 

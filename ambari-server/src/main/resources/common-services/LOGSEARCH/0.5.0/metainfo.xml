@@ -55,6 +55,12 @@
               </auto-deploy>
             </dependency>
           </dependencies>
+          <configuration-dependencies>
+            <config-type>logsearch-properties</config-type>
+            <config-type>logsearch-env</config-type>
+            <config-type>logsearch-log4j</config-type>
+            <config-type>logsearch-admin-json</config-type>
+          </configuration-dependencies>
         </component>
 
         <component>
@@ -76,6 +82,11 @@
               </auto-deploy>
             </dependency>
           </dependencies>
+          <configuration-dependencies>
+            <config-type>logsearch-solr-env</config-type>
+            <config-type>logsearch-solr-xml</config-type>
+            <config-type>logsearch-solr-log4j</config-type>
+          </configuration-dependencies>
         </component>
 
         <component>
@@ -95,6 +106,11 @@
               <primary>true</primary>
             </log>
           </logs>
+          <configuration-dependencies>
+            <config-type>logfeeder-properties</config-type>
+            <config-type>logfeeder-env</config-type>
+            <config-type>logfeeder-log4j</config-type>
+          </configuration-dependencies>
         </component>
 
         <component>
@@ -166,11 +182,6 @@
         <service>ZOOKEEPER</service>
       </requiredServices>
 
-      <configuration-dependencies>
-        <config-type>logsearch-properties</config-type>
-        <config-type>solr-xml</config-type>
-        <config-type>logfeeder-site</config-type>
-      </configuration-dependencies>
       <restartRequiredAfterChange>false</restartRequiredAfterChange>
 
       <quickLinksConfigurations>
