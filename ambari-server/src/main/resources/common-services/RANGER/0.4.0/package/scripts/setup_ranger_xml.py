@@ -533,12 +533,21 @@ def ranger_credential_helper(lib_path, alias_key, alias_value, file_path):
 def create_core_site_xml(conf_dir):
   import params
 
-  if params.stack_supports_ranger_kerberos and params.security_enabled and params.has_namenode:
-    XmlConfig("core-site.xml",
-      conf_dir=conf_dir,
-      configurations=params.config['configurations']['core-site'],
-      configuration_attributes=params.config['configuration_attributes']['core-site'],
-      owner=params.unix_user,
-      group=params.unix_group,
-      mode=0644
-    )
+  if params.stack_supports_ranger_kerberos:
+    if params.has_namenode:
+      XmlConfig("core-site.xml",
+                conf_dir=conf_dir,
+                configurations=params.config['configurations']['core-site'],
+                configuration_attributes=params.config['configuration_attributes']['core-site'],
+                owner=params.unix_user,
+                group=params.unix_group,
+                mode=0644
+      )
+    else:
+      Logger.warning('HDFS service not installed. Creating blank core-site.xml file.')
+      File(format('{conf_dir}/core-site.xml'),
+           content = '<configuration></configuration>',
+           owner = params.unix_user,
+           group = params.unix_group,
+           mode=0644
+      )

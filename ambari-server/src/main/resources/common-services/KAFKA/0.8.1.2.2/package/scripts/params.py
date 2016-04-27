@@ -53,6 +53,7 @@ host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
 stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 upgrade_direction = default("/commandParams/upgrade_direction", None)
+stack_supports_ranger_kerberos = stack_version_formatted and check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, stack_version_formatted)
 
 # When downgrading the 'version' and 'current_version' are both pointing to the downgrade-target version
 # downgrade_from_version provides the source-version the downgrade is happening from
@@ -209,6 +210,12 @@ if has_ranger_admin and is_supported_kafka_ranger:
     'type': 'kafka',
     'assetType': '1'
   }
+
+  if stack_supports_ranger_kerberos and security_enabled:
+    ranger_plugin_config['policydownload.auth.users'] = kafka_user
+    ranger_plugin_config['tag.download.auth.users'] = kafka_user
+
+
   #For curl command in ranger plugin to get db connector
   jdk_location = config['hostLevelParams']['jdk_location']
   java_share_dir = '/usr/share/java'

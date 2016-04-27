@@ -65,6 +65,7 @@ stack_version_formatted = functions.get_stack_version('hadoop-yarn-resourcemanag
 
 stack_supports_ru = stack_version_formatted_major and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted_major)
 stack_supports_timeline_state_store = stack_version_formatted_major and check_stack_feature(StackFeature.TIMELINE_STATE_STORE, stack_version_formatted_major)
+stack_supports_ranger_kerberos = stack_version_formatted_major and check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, stack_version_formatted_major)
 
 # New Cluster Stack Version that is defined during the RESTART of a Stack Upgrade.
 # It cannot be used during the initial Cluser Install because the version is not yet known.
@@ -252,10 +253,10 @@ yarn_timelineservice_kinit_cmd = ""
 nodemanager_kinit_cmd = ""
 
 if security_enabled:
-  _rm_principal_name = config['configurations']['yarn-site']['yarn.resourcemanager.principal']
-  _rm_principal_name = _rm_principal_name.replace('_HOST',hostname.lower())
-  _rm_keytab = config['configurations']['yarn-site']['yarn.resourcemanager.keytab']
-  rm_kinit_cmd = format("{kinit_path_local} -kt {_rm_keytab} {_rm_principal_name};")
+  rm_principal_name = config['configurations']['yarn-site']['yarn.resourcemanager.principal']
+  rm_principal_name = rm_principal_name.replace('_HOST',hostname.lower())
+  rm_keytab = config['configurations']['yarn-site']['yarn.resourcemanager.keytab']
+  rm_kinit_cmd = format("{kinit_path_local} -kt {rm_keytab} {rm_principal_name};")
 
   # YARN timeline security options
   if has_ats:
@@ -413,6 +414,11 @@ if has_ranger_admin:
       'type': 'yarn',
       'assetType': '1'
     }
+
+    if stack_supports_ranger_kerberos and security_enabled:
+      ranger_plugin_config['policydownload.auth.users'] = yarn_user
+      ranger_plugin_config['tag.download.auth.users'] = yarn_user
+
     #For curl command in ranger plugin to get db connector
     jdk_location = config['hostLevelParams']['jdk_location']
     java_share_dir = '/usr/share/java'

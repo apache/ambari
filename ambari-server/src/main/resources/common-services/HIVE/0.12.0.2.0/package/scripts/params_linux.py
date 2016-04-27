@@ -77,6 +77,7 @@ downgrade_from_version = default("/commandParams/downgrade_from_version", None)
 
 # Upgrade direction
 upgrade_direction = default("/commandParams/upgrade_direction", None)
+stack_supports_ranger_kerberos = stack_version_formatted_major and check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, stack_version_formatted_major)
 
 hadoop_bin_dir = "/usr/bin"
 hadoop_home = '/usr'
@@ -640,6 +641,20 @@ if has_ranger_admin:
     'repositoryType': 'hive',
     'assetType': '3'
   }
+
+  if stack_supports_ranger_kerberos and security_enabled:
+    hive_ranger_plugin_config['policydownload.auth.users'] = hive_user
+    hive_ranger_plugin_config['tag.download.auth.users'] = hive_user
+    hive_ranger_plugin_config['policy.grant.revoke.auth.users'] = hive_user
+
+    hive_ranger_plugin_repo = {
+      'isEnabled': 'true',
+      'configs': hive_ranger_plugin_config,
+      'description': 'hive repo',
+      'name': repo_name,
+      'type': 'hive'
+    }
+
 
   xa_audit_db_is_enabled = False
   xa_audit_db_password = unicode(config['configurations']['admin-properties']['audit_db_password']) if stack_supports_ranger_audit_db else None

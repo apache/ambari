@@ -52,6 +52,7 @@ version_formatted = format_stack_version(version)
 # E.g., 2.3
 stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
+stack_supports_ranger_kerberos = stack_version_formatted and check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, stack_version_formatted)
 
 # This is the version whose state is CURRENT. During an RU, this is the source version.
 # DO NOT format it since we need the build number too.
@@ -318,7 +319,21 @@ if has_ranger_admin:
     'repositoryType': 'knox',
     'assetType': '5',
     }
-  
+
+  if stack_supports_ranger_kerberos and security_enabled:
+    knox_ranger_plugin_config['policydownload.auth.users'] = knox_user
+    knox_ranger_plugin_config['tag.download.auth.users'] = knox_user
+
+    knox_ranger_plugin_repo = {
+      'isEnabled': 'true',
+      'configs': knox_ranger_plugin_config,
+      'description': 'knox repo',
+      'name': repo_name,
+      'type': 'knox'
+    }
+
+
+
   xa_audit_db_is_enabled = False
   ranger_audit_solr_urls = config['configurations']['ranger-admin-site']['ranger.audit.solr.urls']
   if xml_configurations_supported and stack_supports_ranger_audit_db:

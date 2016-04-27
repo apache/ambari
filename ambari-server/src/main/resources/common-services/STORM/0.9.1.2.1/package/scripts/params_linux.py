@@ -62,6 +62,7 @@ stack_version_formatted = status_params.stack_version_formatted
 stack_supports_ru = stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted)
 stack_supports_storm_kerberos = stack_version_formatted and check_stack_feature(StackFeature.STORM_KERBEROS, stack_version_formatted)
 stack_supports_storm_ams = stack_version_formatted and check_stack_feature(StackFeature.STORM_AMS, stack_version_formatted)
+stack_supports_ranger_kerberos = stack_version_formatted and check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, stack_version_formatted)
 
 # default hadoop params
 rest_lib_dir = "/usr/lib/storm/contrib/storm-rest"
@@ -286,6 +287,25 @@ if has_ranger_admin:
     'repositoryType': 'storm',
     'assetType': '6'
   }
+
+  if stack_supports_ranger_kerberos and security_enabled:
+    storm_ranger_plugin_config['policydownload.auth.users'] = storm_user
+    storm_ranger_plugin_config['tag.download.auth.users'] = storm_user
+
+    storm_ranger_plugin_repo = {
+      'isEnabled': 'true',
+      'configs': storm_ranger_plugin_config,
+      'description': 'storm repo',
+      'name': repo_name,
+      'type': 'storm'
+    }
+
+  if 'storm-nimbus' in status_params.component_directory.lower():
+    ranger_storm_principal = nimbus_jaas_principal
+    ranger_storm_keytab = nimbus_keytab_path
+  else:
+    ranger_storm_principal = storm_ui_jaas_principal
+    ranger_storm_keytab = storm_ui_keytab_path
 
   xa_audit_db_is_enabled = False
   ranger_audit_solr_urls = config['configurations']['ranger-admin-site']['ranger.audit.solr.urls']

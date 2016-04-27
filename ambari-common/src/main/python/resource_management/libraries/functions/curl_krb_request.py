@@ -62,7 +62,7 @@ KERBEROS_KINIT_TIMER_PARAMETER = "kerberos.kinit.timer"
 def curl_krb_request(tmp_dir, keytab, principal, url, cache_file_prefix,
     krb_exec_search_paths, return_only_http_code, caller_label, user,
     connection_timeout = CONNECTION_TIMEOUT_DEFAULT,
-    kinit_timer_ms=DEFAULT_KERBEROS_KINIT_TIMER_MS):
+    kinit_timer_ms=DEFAULT_KERBEROS_KINIT_TIMER_MS, method = '',body='',header=''):
   """
   Makes a curl request using the kerberos credentials stored in a calculated cache file. The
   cache file is created by combining the supplied principal, keytab, user, and request name into
@@ -180,10 +180,23 @@ def curl_krb_request(tmp_dir, keytab, principal, url, cache_file_prefix,
                              '%{http_code}', url, '--connect-timeout', str(connection_timeout), '--max-time', str(maximum_timeout), '-o', '/dev/null'],
                              user=user, env=kerberos_env)
     else:
+      curl_command = ['curl', '-L', '-k', '--negotiate', '-u', ':', '-b', cookie_file, '-c', cookie_file,
+                      url, '--connect-timeout', str(connection_timeout), '--max-time', str(maximum_timeout)]
       # returns response body
-      _, curl_stdout, curl_stderr = get_user_call_output(['curl', '-L', '-k', '--negotiate', '-u', ':', '-b', cookie_file, '-c', cookie_file,
-                             url, '--connect-timeout', str(connection_timeout), '--max-time', str(maximum_timeout)],
-                             user=user, env=kerberos_env)
+      if len(method) > 0 and len(body) == 0 and len(header) == 0:
+        curl_command.extend(['-X', method])
+
+      elif len(method) > 0 and len(body) == 0 and len(header) > 0:
+        curl_command.extend(['-H', header, '-X', method])
+
+      elif len(method) > 0 and len(body) > 0 and len(header) == 0:
+        curl_command.extend(['-X', method, '-d', body])
+
+      elif len(method) > 0 and len(body) > 0 and len(header) > 0:
+        curl_command.extend(['-H', header, '-X', method, '-d', body])
+
+      _, curl_stdout, curl_stderr = get_user_call_output(curl_command, user=user, env=kerberos_env)
+
   except Fail:
     if logger.isEnabledFor(logging.DEBUG):
       logger.exception("Unable to make a curl request for {0}.".format(caller_label))

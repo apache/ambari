@@ -45,7 +45,9 @@ def setup_ranger_plugin(component_select_name, service_name,
                         plugin_policymgr_ssl_properties, plugin_policymgr_ssl_attributes,
                         component_list, audit_db_is_enabled, credential_file, 
                         xa_audit_db_password, ssl_truststore_password,
-                        ssl_keystore_password, api_version=None, stack_version_override = None, skip_if_rangeradmin_down = True):
+                        ssl_keystore_password, api_version=None, stack_version_override = None, skip_if_rangeradmin_down = True,
+                        is_security_enabled = False, is_stack_supports_ranger_kerberos = False,
+                        component_user_principal = None, component_user_keytab = None):
 
   if audit_db_is_enabled:
     File(component_downloaded_custom_connector,
@@ -65,15 +67,25 @@ def setup_ranger_plugin(component_select_name, service_name,
     stack_version = stack_version_override
 
   component_conf_dir = conf_dict
-  
-  if plugin_enabled:
 
-    if api_version == 'v2' and api_version is not None:
+  if plugin_enabled:
+    if api_version is not None and api_version == 'v2':
+
       ranger_adm_obj = RangeradminV2(url=policymgr_mgr_url, skip_if_rangeradmin_down=skip_if_rangeradmin_down)
+      if is_security_enabled and is_stack_supports_ranger_kerberos:
+        ranger_adm_obj.create_ranger_repository(service_name, repo_name, plugin_repo_dict,
+                                              ranger_env_properties['ranger_admin_username'], ranger_env_properties['ranger_admin_password'],
+                                              ranger_env_properties['admin_username'], ranger_env_properties['admin_password'],
+                                              policy_user,is_security_enabled,component_user,component_user_principal,component_user_keytab)
+
+      else:
+        ranger_adm_obj.create_ranger_repository(service_name, repo_name, plugin_repo_dict,
+                                                ranger_env_properties['ranger_admin_username'], ranger_env_properties['ranger_admin_password'],
+                                                ranger_env_properties['admin_username'], ranger_env_properties['admin_password'],
+                                                policy_user)
     else:
       ranger_adm_obj = Rangeradmin(url=policymgr_mgr_url, skip_if_rangeradmin_down=skip_if_rangeradmin_down)
-
-    ranger_adm_obj.create_ranger_repository(service_name, repo_name, plugin_repo_dict,
+      ranger_adm_obj.create_ranger_repository(service_name, repo_name, plugin_repo_dict,
                                             ranger_env_properties['ranger_admin_username'], ranger_env_properties['ranger_admin_password'],
                                             ranger_env_properties['admin_username'], ranger_env_properties['admin_password'],
                                             policy_user)

@@ -35,6 +35,8 @@ from ambari_commons.exceptions import TimeoutError
 from resource_management.core.exceptions import Fail
 from resource_management.libraries.functions.decorator import safe_retry
 from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions.curl_krb_request import curl_krb_request
+from resource_management.core.environment import Environment
 
 
 class RangeradminV2:
@@ -47,6 +49,7 @@ class RangeradminV2:
     self.url_repos = self.base_url + '/service/assets/assets'
     self.url_repos_pub = self.base_url + '/service/public/v2/api/service'
     self.url_policies = self.base_url + '/service/public/v2/api/policy'
+    self.url_policies_get = self.base_url + '/service/public/v2/api/service/{servicename}/policy'
     self.url_groups = self.base_url + '/service/xusers/groups'
     self.url_users = self.base_url + '/service/xusers/users'
     self.url_sec_users = self.base_url + '/service/xusers/secure/users'
@@ -61,7 +64,7 @@ class RangeradminV2:
     :param name: name of the component, from which, function will search in list of repositories
     :param component:, component for which repository has to be checked
     :param status: active or inactive
-    :param usernamepassword: user credentials using which repository needs to be searched. 
+    :param usernamepassword: user credentials using which repository needs to be searched.
     :return: Returns Ranger repository object if found otherwise None
     """
     try:
@@ -91,50 +94,76 @@ class RangeradminV2:
       raise Fail("Ranger Admin service is not reachable, please restart the service and then try again")
     except TimeoutError:
       raise Fail("Connection to Ranger Admin failed. Reason - timeout")
-      
-    
-  def create_ranger_repository(self, component, repo_name, repo_properties, 
-                               ambari_ranger_admin, ambari_ranger_password,
-                               admin_uname, admin_password, policy_user):
-    response_code = self.check_ranger_login_urllib2(self.base_url)
-    repo_data = json.dumps(repo_properties)
-    ambari_ranger_password = unicode(ambari_ranger_password)
-    admin_password = unicode(admin_password)
-    ambari_username_password_for_ranger = format('{ambari_ranger_admin}:{ambari_ranger_password}')
 
-    
-    if response_code is not None and response_code == 200:
-      user_resp_code = self.create_ambari_admin_user(ambari_ranger_admin, ambari_ranger_password, format("{admin_uname}:{admin_password}"))
-      if user_resp_code is not None and user_resp_code == 200:
+
+  def create_ranger_repository(self, component, repo_name, repo_properties,
+                               ambari_ranger_admin, ambari_ranger_password,
+                               admin_uname, admin_password, policy_user, is_security_enabled, component_user, component_user_principal, component_user_keytab):
+    if not is_security_enabled :
+      response_code = self.check_ranger_login_urllib2(self.base_url)
+      repo_data = json.dumps(repo_properties)
+      ambari_ranger_password = unicode(ambari_ranger_password)
+      admin_password = unicode(admin_password)
+      ambari_username_password_for_ranger = format('{ambari_ranger_admin}:{ambari_ranger_password}')
+
+
+      if response_code is not None and response_code == 200:
+        user_resp_code = self.create_ambari_admin_user(ambari_ranger_admin, ambari_ranger_password, format("{admin_uname}:{admin_password}"))
+        if user_resp_code is not None and user_resp_code == 200:
+          retryCount = 0
+          while retryCount <= 5:
+            repo = self.get_repository_by_name_urllib2(repo_name, component, 'true', ambari_username_password_for_ranger)
+            if repo is not None:
+              Logger.info('{0} Repository {1} exist'.format(component.title(), repo['name']))
+              break
+            else:
+              response = self.create_repository_urllib2(repo_data, ambari_username_password_for_ranger)
+              if response is not None:
+                Logger.info('{0} Repository created in Ranger admin'.format(component.title()))
+                break
+              else:
+                if retryCount < 5:
+                  Logger.info("Retry Repository Creation is being called")
+                  time.sleep(30) # delay for 30 seconds
+                  retryCount += 1
+                else:
+                  Logger.error('{0} Repository creation failed in Ranger admin'.format(component.title()))
+                  break
+        else:
+          Logger.error('Ambari admin user creation failed')
+      elif not self.skip_if_rangeradmin_down:
+        Logger.error("Connection failed to Ranger Admin !")
+    else:
+      response = self.check_ranger_login_curl(component_user,component_user_keytab,component_user_principal,self.base_url,True)
+
+      if response and response[0] == 200:
         retryCount = 0
+        repo_data = json.dumps(repo_properties)
         while retryCount <= 5:
-          repo = self.get_repository_by_name_urllib2(repo_name, component, 'true', ambari_username_password_for_ranger)
-          if repo is not None:
-            Logger.info('{0} Repository {1} exist'.format(component.title(), repo['name']))
+          response = self.get_repository_by_name_curl(component_user,component_user_keytab,component_user_principal,repo_name, component, 'true')
+          if response is not None:
+            Logger.info('{0} Repository {1} exist'.format(component.title(), (response['name'])))
             break
           else:
-            response = self.create_repository_urllib2(repo_data, ambari_username_password_for_ranger)
-            if response is not None:
+            response = self.create_repository_curl(component_user,component_user_keytab,component_user_principal,repo_name, repo_data,policy_user)
+            if response and len(response) > 0:
               Logger.info('{0} Repository created in Ranger admin'.format(component.title()))
               break
             else:
               if retryCount < 5:
-                Logger.info("Retry Repository Creation is being called")
                 time.sleep(30) # delay for 30 seconds
                 retryCount += 1
               else:
                 Logger.error('{0} Repository creation failed in Ranger admin'.format(component.title()))
                 break
       else:
-        Logger.error('Ambari admin user creation failed')
-    elif not self.skip_if_rangeradmin_down:
-      Logger.error("Connection failed to Ranger Admin !")
+        Logger.error("Connection failed to Ranger Admin !")
 
   @safe_retry(times=5, sleep_time=8, backoff_factor=1.5, err_class=Fail, return_on_fail=None)
   def create_repository_urllib2(self, data, usernamepassword):
     """
     :param data: json object to create repository
-    :param usernamepassword: user credentials using which repository needs to be searched. 
+    :param usernamepassword: user credentials using which repository needs to be searched.
     :return: Returns created Ranger repository object
     """
     try:
@@ -169,8 +198,8 @@ class RangeradminV2:
   def check_ranger_login_urllib2(self, url):
     """
     :param url: ranger admin host url
-    :param usernamepassword: user credentials using which repository needs to be searched. 
-    :return: Returns login check response 
+    :param usernamepassword: user credentials using which repository needs to be searched.
+    :return: Returns login check response
     """
     try:
       response = openurl(url, timeout=20)
@@ -189,7 +218,7 @@ class RangeradminV2:
   @safe_retry(times=5, sleep_time=8, backoff_factor=1.5, err_class=Fail, return_on_fail=None)
   def create_ambari_admin_user(self, ambari_admin_username, ambari_admin_password, usernamepassword):
     """
-    :param ambari_admin_username: username of user to be created 
+    :param ambari_admin_username: username of user to be created
     :param ambari_admin_password: user password of user to be created
     :param usernamepassword: user credentials using which repository needs to be searched.
     :return: Returns user credentials if user exist otherwise rerutns credentials of  created user.
@@ -257,3 +286,196 @@ class RangeradminV2:
       raise Fail("Ranger Admin service is not reachable, please restart the service and then try again")
     except TimeoutError:
       raise Fail("Connection to Ranger Admin failed. Reason - timeout")
+
+
+  def call_curl_request(self,user,keytab,principal, url, flag_http_response, request_method='GET',request_body='',header=''):
+    """
+    :param user: service user for which call is to be made
+    :param keytab: keytab of service user
+    :param principal: principal of service user
+    :param url: url with which call is to be made
+    :param flag_http_response: flag to get only response-code or response string
+    :param request_method: http method (GET / POST / PUT / DELETE)
+    :param request_body: data to be send along with the request
+    :param header: http header required for the call
+    :return: Returns the response error_msg , time_millis
+    """
+    response = None
+    error_msg = None
+    time_millis = 0
+    response, error_msg, time_millis = curl_krb_request(Environment.get_instance().tmp_dir, keytab, principal, url, 'ranger_admin_calls',
+                                                         None, flag_http_response, "Ranger-Admin API calls", user,kinit_timer_ms=0,method = request_method,body=request_body,header=header)
+
+    return response, error_msg, time_millis
+
+  @safe_retry(times=75, sleep_time=8, backoff_factor=1, err_class=Fail, return_on_fail=None)
+  def check_ranger_login_curl(self, component_user,component_user_keytab,component_user_principal,base_url,True):
+    """
+    :param url: ranger admin host url
+    :param usernamepassword: user credentials using which repository needs to be searched.
+    :return: Returns login check response
+    """
+    response = ''
+    error_msg = ''
+    time_millis = 0
+    try:
+      response,error_msg,time_millis = self.call_curl_request(component_user,component_user_keytab,component_user_principal,self.base_url,True)
+    except Fail,fail:
+      raise Fail(fail.args)
+
+    return response, error_msg,time_millis
+
+
+
+  @safe_retry(times=5, sleep_time=8, backoff_factor=1.5, err_class=Fail, return_on_fail=None)
+  def get_repository_by_name_curl(self, component_user,component_user_keytab,component_user_principal,name, component, status):
+    """
+    :param component_user: service user for which call is to be made
+    :param component_user_keytab: keytab of service user
+    :param component_user_principal: principal of service user
+    :param name: name of the component, te be searched
+    :param component:, component for which repository has to be checked
+    :param status: active or inactive
+    :param usernamepassword: user credentials using which repository needs to be searched.
+    :return: Returns Ranger repository object if found otherwise None
+    """
+    try:
+      search_repo_url = self.url_repos_pub + "?serviceName=" + name + "&serviceType=" + component + "&isEnabled=" + status
+      response,error_message,time_in_millis = self.call_curl_request(component_user,component_user_keytab,component_user_principal,search_repo_url,False,request_method='GET')
+      response_stripped = response[1:len(response) - 1]
+      if response_stripped and len(response_stripped) > 0:
+        response_json = json.loads(response_stripped)
+        if response_json['name'].lower() == name.lower():
+          return response_json
+        else:
+          return None
+    except Fail, fail:
+      raise Fail(str(fail))
+
+
+
+  @safe_retry(times=5, sleep_time=8, backoff_factor=1.5, err_class=Fail, return_on_fail=None)
+  def create_repository_curl(self,component_user,component_user_keytab,component_user_principal,name, data,policy_user):
+    """
+    :param component_user: service user for which call is to be made
+    :param component_user_keytab: keytab of service user
+    :param component_user_principal: principal of service user
+    :param name: name of the repository to be created
+    :param data: service definition of the repository
+    :return:
+    """
+    search_repo_url = self.url_repos_pub
+    header = 'Content-Type: application/json'
+    method = 'POST'
+
+    response,error_message,time_in_millis = self.call_curl_request(component_user,component_user_keytab,component_user_principal,search_repo_url,False,method,data,header)
+    if response and len(response) > 0:
+      response_json = json.loads(response)
+      if response_json['name'].lower() == name.lower():
+        Logger.info('Repository created Successfully')
+        service_name = response_json['name']
+        service_type = response_json['type']
+        if service_type in ['hdfs','hive','hbase','knox','storm']:
+          policy_list = self.get_policy_by_repo_name(component_user,component_user_keytab,component_user_principal,service_name,service_type,'true')
+          if policy_list is not None and len(policy_list) > 0:
+            policy_update_count = 0
+            for policy in policy_list:
+              updated_policy_object = self.get_policy_params(service_type,policy,policy_user=policy_user)
+              response,error_message,time_in_millis = self.update_ranger_policy(component_user,component_user_keytab,component_user_principal,updated_policy_object['id'],json.dumps(updated_policy_object))
+              if response and len(response) > 0:
+                policy_update_count += 1
+              else:
+                Logger.info("Policy updated failed")
+            if len(policy_list) == policy_update_count:
+              Logger.info("Ranger Repository created successfully and policies updated successfully providing ambari-qa user all permissions")
+              return response_json
+      else:
+        Logger.info('Repository creation failed')
+        return None
+    else:
+      Logger.info('Repository creation failed')
+      return None
+
+
+
+  @safe_retry(times=5, sleep_time=8, backoff_factor=1.5, err_class=Fail, return_on_fail=None)
+  def get_policy_by_repo_name(self, component_user,component_user_keytab,component_user_principal,name, component, status):
+    """
+    :param name: repository name
+    :param component: component name for which policy needs to be searched
+    :param status: true or false
+    :param usernamepassword: user credentials using which policy needs to be searched
+    :return Returns successful response else None
+    """
+    try:
+      # time.sleep(5)
+      search_policy_url = self.url_policies_get+ '?serviceType=' + component + '&isEnabled=' + status
+
+      search_policy_url = search_policy_url.format(servicename=name)
+      method = 'GET'
+      response,error_message,time_in_millis = self.call_curl_request(component_user,component_user_keytab,component_user_principal,search_policy_url,False,request_method=method)
+      if response and len(response) > 0:
+        response = json.loads(response)
+        return response
+      else:
+        return None
+    except Fail, fail:
+      raise Fail(str(fail))
+
+  @safe_retry(times=5, sleep_time=8, backoff_factor=1.5, err_class=Fail, return_on_fail=None)
+  def update_ranger_policy(self,component_user,component_user_keytab,component_user_principal, policyId, data):
+    """
+    :param policyId: policy id which needs to be updated
+    :param data: policy data that needs to be updated
+    :param usernamepassword: user credentials using which policy needs to be updated
+    :return Returns successful response and response code else None
+    """
+    try:
+      update_url = self.url_policies + '/' + str(policyId)
+      header = 'Content-Type: application/json'
+      method = 'PUT'
+
+      response,error_message,time_in_millis = self.call_curl_request(component_user,component_user_keytab,component_user_principal,update_url,False,method,data,header=header)
+      if response and len(response) > 0:
+        Logger.info('Policy updated Successfully')
+        
+        response_json = json.loads(response)
+        return response_json,error_message,time_in_millis
+      else:
+        Logger.error('Update Policy failed')
+        return None, None,None
+    except Fail, fail:
+      raise Fail(str(fail))
+
+  def get_policy_params(self, typeOfPolicy, policyObj, policy_user):
+    """
+    :param typeOfPolicy: component name for which policy has to be get
+    :param policyObj: policy dict
+    :param policy_user: policy user that needs to be updated
+    :returns Returns updated policy dict
+    """
+    typeOfPolicy = typeOfPolicy.lower()
+    policy_record = ''
+    if typeOfPolicy == "hdfs":
+      policy_record  = {'users': [policy_user], 'accesses': [{'isAllowed': True,'type': 'read' }, {'isAllowed': True,'type': 'write' },{'isAllowed': True,'type': 'execute' }],'delegateAdmin': True}
+    elif typeOfPolicy == "hive":
+      policy_record = {'users': [policy_user],
+                                   'accesses': [{'isAllowed': True,'type': 'select' }, {'isAllowed': True,'type': 'update' }, {'isAllowed': True,'type': 'create' },
+                                                {'isAllowed': True,'type': 'drop' }, {'isAllowed': True,'type': 'alter' }, {'isAllowed': True,'type': 'index' },
+                                                {'isAllowed': True,'type': 'lock' }, {'isAllowed': True,'type': 'all' }],'delegateAdmin':True }
+    elif typeOfPolicy == "hbase":
+      policy_record = {'users': [policy_user], 'accesses': [{'isAllowed': True,'type': 'read' }, {'isAllowed': True,'type': 'write' },
+                                                             {'isAllowed': True,'type': 'create' }],'delegateAdmin':True }
+    elif typeOfPolicy == "knox":
+      policy_record = {'users': [policy_user], 'accesses': [{'isAllowed': True,'type': 'allow' }],'delegateAdmin':True }
+    elif typeOfPolicy == "storm":
+      policy_record = {'users': [policy_user],
+                                   'accesses': [{'isAllowed': True,'type': 'submitTopology' }, {'isAllowed': True,'type': 'fileUpload' },{'isAllowed': True,'type': 'getNimbusConf' },
+                                                {'isAllowed': True,'type': 'getClusterInfo' },{'isAllowed': True,'type': 'fileDownload' } , {'isAllowed': True,'type': 'killTopology' },
+                                                {'isAllowed': True,'type': 'rebalance' }, {'isAllowed': True,'type': 'activate' }, {'isAllowed': True,'type': 'deactivate' },
+                                                {'isAllowed': True,'type': 'getTopologyConf' }, {'isAllowed': True,'type': 'getTopology' }, {'isAllowed': True,'type': 'getUserTopology' },
+                                                {'isAllowed': True,'type': 'getTopologyInfo' }, {'isAllowed': True,'type': 'uploadNewCredential' }],'delegateAdmin':True}
+
+    if policy_record != '':
+      policyObj['policyItems'].append(policy_record)
+    return policyObj

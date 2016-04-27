@@ -55,6 +55,7 @@ etc_prefix_dir = "/etc/hbase"
 stack_version_unformatted = status_params.stack_version_unformatted
 stack_version_formatted = status_params.stack_version_formatted
 stack_root = status_params.stack_root
+stack_supports_ranger_kerberos = stack_version_formatted and check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, stack_version_formatted)
 
 # hadoop default parameters
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
@@ -335,6 +336,27 @@ if has_ranger_admin:
     'repositoryType': 'hbase',
     'assetType': '2'
   }
+
+  if stack_supports_ranger_kerberos and security_enabled:
+    hbase_ranger_plugin_config['policydownload.auth.users'] = hbase_user
+    hbase_ranger_plugin_config['tag.download.auth.users'] = hbase_user
+    hbase_ranger_plugin_config['policy.grant.revoke.auth.users'] = hbase_user
+
+
+    hbase_ranger_plugin_repo = {
+      'isEnabled': 'true',
+      'configs': hbase_ranger_plugin_config,
+      'description': 'hbase repo',
+      'name': repo_name,
+      'type': 'hbase'
+    }
+
+  if 'hbase-master' in component_directory.lower():
+    ranger_hbase_principal = master_jaas_princ
+    ranger_hbase_keytab = master_keytab_path
+  else:
+    ranger_hbase_principal = regionserver_jaas_princ
+    ranger_hbase_keytab = regionserver_keytab_path
 
   xa_audit_db_is_enabled = False
   ranger_audit_solr_urls = config['configurations']['ranger-admin-site']['ranger.audit.solr.urls']

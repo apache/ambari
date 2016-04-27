@@ -55,6 +55,7 @@ stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 agent_stack_retry_on_unavailability = config['hostLevelParams']['agent_stack_retry_on_unavailability']
 agent_stack_retry_count = expect("/hostLevelParams/agent_stack_retry_count", int)
+stack_supports_ranger_kerberos = stack_version_formatted and check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, stack_version_formatted)
 
 # there is a stack upgrade which has not yet been finalized; it's currently suspended
 upgrade_suspended = default("roleParams/upgrade_suspended", False)
@@ -484,6 +485,18 @@ if has_ranger_admin:
     'repositoryType': 'hdfs',
     'assetType': '1'
   }
+  if stack_supports_ranger_kerberos and security_enabled:
+    hdfs_ranger_plugin_config['policydownload.auth.users'] = hdfs_user
+    hdfs_ranger_plugin_config['tag.download.auth.users'] = hdfs_user
+
+    hdfs_ranger_plugin_repo = {
+      'isEnabled': 'true',
+      'configs': hdfs_ranger_plugin_config,
+      'description': 'hdfs repo',
+      'name': repo_name,
+      'type': 'hdfs'
+    }
+
   xa_audit_db_is_enabled = False
   ranger_audit_solr_urls = config['configurations']['ranger-admin-site']['ranger.audit.solr.urls']
   if xml_configurations_supported and stack_supports_ranger_audit_db:
