@@ -133,7 +133,12 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     return parentItems
 
   def __getHosts(self, componentsList, componentName):
-    return [component["hostnames"] for component in componentsList if component["component_name"] == componentName][0]
+    host_lists = [component["hostnames"] for component in componentsList if
+                  component["component_name"] == componentName]
+    if host_lists and len(host_lists) > 0:
+      return host_lists[0]
+    else:
+      return []
 
   def getNotPreferableOnServerComponents(self):
     parentComponents = super(HDP23StackAdvisor, self).getNotPreferableOnServerComponents()
