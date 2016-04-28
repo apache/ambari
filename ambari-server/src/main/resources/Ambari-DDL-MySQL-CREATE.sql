@@ -843,7 +843,7 @@ CREATE INDEX idx_hrc_request_id ON host_role_command (request_id);
 CREATE INDEX idx_hrc_status_role ON host_role_command (status, role);
 CREATE INDEX idx_rsc_request_id ON role_success_criteria (request_id);
 
--------- altering tables by creating foreign keys ----------
+-- ------ altering tables by creating foreign keys ----------
 -- #1: This should always be an exceptional case. FK constraints should be inlined in table definitions when possible
 --     (reorder table definitions if necessary).
 -- #2: Oracle has a limitation of 30 chars in the constraint names name, and we should use the same constraint names in all DB types.
