@@ -30,11 +30,99 @@ describe('App.WidgetWizardStep3Controller', function () {
 
   App.TestAliases.testAsComputedIfThenElse(controller, 'widgetScope', 'isSharedChecked', 'Cluster', 'User');
 
-  App.TestAliases.testAsComputedGte(controller, 'isNameInvalid', 'widgetName.length', 129);
+  //App.TestAliases.testAsComputedGte(controller, 'isNameInvalid', 'widgetName.length', 129);
 
-  App.TestAliases.testAsComputedGte(controller, 'isDescriptionInvalid', 'widgetDescription.length', 2049);
+  //App.TestAliases.testAsComputedGte(controller, 'isDescriptionInvalid', 'widgetDescription.length', 2049);
 
   App.TestAliases.testAsComputedOr(controller, 'isSubmitDisabled', ['widgetNameEmpty', 'isNameInvalid', 'isDescriptionInvalid']);
+
+  describe("#validateName", function(){
+    var testCases = [
+      {
+        widgetName: 'abc 123 _ - %',
+        result: {
+          errorMessage: '',
+          isNameInvalid: false
+        }
+      },
+      {
+        widgetName: '$#@!',
+        result: {
+          errorMessage: Em.I18n.t('widget.create.wizard.step3.name.invalidCharacter.msg'),
+          isNameInvalid: true
+        }
+      },
+      {
+        widgetName: '123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789',
+        result: {
+          errorMessage: Em.I18n.t('widget.create.wizard.step3.name.invalid.msg'),
+          isNameInvalid: true
+        },
+      },
+      {
+        widgetName: '',
+        result: {
+          errorMessage: '',
+          isNameInvalid: false
+        }
+      }
+    ];
+
+    testCases.forEach(function(test){
+      controller.setProperties({
+        widgetName: test.widgetName
+      });
+
+      //Since validateName() observes the property "widgetName", Ember framework will call it
+
+      expect(controller.get('widgetNameErrorMessage')).to.equal(test.result.errorMessage);
+      expect(controller.get('isNameInvalid')).to.equal(test.result.isNameInvalid);
+    });
+  });
+
+  describe("#validateDescription", function(){
+    var testCases = [
+      {
+        widgetDescription: 'abc 123 _ - %',
+        result: {
+          errorMessage: '',
+          isDescriptionInvalid: false
+        }
+      },
+      {
+        widgetDescription: '$#@!',
+        result: {
+          errorMessage: Em.I18n.t('widget.create.wizard.step3.description.invalidCharacter.msg'),
+          isDescriptionInvalid: true
+        }
+      },
+      {
+        widgetDescription: '123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789',
+        result: {
+          errorMessage: Em.I18n.t('widget.create.wizard.step3.description.invalid.msg'),
+          isDescriptionInvalid: true
+        }
+      },
+      {
+        widgetDescription: '',
+        result: {
+          errorMessage: '',
+          isDescriptionInvalid: false
+        }
+      }
+    ];
+
+    testCases.forEach(function(test){
+      controller.setProperties({
+        widgetDescription: test.widgetDescription
+      });
+
+      //Since validateDescription() observes the property "widgetDescription", Ember framework will call it
+
+      expect(controller.get('descriptionErrorMessage')).to.equal(test.result.errorMessage);
+      expect(controller.get('isDescriptionInvalid')).to.equal(test.result.isDescriptionInvalid);
+    });
+  });
 
   describe("#initPreviewData()", function () {
     beforeEach(function () {

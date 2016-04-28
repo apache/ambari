@@ -2844,7 +2844,9 @@ Em.I18n.translations = {
   'widget.create.wizard.step3.sharing.msg': 'Share this widget in the widget library',
   'widget.create.wizard.step3.header': 'Name and Description',
   'widget.create.wizard.step3.name.invalid.msg': 'Widget name is too long. Please enter a widget name less than 129 characters.',
+  'widget.create.wizard.step3.name.invalidCharacter.msg': 'Invalid widget name. Only alphanumerics, underscores, hyphens, percentage and spaces are allowed.',
   'widget.create.wizard.step3.description.invalid.msg': 'Description is too long. Please enter a description less than 2049 characters.',
+  'widget.create.wizard.step3.description.invalidCharacter.msg': 'Invalid input. Only alphanumerics, underscores, hyphens, percentage and spaces are allowed.',
 
   'widget.edit.wizard.header': 'Edit Widget',
 

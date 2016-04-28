@@ -292,5 +292,25 @@ module.exports = {
     var remotePattern = /^(?:(?:https?|ftp):\/{2})(?:\S+(?::\S*)?@)?(?:(?:(?:[\w\-.]))*)(?::[0-9]+)?(?:\/\S*)?$/,
       localPattern = /^file:\/{2,3}([a-zA-Z][:|]\/){0,1}[\w~!*'();@&=\/\\\-+$,?%#.\[\]]+$/;
     return remotePattern.test(value) || localPattern.test(value);
+  },
+
+  /**
+   * Validate widget name
+   * @param {string} value
+   * @returns {boolean}
+   */
+  isValidWidgetName: function(value) {
+    var widgetNameRegex = /^[\s0-9a-z_\-%]+$/i;
+    return widgetNameRegex.test(value);
+  },
+
+  /**
+   * Validate widget description
+   * @param {string} value
+   * @returns {boolean}
+   */
+  isValidWidgetDescription: function(value) {
+    var widgetDescriptionRegex = /^[\s0-9a-z_\-%]+$/i;
+    return widgetDescriptionRegex.test(value);
   }
 };
