@@ -79,11 +79,12 @@ App.supports = {
   preInstallChecks: false,
   hostComboSearchBox: true,
   serviceAutoStart: false,
-  logSearch: false,
+  logSearch: true,
   redhatSatellite: false,
   enableIpa: false,
   addingNewRepository: false,
-  kerberosStackAdvisor: true
+  kerberosStackAdvisor: true,
+  logCountVizualization: false
 };
 
 if (App.enableExperimental) {

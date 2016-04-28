@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 @import 'common.less';
+
 /*90% width modal window start*/
 .full-width-modal {
   .modal {
@@ -107,7 +108,7 @@
   td .table-striped tbody
   tr:nth-child(odd) td,
   tr:nth-child(even) th {
-    background-color: none;
+    background-color: transparent;
   }
 
 }
@@ -247,7 +248,7 @@
       margin-left: 22px;
       float: left;
       .checkbox {
-        margin: 0px;
+        margin: 0;
       }
     }
   }
@@ -505,12 +506,38 @@
   td .table-striped tbody
   tr:nth-child(odd) td,
   tr:nth-child(even) th {
-    background-color: none;
+    background-color: transparent;
   }
 
 }
 /*60% width modal window end*/
 
+
+/* modal fill screen popup */
+
+
+.full-height-modal {
+  // padding from the top and bottom for full-height popup of window
+  @modal-padding: 40px;
+
+  .modal {
+    max-height: 90%;
+
+    &.no-footer {
+      .modal-body {
+        // height: 100%;
+      }
+    }
+
+    &.with-footer {
+      .modal-body {
+        max-height: calc(~"100%" - (@modal-body-padding*2 + @modal-footer-height + @modal-header-height));
+      }
+    }
+  }
+}
+
+/* modal fill screen popup end */
 
 #logs-popup {
   .controls-block {
@@ -518,6 +545,77 @@
     a {
       padding: 5px;
       cursor: pointer;
+    }
+  }
+}
+
+.modal {
+  .modal-body {
+    .top-wrap {
+      &.top-wrap-header {
+        border-bottom: 1px solid #eee;
+        margin-bottom: 20px;
+      }
+    }
+  }
+}
+
+
+.host-progress-popup {
+  .task-detail-info {
+
+    .task-detail-log-info {
+      padding-top: 10px;
+    }
+
+    &.task-detail-info-tabbed {
+
+      .task-detail-log-info {
+        padding-top: 0;
+      }
+
+      .task-top-wrap {
+        padding: 0;
+        border-bottom: none;
+      }
+
+
+      .task-detail-nav {
+        padding-top: 10px;
+      }
+
+      .log-tail-content {
+        width: 100%;
+        padding: 15px;
+        overflow-y: auto;
+        box-sizing: border-box;
+        white-space: normal;
+        margin: 0;
+        position: relative;
+
+        & > div {
+          margin: 0;
+          padding: 0;
+
+          &:hover {
+            background: #ccc;
+          }
+        }
+
+        .log-tail-spinner-container {
+          position: absolute;
+          top: 0;
+          left: 3px;
+        }
+      }
+
+      #infinite-scroll-append {
+        text-align: center;
+
+        .icon-spinner {
+          font-size: 24px;
+        }
+      }
     }
   }
 }

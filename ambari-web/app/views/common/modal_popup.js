@@ -68,19 +68,25 @@ App.ModalPopup = Ember.View.extend({
     this.$().find('#modal')
       .on('enter-key-pressed', this.enterKeyPressed.bind(this))
       .on('escape-key-pressed', this.escapeKeyPressed.bind(this));
+    this.fitZIndex();
+    var firstInputElement = this.$('#modal').find(':input').not(':disabled, .no-autofocus').first();
+    this.focusElement(firstInputElement);
+    this.resizeHandler();
+    $(window).on('resize', this.resizeHandler.bind(this));
+  },
+
+  resizeHandler: function() {
     if (this.autoHeight && !$.mocho) {
       var block = this.$().find('#modal > .modal-body').first();
       if(block.offset()) {
         block.css('max-height', $(window).height() - block.offset().top - this.marginBottom + $(window).scrollTop()); // fix popup height
       }
     }
-    this.fitZIndex();
-    var firstInputElement = this.$('#modal').find(':input').not(':disabled, .no-autofocus').first();
-    this.focusElement(firstInputElement);
   },
 
   willDestroyElement: function() {
     this.$().find('#modal').off('enter-key-pressed').off('escape-key-pressed');
+    $(window).off('resize', this.resizeHandler);
   },
 
   escapeKeyPressed: function (event) {

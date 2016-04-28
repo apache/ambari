@@ -841,7 +841,7 @@ App.HostPopup = Em.Object.create({
       /**
        * @type {String[]}
        */
-      classNames: ['sixty-percent-width-modal', 'host-progress-popup'],
+      classNames: ['sixty-percent-width-modal', 'host-progress-popup', 'full-height-modal'],
 
       /**
        * for the checkbox: do not show this dialog again
@@ -903,5 +903,4 @@ App.HostPopup = Em.Object.create({
 
     return this.get('isPopup');
   }
-
 });

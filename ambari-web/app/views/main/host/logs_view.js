@@ -20,6 +20,7 @@
 var App = require('app');
 var filters = require('views/common/filter_view');
 var sort = require('views/common/sort_view');
+var fileUtils = require('utils/file_utils');
 
 App.MainHostLogsView = App.TableView.extend({
   templateName: require('templates/main/host/logs'),
@@ -31,16 +32,42 @@ App.MainHostLogsView = App.TableView.extend({
    */
   host: Em.computed.alias('App.router.mainHostDetailsController.content'),
 
-  content: function() {
-    return [
-      Em.Object.create({
-        serviceName: 'HDFS',
-        componentName: 'DATANODE',
-        fileExtension: '.log',
-        fileName: 'HDFS_DATANODE.log'
-      })
-    ];
+  hostLogs: function() {
+    return App.HostComponentLog.find().filterProperty('hostName', this.get('host.hostName'));
+  }.property('App.HostComponentLog.length'),
+
+  logSearchUrlTemplate: function() {
+    var quickLink = App.QuickLinks.find().findProperty('site', 'logsearch-site'),
+        logSearchServerHost = App.HostComponent.find().findProperty('componentName', 'LOGSEARCH_SERVER').get('host.hostName');
+
+    if (quickLink) {
+      return quickLink.get('template').fmt('http', logSearchServerHost, quickLink.get('default_http_port')) + '?host_name=' + this.get('host.hostName') + '&file_name={0}&component_name={1}';
+    }
+    return '#';
   }.property(),
+
+  content: function() {
+    var self = this;
+    return this.get('hostLogs').map(function(i) {
+      return Em.Object.create({
+        serviceName: i.get('hostComponent.service.serviceName'),
+        serviceDisplayName: i.get('hostComponent.service.displayName'),
+        componentName: i.get('hostComponent.componentName'),
+        componentDisplayName: i.get('hostComponent.displayName'),
+        hostName: self.get('host.hostName'),
+        logComponentName: i.get('name'),
+        fileNamesObject: i.get('logFileNames').map(function(filePath) {
+          return {
+            fileName: fileUtils.fileNameFromPath(filePath),
+            filePath: filePath,
+            url: self.get('logSearchUrlTemplate').format(filePath, i.get('name'))
+          };
+        }),
+        fileNamesFilterValue: i.get('logFileNames').join(',')
+      });
+    });
+  }.property('hostLogs.length'),
+
   /**
    * @type {Ember.View}
    */
@@ -78,8 +105,8 @@ App.MainHostLogsView = App.TableView.extend({
       }].concat(App.Service.find().mapProperty('serviceName').uniq().map(function(item) {
         return {
           value: item,
-          label: item
-        }
+          label: App.Service.find().findProperty('serviceName', item).get('displayName')
+        };
       }));
     }.property('App.router.clusterController.isLoaded'),
     onChangeValue: function() {
@@ -101,7 +128,7 @@ App.MainHostLogsView = App.TableView.extend({
           return {
             value: item.get('componentName'),
             label: item.get('displayName')
-          }
+          };
         });
       return [{
         value: '',
@@ -116,6 +143,7 @@ App.MainHostLogsView = App.TableView.extend({
   fileExtensionsFilter: filters.createSelectView({
     column: 3,
     fieldType: 'filter-input-width',
+    type: 'string',
     didInsertElement: function() {
       this.setValue(Em.getWithDefault(this, 'controller.serializedQuery.file_extension', ''));
       this._super();
@@ -131,11 +159,11 @@ App.MainHostLogsView = App.TableView.extend({
         return {
           value: item,
           label: item
-        }
-      }))
+        };
+       }));
     }.property('App.router.clusterController.isLoaded'),
     onChangeValue: function() {
-      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'select');
+      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'file_extension');
     }
   }),
 
@@ -146,14 +174,33 @@ App.MainHostLogsView = App.TableView.extend({
     var ret = [];
     ret[1] = 'serviceName';
     ret[2] = 'componentName';
-    ret[3] = 'fileExtension';
+    ret[3] = 'fileNamesFilterValue';
     return ret;
   }.property(),
 
+  logFileRowView: Em.View.extend({
+    tagName: 'tr',
+
+    didInsertElement: function() {
+      this._super();
+      App.tooltip(this.$('[rel="log-file-name-tooltip"]'));
+    },
+
+    willDestroyElement: function() {
+      this.$('[rel="log-file-name-tooltip"]').tooltip('destroy');
+    }
+  }),
+
   openLogFile: function(e) {
-    var fileData = e.context;
-    if (e.context) {
-      App.LogFileSearchPopup(fileData.fileName);
+    var content = e.contexts,
+        filePath = content[1],
+        componentLog = content[0];
+    if (e.contexts.length) {
+      App.showLogTailPopup(Em.Object.create({
+        logComponentName: componentLog.get('logComponentName'),
+        hostName: componentLog.get('hostName'),
+        filePath: filePath
+      }));
     }
   }
 });

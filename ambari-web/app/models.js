@@ -56,6 +56,7 @@ require('models/rack');
 require('models/background_operation');
 require('models/client_component');
 require('models/host_component');
+require('models/host_component_log');
 require('models/target_cluster');
 require('models/slave_component');
 require('models/master_component');

@@ -231,6 +231,7 @@ App.UpdateController = Em.Controller.extend({
             'stack_versions/repository_versions/RepositoryVersions/display_name',
         mainHostController = App.router.get('mainHostController'),
         sortProperties = mainHostController.getSortProps(),
+        loggingResource = ',host_components/logging',
         isHostsLoaded = false;
     this.get('queryParams').set('Hosts', mainHostController.getQueryParameters(true));
     if (App.router.get('currentState.parentState.name') === 'hosts') {
@@ -264,6 +265,9 @@ App.UpdateController = Em.Controller.extend({
     realUrl = realUrl.replace("<stackVersions>", stackVersionInfo);
     realUrl = realUrl.replace("<metrics>", lazyLoadMetrics ? "" : "metrics/disk,metrics/load/load_one,");
     realUrl = realUrl.replace('<hostDetailsParams>', hostDetailsParams);
+    if (App.get('supports.logSearch')) {
+      realUrl += loggingResource;
+    }
 
     var clientCallback = function (skipCall, queryParams) {
       var completeCallback = function () {

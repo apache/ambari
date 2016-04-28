@@ -584,6 +584,10 @@ module.exports = {
         return function (origin, compareValue) {
           return origin === (compareValue === 'enabled');
         };
+      case 'file_extension':
+        return function(origin, compareValue) {
+          return origin.endsWith(compareValue);
+        };
       case 'string':
       default:
         return function (origin, compareValue) {

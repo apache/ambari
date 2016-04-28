@@ -17,6 +17,8 @@
  */
 
 
+@import 'common.less';
+
 @toolbar-context-menu-width: 40px;
 @toolbar-padding: 10px;
 
@@ -150,6 +152,79 @@
 
     .icon-spinner {
       font-size: 33px;
+    }
+  }
+}
+
+.log-tail-popup.full-height-modal {
+  @log-tail-header-height: 60px;
+  @log-tail-bottom-wrap-height: 50px;
+  @log-tail-content-height: calc(~"100%" - (@log-tail-header-height + @log-tail-bottom-wrap-height + @modal-footer-height));
+
+  .top-wrap {
+    border-bottom: none !important;
+
+    .modal-label {
+      font-size: 20px;
+      line-height: 20px;
+    }
+    .refresh,
+    .open-in-log-search {
+      font-size: 24px;
+      cursor: pointer;
+      margin-right: 12px;
+
+      i {
+        font-size: 20px;
+        vertical-align: middle;
+      }
+
+      span {
+        font-size: 14px;
+      }
+    }
+    .action-bar {
+
+      & > a {
+        margin: 0 5px;
+
+        i {
+          font-size: 20px;
+        }
+      }
+    }
+  }
+
+  .bottom-wrap {
+    select {
+      width: 80px;
+    }
+  }
+
+  .log-tail-content {
+    width: 100%;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    white-space: normal;
+    box-sizing: border-box;
+
+    & > div {
+      margin: 0;
+      padding: 0;
+
+      &:hover {
+        background: #ccc;
+      }
+    }
+
+    #infinite-scroll-append,
+    .log-tail-spinner-container
+    {
+      text-align: center;
+
+      .icon-spinner {
+        font-size: 24px;
+      }
     }
   }
 }

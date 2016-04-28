@@ -1384,6 +1384,11 @@ var urls = {
       };
     }
   },
+
+  'cluster.logging.searchEngine': {
+    real: '/clusters/{clusterName}/logging/searchEngine?{query}',
+    mock: ''
+  },
   'admin.high_availability.polling': {
     'real': '/clusters/{clusterName}/requests/{requestId}?fields=tasks/*,Requests/*',
     'mock': '/data/background_operations/host_upgrade_tasks.json'
@@ -2403,6 +2408,11 @@ var urls = {
       }
     }
   },
+
+  'host.logging': {
+    'real': '/clusters/{clusterName}/hosts/{hostName}?fields=host_components/logging,host_components/HostRoles/service_name{fields}{query}&minimal_response=true',
+    'mock': ''
+  },
   'components.filter_by_status': {
     'real': '/clusters/{clusterName}/components?fields=host_components/HostRoles/host_name,ServiceComponentInfo/component_name,ServiceComponentInfo/started_count{urlParams}&minimal_response=true',
     'mock': ''
@@ -2609,6 +2619,12 @@ var urls = {
       }
     }
   },
+
+  'logtail.get': {
+    'real': '/clusters/{clusterName}/logging/searchEngine?component_name={logComponentName}&host_name={hostName}&pageSize={pageSize}&startIndex={startIndex}',
+    'mock': ''
+  },
+
   'service.serviceConfigVersions.get': {
     real: '/clusters/{clusterName}/configurations/service_config_versions?service_name={serviceName}&fields=service_config_version,user,hosts,group_id,group_name,is_current,createtime,service_name,service_config_version_note,stack_id,is_cluster_compatible&minimal_response=true',
     mock: '/data/configurations/service_versions.json'

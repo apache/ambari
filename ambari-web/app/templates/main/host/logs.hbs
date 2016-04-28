@@ -32,13 +32,21 @@
   <tbody>
     {{#if view.pageContent}}
       {{#each row in view.pageContent}}
-      <tr>
-        <td>{{row.serviceName}}</td>
-        <td>{{row.componentName}}</td>
-        <td>
-          <a {{action openLogFile row target="view"}} href="#">{{row.fileName}}</a>
-        </td>
-      </tr>
+        {{#view view.logFileRowView contentBinding="row"}}
+          <td>{{row.serviceDisplayName}}</td>
+          <td>{{row.componentDisplayName}}</td>
+          <td>
+            {{#each file in row.fileNamesObject}}
+              <p>
+                <a {{action openLogFile row file.filePath target="view.parentView"}} href="#" rel="log-file-name-tooltip" {{bindAttr data-original-title="file.filePath"}}>{{file.fileName}}</a>
+                <a {{bindAttr href="file.url"}} target="_blank" rel="log-file-name-tooltip" {{translateAttr title="popup.logTail.openInLogSearch"}} class="pull-right external-link">
+                  <i class="icon-external-link"></i>
+                  {{t popup.logTail.openInLogSearch}}
+                </a>
+              </p>
+              {{/each}}
+          </td>
+        {{/view}}
       {{/each}}
     {{/if}}
   </tbody>

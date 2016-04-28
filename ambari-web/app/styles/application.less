@@ -1599,10 +1599,11 @@ a:focus {
       font-size: 16px;
     }
   }
+
   #host-info, #service-info{
     overflow: auto;
-    max-height: 340px;
     width: 100%;
+    max-height: 340px;
     &.scheduled{
       max-height: 255px;
     }
@@ -3732,6 +3733,11 @@ table.graphs {
       background: none repeat scroll 0 0 #F8F8F8;
     }
   }
+  .logs-tab-content {
+    a.external-link {
+      font-size: @smaller-font-size;
+    }
+  }
   .host-stack-version-status {
     .label {
       font-size: 14px;
@@ -3739,6 +3745,12 @@ table.graphs {
   }
   td.align-center {
     text-align: center;
+  }
+
+  .logs-tab-content {
+    .table {
+      table-layout: auto;
+    }
   }
 }
 

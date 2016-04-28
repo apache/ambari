@@ -57,7 +57,10 @@ App.MainHostMenuView = Em.CollectionView.extend({
         label: Em.I18n.t('hosts.host.menu.logs'),
         routing: 'logs',
         hidden: function () {
-          return !App.get('supports.logSearch');
+          if (App.get('supports.logSearch')) {
+            return !App.Service.find().someProperty('serviceName', 'LOGSEARCH');
+          }
+          return true;
         }.property('App.supports.logSearch'),
         id: 'host-details-summary-logs'
       })

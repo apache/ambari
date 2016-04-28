@@ -97,6 +97,7 @@ Em.I18n.translations = {
   'common.progress':'Progress',
   'common.status':'Status',
   'common.action':'Action',
+  'common.refresh':'Refresh',
   'common.remove':'Remove',
   'common.retry':'Retry',
   'common.skip':'Skip',
@@ -144,6 +145,7 @@ Em.I18n.translations = {
   'common.disableAll':'Disable All',
   'common.disk':'Disk',
   'common.diskUsage':'Disk Usage',
+  'common.last':'Last',
   'common.loadAvg':'Load Avg',
   'common.components':'Components',
   'common.component':'Component',
@@ -281,6 +283,7 @@ Em.I18n.translations = {
   'common.stderr': "stderr",
   'common.structuredOut': "structured_out",
   'common.fileName': 'File Name',
+  'common.file': 'File',
   'common.days': "Days",
   'common.hours': "Hours",
   'common.minutes': "Minutes",
@@ -446,6 +449,8 @@ Em.I18n.translations = {
 
   'popup.jdkValidation.header': 'Unsupported JDK',
   'popup.jdkValidation.body': 'The {0} Stack requires JDK {1} but Ambari is configured for JDK {2}. This could result in error or problems with running your cluster.',
+  'popup.logTail.header': 'File Name',
+  'popup.logTail.openInLogSearch': 'Open In Log Search',
 
   'login.header':'Sign in',
   'login.message.title':'Login Message',

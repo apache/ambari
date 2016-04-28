@@ -18,7 +18,7 @@
 
 
 <div class="modal-backdrop"></div>
-<div class="modal" id="modal" tabindex="-1" role="dialog" aria-labelledby="modal-label" aria-hidden="true">
+<div {{bindAttr class=":modal view.showFooter:with-footer:no-footer"}} id="modal" tabindex="-1" role="dialog" aria-labelledby="modal-label" aria-hidden="true">
   <div class="modal-header">
     {{#if view.showCloseButton}}
       <a class="close" {{action onClose target="view"}}>x</a>

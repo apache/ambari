@@ -72,6 +72,10 @@ module.exports = {
     document.body.appendChild(linkEl);
     linkEl.click();
     document.body.removeChild(linkEl);
+  },
+
+  fileNameFromPath: function(path) {
+    return path.split('/').slice(-1);
   }
 
 };

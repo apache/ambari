@@ -79,6 +79,16 @@ App.hostsMapper = App.QuickDataMapper.create({
     host_id: 'host_name',
     is_visible: 'is_visible'
   },
+  hostComponentLogsConfig: {
+    name: 'logging.name',
+    service_name: 'HostRoles.service_name',
+    host_name: 'HostRoles.host_name',
+    log_file_names_type: 'array',
+    log_file_names_key: 'logging.logs',
+    log_file_names: {
+      item: 'name'
+    }
+  },
   map: function (json, returnMapped) {
     returnMapped = !!returnMapped;
     console.time('App.hostsMapper execution time');
@@ -94,6 +104,7 @@ App.hostsMapper = App.QuickDataMapper.create({
       var selectedHosts = App.db.getSelectedHosts('mainHostController');
       var clusterName = App.get('clusterName');
       var advancedHostComponents = [];
+      var hostComponentLogs = [];
 
       // Create a map for quick access on existing hosts
       var hosts = App.Host.find().toArray();
@@ -142,6 +153,13 @@ App.hostsMapper = App.QuickDataMapper.create({
           }
           if (component.passive_state !== 'OFF') {
             componentsInPassiveState.push(id);
+          }
+          if (host_component.hasOwnProperty('logging')) {
+            var logParsed = this.parseIt(host_component, this.hostComponentLogsConfig);
+            logParsed.id = logParsed.host_name + '_' + logParsed.name;
+            logParsed.host_component_id = host_component.id;
+            component.component_logs_id = logParsed.id;
+            hostComponentLogs.push(logParsed);
           }
         }
 
@@ -195,6 +213,7 @@ App.hostsMapper = App.QuickDataMapper.create({
 
       App.store.commit();
       App.store.loadMany(App.HostStackVersion, stackVersions);
+      App.store.loadMany(App.HostComponentLog, hostComponentLogs);
       App.store.loadMany(App.HostComponent, components);
       //"itemTotal" present only for Hosts page request
       if (!Em.isNone(json.itemTotal)) {
@@ -212,6 +231,7 @@ App.hostsMapper = App.QuickDataMapper.create({
   },
 
   /**
+
    * set metric fields of hosts
    * @param {object} data
    */

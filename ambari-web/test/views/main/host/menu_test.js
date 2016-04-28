@@ -29,10 +29,12 @@ describe('App.MainHostMenuView', function () {
 
     beforeEach(function () {
       this.mock = sinon.stub(App, 'get');
+      this.serviceMock = sinon.stub(App.Service, 'find');
     });
 
     afterEach(function () {
       App.get.restore();
+      App.Service.find.restore();
     });
 
     Em.A([
@@ -57,19 +59,28 @@ describe('App.MainHostMenuView', function () {
     Em.A([
       {
         logSearch: false,
+        services: [{serviceName: 'LOGSEARCH'}],
         m: '`logs` tab is invisible',
         e: true
       },
       {
         logSearch: true,
+        services: [],
+        m: '`logs` tab is invisible because service not installed',
+        e: true
+      },
+      {
+        logSearch: true,
+        services: [{serviceName: 'LOGSEARCH'}],
         m: '`logs` tab is visible',
         e: false
       }
     ]).forEach(function(test) {
       it(test.m, function() {
-          this.mock.withArgs('supports.logSearch').returns(test.logSearch);
-          view.propertyDidChange('content');
-          expect(view.get('content').findProperty('name', 'logs').get('hidden')).to.equal(test.e);
+        this.mock.withArgs('supports.logSearch').returns(test.logSearch);
+        this.serviceMock.returns(test.services);
+        view.propertyDidChange('content');
+        expect(view.get('content').findProperty('name', 'logs').get('hidden')).to.equal(test.e);
       });
     });
   });

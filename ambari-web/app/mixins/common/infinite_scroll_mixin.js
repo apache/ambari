@@ -74,6 +74,12 @@ App.InfiniteScrollMixin = Ember.Mixin.create({
   },
 
   /**
+   * Determines that there is no data to load on next callback call.
+   *
+   */
+  _infiniteScrollMoreData: true,
+
+  /**
    * Initialize infinite scroll on specified HTMLElement.
    *
    * @param  {HTMLElement} el DOM element to attach infinite scroll.
@@ -109,7 +115,7 @@ App.InfiniteScrollMixin = Ember.Mixin.create({
   _infiniteScrollEndHandler: function(options) {
     return function(e) {
       var self = this;
-      if (this.get('_infiniteScrollCallbackInProgress')) return;
+      if (this.get('_infiniteScrollCallbackInProgress') || !this.get('_infiniteScrollMoreData')) return;
       this._infiniteScrollAppendHtml(options.appendHtml);
       // always scroll to bottom
       this.get('_infiniteScrollEl').scrollTop(this.get('_infiniteScrollEl').get(0).scrollHeight);
@@ -169,5 +175,13 @@ App.InfiniteScrollMixin = Ember.Mixin.create({
     this.get('_infiniteScrollEl').off('scroll', this._infiniteScrollHandler);
     this.get('_infiniteScrollEl').off('infinite-scroll-end', this._infiniteScrollHandler);
     this.set('_infiniteScrollEl', null);
+  },
+
+  /**
+   * Set if there is more data to load on next scroll end event.
+   * @param {boolean} isAvailable <code>true</code> when there are more data to fetch
+   */
+  infiniteScrollSetDataAvailable: function(isAvailable) {
+    this.set('_infiniteScrollMoreData', isAvailable);
   }
 });
