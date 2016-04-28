@@ -1430,11 +1430,11 @@ thead.view-permission-header > tr > th {
 }
 
 .left-menu-all-repos .repos-table {
-  margin-bottom: 0px;
+  margin-bottom: 0;
 }
 
 .left-menu-all-repos .panel-body {
-  padding: 15px 0px;
+  padding: 15px 0;
 }
 
 .left-menu-all-repos .repos-table .repos-td{
@@ -1492,8 +1492,8 @@ thead.view-permission-header > tr > th {
 
 .register-version-form .repos-panel .remove-icon {
   color: red;
-  margin: 20px 0px;
-  padding: 0px;
+  margin: 20px 0;
+  padding: 0;
   text-align: center;
   cursor: pointer;
 }
@@ -1529,27 +1529,66 @@ thead.view-permission-header > tr > th {
   cursor: pointer;
 }
 
-.role-details-modal table {
-  table-layout: fixed;
+.role-details-modal .table-head-wrapper {
+  position: relative;
+}
+
+.role-details-modal .table-head {
   width: 100%;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  border-width: 1px 0;
+  border-style: solid;
+  border-color: #ddd;
 }
 
-.role-details-modal .fixed-header {
-  font-weight: bold;
-  margin: 0px;
-}
-
-.role-details-modal .first-column{
-  width: 28%;
-}
-
-.role-details-modal .not-first-column{
-  width: 12%;
-}
-
-.role-details-modal .role-detail-content-wrapper {
+.role-details-modal .table-body {
   height: 500px;
+  width: 100%;
   overflow-y: auto;
-  border: 0px;
-  margin:0px;
+}
+
+.role-details-modal .table-row-wrapper {
+  width: 100%;
+  display: table;
+  table-layout: fixed;
+}
+
+.role-details-modal .table-row {
+  display: table-row;
+}
+
+.role-details-modal .table-cell {
+  width: 12.5%;
+  display: table-cell;
+  border-color: #ddd;
+  border-style: solid;
+  border-width: 0 1px 1px 0;
+  padding: 8px;
+  line-height: 1.42857143;
+  vertical-align: top;
+}
+
+.role-details-modal .table-cell:first-of-type {
+  width: 25%;
+  border-left-width: 1px;
+}
+
+.role-details-modal .table-head-wrapper .table-cell {
+  border-bottom-width: 0;
+  font-weight: bold;
+}
+
+.role-details-modal .table-head-wrapper > .table-cell:last-of-type {
+  position: absolute;
+  right: 0;
+  top: 1px;
+  bottom: 1px;
+  padding-left: 0;
+  background-color: #fff;
+  text-align: center;
+}
+
+.role-details-modal .table-head .table-cell:last-of-type {
+  visibility: hidden;
 }
