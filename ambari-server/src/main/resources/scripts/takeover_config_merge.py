@@ -23,43 +23,67 @@ import os
 import logging
 import tempfile
 import json
+import re
 import base64
 import time
 import xml
 import xml.etree.ElementTree as ET
+import yaml
+import StringIO
+import ConfigParser
 
 logger = logging.getLogger('AmbariTakeoverConfigMerge')
 
+LOG4J_HELP_TEXT = """
+JSON file should content map with {regex_path : <service>-log4j}
+Example:
+{".+/hadoop/.+/log4j.properties" : "hdfs-log4j",
+".+/etc/zookeeper/conf/log4j.properties" : "zookeeper-log4j"
+"c6401.ambari.apache.org/etc/hive/conf/log4j.properties" : "hive-log4j"}
+"""
 
-class ConfigMerge:
-  INPUT_DIR = '/etc/hadoop'
-  OUTPUT_DIR = '/tmp'
-  OUT_FILENAME = 'ambari_takeover_config_merge.out'
-  JSON_FILENAME = 'ambari_takeover_config_merge.json'
-  SUPPORTED_EXTENSIONS = ['.xml']
-  SUPPORTED_FILENAME_ENDINGS = ['-site']
+class Parser:
+  pass
 
-  config_files_map = {}
+class YamlParser(Parser): # Used Yaml parser to read data into a map
+  def read_data_to_map(self, path):
+    configurations = {}
+    with open(path, 'r') as file:
+      try:
+        for name, value in yaml.load(file).iteritems():
+          if name != None:
+            configurations[name] = str(value)
+      except yaml.YAMLError:
+        logger.exception("Yaml parser error: ")
+        return None
+    return configurations
 
-  def __init__(self, config_files_map):
-    self.config_files_map = config_files_map
 
-  @staticmethod
-  def get_all_supported_files_grouped_by_name(extensions=SUPPORTED_EXTENSIONS):
-    filePaths = {}
-    for dirName, subdirList, fileList in os.walk(ConfigMerge.INPUT_DIR, followlinks=True):
-      for file in fileList:
-        root, ext = os.path.splitext(file)
-        for filename_ending in ConfigMerge.SUPPORTED_FILENAME_ENDINGS:
-          if root.endswith(filename_ending) and ext in extensions:
-            if not file in filePaths:
-              filePaths[file] = []
-            filePaths[file].append(os.path.join(dirName, file))
+class PropertiesParser(Parser): # Used ConfigParser parser to read data into a map
+  def read_data_to_map(self, path):
+    configurations = {}
+    try :
+      #Adding dummy section to properties file content for use ConfigParser
+      properties_file_content = StringIO.StringIO()
+      properties_file_content.write('[dummysection]\n')
+      properties_file_content.write(open(path).read())
+      properties_file_content.seek(0, os.SEEK_SET)
 
-    return filePaths
+      cp = ConfigParser.ConfigParser()
+      cp.readfp(properties_file_content)
 
-  # Used DOM parser to read data into a map
-  def read_xml_data_to_map(self, path):
+      for section in cp._sections:
+        for name, value in cp._sections[section].iteritems():
+          if name != None:
+            configurations[name] = value
+        del configurations['__name__']
+    except:
+      logger.exception("ConfigParser error: ")
+    return configurations
+
+
+class XmlParser(Parser):  # Used DOM parser to read data into a map
+  def read_data_to_map(self, path):
     configurations = {}
     tree = ET.parse(path)
     root = tree.getroot()
@@ -82,6 +106,65 @@ class ConfigMerge:
       configurations[name_text] = value_text
     logger.debug("Following configurations found in {0}:\n{1}".format(path, configurations))
     return configurations
+
+class ConfigMerge:
+
+  CONTENT_UNKNOWN_FILES_MAPPING_FILE = {}
+  INPUT_DIR = '/etc/hadoop'
+  OUTPUT_DIR = '/tmp'
+  OUT_FILENAME = 'ambari_takeover_config_merge.out'
+  JSON_FILENAME = 'ambari_takeover_config_merge.json'
+  PARSER_BY_EXTENSIONS = {'.xml' : XmlParser(), '.yaml' : YamlParser(), '.properties' : PropertiesParser()}
+  SUPPORTED_EXTENSIONS = ['.xml', '.yaml', '.properties']
+  UNKNOWN_FILES_MAPPING_FILE = None
+  SERVICE_TO_AMBARI_CONFIG_NAME = {
+    "storm.yaml": "storm-site"
+  }
+
+  NOT_MAPPED_FILES = ['log4j.properties']
+
+
+  config_files_map = {}
+
+  def __init__(self, config_files_map):
+    self.config_files_map = config_files_map
+
+  @staticmethod
+  def get_all_supported_files_grouped_by_name(extensions=SUPPORTED_EXTENSIONS):
+    filePaths = {}
+    for dirName, subdirList, fileList in os.walk(ConfigMerge.INPUT_DIR, followlinks=True):
+      for file in fileList:
+        root, ext = os.path.splitext(file)
+        if ext in extensions:
+          file_path = os.path.join(dirName, file)
+
+          config_name = None
+          if file in ConfigMerge.SERVICE_TO_AMBARI_CONFIG_NAME:
+            config_name = ConfigMerge.SERVICE_TO_AMBARI_CONFIG_NAME[file]
+
+          #hack for log4j.properties files
+          elif ConfigMerge.UNKNOWN_FILES_MAPPING_FILE:
+            for path_regex, name in ConfigMerge.CONTENT_UNKNOWN_FILES_MAPPING_FILE.iteritems():
+              match = re.match(path_regex, os.path.relpath(file_path, ConfigMerge.INPUT_DIR))
+              if match:
+                config_name = name
+                break
+
+          if not config_name:
+            if file in ConfigMerge.NOT_MAPPED_FILES:
+              if ConfigMerge.UNKNOWN_FILES_MAPPING_FILE:
+                logger.error("File {0} doesn't match any regex from {1}".format(file_path, ConfigMerge.UNKNOWN_FILES_MAPPING_FILE))
+              else:
+                logger.error("Cannot map {0} to Ambari config type. Please use -u option to specify config mapping for this file. \n"
+                             "For more information use --help option for script".format(file_path))
+              continue
+            else:
+              config_name = file
+
+          if not config_name in filePaths:
+            filePaths[config_name] = []
+          filePaths[config_name].append((file_path, ConfigMerge.PARSER_BY_EXTENSIONS[ext]))
+    return filePaths
 
   @staticmethod
   def merge_configurations(filepath_to_configurations):
@@ -131,12 +214,15 @@ class ConfigMerge:
   def perform_merge(self):
     result_configurations = {}
     has_conflicts = False
-    for filename, paths in self.config_files_map.iteritems():
+    for filename, paths_and_parsers in self.config_files_map.iteritems():
       filepath_to_configurations = {}
       configuration_type = os.path.splitext(filename)[0]
-      for path in paths:
-        logger.debug("Read xml data from {0}".format(path))
-        filepath_to_configurations[path] = self.read_xml_data_to_map(path)
+      for path_and_parser in paths_and_parsers:
+        path, parser = path_and_parser
+        logger.debug("Read data from {0}".format(path))
+        parsed_configurations_from_path = parser.read_data_to_map(path)
+        if parsed_configurations_from_path != None:
+          filepath_to_configurations[path] = parsed_configurations_from_path
       merged_configurations, property_name_to_value_to_filepaths = ConfigMerge.merge_configurations(
         filepath_to_configurations)
 
@@ -164,7 +250,6 @@ class ConfigMerge:
       logger.info("Script successfully finished")
       return 0
 
-
 def main():
   tempDir = tempfile.gettempdir()
   outputDir = os.path.join(tempDir)
@@ -177,15 +262,17 @@ def main():
                          'from a target directory and produces an out file '
                          'with problems found that need to be addressed and '
                          'the json file which can be used to create the '
-                         'blueprint.\n\nThis script only works with *-site.xml '
-                         'files for now.'
-                         )
+                         'blueprint.\n\nThis script only works with *.xml *.yaml '
+                         'and *.properties extensions of files.')
 
   parser.add_option("-v", "--verbose", dest="verbose", action="store_true",
                     default=False, help="output verbosity.")
   parser.add_option("-o", "--outputdir", dest="outputDir", default=outputDir,
                     metavar="FILE", help="Output directory. [default: /tmp]")
   parser.add_option("-i", "--inputdir", dest="inputDir", help="Input directory.")
+
+  parser.add_option("-u", '--unknown-files-mapping-file',dest="unknown_files_mapping_file", default=None,
+                    metavar="FILE", help=LOG4J_HELP_TEXT)
 
   (options, args) = parser.parse_args()
 
@@ -197,6 +284,15 @@ def main():
 
   ConfigMerge.INPUT_DIR = options.inputDir
   ConfigMerge.OUTPUT_DIR = options.outputDir
+
+  #hack for logf4.properties files
+  if options.unknown_files_mapping_file:
+    ConfigMerge.UNKNOWN_FILES_MAPPING_FILE = options.unknown_files_mapping_file
+    with open(options.unknown_files_mapping_file) as f:
+      ConfigMerge.CONTENT_UNKNOWN_FILES_MAPPING_FILE = json.load(f)
+
+  if not os.path.exists(ConfigMerge.OUTPUT_DIR):
+    os.makedirs(ConfigMerge.OUTPUT_DIR)
 
   logegr_file_name = os.path.join(ConfigMerge.OUTPUT_DIR, "takeover_config_merge.log")
 
