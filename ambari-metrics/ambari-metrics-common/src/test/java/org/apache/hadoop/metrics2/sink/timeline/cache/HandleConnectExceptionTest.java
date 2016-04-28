@@ -23,6 +23,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 import org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink;
+import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.hadoop.metrics2.sink.timeline.UnableToConnectException;
 import org.junit.Assert;
@@ -50,12 +51,12 @@ public class HandleConnectExceptionTest {
     OutputStream os = createNiceMock(OutputStream.class);
     HttpURLConnection connection = createNiceMock(HttpURLConnection.class);
     URL url = createNiceMock(URL.class);
-
+    AbstractTimelineMetricsSink.NUMBER_OF_SKIPPED_COLLECTOR_EXCEPTIONS = 2;
     try {
-      expectNew(URL.class, "collector").andReturn(url);
-      expect(url.openConnection()).andReturn(connection).once();
-      expect(connection.getOutputStream()).andReturn(os).once();
-      expect(connection.getResponseCode()).andThrow(new IOException());
+      expectNew(URL.class, "collector").andReturn(url).anyTimes();
+      expect(url.openConnection()).andReturn(connection).anyTimes();
+      expect(connection.getOutputStream()).andReturn(os).anyTimes();
+      expect(connection.getResponseCode()).andThrow(new IOException()).anyTimes();
 
       replayAll();
     } catch (Exception e) {
@@ -65,8 +66,18 @@ public class HandleConnectExceptionTest {
 
   @Test
   public void handleTest(){
-    try{
+    emitMetricsWithExpectedException(new TimelineMetrics());
+    try {
       sink.emitMetrics(new TimelineMetrics());
+    } catch (Exception e) {
+      Assert.fail("There should be no exception");
+    }
+    emitMetricsWithExpectedException(new TimelineMetrics());
+  }
+
+  private void emitMetricsWithExpectedException(TimelineMetrics timelineMetrics) {
+    try{
+      sink.emitMetrics(timelineMetrics);
       Assert.fail();
     }catch(UnableToConnectException e){
       Assert.assertEquals(COLLECTOR_URL, e.getConnectUrl());

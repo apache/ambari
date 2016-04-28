@@ -38,6 +38,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.KeyStore;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class AbstractTimelineMetricsSink {
   public static final String TAGS_FOR_PREFIX_PROPERTY_PREFIX = "tagsForPrefix.";
@@ -56,6 +57,9 @@ public abstract class AbstractTimelineMetricsSink {
   public static final String SSL_KEYSTORE_PATH_PROPERTY = "truststore.path";
   public static final String SSL_KEYSTORE_TYPE_PROPERTY = "truststore.type";
   public static final String SSL_KEYSTORE_PASSWORD_PROPERTY = "truststore.password";
+
+  protected static final AtomicInteger failedCollectorConnectionsCounter = new AtomicInteger(0);
+  public static int NUMBER_OF_SKIPPED_COLLECTOR_EXCEPTIONS = 100;
 
   private SSLSocketFactory sslSocketFactory;
 
@@ -109,9 +113,12 @@ public abstract class AbstractTimelineMetricsSink {
         }
       }
       cleanupInputStream(connection.getInputStream());
+      //reset failedCollectorConnectionsCounter to "0"
+      failedCollectorConnectionsCounter.set(0);
     } catch (IOException ioe) {
       StringBuilder errorMessage =
-          new StringBuilder("Unable to connect to collector, " + connectUrl + "\n");
+          new StringBuilder("Unable to connect to collector, " + connectUrl + "\n"
+                  + "This exceptions will be ignored for next " + NUMBER_OF_SKIPPED_COLLECTOR_EXCEPTIONS + " times\n");
       try {
         if ((connection != null)) {
           errorMessage.append(cleanupInputStream(connection.getErrorStream()));
@@ -119,12 +126,20 @@ public abstract class AbstractTimelineMetricsSink {
       } catch (IOException e) {
         //NOP
       }
-      if (LOG.isDebugEnabled()) {
-        LOG.debug(errorMessage, ioe);
+
+      if (failedCollectorConnectionsCounter.getAndIncrement() == 0) {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(errorMessage, ioe);
+        } else {
+          LOG.info(errorMessage);
+        }
+        throw new UnableToConnectException(ioe).setConnectUrl(connectUrl);
       } else {
-        LOG.info(errorMessage);
+        failedCollectorConnectionsCounter.compareAndSet(NUMBER_OF_SKIPPED_COLLECTOR_EXCEPTIONS, 0);
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(String.format("Ignoring %s AMS connection exceptions", NUMBER_OF_SKIPPED_COLLECTOR_EXCEPTIONS));
+        }
       }
-      throw new UnableToConnectException(ioe).setConnectUrl(connectUrl);
     }
   }
 
