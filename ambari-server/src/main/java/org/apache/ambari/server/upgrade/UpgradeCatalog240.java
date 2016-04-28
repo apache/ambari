@@ -597,6 +597,22 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
         alertDefinition.setHash(UUID.randomUUID().toString());
         alertDefinitionDAO.merge(alertDefinition);
       }
+      //update Atlas alert
+      final AlertDefinitionEntity atlasMetadataServerWebUI = alertDefinitionDAO.findByName(
+              clusterID, "metadata_server_webui");
+      if (atlasMetadataServerWebUI != null) {
+        String source = atlasMetadataServerWebUI.getSource();
+        JsonObject sourceJson = new JsonParser().parse(source).getAsJsonObject();
+
+        JsonObject uriJson = sourceJson.get("uri").getAsJsonObject();
+        uriJson.remove("kerberos_keytab");
+        uriJson.remove("kerberos_principal");
+        uriJson.addProperty("kerberos_keytab", "{{cluster-env/smokeuser_keytab}}");
+        uriJson.addProperty("kerberos_principal", "{{cluster-env/smokeuser_principal_name}}");
+
+        atlasMetadataServerWebUI.setSource(sourceJson.toString());
+        alertDefinitionDAO.merge(atlasMetadataServerWebUI);
+      }
     }
   }
 
