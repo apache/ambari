@@ -325,12 +325,24 @@ class TestHDP25StackAdvisor(TestCase):
               'llap_queue_capacity':'0'
             }
         },
+        "yarn-site": {
+          "properties": {
+            "yarn.scheduler.minimum-allocation-mb": "682",
+            "yarn.nodemanager.resource.memory-mb": "10240"
+          }
+        },
         "hive-interactive-site":
           {
             'properties': {
-              'hive.llap.daemon.queue.name':'default'
+              'hive.llap.daemon.queue.name':'default',
+              'hive.tez.container.size': '341'
             }
           },
+        "tez-interactive-site": {
+          "properties": {
+            "tez.am.resource.memory.mb": "341"
+          }
+        },
         "hive-env":
           {
             'properties': {
@@ -426,6 +438,17 @@ class TestHDP25StackAdvisor(TestCase):
               'llap_queue_capacity':'0'
             }
           },
+        "yarn-site": {
+          "properties": {
+            "yarn.scheduler.minimum-allocation-mb": "682",
+            "yarn.nodemanager.resource.memory-mb": "2048"
+          }
+        },
+        "tez-interactive-site": {
+          "properties": {
+            "tez.am.resource.memory.mb": "341"
+          }
+        },
         "hive-env":
           {
             'properties': {
@@ -521,12 +544,24 @@ class TestHDP25StackAdvisor(TestCase):
               'llap_queue_capacity':'40'
             }
           },
+        "yarn-site": {
+          "properties": {
+            "yarn.scheduler.minimum-allocation-mb": "682",
+            "yarn.nodemanager.resource.memory-mb": "2048"
+          }
+        },
         "hive-interactive-site":
           {
             'properties': {
               'hive.llap.daemon.queue.name':'default'
             }
           },
+        "tez-interactive-site": {
+          "properties": {
+            "tez.am.resource.memory.mb": "341"
+          }
+        },
+
         "hive-env":
           {
             'properties': {
@@ -636,6 +671,17 @@ class TestHDP25StackAdvisor(TestCase):
               'hive.llap.daemon.queue.name':'default'
             }
           },
+        "yarn-site": {
+          "properties": {
+            "yarn.scheduler.minimum-allocation-mb": "682",
+            "yarn.nodemanager.resource.memory-mb": "2048"
+          },
+        "tez-interactive-site": {
+            "properties": {
+              "tez.am.resource.memory.mb": "341"
+            }
+          },
+        },
         "hive-env":
           {
             'properties': {
@@ -747,6 +793,11 @@ class TestHDP25StackAdvisor(TestCase):
               'hive.llap.daemon.queue.name': 'llap'
             }
           },
+        "tez-interactive-site": {
+          "properties": {
+            "tez.am.resource.memory.mb": "341"
+          }
+        },
         "hive-env":
           {
             'properties': {
@@ -883,6 +934,11 @@ class TestHDP25StackAdvisor(TestCase):
               'llap_queue_capacity':'0'
             }
           },
+        "tez-interactive-site": {
+          "properties": {
+            "tez.am.resource.memory.mb": "341"
+          }
+        },
         "hive-env":
           {
             'properties': {

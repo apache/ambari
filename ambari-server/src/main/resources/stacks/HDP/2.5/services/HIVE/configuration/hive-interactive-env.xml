@@ -237,6 +237,9 @@
 
       export HADOOP_CLASSPATH={{atlas_conf_dir}}:{{atlas_home_dir}}/hook/hive:${HADOOP_CLASSPATH}
 
+      # Spark assembly contains a conflicting copy of HiveConf from hive-1.2
+      export HIVE_SKIP_SPARK_ASSEMBLY=true
+
     </value>
     <value-attributes>
       <type>content</type>

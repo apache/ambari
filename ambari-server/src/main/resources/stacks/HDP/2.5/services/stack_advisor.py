@@ -175,7 +175,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
       # Hive Server interactive is already added or getting added
       if enable_hive_interactive == 'true':
-        self.checkAndManageLlapQueue(services, configurations, LLAP_QUEUE_NAME)
+        self.checkAndManageLlapQueue(services, configurations, hosts, LLAP_QUEUE_NAME)
         self.updateLlapConfigs(configurations, services, hosts, LLAP_QUEUE_NAME)
       else:  # When Hive Interactive Server is in 'off/removed' state.
         self.checkAndStopLlapQueue(services, configurations, LLAP_QUEUE_NAME)
@@ -231,9 +231,8 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
         Logger.error("Couldn't retrieve 'capacity-scheduler' properties while doing YARN queue adjustment for Hive Server Interactive."
                      " Not calculating LLAP configs.")
         return
-
       # Won't be calculating values if queues not equal to 2 and queue in use is not llap
-      if len(leafQueueNames) !=2:
+      if len(leafQueueNames) > 2 or (len(leafQueueNames) == 1 and llap_queue_selected_in_current_call != llap_queue_name):
         return
 
       # 'llap' queue exists at this point.
@@ -269,7 +268,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
           num_llap_nodes_max_limit = node_manager_host_cnt
 
         # Get calculated value for prop 'hive.llap.daemon.yarn.container.mb'
-        llap_container_size, llap_container_size_max_limit = self.calculate_llap_app_container_size(services, hosts, configurations)
+        llap_container_size, llap_container_size_min_limit = self.calculate_llap_app_container_size(services, hosts, configurations)
 
         # Get calculated value for prop 'hive.llap.daemon.num.executors'
         num_executors_per_node, num_executors_per_node_max_limit = self.calculate_llap_daemon_executors_count(services,
@@ -294,7 +293,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
         num_llap_nodes = long(num_llap_nodes)
         num_llap_nodes_max_limit= long(num_llap_nodes_max_limit)
         llap_container_size = long(llap_container_size)
-        llap_container_size_max_limit = long(llap_container_size_max_limit)
+        llap_container_size_min_limit = long(llap_container_size_min_limit)
         num_executors_per_node = long(num_executors_per_node)
         num_executors_per_node_max_limit = long(num_executors_per_node_max_limit)
         cache_size_per_node = long(cache_size_per_node)
@@ -303,7 +302,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
         slider_am_container_mb = long(slider_am_container_mb)
 
         Logger.info("Setting following value for 'hive.llap.daemon.yarn.container.mb'. Min : {0}, Curr: {1}, Max: {2}"\
-                    .format(llap_container_size, llap_container_size, llap_container_size_max_limit))
+                    .format(llap_container_size_min_limit, llap_container_size, llap_container_size))
         Logger.info("Setting following value for 'hive.llap.daemon.num.executors'. Min : {0}, Curr: {1}, Max: {2}"\
                     .format('1', num_executors_per_node, num_executors_per_node_max_limit))
         Logger.info("Setting following value for 'hive.llap.io.memory.size'. Min : {0}, Curr: {1}, Max: {2}"\
@@ -320,9 +319,9 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
         putHiveInteractiveSiteProperty('hive.llap.daemon.yarn.container.mb', llap_container_size)
         putHiveInteractiveSitePropertyAttribute('hive.llap.daemon.yarn.container.mb', "minimum",
-                                                llap_container_size)
+                                                llap_container_size_min_limit)
         putHiveInteractiveSitePropertyAttribute('hive.llap.daemon.yarn.container.mb', "maximum",
-                                                llap_container_size_max_limit)
+                                                llap_container_size)
 
         putHiveInteractiveSiteProperty('hive.llap.daemon.num.executors', num_executors_per_node)
         putHiveInteractiveSitePropertyAttribute('hive.llap.daemon.num.executors', "minimum", 1)
@@ -340,8 +339,36 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
 
     except Exception as e:
-      Logger.info(e.message+" Skipping calculating LLAP configs.")
-      Logger.info(traceback.print_exc())
+      Logger.info(e.message+" Skipping calculating LLAP configs. Setting them to minimum values.")
+      traceback.print_exc()
+
+      try:
+        yarn_min_container_size = self.get_yarn_min_container_size(services)
+        slider_am_container_mb = self.calculate_slider_am_size(yarn_min_container_size)
+
+        putHiveInteractiveEnvProperty('num_llap_nodes', 0)
+        putHiveInteractiveEnvPropertyAttribute('num_llap_nodes', "minimum", 0)
+        putHiveInteractiveEnvPropertyAttribute('num_llap_nodes', "maximum", 0)
+
+        putHiveInteractiveSiteProperty('hive.llap.daemon.yarn.container.mb', yarn_min_container_size)
+        putHiveInteractiveSitePropertyAttribute('hive.llap.daemon.yarn.container.mb', "minimum", yarn_min_container_size)
+        putHiveInteractiveSitePropertyAttribute('hive.llap.daemon.yarn.container.mb', "maximum", yarn_min_container_size)
+
+        putHiveInteractiveSiteProperty('hive.llap.daemon.num.executors', 0)
+        putHiveInteractiveSitePropertyAttribute('hive.llap.daemon.num.executors', "minimum", 0)
+        putHiveInteractiveSitePropertyAttribute('hive.llap.daemon.num.executors', "maximum", 0)
+
+        putHiveInteractiveSiteProperty('hive.llap.io.memory.size', 0)
+        putHiveInteractiveSitePropertyAttribute('hive.llap.io.memory.size', "minimum", 0)
+        putHiveInteractiveSitePropertyAttribute('hive.llap.io.memory.size', "maximum", 0)
+
+        putHiveInteractiveEnvProperty('llap_heap_size', 0)
+
+        putHiveInteractiveEnvProperty('slider_am_container_mb', slider_am_container_mb)
+
+      except Exception as e:
+        Logger.info("Problem setting minimum values for LLAP configs in except code.")
+        traceback.print_exc()
 
   """
   Checks for the presence of passed-in configuration properties in a given config, if they are changed.
@@ -471,7 +498,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     return yarn_min_container_size
 
   """
-  Calculates recommended and maximum container size for LLAP app.
+  Calculates recommended and minimum container size for LLAP app.
   """
   def calculate_llap_app_container_size(self, services, hosts, configurations):
     cap_available_for_daemons = self.calculate_cap_available_for_llap_daemons(services, hosts, configurations)
@@ -486,20 +513,22 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       num_llap_nodes = self.get_num_llap_nodes(services)
 
     llap_container_size_raw = cap_available_for_daemons / num_llap_nodes
-    llap_container_size_raw_max_limit = cap_available_for_daemons / node_manager_host_cnt
+    llap_container_size_raw_min_limit = cap_available_for_daemons / node_manager_host_cnt
 
     yarn_min_container_size = self.get_yarn_min_container_size(services)
 
     llap_container_size = self._normalizeDown(llap_container_size_raw, yarn_min_container_size)
-    llap_container_size_max_limit = self._normalizeDown(llap_container_size_raw_max_limit, yarn_min_container_size)
+    llap_container_size_min_limit = self._normalizeDown(llap_container_size_raw_min_limit, yarn_min_container_size)
+    '''
     if llap_container_size_max_limit < llap_container_size:
       llap_container_size_max_limit = llap_container_size
-    Logger.info("Calculated llap_container_size : {0}, llap_container_size_max_limit : {1}, using following : "
+    '''
+    Logger.info("Calculated llap_container_size : {0}, llap_container_size_min_limit : {1}, using following : "
                 "cap_available_for_daemons : {2}, node_manager_host_cnt : {3}, llap_container_size_raw : {4}, "
                 "llap_container_size_raw_max_limit : {5}, yarn_min_container_size : {6} "\
-                .format(llap_container_size, llap_container_size_max_limit, cap_available_for_daemons, node_manager_host_cnt,
-                        llap_container_size_raw, llap_container_size_raw_max_limit, yarn_min_container_size))
-    return llap_container_size, llap_container_size_max_limit
+                .format(llap_container_size, llap_container_size_min_limit, cap_available_for_daemons, node_manager_host_cnt,
+                        llap_container_size_raw, llap_container_size_raw_min_limit, yarn_min_container_size))
+    return llap_container_size, llap_container_size_min_limit
 
 
   def calculate_cap_available_for_llap_daemons(self, services, hosts, configurations):
@@ -551,7 +580,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
   def calculate_slider_am_size(self, yarn_min_container_size):
     if yarn_min_container_size > 1024:
       return 1024
-    if yarn_min_container_size > 256 and yarn_min_container_size < 1024:
+    if yarn_min_container_size >= 256 and yarn_min_container_size <= 1024:
       return yarn_min_container_size
     if yarn_min_container_size < 256:
       return 256
@@ -645,25 +674,59 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     llap_app_heap_size = max(total_mem_for_executors * 0.8, total_mem_for_executors - 1024)
     Logger.info("Calculated llap_app_heap_size : {0}, using following : hive_container_size : {1}, "
                 "total_mem_for_executors : {2}".format(llap_app_heap_size, hive_container_size, total_mem_for_executors))
-    return max(total_mem_for_executors * 0.8, total_mem_for_executors - 1024)
+    return llap_app_heap_size
 
+  """
+  Minimum 'llap' queue capacity required in order to get LLAP app running.
+  """
+  def min_llap_queue_perc_required_in_cluster(self, services, hosts):
+    # Get llap queue size if seized at 20%
+    node_manager_hosts = self.get_node_manager_hosts(services, hosts)
+    yarn_rm_mem_in_mb = self.get_yarn_rm_mem_in_mb(services)
+    total_cluster_cap = len(node_manager_hosts) * yarn_rm_mem_in_mb
+    total_llap_queue_size_at_20_perc = 20.0 / 100 * total_cluster_cap
 
+    # Calculate based on minimum size required by containers.
+    yarn_min_container_size = self.get_yarn_min_container_size(services)
+    slider_am_size = self.calculate_slider_am_size(yarn_min_container_size)
+    tez_container_size = self.get_tez_container_size(services)
+    hive_am_container_size = self.get_hive_am_container_size(services)
+    normalized_val = self._normalizeUp(slider_am_size, yarn_min_container_size) + self._normalizeUp\
+      (tez_container_size, yarn_min_container_size) + self._normalizeUp(hive_am_container_size, yarn_min_container_size)
+
+    min_required = max(total_llap_queue_size_at_20_perc, normalized_val)
+
+    min_required_perc = min_required * 100 / total_cluster_cap
+    Logger.info("Calculated min_llap_queue_perc_required_in_cluster : {0} and min_llap_queue_cap_required_in_cluster: {1} "
+                "using following : yarn_min_container_size : {2}, ""slider_am_size : {3}, tez_container_size : {4}, "
+                "hive_am_container_size : {5}".format(min_required_perc, min_required, yarn_min_container_size,
+                slider_am_size, tez_container_size, hive_am_container_size))
+    return int(math.ceil(min_required_perc))
+
+  """
+  Normalize down 'val2' with respect to 'val1'.
+  """
   def _normalizeDown(self, val1, val2):
     tmp = math.floor(val1 / val2);
+    if tmp < 1.00:
+      return val1
     return tmp * val2;
 
+  """
+  Normalize up 'val2' with respect to 'val1'.
+  """
   def _normalizeUp(self, val1, val2):
-    numContainers = math.ceil(val1 / val2)
-    return numContainers * val2
+    tmp = math.ceil(val1 / val2)
+    return tmp * val2
 
   """
   Checks and (1). Creates 'llap' queue if only 'default' queue exist at leaf level and is consuming 100% capacity OR
              (2). Updates 'llap' queue capacity and state, if 'llap' queue exists.
   """
-  def checkAndManageLlapQueue(self, services, configurations, llap_queue_name):
-    DEFAULT_LLAP_QUEUE_CAP_PERCENT = 20
+  def checkAndManageLlapQueue(self, services, configurations, hosts, llap_queue_name):
     putHiveInteractiveEnvProperty = self.putProperty(configurations, "hive-interactive-env", services)
     putHiveInteractiveSiteProperty = self.putProperty(configurations, self.HIVE_INTERACTIVE_SITE, services)
+    putHiveInteractiveEnvPropertyAttribute = self.putPropertyAttribute(configurations, "hive-interactive-env")
     putCapSchedProperty = self.putProperty(configurations, "capacity-scheduler", services)
 
     capacitySchedulerProperties = self.getCapacitySchedulerProperties(services)
@@ -674,9 +737,11 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
         llap_slider_cap_percentage = int(
           services['configurations']['hive-interactive-env']['properties']['llap_queue_capacity'])
         if llap_slider_cap_percentage not in range(1,101):
-          Logger.info("Adjusting HIVE 'llap_queue_capacity' from {0}% to {1}%".format(llap_slider_cap_percentage, DEFAULT_LLAP_QUEUE_CAP_PERCENT))
-          llap_slider_cap_percentage = DEFAULT_LLAP_QUEUE_CAP_PERCENT  # Set the default value to 20.
+          llap_slider_cap_percentage = self.min_llap_queue_perc_required_in_cluster(services, hosts)
+          Logger.info("Adjusting HIVE 'llap_queue_capacity' from {0}% to {1}%".format(llap_slider_cap_percentage, llap_slider_cap_percentage))
+
           putHiveInteractiveEnvProperty('llap_queue_capacity', llap_slider_cap_percentage)
+          putHiveInteractiveEnvPropertyAttribute('llap_queue_capacity', "minimum", llap_slider_cap_percentage)
       else:
         Logger.error("Problem retrieving LLAP Queue Capacity. Skipping creating {0} queue".format(llap_queue_name))
         return

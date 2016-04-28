@@ -380,7 +380,7 @@ limitations under the License.
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
-      <maximum>268435456</maximum>
+      <maximum>4</maximum>
       <unit>MB</unit>
       <increment-step>256</increment-step>
       <overridable>false</overridable>
@@ -462,7 +462,7 @@ limitations under the License.
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
-      <maximum>268435456</maximum>
+      <maximum>4096</maximum>
       <unit>MB</unit>
       <increment-step>256</increment-step>
       <overridable>false</overridable>
