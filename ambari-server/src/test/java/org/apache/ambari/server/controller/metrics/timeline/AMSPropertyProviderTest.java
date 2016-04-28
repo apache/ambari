@@ -36,7 +36,6 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.controller.utilities.StreamProvider;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
@@ -55,7 +54,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
+import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -69,6 +69,7 @@ import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 import static org.mockito.Mockito.mock;
 
 @RunWith(PowerMockRunner.class)
@@ -817,6 +818,69 @@ public class AMSPropertyProviderTest {
     }
   }
 
+  @Test
+  public void testSocketTimeoutExceptionBehavior() throws Exception {
+    setUpCommonMocks();
+
+    URLStreamProvider streamProvider = createNiceMock(URLStreamProvider.class);
+    HttpURLConnection connection = createNiceMock(HttpURLConnection.class);
+
+    expect(streamProvider.processURL((String) anyObject(), (String) anyObject(),
+      (String) anyObject(),  (Map<String, List<String>>) anyObject())).andReturn(connection);
+
+    expect(connection.getInputStream()).andThrow(
+      new SocketTimeoutException("Unit test raising Exception")).once();
+
+    replay(streamProvider, connection);
+
+    injectCacheEntryFactoryWithStreamProvider(streamProvider);
+    TestMetricHostProvider metricHostProvider = new TestMetricHostProvider();
+    ComponentSSLConfiguration sslConfiguration = mock(ComponentSSLConfiguration.class);
+
+    Map<String, Map<String, PropertyInfo>> propertyIds = PropertyHelper.getMetricPropertyIds(Resource.Type.Host);
+
+    AMSPropertyProvider propertyProvider = new AMSHostPropertyProvider(
+      propertyIds,
+      streamProvider,
+      sslConfiguration,
+      cacheProvider,
+      metricHostProvider,
+      CLUSTER_NAME_PROPERTY_ID,
+      HOST_NAME_PROPERTY_ID
+    );
+
+    final Resource resource1 = new ResourceImpl(Resource.Type.Host);
+    resource1.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
+    resource1.setProperty(HOST_NAME_PROPERTY_ID, "h1");
+    final Resource resource2 = new ResourceImpl(Resource.Type.Host);
+    resource2.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
+    resource2.setProperty(HOST_NAME_PROPERTY_ID, "h2");
+
+    // Separating temporal info to ensure multiple requests made
+    Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
+    temporalInfoMap.put(PROPERTY_ID1, new TemporalInfoImpl(1416445244801L, 1416448936464L, 1L));
+    temporalInfoMap.put(PROPERTY_ID2, new TemporalInfoImpl(1416445344901L, 1416448946564L, 1L));
+
+    Request request = PropertyHelper.getReadRequest(
+      new HashSet<String>() {{
+        add(PROPERTY_ID1);
+        add(PROPERTY_ID2);
+      }}, temporalInfoMap);
+
+    Set<Resource> resources =
+      propertyProvider.populateResources(
+        new HashSet<Resource>() {{ add(resource1); add(resource2); }}, request, null);
+
+    verify(streamProvider, connection);
+
+    Assert.assertEquals(2, resources.size());
+    Resource res = resources.iterator().next();
+    Map<String, Object> properties = PropertyHelper.getProperties(resources.iterator().next());
+    Assert.assertNotNull(properties);
+    Assert.assertNull(res.getPropertyValue(PROPERTY_ID1));
+    Assert.assertNull(res.getPropertyValue(PROPERTY_ID2));
+  }
+
   public static class TestMetricHostProvider implements MetricHostProvider {
 
     private String hostName;
@@ -889,5 +953,4 @@ public class AMSPropertyProviderTest {
     field.setAccessible(true);
     field.set(cacheEntryFactory, new MetricsRequestHelper(streamProvider));
   }
-
 }

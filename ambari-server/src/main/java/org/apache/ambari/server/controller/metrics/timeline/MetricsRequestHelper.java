@@ -117,7 +117,7 @@ public class MetricsRequestHelper {
       }
 
       if (io instanceof SocketTimeoutException) {
-        errorMsg += " Can not connect to collector, socket error.";
+        errorMsg += " Cannot connect to collector: SocketTimeoutException.";
         LOG.error(errorMsg);
         throw io;
       }
