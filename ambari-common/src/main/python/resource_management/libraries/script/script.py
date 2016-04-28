@@ -28,6 +28,7 @@ import logging
 import platform
 import inspect
 import tarfile
+from optparse import OptionParser
 import resource_management
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.constants import UPGRADE_TYPE_NON_ROLLING, UPGRADE_TYPE_ROLLING
@@ -63,7 +64,7 @@ if OSCheck.is_windows_family():
 else:
   from resource_management.libraries.functions.tar_archive import archive_dir
 
-USAGE = """Usage: {0} <COMMAND> <JSON_CONFIG> <BASEDIR> <STROUTPUT> <LOGGING_LEVEL> <TMP_DIR> <LOG_OUT_FILES>
+USAGE = """Usage: {0} <COMMAND> <JSON_CONFIG> <BASEDIR> <STROUTPUT> <LOGGING_LEVEL> <TMP_DIR>
 
 <COMMAND> command type (INSTALL/CONFIGURE/START/STOP/SERVICE_CHECK...)
 <JSON_CONFIG> path to command json file. Ex: /var/lib/ambari-agent/data/command-2.json
@@ -71,7 +72,6 @@ USAGE = """Usage: {0} <COMMAND> <JSON_CONFIG> <BASEDIR> <STROUTPUT> <LOGGING_LEV
 <STROUTPUT> path to file with structured command output (file will be created). Ex:/tmp/my.txt
 <LOGGING_LEVEL> log level for stdout. Ex:DEBUG,INFO
 <TMP_DIR> temporary directory for executable scripts. Ex: /var/lib/ambari-agent/tmp
-<LOG_OUT_FILES> before start is done, should the service *.out files content be logged. Ex: false 
 """
 
 _PASSWORD_MAP = {"/configurations/cluster-env/hadoop.user.name":"/configurations/cluster-env/hadoop.user.password"}
@@ -198,9 +198,16 @@ class Script(object):
     Sets up logging;
     Parses command parameters and executes method relevant to command type
     """
+    parser = OptionParser()
+    parser.add_option("-o", "--out-files-logging", dest="log_out_files", action="store_true",
+                      help="use this option to enable outputting *.out files of the service pre-start")
+    (self.options, args) = parser.parse_args()
+    
+    self.log_out_files = self.options.log_out_files
+    
     # parse arguments
-    if len(sys.argv) < 8:
-     print "Script expects at least 7 arguments"
+    if len(args) < 6:
+     print "Script expects at least 6 arguments"
      print USAGE.format(os.path.basename(sys.argv[0])) # print to stdout
      sys.exit(1)
      
@@ -211,7 +218,6 @@ class Script(object):
     self.load_structured_out()
     self.logging_level = sys.argv[5]
     Script.tmp_dir = sys.argv[6]
-    self.log_out_files = sys.argv[7].lower() == "true"
     
     logging_level_str = logging._levelNames[self.logging_level]
     Logger.initialize_logger(__name__, logging_level=logging_level_str)
