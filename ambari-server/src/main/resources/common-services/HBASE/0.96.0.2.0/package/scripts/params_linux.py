@@ -338,7 +338,7 @@ if has_ranger_admin:
   }
 
   if stack_supports_ranger_kerberos and security_enabled:
-    hbase_ranger_plugin_config['policydownload.auth.users'] = hbase_user
+    hbase_ranger_plugin_config['policy.download.auth.users'] = hbase_user
     hbase_ranger_plugin_config['tag.download.auth.users'] = hbase_user
     hbase_ranger_plugin_config['policy.grant.revoke.auth.users'] = hbase_user
 
@@ -351,10 +351,10 @@ if has_ranger_admin:
       'type': 'hbase'
     }
 
-  if 'hbase-master' in component_directory.lower():
+  if stack_supports_ranger_kerberos and security_enabled and 'hbase-master' in component_directory.lower():
     ranger_hbase_principal = master_jaas_princ
     ranger_hbase_keytab = master_keytab_path
-  else:
+  elif  stack_supports_ranger_kerberos and security_enabled and 'hbase-regionserver' in component_directory.lower():
     ranger_hbase_principal = regionserver_jaas_princ
     ranger_hbase_keytab = regionserver_keytab_path
 

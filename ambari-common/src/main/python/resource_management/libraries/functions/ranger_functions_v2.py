@@ -389,6 +389,8 @@ class RangeradminV2:
             if len(policy_list) == policy_update_count:
               Logger.info("Ranger Repository created successfully and policies updated successfully providing ambari-qa user all permissions")
               return response_json
+        else:
+          return response_json
       else:
         Logger.info('Repository creation failed')
         return None

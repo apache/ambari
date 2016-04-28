@@ -212,7 +212,7 @@ if has_ranger_admin and is_supported_kafka_ranger:
   }
 
   if stack_supports_ranger_kerberos and security_enabled:
-    ranger_plugin_config['policydownload.auth.users'] = kafka_user
+    ranger_plugin_config['policy.download.auth.users'] = kafka_user
     ranger_plugin_config['tag.download.auth.users'] = kafka_user
 
 

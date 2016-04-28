@@ -416,7 +416,7 @@ if has_ranger_admin:
     }
 
     if stack_supports_ranger_kerberos and security_enabled:
-      ranger_plugin_config['policydownload.auth.users'] = yarn_user
+      ranger_plugin_config['policy.download.auth.users'] = yarn_user
       ranger_plugin_config['tag.download.auth.users'] = yarn_user
 
     #For curl command in ranger plugin to get db connector

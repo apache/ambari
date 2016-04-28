@@ -486,7 +486,7 @@ if has_ranger_admin:
     'assetType': '1'
   }
   if stack_supports_ranger_kerberos and security_enabled:
-    hdfs_ranger_plugin_config['policydownload.auth.users'] = hdfs_user
+    hdfs_ranger_plugin_config['policy.download.auth.users'] = hdfs_user
     hdfs_ranger_plugin_config['tag.download.auth.users'] = hdfs_user
 
     hdfs_ranger_plugin_repo = {

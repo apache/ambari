@@ -644,7 +644,7 @@ if has_ranger_admin:
   }
 
   if stack_supports_ranger_kerberos and security_enabled:
-    hive_ranger_plugin_config['policydownload.auth.users'] = hive_user
+    hive_ranger_plugin_config['policy.download.auth.users'] = hive_user
     hive_ranger_plugin_config['tag.download.auth.users'] = hive_user
     hive_ranger_plugin_config['policy.grant.revoke.auth.users'] = hive_user
 

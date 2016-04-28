@@ -321,7 +321,7 @@ if has_ranger_admin:
     }
 
   if stack_supports_ranger_kerberos and security_enabled:
-    knox_ranger_plugin_config['policydownload.auth.users'] = knox_user
+    knox_ranger_plugin_config['policy.download.auth.users'] = knox_user
     knox_ranger_plugin_config['tag.download.auth.users'] = knox_user
 
     knox_ranger_plugin_repo = {
