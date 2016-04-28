@@ -590,7 +590,7 @@ class ActionScheduler implements Runnable {
    * @return the stats for the roles in the stage which are used to determine
    * whether stage has succeeded or failed
    */
-  private Map<String, RoleStats> processInProgressStage(Stage s,
+  protected Map<String, RoleStats> processInProgressStage(Stage s,
       List<ExecutionCommand> commandsToSchedule) throws AmbariException {
     LOG.debug("==> Collecting commands to schedule...");
     // Map to track role status
@@ -694,12 +694,17 @@ class ActionScheduler implements Runnable {
           LOG.info("Host:" + host + ", role:" + roleStr + ", actionId:" + s.getActionId() + " timed out");
           if (s.getAttemptCount(host, roleStr) >= maxAttempts) {
             LOG.warn("Host:" + host + ", role:" + roleStr + ", actionId:" + s.getActionId() + " expired");
-            db.timeoutHostRole(host, s.getRequestId(), s.getStageId(), c.getRole());
+            db.timeoutHostRole(host, s.getRequestId(), s.getStageId(), c.getRole(), s.isAutoSkipOnFailureSupported());
             //Reinitialize status
             status = s.getHostRoleStatus(host, roleStr);
 
             if (null != cluster) {
-              transitionToFailedState(cluster.getClusterName(), c.getServiceName(), roleStr, host, now, false);
+              if (!RoleCommand.CUSTOM_COMMAND.equals(c.getRoleCommand())
+                && !RoleCommand.SERVICE_CHECK.equals(c.getRoleCommand())
+                && !RoleCommand.ACTIONEXECUTE.equals(c.getRoleCommand())) {
+                //commands above don't affect host component state (e.g. no in_progress state in process), transition will fail
+                transitionToFailedState(cluster.getClusterName(), c.getServiceName(), roleStr, host, now, false);
+              }
               if (c.getRoleCommand().equals(RoleCommand.ACTIONEXECUTE)) {
                 processActionDeath(cluster.getClusterName(), c.getHostname(), roleStr);
               }
@@ -833,6 +838,19 @@ class ActionScheduler implements Runnable {
   }
 
   /**
+   * Checks if ambari-agent was restarted during role command execution
+   * @param host the host with ambari-agent to check
+   * @param stage the stage
+   * @param role the role to check
+   * @return {@code true} if ambari-agent was restarted
+   */
+  protected boolean wasAgentRestartedDuringOperation(Host host, Stage stage, String role) {
+    String hostName = host.getHostName();
+    long taskStartTime = stage.getHostRoleCommand(hostName, role).getStartTime();
+    return taskStartTime > 0 && taskStartTime <= host.getLastRegistrationTime();
+  }
+
+  /**
    * Checks if timeout is required.
    * @param status      the status of the current role
    * @param stage       the stage
@@ -843,7 +861,7 @@ class ActionScheduler implements Runnable {
    * @return {@code true} if timeout is needed
    * @throws AmbariException
    */
-  private boolean timeOutActionNeeded(HostRoleStatus status, Stage stage,
+  protected boolean timeOutActionNeeded(HostRoleStatus status, Stage stage,
       Host host, String role, long currentTime, long taskTimeout) throws
     AmbariException {
     if (( !status.equals(HostRoleStatus.QUEUED) ) &&
@@ -852,8 +870,9 @@ class ActionScheduler implements Runnable {
     }
 
     // Fast fail task if host state is unknown
-    if (null != host && host.getState().equals(HostState.HEARTBEAT_LOST)) {
-      LOG.debug("Timing out action since agent is not heartbeating.");
+    if (null != host &&
+      (host.getState().equals(HostState.HEARTBEAT_LOST) || wasAgentRestartedDuringOperation(host, stage, role))) {
+      LOG.debug("Timing out action since agent is not heartbeating or agent was restarted.");
       return true;
     }
 

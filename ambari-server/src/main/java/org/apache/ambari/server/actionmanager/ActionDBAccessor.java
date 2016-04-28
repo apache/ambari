@@ -65,6 +65,12 @@ public interface ActionDBAccessor {
   public void timeoutHostRole(String host, long requestId, long stageId, String role);
 
   /**
+   * Mark the task as to have timed out
+   */
+  void timeoutHostRole(String host, long requestId, long stageId,
+                       String role, boolean skipSupported);
+
+  /**
    * Returns all the pending stages, including queued and not-queued. A stage is
    * considered in progress if it is in progress for any host.
    * <p/>
