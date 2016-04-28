@@ -39,7 +39,7 @@ def kill_process(pid_file, user, log_dir):
   hard_kill_cmd = format("{sudo} kill -9 {pid}")
   Execute(hard_kill_cmd,
           not_if=format("! ({process_id_exists_command}) || ( sleep {wait_time} && ! ({process_id_exists_command}) )"),
-          ignore_fialures = True)
+          ignore_failures = True)
   try:
     Execute(format("! ({process_id_exists_command})"),
             tries=20,

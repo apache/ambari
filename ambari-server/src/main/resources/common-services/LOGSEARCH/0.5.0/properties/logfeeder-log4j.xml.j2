@@ -36,7 +36,7 @@ limitations under the License.
 
   <appender name="rolling_file_json"
     class="org.apache.ambari.logsearch.appender.LogsearchRollingFileAppender">
-    <param name="file" value="logs/logsearch-logfeeder.json" />
+    <param name="file" value="{{logfeeder_log_dir}}/logsearch-logfeeder.json" />
     <param name="append" value="true" />
     <param name="maxFileSize" value="10MB" />
     <param name="maxBackupIndex" value="10" />
