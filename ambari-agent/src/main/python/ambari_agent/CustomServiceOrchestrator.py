@@ -189,7 +189,11 @@ class CustomServiceOrchestrator():
       python_executor = self.get_py_executor(forced_command_name)
       for py_file, current_base_dir in filtered_py_file_list:
         log_info_on_failure = not command_name in self.DONT_DEBUG_FAILURES_FOR_COMMANDS
-        script_params = [command_name, json_path, current_base_dir, tmpstrucoutfile, logger_level, self.exec_tmp_dir, str(log_out_files)]
+        script_params = [command_name, json_path, current_base_dir, tmpstrucoutfile, logger_level, self.exec_tmp_dir]
+        
+        if log_out_files:
+          script_params.append("-o")
+        
         ret = python_executor.run_file(py_file, script_params,
                                tmpoutfile, tmperrfile, timeout,
                                tmpstrucoutfile, self.map_task_to_process,
