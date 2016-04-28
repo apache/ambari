@@ -16,40 +16,24 @@
  * limitations under the License.
  */
 
-window.App = require('app');
+var App = require('app');
 
-// Set this value to true to run in test mode with local data
-App.testMode = false;
+var cmp = Ember.computed;
 
-// adapters
-require('adapters');
+App.CapschedController = Ember.Controller.extend({
+  actions: {
 
-//serializers
-require('serializers');
+  },
 
-//store
-require('store');
+  /**
+   * User admin status.
+   * @type {Boolean}
+   */
+  isOperator: false,
 
-//helpers
-require('helpers');
-
-//components
-require('components');
-
-//controllers
-require('controllers');
-
-// templates
-require('templates');
-
-// models
-require('models');
-
-//views
-require('views/queues');
-require('views/editqueue');
-require('views/editQueueCapacity');
-require('views/queuesconf');
-
-// routes
-require('router');
+  /**
+   * Inverted isOperator value.
+   * @type {Boolean}
+   */
+  isNotOperator: cmp.not('isOperator')
+});

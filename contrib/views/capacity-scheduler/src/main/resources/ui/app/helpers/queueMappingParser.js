@@ -16,40 +16,19 @@
  * limitations under the License.
  */
 
-window.App = require('app');
-
-// Set this value to true to run in test mode with local data
-App.testMode = false;
-
-// adapters
-require('adapters');
-
-//serializers
-require('serializers');
-
-//store
-require('store');
-
-//helpers
-require('helpers');
-
-//components
-require('components');
-
-//controllers
-require('controllers');
-
-// templates
-require('templates');
-
-// models
-require('models');
-
-//views
-require('views/queues');
-require('views/editqueue');
-require('views/editQueueCapacity');
-require('views/queuesconf');
-
-// routes
-require('router');
+ Ember.Handlebars.helper('queueMappingParser', function(mapping){
+   var output = '';
+   var parts = mapping.split(':');
+   if(parts[0] === 'u'){
+     if(parts[1] === '%user' && parts[2] === '%user'){
+       output = 'User %user -> queue %user';
+     }else if(parts[1] === '%user' && parts[2] === '%primary_group'){
+       output = 'User %user -> queue %primary_group';
+     }else{
+       output = 'User ' + parts[1] + ' -> queue ' + parts[2];
+     }
+   }else if(parts[0] === 'g'){
+     output = 'Group ' + parts[1] + ' -> queue ' + parts[2];
+   }
+   return output;
+ });

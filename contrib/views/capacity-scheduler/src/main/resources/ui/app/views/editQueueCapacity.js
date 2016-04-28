@@ -16,40 +16,14 @@
  * limitations under the License.
  */
 
-window.App = require('app');
+var App = require('app');
 
-// Set this value to true to run in test mode with local data
-App.testMode = false;
+App.CapschedPartialsEditQueueCapacityView = Ember.View.extend({
+  isQueueCapacityDirty: function() {
+    return this.get('controller.content').changedAttributes().hasOwnProperty('capacity');
+  }.property('controller.content.capacity'),
 
-// adapters
-require('adapters');
-
-//serializers
-require('serializers');
-
-//store
-require('store');
-
-//helpers
-require('helpers');
-
-//components
-require('components');
-
-//controllers
-require('controllers');
-
-// templates
-require('templates');
-
-// models
-require('models');
-
-//views
-require('views/queues');
-require('views/editqueue');
-require('views/editQueueCapacity');
-require('views/queuesconf');
-
-// routes
-require('router');
+  isQueueMaximumCapacityDirty: function() {
+    return this.get('controller.content').changedAttributes().hasOwnProperty('maximum_capacity');
+  }.property('controller.content.maximum_capacity')
+});

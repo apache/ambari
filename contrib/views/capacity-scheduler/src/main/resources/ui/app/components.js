@@ -30,3 +30,6 @@ require('components/dropdownButtons');
 require('components/queueBadge');
 require('components/diffTooltip');
 require('components/tooltipLabel');
+require('components/queueMapping');
+require('components/queueHierarchy');
+require('components/queueSummary');

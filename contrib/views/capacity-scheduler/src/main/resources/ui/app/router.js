@@ -23,6 +23,14 @@ App.Router.map(function() {
     this.resource('queue', { path: '/:queue_id' });
     this.resource('trace', { path: '/log' });
   });
+  this.resource('capsched', {path: '/capacity-scheduler'}, function() {
+    this.route('scheduler', {path: '/scheduler'});
+    this.route('advanced', {path: '/advanced'});
+    this.route('trace', {path: '/log'});
+    this.route('queuesconf', {path: '/queues'}, function() {
+      this.route('editqueue', {path: '/:queue_id'});
+    });
+  });
   this.route('refuse');
 });
 
@@ -63,7 +71,6 @@ App.QueuesRoute = Ember.Route.extend({
         return store.findQuery( 'config', {siteName : RANGER_SITE, configName : RANGER_YARN_ENABLED}).then(function(){
           return store.find( 'config', "siteName_" + RANGER_SITE + "_configName_" + RANGER_YARN_ENABLED)
               .then(function(data){
-                console.log("router.queuesRoute : data.configValue isRangerEnabled : " + data.get('configValue'));
                 _this.controllerFor('configs').set('isRangerEnabledForYarn', data.get('configValue'));
               });
         })
@@ -189,3 +196,81 @@ App.ErrorRoute = Ember.Route.extend({
   }
 });
 
+App.CapschedRoute = Ember.Route.extend({
+  actions: {
+    rollbackProp: function(prop, item) {
+      var attributes = item.changedAttributes();
+      if (attributes.hasOwnProperty(prop)) {
+        item.set(prop, attributes[prop][0]);
+      }
+    }
+  },
+  beforeModel: function(transition) {
+    var controller = this.container.lookup('controller:loading') || this.generateController('loading');
+    controller.set('model', {
+      message: 'cluster check'
+    });
+    return this.get('store').checkCluster().catch(Em.run.bind(this, 'loadingError', transition));
+  },
+  model: function() {
+    var store = this.get('store'),
+      _this = this,
+      controller = this.controllerFor("capsched"),
+      loadingController = this.container.lookup('controller:loading');
+
+    return new Ember.RSVP.Promise(function(resolve, reject) {
+      loadingController.set('model', {
+        message: 'access check'
+      });
+      store.checkOperator().then(function(isOperator) {
+        controller.set('isOperator', isOperator);
+        loadingController.set('model', {
+          message: 'loading node labels'
+        });
+        return store.get('nodeLabels');
+      }).then(function() {
+        return store.findQuery('config', {
+          siteName: RANGER_SITE,
+          configName: RANGER_YARN_ENABLED
+        }).then(function() {
+          return store.find('config', "siteName_" + RANGER_SITE + "_configName_" + RANGER_YARN_ENABLED)
+            .then(function(data) {
+              controller.set('isRangerEnabledForYarn', data.get('configValue'));
+            });
+        });
+      }).then(function() {
+        loadingController.set('model', {
+          message: 'loading queues'
+        });
+        return store.find('queue');
+      }).then(function(queues) {
+        controller.set('queues', queues);
+        return store.find('scheduler', 'scheduler');
+      }).then(function(scheduler){
+        resolve(scheduler);
+      }).catch(function(e) {
+        reject(e);
+      });
+    }, 'App: CapschedRoute#model');
+  }
+});
+
+App.CapschedIndexRoute = Ember.Route.extend({
+  redirect: function() {
+    this.transitionTo('capsched.scheduler');
+  }
+});
+
+App.CapschedQueuesconfIndexRoute = Ember.Route.extend({
+  beforeModel: function(transition) {
+    var rootQ = this.store.getById('queue', 'root');
+    this.transitionTo('capsched.queuesconf.editqueue', rootQ);
+  }
+});
+
+App.CapschedQueuesconfEditqueueRoute = Ember.Route.extend({
+  setupController: function(controller, model) {
+    controller.set('model', model);
+    this.controllerFor('capsched.queuesconf').set('selectedQueue', model);
+  }
+});
