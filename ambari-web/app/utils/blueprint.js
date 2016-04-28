@@ -451,5 +451,41 @@ module.exports = {
         hostsMap[componentToBeDeleted.hostName].splice(index, 1);
       }
     }
+  },
+  /**
+   * Returns host-group name by fqdn.
+   * Returns <code>null</code> when not found.
+   *
+   * @param  {object} blueprint
+   * @param  {string} fqdn
+   * @returns {string|null}
+   */
+  getHostGroupByFqdn: function(blueprint, fqdn) {
+    return Em.getWithDefault(blueprint || {}, 'blueprint_cluster_binding.host_groups', [])
+      .filter(function(i) {
+        return Em.getWithDefault(i, 'hosts', []).mapProperty('fqdn').contains(fqdn);
+      })
+      .mapProperty('name')[0] || null;
+  },
+
+  /**
+   * Add component to specified host group.
+   *
+   * @param  {object} blueprint
+   * @param  {string} componentName
+   * @param  {string} hostGroupName
+   * @return {object}
+   */
+  addComponentToHostGroup: function(blueprint, componentName, hostGroupName) {
+    var hostGroup = blueprint.blueprint.host_groups.findProperty('name', hostGroupName);
+    if (hostGroup) {
+      if (!hostGroup.hasOwnProperty('components')) {
+        hostGroup.components = [];
+      }
+      if (!hostGroup.components.someProperty('name', componentName)) {
+        hostGroup.components.pushObject({name: componentName});
+      }
+    }
+    return blueprint;
   }
 };

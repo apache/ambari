@@ -452,4 +452,120 @@ describe('utils/blueprint', function() {
       }).to.throw(Error);
     });
   });
+
+  describe('#getHostGroupByFqdn', function() {
+    it('should return `null` if blueprint undefined', function() {
+      expect(blueprintUtils.getHostGroupByFqdn(undefined, 'host1')).to.be.null;
+    });
+
+    it('should return `null` if blueprint not valid', function() {
+      expect(blueprintUtils.getHostGroupByFqdn({not_valid_object: {}}, 'host1')).to.be.null;
+    });
+
+    it('should find host1-group by host1.name', function() {
+      var bp = {
+        blueprint_cluster_binding: {
+          host_groups: [
+            {
+              hosts: [
+                {fqdn: 'host2.name'}
+              ],
+              name: 'host2-group'
+            },
+            {
+              hosts: [
+                {fqdn: 'host1.name'}
+              ],
+              name: 'host1-group'
+            }
+          ]
+        }
+      };
+      expect(blueprintUtils.getHostGroupByFqdn(bp, 'host1.name')).to.be.eql('host1-group');
+    });
+  });
+
+  describe('#addComponentToHostGroup', function() {
+    it('should add new component to host1-group', function() {
+      var bp = {
+        blueprint: {
+          host_groups: [
+            {
+              components: [
+                { name: 'COMPONENT1'}
+              ],
+              name: 'host1-group'
+            }
+          ]
+        }
+      };
+      var expected = {
+        blueprint: {
+          host_groups: [
+            {
+              components: [
+                { name: 'COMPONENT1'},
+                { name: 'COMPONENT2'}
+              ],
+              name: 'host1-group'
+            }
+          ]
+        }
+      };
+      expect(blueprintUtils.addComponentToHostGroup(bp, 'COMPONENT2', 'host1-group').toString()).to.eql(expected.toString());
+    });
+
+    it('should skip adding component since it already in host1-group', function() {
+      var bp = {
+        blueprint: {
+          host_groups: [
+            {
+              components: [
+                { name: 'COMPONENT1'}
+              ],
+              name: 'host1-group'
+            }
+          ]
+        }
+      };
+      var expected = {
+        blueprint: {
+          host_groups: [
+            {
+              components: [
+                { name: 'COMPONENT1'}
+              ],
+              name: 'host1-group'
+            }
+          ]
+        }
+      };
+      expect(blueprintUtils.addComponentToHostGroup(bp, 'COMPONENT1', 'host1-group').toString()).to.eql(expected.toString());
+    });
+
+    it('should create components attribute and add component to host1-group', function() {
+      var bp = {
+        blueprint: {
+          host_groups: [
+            {
+              name: 'host1-group'
+            }
+          ]
+        }
+      };
+      var expected = {
+        blueprint: {
+          host_groups: [
+            {
+              components: [
+                { name: 'COMPONENT1'}
+              ],
+              name: 'host1-group'
+            }
+          ]
+        }
+      };
+      expect(blueprintUtils.addComponentToHostGroup(bp, 'COMPONENT1', 'host1-group').toString()).to.eql(expected.toString());
+    });
+  });
 });
