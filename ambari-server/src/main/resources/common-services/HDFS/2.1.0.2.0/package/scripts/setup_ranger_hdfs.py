@@ -95,7 +95,7 @@ def setup_ranger_hdfs(upgrade_type=None):
   else:
     Logger.info('Ranger admin not installed')
 
-def create_ranger_audit_hdfs_directories(check):
+def create_ranger_audit_hdfs_directories():
   import params
 
   if params.has_ranger_admin:
@@ -107,7 +107,6 @@ def create_ranger_audit_hdfs_directories(check):
                          group=params.hdfs_user,
                          mode=0755,
                          recursive_chmod=True,
-                         only_if=check
       )
       params.HdfsResource("/ranger/audit/hdfs",
                          type="directory",
@@ -116,8 +115,7 @@ def create_ranger_audit_hdfs_directories(check):
                          group=params.hdfs_user,
                          mode=0700,
                          recursive_chmod=True,
-                         only_if=check
       )
-      params.HdfsResource(None, action="execute", only_if=check)
+      params.HdfsResource(None, action="execute")
   else:
     Logger.info('Ranger admin not installed')

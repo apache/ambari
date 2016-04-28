@@ -180,6 +180,7 @@ def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None,
     # EU non-HA             | no change                | no check                 |
 
     check_for_safemode_off = False
+    is_active_namenode = False
     msg = ""
     if params.dfs_ha_enabled:
       if upgrade_type is not None:
@@ -187,14 +188,16 @@ def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None,
         msg = "Must wait to leave safemode since High Availability is enabled during a Stack Upgrade"
       else:
         Logger.info("Wait for NameNode to become active.")
-        if is_active_namenode(hdfs_binary): # active
+        if check_is_active_namenode(hdfs_binary): # active
           check_for_safemode_off = True
+          is_active_namenode = True
           msg = "Must wait to leave safemode since High Availability is enabled and this is the Active NameNode."
         else:
           msg = "Will remain in the current safemode state."
     else:
       msg = "Must wait to leave safemode since High Availability is not enabled."
       check_for_safemode_off = True
+      is_active_namenode = True
 
     Logger.info(msg)
 
@@ -209,8 +212,11 @@ def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None,
         wait_for_safemode_off(hdfs_binary)
 
     # Always run this on non-HA, or active NameNode during HA.
-    create_hdfs_directories(is_active_namenode_cmd)
-    create_ranger_audit_hdfs_directories(is_active_namenode_cmd)
+    if is_active_namenode:
+      create_hdfs_directories()
+      create_ranger_audit_hdfs_directories()
+    else:
+      Logger.info("Skipping creating hdfs directories as is not active NN.")
 
   elif action == "stop":
     import params
@@ -267,7 +273,7 @@ def create_name_dirs(directories):
   )
 
 
-def create_hdfs_directories(check):
+def create_hdfs_directories():
   import params
 
   params.HdfsResource(params.hdfs_tmp_dir,
@@ -275,18 +281,15 @@ def create_hdfs_directories(check):
                        action="create_on_execute",
                        owner=params.hdfs_user,
                        mode=0777,
-                       only_if=check
   )
   params.HdfsResource(params.smoke_hdfs_user_dir,
                        type="directory",
                        action="create_on_execute",
                        owner=params.smoke_user,
                        mode=params.smoke_hdfs_user_mode,
-                       only_if=check
   )
   params.HdfsResource(None, 
                       action="execute",
-                      only_if=check #skip creation when HA not active
   )
 
 def format_namenode(force=None):
@@ -508,7 +511,7 @@ def is_namenode_bootstrapped(params):
   return marked
 
 
-def is_active_namenode(hdfs_binary):
+def check_is_active_namenode(hdfs_binary):
   """
   Checks if current NameNode is active. Waits up to 30 seconds. If other NameNode is active returns False.
   :return: True if current NameNode is active, False otherwise
