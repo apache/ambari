@@ -69,7 +69,8 @@ def webhcat_service(action='start', upgrade_type=None):
     daemon_hard_kill_cmd = format("{sudo} kill -9 {pid_expression}")
     wait_time = 10
     Execute(daemon_hard_kill_cmd,
-            not_if = format("! ({process_id_exists_command}) || ( sleep {wait_time} && ! ({process_id_exists_command}) )")
+            not_if = format("! ({process_id_exists_command}) || ( sleep {wait_time} && ! ({process_id_exists_command}) )"),
+            ignore_failures = True
     )
 
     try:

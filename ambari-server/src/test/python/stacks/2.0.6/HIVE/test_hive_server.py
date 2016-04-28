@@ -228,6 +228,7 @@ class TestHiveServer(RMFTestCase):
     )
     self.assertResourceCalled('Execute', "ambari-sudo.sh kill -9 123",
         not_if = "! (ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1) || ( sleep 5 && ! (ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1) )",
+        ignore_failures = True
     )
     self.assertResourceCalled('Execute', "! (ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1)",
         tries = 20,
@@ -308,6 +309,7 @@ class TestHiveServer(RMFTestCase):
     )
     self.assertResourceCalled('Execute', "ambari-sudo.sh kill -9 123",
         not_if = "! (ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1) || ( sleep 5 && ! (ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1) )",
+        ignore_failures = True
     )
     self.assertResourceCalled('Execute', "! (ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1)",
         tries = 20,
