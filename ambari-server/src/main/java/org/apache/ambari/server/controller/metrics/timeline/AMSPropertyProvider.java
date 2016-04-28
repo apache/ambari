@@ -196,7 +196,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
      * @throws SystemException if unable to populate the resources
      */
     @SuppressWarnings("unchecked")
-    public Collection<Resource> populateResources() throws SystemException {
+    public Collection<Resource> populateResources() throws SystemException, IOException {
       // No open ended query support.
       if (temporalInfo != null && (temporalInfo.getStartTime() == null
           || temporalInfo.getEndTime() == null)) {
@@ -218,20 +218,10 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
         if (!hostComponentHostMetrics.isEmpty()) {
           String hostComponentHostMetricParams = getSetString(processRegexps(hostComponentHostMetrics), -1);
           setQueryParams(hostComponentHostMetricParams, hostnames, true, componentName);
-          TimelineMetrics metricsResponse = null;
-          try {
-            metricsResponse = getTimelineMetricsFromCache(
+          TimelineMetrics metricsResponse = getTimelineMetricsFromCache(
               getTimelineAppMetricCacheKey(hostComponentHostMetrics,
                 componentName, hostnames, uriBuilder.toString()), componentName);
-          } catch (IOException e) {
-            if (LOG.isDebugEnabled()) {
-              LOG.debug("Caught exception fetching metric data.", e);
-            }
-            // Skip further queries to preempt long calls due to timeout
-            if (e instanceof SocketTimeoutException) {
-              return Collections.emptySet();
-            }
-          }
+
           if (metricsResponse != null) {
             timelineMetrics.getMetrics().addAll(metricsResponse.getMetrics());
           }
@@ -240,20 +230,10 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
         if (!nonHostComponentMetrics.isEmpty()) {
           String nonHostComponentHostMetricParams = getSetString(processRegexps(nonHostComponentMetrics), -1);
           setQueryParams(nonHostComponentHostMetricParams, hostnames, false, componentName);
-          TimelineMetrics metricsResponse = null;
-          try {
-            metricsResponse = getTimelineMetricsFromCache(
+          TimelineMetrics metricsResponse = getTimelineMetricsFromCache(
               getTimelineAppMetricCacheKey(nonHostComponentMetrics,
                 componentName, hostnames, uriBuilder.toString()), componentName);
-          } catch (IOException e) {
-            if (LOG.isDebugEnabled()) {
-              LOG.debug("Caught exception fetching metric data.", e);
-            }
-            // Skip further queries to preempt long calls due to timeout
-            if (e instanceof SocketTimeoutException) {
-              return Collections.emptySet();
-            }
-          }
+
           if (metricsResponse != null) {
             timelineMetrics.getMetrics().addAll(metricsResponse.getMetrics());
           }
@@ -485,8 +465,18 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
     // For each cluster
     for (Map.Entry<String, Map<TemporalInfo, MetricsRequest>> clusterEntry : requestMap.entrySet()) {
       // For each request
-      for (MetricsRequest metricsRequest : clusterEntry.getValue().values() ) {
-        metricsRequest.populateResources();
+      for (MetricsRequest metricsRequest : clusterEntry.getValue().values()) {
+        try {
+          metricsRequest.populateResources();
+        } catch (IOException io) {
+          // Skip further queries to preempt long calls due to timeout
+          if (io instanceof SocketTimeoutException) {
+            if (LOG.isDebugEnabled()) {
+              LOG.debug("Skip populating resources on socket timeout.");
+            }
+            break;
+          }
+        }
       }
     }
 

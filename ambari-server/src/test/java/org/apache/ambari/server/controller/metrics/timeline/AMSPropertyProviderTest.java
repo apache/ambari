@@ -23,6 +23,7 @@ import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
+import org.apache.ambari.server.controller.internal.AbstractPropertyProvider;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.internal.TemporalInfoImpl;
@@ -43,6 +44,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.StackId;
+import org.apache.commons.httpclient.HttpConnection;
 import org.apache.http.client.utils.URIBuilder;
 import org.easymock.EasyMock;
 import org.junit.After;
@@ -50,16 +52,21 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Matchers;
 import org.powermock.api.easymock.PowerMock;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import javax.ws.rs.HttpMethod;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -70,9 +77,14 @@ import java.util.Set;
 
 import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService;
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createMockBuilder;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+import static org.mockito.Matchers.anyCollection;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
 @RunWith(PowerMockRunner.class)
@@ -934,6 +946,72 @@ public class AMSPropertyProviderTest {
     }
   }
 
+  @Test
+  public void testSocketTimeoutExceptionBehavior() throws Exception {
+    setUpCommonMocks();
+
+    SecurityContextHolder.getContext().setAuthentication(
+      TestAuthenticationFactory.createClusterAdministrator("ClusterAdmin", 2L));
+
+    URLStreamProvider streamProvider = createNiceMock(URLStreamProvider.class);
+    HttpURLConnection connection = createNiceMock(HttpURLConnection.class);
+
+    expect(streamProvider.processURL((String) anyObject(), (String) anyObject(),
+      (String) anyObject(),  (Map<String, List<String>>) anyObject())).andReturn(connection);
+
+    expect(connection.getInputStream()).andThrow(
+      new SocketTimeoutException("Unit test raising Exception")).once();
+
+    replay(streamProvider, connection);
+
+    injectCacheEntryFactoryWithStreamProvider(streamProvider);
+    TestMetricHostProvider metricHostProvider = new TestMetricHostProvider();
+    ComponentSSLConfiguration sslConfiguration = mock(ComponentSSLConfiguration.class);
+
+    Map<String, Map<String, PropertyInfo>> propertyIds = PropertyHelper.getMetricPropertyIds(Resource.Type.Host);
+
+    AMSPropertyProvider propertyProvider = new AMSHostPropertyProvider(
+      propertyIds,
+      streamProvider,
+      sslConfiguration,
+      new TimelineMetricCacheProvider(new Configuration(), cacheEntryFactory),
+      metricHostProvider,
+      CLUSTER_NAME_PROPERTY_ID,
+      HOST_NAME_PROPERTY_ID
+    );
+
+    final Resource resource1 = new ResourceImpl(Resource.Type.Host);
+    resource1.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
+    resource1.setProperty(HOST_NAME_PROPERTY_ID, "h1");
+    final Resource resource2 = new ResourceImpl(Resource.Type.Host);
+    resource2.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
+    resource2.setProperty(HOST_NAME_PROPERTY_ID, "h2");
+
+    // Separating temporal info to ensure multiple requests made
+    Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
+    temporalInfoMap.put(PROPERTY_ID1, new TemporalInfoImpl(1416445244801L, 1416448936464L, 1L));
+    temporalInfoMap.put(PROPERTY_ID2, new TemporalInfoImpl(1416445344901L, 1416448946564L, 1L));
+
+    Request request = PropertyHelper.getReadRequest(
+      new HashSet<String>() {{
+        add(PROPERTY_ID1);
+        add(PROPERTY_ID2);
+      }}, temporalInfoMap);
+
+    Set<Resource> resources =
+      propertyProvider.populateResources(
+        new HashSet<Resource>() {{ add(resource1); add(resource2); }}, request, null);
+
+    verify(streamProvider, connection);
+
+    Assert.assertEquals(2, resources.size());
+    Resource res = resources.iterator().next();
+    Map<String, Object> properties = PropertyHelper.getProperties(resources.iterator().next());
+    Assert.assertNotNull(properties);
+    Assert.assertNull(res.getPropertyValue(PROPERTY_ID1));
+    Assert.assertNull(res.getPropertyValue(PROPERTY_ID2));
+  }
+
   public static class TestMetricHostProvider implements MetricHostProvider {
 
     private String hostName;
@@ -992,7 +1070,7 @@ public class AMSPropertyProviderTest {
     expect(ams.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
     expect(ambariMetaInfo.getComponentToService(anyObject(String.class),
       anyObject(String.class), anyObject(String.class))).andReturn("HDFS").anyTimes();
-    expect(ambariMetaInfo.getComponent(anyObject(String.class),anyObject(String.class),
+    expect(ambariMetaInfo.getComponent(anyObject(String.class), anyObject(String.class),
       anyObject(String.class), anyObject(String.class)))
       .andReturn(componentInfo).anyTimes();
     expect(componentInfo.getTimelineAppid()).andReturn(null).anyTimes();
@@ -1007,5 +1085,4 @@ public class AMSPropertyProviderTest {
     field.setAccessible(true);
     field.set(cacheEntryFactory, new MetricsRequestHelper(streamProvider));
   }
-
 }

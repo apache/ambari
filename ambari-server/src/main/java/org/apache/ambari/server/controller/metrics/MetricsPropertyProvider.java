@@ -132,7 +132,7 @@ public abstract class MetricsPropertyProvider extends AbstractPropertyProvider {
       return resources;
     }
 
-    if(!checkAuthorizationForMetrics(resources, clusterNamePropertyId)) {
+    if (!checkAuthorizationForMetrics(resources, clusterNamePropertyId)) {
       return resources;
     }
 
