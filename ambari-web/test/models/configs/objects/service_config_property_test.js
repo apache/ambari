@@ -385,96 +385,10 @@ describe('App.ServiceConfigProperty', function () {
     });
   });
 
-  describe('#viewClass', function () {
-    classCases.forEach(function (item) {
-      it ('should be ' + item.viewClass, function () {
-        Em.keys(item.initial).forEach(function (prop) {
-          serviceConfigProperty.set(prop, item.initial[prop]);
-        });
-        expect(serviceConfigProperty.get('viewClass')).to.eql(item.viewClass);
-      });
-    });
-  });
-
-  describe('#validate', function () {
-    it('not required', function () {
-      serviceConfigProperty.setProperties({
-        isRequired: false,
-        value: ''
-      });
-      expect(serviceConfigProperty.get('errorMessage')).to.be.empty;
-      expect(serviceConfigProperty.get('error')).to.be.false;
-    });
-    it('test-db-connection widget', function () {
-      serviceConfigProperty.setProperties({
-        isRequired: true,
-        widgetType: 'test-db-connection',
-        value: ''
-      });
-      expect(serviceConfigProperty.get('errorMessage')).to.be.empty;
-      expect(serviceConfigProperty.get('error')).to.be.false;
-    });
-    it('should validate', function () {
-      serviceConfigProperty.setProperties({
-        isRequired: true,
-        value: 'value'
-      });
-      expect(serviceConfigProperty.get('errorMessage')).to.be.empty;
-      expect(serviceConfigProperty.get('error')).to.be.false;
-    });
-    it('should fail', function () {
-      serviceConfigProperty.setProperties({
-        isRequired: true,
-        value: 'value'
-      });
-      serviceConfigProperty.set('value', '');
-      expect(serviceConfigProperty.get('errorMessage')).to.equal('This is required');
-      expect(serviceConfigProperty.get('error')).to.be.true;
-    });
-  });
-
   describe('#overrideIsFinalValues', function () {
     it('should be defined as empty array', function () {
       expect(serviceConfigProperty.get('overrideIsFinalValues')).to.eql([]);
     });
-  });
-
-  describe('#updateDescription', function () {
-
-    beforeEach(function () {
-      serviceConfigProperty.setProperties({
-        displayType: 'password',
-        description: ''
-      });
-    });
-
-    it('should add extra-message to the description for `password`-configs', function () {
-
-      var extraMessage = Em.I18n.t('services.service.config.password.additionalDescription');
-      serviceConfigProperty.updateDescription();
-      expect(serviceConfigProperty.get('description')).to.contain(extraMessage);
-
-    });
-
-    it('should not add extra-message to the description if it already contains it', function () {
-
-      var extraMessage = Em.I18n.t('services.service.config.password.additionalDescription');
-      serviceConfigProperty.updateDescription();
-      serviceConfigProperty.updateDescription();
-      serviceConfigProperty.updateDescription();
-      expect(serviceConfigProperty.get('description')).to.contain(extraMessage);
-      var subd = serviceConfigProperty.get('description').replace(extraMessage, '');
-      expect(subd).to.not.contain(extraMessage);
-    });
-
-    it('should add extra-message to the description if description is not defined', function () {
-
-      serviceConfigProperty.set('description', undefined);
-      var extraMessage = Em.I18n.t('services.service.config.password.additionalDescription');
-      serviceConfigProperty.updateDescription();
-      expect(serviceConfigProperty.get('description')).to.contain(extraMessage);
-    });
-
   });
 
 });

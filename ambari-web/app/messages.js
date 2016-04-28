@@ -480,7 +480,6 @@ Em.I18n.translations = {
 
   'users.userName.validationFail': 'Only lowercase letters and numbers are recommended; must start with a letter',
   'host.spacesValidation': 'Cannot contain whitespace',
-  'host.trimspacesValidation': 'Cannot contain leading or trailing whitespace',
 
   'services.hdfs.rebalance.title' : 'HDFS Rebalance',
   'services.ganglia.description':'Ganglia Metrics Collection system',
@@ -994,7 +993,6 @@ Em.I18n.translations = {
   'form.validator.alertGroupName':'Invalid Alert Group Name. Only alphanumerics, hyphens, spaces and underscores are allowed.',
   'form.validator.alertNotificationName':'Invalid Alert Notification Name. Only alphanumerics, hyphens, spaces and underscores are allowed.',
   'form.validator.configKey.specific':'"{0}" is invalid Key. Only alphanumerics, hyphens, underscores, asterisks and periods are allowed.',
-  'form.validator.error.trailingSpaces': 'Cannot contain trailing whitespace',
 
   'alerts.add.header': 'Create Alert Definition',
   'alerts.add.step1.header': 'Choose Type',
@@ -2963,6 +2961,18 @@ Em.I18n.translations = {
   'config.infoMessage.wrong.value.for.widget': 'Configuration value cannot be converted into UI control value',
   'config.warnMessage.outOfBoundaries.greater': 'Values greater than {0} are not recommended',
   'config.warnMessage.outOfBoundaries.less': 'Values smaller than {0} are not recommended',
+
+  'errorMessage.config.required': 'This is required',
+  'errorMessage.config.number.integer': 'Must contain digits only',
+  'errorMessage.config.number.float': 'Must be a valid number',
+  'errorMessage.config.mail': 'Must be a valid email address',
+  'errorMessage.config.user': 'Value is not valid',
+  'errorMessage.config.password': 'Passwords do not match',
+  'errorMessage.config.directory.heterogeneous': 'dir format is wrong, can be "[{storage type}]/{dir name}"',
+  'errorMessage.config.directory.default': 'Must be a slash or drive at the start, and must not contain white spaces',
+  'errorMessage.config.directory.allowed': 'Can\'t start with "home(s)"',
+  'errorMessage.config.spaces.trailing': 'Cannot contain trailing whitespace',
+  'errorMessage.config.spaces.trim': 'Cannot contain leading or trailing whitespace',
 
   'utils.ajax.errorMessage': 'Error message',
   'utils.ajax.defaultErrorPopupBody.message': 'received on {0} method for API: {1}',

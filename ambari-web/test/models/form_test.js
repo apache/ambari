@@ -185,28 +185,6 @@ describe('App.FormField', function () {
     });
   });
 
-  describe('#viewClass', function () {
-    displayTypeCases.forEach(function (item) {
-      it('should be ' + item.classString, function () {
-        formField.set('displayType', item.type);
-        expect(formField.get('viewClass').toString()).to.contain(item.classString);
-      });
-    });
-  });
-
-  /*eslint-disable mocha-cleanup/asserts-limit */
-  describe('#validate', function () {
-    it('should return error message', function () {
-      formField.set('isRequired', true);
-      expectError('This is required');
-    });
-    it('should return empty error message', function () {
-      formField.set('isRequired', false);
-      expectError('');
-      formField.set('value', 'value');
-      expectError('');
-    });
-  });
   /*eslint-enable mocha-cleanup/asserts-limit */
 
   describe('#isHiddenField', function () {

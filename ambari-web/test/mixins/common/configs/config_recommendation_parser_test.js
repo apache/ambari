@@ -166,10 +166,8 @@ describe('App.ConfigRecommendationParser', function() {
           it ('adds new property', function() {
             expect(instanceObject._createNewProperty.calledWith('p1', 'file-name', 'serviceName1', 'v1', [])).to.be.true;
 
-            expect(stepConfig.get('configs.0')).to.eql(App.ServiceConfigProperty.create({
-              'name': 'p1',
-              'filename': 'file-name'
-            }));
+            expect(stepConfig.get('configs.0.name')).to.equal('p1');
+            expect(stepConfig.get('configs.0.filename')).to.equal('file-name');
           });
 
         } else {
@@ -276,15 +274,22 @@ describe('App.ConfigRecommendationParser', function() {
     });
     
     it('adds new config', function() {
-      expect(instanceObject._createNewProperty('name', 'fileName', 'recommendedValue', null)).to.eql(App.ServiceConfigProperty.create({
+      var res = {
         'value': 'recommendedValue',
         'recommendedValue': 'recommendedValue',
-        'initialValue': 'initialValue',
         'savedValue': null,
         'name': 'name',
-        'filename': 'fileName'
-      }));
+        'filename': 'fileName',
+        'errorMessage': ''
+      };
 
+      var test = instanceObject._createNewProperty('name', 'fileName', 'recommendedValue', null);
+
+      for (var k in res) {
+        if (res.hasOwnProperty(k)) {
+          expect(test.get(k)).to.eql(res[k]);
+        }
+      }
       expect(instanceObject.applyRecommendation.calledOnce).to.be.true;
     });
 

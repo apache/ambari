@@ -145,7 +145,7 @@ module.exports = {
    * @returns {Boolean} - <code>true</code> if ends with spaces
    */
   isNotTrimmedRight: function(value) {
-    return /\s+$/.test(("" + value).split(/\n/).slice(-1)[0]);
+    return value !== ' ' && /\s+$/.test(("" + value).split(/\n/).slice(-1)[0]);
   },
 
   /**

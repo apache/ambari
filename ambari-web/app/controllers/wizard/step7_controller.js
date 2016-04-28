@@ -748,7 +748,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       if (!this.get('content.serviceConfigProperties.length') && !serviceConfigProperty.get('hasInitialValue')) {
         App.ConfigInitializer.initialValue(serviceConfigProperty, localDB, dependencies);
       }
-      serviceConfigProperty.validate();
       configsByService[_config.serviceName].pushObject(serviceConfigProperty);
     }, this);
 

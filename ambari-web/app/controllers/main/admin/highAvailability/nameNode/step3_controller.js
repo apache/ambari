@@ -228,7 +228,6 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
       var serviceConfigProperty = App.ServiceConfigProperty.create(_serviceConfigProperty);
       componentConfig.configs.pushObject(serviceConfigProperty);
       serviceConfigProperty.set('isEditable', serviceConfigProperty.get('isReconfigurable'));
-      serviceConfigProperty.validate();
     }, this);
   },
 

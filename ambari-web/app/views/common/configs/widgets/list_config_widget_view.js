@@ -219,8 +219,11 @@ App.ListConfigWidgetView = App.ConfigWidgetView.extend({
       currentlySelected = this.get('options').filterProperty('isSelected').length,
       selectionDisabled = allowedToSelect <= currentlySelected;
     this.get('options').filterProperty('isSelected', false).setEach('isDisabled', selectionDisabled);
-    this.set('config.errorMessage', currentlySelected < neededToSelect ? 'You should select at least ' + neededToSelect + ' item(s)' : '');
-    this.get('config').validate();
+    if (currentlySelected < neededToSelect) {
+      this.set('config.errorMessage', 'You should select at least ' + neededToSelect + ' item(s)');
+    } else {
+      this.get('config').validate();
+    }
   },
 
   /**

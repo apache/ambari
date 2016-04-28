@@ -217,14 +217,7 @@ describe('App.NotificationsConfigsView', function () {
     var config;
 
     beforeEach(function () {
-      config = Em.Object.create({
-        validate: Em.K
-      });
-      sinon.spy(config, 'validate');
-    });
-
-    afterEach(function () {
-      config.validate.restore();
+      config = Em.Object.create();
     });
 
     describe("flag is true", function () {
@@ -238,9 +231,6 @@ describe('App.NotificationsConfigsView', function () {
       it('isEditable is true', function () {
         expect(config.get('isEditable')).to.be.true;
       });
-      it('validate is called once', function () {
-        expect(config.validate.calledOnce).to.be.true;
-      });
     });
 
     describe("flag is false", function () {
@@ -252,12 +242,6 @@ describe('App.NotificationsConfigsView', function () {
       });
       it('isEditable is false', function () {
         expect(config.get('isEditable')).to.be.false;
-      });
-      it('errorMessage is empty', function () {
-        expect(config.get('errorMessage')).to.be.empty;
-      });
-      it('validate is not called', function () {
-        expect(config.validate.called).to.be.false;
       });
     });
   });

@@ -891,4 +891,28 @@ describe('App.config', function () {
     });
   });
 
+  describe('#getDescription', function () {
+
+    it('should add extra-message to the description for `password`-configs', function () {
+      var extraMessage = Em.I18n.t('services.service.config.password.additionalDescription');
+      expect(App.config.getDescription('', 'password')).to.contain(extraMessage);
+    });
+
+    it('should not add extra-message to the description if it already contains it', function () {
+
+      var extraMessage = Em.I18n.t('services.service.config.password.additionalDescription');
+      var res = App.config.getDescription(extraMessage, 'password');
+      expect(res).to.contain(extraMessage);
+      expect(res).to.contain(extraMessage);
+      var subd = res.replace(extraMessage, '');
+      expect(subd).to.not.contain(extraMessage);
+    });
+
+    it('should add extra-message to the description if description is not defined', function () {
+
+      var extraMessage = Em.I18n.t('services.service.config.password.additionalDescription');
+      expect(App.config.getDescription(undefined, 'password')).to.contain(extraMessage);
+    });
+
+  });
 });

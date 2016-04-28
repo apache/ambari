@@ -171,8 +171,6 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
       newConfig = App.config.getDefaultConfig(name, fileName, coreObject),
       addedPropertyObject = App.ServiceConfigProperty.create(newConfig);
 
-    addedPropertyObject.validate();
-
     this.applyRecommendation(name, fileName, "Default",
       recommendedValue, null, parentProperties);
 

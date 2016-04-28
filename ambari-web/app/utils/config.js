@@ -238,9 +238,7 @@ App.config = Em.Object.create({
       }
 
       if (useEmberObject) {
-        var serviceConfigProperty = App.ServiceConfigProperty.create(serviceConfigObj);
-        serviceConfigProperty.validate();
-        configs.push(serviceConfigProperty);
+        configs.push(App.ServiceConfigProperty.create(serviceConfigObj));
       } else {
         configs.push(serviceConfigObj);
       }
@@ -422,13 +420,7 @@ App.config = Em.Object.create({
    * @returns {string}
    */
   getDefaultCategory: function(stackConfigProperty, fileName) {
-    var tag = this.getConfigTagFromFileName(fileName);
-    switch (tag) {
-      case 'capacity-scheduler':
-        return 'CapacityScheduler';
-      default :
-        return (stackConfigProperty ? 'Advanced ' : 'Custom ') + tag;
-    }
+    return (stackConfigProperty ? 'Advanced ' : 'Custom ') + this.getConfigTagFromFileName(fileName);
   },
 
   /**
@@ -438,6 +430,146 @@ App.config = Em.Object.create({
    */
   getIsSecure: function(propertyName) {
     return !!this.get('secureConfigsMap')[propertyName];
+  },
+
+  /**
+   * Returns description, formatted if needed
+   *
+   * @param {String} description
+   * @param {String} displayType
+   * @returns {String}
+   */
+  getDescription: function(description, displayType) {
+    var additionalDescription = Em.I18n.t('services.service.config.password.additionalDescription');
+    if ('password' === displayType) {
+      if (description && !description.contains(additionalDescription)) {
+        return description + '<br />' + additionalDescription;
+      } else {
+        return additionalDescription;
+      }
+    }
+    return description
+  },
+
+  /**
+   * Get view class based on display type of config
+   *
+   * @param displayType
+   * @param dependentConfigPattern
+   * @param unit
+   * @returns {*}
+   */
+  getViewClass: function (displayType, dependentConfigPattern, unit) {
+    switch (displayType) {
+      case 'checkbox':
+      case 'boolean':
+        return dependentConfigPattern ? App.ServiceConfigCheckboxWithDependencies : App.ServiceConfigCheckbox;
+      case 'password':
+        return App.ServiceConfigPasswordField;
+      case 'combobox':
+        return App.ServiceConfigComboBox;
+      case 'radio button':
+        return App.ServiceConfigRadioButtons;
+      case 'directories':
+        return App.ServiceConfigTextArea;
+      case 'directory':
+        return App.ServiceConfigTextField;
+      case 'content':
+        return App.ServiceConfigTextAreaContent;
+      case 'multiLine':
+        return App.ServiceConfigTextArea;
+      case 'custom':
+        return App.ServiceConfigBigTextArea;
+      case 'componentHost':
+        return App.ServiceConfigMasterHostView;
+      case 'label':
+        return App.ServiceConfigLabelView;
+      case 'componentHosts':
+        return App.ServiceConfigComponentHostsView;
+      case 'supportTextConnection':
+        return App.checkConnectionView;
+      case 'capacityScheduler':
+        return App.CapacitySceduler;
+      default:
+        return unit ? App.ServiceConfigTextFieldWithUnit : App.ServiceConfigTextField;
+    }
+  },
+
+  /**
+   * Returns validator function based on config type
+   *
+   * @param displayType
+   * @returns {Function}
+   */
+  getValidator: function (displayType) {
+    switch (displayType) {
+      case 'checkbox':
+      case 'custom':
+        return function () {
+          return ''
+        };
+      case 'int':
+        return function (value) {
+          return !validator.isValidInt(value) && !validator.isConfigValueLink(value)
+            ? Em.I18n.t('errorMessage.config.number.integer') : '';
+        };
+      case 'float':
+        return function (value) {
+          return !validator.isValidFloat(value) && !validator.isConfigValueLink(value)
+            ? Em.I18n.t('errorMessage.config.number.float') : '';
+        };
+      case 'directories':
+      case 'directory':
+        return function (value, name) {
+          if (App.config.isDirHeterogeneous(name)) {
+            if (!validator.isValidDataNodeDir(value)) return Em.I18n.t('errorMessage.config.directory.heterogeneous');
+          } else {
+            if (!validator.isValidDir(value)) return Em.I18n.t('errorMessage.config.directory.default');
+          }
+          if (!validator.isAllowedDir(value)) {
+            return Em.I18n.t('errorMessage.config.directory.allowed');
+          }
+          return validator.isNotTrimmedRight(value) ? Em.I18n.t('errorMessage.config.spaces.trailing') : '';
+        };
+      case 'email':
+        return function (value) {
+          return !validator.isValidEmail(value) ? Em.I18n.t('errorMessage.config.mail') : '';
+        };
+      case 'supportTextConnection':
+      case 'host':
+        return function (value) {
+          return validator.isNotTrimmed(value) ? Em.I18n.t('errorMessage.config.spaces.trim') : '';
+        };
+      case 'password':
+        return function (value, name, retypedPassword) {
+          return value !== retypedPassword ? Em.I18n.t('errorMessage.config.password') : '';
+        };
+      case 'user':
+      case 'database':
+      case 'db_user':
+        return function (value) {
+          return !validator.isValidDbName(value) ? Em.I18n.t('errorMessage.config.user') : '';
+        };
+      default:
+        return function (value, name) {
+          if (['javax.jdo.option.ConnectionURL', 'oozie.service.JPAService.jdbc.url'].contains(name)
+            && !validator.isConfigValueLink(value) && validator.isConfigValueLink(value)) {
+            return Em.I18n.t('errorMessage.config.spaces.trim');
+          } else {
+            return validator.isNotTrimmedRight(value) ? Em.I18n.t('errorMessage.config.spaces.trailing') : '';
+          }
+        };
+    }
+  },
+
+  /**
+   * Defines if config support heterogeneous devices
+   *
+   * @param {string} name
+   * @returns {boolean}
+   */
+  isDirHeterogeneous: function(name) {
+    return ['dfs.datanode.data.dir'].contains(name);
   },
 
   /**
@@ -636,6 +768,7 @@ App.config = Em.Object.create({
       'isFinal': isFinal,
       'savedIsFinal': savedIsFinal,
       'recommendedIsFinal': recommendedIsFinal,
+      'category': 'CapacityScheduler',
       'displayName': 'Capacity Scheduler',
       'description': 'Capacity Scheduler properties',
       'displayType': 'capacityScheduler'
@@ -944,7 +1077,6 @@ App.config = Em.Object.create({
     serviceConfigProperty.set('overrideValues', savedOverrides.mapProperty('savedValue'));
     serviceConfigProperty.set('overrideIsFinalValues', savedOverrides.mapProperty('savedIsFinal'));
 
-    newOverride.validate();
     return newOverride;
   },
 

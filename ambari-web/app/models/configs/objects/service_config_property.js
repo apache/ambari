@@ -17,7 +17,6 @@
  */
 
 var App = require('app');
-var validator = require('utils/validator');
 
 /**
  * @class ServiceConfigProperty
@@ -143,8 +142,11 @@ App.ServiceConfigProperty = Em.Object.extend({
   isComparison: false,
   hasCompareDiffs: false,
   showLabel: true,
-  error: false,
-  warn: false,
+
+  error: Em.computed.bool('errorMessage.length'),
+  warn: Em.computed.bool('warnMessage.length'),
+  isValid: Em.computed.equal('errorMessage', ''),
+
   previousValue: null, // cached value before changing config <code>value</code>
 
   /**
@@ -159,17 +161,9 @@ App.ServiceConfigProperty = Em.Object.extend({
    * true if property has warning or error
    * @type {boolean}
    */
-  hasIssues: function () {
-    var originalSCPIssued = (this.get('errorMessage') + this.get('warnMessage')) !== "";
-    var overridesIssue = false;
-    (this.get('overrides') || []).forEach(function(override) {
-      if (override.get('errorMessage') + override.get('warnMessage') !== "") {
-        overridesIssue = true;
-        return;
-      }
-    });
-    return originalSCPIssued || overridesIssue;
-  }.property('errorMessage', 'warnMessage', 'overrides.@each.warnMessage', 'overrides.@each.errorMessage'),
+  hasIssues: Em.computed.or('error', 'warn', 'overridesWithIssues.length'),
+
+  overridesWithIssues: Em.computed.filterBy('overrides', 'hasIssues', true),
 
   index: null, //sequence number in category
   editDone: false, //Text field: on focusOut: true, on focusIn: false
@@ -253,6 +247,13 @@ App.ServiceConfigProperty = Em.Object.extend({
   }.property('isUserProperty', 'isOriginalSCP', 'overrides.length', 'isRequiredByAgent'),
 
   init: function () {
+    this.setInitialValues();
+    this.set('viewClass', App.config.getViewClass(this.get("displayType"), this.get('dependentConfigPattern'), this.get('unit')));
+    this.set('validator', App.config.getValidator(this.get("displayType")));
+    this.validate();
+  },
+
+  setInitialValues: function () {
     if (Em.isNone(this.get('value'))) {
       if (!Em.isNone(this.get('savedValue'))) {
         this.set('value', this.get('savedValue'));
@@ -260,12 +261,11 @@ App.ServiceConfigProperty = Em.Object.extend({
         this.set('value', this.get('recommendedValue'));
       }
     }
-    if(this.get("displayType") === "password") {
+    if (this.get("displayType") === "password") {
       this.set('retypedPassword', this.get('value'));
       this.set('recommendedValue', '');
     }
     this.set('initialValue', this.get('value'));
-    this.updateDescription();
   },
 
   /**
@@ -313,211 +313,19 @@ App.ServiceConfigProperty = Em.Object.extend({
    */
   cantBeUndone: Em.computed.existsIn('displayType', ["componentHost", "componentHosts", "radio button"]),
 
-  isValid: Em.computed.equal('errorMessage', ''),
-
-  viewClass: function () {
-    switch (this.get('displayType')) {
-      case 'checkbox':
-      case 'boolean':
-        if (this.get('dependentConfigPattern')) {
-          return App.ServiceConfigCheckboxWithDependencies;
-        } else {
-          return App.ServiceConfigCheckbox;
-        }
-      case 'password':
-        return App.ServiceConfigPasswordField;
-      case 'combobox':
-        return App.ServiceConfigComboBox;
-      case 'radio button':
-        return App.ServiceConfigRadioButtons;
-        break;
-      case 'directories':
-        return App.ServiceConfigTextArea;
-        break;
-      case 'directory':
-        return App.ServiceConfigTextField;
-        break;
-      case 'content':
-        return App.ServiceConfigTextAreaContent;
-        break;
-      case 'multiLine':
-        return App.ServiceConfigTextArea;
-        break;
-      case 'custom':
-        return App.ServiceConfigBigTextArea;
-      case 'componentHost':
-        return App.ServiceConfigMasterHostView;
-      case 'label':
-        return App.ServiceConfigLabelView;
-      case 'componentHosts':
-        return App.ServiceConfigComponentHostsView;
-      case 'supportTextConnection':
-        return App.checkConnectionView;
-      case 'capacityScheduler':
-        return App.CapacitySceduler;
-      default:
-        if (this.get('unit')) {
-          return App.ServiceConfigTextFieldWithUnit;
-        } else {
-          return App.ServiceConfigTextField;
-        }
-    }
-  }.property('displayType'),
-
   validate: function () {
-    var value = this.get('value');
-    var supportsFinal = this.get('supportsFinal');
-    var isFinal = this.get('isFinal');
-    var valueRange = this.get('valueRange');
-
-    var isError = false;
-    var isWarn = false;
-
-    if (typeof value === 'string' && value.length === 0) {
-      if (this.get('isRequired') && this.get('widgetType') != 'test-db-connection') {
-        this.set('errorMessage', 'This is required');
-        isError = true;
-      } else {
-        return;
-      }
-    }
-
-    if (!isError) {
-      switch (this.get('displayType')) {
-        case 'int':
-          if (('' + value).trim().length === 0) {
-            this.set('errorMessage', '');
-            isError = false;
-            return;
-          }
-          if (validator.isConfigValueLink(value)) {
-            isError = false;
-          } else if (!validator.isValidInt(value)) {
-            this.set('errorMessage', 'Must contain digits only');
-            isError = true;
-          } else {
-            if(valueRange){
-              if(value < valueRange[0] || value > valueRange[1]){
-                this.set('errorMessage', 'Must match the range');
-                isError = true;
-              }
-            }
-          }
-          break;
-        case 'float':
-          if (validator.isConfigValueLink(value)) {
-            isError = false;
-          } else if (!validator.isValidFloat(value)) {
-            this.set('errorMessage', 'Must be a valid number');
-            isError = true;
-          }
-          break;
-        case 'checkbox':
-          break;
-        case 'directories':
-        case 'directory':
-          if (this.get('configSupportHeterogeneous')) {
-            if (!validator.isValidDataNodeDir(value)) {
-              this.set('errorMessage', 'dir format is wrong, can be "[{storage type}]/{dir name}"');
-              isError = true;
-            }
-          } else {
-            if (!validator.isValidDir(value)) {
-              this.set('errorMessage', 'Must be a slash or drive at the start, and must not contain white spaces');
-              isError = true;
-            }
-          }
-          if (!isError) {
-            if (!validator.isAllowedDir(value)) {
-              this.set('errorMessage', 'Can\'t start with "home(s)"');
-              isError = true;
-            } else {
-              // Invalidate values which end with spaces.
-              if (value !== ' ' && validator.isNotTrimmedRight(value)) {
-                this.set('errorMessage', Em.I18n.t('form.validator.error.trailingSpaces'));
-                isError = true;
-              }
-            }
-          }
-          break;
-        case 'custom':
-          break;
-        case 'email':
-          if (!validator.isValidEmail(value)) {
-            this.set('errorMessage', 'Must be a valid email address');
-            isError = true;
-          }
-          break;
-        case 'supportTextConnection':
-        case 'host':
-          var connectionProperties = ['kdc_hosts'];
-          if ((validator.isNotTrimmed(value) && connectionProperties.contains(this.get('name')) || validator.isNotTrimmed(value))) {
-            this.set('errorMessage', Em.I18n.t('host.trimspacesValidation'));
-            isError = true;
-          }
-          break;
-        case 'password':
-          // retypedPassword is set by the retypePasswordView child view of App.ServiceConfigPasswordField
-          if (value !== this.get('retypedPassword')) {
-            this.set('errorMessage', 'Passwords do not match');
-            isError = true;
-          }
-          break;
-        case 'user':
-        case 'database':
-        case 'db_user':
-          if (!validator.isValidDbName(value)){
-            this.set('errorMessage', 'Value is not valid');
-            isError = true;
-          }
-          break;
-        case 'multiLine':
-        case 'content':
-        default:
-          if(this.get('name')=='javax.jdo.option.ConnectionURL' || this.get('name')=='oozie.service.JPAService.jdbc.url') {
-            if (validator.isConfigValueLink(value)) {
-              isError = false;
-            } else if (validator.isNotTrimmed(value)) {
-              this.set('errorMessage', Em.I18n.t('host.trimspacesValidation'));
-              isError = true;
-            }
-          } else {
-            // Avoid single space values which is work around for validate empty properties.
-            // Invalidate values which end with spaces.
-            if (value !== ' ' && validator.isNotTrimmedRight(value)) {
-              this.set('errorMessage', Em.I18n.t('form.validator.error.trailingSpaces'));
-              isError = true;
-            }
-          }
-          break;
-      }
-    }
-
-    if (!isWarn || isError) { // Errors get priority
-      this.set('warnMessage', '');
-      this.set('warn', false);
+    if (!this.get('isEditable')) {
+      this.set('errorMessage', ''); // do not perform validation for not editable configs
+    } else if ((this.get('value') + '').length === 0) {
+      this.set('errorMessage', this.get('isRequired') ? Em.I18n.t('errorMessage.config.required') : '');
     } else {
-      this.set('warn', true);
+      this.set('errorMessage', this.validator(this.get('value'), this.get('name'), this.get('retypedPassword')));
     }
+  }.observes('value', 'retypedPassword', 'isEditable'),
 
-    if (!isError) {
-      this.set('errorMessage', '');
-      this.set('error', false);
-    } else {
-      this.set('error', true);
-    }
-  }.observes('value', 'isFinal', 'retypedPassword'),
+  viewClass: App.ServiceConfigTextField,
 
-  /**
-   * defines specific directory properties that
-   * allows setting drive type before dir name
-   * ex: [SSD]/usr/local/my_dir
-   * @param config
-   * @returns {*|Boolean|boolean}
-   */
-  configSupportHeterogeneous: function() {
-    return ['directories', 'directory'].contains(this.get('displayType')) && ['dfs.datanode.data.dir'].contains(this.get('name'));
-  }.property('displayType', 'name'),
+  validator: function() { return '' },
 
   /**
    * Get override for selected group
@@ -531,28 +339,6 @@ App.ServiceConfigProperty = Em.Object.extend({
       return this.get('overrides').findProperty('group.name', groupName);
     }
     return null;
-  },
-
-  /**
-   * Update description for `password`-config
-   * Add extra-message about their comparison
-   *
-   * @method updateDescription
-   */
-  updateDescription: function () {
-    var description = this.get('description');
-    var displayType = this.get('displayType');
-    var additionalDescription = Em.I18n.t('services.service.config.password.additionalDescription');
-    if ('password' === displayType) {
-      if (description) {
-        if (!description.contains(additionalDescription)) {
-          description += '<br />' + additionalDescription;
-        }
-      } else {
-        description = additionalDescription;
-      }
-    }
-    this.set('description', description);
   }
 
 });

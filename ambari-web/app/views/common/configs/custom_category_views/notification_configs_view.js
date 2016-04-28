@@ -122,13 +122,6 @@ App.NotificationsConfigsView = App.ServiceConfigsByCategoryView.extend({
   updateConfig: function (config, flag) {
     config.set('isRequired', flag);
     config.set('isEditable', flag);
-    if (flag) {
-      config.validate();
-    }
-    else {
-      config.set('errorMessage', '');
-      config.propertyDidChange('isValid');
-    }
   }
 
 });
