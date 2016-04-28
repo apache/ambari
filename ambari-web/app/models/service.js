@@ -246,6 +246,7 @@ App.Service.extendedModel = {
   'YARN': 'YARNService',
   'MAPREDUCE2': 'MapReduce2Service',
   'STORM': 'StormService',
+  'RANGER': 'RangerService',
   'FLUME': 'FlumeService'
 };
 

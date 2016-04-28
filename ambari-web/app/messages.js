@@ -2725,6 +2725,8 @@ Em.I18n.translations = {
   'dashboard.services.hbase.masterStarted':'Master Started',
   'dashboard.services.hbase.masterActivated':'Master Activated',
 
+  'dashboard.services.ranger.rangerTagsyncs':'Ranger Tagsyncs',
+
   'dashboard.services.components.started':'started',
   'dashboard.services.components.stopped':'stopped',
   'dashboard.services.components.total':'in total',

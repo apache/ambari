@@ -44,6 +44,7 @@ require('models/service/mapreduce2');
 require('models/service/hbase');
 require('models/service/flume');
 require('models/service/storm');
+require('models/service/ranger');
 require('models/alerts/alert_definition');
 require('models/alerts/alert_instance');
 require('models/alerts/alert_instance_local');

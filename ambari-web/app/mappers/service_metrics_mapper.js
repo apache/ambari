@@ -133,6 +133,11 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     super_visors_installed: 'super_visors_installed',
     super_visors_total: 'super_visors_total'
   },
+  rangerConfig: {
+    ranger_tagsyncs_started: 'ranger_tagsyncs_started',
+    ranger_tagsyncs_installed: 'ranger_tagsyncs_installed',
+    ranger_tagsyncs_total: 'ranger_tagsyncs_total'
+  },
   flumeConfig: {
     flume_handlers_total: 'flume_handlers_total'
   },
@@ -299,6 +304,10 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
       finalJson.rand = Math.random();
       this.mapQuickLinks(finalJson, item);
       App.store.load(App.StormService, finalJson);
+    } else if (item && item.ServiceInfo && item.ServiceInfo.service_name == "RANGER") {
+      finalJson = this.rangerMapper(item);
+      finalJson.rand = Math.random();
+      App.store.load(App.RangerService, finalJson);
     } else {
       finalJson = this.parseIt(item, this.config);
       finalJson.rand = Math.random();
@@ -610,8 +619,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
       component.host_components[activeHostComponentIndex] = component.host_components[0];
       component.host_components[0] = tmp;
     }
-  }
-  ,
+  },
 
   /**
    * Flume is different from other services, in that the important
@@ -639,8 +647,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
       });
     });
     return finalJson;
-  }
-  ,
+  },
 
   /**
    * Storm mapper
@@ -673,6 +680,16 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
       }
     });
     item.restApiComponent = restApiMetrics;
+    return this.parseIt(item, finalConfig);
+  },
+
+  /**
+   * Ranger mapper
+   */
+  rangerMapper: function (item) {
+    var finalConfig = jQuery.extend({}, this.config);
+    var rangerConfig = this.rangerConfig;
+        finalConfig = jQuery.extend({}, finalConfig, rangerConfig);
     return this.parseIt(item, finalConfig);
   }
 });

@@ -5,9 +5,9 @@
  * licenses this file to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -17,24 +17,10 @@
 
 var App = require('app');
 
-App.MainDashboardServiceRangerView = App.MainDashboardServiceView.extend({
-
-  templateName: require('templates/main/service/services/ranger'),
-
-  serviceName: 'RANGER',
-
-  rangerTagsyncComponent: Em.Object.create({
-    componentName: 'RANGER_TAGSYNC'
-  }),
-
-  didInsertElement: function () {
-    this.set('controller.isRangerUpdateWorking', true);
-    App.updater.run(this.get('controller'), 'updateRangerPluginsStatus', 'isRangerUpdateWorking', App.bgOperationsUpdateInterval);
-    App.updater.immediateRun('updateRangerPluginsStatus');
-  },
-
-  willDestroyElement: function () {
-    this.set('controller.isRangerUpdateWorking', false);
-  }
-
+App.RangerService = App.Service.extend({
+  rangerTagsyncsStarted: DS.attr('number'),
+  rangerTagsyncsInstalled: DS.attr('number'),
+  rangerTagsyncsTotal: DS.attr('number')
 });
+
+App.RangerService.FIXTURES = [];

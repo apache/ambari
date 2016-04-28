@@ -90,6 +90,11 @@ App.componentsStateMapper = App.QuickDataMapper.create({
       super_visors_installed: 'INSTALLED_PATH',
       super_visors_total: 'TOTAL_PATH'
     },
+    'RANGER_TAGSYNC': {
+      ranger_tagsyncs_started: 'STARTED_PATH',
+      ranger_tagsyncs_installed: 'INSTALLED_PATH',
+      ranger_tagsyncs_total: 'TOTAL_PATH'
+    },
     'MAPREDUCE2_CLIENT': {
       map_reduce2_clients: 'INSTALLED_PATH'
     },
