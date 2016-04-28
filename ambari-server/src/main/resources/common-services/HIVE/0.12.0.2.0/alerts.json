@@ -146,6 +146,53 @@
             }
           ]
         }
+      },
+      {
+        "name": "llap_application",
+        "label": "LLAP Application",
+        "description": "This alert is triggered if the LLAP Application cannot be determined to be up and responding to requests.",
+        "interval": 3,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "SCRIPT",
+          "path": "HIVE/0.12.0.2.0/package/alerts/alert_llap_app_status.py",
+          "parameters": [
+            {
+              "name": "check.command.timeout",
+              "display_name": "Command Timeout",
+              "value": 15.0,
+              "type": "NUMERIC",
+              "description": "The maximum time before check command will be killed by timeout",
+              "units": "seconds",
+              "threshold": "CRITICAL"
+            },
+            {
+              "name": "default.hive.user",
+              "display_name": "Default HIVE User",
+              "value": "hive",
+              "type": "STRING",
+              "description": "The user that will run the Hive commands if not specified in cluster-env",
+              "visibility": "HIDDEN"
+            },
+            {
+              "name": "default.hive.principal",
+              "display_name": "Default HIVE Principal",
+              "value": "hive@EXAMPLE.COM",
+              "type": "STRING",
+              "description": "The principal to use when retrieving the kerberos ticket if not specified in cluster-env",
+              "visibility": "HIDDEN"
+            },
+            {
+              "name": "default.hive.keytab",
+              "display_name": "Default HIVE Keytab",
+              "value": "/etc/security/keytabs/hive.llap.zk.sm.keytab",
+              "type": "STRING",
+              "description": "The keytab to use when retrieving the kerberos ticket if not specified in cluster-env.",
+              "visibility": "HIDDEN"
+            }
+          ]
+        }
       }
     ],
     "WEBHCAT_SERVER": [

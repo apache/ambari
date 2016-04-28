@@ -31,9 +31,6 @@ from resource_management.core.resources import Execute
 from ambari_commons.os_check import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
-import params
-
-stack_root = params.stack_root
 
 OK_MESSAGE = "Metastore OK - Hive command took {0:.3f}s"
 CRITICAL_MESSAGE = "Metastore on {0} failed ({1})"
@@ -58,10 +55,10 @@ SMOKEUSER_PRINCIPAL_DEFAULT = 'ambari-qa@EXAMPLE.COM'
 SMOKEUSER_SCRIPT_PARAM_KEY = 'default.smoke.user'
 SMOKEUSER_DEFAULT = 'ambari-qa'
 
-HIVE_CONF_DIR = format("{stack_root}/current/hive-metastore/conf/conf.server")
+STACK_ROOT = '{{cluster-env/stack_root}}'
+
 HIVE_CONF_DIR_LEGACY = '/etc/hive/conf.server'
 
-HIVE_BIN_DIR = format("{stack_root}/current/hive-metastore/bin")
 HIVE_BIN_DIR_LEGACY = '/usr/lib/hive/bin'
 
 CHECK_COMMAND_TIMEOUT_KEY = 'check.command.timeout'
@@ -69,6 +66,7 @@ CHECK_COMMAND_TIMEOUT_DEFAULT = 60.0
 
 HADOOPUSER_KEY = '{{cluster-env/hadoop.user.name}}'
 HADOOPUSER_DEFAULT = 'hadoop'
+
 logger = logging.getLogger('ambari_alerts')
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
@@ -78,7 +76,8 @@ def get_tokens():
   to build the dictionary passed into execute
   """
   return (SECURITY_ENABLED_KEY,SMOKEUSER_KEYTAB_KEY,SMOKEUSER_PRINCIPAL_KEY,
-    HIVE_METASTORE_URIS_KEY, SMOKEUSER_KEY, KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY)
+    HIVE_METASTORE_URIS_KEY, SMOKEUSER_KEY, KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY,
+    STACK_ROOT)
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def get_tokens():
@@ -174,9 +173,14 @@ def execute(configurations={}, parameters={}, host_name=None):
     conf_dir = HIVE_CONF_DIR_LEGACY
     bin_dir = HIVE_BIN_DIR_LEGACY
 
-    if os.path.exists(HIVE_CONF_DIR):
-      conf_dir = HIVE_CONF_DIR
-      bin_dir = HIVE_BIN_DIR
+
+    if STACK_ROOT in configurations:
+      hive_conf_dir = configurations[STACK_ROOT] + format("/current/hive-metastore/conf/conf.server")
+      hive_bin_dir = configurations[STACK_ROOT] + format("/current/hive-metastore/bin")
+
+      if os.path.exists(hive_conf_dir):
+        conf_dir = hive_conf_dir
+        bin_dir = hive_bin_dir
 
     cmd = format("export HIVE_CONF_DIR='{conf_dir}' ; "
                  "hive --hiveconf hive.metastore.uris={metastore_uri}\

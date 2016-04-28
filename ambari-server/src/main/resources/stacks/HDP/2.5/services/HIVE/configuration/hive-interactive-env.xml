@@ -184,6 +184,12 @@
     <description>LLAP app logging level</description>
     <display-name>LLAP app logging level</display-name>
   </property>
+  <property>
+    <name>llap_app_name</name>
+    <value>llap0</value>
+    <description>LLAP app name</description>
+    <display-name>LLAP app name</display-name>
+  </property>
 
   <!-- hive-env.sh -->
   <property>
