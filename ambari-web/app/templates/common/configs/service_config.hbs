@@ -96,7 +96,7 @@
 
 {{#if versionLoaded}}
   {{#unless hideDependenciesInfoBar}}
-    <div {{bindAttr class="hasChangedDependencies:show:hide :dependencies-info"}}>
+    <div {{bindAttr class="hasChangedDependencies:show:hide"}}>
       <div class="dependencies-info-bar-wrapper">
         <div class="alert alert-warning">
           <span>{{dependenciesMessage}}</span> <a
@@ -111,7 +111,7 @@
     </div>
   {{/unless}}
   {{#if view.supportsConfigLayout}}
-    <ul class="nav nav-tabs mbm config-tabs background-text">
+    <ul class="nav nav-tabs mbm background-text">
       {{#each tab in view.tabs}}
         <li rel='tooltip' {{bindAttr class="tab.isActive:active tab.isHiddenByFilter:disabled" data-original-title="tab.tooltipMsg"}}>
           <a href="#" {{action "setActiveTab" tab target="view"}} {{bindAttr data-target="tab.headingClass"}} data-toggle="tab">
