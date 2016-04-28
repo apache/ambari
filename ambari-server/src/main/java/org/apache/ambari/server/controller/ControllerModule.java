@@ -18,23 +18,39 @@
 
 package org.apache.ambari.server.controller;
 
-import com.google.common.util.concurrent.AbstractScheduledService;
-import com.google.common.util.concurrent.ServiceManager;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.inject.AbstractModule;
-import com.google.inject.Scopes;
-import com.google.inject.assistedinject.FactoryModuleBuilder;
-import com.google.inject.name.Names;
-import com.google.inject.persist.PersistModule;
-import com.google.inject.persist.jpa.AmbariJpaPersistModule;
-import com.mchange.v2.c3p0.ComboPooledDataSource;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.CREATE_JDBC_DDL_FILE;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.CREATE_ONLY;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.CREATE_OR_EXTEND;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.DDL_BOTH_GENERATION;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.DDL_GENERATION;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.DDL_GENERATION_MODE;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.DROP_AND_CREATE;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.DROP_JDBC_DDL_FILE;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_DRIVER;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_PASSWORD;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_URL;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.NON_JTA_DATASOURCE;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.THROW_EXCEPTIONS;
+
+import java.beans.PropertyVetoException;
+import java.lang.annotation.Annotation;
+import java.security.SecureRandom;
+import java.text.MessageFormat;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Properties;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariService;
 import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.actionmanager.ActionDBAccessor;
 import org.apache.ambari.server.actionmanager.ActionDBAccessorImpl;
-import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
+import org.apache.ambari.server.actionmanager.ExecutionCommandWrapperFactory;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactoryImpl;
 import org.apache.ambari.server.actionmanager.RequestFactory;
@@ -127,32 +143,17 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.util.ClassUtils;
 import org.springframework.web.filter.DelegatingFilterProxy;
 
-import java.beans.PropertyVetoException;
-import java.lang.annotation.Annotation;
-import java.security.SecureRandom;
-import java.text.MessageFormat;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Properties;
-import java.util.Set;
-
-import static org.eclipse.persistence.config.PersistenceUnitProperties.CREATE_JDBC_DDL_FILE;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.CREATE_ONLY;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.CREATE_OR_EXTEND;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.DDL_BOTH_GENERATION;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.DDL_GENERATION;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.DDL_GENERATION_MODE;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.DROP_AND_CREATE;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.DROP_JDBC_DDL_FILE;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_DRIVER;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_PASSWORD;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_URL;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.NON_JTA_DATASOURCE;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.THROW_EXCEPTIONS;
+import com.google.common.util.concurrent.AbstractScheduledService;
+import com.google.common.util.concurrent.ServiceManager;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.inject.AbstractModule;
+import com.google.inject.Scopes;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
+import com.google.inject.name.Names;
+import com.google.inject.persist.PersistModule;
+import com.google.inject.persist.jpa.AmbariJpaPersistModule;
+import com.mchange.v2.c3p0.ComboPooledDataSource;
 
 /**
  * Used for injection purposes.
@@ -368,7 +369,6 @@ public class ControllerModule extends AbstractModule {
 
     bind(AuthenticationEntryPoint.class).to(AmbariEntryPoint.class).in(Scopes.SINGLETON);
 
-    requestStaticInjection(ExecutionCommandWrapper.class);
     requestStaticInjection(DatabaseChecker.class);
     requestStaticInjection(KerberosChecker.class);
 
@@ -456,6 +456,7 @@ public class ControllerModule extends AbstractModule {
     bind(RoleGraphFactory.class).to(RoleGraphFactoryImpl.class);
     install(new FactoryModuleBuilder().build(RequestFactory.class));
     install(new FactoryModuleBuilder().build(StackManagerFactory.class));
+    install(new FactoryModuleBuilder().build(ExecutionCommandWrapperFactory.class));
 
     bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
     bind(SecurityHelper.class).toInstance(SecurityHelperImpl.getInstance());

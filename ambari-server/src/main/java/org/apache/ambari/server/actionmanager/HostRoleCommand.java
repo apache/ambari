@@ -75,6 +75,9 @@ public class HostRoleCommand {
   @Inject
   private HostDAO hostDAO;
 
+  @Inject
+  private ExecutionCommandWrapperFactory ecwFactory;
+
   /**
    * Simple constructor, should be created using the Factory class.
    * @param hostName Host name
@@ -85,8 +88,9 @@ public class HostRoleCommand {
    */
   @AssistedInject
   public HostRoleCommand(String hostName, Role role,
-                         ServiceComponentHostEvent event, RoleCommand command, HostDAO hostDAO, ExecutionCommandDAO executionCommandDAO) {
-    this(hostName, role, event, command, false, false, hostDAO, executionCommandDAO);
+      ServiceComponentHostEvent event, RoleCommand command, HostDAO hostDAO,
+      ExecutionCommandDAO executionCommandDAO, ExecutionCommandWrapperFactory ecwFactory) {
+    this(hostName, role, event, command, false, false, hostDAO, executionCommandDAO, ecwFactory);
   }
 
   /**
@@ -101,9 +105,10 @@ public class HostRoleCommand {
   @AssistedInject
   public HostRoleCommand(String hostName, Role role, ServiceComponentHostEvent event,
       RoleCommand roleCommand, boolean retryAllowed, boolean autoSkipFailure, HostDAO hostDAO,
-      ExecutionCommandDAO executionCommandDAO) {
+      ExecutionCommandDAO executionCommandDAO, ExecutionCommandWrapperFactory ecwFactory) {
     this.hostDAO = hostDAO;
     this.executionCommandDAO = executionCommandDAO;
+    this.ecwFactory = ecwFactory;
 
     this.role = role;
     this.event = new ServiceComponentHostEventWrapper(event);
@@ -121,9 +126,10 @@ public class HostRoleCommand {
   @AssistedInject
   public HostRoleCommand(Host host, Role role, ServiceComponentHostEvent event,
       RoleCommand roleCommand, boolean retryAllowed, boolean autoSkipFailure, HostDAO hostDAO,
-      ExecutionCommandDAO executionCommandDAO) {
+      ExecutionCommandDAO executionCommandDAO, ExecutionCommandWrapperFactory ecwFactory) {
     this.hostDAO = hostDAO;
     this.executionCommandDAO = executionCommandDAO;
+    this.ecwFactory = ecwFactory;
 
     this.role = role;
     this.event = new ServiceComponentHostEventWrapper(event);
@@ -135,9 +141,11 @@ public class HostRoleCommand {
   }
 
   @AssistedInject
-  public HostRoleCommand(@Assisted HostRoleCommandEntity hostRoleCommandEntity, HostDAO hostDAO, ExecutionCommandDAO executionCommandDAO) {
+  public HostRoleCommand(@Assisted HostRoleCommandEntity hostRoleCommandEntity, HostDAO hostDAO,
+      ExecutionCommandDAO executionCommandDAO, ExecutionCommandWrapperFactory ecwFactory) {
     this.hostDAO = hostDAO;
     this.executionCommandDAO = executionCommandDAO;
+    this.ecwFactory = ecwFactory;
 
     taskId = hostRoleCommandEntity.getTaskId();
 
@@ -381,9 +389,8 @@ public class HostRoleCommand {
       if (commandEntity == null) {
         throw new RuntimeException("Invalid DB state, broken one-to-one relation for taskId=" + taskId);
       }
-      executionCommandWrapper = new ExecutionCommandWrapper(new String(
-          commandEntity.getCommand()
-      ));
+
+      executionCommandWrapper = ecwFactory.createFromJson(new String(commandEntity.getCommand()));
     }
 
     return executionCommandWrapper;

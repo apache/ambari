@@ -17,15 +17,26 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.easymock.EasyMock.*;
 
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
+import org.apache.ambari.server.actionmanager.ExecutionCommandWrapperFactory;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
@@ -35,7 +46,6 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
-
 import org.junit.Before;
 import org.junit.Test;
 
@@ -53,6 +63,9 @@ public class CalculatedStatusTest {
 
   @Inject
   HostRoleCommandFactory hostRoleCommandFactory;
+
+  @Inject
+  ExecutionCommandWrapperFactory ecwFactory;
 
   private static long taskId = 0L;
   private static long stageId = 0L;
@@ -691,7 +704,7 @@ public class CalculatedStatusTest {
     private final List<HostRoleCommand> hostRoleCommands = new LinkedList<HostRoleCommand>();
 
     private TestStage() {
-      super(1L, "", "", 1L, "", "", "", "", hostRoleCommandFactory);
+      super(1L, "", "", 1L, "", "", "", "", hostRoleCommandFactory, ecwFactory);
     }
 
     void setHostRoleCommands(Collection<HostRoleCommandEntity> tasks) {

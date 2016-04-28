@@ -53,7 +53,8 @@ public class HostRoleCommandFactoryImpl implements HostRoleCommandFactory {
                                 ServiceComponentHostEvent event, RoleCommand command) {
     return new HostRoleCommand(hostName, role, event, command,
         injector.getInstance(HostDAO.class),
-        injector.getInstance(ExecutionCommandDAO.class));
+        injector.getInstance(ExecutionCommandDAO.class),
+        injector.getInstance(ExecutionCommandWrapperFactory.class));
   }
 
   /**
@@ -63,7 +64,8 @@ public class HostRoleCommandFactoryImpl implements HostRoleCommandFactory {
   public HostRoleCommand create(String hostName, Role role, ServiceComponentHostEvent event,
       RoleCommand command, boolean retryAllowed, boolean autoSkipFailure) {
     return new HostRoleCommand(hostName, role, event, command, retryAllowed, autoSkipFailure,
-        injector.getInstance(HostDAO.class), injector.getInstance(ExecutionCommandDAO.class));
+        injector.getInstance(HostDAO.class), injector.getInstance(ExecutionCommandDAO.class),
+        injector.getInstance(ExecutionCommandWrapperFactory.class));
   }
 
   /**
@@ -73,7 +75,8 @@ public class HostRoleCommandFactoryImpl implements HostRoleCommandFactory {
   public HostRoleCommand create(Host host, Role role, ServiceComponentHostEvent event,
       RoleCommand command, boolean retryAllowed, boolean autoSkipFailure) {
     return new HostRoleCommand(host, role, event, command, retryAllowed, autoSkipFailure,
-        injector.getInstance(HostDAO.class), injector.getInstance(ExecutionCommandDAO.class));
+        injector.getInstance(HostDAO.class), injector.getInstance(ExecutionCommandDAO.class),
+        injector.getInstance(ExecutionCommandWrapperFactory.class));
   }
 
   /**
@@ -85,6 +88,7 @@ public class HostRoleCommandFactoryImpl implements HostRoleCommandFactory {
   public HostRoleCommand createExisting(HostRoleCommandEntity hostRoleCommandEntity) {
     return new HostRoleCommand(hostRoleCommandEntity,
         injector.getInstance(HostDAO.class),
-        injector.getInstance(ExecutionCommandDAO.class));
+        injector.getInstance(ExecutionCommandDAO.class),
+        injector.getInstance(ExecutionCommandWrapperFactory.class));
   }
 }

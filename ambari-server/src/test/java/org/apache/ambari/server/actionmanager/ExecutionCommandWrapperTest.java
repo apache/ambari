@@ -27,8 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import junit.framework.Assert;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
@@ -50,6 +48,8 @@ import org.junit.Test;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+
+import junit.framework.Assert;
 
 public class ExecutionCommandWrapperTest {
 
@@ -210,6 +210,8 @@ public class ExecutionCommandWrapperTest {
     String json = StageUtils.getGson().toJson(executionCommand, ExecutionCommand.class);
 
     ExecutionCommandWrapper execCommWrap = new ExecutionCommandWrapper(json);
+    injector.injectMembers(execCommWrap);
+
     ExecutionCommand processedExecutionCommand = execCommWrap.getExecutionCommand();
 
     Map<String, String> serviceSiteConfig = processedExecutionCommand.getConfigurations().get(SERVICE_SITE_CONFIG);

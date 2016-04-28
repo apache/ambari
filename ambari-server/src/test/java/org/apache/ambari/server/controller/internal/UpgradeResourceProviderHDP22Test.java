@@ -33,6 +33,7 @@ import java.util.Set;
 
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
+import org.apache.ambari.server.actionmanager.ExecutionCommandWrapperFactory;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -367,7 +368,8 @@ public class UpgradeResourceProviderHDP22Test {
         assertEquals(1, tags.size());
         assertEquals("*", tags.get(0));
 
-        ExecutionCommandWrapper executionCommandWrapper = new ExecutionCommandWrapper(executionCommandJson);
+        ExecutionCommandWrapperFactory ecwFactory = injector.getInstance(ExecutionCommandWrapperFactory.class);
+        ExecutionCommandWrapper executionCommandWrapper = ecwFactory.createFromJson(executionCommandJson); 
         ExecutionCommand executionCommand = executionCommandWrapper.getExecutionCommand();
         Map<String, Map<String, String>> configurationTags = executionCommand.getConfigurationTags();
         assertEquals(configTagVersion2, configurationTags.get("hive-site").get("tag"));

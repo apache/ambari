@@ -17,6 +17,51 @@
  */
 package org.apache.ambari.server.serveraction.upgrades;
 
+import static org.easymock.EasyMock.anyLong;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
+import org.apache.ambari.server.Role;
+import org.apache.ambari.server.RoleCommand;
+import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
+import org.apache.ambari.server.actionmanager.ExecutionCommandWrapperFactory;
+import org.apache.ambari.server.actionmanager.HostRoleCommand;
+import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import org.apache.ambari.server.actionmanager.ServiceComponentHostEventWrapper;
+import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.metadata.ActionMetadata;
+import org.apache.ambari.server.orm.GuiceJpaInitializer;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.dao.ExecutionCommandDAO;
+import org.apache.ambari.server.orm.dao.HostDAO;
+import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.orm.dao.UpgradeDAO;
+import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
+import org.apache.ambari.server.orm.entities.UpgradeGroupEntity;
+import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
+import org.apache.ambari.server.serveraction.AbstractServerAction;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.ServiceComponentHostEvent;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpInProgressEvent;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
@@ -24,30 +69,6 @@ import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
 import com.google.inject.persist.UnitOfWork;
 import com.google.inject.util.Modules;
-import org.apache.ambari.server.*;
-import org.apache.ambari.server.actionmanager.*;
-import org.apache.ambari.server.agent.CommandReport;
-import org.apache.ambari.server.agent.ExecutionCommand;
-import org.apache.ambari.server.metadata.ActionMetadata;
-import org.apache.ambari.server.orm.GuiceJpaInitializer;
-import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.orm.dao.*;
-import org.apache.ambari.server.orm.entities.*;
-import org.apache.ambari.server.serveraction.AbstractServerAction;
-import org.apache.ambari.server.state.*;
-import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpInProgressEvent;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
-import static org.easymock.EasyMock.*;
-
-import java.lang.reflect.Field;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
-import static org.junit.Assert.*;
 
 public class AutoSkipFailedSummaryActionTest {
 
@@ -60,6 +81,9 @@ public class AutoSkipFailedSummaryActionTest {
 
   @Inject
   private HostDAO hostDAO;
+
+  @Inject
+  private ExecutionCommandWrapperFactory ecwFactory;
 
   // Mocked out values
   private UpgradeDAO upgradeDAOMock;
@@ -112,7 +136,7 @@ public class AutoSkipFailedSummaryActionTest {
 
     // Set mock for parent's getHostRoleCommand()
     HostRoleCommand hostRoleCommand = new HostRoleCommand("host1", Role.AMBARI_SERVER_ACTION,
-      event, RoleCommand.EXECUTE, hostDAO, executionCommandDAO);
+        event, RoleCommand.EXECUTE, hostDAO, executionCommandDAO, ecwFactory);
     hostRoleCommand.setRequestId(1l);
     hostRoleCommand.setStageId(1l);
 
@@ -181,7 +205,7 @@ public class AutoSkipFailedSummaryActionTest {
 
     // Set mock for parent's getHostRoleCommand()
     final HostRoleCommand hostRoleCommand = new HostRoleCommand("host1", Role.AMBARI_SERVER_ACTION,
-      event, RoleCommand.EXECUTE, hostDAO, executionCommandDAO);
+        event, RoleCommand.EXECUTE, hostDAO, executionCommandDAO, ecwFactory);
     hostRoleCommand.setRequestId(1l);
     hostRoleCommand.setStageId(1l);
 
@@ -268,7 +292,7 @@ public class AutoSkipFailedSummaryActionTest {
 
     // Set mock for parent's getHostRoleCommand()
     final HostRoleCommand hostRoleCommand = new HostRoleCommand("host1", Role.AMBARI_SERVER_ACTION,
-      event, RoleCommand.EXECUTE, hostDAO, executionCommandDAO);
+        event, RoleCommand.EXECUTE, hostDAO, executionCommandDAO, ecwFactory);
     hostRoleCommand.setRequestId(1l);
     hostRoleCommand.setStageId(1l);
 
@@ -341,7 +365,7 @@ public class AutoSkipFailedSummaryActionTest {
 
     // Set mock for parent's getHostRoleCommand()
     final HostRoleCommand hostRoleCommand = new HostRoleCommand("host1", Role.AMBARI_SERVER_ACTION,
-      event, RoleCommand.EXECUTE, hostDAO, executionCommandDAO);
+        event, RoleCommand.EXECUTE, hostDAO, executionCommandDAO, ecwFactory);
     hostRoleCommand.setRequestId(1l);
     hostRoleCommand.setStageId(1l);
 

@@ -18,20 +18,14 @@
 
 package org.apache.ambari.server.actionmanager;
 
+import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.orm.entities.StageEntity;
+import org.apache.ambari.server.state.Clusters;
+
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import com.google.inject.assistedinject.Assisted;
-import org.apache.ambari.server.Role;
-import org.apache.ambari.server.RoleCommand;
-import org.apache.ambari.server.orm.DBAccessor;
-import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
-import org.apache.ambari.server.orm.entities.HostEntity;
-import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
-import org.apache.ambari.server.orm.entities.StageEntity;
-import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.ServiceComponentHostEvent;
-import org.apache.ambari.server.state.cluster.ClusterImpl;
 
 @Singleton
 public class StageFactoryImpl implements StageFactory {
@@ -64,7 +58,8 @@ public class StageFactoryImpl implements StageFactory {
                          @Assisted("commandParamsStage") String commandParamsStage,
                          @Assisted("hostParamsStage") String hostParamsStage) {
     return new Stage(requestId, logDir, clusterName, clusterId, requestContext, clusterHostInfo, commandParamsStage, hostParamsStage,
-        injector.getInstance(HostRoleCommandFactory.class));
+        injector.getInstance(HostRoleCommandFactory.class),
+        injector.getInstance(ExecutionCommandWrapperFactory.class));
   }
 
   /**
@@ -76,6 +71,7 @@ public class StageFactoryImpl implements StageFactory {
   public Stage createExisting(@Assisted StageEntity stageEntity) {
     return new Stage(stageEntity, injector.getInstance(HostRoleCommandDAO.class),
         injector.getInstance(ActionDBAccessor.class), injector.getInstance(Clusters.class),
-        injector.getInstance(HostRoleCommandFactory.class));
+        injector.getInstance(HostRoleCommandFactory.class),
+        injector.getInstance(ExecutionCommandWrapperFactory.class));
   }
 }

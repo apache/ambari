@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.Role;
+import org.apache.ambari.server.actionmanager.ExecutionCommandWrapperFactory;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.RequestStatusResponse;
@@ -168,6 +169,7 @@ public class TaskResourceProviderTest {
     TopologyManager topologyManager = createMock(TopologyManager.class);
     HostDAO hostDAO = createMock(HostDAO.class);
     ExecutionCommandDAO executionCommandDAO = createMock(ExecutionCommandDAO.class);
+    ExecutionCommandWrapperFactory ecwFactory = createMock(ExecutionCommandWrapperFactory.class);
 
     Injector m_injector = Guice.createInjector(new InMemoryDefaultTestModule());
     TaskResourceProvider provider = (TaskResourceProvider) AbstractControllerResourceProvider.getResourceProvider(
@@ -187,7 +189,7 @@ public class TaskResourceProviderTest {
     hostRoleCommandEntity.setRole(Role.DATANODE);
     hostRoleCommandEntity.setCustomCommandName("customCommandName");
     hostRoleCommandEntity.setCommandDetail("commandDetail");
-    commands.add(new HostRoleCommand(hostRoleCommandEntity, hostDAO, executionCommandDAO));
+    commands.add(new HostRoleCommand(hostRoleCommandEntity, hostDAO, executionCommandDAO, ecwFactory));
 
     // set expectations
     expect(hostRoleCommandDAO.findAll(EasyMock.anyObject(Request.class),

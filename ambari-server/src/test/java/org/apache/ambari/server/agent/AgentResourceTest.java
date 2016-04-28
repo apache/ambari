@@ -24,11 +24,10 @@ import static org.mockito.Mockito.when;
 
 import javax.ws.rs.core.MediaType;
 
-import junit.framework.Assert;
-
 import org.apache.ambari.server.RandomPortJerseyTest;
 import org.apache.ambari.server.actionmanager.ActionDBAccessor;
 import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.actionmanager.ExecutionCommandWrapperFactory;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactoryImpl;
 import org.apache.ambari.server.actionmanager.StageFactory;
@@ -90,6 +89,8 @@ import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.json.JSONConfiguration;
 import com.sun.jersey.spi.container.servlet.ServletContainer;
 import com.sun.jersey.test.framework.WebAppDescriptor;
+
+import junit.framework.Assert;
 
 
 public class AgentResourceTest extends RandomPortJerseyTest {
@@ -333,6 +334,7 @@ public class AgentResourceTest extends RandomPortJerseyTest {
       install(new FactoryModuleBuilder().implement(RequestExecution.class,
         RequestExecutionImpl.class).build(RequestExecutionFactory.class));
       install(new FactoryModuleBuilder().build(StageFactory.class));
+      install(new FactoryModuleBuilder().build(ExecutionCommandWrapperFactory.class));
 
       bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
       bind(SecurityHelper.class).toInstance(SecurityHelperImpl.getInstance());
