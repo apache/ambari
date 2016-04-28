@@ -149,6 +149,24 @@ App.ListConfigWidgetView = App.ConfigWidgetView.extend({
   },
 
   /**
+   * Update options list by recommendations
+   * @method updateList
+   */
+  updateList: function() {
+    this.removeObserver('options.@each.isSelected', this, this.calculateVal);
+    this.removeObserver('options.@each.isSelected', this, this.checkSelectedItemsCount);
+    /**
+     * This method should update options only. Observes should be removed
+     * until new options will be applies, to avoid changing of config value.
+     */
+    this.calculateOptions();
+
+    this.addObserver('options.@each.isSelected', this, this.calculateVal);
+    this.addObserver('options.@each.isSelected', this, this.checkSelectedItemsCount);
+    this.set('config.showAsTextBox', !this.isValueCompatibleWithWidget());
+  }.observes('config.stackConfigProperty.valueAttributes.entries.[]', 'controller.forceUpdateBoundaries'),
+
+  /**
    * Get initial value for <code>val</code> using calculated earlier <code>options</code>
    * Used on <code>willInsertElement</code> and when user click on "Undo"-button (to restore default value)
    * @method calculateInitVal
@@ -272,9 +290,7 @@ App.ListConfigWidgetView = App.ConfigWidgetView.extend({
     } else {
       this.calculateInitVal();
     }
-    if (!this.isValueCompatibleWithWidget() && !this.get('config.showAsTextBox')) {
-      this.set('config.showAsTextBox', true);
-    }
+    this.set('config.showAsTextBox', !this.isValueCompatibleWithWidget());
   },
 
   isValueCompatibleWithWidget: function() {
