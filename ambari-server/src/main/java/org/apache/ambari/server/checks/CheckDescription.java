@@ -54,6 +54,13 @@ public enum CheckDescription {
             "The following issues have been detected on this cluster and should be addressed before upgrading: %s");
       }}),
 
+  SERVICE_CHECK(PrereqCheckType.SERVICE,
+      "Last Service Check should be more recent than the last configuration change for the given service",
+      new HashMap<String, String>() {{
+        put(AbstractCheckDescriptor.DEFAULT,
+            "The following service configurations have been updated and their Service Checks should be run again: %s");
+      }}),
+
   HOSTS_MAINTENANCE_MODE(PrereqCheckType.HOST,
       "Hosts in Maintenance Mode will be excluded from the upgrade.",
       new HashMap<String, String>() {{

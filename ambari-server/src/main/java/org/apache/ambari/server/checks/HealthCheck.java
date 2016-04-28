@@ -83,7 +83,11 @@ public class HealthCheck extends AbstractCheckDescriptor {
         String label = alertHistory.getAlertDefinition().getLabel();
         String hostName = alertHistory.getHostName();
 
-        errorMessages.add(state + ": " + label + ": " + hostName);
+        if (hostName == null) {
+          errorMessages.add(state + ": " + label);
+        } else {
+          errorMessages.add(state + ": " + label + ": " + hostName);
+        }
         prerequisiteCheck.getFailedDetail().add(new AlertDetail(state, label, hostName));
       }
     }
