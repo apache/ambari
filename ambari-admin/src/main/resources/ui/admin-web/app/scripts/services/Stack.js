@@ -80,6 +80,44 @@ angular.module('ambariAdminConsole')
       return deferred.promise;
     },
 
+    allPublicStackVersions: function() {
+      var url = '/version_definitions?fields=operating_systems/repositories/Repositories/*,VersionDefinition/stack_services,VersionDefinition/repository_version' +
+        '&VersionDefinition/show_available=true&VersionDefinition/stack_name=HDP';
+      var deferred = $q.defer();
+      $http.get(Settings.baseUrl + url, {mock: 'version/versions.json'})
+        .success(function (data) {
+          var versions = [];
+          angular.forEach(data.items, function(version) {
+            var versionObj = {
+              id: version.VersionDefinition.id,
+              stackName: version.VersionDefinition.stack_name,
+              stackVersion: version.VersionDefinition.stack_version,
+              stackNameVersion:  version.VersionDefinition.stack_name + '-' + version.VersionDefinition.stack_version,
+              displayName: version.VersionDefinition.stack_name + '-' + version.VersionDefinition.repository_version.split('-')[0], //HDP-2.3.4.0
+              displayNameFull: version.VersionDefinition.stack_name + '-' + version.VersionDefinition.repository_version, //HDP-2.3.4.0-23
+              repositoryVersion: version.VersionDefinition.repository_version,
+              showAvailable: version.VersionDefinition.show_available,
+              osList: version.operating_systems,
+              updateObj: version
+            };
+            var services = [];
+            angular.forEach(version.VersionDefinition.stack_services, function (service) {
+              services.push({
+                name: service.name,
+                version: service.versions[0]
+              });
+            });
+            versionObj.services = services;
+            versions.push(versionObj);
+          });
+          deferred.resolve(versions)
+        })
+        .error(function (data) {
+          deferred.reject(data);
+        });
+      return deferred.promise;
+    },
+
     allRepos: function (filter, pagination) {
       var versionFilter = filter.version;
       var url = '/stacks?fields=versions/repository_versions/RepositoryVersions';
@@ -183,11 +221,10 @@ angular.module('ambariAdminConsole')
           updateObj: data.repository_versions[0]
         };
         var services = [];
-        angular.forEach(data.repository_versions[0].RepositoryVersions.services, function (service) {
+        angular.forEach(data.repository_versions[0].RepositoryVersions.stack_services, function (service) {
           services.push({
             name: service.name,
-            version: service.versions[0].version,
-            components: service.versions[0].components
+            version: service.versions[0]
           });
         });
         response.services = services;

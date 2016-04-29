@@ -25,6 +25,7 @@ App.RepositoryVersion = DS.Model.extend({
   upgradePack: DS.attr('string'),
   stackVersionType: DS.attr('string'),
   stackVersionNumber: DS.attr('string'),
+  useRedhatSatellite: DS.attr('boolean'),
   operatingSystems: DS.hasMany('App.OS'),
   services: DS.hasMany('App.ServiceSimple'),
   stackVersion: DS.belongsTo('App.StackVersion'),

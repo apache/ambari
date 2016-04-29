@@ -231,7 +231,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    */
   realStackUrl: function () {
     return App.get('apiPrefix') + '/clusters/' + App.get('clusterName') +
-      '/stack_versions?fields=*,repository_versions/*,repository_versions/operating_systems/repositories/*';
+      '/stack_versions?fields=*,repository_versions/*,repository_versions/operating_systems/OperatingSystems/*,repository_versions/operating_systems/repositories/*';
   }.property('App.clusterName'),
 
   /**
@@ -1325,11 +1325,12 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    */
   prepareRepoForSaving: function(repo) {
     var repoVersion = { "operating_systems": [] };
-
+    var ambari_managed_repositories = !repo.get('useRedhatSatellite');
     repo.get('operatingSystems').forEach(function (os, k) {
       repoVersion.operating_systems.push({
         "OperatingSystems": {
-          "os_type": os.get("osType")
+          "os_type": os.get("osType"),
+          "ambari_managed_repositories": ambari_managed_repositories
         },
         "repositories": []
       });
@@ -1794,5 +1795,36 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     newWindow = window.open();
     newWindow.document.write(output);
     newWindow.focus();
-  }
+  },
+
+  /**
+   * load version for services to display on Choose Servoces page
+   * should load from VersionDefinition endpoint
+   */
+  loadServiceVersionFromVersionDefinitions: function () {
+    return App.ajax.send({
+      name: 'cluster.load_current_repo_stack_services',
+      sender: this,
+      data: {
+        clusterName: App.clusterName
+      },
+      success: 'loadServiceVersionFromVersionDefinitionsSuccessCallback',
+      error: 'loadServiceVersionFromVersionDefinitionsErrorCallback'
+    });
+  },
+
+  serviceVersionsMap: {},
+  loadServiceVersionFromVersionDefinitionsSuccessCallback: function (jsonData) {
+    var rv = jsonData.items[0].repository_versions[0].RepositoryVersions;
+    var map = this.get('serviceVersionsMap');
+    if (rv) {
+      rv.stack_services.forEach(function (item) {
+        map[item.name] = item.versions[0];
+      });
+    }
+  },
+
+  loadServiceVersionFromVersionDefinitionsErrorCallback: function (request, ajaxOptions, error) {
+  },
+
 });

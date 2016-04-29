@@ -1451,43 +1451,73 @@ thead.view-permission-header > tr > th {
   color: white;
 }
 #upload-definition-file-panel {
-  background-color: #f9f9f9;
-  padding: 20px 10px 5px 10px;
+  padding: 5px 10px 5px 10px;
   margin-bottom: 15px;
 }
-#upload-definition-file-panel .introduction-info {
-  padding: 10px 10px 15px 15px;
-  font-size: 15px;
-  line-height: 1.7;
+
+#upload-definition-file-panel .option-radio {
+  padding: 15px 5px;
+  font-weight: bold;;
+}
+#upload-definition-file-panel .stack-version-selection {
+   padding-left: 25px;
+ }
+#upload-definition-file-panel .stack-version-selection .select-version-label {
+  padding-top: 4px;
+}
+#upload-definition-file-panel .stack-version-selection .select-version-label.disabled {
+  color: #999999;
+}
+#upload-definition-file-panel .dropdown-menu li a {
+  cursor: pointer;
+}
+.register-version-options {
+  padding-left: 25px;
 }
 .register-version-options .read-info-button {
   margin-top: 10px;
 }
-
 .register-version-options .option-radio-button {
   padding-top: 5px;
 }
-
+.register-version-options .option-radio-button label {
+  font-weight: normal;
+}
 .register-version-options .choose-file-input {
   padding-top: 6px;
   padding-bottom: 20px;
 }
-
 .register-version-form .details-panel .patch-icon {
   color: #ff4500;
 }
 .register-version-form .deregister-button {
-    margin-top: -23px;
+  margin-top: -23px;
 }
 .register-version-form .version-info {
-    padding-top: 7px;
-    margin-top: 0;
-    margin-bottom: 0;
+  padding-top: 7px;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+.register-version-form .details-panel .version-info-section {
+  margin-top: 10px;
+}
+.register-version-form .details-panel .version-contents-section {
+  max-height: 200px;
+  overflow: auto;
+  border: 1px solid #ddd;
+  padding: 8px 25px;
+  margin: 8px;
 }
 
-.register-version-form .contents-panel .version-contents-body {
-    max-height: 150px;
-    overflow: auto;
+.register-version-form .details-panel .control-label {
+  text-align: left;
+  padding: 7px 2px;
+  font-weight: normal;
+}
+
+.register-version-form .details-panel .version-info {
+  font-weight: bold;
+  padding: 7px 2px;
 }
 
 .register-version-form .repos-panel .remove-icon {
@@ -1503,6 +1533,12 @@ thead.view-permission-header > tr > th {
 
 .register-version-form .repos-panel .os-type-label {
   margin-top: 27px;;
+}
+.register-version-form .dropdown-menu li a {
+  cursor: pointer;
+}
+.register-version-form .repos-panel .checkbox {
+  margin: 0px 5px;
 }
 
 #stack-versions .no-version-alert {

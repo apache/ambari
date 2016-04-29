@@ -1076,33 +1076,48 @@ describe('App.WizardStep8Controller', function () {
     });
 
     describe('#createCluster', function() {
-
-      it('shouldn\'t add request to queue if not installerController used', function() {
-        installerStep8Controller.reopen({content: {controllerName: 'addServiceController'}});
-        installerStep8Controller.createCluster();
-        expect(installerStep8Controller.addRequestToAjaxQueue.called).to.equal(false);
+      before(function () {
+        sinon.stub(App.Stack, 'find').returns([
+          Em.Object.create({
+            id: "HDP-2.3-2.3.4.0-1234",
+            isSelected: false,
+            repositoryVersion: "2.3.4.0-1234"
+          }),
+          Em.Object.create({
+            id: "HDP-2.3-2.3.4.1-1234",
+            isSelected: false,
+            repositoryVersion: "2.3.4.1-1234"
+          }),
+          Em.Object.create({
+            id: "HDP-2.3-2.3.4.4-1234",
+            isSelected: true,
+            repositoryVersion: "2.3.4.4-1234"
+          })
+        ]);
+      });
+      after(function () {
+        App.Stack.find.restore();
       });
 
       it('App.currentStackVersion should be changed if localRepo selected', function() {
-        App.set('currentStackVersion', 'HDP-1.1.1');
+        App.set('currentStackVersion', 'HDP-2.3');
         installerStep8Controller.reopen({content: {controllerName: 'installerController', installOptions: {localRepo: true}}});
         var data = {
-          data: JSON.stringify({ "Clusters": {"version": 'HDPLocal-1.1.1' }})
+          data: JSON.stringify({ "Clusters": {"version": 'HDPLocal-2.3', "repository_version": "2.3.4.4-1234"}})
         };
         installerStep8Controller.createCluster();
         expect(installerStep8Controller.addRequestToAjaxQueue.args[0][0].data.data).to.equal(data.data);
       });
 
       it('App.currentStackVersion shouldn\'t be changed if localRepo ins\'t selected', function() {
-        App.set('currentStackVersion', 'HDP-1.1.1');
+        App.set('currentStackVersion', 'HDP-2.3');
         installerStep8Controller.reopen({content: {controllerName: 'installerController', installOptions: {localRepo: false}}});
         var data = {
-          data: JSON.stringify({ "Clusters": {"version": 'HDP-1.1.1' }})
+          data: JSON.stringify({ "Clusters": {"version": 'HDP-2.3', "repository_version": "2.3.4.4-1234"}})
         };
         installerStep8Controller.createCluster();
         expect(installerStep8Controller.addRequestToAjaxQueue.args[0][0].data.data).to.eql(data.data);
       });
-
     });
 
     describe('#createSelectedServices', function() {
@@ -1779,7 +1794,7 @@ describe('App.WizardStep8Controller', function () {
 
   });
 
-  describe('#startDeploy', function () {
+  describe('#_startDeploy', function () {
 
     var stubbedNames = ['createCluster', 'createSelectedServices', 'createConfigurations',
         'applyConfigurationsToCluster', 'createComponents', 'registerHostsToCluster', 'createConfigurationGroups',
@@ -1813,6 +1828,13 @@ describe('App.WizardStep8Controller', function () {
 
     beforeEach(function () {
       sinon.stub(App, 'get').withArgs('isKerberosEnabled').returns(false);
+      sinon.stub(App.Stack, 'find').returns([
+        Em.Object.create({
+          id: "HDP-2.3-2.3.4.4-1234",
+          isSelected: true,
+          repositoryVersion: "2.3.4.4-1234"
+        })
+      ]);
       stubbedNames.forEach(function (name) {
         sinon.stub(installerStep8Controller, name, Em.K);
       });
@@ -1826,6 +1848,7 @@ describe('App.WizardStep8Controller', function () {
 
     afterEach(function () {
       App.get.restore();
+      App.Stack.find.restore();
       stubbedNames.forEach(function (name) {
         installerStep8Controller[name].restore();
       });
@@ -1847,7 +1870,7 @@ describe('App.WizardStep8Controller', function () {
               }
             })
             .withArgs('content.controllerName').returns(item.controllerName);
-          installerStep8Controller.startDeploy();
+          installerStep8Controller._startDeploy();
         });
 
         stubbedNames.forEach(function (name) {

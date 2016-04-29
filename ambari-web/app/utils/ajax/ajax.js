@@ -1371,6 +1371,10 @@ var urls = {
     'real': '/clusters/{clusterName}/stack_versions?ClusterStackVersions/state=CURRENT&fields=repository_versions/RepositoryVersions/repository_version&minimal_response=true',
     'mock': '/data/stack_versions/stack_version_all.json'
   },
+  'cluster.load_current_repo_stack_services': {
+    'real': '/clusters/{clusterName}/stack_versions?ClusterStackVersions/state=CURRENT&fields=repository_versions/RepositoryVersions/stack_services',
+    'mock': '/data/stack_versions/stack_version_all.json'
+  },
   'cluster.save_provisioning_state': {
     'real': '/clusters/{clusterName}',
     'type': 'PUT',
@@ -1863,6 +1867,66 @@ var urls = {
     }
   },
 
+  'wizard.step1.post_version_definition_file.xml': {
+    'real': '/version_definitions?dry_run=true',
+    'mock': '',
+    'format': function (data) {
+      return {
+        headers: {
+          'X-Requested-By': 'ambari',
+          'Content-Type': 'text/xml'
+        },
+        type: 'POST',
+        data: data.data
+      }
+    }
+  },
+  'wizard.step1.post_version_definition_file.url': {
+    'real': '/version_definitions?dry_run=true',
+    'mock': '',
+    'format': function (data) {
+      return {
+        type: 'POST',
+        data: JSON.stringify(data.data)
+      }
+    }
+  },
+  'wizard.step8.post_version_definition_file.xml': {
+    'real': '/version_definitions',
+    'mock': '',
+    'format': function (data) {
+      return {
+        headers: {
+          'X-Requested-By': 'ambari',
+          'Content-Type': 'text/xml'
+        },
+        type: 'POST',
+        data: data.data
+      }
+    }
+  },
+  'wizard.step8.post_version_definition_file': {
+    'real': '/version_definitions',
+    'mock': '',
+    'format': function (data) {
+      return {
+        type: 'POST',
+        data: JSON.stringify(data.data)
+      }
+    }
+  },
+  'wizard.step1.get_repo_version_by_id': {
+    'real': '/stacks/{stackName}/versions?fields=repository_versions/operating_systems/repositories/*' +
+    ',repository_versions/RepositoryVersions/*' +
+    '&repository_versions/RepositoryVersions/id={repoId}&Versions/stack_version={stackVersion}',
+    'mock': ''
+  },
+
+  'wizard.step1.get_supported_os_types': {
+    'real': '/stacks/{stackName}/versions/{stackVersion}?fields=operating_systems/repositories/Repositories',
+    'mock': ''
+  },
+
   'wizard.advanced_repositories.valid_url': {
     'real': '/stacks/{stackName}/versions/{stackVersion}/operating_systems/{osType}/repositories/{repoId}',
     'mock': '',
@@ -1872,6 +1936,12 @@ var urls = {
         data: JSON.stringify(data.data)
       }
     }
+  },
+  'wizard.get_shown_version_definition': {
+    real: '/version_definitions?fields=VersionDefinition/stack_services&VersionDefinition/repository_version={repositoryVersion}&VersionDefinition/show_available=true'
+  },
+  'wizard.get_version_definition': {
+    real: '/version_definitions?fields=VersionDefinition/stack_services&VersionDefinition/repository_version={repositoryVersion}'
   },
   'wizard.service_components': {
     'real': '{stackUrl}/services?fields=StackServices/*,components/*,components/dependencies/Dependencies/scope,artifacts/Artifacts/artifact_name',
@@ -2113,6 +2183,12 @@ var urls = {
   'wizard.stacks_versions': {
     'real': '/stacks/{stackName}/versions?fields=Versions,operating_systems/repositories/Repositories',
     'mock': '/data/wizard/stack/{stackName}_versions.json'
+  },
+
+  'wizard.stacks_versions_definitions': {
+    'real': '/version_definitions?fields=operating_systems/repositories/Repositories/*,VersionDefinition/stack_services,VersionDefinition/repository_version' +
+      '&VersionDefinition/show_available=true&VersionDefinition/stack_name={stackName}',
+    'mock': '/data/wizard/stack/{stackName}_version_definitions.json'
   },
   'wizard.launch_bootstrap': {
     'real': '/bootstrap',

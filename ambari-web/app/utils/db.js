@@ -249,6 +249,14 @@ App.db.setStacks = function (stacks) {
   App.db.set('Installer', 'stacksVersions', stacks);
 };
 
+App.db.setRepos = function (repos) {
+  App.db.set('Installer', 'repositories', repos);
+};
+
+App.db.setLocalRepoVDFData = function (data) {
+  App.db.set('Installer', 'localRepoVDFData', data);
+};
+
 App.db.setConfigs = function (configs) {
   App.db.set('app', 'configs', configs);
 };
@@ -432,6 +440,14 @@ App.db.getDisableSecurityStatus = function () {
 
 App.db.getStacks = function () {
   return App.db.get('Installer', 'stacksVersions');
+};
+
+App.db.getRepos = function () {
+  return App.db.get('Installer', 'repositories');
+};
+
+App.db.getLocalRepoVDFData = function () {
+  return App.db.get('Installer', 'localRepoVDFData');
 };
 
 App.db.getHighAvailabilityWizardHdfsUser = function () {

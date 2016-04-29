@@ -304,6 +304,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
       displayName: repoRecord.get('displayName'),
       repositoryVersion: repoRecord.get('displayName'),
       stackVersion: self.getStackVersionNumber(repoRecord),
+      useRedhatSatellite: repoRecord.get('useRedhatSatellite'),
       operatingSystems: repoRecord.get('operatingSystems').map(function (os) {
         return Em.Object.create({
           osType: os.get('osType'),
@@ -323,7 +324,6 @@ App.UpgradeVersionBoxView = Em.View.extend({
     return this.get('isRepoUrlsEditDisabled') ? null : App.ModalPopup.show({
       classNames: ['repository-list', 'sixty-percent-width-modal'],
       skipValidation: false,
-      useRedhatSatellite: false,
       autoHeight: false,
       /**
        * @type {boolean}

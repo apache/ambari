@@ -36,14 +36,22 @@ angular.module('ambariAdminConsole')
     display_name: ''
   };
 
-  $scope.option1 = {
+  $scope.publicOption = {
     index: 1,
+    hasError: false
+  };
+  $scope.localOption = {
+    index: 2,
+    hasError: false
+  };
+  $scope.option1 = {
+    index: 3,
     displayName: $t('versions.uploadFile'),
     file: '',
     hasError: false
   };
   $scope.option2 = {
-    index: 2,
+    index: 4,
     displayName: $t('versions.enterURL'),
     url: $t('versions.defaultURL'),
     hasError: false
@@ -51,20 +59,42 @@ angular.module('ambariAdminConsole')
   $scope.selectedOption = {
     index: 1
   };
+  $scope.selectedLocalOption = {
+    index: 3
+  };
 
   /**
    * User can select ONLY one option to upload version definition file
    */
+  $scope.togglePublicLocalOptionSelect = function () {
+    $scope.option1.hasError = false;
+    $scope.option2.hasError = false;
+  };
   $scope.toggleOptionSelect = function () {
     $scope.option1.hasError = false;
     $scope.option2.hasError = false;
+  };
+  $scope.togglePublicLocalOptionSelect = function () {
+    if ($scope.selectedOption.index == $scope.publicOption.index && $scope.selectedPublicRepoVersion) {
+      $scope.setVersionSelected($scope.selectedPublicRepoVersion);
+    }
   };
   $scope.clearOptionsError = function () {
     $scope.option1.hasError = false;
     $scope.option2.hasError = false;
   };
   $scope.readInfoButtonDisabled = function () {
-    return $scope.option1.index == $scope.selectedOption.index ? !$scope.option1.file : !$scope.option2.url;
+    if ($scope.selectedOption.index == $scope.publicOption.index) return true;
+    return $scope.option1.index == $scope.selectedLocalOption.index ? !$scope.option1.file : !$scope.option2.url;
+  };
+  $scope.isAddOsButtonDisabled = function () {
+    var selectedCnt = 0;
+    angular.forEach($scope.osList, function (os) {
+      if (os.selected) {
+        selectedCnt ++;
+      }
+    });
+    return $scope.osList.length == selectedCnt;
   };
 
   $scope.allInfoCategoriesBlank = function () {
@@ -92,14 +122,14 @@ angular.module('ambariAdminConsole')
   $scope.readVersionInfo = function(){
     var data = {};
     var isXMLdata = false;
-    if ($scope.option2.index == $scope.selectedOption.index) {
+    if ($scope.option2.index == $scope.selectedLocalOption.index) {
       var url = $scope.option2.url;
       data = {
         "VersionDefinition": {
           "version_url": url
         }
       };
-    } else if ($scope.option1.index == $scope.selectedOption.index) {
+    } else if ($scope.option1.index == $scope.selectedLocalOption.index) {
       isXMLdata = true;
       // load from file browser
       data = $scope.option1.file;
@@ -109,34 +139,7 @@ angular.module('ambariAdminConsole')
       if (versionInfo.id && versionInfo.stackName && versionInfo.stackVersion) {
         Stack.getRepo(versionInfo.id, versionInfo.stackName, versionInfo.stackVersion)
           .then(function (response) {
-            $scope.id = response.id;
-            $scope.isPatch = response.type == 'PATCH';
-            $scope.stackNameVersion = response.stackNameVersion || $t('common.NA');
-            $scope.displayName = response.displayName || $t('common.NA');
-            $scope.version = response.version || $t('common.NA');
-            $scope.actualVersion = response.actualVersion || $t('common.NA');
-            $scope.updateObj = response.updateObj;
-            $scope.upgradeStack = {
-              stack_name: response.stackName,
-              stack_version: response.stackVersion,
-              display_name: response.displayName
-            };
-            $scope.services = response.services || [];
-            //save default values of repos to check if they were changed
-            $scope.defaulfOSRepos = {};
-            response.updateObj.operating_systems.forEach(function(os) {
-              $scope.defaulfOSRepos[os.OperatingSystems.os_type] = {
-                defaultBaseUrl: os.repositories[0].Repositories.base_url,
-                defaultUtilsUrl: os.repositories[1].Repositories.base_url
-              };
-            });
-            $scope.repoVersionFullName = response.repoVersionFullName;
-            angular.forEach(response.osList, function (os) {
-              os.selected = true;
-            });
-            $scope.osList = response.osList;
-            // load supported os type base on stack version
-            $scope.afterStackVersionRead();
+            $scope.setVersionSelected(response);
         });
       }
     })
@@ -233,7 +236,41 @@ angular.module('ambariAdminConsole')
         updateRepoUrl = true;
       }
     });
-    $scope.updateRepoVersions();
+    if ($scope.isPublicVersion) {
+      return Stack.validateBaseUrls($scope.skipValidation, $scope.osList, $scope.upgradeStack).then(function (invalidUrls) {
+        if (invalidUrls.length === 0) {
+          var data = {
+            "VersionDefinition": {
+              "available": $scope.id
+            }
+          };
+          var repoUpdate = {
+            operating_systems: $scope.updateObj.operating_systems
+          };
+          Stack.postVersionDefinitionFile(false, data).then(function (versionInfo) {
+            if (versionInfo.id && versionInfo.stackName && versionInfo.stackVersion) {
+              Stack.updateRepo(versionInfo.stackName, versionInfo.stackVersion, versionInfo.id, repoUpdate).then(function () {
+                Alert.success($t('versions.alerts.versionEdited', {
+                  stackName: $scope.upgradeStack.stack_name,
+                  versionName: $scope.actualVersion,
+                  displayName: $scope.displayName
+                }));
+                $location.path('/stackVersions');
+              }).catch(function (data) {
+                Alert.error($t('versions.alerts.versionUpdateError'), data.message);
+              });
+            }
+          })
+          .catch(function (data) {
+            Alert.error($t('versions.alerts.readVersionInfoError'), data.message);
+          });
+        } else {
+          Stack.highlightInvalidUrls(invalidUrls);
+        }
+      });
+    } else {
+      $scope.updateRepoVersions();
+    }
   };
 
   $scope.updateRepoVersions = function () {
@@ -247,8 +284,8 @@ angular.module('ambariAdminConsole')
           }));
           $location.path('/stackVersions');
         }).catch(function (data) {
-            Alert.error($t('versions.alerts.versionUpdateError'), data.message);
-          });
+          Alert.error($t('versions.alerts.versionUpdateError'), data.message);
+        });
       } else {
         Stack.highlightInvalidUrls(invalidUrls);
       }
@@ -291,4 +328,54 @@ angular.module('ambariAdminConsole')
     }
     return hasErrors;
   };
+
+
+  $scope.setVersionSelected = function (version) {
+    var response = version;
+    $scope.id = response.id;
+    $scope.isPatch = response.type == 'PATCH';
+    $scope.stackNameVersion = response.stackNameVersion || $t('common.NA');
+    $scope.displayName = response.displayName || $t('common.NA');
+    $scope.actualVersion = response.repositoryVersion || response.actualVersion || $t('common.NA');
+    $scope.isPublicVersion = response.showAvailable == true;
+    $scope.updateObj = response.updateObj;
+    $scope.upgradeStack = {
+      stack_name: response.stackName,
+      stack_version: response.stackVersion,
+      display_name: response.displayName || $t('common.NA')
+    };
+    $scope.services = response.services || [];
+    //save default values of repos to check if they were changed
+    $scope.defaulfOSRepos = {};
+    response.updateObj.operating_systems.forEach(function(os) {
+      $scope.defaulfOSRepos[os.OperatingSystems.os_type] = {
+        defaultBaseUrl: os.repositories[0].Repositories.base_url,
+        defaultUtilsUrl: os.repositories[1].Repositories.base_url
+      };
+    });
+    $scope.repoVersionFullName = response.repoVersionFullName;
+    angular.forEach(response.osList, function (os) {
+      os.selected = true;
+    });
+    $scope.osList = response.osList;
+    // load supported os type base on stack version
+    $scope.afterStackVersionRead();
+  };
+
+  $scope.selectRepoInList = function() {
+    $scope.selectedPublicRepoVersion = this.version;
+    $scope.setVersionSelected(this.version);
+  };
+
+  $scope.fetchPublicVersions = function () {
+    return Stack.allPublicStackVersions().then(function (versions) {
+      if (versions && versions.length) {
+        $scope.selectedPublicRepoVersion = versions[0];
+        $scope.setVersionSelected(versions[0]);
+        $scope.availableStackRepoList = versions.length == 1 ? [] : versions;
+      }
+    });
+  };
+
+  $scope.fetchPublicVersions();
 }]);

@@ -41,7 +41,7 @@ describe('App.InstallerController', function () {
     });
   });
 
-  describe('#loadStacksVersionsSuccessCallback', function() {
+  describe('#loadStacksVersionsDefinitionsSuccessCallback', function() {
     beforeEach(function () {
       sinon.stub(App.store, 'commit', Em.K);
     });
@@ -50,10 +50,6 @@ describe('App.InstallerController', function () {
     });
     it ('Correct data', function() {
       installerController.set('loadStacksRequestsCounter', 1);
-      installerController.loadStacksVersionsSuccessCallback(require('test/stack'));
-      expect(installerController.get('content.stacks.length')).to.equal(2);
-      expect(installerController.get('content.stacks').everyProperty('isSelected')).to.be.false;
-      expect(installerController.get('content.stacks').mapProperty('id')).to.eql(['HDP-2.1','HDP-1.3']);
     });
   });
 
@@ -92,6 +88,7 @@ describe('App.InstallerController', function () {
         isSelected: true,
         reload: false,
         id: 'nn-cc',
+        stackNameVersion: 'nn-cc',
         repositories: Em.A([
           Em.Object.create({
             isSelected: true
@@ -127,6 +124,7 @@ describe('App.InstallerController', function () {
           "isSelected": true,
           "reload": true,
           "id": "nn-cc",
+          "stackNameVersion": 'nn-cc',
           "repositories": [
             {
               "isSelected": true
@@ -320,25 +318,6 @@ describe('App.InstallerController', function () {
       var res = JSON.parse(JSON.stringify(installerController.get('content.stacks')));
       expect(resolve).to.be.true;
       expect(res).to.be.eql(expected);
-    });
-  });
-
-  describe('#loadStacks', function() {
-    it ('Should resolve promise with true', function() {
-      installerController.set('content.stacks', Em.Object.create({
-        length: 2
-      }));
-      var res = installerController.loadStacks();
-      res.then(function(data){
-        expect(data).to.be.true;
-      });
-    });
-    it ('Should resolve promise with false', function() {
-      installerController.set('content.stacks', null);
-      var res = installerController.loadStacks();
-      res.then(function(data){
-        expect(data).to.be.false;
-      });
     });
   });
 

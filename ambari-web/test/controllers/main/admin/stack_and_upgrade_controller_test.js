@@ -64,7 +64,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     });
     it("should be valid", function() {
       controller.propertyDidChange('realStackUrl');
-      expect(controller.get('realStackUrl')).to.equal('apiPrefix/clusters/clusterName/stack_versions?fields=*,repository_versions/*,repository_versions/operating_systems/repositories/*');
+      expect(controller.get('realStackUrl')).to.equal('apiPrefix/clusters/clusterName/stack_versions?fields=*,repository_versions/*,repository_versions/operating_systems/OperatingSystems/*,repository_versions/operating_systems/repositories/*');
     });
   });
 
@@ -1164,7 +1164,8 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         "operating_systems": [
           {
             "OperatingSystems": {
-              "os_type": "redhat6"
+              "os_type": "redhat6",
+              "ambari_managed_repositories": true
             },
             "repositories": [
               {

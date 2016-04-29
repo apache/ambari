@@ -34,6 +34,7 @@ App.repoVersionMapper = App.QuickDataMapper.create({
       upgrade_pack: repoVersionsKey + '.upgrade_pack',
       stack_version_type: repoVersionsKey + '.stack_name',
       stack_version_number: repoVersionsKey + '.stack_version',
+      use_redhat_satellite: 'use_redhat_satellite',
       services_key: 'services',
       services_type: 'array',
       services: {
@@ -128,7 +129,19 @@ App.repoVersionMapper = App.QuickDataMapper.create({
               serviceArray.pushObject(serviceObj);
               resultService.push(this.parseIt(serviceObj, this.get('modelService')));
             }, this);
+          } else if (item[repoVersionsKey].stack_services) {
+            item[repoVersionsKey].stack_services.forEach(function (service) {
+              var serviceObj = {
+                id: service.name,
+                name: service.name,
+                display_name: service.display_name,
+                latest_version: service.versions[0] ? service.versions[0]: ''
+              };
+              serviceArray.pushObject(serviceObj);
+              resultService.push(this.parseIt(serviceObj, this.get('modelService')));
+            }, this);
           }
+          repo.use_redhat_satellite = item.operating_systems[0].OperatingSystems.ambari_managed_repositories === false;
           repo.operating_systems = osArray;
           repo.services = serviceArray;
           resultRepoVersion.push(this.parseIt(repo, this.modelRepoVersion(isCurrentStackOnly)));

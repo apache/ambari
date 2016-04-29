@@ -236,6 +236,16 @@ angular.module('ambariAdminConsole')
     }
   };
 
+  $scope.isAddOsButtonDisabled = function () {
+    var selectedCnt = 0;
+    angular.forEach($scope.osList, function (os) {
+      if (os.selected) {
+        selectedCnt ++;
+      }
+    });
+    return $scope.osList.length == selectedCnt;
+  };
+
   $scope.hasNotDeletedRepo = function () {
     //check if any repository has been selected for deleting
     //if yes, drop down should be displayed
