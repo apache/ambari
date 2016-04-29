@@ -22,6 +22,7 @@ import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.fail;
 
@@ -84,7 +85,7 @@ public class StageResourceProviderTest {
     hrcDao = createStrictMock(HostRoleCommandDAO.class);
     topologyManager = EasyMock.createNiceMock(TopologyManager.class);
 
-    expect(topologyManager.getStages()).andReturn(new ArrayList<StageEntity>()).anyTimes();
+    expect(topologyManager.getStages()).andReturn(new ArrayList<StageEntity>()).atLeastOnce();
 
     expect(hrcDao.findAggregateCounts(EasyMock.anyObject(Long.class))).andReturn(
         new HashMap<Long, HostRoleCommandStatusSummaryDTO>() {
@@ -172,6 +173,39 @@ public class StageResourceProviderTest {
     Assert.assertEquals(2500L, resource.getPropertyValue(StageResourceProvider.STAGE_END_TIME));
 
     verify(dao, clusters, cluster);
+  }
+
+  @Test
+  public void testGetResourcesWithRequest() throws Exception {
+    StageResourceProvider provider = new StageResourceProvider(managementController);
+
+    Request request = createNiceMock(Request.class);
+    Predicate predicate = new PredicateBuilder().property(StageResourceProvider.STAGE_REQUEST_ID).equals(1L).toPredicate();
+
+    List<StageEntity> entities = getStageEntities(HostRoleStatus.COMPLETED);
+
+    expect(dao.findAll(request, predicate)).andReturn(entities);
+
+    expect(clusters.getClusterById(anyLong())).andReturn(cluster).anyTimes();
+    expect(cluster.getClusterName()).andReturn("c1").anyTimes();
+    reset(topologyManager);
+    expect(topologyManager.getRequest(EasyMock.anyLong())).andReturn(null).atLeastOnce();
+
+    replay(topologyManager, dao, clusters, cluster, request);
+
+    Set<Resource> resources = provider.getResources(request, predicate);
+
+    Assert.assertEquals(1, resources.size());
+
+    Resource resource = resources.iterator().next();
+
+    Assert.assertEquals(100.0, resource.getPropertyValue(StageResourceProvider.STAGE_PROGRESS_PERCENT));
+    Assert.assertEquals(HostRoleStatus.COMPLETED, resource.getPropertyValue(StageResourceProvider.STAGE_STATUS));
+    Assert.assertEquals(HostRoleStatus.COMPLETED, resource.getPropertyValue(StageResourceProvider.STAGE_DISPLAY_STATUS));
+    Assert.assertEquals(1000L, resource.getPropertyValue(StageResourceProvider.STAGE_START_TIME));
+    Assert.assertEquals(2500L, resource.getPropertyValue(StageResourceProvider.STAGE_END_TIME));
+
+    verify(topologyManager, dao, clusters, cluster);
   }
 
   /**

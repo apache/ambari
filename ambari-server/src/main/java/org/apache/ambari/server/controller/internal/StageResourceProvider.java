@@ -30,7 +30,6 @@ import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Provider;
 
-import com.google.common.collect.Sets;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -45,15 +44,20 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.orm.dao.StageDAO;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.topology.LogicalRequest;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.utils.SecretReference;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.NumberUtils;
+
+import com.google.common.collect.Sets;
 
 /**
  * ResourceProvider for Stage
@@ -217,11 +221,31 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
 
     cache.clear();
 
-    Collection<StageEntity> topologyManagerStages = topologyManager.getStages();
-    for (StageEntity entity : topologyManagerStages) {
-      Resource stageResource = toResource(entity, propertyIds);
-      if (predicate.evaluate(stageResource)) {
-        results.add(stageResource);
+    // !!! check the id passed to see if it's a LogicalRequest.  This safeguards against
+    // iterating all stages for all requests.  That is a problem when the request
+    // is for an Upgrade, but was pulling the data anyway.
+    Map<String, Object> map = PredicateHelper.getProperties(predicate);
+
+    if (map.containsKey(STAGE_REQUEST_ID)) {
+      Long requestId = NumberUtils.toLong(map.get(STAGE_REQUEST_ID).toString());
+      LogicalRequest lr = topologyManager.getRequest(requestId);
+
+      if (null != lr) {
+        Collection<StageEntity> topologyManagerStages = lr.getStageEntities();
+        for (StageEntity entity : topologyManagerStages) {
+          Resource stageResource = toResource(entity, propertyIds);
+          if (predicate.evaluate(stageResource)) {
+            results.add(stageResource);
+          }
+        }
+      }
+    } else {
+      Collection<StageEntity> topologyManagerStages = topologyManager.getStages();
+      for (StageEntity entity : topologyManagerStages) {
+        Resource stageResource = toResource(entity, propertyIds);
+        if (predicate.evaluate(stageResource)) {
+          results.add(stageResource);
+        }
       }
     }
 

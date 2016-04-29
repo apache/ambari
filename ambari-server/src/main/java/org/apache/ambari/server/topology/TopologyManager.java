@@ -411,8 +411,10 @@ public class TopologyManager {
     }
   }
 
-  // currently we are just returning all stages for all requests
-  //and relying on the StageResourceProvider to convert each to a resource and do a predicate eval on each
+  /**
+   * Currently we are just returning all stages for all requests
+   * and relying on the StageResourceProvider to convert each to a resource and do a predicate eval on each.
+   */
   public Collection<StageEntity> getStages() {
     ensureInitialized();
     Collection<StageEntity> stages = new ArrayList<StageEntity>();
