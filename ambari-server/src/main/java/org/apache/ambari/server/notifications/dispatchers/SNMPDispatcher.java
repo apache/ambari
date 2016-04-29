@@ -50,6 +50,7 @@ import org.snmp4j.smi.OctetString;
 import org.snmp4j.smi.UdpAddress;
 import org.snmp4j.smi.VariableBinding;
 import org.snmp4j.transport.DefaultUdpTransportMapping;
+import org.snmp4j.transport.UdpTransportMapping;
 import org.snmp4j.util.DefaultPDUFactory;
 
 import com.google.inject.Singleton;
@@ -84,9 +85,11 @@ public class SNMPDispatcher implements NotificationDispatcher {
 
   private Snmp snmp;
 
-  private Integer port;
+  private final Integer port;
+  private volatile UdpTransportMapping transportMapping;
 
   public SNMPDispatcher(Snmp snmp) {
+    this.port = null;
     this.snmp = snmp;
   }
 
@@ -103,12 +106,23 @@ public class SNMPDispatcher implements NotificationDispatcher {
     if(port != null && port >= 0 && port <= '\uffff') {
       //restrict invalid ports to avoid exception on socket create
       this.port = port;
-    }
-    if (port != null) {
-      LOG.info("Setting SNMP dispatch port: " + port);
-      this.snmp = new Snmp(new DefaultUdpTransportMapping(new UdpAddress(port), true));
     } else {
-      this.snmp = new Snmp(new DefaultUdpTransportMapping());
+      this.port = null;
+    }
+  }
+
+  private void createTransportMapping() throws IOException {
+    if (transportMapping == null) {
+      synchronized (this) {
+        if (transportMapping == null) {
+          if (port != null) {
+            LOG.info("Setting SNMP dispatch port: " + port);
+            transportMapping = new DefaultUdpTransportMapping(new UdpAddress(port), true);
+          } else {
+            transportMapping = new DefaultUdpTransportMapping();
+          }
+        }
+      }
     }
   }
 
@@ -135,7 +149,8 @@ public class SNMPDispatcher implements NotificationDispatcher {
   public void dispatch(Notification notification) {
     LOG.info("Sending SNMP trap: {}", notification.Subject);
     try {
-      snmp = new Snmp(new DefaultUdpTransportMapping());
+      createTransportMapping();
+      snmp = new Snmp(transportMapping);
       SnmpVersion snmpVersion = getSnmpVersion(notification.DispatchProperties);
       sendTraps(notification, snmpVersion);
       successCallback(notification);
