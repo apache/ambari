@@ -498,7 +498,9 @@ App.format = {
     'UI': 'UI',
     'ZKFC': 'ZKFailoverController',
     'ZOOKEEPER': 'ZooKeeper',
-    'ZOOKEEPER_QUORUM_SERVICE_CHECK': 'ZK Quorum Service Check'
+    'ZOOKEEPER_QUORUM_SERVICE_CHECK': 'ZK Quorum Service Check',
+    'HAWQ': 'HAWQ',
+    'PXF': 'PXF'
   },
 
   /**
