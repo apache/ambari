@@ -378,7 +378,7 @@ public class AmbariPerformanceRunnable extends AlertRunnable {
     }
 
     if (time >= criticalThreshold) {
-      alertState = AlertState.WARNING;
+      alertState = AlertState.CRITICAL;
     }
 
     String resultLabel = MessageFormat.format(PERFORMANCE_AREA_TEMPLATE, area.m_label, time,
