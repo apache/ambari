@@ -49,12 +49,14 @@ describe('App.TimeRangeMixin', function () {
     var indexCases = [
         {
           index: 1,
+          currentTimeRangeIndex: 1,
           showCustomDatePopupCallCount: 0,
           title: 'preset time range',
           popupTestTitle: 'popup should not be displayed'
         },
         {
           index: 8,
+          currentTimeRangeIndex: 0,
           showCustomDatePopupCallCount: 1,
           title: 'custom time range',
           popupTestTitle: 'popup should be displayed'
@@ -63,6 +65,7 @@ describe('App.TimeRangeMixin', function () {
       rangeCases = [
         {
           index: 1,
+          currentTimeRangeIndex: 1,
           customStartTime: null,
           customEndTime: null,
           customDurationFormatted: null,
@@ -71,6 +74,7 @@ describe('App.TimeRangeMixin', function () {
         },
         {
           index: 8,
+          currentTimeRangeIndex: 0,
           customStartTime: 1,
           customEndTime: 1,
           customDurationFormatted: '1 hour',
@@ -80,6 +84,7 @@ describe('App.TimeRangeMixin', function () {
       ];
 
     beforeEach(function () {
+      obj.set('currentTimeRangeIndex', 0);
       sinon.stub(timeRangePopup, 'showCustomDatePopup', Em.K);
     });
 
@@ -100,7 +105,7 @@ describe('App.TimeRangeMixin', function () {
         });
 
         it('should set time range', function () {
-          expect(obj.get('currentTimeRangeIndex')).to.equal(item.index);
+          expect(obj.get('currentTimeRangeIndex')).to.equal(item.currentTimeRangeIndex);
         });
 
         it(item.popupTestTitle, function () {
@@ -129,7 +134,8 @@ describe('App.TimeRangeMixin', function () {
         });
 
         it(item.testTitle, function () {
-          expect(obj.getProperties(['customStartTime', 'customEndTime', 'customDurationFormatted'])).to.eql({
+          expect(obj.getProperties(['currentTimeRangeIndex', 'customStartTime', 'customEndTime', 'customDurationFormatted'])).to.eql({
+            currentTimeRangeIndex: item.currentTimeRangeIndex,
             customStartTime: item.customStartTime,
             customEndTime: item.customEndTime,
             customDurationFormatted: item.customDurationFormatted

@@ -101,6 +101,7 @@ App.TimeRangeMixin = Em.Mixin.create({
         if (callback) {
           callback();
         }
+        this.set('currentTimeRangeIndex', index);
         this.setProperties(timeRange);
         if (context) {
           context.setProperties(timeRange);
@@ -141,13 +142,13 @@ App.TimeRangeMixin = Em.Mixin.create({
     } else {
       // Preset time range is specified by user
       this.setProperties({
+        currentTimeRangeIndex: index,
         customStartTime: null,
         customEndTime: null,
         customDurationFormatted: null
       });
     }
 
-    this.set('currentTimeRangeIndex', index);
   },
 
   timeRangeListView: App.TimeRangeListView.extend()
