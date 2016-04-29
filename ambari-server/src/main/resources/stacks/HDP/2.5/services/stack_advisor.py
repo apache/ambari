@@ -506,7 +506,8 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     node_manager_hosts = self.get_node_manager_hosts(services, hosts)
     node_manager_host_cnt = len(node_manager_hosts)
 
-    num_llap_nodes_in_changed_configs = self.are_config_props_in_changed_configs(services, "hive-interactive-env", "num_llap_nodes", False)
+    num_llap_nodes_in_changed_configs = self.are_config_props_in_changed_configs(services, "hive-interactive-env",
+                                                                                 set(['num_llap_nodes']), False)
     if not num_llap_nodes_in_changed_configs:
       num_llap_nodes, num_llap_nodes_max_limit = self.calculate_num_llap_nodes(services, hosts, configurations)
     else:
@@ -736,12 +737,11 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       if 'llap_queue_capacity' in services['configurations']['hive-interactive-env']['properties']:
         llap_slider_cap_percentage = int(
           services['configurations']['hive-interactive-env']['properties']['llap_queue_capacity'])
+        llap_min_reqd_cap_percentage = self.min_llap_queue_perc_required_in_cluster(services, hosts)
         if llap_slider_cap_percentage not in range(1,101):
-          llap_slider_cap_percentage = self.min_llap_queue_perc_required_in_cluster(services, hosts)
-          Logger.info("Adjusting HIVE 'llap_queue_capacity' from {0}% to {1}%".format(llap_slider_cap_percentage, llap_slider_cap_percentage))
-
-          putHiveInteractiveEnvProperty('llap_queue_capacity', llap_slider_cap_percentage)
-          putHiveInteractiveEnvPropertyAttribute('llap_queue_capacity', "minimum", llap_slider_cap_percentage)
+          Logger.info("Adjusting HIVE 'llap_queue_capacity' from {0}% to {1}%".format(llap_slider_cap_percentage, llap_min_reqd_cap_percentage))
+          putHiveInteractiveEnvProperty('llap_queue_capacity', llap_min_reqd_cap_percentage)
+          llap_slider_cap_percentage = llap_min_reqd_cap_percentage
       else:
         Logger.error("Problem retrieving LLAP Queue Capacity. Skipping creating {0} queue".format(llap_queue_name))
         return
@@ -749,8 +749,8 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       capSchedConfigKeys = capacitySchedulerProperties.keys()
 
       yarn_default_queue_capacity = -1
-      if 'yarn.scheduler.capacity.root.capacity' in capSchedConfigKeys:
-        yarn_default_queue_capacity = capacitySchedulerProperties.get('yarn.scheduler.capacity.root.capacity')
+      if 'yarn.scheduler.capacity.root.default.capacity' in capSchedConfigKeys:
+        yarn_default_queue_capacity = capacitySchedulerProperties.get('yarn.scheduler.capacity.root.default.capacity')
 
       # Get 'llap' queue state
       currLlapQueueState = ''
@@ -760,7 +760,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       # Get 'llap' queue capacity
       currLlapQueueCap = -1
       if 'yarn.scheduler.capacity.root.'+llap_queue_name+'.capacity' in capSchedConfigKeys:
-        currLlapQueueCap = capacitySchedulerProperties.get('yarn.scheduler.capacity.root.'+llap_queue_name+'.capacity')
+        currLlapQueueCap = int(capacitySchedulerProperties.get('yarn.scheduler.capacity.root.'+llap_queue_name+'.capacity'))
 
       if self.HIVE_INTERACTIVE_SITE in services['configurations'] and \
           'hive.llap.daemon.queue.name' in services['configurations'][self.HIVE_INTERACTIVE_SITE]['properties']:
@@ -784,7 +784,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
         ((len(leafQueueNames) == 1 and int(yarn_default_queue_capacity) == 100) or \
         ((len(leafQueueNames) == 2 and llap_queue_name in leafQueueNames) and \
            ((currLlapQueueState == 'STOPPED' and enabled_hive_int_in_changed_configs) or (currLlapQueueState == 'RUNNING' and currLlapQueueCap != llap_slider_cap_percentage)))):
-        adjusted_default_queue_cap = str(int(yarn_default_queue_capacity) - llap_slider_cap_percentage)
+        adjusted_default_queue_cap = str(100 - llap_slider_cap_percentage)
         for prop, val in capacitySchedulerProperties.items():
           if llap_queue_name not in prop:
             if prop == 'yarn.scheduler.capacity.root.queues':
@@ -831,6 +831,8 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
           # Update Hive 'hive.llap.daemon.queue.name' prop to use 'llap' queue.
           putHiveInteractiveSiteProperty('hive.llap.daemon.queue.name', 'llap')
+          putHiveInteractiveEnvPropertyAttribute('llap_queue_capacity', "minimum", llap_min_reqd_cap_percentage)
+
           # Update 'hive.llap.daemon.queue.name' prop combo entries.
           self.setLlapDaemonQueueName(services, configurations)
       else:

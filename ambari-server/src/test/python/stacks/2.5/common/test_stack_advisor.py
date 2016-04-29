@@ -553,7 +553,8 @@ class TestHDP25StackAdvisor(TestCase):
         "hive-interactive-site":
           {
             'properties': {
-              'hive.llap.daemon.queue.name':'default'
+              'hive.llap.daemon.queue.name':'default',
+              'hive.tez.container.size': '341'
             }
           },
         "tez-interactive-site": {
@@ -1437,9 +1438,22 @@ class TestHDP25StackAdvisor(TestCase):
         "hive-interactive-site":
           {
             'properties': {
-              'hive.llap.daemon.queue.name':'llap'
+              'hive.llap.daemon.queue.name':'llap',
+              'hive.tez.container.size': '341'
             }
           },
+        "tez-interactive-site": {
+          "properties": {
+            "tez.am.resource.memory.mb": "341"
+          }
+        },
+        "yarn-site": {
+          "properties": {
+            "yarn.scheduler.minimum-allocation-mb": "341",
+            "yarn.nodemanager.resource.memory-mb": "20000",
+            "yarn.nodemanager.resource.cpu-vcores": '1'
+          }
+        },
         "hive-env":
           {
             'properties': {
@@ -1690,7 +1704,7 @@ class TestHDP25StackAdvisor(TestCase):
           {
             'properties': {
               'enable_hive_interactive': 'true',
-              'llap_queue_capacity':'40'
+              'llap_queue_capacity':'41'
             }
           },
         "hive-interactive-site":
@@ -2144,7 +2158,7 @@ class TestHDP25StackAdvisor(TestCase):
           {
             'properties': {
               'enable_hive_interactive': 'true',
-              'llap_queue_capacity':'40'
+              'llap_queue_capacity':'41'
             }
           },
         "hive-interactive-site":
@@ -2564,7 +2578,7 @@ class TestHDP25StackAdvisor(TestCase):
           {
             'properties': {
               'enable_hive_interactive': 'true',
-              'llap_queue_capacity':'40',
+              'llap_queue_capacity':'41',
               'num_llap_nodes': 1
             }
           },
@@ -2930,6 +2944,8 @@ class TestHDP25StackAdvisor(TestCase):
     # expected vals.
     expected_visibility_false = {'visible': 'false'}
     expected_visibility_true = {'visible': 'true'}
+    expected_llap_queue_attributes_min_25_visible_true = {'minimum': '25', 'visible': 'true'}
+    expected_llap_queue_attributes_min_21_visible_true = {'minimum': '21', 'visible': 'true'}
 
 
 
@@ -2943,6 +2959,7 @@ class TestHDP25StackAdvisor(TestCase):
     }
     self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services_1, hosts)
     # Check output
+    print "\n\n\n\n conf = ",configurations
     self.assertEquals(configurations['hive-interactive-site']['properties']['hive.llap.daemon.queue.name'],
                       expected_hive_interactive_site_llap['hive-interactive-site']['properties']['hive.llap.daemon.queue.name'])
     self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.llap.daemon.queue.name'],
@@ -3167,29 +3184,32 @@ class TestHDP25StackAdvisor(TestCase):
     }
 
     # expected vals.
-    yarn_cont_mb_visibility = {'minimum': '682', 'maximum': '682'}
-    llap_io_mem_size_visibility = {'minimum': '0', 'maximum': '341'}
-    llap_num_executors_visibility = {'minimum': '1', 'maximum': '1'}
-    num_llap_nodes_visibility = {'minimum': '1', 'maximum': '1'}
+    print "\n\n\n\n\n\n\n\n\n\n\n"
+    yarn_cont_mb_attributes = {'minimum': '682', 'maximum': '682'}
+    llap_io_mem_size_attributes = {'minimum': '0', 'maximum': '341'}
+    llap_num_executors_attributes = {'minimum': '1', 'maximum': '1'}
+    num_llap_nodes_attributes = {'minimum': '1', 'maximum': '1'}
+
 
     self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services_13, hosts)
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '682')
-    self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.llap.daemon.yarn.container.mb'], yarn_cont_mb_visibility)
+    self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.llap.daemon.yarn.container.mb'], yarn_cont_mb_attributes)
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors'], '1')
-    self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.llap.daemon.num.executors'], llap_num_executors_visibility)
+    self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.llap.daemon.num.executors'], llap_num_executors_attributes)
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size'], '341')
-    self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.llap.io.memory.size'], llap_io_mem_size_visibility)
+    self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.llap.io.memory.size'], llap_io_mem_size_attributes)
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['num_llap_nodes'], '1')
-    self.assertEquals(configurations['hive-interactive-env']['property_attributes']['num_llap_nodes'], num_llap_nodes_visibility)
+    self.assertEquals(configurations['hive-interactive-env']['property_attributes']['num_llap_nodes'], num_llap_nodes_attributes)
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['llap_heap_size'], '272')
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_mb'], '341')
-    self.assertEquals(configurations['hive-interactive-env']['property_attributes']['llap_queue_capacity'], expected_visibility_true)
+    self.assertEquals(configurations['hive-interactive-env']['property_attributes']['llap_queue_capacity'],
+                      expected_llap_queue_attributes_min_25_visible_true)
 
 
 
@@ -3200,10 +3220,10 @@ class TestHDP25StackAdvisor(TestCase):
     }
 
     # expected vals.
-    yarn_cont_mb_visibility = {'minimum': '682', 'maximum': '682'}
-    llap_io_mem_size_visibility = {'minimum': '0', 'maximum': '341'}
-    llap_num_executors_visibility = {'minimum': '1', 'maximum': '1'}
-    num_llap_nodes_visibility = {'minimum': '1', 'maximum': '1'}
+    yarn_cont_mb_attributes = {'minimum': '682', 'maximum': '682'}
+    llap_io_mem_size_attributes = {'minimum': '0', 'maximum': '341'}
+    llap_num_executors_attributes = {'minimum': '1', 'maximum': '1'}
+    num_llap_nodes_attributes = {'minimum': '1', 'maximum': '1'}
 
 
 
@@ -3211,21 +3231,22 @@ class TestHDP25StackAdvisor(TestCase):
 
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '682')
-    self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.llap.daemon.yarn.container.mb'], yarn_cont_mb_visibility)
+    self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.llap.daemon.yarn.container.mb'], yarn_cont_mb_attributes)
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors'], '1')
-    self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.llap.daemon.num.executors'], llap_num_executors_visibility)
+    self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.llap.daemon.num.executors'], llap_num_executors_attributes)
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size'], '341')
-    self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.llap.io.memory.size'], llap_io_mem_size_visibility)
+    self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.llap.io.memory.size'], llap_io_mem_size_attributes)
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['num_llap_nodes'], '1')
-    self.assertEquals(configurations['hive-interactive-env']['property_attributes']['num_llap_nodes'], num_llap_nodes_visibility)
+    self.assertEquals(configurations['hive-interactive-env']['property_attributes']['num_llap_nodes'], num_llap_nodes_attributes)
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['llap_heap_size'], '272')
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_mb'], '341')
-    self.assertEquals(configurations['hive-interactive-env']['property_attributes']['llap_queue_capacity'], expected_visibility_true)
+    self.assertEquals(configurations['hive-interactive-env']['property_attributes']['llap_queue_capacity'],
+                      expected_llap_queue_attributes_min_25_visible_true)
 
 
 
@@ -3294,7 +3315,8 @@ class TestHDP25StackAdvisor(TestCase):
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_mb'], '341')
 
-    self.assertEquals(configurations['hive-interactive-env']['property_attributes']['llap_queue_capacity'], expected_visibility_true)
+    self.assertEquals(configurations['hive-interactive-env']['property_attributes']['llap_queue_capacity'],
+                      expected_llap_queue_attributes_min_25_visible_true)
 
 
 
@@ -3332,7 +3354,8 @@ class TestHDP25StackAdvisor(TestCase):
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_mb'], '682')
 
-    self.assertEquals(configurations['hive-interactive-env']['property_attributes']['llap_queue_capacity'], expected_visibility_true)
+    self.assertEquals(configurations['hive-interactive-env']['property_attributes']['llap_queue_capacity'],
+                      expected_llap_queue_attributes_min_21_visible_true)
 
 
 
@@ -3353,7 +3376,8 @@ class TestHDP25StackAdvisor(TestCase):
                       expected_hive_interactive_site_empty['hive-interactive-site']['properties'])
     self.assertEquals(configurations['hive-interactive-env']['properties'],
                       expected_hive_interactive_env_empty['hive-interactive-env']['properties'])
-    self.assertEquals(configurations['hive-interactive-env']['property_attributes']['llap_queue_capacity'], expected_visibility_true)
+    self.assertEquals(configurations['hive-interactive-env']['property_attributes']['llap_queue_capacity'],
+                      expected_visibility_true)
 
 
 
