@@ -56,7 +56,7 @@ class YamlParser(Parser): # Used Yaml parser to read data into a map
       except yaml.YAMLError:
         logger.exception("Yaml parser error: ")
         return None
-    return configurations
+    return configurations, None
 
 
 class PropertiesParser(Parser): # Used ConfigParser parser to read data into a map
@@ -79,17 +79,20 @@ class PropertiesParser(Parser): # Used ConfigParser parser to read data into a m
         del configurations['__name__']
     except:
       logger.exception("ConfigParser error: ")
-    return configurations
+    return configurations, None
 
 
 class XmlParser(Parser):  # Used DOM parser to read data into a map
   def read_data_to_map(self, path):
     configurations = {}
+    properties_attributes = {}
     tree = ET.parse(path)
     root = tree.getroot()
     for properties in root.getiterator('property'):
       name = properties.find('name')
       value = properties.find('value')
+      #TODO support all properties attributes
+      final = properties.find('final')
 
       if name != None:
         name_text = name.text if name.text else ""
@@ -103,9 +106,13 @@ class XmlParser(Parser):  # Used DOM parser to read data into a map
         logger.warn("No value is found for \"{0}\" in {1}, using empty string for it".format(name_text, path))
         value_text = ""
 
+      if final != None:
+        final_text = final.text if final.text else ""
+        properties_attributes[name_text] = final_text
+
       configurations[name_text] = value_text
     logger.debug("Following configurations found in {0}:\n{1}".format(path, configurations))
-    return configurations
+    return configurations, properties_attributes
 
 class ConfigMerge:
 
@@ -186,11 +193,14 @@ class ConfigMerge:
     return merged_configurations, property_name_to_value_to_filepaths
 
   @staticmethod
-  def format_for_blueprint(configurations):
+  def format_for_blueprint(configurations, attributes):
     all_configs = []
     for configuration_type, configuration_properties in configurations.iteritems():
       all_configs.append({})
-      all_configs[-1][configuration_type] = configuration_properties
+      all_configs[-1][configuration_type] = {'properties' :configuration_properties}
+      for configuration_type_attributes, properties_attributes in attributes.iteritems():
+        if properties_attributes and configuration_type == configuration_type_attributes:
+          all_configs[-1][configuration_type].update({"properties_attributes" : {"final" : properties_attributes}})
 
     return {
       "configurations": all_configs,
@@ -213,35 +223,57 @@ class ConfigMerge:
 
   def perform_merge(self):
     result_configurations = {}
+    result_property_attributes = {}
     has_conflicts = False
     for filename, paths_and_parsers in self.config_files_map.iteritems():
       filepath_to_configurations = {}
+      filepath_to_property_attributes = {}
       configuration_type = os.path.splitext(filename)[0]
       for path_and_parser in paths_and_parsers:
         path, parser = path_and_parser
         logger.debug("Read data from {0}".format(path))
-        parsed_configurations_from_path = parser.read_data_to_map(path)
+        parsed_configurations_from_path, parsed_properties_attributes = parser.read_data_to_map(path)
         if parsed_configurations_from_path != None:
           filepath_to_configurations[path] = parsed_configurations_from_path
+        if parsed_properties_attributes != None:
+          filepath_to_property_attributes[path] = parsed_properties_attributes
+
+      #configs merge
       merged_configurations, property_name_to_value_to_filepaths = ConfigMerge.merge_configurations(
         filepath_to_configurations)
 
-      conflicts_output = ConfigMerge.format_conflicts_output(property_name_to_value_to_filepaths)
-      if conflicts_output:
+      #properties attributes merge
+      merged_attributes, property_name_to_attribute_to_filepaths = ConfigMerge.merge_configurations(
+        filepath_to_property_attributes)
+
+      configuration_conflicts_output = ConfigMerge.format_conflicts_output(property_name_to_value_to_filepaths)
+      attribute_conflicts_output = ConfigMerge.format_conflicts_output(property_name_to_attribute_to_filepaths)
+
+      if configuration_conflicts_output:
         has_conflicts = True
         conflict_filename = os.path.join(self.OUTPUT_DIR, configuration_type + "-conflicts.txt")
         logger.warn(
           "You have configurations conflicts for {0}. Please check {1}".format(configuration_type, conflict_filename))
         with open(conflict_filename, "w") as fp:
-          fp.write(conflicts_output)
+          fp.write(configuration_conflicts_output)
+
+      if attribute_conflicts_output:
+        has_conflicts = True
+        conflict_filename = os.path.join(self.OUTPUT_DIR, configuration_type + "-attributes-conflicts.txt")
+        logger.warn(
+          "You have property attribute conflicts for {0}. Please check {1}".format(configuration_type, conflict_filename))
+        with open(conflict_filename, "w") as fp:
+          fp.write(attribute_conflicts_output)
 
       result_configurations[configuration_type] = merged_configurations
+      result_property_attributes[configuration_type] = merged_attributes
+
 
     result_json_file = os.path.join(self.OUTPUT_DIR, "blueprint.json")
     logger.info("Using '{0}' file as output for blueprint template".format(result_json_file))
 
     with open(result_json_file, 'w') as outfile:
-      outfile.write(json.dumps(ConfigMerge.format_for_blueprint(result_configurations), sort_keys=True, indent=4,
+      outfile.write(json.dumps(ConfigMerge.format_for_blueprint(result_configurations, result_property_attributes), sort_keys=True, indent=4,
                                separators=(',', ': ')))
     if has_conflicts:
       logger.info("Script finished with configurations conflicts, please resolve them before using the blueprint")
