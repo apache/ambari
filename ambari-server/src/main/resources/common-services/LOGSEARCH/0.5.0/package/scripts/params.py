@@ -253,8 +253,12 @@ logfeeder_supported_services = ['accumulo', 'ambari', 'ams', 'atlas', 'falcon', 
 logfeeder_config_file_names = ['global.config.json', 'output.config.json'] + ['input.config-%s.json' % (tag) for tag in
                                                                               logfeeder_supported_services]
 
-logfeeder_config_files = ','.join(logfeeder_config_file_names)
+default_config_files = ','.join(logfeeder_config_file_names)
+
+logfeeder_config_files = format(config['configurations']['logfeeder-properties']['logfeeder.config.files'])
+logfeeder_metrics_collector_hosts = format(config['configurations']['logfeeder-properties']['logfeeder.metrics.collector.hosts'])
 
 logfeeder_custom_properties = dict(config['configurations']['logfeeder-properties'])
 logfeeder_custom_properties.pop('logfeeder.config.files', None)
 logfeeder_custom_properties.pop('logfeeder.checkpoint.folder', None)
+logfeeder_custom_properties.pop('logfeeder.metrics.collector.hosts', None)

@@ -1890,6 +1890,13 @@ var hdp2properties = [
     "category": "Advanced logfeeder-properties",
     "index": 2
   },
+  {
+    "name": "logfeeder.metrics.collector.hosts",
+    "serviceName": "LOGSEARCH",
+    "filename": "logfeeder-properties.xml",
+    "category": "Advanced logfeeder-properties",
+    "index": 3
+  },
   /*logfeeder-env*/
   {
     "name": "logfeeder_log_dir",

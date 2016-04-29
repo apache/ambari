@@ -182,8 +182,6 @@
         <service>ZOOKEEPER</service>
       </requiredServices>
 
-      <restartRequiredAfterChange>false</restartRequiredAfterChange>
-
       <quickLinksConfigurations>
         <quickLinksConfiguration>
           <fileName>quicklinks.json</fileName>
