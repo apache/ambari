@@ -481,7 +481,7 @@ describe('utils/blueprint', function() {
           ]
         }
       };
-      expect(blueprintUtils.getHostGroupByFqdn(bp, 'host1.name')).to.be.eql('host1-group');
+      expect(blueprintUtils.getHostGroupByFqdn(bp, 'host1.name')).to.be.equal('host1-group');
     });
   });
 

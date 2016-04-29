@@ -32,7 +32,7 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
   configActionComponent: {},
 
   content: function () {
-    return (this.get('configWidgetContext.controller.content') || {});
+    return this.get('configWidgetContext.controller.content') || {};
   }.property('configWidgetContext.controller.content'),
 
   popup: null,
@@ -181,6 +181,7 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
           host_name: hosts[p].get('hostName'),
           cpu: hosts[p].get('cpu'),
           memory: hosts[p].get('memory'),
+          maintenance_state: hosts[p].get('maintenance_state'),
           disk_info: hosts[p].get('diskInfo'),
           host_info: Em.I18n.t('installer.step5.hostInfo').fmt(hosts[p].get('hostName'), numberUtils.bytesToSize(hosts[p].get('memory'), 1, 'parseFloat', 1024), hosts[p].get('cpu'))
         }));
@@ -252,7 +253,6 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
   saveRecommendationsHostGroups: function() {
     var controller = App.router.get(this.get('content.controllerName'));
     var recommendationsHostGroups = this.get('content.recommendationsHostGroups');
-    var masterComponentHosts = this.get('content.masterComponentHosts');
     var mastersToCreate = this.get('mastersToCreate');
     mastersToCreate.forEach(function(componentName) {
       var hostName = this.getSelectedHostName(componentName);
@@ -262,14 +262,14 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
         var i = 0;
         while (i < hostGroups.length) {
           var hosts = hostGroups[i].hosts;
-          isHostPresent =  hosts.someProperty('fqdn', hostName);
+          isHostPresent = hosts.someProperty('fqdn', hostName);
           if (isHostPresent) break;
           i++;
         }
         if (isHostPresent) {
           var hostGroupName = hostGroups[i].name;
-          var hostGroup =  recommendationsHostGroups.blueprint.host_groups.findProperty('name', hostGroupName);
-          var addHostComponentInGroup =  !hostGroup.components.someProperty('name', componentName);
+          var hostGroup = recommendationsHostGroups.blueprint.host_groups.findProperty('name', hostGroupName);
+          var addHostComponentInGroup = !hostGroup.components.someProperty('name', componentName);
           if (addHostComponentInGroup) {
             hostGroup.components.pushObject({name: componentName});
           }

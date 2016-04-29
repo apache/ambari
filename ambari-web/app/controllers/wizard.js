@@ -49,7 +49,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
 
   sensibleConfigs: [
     { name: 'admin_principal', filename: 'krb5-conf.xml'},
-    { name: 'admin_password',  filename: 'krb5-conf.xml' }
+    { name: 'admin_password', filename: 'krb5-conf.xml' }
   ],
 
   init: function () {
@@ -57,10 +57,12 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     this.setIsStepDisabled();
   },
 
-  connectOutlet:function(name, context) {
+  connectOutlet:function(name) {
     if (name !== 'loading') this.set('isStepDisabled.isLocked', false);
-    App.get('router').set('transitionInProgress', false);
-    App.get('router').set('nextBtnClickInProgress', false);
+    App.router.setProperties({
+      transitionInProgress: false,
+      nextBtnClickInProgress: false
+    });
     return this._super.apply(this,arguments);
   },
 
@@ -78,7 +80,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
               obj.reopen({
                 isLocked:true,
                 get:function (key) {
-                  return (key === 'value' && this.get('isLocked')) || this._super.apply(this,arguments);
+                  return key === 'value' && this.get('isLocked') || this._super.apply(this,arguments);
                 },
                 notifyValues:function () {
                   this.notifyPropertyChange('value');
@@ -140,7 +142,8 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
         osType: dbHosts[hostName].osType ? dbHosts[hostName].osType: 0,
         osArch: dbHosts[hostName].osArch ? dbHosts[hostName].osArch : 0,
         ip: dbHosts[hostName].ip ? dbHosts[hostName].ip: 0,
-        hostComponents: hostComponents
+        hostComponents: hostComponents,
+        maintenanceState: dbHosts[hostName].maintenance_state
       }))
     }
     return hosts;
@@ -253,7 +256,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     }
     // if going back from Step 9 in Install Wizard, delete the checkpoint so that the user is not redirected
     // to Step 9
-    if (this.get('content.controllerName') == 'installerController' && this.get('currentStep') === '9' && step < 9) {
+    if (this.get('content.controllerName') === 'installerController' && this.get('currentStep') === '9' && step < 9) {
       App.clusterStatus.setClusterStatus({
         clusterName: this.get('clusterName'),
         clusterState: 'CLUSTER_NOT_CREATED_1',
@@ -487,13 +490,13 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
        * @param log
        */
       finishLoading: function (requestId, serverError, status, log) {
-        if (Em.isNone(requestId) || status == 'ERROR') {
+        if (Em.isNone(requestId) || status === 'ERROR') {
           var stepController = App.get('router.wizardStep3Controller');
           this.setProperties({
             isError: true,
             showFooter: true,
             showCloseButton: true,
-            serverError: status == 'ERROR' ? log : serverError
+            serverError: status === 'ERROR' ? log : serverError
           });
           stepController.setProperties({
             isRegistrationInProgress: false,
@@ -654,10 +657,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
       }, this);
     } else {
       jsonData.items.forEach(function (service) {
-        if (savedSelectedServices.contains(service.StackServices.service_name))
-          service.StackServices.is_selected = true;
-        else
-          service.StackServices.is_selected = false;
+        service.StackServices.is_selected = savedSelectedServices.contains(service.StackServices.service_name);
       }, this);
     }
 
@@ -667,10 +667,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
       }, this);
     } else {
       jsonData.items.forEach(function (service) {
-        if (savedInstalledServices.contains(service.StackServices.service_name))
-          service.StackServices.is_installed = true;
-        else
-          service.StackServices.is_installed = false;
+        service.StackServices.is_installed = savedInstalledServices.contains(service.StackServices.service_name);
       }, this);
     }
 
@@ -734,7 +731,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     }
 
     stepController.get('confirmedHosts').forEach(function (_host) {
-      if (_host.bootStatus == 'REGISTERED') {
+      if (_host.bootStatus === 'REGISTERED') {
         hosts[_host.name] = {
           name: _host.name,
           cpu: _host.cpu,
@@ -743,6 +740,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
           os_type: _host.os_type,
           os_arch: _host.os_arch,
           ip: _host.ip,
+          maintenance_state: _host.maintenance_state,
           bootStatus: _host.bootStatus,
           isInstalled: false,
           id: indx++
@@ -913,7 +911,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
       if (installedServiceNamesMap[_content.get('serviceName')]) {
         // get only modified configs
         var configs = _content.get('configs').filter(function (config) {
-          if (config.get('isNotDefaultValue') || (config.get('savedValue') === null)) {
+          if (config.get('isNotDefaultValue') || config.get('savedValue') === null) {
             return config.isRequiredByAgent!== false;
           }
           return false;
@@ -996,7 +994,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     Em.get(configGroup, 'properties').forEach(function (config) {
       hash[Em.get(config, 'name')] = {value: Em.get(config, 'value'), isFinal: Em.get(config, 'isFinal')};
     });
-    hash['hosts'] = hosts || Em.get(configGroup, 'hosts');
+    hash.hosts = hosts || Em.get(configGroup, 'hosts');
     return JSON.stringify(hash);
   },
 
@@ -1019,7 +1017,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
         uninstalledComponents.push(component);
       }
     }, this);
-    installedComponentsMap['HDFS_CLIENT'] = [];
+    installedComponentsMap.HDFS_CLIENT = [];
 
     App.HostComponent.find().forEach(function (hostComponent) {
       if (installedComponentsMap[hostComponent.get('componentName')]) {
@@ -1028,7 +1026,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     }, this);
 
     for (var componentName in installedComponentsMap) {
-      var name = (componentName === 'HDFS_CLIENT') ? 'CLIENT' : componentName;
+      var name = componentName === 'HDFS_CLIENT' ? 'CLIENT' : componentName;
       var component = {
         componentName: name,
         displayName: App.format.role(name, false),
@@ -1127,7 +1125,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     var dfd = $.Deferred();
 
     for (var s in loadMap) {
-      if (parseInt(s) <= parseInt(currentStep)) {
+      if (parseInt(s, 10) <= parseInt(currentStep, 10)) {
         operationStack.pushObjects(loadMap[s]);
       }
     }
@@ -1170,7 +1168,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
       this.setDBProperty('services',services);
     } else {
       App.StackService.find().forEach(function(item) {
-        var isSelected =   services.selectedServices.contains(item.get('serviceName'));
+        var isSelected = services.selectedServices.contains(item.get('serviceName'));
         var isInstalled = services.installedServices.contains(item.get('serviceName'));
         item.set('isSelected', isSelected);
         item.set('isInstalled', isInstalled);

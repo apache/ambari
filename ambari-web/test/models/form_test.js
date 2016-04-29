@@ -37,28 +37,6 @@ var form,
       result: 0
     }
   ],
-  displayTypeCases = [
-    {
-      type: 'checkbox',
-      classString: 'Checkbox'
-    },
-    {
-      type: 'select',
-      classString: 'Select'
-    },
-    {
-      type: 'textarea',
-      classString: 'TextArea'
-    },
-    {
-      type: 'password',
-      classString: 'TextField'
-    },
-    {
-      type: 'hidden',
-      classString: 'TextField'
-    }
-  ],
   hiddenCases = [
     {
       displayType: 'password',
@@ -70,11 +48,7 @@ var form,
       type: 'hidden',
       value: true
     }
-  ],
-  expectError = function (message) {
-    formField.validate();
-    expect(formField.get('errorMessage')).to.equal(message);
-  };
+  ];
 
 
 describe('App.Form', function () {

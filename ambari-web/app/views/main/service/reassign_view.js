@@ -84,6 +84,7 @@ App.ReassignMasterView = Em.View.extend(App.WizardMenuMixin, {
         cpu: item.Hosts.cpu_count,
         memory: item.Hosts.total_mem,
         disk_info: item.Hosts.disk_info,
+        maintenance_state: item.Hosts.maintenance_state,
         bootStatus: "REGISTERED",
         isInstalled: true
       };

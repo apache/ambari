@@ -2453,7 +2453,7 @@ var urls = {
     'mock': '/data/hosts/quick_links.json'
   },
   'hosts.confirmed.install': {
-    'real': '/hosts?fields=Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem&minimal_response=true',
+    'real': '/hosts?fields=Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem,Hosts/maintenance_state&minimal_response=true',
     'mock': ''
   },
   'hosts.confirmed': {
@@ -2551,7 +2551,7 @@ var urls = {
     }
   },
   'hosts.high_availability.wizard': {
-    'real': '/clusters/{clusterName}/hosts?fields=Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem&minimal_response=true',
+    'real': '/clusters/{clusterName}/hosts?fields=Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem,Hosts/maintenance_state&minimal_response=true',
     'mock': ''
   },
   'hosts.security.wizard': {

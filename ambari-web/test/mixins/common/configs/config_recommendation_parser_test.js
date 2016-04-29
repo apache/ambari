@@ -18,6 +18,8 @@
 
 var App = require('app');
 
+var helpers = require('test/helpers');
+
 describe('App.ConfigRecommendationParser', function() {
   var mixinObject = Em.Controller.extend(App.ConfigRecommendationParser, {});
   var instanceObject = mixinObject.create({});
@@ -284,12 +286,7 @@ describe('App.ConfigRecommendationParser', function() {
       };
 
       var test = instanceObject._createNewProperty('name', 'fileName', 'recommendedValue', null);
-
-      for (var k in res) {
-        if (res.hasOwnProperty(k)) {
-          expect(test.get(k)).to.eql(res[k]);
-        }
-      }
+      helpers.nestedExpect([res], [test]);
       expect(instanceObject.applyRecommendation.calledOnce).to.be.true;
     });
 

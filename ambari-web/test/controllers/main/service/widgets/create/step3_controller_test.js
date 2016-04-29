@@ -30,10 +30,6 @@ describe('App.WidgetWizardStep3Controller', function () {
 
   App.TestAliases.testAsComputedIfThenElse(controller, 'widgetScope', 'isSharedChecked', 'Cluster', 'User');
 
-  //App.TestAliases.testAsComputedGte(controller, 'isNameInvalid', 'widgetName.length', 129);
-
-  //App.TestAliases.testAsComputedGte(controller, 'isDescriptionInvalid', 'widgetDescription.length', 2049);
-
   App.TestAliases.testAsComputedOr(controller, 'isSubmitDisabled', ['widgetNameEmpty', 'isNameInvalid', 'isDescriptionInvalid']);
 
   describe("#validateName", function(){
@@ -68,15 +64,12 @@ describe('App.WidgetWizardStep3Controller', function () {
       }
     ];
 
-    testCases.forEach(function(test){
-      controller.setProperties({
-        widgetName: test.widgetName
+    testCases.forEach(function(test) {
+      it(JSON.stringify(test.widgetName), function () {
+        controller.set('widgetName', test.widgetName);
+        expect(controller.get('widgetNameErrorMessage')).to.equal(test.result.errorMessage);
+        expect(controller.get('isNameInvalid')).to.equal(test.result.isNameInvalid);
       });
-
-      //Since validateName() observes the property "widgetName", Ember framework will call it
-
-      expect(controller.get('widgetNameErrorMessage')).to.equal(test.result.errorMessage);
-      expect(controller.get('isNameInvalid')).to.equal(test.result.isNameInvalid);
     });
   });
 
@@ -113,14 +106,11 @@ describe('App.WidgetWizardStep3Controller', function () {
     ];
 
     testCases.forEach(function(test){
-      controller.setProperties({
-        widgetDescription: test.widgetDescription
+      it(JSON.stringify(test.widgetDescription), function () {
+        controller.set('widgetDescription', test.widgetDescription);
+        expect(controller.get('descriptionErrorMessage')).to.equal(test.result.errorMessage);
+        expect(controller.get('isDescriptionInvalid')).to.equal(test.result.isDescriptionInvalid);
       });
-
-      //Since validateDescription() observes the property "widgetDescription", Ember framework will call it
-
-      expect(controller.get('descriptionErrorMessage')).to.equal(test.result.errorMessage);
-      expect(controller.get('isDescriptionInvalid')).to.equal(test.result.isDescriptionInvalid);
     });
   });
 
