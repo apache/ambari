@@ -37,6 +37,7 @@ App.stackMapper = App.QuickDataMapper.create({
     max_jdk_version: 'max_jdk',
     is_selected: 'is_selected',
     config_types: 'config_types',
+    use_redhat_satellite: 'use_redhat_satellite',
     stack_services_key: 'stack_services',
     stack_services_type: 'array',
     stack_services: {
@@ -136,6 +137,7 @@ App.stackMapper = App.QuickDataMapper.create({
         servicesArray.pushObject(serviceObj);
       }, this);
 
+      stack.use_redhat_satellite = item.operating_systems[0].OperatingSystems.ambari_managed_repositories === false;
       stack.stack_services = servicesArray;
       stack.operating_systems = operatingSystemsArray;
       resultStack.push(this.parseIt(stack, this.get('configStack')));

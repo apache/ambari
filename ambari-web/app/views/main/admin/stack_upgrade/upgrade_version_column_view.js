@@ -25,7 +25,6 @@ App.UpgradeVersionColumnView = App.UpgradeVersionBoxView.extend({
   classNames: ['version-column', 'span4'],
 
   didInsertElement: function () {
-    App.tooltip($('.link-tooltip'), {title: Em.I18n.t('admin.stackVersions.version.linkTooltip')});
     App.tooltip($('.out-of-sync-badge'), {title: Em.I18n.t('hosts.host.stackVersions.status.out_of_sync')});
 
     //set the width, height of each version colum dynamically

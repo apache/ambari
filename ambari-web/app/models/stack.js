@@ -25,6 +25,7 @@ App.Stack = DS.Model.extend({
   repositoryVersion: DS.attr('string'),
   showAvailable: DS.attr('boolean'),  // All of the instances should have this value to true. We should map only those stacks that has this flag set to true
   type: DS.attr('string'), // ["PATCH", "STANDARD"]
+  useRedhatSatellite: DS.attr('boolean'),
   stackServices: DS.hasMany('App.ServiceSimple'),
   operatingSystems: DS.hasMany('App.OperatingSystem'),
   isSelected: DS.attr('boolean', {defaultValue: false}),

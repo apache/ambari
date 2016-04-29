@@ -2186,7 +2186,7 @@ var urls = {
   },
 
   'wizard.stacks_versions_definitions': {
-    'real': '/version_definitions?fields=operating_systems/repositories/Repositories/*,VersionDefinition/stack_services,VersionDefinition/repository_version' +
+    'real': '/version_definitions?fields=operating_systems/repositories/Repositories/*,operating_systems/OperatingSystems/*,VersionDefinition/stack_services,VersionDefinition/repository_version' +
       '&VersionDefinition/show_available=true&VersionDefinition/stack_name={stackName}',
     'mock': '/data/wizard/stack/{stackName}_version_definitions.json'
   },

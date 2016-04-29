@@ -341,7 +341,7 @@ App.InstallerController = App.WizardController.extend({
         var versionData = self.getSelectedRepoVersionData();
         if (versionData) {
           self.postVersionDefinitionFile(versionData.isXMLdata, versionData.data).done(function (versionInfo) {
-            self.mergeChanges(repos);
+            self.mergeChanges(repos, stacks);
             App.Stack.find().setEach('isSelected', false);
             App.Stack.find().findProperty('id', versionInfo.stackNameVersion + "-" + versionInfo.actualVersion).set('isSelected', true);
             self.setSelected(isStacksExistInDb);
@@ -353,9 +353,15 @@ App.InstallerController = App.WizardController.extend({
     });
   },
 
-  mergeChanges: function (repos) {
+  mergeChanges: function (repos, stacks) {
     repos.forEach(function (repo) {
       App.Repository.find().findProperty('id', repo.id).set('baseUrl', repo.base_url);
+    });
+    stacks.forEach(function (_stack) {
+      var stack = App.Stack.find().findProperty('id', _stack.id);
+      if (stack) {
+        stack.set('useRedhatSatellite', _stack.use_redhat_satellite);
+      }
     });
   },
 
@@ -782,10 +788,12 @@ App.InstallerController = App.WizardController.extend({
    */
   prepareRepoForSaving: function(repo) {
     var repoVersion = { "operating_systems": [] };
+    var ambari_managed_repositories = !repo.get('useRedhatSatellite');
     repo.get('operatingSystems').forEach(function (os, k) {
       repoVersion.operating_systems.push({
         "OperatingSystems": {
-          "os_type": os.get("osType")
+          "os_type": os.get("osType"),
+          "ambari_managed_repositories": ambari_managed_repositories
         },
         "repositories": []
       });
