@@ -695,6 +695,8 @@ public class Configuration {
   private static final String AUDIT_LOGGER_CAPACITY = "auditlog.logger.capacity";
   private static final int AUDIT_LOGGER_CAPACITY_DEFAULT = 10000;
 
+  public static final String ALERTS_SNMP_DISPATCH_UDP_PORT = "alerts.snmp.dispatcher.udp.port";
+
   private static final Logger LOG = LoggerFactory.getLogger(
     Configuration.class);
 
@@ -2921,5 +2923,14 @@ public class Configuration {
     return NumberUtils.toInt(
       properties.getProperty(AUDIT_LOGGER_CAPACITY),
       AUDIT_LOGGER_CAPACITY_DEFAULT);
+  }
+
+  /**
+   * Customized UDP port for SNMP dispatcher
+   * @return Integer if property exists else null
+   */
+  public Integer getSNMPUdpBindPort() {
+    String udpPort = properties.getProperty(ALERTS_SNMP_DISPATCH_UDP_PORT);
+    return StringUtils.isEmpty(udpPort) ? null : Integer.parseInt(udpPort);
   }
 }

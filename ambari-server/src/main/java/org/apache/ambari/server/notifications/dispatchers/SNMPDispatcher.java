@@ -84,12 +84,32 @@ public class SNMPDispatcher implements NotificationDispatcher {
 
   private Snmp snmp;
 
+  private Integer port;
+
   public SNMPDispatcher(Snmp snmp) {
     this.snmp = snmp;
   }
 
   public SNMPDispatcher() throws IOException {
-    this(new Snmp(new DefaultUdpTransportMapping()));
+    this((Integer) null);
+  }
+
+  /**
+   * Creates SNMP server with specified port. In case port is null will be used random value as default
+   * @param port port
+   * @throws IOException
+   */
+  public SNMPDispatcher(Integer port) throws IOException {
+    if(port != null && port >= 0 && port <= '\uffff') {
+      //restrict invalid ports to avoid exception on socket create
+      this.port = port;
+    }
+    if (port != null) {
+      LOG.info("Setting SNMP dispatch port: " + port);
+      this.snmp = new Snmp(new DefaultUdpTransportMapping(new UdpAddress(port), true));
+    } else {
+      this.snmp = new Snmp(new DefaultUdpTransportMapping());
+    }
   }
 
   /**
@@ -391,5 +411,9 @@ public class SNMPDispatcher implements NotificationDispatcher {
     if (notification.Callback != null) {
       notification.Callback.onSuccess(notification.CallbackIds);
     }
+  }
+
+  public Integer getPort() {
+    return port;
   }
 }
