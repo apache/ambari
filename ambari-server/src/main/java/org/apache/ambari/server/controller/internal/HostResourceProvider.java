@@ -887,6 +887,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       } catch (Exception ex) {
         deleteStatusMetaData.addException(hostname, ex);
       }
+      removeHostFromClusterTopology(clusters, hostRequest);
       for (LogicalRequest logicalRequest: topologyManager.getRequests(Collections.<Long>emptyList())) {
         logicalRequest.removeHostRequestByHostName(hostname);
       }
@@ -918,7 +919,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
 
         if (!list.isEmpty()) {
 
-          List<String> componentsToRemove = new ArrayList<String>();
+          List<String> componentsToRemove = new ArrayList<>();
           for (ServiceComponentHost sch : list) {
             Service s = cluster.getService(sch.getServiceName());
             ServiceComponent sc = s.getServiceComponent(sch.getServiceComponentName());
@@ -951,8 +952,8 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
    * @throws AmbariException
    */
   private void removeHostFromClusterTopology(Clusters clusters, HostRequest hostRequest) throws AmbariException{
-    if(hostRequest.getClusterName() == null) {
-      for( Cluster c : clusters.getClusters().values()) {
+    if (hostRequest.getClusterName() == null) {
+      for (Cluster c : clusters.getClusters().values()) {
         removeHostFromClusterTopology(c.getClusterId(), hostRequest.getHostname());
       }
     } else {

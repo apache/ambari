@@ -54,6 +54,7 @@ import org.apache.ambari.server.state.HostConfig;
 import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
@@ -238,9 +239,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
     propertyIds.add(HostResourceProvider.HOST_NAME_PROPERTY_ID);
     propertyIds.add(HostResourceProvider.HOST_MAINTENANCE_STATE_PROPERTY_ID);
 
-    Predicate predicate =
-        new PredicateBuilder().property(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").
-            toPredicate();
+    Predicate predicate = buildPredicate("Cluster100", null);
     Request request = PropertyHelper.getReadRequest(propertyIds);
 
     // replay
@@ -343,9 +342,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
     propertyIds.add(HostResourceProvider.HOST_NAME_PROPERTY_ID);
     propertyIds.add(HostResourceProvider.HOST_HOST_STATUS_PROPERTY_ID);
 
-    Predicate predicate =
-        new PredicateBuilder().property(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").
-            toPredicate();
+    Predicate predicate = buildPredicate("Cluster100", null);
     Request request = PropertyHelper.getReadRequest(propertyIds);
 
     // replay
@@ -439,9 +436,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
     propertyIds.add(HostResourceProvider.HOST_NAME_PROPERTY_ID);
     propertyIds.add(HostResourceProvider.HOST_HOST_STATUS_PROPERTY_ID);
 
-    Predicate predicate =
-        new PredicateBuilder().property(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").
-            toPredicate();
+    Predicate predicate = buildPredicate("Cluster100", null);
     Request request = PropertyHelper.getReadRequest(propertyIds);
 
     // replay
@@ -541,9 +536,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
     propertyIds.add(HostResourceProvider.HOST_NAME_PROPERTY_ID);
     propertyIds.add(HostResourceProvider.HOST_HOST_STATUS_PROPERTY_ID);
 
-    Predicate predicate =
-        new PredicateBuilder().property(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").
-            toPredicate();
+    Predicate predicate = buildPredicate("Cluster100", null);
     Request request = PropertyHelper.getReadRequest(propertyIds);
 
     // replay
@@ -588,7 +581,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
 
     Host host100 = createMockHost("Host100", "Cluster100", null, "UNKNOWN", "RECOVERABLE", null);
 
-    Set<Cluster> clusterSet = new HashSet<Cluster>();
+    Set<Cluster> clusterSet = new HashSet<>();
     clusterSet.add(cluster);
 
     // set expectations
@@ -620,9 +613,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
     propertyIds.add(HostResourceProvider.HOST_NAME_PROPERTY_ID);
     propertyIds.add(HostResourceProvider.HOST_HOST_STATUS_PROPERTY_ID);
 
-    Predicate predicate =
-        new PredicateBuilder().property(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").
-            toPredicate();
+    Predicate predicate = buildPredicate("Cluster100", null);
     Request request = PropertyHelper.getReadRequest(propertyIds);
 
     // replay
@@ -727,9 +718,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
     propertyIds.add(HostResourceProvider.HOST_RECOVERY_REPORT_PROPERTY_ID);
     propertyIds.add(HostResourceProvider.HOST_RECOVERY_SUMMARY_PROPERTY_ID);
 
-    Predicate predicate =
-        new PredicateBuilder().property(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").
-            toPredicate();
+    Predicate predicate = buildPredicate("Cluster100", null);
     Request request = PropertyHelper.getReadRequest(propertyIds);
 
     // replay
@@ -825,9 +814,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
     propertyIds.add(HostResourceProvider.HOST_NAME_PROPERTY_ID);
     propertyIds.add(HostResourceProvider.HOST_HOST_STATUS_PROPERTY_ID);
 
-    Predicate predicate =
-        new PredicateBuilder().property(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").
-            toPredicate();
+    Predicate predicate = buildPredicate("Cluster100", null);
     Request request = PropertyHelper.getReadRequest(propertyIds);
 
     // replay
@@ -890,7 +877,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
 
     AbstractControllerResourceProvider.init(resourceProviderFactory);
 
-    Set<Cluster> clusterSet = new HashSet<Cluster>();
+    Set<Cluster> clusterSet = new HashSet<>();
     clusterSet.add(cluster);
 
     Host host100 = createMockHost("Host100", "Cluster100", null, "HEALTHY", "RECOVERABLE", null);
@@ -937,9 +924,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
     // create the request
     Request request = PropertyHelper.getUpdateRequest(properties, null);
 
-    Predicate predicate = new PredicateBuilder().property(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID).
-        equals("Cluster100").
-        and().property(HostResourceProvider.HOST_NAME_PROPERTY_ID).equals("Host100").toPredicate();
+    Predicate predicate = buildPredicate("Cluster100", "Host100");
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         Resource.Type.Host,
@@ -1033,9 +1018,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
     // create the request
     Request request = PropertyHelper.getUpdateRequest(properties, null);
 
-    Predicate predicate = new PredicateBuilder().property(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID).
-        equals("Cluster100").
-        and().property(HostResourceProvider.HOST_NAME_PROPERTY_ID).equals("Host100").toPredicate();
+    Predicate predicate = buildPredicate("Cluster100", "Host100");
     provider.updateResources(request, predicate);
 
     // verify
@@ -1061,48 +1044,39 @@ public class HostResourceProviderTest extends EasyMockSupport {
     Injector injector = createInjector();
     AmbariManagementController managementController = injector.getInstance(AmbariManagementController.class);
     Clusters clusters = injector.getInstance(Clusters.class);
+    SecurityContextHolder.getContext().setAuthentication(authentication);
     Cluster cluster = createMock(Cluster.class);
     Host host1 = createNiceMock(Host.class);
+    ResourceProvider provider = getHostProvider(injector);
     HostHealthStatus healthStatus = createNiceMock(HostHealthStatus.class);
+    TopologyManager topologyManager = createNiceMock(TopologyManager.class);
+    HostResourceProvider.setTopologyManager(topologyManager);
 
-    List<Host> hosts = new LinkedList<Host>();
-    hosts.add(host1);
-
-    Set<Cluster> clusterSet = new HashSet<Cluster>();
+    Set<Cluster> clusterSet = new HashSet<>();
 
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
-    expect(clusters.getHosts()).andReturn(hosts).anyTimes();
+    expect(clusters.getHosts()).andReturn(Arrays.asList(host1)).anyTimes();
     expect(clusters.getHost("Host100")).andReturn(host1).anyTimes();
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
     expect(clusters.getClustersForHost("Host100")).andReturn(clusterSet).anyTimes();
+    expect(cluster.getServiceComponentHosts("Host100")).andReturn(Collections.EMPTY_LIST);
+    expect(cluster.getClusterId()).andReturn(100L).anyTimes();
     clusters.deleteHost("Host100");
-    expectLastCall().anyTimes();
+    cluster.recalculateAllClusterVersionStates();
     expect(host1.getHostName()).andReturn("Host100").anyTimes();
     expect(healthStatus.getHealthStatus()).andReturn(HostHealthStatus.HealthStatus.HEALTHY).anyTimes();
     expect(healthStatus.getHealthReport()).andReturn("HEALTHY").anyTimes();
+    expect(topologyManager.getRequests(Collections.EMPTY_LIST)).andReturn(Collections.EMPTY_LIST).anyTimes();
 
     // replay
     replayAll();
 
-    SecurityContextHolder.getContext().setAuthentication(authentication);
-
-    TopologyManager topologyManager = EasyMock.createNiceMock(TopologyManager.class);
-    expect(topologyManager.getRequests(Collections.EMPTY_LIST)).andReturn(Collections.EMPTY_LIST).anyTimes();
-
-    replay(topologyManager);
-
-    ResourceProvider provider = getHostProvider(injector);
-    HostResourceProvider.setTopologyManager(topologyManager);
-
     AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
-
     ((ObservableResourceProvider) provider).addObserver(observer);
 
-    Predicate predicate = new PredicateBuilder().property(HostResourceProvider.HOST_NAME_PROPERTY_ID).equals("Host100").
-        toPredicate();
+    Predicate predicate = buildPredicate("Cluster100", "Host100");
     provider.deleteResources(new RequestImpl(null, null, null, null), predicate);
-
 
     ResourceProviderEvent lastEvent = observer.getLastEvent();
     Assert.assertNotNull(lastEvent);
@@ -1157,7 +1131,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
     // requests
     HostRequest request1 = new HostRequest("host1", "cluster1", Collections.<String, String>emptyMap());
 
-    Set<HostRequest> setRequests = new HashSet<HostRequest>();
+    Set<HostRequest> setRequests = new HashSet<>();
     setRequests.add(request1);
 
     // expectations
@@ -1190,7 +1164,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
   /**
    * Ensure that HostNotFoundException is propagated in case where there is a single request.
    */
-  @Test
+  @Test(expected = HostNotFoundException.class)
   public void testGetHosts___HostNotFoundException() throws Exception {
     // member state mocks
     Injector injector = createInjector();
@@ -1212,21 +1186,15 @@ public class HostResourceProviderTest extends EasyMockSupport {
     replayAll();
 
     SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+    getHosts(managementController, setRequests);
 
-    // assert that exception is thrown in case where there is a single request
-    try {
-      getHosts(managementController, setRequests);
-      fail("expected HostNotFoundException");
-    } catch (HostNotFoundException e) {
-      // expected
-    }
     verifyAll();
   }
 
   /**
    * Ensure that HostNotFoundException is propagated in case where there is a single request.
    */
-  @Test
+  @Test(expected = HostNotFoundException.class)
   public void testGetHosts___HostNotFoundException_HostNotAssociatedWithCluster() throws Exception {
     // member state mocks
     Injector injector = createInjector();
@@ -1252,15 +1220,8 @@ public class HostResourceProviderTest extends EasyMockSupport {
     replayAll();
 
     SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+    getHosts(managementController, setRequests);
 
-    //test
-    // assert that exception is thrown in case where there is a single request
-    try {
-      getHosts(managementController, setRequests);
-      fail("expected HostNotFoundException");
-    } catch (HostNotFoundException e) {
-      // expected
-    }
     verifyAll();
   }
 
@@ -1431,5 +1392,17 @@ public class HostResourceProviderTest extends EasyMockSupport {
     host.setRackInfo(EasyMock.<String>anyObject());
     expectLastCall().anyTimes();
     return host;
+  }
+
+  private Predicate buildPredicate(String clusterName, String hostName) {
+    PredicateBuilder builder = new PredicateBuilder();
+    if (clusterName != null && hostName != null) {
+      return builder.property(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID).equals(clusterName)
+      .and().property(HostResourceProvider.HOST_NAME_PROPERTY_ID).equals(hostName).toPredicate();
+    }
+
+    return clusterName != null ?
+            builder.property(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID).equals(clusterName).toPredicate() :
+            builder.property(HostResourceProvider.HOST_NAME_PROPERTY_ID).equals(hostName).toPredicate();
   }
 }
