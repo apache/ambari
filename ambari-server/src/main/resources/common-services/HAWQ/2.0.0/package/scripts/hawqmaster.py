@@ -39,11 +39,13 @@ class HawqMaster(Script):
     self.install_packages(env)
     self.configure(env)
 
+
   def configure(self, env):
     import params
     env.set_params(params)
     env.set_params(hawq_constants)
     master_helper.configure_master()
+
 
   def start(self, env):
     import params
@@ -56,17 +58,19 @@ class HawqMaster(Script):
       master_helper.setup_passwordless_ssh()
     common.start_component(hawq_constants.MASTER, params.hawq_master_address_port, params.hawq_master_dir)
 
+
   def stop(self, env):
-    import params
     common.stop_component(hawq_constants.MASTER, hawq_constants.FAST)
+
 
   def status(self, env):
     from hawqstatus import assert_component_running
     assert_component_running(hawq_constants.MASTER)
 
+
   def immediate_stop_hawq_service(self, env):
-    import params
     common.stop_component(hawq_constants.CLUSTER, hawq_constants.IMMEDIATE)
+
 
   def hawq_clear_cache(self, env):
     import params
@@ -75,24 +79,42 @@ class HawqMaster(Script):
     Logger.info("Clearing HAWQ's HDFS Metadata cache ...")
     exec_psql_cmd(cmd, params.hawqmaster_host, params.hawq_master_address_port)
 
+
   def run_hawq_check(self, env):
     import params
     Logger.info("Executing HAWQ Check ...")
     params.File(hawq_constants.hawq_hosts_file, content=InlineTemplate("{% for host in hawq_all_hosts %}{{host}}\n{% endfor %}"))
-    Execute("source {0} && hawq check -f {1} --hadoop {2} --config {3}".format(hawq_constants.hawq_greenplum_path_file,
-                                                                               hawq_constants.hawq_hosts_file,
-                                                                               stack_select.get_hadoop_dir('home'),
-                                                                               hawq_constants.hawq_check_file),
+
+    additional_flags = list()
+
+    if params.dfs_nameservice:
+      additional_flags.append("--hdfs-ha")
+
+    if params.hawq_global_rm_type == "yarn":
+      yarn_option = "--yarn-ha" if params.is_yarn_ha_enabled else "--yarn"
+      additional_flags.append(yarn_option)
+
+    if str(params.security_enabled).lower() == "true":
+      additional_flags.append("--kerberos")
+
+    Execute("source {0} && hawq check -f {1} --hadoop {2} --config {3} {4}".format(hawq_constants.hawq_greenplum_path_file,
+                                                                                   hawq_constants.hawq_hosts_file,
+                                                                                   stack_select.get_hadoop_dir('home'),
+                                                                                   hawq_constants.hawq_check_file,
+                                                                                   " ".join(additional_flags)),
             user=hawq_constants.hawq_user,
             timeout=hawq_constants.default_exec_timeout)
+
 
   def resync_hawq_standby(self,env):
     Logger.info("HAWQ Standby Master Re-Sync started in fast mode...")
     utils.exec_hawq_operation(hawq_constants.INIT, "{0} -n -a -v -M {1}".format(hawq_constants.STANDBY, hawq_constants.FAST))
 
+
   def remove_hawq_standby(self, env):
     Logger.info("Removing HAWQ Standby Master ...")
     utils.exec_hawq_operation(hawq_constants.INIT, "{0} -a -v -r --ignore-bad-hosts".format(hawq_constants.STANDBY))
+
 
 if __name__ == "__main__":
   HawqMaster().execute()

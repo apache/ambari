@@ -18,9 +18,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+import os, json
+import  resource_management.libraries.functions
+
 from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
-import  resource_management.libraries.functions
 
 @patch.object(resource_management.libraries.functions, 'check_process_status', new = MagicMock())
 class TestHawqMaster(RMFTestCase):
@@ -29,6 +31,16 @@ class TestHawqMaster(RMFTestCase):
   GPADMIN = 'gpadmin'
   POSTGRES = 'postgres'
   DEFAULT_IMMUTABLE_PATHS = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp']
+  CONFIG_FILE = os.path.join(os.path.dirname(__file__), '../configs/hawq_default.json')
+  HAWQ_CHECK_COMMAND = 'source /usr/local/hawq/greenplum_path.sh && hawq check -f /usr/local/hawq/etc/hawq_hosts --hadoop /usr/phd/current/hadoop-client --config /usr/local/hawq/etc/hawq_check.cnf '
+
+  def setUp(self):
+    try:
+      with open(self.CONFIG_FILE, "r") as f:
+        self.config_dict = json.load(f)
+    except IOError:
+      raise RuntimeError("Can not read config file: " + self.CONFIG_FILE)
+
 
   def __asserts_for_configure(self):
 
@@ -122,7 +134,7 @@ class TestHawqMaster(RMFTestCase):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + '/scripts/hawqmaster.py',
         classname = 'HawqMaster',
         command = 'configure',
-        config_file ='hawq_default.json',
+        config_dict = self.config_dict,
         stack_version = self.STACK_VERSION,
         target = RMFTestCase.TARGET_COMMON_SERVICES
         )
@@ -137,7 +149,7 @@ class TestHawqMaster(RMFTestCase):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + '/scripts/hawqmaster.py',
         classname = 'HawqMaster',
         command = 'install',
-        config_file ='hawq_default.json',
+        config_dict = self.config_dict,
         stack_version = self.STACK_VERSION,
         target = RMFTestCase.TARGET_COMMON_SERVICES
         )
@@ -151,7 +163,7 @@ class TestHawqMaster(RMFTestCase):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + '/scripts/hawqmaster.py',
         classname = 'HawqMaster',
         command = 'start',
-        config_file ='hawq_default.json',
+        config_dict = self.config_dict,
         stack_version = self.STACK_VERSION,
         target = RMFTestCase.TARGET_COMMON_SERVICES
         )
@@ -198,25 +210,217 @@ class TestHawqMaster(RMFTestCase):
     self.assertNoMoreResources()
 
 
-  @patch ('hawqmaster.common.__set_osparams')
-  @patch ('common.get_local_hawq_site_property_value')
-  def test_stop_default(self, get_local_hawq_site_property_value_mock, set_osparams_mock):
-    get_local_hawq_site_property_value_mock.return_value = 5432
+  def __asserts_for_stop(self, componentCommand, expectedCommand):
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + '/scripts/hawqmaster.py',
         classname = 'HawqMaster',
-        command = 'stop',
-        config_file ='hawq_default.json',
+        command = componentCommand,
+        config_dict = self.config_dict,
         stack_version = self.STACK_VERSION,
         target = RMFTestCase.TARGET_COMMON_SERVICES
         )
 
-    self.assertResourceCalled('Execute', 'source /usr/local/hawq/greenplum_path.sh && hawq stop master -M fast -a -v',
-        logoutput = True, 
-        not_if = None, 
+    self.assertResourceCalled('Execute', expectedCommand,
+        logoutput = True,
+        not_if = None,
         only_if = "netstat -tupln | egrep ':5432\\s' | egrep postgres",
         user = self.GPADMIN,
         timeout = 900
+        )
+
+    self.assertNoMoreResources()
+
+
+  @patch ('hawqmaster.common.__set_osparams')
+  @patch ('common.get_local_hawq_site_property_value')
+  def test_stop_default(self, get_local_hawq_site_property_value_mock, set_osparams_mock):
+    """ Run Stop HAWQMASTER """
+
+    get_local_hawq_site_property_value_mock.return_value = 5432
+    self.__asserts_for_stop('stop', 'source /usr/local/hawq/greenplum_path.sh && hawq stop master -M fast -a -v')
+
+
+  @patch ('hawqmaster.common.__set_osparams')
+  @patch ('common.get_local_hawq_site_property_value')
+  def test_stop_cluster_immediate(self, get_local_hawq_site_property_value_mock, set_osparams_mock):
+    """ Run Stop HAWQ Cluster Immediate Mode """
+
+    get_local_hawq_site_property_value_mock.return_value = 5432
+    self.__asserts_for_stop('immediate_stop_hawq_service','source /usr/local/hawq/greenplum_path.sh && hawq stop cluster -M immediate -a -v')
+
+
+  def __asserts_for_hawq_check(self, expectedCommand):
+
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + '/scripts/hawqmaster.py',
+        classname = 'HawqMaster',
+        command = 'run_hawq_check',
+        config_dict = self.config_dict,
+        stack_version = self.STACK_VERSION,
+        target = RMFTestCase.TARGET_COMMON_SERVICES
+        )
+
+    self.assertResourceCalled('File', "/usr/local/hawq/etc/hawq_hosts",
+        content = InlineTemplate("{% for host in hawq_all_hosts %}{{host}}\n{% endfor %}"),
+        group = self.GPADMIN,
+        owner = self.GPADMIN,
+        mode = 0644
+        )
+
+    self.assertResourceCalled('Execute', expectedCommand,
+        user=self.GPADMIN,
+        timeout=600
+        )
+
+    self.assertNoMoreResources()
+
+
+  def test_run_hawq_check_case1(self):
+    """ Running HAWQ Check Case 1: Non HDFS-HA, Standalone Resource Management, Not Kerberized """
+
+    expectedCommand = self.HAWQ_CHECK_COMMAND
+    self.__asserts_for_hawq_check(expectedCommand)
+
+
+  def test_run_hawq_check_case2(self):
+    """ Running HAWQ Check Case 2: Non HDFS-HA, Standalone Resource Management, Kerberized """
+
+    self.config_dict['configurations']['cluster-env']['security_enabled'] = "true"
+    expectedCommand = "{0}--kerberos".format(self.HAWQ_CHECK_COMMAND)
+    self.__asserts_for_hawq_check(expectedCommand)
+
+
+  def test_run_hawq_check_case3(self):
+    """ Running HAWQ Check Case 3: Non HDFS-HA, YARN Resource Management Non YARN_HA, Not Kerberized """
+
+    self.config_dict['configurations']['hawq-site']['hawq_global_rm_type'] = "yarn"
+    expectedCommand = "{0}--yarn".format(self.HAWQ_CHECK_COMMAND)
+    self.__asserts_for_hawq_check(expectedCommand)
+
+
+  def test_run_hawq_check_case4(self):
+    """ Running HAWQ Check Case 4: Non HDFS-HA, YARN Resource Management Non YARN_HA, Kerberized """
+
+    self.config_dict['configurations']['cluster-env']['security_enabled'] = "true"
+    self.config_dict['configurations']['hawq-site']['hawq_global_rm_type'] = "yarn"
+    expectedCommand = "{0}--yarn --kerberos".format(self.HAWQ_CHECK_COMMAND)
+    self.__asserts_for_hawq_check(expectedCommand)
+
+
+  def test_run_hawq_check_case5(self):
+    """ Running HAWQ Check Case 5: Non HDFS-HA, YARN Resource Management YARN_HA, Not Kerberized """
+
+    self.config_dict['configurations']['yarn-site']['yarn.resourcemanager.ha.enabled'] = "true"
+    self.config_dict['configurations']['hawq-site']['hawq_global_rm_type'] = "yarn"
+    expectedCommand = "{0}--yarn-ha".format(self.HAWQ_CHECK_COMMAND)
+    self.__asserts_for_hawq_check(expectedCommand)
+
+
+  def test_run_hawq_check_case6(self):
+    """ Running HAWQ Check Case 6: Non HDFS-HA, YARN Resource Management YARN_HA, Kerberized """
+
+    self.config_dict['configurations']['cluster-env']['security_enabled'] = "true"
+    self.config_dict['configurations']['yarn-site']['yarn.resourcemanager.ha.enabled'] = "true"
+    self.config_dict['configurations']['hawq-site']['hawq_global_rm_type'] = "yarn"
+    expectedCommand = "{0}--yarn-ha --kerberos".format(self.HAWQ_CHECK_COMMAND)
+    self.__asserts_for_hawq_check(expectedCommand)
+
+
+  def test_run_hawq_check_case7(self):
+    """ Running HAWQ Check Case 7: HDFS-HA, Standalone Resource Management, Not Kerberized """
+
+    self.config_dict['configurations']['hdfs-site']['dfs.nameservices'] = "haservice"
+    expectedCommand = "{0}--hdfs-ha".format(self.HAWQ_CHECK_COMMAND)
+    self.__asserts_for_hawq_check(expectedCommand)
+
+
+  def test_run_hawq_check_case8(self):
+    """ Running HAWQ Check Case 8: HDFS-HA, Standalone Resource Management, Kerberized """
+
+    self.config_dict['configurations']['cluster-env']['security_enabled'] = "true"
+    self.config_dict['configurations']['hdfs-site']['dfs.nameservices'] = "haservice"
+    expectedCommand = "{0}--hdfs-ha --kerberos".format(self.HAWQ_CHECK_COMMAND)
+    self.__asserts_for_hawq_check(expectedCommand)
+
+
+  def test_run_hawq_check_case9(self):
+    """ Running HAWQ Check Case 9: HDFS-HA, YARN Resource Management Non YARN_HA, Not Kerberized """
+
+    self.config_dict['configurations']['hawq-site']['hawq_global_rm_type'] = "yarn"
+    self.config_dict['configurations']['hdfs-site']['dfs.nameservices'] = "haservice"
+    expectedCommand = "{0}--hdfs-ha --yarn".format(self.HAWQ_CHECK_COMMAND)
+    self.__asserts_for_hawq_check(expectedCommand)
+
+
+  def test_run_hawq_check_case10(self):
+    """ Running HAWQ Check Case 10: HDFS-HA, YARN Resource Management Non YARN_HA, Kerberized """
+
+    self.config_dict['configurations']['cluster-env']['security_enabled'] = "true"
+    self.config_dict['configurations']['hawq-site']['hawq_global_rm_type'] = "yarn"
+    self.config_dict['configurations']['hdfs-site']['dfs.nameservices'] = "haservice"
+    expectedCommand = "{0}--hdfs-ha --yarn --kerberos".format(self.HAWQ_CHECK_COMMAND)
+    self.__asserts_for_hawq_check(expectedCommand)
+
+
+  def test_run_hawq_check_case11(self):
+    """ Running HAWQ Check Case 11: HDFS-HA, YARN Resource Management YARN_HA, Not Kerberized """
+
+    self.config_dict['configurations']['yarn-site']['yarn.resourcemanager.ha.enabled'] = "true"
+    self.config_dict['configurations']['hawq-site']['hawq_global_rm_type'] = "yarn"
+    self.config_dict['configurations']['hdfs-site']['dfs.nameservices'] = "haservice"
+    expectedCommand = "{0}--hdfs-ha --yarn-ha".format(self.HAWQ_CHECK_COMMAND)
+    self.__asserts_for_hawq_check(expectedCommand)
+
+
+  def test_run_hawq_check_case12(self):
+    """ Running HAWQ Check Case 12: HDFS-HA, YARN Resource Management YARN_HA, Kerberized """
+
+    self.config_dict['configurations']['cluster-env']['security_enabled'] = "true"
+    self.config_dict['configurations']['yarn-site']['yarn.resourcemanager.ha.enabled'] = "true"
+    self.config_dict['configurations']['hawq-site']['hawq_global_rm_type'] = "yarn"
+    self.config_dict['configurations']['hdfs-site']['dfs.nameservices'] = "haservice"
+    expectedCommand = "{0}--hdfs-ha --yarn-ha --kerberos".format(self.HAWQ_CHECK_COMMAND)
+    self.__asserts_for_hawq_check(expectedCommand)
+
+
+  def test_resync_hawq_standby(self):
+    """ Run custom command Resync HAWQ Standby """
+
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + '/scripts/hawqmaster.py',
+        classname = 'HawqMaster',
+        command = 'resync_hawq_standby',
+        config_dict = self.config_dict,
+        stack_version = self.STACK_VERSION,
+        target = RMFTestCase.TARGET_COMMON_SERVICES
+        )
+
+    self.assertResourceCalled('Execute', 'source /usr/local/hawq/greenplum_path.sh && hawq init standby -n -a -v -M fast',
+        user = self.GPADMIN,
+        timeout = 900,
+        not_if = None,
+        only_if = None,
+        logoutput = True
+        )
+
+    self.assertNoMoreResources()
+
+
+  def test_remove_hawq_standby(self):
+    """ Run custom command Remove HAWQ Standby """
+
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + '/scripts/hawqmaster.py',
+        classname = 'HawqMaster',
+        command = 'remove_hawq_standby',
+        config_dict = self.config_dict,
+        stack_version = self.STACK_VERSION,
+        target = RMFTestCase.TARGET_COMMON_SERVICES
+        )
+
+    self.assertResourceCalled('Execute', 'source /usr/local/hawq/greenplum_path.sh && hawq init standby -a -v -r --ignore-bad-hosts',
+        user = self.GPADMIN,
+        timeout = 900,
+        not_if = None,
+        only_if = None,
+        logoutput = True
         )
 
     self.assertNoMoreResources()

@@ -69,6 +69,8 @@ dfs_nameservice = default('/configurations/hdfs-site/dfs.internal.nameservices',
 if dfs_nameservice is None:
  dfs_nameservice = default('/configurations/hdfs-site/dfs.nameservices', None)
 
+hawq_global_rm_type = default('/configurations/hawq-site/hawq_global_rm_type', None)
+
 # HDFSResource partial function
 HdfsResource = functools.partial(HdfsResource,
                                  user=hdfs_superuser,
@@ -121,7 +123,7 @@ table_definition = {
 # YARN
 # Note: YARN is not mandatory for HAWQ. It is required only when the users set HAWQ to use YARN as resource manager
 rm_host = __get_component_host('rm_host')
-yarn_ha_enabled = default('/configurations/yarn-site/yarn.resourcemanager.ha.enabled', False)
+is_yarn_ha_enabled = True if str(default('/configurations/yarn-site/yarn.resourcemanager.ha.enabled', False)).lower() == "true" else False
 
 # Config files
 hawq_check_content = config['configurations']['hawq-check-env']['content']
