@@ -217,10 +217,17 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
         cmd += format(" --slider-keytab-dir .slider/keytabs/{params.hive_user}/ --slider-keytab "
                       "{llap_keytab_splits[4]} --slider-principal {hive_headless_keytab}")
 
+      # Append args.
+      cmd+= " --args \" -XX:+UseG1GC -XX:TLABSize=8m -XX:+ResizeTLAB -XX:+UseNUMA -XX:+AggressiveOpts" \
+            " -XX:+AlwaysPreTouch -XX:MetaspaceSize=1024m -XX:InitiatingHeapOccupancyPercent=80 -XX:MaxGCPauseMillis=200\""
+      # TODO: Remove adding "-XX:MaxDirectMemorySize" when Driver starts appending itself.
+      if params.hive_llap_io_mem_size > params.llap_heap_size:
+        max_dir_mem_size = long(params.hive_llap_io_mem_size) + 256
+        cmd = cmd[0:len(cmd)-1] + format(" -XX:MaxDirectMemorySize={max_dir_mem_size}m\"")
+
       run_file_path = None
       try:
         Logger.info(format("Command: {cmd}"))
-        cmd = cmd.split()
         code, output, error = shell.checked_call(cmd, user=params.hive_user, stderr=subprocess.PIPE, logoutput=True)
 
         if code != 0 or output is None:
@@ -243,16 +250,19 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
           # TODO : Sleep below is not a good idea. We need to check the status of LLAP app to figure out it got
           # launched properly and is in running state. Then go ahead with Hive Interactive Server start.
           Logger.info("Sleeping for 30 secs")
-          # Important to mock this sleep call during unit tests.
           time.sleep(30)
           Logger.info("Submitted LLAP app name : {0}".format(LLAP_APP_NAME))
 
+          # TODO: Uncomment this when 'llapstatus' commands returns correct output.
+          '''
           status = self.check_llap_app_status(LLAP_APP_NAME, params.num_retries_for_checking_llap_status)
           if status:
             Logger.info("LLAP app '{0}' deployed successfully.".format(LLAP_APP_NAME))
             return True
           else:
             return False
+          '''
+          return True
         else:
           raise Fail(format("Did not find run file {run_file_path}"))
       except:

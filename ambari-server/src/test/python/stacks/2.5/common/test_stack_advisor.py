@@ -334,8 +334,7 @@ class TestHDP25StackAdvisor(TestCase):
         "hive-interactive-site":
           {
             'properties': {
-              'hive.llap.daemon.queue.name':'default',
-              'hive.tez.container.size': '341'
+              'hive.llap.daemon.queue.name':'default'
             }
           },
         "tez-interactive-site": {
@@ -348,7 +347,13 @@ class TestHDP25StackAdvisor(TestCase):
             'properties': {
               'hive_user': 'hive'
             }
-        }
+        },
+        "hive-site":
+          {
+            'properties': {
+              'hive.tez.container.size': '341'
+            }
+        },
       }
     }
 
@@ -554,7 +559,6 @@ class TestHDP25StackAdvisor(TestCase):
           {
             'properties': {
               'hive.llap.daemon.queue.name':'default',
-              'hive.tez.container.size': '341'
             }
           },
         "tez-interactive-site": {
@@ -562,13 +566,18 @@ class TestHDP25StackAdvisor(TestCase):
             "tez.am.resource.memory.mb": "341"
           }
         },
-
         "hive-env":
           {
             'properties': {
               'hive_user': 'hive'
             }
-          }
+          },
+        "hive-site":
+          {
+            'properties': {
+              'hive.tez.container.size': '341'
+            }
+          },
       }
     }
 
@@ -1323,8 +1332,7 @@ class TestHDP25StackAdvisor(TestCase):
           {
             'properties': {
               'hive.llap.daemon.queue.name':'llap',
-              'hive.server2.tez.sessions.per.default.queue' : '1',
-              'hive.tez.container.size': '341'
+              'hive.server2.tez.sessions.per.default.queue' : '1'
             }
           },
         "tez-interactive-site": {
@@ -1337,7 +1345,13 @@ class TestHDP25StackAdvisor(TestCase):
             'properties': {
               'hive_user': 'hive'
             }
-          }
+          },
+        "hive-site":
+          {
+            'properties': {
+              'hive.tez.container.size': '341'
+            }
+          },
       }
     }
     # Services 11: YARN service with : (1). 'capacity scheduler' having 'llap' and 'default' queue at root level and
@@ -1438,8 +1452,7 @@ class TestHDP25StackAdvisor(TestCase):
         "hive-interactive-site":
           {
             'properties': {
-              'hive.llap.daemon.queue.name':'llap',
-              'hive.tez.container.size': '341'
+              'hive.llap.daemon.queue.name':'llap'
             }
           },
         "tez-interactive-site": {
@@ -1459,7 +1472,13 @@ class TestHDP25StackAdvisor(TestCase):
             'properties': {
               'hive_user': 'hive'
             }
-          }
+          },
+        "hive-site":
+          {
+            'properties': {
+              'hive.tez.container.size': '341'
+            }
+          },
       }
     }
 
@@ -1711,9 +1730,7 @@ class TestHDP25StackAdvisor(TestCase):
           {
             'properties': {
               'hive.llap.daemon.queue.name': 'llap',
-              'hive.server2.tez.sessions.per.default.queue': '1',
-              'hive.tez.container.size': '341'
-
+              'hive.server2.tez.sessions.per.default.queue': '1'
             }
           },
         "hive-env":
@@ -1733,7 +1750,13 @@ class TestHDP25StackAdvisor(TestCase):
           "properties": {
             "tez.am.resource.memory.mb": "341"
           }
-        }
+        },
+        "hive-site":
+          {
+            'properties': {
+              'hive.tez.container.size': '341'
+            }
+          },
       }
     }
 
@@ -1879,9 +1902,7 @@ class TestHDP25StackAdvisor(TestCase):
           {
             'properties': {
               'hive.llap.daemon.queue.name': 'llap',
-              'hive.server2.tez.sessions.per.default.queue': '1',
-              'hive.tez.container.size': '341'
-
+              'hive.server2.tez.sessions.per.default.queue': '1'
             }
           },
         "hive-env":
@@ -1901,7 +1922,13 @@ class TestHDP25StackAdvisor(TestCase):
           "properties": {
             "tez.am.resource.memory.mb": "341"
           }
-        }
+        },
+        "hive-site":
+          {
+            'properties': {
+              'hive.tez.container.size': '341'
+            }
+          },
       }
     }
 
@@ -2022,9 +2049,7 @@ class TestHDP25StackAdvisor(TestCase):
           {
             'properties': {
               'hive.llap.daemon.queue.name': 'default',
-              'hive.server2.tez.sessions.per.default.queue': '1',
-              'hive.tez.container.size': '341'
-
+              'hive.server2.tez.sessions.per.default.queue': '1'
             }
           },
         "hive-env":
@@ -2044,7 +2069,13 @@ class TestHDP25StackAdvisor(TestCase):
           "properties": {
             "tez.am.resource.memory.mb": "341"
           }
-        }
+        },
+        "hive-site":
+          {
+            'properties': {
+              'hive.tez.container.size': '341'
+            }
+          },
       }
     }
 
@@ -2165,9 +2196,7 @@ class TestHDP25StackAdvisor(TestCase):
           {
             'properties': {
               'hive.llap.daemon.queue.name': 'llap',
-              'hive.server2.tez.sessions.per.default.queue': '1',
-              'hive.tez.container.size': '341'
-
+              'hive.server2.tez.sessions.per.default.queue': '1'
             }
           },
         "hive-env":
@@ -2187,7 +2216,13 @@ class TestHDP25StackAdvisor(TestCase):
           "properties": {
             "tez.am.resource.memory.mb": "341"
           }
-        }
+        },
+        "hive-site":
+          {
+            'properties': {
+              'hive.tez.container.size': '341'
+            }
+          },
       }
     }
 
@@ -2307,9 +2342,7 @@ class TestHDP25StackAdvisor(TestCase):
           {
             'properties': {
               'hive.llap.daemon.queue.name': 'llap',
-              'hive.server2.tez.sessions.per.default.queue': '1',
-              'hive.tez.container.size': '341'
-
+              'hive.server2.tez.sessions.per.default.queue': '1'
             }
           },
         "hive-env":
@@ -2443,9 +2476,7 @@ class TestHDP25StackAdvisor(TestCase):
           {
             'properties': {
               'hive.llap.daemon.queue.name': 'llap',
-              'hive.server2.tez.sessions.per.default.queue': '1',
-              'hive.tez.container.size': '341'
-
+              'hive.server2.tez.sessions.per.default.queue': '1'
             }
           },
         "hive-env":
@@ -2587,7 +2618,6 @@ class TestHDP25StackAdvisor(TestCase):
             'properties': {
               'hive.llap.daemon.queue.name': 'llap',
               'hive.server2.tez.sessions.per.default.queue': '1',
-              'hive.tez.container.size': '341'
 
             }
           },
@@ -2608,7 +2638,13 @@ class TestHDP25StackAdvisor(TestCase):
           "properties": {
             "tez.am.resource.memory.mb": "341"
           }
-        }
+        },
+        "hive-site":
+          {
+            'properties': {
+              'hive.tez.container.size': '341'
+            }
+          },
       }
     }
 
@@ -2729,9 +2765,7 @@ class TestHDP25StackAdvisor(TestCase):
           {
             'properties': {
               'hive.llap.daemon.queue.name': 'llap',
-              'hive.server2.tez.sessions.per.default.queue': '1',
-              'hive.tez.container.size': '341'
-
+              'hive.server2.tez.sessions.per.default.queue': '1'
             }
           },
         "hive-env":
@@ -2751,7 +2785,13 @@ class TestHDP25StackAdvisor(TestCase):
           "properties": {
             "tez.am.resource.memory.mb": "341"
           }
-        }
+        },
+        "hive-site":
+          {
+            'properties': {
+              'hive.tez.container.size': '341'
+            }
+          },
       }
     }
 
@@ -2944,8 +2984,8 @@ class TestHDP25StackAdvisor(TestCase):
     # expected vals.
     expected_visibility_false = {'visible': 'false'}
     expected_visibility_true = {'visible': 'true'}
-    expected_llap_queue_attributes_min_25_visible_true = {'minimum': '25', 'visible': 'true'}
-    expected_llap_queue_attributes_min_21_visible_true = {'minimum': '21', 'visible': 'true'}
+    expected_llap_queue_attributes_min_25_visible_true = {'maximum': '100', 'minimum': '25', 'visible': 'true'}
+    expected_llap_queue_attributes_min_21_visible_true = {'maximum': '100', 'minimum': '21', 'visible': 'true'}
 
 
 
@@ -2959,7 +2999,6 @@ class TestHDP25StackAdvisor(TestCase):
     }
     self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services_1, hosts)
     # Check output
-    print "\n\n\n\n conf = ",configurations
     self.assertEquals(configurations['hive-interactive-site']['properties']['hive.llap.daemon.queue.name'],
                       expected_hive_interactive_site_llap['hive-interactive-site']['properties']['hive.llap.daemon.queue.name'])
     self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.llap.daemon.queue.name'],
@@ -3184,7 +3223,6 @@ class TestHDP25StackAdvisor(TestCase):
     }
 
     # expected vals.
-    print "\n\n\n\n\n\n\n\n\n\n\n"
     yarn_cont_mb_attributes = {'minimum': '682', 'maximum': '682'}
     llap_io_mem_size_attributes = {'minimum': '0', 'maximum': '341'}
     llap_num_executors_attributes = {'minimum': '1', 'maximum': '1'}

@@ -137,30 +137,6 @@ limitations under the License.
   </property>
 
   <property>
-    <name>hive.tez.container.size</name>
-    <value>341</value>
-    <description>By default, Tez uses the java options from map tasks. Use this property to override that value.</description>
-    <display-name>Tez Container Size</display-name>
-    <value-attributes>
-      <type>int</type>
-      <minimum>341</minimum>
-      <maximum>6820</maximum>
-      <unit>MB</unit>
-      <increment-step>682</increment-step>
-    </value-attributes>
-    <depends-on>
-      <property>
-        <type>yarn-site</type>
-        <name>yarn.scheduler.minimum-allocation-mb</name>
-      </property>
-      <property>
-        <type>yarn-site</type>
-        <name>yarn.scheduler.maximum-allocation-mb</name>
-      </property>
-    </depends-on>
-  </property>
-
-  <property>
     <name>hive.tez.java.opts</name>
     <value></value>
     <description>Java command line options for Tez. The -Xmx parameter value is generally 80% of hive.tez.container.size.</description>
@@ -325,6 +301,12 @@ limitations under the License.
   <property>
     <name>hive.llap.io.enabled</name>
     <value>true</value>
+    <depends-on>
+      <property>
+        <type>hive-interactive-site</type>
+        <name>hive.llap.io.memory.size</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
@@ -380,7 +362,7 @@ limitations under the License.
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
-      <maximum>4</maximum>
+      <maximum>64</maximum>
       <unit>MB</unit>
       <increment-step>256</increment-step>
       <overridable>false</overridable>
@@ -569,6 +551,11 @@ limitations under the License.
         <name>clientPort</name>
       </property>
     </depends-on>
+  </property>
+
+  <property>
+    <name>hive.llap.io.memory.mode</name>
+    <value>none</value>
   </property>
 
 </configuration>
