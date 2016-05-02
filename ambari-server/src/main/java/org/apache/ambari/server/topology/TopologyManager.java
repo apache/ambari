@@ -36,6 +36,7 @@ import javax.inject.Inject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorBlueprintProcessor;
+import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.internal.ArtifactResourceProvider;
 import org.apache.ambari.server.controller.internal.CalculatedStatus;
@@ -257,7 +258,7 @@ public class TopologyManager {
 
     Map<String, String> requestInfoProps = new HashMap<>();
     requestInfoProps.put(org.apache.ambari.server.controller.spi.Request.REQUEST_INFO_BODY_PROPERTY,
-        "{\"" + ArtifactResourceProvider.ARTIFACT_DATA_PROPERTY + "\": " + descriptor + "}");
+      "{\"" + ArtifactResourceProvider.ARTIFACT_DATA_PROPERTY + "\": " + descriptor + "}");
 
     org.apache.ambari.server.controller.spi.Request request = new RequestImpl(Collections.<String>emptySet(),
         Collections.singleton(properties), requestInfoProps, null);
@@ -383,6 +384,9 @@ public class TopologyManager {
    * @param host
    */
   public void onHostHeartBeatLost(Host host) {
+    if (AmbariServer.getController() == null) {
+      return;
+    }
     ensureInitialized();
     synchronized (availableHosts) {
       LOG.info("Hearbeat for host {} lost thus removing it from available hosts.", host.getHostName());
