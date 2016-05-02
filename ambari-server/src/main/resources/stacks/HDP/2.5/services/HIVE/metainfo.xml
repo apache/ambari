@@ -110,6 +110,7 @@
           <configuration-dependencies>
             <config-type>hive-site</config-type>
             <config-type>hive-interactive-site</config-type>
+            <config-type>hive-interactive-env</config-type>
           </configuration-dependencies>
         </component>
       </components>
