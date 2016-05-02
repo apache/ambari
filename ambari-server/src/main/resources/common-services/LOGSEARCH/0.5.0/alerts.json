@@ -63,6 +63,7 @@
         "description": "This host-level alert is triggered if the Solr index size is over a limit.",
         "interval": 1,
         "scope": "ANY",
+        "enabled" : false,
         "source": {
           "parameters" : [
             {
