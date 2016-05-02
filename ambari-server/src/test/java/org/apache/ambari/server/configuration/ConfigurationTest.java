@@ -755,4 +755,30 @@ public class ConfigurationTest {
     Assert.assertEquals(false, actual);
   }
 
+  @Test
+  public void testCustomDatabaseProperties() throws Exception {
+    final Properties ambariProperties = new Properties();
+    final Configuration configuration = new Configuration(ambariProperties);
+    ambariProperties.setProperty("server.jdbc.properties.foo", "fooValue");
+    ambariProperties.setProperty("server.jdbc.properties.bar", "barValue");
+
+    Properties properties = configuration.getDatabaseCustomProperties();
+    Assert.assertEquals(2, properties.size());
+    Assert.assertEquals("fooValue", properties.getProperty("eclipselink.jdbc.property.foo"));
+    Assert.assertEquals("barValue", properties.getProperty("eclipselink.jdbc.property.bar"));
+  }
+
+  @Test
+  public void testCustomPersistenceProperties() throws Exception {
+    final Properties ambariProperties = new Properties();
+    final Configuration configuration = new Configuration(ambariProperties);
+    ambariProperties.setProperty("server.persistence.properties.eclipselink.cache.coordination.channel", "FooChannel");
+    ambariProperties.setProperty("server.persistence.properties.eclipselink.persistence-context.flush-mode", "commit");
+
+    Properties properties = configuration.getPersistenceCustomProperties();
+    Assert.assertEquals(2, properties.size());
+    Assert.assertEquals("FooChannel", properties.getProperty("eclipselink.cache.coordination.channel"));
+    Assert.assertEquals("commit", properties.getProperty("eclipselink.persistence-context.flush-mode"));
+  }
+
 }

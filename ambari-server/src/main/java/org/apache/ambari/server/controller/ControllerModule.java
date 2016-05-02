@@ -40,8 +40,6 @@ import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 
@@ -199,15 +197,13 @@ public class ControllerModule extends AbstractModule {
     DatabaseType databaseType = configuration.getDatabaseType();
     LOG.info("Detected {} as the database type from the JDBC URL", databaseType);
 
-    // custom jdbc properties
-    Map<String, String> customProperties = configuration.getDatabaseCustomProperties();
+    // custom jdbc driver properties
+    Properties customDatabaseDriverProperties = configuration.getDatabaseCustomProperties();
+    properties.putAll(customDatabaseDriverProperties);
 
-    if (0 != customProperties.size()) {
-      for (Entry<String, String> entry : customProperties.entrySet()) {
-        properties.setProperty("eclipselink.jdbc.property." + entry.getKey(),
-            entry.getValue());
-      }
-    }
+    // custom persistence properties
+    Properties customPersistenceProperties = configuration.getPersistenceCustomProperties();
+    properties.putAll(customPersistenceProperties);
 
     switch (configuration.getPersistenceType()) {
       case IN_MEMORY:

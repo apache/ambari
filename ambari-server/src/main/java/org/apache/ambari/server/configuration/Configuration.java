@@ -235,6 +235,7 @@ public class Configuration {
   public static final String SERVER_JDBC_DRIVER_KEY = "server.jdbc.driver";
   public static final String SERVER_JDBC_URL_KEY = "server.jdbc.url";
   public static final String SERVER_JDBC_PROPERTIES_PREFIX = "server.jdbc.properties.";
+  public static final String SERVER_PERSISTENCE_PROPERTIES_PREFIX = "server.persistence.properties.";
 
   public static final String SERVER_HTTP_REQUEST_HEADER_SIZE = "server.http.request.header.size";
   public static final String SERVER_HTTP_RESPONSE_HEADER_SIZE = "server.http.response.header.size";
@@ -726,7 +727,8 @@ public class Configuration {
   private Map<String, String> agentConfigsMap;
   private CredentialProvider credentialProvider = null;
   private volatile boolean credentialProviderInitialized = false;
-  private Map<String, String> customDbProperties = null;
+  private Properties customDbProperties = null;
+  private Properties customPersistenceProperties = null;
   private Long configLastModifiedDate = 0L;
   private Map<String, String> databaseConnectorNames = new HashMap<>();
 
@@ -2004,24 +2006,67 @@ public class Configuration {
   }
 
   /**
+   * Gets all properties that begin with {@value #SERVER_JDBC_PROPERTIES_PREFIX}
+   * , removing the prefix. The properties are then pre-pending with
+   * {@code eclipselink.jdbc.property.} before being returned.
+   * <p/>
+   * These properties are used to pass JDBC driver-specific connection
+   * properties to EclipseLink.
+   * <p/>
+   * server.jdbc.properties.loginTimeout ->
+   * eclipselink.jdbc.property.loginTimeout <br/>
+   * server.jdbc.properties.oraclecustomname ->
+   * eclipselink.jdbc.property.oraclecustomname
+   *
    * @return custom properties for database connections
    */
-  public Map<String,String> getDatabaseCustomProperties() {
+  public Properties getDatabaseCustomProperties() {
     if (null != customDbProperties) {
       return customDbProperties;
     }
 
-    customDbProperties = new HashMap<String, String>();
+    customDbProperties = new Properties();
 
     for (Entry<Object, Object> entry : properties.entrySet()) {
       String key = entry.getKey().toString();
       String val = entry.getValue().toString();
       if (key.startsWith(SERVER_JDBC_PROPERTIES_PREFIX)) {
-        customDbProperties.put(key.substring(SERVER_JDBC_PROPERTIES_PREFIX.length()), val);
+        key = "eclipselink.jdbc.property." + key.substring(SERVER_JDBC_PROPERTIES_PREFIX.length());
+        customDbProperties.put(key, val);
       }
     }
 
     return customDbProperties;
+  }
+
+  /**
+   * Gets all properties that begin with
+   * {@value #SERVER_PERSISTENCE_PROPERTIES_PREFIX} , removing the prefix. These
+   * properties are used to pass JPA-specific properties to the persistence
+   * provider (such as EclipseLink).
+   * <p/>
+   * server.persistence.properties.eclipselink.jdbc.batch-writing.size=25 ->
+   * eclipselink.jdbc.batch-writing.size=25
+   *
+   * @return custom properties for database connections
+   */
+  public Properties getPersistenceCustomProperties() {
+    if (null != customPersistenceProperties) {
+      return customPersistenceProperties;
+    }
+
+    customPersistenceProperties = new Properties();
+
+    for (Entry<Object, Object> entry : properties.entrySet()) {
+      String key = entry.getKey().toString();
+      String val = entry.getValue().toString();
+      if (key.startsWith(SERVER_PERSISTENCE_PROPERTIES_PREFIX)) {
+        key = key.substring(SERVER_PERSISTENCE_PROPERTIES_PREFIX.length());
+        customPersistenceProperties.put(key, val);
+      }
+    }
+
+    return customPersistenceProperties;
   }
 
   /**
