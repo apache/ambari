@@ -24,6 +24,7 @@ App.componentConfigMapper = App.QuickDataMapper.create({
     work_status: 'HostRoles.state',
     passive_state: 'HostRoles.maintenance_state',
     component_name: 'HostRoles.component_name',
+    display_name: 'HostRoles.display_name',
     host_name: 'HostRoles.host_name',
     $ha_status: '',
     $display_name_advanced: '',
