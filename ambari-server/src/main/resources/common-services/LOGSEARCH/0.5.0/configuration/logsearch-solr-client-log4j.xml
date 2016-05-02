@@ -23,40 +23,15 @@
 <!-- This is a special config file for properties used to monitor status of the service -->
 <configuration supports_adding_forbidden="true">
 
-  <property>
-    <name>logsearch_audit_logs_max_retention</name>
-    <value>7</value>
-    <display-name>Max retention</display-name>
-    <description>Days to retain the audit logs in Solr</description>
-    <value-attributes>
-      <type>int</type>
-      <overridable>false</overridable>
-    </value-attributes>
-  </property>
-
-  <property>
-    <name>logsearch_audit_logs_merge_factor</name>
-    <value>5</value>
-    <display-name>Merge factor</display-name>
-    <description>The mergeFactor value tells Lucene how many segments of equal size to build before merging them into a
-      single segment. High value merge factor (e.g. 25) improves indexing speed, but slows down searching. Low value
-      (e.g. 5) improves searching, but slows down indexing.
-    </description>
-    <value-attributes>
-      <type>int</type>
-      <overridable>false</overridable>
-    </value-attributes>
-  </property>
-
-  <!-- solrconfig.xml -->
+  <!-- log4j.xml -->
   <property>
     <name>content</name>
-    <description>This is the jinja template for solrconfig.xml file for audit logs</description>
+    <description>This is the jinja template for log4j.properties file for logsearch solr client</description>
     <value></value>
     <property-type>VALUE_FROM_PROPERTY_FILE</property-type>
     <value-attributes>
-      <property-file-name>audit_logs-solrconfig.xml.j2</property-file-name>
-      <property-file-type>xml</property-file-type>
+      <property-file-name>solr-client-log4j.properties.j2</property-file-name>
+      <property-file-type>text</property-file-type>
     </value-attributes>
   </property>
 

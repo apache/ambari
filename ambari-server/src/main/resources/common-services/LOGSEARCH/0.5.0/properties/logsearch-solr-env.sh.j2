@@ -20,7 +20,7 @@
 SOLR_JAVA_HOME={{java64_home}}
 
 # Increase Java Min/Max Heap as needed to support your indexing / query needs
-SOLR_JAVA_MEM="-Xms{{logsearch_solr_min_mem}} -Xmx{{logsearch_solr_max_mem}}"
+SOLR_JAVA_MEM="-Xms{{logsearch_solr_min_mem}}m -Xmx{{logsearch_solr_max_mem}}m"
 
 # Enable verbose GC logging
 GC_LOG_OPTS="-verbose:gc -XX:+PrintHeapAtGC -XX:+PrintGCDetails \

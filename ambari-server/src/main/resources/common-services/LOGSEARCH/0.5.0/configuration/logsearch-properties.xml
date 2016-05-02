@@ -24,15 +24,29 @@
   <property>
     <name>logsearch.collection.numshards</name>
     <value>5</value>
-    <display-name>Logsearch Solr Shards</display-name>
+    <display-name>Logsearch Solr Collection Shards</display-name>
     <description>Number of shards for Solr collections</description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1</minimum>
+      <maximum>20</maximum>
+      <unit>int</unit>
+      <increment-step>1</increment-step>
+    </value-attributes>
   </property>
 
   <property>
     <name>logsearch.collection.replication.factor</name>
     <value>1</value>
-    <display-name>Logsearch Solr Replication Factor</display-name>
+    <display-name>Logsearch Solr Collection Replication Factor</display-name>
     <description>Replication factor for Solr collections</description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1</minimum>
+      <maximum>20</maximum>
+      <unit>int</unit>
+      <increment-step>1</increment-step>
+    </value-attributes>
   </property>
 
   <property>

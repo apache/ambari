@@ -29,7 +29,7 @@ export PID_FILE={{logsearch_pid_file}}
 
 export JAVA_HOME={{java64_home}}
 
-export LOGSEARCH_JAVA_MEM=-Xmx{{logsearch_app_max_memory}}
+export LOGSEARCH_JAVA_MEM=-Xmx{{logsearch_app_max_memory}}m
 if [ "$LOGSEARCH_JAVA_MEM" = "" ]; then
   export LOGSEARCH_JAVA_MEM="-Xmx1g"
 fi

@@ -27,6 +27,24 @@
     <value>7</value>
     <display-name>Max retention</display-name>
     <description>Days to retain the service logs in Solr</description>
+    <value-attributes>
+      <type>int</type>
+      <overridable>false</overridable>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>logsearch_service_logs_merge_factor</name>
+    <value>5</value>
+    <display-name>Merge factor</display-name>
+    <description>The mergeFactor value tells Lucene how many segments of equal size to build before merging them into a
+      single segment. High value merge factor (e.g. 25) improves indexing speed, but slows down searching. Low value
+      (e.g. 5) improves searching, but slows down indexing.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <!-- solrconfig.xml -->

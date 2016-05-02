@@ -1,0 +1,164 @@
+{
+  "name": "default",
+  "description": "Default theme for LOGSEARCH service",
+  "configuration": {
+    "layouts": [
+      {
+        "name": "default",
+        "tabs": [
+          {
+            "name": "settings",
+            "display-name": "Settings",
+            "layout": {
+              "tab-columns": "2",
+              "tab-rows": "1",
+              "sections": [
+                {
+                  "name": "section-logsearch-solr",
+                  "display-name": "LogSearch Solr",
+                  "row-index": "0",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "4",
+                  "subsections": [
+                    {
+                      "name": "subsection-logsearch-solr-col1",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                },
+                {
+                  "name": "section-logsearch-server",
+                  "display-name": "LogSearch Server",
+                  "row-index": "0",
+                  "column-index": "1",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "3",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-logsearch-server-col1",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "placement": {
+      "configuration-layout": "default",
+      "configs": [
+        {
+          "config": "logsearch-solr-env/logsearch_solr_minmem",
+          "subsection-name": "subsection-logsearch-solr-col1"
+        },
+        {
+          "config": "logsearch-solr-env/logsearch_solr_maxmem",
+          "subsection-name": "subsection-logsearch-solr-col1"
+        },
+        {
+          "config": "logsearch-solr-env/logsearch_solr_datadir",
+          "subsection-name": "subsection-logsearch-solr-col1"
+        },
+        {
+          "config": "logsearch-solr-env/logsearch_solr_znode",
+          "subsection-name": "subsection-logsearch-solr-col1"
+        },
+        {
+          "config": "logsearch-env/logsearch_app_max_memory",
+          "subsection-name": "subsection-logsearch-server-col1"
+        },
+        {
+          "config": "logsearch-properties/logsearch.collection.numshards",
+          "subsection-name": "subsection-logsearch-server-col1"
+        },
+        {
+          "config": "logsearch-properties/logsearch.collection.replication.factor",
+          "subsection-name": "subsection-logsearch-server-col1"
+        }
+      ]
+    },
+    "widgets": [
+      {
+        "config": "logsearch-solr-env/logsearch_solr_minmem",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "GB"
+            }
+          ]
+        }
+      },
+      {
+        "config": "logsearch-solr-env/logsearch_solr_maxmem",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "GB"
+            }
+          ]
+        }
+      },
+      {
+        "config": "logsearch-solr-env/logsearch_solr_datadir",
+        "widget": {
+          "type": "directory"
+        }
+      },
+      {
+        "config": "logsearch-solr-env/logsearch_solr_znode",
+        "widget": {
+          "type": "directory"
+        }
+      },
+      {
+        "config": "logsearch-env/logsearch_app_max_memory",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "GB"
+            }
+          ]
+        }
+      },
+      {
+        "config": "logsearch-properties/logsearch.collection.numshards",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "int"
+            }
+          ]
+        }
+      },
+      {
+        "config": "logsearch-properties/logsearch.collection.replication.factor",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "int"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
+

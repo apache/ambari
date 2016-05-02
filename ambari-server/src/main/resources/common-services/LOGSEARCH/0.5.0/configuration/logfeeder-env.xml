@@ -76,6 +76,9 @@
     <value>true</value>
     <display-name>Service Logs enabled</display-name>
     <description>Enable service logs to Solr</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -83,6 +86,9 @@
     <value>true</value>
     <display-name>Audit Logs enabled</display-name>
     <description>Enable audit logs to Solr</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
   </property>
 
   <property>

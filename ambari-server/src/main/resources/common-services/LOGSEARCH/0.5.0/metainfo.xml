@@ -123,6 +123,13 @@
             <script>scripts/logsearch_solr_client.py</script>
             <scriptType>PYTHON</scriptType>
           </commandScript>
+          <configFiles>
+            <configFile>
+              <type>env</type>
+              <fileName>log4j.properties</fileName>
+              <dictionaryName>logsearch-solr-client-log4j</dictionaryName>
+            </configFile>
+          </configFiles>
         </component>
 
       </components>
@@ -188,6 +195,13 @@
           <default>true</default>
         </quickLinksConfiguration>
       </quickLinksConfigurations>
+
+      <themes>
+        <theme>
+          <fileName>theme.json</fileName>
+          <default>true</default>
+        </theme>
+      </themes>
     </service>
   </services>
 </metainfo>

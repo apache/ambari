@@ -237,7 +237,7 @@ this file, see http://wiki.apache.org/solr/SolrConfigXml.
     <mergeFactor>10</mergeFactor>
     -->
     <!-- LogSearch customization. Set to 5 to trigger purging of deleted documents more often -->
-    <mergeFactor>5</mergeFactor>
+    <mergeFactor>{{logsearch_audit_logs_merge_factor}}</mergeFactor>
 
     <!-- Expert: Merge Scheduler
     The Merge Scheduler in Lucene controls how merges are

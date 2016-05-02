@@ -1993,11 +1993,18 @@ var hdp2properties = [
     "index": 1
   },
   {
+    "name": "logsearch_audit_logs_merge_factor",
+    "serviceName": "LOGSEARCH",
+    "filename": "logsearch-audit_logs-solrconfig.xml",
+    "category": "Advanced logsearch-audit_logs-solrconfig",
+    "index": 2
+  },
+  {
     "name": "content",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-audit_logs_logs-solrconfig.xml",
     "category": "Advanced logsearch-audit_logs-solrconfig",
-    "index": 2
+    "index": 3
   },
   /*logsearch-env*/
   {
@@ -2087,11 +2094,18 @@ var hdp2properties = [
     "index": 1
   },
   {
-    "name": "content",
+    "name": "logsearch_service_logs_merge_factor",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-service_logs-solrconfig.xml",
     "category": "Advanced logsearch-service_logs-solrconfig",
     "index": 2
+  },
+  {
+    "name": "content",
+    "serviceName": "LOGSEARCH",
+    "filename": "logsearch-service_logs-solrconfig.xml",
+    "category": "Advanced logsearch-service_logs-solrconfig",
+    "index": 3
   },
   /*logsearch-properties*/
   {

@@ -94,7 +94,9 @@ logsearch_solr_instance_count = len(config['clusterHostInfo']['logsearch_solr_ho
 logsearch_solr_datadir = format(config['configurations']['logsearch-solr-env']['logsearch_solr_datadir'])
 logsearch_solr_data_resources_dir = os.path.join(logsearch_solr_datadir, 'resources')
 logsearch_service_logs_max_retention = config['configurations']['logsearch-service_logs-solrconfig']['logsearch_service_logs_max_retention']
+logsearch_service_logs_merge_factor = config['configurations']['logsearch-service_logs-solrconfig']['logsearch_service_logs_merge_factor']
 logsearch_audit_logs_max_retention = config['configurations']['logsearch-audit_logs-solrconfig']['logsearch_audit_logs_max_retention']
+logsearch_audit_logs_merge_factor = config['configurations']['logsearch-audit_logs-solrconfig']['logsearch_audit_logs_merge_factor']
 
 logsearch_service_logs_fields = config['configurations']['logsearch-properties']['logsearch.service.logs.fields']
 
@@ -128,6 +130,8 @@ solr_env_content = config['configurations']['logsearch-solr-env']['content']
 solr_xml_content = config['configurations']['logsearch-solr-xml']['content']
 
 solr_log4j_content = config['configurations']['logsearch-solr-log4j']['content']
+
+solr_client_log4j_content = config['configurations']['logsearch-solr-client-log4j']['content']
 
 #####################################
 # Logsearch configs

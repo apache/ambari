@@ -88,7 +88,7 @@ def setup_logsearch_solr(name = None):
          )
 
     File(format("{solr_client_dir}/log4j.properties"),
-         content=Template("solr-client-log4j.properties.j2"),
+         content=InlineTemplate(params.solr_client_log4j_content),
          owner=params.logsearch_solr_user
          )
 

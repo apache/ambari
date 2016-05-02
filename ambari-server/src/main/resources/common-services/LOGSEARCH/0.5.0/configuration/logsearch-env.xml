@@ -71,9 +71,16 @@
 
   <property>
     <name>logsearch_app_max_memory</name>
-    <value>1g</value>
-    <description>Max memory for LogSearch</description>
-    <display-name>Logearch Max Memory</display-name>
+    <value>1024</value>
+    <description>Max memory for LogSearch Portal</description>
+    <display-name>Logsearch Max Memory</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>512</minimum>
+      <maximum>2048</maximum>
+      <unit>MB</unit>
+      <increment-step>256</increment-step>
+    </value-attributes>
   </property>
 
   <property>
@@ -82,6 +89,9 @@
     <display-name>Ranger Audit Enabled</display-name>
     <description>Use Ranger Audit collection. This is supported only if Ranger Solr is installed in SolrCloud mode
     </description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -89,6 +99,9 @@
     <value>false</value>
     <display-name>Logsearch Debug Enabled</display-name>
     <description>Enable debug mode for Logsearch Server</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
   </property>
 
   <property>
