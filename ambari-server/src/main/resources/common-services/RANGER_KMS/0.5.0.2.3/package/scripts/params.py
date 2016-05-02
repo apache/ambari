@@ -38,6 +38,7 @@ stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 stack_supports_config_versioning =  stack_version_formatted and check_stack_feature(StackFeature.CONFIG_VERSIONING, stack_version_formatted)
 stack_support_kms_hsm = stack_version_formatted and check_stack_feature(StackFeature.RANGER_KMS_HSM_SUPPORT, stack_version_formatted)
+stack_supports_ranger_kerberos = stack_version_formatted and check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, stack_version_formatted)
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 
@@ -177,6 +178,9 @@ kms_plugin_config = {
   'provider' : format('kms://http@{kms_host}:{kms_port}/kms') 
 }
 
+if stack_supports_ranger_kerberos:
+  kms_plugin_config['policy.download.auth.users'] = 'keyadmin'
+
 kms_ranger_plugin_repo = {
   'isEnabled' : 'true',
   'configs' : kms_plugin_config,
@@ -212,3 +216,10 @@ jce_source_dir = format('{tmp_dir}/jce_dir')
 enable_kms_hsm = default("/configurations/dbks-site/ranger.ks.hsm.enabled", False)
 hms_partition_alias = default("/configurations/dbks-site/ranger.ks.hsm.partition.password.alias", "ranger.kms.hsm.partition.password")
 hms_partition_passwd = default("/configurations/kms-env/hsm_partition_password", None)
+
+# kms kerberos from stack 2.5 onward
+rangerkms_keytab = config['configurations']['dbks-site']['ranger.ks.kerberos.keytab']
+if stack_supports_ranger_kerberos and security_enabled:
+  rangerkms_principal = default("/configurations/dbks-site/ranger.ks.kerberos.principal", None)
+  if rangerkms_principal is not None:
+    rangerkms_principal = rangerkms_principal.replace('_HOST', kms_host.lower())

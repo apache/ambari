@@ -33,6 +33,8 @@ from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.ranger_functions import Rangeradmin
+from resource_management.libraries.functions.ranger_functions_v2 import RangeradminV2
+from resource_management.libraries.functions.decorator import safe_retry
 from resource_management.core.utils import PasswordString
 from resource_management.core.shell import as_sudo
 import re
@@ -343,16 +345,14 @@ def enable_kms_plugin():
   import params
 
   if params.has_ranger_admin:
-    count = 0
-    while count < 5:
-      ranger_flag = check_ranger_service()
-      if ranger_flag:
-        break
-      else:
-        time.sleep(5) # delay for 5 seconds
-        count = count + 1
+
+    if params.stack_supports_ranger_kerberos and params.security_enabled:
+      ranger_flag = check_ranger_service_support_kerberos()
     else:
-      Logger.error("Ranger service is not reachable after {0} tries".format(count))
+      ranger_flag = check_ranger_service()
+
+    if not ranger_flag:
+      Logger.error('Error in Get/Create service for Ranger Kms.')
 
     current_datetime = datetime.now()
 
@@ -458,20 +458,16 @@ def check_ranger_service():
     if user_resp_code is not None and user_resp_code == 200:
       get_repo_flag = get_repo(params.policymgr_mgr_url, params.repo_name, ambari_username_password_for_ranger)
       if not get_repo_flag:
-        create_repo_flag = create_repo(params.policymgr_mgr_url, json.dumps(params.kms_ranger_plugin_repo), ambari_username_password_for_ranger)
-        if create_repo_flag:
-          return True
-        else:
-          return False
+        return create_repo(params.policymgr_mgr_url, json.dumps(params.kms_ranger_plugin_repo), ambari_username_password_for_ranger)
       else:
         return True
     else:
-      Logger.error('Ambari admin user creation failed')
       return False
   else:
-    Logger.error('Ranger service is not reachable host')
+    Logger.error('Ranger service is not reachable')
     return False
 
+@safe_retry(times=5, sleep_time=8, backoff_factor=1.5, err_class=Fail, return_on_fail=False)
 def create_repo(url, data, usernamepassword):
   try:
     base_url = url + '/service/public/v2/api/service'
@@ -493,15 +489,13 @@ def create_repo(url, data, usernamepassword):
       return False
   except urllib2.URLError, e:
     if isinstance(e, urllib2.HTTPError):
-      Logger.error("Error creating service. Http status code - {0}. \n {1}".format(e.code, e.read()))
-      return False
+      raise Fail("Error creating service. Http status code - {0}. \n {1}".format(e.code, e.read()))
     else:
-      Logger.error("Error creating service. Reason - {0}.".format(e.reason))
-      return False
+      raise Fail("Error creating service. Reason - {0}.".format(e.reason))
   except socket.timeout as e:
-    Logger.error("Error creating service. Reason - {0}".format(e))
-    return False
+    raise Fail("Error creating service. Reason - {0}".format(e))
 
+@safe_retry(times=5, sleep_time=8, backoff_factor=1.5, err_class=Fail, return_on_fail=False)
 def get_repo(url, name, usernamepassword):
   try:
     base_url = url + '/service/public/v2/api/service?serviceName=' + name + '&serviceType=kms&isEnabled=true'
@@ -526,11 +520,29 @@ def get_repo(url, name, usernamepassword):
       return False
   except urllib2.URLError, e:
     if isinstance(e, urllib2.HTTPError):
-      Logger.error("Error getting {0} service. Http status code - {1}. \n {2}".format(name, e.code, e.read()))
-      return False
+      raise Fail("Error getting {0} service. Http status code - {1}. \n {2}".format(name, e.code, e.read()))
     else:
-      Logger.error("Error getting {0} service. Reason - {1}.".format(name, e.reason))
-      return False
+      raise Fail("Error getting {0} service. Reason - {1}.".format(name, e.reason))
   except socket.timeout as e:
-    Logger.error("Error creating service. Reason - {0}".format(e))
+    raise Fail("Error creating service. Reason - {0}".format(e))
+
+def check_ranger_service_support_kerberos():
+  import params
+
+  ranger_adm_obj = RangeradminV2(url=params.policymgr_mgr_url)
+  response_code = ranger_adm_obj.check_ranger_login_curl(params.kms_user, params.rangerkms_keytab, params.rangerkms_principal, params.policymgr_mgr_url, True)
+
+  if response_code is not None and response_code[0] == 200:
+    get_repo_name_response = ranger_adm_obj.get_repository_by_name_curl(params.kms_user, params.rangerkms_keytab, params.rangerkms_principal, params.repo_name, 'kms', 'true')
+    if get_repo_name_response is not None:
+      Logger.info('KMS repository {0} exist'.format(get_repo_name_response['name']))
+      return True
+    else:
+      create_repo_response = ranger_adm_obj.create_repository_curl(params.kms_user, params.rangerkms_keytab, params.rangerkms_principal, params.repo_name, json.dumps(params.kms_ranger_plugin_repo), None)
+      if create_repo_response is not None and len(create_repo_response) > 0:
+        return True
+      else:
+        return False
+  else:
+    Logger.error('Ranger service is not reachable')
     return False

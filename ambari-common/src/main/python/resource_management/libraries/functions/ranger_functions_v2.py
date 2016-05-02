@@ -371,7 +371,7 @@ class RangeradminV2:
     response,error_message,time_in_millis = self.call_curl_request(component_user,component_user_keytab,component_user_principal,search_repo_url,False,method,data,header)
     if response and len(response) > 0:
       response_json = json.loads(response)
-      if response_json['name'].lower() == name.lower():
+      if 'name' in response_json and response_json['name'].lower() == name.lower():
         Logger.info('Repository created Successfully')
         service_name = response_json['name']
         service_type = response_json['type']

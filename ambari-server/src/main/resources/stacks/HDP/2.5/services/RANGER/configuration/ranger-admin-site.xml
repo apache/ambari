@@ -49,7 +49,7 @@
   </property>
 
   <property>
-    <name>ranger.admin.kerberos.token.valid</name>
+    <name>ranger.admin.kerberos.token.valid.seconds</name>
     <value>30</value>
     <description></description>
   </property>

@@ -75,4 +75,22 @@
     <description>HSM partition password alias</description>
   </property>
 
+  <property>
+    <name>ranger.ks.kerberos.principal</name>
+    <value></value>
+    <description></description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>ranger.ks.kerberos.keytab</name>
+    <value></value>
+    <description></description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+  </property>
+
 </configuration>
