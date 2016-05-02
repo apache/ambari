@@ -36,7 +36,8 @@ App.MoveNameNodeConfigInitializer = App.MoveComponentConfigInitializerClass.crea
   uniqueInitializers: {
     'instance.volumes': '_initInstanceVolumes',
     'instance.volumes.replacements': '_initInstanceVolumesReplacements',
-    'hbase.rootdir': '_initHbaseRootDir'
+    'hbase.rootdir': '_initHbaseRootDir',
+    'hawq_dfs_url': '_initHawqDfsUrl'
   },
 
   /**
@@ -94,6 +95,25 @@ App.MoveNameNodeConfigInitializer = App.MoveComponentConfigInitializerClass.crea
     if (!App.get('isHaEnabled') && localDB.installedServices.contains('HBASE') && 'hbase-site' === configProperty.filename) {
       var value = Em.get(configProperty, 'value');
       value = value.replace(/\/\/[^\/]*/, '//' + dependencies.targetHostName + ':8020');
+      Em.set(configProperty, 'value', value);
+    }
+    return configProperty;
+  },
+
+  /**
+   * Unique initializer for <code>hawq_dfs_url</code>-config (for HAWQ service)
+   *
+   * @param {configProperty} configProperty
+   * @param {extendedTopologyLocalDB} localDB
+   * @param {reassignComponentDependencies} dependencies
+   * @returns {object}
+   * @private
+   * @method _initHawqDfsUrl
+   */
+  _initHawqDfsUrl: function (configProperty, localDB, dependencies) {
+    if (!App.get('isHaEnabled') && localDB.installedServices.contains('HAWQ') && 'hawq-site' === configProperty.filename) {
+      var value = Em.get(configProperty, 'value');
+      value = value.replace(/(.*):/, dependencies.targetHostName + ':');
       Em.set(configProperty, 'value', value);
     }
     return configProperty;

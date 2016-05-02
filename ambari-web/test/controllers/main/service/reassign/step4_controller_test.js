@@ -1438,7 +1438,8 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
         return [
           {serviceName: 'HDFS'},
           {serviceName: 'ACCUMULO'},
-          {serviceName: 'HBASE'}
+          {serviceName: 'HBASE'},
+          {serviceName: 'HAWQ'}
         ];
       });
       controller.set('content.reassignHosts.source', 'host1');
@@ -1450,7 +1451,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       App.MoveNameNodeConfigInitializer.cleanup();
     });
 
-    it('HA isn\'t enabled and HBASE and ACCUMULO service', function () {
+    it('HA isn\'t enabled and HBASE, HAWQ and ACCUMULO service', function () {
       isHaEnabled = false;
       var configs = {
         'hbase-site': {
@@ -1459,6 +1460,9 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
         'accumulo-site': {
           'instance.volumes': 'hdfs://localhost:8020/apps/accumulo/data',
           'instance.volumes.replacements': ''
+        },
+        'hawq-site': {
+          'hawq_dfs_url': 'localhost:8020/hawq/data'
         }
       };
 
@@ -1470,6 +1474,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       expect(configs['hbase-site']['hbase.rootdir']).to.equal('hdfs://host2:8020/apps/hbase/data');
       expect(configs['accumulo-site']['instance.volumes']).to.equal('hdfs://host2:8020/apps/accumulo/data');
       expect(configs['accumulo-site']['instance.volumes.replacements']).to.equal('hdfs://host1:8020/apps/accumulo/data hdfs://host2:8020/apps/accumulo/data');
+      expect(configs['hawq-site']['hawq_dfs_url']).to.equal('host2:8020/hawq/data');
     });
 
     it('HA enabled and namenode 1', function () {
@@ -1480,6 +1485,10 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
           'dfs.namenode.http-address.s.nn1': 'host1:50070',
           'dfs.namenode.https-address.s.nn1': 'host1:50470',
           'dfs.namenode.rpc-address.s.nn1': 'host1:8020'
+        },
+        'hdfs-client': {
+          'dfs.namenode.rpc-address.s.nn1': '',
+          'dfs.namenode.http-address.s.nn1': 'host1:50070'
         }
       };
 
@@ -1490,6 +1499,10 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
         "dfs.nameservices": "s",
         "dfs.namenode.http-address.s.nn1": "host2:50070",
         "dfs.namenode.https-address.s.nn1": "host2:50470",
+        "dfs.namenode.rpc-address.s.nn1": "host2:8020"
+      });
+      expect(configs['hdfs-client']).to.eql({
+        "dfs.namenode.http-address.s.nn1": "host2:50070",
         "dfs.namenode.rpc-address.s.nn1": "host2:8020"
       });
     });
@@ -1503,6 +1516,10 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
           'dfs.namenode.http-address.s.nn2': 'host2:50070',
           'dfs.namenode.https-address.s.nn2': 'host2:50470',
           'dfs.namenode.rpc-address.s.nn2': 'host2:8020'
+        },
+        'hdfs-client': {
+          'dfs.namenode.rpc-address.s.nn2': '',
+          'dfs.namenode.http-address.s.nn2': 'host2:50070'
         }
       };
       controller.set('content.reassignHosts.source', 'host2');
@@ -1516,6 +1533,10 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
         "dfs.namenode.http-address.s.nn1": "host1:50070",
         "dfs.namenode.http-address.s.nn2": "host3:50070",
         "dfs.namenode.https-address.s.nn2": "host3:50470",
+        "dfs.namenode.rpc-address.s.nn2": "host3:8020"
+      });
+      expect(configs['hdfs-client']).to.eql({
+        "dfs.namenode.http-address.s.nn2": "host3:50070",
         "dfs.namenode.rpc-address.s.nn2": "host3:8020"
       });
     });

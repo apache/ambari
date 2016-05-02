@@ -568,6 +568,10 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
         if (App.Service.find().someProperty('serviceName', 'ACCUMULO')) {
           urlParams.push('(type=accumulo-site&tag=' + data.Clusters.desired_configs['accumulo-site'].tag + ')');
         }
+        if (App.Service.find().someProperty('serviceName', 'HAWQ')) {
+          urlParams.push('(type=hawq-site&tag=' + data.Clusters.desired_configs['hawq-site'].tag + ')');
+          urlParams.push('(type=hdfs-client&tag=' + data.Clusters.desired_configs['hdfs-client'].tag + ')');
+        }
     }
 
     return urlParams;
