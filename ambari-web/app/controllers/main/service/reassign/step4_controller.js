@@ -528,6 +528,10 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
         if (App.Service.find().someProperty('serviceName', 'ACCUMULO')) {
           urlParams.push('(type=accumulo-site&tag=' + data.Clusters.desired_configs['accumulo-site'].tag + ')');
         }
+        if (App.Service.find().someProperty('serviceName', 'HAWQ')) {
+          urlParams.push('(type=hawq-site&tag=' + data.Clusters.desired_configs['hawq-site'].tag + ')');
+          urlParams.push('(type=hdfs-client&tag=' + data.Clusters.desired_configs['hdfs-client'].tag + ')');
+        }
         break;
       case 'SECONDARY_NAMENODE':
         urlParams.push('(type=hdfs-site&tag=' + data.Clusters.desired_configs['hdfs-site'].tag + ')');
@@ -683,6 +687,17 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     }
     if (!App.get('isHaEnabled') && App.Service.find('HBASE').get('isLoaded')) {
       configs['hbase-site']['hbase.rootdir'] = configs['hbase-site']['hbase.rootdir'].replace(/\/\/[^\/]*/, '//' + targetHostName + ':8020');
+    }
+    if (App.Service.find('HAWQ').get('isLoaded')) {
+      if (!App.get('isHaEnabled')) {
+      configs['hawq-site']['hawq_dfs_url'] = configs['hawq-site']['hawq_dfs_url'].replace(/(.*):/, targetHostName + ':');
+      }
+      else if (App.get('isHaEnabled')) {
+        var nameServices = configs['hdfs-site']['dfs.nameservices'];
+        var suffix = (configs['hdfs-client']['dfs.namenode.http-address.' + nameServices + '.nn1'] === sourceHostName + ':50070') ? '.nn1' : '.nn2';
+        configs['hdfs-client']['dfs.namenode.http-address.' + nameServices + suffix] = targetHostName + ':50070';
+        configs['hdfs-client']['dfs.namenode.rpc-address.' + nameServices + suffix] = targetHostName + ':8020';
+      }
     }
     if (!App.get('isHaEnabled') && App.Service.find('ACCUMULO').get('isLoaded')) {
       // Update the Namenode's hostname in instance.volumes

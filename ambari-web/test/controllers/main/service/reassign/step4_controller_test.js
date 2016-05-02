@@ -525,7 +525,9 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
           'oozie-env': {tag: 2},
           'webhcat-site': {tag: 7},
           'yarn-env': {tag: 8},
-          'accumulo-site': {tag: 9}
+          'accumulo-site': {tag: 9},
+          'hawq-site': {tag: 10},
+          'hdfs-client': {tag: 11},
         }
       }
     };
@@ -569,6 +571,20 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
         "(type=hdfs-site&tag=1)",
         "(type=core-site&tag=2)",
         "(type=accumulo-site&tag=9)"
+      ]);
+    });
+
+    it('get config of NAMENODE when HAWQ installed', function () {
+      services = [
+        {
+          serviceName: 'HAWQ'
+        }
+      ];
+      expect(controller.getConfigUrlParams('NAMENODE', data)).to.eql([
+        "(type=hdfs-site&tag=1)",
+        "(type=core-site&tag=2)",
+        "(type=hawq-site&tag=10)",
+        "(type=hdfs-client&tag=11)"
       ]);
     });
 
@@ -750,7 +766,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       controller.setSpecificNamenodeConfigs(configs, 'host1');
       expect(configs).to.eql({});
     });
-    it('HA isn\'t enabled and HBASE and ACCUMULO service', function () {
+    it('HA isn\'t enabled and HBASE, HAWQ, ACCUMULO service exists', function () {
       isHaEnabled = false;
       service = Em.Object.create({
         isLoaded: true
@@ -761,11 +777,15 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
         },
         'accumulo-site': {
           'instance.volumes': 'hdfs://localhost:8020/apps/accumulo/data'
+        },
+        'hawq-site': {
+          'hawq_dfs_url': 'localhost:8020/hawq/hawq_default'
         }
       };
       controller.setSpecificNamenodeConfigs(configs, 'host1');
       expect(configs['hbase-site']['hbase.rootdir']).to.equal('hdfs://host1:8020/apps/hbase/data');
       expect(configs['accumulo-site']['instance.volumes']).to.equal('hdfs://host1:8020/apps/accumulo/data');
+      expect(configs['hawq-site']['hawq_dfs_url']).to.equal('host1:8020/hawq/hawq_default');
     });
     it('HA enabled and namenode 1', function () {
       isHaEnabled = true;
@@ -775,6 +795,10 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
           'dfs.namenode.http-address.s.nn1': 'host1:50070',
           'dfs.namenode.https-address.s.nn1': '',
           'dfs.namenode.rpc-address.s.nn1': ''
+        },
+        'hdfs-client': {
+          'dfs.namenode.rpc-address.s.nn1': '',
+          'dfs.namenode.http-address.s.nn1': 'host1:50070'
         }
       };
       controller.setSpecificNamenodeConfigs(configs, 'host2');
@@ -782,6 +806,10 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
         "dfs.nameservices": "s",
         "dfs.namenode.http-address.s.nn1": "host2:50070",
         "dfs.namenode.https-address.s.nn1": "host2:50470",
+        "dfs.namenode.rpc-address.s.nn1": "host2:8020"
+      });
+      expect(configs['hdfs-client']).to.eql({
+        "dfs.namenode.http-address.s.nn1": "host2:50070",
         "dfs.namenode.rpc-address.s.nn1": "host2:8020"
       });
     });
@@ -793,6 +821,10 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
           'dfs.namenode.http-address.s.nn2': 'host2:50070',
           'dfs.namenode.https-address.s.nn2': '',
           'dfs.namenode.rpc-address.s.nn2': ''
+        },
+        'hdfs-client': {
+          'dfs.namenode.rpc-address.s.nn2': '',
+          'dfs.namenode.http-address.s.nn2': 'host2:50070'
         }
       };
       controller.setSpecificNamenodeConfigs(configs, 'host1');
@@ -800,6 +832,10 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
         "dfs.nameservices": "s",
         "dfs.namenode.http-address.s.nn2": "host1:50070",
         "dfs.namenode.https-address.s.nn2": "host1:50470",
+        "dfs.namenode.rpc-address.s.nn2": "host1:8020"
+      });
+      expect(configs['hdfs-client']).to.eql({
+        "dfs.namenode.http-address.s.nn2": "host1:50070",
         "dfs.namenode.rpc-address.s.nn2": "host1:8020"
       });
     });
