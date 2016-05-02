@@ -964,10 +964,22 @@ CREATE TABLE ambari.servicecomponent_history(
   CONSTRAINT FK_sc_history_to_stack_id FOREIGN KEY (to_stack_id) REFERENCES ambari.stack (stack_id)
 );
 
+CREATE TABLE ambari.ambari_operation_history(
+  id BIGINT NOT NULL,
+  from_version VARCHAR(255) NOT NULL,
+  to_version VARCHAR(255) NOT NULL,
+  start_time BIGINT NOT NULL,
+  end_time BIGINT,
+  operation_type VARCHAR(255) NOT NULL,
+  comments TEXT,
+  CONSTRAINT PK_ambari_operation_history PRIMARY KEY (id)
+);
+
 GRANT ALL PRIVILEGES ON TABLE ambari.upgrade TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.upgrade_group TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.upgrade_item TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.servicecomponent_history TO :username;
+GRANT ALL PRIVILEGES ON TABLE ambari.ambari_operation_history TO :username;
 
 -- tasks indices --
 CREATE INDEX idx_stage_request_id ON ambari.stage (request_id);
@@ -1232,7 +1244,9 @@ INSERT INTO ambari.ambari_sequences (sequence_name, sequence_value)
   union all
   select 'servicecomponent_history_id_seq', 0
   union all
-  select 'blueprint_setting_id_seq', 0;
+  select 'blueprint_setting_id_seq', 0
+  union all
+  select 'ambari_operation_history_id_seq', 0;
 
 INSERT INTO ambari.adminresourcetype (resource_type_id, resource_type_name)
   SELECT 1, 'AMBARI'

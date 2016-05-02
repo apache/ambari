@@ -829,6 +829,17 @@ CREATE TABLE servicecomponent_history(
   CONSTRAINT FK_sc_history_to_stack_id FOREIGN KEY (to_stack_id) REFERENCES stack (stack_id)
 );
 
+CREATE TABLE ambari_operation_history(
+  id BIGINT NOT NULL,
+  from_version VARCHAR(255) NOT NULL,
+  to_version VARCHAR(255) NOT NULL,
+  start_time BIGINT NOT NULL,
+  end_time BIGINT,
+  operation_type VARCHAR(255) NOT NULL,
+  comments TEXT,
+  CONSTRAINT PK_ambari_operation_history PRIMARY KEY (id)
+);
+
 -- tasks indices --
 CREATE INDEX idx_stage_request_id ON stage (request_id);
 CREATE INDEX idx_hrc_request_id ON host_role_command (request_id);
@@ -1076,6 +1087,8 @@ INSERT INTO ambari_sequences (sequence_name, sequence_value)
   select 'servicecomponent_history_id_seq', 0
   union all
   select 'blueprint_setting_id_seq', 0;
+  union all
+  select 'ambari_operation_history_id_seq', 0;
 
 
 INSERT INTO adminresourcetype (resource_type_id, resource_type_name)
