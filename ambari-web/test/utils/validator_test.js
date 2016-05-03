@@ -332,7 +332,10 @@ describe('validator', function () {
       {m:'"[ssd] /1a2b3c" - invalid',i:'[ssd] /1a2b3c',e:false},
       {m:'"[/1a2b3c]" - invalid',i:'[/1a2b3c]',e:false},
       {m:'"[s]ss /sd" - invalid',i:'[s]ss /sd',e:false},
-      {m:'" [s]ss/sd" - invalid',i:' [s]ss/sd',e:false}
+      {m:'" [s]ss/sd" - invalid',i:' [s]ss/sd',e:false},
+      {m:'"[RAM_DISK]/1a2b3c" - valid',i:'[RAM_DISK]/1a2b3c',e:true},
+      {m:'"[RAMDISK_]/1a2b3c" - invalid',i:'[RAMDISK_]/1a2b3c',e:false},
+      {m:'"[_RAMDISK]/1a2b3c" - invalid',i:'[_RAMDISK]/1a2b3c',e:false}
     ];
     tests.forEach(function(test) {
       it(test.m + ' ', function () {

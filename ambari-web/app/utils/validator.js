@@ -76,9 +76,9 @@ module.exports = {
    * @returns {boolean}
    */
   isValidDataNodeDir: function(value) {
-    var dirRegex = /^(\[[0-9a-zA-Z]+\])?(file:\/\/)?(\/[0-9a-z]*)/;
-    var winRegex = /^(\[[0-9a-zA-Z]+\])?[a-zA-Z]:\\[0-9a-zA-Z]*/;
-    var winUrlRegex = /^(\[[0-9a-zA-Z]+\])?file:\/\/\/[a-zA-Z]:\/[0-9a-zA-Z]*/;
+    var dirRegex = /^(\[[0-9a-zA-Z]+_?[0-9a-zA-Z]+\])?(file:\/\/)?(\/[0-9a-z]*)/;
+    var winRegex = /^(\[[0-9a-zA-Z]+_?[0-9a-zA-Z]+\])?[a-zA-Z]:\\[0-9a-zA-Z]*/;
+    var winUrlRegex = /^(\[[0-9a-zA-Z]+_?[0-9a-zA-Z]+\])?file:\/\/\/[a-zA-Z]:\/[0-9a-zA-Z]*/;
     var dirs = value.split(',');
     if (dirs.some(function (i) {return i.startsWith(' '); })) {
       return false;
