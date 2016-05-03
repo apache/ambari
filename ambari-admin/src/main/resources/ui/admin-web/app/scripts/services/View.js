@@ -61,13 +61,18 @@ angular.module('ambariAdminConsole')
     angular.element(this,item);
   }
 
-  ViewUrl.all = function() {
+  ViewUrl.all = function(params) {
     var deferred = $q.defer();
 
     $http({
       method: 'GET',
       dataType: "json",
-      url: Settings.baseUrl + '/view/urls',
+      url: Settings.baseUrl + '/view/urls?'
+      + 'ViewUrlInfo/url_name.matches(.*'+params.searchString+'.*)'
+      + '&fields=*'
+      + '&from=' + (params.currentPage-1)*params.urlsPerPage
+      + '&page_size=' + params.urlsPerPage
+      + (params.instanceType === '*' ? '' : '&ViewUrlInfo/view_instance_common_name=' + params.instanceType)
 
     })
         .success(function(data) {
@@ -189,8 +194,8 @@ angular.module('ambariAdminConsole')
     return ViewInstance.find(viewName, version, instanceName);
   };
 
-  View.allUrls =  function(){
-    return ViewUrl.all()
+  View.allUrls =  function(req){
+    return ViewUrl.all(req)
   };
 
   View.getUrlInfo = function(urlName){

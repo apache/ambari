@@ -219,6 +219,20 @@
    max-width: 300px;
  }
 
+.v-small-input{
+  max-width: 100px;
+}
+
+.m-small-input{
+  max-width: 100px;
+}
+
+
+.white-bg{
+  background-color: #ffffff;
+
+}
+
 .paginator{
   margin: 0;
 }
@@ -1119,6 +1133,17 @@ button.btn.btn-xs{
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
+}
+
+.fix-bottom{
+  border-bottom: none !important;;
+  border-top: none !important;
+  border-width: 0;
+}
+
+.fix-top{
+  border-top: none !important;
+  border-width: 0;
 }
 .ambariAlert .content {
   word-wrap: break-word;

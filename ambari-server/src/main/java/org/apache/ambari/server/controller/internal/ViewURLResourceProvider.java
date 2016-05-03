@@ -19,9 +19,9 @@
 package org.apache.ambari.server.controller.internal;
 
 import com.google.common.base.Optional;
+import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
-import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.controller.predicate.EqualsPredicate;
@@ -34,7 +34,6 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.ViewURLDAO;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
@@ -72,9 +71,6 @@ public class ViewURLResourceProvider extends AbstractAuthorizedResourceProvider 
    */
   private static Map<Resource.Type, String> keyPropertyIds = new HashMap<Resource.Type, String>();
   static {
-    keyPropertyIds.put(Resource.Type.View, VIEW_INSTANCE_NAME_PROPERTY_ID);
-    keyPropertyIds.put(Resource.Type.ViewVersion, VIEW_INSTANCE_VERSION_PROPERTY_ID);
-    keyPropertyIds.put(Resource.Type.ViewInstance, VIEW_INSTANCE_COMMON_NAME_PROPERTY_ID);
     keyPropertyIds.put(Resource.Type.ViewURL, URL_NAME_PROPERTY_ID);
   }
 
@@ -93,12 +89,12 @@ public class ViewURLResourceProvider extends AbstractAuthorizedResourceProvider 
   @Inject
   private static ViewURLDAO viewURLDAO;
 
-
   // ----- Constructors ------------------------------------------------------
 
   /**
    * Construct a view URL resource provider.
    */
+
   public ViewURLResourceProvider() {
     super(propertyIds, keyPropertyIds);
 
@@ -127,10 +123,22 @@ public class ViewURLResourceProvider extends AbstractAuthorizedResourceProvider 
   public Set<Resource> getResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
-    Set<Resource> resources    = Sets.newHashSet();
-    List<ViewURLEntity> urlEntities = viewURLDAO.findAll();
-    for (ViewURLEntity urlEntity : urlEntities) {
-      resources.add(toResource(urlEntity));
+    Set<Resource> resources = Sets.newHashSet();
+    Set<Map<String, Object>> propertyMaps = getPropertyMaps(predicate);
+
+    for (Map<String, Object> propertyMap : propertyMaps) {
+      String urlNameProperty = (String) propertyMap.get(URL_NAME_PROPERTY_ID);
+      if (!Strings.isNullOrEmpty(urlNameProperty)) {
+        Optional<ViewURLEntity> urlEntity = viewURLDAO.findByName(urlNameProperty);
+        if(urlEntity.isPresent()){
+          resources.add(toResource(urlEntity.get()));
+        }
+      } else {
+        List<ViewURLEntity> urlEntities = viewURLDAO.findAll();
+        for (ViewURLEntity urlEntity : urlEntities) {
+          resources.add(toResource(urlEntity));
+        }
+      }
     }
 
     return resources;
@@ -235,7 +243,6 @@ public class ViewURLResourceProvider extends AbstractAuthorizedResourceProvider 
      */
   private Command<Void> getCreateCommand(final Map<String, Object> properties) {
     return new Command<Void>() {
-      @Transactional
       @Override
       public Void invoke() throws AmbariException {
         ViewRegistry       viewRegistry   = ViewRegistry.getInstance();

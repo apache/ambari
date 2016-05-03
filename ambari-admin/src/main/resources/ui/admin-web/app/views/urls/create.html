@@ -23,29 +23,56 @@
     <div class="row">
         <div class="col-sm-10">
 
-            <div id="wizard-container" ng-controller="wizardController as wizard">
-
-                <div id="wizard-step-container" class="bottom-margin">
-                    <ul class="nav nav-pills nav-justified">
-                        <li ng-repeat="step in wizard.steps" ng-class="{'active':step.step == wizard.currentStep}"><a ng-click="wizard.gotoStep(step.step)" href="">{{step.name}}</a></li>
-                    </ul>
-                </div>
-
-                <div id="wizard-content-container">
-                    <ng-include src="wizard.getStepTemplate()"></ng-include>
-                </div>
-
-                <div id="wizard-navigation-container">
-                    <div class="pull-right">
-                <span class="btn-group">
-                  <button ng-disabled="wizard.currentStep <= 1" class="btn btn-default" name="previous" type="button" ng-click="wizard.gotoStep(wizard.currentStep - 1)"><i class="fa fa-arrow-left"></i> Previous step</button>
-                  <button ng-disabled="wizard.currentStep >= wizard.steps.length" class="btn btn-primary" name="next" type="button" ng-click="wizard.gotoStep(wizard.currentStep + 1)">Next step <i class="fa fa-arrow-right"></i></button>
-                </span>
-                        <button ng-disabled="wizard.currentStep != wizard.steps.length" class="btn btn-success" name="next" type="button" ng-click="wizard.save()"> <i class="fa fa-floppy-o"></i> Save</button>
+            <form class="form-horizontal create-user-form" role="form" novalidate name="formHolder.form" autocomplete="off">
+                <div class="form-group" ng-class="{'has-error' : formHolder.form.url_name.$error.required  && formHolder.form.submitted}">
+                    <label for="urlname" class="col-sm-2 control-label">{{'urls.name' | translate}}</label>
+                    <div class="col-sm-10">
+                        <input ng-minlength="3" ng-maxlength="20" type="text" id="urlname" class="form-control urlname-input" name="url_name" placeholder="{{'urls.name' | translate}}" ng-model="url.urlName" required autocomplete="off">
+                        <div class="alert alert-danger top-margin" ng-show="formHolder.form.url_name.$error.required  && formHolder.form.submitted">{{'common.alerts.fieldIsRequired' | translate}}</div>
+                        <div class="alert alert-danger top-margin" ng-show="formHolder.form.url_name.$error.minlength   && formHolder.form.submitted">{{'common.alerts.tooShort' | translate}}</div>
+                        <div class="alert alert-danger top-margin" ng-show="formHolder.form.url_name.$error.maxlength   && formHolder.form.submitted">{{'common.alerts.tooLong' | translate}}</div>
                     </div>
                 </div>
 
-            </div>
+
+                <div class="form-group" ng-class="{'has-error' : formHolder.form.url_view_name.$error.required  && formHolder.form.submitted}">
+                    <label for="urlselect" class="col-sm-2 control-label">{{'urls.view' | translate}}</label>
+                    <div class="col-sm-10">
+                        <select ng-change="doStepOne()" class="form-control" id="urlselect" name="url_view_name" ng-options="version for version in viewsVersions" ng-model="url.selectedView" required></select>
+                        <div class="alert alert-danger top-margin" ng-show="formHolder.form.url_view_name.$error.required  && formHolder.form.submitted">{{'common.alerts.fieldIsRequired' | translate}}</div>
+                    </div>
+                </div>
+
+                <div ng-hide="stepOneNotCompleted" class="form-group" ng-class="{'has-error' : formHolder.form.url_view_instance_name.$error.required  && formHolder.form.submitted}">
+                    <label for="urlinstanceselect" class="col-sm-2 control-label">{{'urls.viewInstance' | translate}}</label>
+                    <div class="col-sm-10">
+                        <select ng-change="doStepTwo()" class="form-control" id="urlinstanceselect" name="url_view_instance_name" ng-options="instance.instance for instance in viewInstances | filter:filterByName(url.selectedView)" ng-model="url.selectedInstance" required></select>
+                        <div class="alert alert-danger top-margin" ng-show="formHolder.form.url_view_instance_name.$error.required  && formHolder.form.submitted">{{'common.alerts.fieldIsRequired' | translate}}</div>
+                    </div>
+                </div>
+
+                <div ng-hide="stepTwoNotCompleted"  class="form-group" ng-class="{'has-error' : formHolder.form.url_view_suffix.$error.required  && formHolder.form.submitted}">
+                    <label for="urlsuffixin" class="col-sm-2 control-label">{{'views.shortUrl' | translate}}</label>
+                    <div class="col-sm-10">
+                        <div class="input-group">
+                            <span id="basic-addon1" class="input-group-addon">/main/view/{{chomp(url.selectedView)}}/</span><input aria-describedby="basic-addon1" type="text" class="form-control" id="urlsuffixin" name="url_view_suffix" placeholder="{{'views.shortUrl' | translate}}" ng-model="url.suffix" ng-pattern="/[a-z]+/" ng-minlength="3" ng-maxlength="10" required autocomplete="off">
+                        </div>
+                        <div class="alert alert-danger top-margin" ng-show="formHolder.form.url_view_suffix.$error.required   && formHolder.form.submitted">{{'common.alerts.fieldIsRequired' | translate}}</div>
+                        <div class="alert alert-danger top-margin" ng-show="formHolder.form.url_view_suffix.$error.minlength   && formHolder.form.submitted">{{'common.alerts.tooShort' | translate}}</div>
+                        <div class="alert alert-danger top-margin" ng-show="formHolder.form.url_view_suffix.$error.maxlength   && formHolder.form.submitted">{{'common.alerts.tooLong' | translate}}</div>
+                        <div class="alert alert-danger top-margin" ng-show="formHolder.form.url_view_suffix.$error.pattern   && formHolder.form.submitted">{{'common.alerts.onlyText' | translate}}</div>
+
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-sm-offset-2 col-sm-10">
+                        <button ng-disabled="stepTwoNotCompleted" class="btn btn-primary pull-right left-margin saveuser" ng-click="saveUrl()">{{'common.controls.save' | translate}}</button>
+                        <a ng-disabled="stepOneNotCompleted" class="btn btn-default pull-right cancel" href ng-click="cancelForm()">{{'common.controls.cancel' | translate}}</a>
+                    </div>
+                </div>
+
+            </form>
 
         </div>
 </div>

@@ -25,8 +25,11 @@ angular.module('ambariAdminConsole')
     props: $t('views.properties')
   };
   var targetUrl = '/viewUrls';
+
   $scope.url={};
   $scope.formHolder = {};
+  $scope.stepOneNotCompleted = true;
+  $scope.stepTwoNotCompleted = true;
 
   View.getAllVisibleInstance().then(function(views) {
     var names = [];
@@ -57,6 +60,8 @@ angular.module('ambariAdminConsole')
       $scope.url.selectedInstance = instances.find(function(inst){
          return inst.nameV === selectedView && inst.instance === $routeParams.viewInstanceName && inst.version === $routeParams.viewVersion && inst.cname === $routeParams.viewName;
       });
+      $scope.stepOneNotCompleted = false;
+      $scope.stepTwoNotCompleted = false;
     }
 
   }).catch(function(data) {
@@ -78,76 +83,51 @@ angular.module('ambariAdminConsole')
   };
 
 
-  $scope.wizardController = function () {
-    var wizard = this;
-
-    //Model
-    wizard.currentStep = 1;
-    wizard.steps = [
-      {
-        step: 1,
-        name: $t('urls.step1'),
-        template: "views/urls/create_step_1.html"
-      },
-      {
-        step: 2,
-        name: $t('urls.step2'),
-        template: "views/urls/create_step_2.html"
-      },
-      {
-        step: 3,
-        name: $t('urls.step3'),
-        template: "views/urls/create_step_3.html"
-      }
-    ];
-    wizard.user = {};
-
-    //Functions
-    wizard.gotoStep = function(newStep) {
-      $scope.formHolder.form.submitted = true;
-      if (newStep < wizard.currentStep || $scope.formHolder.form.$valid) {
-        wizard.currentStep = newStep;
-      }
-    };
-
-    wizard.getStepTemplate = function(){
-      for (var i = 0; i < wizard.steps.length; i++) {
-        if (wizard.currentStep == wizard.steps[i].step) {
-          return wizard.steps[i].template;
-        }
-      }
-    };
-
-    wizard.save = function() {
-      $scope.formHolder.form.submitted = true;
-
-      if($scope.formHolder.form.$valid){
-
-        var payload = {ViewUrlInfo:{
-              url_name:$scope.url.urlName,
-              url_suffix:$scope.url.suffix,
-              view_instance_version:$scope.url.selectedInstance.version,
-              view_instance_name:$scope.url.selectedInstance.instance,
-              view_instance_common_name:$scope.url.selectedInstance.cname
-        }};
-
-        View.updateShortUrl(payload).then(function(urlStatus) {
-          Alert.success($t('urls.urlCreated', {
-            viewName:$scope.url.selectedInstance.cname ,
-            shortUrl:$scope.url.suffix,
-            urlName:$scope.url.urlName
-          }));
-          $scope.formHolder.form.$setPristine();
-          $location.path(targetUrl);
-        }).catch(function(data) {
-          Alert.error($t('views.alerts.cannotLoadViewUrls'), data.message);
-        });
-
-      }
-    };
-  }
+  $scope.doStepOne = function () {
+    $scope.stepOneNotCompleted = false;
+  };
 
 
+  $scope.doStepTwo = function () {
+    $scope.stepTwoNotCompleted = false;
 
+  };
+
+  $scope.cancelForm = function () {
+    $scope.stepOneNotCompleted = true;
+    $scope.stepTwoNotCompleted = true;
+  };
+
+  $scope.saveUrl = function() {
+    $scope.formHolder.form.submitted = true;
+
+    if($scope.formHolder.form.$valid){
+
+      var payload = {ViewUrlInfo:{
+        url_name:$scope.url.urlName,
+        url_suffix:$scope.url.suffix,
+        view_instance_version:$scope.url.selectedInstance.version,
+        view_instance_name:$scope.url.selectedInstance.instance,
+        view_instance_common_name:$scope.url.selectedInstance.cname
+      }};
+
+      View.updateShortUrl(payload).then(function(urlStatus) {
+        Alert.success($t('urls.urlCreated', {
+          viewName:$scope.url.selectedInstance.cname ,
+          shortUrl:$scope.url.suffix,
+          urlName:$scope.url.urlName
+        }));
+        $scope.formHolder.form.$setPristine();
+        $scope.url={};
+        $scope.formHolder = {};
+        $scope.stepOneNotCompleted = true;
+        $scope.stepTwoNotCompleted = true;
+        $location.path(targetUrl);
+      }).catch(function(data) {
+        Alert.error($t('views.alerts.cannotLoadViewUrls'), data.message);
+      });
+
+    }
+  };
 
 }]);

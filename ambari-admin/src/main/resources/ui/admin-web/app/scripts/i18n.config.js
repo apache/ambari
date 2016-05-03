@@ -32,7 +32,7 @@ angular.module('ambariAdminConsole')
       'signOut': 'Sign out',
       'clusters': 'Clusters',
       'views': 'Views',
-      'viewUrls': 'View URL\'s',
+      'viewUrls': 'View URLs',
       'roles': 'Roles',
       'users': 'Users',
       'groups': 'Groups',
@@ -133,9 +133,10 @@ angular.module('ambariAdminConsole')
         'cannotLoadClusterStatus': 'Cannot load cluster status',
         'clusterRenamed': 'The cluster has been renamed to {{clusterName}}.',
         'cannotRenameCluster': 'Cannot rename cluster to {{clusterName}}',
-        'tooShort': 'URL is too short',
-        'tooLong': 'URL is too long',
-        'onlyText': 'You can add only text urls in the lower case'
+        'tooShort': 'Too short',
+        'tooLong': 'Too long',
+        'onlyText': 'Only lower cased text allowed',
+        'onlyAnScore': 'Invalid input, only alphanumerics allowed eg: My_default_view'
       }
     },
 
@@ -228,7 +229,7 @@ angular.module('ambariAdminConsole')
         'cannotSaveProperties': 'Cannot save properties',
         'cannotDeleteInstance': 'Cannot delete instance',
         'cannotLoadViews': 'Cannot load views',
-        'cannotLoadViewUrls': 'Cannot load view URL\'s',
+        'cannotLoadViewUrls': 'Cannot load view URLs',
         'cannotLoadViewUrl': 'Cannot load view URL'
       }
     },
@@ -243,7 +244,8 @@ angular.module('ambariAdminConsole')
       'step1':'Create URL',
       'step2':'Select instance',
       'step3':'Assign URL',
-      'noUrlsToDisplay':'No short URL\'s configured',
+      'noUrlsToDisplay':'No URLs to display',
+      'noViewInstances':'No view instances',
       'urlCreated':'Created short URL <a href="/#/main/view/{{viewName}}/{{shortUrl}}">{{urlName}}</a>',
       'urlUpdated':'Updated short URL <a href="/#/main/view/{{viewName}}/{{shortUrl}}">{{urlName}}</a>'
     },
