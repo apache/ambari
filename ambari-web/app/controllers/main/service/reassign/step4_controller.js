@@ -574,6 +574,13 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
         }
     }
 
+    if (componentName === 'RESOURCEMANAGER') {
+        if (App.Service.find().someProperty('serviceName', 'HAWQ')) {
+          urlParams.push('(type=hawq-site&tag=' + data.Clusters.desired_configs['hawq-site'].tag + ')');
+          urlParams.push('(type=yarn-client&tag=' + data.Clusters.desired_configs['yarn-client'].tag + ')');
+        }
+    }
+
     return urlParams;
   },
 
@@ -629,9 +636,13 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
    */
   _getRmAdditionalDependencies: function (configs) {
     var ret = {};
-    var cfg = configs['yarn-site']['yarn.resourcemanager.hostname.rm1'];
-    if (cfg) {
-      ret.rm1 = cfg;
+    var rm1 = configs['yarn-site']['yarn.resourcemanager.hostname.rm1'];
+    if (rm1) {
+      ret.rm1 = rm1;
+    }
+    var rm2 = configs['yarn-site']['yarn.resourcemanager.hostname.rm2'];
+    if (rm2) {
+      ret.rm2 = rm2;
     }
     return ret;
   },
@@ -700,6 +711,31 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
   },
 
   onLoadConfigs: function (data) {
+    // Find hawq-site.xml location
+    var hawqSiteIndex = -1;
+    for(var i = 0; i < data.items.length; i++){
+      if(data.items[i].type == 'hawq-site'){
+        hawqSiteIndex = i;
+        break;
+      }
+    }
+
+    // if certain services are deployed, include related site files to additionalConfigsMap and relatedServicesMap.
+    if(hawqSiteIndex >= 0){ // if HAWQ is deployed
+      var hawqSiteProperties = {
+        'hawq_rm_yarn_address': '<replace-value>:8050',
+        'hawq_rm_yarn_scheduler_address': '<replace-value>:8030'
+      }
+
+      var rmComponent = this.get('additionalConfigsMap').findProperty('componentName', "RESOURCEMANAGER");
+      rmComponent.configs["hawq-site"] = hawqSiteProperties;
+
+      if(data.items[hawqSiteIndex].properties["hawq_global_rm_type"].toLowerCase() === "yarn"){
+        this.get('relatedServicesMap')['RESOURCEMANAGER'].append('HAWQ');
+      }
+
+    }
+
     var componentName = this.get('content.reassign.component_name');
     var targetHostName = this.get('content.reassignHosts.target');
     var configs = {};

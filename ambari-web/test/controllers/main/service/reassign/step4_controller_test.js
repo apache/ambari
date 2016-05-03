@@ -676,13 +676,18 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
   });
 
   describe('#onLoadConfigsTags()', function () {
+    var dummyData = {
+      Clusters: {
+        desired_configs : {}
+      }
+    };
 
     beforeEach(function () {
       sinon.stub(controller, 'getConfigUrlParams', function () {
         return [];
       });
       controller.set('content.reassign.component_name', 'COMP1');
-      controller.onLoadConfigsTags({});
+      controller.onLoadConfigsTags(dummyData);
       this.args = testHelpers.findAjaxRequest('name', 'reassign.load_configs');
     });
 
@@ -695,7 +700,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
     });
 
     it('getConfigUrlParams is called with correct data', function () {
-      expect(controller.getConfigUrlParams.calledWith('COMP1', {})).to.be.true;
+      expect(controller.getConfigUrlParams.calledWith('COMP1', dummyData)).to.be.true;
     });
   });
 
