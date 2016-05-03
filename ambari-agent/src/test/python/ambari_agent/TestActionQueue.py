@@ -366,7 +366,7 @@ class TestActionQueue(TestCase):
     expected = {'status': 'COMPLETED',
                 'configurationTags': {'global': {'tag': 'v123'}},
                 'stderr': 'stderr',
-                'stdout': 'out',
+                'stdout': 'out\n\nCommand completed successfully!\n',
                 'clusterName': u'cc',
                 'structuredOut': '""',
                 'roleCommand': u'CUSTOM_COMMAND',
@@ -539,7 +539,7 @@ class TestActionQueue(TestCase):
     configname = os.path.join(tempdir, 'config.json')
     expected = {'status': 'COMPLETED',
                 'stderr': 'stderr',
-                'stdout': 'out',
+                'stdout': 'out\n\nCommand completed successfully!\n',
                 'clusterName': u'cc',
                 'structuredOut': '""',
                 'roleCommand': u'INSTALL',
@@ -578,7 +578,7 @@ class TestActionQueue(TestCase):
       # check report
     expected = {'status': 'FAILED',
                 'stderr': 'stderr',
-                'stdout': 'out',
+                'stdout': 'out\n\nCommand completed successfully!\n\n\nCommand failed after 1 tries\n',
                 'clusterName': u'cc',
                 'structuredOut': '""',
                 'roleCommand': u'INSTALL',
@@ -610,7 +610,7 @@ class TestActionQueue(TestCase):
     # check report
     expected = {'status': 'COMPLETED',
                 'stderr': 'stderr',
-                'stdout': 'out',
+                'stdout': 'out\n\nCommand completed successfully!\n\n\nCommand failed after 1 tries\n\n\nCommand completed successfully!\n',
                 'clusterName': 'clusterName',
                 'structuredOut': '""',
                 'roleCommand': 'UPGRADE',
@@ -654,7 +654,7 @@ class TestActionQueue(TestCase):
     expected = {'status': 'COMPLETED',
                 'configurationTags': {'global': {'tag': 'v123'}},
                 'stderr': 'stderr',
-                'stdout': 'out',
+                'stdout': 'out\n\nCommand completed successfully!\n',
                 'clusterName': u'cc',
                 'structuredOut': '""',
                 'roleCommand': u'CUSTOM_COMMAND',
@@ -696,7 +696,7 @@ class TestActionQueue(TestCase):
     expected = {'status': 'COMPLETED',
                 'configurationTags': {'global': {'tag': 'v123'}},
                 'stderr': 'stderr',
-                'stdout': 'out',
+                'stdout': 'out\n\nCommand completed successfully!\n',
                 'clusterName': u'cc',
                 'structuredOut': '""',
                 'roleCommand': u'CUSTOM_COMMAND',
@@ -986,7 +986,7 @@ class TestActionQueue(TestCase):
       'status': 'FAILED'
     }
 
-    times_arr = [8, 10, 14, 18, 22]
+    times_arr = [8, 10, 14, 18, 22, 26]
     if self.logger.isEnabledFor(logging.INFO):
       times_arr.insert(0, 4)
     time_mock.side_effect = times_arr

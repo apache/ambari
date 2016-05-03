@@ -171,7 +171,7 @@ class ActionQueue(threading.Thread):
                 t.start()
               else:
                 self.process_command(command)
-                break;
+                break
               pass
             pass
         except (Queue.Empty):
@@ -315,11 +315,16 @@ class ActionQueue(threading.Thread):
         if delay > retryDuration:
           delay = retryDuration
         retryDuration -= delay  # allow one last attempt
+        commandresult['stderr'] += "\n\nCommand failed. Retrying command execution ...\n\n"
         logger.info("Retrying command id {cid} after a wait of {delay}".format(cid=taskId, delay=delay))
         time.sleep(delay)
         continue
       else:
         break
+
+    # final result to stdout
+    commandresult['stdout'] += '\n\nCommand completed successfully!\n' if status == self.COMPLETED_STATUS else '\n\nCommand failed after ' + str(numAttempts) + ' tries\n'
+    logger.info('Command {cid} completed successfully!'.format(cid=taskId) if status == self.COMPLETED_STATUS else 'Command {cid} failed after {attempts} tries'.format(cid=taskId, attempts=numAttempts))
 
     roleResult = self.commandStatuses.generate_report_template(command)
     roleResult.update({
