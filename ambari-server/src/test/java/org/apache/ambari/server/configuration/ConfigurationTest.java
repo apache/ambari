@@ -714,4 +714,45 @@ public class ConfigurationTest {
     Assert.assertEquals("test_uid={5}", actualLdapUserSearchFilter);
   }
 
+  @Test
+  public void testAlternateUserSearchEnabledDefault() throws  Exception {
+    // Given
+    final Properties ambariProperties = new Properties();
+    final Configuration configuration = new Configuration(ambariProperties);
+
+    // When
+    boolean actual =  configuration.isLdapAlternateUserSearchEnabled();
+
+    // Then
+    Assert.assertEquals(false, actual);
+  }
+
+  @Test
+  public void testAlternateUserSearchEnabledTrue() throws  Exception {
+    // Given
+    final Properties ambariProperties = new Properties();
+    final Configuration configuration = new Configuration(ambariProperties);
+    ambariProperties.setProperty(Configuration.LDAP_ALT_USER_SEARCH_ENABLED_KEY, "true");
+
+    // When
+    boolean actual =  configuration.isLdapAlternateUserSearchEnabled();
+
+    // Then
+    Assert.assertEquals(true, actual);
+  }
+
+  @Test
+  public void testAlternateUserSearchEnabledFalse() throws  Exception {
+    // Given
+    final Properties ambariProperties = new Properties();
+    final Configuration configuration = new Configuration(ambariProperties);
+    ambariProperties.setProperty(Configuration.LDAP_ALT_USER_SEARCH_ENABLED_KEY, "false");
+
+    // When
+    boolean actual =  configuration.isLdapAlternateUserSearchEnabled();
+
+    // Then
+    Assert.assertEquals(false, actual);
+  }
+
 }

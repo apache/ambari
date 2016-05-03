@@ -33,6 +33,7 @@ import org.easymock.MockType;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -64,6 +65,9 @@ public class AmbariLdapAuthenticationProviderForDuplicateUserTest extends Ambari
   @Rule
   public EasyMockRule mocks = new EasyMockRule(this);
 
+  @Rule
+  public ExpectedException expectedException = ExpectedException.none();
+
   @Mock(type = MockType.NICE)
   private AmbariLdapAuthoritiesPopulator authoritiesPopulator;
 
@@ -85,16 +89,39 @@ public class AmbariLdapAuthenticationProviderForDuplicateUserTest extends Ambari
     authenticationProvider = new AmbariLdapAuthenticationProvider(configuration, authoritiesPopulator);
   }
 
-  @Test(expected = DuplicateLdapUserFoundAuthenticationException.class)
-  public void testAuthenticateDuplicateUser() throws Exception {
+  @Test
+  public void testAuthenticateDuplicateUserAltUserSearchDisabled() throws Exception {
     // Given
     Authentication authentication = new UsernamePasswordAuthenticationToken("user_dup", "password");
+    authenticationProvider.configuration.setProperty(Configuration.LDAP_ALT_USER_SEARCH_ENABLED_KEY, "false");
+
+    expectedException.expect(DuplicateLdapUserFoundAuthenticationException.class);
+    expectedException.expectMessage("Login Failed: More than one user with that username found, please work with your Ambari Administrator to adjust your LDAP configuration");
 
     // When
     authenticationProvider.authenticate(authentication);
 
     // Then
     // DuplicateLdapUserFoundAuthenticationException should be thrown
+
+
+  }
+
+  @Test
+  public void testAuthenticateDuplicateUserAltUserSearchEnabled() throws Exception {
+    // Given
+    Authentication authentication = new UsernamePasswordAuthenticationToken("user_dup", "password");
+    authenticationProvider.configuration.setProperty(Configuration.LDAP_ALT_USER_SEARCH_ENABLED_KEY, "true");
+
+    expectedException.expect(DuplicateLdapUserFoundAuthenticationException.class);
+    expectedException.expectMessage("Login Failed: Please append your domain to your username and try again.  Example: user_dup@domain");
+
+    // When
+    authenticationProvider.authenticate(authentication);
+
+    // Then
+    // DuplicateLdapUserFoundAuthenticationException should be thrown
+
 
   }
 }

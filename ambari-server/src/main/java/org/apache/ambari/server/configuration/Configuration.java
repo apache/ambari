@@ -198,6 +198,13 @@ public class Configuration {
   public static final String LDAP_USER_SEARCH_FILTER_KEY = "authentication.ldap.userSearchFilter";
 
   /**
+   * This configuration controls whether the use of alternate user search filter is enabled.
+   *
+   * If it is not set then the default
+   */
+  public static final String LDAP_ALT_USER_SEARCH_ENABLED_KEY = "authentication.ldap.alternateUserSearchEnabled";
+
+  /**
    * When authentication through LDAP is enabled there might be cases when {@link #LDAP_USER_SEARCH_FILTER_KEY}
    * may match multiple users in LDAP. In such cases the user is prompted to provide additional info, e.g. the domain
    * he or she wants ot log in upon login beside the username. This filter will be used by Ambari Server to lookup
@@ -488,6 +495,19 @@ public class Configuration {
   private static final String LDAP_GROUP_NAMING_ATTR_DEFAULT = "cn";
   private static final String LDAP_GROUP_MEMBERSHIP_ATTR_DEFAULT = "member";
   private static final String LDAP_ADMIN_GROUP_MAPPING_RULES_DEFAULT = "Ambari Administrators";
+
+  /**
+   * If the default LDAP user search filter is not able to find the authenticating user
+   * in LDAP than Ambari can fall back an alternative user search filter if this
+   * functionality is enabled. Whether this functionality is enabled or disabled
+   * can be controlled via {@link #LDAP_ALT_USER_SEARCH_ENABLED_KEY}.
+   *
+   * If {@link #LDAP_ALT_USER_SEARCH_ENABLED_KEY} not provided in ambari properties
+   * than the functionality is disabled by default.
+   *
+   */
+  protected static final String LDAP_ALT_USER_SEARCH_ENABLED_DEFAULT = "false";
+
   /**
    * When authentication through LDAP is enabled then Ambari Server uses this filter by default to lookup
    * the user in LDAP if one not provided in the config via {@link #LDAP_USER_SEARCH_FILTER_KEY}.
@@ -2932,5 +2952,9 @@ public class Configuration {
   public Integer getSNMPUdpBindPort() {
     String udpPort = properties.getProperty(ALERTS_SNMP_DISPATCH_UDP_PORT);
     return StringUtils.isEmpty(udpPort) ? null : Integer.parseInt(udpPort);
+  }
+
+  public boolean isLdapAlternateUserSearchEnabled() {
+    return Boolean.parseBoolean(properties.getProperty(LDAP_ALT_USER_SEARCH_ENABLED_KEY, LDAP_ALT_USER_SEARCH_ENABLED_DEFAULT));
   }
 }

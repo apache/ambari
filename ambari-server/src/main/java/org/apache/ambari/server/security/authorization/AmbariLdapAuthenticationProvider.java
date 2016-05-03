@@ -80,7 +80,11 @@ public class AmbariLdapAuthenticationProvider implements AuthenticationProvider 
         }
         throw e;
       } catch (IncorrectResultSizeDataAccessException multipleUsersFound) {
-        throw new DuplicateLdapUserFoundAuthenticationException(String.format("Login Failed: Please append your domain to your username and try again.  Example: %s@domain", username));
+        String message = configuration.isLdapAlternateUserSearchEnabled() ?
+          String.format("Login Failed: Please append your domain to your username and try again.  Example: %s@domain", username) :
+          "Login Failed: More than one user with that username found, please work with your Ambari Administrator to adjust your LDAP configuration";
+
+        throw new DuplicateLdapUserFoundAuthenticationException(message);
       }
     } else {
       return null;
@@ -175,7 +179,7 @@ public class AmbariLdapAuthenticationProvider implements AuthenticationProvider 
 
   private String getLdapUserSearchFilter(String userName) {
     return ldapServerProperties.get()
-      .getUserSearchFilter(AmbariLdapUtils.isUserPrincipalNameFormat(userName));
+      .getUserSearchFilter(configuration.isLdapAlternateUserSearchEnabled() && AmbariLdapUtils.isUserPrincipalNameFormat(userName));
   }
 
 }
