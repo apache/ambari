@@ -88,7 +88,7 @@
 								<input type="password" class="form-control custTxtInput" id="password" name="password" required="true"/>
 							</div>
 							<div class="text-left">
-								<input name="submit" type="submit" class="btn btn-primary custLogin" value="Sign In"/>
+								<input name="submit" type="submit" class="btn btn-success custLogin" value="Sign In"/>
 							</div>
 							<div>&nbsp;</div>
 							</form>

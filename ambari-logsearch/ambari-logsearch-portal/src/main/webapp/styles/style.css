@@ -95,12 +95,6 @@ hr {
 	position: relative;
 }
 
-.box {
-	-moz-box-shadow: 0px 0px 5px #CCC;
-	-webkit-box-shadow: 0px 0px 5px #CCC;
-	box-shadow: 0px 0px 5px #CCC;
-}
-
 .checkbox input[type=checkbox]:indeterminate + i:before, 
 .checkbox-inline input[type=checkbox]:indeterminate + i:before {
   content:"\f146";
@@ -604,6 +598,10 @@ div.columnmanager-visibilitycontrol {
     font-size: 19px;
 }
 
+.selectDateRange .btn {
+  margin-top: 2px;
+}
+
 .widthOfInput {
     width: 90%;
 }
@@ -661,8 +659,6 @@ div.columnmanager-visibilitycontrol {
     padding-top: 3px;
 }
 .selectDateRange div button.goBtn {
-    margin: 0px;
-    padding:5px 13px 2px 13px;
 }
 
 /* Visual Search Extended */
@@ -841,7 +837,7 @@ svg.nvd3-svg{
 
 .dateRangeTitle {
     padding: 4px 6px 4px 6px;
-    margin-top: 8px;
+    margin-top: 7px;
     /*margin-left: 20px;*/
     font-size: 9px;
     float: left;
@@ -890,9 +886,7 @@ body {
   padding: 5px 10px;
   overflow: hidden;
 }
-.btn {
-  font-size: 10px;
-}
+
 .form-control {
   height: 23px;
 }
@@ -1939,6 +1933,8 @@ button.applyBtn{
 }
 .logBox{
   background-color: #F5F5F5;
+  padding-left: 25px;
+  padding-right: 25px;
 }
 .custTxtInput{
   height:34px;
@@ -1968,8 +1964,9 @@ h2.page-header{
   -o-transform : translate(-30%,-43%);
 }
 .custLogin{
-  font-size: 12px;
+  font-size: 14px;
 }
+
 .componentWrap{
   width:100%;
 }

@@ -210,7 +210,7 @@ define(['backbone',
             		}
             		if(optionalComponents.length){
             			for(var i=0; i<optionalComponents.length; i++){
-                			this.ui.dependencyCont.append('<button data-service="'+optionalComponents[i].value+'" class="btn-component depLinks">'+optionalComponents[i].label+'</button>');
+                			this.ui.dependencyCont.append('<button data-service="'+optionalComponents[i].value+'" class="btn depLinks">'+optionalComponents[i].label+'</button>');
                 		}
             			if(this.$(".dependencies").is(":hidden")){
                 			this.$(".dependencies").slideDown();
@@ -229,11 +229,11 @@ define(['backbone',
             renderServices : function(data){
             	var that = this;
             	//that.ui.serviceContainer.append('<label class="btn btn-primary"> <input data-name="All" type="checkbox" name="services" id="option1">All</label>');
-            	that.ui.serviceContainer.append('<button class="btn-component btn_wrap" href="javascript:void(0);">All</button>');
+            	that.ui.serviceContainer.append('<button class="btn btn-trbl" href="javascript:void(0);">All</button>');
             	_.each(data.service,function(obj,key){
             		/*var html = '<label class="btn btn-primary"> <input data-name="'+key+'" type="checkbox" name="services" '+
     				' id="option1" />'+obj.label+'</label>';*/
-            		var html = '<button class="btn-component btn_wrap" data-name="'+key+'" href="javascript:void(0);">'+obj.label+'</button>';
+            		var html = '<button class="btn btn-trbl" data-name="'+key+'" href="javascript:void(0);">'+obj.label+'</button>';
             		that.ui.serviceContainer.append(html);
             	});
             	var compos = _.pluck(data.service,"components");
