@@ -99,10 +99,7 @@ public class FileService extends BaseService {
         fillFakeFileObject(filePath, file, content);
       } else  {
 
-        if (!filePath.startsWith("/") && !filePath.startsWith(".")) {
-          filePath = "/" + filePath;  // some servers strip double slashes in URL
-        }
-
+        filePath = sanitizeFilePath(filePath);
         FilePaginator paginator = new FilePaginator(filePath, getSharedObjectsFactory().getHdfsApi());
 
         fillRealFileObject(filePath, page, file, paginator);
@@ -158,6 +155,7 @@ public class FileService extends BaseService {
   @Path("{filePath:.*}")
   public Response deleteFile(@PathParam("filePath") String filePath) throws IOException, InterruptedException {
     try {
+      filePath = sanitizeFilePath(filePath);
       LOG.debug("Deleting file " + filePath);
       if (getSharedObjectsFactory().getHdfsApi().delete(filePath, false)) {
         return Response.status(204).build();
@@ -179,6 +177,7 @@ public class FileService extends BaseService {
   public Response updateFile(FileResourceRequest request,
                              @PathParam("filePath") String filePath) throws IOException, InterruptedException {
     try {
+      filePath = sanitizeFilePath(filePath);
       LOG.debug("Rewriting file " + filePath);
       FSDataOutputStream output = getSharedObjectsFactory().getHdfsApi().create(filePath, true);
       output.writeBytes(request.file.getFileContent());
@@ -240,5 +239,12 @@ public class FileService extends BaseService {
    */
   public static class FileResourceRequest {
     public FileResource file;
+  }
+
+  private String sanitizeFilePath(String filePath){
+    if (!filePath.startsWith("/") && !filePath.startsWith(".")) {
+      filePath = "/" + filePath;  // some servers strip double slashes in URL
+    }
+    return filePath;
   }
 }
