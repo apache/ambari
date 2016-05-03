@@ -202,7 +202,8 @@
       "metadata_log_dir": "/var/log/atlas",
       "metadata_data_dir": "/var/lib/atlas/data",
       "metadata_expanded_war_dir": "/var/lib/atlas/server/webapp",
-      "metadata_conf_file": "application.properties"
+      "metadata_conf_file": "application.properties",
+      "has_embedded_hbase":"true"
     },
     "atlas-log4j": {
       "content": "<property><name>content</name><description>Custom log4j.properties</description><value></value></property>",

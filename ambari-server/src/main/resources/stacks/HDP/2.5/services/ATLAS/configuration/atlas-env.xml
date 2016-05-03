@@ -70,6 +70,16 @@
       <visible>false</visible>
     </value-attributes>
   </property>
+  <property>
+    <name>has_embedded_hbase</name>
+    <value>true</value>
+    <description>Indicates whether or not Atlas can install embedded Hbase.</description>
+    <value-attributes>
+      <read-only>true</read-only>
+      <overridable>false</overridable>
+      <visible>false</visible>
+    </value-attributes>
+  </property>
 
   <!-- metadata-env.sh -->
   <property>

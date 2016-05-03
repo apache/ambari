@@ -110,6 +110,12 @@ class TestMetadataServer(RMFTestCase):
                                 group='hadoop',
                                 mode=0644,
       )
+      self.assertResourceCalled('File', '/etc/atlas/conf/users-credentials.properties',
+                                content=StaticFile('users-credentials.properties'),
+                                owner='atlas',
+                                group='hadoop',
+                                mode=0644,
+                                )
       self.assertResourceCalled('XmlConfig', 'hbase-site.xml',
                             owner = 'atlas',
                             group = 'hadoop',

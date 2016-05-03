@@ -21,12 +21,12 @@
 <configuration supports_final="false">
   <property>
     <name>atlas.graph.storage.backend</name>
-    <value>hbase</value>
+    <value>berkeleyje</value>
     <description></description>
   </property>
   <property>
-    <name>atlas.graph.storage.hostname</name>
-    <value>localhost:{{atlas_hbase_zk_port}}</value>
+    <name>atlas.graph.storage.directory</name>
+    <value>/var/lib/atlas/data/berkeley</value>
     <description></description>
   </property>
   <property>

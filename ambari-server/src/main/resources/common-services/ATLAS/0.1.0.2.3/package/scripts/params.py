@@ -68,6 +68,8 @@ atlas_hbase_log_dir = os.path.join(metadata_home, "hbase", "logs")
 atlas_hbase_data_dir = os.path.join(metadata_home, "data")
 atlas_hbase_zk_port = default("/configurations/atlas-hbase-site/hbase.zookeeper.property.clientPort", None)
 
+atlas_has_embedded_hbase = default("/configurations/atlas-env/has_embedded_hbase", False)
+
 # service locations
 hadoop_conf_dir = os.path.join(os.environ["HADOOP_HOME"], "conf") if 'HADOOP_HOME' in os.environ else '/etc/hadoop/conf'
 

@@ -107,14 +107,22 @@ def metadata():
          content=InlineTemplate(params.metadata_log4j_content)
     )
 
-    # hbase-site for embedded hbase used by Atlas
-    XmlConfig( "hbase-site.xml",
-           conf_dir = params.atlas_hbase_conf_dir,
-           configurations = params.config['configurations']['atlas-hbase-site'],
-           configuration_attributes=params.config['configuration_attributes']['atlas-hbase-site'],
-           owner = params.metadata_user,
-           group = params.user_group
-           )
+    File(format("{conf_dir}/users-credentials.properties"),
+         mode=0644,
+         owner=params.metadata_user,
+         group=params.user_group,
+         content=StaticFile('users-credentials.properties')
+    )
+
+    if params.atlas_has_embedded_hbase:
+      # hbase-site for embedded hbase used by Atlas
+      XmlConfig( "hbase-site.xml",
+             conf_dir = params.atlas_hbase_conf_dir,
+             configurations = params.config['configurations']['atlas-hbase-site'],
+             configuration_attributes=params.config['configuration_attributes']['atlas-hbase-site'],
+             owner = params.metadata_user,
+             group = params.user_group
+             )
 
     if params.security_enabled:
         TemplateConfig(format(params.atlas_jaas_file),

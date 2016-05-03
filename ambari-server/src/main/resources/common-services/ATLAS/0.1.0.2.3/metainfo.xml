@@ -46,7 +46,7 @@
           </logs>
           <configFile>
             <type>properties</type>
-            <fileName>application.properties.xml</fileName>
+            <fileName>application.properties</fileName>
             <dictionaryName>application-properties</dictionaryName>
           </configFile>
           <configFile>
@@ -61,7 +61,7 @@
           </configFile>
           <configFile>
             <type>xml</type>
-            <fileName>atlas-hbase-site.xml</fileName>
+            <fileName>hbase-site.xml</fileName>
             <dictionaryName>atlas-hbase-site</dictionaryName>
           </configFile>
         </component>
@@ -80,7 +80,7 @@
           </commandScript>
           <configFile>
             <type>properties</type>
-            <fileName>application.properties.xml</fileName>
+            <fileName>application.properties</fileName>
             <dictionaryName>application-properties</dictionaryName>
           </configFile>
           <configFile>
