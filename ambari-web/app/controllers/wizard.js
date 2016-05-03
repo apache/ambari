@@ -925,12 +925,11 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
         }
         var configProperty = App.config.createDefaultConfig(
           _configProperties.get('name'),
-          _configProperties.get('serviceName'),
           _configProperties.get('filename'),
           _configProperties.get('isUserProperty'),
           {value: _configProperties.get('value')}
         );
-        configProperty = App.config.mergeStaticProperties(configProperty, _configProperties, [], ['name', 'filename', 'serviceName', 'isUserProperty', 'value']);
+        configProperty = App.config.mergeStaticProperties(configProperty, _configProperties, ['name', 'filename']);
 
         if (this.isExcludedConfig(configProperty)) {
           configProperty.value = '';
