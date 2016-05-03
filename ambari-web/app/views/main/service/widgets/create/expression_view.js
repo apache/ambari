@@ -312,25 +312,26 @@ App.AddMetricExpressionView = Em.View.extend({
     if (this.get('controller.filteredMetrics')) {
       this.get('controller.filteredMetrics').forEach(function (metric) {
         var service = servicesMap[metric.service_name];
+        if (!service) {
+          service = {
+              count: 0,
+              components: {}
+          };
+          servicesMap[metric.service_name] = service;
+        }
+
         var componentId = masterNames.contains(metric.component_name) ? metric.component_name + '_' + metric.level : metric.component_name;
-        if (service) {
-          service.count++;
-          if (service.components[componentId]) {
-            service.components[componentId].count++;
-            service.components[componentId].metrics.push(metric.name);
-          } else {
-            service.components[componentId] = {
-              component_name: metric.component_name,
-              level: metric.level,
-              count: 1,
-              hostComponentCriteria: metric.host_component_criteria,
-              metrics: [metric.name]
-            };
-          }
+        service.count++;
+        if (service.components[componentId]) {
+          service.components[componentId].count++;
+          service.components[componentId].metrics.push(metric.name);
         } else {
-          servicesMap[metric.service_name] = {
+          service.components[componentId] = {
+            component_name: metric.component_name,
+            level: metric.level,
             count: 1,
-            components: {}
+            hostComponentCriteria: metric.host_component_criteria,
+            metrics: [metric.name]
           };
         }
       }, this);
