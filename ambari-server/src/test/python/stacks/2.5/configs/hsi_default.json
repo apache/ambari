@@ -48,6 +48,12 @@
     "taskId": 152,
     "public_hostname": "c6401.ambari.apache.org",
     "configurations": {
+        "llap-daemon-log4j": {
+          "content" : "con\ntent"
+        },
+        "llap-cli-log4j2": {
+          "content" : "con\ntent"
+        },
         "sqoop-site": {
             "atlas.cluster.name": "c1",
             "sqoop.job.data.publish.class": "org.apache.atlas.sqoop.hook.SqoopHook"

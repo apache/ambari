@@ -40,12 +40,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-status = WARN
+
+status = INFO
 name = LlapDaemonLog4j2
 packages = org.apache.hadoop.hive.ql.log
 
 # list of properties
-property.llap.daemon.log.level = WARN
+property.llap.daemon.log.level = INFO
 property.llap.daemon.root.logger = console
 property.llap.daemon.log.dir = .
 property.llap.daemon.log.file = llapdaemon.log
@@ -90,7 +91,19 @@ appender.HISTORYAPPENDER.strategy.type = DefaultRolloverStrategy
 appender.HISTORYAPPENDER.strategy.max = ${sys:llap.daemon.log.maxbackupindex}
 
 # list of all loggers
-loggers = NIOServerCnxn, ClientCnxnSocketNIO, DataNucleus, Datastore, JPOX, HistoryLogger
+loggers = NIOServerCnxn, ClientCnxnSocketNIO, DataNucleus, Datastore, JPOX, HistoryLogger, LlapIoImpl, LlapIoOrc, LlapIoCache, LlapIoLocking
+
+logger.LlapIoImpl.name = LlapIoImpl
+logger.LlapIoImpl.level = INFO
+
+logger.LlapIoOrc.name = LlapIoOrc
+logger.LlapIoOrc.level = WARN
+
+logger.LlapIoCache.name = LlapIoCache
+logger.LlapIOCache.level = WARN
+
+logger.LlapIoLocking.name = LlapIoLocking
+logger.LlapIoLocking.level = WARN
 
 logger.NIOServerCnxn.name = org.apache.zookeeper.server.NIOServerCnxn
 logger.NIOServerCnxn.level = WARN
@@ -108,7 +121,7 @@ logger.JPOX.name = JPOX
 logger.JPOX.level = ERROR
 
 logger.HistoryLogger.name = org.apache.hadoop.hive.llap.daemon.HistoryLogger
-logger.HistoryLogger.level = WARN
+logger.HistoryLogger.level = INFO
 logger.HistoryLogger.additivity = false
 logger.HistoryLogger.appenderRefs = HistoryAppender
 logger.HistoryLogger.appenderRef.HistoryAppender.ref = HISTORYAPPENDER

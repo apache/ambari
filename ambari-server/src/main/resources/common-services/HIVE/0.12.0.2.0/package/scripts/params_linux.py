@@ -538,12 +538,16 @@ HdfsResource = functools.partial(
 hive_interactive_hosts = default('/clusterHostInfo/hive_server_interactive_hosts', [])
 has_hive_interactive = len(hive_interactive_hosts) > 0
 if has_hive_interactive:
+  llap_daemon_log4j = config['configurations']['llap-daemon-log4j']['content']
+  llap_cli_log4j2 = config['configurations']['llap-cli-log4j2']['content']
+
   hive_server_interactive_conf_dir = status_params.hive_server_interactive_conf_dir
   execute_path_hive_interactive = os.path.join(os.environ['PATH'], hive_interactive_bin, hadoop_bin_dir)
   start_hiveserver2_interactive_script = 'startHiveserver2Interactive.sh.j2'
   start_hiveserver2_interactive_path = format("{tmp_dir}/start_hiveserver2_interactive_script")
   hive_interactive_env_sh_template = config['configurations']['hive-interactive-env']['content']
   hive_interactive_enabled = default('/configurations/hive-interactive-env/enable_hive_interactive', False)
+
   # Service check related
   if hive_transport_mode.lower() == "http":
     hive_server_interactive_port = config['configurations']['hive-interactive-site']['hive.server2.thrift.http.port']
@@ -563,6 +567,7 @@ if has_hive_interactive:
   if security_enabled:
     hive_llap_keytab_file = config['configurations']['hive-interactive-site']['hive.llap.zk.sm.keytab.file']
     hive_headless_keytab = config['configurations']['hive-interactive-site']['hive.llap.zk.sm.principal']
+  pass
 
 # ranger host
 stack_supports_ranger_audit_db = stack_version_formatted_major and check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, stack_version_formatted_major)

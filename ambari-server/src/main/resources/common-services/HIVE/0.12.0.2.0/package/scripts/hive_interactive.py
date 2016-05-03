@@ -126,34 +126,43 @@ def hive_interactive(name=None):
   File(format("{hive_server_interactive_conf_dir}/hive-env.sh"),
        owner=params.hive_user,
        group=params.user_group,
-       content=InlineTemplate(params.hive_interactive_env_sh_template)
-       )
+       content=InlineTemplate(params.hive_interactive_env_sh_template))
+
+  llap_daemon_log4j_filename = 'llap-daemon-log4j2.properties'
+  File(format("{hive_server_interactive_conf_dir}/{llap_daemon_log4j_filename}"),
+       mode=0644,
+       group=params.user_group,
+       owner=params.hive_user,
+       content=params.llap_daemon_log4j)
+
+  llap_cli_log4j2_filename = 'llap-cli-log4j2.properties'
+  File(format("{hive_server_interactive_conf_dir}/{llap_cli_log4j2_filename}"),
+       mode=0644,
+       group=params.user_group,
+       owner=params.hive_user,
+       content=params.llap_cli_log4j2)
 
   # On some OS this folder could be not exists, so we will create it before pushing there files
   Directory(params.limits_conf_dir,
             create_parents = True,
             owner='root',
-            group='root'
-  )
+            group='root')
 
   File(os.path.join(params.limits_conf_dir, 'hive.conf'),
        owner='root',
        group='root',
        mode=0644,
-       content=Template("hive.conf.j2")
-  )
+       content=Template("hive.conf.j2"))
 
   if not os.path.exists(params.target_hive_interactive):
     jdbc_connector(params.target_hive_interactive)
 
   File(format("/usr/lib/ambari-agent/{check_db_connection_jar_name}"),
        content = DownloadSource(format("{jdk_location}{check_db_connection_jar_name}")),
-       mode = 0644,
-       )
+       mode = 0644)
   File(params.start_hiveserver2_interactive_path,
        mode=0755,
-       content=Template(format('{start_hiveserver2_interactive_script}'))
-       )
+       content=Template(format('{start_hiveserver2_interactive_script}')))
 
   Directory(params.hive_pid_dir,
             create_parents=True,

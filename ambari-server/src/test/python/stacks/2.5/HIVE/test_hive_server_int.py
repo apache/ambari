@@ -260,6 +260,18 @@ class TestHiveServerInteractive(RMFTestCase):
                               owner='hive',
                               group='hadoop',
     )
+    self.assertResourceCalled('File', '/usr/hdp/current/hive-server2-hive2/conf/conf.server/llap-daemon-log4j2.properties',
+                              content='con\ntent',
+                              owner='hive',
+                              group='hadoop',
+                              mode=0644,
+    )
+    self.assertResourceCalled('File', '/usr/hdp/current/hive-server2-hive2/conf/conf.server/llap-cli-log4j2.properties',
+                              content='con\ntent',
+                              owner='hive',
+                              group='hadoop',
+                              mode=0644,
+    )
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
                               owner='root',
                               group='root',
