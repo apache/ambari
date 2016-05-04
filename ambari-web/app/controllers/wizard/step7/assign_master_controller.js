@@ -72,6 +72,22 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
   },
 
   /**
+   * Used to set showAddControl/showRemoveControl flag
+   * @param componentName
+   * @override
+   */
+  updateComponent: function(componentName) {
+    this._super(componentName);
+
+    if (!this.get('mastersToCreate').contains(componentName)) {
+      this.get("selectedServicesMasters").filterProperty("component_name", componentName).forEach(function(c) {
+        c.set('showAddControl', false);
+        c.set('showRemoveControl', false);
+      });
+    }
+  },
+
+  /**
    * Assign Master page will be displayed in the popup
    * @private
    * @method
