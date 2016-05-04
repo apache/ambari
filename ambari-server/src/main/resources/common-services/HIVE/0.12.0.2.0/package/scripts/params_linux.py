@@ -31,7 +31,7 @@ from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.is_empty import is_empty
-from resource_management.libraries.functions.copy_tarball import STACK_VERSION_PATTERN
+from resource_management.libraries.functions.copy_tarball import STACK_ROOT_PATTERN, STACK_NAME_PATTERN, STACK_VERSION_PATTERN
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
 from resource_management.libraries.script.script import Script
@@ -153,15 +153,15 @@ if stack_version_formatted_major and check_stack_feature(StackFeature.ROLLING_UP
   # --- Tarballs ---
   # DON'T CHANGE THESE VARIABLE NAMES
   # Values don't change from those in copy_tarball.py
-  hive_tar_source = "{0}/{1}/hive/hive.tar.gz".format(stack_root, STACK_VERSION_PATTERN)
-  pig_tar_source = "{0}/{1}/pig/pig.tar.gz".format(stack_root, STACK_VERSION_PATTERN)
-  hive_tar_dest_file = "/{0}/apps/{1}/hive/hive.tar.gz".format(stack_name, STACK_VERSION_PATTERN)
-  pig_tar_dest_file = "/{0}/apps/{1}/pig/pig.tar.gz".format(stack_name, STACK_VERSION_PATTERN)
+  hive_tar_source = "{0}/{1}/hive/hive.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN)
+  pig_tar_source = "{0}/{1}/pig/pig.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN)
+  hive_tar_dest_file = "/{0}/apps/{1}/hive/hive.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)
+  pig_tar_dest_file = "/{0}/apps/{1}/pig/pig.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)
 
-  hadoop_streaming_tar_source = "{0}/{1}/hadoop-mapreduce/hadoop-streaming.jar".format(stack_root, STACK_VERSION_PATTERN)
-  sqoop_tar_source = "{0}/{1}/sqoop/sqoop.tar.gz".format(stack_root, STACK_VERSION_PATTERN)
-  hadoop_streaming_tar_dest_dir = "/{0}/apps/{1}/mapreduce/".format(stack_name, STACK_VERSION_PATTERN)
-  sqoop_tar_dest_dir = "/{0}/apps/{1}/sqoop/".format(stack_name, STACK_VERSION_PATTERN)
+  hadoop_streaming_tar_source = "{0}/{1}/hadoop-mapreduce/hadoop-streaming.jar".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN)
+  sqoop_tar_source = "{0}/{1}/sqoop/sqoop.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN)
+  hadoop_streaming_tar_dest_dir = "/{0}/apps/{1}/mapreduce/".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)
+  sqoop_tar_dest_dir = "/{0}/apps/{1}/sqoop/".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)
 
   tarballs_mode = 0444
 else:
