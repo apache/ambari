@@ -30,28 +30,28 @@
         {{t installer.step1.selectUseRepoOptions.public.select}}
       </div>
       <div class="span7 right-stack-info">
-        <div class="repo-list-button btn-group">
-          {{#if view.selectedPublicRepoVersion}}
+        {{#if view.selectedPublicRepoVersion}}
+          <div class="repo-list-button btn-group">
             <button type="button" {{bindAttr class="optionsToSelect.useLocalRepo.isSelected:disabled :btn :btn-primary :dropdown-toggle"}} data-toggle="dropdown">
               {{view.selectedPublicRepoVersion.displayName}} &nbsp;<span class="caret"></span>
             </button>
-          {{else}}
-            <button type="button" class="disabled btn btn-primary dropdown-toggle"}} data-toggle="dropdown">
-             {{t installer.step1.selectUseRepoOptions.public.networkLost.button}}
-            </button>
-          {{/if}}
-          <ul class="dropdown-menu available-repos-dropdown">
-            {{#if view.availableStackRepoList}}
-              {{#each repo in view.availableStackRepoList}}
-                {{#if repo.repositoryVersion}}
-                  <li><a {{action "selectRepoInList" repo target="view"}}>{{repo.displayName}}</a></li>
-                {{/if}}
-              {{/each}}
-            {{else}}
-              <li><a class="disabled">{{t installer.step1.usePublicRepo.ReposList.empty}}</a></li>
-            {{/if}}
-          </ul>
-        </div>
+            <ul class="dropdown-menu available-repos-dropdown">
+              {{#if view.availableStackRepoList}}
+                {{#each repo in view.availableStackRepoList}}
+                  {{#if repo.repositoryVersion}}
+                    <li><a {{action "selectRepoInList" repo target="view"}}>{{repo.displayName}}</a></li>
+                  {{/if}}
+                {{/each}}
+              {{else}}
+                <li><a class="disabled">{{t installer.step1.usePublicRepo.ReposList.empty}}</a></li>
+              {{/if}}
+            </ul>
+          </div>
+        {{else}}
+          <button type="button" class="disabled btn btn-primary dropdown-toggle"}} data-toggle="dropdown">
+            {{t installer.step1.selectUseRepoOptions.public.networkLost.button}}
+          </button>
+        {{/if}}
       </div>
     </form>
 
@@ -79,7 +79,7 @@
         </div>
         <div class="span7 vdf-url">
           <div {{bindAttr class="optionsToSelect.useLocalRepo.enterUrl.name optionsToSelect.useLocalRepo.enterUrl.url.hasError:has-error }"}}>
-            {{view Ember.TextField valueBinding="optionsToSelect.useLocalRepo.enterUrl.url" disabledBinding="view.enterUrlFieldDisabled"}}
+            {{view Ember.TextField valueBinding="optionsToSelect.useLocalRepo.enterUrl.url" placeholderBinding="optionsToSelect.useLocalRepo.enterUrl.placeholder" disabledBinding="view.enterUrlFieldDisabled"}}
           </div>
         </div>
         <div class="span12 read-info-button">
@@ -161,12 +161,12 @@
                             {{/if}}
                           </div>
                           <div {{bindAttr class=":span8 :repo-url repository.invalidFormatError:textfield-error repository.invalidError:textfield-error"}}>
-                            {{view Ember.TextField valueBinding="repository.baseUrl"}}
+                            {{view Ember.TextField valueBinding="repository.baseUrl" disabledBinding="controller.selectedStack.useRedhatSatellite"}}
                           </div>
                         </div>
                       {{/each}}
                     </div>
-                    <div class="span1 remove-icon" {{action "removeOS" operatingSystem target="controller"}}><i class="icon-minus"></i>{{t common.remove}}</div>
+                    <div {{bindAttr class=":span1 :remove-icon controller.selectedStack.useRedhatSatellite:disabled"}} {{action "removeOS" operatingSystem target="controller"}}><i class="icon-minus"></i>{{t common.remove}}</div>
                   </div>
                 {{/if}}
               {{/each}}
@@ -183,8 +183,8 @@
                   {{/each}}
                 </ul>
               </div>
-              <div id="skip-validation">
-                <label>{{view Ember.Checkbox checkedBinding="skipValidationChecked" class="checkbox"}}{{t installer.step1.advancedRepo.skipValidation.message}}
+              <div id="skip-validation" {{bindAttr class="controller.selectedStack.useRedhatSatellite:disabled"}}>
+                <label>{{view Ember.Checkbox checkedBinding="skipValidationChecked" disabledBinding="controller.selectedStack.useRedhatSatellite" class="checkbox"}}{{t installer.step1.advancedRepo.skipValidation.message}}
                   <i class="icon-question-sign" rel="skip-validation-tooltip"
                      data-toggle="tooltip" {{translateAttr title="installer.step1.advancedRepo.skipValidation.tooltip"}}></i></label>
               </div>

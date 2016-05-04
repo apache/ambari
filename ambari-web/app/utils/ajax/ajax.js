@@ -1355,7 +1355,7 @@ var urls = {
     }
   },
   'cluster.load_repositories': {
-    'real': '/stacks/{stackName}/versions/{stackVersion}/operating_systems?fields=repositories/*',
+    'real': '/stacks/{stackName}/versions/{stackVersion}/operating_systems?fields=repositories/*,OperatingSystems/*',
     'mock': '/data/stacks/HDP-2.1/operating_systems.json',
     'format': function (data) {
       return {
@@ -1364,7 +1364,7 @@ var urls = {
     }
   },
   'cluster.load_repo_version': {
-    'real': '/stacks/{stackName}/versions?fields=repository_versions/operating_systems/repositories/*,repository_versions/RepositoryVersions/display_name&repository_versions/RepositoryVersions/repository_version={repositoryVersion}',
+    'real': '/stacks/{stackName}/versions?fields=repository_versions/operating_systems/repositories/*,repository_versions/operating_systems/OperatingSystems/*,repository_versions/RepositoryVersions/display_name&repository_versions/RepositoryVersions/repository_version={repositoryVersion}',
     'mock': ''
   },
   'cluster.load_detailed_repo_version': {

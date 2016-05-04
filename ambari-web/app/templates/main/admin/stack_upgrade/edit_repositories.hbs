@@ -38,7 +38,7 @@
       {{#each repository in os.repositories}}
         <div {{bindAttr class="repository.repoName :row-fluid"}}>
           <div class="span3">{{repository.repoName}}</div>
-          <div {{bindAttr class="repository.hasError:error :control-group :span9"}}>{{view App.BaseUrlTextField repositoryBinding="repository"}}</div>
+          <div {{bindAttr class="repository.hasError:error :control-group :span9"}}>{{view App.BaseUrlTextField repositoryBinding="repository" disabledBinding="view.content.useRedhatSatellite"}}</div>
         </div>
       {{/each}}
     </div>

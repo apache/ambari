@@ -311,6 +311,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
         }, this);
       }
       allRepos.set('display_name', Em.I18n.t("installer.step8.repoInfo.displayName"));
+      this.get('clusterInfo').set('useRedhatSatellite', selectedStack.get('useRedhatSatellite'));
       this.get('clusterInfo').set('repoInfo', allRepos);
     }
   },
@@ -348,6 +349,8 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
       var allRepos = this.generateRepoInfo(Em.getWithDefault(data, 'items.0.repository_versions.0.operating_systems', []));
       allRepos.set('display_name', Em.I18n.t("installer.step8.repoInfo.displayName"));
       this.get('clusterInfo').set('repoInfo', allRepos);
+      //if the property is missing, set as false
+      this.get('clusterInfo').set('useRedhatSatellite', data.items[0].repository_versions[0].operating_systems[0].OperatingSystems.ambari_managed_repositories === false);
     } else {
       this.loadDefaultRepoInfo();
     }
@@ -400,6 +403,8 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     var allRepos = this.generateRepoInfo(Em.getWithDefault(data, 'items', []));
     allRepos.set('display_name', Em.I18n.t("installer.step8.repoInfo.displayName"));
     this.get('clusterInfo').set('repoInfo', allRepos);
+    //if the property is missing, set as false
+    this.get('clusterInfo').set('useRedhatSatellite', data.items[0].OperatingSystems.ambari_managed_repositories === false);
   },
 
   /**

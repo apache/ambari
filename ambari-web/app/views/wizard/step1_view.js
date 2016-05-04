@@ -83,7 +83,9 @@ App.WizardStep1View = Em.View.extend({
 
   selectedServices: function () {
     var selectedStack = this.get('controller.selectedStack');
-    return Em.isNone(selectedStack) ? [] : selectedStack.get('stackServices').toArray().map(function (service) {
+    return Em.isNone(selectedStack) ? [] : selectedStack.get('stackServices').toArray().filter(function (service) {
+      return !service.get('isHidden');
+    }).map(function (service) {
       return Em.Object.create({
         displayName: service.get('displayName'),
         version: service.get('latestVersion')
@@ -253,8 +255,8 @@ App.WizardStep1View = Em.View.extend({
   }.property('controller.selectedStack'),
 
   isAddOsButtonDisabled: function () {
-    return this.get('operatingSystems').get('length') == this.get('operatingSystems').filterProperty('isSelected').get('length');
-  }.property('operatingSystems', 'operatingSystems.@each.isSelected'),
+    return this.get('operatingSystems').get('length') == this.get('operatingSystems').filterProperty('isSelected').get('length') || this.get('controller.selectedStack.useRedhatSatellite') === true;
+  }.property('operatingSystems', 'operatingSystems.@each.isSelected', 'controller.selectedStack.useRedhatSatellite'),
 
   /**
    * List of all repositories under selected stack operatingSystems

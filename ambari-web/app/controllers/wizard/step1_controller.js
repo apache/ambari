@@ -27,8 +27,6 @@ App.WizardStep1Controller = Em.Controller.extend({
    */
   skipValidationChecked: false,
 
-  useRedhatSatellite: false,
-
   selectedStack: function() {
     return App.Stack.find().findProperty('isSelected');
   }.property('content.stacks.@each.isSelected'),
@@ -51,7 +49,8 @@ App.WizardStep1Controller = Em.Controller.extend({
       'enterUrl': {
         index: 1,
         name: 'enterUrl',
-        url: 'http://',
+        url: '',
+        placeholder: 'Enter URL to Version Definition File',
         hasError: false,
         isSelected: false
       }
@@ -106,6 +105,9 @@ App.WizardStep1Controller = Em.Controller.extend({
    * On click handler for removing OS
    */
   removeOS: function(event) {
+    if (this.get('selectedStack.useRedhatSatellite')) {
+      return;
+    }
     var osToRemove = event.context;
     Em.set(osToRemove, 'isSelected', false);
   },
@@ -116,5 +118,17 @@ App.WizardStep1Controller = Em.Controller.extend({
   addOS: function(event) {
     var osToAdd = event.context;
     Em.set(osToAdd, 'isSelected', true);
-  }
+  },
+
+  changeUseRedhatSatellite: function () {
+    if (this.get('selectedStack.useRedhatSatellite')) {
+      return App.ModalPopup.show({
+        header: Em.I18n.t('common.important'),
+        secondary: false,
+        bodyClass: Ember.View.extend({
+          template: Ember.Handlebars.compile(Em.I18n.t('installer.step1.advancedRepo.useRedhatSatellite.warning'))
+        })
+      });
+    }
+  }.observes('selectedStack.useRedhatSatellite')
 });

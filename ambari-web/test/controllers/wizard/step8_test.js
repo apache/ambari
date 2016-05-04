@@ -681,6 +681,9 @@ describe('App.WizardStep8Controller', function () {
               {
                 operating_systems: [
                   {
+                    OperatingSystems: {
+                      ambari_managed_repositories: true
+                    },
                     repositories: [
                       {
                         Repositories: {
@@ -692,6 +695,9 @@ describe('App.WizardStep8Controller', function () {
                     ]
                   },
                   {
+                    OperatingSystems: {
+                      ambari_managed_repositories: true
+                    },
                     repositories: [
                       {
                         Repositories: {

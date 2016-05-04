@@ -82,6 +82,7 @@ angular.module('ambariAdminConsole')
       'blockViewLabel': 'BLOCK',
       'listViewLabel': 'LIST',
       'rbac': 'Role Based Access Control',
+      'important': 'Important',
 
       'clusterNameChangeConfirmation': {
         'title': 'Confirm Cluster Name Change',
@@ -378,7 +379,12 @@ angular.module('ambariAdminConsole')
         'actualVersion': 'Actual Version',
         'releaseNotes': 'Release Notes'
       },
-      'useRedhatSatellite': 'Use RedHat Satellite/Spacewalk',
+      'useRedhatSatellite': {
+        'title': 'Use RedHat Satellite/Spacewalk',
+        'warning': 'By selecting to <b>"Use RedHat Satellite/Spacewalk"</b> for the software repositories, ' +
+        'you are responsible for configuring the repository channel in Satellite/Spacewalk and confirming the repositories for the selected <b>stack version</b> are available on the hosts in the cluster. ' +
+        'Refer to the Ambari documentation for more information.'
+      },
       'changeBaseURLConfirmation': {
         'title': 'Confirm Base URL Change',
         'message': 'You are about to change repository Base URLs that are already in use. Please confirm that you intend to make this change and that the new Base URLs point to the same exact Stack version and build'

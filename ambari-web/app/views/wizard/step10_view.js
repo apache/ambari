@@ -30,7 +30,7 @@ App.WizardStep10View = Em.View.extend({
   serviceRestartText: function () {
     var controller = this.get('controller');
     if (controller.get('isAddServiceWizard'))
-      return Em.I18n.t('common.important') + Em.I18n.t('installer.step10.staleServicesRestartRequired');
+      return Em.I18n.t('common.important.strong') + Em.I18n.t('installer.step10.staleServicesRestartRequired');
     else
       return '';
   }.property('controller.isAddServiceWizard')

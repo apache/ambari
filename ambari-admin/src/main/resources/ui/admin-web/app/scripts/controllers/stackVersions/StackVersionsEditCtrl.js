@@ -49,7 +49,10 @@ angular.module('ambariAdminConsole')
         stack_version: response.stackVersion,
         display_name: response.displayName
       };
-      $scope.services = response.services || [];
+      $scope.services = response.services.filter(function (service) {
+            var skipServices = ['MAPREDUCE2', 'GANGLIA', 'KERBEROS'];
+            return skipServices.indexOf(service.name) === -1;
+          }) || [];
       //save default values of repos to check if they were changed
       $scope.defaulfOSRepos = {};
       response.updateObj.operating_systems.forEach(function(os) {
@@ -161,7 +164,8 @@ angular.module('ambariAdminConsole')
   };
 
   $scope.updateRepoVersions = function () {
-    return Stack.validateBaseUrls($scope.skipValidation, $scope.osList, $scope.upgradeStack).then(function (invalidUrls) {
+    var skip = $scope.skipValidation || $scope.useRedhatSatellite;
+    return Stack.validateBaseUrls(skip, $scope.osList, $scope.upgradeStack).then(function (invalidUrls) {
       if (invalidUrls.length === 0) {
         Stack.updateRepo($scope.upgradeStack.stack_name, $scope.upgradeStack.stack_version, $scope.id, $scope.updateObj).then(function () {
           Alert.success($t('versions.alerts.versionEdited', {
@@ -217,6 +221,9 @@ angular.module('ambariAdminConsole')
    * On click handler for removing OS
    */
   $scope.removeOS = function() {
+    if ($scope.useRedhatSatellite) {
+      return;
+    }
     this.os.selected = false;
     if (this.os.repositories) {
       this.os.repositories.forEach(function(repo) {
@@ -243,7 +250,7 @@ angular.module('ambariAdminConsole')
         selectedCnt ++;
       }
     });
-    return $scope.osList.length == selectedCnt;
+    return $scope.osList.length == selectedCnt || $scope.useRedhatSatellite;
   };
 
   $scope.hasNotDeletedRepo = function () {
@@ -289,6 +296,16 @@ angular.module('ambariAdminConsole')
             repo.hasError = false;
           })
         }
+      });
+    }
+    if ($scope.useRedhatSatellite) {
+      ConfirmationModal.show(
+          $t('common.important'),
+          {
+            "url": 'views/modals/BodyForUseRedhatSatellite.html'
+          }
+      ).catch(function () {
+        $scope.useRedhatSatellite = !$scope.useRedhatSatellite;
       });
     }
   };

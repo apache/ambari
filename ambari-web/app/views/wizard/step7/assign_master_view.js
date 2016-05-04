@@ -57,7 +57,7 @@ App.AssignMasterOnStep7View = App.AssignMasterComponentsView.extend({
     }
 
     if (isManualKerberos) {
-      var warnMessage = Em.I18n.t('common.important') + ': ' + Em.I18n.t('installer.step8.kerberors.warning');
+      var warnMessage = Em.I18n.t('common.important.strong') + ': ' + Em.I18n.t('installer.step8.kerberors.warning');
       alertMessage += '<br/>' + Em.I18n.t('common.warn.message').format(warnMessage);
     }
     this.set('alertMessage', alertMessage);

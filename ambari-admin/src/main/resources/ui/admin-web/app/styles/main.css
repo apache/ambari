@@ -1552,6 +1552,10 @@ thead.view-permission-header > tr > th {
   text-align: center;
   cursor: pointer;
 }
+.register-version-form .repos-panel .remove-icon.disabled{
+  color: grey;
+}
+
 .register-version-form .repos-panel .repo-name-label {
   text-align: left;
 }

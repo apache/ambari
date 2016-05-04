@@ -230,7 +230,8 @@ Em.I18n.translations = {
   'common.persist.error' : 'Error in persisting web client state at ambari server:',
   'common.update.error' : 'Error in retrieving web client state from ambari server',
   'common.tags': 'Tags',
-  'common.important': '<strong>Important:</strong>',
+  'common.important': 'Important',
+  'common.important.strong': '<strong>Important:</strong>',
   'common.allServices':'All Services',
   'common.move':'Move',
   'common.change': 'Change',
@@ -561,7 +562,7 @@ Em.I18n.translations = {
   'installer.step1.selectUseRepoOptions.public.networkLost.popup.msg3': 'Use the Local Repositoy option.',
   'installer.step1.selectUseRepoOptions.public.select':'Select Version',
   'installer.step1.selectUseRepoOptions.local':'Use Local Repository',
-  'installer.step1.usePublicRepo.ReposList.empty':'No other repositories',
+  'installer.step1.usePublicRepo.ReposList.empty':'No other versions',
   'installer.step1.usePublicRepo.viewRepos':'View Repositories',
   'installer.step1.useLocalRepo.uploadFile': 'Upload Version Definition File',
   'installer.step1.useLocalRepo.uploadFile.error.title': 'Upload Version Definition File Error',
@@ -592,6 +593,9 @@ Em.I18n.translations = {
   'installer.step1.advancedRepo.useRedhatSatellite.tooltip':'Disable distributed repositories and use RedHat Satellite/Spacewalk channels instead',
   'installer.step1.advancedRepo.skipValidation.message':'Skip Repository Base URL validation (Advanced)',
   'installer.step1.advancedRepo.useRedhatSatellite.message': 'Use RedHat Satellite/Spacewalk',
+  'installer.step1.advancedRepo.useRedhatSatellite.warning': 'By selecting to <b>“Use RedHat Satellite/Spacewalk”</b> for the software repositories, ' +
+    'you are responsible for configuring the repository channel in Satellite/Spacewalk and confirming the repositories for the selected <b>stack version</b> are available on the hosts in the cluster. ' +
+    'Refer to the Ambari documentation for more information.',
   'installer.step1.attentionNeeded':'<b>Attention:</b> Repository URLs are REQUIRED before you can proceed.',
   'installer.step1.invalidURLAttention': '<b>Attention:</b> Please make sure all repository URLs are valid before proceeding.',
   'installer.step1.checkAtLeastOneAttention': '<b>Attention:</b> Please check at least one repository.',

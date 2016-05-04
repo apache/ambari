@@ -822,7 +822,7 @@ App.InstallerController = App.WizardController.extend({
     var dfd = $.Deferred();
     if (selectedStack && selectedStack.get('operatingSystems')) {
       this.set('validationCnt', selectedStack.get('repositories').filterProperty('isSelected').length);
-      var verifyBaseUrl = !wizardStep1Controller.get('skipValidationChecked');
+      var verifyBaseUrl = !wizardStep1Controller.get('skipValidationChecked') && !wizardStep1Controller.get('selectedStack.useRedhatSatellite');
       selectedStack.get('operatingSystems').forEach(function (os) {
         if (os.get('isSelected')) {
           os.get('repositories').forEach(function (repo) {

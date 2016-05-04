@@ -36,15 +36,25 @@
 
       <p><b>{{controller.clusterInfo.repoInfo.display_name}}</b>:</p>
 
-      <div>
-        <ul>
-          {{#each item in controller.clusterInfo.repoInfo}}
+      {{#if controller.clusterInfo.useRedhatSatellite}}
+        <div>
+          <ul>
             <li>
-              <p><span class="text text-info">{{item.os_type}} ({{item.repo_id}}): <br/></span>{{item.base_url}}</p>
+              <p>{{t installer.step1.advancedRepo.useRedhatSatellite.message}}</p>
             </li>
-          {{/each}}
-        </ul>
-      </div>
+          </ul>
+        </div>
+      {{else}}
+        <div>
+          <ul>
+            {{#each item in controller.clusterInfo.repoInfo}}
+              <li>
+                <p><span class="text text-info">{{item.os_type}} ({{item.repo_id}}): <br/></span>{{item.base_url}}</p>
+              </li>
+            {{/each}}
+          </ul>
+        </div>
+      {{/if}}
 
       <div>
         {{#if controller.services.length}}

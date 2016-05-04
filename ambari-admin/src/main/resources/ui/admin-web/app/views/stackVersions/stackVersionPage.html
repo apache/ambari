@@ -177,10 +177,10 @@
               <div class="form-group {{repository.Repositories.repo_name}}" ng-class="{'has-error': repository.hasError }" ng-repeat="repository in os.repositories">
                 <label class="repo-name-label control-label col-sm-3">{{repository.Repositories.repo_name}}</label>
                 <div class="col-sm-9"><input type="text" class="form-control" ng-model="repository.Repositories.base_url"
-                                         ng-change="clearError()" ng-disabled="!os.selected"></div>
+                                         ng-change="clearError()" ng-disabled="useRedhatSatellite"></div>
               </div>
             </div>
-            <div class="col-sm-1 remove-icon" ng-click="removeOS()"><span class="glyphicon glyphicon-minus"></span>{{'common.controls.remove' | translate}}</div>
+            <div class="col-sm-1 remove-icon" ng-click="removeOS()" ng-class="{'disabled' : useRedhatSatellite}"><span class="glyphicon glyphicon-minus"></span>{{'common.controls.remove' | translate}}</div>
           </div>
         </div>
       </div>
@@ -195,7 +195,7 @@
         <div class="col-sm-9" id="skip-validation">
           <div class="checkbox">
             <label>
-              <input type="checkbox" ng-model="skipValidation" ng-change="clearErrors()">
+              <input type="checkbox" ng-model="skipValidation" ng-change="clearErrors()" ng-disabled="useRedhatSatellite">
               {{'versions.skipValidation' | translate}} <span class="glyphicon glyphicon-question-sign" tooltip-html-unsafe="{{'versions.alerts.skipValidationWarning' | translate}}"></span>
             </label>
           </div>
@@ -204,7 +204,7 @@
           <div class="checkbox">
             <label>
               <input type="checkbox" ng-model="useRedhatSatellite" ng-change="clearErrors()">
-              {{'versions.useRedhatSatellite' | translate}} <span class="glyphicon glyphicon-question-sign" tooltip-html-unsafe="{{'versions.alerts.useRedhatSatelliteWarning' | translate}}"></span>
+              {{'versions.useRedhatSatellite.title' | translate}} <span class="glyphicon glyphicon-question-sign" tooltip-html-unsafe="{{'versions.alerts.useRedhatSatelliteWarning' | translate}}"></span>
             </label>
           </div>
         </div>

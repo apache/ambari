@@ -124,7 +124,7 @@ describe('App.AssignMasterOnStep7View', function () {
       var expected = [
         Em.I18n.t('installer.step7.assign.master.body').format('c1', Em.I18n.t('common.host').toLowerCase(), Em.I18n.t('it')),
         Em.I18n.t('installer.step7.assign.master.dependent.component.body').format(''),
-        Em.I18n.t('common.warn.message').format(Em.I18n.t('common.important') + ': ' + Em.I18n.t('installer.step8.kerberors.warning'))
+        Em.I18n.t('common.warn.message').format(Em.I18n.t('common.important.strong') + ': ' + Em.I18n.t('installer.step8.kerberors.warning'))
       ].join('<br/>');
 
       view.set('controller.mastersToCreate', ['c1']);
