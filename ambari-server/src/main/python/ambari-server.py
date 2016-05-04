@@ -330,7 +330,7 @@ def init_parser_options(parser):
   parser.add_option('--jdbc-driver', default=None, dest="jdbc_driver",
                     help="Specifies the path to the JDBC driver JAR file")
   parser.add_option('--skip-properties-validation', action="store_true", default=False, help="Skip properties file validation", dest="skip_properties_validation")
-  parser.add_option('--skip-database-validation', action="store_true", default=False, help="Skip database consistency validation", dest="skip_database_validation")
+  parser.add_option('--skip-database-check', action="store_true", default=False, help="Skip database consistency check", dest="skip_database_check")
   parser.add_option('--mpack', default=None,
                     help="Specified the path for management pack to be installed/upgraded",
                     dest="mpack_path")
@@ -404,7 +404,7 @@ def init_parser_options(parser):
   parser.add_option('--cluster-name', default=None, help="Cluster name", dest="cluster_name")
   parser.add_option('--version-display-name', default=None, help="Display name of desired repo version", dest="desired_repo_version")
   parser.add_option('--skip-properties-validation', action="store_true", default=False, help="Skip properties file validation", dest="skip_properties_validation")
-  parser.add_option('--skip-database-validation', action="store_true", default=False, help="Skip database consistency validation", dest="skip_database_validation")
+  parser.add_option('--skip-database-check', action="store_true", default=False, help="Skip database consistency check", dest="skip_database_check")
   parser.add_option('--force-version', action="store_true", default=False, help="Force version to current", dest="force_repo_version")
   parser.add_option('--version', dest="stack_versions", default=None, action="append", type="string",
                     help="Specify stack version that needs to be enabled. All other stacks versions will be disabled")

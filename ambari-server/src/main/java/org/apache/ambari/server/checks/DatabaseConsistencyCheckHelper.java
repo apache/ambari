@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.checks;
 
+import java.io.File;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -25,135 +27,137 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.audit.AuditLoggerModule;
-import org.apache.ambari.server.controller.ControllerModule;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.dao.MetainfoDAO;
+import org.apache.ambari.server.orm.entities.MetainfoEntity;
 import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.utils.EventBusSynchronizer;
+import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
 
-/*
-* Class for database validation.
-* Here we will check configs, services, components and etc.
-*/
-public class CheckDatabaseHelper {
-  private static final Logger LOG = LoggerFactory.getLogger
-          (CheckDatabaseHelper.class);
+public class DatabaseConsistencyCheckHelper {
 
-  private static final String AUTHENTICATED_USER_NAME = "ambari-check-database";
-
-  private PersistService persistService;
-  private DBAccessor dbAccessor;
-  private Connection connection;
-  private AmbariMetaInfo ambariMetaInfo;
-  private Injector injector;
-  private boolean errorAvailable = false;
-  private boolean warningAvailable = false;
+  static Logger LOG = LoggerFactory.getLogger(DatabaseConsistencyCheckHelper.class);
 
   @Inject
-  public CheckDatabaseHelper(DBAccessor dbAccessor,
-                             Injector injector,
-                             PersistService persistService) {
-    this.dbAccessor = dbAccessor;
-    this.injector = injector;
-    this.persistService = persistService;
+  private static Injector injector;
+
+  private static MetainfoDAO metainfoDAO;
+  private static Connection connection;
+  private static AmbariMetaInfo ambariMetaInfo;
+  private static DBAccessor dbAccessor;
+
+
+  private static boolean errorAvailable = false;
+  private static boolean warningAvailable = false;
+
+  public static boolean isErrorAvailable() {
+    return errorAvailable;
   }
 
-  /**
-   * Extension of main controller module
-   */
-  public static class CheckHelperControllerModule extends ControllerModule {
-
-    public CheckHelperControllerModule() throws Exception {
-    }
-
-    @Override
-    protected void configure() {
-      super.configure();
-      EventBusSynchronizer.synchronizeAmbariEventPublisher(binder());
-    }
+  public static void setErrorAvailable(boolean errorAvailable) {
+    errorAvailable = errorAvailable;
   }
 
-  /**
-   * Extension of audit logger module
-   */
-  public static class CheckHelperAuditModule extends AuditLoggerModule {
-
-    public CheckHelperAuditModule() throws Exception {
-    }
-
-    @Override
-    protected void configure() {
-      super.configure();
-    }
-
+  public static boolean isWarningAvailable() {
+    return warningAvailable;
   }
 
-  /*
-  * init method to create connection
-  * */
-  protected void init() {
-    connection = dbAccessor.getConnection();
-    ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
+  public static void setWarningAvailable(boolean warningAvailable) {
+    warningAvailable = warningAvailable;
+  }
+
+  public static void resetErrorWarningFlags() {
+    errorAvailable = false;
+    warningAvailable = false;
+  }
+
+  protected static void setInjector(Injector injector) {
+    DatabaseConsistencyCheckHelper.injector = injector;
+  }
+
+  public static void setConnection(Connection connection) {
+    DatabaseConsistencyCheckHelper.connection = connection;
   }
 
   /*
-  * method to close connection
-  * */
-  private void closeConnection() {
+    * method to close connection
+    * */
+  public static void closeConnection() {
     try {
-      connection.close();
+      if (connection != null) {
+        connection.close();
+      }
     } catch (SQLException e) {
       LOG.error("Exception occurred during connection close procedure: ", e);
     }
   }
 
-  public void startPersistenceService() {
-    persistService.start();
+  public static void checkDBVersionCompatible() throws AmbariException {
+    LOG.info("Checking DB store version");
+
+    if (metainfoDAO == null) {
+      metainfoDAO = injector.getInstance(MetainfoDAO.class);
+    }
+
+    MetainfoEntity schemaVersionEntity = metainfoDAO.findByKey(Configuration.SERVER_VERSION_KEY);
+    String schemaVersion = null;
+
+    if (schemaVersionEntity != null) {
+      schemaVersion = schemaVersionEntity.getMetainfoValue();
+    }
+
+    Configuration conf = injector.getInstance(Configuration.class);
+    File versionFile = new File(conf.getServerVersionFilePath());
+    if (!versionFile.exists()) {
+      throw new AmbariException("Server version file does not exist.");
+    }
+    String serverVersion = null;
+    try (Scanner scanner = new Scanner(versionFile)) {
+      serverVersion = scanner.useDelimiter("\\Z").next();
+
+    } catch (IOException ioe) {
+      throw new AmbariException("Unable to read server version file.");
+    }
+
+    if (schemaVersionEntity==null || VersionUtils.compareVersions(schemaVersion, serverVersion, 3) != 0) {
+      String error = "Current database store version is not compatible with " +
+              "current server version"
+              + ", serverVersion=" + serverVersion
+              + ", schemaVersion=" + schemaVersion;
+      LOG.error(error);
+      throw new AmbariException(error);
+    }
+
+    LOG.info("DB store version is compatible");
   }
 
-  public void stopPersistenceService() {
-    persistService.stop();
-  }
+  public static void checkForNotMappedConfigsToCluster() {
+    LOG.info("Checking for configs not mapped to any cluster");
 
-  protected boolean isErrorAvailable() {
-    return errorAvailable;
-  }
-
-  protected void setErrorAvailable(boolean errorAvailable) {
-    this.errorAvailable = errorAvailable;
-  }
-
-  public boolean isWarningAvailable() {
-    return warningAvailable;
-  }
-
-  public void setWarningAvailable(boolean warningAvailable) {
-    this.warningAvailable = warningAvailable;
-  }
-
-  /*
-    * This method checks if all configurations that we have in clusterconfig table
-    * have at least one mapping in clusterconfigmapping table. If we found not mapped config
-    * then we are showing warning message for user.
-    * */
-  protected void checkForNotMappedConfigsToCluster() {
     String GET_NOT_MAPPED_CONFIGS_QUERY = "select type_name from clusterconfig where type_name not in (select type_name from clusterconfigmapping)";
     Set<String> nonSelectedConfigs = new HashSet<>();
     ResultSet rs = null;
+
+    if (connection == null) {
+      if (dbAccessor == null) {
+        dbAccessor = injector.getInstance(DBAccessor.class);
+      }
+      connection = dbAccessor.getConnection();
+    }
+
     try {
       Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
       rs = statement.executeQuery(GET_NOT_MAPPED_CONFIGS_QUERY);
@@ -185,13 +189,23 @@ public class CheckDatabaseHelper {
   * it means that this version of config is actual. So, if any config type has more
   * than one selected version it's a bug and we are showing error message for user.
   * */
-  protected void checkForConfigsSelectedMoreThanOnce() {
+  public static void checkForConfigsSelectedMoreThanOnce() {
+    LOG.info("Checking for configs selected more than once");
+
     String GET_CONFIGS_SELECTED_MORE_THAN_ONCE_QUERY = "select c.cluster_name, ccm.type_name from clusterconfigmapping ccm " +
             "join clusters c on ccm.cluster_id=c.cluster_id " +
             "group by c.cluster_name, ccm.type_name " +
             "having sum(selected) > 1";
     Multimap<String, String> clusterConfigTypeMap = HashMultimap.create();
     ResultSet rs = null;
+
+    if (connection == null) {
+      if (dbAccessor == null) {
+        dbAccessor = injector.getInstance(DBAccessor.class);
+      }
+      connection = dbAccessor.getConnection();
+    }
+
     try {
       Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
       rs = statement.executeQuery(GET_CONFIGS_SELECTED_MORE_THAN_ONCE_QUERY);
@@ -225,10 +239,20 @@ public class CheckDatabaseHelper {
   * has related host state info in hoststate table.
   * If not then we are showing error.
   * */
-  protected void checkForHostsWithoutState() {
+  public static void checkForHostsWithoutState() {
+    LOG.info("Checking for hosts without state");
+
     String GET_HOSTS_WITHOUT_STATUS_QUERY = "select host_name from hosts where host_id not in (select host_id from hoststate)";
     Set<String> hostsWithoutStatus = new HashSet<>();
     ResultSet rs = null;
+
+    if (connection == null) {
+      if (dbAccessor == null) {
+        dbAccessor = injector.getInstance(DBAccessor.class);
+      }
+      connection = dbAccessor.getConnection();
+    }
+
     try {
       Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
       rs = statement.executeQuery(GET_HOSTS_WITHOUT_STATUS_QUERY);
@@ -262,7 +286,9 @@ public class CheckDatabaseHelper {
   * two tables should have the same count of rows. If not then we are
   * showing error for user.
   * */
-  protected void checkHostComponentStatesCountEqualsHostComponentsDesiredStates() {
+  public static void checkHostComponentStatesCountEqualsHostComponentsDesiredStates() {
+    LOG.info("Checking host component states count equals host component desired states count");
+
     String GET_HOST_COMPONENT_STATE_COUNT_QUERY = "select count(*) from hostcomponentstate";
     String GET_HOST_COMPONENT_DESIRED_STATE_COUNT_QUERY = "select count(*) from hostcomponentdesiredstate";
     String GET_MERGED_TABLE_ROW_COUNT_QUERY = "select count(*) FROM hostcomponentstate hcs " +
@@ -271,6 +297,14 @@ public class CheckDatabaseHelper {
     int hostComponentDesiredStateCount = 0;
     int mergedCount = 0;
     ResultSet rs = null;
+
+    if (connection == null) {
+      if (dbAccessor == null) {
+        dbAccessor = injector.getInstance(DBAccessor.class);
+      }
+      connection = dbAccessor.getConnection();
+    }
+
     try {
       Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
 
@@ -323,7 +357,9 @@ public class CheckDatabaseHelper {
   * 4) Check if service has config which is not selected(has no actual config version) in clusterconfigmapping table.
   * If any issue was discovered, we are showing error message for user.
   * */
-  protected void checkServiceConfigs()  {
+  public static void checkServiceConfigs()  {
+    LOG.info("Checking services and their configs");
+
     String GET_SERVICES_WITHOUT_CONFIGS_QUERY = "select c.cluster_name, service_name from clusterservices cs " +
             "join clusters c on cs.cluster_id=c.cluster_id " +
             "where service_name not in (select service_name from serviceconfig sc where sc.cluster_id=cs.cluster_id and sc.service_name=cs.service_name and sc.group_id is null)";
@@ -353,6 +389,17 @@ public class CheckDatabaseHelper {
     Map<String, Multimap<String, String>> clusterServiceVersionMap = new HashMap<>();
     Map<String, Multimap<String, String>> clusterServiceConfigType = new HashMap<>();
     ResultSet rs = null;
+
+    if (connection == null) {
+      if (dbAccessor == null) {
+        dbAccessor = injector.getInstance(DBAccessor.class);
+      }
+      connection = dbAccessor.getConnection();
+    }
+
+    if (ambariMetaInfo == null) {
+      ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
+    }
 
     try {
       Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
@@ -528,51 +575,5 @@ public class CheckDatabaseHelper {
 
   }
 
-  /*
-  * Main method from which we are calling all checks
-  * */
-  public static void main(String[] args) throws Exception {
-    CheckDatabaseHelper checkDatabaseHelper = null;
-    try {
-      LOG.info("******************************* Check database started *******************************");
 
-      Injector injector = Guice.createInjector(new CheckHelperControllerModule(), new CheckHelperAuditModule());
-      checkDatabaseHelper = injector.getInstance(CheckDatabaseHelper.class);
-
-      checkDatabaseHelper.startPersistenceService();
-
-      checkDatabaseHelper.init();
-
-      checkDatabaseHelper.checkForNotMappedConfigsToCluster();
-
-      checkDatabaseHelper.checkForConfigsSelectedMoreThanOnce();
-
-      checkDatabaseHelper.checkForHostsWithoutState();
-
-      checkDatabaseHelper.checkHostComponentStatesCountEqualsHostComponentsDesiredStates();
-
-      checkDatabaseHelper.checkServiceConfigs();
-
-      checkDatabaseHelper.stopPersistenceService();
-
-      LOG.info("******************************* Check database completed *******************************");
-    } catch (Throwable e) {
-      if (e instanceof AmbariException) {
-        LOG.error("Exception occurred during database check:", e);
-        throw (AmbariException)e;
-      }else{
-        LOG.error("Unexpected error, database check failed", e);
-        throw new Exception("Unexpected error, database check failed", e);
-      }
-    } finally {
-      if (checkDatabaseHelper != null) {
-        checkDatabaseHelper.closeConnection();
-        if (checkDatabaseHelper.isErrorAvailable() || checkDatabaseHelper.isWarningAvailable()) {
-          System.out.print("Some error(s) or/and warning(s) was(were) found. Please check ambari-server-check-database.log for problem(s).");
-        } else {
-          System.out.print("No erros were found.");
-        }
-      }
-    }
-  }
 }

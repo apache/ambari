@@ -39,7 +39,7 @@ from ambari_server.serverUtils import is_server_runing
 from ambari_server.userInput import get_YN_input
 
 CHECK_DATABASE_HELPER_CMD = "{0} -cp {1} " + \
-                         "org.apache.ambari.server.checks.CheckDatabaseHelper"
+                         "org.apache.ambari.server.checks.DatabaseConsistencyChecker"
 
 def check_database(options):
 
@@ -74,13 +74,20 @@ def check_database(options):
   environ = setupSecurity.generate_env(options, ambari_user, current_user)
 
   (retcode, stdout, stderr) = os_utils.run_os_command(command, env=environ)
-  print_info_msg("Return code from check database command, retcode = " + str(retcode))
+
 
   if retcode > 0:
-    print_error_msg("Database check failed to complete. Please check ambari-server.log and ambari-server-check-database.log for problem.")
-    raise FatalException(1, 'Database check failed.')
+    print str(stdout)
+    raise FatalException(1, 'Database check failed to complete. Please check ' + configDefaults.SERVER_LOG_FILE +
+                            ' and ' + configDefaults.DB_CHECK_LOG + ' for more information.')
   else:
     print str(stdout)
+    if not stdout.startswith("No errors"):
+      print "Ambari Server 'check-database' completed"
+      sys.exit(1)
+
+
+
 
 
 

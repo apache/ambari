@@ -6938,7 +6938,8 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.serverConfiguration.parse_properties_file")
   @patch("ambari_server.serverConfiguration.get_ambari_properties")
   @patch("ambari_server.serverConfiguration.get_java_exe_path")
-  def test_check_database(self, getJavaExePathMock,
+  @patch("sys.exit")
+  def test_check_database(self, exitMock, getJavaExePathMock,
                              getAmbariPropertiesMock, parsePropertiesFileMock, ensureDriverInstalledMock, readAmbariUserMock,
                              ensureCanStartUnderCurrentUserMock, generateEnvMock, runOSCommandMock, isServerRunningMock):
     properties = Properties()
@@ -6959,7 +6960,7 @@ class TestAmbariServer(TestCase):
     self.assertTrue(ensureCanStartUnderCurrentUserMock.called)
     self.assertTrue(generateEnvMock.called)
 
-    self.assertEquals(runOSCommandMock.call_args[0][0], '/path/to/java -cp test:path12 org.apache.ambari.server.checks.CheckDatabaseHelper')
+    self.assertEquals(runOSCommandMock.call_args[0][0], '/path/to/java -cp test:path12 org.apache.ambari.server.checks.DatabaseConsistencyChecker')
 
     pass
 

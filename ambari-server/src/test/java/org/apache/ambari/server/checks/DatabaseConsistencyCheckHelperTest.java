@@ -40,12 +40,12 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
-public class CheckDatabaseHelperTest {
+public class DatabaseConsistencyCheckHelperTest {
 
   @Test
   public void testCheckForNotMappedConfigs() throws Exception {
     EasyMockSupport easyMockSupport = new EasyMockSupport();
-    final AmbariMetaInfo mockAmbariMetainfo = easyMockSupport.createNiceMock(AmbariMetaInfo.class);
+
     final DBAccessor mockDBDbAccessor = easyMockSupport.createNiceMock(DBAccessor.class);
     final Connection mockConnection = easyMockSupport.createNiceMock(Connection.class);
     final ResultSet mockResultSet = easyMockSupport.createNiceMock(ResultSet.class);
@@ -58,7 +58,7 @@ public class CheckDatabaseHelperTest {
     final Injector mockInjector = Guice.createInjector(new AbstractModule() {
       @Override
       protected void configure() {
-        bind(AmbariMetaInfo.class).toInstance(mockAmbariMetainfo);
+
         bind(StackManagerFactory.class).toInstance(mockStackManagerFactory);
         bind(EntityManager.class).toInstance(mockEntityManager);
         bind(DBAccessor.class).toInstance(mockDBDbAccessor);
@@ -68,18 +68,16 @@ public class CheckDatabaseHelperTest {
     });
 
 
-    expect(mockDBDbAccessor.getConnection()).andReturn(mockConnection);
+
     expect(mockConnection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)).andReturn(mockStatement);
     expect(mockStatement.executeQuery("select type_name from clusterconfig where type_name not in (select type_name from clusterconfigmapping)")).andReturn(mockResultSet);
 
-    CheckDatabaseHelper checkDatabaseHelper = new CheckDatabaseHelper(mockDBDbAccessor, mockInjector, null);
-
+    DatabaseConsistencyCheckHelper.setInjector(mockInjector);
+    DatabaseConsistencyCheckHelper.setConnection(mockConnection);
 
     easyMockSupport.replayAll();
 
-    mockAmbariMetainfo.init();
-    checkDatabaseHelper.init();
-    checkDatabaseHelper.checkForNotMappedConfigsToCluster();
+    DatabaseConsistencyCheckHelper.checkForNotMappedConfigsToCluster();
 
     easyMockSupport.verifyAll();
   }
@@ -87,7 +85,7 @@ public class CheckDatabaseHelperTest {
   @Test
   public void testCheckForConfigsSelectedMoreThanOnce() throws Exception {
     EasyMockSupport easyMockSupport = new EasyMockSupport();
-    final AmbariMetaInfo mockAmbariMetainfo = easyMockSupport.createNiceMock(AmbariMetaInfo.class);
+
     final DBAccessor mockDBDbAccessor = easyMockSupport.createNiceMock(DBAccessor.class);
     final Connection mockConnection = easyMockSupport.createNiceMock(Connection.class);
     final ResultSet mockResultSet = easyMockSupport.createNiceMock(ResultSet.class);
@@ -100,7 +98,7 @@ public class CheckDatabaseHelperTest {
     final Injector mockInjector = Guice.createInjector(new AbstractModule() {
       @Override
       protected void configure() {
-        bind(AmbariMetaInfo.class).toInstance(mockAmbariMetainfo);
+
         bind(StackManagerFactory.class).toInstance(mockStackManagerFactory);
         bind(EntityManager.class).toInstance(mockEntityManager);
         bind(DBAccessor.class).toInstance(mockDBDbAccessor);
@@ -109,22 +107,21 @@ public class CheckDatabaseHelperTest {
       }
     });
 
-
-    expect(mockDBDbAccessor.getConnection()).andReturn(mockConnection);
     expect(mockConnection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)).andReturn(mockStatement);
     expect(mockStatement.executeQuery("select c.cluster_name, ccm.type_name from clusterconfigmapping ccm " +
             "join clusters c on ccm.cluster_id=c.cluster_id " +
             "group by c.cluster_name, ccm.type_name " +
             "having sum(selected) > 1")).andReturn(mockResultSet);
 
-    CheckDatabaseHelper checkDatabaseHelper = new CheckDatabaseHelper(mockDBDbAccessor, mockInjector, null);
+
+
+    DatabaseConsistencyCheckHelper.setInjector(mockInjector);
+    DatabaseConsistencyCheckHelper.setConnection(mockConnection);
 
 
     easyMockSupport.replayAll();
 
-    mockAmbariMetainfo.init();
-    checkDatabaseHelper.init();
-    checkDatabaseHelper.checkForConfigsSelectedMoreThanOnce();
+    DatabaseConsistencyCheckHelper.checkForConfigsSelectedMoreThanOnce();
 
     easyMockSupport.verifyAll();
   }
@@ -132,7 +129,7 @@ public class CheckDatabaseHelperTest {
   @Test
   public void testCheckForHostsWithoutState() throws Exception {
     EasyMockSupport easyMockSupport = new EasyMockSupport();
-    final AmbariMetaInfo mockAmbariMetainfo = easyMockSupport.createNiceMock(AmbariMetaInfo.class);
+
     final DBAccessor mockDBDbAccessor = easyMockSupport.createNiceMock(DBAccessor.class);
     final Connection mockConnection = easyMockSupport.createNiceMock(Connection.class);
     final ResultSet mockResultSet = easyMockSupport.createNiceMock(ResultSet.class);
@@ -145,7 +142,7 @@ public class CheckDatabaseHelperTest {
     final Injector mockInjector = Guice.createInjector(new AbstractModule() {
       @Override
       protected void configure() {
-        bind(AmbariMetaInfo.class).toInstance(mockAmbariMetainfo);
+
         bind(StackManagerFactory.class).toInstance(mockStackManagerFactory);
         bind(EntityManager.class).toInstance(mockEntityManager);
         bind(DBAccessor.class).toInstance(mockDBDbAccessor);
@@ -155,18 +152,18 @@ public class CheckDatabaseHelperTest {
     });
 
 
-    expect(mockDBDbAccessor.getConnection()).andReturn(mockConnection);
+
     expect(mockConnection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)).andReturn(mockStatement);
     expect(mockStatement.executeQuery("select host_name from hosts where host_id not in (select host_id from hoststate)")).andReturn(mockResultSet);
 
-    CheckDatabaseHelper checkDatabaseHelper = new CheckDatabaseHelper(mockDBDbAccessor, mockInjector, null);
-
+    DatabaseConsistencyCheckHelper.setInjector(mockInjector);
+    DatabaseConsistencyCheckHelper.setConnection(mockConnection);
 
     easyMockSupport.replayAll();
 
-    mockAmbariMetainfo.init();
-    checkDatabaseHelper.init();
-    checkDatabaseHelper.checkForHostsWithoutState();
+
+
+    DatabaseConsistencyCheckHelper.checkForHostsWithoutState();
 
     easyMockSupport.verifyAll();
   }
@@ -174,7 +171,7 @@ public class CheckDatabaseHelperTest {
   @Test
   public void testCheckHostComponentStatesCountEqualsHostComponentsDesiredStates() throws Exception {
     EasyMockSupport easyMockSupport = new EasyMockSupport();
-    final AmbariMetaInfo mockAmbariMetainfo = easyMockSupport.createNiceMock(AmbariMetaInfo.class);
+
     final DBAccessor mockDBDbAccessor = easyMockSupport.createNiceMock(DBAccessor.class);
     final Connection mockConnection = easyMockSupport.createNiceMock(Connection.class);
     final ResultSet mockResultSet = easyMockSupport.createNiceMock(ResultSet.class);
@@ -187,7 +184,7 @@ public class CheckDatabaseHelperTest {
     final Injector mockInjector = Guice.createInjector(new AbstractModule() {
       @Override
       protected void configure() {
-        bind(AmbariMetaInfo.class).toInstance(mockAmbariMetainfo);
+
         bind(StackManagerFactory.class).toInstance(mockStackManagerFactory);
         bind(EntityManager.class).toInstance(mockEntityManager);
         bind(DBAccessor.class).toInstance(mockDBDbAccessor);
@@ -197,7 +194,7 @@ public class CheckDatabaseHelperTest {
     });
 
 
-    expect(mockDBDbAccessor.getConnection()).andReturn(mockConnection);
+
     expect(mockConnection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)).andReturn(mockStatement);
     expect(mockStatement.executeQuery("select count(*) from hostcomponentstate")).andReturn(mockResultSet);
     expect(mockStatement.executeQuery("select count(*) from hostcomponentdesiredstate")).andReturn(mockResultSet);
@@ -205,14 +202,13 @@ public class CheckDatabaseHelperTest {
             "JOIN hostcomponentdesiredstate hcds ON hcs.service_name=hcds.service_name AND " +
             "hcs.component_name=hcds.component_name AND hcs.host_id=hcds.host_id")).andReturn(mockResultSet);
 
-    CheckDatabaseHelper checkDatabaseHelper = new CheckDatabaseHelper(mockDBDbAccessor, mockInjector, null);
-
+    DatabaseConsistencyCheckHelper.setInjector(mockInjector);
+    DatabaseConsistencyCheckHelper.setConnection(mockConnection);
 
     easyMockSupport.replayAll();
 
-    mockAmbariMetainfo.init();
-    checkDatabaseHelper.init();
-    checkDatabaseHelper.checkHostComponentStatesCountEqualsHostComponentsDesiredStates();
+
+    DatabaseConsistencyCheckHelper.checkHostComponentStatesCountEqualsHostComponentsDesiredStates();
 
     easyMockSupport.verifyAll();
   }
@@ -259,7 +255,6 @@ public class CheckDatabaseHelperTest {
     expect(stackResultSet.next()).andReturn(true);
     expect(stackResultSet.getString("stack_name")).andReturn("HDP");
     expect(stackResultSet.getString("stack_version")).andReturn("2.2");
-    expect(mockDBDbAccessor.getConnection()).andReturn(mockConnection);
     expect(mockConnection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)).andReturn(mockStatement);
     expect(mockStatement.executeQuery("select c.cluster_name, service_name from clusterservices cs " +
             "join clusters c on cs.cluster_id=c.cluster_id " +
@@ -286,14 +281,14 @@ public class CheckDatabaseHelperTest {
             "group by c.cluster_name, cs.service_name, cc.type_name " +
             "having sum(ccm.selected) < 1")).andReturn(mockResultSet);
 
-    CheckDatabaseHelper checkDatabaseHelper = new CheckDatabaseHelper(mockDBDbAccessor, mockInjector, null);
-
+    DatabaseConsistencyCheckHelper.setInjector(mockInjector);
+    DatabaseConsistencyCheckHelper.setConnection(mockConnection);
 
     easyMockSupport.replayAll();
 
     mockAmbariMetainfo.init();
-    checkDatabaseHelper.init();
-    checkDatabaseHelper.checkServiceConfigs();
+
+    DatabaseConsistencyCheckHelper.checkServiceConfigs();
 
     easyMockSupport.verifyAll();
   }

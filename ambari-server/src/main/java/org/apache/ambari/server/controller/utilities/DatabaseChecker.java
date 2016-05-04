@@ -54,6 +54,9 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
+
+/*This class should not be used anymore
+* now we will use DatabaseConsistencyChecker*/
 public class DatabaseChecker {
 
   static Logger LOG = LoggerFactory.getLogger(DatabaseChecker.class);

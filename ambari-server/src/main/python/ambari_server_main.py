@@ -26,7 +26,7 @@ from ambari_commons.logging_utils import get_debug_mode, print_warning_msg, prin
   set_debug_mode_from_options
 from ambari_commons.os_check import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
-from ambari_commons.os_utils import is_root
+from ambari_commons.os_utils import is_root, run_os_command
 from ambari_server.dbConfiguration import ensure_dbms_is_running, ensure_jdbc_driver_is_installed
 from ambari_server.serverConfiguration import configDefaults, find_jdk, get_ambari_properties, \
   get_conf_dir, get_is_persisted, get_is_secure, get_java_exe_path, get_original_master_key, read_ambari_user, \
@@ -56,6 +56,7 @@ if ambari_provider_module is not None:
 jvm_args = os.getenv('AMBARI_JVM_ARGS', '-Xms512m -Xmx2048m -XX:MaxPermSize=128m')
 
 ENV_FOREGROUND_KEY = "AMBARI_SERVER_RUN_IN_FOREGROUND"
+CHECK_DATABASE_HELPER_CMD = "{0} -cp {1} org.apache.ambari.server.checks.DatabaseConsistencyChecker"
 IS_FOREGROUND = ENV_FOREGROUND_KEY in os.environ and os.environ[ENV_FOREGROUND_KEY].lower() == "true"
 
 SERVER_START_CMD = "{0} " \
@@ -283,14 +284,34 @@ def server_process_main(options, scmStatus=None):
   suspend_start = (debug_mode & 2) or SUSPEND_START_MODE
   suspend_mode = 'y' if suspend_start else 'n'
 
-  if options.skip_database_validation:
-    global jvm_args
-    jvm_args += " -DskipDatabaseConsistencyValidation"
-
-  param_list = generate_child_process_param_list(ambari_user, java_exe,
-                                                 serverClassPath.get_full_ambari_classpath_escaped_for_shell(validate_classpath=True),
-                                                 debug_start, suspend_mode)
   environ = generate_env(options, ambari_user, current_user)
+  class_path = serverClassPath.get_full_ambari_classpath_escaped_for_shell(validate_classpath=True)
+
+  if options.skip_database_check:
+    global jvm_args
+    jvm_args += " -DskipDatabaseConsistencyCheck"
+    print "Ambari Server is starting with the database consistency check skipped. Do not make any changes to your cluster " \
+          "topology or perform a cluster upgrade until you correct the database consistency issues. See \"" \
+          + configDefaults.DB_CHECK_LOG + "\" for more details on the consistency issues."
+  else:
+    print "Ambari database consistency check started..."
+    command = CHECK_DATABASE_HELPER_CMD.format(java_exe, class_path)
+
+    (retcode, stdout, stderr) = run_os_command(command, env=environ)
+
+    if retcode > 0:
+      print str(stdout)
+      raise FatalException(1, 'Database check failed to complete. Please check ' + configDefaults.SERVER_LOG_FILE +
+                            ' and ' + configDefaults.DB_CHECK_LOG + ' for more information.')
+    else:
+      print str(stdout)
+      print "Ambari database consistency check finished"
+
+      if not stdout.startswith("No errors"):
+        sys.exit(1)
+
+  param_list = generate_child_process_param_list(ambari_user, java_exe, class_path, debug_start, suspend_mode)
+
 
   if not os.path.exists(configDefaults.PID_DIR):
     os.makedirs(configDefaults.PID_DIR, 0755)

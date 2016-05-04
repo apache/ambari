@@ -19,6 +19,9 @@
 package org.apache.ambari.server.controller;
 
 
+import javax.crypto.BadPaddingException;
+import javax.servlet.DispatcherType;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.Authenticator;
@@ -30,9 +33,6 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.LogManager;
-
-import javax.crypto.BadPaddingException;
-import javax.servlet.DispatcherType;
 
 import org.apache.ambari.eventdb.webservice.WorkflowJsonService;
 import org.apache.ambari.server.AmbariException;
@@ -58,6 +58,7 @@ import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.audit.request.RequestAuditLogger;
 import org.apache.ambari.server.bootstrap.BootStrapImpl;
+import org.apache.ambari.server.checks.DatabaseConsistencyCheckHelper;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.AbstractControllerResourceProvider;
@@ -75,7 +76,6 @@ import org.apache.ambari.server.controller.internal.StackDependencyResourceProvi
 import org.apache.ambari.server.controller.internal.UserPrivilegeResourceProvider;
 import org.apache.ambari.server.controller.internal.ViewPermissionResourceProvider;
 import org.apache.ambari.server.controller.metrics.ThreadPoolEnabledPropertyProvider;
-import org.apache.ambari.server.controller.utilities.DatabaseChecker;
 import org.apache.ambari.server.controller.utilities.KerberosChecker;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.PersistenceType;
@@ -294,11 +294,6 @@ public class AmbariServer {
     Server serverForAgent = new Server();
 
     setSystemProperties(configs);
-
-    if (System.getProperty("skipDatabaseConsistencyValidation") == null) {
-      DatabaseChecker.checkDBConsistency();
-      DatabaseChecker.checkDBConfigsConsistency();
-    }
 
     try {
       ClassPathXmlApplicationContext parentSpringAppContext =
@@ -957,7 +952,7 @@ public class AmbariServer {
       setupProxyAuth();
 
       injector.getInstance(GuiceJpaInitializer.class);
-      DatabaseChecker.checkDBVersion();
+      DatabaseConsistencyCheckHelper.checkDBVersionCompatible();
       server = injector.getInstance(AmbariServer.class);
       CertificateManager certMan = injector.getInstance(CertificateManager.class);
       certMan.initRootCert();
