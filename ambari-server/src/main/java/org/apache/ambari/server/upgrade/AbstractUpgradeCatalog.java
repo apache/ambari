@@ -167,9 +167,9 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
     try {
       statement = dbAccessor.getConnection().createStatement();
       if (statement != null) {
-        rs = statement.executeQuery(String.format("SELECT COUNT(*) from %s where sequence_name='%s'", ambariSequencesTable, seqName));
+        rs = statement.executeQuery(String.format("SELECT sequence_value from %s where sequence_name='%s'", ambariSequencesTable, seqName));
 
-        if(rs != null) {
+        if((rs != null) && rs.next()) {
           value = rs.getInt(1);
           dbAccessor.executeUpdate(String.format("UPDATE %s SET sequence_value = sequence_value + 1 where sequence_name='%s'", ambariSequencesTable, seqName));
         } else {
