@@ -55,7 +55,7 @@ App.ListConfigWidgetView = App.ConfigWidgetView.extend({
    * If its length is greater, it will cut to current value and ' ...' will be added to the end
    * @type {number}
    */
-  maxDisplayValLength: 45,
+  maxDisplayValLength: 30,
 
   /**
    * <code>options</code> where <code>isSelected</code> is true
