@@ -72,7 +72,8 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
       STORM: App.MainDashboardServiceStormView,
       YARN: App.MainDashboardServiceYARNView,
       RANGER: App.MainDashboardServiceRangerView,
-      FLUME: App.MainDashboardServiceFlumeView
+      FLUME: App.MainDashboardServiceFlumeView,
+      HIVE:  App.MainDashboardServiceHiveView
     }
   }.property('serviceName'),
   /** @property collapsedMetrics {object[]} - metrics list for collapsed section

@@ -25,20 +25,4 @@ describe('App.MainDashboardServiceHiveView', function () {
   beforeEach(function() {
     view = App.MainDashboardServiceHiveView.create();
   });
-
-  describe("#titleMasters", function () {
-
-    it("should pass components", function () {
-      view.set('masters', [
-        Em.Object.create({
-          componentName: 'HIVE_SERVER'
-        }),
-        Em.Object.create({
-          componentName: 'HIVE_METASTORE'
-        })
-      ]);
-      view.propertyDidChange('titleMasters');
-      expect(view.get('titleMasters')).to.be.eql([view.get('masters')[0], view.get('masters')[1]]);
-    });
-  });
 });

@@ -1756,6 +1756,8 @@ Em.I18n.translations = {
   'services.service.summary.moreStats':'more stats here',
   'services.service.summary.clientCount': '{0} Client Hosts',
   'services.service.summary.historyServer': 'History Server Web UI',
+  'services.service.summary.hiveserver2.endpoint.tooltip.text':'JDBC connection string for {0}',
+  'services.service.summary.hiveserver2.endpoint.value':'jdbc:hive2://{0}/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace={1}',
   'services.service.actions.downloadClientConfigs':'Download Client Configs',
   'services.service.actions.downloadClientConfigs.fail.noConfigFile':'No configuration files defined for the component',
   'services.service.actions.downloadClientConfigs.fail.popup.header':'{0} Configs',

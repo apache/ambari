@@ -16,22 +16,23 @@
 * limitations under the License.
 }}
 
-<div class="clearfix">
-  <div class="name span2">
-    <i class="pull-left icon-empty"></i>
-    {{view App.MainDashboardServiceHealthView serviceBinding="view.service"}}
-    <a {{action selectService view.service href=true}}>{{view.service.displayName}}</a>
-    {{#if view.alertsCount}}
-      <a href="#" class="label label-important" {{action "showAlertsPopup" view.service target="view.parentView"}}>
-        {{view.alertsCount}}
-      </a>
-    {{/if}}
-  </div>
-  <div class="summary span">
-    {{#each component in view.titleMasters}}
-      <a href="#" {{action showDetails component.host}}>{{component.displayName}}</a>,
-    {{/each}}
+{{view App.SummaryMasterComponentsView mastersCompBinding="view.parentView.mastersObj"}}
+{{view App.SummaryClientComponentsView clientsObjBinding="view.parentView.clientObj"}}
 
-    <a href="#" {{action filterHosts view.clients.component}}>{{view.clients.title}}</a>
-  </div>
-</div>
+<tr class="hidden"><td></td></tr>
+
+{{#each endpoint in hiveServerEndPoints}}
+  {{#if endpoint.isVisible}}
+   <tr {{bindAttr class=":component endpoint.componentName"}}>
+     <td class="summary-label">{{endpoint.label}}</td>
+     <td class="summary-value" >
+       {{#view view.summaryValueView titleBinding="endpoint.tooltipText" data-toggle="tooltip"}}
+         {{endpoint.value}}
+       {{/view}}
+       {{#view view.clipBoardView data-clipboard-action= "copy" data-clipboard-textBinding="endpoint.value"}}
+         <img src="/img/clippy.svg" alt="Copy" rel="clipboard-tooltip" data-toggle="tooltip" data-placement="bottom" title="Copied!"/>
+       {{/view}}
+     </td>
+   </tr>
+  {{/if}}
+{{/each}}

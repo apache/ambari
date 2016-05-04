@@ -738,6 +738,35 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
+For clipboard.js 1.5.10 (ambari/ambari-web/vendor/scripts/clipboard.min.js):
+
+clipboard.js v1.5.10
+https://clipboardjs.com/
+Copyright 2016 Zeno Rocha <hi@zenorocha.com>
+Clipboard may be freely distributed under the MIT license.
+
+MIT license selected:
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
 For MockJax 1.6.0 (contrib/views/slider/src/main/resources/ui/app/assets/javascripts/jquery.mockjax.js,
 /contrib/views/files/src/main/resources/ui/app/assets/javascripts/jquery.mockjax.js,
 /contrib/views/pig/src/main/resources/ui/pig-web/app/assets/static/javascripts/jquery.mockjax.js):
@@ -892,4 +921,5 @@ This license is Copyright (C) 2003-2004 Lawrence E. Rosen. All rights reserved. 
 
 This product uses software based on SIL Open Font License (OFL)
 * Font-Awesome (SIL OFL 1.1) [http://fortawesome.github.io/Font-Awesome/]
+* Image clippy.svg from Octicon project (SIL OFL 1.1)  [https://octicons.github.com/]
 

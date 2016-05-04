@@ -20,10 +20,80 @@ var App = require('app');
 
 App.MainDashboardServiceHiveView = App.MainDashboardServiceView.extend({
   templateName: require('templates/main/service/services/hive'),
-  serviceName: 'hive',
+  serviceName: 'HIVE',
+  
+  didInsertElement: function () {
+    var controller = this.get('controller');
+    this._super();
+    App.router.get('mainController').isLoading.call(App.router.get('clusterController'), 'isComponentsStateLoaded').done(function () {
+      controller.setHiveEndPointsValue();
+    });
+  },
 
-  titleMasters: function () {
-    var masters = this.get('masters');
-    return [masters.findProperty('componentName', 'HIVE_SERVER'), masters.findProperty('componentName', 'HIVE_METASTORE')];
-  }.property('masters')
+  willDestroyElement: function () {
+    this.get('controller.hiveServerEndPoints').clear();
+  },
+
+  /**
+   * view for JDBC connection String
+   */
+  summaryValueView: Em.View.extend({
+    tagName: 'span',
+    attributeBindings: ['title'],
+
+    didInsertElement: function() {
+      this.setEllipsis();
+      this.setTooltip();
+    },
+
+    /**
+     * sets the Hive JDBC connection text with ellipsis
+     */
+    setEllipsis: function() {
+      var $ = this.$();
+      var text =  $.text();
+      var MAX_LENGTH = 32;
+      var ellipsis = '...';
+      var length = MAX_LENGTH > text.length ? text.length : MAX_LENGTH;
+      var start = Math.max(length - ellipsis.length, ellipsis.length);
+      text = text.slice(0, start);
+      text += ellipsis;
+      $.text(text);
+    },
+
+    /**
+     * sets the tooltip for Hive JDBC connection string
+     */
+    setTooltip: function() {
+      var $ = this.$();
+      Em.run.next(function () {
+        $.tooltip();
+      });
+    }
+  }),
+
+  /**
+   * View for clipboard image that copies JDBC connection string
+   */
+  clipBoardView: Em.View.extend({
+    tagName: 'a',
+    href: "javascript:void(null)",
+    attributeBindings: ['data-clipboard-text', 'data-clipboard-action', "href"],
+    didInsertElement: function() {
+      var $this =  this.$();
+      var id = "#" + $this.attr('id');
+      var clipboard = new Clipboard(id);
+      var options = {
+        trigger: "click"
+      };
+      Em.run.next(function () {
+        $("[rel=clipboard-tooltip]").tooltip(options);
+      });
+    },
+    mouseLeave: function() {
+      Em.run.next(function () {
+        $("[rel=clipboard-tooltip]").tooltip("hide");
+      });
+    }
+  })
 });
