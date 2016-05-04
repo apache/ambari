@@ -1089,7 +1089,7 @@ INSERT INTO ambari_sequences (sequence_name, sequence_value)
   union all
   select 'servicecomponent_history_id_seq', 0 FROM SYSIBM.SYSDUMMY1
   union all
-  select 'blueprint_setting_id_seq', 0 FROM SYSIBM.SYSDUMMY1;
+  select 'blueprint_setting_id_seq', 0 FROM SYSIBM.SYSDUMMY1
   union all
   select 'ambari_operation_history_id_seq', 0 FROM SYSIBM.SYSDUMMY1;
 
