@@ -737,7 +737,4 @@
       </property>
     </depends-on>
   </property>
-  <property>
-    <name>storm.topology.submission.notifier.plugin.class</name>
-  </property>
 </configuration>

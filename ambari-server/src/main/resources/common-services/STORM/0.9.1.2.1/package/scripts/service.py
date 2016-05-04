@@ -39,7 +39,7 @@ def service(name, action = 'start'):
   tries_count = 12
 
   if name == 'ui':
-    process_grep = "backtype.storm.ui.core$"
+    process_grep = "storm.ui.core$"
   elif name == "rest_api":
     process_grep = format("{rest_lib_dir}/storm-rest-.*\.jar$")
   else:

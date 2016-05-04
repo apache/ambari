@@ -21,7 +21,7 @@
   <services>
     <service>
       <name>STORM</name>
-      <version>0.10.0.2.5</version>
+      <version>1.0.1.2.5</version>
     </service>
   </services>
 </metainfo>
