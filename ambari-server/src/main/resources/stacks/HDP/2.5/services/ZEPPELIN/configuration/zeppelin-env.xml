@@ -21,7 +21,7 @@
 <configuration>
 
   <property>
-    <name>content</name>
+    <name>zeppelin_env_content</name>
     <description>This is the jinja template for zeppelin-env.sh file</description>
     <value>
 # Spark master url. eg. spark://master_addr:7077. Leave empty if you want to use local mode

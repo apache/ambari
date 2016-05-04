@@ -140,7 +140,12 @@ class Master(Script):
     # write out zeppelin-env.sh
     env_content = InlineTemplate(params.zeppelin_env_content)
     File(format("{params.conf_dir}/zeppelin-env.sh"), content=env_content,
-         owner=params.zeppelin_user, group=params.zeppelin_group)  # , mode=0777)
+         owner=params.zeppelin_user, group=params.zeppelin_group)
+
+    # write out shiro.ini
+    shiro_ini_content = InlineTemplate(params.shiro_ini_content)
+    File(format("{params.conf_dir}/shiro.ini"), content=shiro_ini_content,
+         owner=params.zeppelin_user, group=params.zeppelin_group)
 
   def stop(self, env):
     import params

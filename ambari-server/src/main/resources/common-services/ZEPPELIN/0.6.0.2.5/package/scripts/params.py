@@ -81,7 +81,10 @@ conf_dir = os.path.join(*[install_dir, zeppelin_dirname, 'conf'])
 notebook_dir = os.path.join(*[install_dir, zeppelin_dirname, 'notebook'])
 
 # zeppelin-env.sh
-zeppelin_env_content = config['configurations']['zeppelin-env']['content']
+zeppelin_env_content = config['configurations']['zeppelin-env']['zeppelin_env_content']
+
+# shiro.ini
+shiro_ini_content = config['configurations']['zeppelin-env']['shiro_ini_content']
 
 # detect configs
 master_configs = config['clusterHostInfo']

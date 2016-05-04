@@ -47,7 +47,7 @@
   </property>
 
   <property>
-    <name>content</name>
+    <name>zeppelin_env_content</name>
     <description>This is the jinja template for zeppelin-env.sh file</description>
     <value>
 # Spark master url. eg. spark://master_addr:7077. Leave empty if you want to use local mode
@@ -138,6 +138,36 @@ export SPARK_YARN_USER_ENV="PYTHONPATH=${PYTHONPATH}"
 # export ZEPPELIN_SPARK_MAXRESULT
 
   </value>
+  </property>
+
+  <property>
+    <name>shiro_ini_content</name>
+    <description>This is the jinja template for shiro.ini file</description>
+    <value>
+[users]
+# List of users with their password allowed to access Zeppelin.
+# To use a different strategy (LDAP / Database / ...) check the shiro doc at http://shiro.apache.org/configuration.html#Configuration-INISections
+#admin = password1
+#user1 = password2, role1, role2
+#user2 = password3, role3
+#user3 = password4, role2
+
+# Sample LDAP configuration, for user Authentication, currently tested for single Realm
+[main]
+#ldapRealm = org.apache.shiro.realm.ldap.JndiLdapRealm
+#ldapRealm.userDnTemplate = uid={0},cn=users,cn=accounts,dc=hortonworks,dc=com
+#ldapRealm.contextFactory.url = ldap://ldaphost:389
+#ldapRealm.contextFactory.authenticationMechanism = SIMPLE
+shiro.loginUrl = /api/login
+
+[urls]
+# anon means the access is anonymous.
+# authcBasic means Basic Auth Security
+# To enfore security, comment the line below and uncomment the next one
+/api/version = anon
+/** = anon
+#/** = authc
+    </value>
   </property>
 
   <property>
