@@ -20,4 +20,13 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
   <version>0.1.0</version>
   <build>${env.BUILD_NUMBER}</build>
   <description>Ambari view for Apache Storm</description>
+  <auto-instance>
+    <name>STORM_CLUSTER_INSTANCE</name>
+    <label>Storm View</label>
+    <description>Storm View (auto-created)</description>
+    <stack-id>HDP-2.*</stack-id>
+    <services>
+      <service>STORM</service>
+    </services>
+  </auto-instance>
 </view>
