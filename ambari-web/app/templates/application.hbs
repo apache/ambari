@@ -26,18 +26,20 @@
                                                                            title="Apache Ambari"></a>
             <a class="brand" {{translateAttr href="topnav.logo.href"}} title="Apache Ambari">{{t app.name}}</a>
             <a class="brand cluster-name" href="javascript:void(null);" {{bindAttr title="clusterName"}}>
-              <span {{action "showPopup" target="App.router.backgroundOperationsController"}} >{{clusterDisplayName}} </span>
-              {{#with App.router.backgroundOperationsController}}
-                {{#if allOperationsCount}}
-                  <i class="icon-caret-left ops-count"></i><span id="span-bg-operation-count"
-                                                                 class="label operations-count" {{action "showPopup" target="App.router.backgroundOperationsController"}}>
-                    {{allOperationsCount}} {{pluralize allOperationsCount singular="t:op" plural="t:ops"}}</span>
-                {{else}}
-                  <i class="icon-caret-left"></i><span id="span-bg-operation-count"
-                                                       class="label" {{action "showPopup" target="App.router.backgroundOperationsController"}}>
-                    {{allOperationsCount}} {{pluralize allOperationsCount singular="t:op" plural="t:ops"}}</span>
-                {{/if}}
-              {{/with}}
+              {{#unless App.isClusterUser}}
+                <span {{action "showPopup" target="App.router.backgroundOperationsController"}} >{{clusterDisplayName}} </span>
+                {{#with App.router.backgroundOperationsController}}
+                  {{#if allOperationsCount}}
+                    <i class="icon-caret-left ops-count"></i><span id="span-bg-operation-count"
+                                                                   class="label operations-count" {{action "showPopup" target="App.router.backgroundOperationsController"}}>
+                      {{allOperationsCount}} {{pluralize allOperationsCount singular="t:op" plural="t:ops"}}</span>
+                  {{else}}
+                    <i class="icon-caret-left"></i><span id="span-bg-operation-count"
+                                                         class="label" {{action "showPopup" target="App.router.backgroundOperationsController"}}>
+                      {{allOperationsCount}} {{pluralize allOperationsCount singular="t:op" plural="t:ops"}}</span>
+                  {{/if}}
+                {{/with}}
+              {{/unless}}
             {{#if App.router.clusterController.isAlertsLoaded}}
               {{#if App.router.mainAlertDefinitionsController.unhealthyAlertInstancesCount}}
                 <span {{bindAttr class=":label App.router.mainAlertDefinitionsController.isCriticalAlerts:alert-crit-count:alert-warn-count"}} {{action "showPopup" target="App.router.mainAlertInstancesController"}}>

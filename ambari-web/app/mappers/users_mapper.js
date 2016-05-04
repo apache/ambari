@@ -26,7 +26,8 @@ App.usersMapper = App.QuickDataMapper.create({
     admin: 'Users.admin',
     operator: 'Users.operator',
     permissions: 'permissions',
-    user_type: 'Users.user_type'
+    user_type: 'Users.user_type',
+    cluster_user: 'Users.cluster_user'
   },
   map: function (json) {
     var self = this;
@@ -40,6 +41,7 @@ App.usersMapper = App.QuickDataMapper.create({
         }
         item.Users.admin = self.isAdmin(item.permissions);
         item.Users.operator = self.isOperator(item.permissions);
+        item.Users.cluster_user = self.isClusterUser(item.permissions);
         result.push(self.parseIt(item, self.config));
         App.store.loadMany(self.get('model'), result);
       }
@@ -63,5 +65,15 @@ App.usersMapper = App.QuickDataMapper.create({
    **/
   isOperator: function(permissionList) {
     return permissionList.indexOf('CLUSTER.ADMINISTRATOR') > -1 && !(permissionList.indexOf('AMBARI.ADMINISTRATOR') > -1);
+  },
+
+  /**
+   * Determines that user has only one permission CLUSTER.USER.
+   *
+   * @param {String[]} permissionList
+   * @return {Boolean}
+   */
+  isClusterUser: function(permissionList) {
+    return permissionList.length === 1 && permissionList[0] === 'CLUSTER.USER';
   }
 });

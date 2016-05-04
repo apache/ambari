@@ -25,6 +25,7 @@ var fileUtils = require('utils/file_utils');
 App.MainHostLogsView = App.TableView.extend({
   templateName: require('templates/main/host/logs'),
 
+  isVisible: Em.computed.not('App.isClusterUser'),
   classNames: ['logs-tab-content'],
 
   /**

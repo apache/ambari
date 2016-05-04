@@ -30,6 +30,7 @@ describe('App.MainHostMenuView', function () {
     beforeEach(function () {
       this.mock = sinon.stub(App, 'get');
       this.serviceMock = sinon.stub(App.Service, 'find');
+      this.clusterUserMock = this.mock.withArgs('isClusterUser');
     });
 
     afterEach(function () {
@@ -60,25 +61,36 @@ describe('App.MainHostMenuView', function () {
       {
         logSearch: false,
         services: [{serviceName: 'LOGSEARCH'}],
+        isClusterUser: false,
         m: '`logs` tab is invisible',
         e: true
       },
       {
         logSearch: true,
         services: [],
+        isClusterUser: false,
         m: '`logs` tab is invisible because service not installed',
         e: true
       },
       {
         logSearch: true,
         services: [{serviceName: 'LOGSEARCH'}],
+        isClusterUser: false,
         m: '`logs` tab is visible',
         e: false
+      },
+      {
+        logSearch: true,
+        services: [{serviceName: 'LOGSEARCH'}],
+        isClusterUser: true,
+        m: '`logs` tab is hidden because user has no access',
+        e: true
       }
     ]).forEach(function(test) {
       it(test.m, function() {
         this.mock.withArgs('supports.logSearch').returns(test.logSearch);
         this.serviceMock.returns(test.services);
+        this.clusterUserMock.returns(test.isClusterUser);
         view.propertyDidChange('content');
         expect(view.get('content').findProperty('name', 'logs').get('hidden')).to.equal(test.e);
       });

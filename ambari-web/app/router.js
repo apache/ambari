@@ -462,7 +462,8 @@ App.Router = Em.Router.extend({
       if (clusterPermissions.contains('CLUSTER.ADMINISTRATOR')) {
         App.setProperties({
           isAdmin: true,
-          isOperator: true
+          isOperator: true,
+          isClusterUser: false
         });
       }
       if (App.get('isOnlyViewUser')) {
@@ -583,6 +584,7 @@ App.Router = Em.Router.extend({
       isAdmin: false,
       auth: null,
       isOperator: false,
+      isClusterUser: false,
       isPermissionDataLoaded: false
     });
     this.set('loggedIn', false);
@@ -676,6 +678,9 @@ App.Router = Em.Router.extend({
         }
         if (user.operator) {
           App.set('isOperator', true);
+        }
+        if (user.cluster_user) {
+          App.set('isClusterUser', true);
         }
         App.set('isPermissionDataLoaded', true);
       }

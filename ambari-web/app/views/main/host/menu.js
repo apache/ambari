@@ -58,7 +58,7 @@ App.MainHostMenuView = Em.CollectionView.extend({
         routing: 'logs',
         hidden: function () {
           if (App.get('supports.logSearch')) {
-            return !App.Service.find().someProperty('serviceName', 'LOGSEARCH');
+            return !(App.Service.find().someProperty('serviceName', 'LOGSEARCH') && !App.get('isClusterUser'));
           }
           return true;
         }.property('App.supports.logSearch'),

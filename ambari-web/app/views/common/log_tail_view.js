@@ -40,6 +40,8 @@ App.LogTailView = Em.View.extend(App.InfiniteScrollMixin, {
 
   content: null,
 
+  isVisible: Em.computed.not('App.isClusterUser'),
+
   /**
    * elements size are:
    * .modal margin 40px x 2

@@ -35,6 +35,7 @@ module.exports = Em.Application.create({
   }),
   isAdmin: false,
   isOperator: false,
+  isClusterUser: false,
   isPermissionDataLoaded: false,
   auth: null,
   isOnlyViewUser: function() {

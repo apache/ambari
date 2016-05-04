@@ -291,6 +291,7 @@ App.HostPopup = Em.Object.create({
    * @method initPopup
    */
   initPopup: function (serviceName, controller, isBackgroundOperations, requestId) {
+    if (App.get('isClusterUser')) return;
     if (!isBackgroundOperations) {
       this.clearHostPopup();
       this.set("popupHeaderName", serviceName);
@@ -821,6 +822,10 @@ App.HostPopup = Em.Object.create({
        * @type {object}
        */
       detailedProperties: self.get('detailedProperties'),
+
+      isVisible: function() {
+        return !(App.get('isClusterUser') && isBackgroundOperations);
+      }.property('App.isClusterUser'),
 
       didInsertElement: function () {
         this._super();
