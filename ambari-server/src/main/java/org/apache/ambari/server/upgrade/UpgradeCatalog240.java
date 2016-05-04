@@ -38,12 +38,22 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
+import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.PermissionDAO;
+import org.apache.ambari.server.orm.dao.PrivilegeDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.RoleAuthorizationDAO;
+import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
+import org.apache.ambari.server.orm.entities.PrincipalEntity;
+import org.apache.ambari.server.orm.entities.PrivilegeEntity;
+import org.apache.ambari.server.orm.entities.ResourceEntity;
+import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.RoleAuthorizationEntity;
+import org.apache.ambari.server.orm.entities.UserEntity;
+import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.state.AlertFirmness;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -113,12 +123,33 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   private static final String PRINCIPAL_TYPE_TABLE = "adminprincipaltype";
   private static final String PRINCIPAL_TABLE = "adminprincipal";
 
+  private static final Map<String, Integer> ROLE_ORDER;
+
+  static {
+    // Manually create role order since there really isn't any mechanism for this
+    ROLE_ORDER = new HashMap<String, Integer>();
+    ROLE_ORDER.put("AMBARI.ADMINISTRATOR", 1);
+    ROLE_ORDER.put("CLUSTER.ADMINISTRATOR", 2);
+    ROLE_ORDER.put("CLUSTER.OPERATOR", 3);
+    ROLE_ORDER.put("SERVICE.ADMINISTRATOR", 4);
+    ROLE_ORDER.put("SERVICE.OPERATOR", 5);
+    ROLE_ORDER.put("CLUSTER.USER", 6);
+  }
+
+  @Inject
+  UserDAO userDAO;
 
   @Inject
   PermissionDAO permissionDAO;
 
   @Inject
+  PrivilegeDAO privilegeDAO;
+
+  @Inject
   ResourceTypeDAO resourceTypeDAO;
+
+  @Inject
+  ClusterDAO clusterDAO;
 
   /**
    * Logger.
@@ -231,6 +262,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     updateClustersAndHostsVersionStateTableDML();
     removeStandardDeviationAlerts();
     updateClusterInheritedPermissionsConfig();
+    consolidateUserRoles();
   }
 
   protected void updateClusterInheritedPermissionsConfig() throws SQLException {
@@ -1642,5 +1674,131 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
         }
       }
     }
+  }
+
+  /**
+   * Ensures that each user has only one explicit role.
+   * <p>
+   * Before Ambari 2.4.0, users were allowed to have multiple permissions, which were like roles.
+   * In Ambari 2.4.0, the concept of roles was added, where each user may have a single role
+   * explicitly assigned - other roles may be assumed based on group assignments and access to views.
+   * <p>
+   * For each user, determine the set of explicitly set roles and prune off all but the role with
+   * the greater set of permissions.
+   */
+  void consolidateUserRoles() {
+    LOG.info("Consolidating User Roles...");
+
+    List<UserEntity> users = userDAO.findAll();
+    if(users != null) {
+      for (UserEntity user : users) {
+        PrincipalEntity principal = user.getPrincipal();
+
+        if (principal != null) {
+          Set<PrivilegeEntity> privileges = principal.getPrivileges();
+
+          if (privileges != null) {
+            Map<ResourceEntity, Set<PrivilegeEntity>> resourceExplicitPrivileges = new HashMap<ResourceEntity, Set<PrivilegeEntity>>();
+            PrivilegeEntity ambariAdministratorPrivilege = null;
+
+            // Find the set of explicitly assigned roles per cluster
+            for (PrivilegeEntity privilege : privileges) {
+              ResourceEntity resource = privilege.getResource();
+
+              if (resource != null) {
+                ResourceTypeEntity resourceType = resource.getResourceType();
+
+                if (resourceType != null) {
+                  String type = resourceType.getName();
+
+                  // If the privilege is for the CLUSTER or AMBARI, it is an explicitly assigned role.
+                  if (ResourceType.CLUSTER.name().equalsIgnoreCase(type)) {
+                    // If the privilege is for a CLUSTER, create a map of cluster to roles.
+                    Set<PrivilegeEntity> explicitPrivileges = resourceExplicitPrivileges.get(resource);
+
+                    if (explicitPrivileges == null) {
+                      explicitPrivileges = new HashSet<PrivilegeEntity>();
+                      resourceExplicitPrivileges.put(resource, explicitPrivileges);
+                    }
+
+                    explicitPrivileges.add(privilege);
+                  } else if (ResourceType.AMBARI.name().equalsIgnoreCase(type)) {
+                    // If the privilege is for AMBARI, assume the user is an Ambari Administrator.
+                    ambariAdministratorPrivilege = privilege;
+                  }
+                }
+              }
+            }
+
+            if(ambariAdministratorPrivilege != null) {
+              // If the user is an Ambari admin, add that privilege to each set of privileges
+              for (Set<PrivilegeEntity> explicitPrivileges : resourceExplicitPrivileges.values()) {
+                explicitPrivileges.add(ambariAdministratorPrivilege);
+              }
+            }
+
+            // For each cluster resource, if the user has more than one role, prune off the lower
+            // privileged roles.
+            // If the user has roles for a cluster and is also an Ambari administrator
+            // (ambariAdministratorPrivilege is not null), the Ambari administrator role takes
+            // precedence over all other roles
+            for (Map.Entry<ResourceEntity, Set<PrivilegeEntity>> entry : resourceExplicitPrivileges.entrySet()) {
+              Set<PrivilegeEntity> explicitPrivileges = entry.getValue();
+
+              if (explicitPrivileges.size() > 1) {
+                LOG.info("{} has {} explicitly assigned roles for the cluster {}, consolidating...",
+                    user.getUserName(), explicitPrivileges.size(), getClusterName(entry.getKey()));
+
+                PrivilegeEntity toKeep = null;
+                PrivilegeEntity toRemove = null;
+
+                for (PrivilegeEntity privilegeEntity : explicitPrivileges) {
+                  if (toKeep == null) {
+                    toKeep = privilegeEntity;
+                  } else {
+                    Integer toKeepLevel = ROLE_ORDER.get(toKeep.getPermission().getPermissionName());
+                    Integer currentLevel = ROLE_ORDER.get(privilegeEntity.getPermission().getPermissionName());
+
+                    // If the PrivilegeEntity currently set to be kept is ordered higher than the
+                    // PrivilegeEntity being processed, move it to the list of PrivilegeEntities to
+                    // be removed and remember the one being processed as the one the keep.
+                    if (toKeepLevel > currentLevel) {
+                      toRemove = toKeep;
+                      toKeep = privilegeEntity;
+                    }
+                    else {
+                      toRemove = privilegeEntity;
+                    }
+
+                    LOG.info("Removing the role {} from the set assigned to {} since {} is more powerful.",
+                        toRemove.getPermission().getPermissionName(), user.getUserName(),
+                        toKeep.getPermission().getPermissionName());
+
+                    privilegeDAO.remove(toRemove);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Given a {@link ResourceEntity}, attempts to find the relevant cluster's name.
+   *
+   * @param resourceEntity a {@link ResourceEntity}
+   * @return the relevant cluster's name
+   */
+  private String getClusterName(ResourceEntity resourceEntity) {
+    ClusterEntity cluster = null;
+    ResourceTypeEntity resourceType = resourceEntity.getResourceType();
+
+    if (ResourceType.CLUSTER.name().equalsIgnoreCase(resourceType.getName())) {
+      cluster = clusterDAO.findByResourceId(resourceEntity.getId());
+    }
+
+    return (cluster == null) ? "_unknown_" : cluster.getClusterName();
   }
 }

@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -58,8 +59,19 @@ import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
+import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.dao.PrivilegeDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
+import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.orm.entities.PermissionEntity;
+import org.apache.ambari.server.orm.entities.PrincipalEntity;
+import org.apache.ambari.server.orm.entities.PrivilegeEntity;
+import org.apache.ambari.server.orm.entities.ResourceEntity;
+import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
+import org.apache.ambari.server.orm.entities.UserEntity;
+import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.state.AlertFirmness;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -385,7 +397,7 @@ public class UpgradeCatalog240Test {
     Method updateClustersAndHostsVersionStateTableDML = UpgradeCatalog240.class.getDeclaredMethod("updateClustersAndHostsVersionStateTableDML");
     Method removeStandardDeviationAlerts = UpgradeCatalog240.class.getDeclaredMethod("removeStandardDeviationAlerts");
     Method getAndIncrementSequence = AbstractUpgradeCatalog.class.getDeclaredMethod("getAndIncrementSequence", String.class);
-
+    Method consolidateUserRoles = UpgradeCatalog240.class.getDeclaredMethod("consolidateUserRoles");
 
     Capture<String> capturedStatements = newCapture(CaptureType.ALL);
     Capture<String> capturedTablesNames = newCapture(CaptureType.ALL);
@@ -413,6 +425,7 @@ public class UpgradeCatalog240Test {
             .addMockedMethod(updateClustersAndHostsVersionStateTableDML)
             .addMockedMethod(removeStandardDeviationAlerts)
             .addMockedMethod(getAndIncrementSequence)
+            .addMockedMethod(consolidateUserRoles)
             .createMock();
 
     expect(upgradeCatalog240.getAndIncrementSequence(anyString())).andReturn(1).anyTimes();
@@ -434,6 +447,7 @@ public class UpgradeCatalog240Test {
     upgradeCatalog240.removeHiveOozieDBConnectionConfigs();
     upgradeCatalog240.updateClustersAndHostsVersionStateTableDML();
     upgradeCatalog240.removeStandardDeviationAlerts();
+    upgradeCatalog240.consolidateUserRoles();
 
     replay(upgradeCatalog240, dbAccessor);
 
@@ -1195,6 +1209,195 @@ public class UpgradeCatalog240Test {
 
     assertTrue(namenodeWebUiAlertDefinitionEntity.getSource().contains("{{hdfs-site/dfs.internal.nameservices}}"));
     easyMockSupport.verifyAll();
+  }
+
+  @Test
+  public void testConsolidateUserRoles() {
+    final EasyMockSupport ems = new EasyMockSupport();
+
+    ResourceTypeEntity resourceTypeAmbari = ems.createMock(ResourceTypeEntity.class);
+    expect(resourceTypeAmbari.getName()).andReturn(ResourceType.AMBARI.name()).anyTimes();
+
+    ResourceTypeEntity resourceTypeCluster = ems.createMock(ResourceTypeEntity.class);
+    expect(resourceTypeCluster.getName()).andReturn(ResourceType.CLUSTER.name()).anyTimes();
+
+    ResourceEntity resourceAmbari = ems.createMock(ResourceEntity.class);
+    expect(resourceAmbari.getResourceType()).andReturn(resourceTypeAmbari).anyTimes();
+
+    ResourceEntity resourceC1 = ems.createMock(ResourceEntity.class);
+    expect(resourceC1.getResourceType()).andReturn(resourceTypeCluster).anyTimes();
+    expect(resourceC1.getId()).andReturn(1L).anyTimes();
+
+    ResourceEntity resourceC2 = ems.createMock(ResourceEntity.class);
+    expect(resourceC2.getResourceType()).andReturn(resourceTypeCluster).anyTimes();
+    expect(resourceC2.getId()).andReturn(2L).anyTimes();
+
+    PermissionEntity permissionAmbariAdministrator = ems.createMock(PermissionEntity.class);
+    expect(permissionAmbariAdministrator.getPermissionName()).andReturn("AMBARI.ADMINISTRATOR").anyTimes();
+
+    PermissionEntity permissionClusterUser = ems.createMock(PermissionEntity.class);
+    expect(permissionClusterUser.getPermissionName()).andReturn("CLUSTER.USER").anyTimes();
+
+    PermissionEntity permissionClusterOperator = ems.createMock(PermissionEntity.class);
+    expect(permissionClusterOperator.getPermissionName()).andReturn("CLUSTER.OPERATOR").anyTimes();
+
+    PrivilegeEntity privilegeAdmin = ems.createMock(PrivilegeEntity.class);
+    expect(privilegeAdmin.getResource()).andReturn(resourceAmbari).anyTimes();
+    expect(privilegeAdmin.getPermission()).andReturn(permissionAmbariAdministrator).anyTimes();
+
+    PrivilegeEntity privilegeClusterUserC1 = ems.createMock(PrivilegeEntity.class);
+    expect(privilegeClusterUserC1.getResource()).andReturn(resourceC1).anyTimes();
+    expect(privilegeClusterUserC1.getPermission()).andReturn(permissionClusterUser).anyTimes();
+
+    PrivilegeEntity privilegeClusterOperatorC1 = ems.createMock(PrivilegeEntity.class);
+    expect(privilegeClusterOperatorC1.getResource()).andReturn(resourceC1).anyTimes();
+    expect(privilegeClusterOperatorC1.getPermission()).andReturn(permissionClusterOperator).anyTimes();
+
+    PrivilegeEntity privilegeClusterUserC2 = ems.createMock(PrivilegeEntity.class);
+    expect(privilegeClusterUserC2.getResource()).andReturn(resourceC2).anyTimes();
+    expect(privilegeClusterUserC2.getPermission()).andReturn(permissionClusterUser).anyTimes();
+
+    PrivilegeEntity privilegeClusterOperatorC2 = ems.createMock(PrivilegeEntity.class);
+    expect(privilegeClusterOperatorC2.getResource()).andReturn(resourceC2).anyTimes();
+    expect(privilegeClusterOperatorC2.getPermission()).andReturn(permissionClusterOperator).anyTimes();
+
+    PrincipalEntity principalAdministratorOnly = ems.createStrictMock(PrincipalEntity.class);
+    expect(principalAdministratorOnly.getPrivileges())
+        .andReturn(new HashSet<PrivilegeEntity>(Arrays.asList(privilegeAdmin)))
+        .once();
+
+    PrincipalEntity principalNonAdminSingleRoleSingleCluster = ems.createStrictMock(PrincipalEntity.class);
+    expect(principalNonAdminSingleRoleSingleCluster.getPrivileges())
+        .andReturn(new HashSet<PrivilegeEntity>(Arrays.asList(privilegeClusterUserC1)))
+        .once();
+
+    PrincipalEntity principalNonAdminMultipleRolesSingleCluster = ems.createStrictMock(PrincipalEntity.class);
+    expect(principalNonAdminMultipleRolesSingleCluster.getPrivileges())
+        .andReturn(new HashSet<PrivilegeEntity>(Arrays.asList(privilegeClusterUserC1, privilegeClusterOperatorC1)))
+        .once();
+
+    PrincipalEntity principalNonAdminMultipleRolesMultipleClusters = ems.createStrictMock(PrincipalEntity.class);
+    expect(principalNonAdminMultipleRolesMultipleClusters.getPrivileges())
+        .andReturn(new HashSet<PrivilegeEntity>(Arrays.asList(privilegeClusterUserC1, privilegeClusterOperatorC1,
+            privilegeClusterUserC2, privilegeClusterOperatorC2)))
+        .once();
+
+    PrincipalEntity principalAdminSingleRoleSingleCluster = ems.createStrictMock(PrincipalEntity.class);
+    expect(principalAdminSingleRoleSingleCluster.getPrivileges())
+        .andReturn(new HashSet<PrivilegeEntity>(Arrays.asList(privilegeAdmin, privilegeClusterOperatorC1)))
+        .once();
+
+    PrincipalEntity principalAdminMultipleRolesSingleCluster = ems.createStrictMock(PrincipalEntity.class);
+    expect(principalAdminMultipleRolesSingleCluster.getPrivileges())
+        .andReturn(new HashSet<PrivilegeEntity>(Arrays.asList(privilegeAdmin, privilegeClusterUserC1, privilegeClusterOperatorC1)))
+        .once();
+
+    PrincipalEntity principalAdminMultipleRolesMultipleClusters = ems.createStrictMock(PrincipalEntity.class);
+    expect(principalAdminMultipleRolesMultipleClusters.getPrivileges())
+        .andReturn(new HashSet<PrivilegeEntity>(Arrays.asList(privilegeAdmin, privilegeClusterUserC1,
+            privilegeClusterOperatorC1, privilegeClusterUserC2, privilegeClusterOperatorC2)))
+        .once();
+
+    UserEntity userAdministratorOnly = ems.createStrictMock(UserEntity.class);
+    expect(userAdministratorOnly.getPrincipal()).andReturn(principalAdministratorOnly).once();
+    expect(userAdministratorOnly.getUserName()).andReturn("userAdministratorOnly").anyTimes();
+
+    UserEntity userNonAdminSingleRoleSingleCluster = ems.createStrictMock(UserEntity.class);
+    expect(userNonAdminSingleRoleSingleCluster.getPrincipal()).andReturn(principalNonAdminSingleRoleSingleCluster).once();
+    expect(userNonAdminSingleRoleSingleCluster.getUserName()).andReturn("userNonAdminSingleRoleSingleCluster").anyTimes();
+
+    UserEntity userNonAdminMultipleRolesSingleCluster = ems.createStrictMock(UserEntity.class);
+    expect(userNonAdminMultipleRolesSingleCluster.getPrincipal()).andReturn(principalNonAdminMultipleRolesSingleCluster).once();
+    expect(userNonAdminMultipleRolesSingleCluster.getUserName()).andReturn("userNonAdminMultipleRolesSingleCluster").anyTimes();
+
+    UserEntity userNonAdminMultipleRolesMultipleClusters = ems.createStrictMock(UserEntity.class);
+    expect(userNonAdminMultipleRolesMultipleClusters.getPrincipal()).andReturn(principalNonAdminMultipleRolesMultipleClusters).once();
+    expect(userNonAdminMultipleRolesMultipleClusters.getUserName()).andReturn("userNonAdminMultipleRolesMultipleClusters").anyTimes();
+
+    UserEntity userAdminSingleRoleSingleCluster = ems.createStrictMock(UserEntity.class);
+    expect(userAdminSingleRoleSingleCluster.getPrincipal()).andReturn(principalAdminSingleRoleSingleCluster).once();
+    expect(userAdminSingleRoleSingleCluster.getUserName()).andReturn("userAdminSingleRoleSingleCluster").anyTimes();
+
+    UserEntity userAdminMultipleRolesSingleCluster = ems.createStrictMock(UserEntity.class);
+    expect(userAdminMultipleRolesSingleCluster.getPrincipal()).andReturn(principalAdminMultipleRolesSingleCluster).once();
+    expect(userAdminMultipleRolesSingleCluster.getUserName()).andReturn("userAdminMultipleRolesSingleCluster").anyTimes();
+
+    UserEntity userAdminMultipleRolesMultipleClusters = ems.createStrictMock(UserEntity.class);
+    expect(userAdminMultipleRolesMultipleClusters.getPrincipal()).andReturn(principalAdminMultipleRolesMultipleClusters).once();
+    expect(userAdminMultipleRolesMultipleClusters.getUserName()).andReturn("userAdminMultipleRolesMultipleClusters").anyTimes();
+
+    final UserDAO userDAO = ems.createStrictMock(UserDAO.class);
+    expect(userDAO.findAll())
+        .andReturn(Arrays.asList(
+            userAdministratorOnly,
+            userNonAdminSingleRoleSingleCluster,
+            userNonAdminMultipleRolesSingleCluster,
+            userNonAdminMultipleRolesMultipleClusters,
+            userAdminSingleRoleSingleCluster,
+            userAdminMultipleRolesSingleCluster,
+            userAdminMultipleRolesMultipleClusters))
+        .once();
+
+
+    final PrivilegeDAO privilegeDAO = ems.createMock(PrivilegeDAO.class);
+
+    // principalNonAdminMultipleRolesSingleCluster
+    privilegeDAO.remove(privilegeClusterUserC1);
+    expectLastCall().once();
+
+    // principalNonAdminMultipleRolesMultipleClusters
+    privilegeDAO.remove(privilegeClusterUserC1);
+    expectLastCall().once();
+    privilegeDAO.remove(privilegeClusterUserC2);
+    expectLastCall().once();
+
+    // principalAdminSingleRoleSingleCluster
+    privilegeDAO.remove(privilegeClusterOperatorC1);
+    expectLastCall().once();
+
+    // principalAdminMultipleRolesSingleCluster
+    privilegeDAO.remove(privilegeClusterUserC1);
+    expectLastCall().once();
+    privilegeDAO.remove(privilegeClusterOperatorC1);
+    expectLastCall().once();
+
+    // principalAdminMultipleRolesMultipleClusters
+    privilegeDAO.remove(privilegeClusterUserC1);
+    expectLastCall().once();
+    privilegeDAO.remove(privilegeClusterOperatorC1);
+    expectLastCall().once();
+    privilegeDAO.remove(privilegeClusterUserC2);
+    expectLastCall().once();
+    privilegeDAO.remove(privilegeClusterOperatorC2);
+    expectLastCall().once();
+
+    ClusterEntity clusterC1 = ems.createStrictMock(ClusterEntity.class);
+    expect(clusterC1.getClusterName()).andReturn("c1").anyTimes();
+
+    ClusterEntity clusterC2 = ems.createStrictMock(ClusterEntity.class);
+    expect(clusterC2.getClusterName()).andReturn("c2").anyTimes();
+
+    final ClusterDAO clusterDAO = ems.createMock(ClusterDAO.class);
+    expect(clusterDAO.findByResourceId(1L)).andReturn(clusterC1).anyTimes();
+    expect(clusterDAO.findByResourceId(2L)).andReturn(clusterC2).anyTimes();
+
+    final Injector injector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(EntityManager.class).toInstance(ems.createNiceMock(EntityManager.class));
+        bind(UserDAO.class).toInstance(userDAO);
+        bind(PrivilegeDAO.class).toInstance(privilegeDAO);
+        bind(ClusterDAO.class).toInstance(clusterDAO);
+        bind(DBAccessor.class).toInstance(ems.createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(ems.createNiceMock(OsFamily.class));
+      }
+    });
+
+    ems.replayAll();
+    injector.getInstance(UpgradeCatalog240.class).consolidateUserRoles();
+    ems.verifyAll();
+
+
   }
 }
 
