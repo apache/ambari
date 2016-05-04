@@ -17,14 +17,43 @@
  */
 
 var App = require('app');
-var c = App.KerberosWizardStep4Controller.create({
-  wizardController: Em.Object.create({
-    name: ''
-  })
-});
-describe('App.KerberosWizardStep4Controller', function() {
+var testHelpers = require('test/helpers');
 
-  App.TestAliases.testAsComputedEqual(c, 'isWithinAddService', 'wizardController.name', 'addServiceController');
+function getController() {
+  return App.KerberosWizardStep4Controller.create({
+    wizardController: Em.Object.create({
+      name: ''
+    })
+  });
+}
+
+describe('App.KerberosWizardStep4Controller', function() {
+  var c;
+
+  beforeEach(function() {
+    c = getController();
+  });
+
+  App.TestAliases.testAsComputedEqual(getController(), 'isWithinAddService', 'wizardController.name', 'addServiceController');
+
+  describe("#clearStep()", function () {
+
+    beforeEach(function() {
+      c.clearStep();
+    });
+
+    it("isRecommendedLoaded should be set to false", function() {
+      expect(c.get('isRecommendedLoaded')).to.be.false;
+    });
+
+    it("selectedService should be set to null", function() {
+      expect(c.get('selectedService')).to.be.null;
+    });
+
+    it("stepConfigs should be set to false", function() {
+      expect(c.get('stepConfigs')).to.be.empty;
+    });
+  });
 
   describe('#isSubmitDisabled', function() {
     var controller = App.KerberosWizardStep4Controller.create({});
@@ -535,6 +564,359 @@ describe('App.KerberosWizardStep4Controller', function() {
         expect(controller.groupRecommendationProperties(test.recommendedConfigurations, test.servicesConfigurations, test.allConfigs))
           .to.be.eql(test.e);
       });
+    });
+  });
+
+  describe("#getDescriptor()", function () {
+    var mock = {
+      then: Em.K
+    };
+
+    beforeEach(function() {
+      c.reopen({
+        isWithinAddService: true
+      });
+      sinon.stub(c, 'storeClusterDescriptorStatus');
+      sinon.stub(c, 'loadClusterDescriptorConfigs').returns(mock);
+      sinon.stub(c, 'loadStackDescriptorConfigs').returns(mock);
+      sinon.stub(mock, 'then');
+    });
+
+    afterEach(function() {
+      c.loadClusterDescriptorConfigs.restore();
+      c.storeClusterDescriptorStatus.restore();
+      c.loadStackDescriptorConfigs.restore();
+      mock.then.restore();
+    });
+
+    it("App.ajax.send should be called", function() {
+      c.getDescriptor();
+      var args = testHelpers.findAjaxRequest('name', 'admin.kerberize.cluster_descriptor_artifact');
+      expect(args[0]).to.be.eql({
+        sender: c,
+        name: 'admin.kerberize.cluster_descriptor_artifact'
+      });
+    });
+
+    it("storeClusterDescriptorStatus should be called", function() {
+      c.getDescriptor();
+      expect(c.storeClusterDescriptorStatus.calledOnce).to.be.true;
+    });
+
+    it("loadClusterDescriptorConfigs should be called", function() {
+      c.getDescriptor();
+      expect(c.loadClusterDescriptorConfigs.calledOnce).to.be.true;
+    });
+
+    it("then should be called", function() {
+      c.getDescriptor();
+      expect(mock.then.calledOnce).to.be.true;
+    });
+
+    it("loadStackDescriptorConfigs should be called", function() {
+      c.set('isWithinAddService', false);
+      c.getDescriptor();
+      expect(c.loadStackDescriptorConfigs.calledOnce).to.be.true;
+    });
+
+    it("then should be called, isWithinAddService is false", function() {
+      c.set('isWithinAddService', false);
+      c.getDescriptor();
+      expect(mock.then.calledOnce).to.be.true;
+    });
+  });
+
+  describe("#tweakConfigProperty()", function () {
+
+    beforeEach(function() {
+      this.mock = sinon.stub(App.HostComponent, 'find');
+    });
+
+    afterEach(function() {
+      this.mock.restore();
+    });
+
+    it("config value should not be set", function() {
+      this.mock.returns([
+        Em.Object.create({
+          componentName: 'HIVE_METASTORE',
+          hostName: 'host1'
+        })
+      ]);
+      var config = Em.Object.create({
+        name: 'templeton.hive.properties',
+        value: 'thrift://host1:9000\,,',
+        recommendedValue: ''
+      });
+      c.tweakConfigProperty(config);
+      expect(config.get('value')).to.be.equal('thrift://host1:9000\,,');
+      expect(config.get('recommendedValue')).to.be.equal('');
+    });
+
+    it("config value should be set", function() {
+      this.mock.returns([
+        Em.Object.create({
+          componentName: 'HIVE_METASTORE',
+          hostName: 'host1'
+        }),
+        Em.Object.create({
+          componentName: 'HIVE_METASTORE',
+          hostName: 'host2'
+        })
+      ]);
+      var config = Em.Object.create({
+        name: 'templeton.hive.properties',
+        value: 'thrift://host1:9000\,,'
+      });
+      c.tweakConfigProperty(config);
+      expect(config.get('value')).to.be.equal("thrift://host1:9000\\,thrift://host2:9000,,");
+      expect(config.get('recommendedValue')).to.be.equal("thrift://host1:9000\\,thrift://host2:9000,,");
+    });
+  });
+
+  describe("#spnegoPropertiesObserver()", function () {
+
+    beforeEach(function() {
+      sinon.stub(Em.run, 'once', function(context, callback) {
+        callback();
+      });
+    });
+
+    afterEach(function() {
+      Em.run.once.restore();
+    });
+
+    it("value should not be changed", function() {
+      var configProperty = Em.Object.create({
+        name: 'n1',
+        value: 'new',
+        recommendedValue: 'new'
+      });
+      var config = Em.Object.create({
+        observesValueFrom: 'n2',
+        value: '',
+        recommendedValue: ''
+      });
+      c.set('stepConfigs', [Em.Object.create({
+        name: 'ADVANCED',
+        configs: [config]
+      })]);
+      c.spnegoPropertiesObserver(configProperty);
+      expect(config.get('value')).to.be.empty;
+      expect(config.get('recommendedValue')).to.be.empty;
+    });
+
+    it("value should be changed", function() {
+      var configProperty = Em.Object.create({
+        name: 'n1',
+        value: 'new',
+        recommendedValue: 'new'
+      });
+      var config = Em.Object.create({
+        observesValueFrom: 'n1',
+        value: '',
+        recommendedValue: ''
+      });
+      c.set('stepConfigs', [Em.Object.create({
+        name: 'ADVANCED',
+        configs: [config]
+      })]);
+      c.spnegoPropertiesObserver(configProperty);
+      expect(config.get('value')).to.be.equal('new');
+      expect(config.get('recommendedValue')).to.be.equal('new');
+    });
+  });
+
+  describe("#submit()", function () {
+
+    beforeEach(function() {
+      sinon.stub(c, 'saveConfigurations');
+      sinon.stub(App.router, 'send');
+    });
+
+    afterEach(function() {
+      c.saveConfigurations.restore();
+      App.router.send.restore();
+    });
+
+    it("saveConfigurations should be called", function() {
+      c.submit();
+      expect(c.saveConfigurations.calledOnce).to.be.true;
+    });
+
+    it("App.router.send should be called", function() {
+      c.submit();
+      expect(App.router.send.calledWith('next')).to.be.true;
+    });
+  });
+
+  describe("#saveConfigurations()", function () {
+    var mock = {
+      saveKerberosDescriptorConfigs: Em.K
+    };
+
+    beforeEach(function() {
+      sinon.stub(c, 'updateKerberosDescriptor');
+      sinon.stub(App, 'get').returns(mock);
+      sinon.spy(mock, 'saveKerberosDescriptorConfigs');
+      c.set('kerberosDescriptor', {});
+      c.set('stepConfigs', [
+        Em.Object.create({
+          configs: [{}]
+        }),
+        Em.Object.create({
+          configs: [{}]
+        })
+      ]);
+      c.saveConfigurations();
+    });
+
+    afterEach(function() {
+      c.updateKerberosDescriptor.restore();
+      App.get.restore();
+      mock.saveKerberosDescriptorConfigs.restore();
+    });
+
+    it("updateKerberosDescriptor should be called", function() {
+      expect(c.updateKerberosDescriptor.calledWith({}, [{}, {}])).to.be.true;
+    });
+
+    it("saveKerberosDescriptorConfigs should be called", function() {
+      expect(mock.saveKerberosDescriptorConfigs.calledWith({})).to.be.true;
+    });
+  });
+
+  describe("#loadServerSideConfigsRecommendations()", function () {
+
+    it("App.ajax.send should be called", function() {
+      c.loadServerSideConfigsRecommendations([]);
+      var args = testHelpers.findAjaxRequest('name', 'config.recommendations');
+      expect(args[0]).to.be.exists;
+    });
+  });
+
+  describe("#applyServiceConfigs()", function () {
+
+    it("isRecommendedLoaded should be true", function() {
+      c.applyServiceConfigs([Em.Object.create({configGroups: []})]);
+      expect(c.get('isRecommendedLoaded')).to.be.true;
+    });
+
+    it("selectedService should be set", function() {
+      c.applyServiceConfigs([Em.Object.create({configGroups: []})]);
+      expect(c.get('selectedService')).to.be.eql(Em.Object.create({configGroups: []}));
+    });
+  });
+
+  describe("#bootstrapRecommendationPayload()", function () {
+
+    beforeEach(function() {
+      sinon.stub(c, 'getServicesConfigurations').returns({
+        then: function(callback) {
+          callback([{}]);
+        }
+      });
+      sinon.stub(c, 'getBlueprintPayloadObject').returns({blueprint: {
+        configurations: []
+      }});
+      c.bootstrapRecommendationPayload({});
+    });
+
+    afterEach(function() {
+      c.getServicesConfigurations.restore();
+      c.getBlueprintPayloadObject.restore();
+    });
+
+    it("getServicesConfigurations should be called", function() {
+      expect(c.getServicesConfigurations.calledOnce).to.be.true;
+    });
+
+    it("getBlueprintPayloadObject should be called", function() {
+      expect(c.getBlueprintPayloadObject.calledWith([{}], {})).to.be.true;
+    });
+
+    it("servicesConfigurations should be set", function() {
+      expect(c.get('servicesConfigurations')).to.be.eql([{}]);
+    });
+
+    it("initialConfigValues should be set", function() {
+      expect(c.get('initialConfigValues')).to.be.eql([]);
+    });
+  });
+
+  describe("#getBlueprintPayloadObject()", function () {
+
+    beforeEach(function() {
+      sinon.stub(c, 'mergeDescriptorToConfigurations').returns([{
+        type: 't1',
+        properties: []
+      }]);
+      sinon.stub(c, 'createServicesStackDescriptorConfigs');
+    });
+
+    afterEach(function() {
+      c.createServicesStackDescriptorConfigs.restore();
+      c.mergeDescriptorToConfigurations.restore();
+    });
+
+    it("should return recommendations", function () {
+      c.reopen({
+        hostGroups: {
+          blueprint: {
+            configurations: []
+          }
+        }
+      });
+      expect(c.getBlueprintPayloadObject([], {})).to.be.eql({
+        "blueprint": {
+          "configurations": {
+            "t1": {
+              "properties": []
+            }
+          }
+        }
+      });
+    });
+  });
+
+  describe("#getServicesConfigObject()", function () {
+
+    it("should return ADVANCED step config", function() {
+      c.set('stepConfigs', [{name: 'ADVANCED'}]);
+      expect(c.getServicesConfigObject()).to.be.eql({name: 'ADVANCED'});
+    });
+  });
+
+  describe("#getServiceByFilename()", function () {
+
+    beforeEach(function() {
+      this.mockService = sinon.stub(App.Service, 'find');
+      sinon.stub(App.StackService, 'find').returns([
+        Em.Object.create({
+          serviceName: 'S1',
+          configTypes: {
+            site1: {}
+          }
+        })
+      ]);
+    });
+
+    afterEach(function() {
+      this.mockService.restore();
+      App.StackService.find.restore();
+    });
+
+    it("should return 'HDFS' ", function() {
+      this.mockService.returns([{serviceName: 'HDFS'}]);
+      expect(c.getServiceByFilename('core-site')).to.be.equal('HDFS');
+    });
+
+    it("should return 'S1' ", function() {
+      expect(c.getServiceByFilename('site1')).to.be.equal('S1');
+    });
+
+    it("should return empty", function() {
+      expect(c.getServiceByFilename('site2')).to.be.empty;
     });
   });
 });

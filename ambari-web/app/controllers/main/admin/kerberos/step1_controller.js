@@ -44,7 +44,7 @@ App.KerberosWizardStep1Controller = Em.Controller.extend({
       Em.Object.create({
         displayText: Em.I18n.t('admin.kerberos.wizard.step1.option.ipa.condition.4'),
         checked: false
-      }),
+      })
     ]
   }),
 
@@ -125,9 +125,7 @@ App.KerberosWizardStep1Controller = Em.Controller.extend({
    * precondition for the selected KDC option
    */
   selectedOption: function () {
-    var options = this.get('options');
-    var selectedItem = this.get('selectedItem');
-    return options.findProperty('value', selectedItem);
+    return this.get('options').findProperty('value', this.get('selectedItem'));
   }.property('selectedItem'),
 
 

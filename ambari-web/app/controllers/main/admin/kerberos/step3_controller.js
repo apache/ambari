@@ -57,8 +57,8 @@ App.KerberosWizardStep3Controller = App.KerberosProgressPageController.extend({
       name: 'common.service_component.info',
       sender: this,
       data: {
-        serviceName: this.serviceName,
-        componentName: this.componentName,
+        serviceName: this.get('serviceName'),
+        componentName: this.get('componentName'),
         urlParams: "fields=ServiceComponentInfo/state"
       }
     });
@@ -116,6 +116,6 @@ App.KerberosWizardStep3Controller = App.KerberosProgressPageController.extend({
     if (this.get('showIgnore')) {
       this.set('isSubmitDisabled', !this.get('ignore'));
     }
-  }.observes('ignore','showIgnore')
+  }.observes('ignore', 'showIgnore')
 });
 

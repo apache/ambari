@@ -35,7 +35,6 @@ App.KerberosWizardStep7Controller = App.KerberosProgressPageController.extend({
    * @param {bool} isRetry
    */
   setRequest: function (isRetry) {
-    var self = this;
     var kerberizeRequest = {
       name: 'KERBERIZE_CLUSTER',
       ajaxName: 'admin.kerberize.cluster',
@@ -49,12 +48,12 @@ App.KerberosWizardStep7Controller = App.KerberosProgressPageController.extend({
     };
     if (isRetry) {
       // on retry send force update
-      self.set('request', {
+      this.set('request', {
         name: 'KERBERIZE_CLUSTER',
         ajaxName: 'admin.kerberize.cluster.force'
       });
-      self.clearStage();
-      self.loadStep();
+      this.clearStage();
+      this.loadStep();
     } else {
       this.set('request', kerberizeRequest);
     }

@@ -17,9 +17,12 @@
  */
 
 var App = require('app');
-var c;
-describe('App.KerberosWizardStep5Controller', function() {
+var testHelpers = require('test/helpers');
+var stringUtils = require('utils/string_utils');
+var fileUtils = require('utils/file_utils');
 
+describe('App.KerberosWizardStep5Controller', function() {
+  var c;
   beforeEach(function () {
     c = App.KerberosWizardStep5Controller.create({});
   });
@@ -27,7 +30,6 @@ describe('App.KerberosWizardStep5Controller', function() {
   describe('#prepareCSVData', function () {
 
     it('should split data', function () {
-
       var data = [
         'a,b,c',
         'd,e',
@@ -35,10 +37,176 @@ describe('App.KerberosWizardStep5Controller', function() {
       ];
 
       var result = c.prepareCSVData(data);
-      expect(result).to.be.eql([['a', 'b', 'c'], ['d', 'e'], ['1', '2', '3', '4']])
-
+      expect(result).to.be.eql([['a', 'b', 'c'], ['d', 'e'], ['1', '2', '3', '4']]);
     });
-
   });
 
+  describe("#submit()", function () {
+
+    beforeEach(function() {
+      sinon.stub(App.router, 'send');
+    });
+
+    afterEach(function() {
+      App.router.send.restore();
+    });
+
+    it("App.router.send should be called", function() {
+      c.submit();
+      expect(App.router.send.calledWith('next')).to.be.true;
+    });
+  });
+
+  describe("#getCSVData()", function () {
+
+    it("App.ajax.send should be called", function() {
+      c.getCSVData(true);
+      var args = testHelpers.findAjaxRequest('name', 'admin.kerberos.cluster.csv');
+      expect(args[0]).to.be.eql({
+        name: 'admin.kerberos.cluster.csv',
+        sender: c,
+        data: {
+          'skipDownload': true
+        },
+        success: 'getCSVDataSuccessCallback',
+        error: 'getCSVDataSuccessCallback'
+      });
+    });
+  });
+
+  describe("#getCSVDataSuccessCallback()", function () {
+
+    beforeEach(function() {
+      sinon.stub(fileUtils, 'downloadTextFile');
+      sinon.stub(stringUtils, 'arrayToCSV').returns('arrayToCSV');
+      sinon.stub(c, 'prepareCSVData').returns('csvData');
+      c.getCSVDataSuccessCallback("a\nb", {}, {skipDownload: false});
+    });
+
+    afterEach(function() {
+      fileUtils.downloadTextFile.restore();
+      stringUtils.arrayToCSV.restore();
+      c.prepareCSVData.restore();
+    });
+
+    it("csvData should be set", function() {
+      expect(c.get('csvData')).to.be.equal('csvData');
+    });
+
+    it("fileUtils.downloadTextFile should be called", function() {
+      expect(fileUtils.downloadTextFile.calledWith('arrayToCSV', 'csv', 'kerberos.csv')).to.be.true;
+    });
+  });
+
+  describe("#postKerberosDescriptor()", function () {
+
+    it("App.ajax.send should be called", function() {
+      c.postKerberosDescriptor('kerberosDescriptor');
+      var args = testHelpers.findAjaxRequest('name', 'admin.kerberos.cluster.artifact.create');
+      expect(args[0]).to.be.eql({
+        name: 'admin.kerberos.cluster.artifact.create',
+        sender: c,
+        data: {
+          artifactName: 'kerberos_descriptor',
+          data: {
+            artifact_data: 'kerberosDescriptor'
+          }
+        }
+      });
+    });
+  });
+
+  describe("#putKerberosDescriptor()", function () {
+
+    it("App.ajax.send should be called", function() {
+      c.putKerberosDescriptor('kerberosDescriptor');
+      var args = testHelpers.findAjaxRequest('name', 'admin.kerberos.cluster.artifact.update');
+      expect(args[0]).to.be.eql({
+        name: 'admin.kerberos.cluster.artifact.update',
+        sender: c,
+        data: {
+          artifactName: 'kerberos_descriptor',
+          data: {
+            artifact_data: 'kerberosDescriptor'
+          }
+        },
+        success: 'unkerberizeCluster',
+        error: 'unkerberizeCluster'
+      });
+    });
+  });
+
+  describe("#unkerberizeCluster()", function () {
+
+    it("App.ajax.send should be called", function() {
+      c.unkerberizeCluster();
+      var args = testHelpers.findAjaxRequest('name', 'admin.unkerberize.cluster');
+      expect(args[0]).to.be.eql({
+        name: 'admin.unkerberize.cluster',
+        sender: c,
+        success: 'goToNextStep',
+        error: 'goToNextStep'
+      });
+    });
+  });
+
+  describe("#goToNextStep()", function () {
+
+    beforeEach(function() {
+      sinon.stub(c, 'clearStage');
+      sinon.stub(App.router, 'transitionTo');
+      c.goToNextStep();
+    });
+
+    afterEach(function() {
+      c.clearStage.restore();
+      App.router.transitionTo.restore();
+    });
+
+    it("clearStage should be called", function() {
+      expect(c.clearStage.calledOnce).to.be.true;
+    });
+
+    it("App.router.transitionTo should be called", function() {
+      expect(App.router.transitionTo.calledWith('step5')).to.be.true;
+    });
+  });
+
+  describe("#confirmProperties", function () {
+
+    beforeEach(function() {
+      this.mock = sinon.stub(App.router, 'get');
+    });
+
+    afterEach(function() {
+      this.mock.restore();
+    });
+
+    it("should return properties", function() {
+      this.mock.returns(Em.Object.create({
+        content: {
+          kerberosOption: Em.I18n.t('admin.kerberos.wizard.step1.option.kdc'),
+          serviceConfigProperties: [{name: 'kdc_type'}]
+        }
+      }));
+      c.propertyDidChange('confirmProperties');
+      expect(c.get('confirmProperties')).to.be.eql([
+        {
+          name: 'kdc_type',
+          label: Em.I18n.t('admin.kerberos.wizard.step5.kdc_type.label')
+        }
+      ]);
+    });
+
+    it("should return empty properties", function() {
+      this.mock.returns(Em.Object.create({
+        content: {
+          kerberosOption: null,
+          serviceConfigProperties: [{name: 'kdc_type'}]
+        }
+      }));
+      c.propertyDidChange('confirmProperties');
+      expect(c.get('confirmProperties')).to.be.empty;
+    });
+  });
 });

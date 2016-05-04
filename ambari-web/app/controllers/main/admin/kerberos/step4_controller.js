@@ -293,16 +293,16 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
    * @param {App.ServiceConfigProperty} configProperty
    */
   spnegoPropertiesObserver: function(configProperty) {
-    var self = this;
     var stepConfig = this.get('stepConfigs').findProperty('name', 'ADVANCED');
+
     stepConfig.get('configs').forEach(function(config) {
       if (config.get('observesValueFrom') === configProperty.get('name')) {
-        Em.run.once(self, function() {
+        Em.run.once(this, function() {
           config.set('value', configProperty.get('value'));
           config.set('recommendedValue', configProperty.get('value'));
         });
       }
-    });
+    }, this);
   },
 
   submit: function() {
@@ -313,6 +313,7 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
   saveConfigurations: function() {
     var kerberosDescriptor = this.get('kerberosDescriptor');
     var configs = [];
+
     this.get('stepConfigs').forEach(function(_stepConfig){
       configs = configs.concat(_stepConfig.get('configs'));
     });
@@ -418,6 +419,7 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
   bootstrapRecommendationPayload: function(kerberosDescriptor) {
     var dfd = $.Deferred();
     var self = this;
+
     this.getServicesConfigurations().then(function(configurations) {
       var recommendations = self.getBlueprintPayloadObject(configurations, kerberosDescriptor);
       self.set('servicesConfigurations', configurations);
@@ -469,6 +471,7 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
   getBlueprintPayloadObject: function(configurations, kerberosDescriptor) {
     var recommendations = this.get('hostGroups');
     var mergedConfigurations = this.mergeDescriptorToConfigurations(configurations, this.createServicesStackDescriptorConfigs(kerberosDescriptor));
+
     recommendations.blueprint.configurations = mergedConfigurations.reduce(function(p, c) {
       p[c.type] = {};
       p[c.type].properties = c.properties;
@@ -593,6 +596,12 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
     }, resultMap);
   },
 
+  /**
+   *
+   * @method getServiceByFilename
+   * @param {string}fileName
+   * @returns {string}
+   */
   getServiceByFilename: function(fileName) {
     // core-site properties goes to HDFS
     if (fileName === 'core-site' && App.Service.find().someProperty('serviceName', 'HDFS')) {
