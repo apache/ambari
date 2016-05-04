@@ -105,13 +105,13 @@ class HiveMetastoreDefault(HiveMetastore):
 
     is_upgrade = params.upgrade_direction == Direction.UPGRADE
 
-    if is_upgrade and params.stack_version_formatted_major and \
-            check_stack_feature(StackFeature.HIVE_METASTORE_UPGRADE_SCHEMA, params.stack_version_formatted_major):
-      self.upgrade_schema(env)
-
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
       conf_select.select(params.stack_name, "hive", params.version)
       stack_select.select("hive-metastore", params.version)
+
+    if is_upgrade and params.stack_version_formatted_major and \
+            check_stack_feature(StackFeature.HIVE_METASTORE_UPGRADE_SCHEMA, params.stack_version_formatted_major):
+      self.upgrade_schema(env)
 
 
   def security_status(self, env):

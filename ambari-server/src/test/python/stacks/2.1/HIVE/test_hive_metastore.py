@@ -652,6 +652,15 @@ class TestHiveMetastore(RMFTestCase):
       call_mocks = [(0, None, ''), (0, None)],
       mocks_dict = mocks_dict)
 
+    # conf-select, hdp-select BEFORE upgrade schema calls
+    self.assertResourceCalled('Link', ('/etc/hive/conf'), to='/usr/hdp/current/hive-client/conf')
+    self.assertResourceCalled('Execute', ('ambari-python-wrap',
+     '/usr/bin/hdp-select',
+     'set',
+     'hive-metastore',
+     '2.3.0.0-1234'),
+        sudo = True)
+
     # we don't care about configure here - the strings are different anyway because this
     # is an upgrade, so just pop those resources off of the call stack
     self.assertResourceCalledIgnoreEarlier('Directory', '/var/lib/hive', owner = 'hive', group = 'hadoop',
@@ -659,45 +668,36 @@ class TestHiveMetastore(RMFTestCase):
 
     self.assertResourceCalled('Execute', ('rm', '-f', '/usr/hdp/current/hive-server2/lib/ojdbc6.jar'),
         path = ['/bin', '/usr/bin/'],
-        sudo = True,
-    )
+        sudo = True)
 
     self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
-        content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar'),
-    )
+        content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar'))
+
     self.assertResourceCalled('Execute', ('cp',
      '--remove-destination',
      '/tmp/mysql-connector-java.jar',
      '/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar'),
         path = ['/bin', '/usr/bin/'],
-        sudo = True,
-    )
+        sudo = True)
+
     self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar',
-        mode = 0644,
-    )
+        mode = 0644)
+
     self.assertResourceCalled('Execute', ('cp',
      '/usr/hdp/2.2.7.0-1234/hive/lib/mysql-connector-java.jar',
      '/usr/hdp/2.3.0.0-1234/hive/lib'),
         path = ['/bin', '/usr/bin/'],
-        sudo = True,
-    )
+        sudo = True)
+
     self.assertResourceCalled('File', '/usr/hdp/2.3.0.0-1234/hive/lib/mysql-connector-java.jar',
-        mode = 0644,
-    )
+        mode = 0644)
+
     self.assertResourceCalled('Execute', '/usr/hdp/2.3.0.0-1234/hive/bin/schematool -dbType mysql -upgradeSchema',
-        logoutput = True,
-        environment = {'HIVE_CONF_DIR': '/etc/hive/conf.server'},
-        tries = 1,
-        user = 'hive',
-    )
-    self.assertResourceCalled('Link', ('/etc/hive/conf'), to='/usr/hdp/current/hive-client/conf')
-    self.assertResourceCalled('Execute', ('ambari-python-wrap',
-     '/usr/bin/hdp-select',
-     'set',
-     'hive-metastore',
-     '2.3.0.0-1234'),
-        sudo = True,
-    )
+         logoutput = True,
+         environment = {'HIVE_CONF_DIR': '/etc/hive/conf.server'},
+         tries = 1,
+         user = 'hive')
+
     self.assertNoMoreResources()
 
   @patch("os.path.exists")
@@ -808,6 +808,11 @@ class TestHiveMetastore(RMFTestCase):
                        call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict = mocks_dict)
 
+    self.assertResourceCalled('Link', ('/etc/hive/conf'), to='/usr/hdp/current/hive-client/conf')
+
+    self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hive-metastore', version), sudo=True,)
+
+
     # we don't care about configure here - the strings are different anyway because this
     # is an upgrade, so just pop those resources off of the call stack
     self.assertResourceCalledIgnoreEarlier('Directory', '/var/lib/hive', owner = 'hive', group = 'hadoop',
@@ -865,8 +870,5 @@ class TestHiveMetastore(RMFTestCase):
                               logoutput = True, environment = {'HIVE_CONF_DIR': '/usr/hdp/current/hive-server2/conf/conf.server'},
                               tries = 1, user = 'hive')
 
-    self.assertResourceCalled('Link', ('/etc/hive/conf'), to='/usr/hdp/current/hive-client/conf')
-
-    self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hive-metastore', version), sudo=True,)
 
     self.assertNoMoreResources()
