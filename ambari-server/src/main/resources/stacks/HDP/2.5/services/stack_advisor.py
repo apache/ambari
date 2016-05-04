@@ -133,7 +133,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
 
     include_logsearch = "LOGSEARCH" in servicesList
-    if include_logsearch:
+    if include_logsearch and "logsearch-solr-env" in services["configurations"]:
       logsearch_solr_znode = services["configurations"]["logsearch-solr-env"]["properties"]['logsearch_solr_znode']
       putAtlasApplicationProperty('atlas.graph.index.search.solr.zookeeper-url', '{{zookeeper_quorum}}' + logsearch_solr_znode)
 
