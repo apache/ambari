@@ -811,7 +811,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
 
     # atlas
     application_services_property = "*.application.services"
-    if application_services_property in services["configurations"]["falcon-startup.properties"]["properties"]:
+    if "falcon-startup.properties" in services["configurations"] and application_services_property in services["configurations"]["falcon-startup.properties"]["properties"]:
       application_services_value = services["configurations"]["falcon-startup.properties"]["properties"][application_services_property]
     else:
       application_services_value = " "
