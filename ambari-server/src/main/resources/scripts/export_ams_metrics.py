@@ -222,8 +222,8 @@ class AmsMetricsProcessor:
               Params.METRICS.append(os.path.basename(metric))
             metric_file = os.path.join(dir_item_path, metric)
             metrics_for_hosts[dir_item][metric] = Utils.read_json_file(metric_file)
-        elif os.path.isfile(dir_item_path):
-          if dir_item not in Params.METRICS and dir_item != "configs":
+        elif os.path.isfile(dir_item_path) and dir_item != "configs":
+          if dir_item not in Params.METRICS:
             Params.METRICS.append(os.path.basename(dir_item))
           metric_file = os.path.join(Params.INPUT_DIR, dir_item_path)
           metrics_for_hosts[dir_item] = Utils.read_json_file(metric_file)
@@ -312,10 +312,18 @@ class MetricsResource(Resource):
   def get(self):
     args = request.args
     separator = "._"
+
     if not "metricNames" in args:
       logger.error("Bad request")
       abort(404)
-    metric_name, operation = args["metricNames"].split(separator, 1)
+
+    if separator in args["metricNames"]:
+      metric_name, operation = args["metricNames"].split(separator, 1)
+    else:
+      metric_name = args["metricNames"]
+      separator = ""
+      operation = ""
+
     metric_dict = {"metrics" : []}
 
     if "hostname" in args and args["hostname"] != "":
@@ -439,7 +447,7 @@ def main():
 
     Params.PRECISION = options.precision
 
-    Params.OUT_DIR = options.output_dir
+    Params.OUT_DIR = output_dir if options.output_dir == output_dir else os.path.join(options.output_dir, 'ambari_metrics_export_' + time_suffix)
 
     if Params.START_TIME == -1:
       logger.warn('No start time provided, or it is in the wrong format. Please '
