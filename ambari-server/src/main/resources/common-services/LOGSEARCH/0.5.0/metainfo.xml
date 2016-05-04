@@ -54,6 +54,15 @@
                 <enabled>true</enabled>
               </auto-deploy>
             </dependency>
+
+            <dependency>
+              <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>
+              <scope>cluster</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+
           </dependencies>
           <configuration-dependencies>
             <config-type>logsearch-properties</config-type>
@@ -81,6 +90,15 @@
                 <enabled>true</enabled>
               </auto-deploy>
             </dependency>
+
+            <dependency>
+              <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>
+              <scope>cluster</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+
           </dependencies>
           <configuration-dependencies>
             <config-type>logsearch-solr-env</config-type>
@@ -106,6 +124,19 @@
               <primary>true</primary>
             </log>
           </logs>
+
+          <dependencies>
+
+            <dependency>
+              <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>
+              <scope>cluster</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+
+          </dependencies>
+
           <configuration-dependencies>
             <config-type>logfeeder-properties</config-type>
             <config-type>logfeeder-env</config-type>
