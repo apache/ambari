@@ -19,6 +19,7 @@ limitations under the License.
 import os
 import re
 import fnmatch
+import math
 import socket
 
 DB_TYPE_DEFAULT_PORT_MAP = {"MYSQL":"3306", "ORACLE":"1521", "POSTGRES":"5432", "MSSQL":"1433", "SQLA":"2638"}
@@ -171,7 +172,8 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       "HAWQ": self.recommendHAWQConfigurations,
       "FALCON": self.recommendFalconConfigurations,
       "STORM": self.recommendStormConfigurations,
-      "SQOOP": self.recommendSqoopConfigurations
+      "SQOOP": self.recommendSqoopConfigurations,
+      "LOGSEARCH" : self.recommendLogsearchConfigurations
     }
     parentRecommendConfDict.update(childRecommendConfDict)
     return parentRecommendConfDict
@@ -833,6 +835,23 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       else:
         application_services_value = " "
     putFalconStartupProperty(application_services_property, application_services_value)
+
+  def recommendLogsearchConfigurations(self, configurations, clusterData, services, hosts):
+    putLogsearchProperty = self.putProperty(configurations, "logsearch-properties", services)
+    logsearchSolrHosts = self.getComponentHostNames(services, "LOGSEARCH", "LOGSEARCH_SOLR")
+
+    if logsearchSolrHosts is not None and len(logsearchSolrHosts) > 0 \
+      and "logsearch-properties" in services["configurations"]:
+      # recommend number of shard
+      putLogsearchAttribute = self.putPropertyAttribute(configurations, "logsearch-properties")
+      putLogsearchAttribute('logsearch.collection.numshards', 'minimum', len(logsearchSolrHosts))
+      putLogsearchAttribute('logsearch.collection.numshards', 'maximum', 3 * len(logsearchSolrHosts))
+      putLogsearchProperty("logsearch.collection.numshards", 2 * len(logsearchSolrHosts))
+      # recommend replication factor
+      replicationReccomendFloat = math.log(len(logsearchSolrHosts), 5)
+      recommendedReplicationFactor = int(1 + math.floor(replicationReccomendFloat))
+      putLogsearchProperty("logsearch.collection.replication.factor", recommendedReplicationFactor)
+
 
   def getServiceConfigurationValidators(self):
     parentValidators = super(HDP23StackAdvisor, self).getServiceConfigurationValidators()

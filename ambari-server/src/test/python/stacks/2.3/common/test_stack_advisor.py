@@ -2881,3 +2881,97 @@ class TestHDP23StackAdvisor(TestCase):
     services['ambari-server-properties'] = {'java.home': '/usr/jdk64/jdk1.7.3_23'}
     self.stackAdvisor.recommendSqoopConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
+
+  def test_recommendLogsearchConfiguration(self):
+    configurations = {
+      "logsearch-properties": {
+        "properties": {
+          "logsearch.collection.numshards" : "5",
+          "logsearch.collection.replication.factor": "0"
+        }
+      }
+    }
+
+    clusterData = {
+      "cpu": 4,
+      "mapMemory": 3000,
+      "amMemory": 2000,
+      "reduceMemory": 2056,
+      "containers": 3,
+      "ramPerContainer": 256
+    }
+    expected = {
+      'logsearch-properties': {
+        'properties': {
+          "logsearch.collection.numshards" : "2",
+          "logsearch.collection.replication.factor": "1"
+        },
+        "property_attributes": {
+          "logsearch.collection.numshards": {
+            "minimum": "1",
+            "maximum": "3"
+          }
+        }
+      }
+    }
+    services = {
+      "services": [
+        {
+          "href": "/api/v1/stacks/HDP/versions/2.3/services/LOGSEARCH",
+          "StackServices": {
+            "service_name": "LOGSEARCH",
+            "service_version": "2.6.0.2.2",
+            "stack_name": "HDP",
+            "stack_version": "2.3"
+          },
+          "components": [
+            {
+              "StackServiceComponents": {
+                "advertise_version": "false",
+                "cardinality": "1",
+                "component_category": "MASTER",
+                "component_name": "LOGSEARCH_SOLR",
+                "display_name": "LogSearch Solr Instance",
+                "is_client": "false",
+                "is_master": "true",
+                "hostnames": []
+              },
+              "dependencies": []
+            }
+          ]
+        },
+      ],
+      "configurations": {
+        "logsearch-properties": {
+          "properties": {
+            "logsearch.collection.numshards" : "5",
+            "logsearch.collection.replication.factor": "0"
+          }
+        }
+      },
+      "changed-configurations": [ ]
+
+    }
+
+    hosts = {
+      "items" : [
+        {
+          "href" : "/api/v1/hosts/c6401.ambari.apache.org",
+          "Hosts" : {
+            "cpu_count" : 1,
+            "host_name" : "c6401.ambari.apache.org",
+            "os_arch" : "x86_64",
+            "os_type" : "centos6",
+            "ph_cpu_count" : 1,
+            "public_host_name" : "c6401.ambari.apache.org",
+            "rack_info" : "/default-rack",
+            "total_mem" : 1922680
+          }
+        }
+      ]
+    }
+    def return_c6401_hostname(services, service_name, component_name):
+      return ["c6401.ambari.apache.org"]
+    self.stackAdvisor.getComponentHostNames = return_c6401_hostname
+    self.stackAdvisor.recommendLogsearchConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations, expected)
