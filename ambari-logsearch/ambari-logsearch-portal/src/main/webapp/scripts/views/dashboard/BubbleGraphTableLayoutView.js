@@ -314,9 +314,9 @@ define(['require',
 							fromRaw: function(rawValue, model){
 								var str="";
 								if(rawValue)
-									str += "<p>"+moment(rawValue).format("YYYY-MM-DD HH:mm:ss,SSS")+"</p>";
+									str += "<div style='position:relative'><p style='margin-left:20px'>"+moment(rawValue).format("YYYY-MM-DD HH:mm:ss,SSS")+"</p>";
 								if(model.get("type"))
-									str += "<p style='float:left;width:90%'>"+(model.get("level") ? "<label class='label label-"+model.get("level")+"'>"+model.get("level")+"</label>" : "")+ 
+									str += "<p style='margin-left:20px'>"+(model.get("level") ? "<label class='label label-"+model.get("level")+"'>"+model.get("level")+"</label>" : "")+
 											"<strong>"+model.get("type")+"</strong>" +
 											"</p><!--a  style='width:9%' title='Open logs in new tab' data-type='C' data-host='"+model.get("host")+"' data-node='"+model.get("type")+"' data-id='"+model.get("id")+"' href='javascript:void(0)' class='pull-right hidden'><i class='fa fa-share'></i></a-->";
 //								if(model.get("level"))
@@ -329,7 +329,7 @@ define(['require',
 								    "<li data-id='N_T'><a title='Open logs in new tab' data-type='C' data-host='"+model.get("host")+"' data-node='"+model.get("type")+"' data-id='"+model.get("id")+"' href='javascript:void(0)' class=''>Go To Log</a></li>" +
 								    //'<li><a href="#">JavaScript</a></li>' +
 								  '</ul>' +
-								'</div>'; 
+								'</div></div>';
 								return str;
 							}
 						})

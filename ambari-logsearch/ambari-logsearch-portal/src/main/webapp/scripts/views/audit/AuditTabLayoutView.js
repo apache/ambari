@@ -80,7 +80,7 @@ define(['require',
 			this.collection = new VAuditLogList([],{
 				state: {
                     firstPage: 0,
-                    pageSize: 50
+                    pageSize: 25
                 }
 			});
 			

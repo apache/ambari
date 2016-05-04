@@ -282,14 +282,13 @@ textarea.searchArea{
 }
 .panel-menu a.account {
   height: 50px;
-  padding: 5px 0 5px 10px;
+  padding: 5px 10px;
   line-height: 18px;
 }
 .panel-menu i {
   margin-top: 8px;
-  padding: 5px;
   font-size: 20px;
-  color: white;
+  color: #D8D8D8;
   line-height: 1em;
   vertical-align: top;
   -webkit-transition: 0.05s;

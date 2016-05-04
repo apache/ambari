@@ -114,7 +114,7 @@ define(['require',
                         saveState: false
                     },
                     gridOpts: {
-                        className: "table table-striped table-condensed backgrid table-quickMenu",
+                        className: "table table-bordered table-striped table-hover table-condensed backgrid table-quickMenu",
                         //header : CustomBackgrid,
                         //row: IdRow,
                         emptyText: 'No records found!'
@@ -379,7 +379,7 @@ define(['require',
                         columns: cols,
                         includeColumnManager: false,
                         gridOpts: {
-                            className: "table table-condensed backgrid logFileFont table-quickMenu",
+                            className: "table table-bordered table-striped table-hover table-condensed backgrid logFileFont table-quickMenu",
                         },
                     })));
                 });
@@ -451,7 +451,7 @@ define(['require',
                         formatter: _.extend({}, Backgrid.CellFormatter.prototype, {
                             fromRaw: function(rawValue, model) {
 
-                                return (rawValue) ? ViewUtils.foramtLogMessageAsLogFile(model) + that.getDropdownQuickMenuHtml() : "";
+                                return (rawValue) ? "<div style='position:relative; padding-left:15px'>"+ViewUtils.foramtLogMessageAsLogFile(model) + that.getDropdownQuickMenuHtml() + "</div>" : "";
                             }
                         })
                     }
@@ -485,10 +485,10 @@ define(['require',
                             fromRaw: function(rawValue, model) {
                                 var str = "";
                                 if (rawValue)
-                                    str += "<p>" + moment(rawValue).format("YYYY-MM-DD HH:mm:ss,SSS") + "</p>";
+                                    str += "<div style='position:relative'><p style='margin-left:20px'>" + moment(rawValue).format("YYYY-MM-DD HH:mm:ss,SSS") + "</p>";
                                 if (model.get("level"))
-                                    str += "<p><label class='label label-" + model.get("level") + "'>" + model.get("level") + "</label></p>";
-                                str += that.getDropdownQuickMenuHtml();
+                                    str += "<p style='margin-left:20px'><label class='label label-" + model.get("level") + "'>" + model.get("level") + "</label></p>";
+                                str += that.getDropdownQuickMenuHtml()+"</div>";
                                 return str;
                             }
                         })

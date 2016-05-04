@@ -677,7 +677,7 @@ div.columnmanager-visibilitycontrol {
 }
 
 .VS-search .search_facet input {
-  padding-top: 6px;
+  padding-top:3px;
   font-size: 10px;
   line-height: 13px;
 }
@@ -1103,7 +1103,7 @@ body {
 }
 .logFileFont .quickMenu {
 	margin-top:0px;
-	top:5px;
+	top:-2px;
 }
 .dropdown .excludeStatus.full i{
   color: #6CDA0E
@@ -1626,19 +1626,12 @@ div.columnmanager-dropdown-container {
     font-weight: bold;
     background: #FFF;
 }
-.backgrid th, 
-.backgrid td {
-	position: relative;
-}
 .quickMenu {
 	position: absolute;
-	left: -1px;
+	left: -2px;
 	top: 50%;
-	margin-top:-19px;
+	margin-top:-12px;
 	transition: all .2s ease;
-}
-.quickMenu:hover {
-	left: 0px;
 }
 .btn-quickMenu {
 	padding: 0 3px;
@@ -2083,4 +2076,6 @@ input.filterInput{
 .VS-search .search_input input{
   margin-top: 0 !important;
 }
-
+.nav-tabs > li{
+  margin-bottom:-2px;
+}

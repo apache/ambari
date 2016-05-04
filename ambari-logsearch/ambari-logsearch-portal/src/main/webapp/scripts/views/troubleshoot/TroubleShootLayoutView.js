@@ -380,7 +380,7 @@ define(['backbone',
             		  var chart = nv.models.discreteBarChart()
             		    .x(function(d) { return d.label })
             		    .y(function(d) { return d.value })
-            		    .staggerLabels(true)
+			    .staggerLabels(false)
             		    .width(700)
             		    .showValues(false)
             		    chart.tooltip.enabled();

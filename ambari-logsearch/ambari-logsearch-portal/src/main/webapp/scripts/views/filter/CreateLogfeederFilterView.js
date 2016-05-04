@@ -289,16 +289,16 @@ define(['require',
             	        singleDatePicker: true,
             	        showDropdowns: true,
             	        parentEl : this.$el,
-            	        minDate :moment().format('MM/DD/YYYY'),
+                       'startDate':moment().add(1,'hours').format('MM/DD/YYYY HH:mm'),
             	        //timeZone: 0,
             	        locale: {
             	            format: 'MM/DD/YYYY HH:mm'
             	        },
             	        //timePickerSeconds: true,
             	        "timePicker": true,
-//                        "timePickerIncrement": 1,
                         "timePicker24Hour": true,
             	    });
+                    this.$("[data-date='"+forComponent+"']").val(moment().add(1,'hours').format("MM/DD/YYYY HH:mm"));
             		this.hideExpiry(forComponent);
             	}
             },
