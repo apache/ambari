@@ -172,18 +172,6 @@ class TestHiveServerInteractive(RMFTestCase):
                               owner='hive',
                               group='hadoop',
     )
-    self.assertResourceCalled('File', '/usr/hdp/current/hive-server2-hive2/conf/hive-exec-log4j.properties',
-                              content='log4jproperties\nline2',
-                              owner='hive',
-                              group='hadoop',
-                              mode=0644,
-    )
-    self.assertResourceCalled('File', '/usr/hdp/current/hive-server2-hive2/conf/hive-log4j.properties',
-                              content='log4jproperties\nline2',
-                              owner='hive',
-                              group='hadoop',
-                              mode=0644,
-    )
     hive_site_conf = {}
     hive_site_conf.update(self.getConfig()['configurations']['hive-site'])
     hive_site_conf.update(self.getConfig()['configurations']['hive-interactive-site'])
@@ -215,17 +203,6 @@ class TestHiveServerInteractive(RMFTestCase):
     self.assertResourceCalled("File", "/usr/hdp/current/hive-server2-hive2/conf/conf.server/hive-env.sh.template",
                               owner=u"hive",
                               group=u"hadoop")
-
-    self.assertResourceCalled("File", "/usr/hdp/current/hive-server2-hive2/conf/conf.server/hive-exec-log4j.properties",
-                              content=u'log4jproperties\nline2',
-                              owner=u'hive',
-                              group=u'hadoop',
-                              mode=420)
-    self.assertResourceCalled("File", "/usr/hdp/current/hive-server2-hive2/conf/conf.server/hive-log4j.properties",
-                              content=u'log4jproperties\nline2',
-                              owner=u'hive',
-                              group=u'hadoop',
-                              mode=420)
 
     self.assertResourceCalled('XmlConfig', 'hive-site.xml',
                               group='hadoop',
@@ -268,6 +245,24 @@ class TestHiveServerInteractive(RMFTestCase):
     )
     self.assertResourceCalled('File', '/usr/hdp/current/hive-server2-hive2/conf/conf.server/llap-cli-log4j2.properties',
                               content='con\ntent',
+                              owner='hive',
+                              group='hadoop',
+                              mode=0644,
+    )
+    self.assertResourceCalled('File', '/usr/hdp/current/hive-server2-hive2/conf/conf.server/hive-log4j2.properties',
+                              content='con\ntent',  # Test new line
+                              owner='hive',
+                              group='hadoop',
+                              mode=0644,
+    )
+    self.assertResourceCalled('File', '/usr/hdp/current/hive-server2-hive2/conf/conf.server/hive-exec-log4j2.properties',
+                              content='con\ntent',  # Test new line
+                              owner='hive',
+                              group='hadoop',
+                              mode=0644,
+    )
+    self.assertResourceCalled('File', '/usr/hdp/current/hive-server2-hive2/conf/conf.server/beeline-log4j2.properties',
+                              content='con\ntent',  # Test new line
                               owner='hive',
                               group='hadoop',
                               mode=0644,

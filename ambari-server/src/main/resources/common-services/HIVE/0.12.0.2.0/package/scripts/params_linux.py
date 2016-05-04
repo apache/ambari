@@ -41,6 +41,9 @@ from resource_management.libraries.functions.get_port_from_url import get_port_f
 from resource_management.libraries.functions.expect import expect
 from resource_management.libraries import functions
 
+# Default log4j version; put config files under /etc/hive/conf
+log4j_version = '1'
+
 # server configurations
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
@@ -318,6 +321,9 @@ elif status_params.role == "HIVE_SERVER" and hive_server_hosts is not None and h
 elif status_params.role == "HIVE_SERVER_INTERACTIVE" and hive_server_interactive_hosts is not None and hostname in hive_server_interactive_hosts:
   hive_conf_dirs_list.append(status_params.hive_server_interactive_conf_dir)
 
+# log4j version is 2 for hive2; put config files under /etc/hive2/conf
+if status_params.role == "HIVE_SERVER_INTERACTIVE":
+  log4j_version = '2'
 
 #Starting hiveserver2
 start_hiveserver2_script = 'startHiveserver2.sh.j2'
@@ -540,6 +546,9 @@ has_hive_interactive = len(hive_interactive_hosts) > 0
 if has_hive_interactive:
   llap_daemon_log4j = config['configurations']['llap-daemon-log4j']['content']
   llap_cli_log4j2 = config['configurations']['llap-cli-log4j2']['content']
+  hive_log4j2 = config['configurations']['hive-log4j2']['content']
+  hive_exec_log4j2 = config['configurations']['hive-exec-log4j2']['content']
+  beeline_log4j2 = config['configurations']['beeline-log4j2']['content']
 
   hive_server_interactive_conf_dir = status_params.hive_server_interactive_conf_dir
   execute_path_hive_interactive = os.path.join(os.environ['PATH'], hive_interactive_bin, hadoop_bin_dir)

@@ -142,6 +142,27 @@ def hive_interactive(name=None):
        owner=params.hive_user,
        content=params.llap_cli_log4j2)
 
+  hive_log4j2_filename = 'hive-log4j2.properties'
+  File(format("{hive_server_interactive_conf_dir}/{hive_log4j2_filename}"),
+     mode=0644,
+     group=params.user_group,
+     owner=params.hive_user,
+     content=params.hive_log4j2)
+
+  hive_exec_log4j2_filename = 'hive-exec-log4j2.properties'
+  File(format("{hive_server_interactive_conf_dir}/{hive_exec_log4j2_filename}"),
+     mode=0644,
+     group=params.user_group,
+     owner=params.hive_user,
+     content=params.hive_exec_log4j2)
+
+  beeline_log4j2_filename = 'beeline-log4j2.properties'
+  File(format("{hive_server_interactive_conf_dir}/{beeline_log4j2_filename}"),
+     mode=0644,
+     group=params.user_group,
+     owner=params.hive_user,
+     content=params.beeline_log4j2)
+
   # On some OS this folder could be not exists, so we will create it before pushing there files
   Directory(params.limits_conf_dir,
             create_parents = True,

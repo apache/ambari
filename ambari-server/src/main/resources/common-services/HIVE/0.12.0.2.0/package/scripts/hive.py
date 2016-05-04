@@ -375,37 +375,41 @@ def fill_conf_dir(component_conf_dir):
        group=params.user_group
   )
 
-  log4j_exec_filename = 'hive-exec-log4j.properties'
-  if (params.log4j_exec_props != None):
-    File(format("{component_conf_dir}/{log4j_exec_filename}"),
-         mode=0644,
-         group=params.user_group,
-         owner=params.hive_user,
-         content=params.log4j_exec_props
-    )
-  elif (os.path.exists("{component_conf_dir}/{log4j_exec_filename}.template")):
-    File(format("{component_conf_dir}/{log4j_exec_filename}"),
-         mode=0644,
-         group=params.user_group,
-         owner=params.hive_user,
-         content=StaticFile(format("{component_conf_dir}/{log4j_exec_filename}.template"))
-    )
+  # Create hive-log4j.properties and hive-exec-log4j.properties
+  # in /etc/hive/conf and not in /etc/hive2/conf
+  if params.log4j_version == '1':
+    log4j_exec_filename = 'hive-exec-log4j.properties'
+    if (params.log4j_exec_props != None):
+      File(format("{component_conf_dir}/{log4j_exec_filename}"),
+           mode=0644,
+           group=params.user_group,
+           owner=params.hive_user,
+           content=params.log4j_exec_props
+      )
+    elif (os.path.exists("{component_conf_dir}/{log4j_exec_filename}.template")):
+      File(format("{component_conf_dir}/{log4j_exec_filename}"),
+           mode=0644,
+           group=params.user_group,
+           owner=params.hive_user,
+           content=StaticFile(format("{component_conf_dir}/{log4j_exec_filename}.template"))
+      )
 
-  log4j_filename = 'hive-log4j.properties'
-  if (params.log4j_props != None):
-    File(format("{component_conf_dir}/{log4j_filename}"),
-         mode=0644,
-         group=params.user_group,
-         owner=params.hive_user,
-         content=params.log4j_props
-    )
-  elif (os.path.exists("{component_conf_dir}/{log4j_filename}.template")):
-    File(format("{component_conf_dir}/{log4j_filename}"),
-         mode=0644,
-         group=params.user_group,
-         owner=params.hive_user,
-         content=StaticFile(format("{component_conf_dir}/{log4j_filename}.template"))
-    )
+    log4j_filename = 'hive-log4j.properties'
+    if (params.log4j_props != None):
+      File(format("{component_conf_dir}/{log4j_filename}"),
+           mode=0644,
+           group=params.user_group,
+           owner=params.hive_user,
+           content=params.log4j_props
+      )
+    elif (os.path.exists("{component_conf_dir}/{log4j_filename}.template")):
+      File(format("{component_conf_dir}/{log4j_filename}"),
+           mode=0644,
+           group=params.user_group,
+           owner=params.hive_user,
+           content=StaticFile(format("{component_conf_dir}/{log4j_filename}.template"))
+      )
+    pass # if params.log4j_version == '1'
 
 
 def jdbc_connector(target):

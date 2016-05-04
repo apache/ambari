@@ -54,6 +54,15 @@
         "llap-cli-log4j2": {
           "content" : "con\ntent"
         },
+        "hive-log4j2": {
+            "content" : "con\ntent"
+        },
+        "hive-exec-log4j2": {
+            "content" : "con\ntent"
+        },
+        "beeline-log4j2": {
+            "content" : "con\ntent"
+        },
         "sqoop-site": {
             "atlas.cluster.name": "c1",
             "sqoop.job.data.publish.class": "org.apache.atlas.sqoop.hook.SqoopHook"
