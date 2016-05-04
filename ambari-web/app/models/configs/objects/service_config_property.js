@@ -316,7 +316,7 @@ App.ServiceConfigProperty = Em.Object.extend({
   validate: function () {
     if (!this.get('isEditable')) {
       this.set('errorMessage', ''); // do not perform validation for not editable configs
-    } else if ((this.get('value') + '').length === 0) {
+    } else if ((typeof this.get('value') != 'object') && ((this.get('value') + '').length === 0)) {
       this.set('errorMessage', this.get('isRequired') ? Em.I18n.t('errorMessage.config.required') : '');
     } else {
       this.set('errorMessage', this.validator(this.get('value'), this.get('name'), this.get('retypedPassword')));
