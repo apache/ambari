@@ -141,6 +141,7 @@ angular.module('ambariAdminConsole')
   $scope.currentPage = 1;
   $scope.totalUrls = 1;
   $scope.urlNameFilter = '';
+  $scope.urlSuffixfilter = '';
   $scope.maxVisiblePages=20;
   $scope.tableInfo = {
     total: 0,
@@ -182,7 +183,7 @@ angular.module('ambariAdminConsole')
         keys.push(key);
         output.push(item);
       }
-    })
+    });
     return output;
     };
 
@@ -190,6 +191,7 @@ angular.module('ambariAdminConsole')
 
   $scope.clearFilters = function () {
     $scope.urlNameFilter = '';
+    $scope.urlSuffixfilter = '';
     $scope.instanceTypeFilter = $scope.typeFilterOptions[0];
     $scope.resetPagination();
   };
@@ -198,7 +200,7 @@ angular.module('ambariAdminConsole')
 
   $scope.$watch(
       function (scope) {
-        return Boolean(scope.urlNameFilter || (scope.instanceTypeFilter && scope.instanceTypeFilter.value !== '*'));
+        return Boolean(scope.urlNameFilter || scope.urlSuffixfilter || (scope.instanceTypeFilter && scope.instanceTypeFilter.value !== '*'));
       },
       function (newValue, oldValue, scope) {
         scope.isNotEmptyFilter = newValue;
@@ -213,6 +215,7 @@ angular.module('ambariAdminConsole')
       currentPage: $scope.currentPage,
       urlsPerPage: $scope.urlsPerPage,
       searchString: $scope.urlNameFilter,
+      suffixSearch: $scope.urlSuffixfilter,
       instanceType: $scope.instanceTypeFilter?$scope.instanceTypeFilter.value:'*'
     }).then(function(urls) {
       $scope.urls = urls;

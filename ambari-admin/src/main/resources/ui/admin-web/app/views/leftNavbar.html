@@ -91,7 +91,7 @@
     <div class="panel-body">
       <ul class="nav nav-pills nav-stacked">
         <li ng-class="{active: isActive('views.list')}"><link-to route="views.list" class="viewslist-link">{{'common.views' | translate}}</link-to></li>
-        <li ng-class="{active: isActive('views.listViewUrls')}"><link-to route="views.listViewUrls" class="viewsUrlList-link">{{'common.viewUrls' | translate}}</link-to></li>
+        <li ng-class="{active: isActive('views.listViewUrls') || isActive('views.createViewUrl') || isActive('views.editViewUrl') }"><link-to route="views.listViewUrls" class="viewslistviewurls-link">{{'common.viewUrls' | translate}}</link-to></li>
       </ul>
     </div>
   </div>

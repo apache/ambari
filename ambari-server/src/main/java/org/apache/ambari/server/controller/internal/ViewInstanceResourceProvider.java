@@ -73,6 +73,7 @@ public class ViewInstanceResourceProvider extends AbstractAuthorizedResourceProv
   public static final String STATIC_PROPERTY_ID         = "ViewInstanceInfo/static";
   public static final String CLUSTER_HANDLE_PROPERTY_ID = "ViewInstanceInfo/cluster_handle";
   public static final String SHORT_URL_PROPERTY_ID      = "ViewInstanceInfo/short_url";
+  public static final String SHORT_URL_NAME_PROPERTY_ID = "ViewInstanceInfo/short_url_name";
 
   // validation properties
   public static final String VALIDATION_RESULT_PROPERTY_ID           = "ViewInstanceInfo/validation_result";
@@ -113,6 +114,7 @@ public class ViewInstanceResourceProvider extends AbstractAuthorizedResourceProv
     propertyIds.add(STATIC_PROPERTY_ID);
     propertyIds.add(CLUSTER_HANDLE_PROPERTY_ID);
     propertyIds.add(SHORT_URL_PROPERTY_ID);
+    propertyIds.add(SHORT_URL_NAME_PROPERTY_ID);
     propertyIds.add(VALIDATION_RESULT_PROPERTY_ID);
     propertyIds.add(PROPERTY_VALIDATION_RESULTS_PROPERTY_ID);
   }
@@ -246,6 +248,7 @@ public class ViewInstanceResourceProvider extends AbstractAuthorizedResourceProv
     ViewURLEntity viewUrl = viewInstanceEntity.getViewUrl();
     if(viewUrl != null) {
       setResourceProperty(resource, SHORT_URL_PROPERTY_ID, viewUrl.getUrlSuffix(), requestedIds);
+      setResourceProperty(resource, SHORT_URL_NAME_PROPERTY_ID, viewUrl.getUrlName(), requestedIds);
     }
 
     // only allow an admin to access the view properties

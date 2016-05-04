@@ -79,7 +79,9 @@ angular.module('ambariAdminConsole')
   };
 
   $scope.chomp = function(viewNameVersion){
-    return viewNameVersion.substr(0,viewNameVersion.indexOf("{")).trim();
+    if(viewNameVersion) {
+      return viewNameVersion.substr(0, viewNameVersion.indexOf("{")).trim();
+    }
   };
 
 

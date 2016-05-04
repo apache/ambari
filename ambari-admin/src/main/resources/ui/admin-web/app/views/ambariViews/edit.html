@@ -80,9 +80,21 @@
 
         <div class="form-group">
           <label for="" class="control-label col-sm-3">{{'views.shortUrl' | translate}}</label>
+
           <div class="col-sm-9">
-            <p class="form-control-static"><a href="/#/main/view/{{instance.ViewInstanceInfo.view_name}}/{{settings.shortUrl}}" ng-if="settings.shortUrl">{{settings.shortUrl}}</a></p>
-            <a ng-if="!settings.shortUrl" href="#/urls/link/{{instance.ViewInstanceInfo.view_name}}/{{instance.ViewInstanceInfo.version}}/{{instance.ViewInstanceInfo.instance_name}}" class="btn btn-primary createuser-btn"><span class="glyphicon glyphicon-plus"></span> {{'views.urlCreate' | translate}}</a>
+            <div ng-if="settings.shortUrl">
+            <p class="form-control-static"><a target="_blank" href="/#/main/view/{{instance.ViewInstanceInfo.view_name}}/{{settings.shortUrl}}" ng-if="settings.shortUrl">/main/view/{{instance.ViewInstanceInfo.view_name}}/{{settings.shortUrl}}&nbsp;<i class="fa fa-external-link" aria-hidden="true"></i></a>
+             &nbsp; <a ng-hide="editDetailsSettingsDisabled" href="#/urls/edit/{{settings.shortUrlName}}" class="btn btn-xs btn-primary">{{'urls.change' | translate}}</a>
+            </p>
+          </div>
+            <div ng-if="!settings.shortUrl">
+              <p ng-hide="!editDetailsSettingsDisabled" class="form-control-static">
+                <span class="label label-block label-default">{{'urls.none' | translate}}</span>
+              </p>
+              <p class="form-control-static" ng-hide="editDetailsSettingsDisabled">
+                <a href="#/urls/link/{{instance.ViewInstanceInfo.view_name}}/{{instance.ViewInstanceInfo.version}}/{{instance.ViewInstanceInfo.instance_name}}" class="btn btn-primary createuser-btn"><span class="glyphicon glyphicon-plus"></span> {{'views.urlCreate' | translate}}</a>
+              </p>
+            </div>
           </div>
           </div>
 

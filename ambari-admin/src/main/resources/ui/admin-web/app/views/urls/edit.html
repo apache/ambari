@@ -16,8 +16,8 @@
 * limitations under the License.
 -->
 <ol class="breadcrumb">
-  <li><a href="#/users">{{'urls.url' | translate}}</a></li>
-  <li class="active">{{'urls.edit' | translate}}</li>
+  <li> <link-to route="views.listViewUrls">{{'urls.viewUrls' | translate}}</link-to></li>
+  <li class="active">{{'urls.edit' | translate}} {{url.url_name}}</li>
   <div class="pull-right top-margin-4">
     <button class="btn deleteuser-btn btn-danger" ng-click="deleteUrl()">{{'views.urlDelete' | translate}}</button>
   </div>
@@ -57,7 +57,7 @@
     <label for="urlsuffixin" class="col-sm-2 control-label">{{'views.shortUrl' | translate}}</label>
     <div class="col-sm-10">
       <div class="input-group">
-      <span id="basic-addon1" class="input-group-addon">/main/view/{{url.view_instance_common_name}}/</span><input aria-describedby="basic-addon1" type="text" class="form-control" id="urlsuffixin" name="url_view_suffix" placeholder="{{'views.shortUrl' | translate}}" ng-model="url.url_suffix" ng-pattern="/[a-z]+/" ng-minlength="3" ng-maxlength="10" required autocomplete="off">
+      <span id="basic-addon1" class="input-group-addon">/main/view/{{url.view_instance_common_name}}/</span><input aria-describedby="basic-addon1" type="text" class="form-control" id="urlsuffixin" name="url_view_suffix" placeholder="{{'views.shortUrl' | translate}}" ng-model="url.url_suffix" ng-pattern="/^[a-z0-9-_]+$/" ng-minlength="3" ng-maxlength="25" required autocomplete="off">
         </div>
       <div class="alert alert-danger top-margin" ng-show="url_form.url_view_suffix.$error.required   && url_form.submitted">{{'common.alerts.fieldIsRequired' | translate}}</div>
       <div class="alert alert-danger top-margin" ng-show="url_form.url_view_suffix.$error.minlength   && url_form.submitted">{{'common.alerts.tooShort' | translate}}</div>
@@ -66,8 +66,12 @@
 
     </div>
   </div>
-  <div class="pull-right">
-    <button ng-disabled="wizard.currentStep != wizard.steps.length" class="btn btn-success" name="update_url_button" type="button" ng-click="updateUrl()"> <i class="fa fa-edit"></i> Update</button>
+
+  <div class="form-group">
+    <div class="col-sm-offset-2 col-sm-10">
+      <button ng-disabled="stepTwoNotCompleted" class="btn btn-primary pull-right left-margin saveuser" ng-click="updateUrl()">{{'common.controls.save' | translate}}</button>
+      <link-to route="views.listViewUrls" class="btn btn-default pull-right cancel">{{'common.controls.cancel' | translate}}</link-to>
+    </div>
   </div>
 
 </form>

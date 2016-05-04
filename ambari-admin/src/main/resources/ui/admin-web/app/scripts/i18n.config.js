@@ -117,7 +117,8 @@ angular.module('ambariAdminConsole')
         'clearFilters': 'clear filters',
         'confirmChange': 'Confirm Change',
         'discard': 'Discard',
-        'remove': 'Remove'
+        'remove': 'Remove',
+        'update':'Update'
       },
 
       'alerts': {
@@ -136,7 +137,7 @@ angular.module('ambariAdminConsole')
         'cannotRenameCluster': 'Cannot rename cluster to {{clusterName}}',
         'tooShort': 'Too short',
         'tooLong': 'Too long',
-        'onlyText': 'Only lower cased text allowed',
+        'onlyText': 'Only lowercase alphanumeric characters are allowed.',
         'onlyAnScore': 'Invalid input, only alphanumerics allowed eg: My_default_view'
       }
     },
@@ -247,6 +248,8 @@ angular.module('ambariAdminConsole')
     'urls':{
       'name':'Name',
       'url':'URL',
+      'viewUrls':'View URLs',
+      'createNewUrl':'Create New URL',
       'create':'Create',
       'edit':'Edit',
       'view':'View',
@@ -254,8 +257,10 @@ angular.module('ambariAdminConsole')
       'step1':'Create URL',
       'step2':'Select instance',
       'step3':'Assign URL',
-      'noUrlsToDisplay':'No URLs to display',
+      'noUrlsToDisplay':'No URLs to display.',
       'noViewInstances':'No view instances',
+      'none':'None',
+      'change':'Change',
       'urlCreated':'Created short URL <a href="/#/main/view/{{viewName}}/{{shortUrl}}">{{urlName}}</a>',
       'urlUpdated':'Updated short URL <a href="/#/main/view/{{viewName}}/{{shortUrl}}">{{urlName}}</a>'
     },

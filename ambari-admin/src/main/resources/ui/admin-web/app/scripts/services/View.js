@@ -69,6 +69,7 @@ angular.module('ambariAdminConsole')
       dataType: "json",
       url: Settings.baseUrl + '/view/urls?'
       + 'ViewUrlInfo/url_name.matches(.*'+params.searchString+'.*)'
+      + '&ViewUrlInfo/url_suffix.matches(.*'+params.suffixSearch+'.*)'
       + '&fields=*'
       + '&from=' + (params.currentPage-1)*params.urlsPerPage
       + '&page_size=' + params.urlsPerPage

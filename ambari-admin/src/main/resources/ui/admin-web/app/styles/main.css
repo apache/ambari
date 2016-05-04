@@ -569,9 +569,16 @@ a.gotoinstance{
 }
 .views-list-table .search-container .close{
   top: 5px;
-  right: 50px;
+  right: 10px;
   z-index: 10;
 }
+
+.views-list-table .search-container .close-fix{
+  top: 5px;
+  right: 0px;
+  z-index: 10;
+}
+
 .views-list-pane .search-container .close{
   right: 50px;
   top: 5px;

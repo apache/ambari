@@ -34,16 +34,16 @@
         <thead>
         <tr class="fix-bottom">
 
-            <th class="fix-bottom">
-               <span>{{'urls.name' | translate}}</span>
+            <th class="fix-bottom col-md-2">
+                <span>{{'urls.name' | translate}}</span>
             </th>
-            <th class="fix-bottom">
+            <th class="fix-bottom col-md-3">
                 <span>{{'urls.url' | translate}}</span>
             </th>
-            <th class="fix-bottom">
+            <th class="fix-bottom col-md-2">
                 <span >{{'urls.view' | translate}}</span>
             </th>
-            <th class="fix-bottom">
+            <th class="fix-bottom col-md-2">
                 <span>{{'urls.viewInstance' | translate}}</span>
             </th>
         </tr>
@@ -51,15 +51,17 @@
         <tr>
 
             <th class="fix-top">
-                <div class="input-group m-small-input">
+                <div class="search-container">
                     <input type="text" class="form-control namefilter" placeholder="{{'common.any' | translate}}" ng-model="urlNameFilter" ng-change="resetPagination()">
-                    <span class="input-group-addon white-bg">
-                        <button type="button" ng-show="urlNameFilter" ng-click="urlNameFilter=''; resetPagination()">
-                            <span aria-hidden="true">&times;</span><span class="sr-only">{{'common.controls.close' | translate}}</span>
-                        </button></span>
+                    <button type="button" class="close clearfilter" ng-show="urlNameFilter" ng-click="urlNameFilter=''; resetPagination()"><span class="pull-right" aria-hidden="true">&times;</span><span class="sr-only">{{'common.controls.close' | translate}}</span></button>
+                    </div>
+            </th>
+            <th class="fix-top">
+                <div class="search-container">
+                    <input type="text" class="form-control namefilter" placeholder="{{'common.any' | translate}}" ng-model="urlSuffixfilter" ng-change="resetPagination()">
+                    <button type="button" class="close clearfilter" ng-show="urlSuffixfilter" ng-click="urlSuffixfilter=''; resetPagination()"><span class="pull-right" aria-hidden="true">&times;</span><span class="sr-only">{{'common.controls.close' | translate}}</span></button>
                 </div>
             </th>
-            <th class="fix-top"></th>
             <th class="fix-top">
                 <select class="form-control typefilter v-small-input"
                         ng-model="instanceTypeFilter"
@@ -79,7 +81,9 @@
                 <a href="#/urls/edit/{{url.ViewUrlInfo.url_name}}">{{url.ViewUrlInfo.url_name}}</a>
             </td>
             <td>
-                <a href="/#/main/view/{{url.ViewUrlInfo.view_instance_common_name}}/{{url.ViewUrlInfo.url_suffix}}">/main/view/{{url.ViewUrlInfo.view_instance_common_name}}/{{url.ViewUrlInfo.url_suffix}}</a>
+                <a target="_blank" href="/#/main/view/{{url.ViewUrlInfo.view_instance_common_name}}/{{url.ViewUrlInfo.url_suffix}}">/main/view/{{url.ViewUrlInfo.view_instance_common_name}}/{{url.ViewUrlInfo.url_suffix}}
+                    &nbsp;<i class="fa fa-external-link" aria-hidden="true"></i></a>
+
             </td>
             <td>
                 <span>{{url.ViewUrlInfo.view_instance_common_name}} {{"{"+url.ViewUrlInfo.view_instance_version+"}"}} </span>

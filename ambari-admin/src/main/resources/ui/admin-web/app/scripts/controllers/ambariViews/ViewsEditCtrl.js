@@ -39,7 +39,8 @@ angular.module('ambariAdminConsole')
             'visible': $scope.instance.ViewInstanceInfo.visible,
             'label': $scope.instance.ViewInstanceInfo.label,
             'description': $scope.instance.ViewInstanceInfo.description,
-            'shortUrl': $scope.instance.ViewInstanceInfo.short_url
+            'shortUrl': $scope.instance.ViewInstanceInfo.short_url,
+            'shortUrlName': $scope.instance.ViewInstanceInfo.short_url_name
           };
           switch (section) {
             case "details" :
@@ -57,6 +58,7 @@ angular.module('ambariAdminConsole')
         .catch(function(data) {
           Alert.error($t('views.alerts.cannotLoadInstanceInfo'), data.data.message);
         });
+
     }
 
     function initCtrlVariables(instance) {
@@ -269,7 +271,8 @@ angular.module('ambariAdminConsole')
         'visible': $scope.instance.ViewInstanceInfo.visible,
         'label': $scope.instance.ViewInstanceInfo.label,
         'description': $scope.instance.ViewInstanceInfo.description,
-        'shortUrl': $scope.instance.ViewInstanceInfo.short_url
+        'shortUrl': $scope.instance.ViewInstanceInfo.short_url,
+        'shortUrlName': $scope.instance.ViewInstanceInfo.short_url_name
       };
       $scope.editDetailsSettingsDisabled = true;
       $scope.settingsForm.$setPristine();
@@ -374,8 +377,8 @@ angular.module('ambariAdminConsole')
         $scope.savePermissions();
       }
     }, true);
-    
-    
+
+
 
     $scope.deleteInstance = function(instance) {
       ConfirmationModal.show(
