@@ -1681,7 +1681,7 @@ describe('App.WizardStep8Controller', function () {
 
     beforeEach(function () {
       sinon.stub(installerStep8Controller, 'showDeleteClustersErrorPopup', Em.K);
-      sinon.stub(installerStep8Controller, 'startDeploy', Em.K);
+      sinon.stub(installerStep8Controller, 'getExistingVersions', Em.K);
       installerStep8Controller.setProperties({
         clusterDeleteRequestsCompleted: 0,
         clusterNames: ['c0', 'c1'],
@@ -1692,20 +1692,20 @@ describe('App.WizardStep8Controller', function () {
 
     afterEach(function () {
       installerStep8Controller.showDeleteClustersErrorPopup.restore();
-      installerStep8Controller.startDeploy.restore();
+      installerStep8Controller.getExistingVersions.restore();
     });
 
     describe('no failed requests', function () {
       it('before Delete Cluster request', function () {
         expect(installerStep8Controller.get('clusterDeleteRequestsCompleted')).to.equal(1);
         expect(installerStep8Controller.showDeleteClustersErrorPopup.called).to.be.false;
-        expect(installerStep8Controller.startDeploy.called).to.be.false;
+        expect(installerStep8Controller.getExistingVersions.called).to.be.false;
       });
       it('after Delete Cluster request', function () {
         installerStep8Controller.deleteClusterSuccessCallback();
         expect(installerStep8Controller.get('clusterDeleteRequestsCompleted')).to.equal(2);
         expect(installerStep8Controller.showDeleteClustersErrorPopup.called).to.be.false;
-        expect(installerStep8Controller.startDeploy.calledOnce).to.be.true;
+        expect(installerStep8Controller.getExistingVersions.calledOnce).to.be.true;
       });
     });
 
@@ -1713,7 +1713,7 @@ describe('App.WizardStep8Controller', function () {
       installerStep8Controller.deleteClusterErrorCallback({}, null, null, {});
       expect(installerStep8Controller.get('clusterDeleteRequestsCompleted')).to.equal(2);
       expect(installerStep8Controller.showDeleteClustersErrorPopup.calledOnce).to.be.true;
-      expect(installerStep8Controller.startDeploy.called).to.be.false;
+      expect(installerStep8Controller.getExistingVersions.called).to.be.false;
     });
 
   });

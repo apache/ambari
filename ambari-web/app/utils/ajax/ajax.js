@@ -1937,11 +1937,12 @@ var urls = {
       }
     }
   },
-  'wizard.get_shown_version_definition': {
-    real: '/version_definitions?fields=VersionDefinition/stack_services&VersionDefinition/repository_version={repositoryVersion}&VersionDefinition/show_available=true'
+  'wizard.get_version_definitions': {
+    'real': '/version_definitions'
   },
-  'wizard.get_version_definition': {
-    real: '/version_definitions?fields=VersionDefinition/stack_services&VersionDefinition/repository_version={repositoryVersion}'
+  'wizard.delete_repository_versions': {
+    'real': '/stacks/{stackName}/versions/{stackVersion}/repository_versions/{id}',
+    'type': 'DELETE'
   },
   'wizard.service_components': {
     'real': '{stackUrl}/services?fields=StackServices/*,components/*,components/dependencies/Dependencies/scope,artifacts/Artifacts/artifact_name',

@@ -170,6 +170,12 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
   clusterDeleteRequestsCompleted: 0,
 
   /**
+   * Number of existing repo_versions
+   * @type {number}
+   */
+  existingRepositoryVersions: 0,
+
+  /**
    * Indicates if all cluster delete requests are completed
    * @type {boolean}
    */
@@ -684,7 +690,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
       if (self.get('content.controllerName') == 'installerController' && (!App.get('testMode')) && clusterNames.length) {
         self.deleteClusters(clusterNames);
       } else {
-        self.startDeploy();
+        self.getExistingVersions();
       }
     });
   },
@@ -756,7 +762,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
       if (this.get('clusterDeleteErrorViews.length')) {
         this.showDeleteClustersErrorPopup();
       } else {
-        this.startDeploy();
+        this.getExistingVersions();
       }
     }
   },
@@ -807,6 +813,62 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
         childViews: self.get('clusterDeleteErrorViews')
       })
     });
+  },
+
+  /**
+   * Get existing repo_versions
+   * @method getExistingVersions
+   */
+  getExistingVersions: function () {
+    return App.ajax.send({
+      name: 'wizard.get_version_definitions',
+      sender: this,
+      success: 'getExistingVersionsSuccessCallback'
+    });
+  },
+
+  /**
+   * @param {Object} data
+   * @method getExistingVersionsSuccessCallback
+   */
+  getExistingVersionsSuccessCallback: function (data) {
+    if (this.get('content.controllerName') == 'installerController' && (!App.get('testMode')) && data.items.length) {
+      this.set('existingRepositoryVersions', data.items.length);
+      this.deleteExistingVersions(data.items);
+    } else {
+      this.startDeploy();
+    }
+  },
+
+  /**
+   * Delete existing repo_versions
+   * @param {Array} versions
+   * @method deleteExistingVersions
+   */
+  deleteExistingVersions: function (versions) {
+    versions.forEach(function (version) {
+      App.ajax.send({
+        name: 'wizard.delete_repository_versions',
+        sender: this,
+        data: {
+          id: version.VersionDefinition.id,
+          stackName: version.VersionDefinition.stack_name,
+          stackVersion: version.VersionDefinition.stack_version
+        },
+        success: 'deleteExistingVersionsSuccessCallback'
+      });
+    }, this);
+  },
+
+  /**
+   * Method to execute after successful version deletion
+   * @method deleteExistingVersionsSuccessCallback
+   */
+  deleteExistingVersionsSuccessCallback: function () {
+    this.decrementProperty('existingRepositoryVersions');
+    if (this.get('existingRepositoryVersions') === 0) {
+      this.startDeploy();
+    }
   },
 
   /**
