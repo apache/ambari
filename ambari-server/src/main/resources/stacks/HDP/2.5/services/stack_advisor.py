@@ -140,6 +140,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
   def recommendHIVEConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP25StackAdvisor, self).recommendHIVEConfigurations(configurations, clusterData, services, hosts)
     putHiveInteractiveEnvProperty = self.putProperty(configurations, "hive-interactive-env", services)
+    putHiveInteractiveSiteProperty = self.putProperty(configurations, self.HIVE_INTERACTIVE_SITE, services)
 
     # For 'Hive Server Interactive', if the component exists.
     hsi_hosts = self.__getHostsForComponent(services, "HIVE", "HIVE_SERVER_INTERACTIVE")
@@ -147,13 +148,6 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       hsi_host = hsi_hosts[0]
       putHiveInteractiveEnvProperty('enable_hive_interactive', 'true')
       putHiveInteractiveEnvProperty('hive_server_interactive_host', hsi_host)
-
-      if 'hive.llap.zk.sm.connectionString' in services['configurations'][self.HIVE_INTERACTIVE_SITE]['properties']:
-        # Fill the property 'hive.llap.zk.sm.connectionString' required by Hive Server Interactive (HiveServer2)
-        zookeeper_host_port = self.getZKHostPortString(services)
-        if zookeeper_host_port:
-          putHiveInteractiveSiteProperty = self.putProperty(configurations, self.HIVE_INTERACTIVE_SITE, services)
-          putHiveInteractiveSiteProperty("hive.llap.zk.sm.connectionString", zookeeper_host_port)
 
       # Update 'hive.llap.daemon.queue.name' if capacity scheduler is changed.
       if 'hive.llap.daemon.queue.name' in services['configurations'][self.HIVE_INTERACTIVE_SITE]['properties']:
@@ -174,6 +168,12 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
         Logger.info("Updated 'Hive Server interactive' config 'hive.llap.io.enabled' to '{0}'.".format(llap_io_enabled))
     else:
       putHiveInteractiveEnvProperty('enable_hive_interactive', 'false')
+
+    if 'hive.llap.zk.sm.connectionString' in services['configurations'][self.HIVE_INTERACTIVE_SITE]['properties']:
+      # Fill the property 'hive.llap.zk.sm.connectionString' required by Hive Server Interactive (HiveServer2)
+      zookeeper_host_port = self.getZKHostPortString(services)
+      if zookeeper_host_port:
+        putHiveInteractiveSiteProperty("hive.llap.zk.sm.connectionString", zookeeper_host_port)
     pass
 
 
