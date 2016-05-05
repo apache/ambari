@@ -98,70 +98,74 @@ def hive_interactive(name=None):
 
   # Anything TODO for attributes
 
-  XmlConfig("hive-site.xml",
-            conf_dir=params.hive_server_interactive_conf_dir,
-            configurations=merged_hive_interactive_site,
-            configuration_attributes=params.config['configuration_attributes']['hive-interactive-site'],
-            owner=params.hive_user,
-            group=params.user_group,
-            mode=0644)
-
-  XmlConfig("hive-site.xml",
-            conf_dir=os.path.dirname(params.hive_server_interactive_conf_dir),
-            configurations=merged_hive_interactive_site,
-            configuration_attributes=params.config['configuration_attributes']['hive-interactive-site'],
-            owner=params.hive_user,
-            group=params.user_group,
-            mode=0644)
-
   # Merge tez-interactive with tez-site
   XmlConfig("tez-site.xml",
-             conf_dir = params.tez_interactive_config_dir,
-             configurations = params.config['configurations']['tez-interactive-site'],
-             configuration_attributes=params.config['configuration_attributes']['tez-interactive-site'],
-             owner = params.tez_interactive_user,
-             group = params.user_group,
-             mode = 0664)
+            conf_dir = params.tez_interactive_config_dir,
+            configurations = params.config['configurations']['tez-interactive-site'],
+            configuration_attributes=params.config['configuration_attributes']['tez-interactive-site'],
+            owner = params.tez_interactive_user,
+            group = params.user_group,
+            mode = 0664)
 
-  File(format("{hive_server_interactive_conf_dir}/hive-env.sh"),
-       owner=params.hive_user,
-       group=params.user_group,
-       content=InlineTemplate(params.hive_interactive_env_sh_template))
+  # Create config files under /etc/hive2/conf and /etc/hive2/conf/conf.server:
+  #   hive-site.xml
+  #   hive-env.sh
+  #   llap-daemon-log4j2.properties
+  #   llap-cli-log4j2.properties
+  #   hive-log4j2.properties
+  #   hive-exec-log4j2.properties
+  #   beeline-log4j2.properties
 
-  llap_daemon_log4j_filename = 'llap-daemon-log4j2.properties'
-  File(format("{hive_server_interactive_conf_dir}/{llap_daemon_log4j_filename}"),
-       mode=0644,
-       group=params.user_group,
-       owner=params.hive_user,
-       content=params.llap_daemon_log4j)
+  for conf_dir in params.hive_conf_dirs_list:
+      XmlConfig("hive-site.xml",
+                conf_dir=conf_dir,
+                configurations=merged_hive_interactive_site,
+                configuration_attributes=params.config['configuration_attributes']['hive-interactive-site'],
+                owner=params.hive_user,
+                group=params.user_group,
+                mode=0644)
 
-  llap_cli_log4j2_filename = 'llap-cli-log4j2.properties'
-  File(format("{hive_server_interactive_conf_dir}/{llap_cli_log4j2_filename}"),
-       mode=0644,
-       group=params.user_group,
-       owner=params.hive_user,
-       content=params.llap_cli_log4j2)
+      hive_server_interactive_conf_dir = conf_dir
 
-  hive_log4j2_filename = 'hive-log4j2.properties'
-  File(format("{hive_server_interactive_conf_dir}/{hive_log4j2_filename}"),
-     mode=0644,
-     group=params.user_group,
-     owner=params.hive_user,
-     content=params.hive_log4j2)
+      File(format("{hive_server_interactive_conf_dir}/hive-env.sh"),
+           owner=params.hive_user,
+           group=params.user_group,
+           content=InlineTemplate(params.hive_interactive_env_sh_template))
 
-  hive_exec_log4j2_filename = 'hive-exec-log4j2.properties'
-  File(format("{hive_server_interactive_conf_dir}/{hive_exec_log4j2_filename}"),
-     mode=0644,
-     group=params.user_group,
-     owner=params.hive_user,
-     content=params.hive_exec_log4j2)
+      llap_daemon_log4j_filename = 'llap-daemon-log4j2.properties'
+      File(format("{hive_server_interactive_conf_dir}/{llap_daemon_log4j_filename}"),
+           mode=0644,
+           group=params.user_group,
+           owner=params.hive_user,
+           content=params.llap_daemon_log4j)
 
-  beeline_log4j2_filename = 'beeline-log4j2.properties'
-  File(format("{hive_server_interactive_conf_dir}/{beeline_log4j2_filename}"),
-     mode=0644,
-     group=params.user_group,
-     owner=params.hive_user,
-     content=params.beeline_log4j2)
+      llap_cli_log4j2_filename = 'llap-cli-log4j2.properties'
+      File(format("{hive_server_interactive_conf_dir}/{llap_cli_log4j2_filename}"),
+           mode=0644,
+           group=params.user_group,
+           owner=params.hive_user,
+           content=params.llap_cli_log4j2)
+
+      hive_log4j2_filename = 'hive-log4j2.properties'
+      File(format("{hive_server_interactive_conf_dir}/{hive_log4j2_filename}"),
+         mode=0644,
+         group=params.user_group,
+         owner=params.hive_user,
+         content=params.hive_log4j2)
+
+      hive_exec_log4j2_filename = 'hive-exec-log4j2.properties'
+      File(format("{hive_server_interactive_conf_dir}/{hive_exec_log4j2_filename}"),
+         mode=0644,
+         group=params.user_group,
+         owner=params.hive_user,
+         content=params.hive_exec_log4j2)
+
+      beeline_log4j2_filename = 'beeline-log4j2.properties'
+      File(format("{hive_server_interactive_conf_dir}/{beeline_log4j2_filename}"),
+         mode=0644,
+         group=params.user_group,
+         owner=params.hive_user,
+         content=params.beeline_log4j2)
 
   # On some OS this folder could be not exists, so we will create it before pushing there files
   Directory(params.limits_conf_dir,

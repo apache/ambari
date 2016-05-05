@@ -203,27 +203,6 @@ class TestHiveServerInteractive(RMFTestCase):
     self.assertResourceCalled("File", "/usr/hdp/current/hive-server2-hive2/conf/conf.server/hive-env.sh.template",
                               owner=u"hive",
                               group=u"hadoop")
-
-    self.assertResourceCalled('XmlConfig', 'hive-site.xml',
-                              group='hadoop',
-                              conf_dir='/usr/hdp/current/hive-server2-hive2/conf/conf.server',
-                              mode=0644,
-                              configuration_attributes={u'final': {u'hive.optimize.bucketmapjoin.sortedmerge': u'true',
-                                                                   u'javax.jdo.option.ConnectionDriverName': u'true',
-                                                                   u'javax.jdo.option.ConnectionPassword': u'true'}},
-                              owner='hive',
-                              configurations=hive_site_conf,
-    )
-    self.assertResourceCalled('XmlConfig', 'hive-site.xml',
-                              group='hadoop',
-                              conf_dir='/usr/hdp/current/hive-server2-hive2/conf',
-                              mode=0644,
-                              configuration_attributes={u'final': {u'hive.optimize.bucketmapjoin.sortedmerge': u'true',
-                                                                   u'javax.jdo.option.ConnectionDriverName': u'true',
-                                                                   u'javax.jdo.option.ConnectionPassword': u'true'}},
-                              owner='hive',
-                              configurations=hive_site_conf,
-    )
     self.assertResourceCalled('XmlConfig', 'tez-site.xml',
                               group='hadoop',
                               conf_dir='/etc/tez_hive2/conf',
@@ -231,42 +210,58 @@ class TestHiveServerInteractive(RMFTestCase):
                               configuration_attributes=UnknownConfigurationMock(),
                               owner='tez',
                               configurations=self.getConfig()['configurations']['tez-interactive-site'],
-                              )
-    self.assertResourceCalled('File', '/usr/hdp/current/hive-server2-hive2/conf/conf.server/hive-env.sh',
-                              content=InlineTemplate(self.getConfig()['configurations']['hive-interactive-env']['content']),
-                              owner='hive',
-                              group='hadoop',
     )
-    self.assertResourceCalled('File', '/usr/hdp/current/hive-server2-hive2/conf/conf.server/llap-daemon-log4j2.properties',
-                              content='con\ntent',
-                              owner='hive',
-                              group='hadoop',
-                              mode=0644,
-    )
-    self.assertResourceCalled('File', '/usr/hdp/current/hive-server2-hive2/conf/conf.server/llap-cli-log4j2.properties',
-                              content='con\ntent',
-                              owner='hive',
-                              group='hadoop',
-                              mode=0644,
-    )
-    self.assertResourceCalled('File', '/usr/hdp/current/hive-server2-hive2/conf/conf.server/hive-log4j2.properties',
-                              content='con\ntent',  # Test new line
-                              owner='hive',
-                              group='hadoop',
-                              mode=0644,
-    )
-    self.assertResourceCalled('File', '/usr/hdp/current/hive-server2-hive2/conf/conf.server/hive-exec-log4j2.properties',
-                              content='con\ntent',  # Test new line
-                              owner='hive',
-                              group='hadoop',
-                              mode=0644,
-    )
-    self.assertResourceCalled('File', '/usr/hdp/current/hive-server2-hive2/conf/conf.server/beeline-log4j2.properties',
-                              content='con\ntent',  # Test new line
-                              owner='hive',
-                              group='hadoop',
-                              mode=0644,
-    )
+    # Verify that config files got created under /etc/hive2/conf and /etc/hive2/conf/conf.server
+    hive_conf_dirs_list = ['/usr/hdp/current/hive-server2-hive2/conf', '/usr/hdp/current/hive-server2-hive2/conf/conf.server']
+
+    for conf_dir in hive_conf_dirs_list:
+        self.assertResourceCalled('XmlConfig', 'hive-site.xml',
+                                  group='hadoop',
+                                  conf_dir=conf_dir,
+                                  mode=0644,
+                                  configuration_attributes={u'final': {u'hive.optimize.bucketmapjoin.sortedmerge': u'true',
+                                                                       u'javax.jdo.option.ConnectionDriverName': u'true',
+                                                                       u'javax.jdo.option.ConnectionPassword': u'true'}},
+                                  owner='hive',
+                                  configurations=hive_site_conf,
+        )
+        self.assertResourceCalled('File', os.path.join(conf_dir, 'hive-env.sh'),
+                                  content=InlineTemplate(self.getConfig()['configurations']['hive-interactive-env']['content']),
+                                  owner='hive',
+                                  group='hadoop',
+        )
+        self.assertResourceCalled('File', os.path.join(conf_dir, 'llap-daemon-log4j2.properties'),
+                                  content='con\ntent',
+                                  owner='hive',
+                                  group='hadoop',
+                                  mode=0644,
+        )
+        self.assertResourceCalled('File', os.path.join(conf_dir, 'llap-cli-log4j2.properties'),
+                                  content='con\ntent',
+                                  owner='hive',
+                                  group='hadoop',
+                                  mode=0644,
+        )
+        self.assertResourceCalled('File', os.path.join(conf_dir, 'hive-log4j2.properties'),
+                                  content='con\ntent',  # Test new line
+                                  owner='hive',
+                                  group='hadoop',
+                                  mode=0644,
+        )
+        self.assertResourceCalled('File', os.path.join(conf_dir, 'hive-exec-log4j2.properties'),
+                                  content='con\ntent',  # Test new line
+                                  owner='hive',
+                                  group='hadoop',
+                                  mode=0644,
+        )
+        self.assertResourceCalled('File', os.path.join(conf_dir, 'beeline-log4j2.properties'),
+                                  content='con\ntent',  # Test new line
+                                  owner='hive',
+                                  group='hadoop',
+                                  mode=0644,
+        )
+        pass
+
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
                               owner='root',
                               group='root',
