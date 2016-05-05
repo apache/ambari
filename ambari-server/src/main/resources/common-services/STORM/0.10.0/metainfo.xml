@@ -21,9 +21,37 @@
   <services>
     <service>
       <name>STORM</name>
-      <displayName>Storm</displayName>
-      <version>0.9.3.2.2</version>
+      <version>0.10.0</version>
       <extends>common-services/STORM/0.9.3</extends>
+      <components>
+        <component>
+          <name>NIMBUS</name>
+          <displayName>Nimbus</displayName>
+          <category>MASTER</category>
+          <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <dependencies>
+            <dependency>
+              <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>
+              <scope>cluster</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+          <commandScript>
+            <script>scripts/nimbus.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1200</timeout>
+          </commandScript>
+          <logs>
+            <log>
+              <logId>storm_nimbus</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
+        </component>
+      </components>
     </service>
   </services>
 </metainfo>

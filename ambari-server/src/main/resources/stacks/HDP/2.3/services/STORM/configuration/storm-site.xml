@@ -20,41 +20,39 @@
 
 <configuration supports_final="true" xmlns:xi="http://www.w3.org/2001/XInclude">
   <property>
-    <name>nimbus.seeds</name>
-    <value>localhost</value>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
-    <description>Comma-delimited list of the hosts running nimbus server.</description>
+    <name>java.library.path</name>
+    <value>/usr/local/lib:/opt/local/lib:/usr/lib:/usr/hdp/current/storm-client/lib</value>
+    <description>This value is passed to spawned JVMs (e.g., Nimbus, Supervisor, and Workers)
+      for the java.library.path value. java.library.path tells the JVM where
+      to look for native libraries. It is necessary to set this config correctly since
+      Storm uses the ZeroMQ and JZMQ native libs. </description>
+  </property>
+
+  <property>
+    <name>nimbus.childopts</name>
+    <value>-Xmx1024m _JAAS_PLACEHOLDER -javaagent:/usr/hdp/current/storm-nimbus/contrib/storm-jmxetric/lib/jmxetric-1.0.4.jar=host=localhost,port=8649,wireformat31x=true,mode=multicast,config=/usr/hdp/current/storm-nimbus/contrib/storm-jmxetric/conf/jmxetric-conf.xml,process=Nimbus_JVM</value>
+    <description>This parameter is used by the storm-deploy project to configure the jvm options for the nimbus daemon.</description>
     <value-attributes>
-      <type>componentHosts</type>
-      <editable-only-at-install>true</editable-only-at-install>
       <overridable>false</overridable>
     </value-attributes>
   </property>
+
   <property>
-    <name>topology.min.replication.count.default</name>
-    <value>1</value>
-    <description>Default minimum number of nimbus hosts where the code must be replicated before leader nimbus can mark the topology as active and create assignments. </description>
+    <name>worker.childopts</name>
+    <value>-Xmx768m _JAAS_PLACEHOLDER -javaagent:/usr/hdp/current/storm-client/contrib/storm-jmxetric/lib/jmxetric-1.0.4.jar=host=localhost,port=8650,wireformat31x=true,mode=multicast,config=/usr/hdp/current/storm-client/contrib/storm-jmxetric/conf/jmxetric-conf.xml,process=Worker_%ID%_JVM</value>
+    <description>The jvm opts provided to workers launched by this supervisor. All \"%ID%\" substrings are replaced with an identifier for this worker.</description>
+    <value-attributes>
+      <type>multiLine</type>
+    </value-attributes>
   </property>
+
   <property>
-    <name>topology.min.replication.count</name>
-    <value>{{actual_topology_min_replication_count}}</value>
-    <description>Calculated minimum number of nimbus hosts where the code must be replicated before leader nimbus can mark the topology as active and create assignments. </description>
-  </property>  
-  <property>
-      <name>topology.max.replication.wait.time.sec.default</name>
-      <value>60</value>
-      <description>Default maximum wait time for the nimbus host replication to achieve the nimbus.min.replication.count. Once this time is elapsed nimbus will go ahead and perform topology activation tasks even if required nimbus.min.replication.count is not achieved</description>
+    <name>supervisor.childopts</name>
+    <value>-Xmx256m _JAAS_PLACEHOLDER -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.port={{jmxremote_port}} -javaagent:/usr/hdp/current/storm-supervisor/contrib/storm-jmxetric/lib/jmxetric-1.0.4.jar=host=localhost,port=8650,wireformat31x=true,mode=multicast,config=/usr/hdp/current/storm-supervisor/contrib/storm-jmxetric/conf/jmxetric-conf.xml,process=Supervisor_JVM</value>
+    <description>This parameter is used by the storm-deploy project to configure the jvm options for the supervisor daemon.</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
-  <property>
-      <name>topology.max.replication.wait.time.sec</name>
-      <value>{{actual_topology_max_replication_wait_time_sec}}</value>
-      <description>Calculated maximum wait time for the nimbus host replication to achieve the nimbus.min.replication.count. Once this time is elapsed nimbus will go ahead and perform topology activation tasks even if required nimbus.min.replication.count is not achieved</description>
-  </property>  
-   <property>
-    <name>nimbus.host</name>
-    <value>localhost</value>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
-    <description>Deprecated config in favor of nimbus.seeds used during non HA mode.</description>
-    <deleted>true</deleted>
-  </property>
+
 </configuration>
