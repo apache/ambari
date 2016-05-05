@@ -17,7 +17,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-from resource_management.libraries.script import UnknownConfiguration
 from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.jmx import get_value_from_jmx
@@ -140,8 +139,8 @@ def get_active_namenode(hdfs_site, security_enabled, run_user):
   active_namenodes = get_namenode_states(hdfs_site, security_enabled, run_user)[0]
   if active_namenodes:
     return active_namenodes[0]
-  else:
-    return UnknownConfiguration('fs_root')
+
+  raise Fail('No active NameNode was found.')
   
 def get_property_for_active_namenode(hdfs_site, property_name, security_enabled, run_user):
   """
