@@ -104,9 +104,40 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     next: function (router) {
       console.time('step0 next');
       var installerController = router.get('installerController');
+      var wizardStep1Controller = router.get('wizardStep1Controller');
       installerController.save('cluster');
       App.db.setStacks(undefined);
+      App.db.setRepos(undefined);
+      App.db.setLocalRepoVDFData(undefined);
+      App.Stack.find().clear();
+
       installerController.set('content.stacks',undefined);
+      wizardStep1Controller.set('skipValidationChecked', false);
+      wizardStep1Controller.set('optionsToSelect', {
+        'usePublicRepo': {
+          index: 0,
+          isSelected: true
+        },
+        'useLocalRepo': {
+          index: 1,
+          isSelected: false,
+          'uploadFile': {
+            index: 0,
+            name: 'uploadFile',
+            file: '',
+            hasError: false,
+            isSelected: true
+          },
+          'enterUrl': {
+            index: 1,
+            name: 'enterUrl',
+            url: '',
+            placeholder: 'Enter URL to Version Definition File',
+            hasError: false,
+            isSelected: false
+          }
+        }
+      });
       router.transitionTo('step1');
       console.timeEnd('step0 next');
     }

@@ -121,6 +121,9 @@ App.WizardStep1Controller = Em.Controller.extend({
   },
 
   changeUseRedhatSatellite: function () {
+    if (App.router.get('installerController.currentStep') !== "1") {
+      return;
+    }
     if (this.get('selectedStack.useRedhatSatellite')) {
       return App.ModalPopup.show({
         header: Em.I18n.t('common.important'),
