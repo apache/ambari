@@ -37,7 +37,7 @@
         "label": "HiveServer2 Interactive UI",
         "requires_user_name": "false",
         "component_name": "HIVE_SERVER_INTERACTIVE",
-        "url": "%@://%@:%@/llap/llap0",
+        "url": "%@://%@:%@/llap.html",
         "port":{
           "http_property": "hive.server2.webui.port",
           "http_default_port": "10502",
