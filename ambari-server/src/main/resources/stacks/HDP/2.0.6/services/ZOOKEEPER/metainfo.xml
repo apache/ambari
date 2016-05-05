@@ -20,7 +20,8 @@
   <services>
     <service>
       <name>ZOOKEEPER</name>
-      <extends>common-services/ZOOKEEPER/3.4.5.2.0</extends>
+      <version>3.4.5.2.0</version>
+      <extends>common-services/ZOOKEEPER/3.4.5</extends>
     </service>
   </services>
 </metainfo>

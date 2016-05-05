@@ -22,7 +22,7 @@
       <name>ZOOKEEPER</name>
       <displayName>ZooKeeper</displayName>
       <comment>Centralized service which provides highly reliable distributed coordination</comment>
-      <version>3.4.5.2.0</version>
+      <version>3.4.5</version>
       <components>
 
         <component>

@@ -143,7 +143,7 @@ public class KerberosDescriptorTest {
 
   @Test
   public void testCommonZookeepeerServiceDescriptor() throws IOException {
-    KerberosDescriptor descriptor = getKerberosDescriptor(commonServicesDirectory, "ZOOKEEPER", "3.4.5.2.0");
+    KerberosDescriptor descriptor = getKerberosDescriptor(commonServicesDirectory, "ZOOKEEPER", "3.4.5");
     Assert.notNull(descriptor);
     Assert.notNull(descriptor.getServices());
     Assert.notNull(descriptor.getService("ZOOKEEPER"));

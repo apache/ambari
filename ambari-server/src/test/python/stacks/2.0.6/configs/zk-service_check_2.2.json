@@ -3,7 +3,7 @@
         "command_timeout": "300", 
         "script": "scripts/service_check.py", 
         "script_type": "PYTHON", 
-        "service_package_folder": "common-services/ZOOKEEPER/3.4.5.2.0/package", 
+        "service_package_folder": "common-services/ZOOKEEPER/3.4.5/package",
         "hooks_folder": "HDP/2.0.6/hooks"
     }, 
     "roleCommand": "SERVICE_CHECK", 
