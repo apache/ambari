@@ -141,6 +141,7 @@ public class AlertStateChangedListener {
 
     List<AlertGroupEntity> groups = m_alertsDispatchDao.findGroupsByDefinition(definition);
     List<AlertNoticeEntity> notices = new LinkedList<AlertNoticeEntity>();
+
     // for each group, determine if there are any targets that need to receive
     // a notification about the alert state change event
     for (AlertGroupEntity group : groups) {
@@ -150,7 +151,7 @@ public class AlertStateChangedListener {
       }
 
       for (AlertTargetEntity target : targets) {
-        if (!isAlertTargetInterested(target, history)) {
+        if (!isAlertTargetInterestedAndEnabled(target, history)) {
           continue;
         }
 
@@ -163,12 +164,16 @@ public class AlertStateChangedListener {
       }
     }
 
-    m_alertsDispatchDao.createNotices(notices);
+    // create notices if there are any to create
+    if (!notices.isEmpty()) {
+      m_alertsDispatchDao.createNotices(notices);
+    }
   }
 
   /**
    * Gets whether the {@link AlertTargetEntity} is interested in receiving a
-   * notification about the {@link AlertHistoryEntity}'s state change.
+   * notification about the {@link AlertHistoryEntity}'s state change. If an
+   * alert target is disabled, then this will return {@code false}.
    *
    * @param target
    *          the target (not {@code null}).
@@ -178,8 +183,14 @@ public class AlertStateChangedListener {
    * @return {@code true} if the target cares about this state change,
    *         {@code false} otherwise.
    */
-  private boolean isAlertTargetInterested(AlertTargetEntity target,
+  private boolean isAlertTargetInterestedAndEnabled(AlertTargetEntity target,
       AlertHistoryEntity history) {
+
+    // disable alert targets should be skipped
+    if (!target.isEnabled()) {
+      return false;
+    }
+
     Set<AlertState> alertStates = target.getAlertStates();
     if (null != alertStates && alertStates.size() > 0) {
       if (!alertStates.contains(history.getAlertState())) {

@@ -116,6 +116,7 @@ public class AlertStateChangedEventTest {
     groups.add(alertGroup);
 
     EasyMock.expect(alertGroup.getAlertTargets()).andReturn(targets).once();
+    EasyMock.expect(alertTarget.isEnabled()).andReturn(Boolean.TRUE).atLeastOnce();
     EasyMock.expect(alertTarget.getAlertStates()).andReturn(
         EnumSet.of(AlertState.OK, AlertState.CRITICAL)).atLeastOnce();
 
@@ -149,7 +150,7 @@ public class AlertStateChangedEventTest {
 
     // async publishing
     eventPublisher.publish(event);
-    EasyMock.verify(dispatchDao, current, history, event);
+    EasyMock.verify(dispatchDao, alertTarget, current, history, event);
   }
 
   /**
@@ -169,14 +170,13 @@ public class AlertStateChangedEventTest {
     groups.add(alertGroup);
 
     EasyMock.expect(alertGroup.getAlertTargets()).andReturn(targets).once();
+    EasyMock.expect(alertTarget.isEnabled()).andReturn(Boolean.TRUE).atLeastOnce();
     EasyMock.expect(alertTarget.getAlertStates()).andReturn(
         EnumSet.of(AlertState.OK, AlertState.CRITICAL)).atLeastOnce();
 
     EasyMock.expect(
         dispatchDao.findGroupsByDefinition(EasyMock.anyObject(AlertDefinitionEntity.class))).andReturn(
         groups).once();
-
-    dispatchDao.createNotices(EasyMock.<List<AlertNoticeEntity>>anyObject());
 
     // dispatchDao should be strict enough to throw an exception on verify
     // that the create alert notice method was not called
@@ -208,6 +208,57 @@ public class AlertStateChangedEventTest {
     // async publishing
     eventPublisher.publish(event);
     EasyMock.verify(dispatchDao, current, history, event);
+  }
+
+  /**
+   * Tests that an {@link AlertNoticeEntity} is not created for a target that
+   * has been disabled.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testAlertNoticeSkippedForDisabledTarget() throws Exception {
+    AlertTargetEntity alertTarget = EasyMock.createMock(AlertTargetEntity.class);
+    AlertGroupEntity alertGroup = EasyMock.createMock(AlertGroupEntity.class);
+    List<AlertGroupEntity> groups = new ArrayList<AlertGroupEntity>();
+    Set<AlertTargetEntity> targets = new HashSet<AlertTargetEntity>();
+
+    targets.add(alertTarget);
+    groups.add(alertGroup);
+
+    EasyMock.expect(alertGroup.getAlertTargets()).andReturn(targets).once();
+    EasyMock.expect(alertTarget.isEnabled()).andReturn(Boolean.FALSE).atLeastOnce();
+
+    EasyMock.expect(dispatchDao.findGroupsByDefinition(
+        EasyMock.anyObject(AlertDefinitionEntity.class))).andReturn(groups).once();
+
+    // dispatchDao should be strict enough to throw an exception on verify
+    // that the create alert notice method was not called
+    EasyMock.replay(alertTarget, alertGroup, dispatchDao);
+
+    AlertDefinitionEntity definition = getMockAlertDefinition();
+
+    AlertCurrentEntity current = getMockedAlertCurrentEntity();
+    AlertHistoryEntity history = EasyMock.createNiceMock(AlertHistoryEntity.class);
+    AlertStateChangeEvent event = EasyMock.createNiceMock(AlertStateChangeEvent.class);
+    Alert alert = EasyMock.createNiceMock(Alert.class);
+
+    EasyMock.expect(current.getAlertHistory()).andReturn(history).anyTimes();
+    EasyMock.expect(current.getFirmness()).andReturn(AlertFirmness.HARD).atLeastOnce();
+    EasyMock.expect(history.getAlertState()).andReturn(AlertState.OK).atLeastOnce();
+
+    EasyMock.expect(history.getAlertDefinition()).andReturn(definition).atLeastOnce();
+    EasyMock.expect(alert.getText()).andReturn("The HDFS Foo Alert Is Not Good").atLeastOnce();
+    EasyMock.expect(alert.getState()).andReturn(AlertState.WARNING).atLeastOnce();
+    EasyMock.expect(event.getCurrentAlert()).andReturn(current).atLeastOnce();
+    EasyMock.expect(event.getNewHistoricalEntry()).andReturn(history).atLeastOnce();
+    EasyMock.expect(event.getAlert()).andReturn(alert).atLeastOnce();
+
+    EasyMock.replay(definition, current, history, event, alert);
+
+    // async publishing
+    eventPublisher.publish(event);
+    EasyMock.verify(dispatchDao, alertTarget, current, history, event);
   }
 
   /**

@@ -67,14 +67,14 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.util.Modules;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * {@link AlertTargetResourceProvider} tests.
@@ -366,7 +366,7 @@ public class AlertTargetResourceProviderTest {
     groups.addAll(Arrays.asList(group1, group2, group3));
     expect(m_dao.findGroupsById(groupIds)).andReturn(groups).once();
 
-    Capture<AlertTargetEntity> targetCapture = new Capture<AlertTargetEntity>();
+    Capture<AlertTargetEntity> targetCapture = EasyMock.newCapture();
     m_dao.create(capture(targetCapture));
     expectLastCall();
 
@@ -431,7 +431,7 @@ public class AlertTargetResourceProviderTest {
    * @throws Exception
    */
   private void testCreateGlobalTarget(Authentication authentication) throws Exception {
-    Capture<AlertTargetEntity> targetCapture = new Capture<AlertTargetEntity>();
+    Capture<AlertTargetEntity> targetCapture = EasyMock.newCapture();
     m_dao.create(capture(targetCapture));
     expectLastCall();
 
@@ -497,7 +497,7 @@ public class AlertTargetResourceProviderTest {
    * @throws Exception
    */
   private void testCreateResourceWithRecipientArray(Authentication  authentication) throws Exception {
-    Capture<AlertTargetEntity> targetCapture = new Capture<AlertTargetEntity>();
+    Capture<AlertTargetEntity> targetCapture = EasyMock.newCapture();
     m_dao.create(capture(targetCapture));
     expectLastCall();
 
@@ -560,9 +560,8 @@ public class AlertTargetResourceProviderTest {
   /**
    * @throws Exception
    */
-  @SuppressWarnings("unchecked")
   private void testCreateResourceWithAlertStates(Authentication authentication) throws Exception {
-    Capture<AlertTargetEntity> targetCapture = new Capture<AlertTargetEntity>();
+    Capture<AlertTargetEntity> targetCapture = EasyMock.newCapture();
     m_dao.create(capture(targetCapture));
     expectLastCall();
 
@@ -574,7 +573,7 @@ public class AlertTargetResourceProviderTest {
     Map<String, Object> requestProps = getCreationProperties();
     requestProps.put(
         AlertTargetResourceProvider.ALERT_TARGET_STATES,
-        new ArrayList(Arrays.asList(AlertState.OK.name(),
+        new ArrayList<String>(Arrays.asList(AlertState.OK.name(),
             AlertState.UNKNOWN.name())));
 
     Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
@@ -628,9 +627,8 @@ public class AlertTargetResourceProviderTest {
   /**
    * @throws Exception
    */
-  @SuppressWarnings("unchecked")
   private void testUpdateResources(Authentication authentication) throws Exception {
-    Capture<AlertTargetEntity> entityCapture = new Capture<AlertTargetEntity>();
+    Capture<AlertTargetEntity> entityCapture = EasyMock.newCapture();
     m_dao.create(capture(entityCapture));
     expectLastCall().times(1);
 
@@ -704,9 +702,8 @@ public class AlertTargetResourceProviderTest {
   /**
    * @throws Exception
    */
-  @SuppressWarnings("unchecked")
   private void testUpdateResourcesWithGroups(Authentication authentication) throws Exception {
-    Capture<AlertTargetEntity> entityCapture = new Capture<AlertTargetEntity>();
+    Capture<AlertTargetEntity> entityCapture = EasyMock.newCapture();
     m_dao.create(capture(entityCapture));
     expectLastCall().times(1);
 
@@ -788,7 +785,7 @@ public class AlertTargetResourceProviderTest {
    * @throws Exception
    */
   private void testDeleteResources(Authentication authentication) throws Exception {
-    Capture<AlertTargetEntity> entityCapture = new Capture<AlertTargetEntity>();
+    Capture<AlertTargetEntity> entityCapture = EasyMock.newCapture();
     m_dao.create(capture(entityCapture));
     expectLastCall().times(1);
 
@@ -856,7 +853,7 @@ public class AlertTargetResourceProviderTest {
     // mock out returning an existing entity
     AlertTargetEntity entity = getMockEntities().get(0);
     expect(m_dao.findTargetByName(ALERT_TARGET_NAME)).andReturn(entity).atLeastOnce();
-    Capture<AlertTargetEntity> targetCapture = new Capture<AlertTargetEntity>();
+    Capture<AlertTargetEntity> targetCapture = EasyMock.newCapture();
     expect(m_dao.merge(capture(targetCapture))).andReturn(entity).once();
 
     replay(m_amc, m_dao);
@@ -896,14 +893,14 @@ public class AlertTargetResourceProviderTest {
 
   @Test
   public void testUpdateAlertTargetsWithCustomGroups() throws Exception{
-    Capture<AlertTargetEntity> entityCapture = new Capture<AlertTargetEntity>();
+    Capture<AlertTargetEntity> entityCapture = EasyMock.newCapture();
     m_dao.create(capture(entityCapture));
     expectLastCall().times(1);
 
     AlertTargetEntity target = new AlertTargetEntity();
     expect(m_dao.findTargetById(ALERT_TARGET_ID)).andReturn(target).once();
 
-    Capture<AlertGroupEntity> groupEntityCapture = new Capture<AlertGroupEntity>();
+    Capture<AlertGroupEntity> groupEntityCapture = EasyMock.newCapture();
 
     //All Groups in the Database with CLuster ID = 1L
     List<AlertGroupEntity> groups = getMockGroupEntities();
@@ -957,14 +954,14 @@ public class AlertTargetResourceProviderTest {
 
   @Test
   public void testUpdateAlertTargetsWithAllGroups() throws Exception{
-    Capture<AlertTargetEntity> entityCapture = new Capture<AlertTargetEntity>();
+    Capture<AlertTargetEntity> entityCapture = EasyMock.newCapture();
     m_dao.create(capture(entityCapture));
     expectLastCall().times(1);
 
     AlertTargetEntity target = new AlertTargetEntity();
     expect(m_dao.findTargetById(ALERT_TARGET_ID)).andReturn(target).once();
 
-    Capture<AlertGroupEntity> groupEntityCapture = new Capture<AlertGroupEntity>();
+    Capture<AlertGroupEntity> groupEntityCapture = EasyMock.newCapture();
 
     //All Groups in the Database with CLuster ID = 1L
     List<AlertGroupEntity> groups = getMockGroupEntities();
@@ -1098,7 +1095,6 @@ public class AlertTargetResourceProviderTest {
   /**
    * @return
    */
-  @SuppressWarnings({ "rawtypes", "unchecked" })
   private List<AlertGroupEntity> getMockGroupEntities() throws Exception {
     AlertGroupEntity group1 = new AlertGroupEntity();
     AlertGroupEntity group2 = new AlertGroupEntity();

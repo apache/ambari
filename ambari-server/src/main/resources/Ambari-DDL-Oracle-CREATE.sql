@@ -949,6 +949,7 @@ CREATE TABLE alert_target (
   properties CLOB,
   description VARCHAR2(1024),
   is_global NUMBER(1) DEFAULT 0 NOT NULL,
+  is_enabled NUMBER(1) DEFAULT 1 NOT NULL,
   CONSTRAINT PK_alert_target PRIMARY KEY (target_id)
 );
 

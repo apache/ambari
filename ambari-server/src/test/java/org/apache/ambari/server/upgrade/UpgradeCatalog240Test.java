@@ -197,12 +197,14 @@ public class UpgradeCatalog240Test {
     Capture<DBAccessor.DBColumnInfo> capturedRepeatToleranceEnabledColumnInfo = newCapture();
     Capture<DBAccessor.DBColumnInfo> capturedOccurrencesColumnInfo = newCapture();
     Capture<DBAccessor.DBColumnInfo> capturedFirmnessColumnInfo = newCapture();
+    Capture<DBAccessor.DBColumnInfo> capturedTargetEnabledColumnInfo = newCapture();
 
     dbAccessor.addColumn(eq(UpgradeCatalog240.ALERT_DEFINITION_TABLE), capture(capturedHelpURLColumnInfo));
     dbAccessor.addColumn(eq(UpgradeCatalog240.ALERT_DEFINITION_TABLE), capture(capturedRepeatToleranceColumnInfo));
     dbAccessor.addColumn(eq(UpgradeCatalog240.ALERT_DEFINITION_TABLE), capture(capturedRepeatToleranceEnabledColumnInfo));
     dbAccessor.addColumn(eq(UpgradeCatalog240.ALERT_CURRENT_TABLE), capture(capturedOccurrencesColumnInfo));
     dbAccessor.addColumn(eq(UpgradeCatalog240.ALERT_CURRENT_TABLE), capture(capturedFirmnessColumnInfo));
+    dbAccessor.addColumn(eq(UpgradeCatalog240.ALERT_TARGET_TABLE), capture(capturedTargetEnabledColumnInfo));
 
     // Test creation of blueprint_setting table
     Capture<List<DBAccessor.DBColumnInfo>> capturedBlueprintSettingColumns = EasyMock.newCapture();
@@ -353,6 +355,13 @@ public class UpgradeCatalog240Test {
     Assert.assertEquals(AlertFirmness.HARD.name(), columnFirmnessInfo.getDefaultValue());
     Assert.assertEquals(false, columnFirmnessInfo.isNullable());
 
+    DBAccessor.DBColumnInfo targetEnabledColumnInfo = capturedTargetEnabledColumnInfo.getValue();
+    Assert.assertNotNull(targetEnabledColumnInfo);
+    Assert.assertEquals(UpgradeCatalog240.ALERT_TARGET_ENABLED_COLUMN, targetEnabledColumnInfo.getName());
+    Assert.assertEquals(Short.class, targetEnabledColumnInfo.getType());
+    Assert.assertEquals(1, targetEnabledColumnInfo.getDefaultValue());
+    Assert.assertEquals(false, targetEnabledColumnInfo.isNullable());    
+    
     assertEquals(expectedCaptures, actualCaptures);
 
     // Verify blueprint_setting columns

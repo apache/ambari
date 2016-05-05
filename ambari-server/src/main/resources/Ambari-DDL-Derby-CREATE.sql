@@ -951,6 +951,7 @@ CREATE TABLE alert_target (
   properties VARCHAR(3000),
   description VARCHAR(1024),
   is_global SMALLINT NOT NULL DEFAULT 0,
+  is_enabled SMALLINT NOT NULL DEFAULT 1,
   CONSTRAINT PK_alert_target PRIMARY KEY (target_id)
 );
 

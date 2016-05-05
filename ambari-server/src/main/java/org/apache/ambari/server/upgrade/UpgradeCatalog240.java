@@ -87,6 +87,8 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   protected static final String ADMIN_PERMISSION_TABLE = "adminpermission";
   protected static final String PRINCIPAL_ID_COL = "principal_id";
   protected static final String ALERT_DEFINITION_TABLE = "alert_definition";
+  protected static final String ALERT_TARGET_TABLE = "alert_target";
+  protected static final String ALERT_TARGET_ENABLED_COLUMN = "is_enabled";
   protected static final String ALERT_CURRENT_TABLE = "alert_current";
   protected static final String ALERT_CURRENT_OCCURRENCES_COLUMN = "occurrences";
   protected static final String ALERT_CURRENT_FIRMNESS_COLUMN = "firmness";
@@ -216,6 +218,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     updateClusterTableDDL();
     updateAlertDefinitionTable();
     updateAlertCurrentTable();
+    updateAlertTargetTable();
     createBlueprintSettingTable();
     updateHostRoleCommandTableDDL();
     createViewUrlTableDDL();
@@ -1111,6 +1114,19 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
       String.class, 255, AlertFirmness.HARD.name(), false));
   }
 
+  /**
+   * Updates the {@value #ALERT_TARGET_TABLE} in the following ways:
+   * <ul>
+   * <li>Creates the {@value #ALERT_TARGET_ENABLED_COLUMN} column</li>
+   * </ul>
+   *
+   * @throws SQLException
+   */
+  protected void updateAlertTargetTable() throws SQLException {
+    dbAccessor.addColumn(ALERT_TARGET_TABLE,
+        new DBColumnInfo(ALERT_TARGET_ENABLED_COLUMN, Short.class, null, 1, false));
+  }
+
   protected void setRoleSortOrder() throws SQLException {
     String updateStatement = "UPDATE " + ADMIN_PERMISSION_TABLE + " SET " + SORT_ORDER_COL + "=%d WHERE " + PERMISSION_ID_COL + "='%s'";
 
@@ -1468,8 +1484,9 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
 
               Config hiveEnv = cluster.getDesiredConfigByType("hive-env");
               if(hiveEnv != null){
-                if(acid_enabled)
+                if(acid_enabled) {
                   updateConfigurationProperties("hive-env", Collections.singletonMap("hive_txn_acid", "on"), true, false);
+                }
               }
             }
           }
