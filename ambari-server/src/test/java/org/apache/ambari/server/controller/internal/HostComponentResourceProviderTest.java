@@ -26,6 +26,7 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -44,6 +45,7 @@ import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.ResourceProviderFactory;
 import org.apache.ambari.server.controller.ServiceComponentHostRequest;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
+import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.RequestStatus;
@@ -67,10 +69,10 @@ import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
-import com.google.inject.Injector;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+
+import com.google.inject.Injector;
 
 /**
  * HostComponentResourceProvider tests.
@@ -510,6 +512,98 @@ public class HostComponentResourceProviderTest {
 
     unsupported = provider.checkPropertyIds(Collections.singleton("config/unknown_property"));
     Assert.assertTrue(unsupported.isEmpty());
+  }
+
+  @Test
+  public void testUpdateResourcesNothingToUpdate() throws Exception {
+    Authentication authentication = TestAuthenticationFactory.createServiceAdministrator();
+    Resource.Type type = Resource.Type.HostComponent;
+
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    HostVersionDAO hostVersionDAO = createMock(HostVersionDAO.class);
+//    RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
+    ResourceProviderFactory resourceProviderFactory = createNiceMock(ResourceProviderFactory.class);
+    Injector injector = createNiceMock(Injector.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    Service service = createNiceMock(Service.class);
+    ServiceComponent component = createNiceMock(ServiceComponent.class);
+    ServiceComponentHost componentHost = createNiceMock(ServiceComponentHost.class);
+    RequestStageContainer stageContainer = createNiceMock(RequestStageContainer.class);
+    MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
+
+
+    Map<String, String> mapRequestProps = new HashMap<String, String>();
+    mapRequestProps.put("context", "Called from a test");
+
+    Set<ServiceComponentHostResponse> nameResponse = new HashSet<ServiceComponentHostResponse>();
+    nameResponse.add(new ServiceComponentHostResponse(
+        "Cluster102", "Service100", "Component100", "Component 100", "Host100", "INSTALLED", "", "", "", null));
+
+    // set expectations
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(managementController.findServiceName(cluster, "Component100")).andReturn("Service100").anyTimes();
+    expect(clusters.getCluster("Cluster102")).andReturn(cluster).anyTimes();
+    expect(cluster.getClusterId()).andReturn(2L).anyTimes();
+    expect(cluster.getService("Service100")).andReturn(service).anyTimes();
+    expect(service.getServiceComponent("Component100")).andReturn(component).anyTimes();
+    expect(component.getServiceComponentHost("Host100")).andReturn(componentHost).anyTimes();
+    expect(component.getName()).andReturn("Component100").anyTimes();
+    expect(componentHost.getState()).andReturn(State.INSTALLED).anyTimes();
+
+    //Cluster is default type.  Maintenance mode is not being tested here so the default is returned.
+    expect(maintenanceStateHelper.isOperationAllowed(Resource.Type.Cluster, componentHost)).andReturn(true).anyTimes();
+
+    expect(managementController.getHostComponents(
+        EasyMock.<Set<ServiceComponentHostRequest>>anyObject())).andReturn(Collections.<ServiceComponentHostResponse>emptySet()).once();
+
+    Map<String, Map<State, List<ServiceComponentHost>>> changedHosts = new HashMap<String, Map<State, List<ServiceComponentHost>>>();
+    List<ServiceComponentHost> changedComponentHosts = new ArrayList<ServiceComponentHost>();
+    changedComponentHosts.add(componentHost);
+    changedHosts.put("Component100", Collections.singletonMap(State.STARTED, changedComponentHosts));
+
+    TestHostComponentResourceProvider provider =
+        new TestHostComponentResourceProvider(PropertyHelper.getPropertyIds(type),
+            PropertyHelper.getKeyPropertyIds(type),
+            managementController, injector);
+    provider.setFieldValue("maintenanceStateHelper", maintenanceStateHelper);
+    provider.setFieldValue("hostVersionDAO", hostVersionDAO);
+
+    expect(resourceProviderFactory.getHostComponentResourceProvider(EasyMock.<Set<String>>anyObject(),
+        EasyMock.<Map<Type,String>>anyObject(),
+        eq(managementController))).
+        andReturn(provider).anyTimes();
+
+    // replay
+    replay(managementController, resourceProviderFactory, clusters, cluster, service,
+        component, componentHost, stageContainer, maintenanceStateHelper);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+
+    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+
+    properties.put(HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
+
+    // create the request
+    Request request = PropertyHelper.getUpdateRequest(properties, mapRequestProps);
+
+    // update the cluster named Cluster102
+    Predicate predicate = new PredicateBuilder().property(
+        HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID).equals("Cluster102").and().
+        property(HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID).equals("INSTALLED").and().
+        property(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID).equals("Component100").toPredicate();
+
+
+    try {
+      provider.updateResources(request, predicate);
+      fail("Expected exception when no resources are found to be updatable");
+    } catch (NoSuchResourceException e) {
+      // !!! expected
+    }
+
+
+    // verify
+    verify(managementController, resourceProviderFactory, stageContainer);
   }
 
   // Used to directly call updateHostComponents on the resource provider.

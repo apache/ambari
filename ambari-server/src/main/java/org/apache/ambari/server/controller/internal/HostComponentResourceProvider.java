@@ -779,6 +779,12 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       }
     }
 
+    if (requests.isEmpty()) {
+      String msg = String.format("Skipping updating hosts: no matching requests for %s", predicate);
+      LOG.info(msg);
+      throw new NoSuchResourceException(msg);
+    }
+
     RequestStageContainer requestStages = modifyResources(new Command<RequestStageContainer>() {
       @Override
       public RequestStageContainer invoke() throws AmbariException {
@@ -789,11 +795,16 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
             stageContainer = updateHostComponents(stages, requests, request.getRequestInfoProperties(),
                 runSmokeTest);
           } catch (Exception e) {
-            LOG.info("Caught an exception while updating host components, retrying : " + e);
             if (--retriesRemaining == 0) {
-              e.printStackTrace();
-              throw new RuntimeException("Update Host request submission failed: " + e, e);
+              LOG.info("Caught an exception while updating host components, will not try again: {}", e.getMessage(), e);
+              // !!! IllegalArgumentException results in a 400 response, RuntimeException results in 500.
+              if (IllegalArgumentException.class.isInstance(e)) {
+                throw (IllegalArgumentException) e;
+              } else {
+                throw new RuntimeException("Update Host request submission failed: " + e, e);
+              }
             } else {
+              LOG.info("Caught an exception while updating host components, retrying : " + e);
               try {
                 Thread.sleep(250);
               } catch (InterruptedException ie) {
