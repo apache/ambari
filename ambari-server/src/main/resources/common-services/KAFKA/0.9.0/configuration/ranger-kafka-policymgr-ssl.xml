@@ -22,14 +22,46 @@
   
   <property>
     <name>xasecure.policymgr.clientssl.keystore</name>
-    <value>/usr/hdp/current/kafka-broker/config/ranger-plugin-keystore.jks</value>
+    <value>kafkadev-clientcert.jks</value>
     <description>Java Keystore files</description>
   </property>
 
   <property>
+    <name>xasecure.policymgr.clientssl.keystore.password</name>
+    <value>myKeyFilePassword</value>
+    <property-type>PASSWORD</property-type>
+    <description>password for keystore</description>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
+  </property>
+
+  <property>
     <name>xasecure.policymgr.clientssl.truststore</name>
-    <value>/usr/hdp/current/kafka-broker/config/ranger-plugin-truststore.jks</value>
+    <value>cacerts-xasecure.jks</value>
     <description>java truststore file</description>
+  </property>
+
+  <property>
+    <name>xasecure.policymgr.clientssl.truststore.password</name>
+    <value>changeit</value>
+    <property-type>PASSWORD</property-type>
+    <description>java truststore password</description>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
+  </property>
+
+    <property>
+    <name>xasecure.policymgr.clientssl.keystore.credential.file</name>
+    <value>jceks://file/{{credential_file}}</value>
+    <description>java keystore credential file</description>
+  </property>
+
+  <property>
+    <name>xasecure.policymgr.clientssl.truststore.credential.file</name>
+    <value>jceks://file/{{credential_file}}</value>
+    <description>java truststore credential file</description>
   </property>
 
 </configuration>

@@ -20,8 +20,11 @@
   <services>
     <service>
       <name>KAFKA</name>
-      <version>0.8.1.2.2</version>
+      <version>0.9.0</version>
       <extends>common-services/KAFKA/0.8.1</extends>
+      <configuration-dependencies>
+        <config-type>kafka-broker</config-type>
+      </configuration-dependencies>
     </service>
   </services>
 </metainfo>
