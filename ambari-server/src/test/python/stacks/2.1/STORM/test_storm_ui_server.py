@@ -69,7 +69,7 @@ class TestStormUiServer(TestStormBase):
         user = 'storm',
         not_if = "ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/storm/ui.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/ui.pid` >/dev/null 2>&1'",
     )
-    self.assertResourceCalled('Execute', "/usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep backtype.storm.ui.core$ && /usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep backtype.storm.ui.core$ | awk {'print $1'} > /var/run/storm/ui.pid",
+    self.assertResourceCalled('Execute', "/usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.ui.core$ && /usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.ui.core$ | awk {'print $1'} > /var/run/storm/ui.pid",
         logoutput = True,
         path = ['/usr/bin'],
         tries = 12,
@@ -144,7 +144,7 @@ class TestStormUiServer(TestStormBase):
         user = 'storm',
         not_if = "ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/storm/ui.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/ui.pid` >/dev/null 2>&1'",
     )
-    self.assertResourceCalled('Execute', "/usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep backtype.storm.ui.core$ && /usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep backtype.storm.ui.core$ | awk {'print $1'} > /var/run/storm/ui.pid",
+    self.assertResourceCalled('Execute', "/usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.ui.core$ && /usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.ui.core$ | awk {'print $1'} > /var/run/storm/ui.pid",
         logoutput = True,
         path = ['/usr/bin'],
         tries = 12,
