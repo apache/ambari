@@ -146,11 +146,6 @@ public abstract class AbstractMiniHBaseClusterTest extends BaseTest {
         }
       }
     }
-    try {
-      deletePriorTables(HConstants.LATEST_TIMESTAMP, getUrl());
-    } catch (Exception e) {
-      LOG.warn("Failed in delete prior tables.", e);
-    }
   }
 
   public static Map<String, String> getDefaultProps() {

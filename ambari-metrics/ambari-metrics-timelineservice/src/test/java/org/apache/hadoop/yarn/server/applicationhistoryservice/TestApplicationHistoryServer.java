@@ -26,6 +26,7 @@ import org.apache.hadoop.service.Service.STATE;
 import org.apache.hadoop.util.ExitUtil;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.DefaultPhoenixDataSource;
 import org.apache.zookeeper.ClientCnxn;
 import org.easymock.EasyMock;
@@ -36,6 +37,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
+import org.powermock.api.easymock.PowerMock;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -61,6 +63,7 @@ import static org.easymock.EasyMock.expectLastCall;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
+import static org.powermock.api.easymock.PowerMock.expectNew;
 import static org.powermock.api.easymock.PowerMock.mockStatic;
 import static org.powermock.api.easymock.PowerMock.replayAll;
 import static org.powermock.api.easymock.PowerMock.verifyAll;
@@ -69,7 +72,8 @@ import static org.powermock.api.support.membermodification.MemberModifier.suppre
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ PhoenixHBaseAccessor.class, UserGroupInformation.class,
-  ClientCnxn.class, DefaultPhoenixDataSource.class, ConnectionFactory.class})
+  ClientCnxn.class, DefaultPhoenixDataSource.class, ConnectionFactory.class,
+  TimelineMetricConfiguration.class, ApplicationHistoryServer.class })
 @PowerMockIgnore( {"javax.management.*"})
 public class TestApplicationHistoryServer {
 
@@ -163,6 +167,18 @@ public class TestApplicationHistoryServer {
     expect(UserGroupInformation.isSecurityEnabled()).andReturn(false).anyTimes();
     config.set(YarnConfiguration.APPLICATION_HISTORY_STORE,
       "org.apache.hadoop.yarn.server.applicationhistoryservice.NullApplicationHistoryStore");
+    Configuration hbaseConf = new Configuration();
+    hbaseConf.set("hbase.zookeeper.quorum", "localhost");
+
+    TimelineMetricConfiguration metricConfiguration = PowerMock.createNiceMock(TimelineMetricConfiguration.class);
+    expectNew(TimelineMetricConfiguration.class).andReturn(metricConfiguration);
+    expect(metricConfiguration.getHbaseConf()).andReturn(hbaseConf);
+    Configuration metricsConf = new Configuration();
+    expect(metricConfiguration.getMetricsConf()).andReturn(metricsConf).anyTimes();
+    expect(metricConfiguration.isTimelineMetricsServiceWatcherDisabled()).andReturn(true);
+    expect(metricConfiguration.getTimelineMetricsServiceHandlerThreadCount()).andReturn(20).anyTimes();
+    expect(metricConfiguration.getWebappAddress()).andReturn("localhost:9990").anyTimes();
+    expect(metricConfiguration.getTimelineServiceRpcAddress()).andReturn("localhost:10299").anyTimes();
 
     Connection connection = createNiceMock(Connection.class);
     Statement stmt = createNiceMock(Statement.class);
