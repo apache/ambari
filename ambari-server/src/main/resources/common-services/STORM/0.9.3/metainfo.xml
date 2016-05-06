@@ -21,8 +21,33 @@
   <services>
     <service>
       <name>STORM</name>
-      <version>0.9.1.2.1</version>
+      <displayName>Storm</displayName>
+      <version>0.9.3</version>
       <extends>common-services/STORM/0.9.1</extends>
+      <components>
+        <component>
+          <name>STORM_REST_API</name>
+          <deleted>true</deleted>
+        </component>
+      </components>
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
+          <packages>
+            <package>
+              <name>storm_${stack_version}</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
+          <packages>
+            <package>
+              <name>storm-${stack_version}</name>
+            </package>
+          </packages>
+        </osSpecific>
+      </osSpecifics>
     </service>
   </services>
 </metainfo>

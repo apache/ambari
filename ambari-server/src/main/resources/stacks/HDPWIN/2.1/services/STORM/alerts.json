@@ -166,7 +166,7 @@
         "scope": "HOST",
         "source": {
           "type": "SCRIPT",
-          "path": "STORM/0.9.1.2.1/package/alerts/check_supervisor_process_win.py"
+          "path": "STORM/0.9.1/package/alerts/check_supervisor_process_win.py"
         }
       }
     ]

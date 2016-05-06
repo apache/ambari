@@ -337,7 +337,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
       stackInfo.setErrors(error);
     } else {
       if (baseService.isValid()) {
-        service.resolve(baseService, allStacks, commonServices);
+        service.resolveExplicit(baseService, allStacks, commonServices);
       } else {
         setValid(false);
         stackInfo.setValid(false);
@@ -386,7 +386,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
       throw new AmbariException("The service '" + serviceInfo.getName() + "' in stack '" + stackInfo.getName() + ":"
           + stackInfo.getVersion() + "' extends a non-existent service: '" + parent + "'");
       }
-    service.resolve(baseService, allStacks, commonServices);
+    service.resolveExplicit(baseService, allStacks, commonServices);
   }
 
   /**

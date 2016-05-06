@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration supports_final="true">
+  <property>
+    <name>storm.thrift.transport</name>
+    <value>org.apache.storm.security.auth.SimpleTransportPlugin</value>
+    <description>The transport plug-in for Thrift client/server communication.</description>
+  </property>
+  <property>
+    <name>storm.messaging.transport</name>
+    <value>org.apache.storm.messaging.netty.Context</value>
+    <description>The transporter for communication among Storm tasks.</description>
+  </property>
+  <property>
+    <name>nimbus.topology.validator</name>
+    <value>org.apache.storm.nimbus.DefaultTopologyValidator</value>
+    <description>A custom class that implements ITopologyValidator that is run whenever a
+       topology is submitted. Can be used to provide business-specific logic for
+       whether topologies are allowed to run or not.</description>
+  </property>
+  <property>
+    <name>topology.spout.wait.strategy</name>
+    <value>org.apache.storm.spout.SleepSpoutWaitStrategy</value>
+    <description>A class that implements a strategy for what to do when a spout needs to wait. Waiting is
+       triggered in one of two conditions:
+
+       1. nextTuple emits no tuples
+       2. The spout has hit maxSpoutPending and can't emit any more tuples</description>
+  </property>
+  <property>
+    <name>topology.kryo.factory</name>
+    <value>org.apache.storm.serialization.DefaultKryoFactory</value>
+    <description>Class that specifies how to create a Kryo instance for serialization. Storm will then apply
+       topology.kryo.register and topology.kryo.decorators on top of this. The default implementation
+       implements topology.fall.back.on.java.serialization and turns references off.</description>
+  </property>
+  <property>
+    <name>topology.tuple.serializer</name>
+    <value>org.apache.storm.serialization.types.ListDelegateSerializer</value>
+    <description>The serializer class for ListDelegate (tuple payload).
+       The default serializer will be ListDelegateSerializer</description>
+  </property>
+  <property>
+    <name>client.jartransformer.class</name>
+    <description>Storm Topology backward comptability transformer</description>
+    <value>org.apache.storm.hack.StormShadeTransformer</value>
+  </property>
+</configuration>
