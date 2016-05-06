@@ -455,6 +455,10 @@
         <type>yarn-env</type>
         <name>yarn_cgroups_enabled</name>
       </property>
+      <property>
+        <type>core-site</type>
+        <name>hadoop.security.authentication</name>
+      </property>
     </depends-on>
   </property>
   <property>

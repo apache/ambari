@@ -3427,6 +3427,11 @@ class TestHDP22StackAdvisor(TestCase):
           "properties": {
             "yarn_cgroups_enabled": "true"
           }
+        },
+        "core-site": {
+          "properties": {
+            "hadoop.security.authentication": ""
+          }
         }
       }
     }
