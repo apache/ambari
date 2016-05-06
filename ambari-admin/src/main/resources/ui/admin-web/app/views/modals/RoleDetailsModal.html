@@ -20,27 +20,23 @@
     <h4 class="modal-title">{{'common.rbac' | translate}}</h4>
 </div>
 <div class="modal-body role-details-modal">
-  <div class="table-head-wrapper">
-    <div class="table-head">
-      <div class="table-row-wrapper">
-        <div class="table-row">
-          <div class="table-cell"></div>
-          <div class="table-cell" ng-repeat="role in roles">{{role.permission_label}}</div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="table-cell">{{roles[roles.length - 1].permission_label}}</div>
-  </div>
-  <div class="table-body">
-    <div class="table-row-wrapper">
-      <div class="table-row" ng-repeat="auth in orderedAuthorizations">
-        <div class="table-cell">{{authHash[auth]}}</div>
-        <div class="table-cell text-center" ng-repeat="role in roles">
+  <table class="table table-hover table-bordered fixed-header">
+    <tbody>
+    <tr>
+      <td class="first-column"></td>
+      <td class="not-first-column" ng-repeat="role in roles">{{role.permission_label}}</td>
+    </tr>
+    </tbody>
+  </table>
+  <div class="role-detail-content-wrapper">
+    <table class="table table-hover table-bordered">
+      <tr ng-repeat="auth in orderedAuthorizations">
+        <td class="first-column">{{authHash[auth]}}</td>
+        <td class="not-first-column" ng-repeat="role in roles" class="text-center">
           <i class="glyphicon glyphicon-ok green-icon" ng-show="role.authHash[auth]"></i>
-        </div>
-      </div>
-    </div>
+        </td>
+      </tr>
+    </table>
   </div>
 </div>
 <div class="modal-footer text-center">
