@@ -27,9 +27,41 @@
   </property>
 
   <property>
+    <name>xasecure.policymgr.clientssl.keystore.password</name>
+    <value>myKeyFilePassword</value>
+    <property-type>PASSWORD</property-type>
+    <description>password for keystore</description>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
+  </property>
+
+  <property>
     <name>xasecure.policymgr.clientssl.truststore</name>
     <value>/usr/hdp/current/storm-client/conf/ranger-plugin-truststore.jks</value>
     <description>java truststore file</description>
+  </property>
+
+  <property>
+    <name>xasecure.policymgr.clientssl.truststore.password</name>
+    <value>changeit</value>
+    <property-type>PASSWORD</property-type>
+    <description>java truststore password</description>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
+  </property>
+
+    <property>
+    <name>xasecure.policymgr.clientssl.keystore.credential.file</name>
+    <value>jceks://file{{credential_file}}</value>
+    <description>java keystore credential file</description>
+  </property>
+
+  <property>
+    <name>xasecure.policymgr.clientssl.truststore.credential.file</name>
+    <value>jceks://file{{credential_file}}</value>
+    <description>java truststore credential file</description>
   </property>
 
 </configuration>

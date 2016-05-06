@@ -25,7 +25,7 @@ import re
 
 
 class TestStormBase(RMFTestCase):
-  COMMON_SERVICES_PACKAGE_DIR = "STORM/0.9.1/package"
+  COMMON_SERVICES_PACKAGE_DIR = "STORM/0.9.1.2.1/package"
   STACK_VERSION = "2.1"
 
   def assert_configure_default(self, confDir="/etc/storm/conf"):

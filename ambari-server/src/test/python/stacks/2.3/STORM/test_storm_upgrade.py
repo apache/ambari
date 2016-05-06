@@ -24,7 +24,7 @@ from stacks.utils.RMFTestCase import *
 
 
 class TestStormUpgrade(RMFTestCase):
-  COMMON_SERVICES_PACKAGE_DIR = "STORM/0.9.1/package"
+  COMMON_SERVICES_PACKAGE_DIR = "STORM/0.9.1.2.1/package"
   STACK_VERSION = "2.3"
 
   def test_delete_zookeeper_data(self):

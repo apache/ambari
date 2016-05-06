@@ -34,7 +34,6 @@ import org.apache.ambari.server.state.QuickLinksConfigurationInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServicePropertyInfo;
 import org.apache.ambari.server.state.ThemeInfo;
-import org.apache.commons.lang.StringUtils;
 
 import javax.annotation.Nullable;
 
@@ -150,28 +149,9 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
   public void resolve(
       ServiceModule parentModule, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices)
       throws AmbariException {
-    resolveInternal(parentModule, allStacks, commonServices, false);
-  }
 
-  public void resolveExplicit(
-      ServiceModule parentModule, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices)
-      throws AmbariException {
-    resolveInternal(parentModule, allStacks, commonServices, true);
-  }
-
-  public void resolveInternal(
-      ServiceModule parentModule, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices,
-      boolean resolveExplicit)
-      throws AmbariException {
-    if (!serviceInfo.isValid() || !parentModule.isValid()) {
+    if (!serviceInfo.isValid() || !parentModule.isValid())
       return;
-    }
-
-    // If resolving against parent stack service module (stack inheritance), do not merge if an
-    // explicit parent is specified
-    if(!StringUtils.isBlank(serviceInfo.getParent()) && !resolveExplicit) {
-      return;
-    }
 
     ServiceInfo parent = parentModule.getModuleInfo();
     
@@ -306,7 +286,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
           //todo: provide more information to user about cycle
           throw new AmbariException("Cycle detected while parsing common service");
         }
-        resolveExplicit(baseService, allStacks, commonServices);
+        resolve(baseService, allStacks, commonServices);
       } else {
         throw new AmbariException("Common service cannot inherit from a non common service");
       }
