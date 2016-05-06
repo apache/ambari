@@ -95,7 +95,7 @@ public class ServiceInfo implements Validable{
 
   @JsonIgnore
   private Boolean monitoringService;
-  
+
   @JsonIgnore
   @XmlElement(name = "restartRequiredAfterChange")
   private Boolean restartRequiredAfterChange;
@@ -129,7 +129,13 @@ public class ServiceInfo implements Validable{
 
   @XmlTransient
   private Map<String, Map<String, List<MetricDefinition>>> metrics = null;
-  
+
+  @XmlTransient
+  private File advisorFile = null;
+
+  @XmlTransient
+  private String advisorName = null;
+
   @XmlTransient
   private File alertsFile = null;
 
@@ -138,7 +144,7 @@ public class ServiceInfo implements Validable{
 
   @XmlTransient
   private File widgetsDescriptorFile = null;
-  
+
   @XmlTransient
   private boolean valid = true;
 
@@ -161,7 +167,7 @@ public class ServiceInfo implements Validable{
   }
 
   /**
-   * 
+   *
    * @param valid set validity flag
    */
   @Override
@@ -171,7 +177,7 @@ public class ServiceInfo implements Validable{
 
   @XmlTransient
   private Set<String> errorSet = new HashSet<String>();
-  
+
   @Override
   public void setErrors(String error) {
     errorSet.add(error);
@@ -180,8 +186,8 @@ public class ServiceInfo implements Validable{
   @Override
   public Collection getErrors() {
     return errorSet;
-  }   
-  
+  }
+
   @Override
   public void setErrors(Collection error) {
     this.errorSet.addAll(error);
@@ -193,7 +199,7 @@ public class ServiceInfo implements Validable{
   @XmlElementWrapper(name="osSpecifics")
   @XmlElements(@XmlElement(name="osSpecific"))
   private List<ServiceOsSpecific> serviceOsSpecifics;
-  
+
   @JsonIgnore
   @XmlElement(name="configuration-dir")
   private String configDir = AmbariMetaInfo.SERVICE_CONFIG_FOLDER_NAME;
@@ -241,7 +247,7 @@ public class ServiceInfo implements Validable{
   @XmlElementWrapper(name="customCommands")
   @XmlElements(@XmlElement(name="customCommand"))
   private List<CustomCommandDefinition> customCommands;
-  
+
   @XmlElementWrapper(name="requiredServices")
   @XmlElement(name="service")
   private List<String> requiredServices = new ArrayList<String>();
@@ -286,7 +292,7 @@ public class ServiceInfo implements Validable{
   public void setDisplayName(String displayName) {
     this.displayName = displayName;
   }
-  
+
   public String getServiceType() {
 	return serviceType;
   }
@@ -381,13 +387,29 @@ public String getVersion() {
     return client;
   }
 
+  public File getAdvisorFile() {
+    return advisorFile;
+  }
+
+  public void setAdvisorFile(File advisorFile) {
+    this.advisorFile = advisorFile;
+  }
+
+  public String getAdvisorName() {
+    return advisorName;
+  }
+
+  public void setAdvisorName(String advisorName) {
+    this.advisorName = advisorName;
+  }
+
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("Service name:");
     sb.append(name);
     sb.append("\nService type:");
-    sb.append(serviceType); 
+    sb.append(serviceType);
     sb.append("\nversion:");
     sb.append(version);
     sb.append("\ncomment:");
@@ -475,7 +497,7 @@ public String getVersion() {
    * This can be used in determining if a property is stale.
 
    * @param type the config type
-   * @param keyNames the names of all the config keys for the given type 
+   * @param keyNames the names of all the config keys for the given type
    * @return <code>true</code> if the config is stale
    */
   public boolean hasDependencyAndPropertyFor(String type, Collection<String> keyNames) {
@@ -489,7 +511,7 @@ public String getVersion() {
       if (keys != null && keys.contains(staleCheck))
         return true;
     }
-    
+
     return false;
   }
 
@@ -612,7 +634,7 @@ public String getVersion() {
   public void setMetricsFile(File file) {
     metricsFile = file;
   }
-  
+
   /**
    * @return the metrics file, or <code>null</code> if none exists
    */
@@ -626,14 +648,14 @@ public String getVersion() {
   public Map<String, Map<String, List<MetricDefinition>>> getMetrics() {
     return metrics;
   }
-  
+
   /**
    * @param map the metrics for this service
    */
   public void setMetrics(Map<String, Map<String, List<MetricDefinition>>> map) {
     metrics = map;
   }
-  
+
   /**
    * @return the configuration directory name
    */

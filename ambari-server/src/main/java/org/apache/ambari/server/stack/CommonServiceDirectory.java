@@ -45,6 +45,23 @@ public class CommonServiceDirectory extends ServiceDirectory {
 
   @Override
   /**
+   * Obtain the advisor name.
+   *
+   * @return advisor name
+   */
+  public String getAdvisorName(String serviceName) {
+    if (getAdvisorFile() == null || serviceName == null)
+      return null;
+
+    File serviceVersionDir = new File(getAbsolutePath());
+    String serviceVersion = serviceVersionDir.getName().replaceAll("\\.", "");
+
+    String advisorName = serviceName + serviceVersion + "ServiceAdvisor";
+    return advisorName;
+  }
+
+  @Override
+  /**
    * Parse common service directory
    * packageDir Format: common-services/<serviceName>/<serviceVersion>/package
    * Example:

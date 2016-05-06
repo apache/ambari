@@ -40,6 +40,11 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
   private Map<String, File> metricsFileMap = new HashMap<String, File>();
 
   /**
+   * advisor file
+   */
+  private File advisorFile;
+
+  /**
    * alerts file
    */
   private File alertsFile;
@@ -125,6 +130,10 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
       }
     }
 
+    File advFile = new File(directory.getAbsolutePath()
+        + File.separator + AmbariMetaInfo.SERVICE_ADVISOR_FILE_NAME);
+    advisorFile = advFile.exists() ? advFile : null;
+
     File themeFile = new File(directory.getAbsolutePath() + File.separator + AmbariMetaInfo.SERVICE_THEME_FILE_NAME);
     this.themeFile = themeFile.exists() ? themeFile : null;
   }
@@ -146,6 +155,22 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
   public File getMetricsFile(String serviceName) {
     return metricsFileMap.get(serviceName);
   }
+
+  /**
+   * Obtain the advisor file.
+   *
+   * @return advisor file
+   */
+  public File getAdvisorFile() {
+    return advisorFile;
+  }
+
+  /**
+   * Obtain the advisor name.
+   *
+   * @return advisor name
+   */
+  public abstract String getAdvisorName(String serviceName);
 
   /**
    * Obtain the alerts file.

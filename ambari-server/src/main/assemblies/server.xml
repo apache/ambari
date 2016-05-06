@@ -310,6 +310,11 @@
     </file>
     <file>
       <fileMode>755</fileMode>
+      <source>src/main/resources/stacks/service_advisor.py</source>
+      <outputDirectory>/var/lib/ambari-server/resources/stacks</outputDirectory>
+    </file>
+    <file>
+      <fileMode>755</fileMode>
       <source>src/main/python/bootstrap.py</source>
       <outputDirectory>/usr/lib/python2.6/site-packages/ambari_server</outputDirectory>
     </file>

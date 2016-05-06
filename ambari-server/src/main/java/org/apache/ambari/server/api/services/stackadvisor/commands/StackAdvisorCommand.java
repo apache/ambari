@@ -44,6 +44,7 @@ import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorResponse;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRunner;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -83,6 +84,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
   private static final String SERVICES_PROPERTY = "services";
   private static final String SERVICES_COMPONENTS_PROPERTY = "components";
   private static final String CONFIG_GROUPS_PROPERTY = "config-groups";
+  private static final String STACK_SERVICES_PROPERTY = "StackServices";
   private static final String COMPONENT_INFO_PROPERTY = "StackServiceComponents";
   private static final String COMPONENT_NAME_PROPERTY = "component_name";
   private static final String COMPONENT_HOSTNAMES_PROPERTY = "hostnames";
@@ -135,7 +137,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
   /**
    * Name with the result JSON, e.g. "component-layout.json" or
    * "validations.json" .
-   * 
+   *
    * @return the file name
    */
   protected abstract String getResultFileName();
@@ -148,6 +150,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
 
       populateStackHierarchy(root);
       populateComponentHostsMap(root, request.getComponentHostsMap());
+      populateServiceAdvisors(root);
       populateConfigurations(root, request);
       populateConfigGroups(root, request);
       populateAmbariServerInfo(root);
@@ -237,6 +240,31 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
             hostnames.add(hostName);
           }
         }
+      }
+    }
+  }
+
+  private void populateServiceAdvisors(ObjectNode root) {
+    ArrayNode services = (ArrayNode) root.get(SERVICES_PROPERTY);
+    Iterator<JsonNode> servicesIter = services.getElements();
+
+    ObjectNode version = (ObjectNode) root.get("Versions");
+    String stackName = version.get("stack_name").asText();
+    String stackVersion = version.get("stack_version").asText();
+
+    while (servicesIter.hasNext()) {
+      JsonNode service = servicesIter.next();
+      ObjectNode serviceVersion = (ObjectNode) service.get(STACK_SERVICES_PROPERTY);
+      String serviceName = serviceVersion.get("service_name").getTextValue();
+      try {
+        ServiceInfo serviceInfo = metaInfo.getService(stackName, stackVersion, serviceName);
+        if (serviceInfo.getAdvisorFile() != null) {
+          serviceVersion.put("advisor_name", serviceInfo.getAdvisorName());
+          serviceVersion.put("advisor_path", serviceInfo.getAdvisorFile().getAbsolutePath());
+        }
+      }
+      catch (Exception e) {
+        LOG.error("Error adding service advisor information to services.json", e);
       }
     }
   }

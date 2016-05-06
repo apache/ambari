@@ -132,6 +132,8 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     serviceInfo.setWidgetsDescriptorFile(serviceDirectory.getWidgetsDescriptorFile(serviceInfo.getName()));
     serviceInfo.setSchemaVersion(AmbariMetaInfo.SCHEMA_VERSION_2);
     serviceInfo.setServicePackageFolder(serviceDirectory.getPackageDir());
+    serviceInfo.setAdvisorFile(serviceDirectory.getAdvisorFile());
+    serviceInfo.setAdvisorName(serviceDirectory.getAdvisorName(serviceInfo.getName()));
 
     populateComponentModules();
     populateConfigurationModules();
@@ -174,7 +176,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     }
 
     ServiceInfo parent = parentModule.getModuleInfo();
-    
+
     if (serviceInfo.getComment() == null) {
       serviceInfo.setComment(parent.getComment());
     }
@@ -224,6 +226,12 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     }
     if (serviceInfo.getWidgetsDescriptorFile() == null) {
       serviceInfo.setWidgetsDescriptorFile(parent.getWidgetsDescriptorFile());
+    }
+    if (serviceInfo.getAdvisorFile() == null) {
+      serviceInfo.setAdvisorFile(parent.getAdvisorFile());
+    }
+    if (serviceInfo.getAdvisorName() == null) {
+      serviceInfo.setAdvisorName(parent.getAdvisorName());
     }
 
     mergeCustomCommands(parent.getCustomCommands(), serviceInfo.getCustomCommands());
@@ -359,7 +367,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
               setErrors(config.getErrors());
               setErrors(info.getErrors());
             }
-          }          
+          }
           serviceInfo.getProperties().addAll(info.getProperties());
           serviceInfo.setTypeAttributes(config.getConfigType(), info.getAttributes());
           configurationModules.put(config.getConfigType(), config);
@@ -582,9 +590,9 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
   public void setValid(boolean valid) {
     this.valid = valid;
   }
-  
+
   private Set<String> errorSet = new HashSet<String>();
-  
+
   @Override
   public void setErrors(String error) {
     errorSet.add(error);
@@ -594,7 +602,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
   public Collection getErrors() {
     return errorSet;
   }
-  
+
   @Override
   public void setErrors(Collection error) {
     this.errorSet.addAll(error);

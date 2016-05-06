@@ -113,7 +113,7 @@ public class StackServiceResponse {
   public void setServiceName(String serviceName) {
     this.serviceName = serviceName;
   }
-  
+
   public String getServiceType() {
 	return serviceType;
   }
@@ -161,7 +161,7 @@ public String getServiceDisplayName() {
   public Set<String> getExcludedConfigTypes() {
     return excludedConfigTypes;
   }
-  
+
   public List<String> getRequiredServices() {
     return requiredServices;
   }

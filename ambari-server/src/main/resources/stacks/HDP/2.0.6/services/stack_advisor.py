@@ -29,7 +29,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
   def getComponentLayoutValidations(self, services, hosts):
     """Returns array of Validation objects about issues with hostnames components assigned to"""
-    items = []
+    items = super(HDP206StackAdvisor, self).getComponentLayoutValidations(services, hosts)
 
     # Validating NAMENODE and SECONDARY_NAMENODE are on different hosts if possible
     # Use a set for fast lookup
@@ -926,39 +926,6 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
     return cluster
 
-  def getConfigurationsValidationItems(self, services, hosts):
-    """Returns array of Validation objects about issues with configuration values provided in services"""
-    items = []
-
-    recommendations = self.recommendConfigurations(services, hosts)
-    recommendedDefaults = recommendations["recommendations"]["blueprint"]["configurations"]
-
-    configurations = services["configurations"]
-    for service in services["services"]:
-      serviceName = service["StackServices"]["service_name"]
-      validator = self.validateServiceConfigurations(serviceName)
-      if validator is not None:
-        for siteName, method in validator.items():
-          if siteName in recommendedDefaults:
-            siteProperties = getSiteProperties(configurations, siteName)
-            if siteProperties is not None:
-              siteRecommendations = recommendedDefaults[siteName]["properties"]
-              print("SiteName: %s, method: %s\n" % (siteName, method.__name__))
-              print("Site properties: %s\n" % str(siteProperties))
-              print("Recommendations: %s\n********\n" % str(siteRecommendations))
-              resultItems = method(siteProperties, siteRecommendations, configurations, services, hosts)
-              items.extend(resultItems)
-
-    clusterWideItems = self.validateClusterConfigurations(configurations, services, hosts)
-    items.extend(clusterWideItems)
-    self.validateMinMax(items, recommendedDefaults, configurations)
-    return items
-
-  def validateClusterConfigurations(self, configurations, services, hosts):
-    validationItems = []
-
-    return self.toConfigurationValidationProblems(validationItems, "")
-
   def getServiceConfigurationValidators(self):
     return {
       "HDFS": { "hdfs-site": self.validateHDFSConfigurations,
@@ -1281,16 +1248,6 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
   def validateServiceConfigurations(self, serviceName):
     return self.getServiceConfigurationValidators().get(serviceName, None)
-
-  def toConfigurationValidationProblems(self, validationProblems, siteName):
-    result = []
-    for validationProblem in validationProblems:
-      validationItem = validationProblem.get("item", None)
-      if validationItem is not None:
-        problem = {"type": 'configuration', "level": validationItem["level"], "message": validationItem["message"],
-                   "config-type": siteName, "config-name": validationProblem["config-name"] }
-        result.append(problem)
-    return result
 
   def getWarnItem(self, message):
     return {"level": "WARN", "message": message}
