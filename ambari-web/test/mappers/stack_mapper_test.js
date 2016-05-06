@@ -587,7 +587,9 @@ describe('App.stackMapper', function () {
       App.resetDsStoreTypeMap(App.Stack);
       App.resetDsStoreTypeMap(App.ServiceSimple);
       sinon.stub(App.store, 'commit', Em.K);
-      App.stackMapper.map(testData.items, "VersionDefinition");
+      testData.items.sortProperty('VersionDefinition.stack_version').reverse().forEach(function (versionDefinition) {
+        App.stackMapper.map(versionDefinition);
+      });
     });
     afterEach(function(){
       App.store.commit.restore();

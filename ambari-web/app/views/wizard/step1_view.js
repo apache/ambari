@@ -26,11 +26,11 @@ App.WizardStep1View = Em.View.extend({
   didInsertElement: function () {
     $("[rel=skip-validation-tooltip]").tooltip({ placement: 'right'});
     $("[rel=use-redhat-tooltip]").tooltip({ placement: 'right'});
-    if (this.get('controller.selectedStack').get("showAvailable")) {
+    if (this.get('controller.selectedStack') && this.get('controller.selectedStack.showAvailable')) {
       // first time load
       this.set('controller.latestSelectedPublicRepoId',this.get('controller.selectedStack.id'));
     } else {
-      var selected = this.get('controller.content.stacks').findProperty('showAvailable');
+      var selected = this.get('controller.content.stacks') && this.get('controller.content.stacks').findProperty('showAvailable');
       if (selected) {
         // get back from other steps, set default public repo as selected public
         this.set('controller.latestSelectedPublicRepoId', selected.get('id'));

@@ -304,9 +304,9 @@ App.InstallerController = App.WizardController.extend({
    * Parse loaded data and create array of stacks objects
    */
   loadStacksVersionsDefinitionsSuccessCallback: function (data) {
-    var self = this;
     var stacks = App.db.getStacks();
     var repos = App.db.getRepos();
+    this.decrementProperty('loadStacksRequestsCounter');
     var isStacksExistInDb = stacks && stacks.length;
     if (isStacksExistInDb) {
       stacks.forEach(function (_stack) {
@@ -317,40 +317,14 @@ App.InstallerController = App.WizardController.extend({
       }, this);
     }
 
-    var versionDefinition = data.items[0];
-    // to display repos panel, should map all available operating systems including empty ones
-    this.getSupportedOSList(versionDefinition.VersionDefinition.stack_name, versionDefinition.VersionDefinition.stack_version).complete(function () {
-      var existedOS = versionDefinition.operating_systems;
-      var existedMap = {};
-      existedOS.map(function (existedOS) {
-        existedOS.isSelected = true;
-        existedMap[existedOS.OperatingSystems.os_type] = existedOS;
-      });
-      self.get('allSupportedOS').forEach(function(supportedOS) {
-        if(!existedMap[supportedOS.OperatingSystems.os_type]) {
-          supportedOS.isSelected = false;
-          supportedOS.repositories.forEach(function(repo) {
-            repo.Repositories.base_url = '';
-          });
-          existedOS.push(supportedOS);
-        }
-      });
-      App.stackMapper.map(data.items, "VersionDefinition");
-      if (!self.decrementProperty('loadStacksRequestsCounter')) {
-
-        var versionData = self.getSelectedRepoVersionData();
-        if (versionData) {
-          self.postVersionDefinitionFile(versionData.isXMLdata, versionData.data).done(function (versionInfo) {
-            self.mergeChanges(repos, stacks);
-            App.Stack.find().setEach('isSelected', false);
-            App.Stack.find().findProperty('id', versionInfo.stackNameVersion + "-" + versionInfo.actualVersion).set('isSelected', true);
-            self.setSelected(isStacksExistInDb);
-          });
-        } else {
-          self.setSelected(isStacksExistInDb);
-        }
-      }
-    });
+    data.items.sortProperty('VersionDefinition.stack_version').reverse().forEach(function (versionDefinition) {
+      // to display repos panel, should map all available operating systems including empty ones
+      var stackInfo = {};
+      stackInfo.isStacksExistInDb = isStacksExistInDb;
+      stackInfo.stacks = stacks;
+      stackInfo.repos = repos;
+      this.getSupportedOSList(versionDefinition, stackInfo);
+    }, this);
   },
 
   mergeChanges: function (repos, stacks) {
@@ -653,25 +627,10 @@ App.InstallerController = App.WizardController.extend({
       response.services = services;
 
       // to display repos panel, should map all available operating systems including empty ones
-      this.getSupportedOSList(response.stackName, response.stackVersion).complete(function () {
-        var existedOS = data.operating_systems;
-        var existedMap = {};
-        existedOS.map(function (existedOS) {
-          existedOS.isSelected = true;
-          existedMap[existedOS.OperatingSystems.os_type] = existedOS;
-        });
-        self.get('allSupportedOS').forEach(function(supportedOS) {
-          if(!existedMap[supportedOS.OperatingSystems.os_type]) {
-            supportedOS.isSelected = false;
-            supportedOS.repositories.forEach(function(repo) {
-              repo.Repositories.base_url = '';
-            });
-            existedOS.push(supportedOS);
-          }
-        });
-        App.stackMapper.map(_data.resources, "VersionDefinition");
-        dataInfo.dfd.resolve(response);
-      });
+      var stackInfo = {};
+      stackInfo.dfd = dataInfo.dfd;
+      stackInfo.response = response;
+      this.getSupportedOSList(data, stackInfo);
     }
   },
 
@@ -723,13 +682,16 @@ App.InstallerController = App.WizardController.extend({
     App.showAlertPopup(header, body);
   },
 
-  getSupportedOSList: function (stackName, stackVersion) {
+  getSupportedOSList: function (versionDefinition, stackInfo) {
+    this.incrementProperty('loadStacksRequestsCounter');
     return  App.ajax.send({
       name: 'wizard.step1.get_supported_os_types',
       sender: this,
       data: {
-        stackName: stackName,
-        stackVersion: stackVersion
+        stackName: versionDefinition.VersionDefinition.stack_name,
+        stackVersion: versionDefinition.VersionDefinition.stack_version,
+        versionDefinition: versionDefinition,
+        stackInfo: stackInfo
       },
       success: 'getSupportedOSListSuccessCallback',
       error: 'getSupportedOSListErrorCallback'
@@ -740,8 +702,40 @@ App.InstallerController = App.WizardController.extend({
    * onSuccess callback for getSupportedOSList.
    */
   getSupportedOSListSuccessCallback: function (response, request, data) {
-    if (response.operating_systems) {
-      this.set('allSupportedOS', response.operating_systems);
+    var self = this;
+    var existedOS = data.versionDefinition.operating_systems;
+    var existedMap = {};
+    existedOS.map(function (existedOS) {
+      existedOS.isSelected = true;
+      existedMap[existedOS.OperatingSystems.os_type] = existedOS;
+    });
+    response.operating_systems.forEach(function(supportedOS) {
+      if(!existedMap[supportedOS.OperatingSystems.os_type]) {
+        supportedOS.isSelected = false;
+        supportedOS.repositories.forEach(function(repo) {
+          repo.Repositories.base_url = '';
+        });
+        existedOS.push(supportedOS);
+      }
+    });
+    App.stackMapper.map(data.versionDefinition);
+
+    if (!this.decrementProperty('loadStacksRequestsCounter')) {
+      if (data.stackInfo.dfd) {
+        data.stackInfo.dfd.resolve(data.stackInfo.response);
+      } else {
+        var versionData = this.getSelectedRepoVersionData();
+        if (versionData) {
+          this.postVersionDefinitionFile(versionData.isXMLdata, versionData.data).done(function (versionInfo) {
+            self.mergeChanges(data.stackInfo.repos, data.stackInfo.stacks);
+            App.Stack.find().setEach('isSelected', false);
+            App.Stack.find().findProperty('id', versionInfo.stackNameVersion + "-" + versionInfo.actualVersion).set('isSelected', true);
+            self.setSelected(data.stackInfo.isStacksExistInDb);
+          });
+        } else {
+          this.setSelected(data.stackInfo.isStacksExistInDb);
+        }
+      }
     }
   },
 
