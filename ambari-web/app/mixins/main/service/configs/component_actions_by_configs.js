@@ -53,7 +53,7 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
   /**
    * Get Component that will be deleted on saving configurations
    * @param configActionComponents {Object}
-   * @return {boolean}
+   * @return {array}
    * @private
    * @method getComponentsToDelete
    */
@@ -68,15 +68,19 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
   /**
    * Get Component that will be added on saving configurations
    * @param configActionComponents {Object}
-   * @return {boolean}
+   * @return {array}
    * @private
    * @method getComponentsToDelete
    */
   getComponentsToAdd: function(configActionComponents) {
     return configActionComponents.filterProperty('configActionComponent.action', 'add').map(function(item){
       return item.configActionComponent;
-    }).filter(function(_componentToAdd){
-      return  !App.HostComponent.find().filterProperty('componentName',_componentToAdd.componentName).someProperty('hostName', _componentToAdd.hostName);
+    }).filter(function(_componentToAdd) {
+      var serviceNameForcomponent = App.StackServiceComponent.find().findProperty('componentName',_componentToAdd.componentName).get('serviceName');
+      // List of host components to be added should not include ones that are already present in the cluster.
+      // Need to do below check from App.Service model as it keeps getting polled and updated on service page.
+      return  !App.Service.find().findProperty('serviceName', serviceNameForcomponent).get('hostComponents').
+               filterProperty('componentName',_componentToAdd.componentName).someProperty('hostName', _componentToAdd.hostName);
     }, this);
   },
 
