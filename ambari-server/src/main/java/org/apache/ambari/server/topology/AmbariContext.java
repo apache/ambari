@@ -76,6 +76,11 @@ import org.apache.ambari.server.utils.RetryHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
+
+
 /**
  * Provides topology related information as well as access to the core Ambari functionality.
  */
@@ -615,9 +620,28 @@ public class AmbariContext {
       groupHosts = topology.getHostGroupInfo().
           get(groupName).getHostNames();
 
+      // remove hosts that are not assigned to the cluster yet
+      String clusterName = null;
+      try {
+        clusterName = getClusterName(topology.getClusterId());
+      } catch (AmbariException e) {
+        LOG.error("Cannot get cluster name for clusterId = " + topology.getClusterId(), e);
+        throw new RuntimeException(e);
+      }
+
+      final Map<String, Host> clusterHosts = getController().getClusters().getHostsForCluster(clusterName);
+      Iterable<String> filteredGroupHosts = Iterables.filter(groupHosts, new com.google.common.base.Predicate<String>() {
+        @Override
+        public boolean apply(@Nullable String groupHost) {
+          return clusterHosts.containsKey(groupHost);
+        }
+      });
+
+
+
       ConfigGroupRequest request = new ConfigGroupRequest(
-          null, getClusterName(topology.getClusterId()), absoluteGroupName, service, "Host Group Configuration",
-          new HashSet<String>(groupHosts), serviceConfigs);
+          null, clusterName, absoluteGroupName, service, "Host Group Configuration",
+        Sets.newHashSet(filteredGroupHosts), serviceConfigs);
 
       // get the config group provider and create config group resource
       ConfigGroupResourceProvider configGroupProvider = (ConfigGroupResourceProvider)
