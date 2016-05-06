@@ -22,7 +22,7 @@
       <name>KAFKA</name>
       <displayName>Kafka</displayName>
       <comment>A high-throughput distributed messaging system</comment>
-      <version>0.8.1</version>
+      <version>0.8.1.2.2</version>
       <components>
         <component>
           <name>KAFKA_BROKER</name>
@@ -84,24 +84,6 @@
         <config-type>zoo.cfg</config-type>
         <config-type>ams-ssl-client</config-type>
       </configuration-dependencies>
-      <osSpecifics>
-        <osSpecific>
-          <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
-          <packages>
-            <package>
-              <name>kafka_${stack_version}</name>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
-          <packages>
-            <package>
-              <name>kafka-${stack_version}</name>
-            </package>
-          </packages>
-        </osSpecific>
-      </osSpecifics>
       <restartRequiredAfterChange>true</restartRequiredAfterChange>
     </service>
   </services>

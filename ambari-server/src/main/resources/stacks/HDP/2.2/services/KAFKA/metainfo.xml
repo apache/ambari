@@ -20,8 +20,25 @@
   <services>
     <service>
       <name>KAFKA</name>
-      <version>0.8.1.2.2</version>
-      <extends>common-services/KAFKA/0.8.1</extends>
+      <extends>common-services/KAFKA/0.8.1.2.2</extends>
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
+          <packages>
+            <package>
+              <name>kafka_${stack_version}</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
+          <packages>
+            <package>
+              <name>kafka-${stack_version}</name>
+            </package>
+          </packages>
+        </osSpecific>
+      </osSpecifics>
     </service>
   </services>
 </metainfo>
