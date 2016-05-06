@@ -231,8 +231,8 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
       if (['spnego_keytab', 'spnego_principal'].contains(property.get('name'))) {
         property.addObserver('value', self, 'spnegoPropertiesObserver');
       }
-      if (property.get('observesValueFrom')) {
-        var observedValue = allConfigs.findProperty('name', property.get('observesValueFrom')).get('value');
+      if (property.get('observesValueFrom') && allConfigs.someProperty('name', property.get('observesValueFrom'))) {
+        var observedValue = Em.get(allConfigs.findProperty('name', property.get('observesValueFrom')), 'value');
         property.set('value', observedValue);
         property.set('recommendedValue', observedValue);
       }
