@@ -714,15 +714,24 @@ App.ConfigsSaverMixin = Em.Mixin.create({
       header: header,
       primary: Em.I18n.t('ok'),
       secondary: null,
+      isBackgroundPopupToBeShown: false,
+
       onPrimary: function () {
         this.hide();
         if (!flag) {
           self.completeSave();
         }
+        this.showBackgroundPopup();
       },
       onClose: function () {
         this.hide();
         self.completeSave();
+        this.showBackgroundPopup();
+      },
+      showBackgroundPopup: function() {
+        if (this.get('isBackgroundPopupToBeShown')) {
+          App.router.get('backgroundOperationsController').showPopup();
+        }
       },
       disablePrimary: true,
       bodyClass: Ember.View.extend({
@@ -824,6 +833,7 @@ App.ConfigsSaverMixin = Em.Mixin.create({
           this.set('isLoaded', true);
         },
         didInsertElement: function () {
+          var context = this;
           var dfd = App.ajax.send({
             name: 'components.filter_by_status',
             sender: this,
@@ -838,6 +848,8 @@ App.ConfigsSaverMixin = Em.Mixin.create({
           dfd.done(function() {
             if (doConfigActions && self.doConfigActions) {
               self.doConfigActions.bind(self)();
+              var isBackgroundPopupToBeShown = self.isComponentActionsPresent.bind(self)();
+              context.set('parentView.isBackgroundPopupToBeShown',isBackgroundPopupToBeShown);
             }
             if (flag) {
               self.loadStep();

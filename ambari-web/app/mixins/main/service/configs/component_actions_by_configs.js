@@ -34,9 +34,50 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
   doConfigActions: function() {
     var serviceConfigs = this.get('stepConfigs').findProperty('serviceName', this.get('content.serviceName')).get('configs');
     var configActionComponents = serviceConfigs.filterProperty('configActionComponent');
-
     this.doComponentDeleteActions(configActionComponents);
     this.doComponentAddActions(configActionComponents);
+  },
+
+  /**
+   * Method informs if any component will be added/deleted on saving configurations
+   * @return {boolean}
+   * @public
+   * @method isComponentActionsPresent
+   */
+  isComponentActionsPresent: function() {
+    var serviceConfigs = this.get('stepConfigs').findProperty('serviceName', this.get('content.serviceName')).get('configs');
+    var configActionComponents = serviceConfigs.filterProperty('configActionComponent');
+    return !!(this.getComponentsToDelete(configActionComponents).length + this.getComponentsToAdd(configActionComponents).length);
+  },
+
+  /**
+   * Get Component that will be deleted on saving configurations
+   * @param configActionComponents {Object}
+   * @return {boolean}
+   * @private
+   * @method getComponentsToDelete
+   */
+  getComponentsToDelete: function(configActionComponents) {
+    return configActionComponents.filterProperty('configActionComponent.action', 'delete').map(function(item){
+      return item.configActionComponent;
+    }).filter(function(_componentToDelete){
+      return  App.HostComponent.find().filterProperty('componentName',_componentToDelete.componentName).someProperty('hostName', _componentToDelete.hostName);
+    }, this);
+  },
+
+  /**
+   * Get Component that will be added on saving configurations
+   * @param configActionComponents {Object}
+   * @return {boolean}
+   * @private
+   * @method getComponentsToDelete
+   */
+  getComponentsToAdd: function(configActionComponents) {
+    return configActionComponents.filterProperty('configActionComponent.action', 'add').map(function(item){
+      return item.configActionComponent;
+    }).filter(function(_componentToAdd){
+      return  !App.HostComponent.find().filterProperty('componentName',_componentToAdd.componentName).someProperty('hostName', _componentToAdd.hostName);
+    }, this);
   },
 
   /**
@@ -47,12 +88,7 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
    */
   doComponentDeleteActions: function(configActionComponents) {
     var self = this;
-    var componentsToDelete = configActionComponents.filterProperty('configActionComponent.action', 'delete').map(function(item){
-      return item.configActionComponent;
-    }).filter(function(_componentToDelete){
-      return  App.HostComponent.find().filterProperty('componentName',_componentToDelete.componentName).someProperty('hostName', _componentToDelete.hostName);
-    }, this);
-
+    var componentsToDelete = this.getComponentsToDelete(configActionComponents);
     if (componentsToDelete.length) {
       componentsToDelete.forEach(function(_componentToDelete){
         var displayName = App.StackServiceComponent.find().findProperty('componentName',  _componentToDelete.componentName).get('displayName');
@@ -78,12 +114,7 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
    */
   doComponentAddActions: function(configActionComponents) {
     var self = this;
-    var componentsToAdd = configActionComponents.filterProperty('configActionComponent.action', 'add').map(function(item){
-      return item.configActionComponent;
-    }).filter(function(_componentToAdd){
-      return  !App.HostComponent.find().filterProperty('componentName',_componentToAdd.componentName).someProperty('hostName', _componentToAdd.hostName);
-    }, this);
-
+    var componentsToAdd = this.getComponentsToAdd(configActionComponents);
     var dependentComponents = [];
     if (componentsToAdd.length) {
       componentsToAdd.forEach(function(_component) {
