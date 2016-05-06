@@ -21,9 +21,7 @@
     <service>
       <name>KAFKA</name>
       <version>0.9.0.2.3</version>
-      <configuration-dependencies>
-        <config-type>kafka-broker</config-type>
-      </configuration-dependencies>
+      <extends>common-services/KAFKA/0.9.0</extends>
     </service>
   </services>
 </metainfo>
