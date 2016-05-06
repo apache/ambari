@@ -151,7 +151,7 @@ public class KerberosDescriptorTest {
 
   @Test
   public void testCommonSparkServiceDescriptor() throws IOException {
-    KerberosDescriptor descriptor = getKerberosDescriptor(commonServicesDirectory, "SPARK", "1.2.0.2.2");
+    KerberosDescriptor descriptor = getKerberosDescriptor(commonServicesDirectory, "SPARK", "1.2.1");
     Assert.notNull(descriptor);
     Assert.notNull(descriptor.getServices());
     Assert.notNull(descriptor.getService("SPARK"));

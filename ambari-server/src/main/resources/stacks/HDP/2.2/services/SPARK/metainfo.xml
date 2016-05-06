@@ -23,38 +23,8 @@
   <services>
     <service>
       <name>SPARK</name>
-      <extends>common-services/SPARK/1.2.0.2.2</extends>
+      <extends>common-services/SPARK/1.2.1</extends>
       <version>1.2.1.2.2</version>
-      <osSpecifics>
-        <osSpecific>
-          <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
-          <packages>
-            <package>
-              <name>spark_${stack_version}</name>
-            </package>
-            <package>
-              <name>spark_${stack_version}-python</name>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
-          <packages>
-            <package>
-              <name>spark-${stack_version}</name>
-            </package>
-            <package>
-              <name>spark-${stack_version}-python</name>
-            </package>
-          </packages>
-        </osSpecific>
-      </osSpecifics>
-      <quickLinksConfigurations>
-        <quickLinksConfiguration>
-          <fileName>quicklinks.json</fileName>
-          <default>true</default>
-        </quickLinksConfiguration>
-      </quickLinksConfigurations>
     </service>
   </services>
 </metainfo>

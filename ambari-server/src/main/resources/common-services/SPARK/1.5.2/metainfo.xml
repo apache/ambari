@@ -23,8 +23,20 @@
     <services>
         <service>
           <name>SPARK</name>
-          <version>1.5.2.2.3</version>
-          <extends>common-services/SPARK/1.5.2</extends>
+          <version>1.5.2</version>
+          <extends>common-services/SPARK/1.4.1</extends>
+          <requiredServices>
+            <service>YARN</service>
+          </requiredServices>
+          <!-- No new components compared to 1.4.1 -->
+          <configuration-dependencies>
+            <config-type>spark-defaults</config-type>
+            <config-type>spark-env</config-type>
+            <config-type>spark-log4j-properties</config-type>
+            <config-type>spark-metrics-properties</config-type>
+            <config-type>spark-thrift-sparkconf</config-type>
+            <config-type>spark-hive-site-override</config-type>
+          </configuration-dependencies>
         </service>
     </services>
 </metainfo>

@@ -23,8 +23,22 @@
     <services>
         <service>
           <name>SPARK</name>
-          <version>1.5.2.2.3</version>
           <extends>common-services/SPARK/1.5.2</extends>
+          <version>1.6.0</version>
+          <configuration-dependencies>
+            <config-type>spark-defaults</config-type>
+            <config-type>spark-env</config-type>
+            <config-type>spark-log4j-properties</config-type>
+            <config-type>spark-metrics-properties</config-type>
+            <config-type>spark-thrift-sparkconf</config-type>
+            <config-type>spark-hive-site-override</config-type>
+            <config-type>spark-thrift-fairscheduler</config-type>
+          </configuration-dependencies>
+          <requiredServices>
+            <service>HDFS</service>
+            <service>YARN</service>
+            <service>HIVE</service>
+          </requiredServices>
         </service>
     </services>
 </metainfo>

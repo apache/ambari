@@ -14,7 +14,7 @@
         "cluster-env": {}
     }, 
     "commandParams": {
-        "service_package_folder": "common-services/SPARK/1.2.0.2.2/package", 
+        "service_package_folder": "common-services/SPARK/1.2.1/package", 
         "script": "scripts/job_history_server.py", 
         "hooks_folder": "HDP/2.0.6/hooks", 
         "version": "2.2.2.0-2538", 

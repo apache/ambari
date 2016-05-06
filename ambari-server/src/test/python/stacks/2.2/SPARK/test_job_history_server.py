@@ -26,7 +26,7 @@ from only_for_platform import not_for_platform, PLATFORM_WINDOWS
 @not_for_platform(PLATFORM_WINDOWS)
 @patch("resource_management.libraries.functions.get_stack_version", new=MagicMock(return_value="2.3.0.0-1597"))
 class TestJobHistoryServer(RMFTestCase):
-  COMMON_SERVICES_PACKAGE_DIR = "SPARK/1.2.0.2.2/package"
+  COMMON_SERVICES_PACKAGE_DIR = "SPARK/1.2.1/package"
   STACK_VERSION = "2.2"
   DEFAULT_IMMUTABLE_PATHS = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp']
 

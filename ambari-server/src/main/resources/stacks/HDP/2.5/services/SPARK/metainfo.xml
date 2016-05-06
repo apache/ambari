@@ -23,7 +23,7 @@
   <services>
     <service>
       <name>SPARK</name>
-      <version>1.6.0.2.5</version>
+      <version>1.6.x.2.5</version>
     </service>
   </services>
 </metainfo>

@@ -25,7 +25,7 @@ from only_for_platform import not_for_platform, PLATFORM_WINDOWS
 @not_for_platform(PLATFORM_WINDOWS)
 @patch("resource_management.libraries.functions.get_stack_version", new=MagicMock(return_value="2.3.0.0-1597"))
 class TestServiceCheck(RMFTestCase):
-  COMMON_SERVICES_PACKAGE_DIR = "SPARK/1.2.0.2.2/package"
+  COMMON_SERVICES_PACKAGE_DIR = "SPARK/1.2.1/package"
   STACK_VERSION = "2.2"
 
   def test_service_check_default(self):
