@@ -291,6 +291,7 @@ if has_ranger_admin:
   if stack_supports_ranger_kerberos and security_enabled:
     storm_ranger_plugin_config['policy.download.auth.users'] = storm_user
     storm_ranger_plugin_config['tag.download.auth.users'] = storm_user
+    storm_ranger_plugin_config['ambari.service.check.user'] = policy_user
 
     storm_ranger_plugin_repo = {
       'isEnabled': 'true',

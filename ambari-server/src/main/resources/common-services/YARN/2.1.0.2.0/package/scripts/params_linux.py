@@ -415,6 +415,9 @@ if has_ranger_admin:
       'assetType': '1'
     }
 
+    if stack_supports_ranger_kerberos:
+      ranger_plugin_config['ambari.service.check.user'] = policy_user
+
     if stack_supports_ranger_kerberos and security_enabled:
       ranger_plugin_config['policy.download.auth.users'] = yarn_user
       ranger_plugin_config['tag.download.auth.users'] = yarn_user

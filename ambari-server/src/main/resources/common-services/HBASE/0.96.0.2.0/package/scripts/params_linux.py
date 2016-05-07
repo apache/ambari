@@ -342,6 +342,8 @@ if has_ranger_admin:
     hbase_ranger_plugin_config['tag.download.auth.users'] = hbase_user
     hbase_ranger_plugin_config['policy.grant.revoke.auth.users'] = hbase_user
 
+  if stack_supports_ranger_kerberos:
+    hbase_ranger_plugin_config['ambari.service.check.user'] = policy_user
 
     hbase_ranger_plugin_repo = {
       'isEnabled': 'true',

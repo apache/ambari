@@ -64,7 +64,7 @@ def setup_ranger_hbase(upgrade_type=None):
 
     if params.xml_configurations_supported:
       api_version=None
-      if params.stack_supports_ranger_kerberos and params.security_enabled:
+      if params.stack_supports_ranger_kerberos:
         api_version='v2'
       from resource_management.libraries.functions.setup_ranger_plugin_xml import setup_ranger_plugin
       setup_ranger_plugin('hbase-client', 'hbase', params.downloaded_custom_connector, params.driver_curl_source,
