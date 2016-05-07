@@ -57,8 +57,7 @@ def setup_ranger_storm(upgrade_type=None):
 
     if params.xml_configurations_supported:
       api_version=None
-      if params.stack_supports_ranger_kerberos and params.security_enabled:
-        Logger.info('setting stack_version as v2')
+      if params.stack_supports_ranger_kerberos:
         api_version='v2'
       from resource_management.libraries.functions.setup_ranger_plugin_xml import setup_ranger_plugin
       setup_ranger_plugin('storm-nimbus', 'storm',

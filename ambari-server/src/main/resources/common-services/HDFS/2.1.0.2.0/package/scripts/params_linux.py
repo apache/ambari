@@ -489,6 +489,9 @@ if has_ranger_admin:
     hdfs_ranger_plugin_config['policy.download.auth.users'] = hdfs_user
     hdfs_ranger_plugin_config['tag.download.auth.users'] = hdfs_user
 
+  if stack_supports_ranger_kerberos:
+    hdfs_ranger_plugin_config['ambari.service.check.user'] = policy_user
+
     hdfs_ranger_plugin_repo = {
       'isEnabled': 'true',
       'configs': hdfs_ranger_plugin_config,

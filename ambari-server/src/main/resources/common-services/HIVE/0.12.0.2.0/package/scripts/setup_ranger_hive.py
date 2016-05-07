@@ -55,7 +55,7 @@ def setup_ranger_hive(upgrade_type = None):
 
     if params.xml_configurations_supported:
       api_version=None
-      if params.stack_supports_ranger_kerberos and params.security_enabled:
+      if params.stack_supports_ranger_kerberos:
         api_version='v2'
       from resource_management.libraries.functions.setup_ranger_plugin_xml import setup_ranger_plugin
       setup_ranger_plugin('hive-server2', 'hive',
@@ -75,7 +75,7 @@ def setup_ranger_hive(upgrade_type = None):
                           stack_version_override = stack_version, skip_if_rangeradmin_down= not params.retryAble, api_version=api_version,
                           is_security_enabled = params.security_enabled,
                           is_stack_supports_ranger_kerberos = params.stack_supports_ranger_kerberos,
-                          component_user_principal=params.hive_server_principal if params.security_enabled else None,
+                          component_user_principal=params.hive_principal if params.security_enabled else None,
                           component_user_keytab=params.hive_server2_keytab if params.security_enabled else None)
     else:
       from resource_management.libraries.functions.setup_ranger_plugin import setup_ranger_plugin

@@ -98,7 +98,8 @@ class RangeradminV2:
 
   def create_ranger_repository(self, component, repo_name, repo_properties,
                                ambari_ranger_admin, ambari_ranger_password,
-                               admin_uname, admin_password, policy_user, is_security_enabled, component_user, component_user_principal, component_user_keytab):
+                               admin_uname, admin_password, policy_user, is_security_enabled = False, component_user = None,
+                               component_user_principal = None, component_user_keytab = None):
     if not is_security_enabled :
       response_code = self.check_ranger_login_urllib2(self.base_url)
       repo_data = json.dumps(repo_properties)
@@ -345,10 +346,12 @@ class RangeradminV2:
       response_stripped = response[1:len(response) - 1]
       if response_stripped and len(response_stripped) > 0:
         response_json = json.loads(response_stripped)
-        if response_json['name'].lower() == name.lower():
+        if 'name' in response_json and response_json['name'].lower() == name.lower():
           return response_json
         else:
           return None
+      else:
+        return None
     except Fail, fail:
       raise Fail(str(fail))
 
@@ -364,120 +367,24 @@ class RangeradminV2:
     :param data: service definition of the repository
     :return:
     """
-    search_repo_url = self.url_repos_pub
-    header = 'Content-Type: application/json'
-    method = 'POST'
+    try:
+      search_repo_url = self.url_repos_pub
+      header = 'Content-Type: application/json'
+      method = 'POST'
 
-    response,error_message,time_in_millis = self.call_curl_request(component_user,component_user_keytab,component_user_principal,search_repo_url,False,method,data,header)
-    if response and len(response) > 0:
-      response_json = json.loads(response)
-      if 'name' in response_json and response_json['name'].lower() == name.lower():
-        Logger.info('Repository created Successfully')
-        service_name = response_json['name']
-        service_type = response_json['type']
-        if service_type in ['hdfs','hive','hbase','knox','storm']:
-          policy_list = self.get_policy_by_repo_name(component_user,component_user_keytab,component_user_principal,service_name,service_type,'true')
-          if policy_list is not None and len(policy_list) > 0:
-            policy_update_count = 0
-            for policy in policy_list:
-              updated_policy_object = self.get_policy_params(service_type,policy,policy_user=policy_user)
-              response,error_message,time_in_millis = self.update_ranger_policy(component_user,component_user_keytab,component_user_principal,updated_policy_object['id'],json.dumps(updated_policy_object))
-              if response and len(response) > 0:
-                policy_update_count += 1
-              else:
-                Logger.info("Policy updated failed")
-            if len(policy_list) == policy_update_count:
-              Logger.info("Ranger Repository created successfully and policies updated successfully providing ambari-qa user all permissions")
-              return response_json
-        else:
+      response,error_message,time_in_millis = self.call_curl_request(component_user,component_user_keytab,component_user_principal,search_repo_url,False,method,data,header)
+      if response and len(response) > 0:
+        response_json = json.loads(response)
+        if 'name' in response_json and response_json['name'].lower() == name.lower():
+          Logger.info('Repository created Successfully')
           return response_json
+        elif 'exists'.lower() in response_json.lower():
+          Logger.info('Repository {name} already exists'.format(name=name))
+        else:
+          Logger.info('Repository creation failed')
+          return None
       else:
         Logger.info('Repository creation failed')
         return None
-    else:
-      Logger.info('Repository creation failed')
-      return None
-
-
-
-  @safe_retry(times=5, sleep_time=8, backoff_factor=1.5, err_class=Fail, return_on_fail=None)
-  def get_policy_by_repo_name(self, component_user,component_user_keytab,component_user_principal,name, component, status):
-    """
-    :param name: repository name
-    :param component: component name for which policy needs to be searched
-    :param status: true or false
-    :param usernamepassword: user credentials using which policy needs to be searched
-    :return Returns successful response else None
-    """
-    try:
-      # time.sleep(5)
-      search_policy_url = self.url_policies_get+ '?serviceType=' + component + '&isEnabled=' + status
-
-      search_policy_url = search_policy_url.format(servicename=name)
-      method = 'GET'
-      response,error_message,time_in_millis = self.call_curl_request(component_user,component_user_keytab,component_user_principal,search_policy_url,False,request_method=method)
-      if response and len(response) > 0:
-        response = json.loads(response)
-        return response
-      else:
-        return None
     except Fail, fail:
       raise Fail(str(fail))
-
-  @safe_retry(times=5, sleep_time=8, backoff_factor=1.5, err_class=Fail, return_on_fail=None)
-  def update_ranger_policy(self,component_user,component_user_keytab,component_user_principal, policyId, data):
-    """
-    :param policyId: policy id which needs to be updated
-    :param data: policy data that needs to be updated
-    :param usernamepassword: user credentials using which policy needs to be updated
-    :return Returns successful response and response code else None
-    """
-    try:
-      update_url = self.url_policies + '/' + str(policyId)
-      header = 'Content-Type: application/json'
-      method = 'PUT'
-
-      response,error_message,time_in_millis = self.call_curl_request(component_user,component_user_keytab,component_user_principal,update_url,False,method,data,header=header)
-      if response and len(response) > 0:
-        Logger.info('Policy updated Successfully')
-        
-        response_json = json.loads(response)
-        return response_json,error_message,time_in_millis
-      else:
-        Logger.error('Update Policy failed')
-        return None, None,None
-    except Fail, fail:
-      raise Fail(str(fail))
-
-  def get_policy_params(self, typeOfPolicy, policyObj, policy_user):
-    """
-    :param typeOfPolicy: component name for which policy has to be get
-    :param policyObj: policy dict
-    :param policy_user: policy user that needs to be updated
-    :returns Returns updated policy dict
-    """
-    typeOfPolicy = typeOfPolicy.lower()
-    policy_record = ''
-    if typeOfPolicy == "hdfs":
-      policy_record  = {'users': [policy_user], 'accesses': [{'isAllowed': True,'type': 'read' }, {'isAllowed': True,'type': 'write' },{'isAllowed': True,'type': 'execute' }],'delegateAdmin': True}
-    elif typeOfPolicy == "hive":
-      policy_record = {'users': [policy_user],
-                                   'accesses': [{'isAllowed': True,'type': 'select' }, {'isAllowed': True,'type': 'update' }, {'isAllowed': True,'type': 'create' },
-                                                {'isAllowed': True,'type': 'drop' }, {'isAllowed': True,'type': 'alter' }, {'isAllowed': True,'type': 'index' },
-                                                {'isAllowed': True,'type': 'lock' }, {'isAllowed': True,'type': 'all' }],'delegateAdmin':True }
-    elif typeOfPolicy == "hbase":
-      policy_record = {'users': [policy_user], 'accesses': [{'isAllowed': True,'type': 'read' }, {'isAllowed': True,'type': 'write' },
-                                                             {'isAllowed': True,'type': 'create' }],'delegateAdmin':True }
-    elif typeOfPolicy == "knox":
-      policy_record = {'users': [policy_user], 'accesses': [{'isAllowed': True,'type': 'allow' }],'delegateAdmin':True }
-    elif typeOfPolicy == "storm":
-      policy_record = {'users': [policy_user],
-                                   'accesses': [{'isAllowed': True,'type': 'submitTopology' }, {'isAllowed': True,'type': 'fileUpload' },{'isAllowed': True,'type': 'getNimbusConf' },
-                                                {'isAllowed': True,'type': 'getClusterInfo' },{'isAllowed': True,'type': 'fileDownload' } , {'isAllowed': True,'type': 'killTopology' },
-                                                {'isAllowed': True,'type': 'rebalance' }, {'isAllowed': True,'type': 'activate' }, {'isAllowed': True,'type': 'deactivate' },
-                                                {'isAllowed': True,'type': 'getTopologyConf' }, {'isAllowed': True,'type': 'getTopology' }, {'isAllowed': True,'type': 'getUserTopology' },
-                                                {'isAllowed': True,'type': 'getTopologyInfo' }, {'isAllowed': True,'type': 'uploadNewCredential' }],'delegateAdmin':True}
-
-    if policy_record != '':
-      policyObj['policyItems'].append(policy_record)
-    return policyObj

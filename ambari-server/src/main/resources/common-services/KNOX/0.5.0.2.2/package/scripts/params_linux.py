@@ -324,6 +324,9 @@ if has_ranger_admin:
     knox_ranger_plugin_config['policy.download.auth.users'] = knox_user
     knox_ranger_plugin_config['tag.download.auth.users'] = knox_user
 
+  if stack_supports_ranger_kerberos:
+    knox_ranger_plugin_config['ambari.service.check.user'] = policy_user
+
     knox_ranger_plugin_repo = {
       'isEnabled': 'true',
       'configs': knox_ranger_plugin_config,
