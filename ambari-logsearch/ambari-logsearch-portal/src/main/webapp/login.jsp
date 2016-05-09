@@ -64,8 +64,18 @@
 
 	<body>
 		<div class="container-fluid">
-<!-- 			<div id="page-login" class="row">
-				<div class="col-xs-12 col-md-4 col-md-offset-4 col-sm-6 col-sm-offset-3"> -->
+				<header class="navbar">
+					<div class="container-fluid expanded-panel">
+						<div class="row top-panel-right">
+							<div id="logo" class="col-xs-12 col-sm-3">
+						        <div class="row">
+							          <div class="col-sm-2"><img title="Apache Ambari" alt="Apache Ambari" src="images/logo-white.png" height="32px"></div>
+							          <div class="col-sm-10"><a href="javascript:void(0);">Log Search</a></div>
+						        </div>
+							</div>
+						</div>
+					</div>
+				</header>
 					<div class="box-wrapper">
 						<div class="box">
 						<div class="box-content logBox">
@@ -96,9 +106,6 @@
 						<div data-id="loader" class="loading"></div>
 					</div>
 					</div>			
-					
-<!-- 				</div>
-			</div> -->
 		</div>
 
 		<script type="text/javascript">

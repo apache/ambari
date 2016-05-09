@@ -28,8 +28,8 @@ define(['require',
 ], function(require, Backbone, Handlebars, Header_tmpl, Utils, moment, Globals) {
     'use strict';
 
-    var Spinner = Backbone.Marionette.Layout.extend(
-        /** @lends Spinner */
+    var Header = Backbone.Marionette.Layout.extend(
+        /** @lends Header */
         {
             _viewName: 'Header',
 
@@ -56,7 +56,7 @@ define(['require',
             },
 
             /**
-             * intialize a new Spinner Layout 
+             * intialize a new Header Layout 
              * @constructs
              */
             initialize: function(options) {
@@ -92,7 +92,9 @@ define(['require',
                     }
                     this.ui.timeZoneChange.find('span').text(moment.tz(storeTimezone.value.split(',')[0]).zoneName());
                 }
-
+            },
+            onShow : function(){
+                this.triggerAutoTourCheck();
             },
             loadTimeZone: function() {
 
@@ -411,10 +413,23 @@ define(['require',
                         scrollTop: $(document).height()
                     }, 400);
                 });
+            },
+            triggerAutoTourCheck : function(){
+                var that = this;
+                var storageVal = Utils.localStorage.checkLocalStorage('autoTour');
+                if(! storageVal.found){
+                    Utils.localStorage.setLocalStorage("autoTour",true);
+                    setTimeout(function(){
+                        Utils.confirmPopup({
+                            'msg':'Do you want to take a Tour with LogSearch App ?',
+                            'callback':that.takeATour
+                        });
+                    },3000);
+                }
             }
 
 
         });
 
-    return Spinner;
+    return Header;
 });
