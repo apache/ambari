@@ -24,35 +24,29 @@ limitations under the License.
     </layout>
   </appender>
 
-  <appender name="rolling_file_json" class="org.apache.log4j.RollingFileAppender">
+  <appender name="rolling_file_json" class="org.apache.ambari.logsearch.appender.LogsearchRollingFileAppender">
     <param name="file" value="{{logsearch_log_dir}}/logsearch.json"/>
     <param name="append" value="true"/>
     <param name="maxFileSize" value="10MB"/>
     <param name="maxBackupIndex" value="10"/>
-    <layout class="org.apache.log4j.PatternLayout">
-      <param name="ConversionPattern" value="%d [%t] %-5p %C{6} (%F:%L) - %m%n"/>
-    </layout>
+    <layout class="org.apache.ambari.logsearch.appender.LogsearchConversion" />
   </appender>
 
-  <appender name="audit_rolling_file_json" class="org.apache.log4j.RollingFileAppender">
+  <appender name="audit_rolling_file_json" class="org.apache.ambari.logsearch.appender.LogsearchRollingFileAppender">
     <param name="file" value="{{logsearch_log_dir}}/logsearch-audit.json"/>
     <param name="append" value="true"/>
     <param name="maxFileSize" value="10MB"/>
     <param name="maxBackupIndex" value="10"/>
-    <layout class="org.apache.log4j.PatternLayout">
-      <param name="ConversionPattern" value="%d [%t] %-5p %C{6} (%F:%L) - %m%n"/>
-    </layout>
+    <layout class="org.apache.ambari.logsearch.appender.LogsearchConversion" />
   </appender>
 
-  <appender name="performance_analyzer_json" class="org.apache.log4j.RollingFileAppender">
+  <appender name="performance_analyzer_json" class="org.apache.ambari.logsearch.appender.LogsearchRollingFileAppender">
     <param name="file" value="{{logsearch_log_dir}}/logsearch-performance.json"/>
     <param name="Threshold" value="info"/>
     <param name="append" value="true"/>
     <param name="maxFileSize" value="10MB"/>
     <param name="maxBackupIndex" value="10"/>
-    <layout class="org.apache.log4j.PatternLayout">
-      <param name="ConversionPattern" value="%d [%t] %-5p %C{6} (%F:%L) - %m%n"/>
-    </layout>
+    <layout class="org.apache.ambari.logsearch.appender.LogsearchConversion" />
   </appender>
 
   <logger name="org.apache.ambari.logsearch.audit" additivity="true">
