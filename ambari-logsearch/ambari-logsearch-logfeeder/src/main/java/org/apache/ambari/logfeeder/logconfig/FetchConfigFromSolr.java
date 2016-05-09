@@ -52,7 +52,7 @@ public class FetchConfigFromSolr extends Thread {
       logger.warn("Solr ZKHosts for UserConfig/History is not set. Won't look for level configuration from Solr.");
       return;
     }
-    solrConfigInterval = LogFeederUtil.getIntProperty("logfeeder.solr.config.internal", solrConfigInterval);
+    solrConfigInterval = LogFeederUtil.getIntProperty("logfeeder.solr.config.interval", solrConfigInterval);
     delay = 1000 * solrConfigInterval;
     do {
       logger.debug("Updating config from solr after every " + solrConfigInterval + " sec.");
