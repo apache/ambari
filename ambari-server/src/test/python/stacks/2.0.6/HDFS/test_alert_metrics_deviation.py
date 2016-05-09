@@ -27,10 +27,6 @@ from mock.mock import patch, MagicMock
 # Local imports
 from stacks.utils.RMFTestCase import *
 
-# set locale for formatted strings from this alert
-import locale
-locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
-
 COMMON_SERVICES_ALERTS_DIR = "HDFS/2.1.0.2.0/package/alerts"
 
 file_path = os.path.dirname(os.path.abspath(__file__))
@@ -126,14 +122,14 @@ class TestAlertMetricsDeviation(RMFTestCase):
     [status, messages] = alert.execute(configurations=configs, parameters=parameters)
     self.assertEqual(status, RESULT_STATE_OK)
     self.assertTrue(messages is not None and len(messages) == 1)
-    self.assertEquals('The variance for this alert is 7,071ms which is within 100% of the 45,000ms average (45,000ms is the limit)', messages[0])
+    self.assertEquals('The variance for this alert is 7071ms which is within 100% of the 45000ms average (45000ms is the limit)', messages[0])
 
     # Warning
     response.read.return_value = '{"metrics":[{"metricname":"metric1","metrics":{"1459966360838":40000,"1459966370838":1000000}}]}'
     [status, messages] = alert.execute(configurations=configs, parameters=parameters)
     self.assertEqual(status, RESULT_STATE_WARNING)
     self.assertTrue(messages is not None and len(messages) == 1)
-    self.assertEquals('The variance for this alert is 678,823ms which is 131% of the 520,000ms average (520,000ms is the limit)', messages[0])
+    self.assertEquals('The variance for this alert is 678823ms which is 131% of the 520000ms average (520000ms is the limit)', messages[0])
 
     # HTTP request to AMS failed
     response.read.return_value = ''

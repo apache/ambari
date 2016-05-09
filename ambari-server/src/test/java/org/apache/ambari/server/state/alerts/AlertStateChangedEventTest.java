@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.ambari.server.controller.RootServiceResponseFactory.Services;
 import org.apache.ambari.server.events.AggregateAlertRecalculateEvent;
 import org.apache.ambari.server.events.AlertEvent;
 import org.apache.ambari.server.events.AlertStateChangeEvent;
@@ -38,12 +39,16 @@ import org.apache.ambari.server.orm.entities.AlertGroupEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.orm.entities.AlertNoticeEntity;
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
+import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.AlertFirmness;
 import org.apache.ambari.server.state.AlertState;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.easymock.EasyMock;
+import org.easymock.EasyMockSupport;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -63,7 +68,7 @@ import junit.framework.Assert;
  * should only be created when received alerts which have a firmness of
  * {@link AlertFirmness#HARD}.
  */
-public class AlertStateChangedEventTest {
+public class AlertStateChangedEventTest extends EasyMockSupport {
 
   private AlertEventPublisher eventPublisher;
   private AlertDispatchDAO dispatchDao;
@@ -80,7 +85,6 @@ public class AlertStateChangedEventTest {
 
     injector.getInstance(GuiceJpaInitializer.class);
     m_listener = injector.getInstance(MockEventListener.class);
-
     dispatchDao = injector.getInstance(AlertDispatchDAO.class);
 
     // !!! need a synchronous op for testing
@@ -106,9 +110,13 @@ public class AlertStateChangedEventTest {
    * @throws Exception
    */
   @Test
+  @SuppressWarnings("unchecked")
   public void testAlertNoticeCreationFromEvent() throws Exception {
-    AlertTargetEntity alertTarget = EasyMock.createNiceMock(AlertTargetEntity.class);
-    AlertGroupEntity alertGroup = EasyMock.createMock(AlertGroupEntity.class);
+    // expect the normal calls which get a cluster by its ID
+    expectNormalCluster();
+
+    AlertTargetEntity alertTarget = createNiceMock(AlertTargetEntity.class);
+    AlertGroupEntity alertGroup = createMock(AlertGroupEntity.class);
     List<AlertGroupEntity> groups = new ArrayList<AlertGroupEntity>();
     Set<AlertTargetEntity> targets = new HashSet<AlertTargetEntity>();
 
@@ -124,20 +132,19 @@ public class AlertStateChangedEventTest {
         dispatchDao.findGroupsByDefinition(EasyMock.anyObject(AlertDefinitionEntity.class))).andReturn(
         groups).once();
 
-    dispatchDao.createNotices(EasyMock.<List<AlertNoticeEntity>>anyObject());
+    dispatchDao.createNotices((List<AlertNoticeEntity>) EasyMock.anyObject());
     EasyMock.expectLastCall().once();
-
-    EasyMock.replay(alertTarget, alertGroup, dispatchDao);
 
     AlertDefinitionEntity definition = getMockAlertDefinition();
 
     AlertCurrentEntity current = getMockedAlertCurrentEntity();
-    AlertHistoryEntity history = EasyMock.createNiceMock(AlertHistoryEntity.class);
-    AlertStateChangeEvent event = EasyMock.createNiceMock(AlertStateChangeEvent.class);
-    Alert alert = EasyMock.createNiceMock(Alert.class);
+    AlertHistoryEntity history = createNiceMock(AlertHistoryEntity.class);
+    AlertStateChangeEvent event = createNiceMock(AlertStateChangeEvent.class);
+    Alert alert = createNiceMock(Alert.class);
 
     EasyMock.expect(current.getAlertHistory()).andReturn(history).anyTimes();
     EasyMock.expect(current.getFirmness()).andReturn(AlertFirmness.HARD).atLeastOnce();
+    EasyMock.expect(history.getClusterId()).andReturn(1L).atLeastOnce();
     EasyMock.expect(history.getAlertState()).andReturn(AlertState.CRITICAL).atLeastOnce();
     EasyMock.expect(history.getAlertDefinition()).andReturn(definition).atLeastOnce();
     EasyMock.expect(alert.getText()).andReturn("The HDFS Foo Alert Is Not Good").atLeastOnce();
@@ -146,11 +153,9 @@ public class AlertStateChangedEventTest {
     EasyMock.expect(event.getNewHistoricalEntry()).andReturn(history).atLeastOnce();
     EasyMock.expect(event.getAlert()).andReturn(alert).atLeastOnce();
 
-    EasyMock.replay(definition, current, history, event, alert);
-
-    // async publishing
+    replayAll();
     eventPublisher.publish(event);
-    EasyMock.verify(dispatchDao, alertTarget, current, history, event);
+    verifyAll();
   }
 
   /**
@@ -161,8 +166,8 @@ public class AlertStateChangedEventTest {
    */
   @Test
   public void testAlertNoticeSkippedForTarget() throws Exception {
-    AlertTargetEntity alertTarget = EasyMock.createMock(AlertTargetEntity.class);
-    AlertGroupEntity alertGroup = EasyMock.createMock(AlertGroupEntity.class);
+    AlertTargetEntity alertTarget = createMock(AlertTargetEntity.class);
+    AlertGroupEntity alertGroup = createMock(AlertGroupEntity.class);
     List<AlertGroupEntity> groups = new ArrayList<AlertGroupEntity>();
     Set<AlertTargetEntity> targets = new HashSet<AlertTargetEntity>();
 
@@ -175,19 +180,17 @@ public class AlertStateChangedEventTest {
         EnumSet.of(AlertState.OK, AlertState.CRITICAL)).atLeastOnce();
 
     EasyMock.expect(
-        dispatchDao.findGroupsByDefinition(EasyMock.anyObject(AlertDefinitionEntity.class))).andReturn(
+        dispatchDao.findGroupsByDefinition(
+            EasyMock.anyObject(AlertDefinitionEntity.class))).andReturn(
         groups).once();
 
-    // dispatchDao should be strict enough to throw an exception on verify
-    // that the create alert notice method was not called
-    EasyMock.replay(alertTarget, alertGroup, dispatchDao);
 
     AlertDefinitionEntity definition = getMockAlertDefinition();
 
     AlertCurrentEntity current = getMockedAlertCurrentEntity();
-    AlertHistoryEntity history = EasyMock.createNiceMock(AlertHistoryEntity.class);
-    AlertStateChangeEvent event = EasyMock.createNiceMock(AlertStateChangeEvent.class);
-    Alert alert = EasyMock.createNiceMock(Alert.class);
+    AlertHistoryEntity history = createNiceMock(AlertHistoryEntity.class);
+    AlertStateChangeEvent event = createNiceMock(AlertStateChangeEvent.class);
+    Alert alert = createNiceMock(Alert.class);
 
     EasyMock.expect(current.getAlertHistory()).andReturn(history).anyTimes();
     EasyMock.expect(current.getFirmness()).andReturn(AlertFirmness.HARD).atLeastOnce();
@@ -195,7 +198,6 @@ public class AlertStateChangedEventTest {
     // use WARNING to ensure that the target (which only cares about OK/CRIT)
     // does not receive the alert notice
     EasyMock.expect(history.getAlertState()).andReturn(AlertState.WARNING).atLeastOnce();
-
     EasyMock.expect(history.getAlertDefinition()).andReturn(definition).atLeastOnce();
     EasyMock.expect(alert.getText()).andReturn("The HDFS Foo Alert Is Not Good").atLeastOnce();
     EasyMock.expect(alert.getState()).andReturn(AlertState.WARNING).atLeastOnce();
@@ -203,11 +205,9 @@ public class AlertStateChangedEventTest {
     EasyMock.expect(event.getNewHistoricalEntry()).andReturn(history).atLeastOnce();
     EasyMock.expect(event.getAlert()).andReturn(alert).atLeastOnce();
 
-    EasyMock.replay(definition, current, history, event, alert);
-
-    // async publishing
+    replayAll();
     eventPublisher.publish(event);
-    EasyMock.verify(dispatchDao, current, history, event);
+    verifyAll();
   }
 
   /**
@@ -218,8 +218,8 @@ public class AlertStateChangedEventTest {
    */
   @Test
   public void testAlertNoticeSkippedForDisabledTarget() throws Exception {
-    AlertTargetEntity alertTarget = EasyMock.createMock(AlertTargetEntity.class);
-    AlertGroupEntity alertGroup = EasyMock.createMock(AlertGroupEntity.class);
+    AlertTargetEntity alertTarget = createMock(AlertTargetEntity.class);
+    AlertGroupEntity alertGroup = createMock(AlertGroupEntity.class);
     List<AlertGroupEntity> groups = new ArrayList<AlertGroupEntity>();
     Set<AlertTargetEntity> targets = new HashSet<AlertTargetEntity>();
 
@@ -229,19 +229,18 @@ public class AlertStateChangedEventTest {
     EasyMock.expect(alertGroup.getAlertTargets()).andReturn(targets).once();
     EasyMock.expect(alertTarget.isEnabled()).andReturn(Boolean.FALSE).atLeastOnce();
 
-    EasyMock.expect(dispatchDao.findGroupsByDefinition(
-        EasyMock.anyObject(AlertDefinitionEntity.class))).andReturn(groups).once();
+    EasyMock.expect(
+        dispatchDao.findGroupsByDefinition(
+            EasyMock.anyObject(AlertDefinitionEntity.class))).andReturn(
+        groups).once();
 
-    // dispatchDao should be strict enough to throw an exception on verify
-    // that the create alert notice method was not called
-    EasyMock.replay(alertTarget, alertGroup, dispatchDao);
 
     AlertDefinitionEntity definition = getMockAlertDefinition();
 
     AlertCurrentEntity current = getMockedAlertCurrentEntity();
-    AlertHistoryEntity history = EasyMock.createNiceMock(AlertHistoryEntity.class);
-    AlertStateChangeEvent event = EasyMock.createNiceMock(AlertStateChangeEvent.class);
-    Alert alert = EasyMock.createNiceMock(Alert.class);
+    AlertHistoryEntity history = createNiceMock(AlertHistoryEntity.class);
+    AlertStateChangeEvent event = createNiceMock(AlertStateChangeEvent.class);
+    Alert alert = createNiceMock(Alert.class);
 
     EasyMock.expect(current.getAlertHistory()).andReturn(history).anyTimes();
     EasyMock.expect(current.getFirmness()).andReturn(AlertFirmness.HARD).atLeastOnce();
@@ -254,11 +253,9 @@ public class AlertStateChangedEventTest {
     EasyMock.expect(event.getNewHistoricalEntry()).andReturn(history).atLeastOnce();
     EasyMock.expect(event.getAlert()).andReturn(alert).atLeastOnce();
 
-    EasyMock.replay(definition, current, history, event, alert);
-
-    // async publishing
+    replayAll();
     eventPublisher.publish(event);
-    EasyMock.verify(dispatchDao, alertTarget, current, history, event);
+    verifyAll();
   }
 
   /**
@@ -269,14 +266,12 @@ public class AlertStateChangedEventTest {
    */
   @Test
   public void testSoftAlertDoesNotCreateNotifications() throws Exception {
-    EasyMock.replay(dispatchDao);
-
     AlertDefinitionEntity definition = getMockAlertDefinition();
 
     AlertCurrentEntity current = getMockedAlertCurrentEntity();
-    AlertHistoryEntity history = EasyMock.createNiceMock(AlertHistoryEntity.class);
-    AlertStateChangeEvent event = EasyMock.createNiceMock(AlertStateChangeEvent.class);
-    Alert alert = EasyMock.createNiceMock(Alert.class);
+    AlertHistoryEntity history = createNiceMock(AlertHistoryEntity.class);
+    AlertStateChangeEvent event = createNiceMock(AlertStateChangeEvent.class);
+    Alert alert = createNiceMock(Alert.class);
 
     // make the alert SOFT so that no notifications are sent
     EasyMock.expect(current.getAlertHistory()).andReturn(history).anyTimes();
@@ -289,11 +284,9 @@ public class AlertStateChangedEventTest {
     EasyMock.expect(event.getNewHistoricalEntry()).andReturn(history).atLeastOnce();
     EasyMock.expect(event.getAlert()).andReturn(alert).atLeastOnce();
 
-    EasyMock.replay(definition, current, history, event, alert);
-
-    // async publishing
+    replayAll();
     eventPublisher.publish(event);
-    EasyMock.verify(dispatchDao, current, history, event);
+    verifyAll();
   }
 
   /**
@@ -305,14 +298,12 @@ public class AlertStateChangedEventTest {
    */
   @Test
   public void testSoftAlertTransitionToHardOKDoesNotCreateNotification() throws Exception {
-    EasyMock.replay(dispatchDao);
-
     AlertDefinitionEntity definition = getMockAlertDefinition();
 
     AlertCurrentEntity current = getMockedAlertCurrentEntity();
-    AlertHistoryEntity history = EasyMock.createNiceMock(AlertHistoryEntity.class);
-    AlertStateChangeEvent event = EasyMock.createNiceMock(AlertStateChangeEvent.class);
-    Alert alert = EasyMock.createNiceMock(Alert.class);
+    AlertHistoryEntity history = createNiceMock(AlertHistoryEntity.class);
+    AlertStateChangeEvent event = createNiceMock(AlertStateChangeEvent.class);
+    Alert alert = createNiceMock(Alert.class);
 
     // register a HARD/OK for the brand new alert coming in
     EasyMock.expect(current.getAlertHistory()).andReturn(history).anyTimes();
@@ -330,11 +321,9 @@ public class AlertStateChangedEventTest {
     EasyMock.expect(event.getNewHistoricalEntry()).andReturn(history).atLeastOnce();
     EasyMock.expect(event.getAlert()).andReturn(alert).atLeastOnce();
 
-    EasyMock.replay(definition, current, history, event, alert);
-
-    // async publishing
+    replayAll();
     eventPublisher.publish(event);
-    EasyMock.verify(dispatchDao, current, history, event);
+    verifyAll();
   }
 
   /**
@@ -343,11 +332,11 @@ public class AlertStateChangedEventTest {
    * @return
    */
   private AlertDefinitionEntity getMockAlertDefinition() {
-    AlertDefinitionEntity definition = EasyMock.createNiceMock(AlertDefinitionEntity.class);
-    EasyMock.expect(definition.getDefinitionId()).andReturn(1L);
-    EasyMock.expect(definition.getServiceName()).andReturn("HDFS");
-    EasyMock.expect(definition.getLabel()).andReturn("hdfs-foo-alert");
-    EasyMock.expect(definition.getDescription()).andReturn("HDFS Foo Alert");
+    AlertDefinitionEntity definition = createNiceMock(AlertDefinitionEntity.class);
+    EasyMock.expect(definition.getDefinitionId()).andReturn(1L).anyTimes();
+    EasyMock.expect(definition.getServiceName()).andReturn("HDFS").anyTimes();
+    EasyMock.expect(definition.getLabel()).andReturn("hdfs-foo-alert").anyTimes();
+    EasyMock.expect(definition.getDescription()).andReturn("HDFS Foo Alert").anyTimes();
 
     return definition;
   }
@@ -358,7 +347,7 @@ public class AlertStateChangedEventTest {
    * @return
    */
   private AlertCurrentEntity getMockedAlertCurrentEntity() {
-    AlertCurrentEntity current = EasyMock.createNiceMock(AlertCurrentEntity.class);
+    AlertCurrentEntity current = createNiceMock(AlertCurrentEntity.class);
     EasyMock.expect(current.getMaintenanceState()).andReturn(MaintenanceState.OFF).anyTimes();
     return current;
   }
@@ -380,6 +369,209 @@ public class AlertStateChangedEventTest {
   }
 
   /**
+   * Tests that no {@link AlertNoticeEntity} instances are created during an
+   * upgrade.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testUpgradingClusterSkipsAlerts() throws Exception {
+    // expect an upgrading cluster
+    expectUpgradingCluster();
+
+    AlertTargetEntity alertTarget = createNiceMock(AlertTargetEntity.class);
+    AlertGroupEntity alertGroup = createMock(AlertGroupEntity.class);
+    List<AlertGroupEntity> groups = new ArrayList<AlertGroupEntity>();
+    Set<AlertTargetEntity> targets = new HashSet<AlertTargetEntity>();
+
+    targets.add(alertTarget);
+    groups.add(alertGroup);
+
+    EasyMock.expect(alertGroup.getAlertTargets()).andReturn(targets).once();
+    EasyMock.expect(alertTarget.isEnabled()).andReturn(Boolean.TRUE).atLeastOnce();
+    EasyMock.expect(alertTarget.getAlertStates()).andReturn(EnumSet.allOf(AlertState.class)).atLeastOnce();
+
+    EasyMock.expect(dispatchDao.findGroupsByDefinition(
+        EasyMock.anyObject(AlertDefinitionEntity.class))).andReturn(groups).once();
+
+    AlertDefinitionEntity definition = getMockAlertDefinition();
+
+    AlertCurrentEntity current = getMockedAlertCurrentEntity();
+    AlertHistoryEntity history = createNiceMock(AlertHistoryEntity.class);
+    AlertStateChangeEvent event = createNiceMock(AlertStateChangeEvent.class);
+    Alert alert = createNiceMock(Alert.class);
+
+    EasyMock.expect(current.getAlertHistory()).andReturn(history).anyTimes();
+    EasyMock.expect(current.getFirmness()).andReturn(AlertFirmness.HARD).atLeastOnce();
+    EasyMock.expect(history.getClusterId()).andReturn(1L).atLeastOnce();
+    EasyMock.expect(history.getAlertState()).andReturn(AlertState.CRITICAL).atLeastOnce();
+    EasyMock.expect(history.getAlertDefinition()).andReturn(definition).atLeastOnce();
+    EasyMock.expect(alert.getText()).andReturn("The HDFS Foo Alert Is Not Good").atLeastOnce();
+    EasyMock.expect(alert.getState()).andReturn(AlertState.CRITICAL).atLeastOnce();
+    EasyMock.expect(event.getCurrentAlert()).andReturn(current).atLeastOnce();
+    EasyMock.expect(event.getNewHistoricalEntry()).andReturn(history).atLeastOnce();
+    EasyMock.expect(event.getAlert()).andReturn(alert).atLeastOnce();
+
+    replayAll();
+    eventPublisher.publish(event);
+    verifyAll();
+  }
+
+  /**
+   * Tests that no {@link AlertNoticeEntity} instances are created when a
+   * cluster upgrade is suspended.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testUpgradeSuspendedClusterSkipsAlerts() throws Exception {
+    // expect an upgrading cluster
+    expectUpgradeSuspendedCluster();
+
+    AlertTargetEntity alertTarget = createNiceMock(AlertTargetEntity.class);
+    AlertGroupEntity alertGroup = createMock(AlertGroupEntity.class);
+    List<AlertGroupEntity> groups = new ArrayList<AlertGroupEntity>();
+    Set<AlertTargetEntity> targets = new HashSet<AlertTargetEntity>();
+
+    targets.add(alertTarget);
+    groups.add(alertGroup);
+
+    EasyMock.expect(alertGroup.getAlertTargets()).andReturn(targets).once();
+    EasyMock.expect(alertTarget.isEnabled()).andReturn(Boolean.TRUE).atLeastOnce();
+    EasyMock.expect(alertTarget.getAlertStates()).andReturn(
+        EnumSet.allOf(AlertState.class)).atLeastOnce();
+
+    EasyMock.expect(dispatchDao.findGroupsByDefinition(
+        EasyMock.anyObject(AlertDefinitionEntity.class))).andReturn(groups).once();
+
+    AlertDefinitionEntity definition = getMockAlertDefinition();
+
+    AlertCurrentEntity current = getMockedAlertCurrentEntity();
+    AlertHistoryEntity history = createNiceMock(AlertHistoryEntity.class);
+    AlertStateChangeEvent event = createNiceMock(AlertStateChangeEvent.class);
+    Alert alert = createNiceMock(Alert.class);
+
+    EasyMock.expect(current.getAlertHistory()).andReturn(history).anyTimes();
+    EasyMock.expect(current.getFirmness()).andReturn(AlertFirmness.HARD).atLeastOnce();
+    EasyMock.expect(history.getClusterId()).andReturn(1L).atLeastOnce();
+    EasyMock.expect(history.getAlertState()).andReturn(AlertState.CRITICAL).atLeastOnce();
+    EasyMock.expect(history.getAlertDefinition()).andReturn(definition).atLeastOnce();
+    EasyMock.expect(alert.getText()).andReturn("The HDFS Foo Alert Is Not Good").atLeastOnce();
+    EasyMock.expect(alert.getState()).andReturn(AlertState.CRITICAL).atLeastOnce();
+    EasyMock.expect(event.getCurrentAlert()).andReturn(current).atLeastOnce();
+    EasyMock.expect(event.getNewHistoricalEntry()).andReturn(history).atLeastOnce();
+    EasyMock.expect(event.getAlert()).andReturn(alert).atLeastOnce();
+
+    replayAll();
+    eventPublisher.publish(event);
+    verifyAll();
+  }
+
+  /**
+   * Tests that {@link AlertNoticeEntity} instances are created during an
+   * upgrade as long as they are for the AMBARI service.
+   *
+   * @throws Exception
+   */
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testAmbariAlertsSendDuringUpgrade() throws Exception {
+    // expect an upgrading cluster
+    expectUpgradingCluster();
+
+    AlertTargetEntity alertTarget = createNiceMock(AlertTargetEntity.class);
+    AlertGroupEntity alertGroup = createMock(AlertGroupEntity.class);
+    List<AlertGroupEntity> groups = new ArrayList<AlertGroupEntity>();
+    Set<AlertTargetEntity> targets = new HashSet<AlertTargetEntity>();
+
+    targets.add(alertTarget);
+    groups.add(alertGroup);
+
+    EasyMock.expect(alertGroup.getAlertTargets()).andReturn(targets).once();
+    EasyMock.expect(alertTarget.isEnabled()).andReturn(Boolean.TRUE).atLeastOnce();
+    EasyMock.expect(alertTarget.getAlertStates()).andReturn(
+        EnumSet.allOf(AlertState.class)).atLeastOnce();
+
+    EasyMock.expect(dispatchDao.findGroupsByDefinition(
+        EasyMock.anyObject(AlertDefinitionEntity.class))).andReturn(groups).once();
+
+    // create the definition for the AMBARI service
+    AlertDefinitionEntity definition = createNiceMock(AlertDefinitionEntity.class);
+    EasyMock.expect(definition.getDefinitionId()).andReturn(1L).anyTimes();
+    EasyMock.expect(definition.getServiceName()).andReturn(Services.AMBARI.name()).anyTimes();
+    EasyMock.expect(definition.getLabel()).andReturn("ambari-foo-alert").anyTimes();
+    EasyMock.expect(definition.getDescription()).andReturn("Ambari Foo Alert").anyTimes();
+
+    dispatchDao.createNotices((List<AlertNoticeEntity>) EasyMock.anyObject());
+
+    AlertCurrentEntity current = getMockedAlertCurrentEntity();
+    AlertHistoryEntity history = createNiceMock(AlertHistoryEntity.class);
+    AlertStateChangeEvent event = createNiceMock(AlertStateChangeEvent.class);
+    Alert alert = createNiceMock(Alert.class);
+
+    EasyMock.expect(current.getAlertHistory()).andReturn(history).anyTimes();
+    EasyMock.expect(current.getFirmness()).andReturn(AlertFirmness.HARD).atLeastOnce();
+    EasyMock.expect(history.getClusterId()).andReturn(1L).atLeastOnce();
+    EasyMock.expect(history.getAlertState()).andReturn(AlertState.CRITICAL).atLeastOnce();
+    EasyMock.expect(history.getAlertDefinition()).andReturn(definition).atLeastOnce();
+    EasyMock.expect(alert.getText()).andReturn("The HDFS Foo Alert Is Not Good").atLeastOnce();
+    EasyMock.expect(alert.getState()).andReturn(AlertState.CRITICAL).atLeastOnce();
+    EasyMock.expect(event.getCurrentAlert()).andReturn(current).atLeastOnce();
+    EasyMock.expect(event.getNewHistoricalEntry()).andReturn(history).atLeastOnce();
+    EasyMock.expect(event.getAlert()).andReturn(alert).atLeastOnce();
+
+    replayAll();
+    eventPublisher.publish(event);
+    verifyAll();
+  }
+
+  /**
+   * Create expectations around a normal cluster.
+   *
+   * @throws Exception
+   */
+  private void expectNormalCluster() throws Exception {
+    Clusters clusters = injector.getInstance(Clusters.class);
+    Cluster cluster = createMock(Cluster.class);
+
+    EasyMock.expect(clusters.getClusterById(EasyMock.anyLong())).andReturn(cluster).atLeastOnce();
+    EasyMock.expect(cluster.getUpgradeEntity()).andReturn(null).anyTimes();
+    EasyMock.expect(cluster.isUpgradeSuspended()).andReturn(false).anyTimes();
+  }
+
+  /**
+   * Create expectations around a cluster in an active upgrade.
+   *
+   * @throws Exception
+   */
+  private void expectUpgradingCluster() throws Exception {
+    Clusters clusters = injector.getInstance(Clusters.class);
+    Cluster cluster = createMock(Cluster.class);
+
+    EasyMock.reset(clusters);
+
+    EasyMock.expect(clusters.getClusterById(EasyMock.anyLong())).andReturn(cluster).atLeastOnce();
+    EasyMock.expect(cluster.getUpgradeEntity()).andReturn(new UpgradeEntity()).anyTimes();
+    EasyMock.expect(cluster.isUpgradeSuspended()).andReturn(false).anyTimes();
+  }
+
+  /**
+   * Create expectations around a cluster where the upgrade was suspended.
+   *
+   * @throws Exception
+   */
+  private void expectUpgradeSuspendedCluster() throws Exception {
+    Cluster cluster = createMock(Cluster.class);
+    Clusters clusters = injector.getInstance(Clusters.class);
+
+    EasyMock.reset(clusters);
+
+    EasyMock.expect(clusters.getClusterById(EasyMock.anyLong())).andReturn(cluster).atLeastOnce();
+    EasyMock.expect(cluster.getUpgradeEntity()).andReturn(null).anyTimes();
+    EasyMock.expect(cluster.isUpgradeSuspended()).andReturn(true).anyTimes();
+  }
+
+  /**
    *
    */
   private class MockModule implements Module {
@@ -388,8 +580,12 @@ public class AlertStateChangedEventTest {
      */
     @Override
     public void configure(Binder binder) {
-      AlertDispatchDAO dispatchDao = EasyMock.createMock(AlertDispatchDAO.class);
-      binder.bind(AlertDispatchDAO.class).toInstance(dispatchDao);
+      Clusters clusters = createMock(Clusters.class);
+
+      // dispatchDao should be strict enough to throw an exception on verify
+      // that the create alert notice method was not called
+      binder.bind(AlertDispatchDAO.class).toInstance(createMock(AlertDispatchDAO.class));
+      binder.bind(Clusters.class).toInstance(clusters);
     }
   }
 }

@@ -22,7 +22,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;
+import org.apache.ambari.server.controller.RootServiceResponseFactory.Services;
 import org.apache.ambari.server.events.AlertStateChangeEvent;
 import org.apache.ambari.server.events.publishers.AlertEventPublisher;
 import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
@@ -35,14 +37,18 @@ import org.apache.ambari.server.orm.entities.AlertTargetEntity;
 import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.AlertFirmness;
 import org.apache.ambari.server.state.AlertState;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.NotificationState;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.AllowConcurrentEvents;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
 /**
@@ -56,6 +62,13 @@ import com.google.inject.Singleton;
  * {@link AlertFirmness#HARD} for any notifications to be created. This is
  * because a SOFT non-OK alert (such as CRITICAL) would not have caused a
  * notification, so changing back from this SOFT state should not either.
+ * <p/>
+ * This class will not create {@link AlertNoticeEntity}s in the following cases:
+ * <ul>
+ * <li>If {@link AlertTargetEntity#isEnabled()} is {@code false}
+ * <li>If the cluster is upgrading or the upgrade is suspended, only
+ * {@link Services#AMBARI} alerts will be dispatched.
+ * </ul>
  */
 @Singleton
 @EagerSingleton
@@ -83,6 +96,12 @@ public class AlertStateChangedListener {
    */
   @Inject
   private AlertDispatchDAO m_alertsDispatchDao;
+
+  /**
+   * Used to retrieve a cluster and check for upgrades in progress.
+   */
+  @Inject
+  private Provider<Clusters> m_clusters;
 
   /**
    * Constructor.
@@ -151,7 +170,7 @@ public class AlertStateChangedListener {
       }
 
       for (AlertTargetEntity target : targets) {
-        if (!isAlertTargetInterestedAndEnabled(target, history)) {
+        if (!canDispatch(target, history, definition)) {
           continue;
         }
 
@@ -171,20 +190,26 @@ public class AlertStateChangedListener {
   }
 
   /**
-   * Gets whether the {@link AlertTargetEntity} is interested in receiving a
-   * notification about the {@link AlertHistoryEntity}'s state change. If an
-   * alert target is disabled, then this will return {@code false}.
+   * Gets whether an {@link AlertNoticeEntity} should be created for the
+   * {@link AlertHistoryEntity} and {@link AlertTargetEntity}. Reasons this
+   * would be false include:
+   * <ul>
+   * <li>The target is disabled
+   * <li>The target is not configured for the state of the alert
+   * <li>The cluster is upgrading and the alert is cluster-related
+   * </ul>
    *
    * @param target
    *          the target (not {@code null}).
    * @param history
    *          the history entry that represents the state change (not
    *          {@code null}).
-   * @return {@code true} if the target cares about this state change,
+   * @return {@code true} if a notification should be dispatched for the target,
    *         {@code false} otherwise.
+   * @see AlertTargetEntity#isEnabled()
    */
-  private boolean isAlertTargetInterestedAndEnabled(AlertTargetEntity target,
-      AlertHistoryEntity history) {
+  private boolean canDispatch(AlertTargetEntity target,
+      AlertHistoryEntity history, AlertDefinitionEntity definition) {
 
     // disable alert targets should be skipped
     if (!target.isEnabled()) {
@@ -196,6 +221,29 @@ public class AlertStateChangedListener {
       if (!alertStates.contains(history.getAlertState())) {
         return false;
       }
+    }
+
+    // check if in an upgrade
+    Long clusterId = history.getClusterId();
+    try {
+      Cluster cluster = m_clusters.get().getClusterById(clusterId);
+      if (null != cluster.getUpgradeEntity() || cluster.isUpgradeSuspended()) {
+        // only send AMBARI alerts if in an upgrade
+        String serviceName = definition.getServiceName();
+        if (!StringUtils.equals(serviceName, Services.AMBARI.name())) {
+          LOG.debug(
+              "Skipping alert notifications for {} because the cluster is upgrading",
+              definition.getDefinitionName(), target);
+
+          return false;
+        }
+      }
+    } catch (AmbariException ambariException) {
+      LOG.warn(
+          "Unable to process an alert state change for cluster with ID {} because it does not exist",
+          clusterId);
+
+      return false;
     }
 
     return true;
