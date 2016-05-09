@@ -50,6 +50,9 @@ public class LogsearchAuthenticationProvider extends
 
   @Autowired
   LogsearchSimpleAuthenticationProvider simpleAuthenticationProvider;
+  
+  @Autowired
+  LogsearchExternalServerAuthenticationProvider externalServerAuthenticationProvider;
 
   @Autowired
   JSONUtil jsonUtil;
@@ -133,6 +136,8 @@ public class LogsearchAuthenticationProvider extends
       authentication = fileAuthenticationProvider.authenticate(authentication);
     } else if (authMethod.equals(AUTH_METHOD.SIMPLE)) {
       authentication = simpleAuthenticationProvider.authenticate(authentication);
+    }else if (authMethod.equals(AUTH_METHOD.EXTERNAL_AUTH)) {
+      authentication = externalServerAuthenticationProvider.authenticate(authentication);
     } else {
       logger.error("Invalid authentication method :" + authMethod.name());
     }

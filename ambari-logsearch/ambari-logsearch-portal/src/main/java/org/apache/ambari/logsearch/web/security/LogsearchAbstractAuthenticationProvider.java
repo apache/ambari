@@ -24,20 +24,16 @@ import java.util.List;
 import org.apache.ambari.logsearch.util.PropertiesUtil;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 
 public abstract class LogsearchAbstractAuthenticationProvider implements AuthenticationProvider {
 
-  private static String AUTH_METHOD_PROP_START_WITH = "logsearch.auth.";
+  public final static String AUTH_METHOD_PROP_START_WITH = "logsearch.auth.";
 
   protected enum AUTH_METHOD {
-    LDAP, FILE, SIMPLE
+    LDAP, FILE, EXTERNAL_AUTH, SIMPLE
   };
-
 
   @Override
   public boolean supports(Class<?> authentication) {
@@ -45,25 +41,10 @@ public abstract class LogsearchAbstractAuthenticationProvider implements Authent
   }
 
   /**
-   * @param authentication
-   * @return
-   */
-  public Authentication getAuthenticationWithGrantedAuthority(Authentication authentication) {
-    UsernamePasswordAuthenticationToken result = null;
-    if (authentication != null && authentication.isAuthenticated()) {
-      final List<GrantedAuthority> grantedAuths = getAuthorities(authentication.getName().toString());
-      final UserDetails userDetails = new User(authentication.getName().toString(), authentication
-        .getCredentials().toString(), grantedAuths);
-      result = new UsernamePasswordAuthenticationToken(userDetails, authentication.getCredentials(), grantedAuths);
-      result.setDetails(authentication.getDetails());
-      return result;
-    }
-    return authentication;
-  }
-
-  /**
+   * GET Default GrantedAuthority
+   * 
    * @param username
-   * @return
+   * @return List<GrantedAuthority>
    */
   protected List<GrantedAuthority> getAuthorities(String username) {
     final List<GrantedAuthority> grantedAuths = new ArrayList<>();
@@ -71,6 +52,12 @@ public abstract class LogsearchAbstractAuthenticationProvider implements Authent
     return grantedAuths;
   }
 
+  /**
+   * Check authentication provider is enable or disable for specified method
+   * 
+   * @param method
+   * @return boolean
+   */
   public boolean isEnable(AUTH_METHOD method) {
     String methodName = method.name().toLowerCase();
     String property = AUTH_METHOD_PROP_START_WITH + methodName + ".enable";
@@ -78,8 +65,13 @@ public abstract class LogsearchAbstractAuthenticationProvider implements Authent
     return isEnable;
   }
 
+  /**
+   * Check authentication provider is enable or disable
+   * 
+   * @return boolean
+   */
   public boolean isEnable() {
-    //default is disabled 
+    // default is disabled
     return false;
   }
 

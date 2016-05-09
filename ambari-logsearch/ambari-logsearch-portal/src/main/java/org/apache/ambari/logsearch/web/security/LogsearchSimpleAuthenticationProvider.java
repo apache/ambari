@@ -59,9 +59,10 @@ public class LogsearchSimpleAuthenticationProvider extends LogsearchAbstractAuth
   public boolean isEnable(AUTH_METHOD method) {
     boolean ldapEnabled = super.isEnable(AUTH_METHOD.LDAP);
     boolean fileEnabled = super.isEnable(AUTH_METHOD.FILE);
+    boolean externalAuthEnabled = super.isEnable(AUTH_METHOD.EXTERNAL_AUTH);
     boolean simpleEnabled = super.isEnable(method);
-    if (!ldapEnabled && !fileEnabled && simpleEnabled) {
-      // simple is enabled only when rest two are disabled and simple is enable
+    if (!ldapEnabled && !fileEnabled && simpleEnabled && !externalAuthEnabled) {
+      // simple is enabled only when rest three are disabled and simple is enable
       return true;
     } else {
       return false;

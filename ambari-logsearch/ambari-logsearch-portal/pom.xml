@@ -33,6 +33,7 @@
     <spring.version>4.2.5.RELEASE</spring.version>
     <spring.security.version>4.0.4.RELEASE</spring.security.version>
     <spring.ldap.version>2.0.4.RELEASE</spring.ldap.version>
+    <jersey.version>1.19</jersey.version>
   </properties>
   <profiles>
     <!-- Dev Profile Start -->
@@ -504,7 +505,7 @@
     <dependency>
       <groupId>com.sun.jersey.contribs</groupId>
       <artifactId>jersey-spring</artifactId>
-      <version>1.19</version>
+      <version>${jersey.version}</version>
       <exclusions>
         <exclusion>
           <groupId>org.springframework</groupId>
@@ -512,6 +513,11 @@
         </exclusion>
       </exclusions>
     </dependency>
+    <dependency>
+    <groupId>com.sun.jersey.contribs</groupId>
+    <artifactId>jersey-apache-client</artifactId>
+    <version>${jersey.version}</version>
+  </dependency>
     <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>javax.servlet-api</artifactId>
