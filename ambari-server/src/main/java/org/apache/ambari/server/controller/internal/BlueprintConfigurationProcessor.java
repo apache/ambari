@@ -2234,6 +2234,7 @@ public class BlueprintConfigurationProcessor {
     Map<String, PropertyUpdater> hadoopEnvMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> hbaseEnvMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> hiveEnvMap = new HashMap<String, PropertyUpdater>();
+    Map<String, PropertyUpdater> hiveInteractiveEnvMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> oozieEnvMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> oozieEnvHeapSizeMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> oozieEnvOriginalValueMap = new HashMap<String, PropertyUpdater>();
@@ -2271,6 +2272,7 @@ public class BlueprintConfigurationProcessor {
     singleHostTopologyUpdaters.put("hbase-site", hbaseSiteMap);
     singleHostTopologyUpdaters.put("yarn-site", yarnSiteMap);
     singleHostTopologyUpdaters.put("hive-site", hiveSiteMap);
+    singleHostTopologyUpdaters.put("hive-interactive-env", hiveInteractiveEnvMap);
     singleHostTopologyUpdaters.put("oozie-site", oozieSiteMap);
     singleHostTopologyUpdaters.put("storm-site", stormSiteMap);
     singleHostTopologyUpdaters.put("accumulo-site", accumuloSiteMap);
@@ -2381,6 +2383,9 @@ public class BlueprintConfigurationProcessor {
     multiWebhcatSiteMap.put("templeton.kerberos.principal", new MultipleHostTopologyUpdater("WEBHCAT_SERVER"));
     multiHiveSiteMap.put("hive.zookeeper.quorum", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
     multiHiveSiteMap.put("hive.cluster.delegation.token.store.zookeeper.connectString", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
+
+    // HIVE Interactive Server
+    hiveInteractiveEnvMap.put("hive_server_interactive_host", new SingleHostTopologyUpdater("HIVE_SERVER_INTERACTIVE"));
 
     // HIVE Atlas integration
     hiveSiteNonTopologyMap.put("hive.exec.post.hooks", new NonTopologyUpdater() {

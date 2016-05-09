@@ -329,8 +329,8 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
           putHiveInteractiveEnvPropertyAttribute('num_llap_nodes', "minimum", 1)
           putHiveInteractiveEnvPropertyAttribute('num_llap_nodes', "maximum", int(num_llap_nodes_max_limit))
 
-        llap_container_size = long(llap_container_size)
-        llap_container_size_min_limit = long(llap_container_size_min_limit)
+        llap_container_size = max(long(yarn_min_container_size), long(llap_container_size))
+        llap_container_size_min_limit = max(long(yarn_min_container_size), long(llap_container_size_min_limit))
         putHiveInteractiveSiteProperty('hive.llap.daemon.yarn.container.mb', llap_container_size)
         putHiveInteractiveSitePropertyAttribute('hive.llap.daemon.yarn.container.mb', "minimum",
                                                 llap_container_size_min_limit)
@@ -686,7 +686,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     else:
       raise Fail("Couldn't retrieve YARN's 'yarn.nodemanager.resource.cpu-vcores' config.")
 
-    mem_per_executor = hive_container_size * exec_to_cache_ratio;
+    mem_per_executor = hive_container_size * exec_to_cache_ratio
     if mem_per_executor > llap_container_size:
       mem_per_executor = llap_container_size
 
@@ -758,10 +758,10 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
   Normalize down 'val2' with respect to 'val1'.
   """
   def _normalizeDown(self, val1, val2):
-    tmp = math.floor(val1 / val2);
+    tmp = math.floor(val1 / val2)
     if tmp < 1.00:
       return val1
-    return tmp * val2;
+    return tmp * val2
 
   """
   Normalize up 'val2' with respect to 'val1'.
