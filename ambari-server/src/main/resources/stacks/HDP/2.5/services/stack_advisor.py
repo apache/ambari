@@ -169,7 +169,8 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     else:
       putHiveInteractiveEnvProperty('enable_hive_interactive', 'false')
 
-    if 'hive.llap.zk.sm.connectionString' in services['configurations'][self.HIVE_INTERACTIVE_SITE]['properties']:
+    if self.HIVE_INTERACTIVE_SITE in services['configurations'] and \
+        'hive.llap.zk.sm.connectionString' in services['configurations'][self.HIVE_INTERACTIVE_SITE]['properties']:
       # Fill the property 'hive.llap.zk.sm.connectionString' required by Hive Server Interactive (HiveServer2)
       zookeeper_host_port = self.getZKHostPortString(services)
       if zookeeper_host_port:
