@@ -23,7 +23,7 @@
 
   <property>
     <name>logsearch_admin_username</name>
-    <value>admin</value>
+    <value>ambari_logsearch_admin</value>
     <display-name>Admin username</display-name>
     <description>LogSearch admin username</description>
   </property>
