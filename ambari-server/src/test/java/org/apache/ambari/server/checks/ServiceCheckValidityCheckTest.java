@@ -20,11 +20,13 @@ package org.apache.ambari.server.checks;
 import static java.util.Collections.singletonList;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.Arrays;
+
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -114,12 +116,45 @@ public class ServiceCheckValidityCheckTest {
     hostRoleCommandEntity.setRoleCommand(RoleCommand.SERVICE_CHECK);
     hostRoleCommandEntity.setCommandDetail(COMMAND_DETAIL);
     hostRoleCommandEntity.setStartTime(SERVICE_CHECK_START_TIME);
+    hostRoleCommandEntity.setRole(Role.HDFS_SERVICE_CHECK);
 
     when(serviceConfigDAO.getLastServiceConfig(eq(CLUSTER_ID), eq(SERVICE_NAME))).thenReturn(serviceConfigEntity);
-    when(hostRoleCommandDAO.findAll(any(Request.class), isNull(Predicate.class))).thenReturn(singletonList(hostRoleCommandEntity));
+    when(hostRoleCommandDAO.findAll(any(Request.class), any(Predicate.class))).thenReturn(singletonList(hostRoleCommandEntity));
 
     PrerequisiteCheck check = new PrerequisiteCheck(null, CLUSTER_NAME);
     serviceCheckValidityCheck.perform(check, new PrereqCheckRequest(CLUSTER_NAME));
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
+  }
+
+  @Test
+  public void testFailWhenServiceWithOutdatedServiceCheckExistsRepeated() throws AmbariException {
+    ServiceComponent serviceComponent = mock(ServiceComponent.class);
+    when(serviceComponent.isVersionAdvertised()).thenReturn(true);
+
+    when(service.getMaintenanceState()).thenReturn(MaintenanceState.OFF);
+    when(service.getServiceComponents()).thenReturn(ImmutableMap.of(SERVICE_COMPONENT_NAME, serviceComponent));
+
+    ServiceConfigEntity serviceConfigEntity = new ServiceConfigEntity();
+    serviceConfigEntity.setServiceName(SERVICE_NAME);
+    serviceConfigEntity.setCreateTimestamp(CONFIG_CREATE_TIMESTAMP);
+
+    HostRoleCommandEntity hostRoleCommandEntity1 = new HostRoleCommandEntity();
+    hostRoleCommandEntity1.setRoleCommand(RoleCommand.SERVICE_CHECK);
+    hostRoleCommandEntity1.setCommandDetail(COMMAND_DETAIL);
+    hostRoleCommandEntity1.setStartTime(SERVICE_CHECK_START_TIME);
+    hostRoleCommandEntity1.setRole(Role.HDFS_SERVICE_CHECK);
+
+    HostRoleCommandEntity hostRoleCommandEntity2 = new HostRoleCommandEntity();
+    hostRoleCommandEntity2.setRoleCommand(RoleCommand.SERVICE_CHECK);
+    hostRoleCommandEntity2.setCommandDetail(COMMAND_DETAIL);
+    hostRoleCommandEntity2.setStartTime(SERVICE_CHECK_START_TIME + 3000L);
+    hostRoleCommandEntity2.setRole(Role.HDFS_SERVICE_CHECK);
+
+    when(serviceConfigDAO.getLastServiceConfig(eq(CLUSTER_ID), eq(SERVICE_NAME))).thenReturn(serviceConfigEntity);
+    when(hostRoleCommandDAO.findAll(any(Request.class), any(Predicate.class))).thenReturn(Arrays.asList(hostRoleCommandEntity1, hostRoleCommandEntity2));
+
+    PrerequisiteCheck check = new PrerequisiteCheck(null, CLUSTER_NAME);
+    serviceCheckValidityCheck.perform(check, new PrereqCheckRequest(CLUSTER_NAME));
+    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
   }
 }

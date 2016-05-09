@@ -19,7 +19,6 @@ package org.apache.ambari.server.checks;
 
 import java.text.SimpleDateFormat;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -27,10 +26,12 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.controller.internal.PageRequestImpl;
 import org.apache.ambari.server.controller.internal.RequestImpl;
+import org.apache.ambari.server.controller.internal.TaskResourceProvider;
 import org.apache.ambari.server.controller.spi.PageRequest;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
@@ -63,9 +64,12 @@ public class ServiceCheckValidityCheck extends AbstractCheckDescriptor {
 
   private static final Logger LOG = LoggerFactory.getLogger(ServiceCheckValidityCheck.class);
 
-  private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd-MM-yyyy hh:mm:ss");
+  private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("MM-dd-yyyy hh:mm:ss");
   private static final PageRequestImpl PAGE_REQUEST = new PageRequestImpl(PageRequest.StartingPoint.End, 1000, 0, null, null);
   private static final RequestImpl REQUEST = new RequestImpl(null, null, null, null, null, PAGE_REQUEST);
+  private static final Predicate PREDICATE = new PredicateBuilder().property(TaskResourceProvider.TASK_COMMAND_PROPERTY_ID)
+      .equals(RoleCommand.SERVICE_CHECK.name()).toPredicate();
+
 
 
   @Inject
@@ -101,27 +105,44 @@ public class ServiceCheckValidityCheck extends AbstractCheckDescriptor {
       if (service.getMaintenanceState() != MaintenanceState.OFF || !hasAtLeastOneComponentVersionAdvertised(service)) {
         continue;
       }
+
       ServiceConfigEntity lastServiceConfig = serviceConfigDAO.getLastServiceConfig(clusterId, service.getName());
       lastServiceConfigUpdates.put(service.getName(), lastServiceConfig.getCreateTimestamp());
     }
 
-    List<HostRoleCommandEntity> commands = hostRoleCommandDAO.findAll(REQUEST, null);
-    Collections.reverse(commands);
+    List<HostRoleCommandEntity> commands = hostRoleCommandDAO.findAll(REQUEST, PREDICATE);
+
+    // !!! build a map of Role to latest-config-check in case it was rerun multiple times, we want the latest
+    Map<Role, HostRoleCommandEntity> latestTimestamps = new HashMap<>();
+    for (HostRoleCommandEntity command : commands) {
+      Role role = command.getRole();
+
+      if (!latestTimestamps.containsKey(role)) {
+        latestTimestamps.put(role, command);
+      } else {
+        Long latest = latestTimestamps.get(role).getStartTime();
+
+        if (command.getStartTime() > latest) {
+          latestTimestamps.put(role, command);
+        }
+      }
+    }
 
     LinkedHashSet<String> failedServiceNames = new LinkedHashSet<>();
     for (Map.Entry<String, Long> serviceEntry : lastServiceConfigUpdates.entrySet()) {
       String serviceName = serviceEntry.getKey();
       Long configTimestamp = serviceEntry.getValue();
-      for (HostRoleCommandEntity command : commands) {
-        if (RoleCommand.SERVICE_CHECK.equals(command.getRoleCommand()) && command.getCommandDetail().contains(serviceName)) {
+
+      for (HostRoleCommandEntity command : latestTimestamps.values()) {
+        if (command.getCommandDetail().contains(serviceName)) {
           Long serviceCheckTimestamp = command.getStartTime();
+
           if (serviceCheckTimestamp < configTimestamp) {
             failedServiceNames.add(serviceName);
             LOG.info("Service {} latest config change is {}, latest service check executed at {}",
                 serviceName,
                 DATE_FORMAT.format(new Date(configTimestamp)),
-                DATE_FORMAT.format(new Date(serviceCheckTimestamp))
-            );
+                DATE_FORMAT.format(new Date(serviceCheckTimestamp)));
           }
         }
       }
@@ -144,4 +165,5 @@ public class ServiceCheckValidityCheck extends AbstractCheckDescriptor {
     }
     return false;
   }
+
 }
