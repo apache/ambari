@@ -1002,6 +1002,9 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     if (App.get('isHaEnabled') && this.get('content.serviceName') == 'HDFS' && this.get('content.hostComponents').filterProperty('componentName', 'NAMENODE').someProperty('workStatus', App.HostComponentStatus.started)) {
       return false;
     }
+    if (this.get('content.serviceName') == 'HAWQ' && this.get('content.hostComponents').filterProperty('componentName', 'HAWQMASTER').someProperty('workStatus', App.HostComponentStatus.started)) {
+      return false;
+    }
     return (this.get('content.healthStatus') != 'green');
   }.property('content.healthStatus','isPending', 'App.isHaEnabled'),
 

@@ -945,6 +945,68 @@ describe('App.MainServiceItemController', function () {
     });
   });
 
+  describe("#isHAWQStopDisabled", function () {
+    var tests = [
+      {
+        content: {
+          serviceName: 'HAWQ',
+          healthStatus: 'green',
+          hostComponents: [
+            {
+              componentName: 'HAWQMASTER',
+              workStatus: 'STARTED'
+            }, {
+              componentName: 'HAWQSTANDBY',
+              workStatus: 'STARTED'
+            }]
+        },
+        isPending: true,
+        disabled: true,
+        m: "disabled because of pending"
+      },
+      {
+        content: {
+          serviceName: 'HAWQ',
+          healthStatus: 'red',
+          hostComponents: [
+            {
+              componentName: 'HAWQMASTER',
+              workStatus: 'INSTALLED'
+            }, {
+              componentName: 'HAWQSTANDBY',
+              workStatus: 'STARTED'
+            }]
+        },
+        isPending: false,
+        disabled: true,
+        m: "disabled because HAWQMASTER is stopped and health is red"
+      },
+      {
+        content: {
+          serviceName: 'HAWQ',
+          healthStatus: 'green',
+          hostComponents: [
+            {
+              componentName: 'HAWQMASTER',
+              workStatus: 'STARTED'
+            }, {
+              componentName: 'HAWQSTANDBY',
+              workStatus: 'INSTALLED'
+            }]
+        },
+        isPending: false,
+        disabled: false,
+        m: "enabled because HAWQMASTER is started"
+      }
+    ];
+    tests.forEach(function (test) {
+      it(test.m, function () {
+        var mainServiceItemController = App.MainServiceItemController.create({content: test.content, isPending: test.isPending});
+        expect(mainServiceItemController.get('isStopDisabled')).to.equal(test.disabled);
+      });
+    });
+  });
+
   describe("#runRebalancer", function () {
 
     beforeEach(function () {
