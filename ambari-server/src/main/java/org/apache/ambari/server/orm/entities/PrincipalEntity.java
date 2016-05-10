@@ -43,7 +43,7 @@ import javax.persistence.TableGenerator;
 @TableGenerator(name = "principal_id_generator",
     table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
     , pkColumnValue = "principal_id_seq"
-    , initialValue = 2
+    , initialValue = 100
     , allocationSize = 500
 )
 @NamedQueries({

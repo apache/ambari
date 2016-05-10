@@ -630,9 +630,11 @@ CREATE TABLE adminpermission (
   permission_name VARCHAR(255) NOT NULL,
   resource_type_id NUMBER(10) NOT NULL,
   permission_label VARCHAR(255),
+  principal_id NUMBER(19) NOT NULL,
   sort_order SMALLINT DEFAULT 1 NOT NULL,
   CONSTRAINT PK_adminpermission PRIMARY KEY (permission_id),
   CONSTRAINT FK_permission_resource_type_id FOREIGN KEY (resource_type_id) REFERENCES adminresourcetype(resource_type_id),
+  CONSTRAINT FK_permission_principal_id FOREIGN KEY (principal_id) REFERENCES adminprincipal(principal_id),
   CONSTRAINT UQ_perm_name_resource_type_id UNIQUE (permission_name, resource_type_id));
 
 CREATE TABLE roleauthorization (
@@ -1009,8 +1011,8 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('view_instan
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('resource_type_id_seq', 4);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('resource_id_seq', 2);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('principal_type_id_seq', 8);
-INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('principal_id_seq', 7);
-INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('permission_id_seq', 5);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('principal_id_seq', 13);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('permission_id_seq', 7);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('privilege_id_seq', 1);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('config_id_seq', 1);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('cluster_version_id_seq', 0);
@@ -1068,7 +1070,9 @@ insert into adminprincipaltype (principal_type_id, principal_type_name)
   union all
   select 6, 'ALL.SERVICE.ADMINISTRATOR' from dual
   union all
-  select 7, 'ALL.SERVICE.OPERATOR' from dual;
+  select 7, 'ALL.SERVICE.OPERATOR' from dual
+  union all
+  select 8, 'ROLE' from dual;
 
 insert into adminprincipal (principal_id, principal_type_id)
   select 1, 1 from dual
@@ -1081,25 +1085,39 @@ insert into adminprincipal (principal_id, principal_type_id)
   union all
   select 5, 6 from dual
   union all
-  select 6, 7 from dual;
+  select 6, 7 from dual
+  union all
+  select 7, 8 from dual
+  union all
+  select 8, 8 from dual
+  union all
+  select 9, 8 from dual
+  union all
+  select 10, 8 from dual
+  union all
+  select 11, 8 from dual
+  union all
+  select 12, 8 from dual
+  union all
+  select 13, 8 from dual;
 
 insert into users(user_id, principal_id, user_name, user_password)
 select 1,1,'admin','538916f8943ec225d97a9a86a2c6ec0818c1cd400e09e03b660fdaaec4af29ddbb6f2b1033b81b00' from dual;
 
-insert into adminpermission(permission_id, permission_name, resource_type_id, permission_label, sort_order)
-  select 1, 'AMBARI.ADMINISTRATOR', 1, 'Administrator', 1 from dual
+insert into adminpermission(permission_id, permission_name, resource_type_id, permission_label, principal_id, sort_order)
+  select 1, 'AMBARI.ADMINISTRATOR', 1, 'Administrator', 7, 1 from dual
   union all
-  select 2, 'CLUSTER.USER', 2, 'Cluster User', 6 from dual
+  select 2, 'CLUSTER.USER', 2, 'Cluster User', 8, 6 from dual
   union all
-  select 3, 'CLUSTER.ADMINISTRATOR', 2, 'Cluster Administrator', 2 from dual
+  select 3, 'CLUSTER.ADMINISTRATOR', 2, 'Cluster Administrator', 9, 2 from dual
   union all
-  select 4, 'VIEW.USER', 3, 'View User', 7 from dual
+  select 4, 'VIEW.USER', 3, 'View User', 10, 7 from dual
   union all
-  select 5, 'CLUSTER.OPERATOR', 2, 'Cluster Operator', 3 from dual
+  select 5, 'CLUSTER.OPERATOR', 2, 'Cluster Operator', 11, 3 from dual
   union all
-  select 6, 'SERVICE.ADMINISTRATOR', 2, 'Service Administrator', 4 from dual
+  select 6, 'SERVICE.ADMINISTRATOR', 2, 'Service Administrator', 12, 4 from dual
   union all
-  select 7, 'SERVICE.OPERATOR', 2, 'Service Operator', 5 from dual;
+  select 7, 'SERVICE.OPERATOR', 2, 'Service Operator', 13, 5 from dual;
 
 INSERT INTO roleauthorization(authorization_id, authorization_name)
   SELECT 'VIEW.USE', 'Use View' FROM dual UNION ALL
