@@ -17,7 +17,6 @@
  */
 
 var App = require('app');
-var stringUtils = require('utils/string_utils');
 
 App.WizardStep4Controller = Em.ArrayController.extend({
 
@@ -37,11 +36,10 @@ App.WizardStep4Controller = Em.ArrayController.extend({
     if (arguments.length > 1) {
       this.filterProperty('isInstalled', false).setEach('isSelected', value);
       return value;
-    } else {
-      return this.filterProperty('isInstalled', false).
-        filterProperty('isHiddenOnSelectServicePage', false).
-        everyProperty('isSelected', true);
     }
+    return this.filterProperty('isInstalled', false).
+      filterProperty('isHiddenOnSelectServicePage', false).
+      everyProperty('isSelected', true);
   }.property('@each.isSelected'),
 
   /**
@@ -75,8 +73,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * @method multipleDFSs
    */
   multipleDFSs: function () {
-    var dfsServices = this.filterProperty('isDFS',true).filterProperty('isSelected',true);
-	  return  dfsServices.length > 1;
+    return this.filterProperty('isDFS',true).filterProperty('isSelected',true).length > 1;
   },
 
   /**
@@ -114,7 +111,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
   sparkValidation: function (callback) {
     var sparkService = this.findProperty('serviceName', 'SPARK');
     if (sparkService && !sparkService.get('isInstalled') &&
-      App.get('currentStackName') == 'HDP' && App.get('currentStackVersionNumber') == '2.2') {
+      App.get('currentStackName') === 'HDP' && App.get('currentStackVersionNumber') === '2.2') {
       if(sparkService.get('isSelected')) {
         this.addValidationError({
           id: 'sparkWarning',
@@ -147,7 +144,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
       this.unSelectServices();
       this.setGroupedServices();
       if (this.validate()) {
-        App.router.nextBtnClickInProgress = true;
+        App.set('router.nextBtnClickInProgress', true);
         this.set('errorStack', []);
         App.router.send('next');
       }
@@ -189,7 +186,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
     this.rangerValidation(callback);
     this.sparkValidation(callback);
     if (!!this.get('errorStack').filterProperty('isShown', false).length) {
-      var firstError =  this.get('errorStack').findProperty('isShown', false);
+      var firstError = this.get('errorStack').findProperty('isShown', false);
       this.showError(firstError);
       result = false;
     } else {
@@ -237,9 +234,8 @@ App.WizardStep4Controller = Em.ArrayController.extend({
     if (!this.get('errorStack').someProperty('id', errorObject.id)) {
       this.get('errorStack').push(this.createError(errorObject));
       return true;
-    } else {
-      return false;
     }
+    return false;
   },
 
   /**
@@ -262,7 +258,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    *  @method onPrimaryPopupCallback
    **/
   onPrimaryPopupCallback: function(callback, id) {
-    var firstError =  this.get('errorStack').findProperty('isShown', false);
+    var firstError = this.get('errorStack').findProperty('isShown', false);
     if (firstError) {
       firstError.isShown = true;
     }
@@ -338,7 +334,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
         if (this.multipleDFSs()) {
           var dfsServices = this.filterProperty('isDFS',true).filterProperty('isSelected',true).mapProperty('serviceName');
           var services = dfsServices.map(function (item){
-            return  {
+            return {
               serviceName: item,
               selected: item === primaryDfsServiceName
             };
@@ -372,7 +368,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
     var missingDependencies = [];
     var missingDependenciesDisplayName = [];
     selectedServices.forEach(function(service){
-      var requiredServices =  service.get('requiredServices');
+      var requiredServices = service.get('requiredServices');
       if (!!requiredServices && requiredServices.length) {
         requiredServices.forEach(function(_requiredService){
           var requiredService = this.findProperty('serviceName', _requiredService);

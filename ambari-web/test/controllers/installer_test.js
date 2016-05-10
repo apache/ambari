@@ -41,18 +41,6 @@ describe('App.InstallerController', function () {
     });
   });
 
-  describe('#loadStacksVersionsDefinitionsSuccessCallback', function() {
-    beforeEach(function () {
-      sinon.stub(App.store, 'commit', Em.K);
-    });
-    afterEach(function () {
-      App.store.commit.restore();
-    });
-    it ('Correct data', function() {
-      installerController.set('loadStacksRequestsCounter', 1);
-    });
-  });
-
   describe('#getCluster', function() {
     it ('Should return merged clusterStatusTemplate', function() {
       installerController.set('clusterStatusTemplate', {

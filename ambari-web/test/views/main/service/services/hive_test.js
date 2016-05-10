@@ -16,13 +16,8 @@
  * limitations under the License.
  */
 
-var App = require('app');
 require('/views/main/service/services/hive');
 
 describe('App.MainDashboardServiceHiveView', function () {
-  var view;
 
-  beforeEach(function() {
-    view = App.MainDashboardServiceHiveView.create();
-  });
 });

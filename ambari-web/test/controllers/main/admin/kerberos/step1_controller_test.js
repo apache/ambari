@@ -17,7 +17,6 @@
  */
 
 var App = require('app');
-var testHelpers = require('test/helpers');
 
 function getController() {
   return App.KerberosWizardStep1Controller.create({});

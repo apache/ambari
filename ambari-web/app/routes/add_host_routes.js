@@ -184,6 +184,7 @@ module.exports = App.WizardRoute.extend({
     },
     back: Em.Router.transitionTo('step2'),
     next: function (router) {
+      App.set('router.nextBtnClickInProgress', true);
       var addHostController = router.get('addHostController');
       var wizardStep6Controller = router.get('wizardStep6Controller');
 
@@ -191,10 +192,12 @@ module.exports = App.WizardRoute.extend({
         wizardStep6Controller.showValidationIssuesAcceptBox(function () {
           addHostController.saveSlaveComponentHosts(wizardStep6Controller);
           if (wizardStep6Controller.isAllCheckboxesEmpty()) {
+            App.set('router.nextBtnClickInProgress', false);
             router.transitionTo('step5');
             addHostController.set('content.configGroups', []);
             addHostController.saveServiceConfigGroups();
           } else {
+            App.set('router.nextBtnClickInProgress', false);
             router.transitionTo('step4');
           }
         });

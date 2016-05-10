@@ -52,10 +52,9 @@ module.exports = App.WizardRoute.extend({
           }.observes('App.router.highAvailabilityWizardController.currentStep'),
 
           onClose: function () {
-            var self = this;
             var currStep = App.router.get('highAvailabilityWizardController.currentStep');
             var highAvailabilityProgressPageController = App.router.get('highAvailabilityProgressPageController');
-            if (parseInt(currStep) > 4) {
+            if (parseInt(currStep, 10) > 4) {
               if (!App.supports.autoRollbackHA) {
                 highAvailabilityProgressPageController.manualRollback();
               } else {
@@ -66,7 +65,7 @@ module.exports = App.WizardRoute.extend({
             } else {
               var controller = App.router.get('highAvailabilityWizardController');
               controller.clearTasksData();
-              controller.resetOnClose(controller, self, 'main.services.index');
+              controller.resetOnClose(controller, 'main.services.index');
             }
           },
           didInsertElement: function () {
@@ -164,7 +163,7 @@ module.exports = App.WizardRoute.extend({
       controller.dataLoading().done(function () {
         controller.setCurrentStep('3');
         controller.loadAllPriorSteps().done(function () {
-          controller.connectOutlet('highAvailabilityWizardStep3',  controller.get('content'));
+          controller.connectOutlet('highAvailabilityWizardStep3', controller.get('content'));
         });
       });
     },
@@ -172,6 +171,7 @@ module.exports = App.WizardRoute.extend({
       return false;
     },
     next: function (router) {
+      App.set('router.nextBtnClickInProgress', true);
       var controller = router.get('highAvailabilityWizardController');
       var stepController = router.get('highAvailabilityWizardStep3Controller');
       controller.saveServiceConfigProperties(stepController);
@@ -180,6 +180,7 @@ module.exports = App.WizardRoute.extend({
       if (App.Service.find().someProperty('serviceName', 'HBASE')) {
         controller.saveConfigTag(stepController.get("hbaseSiteTag"));
       }
+      App.set('router.nextBtnClickInProgress', false);
       router.transitionTo('step4');
     },
     back: Em.Router.transitionTo('step2')
@@ -193,7 +194,7 @@ module.exports = App.WizardRoute.extend({
         controller.setCurrentStep('4');
         controller.setLowerStepsDisable(4);
         controller.loadAllPriorSteps().done(function () {
-          controller.connectOutlet('highAvailabilityWizardStep4',  controller.get('content'));
+          controller.connectOutlet('highAvailabilityWizardStep4', controller.get('content'));
         });
       })
     },
@@ -215,7 +216,7 @@ module.exports = App.WizardRoute.extend({
         controller.setCurrentStep('5');
         controller.setLowerStepsDisable(5);
         controller.loadAllPriorSteps().done(function () {
-          controller.connectOutlet('highAvailabilityWizardStep5',  controller.get('content'));
+          controller.connectOutlet('highAvailabilityWizardStep5', controller.get('content'));
         });
       })
     },
@@ -237,7 +238,7 @@ module.exports = App.WizardRoute.extend({
         controller.setCurrentStep('6');
         controller.setLowerStepsDisable(6);
         controller.loadAllPriorSteps().done(function () {
-          controller.connectOutlet('highAvailabilityWizardStep6',  controller.get('content'));
+          controller.connectOutlet('highAvailabilityWizardStep6', controller.get('content'));
         });
       })
     },
@@ -257,7 +258,7 @@ module.exports = App.WizardRoute.extend({
         controller.setCurrentStep('7');
         controller.setLowerStepsDisable(7);
         controller.loadAllPriorSteps().done(function () {
-          controller.connectOutlet('highAvailabilityWizardStep7',  controller.get('content'));
+          controller.connectOutlet('highAvailabilityWizardStep7', controller.get('content'));
         });
       })
     },
@@ -279,7 +280,7 @@ module.exports = App.WizardRoute.extend({
         controller.setCurrentStep('8');
         controller.setLowerStepsDisable(8);
         controller.loadAllPriorSteps().done(function () {
-          controller.connectOutlet('highAvailabilityWizardStep8',  controller.get('content'));
+          controller.connectOutlet('highAvailabilityWizardStep8', controller.get('content'));
         });
       })
     },
@@ -301,7 +302,7 @@ module.exports = App.WizardRoute.extend({
         controller.setCurrentStep('9');
         controller.setLowerStepsDisable(9);
         controller.loadAllPriorSteps().done(function () {
-          controller.connectOutlet('highAvailabilityWizardStep9',  controller.get('content'));
+          controller.connectOutlet('highAvailabilityWizardStep9', controller.get('content'));
         });
       })
     },

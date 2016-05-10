@@ -17,8 +17,6 @@
  */
 
 var App = require('app');
-var db = require('utils/db');
-var stringUtils = require('utils/string_utils');
 var blueprintUtils = require('utils/blueprint');
 var validationUtils = require('utils/validator');
 
@@ -355,7 +353,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
     var hostInfo = this.get('content.hosts');
     var hostNames = [];
     //flag identify whether get all hosts or only uninstalled(newly added) hosts
-    var getUninstalledHosts = (this.get('content.controllerName') !== 'addServiceController');
+    var getUninstalledHosts = this.get('content.controllerName') !== 'addServiceController';
 
     for (var index in hostInfo) {
       if (hostInfo.hasOwnProperty(index)) {
@@ -443,8 +441,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
 
     hostsObj.forEach(function(host) {
       var installedHost = hosts[host.hostName];
-      var installedComponents = (installedHost) ?
-                                installedHost.hostComponents.mapProperty('HostRoles.component_name') : [];
+      var installedComponents = installedHost ? installedHost.hostComponents.mapProperty('HostRoles.component_name') : [];
 
       host.checkboxes.forEach(function(checkbox) {
         checkbox.isInstalled = installedComponents.contains(checkbox.component);
@@ -756,10 +753,10 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
     var mapping = self.get('hosts');
 
     mapping.forEach(function (item, i) {
-      var group_name = 'host-group-' + (i+1);
+      var groupName = 'host-group-' + (i+1);
 
-      var host_group = {
-        name: group_name,
+      var hostGroup = {
+        name: groupName,
         components: item.checkboxes.filterProperty('checked', true).map(function (checkbox) {
           if (checkbox.component === "CLIENT") {
             return clientComponents.map(function (client) {
@@ -771,16 +768,16 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
         })
       };
 
-      host_group.components = [].concat.apply([], host_group.components);
+      hostGroup.components = [].concat.apply([], hostGroup.components);
 
       var binding = {
-        name: group_name,
+        name: groupName,
         hosts: [
           { fqdn: item.hostName }
         ]
       };
 
-      res.blueprint.host_groups.push(host_group);
+      res.blueprint.host_groups.push(hostGroup);
       res.blueprint_cluster_binding.host_groups.push(binding);
     });
 
@@ -802,7 +799,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
     var hosts = this.get('content.hosts');
 
     Em.keys(hosts).forEach(function (host, i) {
-      var group_name = 'host-group-' + (i + 1);
+      var groupName = 'host-group-' + (i + 1);
       var components = [];
       masters.forEach(function (master) {
         if (master.hostName === host) {
@@ -812,11 +809,11 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
         }
       });
       res.blueprint.host_groups.push({
-        name: group_name,
+        name: groupName,
         components: components
       });
       res.blueprint_cluster_binding.host_groups.push({
-        name: group_name,
+        name: groupName,
         hosts: [
           {
             fqdn: host
@@ -843,6 +840,10 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
         onPrimary: function () {
           this.hide();
           callback();
+        },
+        onSecondary: function () {
+          App.set('router.nextBtnClickInProgress', false);
+          this._super();
         }
       });
     } else {

@@ -85,7 +85,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
   },
 
   connectOutlets: function (router, context) {
-    console.log('in /installer:connectOutlets');
     router.get('applicationController').connectOutlet('installer');
   },
 
@@ -345,9 +344,9 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
     next: function (router) {
       console.time('step6 next');
+      App.set('router.nextBtnClickInProgress', true);
       var controller = router.get('installerController');
       var wizardStep6Controller = router.get('wizardStep6Controller');
-      var wizardStep7Controller = router.get('wizardStep7Controller');
       if (!wizardStep6Controller.get('submitDisabled')) {
         wizardStep6Controller.showValidationIssuesAcceptBox(function () {
           if (!router.transitionInProgress) {
@@ -360,6 +359,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
               recommendationsHostGroups: wizardStep6Controller.get('content.recommendationsHostGroups'),
               recommendationsConfigs: null
             });
+            App.set('router.nextBtnClickInProgress', false);
             router.transitionTo('step7');
             console.timeEnd('step6 next');
           }
@@ -407,11 +407,13 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       console.time('step7 next');
       if (!router.transitionInProgress) {
         router.set('transitionInProgress', true);
+        App.set('router.nextBtnClickInProgress', true);
         var controller = router.get('installerController');
         var wizardStep7Controller = router.get('wizardStep7Controller');
         controller.saveServiceConfigProperties(wizardStep7Controller);
         controller.saveServiceConfigGroups(wizardStep7Controller);
         controller.setDBProperty('recommendationsConfigs', wizardStep7Controller.get('recommendationsConfigs'));
+        App.set('router.nextBtnClickInProgress', false);
         router.transitionTo('step8');
         console.timeEnd('step7 next');
       }
@@ -422,7 +424,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     route: '/step8',
     connectOutlets: function (router, context) {
       console.time('step8 connectOutlets');
-      console.log('in installer.step8:connectOutlets');
       var controller = router.get('installerController');
       controller.setCurrentStep('8');
       controller.loadAllPriorSteps().done(function () {
@@ -445,6 +446,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
           // We need to do recovery based on whether we are in Add Host or Installer wizard
           installerController.saveClusterState('CLUSTER_INSTALLING_3');
           wizardStep8Controller.set('servicesInstalled', true);
+          router.set('nextBtnClickInProgress', false);
           router.transitionTo('step9');
           console.timeEnd('step8 next');
         });

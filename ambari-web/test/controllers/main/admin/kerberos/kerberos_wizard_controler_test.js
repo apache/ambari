@@ -466,8 +466,8 @@ describe('App.KerberosWizardController', function() {
       expect(controller.saveRequestIds.calledWith(undefined)).to.be.true;
     });
 
-    it("saveTasksRequestIds should be called", function() {
-      expect(controller.saveTasksRequestIds.calledWith(undefined)).to.be.true;
+    it("saveTasksStatuses should be called", function() {
+      expect(controller.saveTasksStatuses.calledWith(undefined)).to.be.true;
     });
   });
 

@@ -310,7 +310,7 @@ describe('App.KerberosWizardStep2Controller', function() {
       App.config.get.restore();
     });
 
-    it("fileName not specified", function() {
+    it("fileName not specified (serviceName S1)", function() {
       this.mock.returns([
         {
           serviceName: 'S1'
@@ -319,7 +319,7 @@ describe('App.KerberosWizardStep2Controller', function() {
       expect(controller.getKerberosConfigs()).to.be.empty;
     });
 
-    it("fileName not specified", function() {
+    it("fileName not specified (serviceName KERBEROS)", function() {
       this.mock.returns([
         {
           serviceName: 'KERBEROS'
@@ -419,7 +419,7 @@ describe('App.KerberosWizardStep2Controller', function() {
       expect(controller.get('controllers.kerberosWizardController').overrideVisibility.calledOnce).to.be.true;
     });
 
-    it("overrideVisibility should be called", function() {
+    it("overrideVisibility results are valid", function() {
       configs = [{
         name: 'manage_identities'
       }];
@@ -532,7 +532,7 @@ describe('App.KerberosWizardStep2Controller', function() {
       expect(App.router.send.calledWith('next')).to.be.true;
     });
 
-    it("App.router.send should be called", function() {
+    it("createKerberosResources should be called", function() {
       mock.set('skipClientInstall', false);
       controller.configureKerberos();
       expect(mock.createKerberosResources.calledOnce).to.be.true;
@@ -694,13 +694,13 @@ describe('App.KerberosWizardStep2Controller', function() {
     it("kdc_type should be p2", function() {
       var properties = {'kdc_type': 'p2'};
       controller.tweakKdcTypeValue(properties);
-      expect(properties['kdc_type']).to.be.equal('p2')
+      expect(properties.kdc_type).to.be.equal('p2')
     });
 
     it("kdc_type should be k1", function() {
       var properties = {'kdc_type': 'p1'};
       controller.tweakKdcTypeValue(properties);
-      expect(properties['kdc_type']).to.be.equal('k1')
+      expect(properties.kdc_type).to.be.equal('k1')
     });
   });
 

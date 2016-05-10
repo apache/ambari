@@ -1479,7 +1479,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       expect(configs['hbase-site']['hbase.rootdir']).to.equal('hdfs://host2:8020/apps/hbase/data');
       expect(configs['accumulo-site']['instance.volumes']).to.equal('hdfs://host2:8020/apps/accumulo/data');
       expect(configs['accumulo-site']['instance.volumes.replacements']).to.equal('hdfs://host1:8020/apps/accumulo/data hdfs://host2:8020/apps/accumulo/data');
-      expect(configs['hawq-site']['hawq_dfs_url']).to.equal('host2:8020/hawq/data');
+      expect(configs['hawq-site'].hawq_dfs_url).to.equal('host2:8020/hawq/data');
     });
 
     it('HA enabled and namenode 1', function () {

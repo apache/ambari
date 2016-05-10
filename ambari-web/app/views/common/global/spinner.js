@@ -20,13 +20,13 @@ var App = require('app');
 
 App.SpinnerView = Em.View.extend({
   classNames: 'spinner',
+
   message: '',
 
   translated: function() {
     return this.get('message') ? Em.I18n.t(this.get('message')) : '';
   }.property('message'),
 
-  template: function() {
-    return Em.Handlebars.compile('<i class="icon-spinner icon-spin"></i>' + this.get('translated'));
-  }.property()
+  template: Em.Handlebars.compile('<i class="icon-spinner icon-spin"></i>{{view.translated}}')
+
 });

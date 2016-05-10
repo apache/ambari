@@ -36,6 +36,9 @@
       {{#if App.supports.preInstallChecks}}
         <a class="btn" {{action runPreInstallChecks target="App.router.preInstallChecksController"}} {{bindAttr disabled="isSubmitDisabled"}}><i class="icon-exclamation"></i> {{t installer.step7.preInstallChecks}}</a>
       {{/if}}
+      {{#if App.router.nextBtnClickInProgress}}
+        {{view App.SpinnerView tagName="span"}}
+      {{/if}}
       <a class="btn btn-success" {{bindAttr disabled="isSubmitDisabled"}}
         {{action submit target="controller"}}>{{t common.next}} &rarr;</a>
     </div>
