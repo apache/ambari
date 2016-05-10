@@ -36,7 +36,7 @@
   ],
   "filter":[
     {
-      "filter":"grok",
+      "filter":"json",
       "conditions":{
         "fields":{
           "type":[
@@ -44,18 +44,6 @@
             "logsearch_feeder",
             "logsearch_perf"
           ]
-
-        }
-
-      },
-      "log4j_format":"%d [%t] %-5p %C{6} (%F:%L) - %m%n",
-      "multiline_pattern":"^(%{TIMESTAMP_ISO8601:logtime})",
-      "message_pattern":"(?m)^%{TIMESTAMP_ISO8601:logtime}%{SPACE}\\[%{DATA:thread_name}\\]%{SPACE}%{LOGLEVEL:level}%{SPACE}%{JAVACLASS:logger_name}%{SPACE}\\(%{JAVAFILE:file}:%{INT:line_number}\\)%{SPACE}-%{SPACE}%{GREEDYDATA:log_message}",
-      "post_map_values":{
-        "logtime":{
-          "map_date":{
-            "date_pattern":"yyyy-MM-dd HH:mm:ss,SSS"
-          }
 
         }
 
