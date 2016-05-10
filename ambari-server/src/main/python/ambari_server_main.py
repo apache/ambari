@@ -30,7 +30,7 @@ from ambari_commons.os_utils import is_root, run_os_command
 from ambari_server.dbConfiguration import ensure_dbms_is_running, ensure_jdbc_driver_is_installed
 from ambari_server.serverConfiguration import configDefaults, find_jdk, get_ambari_properties, \
   get_conf_dir, get_is_persisted, get_is_secure, get_java_exe_path, get_original_master_key, read_ambari_user, \
-  get_is_active_instance, \
+  get_is_active_instance, update_properties, \
   PID_NAME, SECURITY_KEY_ENV_VAR_NAME, SECURITY_MASTER_KEY_LOCATION, \
   SETUP_OR_UPGRADE_MSG, check_database_name_property, parse_properties_file, get_missing_properties
 from ambari_server.serverUtils import refresh_stack_hash
@@ -108,6 +108,8 @@ SERVER_PING_ATTEMPTS_WINDOWS = 4
 SERVER_SEARCH_PATTERN = "org.apache.ambari.server.controller.AmbariServer"
 
 EXITCODE_NAME = "ambari-server.exitcode"
+
+CHECK_DATABASE_SKIPPED_PROPERTY = "check_database_skipped"
 
 AMBARI_SERVER_DIE_MSG = "Ambari Server java process died with exitcode {0}. Check {1} for more information."
 
@@ -293,8 +295,10 @@ def server_process_main(options, scmStatus=None):
     print "Ambari Server is starting with the database consistency check skipped. Do not make any changes to your cluster " \
           "topology or perform a cluster upgrade until you correct the database consistency issues. See \"" \
           + configDefaults.DB_CHECK_LOG + "\" for more details on the consistency issues."
+    properties.process_pair(CHECK_DATABASE_SKIPPED_PROPERTY, "true")
   else:
     print "Ambari database consistency check started..."
+    properties.process_pair(CHECK_DATABASE_SKIPPED_PROPERTY, "false")
     command = CHECK_DATABASE_HELPER_CMD.format(java_exe, class_path)
 
     (retcode, stdout, stderr) = run_os_command(command, env=environ)
@@ -310,6 +314,7 @@ def server_process_main(options, scmStatus=None):
       if not stdout.startswith("No errors"):
         sys.exit(1)
 
+  update_properties(properties)
   param_list = generate_child_process_param_list(ambari_user, java_exe, class_path, debug_start, suspend_mode)
 
 
