@@ -29,7 +29,7 @@ from stacks.utils.RMFTestCase import *
 
 # set locale for formatted strings from this alert
 import locale
-locale.setlocale(locale.LC_ALL, 'en_US')
+locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
 COMMON_SERVICES_ALERTS_DIR = "HDFS/2.1.0.2.0/package/alerts"
 
