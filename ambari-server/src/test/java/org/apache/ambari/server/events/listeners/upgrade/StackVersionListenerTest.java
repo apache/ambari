@@ -37,6 +37,8 @@ import org.easymock.EasyMockSupport;
 import org.junit.Before;
 import org.junit.Test;
 
+import junit.framework.Assert;
+
 /**
  * StackVersionListener tests.
  */
@@ -252,6 +254,41 @@ public class StackVersionListenerTest extends EasyMockSupport {
     Field field = StackVersionListener.class.getDeclaredField("repositoryVersionDAO");
     field.setAccessible(true);
     field.set(listener, dao);
+
+    listener.onAmbariEvent(event);
+
+    verifyAll();
+  }
+
+  /**
+   * Tests that the {@link RepositoryVersionEntity} is not updated if there is
+   * an upgrade, even if the repo ID is passed back and the versions don't
+   * match.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testRepositoryVersionNotSetDuringUpgrade() throws Exception {
+    // this call will make it seem like there is an upgrade in progress
+    expect(cluster.getUpgradeInProgress()).andReturn(createNiceMock(UpgradeEntity.class));
+
+    // create the DAO - nothing will be called on it, so make it strict
+    RepositoryVersionDAO dao = createStrictMock(RepositoryVersionDAO.class);
+
+    replayAll();
+
+    // !!! avoid injector for test class
+    StackVersionListener listener = new StackVersionListener(publisher);
+
+    Field field = StackVersionListener.class.getDeclaredField("repositoryVersionDAO");
+    field.setAccessible(true);
+    field.set(listener, dao);
+
+    HostComponentVersionAdvertisedEvent event = new HostComponentVersionAdvertisedEvent(cluster,
+        sch, VALID_NEW_VERSION, 1L);
+
+    // make sure that a repo ID will come back
+    Assert.assertNotNull(event.getRepositoryVersionId());
 
     listener.onAmbariEvent(event);
 

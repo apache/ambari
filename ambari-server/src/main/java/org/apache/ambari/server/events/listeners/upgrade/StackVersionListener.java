@@ -92,14 +92,19 @@ public class StackVersionListener {
 
     m_stackVersionLock.lock();
 
-    if (null != event.getRepositoryVersionId()) {
+    // if the cluster is upgrading, there's no need to update the repo version -
+    // it better be right
+    if (null != event.getRepositoryVersionId() && null == cluster.getUpgradeInProgress()) {
       // !!! make sure the repo_version record actually has the same version.
       // This is NOT true when installing a cluster using a public repo where the
       // exact version is not known in advance.
       RepositoryVersionEntity rve = repositoryVersionDAO.findByPK(event.getRepositoryVersionId());
-      if (null != rve && !rve.getVersion().equals(newVersion)) {
-        rve.setVersion(newVersion);
-        repositoryVersionDAO.merge(rve);
+      if (null != rve) {
+        String currentRepoVersion = rve.getVersion();
+        if (!StringUtils.equals(currentRepoVersion, newVersion)) {
+          rve.setVersion(newVersion);
+          repositoryVersionDAO.merge(rve);
+        }
       }
     }
 

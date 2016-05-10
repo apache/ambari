@@ -138,9 +138,28 @@ public interface Cluster {
   ClusterVersionEntity getCurrentClusterVersion();
 
   /**
-   * If no RU/EU is in progress, get the ClusterVersionEntity object whose state is CURRENT.
-   * If RU/EU is in progress, based on the direction and desired stack, determine which version to use.
-   * @return Cluster Version entity to use.
+   * Gets the current stack version associated with the cluster.
+   * <ul>
+   * <li>if there is no upgrade in progress then get the
+   * {@link ClusterVersionEntity} object whose state is
+   * {@link RepositoryVersionState#CURRENT}.
+   * <li>If an upgrade is in progress then based on the direction and the
+   * desired stack determine which version to use. Assuming upgrading from HDP
+   * 2.2.0.0-1 to 2.3.0.0-2:
+   * <ul>
+   * <li>RU Upgrade: 2.3.0.0-2 (desired stack id)
+   * <li>RU Downgrade: 2.2.0.0-1 (desired stack id)
+   * <li>EU Upgrade: while stopping services and before changing desired stack,
+   * use 2.2.0.0-1, after, use 2.3.0.0-2
+   * <li>EU Downgrade: while stopping services and before changing desired
+   * stack, use 2.3.0.0-2, after, use 2.2.0.0-1
+   * </ul>
+   * </ul>
+   *
+   * This method must take into account both a running and a suspended upgrade.
+   *
+   * @return the effective cluster stack version given the current upgrading
+   *         conditions of the cluster.
    */
   ClusterVersionEntity getEffectiveClusterVersion() throws AmbariException;
 
@@ -672,10 +691,24 @@ public interface Cluster {
   boolean isUpgradeSuspended();
 
   /**
+   * Gets an {@link UpgradeEntity} if there is an upgrade in progress or an
+   * upgrade that has been suspended. This will first check
+   * {@link #getUpgradeEntity()} and return that if it is not {@code null}.
+   * Otherwise, this will perform a search for the most recent upgrade/downgrade
+   * which has not been completed.
+   *
+   * @return an upgrade which will either be in progress or suspended, or
+   *         {@code null} if none.
+   */
+  UpgradeEntity getUpgradeInProgress();
+
+  /**
    * Returns the name of the service that the passed config type belongs to.
-   * @param configType the config type to look up the service by
-   * @return returns the name of the service that the config type belongs to if there is any
-   *         otherwise returns null.
+   *
+   * @param configType
+   *          the config type to look up the service by
+   * @return returns the name of the service that the config type belongs to if
+   *         there is any otherwise returns null.
    */
   String getServiceByConfigType(String configType);
 

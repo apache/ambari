@@ -39,6 +39,7 @@ import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.events.ActionFinalReportReceivedEvent;
@@ -664,7 +665,7 @@ public class HeartbeatProcessor extends AbstractService{
                 }
               }
 
-              this.heartbeatMonitor.getAgentRequests()
+              heartbeatMonitor.getAgentRequests()
                   .setExecutionDetailsRequest(hostname, componentName, status.getSendExecCmdDet());
             } else {
               // TODO: What should be done otherwise?
@@ -738,7 +739,7 @@ public class HeartbeatProcessor extends AbstractService{
     @SerializedName("direction")
     private Direction upgradeDirection = null;
 
-    @SerializedName("repository_version_id")
+    @SerializedName(KeyNames.REPO_VERSION_ID)
     private Long repositoryVersionId;
 
   }

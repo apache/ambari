@@ -322,9 +322,6 @@ public class ClusterImpl implements Cluster {
       loadServiceConfigTypes();
     }
 
-    // Load any active stack upgrades.
-    loadStackUpgrade();
-
     loadServices();
 
     // register to receive stuff
@@ -346,24 +343,6 @@ public class ClusterImpl implements Cluster {
       throw e;
     }
     LOG.info("Service config types loaded: {}", serviceConfigTypes);
-  }
-
-  /**
-   * When a cluster is first loaded, determine if it has a stack upgrade in progress.
-   */
-  private void loadStackUpgrade() {
-    clusterGlobalLock.writeLock().lock();
-
-    try {
-      UpgradeEntity activeUpgrade = getUpgradeInProgress();
-      if (activeUpgrade != null) {
-        setUpgradeEntity(activeUpgrade);
-      }
-    } catch (AmbariException e) {
-      LOG.error("Unable to load active stack upgrade. Error: " + e.getMessage());
-    } finally {
-      clusterGlobalLock.writeLock().unlock();
-    }
   }
 
   /**
@@ -1189,17 +1168,27 @@ public class ClusterImpl implements Cluster {
   }
 
   /**
-   * Get any stack upgrade currently in progress.
-   * @return
+   * {@inheritDoc}
    */
-  private UpgradeEntity getUpgradeInProgress() {
+  @Override
+  public UpgradeEntity getUpgradeInProgress() {
+    // first check for an upgrade that's actively running
+    UpgradeEntity upgradeInProgress = getUpgradeEntity();
+    if (null != upgradeInProgress) {
+      return upgradeInProgress;
+    }
+
+    // perform a search for any upgrade which shoudl also return upgrades which
+    // are suspended
     UpgradeEntity mostRecentUpgrade = upgradeDAO.findLastUpgradeOrDowngradeForCluster(getClusterId());
     if (mostRecentUpgrade != null) {
-      List<HostRoleStatus> UNFINISHED_STATUSES = new ArrayList();
+      List<HostRoleStatus> UNFINISHED_STATUSES = new ArrayList<>();
       UNFINISHED_STATUSES.add(HostRoleStatus.PENDING);
       UNFINISHED_STATUSES.add(HostRoleStatus.ABORTED);
 
-      List<HostRoleCommandEntity> commands = hostRoleCommandDAO.findByRequestIdAndStatuses(mostRecentUpgrade.getRequestId(), UNFINISHED_STATUSES);
+      List<HostRoleCommandEntity> commands = hostRoleCommandDAO.findByRequestIdAndStatuses(
+          mostRecentUpgrade.getRequestId(), UNFINISHED_STATUSES);
+
       if (!commands.isEmpty()) {
         return mostRecentUpgrade;
       }
@@ -1208,39 +1197,32 @@ public class ClusterImpl implements Cluster {
     return null;
   }
 
+
   /**
-   * If no RU/EU is in progress, get the ClusterVersionEntity object whose state is CURRENT.
-   * If RU/EU is in progress, based on the direction and desired stack, determine which version to use.
-   * Assuming upgrading from HDP 2.2.0.0-1 to 2.3.0.0-2, then
-   * RU Upgrade: 2.3.0.0-2 (desired stack id)
-   * RU Downgrade: 2.2.0.0-1 (desired stack id)
-   * EU Upgrade: while stopping services and before changing desired stack, use 2.2.0.0-1, after, use 2.3.0.0-2
-   * EU Downgrade: while stopping services and before changing desired stack, use 2.3.0.0-2, after, use 2.2.0.0-1
-   * @return
+   * {@inheritDoc}
    */
   @Override
   public ClusterVersionEntity getEffectiveClusterVersion() throws AmbariException {
-    // This is not reliable. Need to find the last upgrade request.
-    UpgradeEntity upgradeInProgress = getUpgradeEntity();
-    if (upgradeInProgress == null) {
+    UpgradeEntity upgradeEntity = getUpgradeInProgress();
+    if (upgradeEntity == null) {
       return getCurrentClusterVersion();
     }
 
     String effectiveVersion = null;
-    switch (upgradeInProgress.getUpgradeType()) {
+    switch (upgradeEntity.getUpgradeType()) {
       case NON_ROLLING:
-        if (upgradeInProgress.getDirection() == Direction.UPGRADE) {
-          boolean pastChangingStack = isNonRollingUpgradePastUpgradingStack(upgradeInProgress);
-          effectiveVersion = pastChangingStack ? upgradeInProgress.getToVersion() : upgradeInProgress.getFromVersion();
+        if (upgradeEntity.getDirection() == Direction.UPGRADE) {
+          boolean pastChangingStack = isNonRollingUpgradePastUpgradingStack(upgradeEntity);
+          effectiveVersion = pastChangingStack ? upgradeEntity.getToVersion() : upgradeEntity.getFromVersion();
         } else {
           // Should be the lower value during a Downgrade.
-          effectiveVersion = upgradeInProgress.getToVersion();
+          effectiveVersion = upgradeEntity.getToVersion();
         }
         break;
       case ROLLING:
       default:
         // Version will be higher on upgrade and lower on downgrade directions.
-        effectiveVersion = upgradeInProgress.getToVersion();
+        effectiveVersion = upgradeEntity.getToVersion();
         break;
     }
 
@@ -1255,6 +1237,7 @@ public class ClusterImpl implements Cluster {
         return clusterVersionEntity;
       }
     }
+
     return null;
   }
 
@@ -1305,9 +1288,7 @@ public class ClusterImpl implements Cluster {
       throw new AmbariException("Could not find current stack version of cluster " + getClusterName());
     }
 
-    final Set<RepositoryVersionState> validStates = new HashSet<RepositoryVersionState>(){{
-      add(RepositoryVersionState.CURRENT);
-    }};
+    final Set<RepositoryVersionState> validStates = Sets.newHashSet(RepositoryVersionState.CURRENT);
 
     if (!validStates.contains(desiredState)) {
       throw new AmbariException("The state must be one of [" + StringUtils.join(validStates, ", ") + "]");

@@ -2207,16 +2207,19 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     hostParams.put(REPO_INFO, repoInfo);
     hostParams.putAll(getRcaParameters());
 
+    // use the effective cluster version here since this command might happen
+    // in the context of an upgrade and we should send the repo ID which matches
+    // the version being send down
     RepositoryVersionEntity repoVersion = null;
-    if (null != cluster.getCurrentClusterVersion()) {
-      repoVersion = cluster.getCurrentClusterVersion().getRepositoryVersion();
+    ClusterVersionEntity effectiveClusterVersion = cluster.getEffectiveClusterVersion();
+    if (null != effectiveClusterVersion) {
+      repoVersion = effectiveClusterVersion.getRepositoryVersion();
     } else {
       List<ClusterVersionEntity> list = clusterVersionDAO.findByClusterAndState(cluster.getClusterName(),
           RepositoryVersionState.INIT);
       if (1 == list.size()) {
         repoVersion = list.get(0).getRepositoryVersion();
       }
-
     }
 
     if (null != repoVersion) {
