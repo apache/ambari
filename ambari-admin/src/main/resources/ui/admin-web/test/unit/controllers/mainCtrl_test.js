@@ -98,6 +98,7 @@ describe('#Auth', function () {
           ]
         });
       $httpBackend.whenGET(/\/persist\/user-pref-.*/).respond(200, {data: {data: {addingNewRepository: true}}});
+      $httpBackend.whenGET(/\/api\/v1\/users\/admin\/authorizations.*/).respond(200, {data: {data: {items: [{AuthorizationInfo : {authorization_id : "AMBARI.RENAME_CLUSTER"}}]}}});
       scope = $rootScope.$new();
       scope.$apply();
       ctrl = $controller('MainCtrl', {$scope: scope});

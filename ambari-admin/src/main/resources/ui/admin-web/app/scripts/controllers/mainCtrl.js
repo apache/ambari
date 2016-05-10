@@ -34,6 +34,14 @@ angular.module('ambariAdminConsole')
         $rootScope.supports = data.data ? data.data : {};
       });
 
+  $http.get(Settings.baseUrl + "/users/"  + Auth.getCurrentUser() +  "/authorizations?fields=*")
+    .then(function(data) {
+      var auth = !!data.data && !!data.data.items ? data.data.items.map(function (a){return a.AuthorizationInfo.authorization_id}) : [];
+      if(auth.indexOf('AMBARI.RENAME_CLUSTER') == -1){
+        $window.location = "/#/main/dashboard";
+      }
+    });
+
   $scope.about = function() {
    var ambariVersion = $scope.ambariVersion;
   	var modalInstance = $modal.open({

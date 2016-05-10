@@ -384,6 +384,11 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
     adminKerberos: Em.Route.extend({
       route: '/kerberos',
+      enter: function (router, transition) {
+        if (router.get('loggedIn') && !App.isAuthorized('CLUSTER.TOGGLE_KERBEROS')) {
+          router.transitionTo('main.dashboard.index');
+        }
+      },
       index: Em.Route.extend({
         route: '/',
         connectOutlets: function (router, context) {
@@ -521,6 +526,11 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     }),
     adminServiceAccounts: Em.Route.extend({
       route: '/serviceAccounts',
+      enter: function (router, transition) {
+        if (router.get('loggedIn') && !App.isAuthorized('AMBARI.SET_SERVICE_USERS_GROUP')) {
+          router.transitionTo('main.dashboard.index');
+        }
+      },
       connectOutlets: function (router) {
         router.set('mainAdminController.category', "adminServiceAccounts");
         router.get('mainAdminController').connectOutlet('mainAdminServiceAccounts');
