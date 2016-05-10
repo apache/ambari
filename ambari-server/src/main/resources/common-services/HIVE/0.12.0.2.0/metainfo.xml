@@ -336,9 +336,6 @@
         <config-type>hive-log4j</config-type>
         <config-type>hive-exec-log4j</config-type>
         <config-type>hive-env</config-type>
-        <!-- TODO, hive-interactive-site shouldn't be in common-services. -->
-        <config-type>hive-interactive-site</config-type>
-        <config-type>hive-interactive-env</config-type>
         <config-type>hivemetastore-site.xml</config-type>
         <config-type>webhcat-site</config-type>
         <config-type>webhcat-env</config-type>
