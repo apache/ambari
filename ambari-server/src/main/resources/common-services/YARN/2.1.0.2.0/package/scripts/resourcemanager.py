@@ -235,10 +235,7 @@ class ResourcemanagerDefault(Resourcemanager):
     ignored_dfs_dirs = HdfsResourceProvider.get_ignored_resources_list(params.hdfs_resource_ignore_file)
 
     if params.security_enabled:
-      Execute(
-        format("{rm_kinit_cmd}")
-        , user=params.yarn_user
-      )
+      Execute(format("{yarn_timelineservice_kinit_cmd}"), user=params.yarn_user)
 
     for dir_path in dirs:
       self.wait_for_dfs_directory_created(dir_path, ignored_dfs_dirs)
