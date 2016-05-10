@@ -194,8 +194,11 @@ App.AddSecurityConfigs = Em.Mixin.create({
    * @method _getDisplayNameForConfig
    * @private
    */
-  _getDisplayNameForConfig: function(name, fileName) {
-    return fileName == 'cluster-env' ? App.format.normalizeName(name) : name;
+  _getDisplayNameForConfig: function (name, fileName) {
+    var predefinedConfig = App.config.get('kerberosIdentitiesMap')[App.config.configId(name, fileName)];
+    return (predefinedConfig && predefinedConfig.displayName)
+      ? predefinedConfig.displayName
+      : fileName == 'cluster-env' ? App.format.normalizeName(name) : name;
   },
 
   /**

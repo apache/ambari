@@ -292,6 +292,20 @@ describe('App.AddSecurityConfigs', function () {
 
   describe('#_getDisplayNameForConfig', function () {
 
+    var configIdentitiesMap = {
+      'otherCoolName__some-site': {
+        displayName: 'otherCoolDisplayName'
+      }
+    };
+
+    beforeEach(function() {
+      sinon.stub(App.config, 'get').withArgs('kerberosIdentitiesMap').returns(configIdentitiesMap)
+    });
+
+    afterEach(function() {
+      App.config.get.restore();
+    });
+
     it('config from `cluster-env`', function () {
       var config = {
         fileName: 'cluster-env',
@@ -299,6 +313,15 @@ describe('App.AddSecurityConfigs', function () {
       };
       var displayName = controller._getDisplayNameForConfig(config.name, config.fileName);
       expect(displayName).to.equal(App.format.normalizeName(config.name));
+    });
+
+    it('config from UI', function () {
+      var config = {
+        fileName: 'some-site',
+        name: 'otherCoolName'
+      };
+      var displayName = controller._getDisplayNameForConfig(config.name, config.fileName);
+      expect(displayName).to.equal('otherCoolDisplayName');
     });
   });
 

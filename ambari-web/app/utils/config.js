@@ -140,6 +140,17 @@ App.config = Em.Object.create({
     return ret;
   }.property('secureConfigs.[]'),
 
+  kerberosIdentities: require('data/HDP2/kerberos_identities').configProperties,
+
+  kerberosIdentitiesMap: function() {
+    var map = {};
+
+    this.get('kerberosIdentities').forEach(function (c) {
+      map[this.configId(c.name, c.filename)] = c;
+    }, this);
+    return map;
+  }.property('kerberosIdentities'),
+
   customStackMapping: require('data/custom_stack_map'),
 
   mapCustomStack: function () {
