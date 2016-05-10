@@ -38,7 +38,7 @@ App.showLogTailPopup = function(content) {
       copyContent: null,
 
       logSearchUrl: function() {
-        var quickLink = App.QuickLinks.find().findProperty('site', 'logsearch-site'),
+        var quickLink = App.QuickLinks.find().findProperty('site', 'logsearch-env'),
             logSearchServerHost = App.HostComponent.find().findProperty('componentName', 'LOGSEARCH_SERVER').get('host.hostName');
 
         if (quickLink) {
